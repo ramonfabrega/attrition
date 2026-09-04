@@ -867,6 +867,52 @@ buildings join the chain, which is why §8 does not claim it.
 
 **The captures that would settle them** are in §9.
 
+## 8.1 The docs-versus-code pass, 2026-09-05
+
+`docs/audit/2026-09-05-collision-vs-code.md` (Opus reader, Opus
+adjudication). About 115 stated rules of §1–§6 traced to the code that
+implements them; ten disagree, all ten confirmed, none struck.
+
+**§4.3's group arm is wrong here, and the code learned the error from it.**
+`Unit::detect_unit_collision@00617060` short-circuits `0` and `0xc` *before*
+the action test, so the kinds gated on "its action ≠ `ATTACK`" are the
+**seven** `1, 2, 3, 4, 0x12, 0x13, 0x15`, and `0xc` is ungated. §4.3 calls
+the gated set "the last four" — `0xc, 0x12, 0x13, 0x15` — and
+`Sim::same_group_soft` implements exactly that, with a further invention of
+its own: it gates on whether the move carries a `GroupMove`, which the
+original never consults, and exempts a plain move from the action test
+altogether. Document, code and original are three different rules. This is
+the shape a test written from the same reading cannot catch, and both sides
+need correcting.
+
+**Half of §6 step 5's wait guard is the same.** The document has the guard
+reading the unit's own wait flag; the original does not, and neither does
+the code — so that half is a document error. The other half is a code
+error: the crate grants a wait where the original refuses one when the
+collider's `collide_o` is negative.
+
+**Eight are stated, unimplemented and unreached.** §6 step 6's `anti` flag
+drops the "and *its* action is `ATTACK`" conjunct
+(`resolve_unit_collision@005f9d30:473-480` is a conjunction; the crate tests
+only its own side, so it plans an anti-unit path wherever the original plans
+a plain one); §6 step 4's sidestep has no `domain == 0` gate, so a sea unit
+sidesteps here; §6 step 4/5's order set is four kinds where the original has
+five, because **`CHANGE_FORM` is not an order kind this crate has at all** —
+and `Unit::do_form_change@005e8670` being on the blind list is the useful
+negative, since the missing kind cannot have cost a frame yet; §6 step 5's
+`CAST_SPELL 0x28a` wait arm is absent; §5.1's `kill_current_order` action
+set omits `TRADE_ROUTE`; §2's region gate also passes when the *cell* has no
+region, where `move_unit`'s only escape is the *figure's* region being
+negative; §6 step 4 additionally writes `has_waypoint` and zeroes
+`tolerance` where the original writes only `+0x2c`/`+0x30`; and the
+occupancy index is keyed on `Unit::pos` where `CollCheck::move_unit`'s only
+caller keys it on the **figure's** position, which lags the unit's point.
+
+None of COLLISION.md's cited addresses is on the 68-trace blind list, so
+every row is "reached" by that list's rule — but that is a fact about the
+*function*, not the arm. Both of §4.3's arms need a marching squad with a
+group-mate, which is the capture §9 already owes.
+
 ## 9. What is not established
 
 - **Where both long words now part, and it is a *position* and not a

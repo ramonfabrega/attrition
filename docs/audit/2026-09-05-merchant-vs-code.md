@@ -243,3 +243,63 @@ them:
   which is where `Unit::init@00612100:548`–`549` puts it; and a tracked
   crew figure is skipped by the unit-level turn override while a trackless
   one is not (`anim.rs:786`–`793`), which is the effect §5 names.
+
+
+## Adjudication — 2026-09-05, Opus
+
+Every row re-checked against the source and, where it turned on the
+original, against the export. **Seven confirmed, none struck.** All seven
+are stated, unimplemented and unreached: the corpus is 1-v-1 with fog on
+both maps, every capture is AI-side, and no leader in any of them has an
+ally holding merchants.
+
+### R1 splits, and only half of it is settled
+
+**The half that is settled needs no enum at all.** The reader's second line
+of evidence checks out from the export directly:
+`ObjectsData::find_unit_ordered@0065bc40` passes the **literal `1`** to
+`Search::valid_search` (`:40`), where `ObjectsData::find_unit@0065ca80`
+passes its own `param_3` (`:58`). Case 1 of `valid_search@0067daa0` is
+`if ((Search *)param_2 != this) return 0` — the iterated leader must *be*
+the asker. So the merchant's **second** friendly search is own-leader-only
+whatever `SEARCH_FRIENDLY` resolves to, and `merchant.rs:205`–`211`'s
+`is_ally` is wrong there outright.
+
+**FABLE: the first search's half is not settled.** It rests on identifying
+`SEARCH_FRIENDLY` as case 1, and the reader's argument for that is a
+complementary-pairs read of the call sites (1↔6, 4↔5, 3↔7) — good
+reasoning, and exactly the kind `CLAUDE.md` says is not enough: *a name is
+settled by the type record, never by the surrounding code.* The export's
+`enums/` holds only `TypeIndex.txt` and `types.txt` has no `SearchIndexBH`
+record, so the mapping is not available here. What would settle it: the
+enumerator's own record via the PDB's field-list type index (the
+`pe-global-table-from-pdb` recipe), or a single call site whose argument is
+a literal beside a comment. Until then search 1 is *probably* wrong in the
+same way and is not asserted to be.
+
+`merchant.rs:217`'s third search — `SEARCH_ENEMY`, case 3, `is_enemy` — is
+right on any reading.
+
+### The rest
+
+R2 (the good's `ever_seen` byte substituted by an ally-masked fog read), R3
+(`Unit::think`'s human rare-collector arm absent; `unpack_merchant` has
+exactly one caller, `merchant.rs:71`, with ring 3), R4 (two ring tests where
+the document has three), R5 (the `unit_masks &= ~0x100` clear absent), R6
+(`think_merchant`'s tail does not clear `unit_masks & 0x4000000`; the
+`0x4000000` that *is* modelled in `crate::lib` and `crate::rares` is a
+`LeaderData` flag, a different bit, so the reader's UNSURE about the setter
+is well placed) and R7 (the Dutch merchant's auto-attack arm — the string
+"dutch" does not appear in `merchant.rs`) are all confirmed as written.
+
+R4, R5 and R7 are already carried as seams in `docs/MERCHANT.md` §7 or at
+the code site. R2, R3 and R6 are not, and are the ones §8 now records.
+
+### A correction to the brief this reader was given
+
+The brief told this reader that `Unit::add_cast_order@005e4a60` was on the
+blind list. It is not — that came from a single-trace run made before the
+68-trace union was built, and the lane carried the stale fact into the
+brief. The reader checked rather than believing it and said so. **No
+MERCHANT.md row is blind**, and the file marks every row reached
+accordingly. The union list itself is correct; only the brief was wrong.

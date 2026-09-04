@@ -502,3 +502,56 @@ appears in `/Users/rf-studio/ron-audit-scratch/blind-all-68traces.txt`, so
 every row above is **reached**: some run on disk has executed the original
 function. (`Unit::do_form_change@005e8670` *is* on that list, which is the
 independent confirmation that R3's `CHANGE_FORM` path has never run.)
+
+
+## Adjudication — 2026-09-05, Opus
+
+Every row's code citation re-checked against the source, and R7's decompile
+quote re-read from the export. **Ten confirmed, none struck.**
+
+### R7 is the row of the wave, because the document taught the code the error
+
+Verified verbatim at `Unit::detect_unit_collision@00617060`, export lines
+366–369:
+
+```c
+else if (((iVar7 == 0) || (iVar7 == 0xc)) ||
+        (((((iVar7 == 1 || ((iVar7 == 2 || (iVar7 == 3)))) || (iVar7 == 4)) ||
+          (((iVar7 == 0x12 || (iVar7 == 0x13)) || (iVar7 == 0x15)))) &&
+         (local_28 != 10)))) goto LAB_00617870;
+```
+
+`0` and `0xc` short-circuit before `&& (local_28 != 10)` is ever evaluated,
+so the gated set is the **seven** — `1, 2, 3, 4, 0x12, 0x13, 0x15` — and
+`0xc` is ungated. §4.3 says the gated four are "the last four", `0xc, 0x12,
+0x13, 0x15`. The document is wrong, and `collide.rs:776`–`796` implements
+the document: `passable && (m.group.is_none() || not_attacking)` exempts a
+plain move from the action test entirely and gates on `m.group`, which the
+original does not consult at all.
+
+So this is a three-way — document wrong, code wrong the same way, original
+different from both — and it is the shape this whole pass exists to find:
+an error that could not be caught by a test written from the same reading.
+Both sides need correcting, and both belong to the main lane.
+
+### The rest
+
+R1 (`find_upath`'s `anti` set from my action alone, dropping "and *its*
+action is ATTACK"), R2 (step 4's sidestep with no `domain == 0` gate), R3
+(the `its_move` set is four kinds and the original's is five —
+`CHANGE_FORM` has no order kind in this crate at all), R4 (step 5's
+`CAST_SPELL 0x28a` wait arm absent), R5, R6, R8 (the wait guard never reads
+the unit's own wait flag — as the original does not either, so that half is
+a document error, and it grants a wait where the original refuses one on a
+negative `collide_o`), R9 and R10 all check out at the lines cited.
+
+`Unit::do_form_change@005e8670` being on the blind list independently
+confirms R3's path has never executed, which is the useful negative: the
+missing kind cannot have cost a frame yet.
+
+### Reachability
+
+None of COLLISION.md's cited addresses is on the 68-trace blind list, so
+every row is "reached" by the list's rule — but that is a statement about
+the *function*, not about the arm. R7's two arms both need a marching squad
+with a group-mate, and §9 already owes the capture that would show them.
