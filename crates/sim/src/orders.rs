@@ -1330,14 +1330,22 @@ impl Sim {
             return;
         }
         let me = Obj::Unit(u);
-        if self.attack_of(me) != 0
-            && (unit.idle == 1 || phase & 0x1f == 0)
-            && unit.combat.stance != combat::Stance::HoldFire
-            && unit.combat.target.is_none()
-            && let Some(t) = self.find_melee_target(u, -1)
-        {
-            self.add_attack_order(u, t, QueuePos::New, false, false);
-            return;
+        // Step 3's own cadence — the first idle frame and then one in
+        // thirty-two, phased by `o` (`think@005f6e40`, the arm at
+        // `5f70fd`). Past it the original enters `Unit::think_attack`,
+        // whose **head** joins an army before its target search ever runs
+        // (`docs/ARMY.md` §4.2): that is how the AI's first soldier gets
+        // into one, and this crate had only the search.
+        if self.attack_of(me) != 0 && (unit.idle == 1 || phase & 0x1f == 0) {
+            self.think_attack_join_army(u);
+            let unit = &self.units[u];
+            if unit.combat.stance != combat::Stance::HoldFire
+                && unit.combat.target.is_none()
+                && let Some(t) = self.find_melee_target(u, -1)
+            {
+                self.add_attack_order(u, t, QueuePos::New, false, false);
+                return;
+            }
         }
         // `005f7195`: a worker whose `think_peasant` **found something**
         // ends the think there — the listing's `goto LAB_005f761a`, which

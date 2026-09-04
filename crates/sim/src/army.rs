@@ -502,6 +502,83 @@ impl Sim {
         }
     }
 
+    /// `Unit::think_attack@005f5a80`'s head — the **sixth** caller of
+    /// [`Sim::add_to_army`], and the one the AI's **first soldier** takes
+    /// (`docs/ARMY.md` §4.2).
+    ///
+    /// It sits before the function's target search, so a military unit
+    /// that reaches `Unit::think`'s auto-attack arm joins an army whether
+    /// or not it finds something to shoot. The listing is
+    /// `llvm-objdump 0x5f5a80..0x5f5db0`, and the gate is five tests:
+    ///
+    /// ```text
+    /// manual = !(unit_masks & 0x40000)                 # not AI-driven
+    /// if !manual and !(leader_flags & 2):   manual = 1 # not in play
+    /// if leader_flags2 & 8:                 manual = 1
+    /// if manual: return                                # 5f5c4d
+    /// range = 0
+    /// if tile(x, y) & 0x100 and cell(x, y).who == who: # my own city's radius
+    ///     find_city(x, y, SEARCH_FRIENDLY, who, 0x200, FILTER_ALL)   # dropped
+    ///     if damage != 0 and ((obj_masks & 0x1020) or healing != 0):
+    ///         range = -1                               # 5f5d10 — stay and heal
+    /// if role & 0x10:            range = -1            # 5f5d49 — a scout
+    /// if type_index in {0x3d, 0x3e, 0x190} or is_caravan(): return
+    /// if range >= 0: army = add_to_army(this)          # 5f5d8c
+    /// ```
+    ///
+    /// `0x1020` is `MOUNTED | FOOT` (`docs/COMBAT.md` §3), `+0x24` is
+    /// `ObjectData::damage` and `+0x38` its `healing`; `role & 0x10` is
+    /// the scout bit the think tail reads too. So **a damaged foot or
+    /// mounted unit standing inside one of its own cities' radius stays
+    /// there** and everything else joins.
+    ///
+    /// Three things in the head are seams: `leader_flags2 & 8`, which no
+    /// capture sets; `ObjectData::healing`, which this crate does not
+    /// carry (it only widens the stay-and-heal arm, and only for a
+    /// damaged unit that is neither foot nor mounted); and the
+    /// `find_city` whose answer the original **discards** — `local_10` is
+    /// written 1 before the call, and the only reader of the call would
+    /// be that variable. The tail's `go_to_city` walk, which that
+    /// variable and the army slot gate, is not modelled.
+    pub(crate) fn think_attack_join_army(&mut self, u: usize) -> Option<usize> {
+        use crate::ai_load::{role, uflags2};
+        use crate::combat::mask;
+        let who = self.units[u].owner;
+        if !self.ai_driven(who) || self.defeated[who as usize] {
+            return None;
+        }
+        let t = self.units[u].ty?;
+        // **Which units enter `think_attack` at all** — `Unit::think`'s
+        // step 3, at `5f7152`: `type.attack != 0` (`+0x1e8`, the base
+        // column, not the runtime stat) **and** `role & 0x10000`, the
+        // military bit. That second half is the whole difference between
+        // a soldier and an armed citizen, and without it this crate
+        // conscripted run53's woodcutters on frame 307. The other arm —
+        // `is(0x3e, 1) && !is_packing_or_unpacking()`, the merchant
+        // lineage's — is a seam; a merchant is filtered again below.
+        if self.unit_types[t].combat.attack == 0 || !self.unit_types[t].cols.is(role::MILITARY) {
+            return None;
+        }
+        let p = self.units[u].pos;
+        // The own-territory arm: inside a city's radius (`tile & 0x100`)
+        // and on a cell my own territory holds.
+        let home = self.world.tile_mask(p.tile()) & crate::world::tile::CITY_RADIUS != 0
+            && self.world.owner_at(p) == crate::world::Owner::Player(who);
+        if home
+            && self.units[u].health < self.units[u].max_health
+            && self.unit_types[t].combat.obj_masks & (mask::FOOT | mask::MOUNTED) != 0
+        {
+            return None;
+        }
+        if self.unit_types[t].cols.is(role::SCOUT) {
+            return None;
+        }
+        if self.is_merchant(u) || self.unit_types[t].cols.flag2(uflags2::CARAVAN) {
+            return None;
+        }
+        self.add_to_army(u)
+    }
+
     /// `Unit::come_out@00617c10`'s tail (`0061a0c5`..`0061a1fb`) — the coin
     /// a unit throws as it steps out of whatever was carrying it, and the
     /// **fifth** of §4's callers.
@@ -2893,6 +2970,73 @@ mod tests {
         let h = put(&mut sim, 1, hero, Pos::new(0x1000, 0x1000));
         sim.think_join_army(h);
         assert!(sim.army_of(h).is_some(), "`is_hero` is the second");
+    }
+
+    /// **`think_attack`'s head is the one an AI soldier takes** (§4.2) —
+    /// the site the think tail's test above says is a different one.
+    ///
+    /// Three gates, each made to fail: a type with an attack but no
+    /// `role & 0x10000` is an armed citizen and does not join (that
+    /// omission was run53's frame 307); a military type does; and a
+    /// **damaged foot** unit standing inside its own city's radius stays
+    /// where it is.
+    #[test]
+    fn think_attack_s_head_joins_a_military_unit_and_leaves_an_armed_citizen() {
+        use crate::ai_load::role;
+        let (mut sim, _c) = sim_with_city();
+        // An attack, and no military bit: `determine_roles`' civilian arm.
+        let armed_citizen = soldier_type(&mut sim);
+        let a = put(&mut sim, 1, armed_citizen, Pos::new(0x1000, 0x1000));
+        assert_eq!(
+            sim.think_attack_join_army(a),
+            None,
+            "`Unit::think`'s step 3 needs `role & 0x10000` as well as the attack"
+        );
+
+        let soldier = sim.add_unit_type(crate::UnitType {
+            hits: 100,
+            combat: crate::combat::Profile {
+                attack: 15,
+                obj_masks: crate::combat::mask::FOOT,
+                uber_size: 1,
+                ..crate::combat::Profile::default()
+            },
+            cols: crate::ai_load::UnitCols {
+                role: role::MILITARY,
+                ..crate::ai_load::UnitCols::default()
+            },
+            ..crate::UnitType::default()
+        });
+        let b = put(&mut sim, 1, soldier, Pos::new(0x1000, 0x1000));
+        assert!(
+            sim.think_attack_join_army(b).is_some(),
+            "a military type with an attack joins on its first idle think"
+        );
+
+        // The stay-and-heal arm: damaged, foot, inside my own city's
+        // radius. Both halves of the territory test have to hold, so the
+        // tile mask and the cell's owner are written together.
+        let c = put(&mut sim, 1, soldier, Pos::new(0x1000, 0x1000));
+        sim.units[c].health -= 1;
+        let p = sim.units[c].pos;
+        sim.world.set_owner(
+            p.cell(),
+            crate::world::Owner::Player(1),
+            crate::world::Owner::None,
+        );
+        sim.world
+            .set_tile_mask(p.tile(), crate::world::tile::CITY_RADIUS);
+        assert_eq!(
+            sim.think_attack_join_army(c),
+            None,
+            "a damaged foot unit at home stays there (`5f5d10`)"
+        );
+        // And the same unit one tile outside the radius does join.
+        sim.world.set_tile_mask(p.tile(), 0);
+        assert!(
+            sim.think_attack_join_army(c).is_some(),
+            "the stay-and-heal arm is the city radius', not the damage's alone"
+        );
     }
 
     #[test]

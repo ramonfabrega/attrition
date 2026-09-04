@@ -333,6 +333,95 @@ AI-controlled siege unit's army when it is fought or damaged;
 and clears `target_o` on every army targeting it;
 **`Cities::capture_city@00733380:250`** → `Armies::update_city` (§15.7).
 
+### 4.2 `think_attack`'s head — how the AI's first soldier joins (2026-09-04)
+
+The **sixth** caller, and the one every capture on disk actually reaches
+first. `Unit::add_to_army@005f7740` is entered on frame **6612** of run53
+(Great Lakes) and **5823** of run54 (East Indies); `Unit::think_attack`
+itself on **6612** and **10187**. Run53's is the AI's free British archer
+squad, born the frame its first Barracks completes (`docs/CITIES.md`
+§4.3), and thirty-eight frames later that squad is marching — which is
+what made the site worth reading.
+
+**Who enters `think_attack` at all.** `Unit::think@005f6e40`'s step 3
+(`docs/ORDERS.md` §2.4), the arm at `5f70fd`, past the first-idle-frame /
+one-in-thirty-two cadence:
+
+```
+if is(0x3e, 1):                                        # the merchant lineage
+    if (unit_masks & 0x80000) and think_merchant(): done
+    if !is_packing_or_unpacking() and think_attack(): done
+if type.attack != 0 and (role & 0x10000): think_attack()      # 5f7152
+```
+
+`+0x1e8` is `attack` (the base column `ObjectData::attack@006469f0` reads
+first) and `role & 0x10000` is the **military** bit. Both halves matter:
+an armed citizen has the first and not the second, and taking only the
+first put this crate's woodcutters in an army on frame **307** of run53.
+
+**The head, and its five gates** (`llvm-objdump 0x5f5a80..0x5f5db0`; the
+decompiler drops the `esi` dance that carries the answer):
+
+```
+manual = !(unit_masks & 0x40000)                       # not AI-driven
+if !manual and !(leader_flags & 2):   manual = 1       # not in play
+if leader_flags2 & 8:                 manual = 1
+if manual: goto find_melee_target                      # 5f5c4d — no army
+range = 0
+if tile(x, y) & 0x100 and cell(x, y).who == who:       # inside my own city's radius
+    find_city(x, y, SEARCH_FRIENDLY, who, 0x200, FILTER_ALL)     # answer discarded
+    if damage != 0 and ((obj_masks & 0x1020) or healing != 0):
+        range = -1                                     # 5f5d10 — stay and heal
+    else:
+        weak = leader.strategy[my region] & 4          # dead: see below
+if role & 0x10:                       range = -1       # 5f5d49 — a scout
+if type_index in {0x3d, 0x3e, 0x190} or is_caravan(): skip
+elif range >= 0:  army = add_to_army(this)             # 5f5d8c
+```
+
+`0x1020` is `MOUNTED | FOOT` (`docs/COMBAT.md` §3), `+0x24` is
+`ObjectData::damage` and `+0x38` its `healing`. So the only unit the head
+turns away, once it is AI-driven and military, is **a damaged foot or
+mounted unit standing inside one of its own cities' radius** — it stays
+to heal.
+
+Two readings the listing settles and the decompiler does not:
+
+- **`weak` is dead.** The decompiler prints `if (bVar17) iVar7 = -1;`
+  after the join, which reads as a sixth gate. It is not: every path
+  through the block reaches `5f5d94`'s `or esi, -1` or jumps past it with
+  `esi` already negative, so the argument `find_melee_target` is handed
+  is `-1` on **every** path of the function, and the weak-region flag
+  changes nothing. The whole `range` variable exists to gate the
+  `add_to_army` call and nothing else.
+- **The `find_city` answer is discarded.** `local_10` is written `1` at
+  `5f5ce8`, *before* the call at `5f5cef`, and `eax` is never read. The
+  flag is "I am standing in my own territory", not "a city was found",
+  and the call is the original's own dead code. Its only reader is the
+  function's tail — `go_to_city`, which fires when the unit is not at
+  home, joined no army and found no target, and which this crate does not
+  model.
+
+**What this crate carries** (`Sim::think_attack_join_army`, called from
+`Unit::think`'s step 3 in `crates/sim/src/orders.rs`): the whole gate but
+`leader_flags2 & 8` (no capture sets it), `ObjectData::healing` (not a
+field here — it only widens the stay-and-heal arm, and only for a damaged
+unit that is neither foot nor mounted), the merchant-lineage entry arm,
+and the tail's `go_to_city`. `think_attack_s_head_joins_a_military_unit_
+and_leaves_an_armed_citizen` is the unit test.
+
+**What it buys, and what it does not.** With the join, run53's archer
+squad is in leader 1's **army 1** — every army being empty,
+`find_local_army`'s `90,000,000` and its `<=` hand the last valid slot the
+win (§15.2) — and that army's tick is `frame ≡ 250 (mod 256)`, which is
+6650. There `Army::do_forming` (§8) issues
+`Group::action_siege_attack_to`, and the original spends **one**
+`Unit::do_move+0xe84`. This crate spends **three**, because it stands a
+group move up as N independent moves (`docs/ORDERS.md` §8.4) and every
+member calls `do_move`; in the original only the *leader* does and the
+followers take `move_step`. So the word is still 6650, and what stands
+there now is `Unit::do_group_move` rather than the missing order.
+
 ## 5. The frame hook and the cadence
 
 **`Game::do_frame@00591ef0:272`**: after `Leaders::strategy_all` and
