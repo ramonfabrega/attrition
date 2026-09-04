@@ -2153,6 +2153,52 @@ mod tests {
         assert!(!p.obs[f.hoplites]);
     }
 
+    /// **The opening unit set is a function of the nation.** `Leader::init`
+    /// gives a unit type its bit on `has_preq` *and* `tribe_can_type`, so
+    /// two leaders of the same tree and the same age start owning different
+    /// units — the generic line for a nation with no variant, the variant
+    /// for the one that has it, and never both. `rondata::diff::build_sim`
+    /// laid the position down before it had read the dump's `tribe` until
+    /// 2026-09-04 (`docs/TECH.md`, "The starting position is a function of
+    /// the nation"), which is what this pins.
+    #[test]
+    fn the_starting_units_follow_the_leader_s_nation() {
+        let f = fixture();
+        let mut tree = f.tree.clone();
+        // A generic Ancient unit whose mask clears tribe 0, and tribe 0's
+        // own variant of it — `Slingers` and `Atl-Atls`, in miniature.
+        let generic = tree.add(TypeDef::unit("Slingers", H).at(f.barracks).tribes(!1u32));
+        let variant = tree.add(TypeDef::unit("Atl-Atls", H).at(f.barracks).tribes(1));
+        let s = Setup::STANDARD;
+
+        let lay = |tribe: usize| {
+            let mut p = PlayerTech::new(&tree);
+            p.tribe = tribe;
+            p.power = Some(tribe);
+            tree.start(&s, &Tuning::RON, &mut p);
+            p
+        };
+        // Tribe 11 owns the generic one and not the variant…
+        let british = lay(11);
+        assert!(british.tech[generic] && british.tech_at_start[generic]);
+        assert!(!british.tech[variant]);
+        // …and tribe 0 the other way round. Both own Hoplites, which no
+        // nation substitutes — so the difference is the mask and not the
+        // seeding.
+        let aztec = lay(0);
+        assert!(!aztec.tech[generic]);
+        assert!(aztec.tech[variant] && aztec.tech_at_start[variant]);
+        assert!(british.tech[f.hoplites] && aztec.tech[f.hoplites]);
+
+        // And the consequence the AI reads: what a leader does not own is
+        // `RESEARCHABLE` rather than `AVAILABLE`, which is what put two
+        // Barracks types in front of `Leader::upgrade_units` on run53's
+        // frame 6779.
+        assert_eq!(tree.type_avail(&s, &british, generic, true), AVAILABLE);
+        assert_eq!(tree.type_avail(&s, &aztec, generic, true), NOT_AVAILABLE);
+        assert_eq!(tree.type_avail(&s, &british, variant, true), NOT_AVAILABLE);
+    }
+
     #[test]
     fn a_medieval_start_owns_two_ages_and_the_age_only_techs() {
         let f = fixture();

@@ -62,6 +62,16 @@ use crate::economy::RESOURCES;
 use crate::tech::{self, TypeId};
 use crate::{Player, Sim};
 
+/// The wonder arm's two draw sites, under the original's own offsets: the
+/// `% 1000` and the `% 300` that scale a wonder's value when no wonder
+/// victory is on and nobody is winning one. They are the return addresses
+/// of two consecutive `call Random::get` in the listing (`6c2bd6` and
+/// `6c2bf2`, five bytes each), and the marks are what let the trace's
+/// sequence name them rather than the sweep they run under
+/// (`rondata::trace::SITES`).
+pub const SITE_WONDER_MOD: &str = "Leader::create_buildings+0xffb";
+pub const SITE_WONDER_SCALE: &str = "Leader::create_buildings+0x1017";
+
 /// What one type's value pipeline produced for one city, before
 /// `check_income` and `make_me`.
 struct Listing {
@@ -1256,7 +1266,9 @@ impl Sim {
                 *escrow = 1;
                 2_000_000
             } else {
+                self.mark(SITE_WONDER_MOD);
                 let r1 = self.rng.roll();
+                self.mark(SITE_WONDER_SCALE);
                 let r2 = self.rng.roll();
                 (team_value + 1)
                     .wrapping_mul(ev + 1)

@@ -639,6 +639,25 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
         }
     }
 
+    // **And the starting position is re-laid, now that the nations are
+    // known.** `Loaded::sim` calls `Sim::start_techs` for every player as
+    // it builds them, which is before this function has read a single
+    // `LEADER` record — so every leader's opening tech set was computed
+    // for `tribe = 0`, the Aztecs. `Leader::init` sets the nation first
+    // and its unit arm is `has_preq && tribe_can_type` (`docs/TECH.md`,
+    // "The starting position"), so the bits are a *function* of the
+    // nation: the British AI of run53 started owning **Atl-Atls**, the
+    // Aztec light-infantry variant, and not **Slingers**, whose
+    // `TRIBE_MASK` excludes the Aztecs. Nothing here draws, and the
+    // players are still empty — the cities and units below are placed
+    // after this — so the honest fix is to lay them down again against
+    // the leader's real tribe. The lobby is installed above too, so this
+    // also gives `starting_age` the dump's own value rather than the
+    // default.
+    for who in 0..players {
+        sim.start_techs(who as sim::Player);
+    }
+
     // The opening scripts, compiled against the host's table
     // (`Leaders::init_production_script`), then `Leader::init`'s AI tail for
     // every computer leader: the personality roll and the script choice.
@@ -3194,6 +3213,66 @@ mod tests {
     use sim::ai::{MAKE_SLOTS, MakeObject};
 
     use crate::testenv::{dump, install};
+
+    /// **A leader's opening unit set is its own nation's** — the ordering
+    /// [`build_sim`] had wrong until 2026-09-04.
+    ///
+    /// `Loaded::sim` lays the starting position down as it builds the
+    /// players, which is before this function has read a `LEADER` record,
+    /// so every capture opened with its leaders' unit bits computed for
+    /// `tribe = 0`. run53's AI is British (tribe 11) and its light
+    /// infantry is the generic `Slingers`, whose `TRIBE_MASK` clears the
+    /// Aztec bit; `Atl-Atls` is the Aztec variant and carries mask `0x1`.
+    /// Before the fix the British AI owned `Atl-Atls` and not `Slingers`,
+    /// which made `Slingers` `RESEARCHABLE` and put it in front of
+    /// `Leader::upgrade_units` — two draws on frame 6779
+    /// (`docs/TECH.md`, "The starting position is a function of the
+    /// nation").
+    ///
+    /// This asserts the state rather than the frame, because the frame is
+    /// four thousand ticks downstream of it and says nothing about why.
+    #[test]
+    fn a_leader_s_opening_units_are_its_own_nation_s() {
+        let Some(inst) = install() else { return };
+        let Some(path) = dump("gamelog-run53-greatlakes-24k-trace.txt") else {
+            eprintln!("skipping: no run53 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = std::fs::read_to_string(&path).unwrap();
+        let log = Log::parse(&text);
+        let built = build_sim(&loaded, &log.initial().unwrap(), Tuning::RON);
+        let tree = &built.sim.tech_tree;
+        let id = |name: &str| {
+            tree.types
+                .iter()
+                .position(|d| d.name == name)
+                .unwrap_or_else(|| panic!("no {name} in the tree"))
+        };
+        let (slingers, atlatls) = (id("Slingers"), id("Atl-Atls"));
+        assert_eq!(tree.types[atlatls].tribe_mask, 1, "Atl-Atls is the Aztecs'");
+        assert_eq!(
+            tree.types[slingers].tribe_mask & 1,
+            0,
+            "and Slingers is not"
+        );
+        // Player 1 is the British AI, player 0 the Nubian human; neither
+        // is the Aztecs, so neither owns Atl-Atls and both own Slingers.
+        assert_eq!(built.sim.tech[1].tribe, 11, "run53's AI is British");
+        for who in 0..2 {
+            let p = &built.sim.tech[who];
+            assert!(
+                p.tech[slingers] && p.tech_at_start[slingers],
+                "player {who} (tribe {}) does not start with Slingers",
+                p.tribe
+            );
+            assert!(
+                !p.tech[atlatls],
+                "player {who} (tribe {}) starts with the Aztecs' Atl-Atls",
+                p.tribe
+            );
+        }
+    }
 
     /// The queue's handoff states the floors, verbatim — the `Scoreboard:`
     /// line against [`FLOORS`]. Static: no install, no dump, every machine.
@@ -14178,11 +14257,43 @@ mod tests {
     /// (the shape was implemented and the table was never loaded) and
     /// `Gained::UnitUpgrade` had no consumer. `docs/TECH.md` §7, §13.
     ///
-    /// **6779**, and it is the AI's own sweep: two draws inside
-    /// `strategy_all` that the original does not spend, on a frame that is
-    /// nobody's phase. The AI owns Archers now, so what it asks its
-    /// production for has changed.
-    const LONG_WORD_GREAT_LAKES: i64 = 6779;
+    /// **6779 for a session**, and it was the AI's own sweep: two draws
+    /// inside `strategy_all` the original does not spend, on the machine's
+    /// **step 5** — `upgrade_units`, one roll per eligible type. The two
+    /// types were **Slingers** and **Javelineers**, and the reason they
+    /// were eligible is not in the AI at all.
+    ///
+    /// `Leader::init` lays the starting position down **after** the
+    /// leader's nation is set, and its unit arm is `has_preq &&
+    /// tribe_can_type` (`docs/TECH.md`, "The starting position"), so which
+    /// unit types a player owns at frame 0 is a *function of the nation*.
+    /// This harness had the order the other way round: [`build_sim`] calls
+    /// `Loaded::sim`, which calls `Sim::start_techs` for every player, and
+    /// only then reads the `LEADER` records and calls `Sim::set_tribe`. So
+    /// every capture was built with its leaders' opening tech set computed
+    /// for **`tribe = 0`, the Aztecs**. run53's British AI started owning
+    /// `Atl-Atls` — the Aztec light-infantry variant, `TRIBE_MASK 0x1` —
+    /// and *not* `Slingers`, whose mask excludes the Aztecs; Slingers was
+    /// therefore RESEARCHABLE rather than AVAILABLE, and Javelineers
+    /// behind it, so `upgrade_units` offered both the moment the AI's
+    /// Barracks finished. The starting position is now re-laid once the
+    /// nations are known, and the two draws are gone.
+    ///
+    /// Three unnamed sites were named in the same pass, because the AI's
+    /// draws all read as the coarse `strategy_all` mark and any one of
+    /// them parted the *sequence* a frame after the count: the matchup
+    /// bias in `create_units` and in `upgrade_units`
+    /// ([`sim::ai_units::SITE_UNIT_BIAS`], [`sim::ai_units::SITE_UPGRADE_BIAS`])
+    /// and `create_buildings`' wonder pair
+    /// ([`sim::ai_build::SITE_WONDER_MOD`], [`sim::ai_build::SITE_WONDER_SCALE`]).
+    ///
+    /// **6782**, and it is a building this crate buys and the original
+    /// does not. Both sides spend `make_stuff`'s two `+0x221` expiry draws
+    /// over the head's type; the original then stops, and this crate goes
+    /// on to `produce_building` — two `+0x1805` jitter draws — and to the
+    /// two `+0x63d` expiries over the slot it just bought. So the head of
+    /// the make list is the same and the *buy* is not.
+    const LONG_WORD_GREAT_LAKES: i64 = 6782;
 
     /// The frame the AI's library takes its **Coinage** job on, and the
     /// frame run58's `QUEUE` record used to part on: twenty-four rows of
@@ -20602,6 +20713,14 @@ mod army_tests {
                 t.military = l.leader_flags & 0x200 != 0;
                 t.scout = l.leader_flags & 0x400 != 0;
             }
+        }
+        // And the starting position again, now that the nations are known
+        // — the same ordering `build_sim` fixes, for the same reason: a
+        // scene's tech state is `Leader::init`'s and nothing restores a
+        // mid-game one, so laying it for `tribe = 0` would give every
+        // leader the Aztecs' unit variants.
+        for who in 0..players {
+            sim.start_techs(who as sim::Player);
         }
         // The `LEADERDATA` words `find_target` reads (`docs/ARMY.md` §12):
         // the diplomacy table (0 war, 1 peace, 2 allied; the diagonal is

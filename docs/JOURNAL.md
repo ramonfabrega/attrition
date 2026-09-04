@@ -15901,3 +15901,74 @@ does not read like one: `docs/TECH.md` listed `Unit::set_type` under "what
 is not established" and said nothing at all about `free_rules` being
 empty. **Where a document names a mechanism, it should say whether
 anything calls it.**
+
+## 2026-09-04 — item 221: the nation a leader starts as (Great Lakes 6779 → 6782, Opus)
+
+The word was two draws inside `strategy_all` on a frame that is nobody's
+phase, and the queue's guess was that the AI, having just gained Archers,
+was asking its production for something else. It was asking for something
+else. What it was asking *from* was wrong four thousand frames earlier.
+
+**The step, then the types, then the seeding.** A print of the step
+machine over 6770–6790 put 6779 on **step 5**, `upgrade_units`, whose
+only draw is one matchup roll per eligible type; a print of the loop named
+the two — **Slingers** and **Javelineers**. Both had become eligible when
+the AI's Barracks finished at 6612, and both were eligible only because
+`Slingers` read `RESEARCHABLE` rather than `AVAILABLE`: a type the leader
+could research, with a predecessor chain that owns nothing and offers
+nothing, is exactly what the original's `owned != 0 || !avail || siege`
+gate lets through.
+
+**A British leader that started the game owning Atl-Atls.** The tech
+tree's own dump said why. `Slingers`' `TRIBE_MASK` is `0xfffff4` — bits 0
+and 1 cleared, because the Aztecs and the Maya have their own variants —
+and `Atl-Atls`, mask `0x1`, was marked researched **and** started, for a
+leader whose tribe is 11. `Leader::init` sets the nation first and its
+unit arm is `has_preq && tribe_can_type`, so the opening tech set is a
+function of the nation; `rondata::diff::build_sim` called `Loaded::sim`,
+which calls `Sim::start_techs` for every player, and only afterwards read
+the dump's `LEADER` records to call `Sim::set_tribe`. **Every capture ever
+built in this harness opened with its leaders' unit bits laid down for
+`tribe = 0`.**
+
+The fix is four lines and no new rule: lay the starting position again
+once the nations are known. `scene_at` had the same order and takes the
+same; it also puts the lobby's `starting_age` in front of the seeding,
+which `Loaded::sim` cannot know either. Nothing draws in `start_techs` and
+the players are still empty when it runs, so it is a re-lay and not a
+replay.
+
+**Three sites named, because the instrument was the second half of the
+number.** With the ordering fixed the *count* moved to 6782 and the
+*sequence* stopped at 6780 — on a frame where both sides spend the same
+eight draws. Every AI draw reached the comparison under the coarse
+`strategy_all` mark, so the first producer draw the original also spends
+parts the sequence whatever happens. Four addresses, all return addresses
+of a `call Random::get` in the listing, now carry the mark that spends
+them: `create_units+0x642`, `upgrade_units+0x5a4` and
+`create_buildings`' wonder pair `+0xffb`/`+0x1017` (`docs/AI.md` §28).
+Naming three of the four lifted the sequence 6780 → 6781 → 6782, where it
+meets the count.
+
+**What it moved.** Great Lakes **6779 → 6782**, by draw and by sequence.
+East Indies unmoved at 7448, and the other 203 checks unmoved with them —
+which is itself the finding's size, since re-seeding every leader's
+opening tech set could have moved anything. What stands at 6782 is a
+building this crate buys and the original does not: both spend
+`make_stuff`'s two `+0x221` expiries over the head's type, and only this
+crate goes on to `produce_building` and to the two `+0x63d` expiries over
+the slot it bought. The head of the make list agrees; the buy does not
+(item 222).
+
+**The lesson.** The wrong thing was not in the mechanic the word pointed
+at, and it was not subtle once looked at: a British leader owned an Aztec
+unit from frame 0, in a field a `#[test]` could have read at any time in
+the last month. What hid it is that the seeding is *silent* — no
+assertion, no dump comparison, and every visible consequence four
+thousand frames downstream. `rondata::diff` compares what the original
+prints; the original never prints a leader's opening tech set, so nothing
+here was ever going to notice. **Where the harness computes a starting
+state the dump does not carry, the order it computes it in is a fact
+nobody is checking** — and this is the second such ordering (the first
+was `diplos`, installed 2026-09-02 after forty-six readers had run
+against an all-peace matrix).

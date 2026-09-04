@@ -32,6 +32,16 @@ use crate::tech::{self, TypeId};
 use crate::world::Terrain;
 use crate::{Player, Sim, combat};
 
+/// The two matchup-bias draw sites, under the original's own offsets. Both
+/// are `Random::get(0, 0xffff)` taken `% 3` over `unit_prod_value`, and the
+/// module doc above says which branch each sits in; the mark is what lets
+/// the trace's sequence name them instead of the sweep they run under
+/// (`crate::mark`, `rondata::trace::SITES`). The addresses are the return
+/// addresses of the two `call Random::get` in the listing — `6c46dd` and
+/// `6c69cf`, both five bytes long.
+pub const SITE_UNIT_BIAS: &str = "Leader::create_units+0x642";
+pub const SITE_UPGRADE_BIAS: &str = "Leader::upgrade_units+0x5a4";
+
 /// The goods, in `TypeIndex` order — the order `econ`, `income` and the
 /// gather-slot arrays are kept in.
 const FOOD: usize = 0;
@@ -636,6 +646,7 @@ impl Sim {
                         if d == 0 || d > 2 {
                             pv = pv * 3 / 2;
                         }
+                        self.mark(SITE_UNIT_BIAS);
                         let roll = self.rng.roll();
                         pv = (roll % 3 + 4) * pv / 5;
                         if d < 2 {
@@ -1657,6 +1668,7 @@ impl Sim {
                 if d == 0 || d > 2 {
                     pv = pv * 3 / 2;
                 }
+                self.mark(SITE_UPGRADE_BIAS);
                 let roll = self.rng.roll();
                 pv = (roll % 3 + 4) * pv / 5;
                 if d < 2 {

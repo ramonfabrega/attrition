@@ -77,6 +77,14 @@ pub const SITES: &[(u32, Option<u32>, &str)] = &[
     // the head's type and step 6's over a bought slot's (`docs/AI.md` §2.6).
     (0x006c_8d11, None, sim::ai_make::SITE_EXPIRE_HEAD),
     (0x006c_912d, None, sim::ai_make::SITE_EXPIRE_SLOT),
+    // `Leader::create_units@006c40a0` and `Leader::upgrade_units@006c6430`
+    // — the matchup bias over `unit_prod_value`, one draw per candidate,
+    // and none on difficulty 2 (`docs/AI.md` §11).
+    (0x006c_46e2, None, sim::ai_units::SITE_UNIT_BIAS),
+    (0x006c_69d4, None, sim::ai_units::SITE_UPGRADE_BIAS),
+    // `Leader::create_buildings@006c1be0` — the wonder arm's pair.
+    (0x006c_2bdb, None, sim::ai_build::SITE_WONDER_MOD),
+    (0x006c_2bf7, None, sim::ai_build::SITE_WONDER_SCALE),
     // `Leader::produce_building@006e1400` — the spiral's score and the
     // 2×2 jitter's.
     (0x006e_2099, None, sim::ai_place::SITE_SPIRAL),

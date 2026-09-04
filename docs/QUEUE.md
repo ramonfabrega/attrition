@@ -12,33 +12,32 @@ lines, or lets the handoff pass 32.
 
 ## Where things stand
 
-*2026-09-04, Opus — item 218 landed.* **Great Lakes 6736 → 6779; East
-Indies unmoved at 7448.** No capture: the trace's own call stack named
-the mechanic in one line.
+*2026-09-04, Opus — item 221 landed.* **Great Lakes 6779 → 6782; East
+Indies unmoved at 7448.** No capture, no reading: the two draws named a
+step, the step named two unit types, and the types named an ordering bug
+in this harness.
 
-- **6736 was not a unit arriving, it was three converting.** The stack
-  reads `Guy::init_real+0x52 < Unit::set_type+0x40c < Leader::gain_tech
-  +0x1071`, and `set_type`'s first guy loop can run at most once a call —
-  `guy_mark` is clamped to `squad_size`, which is 1 for every type — so
-  three draws is three **objects**.
-- **The frame is the AI's Classical Age, and its leader is British.**
-  `gain_tech` step 13's `BRITISH_ARCHER_UPGRADES` block hands it
-  **Archers** free, and step 7's object half converts the three standing
-  Bowmen in place. Both halves were half-built: `free_rules` had a shape
-  and an **empty table**, and `Gained::UnitUpgrade` had a producer and no
-  consumer (TECH, "The conversion, landed").
-- **Five of §13's blocks are loaded and twenty are not.** The five are the
-  ones whose candidates are a predicate over unit types; the rest name a
-  run of tech indices whose endpoints are each their own reading, and no
-  capture reaches any of them (220).
+- **6779 is step 5, `upgrade_units`, one roll per eligible type**, and
+  the two were **Slingers** and **Javelineers** — eligible the moment the
+  Barracks finished, because Slingers read RESEARCHABLE not AVAILABLE.
+- **The starting position is a function of the nation, and it was laid
+  for the wrong one.** `Leader::init` sets the tribe first and its unit
+  arm is `has_preq && tribe_can_type` (TECH, "The starting position");
+  `build_sim` called `Loaded::sim` — which calls `start_techs` — before
+  reading a `LEADER` record, so **every capture ever built here opened
+  with its leaders' tech computed for `tribe = 0`**: the British AI owned
+  `Atl-Atls` (mask `0x1`), not Slingers. Re-laid after; `scene_at` too.
+- **Three sites named in the same pass**, since every AI draw read as the
+  coarse `strategy_all` mark: the matchup bias in `create_units`
+  (`+0x642`) and `upgrade_units` (`+0x5a4`), and the wonder pair.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w7448 of 24,000 · GreatLakes w6779 of 24,000
+Long captures: EastIndies w7448 of 24,000 · GreatLakes w6782 of 24,000
 
-**Opener (Opus):** `221 is the default: run53 frame 6779, two draws
-inside `strategy_all` the original does not spend, on a frame that is
-nobody's phase. The AI owns Archers now and asks its production for
-something else. AI §2.4, §2.6.`
+**Opener (Opus):** `222 is the default: run53 frame 6782, a building this
+crate buys and the original does not. Both spend make_stuff's two +0x221
+expiries over the head's type; only this crate goes on to
+produce_building. The head is the same, the buy is not. AI §2.6, §2.11.`
 
 ## The queue
 
@@ -47,21 +46,22 @@ captures' word**, lower map first — Great Lakes. Take the first unstarted
 unless a better order is obvious — and say so. Numbers are stable; the
 journal is indexed by them.
 
-221. **Great Lakes' word is two draws inside the AI's sweep, at 6779.**
-    Ours `strategy_all` twice, the original none; 6779 is nobody's phase
-    frame, so it is a step of the machine, and what it asks for changed
-    when the AI gained Archers (AI §2.4, §2.6).
+222. **Great Lakes' word is a building bought at 6782 the original does
+    not buy.** Both spend `make_stuff`'s two `+0x221` expiries over the
+    head's type; only this crate reaches `produce_building` (`+0x1805`
+    ×2) and the two `+0x63d` over the slot. The head agrees; the **buy**
+    does not — an affordability or a `make_this` gate (AI §2.6, §2.11).
 
 220. **§13's twenty range blocks.** Every free-upgrade row whose
     candidates are a run of tech indices — Chinese herbal lore, the Red
     Fort's two, the four `TwoPreq` unit-line blocks, the temple and
-    taxation lines, the wonders — is unloaded; each endpoint is a
-    separate reading and no capture reaches one (TECH §13).
+    taxation lines, the wonders — is unloaded; each endpoint its own
+    reading, and no capture reaches one (TECH §13).
 
 219. **`do_group_move`'s four remaining seams** (ORDERS §15): the flock
-    an invalid slot near an ocean cell adds — **one sync-stream draw**, so
-    it is the one with teeth — `cavarch_fight`, the group's speed pair and
-    the cap that reads it, and the attack hand-offs.
+    an invalid slot near an ocean cell adds — **one sync draw**, so it is
+    the one with teeth — `cavarch_fight`, the group's speed pair and its
+    cap, and the attack hand-offs.
 
 214. **East Indies' word is two blocked stands, at 7448.** Two
     `Unit::move_step+0x823` (`SITE_BLOCKED`, COLLISION §5) where this crate

@@ -3461,3 +3461,41 @@ stay 0 wrong, run59's census stays where it was.
 - **The other readers of `pop`.** Only `create_units` and `research_techs`
   are cited here. `Leader::plan_strategy@006b9620:1202` reads it too
   (against `+0x848`), and that comparison is unmodelled.
+
+---
+
+## 28. The producers' four draw sites, named (2026-09-04)
+
+Every draw the production sweep takes reached the trace's comparison
+under one coarse label — `strategy_all`, the mark `Sim::do_frame` writes
+before `Leaders::strategy_all`. That is enough for a *count* and useless
+for a *sequence*: the moment a producer spent a draw the original also
+spent, the two `Vec<String>`s parted at that index anyway, so run53's
+sequence number could never lead its count. Four sites are named now,
+each the return address of a `call Random::get` in the listing:
+
+| site | function | what it is |
+| --- | --- | --- |
+| `006c46e2` | `create_units+0x642` | the matchup bias over `unit_prod_value`, one per (city, military type) reaching it |
+| `006c69d4` | `upgrade_units+0x5a4` | the same bias, one per eligible type |
+| `006c2bdb` | `create_buildings+0xffb` | the wonder arm's `% 1000` |
+| `006c2bf7` | `create_buildings+0x1017` | and its `% 300` |
+
+The first two are §2.18's and §2.16's; the pair is §2.19's wonder arm,
+which fires only when no wonder victory is on and nobody is winning one.
+None of the four draws on difficulty 2.
+
+### 28.1 Coverage
+
+**Diff-backed.** Three of the four are exercised by run53 inside 6,782
+frames — `create_units+0x642` on 6780 and the wonder pair on 6781 — and
+naming them moved the long capture's *sequence* number from 6780 to
+6782, where it now meets the count. The constants live beside the code
+that spends the draw ([`sim::ai_units`], [`sim::ai_build`]) and the
+addresses in `rondata::trace::SITES`, per that table's own rule.
+
+**Not established.** `upgrade_units`' site has never fired in the
+original on any capture here — it is named against the listing, and the
+frame that would exercise it is the frame this crate stopped spending it
+on (`docs/TECH.md`, "The starting position is a function of the
+nation"). If it ever fires on both sides, the label is what will say so.

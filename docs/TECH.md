@@ -725,6 +725,47 @@ allowed grants it at once and queues nothing.
 
 ---
 
+## The starting position is a function of the nation — 2026-09-04
+
+The section above says every **unit** type with `has_preq` *and*
+`tribe_can_type` gets its bit at `Leader::init`. That makes the opening
+tech set a function of the leader's nation, and this harness computed it
+before it had read one: `rondata::diff::build_sim` calls `Loaded::sim`,
+which calls `Sim::start_techs` for every player, and only afterwards
+walks the dump's `LEADER` records to `Sim::set_tribe`. So **every capture
+ever built here opened with its leaders' unit bits laid down for
+`tribe = 0`, the Aztecs**.
+
+What that costs is visible in one line of a type dump. run53's AI is
+British and its light-infantry line is the generic one:
+
+| type | `TRIBE_MASK` | seeded for tribe 0 | correct for tribe 11 |
+| --- | --- | --- | --- |
+| `Slingers` (82) | `0xfffff4` | not owned | **owned** |
+| `Atl-Atls` (85) | `0x1` | **owned** | not owned |
+
+`Slingers`' mask clears bits 0 and 1 because the Aztecs and the Maya have
+their own variants; `Atl-Atls` is the Aztec one. So the British AI began
+the game owning a unit no British player can build and *not* owning the
+one it can — which made `Slingers` `RESEARCHABLE` rather than
+`AVAILABLE`, and `Javelineers` behind it likewise, and both eligible to
+`Leader::upgrade_units` the moment the AI's Barracks finished. Two draws
+the original does not spend, on run53's frame 6779.
+
+The fix is the ordering, not the rule: the starting position is laid
+again once the nations are known, and `scene_at` — which restores no
+mid-game tech state, so its bits are `Leader::init`'s too — takes the
+same. It also puts the lobby's `starting_age` in front of the seeding,
+which was the second thing `Loaded::sim` could not have known.
+
+**Diff-backed**: `diff::tests::run53_s_24000_frames_put_the_ceiling_where_
+run33_did`, whose word moved 6779 → 6782 on this alone. **Not
+established**: whether any *other* nation's opening set differs from the
+Aztecs' in a way a capture on disk would show — every capture here is
+British and Nubian, and this fix is the first thing that has ever asked.
+
+---
+
 ## Two questions this answers for the other documents
 
 - `docs/PRODUCTION.md` asks what writes the bit at `leader + 0x6c18` and what
