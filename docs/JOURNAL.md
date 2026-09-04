@@ -16071,17 +16071,34 @@ Stanza **run 76** is booked in `tools/gamelog/captures.txt` — run75's
 recipe with `frame_window 6640 6870`, opened before `Army::do_forming`
 issues the group order on 6650 so the whole march is on disk.
 
-**And the lane was nearly written off on the wrong evidence.** `cliclick
-p` from a Claude Code shell answers *"WARNING: Accessibility privileges
-not enabled"*, and this session read that as a permission-shaped failure,
-wrote it into three documents and prepared to hand the turn back. It is
-not the lane's answer: the capture runs through `~/bin/RonDriver.app`
-(`tools/gamelog/viadriver.sh`), a fixed path that holds the three grants
-permanently, and its own probe reported *"synthetic move landed"* on the
-first try. The rule already existed in this session's memory — **probe
-the lane by launching it, not by testing Claude Code's own binary** — and
-was reached for one step too late. A warning printed by the wrong process
-is not evidence about a different one.
+**The lane was written off twice on the wrong evidence, and it was
+neither.** First `cliclick p` from a Claude Code shell answers *"WARNING:
+Accessibility privileges not enabled"*, and this session read that as a
+permission-shaped failure and wrote it into three documents. It is not the
+lane's answer — the capture runs through `~/bin/RonDriver.app`, a fixed
+path holding the three grants, and its own probe reported *"synthetic move
+landed"* on the first try; the rule already existed in memory (**probe the
+lane by launching it**) and was reached for one step late.
+
+Then both launches stalled in `waitwin.sh` anyway: game alive, every wine
+thread at 0 % CPU, `wineserver` idle in its select loop, no `gamelog.txt`,
+and `tccd`'s log clean. That reads exactly like run74's unanswered
+Documents prompt, and it is not that either. One line answered it —
+`System Events`, from inside RonDriver's domain, asked for the windows of
+the visible wine app:
+
+    windows of wineloader: [Expired Bottle: ron]
+
+**CrossOver's bottle licence has expired.** The dialog blocks the game
+before it creates a window, so the whole capture lane is down until a
+human renews it, and run 76 could not be taken. `docs/ORACLE.md`, "The
+window nobody can see", carries the probe.
+
+The lesson under both is one lesson: *a stall is not a diagnosis, and
+neither is a warning printed by a different process.* `sample`, the TCC
+log and `cliclick` all had something plausible to say here and all three
+were wrong; the window title was right and cost a line. Ask the thing
+that is stuck what it is showing, first.
 
 **One reading landed on the way, and it is inert.**
 `UnitData::is_corner@0060a040` is not the unit's own block:

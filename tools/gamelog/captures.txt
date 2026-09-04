@@ -922,3 +922,8 @@ settle_min: 14000000
 poll_max: 220
 # Same game: the trace word for word against run53 (run74's line).
 check: python3 tools/gamelog/rngcmp.py rontrace-run53.log rontrace-run76.log
+# NOT TAKEN 2026-09-04: two launches stalled before the game's window
+# existed. The cause is not the port and not a macOS grant — CrossOver's
+# licence for the `ron` bottle has expired, and the only window the visible
+# wine app has is titled `Expired Bottle: ron`. Renew CrossOver, then this
+# stanza runs unchanged. `docs/ORACLE.md`, "The window nobody can see".

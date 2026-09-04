@@ -913,11 +913,15 @@ buildings join the chain, which is why §8 does not claim it.
   `orders_x/y`, the `MOVEORDER`'s `dest`/`coll_x`/`coll_y` and the path
   stack, and `collide_o`/`collide_who`/`collide_frame` say on which frame
   the original's squad first refuses a step. It is stanza **run 76** in
-  `tools/gamelog/captures.txt`, launched through
-  `tools/gamelog/viadriver.sh` — a bare `cliclick p` from a Claude Code
-  shell still warns that Accessibility is off and that is **not** the
-  lane's answer; `RonDriver.app` holds the three grants and its probe
-  reported "synthetic move landed".
+  `tools/gamelog/captures.txt`.
+
+  *It has not landed.* Two launches through `tools/gamelog/viadriver.sh`
+  both stalled in `waitwin.sh` with the game at 0 % CPU and no window,
+  and the reason is neither a permission nor the port: **CrossOver's
+  bottle licence has expired**, and the window `wineloader` is showing is
+  titled `Expired Bottle: ron`. The lane needs a human to renew or
+  re-activate CrossOver; nothing in the harness can. See
+  `docs/ORACLE.md`, "The window nobody can see".
 
 - **`ObjectType +0x2b4 & 0x2000`** — the "attack what you bump into" bit.
   Read as a flag, not traced to its XML column.

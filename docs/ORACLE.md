@@ -4133,3 +4133,46 @@ from under the grant. `zsh tools/gamelog/viadriver.sh <script>` hands the
 run to `~/bin/RonDriver.app`, a fixed path that holds all three
 permanently, and it went first time. Re-granting the version path by hand
 buys one session; the bundle is the standing answer.
+
+## The window nobody can see — CrossOver's expired bottle (2026-09-04)
+
+**run 76 did not run, and the reason had nothing to do with permissions.**
+Two launches through `viadriver.sh` reached `probe ok (synthetic move
+landed)` and then sat in `waitwin.sh` for ten minutes apiece: the game
+process alive, every wine thread at 0 % CPU, `wineserver` idle in its
+select loop, `gamelog.txt` never created, and `tccd`'s log carrying no
+denial for anything the lane touches.
+
+`waitwin.sh` polls `System Events` for *windows of the process*
+`riseofnations_trace.exe`, and the answer is a hard error — `Can't get
+process "riseofnations_trace.exe"`. The app that **is** visible is
+`wineloader`, and it has exactly one window:
+
+    windows of wineloader: [Expired Bottle: ron]
+
+CrossOver's licence for the `ron` bottle has expired, and the dialog it
+puts up blocks the game before it ever creates a window. That is a
+human-only action — renew or re-activate CrossOver — and nothing in the
+harness can clear it.
+
+**The probe, and it costs one line.** Ask System Events, *from inside
+RonDriver's trust domain*, what windows the visible wine app has:
+
+    zsh tools/gamelog/viadriver.sh <a script that runs>
+      osascript -e 'tell application "System Events" to get name of every
+                    window of process "wineloader"'
+
+Run it whenever `waitwin.sh` has been polling for more than about two
+minutes. Every other route was tried first and none of them says anything:
+`sample` on the game shows a windowed app idling in `CFRunLoopRun`,
+`sample` on `wineserver` shows the select loop, and the TCC log is clean —
+because a dialog waiting for a human is not an error anywhere. **The
+window title is the diagnosis**, and it is the first thing to ask for, not
+the last.
+
+Two rules follow. `waitwin.sh` looks for a process name the app may not
+have — `wineloader` until the game names itself — so a stall there is
+always worth a window query rather than a second launch; and a driver-lane
+stall is *not* automatically the permission story
+(`docs/ORACLE.md`, "The fourth permission"), which is what this session
+assumed for half an hour on the strength of `cliclick`'s own warning.

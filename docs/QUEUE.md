@@ -30,17 +30,18 @@ it and it is running.
   walks the blocker's **figures**, measuring each corner against
   `GuyData::x/y` where `is_here` four lines earlier reads the unit's
   `x_internal`. `Sim::guy_corner`, COLLISION §4.3; neither word moved.
-- **Run 76 is booked in `captures.txt` and running** — Great Lakes, 6870
-  frames, `frame_window 6640 6870`, opened before the group order on 6650,
-  through `viadriver.sh` (a bare `cliclick p` warns and means nothing).
+- **Run 76 is booked in `captures.txt` and cannot start.** Two launches
+  stalled in `waitwin.sh`; the visible wine app's one window is titled
+  **`Expired Bottle: ron`** — CrossOver's licence, a human-only fix, and
+  the whole capture lane is down until it is renewed (ORACLE, "The window
+  nobody can see"). Its read-out test is written and skips until then.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w7448 of 24,000 · GreatLakes w6848 of 24,000
 
-**Opener (Opus):** `223 is run 76's to read: the archers' positions from
-6640, against this crate's, for the frame the original's squad first
-refuses a step. If it did not land, relaunch it through viadriver.sh —
-never diagnose the lane from cliclick's own warning.`
+**Opener (Opus):** `The capture lane is down — CrossOver says Expired
+Bottle: ron. If the user has renewed it, run 76 is one command and 223 is
+its read-out; if not, take 220 or 203, which need no screen at all.`
 
 ## The queue
 
@@ -50,10 +51,9 @@ unless a better order is obvious — and say so. Numbers are stable; the
 journal is indexed by them.
 
 223. **Great Lakes 6848 is the marching squad, twelve frames ahead of the
-    original's** — not the collision predicate, which is forced once the
-    blocks overlap (COLLISION §9, first entry). **Run 76 is the capture**,
-    booked in `captures.txt` and taken 2026-09-04. East Indies 7448 (214)
-    is the same site with the sign reversed and unexamined.
+    original's** — not the predicate, which is forced once the blocks
+    overlap (COLLISION §9). **Run 76 is the capture**, booked, read-out
+    written, blocked on the expired bottle. 7448 (214) is the same shape.
 
 220. **§13's twenty range blocks.** Every free-upgrade row whose
     candidates are a run of tech indices — Chinese herbal lore, the Red
