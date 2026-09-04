@@ -2003,6 +2003,62 @@ heal, ejection), then the sites' `construct_hits` refresh.
 
 ---
 
+## 12.1 The docs-versus-code pass, 2026-09-05
+
+`docs/audit/2026-09-05-cities-vs-code.md` (Opus reader, Opus adjudication).
+About 210 stated rules traced to the code that implements them; twenty
+disagree, all twenty confirmed, none struck. The construction clock's ten
+steps, the harmonic share, the site's growing hit points, the refund, the
+repair period and its price, the level predicate, `find_city_at`'s penalty,
+the garrison limit and the `can_garrison` matrix, **§6.5's exit ring, both
+arms**, the assimilation arithmetic, the city heal, `Build::plunder`'s
+ladder, `blocked_site`'s verdict precedence, city and fort spacing, the
+colonise rule and the even circle were all found faithful.
+
+**One row is not a missing rule but a wrong one, and it fires every frame.**
+§5's periodic phase is the object number `o` (`Build::process@0061edf0:728`);
+`Sim::process_building` uses `frame + b`, where `b` is the building's index
+in this crate's `Vec`. The two agree only while every handle equals its
+object number — true at the start of a game, false the first time a slot is
+reused or a building is created out of the original's `o` order. Every
+32-frame phase downstream then fires on the wrong frame for that building
+for the rest of the game. It is a divergence *generator*, which is why no
+single frame has been attributed to it.
+
+**One is cross-confirmed by another document's pass.** `Build::remove_from_city`
+does not regenerate the city's roads — reached independently as ROADS' own
+R4, from `docs/ROADS.md` §1's caller list. Two readers, two documents, one
+missing call.
+
+**The rest are stated, unimplemented or implemented differently, and
+unreached** — nothing on disk captures a city or eliminates a player.
+Grouped: `Wall::do_construct` does not bump `recharging` and `Build::activate`
+does not clear it; `blocked_tcoord` never returns `ROCK` or `NO_OIL` and has
+lost the flat-gather `NO_RESOURCES` test; `snap_center`'s oil snap and its
+80-offset dock/mine search are absent, and §11 does not record that;
+`Wall::swap_team` does not run the new owner's `current_upgrade`;
+`num_buildings` counts a finished building that belongs to no city;
+`check_upgrade` has no `gain_tech` trigger and `find_buildings` no Civic-tech
+trigger; `capture_city` does not swap the loser's units in the radius on an
+allied hand-over; `update_hits`' tower exclusions are a **type identity**
+where the original asks `is(TOWER, 0)`, so a Keep takes the Senate bonus
+(`build::is_tower` exists and is what `place.rs` and `garrison.rs` use, and
+the Nubian `MARKET` clause has the same shape); `update_hits`' garrison eject
+has no `can_carry(AIR)` exemption though `Sim::is_hangar` exists;
+`Build::activate` lacks the rival-wonder disband, the senate capital move and
+`wonders_built`, and §11 does not record them; §2.6.4's `RAZING_TOWN` verdict
+is missing; `check_capture`'s building tally admits inactive and
+water-domain buildings; and `defeat_by`'s tail is missing — stockpile
+tribute, planes, `clean_queue` — with its trainer predicate a hand-written
+type list.
+
+Five rows the reader marked `UNSURE:` are left marked, each naming what
+would settle it: the plunder gate's `capture_stamp != 0` term, the Despot
+cut on the first-capital payment, `check_capture`'s village-radius arm,
+`City::close`'s ordering of `lost_a_city` against the members re-homing, and
+`kill_competing_buildings` skipping a started rival where the document stops
+at it.
+
 ## 13. Second reading — landed
 
 Five blind readers re-derived the five sub-areas from the same export;

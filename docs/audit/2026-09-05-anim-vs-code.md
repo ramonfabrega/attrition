@@ -487,3 +487,43 @@ lane's; the day it lands, this is the check that says what it should do, and
 until then the rule cannot drift.
 
 The remaining eight rows are not yet adjudicated.
+
+
+## Adjudication of the other eight — 2026-09-05, Opus
+
+**All eight confirmed, none struck.** Citations re-checked at the site for
+R2, R3, R4 and R9.
+
+The shape of this file is different from the wave's other seven, and worth
+naming: only three of its nine rows are document-versus-code in the ordinary
+sense. **Five (R4–R9) are rules of the original that *neither* side
+carries** — found because the pass reads the document and the code against
+the same function, so a rule missing from both is visible where a
+document-only or a code-only reading would show nothing. That is a second
+yield of the method nobody predicted, and it is the reason this file is
+worth more than its row count suggests.
+
+- **R2 is the document short, not the code wrong.** §4.2 names three
+  conditions on the group-idle gate; the code has five —
+  `(frame + 0x2e + index) & 15 == 0`, `captain`, not already on a
+  `GROUP_IDLE`, `g == 0`, and `packet_has(GROUP_IDLE2)` — and so does the
+  original. The gate itself is dead in every capture, so nothing turns on
+  it today.
+- **R3 is undocumented, not unimplemented.** The gaia-walker early return
+  (`who >= 8`, `WALK`, `cur_cat == 8`, inside its length) is at
+  `anim.rs:883` and in no section of ANIM.md — only in the function's own
+  doc-comment. A rule that lives only in a code comment is one a blind
+  reader cannot check and a document reader cannot find.
+- **R4 through R9** are the five neither side has: the
+  `CHAR_TURN_LEFT`/`RIGHT` early return and no-draw rewind (run44 has 452
+  such guy-frames, so this one is *reached* and merely unmeasured); the
+  attack roll's packet fallback to `CHAR_ATTACK2`; `CHAR_ATTACKWALK`'s
+  non-looping mark; the idle variant's sixth fallback term
+  (`unit_masks & 0x2000000`); the scholar's `guy_flags & 0x80` remap of
+  every slot above `CHAR_UNPACK`; and `set_anim`'s `CHAR_ATTACKWALK` head
+  arm with its `UnitData+0xae` counter — the same counter R1's freeze reads.
+
+R6 is left `UNSURE:` as the reader left it; `anim_graphics.xml` settles it
+with a grep, and that is a job for whoever next has the install open.
+
+R1's adjudication, its capture and its landed assertion are above.
