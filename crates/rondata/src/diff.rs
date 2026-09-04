@@ -4681,6 +4681,112 @@ mod tests {
         );
     }
 
+    /// **The frozen clock: `unit_masks2 & 0x10` is the step, not a
+    /// modifier on it** — the assertion the ANIM docs-versus-code pass
+    /// asked for (2026-09-05).
+    ///
+    /// `docs/ANIM.md` §5 states the step as `1` (`2` under `guy_flags & 4`
+    /// with an `ATTACK2` playing; **`0` while `unit_masks2 & 0x10`**) and
+    /// `sim::Sim::guy_inc_time` steps by one always, with no mention of
+    /// the zero arm. The bit is `Unit::fight@005fd4d0`'s, set on the arm
+    /// where a unit is swinging and cleared by `Unit::process@00610bc0`,
+    /// so it is a one-frame freeze on a unit in melee — and nothing in
+    /// this workspace has ever read it.
+    ///
+    /// Nothing needed to be *inferred* to check it, which is the point.
+    /// `GuyData::log_data` prints `last_time` beside `cur_time`, and
+    /// `last_time` is `cur_time` **before this frame's step**; their
+    /// difference is therefore the step the original actually took, per
+    /// figure, per frame, already on disk. A `set_anim` writes `last_time`
+    /// −1 and a wrap takes `cur_time` backwards, so those two are skipped
+    /// and everything else is the arithmetic.
+    ///
+    /// The corpus is not short of it: `gamelog-run17-combat.txt` prints 35
+    /// unit-frames with the bit set and `gamelog-run44-islands-turners.txt`
+    /// 26, of which run44's carry the whole `GUY` block. This walks every
+    /// capture that prints both.
+    ///
+    /// It is the **original's** rule that is asserted here, not the
+    /// simulation's behaviour: `crate::diff` compares no clock on a frame
+    /// a unit is in melee, so a diff cannot yet fail on the gap. What this
+    /// does is make the gap falsifiable and keep the rule from drifting —
+    /// the day `guy_inc_time` learns the bit, this is the check that says
+    /// what it should do.
+    #[test]
+    fn the_frozen_frame_s_figures_do_not_step_their_clocks() {
+        /// `UnitData::unit_masks2` bit `0x10` — `Unit::fight`'s swing mark.
+        const FROZEN: i64 = 0x10;
+        let mut frozen_seen = 0usize;
+        let mut frozen_steps: std::collections::BTreeMap<i64, usize> =
+            std::collections::BTreeMap::new();
+        let mut free_steps: std::collections::BTreeMap<i64, usize> =
+            std::collections::BTreeMap::new();
+        let mut names = Vec::new();
+        for name in [
+            "gamelog-run44-islands-turners.txt",
+            "gamelog-run25-islands-emergency-window.txt",
+            "gamelog-run27-islands-defending-window.txt",
+            "gamelog-run20-islands-dumpall.txt",
+            "gamelog-run13-window-95-105.txt",
+        ] {
+            let Some(path) = dump(name) else { continue };
+            let text = std::fs::read_to_string(&path).unwrap();
+            let log = Log::parse(&text);
+            names.push(name);
+            for frame in log.frame_states() {
+                for u in &frame.units {
+                    let Some(m2) = u.unit_masks2 else { continue };
+                    let frozen = m2 & FROZEN != 0;
+                    for g in &u.guys {
+                        let (Some(cur), Some(last)) = (g.cur_time, g.last_time) else {
+                            continue;
+                        };
+                        // `set_anim` writes −1; a wrap takes the clock back.
+                        if last < 0 || cur < last {
+                            continue;
+                        }
+                        let step = cur - last;
+                        if frozen {
+                            frozen_seen += 1;
+                            *frozen_steps.entry(step).or_default() += 1;
+                        } else {
+                            *free_steps.entry(step).or_default() += 1;
+                        }
+                    }
+                }
+            }
+        }
+        eprintln!(
+            "the frozen frame over {} capture(s) {names:?}: {frozen_seen} figure-frames \
+             with `unit_masks2 & 0x10`, steps {frozen_steps:?}; without it {free_steps:?}",
+            names.len()
+        );
+        if names.is_empty() {
+            eprintln!("skipping: no capture (set RON_GAMELOG_DIR)");
+            return;
+        }
+        // The floor: without a frozen figure-frame on disk the walk proves
+        // nothing and would pass on an empty set, which is the failure a
+        // corpus test is least able to report about itself.
+        assert!(
+            frozen_seen > 0,
+            "no capture in the walk carries a figure-frame with `unit_masks2 & 0x10`; \
+             the check is vacuous. `gamelog-run44-islands-turners.txt` had them"
+        );
+        assert_eq!(
+            frozen_steps.keys().copied().collect::<Vec<_>>(),
+            vec![0],
+            "a figure whose unit carries `unit_masks2 & 0x10` stepped its clock: \
+             {frozen_steps:?}"
+        );
+        // And the other side of it, so the assertion above cannot be
+        // satisfied by a corpus in which nothing steps at all.
+        assert!(
+            free_steps.contains_key(&1),
+            "no figure stepped by one anywhere in the walk: {free_steps:?}"
+        );
+    }
+
     /// **`get_unit_gpiece`'s walk, against every piece a dump names.**
     ///
     /// [`sim::Sim::unit_gpiece`] derives a guy's graphic piece from four

@@ -226,3 +226,59 @@ the *mutual-ally* half of the first clause; it does not obviously cover the
 second conjunct, which bites on the plain "owner is me" path too. What would
 settle it: whether any caller can hand `find_road` two endpoints of different
 owners — `place_roads` cannot, and `crate::caravan` should be checked.
+
+
+## Adjudication — 2026-09-05, Opus
+
+Every row above was re-checked against the source. **Nine confirmed, none
+struck.** Three are the document lagging the code (R1, R2, R7) and six the
+code lagging the document (R3, R4, R5, R6, R8, R9); the six are recorded in
+`docs/ROADS.md` §6 as stated, unimplemented and unreached, each with the
+reason no capture reaches it.
+
+### R5 is settled, and `crate::roads` is the wrong consumer
+
+The capture could not separate the two consumers —
+`run72_s_world_after_the_market_s_road_is_the_original_s` compares the world
+on the frame *after* the Market's road is laid and the road tiles agree
+exactly, `set_diags`' seventeenth at `(223, 79)` included. So it was settled
+by reading, and it settles cleanly.
+
+`astar_caravan_road@00685990`'s reconstruction (export lines 316–342) starts
+at the arrived node's parent and walks `->parent` upward to the root, and it
+**appends**: `param_1->list + param_1->length`, then `length + 1`. So
+`list[0]` is the node nearest the **goal** and `list[length − 1]` the node
+one step out of the root, the **start**.
+
+`place_roads@0063c580` consumes it from the top — `road.length = road.length
++ -1;` and then `road.list[road.length]`, at lines 148 and 245, both arms. So
+the original lays the **near-start end first**: outward from the building
+towards the city.
+
+`reconstruct` (`roads.rs:750`) builds its `Vec` in the original's own push
+order, so `out[0]` is the goal end. Therefore:
+
+- `crate::caravan`'s `lay_caravan_road` (`caravan.rs:792`), which walks it
+  with `.rev()` and calls that "the near-*start* end first", **matches the
+  original**.
+- `crate::roads`' `place_roads` (`roads.rs:229`), which walks it front to
+  back, is **reversed**, and its comment — "which is the near-goal end; the
+  order does not reach the world" — is wrong twice: the end is the goal's,
+  and since §9's mesh the order does reach the world.
+
+The fix is `place_roads`' loop and belongs to the main lane; this lane does
+not write simulation logic. It is unobserved on the corpus and would stay so
+until a capture where two of a road's tiles are diagonal neighbours of
+*different* standing roads.
+
+### The fourteenth row
+
+Not in the reader's list, and found by the widening: the tile-mask residue
+is 32 at frame 4802 and **45** at 4803, and every one of the thirteen the
+road frame adds is `World::set_behind@006b4230`'s `0x4` alone, around the
+Market's own ring at `[223, 227] × [78, 81]`. Nothing in `Roads` writes that
+bit — it is the Market **finishing** and `Wall::mark_behind_tiles@0063d230`
+not running for it. Reached, on a frame the corpus dumps, and pinned by
+`run72_s_world_after_the_market_s_road_is_the_original_s` as a count that
+may only fall and as a *kind*: every differing tile must differ by `0x4` and
+nothing else.

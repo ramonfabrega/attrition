@@ -1354,6 +1354,45 @@ two passes.
   It is a wrap, at 110–113 rather than at the end (the trace, above); the
   farms are the tail.
 
+## 9.1 The docs-versus-code pass, 2026-09-05
+
+`docs/audit/2026-09-05-anim-vs-code.md` (Opus reader, Opus adjudication).
+134 stated rules of §1–§7 traced to the code that implements them; nine
+disagree, of which only R1 is adjudicated so far.
+
+**§5's zero step is real, reached, and unimplemented — and it is now
+asserted from the original's own output.** §5 states the step as `1` (`2`
+under `guy_flags & 4` with an `ATTACK2` playing; **`0` while `unit_masks2 &
+0x10`**). `Sim::guy_inc_time` steps by one always, and its comment accounts
+only for the doubling; `unit_masks2` is not a field of any struct in
+`crates/sim` at all, so the freeze is not merely unimplemented but
+unrepresentable. The bit is `Unit::fight@005fd4d0`'s, set on the arm where a
+unit is swinging and cleared by `Unit::process@00610bc0` — a one-frame
+freeze on a unit in melee.
+
+Nothing had to be inferred to check it. `GuyData::log_data@005de6c0` prints
+`last_time` beside `cur_time`, and `last_time` is `cur_time` *before this
+frame's step*, so their difference is the step the original actually took,
+per figure, per frame, already on disk — the field was there all along
+(`CLAUDE.md`, "grep the dump before booking a reading").
+`rondata::diff::tests::the_frozen_frame_s_figures_do_not_step_their_clocks`
+walks every capture that prints both:
+
+> 26 figure-frames with `unit_masks2 & 0x10`, steps `{0: 26}`; without it
+> `{1: 89522}`
+
+Twenty-six for twenty-six at zero and 89,522 for 89,522 at one, over
+`gamelog-run44-islands-turners.txt` and its four siblings;
+`gamelog-run17-combat.txt` carries 35 more unit-frames of the bit, with
+`GUY` blocks too short to price. Both halves are asserted, so a corpus in
+which nothing steps at all cannot satisfy it.
+
+The test is **green** because it asserts the original's rule, not this
+crate's behaviour: `rondata::diff` compares no animation clock on a frame a
+unit is in melee, so no diff can fail on the gap today. The arm belongs in
+`guy_inc_time`; until it lands the rule cannot drift, and the day it lands
+this is the check that says what it should do.
+
 ## 10. Second reading — landed
 
 The blind reader's report is `docs/audit/2026-08-24-anim-reading.md`
