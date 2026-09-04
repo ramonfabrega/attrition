@@ -15129,3 +15129,88 @@ animation that should not have wrapped. They fall in the `guys_inc_time`
 phase, so the unit loop's attribution does not reach them; `docs/ANIM.md`
 §3.3 and queue item 124 (the loop flag is per animation file) are the first
 place to look.
+
+## 2026-09-03 — item 205: the walk asked for twice, and Great Lakes' first window
+
+*Opus.* Great Lakes 5571 → **5573**; East Indies 6739, unmoved.
+
+The word's two draws were `Guy::set_anim+0x97a < Guy::inc_time+0x271` and
+they fall in `guys_inc_time`, past the unit loop, so nothing named the unit
+that spent them. The first thing done was to name it: `guys_inc_time` now
+marks each unit it visits, exactly as `Sim::tick`'s unit loop does. The
+mark is taken before any draw of that unit's, so it carries none of its own
+and the site sequence is unchanged — and the fold said `1/23` at once, a
+**caravan trained on 5564**, its two crew figures. run54's clock probe was
+folded into `RON_DEBUG_UNIT` at the same time, the third capture to want it.
+
+**The cadence was the whole diagnosis, and it was done off disk.**
+`docs/ANIM.md` §3.6's crew figure is a metronome: an empty animation packet,
+every slot three frames, none of them looping. A *standing* caravan's crew
+mirrors guy 0 and wraps on alternate frames; a *walking* one wraps every
+third. Counting the site per frame on both sides:
+
+| | crew wraps |
+|---|---|
+| ours | 5569, **5571**, 5574, 5578, 5580, 5583, … |
+| the original | 5569, **5572**, 5575, 5579, 5581, 5584, … |
+
+Identical from 5572 on, shifted by one. Ours ran the standing cadence
+through 5571 and the original ran the walking one from 5570 — so the
+original's caravan was moving where this crate was still turning in place,
+and the crew's walk request is `F + 1` on both sides.
+
+**Two readings of `move_step` were then tested and both were wrong**, which
+is what made the capture worth booking rather than another day of reading.
+The near/far test measures the Manhattan distance to the **waypoint**
+(`MoveOrder+0x2c`) and not to the order's destination: putting the
+destination there collapsed the word from 5571 to **307**. And the
+`unit_flags & 0x20` arm at `005fb0a4`, which skips the turn-in-place block
+outright, is the **helicopter** bit. run72's own block, already on disk,
+ruled out the third: `(227, 85)` is `0x6103` — a building — on both sides
+and the caravan's own `(228, 85)` is `0x2113`, so both marches are refused
+at the same tile and both detour; `go_around_building`'s push arithmetic and
+the `off_x/off_y` behind it check out term for term against the decompile.
+
+**run73** is Great Lakes' first `DUMP_ALL` window, `[5564, 5580)`, with the
+road proxies over `[5563, 5581]`. 1.05 GB, thirty-three minutes, and
+`rngcmp` says 5,591 frames with zero differing. It settled the item in one
+field. Guy 0's clock is this crate's on every frame — the driver never
+differed. The crew's parts once, on 5571: `cur_anim 8, cur_time 2,
+last_time 1` against `cur_anim 0, cur_time 0, last_time −1`. A `last_time`
+of 1 says the clock stood at **1** before the step, and the figure came off
+the mirror at **4**. Three taken off — the length.
+
+`Guy::set_anim`'s walk arm only subtracts for the slot **already playing**;
+a slot *change* rescales, and the rescale passes the old slot to both
+`get_anim_time` calls, so it is `cur_time · t / t` and keeps the clock. One
+call can therefore never produce a 1. **There are two.**
+`Unit::move_step` asks every guy for `CHAR_WALK` immediately before
+`set_new_location` — `:304` on the partial step, `:355` on the snap, both
+past the turn-in-place arms that `return 1` — and `Guy::move` asks again in
+the body follow. The first is the change, `SLOG → WALK`, clock kept at 4;
+the second is the same slot and takes 3 off.
+
+**`docs/ANIM.md` §4.8 had cited that call and the implementation never made
+it.** It is quoted there, by address, in a sentence about the fishing
+boat's turn: *"which a sailing boat's is, from `Unit::move_step:304`'s
+`set_anim(CHAR_WALK, 0, 1)`"*. The reading was right; nothing had ever run
+it. That is the third time this shape has cost a session, and it is the
+argument for the widening rule rather than for more reading: the field was
+in a record nothing compared.
+
+**What it is worth beyond the item.** `run73_s_window_clocks_are_the_
+original_s` puts all **4,869** `GUY` fields of the window against this
+crate's — `cur_anim`, `cur_time`, `end_time`, `last_time`, `gpiece`,
+`stopped`, position and angle — with no unit of the dump unmatched, and
+none of them parts. Made to fail on purpose first: without the call it
+fails on the window's **first** frame and on the **human's** units, not
+only the caravan. Every guy that walks had been carrying the wrong clock;
+the word only saw it where a clock wrapped, because the extra request costs
+no draw.
+
+**What is left.** 5573 is a **road**: the caravan's own
+`Caravan::build_road`, 1,761 `PathFinder::calc_road_cost` draws here
+against 1,535. The oracle for it was taken by the same run — the `callwin`
+over `[5563, 5581]` carries `astar_caravan_road`, `valid_roadcoord` and
+`calc_road_cost` node for node, which is run62/run64/run72's instrument —
+so the successor's evidence was on disk before the successor existed.

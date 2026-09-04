@@ -3965,3 +3965,70 @@ original lays a seventeenth. `World::set_road_at` ends in
 *mesh* builder, which fills the corner between a new road tile and one
 already standing. `docs/ROADS.md` §9 is the reading, and this capture is
 its oracle — already on disk.
+
+## run73 — Great Lakes' first window, and the caravan that is born in it (2026-09-03)
+
+The map that carries the headline had never had a `DUMP_ALL` window. Its
+word was **5571** and the two draws that part it are a caravan's crew
+figures wrapping an animation, so the question was a *clock* — and below
+`DUMP_ALL` the per-frame `GUY` blocks are empty. run65 is the same question
+on East Indies and answers a different configuration of it. Nothing on disk
+could speak.
+
+`MAP_STYLE 14`, seed 12345, run10's `-config check.ini` lobby, no input, to
+5,590 frames, with a `DUMP_ALL` window on `[5564, 5580)` and the three
+`docs/ROADS.md` §7.2 proxies over `[5563, 5581]`:
+
+    DETAIL_END=MISC WINDOW="5564 5580" POLL_MAX=220 \
+    TRACE_COVER=$'cover=1\nwindow=5563-5581\ncallwin=5563-5581' \
+    zsh tools/gamelog/longtrace.sh 73 5590 greatlakes-caravanstart 14
+
+Thirty-three minutes, **1.05 GB** of dump and 17 MB of trace, sixteen frame
+blocks. `rngcmp.py rontrace-run53.log rontrace-run73.log`: **5,591 frames,
+zero differing** — the sixth capture in a row for which a window and three
+proxies cost the stream nothing.
+
+**Why it was booked, and what the greps had already ruled out.** The
+cadence said the original's caravan was walking where this crate was still
+turning: crew wraps at 5569, **5572**, 5575 against 5569, **5571**, 5574,
+and a standing caravan's crew wraps on alternate frames where a walking
+one wraps every third (run65's 6202/6204/6206/6208 is the standing shape).
+Two readings of `move_step` were tested off disk and both failed: the
+near/far test measures the Manhattan distance to the **waypoint**
+(`MoveOrder+0x2c`) and not to the order's destination — putting the
+destination there collapsed the word from 5571 to **307** — and the
+`unit_flags & 0x20` arm that skips the turn-in-place block is the
+**helicopter** bit. run72's own block, already on disk, said the tiles were
+not it either: `(227, 85)` is `0x6103` on both sides, a building, and the
+caravan's own `(228, 85)` is `0x2113`, so both sides' marches are refused
+at the same tile and both detour.
+
+**What it settled, in one field.** Guy 0's clock is this crate's on every
+frame of the window — the driver never differed. The crew's parts once, on
+5571, the frame the caravan first walks: `cur_anim 8, cur_time 2,
+last_time 1` against this crate's `cur_anim 0, cur_time 0, last_time −1`. A
+`last_time` of 1 says the clock stood at **1** before that frame's step, and
+the figure came off the mirror at **4** — the length, 3, taken off.
+`Guy::set_anim`'s walk arm only subtracts for the slot already playing, so
+one call could never produce a 1. There are two: `Unit::move_step` asks
+every guy for `CHAR_WALK` immediately before `set_new_location`, and
+`Guy::move` asks again in the body follow. §4.8 of `docs/ANIM.md` had cited
+that call for a year of sessions and the implementation never made it
+(`docs/ANIM.md` §4.9).
+
+**And what the window measures beside it.** All **4,869** `GUY` fields of
+every player unit over sixteen frames — `cur_anim`, `cur_time`, `end_time`,
+`last_time`, `gpiece`, `stopped`, position and angle — are the original's,
+with no unit of the dump this crate has none for. Without the call the
+check fails on the window's *first* frame and on the human's units, not
+only the caravan: **every guy that walks carried the wrong clock.** The
+window also covers a unit's whole birth — `1/23` is trained on 5564, past
+run71's 5,000 frames, so no capture had ever checked a mid-game unit's
+first three frames. Great Lakes' word **5571 → 5573**.
+
+**What it leaves loaded.** The frame past the new word is a **road**: the
+caravan's own `Caravan::build_road`, 1,761 `PathFinder::calc_road_cost`
+draws here against the original's 1,535. The `callwin` covering
+`[5563, 5581]` carries `astar_caravan_road`, `valid_roadcoord` and
+`calc_road_cost` for exactly that search, node for node — so the successor
+item's oracle was taken by the same run, before the item existed.

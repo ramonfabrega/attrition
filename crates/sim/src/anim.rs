@@ -1042,6 +1042,16 @@ impl Sim {
             visit.extend(mine);
         }
         for u in visit {
+            // The site fold's unit attribution (`rondata::diff`'s
+            // `attributed_sites`) is the unit loop's mark, and this phase
+            // runs past it — so a wrap's draw was nobody's until the mark
+            // was made here too. It costs nothing: the mark is taken
+            // before any draw of this unit's, so the label carries zero
+            // draws of its own.
+            self.mark(&format!(
+                "unit {}/{}",
+                self.units[u].owner, self.units[u].index
+            ));
             let unit = &self.units[u];
             // `inside_up >= 0` is one field, and it points at a boat as
             // readily as at a building (`docs/TRANSPORT.md` §6): a

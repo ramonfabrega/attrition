@@ -2910,9 +2910,43 @@ fn debug_watch(built: &Built, frame: i64) {
         eprintln!("  f{frame} {who}/{o} absent");
         return;
     };
+    // The **figure clocks** beside the position, which is run54's own
+    // probe folded in here: a draw this crate spends in `guys_inc_time`
+    // belongs to a guy, not to a unit, and past the last `DUMP_ALL`
+    // window the clock is the only place to read the cadence from. The
+    // body and its destination come with it, because `Guy::set_anim`'s
+    // idle request returns without a roll while a walking guy's body has
+    // not arrived (`docs/ANIM.md` §4 step 1).
+    let clocks: Vec<String> = u
+        .guys
+        .iter()
+        .map(|g| {
+            let (bx, by, dx, dy) = g.follow.map_or_else(
+                || {
+                    (
+                        u.movement.body.pos.x,
+                        u.movement.body.pos.y,
+                        u.pos.x,
+                        u.pos.y,
+                    )
+                },
+                |f| (f.body.pos.x, f.body.pos.y, f.des.x, f.des.y),
+            );
+            format!(
+                "[a{} t{}/{} l{} g{} b({bx},{by})->({dx},{dy})]",
+                g.anim, g.cur_time, g.end_time, g.last_time, g.gpiece
+            )
+        })
+        .collect();
     eprintln!(
-        "  f{frame} {who}/{o} at ({}, {}) ang {} hdg {} path {:?} orders {:?}",
-        u.pos.x, u.pos.y, u.movement.facing.0, u.movement.heading.0, u.path, u.orders,
+        "  f{frame} {who}/{o} at ({}, {}) ang {} hdg {} path {:?} orders {:?} {}",
+        u.pos.x,
+        u.pos.y,
+        u.movement.facing.0,
+        u.movement.heading.0,
+        u.path,
+        u.orders,
+        clocks.join(" ")
     );
 }
 
@@ -11280,6 +11314,174 @@ mod tests {
         assert!(wrong.is_empty(), "run64's clocks parted: {wrong:?}");
     }
 
+    /// **run73 — Great Lakes' own window, and the second `set_anim` a
+    /// moving frame makes** (2026-09-03, item 205).
+    ///
+    /// The first `DUMP_ALL` window this map has ever had. Great Lakes'
+    /// word parted at **5571** on two `Guy::set_anim+0x97a <
+    /// Guy::inc_time+0x271` draws, and the site fold named them: the
+    /// caravan `1/23`, trained on 5564, and its **two crew figures** —
+    /// `docs/ANIM.md` §3.6's three-frame metronome. The cadence was the
+    /// whole clue. A standing caravan's crew mirrors guy 0 and wraps on
+    /// alternate frames; a walking one wraps every third. The original's
+    /// wraps run 5569, 5572, 5575 and this crate's ran 5569, **5571**,
+    /// 5574 — the standing cadence one frame too long.
+    ///
+    /// `MAP_STYLE 14`, seed 12345, run10's lobby, no input, to 5,590
+    /// frames with the window on `[5564, 5580)` and the road proxies over
+    /// `[5563, 5581]`. `rngcmp.py` against run53: **5,591 frames, zero
+    /// differing**, so it is run53's game and the sixth capture in a row
+    /// for which a window costs the stream nothing.
+    ///
+    /// **What it settled, in one field.** Guy 0's clock is this crate's on
+    /// every frame of the window — the driver never differed. The crew's
+    /// parts once: on 5571, the frame the caravan first walks, the
+    /// original's figure reads `cur_anim 8, cur_time 2, last_time 1` where
+    /// this crate read `cur_anim 0, cur_time 0, last_time −1`. A
+    /// `last_time` of 1 says the clock stood at **1** before the step, and
+    /// the figure came off the mirror at **4** — the length, 3, taken off.
+    ///
+    /// `Guy::set_anim`'s walk arm only subtracts for the slot **already
+    /// playing** (`005db4d1`: a slot *change* rescales, and the rescale
+    /// passes the old slot to both `get_anim_time` calls, so it is
+    /// `cur_time · t / t`). One call could therefore never produce a 1.
+    /// There are two: `Unit::move_step` calls `Unit::set_anim(CHAR_WALK,
+    /// 0, 1)` on every guy immediately before `set_new_location`
+    /// (`move_step:304` on the partial step, `:355` on the snap), and
+    /// `Guy::move` calls it again in the body follow. The first is the
+    /// change — `CHAR_SLOG → CHAR_WALK`, clock kept at 4 — and the second
+    /// is then the same slot and subtracts. This crate made only the
+    /// second (`docs/ANIM.md` §4.9).
+    ///
+    /// Nothing here is installed: run73's own `frame_guys` never reach the
+    /// simulation, which is built from run53's start and driven forward
+    /// 5,579 frames. Every row is a prediction the dump can refuse.
+    #[test]
+    fn run73_s_window_clocks_are_the_original_s() {
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(trace), Some(r73)) = (
+            dump("gamelog-run53-greatlakes-24k-trace.txt"),
+            trace("rontrace-run53.log"),
+            dump("gamelog-run73-greatlakes-caravanstart.txt"),
+        ) else {
+            eprintln!("skipping: no run53/run73 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let texts = sibling_texts();
+        let text = std::fs::read_to_string(&path).unwrap();
+        let log = Log::parse(&text);
+        let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
+        let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+        let refs: Vec<&Initial> = inits.iter().collect();
+        let mut init = log.initial().unwrap();
+        borrow_from_siblings(&mut init, &refs);
+        borrow_pasture(&mut init, &trace);
+
+        let text73 = std::fs::read_to_string(&r73).unwrap();
+        let theirs = Log::parse(&text73)
+            .initial()
+            .expect("run73 carries a start block")
+            .frame_guys;
+        let window: Vec<i64> = theirs.iter().map(|(n, _)| *n).collect();
+        assert!(
+            window.first().is_some_and(|&n| n <= 5_565)
+                && window.last().is_some_and(|&n| n >= 5_578)
+                && window.len() >= 14,
+            "run73's `DUMP_ALL` window, as sim-frames: {window:?}"
+        );
+        let last = *window.last().unwrap();
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        // The window's own clocks are never installed: this is the check.
+        built.frame_guys.clear();
+        let mut compared = 0usize;
+        let mut crew_rows = 0usize;
+        let mut caravan_rows = 0usize;
+        let mut unmatched = 0usize;
+        let mut wrong: Vec<String> = Vec::new();
+        for f in 0..=last {
+            built.tick();
+            let Some((_, units)) = theirs.iter().find(|(n, _)| *n == f) else {
+                continue;
+            };
+            for state in units {
+                // Gaia's animals are re-seated from the dump every traced
+                // frame (`Sim::reseat_animal`), so their clocks are not
+                // this crate's prediction; the players' are.
+                if !(0..8).contains(&state.who) {
+                    continue;
+                }
+                let Some(u) = (0..built.sim.units.len()).find(|&i| {
+                    let x = &built.sim.units[i];
+                    x.alive() && i64::from(x.owner) == state.who && i64::from(x.index) == state.o
+                }) else {
+                    unmatched += 1;
+                    continue;
+                };
+                for (n, g) in state.guys.iter().enumerate() {
+                    if !g.has_clock() {
+                        continue;
+                    }
+                    let Some(ours) = built.sim.units[u].guys.get(n) else {
+                        continue;
+                    };
+                    if n >= sim::anim::SQUAD_SIZE {
+                        crew_rows += 1;
+                    }
+                    if (state.who, state.o) == (1, 23) {
+                        caravan_rows += 1;
+                    }
+                    let (body, facing) = match ours.follow {
+                        Some(b) => (b.body.pos, b.facing),
+                        None => (
+                            built.sim.units[u].movement.body.pos,
+                            built.sim.units[u].movement.facing,
+                        ),
+                    };
+                    let rows: [(&str, i64, Option<i64>); 9] = [
+                        ("x", i64::from(body.x), g.pos.map(|p| p.x)),
+                        ("y", i64::from(body.y), g.pos.map(|p| p.y)),
+                        ("angle", i64::from(facing.0), g.angle),
+                        ("cur_anim", i64::from(ours.anim), g.cur_anim),
+                        ("cur_time", i64::from(ours.cur_time), g.cur_time),
+                        ("end_time", i64::from(ours.end_time), g.end_time),
+                        ("last_time", i64::from(ours.last_time), g.last_time),
+                        ("gpiece", i64::from(ours.gpiece), g.gpiece),
+                        ("stopped", i64::from(ours.stopped), g.stopped),
+                    ];
+                    for (name, ours, theirs) in rows {
+                        let Some(theirs) = theirs else { continue };
+                        compared += 1;
+                        if ours == theirs {
+                            continue;
+                        }
+                        let row = format!(
+                            "frame {f}: {}/{} guy {n} {name} ours {ours} theirs {theirs}",
+                            state.who, state.o
+                        );
+                        if wrong.len() < 12 {
+                            wrong.push(row);
+                        }
+                    }
+                }
+            }
+        }
+        eprintln!(
+            "run73 clocks: {compared} fields over {crew_rows} crew rows and \
+             {caravan_rows} of the caravan's, {unmatched} of the dump's units \
+             this crate has no unit for"
+        );
+        for w in &wrong {
+            eprintln!("  {w}");
+        }
+        assert!(
+            compared >= 2_000 && caravan_rows >= 24,
+            "the window's own rows: {compared} fields, {caravan_rows} of them the \
+             caravan's — a capture with neither is the wrong file"
+        );
+        assert!(wrong.is_empty(), "run73's clocks parted: {wrong:?}");
+    }
+
     /// **run65 — the caravan's turn out of its own city, every unit, every
     /// frame** (2026-09-02).
     ///
@@ -12984,7 +13186,20 @@ mod tests {
     /// store as the original writes it, `1/7` walks its detour and reaches
     /// its farm on 5508, and the word runs to **5571**
     /// (`docs/COLLISION.md` §6, item 204).
-    const LONG_WORD_GREAT_LAKES: i64 = 5571;
+    ///
+    /// It was **5571** for a session, and that frame was **two animation
+    /// wraps**: the caravan `1/23`'s two crew figures, one frame ahead of
+    /// the original's three-frame metronome. run73 — this map's first
+    /// `DUMP_ALL` window — put the difference in one field, and it is a
+    /// call this crate never made: `Unit::move_step` asks every guy for
+    /// `CHAR_WALK` immediately before `set_new_location`, so a walking
+    /// unit's walk is requested **twice** a frame, and only the second
+    /// request — the same slot by then — takes an overrun length off the
+    /// clock (`docs/ANIM.md` §4.9,
+    /// `run73_s_window_clocks_are_the_original_s`). With it the word runs
+    /// to **5573**, and the frame past it is a road: the caravan's own
+    /// `build_road`, 1,761 `calc_road_cost` draws here against 1,535.
+    const LONG_WORD_GREAT_LAKES: i64 = 5573;
 
     /// The frame the AI's library takes its **Coinage** job on, and the
     /// frame run58's `QUEUE` record used to part on: twenty-four rows of

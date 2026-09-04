@@ -20,6 +20,12 @@ is asserted in `rondata::diff` or `sim::anim`'s tests against a capture.
 idle, the attack and death animations, the age brackets above `AGE0`, and
 `Guy::move`'s `des_angle != angle` arm; §9 lists them.*
 
+*Amended 2026-09-03 (item 205): a moving frame asks for the walk **twice** —
+`Unit::move_step`'s own `set_anim` before `set_new_location`, and then
+`Guy::move`'s — and only the second takes an overrun length off the clock.
+§4.9, and it is **diff-backed** against run73, this map's first `DUMP_ALL`
+window: 4,869 `GUY` fields over sixteen frames.*
+
 *Amended 2026-09-02 (item 173): the **count** is no longer a guess. §3.5 is
 `crew_size + squad_size`, the `CREW_SIZE` column plus the literal 1 every
 type gets, and it is **diff-backed** — asserted against the `GUY` blocks of
@@ -775,6 +781,80 @@ bit is **derived** here rather than stored at `init_real`: neither the type
 nor the piece changes under a guy, so the answer is the one `init_real` would
 have written — but a piece that changes on packing (`get_unit_gpiece`'s fifth
 argument) would break that, and nothing checks it.
+
+### 4.9 A moving frame asks for the walk **twice** (2026-09-03)
+
+§4.8 already cited the call — "`Unit::move_step:304`'s `set_anim(CHAR_WALK,
+0, 1)`" — and this crate never made it. It is not decoration:
+
+```
+move_step:304  (the partial step)   set_anim(this, local_2c, 0, 1)
+move_step:355  (the Manhattan snap) set_anim(this, UVar17,   0, 1)
+                                    set_new_location(...)
+```
+
+`local_2c` is `CHAR_WALK`, or `CHAR_ATTACKWALK` when the unit has a target
+(`move_step:66`, `:99`); `UVar17` is `local_2c` unless the waypoint offsets
+were both zero at the top of the function and `UnitData+0xd8 < 2`, when it is
+`CHAR_DEFAULT`. Both sit **past** the two turn-in-place arms, which
+`return 1` at `005fb2e1` and `005fb2b4`, so a frame spent turning makes no
+such call. Then `Guy::move`'s own animation half runs later in the same frame
+(§4, `Sim::guys_follow`) and asks for the walk **again**.
+
+*Why two calls are not one.* `Guy::set_anim`'s walk arm splits on whether the
+slot it resolved is the one already playing:
+
+```
+param_2 = the resolved walk slot          # speed, then the gather mask,
+                                          # then `CHAR_WALK` if the packet
+                                          # does not name it (§3.6)
+if cur_anim == param_2:                   # the SAME slot
+    if cur_time < len: keep               # :667
+    else:              cur_time -= len
+else:                                     # a slot CHANGE
+    cur_time = cur_time * get_anim_time(cur_anim) / get_anim_time(cur_anim)
+```
+
+The rescale's two `get_anim_time` calls are both passed the *old* slot —
+`cur_anim` is written after them — so a change is `cur_time · t / t` and
+**keeps the clock, however far past the end it is** (`docs/audit/
+2026-08-24-anim.md`). Only the same slot subtracts. So the pair is: the first
+call changes the slot and keeps the clock, the second finds the slot already
+playing and takes the length off.
+
+*Where it shows.* For guy 0 it never does — a walking guy's clock is inside
+its length, so both calls keep it. It is the **crew figure** whose packet is
+empty (§3.6) that reads the difference, because the mirror (§5) hands it guy
+0's clock, which is a driver's 27-frame length against its own 3:
+
+| Great Lakes frame | 5570 | 5571 | 5572 |
+|---|---|---|---|
+| the original | `a7 4/3` (mirror) | `a8 2/3 last 1` | `a0 0/3` — wrap |
+| one call only | `a7 4/3` (mirror) | `a0 0/3` — wrap | `a8 1/3` |
+
+5571 is the frame the caravan first walks. With one call the figure came off
+the mirror at 4, kept it, stepped to 5 and wrapped a frame early — an idle
+roll the original does not spend, twice over for two figures, and Great Lakes'
+word parted on exactly those two draws. With both, the change keeps 4, the
+same-slot call takes 3 off, the step makes it 2, and the wrap falls on 5572
+where the original's does.
+
+*Established* by run73 — this map's first `DUMP_ALL` window, `[5564, 5580)` —
+and it is **diff-backed**:
+`rondata::diff::tests::run73_s_window_clocks_are_the_original_s` puts every
+`GUY` block's `cur_anim`, `cur_time`, `end_time`, `last_time`, `gpiece`,
+`stopped`, position and angle against this crate's over the window's sixteen
+frames, **4,869 fields**, and none of them parts. Without the call it fails on
+the window's *first* frame and on the human's units, not only the caravan:
+every guy that walks carries the wrong clock. Great Lakes' word **5571 →
+5573**.
+
+*What is not established.* The snap arm's `CHAR_DEFAULT` case — both waypoint
+offsets zero and `UnitData+0xd8 < 2` — is not modelled: `do_move`'s own
+"already there" test takes that case a step earlier here, so the arm is
+unreachable, and `+0xd8` is unread. It would be a **draw** if it were
+reachable. `CHAR_ATTACKWALK` is not passed either; no capture has a unit
+stepping with a target.
 
 ## 5. `Guy::inc_time@005d9e10` — the step and the wrap
 

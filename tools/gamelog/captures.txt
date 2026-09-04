@@ -761,3 +761,37 @@ cover: callwin=4799-4807
 end: MISC
 poll_max: 200
 check: python3 tools/gamelog/rngcmp.py rontrace-run53.log rontrace-run72.log
+
+run: 73
+tag: greatlakes-caravanstart
+item: 205
+why: Great Lakes' word is a caravan crew's metronome one frame early — the frame 1/23 first walks, and the waypoint it walks at
+# Great Lakes' word is **5571**, and the two draws are `1/23`'s two crew
+# figures wrapping (`docs/ANIM.md` §3.6's three-frame metronome). The crew
+# clock is a function of the unit: while the caravan stands the crew mirrors
+# guy 0 and wraps on alternate frames, and once it walks it wraps every
+# third. The original's wraps run 5569, 5572, 5575 — the walking cadence
+# from 5570 — where this crate's run 5569, 5571, 5574, the standing one
+# through 5571. So the original's caravan is walking a frame or two before
+# this one, and no record on disk says when it starts: run65 is the same
+# question on East Indies and its caravan takes `move_step`'s **far** arm,
+# where this one is inside a tile of its first waypoint and takes the
+# **near** one.
+#
+# The window carries the whole answer: `MOVEORDER`'s `dest_x/dest_y` (the
+# waypoint the near/far test measures), the path stack, the unit's position
+# and angle, and every `GUY` block's clock. The `callwin` carries
+# `Unit::set_new_location@005f8d20` — "where the step landed" — which names
+# the first frame the caravan moves outright, and `astar_path`/`calc_cost`
+# for the search that built the waypoint.
+frames: 5590
+mapstyle: 14
+window: 5564 5580
+cover: cover=1
+cover: window=5563-5581
+cover: callwin=5563-5581
+# run72's line: MISC at `[End Frame]` keeps the log growing every frame, so
+# the poll does not call the long quiet run-up to the window a settled run.
+end: MISC
+poll_max: 220
+check: python3 tools/gamelog/rngcmp.py rontrace-run53.log rontrace-run73.log

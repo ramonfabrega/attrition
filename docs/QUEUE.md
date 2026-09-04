@@ -12,33 +12,33 @@ lines, or lets the handoff pass 32.
 
 ## Where things stand
 
-*2026-09-03, Opus — item 204 landed, and it moved the headline 69 frames.*
-**Great Lakes 5502 → 5571 by draw and by sequence; East Indies 6739,
-unmoved.**
+*2026-09-03, Opus — item 205 landed, and it moved the headline 2 frames.*
+**Great Lakes 5571 → 5573 by draw and by sequence; East Indies 6739,
+unmoved.** Small on the scoreboard and large under it: every guy that
+walks had the wrong animation clock.
 
-- **It was one store.** `resolve_unit_collision`'s two closing blocks
-  (`005f9d30`) both clear the order's `+0x10` — `dest = 0` — and only the
-  successful one adds the pause roll. This crate took the top of its own
-  fresh `find_upath` plan as the waypoint instead, which is the cell the
-  snap has just put the unit on, so `do_move`'s arrival test never ran.
-- **run53's `1/7` had been in a two-frame livelock since 5501** — snap,
-  plan, pop the plan, walk back into `1/22` — for the rest of the 24,000
-  frames. It now reaches its farm on 5508.
-- **`do_move`'s grid branch tests `collide`** (ORDERS §4.4): not colliding
-  plans on the tile grid, colliding on the 48 grid. Landed too; it scores
-  nothing yet, so it is pinned by a test built from frame 5502's own state.
-- **The site fold now names the unit that spent each draw**, the `unit
-  who/o` mark carries the game's `o`, and `RON_DEBUG_UNIT` works on run53.
-- **5571 is two animation wraps**, item 205.
+- **A moving frame asks for the walk twice.** `Unit::move_step` calls
+  `set_anim(CHAR_WALK, 0, 1)` on every guy just before
+  `set_new_location`, and `Guy::move` calls it again. Only the *second* —
+  the slot already playing by then — takes an overrun length off the
+  clock; a slot change rescales by `t / t` and keeps it (ANIM §4.9).
+  §4.8 had **cited** that call for a month and the code never made it.
+- **run73 is Great Lakes' first `DUMP_ALL` window**, `[5564, 5580)`, and
+  it holds a unit's whole birth — `1/23` is trained on 5564. All **4,869**
+  `GUY` fields are the original's; without the call the check fails on the
+  window's first frame and on the *human's* units.
+- **`guys_inc_time` marks its units** now, so the fold names who spends a
+  wrap; `RON_DEBUG_UNIT` prints the figure clocks on any capture.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w6739 of 24,000 · GreatLakes w5571 of 24,000
+Long captures: EastIndies w6739 of 24,000 · GreatLakes w5573 of 24,000
 
-**Opener (Opus):** `205 is the default: run53 frame 5571, two
-Guy::inc_time animation wraps this crate spends and the original does not,
-after 3,200 calc_road_cost draws that agree exactly. RON_DEBUG_SITES is on
-run53; the two draws are in guys_inc_time, so the unit loop's attribution
-does not reach them.`
+**Opener (Opus):** `206 is the default: run53 frame 5573, the caravan
+1/23's own Caravan::build_road — 1,761 PathFinder::calc_road_cost draws
+here against the original's 1,535. run73's callwin over [5563, 5581]
+carries astar_caravan_road, valid_roadcoord and calc_road_cost node for
+node, so the oracle is on disk: read it the way run62/run64/run72 were
+read, a sequence and not a count.`
 
 ## The queue
 
@@ -47,15 +47,17 @@ captures' word**, lower map first — Great Lakes. Take the first unstarted
 unless a better order is obvious — and say so. Numbers are stable; the
 journal is indexed by them.
 
-205. **Great Lakes' word is two animation wraps at 5571.** run53's frame
-    spends 3,200 `PathFinder::calc_road_cost` draws that agree exactly,
-    then **two** `Guy::set_anim+0x97a < Guy::inc_time+0x271` where the
-    original spends none before its `Guy::set_anim+0x104b`. Two figures
-    wrap an animation that should not wrap, or wrap one frame early. They
-    fall in the `guys_inc_time` phase, past the unit loop, so the site
-    fold's attribution does not name them — start from ANIM §3.3 and
-    **item 124**, the per-file loop flag, and from what `end_time` the two
-    figures carry. Nothing else on this list is nearer the headline.
+206. **Great Lakes' word is the caravan's own road plan at 5573.**
+    run53's frame spends **1,761** `PathFinder::calc_road_cost` draws
+    where the original spends **1,535** — `1/23`'s `Caravan::build_road`,
+    the last frame of its five-frame budget search (CARAVAN §5.2). The
+    oracle is already on disk: run73's `callwin` over `[5563, 5581]`
+    carries `astar_caravan_road`, `valid_roadcoord` and `calc_road_cost`,
+    so the search is readable **node for node** the way run62's, run64's
+    and run72's were. A count is not a sequence — that is run62's lesson
+    and run72's — so pair each price with the gate that returned before
+    it (`Trace::road_nodes`) and find the first node that differs.
+    Nothing else on this list is nearer the headline.
 
 203. **`Wall::mark_behind_tiles`, and three road tiles it does not
     explain.** run72's 33 tile-mask residues are all bit `0x4` —
@@ -99,12 +101,10 @@ journal is indexed by them.
 142. **`World::tregion` is not `get_tregion`.** Four items were a gate
     asking the wrong one (PATHFINDER §15, §16); eleven callers unaudited.
 
-Two records with no reader: (122) **a draw with no mark of its own** —
-`mark_sites` labels an unmarked draw with the one still standing, and **16
-of 61** `rng.roll`/`get` calls have no `self.mark(`; (153) **the `TRIBE`
-record, whole** — `Tribe::log_data@006f0d70` prints `graft[352]`,
-`barbarian`, `build_continent`, `people` and `text_substitute` in every
-`DUMP_ALL` dump, none parsed (TECH).
+Two records with no reader: (122) **a draw with no mark of its own** — 16
+of 61 `rng.roll`/`get` calls have no `self.mark(`; (153) **the `TRIBE`
+record, whole** — `Tribe::log_data@006f0d70`'s `graft[352]`, `barbarian`,
+`build_continent`, `people`, `text_substitute`, none parsed (TECH).
 
 178. **The danger map's unit pass, unexercised.** DANGER §8: run64's
     leaders have no military unit on a frame divisible by 200, so

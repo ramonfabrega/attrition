@@ -2427,6 +2427,43 @@ impl Sim {
             {
                 return Did::Nothing;
             }
+            // **`move_step`'s own `set_anim`, and it is a clock and not
+            // a picture** (`docs/ANIM.md` §4.9). Both arms of an accepted
+            // step — the partial one at `move_step:304` and the Manhattan
+            // snap at `:355` — call `Unit::set_anim(CHAR_WALK, 0, 1)` on
+            // **every guy** immediately before `set_new_location`, so a
+            // walking unit asks for its walk *twice* a frame: here, and
+            // again in `Guy::move`'s own half ([`Sim::guys_follow`]).
+            //
+            // For guy 0 the pair is idempotent — a walk still inside its
+            // length keeps its clock — and for a **crew figure whose
+            // packet is empty** it is the whole mechanic.
+            // `Guy::set_anim`'s walk arm splits on whether the resolved
+            // slot is the one already playing: a *change* rescales, and
+            // the rescale passes the old slot to both `get_anim_time`
+            // calls, so it is `cur_time · t / t` and keeps the clock; only
+            // the *same* slot takes an overrun length off it. A crew
+            // figure comes off the mirror on `CHAR_SLOG` carrying guy 0's
+            // clock, so this call is the change — `SLOG → WALK`, clock
+            // kept — and `Guy::move`'s is then the same slot and
+            // subtracts. With only the second call the figure kept the
+            // mirrored clock, wrapped a frame early and paid an idle roll
+            // the original does not: run73's window, Great Lakes 5571.
+            //
+            // **Past the turn-in-place arms**, which `return 1` at
+            // `005fb2e1` and `005fb2b4`, so a frame spent turning never
+            // reaches the call. This crate walks on to the collision block
+            // and the store on such a frame — it steps on a *copy* of the
+            // order, so the store is owed — but the animation is not.
+            //
+            // SEAM: the snap arm asks `CHAR_DEFAULT` instead when the
+            // waypoint offsets were both zero at the top of `move_step`
+            // and `UnitData+0xd8 < 2`. `do_move`'s own "already there"
+            // test takes that case a step earlier here, so the arm is
+            // unreachable; it would be a draw if it were not.
+            if step.turned_in_place.is_none() {
+                self.set_anim(u, crate::anim::WALK, false, true);
+            }
             let flags = self.current_order(u).map_or(0, |o| o.flags);
             if !self.set_new_location(u, target, false) {
                 // The step crossed the waterline and was converted rather
