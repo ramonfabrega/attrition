@@ -347,3 +347,47 @@ original's sweep is per *tile* and each tile's chain is at most two deep, the
 two spellings can never differ. Settles it: the loop shape at
 `Wall::kill_competing_buildings` in the export, and whether its `break` is
 inside the tile loop or the object loop.
+
+
+## Adjudication — 2026-09-05, Opus
+
+**Twenty confirmed, none struck.** Every row's code citation re-checked
+against the source; R1, R3, R7, R13 and R15 read at the site.
+
+**R3 is the one to take first, and it is not a rule the code is missing —
+it is a rule the code gets wrong every frame.** `process_building`'s
+periodic phase is `let phase = frame + b as i64`, where `b` is the
+building's index in this crate's `Vec`. The original's is
+`Build::process@0061edf0:728`, the object number `o`. The two agree only
+while every building's handle equals its object number, which is true at
+the start of a game and stops being true the first time a building dies
+and its slot is reused, or the first time a building is created in a
+different order than the original's `o` allocation. Every 32-frame phase
+downstream of it — the `under_attack` decay here, and whatever else shares
+the counter — then fires on the wrong frame for that building, for the rest
+of the game. It is a divergence *generator* rather than a divergence, which
+is why nothing has attributed a frame to it.
+
+**R15 is cross-confirmed.** `remove_from_city` not regenerating the city's
+roads is the same gap the ROADS pass reached independently as its R4 — two
+readers, two documents, one missing call. That is the first time this wave
+produced the same finding twice from different directions, and it raises
+the confidence on both.
+
+**R7** — `num_buildings_of` filters `alive && active && owner && ty` with
+no city test, so a finished building belonging to no city is counted —
+and **R13** — `update_hits`' eject is `construct_hits <= damage &&
+!garrison.is_empty()` with no `can_carry(AIR)` exemption, though
+`Sim::is_hangar` exists and is the right predicate — are confirmed as
+written.
+
+**R12 is a predicate error of the kind the record says recurs**:
+`update_hits`' tower exclusions are a type identity (`b.ident ==
+Ident::Tower`) where the original asks `is(TOWER, 0)`, so a Keep takes the
+Senate bonus it should not. `build::is_tower` exists and is what
+`place.rs` and `garrison.rs` already use. The Nubian `MARKET` clause beside
+it has the same shape.
+
+The four `UNSURE:` rows (R10, R11, R17, R19, R20) are left marked as the
+reader left them; none is a citation error, and each names what would
+settle it.

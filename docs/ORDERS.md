@@ -3844,6 +3844,50 @@ need; **`gather_from`, the `GATHERPOINT` list and `BUILDQUEUE` need
    1` then `0` after the first strike; a guard's `retry` in `6..8` after each
    reposition.
 
+## 14.1 The docs-versus-code pass, 2026-09-05
+
+`docs/audit/2026-09-05-orders-vs-code.md` (Opus reader, Opus adjudication).
+About 300 stated rules traced to the code that implements them; eighteen
+disagree, all eighteen confirmed, none struck. §9 and §11 got a lighter
+pass because both live in `crates/rondata`, and the audit file says so
+rather than letting its count imply coverage it does not have.
+
+**Three are this document lagging the code**, and are the lane's to
+correct: §13's "not implemented" list is stale — `GroupMoveOrder`, the cast
+and the trade route are all implemented; §12 calls the group follower's
+cone 60° where §15 and the code both make it 120°; and §7.2's 1-in-5
+re-search predicate is stated **inverted**, settled in the export.
+
+**One is a field this crate writes and never reads.**
+`AttackOrder::ever_in_range` is written once and read nowhere: every other
+mention is a constructor setting it false, the dump parser, or the diff's
+scene builder. §6.9's packer drop rule, which consumes it, is not
+implemented. It is the mirror of `rondata::writers`' own check — a compared
+field the simulation never writes — and the cheaper half, because it needs
+no dump.
+
+**Three are blind**, cited here and entered by none of the 68 traces:
+§6.3's squad-member-follows-captain's-fight arm, §6.3's remembered
+`near_o`/`near_who` auto-attack, and the garrison approach ring's `DOCK`
+case with its relaxed retry.
+
+**The rest are stated, unimplemented, and reached as functions if not as
+arms.** §6.1's `work` liveness gate matches `Build`, `Repair`, `Garrison`
+and `Gather` and falls through on everything else, so an `ATTACK` action
+whose target is already dead is not killed before the step — the plainest
+consequence in the list. Then: the chase move's missing `0x481` distance
+gate and its kill ungated on attacker type or collision; `invalid_loc`'s
+refusal not clearing the verified-line bit — the same bit
+`docs/MOVEMENT.md`'s pass measured at 335 wrong in 450 unit-frames; a
+swarm's approach move always `EXPLORE_TO` where the original makes it
+`MOVE_TO` for a human builder and every repairer; the arrived gatherer's AI
+repair arm; the tile approach ignoring `avoid_x/y`; the tile score's
+`MTN_TINY_SIZE` `dist_mod` clamp; `add_gather_order` not clearing the "has
+been a builder" bit; `adjacent_to`'s missing sea arm, with
+`BOAT_GARRISON_MAX_DISTANCE` unused; and a re-plan returning 0 with an
+empty stack killing the order instead of taking the top (left marked
+`UNSURE:`).
+
 ## 15. `GroupMoveOrder`, landed — 2026-09-04
 
 ~~§8.4's verdict~~ — **overturned for an army's group**, and the score is
