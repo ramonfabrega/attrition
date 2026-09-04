@@ -12365,6 +12365,102 @@ mod tests {
         );
     }
 
+    /// **run76 — the AI's Archer squad marching, and where it actually is**
+    /// (2026-09-04, item 223).
+    ///
+    /// run75's recipe with the window moved to `[6640, 6870)` — opened
+    /// before `Army::do_forming` issues the squad's group order on 6650, so
+    /// the whole march is on disk for the first time.
+    ///
+    /// **What it was booked for.** Great Lakes' word parts at 6848 on one
+    /// `Guy::set_anim+0x97a < Unit::move_step+0x823`: the Archer `1/28`, a
+    /// follower of the squad (`docs/ORDERS.md` §15), steps onto its
+    /// formation slot one unit cell north and `docs/COLLISION.md` §4.2's
+    /// leading edge hits `(890, 511)`, a cell of the standing citizen
+    /// `1/13`'s block. Every step of that is forced once the two blocks
+    /// overlap — and they do — so the **predicate** the item was booked
+    /// against is not what is wrong. The trace says by how much: the
+    /// original's own first blocked stand in that neighbourhood is at
+    /// **6860**, twelve frames and about 1.7 tiles later.
+    ///
+    /// No dump on this map reached the squad at all. The three archers are
+    /// born on 6612; run18b's `DUMP_ALL` window closes at 6590 and run75,
+    /// the longest, stops at 6160. A walk spends no draws, so the trace
+    /// cannot place them either.
+    ///
+    /// Driven through [`run_traced`], so this is the whole record and not
+    /// the squad's.
+    #[test]
+    fn run76_s_window_is_the_ai_squad_s_march() {
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(tr)) = (
+            dump("gamelog-run76-greatlakes-archermarch.txt"),
+            trace("rontrace-run76.log"),
+        ) else {
+            eprintln!("skipping: no run76 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = std::fs::read_to_string(&path).unwrap();
+        let log = Log::parse(&text);
+        let texts = sibling_texts();
+        let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
+        let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+        let refs: Vec<&Initial> = inits.iter().collect();
+        let report = run_traced(&loaded, &log, Tuning::RON, None, None, &refs, Some(&tr)).unwrap();
+        let blocks: Vec<i64> = report
+            .frames
+            .iter()
+            .filter(|f| f.compared > 0)
+            .map(|f| f.frame)
+            .collect();
+        assert!(
+            blocks.first().is_some_and(|&n| n <= 6_641)
+                && blocks.last().is_some_and(|&n| n >= 6_860)
+                && blocks.len() >= 220,
+            "run76's window, as the frames that carry a unit record: {:?}..{:?} \
+             ({} blocks) — a file with fewer is the wrong file",
+            blocks.first(),
+            blocks.last(),
+            blocks.len()
+        );
+
+        let parted: std::collections::BTreeMap<(i64, i64), i64> = report
+            .first_divergence_by_unit()
+            .into_iter()
+            .map(|(w, o, f)| ((w, o), f))
+            .collect();
+        let orders: usize = report.frames.iter().map(|f| f.order_compared).sum();
+        let angles: usize = report.frames.iter().map(|f| f.angle_compared).sum();
+        eprintln!(
+            "run76: {} unit fields, {orders} order/path fields, {angles} angles \
+             over {} blocks; {} unit(s) ever off position",
+            report.frames.iter().map(|f| f.compared).sum::<usize>(),
+            blocks.len(),
+            parted.len()
+        );
+        for (&(who, o), &frame) in &parted {
+            eprintln!("  {who}/{o} parts at {frame}");
+        }
+        // The squad itself, printed whole: the three archers are the units
+        // the item is about, and their first disagreeing field is what says
+        // whether the slot, the speed or the step is wrong.
+        for d in report
+            .frames
+            .iter()
+            .flat_map(|f| f.diverged.iter())
+            .filter(|d| d.who == 1 && (27..=29).contains(&d.o))
+            .take(24)
+        {
+            eprintln!("  squad {d:?}");
+        }
+        assert!(
+            orders >= 1_000 && angles >= 1_000,
+            "the window's own rows: {orders} order fields and {angles} angles — \
+             a capture below `UNITS=3` is the wrong file"
+        );
+    }
+
     /// **run65 — the caravan's turn out of its own city, every unit, every
     /// frame** (2026-09-02).
     ///
