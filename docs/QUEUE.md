@@ -27,8 +27,8 @@ possible again, and proven identical to the ones already on disk.
   CrossOver". GPTK's D3DMetal is **x86_64 only**; the game is PE32.
 - **`7BF21139` is real and `cover=0` clears it.** Item 226; the price is
   function coverage, which is the queue of blind readings.
-- **The corpus has a second copy** (steering, Fable): `backup.sh sync`
-  after a capture session. CrossOver is gone; `~/ron-data` is only ours.
+- **The corpus has a second copy** (Fable): `backup.sh sync` after a
+  capture session. CrossOver is gone. A poll loop carries a deadline.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w7448 of 24,000 · GreatLakes w6848 of 24,000
