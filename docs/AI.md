@@ -3451,14 +3451,13 @@ stay 0 wrong, run59's census stays where it was.
   slot 1 fails `can_pay_slot` and slot 4 is dropped as a duplicate of a
   ranked slot — so the draws still agree; the *list* does not. §2.19's
   arithmetic is what would settle it, and run18b's window covers it.
-- **What is born at 6612.** The new parting is three `Guy::init_real+0x52`
-  and three `Guy::set_anim+0x97a < Unit::do_idle+0x7d` the original spends
-  and this crate spends none of — a unit arriving. It is **not** the
-  citizen bought at 6582: a citizen is one guy here (run53's own births at
-  2711, 4756 and 4937 are one `init_real` each) and its clock is 180
-  frames, not 30. Its shape is 5564's, which is `b22`'s three-guy `ty9` and
-  which both sides made; so the question is which queue the original filled
-  between 6153 and 6612 and this crate did not. That is the next item.
+- ~~**What is born at 6612.**~~ **No queue** — answered 2026-09-04,
+  `docs/CITIES.md` §4.3. The AI's Barracks finishes its construction on that
+  exact frame, and `Build::activate`'s high-water block pays a **British**
+  leader its free archer; the three `Guy::init_real+0x52` and three
+  `Guy::set_anim+0x97a < Unit::do_idle+0x7d` are **one** Bowmen, which
+  `Objects::init_unit`'s `uber_size` loop makes as three one-figure objects.
+  Great Lakes' word 6612 → 6650.
 - **The other readers of `pop`.** Only `create_units` and `research_techs`
   are cited here. `Leader::plan_strategy@006b9620:1202` reads it too
   (against `+0x848`), and that comparison is unmodelled.

@@ -12,29 +12,31 @@ lines, or lets the handoff pass 32.
 
 ## Where things stand
 
-*2026-09-04, Opus — item 213 landed.* **Great Lakes 6582 → 6612 by draw
-and by sequence; East Indies unmoved at 7448.** No capture: run18b, run53's
-own game, had every input at sim-frame 6580.
+*2026-09-04, Opus — item 215 landed.* **Great Lakes 6612 → 6650 by draw
+and by sequence; East Indies unmoved at 7448.** No capture: the disk
+already held both halves.
 
-- **`LeaderData::pop` is two producers' whole base and nothing here wrote
-  it.** `create_units@006c40a0:289` is `pop × 1000 / max(1, city_num)`,
-  `research_techs` the same with `× 200`: both computed **zero all game**.
-  It is `CityData::get_pop_value@00738450` — 1/3/5 by city level — over
-  the leader's live cities, and all five writers are already call sites of
-  `Sim::sync_pop_cities` (AI §27).
-- **The citizen's 714** reproduces exactly, but only through
-  `create_units`' **tail**, the divide by `want + units + queued`; the
-  branch alone gives 1500, and an hour went into hunting a multiplier that
-  was not there. Read the whole function, not the interesting part. The
-  census record carries `pop`/`reg_pop`, made to fail on purpose first.
+- **It was never a queue.** The AI's Barracks finishes on the exact frame
+  6612 (run18b's last block: `job_counter` 39600 of 42000, 100 a frame),
+  and `Build::activate`'s **high-water block** pays a British leader its
+  free archer. The trace said so from the other side: the fifteen
+  functions the original enters for the *first time in 24,000 frames* on
+  6612 are `Army::add_unit`, `Unit::think_attack` and their neighbours.
+  `docs/CITIES.md` §4.3 holds the whole nation table.
+- **A squad is `uber_size` units, not one unit with three figures.**
+  `UnitTypeData::squad_size` is written **1** at load and never again, so
+  the three `Guy::init_real` were three *objects* on an `o_up`/`o_down`
+  list — run17's frame 1301 has `6 → 7 → 8` exactly so. Half of 175.
+- **No run was booked.** Two dumps and a trace already on disk carried the
+  queue composition, the clock's slope and the first-entry list.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w7448 of 24,000 · GreatLakes w6612 of 24,000
+Long captures: EastIndies w7448 of 24,000 · GreatLakes w6650 of 24,000
 
-**Opener (Opus):** `215 is the default: run53 frame 6612, a three-guy unit
-the original births and this crate has not queued. Not the citizen bought
-at 6582 — one guy, 180-frame clock. Which queue did the original fill
-between 6153 and 6612? AI §27.3.`
+**Opener (Opus):** `217 is the default: run53 frame 6650, one
+`Unit::do_move+0xe84 < Unit::do_group_move+0x148 < do_group_attack_to+0x11`
+the original spends and this crate none of. The archer squad born at 6612
+is given a group attack-to; find who gives it. ARMY, AI §23.1.`
 
 ## The queue
 
@@ -43,17 +45,14 @@ captures' word**, lower map first — Great Lakes. Take the first unstarted
 unless a better order is obvious — and say so. Numbers are stable; the
 journal is indexed by them.
 
-215. **Great Lakes' word is a unit arriving, at 6612.** Three
-    `Guy::init_real+0x52` and three `set_anim < Unit::do_idle` the
-    original spends and this crate none of — a three-guy unit, 5564's
-    shape (`b22`'s `ty9`, made by both). **Not** the citizen bought at
-    6582 (one guy, 180-frame clock): find the queue the original filled
-    between 6153 and 6612 (AI §27.3).
+217. **Great Lakes' word is the new squad's first order, at 6650.** One
+    `Unit::do_move+0xe84 < do_group_move+0x148 < do_group_attack_to+0x11` —
+    the archer born at 6612 is in a group and marching. Who gives the order
+    is the item; 158's human-army gate is next door.
 
 216. **`create_buildings` offers a gather building the original does not.**
     At 6582 this crate's slots 1 and 4 carry `t 418 cat 4 val 41500`, the
-    original's 1–4 empty. Inert there — slot 1 fails `can_pay_slot`, 4 is
-    a ranked duplicate — so the *list* differs, not the draws (§2.19).
+    original's 1–4 empty; inert there, so the *list* differs (AI §2.19).
 
 214. **East Indies' word is two blocked stands, at 7448.** Two
     `Unit::move_step+0x823` (`SITE_BLOCKED`, COLLISION §5) at the unit
@@ -64,8 +63,7 @@ journal is indexed by them.
 209. **The other once-per-game events a dump install swallows.** 207's
     general half: grep the gates of that shape — a `set_*` whose **return
     value** drives an irreversible record — and seed each from the installed
-    state as `Sim::seed_new_rares_from_fog` does.
-    `World::compute_reg_territory` belongs here.
+    state as `Sim::seed_new_rares_from_fog` does; `compute_reg_territory`.
 
 203. **`Wall::mark_behind_tiles`' `0x4`, and nothing else.** The residue
     is **32** at 4802 and **45** at 5565, every bit `0x4` —
@@ -126,9 +124,11 @@ as a floor and put it in each Coverage; (72) every `+0xNN` a document pins,
 checked against its module; (89) the instrument's last guard, (c) alone; (35)
 **`mylos` as a cache**, VISION §7 (Scout 4 → 6 early).
 
-175. **`Unit::squad_size` is the guy count and should be the uber chain**:
-    `curr_uber_size@0060a760` walks `o_up`/`o_down`; the 109 `UBER_SIZE 3`
-    types have `CREW_SIZE 0`. Takes 48's chain.
+175. **The uber chain past its birth.** `Objects::init_unit` now makes
+    `uber_size` objects and threads them (CITIES §4.3); nothing else reads
+    the chain — `curr_uber_size@0060a760` unwritten, a dump's
+    `o_up`/`o_down` unset by `build_sim`, the members on the captain's own
+    tile where `find_nearby_spot` seats them. Takes 48's chain.
 
 Three fields nothing here writes: (48) **the object chain, whole** — only
 units are threaded (COLLISION §3, §7, GOODY §1), `down`/`down_who` uncompared;

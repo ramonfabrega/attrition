@@ -626,6 +626,55 @@ pub struct Tuning {
     pub thepresident_building_speed: i32,
     /// Whether the Iroquois' first senate is instant.
     pub iroquois_quick_senate: i32,
+
+    // ---- `Build::activate`'s free units (`crate::nations`) ----
+    /// Whether a Nubian Market delivers a free caravan. Ships as zero, so
+    /// the arm is live and inert at once.
+    pub nubian_free_caravan: i32,
+    /// Scouts an Iroquois Barracks delivers.
+    pub iroquois_free_scout: i32,
+    /// Legions a Roman Barracks delivers per tier of the age ladder, and the
+    /// cap on their product.
+    pub roman_barracks_legion: i32,
+    pub roman_max_legion: i32,
+    /// The ladder the legion count is scaled by: the ages at which it
+    /// reaches one, two and three.
+    pub roman_age_for_1_legion: i32,
+    pub roman_age_for_2_legions: i32,
+    pub roman_age_for_3_legions: i32,
+    /// The same ladder for a British Barracks' archers — but the tier **is**
+    /// the count here, with neither multiplier nor cap.
+    pub british_age_for_1_archer: i32,
+    pub british_age_for_2_archers: i32,
+    pub british_age_for_3_archers: i32,
+    /// Light infantry an Aztec Barracks delivers per tier, and their cap.
+    pub aztec_barracks_light: i32,
+    pub aztec_max_light: i32,
+    /// Siege engines a Turkish Siege Factory delivers.
+    pub turk_free_siege: i32,
+    /// Whether a French Siege Factory delivers a supply wagon, and a French
+    /// fort a general.
+    pub french_free_supply: i32,
+    pub french_free_general: i32,
+    /// Triremes a Spanish Dock delivers, before the Gunpowder age.
+    pub spanish_free_trireme: i32,
+    /// Light ships a Dutch Dock delivers.
+    pub dutch_free_light_ship: i32,
+    /// Fishermen a British Dock delivers. Ships as zero.
+    pub british_free_fishermen: i32,
+    /// Scholars an American University delivers, and bombers an American
+    /// Airbase delivers once the Modern age is owned.
+    pub americans_free_scholar: i32,
+    pub americans_free_bomber: i32,
+    /// Fighters a German Airbase delivers.
+    pub german_free_fighter: i32,
+    /// Cavalry a Mongol Stable delivers: `start` below Military level two,
+    /// `free` at or above it, and `three_mil` as a floor past level two.
+    pub mongol_start_cavalry: i32,
+    pub mongol_free_cavalry: i32,
+    pub mongol_three_mil_cavalry: i32,
+    /// Citizens a Korean city delivers, indexed by the city count less one.
+    pub korean_citizens: [i32; 9],
     /// Whether Korean builders and repairers ignore the under-attack penalty.
     pub korean_build_under_fire: i32,
     /// Percent off the Korean repair period.
@@ -936,6 +985,31 @@ impl Tuning {
         hanging_gardens_build_time: 0,
         thepresident_building_speed: 33,
         iroquois_quick_senate: 1,
+        nubian_free_caravan: 0,
+        iroquois_free_scout: 1,
+        roman_barracks_legion: 1,
+        roman_max_legion: 3,
+        roman_age_for_1_legion: 1,
+        roman_age_for_2_legions: 3,
+        roman_age_for_3_legions: 5,
+        british_age_for_1_archer: 0,
+        british_age_for_2_archers: 2,
+        british_age_for_3_archers: 3,
+        aztec_barracks_light: 1,
+        aztec_max_light: 3,
+        turk_free_siege: 2,
+        french_free_supply: 1,
+        french_free_general: 1,
+        spanish_free_trireme: 1,
+        dutch_free_light_ship: 1,
+        british_free_fishermen: 0,
+        americans_free_scholar: 1,
+        americans_free_bomber: 1,
+        german_free_fighter: 2,
+        mongol_start_cavalry: 1,
+        mongol_free_cavalry: 2,
+        mongol_three_mil_cavalry: 3,
+        korean_citizens: [1, 3, 5, 5, 5, 5, 5, 5, 5],
         korean_build_under_fire: 1,
         korean_repair: 50,
         maya_building_hp: 25,
@@ -962,7 +1036,7 @@ impl Tuning {
     /// This is what lets a tool re-derive [`Tuning::RON`] from a real install
     /// and report a drift, rather than us asserting numbers into the void. The
     /// two entries with no constant behind them are absent by design.
-    pub const fn ron_slots() -> [(&'static str, Slot); 263] {
+    pub const fn ron_slots() -> [(&'static str, Slot); 288] {
         const T: Tuning = Tuning::RON;
         [
             ("ATTRITION", Slot::Value(T.attrition)),
@@ -1459,6 +1533,67 @@ impl Tuning {
                 "IROQUOIS_QUICK_SENATE",
                 Slot::Value(T.iroquois_quick_senate),
             ),
+            ("NUBIAN_FREE_CARAVAN", Slot::Value(T.nubian_free_caravan)),
+            ("IROQUOIS_FREE_SCOUT", Slot::Value(T.iroquois_free_scout)),
+            (
+                "ROMAN_BARRACKS_LEGION",
+                Slot::Value(T.roman_barracks_legion),
+            ),
+            ("ROMAN_MAX_LEGION", Slot::Value(T.roman_max_legion)),
+            (
+                "ROMAN_AGE_FOR_1_LEGION",
+                Slot::Value(T.roman_age_for_1_legion),
+            ),
+            (
+                "ROMAN_AGE_FOR_2_LEGIONS",
+                Slot::Value(T.roman_age_for_2_legions),
+            ),
+            (
+                "ROMAN_AGE_FOR_3_LEGIONS",
+                Slot::Value(T.roman_age_for_3_legions),
+            ),
+            (
+                "BRITISH_AGE_FOR_1_ARCHER",
+                Slot::Value(T.british_age_for_1_archer),
+            ),
+            (
+                "BRITISH_AGE_FOR_2_ARCHERS",
+                Slot::Value(T.british_age_for_2_archers),
+            ),
+            (
+                "BRITISH_AGE_FOR_3_ARCHERS",
+                Slot::Value(T.british_age_for_3_archers),
+            ),
+            ("AZTEC_BARRACKS_LIGHT", Slot::Value(T.aztec_barracks_light)),
+            ("AZTEC_MAX_LIGHT", Slot::Value(T.aztec_max_light)),
+            ("TURK_FREE_SIEGE", Slot::Value(T.turk_free_siege)),
+            ("FRENCH_FREE_SUPPLY", Slot::Value(T.french_free_supply)),
+            ("FRENCH_FREE_GENERAL", Slot::Value(T.french_free_general)),
+            ("SPANISH_FREE_TRIREME", Slot::Value(T.spanish_free_trireme)),
+            (
+                "DUTCH_FREE_LIGHT_SHIP",
+                Slot::Value(T.dutch_free_light_ship),
+            ),
+            (
+                "BRITISH_FREE_FISHERMEN",
+                Slot::Value(T.british_free_fishermen),
+            ),
+            (
+                "AMERICANS_FREE_SCHOLAR",
+                Slot::Value(T.americans_free_scholar),
+            ),
+            (
+                "AMERICANS_FREE_BOMBER",
+                Slot::Value(T.americans_free_bomber),
+            ),
+            ("GERMAN_FREE_FIGHTER", Slot::Value(T.german_free_fighter)),
+            ("MONGOL_START_CAVALRY", Slot::Value(T.mongol_start_cavalry)),
+            ("MONGOL_FREE_CAVALRY", Slot::Value(T.mongol_free_cavalry)),
+            (
+                "MONGOL_THREE_MIL_CAVALRY",
+                Slot::Value(T.mongol_three_mil_cavalry),
+            ),
+            ("KOREAN_CITIZENS", Slot::Entries(&T.korean_citizens)),
             (
                 "KOREAN_BUILD_UNDER_FIRE",
                 Slot::Value(T.korean_build_under_fire),

@@ -833,6 +833,13 @@ pub struct Sim {
     pub lost_city_stamp: Vec<Option<i64>>,
     /// `LeaderData::cities_built`, `cities_captured`, `cities_lost`.
     pub city_tally: Vec<city::Tally>,
+    /// `LeaderData::high_buildings` (`+0x5660`): per player, the most
+    /// buildings of a lineage this player has ever held finished at once,
+    /// indexed by the lineage's **root** record. Only `Build::activate`
+    /// raises it, and what it gates is the nation's free units
+    /// (`crate::nations`). Grown on demand, because the build types are
+    /// loaded after the simulation is stood up.
+    pub building_high: Vec<Vec<i32>>,
     /// Buildings disbanded or died this frame, for tests.
     pub removed: Vec<usize>,
     /// `leader_flags & 0x8000000` per player: the wall stats are stale.
@@ -1133,6 +1140,7 @@ impl Sim {
             defeated: vec![false; players],
             lost_city_stamp: vec![None; players],
             city_tally: vec![city::Tally::default(); players],
+            building_high: vec![Vec::new(); players],
             removed: Vec::new(),
             wall_stats_dirty: vec![false; players],
             // Ten slots, not `players`: gaia's animals and birds are units
@@ -1184,6 +1192,7 @@ impl Sim {
         self.defeated.push(false);
         self.lost_city_stamp.push(None);
         self.city_tally.push(city::Tally::default());
+        self.building_high.push(Vec::new());
         self.wall_stats_dirty.push(false);
         self.marks.push(Marks::default());
         self.repaths.push(0);
@@ -1942,59 +1951,136 @@ impl Sim {
                 Advanced::Researched
             }
             production::Handover::Trained => {
-                let pos = self.buildings[at].pos;
                 // No refund on completion, and no skip-forward: the original
                 // passes false for both, and they are the same argument.
                 let mut ledger = economy::Ledger::default();
                 self.buildings[at].queue.unqueue(slot, false, &mut ledger);
-
-                let muster = &mut self.muster[who as usize];
-                muster.queued_by_type[ty] -= 1;
-                muster.by_type[ty] += 1;
-                muster.control += pop;
-                if let Some(g) = self.unit_types[ty].group {
-                    muster.by_group[g] += 1;
-                }
+                self.muster[who as usize].queued_by_type[ty] -= 1;
                 self.track_tree_queued(who, ty, -1);
-
-                // `Objects::init_unit` → `find_free(who, 0, 2000, …)`; a full
-                // band (2,000 live units of one player) is not modelled as a
-                // refusal here, so the number saturates instead.
-                let index = self
-                    .find_free(who, UNIT_BASE, BUILD_BASE)
-                    .unwrap_or(i16::MAX);
-                let mut unit = Unit::new(who, index, pos, self.unit_types[ty].hits);
-                unit.kind = self.unit_types[ty].kind;
-                unit.ty = Some(ty);
-                unit.type_index = self.unit_types[ty].type_index;
-                // The stance is a switch on the *type's* stance kind and
-                // then, when the trainer shares that kind, the trainer's own
-                // byte — `Unit::init@00612100:282–309` and
-                // `Build::train@0062f9b0:86–101` (`crate::stance`,
-                // `docs/ORDERS.md` §5.10).
-                unit.stance = self.trained_stance(who, ty, at);
-                unit.movement.speed = self.type_speed(who, ty);
-                unit.movement.turning = self.turning_for(ty);
-                let unit = self.add_unit(unit);
-                // `Unit::init` → `Guy::init_real`: the figure's one draw.
-                // (The unit's `ty` stays unset here, as it always has; the
-                // piece lookup takes the type directly.)
-                self.init_guys(unit, Some(ty));
-                // **The trained unit is born inside its trainer and walks
-                // out.** `Build::train@0062f9b0` creates it at the
-                // building's own position, calls `Unit::go_inside`, and
-                // then `Unit::come_out` — which is what puts it on the exit
-                // ring rather than on the building's centre tile. The
-                // arms `train` takes before that last call — a
-                // gather-inside building that keeps its worker, a dock's
-                // boat count, the player's own text bubble — are not
-                // modelled; every trainer here lets its unit straight out.
-                self.go_inside(unit, at);
-                self.come_out(unit);
-                self.economy_changed(who);
-                Advanced::Trained(Produced { unit, ty, at })
+                Advanced::Trained(self.build_train(at, ty))
             }
         }
+    }
+
+    /// `Build::train@0062f9b0` — a unit born at a building.
+    ///
+    /// The queue is not in it: `do_queue` has already taken the entry off
+    /// and dropped `num_queued` before it calls this, and the two callers
+    /// that are *not* a queue — `Build::activate`'s free units
+    /// (`crate::nations`) and `Build::finished`'s government hero — pay no
+    /// queue at all.
+    ///
+    /// **The trained unit is born inside its trainer and walks out.**
+    /// `Build::train` creates it at the building's own position, calls
+    /// `Unit::go_inside`, and then `Unit::come_out` — which is what puts it
+    /// on the exit ring rather than on the building's centre tile. The arms
+    /// `train` takes before that last call — a gather-inside building that
+    /// keeps its worker, a dock's boat count, the player's own text bubble
+    /// — are not modelled; every trainer here lets its unit straight out.
+    pub(crate) fn build_train(&mut self, at: usize, ty: usize) -> Produced {
+        let who = self.buildings[at].owner;
+        let unit = self.init_unit(who, ty, self.buildings[at].pos);
+        // `Build::train@0062f9b0:86–101`: when the trainer's stance kind is
+        // the type's, the building's own byte overrides the one
+        // `Unit::init` was born with — for the whole squad, which is one
+        // object as far as a stance is concerned.
+        let stance = self.trained_stance(who, ty, at);
+        for f in self.squad_members(unit) {
+            self.units[f].stance = stance;
+        }
+        self.go_inside(unit, at);
+        self.come_out(unit);
+        self.economy_changed(who);
+        Produced { unit, ty, at }
+    }
+
+    /// `Objects::init_unit@0065e0c0` — **a squad is `uber_size` units, not
+    /// one unit with three figures.**
+    ///
+    /// The loop runs `UnitTypeData::uber_size` times, and each pass is a
+    /// whole `Unit::init` with its own `Guy::init_real` draw. The figures
+    /// each unit gets are `crew_size + squad_size`, and `squad_size` is
+    /// **written 1 by `UnitType::init` and never written again** — so the
+    /// three figures of a Bowmen are three *objects*, threaded
+    /// `o_up`/`o_down` as a list (the head's `o_up` is −1 and the tail's
+    /// `o_down` is; a member's `o_up` is the member before it, not the
+    /// captain — run17's frame 1301 has `6 → 7 → 8` exactly so).
+    ///
+    /// Only the head is counted: every member with an `o_up` is handed
+    /// straight back to `track_unit_type(·, −1, ·)`, so `num_units`,
+    /// `control` and the two running totals see one unit for the squad.
+    ///
+    /// SEAM: the original seats each member with `find_nearby_spot` around
+    /// the captain before it returns; here they share the captain's
+    /// position until [`Sim::come_out`] or a formation moves them. The
+    /// search takes no draw, so the stream does not know the difference.
+    pub(crate) fn init_unit(&mut self, who: Player, ty: usize, pos: Pos) -> usize {
+        let n = self.unit_types[ty].combat.uber_size.max(1);
+        let mut head = None;
+        let mut prev = None;
+        for _ in 0..n {
+            // `find_free(who, 0, 2000, …)`; a full band (2,000 live units
+            // of one player) is not modelled as a refusal here, so the
+            // number saturates instead.
+            let index = self
+                .find_free(who, UNIT_BASE, BUILD_BASE)
+                .unwrap_or(i16::MAX);
+            let mut unit = Unit::new(who, index, pos, self.unit_types[ty].hits);
+            unit.kind = self.unit_types[ty].kind;
+            unit.ty = Some(ty);
+            unit.type_index = self.unit_types[ty].type_index;
+            // The stance is a switch on the *type's* stance kind and then,
+            // when the trainer shares that kind, the trainer's own byte —
+            // `Unit::init@00612100:282–309` and `Build::train@0062f9b0:86`
+            // (`crate::stance`, `docs/ORDERS.md` §5.10). A trainer is what
+            // [`Sim::build_train`] passes; a free-standing spawn has none.
+            unit.stance = self.init_stance(who, ty);
+            unit.movement.speed = self.type_speed(who, ty);
+            unit.movement.turning = self.turning_for(ty);
+            let u = self.add_unit(unit);
+            // `Unit::init` → `Guy::init_real`: the figure's one draw.
+            // (The unit's `ty` stays unset here, as it always has; the
+            // piece lookup takes the type directly.)
+            self.init_guys(u, Some(ty));
+            match (head, prev) {
+                (None, _) => {
+                    head = Some(u);
+                    let pop = self.unit_types[ty].price.pop;
+                    let muster = &mut self.muster[who as usize];
+                    muster.by_type[ty] += 1;
+                    muster.control += pop;
+                    if let Some(g) = self.unit_types[ty].group {
+                        muster.by_group[g] += 1;
+                    }
+                }
+                (Some(h), Some(p)) => {
+                    let captain = self.units[h].index;
+                    self.units[u].captain = false;
+                    self.units[u].combat.captain = i32::from(captain);
+                    self.units[u].o_up = Some(p);
+                    self.units[p].o_down = Some(u);
+                }
+                (Some(_), None) => unreachable!("a head is set with its own index"),
+            }
+            prev = Some(u);
+        }
+        head.expect("uber_size is at least one")
+    }
+
+    /// The squad a captain heads, captain first — `o_down` walked.
+    pub fn squad_members(&self, captain: usize) -> Vec<usize> {
+        let mut out = vec![captain];
+        let mut cur = self.units[captain].o_down;
+        let mut guard = 0;
+        while let Some(u) = cur {
+            out.push(u);
+            cur = self.units[u].o_down;
+            guard += 1;
+            if guard > 16 {
+                break;
+            }
+        }
+        out
     }
 
     /// Installs a tech tree. Every player's tech state is reset to empty

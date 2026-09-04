@@ -1441,6 +1441,10 @@ impl Sim {
         // gather block: a dock, a market or a temple is a wealth slot
         // (`docs/ECONOMY.md`, "The wealth slot, and the thirty it pays").
         self.claim_commerce_slot(b, captured, counted);
+        // `Build::activate@00623e20` lines 603–1150, between the two: the
+        // building high-water mark, and the nation's free units for a
+        // first-of-its-kind building (`crate::nations`, §4.3).
+        self.claim_building_high(b, captured, counted);
         // `Build::activate@00623e20` lines 1151–1205: the gather slots, and
         // the bonus for the ones the player has never held.
         self.claim_gather_slots(b, captured, counted);

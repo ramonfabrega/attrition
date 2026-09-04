@@ -857,7 +857,7 @@ gameplay ("G") rather than message/sound/AI:
 | any, in a city | `City::regen_roads` |
 | fort / dock / oil | `Forts::init_fort` (**a territory source**, `docs/ATTRITION.md`), `Docks::init_dock`, `OilWells::init_oil_well`; the unbuilt lists popped |
 | dock, MARKET, TEMPLE | a count and its high-water mark; a new high (frame > 0, built, counted) → `do_bonus(WEALTH, 30)` |
-| high-water mark | `n = num_buildings[type] + get_buildings(to)`; `n > high_buildings[type]` and not captured → raise it; then, `counted`, **the nation's free units for a first-of-its-kind building** — Nubian market caravan, Iroquois barracks scouts, Roman legions, British archers, Aztec slingers, Turkish siege, French supply wagon and fort general, Spanish trireme, Dutch light ship, British fishermen, American scholar and bomber, German fighter, Mongol cavalry, Korean citizens per city — each `train(current_upgrade(…))` under `check_population` |
+| high-water mark | the nation's free units — **§4.3**, whole |
 | gather type | `gather_slots[k] += gather_max`; a new high → the first-slot resource bonus (`FOOD_BONUS_FOR_FARM`, `TIMBER_BONUS_PER_WOOD_SLOT`, …) |
 | **wonder** | `remove_unbuilt_wonder`; `wonders_built++`; `Wonders::init_wonder`; **every other player's unfinished copy of the same wonder is `disband`ed with a full refund**; the per-wonder one-offs — Terra Cotta's free-unit timer, the Kremlin spy, the Forbidden City ending a lost-capital countdown, the Hanging Gardens / Colosseum / Statue of Liberty / Red Fort / Tikal free techs via `gain_tech`, Colossus `calc_pop_cap`, Colosseum/Eiffel/Tikal a border recompute, Space Program the map reveal |
 | tail | **`update_hits(0)`** — full health now; `update_los`; **a non-city in a city → `City::check_upgrade`** (§5.3); `update_seen` |
@@ -885,6 +885,102 @@ active** (through `set_type` only): `num_queued[type]++`. Callers:
 the new — the level-up moves the count from `VILLAGE` to `TOWN`). **A
 finished building outside any city without `build_flags & 0x10` is not
 counted** — the tech tree's "has a temple" predicates follow the same rule.
+
+### 4.3 The high-water mark, and the nation's free units (2026-09-04)
+
+The row above called this "first-of-its-kind". It is a **high-water mark**,
+and the difference is the whole rule: the British get archers with *every*
+Barracks, and what the mark buys is that a **replacement** for one that died
+gets none.
+
+`Build::activate@00623e20:603` computes
+
+    n = num_buildings[type] + get_buildings(to)          // the upgrade chain above it
+    if high_buildings[get_base_type(type)] < n and not captured:
+        high_buildings[get_base_type(type)] = n
+        if counted:  <the nation's free units>
+
+`get_buildings(who, t, n)@006e0680` walks `BuildTypeData +0x2e0` — the type's
+`TO` — adding each `num_buildings`, so a Tower's count includes its Keeps.
+The **mark**, though, is indexed by `get_base_type`, the type vtable's
+`+0xe4`: the same slot `Unit::think_scout@005f6010:286` hands
+`FILTER_BASE_TYPE`. So the mark is per lineage root and the count is per
+lineage — a Keep does not re-earn what its Tower claimed. `num_buildings`
+(`LeaderData +0x555e`) and `high_buildings` (`+0x5660`) are `ushort[129]`
+addressed by raw `TypeIndex` with the `BASE_BUILDTYPES` bias folded into the
+base pointer, which is why `BuildData::construct_time@0062d5c0:126` indexes
+the same array with the type index unadjusted.
+
+The arms are an else-if chain on the building's own `TypeIndex` — not on its
+lineage, so `ANCHORAGE` and `SHIPYARD` are named beside `DOCK` — and each is
+four steps: the power, a count, the type, and `check_population` before
+**every single unit**.
+
+| building | power | count | unit |
+| --- | --- | --- | --- |
+| `MARKET` | Nubians (4) | `NUBIAN_FREE_CARAVAN != 0` (ships **0**) | `CARA` |
+| `BARRACKS` | Iroquois (18) | `IROQUOIS_FREE_SCOUT` | `SCOUT` |
+| `BARRACKS` | Romans (6) | `ROMAN_BARRACKS_LEGION × tier`, capped `ROMAN_MAX_LEGION` | `HOPLITES` |
+| `BARRACKS` | British (11) | **the tier itself** — no multiplier, no cap | `BOWMEN` |
+| `BARRACKS` | Aztecs (0) | `AZTEC_BARRACKS_LIGHT × (1 / 2 / 3)`, capped `AZTEC_MAX_LIGHT` | `SLINGERS` |
+| `SIEGEFACTORY`, `FACTORY` | Turks (8) | `TURK_FREE_SIEGE` | `CATAPULT` |
+| `SIEGEFACTORY`, `FACTORY` | French (10) | `FRENCH_FREE_SUPPLY != 0` | `SUPPLYWAGON` |
+| `DOCK`, `ANCHORAGE`, `SHIPYARD` | Spanish (9) | `SPANISH_FREE_TRIREME`, and `ages < 5` | `TRIREME` |
+| `DOCK`, `ANCHORAGE`, `SHIPYARD` | Dutch (22) | `DUTCH_FREE_LIGHT_SHIP` | `BARK` |
+| `DOCK`, `ANCHORAGE`, `SHIPYARD` | British (11) | `BRITISH_FREE_FISHERMEN` (ships **0**) | `FISHERMEN` |
+| `UNIVERSITY` | Americans (20) | `AMERICANS_FREE_SCHOLAR` | `SCHOLARS` |
+| a fort (type vtable `+0xfc`) | French (10) | `FRENCH_FREE_GENERAL != 0` | `GENERAL` |
+| `AIRBASE` | Germans (12) | `GERMAN_FREE_FIGHTER` | `BIPLANE` |
+| `AIRBASE` | Americans (20) | `AMERICANS_FREE_BOMBER`, and `has_tech(MODERN_AGE)` | `BOMBER` |
+| `STABLE`, `AUTOPLANT`, not a city | Mongols (17) | `MONGOL_START_CAVALRY` below Military 2, else `MONGOL_FREE_CAVALRY`, floored at `MONGOL_THREE_MIL_CAVALRY` past Military 2 | `HORSEARCHERS` |
+| a city (`flags & 0x20`) | Koreans (16) | `KOREAN_CITIZENS[city_num − 1]`, clamped to `[0, 7]` | `PEASANTS` |
+
+**The tier is `min(epoch[0], ages)`** — the Military library level and the
+age are different fields (`LeaderDataEncrypt +0xe8` and `+0xdc`, XOR
+`0x63187` and `0x62766`), and the *smaller* is what the ladder reads. The
+Roman and British ladders are `age >= AGE_FOR_3 ? 3 : age >= AGE_FOR_2 ? 2 :
+age >= AGE_FOR_1 ? 1 : 0`; the Aztec one is its own shape, `1` at zero and
+then `2`, `3` past two. **A zero cap skips the scaling entirely** and pays
+the plain per-building figure: the whole ladder sits inside `if (max != 0)`.
+
+Every arm but three runs its base type through `get_graft` and then
+`LeaderData::current_upgrade`, so what arrives is the newest type in the
+line. The three that skip the upgrade are the American scholar, the French
+pair and the Korean citizen.
+
+**And a squad is `uber_size` units, not one unit with three figures.**
+`Objects::init_unit@0065e0c0:34` reads `UnitTypeData::uber_size` (`+0x308`)
+and loops that many times, each pass a whole `Unit::init` with its own
+`Guy::init_real` draw; `Unit::init@00612100:508` sizes the guy stack to
+`crew_size + squad_size`, and `squad_size` (`+0x304`) is **written 1 by
+`UnitType::init@0061ab50:723` and never written again**. So a Bowmen —
+`UBER_SIZE 3`, `CREW_SIZE 0` — is three one-figure objects threaded
+`o_up`/`o_down` as a **list**: the head's `o_up` is −1, a member's `o_up` is
+the member before it, and run17's frame 1301 has `6 → 7 → 8` exactly so.
+Only the head is counted: `init_unit` hands every unit that has an `o_up`
+straight back to `track_unit_type(·, −1, ·)` and undoes `control`,
+`num_units` and the two running totals, so a squad is one unit and one
+population everywhere else. The members are seated by `find_nearby_spot`
+around the captain, which takes no draw.
+
+**Coverage.** Diff-backed: the **British Barracks arm**, the gate, and the
+`uber_size` loop. Great Lakes' word runs 6612 → **6650** on them together —
+run53's AI is tribe 11, its Barracks `1/2016` activates on the exact frame
+the original spends three `Guy::init_real` and three `Unit::do_idle` idle
+rolls, and the fifteen functions the original enters for the *first time in
+24,000 frames* on 6612 are `Army::add_unit`, `Unit::think_attack` and their
+neighbours. `a_british_barracks_pays_one_bowmen_as_three_chained_units`
+pins the chain, the single count, the second Barracks paying again and the
+rebuild paying nothing. All twenty-five constants are re-derived from
+`rules.xml` by `cargo run -p rondata`.
+
+**Not established.** Every other arm rests on the reading alone — no capture
+on disk has a Roman, Aztec, Turkish, French, Spanish, Dutch, American,
+German, Mongol or Korean leader. Nor is the `param_3` gate's second clause
+modelled: the original also wants `(semaphore[1] & 0x10) == 0 &&
+(semaphore[2] & 2) == 0`, or `ScenarioData::building_unit_bonus`, and what
+those two bits are is unread. The Aztec ladder's **pre-patch-4** arm (which
+reads `ages` where this reads the min) is not modelled either.
 
 ---
 

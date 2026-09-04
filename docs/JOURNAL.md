@@ -15677,3 +15677,76 @@ not queued. It is *not* the citizen bought thirty frames earlier: a citizen
 is one guy and its clock is 180 frames here. Its shape is 5564's, `b22`'s
 `ty9`, which both sides made. So the question is which queue the original
 filled between 6153 and 6612 and this crate did not.
+
+
+## 2026-09-04 — item 215: the archer a Barracks pays for (Great Lakes 6612 → 6650, Opus)
+
+The item was booked as a queue: "which queue did the original fill between
+6153 and 6612?" It was **no queue**, and the disk said so in three greps.
+
+**The first grep was the queues themselves.** run18b is run53's own game
+over `[6374, 6589]` with `BUILDQUEUE` on every frame, and over those 216
+frames the composition of every queue in the game changes **twice** — the
+Library swapping its research entry at 6377, and the citizen the AI buys at
+6582. Nothing else. So whatever arrives at 6612 was not queued in the two
+hundred frames before it, and a unit's clock is longer than the twenty-two
+frames the window leaves. That ruled the whole hypothesis out before a
+single line was written.
+
+**The second grep was a clock.** The AI's Barracks `1/2016` is under
+construction through the window at a flat hundred a frame:
+`job_counter` 38700 at label 6581, 39600 at 6589, against `constr_time`
+42000. Twenty-four frames left, and 6588 + 24 is **6612** exactly.
+
+**The third was the trace's own coverage.** `tools/trace/` arms each
+function once, so `report.py coverage 6612` lists the functions the original
+entered for the *first time in 24,000 frames* on that frame: fifteen of
+them, and they are `Army::add_unit`, `Unit::add_to_army`,
+`Unit::think_attack`, `Unit::find_melee_target`, `Armies::find_local_army`.
+The AI's **first military unit**, on the frame its first Barracks finishes.
+
+**What pays it is `Build::activate`'s high-water block**, six hundred lines
+into that function and a single row of `docs/CITIES.md` §4 until today:
+`n = num_buildings[type] + get_buildings(to)`, and when that beats
+`high_buildings[get_base_type(type)]` a counted, uncaptured building pays
+the owner's nation its free units. run53's AI is `tribe 11` — the British —
+and the British arm is `BRITISH_AGE_FOR_1/2/3_ARCHER` over
+`min(epoch[0], ages)`, with `BRITISH_AGE_FOR_1_ARCHER = 0`: one Bowmen at
+Ancient. The row called this "first-of-its-kind"; it is a high-water mark,
+so **every** Barracks pays and only a *replacement* for one that died does
+not. §4.3 now carries all sixteen arms, their counts and their three
+constants apiece, and `cargo run -p rondata` re-derives all twenty-five
+from `rules.xml`.
+
+**And then one archer was three draws.** The first implementation trained a
+Bowmen and spent one `Guy::init_real` where the original spends three. The
+guy count is `crew_size + squad_size` (`Unit::init@00612100:508`) and
+`squad_size` is **written 1 by `UnitType::init@0061ab50:723` and never
+written again** — so no unit in the game has three figures that way. What
+has three is `Objects::init_unit@0065e0c0:34`, which reads `uber_size` and
+**loops**: a Bowmen is `UBER_SIZE 3, CREW_SIZE 0`, and the squad is three
+one-figure *objects* threaded `o_up`/`o_down` as a list. run17's frame 1301
+prints it: `o 6` with `o_up −1, o_down 7`, `o 7` with `6, 8`, `o 8` with
+`7, −1`. Only the head is counted — `init_unit` hands every unit with an
+`o_up` straight back to `track_unit_type(·, −1, ·)` — so a squad stays one
+unit and one population everywhere else. That is half of item 175, which
+had been sitting in the backlog as a note about `curr_uber_size`.
+
+**What it moved.** Great Lakes **6612 → 6650**, by draw and by sequence.
+East Indies unmoved at 7448, and the other 203 checks unmoved with it.
+`a_british_barracks_pays_one_bowmen_as_three_chained_units` pins the chain,
+the single count, the second Barracks paying again and the rebuild paying
+nothing; the two ladder helpers are pinned against the shipped constants.
+
+**The frame past it** is the squad's first order: one
+`Unit::do_move+0xe84 < Unit::do_group_move+0x148 <
+Unit::do_group_attack_to+0x11`. The original puts the newborn archer in a
+group and marches it; this crate leaves it standing. That is item 217.
+
+**The lesson, and it is the working agreement's own.** Grep the dump before
+booking a reading, and grep the disk before booking a capture — but the
+third source here was neither: the *trace's first-entry list* named the
+mechanic in one line where a reading of `Build::activate`'s two thousand
+lines would have taken an hour to reach the same row. A coverage list is an
+oracle for "what kind of thing happened", and it had never been used that
+way.

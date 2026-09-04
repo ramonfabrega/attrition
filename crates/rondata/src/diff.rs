@@ -2947,6 +2947,53 @@ fn debug_watch(built: &Built, frame: i64) {
     }
 }
 
+/// `RON_DEBUG_BUILDS=<lo>-<hi>` — every building's construction clock and
+/// queue over a window, on any capture [`run_traced`] or a hand-rolled loop
+/// drives. The dump's `BUILDDATA` prints `orig_type`, `job_counter`,
+/// `constr_time` and the queue's live entries for the same frames, so the
+/// two lines sit side by side without a translation step.
+#[cfg(test)]
+fn debug_builds(built: &Built, frame: i64) {
+    let Some((lo, hi)) = std::env::var("RON_DEBUG_BUILDS").ok().and_then(|v| {
+        let (a, b) = v.split_once('-')?;
+        Some((a.trim().parse::<i64>().ok()?, b.trim().parse::<i64>().ok()?))
+    }) else {
+        return;
+    };
+    if !(lo..=hi).contains(&frame) {
+        return;
+    }
+    for b in built.sim.buildings.iter().filter(|b| b.alive) {
+        let ty = b.orig_ty.map_or_else(
+            || "-".to_string(),
+            |t| format!("{:?}", built.sim.build_types[t].ident),
+        );
+        let q: Vec<String> = b
+            .queue
+            .items
+            .iter()
+            .map(|i| {
+                let t = i.tech.map_or_else(
+                    || built.sim.unit_types[i.ty].type_index.to_string(),
+                    |x| format!("tech{x}"),
+                );
+                format!("{t}@{}", i.job_counter)
+            })
+            .collect();
+        eprintln!(
+            "  f{frame} B {}/{} ty{ty} act{} jc{}/{} hits{} help{} q[{}]",
+            b.owner,
+            b.index,
+            u8::from(b.active),
+            b.job_counter,
+            b.constr_time,
+            b.construct_hits,
+            b.helpers,
+            q.join(" ")
+        );
+    }
+}
+
 /// `*` or the number, for [`debug_watch`]'s absent line.
 #[cfg(test)]
 fn debug_name(v: Option<i64>) -> String {
@@ -9464,6 +9511,104 @@ mod tests {
         );
     }
 
+    /// **The British Barracks pays an archer, and the archer is three
+    /// units** (2026-09-04, item 215).
+    ///
+    /// `Build::activate`'s high-water block, end to end on the shipped
+    /// tables and run53's own lobby: the AI is tribe 11 and the human tribe
+    /// 4, so a Barracks finished for the AI pays one Bowmen and the same
+    /// Barracks finished for the human pays nothing. What lands is
+    /// `Objects::init_unit`'s `uber_size` loop — **three** objects on an
+    /// `o_up`/`o_down` list, of which only the head is counted. **Each**
+    /// Barracks pays, because the gate is a high-water mark rather than a
+    /// first-one flag; what the mark buys is that a *replacement* for one
+    /// that died pays nothing.
+    ///
+    /// Made to fail on purpose first: with the block gone the frame the
+    /// word parts is 6612 rather than 6650, and with the loop running once
+    /// this reports one unit for the three.
+    #[test]
+    fn a_british_barracks_pays_one_bowmen_as_three_chained_units() {
+        let Some(inst) = install() else { return };
+        let Some(path) = dump("gamelog-run53-greatlakes-24k-trace.txt") else {
+            eprintln!("skipping: no run53 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = std::fs::read_to_string(&path).unwrap();
+        let log = Log::parse(&text);
+        let init = log.initial().unwrap();
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        let sim = &mut built.sim;
+        assert!(sim.nation[1].british, "run53's AI is tribe 11");
+        assert!(!sim.nation[0].british, "and the human is tribe 4");
+
+        let barracks = loaded.build_named("Barracks").expect("a Barracks type");
+        let bowmen = loaded.unit_named("Bowmen").expect("a Bowmen type");
+        assert_eq!(
+            sim.unit_types[bowmen].combat.uber_size, 3,
+            "UBER_SIZE 3, from the install's own unitrules.xml"
+        );
+        let pop = sim.unit_types[bowmen].price.pop;
+        let archers = |s: &sim::Sim, who: sim::Player| -> Vec<usize> {
+            s.units
+                .iter()
+                .enumerate()
+                .filter(|(_, u)| u.alive() && u.owner == who && u.ty == Some(bowmen))
+                .map(|(i, _)| i)
+                .collect()
+        };
+
+        // A spot clear of everything: `init_build` is the original's own
+        // `Build::init`, which runs no placement test.
+        let spot = |n: i32| Pos::new(4000 + n * 400, 4000);
+        let control = sim.muster[1].control;
+        let b = sim.init_build(1, barracks, spot(0), false);
+        sim.activate(b, false, true);
+
+        let squad = archers(sim, 1);
+        assert_eq!(squad.len(), 3, "one Bowmen is three objects");
+        assert!(sim.units[squad[0]].captain, "the head is the captain");
+        assert_eq!(sim.units[squad[0]].o_up, None);
+        assert_eq!(sim.units[squad[0]].o_down, Some(squad[1]));
+        assert_eq!(sim.units[squad[1]].o_up, Some(squad[0]));
+        assert_eq!(sim.units[squad[1]].o_down, Some(squad[2]));
+        assert_eq!(sim.units[squad[2]].o_up, Some(squad[1]));
+        assert_eq!(sim.units[squad[2]].o_down, None);
+        for f in &squad[1..] {
+            assert!(!sim.units[*f].captain);
+            assert_eq!(
+                i32::from(sim.units[squad[0]].index),
+                sim.units[*f].combat.captain,
+                "every member reports to the head"
+            );
+        }
+        // Only the head is counted: `Objects::init_unit` hands every unit
+        // with an `o_up` straight back to `track_unit_type(·, −1, ·)`.
+        assert_eq!(sim.muster[1].by_type[bowmen], 1, "one unit, not three");
+        assert_eq!(sim.muster[1].control - control, pop);
+
+        // **Each** Barracks pays — the mark is a high-water mark, not a
+        // first-one flag, so the second raises it to two and pays again.
+        let b2 = sim.init_build(1, barracks, spot(4), false);
+        sim.activate(b2, false, true);
+        assert_eq!(archers(sim, 1).len(), 6, "the second Barracks pays too");
+
+        // What the mark buys is that a **replacement** does not. Lose one
+        // and build it again and the count is back at two, which is no
+        // longer past the mark.
+        sim.close_building(b2, false);
+        let b3 = sim.init_build(1, barracks, spot(8), false);
+        sim.activate(b3, false, true);
+        assert_eq!(archers(sim, 1).len(), 6, "a rebuild is not a new one");
+
+        // And the Nubian human is paid nothing at all —
+        // `NUBIAN_FREE_CARAVAN` is zero and no other arm is theirs.
+        let b4 = sim.init_build(0, barracks, spot(12), false);
+        sim.activate(b4, false, true);
+        assert!(archers(sim, 0).is_empty(), "the human is not British");
+    }
+
     /// **run53 — the same game, thirteen times as long, and the ceiling is
     /// the same frame** (2026-08-31, item 91).
     ///
@@ -9530,6 +9675,7 @@ mod tests {
             let f = built.sim.frame;
             built.tick();
             debug_watch(&built, f);
+            debug_builds(&built, f);
             if unit_window.is_some_and(|(lo, hi)| (lo..=hi).contains(&f)) {
                 for (label, who) in attributed_sites(&built) {
                     eprintln!("  f{f} {who}: {label}");
@@ -13970,7 +14116,26 @@ mod tests {
     /// cities, 1/3/5 by level, and with it the whole tail reproduces the
     /// original's 714 to the unit (`docs/AI.md` §27,
     /// `cities_tests::a_leader_s_pop_is_one_three_five_by_city_level`).
-    const LONG_WORD_GREAT_LAKES: i64 = 6612;
+    ///
+    /// **6612 for a session**, and that frame was a unit arriving: three
+    /// `Guy::init_real` and three `Unit::do_idle` idle rolls the original
+    /// spends and this crate spent none of. It was **no queue** — the AI's
+    /// Barracks `1/2016` finishes its construction on that exact frame
+    /// (`job_counter` 39600 of 42000 at run18b's last block, 100 a frame),
+    /// and `Build::activate`'s high-water block pays a **British** leader
+    /// its free archer on the first Barracks it ever holds. The trace says
+    /// so from the other side: the fifteen functions the original enters
+    /// for the *first time in 24,000 frames* on 6612 are `Army::add_unit`,
+    /// `Unit::think_attack`, `Unit::find_melee_target` and their
+    /// neighbours — the AI's first military unit.
+    ///
+    /// One archer, three objects. `BRITISH_AGE_FOR_1_ARCHER` is 0 so the
+    /// ladder pays one at Ancient, and `Objects::init_unit` loops
+    /// `uber_size` times: a Bowmen is `UBER_SIZE 3, CREW_SIZE 0` and
+    /// `UnitTypeData::squad_size` is written **1** by `UnitType::init` and
+    /// never again, so the squad is three one-figure units on an
+    /// `o_up`/`o_down` list (`crate::nations`, `docs/CITIES.md` §4.3).
+    const LONG_WORD_GREAT_LAKES: i64 = 6650;
 
     /// The frame the AI's library takes its **Coinage** job on, and the
     /// frame run58's `QUEUE` record used to part on: twenty-four rows of
