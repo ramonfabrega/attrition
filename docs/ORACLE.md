@@ -4176,3 +4176,87 @@ always worth a window query rather than a second launch; and a driver-lane
 stall is *not* automatically the permission story
 (`docs/ORACLE.md`, "The fourth permission"), which is what this session
 assumed for half an hour on the strength of `cliclick`'s own warning.
+
+## Off CrossOver — what free Wine can and cannot do (2026-09-04)
+
+**Why this is a project question and not a purchasing one.** The capture lane
+is how every remaining mechanic gets settled (`docs/DECISIONS.md` 29, and
+both long words sit near 6,800 of 24,000), so the oracle is needed for
+months yet. A licence that renews is a dependency on somebody else's
+business decisions, on a project whose whole point is outliving its source
+material — the OpenTTD line in `CLAUDE.md`. So: what does CrossOver
+actually provide, and is any of it ours to lose?
+
+**Two things, and only one of them is CodeWeavers'.**
+
+| | what it does | theirs? |
+|---|---|---|
+| **wow64** — `lib/wine/{i386-windows, x86_64-unix, x86_64-windows}` | runs the **32-bit** `riseofnations.exe` in a 64-bit process so Rosetta can translate it | **no**, this is upstream Wine's architecture |
+| **D3DMetal** — `CX_GRAPHICS_BACKEND=d3dmetal` in `cxbottle.conf` | D3D → Metal | **no**, Apple's, also in the free Game Porting Toolkit |
+
+The executable is `PE32 … Intel 80386`, so 32-bit is the hard requirement
+and Rosetta 2 does not do 32-bit x86 on its own — that is *why* CrossOver
+was reached for. But **WineHQ Stable 11.0 is already on this machine**
+(`brew --cask wine-stable`, installed 2026-08-20) and ships the identical
+three-directory layout. The dependency we thought we had is upstream.
+
+### What was established, by running it
+
+- **The prefix boots clean.** `WINEPREFIX=~/wine-ron wineboot -u` on
+  Wine 11.0, exit 0, MoltenVK 1.4.1 up on the M4 Max.
+- **The paths need no re-plumbing.** Symlink the new prefix's
+  `drive_c/users/<me>/AppData/Roaming/Microsoft Games` at the bottle's own,
+  and `rise.ini`, `gamelog.ini` and `Logs/` are the same files
+  `setlog.py`, `longtrace.sh` and `rondata::diff`'s `dump()` already know.
+- **The stock game runs.** `riseofnations.exe -config check.ini -automation`
+  under free Wine reaches its own startup and writes
+  `Logs/connectionlog.txt` — `CrossplayNetLibSys INIT` — through that
+  symlink. It is not a compatibility failure.
+- **No window appeared** on a plain launch or inside
+  `explorer /desktop=ron,1920x1080`, in ninety seconds, with the process
+  alive at ~0 % CPU — **but that result is not clean and must be re-taken.**
+  The screenshot at the end of the run shows a macOS consent dialog,
+  *"RonDriver would like to access files in your Desktop folder"*, modal and
+  holding focus for the whole of both tests. A game creating a fullscreen
+  surface behind a modal system dialog is not a fair trial, and the dialog
+  also sat in front of `screencapture`. It is run74's signature again
+  ("The fourth permission"): a prompt nobody was looking at, which prints
+  nothing to any log.
+- **The traced copy page-faults**: `riseofnations_trace.exe` dies with
+  `Unhandled page fault on read access to 00004ECD at address 7BF21139`
+  where the stock copy does not. That is `tools/trace`'s int3 patching
+  meeting a different Wine, and it is a second question — the capture lane
+  needs both halves.
+
+### What is not established
+
+Whether the window can be made to appear at all — the one test that matters,
+and the one the consent dialog spoiled. **Re-run it first**, with the screen
+clear. Then, in order of cost:
+
+- **`rise.ini`'s `GraphicsDLL=d3dgl.dll`.** RoN:EE selects its renderer by
+  name and ships `d3dgl.dll`, its own D3D-to-OpenGL wrapper, which is what
+  CrossOver was driving into D3DMetal. Whether free Wine's `opengl32` can
+  carry it is the first question, and clearing or repointing the key is the
+  first experiment.
+- `WINEDEBUG=+d3d,+win` to see where initialisation stops.
+- **Apple's Game Porting Toolkit** — free with a developer account, and the
+  closest thing to CrossOver's working configuration, since it carries the
+  same D3DMetal.
+
+None of that was reached today.
+
+### The clock nobody controls
+
+**Rosetta 2 ends with macOS 28, autumn 2027**, with a carve-out for
+unmaintained games; macOS 26.4 already warns on launch. Both paths ride on
+it — free Wine and paid CrossOver alike — to translate the x86-64 Wine host.
+CodeWeavers shipped a first Mac ARM64 preview in July 2026 (Wine 10's
+ARM64EC plus their own macOS port of FEX) so CrossOver has a route past it;
+free Wine on macOS has no announced equivalent.
+
+So the durable answer is not CrossOver-versus-Wine. It is **getting the
+oracle off macOS**: any x86 machine runs the original natively, with no
+translation layer, no licence and captures faster than the 3 frames/second
+`UNITS=3` costs here. That is the version of "not bound by an OS" that
+holds, and it is worth more than a year of licence either way.

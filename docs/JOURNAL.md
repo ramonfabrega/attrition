@@ -16122,3 +16122,57 @@ proposal and the blocker, and it took twenty minutes to write and one run
 to answer. Print the two operands before theorising about the operator.
 The residue is that the queue's own framing of an item is a hypothesis
 like any other, and the item's first job is to falsify it.
+
+## 2026-09-04 — the lane, and what CrossOver was actually for (Opus)
+
+**The trial ran out mid-session, so the question stopped being item 223's
+and became the project's.** An oracle behind a renewing licence is a
+dependency on somebody else's business decisions, on a project whose stated
+prior art is OpenTTD. So: what does CrossOver give us, and is any of it
+ours to lose?
+
+**Less than it looked.** Two things, and neither is CodeWeavers'. The
+wow64 packaging that lets the 32-bit `riseofnations.exe` run in a 64-bit
+process is upstream Wine's architecture — `lib/wine/{i386-windows,
+x86_64-unix, x86_64-windows}`, and **WineHQ Stable 11.0 already on this
+machine has the identical three directories**. D3DMetal is Apple's, and
+also ships in the free Game Porting Toolkit. What is left of CrossOver is
+the bottle manager and the installer scripts, which `longtrace.sh` does not
+touch: it calls `wine --bottle ron --workdir … riseofnations_trace.exe`
+and nothing else.
+
+**How far free Wine got in twenty minutes.** A fresh prefix boots clean on
+Wine 11.0; MoltenVK comes up on the M4 Max; the **stock** game runs and
+reaches its own `CrossplayNetLibSys INIT`, writing through a symlink that
+keeps `setlog.py`, `longtrace.sh` and `rondata::diff`'s `dump()` pointed at
+the files they already know. It is not a compatibility failure. What did
+not happen is a **window** — and that result is not clean, because the
+screenshot at the end shows a macOS consent dialog, *"RonDriver would like
+to access files in your Desktop folder"*, modal and holding focus through
+both attempts. Run74's signature a second time in one session, and the
+second time it was not diagnosed either: it was found by looking at the
+picture.
+
+**And the traced copy is its own question**: `riseofnations_trace.exe`
+page-faults at `7BF21139` where the stock copy does not, which is
+`tools/trace`'s int3 patching meeting a different Wine. The capture lane
+needs both halves.
+
+**The clock neither option controls.** Rosetta 2 ends with macOS 28 in
+autumn 2027, and both paths ride on it to translate the x86-64 Wine host.
+CodeWeavers shipped a Mac ARM64 preview in July 2026 — Wine 10's ARM64EC
+plus their own macOS port of FEX — so the paid path has a route past it and
+the free one has no announced equivalent. Which means the durable answer is
+not CrossOver-versus-Wine at all: it is **getting the oracle off macOS**,
+where any x86 machine runs the original natively, with no translation
+layer, no licence and captures faster than three frames a second. That is
+item 225's real horizon, and `docs/ORACLE.md`, "Off CrossOver", carries the
+evidence.
+
+**The session's own lesson, stated once because it happened twice.** A
+warning printed by the wrong process (`cliclick`), a stall with a clean log
+(`waitwin.sh`), and a test taken in front of an unanswered dialog are three
+faces of one mistake: reasoning about a screen without looking at it. The
+window title cost one line and settled the first; the screenshot cost one
+line and settled the third. **Look at the screen before theorising about
+it** now sits in `docs/ORACLE.md` twice over.

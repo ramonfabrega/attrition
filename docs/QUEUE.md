@@ -14,34 +14,30 @@ lines, or lets the handoff pass 32.
 
 *2026-09-04, Opus — item 223 diagnosed, no score moved.* **Both words
 unmoved: Great Lakes 6848, East Indies 7448.** It was booked as the
-collision predicate and it is not one; run 76 is the capture that settles
-it and it is running.
+collision predicate and it is not one; the capture that settles it is
+run 76, and the whole capture lane is down.
 
-- **6848 is forced by the positions.** The AI's Archer `1/28`, a follower
-  of the marching squad (ORDERS §15), steps onto its slot one cell north
-  and §4.2's leading edge hits `(890, 511)` inside the standing citizen
-  `1/13`'s block — `1/13` is at `(42744, 24504)`, exactly where run18b's
-  dump puts it. **The blocks genuinely overlap**, so no predicate saves it.
-- **The original is twelve frames back** — its own first blocked stand
-  there is 6860, the next 6892, ~1.7 tiles. So it is *where the squad is*,
-  and ORDERS §15's two open seams (the group's `speed`/`new_speed` pair,
-  no reader here; `Group::update_positions`' slots) are the candidates.
+- **6848 is forced by the positions.** The Archer `1/28`, a follower of
+  the marching squad, steps onto its slot one cell north and §4.2's
+  leading edge hits `(890, 511)` inside the citizen `1/13`'s block, where
+  run18b's dump puts it. **The blocks genuinely overlap**, so no predicate
+  saves it; the original is twelve frames back (its first blocked stand
+  there is 6860), and ORDERS §15's two seams are the candidates.
 - **One reading landed and is inert.** `UnitData::is_corner@0060a040`
   walks the blocker's **figures**, measuring each corner against
   `GuyData::x/y` where `is_here` four lines earlier reads the unit's
   `x_internal`. `Sim::guy_corner`, COLLISION §4.3; neither word moved.
-- **Run 76 is booked in `captures.txt` and cannot start.** Two launches
-  stalled in `waitwin.sh`; the visible wine app's one window is titled
-  **`Expired Bottle: ron`** — CrossOver's licence, a human-only fix, and
-  the whole capture lane is down until it is renewed (ORACLE, "The window
-  nobody can see"). Its read-out test is written and skips until then.
+- **The lane is down: CrossOver's trial expired** (`Expired Bottle: ron`).
+  The free path is half-proved (ORACLE, "Off CrossOver") — Wine 11.0 has
+  the wow64 the 32-bit exe needs, runs the stock game and writes its logs;
+  its window test was spoiled by a consent dialog. Item 225.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w7448 of 24,000 · GreatLakes w6848 of 24,000
 
-**Opener (Opus):** `The capture lane is down — CrossOver says Expired
-Bottle: ron. If the user has renewed it, run 76 is one command and 223 is
-its read-out; if not, take 220 or 203, which need no screen at all.`
+**Opener (Opus):** `225 first — the lane is worth more than any one item,
+and a clear screen is all the next test needs. If it is still down, take
+220 or 203; neither wants a screen.`
 
 ## The queue
 
@@ -50,21 +46,25 @@ captures' word**, lower map first — Great Lakes. Take the first unstarted
 unless a better order is obvious — and say so. Numbers are stable; the
 journal is indexed by them.
 
+225. **Get the capture lane off CrossOver** (ORACLE, "Off CrossOver").
+    Free Wine 11.0 runs the stock game and writes its logs already; the
+    **window** is unproved — re-run with the screen clear, then
+    `rise.ini`'s `GraphicsDLL=d3dgl.dll`, then Apple's GPTK. The traced
+    exe's page fault at `7BF21139` is the second half. **Blocks 223.**
+
 223. **Great Lakes 6848 is the marching squad, twelve frames ahead of the
-    original's** — not the predicate, which is forced once the blocks
-    overlap (COLLISION §9). **Run 76 is the capture**, booked, read-out
-    written, blocked on the expired bottle. 7448 (214) is the same shape.
+    original's** — not the predicate (COLLISION §9). **Run 76 is the
+    capture**, booked, read-out written, waiting on 225. 7448 (214) is
+    the same shape. **Takes 219**, `do_group_move`'s four seams (ORDERS
+    §15): the group's speed pair and its cap — which 223 now points at —
+    the flock an invalid slot near an ocean cell adds (**one sync draw**,
+    the one with teeth), `cavarch_fight`, and the attack hand-offs.
 
 220. **§13's twenty range blocks.** Every free-upgrade row whose
     candidates are a run of tech indices — Chinese herbal lore, the Red
     Fort's two, the four `TwoPreq` unit-line blocks, the temple and
     taxation lines, the wonders — is unloaded, and no capture reaches
     one (TECH §13).
-
-219. **`do_group_move`'s four remaining seams** (ORDERS §15): the flock
-    an invalid slot near an ocean cell adds — **one sync draw**, so it is
-    the one with teeth — `cavarch_fight`, the group's speed pair and its
-    cap, and the attack hand-offs.
 
 209. **The other once-per-game events a dump install swallows.** 207's
     general half: grep the gates of that shape — a `set_*` whose **return
