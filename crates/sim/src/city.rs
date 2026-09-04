@@ -1162,6 +1162,10 @@ impl Sim {
             self.build_types[ty].x_size.max(1),
             self.build_types[ty].y_size.max(1),
         );
+        // `is_city || connects_to_roads` — the one predicate both of
+        // `mask_me`'s road arms read, from opposite sides.
+        let lays = build::is_city(&self.build_types, ty)
+            || crate::roads::connects_to_roads(&self.build_types, ty);
         for (i, t) in self.footprint(ty, corner).into_iter().enumerate() {
             let (u, v) = (i as i32 % xs, i as i32 / xs);
             debug_assert!(v < ys);
@@ -1170,12 +1174,26 @@ impl Sim {
                     .clear_tile_bits(t, tile::PLACED | tile::PLACED_TWICE);
                 self.world
                     .set_tile_field(t, tile::OBJECT, tile::OBJECT_BUILDING);
+                // **`mask_me`'s two road arms, and they are one arm.** A
+                // footprint tile of a type that does not connect to roads
+                // has its road **taken away** (`006312a0`'s
+                // `set_road_at(…, 0, 0, 0)`, gated on
+                // `!is_city && (is_gather_type || NO_CITY) && !is(UNIVERSITY)`
+                // — which is exactly `!lays`); a tile of one that does, and
+                // whose template byte is not 1, has one **laid**. Both go
+                // through the mesh door, `param_5 = 0`.
+                if !lays {
+                    self.world_set_road_at(t, false, 0, 0);
+                }
                 // Through `set_blocked_at`, never by hand: the bit is only
                 // half of it — the containing cell's `blocked`/`solid`
                 // counts are the pathfinder's terrain cost
                 // (`docs/PATHFINDER.md` §5), and they move nowhere else.
-                self.world
-                    .set_blocked_at(t, self.build_types[ty].blocks(u, v));
+                let blocks = self.build_types[ty].blocks(u, v);
+                self.world.set_blocked_at(t, blocks);
+                if !blocks && lays {
+                    self.world_set_road_at(t, true, 0, 0);
+                }
             } else {
                 self.world.set_tile_field(t, tile::OBJECT, 0);
                 self.world.set_blocked_at(t, false);

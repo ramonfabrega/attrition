@@ -284,6 +284,12 @@ begins on a road does not get the bonus on its first step.
   `calc_road_cost`'s own proxied answers (§7.2). This is the record the
   count was standing in for, and it is what closed §7.1 and found
   `crate::terrain`.
+- **The caravan `1/23`'s whole road on run73, node for node** — eight
+  frames and 22,145 priced nodes of Great Lakes' `[5566, 5573]`, tile,
+  direction and cost, and with them the world of 5565: 921,600 heights,
+  every cell owner, and every tile mask but the 45 that differ by
+  `Wall::mark_behind_tiles`' `0x4` alone. **No tile's surface differs**,
+  which is §9.5's assertion (item 206).
 
 - The schedule, object for object, against `build_masks` on run14's frames
   0 to 172 (§1).
@@ -315,7 +321,8 @@ crossed and the listing settles at `vector_dist(|node.x − goal.x|,
 them for real; §8.2.
 
 **Unmodelled, and stated as such:** `place_roads`' `REGEN_TOTAL` arm and its
-`set == 0` teardown; `BuildType::mask_me`'s call; ~~the caravan itself~~
+`set == 0` teardown; ~~`BuildType::mask_me`'s call~~ (§9.5, 2026-09-03),
+whose own teardown arm remains; ~~the caravan itself~~
 (§8, 2026-09-02); the alliance arm of the territory test;
 ~~`was_seen`'s ally-territory shortcut, which on every capture so far agrees
 with the fog bit because the search never leaves its own ground~~ — **it does
@@ -797,10 +804,12 @@ them wrong for a day. Every one of them is bit `0x4`, whose writers are
 `Wall::close`, `Wall::refresh_nearby_tiles` and `SpellType::cast_bribe`) and
 from `Mountains::add_mountain@0089c2e0`. **Nothing under `Roads` writes it
 at all.** It is the strip of tiles a building stands *in front of*, walked
-`buildtype+0x2dc` rows deep, and it is item 203's, not this one's. Three of
+`buildtype+0x2dc` rows deep, and it is item 203's, not this one's. ~~Three of
 the 33 carry a second difference: `(217, 124)`, `(218, 124)` and
 `(219, 124)` are road here and are not road there, which no reading in this
-section explains.
+section explains.~~ **They are §9.5's** — a farm's footprint, and the road
+under it is taken away when the farm starts. The residue is **32** now, bit
+`0x4` and nothing else.
 
 **Not modelled, and each of them could write a bit §9.3 reads:**
 
@@ -840,3 +849,65 @@ section explains.
 - The ambience loop in `add_roads`' first pass and
   `TerrainOut::road_changed`'s patch allocation: visual, and unmodelled by
   design.
+
+### 9.5 The other door — a footprint's own road, laid and taken away
+
+`BuildType::mask_me@006312a0` writes roads, and for a month nothing here
+knew it. Its footprint loop runs once per tile of the rectangle, and with
+`param_4` set — the building is being *marked*, which is `Wall::start`
+(`docs/CITIES.md` §3.6) — it has two road arms that are the same predicate
+read from opposite sides:
+
+```
+mask &= ~0x40; mask &= ~0x80; mask |= 3
+if not is_city and (is_gather_type or FLAGS e) and not is(UNIVERSITY):
+    set_road_at(x, y, 0, 0, 0)          # the road under me goes
+if template[x_size · v + u] == 1:
+    set_blocked_at(x, y, param_4)
+else:
+    set_blocked_at(x, y, 0)
+    if is_city or connects_to_roads:
+        set_road_at(x, y, 1, 0, 0)      # and here one is laid
+```
+
+`BuildTypeData::connects_to_roads` **is** `(is_gather_type or FLAGS e) ?
+is(UNIVERSITY) : true` (§3), so the first gate is exactly
+`not (is_city or connects_to_roads)` and the second exactly
+`is_city or connects_to_roads`: a footprint tile either loses its road or
+gains one, and which it is is a property of the *type*.
+
+Both calls pass `param_5 = 0`, so both go through the mesh door (§9.1) —
+the laying arm through `Roads::road_added` and the removal arm through
+**`Roads::road_cleared@008955d0`**, which queues the tile with `added = 0`
+and `valid = 1` and enters `add_roads` with a zero. That is `clear_roads`'
+own path (§9.4), and it is what takes the `RoadElementCandidate` down: a
+tile that stops being a road and keeps its element would go on answering
+`get_orthog_connects` for a road that is not there.
+
+**What it is worth.** run53's frame 5573 is the caravan `1/23`'s
+`Caravan::build_road` answering 1, and Great Lakes' word parted on it —
+1,754 `calc_road_cost` draws here against the original's 1,528. run73's
+`callwin` carries all eight frames of that search node for node, and the
+first node to part is 2,170 of **5572**: the diagonal from tile
+`(216, 123)` to `(217, 124)`, which this crate admitted and the original
+refused. `(217, 124)` is a footprint tile of player 1's Farm `o 2012`, and
+it was **road** here and plain ground there — `valid_roadcoord`'s occupied
+arm (§5.1) lets a road through a footprint and refuses everything else, so
+one stray tile of tarmac opened a door the original keeps shut and every
+node after it was somebody else's.
+
+The road under the farm was laid on frame 1104 by another building's plan;
+the farm started on 3465, and the original took it away there. With the arm
+in: all eight frames of the search are the original's node for node, the
+world at 5565 has **no surface difference anywhere** — the residue is bit
+`0x4` alone — and Great Lakes' word runs **5573 → 5786**.
+
+`rondata::diff::tests::run73_s_caravan_road_is_the_original_s_node_for_node`
+is that, and it pins the surface residue at zero as well as the search.
+
+**What it has not established.** No capture has reached the **laying** arm
+with a visible consequence: on Great Lakes at 5565 and at 4802 the world is
+tile for tile the original's with it running, which says it lays nothing
+the original does not, but no tile on disk is one it laid. The teardown
+(`param_4 == 0`) is still unmodelled here — `mask_building(b, false)` does
+not run either arm, and `Build::close` is what would reach it.

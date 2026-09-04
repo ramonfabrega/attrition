@@ -783,7 +783,10 @@ clears `0x40|0x80` and sets `T |= 3`; tiles whose per-type collision mask
 (`masks.txt`, named by the graphic — `docs/DATALAYER.md`) is 1 get
 `set_blocked_at(1)` (`T |= 0x4000`, neighbours `0x2000`), the others
 `set_blocked_at(0)` and, for a city or a `connects_to_roads` type,
-`set_road_at(1)`; a dock's three-tile sea ring `set_bad_path(1)`; **a city:
+`set_road_at(1)` — **and for a type that is neither, every footprint tile
+takes `set_road_at(0)` first**, so a farm going up on somebody else's road
+takes it away (`docs/ROADS.md` §9.5); a dock's three-tile sea ring
+`set_bad_path(1)`; **a city:
 `Wall::mask_city(tile, on, radius)` sets `T |= 0x100` on every tile of the
 pre-tabulated even circle of `radius` tiles** around the tile under the
 building's centre — the `even_circle_x/y` offsets up to
@@ -801,25 +804,19 @@ reading; a first draft had the disc as `vector_dist ≤ radius`.)* Then
 `Build::activate` → `Cities::init_city` is where a city becomes a source
 (`docs/ATTRITION.md`).
 
-**Partly checked (2026-08-20).** A **library** — a three-wide footprint, so
-`tile_corner` puts it on tiles `[t − 1, t + 1]` — was placed 20 tiles north of
-the capital's tile, at `(32, 136)` against a city on `(32, 156)`, and a builder
-ordered onto it: **disbanded**. A **tower** on the same tile, ordered by the
-same builder, **started**, which rules out terrain and territory (a tower is
-neither a city nor a fort, so it takes the strict friendly-territory test) and
-leaves `OUTSIDE_RADIUS` — the tile is outside the city's `0x100` mask. That is
-what the even circle predicts at radius 20: the library's northmost footprint
-tile would have to be `135`, and the mask reaches `136`.
+**Partly checked (2026-08-20).** A **library** placed at `(32, 136)` against
+a city on `(32, 156)` was **disbanded**; a **tower** on the same tile
+**started**, which rules out terrain and territory and leaves
+`OUTSIDE_RADIUS`. That is what the even circle predicts at radius 20 — the
+library's northmost footprint tile would have to be `135`, and the mask
+reaches `136`.
 
-**The asymmetry itself is still open**, and it needs the other three rungs:
-the library should *start* at `(32, 137)`, and on the far side start at
-`(32, 174)` and be refused at `(32, 175)` — one tile shy on the positive side.
-Those were not run; the session ended on the aiming of the builder's order, not
-on anything about the rule. `docs/ORACLE.md`'s console section has the setup
-that makes the rest cheap: `Console Coord Mode=2` gives `add NEW library
-32,137` exact tile placement, `cheat add 1 citizen 32,141` puts a builder
-where it is wanted without the unreliable `move … cursor`, and `cheat camera
-32,137` plus a right-click at the viewport centre issues the order.
+**The asymmetry itself is still open**: it needs the library to *start* at
+`(32, 137)`, and on the far side start at `(32, 174)` and be refused at
+`(32, 175)`. `docs/ORACLE.md`'s console section has the setup that makes the
+rest cheap — `Console Coord Mode=2`, `add NEW library 32,137`, `cheat add 1
+citizen 32,141`, `cheat camera 32,137` and a right-click at the viewport
+centre.
 
 ### 3.7 Every frame — `Wall::process`
 

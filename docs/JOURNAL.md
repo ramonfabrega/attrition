@@ -15214,3 +15214,99 @@ against 1,535. The oracle for it was taken by the same run — the `callwin`
 over `[5563, 5581]` carries `astar_caravan_road`, `valid_roadcoord` and
 `calc_road_cost` node for node, which is run62/run64/run72's instrument —
 so the successor's evidence was on disk before the successor existed.
+
+## 2026-09-03 — item 206: the road a farm takes away (Great Lakes 5573 → 5786, Opus)
+
+**Booked as a search and settled as a footprint.** The item said run53's
+frame 5573 spends 1,754 `PathFinder::calc_road_cost` draws where the
+original spends 1,528 — the caravan `1/23`'s `Caravan::build_road`, the
+last frame of its budget search — and named the instrument: run73's
+`callwin` over `[5563, 5581]` already had `astar_caravan_road`,
+`valid_roadcoord` and `calc_road_cost` on disk, so the search was readable
+node for node the way run62's, run64's and run72's were. Nothing new was
+captured. The whole session ran off a file taken the day before for a
+different question.
+
+**The search is eight frames, not one.** `astar_caravan_road` answers −1 on
+5566 through 5572 — seven budgets of `0xc80`, each re-entered by
+`find_road_restore` next frame — and 1 on 5573. So the first thing the
+oracle said is that the frame the word named was the *seventh* resumption,
+and asking only about 5573 would have been asking about the wrong frame:
+5566 through 5571 are node for node identical, **5572 parts at node
+2,170**, and by 5573 the two searches are in different parts of the map
+altogether. A count is not a sequence, again.
+
+Node 2,170 of 5572 is the diagonal from tile `(216, 123)` to `(217, 124)`.
+This crate priced it; the original never asked. `valid_roadcoord`'s
+occupied arm is the reason (`docs/ROADS.md` §5.1): a tile carrying a
+building's `mask & 3 == 3` is refused unless it is **road**, or unless it
+belongs to a city endpoint. `(217, 124)` was road here and plain ground
+there — so one stray tile of tarmac opened a door the original keeps shut,
+and every node after it was somebody else's.
+
+**And the tile was already on the record.** It is one of the three
+`docs/ROADS.md` §9.4 named a month's worth of sessions ago and could not
+explain: run72's world at 4802 had 33 tile-mask residues, thirty of them
+bit `0x4` alone, and `(217, 124)`, `(218, 124)` and `(219, 124)` road here
+and not there. The residue had been pinned as a count that only falls, with
+no theory. It was 770 frames upstream of the word the whole time.
+
+**Where it came from.** A watch on the three tiles across 4,810 frames:
+road on **1104**, `PLACED` on **3376**, `OBJECT_BUILDING` on **3465** with
+the road bit still set. The building is player 1's **Farm** `o 2012`,
+4 × 4, corner `(217, 121)`. So the road was laid by somebody else's plan
+long before, the farm went up on top of it, and the original's world has no
+road under the farm.
+
+**`BuildType::mask_me@006312a0` writes roads, and nothing here knew it.**
+Its footprint loop, with `param_4` set:
+
+```
+mask &= ~0x40; mask &= ~0x80; mask |= 3
+if not is_city and (is_gather_type or FLAGS e) and not is(UNIVERSITY):
+    set_road_at(x, y, 0, 0, 0)
+if template[x_size · v + u] == 1: set_blocked_at(x, y, param_4)
+else:
+    set_blocked_at(x, y, 0)
+    if is_city or connects_to_roads: set_road_at(x, y, 1, 0, 0)
+```
+
+`connects_to_roads` **is** `(is_gather_type or FLAGS e) ? is(UNIVERSITY) :
+true`, so the two gates are one predicate read from opposite sides: a
+footprint tile either loses its road or gains one, and which is a property
+of the type. `docs/CITIES.md` §3.6 had the *laying* arm written down since
+August and the implementation never made it; the *removal* arm was in
+neither.
+
+Both calls pass `param_5 = 0`, so both go through the mesh door — the
+removal through `Roads::road_cleared@008955d0`, which queues the tile with
+`added = 0` and runs `add_roads`. That half mattered: with the mask bit
+cleared and no `road_cleared`, run72's own invariant caught it at once —
+**three tiles that are not roads and still hold a
+`RoadElementCandidate`** — which is exactly the leak that would let
+`get_orthog_connects` answer for a road that is not there. The mesh is 126
+elements at 4802 no longer; it is 123, and the guard says so.
+
+**What it is worth.** All eight frames of run73's search are the
+original's node for node — tile, direction and price, 22,145 of them, the
+arrival frame at 1,528 apiece. The world at 5565 has **no surface
+difference anywhere on the map**: 921,600 heights, every cell owner, and
+every tile mask but 45 that differ by `Wall::mark_behind_tiles`' `0x4`
+alone — which is now a homogeneous residue rather than one with three
+unexplained members in it, and item 203 is the poorer for it in the good
+way. Great Lakes' word runs **5573 → 5786**, by draw and by sequence. East
+Indies is unmoved at 6739.
+
+**The lesson is the one the working agreement already states, and this is
+its third witness.** The finding was not in the mechanic the item named. It
+was in a **pinned residue with no theory**, sitting in a test that had been
+passing for a day, 770 frames upstream. Both of §9.5's arms were reachable
+from a document this project wrote in August; neither had been built. Prose
+that cites an address correctly is not an implementation, and a residue
+nobody can explain is a queue item wearing a passing test.
+
+**What 5786 is.** `Guy::set_anim+0x97a < Guy::do_turn+0x4a <
+Unit::move_step+0x389` — a third draw the original spends and this crate
+does not, on a guy turning inside a move step. Two draws here against
+three. It is `Guy::do_turn`, and it is the same family as item 205's, one
+call site over.

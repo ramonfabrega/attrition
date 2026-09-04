@@ -395,7 +395,7 @@ the bit is set and the leader is paid, into **wealth**, `(epoch[1] + 1) ·
 ## 8. Coverage
 
 **Diff-backed** (`rondata::diff::tests::run64_s_caravan_road_is_the_
-original_s_node_for_node`):
+original_s_node_for_node`, and its Great Lakes sibling on run73):
 
 - **The whole search, node for node**: every one of the 3,204 + 3,204 +
   3,204 + 3,202 prices of run64's frames 6166 to 6169 — the tile, the
@@ -419,6 +419,14 @@ original_s_node_for_node`):
   it found that this crate had been keeping the road as a list of *tiles*:
   `set_road_at` was handed world coordinates thirty thousand tiles off the
   map and **every trade road in the port went unlaid**.
+- **A second map's search, node for node**
+  (`run73_s_caravan_road_is_the_original_s_node_for_node`): Great Lakes'
+  own trade route, `[5566, 5573]`, eight frames and 22,145 prices — seven
+  budgets and the arrival. It is the same instrument one map over, and it
+  found a road mechanic rather than a search one (`docs/ROADS.md` §9.5).
+  A **five**-frame search on one map and an **eight**-frame one on the
+  other is what §5.2's "every resumed frame gets a fresh budget" now rests
+  on.
 - The order and the schedule, indirectly: East Indies' word, which is a
   per-frame draw *sequence*, now passes 6166 to 6352 whole — through
   §7's arrival at 6198, the leg's first turn and a hundred and forty

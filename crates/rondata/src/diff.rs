@@ -10646,7 +10646,7 @@ mod tests {
         }
         assert_eq!(
             (no_elem.len(), stray, built.sim.mesh.len()),
-            (0, 0, 126),
+            (0, 0, 123),
             "every road tile of Great Lakes at 4802 has an element and \
              nothing else does: {no_elem:?}"
         );
@@ -10730,20 +10730,26 @@ mod tests {
             at.and_then(|i| theirs.get(i)),
         );
 
-        // **The 33 tile masks are a different mechanic altogether**, and
+        // **The 32 tile masks are a different mechanic altogether**, and
         // the first reading of §9 had them wrong. Every one of them is bit
         // `0x4` — `World::set_behind@006b4230`'s low arm — and its writers
         // are `Wall::mark_behind_tiles@0063d230` (from `Wall::start`,
         // `Wall::close`, `refresh_nearby_tiles` and `cast_bribe`) and
         // `Mountains::add_mountain`. Nothing in `Roads` writes it at all.
-        // Three of the 33 carry a second difference — `(217, 124)`,
-        // `(218, 124)` and `(219, 124)` are road here and are not there —
-        // which is its own open question (`docs/ROADS.md` §9.4).
+        //
+        // It was **33** for a session, and three of those carried a second
+        // difference: `(217, 124)`, `(218, 124)` and `(219, 124)` were road
+        // here and are not there. They are player 1's Farm `o 2012`, and
+        // the arm that takes a gatherer's footprint road away is
+        // `BuildType::mask_me@006312a0`'s (`docs/ROADS.md` §9.5, item 206).
+        // One of the three is now identical and the other two differ by
+        // `0x4` alone; the mesh is three elements lighter for it, which is
+        // the assertion above.
         //
         // Pinned as a count that may only fall.
         assert_eq!(
             mask_off.len(),
-            33,
+            32,
             "the tile-mask residue is `Wall::mark_behind_tiles`' `0x4` and \
              only falls: {mask_off:?}"
         );
@@ -11312,6 +11318,241 @@ mod tests {
         // nothing (`crates/sim/src/danger.rs`, `docs/DANGER.md` §6). All
         // 2,061 fields are the original's since 2026-09-02.
         assert!(wrong.is_empty(), "run64's clocks parted: {wrong:?}");
+    }
+
+    /// **run73 — the caravan's own road on Great Lakes, node for node, and
+    /// the road a farm takes away** (2026-09-03, item 206).
+    ///
+    /// run73's `callwin` covers `[5563, 5581]`, which holds the whole of
+    /// `1/23`'s trade-route search: `astar_caravan_road` answers −1 on 5566
+    /// through 5572 and **1** on 5573, its bracket naming leader 1's two
+    /// cities as the endpoints. Eight frames, 22,145 priced nodes, and the
+    /// last of them is where Great Lakes' word parted — 1,754 here against
+    /// the original's 1,528.
+    ///
+    /// A count is not a sequence (run62's lesson, and run72's), so this
+    /// asks the original for **every node**: the `valid_roadcoord` that
+    /// admitted the candidate carries its world coordinate and the
+    /// `calc_road_cost` that follows carries the answer, so a difference
+    /// names its own tile.
+    ///
+    /// **What it found is not in the search at all.** The first node to
+    /// part is 2,170 of frame 5572 — the diagonal from tile `(216, 123)`
+    /// to `(217, 124)`, which this crate admitted and the original refused.
+    /// `(217, 124)` is a footprint tile of player 1's **Farm** `o 2012`,
+    /// and it was a **road** here and plain ground there:
+    /// `roadcoord_tile`'s occupied arm lets a road through a footprint and
+    /// refuses everything else, so one stray tile of tarmac opened a door
+    /// the original keeps shut. It is the third of run72's three
+    /// unexplained residues (`docs/ROADS.md` §9.4, item 203), 4,802 frames
+    /// earlier and still there.
+    ///
+    /// The cause is a road arm of `BuildType::mask_me@006312a0` that this
+    /// crate did not have. A footprint tile of a type that does **not**
+    /// connect to roads has its road taken away — `set_road_at(…, 0, 0, 0)`
+    /// through the mesh door, gated on `!is_city && (is_gather_type ||
+    /// NO_CITY) && !is(UNIVERSITY)` — and a tile of one that does, whose
+    /// collision-template byte is not 1, has one **laid**. The two gates
+    /// are the same predicate read from opposite sides
+    /// (`docs/CITIES.md` §3.6, `docs/ROADS.md` §9.5). The road under the
+    /// farm was laid on frame 1104 by somebody else's plan; the farm
+    /// started on 3465 and the original took it away there.
+    ///
+    /// With it: **all eight frames node for node**, and Great Lakes' word
+    /// runs 5573 → 5786.
+    #[test]
+    fn run73_s_caravan_road_is_the_original_s_node_for_node() {
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(trace), Some(r73)) = (
+            dump("gamelog-run53-greatlakes-24k-trace.txt"),
+            trace("rontrace-run53.log"),
+            dump("gamelog-run73-greatlakes-caravanstart.txt"),
+        ) else {
+            eprintln!("skipping: no run53/run73 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let Some(t73) = crate::diff::tests::trace("rontrace-run73.log") else {
+            eprintln!("skipping: no run73 trace");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let texts = sibling_texts();
+        let text = std::fs::read_to_string(&path).unwrap();
+        let log = Log::parse(&text);
+        let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
+        let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+        let refs: Vec<&Initial> = inits.iter().collect();
+        let mut init = log.initial().unwrap();
+        borrow_from_siblings(&mut init, &refs);
+        borrow_pasture(&mut init, &trace);
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        // Sim-frame 5566 is the 5,567th tick, so this stops at the end of
+        // 5565 — the world the search is about to read, and the state
+        // run73's `FRAME 5566` block prints.
+        for _ in 0..5_566 {
+            built.tick();
+        }
+
+        // **The world the search reads, whole**, on the map's first
+        // `DUMP_ALL` window: 921,600 heights, every cell owner, every tile
+        // mask.
+        let text73 = std::fs::read_to_string(&r73).unwrap();
+        let l73 = Log::parse(&text73);
+        let block = l73
+            .frames()
+            .into_iter()
+            .find(|(n, _)| *n == 5_566)
+            .map(|(_, b)| b)
+            .expect("run73 dumped frame 5566");
+        let w = block
+            .kid("FULL DUMP")
+            .unwrap_or(block)
+            .kid("WORLD")
+            .expect("a WORLD block");
+        let mut notes = Vec::new();
+        let heights = l73.frame_heights(5_566);
+        assert!(
+            heights.len() > 1_000,
+            "run73's block carries the height grid"
+        );
+        let (theirs_world, _) = world_from(&w.fields, &heights, &mut notes);
+        let (xs, ys) = (theirs_world.width(), theirs_world.height());
+        let mut z_off = Vec::new();
+        let mut mask_off = Vec::new();
+        let mut road_off = Vec::new();
+        for ty in 0..ys * 4 {
+            for tx in 0..xs * 4 {
+                let q = Pos::new(tx, ty);
+                if built.sim.world.tile_z(q) != theirs_world.tile_z(q) {
+                    z_off.push(format!(
+                        "t({tx},{ty}) ours {} theirs {}",
+                        built.sim.world.tile_z(q),
+                        theirs_world.tile_z(q)
+                    ));
+                }
+                let (om, tm) = (built.sim.world.tile_mask(q), theirs_world.tile_mask(q));
+                if om != tm {
+                    mask_off.push(format!("t({tx},{ty}) ours {om:#x} theirs {tm:#x}"));
+                }
+                if om & sim::world::tile::SURFACE != tm & sim::world::tile::SURFACE {
+                    road_off.push(format!("t({tx},{ty}) ours {om:#x} theirs {tm:#x}"));
+                }
+            }
+        }
+        let owners: Vec<String> = (0..ys)
+            .flat_map(|y| (0..xs).map(move |x| sim::world::Cell::new(x, y)))
+            .filter(|&c| built.sim.world.owner(c) != theirs_world.owner(c))
+            .map(|c| format!("cell ({}, {})", c.x, c.y))
+            .collect();
+        eprintln!(
+            "run73 world at 5565: {} tiles off, {} masks off ({} of them a \
+             surface), {} cells off",
+            z_off.len(),
+            mask_off.len(),
+            road_off.len(),
+            owners.len()
+        );
+        for l in mask_off.iter().take(60) {
+            eprintln!("  {l}");
+        }
+        assert!(
+            z_off.is_empty(),
+            "the height grid parted from the original's by 5565: {z_off:?}"
+        );
+        assert!(owners.is_empty(), "the borders parted by 5565: {owners:?}");
+        // **Every remaining mask residue is bit `0x4` and nothing else** —
+        // `World::set_behind@006b4230`'s low arm, item 203's, which nothing
+        // in this crate writes. The three that carried a *surface*
+        // difference too — `(217, 124)`, `(218, 124)`, `(219, 124)`, the
+        // Farm's own footprint — are gone with `mask_me`'s road arm, and
+        // that is what this pins: a surface residue is a road mechanic and
+        // may not come back.
+        assert!(
+            road_off.is_empty(),
+            "a tile's surface parted from the original's by 5565: {road_off:?}"
+        );
+        let not_behind: Vec<&String> = mask_off
+            .iter()
+            .filter(|l| {
+                let hex: Vec<u16> = l
+                    .split("ours ")
+                    .nth(1)
+                    .map(|r| {
+                        r.split(" theirs ")
+                            .filter_map(|h| {
+                                u16::from_str_radix(h.trim_start_matches("0x"), 16).ok()
+                            })
+                            .collect()
+                    })
+                    .unwrap_or_default();
+                hex.len() != 2 || hex[0] ^ hex[1] != 0x4
+            })
+            .collect();
+        assert!(
+            not_behind.is_empty() && mask_off.len() <= 45,
+            "the tile-mask residue is `Wall::mark_behind_tiles`' `0x4` alone \
+             and only falls: {} rows, {not_behind:?}",
+            mask_off.len()
+        );
+
+        // **The search itself, node for node, over all eight frames.**
+        let mut counts = Vec::new();
+        for f in 5_566..=5_573 {
+            built.sim.trace_costs = true;
+            built.sim.road_marks.clear();
+            built.tick();
+            let ours = built.sim.road_marks.clone();
+            let theirs = t73.road_nodes(f);
+            counts.push((f, ours.len(), theirs.len()));
+            let at = (0..ours.len().max(theirs.len())).find(|&i| ours.get(i) != theirs.get(i));
+            if let Some(i) = at {
+                for j in i.saturating_sub(3)..(i + 4).min(ours.len().max(theirs.len())) {
+                    eprintln!(
+                        "  {j:>4} ours   {:?}\n       theirs {:?}",
+                        ours.get(j),
+                        theirs.get(j)
+                    );
+                }
+            }
+            assert_eq!(
+                at,
+                None,
+                "frame {f}: the search parts at node {at:?} — ours {:?}, theirs {:?} \
+                 (ours {} nodes, theirs {})",
+                at.and_then(|i| ours.get(i)),
+                at.and_then(|i| theirs.get(i)),
+                ours.len(),
+                theirs.len()
+            );
+        }
+        eprintln!("run73 road nodes: {counts:?}");
+        assert_eq!(
+            counts,
+            vec![
+                (5_566, 3_204, 3_204),
+                (5_567, 3_200, 3_200),
+                (5_568, 3_200, 3_200),
+                (5_569, 3_201, 3_201),
+                (5_570, 3_200, 3_200),
+                (5_571, 3_200, 3_200),
+                (5_572, 3_206, 3_206),
+                (5_573, 1_528, 1_528),
+            ],
+            "the eight frames' node counts — seven budgets of 0xc80 and the \
+             arrival"
+        );
+        // The endpoints, from `astar_caravan_road`'s own bracket.
+        let brackets = t73.calls_in(5_566, 5);
+        assert_eq!(brackets.len(), 1, "one road plan on 5566");
+        assert_eq!(
+            (
+                brackets[0].args[1],
+                brackets[0].args[2],
+                brackets[0].args[3]
+            ),
+            (2000, 1, 2007),
+            "the endpoints are leader 1's two cities"
+        );
     }
 
     /// **run73 — Great Lakes' own window, and the second `set_anim` a
@@ -13198,8 +13439,23 @@ mod tests {
     /// clock (`docs/ANIM.md` §4.9,
     /// `run73_s_window_clocks_are_the_original_s`). With it the word runs
     /// to **5573**, and the frame past it is a road: the caravan's own
-    /// `build_road`, 1,761 `calc_road_cost` draws here against 1,535.
-    const LONG_WORD_GREAT_LAKES: i64 = 5573;
+    /// `build_road`, 1,754 `calc_road_cost` draws here against 1,528.
+    ///
+    /// It was **5573** for a session, and the road was not the mechanic.
+    /// run73's `callwin` carries all eight frames of `1/23`'s search node
+    /// for node, and the first to part is 2,170 of **5572** — the diagonal
+    /// from `(216, 123)` to `(217, 124)`, a footprint tile of player 1's
+    /// Farm `o 2012` that was **road** here and plain ground there.
+    /// `valid_roadcoord`'s occupied arm lets a road through a footprint and
+    /// refuses everything else, so one stray tile of tarmac opened a door
+    /// the original keeps shut, and every node after it was somebody
+    /// else's. The tarmac is `BuildType::mask_me@006312a0`'s road arm,
+    /// which this crate did not have: a footprint tile of a type that does
+    /// not connect to roads has its road **taken away** when the building
+    /// starts (`docs/ROADS.md` §9.5). It is also the last of run72's three
+    /// unexplained mask residues, 770 frames earlier. With it the word runs
+    /// to **5786**, by draw and by sequence.
+    const LONG_WORD_GREAT_LAKES: i64 = 5786;
 
     /// The frame the AI's library takes its **Coinage** job on, and the
     /// frame run58's `QUEUE` record used to part on: twenty-four rows of

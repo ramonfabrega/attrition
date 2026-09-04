@@ -12,33 +12,36 @@ lines, or lets the handoff pass 32.
 
 ## Where things stand
 
-*2026-09-03, Opus — item 205 landed, and it moved the headline 2 frames.*
-**Great Lakes 5571 → 5573 by draw and by sequence; East Indies 6739,
-unmoved.** Small on the scoreboard and large under it: every guy that
-walks had the wrong animation clock.
+*2026-09-03, Opus — item 206 landed, and it moved the headline 213
+frames.* **Great Lakes 5573 → 5786 by draw and by sequence; East Indies
+6739, unmoved.** No capture: the whole item ran off run73, taken the day
+before for item 205.
 
-- **A moving frame asks for the walk twice.** `Unit::move_step` calls
-  `set_anim(CHAR_WALK, 0, 1)` on every guy just before
-  `set_new_location`, and `Guy::move` calls it again. Only the *second* —
-  the slot already playing by then — takes an overrun length off the
-  clock; a slot change rescales by `t / t` and keeps it (ANIM §4.9).
-  §4.8 had **cited** that call for a month and the code never made it.
-- **run73 is Great Lakes' first `DUMP_ALL` window**, `[5564, 5580)`, and
-  it holds a unit's whole birth — `1/23` is trained on 5564. All **4,869**
-  `GUY` fields are the original's; without the call the check fails on the
-  window's first frame and on the *human's* units.
-- **`guys_inc_time` marks its units** now, so the fold names who spends a
-  wrap; `RON_DEBUG_UNIT` prints the figure clocks on any capture.
+- **Booked as a search, settled as a footprint.** run73's `callwin` has
+  all **eight** frames of `1/23`'s road plan, and 5566–5571 were already
+  node for node. **5572 parts at node 2,170** — the diagonal to tile
+  `(217, 124)`, priced here and never asked about there.
+- **`(217, 124)` is a Farm's footprint tile, and it was road here.**
+  `valid_roadcoord` lets a road through a footprint and refuses all else,
+  so one stray tile opened a door. It is the third of run72's three
+  unexplained residues (§9.4), 770 frames upstream, sitting in a
+  *passing* test with no theory.
+- **`BuildType::mask_me` writes roads** (ROADS §9.5, CITIES §3.6): a
+  footprint tile of a type that does not connect to roads loses its road
+  and one of a type that does gains one — one predicate, both sides. The
+  removal goes through `Roads::road_cleared`; without that half run72's
+  invariant caught three elements on tiles that were no longer roads.
+- **The world at 5565 has no surface difference anywhere now** — the
+  residue is `mark_behind_tiles`' `0x4` alone, 45 tiles.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w6739 of 24,000 · GreatLakes w5573 of 24,000
+Long captures: EastIndies w6739 of 24,000 · GreatLakes w5786 of 24,000
 
-**Opener (Opus):** `206 is the default: run53 frame 5573, the caravan
-1/23's own Caravan::build_road — 1,761 PathFinder::calc_road_cost draws
-here against the original's 1,535. run73's callwin over [5563, 5581]
-carries astar_caravan_road, valid_roadcoord and calc_road_cost node for
-node, so the oracle is on disk: read it the way run62/run64/run72 were
-read, a sequence and not a count.`
+**Opener (Opus):** `207 is the default: run53 frame 5786, three draws
+there against two here. The site is sim::anim::SITE_TURN_FAR —
+Guy::set_anim+0x97a < Guy::do_turn+0x4a < Unit::move_step+0x389, item
+205's family one call site over. Name the unit with RON_DEBUG_UNIT
+first.`
 
 ## The queue
 
@@ -47,27 +50,23 @@ captures' word**, lower map first — Great Lakes. Take the first unstarted
 unless a better order is obvious — and say so. Numbers are stable; the
 journal is indexed by them.
 
-206. **Great Lakes' word is the caravan's own road plan at 5573.**
-    run53's frame spends **1,761** `PathFinder::calc_road_cost` draws
-    where the original spends **1,535** — `1/23`'s `Caravan::build_road`,
-    the last frame of its five-frame budget search (CARAVAN §5.2). The
-    oracle is already on disk: run73's `callwin` over `[5563, 5581]`
-    carries `astar_caravan_road`, `valid_roadcoord` and `calc_road_cost`,
-    so the search is readable **node for node** the way run62's, run64's
-    and run72's were. A count is not a sequence — that is run62's lesson
-    and run72's — so pair each price with the gate that returned before
-    it (`Trace::road_nodes`) and find the first node that differs.
+207. **Great Lakes' word is a turn inside a move step, at 5786.**
+    Two draws here and three there; the missing one is
+    `sim::anim::SITE_TURN_FAR` — `Guy::set_anim+0x97a <
+    Guy::do_turn+0x4a < Unit::move_step+0x389`, the far arm's turn
+    (ANIM §4.8). Item 205's family one call site over, and its method
+    too: name the unit from the fold (`RON_DEBUG_UNIT`), then ask
+    whether the clock or the *facing* differs. run73's window stops at
+    5580, so a `[5780, 5795)` one settles what the reading cannot.
     Nothing else on this list is nearer the headline.
 
-203. **`Wall::mark_behind_tiles`, and three road tiles it does not
-    explain.** run72's 33 tile-mask residues are all bit `0x4` —
-    `World::set_behind@006b4230`'s low arm, written by
-    `Wall::mark_behind_tiles@0063d230` from `Wall::start`, `Wall::close`,
-    `refresh_nearby_tiles` and `cast_bribe`, and by
-    `Mountains::add_mountain`. Thirty are that strip and nothing reads the
-    bit today, so it is cheap. **Three are not**: `(217–219, 124)` are road
-    here and are not road there, which ROADS §9 does not account for.
-    Pinned as a count that only falls.
+203. **`Wall::mark_behind_tiles`' `0x4`, and nothing else.** The
+    tile-mask residue is **32** at 4802 and **45** at 5565, every one bit
+    `0x4` — `World::set_behind@006b4230`'s low arm, from
+    `Wall::mark_behind_tiles@0063d230` (`Wall::start`, `Wall::close`,
+    `refresh_nearby_tiles`, `cast_bribe`) and `Mountains::add_mountain`.
+    Nothing reads it today, so it is cheap. Pinned as a count that only
+    falls; the surface half is pinned at **zero** (ROADS §9.5).
 
 192. **A merchant has never been seen to unpack.** run68 ends eleven
     frames short of `1/19`'s deploy spot (MERCHANT §7): nothing on disk

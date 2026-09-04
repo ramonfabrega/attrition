@@ -415,6 +415,15 @@ impl Sim {
         if !set {
             if m & tile::SURFACE == tile::SURFACE_ROAD {
                 self.world.set_tile_mask(t, m & !tile::SURFACE);
+                // The other half of the door, and it is the mesh's:
+                // `Roads::road_cleared@008955d0` queues the tile as a
+                // *removal* and runs `add_roads` over it, which is what
+                // takes the element down. Without it a tile could stop
+                // being a road and keep its `RoadElementCandidate`, and
+                // `get_orthog_connects` would go on answering for it.
+                if p5 == 0 {
+                    self.road_cleared(t);
+                }
             }
             // The cell keeps its `ROAD` flag while any of its sixteen tiles
             // is still a road — and the scan runs whether or not this tile
@@ -438,6 +447,19 @@ impl Sim {
         if m & tile::SURFACE != tile::SURFACE_ROAD && p5 == 0 {
             self.road_added(t, p4, 1);
         }
+    }
+
+    /// `Roads::road_cleared@008955d0` — queue the tile as a removal and run
+    /// the mesh. The original's `RoadModification` carries `added = 0` and
+    /// `valid = 1`, and `add_roads` is entered with a zero.
+    fn road_cleared(&mut self, t: Pos) {
+        let index = index_of(&self.world, t);
+        self.mesh.mods.push(Modification {
+            index,
+            added: 0,
+            valid: 1,
+        });
+        self.add_roads(0);
     }
 
     /// `Roads::road_added@008954d0` — queue the tile, and run the mesh when
