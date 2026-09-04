@@ -658,7 +658,7 @@ case either writer is reached for.
 | `Guy::set_new_location@005d86f0` | `Guy::move`'s guy-0 snap | guy 0's **new** position | guy 0's `angle` (the facing) |
 | `Guy::set_angle@005d9010` | `Guy::do_turn`, and so from every `turn_towards` | guy 0's current position | the angle just turned to |
 | `Guy::set_angle@005d9010` | `Unit::set_angle@00605400`, at the **top** of every `move_step` | guy 0's current position | the **heading** |
-| `Guy::set_new_location@005d86f0`, with the **snap flag** | `Unit::set_new_location(·, ·, 1, ·)` — `Unit::init`'s seating and `resolve_unit_collision`'s cell-centre snap | the point being snapped to | the facing — and the crew is *put* there |
+| `Guy::set_new_location@005d86f0`, with the **snap flag** | `Unit::set_new_location(·, ·, 1, ·)` — `Unit::init`'s seating, `resolve_unit_collision`'s cell-centre snap, and `Unit::do_cast`'s re-seat of a rare collector (`docs/ORDERS.md` §6.9 step 2) | the point being snapped to | the facing — and the crew is *put* there |
 
 The loop is the same eight lines in both functions, and the `track != 0` test
 inside it gates only the **rotation**: `des_angle` and the base `des` are
@@ -708,7 +708,19 @@ centre, with `angle` equal to the driver's to the digit.
 
 Both are `Sim::crew_des`, whose `snap` argument is the callers' `param_3`,
 and both are pinned by `run67_s_window_is_every_figure_s_whole_record` —
-13,545 fields, every `GuyData` the dump prints, over sixty frames.
+now **32,742** fields, every `GuyData` the dump prints, over sixty frames.
+
+**And a snap onto the point the unit already holds still teleports the
+crew.** `Unit::set_new_location@005f8d20` has no early return for an
+unchanged position: the same point makes both of its cell tests false, so
+it falls through to `LAB_005f9033`, writes the coordinates back, and runs
+the guy half anyway — the crew loop included. `crates/sim` had exactly such
+an early return, and it cost Great Lakes' word 312 frames (item 210). The
+capture is unambiguous: run75's block 6145 has the Merchant `1/24`'s crew
+figure at `(40706, 14716)` with `angle 1605566464`, its driver's to the
+digit, on the frame its driver — standing on its cell centre already, so
+`from == to` — begins its unpack; this crate had it four frames behind and
+still walking.
 
 ### A crew guy's turn rate is a quarter turn, flat
 

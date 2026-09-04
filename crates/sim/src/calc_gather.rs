@@ -94,6 +94,18 @@ impl Sim {
         self.unit_tree(u).is_some_and(|t| MERCHANTS.contains(&t))
     }
 
+    /// `UnitData::is_rare_collector@0046fae0`: the three merchant **ids**,
+    /// or anything in the `FISHERMEN` lineage — `is_merchant`'s own three
+    /// tests with `is(0x13d)` behind them instead of nothing.
+    ///
+    /// The one caller this crate reaches is `Unit::do_cast`'s unpack arm,
+    /// where it gates the re-seat (`crate::Sim::do_cast`, step 2).
+    pub(crate) fn is_rare_collector(&self, u: usize) -> bool {
+        self.unit_tree(u).is_some_and(|t| {
+            MERCHANTS.contains(&t) || self.tech_tree.is(t, crate::fish::FISHERMEN, false)
+        })
+    }
+
     /// The tile predicate both walks share: a merchant wants **land** and
     /// everyone else wants **ocean**, and either way the tile must carry
     /// [`tile::AS_BUILDING`] before the cell is asked for a good.

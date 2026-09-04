@@ -12,34 +12,33 @@ lines, or lets the handoff pass 32.
 
 ## Where things stand
 
-*2026-09-04, Opus — item 208 landed, and it moved the headline 71
-frames.* **Great Lakes 6080 → 6151 by draw and by sequence; East Indies
-6739, unmoved.** One capture, run75 — run74's cheap recipe with the
-window moved to `[5845, 6160)`: five minutes, 75 MB, 316 blocks, 6,161
-frames zero-differing.
+*2026-09-04, Opus — item 210 landed, and it moved the headline 312
+frames.* **Great Lakes 6151 → 6463 by draw and by sequence; East Indies
+6739, unmoved.** No capture: run75's own `GUY` positions, already on
+disk, settled it in one block.
 
-- **Booked as a scout, settled as a speed.** Both sides give `1/0` the
-  same `EXPLORE_TO` to the same cell on 5851, on an eight-node path the
-  capture prints node for node identical. The original arrives **71
-  frames later**, so its `think_scout` is at 6151 and ours at 6080.
-- **`get_speed`'s third layer was not implemented at all.**
-  `UnitData::get_speed@00608720` halves a land unit's step on a tile
-  carrying `0x800` while its own `z_internal` is not above zero; the dump
-  reads `z` 14 / **0** for 5949–6089 / 17, and the step 34 / **17** / 34.
-  `Sim::get_speed` had answered the cached aura speed for everything but
-  an animal (MOVEMENT, "The river halves a land unit's step").
-- **The `^ 0x63637` in that function is not a predicate.** The three
-  coordinates are **stored obfuscated**; `00608705` XORs `x_internal`
-  before *passing* it. The test is `z > 0`. And `0x800` has a name from
-  the symbols at last: `WorldData::is_river@0046d390`.
+- **The draw was a body in the wrong place, not a `set_anim`.** On block
+  6145 the Merchant `1/24`'s crew figure is already at `(40706, 14716)`
+  with its driver's angle; ours was jogging four frames behind, arrived
+  on `CHAR_WALK`, and paid the stand (ANIM §4.10 has the arithmetic).
+- **`Unit::do_cast` re-seats a rare collector on the unpack's first
+  frame** — `good_merchant_spot`, `set_new_location(unit-cell centre, 1,
+  1)`, `set_angle(guy 0's angle)`: a stated seam in ORDERS §6.9 since the
+  craft table was read, and the snap flag teleports the crew.
+- **And `set_new_location` opened with `if from == to { return }`.**
+  `005f8d20` has no such return — an unchanged point still runs the guy
+  half. It had eaten `resolve_unit_collision`'s crew snap too.
+- **The widening paid first.** `last_speed`/`avg_speed` were parsed
+  nowhere; widening run64/run67/run73's clocks **failed on its first
+  run**, on `des_angle`. run67 compares 32,742 fields against 28,890.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w6739 of 24,000 · GreatLakes w6151 of 24,000
+Long captures: EastIndies w6739 of 24,000 · GreatLakes w6463 of 24,000
 
-**Opener (Opus):** `210 is the default: run53 frame 6151, where the AI
-Merchant 1/24 spends one Guy::set_anim+0x97a < Guy::move+0x19f the
-original does not — ours 39 draws to their 38, everything else agreed.
-ANIM §4; run75's window covers the frame at GUYS=2, so no capture.`
+**Opener (Opus):** `212 is the default: run53 frame 6463, where a gaia
+unit late in the loop spends one Guy::set_anim+0x97a < Guy::do_turn+0x4a
+< Guy::turn_towards+0x69 this crate spends none of — ours 14 draws to
+their 15, and every other draw of the frame agrees. ANIM §4.8.`
 
 ## The queue
 
@@ -48,24 +47,25 @@ captures' word**, lower map first — Great Lakes. Take the first unstarted
 unless a better order is obvious — and say so. Numbers are stable; the
 journal is indexed by them.
 
-210. **Great Lakes' word is one body animation the original does not
-    ask for, at 6151.** The AI Merchant `1/24` spends a
-    `Guy::set_anim+0x97a < Guy::move+0x19f` nobody there spends — 39
-    draws to 38, and every other draw of the frame agrees, `1/0`'s whole
-    second `think_scout` (12/12/4) included. **run75's window covers
-    6151 at `GUYS=2`**, so the clocks are already on disk: no capture.
-    ANIM §4, and `1/24` is the same merchant items 206–207 chased.
+212. **Great Lakes' word is a turning stand nobody here pays, at 6463.**
+    The original spends one `Guy::set_anim+0x97a < Guy::do_turn+0x4a <
+    Guy::turn_towards+0x69` — ANIM §4.8's standing guy owed a turn whose
+    piece has no `CHAR_TURN_RIGHT` — and this crate none: 14 draws to 15,
+    everything else agreeing. The site sits between `9/13`'s
+    `think_farm_animal` and the first phase-7 wrap, so the spender is
+    **gaia, index above 13**; `guy_turns` and `Art::gaia_lengths` are its
+    inputs.
 
 209. **The other once-per-game events a dump install swallows.** 207's
-    general half: grep for the other gates of that shape — a `set_*` whose
+    general half: grep the other gates of that shape — a `set_*` whose
     **return value** drives an irreversible record — and seed each from the
     installed state as `Sim::seed_new_rares_from_fog` does.
     `World::compute_reg_territory`, `new_rare`'s second caller, belongs here.
 
-203. **`Wall::mark_behind_tiles`' `0x4`, and nothing else.** The tile-mask
-    residue is **32** at 4802 and **45** at 5565, every one bit `0x4` —
+203. **`Wall::mark_behind_tiles`' `0x4`, and nothing else.** The residue is
+    **32** at 4802 and **45** at 5565, every bit `0x4` —
     `World::set_behind@006b4230`'s low arm, which nothing reads. Pinned as
-    a count that only falls; the surface half is at **zero** (ROADS §9.5).
+    a count that only falls; the surface half is zero (ROADS §9.5).
 
 192. **A merchant has never been seen to unpack.** run68 ends eleven
     frames short of `1/19`'s deploy spot (MERCHANT §7) — the cast, the
@@ -113,8 +113,8 @@ whole** — `Tribe::log_data@006f0d70`'s `graft[352]`, `barbarian`,
     §7.2–§7.3).
 
 **The widening ledger is built** (87, DATALAYER §4): **23** parsed fields
-`diff.rs` names nowhere and **43** one capture names, pinned and falling
-only — it named `stance` the day before run68 found it wrong.
+`diff.rs` names nowhere and **41** one capture names, pinned and falling
+only. Its blind spot is a field the parser never had — `avg_speed` (210).
 
 The ledgers still uncounted: (88) **the blind list** — `report.py … blind
 docs/` lists the cited functions no traced run has entered (101 of 617), pin it

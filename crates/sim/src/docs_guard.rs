@@ -81,7 +81,7 @@ const OVER: &[(&str, &str, usize)] = &[
         "15. The behavioural run — run18, 2026-08-25",
         27_527,
     ),
-    ("CITIES.md", "3. Construction", 16_823),
+    ("CITIES.md", "3. Construction", 16_381),
     (
         "DATALAYER.md",
         "2. The loader — the tables into the sim's types",

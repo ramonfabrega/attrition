@@ -2987,9 +2987,26 @@ fn debug_unit(built: &Built, u: &sim::Unit, frame: i64) {
                 },
                 |f| (f.body.pos.x, f.body.pos.y, f.des.x, f.des.y),
             );
+            // `stopped` and the pair of angles are the **arrival
+            // gate's own inputs** — `Guy::move`'s standing arm draws on
+            // `cur_anim == 8 && stopped` and only once `angle` has
+            // reached `des_angle` — so a one-draw arrival divergence is
+            // read off this line rather than guessed at (item 210).
+            let (fa, da) = g.follow.map_or_else(
+                || (u.movement.facing.0, u.movement.heading.0),
+                |f| (f.facing.0, f.des_angle.0),
+            );
+            let body = g.follow.map_or(u.movement.body, |f| f.body);
             format!(
-                "[a{} t{}/{} l{} g{} b({bx},{by})->({dx},{dy})]",
-                g.anim, g.cur_time, g.end_time, g.last_time, g.gpiece
+                "[a{} t{}/{} l{} g{} s{} b({bx},{by})->({dx},{dy}) fa{fa}/{da} sp{}/{}]",
+                g.anim,
+                g.cur_time,
+                g.end_time,
+                g.last_time,
+                g.gpiece,
+                u8::from(g.stopped),
+                body.last_speed,
+                body.avg_speed
             )
         })
         .collect();
@@ -11316,16 +11333,42 @@ mod tests {
                     if n >= sim::anim::SQUAD_SIZE {
                         crew_rows += 1;
                     }
-                    let (body, facing) = match ours.follow {
-                        Some(b) => (b.body.pos, b.facing),
+                    // **The whole of what this crate models of the
+                    // record**, not the clock alone: `des`, `des_angle`
+                    // and the speed pair were parsed and compared
+                    // nowhere until item 210, and they are the arrival
+                    // draw's own inputs — `Guy::move` draws on `cur_anim
+                    // == 8 && stopped` once `angle` reaches `des_angle`,
+                    // and whether the slot lands on 8 rather than 9 is
+                    // `avg_speed`'s doing (`docs/ANIM.md` §4.3).
+                    let (body, facing, des, des_angle) = match ours.follow {
+                        Some(b) => (b.body, b.facing, b.des, b.des_angle),
                         None => (
-                            built.sim.units[u].movement.body.pos,
+                            built.sim.units[u].movement.body,
                             built.sim.units[u].movement.facing,
+                            built.sim.units[u].pos,
+                            // **A trackless crew guy's `des_angle` is guy
+                            // 0's `angle`, not its heading** — the crew
+                            // loop of `Guy::set_angle` hands it the angle
+                            // just turned to, so it is settled on every
+                            // frame and never owed a turn of its own. The
+                            // dump says it outright: run64's `1/18` guy 0
+                            // reads `angle 1145324629, des_angle
+                            // 560594944` on the frame it starts turning,
+                            // and its two crew figures read `1145324629`
+                            // for both. That is what
+                            // [`sim::Sim::guys_follow`]'s `settled ||
+                            // g >= SQUAD_SIZE` already models.
+                            if n >= sim::anim::SQUAD_SIZE {
+                                built.sim.units[u].movement.facing
+                            } else {
+                                built.sim.units[u].movement.heading
+                            },
                         ),
                     };
-                    let rows: [(&str, i64, Option<i64>); 9] = [
-                        ("x", i64::from(body.x), g.pos.map(|p| p.x)),
-                        ("y", i64::from(body.y), g.pos.map(|p| p.y)),
+                    let rows: [(&str, i64, Option<i64>); 15] = [
+                        ("x", i64::from(body.pos.x), g.pos.map(|p| p.x)),
+                        ("y", i64::from(body.pos.y), g.pos.map(|p| p.y)),
                         ("angle", i64::from(facing.0), g.angle),
                         ("cur_anim", i64::from(ours.anim), g.cur_anim),
                         ("cur_time", i64::from(ours.cur_time), g.cur_time),
@@ -11333,6 +11376,12 @@ mod tests {
                         ("last_time", i64::from(ours.last_time), g.last_time),
                         ("gpiece", i64::from(ours.gpiece), g.gpiece),
                         ("stopped", i64::from(ours.stopped), g.stopped),
+                        ("des_x", i64::from(des.x), g.des.map(|p| p.x)),
+                        ("des_y", i64::from(des.y), g.des.map(|p| p.y)),
+                        ("des_angle", i64::from(des_angle.0), g.des_angle),
+                        ("last_speed", i64::from(body.last_speed), g.last_speed),
+                        ("avg_speed", i64::from(body.avg_speed), g.avg_speed),
+                        ("guy_num", i64::try_from(n).unwrap(), g.guy_num),
                     ];
                     for (name, ours, theirs) in rows {
                         let Some(theirs) = theirs else { continue };
@@ -11729,16 +11778,42 @@ mod tests {
                     if (state.who, state.o) == (1, 23) {
                         caravan_rows += 1;
                     }
-                    let (body, facing) = match ours.follow {
-                        Some(b) => (b.body.pos, b.facing),
+                    // **The whole of what this crate models of the
+                    // record**, not the clock alone: `des`, `des_angle`
+                    // and the speed pair were parsed and compared
+                    // nowhere until item 210, and they are the arrival
+                    // draw's own inputs — `Guy::move` draws on `cur_anim
+                    // == 8 && stopped` once `angle` reaches `des_angle`,
+                    // and whether the slot lands on 8 rather than 9 is
+                    // `avg_speed`'s doing (`docs/ANIM.md` §4.3).
+                    let (body, facing, des, des_angle) = match ours.follow {
+                        Some(b) => (b.body, b.facing, b.des, b.des_angle),
                         None => (
-                            built.sim.units[u].movement.body.pos,
+                            built.sim.units[u].movement.body,
                             built.sim.units[u].movement.facing,
+                            built.sim.units[u].pos,
+                            // **A trackless crew guy's `des_angle` is guy
+                            // 0's `angle`, not its heading** — the crew
+                            // loop of `Guy::set_angle` hands it the angle
+                            // just turned to, so it is settled on every
+                            // frame and never owed a turn of its own. The
+                            // dump says it outright: run64's `1/18` guy 0
+                            // reads `angle 1145324629, des_angle
+                            // 560594944` on the frame it starts turning,
+                            // and its two crew figures read `1145324629`
+                            // for both. That is what
+                            // [`sim::Sim::guys_follow`]'s `settled ||
+                            // g >= SQUAD_SIZE` already models.
+                            if n >= sim::anim::SQUAD_SIZE {
+                                built.sim.units[u].movement.facing
+                            } else {
+                                built.sim.units[u].movement.heading
+                            },
                         ),
                     };
-                    let rows: [(&str, i64, Option<i64>); 9] = [
-                        ("x", i64::from(body.x), g.pos.map(|p| p.x)),
-                        ("y", i64::from(body.y), g.pos.map(|p| p.y)),
+                    let rows: [(&str, i64, Option<i64>); 15] = [
+                        ("x", i64::from(body.pos.x), g.pos.map(|p| p.x)),
+                        ("y", i64::from(body.pos.y), g.pos.map(|p| p.y)),
                         ("angle", i64::from(facing.0), g.angle),
                         ("cur_anim", i64::from(ours.anim), g.cur_anim),
                         ("cur_time", i64::from(ours.cur_time), g.cur_time),
@@ -11746,6 +11821,12 @@ mod tests {
                         ("last_time", i64::from(ours.last_time), g.last_time),
                         ("gpiece", i64::from(ours.gpiece), g.gpiece),
                         ("stopped", i64::from(ours.stopped), g.stopped),
+                        ("des_x", i64::from(des.x), g.des.map(|p| p.x)),
+                        ("des_y", i64::from(des.y), g.des.map(|p| p.y)),
+                        ("des_angle", i64::from(des_angle.0), g.des_angle),
+                        ("last_speed", i64::from(body.last_speed), g.last_speed),
+                        ("avg_speed", i64::from(body.avg_speed), g.avg_speed),
+                        ("guy_num", i64::try_from(n).unwrap(), g.guy_num),
                     ];
                     for (name, ours, theirs) in rows {
                         let Some(theirs) = theirs else { continue };
@@ -12015,13 +12096,32 @@ mod tests {
              halving is what put it there",
             parted.get(&(1, 0))
         );
-        // And nobody else does either, up to the word. The one unit that
-        // parts at all in this window is the human's `0/5`, on 6161 — the
-        // file's truncated last block, ten frames past the parting.
+        // And nobody else does either, up to the word.
+        //
+        // **The quit block is not a frame.** The window is `[5845, 6160)`
+        // and the file carries one block past it — 6161, written as the
+        // process tears down, a record of a frame that was still being
+        // simulated. The human's `0/5` "parts" there and nowhere else,
+        // and it used to be excluded by accident: the word was 6151, ten
+        // frames below it. With the word past the whole window (item 210)
+        // it has to be excluded on purpose, which is the first block after
+        // the window's own contiguous run.
+        let quit = blocks
+            .windows(2)
+            .find(|w| w[1] != w[0] + 1)
+            .map_or(i64::MAX, |w| w[1]);
         assert!(
-            parted.values().all(|&f| f >= LONG_WORD_GREAT_LAKES),
+            quit > 6_150,
+            "run75's window is not contiguous where it should be: first gap \
+             before {quit}"
+        );
+        assert!(
+            parted
+                .values()
+                .all(|&f| f >= LONG_WORD_GREAT_LAKES || f >= quit),
             "a unit leaves the original's point before the word \
-             ({LONG_WORD_GREAT_LAKES}): {parted:?}"
+             ({LONG_WORD_GREAT_LAKES}), and not in the quit block ({quit}): \
+             {parted:?}"
         );
         assert!(
             orders >= 1_000 && angles >= 1_000,
@@ -12625,15 +12725,15 @@ mod tests {
                     // `des_angle` is the heading, and a trackless crew
                     // figure's is guy 0's facing.
                     let (body, facing, des, des_angle) = match og.follow {
-                        Some(b) => (b.body.pos, b.facing, b.des, b.des_angle),
+                        Some(b) => (b.body, b.facing, b.des, b.des_angle),
                         None if n == 0 => (
-                            un.movement.body.pos,
+                            un.movement.body,
                             un.movement.facing,
                             un.pos,
                             un.movement.heading,
                         ),
                         None => (
-                            un.movement.body.pos,
+                            un.movement.body,
                             un.movement.facing,
                             un.pos,
                             un.movement.facing,
@@ -12644,8 +12744,8 @@ mod tests {
                     }
                     let track = og.follow.map_or((0, 0), |b| b.track);
                     for r in [
-                        ("g.x", i64::from(body.x), g.pos.map(|p| p.x)),
-                        ("g.y", i64::from(body.y), g.pos.map(|p| p.y)),
+                        ("g.x", i64::from(body.pos.x), g.pos.map(|p| p.x)),
+                        ("g.y", i64::from(body.pos.y), g.pos.map(|p| p.y)),
                         ("g.angle", i64::from(facing.0), g.angle),
                         ("g.des_x", i64::from(des.x), g.des.map(|p| p.x)),
                         ("g.des_y", i64::from(des.y), g.des.map(|p| p.y)),
@@ -12658,6 +12758,8 @@ mod tests {
                         ("g.stopped", i64::from(og.stopped), g.stopped),
                         ("g.track_dx", i64::from(track.0), g.track.map(|t| t.0)),
                         ("g.track_dy", i64::from(track.1), g.track.map(|t| t.1)),
+                        ("g.last_speed", i64::from(body.last_speed), g.last_speed),
+                        ("g.avg_speed", i64::from(body.avg_speed), g.avg_speed),
                     ] {
                         rows.push(r);
                     }
@@ -12819,7 +12921,7 @@ mod tests {
                     };
                     let un = &built.sim.units[u];
                     let (body, facing, des, des_angle) = match ours.follow {
-                        Some(b) => (b.body.pos, b.facing, b.des, b.des_angle),
+                        Some(b) => (b.body, b.facing, b.des, b.des_angle),
                         // A **trackless** crew figure has no body of its
                         // own, and this crate keeps none — but the original
                         // still writes it a `des` and a `des_angle`, because
@@ -12832,7 +12934,7 @@ mod tests {
                         // passes the same. `Unit::set_angle`'s heading is
                         // overwritten by both.
                         None if n == 0 => (
-                            un.movement.body.pos,
+                            un.movement.body,
                             un.movement.facing,
                             un.pos,
                             // Guy 0's own `des_angle` is the **heading**:
@@ -12843,7 +12945,7 @@ mod tests {
                             un.movement.heading,
                         ),
                         None => (
-                            un.movement.body.pos,
+                            un.movement.body,
                             un.movement.facing,
                             un.pos,
                             un.movement.facing,
@@ -12853,9 +12955,18 @@ mod tests {
                         crew_rows += 1;
                     }
                     let track = ours.follow.map_or((0, 0), |b| b.track);
-                    let rows: [(&str, i64, Option<i64>); 15] = [
-                        ("x", i64::from(body.x), g.pos.map(|p| p.x)),
-                        ("y", i64::from(body.y), g.pos.map(|p| p.y)),
+                    // **`GUYS=4` prints the speed pair as well**, and
+                    // until item 210 no capture compared it. It is the
+                    // walk slot's own input: a tracked figure paid
+                    // `(get_speed · 11) / 8` a frame averages eleven
+                    // eighths of its leader's base and jogs where the
+                    // leader walks, and the slot — not the category — is
+                    // what `Guy::move`'s arrival draw tests. This window
+                    // is where that arithmetic is checked against the
+                    // original's own numbers.
+                    let rows: [(&str, i64, Option<i64>); 17] = [
+                        ("x", i64::from(body.pos.x), g.pos.map(|p| p.x)),
+                        ("y", i64::from(body.pos.y), g.pos.map(|p| p.y)),
                         ("angle", i64::from(facing.0), g.angle),
                         ("des_x", i64::from(des.x), g.des.map(|p| p.x)),
                         ("des_y", i64::from(des.y), g.des.map(|p| p.y)),
@@ -12869,6 +12980,8 @@ mod tests {
                         ("guy_num", i64::try_from(n).unwrap_or(-1), g.guy_num),
                         ("track_dx", i64::from(track.0), g.track.map(|t| t.0)),
                         ("track_dy", i64::from(track.1), g.track.map(|t| t.1)),
+                        ("last_speed", i64::from(body.last_speed), g.last_speed),
+                        ("avg_speed", i64::from(body.avg_speed), g.avg_speed),
                     ];
                     for (name, ours, theirs) in rows {
                         let Some(theirs) = theirs else { continue };
@@ -12894,7 +13007,7 @@ mod tests {
             eprintln!("  {w}");
         }
         assert!(
-            compared >= 28_000 && crew_rows >= 330,
+            compared >= 32_000 && crew_rows >= 330,
             "the window's own rows: {compared} fields and {crew_rows} crew figures — \
              a capture without the `GUYS=4` block is the wrong file"
         );
@@ -13816,7 +13929,7 @@ mod tests {
     /// for every frame of the window and the word runs to **6151**, whose
     /// own frame is one figure draw: `Guy::move+0x19f` here against
     /// `Guy::inc_time+0x271` there.
-    const LONG_WORD_GREAT_LAKES: i64 = 6151;
+    const LONG_WORD_GREAT_LAKES: i64 = 6463;
 
     /// The frame the AI's library takes its **Coinage** job on, and the
     /// frame run58's `QUEUE` record used to part on: twenty-four rows of

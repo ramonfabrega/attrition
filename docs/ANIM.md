@@ -591,7 +591,7 @@ variant on the unit's idle request (§5 says why that never shows).
 | `Unit::do_build@005eebf0:step 4`, every frame an adjacent builder builds | `CHAR_SOW` on a `FARM` (`is(0x1a1)`), else `CHAR_BUILD` | never — its own category. **What it costs is the arrival stand it prevents**: §4.6 |
 | `Unit::do_repair@005ee420:1`, ahead of every gate | `CHAR_REPAIR` | never, and unconditionally — even on the frame the order dies |
 | `Guy::move@005d9240:86`, `Unit::move_step@005faf30:304` | the walk | never (a bird's coin aside) |
-| `Guy::move:59` (`+0x19f`), the frame after a walking guy stops with the plain `WALK` slot and nothing else changed it | `(DEFAULT, 0, 1)` | the arrival, when no order made the request first. **The one caller that reaches `Guy::set_anim` directly** rather than through `Unit::set_anim+0x56`, so its chain is a frame shorter and the trace's disambiguator sits at `up[0]` (`sim::anim::SITE_ARRIVE`, `docs/SYNC.md` §3.10) |
+| `Guy::move:59` (`+0x19f`), the frame after a walking guy stops with the plain `WALK` slot and nothing else changed it | `(DEFAULT, 0, 1)` | the arrival, when no order made the request first. **The one caller that reaches `Guy::set_anim` directly** rather than through `Unit::set_anim+0x56`, so its chain is a frame shorter and the trace's disambiguator sits at `up[0]` (`sim::anim::SITE_ARRIVE`, `docs/SYNC.md` §3.10). **A crew figure that was teleported never gets here**: §4.10 |
 | `Guy::move:78` (`+0x14f`), the **turn arm** — a body standing on its unit whose angle has not reached `des_angle`, every frame it is still turning | `(CHAR_WALK, 0, 1)` | never itself, but it puts the guy back on the walk category, so the *next* frame's idle request rolls again. That is the second draw of an arrival pair (`docs/SYNC.md` §3.11). ~~**Unmodelled**, and what it costs is there too~~ **Modelled 2026-08-31, §4.7**: what it cost was a frame of every work animation an order sets on the frame it turns |
 | `Unit::move_step:148` (`+0x3b6`) and `:170` (`+0x389`), the two **turn-in-place** arms, and `Guy::turn_towards+0x69` under `Guy::move:109` | `(CHAR_TURN_LEFT/RIGHT, 0, 1)`, on `guy_flags & 8` | when the piece has no such slot: the request becomes `CHAR_DEFAULT` and a guy on the walk category rolls — §4.8, the AI's fishing boat |
 | `Unit::move_step:281` (`+0x823`), a unit whose step is blocked, before the three give-up tests | `(DEFAULT, 0, 1)` | the same conditions as any idle request — three times on run14 (frames 122, 184, 256), and this crate takes the first two on the original's own frames (`sim::anim::SITE_BLOCKED`, `docs/COLLISION.md` §5, §8) |
@@ -855,6 +855,37 @@ offsets zero and `UnitData+0xd8 < 2` — is not modelled: `do_move`'s own
 unreachable, and `+0xd8` is unread. It would be a **draw** if it were
 reachable. `CHAR_ATTACKWALK` is not passed either; no capture has a unit
 stepping with a target.
+
+## 4.10 A teleported crew figure pays no arrival stand (2026-09-04)
+
+A tracked crew figure jogs (§4.3), so the arrival test — `cur_anim == 8`,
+the **slot** — normally fails for it. It does not fail forever. The moment
+its leader stops, the figure is still walking; the frame its body reaches
+`des` with its angle not yet on `des_angle`, `Guy::move`'s standing arm puts
+it back on `CHAR_WALK` (§4, step 1's third row), and `set_anim` re-resolves
+the walk from an `avg_speed` that has begun to decay. One frame later it is
+settled and `stopped`, and the frame after **that** is the arrival draw.
+
+Great Lakes' Merchant `1/24` walked that whole sequence in this crate and
+the original never started it, because the original's figure is **not
+walking**: `Unit::do_cast` re-seats a rare collector on the first frame of
+its unpack, and the snap flag teleports every tracked figure onto its
+offset (`docs/ORDERS.md` §6.9 step 2). run75's block 6145 has the figure at
+`(40706, 14716)` with its driver's angle, four frames before it could have
+walked there; this crate had it at `(40631, 14634)` and jogging.
+
+So the draw at 6151 was never a bug in `set_anim` at all — it was a body in
+the wrong place, and the whole of it is `crates/sim/src/collide.rs`'s
+`set_new_location` no longer returning early when the point is unchanged.
+Great Lakes' word 6151 → **6463** (item 210).
+
+The numbers are worth keeping, because they say how *narrow* the slot test
+is here. The figure's steady walking `avg_speed` is 28 against a base of
+23 — `280 > 253`, a jog. Its last step onto `des` is a partial one, so
+`last_speed` is `vector_dist(12, 13) = 18` rather than the full 31, and
+`(28·3 + 18) / 4` is **25**: `250 < 253`, a walk, by three parts in a
+thousand. One unit of `avg_speed` either way and the arrival test would
+have failed on its own.
 
 ## 5. `Guy::inc_time@005d9e10` — the step and the wrap
 

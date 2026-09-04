@@ -706,7 +706,11 @@ impl Sim {
     ///    unpack one, `CHAR_DEFAULT` for everything else — and the state
     ///    test that goes with it: a pack whose caster is **already** packed
     ///    and an unpack whose caster is **not** both die here, before the
-    ///    clock starts;
+    ///    clock starts. A **rare collector** unpacking is re-seated in
+    ///    between: `good_merchant_spot` or the order dies, then
+    ///    `set_new_location(unit-cell centre, snap)` — which teleports
+    ///    every tracked crew figure onto its offset — then
+    ///    `set_angle(guy 0's angle)`;
     /// 3. on that same frame, and for `0x28a` alone, the shore test: no
     ///    water within `unit_board_distance` and the order dies here;
     /// 4. the clock — `spell_time += 1`, then a `JOB_TIME` above it
@@ -721,11 +725,11 @@ impl Sim {
     /// SEAMS, all stated: the captain check between 4 and 5 — a figure
     /// whose captain is itself casting gives its frame back — is not
     /// modelled, since every unit here is its own captain; nor is the
-    /// general's `has_general(0, 0x162)` extra `spell_time` step, nor
-    /// `is_rare_collector`'s merchant re-seat on the first frame of an
-    /// unpack (`docs/ORDERS.md` §6.9), and nor is the whole non-spell-type
-    /// arm, which is `LeaderData::current_upgrade` + `set_type` and reaches
-    /// no craft index at all.
+    /// general's `has_general(0, 0x162)` extra `spell_time` step; and nor
+    /// is the whole non-spell-type arm, which is
+    /// `LeaderData::current_upgrade` + `set_type` and reaches no craft
+    /// index at all. `is_rare_collector`'s re-seat is **in** as of item
+    /// 210 — step 2's second half.
     pub(crate) fn do_cast(&mut self, u: usize, order: crate::orders::CastOrder) {
         use crate::orders::spell;
         let s = order.spell;
@@ -753,6 +757,34 @@ impl Sim {
                 if !packed {
                     self.kill_current_order(u);
                     return;
+                }
+                // **The rare collector's re-seat**, `005eca9c`–`005ecb0d`,
+                // between the packed test and the animation. It is the
+                // last thing `do_cast` does before `set_anim`, and for a
+                // merchant it is three calls: `good_merchant_spot` on the
+                // unit's own tile, which kills the order when it answers
+                // no; `Unit::set_new_location(centre, 1, 1)` onto the
+                // **unit-cell** centre of where it stands
+                // (`div_3_table[(x ^ 0x63637) >> 4] * 0x30 + 0x18`); and
+                // `Unit::set_angle(guy 0's angle)`.
+                //
+                // The point is almost always the one the unit already
+                // holds — a merchant walks to a tile corner and stops on
+                // a cell centre — so what the call is *for* is its third
+                // argument: the crew loop **puts** every tracked figure
+                // on its offset instead of leaving it to walk after the
+                // leader. See [`Sim::set_new_location`].
+                if self.is_rare_collector(u) {
+                    let tile = self.units[u].pos.tile();
+                    if !self.good_merchant_spot(u, tile) {
+                        self.kill_current_order(u);
+                        return;
+                    }
+                    let seat =
+                        crate::collide::ucell_centre(crate::collide::ucell(self.units[u].pos));
+                    self.set_new_location(u, seat, true);
+                    let facing = self.units[u].movement.facing;
+                    self.unit_set_angle(u, facing);
                 }
                 crate::anim::UNPACK
             } else {

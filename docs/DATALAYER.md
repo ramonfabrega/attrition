@@ -716,17 +716,24 @@ for a day (`docs/MERCHANT.md` §2.2.1).
 
 Two numbers, both pinned and both allowed only to fall:
 
-| list | meaning | 2026-09-03 |
+| list | meaning | 2026-09-04 |
 | --- | --- | --- |
-| **uncompared** | the field's identifier appears nowhere in `diff.rs` | **23** of 281 |
-| **single-capture** | exactly one test function names it | **51** |
+| **uncompared** | the field's identifier appears nowhere in `diff.rs` | **23** of 255 |
+| **single-capture** | exactly one test function names it | **41** |
 
 The second is the sharper one, and it is item 87's "per capture" half. A
 field that only one window can see is one capture away from an unnoticed
-divergence — `UnitData`'s whole collision block (`collide`, `collide_frame`,
-`collide_o`, `collide_who`, `collide_guy`), `safe`, `idle`,
-`path_recursion`, `dest_angle` and `stance` are all in that state today, and
-so is every `CityData` stamp.
+divergence — `dest_angle`, `collide_frame`, `myhits`, `damage` and
+`inside_up` are all in that state today, and so is every `CityData` stamp.
+
+**And a field on neither list can still be uncompared, which is the
+ledger's own blind spot.** It scans identifiers, so a `GuyData` field the
+parser did not have at all is invisible to it: `last_speed` and `avg_speed`
+were not parsed until item 210, and they are the walk slot's own input —
+`Guy::set_anim` slogs below six tenths of the type's base and jogs above
+eleven, and the slot is what the arrival draw tests. They are compared on
+three captures now (run64, run67, run73), and the first run of the widened
+comparison failed, on `des_angle`.
 
 **It is a lower bound with no false alarms.** A field counts as "named" if
 its identifier appears as `.field` or as a `row("…")` label anywhere in

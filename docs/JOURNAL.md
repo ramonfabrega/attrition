@@ -15477,3 +15477,85 @@ looked implemented, had a doc comment about all three layers, and returned
 existed, was tested, and had no caller. A public helper with no live caller
 is a layer somebody meant to write.
 
+
+## 2026-09-04 — item 210: the crew the cast teleports (Great Lakes 6151 → 6463, Opus)
+
+Booked as a body animation and it was one, but not the one the queue
+named. Great Lakes' word parted at 6151 on a single draw: the AI Merchant
+`1/24` spent a `Guy::set_anim+0x97a < Guy::move+0x19f` — the arrival stand
+— that the original spends none of, 39 draws to their 38, with every other
+draw of the frame agreeing including `1/0`'s whole second `think_scout`.
+
+**The queue said no capture was needed and it was half right.** run75's
+window covers 6151, but at `GUYS=1` its `GUY` blocks carry position and
+angle only — no clock. What settled it was the position, and it settled it
+in one line. The two sides walk the crew figure together from 6141 to 6144;
+on the dump's block 6145 the original's figure is at `(40706, 14716)` with
+`angle 1605566464`, its driver's to the digit, and this crate's is at
+`(40631, 14634)` still jogging. It **teleported**, four frames before it
+could have walked there.
+
+**`Unit::do_cast` re-seats a rare collector on the first frame of an
+unpack.** `005eca9c`–`005ecb0d`, between the packed test and the animation:
+`good_merchant_spot` on the caster's own tile or the order dies, then
+`Unit::set_new_location(unit-cell centre, 1, 1)`, then `Unit::set_angle(guy
+0's angle)`. It has been a stated seam in `docs/ORDERS.md` §6.9 since the
+craft table was read, and the reason it looked harmless is that the point
+is almost always the one the merchant already holds — it walks to a tile
+corner and stops on a 48-grid centre. What the call is *for* is its third
+argument: `Guy::set_new_location`'s crew loop **puts** every tracked figure
+on its offset instead of leaving it to chase.
+
+**And this crate's `set_new_location` opened with `if from == to { return
+true }`.** `005f8d20` has no such return. An unchanged point makes both of
+its cell tests false and falls straight through to `LAB_005f9033`, which
+writes the coordinates back and then runs the guy half anyway. So the
+"no-op" was the whole mechanic, and the early return had been quietly
+eating `resolve_unit_collision`'s crew snap too.
+
+**What the extra draw actually cost, and how narrow it was.** A tracked
+crew figure jogs, so §4's arrival test — `cur_anim == 8`, the *slot* —
+fails for it. It stops failing when the leader stops: the figure's body
+reaches `des` with its angle short of `des_angle`, `Guy::move`'s standing
+arm puts it back on `CHAR_WALK`, and `set_anim` re-resolves the walk from a
+decaying `avg_speed`. The steady figure averages **28** against a base of
+23 — `280 > 253`, a jog. Its last step onto `des` is partial, so
+`last_speed` is `vector_dist(12, 13) = 18` and not the full 31, and
+`(28·3 + 18) / 4` is **25**: `250 < 253`, a walk, by three parts in a
+thousand. One unit of `avg_speed` either way and the frame would have cost
+nothing.
+
+**The widening came first and paid for itself before the item did.**
+`GuyData`'s `last_speed` and `avg_speed` were not parsed at all, and
+`des_x`, `des_y` and `des_angle` were parsed and compared on one capture.
+Widening the three `DUMP_ALL`/`GUYS=4` clock comparisons — run64, run67,
+run73 — from nine and fifteen fields to fifteen and seventeen **failed on
+its first run**, on `des_angle`, and the defect was the new comparison's
+own: a trackless crew figure carries guy 0's **facing**, not its heading,
+which is what `Sim::guys_follow`'s `settled || g >= SQUAD_SIZE` already
+models. run67 now compares **32,742** fields where it compared 28,890, and
+the tracked merchant crew's speed pair — the arithmetic the paragraph above
+turns on — is checked against the original's own numbers over sixty blocks.
+
+**What it is worth.** Great Lakes' word **6151 → 6463**, by draw and by
+sequence; East Indies unmoved at 6739. The frame past it is one
+`Guy::set_anim+0x97a < Guy::do_turn+0x4a < Guy::turn_towards+0x69` — the
+turning stand of §4.8 — spent by a gaia unit late in the loop, where this
+crate spends none.
+
+**Two smaller things came out of it.** run75's position guard had been
+excluding the file's truncated quit block by accident, because the word was
+ten frames below it; it excludes it on purpose now. And `fish.rs`'s fixture
+had a cell grid of ocean over a **tile** grid of zeroes, which reads as dry
+land — invisible until `do_cast` started asking `calc_gather` about it.
+
+**The lesson.** 208's was that a function answered with one cached field
+is a function whose third layer nobody read. This one is the same shape one
+level out: **an early return that skips a function's tail is a claim about
+the tail**, and `if from == to { return }` claimed that moving a unit to
+where it already stands does nothing. The original's own control flow is
+the only thing that can settle that, and it took one `grep` of the
+decompile to see there was no such return. Second: the seam list is not
+decoration. "`is_rare_collector`'s merchant re-seat on the first frame of
+an unpack" was written down, in the right file, a session before it cost
+312 frames.

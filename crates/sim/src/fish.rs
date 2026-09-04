@@ -234,6 +234,25 @@ mod tests {
                         ..CellData::default()
                     },
                 );
+                // **The tile grid, which this fixture used to leave
+                // empty.** `calc_gather`'s own `sea_sim` has carried it
+                // since that walk was written, and `do_cast` now reads it
+                // too: its re-seat asks `good_merchant_spot`, whose last
+                // test is `calc_gather`, and `gather_tile_ok` refuses a
+                // fishing boat any tile that is not ocean. An all-zero
+                // mask is plain **land**, so without this the whole
+                // fixture was a lake of dry sea.
+                for ty in 0..crate::world::TILES_PER_CELL {
+                    for tx in 0..crate::world::TILES_PER_CELL {
+                        world.set_tile_mask(
+                            Pos::new(
+                                x * crate::world::TILES_PER_CELL + tx,
+                                y * crate::world::TILES_PER_CELL + ty,
+                            ),
+                            crate::world::tile::SURFACE_OCEAN,
+                        );
+                    }
+                }
             }
         }
         let mut s = Sim::new(Tuning::RON, world, 2);
@@ -418,6 +437,18 @@ mod tests {
             ty: A_GOOD,
             alive: true,
         });
+        // **`do_cast`'s re-seat asks `good_merchant_spot` first**, and a
+        // Fisherman is a rare collector too (`is_rare_collector`'s
+        // fallback is the `FISHERMEN` lineage), so the boat's own tile
+        // has to answer `calc_gather` — which reads
+        // [`crate::world::tile::AS_BUILDING`] before it looks for a good
+        // (`crate::Sim::calc_gather_at`). The shipped ocean carries the
+        // bit; this fixture's did not, and without it the deploy died on
+        // its first step instead of running its forty.
+        let t = at.tile();
+        let m = s.world.tile_mask(t);
+        s.world
+            .set_tile_mask(t, m | crate::world::tile::AS_BUILDING);
         s.units[u].idle = 1;
         assert!(s.think_fish(u, 0));
         let seed = s.rng.seed;

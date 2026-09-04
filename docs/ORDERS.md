@@ -2319,6 +2319,28 @@ of the three takes this half. Then:
    `set_anim(CHAR_UNPACK, 0, 1)`; anything else → `CHAR_DEFAULT`, which is
    the transport's. One call site, so all three chains are the trace's
    `Guy::set_anim+0x97a < Unit::do_cast+0xc89`.
+
+   **A rare collector unpacking is re-seated in between**
+   (`005eca9c`–`005ecb0d`), and it is three calls in this order:
+
+   - `UnitData::good_merchant_spot(tile)` on the caster's **own** tile —
+     the same two-by-two and `calc_gather` §3.1's ring walk uses. A `0`
+     kills the order, plays `S_INVALID_ORDER` to its owner and returns.
+   - `Unit::set_new_location(div_3_table[(x ^ 0x63637) >> 4] * 0x30 + 0x18,
+     …, 1, 1)` — the **unit-cell** centre of where it stands, 48 units to a
+     side. A merchant walks to a tile corner and stops on a cell centre, so
+     the point is usually the one it already holds; what the call is *for*
+     is its third argument, which teleports every tracked crew figure onto
+     its offset with the driver's facing (`docs/MOVEMENT.md`, "Who writes
+     it, and when", last row).
+   - `Unit::set_angle(guy 0's angle)` — the unit's **heading** set to its
+     own facing, which also rewrites the crew's `des` from that angle.
+
+   `UnitData::is_rare_collector@0046fae0` is the gate, and it is
+   `is_merchant`'s three ids — `MERCHANT`, `MERCHANTDUTCH`, `FURTRAPPER` —
+   with `is(FISHERMEN)` behind them, so a **fishing boat takes this path
+   too**: run58's `1/14` deploy passes `good_merchant_spot` on its own
+   ocean tile.
 3. On that same frame, and **for `0x28a` alone**, the shore test:
    `find_nearby_spot` for a barge within `unit_board_distance`, and no
    water means the order dies (`docs/TRANSPORT.md` §6).
@@ -2362,6 +2384,8 @@ epoch's `SCIENCE_LOS 2` with the clamp lifted.
 | the 55 rows are `0x275 … 0x2ab` in file order | the file, and `0x292`'s `FROM Fishermen` against §6.8's `add_cast_order` rewrite |
 | `is_castable` must answer 3, and its pack/unpack cases | reading (`00675bc0`) — and the 4989 cast is what a wrong answer would have moved |
 | the pack arm, and `CHAR_PACK` | reading; nothing in any capture packs |
+| the rare collector's re-seat, and that it snaps the crew | **diff** — run75's block 6145 has `1/24`'s crew figure on `(40706, 14716)` at its driver's angle the frame the unpack starts, four frames before it could have walked there, and the re-seat took Great Lakes' word 6151 → **6463** (item 210) |
+| `good_merchant_spot` gating that re-seat | reading — no capture has it refuse; run58's Fisherman and run53's Merchant both pass it |
 
 **What is not established.**
 

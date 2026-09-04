@@ -301,7 +301,7 @@ impl Sim {
     /// (`tile::BLOCKED`), not a building footprint (`tile::OBJECT` all
     /// set) and not [`tile::PLACED`]; and then `calc_gather` at `t`'s own
     /// corner.
-    fn good_merchant_spot(&mut self, u: usize, t: Pos) -> bool {
+    pub(crate) fn good_merchant_spot(&mut self, u: usize, t: Pos) -> bool {
         for (dx, dy) in [(0, 0), (-1, 0), (0, -1), (-1, -1)] {
             let p = Pos::new(t.x + dx, t.y + dy);
             if !self.world.tile_in_bounds(p) {
@@ -382,6 +382,19 @@ mod tests {
         gi
     }
 
+    /// The craft table as `craftrules.xml` has it, for the one row these
+    /// tests need: 55 records, and the Merchant's `0x290` is the
+    /// twenty-eighth with a `JOB_TIME` of 148 (`docs/ORDERS.md` §6.9).
+    /// Without it the deploy's job time is zero and the first frame casts
+    /// outright, which hides everything that happens before the clock.
+    fn merchant_job_time(s: &mut Sim) {
+        s.spells = vec![crate::orders::SpellType::default(); 55];
+        let row =
+            usize::try_from(crate::orders::spell::UNPACK_MERCHANT - crate::orders::spell::FIRST)
+                .unwrap();
+        s.spells[row].job_time = 148;
+    }
+
     /// Re-arms the merchant for another think: packed again, and nothing
     /// on its order list.
     fn rearm(s: &mut Sim, u: usize) {
@@ -398,6 +411,90 @@ mod tests {
         };
         (0..s.world.goods().len())
             .find(|&i| crate::orders::snapped(s.world.goods()[i].pos) == m.dest)
+    }
+
+    /// **`do_cast`'s re-seat, on the first frame of the unpack**
+    /// (`docs/ORDERS.md` §6.9 step 2, `docs/ANIM.md` §4.10). The merchant
+    /// is standing on its own unit-cell centre, so the point does not
+    /// move; what the call is for is the crew, which is *put* on its
+    /// offset instead of walking four more frames and paying an arrival
+    /// stand the original never pays. Great Lakes 6151 → 6463.
+    #[test]
+    fn the_unpack_s_first_frame_seats_the_merchant_s_crew() {
+        let (mut s, u) = merchant_sim();
+        // **On its own unit-cell centre**, which is where a merchant that
+        // has walked to a tile corner stands and is the whole point: the
+        // re-seat's `set_new_location` then has `from == to`, and used to
+        // return before it reached the crew. The fixture's world-cell
+        // centre is a 48-grid *boundary*, not a centre.
+        let at = crate::collide::ucell_centre(crate::collide::ucell(s.units[u].pos));
+        assert!(s.set_new_location(u, at, true));
+        assert_eq!(crate::collide::ucell_centre(crate::collide::ucell(at)), at);
+        // The tile has to answer `good_merchant_spot`, whose last test is
+        // `calc_gather` — a good on the tile, and the tile's own
+        // `AS_BUILDING` bit.
+        s.world.add_good(Good {
+            pos: at,
+            ty: 26,
+            alive: true,
+        });
+        let t = at.tile();
+        let m = s.world.tile_mask(t);
+        s.world.set_tile_mask(t, m | tile::AS_BUILDING);
+
+        // A crew figure with a track offset, seated and then dragged
+        // behind — the state the Merchant `1/24` is in when it arrives.
+        s.units[u].guys = vec![crate::anim::Guy::fresh(1), crate::anim::Guy::fresh(2)];
+        s.art.tracks.insert(2, (-48, -192));
+        s.seat_guys(u);
+        let seated = s.units[u].guys[1].follow.expect("a tracked crew guy").des;
+        s.units[u].guys[1].follow.as_mut().unwrap().body.pos =
+            Pos::new(seated.x - 300, seated.y - 300);
+        s.units[u].guys[1].anim = crate::anim::JOG;
+
+        // `craftrules.xml` gives the Merchant's `0x290` a `JOB_TIME` of
+        // 148 (`docs/ORDERS.md` §6.9), so the first frame seats and starts
+        // the clock rather than deploying outright.
+        merchant_job_time(&mut s);
+
+        s.add_cast_order_at(u, crate::orders::spell::UNPACK, QueuePos::New);
+        let Some(Body::Cast(c)) = s.current_order(u).map(|o| o.body) else {
+            panic!("a cast order")
+        };
+        s.do_cast(u, c);
+
+        let f = s.units[u].guys[1].follow.expect("still tracked");
+        assert_eq!(
+            f.body.pos, seated,
+            "the crew figure is teleported, not left to walk"
+        );
+        assert_eq!(
+            f.facing, s.units[u].movement.facing,
+            "with its driver's facing, as run75's block 6145 has it"
+        );
+        assert_eq!(s.units[u].pos, at, "and the merchant itself has not moved");
+        assert_eq!(
+            s.units[u].guys[0].anim,
+            crate::anim::UNPACK,
+            "the animation the re-seat comes just ahead of"
+        );
+        assert_eq!(s.units[u].spell_time, 1, "and the clock has started");
+    }
+
+    /// The re-seat's own gate: a tile `good_merchant_spot` refuses kills
+    /// the order where it stands, before the clock ever starts.
+    #[test]
+    fn an_unpack_on_a_bad_spot_dies_on_its_first_frame() {
+        let (mut s, u) = merchant_sim();
+        merchant_job_time(&mut s);
+        s.add_cast_order_at(u, crate::orders::spell::UNPACK, QueuePos::New);
+        let Some(Body::Cast(c)) = s.current_order(u).map(|o| o.body) else {
+            panic!("a cast order")
+        };
+        s.do_cast(u, c);
+        assert!(s.units[u].orders.is_empty(), "no good under it, no deploy");
+        assert_eq!(s.units[u].spell_time, 0, "and the clock never started");
+        assert!(s.units[u].combat.packed, "still packed");
     }
 
     /// §2.1 — and it is a `1`, not a `0`: the deployed merchant ends the

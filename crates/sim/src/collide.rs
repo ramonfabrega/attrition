@@ -353,37 +353,51 @@ impl Sim {
     /// ([`Sim::moved_to`], `docs/VISION.md` §6).
     pub(crate) fn set_new_location(&mut self, u: usize, to: Pos, move_guys: bool) -> bool {
         let from = self.units[u].pos;
-        if from == to {
-            return true;
-        }
-        let on_map = self.units[u].on_map && self.units[u].alive();
-        let cell_change = on_map && from.cell() != to.cell();
-        if !self.shore_step(u, from, to, on_map, cell_change) {
-            return false;
-        }
-        if cell_change {
-            self.chain_remove(u);
-        }
-        if on_map {
-            self.coll_move(u, from, to);
-        }
-        self.units[u].pos = to;
-        if cell_change {
-            self.chain_add(u);
-            // The goody box, `docs/GOODY.md` §2. The original's four
-            // guards, in its own order after `add_to_world`: not an animal
-            // (`SubObjectData::is_animal`, the same slot `+0x30` step 0 of
-            // §6 reads), not a placement ghost (`unit_masks & 1`), a land
-            // type (`type->domain == 0`), and the cell's `WData` first
-            // `short` negative — bit `0x8000`, `GOODY`.
-            if !self.units[u].is_gaia()
-                && !self.units[u].decoy
-                && self.units[u]
-                    .ty
-                    .is_none_or(|t| self.unit_types[t].combat.domain == Domain::Land)
-                && self.world.cell_data(to.cell()).flags & crate::world::cell::GOODY != 0
-            {
-                self.explore_goody(u);
+        // **A move onto the point the unit already stands on is not a
+        // no-op**, and the early return that used to sit here made it
+        // one. `005f8d20` has no such return: an unchanged point makes
+        // both of its cell tests false and falls through to
+        // `LAB_005f9033`, which writes the coordinates back and then runs
+        // the **guy half** — the crew loop included. The seating still
+        // happens.
+        //
+        // That is the whole of item 210. `Unit::do_cast` re-seats a rare
+        // collector on the first frame of its unpack, and Great Lakes'
+        // Merchant `1/24` is already on its own unit-cell centre when it
+        // does, so every part of this function but the last four lines is
+        // a no-op for it — and those four lines are what put its crew
+        // figure on its offset instead of leaving it to walk four more
+        // frames and pay an arrival stand the original never pays.
+        if from != to {
+            let on_map = self.units[u].on_map && self.units[u].alive();
+            let cell_change = on_map && from.cell() != to.cell();
+            if !self.shore_step(u, from, to, on_map, cell_change) {
+                return false;
+            }
+            if cell_change {
+                self.chain_remove(u);
+            }
+            if on_map {
+                self.coll_move(u, from, to);
+            }
+            self.units[u].pos = to;
+            if cell_change {
+                self.chain_add(u);
+                // The goody box, `docs/GOODY.md` §2. The original's four
+                // guards, in its own order after `add_to_world`: not an animal
+                // (`SubObjectData::is_animal`, the same slot `+0x30` step 0 of
+                // §6 reads), not a placement ghost (`unit_masks & 1`), a land
+                // type (`type->domain == 0`), and the cell's `WData` first
+                // `short` negative — bit `0x8000`, `GOODY`.
+                if !self.units[u].is_gaia()
+                    && !self.units[u].decoy
+                    && self.units[u]
+                        .ty
+                        .is_none_or(|t| self.unit_types[t].combat.domain == Domain::Land)
+                    && self.world.cell_data(to.cell()).flags & crate::world::cell::GOODY != 0
+                {
+                    self.explore_goody(u);
+                }
             }
         }
         if move_guys {
@@ -1169,6 +1183,38 @@ mod tests {
                 );
             }
         }
+    }
+
+    /// **A snap onto the point the unit already holds still seats the
+    /// crew** — `005f8d20` has no early return for an unchanged position,
+    /// and `crates/sim` had one until item 210 (`docs/MOVEMENT.md`, "Who
+    /// writes it, and when").
+    ///
+    /// Written by making it fail: with the `if from == to { return true }`
+    /// back in, the figure stays where it was dragged to.
+    #[test]
+    fn a_snap_to_the_point_already_held_still_seats_the_crew() {
+        let (mut sim, a, _b) = pair(Pos::new(0x1800, 0x1800), Pos::new(0x4800, 0x4800));
+        // One crew figure with a track offset, seated, and then dragged
+        // away — a figure that is still walking after its leader.
+        sim.units[a].guys = vec![crate::anim::Guy::fresh(1), crate::anim::Guy::fresh(2)];
+        sim.art.tracks.insert(2, (-48, -192));
+        sim.seat_guys(a);
+        let seated = sim.units[a].guys[1].follow.expect("a tracked crew guy").des;
+        let behind = Pos::new(seated.x - 300, seated.y - 300);
+        sim.units[a].guys[1].follow.as_mut().unwrap().body.pos = behind;
+        assert_ne!(behind, seated);
+
+        let held = sim.units[a].pos;
+        assert!(sim.set_new_location(a, held, true));
+        let f = sim.units[a].guys[1].follow.expect("still tracked");
+        assert_eq!(f.body.pos, seated, "the figure is put on its offset");
+        assert_eq!(f.des, seated, "which is also where it is told to be");
+        assert_eq!(
+            f.facing, sim.units[a].movement.facing,
+            "with its leader's facing written outright"
+        );
+        assert_eq!(sim.units[a].pos, held, "and the unit has not moved");
     }
 
     /// The index is written when a unit is added and moved when it walks —

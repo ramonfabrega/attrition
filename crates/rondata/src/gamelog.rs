@@ -519,6 +519,17 @@ pub struct Guy {
     /// a body of its own (`docs/MOVEMENT.md`, "Where the track offset
     /// comes from").
     pub track: Option<(i64, i64)>,
+    /// `GuyData::last_speed` (`+0x80`) — the distance this figure moved
+    /// on its last step, zeroed at the head of `Guy::move`'s standing
+    /// arm.
+    pub last_speed: Option<i64>,
+    /// `GuyData::avg_speed` (`+0x84`) — `(avg · 3 + last_speed) / 4`,
+    /// rewritten at the foot of every `Guy::move`. It is the **walk
+    /// slot's own input**: `Guy::set_anim`'s walk arm slogs below six
+    /// tenths of the type's base and jogs above eleven, so this pair
+    /// decides whether an arriving figure stands on `CHAR_WALK` — and
+    /// the arrival draw tests that slot (`docs/ANIM.md` §4, §4.3).
+    pub avg_speed: Option<i64>,
 }
 
 impl Guy {
@@ -1641,6 +1652,8 @@ fn unit_of(b: &Block<'_>) -> Option<UnitDump> {
                 (Some(x), Some(y)) => Some((x, y)),
                 _ => None,
             },
+            last_speed: g.int("last_speed"),
+            avg_speed: g.int("avg_speed"),
         })
         .collect();
     // `myhits` and `damage` sit on the `OBJECT` level, one in from
