@@ -17,14 +17,13 @@ lines, or lets the handoff pass 32.
 a fresh Opus worker cut off this branch's tip; this seat merges, files
 and steers (DECISIONS 33).
 
-- **`att-loop`**, 227 (Great Lakes): the squad member's exit spot.
+- **`att-loop`**, 227 (Great Lakes' word); **`att-loop-anim`**, 234.
 - **`att-loop-ei`**, 7448 (East Indies): the collision gate and wait
   guard (231), then `line_ok`'s lifecycle (230), both audit-verified.
-- **`att-loop-anim`**, 234: the turn animation's early return and rewind.
 - **`att-capture`**: 226 answered — `cover=1` dies in the wow64 bop,
-  Rosetta by inference, falsifier built and costed (ORACLE). run77 held
-  no birth (a singleton group); the draw stream dates East Indies' first
-  squad at **15782**; run78 `[15700, 15900)` in flight; the corpus is its.
+  Rosetta by inference, falsifier built and costed (ORACLE); run77 held no
+  birth, the draw stream dates East Indies' first squad at **15782**, run78
+  `[15700, 15900)` in flight; the corpus is its.
 - **`att-audit`**: wave 1 closed — 101 rows, **101 confirmed, zero
   struck** (audit README); the no-writer guard is in; next the no-reader
   guard, then the nine documents with no blind second reading.
@@ -79,11 +78,10 @@ journal is indexed by them.
 
 232. **`Levels::for_player` ignores its player**, answering a constant
     whose `taxation` is 0: `territory_tax` is 0 % for the life of every game
-    and the granary, mill, smelter and university ladders sit at level 1
-    (ECONOMY, audit R8); zero on every capture so far because the original's
-    is too. With it: `Lobby::tech_cost`, written and never asked, and the
-    knowledge tech-cost penalty that would read it (ECONOMY R2) — missing
-    together. Plus four `economy.rs` doc-comments ECONOMY.md has retracted.
+    and the four building ladders sit at level 1 (ECONOMY R8); zero on every
+    capture so far because the original's is too. With it `Lobby::tech_cost`,
+    written and never asked, and the knowledge tech-cost penalty that would
+    read it (R2), missing together; plus four stale `economy.rs` doc-comments.
 
 226. **`cover=1` dies in the wow64 bop at the exe's entry**, layout-sensitive
     and reproduced by `tools/trace/wow64bop.c` (ORACLE, "The falsifier for
