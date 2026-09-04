@@ -4333,7 +4333,16 @@ real home, which a backup following links would have uploaded.
   this is a risk to the driven captures (a button in a different place),
   not to the dumps.
 
-### 226: the fault is the bop, not the handler (2026-09-04, capture lane)
+### The clock nobody controls
+
+**Rosetta 2 ends with macOS 28, autumn 2027**, with a carve-out for
+unmaintained games; macOS 26.4 already warns on launch. Free Wine on macOS
+has no announced ARM64EC equivalent. So the durable answer is still
+**getting the oracle off macOS**: any x86 machine runs the original
+natively, with no translation layer, no licence, and captures faster than
+the 3 frames/second `UNITS=3` costs here.
+
+## 226: the fault is the bop, not the handler (2026-09-04, capture lane)
 
 **Three probes, no lobby drive, six seconds each.** The fault lands during
 startup — after `Game::init_common_data`, before the window — so the
@@ -4405,17 +4414,88 @@ entry 29's counter 2 — until this is settled or the oracle moves to a
 machine that runs 32-bit x86 natively ("The clock nobody controls", below,
 which is the same answer for a second reason now).
 
+**run905 is the proof that the instrument did not move.** `tracer.c` changed,
+so the rebuilt `rontrace.dll` owes the same evidence run903 gave: a 400-frame
+Great Lakes `cover=0` capture, driven end to end, came back **MAP_STYLE 14,
+seed 12345, 401 frame blocks, 66,459,736 bytes**, and
+
+    rngcmp.py  rontrace-run53.log rontrace-run905.log
+      -> differing frames: 0, identical frames: 401
+
+`veh` is never registered with `cover=0`, so the change is structurally
+invisible to a capture — and this says so rather than assuming it. Every
+capture on disk stays comparable to every capture taken from here on.
+
 **What is not established.** Whether it is Wine's call-gate setup or
 Rosetta's translation of the far transfer that loses the mode switch. The
 falsifying run is the same probe on an x86 host: if `cover=1` works there,
 it is Rosetta; if it faults the same way, it is Wine's wow64. Nothing on
 this machine can tell the two apart.
 
-### The clock nobody controls
+## The falsifier for 226, costed — and it turned out to be 3.5 KB
 
-**Rosetta 2 ends with macOS 28, autumn 2027**, with a carve-out for
-unmaintained games; macOS 26.4 already warns on launch. Free Wine on macOS
-has no announced ARM64EC equivalent. So the durable answer is still
-**getting the oracle off macOS**: any x86 machine runs the original
-natively, with no translation layer, no licence, and captures faster than
-the 3 frames/second `UNITS=3` costs here.
+The open question above is one bit: **Wine's wow64, or this machine's 32-bit
+x86 emulation?** Nothing on this Mac separates them, because there is only
+one 32-bit executor here. The falsifier is therefore a second host — and the
+first thing to establish was how much of the oracle has to travel with it.
+
+**The answer is: none of it.** The mechanism needs one vectored handler, one
+`int 3` and one syscall afterwards. The game, the install, the renderer and
+the window are all incidental, and `tools/trace/wow64bop.c` is that and
+nothing else: a **3,584-byte** 32-bit console PE importing five kernel32
+entries, built by `tools/trace/wow64bop.sh` from the same clang /
+`llvm-dlltool` / `rust-lld` toolchain `build.sh` already uses. It prints
+phase A (the output channel works), plants the breakpoint, continues from it
+in a vectored handler, and then prints phase C — and phase C is the syscall
+that dies here. Its header says how to read the three outcomes.
+
+So the costed plan, cheapest first:
+
+**1. `wow64bop.exe` on an x86_64 Linux box with Wine — free, minutes.**
+Copy one 3.5 KB file. No install, no `rontrace.funcs`, no ini, no profile,
+no prefix beyond a default one, **and no display**: it is a console
+subsystem binary that touches kernel32 only, so there is no `user32`, no
+X connection and no `DISPLAY` to arrange. Match the version to keep it a
+single-variable test — this machine is **WineHQ Stable 11.0**, which WineHQ
+also packages for Debian, Ubuntu and Fedora — and run
+
+    WINEPREFIX=/tmp/bop wine wow64bop.exe
+
+`PASS` means a 32-bit vectored handler can continue an `int 3` there and the
+next syscall still switches mode, which puts the fault on Rosetta; the same
+`Unhandled page fault … at address <wow64cpu+0x1139>` means it is Wine's,
+and the report goes upstream with this binary attached.
+
+**2. Only if the small one disagrees with the game: the game itself.**
+This is the expensive path and it is not the first move. It needs the
+install — **2.7 GB whole**, or roughly 1 GB once `conquest`, `scenario`,
+`credits` and `_CommonRedist` are left behind — plus
+`riseofnations_trace.exe`, `rontrace.dll`, `rontrace.funcs`, a
+`rontrace.cfg` of `window=0-3` / `cover=1`, and `check.ini`. **It does need
+a display**, unlike the small probe: the fault lands after
+`Game::init_common_data`, and `INIT_GRAPHICS` precedes that, so the D3D11
+device has to come up first — the MoltenVK banner is in the stderr of every
+faulting run here, ahead of the fault. On Linux that is easy and free
+(Mesa's GL satisfies wined3d, or lavapipe satisfies DXVK; `Xvfb` is enough
+of a display), so DXVK-macOS is a macOS problem only. Then
+
+    WINEDEBUG=+seh wine <install>/riseofnations_trace.exe -config check.ini -automation
+
+and `report.py rontrace.log summary` decides it: a non-zero `HIT` count is
+the answer.
+
+**QEMU TCG on this Mac would do it too, and is the honest fallback.**
+`qemu-system-x86_64` (Homebrew, free) emulates x86_64 on Apple Silicon in
+software, and **that is precisely why it is a discriminator**: TCG
+implements 32-bit protected mode and the far transfer through the call gate
+itself, with no Rosetta in the path. A minimal Debian guest with i386
+multiarch and WineHQ 11.0 is ~6 GB of disk and an hour or two of downloading,
+and after that `wow64bop.exe` runs in well under a minute even at TCG's
+speed, because it does almost nothing. The one caveat: a QEMU run changes
+*two* things at once — the executor and the Wine build — so pin the Wine
+version to 11.0 there, or a `PASS` is ambiguous. The game probe under TCG is
+possible but not worth it: software Vulkan under software x86 for a
+2.7 GB install is hours, and the small probe answers the same question.
+
+None of this is booked. It is Ramon's spend and Ramon's machine time, and
+nothing here has been rented, downloaded or installed.

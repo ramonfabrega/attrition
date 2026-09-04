@@ -1,0 +1,7 @@
+LIBRARY KERNEL32.dll
+EXPORTS
+WriteFile@20
+VirtualProtect@16
+AddVectoredExceptionHandler@8
+GetStdHandle@4
+ExitProcess@4

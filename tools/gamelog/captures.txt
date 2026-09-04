@@ -956,3 +956,46 @@ check: python3 tools/gamelog/rngcmp.py rontrace-run53.log rontrace-run76.log
 # WHAT WOULD KILL 227: this stanza's shape on a *second* map, a Barracks
 # squad born inside a UNITS=3 frame_window. One sample of two offsets is
 # all there is, and two samples separate a formation from a search.
+
+run: 77
+tag: eastindies-squadbirth
+item: 227
+why: the second map's first squad, born on 10187 — one sample of two offsets is not enough to tell a formation from a search
+# **The birth frame came off the disk, not a capture.** run54 (East Indies,
+# 24,000 frames) and run53 (Great Lakes, the same length) were both taken
+# with `cover=1` under CrossOver, so each carries ~6,900 cumulative HIT
+# records — every function's *first* frame. `report.py … functions` on the
+# two, diffed, dates the same event on both maps: on Great Lakes
+# `Unit::set_group`, `Unit::think_attack`, `Unit::find_melee_target`,
+# `Unit::on_duty`, `UnitData::get_activity`, `UnitData::get_combat_stance`,
+# `Army::add_group`, `Army::member` and `Army::add_unit` all first run on
+# **6612**, which is the Archers' birth run76 read. The identical nine first
+# run on **10187** on East Indies. That is this map's first squad, and it
+# cost a grep rather than a run.
+#
+# So the window opens 37 frames early and stays open long enough to see the
+# squad settle. It is deliberately *before* the birth: run76's window opened
+# 28 frames after 6612 and that is exactly why it read a march where there
+# was a placement. `frame_window`'s numbers are **FRAME labels**, one ahead of
+# the sim-frame (`window.py`'s header), so sim-frame 10187's effects land in
+# the block labelled `FRAME 10188` and the blocks from `FRAME 10150` show the
+# Barracks before it produced anything.
+frames: 10400
+mapstyle: 18
+end: MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,DEATHS=1,LEADERS=1
+frame_window: 10150 10400
+# cover=0 is not a choice on this machine — see the `cover:` key's note at the
+# top of this file, and `docs/ORACLE.md`, "226: the fault is the bop, not the
+# handler". The question here is positions from the `UNITS=3` dump and the
+# trace word from the trampolines; neither needs the int3 forest.
+cover: cover=0
+# The East Indies start dump at this `start:` detail is 11,053,550 bytes
+# (measured on run39), and the file does not grow at all between frame 0 and
+# 10150 — so the floor sits above the quiet run-up and far below the finished
+# file (run76's 250-frame window added ~51 MB on the other map).
+settle_min: 14000000
+# ~10,400 frames of run-up under `!ffwd` plus 250 frames of window dumping.
+# run76 reached 6870 in about five minutes; this is half again as long.
+poll_max: 300
+# Same game: the trace word for word against run54, this map's own 24k run.
+check: python3 tools/gamelog/rngcmp.py rontrace-run54.log rontrace-run77.log
