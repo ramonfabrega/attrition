@@ -75,6 +75,7 @@ pub mod grouppath;
 pub mod holdings;
 pub mod market;
 pub mod merchant;
+pub mod mesh;
 pub mod movement;
 pub mod nations;
 pub mod orders;
@@ -785,6 +786,10 @@ pub struct Sim {
     /// `PathFinder::calc_road_cost`'s arguments and answer, node for node
     /// (`docs/ROADS.md` §7.2). Nothing in the simulation reads it.
     pub road_marks: Vec<roads::RoadCostMark>,
+    /// The road **mesh** — `crate::mesh`, `docs/ROADS.md` §9. One
+    /// `RoadElementCandidate` per road tile, and the pass that lays road of
+    /// its own to close a corner two roads leave open.
+    pub mesh: mesh::RoadMesh,
     /// Whether a building replans the road to its city — `crate::roads` §5.
     /// **On**, as of run32: the search's expansion count is the original's
     /// exactly on every capture that feeds it the map's *own* terraformed
@@ -1075,6 +1080,8 @@ impl Sim {
         // `Regions::set_coastals`: the coast masks follow from the cells.
         let mut world = world;
         world.rebuild_coasts();
+        let mut mesh = mesh::RoadMesh::default();
+        mesh.seed(&world);
         Sim {
             transport: vec![transport::LeaderTransport::default(); players],
             docks: vec![transport::Docks::default(); players],
@@ -1088,6 +1095,7 @@ impl Sim {
             tech_tree,
             setup: tech::Setup::STANDARD,
             trace_phases: false,
+            mesh,
             plan_roads: true,
             phase_marks: Vec::new(),
             trace_costs: false,

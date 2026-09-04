@@ -272,9 +272,13 @@ begins on a road does not get the bonus on its first step.
 - **The placement-time plan** (§1), against those same 2,913 draws.
 - **The height grid the search reads, whole** — run72's `FRAME 4803`, all
   921,600 tiles of Great Lakes at sim-frame 4802, which is what put the
-  terraform in the right frame (§7.6). The ring is diff-backed there too:
-  the sixteen tiles `place_roads` lays for the Market `1/2015` are the
-  original's exactly, and the seventeenth the original lays is §9's.
+  terraform in the right frame (§7.6). Every cell owner and every tile mask
+  of the same frame with it, with the mesh (§9) running for all 4,802
+  frames.
+- **The Market `1/2015`'s road on run72's 4803, node for node** — all 277
+  of them, tile, direction and cost, which is the ring's sixteen tiles *and*
+  the seventeenth `Roads::set_diags` lays (§9.4). It was 266 against 277
+  until the mesh, and Great Lakes' word was 4803 for it.
 - **Every node those 2,913 draws priced**, since run62: tile, direction and
   cost, for both of run32's placement searches, against
   `calc_road_cost`'s own proxied answers (§7.2). This is the record the
@@ -312,10 +316,12 @@ them for real; §8.2.
 
 **Unmodelled, and stated as such:** `place_roads`' `REGEN_TOTAL` arm and its
 `set == 0` teardown; `BuildType::mask_me`'s call; ~~the caravan itself~~
-(§8, 2026-09-02); the alliance arm of the territory test; and
+(§8, 2026-09-02); the alliance arm of the territory test;
 ~~`was_seen`'s ally-territory shortcut, which on every capture so far agrees
-with the fog bit because the search never leaves its own ground.~~ **It does
-not agree** — §7.3.
+with the fog bit because the search never leaves its own ground~~ — **it does
+not agree**, §7.3; and ~~the road mesh, which lays road tiles of its own~~
+(§9, 2026-09-03), of which the rendering passes and the removal branch
+remain — §9.4 lists them one by one.
 
 ## 7. The placement frame, and the two mechanics behind its two counts
 
@@ -626,45 +632,211 @@ every building road — prices one at `jitter + 55 + 100`.
 
 ## 9. The road **mesh** — `Roads::add_roads`, and the tiles it lays
 
-Not modelled at all, and it writes real road tiles that §5.2 prices.
+**Every road tile carries a record, and the record's own upkeep lays road.**
+That is the whole of this section, and it is what Great Lakes' word was
+short of for a month. `crate::mesh` is the implementation and its `dir`,
+`tables` and `Elem` are the names below.
 
-`World::set_road_at@006b43b0` is two statements and a call. With `set != 0`
-it puts `0x10` in the tile's surface field and `0x80` in the cell's, and
-then — when the tile was **not** already a road and its sixth argument is
-zero — calls `Roads::road_added@008954d0`. That queues a
-`RoadModification` and calls `Roads::add_roads@0088f4b0`, whose
-`Roads::set_diags@0088e9d0` **lays road of its own**:
+### 9.1 The one door, and what is behind it
+
+`World::set_road_at@006b43b0` with `set != 0` writes two bits and then
+hands over:
 
 ```
-set_road_at(this->x + corner_x[i], this->y, 1, 0, 1)
-road_added(this, x + corner_x[i], y, 0, 0)
+tile.mask = (mask & ~0x20) | 0x10          # road on, ocean off
+cell.flags |= 0x80                         # the cell carries a road
+if (mask & 0x30) != 0x10 and param_5 == 0: # it was not already a road
+    Roads::road_added(roads, x, y, param_4, 1)
 ```
 
-— under `RoadsOut::get_orthog_connects(corner) >= 2` and four emptiness
-tests on the neighbour arrays at `+0xfc` and `+0x128`. The sixth argument
-of `1` is what stops it recursing.
+`param_5` is a recursion stop and only the mesh's own calls set it.
+`BuildType::place_roads` passes `(param_4, param_5) = (0, 0)` for every one
+of a ring's tiles and for every tile of the road it plans, so **each tile is
+a full pass of the mesh on its own**, not a batch at the end of the frame.
 
-**What says it is real.** run72's frame 4803 is the Market `1/2015`'s
-`place_roads`. Its ring is the border of `[224, 228] × [79, 83]` and this
-crate lays all sixteen of those tiles, the original's exactly. The
-original lays **seventeen**: `(223, 79)` as well, which is the corner
-between the ring's brand-new `(224, 79)` and the road already standing at
-`(223, 80)` — a corner a road mesh cannot draw and so fills. The tile is
-node 81 of the search that follows, and the search prices it as **plain
-ground at 387** here against the original's **road at 27**: the eleven
-nodes Great Lakes' word is short all follow from that one tile
-(`docs/QUEUE.md` item 202).
+`Roads::road_added@008954d0` queues a `RoadModification` — a packed index
+`x + width_in_tiles · y`, an `added` byte and a `valid` byte — and, when its
+fourth argument is set, runs `Roads::add_roads@0088f4b0` over the queue.
 
-**And a second mark of the same absence.** 33 of run72's tile masks carry
-bit `0x4` that this crate never sets — at (211–219, 123–130) and
-(224–226, 135–137), both beside standing roads and both long predating
-frame 4802. Nothing in `calc_road_cost` or `valid_roadcoord` reads it, so
-it costs nothing today; it is pinned as a count that may only fall,
-because it is the same mechanic seen from the other end.
+The record is `RoadElementCandidate`, sixteen to a terrain patch
+(`RoadsPieces::candidates`, `TerrainOut::get_road_data@008744d0`). Four of
+its fields matter here:
 
-**What is not established.** Everything: `RoadsOut`'s neighbour state, the
-order `add_roads` walks its modification list in, `get_orthog_connects`,
-`set_neighbor`, and which of the two — the diagonal fill or the `0x4`
-mark — needs which. The two functions are 449 and 364 decompiled lines and
-the oracle for both is already on disk (run72's three road proxies plus
-its `DUMP_ALL` window), so this is a reading with a diff waiting for it.
+| field | what it is |
+|---|---|
+| `+0x4` `flags` | the top byte is eight **connection** bits; `set_diags` and `mark_and_trim_directions` are its writers |
+| `+0xa` `ref_count`, `+0xb` `pending_camel_steps` | two reference counts; the element goes when both reach zero |
+| `+0xc` `support_codes` | `0x2000` "I laid the road beside me", `0x80` "eastward" |
+| `+0xf` `is_terrain_creation` | this road tile is the mesh's own |
+
+The eight connection bits, settled by which corner each excludes in
+`set_diags` and which one `mark_and_trim_directions` writes back on the
+neighbour it names:
+
+```
+N  0x40000000   E  0x10000000   S  0x04000000   W  0x01000000
+NW 0x80000000   NE 0x20000000   SE 0x08000000   SW 0x02000000
+```
+
+`RoadsOut::get_orthog_connects@00893560` counts the four cardinals and
+nothing else. It answers **zero for a tile with no element**, which is a
+gate and not an accident.
+
+### 9.2 `mark_and_trim_directions` — where the cardinals come from
+
+`RoadsOut::fill_cache@00893b30` fills two nine-entry compass caches for the
+tile being worked, `[0]` being the tile itself:
+
+```
+road_cache[d]     = (mask & 0x30) == 0x10                       # a road
+neighbor_cache[d] = (mask & 3) == 3 and not road_cache[d]       # a footprint
+```
+
+Off the map both read zero. `RoadsOut::mark_and_trim_directions@008935c0`
+then reads them, and two things in it are not guessable from its shape:
+
+- Because `neighbor_cache[d]` **excludes roads**, its gate is open whenever
+  the neighbour is one. So `if neighbor_cache[d] == 0: flags |= bit; if
+  road_cache[d] == 0: flags &= ~bit` reduces to **`bit = road_cache[d]`** in
+  every ordinary case. The gate only ever *withholds a recomputation* beside
+  a building, leaving whatever the bit already was.
+- The two halves are gated on **each other's** axis. With
+  `a = neighbor_cache[N] or neighbor_cache[S]` and
+  `b = neighbor_cache[E] or neighbor_cache[W]`: the north–south pair is
+  recomputed when `b`, the east–west pair when `a`, and with neither — no
+  footprint adjacent at all — both are.
+
+Each bit it sets is answered on the neighbour: setting `N` here sets `S`
+there, through `get_road_data(create = 1)`, and a bit that was not already
+there puts the neighbour on the redo list.
+
+Its tail is a repair. If the tile ends with **exactly one** connection, it
+takes every road neighbour it has, gates and all.
+
+### 9.3 `set_diags` — the pass that lays road
+
+`Roads::set_diags@0088e9d0` runs over the four corners, `corner_x/corner_y`
+indices 1 to 4 — NW, NE, SE, SW, whose compass indices are the odd ones 1,
+3, 5, 7. Its first line is the mechanic's shape:
+
+> **A tile with two or more orthogonal connections does none of this**, and
+> nor does one with no element. What the pass exists for is a road that ends
+> or turns beside another one.
+
+Per corner, in order:
+
+1. the corner must be on the map;
+2. a cardinal connection **bars the two corners that touch it** — `N` bars
+   NW and NE, `E` bars NE and SE, `S` bars SE and SW, `W` bars SW and NW;
+3. `road_cache[diag]` — the corner must itself be a road;
+4. then `get_orthog_connects(corner)` splits the two arms.
+
+**Under two** — the corner is a road end — the two elements are joined
+diagonally: the tile takes its own corner's bit, the corner takes the
+opposite one, and the join is refused if either **adjacent** diagonal is
+already claimed (NW is refused by NE or SW, and so round). This writes no
+world.
+
+**Two or more** — the corner is a junction — and the pass **lays road**, at
+
+```
+(x + corner_x[i], y)
+```
+
+the corner's *horizontal* neighbour, not the corner. It is refused unless
+**both** flanking cardinals — the two compass directions either side of the
+diagonal — are free of road **and** of footprint: `road_cache` and
+`neighbor_cache` both zero at both. Then:
+
+```
+World::set_road_at(x + corner_x[i], y, 1, 0, 1)   # param_5 = 1: no recursion
+Roads::road_added(x + corner_x[i], y, 0, 0)       # queue it; do not re-enter
+TerrainOut::road_changed(x + corner_x[i], y, 1, 0, 0)
+new.is_terrain_creation = 1
+this.support_codes |= 0x2000  (| 0x80 if corner_x[i] == 1)
+```
+
+The queue entry lands in the very list `add_roads`' second pass is walking,
+so the new tile is processed inside the same call.
+
+### 9.4 What run72 says, and what is not established
+
+**The measurement.** run72's frame 4803 is player 1's Market `o 2015`
+planning its road to London. `place_roads` lays the ring — sixteen tiles,
+the border of `[224, 228] × [79, 83]` — and the original lays a
+**seventeenth**, `(223, 79)`. It is not a ring tile and no search put it
+there: the ring's brand-new `(224, 79)` has the standing road at `(223, 80)`
+diagonally below it, `(223, 79)` and `(224, 80)` are both empty, and
+`(223, 80)` is an elbow with two connections. §9.3, exactly.
+
+Without it the search priced that tile as plain ground at **387** where the
+original priced it as road at **27**, and the road came out **266** nodes
+against 277. With `crate::mesh`:
+
+- **277 nodes, node for node** — tile, direction and cost, against
+  `calc_road_cost`'s own proxied answers;
+- **Great Lakes' word 4803 → 5502**, by draw *and* by sequence;
+- **run71's whole 5,000-frame capture has no unit anywhere off the
+  original's point** — the 4827 position parting, which was `1/15` re-picking
+  a farm cell off a seed that was nobody's, is gone with its cause;
+- the world at 4802 is untouched by it: 921,600 heights, every cell owner,
+  every tile mask exactly as they were, with 4,802 frames of the mesh
+  running. It lays its **first** tile on 4803, which is the honest limit of
+  that evidence — the mesh not over-laying is diff-backed over 4,802 frames,
+  the mesh laying is diff-backed at one tile.
+
+`rondata::diff::tests::run72_s_road_nodes_are_where_great_lakes_word_parts`
+is all of the above, and it also pins the invariant nothing else would
+catch: **every road tile has an element and nothing else has one**, 126 of
+them.
+
+**The 33 tile masks are somebody else's mechanic**, and this section had
+them wrong for a day. Every one of them is bit `0x4`, whose writers are
+`World::set_behind@006b4230`'s low arm — called from
+`Wall::mark_behind_tiles@0063d230` (itself from `Wall::start@0063e810`,
+`Wall::close`, `Wall::refresh_nearby_tiles` and `SpellType::cast_bribe`) and
+from `Mountains::add_mountain@0089c2e0`. **Nothing under `Roads` writes it
+at all.** It is the strip of tiles a building stands *in front of*, walked
+`buildtype+0x2dc` rows deep, and it is item 203's, not this one's. Three of
+the 33 carry a second difference: `(217, 124)`, `(218, 124)` and
+`(219, 124)` are road here and are not road there, which no reading in this
+section explains.
+
+**Not modelled, and each of them could write a bit §9.3 reads:**
+
+- **`RoadsOut::mark_splits@00891d40`.** It runs in `add_roads`' second pass
+  whenever `set_diags` answered zero, and it **sets cardinal bits** — on a
+  tile that already claims a corner pair (`N|W`, `E|W`, …) and has a further
+  road neighbour, it claims that one too. Every bit it sets corresponds to a
+  road that is really there, so a derivation that simply sets every cardinal
+  whose neighbour is a road reaches the same place; that is the argument,
+  and it is an argument rather than a measurement.
+- The rendering tail of `set_diags` (`element_num`, `rotation`, the `0xc000`
+  and `0x1000`/`0x200` support codes) and `mark_white_lines`,
+  `mark_yellow_lines`, `mark_intersections`, `fixup_lines`, `find_piece`,
+  `leech_codes`, `delete_straglers`. Of these only the tail matters beyond
+  texture choice: it calls `get_road_data(create = 1)` on tiles **that are
+  not roads**, which is the one way an element comes to stand on a plain
+  tile.
+- …and that is why `add_roads`' duplicate branch is **unreachable in this
+  crate**. It fires when a tile being laid already had an element, re-queues
+  it as a removal, and `Roads::clear_roads@0088fef0` +
+  `Roads::clear_support@0088e3f0` run — which is where a mesh-laid tile can
+  be taken away again. All of it is modelled and none of it is reached; the
+  unit test drives it directly and says so.
+- `Roads::scan_and_kill_stray_roads@008956a0`,
+  `scan_and_kill_bad_tcoord@0088e100` and
+  `scan_and_kill_straggled_tcoord@0088e050` — three functions whose names
+  say they remove roads, none of them read.
+- `Roads::generate@00894350` does not derive anything: it clears the render
+  helpers and calls `add_roads` if the queue is not empty. So the elements a
+  **map's own** roads carry are built by `set_road_at` at load time, one
+  tile at a time, and this crate cannot replay that for a world the harness
+  borrowed mid-game. `RoadMesh::seed` reconstructs them instead — an element
+  per road tile, flags cleared, `mark_and_trim_directions` over the cache,
+  which is `redo_changed_roads`' own second pass. On Great Lakes at 4802
+  that reconstruction and the original agree everywhere the diff can see,
+  but it is a reconstruction.
+- The ambience loop in `add_roads`' first pass and
+  `TerrainOut::road_changed`'s patch allocation: visual, and unmodelled by
+  design.

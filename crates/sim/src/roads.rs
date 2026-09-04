@@ -263,16 +263,13 @@ impl Sim {
         }
     }
 
-    /// `World::set_road_at@006b43b0` with `set != 0`: the tile's surface
-    /// becomes road and the cell is marked as carrying one.
+    /// `World::set_road_at@006b43b0` with `set != 0`, as `place_roads` calls
+    /// it — the tile's surface becomes road, the cell is marked as carrying
+    /// one, and a tile that was **not** already a road goes on to the mesh
+    /// (`crate::mesh`, `docs/ROADS.md` §9), which is where a road can grow a
+    /// seventeenth tile out of sixteen.
     pub(crate) fn set_road_at(&mut self, t: Pos) {
-        let m = self.world.tile_mask(t);
-        self.world
-            .set_tile_mask(t, (m & !tile::SURFACE_OCEAN) | tile::SURFACE_ROAD);
-        let c = Cell::new(t.x.div_euclid(4), t.y.div_euclid(4));
-        let mut d = self.world.cell_data(c);
-        d.flags |= cell::ROAD;
-        self.world.set_cell_data(c, d);
+        self.world_set_road_at(t, true, 0, 0);
     }
 
     // ------------------------------------------------------------------

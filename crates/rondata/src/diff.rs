@@ -5816,42 +5816,37 @@ mod tests {
             "and so are its buildings over the same stretch: {build_early:?}"
         );
 
-        // **The position parting is 4827, and the draw word is 4803.** It
-        // was 4177 for a session, and the two units that went there —
-        // `1/11` stopping dead where the original walked +7,+24, `1/19`
-        // turning +14,-20 against the original's +25,0 — were **one
-        // defect**, not two. Frame 4176 is where the AI places its farm
-        // `2014` and pulls a citizen off gathering to build it, and the two
-        // sides pulled a **different citizen**: the original's `1/11` takes
-        // the `BUILDORDER` and the walk to (41736,22584), while this crate
-        // handed both to `1/19`. `produce_building`'s builder loop measures
-        // the tile distance from the **corner tile** to the unit's own
-        // tile, each coordinate floored on its own; this crate divided the
-        // world-unit difference once, and the two functions part wherever
-        // the floors do. `1/11` and `1/19` tie at 27 under the original's
-        // arithmetic and the earlier unit keeps the tie (`docs/AI.md`
-        // §2.20).
+        // **Nothing in this capture parts on position at all** (item 202,
+        // 2026-09-03). It was 4177 for a session, and the two units that
+        // went there — `1/11` stopping dead where the original walked
+        // +7,+24, `1/19` turning +14,-20 against the original's +25,0 —
+        // were **one defect**, not two. Frame 4176 is where the AI places
+        // its farm `2014` and pulls a citizen off gathering to build it,
+        // and the two sides pulled a **different citizen**: the original's
+        // `1/11` takes the `BUILDORDER` and the walk to (41736,22584),
+        // while this crate handed both to `1/19`.
+        // `produce_building`'s builder loop measures the tile distance from
+        // the **corner tile** to the unit's own tile, each coordinate
+        // floored on its own; this crate divided the world-unit difference
+        // once, and the two functions part wherever the floors do. `1/11`
+        // and `1/19` tie at 27 under the original's arithmetic and the
+        // earlier unit keeps the tie (`docs/AI.md` §2.20).
         //
-        // What is left on 4827 is `1/15`, one unit and a route: ours steps
-        // -8,+24 where the original steps +17,+18, both off the same point.
+        // It was **4827** for a day after that — `1/15` re-picking its farm
+        // cell off a seed that was nobody's, because the *draw* word had
+        // parted twenty-four frames earlier on a road search eleven nodes
+        // short. `crate::mesh` is the eleven nodes (`docs/ROADS.md` §9),
+        // and with them the whole capture is in lockstep on position.
         //
-        // Pinned as a floor and as the list it is, so that the day it is
-        // fixed this fails rather than quietly passing.
+        // Pinned as "never", so that the day a unit moves again this fails
+        // rather than quietly passing.
         let first_part = parted.values().copied().min().unwrap_or(i64::MAX);
         assert_eq!(
-            first_part, 4827,
-            "Great Lakes parts on position at 4827 — a change here is the \
-             score moving, and it moves the queue's Scoreboard line with it"
-        );
-        let at_first: Vec<(i64, i64)> = parted
-            .iter()
-            .filter(|&(_, &f)| f == first_part)
-            .map(|(&(w, o), _)| (w, o))
-            .collect();
-        assert_eq!(
-            at_first,
-            vec![(1, 15)],
-            "and one unit goes at that instant, on a route"
+            (first_part, parted.len()),
+            (i64::MAX, 0),
+            "Great Lakes parts on position nowhere in run71 — a change here \
+             is the score moving, and it moves the queue's Scoreboard line \
+             with it: {parted:?}"
         );
 
         // The counts only grow; a fall here is a capture that got shorter or
@@ -9394,6 +9389,42 @@ mod tests {
              {words} frames on the original's count, {matched} draw for draw \
              (both mostly past the parting — printed, not pinned)"
         );
+        // The two parting frames, named — run54 has carried this since
+        // East Indies became the second map, and Great Lakes is the
+        // headline one. `RON_DEBUG_SITES=<lo>-<hi>` widens it to a window
+        // and `RON_DEBUG_SITES=1` prints both sequences whole.
+        let window = std::env::var("RON_DEBUG_SITES").ok().and_then(|v| {
+            let (lo, hi) = v.split_once('-')?;
+            Some((
+                lo.trim().parse::<i64>().ok()?,
+                hi.trim().parse::<i64>().ok()?,
+            ))
+        });
+        for (f, ours) in built.frame_sites.iter() {
+            let named = *f == first_count || *f == first_part;
+            if !named && !window.is_some_and(|(lo, hi)| (lo..=hi).contains(f)) {
+                continue;
+            }
+            let theirs = trace.labels(*f);
+            let at = (0..ours.len().max(theirs.len()))
+                .find(|&i| ours.get(i) != theirs.get(i))
+                .unwrap_or(0);
+            eprintln!(
+                "  frame {f}: ours {} theirs {} — at {at}, ours {:?} theirs {:?}",
+                ours.len(),
+                theirs.len(),
+                ours.get(at),
+                theirs.get(at)
+            );
+            if std::env::var("RON_DEBUG_SITES").is_ok() {
+                for (i, l) in ours.iter().enumerate() {
+                    eprintln!("    ours  {i}: {l}");
+                }
+                for (i, l) in theirs.iter().enumerate() {
+                    eprintln!("    thrs  {i}: {l}");
+                }
+            }
+        }
         assert!(
             first_count >= LONG_WORD_GREAT_LAKES && first_part >= LONG_WORD_GREAT_LAKES,
             "run53's ceiling fell: word {first_count}, sequence {first_part}; \
@@ -10507,11 +10538,48 @@ mod tests {
             })
             .collect();
         eprintln!(
-            "run72 world at 4802: {} height rows, {} tiles off, {} masks off, {} cells off",
+            "run72 world at 4802: {} height rows, {} tiles off, {} masks off, \
+             {} cells off; mesh {} elements, {} tiles laid by `set_diags`",
             heights.len(),
             z_off.len(),
             mask_off.len(),
-            owners.len()
+            owners.len(),
+            built.sim.mesh.len(),
+            built.sim.mesh.made()
+        );
+        // **The mesh's own invariant**, which nothing else here would
+        // catch: a road tile has a `RoadElementCandidate` and a tile that
+        // is not a road does not. A leak either way is what would make
+        // `get_orthog_connects` answer for a tile that has no element, and
+        // that gate is most of §9.
+        let mut no_elem = Vec::new();
+        let mut stray = 0;
+        for ty in 0..ys * 4 {
+            for tx in 0..xs * 4 {
+                let q = Pos::new(tx, ty);
+                let road = built.sim.world.tile_mask(q) & sim::world::tile::SURFACE
+                    == sim::world::tile::SURFACE_ROAD;
+                match (road, built.sim.mesh.elem(&built.sim.world, q).is_some()) {
+                    (true, false) => no_elem.push((tx, ty)),
+                    (false, true) => stray += 1,
+                    _ => {}
+                }
+            }
+        }
+        assert_eq!(
+            (no_elem.len(), stray, built.sim.mesh.len()),
+            (0, 0, 126),
+            "every road tile of Great Lakes at 4802 has an element and \
+             nothing else does: {no_elem:?}"
+        );
+        // And the mesh has laid **nothing** in 4,802 frames — 4803 is the
+        // first corner on this map that needs filling. The height grid,
+        // the masks and the borders above are what says the 4,802 frames
+        // of it running changed nothing they should not have.
+        assert_eq!(
+            built.sim.mesh.made(),
+            0,
+            "the mesh lays its first tile on 4803"
         );
         for l in z_off
             .iter()
@@ -10556,47 +10624,50 @@ mod tests {
         );
         assert!(owners.is_empty(), "the borders parted by 4802: {owners:?}");
 
-        // **What is left is one mechanic, and it is not the search.**
-        // `World::set_road_at@006b43b0` ends in
+        // **The search is whole, and the mesh is why** (2026-09-03, item
+        // 202). `World::set_road_at@006b43b0` ends in
         // `Roads::road_added@008954d0` → `Roads::add_roads@0088f4b0` →
-        // `Roads::set_diags@0088e9d0`, the road *mesh* builder — and
-        // `set_diags` lays road tiles of its own
-        // (`set_road_at(x + corner_x[i], y, 1, 0, 1)`) to close a corner
-        // the mesh cannot otherwise draw. This crate has none of it.
+        // `Roads::set_diags@0088e9d0`, and `set_diags` lays road tiles of
+        // its own (`set_road_at(x + corner_x[i], y, 1, 0, 1)`) where a road
+        // stands diagonally from a new one with nothing between them.
         //
-        // The two residues below are that one absence, seen twice:
+        // The ring `place_roads` lays is sixteen tiles, the border of
+        // `[224, 228] × [79, 83]`; the original lays a **seventeenth**,
+        // `(223, 79)`, which is `set_diags` closing the corner between the
+        // ring's brand-new `(224, 79)` and the road already standing at
+        // `(223, 80)`. Priced as plain ground at 387 here and as road at 27
+        // there, it cost the search eleven nodes — 266 against 277 — and
+        // everything downstream of 4809, the position parting at 4827
+        // included. With `crate::mesh` it is **node for node the
+        // original's, all 277**.
         //
-        // - **33 tile masks**, all of them bit `0x4` — a mark nothing in
-        //   this crate writes and nothing in `calc_road_cost` or
-        //   `valid_roadcoord` reads. Pinned as a count that may only fall.
-        // - **Node 81 of the Market's 277.** The ring `place_roads` lays
-        //   is the original's, tile for tile — sixteen of them, the border
-        //   of `[224, 228] × [79, 83]` — and the original lays a
-        //   **seventeenth**, `(223, 79)`, which is `set_diags` closing the
-        //   corner between the ring's new `(224, 79)` and the road already
-        //   at `(223, 80)`. So the search prices that tile as plain ground
-        //   at 387 where the original prices it as road at 27, and the
-        //   eleven nodes the count is short follow from it.
-        //
-        // Pinned exactly as they stand, so the day the mesh is modelled
-        // this fails rather than passing quietly.
-        assert_eq!(
-            mask_off.len(),
-            33,
-            "the tile-mask residue is `set_diags`' `0x4` mark and only \
-             falls: {mask_off:?}"
-        );
+        // The world at 4802 does not move for it: 4,802 frames of a
+        // mid-game with the mesh running lay the original's road tiles and
+        // no others.
         assert_eq!(
             (at, ours.len(), theirs.len()),
-            (Some(81), 266, 277),
+            (None, 277, 277),
             "the Market's road parts at node {at:?} — ours {:?}, theirs {:?}",
             at.and_then(|i| ours.get(i)),
             at.and_then(|i| theirs.get(i)),
         );
+
+        // **The 33 tile masks are a different mechanic altogether**, and
+        // the first reading of §9 had them wrong. Every one of them is bit
+        // `0x4` — `World::set_behind@006b4230`'s low arm — and its writers
+        // are `Wall::mark_behind_tiles@0063d230` (from `Wall::start`,
+        // `Wall::close`, `refresh_nearby_tiles` and `cast_bribe`) and
+        // `Mountains::add_mountain`. Nothing in `Roads` writes it at all.
+        // Three of the 33 carry a second difference — `(217, 124)`,
+        // `(218, 124)` and `(219, 124)` are road here and are not there —
+        // which is its own open question (`docs/ROADS.md` §9.4).
+        //
+        // Pinned as a count that may only fall.
         assert_eq!(
-            (ours[81].to, ours[81].cost, theirs[81].cost),
-            ((42_912, 15_264), 387, 27),
-            "tile (223, 79): plain ground here, the mesh's own road there"
+            mask_off.len(),
+            33,
+            "the tile-mask residue is `Wall::mark_behind_tiles`' `0x4` and \
+             only falls: {mask_off:?}"
         );
     }
 
@@ -12835,7 +12906,27 @@ mod tests {
     /// position parting to **4827**, and run71's buildings — the 425 fields
     /// of `1/2015`'s `y_internal` from 4577 — come right on their own
     /// (`docs/AI.md` §2.20).
-    const LONG_WORD_GREAT_LAKES: i64 = 4803;
+    ///
+    /// It was **4803** for a day, and that frame was a **road**: player 1's
+    /// Market `o 2015` finishes there and plans its road to London, and the
+    /// original priced 277 nodes against this crate's 266. The eleven were
+    /// one tile. `place_roads` lays the Market's ring — sixteen tiles, the
+    /// border of `[224, 228] × [79, 83]` — and the original lays a
+    /// **seventeenth**, `(223, 79)`, which no ring puts there:
+    /// `Roads::set_diags@0088e9d0`, reached from every
+    /// `World::set_road_at` through `road_added` → `add_roads`, fills the
+    /// gap between a brand-new road and one standing diagonally from it
+    /// when neither tile between them is anything at all. The ring's
+    /// `(224, 79)` and the standing road at `(223, 80)` are such a pair.
+    /// The search priced the tile as plain ground at 387 where the original
+    /// priced it as road at 27 (`docs/ROADS.md` §9, `crate::mesh`).
+    ///
+    /// With the mesh in, the word runs to **5502** and run71's whole
+    /// capture — 5,000 frames — has **no unit anywhere off the original's
+    /// point**, the 4827 parting included. 5502 is a **move**: this crate
+    /// spends a fifth draw, `Unit::do_move+0xe84`, where the original
+    /// spends four.
+    const LONG_WORD_GREAT_LAKES: i64 = 5502;
 
     /// The frame the AI's library takes its **Coinage** job on, and the
     /// frame run58's `QUEUE` record used to part on: twenty-four rows of

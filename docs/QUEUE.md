@@ -12,52 +12,59 @@ lines, or lets the handoff pass 32.
 
 ## Where things stand
 
-*2026-09-03, Opus — item 201 was a symptom, and run72 named what it is a
-symptom of.* **East Indies 6739; Great Lakes 4803 by draw, 4827 by
-position — neither moved.**
+*2026-09-03, Opus — item 202 landed, and it moved the headline 699 frames.*
+**Great Lakes 4803 → 5502 by draw and by sequence; East Indies 6739,
+unmoved.**
 
-- **The farm re-pick at 4827 is right.** Sim-frame 4825's two
-  `GameAccess::rnd(4)` draws read 26899 and 16738, `% 4` = (3, 2), which
-  is the original's tile. This crate reads other numbers because the
-  stream parted at the word, twenty-four frames earlier. 201 is deleted.
-- **The word is one road search**: 277 `calc_road_cost` draws against 266,
-  the Market `1/2015` finishing on 4803 and planning its road to London.
-- **run72** is run62's instrument here — `DUMP_ALL` on `[4800, 4806)` plus
-  the three road proxies, fourteen minutes, `rngcmp` zero differing over
-  4,811 frames (ORACLE, ROADS §7.6, §9).
-- **The terraform was in the wrong frame.** `Wall::init`, not
-  `Wall::start` — the same frame for a building placed and started at
-  once, **226 apart** for one the AI builds. run72's height grid went from
-  **62 tiles wrong to 0 of 921,600**.
-- **What is left is a mechanic**: node 81 of 277, tile (223, 79), 387 here
-  against 27 — `Roads::set_diags` laying the ring's seventeenth tile.
-  That is item 202, and its oracle is already on disk.
+- **The road mesh is in** (`crate::mesh`, ROADS §9). Every
+  `World::set_road_at` runs `road_added` → `add_roads`, and
+  `Roads::set_diags` lays road of its own where a new tile has a road
+  junction diagonally off it and nothing at all between them.
+- **The Market `1/2015`'s road on run72's 4803 is now node for node the
+  original's, all 277** — it was 266, and the eleven were one tile,
+  `(223, 79)`, priced as plain ground at 387 against the original's road
+  at 27.
+- **run71's whole 5,000 frames have no unit anywhere off the original's
+  point.** The 4827 position parting went with its cause.
+- **The 33 tile masks were somebody else's mechanic** — bit `0x4`, written
+  only by `Wall::mark_behind_tiles` and `Mountains::add_mountain`. Item 203.
+- **What is left at 5502 is a move**: this crate spends a fifth draw,
+  `Unit::do_move+0xe84`, where the original spends four. Item 204.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w6739 of 24,000 · GreatLakes w4803 of 24,000
+Long captures: EastIndies w6739 of 24,000 · GreatLakes w5502 of 24,000
 
-**Opener (Opus):** `202 is the default and it is the whole of Great Lakes'
-word: read Roads::add_roads and set_diags, write ROADS §9, and diff it
-against run72 — no capture needed.`
+**Opener (Opus):** `204 is the default and it is the new word: run53 frame
+5502, one draw of Unit::do_move this crate spends and the original does
+not. RON_DEBUG_SITES and RON_DEBUG_UNIT are on run53 now — read the frame
+before booking anything.`
 
 ## The queue
 
-In dependency order, headline-nearest first; **the headline is now the long
-captures' word**, lower map first — Great Lakes. Take the first unstarted unless a
-better order is obvious — and say so. Numbers are stable; the journal is
-indexed by them.
+In dependency order, headline-nearest first; **the headline is the long
+captures' word**, lower map first — Great Lakes. Take the first unstarted
+unless a better order is obvious — and say so. Numbers are stable; the
+journal is indexed by them.
 
-202. **The road mesh lays tiles, and this crate has none of it.**
-    ROADS §9. `World::set_road_at` ends in `Roads::road_added@008954d0` →
-    `add_roads@0088f4b0` → `set_diags@0088e9d0`, which lays road of its
-    own to close a corner. run72's frame 4803: this crate lays the Market
-    `1/2015`'s sixteen ring tiles exactly and the original lays a
-    seventeenth, `(223, 79)` — node 81 of the search that follows, priced
-    **387** here against **27**, and the eleven nodes Great Lakes' word is
-    short. 33 tile masks carrying an unwritten `0x4` are the same absence
-    from the other end. **The oracle is on disk** (run72's proxies and its
-    `DUMP_ALL` window); this is a reading with a diff waiting for it.
-    Pinned in `run72_s_road_nodes_are_where_great_lakes_word_parts`.
+204. **Great Lakes' word is a move at 5502.** run53's frame spends five
+    draws here and four there: `GameDaemon::calc_market` ×3 agree, then
+    this crate takes `Unit::do_move+0xe84` and the original goes straight
+    to `Farms::inc_time+0x1ae`. 5503 carries the same unit's
+    `Guy::set_anim < Unit::move_step` on top of the original's
+    `Guy::set_anim < Guy::inc_time`, so it is **one unit stepping a frame
+    the original does not**. run71 stops at 5,000, so name the unit from
+    run53's sites first (`RON_DEBUG_SITES`, `RON_DEBUG_UNIT`) — nothing
+    else on this list is nearer the headline.
+
+203. **`Wall::mark_behind_tiles`, and three road tiles it does not
+    explain.** run72's 33 tile-mask residues are all bit `0x4` —
+    `World::set_behind@006b4230`'s low arm, written by
+    `Wall::mark_behind_tiles@0063d230` from `Wall::start`, `Wall::close`,
+    `refresh_nearby_tiles` and `cast_bribe`, and by
+    `Mountains::add_mountain`. Thirty are that strip and nothing reads the
+    bit today, so it is cheap. **Three are not**: `(217–219, 124)` are road
+    here and are not road there, which ROADS §9 does not account for.
+    Pinned as a count that only falls.
 
 192. **A merchant has never been seen to unpack.** run68 ends eleven
     frames short of `1/19`'s deploy spot (MERCHANT §7): nothing on disk

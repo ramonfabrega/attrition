@@ -14965,3 +14965,98 @@ after which run72 itself did too, unchanged. A cold bottle can hang on its
 first launch. `sample <wineserver-pid>` is the one-minute check that says
 so, and the run71-recipe control is the discriminator: if it reaches the
 lobby, relaunch rather than diagnose.
+
+
+## 2026-09-03 — the seventeenth tile (item 202)
+
+**Great Lakes' word 4803 → 5502, by draw and by sequence, and run71's whole
+five thousand frames now have no unit anywhere off the original's point.**
+East Indies is unmoved at 6739. One mechanic, `docs/ROADS.md` §9, and it is
+`crate::mesh`.
+
+**What the previous session left.** run72 had priced the Market `1/2015`'s
+road node for node against the original's and found them agreeing for
+eighty nodes and parting on the eighty-first: the same tile `(223, 79)`,
+the same direction, **387** here against **27** — plain ground against
+road. The ring was not the difference. `place_roads` lays sixteen tiles,
+the border of `[224, 228] × [79, 83]`, and this crate lays all sixteen
+exactly. The original lays a **seventeenth**, and no search puts it there.
+
+**What lays it.** `World::set_road_at@006b43b0`, for a tile that was not
+already a road, calls `Roads::road_added@008954d0`, which queues a
+`RoadModification` and runs `Roads::add_roads@0088f4b0` over the queue —
+**once per tile**, not once per frame. Its second pass calls
+`Roads::set_diags@0088e9d0`, whose first line is the whole shape of the
+thing: *a tile with two or more orthogonal connections does none of this*.
+What the pass is for is a road that ends or turns beside another one. Over
+the four corners, when the corner is itself a road with **two or more**
+connections of its own and neither tile between them is road or footprint,
+it lays road at `(x + corner_x[i], y)` — the corner's horizontal
+neighbour. The ring's brand-new `(224, 79)`, the elbow standing at
+`(223, 80)`: `(223, 79)`.
+
+**The two things a reading of it will get wrong.** Both are in
+`RoadsOut::mark_and_trim_directions@008935c0`, which is where the four
+cardinal connection bits come from, and both were only settled by reading
+`fill_cache` first rather than the consumer.
+
+- `neighbor_cache[d]` is *a building footprint that is **not** a road*. So
+  its gate is open whenever the neighbour is a road, and the whole
+  `flags |= bit; if not a road: flags &= ~bit` dance reduces to
+  `bit = road_cache[d]` in every ordinary case. The gate exists only to
+  *withhold a recomputation* beside a building.
+- The two halves are gated on **each other's axis**. A footprint east or
+  west is what lets the north–south pair be recomputed; one north or south
+  lets east–west be; with no footprint adjacent, both run. Read the other
+  way round it is exactly backwards, and it is one `goto` in the
+  decompilation.
+
+`set_diags`' seven five-entry tables are one contiguous stack array
+indexed `[i]`, `[i + 5]`, `[i + 10]` … from a single base, so the
+decompiler prints them as `local_a4`, `local_8c` and `local_78` with
+overlapping indices. Laying the three declarations end to end recovers all
+seven, and with them the eight connection bits: `N 0x40000000`,
+`E 0x10000000`, `S 0x04000000`, `W 0x01000000` and the four diagonals in
+the same byte. `RoadsOut::get_orthog_connects@00893560` counts the four
+cardinals and answers **zero for a tile with no element** — a gate, not an
+accident.
+
+**What it cost and what it bought.** The module is 620 lines with its
+tests: the element store, the modification queue, `fill_cache`,
+`mark_and_trim_directions`, `set_diags`, `clear_roads`, `clear_support` and
+the redo ping-pong that re-derives every tile either pass touched, at most
+eleven rounds. The visual passes — ten of them — are not there.
+
+- run72's 277 nodes are **node for node** the original's, tile, direction
+  and cost.
+- run71's whole capture goes from one unit parting at 4827 to **none**,
+  and the 4827 unit was `1/15` re-picking a farm cell off a seed that was
+  nobody's, twenty-four frames downstream of the road.
+- run53's word runs from 4803 to **5502**.
+- The world at 4802 does not move: 921,600 heights, every cell owner and
+  every tile mask, with the mesh running for all 4,802 frames.
+
+That last one is worth being precise about, because it is the strongest
+and the weakest evidence at once. The mesh lays its **first** tile on
+4803. So "the mesh does not over-lay" is diff-backed over 4,802 frames of
+a real game, and "the mesh lays" is diff-backed at exactly one tile.
+
+**And a claim in §9 that was wrong.** The previous session had the 33
+residual tile masks — all of them bit `0x4` — as "the same absence seen
+from the other end". They are not. `grep`ping the writers took two
+minutes: bit `0x4` is `World::set_behind@006b4230`'s low arm, and its only
+callers are `Wall::mark_behind_tiles@0063d230` and
+`Mountains::add_mountain@0089c2e0`. **Nothing under `Roads` writes it at
+all.** It is the strip of tiles a building stands in front of. The
+correction is item 203, and three of the 33 carry a second difference —
+`(217–219, 124)` are road here and are not road there — that no reading in
+§9 explains. The rule that would have caught it a day earlier is the one
+already written down: *grep the writers of every field you call frozen*.
+It applies to a field you call somebody's, too.
+
+**What is left.** 5502 is a **move**: five draws here against four there,
+`GameDaemon::calc_market` ×3 agreeing and then `Unit::do_move+0xe84` where
+the original goes straight to `Farms::inc_time`. 5503 carries the same
+unit's `Guy::set_anim < Unit::move_step` on top. One unit stepping a frame
+the original does not, and run53's site fold now prints the parting frame
+the way run54's has since East Indies became the second map.
