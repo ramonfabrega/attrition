@@ -1394,7 +1394,7 @@ impl TechTree {
     }
 
     /// Does `u`'s jump chain (grafted) reach `t`?
-    fn jumps_to(&self, setup: &Setup, p: &PlayerTech, u: TypeId, t: TypeId) -> bool {
+    pub fn jumps_to(&self, setup: &Setup, p: &PlayerTech, u: TypeId, t: TypeId) -> bool {
         let mut j = self.get_graft(setup, p, self.types[u].jump);
         let mut guard = 0;
         while let Some(x) = j {

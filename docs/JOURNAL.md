@@ -15829,3 +15829,75 @@ pool", which was true of a human's selection and false of an army's. The
 seam had been written when the second half did not exist yet, and nothing
 re-read it when it did. The same sentence appeared in three documents; two
 of them are now split down the line the original draws.
+
+## 2026-09-04 — item 218: the upgrade a nation is given (Great Lakes 6736 → 6779, Opus)
+
+The queue booked 6736 as "another three-object unit arriving" — 6612's
+shape, three `Guy::init_real` and three more draws behind them. It was not
+a unit arriving. It was three units **converting**, and the trace's own
+call stack said so in one line:
+
+```
+Guy::init_real+0x52 < Unit::set_type+0x40c < Leader::gain_tech+0x1071
+```
+
+`set_type`'s first guy loop clamps `guy_mark` to the new type's
+`squad_size`, and `squad_size` is written 1 for every type in the game, so
+that loop runs **at most once per call**. Three draws at `+0x40c` is
+therefore three objects, not one unit with three figures — the same
+arithmetic that made item 215's squad three objects, read the other way
+round.
+
+**Which upgrade.** Frame 6736 is the frame the AI reaches the Classical
+Age, and its leader is British. `gain_tech`'s step 13 has a
+`BRITISH_ARCHER_UPGRADES` block that hands a British player every Barracks
+unit of the Bowmen line whose prerequisites the gain has just completed —
+**Archers** — and step 7's object half then converts the three standing
+Bowmen in place.
+
+**Both halves were half-built, and in the same way.** `free_rules` had a
+`Shape`, a `Gate`, a cascade and a unit test, and an **empty table**:
+nothing in the loader ever built one. `Gained::UnitUpgrade` had a
+producer, a doc comment naming exactly what it was for, and no consumer.
+Each was a mechanism waiting for the other, and neither had ever fired.
+
+**What the listing settled that the decompiler could not.** The candidate
+predicates are pushes the decompiler drops: `0xaa` Bowmen, `0x45` Scout,
+`0x109` Catapult, `0x99`/`0x84` the heavy-infantry lineages, `0xd1` Light
+Horse — and `0x1ab`, which is the Barracks and is compared against the
+`where` **column**, not asked as a lineage. Five blocks of §13's
+twenty-five are a predicate over unit types like these; the rest name a
+run of tech indices whose endpoints are each their own reading, and no
+capture reaches one, so they are item 220 rather than a guess.
+
+**The test that corrected the document.** `docs/TECH.md` §13's row for the
+German light cavalry said its candidates "do not exist"; the first
+implementation asserted the opposite, because `0xd1` is Light Horse and
+Light Horse plainly exists. The test failed, and the row was right for a
+reason it did not give: the block asks for **Barracks** units, and a Light
+Horse is trained at the Stable. The block is empty because of the `where`,
+not the lineage — and the assertion now says which.
+
+**And a detail of `set_type` that shows on the same frame.** It does not
+rebuild the guy stack: it keeps every guy the new type still has room for,
+body and place intact, and gives each one a fresh `Guy::init_real`. That
+leaves `end_time` at zero, so every re-typed guy wraps on its very next
+`Unit::inc_time` and rolls again. 6736's six draws are three of each, and
+the second three fall out of the first for free.
+
+**What it moved.** Great Lakes **6736 → 6779**, by draw and by sequence.
+East Indies unmoved at 7448, and the other 203 checks unmoved with them.
+What stands at 6779 is a different subsystem: two draws inside
+`strategy_all` on a frame that is nobody's phase — the AI owns Archers now
+and asks its production for something else.
+
+**The lesson, and it is a sibling of the last item's.** Item 217 found a
+seam with two loads on it; this one found two *mechanisms* with nothing
+between them. Both were written by sessions that did the half in front of
+them and left the join for later, and in both cases the join was cheap —
+one loop and one table — and had been sitting unwritten for weeks because
+nothing failed without it. A producer with no consumer is not a seam and
+does not read like one: `docs/TECH.md` listed `Unit::set_type` under "what
+is not established" and said nothing at all about `free_rules` being
+empty. **Where a document names a mechanism, it should say whether
+anything calls it.**

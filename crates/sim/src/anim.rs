@@ -686,6 +686,55 @@ impl Sim {
         self.seat_guys(u);
     }
 
+    /// `Unit::set_type@00612fa0`'s guy loops (`6133ac`, `613441`) — the
+    /// figures a **converted** unit keeps, and the draw each one pays.
+    ///
+    /// `set_type` does not rebuild the stack the way `Unit::init` does. It
+    /// clamps `guy_mark` to the new type's `squad_size` — written 1 for
+    /// every type (§3.5) — kills and recycles every slot past
+    /// `crew_size + squad_size`, pops fresh ones for any new slot, and
+    /// then walks the whole stack giving each guy the new type and a fresh
+    /// `Guy::init_real(guy, 1)`. So a **kept** guy holds its body and its
+    /// place and loses only its clock, and every guy costs one
+    /// [`SITE_INIT_REAL`] draw whether it is kept or new.
+    ///
+    /// That reset is what the frame after a conversion shows: `init_real`
+    /// leaves `end_time` at zero, so the guy wraps on its very next
+    /// `Unit::inc_time` and rolls again (§4.9). Run53's frame 6736 is
+    /// three of each — three archer objects re-typed, three `init_real`
+    /// and three extra `Guy::inc_time` rolls.
+    pub(crate) fn reinit_guys(&mut self, u: usize, ty: usize) {
+        let unit = &self.units[u];
+        let (who, o) = (unit.owner, unit.index);
+        let packed = unit.combat.packed;
+        let count =
+            usize::try_from(self.unit_types[ty].combat.crew_size + SQUAD_SIZE as i32).unwrap_or(0);
+        self.units[u].guys.truncate(count);
+        for n in 0..count {
+            let piece = self.piece_of(who, ty, o, n as u8, packed).unwrap_or(-1);
+            self.mark(SITE_INIT_REAL);
+            let p = self.rng.roll() % 100;
+            let mut anim = init_variant(p);
+            if anim != DEFAULT && piece >= 0 && !self.packet_has(u, piece, anim) {
+                anim = DEFAULT;
+            }
+            match self.units[u].guys.get_mut(n) {
+                Some(g) => {
+                    g.gpiece = piece;
+                    g.anim = anim;
+                    g.cur_time = 0;
+                    g.end_time = 0;
+                    g.last_time = -1;
+                }
+                None => {
+                    let mut g = Guy::fresh(piece);
+                    g.anim = anim;
+                    self.units[u].guys.push(g);
+                }
+            }
+        }
+    }
+
     /// `guy_flags & 8` — whether `Guy::do_turn` asks this guy for a turn
     /// animation at all.
     ///

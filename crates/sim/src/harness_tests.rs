@@ -1170,6 +1170,93 @@ fn a_trained_citizen_walks_and_bleeds_like_any_other() {
     assert!(sim.units[unit].health < 40);
 }
 
+/// **Gaining a unit type converts the units of the line it replaces**
+/// (`docs/TECH.md` §7's object half) — the pass that turns run53's three
+/// Bowmen into Archers on frame 6736.
+///
+/// Three things at once: the `from` match and the `jump` chain both
+/// convert; every figure of a converted unit pays a fresh
+/// `Guy::init_real` draw and comes out with a zeroed clock; and the
+/// damage carries across the swap onto the new type's hits.
+#[test]
+fn a_gained_unit_type_converts_the_line_below_it_and_carries_the_damage() {
+    use crate::tech::{TechTree, TypeDef, UnitTraits};
+
+    let free = UnitTraits {
+        free: true,
+        ..UnitTraits::default()
+    };
+    let jumpable = UnitTraits {
+        jumpable: true,
+        ..UnitTraits::default()
+    };
+    let mut tree = TechTree::new();
+    let classical = tree.add(TypeDef::age("Classical Age", 0));
+    let barracks = tree.add(TypeDef::building("Barracks"));
+    let hoplites_t = tree.add(TypeDef::unit("Hoplites", free).at(barracks));
+    let phalanx_t = tree.add(
+        TypeDef::unit("Phalanx", jumpable)
+            .at(barracks)
+            .from(hoplites_t)
+            .needs(0, classical),
+    );
+    tree.types[hoplites_t].jump = Some(phalanx_t);
+
+    let mut sim = skirmish(4);
+    sim.set_tech_tree(tree);
+    sim.start_techs(0);
+    let hoplites = sim.add_unit_type(UnitType {
+        tree: Some(hoplites_t),
+        hits: 40,
+        ..citizen_type()
+    });
+    let phalanx = sim.add_unit_type(UnitType {
+        tree: Some(phalanx_t),
+        hits: 60,
+        ..citizen_type()
+    });
+    let a = sim.init_unit(0, hoplites, centre_of(Cell::new(3, 3)));
+    let b = sim.init_unit(0, hoplites, centre_of(Cell::new(4, 3)));
+    // One of them is hurt; the other is not.
+    sim.units[b].health -= 9;
+    let before = sim.muster[0].by_type[hoplites];
+    assert_eq!(sim.units[a].ty, Some(hoplites));
+
+    sim.trace_phases = true;
+    sim.phase_marks.clear();
+    sim.gain_tech(0, phalanx_t);
+
+    assert_eq!(sim.units[a].ty, Some(phalanx), "the `from` match converts");
+    assert_eq!(sim.units[b].ty, Some(phalanx));
+    assert_eq!(
+        sim.units[a].max_health, 60,
+        "the new type's hits, not the old"
+    );
+    assert_eq!(sim.units[a].health, 60, "undamaged stays undamaged");
+    assert_eq!(sim.units[b].health, 51, "and nine points of damage carry");
+    // The counters moved from one type to the other.
+    assert_eq!(sim.muster[0].by_type[hoplites], before - 2);
+    assert_eq!(sim.muster[0].by_type[phalanx], 2);
+    // One `Guy::init_real` draw per figure of each converted unit, and the
+    // clock is back to zero so the next `inc_time` wraps.
+    let figures: usize = [a, b].iter().map(|&u| sim.units[u].guys.len()).sum();
+    assert!(figures >= 2);
+    assert_eq!(
+        sim.phase_marks
+            .iter()
+            .filter(|(l, _)| l == crate::anim::SITE_INIT_REAL)
+            .count(),
+        figures,
+        "one variant roll per figure, and nothing else drew"
+    );
+    assert_eq!(
+        sim.phase_marks.len(),
+        figures,
+        "the conversion pass spends no other draw"
+    );
+    assert!(sim.units[a].guys.iter().all(|g| g.end_time == 0));
+}
+
 #[test]
 fn the_tree_gates_the_queue_and_research_cascades_through_it() {
     // `docs/TECH.md`, end to end: a tree with Classical (two library techs'

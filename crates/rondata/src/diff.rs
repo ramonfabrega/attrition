@@ -14163,10 +14163,26 @@ mod tests {
     /// about. Without the last one the squad stood blocked on its own
     /// leader at 6716.
     ///
-    /// **6736**, and that frame is 6612's again from the other side: six
-    /// draws the original spends and this crate none of, opening with
-    /// `Guy::init_real+0x52` — another three-object unit arriving.
-    const LONG_WORD_GREAT_LAKES: i64 = 6736;
+    /// **6736 for a session**, and it was not a unit arriving at all — it
+    /// was three units **converting**. The stack names it whole:
+    /// `Guy::init_real+0x52 < Unit::set_type+0x40c < Leader::gain_tech
+    /// +0x1071`, three of them, and then three extra
+    /// `Guy::inc_time+0x271` because `init_real` leaves the clock at zero.
+    ///
+    /// 6736 is the frame the AI reaches the **Classical Age**, and its
+    /// leader is British: `gain_tech` step 13's `BRITISH_ARCHER_UPGRADES`
+    /// block hands a British player every Barracks unit of the Bowmen line
+    /// whose prerequisites the gain completes — **Archers** — and step 7's
+    /// object half then converts the three standing Bowmen objects in
+    /// place. Neither half existed here: `free_rules` was **empty**
+    /// (the shape was implemented and the table was never loaded) and
+    /// `Gained::UnitUpgrade` had no consumer. `docs/TECH.md` §7, §13.
+    ///
+    /// **6779**, and it is the AI's own sweep: two draws inside
+    /// `strategy_all` that the original does not spend, on a frame that is
+    /// nobody's phase. The AI owns Archers now, so what it asks its
+    /// production for has changed.
+    const LONG_WORD_GREAT_LAKES: i64 = 6779;
 
     /// The frame the AI's library takes its **Coinage** job on, and the
     /// frame run58's `QUEUE` record used to part on: twenty-four rows of

@@ -737,6 +737,119 @@ allowed grants it at once and queues nothing.
 
 ---
 
+## The conversion, landed — 2026-09-04
+
+Step 7's **object** half and the input it needs, both found by run53's
+frame 6736. What stood there was six draws opening
+`Guy::init_real+0x52 < Unit::set_type+0x40c < Leader::gain_tech+0x1071`,
+and the two halves behind them had each been half-built: `free_rules` had
+a shape and no table, and `Gained::UnitUpgrade` had a producer and no
+consumer.
+
+**The frame is the AI reaching the Classical Age**, and its leader is
+British. §13's `BRITISH_ARCHER_UPGRADES` block hands a British player
+every Barracks unit of the Bowmen line whose prerequisites the gain
+completes — **Archers** — and step 7 then converts the three standing
+Bowmen objects in place. Three objects, three `set_type` calls, one
+`Guy::init_real` each.
+
+### The five blocks whose candidates are a predicate
+
+§13's table is written by name; the listing writes it by index, and these
+five are the rows whose candidate set is a *predicate over unit types*
+rather than a run of tech indices. `0x1ab` is the Barracks, and it is the
+`where` column, not a lineage:
+
+| block | constant | predicate |
+| --- | --- | --- |
+| Germans (12) | `+0x72c german_heavy_infantry` | `where == Barracks`, `is(0x99)` or `is(0x84)` (`6dfd05`, `6dfd18`) |
+| Germans (12) | `+0x730 german_light_cavalry` | `where == Barracks`, `is(0xd1)` (`6dfded`) |
+| British (11) | `+0x6dc british_archer_upgrades` | `where == Barracks`, `is(0xaa)` (`6dfeba`) |
+| Spanish (9) | `+0x694 spanish_scout_upgrades` | `is(0x45)` (`6dff72`) |
+| Turks (8) | `+0x66c turk_free_siege_upgrades` | `is(0x109)` (`6e002f`) |
+
+`0xaa` is Bowmen, `0x45` Scout, `0x109` Catapult, `0x99`/`0x84` the two
+heavy-infantry lineages and `0xd1` Light Horse. The German light-cavalry
+block loads **empty**, which is what §13's row said it would — though not
+for the reason it gave: the lineage is not missing, the **`where`** is,
+because a Light Horse is trained at the Stable.
+
+`crates/rondata`'s loader builds these five and no others. **The range
+blocks are not loaded**: every other row of §13's table names a run of
+tech indices whose endpoints are each a separate reading, and no capture
+reaches any of them. `the_nation_free_upgrade_blocks_name_the_units_they
+_hand_out` is the install-backed test.
+
+### `Leader::gain_tech`'s conversion loop (`6dd9bd`–`6ddbd1`)
+
+Gated on the gained type being a **unit** type, and on the caller's
+`param_5`. It walks the player's object slots in order:
+
+```
+for o in 0 .. objects_mark[who]:
+    u = units[who][o]
+    if !(u.flags & 1): continue                            # active
+    if types[t].is(0x134, 0) and u.is(0x15f, 0):           # the queue arm
+        track_queued(current_upgrade, -u.num_queued)
+        track_queued(t, +u.num_queued); continue
+    ty = u.type_index
+    if ty != get_graft(t.from) and not jump-chain(ty) reaches t: continue
+    if uber_size(t) < uber_size(ty):                        # 6ddaf0
+        if uber_size(t) == 1:
+            if !u.is_captain(): u.die(); continue           # vslot +0x158
+            u.damage = total_damage(u, 1, NULL)
+        else: Error "No support for decreasing number of guys in a squad
+                     to anything other than 2."
+    u.set_type(t, 0)                                        # vslot +0x84
+```
+
+The `jump` walk is `x = get_graft(unittypes[ty].jump)` repeated until it
+is negative or equal to `t` — the same chain [`TechTree::jumps_to`]
+already walked for the *bits*; it decides the objects too.
+
+### `Unit::set_type@00612fa0`, the guy loops
+
+`set_type` does **not** rebuild the guy stack the way `Unit::init` does.
+It clamps `guy_mark` to the new type's `squad_size` — written 1 for every
+type — kills and recycles every slot past `crew_size + squad_size`, pops
+fresh guys for any new slot, and then walks the whole stack giving each
+guy the new type and a fresh `Guy::init_real(guy, 1)`. So a **kept** guy
+holds its body and its place and loses only its clock, and every guy costs
+one draw whether it is kept or new.
+
+Both loops are `init_real` sites and the trace tells them apart: the
+first, `0 .. guy_mark`, returns to `+0x40c`; the second,
+`squad_size .. crew_size + squad_size`, to `+0x4a1`. All three of 6736's
+draws are `+0x40c`, and since `guy_mark` is clamped to 1 that loop can
+run at most **once** per call — which is how the frame says "three
+objects converted" rather than "one unit with three figures".
+
+The clock reset is visible on the same frame: `init_real` leaves
+`end_time` at zero, so each re-typed guy wraps on its very next
+`Unit::inc_time` and rolls again. 6736 is three of each.
+
+**Damage carries.** `set_type` never writes `myhits`, and the object's
+`damage` is untouched by the swap, so a unit converted at half health is
+at the *new* type's hits minus the same damage.
+
+### Coverage
+
+Diff-backed: the whole chain, on run53 — the word ran 6736 → **6779**, and
+6779 is a different mechanic (two draws inside the AI's own sweep). East
+Indies is unmoved at 7448. Unit tests: the loader's five blocks against
+the install, and `a_gained_unit_type_converts_the_line_below_it_and
+_carries_the_damage` for the `from` match, the `jump` chain, the per-figure
+draw and the damage.
+
+Reading-only, and each is a stated seam in the code: the **queue arm**
+(`types[t].is(0x134, 0) && u.is(0x15f, 0)`, which re-targets a queued
+entry instead of a standing unit — no capture has one); the squad-size
+**shrink** (`Unit::die` for a surplus member, `total_damage` onto the
+captain — no capture converts to a smaller squad); and `set_type`'s tail
+(`is(0x165, 1)` and `update_ceo_position`, `is(0x77, 0)`,
+`update_gpiece`, the two vslots before `update_armor`/`update_speed`),
+none of which has state here.
+
 ## What is not established
 
 - **The lobby remaps in `get_preq`** — the Military-level rescaling for
@@ -780,8 +893,11 @@ allowed grants it at once and queues nothing.
   data; it may be live for a mod.
 - **The Senate placement rule in `type_avail`** is read as a capital walk and
   not reproduced; it needs cities.
-- **`Unit::set_type`**, what converting a unit in place does to its health,
-  orders and squad.
+- ~~**`Unit::set_type`**, what converting a unit in place does to its health,
+  orders and squad.~~ **Read and landed 2026-09-04** — "The conversion,
+  landed", above. What is still unread is what it does to the unit's
+  **orders**: the reading covered the guys, the counters and the health,
+  and the tail's four vslots are seams.
 - **`LeaderData::researching`'s same-line clause** for units is read from the
   loop and not exercised: it refuses a second unit type of the same lineage
   while one is queued anywhere.

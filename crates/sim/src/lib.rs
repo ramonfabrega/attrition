@@ -2067,6 +2067,143 @@ impl Sim {
         head.expect("uber_size is at least one")
     }
 
+    /// `Leader::gain_tech@006dcb60`'s unit-conversion loop, the **object**
+    /// half of `docs/TECH.md` §7 (`6dd9bd`–`6ddbd1`).
+    ///
+    /// Gaining a unit type converts what you already have. The loop walks
+    /// the player's object slots in order and takes every live unit whose
+    /// own type is `get_graft(t.from)`, or whose `jump` chain reaches `t`,
+    /// and calls `Unit::set_type(t, 0)` on it. That is how run53's three
+    /// Bowmen objects become Archers on frame 6736, the frame the AI's
+    /// Classical Age hands its British owner a free archer upgrade
+    /// (§13's `BRITISH_ARCHER_UPGRADES` block).
+    ///
+    /// **The squad-size shrink** (`6ddaf0`): when the new type's
+    /// `uber_size` is smaller than the old one's, a new size of **1** kills
+    /// every member that is not the captain (`Unit::die`, vslot `+0x158`)
+    /// and gives the captain the squad's `total_damage`; any other
+    /// shrink is an error box in the original — "No support for decreasing
+    /// number of guys in a squad to anything other than 2" — so it cannot
+    /// be reproduced and is left alone here.
+    ///
+    /// SEAM: the queue arm above it (`6dd9ec`), which re-targets a
+    /// **queued** entry of the old type instead of converting a standing
+    /// unit — `types[t].is(0x134, 0) && u.is(0x15f, 0)` and two
+    /// `track_queued` calls; no capture has a queue of the old type when
+    /// its successor arrives.
+    fn upgrade_units_to(&mut self, who: Player, t: tech::TypeId) {
+        let Some(rec) = self.unit_record(t) else {
+            return;
+        };
+        let from = self.tech_tree.get_graft(
+            &self.setup,
+            &self.tech[who as usize],
+            self.tech_tree.types[t].from,
+        );
+        let mut list: Vec<usize> = (0..self.units.len())
+            .filter(|&u| self.units[u].alive() && self.units[u].owner == who)
+            .collect();
+        list.sort_by_key(|&u| self.units[u].index);
+        let new_uber = self.unit_types[rec].combat.uber_size.max(1);
+        for u in list {
+            let Some(ty) = self.unit_tree(u) else {
+                continue;
+            };
+            if ty == t {
+                continue;
+            }
+            let hit = Some(ty) == from
+                || self
+                    .tech_tree
+                    .jumps_to(&self.setup, &self.tech[who as usize], ty, t);
+            if !hit {
+                continue;
+            }
+            let old_uber = self.units[u]
+                .ty
+                .map_or(1, |o| self.unit_types[o].combat.uber_size.max(1));
+            if new_uber < old_uber {
+                if new_uber != 1 {
+                    // The original's own error box: not reproducible.
+                    continue;
+                }
+                if !self.units[u].captain {
+                    self.units[u].health = 0;
+                    continue;
+                }
+                let damage: i32 = self
+                    .squad_members(u)
+                    .iter()
+                    .map(|&f| self.units[f].max_health - self.units[f].health)
+                    .sum();
+                self.units[u].health = (self.units[u].max_health - damage).max(1);
+            }
+            self.unit_set_type(u, rec);
+        }
+    }
+
+    /// `Unit::set_type@00612fa0(t, SET_TYPE_NORMAL)`, as far as this
+    /// simulation carries state for it.
+    ///
+    /// The order is the original's: the leader's counters come **off** for
+    /// the old type before the swap (`6130d1`'s `track_unit_type(·, −1,
+    /// ·)` and the two running totals), the record and the derived stats
+    /// change, the guys are re-initialised ([`Sim::reinit_guys`]), and the
+    /// counters go **on** for the new one. Only a captain is counted, the
+    /// same rule `Objects::init_unit` follows for a squad.
+    ///
+    /// **Damage carries.** `set_type` never writes `myhits`; the object's
+    /// `damage` (`ObjectData +0x24`) is untouched by the swap, so a unit
+    /// converted at half health is at the *new* type's hits minus the same
+    /// damage. This crate stores the complement, so the subtraction is
+    /// explicit.
+    ///
+    /// SEAM: the `is(0x165, 1)` CEO bit and its `update_ceo_position`, the
+    /// `is(0x77, 0)` flag, `update_gpiece`, and the two vslots `+0x15c`
+    /// and `+0x160` the tail calls before `update_armor`/`update_speed` —
+    /// none has state here.
+    pub(crate) fn unit_set_type(&mut self, u: usize, rec: usize) {
+        let Some(old) = self.units[u].ty else { return };
+        if old == rec {
+            return;
+        }
+        let who = self.units[u].owner;
+        let captain = self.units[u].captain;
+        if captain {
+            let pop = self.unit_types[old].price.pop;
+            let group = self.unit_types[old].group;
+            let muster = &mut self.muster[who as usize];
+            muster.by_type[old] -= 1;
+            muster.control -= pop;
+            if let Some(g) = group {
+                muster.by_group[g] -= 1;
+            }
+        }
+        let damage = self.units[u].max_health - self.units[u].health;
+        let hits = self.unit_types[rec].hits;
+        {
+            let unit = &mut self.units[u];
+            unit.ty = Some(rec);
+            unit.max_health = hits;
+            unit.health = (hits - damage).max(1);
+        }
+        self.units[u].kind = self.unit_types[rec].kind;
+        self.units[u].type_index = self.unit_types[rec].type_index;
+        self.units[u].movement.speed = self.type_speed(who, rec);
+        self.units[u].movement.turning = self.turning_for(rec);
+        self.reinit_guys(u, rec);
+        if captain {
+            let pop = self.unit_types[rec].price.pop;
+            let group = self.unit_types[rec].group;
+            let muster = &mut self.muster[who as usize];
+            muster.by_type[rec] += 1;
+            muster.control += pop;
+            if let Some(g) = group {
+                muster.by_group[g] += 1;
+            }
+        }
+    }
+
     /// The squad a captain heads, captain first — `o_down` walked.
     pub fn squad_members(&self, captain: usize) -> Vec<usize> {
         let mut out = vec![captain];
@@ -2130,6 +2267,13 @@ impl Sim {
         let events = self
             .tech_tree
             .gain_tech(&self.setup, &mut self.tech[who as usize], t, frame);
+        // Step 7's **object** half, in the order the cascade set the bits:
+        // every standing unit of the line converts in place.
+        for e in &events {
+            if let tech::Gained::UnitUpgrade { to } = *e {
+                self.upgrade_units_to(who, to);
+            }
+        }
         self.apply_gained(who);
         // `Leader::gain_tech`'s tail: `check_transport` (`docs/TRANSPORT.md`
         // §4).

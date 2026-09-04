@@ -12,35 +12,33 @@ lines, or lets the handoff pass 32.
 
 ## Where things stand
 
-*2026-09-04, Opus — item 217 landed, and it was two mechanics.* **Great
-Lakes 6650 → 6736; East Indies unmoved at 7448.** No capture: the disk
-and the listing carried both halves.
+*2026-09-04, Opus — item 218 landed.* **Great Lakes 6736 → 6779; East
+Indies unmoved at 7448.** No capture: the trace's own call stack named
+the mechanic in one line.
 
-- **`think_attack`'s head is how the AI's first soldier joins an army**
-  (ARMY §4.2) — ahead of its target search, and reached on 6612 of run53
-  and 5823 of run54 and never before. The squad lands in leader 1's
-  **army 1** (every army empty, `find_local_army`'s `90,000,000` and its
-  `<=` give the last slot the win), whose tick is `frame ≡ 250 (mod 256)`
-  — 6650, where `do_forming` orders it out.
-- **`GroupMoveOrder` is a real order now** (ORDERS §15). The original
-  runs `do_move` for the **leader alone**; three archers marching spend
-  one grid draw where three independent moves spend three. §8.4's verdict
-  stands for a player's selection — no group pool, so `do_group_move`'s
-  own first line ungroups it — and is overturned for an army's group.
-- **Two readings inside it moved the number twice more.**
-  `Group::update_positions` rotates the slot table by the bearing to the
-  leader's **waypoint**, not its heading (`7138e1`); and COLLISION §4.3's
-  **group** arm — two members of one group pass through each other —
-  stopped being a seam the moment this crate had a group to ask about.
-  Without the second the squad stood blocked on its own leader at 6716.
+- **6736 was not a unit arriving, it was three converting.** The stack
+  reads `Guy::init_real+0x52 < Unit::set_type+0x40c < Leader::gain_tech
+  +0x1071`, and `set_type`'s first guy loop can run at most once a call —
+  `guy_mark` is clamped to `squad_size`, which is 1 for every type — so
+  three draws is three **objects**.
+- **The frame is the AI's Classical Age, and its leader is British.**
+  `gain_tech` step 13's `BRITISH_ARCHER_UPGRADES` block hands it
+  **Archers** free, and step 7's object half converts the three standing
+  Bowmen in place. Both halves were half-built: `free_rules` had a shape
+  and an **empty table**, and `Gained::UnitUpgrade` had a producer and no
+  consumer (TECH, "The conversion, landed").
+- **Five of §13's blocks are loaded and twenty are not.** The five are the
+  ones whose candidates are a predicate over unit types; the rest name a
+  run of tech indices whose endpoints are each their own reading, and no
+  capture reaches any of them (220).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w7448 of 24,000 · GreatLakes w6736 of 24,000
+Long captures: EastIndies w7448 of 24,000 · GreatLakes w6779 of 24,000
 
-**Opener (Opus):** `218 is the default: run53 frame 6736, six draws
-opening with `Guy::init_real+0x52` — 6612's question again, another
-three-object unit the original makes and this crate does not. Find what
-finishes on 6736. CITIES §4.3, PRODUCTION.`
+**Opener (Opus):** `221 is the default: run53 frame 6779, two draws
+inside `strategy_all` the original does not spend, on a frame that is
+nobody's phase. The AI owns Archers now and asks its production for
+something else. AI §2.4, §2.6.`
 
 ## The queue
 
@@ -49,27 +47,31 @@ captures' word**, lower map first — Great Lakes. Take the first unstarted
 unless a better order is obvious — and say so. Numbers are stable; the
 journal is indexed by them.
 
-218. **Great Lakes' word is a second unit arriving, at 6736.** Six draws
-    the original spends and this crate none of, opening
-    `Guy::init_real+0x52` — 6612's shape exactly (three `init_real`, three
-    idle rolls). What finishes on that frame is the item.
+221. **Great Lakes' word is two draws inside the AI's sweep, at 6779.**
+    Ours `strategy_all` twice, the original none; 6779 is nobody's phase
+    frame, so it is a step of the machine, and what it asks for changed
+    when the AI gained Archers (AI §2.4, §2.6).
 
-219. **`do_group_move`'s four remaining seams** (ORDERS §15): the flock of
-    birds an invalid slot near an ocean cell adds — **one sync-stream
-    draw**, so it is the one with teeth — `cavarch_fight`, the group's
-    `speed`/`new_speed` pair and the cap that reads it, and the attack
-    hand-offs (`kill_group_move`'s callers, `distribute_attack`).
+220. **§13's twenty range blocks.** Every free-upgrade row whose
+    candidates are a run of tech indices — Chinese herbal lore, the Red
+    Fort's two, the four `TwoPreq` unit-line blocks, the temple and
+    taxation lines, the wonders — is unloaded; each endpoint is a
+    separate reading and no capture reaches one (TECH §13).
+
+219. **`do_group_move`'s four remaining seams** (ORDERS §15): the flock
+    an invalid slot near an ocean cell adds — **one sync-stream draw**, so
+    it is the one with teeth — `cavarch_fight`, the group's speed pair and
+    the cap that reads it, and the attack hand-offs.
 
 214. **East Indies' word is two blocked stands, at 7448.** Two
-    `Unit::move_step+0x823` (`SITE_BLOCKED`, COLLISION §5) at the unit
-    loop's tail, where this crate steps both units. The site fires 347
-    times in run54, so it is the *predicate* that differs; nothing on disk
-    covers 7448.
+    `Unit::move_step+0x823` (`SITE_BLOCKED`, COLLISION §5) where this crate
+    steps both units; the site fires 347 times in run54, so it is the
+    *predicate*. Nothing on disk covers 7448.
 
 209. **The other once-per-game events a dump install swallows.** 207's
     general half: grep the gates of that shape — a `set_*` whose **return
-    value** drives an irreversible record — and seed each from the installed
-    state as `Sim::seed_new_rares_from_fog` does; `compute_reg_territory`.
+    value** drives an irreversible record — and seed each from the
+    installed state, as `Sim::seed_new_rares_from_fog` does.
 
 203. **`Wall::mark_behind_tiles`' `0x4`, and nothing else.** The residue
     is **32** at 4802 and **45** at 5565, every bit `0x4` —
@@ -88,8 +90,7 @@ journal is indexed by them.
     it 250 frames earlier.
 
 172. **The `bucket` pair 165 leaves behind**: one apart on 5002 and 5061
-    in run60's curve, every rate and income exact. **Takes 155** (ORDERS
-    §6.10).
+    in run60's curve, every rate and income exact. **Takes 155.**
 
 158. **The sweep runs for a human leader; this crate skips it** (AI §23.1).
     Moving the gate from `Sim::strategy_all` into `production_ai` seeds a
@@ -112,7 +113,7 @@ whole** — `Tribe::log_data@006f0d70`'s `graft[352]`, `barbarian`,
 178. **The danger map's unit pass, unexercised.** DANGER §8: no capture
     has a military unit on a frame divisible by 200, so `role & 0x10000`,
     `(attack · 5) / 10` and the war gate rest on the reading. A `DUMP_ALL`
-    `WORLD` block on such a boundary settles it. Takes `UnitData::is_seen`.
+    `WORLD` block on such a boundary settles it.
 
 181. **§7's unreached arithmetic** (CARAVAN §7.2–§7.3): the arrival box,
     `compute_trade`'s `× 16 / 2` and `new_caravan`'s `(epoch[1] + 1) · 10`
@@ -162,12 +163,11 @@ Military level and `army.rs` reads `ages`**, `army.rs:769,1365`.
     `building_value`, `gather_value`, §24.4's arm, `oil_patches.count` and
     `compute_largest_gather@0066e920` all wait on it.
 
-156. **`STARTING_GOODS` arrives with the age.** `Leader::gain_tech@006dcb60`
-    pays `bucket_add(g, game->starting[g])` for a zero bucket whose preq is
-    the tech just gained, so the original holds 0 knowledge, metal and oil
-    through Ancient where this holds 100 (COSTS). (167) run61's two
-    leavings: the landing search's *cell* and `Unit::do_strafe` (SYNC §3.9),
-    and `Unit::init`'s tile snap.
+156. **`STARTING_GOODS` arrives with the age.** `Leader::gain_tech` pays
+    `bucket_add(g, game->starting[g])` for a zero bucket whose preq is the
+    tech just gained, so the original holds 0 knowledge, metal and oil
+    through Ancient where this holds 100 (COSTS). (167) run61's two:
+    the landing search's *cell* and `Unit::do_strafe` (SYNC §3.9).
 
 195. **`find_repair_spot` is the last of `build_done`'s three**, a seam on
     all four arms (ORDERS §5.5, §5.6, §5.9). No capture has a damaged

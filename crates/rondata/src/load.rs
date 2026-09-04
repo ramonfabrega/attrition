@@ -872,6 +872,76 @@ pub fn load_tables(
         .filter_map(|n| tt(n))
         .collect();
     }
+
+    // ---- `Leader::gain_tech` step 13: the nation free-upgrade blocks
+    // whose candidates are a **predicate over unit types** rather than an
+    // index range (`docs/TECH.md` §13).
+    //
+    // Each is `for t in BASE_UNITTYPES..0x192: <predicate> && has_preq(t)
+    // && any i: get_preq(t, i, who) == gained -> type_eligible(t, 1) &&
+    // gain_tech(t)`, which is [`tech::Shape::PreqMatch`]; the predicate is
+    // static, so it becomes the candidate list here. The lineage ids are
+    // the listing's own pushes, not the decompiler's dropped arguments:
+    //
+    // | block | constant | predicate |
+    // | --- | --- | --- |
+    // | Germans (12) | `+0x72c german_heavy_infantry` | Barracks, `is(0x99)` or `is(0x84)` (`6dfd05`, `6dfd18`) |
+    // | Germans (12) | `+0x730 german_light_cavalry` | Barracks, `is(0xd1)` (`6dfded`) — **empty**: `0xd1` is Light Horse and a Light Horse is trained at the Stable |
+    // | British (11) | `+0x6dc british_archer_upgrades` | Barracks, `is(0xaa)` (`6dfeba`) |
+    // | Spanish (9) | `+0x694 spanish_scout_upgrades` | `is(0x45)` (`6dff72`) |
+    // | Turks (8) | `+0x66c turk_free_siege_upgrades` | `is(0x109)` (`6e002f`) |
+    //
+    // `0x1ab` is the Barracks — the `where` column, not a lineage. The
+    // German light-cavalry block's candidate list comes out **empty**, as
+    // `docs/TECH.md` §13's row said it would: `0xd1` is Light Horse, and
+    // the line is trained at the Stable, so the `where` test takes it all.
+    // (The row's reason — "`is(HORSE, 0)`: none exist" — names the wrong
+    // lineage; the emptiness is the `where`, and the test says so.)
+    //
+    // The **range** blocks — every row of §13's table whose candidates are
+    // a run of tech indices — are not loaded: each endpoint is its own
+    // reading and no capture reaches any of them.
+    {
+        let barracks = bname("Barracks").map(|i| build_tree[i]);
+        let unit_ids: Vec<TypeId> = unit_tree.clone();
+        // `is(x, 0)` over the loaded lineages, with the candidate's own
+        // `where` where the block asks for one.
+        let block = |tree: &TechTree, at_barracks: bool, lines: &[TypeId]| -> Vec<TypeId> {
+            unit_ids
+                .iter()
+                .copied()
+                .filter(|&t| {
+                    if at_barracks && tree.types[t].where_ != barracks {
+                        return false;
+                    }
+                    lines.iter().any(|&l| tree.is(t, l, false))
+                })
+                .collect()
+        };
+        let t = &Tuning::RON;
+        // `german_light_cavalry` is **absent from `rules.xml`**, so the
+        // original's `get_item` answers −1 and the gate is open
+        // (`docs/TECH.md` §13). It has no `Tuning` slot for that reason.
+        let rules = [
+            (
+                12,
+                t.german_heavy_infantry,
+                block(&tree, true, &[0x99, 0x84]),
+            ),
+            (12, -1, block(&tree, true, &[0xd1])),
+            (11, t.british_archer_upgrades, block(&tree, true, &[0xaa])),
+            (9, t.spanish_scout_upgrades, block(&tree, false, &[0x45])),
+            (8, t.turk_free_siege_upgrades, block(&tree, false, &[0x109])),
+        ];
+        for (power, enabled, candidates) in rules {
+            tree.free_rules.push(tech::FreeRule {
+                gate: tech::Gate::Power(power),
+                enabled,
+                candidates,
+                shape: tech::Shape::PreqMatch,
+            });
+        }
+    }
     tree.finalize();
 
     // ---- the unit types ----
@@ -2474,6 +2544,63 @@ mod tests {
         );
         assert_eq!(l.type_index(l.build_tree[b]), BASE_BUILDTYPES + b as i32);
         assert_eq!(l.type_index(l.unit_tree[0]), BASE_UNITTYPES);
+    }
+
+    /// **`Leader::gain_tech` step 13's five unit blocks, from the install**
+    /// (`docs/TECH.md` §13). The one that matters is the British: on
+    /// gaining the Classical Age a British player is handed **Archers**
+    /// free, and that is what converts run53's three Bowmen on frame 6736.
+    #[test]
+    fn the_nation_free_upgrade_blocks_name_the_units_they_hand_out() {
+        let Some(i) = install() else { return };
+        let l = load(&i).unwrap();
+        let t = &l.tree;
+        assert_eq!(t.free_rules.len(), 5, "the five predicate blocks");
+        let by_gate = |power: usize| {
+            t.free_rules
+                .iter()
+                .find(|r| r.gate == sim::tech::Gate::Power(power))
+                .expect("a block for this nation")
+        };
+        let named = |n: &str| l.unit_tree[l.unit_named(n).unwrap()];
+        // British (11), `BRITISH_ARCHER_UPGRADES` — Barracks units of the
+        // Bowmen line. The block hands out the ones whose prerequisites the
+        // gain completes, so the list is the whole lineage.
+        let british = by_gate(11);
+        assert_ne!(british.enabled, 0, "the constant ships on");
+        assert!(british.candidates.contains(&named("Archers")));
+        assert!(british.candidates.contains(&named("Crossbowmen")));
+        assert!(
+            !british.candidates.contains(&named("Hoplites")),
+            "another Barracks line is not in it"
+        );
+        assert!(
+            !british.candidates.contains(&named("Scout")),
+            "and neither is a unit trained elsewhere"
+        );
+        // Spanish (9) and Turks (8) have no `where` test at all.
+        assert!(by_gate(9).candidates.contains(&named("Scout")));
+        assert!(by_gate(8).candidates.contains(&named("Catapult")));
+        // Germans (12): two blocks, and the light-cavalry one is **not**
+        // empty — `docs/TECH.md` §13's row said its candidates do not
+        // exist, and `0xd1` is Light Horse.
+        let german: Vec<_> = t
+            .free_rules
+            .iter()
+            .filter(|r| r.gate == sim::tech::Gate::Power(12))
+            .collect();
+        assert_eq!(german.len(), 2);
+        // **And the light-cavalry block really is empty**, which is what
+        // `docs/TECH.md` §13's row said and what the `where` test decides:
+        // `0xd1` is Light Horse, but a Light Horse is trained at the
+        // **Stable**, and the block asks for Barracks units. The heavy
+        // infantry one is not empty.
+        assert!(german.iter().any(|r| r.candidates.is_empty()));
+        assert!(
+            german
+                .iter()
+                .any(|r| r.candidates.contains(&named("Hoplites")))
+        );
     }
 
     #[test]
