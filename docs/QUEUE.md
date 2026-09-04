@@ -12,36 +12,34 @@ lines, or lets the handoff pass 32.
 
 ## Where things stand
 
-*2026-09-04, Opus — item 207 landed, and it moved the headline 294
-frames.* **Great Lakes 5786 → 6080 by draw and by sequence; East Indies
-6739, unmoved.** One capture, run74, the cheapest useful one yet — three
-minutes and 31 MB, because the question was a position and a path stack,
-which the *cheap* per-frame dump writes.
+*2026-09-04, Opus — item 208 landed, and it moved the headline 71
+frames.* **Great Lakes 6080 → 6151 by draw and by sequence; East Indies
+6739, unmoved.** One capture, run75 — run74's cheap recipe with the
+window moved to `[5845, 6160)`: five minutes, 75 MB, 316 blocks, 6,161
+frames zero-differing.
 
-- **Booked as a turn, settled as a destination.** 5786's draw was
-  `move_step`'s **far** turn-in-place arm, the only turn draw either side
-  spends in 5,800 frames; of the six units moving exactly one type packs,
-  so the unit was named before the capture — the AI's Merchant `1/24`
-  (ANIM §4.8's row: packs, names no turn, pays the idle roll).
-- **The two merchants were walking to different rares.**
-  `think_merchant` scores `new_rares` at `200 − 10 · position`, so with a
-  flat region bonus the list's *order* is the pick; theirs held three
-  goods, ours two, and the missing one was first.
-- **The cause was the harness, not the sim.** `reveal_fog` fires only
-  where `set_seen` says `seen2` **changed** — once a game — and
-  `build_sim` *installs* `seen2` instead of sweeping it, so every
-  pre-frame-0 offer was skipped unrecoverably.
-  `Sim::seed_new_rares_from_fog` replays them (MERCHANT §2.2.2, ECONOMY);
-  run74's hundred blocks carry no order, path or angle disagreement at
-  all now, and the score has its third rare.
+- **Booked as a scout, settled as a speed.** Both sides give `1/0` the
+  same `EXPLORE_TO` to the same cell on 5851, on an eight-node path the
+  capture prints node for node identical. The original arrives **71
+  frames later**, so its `think_scout` is at 6151 and ours at 6080.
+- **`get_speed`'s third layer was not implemented at all.**
+  `UnitData::get_speed@00608720` halves a land unit's step on a tile
+  carrying `0x800` while its own `z_internal` is not above zero; the dump
+  reads `z` 14 / **0** for 5949–6089 / 17, and the step 34 / **17** / 34.
+  `Sim::get_speed` had answered the cached aura speed for everything but
+  an animal (MOVEMENT, "The river halves a land unit's step").
+- **The `^ 0x63637` in that function is not a predicate.** The three
+  coordinates are **stored obfuscated**; `00608705` XORs `x_internal`
+  before *passing* it. The test is `z > 0`. And `0x800` has a name from
+  the symbols at last: `WorldData::is_river@0046d390`.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w6739 of 24,000 · GreatLakes w6080 of 24,000
+Long captures: EastIndies w6739 of 24,000 · GreatLakes w6151 of 24,000
 
-**Opener (Opus):** `208 is the default: run53 frame 6080, where the AI
-scout 1/0 spends 41 draws the original spends none of — 12
-think_scout+0x436, 6 +0x458, 21 +0x64c, two do_idle+0x7d — and their frame
-is birds and farms alone. SCOUT §3; start with RON_DEBUG_UNIT=1/0@6050-6090.`
+**Opener (Opus):** `210 is the default: run53 frame 6151, where the AI
+Merchant 1/24 spends one Guy::set_anim+0x97a < Guy::move+0x19f the
+original does not — ours 39 draws to their 38, everything else agreed.
+ANIM §4; run75's window covers the frame at GUYS=2, so no capture.`
 
 ## The queue
 
@@ -50,12 +48,13 @@ captures' word**, lower map first — Great Lakes. Take the first unstarted
 unless a better order is obvious — and say so. Numbers are stable; the
 journal is indexed by them.
 
-208. **Great Lakes' word is a scout that thinks and theirs does not, at
-    6080.** `1/0` spends **41** draws the original spends none of — 12
-    `think_scout+0x436`, 6 `+0x458`, 21 `+0x64c`, two `do_idle+0x7d` —
-    while their frame is birds and farms alone (SCOUT §3). run74 stops at
-    5800: read the cadence off run53's trace, or take a `[6050, 6090)`
-    cheap window on run74's recipe. Nothing here is nearer the headline.
+210. **Great Lakes' word is one body animation the original does not
+    ask for, at 6151.** The AI Merchant `1/24` spends a
+    `Guy::set_anim+0x97a < Guy::move+0x19f` nobody there spends — 39
+    draws to 38, and every other draw of the frame agrees, `1/0`'s whole
+    second `think_scout` (12/12/4) included. **run75's window covers
+    6151 at `GUYS=2`**, so the clocks are already on disk: no capture.
+    ANIM §4, and `1/24` is the same merchant items 206–207 chased.
 
 209. **The other once-per-game events a dump install swallows.** 207's
     general half: grep for the other gates of that shape — a `set_*` whose
@@ -65,26 +64,21 @@ journal is indexed by them.
 
 203. **`Wall::mark_behind_tiles`' `0x4`, and nothing else.** The tile-mask
     residue is **32** at 4802 and **45** at 5565, every one bit `0x4` —
-    `World::set_behind@006b4230`'s low arm, from
-    `Wall::mark_behind_tiles@0063d230` (`Wall::start`/`close`,
-    `refresh_nearby_tiles`, `cast_bribe`) and `Mountains::add_mountain`.
-    Nothing reads it. Pinned as a count that only falls; the surface half
-    is pinned at **zero** (ROADS §9.5).
+    `World::set_behind@006b4230`'s low arm, which nothing reads. Pinned as
+    a count that only falls; the surface half is at **zero** (ROADS §9.5).
 
 192. **A merchant has never been seen to unpack.** run68 ends eleven
-    frames short of `1/19`'s deploy spot (MERCHANT §7): the cast, the
-    two-by-two going `PLACED`, `unit_masks & 0x80000` clearing and
-    `do_gather`'s `rare`/`good_obj` (ECONOMY step 6) are all past it. A
-    `[6730, 6800)` window buys it all. **Takes 184's `&self`
-    `detect_unit_collision`.**
+    frames short of `1/19`'s deploy spot (MERCHANT §7) — the cast, the
+    `PLACED` two-by-two, `unit_masks & 0x80000`, `do_gather`'s
+    `rare`/`good_obj`. A `[6730, 6800)` window buys it all. **Takes 184.**
 
 169. **`compute_site_stats`' arithmetic**, 7,122 of run63's 27,000 site
-    fields: `(45, 52)` twice, `(44, 52)` four times, an extra site drags every
-    `rank`; run59 the same 250 frames earlier (AI §2.13 6–12).
+    fields: `(45, 52)` twice, `(44, 52)` four times, an extra site drags
+    every `rank`; run59 the same 250 frames earlier (AI §2.13 6–12).
 
-172. **The `bucket` pair 165 leaves behind**: one apart on 5002 and 5061 in
-    run60's curve, every rate and income exact. **Takes 155's `rare`/`good_obj`
-    writers** (ORDERS §6.10).
+172. **The `bucket` pair 165 leaves behind**: one apart on 5002 and 5061
+    in run60's curve, every rate and income exact. **Takes 155** (ORDERS
+    §6.10).
 
 158. **The sweep runs for a human leader; this crate skips it** (AI §23.1).
     Moving the gate from `Sim::strategy_all` into `production_ai` seeds a
@@ -92,11 +86,10 @@ journal is indexed by them.
 
 159. **The `CITY` record's two smaller seams**, on run58, both pinned:
     `1/2007`'s `land`/`filled` from 1819 and `space[0..2]` from 1976, one
-    apart; and from 2576 `1/2000` holds 11 gatherers and `1/2007` none
-    against 10 and 1 — step 2/10.
+    apart; and from 2576 the gatherer counts, 11/0 against 10/1 — step 2/10.
 
 146. **The other nine national arms of `train_time`** after the ramp, in
-    `006508c0`'s fixed order (PRODUCTION, "The tail's first caller"):
+    `006508c0`'s fixed order (PRODUCTION, "The tail's first caller") —
     `TROOPS_FASTER`, the speed upgrades, the rares, Monarchy, Socialism,
     the wonders. Only the ramp is measured.
 
@@ -177,6 +170,13 @@ Military level and `army.rs` reads `ages`**, `army.rs:769,1365`.
     all four arms (ORDERS §5.5, §5.6, §5.9): `find_any_building(
     FILTER_DAMAGED, FILTER_NOT_UNDER_ATTACK)`, the territory-owner gate, the
     AI's `difficulty >= 2`. No capture has a damaged building.
+
+211. **`get_speed`'s three remaining arms, each wanting an input rather
+    than a reading** (MOVEMENT, "The river halves…"): `unit_masks & 0x10`,
+    set and cleared inside a frame so no dump prints it; `has_general(0,
+    0x162)`'s siege doubling, no capture has a general; and the group cap,
+    whose arithmetic (`movement::group_capped`) stood written and
+    **uncalled** — which is the tell that found 208.
 
 Older backlog: (39) a read-only 2D viewer over `Sim` state with the dump
 overlaid; (41) `scenario.py`'s fate — `zsh tools/fuzz/run.sh 424242 1000 1300`

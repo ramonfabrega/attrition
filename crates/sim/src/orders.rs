@@ -35,6 +35,9 @@ pub mod index {
     pub const BUILD_AT: u8 = 6;
     pub const GATHER: u8 = 7;
     pub const ATTACK: u8 = 10;
+    /// Never constructed here; read by `UnitData::get_speed`'s order scale
+    /// (`docs/MOVEMENT.md`, "The effective speed here, now").
+    pub const GUARD: u8 = 12;
     pub const REPAIR: u8 = 13;
     pub const CAST_SPELL: u8 = 14;
     pub const TRADE_ROUTE: u8 = 15;
@@ -542,18 +545,70 @@ impl Sim {
     pub fn get_speed(&self, u: usize) -> i32 {
         let unit = &self.units[u];
         let speed = unit.movement.speed;
-        if !unit.is_gaia() {
-            return speed;
+        if unit.is_gaia() {
+            if unit.kind.domain == crate::attrition::Domain::Air {
+                return speed;
+            }
+            let far = self
+                .current_order(u)
+                .and_then(Order::move_dest)
+                .is_some_and(|to| vector_dist(unit.pos.x - to.x, unit.pos.y - to.y) > 0x180);
+            let speed = if far { speed * 3 / 2 } else { speed };
+            return speed.max(movement::SPEED_FLOOR);
         }
-        if unit.kind.domain == crate::attrition::Domain::Air {
-            return speed;
+        // The **action**'s own scale, `00608743`–`00608777`. `get_action`
+        // is the first order that is neither a transit move nor a
+        // `CHANGE_FORM`; [`Sim::action_of`] is that walk without the
+        // `CHANGE_FORM` half, which no capture reaches.
+        let action = self
+            .action_of(u)
+            .and_then(|i| unit.orders.get(i))
+            .map_or(index::NONE, Order::index);
+        let mut speed = match action {
+            index::ATTACK => speed * 9 / 8,
+            index::GUARD if self.ai_driven(unit.owner) => speed * 10 / 8,
+            index::GUARD => speed * 9 / 8,
+            _ => speed,
+        };
+        if unit.kind.domain == crate::attrition::Domain::Land {
+            // SEAM: `unit_masks & 0x10` halves it first —
+            // `Unit::target_opportunity`'s "moving in contact with a
+            // target", set during the frame and cleared by `work` at the
+            // end of it, so no dump can ever print it. This crate's
+            // [`Sim::target_opportunity`](crate::Sim::target_opportunity)
+            // is the retaliation alone and sets no such bit.
+            if self.on_river(unit.pos) {
+                speed /= 2;
+            }
+            // SEAM: `has_general(0, 0x162)` doubles a siege type's speed;
+            // no capture has a general.
         }
-        let far = self
-            .current_order(u)
-            .and_then(Order::move_dest)
-            .is_some_and(|to| vector_dist(unit.pos.x - to.x, unit.pos.y - to.y) > 0x180);
-        let speed = if far { speed * 3 / 2 } else { speed };
-        speed.max(3)
+        // SEAM: the group cap ([`movement::group_capped`]) — this crate's
+        // `Group` carries no speed.
+        speed.max(movement::SPEED_FLOOR)
+    }
+
+    /// `UnitData::get_speed`'s slow-ground test, `0060879b`–`006087d8`: the
+    /// **tile** the unit stands on carries `0x800`, and the unit's own
+    /// `z_internal` is not above zero.
+    ///
+    /// Both halves are the position the unit is standing at when the step
+    /// is computed. `z_internal` is written by
+    /// `SubObject::set_new_location@00662680` — `TerrainOut::find_tcoord_z`
+    /// of the tile it has just moved to — which is
+    /// [`World::tile_z`](crate::world::World::tile_z) here, so the stored
+    /// field and the tile read are the same tile and this needs no field of
+    /// its own. A world with no height grid reads zero everywhere, which is
+    /// the flat harness world and passes the test.
+    ///
+    /// The `^ 0x63637` all over the decompilation of this and of
+    /// `SubObjectData::log_data` is not a predicate: **the three
+    /// coordinates are stored XORed with `0x63637`** and every reader
+    /// decodes them, the gamelog's own printer included. So
+    /// `(z ^ 0x63637) > 0` skipping the halving is `z > 0` skipping it.
+    pub(crate) fn on_river(&self, pos: Pos) -> bool {
+        let t = pos.tile();
+        self.world.tile_z(t) <= 0 && self.world.tile_mask(t) & tile::RIVER != 0
     }
 
     /// `UnitData::order_type`: the current order's `OrderIndex`, `NONE` for

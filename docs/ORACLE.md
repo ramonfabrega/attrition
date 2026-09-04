@@ -4088,3 +4088,48 @@ earlier in the session by an unrelated `ls` blocked every launch behind it.
 `log show --predicate 'subsystem == "com.apple.TCC"'` showed **no denial**,
 because an unanswered prompt neither denies nor returns — the tell is the
 silence plus the blocked `open()`, not a `denied` line.
+
+## run75 — the scout's walk down the river (2026-09-04)
+
+Great Lakes' word was **6080** and the frame was 41 draws the original
+spends none of: the AI scout `1/0` arrives at its explore target, goes idle
+and runs the whole of `Unit::think_scout` where the original's is still
+walking. The scout was not the mechanic, and nothing on disk could say what
+was — run53's dump is checksums, its 179 `UNITDATA` records are all in the
+start block, and the walk itself spends no draws at all, so both sides' 229
+frames of it were invisible.
+
+**run74's recipe, six hundred frames later and three times as long.** The
+question was again a position and a path stack, so `UNITS=3` and the cheap
+window rather than `DUMP_ALL`:
+
+    DETAIL_END=MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,DEATHS=1,LEADERS=1 \
+    FRAME_WINDOW="5845 6160" SETTLE_MIN=14000000 POLL_MAX=200 \
+    TRACE_COVER=$'cover=1\ncallwin=5844-6160' \
+    zsh tools/gamelog/longtrace.sh 75 6160 greatlakes-scoutwalk 14
+
+**Five minutes and 75 MB**, 316 frame blocks.
+`rngcmp.py rontrace-run53.log rontrace-run75.log`: **6,161 frames, zero
+differing**.
+
+**What it settled, in one field.** Both scouts take the same `EXPLORE_TO`
+to the same cell on the same frame — 5851, `(40440, 30456)`, an eight-node
+path the capture prints node for node identical — and the original's
+arrives seventy-one frames later. The seventy-one frames are a **speed**:
+`z_internal` reads 14 on 5948, **0** on every frame from 5949 to 6089 and
+17 on 6090, and the per-frame step is 34 outside that span and **17**
+inside it, on a `myspeed` of 34 throughout. That is
+`UnitData::get_speed@00608720`'s land arm — a tile carrying `0x800`
+(`WorldData::is_river`) halves a land unit's step while its own `z` is not
+above zero — and `crates/sim` had none of that function's third layer.
+With it the scout is on the original's point for all 315 frames of the
+window and the word runs **6080 → 6151** (`docs/MOVEMENT.md`, "The river
+halves a land unit's step").
+
+**The launch is the driver's, not this process's.** `longtrace.sh` refused
+at the permission probe — "Screen Recording is off" — which is a Claude
+Code update having moved `~/.local/share/claude/versions/<VERSION>` out
+from under the grant. `zsh tools/gamelog/viadriver.sh <script>` hands the
+run to `~/bin/RonDriver.app`, a fixed path that holds all three
+permanently, and it went first time. Re-granting the version path by hand
+buys one session; the bundle is the standing answer.

@@ -845,3 +845,38 @@ poll_max: 200
 # speak here — run69 is this map's only full-detail dump and it stops at
 # 3,000, so the two files share no frame block at all (run59's line).
 check: python3 tools/gamelog/rngcmp.py rontrace-run53.log rontrace-run74.log
+
+run: 75
+tag: greatlakes-scoutwalk
+item: 208
+why: Great Lakes' word is 41 scout draws at 6080 — and the walk that earns them spends no draws at all, so no trace can say where the two sides part
+# **The scout is named and the frame is named; the walk between them is
+# invisible.** run53's word parts at 6080 on the AI scout `1/0` arriving,
+# going idle and running the whole of `Unit::think_scout` — 12 `+0x436`, 6
+# `+0x458`, 21 `+0x64c`, two `do_idle+0x7d` — where the original's frame is
+# birds and farms alone and its own `think_scout` is at **6151**. Both sides
+# think at 5851 with the same 11/11/5, so the order is agreed and the
+# seventy-one frames are the walk.
+#
+# A walk spends no draws. The scout's type does not pack, so even its turns
+# are free (`docs/ANIM.md` §4.8), and run53's dump is checksums with all 179
+# `UNITDATA` records in the start block. Nothing on disk can place either
+# scout on any frame between 5852 and 6150.
+#
+# So: run74's recipe with the window moved and widened. `UNITS=3` writes the
+# position, the facing and the path stack, which is the whole question.
+frames: 6160
+mapstyle: 14
+end: MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,DEATHS=1,LEADERS=1
+frame_window: 5845 6160
+cover: cover=1
+cover: callwin=5844-6160
+# run74's floor, unchanged: the start dump is 10.9 MB on this map at this
+# detail and nothing grows until 5,845, so 14 MB sits above the quiet run-up
+# and below the finished 75 MB file. 316 blocks, five minutes.
+settle_min: 14000000
+poll_max: 200
+# Same game: the trace word for word against run53 (run74's line — this
+# map's only full-detail dump stops at 3,000, so `samegame.py` has no shared
+# frame block to speak from).
+check: python3 tools/gamelog/rngcmp.py rontrace-run53.log rontrace-run75.log

@@ -15389,3 +15389,91 @@ does not — twelve `Unit::think_scout+0x436`, six `+0x458`, twenty-one
 `+0x64c` and two `Unit::do_idle+0x7d` — while the original's frame is birds
 and farms alone. It re-thinks an explore where the original's scout does
 not, and `docs/SCOUT.md` §3 is the whole of it.
+
+## 2026-09-04 — item 208: the river the scout wades (Great Lakes 6080 → 6151, Opus)
+
+**Booked as a scout, settled as a speed.** The word was 6080 and the frame
+was 41 draws the original spends none of: the AI scout `1/0` arrives at its
+explore target, goes idle, and runs the whole of `Unit::think_scout` — 12
+`+0x436`, 6 `+0x458`, 21 `+0x64c`, two `do_idle+0x7d` — where the
+original's frame is birds and farms alone. `docs/SCOUT.md` §3 was the
+obvious place to look and it was the wrong one.
+
+**The trace ruled the mechanic out before anything was captured.** The
+original's `think_scout` frames run …, 4125, 5851, **6151**, and on 5851
+both sides spend the same 11 `+0x436`, 11 `+0x458` and 5 `+0x64c`. The
+gate is `idle == 1` or `(o + frame) & 31 == 0`, and neither 5851 nor 6151
+is a multiple of 32 with `o = 0`, so both are **arrival** frames. Same
+order, same frame, arrival seventy-one frames apart: the divergence is the
+walk, not the decision.
+
+**And a walk is invisible.** Walking straight spends no draws; the scout's
+type does not pack, so even its turns are free (`docs/ANIM.md` §4.8); and
+run53's dump is checksums with all 179 `UNITDATA` records in the start
+block. Nothing on disk could place either scout on any frame between 5852
+and 6150. So run74's cheap recipe, with the window moved six hundred frames
+on and widened to `[5845, 6160)`: five minutes, 75 MB, 316 blocks, 6,161
+frames zero-differing against run53's trace.
+
+**Both scouts take the same eight-node path to the same cell.** The capture
+prints it node for node identical on 5852, both push the same detour node
+`(36780, 29868)` on the same frame, and the positions agree to the frame
+until **5949**. There the original's step goes from 34 to **17** and stays
+there for 141 frames.
+
+**The field beside it is `z_internal`, and it is the whole answer.** 14 on
+5948, **0** on every frame from 5949 to 6089, 17 on 6090 — and the step is
+34 outside that span and 17 inside it, on a `myspeed` of 34 throughout.
+That is `UnitData::get_speed@00608720`'s land arm: a unit standing on a
+**tile** carrying `0x800` walks at half speed while its own `z` is not
+above zero. `docs/MOVEMENT.md` has had the sentence since the mechanic was
+first read; `crates/sim` had **none of that function's third layer** —
+`Sim::get_speed` answered the cached aura speed for everything that is not
+an animal, and `movement::group_capped` had sat written and uncalled since
+it was landed.
+
+**The trap in it was the decompiler, and the listing cost a minute.** The
+decompilation of the test is `(z ^ 0x63637) > 0` skipping the halving,
+which reads as a predicate and would mean `z < 0` — and the capture halves
+at `z == 0`. The same constant is on `x_internal` and `y_internal` in the
+`+0x2f` wrapper `UnitData::get_speed@006086f0`, which only forwards them,
+and on all three in `SubObjectData::log_data`, which only prints them.
+`00608705` is `xorl $0x63637, %eax` **before the push**: the three
+coordinates are stored **obfuscated**, every reader decodes them, and the
+predicate is `z > 0`. `docs/audit/README.md`'s standing lesson is a
+constant inside an array index; this is its sibling one level out — a
+constant inside a *comparison* is a predicate only if the field is stored
+the way it reads.
+
+**And `0x800` finally has a name from the symbols.** `docs/MOVEMENT.md`
+carried "what world tile flag `0x800` is — forest, swamp or shallow water
+are the obvious candidates" as an open question for a fortnight.
+`WorldData::is_river@0046d390` is `tdata[tile_xs·y + x].mask & 0x800` and
+nothing else. It is a river, and `crate::world::tile::RIVER` had guessed
+right without evidence.
+
+**What it is worth.** Great Lakes' word **6080 → 6151**; East Indies
+unmoved at 6739. run75's 316 blocks — 10,014 unit fields, 9,981 order and
+path fields, 19,962 angles — carry **no unit off the original's point
+before the word**, the scout included on every one of the 315 frames of its
+walk. The frame past it is one figure draw: `Guy::set_anim+0x97a <
+Guy::move+0x19f` here against `< Guy::inc_time+0x271` there, ours 39 to
+their 38.
+
+**Two things stay open in the mechanic, and both are inputs rather than
+readings.** `unit_masks & 0x10` — `target_opportunity`'s "moving in contact
+with a target" — is set and cleared inside one frame, so no dump can ever
+print it and this crate's `target_opportunity` is the retaliation alone.
+`has_general(0, 0x162)`'s siege doubling has no general in any capture. The
+group cap has its arithmetic and no group speed to feed it. The order scale
+(`ATTACK` ×9/8, `GUARD` ×10/8 for a computer) is now in and moves nothing:
+no capture on disk has a unit under either action while it walks.
+
+**The lesson.** 207's was "the finding was not in the simulation"; this
+one's is nearer home. **A function this crate answers with one cached field
+is a function nobody has read the third layer of** — `Sim::get_speed`
+looked implemented, had a doc comment about all three layers, and returned
+`movement.speed`. The tell was available for free: `movement::group_capped`
+existed, was tested, and had no caller. A public helper with no live caller
+is a layer somebody meant to write.
+

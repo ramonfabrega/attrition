@@ -557,7 +557,10 @@ pub mod tile {
     pub const CITY_RADIUS: u16 = 0x100;
     /// Treated as a building (unnamed in the original).
     pub const AS_BUILDING: u16 = 0x200;
-    /// River.
+    /// River — `WorldData::is_river@0046d390` is this bit and nothing else.
+    /// It is also the slow ground of `UnitData::get_speed`'s land arm: a
+    /// land unit standing on it at or below the waterline walks at half
+    /// speed ([`crate::Sim::on_river`], `docs/MOVEMENT.md`).
     pub const RIVER: u16 = 0x800;
     /// Some building already gathers from this tile —
     /// `WorldData::is_gathered_from@00472ac0` reads it and

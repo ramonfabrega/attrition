@@ -934,9 +934,10 @@ The layer that actually feeds the step:
   it** — the bit `Unit::target_opportunity` sets when a moving unit is within
   the two units' radii of a target object, and `Unit::work` clears at the end
   of every frame. It is "moving in contact with a target", not "damaged" (an
-  earlier draft said damaged). Standing on a world tile carrying flag `0x800`
-  halves it again, **but only with `z_internal <= 0`** — a unit in the air
-  over the tile is not slowed by it (the earlier draft omitted the `z` test);
+  earlier draft said damaged). Standing on a **tile** carrying flag `0x800`
+  — `crate::world::tile::RIVER` — halves it again, **but only with
+  `z_internal <= 0`**: the river bed, not the bank (see "The river halves a
+  land unit's step" below);
 - a general doubles siege speed;
 - **the group cap, with flag 0 only**: a unit in a group with no overriding
   order is limited to the group's speed, which is how a mixed army moves at
@@ -951,6 +952,62 @@ and it is what stops a unit in mud from stopping altogether.
 is above 1, and × 5/4 for **modern infantry** — `UnitData::is_modern_infantry`,
 a `unit_flags & 0x100` type at age six or later, or any such type under tribe
 bonus `0x12`.
+
+### The river halves a land unit's step (2026-09-04, item 208)
+
+The tile half of layer 3 is `0060879b`–`006087d8`:
+
+```
+if ((z_internal ^ 0x63637) > 0) goto skip;              // 0060879b
+tile = div_3_table[y >> 6] * world.tile_xs + div_3_table[x >> 6];
+if ((world.tdata[tile].mask & 0x800) == 0) goto skip;   // 006087d3
+speed /= 2;
+```
+
+Three things in that are worth naming, and one of them nearly cost a wrong
+reading.
+
+- **The `^ 0x63637` is not a predicate: the coordinates are stored
+  obfuscated.** The same constant appears on `x_internal` and `y_internal`
+  in the `+0x2f` wrapper `UnitData::get_speed@006086f0`, which only forwards
+  them to the virtual, and on all three in
+  `SubObjectData::log_data@00661f80`, which only prints them. The listing at
+  `00608705` is `xorl $0x63637, %eax` **before the push**, so every reader
+  decodes and `SubObject::set_new_location@00662680` re-encodes on the way
+  in. Taken as a guard, `(z ^ 0x63637) > 0` skipping the halving would read
+  as `z < 0` and the mechanic would never fire; decoded, the predicate is
+  plainly **`z > 0` skips it**, which is what the dump shows.
+- **`z_internal` is the tile's own height, not a separate field to carry.**
+  `set_new_location` writes it as `TerrainOut::find_tcoord_z` of the tile it
+  has just moved to, which is `World::tile_z` here, so the stored `z` and
+  the tile the mask is read from are always the same tile
+  (`Sim::on_river`). A world with no height grid reads zero everywhere and
+  passes the `z` test, which is the flat harness world.
+- **It is the `TData` mask, `tdata` at `world +0x138` with stride 2** — the
+  same array and the same `div_3_table` shape `docs/SCOUT.md` §7 reads the
+  surface out of.
+
+**The diff that says so.** run75 is run53's game with the cheap per-frame
+window on `[5845, 6160)`, taken for Great Lakes' word at 6080. The AI scout
+`1/0` walks the river south of its second city: its dumped `z_internal` is
+14 on 5948, **0** on every frame of 5949–6089 and 17 on 6090, and its
+per-frame step is 34 outside that span and **17** inside it on a `myspeed`
+of 34 throughout. Both halves are pinned as a `#[test]` that was made to
+fail twice —
+`movement::tests::a_land_unit_on_a_river_tile_at_or_below_the_waterline_walks_at_half`
+— and the window as a whole in
+`rondata::diff`'s `run75_s_window_is_the_scout_s_walk_down_the_river`: 315
+frames, every unit, nobody off the original's point. Great Lakes' word
+**6080 → 6151**.
+
+**What of layer 3 is still not here.** `crate::Sim::get_speed` now carries
+the order scale and this halving; three arms remain seams, each for want of
+an input rather than a reading. `unit_masks & 0x10` is set and cleared
+inside one frame so no dump can print it, and this crate's
+`target_opportunity` is the retaliation alone. `has_general(0, 0x162)`'s
+siege doubling has no general in any capture. The group cap has its
+arithmetic (`movement::group_capped`, made to fail once) and no group speed
+to feed it.
 
 ## The animal's own `get_speed` (2026-08-30, item 95)
 
@@ -1071,9 +1128,11 @@ the checks below.
   `turn_towards` at its foot, and a zero `last_speed` is the instant turn —
   so the body comes round in one frame however slowly its type turns. "The
   body step" above has it; run10's three scout rows are gone.
-- **What world tile flag `0x800` is.** It halves land speed at ground level, so
-  it is terrain of some kind — forest, swamp or shallow water are the obvious
-  candidates.
+- ~~**What world tile flag `0x800` is.**~~ **Closed 2026-09-04**, by a named
+  accessor rather than by inference: `WorldData::is_river@0046d390` is
+  `tdata[tile_xs·y + x].mask & 0x800` and nothing else. It is a **river**,
+  and run75 is the run that watches a scout wade one at half speed — "The
+  river halves a land unit's step" above.
 - **The flyer branch of `move_step`.** A type with `unit_flags & 0x20` owing
   less than a quarter turn turns by `do_turn` and then again by the body's
   rate, with no turn-in-place and no half step. Read, not modelled: the

@@ -1253,6 +1253,59 @@ mod tests {
         assert_eq!(group_capped(25, 1), SPEED_FLOOR);
     }
 
+    /// **`UnitData::get_speed`'s slow ground** (`0060879b`–`006087d8`):
+    /// a land unit standing on a tile that carries `0x800` moves at half
+    /// speed, and only while its own `z_internal` is not above zero.
+    ///
+    /// Both halves matter and each was made to fail on its own. run75's
+    /// AI scout `1/0` walks the river bed south of its city from sim-frame
+    /// 5950 to 6090 at a step of 17 against its `myspeed 34`, and its
+    /// dumped `z_internal` is 14 on the frame before, 0 for every frame of
+    /// it, and 17 on the frame it comes out — which is what pins the `z`
+    /// gate rather than the tile alone.
+    #[test]
+    fn a_land_unit_on_a_river_tile_at_or_below_the_waterline_walks_at_half() {
+        use crate::world::tile;
+        use crate::{Sim, Tuning, Unit, UnitType, World};
+
+        let mut s = Sim::new(Tuning::RON, World::new(60, 60), 2);
+        let ty = s.add_unit_type(UnitType {
+            hits: 1,
+            moves: 34,
+            ..UnitType::default()
+        });
+        // The scout's own tile on run75's frame 5960, `(36654, 29572)`.
+        let at = Pos::new(36654, 29572);
+        let t = at.tile();
+        let mut u = Unit::new(1, 0, at, 1);
+        u.ty = Some(ty);
+        let a = s.add_unit(u);
+        s.units[a].movement.speed = 34;
+
+        s.world.set_tile_z(t, 0);
+        assert_eq!(s.get_speed(a), 34, "plain ground at the waterline");
+
+        s.world.set_tile_bits(t, tile::RIVER);
+        assert_eq!(s.get_speed(a), 17, "river, and z is not above zero");
+
+        // The `z` gate: one unit of height above the water and the tile
+        // stops slowing it.
+        s.world.set_tile_z(t, 1);
+        assert_eq!(s.get_speed(a), 34, "z > 0 skips the halving");
+        s.world.set_tile_z(t, -1);
+        assert_eq!(s.get_speed(a), 17, "and below it does not");
+
+        // The arm is the **land** one whole: a boat over the same tile is
+        // not slowed by it.
+        s.units[a].kind.domain = crate::attrition::Domain::Sea;
+        assert_eq!(s.get_speed(a), 34, "sea takes none of layer three");
+        s.units[a].kind.domain = crate::attrition::Domain::Land;
+
+        // The floor is below the halving, not above it.
+        s.units[a].movement.speed = 4;
+        assert_eq!(s.get_speed(a), SPEED_FLOOR, "4 / 2 is under the floor");
+    }
+
     #[test]
     fn the_body_lands_on_the_unit_and_records_the_euclidean_step() {
         // The unit stepped 25 east; the body is written straight onto it, and

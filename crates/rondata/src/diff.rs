@@ -11898,6 +11898,138 @@ mod tests {
         );
     }
 
+    /// **run75 — the scout's walk down the river, and the speed layer
+    /// nothing here had** (2026-09-04, item 208).
+    ///
+    /// run53's game to 6,160 frames with the **cheap** per-frame dump
+    /// narrowed to `[5845, 6160)` — run74's recipe with a window six
+    /// hundred frames later and three times as long, 75 MB and five
+    /// minutes. `rngcmp.py rontrace-run53.log rontrace-run75.log`:
+    /// **6,161 frames, zero differing**, so it is run53's game and the
+    /// seventh capture in a row for which a window costs the stream
+    /// nothing.
+    ///
+    /// **What it was booked for.** Great Lakes' word parted at 6080 on 41
+    /// draws the original spends none of: the AI scout `1/0` arrives at
+    /// its explore target, goes idle, and runs the whole of
+    /// `docs/SCOUT.md` on a frame the original's is still walking. The
+    /// original's scout takes the *same* order to the *same* cell on the
+    /// same frame — 5851, `(40440, 30456)`, an eight-node path this
+    /// capture prints node for node identical — and reaches it **71
+    /// frames later**, so its own `think_scout` is at 6151.
+    ///
+    /// The seventy-one frames are a **speed** this crate did not have.
+    /// `UnitData::get_speed@00608720`'s land arm halves the step for a
+    /// unit standing on a tile whose mask carries `0x800` while its own
+    /// `z_internal` is not above zero, and `crates/sim` implemented none
+    /// of that function's third layer at all — [`sim::Sim::get_speed`]
+    /// returned the cached aura speed for every unit that is not an
+    /// animal. The dump is unambiguous about both halves: `z_internal` is
+    /// 14 on 5948, **0** on every frame from 5949 to 6089, and 17 on 6090,
+    /// and the step is 34 outside that span and 17 inside it, on a
+    /// `myspeed` of 34 throughout. It is the river bed south of the AI's
+    /// second city.
+    ///
+    /// **And the `^ 0x63637` is not a predicate.** The decompilation of
+    /// this function, of its `+0x2f` wrapper and of
+    /// `SubObjectData::log_data` all XOR the coordinates with `0x63637`,
+    /// which reads like a guard on the `z` test — `(z ^ 0x63637) > 0`
+    /// skipping the halving would be `z < 0`, and the capture halves at
+    /// `z == 0`. The listing settles it in one line: `00608705` is
+    /// `xorl $0x63637, %eax` on `x_internal` before it is *passed*, so
+    /// **the three coordinates are stored obfuscated** and every reader,
+    /// the gamelog's printer included, decodes them. The predicate is
+    /// `z > 0`.
+    ///
+    /// With the halving in, the scout is on the original's point for
+    /// **every one of the window's 315 frames**, and Great Lakes' word
+    /// runs 6080 -> **6151**, where the next frame is one figure draw
+    /// (`Guy::move+0x19f` against `Guy::inc_time+0x271`).
+    ///
+    /// Driven through [`run_traced`], so this is the whole record and not
+    /// the scout's.
+    #[test]
+    fn run75_s_window_is_the_scout_s_walk_down_the_river() {
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(tr)) = (
+            dump("gamelog-run75-greatlakes-scoutwalk.txt"),
+            trace("rontrace-run75.log"),
+        ) else {
+            eprintln!("skipping: no run75 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = std::fs::read_to_string(&path).unwrap();
+        let log = Log::parse(&text);
+        let texts = sibling_texts();
+        let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
+        let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+        let refs: Vec<&Initial> = inits.iter().collect();
+        let report = run_traced(&loaded, &log, Tuning::RON, None, None, &refs, Some(&tr)).unwrap();
+        let blocks: Vec<i64> = report
+            .frames
+            .iter()
+            .filter(|f| f.compared > 0)
+            .map(|f| f.frame)
+            .collect();
+        assert!(
+            blocks.first().is_some_and(|&n| n <= 5_846)
+                && blocks.last().is_some_and(|&n| n >= 6_150)
+                && blocks.len() >= 300,
+            "run75's window, as the frames that carry a unit record: {:?}..{:?} \
+             ({} blocks) — a file with fewer is the wrong file",
+            blocks.first(),
+            blocks.last(),
+            blocks.len()
+        );
+
+        let parted: std::collections::BTreeMap<(i64, i64), i64> = report
+            .first_divergence_by_unit()
+            .into_iter()
+            .map(|(w, o, f)| ((w, o), f))
+            .collect();
+        let orders: usize = report.frames.iter().map(|f| f.order_compared).sum();
+        let angles: usize = report.frames.iter().map(|f| f.angle_compared).sum();
+        eprintln!(
+            "run75: {} unit fields, {orders} order/path fields, {angles} angles \
+             over {} blocks; {} unit(s) ever off position",
+            report.frames.iter().map(|f| f.compared).sum::<usize>(),
+            blocks.len(),
+            parted.len()
+        );
+        for (&(who, o), &frame) in &parted {
+            eprintln!("  {who}/{o} parts at {frame}");
+        }
+        for d in report
+            .frames
+            .iter()
+            .flat_map(|f| f.diverged.iter())
+            .filter(|d| (d.who, d.o) == (1, 0))
+            .take(8)
+        {
+            eprintln!("  pos {d:?}");
+        }
+        assert!(
+            !parted.contains_key(&(1, 0)),
+            "the scout leaves the original's point at {:?} — the river's \
+             halving is what put it there",
+            parted.get(&(1, 0))
+        );
+        // And nobody else does either, up to the word. The one unit that
+        // parts at all in this window is the human's `0/5`, on 6161 — the
+        // file's truncated last block, ten frames past the parting.
+        assert!(
+            parted.values().all(|&f| f >= LONG_WORD_GREAT_LAKES),
+            "a unit leaves the original's point before the word \
+             ({LONG_WORD_GREAT_LAKES}): {parted:?}"
+        );
+        assert!(
+            orders >= 1_000 && angles >= 1_000,
+            "the window's own rows: {orders} order fields and {angles} angles — \
+             a capture below `UNITS=3` is the wrong file"
+        );
+    }
+
     /// **run65 — the caravan's turn out of its own city, every unit, every
     /// frame** (2026-09-02).
     ///
@@ -13660,7 +13792,31 @@ mod tests {
     /// the two this crate had. `Sim::seed_new_rares_from_fog` replays
     /// those reveals once, after the goods and the leaders' `human` bits
     /// are in, and the word runs to **6080**.
-    const LONG_WORD_GREAT_LAKES: i64 = 6080;
+    ///
+    /// It was **6080** for a session, and that frame was **41 draws the
+    /// original spends none of**: the AI scout `1/0` arrives at its
+    /// explore target, goes idle and runs the whole of `docs/SCOUT.md`,
+    /// where the original's is still walking and the frame is birds and
+    /// farms alone. The scout was not the mechanic. run75 puts the two
+    /// walks side by side and they take the **same order to the same
+    /// cell on the same frame** — 5851, an eight-node path the capture
+    /// prints node for node identical — and the original's arrives
+    /// **seventy-one frames later**.
+    ///
+    /// The seventy-one frames are a speed. `UnitData::get_speed`'s third
+    /// layer halves a land unit's step while it stands on a tile carrying
+    /// `0x800` with its own `z_internal` not above zero, and this crate
+    /// had **none** of that layer: [`sim::Sim::get_speed`] answered the
+    /// cached aura speed for everything that is not an animal. run75's
+    /// `z_internal` is 14 on 5948, 0 for all of 5949–6089 and 17 on 6090,
+    /// and the step is 34 outside that span and 17 inside it — the river
+    /// bed south of the AI's second city
+    /// (`run75_s_window_is_the_scout_s_walk_down_the_river`,
+    /// `docs/MOVEMENT.md`). With it the scout is on the original's point
+    /// for every frame of the window and the word runs to **6151**, whose
+    /// own frame is one figure draw: `Guy::move+0x19f` here against
+    /// `Guy::inc_time+0x271` there.
+    const LONG_WORD_GREAT_LAKES: i64 = 6151;
 
     /// The frame the AI's library takes its **Coinage** job on, and the
     /// frame run58's `QUEUE` record used to part on: twenty-four rows of
