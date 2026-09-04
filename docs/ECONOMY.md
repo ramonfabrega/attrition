@@ -471,6 +471,25 @@ if g >= 0: Leader::new_rare(leaders[who], g)
 of `type_avail` — the availability test that would refuse the good is
 `new_rare`'s own, applied per recipient.
 
+**"Recorded during `Setup`, before frame 0" is the sentence a harness has to
+act on, and for a year it did not** (2026-09-04, item 207).
+`rondata::diff::build_sim` installs the dump's `seen2` grid instead of
+walking the sweeps that produced it, so every one of those pre-frame-0
+offers was skipped — and skipped for good, because those cells now read as
+seen and `set_seen` can never answer true for them again. `new_rares` then
+starts empty where the original's already holds a rare, and since the score
+is `200 − 10 · position` the missing entry is the one at the **front**:
+Great Lakes' AI Merchant walked to the wrong rare, right across the map,
+and that was the map's word at 5786. `Sim::seed_new_rares_from_fog` replays
+the reveals once over the installed grid; the word ran to **6080**
+(`docs/MERCHANT.md` §2.2.2). The order two goods seen in the same start
+reveal take is the one thing a snapshot cannot carry back, and it is that
+document's §7.
+
+`World::compute_reg_territory@006b0bb0` is `new_rare`'s **second** caller
+and nothing here models it, so a rare a leader learns of through territory
+rather than through sight is still missing.
+
 `new_rare(this, g)` then walks every leader:
 
 ```

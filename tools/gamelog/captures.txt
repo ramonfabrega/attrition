@@ -795,3 +795,53 @@ cover: callwin=5563-5581
 end: MISC
 poll_max: 220
 check: python3 tools/gamelog/rngcmp.py rontrace-run53.log rontrace-run73.log
+
+run: 74
+tag: greatlakes-merchantturn
+item: 207
+why: Great Lakes' word is the Merchant 1/24's turn at 5786 — the one turn draw in 5,800 frames, and no dump on disk holds the unit at all
+# **The unit is named and the frame is named; what is missing is the
+# original's side of it.** run53's word parts at 5786 on a single draw,
+# `Guy::set_anim+0x97a < Guy::do_turn+0x4a < Unit::move_step+0x389` — the
+# **far** turn-in-place arm, which spends the idle roll for a guy that is
+# asked for a turn animation and has none. Of the six units moving on that
+# frame exactly one packs, and so exactly one carries `guy_flags & 8`: the
+# AI's Merchant `1/24` (`docs/ANIM.md` §4.8). It is also the only turn draw
+# either side spends in the whole 5,800 frames.
+#
+# This crate's Merchant never takes either turn arm. It is born on 5753,
+# takes its path on 5755, and pops the world-grid waypoint `(44088, 17208)`
+# on **5781** — `manh` 377 against the node's `tolerance` 384 — which
+# swings the heading 49.25° and leaves 43.93° owed after the frame's turn.
+# `move_step`'s far arm wants 45°, so it misses by **1.07°** and walks the
+# turn out over 5781–5788 instead. Two readings fit and no capture on disk
+# separates them: either the original owes fractionally more on the same
+# frame, or it pops that waypoint five frames later and turns at 5786.
+#
+# No Great Lakes dump reaches the unit. run71 stops at 5,000, run73's window
+# is [5564, 5580) and `1/24` does not exist in it — player 1 ends 5579 with
+# 23 units. So this is the cheap per-frame dump, not `DUMP_ALL`: the whole
+# question is `UNITDATA`'s position and `angle`, `MOVEORDER`'s
+# `dest_x`/`dest_y`, and the **path stack** with its per-node `tolerance`,
+# all of which `UNITS=3` writes. A hundred frames of it is 15 MB, so the
+# window is opened fifty frames before the birth rather than at the turn.
+# `callwin` carries `Unit::set_new_location@005f8d20` — where each step
+# landed, which settles the position reading outright — and
+# `astar_path`/`calc_cost` for the search that built the path.
+frames: 5800
+mapstyle: 14
+end: MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,DEATHS=1,LEADERS=1
+frame_window: 5700 5800
+cover: cover=1
+cover: window=5699-5800
+cover: callwin=5699-5800
+# The start dump is 10.9 MB on this map at this detail (run69, to `BEGIN
+# FRAME 2`) and nothing grows at all until 5,700, so the default 10 MB floor
+# would call that quiet run-up a settled run. The window's own hundred
+# frames are ~15 MB on top, so 14 MB sits above the one and below the other.
+settle_min: 14000000
+poll_max: 200
+# Same game: the trace word for word against run53. `samegame.py` cannot
+# speak here — run69 is this map's only full-detail dump and it stops at
+# 3,000, so the two files share no frame block at all (run59's line).
+check: python3 tools/gamelog/rngcmp.py rontrace-run53.log rontrace-run74.log

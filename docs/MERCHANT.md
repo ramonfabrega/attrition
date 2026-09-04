@@ -145,6 +145,50 @@ The one gate `find_unit_ordered` does apply to the body is the region test
 behind `param_6 & 0x200`, which reads the object's cell like `find_unit`
 does — and `think_merchant` passes `param_6 = 0`, so it never runs here.
 
+### 2.2.2 The list's order is the pick, and a snapshot loses it (2026-09-04)
+
+`base = 200 - 10 * i` makes **position in `new_rares` the whole of the
+score** wherever the region bonus is flat and the danger map is empty,
+which is every capture on disk. So the first good the leader ever saw wins,
+and a list that is missing its early entries picks somebody else's rare.
+
+Great Lakes' Merchant `1/24` is that case, and it is what the map's word
+parted on at 5786 (item 207). run74's window puts the two merchants side by
+side three frames after birth:
+
+| | order destination | path |
+|---|---|---|
+| the original | `(40344, 14232)` — the `SILK` at `(40320, 14208)`, 48-snapped | 7 nodes |
+| this crate, before | `(31800, 21816)` | 16 nodes |
+
+The original's list is `[SILK, 17, 20]` and scores `300, 290, 280`; this
+crate's was `[17, 20]` and scored `300, 290`. Same arithmetic, same region
+bonus on every entry, same rotation — **one missing entry, at the front**.
+
+**Why it was missing is the harness's, not the simulation's.**
+`Sim::reveal_fog` has one caller: `World::set_seen` answering that `seen2`
+*changed* (`docs/VISION.md` §5), so a good is offered to a leader exactly
+once for the life of a game. `rondata::diff::build_sim` **installs** the
+dump's `seen2` grid rather than walking the sweeps that produced it, so
+every offer the original had already made before the block was written is
+skipped — and skipped unrecoverably, because those cells now read as seen
+and `set_seen` will never answer true for them again. The `SILK` sits in a
+cell player 1 had seen at game start; the two goods this crate did have
+were revealed *during* the run, on frames 1804 and 5367, by sweeps it made
+itself.
+
+`Sim::seed_new_rares_from_fog` replays those reveals once, over the
+installed grid, after the goods and the leaders' `human` bits are in — the
+three gates `Leader::new_rare` reads. Great Lakes' word ran **5786 →
+6080**, East Indies' is unmoved, and run74's hundred blocks carry no order,
+path or angle disagreement at all.
+
+**What the replay cannot reconstruct is the order.** `new_rare` appends and
+the base falls ten a slot, so two goods first seen in the *same*
+start-of-game reveal are ranked by fog-cell order here and by the sweep's
+own order there. No capture on disk has a leader with two such goods, so
+the difference has never been observable; §7 keeps it as an open question.
+
 ### 2.3 The rotation, and the order
 
 ```
@@ -333,6 +377,15 @@ merchant's first turn.
 
 ## 6. Coverage
 
+**Diff-backed on run74 too, since 2026-09-04** — a hundred blocks of Great
+Lakes over `[5700, 5800)` at the cheap per-frame detail, holding the AI
+Merchant `1/24`'s birth, its think, its whole walk and the turn the map's
+word parted on. Every unit's position, angle, order list and path stack is
+the original's across the window, the merchant's included
+(`run74_s_window_is_where_great_lakes_merchant_turns`). It is this
+mechanic's second map, and the first on which the score has a third rare in
+it (§2.2.2).
+
 **Diff-backed on run54** — the 24,000-frame East Indies capture, whose word
 went from 6356 to 6570 when this landed, to 6571 with the collision probe
 behind it (`docs/COLLISION.md` §4.2), to 6715 when §2.2.1 put the second
@@ -372,11 +425,14 @@ that ends it and the recovery after:
 
 **Reading only** — no run on disk separates these:
 
-- the scoring arithmetic itself. East Indies' AI has exactly two goods in
-  `new_rares` and one of them is in its own region, so the pick is
-  `300 > 190` and any of the three terms could be wrong without moving it.
-  The `−10` step needs a third good; the danger term needs a war; the
-  floor needs both.
+- ~~the scoring arithmetic itself … the `−10` step needs a third good~~ —
+  **the third good arrived on 2026-09-04** (§2.2.2). Great Lakes' AI holds
+  three, all in its own region, and the original picks the **first**: the
+  list's order decides, and `run74_s_window_is_where_great_lakes_merchant_turns`
+  is the assertion. That pins the *ordering* the base encodes and the
+  rotation that keeps it, not the step's size — with the bonus flat, any
+  strictly decreasing base picks the same good, so `−10` itself is still a
+  reading. The danger term needs a war; the floor needs both.
 - the three object searches' *shape*. The second's `orders_x/y` measure is
   diff-backed (§2.2.1) — it is the whole of the second merchant's pick —
   but all three answer "nothing" on run54's frame 6354, so the reading is
@@ -406,6 +462,15 @@ that ends it and the recovery after:
 
 ## 7. What is not established
 
+- **The order two goods first seen in the *same* start-of-game reveal take
+  in `new_rares`** (§2.2.2). `Sim::seed_new_rares_from_fog` walks the
+  installed fog grid row-major; the original walked whichever sweeps
+  revealed those cells, in whatever order `Game::init` ran them. The base
+  falls ten a slot, so the two orders can pick different rares — but no
+  capture on disk has a leader with two such goods (Great Lakes' AI has
+  one, East Indies' none), and a snapshot cannot carry the answer. What
+  would settle it is a capture whose start block shows a leader with two
+  already-seen rares, and then its merchant's destination.
 - **`detect_unit_collision`, the third test of `find_merchant_spot`, is not
   asked.** This crate's is `&mut` — it writes the `collide_o`/`collide_who`
   bookkeeping every path out of the move step depends on — and a read-only

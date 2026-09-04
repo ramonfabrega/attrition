@@ -4032,3 +4032,59 @@ draws here against the original's 1,535. The `callwin` covering
 `[5563, 5581]` carries `astar_caravan_road`, `valid_roadcoord` and
 `calc_road_cost` for exactly that search, node for node — so the successor
 item's oracle was taken by the same run, before the item existed.
+
+## run74 — the cheap window, and the rare the harness never offered (2026-09-04)
+
+Great Lakes' word was **5786** and the draw was a single
+`Guy::set_anim+0x97a < Guy::do_turn+0x4a < Unit::move_step+0x389` — the
+**far** turn-in-place arm, whose idle roll only a guy with `guy_flags & 8`
+and no `CHAR_TURN_RIGHT` in its packet ever pays. It is the only turn draw
+either side spends in the whole 5,800 frames. Six units were moving on that
+frame and exactly one **packs**, so the unit was named before the run was
+booked: the AI's Merchant `1/24`, `docs/ANIM.md` §4.8's own row.
+
+**The window is the cheap one, and that is the point.** The question was a
+position, a facing and a path stack, all of which `UNITS=3` writes, so
+`frame_window` narrows run33's ordinary `[End Frame]` detail to
+`[5700, 5800)` instead of turning `DUMP_ALL` on:
+
+    DETAIL_END=MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,DEATHS=1,LEADERS=1 \
+    FRAME_WINDOW="5700 5800" SETTLE_MIN=14000000 POLL_MAX=200 \
+    TRACE_COVER=$'cover=1\nwindow=5699-5800\ncallwin=5699-5800' \
+    zsh tools/gamelog/longtrace.sh 74 5800 greatlakes-merchantturn 14
+
+**Three minutes and 31 MB** against run73's thirty-three and 1.05 GB, for a
+window six times as long — the run-up costs nothing at all, so the game
+reaches 5,700 in under a minute. 101 frame blocks.
+`rngcmp.py rontrace-run53.log rontrace-run74.log`: **5,801 frames, zero
+differing**. `settle_min` is the one number that needs care: this map's
+start dump is 10.9 MB at this detail and nothing grows until the window, so
+the default 10 MB floor would call the quiet run-up a settled run — 14 MB
+sits above the start dump and below the finished file.
+
+**What it settled, in one field.** The two merchants were walking to
+**different rares**: the original's order is `MOVE_TO (40344, 14232)` on a
+seven-node path north-east, this crate's `(31800, 21816)` on a sixteen-node
+path across the map. `Unit::think_merchant` scores `LeaderData::new_rares`
+with `base = 200 − 10 · position`, and the original's list held three goods
+where this crate's held two — the missing one first, and so the winner. It
+is the harness's, not the simulation's: `build_sim` *installs* the dump's
+`seen2` grid, and `Sim::reveal_fog` is reached only from `World::set_seen`
+answering that `seen2` **changed**, so every offer the original made before
+the block was written was skipped, unrecoverably. `docs/ECONOMY.md`'s "The
+rares a leader has seen" had said "recorded during `Setup`, before frame 0"
+since 2026-09-02; nothing acted on it.
+`Sim::seed_new_rares_from_fog` replays them. Great Lakes' word **5786 →
+6080**, and the window's hundred blocks carry no order, path or angle
+disagreement at all.
+
+**The stall that cost four launches, and it was a permission after all.**
+`wineserver`'s main thread sat in `open()`, 1770 samples of 1770, with the
+game at 0.1 % CPU and `waitwin.sh` spinning — run72's "cold bottle"
+signature. It was **TCC**: the bottle's
+`drive_c/users/crossover/Documents` is a symlink to `~/Documents` and the
+game opens `My Documents\My Games` at startup, so a Documents prompt raised
+earlier in the session by an unrelated `ls` blocked every launch behind it.
+`log show --predicate 'subsystem == "com.apple.TCC"'` showed **no denial**,
+because an unanswered prompt neither denies nor returns — the tell is the
+silence plus the blocked `open()`, not a `denied` line.

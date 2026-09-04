@@ -15310,3 +15310,82 @@ Unit::move_step+0x389` — a third draw the original spends and this crate
 does not, on a guy turning inside a move step. Two draws here against
 three. It is `Guy::do_turn`, and it is the same family as item 205's, one
 call site over.
+
+## 2026-09-04 — item 207: the rare the harness never offered (Great Lakes 5786 → 6080, Opus)
+
+**Booked as a turn, settled as a destination.** The word was 5786 and the
+draw was one `Guy::set_anim+0x97a < Guy::do_turn+0x4a <
+Unit::move_step+0x389` — `move_step`'s **far** turn-in-place arm, whose
+idle roll is only ever paid by a guy that carries `guy_flags & 8` and has
+no `CHAR_TURN_RIGHT` in its packet. It is the **only turn draw either side
+spends in the whole 5,800 frames**, and that rarity is what named the unit
+before anything was captured: of the six units moving on 6080's predecessor
+frame, exactly one type **packs**, and `docs/ANIM.md` §4.8's own table has
+the row — `MERCHANT` packs, names no turn, carries the bit anyway. The AI's
+Merchant `1/24`, born on 5753.
+
+**What the reading got right, and where it stopped.** Off the disassembly:
+`005fb24c` and `005fb256` both jump forward to `5fb2d2`, so `+0x3b6` is the
+near arm and `+0x389` the far one — the assignment §4.8 already had, now
+read off the listing rather than the decompiler's line order. The far arm
+wants 45° of residual turn and a Manhattan distance past two tiles (the
+Merchant is land and not a `VEHICLE`, so the 80° branch is not its). This
+crate's Merchant pops its world-grid waypoint `(44088, 17208)` on 5781 —
+`manh` 377 against that node's `tolerance` 384 — swings 49.25° and is left
+owing **43.93°**, one degree and change under the gate. Two readings fitted
+that and no capture on disk separated them, so a capture was booked.
+
+**run74 is the cheap window, and it is the run this project should have
+been taking all along.** The question was a position, a facing and a path
+stack, all of which `UNITS=3` writes, so `frame_window` narrowed run33's
+ordinary detail to `[5700, 5800)` rather than turning `DUMP_ALL` on: three
+minutes and 31 MB, against run73's thirty-three and 1.05 GB for a window
+six times shorter. 5,801 frames, zero differing against run53's trace.
+
+**And the answer was not the turn at all.** The two merchants are walking
+to **different rares** — `MOVE_TO (40344, 14232)` on seven nodes there,
+`(31800, 21816)` on sixteen here. `Unit::think_merchant` scores
+`LeaderData::new_rares` at `200 − 10 · position`, so with a flat region
+bonus the list's *order* is the whole pick; the original's list held three
+goods and this crate's two, and the missing one was at the front.
+
+**The cause is in the harness, and the document had already written the
+sentence nobody acted on.** `Sim::reveal_fog` has exactly one caller —
+`World::set_seen` answering that `seen2` **changed** — so a good is offered
+to a leader once for the life of a game. `rondata::diff::build_sim`
+*installs* the dump's `seen2` grid instead of walking the sweeps that
+produced it, so every offer the original had made before the block was
+written was skipped, and skipped for good: those cells now read as seen and
+`set_seen` can never answer true for them again.
+`docs/ECONOMY.md`'s "The rares a leader has seen" has said "a rare under
+the **start** fog is recorded during `Setup`, before frame 0" since
+2026-09-02. `Sim::seed_new_rares_from_fog` replays those reveals once, over
+the installed grid, after the goods and the leaders' `human` bits are in —
+the three things `Leader::new_rare` reads.
+
+**What it is worth.** Great Lakes' word **5786 → 6080**; East Indies
+unmoved at 6739. run74's hundred blocks carry **no order, path or angle
+disagreement at all**, and one unit off position on the closing block
+alone. It also gives the merchant's score its **third rare** — East Indies'
+AI has only ever had two, so `docs/MERCHANT.md` §6 had the `−10` step down
+as reading-only; the ordering it encodes now has an oracle, though the
+step's size still does not.
+
+**The lesson, and it is a new one.** The last three items were the working
+agreement's "the finding is not in the mechanic the item named". This one
+is a level up: **the finding was not in the simulation.** A harness that
+starts from a snapshot owes the simulation every irreversible event the
+snapshot is downstream of, and a once-per-game offer gated on a *change* is
+exactly that shape — install the state and the event is gone, silently, for
+the rest of the run. Two things follow. The general one: grep for the other
+once-per-game gates a dump install can swallow. The narrow one, which is
+now `docs/MERCHANT.md` §7: the replay walks the fog grid row-major where
+the original walked its sweeps, so two rares first seen in the *same* start
+reveal would be ranked differently — a snapshot cannot carry that back, and
+no capture on disk has a leader with two.
+
+**What 6080 is.** The AI's scout `1/0` spends **41 draws** the original
+does not — twelve `Unit::think_scout+0x436`, six `+0x458`, twenty-one
+`+0x64c` and two `Unit::do_idle+0x7d` — while the original's frame is birds
+and farms alone. It re-thinks an explore where the original's scout does
+not, and `docs/SCOUT.md` §3 is the whole of it.

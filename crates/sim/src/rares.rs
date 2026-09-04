@@ -219,6 +219,58 @@ impl Sim {
         self.new_rare(who, gi);
     }
 
+    /// **Replay the start-of-game rare reveals over an installed fog
+    /// grid** — the reconstruction a harness owes a simulation it starts
+    /// from a snapshot rather than from `Game::init`.
+    ///
+    /// [`Sim::reveal_fog`] is reached from one place, `World::set_seen`
+    /// answering that `seen2` **changed**, so a good is offered to a
+    /// leader once for the life of a game. A harness that *installs* the
+    /// dump's `seen2` instead of walking the sweeps that produced it
+    /// therefore skips every offer the original had already made when the
+    /// block was written, and `new_rares` starts empty where the
+    /// original's already holds the rares the leader had seen. Nothing
+    /// downstream can recover them: the cells are seen, so `set_seen` will
+    /// never answer true for them again.
+    ///
+    /// That is what sent Great Lakes' AI Merchant to the wrong rare.
+    /// `1/24` is born on 5753 and `think_merchant` scores `new_rares`; the
+    /// original's list holds the `SILK` at `(40320, 14208)` — seen at
+    /// game start, so first in the list and worth the full 200 — and this
+    /// crate's held only the two goods a unit walked past *during* the
+    /// run, so it picked the one at `(31800, 21816)` and set off
+    /// south-west across the map (`docs/MERCHANT.md` §2.2, item 207).
+    ///
+    /// **The order is the grid's, not the sweep's**, and that is the one
+    /// thing this cannot reconstruct: `new_rare` appends, and the score's
+    /// base falls ten a slot, so two goods first seen in the same
+    /// start-of-game reveal would be ranked by fog-cell order here and by
+    /// the reveal's own order there. Captures so far carry at most one
+    /// such good a leader, so the difference has never been observable;
+    /// `docs/MERCHANT.md` §7 keeps it as an open question rather than a
+    /// claim.
+    pub fn seed_new_rares_from_fog(&mut self) {
+        if !self.world.has_fog() {
+            return;
+        }
+        let (fw, fh) = (self.world.fog_xs(), self.world.fog_ys());
+        for fy in 0..fh {
+            for fx in 0..fw {
+                let Some(bits) = self.world.seen2(fx, fy) else {
+                    continue;
+                };
+                if bits == 0 {
+                    continue;
+                }
+                for who in 0..self.players.len().min(8) {
+                    if bits >> who & 1 != 0 {
+                        self.reveal_fog(fx, fy, who as Player);
+                    }
+                }
+            }
+        }
+    }
+
     /// `Leader::new_rare@006d9e70`: record a seen good on this leader and
     /// on every ally that can still be told about it.
     ///

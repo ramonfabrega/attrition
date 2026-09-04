@@ -915,6 +915,20 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
             alive: g.flags & 1 != 0,
         });
     }
+    // **The reveals the dump's own `seen2` stands in for.** The fog grid
+    // is installed rather than swept, so every `reveal_fog` the original
+    // had already made before the block was written is missing — and with
+    // it every rare already in the leader's `new_rares`. Replayed here,
+    // once, after the goods are in and the leaders' `human` bits are set,
+    // because `Leader::new_rare` reads both (item 207,
+    // `sim::Sim::seed_new_rares_from_fog`).
+    sim.seed_new_rares_from_fog();
+    let seeded: usize = (0..players).map(|w| sim.ai[w].new_rares.len()).sum();
+    if seeded > 0 {
+        notes.push(format!(
+            "rares: {seeded} already-seen good(s) replayed into new_rares"
+        ));
+    }
     if !init.goods.is_empty() {
         notes.push(format!(
             "goods: {} from the dump, {} linked to a cell{}",
@@ -2877,6 +2891,12 @@ pub fn borrow_from_siblings<'a, 'b: 'a>(init: &mut Initial<'a>, siblings: &[&Ini
 /// `RON_DEBUG_UNIT=<who>/<o>@<lo>-<hi>` — one unit's position, orders and
 /// path over a window of frames, on **any** capture [`run_traced`] drives.
 ///
+/// Either half of `<who>/<o>` may be `*`. `*` in the object slot prints
+/// **every unit that is moving** — one whose current order is a move, or
+/// which still holds a path — because "who moved on this frame" is the
+/// question a one-draw turn or step divergence asks first, and answering
+/// it by guessing unit numbers costs a run apiece (item 207).
+///
 /// The shape is run54's own probe (`docs/JOURNAL.md`, item 175), which was
 /// welded into that one test's hand-rolled tick loop; the third capture
 /// to want it graduates it here. run54's keeps its own copy because it
@@ -2889,9 +2909,13 @@ fn debug_watch(built: &Built, frame: i64) {
         let (u, w) = v.split_once('@')?;
         let (who, o) = u.split_once('/')?;
         let (lo, hi) = w.split_once('-')?;
+        let num = |s: &str| match s.trim() {
+            "*" => Some(None),
+            n => n.parse::<i64>().ok().map(Some),
+        };
         Some((
-            who.trim().parse::<i64>().ok()?,
-            o.trim().parse::<i64>().ok()?,
+            num(who)?,
+            num(o)?,
             lo.trim().parse::<i64>().ok()?,
             hi.trim().parse::<i64>().ok()?,
         ))
@@ -2901,15 +2925,46 @@ fn debug_watch(built: &Built, frame: i64) {
     if !(lo..=hi).contains(&frame) {
         return;
     }
-    let Some(u) = built
+    let matches: Vec<&sim::Unit> = built
         .sim
         .units
         .iter()
-        .find(|x| x.alive() && i64::from(x.owner) == who && i64::from(x.index) == o)
-    else {
-        eprintln!("  f{frame} {who}/{o} absent");
+        .filter(|x| x.alive())
+        .filter(|x| who.is_none_or(|w| i64::from(x.owner) == w))
+        .filter(|x| match o {
+            Some(n) => i64::from(x.index) == n,
+            // The wildcard's own filter: moving, by order or by path.
+            None => !x.path.is_empty() || x.orders.back().is_some_and(sim::orders::Order::is_move),
+        })
+        .collect();
+    if matches.is_empty() {
+        let (w, n) = (debug_name(who), debug_name(o));
+        eprintln!("  f{frame} {w}/{n} absent");
         return;
-    };
+    }
+    for u in matches {
+        debug_unit(built, u, frame);
+    }
+}
+
+/// `*` or the number, for [`debug_watch`]'s absent line.
+#[cfg(test)]
+fn debug_name(v: Option<i64>) -> String {
+    v.map_or_else(|| "*".to_string(), |n| n.to_string())
+}
+
+/// One line of [`debug_watch`], for one unit.
+///
+/// The type index and its `packs` bit lead the line because together they
+/// are the answer to "could this unit have spent that draw": `packs` is
+/// one of `guy_flags & 8`'s two writers, so a packing type asks
+/// `Guy::do_turn` for a turn animation whatever its art says, and a type
+/// whose packet has no `CHAR_TURN_RIGHT` pays the idle roll instead
+/// (`docs/ANIM.md` §4.8). On the frame Great Lakes' word parted, six units
+/// were moving and exactly one packed.
+#[cfg(test)]
+fn debug_unit(built: &Built, u: &sim::Unit, frame: i64) {
+    let (who, o) = (u.owner, u.index);
     // The **figure clocks** beside the position, which is run54's own
     // probe folded in here: a draw this crate spends in `guys_inc_time`
     // belongs to a guy, not to a unit, and past the last `DUMP_ALL`
@@ -2939,7 +2994,9 @@ fn debug_watch(built: &Built, frame: i64) {
         })
         .collect();
     eprintln!(
-        "  f{frame} {who}/{o} at ({}, {}) ang {} hdg {} path {:?} orders {:?} {}",
+        "  f{frame} {who}/{o} TY {:?} PACKS {:?} at ({}, {}) ang {} hdg {} path {:?} orders {:?} {}",
+        u.ty,
+        u.ty.map(|t| built.sim.unit_types[t].combat.packs),
         u.pos.x,
         u.pos.y,
         u.movement.facing.0,
@@ -11723,6 +11780,124 @@ mod tests {
         assert!(wrong.is_empty(), "run73's clocks parted: {wrong:?}");
     }
 
+    /// **run74 — the Merchant that turns** (2026-09-04, item 207).
+    ///
+    /// run53's game to 5,800 frames with the **cheap** per-frame dump
+    /// narrowed to `[5700, 5800)`, at run33's own `[End Frame]` detail. The
+    /// question is a position, a facing and a path stack, all of which
+    /// `UNITS=3` writes, so this needs no `DUMP_ALL` window and costs 15 MB
+    /// where run73's sixteen frames cost a gigabyte.
+    ///
+    /// Great Lakes' word parts at **5786** on a single draw,
+    /// `Guy::set_anim+0x97a < Guy::do_turn+0x4a < Unit::move_step+0x389` —
+    /// `move_step`'s **far** turn-in-place arm, which spends the idle roll
+    /// for a guy asked for a turn animation its packet does not have. It is
+    /// the only turn draw either side spends in the whole 5,800 frames, and
+    /// of the six units moving on that frame exactly one **packs**, so
+    /// exactly one carries `guy_flags & 8`: the AI's Merchant `1/24`, born
+    /// on 5753. `MERCHANT` is `docs/ANIM.md` §4.8's own row — it packs,
+    /// names no turn in `unit_graphics.xml`, and carries the bit anyway —
+    /// so the unit was named before the capture was booked.
+    ///
+    /// This crate's Merchant never takes either turn arm. It pops the
+    /// world-grid waypoint `(44088, 17208)` on **5781** — `manh` 377
+    /// against that node's `tolerance` 384 — which swings the heading
+    /// 49.25° and leaves 43.93° owed after the frame's turn, 1.07° under
+    /// `move_step`'s 45° gate, so it walks the turn out over 5781–5788
+    /// instead of standing for one frame of it.
+    ///
+    /// Driven through [`run_traced`], so this is the whole record and not
+    /// the merchant's: positions, angles, order lists, path stacks,
+    /// `mylos`, the packed bit, the collision block and the buildings, on
+    /// every frame the window carries.
+    #[test]
+    fn run74_s_window_is_where_great_lakes_merchant_turns() {
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(tr)) = (
+            dump("gamelog-run74-greatlakes-merchantturn.txt"),
+            trace("rontrace-run74.log"),
+        ) else {
+            eprintln!("skipping: no run74 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = std::fs::read_to_string(&path).unwrap();
+        let log = Log::parse(&text);
+        let texts = sibling_texts();
+        let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
+        let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+        let refs: Vec<&Initial> = inits.iter().collect();
+        let report = run_traced(&loaded, &log, Tuning::RON, None, None, &refs, Some(&tr)).unwrap();
+        let blocks: Vec<i64> = report
+            .frames
+            .iter()
+            .filter(|f| f.compared > 0)
+            .map(|f| f.frame)
+            .collect();
+        assert!(
+            blocks.first().is_some_and(|&n| n <= 5_701)
+                && blocks.last().is_some_and(|&n| n >= 5_790)
+                && blocks.len() >= 90,
+            "run74's window, as the frames that carry a unit record: {:?}..{:?} \
+             ({} blocks) — a file with fewer is the wrong file",
+            blocks.first(),
+            blocks.last(),
+            blocks.len()
+        );
+
+        // Every unit that ever leaves the original's point, and the frame it
+        // does — the Merchant's own question, and everybody else's beside it.
+        let parted: std::collections::BTreeMap<(i64, i64), i64> = report
+            .first_divergence_by_unit()
+            .into_iter()
+            .map(|(w, o, f)| ((w, o), f))
+            .collect();
+        let orders: usize = report.frames.iter().map(|f| f.order_compared).sum();
+        let angles: usize = report.frames.iter().map(|f| f.angle_compared).sum();
+        eprintln!(
+            "run74: {} unit fields, {orders} order/path fields, {angles} angles \
+             over {} blocks; {} unit(s) ever off position",
+            report.frames.iter().map(|f| f.compared).sum::<usize>(),
+            blocks.len(),
+            parted.len()
+        );
+        for (&(who, o), &frame) in &parted {
+            eprintln!("  {who}/{o} parts at {frame}");
+        }
+        for d in report
+            .frames
+            .iter()
+            .flat_map(|f| f.order_diverged.iter())
+            .filter(|d| (d.who, d.o) == (1, 24))
+            .take(24)
+        {
+            eprintln!("  order {}/{} f{}: {:?}", d.who, d.o, d.frame, d.what);
+        }
+        for d in report
+            .frames
+            .iter()
+            .flat_map(|f| f.angle_diverged.iter())
+            .filter(|d| (d.who, d.o) == (1, 24))
+            .take(8)
+        {
+            eprintln!("  angle {d:?}");
+        }
+        for d in report
+            .frames
+            .iter()
+            .flat_map(|f| f.diverged.iter())
+            .filter(|d| (d.who, d.o) == (1, 24))
+            .take(8)
+        {
+            eprintln!("  pos {d:?}");
+        }
+        assert!(
+            orders >= 1_000 && angles >= 1_000,
+            "the window's own rows: {orders} order fields and {angles} angles — \
+             a capture below `UNITS=3` is the wrong file"
+        );
+    }
+
     /// **run65 — the caravan's turn out of its own city, every unit, every
     /// frame** (2026-09-02).
     ///
@@ -13455,7 +13630,37 @@ mod tests {
     /// starts (`docs/ROADS.md` §9.5). It is also the last of run72's three
     /// unexplained mask residues, 770 frames earlier. With it the word runs
     /// to **5786**, by draw and by sequence.
-    const LONG_WORD_GREAT_LAKES: i64 = 5786;
+    ///
+    /// It was **5786** for a session, and the draw was the **only turn
+    /// either side spends in 5,800 frames**:
+    /// `Guy::set_anim+0x97a < Guy::do_turn+0x4a < Unit::move_step+0x389`,
+    /// the far turn-in-place arm, whose idle roll only a guy with
+    /// `guy_flags & 8` and no `CHAR_TURN_RIGHT` in its packet ever pays.
+    /// Six units were moving and exactly one **packs** — the AI's Merchant
+    /// `1/24`, `docs/ANIM.md` §4.8's own row — so the unit was named before
+    /// run74 was booked.
+    ///
+    /// The turn was a symptom. run74's window puts the two merchants side
+    /// by side and they are **walking to different rares**: the original's
+    /// order is `MOVE_TO (40344, 14232)` on a seven-node path north-east
+    /// and this crate's `(31800, 21816)` on a sixteen-node path across the
+    /// map. `think_merchant` scores `LeaderData::new_rares`, and this
+    /// crate's list held two goods where the original's held three.
+    ///
+    /// The missing one is the harness's, not the simulation's.
+    /// `Sim::reveal_fog` is reached from one place — `World::set_seen`
+    /// answering that `seen2` **changed** — so a good is offered to a
+    /// leader once for the life of a game; and [`build_sim`] *installs*
+    /// the dump's `seen2` rather than walking the sweeps that produced it.
+    /// Every offer the original had already made when the block was
+    /// written was therefore skipped, unrecoverably: the cells are seen,
+    /// so `set_seen` can never answer true for them again. The `SILK` at
+    /// `(40320, 14208)` was seen at game start, so it is first in the
+    /// original's list and worth the full 200 against the 190 and 180 of
+    /// the two this crate had. `Sim::seed_new_rares_from_fog` replays
+    /// those reveals once, after the goods and the leaders' `human` bits
+    /// are in, and the word runs to **6080**.
+    const LONG_WORD_GREAT_LAKES: i64 = 6080;
 
     /// The frame the AI's library takes its **Coinage** job on, and the
     /// frame run58's `QUEUE` record used to part on: twenty-four rows of
