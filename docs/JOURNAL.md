@@ -16268,3 +16268,11 @@ the game entirely. One symlink (`tools/gamelog/prefix.sh`) makes every
 CrossOver-era absolute path valid rather than rewriting inis the game
 rewrites itself.
 
+**And the lane paid for itself the same hour: run76 is taken.** The capture
+223 has been waiting on since the licence expired ran on the new stack in
+**five minutes** — `[6640, 6870)`, 231 frame blocks, 62 MB, 77 unit records
+a frame carrying `orders_x` and `collide_o/who/frame`, and `rngcmp` against
+run53 clean at **6871/6871**. So the free lane is not merely equivalent, it
+is fast enough that the run-up to frame 6,870 is three minutes of wall
+clock. The next session opens on data rather than on a runner.
+

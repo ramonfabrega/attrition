@@ -930,5 +930,8 @@ check: python3 tools/gamelog/rngcmp.py rontrace-run53.log rontrace-run76.log
 # game's window existed, because CrossOver's licence for the `ron` bottle
 # had expired — the only window the visible wine app had was titled
 # `Expired Bottle: ron`. `docs/ORACLE.md`, "The window nobody can see".
-# **Unblocked the same day**: the lane moved to free Wine + DXVK-macOS
-# (queue 225), and the stanza runs with `cover` dropped to 0 above.
+# **Unblocked and TAKEN the same day**: the lane moved to free Wine +
+# DXVK-macOS (queue 225), and the stanza ran with `cover` dropped to 0
+# above — five minutes, 62 MB, 231 frame blocks over [6640, 6870), and the
+# check came back 6871/6871 identical against run53. 77 unit records a
+# frame carry `orders_x`, `collide_o/who/frame`.

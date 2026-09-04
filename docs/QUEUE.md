@@ -16,26 +16,26 @@ lines, or lets the handoff pass 32.
 Great Lakes 6848, East Indies 7448.** What moved is that captures are
 possible again, and proven identical to the ones already on disk.
 
-- **The lane is off CrossOver and driven end to end.** Free WineHQ Stable
-  11.0 + DXVK-macOS. run903 — 400 frames, MAP_STYLE 14, seed 12345 — is the
-  **same game** as the paid stack's: `rngcmp` 401/401 identical against
-  run53, `samegame` 400/400 against run10. No licence.
-  `tools/gamelog/prefix.sh` prepares the prefix, `winelaunch.sh` is the one
-  launch line, `focus.sh` the one window query.
-- **The blocker was one call, not a renderer.** `d3dgl.dll` imports
-  **d3d11** and asks for a single feature level, `0xa000` = 10_0; wined3d
-  cannot get a 3.2+ GL context on macOS and stock DXVK skips Apple's GPU
-  for want of `geometryShader` (ORACLE, "Off CrossOver"). GPTK was the
-  wrong answer — its D3DMetal ships **x86_64 only** and the game is PE32.
+- **The lane is off CrossOver and driven end to end.** Free WineHQ 11.0 +
+  DXVK-macOS; run903 is the **same game** as the paid stack's (`rngcmp`
+  401/401 against run53, `samegame` 400/400 against run10). No licence.
+  `prefix.sh` prepares the prefix, `winelaunch.sh` launches, `focus.sh`
+  finds the window. **223's run76 is taken on it**, in five minutes.
+- **The blocker was one call.** `d3dgl.dll` imports **d3d11** and asks for
+  one feature level, `0xa000` = 10_0; wined3d gets no 3.2+ GL context on
+  macOS and stock DXVK skips Apple's GPU (`geometryShader`) — ORACLE, "Off
+  CrossOver". GPTK's D3DMetal is **x86_64 only**; the game is PE32.
 - **`7BF21139` is real and `cover=0` clears it.** Item 226; the price is
   function coverage, which is the queue of blind readings.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w7448 of 24,000 · GreatLakes w6848 of 24,000
 
-**Opener (Opus):** `223: run76 was launched at the end of the last session —
-check it landed (rngcmp against run53 should be 6871/6871), then read the
-archers' march out of the [6640, 6870) window.`
+**Opener (Opus):** `223, and run76 is already on disk and checked —
+6871/6871 identical against run53, 231 frame blocks over [6640, 6870), 77
+unit records a frame with orders_x and collide_o/who/frame. Read the
+archers' march out of it: why the squad's leading edge reaches (890, 511)
+twelve frames before the original's does.`
 
 ## The queue
 
@@ -45,8 +45,9 @@ unless a better order is obvious — and say so. Numbers are stable; the
 journal is indexed by them.
 
 223. **Great Lakes 6848 is the marching squad, twelve frames ahead of the
-    original's** — not the predicate (COLLISION §9). **Run 76 is the
-    capture**, booked, read-out written; 225 unblocked it. 7448 (214) is the
+    original's** — not the predicate (COLLISION §9). **Run 76 is taken**
+    (2026-09-04, the new lane): `[6640, 6870)`, 77 unit records a frame,
+    6871/6871 against run53. Read it. 7448 (214) is the
     same shape. **Takes 219**, `do_group_move`'s four seams (ORDERS §15):
     the group's speed pair and its cap — which 223 points at — the flock
     an invalid slot near an ocean cell adds (**one sync draw**, the one
