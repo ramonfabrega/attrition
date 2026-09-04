@@ -2963,6 +2963,10 @@ stack under it, and `do_move` no longer re-plans it a frame later. The `angles[i
 Line leans nowhere), so the byte's **sign** rides on the listing alone
 (`docs/GROUPS.md` §13).
 
+### 8.6 `GroupMoveOrder`, landed — 2026-09-04
+
+§8.4's verdict is overturned for an **army's** group: see §15.
+
 ---
 
 ## 9. The start of a game
@@ -3828,3 +3832,87 @@ need; **`gather_from`, the `GATHERPOINT` list and `BUILDQUEUE` need
    right-click attack shows the `ATTACKORDER` keys, `mandatory 1`, `new_ord
    1` then `0` after the first strike; a guard's `retry` in `6..8` after each
    reposition.
+
+## 15. `GroupMoveOrder`, landed — 2026-09-04
+
+~~§8.4's verdict~~ — **overturned for an army's group**, and the score is
+what overturned it. Great Lakes' word sat at 6650 because the original
+spends **one** `Unit::do_move+0xe84` for a marching squad and this crate
+spent three: N independent moves means N `do_move`s, and the original runs
+`do_move` for the **leader alone**. So `GroupMoveOrder` is now a real
+order, and `Unit::do_group_move@005e79a0` is its per-frame half.
+
+**Where the line is.** A group's membership here is the **army's**
+(`docs/GROUPS.md` §1) — there is no group pool, and every unit in every
+capture on disk dumps `group −1` unless it is in an army. That is not a
+gap in the port so much as the original's own first line:
+`do_group_move`'s opening test is `if (this->group == −1)
+ungroup_move_order(...)`, which turns the order back into a plain move on
+the spot. So a **player's selection keeps §8.4's model** — N independent
+moves, unchanged — and an **army's group** takes real group orders. §8.2's
+own exemptions (modern infantry, a non-AI `role & 0x10` type, fewer than
+two, `unit_masks & 4`, sea, form 9) sit on top of that; `unit_masks & 4`
+is `Unit::set_in_danger@005fcfb0` and is a seam here.
+
+**The order** (`Unit::add_group_move_order@005e4710`) is
+`add_move_facing_order`'s record plus five fields — `oxx`/`whose` the
+leader, `id`, `form_id`, `group_angle` — and `in_group`, which the adder
+does **not** write: the order comes out of the pool cleared, so it starts
+0. `id` is `(group.id + frame × 10) × 100 + group.order_num`; this crate
+has no group pool, so the army's slot stands in for `group.id`.
+
+**The per-frame half**, and the listing corrects the outline §8.3 was
+written from in three places:
+
+- **The leader** (`5e7a10`): the attack hand-off every 32nd frame, then
+  `do_move`. Still going and still holding the same order →
+  `Group::update_positions`. Gave up → the attack hand-off, else ungroup.
+- **`Group::update_positions@00713810` does not rotate by the leader's
+  heading.** `713844` loads `UnitData::angle` as the *default*, and
+  `7138e1`–`71390f` replaces it with `find_angle(order.waypoint −
+  leader.pos)` whenever the leader's head order is a move that **has** a
+  waypoint (`MoveOrder +0x10 dest`). The block points where the leader is
+  *going*, not where it is *facing*, and the two come apart on every frame
+  of a turn.
+- **The follower** (`5e7c8c`). The leader must be alive, on the map, in my
+  group and holding a group order with my `id`; `form_id` is rewritten
+  from `list` every frame. Lost, and **more than `0x5ff` from the order's
+  own destination** — my slot, `5e7ef2` reads `MoveOrder +0x4`/`+0x8`, not
+  the leader's cell — → `refresh_group_order`; otherwise ungroup.
+- **The formation's end** is not "the slot reached". `5e80fc` unwinds my
+  path to its `FINAL` entry and compares two distances: `d_goal − d_slot ≤
+  0x60`, or `d_goal ≤ 0x180`. So the formation dissolves when my slot buys
+  me almost nothing over walking straight at the goal, or the goal is
+  close — and each member then finishes as a plain move.
+- **Where to walk**: straight to my slot when the leader is my own captain
+  (`ObjectData::get_captain`, `5e812e`) or when the bearing to the slot is
+  within **a third of a turn** of the bearing to the **goal** (`5e8167`'s
+  `0x55555555`, and the fold is a `not`, so the window is one unit wider
+  on one side); else, with `in_group` already set and the leader holding a
+  path, the leader's next waypoint plus my offset; else the midpoint of
+  slot and goal.
+- **The speed**: agreeing, `get_speed(x, y, 1) + min(v / 3, 9)`;
+  disagreeing, `get_speed(x, y, 0) / 2`. The group's `speed`/`new_speed`
+  pair is still a seam — `UnitData::get_speed`'s group cap is one here
+  already, so the pair has no reader.
+- **A slot the world refuses is not walked into**: `5e838a`'s
+  `invalid_loc` on the target ungroups instead of stepping. The flock of
+  birds an invalid slot within `0x300` of an ocean cell adds — **one
+  sync-stream draw** — and `cavarch_fight` are seams.
+
+`ungroup_move_order@005fd140` walks **up to the captain and back down every
+subordinate**, so one member's ungroup is its whole squad's; a member that
+is not the leader also loses `flag::PATHED` and its path, so the group's
+shared plan dies with the formation.
+
+**And one thing outside this document had to move with it.**
+`docs/COLLISION.md` §4.3's **group** arm — two members of one group
+walking a `GROUP_MOVE`/`GROUP_ATTACK_TO` are a *nudge*, not a collision —
+was a seam for want of a `UnitData::group` to ask about. With one, it is
+`Sim::same_group_soft`, and without it the squad stood blocked on its own
+leader at 6716.
+
+**What it is worth.** Great Lakes 6650 → **6736**, and 6939 → 7148 of
+24,000 frames draw for draw. What stands at 6736 is 6612's question again:
+six draws opening with `Guy::init_real+0x52`, another three-object unit
+arriving that this crate does not make.

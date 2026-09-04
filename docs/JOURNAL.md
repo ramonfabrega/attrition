@@ -15750,3 +15750,82 @@ mechanic in one line where a reading of `Build::activate`'s two thousand
 lines would have taken an hour to reach the same row. A coverage list is an
 oracle for "what kind of thing happened", and it had never been used that
 way.
+
+## 2026-09-04 — item 217: the order a squad marches under (Great Lakes 6650 → 6736, Opus)
+
+The item asked who gives the newborn archer squad its group attack-to on
+frame 6650. Both halves of the answer turned out to be mechanics, and the
+second was the bigger one.
+
+**Who gives it.** `Army::do_forming` — but the army had to have the squad
+first, and `Unit::add_to_army` has six callers. The trace named the one
+that matters from the other side: `Unit::think_attack@005f5a80` is entered
+for the *first time in 24,000 frames* on 6612 of run53 and on 10187 of
+run54, and `Unit::add_to_army` on 6612 and 5823. Its **head** — ahead of
+its own target search — is the site, and no capture had ever reached it.
+
+The head is five gates, and the listing settles two things the decompiler
+does not. The weak-region flag the decompile prints as a sixth gate is
+**dead**: every path through the block leaves `find_melee_target`'s
+argument at −1, so the whole `range` variable exists to gate the
+`add_to_army` call and nothing else. And the `find_city` whose answer looks
+like it feeds the own-territory flag is a **dead call**: `local_10` is
+written 1 at `5f5ce8`, before the call at `5f5cef`, and `eax` is never
+read. What the head actually turns away, once a unit is AI-driven and
+military, is a **damaged foot or mounted unit standing inside one of its
+own cities' radius** — it stays to heal.
+
+**Which units enter `think_attack` at all** cost a run of its own:
+`type.attack != 0` **and** `role & 0x10000`. Taking only the first put
+run53's woodcutters in an army on frame **307** and dropped the word by six
+thousand frames — the same mistake, in a different function, that item 68
+had already made once with the think tail.
+
+With the join, the squad lands in leader 1's **army 1** — every army being
+empty, `find_local_army`'s `90,000,000` and its `<=` hand the last valid
+slot the win — whose tick is `frame ≡ 250 (mod 256)`, which is 6650.
+
+**And then three archers spent three draws where the original spends one.**
+`Group::action_siege_attack_to` orders all three out; the original runs
+`Unit::do_move` for the group's **leader alone** and steers the followers
+off the leader's own position with `move_step`. `docs/ORDERS.md` §8.4's
+"N independent moves plus an offset" verdict had stood for two weeks; the
+score is what overturned it, and only for an **army's** group. A player's
+selection has no persistent group here — and that is not a gap in the port,
+it is `do_group_move`'s own first line: `if (this->group == −1)
+ungroup_move_order(...)`, which turns the order straight back into a plain
+move. So the seam and the mechanic now sit on either side of a line the
+original itself draws.
+
+`GroupMoveOrder` is a real order now (§15), and the listing corrected the
+outline §8.3 was written from in four places: the follower's give-up test
+is `d_goal − d_slot ≤ 0x60 || d_goal ≤ 0x180` against the **goal**, not
+"the slot reached"; the refresh trigger measures `0x5ff` from the order's
+**own destination**, not from the leader's cell; the walk-straight window
+is a **third** of a turn against the bearing to the **goal**, not 60° off
+the leader's heading; and `Group::update_positions` rotates the slot table
+by the bearing to the leader's **waypoint** and not by its heading
+(`713844` loads the heading as the default and `7138e1` replaces it).
+
+**Two more readings moved the number after the mechanic landed.** The
+rotation angle above was worth nothing to the word but 164 frames of
+draw-for-draw agreement. What was worth the word was `docs/COLLISION.md`
+§4.3's **group** arm — two members of one group walking a
+`GROUP_MOVE`/`GROUP_ATTACK_TO` are a *nudge*, not a collision — which had
+been a stated seam for want of a `UnitData::group` to ask about. This crate
+has one now: an army's members are its group. Without it the squad stood
+blocked on its own leader at 6716, and with it the word ran to 6736.
+
+**What it moved.** Great Lakes **6650 → 6736**, by draw and by sequence,
+and 6939 → 7148 of 24,000 frames draw for draw. East Indies unmoved at
+7448, and the other 203 checks unmoved with them. Four tests, each made to
+fail first: the group-order gate, the follower that tracks the leader
+rather than the destination, the ungroup that walks a whole squad, the
+third-of-a-turn window, and the collision arm.
+
+**The lesson.** A seam is a *claim about the port*, and this one had two
+loads on it: "we do not model group moves" was really "we have no group
+pool", which was true of a human's selection and false of an army's. The
+seam had been written when the second half did not exist yet, and nothing
+re-read it when it did. The same sentence appeared in three documents; two
+of them are now split down the line the original draws.

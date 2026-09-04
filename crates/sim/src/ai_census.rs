@@ -1253,6 +1253,7 @@ mod tests {
                 pause: 0,
                 timer: 0,
                 coll: None,
+                group: None,
             }),
         });
 

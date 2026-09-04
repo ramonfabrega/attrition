@@ -193,6 +193,33 @@ pub struct MoveOrder {
     /// collision refused, which `resolve_unit_collision` sidesteps from
     /// (`docs/COLLISION.md` §4.3, §6 step 4). The dump prints the pair.
     pub coll: Option<Pos>,
+    /// `Some` when this is a **`GroupMoveOrder`** rather than a plain
+    /// `MoveOrder` — the order `Group::action_move_near`'s step 6 hands a
+    /// land formation of two or more, and the one `Unit::do_group_move`
+    /// steps (`docs/ORDERS.md` §8.3).
+    pub group: Option<GroupMove>,
+}
+
+/// The fields a `GroupMoveOrder` carries beyond its `MoveOrder` base —
+/// the `GROUPORDER` block's four plus its own `in_group` (`docs/GROUPS.md`
+/// §12.1, `docs/ORDERS.md` §8.3).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct GroupMove {
+    /// `+0x54`/`+0x58 oxx`/`whose` — the **leader** the formation was laid
+    /// out around, which is `find_leader`'s answer and not `list[0]`.
+    pub leader: usize,
+    /// `+0x5c id`, shared by every member's order:
+    /// `(group.id + frame × 10) × 100 + group.order_num`.
+    pub id: i64,
+    /// `+0x60 form_id` — my index into the group's own arrays. Rewritten
+    /// from `list` on every frame the follower arm runs.
+    pub form_id: usize,
+    /// `+0x64 group_angle` — the formation's bearing plus this slot's
+    /// packed byte, the same value the `MoveOrder`'s own angle carries.
+    pub group_angle: Angle,
+    /// `+0x68 in_group` — "I am walking to my slot rather than to a
+    /// waypoint of the leader's".
+    pub in_group: bool,
 }
 
 /// One entry of the unit's path stack.
@@ -363,6 +390,15 @@ impl Order {
 enum Did {
     Nothing,
     Something,
+}
+
+/// `do_group_move`'s angle window (`5e815d`–`5e816d`): the wrapped
+/// difference folded into half a turn and compared against `0x55555555` —
+/// **a third of a turn**, 120°, not the quarter `reversing` uses.
+pub(crate) fn within_third(a: Angle, b: Angle) -> bool {
+    let d = (a.0 as u32).wrapping_sub(b.0 as u32);
+    let d = if d > 0x8000_0000 { !d } else { d };
+    d < 0x5555_5555
 }
 
 /// `ACCEL_CONSTRUCT`-independent literals of the mechanic, position units.
@@ -829,6 +865,28 @@ impl Sim {
         facing: Option<bool>,
         pathed: bool,
     ) {
+        self.add_move_facing_order_grouped(u, to, kind, pos, action, angle, facing, pathed, None);
+    }
+
+    /// `Unit::add_group_move_order@005e4710` and `add_move_facing_order`
+    /// in one — the two write the **same** record, and the group adder
+    /// adds the `GroupOrder` base's five fields on top (`docs/GROUPS.md`
+    /// §6.6 step 6). It writes the angle a second time, into
+    /// `group_angle`, which is why the two are equal on every record run31
+    /// holds; `pathed` is 1 from both.
+    #[allow(clippy::too_many_arguments)]
+    pub fn add_move_facing_order_grouped(
+        &mut self,
+        u: usize,
+        to: Pos,
+        kind: MoveKind,
+        pos: QueuePos,
+        action: bool,
+        angle: Angle,
+        facing: Option<bool>,
+        pathed: bool,
+        group: Option<GroupMove>,
+    ) {
         let dest = snapped(to);
         let order = Order {
             flags: if action { flag::ACTION } else { 0 } | if pathed { flag::PATHED } else { 0 },
@@ -843,6 +901,7 @@ impl Sim {
                 pause: 0,
                 timer: 0,
                 coll: None,
+                group,
             }),
         };
         self.enqueue(u, order, pos);
@@ -1134,7 +1193,14 @@ impl Sim {
         match self.current_order(u).map(|o| o.body) {
             None => self.do_idle(u, frame),
             Some(Body::Move(m)) => {
-                self.do_move(u, frame);
+                // §8.3: a `GroupMoveOrder` is stepped by `do_group_move`,
+                // which runs `do_move` for the **leader** alone and steers
+                // every follower off the leader's own position.
+                if m.group.is_some() {
+                    self.do_group_move(u, frame);
+                } else {
+                    self.do_move(u, frame);
+                }
                 if m.kind == MoveKind::ExploreTo {
                     self.do_explore_to_tail(u, frame, m.dest);
                 }
@@ -1874,6 +1940,348 @@ impl Sim {
             return Did::Something;
         }
         self.unit_step(u, mo, speed)
+    }
+
+    /// `Unit::do_group_move@005e79a0` (`docs/ORDERS.md` §8.3) — the
+    /// per-frame half of a `GroupMoveOrder`, and the reason a marching
+    /// formation costs the original **one** `do_move` and not one per
+    /// member.
+    ///
+    /// The leader steps a plain move and then rotates the group's slot
+    /// table by its own heading; every follower is steered off the
+    /// leader's *current* position plus its rotated offset, and takes
+    /// `move_step` directly. That difference is the whole of it: three
+    /// archers walking as a squad spend one `Unit::do_move+0xe84` between
+    /// them, where N independent moves spend three.
+    fn do_group_move(&mut self, u: usize, frame: i64) {
+        let Some(Order {
+            body: Body::Move(mo),
+            flags,
+        }) = self.current_order(u).copied()
+        else {
+            return;
+        };
+        let Some(gm) = mo.group else { return };
+        // `if (this->group == -1) ungroup` (`5e79f0`). This crate's group
+        // membership **is** the army's (`docs/GROUPS.md` §1): a unit with
+        // no army is in no group, and its group order degrades on the
+        // spot.
+        let Some(g) = self.group_of(u) else {
+            self.ungroup_move_order(u, gm.id);
+            return;
+        };
+        if gm.leader == u {
+            self.group_move_leader(u, frame, &g, gm);
+        } else {
+            self.group_move_follower(u, frame, &g, gm, mo, flags);
+        }
+    }
+
+    /// `do_group_move`'s leader arm (`5e7a10`–`5e7c6c`).
+    fn group_move_leader(&mut self, u: usize, frame: i64, g: &crate::group::Group, gm: GroupMove) {
+        // Every 32nd frame, phased by `o`, an attacking leader whose
+        // target has come within `0x900` drops the whole group move — the
+        // formation stops marching and starts fighting.
+        if let Some(a) = self.action_of(u)
+            && matches!(self.units[u].orders[a].body, Body::Attack(_))
+            && (frame + i64::from(self.units[u].index)).rem_euclid(32) == 0
+            && let Some(t) = self.units[u].combat.target
+        {
+            let p = self.pos_of(t);
+            let here = self.units[u].pos;
+            if vector_dist(p.x - here.x, p.y - here.y) < 0x900 {
+                self.kill_group_move(g, gm.id);
+                return;
+            }
+        }
+        if self.do_move(u, frame) == Did::Something {
+            // `update_order(this) != param_1` — the move I just stepped is
+            // still the one at the head.
+            if !self.still_group_move(u, gm.id) {
+                return;
+            }
+            // SEAM: the group's `speed`/`new_speed` pair and the `march`
+            // flag `has_general` sets. `UnitData::get_speed`'s group cap is
+            // already a stated seam here ([`Sim::get_speed`]), so the pair
+            // has no reader and is not carried.
+            self.group_update_positions(g, u);
+            return;
+        }
+        // `do_move` gave up. The attack hand-off is a seam
+        // (`Group::distribute_attack`, `Group::action_attack` — no capture
+        // reaches either from here); what is left is the ungroup, which is
+        // what a move that simply ended does.
+        if self.still_group_move(u, gm.id) {
+            self.ungroup_move_order(u, gm.id);
+        }
+    }
+
+    /// `do_group_move`'s follower arm (`5e7c8c`–`5e8660`).
+    fn group_move_follower(
+        &mut self,
+        u: usize,
+        frame: i64,
+        g: &crate::group::Group,
+        mut gm: GroupMove,
+        mut mo: MoveOrder,
+        flags: u8,
+    ) {
+        let _ = frame;
+        let l = gm.leader;
+        // 1. The leader has to still be usable: alive, on the map, in my
+        //    group, and holding a group order with **my** `id` — or a
+        //    `CHANGE_FORM`, which this crate does not model.
+        let lost = !(self.units[l].alive()
+            && self.units[l].on_map
+            && self.army_of(l) == g.army
+            && self.still_group_move(l, gm.id));
+        // 2. `form_id` is rewritten from the list on every frame that
+        //    reaches here (`5e7ea0`). A member the list no longer holds
+        //    loses its group outright.
+        let Some(i) = g.list.iter().position(|&m| m == u) else {
+            self.ungroup_move_order(u, gm.id);
+            return;
+        };
+        if gm.form_id != i {
+            gm.form_id = i;
+            mo.group = Some(gm);
+            self.store_move(u, mo, flags);
+        }
+        if lost {
+            // `LAB_005e7ee2`: more than `0x5ff` from **the order's own
+            // destination** — my slot, not the leader's cell — and I take
+            // the formation over; otherwise the order degrades.
+            let here = self.units[u].pos;
+            if vector_dist(mo.dest.x - here.x, mo.dest.y - here.y) > 0x5ff {
+                self.group_refresh_order(g, u);
+                self.group_rewrite_leader(g, u, gm.id);
+                return;
+            }
+            self.ungroup_move_order(u, gm.id);
+            return;
+        }
+        // 3. An attacking follower whose target is already in range stops
+        //    marching (`5e8611`).
+        if let Some(a) = self.action_of(u)
+            && matches!(self.units[u].orders[a].body, Body::Attack(_))
+            && let Some(t) = self.units[u].combat.target
+            && self.is_in_range(Obj::Unit(u), t)
+        {
+            self.kill_current_order(u);
+            return;
+        }
+        // 4. My slot this frame: the leader's **current** position plus my
+        //    rotated offset.
+        let Some(slot) = self.group_slot_point(g, l, i) else {
+            self.ungroup_move_order(u, gm.id);
+            return;
+        };
+        // 5. Unwind my path to its goal (`5e8034`): pop entries until one
+        //    carries `FINAL`, keep it, and push it back. An empty stack is
+        //    the original's uninitialised read; the order's own
+        //    destination stands in for it.
+        let mut goal = PathData {
+            to: mo.dest,
+            tolerance: 0,
+            flags: path_flag::FINAL,
+        };
+        while let Some(top) = self.units[u].path.pop() {
+            goal = top;
+            if top.flags & path_flag::FINAL != 0 {
+                break;
+            }
+            if self.units[u].path.is_empty() {
+                goal.flags |= path_flag::FINAL;
+                break;
+            }
+        }
+        self.units[u].path.push(goal);
+
+        let here = self.units[u].pos;
+        let d_slot = vector_dist(slot.x - here.x, slot.y - here.y);
+        let d_goal = vector_dist(goal.to.x - here.x, goal.to.y - here.y);
+        // 6. **The formation is over** when my slot buys me no more than
+        //    `0x60`, or the goal is within `0x180`: the order becomes a
+        //    plain move at the goal (`5e80fc`, `5e8105`).
+        if d_goal - d_slot <= 0x60 || d_goal <= 0x180 {
+            gm.in_group = false;
+            mo.group = Some(gm);
+            mo.has_waypoint = true;
+            mo.waypoint = goal.to;
+            self.store_move(u, mo, flags);
+            self.ungroup_move_order(u, gm.id);
+            return;
+        }
+        // 7. Where to walk. Straight to my slot when the leader is my own
+        //    captain, or when the bearing to the slot is within 120° of
+        //    the bearing to the goal (`5e8167`'s `0x55555555`); otherwise
+        //    off the leader's next waypoint, or the midpoint.
+        let to_slot = find_angle(slot.x - here.x, slot.y - here.y);
+        let to_goal = find_angle(goal.to.x - here.x, goal.to.y - here.y);
+        let straight = self.squad_captain(u) == l || within_third(to_slot, to_goal);
+        let mut disagrees = false;
+        if straight {
+            self.units[u].path.push(PathData {
+                to: slot,
+                tolerance: 0,
+                flags: 0,
+            });
+            mo.waypoint = slot;
+            gm.in_group = true;
+        } else {
+            // `5e8173`: a slot this close is not worth chasing at all.
+            if d_slot < 0x30 {
+                return;
+            }
+            let lead = self.units[l].path.last().copied();
+            match lead {
+                Some(w) if gm.in_group => {
+                    let off = self.armies[g.who as usize].list[g.army.unwrap_or(0)]
+                        .group
+                        .curr[i];
+                    let to = Pos::new(w.to.x + off.x, w.to.y + off.y);
+                    self.units[u].path.push(PathData {
+                        to,
+                        tolerance: 0,
+                        flags: 0,
+                    });
+                    mo.waypoint = to;
+                    disagrees = !within_third(to_slot, self.units[u].movement.heading);
+                    if vector_dist(to.x - here.x, to.y - here.y) < 0x60 {
+                        gm.in_group = false;
+                    }
+                }
+                _ => {
+                    mo.waypoint = Pos::new((slot.x + goal.to.x) / 2, (slot.y + goal.to.y) / 2);
+                    disagrees = true;
+                }
+            }
+        }
+        mo.has_waypoint = true;
+        mo.group = Some(gm);
+        self.store_move(u, mo, flags);
+        if mo.waypoint == here {
+            return;
+        }
+        self.units[u].tolerance = 0;
+        // 8. The speed. A follower walking with the formation is allowed a
+        //    third more, capped at nine; one walking across it takes half.
+        let v = if disagrees {
+            self.get_speed(u) / 2
+        } else {
+            let v = self.get_speed(u);
+            v + (v / 3).min(9)
+        };
+        // 9. **A slot the world refuses is not walked into at all**
+        //    (`5e838a`): the formation gives up and the order degrades,
+        //    which is what keeps a follower from marching into its
+        //    neighbour rather than standing blocked beside it.
+        //
+        //    SEAM: the flock of birds an invalid slot within `0x300`
+        //    Manhattan of an **ocean** cell adds — one sync-stream draw —
+        //    and the `cavarch_fight` call below it.
+        if self.invalid_loc(u, mo.waypoint.tile(), false, false, false, false, false) != 0 {
+            self.ungroup_move_order(u, gm.id);
+            return;
+        }
+        self.unit_step(u, mo, v);
+    }
+
+    /// `ObjectData::get_captain` — the head of `u`'s own squad, up the
+    /// `o_up` chain. `Unit::ungroup_move_order` starts there and walks
+    /// back down, so ungrouping any figure ungroups the whole squad.
+    fn squad_captain(&self, u: usize) -> usize {
+        let mut at = u;
+        while !self.units[at].captain {
+            match self.units[at].o_up {
+                Some(c) if c != at && self.units[c].alive() => at = c,
+                _ => break,
+            }
+        }
+        at
+    }
+
+    /// Is `u`'s head order still a group move carrying `id`?
+    fn still_group_move(&self, u: usize, id: i64) -> bool {
+        self.current_order(u).is_some_and(|o| match o.body {
+            Body::Move(m) => m.group.is_some_and(|x| x.id == id),
+            _ => false,
+        })
+    }
+
+    /// `Unit::ungroup_move_order@005fd140` — replace the group order
+    /// carrying `id` with the plain move it stands on, up the captain
+    /// chain and then down every subordinate.
+    ///
+    /// `GROUP_ATTACK_TO → ATTACK_TO` and `GROUP_MOVE → MOVE_TO`; here the
+    /// kind is already the plain one and dropping [`MoveOrder::group`] is
+    /// the whole conversion. `dest = 0` clears the waypoint, and a member
+    /// that is **not** the leader also loses [`flag::PATHED`] and its
+    /// path — so the group's shared plan dies with the formation and each
+    /// unit re-plans for itself.
+    pub(crate) fn ungroup_move_order(&mut self, u: usize, id: i64) {
+        let mut at = self.squad_captain(u);
+        loop {
+            self.ungroup_one(at, id);
+            match self.units[at].o_down {
+                Some(d) if self.units[d].alive() => at = d,
+                _ => return,
+            }
+        }
+    }
+
+    fn ungroup_one(&mut self, u: usize, id: i64) {
+        let Some(i) = self.units[u].orders.iter().position(|o| match o.body {
+            Body::Move(m) => m.group.is_some_and(|x| x.id == id),
+            _ => false,
+        }) else {
+            return;
+        };
+        let leader = match self.units[u].orders[i].body {
+            Body::Move(m) => m.group.is_some_and(|x| x.leader == u),
+            _ => false,
+        };
+        let order = &mut self.units[u].orders[i];
+        if !leader {
+            order.flags &= !flag::PATHED;
+        }
+        if let Some(m) = order.move_mut() {
+            m.group = None;
+            m.has_waypoint = false;
+        }
+        if !leader {
+            self.kill_current_path(u);
+        }
+    }
+
+    /// `Unit::kill_group_move@005e3400` over the group
+    /// (`Group::kill_group_move@007123f0`): every member's orders lose the
+    /// group plan, and every one carrying `id` that is **not** an
+    /// attack-move is killed. A `GROUP_ATTACK_TO` survives both arms.
+    pub(crate) fn kill_group_move(&mut self, g: &crate::group::Group, id: i64) {
+        for i in 0..g.list.len() {
+            let u = g.list[i];
+            if !(self.units[u].alive() && self.units[u].on_map) {
+                continue;
+            }
+            let mut kill = false;
+            for j in 0..self.units[u].orders.len() {
+                let Body::Move(m) = self.units[u].orders[j].body else {
+                    continue;
+                };
+                if m.kind == MoveKind::AttackTo {
+                    continue;
+                }
+                self.units[u].orders[j].flags &= !flag::PATHED;
+                self.kill_current_path(u);
+                if m.group.is_some_and(|x| x.id == id) {
+                    kill = true;
+                }
+            }
+            if kill {
+                self.kill_current_order(u);
+            }
+        }
     }
 
     /// Writes a move order's fields back to the front of the list.

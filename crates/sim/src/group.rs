@@ -238,6 +238,14 @@ const COMBAT_STANCES: [Stance; 6] = [
     Stance::HoldFire,
 ];
 
+/// `add_group_move_order`'s `id` (`705f10`):
+/// `(group.id + frame × 10) × 100 + group.order_num`, shared by every
+/// member's order and the key `do_group_move` and `ungroup_move_order`
+/// match on.
+pub fn group_move_id(group_id: i32, frame: i64, order_num: i32) -> i64 {
+    (i64::from(group_id) + frame * 10) * 100 + i64::from(order_num)
+}
+
 /// The option index of a stance — `action_stance`'s `s`.
 pub fn stance_option(s: Stance) -> i32 {
     COMBAT_STANCES
@@ -862,16 +870,63 @@ impl Sim {
             // leader's heading. And its `facing` is the mirror this layout
             // used, which is what the order hands back when it dies.
             let order_angle = Angle(angle.0.wrapping_add(i32::from(slots.angles[i]) << 24));
-            self.add_move_facing_order(
-                u,
-                slot,
-                kind,
-                queue,
-                action,
-                order_angle,
-                Some(reverse),
-                true,
-            );
+            // §6.6 step 6's own gate (`705f00`–`705f61`): a **land
+            // formation of two or more** walking a `MOVE_TO` or an
+            // `ATTACK_TO` gets a `GroupMoveOrder`, and everything else a
+            // plain move. The exemptions are modern infantry, a
+            // `role & 0x10` type that is not AI-driven (a scout on land, a
+            // bark at sea), a group of fewer than two, `unit_masks & 4`
+            // (`Unit::set_in_danger` — a seam here), a sea type, and
+            // form 9.
+            //
+            // A group with **no army** is exempt too, and that is this
+            // crate's own line rather than the original's: group
+            // membership here is the army's (`docs/GROUPS.md` §1), so a
+            // player's selection has no persistent group — which is
+            // exactly the `this->group == -1` `do_group_move` ungroups on
+            // its first line. So a human's group move stays N independent
+            // moves (`docs/ORDERS.md` §8.4) and an army's does not.
+            let grouped = g.army.is_some()
+                && matches!(kind, MoveKind::MoveTo | MoveKind::AttackTo)
+                && !self.is_modern_infantry(u)
+                && !(self.units[u]
+                    .ty
+                    .is_some_and(|t| self.unit_types[t].cols.is(crate::ai_load::role::SCOUT))
+                    && !self.ai_driven(g.who))
+                && g.num() >= 2
+                && self.group_domain(u) != Domain::Sea
+                && form != 9;
+            if let (true, Some(leader)) = (grouped, self.group_find_leader(g)) {
+                let gm = crate::orders::GroupMove {
+                    leader,
+                    id: group_move_id(self.group_id(g), self.frame, self.group_order_num(g)),
+                    form_id: i,
+                    group_angle: order_angle,
+                    in_group: false,
+                };
+                self.add_move_facing_order_grouped(
+                    u,
+                    slot,
+                    kind,
+                    queue,
+                    action,
+                    order_angle,
+                    Some(reverse),
+                    true,
+                    Some(gm),
+                );
+            } else {
+                self.add_move_facing_order(
+                    u,
+                    slot,
+                    kind,
+                    queue,
+                    action,
+                    order_angle,
+                    Some(reverse),
+                    true,
+                );
+            }
         }
         // §6.7: the group's own path, planned once off the leader's slot
         // and handed to every member translated. It sits exactly here in
@@ -1109,6 +1164,67 @@ impl Sim {
         })
     }
 
+    /// The group's own id (`GroupData +0x4`). This crate has no group
+    /// pool, so an army group's slot stands in for it — it is unique per
+    /// owner, which is all [`group_move_id`] needs of it.
+    fn group_id(&self, g: &Group) -> i32 {
+        g.army.map_or(-1, |s| s as i32)
+    }
+
+    fn group_order_num(&self, g: &Group) -> i32 {
+        g.army
+            .map_or(0, |s| self.armies[g.who as usize].list[s].group.order_num)
+    }
+
+    /// `Group::update_positions@00713810(o, who)` — the slot table
+    /// rotated once a frame from `do_group_move`'s leader arm. It is what
+    /// makes a formation bend around a corner.
+    ///
+    /// **And the angle is not the leader's heading.** `713844` loads
+    /// `UnitData::angle` as the default, and then `7138e1`–`71390f`
+    /// replaces it with `find_angle(order.waypoint − leader.pos)` whenever
+    /// the leader's head order is a move that **has** a waypoint
+    /// (`MoveOrder +0x10 dest`). So the block points where the leader is
+    /// *going*, not where it is *facing*, and the two come apart on every
+    /// frame of a turn — which is exactly where a follower would otherwise
+    /// be walking into its leader.
+    pub(crate) fn group_update_positions(&mut self, g: &Group, leader: usize) {
+        let Some(s) = g.army else { return };
+        let p = self.units[leader].pos;
+        let theta = match self.current_move(leader) {
+            Some(m) if m.has_waypoint => find_angle(m.waypoint.x - p.x, m.waypoint.y - p.y),
+            _ => self.units[leader].movement.heading,
+        };
+        let off = self.armies[g.who as usize].list[s].group.off.clone();
+        self.armies[g.who as usize].list[s].group.curr = Sim::form_update_positions(&off, theta);
+    }
+
+    /// A follower's target point this frame: the leader's **current**
+    /// position plus slot `i`'s rotated offset.
+    pub(crate) fn group_slot_point(&self, g: &Group, leader: usize, i: usize) -> Option<Pos> {
+        let s = g.army?;
+        let off = *self.armies[g.who as usize].list[s].group.curr.get(i)?;
+        let p = self.units[leader].pos;
+        Some(Pos::new(p.x + off.x, p.y + off.y))
+    }
+
+    /// After a refresh, every member's group order names the member that
+    /// took the formation over (`refresh_group_order`'s last third —
+    /// `modify_group_order` per member).
+    pub(crate) fn group_rewrite_leader(&mut self, g: &Group, leader: usize, id: i64) {
+        for i in 0..g.list.len() {
+            let m = g.list[i];
+            for o in &mut self.units[m].orders {
+                if let Some(mv) = o.move_mut()
+                    && let Some(gm) = mv.group.as_mut()
+                    && gm.id == id
+                {
+                    gm.leader = leader;
+                }
+            }
+        }
+    }
+
     fn bump_order_num(&mut self, g: &Group) {
         if let Some(s) = g.army {
             self.armies[g.who as usize].list[s].group.order_num += 1;
@@ -1194,7 +1310,7 @@ impl Sim {
     /// `unit +0x80` straight into the pool; without a pool the army is the
     /// only thing that holds a group, so this is the same question asked of
     /// the army list.
-    fn group_of(&self, u: usize) -> Option<Group> {
+    pub(crate) fn group_of(&self, u: usize) -> Option<Group> {
         let s = self.army_of(u)?;
         Some(self.army_group(self.units[u].owner, s))
     }
@@ -1613,6 +1729,211 @@ mod tests {
         assert!(s.push_group(&one, true), "Army::add_unit forces it");
         let b = spawn(&mut s, 1, t, Pos::new(0x1100, 0x1000));
         assert!(s.push_group(&group_of(1, &[a, b]), false));
+    }
+
+    /// An army of two on land takes **`GroupMoveOrder`s** and a lone one
+    /// does not (`docs/ORDERS.md` §8.2's gate), and a group with no army
+    /// takes none at all — this crate's own line, since a player's
+    /// selection has no persistent group for `do_group_move` to read.
+    #[test]
+    fn an_army_s_move_is_a_group_order_and_a_selection_s_is_not() {
+        let mut s = sim();
+        let t = fighter(&mut s);
+        let a = spawn(&mut s, 1, t, Pos::new(0x1000, 0x1000));
+        let b = spawn(&mut s, 1, t, Pos::new(0x1200, 0x1000));
+        let slot = s.init_army(1, None);
+        s.army_add_unit(1, slot, a);
+        s.army_add_unit(1, slot, b);
+        let g = s.army_group(1, slot);
+        s.group_action_move_to(
+            &g,
+            Pos::new(0x4000, 0x4000),
+            QueuePos::New,
+            true,
+            Angle(0),
+            MoveKind::MoveTo,
+            true,
+        );
+        let leader = s.group_find_leader(&g).expect("a leader");
+        for u in [a, b] {
+            let m = s.current_move(u).expect("a move order");
+            let gm = m.group.expect("a group order");
+            assert_eq!(gm.leader, leader, "every member names one leader");
+            assert_eq!(gm.id, group_move_id(slot as i32, s.frame, 0));
+            assert!(!gm.in_group, "`GroupMoveOrder::clear` leaves it 0");
+        }
+        assert_eq!(
+            s.current_move(a).expect("a move").group.expect("g").form_id,
+            0
+        );
+        assert_eq!(
+            s.current_move(b).expect("a move").group.expect("g").form_id,
+            1
+        );
+
+        // The same two as a plain selection: no army, so no group order.
+        let plain = group_of(1, &[a, b]);
+        s.group_action_move_to(
+            &plain,
+            Pos::new(0x5000, 0x5000),
+            QueuePos::New,
+            true,
+            Angle(0),
+            MoveKind::MoveTo,
+            true,
+        );
+        for u in [a, b] {
+            assert!(
+                s.current_move(u).expect("a move order").group.is_none(),
+                "a selection has no group to hang the order on"
+            );
+        }
+
+        // And an army of one: `group.num < 2` is an exemption of the
+        // original's own.
+        let c = spawn(&mut s, 1, t, Pos::new(0x2000, 0x2000));
+        let solo = s.init_army(1, None);
+        s.army_add_unit(1, solo, c);
+        let one = s.army_group(1, solo);
+        s.group_action_move_to(
+            &one,
+            Pos::new(0x4000, 0x4000),
+            QueuePos::New,
+            true,
+            Angle(0),
+            MoveKind::MoveTo,
+            true,
+        );
+        assert!(
+            s.current_move(c).expect("a move order").group.is_none(),
+            "fewer than two is a plain move"
+        );
+    }
+
+    /// **The follower tracks the leader's current position, not the
+    /// destination** (§8.3) — and the leader tracks its own path. That
+    /// difference is the whole mechanic: one `do_move` a frame, not N.
+    #[test]
+    fn a_group_move_follower_walks_to_the_leader_s_position_plus_its_slot() {
+        let mut s = sim();
+        let t = fighter(&mut s);
+        // A real `X_SPACING`, so `Form::compute` lays the two out side by
+        // side rather than both on the origin — the shipped data never
+        // leaves it at zero and a hand-built type would.
+        s.unit_types[t].combat.x_spacing = 0xc0;
+        s.unit_types[t].combat.y_spacing = 0xc0;
+        // The second stands where the Line's slot for it will be — south
+        // of the leader, the move going east — so it walks straight to it
+        // rather than crossing behind.
+        let a = spawn(&mut s, 1, t, Pos::new(0x1000, 0x1000));
+        let b = spawn(&mut s, 1, t, Pos::new(0x1000, 0x1200));
+        let slot = s.init_army(1, None);
+        s.army_add_unit(1, slot, a);
+        s.army_add_unit(1, slot, b);
+        let g = s.army_group(1, slot);
+        let leader = s.group_find_leader(&g).expect("a leader");
+        let follower = if leader == a { b } else { a };
+        s.group_action_move_to(
+            &g,
+            Pos::new(0x4000, 0x1000),
+            QueuePos::New,
+            true,
+            Angle(0),
+            MoveKind::MoveTo,
+            true,
+        );
+        let i = g.list.iter().position(|&u| u == follower).expect("a slot");
+        for _ in 0..4 {
+            s.tick();
+        }
+        let want = s
+            .group_slot_point(&g, leader, i)
+            .expect("the leader's point plus my offset");
+        let m = s.current_move(follower).expect("a move order");
+        assert!(
+            m.group.is_some_and(|x| x.in_group),
+            "a follower on its slot is `in_group`"
+        );
+        assert_eq!(
+            m.waypoint, want,
+            "the waypoint is the leader's own position plus the rotated slot"
+        );
+        assert_ne!(
+            m.waypoint, m.dest,
+            "and it is not the destination the order carries"
+        );
+    }
+
+    /// `ungroup_move_order` walks **up to the captain and back down every
+    /// subordinate**, so one member's ungroup is the squad's.
+    #[test]
+    fn an_ungroup_converts_the_whole_squad_s_orders_to_plain_moves() {
+        let mut s = sim();
+        let t = fighter(&mut s);
+        let cap = spawn(&mut s, 1, t, Pos::new(0x1000, 0x1000));
+        let sub = spawn(&mut s, 1, t, Pos::new(0x1030, 0x1000));
+        let far = spawn(&mut s, 1, t, Pos::new(0x1200, 0x1000));
+        s.units[sub].captain = false;
+        s.units[sub].o_up = Some(cap);
+        s.units[cap].o_down = Some(sub);
+        let slot = s.init_army(1, None);
+        for u in [cap, sub, far] {
+            s.army_add_unit(1, slot, u);
+        }
+        let g = s.army_group(1, slot);
+        s.group_action_move_to(
+            &g,
+            Pos::new(0x4000, 0x4000),
+            QueuePos::New,
+            true,
+            Angle(0),
+            MoveKind::MoveTo,
+            true,
+        );
+        let id = s
+            .current_move(sub)
+            .expect("a move")
+            .group
+            .expect("a group order")
+            .id;
+        s.ungroup_move_order(sub, id);
+        for u in [cap, sub] {
+            assert!(
+                s.current_move(u).expect("a move").group.is_none(),
+                "the captain and its subordinate both ungroup"
+            );
+        }
+        assert!(
+            s.current_move(far).expect("a move").group.is_some(),
+            "and nobody outside the squad does"
+        );
+    }
+
+    /// `do_group_move`'s window is a **third** of a turn, not the quarter
+    /// `reversing` uses (`5e8167`).
+    #[test]
+    fn the_group_move_window_is_a_third_of_a_turn() {
+        use crate::orders::within_third;
+        assert!(within_third(Angle(0), Angle(0)));
+        assert!(
+            within_third(Angle(0x5555_5554), Angle(0)),
+            "a hair under 120°"
+        );
+        assert!(
+            !within_third(Angle(0x5555_5555), Angle(0)),
+            "exactly 120° is out"
+        );
+        // The fold is the original's `not`, not a negate, so the far side
+        // is one unit wider: `!(-0x55555555) == 0x55555554`, which passes.
+        assert!(
+            within_third(Angle(-0x5555_5555), Angle(0)),
+            "the `not` fold makes the other side inclusive"
+        );
+        assert!(
+            !within_third(Angle(-0x5555_5556), Angle(0)),
+            "and a unit past it is out"
+        );
+        assert!(!within_third(Angle(0), Angle(i32::MIN)), "dead astern");
     }
 
     #[test]

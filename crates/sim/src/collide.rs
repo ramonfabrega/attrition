@@ -681,22 +681,82 @@ impl Sim {
     /// §4.3's table: the ways another unit in the way is a nudge rather
     /// than a collision.
     ///
-    /// SEAM: only the same-player-attackers arm is modelled. The
-    /// `TRADE_ROUTE`/`0xf` and `0xc` arms need action indices this crate
-    /// does not carry, and the group arm needs `UnitData::group`, which it
-    /// does not keep; no capture has entered any of the three
-    /// (`docs/COLLISION.md` §9).
+    /// SEAM: the `TRADE_ROUTE`/`0xf` and `0xc` arms need action indices
+    /// this crate does not carry, and no capture has entered either
+    /// (`docs/COLLISION.md` §9). ~~And the group arm needs
+    /// `UnitData::group`, which it does not keep~~ — it keeps one now
+    /// (`docs/GROUPS.md` §1: an army's members are its group), and
+    /// [`Self::same_group_soft`] is that arm.
     fn soft_collision(&self, u: usize, o: usize, extra: i32) -> bool {
         let moving = |v: usize| self.current_order(v).is_some_and(Order::is_move);
         let acting = |v: usize| self.action_of(v).map(|a| self.units[v].orders[a].index());
-        acting(u) == Some(index::ATTACK)
+        let attackers = acting(u) == Some(index::ATTACK)
             && acting(o) == Some(index::ATTACK)
             && self.units[u].owner == self.units[o].owner
             && self.coll_size(u) == 1
             && self.coll_size(o) == 1
             && moving(u)
             && moving(o)
-            && extra > 0x300
+            && extra > 0x300;
+        attackers || self.same_group_soft(u, o)
+    }
+
+    /// §4.3's **group** arm, and the reason a squad marching in formation
+    /// does not stand blocked on its own leader.
+    ///
+    /// > we share a `group` (≠ −1), I am not attacking, it has no
+    /// > suspended search (`+0x104 == 0`), and either it has no order or
+    /// > its order is a spell in `{0x28b, 0x28d, 0x28f, 0x291}` or a
+    /// > passable kind (`0, 1, 2, 3, 4, 0xc, 0x12, 0x13, 0x15`, the last
+    /// > four also needing its action ≠ `ATTACK`)
+    ///
+    /// `0x13` and `0x15` are `GROUP_MOVE` and `GROUP_ATTACK_TO`, so two
+    /// members of one formation walking their slots always pass through
+    /// each other; this crate carries those two as a `MOVE_TO`/`ATTACK_TO`
+    /// with a [`crate::orders::GroupMove`] on it, which is what tells the
+    /// action-tested half of the list from the untested half.
+    ///
+    /// SEAM: `UnitData +0x104`, the suspended pathfinder search, which
+    /// this crate does not keep — read as zero, which widens the arm.
+    fn same_group_soft(&self, u: usize, o: usize) -> bool {
+        if self.units[u].owner != self.units[o].owner {
+            return false;
+        }
+        let (Some(a), Some(b)) = (self.army_of(u), self.army_of(o)) else {
+            return false;
+        };
+        if a != b {
+            return false;
+        }
+        let acting = |v: usize| self.action_of(v).map(|x| self.units[v].orders[x].index());
+        if acting(u) == Some(index::ATTACK) {
+            return false;
+        }
+        let Some(front) = self.units[o].orders.front() else {
+            return true;
+        };
+        let not_attacking = acting(o) != Some(index::ATTACK);
+        match front.body {
+            crate::orders::Body::Cast(c) => matches!(
+                c.spell,
+                crate::orders::spell::PACK
+                    | crate::orders::spell::PACK_MACHINEGUN
+                    | crate::orders::spell::PACK_MERCHANT
+                    | crate::orders::spell::PACK_FISHERMEN
+            ),
+            crate::orders::Body::Move(m) => {
+                let passable = matches!(
+                    front.index(),
+                    index::NONE
+                        | index::MOVE_TO
+                        | index::ATTACK_TO
+                        | index::EXPLORE_TO
+                        | index::FLEE_TO
+                );
+                passable && (m.group.is_none() || not_attacking)
+            }
+            _ => front.index() == index::NONE || (front.index() == index::GUARD && not_attacking),
+        }
     }
 
     // ------------------------------------------------------------------
@@ -1732,6 +1792,48 @@ mod tests {
         assert_eq!(sim.repaths[0], 3, "6 → 3, which survives");
         sim.tick();
         assert_eq!(sim.repaths[0], 0, "3 → 1, which does not");
+    }
+
+    /// §4.3's **group** arm: two members of one group pass through each
+    /// other, and two units that merely share an owner do not.
+    ///
+    /// This is what keeps a marching squad from standing blocked on its
+    /// own leader every time the formation swings (`docs/ORDERS.md` §8.3);
+    /// it was a stated seam until this crate had a group — the army's — to
+    /// ask about.
+    #[test]
+    fn two_members_of_one_group_pass_through_each_other() {
+        let a = Pos::new(30 * 0x30 + 0x18, 30 * 0x30 + 0x18);
+        let b = Pos::new(28 * 0x30 + 0x18, 30 * 0x30 + 0x18);
+        let (mut sim, x, y) = pair(a, b);
+        let into = Pos::new(28 * 0x30 + 0x18, 30 * 0x30 + 0x18);
+        assert!(
+            sim.detect_unit_collision(x, into).is_some(),
+            "two strangers block"
+        );
+        // The same two in one army — and so in one group.
+        let slot = sim.init_army(0, None);
+        sim.army_add_unit(0, slot, x);
+        sim.army_add_unit(0, slot, y);
+        assert!(
+            sim.detect_unit_collision(x, into).is_none(),
+            "sharing a group makes it a nudge, not a collision"
+        );
+        // …unless I am attacking, which is the arm's own first test.
+        sim.units[x].orders.push_front(crate::orders::Order {
+            flags: crate::orders::flag::ACTION,
+            body: crate::orders::Body::Attack(crate::orders::AttackOrder {
+                defensive: false,
+                def: None,
+                in_range: false,
+                ever_in_range: false,
+                new_ord: true,
+            }),
+        });
+        assert!(
+            sim.detect_unit_collision(x, into).is_some(),
+            "an attacker gets no exemption"
+        );
     }
 
     /// §4.1: `safe` — the cooldown a failed 48-grid search buys — turns the

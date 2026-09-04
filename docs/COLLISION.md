@@ -807,7 +807,8 @@ buildings join the chain, which is why §8 does not claim it.
 
 **Reading-only** — no capture has executed these:
 
-- §4.3's `TRADE_ROUTE`, `0xc` and group arms, and the soft half-step flag.
+- §4.3's `TRADE_ROUTE` and `0xc` arms, and the soft half-step flag. ~~The
+  group arm~~ — landed 2026-09-04, §9.
 - §5.1's tolerance-widening arm. Every hit a capture has reached there was
   a final waypoint under a gather, so the parked-collider branch rests on
   the decompile; `collide.rs`'s own test is what exercises it, and it was
@@ -876,6 +877,13 @@ buildings join the chain, which is why §8 does not claim it.
   *means* to a unit is unread here and this crate does not carry it.
   Nothing about step 0 turns on it. *What would settle it:* the two
   readers, which is a reading rather than a run.
+- ~~**§4.3's group arm.**~~ **Landed 2026-09-04**: an army's members are
+  its group (`docs/GROUPS.md` §1), which is the `UnitData::group` this row
+  wanted, and `Sim::same_group_soft` is the arm. It is what keeps a
+  marching squad from standing blocked on its own leader
+  (`docs/ORDERS.md` §8.6). `UnitData +0x104`, the suspended pathfinder
+  search the arm also tests, is still not carried and reads as zero, which
+  widens it.
 - **§5.2's group arm.** `find_ordered_collision`'s second pass tests every
   other member of my group against its ordered position, wherever it
   stands, and this crate keeps no `UnitData::group` back-pointer to reach

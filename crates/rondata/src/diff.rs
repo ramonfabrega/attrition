@@ -14135,7 +14135,38 @@ mod tests {
     /// `UnitTypeData::squad_size` is written **1** by `UnitType::init` and
     /// never again, so the squad is three one-figure units on an
     /// `o_up`/`o_down` list (`crate::nations`, `docs/CITIES.md` §4.3).
-    const LONG_WORD_GREAT_LAKES: i64 = 6650;
+    ///
+    /// **6650 for a session**, and that frame was the squad's **first
+    /// order**: one `Unit::do_move+0xe84 < Unit::do_group_move+0x148 <
+    /// do_group_attack_to+0x11` the original spends and this crate spent
+    /// none of. Two mechanics stood behind it and both landed
+    /// (`docs/ARMY.md` §4.2, `docs/ORDERS.md` §8.3).
+    ///
+    /// The first is *who gives the order*. `Unit::think_attack@005f5a80`'s
+    /// **head** joins an army before its target search runs, and that is
+    /// how the AI's first soldier gets into one; the squad lands in leader
+    /// 1's **army 1** — every army being empty, `find_local_army`'s
+    /// `90,000,000` and its `<=` hand the last valid slot the win — whose
+    /// tick is `frame ≡ 250 (mod 256)`, which is 6650. There
+    /// `Army::do_forming` issues `Group::action_siege_attack_to`.
+    ///
+    /// The second is *what the order is*. A land formation of two or more
+    /// takes a **`GroupMoveOrder`**, and `Unit::do_group_move@005e79a0`
+    /// runs `do_move` for the **leader alone**: three archers marching
+    /// spend one grid draw between them where three independent moves
+    /// spend three. Two readings inside it moved the number further:
+    /// `Group::update_positions` rotates the slot table by the bearing to
+    /// the leader's **waypoint** and not by its heading (`7138e1`), and
+    /// §4.3's **group** arm of the soft-collision table — two members of
+    /// one group walking `GROUP_MOVE`/`GROUP_ATTACK_TO` pass through each
+    /// other — is no longer a seam now that this crate has a group to ask
+    /// about. Without the last one the squad stood blocked on its own
+    /// leader at 6716.
+    ///
+    /// **6736**, and that frame is 6612's again from the other side: six
+    /// draws the original spends and this crate none of, opening with
+    /// `Guy::init_real+0x52` — another three-object unit arriving.
+    const LONG_WORD_GREAT_LAKES: i64 = 6736;
 
     /// The frame the AI's library takes its **Coinage** job on, and the
     /// frame run58's `QUEUE` record used to part on: twenty-four rows of
@@ -20502,6 +20533,11 @@ mod army_tests {
                     (Some(x), Some(y)) if x > 0 || y > 0 => Some(Pos::new(x as i32, y as i32)),
                     _ => None,
                 },
+                // The `GROUPORDER` base is not read back into the order:
+                // the comparison this builds is over the `MOVEORDER`
+                // block, and a `GroupMoveOrder`'s own five fields are
+                // `docs/GROUPS.md` §12.1's separate check.
+                group: None,
             }),
         })
     }

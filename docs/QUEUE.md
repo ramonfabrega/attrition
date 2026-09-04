@@ -12,31 +12,35 @@ lines, or lets the handoff pass 32.
 
 ## Where things stand
 
-*2026-09-04, Opus — item 215 landed.* **Great Lakes 6612 → 6650 by draw
-and by sequence; East Indies unmoved at 7448.** No capture: the disk
-already held both halves.
+*2026-09-04, Opus — item 217 landed, and it was two mechanics.* **Great
+Lakes 6650 → 6736; East Indies unmoved at 7448.** No capture: the disk
+and the listing carried both halves.
 
-- **It was never a queue.** The AI's Barracks finishes on the exact frame
-  6612 (run18b's last block: `job_counter` 39600 of 42000, 100 a frame),
-  and `Build::activate`'s **high-water block** pays a British leader its
-  free archer. The trace said so from the other side: the fifteen
-  functions the original enters for the *first time in 24,000 frames* on
-  6612 are `Army::add_unit`, `Unit::think_attack` and their neighbours.
-  `docs/CITIES.md` §4.3 holds the whole nation table.
-- **A squad is `uber_size` units, not one unit with three figures.**
-  `UnitTypeData::squad_size` is written **1** at load and never again, so
-  the three `Guy::init_real` were three *objects* on an `o_up`/`o_down`
-  list — run17's frame 1301 has `6 → 7 → 8` exactly so. Half of 175.
-- **No run was booked.** Two dumps and a trace already on disk carried the
-  queue composition, the clock's slope and the first-entry list.
+- **`think_attack`'s head is how the AI's first soldier joins an army**
+  (ARMY §4.2) — ahead of its target search, and reached on 6612 of run53
+  and 5823 of run54 and never before. The squad lands in leader 1's
+  **army 1** (every army empty, `find_local_army`'s `90,000,000` and its
+  `<=` give the last slot the win), whose tick is `frame ≡ 250 (mod 256)`
+  — 6650, where `do_forming` orders it out.
+- **`GroupMoveOrder` is a real order now** (ORDERS §15). The original
+  runs `do_move` for the **leader alone**; three archers marching spend
+  one grid draw where three independent moves spend three. §8.4's verdict
+  stands for a player's selection — no group pool, so `do_group_move`'s
+  own first line ungroups it — and is overturned for an army's group.
+- **Two readings inside it moved the number twice more.**
+  `Group::update_positions` rotates the slot table by the bearing to the
+  leader's **waypoint**, not its heading (`7138e1`); and COLLISION §4.3's
+  **group** arm — two members of one group pass through each other —
+  stopped being a seam the moment this crate had a group to ask about.
+  Without the second the squad stood blocked on its own leader at 6716.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w7448 of 24,000 · GreatLakes w6650 of 24,000
+Long captures: EastIndies w7448 of 24,000 · GreatLakes w6736 of 24,000
 
-**Opener (Opus):** `217 is the default: run53 frame 6650, one
-`Unit::do_move+0xe84 < Unit::do_group_move+0x148 < do_group_attack_to+0x11`
-the original spends and this crate none of. The archer squad born at 6612
-is given a group attack-to; find who gives it. ARMY, AI §23.1.`
+**Opener (Opus):** `218 is the default: run53 frame 6736, six draws
+opening with `Guy::init_real+0x52` — 6612's question again, another
+three-object unit the original makes and this crate does not. Find what
+finishes on 6736. CITIES §4.3, PRODUCTION.`
 
 ## The queue
 
@@ -45,14 +49,16 @@ captures' word**, lower map first — Great Lakes. Take the first unstarted
 unless a better order is obvious — and say so. Numbers are stable; the
 journal is indexed by them.
 
-217. **Great Lakes' word is the new squad's first order, at 6650.** One
-    `Unit::do_move+0xe84 < do_group_move+0x148 < do_group_attack_to+0x11` —
-    the archer born at 6612 is in a group and marching. Who gives the order
-    is the item; 158's human-army gate is next door.
+218. **Great Lakes' word is a second unit arriving, at 6736.** Six draws
+    the original spends and this crate none of, opening
+    `Guy::init_real+0x52` — 6612's shape exactly (three `init_real`, three
+    idle rolls). What finishes on that frame is the item.
 
-216. **`create_buildings` offers a gather building the original does not.**
-    At 6582 this crate's slots 1 and 4 carry `t 418 cat 4 val 41500`, the
-    original's 1–4 empty; inert there, so the *list* differs (AI §2.19).
+219. **`do_group_move`'s four remaining seams** (ORDERS §15): the flock of
+    birds an invalid slot near an ocean cell adds — **one sync-stream
+    draw**, so it is the one with teeth — `cavarch_fight`, the group's
+    `speed`/`new_speed` pair and the cap that reads it, and the attack
+    hand-offs (`kill_group_move`'s callers, `distribute_attack`).
 
 214. **East Indies' word is two blocked stands, at 7448.** Two
     `Unit::move_step+0x823` (`SITE_BLOCKED`, COLLISION §5) at the unit
@@ -67,17 +73,19 @@ journal is indexed by them.
 
 203. **`Wall::mark_behind_tiles`' `0x4`, and nothing else.** The residue
     is **32** at 4802 and **45** at 5565, every bit `0x4` —
-    `World::set_behind@006b4230`'s low arm, which nothing reads. Pinned as a
-    count that only falls; the surface half is zero (ROADS §9.5).
+    `World::set_behind@006b4230`'s low arm, which nothing reads (ROADS §9.5).
 
 192. **A merchant has never been seen to unpack.** run68 ends eleven
     frames short of `1/19`'s deploy spot (MERCHANT §7) — the cast, the
     `PLACED` two-by-two, `unit_masks & 0x80000`, `do_gather`'s pair. A
-    `[6730, 6800)` window buys it all. **Takes 184.**
+    `[6730, 6800)` window buys it all. **Takes 184.** (216) **`create_
+    buildings` offers a gather building the original does not**: at 6582
+    slots 1 and 4 carry `t 418 cat 4 val 41500`, the original's 1–4 empty;
+    inert there, so the *list* differs (AI §2.19).
 
 169. **`compute_site_stats`' arithmetic**, 7,122 of run63's 27,000 site
-    fields: `(45, 52)` twice, `(44, 52)` four times, an extra site drags
-    every `rank` (AI §2.13 6–12); run59 says it 250 frames earlier.
+    fields: an extra site drags every `rank` (AI §2.13 6–12); run59 says
+    it 250 frames earlier.
 
 172. **The `bucket` pair 165 leaves behind**: one apart on 5002 and 5061
     in run60's curve, every rate and income exact. **Takes 155** (ORDERS
@@ -89,30 +97,26 @@ journal is indexed by them.
 
 159. **The `CITY` record's two smaller seams**, on run58, both pinned:
     `1/2007`'s `land`/`filled` from 1819 and `space[0..2]` from 1976, one
-    apart; and from 2576 the gatherer counts, 11/0 against 10/1 — step 2/10.
+    apart; and from 2576 the gatherers, 11/0 against 10/1 — step 2/10.
 
 146. **The other nine national arms of `train_time`** after the ramp, in
-    `006508c0`'s fixed order (PRODUCTION, "The tail's first caller") —
-    `TROOPS_FASTER`, the speed upgrades, the rares, Monarchy, Socialism,
-    the wonders. Only the ramp is measured. (142) **`World::tregion` is not
-    `get_tregion`** — four items were a gate asking the wrong one
-    (PATHFINDER §15, §16); eleven callers unaudited.
+    `006508c0`'s order (PRODUCTION, "The tail's first caller"). Only the
+    ramp is measured. (142) **`World::tregion` is not `get_tregion`** —
+    PATHFINDER §15, §16; eleven callers unaudited.
 
 Two records with no reader: (122) **a draw with no mark of its own** — 16 of
 61 `rng.roll`/`get` calls have no `self.mark(`; (153) **the `TRIBE` record,
 whole** — `Tribe::log_data@006f0d70`'s `graft[352]`, `barbarian`,
 `build_continent`, `people`, `text_substitute`, none parsed (TECH).
 
-178. **The danger map's unit pass, unexercised.** DANGER §8: run64's
-    leaders have no military unit on a frame divisible by 200, so
-    `role & 0x10000`, `(attack · 5) / 10` and the war gate rest on the
-    reading. A `DUMP_ALL` `WORLD` block on a 200-frame boundary after
-    either side has an army settles it. Takes `UnitData::is_seen`.
+178. **The danger map's unit pass, unexercised.** DANGER §8: no capture
+    has a military unit on a frame divisible by 200, so `role & 0x10000`,
+    `(attack · 5) / 10` and the war gate rest on the reading. A `DUMP_ALL`
+    `WORLD` block on such a boundary settles it. Takes `UnitData::is_seen`.
 
-181. **§7's unreached arithmetic, which 179 did not take.** The arrival
-    box, `compute_trade`'s `× 16 / 2` and `new_caravan`'s
-    `(epoch[1] + 1) · 10` fire at 6511 and 6766, unasserted (CARAVAN
-    §7.2–§7.3).
+181. **§7's unreached arithmetic** (CARAVAN §7.2–§7.3): the arrival box,
+    `compute_trade`'s `× 16 / 2` and `new_caravan`'s `(epoch[1] + 1) · 10`
+    fire at 6511 and 6766, unasserted.
 
 **The widening ledger is built** (87, DATALAYER §4): **23** parsed fields
 `diff.rs` names nowhere and **41** one capture names, pinned and falling
@@ -124,11 +128,10 @@ as a floor and put it in each Coverage; (72) every `+0xNN` a document pins,
 checked against its module; (89) the instrument's last guard, (c) alone; (35)
 **`mylos` as a cache**, VISION §7 (Scout 4 → 6 early).
 
-175. **The uber chain past its birth.** `Objects::init_unit` now makes
-    `uber_size` objects and threads them (CITIES §4.3); nothing else reads
-    the chain — `curr_uber_size@0060a760` unwritten, a dump's
-    `o_up`/`o_down` unset by `build_sim`, the members on the captain's own
-    tile where `find_nearby_spot` seats them. Takes 48's chain.
+175. **The uber chain past its birth.** `Objects::init_unit` threads
+    `uber_size` objects (CITIES §4.3) and nothing else reads the chain:
+    `curr_uber_size@0060a760` unwritten, `build_sim` leaves `o_up`/`o_down`
+    unset. Takes 48's chain.
 
 Three fields nothing here writes: (48) **the object chain, whole** — only
 units are threaded (COLLISION §3, §7, GOODY §1), `down`/`down_who` uncompared;
@@ -137,9 +140,9 @@ units are threaded (COLLISION §3, §7, GOODY §1), `down`/`down_who` uncompared
 `BUILDING` bit** on `(52, 22)`, ARMY §13.
 
 117. **Two seams the census windows now measure.** ATTRITION,
-    "Territory": the temple and fort border levels, the Colosseum, the
-    Eiffel Tower, a gem rare, the handicap, `was_seen`'s `reg_forts`; and
-    AI §2.1's `check_explore` answers the grid whole, 900 v 36/19.
+    "Territory": the temple and fort border levels, the wonders, a gem
+    rare, the handicap, `reg_forts`; and AI §2.1's `check_explore` answers
+    the grid whole, 900 v 36/19.
 
 Five measured one-liners: (23) **the formation byte's sign, the Echelon
 half** — `reverse`'s *displacement* is read only on GROUPS §6.4's Echelon
@@ -156,27 +159,24 @@ Military level and `army.rs` reads `ages`**, `army.rs:769,1365`.
 
 161. **The make-list block is 2,500 frames behind the word.**
     `create_buildings` first runs on East Indies 9982 (AI §25), so
-    `building_value`, `gather_value`, §24.4's neighbourhood arm,
-    `oil_patches.count` and `compute_largest_gather@0066e920` wait on it.
+    `building_value`, `gather_value`, §24.4's arm, `oil_patches.count` and
+    `compute_largest_gather@0066e920` all wait on it.
 
 156. **`STARTING_GOODS` arrives with the age.** `Leader::gain_tech@006dcb60`
     pays `bucket_add(g, game->starting[g])` for a zero bucket whose preq is
-    the tech just gained and `Leader::init@006e3930` zeroes all six, so the
-    original holds 0 knowledge, metal and oil through Ancient where this
-    holds 100. Unread: food, timber, wealth (COSTS). (167) run61's two
+    the tech just gained, so the original holds 0 knowledge, metal and oil
+    through Ancient where this holds 100 (COSTS). (167) run61's two
     leavings: the landing search's *cell* and `Unit::do_strafe` (SYNC §3.9),
-    and `Unit::init`'s tile snap, which only `spawn_bird` has here.
+    and `Unit::init`'s tile snap.
 
 195. **`find_repair_spot` is the last of `build_done`'s three**, a seam on
-    all four arms (ORDERS §5.5, §5.6, §5.9): `find_any_building(
-    FILTER_DAMAGED, FILTER_NOT_UNDER_ATTACK)`, the territory-owner gate, the
-    AI's `difficulty >= 2`. No capture has a damaged building.
+    all four arms (ORDERS §5.5, §5.6, §5.9). No capture has a damaged
+    building.
 
-211. **`get_speed`'s three remaining arms, each wanting an input rather
-    than a reading** (MOVEMENT, "The river halves…"): `unit_masks & 0x10`,
-    set and cleared inside a frame so no dump prints it; `has_general(0,
-    0x162)`'s siege doubling, no capture has a general; and the group cap,
-    whose `movement::group_capped` stood written and **uncalled**.
+211. **`get_speed`'s three remaining arms** (MOVEMENT, "The river
+    halves…"): `unit_masks & 0x10`, set and cleared inside a frame;
+    `has_general(0, 0x162)`'s siege doubling; and the group cap, whose
+    `movement::group_capped` is still uncalled — now 219's second half.
 
 Older backlog: (39) a read-only 2D viewer over `Sim` state with the dump
 overlaid; (41) `scenario.py`'s fate — `zsh tools/fuzz/run.sh 424242 1000 1300`
