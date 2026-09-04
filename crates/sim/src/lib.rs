@@ -2963,7 +2963,19 @@ impl Sim {
         if at_des {
             next.body.last_speed = 0;
             if next.facing != next.des_angle {
+                // `Guy::move:109` again, and for this guy in its own right
+                // (`docs/ANIM.md` §4.8): the standing arm's
+                // `turn_towards(des_angle, ..., 1)` hands `Guy::do_turn`
+                // the same override guy 0's does. The gate `guy_flags & 2`
+                // is always open here — the only writer is `do_turn`, and
+                // `do_turn@005d97a0:37` recurses into the crew that has
+                // **no** track, never this one — so a tracked crew figure
+                // of a packing type asks for a turn animation it has not
+                // got and pays the idle roll.
+                let was = next.facing;
                 next.facing = movement::turn_towards(next.facing, next.des_angle, rate).0;
+                self.mark(anim::SITE_TURN_STAND);
+                self.guy_do_turn_anim(i, g, was, next.facing, next.des_angle);
             }
             next.body.avg_speed = (next.body.avg_speed * 3 + next.body.last_speed) / 4;
         } else {

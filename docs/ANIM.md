@@ -698,15 +698,13 @@ all. Asserted in `rondata::diff`'s
 finding of §3.2.
 
 **Fired 2026-08-31** (`docs/ORACLE.md`, run44): 452 guy-frames play
-`CHAR_TURN_LEFT`/`CHAR_TURN_RIGHT` — nine `(who, o, slot)` combinations,
-counted by `tools/gamelog/turnanim.py` — once a capture had combat and
-`GUYS=4` at once, and no driver was needed: `Guy::move:109`'s standing arm
-hands the override through `Guy::turn_towards@005d9720` to `do_turn`, so a
-turner turning towards a target is enough. The guys that actually *play* a
-turn are the three types 134, 265 and 266, which is **not** the set carrying
-`guy_flags & 8` (§4.8); the scored games have none of them — run13's 2,288
-guy records and run38's 1,180 all carry 16 — so playing one is still
-unmodelled and moves no score.
+`CHAR_TURN_LEFT`/`CHAR_TURN_RIGHT`, nine `(who, o, slot)` combinations
+(`tools/gamelog/turnanim.py`), once a capture had combat and `GUYS=4` at
+once — `Guy::move:109`'s standing arm hands the override through
+`Guy::turn_towards@005d9720`, so a turner turning towards a target is
+enough. The types that *play* one are 134, 265 and 266, **not** the set
+carrying `guy_flags & 8` (§4.8); the scored games have none of them, so
+playing one is still unmodelled and moves no score.
 
 ### 4.8 The turning stand — a turn animation the boat does not have (2026-09-01)
 
@@ -771,6 +769,26 @@ costs a frame: the count agrees and the label does not.
 *What it moved.* East Indies' word **4945 → 4950**; every other capture is
 unchanged, which is the expected shape — the only unit in these games that
 asks for an animation it lacks is the AI's fishing boat.
+
+*And the tracked crew figure pays it too* (2026-09-04, item 212). The row
+above is read as guy 0's because `Guy::move:109` is the caller and `do_turn`
+recurses only into the **trackless** crew. Both halves are true and the
+conclusion was short: `Guy::process → Guy::move` runs for **every** guy, so a
+*tracked* figure standing on its offset with `des_angle != angle` reaches the
+standing arm on its own account, and `guy_flags & 8` is the **type's**
+(`init_real:215`). A merchant's driver catching its leader up after a turn
+therefore asks for a `CHAR_TURN_RIGHT` the art has not got, and rolls — once
+an episode, on the frame its walk ends. The gate cannot close on it: bit 2's
+only writer is `do_turn:15`, and `do_turn:37` recurses from `+0x304` into the
+crew with *no* track.
+
+*The record* is run18b, which is run53's own game (`rngcmp`: 6,601 frames,
+zero differing) and whose `[6374, 6590)` window carries `UNITS=3 GUYS=1`. At
+Great Lakes 6463 the Merchant `1/26`'s second figure holds `(39471, 18769)`
+across the frame and its angle goes `-1153564672 → -1605566464`, its
+leader's. Great Lakes **6463 → 6582**, East Indies **6739 → 7448**;
+`crates/sim`'s `a_crew_figure_of_a_packing_type_pays_the_turning_stand` is
+the mechanic with a non-packing control that spends nothing.
 
 *What is not established.* `Unit::detect_boat_collision`'s call is not
 modelled and no capture reaches it. The set `do_turn` recurses into is read

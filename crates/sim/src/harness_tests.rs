@@ -1952,6 +1952,89 @@ fn a_crew_guy_walks_on_after_its_unit_has_arrived() {
     );
 }
 
+/// **And a tracked crew figure pays the turning stand of its own**
+/// (`docs/ANIM.md` §4.8, item 212) — the frame Great Lakes' word parted at
+/// 6463, on a scenario built here rather than borrowed from a capture.
+///
+/// The figure above walks to its rotated offset over several frames; the
+/// frame it *lands* on it is the one that costs. `Guy::move`'s standing arm
+/// is per-guy, so the crew figure reaches its own
+/// `turn_towards -> do_turn(..., 1)` there, and `do_turn`'s override
+/// answers `guy_flags & 8` — which `Guy::init_real@005db6b0:215` sets for
+/// every guy of a type that **packs**, whatever the art says. A merchant
+/// has no `CHAR_TURN_RIGHT`, so the request falls to `CHAR_DEFAULT` on a
+/// figure whose category is the walk, and rolls.
+///
+/// The control is the same scenario with the type not packing: the mark is
+/// taken either way — `turn_towards` is called either way — and only the
+/// packing run draws.
+#[test]
+fn a_crew_figure_of_a_packing_type_pays_the_turning_stand() {
+    /// The frame the crew figure lands back on its offset, and what that
+    /// frame's `SITE_TURN_STAND` cost.
+    fn arrival_draws(packs: bool) -> u32 {
+        let mut sim = skirmish(0);
+        sim.trace_phases = true;
+        let ty = sim.add_unit_type(crate::UnitType {
+            hits: 20,
+            moves: 40,
+            ..crate::UnitType::default()
+        });
+        sim.unit_types[ty].combat.packs = packs;
+        let start = Pos::new(4000, 400);
+        let mut u = Unit::new(0, 0, start, 100);
+        u.ty = Some(ty);
+        u.guys = vec![anim::Guy::fresh(1), anim::Guy::fresh(2)];
+        let unit = sim.add_unit(u);
+        sim.art.tracks.insert(2, (-96, 48));
+        make_mobile(&mut sim, unit, movement::Angle::EAST);
+        sim.seat_guys(unit);
+
+        // The heading without the snap, which is what every ordinary order
+        // passes: guy 0 turns where it stands and rotates the crew's
+        // destination the whole width of the offset.
+        sim.units[unit].movement.set_heading(movement::Angle::WEST);
+        let mut frames = 0;
+        loop {
+            sim.tick();
+            frames += 1;
+            assert!(frames < 60, "the crew never arrived");
+            let f = sim.units[unit].guys[1].follow.expect("the crew has a body");
+            if f.body.pos == f.des && f.facing == f.des_angle {
+                break;
+            }
+        }
+        // The last frame's marks: what the stand spent, from the stream's
+        // word at the mark to the word at the next one.
+        let marks = &sim.phase_marks;
+        let at = marks
+            .iter()
+            .position(|(l, _)| l == anim::SITE_TURN_STAND)
+            .expect("the crew figure reached Guy::move's standing arm");
+        let to = marks.get(at + 1).map_or(sim.rng.seed, |m| m.1);
+        let mut r = crate::combat::Rng::new(marks[at].1);
+        for n in 0..16 {
+            if r.seed == to {
+                return n;
+            }
+            r.roll();
+        }
+        panic!("the turning stand spent more than fifteen draws");
+    }
+
+    assert_eq!(
+        arrival_draws(true),
+        1,
+        "a packing type's crew figure asks for a turn animation it has not \
+         got and pays the idle roll"
+    );
+    assert_eq!(
+        arrival_draws(false),
+        0,
+        "a type that neither packs nor names a turn asks for nothing"
+    );
+}
+
 /// **Three of the six resources are not available from the start, and until
 /// they are, a price written in one of them is charged somewhere else**
 /// (`docs/COSTS.md`, "Three of the six resources are not available from the

@@ -118,7 +118,8 @@ pub const SITE_ARRIVE: &str = "Guy::set_anim+0x97a < Guy::move+0x19f";
 /// (`docs/ANIM.md` §4.8). Three chains, because `do_turn` is reached with
 /// its override enabled from three call sites: `Unit::move_step`'s two
 /// turn-in-place arms and `Guy::turn_towards`, which `Guy::move`'s
-/// standing arm calls.
+/// standing arm calls — for guy 0 and, in its own right, for a **tracked
+/// crew figure** standing on its offset owed a turn ([`Sim::process_follower`]).
 pub const SITE_TURN_NEAR: &str = "Guy::set_anim+0x97a < Guy::do_turn+0x4a < Unit::move_step+0x3b6";
 pub const SITE_TURN_FAR: &str = "Guy::set_anim+0x97a < Guy::do_turn+0x4a < Unit::move_step+0x389";
 pub const SITE_TURN_STAND: &str =
@@ -734,7 +735,31 @@ impl Sim {
     /// exactly the guys that share guy 0's body, the same set
     /// [`Sim::guys_follow`] walks.
     pub(crate) fn do_turn_anim(&mut self, u: usize, was: Angle, to: Angle, heading: Angle) {
-        if to == was {
+        for g in 0..self.units[u].guys.len() {
+            if self.units[u].guys[g].follow.is_some() {
+                continue;
+            }
+            self.guy_do_turn_anim(u, g, was, to, heading);
+        }
+    }
+
+    /// The same override for **one** guy, which is what a tracked crew
+    /// figure needs: `Guy::do_turn` recurses into the trackless crew only
+    /// (`+0x304` upward), but every guy runs its own `Guy::process ->
+    /// Guy::move`, and a tracked crew figure standing on its offset with
+    /// `des_angle != angle` reaches `Guy::move:109`'s own `turn_towards ->
+    /// do_turn(..., 1)` exactly as guy 0 does ([`Sim::process_follower`]).
+    /// Its `guy_flags & 8` is the type's, so a merchant's driver asks for a
+    /// turn animation the art has not got and pays the idle roll for it.
+    pub(crate) fn guy_do_turn_anim(
+        &mut self,
+        u: usize,
+        g: usize,
+        was: Angle,
+        to: Angle,
+        heading: Angle,
+    ) {
+        if to == was || !self.guy_turns(u, g) {
             return;
         }
         let anim = if heading.0.wrapping_sub(was.0) as u32 <= 0x8000_0000 {
@@ -742,15 +767,7 @@ impl Sim {
         } else {
             TURN_LEFT
         };
-        for g in 0..self.units[u].guys.len() {
-            if self.units[u].guys[g].follow.is_some() {
-                continue;
-            }
-            if !self.guy_turns(u, g) {
-                continue;
-            }
-            self.guy_set_anim(u, g, anim, false, true);
-        }
+        self.guy_set_anim(u, g, anim, false, true);
     }
 
     /// `Unit::set_anim(anim, force, p3)`: every guy's `Guy::set_anim`.

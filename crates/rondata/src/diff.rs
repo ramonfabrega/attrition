@@ -13750,7 +13750,17 @@ mod tests {
     /// `TECHBONUSES`, Coinage — and was carried here as a nation flag
     /// nothing set. run63 is the capture that says so
     /// (`run63_s_window_is_where_the_ai_s_colony_site_appears`).
-    const LONG_WORD_EAST_INDIES: i64 = 6739;
+    /// **6739 until 2026-09-04, and its frame was a crew figure's turn.**
+    /// A tracked crew guy runs its own `Guy::process -> Guy::move`, and
+    /// standing on its offset owed a turn it reaches the standing arm's
+    /// `turn_towards -> do_turn(..., 1)` exactly as guy 0 does — the
+    /// override `guy_flags & 8` answers, which every guy of a **packing**
+    /// type carries. This crate turned that figure and never asked for the
+    /// animation, so a merchant's driver caught up with its leader for
+    /// free where the original pays the idle roll
+    /// (`docs/ANIM.md` §4.8, item 212). Great Lakes' 6463 is the frame
+    /// that named it; East Indies came with it.
+    const LONG_WORD_EAST_INDIES: i64 = 7448;
 
     /// Great Lakes' word on the **long** capture (run53), the second of
     /// `docs/DECISIONS.md` entry 29's counters — and, since run61 put the
@@ -13929,7 +13939,16 @@ mod tests {
     /// for every frame of the window and the word runs to **6151**, whose
     /// own frame is one figure draw: `Guy::move+0x19f` here against
     /// `Guy::inc_time+0x271` there.
-    const LONG_WORD_GREAT_LAKES: i64 = 6463;
+    /// **6463 until 2026-09-04**, and that frame was one draw: the
+    /// original spends a `Guy::set_anim+0x97a < Guy::do_turn+0x4a <
+    /// Guy::turn_towards+0x69` this crate spent none of. run18b is run53's
+    /// own game (`rngcmp`: 6,601 frames, zero differing) and its window
+    /// covers it, so the spender was named from the disk rather than from
+    /// a capture: the Merchant `1/26`'s **crew figure**, standing on its
+    /// offset at (39471, 18769) and turning from -1153564672 to its
+    /// leader's -1605566464 in that one frame. See
+    /// [`LONG_WORD_EAST_INDIES`] for the mechanic.
+    const LONG_WORD_GREAT_LAKES: i64 = 6582;
 
     /// The frame the AI's library takes its **Coinage** job on, and the
     /// frame run58's `QUEUE` record used to part on: twenty-four rows of

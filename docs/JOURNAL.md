@@ -15559,3 +15559,69 @@ decompile to see there was no such return. Second: the seam list is not
 decoration. "`is_rare_collector`'s merchant re-seat on the first frame of
 an unpack" was written down, in the right file, a session before it cost
 312 frames.
+
+## 2026-09-04 — item 212: the driver that turns for free (Great Lakes 6463 → 6582, East Indies 6739 → 7448, Opus)
+
+Great Lakes' word was 6463 and the frame was one draw: the original spends a
+`Guy::set_anim+0x97a < Guy::do_turn+0x4a < Guy::turn_towards+0x69` — §4.8's
+turning stand — that this crate spends none of, 14 draws against 15, every
+other draw of the frame agreeing and in order.
+
+**The queue booked it as gaia and the rotation says otherwise.** The extra
+draw sits at index 1, between the chicken `9/13`'s `think_farm_animal` and
+the first `Unit::inc_time` wrap, and the handoff read that as "a gaia unit
+late in the loop". But `Objects::process_all` rotates the owners by
+`(frame + i) % 10`, and 6463 % 10 is 3 — so the visit order is 3…9, then 0,
+1, 2, and *player 1 comes after gaia*. That reopened the whole player list,
+and the trace closed it again in one line: the site fires **six times in
+24,000 frames**, at 6123, 6463, 6574, 7147, 12215 and 13373, and this crate
+already spends 6123 and 6574 — the Merchants `1/24` and `1/25` arriving at
+their destinations, where `do_move`'s final arm sets the heading and
+`Guy::move` turns to it. A site that rare is a `guy_flags & 8` site, and in
+these two games the only type carrying the bit is the one that **packs**.
+
+**No capture was needed, and the reason is worth keeping.** run53's dump is
+checksums, so the frame had nothing in it to read — but
+`rngcmp.py rontrace-run53.log rontrace-run18b.log` is **6,601 frames, zero
+differing**, and run18b is a `[6374, 6590)` window at `UNITS=3 GUYS=1`,
+captured on 2026-08-25 for the make list and never asked this question. Its
+blocks carry every guy's `x`, `y` and `angle`, which is exactly the record.
+
+**What they say.** The Merchant `1/26`'s *second* figure sits at
+`(39471, 18769)` in the block before the frame and in the block after — it
+does not move — and its angle goes `-1153564672 → -1605566464`, its
+leader's, in that one frame. Guy 0 is settled and standing; the crew figure
+has just caught up and swallows the whole turn it was owed. `crates/sim` had
+that figure's position, its destination and both angles right to the unit,
+frame for frame, and simply never asked for the animation.
+
+**The mechanic.** `Guy::process → Guy::move` runs for **every** guy, so a
+*tracked* crew figure standing on its offset with `des_angle != angle`
+reaches `Guy::move:109`'s own `turn_towards → do_turn(…, 1)` in its own
+right, and `do_turn`'s override answers `guy_flags & 8` — which
+`Guy::init_real@005db6b0:215` sets for every guy of a packing type, whatever
+its art says. §4.8 had read the override as guy 0's, on the true observation
+that `do_turn@005d97a0:37` recurses only into the crew with *no* track; the
+recursion was never the point. `Sim::process_follower` marks the site and
+calls the new per-guy `Sim::guy_do_turn_anim`, which is the loop body
+`do_turn_anim` already had.
+
+**What it moved.** Great Lakes **6463 → 6582**, by draw and by sequence, and
+East Indies **6739 → 7448** with it — the first item in a while to move both
+maps, because the mechanic is a merchant's and both games have merchants.
+8,597 → 8,783 frames on the original's count and 6,800 → 6,975 draw for
+draw. The frames past them: Great Lakes 6582 is a third `Leader::make_stuff`
+draw, `+0x63d`, the bought slot's own roll — run18b's window covers it and
+`run18b_and_run19_s_make_list_windows_replay_slot_for_slot` already names
+that frame's expiry. East Indies 7448 is two `Unit::move_step+0x823`, the
+blocked stand: two units the original holds still and this crate steps.
+
+**The lesson.** Twice now the handoff's own reading of a frame has been the
+thing that cost the time — 210's seam list was right and read late, and this
+one's "gaia, index above 13" was wrong because the owner rotation was not
+re-derived for *that* frame number. A frame's position in the draw stream
+names a *visit order*, not an owner. And the second half: **grep the disk
+before booking a capture** paid its largest dividend yet — a window captured
+ten days earlier for an unrelated mechanic answered a question that looked
+like it needed a new run, because `rngcmp` makes "is this the same game" a
+one-second question.
