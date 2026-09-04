@@ -12,32 +12,33 @@ lines, or lets the handoff pass 32.
 
 ## Where things stand
 
-*2026-09-03, Opus — item 202 landed, and it moved the headline 699 frames.*
-**Great Lakes 4803 → 5502 by draw and by sequence; East Indies 6739,
+*2026-09-03, Opus — item 204 landed, and it moved the headline 69 frames.*
+**Great Lakes 5502 → 5571 by draw and by sequence; East Indies 6739,
 unmoved.**
 
-- **The road mesh is in** (`crate::mesh`, ROADS §9). Every
-  `World::set_road_at` runs `road_added` → `add_roads`, and
-  `Roads::set_diags` lays road of its own where a new tile has a road
-  junction diagonally off it and nothing at all between them.
-- **The Market `1/2015`'s road on run72's 4803 is now node for node the
-  original's, all 277** — it was 266, and the eleven were one tile,
-  `(223, 79)`, priced as plain ground at 387 against the original's road
-  at 27.
-- **run71's whole 5,000 frames have no unit anywhere off the original's
-  point.** The 4827 position parting went with its cause.
-- **The 33 tile masks were somebody else's mechanic** — bit `0x4`, written
-  only by `Wall::mark_behind_tiles` and `Mountains::add_mountain`. Item 203.
-- **What is left at 5502 is a move**: this crate spends a fifth draw,
-  `Unit::do_move+0xe84`, where the original spends four. Item 204.
+- **It was one store.** `resolve_unit_collision`'s two closing blocks
+  (`005f9d30`) both clear the order's `+0x10` — `dest = 0` — and only the
+  successful one adds the pause roll. This crate took the top of its own
+  fresh `find_upath` plan as the waypoint instead, which is the cell the
+  snap has just put the unit on, so `do_move`'s arrival test never ran.
+- **run53's `1/7` had been in a two-frame livelock since 5501** — snap,
+  plan, pop the plan, walk back into `1/22` — for the rest of the 24,000
+  frames. It now reaches its farm on 5508.
+- **`do_move`'s grid branch tests `collide`** (ORDERS §4.4): not colliding
+  plans on the tile grid, colliding on the 48 grid. Landed too; it scores
+  nothing yet, so it is pinned by a test built from frame 5502's own state.
+- **The site fold now names the unit that spent each draw**, the `unit
+  who/o` mark carries the game's `o`, and `RON_DEBUG_UNIT` works on run53.
+- **5571 is two animation wraps**, item 205.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w6739 of 24,000 · GreatLakes w5502 of 24,000
+Long captures: EastIndies w6739 of 24,000 · GreatLakes w5571 of 24,000
 
-**Opener (Opus):** `204 is the default and it is the new word: run53 frame
-5502, one draw of Unit::do_move this crate spends and the original does
-not. RON_DEBUG_SITES and RON_DEBUG_UNIT are on run53 now — read the frame
-before booking anything.`
+**Opener (Opus):** `205 is the default: run53 frame 5571, two
+Guy::inc_time animation wraps this crate spends and the original does not,
+after 3,200 calc_road_cost draws that agree exactly. RON_DEBUG_SITES is on
+run53; the two draws are in guys_inc_time, so the unit loop's attribution
+does not reach them.`
 
 ## The queue
 
@@ -46,15 +47,15 @@ captures' word**, lower map first — Great Lakes. Take the first unstarted
 unless a better order is obvious — and say so. Numbers are stable; the
 journal is indexed by them.
 
-204. **Great Lakes' word is a move at 5502.** run53's frame spends five
-    draws here and four there: `GameDaemon::calc_market` ×3 agree, then
-    this crate takes `Unit::do_move+0xe84` and the original goes straight
-    to `Farms::inc_time+0x1ae`. 5503 carries the same unit's
-    `Guy::set_anim < Unit::move_step` on top of the original's
-    `Guy::set_anim < Guy::inc_time`, so it is **one unit stepping a frame
-    the original does not**. run71 stops at 5,000, so name the unit from
-    run53's sites first (`RON_DEBUG_SITES`, `RON_DEBUG_UNIT`) — nothing
-    else on this list is nearer the headline.
+205. **Great Lakes' word is two animation wraps at 5571.** run53's frame
+    spends 3,200 `PathFinder::calc_road_cost` draws that agree exactly,
+    then **two** `Guy::set_anim+0x97a < Guy::inc_time+0x271` where the
+    original spends none before its `Guy::set_anim+0x104b`. Two figures
+    wrap an animation that should not wrap, or wrap one frame early. They
+    fall in the `guys_inc_time` phase, past the unit loop, so the site
+    fold's attribution does not name them — start from ANIM §3.3 and
+    **item 124**, the per-file loop flag, and from what `end_time` the two
+    figures carry. Nothing else on this list is nearer the headline.
 
 203. **`Wall::mark_behind_tiles`, and three road tiles it does not
     explain.** run72's 33 tile-mask residues are all bit `0x4` —

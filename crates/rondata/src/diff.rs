@@ -2916,6 +2916,50 @@ fn debug_watch(built: &Built, frame: i64) {
     );
 }
 
+/// `RON_DEBUG_SITES=<lo>-<hi>` — the frame window the site prints widen to.
+/// `RON_DEBUG_SITES=1`, with no dash, is the whole-sequence switch and no
+/// window, which is why this returns `None` for it.
+#[cfg(test)]
+fn site_window() -> Option<(i64, i64)> {
+    let v = std::env::var("RON_DEBUG_SITES").ok()?;
+    let (lo, hi) = v.split_once('-')?;
+    Some((lo.trim().parse().ok()?, hi.trim().parse().ok()?))
+}
+
+/// This frame's draw sites, each with the unit that spent it.
+///
+/// [`mark_sites`] keeps the site label and drops the enclosing `unit
+/// who/o` mark, because that is the form the trace is compared in. But
+/// *which* unit spent a draw is the question a one-draw divergence
+/// almost always asks, and recovering it afterwards costs a second run;
+/// the marks still hold it. Call after [`Built::tick`], which clears
+/// `phase_marks` on entry, not on exit.
+#[cfg(test)]
+fn attributed_sites(built: &Built) -> Vec<(String, String)> {
+    let mut out = Vec::new();
+    let mut who = String::from("-");
+    let marks = &built.sim.phase_marks;
+    for (i, (label, from)) in marks.iter().enumerate() {
+        if label.starts_with("unit ") {
+            who = label.clone();
+        } else if !label.contains("::") {
+            // A tick phase (`unit-loop`, `farms`, `end`): the unit loop is
+            // over, so its last unit no longer owns what follows. Only a
+            // site mark — the ones with a `Class::method` in them — stays
+            // inside the unit whose turn it is.
+            who = String::from("-");
+        }
+        let to = marks.get(i + 1).map_or(built.sim.rng.seed, |m| m.1);
+        let Some(n) = draws_between(*from, to) else {
+            continue;
+        };
+        for _ in 0..n {
+            out.push((label.clone(), who.clone()));
+        }
+    }
+    out
+}
+
 /// [`run_with`], with what this dump lacks borrowed from **siblings** —
 /// other dumps of the same lobby and seed, hence the same map and the same
 /// setup stream: the setup path's checksum trace (run11 has it; run9 and
@@ -9359,8 +9403,20 @@ mod tests {
             "run53's traced length is {last}, wanted 23,000+ — this is the \
              long capture, and a short file here is a wrong file"
         );
+        // `RON_DEBUG_UNIT` and the attributed fold, on the long capture:
+        // `Built::tick` drops the marks' unit attribution when it folds
+        // them into `frame_sites`, and item 204's whole question is *which*
+        // unit spends the extra draw. Both cost nothing when unset.
+        let unit_window = site_window();
         for _ in 0..last {
+            let f = built.sim.frame;
             built.tick();
+            debug_watch(&built, f);
+            if unit_window.is_some_and(|(lo, hi)| (lo..=hi).contains(&f)) {
+                for (label, who) in attributed_sites(&built) {
+                    eprintln!("  f{f} {who}: {label}");
+                }
+            }
         }
         let first_part = built
             .frame_sites
@@ -9393,13 +9449,7 @@ mod tests {
         // East Indies became the second map, and Great Lakes is the
         // headline one. `RON_DEBUG_SITES=<lo>-<hi>` widens it to a window
         // and `RON_DEBUG_SITES=1` prints both sequences whole.
-        let window = std::env::var("RON_DEBUG_SITES").ok().and_then(|v| {
-            let (lo, hi) = v.split_once('-')?;
-            Some((
-                lo.trim().parse::<i64>().ok()?,
-                hi.trim().parse::<i64>().ok()?,
-            ))
-        });
+        let window = site_window();
         for (f, ours) in built.frame_sites.iter() {
             let named = *f == first_count || *f == first_part;
             if !named && !window.is_some_and(|(lo, hi)| (lo..=hi).contains(f)) {
@@ -10361,13 +10411,7 @@ mod tests {
         // window. A residue in a *cadence* — a figure's clock wrapping every
         // second frame rather than every third — is invisible at the frame
         // it finally parts on and obvious over a dozen either side.
-        let window = std::env::var("RON_DEBUG_SITES").ok().and_then(|v| {
-            let (lo, hi) = v.split_once('-')?;
-            Some((
-                lo.trim().parse::<i64>().ok()?,
-                hi.trim().parse::<i64>().ok()?,
-            ))
-        });
+        let window = site_window();
         for (f, ours) in built.frame_sites.iter() {
             let named = *f == first_count || *f == first_part;
             if !named && !window.is_some_and(|(lo, hi)| (lo..=hi).contains(f)) {
@@ -12923,10 +12967,24 @@ mod tests {
     ///
     /// With the mesh in, the word runs to **5502** and run71's whole
     /// capture — 5,000 frames — has **no unit anywhere off the original's
-    /// point**, the 4827 parting included. 5502 is a **move**: this crate
-    /// spends a fifth draw, `Unit::do_move+0xe84`, where the original
-    /// spends four.
-    const LONG_WORD_GREAT_LAKES: i64 = 5502;
+    /// point**, the 4827 parting included. 5502 was a **move**: this crate
+    /// spent a fifth draw, `Unit::do_move+0xe84`, where the original spent
+    /// four.
+    ///
+    /// It was the citizen `1/7`, and it was **`resolve_unit_collision`'s
+    /// last store**. `005f9d30`'s two closing blocks both clear the order's
+    /// `+0x10` — `dest = 0` — and the only thing the successful one adds is
+    /// the pause roll; this crate took the fresh `find_upath` plan's top as
+    /// the waypoint instead. The top of that plan is the unit's own snapped
+    /// cell, so `1/7` stood **on** its waypoint with `dest` set: `do_move`'s
+    /// arrival test, which only runs on the frame a waypoint is taken, never
+    /// ran, and the frame fell through to the grid roll. Worse, the frame
+    /// after popped the plan and walked it back into the same collider —
+    /// a two-frame livelock that ran to the end of the capture. With the
+    /// store as the original writes it, `1/7` walks its detour and reaches
+    /// its farm on 5508, and the word runs to **5571**
+    /// (`docs/COLLISION.md` §6, item 204).
+    const LONG_WORD_GREAT_LAKES: i64 = 5571;
 
     /// The frame the AI's library takes its **Coinage** job on, and the
     /// frame run58's `QUEUE` record used to part on: twenty-four rows of

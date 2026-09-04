@@ -586,7 +586,24 @@ its arms** (§5.1, item 63); and `resolve`'s steps **0** — the animal's
 whole-queue clear, `Sim::clear_orders` behind `Unit::is_gaia` — 2, with
 its `is_flat` fence (§6, item 64), 4, 5 and 6, the last including the
 throttle **with its per-frame decay**, the stack unwind, the centre snap,
-`find_upath` and **the stagger draw of its tail** (item 80).
+`find_upath`, **the stagger draw of its tail** (item 80) and **the store
+beside it** (item 204).
+
+**Step 6's last store is `dest = 0`, and it is the whole store.**
+`005f9d30`'s two closing blocks are the same write through
+`update_order()->get_move_order()` — the order's `+0x10` — and the only
+thing the successful one adds is the pause roll. The recovery does **not**
+take the waypoint: `do_move`'s own `dest == 0` block does, on the next
+frame, and that block is where `unit_masks & 8` is cleared and the leg's
+arrival test runs. Taking it here is a frame's difference, because the top
+of a fresh `find_upath` plan is the unit's own snapped cell: a unit handed
+that waypoint stands *on* it with `dest` set, its arrival test never runs,
+the straight-line check finds a top equal to its position, and the frame
+falls through to `do_move`'s grid roll. The frame after that pops the plan
+and walks the unit back into the collider it had just recovered from — a
+two-frame livelock. run53's `1/7` did that from 5502 to the end of the
+capture; `collide::tests::the_recovery_leaves_the_waypoint_for_do_move_to_take`
+is the assertion.
 
 **Step 0's predicate is read off the owner.** The original asks the object
 what class it is; this crate has no `Animal` class and asks
@@ -771,6 +788,17 @@ buildings join the chain, which is why §8 does not claim it.
   **247,543 field-frames with none wrong**, its buildings 650 wrong →
   **none**, and East Indies' run68 window clean to its last block with no
   exception but `stance` (`docs/PATHFINDER.md` §17).
+- **§6 step 6's last store, by the frame it does not spend** (item 204,
+  2026-09-03). run53's citizen `1/7` is walking back to its farm when
+  `1/22` blocks it on frame 5501; both sides play the blocked stand, and
+  on 5502 the original spends **nothing** for it while this crate spent
+  `Unit::do_move+0xe84`. The cause was the recovery taking the top of its
+  own fresh `find_upath` plan as the waypoint instead of clearing `dest`:
+  that top is the cell the snap just put the unit on, so the arrival test
+  — which runs only on the frame a waypoint is taken — never ran. With the
+  store as `005f9d30` writes it, `1/7` takes the waypoint on 5502, arrives
+  on it the same frame, walks the detour and reaches its farm on 5508.
+  Great Lakes' long word **5502 → 5571**.
 - The path stack's length and every waypoint — the headline's own order
   score, which the recovery's output now feeds.
 - §2's clear-on-move, §2.2's repaint, §4's naming and §6's snap-and-replan

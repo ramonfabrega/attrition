@@ -15060,3 +15060,72 @@ the original goes straight to `Farms::inc_time`. 5503 carries the same
 unit's `Guy::set_anim < Unit::move_step` on top. One unit stepping a frame
 the original does not, and run53's site fold now prints the parting frame
 the way run54's has since East Indies became the second map.
+
+## 2026-09-03 — the store the recovery does not make (item 204, Opus)
+
+Great Lakes' long word **5502 → 5571**. One store, in
+`Unit::resolve_unit_collision`'s last four lines.
+
+**Reading the frame first.** The queue's opener said the sites and the
+unit watch were on run53; they were not — `debug_watch` is called from
+`run_traced` and run53's test has its own tick loop. Wiring it in was two
+lines, and the probe that mattered came with it: `mark_sites` folds the
+marks into site labels and **drops the enclosing `unit who/o`**, which is
+the one thing a one-draw divergence always wants to know. `attributed_sites`
+keeps it. The label itself was also lying — `process_unit` marked
+`unit {owner}/{slot}`, the vector index, where every other `who/o` in the
+project is the game's `o`. That cost one probe run and is now the unit's
+own `index`.
+
+The frame named **`1/7`**, a citizen of the AI's walking back to farm `8`
+at tile `(209, 96)`. `1/22` blocks it on 5501; both sides play the blocked
+stand, `Guy::set_anim < Unit::move_step+0x823`, and agree draw for draw.
+On 5502 the original spends nothing for it and this crate spent
+`Unit::do_move+0xe84` — the `% 5` grid roll.
+
+**Two frames of it, for ever.** The unit watch showed what the site fold
+could not: from 5501 `1/7` oscillated between `(40344, 18264)` and
+`(40332, 18287)` and never moved again — 18,000 frames of a two-frame
+livelock. The snap put it on its cell centre, `find_upath` laid a plan, the
+next `do_move` popped the plan, the tile grid walked it back into `1/22`,
+and round again.
+
+**Two arms, both from `005f7b30` and `005f9d30`.**
+
+- `do_move`'s grid branch tests `field_0x88` — `collide`. A unit that has
+  not been colliding drops its loose near waypoints and plans on the
+  **tile** grid; one that has keeps them and plans on the **48** grid. This
+  crate always took the first, and the code said so: *"the `collide != 0`
+  arm … is still unmodelled"*. `docs/ORDERS.md` §4.4 has had the branch in
+  its pseudocode since the second reading. The length a positive return is
+  compared against is read *after* the pops, too, and per arm.
+- `resolve_unit_collision`'s tail is the one that moved the word.
+  `005f9d30`'s two closing blocks are the **same** store through
+  `update_order()->get_move_order()` — the order's `+0x10`, `dest = 0` —
+  and the only thing the successful one adds is the pause roll. This crate
+  took the top of its own fresh `find_upath` plan as the waypoint instead.
+  That top is the cell the snap has just put the unit on, so `1/7` stood
+  **on** its waypoint with `dest` set: `do_move`'s arrival test runs only
+  on the frame a waypoint is *taken*, so it never ran, and the frame fell
+  through to the roll. `docs/COLLISION.md` §6 step 6 already said "clear the
+  order's `+0x10`". The document was right and the code was not.
+
+With the store as the original writes it, 5502 and 5503 agree, `1/7` walks
+its detour and reaches its farm on 5508, and the word runs to **5571**.
+
+**What each change is worth, separately.** The tail alone moves the word
+to 5571; with the grid arm disabled it is still 5571. So the grid arm is a
+confirmed divergence that no capture yet scores — which is exactly the kind
+of change that rots into prose, so it is pinned by
+`collide_sends_the_re_plan_to_the_unit_grid_not_the_tile_grid`, whose
+scenario is run53's own frame 5502 hand-built: a unit standing on its
+waypoint with a 48-grid plan under it. Both new tests were made to fail on
+purpose before they were kept.
+
+**What is left.** 5571 is 3,200 `PathFinder::calc_road_cost` draws that
+agree exactly, and then **two `Guy::set_anim+0x97a < Guy::inc_time+0x271`**
+this crate spends and the original does not — two figures wrapping an
+animation that should not have wrapped. They fall in the `guys_inc_time`
+phase, so the unit loop's attribution does not reach them; `docs/ANIM.md`
+§3.3 and queue item 124 (the loop flag is per animation file) are the first
+place to look.

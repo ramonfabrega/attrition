@@ -1012,19 +1012,23 @@ impl Sim {
             .action_of(u)
             .is_some_and(|a| self.units[u].orders[a].index() == index::ATTACK);
         let r = self.find_upath(u, anti);
+        // **`dest = 0`, on both arms** — `005f9d30`'s last two blocks are
+        // the same store through `update_order()->get_move_order()`, and
+        // the only thing the non-zero one adds is the pause roll. The
+        // waypoint is *not* taken here: it is taken by `do_move`'s own
+        // `dest == 0` block next frame, which re-reads the top, clears
+        // `unit_masks & 8` and runs the leg's arrival test.
+        //
+        // Taking it here instead left run53's `1/7` standing on its own
+        // waypoint with `dest` set, so the arrival test never ran and the
+        // frame fell through to the grid roll the original does not spend
+        // (item 204).
+        if let Some(front) = self.units[u].orders.front_mut()
+            && let Some(m) = front.move_mut()
+        {
+            m.has_waypoint = false;
+        }
         if r != 0 {
-            // The new top is the waypoint; the line to it is unverified.
-            if let Some(top) = self.units[u].path.last().copied() {
-                self.units[u].tolerance = top.tolerance;
-                if let Some(front) = self.units[u].orders.front_mut()
-                    && let Some(m) = front.move_mut()
-                {
-                    m.has_waypoint = true;
-                    m.waypoint = top.to;
-                    m.last = None;
-                }
-            }
-            self.units[u].line_ok = false;
             self.collide_pause(u, other);
         }
     }
@@ -1420,6 +1424,160 @@ mod tests {
         }
         assert_ne!(stopped, goal, "the goal was never reached");
         assert_eq!(sim.units[y].pos, b, "the blocker never moved");
+    }
+
+    /// **`collide` chooses the grid the re-plan runs on**
+    /// (`docs/ORDERS.md` §4.4, `Unit::do_move@005f7b30`'s `field_0x88`
+    /// test).
+    ///
+    /// Past the `% 5` roll the original branches: a unit that has *not*
+    /// been colliding drops its loose near waypoints and plans on the
+    /// **tile** grid (`find_tpath`, waypoints at `tolerance 0x60`, no
+    /// flags); one that has keeps them and plans on the **48** grid
+    /// (`find_upath`, `tolerance 0`, `flags 2`) — the finer one, and the
+    /// only one that knows units are in the way.
+    ///
+    /// The state here is run53's `1/7` on frame 5502, hand-built: a unit
+    /// standing **on** its own waypoint with the 48-grid plan
+    /// `resolve_unit_collision` laid still under it. The straight-line
+    /// check finds a top equal to its position, refuses, and the frame
+    /// rolls. Taking the tile arm there popped that plan and walked the
+    /// unit back into the collider it had just recovered from, frame after
+    /// frame, to the end of the capture (item 204).
+    #[test]
+    fn collide_sends_the_re_plan_to_the_unit_grid_not_the_tile_grid() {
+        let start = Pos::new(30 * 0x30 + 0x18, 30 * 0x30 + 0x18);
+        let goal = Pos::new(20 * 0x30 + 0x18, 30 * 0x30 + 0x18);
+        let plan = |collide: i16| {
+            let (mut sim, x, _y) = pair(start, Pos::new(10 * 0x30 + 0x18, 10 * 0x30 + 0x18));
+            sim.order_move(x, goal);
+            sim.tick();
+            // The 48-grid plan, and the unit sitting on the top of it.
+            let here = sim.units[x].pos;
+            sim.units[x].path.push(PathData {
+                to: Pos::new(here.x - 0x30, here.y),
+                tolerance: 0,
+                flags: path_flag::SIDESTEP,
+            });
+            sim.units[x].path.push(PathData {
+                to: here,
+                tolerance: 0,
+                flags: path_flag::SIDESTEP,
+            });
+            sim.units[x].line_ok = false;
+            sim.units[x].collide = collide;
+            if let Some(front) = sim.units[x].orders.front_mut()
+                && let Some(m) = front.move_mut()
+            {
+                m.has_waypoint = true;
+                m.waypoint = here;
+            }
+            sim.trace_phases = true;
+            sim.phase_marks.clear();
+            sim.tick();
+            assert!(
+                sim.phase_marks
+                    .iter()
+                    .any(|(l, _)| l == crate::orders::SITE_MOVE_GRID),
+                "a unit standing on its own waypoint rolls, on both arms: {:?}",
+                sim.phase_marks
+            );
+            sim.units[x].path.clone()
+        };
+
+        let tiles = plan(0);
+        let units = plan(1);
+        assert!(
+            tiles.iter().any(|p| p.tolerance == 0x60),
+            "the tile grid's waypoints carry its half-tile tolerance: {tiles:?}"
+        );
+        assert!(
+            !tiles.iter().any(|p| p.flags & path_flag::SIDESTEP != 0),
+            "and the loose plan under it was dropped: {tiles:?}"
+        );
+        assert!(
+            units
+                .iter()
+                .any(|p| p.flags & path_flag::SIDESTEP != 0 && p.tolerance == 0),
+            "a unit that has been colliding keeps it and plans on the 48 \
+             grid: {units:?}"
+        );
+    }
+
+    /// §6 step 6's last store is **`dest = 0`, and nothing else** — and
+    /// what that buys is a frame the original does not spend.
+    ///
+    /// `005f9d30`'s two closing blocks both clear the order's `+0x10`
+    /// through `update_order()->get_move_order()`; the only thing the
+    /// successful one adds is the pause roll. So the recovery does **not**
+    /// take the waypoint: `do_move`'s own `dest == 0` block does, on the
+    /// next frame, and that block clears `unit_masks & 8` and runs the
+    /// leg's arrival test.
+    ///
+    /// Taking it here instead is the difference between two frames. The
+    /// top of a fresh `find_upath` plan is the unit's own snapped cell, so
+    /// a unit handed that waypoint stands *on* it with `dest` set: the
+    /// arrival test never runs, the straight-line check finds a top equal
+    /// to its position, and the frame falls through to the grid roll
+    /// (`SITE_MOVE_GRID`). run53's `1/7` spent that draw on frame 5502 and
+    /// the original spent nothing (item 204).
+    #[test]
+    fn the_recovery_leaves_the_waypoint_for_do_move_to_take() {
+        let a = Pos::new(30 * 0x30 + 0x20, 30 * 0x30 + 0x14);
+        let b = Pos::new(27 * 0x30 + 0x18, 30 * 0x30 + 0x18);
+        let goal = Pos::new(20 * 0x30 + 0x18, 30 * 0x30 + 0x18);
+        let (mut sim, x, _y) = pair(a, b);
+        sim.order_move(x, goal);
+        sim.trace_phases = true;
+        let mut snapped = false;
+        for _ in 0..60 {
+            sim.tick();
+            if sim.units[x].collide_frame != 0 {
+                snapped = true;
+                break;
+            }
+        }
+        assert!(snapped, "the walk reached the unit in front");
+        assert!(
+            sim.units[x].path.len() > 1,
+            "the 48-grid plan is on the stack: {:?}",
+            sim.units[x].path
+        );
+        let mo = sim.current_move(x).expect("still a move");
+        assert!(
+            !mo.has_waypoint,
+            "the recovery clears `dest`; it does not take the top: {mo:?}"
+        );
+
+        // The next frame takes it — and the leg it takes is the snapped
+        // cell the unit is already standing on, so the arrival test pops
+        // it and the frame ends there. No grid roll.
+        sim.phase_marks.clear();
+        sim.tick();
+        assert!(
+            !sim.phase_marks
+                .iter()
+                .any(|(m, _)| m == crate::orders::SITE_MOVE_GRID),
+            "the frame after the snap spends no grid draw: {:?}",
+            sim.phase_marks
+        );
+
+        // And it gets where it was going rather than oscillating: the
+        // pop-and-re-plan pair this used to make was a two-frame livelock
+        // that ran to the end of run53's capture.
+        let mut arrived = false;
+        for _ in 0..400 {
+            sim.tick();
+            if sim.units[x].orders.is_empty() {
+                arrived = true;
+                break;
+            }
+        }
+        assert!(
+            arrived,
+            "the walk finished; it stalled at {:?} with {:?}",
+            sim.units[x].pos, sim.units[x].path
+        );
     }
 
     /// §6's tail, the mechanic's **only** draw — and the two guards that

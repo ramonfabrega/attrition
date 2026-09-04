@@ -2672,7 +2672,13 @@ impl Sim {
     /// One unit's turn inside `Objects::process_all`'s first loop —
     /// `Unit::process@00610bc0`, or `Animal::process` for gaia's.
     fn process_unit(&mut self, i: usize, frame: i64, events: &mut Vec<Tick>) {
-        self.mark(&format!("unit {}/{}", self.units[i].owner, i));
+        // `who/o` — the unit's own [`Unit::index`], not its slot in this
+        // vector. Every other `who/o` in the project is the game's `o`,
+        // and a label that quietly meant the slot cost a probe run once.
+        self.mark(&format!(
+            "unit {}/{}",
+            self.units[i].owner, self.units[i].index
+        ));
         if !self.units[i].alive() {
             return;
         }

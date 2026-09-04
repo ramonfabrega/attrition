@@ -3535,7 +3535,12 @@ what is listed as an input is stated as such in the code):
   **`go_around_building` whole** (§4.6.1, 2026-08-26:
   the edge walk, the pick, the one-or-three pushes with their `off % 0xc0 / 2`
   skew, the give-up, and `find_path`'s acceptance with the recursive verify
-  and the shore's `flags & 4`). What is not modelled: the waypoint take's
+  and the shore's `flags & 4`), and **the grid the re-plan runs on**
+  (`field_0x88`, 2026-09-03, item 204): a unit that has not been colliding
+  drops its loose near waypoints and plans on the tile grid, one that has
+  keeps them and plans on the 48 grid, and the length a positive return is
+  compared against is read *after* the pops, per arm.
+  What is not modelled: the waypoint take's
   region check (the turn-in-place before a leg ending in another terrain
   region) and its `TRADE_ROUTE` arms, suspended searches, `resolve_block`,
   the entrench wait.

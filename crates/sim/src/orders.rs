@@ -1691,12 +1691,18 @@ impl Sim {
                     _ => 5 * CELL,
                 };
                 let far = (mo.waypoint.x - here.x).abs() + (mo.waypoint.y - here.y).abs() > thr;
-                let len_before = self.units[u].path.len();
                 // `wflag` (which grid planned) only matters to the
                 // resolve-block branch below, which is a seam; kept for the
                 // shape.
-                let (r, _wflag) = if far {
-                    (self.find_wpath(u), true)
+                //
+                // The length a positive return is compared against is read
+                // **per arm**, and in the near arm *after* every pop: the
+                // original captures `field_0xc0` beside each planner call,
+                // and re-reads it once the unwind loop has run. Reading it
+                // before the pops made "unchanged" nearly unreachable.
+                let (r, len_before, _wflag) = if far {
+                    let len_before = self.units[u].path.len();
+                    (self.find_wpath(u), len_before, true)
                 } else {
                     // A non-final top equal to `last` is stale: pop it.
                     if let Some(t) = self.units[u].path.last().copied()
@@ -1705,19 +1711,34 @@ impl Sim {
                     {
                         self.units[u].path.pop();
                     }
-                    // Not colliding: drop loose near waypoints, then plan
-                    // on tiles. (The `collide != 0` arm of `do_move`'s own
-                    // branch — a re-probe of `coll_x/coll_y` every other
-                    // frame — is still unmodelled; the recovery path is
-                    // `move_step`'s, `docs/COLLISION.md` §5.)
-                    while let Some(t) = self.units[u].path.last().copied() {
-                        if t.flags & (path_flag::FINAL | 0x20) == 0 && t.tolerance < 0x60 {
-                            self.units[u].path.pop();
-                        } else {
-                            break;
+                    // **`collide`, and the two grids it chooses between**
+                    // (`docs/ORDERS.md` §4.4, `Unit::do_move@005f7b30`'s
+                    // `field_0x88` test). A unit that has *not* been
+                    // colliding drops its loose near waypoints and plans on
+                    // tiles; one that has keeps them and plans on the
+                    // 48-grid, which is the finer one and the only one that
+                    // can get around the unit in the way.
+                    //
+                    // Taking the tile arm unconditionally is what put
+                    // run53's `1/7` in a two-frame livelock at 5502: the
+                    // sidestep `move_step` had just pushed was popped the
+                    // next frame, the unit walked back into the same
+                    // collider, and the pair repeated for the rest of the
+                    // capture (item 204).
+                    if self.units[u].collide != 0 {
+                        let len_before = self.units[u].path.len();
+                        (self.find_upath(u, false), len_before, false)
+                    } else {
+                        while let Some(t) = self.units[u].path.last().copied() {
+                            if t.flags & (path_flag::FINAL | 0x20) == 0 && t.tolerance < 0x60 {
+                                self.units[u].path.pop();
+                            } else {
+                                break;
+                            }
                         }
+                        let len_before = self.units[u].path.len();
+                        (self.find_tpath(u), len_before, false)
                     }
-                    (self.find_tpath(u), false)
                 };
                 // A positive return with the stack length unchanged counts
                 // as a refusal.
