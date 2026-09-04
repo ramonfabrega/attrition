@@ -1057,3 +1057,40 @@ settle_min: 14000000
 poll_max: 300
 # Same game: the trace word for word against run54, this map's own 24k run.
 check: python3 tools/gamelog/rngcmp.py rontrace-run54.log rontrace-run78.log
+
+run: 79
+tag: greatlakes-secondsquad
+item: 227
+why: a second squad birth on the map where a three IS three Archers — 6993 and 7212 in one window
+# **Two candidates, one window, because a blind window has now cost two
+# captures.** run77 and run78 each guessed one frame on East Indies and each
+# came back with no squad: `report.py … when` counts *guys*, so a `3` there
+# was one three-model unit (`docs/ORACLE.md`, run78). Great Lakes is the map
+# where a `3` is known to be three units — 6612 is run76's Archer squad, and
+# 6762's single draw is confirmed against run76's own dump as a single unit.
+#
+# So this takes the next two threes together rather than betting on one.
+# `report.py rontrace-run53.log when 'Guy::init_real<Unit::init<Objects::init_unit' 2`
+# gives 6612, 6993, 7212, 7439, 7674 on this map; **6993 and 7212 are 219
+# frames apart and both fit inside one window** at the cost of about two
+# extra minutes of dumping. If either is a squad from a Barracks other than
+# `1/2016`, the geometry differs from run76's and that is the second sample
+# item 227 has been missing; if both are single multi-model units, the window
+# says so once instead of twice.
+#
+# The labels are FRAME labels, one ahead of the sim-frame, so the births land
+# in `FRAME 6994` and `FRAME 7213`, and the window opens 83 frames ahead of
+# the first and closes 37 past the second.
+frames: 7300
+mapstyle: 14
+end: MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,DEATHS=1,LEADERS=1
+frame_window: 6910 7250
+# cover=0 is not a choice on this machine — the `cover:` key's note above.
+cover: cover=0
+# run74/run75/run76's floor: the Great Lakes start dump is 10.9 MB at this
+# detail and nothing grows until the window opens.
+settle_min: 14000000
+# 340 dumped frames against run76's 230, on a shorter run-up.
+poll_max: 260
+# Same game: the trace word for word against run53.
+check: python3 tools/gamelog/rngcmp.py rontrace-run53.log rontrace-run79.log
