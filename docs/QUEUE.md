@@ -81,7 +81,9 @@ journal is indexed by them.
     whose `taxation` is 0: `territory_tax` is 0 % for the life of every game
     and the granary, mill, smelter and university ladders sit at level 1
     (ECONOMY, audit R8); zero on every capture so far because the original's
-    is too. Plus four `economy.rs` doc-comments ECONOMY.md has retracted.
+    is too. With it: `Lobby::tech_cost`, written and never asked, and the
+    knowledge tech-cost penalty that would read it (ECONOMY R2) — missing
+    together. Plus four `economy.rs` doc-comments ECONOMY.md has retracted.
 
 226. **`cover=1` dies in the wow64 bop at the exe's entry**, layout-sensitive
     and reproduced by `tools/trace/wow64bop.c` (ORACLE, "The falsifier for
@@ -115,7 +117,9 @@ gate is between steps 13 and 16; (159) the `CITY` record's two seams on
 run58, `1/2007`'s `land`/`filled` from 1819 and the gatherers from 2576;
 (146) `train_time`'s nine national arms after the ramp (PRODUCTION), (142)
 `World::tregion` is not `get_tregion`, eleven callers (PATHFINDER §15–16);
-(122) 16 of 61 draws without a `self.mark(`; (153) the `TRIBE` record, whole.
+(122) 16 of 61 draws without a `self.mark(`; (153) the `TRIBE` record, whole;
+the thirteen `Census` fields the sweep writes for consumers not built
+(`rondata::writers`' no-reader ledger, 20 rows, may only fall).
 
 178. **The danger map's unit pass, unexercised** (DANGER §8): no capture has
     a military unit on a frame divisible by 200, so `role & 0x10000`,
@@ -157,7 +161,8 @@ Military level and `army.rs` reads `ages`**, `army.rs:769,1365`.
     `create_buildings` first runs on East Indies 9982 (AI §25), so
     `building_value`, `gather_value`, §24.4's arm, `oil_patches.count` and
     `compute_largest_gather@0066e920` wait on it. (195) **`find_repair_spot`
-    is `build_done`'s last of three** (ORDERS §5.5–§5.9); no damaged building.
+    is `build_done`'s last of three** (ORDERS §5.5–§5.9), and the repair gate
+    never asks `Building::hit_frame`, written for it; no damaged building.
 
 156. **`STARTING_GOODS` arrives with the age**: `gain_tech` pays
     `bucket_add(g, starting[g])` for a zero bucket whose preq is the tech
