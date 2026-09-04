@@ -16,8 +16,9 @@ health inside hostile national borders.
 > for its whole length**, 1,772 frames on one and 1,851 on the other: every
 > unit position, every order list, every animal, and the game's RNG placed
 > draw for draw by call site, with no disagreement anywhere in either. The
-> measurement moves on to the same two games at 24,000 frames, where the
-> first divergence is now at frame 2,176. No renderer yet.
+> measurement moves on to the same two games at 24,000 frames; the queue's
+> scoreboard line carries the current first divergence on each. No renderer
+> yet.
 > `docs/QUEUE.md` says exactly where things stand.
 
 ## What this is
@@ -92,8 +93,9 @@ This uses SteamCMD with a forced Windows platform type to download the depot
 without running it. Extraction needs the files, not a running game.
 
 **Running** it on a Mac — to log a controlled game and have a behavioural
-oracle — works under CrossOver's D3DMetal; `docs/ORACLE.md` has the exact
-path, the loggers, and the recipe for a logged run.
+oracle — works on free WineHQ Stable with DXVK-macOS, nothing licensed;
+`docs/ORACLE.md` has the exact path, the loggers, and the recipe for a
+logged run.
 
 ## Layout
 

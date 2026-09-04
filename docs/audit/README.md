@@ -149,6 +149,17 @@ intersection. The files stay as the record of their readings.
   `MapGrass::make_continents`. `docs/MOVEMENT.md`, "The mirror is the
   original's". No code change.
 
+**2026-09-04, Fable — the batch was empty, and the ledger has a feeder
+now.** Every `FABLE:` marker in the tree is either struck with its answer
+or one of the two deliberate pointers above; the run57/run58 markers in
+`docs/ORACLE.md` proposed a booking clause that `CLAUDE.md` has since
+adopted ("grep the disk before booking a capture"). What produces the next
+markers is the audit lane (`docs/DECISIONS.md` entry 33): docs-versus-code
+readers over the documents amended this week, then blind second readings
+for the nine documents that have never had one — caravan, collision,
+danger, goody, input, merchant, roads, scout, vision — then item 72. Its
+verdicts land here as audit files; its `FABLE:` rows are the next batch.
+
 **The cheapest way to shorten this list is not a pass.** Most of what is
 owed is arithmetic and predicates a capture can settle outright, so
 `docs/QUEUE.md` item 13's differential fuzzing retires more of it per hour

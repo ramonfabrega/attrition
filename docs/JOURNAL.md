@@ -16387,3 +16387,42 @@ disk and checked, and the whole session ran off one file plus one
 disassembly. The word is unmoved on both maps — Great Lakes 6848, East
 Indies 7448 — and the 207 diff tests and 807 sim tests are green, so the
 per-member placement is a structural gain with no regression behind it.
+
+## 2026-09-04 — the sixth steer: two lanes for the two starved counters (Fable)
+
+**The question was what a reset budget buys, and the answer was not more
+agents on the headline.** The headline is serial by construction — every
+fix reveals the next divergence — and the loop moving it is sound: eleven
+items and about a thousand frames on the lower map in a day, the oracle
+rebuilt off CrossOver the same day. What the loop's own rule starves are
+the other two counters `docs/DECISIONS.md` 29 names as "sim done": the
+blind list, frozen at 101 of 617 because coverage page-faults under free
+Wine, and the second readings, nine documents never read twice and 261
+commits since the last audit. So the budget goes there, and `DECISIONS.md`
+33 has the charters: `att-capture` on 226 first, `att-audit` on
+docs-versus-code first. Both on Opus, both in their own worktrees, both
+messaging this loop rather than writing its files.
+
+**Lore's handover was read against the tree, not its summary.** Its
+docs-versus-code wave is taken as the audit lane's first wave, ahead of
+the blind readings, because four times this week a document was right and
+the code lagged it by 70 to 312 frames until the word arrived. Its
+no-writer guard is taken, into the test gate. Its "Fable reads Wine's
+dispatch" is taken with the order reversed: the ten-minute discriminator
+run comes first, the reading only once that log exists. Its second game
+lane is rejected — one screen, one writer — and its row-parallel readings
+on items no capture reaches are deferred until a capture does.
+
+**Review and simplification stay off the table, with one exception.** The
+oracle diff is a stronger reviewer than any model and re-runs on every
+commit; a rewrite of code no capture reaches has no net at all. The
+exception is structural: the diff harness is one file of 23,243 lines
+touched in 121 of the last 197 commits, and both lanes land in it. Item
+228 splits it by record, mechanically, before they collide.
+
+**Paperwork the steer owed.** Decision 4 carried no callout while 16
+overturned it; the README still said frame 2,176 on CrossOver; two merged
+branches and a pre-rebase worktree were still on both sides of origin. All
+gone. The marked-row batch was empty — every `FABLE:` marker is struck or
+a deliberate pointer — and the audit README now says the lane is the
+ledger's feeder.

@@ -12,36 +12,34 @@ lines, or lets the handoff pass 32.
 
 ## Where things stand
 
-*2026-09-04, Opus — item 223 read, no score moved.* **Both words unmoved:
-Great Lakes 6848, East Indies 7448.** What moved is the question: 223 was
-never the march.
+*2026-09-04, Fable steering — two lanes opened, no score moved.* **Both
+words unmoved: Great Lakes 6848, East Indies 7448.** The loop is sound; the
+two finish-line counters it starves now have lanes (DECISIONS 33):
 
-- **The squad is already apart on 6640** — run76's first frame, twenty-eight
-  after its birth, ten before the group order. This crate stacked all three
-  Archers on the captain's spot. The original recurses on `o_down` and
-  **each member searches for itself** (`00617c10:535`); that is built, and
-  the stacking is gone (CITIES §6.5.1).
-- **And it is not the whole answer.** The captain is now **exact** — bearing
-  0 at `r = min = 672` off Barracks `1/2016` → `(45144, 26424)`. `1/29` sits
-  at **11.25°** from the trainer, which `find_nearby_spot`'s counter cannot
-  produce, and the captain as centre does not reach it either. **Item 227.**
-- **The sweep is confirmed off the listing** — radius-major, 31 bearings
-  `0, ±1 … ±15`, the half turn for `|k| > 7` (`61e017`–`61e3dc`). The
-  decompiler prints the counter's *post*-mutation value and reads as a
-  different list; ORDERS §10 now says so.
-- **The corpus mirror is short and resuming.** `ls` was 108 objects / 10.5 GB
-  against ~212 / ~22 GB; a `sync` ran, one part failed `ServiceUnavailable`.
-  Re-run `backup.sh sync` (idempotent) and check `ls` before trusting it.
+- **`att-capture`** (Opus, branch `lane-capture`): 226 first, since the
+  blind list cannot move without `cover=1`; then the second-map squad
+  birth that would kill 227; then the targeted captures of DECISIONS 29.
+  It owns the screen — a main-loop capture is a stanza in `captures.txt`.
+- **`att-audit`** (Opus, branch `lane-audit`): docs-versus-code readers
+  over the eight documents amended this week, the no-writer guard (87),
+  then the nine documents with no second reading, then 72. Verdicts
+  arrive by message; this loop files them.
+- **Only this loop writes this file.** Merge both lane branches at session
+  start and read their messages before choosing an item.
+- 227 stands as opened: the squad is apart on 6640, the captain exact,
+  `1/28`/`1/29` not candidates of the sweep (CITIES §6.5.1, ORDERS §10).
+- Corpus mirror short: re-run `backup.sh sync`, check `ls` (~212 / ~22 GB).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w7448 of 24,000 · GreatLakes w6848 of 24,000
 
-**Opener (Opus):** `227 — where a squad member's exit spot comes from. The
-captain's is exact off the building's ring; 1/28 and 1/29 are not candidates
-of that sweep from either centre. Three suspects: find_nearby_spot's squad
-flag (param_13, which inflates the block radius at 61deb8 and come_out
-passes 0), the local Group come_out clears at its head, and a formation
-offset inside set_new_location. Read those three before booking a capture.`
+**Opener (Opus):** `Merge lane-capture and lane-audit if they moved, then
+227 — where a squad member's exit spot comes from. The captain's is exact
+off the building's ring; 1/28 and 1/29 are not candidates of that sweep
+from either centre. Three suspects: find_nearby_spot's squad flag
+(param_13, which inflates the block radius at 61deb8 and come_out passes
+0), the local Group come_out clears, and a formation offset inside
+set_new_location. Read those three; att-capture has the screen.`
 
 ## The queue
 
@@ -58,18 +56,15 @@ journal is indexed by them.
     `61deb8`), the local `Group` `come_out` clears, `set_new_location`'s
     formation offset. The squad chain is `UnitData +0x8e`/`+0x90`, **not**
     the `up`/`down` the dump prints — that is the cell list, buildings and
-    all. Falsified by a second map's Barracks squad born in a `UNITS=3`
-    window; one sample of two offsets is all there is.
+    all. Falsified by a second map's squad birth — with `att-capture`.
     **Takes 219**, `do_group_move`'s four seams (ORDERS §15): the group's
     speed pair and its cap, the flock an invalid slot near an ocean cell
     adds (**one sync draw**, the one with teeth), `cavarch_fight`, the
     attack hand-offs. 7448 (214) is the same shape.
 
-226. **`cover=1` page-faults under free Wine** (ORACLE, "Off CrossOver").
-    `riseofnations_trace.exe` dies at `7BF21139` — kernel32/ntdll in Wine's
-    own region — with the int3 forest on, and survives with `cover=0`.
-    Captures run either way; **function coverage does not**, and that list is
-    the queue of blind readings. One look before accepting it forever.
+226. **`cover=1` page-faults under free Wine** at `7BF21139` (ORACLE, "Off
+    CrossOver"); function coverage, and so the blind list, waits on it.
+    **With `att-capture`**: the discriminator run first (DECISIONS 33).
 
 220. **§13's twenty range blocks.** Every free-upgrade row whose candidates
     are a run of tech indices — Chinese herbal lore, the Red Fort's two, the
@@ -128,11 +123,10 @@ whole** — `Tribe::log_data@006f0d70`'s `graft[352]`, `barbarian`,
 `diff.rs` names nowhere and **41** one capture names, pinned and falling only;
 its blind spot is a field the parser never had — `avg_speed` (210).
 
-The ledgers still uncounted: (88) **the blind list** — `report.py … blind
-docs/` lists the cited functions no traced run has entered (101 of 617), pin
-it as a floor and put it in each Coverage; (72) every `+0xNN` a document
-pins, checked against its module; (89) the instrument's last guard, (c)
-alone; (35) **`mylos` as a cache**, VISION §7 (Scout 4 → 6 early).
+The ledgers still uncounted: (88) **the blind list** — 101 of 617 cited
+functions never entered; pin it as a floor, put it in each Coverage; (72)
+every `+0xNN` a document pins vs its module — **with `att-audit`**; (89) the
+instrument's last guard, (c) alone; (35) **`mylos` as a cache**, VISION §7.
 
 175. **The uber chain past its birth.** `Objects::init_unit` threads
     `uber_size` objects (CITIES §4.3) and nothing else reads the chain:
@@ -178,6 +172,10 @@ reads `ages`**, `army.rs:769,1365`.
     0x162)`'s siege doubling; the group cap, whose `movement::group_capped`
     is uncalled — now 219's second half.
 
+228. **Split the diff harness by record.** `rondata/src/diff.rs` is
+    23,243 lines, touched in 121 of the last 197 commits, and both lanes
+    land in it. Mechanical, one commit, test count identical (DECISIONS 33).
+
 Older backlog: (39) a read-only 2D viewer over `Sim` state with the dump
 overlaid; (41) `scenario.py`'s fate — `zsh tools/fuzz/run.sh 424242 1000 1300`
 then `report.py … blind docs/` before deleting it; a `find_target` block;
@@ -192,7 +190,8 @@ run7's order stream; a mounted attacker; `calc_gather` non-flat;
   bound is a budget: a new item is paid for by compressing old ones.**
 - **A floor that moves** moves three things together: `FLOORS` in
   `rondata::diff`, the assert that reads it, and the `Scoreboard:` line.
-- **Start of session:** "Where things stand", the item, then its document.
+- **Start of session:** merge `lane-capture` and `lane-audit`, then "Where
+  things stand", the item, then its document. Lanes never write this file.
 - **Run the diff suite with `--release`** — 92 s against debug's 285 s
   since run53's 24,000 frames. A long wait is the capture, not a hang.
 - **Before a blind fan-out:** `grep -n <mechanic> CLAUDE.md`, and the memory

@@ -58,6 +58,14 @@ days.
 
 ## 4. Fixed-point, not floating-point
 
+> **Amended 2026-08-21 by entry 16, and the callout added 2026-09-04.** This
+> entry chose Q16.16 before any of the original had been read. Entry 16
+> overturns the *representation*: gameplay arithmetic is integers at the
+> original's own scales, and `fixed::Fx` is a crate that stays unearned
+> until a mechanic needs a fraction the original does not already store as
+> an integer. What survives of this entry is the ban on floats, the
+> truncation rule and the saturation rule.
+
 **Chosen:** Q16.16 fixed point (`fixed::Fx`) for all gameplay arithmetic.
 
 **Over:** `f64` with strict IEEE settings.
@@ -1301,3 +1309,67 @@ This does not overturn the horizon in `docs/ORACLE.md`: Rosetta 2 ends with
 macOS 28, and the durable answer is still an x86 machine running the
 original natively.
 
+
+## 33. Two lanes for the two starved counters, and only the main loop writes the queue
+
+**Decided 2026-09-04**, in the sixth Fable steering session, with the user,
+after a handover from the `lore` session. Extends entries 25, 27 and 29;
+overturns nothing.
+
+**What was found.** The loop is sound: eleven items and about a thousand
+frames on the lower map in one day, and the lane rebuilt off CrossOver the
+same day. What the loop's own rule starves are the two other counters entry
+29 names as "sim done". The blind list is frozen at 101 of 617 because
+function coverage page-faults under free Wine (item 226), and nothing can
+shrink it until that is looked at. And the rule "every reading-only claim
+gets a blind second reading" has been broken at scale: nine mechanic
+documents have never had one, 261 commits landed since the last audit, and
+four times this week a document stated a rule the code did not implement,
+found only when the word reached it, 70 to 312 frames later.
+
+**The decisions.**
+
+1. **The capture lane is a session again**, `att-capture`, on Opus, in its
+   own worktree on branch `lane-capture`, per entry 27's fence. A routine
+   stanza needs no judgment and stays a background shell in whichever
+   session wrote it; the lane exists for the runs that need judgment and
+   the screen for an hour: 226 first, then the second-map squad birth that
+   would kill 227, then the targeted captures entry 29 asks for. Its first
+   step on 226 is an experiment, not a reading: one `cover=1` run under
+   Wine's exception debug channel, read for whether arming completed, any
+   breakpoint was ever handled, and any was declined. A Fable session reads
+   Wine's dispatch against the handler only once that log exists.
+2. **An audit lane**, `att-audit`, on Opus, branch `lane-audit`, as entry
+   25's second measured trial. Its first wave is not the blind reading but
+   the cheaper check the week's evidence asks for: one reader per document
+   listing the rules the code does not implement, adjudicated by the lane,
+   each confirmed row becoming a failing test where a capture reaches it or
+   a dated coverage line where none does. Then the nine documents with no
+   second reading, per the audit README; then item 72. It also writes the
+   **no-writer guard**: a field the diff compares must have a writer in the
+   sim or a listed exemption, in the test gate, because three such fields
+   passed vacuously this week. Its measure is verdicts that became
+   assertions or code, and two documents in a row with none ends it.
+3. **Only the main loop writes the queue.** A lane's products are audit
+   files, coverage appendices, tests, run sections and messages; the main
+   loop merges both lane branches at its session start and files what they
+   report. A lane never edits a rules section, a sim module's logic, or
+   `CLAUDE.md`.
+4. **The diff harness is split before the lanes collide in it.** One file
+   of 23,243 lines, touched in 121 of the last 197 commits, is where every
+   widening lands and where every lane would conflict. The split is
+   mechanical, per record, one commit, test count identical, done by the
+   main loop between items (queue item 228). This is the one
+   "simplification" the project takes now: review-for-bugs and semantic
+   simplification stay off the table until phase 4, because the oracle diff
+   is a stronger reviewer than any model and a rewrite of code no capture
+   reaches has no net at all.
+
+**Rejected.** A second *game* lane: one screen, one writer, and the audit
+lane shares nothing with the screen. Fan-out readings on items no capture
+reaches (220, 211, 146): unfalsifiable until the capture exists. Fable as a
+blind reader, budget or no budget: entry 24's evidence stands.
+
+**The measure.** The seventh steer asks whether 226 was settled either way,
+whether the audit lane's verdicts changed code, and whether the merges cost
+anything. Keep or kill on the answer, per lane.
