@@ -330,6 +330,58 @@ not agree**, §7.3; and ~~the road mesh, which lays road tiles of its own~~
 (§9, 2026-09-03), of which the rendering passes and the removal branch
 remain — §9.4 lists them one by one.
 
+**The docs-versus-code pass, 2026-09-05** (`docs/audit/2026-09-05-roads-vs-code.md`;
+Opus reader, Opus adjudication). 106 stated rules of §1–§5 and §7–§9 were
+traced to the code that implements them; nine disagree and all nine are
+confirmed against the source. Three are this document lagging the code and
+are the lane's to correct — §5's "a blocked tile stays on the chain",
+§2's `+0xb4` row (which contradicts §5.2, and §5.2 is the right half), and
+§7.4's three terraform refusals where the code has a fourth, `d.land != 0`,
+that run72's 921,600 tiles already back. Six are the code lagging this
+document, and each is **stated, unimplemented, and unreached** by any
+capture on disk:
+
+- **§5.2's ocean arm**, whose `parent not ocean` test the code does not
+  have: `crate::roads` charges the 100 on every ocean node rather than on
+  the entry to a run of them. Unreached because both constants are 100 and
+  every ocean node on the corpus takes the `avoid_sea` arm, where the
+  parent is not consulted.
+- **§1's second `regen_roads` caller**, `Build::remove_from_city`: the
+  sim's `remove_from_city` flags nothing, so no replan follows a building
+  leaving its city. Unreached — no capture removes one.
+- **§5's reconstruction order.** `place_roads` walks `reconstruct`'s
+  vector front to back and `crate::caravan` walks the same vector with
+  `.rev()`; only one can be `place_roads@0063c580`, which pops its stack
+  from the top. Now falsifiable and **not** falsified:
+  `run72_s_world_after_the_market_s_road_is_the_original_s` compares the
+  world on the frame after the Market's road is laid and the road tiles
+  agree exactly, `set_diags`' seventeenth included. A capture where two of
+  a road's tiles are diagonal neighbours of *different* standing roads
+  would separate them; none on disk is.
+- **§7.3's `reg_forts` half.** The shortcut is a disjunction and the code
+  has only `reg_cities`. Disclosed in `ai_sites.rs` and not here; §6's
+  "unmodelled" list strikes the `was_seen` entry through as closed, which
+  it is not. Unreached — no fort stands in any capture at the sweep.
+- **§5's budget.** The original tests `traversed < 0xc80` on the
+  *reconstruction*, so popping the goal at or past the cap lays nothing;
+  the sim returns the road on the goal pop and tests the budget after.
+  Unreached — no building search on the corpus exceeds 400 nodes.
+- **§5.2's second conjunct**, `is_ally(owner, whoB)`: absent even from the
+  "owner is me" arm. Unreached — `place_roads` searches a building to its
+  own city, so the two endpoints share an owner and the conjunct is
+  reflexively true.
+
+**And what the widening found instead** (2026-09-05): stepping run72 one
+frame further, to the world the search *wrote*, the tile-mask residue goes
+32 → 45, and every one of the thirteen the road frame adds is
+`World::set_behind@006b4230`'s `0x4` alone, around the Market's own ring at
+`[223, 227] × [78, 81]`. Nothing in `Roads` writes that bit: they are the
+Market **finishing**, and `Wall::mark_behind_tiles@0063d230` not running for
+it. `run72_s_world_after_the_market_s_road_is_the_original_s` pins the
+count and asserts the kind — every differing tile differs by `0x4` and
+nothing else — so a residue that changes in character fails rather than
+hiding inside a tolerance.
+
 ## 7. The placement frame, and the two mechanics behind its two counts
 
 **The twelve nodes a search was short were never the search's.** For a

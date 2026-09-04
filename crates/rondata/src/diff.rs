@@ -11064,6 +11064,176 @@ mod tests {
         );
     }
 
+    /// **run72's world on the frame *after* the road went down** — the
+    /// widening the ROADS docs-versus-code audit asked for (2026-09-05).
+    ///
+    /// [`run72_s_road_nodes_are_where_great_lakes_word_parts`] stops at the
+    /// end of 4802 and compares the world the search is about to *read*. It
+    /// never looks at the world the search **wrote**, and that is where the
+    /// order the road is laid in shows: `World::set_road_at@006b43b0` ends
+    /// in `Roads::road_added@008954d0` → `Roads::add_roads@0088f4b0` →
+    /// `Roads::set_diags@0088e9d0`, and `set_diags` lays road tiles of its
+    /// own where a road stands diagonally from a new one with nothing
+    /// between them. *Which* tiles those are depends on which neighbours
+    /// are already road when each tile goes down, so a road laid
+    /// end-to-end backwards can put the same sixteen tiles on the map and
+    /// a different seventeenth.
+    ///
+    /// `DUMP_ALL` covers `[4800, 4806)`, so 4804 is dumped and is the first
+    /// block in which the Market's road exists. One more tick than the
+    /// sibling test, and the same 921,600 tiles.
+    ///
+    /// **The audit's row.** `crate::roads`' `place_roads` walks
+    /// `reconstruct`'s vector **front to back**, which is the near-*goal*
+    /// end first; `crate::caravan`'s `lay_caravan_road` walks the same
+    /// vector with `.rev()` and its own comment calls that "the
+    /// near-*start* end first". Two consumers of one vector disagree about
+    /// which end of it is which, and only one of them can match
+    /// `BuildType::place_roads@0063c580`, which pops its `Stack<PathData>`
+    /// from the top. Until this ran, nothing on the corpus could tell them
+    /// apart.
+    #[test]
+    fn run72_s_world_after_the_market_s_road_is_the_original_s() {
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(r72)) = (
+            dump("gamelog-run71-greatlakes-5k.txt"),
+            dump("gamelog-run72-greatlakes-marketroad.txt"),
+        ) else {
+            eprintln!("skipping: no run71/run72 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = std::fs::read_to_string(&path).unwrap();
+        let log = Log::parse(&text);
+        let texts = sibling_texts();
+        let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
+        let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+        let refs: Vec<&Initial> = inits.iter().collect();
+        let mut init = log.initial().unwrap();
+        borrow_from_siblings(&mut init, &refs);
+        if let Some(tr) = trace("rontrace-run71.log") {
+            borrow_pasture(&mut init, &tr);
+        }
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        // 4,804 ticks stops at the end of sim-frame 4803 — the frame the
+        // Market finishes and `place_roads` runs — so this is the world
+        // run72's `FRAME 4804` block prints.
+        for _ in 0..4_804 {
+            built.tick();
+        }
+
+        let text72 = std::fs::read_to_string(&r72).unwrap();
+        let l72 = Log::parse(&text72);
+        let Some(block) = l72
+            .frames()
+            .into_iter()
+            .find(|(n, _)| *n == 4_804)
+            .map(|(_, b)| b)
+        else {
+            eprintln!("skipping: run72 has no FRAME 4804 block");
+            return;
+        };
+        let Some(w) = block.kid("FULL DUMP").unwrap_or(block).kid("WORLD") else {
+            eprintln!("skipping: run72's 4804 block carries no WORLD");
+            return;
+        };
+        let heights = l72.frame_heights(4_804);
+        if heights.len() <= 1_000 {
+            eprintln!("skipping: run72's 4804 block carries no height grid");
+            return;
+        }
+        let mut notes = Vec::new();
+        let (theirs_world, _) = world_from(&w.fields, &heights, &mut notes);
+        let (xs, ys) = (theirs_world.width(), theirs_world.height());
+
+        // The road tiles first, on their own, because they are the point: a
+        // tile that is a road on one side and not on the other is either a
+        // tile `place_roads` laid in the wrong place or one `set_diags`
+        // reached from the wrong direction.
+        let road = |m: u16| m & sim::world::tile::SURFACE == sim::world::tile::SURFACE_ROAD;
+        let mut road_only_ours = Vec::new();
+        let mut road_only_theirs = Vec::new();
+        let mut mask_off = Vec::new();
+        // Whether each mask difference is exactly `World::set_behind`'s low
+        // bit, set on the original's side and clear on ours.
+        const BEHIND: u16 = 0x4;
+        let mut behind_only: Vec<bool> = Vec::new();
+        for ty in 0..ys * 4 {
+            for tx in 0..xs * 4 {
+                let q = Pos::new(tx, ty);
+                let (om, tm) = (built.sim.world.tile_mask(q), theirs_world.tile_mask(q));
+                match (road(om), road(tm)) {
+                    (true, false) => road_only_ours.push((tx, ty)),
+                    (false, true) => road_only_theirs.push((tx, ty)),
+                    _ => {}
+                }
+                if om != tm {
+                    mask_off.push(format!("t({tx},{ty}) ours {om:#x} theirs {tm:#x}"));
+                    behind_only.push(tm ^ om == BEHIND && tm & BEHIND != 0);
+                }
+            }
+        }
+        eprintln!(
+            "run72 world at 4803: road ours-only {}, theirs-only {}, masks off {}; \
+             mesh {} elements, {} tiles laid by `set_diags`",
+            road_only_ours.len(),
+            road_only_theirs.len(),
+            mask_off.len(),
+            built.sim.mesh.len(),
+            built.sim.mesh.made()
+        );
+        // **The road tiles are the original's, laid or not.** This is the
+        // audit row's answer, and it is negative: `place_roads` walking
+        // `reconstruct` in the other direction puts the *same* tiles on
+        // the map here — the sixteen of the ring and `set_diags`'
+        // seventeenth at `(223, 79)` — so the order is a genuine
+        // disagreement between `crate::roads` and `crate::caravan` that
+        // this capture cannot see. A capture where two of a road's tiles
+        // are diagonal neighbours of *different* standing roads could;
+        // none on disk is.
+        assert_eq!(
+            (road_only_ours.as_slice(), road_only_theirs.as_slice()),
+            (&[][..], &[][..]),
+            "the road tiles part on the frame the Market lays its road"
+        );
+
+        // **What the widening did find**: the residue is 32 tiles at 4802
+        // and 45 at 4803, and every one of the thirteen the road frame
+        // adds is the same single bit.
+        //
+        // `0x4` is `World::set_behind@006b4230`'s low arm, whose writers
+        // are `Wall::mark_behind_tiles@0063d230` — from `Wall::start`,
+        // `Wall::close`, `refresh_nearby_tiles` and `cast_bribe` — and
+        // `Mountains::add_mountain`. Nothing in `Roads` writes it, so the
+        // thirteen are not the road: they are the Market **finishing** on
+        // 4803 and this crate not running `mark_behind_tiles` for it. They
+        // sit where that says they should, around the Market's own ring at
+        // `[223, 227] × [78, 81]`.
+        //
+        // Asserted as a property and not only a count, because the count
+        // alone would accept a residue that had changed in kind: every
+        // differing tile must differ by `0x4` and nothing else, with the
+        // bit set on the original's side. That is what makes this a
+        // pin on one unimplemented writer rather than a tolerance.
+        let not_behind: Vec<&String> = mask_off
+            .iter()
+            .zip(behind_only.iter())
+            .filter(|&(_, &only)| !only)
+            .map(|(l, _)| l)
+            .collect();
+        assert!(
+            not_behind.is_empty(),
+            "a tile-mask difference that is not `set_behind`'s `0x4`: {not_behind:?}"
+        );
+        assert_eq!(
+            mask_off.len(),
+            45,
+            "the `set_behind` residue at 4803 — 32 of them are 4802's, and the \
+             thirteen the road frame adds are the Market's own \
+             `Wall::mark_behind_tiles`. It may only fall: {mask_off:?}"
+        );
+    }
+
     /// **run64 — the caravan's road, node for node, and the world it
     /// reads** (2026-09-02).
     ///
