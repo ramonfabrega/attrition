@@ -1263,3 +1263,41 @@ three is near any search yet measured. Should a divergence ever land on one,
 the sim already carries a software float (`combat::F32`, an integer
 mantissa) and the upgrade is local to one module — which is the reason not
 to pay for it now.
+
+## 32. The oracle runs on free Wine, and a runner is a dependency like any other
+
+*2026-09-04, item 225.*
+
+CrossOver's bottle licence expired and took the capture lane with it. The
+choice was renew, or find a free stack — and it is a project question rather
+than a purchasing one, because the lane is how every remaining mechanic gets
+settled and a project whose thesis is outliving its source material should
+not rent its only oracle.
+
+**The decision: free WineHQ Stable 11.0 with DXVK-macOS.** It draws the main
+menu and runs the traced executable, and nothing in it renews.
+
+Two things made the choice cheap, and both are method rather than luck:
+
+- **The requirement was read, not guessed.** `d3dgl.dll` — which despite its
+  name imports d3d11 — makes one call, `D3D11CreateDevice(NULL, HARDWARE,
+  NULL, 0, {0xa000}, 1, 7, …)`, and boxes on a negative HRESULT. A single
+  feature level, 10_0. Once that was on the page, three candidate stacks
+  could be *measured* against it in an hour instead of argued about. The
+  exe-as-specification thesis applies to the runner too.
+- **The plan of record was wrong and the disk said so in four minutes.**
+  The queue named Apple's Game Porting Toolkit as "probably the answer";
+  CrossOver's own bundle ships D3DMetal for `x86_64-windows` only, and the
+  game is PE32. **Check the artifact before buying the plan**, even when
+  the plan is yours.
+
+The cost is recorded rather than hidden: the traced executable needs
+`cover=0` under free Wine (item 226), so **function coverage is off** until
+that is fixed, and the coverage list is the queue of blind readings
+(`CLAUDE.md`, "Prefer a diff to a reading"). Captures and diffs are
+unaffected.
+
+This does not overturn the horizon in `docs/ORACLE.md`: Rosetta 2 ends with
+macOS 28, and the durable answer is still an x86 machine running the
+original natively.
+
