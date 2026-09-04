@@ -43,6 +43,11 @@ pub mod trace;
 pub mod tuning;
 pub mod typesdump;
 
+// The harness read against the simulation: a field [`diff`] compares that
+// nothing in `crates/sim` ever writes is a row that passes vacuously.
+#[cfg(test)]
+mod writers;
+
 use std::path::{Path, PathBuf};
 
 pub use scalar::{Cost, Range, Resource, Scalar};
