@@ -4224,9 +4224,20 @@ three-directory layout. The dependency we thought we had is upstream.
   nothing to any log.
 - **The traced copy page-faults**: `riseofnations_trace.exe` dies with
   `Unhandled page fault on read access to 00004ECD at address 7BF21139`
-  where the stock copy does not. That is `tools/trace`'s int3 patching
-  meeting a different Wine, and it is a second question — the capture lane
-  needs both halves.
+  where the stock copy does not — a near-null read from inside Wine's own
+  `0x7Bxxxxxx` DLL region. It is not a loading failure: `rontrace.cfg` and
+  `rontrace.cmd` were both in place and `rontrace.log` carries its `RONT`
+  header, so the DLL loaded and initialised before the fault.
+
+  **Where to look, and it is one line of config.** The instrument plants
+  `int 3` on all 48,233 function entries and catches them in a **vectored
+  exception handler** (`tools/trace/README.md`), which is precisely the
+  path on which Wine forks differ most. `cover=1` is what turns that forest
+  on. So the first diagnostic is `rontrace.cfg` with **`cover=0`**: the
+  trampolines on `Random::get`, `rand_real`, `reseed` and `do_frame` stay,
+  the int3 forest goes. Surviving that puts the fault in VEH dispatch
+  rather than anywhere else, and the draw-site half of a capture — which
+  is what the *word* is computed from — needs only the trampolines.
 
 ### What is not established
 
