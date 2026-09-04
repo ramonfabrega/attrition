@@ -2177,11 +2177,10 @@ which fails if the predicate is put back the way the prose had it.
   the same day by run19 (§15.6)**, which also caught the second pass and
   the head clause. `found_cities`' purchases are still unscored; they sit
   at frame 576, inside the script's era.
-- **`create_units`' and `create_buildings`' values.** The run shows *what*
-  they listed (a citizen at 714, a temple at 2,499,999) but the arithmetic
-  behind those two numbers is unchecked against §2.13/§2.18/§2.19 — that
-  wants the census above loaded into a test, which is the natural first
-  move of the blind second reading.
+- ~~**`create_units`' and `create_buildings`' values.**~~ Both of the two
+  reproduce now (§27): the citizen at **714** and the temple at
+  **2,499,999**. What does not is `create_buildings`' *other* offers —
+  §27's residue.
 - **Only two categories were ever exercised.** Slots 4, 6, 7, 9 and 10 stay
   empty for the whole window, so the category map of §2.11 is confirmed at
   two points and inferred everywhere else.
@@ -3348,3 +3347,118 @@ placement on a masked tile is refused.
 the original filters `is_active`. Its one caller is gated on the tile's
 `PLACED` bit, which `mask_me` clears the moment a building starts, so the
 two agree there; the general form is the one above.
+
+
+## 27. `LeaderData::pop`, the number every producer's base is made of (2026-09-04)
+
+Great Lakes' word parted at **6582** on one draw: the original spends a
+third `Leader::make_stuff` roll, `+0x63d` — the expiry over the slot it has
+just bought (§15.3) — where this crate spends its two `+0x221` and stops.
+The slot is the citizen at 5, and `make_stuff`'s step 6 skips a slot whose
+`val` is zero. The original's is **714**; this crate's was **0**.
+
+### 27.1 What the field is, and who writes it
+
+`create_units@006c40a0:289` opens every type's pass with
+
+```
+local_10 = (this->pop * 1000) / max(1, this->city_num)      // +0x95c, +0x3f8
+```
+
+and `research_techs@006c6ba0` does the same with `× 200`. So `pop` is the
+whole of both producers' `base`: at zero, **every value either of them can
+compute is zero**, and this crate never wrote the field. `docs/AI.md` §2.3
+had it as "kept by the unit lifecycle, read here"; it is the **city**
+lifecycle, and nothing was keeping it.
+
+It is `CityData::get_pop_value@00738450` summed over the leader's live
+cities — a pure switch on the city building's type:
+
+| city type | `get_city_level` | `get_pop_value` |
+| --- | --- | --- |
+| `VILLAGE` (Small City) | 1 | **1** |
+| `TOWN` (`0x19f`, Large City) | 2 | **3** |
+| `METROPOLIS` (`0x1a0`) / `FORBIDDENCITY` (`0x213`) | 3 | **5** |
+
+`2 · level − 1`, and the original keeps the running sum incrementally. Its
+writers are five, and **every one of them adds or subtracts that function
+of one city**: `City::init@00737050` (`+`), `City::close@00737550` (`−`),
+`City::capture@00736c40` (both, across the two leaders),
+`City::check_upgrade@00738b20` (the delta) and `Build::finished@00628490`
+(the same delta, when the building that finished is what raised the city's
+level). So a recount over the live cities is the same number at every
+instant the sweep can read it, and each of those five is already a call
+site of `Sim::sync_pop_cities`, which is where
+[`Sim::sync_leader_pop`](../crates/sim/src/city.rs) now runs.
+
+`reg_pop` (`+0xe62`, `ushort[64]`) is the same sum per region, written only
+for a region index below `0x40` — the array's own bound — and `reg_cities`
+(`+0x125e`) sits beside it as the count. The recount is repeated at the
+census sweep's step 8 for one mechanical reason: step 8 is what `resize`s
+the per-region arrays, so a `sync_pop_cities` that ran before the first
+sweep — `build_sim` standing a dump up — would write `reg_pop` into an
+empty vector.
+
+### 27.2 The citizen's 714, end to end
+
+run18b is run53's own game, and its `LEADERS=9` block at sim-frame 6580
+carries every input. `create_units`' citizen branch (§2.18, the
+`is_peasant` arm at `006c4cfc`) reads them in this order:
+
+| step | the original's numbers | value |
+| --- | --- | --- |
+| `base = pop × 1000 / city_num` | `pop 2`, `city_num 2` | 1000 |
+| `b = (infra_mod × base) >> 8` | `infra_mod 256` | 1000 |
+| the `× 30` arm | Norwich has `busy 11`, so no | 1000 |
+| the branch | `free 0 + busy 11 + q 0 = 11`, `slots 12` — **not** `< slots − 1`, so the `else`: `assigned < slots` holds and `v = b` | 1000 |
+| `reg_gatherers < reg_gather_slots` | `19 < 22` | `× 3/2` → 1500 |
+| `reg_gatherers × 2 < reg_gather_slots` | `38 < 22`, no | 1500 |
+| `city->gatherers == 0` | 9, no | 1500 |
+| `free + busy <= slots / 2` | `11 <= 6`, no | 1500 |
+| `reg_peasants == 0` / `reg_free_peasants == 0` | 22 and 1, neither | 1500 |
+| `queued + units` against `pop_cap / 2` and 40 | 22 against 25 and 40, neither | 1500 |
+| **the tail**, `(check_income × ((want × v) / (want + units + queued))) >> 8` | `want_civ = pop_cap × 2 / 5 = 20`, `units 22`, `queued 0`: `20 × 1500 / 42` | **714** |
+
+The dump's slot 5 reads `val 714` at that frame and `val 7` after the buy
+(`val /= 100`, §15.4). This crate now reads 714 as well, and its
+`make_stuff` at 6582 spends the `+0x63d` the original does.
+
+**The tail is where the reading nearly went wrong.** 1500 is not 714, and
+the temptation was to hunt for a missing multiplier in the branch above.
+The divisor `want + units + queued` is the last thing `create_units` does
+before `make_me`, and this crate had it right all along — the tail was
+never the defect, and the arithmetic only closes when it is included.
+
+### 27.3 Coverage
+
+**Diff-backed.** `LONG_WORD_GREAT_LAKES` is **6612**, up from 6582, and
+`run53_s_24000_frames_put_the_ceiling_where_run33_did` fails if it falls.
+The census widening now compares `pop` and `reg_pop[home]` alongside the
+other fourteen scalars in
+`run9_s_frame_1_leader_record_is_the_census_after_the_sweep`, which was
+made to fail on purpose first: with the value forced to zero it reports
+`pop: ours 0 theirs 1` and `reg_pop[home]: ours 0 theirs Some(1)`. Nothing
+else on the board moved — East Indies stays 7448, run58's building fields
+stay 0 wrong, run59's census stays where it was.
+`cities_tests::a_leader_s_pop_is_one_three_five_by_city_level` pins the
+1/3/5 switch and the per-leader split directly.
+
+**Not established.**
+
+- **`create_buildings`' other offers.** At 6582 this crate's list carries a
+  gather building (`t 418`, `cat 4`) at slots 1 and 4 at `val 41500`, and
+  the original's slots 1–4 are **empty**. Neither offer changed the frame —
+  slot 1 fails `can_pay_slot` and slot 4 is dropped as a duplicate of a
+  ranked slot — so the draws still agree; the *list* does not. §2.19's
+  arithmetic is what would settle it, and run18b's window covers it.
+- **What is born at 6612.** The new parting is three `Guy::init_real+0x52`
+  and three `Guy::set_anim+0x97a < Unit::do_idle+0x7d` the original spends
+  and this crate spends none of — a unit arriving. It is **not** the
+  citizen bought at 6582: a citizen is one guy here (run53's own births at
+  2711, 4756 and 4937 are one `init_real` each) and its clock is 180
+  frames, not 30. Its shape is 5564's, which is `b22`'s three-guy `ty9` and
+  which both sides made; so the question is which queue the original filled
+  between 6153 and 6612 and this crate did not. That is the next item.
+- **The other readers of `pop`.** Only `create_units` and `research_techs`
+  are cited here. `Leader::plan_strategy@006b9620:1202` reads it too
+  (against `+0x848`), and that comparison is unmodelled.

@@ -781,7 +781,9 @@ impl Sim {
     }
 
     /// `Leader::calc_pop_cap`'s city term: every live city's level into the
-    /// owner's [`cost::PopBonuses::cities`].
+    /// owner's [`cost::PopBonuses::cities`] — and, on the same walk,
+    /// [`Sim::sync_leader_pop`], because the original updates the two
+    /// together.
     pub fn sync_pop_cities(&mut self) {
         for m in &mut self.muster {
             m.bonuses.cities.clear();
@@ -798,7 +800,59 @@ impl Sim {
             let owner = self.cities[c].owner as usize;
             self.muster[owner].bonuses.cities.push(level);
         }
+        self.sync_leader_pop();
         self.recompute_pop_caps();
+    }
+
+    /// `LeaderData::pop` (`+0x95c`) and `reg_pop` (`+0xe62`), which
+    /// `docs/AI.md` §2.3 records as kept by the city lifecycle and which
+    /// nothing here wrote — so `create_units`' `base` and `research_techs`'
+    /// were identically zero (`docs/AI.md` §27).
+    ///
+    /// Both are the sum of `CityData::get_pop_value@00738450` over the
+    /// leader's live cities: **1** for a Small City, **3** for a Large City
+    /// (`TOWN`, `0x19f`) and **5** for a Major City or the Forbidden City
+    /// (`0x1a0`, `0x213`) — `2 · city_level − 1`. The original keeps the
+    /// running sum incrementally and every writer is that function of one
+    /// city (`City::init@00737050`, `City::close@00737550`,
+    /// `City::capture@00736c40`, `City::check_upgrade@00738b20` and
+    /// `Build::finished@00628490`'s upgrade delta), so a recount over the
+    /// live cities is the same number, and every one of those five writers
+    /// is a call site of [`Sim::sync_pop_cities`] here.
+    ///
+    /// `reg_pop` is written only for a region below `0x40`, which is the
+    /// original's own bound on the array; a city off the region table
+    /// contributes to `pop` and to no region.
+    pub(crate) fn sync_leader_pop(&mut self) {
+        let regions = self.world.region_count();
+        for a in &mut self.ai {
+            a.census.pop = 0;
+            a.census.reg_pop.clear();
+            a.census.reg_pop.resize(regions, 0);
+        }
+        for c in 0..self.cities.len() {
+            if !self.cities[c].alive {
+                continue;
+            }
+            let owner = self.cities[c].owner as usize;
+            let value = 2 * self.city_level_of(c) - 1;
+            // The city building's cell, not `CityData::reg` — the same
+            // source step 8's `reg_cities` recount reads, and the one that
+            // is already there when a city is stood up from a dump.
+            let reg = self
+                .world
+                .region_of(self.buildings[self.cities[c].building].pos.cell());
+            let Some(a) = self.ai.get_mut(owner) else {
+                continue;
+            };
+            a.census.pop += value;
+            if let Some(r) = reg
+                && r < 0x40
+                && let Some(slot) = a.census.reg_pop.get_mut(r as usize)
+            {
+                *slot += value;
+            }
+        }
     }
 
     // ------------------------------------------------------------------

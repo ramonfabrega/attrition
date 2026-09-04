@@ -406,6 +406,13 @@ impl Sim {
             v.iter_mut().for_each(|s| *s = 0);
         }
         cs.reg_cities.copy_from_slice(&cities);
+        // `pop` and `reg_pop` belong to the city lifecycle and not to this
+        // sweep — [`Sim::sync_leader_pop`] keeps them, and every writer the
+        // original has is one of its call sites. It is repeated here for
+        // one reason: the per-region arrays are `resize`d by the sweep, so
+        // a `sync_pop_cities` that ran before the first one (`build_sim`
+        // standing a dump up) wrote `reg_pop` into an empty vector.
+        self.sync_leader_pop();
     }
 
     /// Step 10, the unit census.

@@ -683,6 +683,43 @@ fn a_city_levels_up_on_five_kinds_and_grows_its_radius() {
     let _ = t.fort;
 }
 
+/// `LeaderData::pop` and `reg_pop` — `CityData::get_pop_value@00738450`,
+/// which is **1, 3, 5** and not the level, summed over the leader's live
+/// cities. The number is `create_units`' and `research_techs`' whole `base`
+/// (`docs/AI.md` §27), and it was zero here until 2026-09-04.
+#[test]
+fn a_leader_s_pop_is_one_three_five_by_city_level() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let (b, c) = city_at(&mut sim, &t, 0, 32, 32);
+    let (b2, _) = city_at(&mut sim, &t, 1, 8, 8);
+    let reg = sim
+        .world
+        .region_of(tile_pos(32, 32).cell())
+        .expect("the city stands in a region");
+    let pop = |s: &crate::Sim, who: usize| {
+        (
+            s.ai[who].census.pop,
+            crate::ai::Census::reg(&s.ai[who].census.reg_pop, reg),
+        )
+    };
+    assert_eq!(pop(&sim, 0), (1, 1), "a Small City is worth one");
+    // Per leader, and the other leader's city is not in this one's count.
+    assert_eq!(pop(&sim, 1).0, 1);
+    // The Large City is three and the Major City five — `2 · level − 1`.
+    sim.buildings[b].ty = Some(t.town);
+    sim.sync_pop_cities();
+    assert_eq!(pop(&sim, 0), (3, 3), "a Large City is worth three");
+    sim.buildings[b].ty = Some(t.metropolis);
+    sim.sync_pop_cities();
+    assert_eq!(pop(&sim, 0), (5, 5), "a Major City is worth five");
+    // A city that dies leaves with its own value, not with one.
+    sim.close_building(b, true);
+    assert_eq!(pop(&sim, 0), (0, 0));
+    assert_eq!(pop(&sim, 1).0, 1, "the other leader is untouched");
+    let _ = (b2, c);
+}
+
 // ----------------------------------------------------------------------
 // Garrisons
 // ----------------------------------------------------------------------

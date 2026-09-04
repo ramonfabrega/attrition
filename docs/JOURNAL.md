@@ -15625,3 +15625,55 @@ before booking a capture** paid its largest dividend yet — a window captured
 ten days earlier for an unrelated mechanic answered a question that looked
 like it needed a new run, because `rngcmp` makes "is this the same game" a
 one-second question.
+
+
+## 2026-09-04 — item 213: the number every producer multiplies (Great Lakes 6582 → 6612, Opus)
+
+**The frame.** 6582 is the AI's `make_stuff`, and the original spends three
+draws there where this crate spent two. The two are `+0x221`, the head's
+expiry over the Temple at slots 0 and 8, and they agreed to the roll. The
+third is `+0x63d` — the expiry over the slot `make_stuff` has just bought,
+which is the citizen at slot 5. This crate never bought it, because step 6
+skips a slot whose `val` is zero and this crate's citizen was offered at
+**0** where the original's was **714**.
+
+**The field.** `create_units@006c40a0:289` is one line —
+`base = (pop × 1000) / max(1, city_num)` — and `research_techs@006c6ba0`
+is the same line with `× 200`. `pop` is `LeaderData +0x95c`, and **nothing
+in this crate ever wrote it**. So the base was zero, and with it every
+value either producer could compute, for the whole game. `docs/AI.md` §2.3
+called it "kept by the unit lifecycle"; it is the *city* lifecycle, and it
+was being kept by nobody.
+
+`CityData::get_pop_value@00738450` is the value of one city — 1 for a Small
+City, 3 for a Large, 5 for a Major or the Forbidden City, which is
+`2 · city_level − 1` — and every one of the five writers of `pop`
+(`City::init`, `close`, `capture`, `check_upgrade`, and `Build::finished`'s
+upgrade delta) adds or subtracts exactly that for exactly one city. So the
+incremental sum the original keeps is a recount over the leader's live
+cities, and all five are already call sites of `Sim::sync_pop_cities`.
+`reg_pop` (`+0xe62`) is the same sum per region.
+
+**Where the hour went, and it is the lesson.** With `pop = 2` and
+`city_num = 2` the base is 1000, and the multiplier chain the citizen
+branch runs over run18b's own dump — `infra_mod 256`, Norwich at
+`free 0 busy 11 q 0` against 12 slots, `reg_gatherers 19 < reg_gather_slots
+22` — gives **1500**. The dump says 714. An hour went into hunting a
+missing multiplier that was not there: the answer is `create_units`' *tail*,
+the last thing it does before `make_me`, which divides by
+`want + units + queued` — `20 × 1500 / 42 = 714`. This crate had the tail
+right all along. **Reading a value's arithmetic backwards from the number
+means reading the whole function, not the branch**; the branch was where
+the eye went because the branch was where the interesting predicates were.
+
+**What it moved.** Great Lakes **6582 → 6612**, by draw and by sequence.
+East Indies did not move (7448), which is what a Great-Lakes-shaped
+citizen buy should do. The census widening now carries `pop` and
+`reg_pop[home]`, made to fail on purpose first.
+
+**The frame past it.** 6612 is three `Guy::init_real+0x52` and three
+`set_anim < Unit::do_idle` — a three-guy unit arriving that this crate has
+not queued. It is *not* the citizen bought thirty frames earlier: a citizen
+is one guy and its clock is 180 frames here. Its shape is 5564's, `b22`'s
+`ty9`, which both sides made. So the question is which queue the original
+filled between 6153 and 6612 and this crate did not.

@@ -12,35 +12,29 @@ lines, or lets the handoff pass 32.
 
 ## Where things stand
 
-*2026-09-04, Opus — item 212 landed, and it moved **both** maps.* **Great
-Lakes 6463 → 6582 by draw and by sequence; East Indies 6739 → 7448.** No
-capture: run18b, taken ten days ago for the make list, is run53's own game
-(`rngcmp`: 6,601 frames, zero differing) and its `[6374, 6590)` window at
-`UNITS=3 GUYS=1` had the answer in two blocks.
+*2026-09-04, Opus — item 213 landed.* **Great Lakes 6582 → 6612 by draw
+and by sequence; East Indies unmoved at 7448.** No capture: run18b, run53's
+own game, had every input at sim-frame 6580.
 
-- **A tracked crew figure pays §4.8's turning stand of its own.**
-  `Guy::process → Guy::move` runs for every guy, so a figure standing on
-  its offset owed a turn reaches `Guy::move:109`'s `turn_towards →
-  do_turn(…, 1)` itself, and `guy_flags & 8` is the **type's**
-  (`init_real:215`). §4.8 had read the override as guy 0's because
-  `do_turn:37` recurses only into the trackless crew; the recursion was
-  never the point.
-- **The record.** run18b's blocks hold the Merchant `1/26`'s second
-  figure at `(39471, 18769)` across the frame — it does not move — with
-  its angle going `-1153564672 → -1605566464`, its leader's.
-- **The handoff's own reading cost the time.** "Gaia, index above 13" was
-  wrong: `Objects::process_all` rotates owners by `(frame + i) % 10`, and
-  6463 % 10 = 3 puts player 1 *after* gaia. The trace settled it instead —
-  the site fires six times in 24,000 frames and this crate already spends
-  two of them.
+- **`LeaderData::pop` is two producers' whole base and nothing here wrote
+  it.** `create_units@006c40a0:289` is `pop × 1000 / max(1, city_num)`,
+  `research_techs` the same with `× 200`: both computed **zero all game**.
+  It is `CityData::get_pop_value@00738450` — 1/3/5 by city level — over
+  the leader's live cities, and all five writers are already call sites of
+  `Sim::sync_pop_cities` (AI §27).
+- **The citizen's 714** reproduces exactly, but only through
+  `create_units`' **tail**, the divide by `want + units + queued`; the
+  branch alone gives 1500, and an hour went into hunting a multiplier that
+  was not there. Read the whole function, not the interesting part. The
+  census record carries `pop`/`reg_pop`, made to fail on purpose first.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w7448 of 24,000 · GreatLakes w6582 of 24,000
+Long captures: EastIndies w7448 of 24,000 · GreatLakes w6612 of 24,000
 
-**Opener (Opus):** `213 is the default: run53 frame 6582, where the
-original spends a third Leader::make_stuff draw — +0x63d, the bought
-slot's own roll — against this crate's two +0x221. run18b's window covers
-it, and the make-list replay already names that frame. AI §15.6.`
+**Opener (Opus):** `215 is the default: run53 frame 6612, a three-guy unit
+the original births and this crate has not queued. Not the citizen bought
+at 6582 — one guy, 180-frame clock. Which queue did the original fill
+between 6153 and 6612? AI §27.3.`
 
 ## The queue
 
@@ -49,11 +43,17 @@ captures' word**, lower map first — Great Lakes. Take the first unstarted
 unless a better order is obvious — and say so. Numbers are stable; the
 journal is indexed by them.
 
-213. **Great Lakes' word is a `make_stuff` buy, at 6582.** The frame's
-    third draw is `Leader::make_stuff+0x63d`, the bought slot's own roll
-    (AI §15.6), where this crate has two `+0x221` and stops. run18b's
-    window covers it at `LEADERS=9` and the make-list replay already names
-    the frame: the citizen bought out of slot 5, `714 → 7`.
+215. **Great Lakes' word is a unit arriving, at 6612.** Three
+    `Guy::init_real+0x52` and three `set_anim < Unit::do_idle` the
+    original spends and this crate none of — a three-guy unit, 5564's
+    shape (`b22`'s `ty9`, made by both). **Not** the citizen bought at
+    6582 (one guy, 180-frame clock): find the queue the original filled
+    between 6153 and 6612 (AI §27.3).
+
+216. **`create_buildings` offers a gather building the original does not.**
+    At 6582 this crate's slots 1 and 4 carry `t 418 cat 4 val 41500`, the
+    original's 1–4 empty. Inert there — slot 1 fails `can_pay_slot`, 4 is
+    a ranked duplicate — so the *list* differs, not the draws (§2.19).
 
 214. **East Indies' word is two blocked stands, at 7448.** Two
     `Unit::move_step+0x823` (`SITE_BLOCKED`, COLLISION §5) at the unit

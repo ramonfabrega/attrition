@@ -3587,7 +3587,7 @@ mod tests {
         // Frame 0: the sweep, which arms the step machine.
         built.sim.tick();
         let c = &built.sim.ai[1].census;
-        let scalars: [(&str, i32); 14] = [
+        let scalars: [(&str, i32); 15] = [
             ("active", c.active),
             ("combat", c.combat),
             ("siege", c.siege),
@@ -3602,6 +3602,14 @@ mod tests {
             ("free_peasants", c.free_peasants),
             ("gatherers", c.gatherers),
             ("full_cities", c.full_cities),
+            // `pop` is the city lifecycle's, not the sweep's, and it was
+            // identically zero here until 2026-09-04 — `create_units`'
+            // `base` and `research_techs`' are `pop × 1000 / city_num` and
+            // `pop × 200 / city_num`, so every value either produced was
+            // zero (`docs/AI.md` §27). It is in this list now because it
+            // is in the record, which is the rule the widening ledger
+            // exists for.
+            ("pop", c.pop),
         ];
         let mut wrong = Vec::new();
         for (name, ours) in scalars {
@@ -3648,6 +3656,7 @@ mod tests {
             ("reg_gatherers", &c.reg_gatherers),
             ("reg_gather_slots", &c.reg_gather_slots),
             ("reg_cities", &c.reg_cities),
+            ("reg_pop", &c.reg_pop),
             ("reg_land", &c.reg_land),
             ("strategy", &c.strategy),
         ] {
@@ -3896,6 +3905,7 @@ mod tests {
             ("reg_gatherers", &c.reg_gatherers),
             ("reg_gather_slots", &c.reg_gather_slots),
             ("reg_cities", &c.reg_cities),
+            ("reg_pop", &c.reg_pop),
             ("reg_land", &c.reg_land),
             ("strategy", &c.strategy),
         ] {
@@ -13948,7 +13958,19 @@ mod tests {
     /// offset at (39471, 18769) and turning from -1153564672 to its
     /// leader's -1605566464 in that one frame. See
     /// [`LONG_WORD_EAST_INDIES`] for the mechanic.
-    const LONG_WORD_GREAT_LAKES: i64 = 6582;
+    ///
+    /// **6582 for a session**, and that frame was one `make_stuff` draw
+    /// the original spends and this crate did not: `+0x63d`, the expiry
+    /// over the slot it just bought. The slot is the citizen at 5 and the
+    /// buy is gated on its `val`, which the original offers at **714** and
+    /// this crate at **0** — because `create_units`' `base` is
+    /// `LeaderData::pop × 1000 / city_num` and **nothing in this crate
+    /// ever wrote `pop`** (`research_techs`' `× 200` likewise). It is
+    /// `CityData::get_pop_value@00738450` summed over the leader's live
+    /// cities, 1/3/5 by level, and with it the whole tail reproduces the
+    /// original's 714 to the unit (`docs/AI.md` §27,
+    /// `cities_tests::a_leader_s_pop_is_one_three_five_by_city_level`).
+    const LONG_WORD_GREAT_LAKES: i64 = 6612;
 
     /// The frame the AI's library takes its **Coinage** job on, and the
     /// frame run58's `QUEUE` record used to part on: twenty-four rows of
