@@ -169,6 +169,7 @@ tools/trace/report.py game/rontrace.log sites setup 0 1  # folded by site, with 
 tools/trace/report.py game/rontrace.log coverage 0 1 2 3 # functions entered per frame
 tools/trace/report.py game/rontrace.log calls 1477       # the proxied calls of one frame
 tools/trace/report.py game/rontrace.log functions        # every function, first frame
+tools/trace/report.py game/rontrace.log when Guy::init_real 2   # frames with >= 2 units born
 tools/trace/report.py game/rontrace.log blind docs/ [more logs...]
 ```
 
@@ -179,6 +180,15 @@ mechanic's draw *sequence* against the original's without shelling out
 (`docs/SYNC.md` §5, `docs/SCOUT.md` §12). It cannot name an address —
 that needs `INDEX.tsv`, which is outside the repo — so `report.py` stays
 the reader for anything a human is reading.
+
+`when` is the verb for **dating an event across a whole run**, and it is
+cheaper than any capture: a draw made from `Guy::init_real` is one unit
+created, so `when Guy::init_real 2` lists every frame on which two or more
+units were born. On Great Lakes that is three at 6612 — run76's Archer
+squad — and running it over East Indies' own 24,000-frame trace named 15782
+without taking anything. Grep the trace before booking a run
+(`docs/ORACLE.md`, run77, which was booked off function coverage and missed
+by five thousand frames).
 
 `blind` collects every `name@00xxxxxx` the documents cite, and lists the
 ones no given trace entered. A cited function that no run has driven is a
