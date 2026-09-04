@@ -378,3 +378,53 @@ shuffle and its `rnd` early return (`city.rs:1035`, `gather.rs:422`); the timber
 `new_rare`'s gates and the FISH/WHALES exclusion, `reveal_fog`'s two tests,
 `seed_new_rares_from_fog`, and `num_rare_resources_seen` as the list's length
 (`rares.rs:203`, `:291`, `ai_host.rs:306`).
+
+
+## Adjudication — 2026-09-05, Opus
+
+**Twenty-one confirmed, none struck.** Every row's code citation was
+re-checked against the source; R6, R8, R9, R10, R11 and the `pay` rows
+(R1–R4) were read at the site rather than only checked for existence.
+
+The pass divides three ways.
+
+**One row is a whole documented income line that can never fire.** R8: the
+five ladders the economy indexes by are hard-wired to their floor.
+`Levels::for_player` (`holdings.rs:145`) ignores its `who` — it only
+`debug_assert!`s the index — and answers the constant `BASE`, whose
+`taxation` is **0**; `territory_tax` (`economy.rs:605`) then multiplies by
+`t.territory_taxes[0]`, which the shipped table gives as 0 per cent. So the
+territory tax is identically zero for the life of every game, and the
+granary, lumber mill, smelter and university ladders are all pinned at
+level 1. `holdings.rs:102`–`113` names the seam; ECONOMY.md states the five
+indexed rules as live arithmetic and does not say the index never moves.
+
+**Two rows are the reader's own careful negatives, and worth keeping as
+such.** R6 — the `over_cap == 2` threshold is `999 × 16 − 16` in the code
+and `999 × 16 − 1` in the document — has **no observable**, because
+`commerce_cap` only ever returns a multiple of sixteen and there is no
+multiple of sixteen strictly between the two. It stays a row because a
+later `bonus_cap` added after the shift would part them silently. R15's
+obsolete redirect is a dead path. Neither is a bug today, and neither
+should be written up as one.
+
+**The rest are stated, unimplemented and unreached**, and the largest of
+them are whole clauses rather than constants: Dutch interest; the knowledge
+tech-cost penalty; the fast-economy option and `ai_speed` in the income
+multiplier chain (`pay` scales by `handicap` and nothing else); the
+infinite-resources short-circuit; `base_rate` with no representation at all
+(and blind — `ScenarioFuncSet::set_base_rate@009fbb80`); the territory
+tax's three modifiers; the slot bound on the rate path; the flat branch's
+per-gatherer rate, a constant where the document has a footprint survey
+(`economy.rs:420`, `(t.peasant_rate >> 8) * RATE_SCALE`); the Forbidden City
+and the CEO hero; six nation terms inside the city and branch arithmetic;
+five of the thirteen assembly steps; four of the commerce cap's terms; the
+Porcelain Tower's market-tax modifier and its `rare_owned` pass; a rare-mask
+change recomputing nothing but unit stats; and a player starting with all
+six goods where the original grants three with the age.
+
+**R21 is a different kind and should be taken first**, because it is cheap
+and it actively misleads: four doc-comments in `economy.rs` still carry
+claims ECONOMY.md has retracted, and one of them contradicts four pinned
+diff tests. A stale comment at the site is worse than a stale document,
+because it is what the next session reads while editing.
