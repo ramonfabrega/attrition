@@ -16,7 +16,7 @@
 
 use crate::attrition::Domain;
 use crate::build;
-use crate::orders::{Coll, Worker};
+use crate::orders::Worker;
 use crate::tech::TypeId;
 use crate::world::{Cell, Pos, TILES_PER_CELL, tile};
 use crate::{BUILD_BASE, Player, Sim, UNIT_BASE, Unit};
@@ -1048,12 +1048,16 @@ impl Sim {
     /// starts at 48 and lands a quarter-tile short; a bearing of due
     /// south lands nowhere near.
     ///
+    /// **And a squad member leaving a building takes the identical arm**
+    /// (2026-09-04, item 227): `come_out` swaps its host for `get_captain()`
+    /// at `618022`..`618044`, so the two share
+    /// [`Sim::come_out_unit_host_spot`] — `docs/CITIES.md` §6.5.1.
+    ///
     /// SEAM: the `uber_size > 1` arm of step 4, which instead calls
     /// `Unit::reset_move_orders` on the boat and moves the boat's **group**
     /// membership to the passenger through a `push_group` insert. No
     /// capture disembarks a squad.
     pub(crate) fn disembark(&mut self, boat: usize) {
-        let centre = self.units[boat].pos;
         let bearing = self.units[boat].movement.heading;
         let riders: Vec<usize> = (0..self.units.len())
             .filter(|&i| self.units[i].inside_unit == Some(boat))
@@ -1071,46 +1075,14 @@ impl Sim {
             // bearing and the ring. The `FILTER_ALL`/`FILTER_NOT_ME` split
             // is a different register — `618490` reads `0x240` off
             // `0x18(%ebx)`, and `ebx` is `this`, the passenger.
-            let ring = self.profile(crate::combat::Obj::Unit(boat)).block_radius;
-            let max = ring + self.tuning.unit_disembark_distance;
-            let block = self.profile(crate::combat::Obj::Unit(r)).block_radius;
-            let spot = if block == 0 {
-                self.find_nearby_spot_coll(r, centre, ring, max, 0, bearing, None, Coll::None)
-                    .or_else(|| {
-                        self.find_nearby_spot_coll(
-                            r,
-                            centre,
-                            ring * 2,
-                            max * 2,
-                            0,
-                            bearing,
-                            None,
-                            Coll::None,
-                        )
-                    })
-                    .unwrap_or(centre)
-            } else {
-                match self
-                    .find_nearby_spot(r, centre, ring, max, 0, bearing, None)
-                    .or_else(|| {
-                        self.find_nearby_spot_coll(
-                            r,
-                            centre,
-                            ring,
-                            max,
-                            0,
-                            bearing,
-                            None,
-                            Coll::None,
-                        )
-                    }) {
-                    Some(spot) => spot,
-                    // The refusal: the passenger stays inside, and the boat
-                    // is left carrying it.
-                    None => continue,
-                }
+            // The arm itself is [`Sim::come_out_unit_host_spot`]: a squad
+            // member leaving a building reaches the identical code, because
+            // `come_out` swaps its host for its captain (`docs/CITIES.md`
+            // §6.5.1). The refusal is the same one — the passenger stays
+            // inside, and the boat is left carrying it.
+            let Some(at) = self.come_out_unit_host_spot(r, boat) else {
+                continue;
             };
-            let at = spot;
             self.units[r].inside_unit = None;
             self.units[r].pos = at;
             // `Movement::at` alone would zero the speed and the turn rate,

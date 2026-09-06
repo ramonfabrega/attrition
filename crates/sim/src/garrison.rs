@@ -299,14 +299,16 @@ impl Sim {
     /// and refuses if that finds nothing, keeping the unit inside
     /// (`docs/CITIES.md` §11).
     ///
-    /// **The bearing is diff-backed, not read.** The decompile aliases the
-    /// angle's stack slot and the listing's own `[esp+0x2c]` is written only
-    /// on the sibling arm, so the value was fixed by the dump: all five
+    /// **The bearing is read, and the dump agrees.** The decompile aliases
+    /// the angle's stack slot, and the first reading concluded the listing
+    /// never writes it; it does, at `617c33` — `movl $0x80000000,
+    /// 0x30(%esp)` before `Group::clear`'s own argument push, which is the
+    /// `[esp+0x2c]` that `6184cc` hands to `find_nearby_spot` as
+    /// `bias_angle`. Only the gather-point block and the unit-host arm
+    /// overwrite it. The dump had already fixed the same value: all five
     /// citizens run10's AI trains — frames 100, 206, 320, 1297 and 1505 —
-    /// come out at `(42360, 17208)`, which is due south of London at exactly
-    /// the inner radius and at no other bearing the sweep tries first. A
-    /// capture on any map where the ground south of a trainer is blocked
-    /// would separate this from a sweep that starts elsewhere.
+    /// come out at `(42360, 17208)`, due south of London at exactly the
+    /// inner radius and at no other bearing the sweep tries first.
     pub fn come_out(&mut self, unit: usize) -> bool {
         let captain = self.captain_of(unit);
         let Some(b) = self.units[captain].inside else {
@@ -323,9 +325,11 @@ impl Sim {
             if f == captain || self.units[f].inside != Some(b) {
                 continue;
             }
+            // **A member's host is its captain, not the building** — see
+            // [`Sim::come_out_unit_host_spot`] and `docs/CITIES.md` §6.5.1.
             // A member that finds nothing stays inside: the recursion's own
             // refusal is per unit, and the captain is out either way.
-            if let Some(s) = self.come_out_spot(f, b) {
+            if let Some(s) = self.come_out_unit_host_spot(f, captain) {
                 self.come_out_place(f, s);
             }
         }
@@ -347,12 +351,14 @@ impl Sim {
     /// One unit's exit spot: the ring around its trainer, swept from due
     /// south, with everything already on the map in the way.
     ///
-    /// This is the body of `Unit::come_out` up to `set_new_location`, and it
-    /// is per **unit** rather than per squad because the original's own
-    /// recursion is: after placing itself and adding itself to the world,
-    /// `come_out` re-enters on `o_down` with the "already the captain" flag
-    /// set (`00617c10:535`, `param_1` at `:172`), so every member repeats
-    /// the whole search with its siblings now standing in it.
+    /// This is the body of `Unit::come_out` up to `set_new_location` **for a
+    /// captain**. It is per unit rather than per squad because the
+    /// original's own recursion is: after placing itself and adding itself
+    /// to the world, `come_out` re-enters on `o_down` with the "already the
+    /// captain" flag set (`00617c10:535`, `param_1` at `:172`), so every
+    /// member repeats the whole search with its siblings now standing in it
+    /// — but around the **captain**, not the building, which is
+    /// [`Sim::come_out_unit_host_spot`].
     fn come_out_spot(&mut self, captain: usize, b: usize) -> Option<crate::Pos> {
         let bd = &self.buildings[b];
         let (xs, ys) = bd.ty.map_or((0, 0), |t| {
@@ -423,6 +429,81 @@ impl Sim {
             })
         };
         spot
+    }
+
+    /// `come_out`'s **unit-host** arm: the ring around another unit.
+    ///
+    /// `Unit::come_out` reads its host out of `get_inside`, but at
+    /// `618022`..`618044` a unit that is **not** the captain of its squad
+    /// throws that host away and puts `get_captain()` (vslot `0xe4`) in its
+    /// place, together with its own `who`. The host then chooses the arm:
+    /// `0x1c` on the host's vtable is `1` for a `Build` and `0` for a
+    /// `Unit`, so a squad member leaving a building takes the very arm a
+    /// passenger leaving a boat does — centre, bearing and inner radius all
+    /// the **captain's** (`61845c`..`618483`):
+    ///
+    /// - centre: the host's position, which for a member is where the
+    ///   captain has *just* been placed by the ring around the trainer;
+    /// - bearing: the host's `angle` (`+0x50`), [`Movement::heading`] here,
+    ///   and for a freshly trained squad that is still `Angle::INITIAL`;
+    /// - `[block_radius, block_radius + UNIT_DISEMBARK_DISTANCE]`, the
+    ///   **host's** `+0x240`, with the sweep's own `(max − min) / 8` step.
+    ///
+    /// Only the fallback arm is the leaving unit's own: `618490` reads
+    /// `0x240` off `this`, so a `block_radius == 0` type sweeps `FILTER_ALL`,
+    /// then the doubled ring, then the host's own point and never fails,
+    /// while a non-zero one sweeps `FILTER_NOT_ME`, then the same ring with
+    /// collision off, and **refuses** — the unit stays inside.
+    ///
+    /// run76 pins every term of it at once (`docs/CITIES.md` §6.5.1): the
+    /// AI's three Archers are born of Barracks `1/2016` at `(45120, 25728)`,
+    /// the captain `1/27` lands on the trainer's ring at `(45144, 26424)`,
+    /// and from *there* the ring is `[48, 624]` step `72` swept from
+    /// `Angle::INITIAL`. `1/28` is the sweep's 37th candidate,
+    /// `(45144, 26568)` — the first one the captain's own body does not
+    /// block — and `1/29` its 63rd, `(45288, 26520)`, the first that clears
+    /// both. Neither is a candidate of the *trainer's* ring at all.
+    pub(crate) fn come_out_unit_host_spot(
+        &mut self,
+        unit: usize,
+        host: usize,
+    ) -> Option<crate::Pos> {
+        let centre = self.units[host].pos;
+        let bearing = self.units[host].movement.heading;
+        let ring = self.profile(Obj::Unit(host)).block_radius;
+        let max = ring + self.tuning.unit_disembark_distance;
+        if self.profile(Obj::Unit(unit)).block_radius == 0 {
+            Some(
+                self.find_nearby_spot_coll(unit, centre, ring, max, 0, bearing, None, Coll::None)
+                    .or_else(|| {
+                        self.find_nearby_spot_coll(
+                            unit,
+                            centre,
+                            ring * 2,
+                            max * 2,
+                            0,
+                            bearing,
+                            None,
+                            Coll::None,
+                        )
+                    })
+                    .unwrap_or(centre),
+            )
+        } else {
+            self.find_nearby_spot(unit, centre, ring, max, 0, bearing, None)
+                .or_else(|| {
+                    self.find_nearby_spot_coll(
+                        unit,
+                        centre,
+                        ring,
+                        max,
+                        0,
+                        bearing,
+                        None,
+                        Coll::None,
+                    )
+                })
+        }
     }
 
     /// The rest of `Unit::come_out` for one unit: out of the building, onto

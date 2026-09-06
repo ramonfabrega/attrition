@@ -12,25 +12,26 @@ lines, or lets the handoff pass 32.
 
 ## Where things stand
 
-*2026-09-05, Fable orchestrating — four Opus seats, no score moved yet.*
-**Both words unmoved: Great Lakes 6848, East Indies 7448.** Each item is
-a fresh Opus worker cut off this branch's tip; this seat merges, files
-and steers (DECISIONS 33).
+*2026-09-06, Opus — 227 closed, the machine recovered, the suite is the
+new blocker.* **Great Lakes 6848, East Indies 7448**; 227's window parting
+moved 6640 → 6652.
 
-- **`att-loop`**, 227 (Great Lakes' word); **`att-loop-anim`**, 234.
-- **`att-loop-ei`**, 7448 (East Indies): the collision gate and wait
-  guard (231), then `line_ok`'s lifecycle (230), both audit-verified.
-- **`att-capture`**: 226 answered — `cover=1` dies in the wow64 bop,
-  Rosetta by inference, falsifier built and costed (ORACLE); run77 held no
-  birth, the draw stream dates East Indies' first squad at **15782**, run78
-  `[15700, 15900)` in flight; the corpus is its.
-- **`att-audit`**: wave 1 closed — 101 rows, **101 confirmed, zero
-  struck** (audit README); the no-writer guard is in; next the no-reader
-  guard, then the nine documents with no blind second reading.
-- **Only this seat writes this file**; a worker's prompt is its item's
-  text plus the five gates, it deletes its item and writes the journal;
-  lanes write audit files, coverage lines and tests. The harness is
-  split (228): a test goes in `diff/<record>.rs`.
+- **227 is done**: a squad member sweeps its **captain's** ring, not the
+  trainer's (`come_out` swaps the host at `618022`, CITIES §6.5.1). What
+  is left of Great Lakes 6848 is the **march** — the original steps
+  `26, 13, 26, …` and this crate steps `26` flat — which is **item 219**,
+  now the default item.
+- **The Mac went down on 2026-09-04** under the release suite: 27.6 GB
+  resident, swap full. `tools/memcap.sh <gib> <cmd…>` is the guard, and
+  **every release run goes through it** — `zsh tools/memcap.sh 20 cargo
+  test -p rondata --release -- --test-threads=1`. **Serialized until 235
+  lands**: four threads reached 20 GB and were killed; one thread peaks at
+  **15.4 GB** and passes 214 tests in 256 s.
+- **235 is the suite itself** and it blocks every worker's gate.
+- Lanes: `att-capture` holds run79 unpushed (Great Lakes' 6993 birth) and
+  the corpus; `att-audit`'s wave 2 readers were lost with the machine and
+  re-run from the same brief. Workers are respawned per item, `ccc spawn
+  --cwd` on a worktree cut here, `--permission-mode auto`.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w7448 of 24,000 · GreatLakes w6848 of 24,000
@@ -42,46 +43,13 @@ captures' word**, lower map first — Great Lakes. Take the first unstarted
 unless a better order is obvious — and say so. Numbers are stable; the
 journal is indexed by them.
 
-227. **Where a squad member's exit spot comes from** (CITIES §6.5.1). Great
-    Lakes 6848 is the Archers born 144 units off, not the march: the captain
-    is exact, `1/28` and `1/29` are not candidates of the building's ring
-    from either centre, and `1/29`'s 11.25° bearing is one the sweep never
-    makes. Three suspects: `find_nearby_spot`'s squad flag (`param_13`,
-    `61deb8`), the local `Group` `come_out` clears, `set_new_location`'s
-    formation offset. The squad chain is `UnitData +0x8e`/`+0x90`, **not**
-    the `up`/`down` the dump prints — that is the cell list, buildings and
-    all. Falsified by run77, the second map's squad birth. **Takes 219**,
-    `do_group_move`'s four seams (ORDERS §15; the flock's **one sync draw**
-    is the one with teeth). **With `att-loop`.**
-
-231. **The collision gate is three rules** (COLLISION §4.3, §6 step 5):
-    the original short-circuits kinds 0 and 0xc *before* the action test
-    and gates `1,2,3,4,0x12,0x13,0x15` on it (`detect_unit_collision@
-    00617060:366`); the document says "the last four"; `same_group_soft`
-    adds a `GroupMove` test; the wait guard grants where a negative
-    `collide_o` refuses. **With `att-loop-ei`.**
-
-230. **`line_ok`'s whole lifecycle is wrong** — `unit_masks & 8` against
-    `Unit::line_ok`, 335 of 450 on run65's window, pinned to fall
-    (`diff/unit.rs`); cleared on a refused step (`move_step@005faf30`),
-    set on standing units; gates `do_move`'s re-path. **With `att-loop-ei`.**
-
-233. **A building's periodic phase is its object number**, not its slot:
-    `Build::process@0061edf0:728` keys the 32-frame phase on `o`;
-    `process_building` uses `frame + b`, the `Vec` index — right until a
-    slot is reused, then wrong for the game (CITIES §5). **After 227.**
-
-234. **Five rules of the turn/idle animation neither side has** (ANIM audit
-    R4–R9): a guy *playing* `CHAR_TURN_LEFT`/`RIGHT` returns early and
-    rewinds without a draw — run44's 452 guy-frames reach it; the packet
-    and variant fallbacks, the scholar remap, `+0xae`. **With `att-loop-anim`.**
-
-232. **`Levels::for_player` ignores its player**, answering a constant
-    whose `taxation` is 0: `territory_tax` is 0 % for the life of every game
-    and the four building ladders sit at level 1 (ECONOMY R8); zero on every
-    capture so far because the original's is too. With it `Lobby::tech_cost`,
-    written and never asked, and the knowledge tech-cost penalty that would
-    read it (R2), missing together; plus four stale `economy.rs` doc-comments.
+235. **The diff suite's memory is the gate's own hazard.** 793 MB of dump
+    becomes **7.8 GB** in one test (run71): 2.96 M blocks × two `Vec`s each
+    is ~5.9 M small allocations, slack and overhead, on a parse that is
+    already zero-copy. Serialized the suite peaks at 13.5 GB, in parallel it
+    passes 18 GB and took the machine down once. An arena for fields and
+    children, or a frame-lazy `Log`, and a measured peak in the guard's own
+    output. Everything else waits on the gate this owns.
 
 226. **`cover=1` dies in the wow64 bop at the exe's entry**, layout-sensitive
     and reproduced by `tools/trace/wow64bop.c` (ORACLE, "The falsifier for

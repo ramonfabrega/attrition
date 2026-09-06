@@ -358,28 +358,29 @@ layer-1/2 value rather than `get_speed`, so it skips the action scale and
 the river halving as well; run56's scout and run67's merchant walk plain
 ground under a plain move, which is why both their tests pass.
 
-**One is stated, unimplemented, and reached** — the out-of-world refusal
-clears the verified-line bit and returns `Did::Nothing` where the original
+~~**One is stated, unimplemented, and reached**~~ — the out-of-world refusal
+cleared the verified-line bit and returned `Did::Nothing` where the original
 leaves the bit and returns 1. Unreached in fact: the corpus has no
-edge-of-map march. It matters because `group_move_leader` ungroups a
+edge-of-map march. It mattered because `group_move_leader` ungroups a
 formation on `Did::Nothing`, so a marching group whose leader steps out of
-the world dissolves here and does not there.
+the world dissolved here and does not there. **Fixed 2026-09-05**, with the
+rest of the bit's lifecycle: "The verified line's lifecycle" below.
 
 **And one turned out to be much larger than the row.** The SEAM at
-`unit_step`'s tile-permission refusal says of `unit_masks & 8` that "the bit
+`unit_step`'s tile-permission refusal said of `unit_masks & 8` that "the bit
 has no reader this crate models"; `crate::orders` has exactly one, on the
 hot path — `do_move` re-paths when it is clear. The trace confirms the
 consequence directly: run65 enters `Unit::find_path@005fb910` on sim-frame
 6207 and not on 6206, which is the refused step and the re-verification
 after it. Then the widening: the dump has printed `unit_masks` all along and
 run65's window compared eleven fields of a unit and not that one. Comparing
-bit 3 against `Unit::line_ok` over the window gives **335 disagreements in
-450 unit-frames**, and the shape is not the refusal at all — from the first
+bit 3 against `Unit::line_ok` over the window gave **335 disagreements in
+450 unit-frames**, and the shape was not the refusal at all — from the first
 block the original carries the bit *set* on standing units where this crate
-carries it clear. `line_ok`'s whole lifecycle is wrong, and each of those
-frames is a `find_path` this crate may run and the original does not.
-`run65_s_window_is_the_original_s_unit_for_unit` pins it at 335 as a count
-that may only fall.
+carried it clear. **Settled the same day** (item 230): the cause was
+`clear_partial_path`, which clears no mask in the original, and the count is
+**0 of 450**. "The verified line's lifecycle" below has the seven writers
+and what each of the four corrections was.
 
 ## The unit step — `Unit::move_step`
 
@@ -500,8 +501,54 @@ ever wrong: the two sides' bearings, rates and `avg_speed` decay agree
 frame for frame either side of it (`docs/CARAVAN.md` §8,
 `run65_s_window_is_the_original_s_unit_for_unit`).
 
-SEAM: the original also clears `unit_masks & 8` on the refusal. The bit
-has no reader this crate models.
+### The verified line's lifecycle (2026-09-05, item 230)
+
+`unit_masks & 8` is **the straight line to the current waypoint has been
+verified**, and `do_move` reads it at the top of every move frame: with the
+bit set it skips `find_path` entirely and goes to the step. It has exactly
+seven writers in the whole executable, and the list is the mechanic:
+
+| site | what |
+|---|---|
+| `Unit::init@00612100:111` | `unit_masks = 0` — the bit is clear at birth |
+| `Unit::do_move@005f7b30:428` | **clear**, in the `MoveOrder::dest == 0` arm: the frame a new waypoint is lifted off the path stack |
+| `Unit::do_move@005f7b30:580` | **clear**, when `find_path` returned 0 and the stack top is the unit's own position |
+| `Unit::do_move@005f7b30:583` | **set**, when `find_path` returned 0 and the top is somewhere else — and the order's `dest_x/dest_y` become that top |
+| `Unit::do_move@005f7b30:682` | **set**, the same test after the re-plan's `TAKE` |
+| `Unit::find_path@005fb910:366` | **set**, when a `go_around_building` detour verifies and goes back on the stack |
+| `Unit::go_around_building@005fc350:352` | **clear**, when the detour gives up |
+| `Unit::move_step@005faf30:301` | **clear**, on the tile-permission refusal above — the `& 0xfffffff7` and the `return 0` are the same two lines |
+
+And that is all of them. Grep the export for `0xfffffff7` and for
+`unit_masks | 8`: nothing else on a `UnitData` writes bit 3.
+
+**Nothing tears it down.** `Unit::clear_partial_path@005e3920` — the
+function every order teardown, `close_orders`, and
+`resolve_unit_collision`'s animal give-up calls — frees the suspended
+pathfinder search (`UnitData +0x104`, `+0x10c`) and a `Tree<CollBlock *>`
+and touches no mask at all. `kill_current_order`, `add_move_facing_order`
+and arrival likewise. So a unit that finishes a walk **keeps the bit set**
+and carries it, standing, until its next order's first `do_move` clears it
+at `:428`.
+
+That is what this crate had wrong, and the size of it was not visible from
+the refusal the row named: `Sim::clear_partial_path` cleared
+`crate::Unit::line_ok`, so every standing unit here carried the bit clear
+where the original carries it set. Comparing bit 3 against `Unit::line_ok`
+over run65's window — the widening the docs-versus-code pass asked for —
+gave **335 disagreements in 450 unit-frames**; with the four corrections
+(the no-op `clear_partial_path`, the clear on the tile refusal, the
+out-of-world arm that must leave the bit and answer 1, and the arrival that
+leaves the clear to the next frame's `do_move`) it is **0 of 450**, and the
+row now rides the labelled comparison in
+`run65_s_window_is_the_original_s_unit_for_unit` rather than a pinned
+count. It cost neither long word a frame: East Indies stayed at 7448 and
+Great Lakes at 6848.
+
+SEAM: `Group::action_unitmask@006fcb90`, reached from
+`CommandPackage::process_unitmask`, sets or clears an arbitrary mask over
+a group's members from the order stream. Nothing in the corpus sends bit 3
+through it, and this crate has no counterpart.
 
 Not modelled, and listed at the end: the flyer branch (`unit_flags & 0x20`,
 which turns by the body's rule instead), `detect_unit_collision` /
