@@ -744,17 +744,25 @@ impl Sim {
     /// > we share a `group` (≠ −1), I am not attacking, it has no
     /// > suspended search (`+0x104 == 0`), and either it has no order or
     /// > its order is a spell in `{0x28b, 0x28d, 0x28f, 0x291}` or a
-    /// > passable kind (`0, 1, 2, 3, 4, 0xc, 0x12, 0x13, 0x15`, the last
-    /// > four also needing its action ≠ `ATTACK`)
+    /// > passable kind — `0` and `0xc` unconditionally, and
+    /// > `1, 2, 3, 4, 0x12, 0x13, 0x15` needing its action ≠ `ATTACK`
     ///
-    /// `0x13` and `0x15` are `GROUP_MOVE` and `GROUP_ATTACK_TO`, so two
-    /// members of one formation walking their slots always pass through
-    /// each other; this crate carries those two as a `MOVE_TO`/`ATTACK_TO`
-    /// with a [`crate::orders::GroupMove`] on it, which is what tells the
-    /// action-tested half of the list from the untested half.
+    /// The split is the one `detect_unit_collision@00617060:366-369`
+    /// writes, and it is **not** symmetric in the way an earlier draft of
+    /// §4.3 had it: `(iVar7 == 0 || iVar7 == 0xc)` short-circuits the
+    /// whole `&& (local_28 != 10)` that gates the other **seven**, so
+    /// `GUARD` passes while its holder attacks and a plain `MOVE_TO` does
+    /// not. `iVar7` is the collider's *order* type and `local_28` its
+    /// *action*'s, so nothing here asks whether the order carries a
+    /// group: `0x13`/`0x15` (`GROUP_MOVE`/`GROUP_ATTACK_TO`) sit in the
+    /// gated seven beside the plain `1`/`2` they are written as here, and
+    /// [`crate::orders::GroupMove`] is not consulted (2026-09-05, the
+    /// docs-versus-code pass's R7).
     ///
     /// SEAM: `UnitData +0x104`, the suspended pathfinder search, which
     /// this crate does not keep — read as zero, which widens the arm.
+    /// SEAM: `0x12`, `CHANGE_FORM`, is an order this crate does not have,
+    /// so the gated set is six of the seven here.
     fn same_group_soft(&self, u: usize, o: usize) -> bool {
         if self.units[u].owner != self.units[o].owner {
             return false;
@@ -772,6 +780,10 @@ impl Sim {
         let Some(front) = self.units[o].orders.front() else {
             return true;
         };
+        // The two that short-circuit, whatever the action is doing.
+        if matches!(front.index(), index::NONE | index::GUARD) {
+            return true;
+        }
         let not_attacking = acting(o) != Some(index::ATTACK);
         match front.body {
             crate::orders::Body::Cast(c) => matches!(
@@ -781,18 +793,13 @@ impl Sim {
                     | crate::orders::spell::PACK_MERCHANT
                     | crate::orders::spell::PACK_FISHERMEN
             ),
-            crate::orders::Body::Move(m) => {
-                let passable = matches!(
+            crate::orders::Body::Move(_) => {
+                matches!(
                     front.index(),
-                    index::NONE
-                        | index::MOVE_TO
-                        | index::ATTACK_TO
-                        | index::EXPLORE_TO
-                        | index::FLEE_TO
-                );
-                passable && (m.group.is_none() || not_attacking)
+                    index::MOVE_TO | index::ATTACK_TO | index::EXPLORE_TO | index::FLEE_TO
+                ) && not_attacking
             }
-            _ => front.index() == index::NONE || (front.index() == index::GUARD && not_attacking),
+            _ => false,
         }
     }
 
@@ -1004,14 +1011,21 @@ impl Sim {
             let o = other.expect("a named order implies a named unit");
             let on_me = self.units[o].collide_o == self.units[u].index
                 && self.units[o].collide_who == self.units[u].owner as i8;
-            let its_target_waits = self
-                .collider_of(o)
-                .is_some_and(|v| self.units[v].waiting_on);
+            // `005fa5f0`: pass when the collider is not waiting, **or**
+            // when its own `collide_o` is non-negative and the unit it
+            // names is not waiting either. A collider that is waiting and
+            // names nobody refuses the wait — the `-1 < sVar13` half, and
+            // the crate used to grant it (2026-09-05, R8). Nothing here
+            // reads my own flag.
+            let its_chain_blocks = self.units[o].collide_o < 0
+                || self
+                    .collider_of(o)
+                    .is_some_and(|v| self.units[v].waiting_on);
             if i32::from(self.units[o].collide) < cap
                 && i32::from(self.units[u].collide) < cap
                 && !self.at_war_with(who, self.units[o].owner)
                 && !on_me
-                && !(self.units[o].waiting_on && its_target_waits)
+                && !(self.units[o].waiting_on && its_chain_blocks)
             {
                 self.units[u].waiting_on = true;
                 return;

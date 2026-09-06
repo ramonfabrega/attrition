@@ -286,7 +286,27 @@ scanning:
 | my action is `TRADE_ROUTE` and its action is `0xf`, and both are moving | yes |
 | its action is `0xc` and that order's target is me | yes |
 | its action is `ATTACK`, mine is too, same player, both `coll_size 1`, both moving, and my target is more than `0x300` beyond my range | yes |
-| we share a `group` (≠ −1), I am not attacking, it has no suspended search (`+0x104 == 0`), and either it has no order or its order is a spell in `{0x28b, 0x28d, 0x28f, 0x291}` or a passable kind (`0, 1, 2, 3, 4, 0xc, 0x12, 0x13, 0x15`, the last four also needing its action ≠ `ATTACK`) | yes |
+| we share a `group` (≠ −1), I am not attacking, it has no suspended search (`+0x104 == 0`), and either it has no order or its order is a spell in `{0x28b, 0x28d, 0x28f, 0x291}` or a passable kind — `0` and `0xc` unconditionally, `1, 2, 3, 4, 0x12, 0x13, 0x15` also needing its action ≠ `ATTACK` | yes |
+
+The passable-kind split is **not** "the last four", which is what this
+table said until 2026-09-05 and what `Sim::same_group_soft` was written
+from. `detect_unit_collision@00617060:366-369` is
+
+```c
+else if (((iVar7 == 0) || (iVar7 == 0xc)) ||
+        (((((iVar7 == 1 || ((iVar7 == 2 || (iVar7 == 3)))) || (iVar7 == 4)) ||
+          (((iVar7 == 0x12 || (iVar7 == 0x13)) || (iVar7 == 0x15)))) &&
+         (local_28 != 10)))) goto LAB_00617870;
+```
+
+— `iVar7` is the collider's **order** type (`:328`, vfunc `+0x10` off its
+current order) and `local_28` its **action**'s (`:180-186`, `0` when it has
+none), so `0` and `0xc` short-circuit before the action test ever runs and
+**seven** kinds are gated, not four. A `GUARD` group-mate whose action is
+`ATTACK` is soft; a plain `MOVE_TO` one is hard. Nothing in the arm asks
+whether the order carries a group — `0x13`/`0x15` sit *inside* the gated
+seven, beside the `1`/`2` this crate writes them as — so the crate's old
+`m.group.is_none() ||` escape was an invention with no counterpart here.
 
 A soft collision at the end of the scan sets `unit_masks & 0x100000`, the
 one-shot half step `docs/MOVEMENT.md` names, and returns 0.
@@ -565,7 +585,27 @@ In order, with the first that fires winning:
      `unit_masks & 0x40` — *wait for it to move* — and done, provided
      `other.collide` and `my collide` are both under `0x20` (`0x80` once the
      player has repathed four times), we are not enemies, it is not already
-     waiting on me, and neither of us has the flag already.
+     waiting on me, and **it is not waiting on something that is waiting**.
+
+     That last clause is one-sided and it has an escape.
+     `resolve_unit_collision@005f9d30:396-400` is
+
+     ```c
+     (((*(byte *)(iVar5 + 0x68) & 0x40) == 0 ||
+      ((-1 < sVar13 &&
+       ((*(byte *)(*(int *)(*(int *)(&units.field_0x10 + *(char *)(iVar5 + 0xb3) * 0x1c) +
+                            sVar13 * 4) + 0x68) & 0x40) == 0))))))))
+     ```
+
+     with `iVar5` the collider, `+0x68 & 0x40` the wait flag and
+     `sVar13 = *(short *)(iVar5 + 0x8a)` its own `collide_o`: pass when the
+     collider is not waiting, **or** when its `collide_o` is non-negative
+     *and* the unit it names is not waiting. So a collider that is waiting
+     while naming nobody (`collide_o < 0`) **refuses** the wait and drops
+     the unit through to the repath. Nothing in the guard reads *my* own
+     flag — an earlier draft's "neither of us has the flag already" had no
+     counterpart in either the decompile or the code, and is struck
+     (2026-09-05, the docs-versus-code pass's R8).
    - otherwise fall through to the repath.
 6. **The repath.** With a non-empty path stack, and under the throttle
    (`repaths[who] < 0x10`; over 4 only every fourth collision counts, over 8
@@ -878,18 +918,27 @@ implements them; ten disagree, all ten confirmed, none struck.
 the action test, so the kinds gated on "its action ≠ `ATTACK`" are the
 **seven** `1, 2, 3, 4, 0x12, 0x13, 0x15`, and `0xc` is ungated. §4.3 calls
 the gated set "the last four" — `0xc, 0x12, 0x13, 0x15` — and
-`Sim::same_group_soft` implements exactly that, with a further invention of
-its own: it gates on whether the move carries a `GroupMove`, which the
-original never consults, and exempts a plain move from the action test
-altogether. Document, code and original are three different rules. This is
-the shape a test written from the same reading cannot catch, and both sides
-need correcting.
+`Sim::same_group_soft` implemented exactly that, with a further invention of
+its own: it gated on whether the move carries a `GroupMove`, which the
+original never consults, and exempted a plain move from the action test
+altogether. Document, code and original were three different rules. This is
+the shape a test written from the same reading cannot catch.
 
-**Half of §6 step 5's wait guard is the same.** The document has the guard
+**Both were corrected on 2026-09-05** (item 231), from the export rather
+than from the row: §4.3 above now carries the decompiled gate and
+`same_group_soft` short-circuits `NONE` and `GUARD` before the action test,
+gating the four move kinds — `0x13`/`0x15` are those same kinds here — on
+`not_attacking` and consulting no `GroupMove`. It cost neither long word a
+frame (East Indies 7448, Great Lakes 6848), which is what §9 predicts: both
+arms need a marching squad with a group-mate, and the capture that would
+reach one is the one §9 already owes.
+
+**Half of §6 step 5's wait guard was the same.** The document had the guard
 reading the unit's own wait flag; the original does not, and neither does
-the code — so that half is a document error. The other half is a code
-error: the crate grants a wait where the original refuses one when the
-collider's `collide_o` is negative.
+the code — so that half was a document error, and it is struck in step 5
+above. The other half was a code error: the crate granted a wait where the
+original refuses one when the collider's `collide_o` is negative. Both are
+fixed, with the decompiled clause quoted in step 5; likewise no frame.
 
 **Eight are stated, unimplemented and unreached.** §6 step 6's `anti` flag
 drops the "and *its* action is `ATTACK`" conjunct

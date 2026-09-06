@@ -894,20 +894,17 @@ mod tests {
         //
         // It is `sim::Unit::line_ok`, and this crate has exactly one
         // reader of it, on the hot path: `do_move` re-paths when it is
-        // clear. The original clears it on a refused step
-        // (`Unit::move_step@005faf30`, `005fb7c1`-`005fb7fd`: the clear
-        // and the `return 0` are the same two lines) and this crate
-        // leaves it standing, which is why run65's caravan enters
-        // `Unit::find_path@005fb910` on 6207 over there — the trace says
-        // so, and 6206 has no entry — and steps straight over here.
+        // clear. It disagreed on **335 of these 450 unit-frames** for one
+        // item — the original carrying the bit *set* on standing units
+        // where this crate carried it clear — and the cause was not the
+        // refused step the row named but `clear_partial_path`, which
+        // cleared the bit here and touches no mask at all in the original
+        // (`docs/MOVEMENT.md`, "The verified line's lifecycle").
         //
-        // Counted rather than asserted row by row, because the gap is
-        // real and its fix is `crate::orders`', not this crate's: the
-        // count is pinned and may only fall. When the clear lands, lower
-        // it; at zero, move the rows into `row` above and delete this.
+        // At zero it is an ordinary row of the labelled comparison, and
+        // that is what it is now; `line_ok_rows` survives as the coverage
+        // count, so the row cannot pass by not being compared.
         let mut line_ok_rows = 0usize;
-        let mut line_ok_wrong = 0usize;
-        let mut line_ok_off: Vec<String> = Vec::new();
         // `Built::tick` stamps the frame it is about to run, so after the
         // tick with `f` the counter reads `f + 1` and the state is that
         // `FRAME` block's — the same alignment run39's scout test uses.
@@ -948,22 +945,14 @@ mod tests {
                 };
                 row("x", i64::from(un.pos.x), Some(them.pos.x));
                 row("y", i64::from(un.pos.y), Some(them.pos.y));
-                if let Some(m) = them.unit_masks {
+                if them.unit_masks.is_some() {
                     line_ok_rows += 1;
-                    let theirs = m & 8 != 0;
-                    if un.line_ok != theirs {
-                        line_ok_wrong += 1;
-                    }
-                    if un.line_ok != theirs && line_ok_off.len() < 12 {
-                        line_ok_off.push(format!(
-                            "frame {}: {}/{} line_ok ours {} theirs {theirs}",
-                            f + 1,
-                            them.who,
-                            them.o,
-                            un.line_ok
-                        ));
-                    }
                 }
+                row(
+                    "line_ok",
+                    i64::from(un.line_ok),
+                    them.unit_masks.map(|m| i64::from(m & 8 != 0)),
+                );
                 // `UnitData::angle` is the **heading** `set_angle` writes,
                 // not the facing: `move_step` hands it the bearing at the
                 // top of the function and only `Guy::do_turn` moves guy 0
@@ -1077,30 +1066,15 @@ mod tests {
         );
         assert!(wrong.is_empty(), "run65's window parted: {wrong:?}");
 
-        // The verified-line bit's own tally. `line_ok_off` is capped at
-        // twelve for the message; the count that is pinned is the number
-        // of *rows compared*, so the pin cannot be satisfied by a run
-        // that stopped comparing.
-        eprintln!(
-            "run65 `unit_masks & 8`: {line_ok_rows} rows compared, {line_ok_wrong} \
-             disagree; first {line_ok_off:?}"
-        );
+        // The verified-line bit's coverage. `wrong` above carries any
+        // disagreement now; what is pinned here is that the bit is still
+        // being *read* on 450 unit-frames, so the row cannot pass by
+        // going quiet.
+        eprintln!("run65 `unit_masks & 8`: {line_ok_rows} rows compared");
         assert!(
             line_ok_rows >= 400,
             "the window prints `unit_masks` on {line_ok_rows} unit-frames; \
              a capture with fewer is the wrong file"
-        );
-        // **335 of 450**, and the shape is not the refusal path at all:
-        // the original carries the bit **set** on standing units where
-        // this crate carries it clear, from the window's first block on.
-        // So `line_ok`'s whole lifecycle is wrong here, not merely its
-        // clear — and every one of those frames is a `find_path` this
-        // crate may run and the original does not (`do_move` re-paths
-        // when the bit is clear). Pinned as a count that may only fall.
-        assert!(
-            line_ok_wrong <= 335,
-            "the verified-line bit disagrees on {line_ok_wrong} of {line_ok_rows} \
-             unit-frames, against a pin of 335 — it may only fall: {line_ok_off:?}"
         );
     }
 
