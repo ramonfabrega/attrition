@@ -3957,14 +3957,24 @@ mod tests {
     /// all three Archers on the captain's spot, because `come_out` searched
     /// once and placed the squad; the original recurses on `o_down` and
     /// each member searches for itself (`00617c10:535`, `docs/CITIES.md`
-    /// §6.5.1). That is now built, and it is not the whole answer: the
-    /// **captain is exact** — bearing 0 at `r = min = 672` off Barracks
-    /// `1/2016`, snapping to `(45144, 26424)` — while the original's `1/29`
-    /// stands at `(45288, 26520)`, a bearing of 11.25° from the trainer,
-    /// which `find_nearby_spot`'s counter cannot produce (`docs/ORDERS.md`
-    /// §10, verified against the listing at `61e017`–`61e3dc`). So the
-    /// members' spots come from a mechanism not yet found, and the twelve
-    /// frames are still owed. Queue item 227.
+    /// §6.5.1).
+    ///
+    /// **And it does not search around the same thing** (item 227): a unit
+    /// that is not its squad's captain replaces the host `get_inside` gave
+    /// it with `get_captain()` at `618022`..`618044`, so the members sweep
+    /// the **captain's** ring — `[block_radius, + UNIT_DISEMBARK_DISTANCE]`
+    /// from the captain's own `angle` — and not the trainer's. With that
+    /// built, all three Archers stand on the original's own points for
+    /// every block up to the group order, which the loop above now
+    /// asserts; the parting moves 6640 → **6652**.
+    ///
+    /// **What is left is the march, and it is item 219.** The original's
+    /// captain steps `26, 13, 26, 26, 13, …` out of 6650 and this crate
+    /// steps `26` flat, so the squad runs ahead: 154 units of x and 142 of
+    /// y by 6840. That is why run53's word still parts at 6848 —
+    /// `1/28` reaches the standing citizen `1/13`'s block about 1.1 tiles
+    /// early, twelve frames before the original's own blocked stand at
+    /// 6860. The exit spot is closed; `do_group_move`'s speed pair is not.
     ///
     /// Driven through [`run_traced`], so this is the whole record and not
     /// the squad's.
@@ -4037,6 +4047,24 @@ mod tests {
             "the window's own rows: {orders} order fields and {angles} angles — \
              a capture below `UNITS=3` is the wrong file"
         );
+        // **The birth, pinned** (item 227). The window opens twenty-eight
+        // frames after the three Archers are born and ten before the group
+        // order on 6650, so every block up to and including 6650 is their
+        // exit placement standing still. All three must be on the
+        // original's own point for all of it: the captain off the
+        // trainer's ring, `1/28` and `1/29` off the **captain's**
+        // (`docs/CITIES.md` §6.5.1). Before that was found this asserted
+        // nothing and the two members stood on the captain's spot from the
+        // window's first frame.
+        for o in 27..=29 {
+            let f = parted.get(&(1, o)).copied().unwrap_or(i64::MAX);
+            assert!(
+                f > 6_650,
+                "Archer 1/{o} parts at {f}: the squad's exit spots are the \
+                 birth placement, and every frame to the group order on 6650 \
+                 is it standing still"
+            );
+        }
     }
 
     /// East Indies' word on the **long** capture — the number that took

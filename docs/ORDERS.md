@@ -3294,9 +3294,12 @@ is that no capture on disk had ever put a swarm ring on a coast.
 - **The base bearing** at every build/repair/gather/garrison call site is
   **`find_angle(me − target)`** (asm-confirmed at the swarm, garrison and
   gather sites): the sweep starts on the unit's own side of the target.
-  `come_out` uses south (`0x80000000`), `find_path`'s teleport and `go_to`
-  `0x55555555` (a third of a turn — arbitrary, not a sentinel), `init_unit`
-  the unit's own angle. **`Animal::do_idle`'s far wander is `0x55555555`
+  `come_out` uses south (`0x80000000` — the literal is at `617c33`, into
+  the slot `6184cc` pushes; the first reading could not find the write and
+  called the bearing diff-backed), `find_path`'s teleport and `go_to`
+  `0x55555555` (a third of a turn — arbitrary, not a sentinel), and
+  `init_unit` the **captain's** angle for the squad members it creates —
+  which for a freshly built squad is `Unit::init`'s own `0x55555555`. **`Animal::do_idle`'s far wander is `0x55555555`
   too** (2026-08-31, item 102), which is the one place the difference has
   been measured: reading it as the animal's facing put run39's `8/3` 180°
   out and cost 125 frames of East Indies' word — `docs/SYNC.md` §3.19,
@@ -3312,7 +3315,7 @@ is that no capture on disk had ever put a swarm ring on a coast.
 | `do_gather` | the building | `size × 0x60 + 0x30` | −1 | 0 | — |
 | `do_non_flat_gather`: the camp; the tile | the camp; the tile centre | `d`; `0xc0` | −1; `0x100` | 0; `2` | — |
 | `come_out`, no host | own position | `block_radius` | `block_radius + UNIT_DISEMBARK_DISTANCE` | 0 | — (then `nocoll 1`) |
-| `come_out`, **unit** host | the host's position | the **host's** `block_radius` | that `+ UNIT_DISEMBARK_DISTANCE` | 0 | — (then `nocoll 1`); bearing is the **host's** `angle`, not south (`docs/TRANSPORT.md` §6.4) |
+| `come_out`, **unit** host | the host's position | the **host's** `block_radius` | that `+ UNIT_DISEMBARK_DISTANCE` | 0 | — (then `nocoll 1`); bearing is the **host's** `angle`, not south (`docs/TRANSPORT.md` §6.4). A **squad member** reaches this arm too: `618022`–`618044` replaces its host with `get_captain()` (`docs/CITIES.md` §6.5.1) |
 | `come_out`, building host | the host's position | the training ring, `0` while it dies | `+ (MAX − ) DISTANCE` | 0 | — (`docs/CITIES.md` §11) |
 | `Animal::do_idle`, the far wander (`docs/ANIM.md` §7) | the herd centre | `0xc0` | −1 | 0 | — |
 

@@ -1286,67 +1286,84 @@ unit type** and nothing else in the export writes the field. run58's
 Fisherman `1/14` is born 192 units further from its Dock than the land ring
 would put it, which is that term exactly.
 
-#### 6.5.1 A squad's members each search for themselves — and not on the ring
+#### 6.5.1 A squad member's host is its captain, not the building
 
-**Diff-backed, and the residue is named** (2026-09-04, run76, queue item 223).
-Every trained unit is born inside its trainer and walks out, and a squad is
-`uber_size` **objects**, not one object with three figures (§4.3). The
-original does not place them together: after `set_new_location`, `come_out`
-re-enters on `o_down` with the "already the captain" flag set —
-`00617c10:535` calls `come_out(member, 1)`, and `param_1` at `:172` is what
-stops a member bouncing back up to its captain. So each member repeats the
-whole exit search with its siblings already standing on the map.
+**Diff-backed and closed** (2026-09-04, run76, item 227; opened by 223). A
+squad is `uber_size` **objects**, not one object with three figures (§4.3),
+and the original does not place them together: `come_out` re-enters on
+`o_down` with the "already the captain" flag set (`00617c10:535`; `param_1`
+at `:172` stops the member bouncing back up), so each member repeats the
+whole search with its siblings already on the map.
 
-This crate placed every member on the captain's own spot, which is what put
-the AI's three Archers of run76 on one point. The per-member search is built
-(`Sim::come_out_spot`, `Sim::come_out_place`).
+**And not around the same thing.** The host `get_inside` returned is thrown
+away for a unit that is not its squad's captain: at `618022`–`618044` a clear
+`is_captain` bit — `(o_up >> 15) == 0` — calls `get_captain()` (vslot `0xe4`)
+and writes it, with the unit's own `who`, into the slots every later term
+reads (`[esp+0x14]`, `[esp+0x50]`, folded to `who × 0x1c` at `61804d`). The
+host chooses the arm: vslot `0x1c` is the folded `return 1` on
+`Build::vftable` and `return 0` on `Unit::vftable`, so a **member takes the
+unit-host arm** — a transport passenger's own (`docs/TRANSPORT.md` §6.4) —
+with every term the captain's (`61845c`–`618483`):
 
-**What the capture confirms.** run76's window opens at 6640, twenty-eight
-frames after the squad is born, and the three Archers `1/27`, `1/28`, `1/29`
-stand still until the group order on 6650 — so the block is their birth
-placement, read directly. The trainer is Barracks `1/2016` at
-`(45120, 25728)`, `x_size = y_size = 4`, so the ring is
-`8 × 0x30 + 288 = 672` out to `672 + (480 − 288) = 864`, step `24`. The
-**captain is exact**: bearing 0 (due south) at `r = 672` projects to
-`(45120, 26400)`, snaps to `(45144, 26424)`, and that is where the original's
-`1/27` stands. Ring, centre, bearing origin, snap and step are all confirmed
-by this one row.
+| term | a captain | a member |
+|---|---|---|
+| centre | the trainer's position | the **captain's**, as just placed |
+| bearing | south, `0x80000000` | the captain's `angle` (`+0x50`) |
+| min | the training ring, 0 while the trainer dies | the captain's `block_radius` (`+0x240`) |
+| max | `+ (UNIT_TRAIN_MAX − UNIT_TRAIN)` | `min + UNIT_DISEMBARK_DISTANCE` |
+| step | 0 → `(max − min) / 8` | the same |
 
-**And the two members are not candidates of that sweep at all.** The
-original has `1/28` at `(45144, 26568)` and `1/29` at `(45288, 26520)`.
-`1/29` sits at `dx ∈ [144, 192)`, `dy ∈ [768, 816)` from the building — a
-bearing of `atan(168/792) ≈ 11.25°`, one **thirty-second** of a turn east of
-south. The sweep cannot produce it. Its bearing is
-`base + k × 0x1000_0000 + (0x0800_0000 if |k| > 7)` for `k` in
-`0, ±1 … ±15` — verified instruction by instruction at `61e017`–`61e023`
-(the `sbb`/`and` that adds the half turn) and `61e02a`–`61e033` (the
-`shl $0x1c` and the two adds) — so an 11.25° bearing needs `k ≡ 0 (mod 16)`,
-which the counter never reaches. Nor does the captain's own position serve as
-the centre: from `(45144, 26424)`, `1/29` needs a bearing whose tangent is in
-`[1.0, 2.33]`, and neither 45° nor 67.5° lands in both coordinate windows.
+Only the fallback arm is the leaving unit's own: `618490` reads `0x240` off
+`this`, so `block_radius == 0` sweeps `FILTER_ALL`, the doubled ring, then
+the host's own point, and non-zero sweeps `FILTER_NOT_ME`, the same ring with
+collision off, and then **refuses** — the unit stays inside.
 
-**And the dump cannot show the chain.** `UnitData::o_up`/`o_down` are
+**The south bearing is a read, not only a diff.** The constant is at
+`617c33`, `movl $0x80000000, 0x30(%esp)` — `[esp+0x2c]` in the body's frame,
+`esp` being four lower there for `Group::clear`'s argument push — and that
+is the slot `6184cc` hands over as `bias_angle`. Its only other writers are
+the gather-point block (`6182c8`, `618355`: `find_angle` toward the rally
+spot, also stored as the unit's `angle`) and the unit-host arm (`618462`).
+
+**run76 pins every term at once.** Barracks `1/2016` at `(45120, 25728)`,
+`x_size = y_size = 4`: the captain's ring is `8 × 0x30 + 288 = 672` out to
+`864`, step `24`, swept from south, and bearing 0 at `r = 672` snaps to
+`(45144, 26424)` — `1/27`. From **there** the members' ring is
+`[48, 48 + 576]`, step `(624 − 48) / 8 = 72`, swept from the captain's
+`angle`, still `Unit::init`'s `0x55555555` on all three. Snapped, in the
+sweep's own order: `1/28` is candidate **36** (`r = 120`, `k = 3`) →
+`(45144, 26568)`, the first at `144` units where 0–35 are `48`–`135.8` and
+its block refuses them; `1/29` is candidate **62** (`r = 192`, `k = 0`, the
+bias itself) → `(45288, 26520)`, with 36 and 59 now `1/28`'s point and 37–61
+inside the captain again.
+
+Both are exact, and neither is a candidate of the *trainer's* ring at all:
+`1/29` sits at `11.25°` from the Barracks, the one thirty-second the
+31-bearing counter never produces (`docs/ORDERS.md` §10) — which is what
+named this item.
+
+**The dump cannot show the chain.** `UnitData::o_up`/`o_down` are
 `+0x8e`/`+0x90` (`types.txt`), and `is_captain` is the **sign bit of
-`o_up`** (`00617c10:172`) — a different pair from the `ObjectData`
-`up`/`down`/`down_who` the log prints, which is the per-cell object list and
-mixes units with buildings (run17's frame 1300 has `6 → 1 → 2001`). So the
-squad's own order is not readable from any capture, and a reader chasing it
-through `up`/`down` is reading the collision chain.
+`o_up`** (`00617c10:172`) — not the `ObjectData` `up`/`down`/`down_who` the
+log prints, which is the per-cell object list and mixes units with buildings.
+What the dump gives is the positions, and three of them fix the whole arm.
 
-**So a squad member's exit spot comes from somewhere this crate has not
-found.** The three are packed at 144, 152 and 173 units — 144 is one tile and
-the closest the original ever puts two of them — where the ring's own second
-candidate is 258 away. Queue item 227.
+**Before the garrison.** `Objects::init_unit@0065e0c0` builds the squad in
+one loop and gives each member a spot around the captain —
+`[f × 0x30, f × 0x60 + 0xc0]`, `f` the captain's raw `BLOCK_RADIUS`
+(`+0x248`), bias its `angle` — then `set_new_location`. `Build::train` calls
+it at the trainer's centre and `go_inside` swallows all three at once, so a
+trained squad never keeps it; a squad created on open ground does. Not
+modelled, and no capture reaches it.
 
-**What is not established.** Which mechanism it is. The candidates are
-`find_nearby_spot`'s squad flag (`param_13`, which inflates the block radius
-by `((uber_size − 1) × guy_spacing) / 2 + 0x30` at `61deb8`–`61ded7` and is
-passed **0** by both of `come_out`'s calls), the local `Group` that
-`come_out` clears at its head, and a formation offset applied by
-`set_new_location`. Nothing on disk separates them: no other capture has a
-squad born inside a `DUMP_ALL` window. The falsifying capture is a
-`frame_window` over any Barracks squad's birth on a **second** map with
-`UNITS=3`, which turns one sample of two offsets into two.
+**What is not established.** Whether a member is turned to its captain's
+`angle` on the way out. `come_out`'s tail splits on the same `is_captain`
+bit (`006191a5`) and the not-a-captain arm calls
+`set_angle(this, host->angle)` for a unit host (vslot `0x8`);
+`docs/TRANSPORT.md` §6.4 has it diff-backed for a passenger. run76 cannot
+separate it — both angles are `Unit::init`'s initial value — so it is not
+implemented here, and the falsifier is a squad ejected from a building whose
+captain has turned.
 
 ### 6.6 Ejecting a building — `eject_contents`, `process_ejection`
 
@@ -1885,16 +1902,18 @@ heal, ejection), then the sites' `construct_hits` refresh.
   filter goes through the general test `docs/COLLISION.md` §9 does not
   model, so both of its passes accept. Still not modelled: the `BOAT_*`
   and disembark rings, and the gather point's turn. **The default bearing is
-  due south, and it is diff-backed rather than read**: all five citizens
-  run10's AI trains appear at `(42360, 17208)`, on the inner radius directly
-  south of London. `train`'s own arms before the exit — a gather-inside
-  building that keeps its worker, the dock's boat count, the owner's text
-  bubble — are not modelled either; every trainer here lets its unit out.
-  The one-squad-a-frame cadence and the FIFO order are kept. **A squad's
-  members each run the search for themselves** since run76 (§6.5.1) — the
-  `o_down` recursion at `00617c10:535` — but where the original's members
-  actually land is **not** a candidate of that sweep, and is unexplained;
-  the captain's spot is exact.
+  due south**, `617c33`'s own constant (§6.5.1) and, before it was found,
+  diff-backed by run10's five AI-trained citizens at `(42360, 17208)`, on the
+  inner radius directly south of London. `train`'s own arms before the exit —
+  a gather-inside building that keeps its worker, the dock's boat count, the
+  owner's text bubble — are not modelled either; every trainer here lets its
+  unit out. The one-squad-a-frame cadence and the FIFO order are kept. **A
+  squad's members each run the search for themselves, around the captain**
+  (§6.5.1): the `o_down` recursion at `00617c10:535`, and then the unit-host
+  arm, which `Sim::come_out_unit_host_spot` shares with the transport's own
+  disembark. run76's three Archers are all three exact. Not modelled: the
+  member's turn to its captain's angle (§6.5.1's open question), and
+  `init_unit`'s pre-garrison placement of a squad born on open ground.
 - **`valid_filter(8)`** in the capture count is taken as "alive and on the
   map" — what every other filter the combat document read reduces to.
 - **The capture attempt inside `Object::valid_target`** (§7.1's fourth caller)

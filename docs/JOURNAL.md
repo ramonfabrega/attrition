@@ -16494,3 +16494,57 @@ under the size guards for no gain.
 exits zero. The score is untouched by construction — Great Lakes 6848, East
 Indies 7448 — and this item was booked to move no counter but to stop the
 two lanes colliding in one file.
+
+## 2026-09-04/06 — item 227: a member comes out around its captain, and the machine went down (Opus)
+
+**The item is closed and the mechanism is one swap.** `Unit::come_out`
+takes the host `get_inside` handed it and, for a unit that is not its
+squad's captain, replaces it with `get_captain()` at `618022`..`618044`.
+So a member does not sweep the trainer's ring at all: it sweeps the
+**captain's**, `[block_radius, + UNIT_DISEMBARK_DISTANCE]` from the
+captain's own `angle`. That is why `1/29` stood at a bearing
+`find_nearby_spot`'s counter cannot make from the building — it was never
+measured from the building. `Sim::come_out_unit_host_spot` is the arm, and
+`disembark` turned out to take the identical one, which is what made the
+swap credible rather than convenient: the boat case had been written from
+the same code a week earlier and had the host right.
+
+**It also overturned a reading in this crate's own doc comment.** The
+bearing had been called "diff-backed, not read", because the first reading
+concluded the listing never writes the angle slot. It does, at `617c33` —
+`movl $0x80000000, 0x30(%esp)` before `Group::clear`'s argument push,
+which is the `[esp+0x2c]` that `6184cc` hands over as `bias_angle`. The
+dump had fixed the same value five times over; now the listing says it
+too.
+
+**What it moved, and what it did not.** All three Archers now stand on the
+original's own points for every block up to the group order, and the
+window's parting goes 6640 → 6652. The headline stays 6848, and the reason
+is named: the original's captain steps `26, 13, 26, 26, 13, …` out of 6650
+where this crate steps `26` flat, so the squad runs 154 units of x ahead by
+6840 and reaches a standing citizen's block twelve frames early. That is
+item 219, `do_group_move`'s speed pair, and it was already in the queue.
+
+**Then the machine went down, and that is the other half of this entry.**
+The worker's `cargo test -p rondata --release` grew to 27.6 GB resident;
+swap filled, and the Mac was gone eight minutes after another session
+noticed and sent a message. Every part of that chain worked except the
+last: **a message cannot save a machine that is already thrashing.** The
+work survived only because it was on disk in a worktree.
+
+`tools/memcap.sh` is the answer and it is mechanical: poll a command and
+every descendant every two seconds, `kill -9` the tree on the first sample
+over a ceiling, exit 137 so a gate cannot mistake an OOM kill for a test
+failure. Shell limits are not usable here — macOS does not enforce
+`RLIMIT_AS` for the mappings a Rust test binary makes. It was made to fire
+three times: on a synthetic hog, on the suite itself, and on its own first
+version, which killed its process **group** and took the script with it.
+
+**And firing it found something larger than the incident.** The release
+suite is not merely a victim of one bad test. Serialized it peaks at 13.5
+GB and passes; in parallel it climbs past 18 GB in under two seconds of
+sampling. One test alone — run71's five thousand frames — peaks at **7.8
+GB against a 793 MB dump**, a tenfold blow-up on a parse that is already
+zero-copy. The cause is structural, not a leak: 2.96 million blocks and
+~42.8 million fields, each block owning two `Vec`s, is ~5.9 million small
+allocations with their slack and their allocator overhead. Item 235.
