@@ -23,9 +23,10 @@ moved 6640 → 6652.
   now the default item.
 - **The Mac went down on 2026-09-04** under the release suite: 27.6 GB
   resident, swap full. `tools/memcap.sh <gib> <cmd…>` is the guard, and
-  **every release run goes through it** — `zsh tools/memcap.sh 16 cargo
-  test -p rondata --release -- --test-threads=4`. Parallel is what kills;
-  serialized the suite peaks at 13.5 GB and passes.
+  **every release run goes through it** — `zsh tools/memcap.sh 20 cargo
+  test -p rondata --release -- --test-threads=1`. **Serialized until 235
+  lands**: four threads reached 20 GB and were killed; one thread peaks at
+  **15.4 GB** and passes 214 tests in 256 s.
 - **235 is the suite itself** and it blocks every worker's gate.
 - Lanes: `att-capture` holds run79 unpushed (Great Lakes' 6993 birth) and
   the corpus; `att-audit`'s wave 2 readers were lost with the machine and
