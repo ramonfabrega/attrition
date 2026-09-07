@@ -41,6 +41,10 @@ unmoved.* Verdict: **back to Opus commanding**, at the width below.
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w7448 of 24,000 · GreatLakes w6862 of 24,000
 
+**Opener: the main thread is the commander (DECISIONS 34), on Opus.**
+`ccc spawn --worktree` one Opus worker on 236 with a brief that names the
+score it moves; merge, guard, push, fast-forward `origin/main`, next.
+
 ## The queue
 
 In dependency order, headline-nearest first; **the headline is the long
