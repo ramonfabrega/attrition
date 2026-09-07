@@ -12,35 +12,35 @@ lines, or lets the handoff pass 32.
 
 ## Where things stand
 
-*2026-09-07, Opus commanding — **both words moved**: Great Lakes 6994 →
-**7176** (250) and East Indies 7448 → **7529** (241). Four landings,
-nothing live, all pushed. **Next act is the Fable steering pass.***
+*2026-09-07, Fable steering — the tranche is real and **both words
+moved**: Great Lakes 6848 → **7176** and East Indies 7448 → **7529** over
+thirteen landings, all merged, all Opus. Verdicts below; Opus resumes.*
 
-- **Great Lakes 7176**: 97 draws differing at 93 — the original in
+- **Great Lakes 7176** (leads): 97 draws differing at 93 — the original in
   `Unit::do_idle+0x7d`, this crate in `Guy::inc_time+0x271`; a unit goes
   idle there and not here, and run79's `[6910,7250]` covers it. **East
   Indies 7529**: a `Guy::set_anim` under `Unit::do_non_flat_gather+0xb99`
   the original spends and this does not.
-- **Widen before reading the candidate** (249, 250): twice the named
-  mechanism was wrong and eighty `UNITDATA` blocks said so in twenty
-  minutes. **Neither a draw-stream gain nor a sweep's first count is
-  proof** — 182 frames of exact draws came with an anchor two tiles wrong
-  (250); nine phantom divergences went to zero on the right pasture (252).
-  And take a gap **whole**: run86 covered `[6924,7410)` in one run where
-  two windows were booked, and its eject at 7284 predates both (241).
-- **Loop hygiene**: width two on the gate (15.8 GB of 20 GiB); `ccc update
-  <ref>`, never a raw merge; **reap at merge time** — a finished worker
-  sits at `working idle`, and its state and `↳` go stale together, so only
-  the branch tip answers. A lane is cheap on tokens only if it waits
-  blocking (251b).
-- **Before clearing**, read `~/ccc-stream/clear-probe.txt`: ccc is owed a
-  `snapshot.sh` either side and a word on which streams kept growing (25).
+- **The gate is pinned to two threads** — `.cargo/config.toml`, guarded in
+  `floors.rs`. The same suite is 15 GB at two and 24–33 GB at the default
+  sixteen; memcap killed two runs this tranche and a `| tail` laundered one
+  137 into exit 0. **No pipe between `memcap.sh` and the exit code.**
+- **The stopping rule stands at two, with its exception named** (DECISIONS
+  34): a no-score landing that pins the headline's cause with a
+  failing-first assertion on the frame resets the count. 249 → 250 was it.
+- **Two rules went to CLAUDE.md**: widen the whole cast before reading the
+  candidate (249, 250); a word moved lands with the value diff beside it.
+- **258 is booked beside the headline** at width two: the finish frame's
+  units-off on both maps, a third scoreboard line that may only fall.
+- **Reap before spawning**: nine finished worktrees on disk (loop-117, 156,
+  234, 236–239, att-capture, att-capture2), nothing unmerged — `ccc rm`.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w7529 of 24,000 · GreatLakes w7176 of 24,000
 
-**Opener: the steering pass, on Fable, in the main thread — the tranche
-below, the width question, and whether two rules have earned CLAUDE.md.**
+**Opener: commander on Opus (DECISIONS 34). Great Lakes 7176 is the item —
+widen run79's `[6910,7250]` whole before naming a mechanism — with 258 at
+width two beside it. Reap the nine worktrees first.**
 
 ## The queue
 
@@ -51,6 +51,13 @@ journal is indexed by them.
 
 246. **Step 6's repath is diff-backed on one capture only** — run83's
     single event (239); run85's obstacle class is not a second.
+
+258. **Booked (steer 09-07): the finish line's own frame is on disk, free**
+    (252) — whole-map states at **24001 on both scored maps** (run53;
+    run21/23/54), East Indies at 15105/15401/16007/16489. Diff each against
+    the sim run to its frame and pin **units off / unlinked at 24001** per
+    map as a third scoreboard line that may only fall; (259) run29's 15105
+    already reads **51 off, 22 unlinked**. Harness only, no mechanic.
 
 226. **`cover=1` dies in the wow64 bop** (ORACLE), an x86 host the
     falsifier. (220) TECH §13's twenty range blocks. (209) **the
@@ -92,12 +99,6 @@ list, 101 of 617; (72) every `+0xNN` a document pins vs its module, **with
     closing dump. No live case found — a tear bites only if a unit's first
     divergence lands on the last frame — but unaudited. Fix is
     `compare_shutdown`'s n−1 allowance, given to those last blocks.
-
-258. **The finish line's own frame is on disk, free** (252): whole-map
-    states at **24001 on both scored maps** (run53; run21/23/54) and East
-    Indies at 15105/15401/16007/16489 — an endpoint oracle for DECISIONS
-    29's counters, no capture to buy. (259) run29's 15105 reads **51 off,
-    22 unlinked**, the first number for how far apart they are that late.
 
 175. **The uber chain past its birth**: `Objects::init_unit` threads
     `uber_size` objects (CITIES §4.3); nothing else reads it. Takes (48)
@@ -146,7 +147,8 @@ half (GROUPS §6.4), run52 the blocker; (103) a woodcutter's clock, 445 v
     (`$CLAUDE_PROJECT_DIR` is the repo root, never a worktree).
 
 Older backlog: (235) the capture `String` each test reads, ~5 GB of the
-suite's 10, no score; (39) a 2D viewer over `Sim`; (41) `scenario.py`; a
+suite's 10 — lore's shape: tests over one dump share one parsed instance,
+so memory scales with distinct dumps, not threads; no score; (39) a 2D viewer over `Sim`; (41) `scenario.py`; a
 `find_target` block; run7's orders; a mounted attacker; `calc_gather`
 non-flat; `Leader::diplomacy`; (77) ANIM §3.2; (58) ROADS §7.4.
 
@@ -181,19 +183,16 @@ non-flat; `Leader::diplomacy`; (77) ANIM §3.2; (58) ROADS §7.4.
   `collide_frame` is a permanent stamp, so "some unit has one in the band"
   is true of any window, and run85's first teeth check passed on a band
   where nothing happened. Test both directions on real data first.
-- **The ledger cannot see a record the parser never visits** (252): it
-  counts fields, so 65 whole-map states sat unread and uncounted.
-- **A timestamp wearing a `Z` it has not earned** survives every check
-  comparing only its own two sides: `stat -t '%FT%TZ'` prints *local* time
-  and appends a literal Z (`%z` is the fix). A self-consistent
-  before/after pair can be uniformly wrong.
+- **`stat -t '%FT%TZ'` prints local time under a literal Z** — use `%z`;
+  a self-consistent before/after pair can be uniformly wrong.
 - **A commander's clear is free when**: every landed branch merged, gated
   and pushed; nothing in flight owing its result elsewhere; this handoff
   current with the headline *measured*; nothing unfiled. `ccc clear <ref>
   --then "continue"` arms it, and **0.1.29 fixed the gate** 0.1.28 stalled
   on a Monitor or background shell. A clear is not a restart: both kinds
   survive it tracked *and* writing (`~/ccc-stream/clear-probe.txt`).
-- **Run the diff suite with `--release`**; a long wait is the capture, not
-  a hang. **Before a blind fan-out**, `grep -n <mechanic> CLAUDE.md` and
+- **Run the diff suite with `--release`** under `memcap.sh`, redirected to
+  a file — a pipe launders its 137 — and keep the `peak` line; a long wait
+  is the capture, not a hang. **Before a blind fan-out**, `grep -n <mechanic> CLAUDE.md` and
   the memory index — a subagent inherits both, and neither they nor a
   brief nor an agent definition may quote this file or the journal.

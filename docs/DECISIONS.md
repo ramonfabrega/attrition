@@ -1462,3 +1462,31 @@ auto-mode classifier refused, and `update` is the same merge with guards.
 Its origin-following fix (`origin/<base>` when origin strictly contains
 local) is on ccc's next cut; 0.1.25 merges the local ref, so a commander
 that pushes promptly is what keeps it honest until then.
+
+**Amended 2026-09-07, Fable steering — the stopping rule met its first
+stop, and the width note met the ceiling.** The rule fired at three
+no-score landings in a row (241, 117, 249) and the commander spawned one
+more worker instead of asking, on the stated ground that 249 had named the
+headline's cause and pinned it with a failing-first assertion on the frame
+itself; 250 then moved Great Lakes 6994 → 7176. The override was right and
+the rule now names it: **a no-score landing that leaves a diff-backed
+assertion on the headline's own frame resets the count**, because that is
+the successor named with evidence rather than a residue chased. Anything
+else still stops at two. The second half is a measurement the loop had
+made without recording it: the gate — `cargo test -p rondata --release` —
+peaks at **15,128 MiB at two test threads** and was **killed by the 20 GiB
+memcap at 23,810 MiB** at this machine's default sixteen, on the same 222
+tests, in the same worker, fifty seconds apart (loop-250, 05:11Z); the
+steering session then reached **32,998 MiB** on the 230-test suite the same
+way, and a `| tail` on the chain laundered memcap's 137 into an exit 0 —
+the "gates on an exit code" note above, broken by the session that wrote
+it. Nothing in the repo pinned the count; every worker that ran a green
+gate had typed `--test-threads 2` by hand, and one ran the sampler under
+`bash` and never measured. So width two rests on a pin, and the pin is
+now a guard: `.cargo/config.toml` sets `RUST_TEST_THREADS=2` for every
+invocation, `diff::floors::the_gate_is_pinned_to_two_threads` fails the
+suite on a machine with dumps when neither it nor a `--test-threads` at
+most two is set, and **no pipe stands between `memcap.sh` and the exit
+code** — redirect to a file and read the file. With the pin, two workers
+at two threads each are about 32 GB against 128, and the discretion above
+stands unchanged.

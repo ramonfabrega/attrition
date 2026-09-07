@@ -45,6 +45,52 @@ mod tests {
     /// If a score moved, move the floor first (the assert that reads it is
     /// beside it), then rewrite the line; if only the line changed, the
     /// floors are the truth and the line is wrong.
+    /// The gate is `cargo test -p rondata --release`, and every test thread
+    /// holds its own parsed capture: serialized the suite peaks near 15 GiB
+    /// (item 235), at two threads near 16, and at this machine's default
+    /// sixteen threads it reached 33 GiB in one process on 2026-09-07 and
+    /// was killed by the 20 GiB memcap — through a pipe, which turned the
+    /// 137 into an exit 0. So the width DECISIONS 34 rests on is a pin, and
+    /// the pin is checked here rather than remembered: `.cargo/config.toml`
+    /// sets `RUST_TEST_THREADS=2` for every invocation, a `--test-threads`
+    /// on the command line may lower it, and a run with neither fails
+    /// before it can grow. Only where the dumps are — a machine without
+    /// them runs a light suite and may use every core.
+    #[test]
+    fn the_gate_is_pinned_to_two_threads() {
+        if crate::testenv::install().is_none() {
+            return;
+        }
+        let env = std::env::var("RUST_TEST_THREADS")
+            .ok()
+            .and_then(|v| v.parse::<usize>().ok());
+        let args: Vec<String> = std::env::args().collect();
+        let flag = args.iter().enumerate().find_map(|(i, a)| {
+            a.strip_prefix("--test-threads=")
+                .map(str::to_string)
+                .or_else(|| {
+                    (a == "--test-threads")
+                        .then(|| args.get(i + 1).cloned())
+                        .flatten()
+                })
+                .and_then(|n| n.parse::<usize>().ok())
+        });
+        let threads = match (env, flag) {
+            (_, Some(f)) => f,
+            (Some(e), None) => e,
+            (None, None) => panic!(
+                "the diff suite is running unpinned: neither RUST_TEST_THREADS \
+                 (.cargo/config.toml) nor --test-threads is set, and at this \
+                 machine's default it reaches 33 GiB and is killed by memcap"
+            ),
+        };
+        assert!(
+            threads <= 2,
+            "the diff suite is running at {threads} test threads; two is the \
+             width DECISIONS 34 measured (item 235), and four crossed 20 GiB"
+        );
+    }
+
     #[test]
     fn the_handoff_s_scoreboard_is_the_floors() {
         let path = concat!(env!("CARGO_MANIFEST_DIR"), "/../../docs/QUEUE.md");

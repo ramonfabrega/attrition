@@ -155,9 +155,12 @@ the implementation rather than after.
 the queue names — and the item nearest the headline's first divergence is
 the default. An item that turns out to be something else spawns its
 successors at the *back* of the queue, not the front, and a session that
-moved no score says so in the handoff. This is the stopping rule for the
-long middle: the residue chase is productive and unbounded, and only the
-number says whether the whole is converging.
+moved no score says so in the handoff. **A word that moved lands with the
+value diff beside it** — the dump's own coordinates on the frame it moved —
+because a draw stream can agree on a wrong destination for a long time,
+and only a value comparison tells the two apart. This is the stopping rule
+for the long middle: the residue chase is productive and unbounded, and
+only the number says whether the whole is converging.
 
 **Definition of done**, all five:
 
@@ -236,7 +239,11 @@ rules follow:
 - **When the original dumps a record, diff the whole record** — every slot,
   every field — not the field the mechanic happens to care about. Nine tenths
   of a dumped record once went uncompared for a month, and the first widening
-  failed on its first run.
+  failed on its first run. **And every unit on the frame, not the ones the
+  brief names**: a call chain names a function, never a cast, and the whole
+  cast either side of a frame answers "who changed" without a hypothesis.
+  Twice in a day the named mechanism was wrong and the widening said so in
+  twenty minutes.
 - **A finding that can become an assertion must become one before its audit
   is closed.** A second reading's budget is best spent on *what to assert*,
   not on more prose; the twenty-minute widening has out-produced the

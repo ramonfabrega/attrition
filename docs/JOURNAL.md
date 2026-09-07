@@ -17990,3 +17990,63 @@ asserted statically so a machine with no archives still checks the ledger's
 arithmetic), the 36 within-file pairs, the cross-capture tear, and the two
 maps' closing-dump diffs. All five fail on a one-frame regression in
 `final_state`'s label.
+
+## 2026-09-07 — the seventh steer: the tranche is real, and the gate was never pinned (Fable)
+
+Opened by the user after the loop's longest unattended stretch — thirteen
+landings since the 09-06 steer, from 117 to 252 — with lore's brief asked
+for and read alongside the queue. The pass is the charter's three
+questions and what the seat found that nobody had asked.
+
+**Is the tranche real.** Yes, and it is the first tranche in which both
+words moved: Great Lakes 6848 → **7176** (236, 238, 250) and East Indies
+7448 → **7529** (241, on the capture lane). Every worker and lane branch
+is merged into `worktree-replan-pdb`, nothing is unmerged anywhere, and
+the model column reads Opus on every worker session — no Sonnet, no Fable
+served a worker (`lore sessions --since 2026-09-06 --well attrition`). The
+marked-row batch is empty again: the two deliberate pointers in the orders
+audit are the only `FABLE:` markers standing, and the docs-versus-code
+wave's rows are being taken per document as the last steer ruled — R18's
+border half, R19, orders R1/R2/R7 this tranche. The spend was 563 USD list
+over twenty sessions plus 130 for ccc; the poll guard landed mid-tranche
+and the two workers cut after it read their task file once each, against
+the lane that read one 349 times before it (`lore polls`).
+
+**Has the headline moved.** Both, and the lower map still leads. The
+stopping rule fired once, at three no-score landings, and the commander
+overrode it with a reason — 249 had pinned the headline's cause with an
+assertion on the frame — and was paid 182 frames for it the next item.
+Entry 34 now names that exception rather than leaving it to judgment; the
+rule stands at two for everything else.
+
+**What the seat found.** The gate was never pinned. I ran the full suite
+the way the handoff's own line describes it and `memcap.sh` killed it at
+**32,998 MiB in one process**, past run42's test — and the `| tail` on my
+chain turned the 137 into an exit 0, the note in entry 34 broken by its
+author. Lore's search of the four workers' transcripts settled the cause
+in one row: loop-250 ran the same 222 tests at the default sixteen threads
+(killed at 23,810 MiB) and at `--test-threads 2` (15,128 MiB, green) fifty
+seconds apart. Every green gate this tranche had the flag typed by hand,
+loop-249 ran the sampler under `bash` and measured nothing, and nothing in
+the repo said so. Now `.cargo/config.toml` pins `RUST_TEST_THREADS=2`,
+`diff::floors::the_gate_is_pinned_to_two_threads` fails an unpinned run on
+a machine with dumps — made to fail first at sixteen, passing at two and
+one — and the queue's hygiene line says no pipe after memcap.
+
+**The two rules earned `CLAUDE.md`**, as clauses on the bullets they
+extend rather than as bullets: widen the whole cast of a frame before
+reading the candidate (249 and 250, twice in a day), and a word that moved
+lands with the value diff beside it (250's two-tiles-wrong anchor under
+182 frames of exact draws). The 117 rule — a term zero in every dump is
+either zero-valued or switched off — stays in the queue.
+
+**The finish line.** Item 252 left whole-map states at 24001 on both
+scored maps sitting on disk, free. That is the endpoint entry 29's first
+counter names, and it is a number the word cannot give: the word moves in
+frames, this moves in units off at the end. It is booked beside the
+headline as a third scoreboard line that may only fall, at width two,
+because it touches the diff harness and no mechanic module.
+
+**Owed to ccc**, and paid: the clear-probe's after-snapshot — all three
+streams kept growing across this clear, tracked and writing. Nine finished
+worktrees are still on disk and the opener says to reap them.
