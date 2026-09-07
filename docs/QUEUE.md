@@ -91,13 +91,12 @@ written for consumers not built (20 rows, may only fall).
 names nowhere, **44** one capture names (237 moved both); its blind spot
 is a field the parser never had, `avg_speed` (210). Uncounted: (88) the
 blind list, 101 of 617; (72) every `+0xNN` a document pins vs its module,
-**with `att-audit`**; (89) the instrument's last guard; (35) VISION §7.
+**with `att-audit`**; (89) the instrument's guard; (35) VISION §7.
 
 175. **The uber chain past its birth**: `Objects::init_unit` threads
-    `uber_size` objects (CITIES §4.3), nothing else reads the chain and
-    `build_sim` leaves `o_up`/`o_down` unset. Takes (48) the object chain
-    whole (COLLISION §3, §7); (73) `UnitData::group`'s missing
-    back-pointer — **242 is its other half**; (56) ARMY §13's cell bit.
+    `uber_size` objects (CITIES §4.3), nothing else reads it and
+    `build_sim` leaves `o_up`/`o_down` unset. Takes (48) COLLISION §3/§7;
+    (73) `UnitData::group`'s back-pointer, **242's other half**; (56) ARMY §13.
 
 248. **ATTRITION's Territory section is 15,625 bytes of 16,000** and wants
     a retelling pass before anything else is added to it. Territory's own
@@ -108,24 +107,19 @@ blind list, 101 of 617; (72) every `+0xNN` a document pins vs its module,
 
 Seven measured one-liners: (23) the formation byte's sign, Echelon half
 (GROUPS §6.4), run52 the blocker; (103) a woodcutter's clock at 1,686, 445
-against 480 (ORDERS §6.4); (105/45) Gaia's positions, East Indies, first
-bad 1658 (SYNC §4.2); (124) the loop flag is per animation file (ANIM §3.3);
-(116) the one `SITE` slot still wrong (AI §18); (166) `resource_cap` on five
-goods, 1392 v 2000 (ECONOMY); (107) `epoch[0]` is Military, `army.rs`
-reads `ages`.
+v 480 (ORDERS §6.4); (105/45) Gaia's positions, East Indies, first bad
+1658 (SYNC §4.2); (124) the loop flag is per animation file (ANIM §3.3);
+(116) the one `SITE` slot still wrong (AI §18); (166) `resource_cap` on
+five goods, 1392 v 2000 (ECONOMY); (107) `epoch[0]` is Military.
 
 161. **The make-list block is 2,500 frames behind East Indies' word**:
     `create_buildings` first runs on 9982 (AI §25), so `building_value`,
     `gather_value`, §24.4's arm and `compute_largest_gather@0066e920` wait
-    on it — **238 is the Great Lakes half, live now**. (195)
-    `find_repair_spot` is `build_done`'s last of three.
+    on it. (195) `find_repair_spot` is `build_done`'s last of three.
 
-241. **East Indies' word, 7448, is a POSITION**, and the collision
-    reading is closed three ways (COLLISION §8.2). `1/20` is off by
-    (36, 792) at run85's first block, ~34 frames of its own walk, so it
-    never meets the animal; the ride 6930–7399 is uncovered. TRANSPORT
-    §13, and `cap-241` is on it. (167) run61's two: the landing search's
-    *cell*, `Unit::do_strafe` (SYNC §3.9).
+241. **East Indies 7448 is a position**, collision closed three ways
+    (COLLISION §8.2); the handoff carries the live half. (167) run61's
+    two: the landing search's *cell*, `Unit::do_strafe` (SYNC §3.9).
 
 211. **`get_speed`'s three remaining arms** (MOVEMENT): `unit_masks &
     0x10`, set and cleared inside a frame; `has_general(0, 0x162)`'s siege
@@ -137,11 +131,17 @@ reads `ages`.
     freezes `Guy::inc_time` (ANIM §5), 26 of 26 off run17/run44; no field
     here, and the arm waits on a word that reaches a melee frame.
 
-251. **`memcap.sh` is the one guard with no fixture** (lore, verified
-    here): its `ps | awk` reads `0 0` when `ps` answers nothing, so a
-    refused sample reads as no memory used and the ceiling never fires —
-    Friday's crash by another door, under the guard DECISIONS 34 cites
-    for width two. Wants one: past the cap, dead in N seconds, exit 137.
+251. **Two guards the loop leans on and does not have** (lore). (a)
+    `memcap.sh` has no fixture and a real hole: its `ps | awk` reads
+    `0 0` when `ps` answers nothing, so a refused sample reads as no
+    memory used and the ceiling never fires — Friday's crash by another
+    door, under the guard DECISIONS 34 cites for width two. Wants one:
+    past the cap, dead in N seconds, exit 137. (b) **a poll guard** —
+    refuse the *third* consecutive Bash read of the same `tasks/` path;
+    on att-capture 326 of 349 reads sat in runs of ≥3 and every honest
+    check was a run of 1–2, so the signal is clean and an until-loop in
+    one call passes by construction. It is a **hook**, so it is the
+    user's call and not a peer's, and it is not installed.
 
 Older backlog: (235) the capture `String` each test reads, ~5 GB of the
 suite's 10 — a rounded-up read buffer at ~100 call sites, no score; (39) a
