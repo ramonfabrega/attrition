@@ -1532,6 +1532,19 @@ same run answered the rate: three commits, two `committed` events, one
 reopens the item**, which no detector can see because that is a
 conversation and not a ref. `ahead` is the truth rather than the event
 count: two commits inside one poll collapse into a single event.
+
+**And a long-lived observer holds a snapshot of a world that moves.** Three
+separate watchers outlived their subject in one day: one filtering the refs
+of two reaped workers while the live pair had never been in it; one left
+running against a file after its diagnosis was done; one still emitting a
+superseded format hours after the binary under it was replaced, because
+installing a build relaunches the *app* and does nothing to a running CLI.
+The commander asserted "nothing on my side is on the old image" and was
+wrong by two processes. So the rule is a measurement, not a recollection:
+**`ps -eo pid,lstart,command` against the binary's mtime**, and a watcher
+is restarted after any tool update rather than assumed to follow. This is
+the same defect as the stale filter one level up — the observer is the last
+thing anyone thinks to check, because it is the thing doing the checking.
 Two earlier attempts failed the same way — a hand-rolled `ccc list --json`
 poller that exited 0 with no output, and a `ccc watch | grep <name>` whose
 filter matched other repos' sessions and then the commander's own status
