@@ -1094,3 +1094,51 @@ settle_min: 14000000
 poll_max: 260
 # Same game: the trace word for word against run53.
 check: python3 tools/gamelog/rngcmp.py rontrace-run53.log rontrace-run79.log
+
+run: 80
+tag: greatlakes-latecensus
+item: 117
+why: the four territory seams at the far end of run53's own game — does any of them ever fire
+# **ATTRITION's four inert inputs, and nothing on disk can answer them.** The
+# seams are the temple and fort border *tech* levels
+# (`has_preq(TEMPLEBORDERS2..4)`, `has_preq(FORTBORDERS2..4)`), the Colosseum
+# and Eiffel Tower, a gem rare, and the AI handicap allowance — all four
+# `docs/ATTRITION.md`, "Territory", all four inert on every capture so far.
+#
+# The disk was grepped first, per the rule. The five archives that reach
+# frame 24,000 — run18a, run21, run23, run53, run54 — carry **13**
+# `orig_type` lines each, which is the start dump and nothing after it, so
+# not one of them says whether a Temple (global 437), a Fort (443) or a
+# Colosseum (530) is ever built. run79's own frame 6994 has player 1 at
+# Small City, Farm, Woodcutter's Camp, Library, Market, Barracks, Tower,
+# Stable — no Temple yet at 7,000.
+#
+# So this is the recon frame, and it is the cheap shape `FRAME_WINDOW` was
+# written for: run53's game to its own end, the expensive `LEADERS=9` census
+# written **only** over the last forty frames. Whatever the answer, it bounds
+# the item: either a seam has fired by 24,000 and the census names its level,
+# or none has and 117 needs a scripted setup rather than a longer wait — and
+# that is worth knowing before anyone spends a session on it.
+#
+# Not a coverage run. `report.py … blind` cannot shrink under `cover=0` (the
+# `cover:` key's note), so this converts a reading-only claim by the other
+# route: a dump that either contains the term or refuses it.
+frames: 24000
+mapstyle: 14
+# LEADERS=9 is the census oracle — resources, the MAKELIST, the ten SITES,
+# the `reg_*` arrays including `reg_forts`. ~10k lines a leader, which is why
+# it rides a forty-frame window and not the run.
+end: MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,DEATHS=1,LEADERS=9
+frame_window: 23960 24000
+# cover=0 is not a choice on this machine — the `cover:` key's note above.
+cover: cover=0
+# The Great Lakes start dump is 10.9 MB and the log does not grow again until
+# 23,960, so the whole run-up would read as a settled run without this.
+settle_min: 14000000
+# run53 needed 900 polls for this game, but that was `cover=1` and the int3
+# forest. run77 covered 10,150 frames of run-up in ninety seconds at
+# `cover=0`; 24,000 late-game frames are slower per frame, not slower by an
+# order. 300 is 100 minutes, and the give-up path truncates rather than stops.
+poll_max: 300
+# Same game: the trace word for word against run53, this map's own 24k run.
+check: python3 tools/gamelog/rngcmp.py rontrace-run53.log rontrace-run80.log
