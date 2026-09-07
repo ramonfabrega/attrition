@@ -156,16 +156,16 @@ non-flat; `Leader::diplomacy`; (77) ANIM §3.2; (58) ROADS §7.4.
 
 ## How to maintain this file
 
-- **End of session:** rewrite "Where things stand" from scratch — the
-  headline first, and whether it moved. Delete finished items; their story
-  goes to the journal. Run `cargo test -p sim docs_guard`. **The 200-line
-  bound is a budget: a new item is paid for by compressing old ones.**
-- **A floor that moves** moves three things together: `FLOORS` in
-  `rondata::diff`, the assert that reads it, and the `Scoreboard:` line.
+- **End of session:** rewrite "Where things stand" from scratch, headline
+  first and whether it moved; delete finished items to the journal. **The
+  200-line bound is a budget** — a new item is paid for by compressing old
+  ones, and you count the lines before writing, not after.
+- **A floor that moves** moves `FLOORS`, the assert reading it, and the
+  `Scoreboard:` line together.
 - **Start of session:** merge the lanes, then "Where things stand", the
-  item, then its document. Lanes never write this file.
+  item, its document. Lanes never write this file.
 - **A brief names `docs/audit/2026-09-05-<doc>-vs-code.md`** where one
-  exists: its rows are candidate items, taken on the way through.
+  exists — candidate items, taken on the way through.
 - **Overlap a capture's neighbours on purpose.** A window is priced by its
   dumped blocks and the run-up is free, so the overlap costs seconds and
   turns "same seed, therefore same game" into a state check where `rngcmp`
@@ -189,11 +189,11 @@ non-flat; `Leader::diplomacy`; (77) ANIM §3.2; (58) ROADS §7.4.
   the band" is true of any window on the game, and run85's first teeth
   check passed on a band where nothing happened. Test both directions on
   real data before the capture runs.
-- **A commander's clear is free when**: every landed branch merged, gate
-  green and pushed; nothing in flight whose result it owes elsewhere; this
-  handoff current with the headline *measured*; nothing unfiled in its
-  head. `ccc clear <ref> --then "continue"` (0.1.28) arms it, refusing a
-  dirty tree but **not** unpushed commits.
+- **A commander's clear is free when**: every landed branch merged, gated
+  and pushed; nothing in flight owing its result elsewhere; this handoff
+  current with the headline *measured*; nothing unfiled. `ccc clear <ref>
+  --then "continue"` arms it — but on **0.1.28 it never fires while a
+  Monitor or background shell lives**, so clear by hand until 0.1.29.
 - **Run the diff suite with `--release`**; a long wait is the capture, not
   a hang. **Before a blind fan-out**, `grep -n <mechanic> CLAUDE.md` and
   the memory index — a subagent inherits both, and neither they nor a
