@@ -3718,3 +3718,97 @@ difference: `find_gather_spot`'s "fewer than two citizens" gate, and
 run79's `1/2007` is the case, and it is diff-backed — the full evidence,
 the falsifier and the eleven fields of the same record that are still `i32`
 here are `docs/CITIES.md` §5.8 and `docs/DATALAYER.md` §4.2 (item 265).
+
+---
+
+## 32. Great Lakes' word at 7585 is a Citizen the stockpile cannot buy (2026-09-07)
+
+**What the word is.** run89's sim-frame 7585 is `production_ai`'s **step
+11** — `make_stuff(); step = 0`, the call site `Leader::production_ai+0x236`
+— and it spends **seven draws against the original's nine**, parting at
+index 2 where the original takes a `Leader::make_stuff+0x63d`
+(`SITE_EXPIRE_SLOT`) this crate does not. Both sides spend the two
+`+0x221` of §2.6 step 4 before it, so the head and its one duplicate agree.
+
+**What `+0x63d` is here.** Step 6's expiry, over the slot it has just
+bought: `make_this(slot)` and then one `Random::get(0, 0xffff)` per slot
+from `slot` to 10 holding that slot's type. The original spends exactly
+one, and the trace shows **no draw between the `+0x221` pair and it** — so
+whatever `make_this` bought took no draw of its own, which rules out
+`produce_building`'s two (`make_stuff+0x45a` is how frame 7182's slot
+purchase reads) and leaves a unit or a tech.
+
+**The dump names it.** Block **7586** — the state at the end of sim-frame
+7585, the same relation `1/3`'s spot on 7585 has to the stand on 7584 —
+takes player 1's city building `2007` (`orig_type 414`) from `queued 0` to
+`queued 1`, with one item `type 50`, `job_counter 100`, `cost[0] 43`, over
+the stale `type 50 … cost[0] 42` the array still carried from the citizen
+before it. A **Citizen**, at the price this crate's own tables give the
+next one. It is the only queue row that parts at or below that block, and
+this crate queues nothing.
+
+**So the slot is 5, and every gate but one agrees.** The make list on that
+frame, read off this crate:
+
+| slot | t | val | cost | fate |
+| --- | --- | --- | --- | --- |
+| 0 | 82 Slingers, `num 3`, cat 6 | 9 999 999 | 55 food, 55 timber | head |
+| 5 | 50 Citizen, cat 5, city 2 | 697 | 43 food | the buy |
+| 6 | 82 Slingers | 9 999 999 | — | the head's duplicate |
+
+`can_pay(0)` is 0 (timber 14 against 55), so the head is not bought and
+`saving` holds; `need` is `((55 − 88) + (55 − 14)) / 2 = 4`; the type is
+available and `TypeData::can_pay_cost@00667570` says **two** Citizens are
+affordable against `num 1`, so the affordability test the slot reaches
+would have passed. The gate that fails is step 6's **good loop**: food is
+the one good both the head and the slot cost, and `88 < 55 + 43 + 4`.
+
+**The slot-5 exception is not the way in.** `make_stuff@006c8af0:204` skips
+slot 5 unless `free_peasants` **and** `gatherers` are both zero
+(`LeaderData +0x9bc`, `+0x9c4`, both named in the type record). They are 1
+and 20 here, and run19's own `LEADERDATA` at `LEADERS=9` has a mid-game AI
+at 2 and 20 — the clause is a no-workers-at-all escape and never fires in
+a running economy. The per-city halves of the same census
+(`free`/`busy`/`gatherers` on `CITY`) agree with the original on all 246
+blocks, so the counters are not what is wrong.
+
+**The threshold, exactly, and it is not the arithmetic.** `need` falls as
+the purse rises, so the least food that buys is **98**, not 102. Given
+that food alone on the word's own frame, this crate's 7585 agrees with the
+original **nine draws for nine, entry for entry** — including the bird's
+`Guy::set_anim+0x97a < Guy::move+0x19f` at index 4, which is downstream of
+the missing draw rather than a second fault: one word behind, the
+wing-beat coin reads `CHAR_JOG` and `Guy::move`'s `field_0x9c == 8` does
+not stand for a jog.
+
+**So the word is the AI's stockpile, not its rules.** Bounds from the
+original's own refusals: slot 5's purchase puts food **≥ 98** on 7585,
+and 7582's step-8 `make_stuff` spends two `+0x221` and no `+0x63d` while
+slot 9 (Empire, 160 food) is blocked by nothing else, so food was **< 160**
+three frames earlier. This crate has **88**. The gap is 10 to 72.
+
+**What is not established: where the gap comes from.** Nothing in the
+harness compares a leader's `bucket`, because the ledger is written only
+at `LEADERS=9` and run89 is at run87's detail; no Great Lakes capture on
+this disk carries it past setup, run53's own 24k dump included
+(`200/200/100/0/0/0`, its first frames). Inside the window the pile is
+monotonic and unspent — 39 food at 7300 to 88 at 7580 with `income[0]` a
+flat 1920 — so the gap did not open there. Two live seams sit upstream of
+it:
+
+- **`use_market` (§2.15).** The gate is *true* for player 1 here, and its
+  `need` on 7585 is `[55, 55, 0, 0, 0, 0]` against a timber purse of 14 —
+  so the original trades where this crate does not. The narrowing this
+  frame buys: **no draw in run53's whole 24,000-frame trace is made from
+  `use_market`, `do_sell`, `do_buy`, `market_speculation` or
+  `calc_market_prices`**, and the original's one roll lives in the sell
+  branch, so that branch never runs in this game. Whatever the market does
+  to this AI's pile it does through the draw-free **buy** branch alone,
+  which is a smaller thing to land than the seam as written.
+- **The caravans.** `vans.length` is 0 against 1 and `trade_val` 0 against
+  128 on **both** of player 1's cities, on 246 of 246 blocks of run89 —
+  and wealth is what a market buy spends.
+
+The whole of the above but the last two bullets is asserted by
+`run89_s_window_is_great_lakes_word_frame`, and every constant in it was
+made to fail on purpose first.

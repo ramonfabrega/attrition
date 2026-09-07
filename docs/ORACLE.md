@@ -5335,6 +5335,29 @@ eight failed. The guard that stays in permanently is the last one, because
 "equal once one entry is dropped" says nothing on a frame pair that was never
 equal, and a mis-read trace is also a stream that agrees with nothing.
 
+> **And the word at 7585 was read from this same file the next day, without
+> a capture** (item 287, 2026-09-07). Nine tenths of it was a grep. The
+> extra draw is `production_ai+0x236`'s step-11 `make_stuff`, and its
+> `+0x63d` is step 6's expiry over a slot it has just bought; the trace
+> shows **no draw between it and the `+0x221` pair**, so the purchase was
+> draw-free. Widening the queue found the record: block **7586** takes
+> player 1's city building `2007` from `queued 0` to `queued 1` with one
+> item `type 50, job_counter 100, cost[0] 43` — a **Citizen**, at the price
+> this crate's own tables give the next one, and the only queue row that
+> parts at or below that block. So the slot is 5, and every gate of
+> `make_stuff` but one agrees: the gate that fails is step 6's good loop,
+> `88 < 55 + 43 + 4` over food. Given food 98 on that frame — `need` falls
+> as the purse rises, so 98 and not 102 is the least that buys — this
+> crate's 7585 agrees **nine draws for nine, entry for entry**, the bird's
+> own `Guy::move+0x19f` at index 4 included, which is downstream of the
+> missing draw. **The word did not move**: it is the AI's *stockpile*, not
+> its rules, and the ledger is written only at `LEADERS=9` — no Great Lakes
+> capture on this disk carries it past setup, so nothing has ever compared
+> it. `docs/AI.md` §32 has the bounds (98 ≤ food < 160 against this crate's
+> 88), the two seams upstream of it, and the one thing the 24k trace
+> settles for free: **no draw in it is made from `use_market`, `do_sell`,
+> `do_buy`, `market_speculation` or `calc_market_prices`**, so the market's
+> sell branch — the only one that rolls — never runs in this game.
 
 ## run90 — East Indies' word is a waypoint this crate walks to (2026-09-07)
 

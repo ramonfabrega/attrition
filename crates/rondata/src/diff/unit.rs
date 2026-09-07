@@ -2260,7 +2260,28 @@ mod tests {
     /// the wing-beat coin reads a different word and takes `CHAR_JOG`,
     /// and `Guy::move`'s `field_0x9c == 8` does not stand for a jog.
     /// Past 7585 both sides run on streams that are nobody's, so only the
-    /// block-7585-and-below set is asserted (run57's rule).
+    /// block-7585-and-below set is asserted (run57's rule) — with the one
+    /// exception below, which is the word's own frame written out.
+    ///
+    /// **Item 287 read that draw and did not move it.** It is step 6's
+    /// expiry over a slot the original has just bought, and the dump
+    /// names the slot: block **7586** — the state at the end of sim-frame
+    /// 7585, the same relation 7585 has to the stand on 7584 — takes
+    /// player 1's city building `2007` from `queued 0` to `queued 1` with
+    /// one item `type 50, job_counter 100, cost[0] 43`, a **Citizen** at
+    /// this crate's own next-one price, and it is the only queue row that
+    /// parts at or below that block. So the slot is 5, and every gate of
+    /// `make_stuff` but one agrees — the type is available, `can_pay_cost`
+    /// says two are affordable against `num 1`, and the head's duplicate
+    /// pair is the `+0x221` both sides spend. The gate that fails is step
+    /// 6's good loop, `resources[g] < head + slot + need` over food:
+    /// `88 < 55 + 43 + 4`. Given food **98** on that frame — `need` falls
+    /// as the purse rises, so 98 and not 102 is the least that buys — the
+    /// frame agrees nine draws for nine, entry for entry, index 4's bird
+    /// included. **The word is the AI's stockpile, not its rules**, and
+    /// nothing compares a leader's `bucket`: it is written only at
+    /// `LEADERS=9` and no Great Lakes capture on this disk carries it past
+    /// setup. `docs/AI.md` §32 has the bounds and the seams upstream.
     #[test]
     fn run89_s_window_is_great_lakes_word_frame() {
         let Some(inst) = install() else { return };
@@ -2291,7 +2312,16 @@ mod tests {
         let mut under: Vec<(i64, usize, usize, bool)> = Vec::new();
         let mut word: Option<(Vec<String>, Vec<String>)> = None;
         let mut stand: Option<(Vec<String>, Vec<String>)> = None;
+        // The state `make_stuff` reads on the word's own frame, taken
+        // **before** the tick: its own expiry rewrites the list.
+        let mut shop: Option<(sim::ai::MakeList, [i32; 6])> = None;
         for f in 0..7586i64 {
+            if f == 7585 {
+                shop = Some((
+                    built.sim.ai[1].make_list.clone(),
+                    built.sim.ledgers[1].bucket,
+                ));
+            }
             built.tick();
             if (7580..7586).contains(&f) {
                 let ours =
@@ -2365,6 +2395,60 @@ mod tests {
             (Some(2), Some(sim::ai_make::SITE_EXPIRE_SLOT)),
             "run89's word is not `make_stuff`'s slot expiry: {:?}",
             first_parting(&ours, &theirs).map(|(_, s)| s)
+        );
+
+        // **And what the word is, read off this crate's own shopping
+        // list** (item 287). The expiry the original spends is step 6's,
+        // over the slot it has just bought, and the slot is **5** — the
+        // Citizen the original queues in city `2007` on block 7586. Every
+        // gate but one agrees: the type is available, `can_pay_cost` says
+        // two are affordable against `num 1`, and the head's own type has
+        // the two duplicates both sides expire. The one that does not is
+        // step 6's good loop, `resources[g] < head + slot + need` over
+        // food, and it is a **stockpile** disagreement and nothing else.
+        let (list, bucket) = shop.expect("the word's own frame");
+        let price = |t: i32| {
+            usize::try_from(t)
+                .ok()
+                .and_then(|t| built.sim.type_price(1, t))
+                .expect("a price")
+        };
+        let named = |t: i32| {
+            usize::try_from(t)
+                .ok()
+                .and_then(|t| built.sim.tech_tree.types.get(t))
+                .map(|d| d.name.clone())
+                .unwrap_or_default()
+        };
+        assert_eq!(
+            (named(list.list[0].t), named(list.list[5].t)),
+            ("Slingers".to_string(), "Citizen".to_string()),
+            "run89's make list on 7585 is not the one the word was read from: {:?}",
+            list.list.map(|m| named(m.t))
+        );
+        let (head, slot) = (price(list.list[0].t), price(list.list[5].t));
+        assert_eq!(
+            (head, slot),
+            ([55, 55, 0, 0, 0, 0], [43, 0, 0, 0, 0, 0]),
+            "the head's and slot 5's prices are not run89's"
+        );
+        // `need`, the mean shortfall over the goods the head costs, floored
+        // at zero — `make_stuff` step 5, and it rises as the purse falls,
+        // so the least food that buys is not `head + slot + need(ours)`.
+        let need = |food: i32| {
+            let short = (head[0] - food) + (head[1] - bucket[1]);
+            (short / 2).max(0)
+        };
+        let buys = |food: i32| food >= head[0] + slot[0] + need(food);
+        assert_eq!(bucket[0], 88, "this crate's food on the word's frame");
+        assert!(!buys(bucket[0]), "slot 5 would buy, and the word says not");
+        let least = (0..400).find(|&f| buys(f)).expect("a threshold");
+        assert_eq!(least, 98, "the least food that buys the Citizen is not 98");
+        // The affordability test the slot *does* pass, so that the good
+        // loop is named as the only gate that fails.
+        assert!(
+            built.sim.type_affordable(1, list.list[5].t as usize, true) >= list.list[5].num,
+            "slot 5 fails `can_pay` too, so the word is not the good loop"
         );
 
         // **The original's own record of the spot**, read off the dump
@@ -2515,6 +2599,42 @@ mod tests {
             }
         }
         eprintln!("run89: city rows by (who, o, field) of 247 blocks: {cityc:?}");
+
+        // **The word's own value diff, on the block its frame writes.**
+        // Block 7586 is the state at the end of sim-frame 7585 — the same
+        // relation `1/3`'s spot on 7585 has to the stand on 7584 — and it
+        // is where the missing purchase shows: player 1's city building
+        // `2007` queues one item and this crate queues none. It is the
+        // only queue row that parts at or below it, so the draw and the
+        // record name the same purchase.
+        let queue_rows: Vec<(i64, i64, i64, &str, i64, i64)> = report
+            .frames
+            .iter()
+            .filter(|f| f.frame <= 7586)
+            .flat_map(|f| f.queue_diverged.iter())
+            .map(|d| (d.frame, d.who, d.o, d.field.as_str(), d.ours, d.theirs))
+            .collect();
+        eprintln!("run89: queue rows at or below block 7586: {queue_rows:?}");
+        assert_eq!(
+            queue_rows,
+            vec![(7586, 1, 2007, "queued", 0, 1)],
+            "the word's value diff is not `1/2007`'s queue on block 7586"
+        );
+        // And what it queued, off the dump: a Citizen at the price this
+        // crate's own tables give the next one, so the record names the
+        // type the make list's slot 5 holds rather than merely a length.
+        let b = log
+            .frame_states()
+            .into_iter()
+            .find(|f| f.n == 7586)
+            .and_then(|f| f.builds.into_iter().find(|b| b.who == 1 && b.o == 2007))
+            .expect("block 7586's `1/2007`");
+        let item = b.queue.first().expect("the queued item");
+        assert_eq!(
+            (b.queued, item.ty, item.cost[0]),
+            (Some(1), 50, 43),
+            "block 7586's `1/2007` does not queue a Citizen at 43"
+        );
     }
 
     /// Every disagreement one frame's comparison holds, as
