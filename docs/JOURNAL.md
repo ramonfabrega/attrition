@@ -19198,3 +19198,94 @@ carries it, and which would close item 235's ratchet for every large owned
 buffer rather than for the two that were mapped; and `memcap.sh` subtracting
 clean file-backed pages, which is now moot for captures and still true of
 the executable and the dumps the trace opens.
+
+## 2026-09-07 — item 272: Great Lakes' word is a bird's arrival stand (run89, no word moved, Opus, capture lane)
+
+The headline map's own frame had no dump under it. run87 covered
+`[7244, 7520)` and closed 7455; 267's `compute_form` tail negation then moved
+Great Lakes' word 129 frames to **7584**, past run87's own window, so the
+lower map's word could be read as a draw stream and as nothing else. This
+capture makes it a value diff. `docs/ORACLE.md`, "run89".
+
+**The disk was grepped first and it refused.** Every archive, any block
+labelled 7500–7899 on any map: run87's 7500..7519 with its `!quit` block at
+**7536** — Great Lakes, but 48 frames short and at the shutdown dump's detail
+— and run88, which is East Indies. Nothing held 7584.
+
+**The window was widened before it was booked.** The brief's `[7530, 7760)`
+would have left a ten-frame hole above run87's tail; `[7514, 7760)` overlaps
+it by six blocks for about two seconds of dumping, and that turns "same seed,
+therefore same game" into a state digest. 247 blocks, 112,314,402 bytes, eight
+minutes.
+
+**Four checks, and the overlap was a prediction.** run88 found that taking the
+neighbour's detail *exactly* rather than nearly makes the overlap byte for
+byte; run87 had needed three dropped `ANIMALDATA` fields because its `GUYS`
+went 2 → 4 against run79. This stanza took run87's detail exactly and asserted
+`samegame.py` with **no `--exclude` and no `--drop` at all** — six in common
+(7514..7519), zero differing. The two teeth pin the two halves of the detail
+separately: `cur_anim` pins `GUYS=4`, `collide_frame` pins `UNITS=3`, which the
+first line cannot. Both were made to fail on real data both ways before the
+run. run85's `collide_frame` *transition* was refused again, for run88's
+measured reason.
+
+**The word reproduces from run89's own trace.** Frames 7580–7583 agree draw for
+draw; 7584 is **48 against 49**, parting at index **24**, where the original
+spends a `Guy::set_anim+0x97a < Guy::move+0x19f` this crate does not. Drop that
+one entry and the two frames are equal, entry for entry — the whole of the word
+is **one missing draw**, not a reordering. It is `docs/ANIM.md` §9's arrival
+stand (`sim::anim::SITE_ARRIVE`), and it sits **between the fourth and fifth
+bird's `Animal::think_bird` triple**, so it belongs to a gaia bird's figure
+coming to rest. Which bird the capture cannot say: player 9's herd is not in
+the dump at this detail — `borrow_pasture` takes it from the trace.
+
+**And the field it costs is on the same frame.** Nineteen draws later 7584
+spends two `Unit::do_job+0x67` rolls on `1/3`, an AI citizen gathering at
+building `2002` (`build_type 417`, `been_there 1`, `goto_build 1`, not in a
+group). Both sides push it a fresh `MOVEORDER` on block **7585**, which is the
+state at the *end of sim-frame 7584* — the word's own frame, in the block
+numbering run88's `1/13` used, not a frame later — and disagree only on where:
+the original's
+(41976, 17208) with `off (504, 312)`, this crate's (42168, 17400) with `off
+(696, 504)`. **(+192, +192) on all four**, one tile in each axis, with
+`x − off_x` = 41472 and `y − off_y` = 16896 on **both** sides. The base agrees
+and the tile does not, which is what a stream one draw out of step looks like
+rather than a second fault. Position parts on 7586 by (+6, +10) and is (+84,
++131) by 7599.
+
+**Nothing else parts at or below the word** across 11,620 unit fields, 11,571
+order/path rows, 18,322 angles, 59,626 collision fields, 134,670 gather, 20,068
+building and 7,861 queue rows — only run87's own carried residue, all of it
+older than the window and present on its first block. The 7,493 rows above the
+word are printed and not pinned; past 7584 both streams are nobody's.
+
+**One row for the widening ledger, found by not narrowing.** The **`CITY`
+record parts on every block of the window** — 18 fields, 246 of 246. Player 0's
+city `2000` reads zero here for `busy`, `gatherers`, `land`, `filled`,
+`peasant_dist`, three `space` slots and four `ter` slots; player 1's
+`2000`/`2007` differ on `land`, `space[2]`, `trade_val` and `vans.length`. **No
+window test on either map asserts `city_diverged`** — only the 24,001 endpoint
+does — so this has been true and unread for as long as the record has been
+compared. It came out of the run87 test's own loop being widened to the whole
+record rather than the fields that test happened to name.
+
+**The cost, and it is the first capture since 260.** The release gate with this
+window in it peaked at **10,310 MiB of 20** at 244 tests, against **8,321** at
+243 without it — about **2 GiB of peak a window** at this size, a third of what
+run87's 121 MB cost before the parse went lazy, and against 15,479–16,169
+before item 260 landed. The headroom warning run87 and run88 both ended on is
+closed, and 2 GiB is the figure the next capture of this size should be sized
+against.
+
+Eight claims were made to fail on purpose before the assertion was believed:
+the extra draw's index, the 48/49 counts, the parted set, the (192, 192) step,
+the shared base, the original's own spot, the parting floor, and the
+anti-vacuity range widened to include 7584 itself. All eight failed. **The word
+does not move** — nothing was fixed here; what the capture buys is that 7584
+stops being a draw-stream report and becomes one named call site with a value
+diff beside it.
+
+**Successors**, unnumbered: the bird's arrival stand is a modelling row and
+wants a capture that carries the herd to name the animal; the `CITY` record's
+18 fields want a widening; and `1/3`'s spot itself is not a row — it is the
+missing draw's consequence, so fixing the arrival stand is what would close it.

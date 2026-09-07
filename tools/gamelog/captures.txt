@@ -1902,3 +1902,146 @@ check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|cur_anim" "$HOME/ron-data/AppData/
 # next step is a diff, not a run. `run88_s_window_is_east_indies_word_frame`
 # is the assertion; `docs/ORACLE.md`, "run88 — East Indies' word is a
 # gather countdown one tick long".
+
+run: 89
+tag: greatlakes-wordframe
+item: 272
+why: Great Lakes' word moved to 7584 when 267 landed compute_form's tail negation, and that is past run87's [7244, 7520) — the headline map's own frame has no dump under it at all
+# **The headline counter, and it is the lower map.** Great Lakes stands at
+# **7584** against East Indies' 7806, so this is the headline-nearest
+# capture on the board. run87 put 7455 on disk and 267's `compute_form`
+# tail negation closed it; the word moved 129 frames **past run87's own
+# window**, so today the frame can be read as a draw stream and as nothing
+# else. At 7584 the polarity is **48 draws against 49** and at index 24 the
+# **original** spends a `Guy::set_anim+0x97a < Guy::move+0x19f` this crate
+# does not — a crew figure's animation rather than a walker's stand, which
+# is the reverse of run87's own shape and a different call site from
+# run88's gather. The window is what turns that into a value diff.
+#
+# **THE DISK WAS GREPPED FIRST**, every archive, for any block labelled
+# 7500-7899 on any map. Exactly two files have any and neither is this
+# frame: **run87**, 7500..7519 with its `!quit` block at **7536** — Great
+# Lakes, 48 frames short of the word and at the shutdown dump's own detail
+# rather than the window's — and **run88**, 7500..7799 plus 7816, which is
+# East Indies. So Great Lakes has nothing at 7584 and nothing within 48
+# frames of it, and this is a capture rather than a diff.
+#
+# **The detail is run87's exactly**, not nearly: that is what run88 bought
+# from run85 and it is why the overlap below needs no `--exclude` and no
+# `--drop`. `GUYS=4` carries `cur_anim`, `cur_time`, `end_time` and
+# `stopped`, which is where the divergence literally is; `UNITS=3` carries
+# the five collision fields, the order list and the path stack.
+#
+# **The window overlaps its neighbour on purpose.** The brief's floor is
+# [7530, 7760), which would leave a ten-frame hole above run87's tail;
+# starting at **7514** instead puts six blocks (7514..7519) over run87's
+# own coverage for about two seconds of dumping and turns "same seed,
+# therefore same game" into a state digest. 176 blocks above the word give
+# the diff the frames after it as well as the approach — which is what
+# named run87's 7418 group tick.
+frames: 7775
+mapstyle: 14
+# run87's detail exactly, so the overlap is byte for byte.
+end: MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,DEATHS=1,LEADERS=1
+frame_window: 7514 7760
+# cover=0 is not a choice on this machine — the `cover:` key's note above.
+cover: cover=0
+# run76/run79/run80/run83/run84/run87's Great Lakes floor: the start dump is
+# 10.9 MB at this `start:` detail and the log does not grow until 7514.
+settle_min: 14000000
+# **Sized from run87's own measurement, not from an estimate.** run87 wrote
+# 277 blocks (276 window + the `!quit` block) for 120,956,729 bytes over a
+# 10.9 MB start dump, which is ~399 KB a block at this map, era and detail.
+# 246 blocks is therefore ~98 MB above the start, ~109 MB whole, and run87
+# took six minutes end to end on a fifty-second run-up. 120 polls is forty
+# minutes.
+poll_max: 120
+# Same game: the trace word for word against run53, this map's own 24k run.
+check: python3 tools/gamelog/rngcmp.py rontrace-run53.log rontrace-run89.log
+# **The overlap, and the count is the claim.** `samegame.py` exits 0 when
+# nothing differs *including when nothing is in common*, which is the
+# vacuous pass run83 caught, so this asserts the number of frames compared,
+# which frames they are, and the zero.
+#
+# **And with no `--exclude` and no `--drop` at all**, which is a prediction
+# rather than a convenience: run87 needed three dropped fields only because
+# its `GUYS` went 2 -> 4 against run79 and an `ANIMALDATA` prints `ox`,
+# `whom` and `aid` of its own at `GUYS >= 3` (item 268). Here the detail is
+# run87's exactly, so nothing moves and the six blocks must be byte for
+# byte — the same thing run88 got against run85. If this comes back
+# differing, the difference is real and is the finding.
+check: python3 tools/gamelog/samegame.py gamelog-run87-greatlakes-blockedwalker.txt gamelog-run89-greatlakes-wordframe.txt | tee /dev/stderr | awk '/in common/{split($0,a,", "); n=a[2]+0; r=$0; sub(/.*in common /,"",r)} /^differ:/{d=$2+0} END{print "run87 overlap: common="n" "r" differ="d; exit !(n==6 && d==0 && r=="(7514..7519)")}'
+# **The teeth, and neither of them is run85's `collide_frame` transition.**
+# run88's worker measured that one and refused it — a permanent stamp over
+# a band with zero transitions passes or fails for a reason that is not the
+# capture — and the same measurement holds here: it is not asserted.
+#
+# What is asserted is the window itself, at both ends, twice, over two
+# fields that come from two different `end:` categories. The three ways
+# this capture can come back useless are a `GUYS` downgrade that answers
+# nothing, a `frame_window` that landed somewhere else, and a `poll_max`
+# truncation — and a truncation is silent, because the loop `pkill`s and
+# archives whatever is there.
+#
+# **`cur_anim` pins `GUYS=4`**, which is what the whole capture is bought
+# for. Made to fail first, on real data, both ways: this line prints
+# "6 (7514..7519)" and exits 1 on **run87** (the neighbour, same map, same
+# detail — its six overlap blocks are all it has, and its 7536 shutdown
+# block carries no `cur_anim` at all), "0 (0..0)" and exits 1 on **run79**
+# (same map, same era, `GUYS=2`) and on **run86**; and with each file's own
+# range and count the same shape prints 276 on run87 and 326 on run88 and
+# exits 0.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|cur_anim" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run89-greatlakes-wordframe.txt" | awk '/BEGIN FRAME/{f=$3} /cur_anim/{if(f!="")seen[f]=1} END{n=0; lo=0; hi=0; for(k in seen){v=k+0; if(v>=7514&&v<7760){n++; if(lo==0||v<lo)lo=v; if(v>hi)hi=v}} print "frame blocks with a cur_anim in [7514,7760): "n" ("lo".."hi")"; exit !(n==246 && lo==7514 && hi==7759)}'
+# **`collide_frame` pins `UNITS=3`, which the line above cannot.** A stanza
+# that kept `GUYS=4` and dropped `UNITS` would pass the `cur_anim` tooth
+# and lose all five collision fields, the order list and the path stack —
+# the half of the record that names *which* unit is where. Made to fail
+# first the same way: "6 (7514..7519)" and exit 1 on **run87**, "0 (0..0)"
+# and exit 1 on **run53** (this map's own thin 24k dump, which carries no
+# `collide_frame` on any of its blocks), and 276 on run87 / 326 on run88
+# with their own ranges, exit 0.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|collide_frame" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run89-greatlakes-wordframe.txt" | awk '/BEGIN FRAME/{f=$3} /collide_frame/{if(f!="")seen[f]=1} END{n=0; lo=0; hi=0; for(k in seen){v=k+0; if(v>=7514&&v<7760){n++; if(lo==0||v<lo)lo=v; if(v>hi)hi=v}} print "frame blocks with a collide_frame in [7514,7760): "n" ("lo".."hi")"; exit !(n==246 && lo==7514 && hi==7759)}'
+# TAKEN 2026-09-07 — eight minutes (12:24:38 to 12:32:12), **247 blocks,
+# 112,314,402 bytes** (246 window + the `!quit` block at 7776), which is
+# 412 KB a block and run87's own measurement to within 4%. All four checks
+# ok: `rngcmp.py` against run53 **0 differing, 7,776 identical**; the run87
+# overlap **6 in common (7514..7519), 0 differing** — byte for byte, and
+# **with no `--exclude` and no `--drop` at all**, which is what taking the
+# neighbour's detail exactly rather than nearly buys and is the prediction
+# this stanza made; and both teeth **246 (7514..7759)**.
+#
+# **THE WORD IS A BIRD'S ARRIVAL STAND, AND IT IS ONE MISSING DRAW.** The
+# word reproduces from *this* capture's trace, not run53's: frames
+# 7580-7583 agree draw for draw (12, 19, 7, 9) and **7584 is 48 against
+# 49**, parting at index **24**, where the original spends a
+# `Guy::set_anim+0x97a < Guy::move+0x19f` — `docs/ANIM.md` §9's arrival
+# stand, `sim::anim::SITE_ARRIVE` — that this crate does not. Removing
+# that one entry makes the two frames equal entry for entry. It sits
+# between the fourth and fifth bird's `Animal::think_bird` triple, so it
+# is a gaia bird's figure coming to rest; **which** bird this capture
+# cannot say, because player 9's herd is not in the dump at this detail.
+#
+# **The value diff is one tile, and it is on the same frame.** Nineteen
+# draws later 7584 spends two `Unit::do_job+0x67` rolls on `1/3`, an AI
+# citizen gathering at building `2002`, and both sides push it a fresh
+# MOVEORDER on block **7585** — the state at the end of sim-frame 7584,
+# which is the word's own frame in this numbering: the original's names
+# (41976, 17208) with
+# `off (504, 312)`, this crate's (42168, 17400) with `off (696, 504)` —
+# **(+192, +192) on all four**, with `x - off_x` = 41472 and
+# `y - off_y` = 16896 on both sides, so the base agrees and the tile does
+# not. The position parts on 7586, (+6, +10), and never comes back.
+#
+# Nothing else parts at or below the word besides run87's own carried
+# residue (`1/23`, `1/24`, `1/25`, `1/26`, item 242's group id). One row
+# for the widening ledger: the **CITY record parts on every block of the
+# window**, 18 fields on 246 of 246, and no window test on either map
+# asserts `city_diverged`.
+#
+# The gate with this window in it peaked at **10,310 MiB of 20** at 244
+# tests, against 8,321 at 243 without it: about **2 GiB of peak a window**
+# at this size, a third of what run87's 121 MB cost before the parse went
+# lazy, and against 15,479-16,169 before item 260 landed. The headroom
+# warning run87 and run88 both ended on is closed. `run89_s_window_is_great_lakes_word_frame` is
+# the assertion; the word does **not** move.
+# `docs/ORACLE.md`, "run89 — Great Lakes' word is a bird's arrival stand".
