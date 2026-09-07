@@ -60,10 +60,10 @@ journal is indexed by them.
     already reads **51 off, 22 unlinked**. Harness only, no mechanic.
 
 260. **Booked (steer 09-07): the parser goes lazy and the gate sub-GB** —
-    `Log::parse` builds every block and field of an 800 MB dump (76.6 M,
-    235) where a test reads a few hundred. Index frame offsets in one pass,
-    parse a block on demand over a memory-mapped file, whole-file scans
-    (252's census) stream; the 230 tests are the oracle. Behind 258.
+    `Log::parse` builds all 76.6 M fields of an 800 MB dump (235) where a
+    test reads hundreds. Frame offsets in one pass, blocks on demand over
+    a memory-mapped file, whole-file scans (252) stream; the 230 tests are
+    the oracle, and 7k-line `harness.rs` splits by capture on the way.
 
 226. **`cover=1` dies in the wow64 bop** (ORACLE), an x86 host the
     falsifier. (220) TECH §13's twenty range blocks. (209) **the
