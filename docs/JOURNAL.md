@@ -19109,3 +19109,84 @@ could subtract them; the second parse a test pays for asking both questions
 could be spent once if `Initial` and the frame states came from one call;
 and `dumps()` still materialises every frame it is asked about, which is
 the one whole-log accessor the split did not reach.
+
+## 2026-09-07 — item 276: the closing block prices East Indies' word and does not explain it (Opus, worker)
+
+**The item was a grep, and the grep was worth doing.** East Indies' long
+word is 7806, run88's window stops at 7799, and the reflex was to book a
+screen. run88's own `!quit` had already left a `GameLog::end_game` block at
+**7816** that nothing had read as the word's residue, so the first question
+was whether it explained the word — a grep against ten minutes of screen
+and 90 MB.
+
+**It is the residue.** Exactly two units are new on that block and they are
+the pair the word is about: `1/6` and `1/7`, the AI's citizens walking to
+the adjacent build sites `ox 2015` and `ox 2016`. `1/6` is at (39624,
+38808) against the original's (39578, 38757) — 46 east and 51 south — and
+`1/7` at (39666, 38676) against (39672, 38664). Both are now pinned in
+`run88_s_window_is_east_indies_word_frame`, both sides' coordinates, so the
+capture that follows has a number to move rather than a verdict to write.
+
+**It is not the mechanism.** The block is ten frames downstream of the
+word, it carries positions and nothing else — the `end_game` dump prints
+`flags`, `o`, `who` and the three internal coordinates per unit and stops
+— and a closing dump is frame *n* except for the one unit the quit caught
+mid-update (item 257, open). Two rows on one block are worth what a second
+instrument makes them.
+
+**The second instrument was the trace, and it dated the parting.** run54's
+draw stream is not a dump and cannot be torn. `sim::anim::SITE_BLOCKED` is
+the stand a blocked unit plays and `sim::collide::SITE_PAUSE` is the only
+draw the collision mechanic spends, and over `[7800, 7820]` the two streams
+read:
+
+    7802   theirs 2 stands + 1 pause    ours 2 stands + 1 pause
+    7806   theirs 1 stand               ours —
+    7807   theirs —                     ours 1 stand
+    7810   theirs 2 stands + 1 pause    ours 1 stand
+    7812   theirs —                     ours 1 stand + 1 pause
+    7817   theirs —                     ours 1 stand
+
+The first collision is made on both sides — `1/6` and `1/7` bump, each
+takes the sidestep, `1/7` rolls `pause 3` off the shared stream — and the
+word is the **second** stand: 7806 against 7807. Everything after is that
+frame compounding. The original is done colliding by 7810; this crate takes
+two more cycles, and its `PathFinder::calc_road_cost` search of 137 cells
+runs on 7814 where the original's 136-cell search runs on **7833**.
+
+**And it named the candidate frame.** `1/6` pops its own sidestep waypoint
+on `f7804`, spends `f7805` turning without stepping, and takes the step on
+`f7806` — the frame the original is already blocked on. So the suspect is
+one frame of the *approach*, a turn against a step after a waypoint pop,
+and not the collision response, which run83 and §8.3 have both diffed
+clean. The other candidate — that on 7810 the original repaths and rolls
+where this crate sets the wait flag — is downstream of the parting and as
+likely to be the offset carried forward. `docs/COLLISION.md` §8.5 has both,
+with this crate's own `collide`/`pause`/wait rows for `1/6` and `1/7` over
+the gap written down as predictions a capture can refuse.
+
+**The widening found a second thing nobody had looked at.** run88's window
+compares 9,128 order and path fields over its 327 blocks and **1,077 of
+them disagree**, and no assertion had ever mentioned them: `1/18` — the
+parked Transport Barge — holds `Action`, `Flags` and `Move.angle` rows on
+essentially every block of the window, and `1/0` a `Move.facing` row on 101
+of them. run85's test prints its tally and asserts nothing about it; run88's
+did not even print it. The set is now pinned. `1/6` and `1/7` hold **no**
+order row at all, which is what says their divergence opens after 7799
+rather than earlier and quietly.
+
+**The word did not move**, and no fix was attempted: every field that
+decides the shuffle — `collide`, `collide_o`, `collide_who`, the wait bit
+in `unit_masks`, the order's `pause` — is a printed field, and guessing at
+which is wrong across sixteen undumped frames is how a word moves by luck.
+The capture asked for is `[7790, 7900)` at run88's detail exactly: 110
+blocks, ~63 MB, ten blocks of deliberate overlap on run88's tail so the
+butt-check is byte for byte with no `--exclude`. The item's `[7740, 7900)`
+also works; the extra 50 blocks are straight-line walking run88 already
+shows agreeing.
+
+Successors, unnumbered: the `1/18`/`1/0` order residue now pinned in run88
+is uninvestigated — a parked barge disagreeing on `Action`, `Flags` and
+`Move.angle` for 326 blocks is a whole standing order record nothing has
+read; and `RON_DEBUG_UNIT` now prints the five collision fields beside the
+clocks, which is the line every collision item has wanted.

@@ -1324,7 +1324,110 @@ The rest of the word is still an occupancy question and not a predicate
 one: nothing in §4's gates, §4.3's ladder or §5's block was wrong, and the
 index that feeds them was.
 
+## 8.5 East Indies 7806 is a two-citizen shuffle in the frames no dump covers (2026-09-07)
+
+[`LONG_WORD_EAST_INDIES`] has been 7806 since item 271 put the age snap in,
+and the block the map's last capture holds is **7799**. Item 276 asked the
+cheap question first: run88's `!quit` left a `GameLog::end_game` block at
+**7816**, ten frames above the word, and nothing had ever read it as the
+word's residue. **It is the residue, and it is not the mechanism.**
+
+**What the closing block gives.** Two units part on it and no others are
+new — `1/6` and `1/7`, the AI's citizens walking to the adjacent build
+sites `ox 2015` and `ox 2016` — and the diff prices them:
+
+| unit | ours | theirs | out by |
+|---|---|---|---|
+| `1/6` | (39624, 38808) | (39578, 38757) | (+46, +51) |
+| `1/7` | (39666, 38676) | (39672, 38664) | (−6, +12) |
+
+`1/19` and `1/20` are the two standing Merchant constants already on the
+row. The pair is pinned in `run88_s_window_is_east_indies_word_frame`, both
+sides' coordinates, so the capture below has a number to move.
+
+**Why the block cannot be the whole answer.** A closing dump is frame *n*
+except for the one unit the quit caught mid-update (item 257, open), so two
+rows on a single block are worth what a second instrument makes them — and
+the block is ten frames *downstream* of the word besides. The second
+instrument is the **trace**, which is not a dump and cannot be torn: run54's
+draw stream over `[7800, 7820]`, against this crate's, and the two sites
+that matter are [`sim::anim::SITE_BLOCKED`] — `Guy::set_anim+0x97a <
+Unit::move_step+0x823`, the stand a blocked unit plays — and
+[`sim::collide::SITE_PAUSE`], §6 step 6's stagger roll, the only draw the
+whole mechanic spends.
+
+| frame | the original | this crate |
+|---|---|---|
+| 7802 | 2 stands, 1 pause | 2 stands, 1 pause |
+| 7806 | **1 stand** | — |
+| 7807 | — | **1 stand** |
+| 7810 | 2 stands, 1 pause | 1 stand |
+| 7812 | — | 1 stand, 1 pause |
+| 7817 | — | 1 stand |
+
+7802 is the first collision and both sides make it: `1/6` and `1/7` bump,
+each takes §6 step 4's sidestep, and `1/7` rolls `pause 3` off the shared
+stream. Everything below 7806 agrees. **The word is the second stand: the
+original's comes on 7806 and this crate's on 7807**, and every row after it
+is that one frame compounding — the original is done colliding by 7810,
+this crate takes two more cycles, and its `PathFinder::calc_road_cost`
+search of 137 cells runs on **7814** where the original's 136-cell search
+runs on **7833**.
+
+**Where the frame is lost.** `1/6` arrives on its own sidestep waypoint
+(39720, 38808) on `f7804` and pops it; on `f7805` it turns without stepping
+(facing −1341784064 against a heading of −671481856) and takes the step on
+`f7806`, which is the frame the original was already blocked on. So the
+candidate is the **approach** — `f7804`/`f7805`, one frame of turn-versus-step
+after a waypoint pop — and not the collision response, which §8.3 and run83
+have both diffed clean.
+
+**The suspicion that is not established.** On 7810 the original spends a
+pause roll and this crate spends none; the unit this crate has in collision
+on that frame, `1/7`, sets §6 step 5's **wait** flag instead
+(`coll 1/1/6 wait true`) and does not reach step 6 until 7812. If the
+original's roll is `1/7`'s, the wait-versus-repath predicate is wrong —
+which is exactly the shape `docs/audit/README.md` says the errors take. But
+7810 is downstream of the parting, so it is as likely to be the frame
+offset carried forward. **Only the capture separates them.**
+
+**This crate's own rows, for the capture to refuse.** `collide`,
+`collide_o`, `collide_who`, the wait bit inside `unit_masks` and the
+order's `pause` are all dumped fields, so every line below is a prediction:
+
+```text
+f7802  1/6 (39750,38787) coll 0/1/7  pause 0   1/7 (39720,38664) coll 1/1/6 pause 3
+f7803  1/6 (39729,38802) coll 0/-1   pause 0   1/7 (39695,38664) coll 1/-1  pause 3
+f7804  1/6 (39720,38808) coll 0/-1   pause 0   1/7 (39695,38664) coll 1/-1  pause 2
+f7805  1/6 (39720,38808) coll 0/-1   pause 0   1/7 (39695,38664) coll 1/-1  pause 1
+f7806  1/6 (39699,38795) coll 0/-1   pause 0   1/7 (39695,38664) coll 1/-1  pause 0
+f7807  1/6 (39699,38795) coll 0/1/7  pause 0   1/7 (39672,38664) coll 1/-1  pause 0
+f7810  1/6 (39672,38808) coll 0/-1   pause 0   1/7 (39654,38682) coll 1/1/6 wait
+f7812  1/6 (39651,38794) coll 0/1/7  pause 0   1/7 (39672,38664) coll 3/1/6 pause 6
+f7815  1/6 (39624,38808) coll 0/-1   pause 0   1/7 (39666,38676) coll 3/-1  building
+```
+
+`f7815` is the closing block's own frame, and the two positions there are
+the table at the top of this section. The dump prints a block as `FRAME
+n+1`, so `f7804` is block 7805.
+
+*Capture:* `[7790, 7900)` at run88's detail **exactly** — 110 blocks, about
+63 MB, ten blocks (7790..7799) over run88's tail so the overlap is byte for
+byte with no `--exclude` at all. It holds the whole shuffle (which begins
+after 7799), the word, and the original's 7833 repath. The wider
+`[7740, 7900)` costs 50 more blocks of straight-line walking run88 already
+shows agreeing.
+
 ## 9. What is not established
+
+- **East Indies' long word, 7806, is a collision question and the frame it
+  turns on is undumped.** §8.5 has the whole of what is known: the residue
+  is priced on run88's closing block, the parting is dated off the trace to
+  the second stand of a two-citizen shuffle, and the candidate is one frame
+  of turn-versus-step after a waypoint pop rather than the response. Which
+  of `collide`, the wait bit and `pause` is wrong is not established, and
+  every one of them is a printed field. *Capture:* `[7790, 7900)` at run88's
+  detail exactly.
 
 - ~~**Great Lakes' long word is a `SITE_BLOCKED` this crate spends and the
   original does not.**~~ **Settled by run76** (item 236, 2026-09-06), and
