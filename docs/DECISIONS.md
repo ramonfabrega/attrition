@@ -1520,6 +1520,18 @@ part: a capture whose product is a log outside the repo, or a reading whose
 product is a document section, lands nothing a ref can see. So the ping
 stays unconditional rather than "unless the detector covers you", because a
 worker cannot reliably tell which case it is in.
+
+**Measured the same evening, and it inverted the order.** On `lane-286`'s
+landing the detector's `pushed` arrived at 20:52:27 and the worker's ping
+seconds later — refs poll while a worker still has to finish its turn and
+compose a message, so on a git-shaped landing **the refs are also the wake,
+and the earlier one**. The ping keeps its unconditional place for the two
+products refs cannot see; what it loses is the claim to being first. The
+same run answered the rate: three commits, two `committed` events, one
+`pushed` — so **`pushed` fires once per landing unless the commander
+reopens the item**, which no detector can see because that is a
+conversation and not a ref. `ahead` is the truth rather than the event
+count: two commits inside one poll collapse into a single event.
 Two earlier attempts failed the same way — a hand-rolled `ccc list --json`
 poller that exited 0 with no output, and a `ccc watch | grep <name>` whose
 filter matched other repos' sessions and then the commander's own status

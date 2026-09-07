@@ -19528,3 +19528,103 @@ refusals are the only oracle; **`use_market`'s buy branch**, now known to be
 the only half that runs here; and **the AI's caravans are not linked** —
 `vans.length` 0 against 1 and `trade_val` 0 against 128 on *both* of player
 1's cities, 246 of 246 blocks, and wealth is what a market buy spends.
+
+---
+
+## 2026-09-07 — item 286: East Indies' word is a waypoint this crate walks to (the capture lane, Opus)
+
+**The item was booked to be refused, and it was.** Item 276 had dated East
+Indies' 7806 off the trace: both sides make the first collision at 7802 and
+agree, then the original stands at 7806 where this crate stands at 7807. It
+also proved the disk could not answer it — run88's `!quit` block at 7816
+prices the residue but carries positions only, sits ten frames downstream,
+and falls inside item 257's unaudited tearing hazard. So this was a capture,
+and the point of it was the predictions.
+
+**They were written down first and committed before the run.** This crate's
+own `collide`/`collide_who`/`collide_o`/wait/`pause` rows for `1/6` and
+`1/7` over the whole window, regenerated from run54's harness with
+`RON_DEBUG_UNIT` (which reproduced `docs/COLLISION.md` §8.5's table exactly),
+with a line each saying what a refusal would mean. The stanza carries them
+above the `check:` lines, and its commit is one before the capture's.
+
+**run90 is [7790, 7900) at run88's detail exactly** — 111 blocks,
+71,645,977 bytes, six minutes. The first launch failed on a
+permission-shaped failure and not a result: `screencapture` wrote nothing
+because Screen Recording is granted to `~/bin/RonDriver.app` rather than to
+the current Claude Code version's path, and `runqueue.sh` said so and
+stopped rather than producing a truncated archive. Through `viadriver.sh`
+it ran clean. All four checks passed: the trace against run54 **0 differing,
+7,916 identical**; the run88 overlap **10 in common (7790..7799), 0
+differing** with no `--exclude` and no `--drop`; and both teeth **110
+(7790..7899)** — `cur_anim` pinning `GUYS=4` and `collide_frame`'s
+*presence* pinning `UNITS=3`, measured to fail both ways on real data first.
+Not run85's `collide_frame` **transition**: run88's worker measured that at
+zero over 486 East Indies frames and refused it, and the same measurement
+holds here.
+
+**Two predictions held exactly.** Both sides make the first collision on
+block 7803 — `1/6` with `collide_o 7`, `1/7` with `collide 1 / collide_o 6`
+— and `1/7`'s `MOVEORDER pause` reads **3, 3, 2, 1, 0** over 7803-7807 on
+both sides, off the shared stream.
+
+**The first refusal: the position parts two blocks below the word.** `1/6`
+is out on **7805**, ours (39720, 38808) against theirs (39729, 38802),
+`(−9, +6)`, where the draw stream does not part until 7806. That is
+CLAUDE.md's own stopping rule in one row — a draw stream agrees on a wrong
+destination for a while, and only a value comparison tells the two apart.
+
+**And the mechanism is the arrival rule, not the response.** The original
+pushes the *identical* §6 step 4 sidestep waypoint — `(39720, 38808)` with
+`flags 2` on 7803, `(39672, 38808)` on 7807, `(39624, 38808)` on 7811 — and
+its path stack drops 5 → 4 on the **very next block**, with the unit at
+(39729, 38802), which is not that point. It takes one full step along the
+bearing and abandons the waypoint. This crate keeps it and walks the
+remainder, a short (−9, +6) step. The original's blocked cycle is **four**
+blocks (block, step, turn, step); this crate's is **five**; the extra frame
+per cycle is the whole of the word. §8.5's candidate — one frame of
+turn-versus-step *after* a waypoint pop — is refused: the frame goes in the
+step *to* the waypoint, one block earlier, and the pop is not late because
+the arrival never happens.
+
+**The second refusal settles §8.5's open suspicion and a §9 row with it.**
+The `SITE_PAUSE` the original spends on sim-frame 7810 is `1/7`'s: its
+`MOVEORDER` carries **`pause 8`** on block 7811, where this crate sets §6
+step 5's wait flag and rolls nothing. The wait-versus-repath predicate is
+wrong — the shape `docs/audit/README.md` says the errors take. It is also
+the **first non-zero `MOVEORDER pause` any dump on this disk has printed**;
+every one of run88's 1,467 is 0, which was §9's standing row, and the two
+values (3 and 8) both sit inside `% 9 + 1`'s range. A rule comes with it
+that no reading had stated: the countdown is **frozen while `collide` is
+set**, holding 8 over eleven blocks (7811..7821, where `collide` counts 1..9
+and clears) before ticking down one a block to 0 on 7829.
+
+**The trace and the dump corroborate on the same three frames**, which is
+what a torn closing block could never give: the original's `SITE_BLOCKED`
+falls on sim-frames 7802, 7806, 7810, and the blocks whose `1/6` names
+`collide_o 7` are 7803, 7807, 7811 — the same three, four apart.
+
+**What moved.** No word. East Indies stays at **7806** and Great Lakes at
+7585; nothing was fixed here. What the capture buys is that 7806 stops
+being a draw-stream report and becomes a field with a value diff beside it,
+and that the cause is now a named arithmetic rule rather than a candidate.
+`run90_s_window_is_east_indies_shuffle` is the assertion; its six claims
+were each made to fail on purpose before being believed — the original's
+7804 path length moved to 5, its `pause 8` to a 9, `1/6`'s 7805 row to
+(39730, 38802), `1/7`'s first parted block to 7812, the parted set's `1/6`
+to 7807, and the stand list's 7810 to 7811 — and all six failed.
+
+The gate peaked at **11,015 MiB across the tree, 10,984 in the largest
+single process, of 20 GiB** at 245 tests — at or under the 244-test figure
+without this window, so the window's own cost is inside the run-to-run swing
+and is not claimed as a delta.
+
+Successors, unnumbered: **the waypoint arrival rule itself** is the
+headline-nearest of them — which of `move_step`'s tests drops a `flags 2`
+waypoint one step in, and whether the drop is unconditional or a tolerance
+this crate has too small; it is a reading of one block of `move_step`, and
+every frame it needs is now dumped. Then **§6 step 5's wait-versus-pause
+predicate**, whose both arms are printed fields on run90's own blocks. And
+one for the ledger: **three units part downstream of the word** — `0/5` at
+7824, `1/2` at 7872, `1/5` at 7895 — pinned as the shuffle's wake rather
+than scored, and any of them moving *below* the word now fails.

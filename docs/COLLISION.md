@@ -1418,16 +1418,89 @@ after 7799), the word, and the original's 7833 repath. The wider
 `[7740, 7900)` costs 50 more blocks of straight-line walking run88 already
 shows agreeing.
 
+## 8.6 run90 — the sidestep waypoint is abandoned, not walked to (2026-09-07)
+
+§8.5 booked a capture to be **refused**, and it was. run90 is run54's game
+over `[7790, 7900)` at run88's detail exactly — **111 blocks, 71,645,977
+bytes**, ten of overlap over run88's tail (`differ: 0`, no `--exclude`) — and
+it is the first dump of any frame in `[7800, 7899]` on either map.
+
+**Two predictions held exactly.** Both sides make the first collision on
+block 7803 with `collide 0 / collide_who 1 / collide_o 7` on `1/6` and
+`collide 1 / collide_o 6` on `1/7`; and `1/7`'s `MOVEORDER pause` reads
+**3, 3, 2, 1, 0** over 7803-7807 on both sides, off the shared stream.
+
+**Two were refused, and that is the finding.** `1/6`'s *position* parts on
+block **7805**, two blocks below the draw stream's word:
+
+| block | ours | theirs | delta |
+|---|---|---|---|
+| 7804 | (39729, 38802) | (39729, 38802) | — |
+| **7805** | **(39720, 38808)** | **(39729, 38802)** | **(−9, +6)** |
+| 7806 | (39720, 38808) | (39708, 38789) | (+12, +19) |
+| 7807 | (39699, 38795) | (39708, 38789) | (−9, +6) |
+
+**The waypoint is the same and the arrival rule is not.** The original
+pushes the identical §6 step 4 sidestep — `(39720, 38808)` `flags 2` on
+7803, `(39672, 38808)` on 7807, `(39624, 38808)` on 7811 — and its path
+drops 5 → 4 on the **very next block**, with the unit at (39729, 38802),
+which is not that point. It takes one full step along the bearing and
+abandons the waypoint. This crate keeps it and walks the remainder, a short
+`(−9, +6)` step. So the original's blocked cycle is **four** blocks (block,
+step, turn, step) and this crate's is **five**, and the extra frame per
+cycle is the whole of the word.
+
+That refuses §8.5's candidate. The frame is not lost in "turn versus step
+*after* a waypoint pop": it is lost in the step *to* the waypoint, one block
+earlier, and the pop is not late — it never arrives.
+
+**And §8.5's unestablished suspicion is now established.** The `SITE_PAUSE`
+the original spends on sim-frame 7810 is `1/7`'s: its `MOVEORDER` carries
+**`pause 8`** on block 7811, where this crate sets the wait flag and rolls
+nothing. So the wait-versus-repath predicate is wrong — the shape
+`docs/audit/README.md` says the errors take.
+
+**The trace and the dump agree on the same three frames**, which is the
+corroboration a torn closing block could not give: the original's
+[`sim::anim::SITE_BLOCKED`] falls on sim-frames 7802, 7806, 7810, and the
+blocks whose `1/6` names `collide_o 7` are 7803, 7807, 7811 — the same
+three, four apart. This crate's stands are 7802, 7807, 7812.
+
+**One rule no reading had stated: the `pause` countdown is frozen while the
+unit is still colliding.** `1/7`'s 8 stands on eleven blocks (7811..7821,
+where `collide` counts 1..9 and then clears) and only then ticks down one a
+block to 0 on 7829.
+
+`run90_s_window_is_east_indies_shuffle` is the assertion, and its six claims
+were each made to fail on purpose before being believed: the original's
+7804 path length moved to 5, its `pause 8` to a 9, `1/6`'s 7805 row to
+(39730, 38802), `1/7`'s first parted block to 7812, the parted set's `1/6`
+to 7807, and the stand list's 7810 to 7811. All six failed.
+
+**The word does not move.** Nothing was fixed here; three units part
+downstream of it (`0/5` at 7824, `1/2` at 7872, `1/5` at 7895) and are
+pinned as the shuffle's wake rather than scored.
+
 ## 9. What is not established
 
-- **East Indies' long word, 7806, is a collision question and the frame it
-  turns on is undumped.** §8.5 has the whole of what is known: the residue
-  is priced on run88's closing block, the parting is dated off the trace to
-  the second stand of a two-citizen shuffle, and the candidate is one frame
-  of turn-versus-step after a waypoint pop rather than the response. Which
-  of `collide`, the wait bit and `pause` is wrong is not established, and
-  every one of them is a printed field. *Capture:* `[7790, 7900)` at run88's
-  detail exactly.
+- ~~**East Indies' long word, 7806, is a collision question and the frame
+  it turns on is undumped.**~~ ~~*Capture:* `[7790, 7900)` at run88's
+  detail exactly.~~ **Taken, as run90, and it refused the candidate**
+  (§8.6, 2026-09-07): the position parts on block **7805**, two below the
+  word, because the original **abandons** §6 step 4's sidestep waypoint
+  after one step where this crate walks to it — the same point on both
+  sides, a four-block cycle against this crate's five. The turn-versus-step
+  reading of §8.5 is superseded and kept for the method. What remains open
+  is the *arrival rule itself*: which of `move_step`'s tests drops a
+  `flags 2` waypoint one step in, and whether the drop is unconditional or
+  a tolerance this crate has too small. That is a reading of `move_step`'s
+  waypoint block, not a run — every frame of it is now dumped.
+
+- **§6 step 5's wait flag is taken where the original rolls a pause.** On
+  sim-frame 7810 the original's `1/7` rolls `pause 8` (§8.6) and this crate
+  sets `waiting_on` instead, reaching step 6 two frames later. The
+  predicate that chooses between them is wrong, and both arms are dumped
+  fields on run90's own blocks. *Capture:* none needed.
 
 - ~~**Great Lakes' long word is a `SITE_BLOCKED` this crate spends and the
   original does not.**~~ **Settled by run76** (item 236, 2026-09-06), and
@@ -1510,11 +1583,18 @@ shows agreeing.
   (`docs/ANIM.md` §4 step 1, `docs/MOVEMENT.md`, "Who writes it, and
   when"), and run66 has both guys' positions on all 261 blocks.
 - ~~**The `pause` draw.**~~ **Settled by a run** (item 80, 2026-08-30):
-  run33's frame 571 spends it, and §8 has the frame. What the capture
+  run33's frame 571 spends it, and §8 has the frame. ~~What the capture
   named in this row would still add is the *value* — no dump in hand
-  prints a non-zero `MOVEORDER pause` — so the `% 9 + 1` itself rests on
-  the listing. *Capture, still owed:* `UNITS=3`, two units of the same
-  player ordered into each other head-on, for the `MOVEORDER` row.
+  prints a non-zero `MOVEORDER pause`.~~ ~~*Capture, still owed:*
+  `UNITS=3`, two units of the same player ordered into each other
+  head-on, for the `MOVEORDER` row.~~ **run90 prints it** (§8.6,
+  2026-09-07), and it is that capture in all but the wording — two of the
+  AI's own citizens walking into each other at `UNITS=3`. `1/7` rolls
+  **3** on block 7803 and **8** on 7811, both inside `% 9 + 1`'s range and
+  the first non-zero `MOVEORDER pause` on this disk; the countdown is
+  **frozen while `collide` is set** and only ticks once it clears. Two
+  samples do not pin the modulus, so the `9` itself still rests on the
+  listing.
 - **Whether `collide_guy` is ever non-zero.** Every hard collision this
   reading found writes 0; the field exists, so something writes it.
 - **`unit_masks & 0x4000000`, which §6 step 0 clears.** Its one writer is
