@@ -185,7 +185,12 @@ fn open_items(text: &str) -> Vec<(u32, usize)> {
                 .and_then(|(n, _)| n.parse::<u32>().ok())
                 .is_some();
         if opens {
-            let n: u32 = lines[i].split_once(". ").expect("checked").0.parse().expect("checked");
+            let n: u32 = lines[i]
+                .split_once(". ")
+                .expect("checked")
+                .0
+                .parse()
+                .expect("checked");
             let mut len = 0;
             while i + len < lines.len() && !lines[i + len].trim().is_empty() {
                 len += 1;
@@ -277,11 +282,14 @@ fn a_queue_section_may_only_shrink() {
         }
     }
     for (heading, pin) in QUEUE_SECTIONS {
-        let (_, size) = have
-            .iter()
-            .find(|(h, _)| h == heading)
-            .unwrap_or_else(|| panic!("docs/QUEUE.md has no section {heading:?}; QUEUE_SECTIONS names it"));
-        let label = if heading.is_empty() { "the preamble" } else { heading };
+        let (_, size) = have.iter().find(|(h, _)| h == heading).unwrap_or_else(|| {
+            panic!("docs/QUEUE.md has no section {heading:?}; QUEUE_SECTIONS names it")
+        });
+        let label = if heading.is_empty() {
+            "the preamble"
+        } else {
+            heading
+        };
         assert!(
             size <= pin,
             "docs/QUEUE.md's {label} is {size} lines against its pin of {pin}. \

@@ -18051,6 +18051,85 @@ because it touches the diff harness and no mechanic module.
 streams kept growing across this clear, tracked and writing. Nine finished
 worktrees are still on disk and the opener says to reap them.
 
+## 2026-09-07 — item 258: the finish line's own frame, and the four games on the disk (no word moved, Opus, worker)
+
+**The third scoreboard line exists and it reads `EastIndies 80 off, 0
+unlinked · GreatLakes 73 off, 7 unlinked`.** It is the first number this
+queue has ever carried that moves in *units wrong at the end* rather than in
+frames before a parting, and it is `docs/DECISIONS.md` entry 29's first
+counter measured eight thousand frames early — a floor under the finish line
+rather than the finish line.
+
+The oracle cost nothing: item 252 left whole-map closing states at **24,001
+on both scored maps** sitting on disk. `rondata::diff::endpoint` walks the
+simulation to the frame the original quit on and compares the whole state —
+every unit, every building, every city, not the field the mechanic cares
+about. A 24,000-frame walk turns out to cost **0.9 seconds**; the expense in
+the test is parsing an 11 MB dump, which is item 260's problem and not this
+item's.
+
+**The two maps are wrong in different shapes.** East Indies has *every* unit
+the original has at 24,001, eleven it should not, and 80 of the 89 standing
+somewhere else. Great Lakes is missing seven and has invented none. No word
+could have said that; a draw stream that matches is not a position that
+matches, and this is the value diff at the end of the game.
+
+**The ladder is a slope.** 45 off at 15,401 and 51 at 16,489 against 80 at
+24,001 — the last 7,500 frames cost about as much again as the first 15,000.
+
+**The disk holds four games, not two, and until this the ladder read as
+three rungs of one.** `Trace::frames` carries `game_random`'s word at every
+`do_frame` entry, so `tools/gamelog/rngcmp.py`'s comparison is decisive:
+run53 and run18a are identical over all 24,001 frames; run54, run21 and
+run23 likewise; run24/25/26/27 are a second East Indies game and run28/29 a
+third. The three East Indies families are **one game to 12,000 and part on
+12,001**, and B and C part from each other on **15,021**. So the rungs item
+252 named are not rungs of the endpoint's run, and walking run54's
+simulation to 15,401 to read run28's closing dump compares two different
+games — producing a plausible number rather than an error. Each rung is now
+its own walk from its own start block, and the split is an assertion.
+
+The families also pay for the endpoint's own cross-check: run21's and
+run23's closing dumps at 24,001 are asserted to be run54's unit for unit,
+and run18a's to be run53's. That is stronger than 252's within-file pair —
+those two records are written at the same instant, and these are four
+separate runs of the same game.
+
+**The first East Indies number was wrong, and it was wrong the way a sweep's
+first numbers always are.** `borrow_from_siblings` gates the world cells and
+the heights on the sibling's own scalars, but takes `regions`, `herds`,
+`goods` and `farms` from the first sibling that has them, **whatever map it
+is**. run54's start block has cells and none of those four, so the Great
+Lakes sibling set rebuilt East Indies on Great Lakes' 13 herds and 36 goods
+and read a completely plausible **65 off**. run38 — the sibling the East
+Indies tests have used since 252, and the one the long test already uses, so
+the headline was never touched — gives 41 and 66, and 80 off. `check_setup`
+now asserts every list non-empty after the borrow *and* `(herds, goods)`
+against the map's own pair. It was two edits from the scoreboard.
+
+**Five guards, each made to fail first**: the ratchet on a rise (pin Great
+Lakes at 72 and the run's 73 fails it), the handoff line against the pinned
+counts, the four families' parting frames, the setup fingerprint under the
+wrong map's siblings, and the same under none — where run28 walks a
+region-less world to 12 units compared of 71 with its AI leader 24,789 units
+out. The ratchet fires on a **rise only** and prints on a fall, which is the
+2026-09-01 verdict on run57's ratchet honoured rather than overturned: that
+number is a coincidence rate and moves with any change, and this is a count
+of units on the original's own tile.
+
+**It costs nothing measurable.** The seven tests are 4.6 s and 2.6 GiB on
+their own; in the gate, 231 tests without them are 210.5 s and 15,725 MiB
+against 238 with them at 208.1 s and 16,027 MiB — under the run-to-run
+spread, so nothing is gated. The expense in a walk is parsing the 11 MB
+dump, not ticking it.
+
+**Where it lives.** A new `crates/rondata/src/diff/endpoint.rs` rather than
+another thousand lines of the 7,000-line `harness.rs` — item 260 wants that
+file split by capture, and this is the split's first cut. `docs_guard`'s
+queue bound went 200 → 202 to hold the permanent third line.
+
+**No word moved and none could**: the endpoint is 16,000 frames past both
+words, and nothing here touches a mechanic.
 ## 2026-09-07 — the queue is bounded by items now, and the reap found three of them dead (items 262, 263, and the ledger; Opus, commander)
 
 The reap the opener asked for was meant to be housekeeping. Eight worktrees
