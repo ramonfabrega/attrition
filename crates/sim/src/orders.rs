@@ -43,6 +43,61 @@ pub mod index {
     pub const TRADE_ROUTE: u8 = 15;
     pub const GARRISON: u8 = 26;
     pub const THINK: u8 = 27;
+
+    /// The three kinds of the **move family** this crate does not spell as
+    /// a plain `MoveKind`. `CHANGE_FORM` is `FormOrder`, which this crate
+    /// has no order for at all; the other two are what the original calls
+    /// a move whose `MoveOrder` carries a [`super::GroupMove`], and
+    /// [`super::Order::index`] returns them because `get_type()` does
+    /// (`GroupMoveOrder::get_type@00485a10` → `GROUP_MOVE`,
+    /// `GroupAttackToOrder::get_type@004825b0` → `GROUP_ATTACK_TO`).
+    pub const CHANGE_FORM: u8 = 18;
+    pub const GROUP_MOVE: u8 = 19;
+    pub const GROUP_ATTACK_TO: u8 = 21;
+
+    /// **The move family** — the seven kinds whose class derives from
+    /// `MoveOrder`, which `kill_current_order`, `work`, `repath`,
+    /// `resolve_unit_collision` and `detect_unit_collision` all treat
+    /// together (`docs/ORDERS.md` §1.2). Written out here once so a caller
+    /// names the set rather than the four it happens to construct:
+    /// `Unit::resolve_unit_collision@005f9d30:261` and `:381` are the two
+    /// sites that enumerate it in the original, and both list all seven.
+    ///
+    /// SEAM: [`CHANGE_FORM`] is in the original's set and can never be
+    /// this crate's answer, so every caller of this is six-sevenths of
+    /// the original's test.
+    pub const fn is_move_family(kind: u8) -> bool {
+        matches!(
+            kind,
+            MOVE_TO | ATTACK_TO | EXPLORE_TO | FLEE_TO | CHANGE_FORM | GROUP_MOVE | GROUP_ATTACK_TO
+        )
+    }
+
+    /// Whether this crate can ever *produce* `kind` — the domain of
+    /// [`super::Order::index`]. The complement is the set of
+    /// `OrderIndex` values a dump can hold and the simulation cannot,
+    /// which `crate::diff` reports as a structural gap of its own
+    /// (`OrderMismatch::Unspellable`) rather than as a state divergence
+    /// (`docs/ORDERS.md` §1.7).
+    pub const fn is_modelled(kind: u8) -> bool {
+        matches!(
+            kind,
+            NONE | MOVE_TO
+                | ATTACK_TO
+                | EXPLORE_TO
+                | FLEE_TO
+                | BUILD_AT
+                | GATHER
+                | ATTACK
+                | REPAIR
+                | CAST_SPELL
+                | TRADE_ROUTE
+                | GROUP_MOVE
+                | GROUP_ATTACK_TO
+                | GARRISON
+                | THINK
+        )
+    }
 }
 
 /// The `TypeIndex` of a spell, the value a `CastOrder` carries at `+0x20`
@@ -337,11 +392,26 @@ impl Order {
     /// `get_type()` — the `OrderIndex` value.
     pub const fn index(&self) -> u8 {
         match self.body {
-            Body::Move(m) => match m.kind {
-                MoveKind::MoveTo => index::MOVE_TO,
-                MoveKind::AttackTo => index::ATTACK_TO,
-                MoveKind::ExploreTo => index::EXPLORE_TO,
-                MoveKind::FleeTo => index::FLEE_TO,
+            // **A grouped move is its own class, and so its own
+            // `OrderIndex`** (`docs/ORDERS.md` §1.2). The original has no
+            // "move with a group beside it": `Group::action_move_near`
+            // asks `get_new_order` for a `GroupMoveOrder` or a
+            // `GroupAttackToOrder`, whose `get_type` return `GROUP_MOVE`
+            // and `GROUP_ATTACK_TO`, and `ungroup_move_order` swaps the
+            // object for a plain `MoveOrder`/`AttackToOrder` — which is
+            // why the dump's header changes on the ungroup frame. This
+            // crate keeps one class and a [`MoveOrder::group`], so the
+            // `Option` is what stands in for the original's class, and
+            // this is the only place that matters. There is no grouped
+            // explore or flee: `Group::action_move_near`'s own gate is
+            // `MOVE_TO`/`ATTACK_TO` (`crate::Sim::group_move_near`).
+            Body::Move(m) => match (m.kind, m.group.is_some()) {
+                (MoveKind::MoveTo, false) => index::MOVE_TO,
+                (MoveKind::MoveTo, true) => index::GROUP_MOVE,
+                (MoveKind::AttackTo, false) => index::ATTACK_TO,
+                (MoveKind::AttackTo, true) => index::GROUP_ATTACK_TO,
+                (MoveKind::ExploreTo, _) => index::EXPLORE_TO,
+                (MoveKind::FleeTo, _) => index::FLEE_TO,
             },
             Body::Trade(_) => index::TRADE_ROUTE,
             Body::Build(_) => index::BUILD_AT,

@@ -1045,6 +1045,49 @@ pub struct OrderDump {
 }
 
 impl OrderDump {
+    /// The `OrderIndex` this record's **block name** implies
+    /// (`docs/ORDERS.md` §1.2's table), or `None` for a name the table
+    /// does not list.
+    ///
+    /// The name and the `type` line are two independent statements of the
+    /// same quantity: `type` is written by `OrderList::log_data` on the
+    /// enclosing `UNITDATA` and paired **positionally**, the name by the
+    /// order's own `log_data`. So they disagree exactly when the pairing
+    /// has slid — which is what a block name the walk drops does, and has
+    /// done once already (`GroupMoveOrder`, the one lower-case name in
+    /// the family). Nothing compared them until item 237.
+    pub fn named_index(&self) -> Option<i64> {
+        Some(match self.kind.to_ascii_uppercase().as_str() {
+            "MOVEORDER" => 1,
+            "ATTACKTOORDER" => 2,
+            "EXPLORETOORDER" => 3,
+            "FLEETOORDER" => 4,
+            "BUILDORDER" => 6,
+            "GATHERORDER" => 7,
+            "BOARDORDER" => 8,
+            "AWAITBOARDORDER" => 9,
+            "ATTACKORDER" => 10,
+            "FOLLOWORDER" => 11,
+            "GUARDORDER" => 12,
+            "REPAIRORDER" => 13,
+            "CASTORDER" => 14,
+            "TRADEORDER" => 15,
+            "STRAFEORDER" => 16,
+            "AIRPATROLORDER" => 17,
+            "FORMORDER" => 18,
+            "GROUPMOVEORDER" => 19,
+            "GROUPATTACKORDER" => 20,
+            "GROUPATTACKTOORDER" => 21,
+            "GROUPPATROLORDER" => 22,
+            "ATTACKGROUNDORDER" => 23,
+            "AIRATTACKGROUNDORDER" => 24,
+            "SPECIALANIMORDER" => 25,
+            "GARRISONORDER" => 26,
+            "THINKORDER" => 27,
+            _ => return None,
+        })
+    }
+
     /// The action bit (`UnitOrder::flags & 4`, §1.3): this order is an intent
     /// rather than a transit leg.
     pub const fn is_action(&self) -> bool {
@@ -2001,7 +2044,12 @@ fn orders_of(b: Block<'_>) -> Vec<OrderDump> {
                 group_angle: grp_int("group_angle"),
                 group_id: grp_int("id"),
                 form_id: grp_int("form_id"),
-                in_group: o.int("in_group"),
+                // `in_group` is `GroupMoveOrder`'s **own** field, past
+                // both bases — so on a `GROUPATTACKTOORDER` it sits one
+                // block in, on the `GroupMoveOrder` the outer block
+                // wraps, and reading it off `o` returned `None` for
+                // every grouped attack-move ever captured (item 237).
+                in_group: base("GroupMoveOrder").and_then(|g| g.int("in_group")),
                 mandatory: atk_int("mandatory"),
                 defensive: atk_int("defensive"),
                 in_range: atk_int("in_range"),

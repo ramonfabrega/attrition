@@ -92,7 +92,6 @@ const OVER: &[(&str, &str, usize)] = &[
         "6. The move — `Group::action_move_near@00704990`",
         44_907,
     ),
-    ("ORDERS.md", "1. The order system", 16_545),
     ("ORDERS.md", "4. The move order", 37_806),
     (
         "ORDERS.md",

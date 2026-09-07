@@ -233,6 +233,8 @@ classes with a `MoveOrder` base. `NONE = 0`, `PATROL = 5` and
 `add_move_facing_order@005e55c0:66` maps its kind argument 2 →
 `get_obj(ATTACK_TO)` and 3 → `get_obj(EXPLORE_TO)`, and the `get_new_order`
 jump table. **No behavioural check is needed** (second reading, R1).
+`crates/sim` does not have one class per value; which values it can produce,
+and the ones a dump can hold that it cannot, are §1.7.
 
 ### 1.3 `UnitOrder::flags`
 
@@ -291,7 +293,7 @@ So in execution order the queue is `head->prev, head->prev->prev, …, head`;
 `add` appends to the *back* of the queue; and the front is rotated by moving
 `head` one step along `next`.
 
-### 1.5 `QueuePos` — the three enqueue modes
+## 1.5 `QueuePos` — the three enqueue modes
 
 Values settled in the listing of `Unit::add_move_facing_order@005e55c0`
 (`cmp eax,2 / jne` guards the clearing path; the decompile prints that clear
@@ -313,7 +315,7 @@ for a *group* differently: detach the list (`set_up_insert`), `action_halt`,
 recurse with `QUEUE_NEW`, re-append the old list (`finish_insert`) — the new
 orders go in front of everything that was queued.
 
-### 1.6 The pool — `OrdersMemManager`
+## 1.6 The pool — `OrdersMemManager`
 
 One global, `ordmgr`, 28 `SafeRecycler<UnitOrder>`, each a clean and a dirty
 stack. `get_obj(kind)@00730ac0` pops the kind's clean pool (calling `clear()`)
@@ -324,6 +326,78 @@ after `frame++`** — an order freed this frame is reusable next frame, never
 this one. `init` pre-allocates 30 of each. An allocation detail with one
 observable: an order's fields are whatever `clear()` leaves, which is why
 every `clear` was read beside its constructor.
+
+---
+
+## 1.7 The two kind spaces — the original's and this crate's (2026-09-06)
+
+`OrderIndex` is a **class** identity: `get_type()` is a vslot every order
+class overrides with a constant, so the value names which of the 28 classes
+the object is. `crates/sim` does not have 28 order types — it has ten
+`Body` variants and a `MoveKind` — so `Order::index()` is a *function* of the
+crate's state rather than a stored tag, and the two spaces only agree if that
+function is written to answer what `get_type()` would.
+
+The crate can produce fourteen of the values. For twelve of them the mapping
+is the identity; the other two are the whole of the difference, and they hid
+a comparison defect for as long as the comparison existed (item 237):
+
+| the original | this crate | evidence |
+|---|---|---|
+| `MoveOrder`, `get_type` → `MOVE_TO` (1) | `Body::Move`, `MoveKind::MoveTo`, `group: None` | §1.2 |
+| `AttackToOrder` → `ATTACK_TO` (2) | …`MoveKind::AttackTo`, `group: None` | §1.2 |
+| `GroupMoveOrder` → `GROUP_MOVE` (**19**) | …`MoveKind::MoveTo`, `group: Some` | `GroupMoveOrder::get_type@00485a10` |
+| `GroupAttackToOrder` → `GROUP_ATTACK_TO` (**21**) | …`MoveKind::AttackTo`, `group: Some` | `GroupAttackToOrder::get_type@004825b0` |
+
+A grouped move is a **different class** in the original, not a move with a
+group beside it: `Group::action_move_near` asks the pool for a
+`GroupMoveOrder`/`GroupAttackToOrder`, and `ungroup_move_order@005fd140`
+swaps the object for a plain `MoveOrder`/`AttackToOrder` — which is why the
+dump's block header changes on the ungroup frame and its `type` line with it
+(run76, frame 6861: `GROUPATTACKTOORDER` → `ATTACKTOORDER`, `21` → `2`).
+`Option<GroupMove>` is this crate's stand-in for that class, so
+`Order::index()` reads it, and only there. There is no grouped explore or
+flee: `action_move_near`'s own gate is `MOVE_TO`/`ATTACK_TO`.
+
+**What follows for a caller.** A predicate over "is this a move" must be over
+the **family** — `{1, 2, 3, 4, 18, 19, 21}`, `index::is_move_family` — and
+never over the four plain kinds, because a grouped move now answers 19/21
+where it used to answer 1/2 by accident. The four sites that were the four:
+`Unit::resolve_unit_collision@005f9d30:261` and `:381` (both list all seven),
+`detect_unit_collision@00617060:366` (the gated seven of §4.3's soft
+collision), and `UnitData::get_action@00608450`, whose walk is `is_move() &&
+!(flags & 4)`, **or** `get_type() == CHANGE_FORM` whatever the flags.
+
+**What the crate cannot spell.** `index::is_modelled` is the domain of
+`Order::index()`: `{0, 1, 2, 3, 4, 6, 7, 10, 13, 14, 15, 19, 21, 26, 27}`.
+Everything else in §1.2's table is an order the simulation has no
+representation for, and the fifty captures the suite reads hold exactly two
+of them — `GUARDORDER` (12; run17's 2,987 and run80's 280) and
+`ATTACKGROUNDORDER` (23; run44's 94). `FORMORDER` (18) is in none. It is
+the one that also matters *inside* a predicate, because it is in the move
+family: every `is_move_family` test here is six-sevenths of the original's.
+`crate::diff`'s comparison answers an unmodelled kind with its own row
+(`OrderMismatch::Unspellable`) rather than a `Kind`, so a tally can tell a
+hole in the crate from a disagreement about the state; both score.
+
+**Coverage.** Diff-backed: the four rows of the table above, on every order
+of every unit of every frame of **run76** — `OrderMismatch::Kind` compares
+`Order::index()` against the dump's `type`, and since 2026-09-06 the two are
+the same quantity. The `GROUPORDER` row beneath it (`oxx`, `whose`, `id`,
+`form_id`, `group_angle`, `in_group`) is diffed on the same frames; five of
+the six agree on all 630 grouped unit-frames and `id` is the stand-in of
+`crate::sim::group_id`, reported and not scored. run76 is the **only**
+capture whose grouped orders reach the comparison: run79 carries 453 more
+`GROUPATTACKTOORDER` records and run31 945 `GroupMoveOrder` ones, and
+neither is run through the order differ yet. Reading-only: that no *other* class's `get_type` disagrees with
+§1.2's table — **twenty** of the twenty-seven classes have a `get_type`
+body in the export and every one returns §1.2's value; the seven the
+compiler folded onto other slots (`MoveOrder`, `AttackToOrder`,
+`ExploreToOrder`, `BoardOrder`, `PatrolOrder`, `StrafeOrder`,
+`AirAttackGroundOrder`) rest on §1.2's own three-way agreement. The dump
+states the kind **twice** — the block's name and the `type` line beside it —
+and `OrderMismatch::Header` now compares those two against each other, which
+is what catches the positional pairing sliding.
 
 ---
 
@@ -3659,10 +3733,17 @@ what is listed as an input is stated as such in the code):
   §8.2 was **incomplete**: `action_move_near` has an AI branch keyed on
   `!human && group.army >= 0` and then on the army's `hurry`, read in
   `docs/GROUPS.md` §6.5.
-- **Not implemented** (documented above, stated here): `ATTACK_TO` as an
-  order kind of its own, `GUARD`, `FOLLOW`, `PATROL`, `ATTACK_GROUND`,
-  `GroupMoveOrder` (§8.3, §8.4), board/await-board, cast, trade, strafe,
-  air, special-anim; `check_target_path`'s 16-frame re-path;
+- **Not implemented** (documented above, stated here):
+  ~~`ATTACK_TO` as an order kind of its own~~, `GUARD`, `FOLLOW`,
+  `PATROL`, `ATTACK_GROUND`, ~~`GroupMoveOrder` (§8.3, §8.4)~~,
+  board/await-board, ~~cast~~, ~~trade~~, strafe, air, special-anim,
+  `CHANGE_FORM`/`FormOrder`
+  — the strikes are the docs-versus-code pass's **R7** (2026-09-05),
+  taken with item 237: `ATTACK_TO` is `MoveKind::AttackTo`, the group
+  move landed 2026-09-04 (§15) and cast and trade are `Body` variants
+  with their own steps. **§1.7 is the authoritative list**, as
+  `index::is_modelled`, and it is checked by a comparison rather than
+  stated here. `check_target_path`'s 16-frame re-path;
   `find_nearby_spot`'s **general** collision path — `FILTER_ALL` and a
   squad placement, whose `find_unit_with_radius` circle is
   `docs/COLLISION.md` §9's last entry (~~the collision half of

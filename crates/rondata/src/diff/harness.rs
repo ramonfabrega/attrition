@@ -4059,46 +4059,90 @@ mod tests {
         for (&(who, o), &frame) in &parted {
             eprintln!("  {who}/{o} parts at {frame}");
         }
-        // **The ungroup, asserted** (item 236). The positions above say
-        // the three Archers walk where the original walks; this says they
-        // walk there for the original's reason. The dump prints a
-        // follower's group order as `GROUPATTACKTOORDER` and the plain one
-        // as `ATTACKTOORDER`, and the comparison reads that as an order
-        // `Kind` — so a squad that stays in formation past 6861, or one
-        // that leaves it early, shows up here as a `Kind` row and nowhere
-        // else until three frames later. Before this the whole march
-        // carried one every frame and nothing looked at it.
-        let kinds: Vec<&OrderDivergence> = report
-            .frames
+        // **The ungroup, asserted** (items 236 and 237). The positions
+        // above say the three Archers walk where the original walks; this
+        // says they walk there for the original's reason.
+        //
+        // The window's own fact first, read straight off the dump so that
+        // nothing this crate does can move it: the original holds a
+        // `GROUPATTACKTOORDER` (`type 21`) for the squad from 6651 to
+        // 6860 and a plain `ATTACKTOORDER` after. Item 236 asserted this
+        // through the comparison's `Kind` rows, which could not say it —
+        // the crate spelled a grouped attack-move `ATTACK_TO` (2), so the
+        // row fired on all 630 marching frames whatever the crate did and
+        // marked the frames the *original* was grouped. Item 237 gave
+        // `Order::index` the original's `get_type()`, so the two halves
+        // are separable now: the dump's run, and the crate's agreement
+        // with it.
+        let their_group: Vec<i64> = log
+            .frame_states()
             .iter()
-            .flat_map(|f| f.order_diverged.iter())
-            .filter(|d| {
-                d.who == 1
-                    && (27..=29).contains(&d.o)
-                    && matches!(d.what, crate::diff::order::OrderMismatch::Kind { .. })
+            .filter(|f| {
+                f.units.iter().any(|u| {
+                    u.who == 1 && (27..=29).contains(&u.o) && u.orders.iter().any(|o| o.index == 21)
+                })
             })
+            .map(|f| f.n)
             .collect();
-        eprintln!(
-            "run76: squad order-kind rows {:?}..{:?} ({} of them)",
-            kinds.first().map(|d| d.frame),
-            kinds.last().map(|d| d.frame),
-            kinds.len()
-        );
-        // The `Kind` rows themselves are **not** the oracle, and saying so
-        // is worth a line: this crate calls a group attack-move `ATTACK_TO`
-        // with a `group` beside it where the dump writes
-        // `GROUPATTACKTOORDER` (kind 21), so ours reads 2 on every frame of
-        // the march and the rows mark the frames the *original* is grouped,
-        // not the frames this crate is. They end at 6860 because the
-        // original ungroups on 6861, and they would end there whatever this
-        // crate did. What the ungroup is actually pinned by is below.
         assert!(
-            kinds.first().map(|d| d.frame) == Some(6_651)
-                && kinds.last().map(|d| d.frame) == Some(6_860),
+            their_group.first() == Some(&6_651) && their_group.last() == Some(&6_860),
             "the original's group order does not run 6651..6860 in this file: \
              {:?}..{:?}",
-            kinds.first().map(|d| d.frame),
-            kinds.last().map(|d| d.frame)
+            their_group.first(),
+            their_group.last()
+        );
+        // And now the rows that can fail. `GROUPATTACKTOORDER` is 21 on
+        // both sides, so a squad that stays in formation past 6861 — or
+        // leaves one early — disagrees on the `Kind` row on the frame it
+        // happens rather than three frames later in a position; and the
+        // `GROUPORDER` row beneath it says the squad is grouped the same
+        // *way*: the leader `find_leader` chose (`oxx`/`whose`), the
+        // member's slot (`form_id`), the bearing its slot was laid out on
+        // (`group_angle`) and `in_group`. Five of the six agree on all
+        // 630 marching unit-frames. Made to fail on purpose: dropping the
+        // follower's `move_step` zero (item 236's own fix) puts a `Kind`
+        // row on every frame from 6861 to the end of the capture, and
+        // negating the slot angle puts a `group_angle` row on all 630.
+        use crate::diff::order::OrderMismatch as OM;
+        let squad = |d: &&OrderDivergence| d.who == 1 && (27..=29).contains(&d.o);
+        let rows = |f: fn(&OM) -> bool| -> Vec<&OrderDivergence> {
+            report
+                .frames
+                .iter()
+                .flat_map(|fr| fr.order_diverged.iter())
+                .filter(|d| squad(d) && f(&d.what))
+                .collect()
+        };
+        let kinds = rows(|w| {
+            matches!(
+                w,
+                OM::Kind { .. } | OM::Unspellable { .. } | OM::Header { .. }
+            ) || matches!(w, OM::Group { field, .. } if *field != "id")
+        });
+        // The sixth is `id` — `GroupData +0x4`, which this crate stands in
+        // for with the army group's slot and so cannot match (§1.7, and
+        // `OrderMismatch::scores`). It is pinned at exactly one row per
+        // grouped unit-frame so that the stand-in cannot quietly start
+        // failing for a second reason.
+        let ids = rows(|w| matches!(w, OM::Group { field: "id", .. }));
+        eprintln!(
+            "run76: the original's group order runs {:?}..{:?} ({} frames); \
+             squad kind/group rows: {} scoring, {} `id` (the stand-in)",
+            their_group.first(),
+            their_group.last(),
+            their_group.len(),
+            kinds.len(),
+            ids.len()
+        );
+        assert!(
+            kinds.is_empty(),
+            "the squad's order kind or group row parts from the original's: {:?}",
+            kinds.iter().take(6).collect::<Vec<_>>()
+        );
+        assert_eq!(
+            ids.len(),
+            their_group.len() * 3,
+            "the group-id stand-in should be one row per grouped unit-frame"
         );
         // **The ungroup, pinned** (item 236). From the frame the formation
         // ends, the three Archers agree with the original on every order

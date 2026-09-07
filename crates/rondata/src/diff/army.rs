@@ -612,9 +612,17 @@ mod tests {
                 continue;
             };
             let Some(cur) = u.orders_front_first().find(|o| {
-                // `get_action`'s walk: past a move that lacks the action
-                // bit, stop on anything else.
-                !((1..=4).contains(&o.index) && !o.is_action())
+                // `get_action`'s walk (`UnitData::get_action@00608450`):
+                // past a move that lacks the action bit, **and past a
+                // `CHANGE_FORM` whatever its flags**, stop on anything
+                // else. "A move" is `is_move()` — the whole family, so
+                // `GROUP_MOVE`/`GROUP_ATTACK_TO` are walked past too;
+                // the four plain kinds were the test until item 237,
+                // which stopped this walk on a formation's own transit
+                // leg.
+                let k = u8::try_from(o.index).unwrap_or(0);
+                !(sim::orders::index::is_move_family(k)
+                    && (!o.is_action() || k == sim::orders::index::CHANGE_FORM))
             }) else {
                 continue;
             };

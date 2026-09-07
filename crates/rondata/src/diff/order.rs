@@ -12,8 +12,51 @@ use super::*;
 pub enum OrderMismatch {
     /// The lists are different lengths.
     Length { ours: usize, theirs: usize },
-    /// `get_type()` — the `OrderIndex` of the order in this slot.
+    /// `get_type()` — the `OrderIndex` of the order in this slot, in the
+    /// **original's** space on both sides.
+    ///
+    /// It was not, until item 237. This crate spelled a grouped move
+    /// `MOVE_TO`/`ATTACK_TO` with a [`sim::orders::MoveOrder::group`]
+    /// beside it where the original has a `GroupMoveOrder`/
+    /// `GroupAttackToOrder` of its own and writes `19`/`21`, so the row
+    /// fired on **every frame of every formation** whatever this crate
+    /// did — 630 of them across run76's Archer march alone — and,
+    /// because a kind disagreement skips the rest of the slot, took the
+    /// whole `MOVEORDER` and `GROUPORDER` row with it. Now
+    /// [`sim::orders::Order::index`] answers `get_type()` and the row
+    /// can fail: a squad that stays in formation past its ungroup, or
+    /// leaves one early, disagrees here on the frame it happens.
     Kind { ours: i64, theirs: i64 },
+    /// The dump holds an `OrderIndex` this crate has **no spelling for**
+    /// — `sim::orders::index::is_modelled` is false, so no state of this
+    /// simulation could ever produce it (`docs/ORDERS.md` §1.2's second
+    /// table). A structural gap rather than a state divergence, and
+    /// separated from [`Self::Kind`] for that reason; it still scores,
+    /// because the alternative is the silent pass this item was written
+    /// to remove.
+    Unspellable { theirs: i64 },
+    /// The dump's own two statements of the kind disagree: the block's
+    /// **name** implies one `OrderIndex` and the `type` line beside it
+    /// says another ([`crate::gamelog::OrderDump::named_index`]). Not a
+    /// divergence between the two simulations at all — it means the
+    /// positional `type`/body pairing has slid, which a block name the
+    /// walk drops does, and it has happened once already. Scores,
+    /// loudly, because every field of every later slot is then reading
+    /// the wrong record.
+    Header { named: i64, theirs: i64 },
+    /// One field of a `GROUPORDER` row, or `GroupMoveOrder`'s own
+    /// `in_group`, named as the log writes it (`docs/ORDERS.md` §11.1,
+    /// `docs/GROUPS.md` §6.6). The whole record the dump prints for a
+    /// formation's order, which nothing compared while the kind row above
+    /// it could not agree: `oxx`/`whose` name the leader
+    /// `GroupData::find_leader` chose, `id` the group-move id, `form_id`
+    /// the member's slot and `group_angle` the bearing its slot was laid
+    /// out on.
+    Group {
+        field: &'static str,
+        ours: i64,
+        theirs: i64,
+    },
     /// The action bit, `UnitOrder::flags & 4` (§1.3): an intent rather than
     /// a transit leg. Settled, so it scores.
     Action { ours: bool, theirs: bool },
@@ -110,6 +153,17 @@ impl OrderMismatch {
     pub fn scores(&self) -> bool {
         match self {
             Self::Flags { .. } => false,
+            // **`id`** is `GroupData +0x4` carried onto the order, and
+            // this crate has no group pool to allocate one from: an
+            // army group's *slot* stands in for it
+            // (`crate::sim::group_id`), which is unique per owner and is
+            // all `group_move_id` needs, but it is not the original's
+            // number — run76's Archers carry the original's 64 where the
+            // army slot is 1. A declared stand-in is not a drift, so it
+            // does not score; it is still reported, because the other
+            // five fields of the same row do score and a surprise in
+            // this one would say the stand-in had stopped being unique.
+            Self::Group { field: "id", .. } => false,
             Self::Move { field, .. } => !matches!(*field, "dest" | "facing" | "last_x" | "last_y"),
             _ => true,
         }
@@ -120,6 +174,9 @@ impl OrderMismatch {
         match self {
             Self::Length { .. } => "length",
             Self::Kind { .. } => "kind",
+            Self::Unspellable { .. } => "unspellable",
+            Self::Header { .. } => "header",
+            Self::Group { .. } => "group",
             Self::Action { .. } => "action",
             Self::Target { .. } => "target",
             Self::Flags { .. } => "flags",
@@ -191,13 +248,38 @@ pub(crate) fn compare_orders(
         .zip(them.orders_front_first())
         .enumerate()
     {
+        // **The record against itself, first.** The block's name and the
+        // `type` beside it are two independent statements of the kind; a
+        // disagreement means the positional pairing has slid and every
+        // field read out of this slot belongs to another order.
+        if let Some(named) = theirs.named_index()
+            && named != theirs.index
+        {
+            at(
+                slot,
+                OrderMismatch::Header {
+                    named,
+                    theirs: theirs.index,
+                },
+            );
+            continue;
+        }
         let kind = i64::from(ours.index());
         if kind != theirs.index {
             at(
                 slot,
-                OrderMismatch::Kind {
-                    ours: kind,
-                    theirs: theirs.index,
+                // An `OrderIndex` no state of this simulation can produce
+                // is a hole in the crate, not a disagreement about the
+                // state; both are reported and both score, and the two
+                // are told apart so a tally can say which it is.
+                match u8::try_from(theirs.index) {
+                    Ok(k) if !sim::orders::index::is_modelled(k) => OrderMismatch::Unspellable {
+                        theirs: theirs.index,
+                    },
+                    _ => OrderMismatch::Kind {
+                        ours: kind,
+                        theirs: theirs.index,
+                    },
                 },
             );
             // The kinds disagree, so the fields under them are not
@@ -299,6 +381,42 @@ pub(crate) fn compare_orders(
                     at(
                         slot,
                         OrderMismatch::Move {
+                            field,
+                            ours: mine,
+                            theirs,
+                        },
+                    );
+                }
+            }
+        }
+        // **The `GROUPORDER` row**, field for field — the record a
+        // formation's order carries and which nothing compared for as
+        // long as the kind above it could not agree (item 237). The kind
+        // matching already says both sides call this a group order, so
+        // both carry the block; `oxx`/`whose` are the leader
+        // `GroupData::find_leader` chose, in the log's ids.
+        if let sim::orders::Body::Move(m) = ours.body
+            && let Some(gm) = m.group
+        {
+            let leader = built.unit_ids(gm.leader);
+            for (field, mine, logged) in [
+                ("oxx", leader.map(|(_, o)| o), theirs.oxx),
+                ("whose", leader.map(|(w, _)| w), theirs.whose),
+                ("id", Some(gm.id), theirs.group_id),
+                ("form_id", i64::try_from(gm.form_id).ok(), theirs.form_id),
+                (
+                    "group_angle",
+                    Some(i64::from(gm.group_angle.0)),
+                    theirs.group_angle,
+                ),
+                ("in_group", Some(i64::from(gm.in_group)), theirs.in_group),
+            ] {
+                if let (Some(mine), Some(theirs)) = (mine, logged)
+                    && mine != theirs
+                {
+                    at(
+                        slot,
+                        OrderMismatch::Group {
                             field,
                             ours: mine,
                             theirs,
