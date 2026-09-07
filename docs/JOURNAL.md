@@ -17839,3 +17839,75 @@ harmless" is now measured.
 **What the new word is.** 7529, and its frame is a `Guy::set_anim` under
 `Unit::do_non_flat_gather+0xb99` that the original spends and this crate does
 not — a gatherer's animation. Next.
+
+## 2026-09-07 — item 250: the walk to the army, and the sweep that asks for a squad's room (Great Lakes 6994 → 7176, Opus)
+
+Item 249 named the seam and moved nothing; this one closed it. The
+headline is **7176**, a hundred and eighty-two frames past 6994, and the
+mechanic is one limb of a function this project has read three times.
+
+**The widening did the work, again.** The brief said `Unit::come_out` was
+the candidate — 1,619 lines, three `Group::action_move_to` sites — and
+said, first, to diff the whole record before opening a decompiler. Eighty
+`UNITDATA` blocks either side of 6994, every field, every unit, took
+twenty minutes and refuted the candidate outright. The three newcomers
+already stand in group **66** when 6994 opens, orderless, so whatever gave
+them the group ran on 6993 and whatever gave them the order ran on 6994 —
+which no single call of `come_out` can do. The same diff handed over three
+facts nobody had asked for: `moveorder.orig` is `(41352, 22920)` on **all
+three**, so that point is the caller's own click and not a per-unit
+destination; all three gain `unit_masks & 4` on the frame; and `1/15`, a
+peasant nobody was looking at, takes a move on the same frame that has
+nothing to do with any of it.
+
+**`unit_masks & 4` is the fingerprint.** Exactly one function in the export
+sets it down a squad's `o_down` chain, and it is
+`Unit::go_to_unit@005f78c0` — reached from `Unit::add_to_army@005f7740`,
+between picking the army and joining it. An army that already holds units
+sends the newcomer to `ArmyData::get_unit(0)`, its **first member**:
+`go_to` takes a `find_nearby_spot` around that unit, builds a group out of
+the joiner's squad and gives it one `ATTACK_TO`. `docs/ARMY.md` §4.3 has
+it whole. It also explains why run53's *first* squad, at 6612, spends
+nothing: it seeds the army itself, and the seeded arm jumps straight past
+the limb.
+
+**And it explains the two tolerances §16.7 could not.** There are not two
+planners. `1/31` carries the tile-grid stack `action_move_near` planned;
+`1/32` and `1/33` are stepped later in the same frame, have their straight
+line refused, and re-plan on the fine grid inside `do_move` — which is
+also why two of the three draws land on 6994 and the third on 6995.
+
+**The word moved on the first run, and the answer was still wrong.** With
+the limb in, 6994's four draws matched the original's four and the parting
+went to 7176 — and the new coordinate assertion failed: the anchor was
+`(41256, 22872)`, two tiles in from `(41352, 22920)`. Same centre, same
+bearing, one ring earlier. The cause is `find_nearby_spot`'s
+**`uber_unit`** argument, which `go_to` passes as 1 and which does two
+things at once (`docs/ORDERS.md` §10): it grows the collision block by
+half the formation's own span, and it leaves `bVar17` clear, so the sweep
+asks `find_unit_with_radius` and `find_unit_ordered_with_radius` instead
+of the pairwise pair. With the pairwise pair the ring at 192 answers;
+with the squad's own disc the original walks out to 288.
+
+That is the row worth keeping. **A draw-stream gain is not a correctness
+proof**: 182 frames of exact draws were bought by an order whose
+destination was two tiles wrong, because the wrong tile happened to refuse
+the same straight lines. Only a coordinate diff against the dump caught
+it, and `great_lakes_6994_issues_the_second_squad_s_walk_to_the_army` is
+that diff — all three destinations, the shared heading and the order
+index against run84's own block, plus the marching squad's order point
+left where the original leaves it. It was made to fail on purpose by
+moving the sweep's bias angle off `0x55555555`, and it had already failed
+for real once.
+
+**One bookkeeping correction fell out.** `Army::add_unit` is
+`Group::add` plus `Unit::set_group@00605220`, and both walk the figure
+chain, so a squad joins **whole** and its second and third figures never
+reach `add_to_army` at all. This crate added them one at a time, which
+would have issued the walk three times over. `army_add_unit` now takes the
+captain's squad in one call and counts only captains as captains.
+
+**The loose thread 249 left is not one.** `1/31`'s group reads 66 in one
+place and 64 in another because both are true a frame apart: `come_out`'s
+group at 6994's open, the marching squad's by its close. Nothing to do
+with items 242/243.

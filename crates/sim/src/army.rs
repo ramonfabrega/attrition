@@ -14,11 +14,10 @@
 //! scoring over cities (§12), the muster spot — the chase, the ring
 //! search over the loaded map's cells, and the mark (§13) — transporting
 //! (`docs/TRANSPORT.md` §8.2) and the `Armies` queries (§15). What is
-//! **not** is every `Group::action_*` the original issues — the sim has
-//! no group orders yet — so `do_forming`, `march_to_target`,
-//! `engagement`'s attack order, `send_here`, `charge` and `stop` write the
-//! record and move nothing; each says so where it stands. The rest of the
-//! stand-ins are in [`seams`].
+//! **not** is the formation layer's own seams (`docs/GROUPS.md` §12);
+//! every `Group::action_*` this module reaches is issued, and
+//! `add_to_army`'s walk to the army's first member (§4.3) with it. The
+//! rest of the stand-ins are in [`seams`].
 
 use crate::ai_load::{role, uflags2};
 use crate::attrition::Domain;
@@ -33,7 +32,6 @@ use crate::{Player, Sim};
 ///
 /// | seam | stands in for | what it costs |
 /// | --- | --- | --- |
-/// | no group orders | every `Group::action_*` in §8, §9, §11, §14 | armies decide but never move units; `status & 4` is never set; `add_to_army`'s walk to the army is not issued |
 /// | `find_target`'s forts | §12's second scan | never a fort target |
 /// | `pop_issues`, `wonderwin_timer`, `popwin_timer`, `score`, `num_wonders`, `GLOBAL_GOVERNMENT_BONUS`, `weak[]`/`strong[]`, the tribute period | leader and city fields the sim does not keep | the multipliers they gate are ×1; a leader at peace is never a target |
 /// | `type_avail(SUPPLYWAGON)`, `is(CATAPHRACT)` | two of §12's strength-gate terms | a wagon-less army is not weak for it; cataphracts count 0 |
@@ -338,17 +336,47 @@ impl Sim {
     }
 
     /// `Army::add_unit` (§3.2): into the one group, if not already there.
+    ///
+    /// **A squad joins whole.** `add_unit` is `Group::add(o, who, 0, 0)`
+    /// followed by `Unit::set_group(unit, group, 0)`, and both walk the
+    /// figure chain: `Group::add` replaces a non-captain by its captain and
+    /// then recurses down `o_down` (`docs/GROUPS.md` §4.1), and
+    /// `set_group@00605220` writes `+0x80` down the same chain. So the
+    /// group's member list holds `captain, o_down, …` and every figure's
+    /// `Object::get_army` answers at once — which is what keeps a squad's
+    /// second and third figures out of [`Sim::add_to_army`] on the frame
+    /// their captain joins (§4.3).
     pub fn army_add_unit(&mut self, who: Player, slot: usize, u: usize) {
         if !self.units[u].alive() {
             return;
         }
-        let a = &mut self.armies[who as usize].list[slot];
-        if a.units.contains(&u) {
-            return;
+        let cap = self.captain_of(u);
+        // `captain, o_down, …` is the order `Group::add`'s recursion
+        // leaves; [`Sim::squad_of`] answers in object order, which is the
+        // same for a squad born together and not guaranteed to be.
+        let mut chain = self.squad_of(cap);
+        chain.sort_by_key(|&f| (f != cap, f));
+        for f in chain {
+            let captain = self.is_captain(f);
+            let a = &mut self.armies[who as usize].list[slot];
+            if a.units.contains(&f) {
+                continue;
+            }
+            a.units.push(f);
+            a.num_units += 1;
+            a.num_captains += i32::from(captain);
         }
-        a.units.push(u);
-        a.num_units += 1;
-        a.num_captains += 1;
+    }
+
+    /// `ArmyData::get_unit(k)@006f9df0`: the `k`-th member of the army's
+    /// groups, walked in `list` order and skipping building groups. The
+    /// simulation's army is one group (§3.2), so this is its `units[k]`.
+    pub fn army_get_unit(&self, who: Player, slot: usize, k: usize) -> Option<usize> {
+        let a = &self.armies[who as usize].list[slot];
+        if k >= a.num_units as usize {
+            return None;
+        }
+        a.units.get(k).copied()
     }
 
     /// `Object::get_army`: the army holding this unit, if any.
@@ -434,8 +462,58 @@ impl Sim {
                 self.init_army(who, Some(city))
             }
         };
+        // **The walk to the army** (§4.3), between the pick and the join,
+        // and only on the arm that *found* an army: the `init_army` arm
+        // jumps straight to the add (`005f7891`). `ArmyData::get_unit(0)`
+        // is the army's first member — the unit every later joiner is sent
+        // to stand beside.
+        if self.armies[who as usize].list[slot].num_units != 0
+            && let Some(first) = self.army_get_unit(who, slot, 0)
+            && self.units[first].alive()
+        {
+            self.go_to_unit(u, first);
+        }
         self.army_add_unit(who, slot, u);
         Some(slot)
+    }
+
+    /// `Unit::go_to_unit(o, who)@005f78c0` — mark the squad, then walk it
+    /// to another unit if it is far enough away (§4.3).
+    ///
+    /// The mask walk runs from the **captain** and down the `o_down`
+    /// chain, and it runs whatever the distance says; the move is
+    /// `vector_dist(target − me) > 0x480` alone. The bit it sets is
+    /// `unit_masks & 4` (`5f7933`), which §6.6 step 6 of
+    /// `docs/GROUPS.md` reads as "no `GroupMoveOrder`" — a seam here,
+    /// because [`Sim::go_to`]'s group has no army and this crate's own
+    /// gate refuses one for that reason already.
+    fn go_to_unit(&mut self, u: usize, target: usize) {
+        let to = self.units[target].pos;
+        let d = vector_dist(to.x - self.units[u].pos.x, to.y - self.units[u].pos.y);
+        if d > 0x480 {
+            self.go_to(u, to, MoveKind::AttackTo, 0, 0x300);
+        }
+    }
+
+    /// `Unit::go_to(x, y, orders, min, max)@005f7a50` — a spot near a
+    /// point, and the unit's own squad walked to it as a group (§4.3).
+    ///
+    /// `find_nearby_spot` is asked with the caller's radii, **step 0** (so
+    /// the rings are an eighth of the span apart) and the bias angle
+    /// `0x55555555`, a third of a turn; a refusal issues nothing at all.
+    /// The group is built on the stack from this unit — `Group::add` takes
+    /// the whole squad — pushed with `force = 1`, and moved with
+    /// `QUEUE_NEW`, `set_angle 0`, `angle 0`, `action 0`, `form/width −1`.
+    fn go_to(&mut self, u: usize, to: Pos, kind: MoveKind, min: i32, max: i32) {
+        let Some(spot) = self.find_nearby_spot_squad(u, to, min, max, 0, Angle(0x5555_5555)) else {
+            return;
+        };
+        let mut g = crate::group::Group::stack(self.units[u].owner);
+        self.group_add(&mut g, u);
+        if !self.push_group(&g, true) {
+            return;
+        }
+        self.group_action_move_to(&g, spot, QueuePos::New, false, Angle(0), kind, false);
     }
 
     /// `ObjectsData::find_city(SEARCH_FRIENDLY, flag 0x200, FILTER_ALL)`:

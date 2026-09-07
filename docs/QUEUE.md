@@ -37,7 +37,7 @@ its named cause. The stopping rule fired at three and reset here.*
   Each `stalled` line in `~/ccc-stream/` wants a word in `verdicts.txt`.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w7529 of 24,000 · GreatLakes w6994 of 24,000
+Long captures: EastIndies w7529 of 24,000 · GreatLakes w7176 of 24,000
 
 **Opener: commander on Opus (DECISIONS 34). `loop-250` is live and alone;
 the screen is free and 252 is the cheapest thing on the board.**

@@ -2995,20 +2995,22 @@ mod tests {
         // them into `frame_sites`, and item 204's whole question is *which*
         // unit spends the extra draw. Both cost nothing when unset.
         let unit_window = site_window();
-        // **The parting frame's own membership** (item 249): the two draws
-        // 6994 parts on are the *second* squad's — `1/31`, `1/32`, `1/33`,
-        // born on 6993 and given an `ATTACK_TO` apiece by the frame's end
-        // (`run84_says_great_lakes_6994_belongs_to_the_second_squad`). This
-        // crate does not issue that order, and the row that says the gap is
-        // an order rather than a membership bug is this one: by the frame's
-        // end all six are already in **one army**.
+        // **The second squad's membership** (items 249 and 250): 6994's
+        // two draws are `1/31`, `1/32` and `1/33`'s, born on 6993 and
+        // given an `ATTACK_TO` apiece by the frame's end
+        // (`run84_says_great_lakes_6994_belongs_to_the_second_squad`).
+        // This is what said the gap was an order rather than a membership
+        // bug — all six in **one army** by the frame's end — and it stays
+        // as the cheap guard on that half now that
+        // `great_lakes_6994_issues_the_second_squad_s_walk_to_the_army`
+        // pins the order itself.
         let mut squad_army: Vec<(i64, Option<usize>)> = Vec::new();
         for _ in 0..last {
             let f = built.sim.frame;
             built.tick();
             debug_watch(&built, f);
             debug_builds(&built, f);
-            if f == LONG_WORD_GREAT_LAKES {
+            if f == GREAT_LAKES_SECOND_SQUAD {
                 squad_army = [27, 28, 29, 31, 32, 33]
                     .into_iter()
                     .map(|o| {
@@ -3030,7 +3032,7 @@ mod tests {
             squad_army
                 .iter()
                 .all(|&(_, a)| a.is_some() && a == squad_army[0].1),
-            "the six Great Lakes archers are not one army at              {LONG_WORD_GREAT_LAKES}: {squad_army:?}"
+            "the six Great Lakes archers are not one army at              {GREAT_LAKES_SECOND_SQUAD}: {squad_army:?}"
         );
         let first_part = built
             .frame_sites
@@ -4368,7 +4370,7 @@ mod tests {
     /// **run84 — who actually spends Great Lakes 6994's two draws** (item
     /// 249, 2026-09-06).
     ///
-    /// `LONG_WORD_GREAT_LAKES` parts at 6994 on two draws of
+    /// The word parted at 6994 on two draws of
     /// `Unit::do_move+0xe84 < Unit::do_attack_to+0x11 < Unit::do_job+0x4b`
     /// — `sim::orders::SITE_MOVE_GRID`, the `% 5` roll a move spends when
     /// `find_path` refuses its straight line — with a third on 6995. The
@@ -4426,8 +4428,11 @@ mod tests {
                 .find(|u| u.who == 1 && u.o == o)
                 .unwrap_or_else(|| panic!("{n}: no 1/{o}"))
         };
-        let (before, after) = (LONG_WORD_GREAT_LAKES, LONG_WORD_GREAT_LAKES + 1);
-        assert_eq!(before, 6994, "this test is written about the headline");
+        let (before, after) = (GREAT_LAKES_SECOND_SQUAD, GREAT_LAKES_SECOND_SQUAD + 1);
+        assert_eq!(
+            before, 6994,
+            "this test is written about the second squad, not about the headline"
+        );
 
         // **The marching squad cannot be spending the draws.** `dest` is
         // the "I hold a waypoint" flag and `unit_masks & 8` is `line_ok`
@@ -4509,6 +4514,126 @@ mod tests {
         eprintln!(
             "run84: {before} is 1/31, 1/32 and 1/33's order, not 1/27-1/29's;              stacks {:?}",
             [31, 32, 33].map(|o| unit(after, o).path.len())
+        );
+    }
+
+    /// **The order this crate now issues** (item 250, 2026-09-07) — the
+    /// crate side of the frame above, against the original's own record.
+    ///
+    /// `run84_says_great_lakes_6994_belongs_to_the_second_squad` pins what
+    /// the original does; this pins that the simulation does the same
+    /// thing, to the coordinate. The mechanic is
+    /// `Unit::add_to_army@005f7740`'s middle limb (`docs/ARMY.md` §4.3):
+    /// with an army already holding units, the newcomer is walked to
+    /// `ArmyData::get_unit(0)` — the army's **first member**, not its
+    /// muster point and not the group's destination — through
+    /// `go_to_unit` and `go_to`, which take a `find_nearby_spot` around
+    /// that unit and give the whole squad one group move to it.
+    ///
+    /// Three things this asserts that the arithmetic could get wrong and
+    /// the draw count could not: the **anchor** `(41352, 22920)`, which is
+    /// the spot the sweep finds around `1/27` rather than anything on the
+    /// army record; the two flanking slots the formation lays out either
+    /// side of it; and the **shared heading**, which comes out of
+    /// `action_move_near`'s own `set_angle 0` arm rather than from a value
+    /// the caller passes. Made to fail on purpose by moving the sweep's
+    /// bias angle off `0x55555555`: the anchor lands on a different tile
+    /// and all three destinations go with it. It had already failed for
+    /// real once — the first build of §4.3 missed
+    /// `find_nearby_spot`'s `uber_unit` argument and answered
+    /// `(41256, 22872)`, one ring in, **with the whole draw stream
+    /// unchanged and the word already 182 frames further on**. That is
+    /// what this test is for: a draw-stream gain is not a correctness
+    /// proof.
+    #[test]
+    fn great_lakes_6994_issues_the_second_squad_s_walk_to_the_army() {
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(theirs)) = (
+            dump("gamelog-run53-greatlakes-24k-trace.txt"),
+            dump("gamelog-run84-greatlakes-makelist.txt"),
+        ) else {
+            eprintln!("skipping: no run53/run84 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let texts = sibling_texts();
+        let text = std::fs::read_to_string(&path).unwrap();
+        let log = Log::parse(&text);
+        let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
+        let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+        let refs: Vec<&Initial> = inits.iter().collect();
+        let mut init = log.initial().unwrap();
+        borrow_from_siblings(&mut init, &refs);
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        let after = GREAT_LAKES_SECOND_SQUAD + 1;
+        while built.sim.frame < after {
+            built.tick();
+        }
+
+        let text84 = std::fs::read_to_string(&theirs).unwrap();
+        let log84 = Log::parse(&text84);
+        let states = log84.frame_states();
+        let at = states
+            .iter()
+            .find(|f| f.n == after)
+            .unwrap_or_else(|| panic!("run84 carries no block {after}"));
+        let of = |o: i64| {
+            built
+                .sim
+                .units
+                .iter()
+                .position(|u| u.alive() && i64::from(u.owner) == 1 && i64::from(u.index) == o)
+                .unwrap_or_else(|| panic!("this crate has no live 1/{o} at {after}"))
+        };
+        for o in [31, 32, 33] {
+            let t = at
+                .units
+                .iter()
+                .find(|u| u.who == 1 && u.o == o)
+                .unwrap_or_else(|| panic!("{after}: no 1/{o}"));
+            let want = t.orders.first().expect("the original's order");
+            let u = of(o);
+            let ours = built
+                .sim
+                .current_order(u)
+                .unwrap_or_else(|| panic!("1/{o} carries no order at {after}"));
+            let sim::orders::Body::Move(m) = ours.body else {
+                panic!("1/{o}'s order is not a move: {:?}", ours.body)
+            };
+            assert_eq!(
+                (i64::from(m.dest.x), i64::from(m.dest.y)),
+                (want.x.unwrap(), want.y.unwrap()),
+                "1/{o}'s destination at {after}"
+            );
+            assert_eq!(
+                i64::from(m.angle.0),
+                want.angle.unwrap(),
+                "1/{o}'s heading at {after}"
+            );
+            assert_eq!(
+                i64::from(ours.index()),
+                want.index,
+                "1/{o}'s order index at {after}"
+            );
+        }
+        // And the marching squad is left alone: the walk is the newcomers'
+        // own group move, not a group order over all six.
+        for o in [27, 28, 29] {
+            let t = at.units.iter().find(|u| u.who == 1 && u.o == o).unwrap();
+            let u = of(o);
+            let ours = built.sim.current_order(u).expect("the marching order");
+            let sim::orders::Body::Move(m) = ours.body else {
+                panic!("1/{o}'s order is not a move")
+            };
+            assert_eq!(
+                (Some(i64::from(m.dest.x)), Some(i64::from(m.dest.y))),
+                (t.orders_x, t.orders_y),
+                "1/{o}'s order point moved across {GREAT_LAKES_SECOND_SQUAD}"
+            );
+        }
+        eprintln!(
+            "run84: this crate issues 1/31, 1/32 and 1/33's walk to 1/27 at \
+             {GREAT_LAKES_SECOND_SQUAD}, on the original's own three points"
         );
     }
 

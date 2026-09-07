@@ -3346,6 +3346,22 @@ into those dead slots (R7 N13).
   (reject iff `vector_dist ≤ other.big_radius + r_coll`) and the own-player
   ordered variant. A building's `new_block_radius` is 0, so only `0x4000`
   tiles and the footprint test keep units off it.
+- **A squad placement never takes the pairwise pair** (2026-09-07, item
+  250). The `uber_unit` test is `61df3e`, and `bVar17` is written in the
+  arm it does **not** take (`61df5f`–`61df7c`: filter 3 or 5, `not_o ≥ 0`,
+  then `bVar17 = not_who ≥ 0`), so `uber_unit != 0` goes down the general path whatever
+  its filter says — `ObjectsData::find_unit_with_radius@00659890` over
+  every player's positions, and, because `not_who` is a real player there,
+  `ObjectsData::find_unit_ordered_with_radius@00658ef0` beside it: one
+  player's own units, only those whose current order is one of the seven
+  move kinds (`658fad`–`658fce`), measured to `orders_x/orders_y`
+  (`658fdc`) against the same `big_radius + r_coll` disc. And `r_coll` is
+  not the plain block either: `61df42`–`61df58` adds
+  `((uber_size − 1) × guy_spacing) / 2 + 0x30` to it, so a squad asks for
+  the room it will stand in. Both halves matter — `Unit::go_to`
+  (`docs/ARMY.md` §4.3) is this crate's one `uber_unit` call site, and
+  with the pairwise pair it answers a ring two steps in from the
+  original's.
 **The ocean the ring could stand in (2026-09-01).** The terrain-class test
 above was **not implemented** — `find_nearby_spot` asked `World::accepts`,
 which is a cell-bounds test the sweep's own bounds check has already made —
