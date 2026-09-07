@@ -110,9 +110,15 @@ instrument's last guard, (c) alone; (35) **`mylos` as a cache**, VISION §7.
     normalize`'s cull is unmodelled (run33's scout 65 → 64 on 96); (56)
     **the cell's `BUILDING` bit** on `(52, 22)`, ARMY §13.
 
-117. **Two seams the census windows measure** (ATTRITION, "Territory"): the
-    temple and fort border levels, the wonders, a gem rare, the handicap,
-    `reg_forts`; and AI §2.1's `check_explore` answers the grid whole, 900 v 36/19.
+117. **The gem term is live and unmodelled** — run80 reads
+    `rares_collected[44] = {11, 13, 23, 27}` on Great Lakes, offset 6, so
+    **Gems** is collected and territory at 23,999 (266 v 568) is wrong
+    without it (ATTRITION, "Territory"). Model it, then the size falls out
+    of a capture either side of the Merchant reaching it. The temple and
+    fort terms are **blocked at their prerequisite** in every game on disk
+    and the handicap is 0 by the lobby: all three want a scripted setup, a
+    session's work, not the screen's. (Also AI §2.1's `check_explore`
+    answers the grid whole, 900 v 36/19.)
 
 Seven measured one-liners: (23) **the formation byte's sign, Echelon half**,
 read only on GROUPS §6.4's Echelon rows, run52 the blocker; (103) a
