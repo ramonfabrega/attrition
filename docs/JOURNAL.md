@@ -16970,3 +16970,73 @@ just past the 15000 rebuild; run27's 15100 has 46, and run25/run26 have
 Whoever takes it should confirm the schedule reading first — the block at
 15100 carries the map the 15000 rebuild produced, and it is that rebuild
 which had to see the army.
+
+
+## 2026-09-06 — 156, the starting grant arrives with the good (Opus, worker)
+
+A live wrong number: every leader in this crate opened holding a hundred
+knowledge, a hundred metal and a hundred oil, and the original holds none of
+the three until their ages land. run40's census had booked it at 240 rows and
+run59's at 1,500.
+
+**The predicate was wrong in the document, and that was the item.**
+`docs/COSTS.md` had `Leader::gain_tech@006dcb60` paying a good "whose bucket
+is zero". The stack array the loop actually tests is `local_4c[g] =
+has_preq(g) != 0`, filled at line 297 — *before* `BitMask::set` puts the
+gained bit in — and addressed in the payment loop as `auStackY_64c + 0x600 +
+4g`, which is the same slot because `0x64c − 0x4c = 0x600`. Nothing in the
+function reads a bucket. The two readings agree on everything a stock game
+reaches and part on a modded table; the point is that the field that was
+named was never there.
+
+**And the other half of the rule was simply unread.** COSTS booked "where do
+food, timber and wealth come from, then?" as open, since `Leader::init`
+zeroes all six and the `gain_tech` loop cannot pay a good that needs no age.
+The answer is in the same loop of `Leader::init@006e3930` that does the
+zeroing: `bucket = 0; if type_avail(g, 1) != 0: bucket_add(g,
+game->starting[g])`. So the one rule is **a good is paid the moment it
+becomes available** — at setup for what the starting age already holds, and
+on the gain of the good's `preq[0]` for the rest. It also explains the two
+nation terms sitting in the middle of that loop: the Germans' metal and the
+Greeks' knowledge come through `has_preq` waivers, so they are paid at setup
+rather than at their age, and `GREEK_DELAY_KNOWLEDGE` exists to take the
+Greek one straight back off and re-grant it at the Classical Age — which is
+the branch at the foot of the `gain_tech` loop, and the reason that branch
+looked arbitrary.
+
+**Two questions that a grep answered instead of a capture.** The amount is
+`game->starting[g]`, which `Game::init_starting_resources` builds from the
+lobby's `STARTING_RESOURCES` row through a `lo`/`hi` table nobody has found.
+Every `GAMEINFO` block in the kept dumps — 350 of them — says
+`STARTING_RESOURCES 1`,
+so the only row that matters is row 1; and row 1 pays the constant unscaled,
+which is not read out of the table but *measured*, by forty frames of run40's
+food, timber and wealth agreeing with a crate that opens at `[200, 200,
+100]`. Half of that, or a draw, would put every later frame out by a hundred.
+
+**What moved.** run40's 240 → **0**, asserted three ways beside the existing
+goods-0-to-2 asserts and made to fail first (it reported 80, 80, 80). And
+run59, which nobody had looked at from this side: its residue was 1,500 rows
+and **all 1,500 were this**, so East Indies' census is now **0 of 18,000
+good-frames** — every field of every good of both players over 250 frames.
+The whole suite is 217 of 217.
+
+**Neither long word moved**, and could not have: East Indies stays at 7448
+and Great Lakes at 6862, both exactly their floors. The three goods are never
+charged and never accrue while unavailable, so the change is invisible to the
+draw stream. It is a level, not an event.
+
+**Which also says what is not backed.** No capture on disk leaves the Ancient
+age — run60's 5,400 frames, read good by good, have a maximum of **zero** in
+knowledge, metal and oil — so the `Leader::init` half is diff-backed twice
+over (1,740 rows) and the `gain_tech` half is reading-only. The capture that
+would settle it is a game carried to the Classical Age with `LEADERS=9` over
+the frames either side, where the two buckets step 0 → 100 on the age's own
+frame; the census tests would compare it unchanged.
+
+Takes `docs/audit/2026-09-05-economy-vs-code.md` **R19** whole, and corrects
+the predicate R19 quoted from the document. R4, the sibling infinite-resources
+row, is not taken — the arm that belongs to *this* loop is implemented
+(`Sim::starting_good` answers 99,999 under `STARTING_RESOURCES == 8`), but
+R4's site is `economy::pay`'s per-frame assignment and that is still absent.
+

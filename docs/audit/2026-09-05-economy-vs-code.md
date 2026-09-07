@@ -324,6 +324,16 @@ grant is conditional on `bucket[g] == 0`, so a player who earns knowledge before
 the Classical Age lands would take no grant in the original and would already
 hold 100 here.
 
+**Taken, 2026-09-06 (item 156).** `Sim::lay_starting_goods` and
+`Sim::pay_arriving_goods` implement both halves; run40's 240 rows and run59's
+1,500 are 0, and run59's whole census is now exact. **One correction to the row
+above**: the gate this row quotes from ECONOMY.md — "for one whose bucket is
+zero" — is not what the function tests. The stack array read at line 297 is
+`has_preq(g)` *before* the bit is set, not the bucket. Both documents now say
+so; see `docs/COSTS.md`, "The starting grant arrives with the good". The row's
+closing argument survives the correction intact, because a good's bucket is
+zero exactly while its prerequisite is missing in a stock game.
+
 ### R20 — the Porcelain Tower's `rare_owned` pass, the one thing that makes a rare pay with nobody on it
 
 | | |
