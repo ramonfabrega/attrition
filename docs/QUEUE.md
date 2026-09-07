@@ -35,8 +35,8 @@ one day, 129 frames and 277, and the maps swapped twice.*
   unratified), the perf/UB ground 280 opened, and 283. Nothing else marked.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w7806 of 24,000 · GreatLakes w7584 of 24,000
-Endpoint 24001: EastIndies 79 off, 0 unlinked · GreatLakes 78 off, 2 unlinked
+Long captures: EastIndies w7806 of 24,000 · GreatLakes w7585 of 24,000
+Endpoint 24001: EastIndies 79 off, 0 unlinked · GreatLakes 84 off, 0 unlinked
 
 **Opener: commander on Opus (DECISIONS 34), spawning — never working. 284
 is in flight (Great Lakes' bird stand, the headline). The lane is free and

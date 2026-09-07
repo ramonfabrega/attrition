@@ -5310,6 +5310,22 @@ sized against.
 **So the word does not move.** Nothing was fixed here; what the capture buys is
 that Great Lakes 7584 stops being a draw-stream report and becomes one named
 call site with a value diff beside it.
+
+> ~~*Which* bird this capture cannot say~~ — **it can, by elimination, and
+> the word moved the next day** (item 284, 2026-09-07). This dump prints all
+> forty of gaia's owner-8 animals in full and not one of them is on
+> `CHAR_WALK` on block 7584 — the **slot** `Guy::move@005d9240:57` tests for
+> — while the thirteen owner-1 guys that are on it all carry `stopped 0`. So
+> no dumped figure could have spent 7584's stand, and the draw's neighbours
+> place it in the animal pass: it is a bird's. The mechanism is
+> `Unit::do_air_physics`'s own `set_new_location(x, y, 0, 1)` — `param_3`
+> zero, so the figure is *told* where to be and not put there, lags its unit
+> by a step, and `des == pos` in `Guy::move` reads as *the bird did not move
+> this frame*. With it, **7584 agrees 49 for 49 entry for entry**, `1/3`'s
+> spot on block 7585 closes, nothing at all parts at or below that block but
+> run87's carried residue, and the word moves to **7585** —
+> `Leader::make_stuff+0x63d`, the AI's slot expiry. `docs/SYNC.md` §3.9,
+> "The arrival stand".
 `run89_s_window_is_great_lakes_word_frame` is the assertion, and its eight
 claims were each made to fail on purpose before it was believed: the extra
 draw's index moved 24 → 25, the counts to 49/49, the parted set to `1/4`, the

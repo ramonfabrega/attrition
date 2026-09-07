@@ -1200,14 +1200,25 @@ impl Sim {
         if self.units[u].guys.is_empty() {
             return;
         }
-        // A bird has no ground body to follow: `Unit::do_air_physics`
-        // moves it with `set_new_location` and asks for `CHAR_WALK`
-        // itself, and `Guy::move`'s arrival half never runs for it. This
-        // crate parks the bird on its hatch cell — and the dock's gull on
-        // the tile it was born on (`orders.rs`) — so without this the
-        // standing body would ask it to idle every frame and spend a draw
-        // the original never spends.
-        if is_air_gaia(self.units[u].type_index) {
+        // **A bird's figure follows its unit like anybody else's**, and
+        // `Guy::move` runs for it: `Animal::process` is the `+0x188`
+        // think and then `Guy::process` per figure, and nothing in
+        // `Guy::move` excludes owner 9. What makes a bird look exempt is
+        // `Unit::do_air_physics`'s own call — `set_new_location(x, y, 0,
+        // 1)`, whose **`param_3` is zero** (`005e86d0:237`): the figure's
+        // `des` is written to the unit's new point and the figure is
+        // *not* put there, so a bird that moved takes the moving arm
+        // every frame and never the arrival one. The frames it does not
+        // move — an edge-clamped step, `WorldData::restrict` handing back
+        // the point it already stands on — are the ones that pay the
+        // stand (`docs/SYNC.md` §3.9, "The arrival stand").
+        //
+        // The **gull** is still skipped, and it is a seam rather than a
+        // rule: this crate gives it no flight (`orders.rs` runs
+        // `do_air_physics` for `BIRD_TYPE` alone), so its figure would sit
+        // on its unit for ever and roll an idle every other frame that the
+        // original, which flies it under `Unit::do_strafe`, does not.
+        if is_air_gaia(self.units[u].type_index) && self.units[u].type_index != BIRD_TYPE {
             return;
         }
         let unit = &self.units[u];

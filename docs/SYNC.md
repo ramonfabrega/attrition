@@ -662,14 +662,15 @@ drifted for other reasons (§3.1) and the later coins are its own.
 
 **What the simulation has**: the hatching, the live count, `think_bird`
 whole, the landing search and the counter's extra step after it, the
-patrol point as state, the wing beat, and — since 2026-09-02 — the flight
-itself ("The flight", "The birth"). `is_air` is the loaded domain, so a
-bird does not paint the occupancy grid a citizen walks on
-(`docs/COLLISION.md` §2). `Guy::move`'s arrival half is skipped for a bird,
-there being no ground body to follow, and its own draw (`+0x3b`,
-`rnd % 7 + 0xd`) sits behind a vtable test the wild bird fails on every
-traced frame — run14 confirms it: three `think_bird` draws an eighth frame
-per bird and no fourth.
+patrol point as state, the wing beat, the flight itself (2026-09-02, "The
+flight", "The birth") and the figure's own arrival stand (2026-09-07,
+below). `is_air` is the loaded domain, so a bird does not paint the
+occupancy grid a citizen walks on (`docs/COLLISION.md` §2).
+~~`Guy::move`'s arrival half is skipped for a bird, there being no ground
+body to follow~~ — **wrong, and it was Great Lakes' word**: §3.27. `think_bird`'s own draw (`+0x3b`, `rnd % 7 + 0xd`) sits
+behind a vtable test the wild bird fails on every traced frame — run14
+confirms it: three `think_bird` draws an eighth frame per bird and no
+fourth.
 
 #### The flight — `Unit::do_air_physics@005e86d0` (2026-09-02)
 
@@ -1799,6 +1800,73 @@ original refuses. The refusal turns on a corner of the standing gatherer
 (`docs/COLLISION.md` §2.2, `docs/PATHFINDER.md` §17). **The word moved 2419
 → 2808**, and the map's earliest unit parting 1993 → 2804.
 
+## 3.27 The bird's arrival stand — Great Lakes' word 7584 → 7585 (2026-09-07)
+
+**A bird's figure follows its unit like anybody else's, and the frames it
+does not move are draws.** `Animal::process@005d72c0` is the `+0x188`
+think and then `Guy::process` per figure, and nothing in `Guy::move`
+excludes owner 9: its arrival arm — `des == pos`, `des_angle == angle`,
+`field_0x9c == 8` (the **slot** `CHAR_WALK`, not the category) and
+`field_0x9d` set — spends `set_anim(CHAR_DEFAULT, 0, 1)`, which is
+`Guy::set_anim+0x97a < Guy::move+0x19f` on the stream.
+
+What makes a bird *look* exempt is one argument:
+
+```text
+do_air_physics tail:  set_new_location(nx, ny, 0, 1)          # 005e86d0:237
+Unit::set_new_location@005f8d20:
+    :156  param_4 → Guy::set_angle(guy0, unit.angle, param_3)
+    :158  guy0.des = the unit's new point                     # unconditional
+    :161  param_3 → Guy::set_new_location(guy0, des, 1)       # the teleport
+```
+
+`param_3` is **zero**, so the figure is *told* where to be and not put
+there. It catches up inside `Guy::move` itself — for guy 0 the whole step
+is `:182`'s "no track offset" arm, which places it straight on `des` — one
+step later in the same frame. So `des == pos` at `Guy::move`'s entry means
+**the bird did not move this frame**, and for a bird under a patrol order
+that happens exactly when `WorldData::restrict` clamps a refused step back
+onto the boundary the bird already stands on.
+
+The stand then feeds the wing beat, and the pair is the observable:
+
+- the stand leaves the figure on `CHAR_DEFAULT`, so the **next** frame's
+  `set_anim(CHAR_WALK, 0, 1)` is a category change and misses gaia's
+  `who >= 8` early return (`set_anim:143`) — a wing-beat coin;
+- the coin takes `CHAR_WALK` half the time, and `field_0x9c == 8` stands
+  again on the same frame; it takes `CHAR_JOG` the other half, and the
+  run ends.
+
+run89's `[7514, 7760)` has the whole of it: **16** air-physics coins in
+7,776 frames, of which **7585, 7586, 7587 and 7588** are four; 7584 stands
+with no coin (the figure was already on `CHAR_WALK`), 7585–7587 pay coin
+and stand together, and 7588's coin takes the jog and ends it.
+
+**Which bird, by elimination over the whole dumped record.** No dump
+prints owner 9 (§3.9), but run89 prints all forty owner-8 animals in
+full: on block 7584 not one of them is on `CHAR_WALK`, and the thirteen
+owner-1 guys that are all carry `stopped 0`. So no dumped figure could
+have spent 7584's stand, and the draw's neighbours — the fourth and fifth
+`Animal::think_bird` triples — place it in the animal pass. The bird is
+named as *a* bird and not as one of the ten; nothing on this disk can do
+better, and nothing downstream needs it.
+
+**What it was worth.** Great Lakes' long word **7584 → 7585**, 7584 now
+agreeing 49 draws for 49 entry for entry, and with it the value diff
+beside the word: `1/3`'s fresh `MOVEORDER` on block 7585 used to land one
+tile out on each axis from a base both sides agreed on, and every field of
+it agrees now. Nothing at all parts at or below block 7585 but run87's own
+carried residue. `rondata::diff`'s
+`run89_s_window_is_great_lakes_word_frame`, and
+`a_bird_s_figure_lags_its_unit_and_stands_only_when_the_step_is_refused`
+in `crates/sim/src/air.rs`.
+
+**The gull is a seam, not a rule.** `Unit::do_strafe` is still unmodelled
+(§3.9), so this crate flies no gull; a figure sitting on its unit for
+ever would roll an idle every other frame the original does not, and
+`guys_follow` still returns early for `GULLBIRD` alone. It comes off with
+`do_strafe`.
+
 ## 4. Run12 attributed
 
 Frame 0, draws 0–119 (the LCG from `0x3bd39ae9`):
@@ -2425,6 +2493,13 @@ kind honest.
   every bank zero-crossing (§3.9, "The birth"). `air::tests` and
   `single::tests` still hold the module and its arithmetic to the reading
   and to the host's floats; run61 is what holds it to the original.
+  **And the figure's arrival stand since 2026-09-07, §3.27**, which is a
+  dump-backed row and not only a trace one: `Guy::move`'s arrival arm runs
+  for a bird because `do_air_physics`'s `set_new_location(x, y, 0, 1)`
+  leaves the figure a step behind its unit, and
+  `run89_s_window_is_great_lakes_word_frame` holds run89's 7584 to 49
+  draws for 49 with the stand at index 24 on both sides, closes `1/3`'s
+  spot on block 7585, and leaves nothing parting at or below it.
   Reading-only, and named as such: **which cell** the landing search
   settles on — the score is inert (`-1 < score` cannot fail), which makes
   the answer "the thirtieth sample" and no capture yet confirms it; the

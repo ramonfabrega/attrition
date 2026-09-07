@@ -795,13 +795,29 @@ pub(crate) const LONG_WORD_EAST_INDIES: i64 = 7_806;
 /// 7418 tick put every follower of the formation on the wrong side of
 /// its leader (item 267, `docs/GROUPS.md` §6.3's tail negation).
 ///
-/// **7584** is where it stands, 129 frames on and **past run87's own
-/// window** (`[7244, 7520)`), so the map's next value diff is owed a
-/// capture. Forty-eight draws against forty-nine, and at index 24 the
-/// original spends a `Guy::set_anim+0x97a < Guy::move+0x19f` this crate
-/// does not — a crew figure's animation rather than a walker's stand,
-/// and the reverse polarity of the row it replaces.
-pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 7584;
+/// ~~**7584**~~ — forty-eight draws against forty-nine, the original
+/// spending a `Guy::set_anim+0x97a < Guy::move+0x19f` at index 24 that
+/// this crate did not: **a gaia bird's arrival stand**, and the whole
+/// of it was `Unit::do_air_physics`'s own `set_new_location(x, y, 0,
+/// 1)` — `param_3` zero, so the figure is told where to be and not put
+/// there and lags its unit by a step. `Guy::move` then reads `des ==
+/// pos` as *the bird did not move this frame*, which on a bird pinned
+/// against the world's edge by `WorldData::restrict` is true. This
+/// crate teleported the figure with the unit and skipped `Guy::move`
+/// for a bird entirely (item 284, `docs/SYNC.md` §3.9, "The arrival
+/// stand"). 7584 now agrees **49 for 49, entry for entry**, and `1/3`'s
+/// spot on block 7585 — the value diff beside the word — closes with
+/// it.
+///
+/// **7585** is where it stands, and it is the AI rather than the
+/// animals: seven draws against nine, parting at index 2 where the
+/// original spends a `Leader::make_stuff+0x63d`
+/// ([`sim::ai_make::SITE_EXPIRE_SLOT`], `docs/AI.md` §2.6) this crate
+/// does not. The bird's own stand is missing from that frame too, at
+/// index 4 — but downstream: one draw behind, the wing-beat coin reads
+/// a different word and takes `CHAR_JOG`, which `Guy::move`'s
+/// `field_0x9c == 8` then does not stand for.
+pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 7585;
 
 /// The frame Great Lakes' **second** squad joins the army on — 6994, the
 /// word's own parting from 2026-09-06 to 2026-09-07 and now a landed
