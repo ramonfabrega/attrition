@@ -24,12 +24,13 @@ one day, 129 frames and 277, and the maps swapped twice.*
   reverse test. **Both were found by widening the whole record.**
 - **260 halved the gate** (16,061 → 8,321 MiB); its ceiling was never a
   ratchet (251). **280 took the mapping back out** — one
-  `forbid(unsafe_code)` again, and the FFI was hand-rolled rather than
-  memmap2, which is worse than a dependency. Now 11,260 MiB at 244 tests.
-- **272 made Great Lakes' word a value diff without moving it** (run89,
-  `[7514, 7760)`, four checks, neighbour overlap needing no flag): the
-  parting entry is a **gaia bird's arrival stand**, 284. It also found the
-  `CITY` record parting on 246 of 246 blocks with nothing asserting it, 285.
+  `forbid(unsafe_code)` again, at 11,172 MiB and 244 tests.
+- **272 made Great Lakes' word a value diff without moving it** (run89):
+  the parting entry is a **gaia bird's arrival stand**, 284. It also found
+  the `CITY` record parting on 246 of 246 blocks, unasserted — 285.
+- **276 grepped instead of capturing, and it paid**: run88's own `!quit`
+  block at 7816 *is* East Indies' residue (`1/6`, `1/7` pinned both sides)
+  but cannot be its mechanism. The trace dated it instead: 286.
 - **A Fable pass is owed, with an agenda**: DECISIONS 37 (drafted,
   unratified), the perf/UB ground 280 opened, and 283. Nothing else marked.
 
@@ -37,10 +38,10 @@ Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w7806 of 24,000 · GreatLakes w7584 of 24,000
 Endpoint 24001: EastIndies 79 off, 0 unlinked · GreatLakes 78 off, 2 unlinked
 
-**Opener: commander on Opus (DECISIONS 34), spawning — never working. 276
-is in flight (East Indies' 7806). Next is 284, Great Lakes' bird stand and
-the headline; then 285's city record, then 283's allocator. Score first,
-infrastructure behind it, Fable as needed — the order set with the user.**
+**Opener: commander on Opus (DECISIONS 34), spawning — never working. 284
+is in flight (Great Lakes' bird stand, the headline). The lane is free and
+286 is its next; then 285's city record, then 283's allocator. Score first,
+infrastructure behind — the order set with the user. Stopping rule at one.**
 
 ## The queue
 
@@ -48,14 +49,14 @@ In dependency order, headline-nearest first; **the headline is the long
 captures' word**, lower map first — Great Lakes. Take the first unstarted
 unless a better order is obvious, and say so. Numbers are stable.
 
-276. **East Indies' word has a shutdown dump above it already** — 7806 is
-    past run88's `[7474, 7800)` and this crate spends `Guy::set_anim+0x97a
-    < Guy::inc_time+0x271` at index 2 of 8 where the original spends
-    `< Unit::move_step+0x823`. **Grep before booking a screen**: run88's
-    `!quit` left a block at **7816**, ten frames above the word, carrying
-    `1/6` and `1/7` parting and never read as its residue. Falsified by
-    that block explaining the two; if it does not, the window is
-    `[7740, 7900)` at run88's detail, ~160 blocks, ~90 MB.
+286. **East Indies' word is the second stand, not the first** — 276 dated
+    it off the trace: `SITE_BLOCKED`/`SITE_PAUSE` over [7800, 7820] show
+    both sides making the **first** collision at 7802 and agreeing, then
+    the original standing at 7806 where this crate stands at 7807. `1/6`
+    pops its sidestep waypoint on f7804, turns without stepping on f7805,
+    and steps on f7806 — the frame the original is already blocked on. The
+    capture is `[7790, 7900)` at run88's detail, this crate's
+    collide/pause/wait rows written as predictions (COLLISION §8.5, §9).
 
 277. **An age gained through a cascade is unmodelled** — `Sim::gain_tech`
     reads the age gate off the type the call was made with, as the
