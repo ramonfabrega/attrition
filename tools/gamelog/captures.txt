@@ -1398,10 +1398,17 @@ why: Great Lakes' word parts at 6982 on a building this crate buys and the origi
 # that moves between the two stanzas, so `--exclude LEADERDATA` asks exactly
 # the right question — is everything the two runs record in common identical.
 # Checked before booking that the exclusion is enough: `LEADERS=9` does
-# **not** double the top-level object records (run80's block 23960 has 127
-# `UNITDATA` and 127 distinct `(who, o)`), so that stanza's "each object
-# twice" note is about stubs inside the census block, which the exclusion
-# removes with it.
+# **not** double the top-level object records, so run80's "each object twice"
+# note is about the *census block's own* nested records, which the exclusion
+# removes with it. **That first measurement was loose and is corrected here**
+# — the 127 it quoted was depth-2 `UNITDATA` (87) plus the `UNITDATA` nested
+# inside `ANIMALDATA` (40), two record kinds added together. Measured
+# properly by depth: run80's block 23960 has **87 depth-2 `UNITDATA`, 87
+# distinct `(who, o)`, none duplicated**, and at `LEADERS=9` each frame's
+# four `LEADERDATA` blocks gain `DIPLOMACY` x32, `MAKEOBJECT` x22, `SITE`
+# x20 and `PERSONALITY` x4 where at `LEADERS=1` they nest nothing at all.
+# The conclusion stands and this run's own check is the proof of it.
+# `docs/ORACLE.md`, run80, amended 2026-09-06.
 frames: 7045
 mapstyle: 14
 # run79's detail with LEADERS 1 -> 9, and nothing else moved.
@@ -1448,3 +1455,79 @@ check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|BEGIN MAKEOBJECT" "$HOME/ron-data/
 # none after, so the rebuild changes membership and not only price.
 # The type numbers are NOT named here; that needs rondata's type table.
 # `docs/ORACLE.md`, "run84 — the make-list across 6982".
+
+run: 85
+tag: eastindies-blockedstand
+item: 239
+why: East Indies' word parts at 7448 on a blocked stand, and that map has no dump within 3,200 frames of it
+# **The second of the two counters the finish line names, and the map that
+# has not moved all session.** At draw 30 of 7448 this crate spends
+# `Guy::set_anim+0x97a < Guy::inc_time+0x271` where the original spends
+# `Guy::set_anim+0x97a < Unit::move_step+0x823` — **twice** — which is the
+# original standing blocked where this crate steps an animation clock.
+# Item 236 closed the Great Lakes member of that family and it did **not**
+# move East Indies, so this is a second cause.
+#
+# **THE DISK WAS GREPPED FIRST**, every archive, for any block labelled
+# 7200–7699 on any map. Exactly one archive has any: **run79, and run79 is
+# Great Lakes**. East Indies' own coverage stops at run82's 6929 and does
+# not resume until run77's 10150, so 7448 sits in a **3,200-frame gap** with
+# no neighbour to anchor to — the run84 overlap trick has nothing to bite on
+# here, and that is a fact about this window rather than a choice.
+#
+# `GUYS=4` because the divergence is literally inside `Guy::set_anim`: that
+# detail is what carries `cur_anim`, `cur_time` and `end_time`, the three
+# fields run81 used to derive the merchant's cast length. `UNITS=3` carries
+# `collide`, `collide_o`, `collide_who` and `collide_frame`, which is what
+# names **which unit is blocked by what**. Eighty blocks puts 48 ahead of
+# the parting so the approach is on disk, not only the stand.
+frames: 7495
+mapstyle: 18
+end: MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,DEATHS=1,LEADERS=1
+frame_window: 7400 7480
+# cover=0 is not a choice on this machine — the `cover:` key's note above.
+cover: cover=0
+# run68/run81's East Indies floor: the start dump is 11,053,641 bytes at this
+# `start:` detail (run81 measured it) and does not grow until 7400.
+settle_min: 20000000
+# **Sized from the dumping.** run81 covered 6,730 frames of run-up in about
+# twenty seconds at `cover=0` and wrote 70 blocks at this exact detail for
+# 38 MB; 80 blocks is ~44 MB and two or three minutes. 60 polls is twenty
+# minutes. Not a 900.
+poll_max: 60
+# Same game: the trace word for word against run54, this map's own 24k run.
+check: python3 tools/gamelog/rngcmp.py rontrace-run54.log rontrace-run85.log
+# **The teeth: the window must actually contain a blocked stand, stamped in
+# the band the parting names.** Made to fail first, on real data, both ways.
+# `collide_frame` is a **permanent stamp** — run83 established that it is
+# never cleared, so half the AI's units carry stamps in the hundreds — which
+# means "some unit has a `collide_frame` in the band" passes vacuously; the
+# first draft of this line did, on run83's own window, for a band in which
+# nothing happened. What says a stand happened *here* is a **transition**,
+# and to a value inside the band. This line finds run83's `1/29`
+# (-1 -> 6892) and exits 0; on the same window with a band of 6700–6800 it
+# finds nothing and exits 1; and on run81's quiet merchant walk it finds no
+# transition at all and exits 1.
+check: python3 tools/gamelog/track.py UNITDATA collide_frame --frames 7400-7479 --file "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run85-eastindies-blockedstand.txt" | awk '{u=$4" "$5; split($NF,a,"="); v=a[2]+0; if((u in p)&&p[u]!=v&&v>=7430&&v<=7470){print "  stand: "u" collide_frame "p[u]" -> "v" at frame "$2; n++} p[u]=v} END{print "stands stamped in [7430,7470]: "n+0; exit !(n>0)}'
+# TAKEN 2026-09-06 — four minutes, 81 blocks, 54,102,982 bytes. Both checks
+# ok: rngcmp 7496/7496 identical against run54, and the teeth found
+# **exactly one** stand — `1/20`, `collide_frame` 6803 -> **7448**, in block
+# 7449.
+#
+# **The blocker is an ANIMAL, and the two draws are one per guy.** `1/20` is
+# a lone unit (`group -1`, `myspeed 23`) with **two** `BEGIN GUY` records,
+# walking SW at (-13,-19) a frame. On 7449 it is pushed back to (29256,
+# 24888), `collide_o 0` / `collide_who 8` — an `ANIMALDATA`, stationary at
+# (29304, 24696), `myhits 1` — and **both guys are set to `anim 0`,
+# `end_time` 60, `stopped 1`**. That is the pair of `Guy::set_anim` calls the
+# parting names; this crate reaches the same function from `Guy::inc_time`
+# and never makes the change. The 60-frame animation is discarded after one
+# frame (7450: both guys back on `anim 8`, 1/15), the unit then freezes for
+# three frames and slides west from 7454.
+#
+# Different from run83's Great Lakes stand in every part except the family:
+# there a **squad Archer** was blocked by a standing **citizen** and slid at
+# once; here a **lone unit** is blocked by an **animal** and freezes first.
+# Item 236 dissolved the squad behind the Great Lakes member and could not
+# have moved this one — there is no squad here.
+# `docs/ORACLE.md`, "run85 — East Indies' blocked stand at 7448".

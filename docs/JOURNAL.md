@@ -17207,3 +17207,55 @@ matches run53 for all 7,046 frames; the window query had matched a
 **concurrent repo worker's shell command**, whose gate line contains the
 string `riseofnations.exe`. Harmless here, and a future session reading that
 line as evidence the untraced binary launched would be wrong.
+
+## 2026-09-06 — East Indies' blocked stand is an animal, and the two draws are one per guy (capture lane, Opus)
+
+The second of the two counters the finish line names, and the map that had not
+moved all session. East Indies' word parts at 7448 on two `Guy::set_anim`
+draws — the original's under `Unit::move_step`, this crate's under
+`Guy::inc_time`. The disk refused completely before the booking: of every
+archive, exactly one holds any block labelled 7200–7699, and it is run79,
+which is **Great Lakes**. East Indies' coverage stops at run82's 6929 and
+resumes at run77's 10150, so 7448 sat in a 3,200-frame gap with no neighbour —
+the total-overlap check run84 introduced had nothing to bite on, which is a
+fact about the window rather than a choice.
+
+**The teeth check took two drafts, and the first would have passed
+vacuously.** `collide_frame` is a permanent stamp — run83 established that
+this morning — so "some unit carries a `collide_frame` in the band" is true of
+any window on this game, and the draft passed on run83's own window for a band
+in which nothing happened. What says a stand happened *here* is a
+**transition**, and to a value inside the band. Written that way it finds
+run83's `1/29` and exits 0, finds nothing for a band of 6700–6800 on the same
+window, and finds nothing at all on run81's quiet merchant walk. It is a small
+thing and it is exactly the shape a check has to be tested in both directions
+to get right — my own finding from four hours earlier was what made the first
+draft wrong.
+
+**What the capture caught.** One stand: `1/20`, `collide_frame` 6803 → 7448,
+in block 7449. The unit is a **lone** walker, `group -1`, with **two guys**;
+the blocker is `8/0`, an **`ANIMALDATA`** — a stationary animal with one hit
+point, parked at (29304, 24696) with its orders equal to its own position. On
+the blocked frame the original pushes the walker back and sets **both guys** to
+`anim 0`, `end_time 60`, `stopped 1`. That is the pair of `Guy::set_anim` calls
+the parting counts, one per guy, and this crate never makes them — it reaches
+the same function from the clock instead. The 60-frame animation is then
+discarded after a single frame, the unit freezes for three, and slides west
+from 7454.
+
+**And it is a different animal from Great Lakes, in every sense.** run83's
+stand was a squad Archer blocked by a standing citizen, sliding at once. This
+is a lone unit blocked by a beast, freezing first. Item 236 dissolved the squad
+behind the Great Lakes member and could not have moved this one, because there
+is no squad here — which is the answer to why closing one did not close the
+other, and it is now on disk rather than inferred.
+
+Two readings worth carrying: the two guys of one unit run **different**
+animations (8 and 9 before the block, 7 and 9 after), so one animation per
+*unit* is already wrong on this unit before any collision; and a "unit-level"
+`cur_anim` taken as the first occurrence of the key is really **guy 0's**.
+
+Unnamed here, and deliberately: what `1/20` is, what animations 0/7/8/9 are,
+why the 60-frame animation is discarded after one frame, and whether an animal
+in `collide_who` means the collision search treats animals as units or runs a
+separate pass. The dump shows the outcome, not the search.

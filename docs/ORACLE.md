@@ -4389,10 +4389,29 @@ screen's.
 
 **Two things the dump gave for free.** A `BEGIN GOOD` record names its
 resource, so any start dump lists the map's whole rare inventory without a
-lookup. And at `LEADERS=9` a frame block writes each object **twice** — the
-full record, then a seven-key stub of position alone — so a count taken off
-one such block is doubled; `births.py` is unaffected, the stub set being
-stable frame to frame, but a hand count is not.
+lookup. And at `LEADERS=9` a frame block carries more than the leaders: a
+hand count taken off one is easy to get wrong.
+
+> **Amended 2026-09-06 (capture lane, off run84's measurements).** The
+> sentence that stood here — "a frame block writes each object **twice**, the
+> full record then a seven-key stub of position alone" — is wrong in its
+> cause, and the caution it gave was right for the wrong reason. Measured on
+> this run's own block 23960: the depth-2 `UNITDATA` records are **87, with
+> 87 distinct `(who, o)` and none duplicated**, and the smallest is 90
+> fields. Nothing at the top level is written twice. What `LEADERS=9`
+> actually adds is **inside** the census block, which at `LEADERS=1` has no
+> nested records at all: each frame's four `LEADERDATA` blocks gain
+> `DIPLOMACY` x32, `MAKEOBJECT` x22, `SITE` x20 and `PERSONALITY` x4. And a
+> `BEGIN SITE` is **six** keys — `wx`, `wy`, `val`, `reg`, `dist`, `rank` —
+> a scored candidate site, not a position stub; there are ten per *in-game*
+> leader and none for the other two. So a naive `grep -c` over a whole block
+> can pick up census entries alongside objects, which is the real trap.
+>
+> **run84 is the proof, and it is stronger than any count.** Its
+> `samegame.py --exclude LEADERDATA` against run79 — the same game, the same
+> detail but `LEADERS=1` — is **80 blocks in common and 0 differing**. If
+> `LEADERS=9` doubled objects outside the census block, that check could not
+> have passed. `births.py` remains unaffected either way.
 
 **What it did not establish.** How much territory the gem adds. One frame
 cannot separate the flat additions from each other, and the falsifier is a
@@ -4730,6 +4749,85 @@ the trace word matches run53 for all 7,046 frames. The window query had
 matched a **concurrent repo worker's shell command**, which contained the
 string `riseofnations.exe` in its gate line. Cosmetic here; a future session
 reading that line as evidence the untraced binary launched would be wrong.
+
+## run85 — East Indies' blocked stand at 7448, and it is an animal (2026-09-06)
+
+**What it is.** run54's game, `[7400, 7480)` at run68/run81's East Indies
+detail — 81 blocks, **54 MB**, `cover=0`, four minutes. East Indies' word
+parts at 7448 on two `Guy::set_anim+0x97a` draws, the original's under
+`Unit::move_step+0x823` and this crate's under `Guy::inc_time+0x271`.
+
+**The disk was grepped first and refused completely.** Every archive, for any
+block labelled 7200–7699 on any map: **exactly one has any, and it is run79,
+which is Great Lakes**. East Indies' own coverage stops at run82's 6929 and
+does not resume until run77's 10150, so 7448 sat in a **3,200-frame gap**.
+There was no neighbour to anchor to, so run84's total-overlap check had
+nothing to bite on here — a fact about this window, not a choice.
+
+**Two checks.** `rngcmp.py rontrace-run54.log rontrace-run85.log` → **0
+differing, 7,496 identical**. And the teeth: exactly **one** `collide_frame`
+transition stamped in [7430, 7470] — `1/20`, **6803 → 7448, in block 7449**.
+
+> That check took two drafts and the first would have passed vacuously.
+> `collide_frame` is a **permanent stamp** (run83), so "some unit has a
+> `collide_frame` in the band" is true of any window on this game — the draft
+> passed on run83's own window for a band in which nothing happened. What says
+> a stand happened *here* is a **transition**, and to a value inside the band.
+> The final form finds run83's `1/29` and exits 0, finds nothing on the same
+> window with a band of 6700–6800, and finds nothing at all on run81's quiet
+> merchant walk.
+
+**The event, frame by frame.** `1/20` is a lone unit — `group -1`, `myspeed
+23` — walking south-west at (−13, −19) a frame, and it has **two guys**:
+
+| block | position | `collide` / `collide_o` / `collide_who` | guy 0 | guy 1 |
+| --- | --- | --- | --- | --- |
+| 7448 | (29242, 24876) | 0 / −1 / −1 | anim **8**, 14/15 | anim **9**, 14/15 |
+| **7449** | **(29256, 24888)** — back | **1 / 0 / 8** | **anim 0, 1/60, stopped** | **anim 0, 1/60, stopped** |
+| 7450 | frozen | 1 / −1 / −1 | anim 8, 1/15 | anim 8, 1/15 |
+| 7451–7453 | frozen | 1 / −1 / −1 | anim 7, 1/15 | anim 8, 2→3/15 |
+| 7454 | (29233, 24888) | 1 / −1 / −1 | anim 7, 2/15 | anim 9, 5/15 |
+| 7455–7458 | west, y pinned | 0 / −1 / −1 | anim 7 | anim 9 |
+
+**The two draws are one per guy.** On 7449 the original sets **both** of
+`1/20`'s guys to `anim 0`, `end_time` **60**, `stopped 1` — two
+`Guy::set_anim` calls on the blocked frame, from `Unit::move_step`, which is
+exactly the pair the parting names. This crate reaches `Guy::set_anim` from
+`Guy::inc_time` instead: it advances the clock and never makes the blocked-step
+animation change at all. The 60-frame animation is then **replaced after a
+single frame** — 7450 has both guys back on `anim 8`, `1/15`.
+
+**The blocker is an animal, and that is the difference from Great Lakes.**
+`collide_o 0`, `collide_who 8` is `8/0`, an **`ANIMALDATA`** record: `myhits
+1`, `myspeed 19`, stationary at **(29304, 24696)** with `orders_x/y` equal to
+its own position for every block of the window. One tile south of the walker's
+line. Set against run83's stand on the other map:
+
+| | Great Lakes 6892 | East Indies 7448 |
+| --- | --- | --- |
+| walker | `1/29`, Archer, `group 64` | `1/20`, **lone**, `group -1` |
+| blocker | standing **citizen** `1/17` | stationary **animal** `8/0` |
+| response | pushed back, then slides at once | pushed back, **three frames frozen** on a changed animation, then slides |
+| animation | (not dumped — run83 was `GUYS=2`) | both guys to `anim 0`/60, then 8, then 7 and 9 |
+
+Same family — a step refused by a stationary obstacle — and a different
+obstacle class, a different unit shape and a different recovery. Item 236
+dissolved the squad that caused Great Lakes' member and did not move East
+Indies; `1/20` is `group -1`, so there was never a squad here to dissolve.
+
+**Two things worth carrying.** The two guys of one unit run **different
+animations** — `anim 8` and `anim 9` before the block, `anim 7` and `anim 9`
+after — so anything that keeps one animation per *unit* is already wrong on
+this unit before the collision is reached. And a record's "unit-level"
+`cur_anim` read by taking the first occurrence of the key is really **guy 0's**;
+the second guy's is a separate `BEGIN GUY` further down.
+
+**What it does not establish.** What `1/20` is — its type is unnamed here, as
+420 and 428 were in run84, and naming it needs `rondata`'s type table. What
+animations 0, 7, 8 and 9 are. Why the 60-frame animation is discarded after
+one frame. And whether `collide_o`/`collide_who` naming an animal means the
+collision test treats animals as units or as a separate pass — the dump shows
+the outcome, not the search.
 
 ## The window nobody can see — CrossOver's expired bottle (2026-09-04)
 
