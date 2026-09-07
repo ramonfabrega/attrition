@@ -359,6 +359,95 @@ that closed a loop would run the stack out; `crates/sim` refuses to re-enter a
 good already on the recursion stack, which is exact for the shipped table and
 terminates for any other.
 
+### The starting grant arrives with the good
+
+The same three goods that are unavailable in the Ancient Age are also
+**unpaid** there. The opening stockpile is not `STARTING_GOODS` handed out six
+times at setup: each good is paid the moment it becomes available, which for
+knowledge and metal is the Classical Age and for oil the Industrial one. A
+leader in the Ancient Age holds **0 knowledge, 0 metal and 0 oil**.
+
+Two functions share the rule.
+
+**`Leader::init@006e3930`, its last loop.** Over the six goods: zero the
+bucket, then `if type_avail(g, 1) != 0: bucket_add(g, game->starting[g])`.
+`type_avail` for a good is `has_preq` alone (`docs/TECH.md`), so what gets paid
+at setup is exactly what the starting age has already unlocked — food, timber
+and wealth from a standard Ancient start, and also any good a nation power
+waives the prerequisite for, since those waivers are inside `has_preq`: the
+Germans' metal (`GERMAN_METAL_EARLY`) and the Greeks' knowledge
+(`GREEK_KNOWLEDGE_EARLY`) are paid here rather than at their age.
+
+Two nation terms ride in the same loop. The **Persians** scale the food grant
+by `(PERSIANS_BONUS_FOOD + 100) / 100`; the file writes `50%` and the engine
+reads the face value, so it is one and a half. The **Greeks**, under
+`GREEK_DELAY_KNOWLEDGE`, have the knowledge grant they were just paid written
+straight back to zero.
+
+**`Leader::gain_tech@006dcb60`, its goods loop.** On every gain, over the six
+goods, pay `bucket_add(g, game->starting[g])` for one that passes a **two-part
+gate**:
+
+- the leader did **not** hold `has_preq(g)` before this call. The six flags are
+  read into a stack array at line 297, *ahead* of `BitMask::set` putting the
+  bit in — so a re-gain of a tech already owned pays nothing, and so does the
+  age of a good a nation power already waived the prerequisite for; and
+- `goodtypes[g] + 0x30` **is the tech just gained**. `+0x30` is
+  `TypeData::preq[0]`, the good's **first** prerequisite, read raw off the type
+  record rather than through `TypeData::get_preq`'s lobby and nation
+  substitutions.
+
+At the foot of the loop sits the Greeks' compensation: on `BASE_AGETYPES` —
+`0x220`, the Classical Age — a Greek leader with `GREEK_DELAY_KNOWLEDGE` is
+paid the knowledge grant that `Leader::init` took off them.
+
+**The predicate is `has_preq`, not the bucket.** An earlier draft of this
+document, and `docs/audit/2026-09-05-economy-vs-code.md` R19 quoting it, said
+the gate was "whose bucket is zero". The stack array the loop tests is
+`local_4c[g] = has_preq(g) != 0`, filled at line 297 and addressed as
+`auStackY_64c + 0x600 + 4g` — the same slot, 0x64c − 0x4c = 0x600. Nothing
+reads the bucket. The two readings agree on every case a stock game reaches,
+because a good's bucket is zero exactly while its prerequisite is missing; they
+part on a modded good whose `<OBS>` fires, and on any path that would credit an
+unavailable good.
+
+**The amount, `game->starting[g]`.** Both callers scale it the same three
+ways: `(starting_resources2 + 1) x base` for team 0 under `GAME_RULES == 8`,
+`base x ctw_nomad_starting_res_x` for a Conquer-the-World nomad, and `base`
+otherwise; and both then *assign* 99,999 — the masked `0x104be` — when the
+lobby is `STARTING_RESOURCES == 8`. The array itself is
+`Game::init_starting_resources@0058a500`, written out in `docs/ORDERS.md`
+§9.4: the lobby's `starting_resources` row gives a `lo`/`hi` pair, `lo == 0`
+halves `STARTING_GOODS`, and a row with a spread draws `rand % (span x base)`
+per good from the sync stream.
+
+**Row 1 pays the constant unscaled**, and row 1 is what every capture on disk
+plays — `STARTING_RESOURCES 1` in every one of the 350 `GAMEINFO` blocks
+across the kept dumps (`$RON_GAMELOG_DIR`). That is not read out of the `lo`/`hi` table, which nobody has
+found; it is measured, by forty frames of run40's food, timber and wealth
+agreeing exactly with a crate that opens at `[200, 200, 100]`. Half of that, or
+a draw, would put every later frame out by a hundred.
+
+**The loop that follows it, and is not implemented.** Straight after the
+grant, `Leader::gain_tech` walks the six goods again for one whose
+`goodtypes[g] + 0x4c` — `TypeData::obs`, the tech that *obsoletes* it — is the
+tech just gained, and, **skipping wealth and knowledge by index**, sells it
+down: `while bucket[g] > 100: action_sell(g, 0)`. It is the liquidation half
+of §The redirect's obsolete table and it is dead for the same reason — every
+resource's `<OBS>` ships as `disable` — so it is recorded rather than built.
+The hard-coded `g != 2 && g != 3` is the interesting part: wealth cannot be
+sold for wealth, and knowledge is not tradeable at all.
+
+**What this crate does.** `Sim::lay_starting_goods` is the `Leader::init` half
+and runs from `Sim::start_techs`, which is where the nation and the lobby are
+known; it *assigns*, so the harness re-laying the opening tech set re-lays the
+opening bucket with it. `Sim::pay_arriving_goods` is the `gain_tech` half and
+runs on every `Sim::gain_tech`, over the events the cascade returned, against
+a `has_preq` snapshot taken before the tree moved. Both take the amount from
+`Sim::starting_good`, which models the `GAME_RULES == 8` and unlimited arms and
+takes row 1's unscaled constant for everything else. The Conquer-the-World arm
+is cut from v1.
+
 ## The discounts
 
 Around the ramp sits a tail of about forty adjustments, and with three
@@ -759,8 +848,11 @@ budget is wasted:
 - **Every good either player holds, and its accumulator**, over the whole of
   run40's window: `bucket`, `leftover`, `resources`, `income`,
   `resource_cap` and `gather_slots` on all six goods, forty frames, both
-  players — 2,880 good-frames, of which 560 disagree and every one of them
+  players — 2,880 good-frames, of which 120 disagree and every one of them
   is a *standing* state named below rather than anything the window does.
+  run59 is the same six fields over the East Indies window `[5150, 5400)` —
+  18,000 good-frames — and since 2026-09-06 **every one of them is the
+  original's**.
   ~~The AI's food is thirty-two short on every one of them.~~ Closed
   2026-08-30 by `Build::refund_cost` (§Paying) and `Build::do_bonus`
   (`docs/ECONOMY.md`): twelve and twenty.
@@ -770,9 +862,21 @@ budget is wasted:
   the AI's `bucket` and the original's over the window, and as the frame the
   trace first enters `Build::refund_cost@00620490` — 201, one before the
   dump's own.
-- **Knowledge, oil and wealth**: the original holds **0** and this crate
-  **100**, both players, every frame. Inert while none of the three is
-  available (an unavailable good is never charged) and booked in the queue.
+- ~~**Knowledge, oil and wealth**: the original holds **0** and this crate
+  **100**, both players, every frame.~~ Closed 2026-09-06 by §The starting
+  grant arrives with the good. The **`Leader::init` half is diff-backed
+  twice**: run40's forty frames (240 rows) and run59's two hundred and fifty
+  (1,500), both players, on knowledge, metal and oil — and the same forty
+  and two hundred and fifty frames of food, timber and wealth are what say
+  the grant that *is* paid is paid at the unscaled constant.
+
+  **The `gain_tech` half is not diff-backed, and no capture on disk can back
+  it**: neither player leaves the Ancient age in any of them, so knowledge,
+  metal and oil are 0 on every frame of every dump — run60's 5,400 frames,
+  read good by good, have a maximum of zero in all three. *The capture that
+  would settle it:* a game carried to the Classical Age with `LEADERS=9`
+  over the frames either side of it, where the two buckets step 0 → 100 on
+  the age's own frame; the census tests would compare it unchanged.
 - **The AI's `resource_cap`** is 1392 against this crate's 1120 on every
   frame and every capped good, which is `BRITISH_COMMERCE` on a nation this
   harness never sets (`docs/ECONOMY.md`, "The commerce cap"). Inert, and
@@ -837,19 +941,19 @@ a capture has one.
   `Leader::gain_tech` grants prerequisites and auto-types on its own account,
   and whether those re-enter it — and so re-price the library a second time
   in a frame — is unread. No traced game reaches a Science epoch by cascade.
-- **The starting grant of an unavailable good.** `Leader::init@006e3930`
-  zeroes all six resources, and `Leader::gain_tech@006dcb60` walks the six on
-  every gain: for one whose bucket is zero and whose `goodtypes[g] + 0x30`
-  prerequisite is the tech just gained it calls `bucket_add(g,
-  game->starting[g])`, scaled by the lobby's starting-resources setting and
-  by `ctw_nomad_starting_res_x` in Conquer the World. So **`STARTING_GOODS`
-  arrives with the age, not at init**, and the original holds 0 knowledge, 0
-  metal and 0 oil through the Ancient age where this crate holds a hundred of
-  each — the 240 rows `run40_s_census_…` books. What is *not* read is where
-  the three that need no age (food, timber, wealth) are paid, since that loop
-  cannot pay them; `Game::init_starting_resources@0058a500` only computes
-  `game->starting[]`. Inert while the good is unavailable: nothing accrues
-  into it and nothing is charged from it.
+- ~~**The starting grant of an unavailable good.**~~ **Closed**, and
+  implemented: see §The starting grant arrives with the good. The three that
+  need no age are paid by `Leader::init`'s own loop, which zeroes each bucket
+  and then pays the good back if `type_avail(g, 1)` already holds — the half
+  the first reading missed. The gate on the `gain_tech` half is `has_preq`
+  before the gain, **not** a zero bucket. run40's 240 `bucket` rows on goods
+  3, 4 and 5 are 0.
+
+  What is still unread is the `lo`/`hi` table
+  `Game::init_starting_resources@0058a500` indexes with the lobby's
+  `starting_resources`. Only row 1 is modelled, and only because every
+  capture on disk plays it and run40 measures it as the unscaled constant; a
+  capture on any other row would be the first to test the rest.
 - **What writes `escrow_rate`.**
 - **Whether the maximum in `can_pay_cost` is visible in play**, which needs
   phase 2.

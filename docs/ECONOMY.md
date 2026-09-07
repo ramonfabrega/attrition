@@ -442,14 +442,16 @@ twenty-four rows of `1/2005 queued ours 0 theirs 1` in
 `diff::tests::run58_s_five_thousand_frames…` are what that was, and they are
 gone.
 
-**What this does not close.** A leader still *starts* with a hundred of each
-of the three, where the original starts with none: `Leader::gain_tech@
-006dcb60` walks the six goods on every gain and, for one whose bucket is zero
-and whose `goodtypes[g] + 0x30` prerequisite is the tech just gained, calls
-`bucket_add(g, game->starting[g])` — the starting grant arrives **with the
-age**, not at `Leader::init`, which zeroes all six. It is inert while the
-good is unavailable (nothing accrues into it and nothing is charged from it)
-and it is the 240 rows `run40_s_census_…` books.
+~~**What this does not close.** A leader still *starts* with a hundred of each
+of the three, where the original starts with none.~~ **Closed** (2026-09-06):
+the starting grant arrives **with the good**, and this crate pays it that way.
+`Leader::init@006e3930` zeroes each bucket and pays it back only if
+`type_avail(g, 1)` already holds, and `Leader::gain_tech@006dcb60` pays a good
+whose **first** prerequisite is the tech just gained and which the leader did
+not hold `has_preq` for before the call — the gate is `has_preq`, not the zero
+bucket the earlier draft named. `docs/COSTS.md`, "The starting grant arrives
+with the good", writes out both halves, the nation terms that ride in the
+first, and the amount. The 240 rows `run40_s_census_…` booked are 0.
 
 ## The rares a leader has seen (2026-09-02)
 

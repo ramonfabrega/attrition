@@ -1285,3 +1285,83 @@ check: python3 tools/gamelog/track.py UNITDATA unit_masks --where who=1,o=19 --f
 # plus `rares_collected[20]` on the leader. 14 of 11,796 leader fields move
 # and the 66 `BEGIN GOOD` records do not move at all.
 # `docs/ORACLE.md`, "run82 — the merchant unpacks".
+
+run: 83
+tag: greatlakes-wordwindow
+item: 236
+why: the last Great Lakes hole — blocks 6870–6909 exist in no archive, so forty frames of the run-up to the word have had no record compared at all
+# **The reason this was booked changed while it was being written, and it
+# survives the change.** It was booked because Great Lakes' word stood at
+# 6862 and the next divergence looked likely to land in the gap; the word
+# then moved to **6982** (`loop-236`: the original ungroups the Archer squad
+# on 6861), which run79's `[6910, 7250)` already covers. So this is no longer
+# the headline's oracle and it moves no score.
+#
+# What it is instead: **the only stretch of either map's run-up whose
+# lockstep rests on the draw stream alone.** `rngcmp.py` compares the LCG
+# word, which is a strong signal and is not state. Over 6870–6909 no record
+# of any kind has ever been compared, so "in lockstep to 6982" is, for forty
+# of those frames, unaudited rather than checked. The file's own rule is the
+# argument — nine tenths of a dumped record once went uncompared for a month
+# and the first widening failed on its first run — and a state divergence
+# that does not perturb draws for seventy frames would be attributed to the
+# economy at 6982 by everyone who looked.
+#
+# **THE DISK WAS GREPPED FIRST**, every archive, for any block labelled
+# 6850–6930 on any map at any detail. Four have one. run79 holds 6910 up;
+# run82 is East Indies; run76 holds 6850–6869 and stops. The one candidate
+# was **run16** (`gamelog-run16-attrition.txt`, MAP_STYLE 14, seed 12345,
+# blocks 1–6872) — which does hold **6870, 6871 and 6872**, three of the
+# forty. It is not this game: `samegame.py` against run76 is **230 of 230
+# common frames differing**, because run16 is the cheat-driven attrition run
+# (`docs/ORACLE.md`, "The attrition run") and diverges from its first `peace`
+# at label 341; its detail is thinner too (`BUILDS=1 CITIES=1 GUYS=1`
+# against 7/5/2). So the hole is 6870–6909 entire.
+#
+# **There is a known event inside it.** `1/29`'s `collide_frame` is -1 on
+# run76's last block 6869 and **6892** on run79's first block 6910, so the
+# original blocks that Archer's step on frame 6892 and no dump holds it.
+# `1/27` and `1/28` keep 6861 and 6862 across the gap, and `1/13` — the
+# standing citizen the squad walks into — is static at (42744, 24504),
+# `form 9`, on both sides.
+frames: 6930
+mapstyle: 14
+# run76's and run79's detail exactly, unchanged: `UNITS=3` is what carries
+# the squad's and `1/13`'s whole record, which is what a diff here reads.
+end: MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,DEATHS=1,LEADERS=1
+# 6864–6915: the forty-frame hole plus six blocks of overlap at each end.
+frame_window: 6864 6916
+# cover=0 is not a choice on this machine — the `cover:` key's note above.
+cover: cover=0
+# run76/run79/run80's Great Lakes floor: the start dump is 10.9 MB at this
+# `start:` detail and the log does not grow until 6864.
+settle_min: 14000000
+# **Sized from the dumping.** run79 covered 6,910 frames of run-up in fifty
+# seconds at `cover=0` and dumped 340 blocks in three minutes; this is the
+# same run-up and **52** blocks, so about thirty seconds of dumping. 60
+# polls is twenty minutes, which is margin, not a 900.
+poll_max: 60
+# Same game: the trace word for word against run53, this map's own 24k run.
+check: python3 tools/gamelog/rngcmp.py rontrace-run53.log rontrace-run83.log
+# **The overlap, which is the check with teeth, and the reason the window is
+# twelve blocks wider than the hole.** `samegame.py` exits 0 when nothing
+# differs — **including when nothing is in common**, which is a vacuous
+# pass — so each of these asserts the common count and its exact range as
+# well as the verdict, and `pipefail` carries samegame's own exit through
+# the pipe. Six blocks each way, named. This is the claim the `rngcmp.py`
+# line cannot make: the word is the LCG, not the state.
+check: python3 tools/gamelog/samegame.py gamelog-run76-greatlakes-archermarch.txt gamelog-run83-greatlakes-wordwindow.txt | tee /dev/stderr | grep -qF "6 in common (6864..6869)"
+check: python3 tools/gamelog/samegame.py gamelog-run79-greatlakes-secondsquad.txt gamelog-run83-greatlakes-wordwindow.txt | tee /dev/stderr | grep -qF "6 in common (6910..6915)"
+# TAKEN 2026-09-06 — four minutes, 53 blocks, 22,451,274 bytes. All three
+# checks ok: rngcmp 6931/6931 identical against run53, and **both overlaps
+# 6 in common, 0 differing** — a state digest against each neighbour, which
+# is what the word check cannot give. The hole holds one blocked stand and
+# nothing else: no unit born, none dead, 77 units on all 53 blocks. `1/29`
+# is blocked on sim-frame 6892 by the **standing citizen `1/17`** at
+# (42360, 23736), and the shape is a **deflection, not a stop** — pushed
+# back one step on 6893, then five frames sliding at -26 in x with y pinned
+# at 23880, `idle` 0 throughout, diagonal resumed on 6899. Field lifetimes
+# differ three ways: `collide_o`/`collide_who` name the blocker for exactly
+# one block, `collide` latches for six, `collide_frame` keeps the stamp for
+# ever. Five new orders (`1/5` 6865, `1/15` 6871, `0/5` 6875, `0/4` 6891,
+# `1/17` 6907). `docs/ORACLE.md`, "run83 — the last Great Lakes hole".

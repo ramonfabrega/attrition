@@ -2250,7 +2250,107 @@ impl Sim {
             .tech_tree
             .start(&self.setup, &self.tuning, &mut self.tech[who as usize]);
         self.apply_gained(who);
+        self.lay_starting_goods(who);
         events
+    }
+
+    /// `Leader::init@006e3930`'s last loop: the opening stockpile.
+    ///
+    /// The loop **zeroes all six buckets and then pays only the goods that
+    /// are already available** — `type_avail(g, 1) != 0`, which for a good
+    /// is `has_preq` alone (`docs/TECH.md`, "Two questions this answers").
+    /// In the Ancient age that is food, timber and wealth; knowledge and
+    /// metal wait for the Classical age and oil for the Industrial one, and
+    /// each is paid the moment its age arrives — [`Sim::gain_tech`]'s half
+    /// of the same rule. `docs/COSTS.md`, "The starting grant arrives with
+    /// the good".
+    ///
+    /// Two nation terms ride in the same loop: the **Persians** scale the
+    /// food grant by `(PERSIANS_BONUS_FOOD + 100) / 100`, and the
+    /// **Greeks** — who hold knowledge from frame 0 through
+    /// `GREEK_KNOWLEDGE_EARLY`, and so are paid here — have it taken
+    /// straight back off them by `GREEK_DELAY_KNOWLEDGE` and re-granted at
+    /// the Classical age.
+    ///
+    /// It **assigns**, so re-laying it is what the original's single call
+    /// does: a leader whose nation or lobby is only known after the first
+    /// `start_techs` gets the opening bucket laid down again, exactly as
+    /// the harness re-lays the opening tech set.
+    pub fn lay_starting_goods(&mut self, who: Player) {
+        let w = who as usize;
+        let greek = self
+            .tech_tree
+            .has_tribe_bonus(&self.setup, &self.tech[w], 5)
+            && self.tuning.greek_delay_knowledge != 0;
+        let persian = self
+            .tech_tree
+            .has_tribe_bonus(&self.setup, &self.tech[w], 23);
+        for g in 0..economy::RESOURCES {
+            let amount = match self.good_tree_type(g) {
+                // Without a tree there is no availability to test, and the
+                // convention the rest of the simulation keeps
+                // ([`economy::Holdings::new`]) is that everything is
+                // available.
+                None => self.starting_good(who, g),
+                Some(t) if self.type_avail(who, t) != tech::NOT_AVAILABLE => {
+                    self.starting_good(who, g)
+                }
+                Some(_) => 0,
+            };
+            let amount = match g {
+                0 if persian => amount * (self.tuning.persians_bonus_food + 100) / 100,
+                3 if greek => 0,
+                _ => amount,
+            };
+            self.ledgers[w].bucket[g] = amount;
+        }
+        self.ledgers[w].dirty = true;
+    }
+
+    /// `game->starting[g]` as one leader is paid it — the amount both
+    /// `Leader::init@006e3930` and `Leader::gain_tech@006dcb60` hand to
+    /// `bucket_add`, under the same three-armed scale.
+    ///
+    /// `Game::init_starting_resources@0058a500` fills the array before the
+    /// first frame: the lobby's `STARTING_RESOURCES` row gives a `lo`/`hi`
+    /// pair, `lo == 0` halves `STARTING_GOODS`, and a row with a spread
+    /// draws `rand % (span x base)` per good from the sync stream
+    /// (`docs/ORDERS.md` §9.4). **Only row 1 is modelled**, and it is the
+    /// row every capture on disk plays — `STARTING_RESOURCES 1` in every
+    /// one of the 350 `GAMEINFO` blocks across the kept dumps — where the
+    /// constant is
+    /// paid unscaled; run40's forty frames of food, timber and wealth are
+    /// what confirm the row pays `base`. The `lo`/`hi` table itself is
+    /// unread. Row 8, the unlimited lobby, is the one other arm that is
+    /// read, and both callers *assign* 99,999 after the add.
+    ///
+    /// Conquer the World's `ctw_nomad_starting_res_x` is the third arm and
+    /// is cut from v1.
+    fn starting_good(&self, who: Player, g: usize) -> i32 {
+        if self.lobby.resources_unlimited() {
+            return economy::UNLIMITED_GOODS;
+        }
+        let base = self.tuning.starting_goods[g];
+        // Barbarians at the Gates pays the defending team the *other* row's
+        // index as a multiplier, which is what both callers write.
+        if self.lobby.game_rules == 8 && self.tech[who as usize].team == 0 {
+            return (self.lobby.starting_resources2 + 1) * base;
+        }
+        base
+    }
+
+    /// The tree entry of basic good `g`, if the tree has one: the goods come
+    /// out of `resourcerules.xml` in order and the first six are
+    /// [`economy::Resource`]'s own.
+    fn good_tree_type(&self, g: usize) -> Option<tech::TypeId> {
+        self.tech_tree
+            .types
+            .iter()
+            .enumerate()
+            .filter(|(_, d)| matches!(d.kind, tech::Kind::Good))
+            .map(|(i, _)| i)
+            .nth(g)
+            .filter(|_| g < economy::RESOURCES)
     }
 
     /// `Leader::gain_tech`, as far as the simulation acts on it: the tree's
@@ -2264,9 +2364,20 @@ impl Sim {
         // it is about to raise: a Science level re-prices every technology
         // waiting in the player's first library.
         self.reprice_library(who, t);
+        // And `has_preq` on the six goods, read into a stack array at line
+        // 297 — *before* the bit is set, which is what makes the grant
+        // below fire once and only for a good the leader did not already
+        // hold the prerequisite for.
+        let had_preq: [bool; economy::RESOURCES] = std::array::from_fn(|g| {
+            self.good_tree_type(g).is_some_and(|x| {
+                self.tech_tree
+                    .has_preq(&self.setup, &self.tech[who as usize], x)
+            })
+        });
         let events = self
             .tech_tree
             .gain_tech(&self.setup, &mut self.tech[who as usize], t, frame);
+        self.pay_arriving_goods(who, &had_preq, &events);
         // Step 7's **object** half, in the order the cascade set the bits:
         // every standing unit of the line converts in place.
         for e in &events {
@@ -2279,6 +2390,67 @@ impl Sim {
         // §4).
         self.check_transport(who);
         events
+    }
+
+    /// `Leader::gain_tech@006dcb60`'s goods loop: **the starting grant
+    /// arrives with the good, not at `Leader::init`.**
+    ///
+    /// The original walks the six basic goods on every gain and pays
+    /// `bucket_add(g, game->starting[g])` for one that passes both halves
+    /// of a two-part gate:
+    ///
+    /// - the leader did **not** hold `has_preq(g)` before this call — the
+    ///   stack array read at line 297, ahead of the bit — which is what
+    ///   stops a re-gain of a tech already owned from paying twice; and
+    /// - `goodtypes[g] + 0x30` — `TypeData::preq[0]`, the good's **first**
+    ///   prerequisite, read raw off the type record rather than through
+    ///   `get_preq`'s substitutions — **is the tech just gained**.
+    ///
+    /// So knowledge and metal are paid as the Classical age lands and oil
+    /// as the Industrial one does, and a nation that holds a good early
+    /// through a `has_preq` waiver — the Germans' metal, the Greeks'
+    /// knowledge — fails the first half here and was paid at
+    /// [`Sim::lay_starting_goods`] instead. The Greeks are the one case
+    /// where both halves miss, because `GREEK_DELAY_KNOWLEDGE` takes the
+    /// init grant back off them; the original's own branch at the foot of
+    /// the loop re-grants it on the Classical age, and that is the
+    /// `greek` arm below.
+    ///
+    /// `docs/COSTS.md`, "The starting grant arrives with the good".
+    fn pay_arriving_goods(
+        &mut self,
+        who: Player,
+        had_preq: &[bool; economy::RESOURCES],
+        events: &[tech::Gained],
+    ) {
+        let w = who as usize;
+        let greek = self
+            .tech_tree
+            .has_tribe_bonus(&self.setup, &self.tech[w], 5)
+            && self.tuning.greek_delay_knowledge != 0;
+        for e in events {
+            let tech::Gained::Type(x) = *e else { continue };
+            for (g, &held) in had_preq.iter().enumerate() {
+                if held {
+                    continue;
+                }
+                let Some(id) = self.good_tree_type(g) else {
+                    continue;
+                };
+                if self.tech_tree.types[id].preq[0] != tech::Preq::Of(x) {
+                    continue;
+                }
+                let amount = self.starting_good(who, g);
+                self.ledgers[w].bucket[g] += amount;
+                self.ledgers[w].dirty = true;
+            }
+            // The Greeks' delayed knowledge, re-granted on the first age.
+            if greek && matches!(self.tech_tree.kind(x), tech::Kind::Age(0)) {
+                let amount = self.starting_good(who, 3);
+                self.ledgers[w].bucket[3] += amount;
+                self.ledgers[w].dirty = true;
+            }
+        }
     }
 
     /// `Leader::gain_tech`'s refund pass: gaining a **Science** library tech
