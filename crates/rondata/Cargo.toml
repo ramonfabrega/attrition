@@ -16,12 +16,9 @@ roxmltree = "0.21"
 # the only thing that stops them going quietly stale.
 sim = { path = "../sim" }
 
-# The workspace forbids `unsafe`, and `crates/sim` and `crates/fixed` keep
-# that — the simulation is the thing that must be provably plain. This
-# crate is the host-side reader, and item 260's answer is a **memory-mapped
-# capture**: a mapping cannot be made in safe Rust, by anyone, and no crate
-# hides it (`memmap2::Mmap::map` is itself an `unsafe fn`). So the ban stays
-# on by default here and `src/mapped.rs` — the one module whose whole job is
-# the mapping — turns it off for itself.
-[lints.rust]
-unsafe_code = "deny"
+# The workspace forbids `unsafe`, and this crate is under it like every
+# other — item 280. Item 260 took it down to `deny` with one module
+# exempt, for a memory-mapped capture; `src/capture.rs` says why that was
+# a bad trade and `docs/DECISIONS.md` 35 records the rule that stands.
+[lints]
+workspace = true

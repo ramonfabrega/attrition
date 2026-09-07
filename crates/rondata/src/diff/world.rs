@@ -26,7 +26,7 @@ mod tests {
             return;
         };
         let loaded = crate::load::load(&inst).unwrap();
-        let text = crate::mapped::read(&path);
+        let text = crate::capture::read(&path);
         let log = Log::parse(&text);
         let built = build_sim(&loaded, &log.initial().unwrap(), Tuning::RON);
         assert_eq!(built.sim.world.width(), 60);
@@ -87,7 +87,7 @@ mod tests {
             return;
         };
         let loaded = crate::load::load(&inst).unwrap();
-        let text = crate::mapped::read(&path);
+        let text = crate::capture::read(&path);
         let log = Log::parse(&text);
         let mut init = log.initial().unwrap();
 
@@ -237,7 +237,7 @@ mod tests {
             return;
         };
         let loaded = crate::load::load(&inst).unwrap();
-        let text = crate::mapped::read(&path);
+        let text = crate::capture::read(&path);
         let log = Log::parse(&text);
         let init = log.initial().unwrap();
         let mut built = build_sim(&loaded, &init, Tuning::RON);
@@ -407,7 +407,7 @@ mod tests {
             return;
         };
         let loaded = crate::load::load(&inst).unwrap();
-        let text = crate::mapped::read(&path);
+        let text = crate::capture::read(&path);
         let log = Log::parse(&text);
         let init = log.initial().unwrap();
         let mut built = build_sim(&loaded, &init, Tuning::RON);
@@ -474,7 +474,7 @@ mod tests {
             return;
         };
         let loaded = crate::load::load(&inst).unwrap();
-        let text = crate::mapped::read(&path);
+        let text = crate::capture::read(&path);
         let log = Log::parse(&text);
         let init = log.initial().unwrap();
         let mut built = build_sim(&loaded, &init, Tuning::RON);
@@ -594,7 +594,7 @@ mod tests {
             "gamelog-run9-world6.txt",
         ] {
             let Some(path) = dump(name) else { continue };
-            let text = crate::mapped::read(&path);
+            let text = crate::capture::read(&path);
             let log = Log::parse(&text);
             let Some(init) = log.initial() else { continue };
             let tiles = crate::gamelog::world_tiles(&init.world);
@@ -720,7 +720,7 @@ mod tests {
         };
         let loaded = crate::load::load(&inst).unwrap();
         let texts = sibling_texts();
-        let text = crate::mapped::read(&path);
+        let text = crate::capture::read(&path);
         let log = Log::parse(&text);
         let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
         let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
@@ -810,7 +810,7 @@ mod tests {
             return;
         };
         let loaded = crate::load::load(&inst).unwrap();
-        let (t32, t13) = (crate::mapped::read(&r32), crate::mapped::read(&r13));
+        let (t32, t13) = (crate::capture::read(&r32), crate::capture::read(&r13));
         let (l32, l13) = (Log::parse(&t32), Log::parse(&t13));
 
         let world_at = |log: &Log, n: i64, heights: &[i64]| -> World {
@@ -1009,7 +1009,7 @@ mod tests {
             return;
         };
         let loaded = crate::load::load(&inst).unwrap();
-        let text = crate::mapped::read(&r32);
+        let text = crate::capture::read(&r32);
         let log = Log::parse(&text);
         const COST: u32 = 0x0068_6346;
         let roads = |w: &World| -> std::collections::BTreeSet<(i32, i32)> {
@@ -1125,7 +1125,7 @@ mod tests {
         };
         let loaded = crate::load::load(&inst).unwrap();
         let texts = sibling_texts();
-        let text = crate::mapped::read(&path);
+        let text = crate::capture::read(&path);
         let log = Log::parse(&text);
         let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
         let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
@@ -1136,7 +1136,7 @@ mod tests {
         // Every frame either capture dumps the list on, by frame number.
         // A `FRAME n` block's `FULL DUMP` is the state after `n` ticks —
         // the same alignment `run13_s_world_at_frame_95…` stands on.
-        let (t12, t13) = (crate::mapped::read(&r12), crate::mapped::read(&r13));
+        let (t12, t13) = (crate::capture::read(&r12), crate::capture::read(&r13));
         let (l12, l13) = (Log::parse(&t12), Log::parse(&t13));
         let mut want: Vec<(i64, Vec<crate::gamelog::FarmDump>)> = Vec::new();
         for l in [&l12, &l13] {
@@ -1224,7 +1224,7 @@ mod tests {
         };
         let loaded = crate::load::load(&inst).unwrap();
         let texts = sibling_texts();
-        let text = crate::mapped::read(&path);
+        let text = crate::capture::read(&path);
         let log = Log::parse(&text);
         let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
         let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
@@ -1237,7 +1237,7 @@ mod tests {
         }
         // Run13's own frame-95 block, read the way `Initial` reads a start
         // dump: `world_from` takes any `WORLD` block's fields.
-        let t13 = crate::mapped::read(&r13);
+        let t13 = crate::capture::read(&r13);
         let l13 = Log::parse(&t13);
         let block = l13
             .frames()
@@ -1474,7 +1474,7 @@ mod tests {
             return;
         };
         let loaded = crate::load::load(&inst).unwrap();
-        let text = crate::mapped::read(&path);
+        let text = crate::capture::read(&path);
         let log = Log::parse(&text);
         let texts = sibling_texts();
         let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
@@ -1496,7 +1496,7 @@ mod tests {
         // **The world the search reads, whole** — the height grid first,
         // because a mid-game building re-terraforms it and this is the
         // first search on a grid this crate wrote rather than borrowed.
-        let text72 = crate::mapped::read(&r72);
+        let text72 = crate::capture::read(&r72);
         let l72 = Log::parse(&text72);
         let block = l72
             .frames()
@@ -1727,7 +1727,7 @@ mod tests {
             return;
         };
         let loaded = crate::load::load(&inst).unwrap();
-        let text = crate::mapped::read(&path);
+        let text = crate::capture::read(&path);
         let log = Log::parse(&text);
         let texts = sibling_texts();
         let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
@@ -1746,7 +1746,7 @@ mod tests {
             built.tick();
         }
 
-        let text72 = crate::mapped::read(&r72);
+        let text72 = crate::capture::read(&r72);
         let l72 = Log::parse(&text72);
         let Some(block) = l72
             .frames()
@@ -1896,8 +1896,8 @@ mod tests {
             return;
         };
         let loaded = crate::load::load(&inst).unwrap();
-        let text = crate::mapped::read(&path);
-        let sib_text = crate::mapped::read(&sib);
+        let text = crate::capture::read(&path);
+        let sib_text = crate::capture::read(&sib);
         let log = Log::parse(&text);
         let sib_log = Log::parse(&sib_text);
         let sib_init = sib_log.initial().expect("run38 is a start dump");
@@ -1916,7 +1916,7 @@ mod tests {
         // half: a mid-game building re-terraforms them
         // (`crate::terrain`), and the AI's three **farms** had moved 182
         // tiles of them here until `Wall::init`'s `!= FARM` gate landed.
-        let text64 = crate::mapped::read(&r64);
+        let text64 = crate::capture::read(&r64);
         let l64 = Log::parse(&text64);
         let block = l64
             .frames()
@@ -2115,8 +2115,8 @@ mod tests {
             return;
         };
         let loaded = crate::load::load(&inst).unwrap();
-        let text = crate::mapped::read(&path);
-        let sib_text = crate::mapped::read(&sib);
+        let text = crate::capture::read(&path);
+        let sib_text = crate::capture::read(&sib);
         let log = Log::parse(&text);
         let sib_log = Log::parse(&sib_text);
         let sib_init = sib_log.initial().expect("run38 is a start dump");
@@ -2124,7 +2124,7 @@ mod tests {
         borrow_from_siblings(&mut init, &[&sib_init]);
         borrow_pasture(&mut init, &tr);
 
-        let text64 = crate::mapped::read(&r64);
+        let text64 = crate::capture::read(&r64);
         let l64 = Log::parse(&text64);
         let theirs = l64
             .dumps()
@@ -2237,7 +2237,7 @@ mod tests {
         };
         let loaded = crate::load::load(&inst).unwrap();
         let texts = sibling_texts();
-        let text = crate::mapped::read(&path);
+        let text = crate::capture::read(&path);
         let log = Log::parse(&text);
         let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
         let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
@@ -2256,7 +2256,7 @@ mod tests {
         // **The world the search reads, whole**, on the map's first
         // `DUMP_ALL` window: 921,600 heights, every cell owner, every tile
         // mask.
-        let text73 = crate::mapped::read(&r73);
+        let text73 = crate::capture::read(&r73);
         let l73 = Log::parse(&text73);
         let block = l73
             .frames()
@@ -2451,7 +2451,7 @@ mod tests {
         };
         let loaded = crate::load::load(&inst).unwrap();
         let texts = sibling_texts();
-        let text = crate::mapped::read(&path);
+        let text = crate::capture::read(&path);
         let log = Log::parse(&text);
         let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
         let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
@@ -2575,7 +2575,7 @@ mod tests {
         };
         let loaded = crate::load::load(&inst).unwrap();
         let texts = sibling_texts();
-        let text = crate::mapped::read(&path);
+        let text = crate::capture::read(&path);
         let log = Log::parse(&text);
         let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
         let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
@@ -2687,7 +2687,7 @@ mod tests {
         };
         let loaded = crate::load::load(&inst).unwrap();
         let texts = sibling_texts();
-        let text = crate::mapped::read(&path);
+        let text = crate::capture::read(&path);
         let log = Log::parse(&text);
         let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
         let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
@@ -2696,7 +2696,7 @@ mod tests {
         borrow_from_siblings(&mut init, &refs);
         let mut built = build_sim(&loaded, &init, Tuning::RON);
 
-        let t13 = crate::mapped::read(&r13);
+        let t13 = crate::capture::read(&r13);
         let l13 = Log::parse(&t13);
         let grids: Vec<(i64, Vec<u8>)> = l13
             .dumps()
@@ -2792,8 +2792,8 @@ mod tests {
             return;
         };
         let loaded = crate::load::load(&inst).unwrap();
-        let text = crate::mapped::read(&path);
-        let sib_text = crate::mapped::read(&sib);
+        let text = crate::capture::read(&path);
+        let sib_text = crate::capture::read(&sib);
         let log = Log::parse(&text);
         let sib_log = Log::parse(&sib_text);
         let sib_init = sib_log.initial().expect("run38 is a start dump");
@@ -2936,8 +2936,8 @@ mod tests {
             return;
         };
         let loaded = crate::load::load(&inst).unwrap();
-        let text = crate::mapped::read(&path);
-        let sib_text = crate::mapped::read(&sib);
+        let text = crate::capture::read(&path);
+        let sib_text = crate::capture::read(&sib);
         let log = Log::parse(&text);
         let sib_log = Log::parse(&sib_text);
         let sib_init = sib_log.initial().expect("run38 is a start dump");
@@ -3099,7 +3099,7 @@ mod tests {
         };
         let loaded = crate::load::load(&inst).unwrap();
         let texts = sibling_texts();
-        let text = crate::mapped::read(&path);
+        let text = crate::capture::read(&path);
         let log = Log::parse(&text);
         let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
         let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
@@ -3241,8 +3241,8 @@ mod tests {
             return;
         };
         let loaded = crate::load::load(&inst).unwrap();
-        let text = crate::mapped::read(&path);
-        let sib_text = crate::mapped::read(&sib);
+        let text = crate::capture::read(&path);
+        let sib_text = crate::capture::read(&sib);
         let log = Log::parse(&text);
         let sib_log = Log::parse(&sib_text);
         let sib_init = sib_log.initial().expect("run38 is a start dump");
@@ -3430,8 +3430,8 @@ mod tests {
             return;
         };
         let loaded = crate::load::load(&inst).unwrap();
-        let text = crate::mapped::read(&path);
-        let sib_text = crate::mapped::read(&sib);
+        let text = crate::capture::read(&path);
+        let sib_text = crate::capture::read(&sib);
         let log = Log::parse(&text);
         let sib_log = Log::parse(&sib_text);
         let sib_init = sib_log.initial().expect("run38 is a start dump");
@@ -3566,8 +3566,8 @@ mod tests {
             return;
         };
         let loaded = crate::load::load(&inst).unwrap();
-        let text = crate::mapped::read(&path);
-        let sib_text = crate::mapped::read(&sib);
+        let text = crate::capture::read(&path);
+        let sib_text = crate::capture::read(&sib);
         let log = Log::parse(&text);
         let sib_log = Log::parse(&sib_text);
         let sib_init = sib_log.initial().expect("run38 is a start dump");
@@ -3696,8 +3696,8 @@ mod tests {
             return;
         };
         let loaded = crate::load::load(&inst).unwrap();
-        let text = crate::mapped::read(&path);
-        let sib_text = crate::mapped::read(&sib);
+        let text = crate::capture::read(&path);
+        let sib_text = crate::capture::read(&sib);
         let log = Log::parse(&text);
         let sib_log = Log::parse(&sib_text);
         let sib_init = sib_log.initial().expect("run38 is a start dump");
@@ -3795,8 +3795,8 @@ mod tests {
             return;
         };
         let loaded = crate::load::load(&inst).unwrap();
-        let text = crate::mapped::read(&path);
-        let sib_text = crate::mapped::read(&sib);
+        let text = crate::capture::read(&path);
+        let sib_text = crate::capture::read(&sib);
         let log = Log::parse(&text);
         let sib_log = Log::parse(&sib_text);
         let sib_init = sib_log.initial().expect("run38 is a start dump");
@@ -3908,8 +3908,8 @@ mod tests {
             return;
         };
         let loaded = crate::load::load(&inst).unwrap();
-        let text = crate::mapped::read(&path);
-        let sib_text = crate::mapped::read(&sib);
+        let text = crate::capture::read(&path);
+        let sib_text = crate::capture::read(&sib);
         let log = Log::parse(&text);
         let sib_log = Log::parse(&sib_text);
         let sib_init = sib_log.initial().expect("run38 is a start dump");

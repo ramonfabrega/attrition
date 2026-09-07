@@ -1634,3 +1634,64 @@ one landing. Re-pinned here; which landing moved them is not established.
 writes more than the item's number beside the re-pin, the pin is doing what
 the ratchet could not. If East Indies' word moves on the lane's window,
 266 was the bottleneck it said it was.
+
+## 37. `forbid(unsafe_code)` is the whole tree's, the data reader included — and a memory map is not a reason to narrow it
+
+**Decided 2026-09-07**, with the user, on item 280. Overturns the exception
+item 260 took (`docs/DATALAYER.md` §1); the rule it states is the one
+`Cargo.toml` has always said out loud and no entry had ever written down.
+
+**The workspace's `[workspace.lints.rust] unsafe_code = "forbid"` covers
+every crate in `crates/`, and a crate lowering it to `deny` for a module of
+its own is the same act as removing it.** `crates/sim` and `crates/fixed`
+were never the point on their own: the tenet is that this codebase's
+memory-safety argument is the compiler's, entire, and does not have a
+carve-out a reader has to know about. The acceptance test is a grep —
+`grep -rn "allow(unsafe_code)" crates` answers nothing — because a rule
+that is only prose is broken within the week (`CLAUDE.md`).
+
+**What was traded for it, and why the trade was wrong.** Item 260 found
+that nothing a parse holds is ever given back: three captures parsed in one
+process left 5,332 MiB resident with nothing alive, because macOS's
+allocator keeps a freed block of that size rather than unmapping it. Making
+the capture's text and the arena's chunks mappings gave that back —
+measured at 14,721 → 12,182 MiB of the release suite's peak on the tree of
+the day — and it cost a hand-rolled `unsafe extern "C"` mmap/munmap behind
+a **safe** `read()` that handed back a `Deref<Target = str>` over
+`MAP_PRIVATE`, with `from_utf8_unchecked` on top.
+
+Three things make that a bad price rather than a close call:
+
+- **The hazard is live in this repo, not theoretical.** `memmap2::Mmap::map`
+  is an `unsafe fn` precisely because another process can rewrite or
+  truncate the file under the `&[u8]` Rust believes is frozen.
+  `tools/gamelog/runqueue.sh` renames `gamelog.txt` over an archive name,
+  `tools/gamelog/captures.txt` warns in its own header that re-using a run
+  number silently overwrites an existing archive, and the capture lane runs
+  **concurrently with the test suite by design** (entry 34). So the
+  sequence that turns a green gate into undefined behaviour is one this
+  workflow can produce on an ordinary day.
+- **The wrapper hid the obligation.** `read()` was safe, so no caller could
+  see there was one; and the unchecked UTF-8 turned what would have been a
+  SIGBUS into UB. A crate that keeps `map` unsafe was rejected in favour of
+  hand-rolled FFI, which is a second surface the tenet exists to avoid.
+- **It was not where the win was.** 260 landed two independent halves, and
+  the larger one — indexing the frames and reading one when asked — is pure
+  safe Rust. It took the arena of a 1.3 GB capture from 2,221 MiB to 17.
+  The mapping was the smaller half of a change that was mostly not about
+  mapping at all, and it is the only half that had to be paid for.
+
+**What the rule permits instead.** A gate that is too heavy is a real
+problem and the answer is not "hold your nose": read less, not more
+dangerously. The successor named in `docs/DATALAYER.md` §1 is the one the
+lazy index already makes possible — a frame read out of the file with
+`FileExt::read_exact_at` into a reusable buffer, so a capture's text is
+never resident at all, which beats the mapping rather than conceding to it.
+A returning allocator (`#[global_allocator]`) is another, and needs no
+`unsafe` in this tree because the crate that has it carries it. Both are
+work; neither is an exception.
+
+**The measure.** `grep -rn "allow(unsafe_code)" crates` stays empty, and
+the next entry that wants to narrow this comes here first — an exception
+that lives only in a mechanic's document and the journal is how this one
+was taken without the user's word (item 280's brief).

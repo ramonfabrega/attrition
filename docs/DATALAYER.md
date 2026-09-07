@@ -101,16 +101,18 @@ frees fits every chunk the next log wants — a second parse after a first is
 dropped costs 10 MiB where it cost 353 — and the serialized peak is
 **10,075 MiB**. ~~What is left of the ratchet is the `String` each test
 reads the capture into, which is the file's own size and so a different size
-every time.~~ **Closed by item 260** (below): the capture is a mapping now
+every time.~~ ~~**Closed by item 260** (below): the capture is a mapping now
 and so is the chunk, and both are returned by `munmap` rather than left with
-the allocator.
+the allocator.~~ **Item 280 took the mappings out again** (below): the struck
+sentence is true once more, and what closes it without `unsafe` is the
+never-resident capture this section ends on.
 
 `Log::initial()` gives the start-of-game state — `GAME INFO` → `GAMEINFO` and
 its `PLAYER`s, `WORLD`, `CITIES`, `CONSTANTS`, every `UNITDATA` with its
 `GUY`s, every `BUILDDATA`, every `LEADERDATA` — and `Log::frame_states()` the
 `FRAME n` blocks.
 
-### The parse is lazy, and the capture is mapped (item 260, 2026-09-07)
+### The parse is lazy, and the capture was mapped (260 and 280, 2026-09-07)
 
 Item 235 made the tree an arena and its chunks one size; what it could not
 fix is that **the arena is built at all**. `Log::parse` read all 76.6 M
@@ -125,23 +127,38 @@ fallen by a byte: 5,332 MiB held with nothing alive. Both large things a
 parse holds — the `String` the capture was read into, and the arena's chunks
 — go to the system allocator, and macOS keeps a freed block of that size
 rather than unmapping it, so a suite that parses forty captures of forty
-sizes reports the **sum of everything it ever held**. Both are mappings now
-(`crates/rondata/src/mapped.rs`): `Text` is the capture, deref'ing to `str`
-so `Log::parse(&text)` is unchanged, and `Pages<T>` is the arena's 1 MiB
-chunk. `munmap` returns them where `free` did not, and the same probe ends
-at 1,647 MiB instead of 5,332. On the tree this was measured on, that alone
-took the suite from 14,721 MiB to 12,182.
+sizes reports the **sum of everything it ever held**. ~~Both are mappings
+now (`crates/rondata/src/mapped.rs`): `Text` is the capture and `Pages<T>`
+the arena's chunk; `munmap` returns them where `free` did not, and the same
+probe ends at 1,647 MiB instead of 5,332. On the tree this was measured on,
+that alone took the suite from 14,721 MiB to 12,182.~~
 
-What a mapping does *not* buy here is a scan that runs without the file
-resident. The pages are clean and file-backed, so a walk that has finished
-with a frame ought to be able to hand them back — but macOS accepts
-`madvise(MADV_DONTNEED)` over a private file mapping, answers 0, and leaves
-the resident set exactly where it was, and `MADV_FREE_REUSABLE` refuses
-anything but anonymous memory with `EINVAL` (measured on run58: 1,347 MiB
-resident before the call and after it). A capture's text is resident for as
-long as it is mapped. It is *clean* — the kernel would evict it under real
-pressure rather than swap — so it is not a threat to the machine, but
-`memcap.sh`, which reads `ps rss`, counts it.
+**Overturned by item 280** (`docs/DECISIONS.md` 37). The mappings are gone,
+`mapped.rs` is `crates/rondata/src/capture.rs`, and the crate is back under
+the workspace's `forbid(unsafe_code)` — no `allow(unsafe_code)` anywhere in
+`crates/`. `capture::read` is `std::fs::read_to_string` and the arena's
+chunk is a `Box<[T]>`. The mapping had been bought with a hand-rolled
+`unsafe extern "C"` mmap behind a **safe** `read()` and `from_utf8_unchecked`
+on top, and the hazard that keeps `memmap2::Mmap::map` an `unsafe fn` is
+live in this repo rather than theoretical: `tools/gamelog/runqueue.sh`
+renames `gamelog.txt` over an archive name, and the capture lane runs beside
+the suite by design. On this tree the release gate went from **8,358 MiB to
+9,921 MiB** of the 20 GiB ceiling, 243 tests green either way and 281 s
+against 274 s — both measured on this tree, the mapping in and out.
+
+**What would beat both is a capture that is never resident.** The index
+below already holds every frame's byte range, so a frame could be read with
+`FileExt::read_exact_at` into a reusable buffer and the file neither mapped
+nor slurped — and since `ps rss` counts a mapped capture's clean pages, that
+lands *under* the mapping rather than conceding to it. What stands in the
+way is the borrow, not the read: `Log`'s accessors hand back `&'a str` into
+the text, and lending out text loaded *after* the borrow began wants either
+`&mut self` through every accessor or a self-referential arena. That is an
+API change across the suite's call sites, and it is this section's
+successor. It is not an `madvise`: macOS accepts `MADV_DONTNEED` over a
+private file mapping, answers 0, and leaves the resident set where it was,
+and `MADV_FREE_REUSABLE` refuses anything but anonymous memory with `EINVAL`
+(measured on run58, 1,347 MiB before the call and after it).
 
 **And the frames are indexed rather than read.** A capture's frames are all
 children of `GAME`, so `Log::parse` reads eagerly up to the first `FRAME`
@@ -195,8 +212,8 @@ capture with no `DUMP_ALL` head, walked every frame to answer `None` — and
 where it did answer, answered with a mid-game block's state as though it
 were the opening one.
 
-On run58 (1,345 MiB, 5,201 frames) what is left is: 1,347 MiB of mapped
-text, 1,244 MiB of `Initial`'s own `frame_bodies`/`frame_guys`, and 520 MiB
+On run58 (1,345 MiB, 5,201 frames) what is left is: 1,347 MiB of the
+capture's own text, 1,244 MiB of `Initial`'s own `frame_bodies`/`frame_guys`, and 520 MiB
 of `frame_states`' `Vec<Frame>` — 3,029 MiB at the peak against 5,206
 before, and **17 MiB of it is the parser**. The two big terms are now the
 caller's owned data and the file itself, which is where item 260 wanted
