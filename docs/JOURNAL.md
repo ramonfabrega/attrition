@@ -16841,3 +16841,55 @@ measured samples of a counter the dump prints. The residue is honest —
 `gather_down` and `special` are still -1 at 6929, 46 frames past the deploy,
 where run76's long-settled merchant has 18 and 6, so the frame they fill in
 is still past every window.
+
+## 2026-09-06 — the last Great Lakes hole, and a capture that may not need taking (capture lane, Opus)
+
+Blocks 6870–6909 on Great Lakes existed in no archive: run76 stops at 6869,
+run79 starts at 6910. The item was booked because the word stood at 6862 and
+the next divergence looked likely to land in the gap; the word moved to
+**6982** while the stanza was being written, which run79 already covers, so
+run83 **moves no score**. It was still worth four minutes, for a reason the
+original framing had not named: over those forty frames the lockstep rested
+on the **draw stream alone**. `rngcmp.py` compares the LCG word, which is
+not state. A divergence that did not perturb draws for seventy frames would
+have been read as the economy at 6982 by everyone who looked.
+
+**The disk was grepped first and produced one real candidate.** run16 holds
+6870–6872 at MAP_STYLE 14 and seed 12345 — three of the forty — and is not
+this game: `samegame.py` against run76 is **230 of 230 common frames
+differing**, because it is the cheat-driven attrition run and parts from its
+first `peace` at label 341.
+
+**The capture's own novelty is its second check.** Twelve blocks of
+deliberate overlap, six at each end, and `samegame.py` against *both*
+neighbours: **6 in common, 0 differing**, twice. That is a state digest where
+`rngcmp.py` is a word, and it cost about seven seconds of dumping — a window
+is priced by its blocks and the frames before it are free, so overlapping a
+neighbour is nearly free and turns "same seed, therefore same game" into
+something falsifiable. The check asserts the **common count** as well as the
+verdict, because `samegame.py` exits 0 when nothing differs *including when
+nothing is in common*; a bare exit code would have passed vacuously on a
+window that missed its neighbour entirely.
+
+**What the forty frames hold.** No birth, no death, 77 units throughout, five
+new orders, and one blocked stand — `1/29`'s on sim-frame 6892, against the
+**standing citizen `1/17`** at (42360, 23736), which never moves and never
+registers anything. The interesting part is the shape: the Archer is pushed
+*back* one step on 6893, then **slides along the obstacle** for five frames
+at exactly −26 in x with y pinned, `idle` 0 the whole time, and resumes its
+bearing on 6899. A model that treats a blocked step as "stand and repath"
+is six frames and 1.6 tiles wrong here. And the three collision fields have
+three lifetimes: `collide_o`/`collide_who` name the blocker for one block,
+`collide` latches for six, `collide_frame` keeps the stamp for ever — a
+differ reading `collide_o` one frame late sees −1 and calls it agreement.
+
+**And a capture that may not need taking.** Chasing item 178 — the danger
+map's unit pass, reading-only because no capture has a military unit on a
+rebuild boundary — the same grep habit found that `danger[who][scan]` is
+already on disk in eighteen archives, and four of them are late combat
+windows. **run29's frame 15100 carries 96 `TARGETORDER`s and a danger map**,
+just past the 15000 rebuild; run27's 15100 has 46, and run25/run26 have
+12k-frame windows. So 178's falsifier may be a `grep` rather than a run.
+Whoever takes it should confirm the schedule reading first — the block at
+15100 carries the map the 15000 rebuild produced, and it is that rebuild
+which had to see the army.
