@@ -4234,6 +4234,94 @@ frames (6164, 6353, 6571, 17112, 17362, 17574, 17793, 18785, 20249) is a
 squad rather than one multi-guy unit. Only a dump distinguishes them, which
 is the cost the next booking has to weigh.
 
+## run79 — two squads, one Barracks, three points (2026-09-06)
+
+**What it is.** Great Lakes, seed 12345, 340 frame blocks over `[6910,
+7250)`, 86 MB, `cover=0`. Same game: `rngcmp.py rontrace-run53.log
+rontrace-run79.log` → **differing frames: 0, identical frames: 7301**.
+
+**What it was for.** run77 and run78 each bet a capture on one East Indies
+frame and each came back with no squad, because `report.py … when` counts
+*guys*. This took Great Lakes' next **two** candidate threes in one window
+instead of betting on one. Both are squads, so the window paid twice.
+
+**Both births, off the block.** `tools/gamelog/births.py` — the census diff
+that graduated with this run — over `[6910, 7250)` prints five lines and
+nothing else:
+
+| frame | what moved | who |
+|---|---|---|
+| **6994** | units 77 → 80 | `1/31` uid 49, `1/32` uid 50, `1/33` uid 51 — group 66 |
+| 7183 | buildings 25 → 26 | `1/2018`, `orig_type 428`, at `(45120, 23424)`, 1200 hits |
+| **7213** | units 80 → 83 | `1/34` uid 53, `1/35` uid 54, `1/36` uid 55 — group 67 |
+
+**The trainer is a Barracks, and it is run76's own.** `orig_type 427` on
+`1/2016` at `(45120, 25728)`. Across each birth that building alone moves a
+queue field — `queued 3 → 2`, `queue[scan].job_counter` reset to 0 — and at
+7213 `queue[scan].type` goes `177 → 132`, the item that has just left
+followed by the next. No other building's queue moves on either frame. The
+7183 building is a **Stable**, a coincidence of the window rather than a
+trainer of anything in it.
+
+**The three points are run76's three points, to the unit.** Both squads are
+born at `(45144, 26424)`, `(45144, 26568)`, `(45288, 26520)` — the captain's
+ring bearing-0 snap and the two member candidates `docs/CITIES.md` §6.5.1
+derives, exactly. Three squads now, nine units, three points, on two
+different unit types and 601 frames apart. The placement carries no
+dependence on the frame, on the draw, on the unit, or on what else stands on
+the map: it is a function of the trainer and the captain and nothing else.
+All six are born at `angle 1431655765` — `Unit::init`'s `0x55555555`, still.
+
+**The chain IS in the dump.** §6.5.1 says it is not, on the ground that the
+log prints the `ObjectData` `up`/`down`/`down_who` rather than
+`UnitData::o_up`/`o_down`. It prints **both**, under those exact names, at
+`UNITS=3`: the `ObjectData` pair early in the record, and `o_up`/`o_down`
+in the `UnitData` tail. The captain is the head of the list.
+
+```
+1/31  o_up -1  o_down 32     1/34  o_up -1  o_down 35
+1/32  o_up 31  o_down 33     1/35  o_up 34  o_down 36
+1/33  o_up 32  o_down -1     1/36  o_up 35  o_down -1
+```
+
+run76's own archive says the same of its squad — `1/27` `o_up -1`,
+`o_down 28`, then 27/29, then 28/−1 — so the claim was falsifiable on disk
+before this capture was booked. That is the "grep the dump before booking a
+reading" rule, missed once.
+
+**The type space, and it names every dumped object.** A dumped `guy` type
+and a `BuildData::orig_type` are indices into **one** object-type space, and
+its layout is fixed by arithmetic: buildings begin at 414, units are 364
+records, so units begin at **50** and the 50 slots below them are
+`resourcerules.xml`'s 50 records.
+
+    resources 0–49        units 50–413 (= 50 + unit record)
+    buildings 414–542 (= 414 + building record)
+
+Every type in run79's window resolves under it, `HITS` for `HITS`: guy 50
+Citizen 40 (×23), 59 Caravan 90, 61 Merchant 90, 69 Scout 50, **177
+Longbowmen 88** — `UBER_SIZE 3`, `FROM` Bowmen — and player 8's 36 **Herd
+Fish** and 4 **Herd Sheep** at 1 hit each, on a lakes map. The buildings
+read Small City, Farm ×8, Woodcutter's Camp ×2, Library, Market, Barracks,
+Tower, Stable — an ancient-age build with nothing left over.
+
+**So run76's squad is Bowmen, not Archers.** Guy type **170** = unit record
+120, `Bowmen`, 70 hits — which is what its units carry. `Archers` is record
+121 and 80 hits. §6.5.1's label is wrong; its geometry is not. The
+`type 21` that named them is the first `type` line in a *marching* unit's
+record, which belongs to its order, not to its guy — `one.py` keeps the
+first of a repeated key, and `births.py` reads the `GUY` sub-record instead.
+
+**And the Barracks trained Bowmen at 6612 and Longbowmen at 6994.** Same
+building, upgraded unit, identical member points — so the members' ring does
+not move with the member's own type. The queue's next item at 7213 is guy
+132, `Hoplites`, `UBER_SIZE 3`: a fourth squad from the same trainer is
+already booked inside the archive.
+
+**What it leaves for item 219.** The window holds the first squad's whole
+march from 6994 to 7250 — 256 frames — and the second's first 37, from the
+same building, on the map 219 already owns.
+
 ## The window nobody can see — CrossOver's expired bottle (2026-09-04)
 
 **run 76 did not run, and the reason had nothing to do with permissions.**
