@@ -1425,3 +1425,19 @@ no-judgment-in-the-loop, and it is the same instinct as entry 24's.
 the headline without the user in the loop, and what it stopped to ask
 about. If the answer to the second is "nothing", the stopping rule is too
 loose rather than the work too smooth.
+
+**Amended the same day: two of the notes were already obsolete when they
+were written.** `ccc` 0.1.25 shipped on 2026-09-04, minutes after this
+session had hand-cut its first worktrees, and it closes both: `ccc spawn`
+**defaults to `--permission-mode auto`**, and `--worktree` from a
+non-default branch cuts off *that* branch and records it
+(`branch.<b>.ccc-base`), with `--base <ref>` to force one and `ccc base
+<session> <branch>` to record one for a worktree cut by hand — which
+`merge`, `update`, `pull` and the roster's ahead/behind all read. So the
+per-item loop is one command, `ccc spawn --worktree`, rather than a hand-cut
+plus `--cwd`, and nothing can land a worker's branch on `main` by
+accident. The bases for the branches live at the time were recorded by
+hand. The lesson is the older one: **the tool's help was read once and
+believed for a day**, while the tool was replaced underneath. What stands
+unchanged is the note that a pid never names a session — that is the
+harness pre-warming spare processes, and liveness is the only identity.
