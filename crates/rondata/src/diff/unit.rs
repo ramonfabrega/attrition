@@ -2200,4 +2200,368 @@ mod tests {
             wrong.iter().find(|r| r.0 == first)
         );
     }
+
+    /// **run89 — Great Lakes' word is a bird's arrival stand, and it costs
+    /// a citizen's next gather spot on the same frame** (2026-09-07, item
+    /// 272).
+    ///
+    /// run53's game over `[7514, 7760)` at run87's detail **exactly** —
+    /// **247 blocks, 112,314,402 bytes**, `cover=0`, eight minutes. It is
+    /// the first Great Lakes dump ever taken at that map's own word, which
+    /// stands at **7584**: run87 covered `[7244, 7520)` and 267's
+    /// `compute_form` tail negation then moved the word 129 frames past
+    /// it, so until this capture the headline map's own frame could be read
+    /// as a draw stream and as nothing else. `docs/ORACLE.md`, "run89".
+    ///
+    /// **The word reproduces from this capture's own trace**, not run53's:
+    /// frames 7580–7583 agree draw for draw (12, 19, 7, 9) and 7584 is
+    /// **48 against 49**, parting at index **24** — where the original
+    /// spends a [`sim::anim::SITE_ARRIVE`], `Guy::set_anim+0x97a <
+    /// Guy::move+0x19f`, that this crate does not. Removing that one entry
+    /// makes the two frames equal, entry for entry, so the whole of the
+    /// word is one missing draw and not a reordering.
+    ///
+    /// **It sits inside the animal pass**, between the fourth and fifth
+    /// bird's `Animal::think_bird` triple — an arrival stand for one of the
+    /// gaia birds' figures, the frame after it stops walking
+    /// (`docs/ANIM.md` §9, the `Guy::move:59` row). *Which* bird this
+    /// capture cannot say: player 9's herd is not in the dump at this
+    /// detail — [`borrow_pasture`] takes it from the trace — so naming it
+    /// wants a capture that carries the herd.
+    ///
+    /// **And the field it costs is on the same frame.** Nineteen draws
+    /// later the frame spends two `GameAccess::rnd+0x20 < Unit::do_job+0x67`
+    /// on `1/3`, an AI citizen whose `GATHERORDER` works building `2002`
+    /// (`build_type 417`, `been_there 1`, `goto_build 1`), and both sides
+    /// push it a fresh `MOVEORDER` on **block 7585**, which is the state at
+    /// the end of sim-frame 7584 — the word's own frame, in the block
+    /// numbering run88 used. They disagree only on where:
+    ///
+    /// | field | ours | theirs |
+    /// | --- | --- | --- |
+    /// | `x`, `dest_x` | 42168 | **41976** |
+    /// | `y`, `dest_y` | 17400 | **17208** |
+    /// | `off_x` | 696 | **504** |
+    /// | `off_y` | 504 | **312** |
+    ///
+    /// — exactly **(+192, +192)** on all four, one tile in each axis, with
+    /// `x − off_x` = 41472 and `y − off_y` = 16896 **identical on both
+    /// sides**. So the base the spot is measured from agrees and the tile
+    /// chosen off it does not, which is what a stream one draw out of step
+    /// looks like rather than a second, independent fault. The position
+    /// follows on 7586 — ours (41615, 17585) against theirs (41609,
+    /// 17575) — and never comes back.
+    ///
+    /// **Nothing else parts at or below the word**, and past it the two
+    /// streams are nobody's, so only the block-7585-and-below set is
+    /// asserted (run57's rule: what has teeth is the half a shared stream
+    /// backs). What is left there is run87's own carried residue —
+    /// `1/23`'s order angle and flags, `1/24`/`1/25`/`1/26` twenty-four
+    /// units off their cell, and item 242's group id — all of them older
+    /// than this window and present on its first block.
+    #[test]
+    fn run89_s_window_is_great_lakes_word_frame() {
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(tr)) = (
+            dump("gamelog-run89-greatlakes-wordframe.txt"),
+            trace("rontrace-run89.log"),
+        ) else {
+            eprintln!("skipping: no run89 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = crate::capture::read(&path);
+        let log = Log::parse(&text);
+        let texts = sibling_texts();
+        let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
+        let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+        let refs: Vec<&Initial> = inits.iter().collect();
+
+        // **The word, from this capture's own trace.** The four frames
+        // under it are the anti-vacuity guard: "equal once one entry is
+        // dropped" says nothing on a frame pair that was never equal, and
+        // a mis-read trace is also a stream that agrees with nothing.
+        let mut init = log.initial().unwrap();
+        borrow_from_siblings(&mut init, &refs);
+        borrow_pasture(&mut init, &tr);
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        built.sim.trace_phases = true;
+        let mut under: Vec<(i64, usize, usize, bool)> = Vec::new();
+        let mut word: Option<(Vec<String>, Vec<String>)> = None;
+        for f in 0..7585i64 {
+            built.tick();
+            if (7580..7585).contains(&f) {
+                let ours =
+                    mark_sites(&built.sim.phase_marks, built.sim.rng.seed).unwrap_or_default();
+                let theirs = tr.labels(f);
+                under.push((f, ours.len(), theirs.len(), ours == theirs));
+                if f == 7584 {
+                    word = Some((ours, theirs));
+                }
+            }
+        }
+        eprintln!("run89: draws 7580..7585 {under:?}");
+        assert!(
+            under.iter().filter(|r| r.0 < 7584).all(|r| r.3),
+            "run89's draw stream already parts under the word, so the \
+             word's own frame says nothing: {under:?}"
+        );
+        let (ours, theirs) = word.expect("frame 7584 traced");
+        assert_eq!(
+            (ours.len(), theirs.len()),
+            (48, 49),
+            "run89's frame 7584 is not 48 against 49"
+        );
+        assert_eq!(
+            theirs.get(24).map(String::as_str),
+            Some(sim::anim::SITE_ARRIVE),
+            "the original's extra draw at 7584 index 24 is not the arrival \
+             stand: {:?}",
+            first_parting(&ours, &theirs).map(|(_, s)| s)
+        );
+        let without: Vec<String> = theirs
+            .iter()
+            .enumerate()
+            .filter(|(i, _)| *i != 24)
+            .map(|(_, l)| l.clone())
+            .collect();
+        assert_eq!(
+            ours,
+            without,
+            "run89's 7584 is not the original's frame minus one arrival \
+             stand: {:?}",
+            first_parting(&ours, &without).map(|(_, s)| s)
+        );
+
+        // **The original's own record of the spot**, read off the dump
+        // rather than off the report: the citizen's fresh `MOVEORDER` on
+        // block 7585, and the gather order it sits in front of.
+        let states = log.frame_states();
+        let at = |n: i64| {
+            states.iter().find(|f| f.n == n).map(|f| {
+                f.units
+                    .iter()
+                    .find(|u| u.who == 1 && u.o == 3)
+                    .expect("run89 has no 1/3 — the wrong file")
+            })
+        };
+        let before = at(7584).unwrap();
+        let after = at(7585).unwrap();
+        assert_eq!(
+            (before.orders.len(), after.orders.len()),
+            (1, 2),
+            "1/3 does not take a second order on block 7585"
+        );
+        assert_eq!(
+            before.orders.first().map(|o| o.kind.as_str()),
+            Some("GATHERORDER"),
+            "1/3 is not gathering under the word"
+        );
+        let m = after.orders.last().expect("the new order");
+        assert_eq!(
+            (m.kind.as_str(), m.x, m.y, m.off_x, m.off_y),
+            ("MOVEORDER", Some(41976), Some(17208), Some(504), Some(312)),
+            "the original's 1/3 is sent somewhere else on block 7585"
+        );
+
+        // And ours, off the diff — the same order, one tile out on each
+        // axis, from a base both sides agree on.
+        let report = run_traced(&loaded, &log, Tuning::RON, None, None, &refs, Some(&tr)).unwrap();
+        let blocks: Vec<i64> = report
+            .frames
+            .iter()
+            .filter(|f| f.compared > 0)
+            .map(|f| f.frame)
+            .collect();
+        eprintln!(
+            "run89: {} blocks {:?}..{:?}",
+            blocks.len(),
+            blocks.first(),
+            blocks.last()
+        );
+        let sum = |g: fn(&FrameResult) -> usize| report.frames.iter().map(g).sum::<usize>();
+        eprintln!(
+            "run89: {} unit fields, {} order/path, {} angle, {} collide, {} los, \
+             {} packed, {} gather, {} build, {} queue, {} city",
+            sum(|f| f.compared),
+            sum(|f| f.order_compared),
+            sum(|f| f.angle_compared),
+            sum(|f| f.collide_compared),
+            sum(|f| f.los_compared),
+            sum(|f| f.packed_compared),
+            sum(|f| f.gather_compared),
+            sum(|f| f.build_compared),
+            sum(|f| f.queue_compared),
+            sum(|f| f.city_compared),
+        );
+        // The window's own rows, so a capture without `UNITS=3` or
+        // `BUILDS=7` cannot pass this test saying nothing.
+        assert!(
+            sum(|f| f.compared) >= 11_000
+                && sum(|f| f.order_compared) >= 11_000
+                && sum(|f| f.collide_compared) >= 59_000
+                && sum(|f| f.build_compared) >= 20_000,
+            "run89's own rows are missing — the wrong file"
+        );
+        let word_block = report
+            .frames
+            .iter()
+            .find(|f| f.frame == 7585)
+            .expect("block 7585");
+        let mut spot: Vec<(&str, i64, i64)> = word_block
+            .order_diverged
+            .iter()
+            .filter(|d| (d.who, d.o) == (1, 3))
+            .filter_map(|d| match d.what {
+                OrderMismatch::Move {
+                    field,
+                    ours,
+                    theirs,
+                } => Some((field, ours, theirs)),
+                _ => None,
+            })
+            .collect();
+        spot.sort();
+        eprintln!("run89: 1/3's spot on 7585 {spot:?}");
+        assert_eq!(
+            spot,
+            vec![
+                ("angle", 817_758_208, 497_287_168),
+                ("off_x", 696, 504),
+                ("off_y", 504, 312),
+                ("x", 42168, 41976),
+                ("y", 17400, 17208),
+            ],
+            "1/3's fresh move order on block 7585 is not run89's"
+        );
+        // **The base agrees and the tile does not** — the claim the table
+        // in the doc comment is making, as arithmetic rather than as five
+        // separate numbers.
+        let by = |f: &str| {
+            let (_, o, t) = *spot.iter().find(|r| r.0 == f).unwrap();
+            (o, t)
+        };
+        let (x, ox, y, oy) = (by("x"), by("off_x"), by("y"), by("off_y"));
+        assert_eq!(
+            (x.0 - ox.0, x.1 - ox.1, y.0 - oy.0, y.1 - oy.1),
+            (41472, 41472, 16896, 16896),
+            "the two sides do not measure 1/3's spot from the same base"
+        );
+        assert_eq!(
+            (x.0 - x.1, y.0 - y.1, ox.0 - ox.1, oy.0 - oy.1),
+            (192, 192, 192, 192),
+            "1/3's spot is not one tile out on each axis"
+        );
+
+        // **What parts at or below the word, and nothing is asserted above
+        // it**: past 7584 both sides run on streams that are nobody's, so
+        // a unit that drifts there is the word's consequence rather than a
+        // row of its own (run57's rule).
+        let excused = |who: i64, o: i64, what: &str| {
+            matches!((who, o), (1, 23) | (1, 24) | (1, 25) | (1, 26)) || what == "group id"
+        };
+        let mut wrong: Vec<(i64, i64, i64, String, String)> = Vec::new();
+        let mut above = 0usize;
+        for fr in &report.frames {
+            for (who, o, what, row) in rows(fr) {
+                if fr.frame > 7585 {
+                    above += 1;
+                } else if !excused(who, o, &what) {
+                    wrong.push((fr.frame, who, o, what, row));
+                }
+            }
+        }
+        for (f, who, o, what, row) in wrong.iter().take(12) {
+            eprintln!("  f{f} {who}/{o} {what}: {row}");
+        }
+        eprintln!("run89: {above} rows above the word, printed and not pinned");
+        let parted: std::collections::BTreeSet<(i64, i64)> =
+            wrong.iter().map(|r| (r.1, r.2)).collect();
+        assert_eq!(
+            parted,
+            [(1, 3)].into_iter().collect(),
+            "run89 parts on more than 1/3 at or below the word: {:?}",
+            wrong
+                .iter()
+                .filter(|r| (r.1, r.2) != (1, 3))
+                .take(8)
+                .collect::<Vec<_>>()
+        );
+        // And the floor under it: 1/3's own rows start at the word's own
+        // block and not before it.
+        assert_eq!(
+            wrong.iter().map(|r| r.0).min(),
+            Some(7585),
+            "run89's field diff parts before the word: {:?}",
+            wrong.first()
+        );
+        // **The city record parts on every block of the window and no
+        // window test asserts it** — printed here so the gap is on the
+        // record rather than assumed away. `docs/ORACLE.md`, "run89".
+        let mut cityc: std::collections::BTreeMap<(i64, i64, String), usize> =
+            std::collections::BTreeMap::new();
+        for fr in &report.frames {
+            for d in &fr.city_diverged {
+                *cityc.entry((d.who, d.o, d.field.to_string())).or_default() += 1;
+            }
+        }
+        eprintln!("run89: city rows by (who, o, field) of 247 blocks: {cityc:?}");
+    }
+
+    /// Every disagreement one frame's comparison holds, as
+    /// `(who, o, what, row)` — the whole record rather than the field a
+    /// mechanic happens to care about (`CLAUDE.md`, "Prefer a diff to a
+    /// reading").
+    fn rows(fr: &FrameResult) -> Vec<(i64, i64, String, String)> {
+        let mut out: Vec<(i64, i64, String, String)> = Vec::new();
+        for d in &fr.diverged {
+            out.push((
+                d.who,
+                d.o,
+                "pos".into(),
+                format!("{:?} v {:?}", d.ours, d.theirs),
+            ));
+        }
+        for d in &fr.order_diverged {
+            let what = if matches!(d.what, OrderMismatch::Group { field: "id", .. }) {
+                "group id"
+            } else {
+                "order"
+            };
+            out.push((d.who, d.o, what.into(), format!("{:?}", d.what)));
+        }
+        for d in &fr.angle_diverged {
+            out.push((d.who, d.o, "angle".into(), format!("{d:?}")));
+        }
+        for d in &fr.collide_diverged {
+            out.push((
+                d.who,
+                d.o,
+                d.field.into(),
+                format!("{} v {}", d.ours, d.theirs),
+            ));
+        }
+        for d in &fr.los_diverged {
+            out.push((d.who, d.o, "los".into(), format!("{d:?}")));
+        }
+        for d in &fr.packed_diverged {
+            out.push((d.who, d.o, "packed".into(), format!("{d:?}")));
+        }
+        for d in &fr.gather_diverged {
+            out.push((d.who, d.o, "gather".into(), format!("{d:?}")));
+        }
+        for d in &fr.build_diverged {
+            out.push((d.who, d.o, "build".into(), format!("{d:?}")));
+        }
+        for d in &fr.queue_diverged {
+            out.push((d.who, d.o, "queue".into(), format!("{d:?}")));
+        }
+        for &(who, o) in &fr.unlinked_units {
+            out.push((who, o, "unlinked".into(), String::new()));
+        }
+        for &(who, o) in &fr.extra_units {
+            out.push((who, o, "extra".into(), String::new()));
+        }
+        out
+    }
 }

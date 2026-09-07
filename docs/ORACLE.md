@@ -5193,6 +5193,132 @@ stays in permanently is the third, because "every row is off by one" is also
 what a reader that subtracts wrong looks like, and `1/7`'s own `wait` opens
 at 375 against 334.
 
+## run89 — Great Lakes' word is a bird's arrival stand (2026-09-07)
+
+**What it is.** run53's game, `[7514, 7760)` at run87's `[End Frame]` detail
+**exactly** — **247 blocks, 112,314,402 bytes**, `cover=0`, eight minutes from
+the start click to the last block. It is the first Great Lakes dump ever taken
+at that map's own word, which stands at **7584**. run87 covered `[7244, 7520)`
+and closed 7455; 267's `compute_form` tail negation then moved the word 129
+frames **past run87's own window**, so until this capture the headline map's
+frame could be read as a draw stream and as nothing else.
+
+**The disk was grepped first, and it found one block.** Every archive, for any
+block labelled 7500–7899 on any map: exactly two files have any — **run87**,
+7500..7519 with its `!quit` block at **7536**, which is Great Lakes but 48
+frames short of the word and at the shutdown dump's detail rather than the
+window's, and **run88**, which is East Indies. So nothing on this disk held
+Great Lakes 7584 and this was a capture rather than a diff.
+
+**Four checks, and the middle one was a prediction rather than a
+convenience.** `rngcmp.py rontrace-run53.log rontrace-run89.log` → **0
+differing, 7,776 identical**. The overlap against run87's tail → **6 in common
+(7514..7519), 0 differing**, and — as run88 got against run85 — **with no
+`--exclude` and no `--drop` at all**: taking the neighbour's detail *exactly*
+rather than nearly is what makes six blocks byte for byte, where run87's own
+`GUYS` 2 → 4 against run79 needed three dropped `ANIMALDATA` fields (item
+268). The window was widened to start at **7514** rather than the brief's
+7530 for exactly that: `[7530, …)` would have left a ten-frame hole above
+run87's tail and bought nothing.
+
+**Two teeth, both made to fail on real data before the run.** `cur_anim` over
+the window pins `GUYS=4` — 246 blocks, 7514..7759 — and prints `6
+(7514..7519)` / exit 1 on run87, `0 (0..0)` / exit 1 on run79 and run86, and
+276 / 326 with run87's and run88's own ranges. `collide_frame` pins `UNITS=3`,
+which the first line cannot: a stanza that kept `GUYS=4` and dropped `UNITS`
+would pass it and lose the five collision fields, the order list and the path
+stack. It fails the same two ways, run53's thin 24k dump carrying none at all.
+**run85's `collide_frame` *transition* is not asserted** — run88's worker
+measured it over run86 and refused it, and the same holds here.
+
+**The word reproduces from this capture's own trace, not run53's.** Frames
+7580–7583 agree draw for draw (12, 19, 7, 9); **7584 is 48 against 49**,
+parting at index **24**:
+
+| index | ours | theirs |
+| --- | --- | --- |
+| 21–23 | `Animal::think_bird` ×3 | the same |
+| **24** | `Animal::think_bird+0x82` | **`Guy::set_anim+0x97a < Guy::move+0x19f`** |
+| 25–27 | `+0xa6`, `+0x1f8`, `+0x82` | the bird triple, one late |
+
+Removing that one entry makes the two frames equal, entry for entry, so the
+whole of the word is **one missing draw** and not a reordering.
+
+**It is an arrival stand, and it is inside the animal pass.** `Guy::move+0x19f`
+is `docs/ANIM.md` §9's `Guy::move:59` row — the frame after a walking guy stops
+with the plain `WALK` slot and nothing else has changed it, asking for the idle
+and rolling for it (`sim::anim::SITE_ARRIVE`). It sits between the **fourth and
+fifth** bird's `Animal::think_bird` triple, which is one of the gaia birds'
+figures coming to rest. *Which* bird this capture cannot say: player 9's herd
+is not in the dump at this detail — `borrow_pasture` takes it from the trace —
+so naming it wants a capture that carries the herd.
+
+**And the field it costs is on the same frame.** Nineteen draws later 7584
+spends two `GameAccess::rnd+0x20 < Unit::do_job+0x67` on **`1/3`**, an AI
+citizen whose `GATHERORDER` works building `2002` (`build_type 417`,
+`been_there 1`, `goto_build 1`, `non_flat_gather 0`, `group −1`). Both sides
+push it a fresh `MOVEORDER` on block **7585**, which is the state at the *end
+of sim-frame 7584* — the word's own frame, in the block numbering run88's
+`1/13` used — and they disagree only on where:
+
+| field | ours | theirs |
+| --- | --- | --- |
+| `x`, `dest_x` | 42168 | **41976** |
+| `y`, `dest_y` | 17400 | **17208** |
+| `off_x` | 696 | **504** |
+| `off_y` | 504 | **312** |
+
+**(+192, +192) on all four** — one tile in each axis — and `x − off_x` = 41472,
+`y − off_y` = 16896 on **both** sides. The base the spot is measured from
+agrees and the tile chosen off it does not, which is what a stream one draw out
+of step looks like rather than a second, independent fault. The position
+follows on 7586:
+
+| block | ours | theirs | delta |
+| --- | --- | --- | --- |
+| 7585 | (41592, 17592) | (41592, 17592) | — |
+| **7586** | **(41615, 17585)** | **(41609, 17575)** | **(+6, +10)** |
+| 7599 | (41914, 17485) | (41830, 17354) | (+84, +131) |
+
+**Nothing else parts at or below the word.** Over 11,620 unit fields, 11,571
+order/path rows, 18,322 angles, 59,626 collision fields, 134,670 gather,
+20,068 building and 7,861 queue rows across 247 blocks, the only unit parting
+at or under block 7585 is `1/3` — beside run87's own carried residue, all of it
+older than this window and present on its first block: `1/23`'s order angle and
+flags, `1/24`/`1/25`/`1/26` twenty-four units off their cell, and item 242's
+group id. Above the word there are 7,493 rows and **none of them is asserted**:
+past 7584 both sides run on streams that are nobody's (run57's rule).
+
+**One row for the widening ledger.** The **`CITY` record parts on every block
+of the window** — 18 fields, 246 of 246 blocks: player 0's city `2000` reads
+zero here for `busy`, `gatherers`, `land`, `filled`, `peasant_dist`, three
+`space` slots and four `ter` slots, and player 1's `2000`/`2007` differ on
+`land`, `space[2]`, `trade_val` and `vans.length`. No window test on either map
+asserts `city_diverged` — only the 24,001 endpoint does — so this has been
+true and unread for as long as the record has been compared. It is printed by
+the test and named here rather than assumed away.
+
+**One cost, and it is the first capture since 260 landed.** run89 is 112 MB;
+the release diff suite's peak with it in is **10,310 MiB of the 20 GiB
+`memcap.sh` ceiling** at 244 tests, against **8,321** at 243 without it — so
+this window costs about **2 GiB of peak**, a third of what run87's 121 MB cost
+before the parse went lazy. The headroom warning run87 and run88 both ended on
+is closed: it was 15,479–16,169 of 20 then and is a little over half the
+ceiling now, and 2 GiB is the figure the next capture of this size should be
+sized against.
+
+**So the word does not move.** Nothing was fixed here; what the capture buys is
+that Great Lakes 7584 stops being a draw-stream report and becomes one named
+call site with a value diff beside it.
+`run89_s_window_is_great_lakes_word_frame` is the assertion, and its eight
+claims were each made to fail on purpose before it was believed: the extra
+draw's index moved 24 → 25, the counts to 49/49, the parted set to `1/4`, the
+step to 191, the base to 41473, the original's own spot to 41977, the parting
+floor to 7586, and the anti-vacuity range widened to include 7584 itself. All
+eight failed. The guard that stays in permanently is the last one, because
+"equal once one entry is dropped" says nothing on a frame pair that was never
+equal, and a mis-read trace is also a stream that agrees with nothing.
+
 ## 178 needed no screen — the danger map's unit pass was on disk four times (2026-09-06)
 
 **What it is.** Not a run. `docs/DANGER.md` §8 had the unit pass of
