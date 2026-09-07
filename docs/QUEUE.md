@@ -49,37 +49,31 @@ captures' word**, lower map first — Great Lakes. Take the first unstarted
 unless a better order is obvious — and say so. Numbers are stable; the
 journal is indexed by them.
 
-246. **Step 6's repath is diff-backed on one capture only** — 239 pinned
-    the cell-centre snap, the cleared `dest` and the three-entry
-    `find_upath` plan above the untouched world-grid one (its top two
-    entries share the snapped row, which makes the slide) on run83's one
-    event. A second blocked walker would say whether it is general;
-    run85's obstacle class differs and does not serve.
+246. **Step 6's repath is diff-backed on one capture only** — run83's
+    single event (239). A second blocked walker says whether the shape is
+    general; run85's obstacle class differs and does not serve.
 
 226. **`cover=1` dies in the wow64 bop** (ORACLE), an x86 host the
-    falsifier; `tools/trace/wow64bop.c` reproduces it. (220) TECH §13's
-    twenty range blocks are unloaded. (209) **The once-per-game events a
-    dump install swallows** (207's general half): a `set_*` whose **return
-    value** drives an irreversible record; **takes 224**, AI §29.4's three
-    other `mil_trainers` writers. (203) `mark_behind_tiles`' `0x4` is a
-    building *finishing*, 32 at 4802 and 45 at 4803 (ROADS §6). (240) **The deployed
-    merchant's own record, unasserted** — run82 caught the unpack on 6883
-    and `gather_down`/`special` are still −1 at 6929, 46 frames on, where
-    run76's settled merchant has 18 and 6; MERCHANT §7 is one field short.
-    **Takes 184.** (216) **`create_buildings` offers a gather building the
-    original does not**: 6582's slots 1 and 4 carry `t 418 cat 4 val
-    41500` against empty; inert, so the *list* differs — **238 may be this
-    list finally acted on**.
+    falsifier. (220) TECH §13's twenty range blocks, unloaded. (209) **the
+    once-per-game events a dump install swallows** — a `set_*` whose
+    **return value** drives an irreversible record; **takes 224**, AI
+    §29.4's three other `mil_trainers` writers. (203) `mark_behind_tiles`'
+    `0x4` is a building *finishing*, 32 at 4802 and 45 at 4803 (ROADS §6).
+    (240) **the deployed merchant's record, unasserted** — `gather_down`
+    and `special` still −1 at 6929, 46 frames past run82's deploy, where
+    run76's has 18 and 6; MERCHANT §7 is one field short, **takes 184**.
+    (216) **`create_buildings` offers a gather building the original does
+    not**, 6582's slots 1 and 4 — inert, so only the *list* differs;
+    **238 may be this list acted on**.
 
-(242) **The crate's group id is not the original's** — run76's Archers carry
-`GroupData +0x4 = 64` where `crates/sim`'s `group_id` stands in with the
-army group's *slot*, 1; the other five group fields agree on all 630, and
-237 reports the row without scoring it. (243) `UnitDump::group` is parsed
-and **nothing compares it**. (244) **1,428 grouped order records no test
-windows** — run79's 453 and run31's 945; windowing run79 is the cheapest
-second capture for 237's newly-live rows. (245) **`focus.sh` matched a concurrent
-worker's shell** on run84 — `ready (riseofnations.exe…)` where the traced
-binary had launched; a reader would conclude otherwise.
+(242) **The crate's group id is not the original's** — `GroupData +0x4 =
+64` against `group_id`'s stand-in, the army group's *slot* 1; the other
+five fields agree on all 630 and 237 reports the row without scoring it.
+(243) `UnitDump::group` is parsed and **nothing compares it**. (244)
+**1,428 grouped order records no test windows** — run79's 453, run31's
+945; run79 is the cheapest second capture for 237's new rows. (245)
+**`focus.sh` matched a concurrent worker's shell** on run84, printing
+`ready (riseofnations.exe…)` where the traced binary had launched.
 
 AI residues, measured, none near a word: (169) `compute_site_stats`'
 arithmetic — an extra site drags every `rank` (AI §2.13), 7,122 of run63's
@@ -95,11 +89,10 @@ thirteen `Census` fields written for consumers not built
 178. **The danger map's unit pass — its falsifier may be a grep.** `role
     & 0x10000`, `(attack · 5) / 10` and the war gate rest on a reading
     (DANGER §8), but `danger[who][scan]` is on disk in **eighteen**
-    archives, four of them late East Indies combat windows: run29's 15100
-    carries 96 `TARGETORDER`s beside its danger map, run27's 46, past the
-    15000 rebuild boundary. **Unverified**: that the army was on the map
-    at the *rebuild* frame. Confirm §2's schedule; then no capture. (181) **CARAVAN §7.2–§7.3's
-    unreached arithmetic**: the arrival box, `× 16 / 2`, `(epoch[1] + 1) · 10`.
+    archives — run29's 15100 carries 96 `TARGETORDER`s beside its danger
+    map, run27's 46, past the 15000 rebuild boundary. **Unverified**: the
+    army at the *rebuild* frame. Confirm §2's schedule, then no capture.
+    (181) CARAVAN §7.2–§7.3's unreached arithmetic.
 
 **The widening ledger is built** (87, DATALAYER §4): **19** parsed fields
 the harness names nowhere and **44** one capture names (237 moved both);
@@ -109,11 +102,10 @@ uncounted: (88) the blind list, 101 of 617 cited functions never entered;
 (89) the instrument's last guard; (35) `mylos` as a cache, VISION §7.
 
 175. **The uber chain past its birth**: `Objects::init_unit` threads
-    `uber_size` objects (CITIES §4.3), nothing else reads the chain,
+    `uber_size` objects (CITIES §4.3), nothing else reads the chain and
     `build_sim` leaves `o_up`/`o_down` unset. Takes (48) the object chain
     whole (COLLISION §3, §7); (73) `UnitData::group`'s missing
-    back-pointer, so `Group::normalize`'s cull is unmodelled — **242 is
-    its other half**; (56) the cell's `BUILDING` bit, ARMY §13.
+    back-pointer — **242 is its other half**; (56) ARMY §13's cell bit.
 
 117. **Territory's three remaining terms want the lobby.** The gem term
     landed (43 cells, diff-backed on run80); the temple and fort terms are
@@ -133,9 +125,8 @@ reads `ages`.
 161. **The make-list block is 2,500 frames behind East Indies' word**:
     `create_buildings` first runs on 9982 (AI §25), so `building_value`,
     `gather_value`, §24.4's arm and `compute_largest_gather@0066e920` wait
-    on it — **238 is the Great Lakes half and it is live**. (195)
-    `find_repair_spot` is `build_done`'s last of three; no damaged
-    building.
+    on it — **238 is the Great Lakes half, live now**. (195)
+    `find_repair_spot` is `build_done`'s last of three.
 
 241. **East Indies' word, 7448 — the counter that has not moved**, and
     **run85 answers it** ([7400, 7479), `GUYS=4`). One stand: the lone
