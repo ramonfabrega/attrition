@@ -1441,3 +1441,24 @@ hand. The lesson is the older one: **the tool's help was read once and
 believed for a day**, while the tool was replaced underneath. What stands
 unchanged is the note that a pid never names a session — that is the
 harness pre-warming spare processes, and liveness is the only identity.
+
+**Amended 2026-09-06, Fable steering, with the user — the width question,
+reopened on 235's measurement as promised.** The gate is 14.8 GB at two
+threads, so two workers are about 30 GB against 128 with `memcap.sh` in
+front of each: memory no longer decides the width. What decides it is the
+brief. So: **two workers when the second brief is as tight as the first's
+and on a module the first does not touch**, at the commander's
+discretion — one otherwise. The stopping rule counts landings in landing
+order, whatever the width. The measure above was applied: the loop moved
+Great Lakes 6848 → 6862 with nobody in the room and stopped to ask about
+width and about the docs-versus-code wave — two real questions and no
+spurious one. **The wave is not a ratification question**: its rows are
+disagreements between two texts this repo owns, the diff is their oracle,
+and they are taken per document by the worker that next touches it (the
+queue's maintenance rule), never by a reader; entry 22's scope stands.
+One more operating note: a worker takes its base's tip with **`ccc update
+<ref>`**, and a brief never says `git merge` — the raw merge is what the
+auto-mode classifier refused, and `update` is the same merge with guards.
+Its origin-following fix (`origin/<base>` when origin strictly contains
+local) is on ccc's next cut; 0.1.25 merges the local ref, so a commander
+that pushes promptly is what keeps it honest until then.

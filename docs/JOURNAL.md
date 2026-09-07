@@ -16710,3 +16710,22 @@ minute: a field line with no space stored its empty value as the literal
 `""`, whose pointer is not in the text, so the offset arithmetic
 underflowed. Every span in an arena has to be cut from the buffer it
 indexes, and `&trimmed[trimmed.len()..]` is how you spell an empty one.
+
+## 2026-09-06 — the steer after the first unattended weekend (Fable, twenty minutes)
+
+Opened by the user after the loop's first headline with no human in it
+(Great Lakes 6848 → 6862), against the outgoing commander's own advice
+that the triggers had not fired. It was right about the triggers and the
+seat was still worth twenty minutes: entry 34 had written its own measure
+and asked the next steering pass to apply it, and the charter was written
+by the session that ran the loop. Verdicts, all in the queue's handoff and
+entry 34's amendment: back to Opus commanding; width two when the second
+brief is tight, at the commander's discretion, 117's gem term the
+candidate beside 236; the docs-versus-code wave's 101 unstruck rows are
+not a ratification question — a row is a disagreement between two texts
+this repo owns, the diff is its oracle, and the 98 rows not yet
+assertions are taken per document by the worker that next touches it,
+under a new queue rule; the memory focus is closed with 235; `att-audit`
+stays held until the headline sits two sessions. The one thing the seat
+found that nobody had asked: the wave's product was stranded in
+`docs/audit/`, a directory the loop never reads.

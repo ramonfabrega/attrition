@@ -12,32 +12,31 @@ lines, or lets the handoff pass 32.
 
 ## Where things stand
 
-*2026-09-06, Opus commanding — **Great Lakes 6848 → 6862**, the first
-headline the loop moved with no human in it.* East Indies 7448 unmoved.
+*2026-09-06, Fable steering, twenty minutes — **Great Lakes 6862**, moved
+6848 → 6862 by the loop with nobody in the room; East Indies 7448
+unmoved.* Verdict: **back to Opus commanding**, at the width below.
 
-- **219 is done, and it was neither seam the brief named**: the march's
-  halving is `unit_masks & 0x100000`, the one-shot half step a **soft**
-  collision leaves behind — set by `detect_unit_collision@00617060` (at
-  `617817`), spent by `Unit::move_step@005faf30` (at `5fb1f4`) on the arm
-  owing under 45° (ORDERS §15.1). So
-  the "26, 13, 26, 26, 13" is two halvings and then 26. `Unit::half_step`
-  had sat unread for two days. run79's second squad is the second sample,
-  asserted and made to fail on a neighbouring bit. **236** is what stands
-  at 6862 and is the default item; no capture needed.
-- **235 landed and the gate is cheap again.** The parse is an arena in
-  fixed chunks: one test 9.4 → **5.4 GB**, the suite serialized 15.3 →
-  **10.1 GB**, and **two threads 20.5 → 14.8 GB, 215 tests in 136 s**. So
-  every release run is `zsh tools/memcap.sh 20 cargo test -p rondata
-  --release -- --test-threads=2`; four threads still cross 20 GB and stay
-  off the table (DECISIONS 34; the Mac went down without the guard on
-  09-04). **The serial rule can relax — that is the user's call.**
-- **117 split three ways** on run80: the **gem term is live** and
-  unmodelled (a diff target, not a capture), the temple and fort terms
-  cannot fire in any game on disk, the handicap is 0 by the lobby.
-- **A late-game capture is now cheap**: 40 s to reach frame 23,960. The
-  hours in run53's stanza were the `cover=1` int3 forest, not the game.
-- Lanes: `att-capture` idle, screen free, corpus current at 229 objects;
-  `att-audit` held at the user's call while the loop is ironed out.
+- **236** is the default item, the map's nearest divergence; no capture
+  needed. 219's story is in the journal.
+- **Width: two when the second brief is tight**, at the commander's
+  discretion (DECISIONS 34, amended). 236 alone first; 117's gem term is
+  the candidate second — a different module, a diff target, no capture.
+  Every gate is `zsh tools/memcap.sh 20 cargo test -p rondata --release
+  -- --test-threads=2` (14.8 GB); four threads stay off the table.
+- **The docs-versus-code wave is not a ratification question.** Its 101
+  rows are disagreements between two texts this repo owns, and the diff is
+  their oracle. 3 became assertions; the other 98 sit in
+  `docs/audit/2026-09-05-<doc>-vs-code.md`. Rule below: a worker on an
+  item touching a document reads its vs-code file first.
+- **Memory focus is closed**; the read-buffer piece stays in the backlog.
+  `att-audit` stays held until the headline sits two sessions.
+- **117 split three ways** on run80: the gem term is live and
+  unmodelled; the temple and fort terms cannot fire in any game on disk;
+  the handicap is 0 by the lobby.
+- Lanes: `att-capture` idle, screen free, corpus at 229 objects; both
+  lane worktrees were deleted by `claude rm` (branches survive, one
+  command each); `loop-234` holds `anim.rs` uncommitted for 234. A
+  worker takes its base's tip with `ccc update <ref>`, never `git merge`.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w7448 of 24,000 · GreatLakes w6862 of 24,000
@@ -181,6 +180,9 @@ delete; a `find_target` block; run7's order stream; a mounted attacker;
   `rondata::diff`, the assert that reads it, and the `Scoreboard:` line.
 - **Start of session:** merge `lane-capture` and `lane-audit`, then "Where
   things stand", the item, then its document. Lanes never write this file.
+- **A brief on an item touching `docs/<DOC>.md` names
+  `docs/audit/2026-09-05-<doc>-vs-code.md`** where one exists: its rows
+  are candidate items, the diff settles them, taken on the way through.
 - **Run the diff suite with `--release`** — 92 s against debug's 285 s
   since run53's 24,000 frames. A long wait is the capture, not a hang.
 - **Before a blind fan-out:** `grep -n <mechanic> CLAUDE.md`, and the memory
