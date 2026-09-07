@@ -18887,3 +18887,116 @@ four `*_is_pinned` counts that failed it and pass re-pinned — peak 14,023 MiB
 of the 20 GiB cap on the clean run and 14,566 on the one that found the
 moves; 819 sim tests; `cargo clippy --all-targets` and `cargo fmt` clean;
 `rondata -- <install>` zero.
+
+## 2026-09-07 — item 260: the parse goes lazy, and the gate's peak falls from 14,721 MiB to 7,966 (no word moved, Opus, worker)
+
+**The item was booked as a memory number and it moved: 14,721 MiB → 7,966
+MiB of the 20 GiB ceiling, 243 tests green.** The falsifier the queue named
+had been met rather than refuted — three measurements in two days at
+15,479, 16,169 and 16,732 MiB — and the capture lane was being held on it.
+It is decisively off the ceiling now, at 40 % of the cap with run87's and
+run88's dumps in.
+
+**The first finding was that the gate's number was not a measurement.** A
+probe parsed three captures in one process and read its own resident set
+after each `drop`: 5,332 MiB still held with nothing alive. Both large
+things a parse holds — the `String` the capture is read into and the
+arena's chunks — go to the system allocator, and macOS keeps a freed block
+of that size rather than unmapping it, so a suite that parses forty
+captures of forty sizes reports **the sum of everything it ever held**.
+That is half the number, and item 260 had not asked for it: the item asked
+for the arena.
+
+So `crates/rondata/src/mapped.rs` maps both. `Text` is the capture,
+deref'ing to `str` so `Log::parse(&text)` takes it exactly as it took a
+`String` — the change at 182 call sites is `read_to_string(..).unwrap()`
+becoming `mapped::read(..)` and nothing else — and `Pages<T>` is the
+arena's 1 MiB chunk. `munmap` returns them at the moment of the drop. The
+probe ends at 1,647 MiB instead of 5,332, and the suite fell to 12,182 MiB
+on that alone. **A mapping cannot be made in safe Rust and no crate hides
+it** (`memmap2::Mmap::map` is itself an `unsafe fn`), so `crates/rondata`
+stops inheriting the workspace's `unsafe_code = "forbid"` and denies it
+itself, with `mapped.rs` and nothing else allowed; `crates/sim` and
+`crates/fixed` keep the ban, which is where it was aimed.
+
+**Then the parse itself.** A capture's frames are all children of `GAME`,
+so the pass reads eagerly to the first `FRAME` child — which is exactly the
+head `initial()` wants — and indexes the rest: a name and a byte range per
+remaining child, nothing else. An indexed node is marked by `fields_len ==
+u32::MAX`, with the range in the `fields_at`/`kids_at` it is not using
+yet, so `Node` stays 28 bytes and item 235's width guard stays where it
+was. `Block::ensure` reads a block in the first time anyone asks it for a
+field or a child; `frames()`, `dumps()` and a `name()` never ask.
+
+**The span boundary is the whole correctness argument.** A span runs from
+its `BEGIN` line to the next line *at or above the children's indent that
+opens a block* — not to its last child — because that is what keeps the
+trailing fields the writers put at a block's own indent (`leader_flags`
+and its kind) inside the span they belong to. Reading one frame in
+isolation then gives the same tree as reading the file.
+`the_lazy_tree_is_the_eager_tree` spells both parses out block by block and
+field by field and compares the strings, over the sample, a fixture built
+for the quirks, and the head of run87; it also asserts the lazy parse
+indexed something, so it cannot pass by doing nothing. It was made to fail
+twice — by dropping the parent's share of the trailing fields, and by
+ending a span at its last child — and the first of those failures is why
+the quirk fixture exists: the sample and the capture both passed the broken
+build.
+
+**Two bugs the tests could not have found, and one they did.** The index
+has two shapes it refuses to model, and the refusals were written as checks
+rather than assumed away. One of them — a line shallower than the children
+— happens in **every** capture, on the last line: `GameInfo closing`, at
+indent 0, which the eager rules give to `GAME` *and* to the preamble. The
+first draft gave up on it, fell back to eager, and then offered the split
+again at the next `FRAME`, rescanning the rest of the file once per frame:
+the file squared. That build got 34 tests done in the 220 s the whole suite
+used to take, and the way it was found was the gate refusing to finish. The
+index stops at that line now and the eager pass resumes from it, and the
+retry is gone. Before the fix, run58, run57, run65 and run56 — the four
+largest captures on disk — indexed **zero** blocks between them; after it,
+every capture on disk indexes.
+
+**What the laziness costs is a second pass, and it is not free.** Every
+whole-log product now goes through `scan_children`, which reads each of
+`GAME`'s children into a scratch arena that is cleared before the next one
+and keeps only what the caller owns. But that walk is a *re-read* where it
+used to cross an arena already built, so `initial()` folds its four walks
+into one, and a test that wants both the initial state and the frame states
+parses the capture twice. **The suite is 300 s against 220.** That is the
+trade this item makes: 36 % more wall clock for 46 % less memory, on the
+number the queue said was blocking the lane.
+
+**What is left is not the parser.** On run58 — 1,345 MiB, 5,201 frames —
+the peak is 1,347 MiB of mapped text, 1,244 MiB of `Initial`'s own
+`frame_bodies`/`frame_guys`, and 520 MiB of `frame_states`' `Vec<Frame>`:
+3,029 MiB against 5,206 before, and **17 MiB of it is the arena**. The two
+big terms are the caller's owned data and the file itself.
+
+**And the file itself cannot be given back on this machine.** The pages are
+clean and file-backed, so a walk that has finished with a frame ought to be
+able to hand them to the kernel. macOS accepts `madvise(MADV_DONTNEED)`
+over a private file mapping, answers 0, and leaves the resident set exactly
+where it was; `MADV_FREE_REUSABLE`, the one that does move it, refuses
+anything but anonymous memory with `EINVAL`. Both were measured on run58 —
+1,347 MiB resident before the call and after it — and the machinery was
+written, measured and taken back out. The consequence is worth writing
+down: a mapped capture is *clean*, so the kernel would evict it under real
+pressure rather than swap it, and it is not the hazard that took the
+machine down on 2026-09-04 — but `memcap.sh` reads `ps rss`, which counts
+it. The meter now over-counts by the size of whatever captures are open.
+
+Two changes of behaviour ride along, both towards `Initial`'s own
+documentation: its regions, herds, goods and height grid are read from the
+head — `GAME`'s children before the first `FRAME`, which `records(game,
+true)` already used — rather than from a whole-log depth-first search that,
+on a capture with no `DUMP_ALL` head, walked every frame to answer `None`,
+and where it did answer, answered with a mid-game block's state as though
+it were the start of the game. No test noticed either way.
+
+`docs/DATALAYER.md` §1 has the specification. Successors, unnumbered: the
+memcap meter counts clean file-backed pages that are not a threat, and
+could subtract them; the second parse a test pays for asking both questions
+could be spent once if `Initial` and the frame states came from one call;
+and `dumps()` still materialises every frame it is asked about, which is
+the one whole-log accessor the split did not reach.

@@ -99,14 +99,104 @@ forty sizes **ratchets**: it reached 15,275 MiB serialized while its largest
 single test held 5,425 MiB. With one fixed chunk size every chunk a log
 frees fits every chunk the next log wants — a second parse after a first is
 dropped costs 10 MiB where it cost 353 — and the serialized peak is
-**10,075 MiB**. What is left of the ratchet is the `String` each test reads
-the capture into, which is the file's own size and so a different size every
-time.
+**10,075 MiB**. ~~What is left of the ratchet is the `String` each test
+reads the capture into, which is the file's own size and so a different size
+every time.~~ **Closed by item 260** (below): the capture is a mapping now
+and so is the chunk, and both are returned by `munmap` rather than left with
+the allocator.
 
 `Log::initial()` gives the start-of-game state — `GAME INFO` → `GAMEINFO` and
 its `PLAYER`s, `WORLD`, `CITIES`, `CONSTANTS`, every `UNITDATA` with its
 `GUY`s, every `BUILDDATA`, every `LEADERDATA` — and `Log::frame_states()` the
 `FRAME n` blocks.
+
+### The parse is lazy, and the capture is mapped (item 260, 2026-09-07)
+
+Item 235 made the tree an arena and its chunks one size; what it could not
+fix is that **the arena is built at all**. `Log::parse` read all 76.6 M
+fields of a 793 MB capture where a test reads hundreds, and the release
+suite peaked at **14,721 MiB** of the 20 GiB ceiling — the number that made
+the next long capture unbookable. Two things were wrong, and only the second
+is the one the item named.
+
+**Nothing was ever given back.** A probe that parsed three captures in one
+process and read its own resident set after each `drop` found it had not
+fallen by a byte: 5,332 MiB held with nothing alive. Both large things a
+parse holds — the `String` the capture was read into, and the arena's chunks
+— go to the system allocator, and macOS keeps a freed block of that size
+rather than unmapping it, so a suite that parses forty captures of forty
+sizes reports the **sum of everything it ever held**. Both are mappings now
+(`crates/rondata/src/mapped.rs`): `Text` is the capture, deref'ing to `str`
+so `Log::parse(&text)` is unchanged, and `Pages<T>` is the arena's 1 MiB
+chunk. `munmap` returns them where `free` did not, and the same probe ends
+at 1,647 MiB instead of 5,332. This alone took the suite to 12,182 MiB.
+
+What a mapping does *not* buy here is a scan that runs without the file
+resident. The pages are clean and file-backed, so a walk that has finished
+with a frame ought to be able to hand them back — but macOS accepts
+`madvise(MADV_DONTNEED)` over a private file mapping, answers 0, and leaves
+the resident set exactly where it was, and `MADV_FREE_REUSABLE` refuses
+anything but anonymous memory with `EINVAL` (measured on run58: 1,347 MiB
+resident before the call and after it). A capture's text is resident for as
+long as it is mapped. It is *clean* — the kernel would evict it under real
+pressure rather than swap — so it is not a threat to the machine, but
+`memcap.sh`, which reads `ps rss`, counts it.
+
+**And the frames are indexed rather than read.** A capture's frames are all
+children of `GAME`, so `Log::parse` reads eagerly up to the first `FRAME`
+child — which is exactly the head `Log::initial` wants — and then walks the
+rest recording, per remaining child, its name and the byte range of its own
+text. An indexed block is a `Node` whose `fields_len` is `u32::MAX` and
+whose `fields_at`/`kids_at` hold that range instead (the node's width is
+item 235's, and 28 bytes is worth keeping); `Block::ensure` reads it in the
+first time anyone asks for a field or a child, and committing it writes the
+real counts over the marker. `frames()`, `dumps()` and a `name()` never ask,
+so picking one frame out of five thousand reads one frame.
+
+A span runs from its own `BEGIN` line to the next line at or above the
+children's indent that opens a block, which is what makes reading it in
+isolation give the same answer as reading the whole file: the trailing
+fields the writers put at a block's *own* indent fall inside the span they
+belong to. Two shapes the index cannot model are checked for rather than
+assumed — a block opened after a field has already closed the span, and a
+line shallower than the children. The second happens in **every** capture,
+on the last line (`GameInfo closing`, at indent 0, which the eager rules
+give to `GAME` *and* to the preamble), so the index stops there and the
+eager pass resumes from that line. Offering the split again at every later
+`FRAME` is the file squared: a first draft did that and got 34 tests done in
+the 220 s the whole suite used to take.
+
+`gamelog::the_lazy_tree_is_the_eager_tree` is what makes this safe. It
+spells both parses of the same text out block by block and field by field
+and compares the strings — over the module's sample, a fixture carrying
+every quirk, and the head of run87 — and asserts the lazy parse indexed
+something, so it cannot pass by doing nothing. It was made to fail twice: by
+dropping the parent's share of the trailing fields, and by ending a span at
+its last child.
+
+**What the laziness costs is a second pass.** Every whole-log product —
+`frame_states`, `frame_seeds`, `anim_lengths`, the height grid, and the four
+walks `initial` used to make separately — now goes through `scan_children`,
+which reads each of `GAME`'s children into a scratch arena cleared before
+the next one. What it keeps is owned, so the memory is one frame rather than
+all of them; but the walk is a **re-read** where it used to cross an arena
+already built, so `initial` does its four in one pass, and a test that wants
+both the initial state and the frame states parses the capture twice. The
+suite is **300 s against 220 s** for **7,966 MiB against 14,721**.
+
+Two changes of behaviour ride along, both towards the type's own
+documentation: `Initial`'s regions, herds, goods and height grid are taken
+from the head rather than from a whole-log depth-first search that, on a
+capture with no `DUMP_ALL` head, walked every frame to answer `None` — and
+where it did answer, answered with a mid-game block's state as though it
+were the opening one.
+
+On run58 (1,345 MiB, 5,201 frames) what is left is: 1,347 MiB of mapped
+text, 1,244 MiB of `Initial`'s own `frame_bodies`/`frame_guys`, and 520 MiB
+of `frame_states`' `Vec<Frame>` — 3,029 MiB at the peak against 5,206
+before, and **17 MiB of it is the parser**. The two big terms are now the
+caller's owned data and the file itself, which is where item 260 wanted
+them.
 
 ### What detail level 0 writes
 

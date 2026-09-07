@@ -16,10 +16,18 @@
 //! which is what turns the gate's number back into a measurement of live
 //! data (item 260).
 //!
-//! The text gets a second thing from being a mapping: it is file-backed and
-//! clean, so [`Text::forget`] can hand a stretch of it back to the kernel
-//! mid-scan and the pages fault in again untouched if anyone asks. That is
-//! what lets a whole-file scan run without the whole file resident.
+//! What a mapping does **not** buy on this machine is a scan that runs
+//! without the file resident. The pages are file-backed and clean, so a
+//! walk that has finished with a frame ought to be able to hand them back;
+//! but macOS accepts `madvise(MADV_DONTNEED)` over a private file mapping,
+//! answers 0, and leaves the resident set exactly where it was, and
+//! `MADV_FREE_REUSABLE` — the one that does move it — refuses anything but
+//! anonymous memory with `EINVAL` (measured 2026-09-07 on a 1.3 GB
+//! capture: 1,347 MiB resident before the call and after it). So a
+//! capture's text is resident for as long as it is mapped, and the peak
+//! `tools/memcap.sh` reports counts it. It is *clean* — the kernel would
+//! evict it under real pressure rather than swap it — which is why a
+//! machine with 128 GB never noticed; the meter counts it all the same.
 
 use std::ffi::c_void;
 use std::ops::Deref;
@@ -39,16 +47,12 @@ mod sys {
             offset: i64,
         ) -> *mut c_void;
         pub fn munmap(addr: *mut c_void, len: usize) -> i32;
-        pub fn madvise(addr: *mut c_void, len: usize, advice: i32) -> i32;
     }
 
     pub const PROT_READ: i32 = 0x1;
     pub const PROT_WRITE: i32 = 0x2;
     pub const MAP_PRIVATE: i32 = 0x0002;
     pub const MAP_ANON: i32 = 0x1000;
-    /// The same number on macOS and Linux; on both it means "drop these
-    /// pages", and on a private file mapping they come back from the file.
-    pub const MADV_DONTNEED: i32 = 4;
 
     pub fn failed(p: *mut c_void) -> bool {
         p as isize == -1
@@ -88,36 +92,6 @@ impl Text {
             ptr: std::ptr::null_mut(),
             len: 0,
         }
-    }
-
-    /// Hands the pages under `range` back to the kernel.
-    ///
-    /// A hint and nothing more: the bytes stay readable — a private
-    /// file mapping faults them in again from the file — so a scan that
-    /// forgets what it has already read stays correct whoever asks next.
-    /// Does nothing to an owned fallback, and nothing off a page boundary,
-    /// so a caller may pass any range.
-    pub fn forget(&self, range: std::ops::Range<usize>) {
-        #[cfg(unix)]
-        {
-            if self.owned.is_some() || range.end > self.len {
-                return;
-            }
-            let page = 16384; // Coarser than any page size in use, so the
-            // rounding below never reaches a byte outside the range.
-            let lo = range.start.div_ceil(page) * page;
-            let hi = (range.end / page) * page;
-            if hi > lo {
-                // SAFETY: `lo..hi` is inside the mapping this value owns,
-                // and `MADV_DONTNEED` on a private file mapping discards
-                // clean pages rather than changing what a read returns.
-                unsafe {
-                    sys::madvise(self.ptr.add(lo), hi - lo, sys::MADV_DONTNEED);
-                }
-            }
-        }
-        #[cfg(not(unix))]
-        let _ = range;
     }
 }
 
