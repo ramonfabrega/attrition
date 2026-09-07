@@ -79,9 +79,16 @@ use std::fmt;
 /// reached 15.3 GB serialized where its largest single test held 5.4 GB.
 /// Chunks of one fixed size are the fix — every chunk any log frees fits
 /// every chunk the next log wants, and nothing is ever copied on growth.
+///
+/// Item 260 briefly made each chunk an anonymous mapping, so that dropping
+/// one returned it to the kernel rather than to an allocator that keeps
+/// it; item 280 took that back with the rest of the `unsafe` (see
+/// `crate::capture`). It costs nothing measurable, because 260's other
+/// half — the lazy parse — took the arena of a 1.3 GB capture from 2,221
+/// MiB to 17, and a ratchet over a chunk list that small is noise.
 #[derive(Clone, Debug)]
 struct Chunks<T: Copy + Default> {
-    chunks: Vec<crate::mapped::Pages<T>>,
+    chunks: Vec<Box<[T]>>,
     len: usize,
 }
 
@@ -127,7 +134,8 @@ impl<T: Copy + Default> Chunks<T> {
 
     fn push(&mut self, v: T) {
         if self.len == self.chunks.len() * CHUNK {
-            self.chunks.push(crate::mapped::Pages::new(CHUNK));
+            self.chunks
+                .push(vec![T::default(); CHUNK].into_boxed_slice());
         }
         self.chunks[self.len / CHUNK][self.len % CHUNK] = v;
         self.len += 1;
@@ -3566,7 +3574,7 @@ BEGIN GAME
             eprintln!("skipping the capture half: no dumps (set RON_GAMELOG_DIR)");
             return;
         };
-        let text = crate::mapped::read(&path);
+        let text = crate::capture::read(&path);
         // The first frames only: the whole file spells to gigabytes, and
         // the shapes this has to get right are all in the head and the
         // first frame boundary.

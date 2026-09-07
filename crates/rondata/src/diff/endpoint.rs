@@ -510,7 +510,7 @@ mod tests {
             eprintln!("skipping {}: set RON_GAMELOG_DIR", row.map);
             return None;
         };
-        let text = crate::mapped::read(&path);
+        let text = crate::capture::read(&path);
         let log = Log::parse(&text);
         let fin = log.final_state().expect("the census says it has one");
         assert_eq!(
@@ -531,7 +531,7 @@ mod tests {
                 eprintln!("skipping {}'s sibling {name}", row.map);
                 continue;
             };
-            let t = crate::mapped::read(&p);
+            let t = crate::capture::read(&p);
             let sib = Log::parse(&t).final_state().expect("a closing dump");
             assert_eq!(sib.n, row.frame, "gamelog-{name}.txt's closing dump");
             let mine: BTreeSet<(i64, i64)> = fin.units.iter().map(|u| (u.who, u.o)).collect();
@@ -570,11 +570,11 @@ mod tests {
         // cells and no per-tile masks: every unit stands in a region-less
         // world, nothing can gather, and the walk scores noise (run28 read
         // 12 units of 71 that way).
-        let sib_texts: Vec<crate::mapped::Text> = row
+        let sib_texts: Vec<String> = row
             .setup
             .iter()
             .filter_map(|n| dump(n))
-            .map(crate::mapped::read)
+            .map(crate::capture::read)
             .collect();
         let sib_logs: Vec<Log> = sib_texts.iter().map(|t| Log::parse(t)).collect();
         let inits: Vec<Initial> = sib_logs.iter().filter_map(|l| l.initial()).collect();
@@ -707,14 +707,14 @@ mod tests {
                 eprintln!("skipping: set RON_GAMELOG_DIR");
                 return;
             };
-            let text = crate::mapped::read(&path);
+            let text = crate::capture::read(&path);
             let log = Log::parse(&text);
             let loaded = crate::load::load(&inst).unwrap();
-            let sib_texts: Vec<crate::mapped::Text> = row
+            let sib_texts: Vec<String> = row
                 .setup
                 .iter()
                 .filter_map(|n| dump(n))
-                .map(crate::mapped::read)
+                .map(crate::capture::read)
                 .collect();
             let sib_logs: Vec<Log> = sib_texts.iter().map(|t| Log::parse(t)).collect();
             let inits: Vec<Initial> = sib_logs.iter().filter_map(|l| l.initial()).collect();
@@ -846,10 +846,10 @@ mod tests {
             eprintln!("skipping: no archives (set RON_GAMELOG_DIR)");
             return;
         }
-        let named: Vec<crate::mapped::Text> = GREAT_LAKES_SETUP
+        let named: Vec<String> = GREAT_LAKES_SETUP
             .iter()
             .filter_map(|n| dump(n))
-            .map(crate::mapped::read)
+            .map(crate::capture::read)
             .collect();
         let sibs = sibling_texts();
         assert_eq!(
