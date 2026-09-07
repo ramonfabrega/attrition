@@ -51,14 +51,12 @@ unless a better order is obvious — and say so. Numbers are stable; the
 journal is indexed by them.
 
 239. **A blocked step is a deflection, not a stop** — run83, Great Lakes
-    6892, `1/29` blocked by the standing citizen `1/17`. It is pushed
-    *back* to (42408, 23880) on 6893 with `collide 1`, then slides due
-    west at exactly −26/frame for 6894–6898 with **`y` pinned**, and the
-    diagonal resumes on 6899; `idle` is 0 throughout, and `1/17`
-    registers nothing — the whole interaction is written on the walker.
-    Anything modelling a block as "stand still and repath" is six frames
-    and ~1.6 tiles wrong here. Behind the word (6982) and so never yet
-    compared: run83 is the first dump over [6870, 6910).
+    6892: `1/29`, blocked by the standing citizen `1/17`, is pushed *back*
+    on 6893 with `collide 1`, slides due west at exactly −26/frame for
+    6894–6898 with **`y` pinned**, and resumes the diagonal on 6899;
+    `idle` 0 throughout and `1/17` registers nothing. "Stand still and
+    repath" is six frames and ~1.6 tiles wrong. run83 is the first dump
+    over [6870, 6910), so this is behind the word and never compared.
 
 226. **`cover=1` dies in the wow64 bop** (ORACLE), an x86 host the
     falsifier; `tools/trace/wow64bop.c` reproduces it. (220) TECH §13's
@@ -87,91 +85,88 @@ binary had launched; a reader would conclude otherwise.
 
 AI residues, measured, none near a word: (169) `compute_site_stats`'
 arithmetic — an extra site drags every `rank` (AI §2.13), 7,122 of run63's
-27,000 site fields, (172) the `bucket` pair one apart on 5002/5061 (run60);
-(158) the sweep runs for a human leader, here it is skipped (AI §23.1), the
-gate is between steps 13 and 16; (159) the `CITY` record's two seams on
-run58, `1/2007`'s `land`/`filled` from 1819 and the gatherers from 2576;
-(146) `train_time`'s nine national arms after the ramp (PRODUCTION), (142)
+27,000 site fields; (172) the `bucket` pair one apart on 5002/5061 (run60);
+(158) the sweep runs for a human leader, skipped here (AI §23.1), gate
+between steps 13 and 16; (159) the `CITY` record's two seams on run58;
+(146) `train_time`'s nine national arms after the ramp (PRODUCTION); (142)
 `World::tregion` is not `get_tregion`, eleven callers (PATHFINDER §15–16);
-(122) 16 of 61 draws without a `self.mark(`; (153) the `TRIBE` record, whole;
-the thirteen `Census` fields the sweep writes for consumers not built
+(122) 16 of 61 draws without a `self.mark(`; (153) the `TRIBE` record; the
+thirteen `Census` fields written for consumers not built
 (`rondata::writers`' no-reader ledger, 20 rows, may only fall).
 
-178. **The danger map's unit pass — and its falsifier may be a grep.**
-    `role & 0x10000`, `(attack · 5) / 10` and the war gate rest on a
-    reading (DANGER §8). But `danger[who][scan]` is already on disk in
-    **eighteen** archives, four of them late East Indies combat windows —
-    run29's frame 15100 carries 96 `TARGETORDER`s beside its danger map,
-    run27's 46, just past the 15000 rebuild boundary. **Unverified**: that
-    the army was on the map at the *rebuild* frame, not merely at 15100;
-    confirm §2's schedule first. If it holds, no capture is owed. (181) **CARAVAN §7.2–§7.3's
+178. **The danger map's unit pass — its falsifier may be a grep.** `role
+    & 0x10000`, `(attack · 5) / 10` and the war gate rest on a reading
+    (DANGER §8), but `danger[who][scan]` is on disk in **eighteen**
+    archives, four of them late East Indies combat windows: run29's 15100
+    carries 96 `TARGETORDER`s beside its danger map, run27's 46, past the
+    15000 rebuild boundary. **Unverified**: that the army was on the map
+    at the *rebuild* frame. Confirm §2's schedule; then no capture. (181) **CARAVAN §7.2–§7.3's
     unreached arithmetic**: the arrival box, `× 16 / 2`, `(epoch[1] + 1) · 10`.
 
-**The widening ledger is built** (87, DATALAYER §4): **22** parsed fields
-the harness names nowhere and **42** one capture names; its blind spot is a
-field the parser never had — `avg_speed` (210). Still uncounted: (88) the
-blind list, 101 of 617 cited functions never entered — pin it as a floor;
-(72) every `+0xNN` a document pins vs its module, **with `att-audit`**; (89)
-the instrument's last guard, (c) alone; (35) `mylos` as a cache, VISION §7.
+**The widening ledger is built** (87, DATALAYER §4): **19** parsed fields
+the harness names nowhere and **44** one capture names (237 moved both);
+its blind spot is a field the parser never had — `avg_speed` (210). Still
+uncounted: (88) the blind list, 101 of 617 cited functions never entered;
+(72) every `+0xNN` a document pins vs its module, **with `att-audit`**;
+(89) the instrument's last guard; (35) `mylos` as a cache, VISION §7.
 
 175. **The uber chain past its birth**: `Objects::init_unit` threads
     `uber_size` objects (CITIES §4.3), nothing else reads the chain,
     `build_sim` leaves `o_up`/`o_down` unset. Takes (48) the object chain
-    whole (COLLISION §3, §7), `down`/`down_who` uncompared; (73)
-    `UnitData::group`'s missing back-pointer, so `Group::normalize`'s cull
-    is unmodelled (run33's scout 65 → 64 on 96) — **242 is its other
-    half**; (56) the cell's `BUILDING` bit on `(52, 22)`, ARMY §13.
+    whole (COLLISION §3, §7); (73) `UnitData::group`'s missing
+    back-pointer, so `Group::normalize`'s cull is unmodelled — **242 is
+    its other half**; (56) the cell's `BUILDING` bit, ARMY §13.
 
-117. **Territory's three remaining terms all want the lobby.** The gem
-    term landed (43 cells, diff-backed on run80). The temple and fort
-    terms are **blocked at their prerequisite** in every game on disk, and
-    the handicap is 0 by the lobby — a click, not a longer wait, and the
-    only one of the three a capture alone could still reach. A scripted
-    setup, a session's work. (Also AI §2.1's `check_explore` answers the
-    grid whole, 900 v 36/19.)
+117. **Territory's three remaining terms want the lobby.** The gem term
+    landed (43 cells, diff-backed on run80); the temple and fort terms are
+    **blocked at their prerequisite** in every game on disk; the handicap
+    is 0 by the lobby — a click, and the only one a capture could reach. A
+    scripted setup. (AI §2.1's `check_explore` answers the grid whole,
+    900 v 36/19.)
 
 Seven measured one-liners: (23) the formation byte's sign, Echelon half
 (GROUPS §6.4), run52 the blocker; (103) a woodcutter's clock at 1,686, 445
 against 480 (ORDERS §6.4); (105/45) Gaia's positions, East Indies, first
-bad 1658 (SYNC §4.2); (124) the loop flag is per animation file (ANIM
-§3.3); (116) the one `SITE` slot still wrong (AI §18); (166) `resource_cap`
-on five goods, 2958–2959, 1392 v 2000 (ECONOMY); (107) `epoch[0]` is
-Military and `army.rs` reads `ages`, `army.rs:769,1365`.
+bad 1658 (SYNC §4.2); (124) the loop flag is per animation file (ANIM §3.3);
+(116) the one `SITE` slot still wrong (AI §18); (166) `resource_cap` on five
+goods, 1392 v 2000 (ECONOMY); (107) `epoch[0]` is Military, `army.rs`
+reads `ages`.
 
 161. **The make-list block is 2,500 frames behind East Indies' word**:
     `create_buildings` first runs on 9982 (AI §25), so `building_value`,
-    `gather_value`, §24.4's arm, `oil_patches.count` and
-    `compute_largest_gather@0066e920` wait on it — **238 is the Great
-    Lakes half, and it is live**. (195) `find_repair_spot` is
-    `build_done`'s last of three (ORDERS §5.5–§5.9); no damaged building.
+    `gather_value`, §24.4's arm and `compute_largest_gather@0066e920` wait
+    on it — **238 is the Great Lakes half and it is live**. (195)
+    `find_repair_spot` is `build_done`'s last of three; no damaged
+    building.
 
-241. **East Indies' word, 7448 — the counter that has not moved.** At
-    draw 30 this crate spends `Guy::set_anim+0x97a < Guy::inc_time+0x271`
-    where the original spends `< Unit::move_step+0x823`: it steps an
-    animation clock where the original stands blocked. Two of the same
-    site, the family 236 dissolved on Great Lakes by making a follower
-    read `move_step`'s zero — **but 236 did not move this**, so it is a
-    second cause, not the same one. **No dump goes near it**: run77/78
-    open at 10150 and run54 carries only the start dump's detail, so the
-    window is owed before the reading. (167) run61's two: the landing
-    search's *cell*, `Unit::do_strafe` (SYNC §3.9).
+241. **East Indies' word, 7448 — the counter that has not moved**, and
+    **run85 answers it** ([7400, 7479), `GUYS=4`). One stand: the lone
+    `1/20`, group −1, blocked by `8/0` — an **animal**, stationary, one
+    tile south of its line. On 7449 the original sets **both** its guys to
+    `anim 0 / end_time 60 / stopped 1` and discards the 60-frame animation
+    after one frame; it then freezes three frames, snaps due west, steps
+    −23 with `y` pinned, and slides. **The two draws are two guys**, so
+    this crate reaching the same function from `Guy::inc_time` is one
+    missing blocked-step animation, not two. Why 236 missed it, now on
+    disk: 239's Great Lakes stand is a squad Archer blocked by a citizen
+    and slides at once — different obstacle class, different unit shape,
+    different recovery. (167) run61's two: the landing search's *cell*,
+    `Unit::do_strafe` (SYNC §3.9).
 
 211. **`get_speed`'s three remaining arms** (MOVEMENT): `unit_masks &
     0x10`, set and cleared inside a frame; `has_general(0, 0x162)`'s siege
-    doubling; the group cap, gated on `action_type == 0` (219), which a
-    marching unit never answers — it wants a grouped unit holding no
-    action.
+    doubling; the group cap, gated on `action_type == 0` (219) — it wants
+    a grouped unit holding no action.
 
 
 229. **A figure in melee does not step its clock** — `unit_masks2 & 0x10`
     freezes `Guy::inc_time` (ANIM §5), 26 of 26 off run17/run44; no field
     here, and the arm waits on a word that reaches a melee frame.
 
-Older backlog: **the capture `String` each test reads**, ~5 GB of the
-suite's remaining 10 — a rounded-up read buffer at ~100 call sites, and it
-moves no score (235). (39) a read-only 2D viewer over `Sim`, dump overlaid;
-(41) `scenario.py`'s fate — fuzz `424242 1000 1300`, blind report, delete;
-a `find_target` block; run7's orders; a mounted attacker; `calc_gather`
+Older backlog: (235) the capture `String` each test reads, ~5 GB of the
+suite's 10 — a rounded-up read buffer at ~100 call sites, no score; (39) a
+2D viewer over `Sim`, dump overlaid; (41) `scenario.py`'s fate; a
+`find_target` block; run7's orders; a mounted attacker; `calc_gather`
 non-flat; `Leader::diplomacy`; (77) ANIM §3.2; (58) ROADS §7.4.
 
 ## How to maintain this file
@@ -194,6 +189,11 @@ non-flat; `Leader::diplomacy`; (77) ANIM §3.2; (58) ROADS §7.4.
   80) with `--exclude <the category you raised>`. **The trap**:
   `samegame.py` exits 0 when nothing is in common, so assert the common
   count and range, not the verdict.
+- **A check on a field that is never cleared must assert a CHANGE, not a
+  value** — `collide_frame` is a permanent stamp, so "some unit has one in
+  the band" is true of any window on the game, and run85's first teeth
+  check passed on a band where nothing happened. Test both directions on
+  real data before the capture runs.
 - **Run the diff suite with `--release`**; a long wait is the capture, not
   a hang. **Before a blind fan-out**, `grep -n <mechanic> CLAUDE.md` and
   the memory index — a subagent inherits both, and neither they nor a
