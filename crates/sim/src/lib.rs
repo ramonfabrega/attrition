@@ -571,6 +571,18 @@ pub struct Muster {
     pub library_cities: usize,
     /// The same, by production group.
     pub by_group: Vec<i32>,
+    /// And the queued half of it — `LeaderData`'s `barracks_queued`,
+    /// `stable_queued`, `factory_queued`, `dock_queued`, `air_queued`.
+    ///
+    /// `LeaderData::get_support_count@006da110` returns
+    /// `<group>_queued + <group>_units` for a type whose `PROGRESSION` is
+    /// by-group, exactly as it returns `num_queued + num_units` for one
+    /// that is by-type. Without this half the ramp does not advance
+    /// *within* a batch: `Leader::produce_unit` queues its units one at a
+    /// time and each is priced from the count, so two Longbowmen ordered
+    /// together both paid the first one's price (`docs/COSTS.md`, "The
+    /// count").
+    pub queued_by_group: Vec<i32>,
     /// Population occupied — `LeaderData::control`.
     pub control: i32,
     /// The cap it is measured against. Recomputed from scratch by
@@ -1409,6 +1421,7 @@ impl Sim {
                 .push(tree.is_some_and(|id| self.tech[who].tech[id]));
             if m.by_group.len() < groups {
                 m.by_group.resize(groups, 0);
+                m.queued_by_group.resize(groups, 0);
             }
         }
         id
@@ -1450,7 +1463,9 @@ impl Sim {
         // `docs/PRODUCTION.md`.
         let counts = cost::Counts {
             of_type: muster.by_type[ty] + muster.queued_by_type[ty],
-            of_group: unit.group.map_or(0, |g| muster.by_group[g]),
+            of_group: unit
+                .group
+                .map_or(0, |g| muster.by_group[g] + muster.queued_by_group[g]),
         };
         cost::charges(
             &self.tuning,
@@ -2575,10 +2590,26 @@ impl Sim {
         }
     }
 
-    /// The tree's own queued count for the government-pairing rule.
+    /// [`Sim::track_tree_queued`], reachable from a test — the ramp's
+    /// group counter has six writers and this is how one of them is
+    /// exercised without standing a whole city up.
+    #[cfg(test)]
+    pub(crate) fn track_queued_for_test(&mut self, who: Player, ty: usize, delta: i32) {
+        self.track_tree_queued(who, ty, delta);
+    }
+
+    /// The tree's own queued count for the government-pairing rule, and the
+    /// ramp's group count beside it.
     fn track_tree_queued(&mut self, who: Player, ty: usize, delta: i32) {
         if let Some(id) = self.unit_types[ty].tree {
             self.tech[who as usize].queued[id] += delta;
+        }
+        // The ramp's group half, kept on the same statement as the type
+        // half it sits beside ([`Muster::queued_by_group`]). Every site
+        // that moves `queued_by_type` calls this, which is what makes the
+        // two counts agree by construction rather than by inspection.
+        if let Some(g) = self.unit_types[ty].group {
+            self.muster[who as usize].queued_by_group[g] += delta;
         }
     }
 

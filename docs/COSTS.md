@@ -119,7 +119,20 @@ If the type's `PROGRESSION` has bit 0 set **and its `attack` is not zero**, the
 count is taken over the whole **production group** instead of the type —
 barracks units, stable units, factory units, dock units, or air units, each as
 `queued + built`. This is why switching from crossbowmen to musketeers does not
-reset the price: they draw on the same barracks count. (An earlier draft had
+reset the price: they draw on the same barracks count.
+
+**`queued + built`, and the queued half is load-bearing inside one order.**
+`Leader::produce_unit` queues its `num` units **one at a time**, and each is
+priced from the count as it stands, so the second unit of a batch pays the
+first one's ramp step. run76's `BUILDQUEUE` at dump-frame 6783 is the receipt:
+the AI's Barracks holds two Longbowmen at `type 177, cost[0] 31, cost[1] 51`
+and `type 177, cost[0] 33, cost[1] 53`. This crate kept the group count as the
+**built** half alone ([`sim::Muster::by_group`] had no queued sibling) and
+charged 31/51 twice — two timber and two wealth a batch, banked and never
+spent back. Two hundred frames later they were the difference between the AI
+affording a University and not (`docs/AI.md` §30). Fixed 2026-09-06;
+`sim::ai_units::tests::a_batch_s_second_unit_pays_the_first_one_s_group_ramp_step`
+pins it, and the goods diff of `docs/CARAVAN.md` §8 is what measures it. (An earlier draft had
 only the progression bit. The `attack != 0` half is inert in the shipped data —
 no non-attacking type sets the bit — but it is the rule, and the same pair
 gates the counters in `LeaderData::track_unit_type`.)

@@ -37,7 +37,7 @@ Indies **7448 unmoved**, and it is now the map with the work.*
   Indies lands — `ORACLE.md` and `captures.txt` are its handoff.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w7448 of 24,000 · GreatLakes w6982 of 24,000
+Long captures: EastIndies w7448 of 24,000 · GreatLakes w6994 of 24,000
 
 **Opener: the main thread is the commander (DECISIONS 34), on Opus. 237
 and 238 are in flight; East Indies 7448 is the next unstarted, and it is

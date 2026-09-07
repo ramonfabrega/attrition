@@ -657,8 +657,18 @@ impl Sim {
     /// `Caravan::distance@0073d300`: a band, not a distance — 0 under a
     /// quarter of the map's width, 1 under a half, 2 under four fifths, 3
     /// beyond.
+    ///
+    /// **The distance is in cells, not world units**, and the width it is
+    /// compared against is `WorldData::xs` — the same grid.
+    /// `Caravan::trade_value@0073d9d0` hands `distance` four
+    /// `div_3_table[coord >> 8]` values, which is `floor(floor(x / 256) / 3)`
+    /// — this crate's [`Pos::cell`](crate::world::Pos::cell), one coordinate
+    /// at a time, the same double floor `produce_building`'s builder
+    /// distance takes (`docs/AI.md` §2.20). Measuring the world-unit
+    /// distance instead put every pair in band 3 and doubled every trade
+    /// route's value (`docs/CARAVAN.md` §3.1).
     fn trade_distance(&self, a: usize, b: usize) -> i32 {
-        let (pa, pb) = (self.cities[a].pos, self.cities[b].pos);
+        let (pa, pb) = (self.cities[a].pos.cell(), self.cities[b].pos.cell());
         let d = crate::world::vector_dist(pa.x - pb.x, pa.y - pb.y);
         let w = self.world.width();
         if d < w.div_euclid(4) {
@@ -672,8 +682,13 @@ impl Sim {
 
     /// `CityData::get_trade_value@007363f0`: the city's building count, plus
     /// two for a Large City and four for a Major City or better.
+    ///
+    /// The count is `CityData::num_buildings@00738190` — the whole chain
+    /// **including the city building itself**, and only its *finished*
+    /// members — not the member list's length. A city of nine buildings
+    /// scored eight (`docs/CARAVAN.md` §3.1).
     fn city_trade_value(&self, c: usize) -> i32 {
-        let n = i32::try_from(self.cities[c].members.len()).unwrap_or(0);
+        let n = self.num_buildings(c);
         let Some(ty) = self.buildings[self.cities[c].building].ty else {
             return n;
         };
