@@ -51,57 +51,48 @@ unless a better order is obvious — and say so. Numbers are stable; the
 journal is indexed by them.
 
 246. **Step 6's repath is diff-backed on one capture only** — run83's
-    single event (239). A second blocked walker says whether the shape is
-    general; run85's obstacle class differs and does not serve.
+    single event (239); run85's obstacle class differs and does not serve
+    as the second.
 
 226. **`cover=1` dies in the wow64 bop** (ORACLE), an x86 host the
     falsifier. (220) TECH §13's twenty range blocks, unloaded. (209) **the
     once-per-game events a dump install swallows** — a `set_*` whose
-    **return value** drives an irreversible record; **takes 224**, AI
-    §29.4's three other `mil_trainers` writers. (203) `mark_behind_tiles`'
-    `0x4` is a building *finishing*, 32 at 4802 and 45 at 4803 (ROADS §6).
-    (240) **the deployed merchant's record, unasserted** — `gather_down`
-    and `special` still −1 at 6929, 46 frames past run82's deploy, where
-    run76's has 18 and 6; MERCHANT §7 is one field short, **takes 184**.
-    (216) **`create_buildings` offers a gather building the original does
-    not**, 6582's slots 1 and 4 — inert, so only the *list* differs;
-    **238 may be this list acted on**.
+    **return value** drives an irreversible record; **takes 224**. (203)
+    `mark_behind_tiles`' `0x4` is a building *finishing* (ROADS §6). (240)
+    **the deployed merchant's record** — `gather_down`/`special` −1 at
+    6929 against run76's 18 and 6; grep what they count before booking a
+    window; **takes 184**. (216) `create_buildings` offers a gather
+    building the original does not, 6582's slots 1 and 4.
 
 (242) **The crate's group id is not the original's** — `GroupData +0x4 =
 64` against `group_id`'s stand-in, the army group's *slot* 1; the other
-five fields agree on all 630 and 237 reports the row without scoring it.
-(243) `UnitDump::group` is parsed and **nothing compares it**. (244)
-**1,428 grouped order records no test windows** — run79's 453, run31's
-945; run79 is the cheapest second capture for 237's new rows. (245)
-**`focus.sh` matched a concurrent worker's shell** on run84, printing
-`ready (riseofnations.exe…)` where the traced binary had launched.
+five agree on all 630 and 237 reports the row without scoring it. (243)
+`UnitDump::group` is parsed and **nothing compares it**. (244) **1,428
+grouped order records no test windows** — run79's 453, run31's 945; run79
+is the cheapest second capture for 237's rows. (245) `focus.sh` matched a
+concurrent worker's shell on run84.
 
 AI residues, measured, none near a word: (169) `compute_site_stats`'
-arithmetic — an extra site drags every `rank` (AI §2.13), 7,122 of run63's
-27,000 site fields; (172) the `bucket` pair one apart on 5002/5061 (run60);
-(158) the sweep runs for a human leader, skipped here (AI §23.1), gate
-between steps 13 and 16; (159) the `CITY` record's two seams on run58;
-(146) `train_time`'s nine national arms after the ramp (PRODUCTION); (142)
-`World::tregion` is not `get_tregion`, eleven callers (PATHFINDER §15–16);
-(122) 16 of 61 draws without a `self.mark(`; (153) the `TRIBE` record; the
-thirteen `Census` fields written for consumers not built
-(`rondata::writers`' no-reader ledger, 20 rows, may only fall).
+arithmetic, 7,122 of run63's 27,000 site fields (AI §2.13); (172) the
+`bucket` pair one apart on 5002/5061; (158) the sweep runs for a human
+leader, skipped here (AI §23.1); (159) the `CITY` record's two seams on
+run58; (146) `train_time`'s nine national arms (PRODUCTION); (142)
+`World::tregion` is not `get_tregion` (PATHFINDER §15–16); (122) 16 of 61
+draws without a `self.mark(`; (153) the `TRIBE` record; the thirteen
+`Census` fields written for consumers not built (20 rows, may only fall).
 
-247. **An upgrade is an in-place guy-type change on the standing unit.**
-    On run76's own frame **6737** the three Archers `1/27`–`1/29` all go
-    guy **170 → 177** (Bowmen → Longbowmen) in one frame, keeping
-    `(who, o)` and `group 64` — not a modifier on a type. East Indies'
-    `1/32` does the same 340 → 341, and its danger row moves by exactly
-    `(110 − 100) / 2`. Anything reading a unit's cost, attack or speed
-    across an upgrade wants this. (181) CARAVAN §7.2–§7.3's unreached
-    arithmetic.
+247. **An upgrade is an in-place guy-type change on the standing unit** —
+    run76's frame **6737**, the three Archers going guy **170 → 177**
+    keeping `(who, o)` and `group 64`, not a modifier on a type; East
+    Indies' `1/32` does 340 → 341 and its danger row moves by exactly
+    `(110 − 100) / 2`. Anything reading cost, attack or speed across an
+    upgrade wants it. (181) CARAVAN §7.2–§7.3's unreached arithmetic.
 
-**The widening ledger is built** (87, DATALAYER §4): **19** parsed fields
-the harness names nowhere and **44** one capture names (237 moved both);
-its blind spot is a field the parser never had — `avg_speed` (210). Still
-uncounted: (88) the blind list, 101 of 617 cited functions never entered;
-(72) every `+0xNN` a document pins vs its module, **with `att-audit`**;
-(89) the instrument's last guard; (35) `mylos` as a cache, VISION §7.
+**The widening ledger** (87, DATALAYER §4): **19** fields the harness
+names nowhere, **44** one capture names (237 moved both); its blind spot
+is a field the parser never had, `avg_speed` (210). Uncounted: (88) the
+blind list, 101 of 617; (72) every `+0xNN` a document pins vs its module,
+**with `att-audit`**; (89) the instrument's last guard; (35) VISION §7.
 
 175. **The uber chain past its birth**: `Objects::init_unit` threads
     `uber_size` objects (CITIES §4.3), nothing else reads the chain and
@@ -109,12 +100,20 @@ uncounted: (88) the blind list, 101 of 617 cited functions never entered;
     whole (COLLISION §3, §7); (73) `UnitData::group`'s missing
     back-pointer — **242 is its other half**; (56) ARMY §13's cell bit.
 
-117. **Territory's three remaining terms want the lobby.** The gem term
-    landed (43 cells, diff-backed on run80); the temple and fort terms are
-    **blocked at their prerequisite** in every game on disk; the handicap
-    is 0 by the lobby — a click, and the only one a capture could reach. A
-    scripted setup. (AI §2.1's `check_explore` answers the grid whole,
-    900 v 36/19.)
+117. **Territory's remaining terms are out of reach, the handicap
+    permanently.** The gem term landed (43 cells, run80). Temple and fort
+    are blocked at their prerequisite in every game on disk. The handicap
+    is **multiplayer-only**: `compute_reg_territory:255` needs
+    `Game::semaphore` bit 2, set only by `run_gamespy@00587060` and
+    *cleared* by `run_solo`/`run_scenario`/`run_editor`/`read_package`, so
+    no capture and no scripted setup reaches it. Two corrections came with
+    it: the term is `(get_handicap() + 15) / 25` and `get_handicap`
+    returns `DATA` = index × 5, so it runs **0–4**; and
+    `LeaderData::handicap` is a catch-up **deficit**
+    (`init_handicaps@0058abf0`), not `PLAYERn_HANDICAP`. **248**:
+    ATTRITION's Territory section is 15,625 bytes of 16,000 and wants a
+    retelling pass before anything else is added. (AI §2.1's
+    `check_explore` answers the grid whole, 900 v 36/19.)
 
 Seven measured one-liners: (23) the formation byte's sign, Echelon half
 (GROUPS §6.4), run52 the blocker; (103) a woodcutter's clock at 1,686, 445
@@ -130,19 +129,16 @@ reads `ages`.
     on it — **238 is the Great Lakes half, live now**. (195)
     `find_repair_spot` is `build_done`'s last of three.
 
-241. **East Indies' word, 7448 — the counter that has not moved**, and
-    **run85 answers it** ([7400, 7479), `GUYS=4`). One stand: the lone
-    `1/20`, group −1, blocked by `8/0` — an **animal**, stationary, one
-    tile south of its line. On 7449 the original sets **both** its guys to
-    `anim 0 / end_time 60 / stopped 1` and discards the 60-frame animation
-    after one frame; it then freezes three frames, snaps due west, steps
-    −23 with `y` pinned, and slides. **The two draws are two guys**, so
-    this crate reaching the same function from `Guy::inc_time` is one
-    missing blocked-step animation, not two. Why 236 missed it, now on
-    disk: 239's Great Lakes stand is a squad Archer blocked by a citizen
-    and slides at once — different obstacle class, different unit shape,
-    different recovery. (167) run61's two: the landing search's *cell*,
-    `Unit::do_strafe` (SYNC §3.9).
+241. **East Indies' word, 7448, is a POSITION** — 241 closed the
+    collision reading three ways (a step probes the bitmask, which
+    `coll_paint` writes with no owner test; `detect_unit_collision`'s walk
+    never asks `who`; the dump reads `collide_who 8`). `1/20` is off by
+    (36, 792) at run85's *first* block, ~34 frames of its own walk, so it
+    never meets the animal. The gap is a **transport ride** between
+    run82's 6929 and 7400 — barge birth 7093 on both sides, eject spends
+    no draw — and **nothing covers 6930–7399**. TRANSPORT §13. (167)
+    run61's two: the landing search's *cell*, `Unit::do_strafe`
+    (SYNC §3.9).
 
 211. **`get_speed`'s three remaining arms** (MOVEMENT): `unit_masks &
     0x10`, set and cleared inside a frame; `has_general(0, 0x162)`'s siege
@@ -189,6 +185,10 @@ non-flat; `Leader::diplomacy`; (77) ANIM §3.2; (58) ROADS §7.4.
   owner, the unit pass one half-cell and never the owner's — so a
   half-cell with no building in its 3×3 isolates the unit pass in
   archives already held, with no contemporaneous dump required.
+- **Grep for the GATE, not only the value.** A term that is zero in every
+  dump is either zero-valued or switched off, and those cost very
+  different things to reach: 117's handicap and 178's unit pass were both
+  booked on the first reading and were both the second.
 - **A check on a field that is never cleared must assert a CHANGE, not a
   value** — `collide_frame` is a permanent stamp, so "some unit has one in
   the band" is true of any window on the game, and run85's first teeth
