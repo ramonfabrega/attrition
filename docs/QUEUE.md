@@ -2,13 +2,13 @@
 
 Where the work stands and what comes next — the file a fresh session reads
 first, and the one a subagent never sees. `CLAUDE.md` is the rules; this is
-the state; `docs/JOURNAL.md` is the story.
+the state; `docs/JOURNAL.md` is the story; `docs/PARKED.md` is the backlog,
+read when a wave is composed and never at boot.
 
-This file **deletes**. A finished item leaves it for the journal, which
-carries every number that has ever been here — items keep their numbers for
-that reason, and new ones continue the count. `docs_guard.rs` fails the
-build if this file strikes an entry instead of deleting it, passes 200
-lines, or lets the handoff pass 32.
+This file **deletes**, numbers are never reused, and `queueledger.py` fails
+the build if one leaves in silence. `docs_guard.rs` bounds the file by
+**items, not lines** (262): 18 open at 8 lines each, the handoff at 32,
+each section's non-item prose pinned and falling only.
 
 ## Where things stand
 
@@ -95,13 +95,6 @@ grouped order records no test windows** — run79's 453, run31's 945.
     (CITIES §5). (232) `Levels::for_player` ignores its player, answering
     a constant whose `taxation` is 0 (ECONOMY, audit R8).
 
-262. **Cap items, not lines** (lore, 09-07): the 200-line bound cost **43
-    fitting episodes and 117 USD** since 08-25, and its remedy is a
-    *retelling* — which is how 232–234 died. N open items at ~8 lines
-    each, the guard naming the one to shrink, sections may-only-shrink;
-    (263) the split, parked items off the boot path, which
-    `queueledger.py` already reads. **Fleet call, with Ramon and lore.**
-
 **The widening ledger** (87, DATALAYER §4, §4.1): **19** fields the
 harness names nowhere, **44** one capture names; blind spot `avg_speed`
 (210) — it counts *fields* and cannot see a record the parser never
@@ -122,18 +115,6 @@ of 617; (72) every `+0xNN` a document pins vs its module; (89) the guard;
     a retelling pass before anything is added. Its remaining terms are
     closed — handicap, temple and fort are unreachable in any game that
     runs here; read it before re-booking any. (AI §2.1's `check_explore`.)
-
-Measured residues, none near a word: (246) step 6's repath rests on
-run83's single event (239); (169) `compute_site_stats`, 7,122 of
-run63's 27,000 site fields; (172) the `bucket` pair on 5002/5061; (158)
-the human-leader sweep (AI §23.1); (159) the `CITY` record's two seams;
-(146) `train_time`'s nine national arms; (142) `World::tregion`
-(PATHFINDER §15–16); (122) 16 of 61 draws without a `self.mark(`; (153)
-`TRIBE`; (20) the `Census` rows; (23) the formation byte's sign, Echelon
-half (GROUPS §6.4), run52 the blocker; (103) a woodcutter's clock, 445 v
-480 (ORDERS §6.4); (105/45) Gaia's positions, first bad 1658 (SYNC §4.2);
-(124) the loop flag is per animation file; (116) the one `SITE` slot (AI
-§18); (166) `resource_cap` on five goods (ECONOMY); (107) `epoch[0]`.
 
 161. **The make-list block is 2,500 frames behind East Indies' word**:
     `create_buildings` first runs on 9982 (AI §25), so `building_value`,
@@ -157,16 +138,13 @@ half (GROUPS §6.4), run52 the blocker; (103) a woodcutter's clock, 445 v
     door, under the guard width two rests on. Wants one: past the cap,
     dead in N seconds, exit 137.
 
-Older backlog: (39) a 2D viewer over `Sim`; (41) `scenario.py`; a
-`find_target` block; run7's orders; a mounted attacker; `calc_gather`
-non-flat; `Leader::diplomacy`; (77) ANIM §3.2; (58) ROADS §7.4.
-
 ## How to maintain this file
 
 - **End of session:** rewrite "Where things stand" from scratch, headline
-  first and whether it moved; delete finished items to the journal. **The
-  200-line bound is a budget** — a new item is paid for by compressing old
-  ones, counted before writing, not after (but see 262).
+  first and whether it moved; delete finished items to the journal. **A
+  new item costs nothing** — the caps are per item and per section, so
+  shorten only what you are touching. Never compress another author's item
+  to make room, and never widen a line to beat a count.
 - **A floor that moves** moves `FLOORS`, the assert reading it, and the
   `Scoreboard:` line together. **Start of session:** merge the lanes, then
   "Where things stand", the item, its document. Lanes never write this

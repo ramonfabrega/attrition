@@ -18050,3 +18050,80 @@ because it touches the diff harness and no mechanic module.
 **Owed to ccc**, and paid: the clear-probe's after-snapshot — all three
 streams kept growing across this clear, tracked and writing. Nine finished
 worktrees are still on disk and the opener says to reap them.
+
+## 2026-09-07 — the queue is bounded by items now, and the reap found three of them dead (items 262, 263, and the ledger; Opus, commander)
+
+The reap the opener asked for was meant to be housekeeping. Eight worktrees
+came off clean and the ninth would not: `git worktree remove` refuses a
+dirty tree, and `loop-234`'s held **406 uncommitted lines of
+`crates/sim/src/anim.rs`** — the product of a booked item, doc-commented
+against the decompile, citing two `rondata::diff` tests that were never
+written. A worker had died mid-item and no branch carried a line of it.
+
+**Every check anyone had run was a branch check, and the loss was one level
+below it.** `loop-234`'s branch tip was a docs-only handoff commit that
+merged clean, so `git rev-list --count HEAD..loop-234` read 0, ccc's roster
+read level, and the queue's own reap instruction — "nothing unmerged" — was
+phrased against exactly that view. The tree was invisible to all three.
+
+**Following it back turned one lost item into three.** `8b37e5f`, the
+post-crash rewrite that landed item 227 and whose message reads *"Recovered
+from the worktree the crash left behind"*, shed 196 lines of queue and took
+items 230 through 234 with it — the only run of five in the file's history;
+every other retirement in 218 numbers went one or two at a time. Two had
+landed: 230's `unit_masks & 8` row sits at zero in `diff/unit.rs`, 231's
+three-rule collision split is whole in `same_group_soft`. **Three had
+not** — 232's `Levels::for_player` still answers `Levels::BASE`, 233's
+`process_building` still keys its 32-frame phase on `frame + b`, and 234
+was the uncommitted tree. All three are re-booked under their own numbers,
+and 234's work is preserved on branch `rescue-234` (`0e14e48`).
+
+**The guard that would have caught it is `tools/queueledger.py`.** A number
+may not leave `docs/QUEUE.md` unless the journal names it or
+`docs/audit/queue-ledger.md` says where it went. The measurement that
+justified it: **165 of the 191 prior retirements already complied**, so it
+writes down the practice rather than inventing one. Its `not-landed`
+disposition is a promise rather than a pardon — it fails until the item is
+live in the queue again, which is what stops the ledger becoming the quiet
+place items go to die. The first draft did not have that, and would have
+been the same bug wearing the fix's clothes.
+
+**Item 262, and the confession that argues for it.** lore priced the
+200-line bound across 221 sessions: 43 fitting episodes, 117 USD of list
+price since 08-25, 22 of them needing two or more guard runs — the fitting
+loop was the cost, not the edit. This session was the 44th, and worse: it
+compressed **eleven** entries to seat three, and in one round reflowed a
+paragraph past the file's own 76-column wrap to get under the count. That
+is meeting the metric while defeating what it measures, and it was the
+natural next move, which is the whole argument.
+
+But the reason the cap is *replaced* rather than raised is correctness, not
+money. A global line count is satisfied by compressing any item, so its
+remedy is a retelling of entries the author has no reason to have read, and
+every such edit is a chance to drop somebody else's finding. `8b37e5f` is
+that failure with a date on it. So: **18 open items at 8 lines each**, the
+guard naming the one to shrink, and each section's non-item prose pinned
+where it stands and falling only. No line count on the file at all.
+
+**The fixture written to prove the item cap found the flaw in it.** With
+sections measured whole, booking an ordinary five-line item pushed "The
+queue" past its pin and sent the author off to compress the rest of the
+file — the loop rebuilt one level down, in the commit meant to remove it. A
+section is now measured by its **non-item** lines, an item's separating
+blank included, and the test that says so is the one that matters: booking
+a new item runs the guards green with nothing else touched.
+
+**Item 263** is the split. `docs/PARKED.md` holds the measured residues and
+the older backlog, is read when a wave is composed rather than at boot, and
+carries the two conditions it was agreed under: a cross-item constraint
+does not park — it goes in the worker's brief or the item comes back.
+`queueledger.py` reads both files, so a move between them is not a
+deletion, proved by moving item 251 into a fixture and watching the live
+count hold at 71.
+
+The other half of the worktree gap is ccc's and they took it (their item
+32): a dirty mark beside the ahead/behind their roster already draws, and
+`ccc rm` naming what it would lose rather than that git said no. Their
+sharper framing, worth keeping: it is a detector keyed on the wrong field,
+the same shape as their item 25, and this fleet was bitten by it twice in
+two days.

@@ -45,18 +45,57 @@ fn read(name: &str) -> String {
     std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("{}: {e}", path.display()))
 }
 
-/// The queue's whole length, in lines. Twenty for the handoff, a line or
-/// two per open item, and the maintenance notes: a backlog that needs more
-/// than this is a changelog again. Raised 180 → 200 on 2026-08-31: the
-/// board holds ~20 live items whose booked shape is five or six lines
-/// each, so 180 had sessions golfing lines instead of deleting stories —
-/// the bound should bite on bloat, not on the working agreement's own
-/// item size.
-const QUEUE_LINES: usize = 200;
+/// The most **open items** the queue may book, and the lines one may take.
+///
+/// This replaced a whole-file line count on 2026-09-07 (item 262, decided
+/// with Ramon and lore). The line count was measured across 221 sessions
+/// and cost **43 fitting episodes and 117 USD of list price** since
+/// 08-25 — 22 of the 43 needed two or more guard runs, so the fitting loop
+/// was the cost rather than the edit, and the "count the lines before
+/// writing" rule of `d03c279` had not ended it.
+///
+/// The reason it is replaced rather than raised is **not** the money. A
+/// global line count is satisfied by compressing *any* item, so its remedy
+/// is a retelling of entries the author has no reason to have read, and
+/// every one of those edits is a chance to drop somebody else's finding.
+/// That is not hypothetical: `8b37e5f` was a post-crash rewrite under this
+/// exact pressure, and items 232, 233 and 234 went out with the
+/// compression unlanded and unnoticed for a day
+/// (`docs/audit/queue-ledger.md`). A per-item cap localises the edit to
+/// the item being added, by the person who knows what is safe to cut.
+///
+/// Fifteen items stood on the day this landed, the longest at seven lines.
+const OPEN_ITEMS: usize = 18;
+const ITEM_LINES: usize = 8;
 
 /// The handoff section, in lines including blanks. The file says "about
 /// twenty"; this is the tolerance.
 const HANDOFF_LINES: usize = 32;
+
+/// The queue's **non-item mass**, pinned by section at its size on
+/// 2026-09-07 and may only shrink.
+///
+/// An item cap bounds items and nothing else, and the queue is not only
+/// items: the preamble, the standing paragraphs inside "The queue", and the
+/// maintenance notes all grew under the old line count without ever being
+/// an item. So each section carries the same may-only-shrink pin the
+/// specifications use ([`OVER`]) — the mechanism this project already
+/// trusts — in lines rather than bytes, because lines are what a queue
+/// section costs a reader. Lower a pin whenever a section comes in under
+/// it; that is the only direction it moves.
+///
+/// "Where things stand" is absent on purpose: [`HANDOFF_LINES`] is its
+/// bound and two caps on one section is the double-binding that made the
+/// old fitting loop.
+/// The sizes are **non-item lines**: an item's own lines are bounded by
+/// [`ITEM_LINES`] and are subtracted here, so booking one costs a section
+/// nothing. "The queue"'s 35 is its heading, its opening instruction, the
+/// widening ledger and the `(242)` cluster.
+const QUEUE_SECTIONS: &[(&str, usize)] = &[
+    ("", 12),
+    ("The queue", 20),
+    ("How to maintain this file", 38),
+];
 
 /// Bytes, per `## ` section. The unit is the section because that is what
 /// a session reads: an item names §6.4 and §4, never the file. A whole-file
@@ -129,14 +168,131 @@ fn the_queue_deletes_rather_than_strikes() {
     );
 }
 
+/// `(number, lines)` for every open item the queue books. An item opens a
+/// paragraph — `N. **The claim**` after a blank line — and runs to the next
+/// blank line. The blank line is what keeps prose out: the queue wraps, so
+/// a sentence ending in a number leaves a bare `307.` at the head of the
+/// next line and nothing else tells the two apart. The same reading as
+/// `tools/queueledger.py`'s.
+fn open_items(text: &str) -> Vec<(u32, usize)> {
+    let lines: Vec<&str> = text.lines().collect();
+    let mut out = Vec::new();
+    let mut i = 0;
+    while i < lines.len() {
+        let opens = (i == 0 || lines[i - 1].trim().is_empty())
+            && lines[i]
+                .split_once(". ")
+                .and_then(|(n, _)| n.parse::<u32>().ok())
+                .is_some();
+        if opens {
+            let n: u32 = lines[i].split_once(". ").expect("checked").0.parse().expect("checked");
+            let mut len = 0;
+            while i + len < lines.len() && !lines[i + len].trim().is_empty() {
+                len += 1;
+            }
+            out.push((n, len));
+            i += len;
+        } else {
+            i += 1;
+        }
+    }
+    out
+}
+
+/// The queue books a bounded number of open items, each of a bounded size.
+///
+/// **This is the whole budget** — there is no line count on the file any
+/// more (see [`OPEN_ITEMS`]). The two failures it can report are the two
+/// remedies that are actually local: an item over its lines is shortened by
+/// whoever is touching it, and a queue over its items has one to finish or
+/// park. `docs/PARKED.md` is where a parked one goes, and moving it there
+/// is not a deletion — `tools/queueledger.py` reads both files.
 #[test]
-fn the_queue_is_bounded() {
-    let q = read("QUEUE.md");
-    let n = q.lines().count();
+fn the_queue_caps_items_not_lines() {
+    let items = open_items(&read("QUEUE.md"));
+    let long: Vec<String> = items
+        .iter()
+        .filter(|(_, len)| *len > ITEM_LINES)
+        .map(|(n, len)| format!("{n} ({len} lines)"))
+        .collect();
     assert!(
-        n <= QUEUE_LINES,
-        "docs/QUEUE.md is {n} lines; the bound is {QUEUE_LINES}. Move finished items and stories to docs/JOURNAL.md"
+        long.is_empty(),
+        "docs/QUEUE.md items are over {ITEM_LINES} lines: {}. Shorten the item you are \
+         touching — do not compress the rest of the file to make room (item 262)",
+        long.join(", ")
     );
+    assert!(
+        items.len() <= OPEN_ITEMS,
+        "docs/QUEUE.md books {} open items; the cap is {OPEN_ITEMS}. Finish one, or park \
+         one in docs/PARKED.md — which is a move, not a deletion",
+        items.len()
+    );
+}
+
+/// Every pinned queue section is at or under its pin, and a section that
+/// has come in under it says so rather than banking the slack.
+#[test]
+fn a_queue_section_may_only_shrink() {
+    let q = read("QUEUE.md");
+    // **The item lines do not count.** If they did, booking an ordinary
+    // item would push its section past the pin and send the author off to
+    // compress the rest of the file — the fitting loop item 262 removed,
+    // rebuilt one level down. It was rebuilt, briefly, and the fixture
+    // that was meant to prove the item cap caught it. So a section is
+    // measured by what is *not* an item: prose, standing paragraphs, the
+    // maintenance notes. Items are bounded by their own cap and by nothing
+    // else.
+    let lines: Vec<&str> = q.lines().collect();
+    let mut item_line = vec![false; lines.len()];
+    let mut i = 0;
+    while i < lines.len() {
+        let opens = (i == 0 || lines[i - 1].trim().is_empty())
+            && lines[i]
+                .split_once(". ")
+                .and_then(|(n, _)| n.parse::<u32>().ok())
+                .is_some();
+        if opens {
+            while i < lines.len() && !lines[i].trim().is_empty() {
+                item_line[i] = true;
+                i += 1;
+            }
+            // The blank line that separates it from the next entry belongs
+            // to the item too. Without this an item still costs its
+            // section one line, which is a fitting loop with a slower fuse.
+            if i < lines.len() {
+                item_line[i] = true;
+                i += 1;
+            }
+        } else {
+            i += 1;
+        }
+    }
+    let mut have: Vec<(String, usize)> = vec![(String::new(), 0)];
+    for (i, line) in lines.iter().enumerate() {
+        if let Some(h) = line.strip_prefix("## ") {
+            have.push((h.to_string(), 0));
+        }
+        if !item_line[i] {
+            have.last_mut().expect("preamble").1 += 1;
+        }
+    }
+    for (heading, pin) in QUEUE_SECTIONS {
+        let (_, size) = have
+            .iter()
+            .find(|(h, _)| h == heading)
+            .unwrap_or_else(|| panic!("docs/QUEUE.md has no section {heading:?}; QUEUE_SECTIONS names it"));
+        let label = if heading.is_empty() { "the preamble" } else { heading };
+        assert!(
+            size <= pin,
+            "docs/QUEUE.md's {label} is {size} lines against its pin of {pin}. \
+             The pin only falls: shorten this section rather than another (item 262)"
+        );
+        assert!(
+            *size + 4 > *pin,
+            "docs/QUEUE.md's {label} is {size} lines, well under its pin of {pin}; \
+             lower the pin in QUEUE_SECTIONS to bank the shrink"
+        );
+    }
 }
 
 #[test]
