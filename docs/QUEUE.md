@@ -144,6 +144,15 @@ of 617; (72) every `+0xNN` a document pins vs its module; (89) the guard;
     you to use it never said. Wants a fixture: past the cap, dead in N
     seconds, exit 137 — and a gate that cannot be run wrong.
 
+267. **Great Lakes 7455 is a position, not a collision** (264, run87,
+    ORACLE and COLLISION §8.3): the original stands nothing there, and the
+    cause is two rows upstream. **`1/35` steps 25 units of y on 7253 where
+    the original steps 12** — 202 frames ahead of the draw stream, and by
+    7269 a path of 21 slots against 22. And on sim-frame **7418**, the
+    army's `7162 + 256` tick, four of six soldiers come out of the fresh
+    group order on a different waypoint, `1/32` and `1/33` on each other's.
+    (268) `AnimalData::ox`/`whom`/`aid` are `GUYS ≥ 3` and unparsed.
+
 ## How to maintain this file
 
 - **End of session:** rewrite "Where things stand" from scratch, headline
@@ -152,8 +161,12 @@ of 617; (72) every `+0xNN` a document pins vs its module; (89) the guard;
   author's item, and never widen a line to beat a count.
 - **A floor that moves** moves `FLOORS`, the assert reading it, and the
   `Scoreboard:` line together. **Start of session:** merge the lanes, then
-  "Where things stand", the item, its document. Lanes never write this
-  file, and a brief names its `docs/audit/…-vs-code.md` where one exists.
+  "Where things stand", the item, its document.
+- **A worker never books a number; it reports and the commander books.**
+  Two live workers both take "the next number" and collide — 264 and the
+  commander both booked a 265 on 09-07 — and two findings under one number
+  breaks the index numbers exist for. Scoreboard line and journal entry
+  stay the worker's own.
 - **Overlap a capture's neighbours on purpose.** The run-up is free, so an
   overlap costs seconds and turns "same seed, therefore same game" into a
   state check. Six blocks each end is the floor (run83); a neighbour that
@@ -161,12 +174,10 @@ of 617; (72) every `+0xNN` a document pins vs its module; (89) the guard;
   category you raised>`. **The trap**: `samegame.py` exits 0 when nothing
   is in common, so assert the count, not the verdict.
 - **Grep for the derived quantity, the mechanic's SHAPE and the GATE — not
-  only for coverage of a frame.** `BUILDQUEUE` prints
-  `queue[scan].cost[0..2]`, so a price the original *paid* is on disk
-  wherever `BUILDS` is on (238); 178's two passes write different
-  footprints, so a half-cell with no building in its 3×3 isolates the unit
-  pass in archives already held. And a term zero in every dump is either
-  zero-valued or switched off: 117 and 178 were booked on the first.
+  only for coverage of a frame.** `BUILDQUEUE` prints `queue[scan].cost`,
+  so a price the original *paid* is on disk wherever `BUILDS` is on (238),
+  and 178's two passes write different footprints. A term zero in every
+  dump is either zero-valued or switched off: 117 and 178 were the second.
 - **A check on a field never cleared must assert a CHANGE, not a value** —
   `collide_frame` is a permanent stamp, so "some unit has one in the band"
   is true of any window, and run85's first teeth check passed on a band
@@ -174,11 +185,9 @@ of 617; (72) every `+0xNN` a document pins vs its module; (89) the guard;
 - **A commander's clear is free when**: every landed branch merged, gated
   and pushed; nothing in flight owing its result elsewhere; this handoff
   current with the headline *measured*; nothing unfiled. `ccc clear <ref>
-  --then "continue"` arms it — 0.1.29 fixed the gate, and the next cut
-  resolves a session **name** everywhere rather than only a daemon id.
+  --then "continue"` arms it, and takes a session name from 0.1.31.
 - **Run the diff suite with `--release`** under `tools/memcap.sh 20` — the
-  cap is its first argument — redirected to a file, never piped (a pipe
-  launders its 137), keeping the `peak` line; a long wait is the capture,
-  not a hang. **Before a blind fan-out**, `grep -n <mechanic> CLAUDE.md`
-  and the memory index — a subagent inherits both, and neither they nor a
-  brief may quote this file or the journal.
+  cap is its first argument — to a file, never piped (a pipe launders the
+  137), keeping the `peak` line. **Before a blind fan-out**, grep
+  `CLAUDE.md` and the memory index: a subagent inherits both, and neither
+  they nor a brief may quote this file or the journal.
