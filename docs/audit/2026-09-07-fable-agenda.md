@@ -90,3 +90,63 @@ repo's canon is three failures deep: a figure recalled rather than measured,
 a commander restating it, and the upstream correction that did not compile.
 Whether that warrants a guard, and what such a guard could even assert, is a
 question for the pass rather than a change the commander should invent.
+
+## FABLE: is the loop paying for itself — items 292 and 293, and lore in the room
+
+Added 2026-09-07 by the commander that ran the loop, which is the first thing
+the pass should hold against these rows: the framing below is the framing that
+fenced itself, and a pass that only rules on it can only agree with it.
+
+**Ramon's own doubt is the row, and it was raised while two workers ran:** "i
+dont think the current loop is working good, or maybe these 2 were very big
+issues, but im pretty sure something is wrong" — after 289 and 290 had been
+running about two hours. He named the options himself: optimise the pipeline
+before deepening it, or fall back to a single runner, which he doubts. He also
+named the instrument: **lore**, for archeology and stats on whether the guards
+and the gate are improving the flow, rather than another anecdote. `lore tools`
+counts how often `guard.sh` actually runs against the release gate, `lore
+trace` and `lore usage` price the turns, and `lore polls` already prices the
+waiting that grows around long runs. The two items are parked as **292**
+(nothing in this tree has ever been profiled — no bench target, no criterion,
+no flamegraph, grepped) and **293** (the pipeline question), in
+`docs/PARKED.md` with the evidence.
+
+**What was measured, and it is not what the suspicion assumed.** Neither
+worker was stalled and neither was in a red-gate loop. 289's release gate went
+green on its third run — 245 tests, peak 11,218 MiB — and its two red runs
+were expected re-pins of numbers its own change had moved. The hour went to
+**one unoptimised debug `cargo test`: 4101.85 s against 322 s for the same 245
+tests in release, 12.7x**, measured. What the debug run buys over the release
+gate is **eleven `debug_assert!`s** and no `#[cfg(debug_assertions)]` path at
+all, because `[profile.release]` already sets `overflow-checks`. So
+`[profile.dev] opt-level = 2` would keep all eleven and cost the incremental
+compile speed `tools/guard.sh`'s reflex is built on.
+
+**Two corrections came from the workers themselves and both cut against the
+easy conclusion.** 290: a third of that contention was its own debug run
+launched **twice by mistake**, so this pair cannot indict entry 34's width
+two, and an operator error and a structural cost look identical from outside.
+What clean width two costs is **unmeasured**. 289: the cost is not only
+throughput — two lanes on one box inflate every lane's **wall clock**, and
+wall clock is what a commander reads to decide whether a lane is stuck. That
+is exactly the misreading that made this commander go and ask both workers
+whether they were cycling on a red gate. **The loop's own health signal
+degrades as width rises**, which is a defect in the discretion entry 34
+grants, not in any lane.
+
+Three things for the pass, and only the first is on the floor. Whether the
+opt-level trade is worth taking, which is bounded — it costs `guard.sh` and
+nothing else. Whether width two survives contact with a health signal it
+degrades, or wants a rule rather than discretion. And the one this commander
+cannot ask honestly: **whether an unattended commander loop should be running
+at this width at all while its own throughput is unmeasured** — the stopping
+rule counts landings that move no score, and has nothing to say about a
+tranche that lands everything slowly.
+
+**What this tranche actually produced**, so the pass has the other side: two
+items in about two hours, both landed and merged, East Indies 7806 → 7812, and
+290 refuted the premise it was booked on — the original holds 88 food on 7585,
+our own number, so 287's `98 <= food < 160` was wrong and every future worker
+sent after that stockpile would have been wasted. A capture that refutes its
+own hypothesis is the loop working, not failing, and the pass should weigh it
+against the wall clock rather than only the wall clock.
