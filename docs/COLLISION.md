@@ -897,8 +897,11 @@ buildings join the chain, which is why §8 does not claim it.
 
 - §4.3's `TRADE_ROUTE` and `0xc` arms. ~~The group arm~~ — landed
   2026-09-04, §9. ~~The soft half-step flag~~ — landed 2026-09-06, and it
-  is **diff-backed**: run76's three Archers march 6652 → 6861 on the
-  original's own points, and run53's word moved 6848 → 6862.
+  is **diff-backed twice**: run76's three Archers march 6652 → 6861 on the
+  original's own points and run53's word moved 6848 → 6862, and run79's
+  second squad is 256 more frames of the bit's own record — seven flagged
+  frames, seven halved steps after them, and no other half step in the
+  march (`docs/ORDERS.md` §15.1).
 - §4.3's **figure-centred `is_corner`** (2026-09-04). Both long words are
   unmoved by it, so no run on disk has a blocker whose figures answer
   differently from the blocker — which is what one would expect while the

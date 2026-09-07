@@ -4087,6 +4087,116 @@ mod tests {
         }
     }
 
+    /// **run79 — the second squad's march, and the half step's second
+    /// sample** (2026-09-06, item 219).
+    ///
+    /// run53's game again, window `[6910, 7250)`: a squad of three
+    /// Longbowmen born at 6994 out of the same Barracks run76's Archers
+    /// came from, its whole march to the window's end, and a second squad
+    /// born at 7213. `rngcmp` puts it on run53 over 7,301 frames.
+    ///
+    /// **What it is for.** The one-shot half step (`unit_masks &
+    /// 0x100000`, `docs/ORDERS.md` §15.1) was established on run76's two
+    /// halvings; this is 256 more frames of it, on a different squad of a
+    /// different type. The correlation is exact and printed by this test:
+    /// **every** frame of `1/31`'s march whose predecessor carried the bit
+    /// steps 13, 14 or 15 against a march of 25 to 30, and the one frame
+    /// that carries the bit and does *not* halve is a turn-in-place, which
+    /// returns before the halving block and so keeps the bit for the frame
+    /// after — `move_step@005faf30`'s shape, asserted rather than argued.
+    ///
+    /// The whole window is **past** run53's own parting at 6862, so this
+    /// pins the original's own record and not the two sides' agreement:
+    /// the assertions are about the dump, and the positions are printed.
+    #[test]
+    fn run79_s_window_is_the_half_step_s_second_sample() {
+        let Some(path) = dump("gamelog-run79-greatlakes-secondsquad.txt") else {
+            eprintln!("skipping: no run79 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let text = std::fs::read_to_string(&path).unwrap();
+        let log = Log::parse(&text);
+        // `1/31` is the second squad's captain — `o_up −1`, `o_down 32`,
+        // group 66 — born on 6994 and marching to the window's end.
+        let walk: Vec<(i64, LogPos, i64)> = log
+            .frame_states()
+            .into_iter()
+            .filter_map(|f| {
+                let u = f.units.iter().find(|u| u.who == 1 && u.o == 31)?;
+                Some((f.n, u.pos, u.unit_masks.unwrap_or(0)))
+            })
+            .collect();
+        assert!(
+            walk.len() >= 250 && walk.first().is_some_and(|r| r.0 <= 6_995),
+            "run79's `1/31`: {} frames from {:?} — the wrong file",
+            walk.len(),
+            walk.first().map(|r| r.0)
+        );
+        // `vector_dist`, the original's own metric for a step.
+        let dist = |dx: i64, dy: i64| {
+            let (a, b) = (dx.abs(), dy.abs());
+            a.max(b) + a.min(b) / 2
+        };
+        let mut flagged: Vec<(i64, i64)> = Vec::new();
+        let mut plain: Vec<i64> = Vec::new();
+        for w in walk.windows(2) {
+            let (_, from, mask) = w[0];
+            let (frame, to, _) = w[1];
+            let step = dist(to.x - from.x, to.y - from.y);
+            if mask & 0x0010_0000 != 0 {
+                flagged.push((frame, step));
+            } else {
+                plain.push(step);
+            }
+        }
+        eprintln!(
+            "run79: {} marching frames, {} of them after a flagged one: {flagged:?}",
+            plain.len(),
+            flagged.len(),
+        );
+        assert!(
+            flagged.len() >= 5,
+            "run79 carries {} flagged frames — the sample is the point",
+            flagged.len()
+        );
+        // The march's own pace, so the halved frames have something to be
+        // half **of**: the flag is rare and the plain step is not.
+        let marching = plain.iter().filter(|&&d| d >= 24).count();
+        assert!(
+            marching >= 150,
+            "only {marching} full steps in the window — the wrong unit"
+        );
+        // **Every** frame after a flagged one is halved, bar the frame the
+        // unit spends turning in place: `move_step` returns from the
+        // turn-in-place arm before the halving block, so the bit survives
+        // it and is spent on the frame after — which is 7020 and 7021.
+        for &(frame, step) in &flagged {
+            assert!(
+                step <= 15 || step == 0,
+                "frame {frame} follows a `unit_masks & 0x100000` and steps \
+                 {step}: the one-shot half step is not one-shot"
+            );
+        }
+        assert!(
+            flagged.iter().filter(|&&(_, d)| d == 0).count() <= 1,
+            "more than one standing frame among {flagged:?} — the \
+             turn-in-place reading covers exactly one"
+        );
+        // **And the converse, which is what makes this a check and not an
+        // illustration**: no *unflagged* frame of the march is a half step
+        // either. Six of `1/31`'s 256 frames step 13, 14 or 15, and the
+        // flag accounts for all six — so the bit is not one explanation
+        // among several, it is the explanation.
+        assert!(
+            plain.iter().all(|&d| !(13..=15).contains(&d)),
+            "an unflagged half step in the march: {:?}",
+            plain
+                .iter()
+                .filter(|&&d| (13..=15).contains(&d))
+                .collect::<Vec<_>>()
+        );
+    }
+
     /// East Indies' word on the **long** capture — the number that took
     /// over as the headline when run39's own length stopped bounding it
     /// (`docs/DECISIONS.md` entry 29's first counter). It is not in

@@ -19,8 +19,9 @@ moved 6640 → 6652.
 - **219 is done**: the march's halving is neither the speed nor the group
   cap but `unit_masks & 0x100000`, the one-shot half step a **soft**
   collision leaves behind (COLLISION §4.3, ORDERS §15.1). The squad now
-  walks the original's points 6652 → 6861. **Item 236** is what stands at
-  6862, and it is the default item.
+  walks the original's points 6652 → 6861, and run79's second squad is the
+  mechanic's second sample, asserted. **Item 236** is what stands at 6862,
+  and it is the default item.
 - **The Mac went down on 2026-09-04** under the release suite: 27.6 GB
   resident, swap full. `tools/memcap.sh <gib> <cmd…>` is the guard, and
   **every release run goes through it** — `zsh tools/memcap.sh 20 cargo

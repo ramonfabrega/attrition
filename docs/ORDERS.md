@@ -4029,6 +4029,18 @@ first field to part is `1/29`'s position on 6861: the original gives it
 it a full 26 to `(42968, 24407)` where this crate steps 22 to
 `(42971, 24409)`.
 
+**And run79 is the second sample, taken the same day.** Great Lakes
+`[6910, 7250)`, the same game: a squad of three **Longbowmen** born at 6994
+out of the same Barracks, and 256 frames of its march. Its captain `1/31`
+carries the bit on seven frames of that walk, and the step after each of
+them is 13, 14, 15 — or, once, **0**, because 7020 is a turn-in-place, and
+`move_step` returns from that arm *before* the halving block, so the bit
+survives the frame and is spent on 7021. The converse holds too: those six
+are the only steps in the whole march between 13 and 15, so the flag is not
+one explanation among several. `rondata::diff`'s
+`run79_s_window_is_the_half_step_s_second_sample` asserts both halves, and
+it was made to fail on a neighbouring bit.
+
 **What §15 still has not established.** The other three seams stand: the
 `unit_masks & 4` exemption `Unit::set_in_danger@005fcfb0` writes, the flock
 of birds an invalid slot near an ocean cell adds, and `cavarch_fight`. The

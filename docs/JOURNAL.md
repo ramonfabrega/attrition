@@ -16618,3 +16618,19 @@ been booked — `do_group_move` and `Group::update_positions`, both named in
 the brief — was the wrong function twice over. What found it was grepping
 the dump for the field that changes on the frames that halve, and the field
 was in a record already on disk.
+
+**Addendum, the same day: run79 is the second sample, and it was handed
+over by the capture lane while the first commit was still building.** Great
+Lakes `[6910, 7250)`, the same game as run53: three **Longbowmen** born at
+6994 out of the same Barracks and 256 frames of their march. Their captain
+`1/31` carries `unit_masks & 0x100000` on seven frames, and the step after
+each is 13, 14 or 15 — or, once, **0**: 7020 is a turn-in-place, and
+`move_step` returns from that arm before the halving block, so the bit
+survives the frame and is spent on 7021. The converse is the part with
+teeth: those six are the *only* steps in the whole march between 13 and 15,
+so the flag is not one explanation among several.
+`run79_s_window_is_the_half_step_s_second_sample` asserts both directions
+and was made to fail on a neighbouring bit. The window is entirely past
+6862, so it pins the original's own record rather than the two sides'
+agreement — which is the right shape for a claim about a mechanic and not
+about a score.
