@@ -24,6 +24,16 @@ here too, except the item cap — a parked item is not an open one.
 
 ## Parked from the queue, 2026-09-07
 
+(248) **ATTRITION's Territory section is 15,625 bytes of 16,000** and wants a
+retelling pass before anything is added. Parked to seat 283; its remaining
+terms are **closed** — handicap, temple and fort are unreachable in any game
+that runs here — so nothing is waiting on it and the retelling is owed only
+to whoever next adds to that section. Read it before re-booking any of the
+three. (AI §2.1's `check_explore`.) No cross-item constraint: the size ceiling
+is per-section and `docs_guard` enforces it, so a worker cannot trip over this
+without being told by the guard itself.
+
+
 (234) **Four rules of the turn/idle animation neither side has** (ANIM §9),
 written and never landed — branch `rescue-234`. Parked by the commander to
 seat 276–279 under the item cap, on the item's own words: the limbs move no

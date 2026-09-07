@@ -69,7 +69,7 @@ mod tests {
         };
         let loaded = crate::load::load(&inst).unwrap();
         assert_eq!(loaded.scripts.len(), 3, "the three shipped scripts");
-        let text = crate::mapped::read(&path);
+        let text = crate::capture::read(&path);
         let log = Log::parse(&text);
         // The script's frame-1 coin is thrown on whatever stream frame 0
         // leaves: the siblings supply the true one (run11's setup trace,
@@ -206,7 +206,7 @@ mod tests {
             return;
         };
         let loaded = crate::load::load(&inst).unwrap();
-        let text = crate::mapped::read(&path);
+        let text = crate::capture::read(&path);
         let log = Log::parse(&text);
         let init = log.initial().unwrap();
         // Self-sufficient: the setup trace, the heights and the frame words
@@ -473,8 +473,8 @@ mod tests {
             return;
         };
         let loaded = crate::load::load(&inst).unwrap();
-        let text = crate::mapped::read(&path);
-        let sib_text = crate::mapped::read(&sib);
+        let text = crate::capture::read(&path);
+        let sib_text = crate::capture::read(&sib);
         let log = Log::parse(&text);
         let sib_log = Log::parse(&sib_text);
         let sib_init = sib_log.initial().expect("run38 is a start dump");
@@ -538,21 +538,21 @@ mod tests {
             eprintln!("skipping: no gamelog-run10-world6-long.txt (set RON_GAMELOG_DIR)");
             return;
         };
-        let texts: Vec<crate::mapped::Text> = [
+        let texts: Vec<String> = [
             "gamelog-run11-checksum.txt",
             "gamelog-run3-fulldump-types.txt",
             "gamelog-run13-window-95-105.txt",
         ]
         .iter()
         .filter_map(|n| dump(n))
-        .map(crate::mapped::read)
+        .map(crate::capture::read)
         .collect();
         if texts.len() != 3 {
             eprintln!("skipping: run11, run3 and run13 are all needed");
             return;
         }
         let loaded = crate::load::load(&inst).unwrap();
-        let text = crate::mapped::read(&path);
+        let text = crate::capture::read(&path);
         let log = Log::parse(&text);
         let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
         let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
@@ -672,7 +672,7 @@ mod tests {
             return;
         };
         let loaded = crate::load::load(&inst).unwrap();
-        let text = crate::mapped::read(&path);
+        let text = crate::capture::read(&path);
         let log = Log::parse(&text);
         let init = log.initial().unwrap();
         let mut built = build_sim(&loaded, &init, Tuning::RON);
@@ -838,7 +838,7 @@ mod tests {
             return;
         };
         let loaded = crate::load::load(&inst).unwrap();
-        let text = crate::mapped::read(&path);
+        let text = crate::capture::read(&path);
         let log = Log::parse(&text);
         let init = log.initial().unwrap();
         let mut built = build_sim(&loaded, &init, Tuning::RON);
@@ -971,8 +971,8 @@ mod tests {
             return;
         };
         let loaded = crate::load::load(&inst).unwrap();
-        let text = crate::mapped::read(&path);
-        let sib_text = crate::mapped::read(&sib);
+        let text = crate::capture::read(&path);
+        let sib_text = crate::capture::read(&sib);
         let log = Log::parse(&text);
         let sib_log = Log::parse(&sib_text);
         let sib_init = sib_log.initial().expect("run38 is a start dump");
@@ -1198,7 +1198,7 @@ mod tests {
                 continue;
             };
             ran += 1;
-            let text = crate::mapped::read(&path);
+            let text = crate::capture::read(&path);
             let log = Log::parse(&text);
             let mut init = log.initial().unwrap();
             borrow_from_siblings(&mut init, &refs);
@@ -1343,7 +1343,7 @@ mod tests {
             return;
         };
         let loaded = crate::load::load(&inst).unwrap();
-        let text = crate::mapped::read(&path);
+        let text = crate::capture::read(&path);
         let log = Log::parse(&text);
         let init = log.initial().unwrap();
         let mut built = build_sim(&loaded, &init, Tuning::RON);
@@ -1533,8 +1533,8 @@ mod tests {
             return;
         };
         let loaded = crate::load::load(&inst).unwrap();
-        let text = crate::mapped::read(&path);
-        let sib_text = crate::mapped::read(&sib);
+        let text = crate::capture::read(&path);
+        let sib_text = crate::capture::read(&sib);
         let log = Log::parse(&text);
         let sib_log = Log::parse(&sib_text);
         let sib_init = sib_log.initial().expect("run38 is a start dump");
@@ -1600,8 +1600,8 @@ mod tests {
             return;
         };
         let loaded = crate::load::load(&inst).unwrap();
-        let text = crate::mapped::read(&path);
-        let sib_text = crate::mapped::read(&sib);
+        let text = crate::capture::read(&path);
+        let sib_text = crate::capture::read(&sib);
         let log = Log::parse(&text);
         let sib_log = Log::parse(&sib_text);
         let sib_init = sib_log.initial().expect("run38 is a start dump");
@@ -1652,8 +1652,8 @@ mod tests {
             return;
         };
         let loaded = crate::load::load(&inst).unwrap();
-        let text = crate::mapped::read(&path);
-        let sib_text = crate::mapped::read(&sib);
+        let text = crate::capture::read(&path);
+        let sib_text = crate::capture::read(&sib);
         let log = Log::parse(&text);
         let sib_log = Log::parse(&sib_text);
         let sib_init = sib_log.initial().expect("run38 is a start dump");
@@ -1727,8 +1727,8 @@ mod tests {
             return;
         };
         let loaded = crate::load::load(&inst).unwrap();
-        let text = crate::mapped::read(&path);
-        let sib_text = crate::mapped::read(&sib);
+        let text = crate::capture::read(&path);
+        let sib_text = crate::capture::read(&sib);
         let log = Log::parse(&text);
         let sib_log = Log::parse(&sib_text);
         let sib_init = sib_log.initial().expect("run38 is a start dump");
@@ -1827,8 +1827,8 @@ mod tests {
         };
         const FRAME: i64 = 2176;
         let loaded = crate::load::load(&inst).unwrap();
-        let text = crate::mapped::read(&path);
-        let sib_text = crate::mapped::read(&sib);
+        let text = crate::capture::read(&path);
+        let sib_text = crate::capture::read(&sib);
         let log = Log::parse(&text);
         let sib_log = Log::parse(&sib_text);
         let sib_init = sib_log.initial().expect("run38 is a start dump");
@@ -1922,7 +1922,7 @@ mod tests {
         };
         let loaded = crate::load::load(&inst).unwrap();
         let texts = sibling_texts();
-        let text = crate::mapped::read(&path);
+        let text = crate::capture::read(&path);
         let log = Log::parse(&text);
         let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
         let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
@@ -1981,7 +1981,7 @@ mod tests {
         // The sync stream from run11's trace and the heights from run3 —
         // the same map, seed and lobby.
         let texts = sibling_texts();
-        let text = crate::mapped::read(&path);
+        let text = crate::capture::read(&path);
         let log = Log::parse(&text);
         let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
         let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
@@ -3321,7 +3321,7 @@ mod tests {
             return;
         };
         let loaded = crate::load::load(&inst).unwrap();
-        let text = crate::mapped::read(&path);
+        let text = crate::capture::read(&path);
         let log = Log::parse(&text);
         let built = build_sim(&loaded, &log.initial().unwrap(), Tuning::RON);
         let sim = &built.sim;
@@ -3380,8 +3380,8 @@ mod tests {
             eprintln!("skipping: no run76/run79 capture (set RON_GAMELOG_DIR)");
             return;
         };
-        let t76 = crate::mapped::read(&r76);
-        let t79 = crate::mapped::read(&r79);
+        let t76 = crate::capture::read(&r76);
+        let t79 = crate::capture::read(&r79);
         let l76 = Log::parse(&t76);
         let l79 = Log::parse(&t79);
 

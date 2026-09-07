@@ -19110,6 +19110,95 @@ could be spent once if `Initial` and the frame states came from one call;
 and `dumps()` still materialises every frame it is asked about, which is
 the one whole-log accessor the split did not reach.
 
+## 2026-09-07 — item 280: the mapping comes back out, and the tree is one `forbid` again (no word moved, Opus, worker)
+
+Item 260 landed two independent halves under one number. The first — index
+the frames in one pass and read one in when a caller asks — is pure safe
+Rust and did nearly all the work: the arena of a 1.3 GB capture went from
+2,221 MiB to 17. The second was a **memory-mapped capture**, and it is the
+one that took `crates/rondata` off the workspace's `unsafe_code = "forbid"`
+down to a `deny` of its own with one module exempt.
+
+The user's decision, taken on this item rather than argued into it: **drop
+the mapping and restore the forbid across the whole tree.** The acceptance
+test is a grep — `grep -rn "allow(unsafe_code)" crates` answers nothing —
+and it does.
+
+**Why it was the right price, in three parts, and only the first was in the
+brief.** `memmap2::Mmap::map` is an `unsafe fn` because another process can
+rewrite or truncate the file under the `&[u8]` Rust believes is frozen, and
+this repo has such a writer: `tools/gamelog/runqueue.sh` renames
+`gamelog.txt` over an archive name, `tools/gamelog/captures.txt` warns in
+its own header that re-using a run number silently overwrites an archive,
+and the capture lane runs beside the suite by design (DECISIONS 34). So the
+sequence that turns a green gate into undefined behaviour is one an
+ordinary day here can produce. The second part is `mapped.rs` itself, which
+was worse than the brief described and which lore read directly: the FFI
+was **hand-rolled** — `unsafe extern "C"` mmap/munmap with copied constants
+— `read()` was a **safe** fn handing back a `Deref<Target = str>` over a
+`MAP_PRIVATE` mapping, so no caller could see there was an obligation at
+all, and `from_utf8_unchecked` on top made a mid-read rewrite UB rather
+than a SIGBUS. The third is that the exception had never been written where
+an exception belongs: it lived in `docs/DATALAYER.md` and this journal, and
+`docs/DECISIONS.md` had no entry narrowing the tenet. Entry 37 is that
+entry, written here so the next one has to come through it.
+
+**What changed.** `mapped.rs` is `capture.rs`: `capture::read` is
+`std::fs::read_to_string` and the `Text` type is gone, so ~200 call sites
+read `let text = crate::capture::read(&path)` into a `String` and
+`Log::parse(&text)` is unchanged. `Pages<T>` went with it — the anonymous
+mapping for the arena's chunks was motivated by item 235's "macOS never
+returns a freed block of this size", and 260's own laziness had already
+taken the arena to 17 MiB, so the chunk is a `Box<[T]>` again and leaving
+half the module behind would have been worse than removing it whole.
+`crates/rondata/Cargo.toml` is `[lints] workspace = true` like `fixed`'s.
+
+**The number, and the two reasons it is not a clean comparison.**
+Both lines are the release gate on this
+tree, 243 tests green either way, the only difference being the change
+itself:
+
+```text
+before  memcap: peak 8358 MiB across the tree, 8327 MiB in the largest single process, of a 20 GiB ceiling
+after   memcap: peak 9921 MiB across the tree, 9890 MiB in the largest single process, of a 20 GiB ceiling
+```
+
+**+1,563 MiB**, and 281 s against 274 s. The brief's estimate, made across
+two different trees, was "near 11 GB"; the stop-and-ask line was 14 GB. So
+the forbid costs about a gigabyte and a half of a twenty-gigabyte ceiling,
+which leaves the next long capture bookable and 260's own headline —
+15,791 → 8,816 on the merged tree — mostly intact.
+
+`memcap.sh` reads `ps rss`, and both shapes are counted there — a mapped
+capture's pages are clean and file-backed but resident, an owned `String`'s
+are dirty — so the live term did not move much either way. What did move is
+the **ratchet**: a mapping is returned by `munmap` at the moment it is
+dropped, where a freed `String` of a capture's size is kept by macOS's
+allocator and cannot serve the next capture's different size. That is 260's
+5,332-MiB-with-nothing-alive probe, and it is what came back. The meter also
+polls every two seconds, so it under-reports a spike (item 251), and it is
+the same meter on both runs.
+
+**The successor is not the mapping again.** The commander's steer, which is
+right: the mapping's real win was never that `mmap` is fast, it was that
+*the text is not a `String`*, and the safe way to keep that is the byte-range
+index 260 already built — read a frame with `FileExt::read_exact_at` into a
+small reusable buffer and the capture's text is never resident at all, which
+lands **under** the mapping rather than conceding to it. What stands in the
+way is not the read but the borrow: `Log`'s accessors hand back `&'a str`
+slices of the text, and lending out text loaded *after* the borrow began
+wants `&mut self` through every accessor or a self-referential arena. That
+is an API change across the call sites rather than a swap, which is why it
+is not in this item; `docs/DATALAYER.md` §1 names it as the successor.
+
+Successors, unnumbered: the never-resident capture above, which is the one
+that pays the number back; a `#[global_allocator]` that returns large
+blocks, which needs no `unsafe` in this tree because the crate that has it
+carries it, and which would close item 235's ratchet for every large owned
+buffer rather than for the two that were mapped; and `memcap.sh` subtracting
+clean file-backed pages, which is now moot for captures and still true of
+the executable and the dumps the trace opens.
+
 ## 2026-09-07 — item 276: the closing block prices East Indies' word and does not explain it (Opus, worker)
 
 **The item was a grep, and the grep was worth doing.** East Indies' long

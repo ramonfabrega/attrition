@@ -628,7 +628,7 @@ mod tests {
             return;
         };
         let loaded = crate::load::load(&inst).unwrap();
-        let text = crate::mapped::read(&path);
+        let text = crate::capture::read(&path);
         let log = Log::parse(&text);
         let init = log.initial().unwrap();
         let mut built = build_sim(&loaded, &init, Tuning::RON);
@@ -761,7 +761,7 @@ mod tests {
             return;
         };
         let loaded = crate::load::load(&inst).unwrap();
-        let text = crate::mapped::read(&path);
+        let text = crate::capture::read(&path);
         let log = Log::parse(&text);
 
         // Half one: the original's own shape, read straight off the dump —
@@ -826,7 +826,7 @@ mod tests {
 
         // Half two: what this crate writes instead, as a ceiling. Every one
         // of these is a row the old comparison could not see.
-        let sib_text = crate::mapped::read(&sib);
+        let sib_text = crate::capture::read(&sib);
         let sib_log = Log::parse(&sib_text);
         let sib_init = sib_log.initial().expect("run38 is a start dump");
         let refs: Vec<&Initial> = vec![&sib_init];
@@ -886,7 +886,7 @@ mod tests {
             return;
         };
         let loaded = crate::load::load(&inst).unwrap();
-        let text = crate::mapped::read(&path);
+        let text = crate::capture::read(&path);
         let log = Log::parse(&text);
         let init = log.initial().unwrap();
         let mut built = build_sim(&loaded, &init, Tuning::RON);
@@ -1024,7 +1024,7 @@ mod tests {
             return;
         };
         let loaded = crate::load::load(&inst).unwrap();
-        let text = crate::mapped::read(&path);
+        let text = crate::capture::read(&path);
         let log = Log::parse(&text);
         let data = crate::recgame::decompress(&rc).unwrap();
         let rec = crate::recgame::parse(&data, &rc).unwrap();
@@ -1299,7 +1299,7 @@ mod tests {
             eprintln!("skipping: no long-trace captures (set RON_GAMELOG_DIR)");
             return;
         };
-        let texts: Vec<crate::mapped::Text> = paths.iter().map(crate::mapped::read).collect();
+        let texts: Vec<String> = paths.iter().map(crate::capture::read).collect();
         let captures: Vec<Vec<Frame>> =
             texts.iter().map(|t| Log::parse(t).frame_states()).collect();
 
@@ -1461,7 +1461,7 @@ mod tests {
             eprintln!("skipping: no long-trace captures (set RON_GAMELOG_DIR)");
             return;
         };
-        let texts: Vec<crate::mapped::Text> = paths.iter().map(crate::mapped::read).collect();
+        let texts: Vec<String> = paths.iter().map(crate::capture::read).collect();
         let captures: Vec<Vec<Frame>> =
             texts.iter().map(|t| Log::parse(t).frame_states()).collect();
 
@@ -1573,8 +1573,8 @@ mod tests {
             return;
         };
         let loaded = crate::load::load(&inst).unwrap();
-        let text = crate::mapped::read(&path);
-        let sib_text = crate::mapped::read(&sib);
+        let text = crate::capture::read(&path);
+        let sib_text = crate::capture::read(&sib);
         let log = Log::parse(&text);
         let sib_log = Log::parse(&sib_text);
         let sib_init = sib_log.initial().expect("run38 is a start dump");
