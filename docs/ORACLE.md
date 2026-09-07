@@ -4398,6 +4398,168 @@ stable frame to frame, but a hand count is not.
 cannot separate the flat additions from each other, and the falsifier is a
 capture either side of the Merchant reaching the Gems.
 
+## run81 — the merchant's cast is 149 frames, and that is why nothing had seen an unpack (2026-09-06)
+
+**What it is.** East Indies, seed 12345, run68's game and run68's detail with
+the window moved to `[6730, 6800)` and `GOODS=3` added — 70 blocks, 49 MB,
+`cover=0`, four minutes end to end. Same game: `rngcmp.py rontrace-run54.log
+rontrace-run81.log` → **differing frames: 0, identical frames: 6816**.
+
+**The disk was grepped first, exhaustively, and it refused.** `docs/MERCHANT.md`
+§7 said no capture had seen a `MERCHANT` unpack; the writer of the bit is
+`SpellType::cast_unpack@006709c0` (`*puVar1 & 0xfff7ffff`, so `0x80000`), which
+makes the tell a single bit and the scan complete rather than clever. Of every
+archive in `Logs/`, **ten** ever carry a unit with `0x80000` set at all —
+run18b, 44, 58, 59, 63, 66, 67, 68, 76, 79 — and in none of them does any
+`(who, o, uid)` gain or lose the bit between blocks. Not one pack, not one
+unpack, in the project's whole history of captures.
+
+**And this capture did not catch one either — which is its finding.** The
+merchant `1/19` finishes its walk on block **6735**, standing on
+(32280, 36888), which is `orders_x/y` exactly. On **6736** the cast starts,
+and the block says so four ways at once:
+
+| field | 6730–6735 | 6736 onward |
+| --- | --- | --- |
+| `cur_anim` | 8 | **24** |
+| `end_time` | 15 | **149** |
+| `stopped` | 0 | **1** |
+| the `spell 656` order's `paid` | 0 | **1** |
+
+`cur_time` then advances **exactly one a frame** — 1 on 6736, 64 on 6799, no
+reset and no gap — so the cast ends at 6736 + 148 = **6884**, and
+`unit_masks` is 9175050 on all seventy blocks because the bit cannot clear
+before then. **The unpack is not an event on arrival; it is a 149-frame
+animation the arrival starts**, which is the whole reason every window ever
+aimed at this merchant has missed it. run68's window closed 149 frames early
+and this one closed 85 early.
+
+**So the frame is now derived, not guessed.** run77 and run78 each bet a
+window on one frame off a coverage list and each came back empty; this
+prediction rests on sixty-four measured samples of a counter the dump prints.
+run82 is the capture that spends it.
+
+**The order in the stack is `spell 656`, not the `0x28c` the decompiler
+prints.** `Unit::unpack_merchant@006038e0` calls
+`add_cast_order(this,-1,-1,-1,-1,0x28c,QUEUE_NEW,0)` — 652 — and the order
+that lands in `1/19`'s stack is `type 14`, `spell **656**`, `ox -1`,
+`whom -1`, `x -1`, `y -1`. One order, the whole window. Which of the two
+numbers is the spell and which is something the decompiler has folded is not
+settled here; the dump is the stronger witness and 656 is what it says.
+
+**Four things the window gave for free.**
+
+- **The `GOODS=3` category is nearly free and stable.** 66 `BEGIN GOOD`
+  records a block, nine lines each, identical across all seventy — so the
+  good is a per-frame record from here on at ~15 KB a block. The Citrus is
+  `o 20`, `who 255`, at (31776, 37152), and its `ever_seen` is **2** where
+  the start dump had 0.
+- **The deploy spot is not the good's tile.** (32280, 36888) against the
+  Citrus's (31776, 37152) is 2.6 tiles east and 1.4 north. A merchant stands
+  *near* its rare, not on it.
+- **Nothing else is in the two-by-two.** `cast_unpack` blocks
+  `(x,y), (x-1,y), (x,y-1), (x-1,y-1)` off the deploy tile — here tiles
+  (168,192), (167,192), (168,191), (167,191), which is x ∈ [32064, 32448)
+  and y ∈ [36672, 37056). On block 6799 the only unit in that box is the
+  merchant. So `docs/MERCHANT.md` §7's `detect_unit_collision` bullet is
+  untouched by this capture: the footprint is empty either way, and the
+  question needs a game where it is not.
+- **`leader_flags` is a per-frame field at `LEADERS=1`.** Player 1's is
+  33554439 = `0x2000007`, so the `0x2000000` `cast_unpack` ORs into the
+  leader is **already set** through the whole window. It cannot be used as
+  the tell for a deploy; the unit's own `unit_masks` can.
+
+## run82 — the merchant unpacks, and it is the first one ever captured (2026-09-06)
+
+**What it is.** run81's game and detail with the window at `[6860, 6930)` and
+`LEADERS=9` added — 70 blocks, **151 MB**, `cover=0`, seven minutes. Same
+game: `rngcmp.py rontrace-run54.log rontrace-run82.log` → **differing frames:
+0, identical frames: 6946**. The stanza's own teeth came back
+`blocks=70 packed first=1 last=0`, which is the sentence this run was booked
+to make true.
+
+**The unpack, frame by frame.** `1/19`, the AI's Merchant, on the Citrus:
+
+| block | what changes |
+| --- | --- |
+| …6882 | `unit_masks 9175050`, `cur_anim 24`, `cur_time` 147 of 149, (32280, 36888), `flags 1`, `mylos 3` |
+| **6883** | `unit_masks` → **8650762**; position and `orders_x/y` → **(32256, 36864)**; `mylos` 3 → **5** |
+| 6884 | `cur_anim` 24 → **0** with `end_time` **3**; `flags` 1 → **9**; `idle` starts counting |
+| **6888** | `rare` 0 → **26**, `good_obj` -1 → **10**; and the leader's income steps |
+
+**Three things that is, exactly.**
+
+- `9175050 - 8650762 = 524288`. The clear is `& ~0x80000` and **nothing
+  else** — no other bit of `unit_masks` moves — which is
+  `SpellType::cast_unpack@006709c0`'s `*puVar1 & 0xfff7ffff` checked against
+  a dump rather than read.
+- **The snap is exact and it is to the tile.** (32280, 36888) is tile
+  168.125, 192.125; (32256, 36864) is **168.0, 192.0**, and 168 × 192 = 32256,
+  192 × 192 = 36864. `cast_unpack` calls `set_new_location(TVar2 * 0xc0,
+  TVar3 * 0xc0)` on the tile indices, so the merchant is **teleported** onto
+  the cell corner on the frame the bit clears; `orders_x/y` are rewritten to
+  match, and the walk it had is simply over.
+- **The cast fires at `cur_time == end_time - 1`.** 148 against 149, and the
+  animation is replaced rather than run out. A model that waits for
+  `cur_time == end_time` is one frame late. run81 predicted 6884 off the
+  linear counter and the answer is **6883**.
+
+**The pay is on the gather clock, five frames behind the deploy.** `LEADERS=9`
+rode along for this and it is the half nothing on disk had. Leader 1's whole
+census differs in **14 of 11,796 fields** between 6882 and 6890:
+
+| field | 6882 | 6890 | |
+| --- | --- | --- | --- |
+| `income` / `resources` | 1920 | **2080** | +160 |
+| `income[1]` / `resources[1]` | 1280 | **1440** | +160 |
+| `rares_collected[scan][20]` | 0 | **1** | |
+| `gather_stamp` | 6767 | **6887** | +120 |
+| `score` | 711 | 740 | |
+| `bit_values`, `bucket`, `bucket[1]`, `leftover ×3` | | | |
+
+- **Two slots gain 160 each, and that is `calc_rare` twice.**
+  `docs/ECONOMY.md` step 6: `calc_rare` reads the good's **two**
+  `(BONUS_TYPE, BONUS_NUM)` pairs out of `resourcerules.xml` and multiplies by
+  sixteen. Citrus is ten and ten, so 160 into each of two resources — the
+  arithmetic and the *pair* are both confirmed by one diff.
+- **`rares_collected` is offset by six, independently.** The unit's `rare` is
+  **26** and the leader's array moves at index **20**. run80 derived the −6
+  offset from Great Lakes' Gems by name-matching the map's inventory; this is
+  the same offset falling out of a single unit on a different map.
+- **`gather_stamp` moves 6767 → 6887, exactly 120.** So the recompute is
+  periodic and the deploy does not trigger it: the bit clears on 6883, the
+  next stamp lands on 6887, and the unit's `rare`/`good_obj` and the leader's
+  income both appear in block **6888**. `bucket` is *not* that clock — it
+  steps every five or six frames throughout the window, 115 to 128.
+
+**The deposit itself never changes.** All 66 `BEGIN GOOD` records are
+byte-identical across all 70 blocks: the Citrus stays `o 20`, `who 255`,
+`ever_seen 2`, `flags 1`, at (31776, 37152). Ownership of a rare lives on the
+**unit** (`rare`, `good_obj`) and on the **leader** (`rares_collected`), never
+on the good — `docs/ECONOMY.md`'s "the bonus is the merchant, not the
+deposit", now diff-backed.
+
+**And the closing block was telling the truth this time.** run68 quit at 6745
+and its closing block put `1/19` on (32280, 36888) with `flags 1`; run81's
+*ordinary* block 6746 says (32280, 36888) and `flags 1`. Same position, same
+flags. The deploy was 137 frames away.
+
+**What it does not answer.**
+
+- **`gather_down` and `special` are still -1** on every block to 6929, 46
+  frames past the unpack, where run76's long-deployed Great Lakes merchant
+  carries `gather_down 18` and `special 6`. Both fill in later than this
+  window reaches, and nothing on disk holds the frame they do.
+- **`good_obj 10` is not the good's `o`.** The Citrus's `BEGIN GOOD`
+  subobject is `o 20`; the unit's `good_obj` is 10. They are indices into
+  different arrays and which is which is unread.
+- **The two-by-two is unobservable.** `World::set_blocked_at` writes into the
+  `WORLD` block, which is 600,601 lines in this game's own start dump and
+  cannot ride a window. By arithmetic the tiles are (168,192), (167,192),
+  (168,191), (167,191); no unit is in any of them, so
+  `find_merchant_spot`'s missing `detect_unit_collision` test costs nothing
+  here and is untested by this game.
+
 ## The window nobody can see — CrossOver's expired bottle (2026-09-04)
 
 **run 76 did not run, and the reason had nothing to do with permissions.**

@@ -1152,3 +1152,136 @@ settle_min: 14000000
 poll_max: 300
 # Same game: the trace word for word against run53, this map's own 24k run.
 check: python3 tools/gamelog/rngcmp.py rontrace-run53.log rontrace-run80.log
+
+run: 81
+tag: islands-merchantunpack
+item: 192
+why: nothing on disk has ever seen a MERCHANT unpack — run68's window closes eleven frames short of the deploy
+# **run68's own game, its window continued.** run68 covers blocks 6595–6729
+# and its merchant `1/19` is still packed and still walking at the last of
+# them — `unit_masks 9175050`, `special -1`, `rare 0`, `gather_down -1` on
+# every block from 6725 on — while run76's Great Lakes merchant is already
+# deployed on its window's *first* block at `262152` (`0x40008`), `special
+# 6`, `gather_down 18`. Both steady states are on disk and the transition
+# between them is not. `docs/MERCHANT.md` §7 names it: `unit_masks &
+# 0x80000` clearing, the two-by-two `PLACED` footprint, the `rare`/`good_obj`
+# pair `Unit::do_gather@005fce20` writes, and what the cast order does when
+# the walk in front of it dies.
+#
+# **THE DISK WAS GREPPED FIRST, over every archive, and it refuses.** The
+# writer of the bit is `SpellType::cast_unpack@006709c0` (`*puVar1 & 0xfff7ffff`),
+# so the tell is one `unit_masks` bit and a scan can be exhaustive rather
+# than clever: of the 80-odd archives only ten ever carry a unit with
+# `0x80000` set at all — run18b, 44, 58, 59, 63, 66, 67, 68, 76, 79 — and in
+# not one of them does any `(who, o, uid)` lose the bit from one block to the
+# next. Not one gains it either. So no capture in the project's history holds
+# a merchant unpack, and none holds a pack.
+#
+# **The window is bounded above by run68's own closing block.** 6746 carries
+# `1/19` standing on (32280, 36888) with `SubObjectData.flags` 9 -> 1, so the
+# deploy is inside [6730, 6746] — a closing block is not a frame state
+# (`docs/ORACLE.md`, run68) but it is enough to bound a booking. 70 blocks
+# clears it with forty to spare and shows the deployed steady state settling.
+frames: 6815
+mapstyle: 18
+# run68's detail exactly, so the two windows are one continuous record and
+# the field diff compares like with like — plus **GOODS=3**, which is the
+# good the merchant deploys onto and the record `gather_down` indexes.
+# A `BEGIN GOOD` is nine lines and there are 65 of them, so the whole
+# category costs ~15 KB a block: the cheapest field in the stanza.
+# **Not ITEMS** — the 616 goody boxes are a different array, and a merchant
+# deploys on a `GOOD`. **Not WORLD** — its block is 600,601 lines in this
+# game's own start dump, which is 40 GB over 70 blocks; the 2x2 footprint
+# `World::set_blocked_at` writes is inferred from the deploy tile instead.
+end: MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,DEATHS=1,LEADERS=1,GOODS=3
+frame_window: 6730 6800
+# cover=0 is not a choice on this machine — the `cover:` key's note above.
+cover: cover=0
+# run68's floor, unchanged: the East Indies start dump is ~11 MB at this
+# `start:` detail and does not grow until the window opens, so 20 MB sits
+# above the quiet run-up. run68 wrote 83 MB for 135 blocks at this detail
+# (~0.53 MB a block), so 70 blocks lands near 50 MB.
+settle_min: 20000000
+# run68 took five minutes for a longer run-up and twice the window, and that
+# was `cover=1` under CrossOver. 80 polls is 27 minutes.
+poll_max: 80
+# Same game: the trace word for word against run54, this map's own 24k run —
+# run68's own check, one run number along.
+check: python3 tools/gamelog/rngcmp.py rontrace-run54.log rontrace-run81.log
+# **And a check that can fail.** Made to fail first, per the guard rule: run
+# against run68's archive and its own window it prints `packed first=1
+# last=1` and exits 1, because run68 is exactly the capture that misses the
+# deploy. It passes only if `1/19` enters the window packed and leaves it
+# unpacked, which is the whole booking in one line.
+check: python3 tools/gamelog/track.py UNITDATA unit_masks --where who=1,o=19 --frames 6730-6799 --file "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run81-islands-merchantunpack.txt" | awk '{split($NF,a,"="); p=int(a[2]/524288)%2; if(NR==1) first=p; last=p; n=NR} END {print "blocks="n" packed first="first" last="last; exit !(n>0 && first==1 && last==0)}'
+# TAKEN 2026-09-06 — four minutes, 70 blocks, 49,137,449 bytes, rngcmp
+# 6816/6816 identical against run54. The teeth check came back
+# `blocks=70 packed first=1 last=1` and **exited 1, correctly**: the window
+# missed the unpack, and finding out why is what this capture bought. The
+# merchant's walk ends on 6735 and the cast begins on 6736 — `cur_anim` 8 ->
+# 24, `end_time` 15 -> 149, `stopped` 0 -> 1, the `spell 656` order's `paid`
+# 0 -> 1 — and `cur_time` then advances exactly one a frame, 1 on 6736 to 64
+# on 6799. So the deploy is a 149-frame animation the arrival starts, not an
+# event on arrival, and every window ever aimed at this merchant has been
+# short of it by construction. run82 spends the prediction.
+# `docs/ORACLE.md`, "run81 — the merchant's cast is 149 frames".
+
+run: 82
+tag: islands-merchantcast
+item: 192
+why: run81 found the cast is 149 frames long and named the frame it ends — 6884, which is 85 past run81's own window
+# **run81 did not catch the unpack, and that is its finding.** It caught the
+# whole approach and the reason: the merchant `1/19` reaches its deploy spot
+# (32280, 36888) on block **6735** and the cast begins on **6736**, where
+# `cur_anim` goes 8 -> 24, `end_time` 15 -> **149**, `stopped` 0 -> 1 and the
+# `spell 656` order's `paid` 0 -> 1. `cur_time` then advances exactly one a
+# frame — 1 on 6736, 64 on 6799, no gap, no reset — so the cast ends at
+# 6736 + 148 = **6884**, and `unit_masks` is 9175050 on every one of run81's
+# 70 blocks because the bit does not clear until then.
+#
+# So this is not a guess at a frame the way run77 and run78 were: it is a
+# linear extrapolation off 64 measured samples of a counter that is dumped.
+# The window opens 24 frames ahead of 6884 and closes 45 past it, which
+# brackets the prediction either way and holds the deployed steady state
+# long enough to see it settle into run76's shape (`special 6`,
+# `gather_down` naming the good, `unit_masks` without `0x80000`).
+#
+# **`LEADERS=9` rides along, because the unpack's second half is the census.**
+# `docs/ECONOMY.md` step 6: `Unit::do_gather` refuses a merchant while
+# `unit_masks & 0x80000` is set, so the frame the bit clears is the frame the
+# Citrus starts paying — `rare_owned`, the six rates, the population cap.
+# That is the same event and it is only ever visible on this one frame of
+# this one game. run80 measured `LEADERS=9` at ~1.7 MB a block, so 70 blocks
+# is ~160 MB and about ten minutes of dumping: the span is bought once.
+frames: 6945
+mapstyle: 18
+end: MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,DEATHS=1,LEADERS=9,GOODS=3
+frame_window: 6860 6930
+# cover=0 is not a choice on this machine — the `cover:` key's note above.
+cover: cover=0
+# run68/run81's floor: the East Indies start dump is 11,053,641 bytes at this
+# `start:` detail (run81 measured it exactly) and does not grow until 6860.
+settle_min: 20000000
+# 70 blocks at `LEADERS=9` against run80's 40; 200 polls is 67 minutes and
+# the give-up path truncates rather than stops.
+poll_max: 200
+# Same game: the trace word for word against run54, this map's own 24k run.
+check: python3 tools/gamelog/rngcmp.py rontrace-run54.log rontrace-run82.log
+# The teeth, one window along: `1/19` must enter packed and leave unpacked.
+# It printed `blocks=70 packed first=1 last=1` and exited 1 on run81, which
+# is what a check that can fail looks like.
+check: python3 tools/gamelog/track.py UNITDATA unit_masks --where who=1,o=19 --frames 6860-6929 --file "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run82-islands-merchantcast.txt" | awk '{split($NF,a,"="); p=int(a[2]/524288)%2; if(NR==1) first=p; last=p; n=NR} END {print "blocks="n" packed first="first" last="last; exit !(n>0 && first==1 && last==0)}'
+# TAKEN 2026-09-06 — seven minutes, 70 blocks, 150,857,216 bytes, rngcmp
+# 6946/6946 identical against run54, and the teeth came back
+# **`blocks=70 packed first=1 last=0`**. The first `MERCHANT` unpack ever
+# captured. It lands on **6883**, one frame ahead of run81's prediction,
+# because the cast fires at `cur_time == end_time - 1`. `unit_masks`
+# 9175050 -> 8650762 is `& ~0x80000` and nothing else; the position snaps
+# (32280, 36888) -> (32256, 36864), which is tile (168, 192) times 0xc0
+# exactly; `mylos` 3 -> 5 on the same frame and `flags` 1 -> 9 on the next.
+# The pay is five frames behind on the gather clock — `gather_stamp`
+# 6767 -> 6887, exactly 120 — and lands in block 6888 as `rare` 26,
+# `good_obj` 10 on the unit and **+160 into each of two resource slots**
+# plus `rares_collected[20]` on the leader. 14 of 11,796 leader fields move
+# and the 66 `BEGIN GOOD` records do not move at all.
+# `docs/ORACLE.md`, "run82 — the merchant unpacks".
