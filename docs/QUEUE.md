@@ -25,15 +25,16 @@ user spent one more worker rather than steer: 249 named the cause.*
   7675/7676 free.
 - **East Indies 7448 is a position** (241): 6930–7399 is uncovered (TRANSPORT
   §13); `cap-241` is live on run86, `[7080,7140)`+`[7290,7340)`, `UNITS=3`.
-- **A call chain names a function, not a cast** (249). Two sessions went
-  at the three units that already held the order; eighty `UNITDATA`
+- **A call chain names a function, not a cast** (249): eighty `UNITDATA`
   blocks either side answer "who changed" with no hypothesis. Widen first.
 - **Width two on the gate** (15.8 GB peak of a 20 GiB cap; four threads
   stay off). `ccc update <ref>` for a base, never a raw merge; reap at
-  merge time; `ccc rm` leaves the branch, so that name then fails.
-- **Owed to ccc** (item 25): `~/ccc-stream/` holds a Monitor, two shells,
-  `verdicts.txt` and `clear-probe.txt`; each `stalled` line wants a word
-  and none has fired yet. Restarting a watch blinds it.
+  merge time; `ccc rm` leaves the branch, so that `--worktree` name fails.
+- **A lane is cheap on memory, and on tokens only if it waits blocking.**
+  One polled a task file 381× for 63 USD — 41% of all lane spend, against
+  2% for the captures themselves (lore, 09-07). Steering owes this a rule.
+- **Owed to ccc** (item 25): `~/ccc-stream/` — each `stalled` line wants a
+  word in `verdicts.txt`, none has fired yet, a watch restart blinds it.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w7448 of 24,000 · GreatLakes w6994 of 24,000
@@ -138,10 +139,9 @@ reads `ages`.
 
 251. **`memcap.sh` is the one guard with no fixture** (lore, verified
     here): its `ps | awk` reads `0 0` when `ps` answers nothing, so a
-    refused sample is indistinguishable from no memory used and the
-    ceiling never fires — Friday's crash by another door, under the guard
-    DECISIONS 34 cites for width two. Wants one: allocate past the cap,
-    die within N seconds, exit 137.
+    refused sample reads as no memory used and the ceiling never fires —
+    Friday's crash by another door, under the guard DECISIONS 34 cites
+    for width two. Wants one: past the cap, dead in N seconds, exit 137.
 
 Older backlog: (235) the capture `String` each test reads, ~5 GB of the
 suite's 10 — a rounded-up read buffer at ~100 call sites, no score; (39) a
