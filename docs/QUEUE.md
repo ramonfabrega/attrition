@@ -36,7 +36,7 @@ each section's non-item prose pinned and falling only.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w7806 of 24,000 · GreatLakes w7585 of 24,000
-Endpoint 24001: EastIndies 79 off, 0 unlinked · GreatLakes 84 off, 0 unlinked
+Endpoint 24001: EastIndies 80 off, 1 unlinked · GreatLakes 73 off, 8 unlinked
 
 **Opener: commander on Opus (DECISIONS 34), spawning — never working.
 Nothing in flight, board clean. Next: 290 (Great Lakes' word, wanting a

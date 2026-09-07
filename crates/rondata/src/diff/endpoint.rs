@@ -224,14 +224,26 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // the word — which the change moves 7529 → 7806, its own map's
         // headline and the largest single step it has taken. DECISIONS 36
         // asks for the number rather than a trade.
-        off: 79,
-        unlinked: 0,
-        extra: 11,
-        build_unlinked: 0,
+        //
+        // And **79 → 80, 0 → 1, 11 → 0, 0 → 2 and 32 → 28** on 2026-09-07,
+        // item 290 — `LeaderData::get_mod_resource_cap`'s difficulty
+        // scaling (`docs/AI.md` §33.2). The AI reads half its commerce cap
+        // on this lobby's Easiest setting, which moves `rate`, `best_good`
+        // and every `income < cap` gate in `create_buildings`,
+        // `create_units` and `research_techs`. Neither word moves; the
+        // endpoint reshuffles 16,000 frames past it — eleven extra units
+        // gone and one unlinked in their place, four building field-rows
+        // closer, one position further out. DECISIONS 36 asks for the
+        // number rather than a trade.
+        off: 80,
+        unlinked: 1,
+        extra: 0,
+        build_unlinked: 2,
         // 33 → 32 on 2026-09-07, item 265: `CityData::free` is a byte that
         // wraps, and the AI reading 255 where it read −1 takes one building
-        // field-row off the diverging list. Then 31 → 32 on item 271.
-        build_diverged: 32,
+        // field-row off the diverging list. Then 31 → 32 on item 271, and
+        // 32 → 28 on item 290.
+        build_diverged: 28,
         city_unlinked: 3,
         city_diverged: 0,
     },
@@ -268,9 +280,16 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // are found and two spurious ones take their place, six positions
         // are further out and one building field-row is closer. DECISIONS
         // 36 asks for the number rather than a trade.
-        off: 84,
-        unlinked: 0,
-        extra: 2,
+        //
+        // Then **84 → 73, 0 → 8, 2 → 0** on 2026-09-07, item 290, the same
+        // `get_mod_resource_cap` row as East Indies' above. Eleven
+        // positions closer and eight of the roster unlinked, 16,416 frames
+        // past a word that does not move — the largest single move either
+        // endpoint's `off` has made, and in the good direction, on a change
+        // whose whole effect is what the AI *values*.
+        off: 73,
+        unlinked: 8,
+        extra: 0,
         build_unlinked: 0,
         build_diverged: 12,
         city_unlinked: 3,
@@ -311,8 +330,12 @@ pub const LADDER: [Endpoint; 2] = [
         // back, 7,872 frames past the word, and nothing else on this rung
         // moved. Then 21 → 23 on 267's second row, the `§6.3` tail
         // negation — two more, and again nothing else on the rung. Then
-        // **23 → 22 and 9 → 8** on item 271's age snap, both falls.
-        extra: 22,
+        // **23 → 22 and 9 → 8** on item 271's age snap, both falls. Then
+        // **22 → 13** on item 290's `get_mod_resource_cap` (`docs/AI.md`
+        // §33.2) — nine spurious units gone and nothing else on this rung
+        // moved, which is the same shape as East Indies' own endpoint
+        // losing all eleven of its extras.
+        extra: 13,
         build_unlinked: 10,
         build_diverged: 8,
         city_unlinked: 3,
@@ -339,8 +362,13 @@ pub const LADDER: [Endpoint; 2] = [
         // exact pin of the eighth steer (DECISIONS 36) took it, and 27 → 26
         // with it, on its first run. Then **25 → 20** on item 271's age
         // snap — five spurious units gone, 8,960 frames past the word, and
-        // the largest single fall this rung has had.
-        extra: 20,
+        // the largest single fall this rung has had. Then **20 → 9** on
+        // item 290's `get_mod_resource_cap` (`docs/AI.md` §33.2), which is
+        // larger again: eleven more spurious units gone and nothing else on
+        // this rung moved. All three East Indies rows lost extras on that
+        // change — 11, 9 and 11 — and its own endpoint lost every one it
+        // had.
+        extra: 9,
         build_unlinked: 19,
         build_diverged: 0,
         city_unlinked: 4,

@@ -599,7 +599,7 @@ impl Sim {
             let avail = self
                 .good_type(g)
                 .is_some_and(|t| self.type_available(who, t));
-            let cap = self.ledgers[w].cap[g];
+            let cap = self.mod_resource_cap(who, g);
             let lakota = self
                 .tech_tree
                 .has_tribe_bonus(&self.setup, &self.tech[w], 0x13);
@@ -1050,7 +1050,7 @@ impl Sim {
         }
         let worst = self.ai[w].worst_good;
         let best = self.ai[w].best_good;
-        if free_peasants > 2 && self.ai[w].rate[worst] < self.ledgers[w].cap[worst] / 32 {
+        if free_peasants > 2 && self.ai[w].rate[worst] < self.mod_resource_cap(who, worst) / 32 {
             escrow = 1;
         }
         for g in 0..RESOURCES {
@@ -1059,7 +1059,7 @@ impl Sim {
                 .is_some_and(|t| self.type_available(who, t));
             if !(good == g
                 && avail
-                && self.ledgers[w].income[g] < self.ledgers[w].cap[g]
+                && self.ledgers[w].income[g] < self.mod_resource_cap(who, g)
                 && f.open_slots[g] < 2)
             {
                 continue;

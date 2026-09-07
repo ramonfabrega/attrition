@@ -727,15 +727,16 @@ impl Sim {
     }
 
     /// How many available non-knowledge goods have an income at or above
-    /// nine tenths of their cap. **Seam** — `get_mod_resource_cap` is the
-    /// ledger's own cap; nothing modifies it yet.
+    /// nine tenths of their cap — `get_mod_resource_cap`'s, which on an
+    /// easy difficulty is smaller than the ledger's own
+    /// ([`Sim::mod_resource_cap`], item 290).
     fn goods_near_cap(&self, who: Player) -> i32 {
         let l = &self.ledgers[who as usize];
         (0..RESOURCES)
             .filter(|&g| {
                 g != KNOWLEDGE
                     && self.type_available(who, g)
-                    && l.cap[g].wrapping_mul(9) / 10 <= l.income[g]
+                    && self.mod_resource_cap(who, g).wrapping_mul(9) / 10 <= l.income[g]
             })
             .count() as i32
     }

@@ -34,6 +34,8 @@ mod city;
 mod endpoint;
 mod floors;
 mod harness;
+#[cfg(test)]
+mod leader;
 mod order;
 mod report;
 mod setup;

@@ -2261,3 +2261,184 @@ check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|collide_frame" "$HOME/ron-data/App
 # The word does **not** move. `run90_s_window_is_east_indies_shuffle` is the
 # assertion; `docs/ORACLE.md`, "run90 — East Indies' word is a waypoint this
 # crate walks to", and `docs/COLLISION.md` §8.6.
+
+run: 91
+tag: greatlakes-wordledger
+item: 290
+why: Great Lakes' word at 7585 is one number — the AI's food, 88 here against the original's 98..159 — and `bucket` is written only at LEADERS=9, which no Great Lakes capture carries anywhere near this frame
+# **run89's stanza, with one category raised.** Same map, same game, same
+# `frames`/`settle_min` shape, the same detail **exactly** except
+# `LEADERS=1 -> 9`. 287 reduced the word to a single inequality inside
+# `make_stuff` step 6 — every gate agrees but the good loop over food,
+# `88 < 55 + 43 + 4` — and giving the AI **98** food on that frame makes
+# 7585 agree nine draws for nine. So the divergence is the AI's
+# **stockpile**, not its rules, and the stockpile is in this record.
+#
+# **THE DISK WAS GREPPED FIRST, and it moved the question rather than
+# answering it.** Two Great Lakes archives carry `LEADERS=9`: **run84**
+# ([6950, 7030)) and **run80** ([23960, 24000)). run84's eighty blocks are
+# now compared field for field against this crate
+# (`run84_s_window_is_the_original_s_whole_leader_record`, item 290's
+# module) and **the ledger is exact on all of them** — `bucket`,
+# `leftover`, `resource_cap`, `over_cap`, `resources`, `income`, `escrow`,
+# `escrow_rate`, `econ`, `gather_slots`, `filled_gather_slots`,
+# `gather_slots_high`, `worst_good`, `shortages`, both players, 160 blocks.
+# Then **run79's own blocks 7182 and 7183 settle the one purchase between
+# there and the word**: the original places building `2018` (`orig_type
+# 428`, a Stable) and appends a third entry to Barracks `2016`'s queue
+# costing `cost[0] 60` food and `cost[1] 40` knowledge, and this crate
+# spends exactly 60 food, 120 timber and 40 knowledge on the same frame
+# for the same two things. So the ledger agrees at 7029, the one spend in
+# between is matched, and **the whole of the shortfall opens inside
+# [7183, 7585] where nothing on this disk carries a leader's goods**.
+# That is the capture, and it is a capture rather than a diff.
+#
+# **The window is 86 blocks, not run89's 246.** `LEADERS=9` measures
+# ~1.43 MB a block on this map (run84: 145,236,453 bytes over 81 blocks
+# and a 10.9 MB start dump, against run79's 233 KB a block at the same
+# detail with `LEADERS=1`), so on run89's `GUYS=4` base of 410 KB a block
+# this is ~1.84 MB a block: 86 blocks is ~169 MB, against 464 MB for
+# run89's whole window. run89's 112 MB cost the gate about 2 GiB of peak,
+# so 246 blocks would have bought ~8 GiB of a 20 GiB cap for approach
+# frames that answer nothing extra. **71 blocks of approach is what the
+# question needs**: `leftover[0]` is the sub-food accumulator and it is
+# dumped, so the accrual *rate* is readable off a single block and its
+# *cadence* off a dozen. The pile ticks once every five or six frames here
+# — the ladder below — and 71 frames hold twelve ticks.
+frames: 7615
+mapstyle: 14
+# run89's detail exactly but for LEADERS, so the overlap below needs no
+# `--drop` and exactly one `--exclude`.
+end: MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,DEATHS=1,LEADERS=9
+frame_window: 7514 7600
+# cover=0 is not a choice on this machine — the `cover:` key's note above.
+cover: cover=0
+# run76/run79/run80/run83/run84/run87/run89's Great Lakes floor.
+settle_min: 14000000
+# run82 wrote 70 `LEADERS=9` blocks in seven minutes and run84 eighty in
+# about the same; 86 at a heavier `GUYS` is the same order. 120 polls is
+# forty minutes and the give-up path truncates rather than stops.
+poll_max: 120
+#
+# ---- THE PREDICTIONS, written before the capture ran (run90's lesson:
+# a capture written to be refused is worth several written to be
+# confirmed). Every figure is this crate's, on the dump's own block
+# numbering, for player 1 unless it says otherwise.
+#
+#   block 7514  bucket   76  61  66 113  24   0   leftover[food]  888
+#   block 7585  bucket   88  14  42 115  24   0   leftover[food] 3096
+#   block 7586  bucket   88  14  42 115  24   0   leftover[food] 4344
+#   block 7599  bucket   90  16  43 116  74   0
+#   every block resources 1920 2080 896 320 0 0   income 1920 2000 896 320 0 0
+#               resource_cap 2000 2000 2000 15984 2000 2000   escrow all zero
+#               gather_slots 10 12 1 0 0 0   filled_gather_slots 10 10 0 0 0 0
+#               gather_slots_high 10 12 1 0 0 0   econ 8 8 8 4 6 0
+#               rate 62 62 56 20 0 0   worst_good 4   best_good 0   shortages 0
+#               production_step 0   script_step 29   effective_pop 34
+#               territory 525   city_num 2   pop 2   peasants 23
+#               gatherers 20   free_peasants 1   caras 1   merchants 3
+#               gather_stamp 7583   over_cap 0 1 0 0 0 0
+#   player 0    bucket at 7585  873 705 268 0 0 0
+#   the food ladder, 7514..7599: 7514:76 7520 7525 7531 7537 7543 7548
+#               7554 7560 7566 7571 7577 7583:88 7589 7595:90
+#
+# **What is expected to PART.**
+#
+# - **`bucket[0]` food, and it is the item.** 287's bounds off the
+#   original's own refusals put the original at **98 ≤ food < 160** on
+#   7585 against this crate's 88. If the capture reads 88 there, the whole
+#   of 287's reasoning is wrong and that is the finding.
+# - **`bucket` on block 7586, by 43 more.** §32 says the original queues a
+#   Citizen out of make-list slot 5 on sim-frame 7585 at `cost[0] 43` and
+#   this crate queues nothing, so the original's food should *fall* 43
+#   across 7585 -> 7586 where this crate's holds at 88.
+# - **The record's known residue**, unchanged from run84's window and
+#   pinned there: player 0's whole census (`active`, `peasants`,
+#   `gatherers`, `filled_gather_slots`, `peasant_high`, `scouts`,
+#   `ally_mask`, `my_team_terr`, `other_team_terr`,
+#   `min_other_team_terr`) — the sweep does not run for a human here;
+#   player 1's `attack`, `defense`, `active`, `scouts`,
+#   `other_team_terr`, `min_other_team_terr`, `tech_frame`,
+#   `tech_cat_frame[0..3]`, `gather_stamp`, and the ten `SITE` slots.
+#
+# **What is expected to AGREE — and these are the refusable ones.**
+#
+# - **`income` and `resources`.** If the original's food income is not
+#   1920 on these blocks, the shortfall is a *rate* difference and every
+#   sentence above about a lump is wrong. This is the prediction most
+#   worth being refused.
+# - **`filled_gather_slots` 10 of 10 food**, and `gather_slots`
+#   `10 12 1 0 0 0`. A gatherer this crate does not have is the other way
+#   a rate difference could hide.
+# - **`leftover[0]`'s cadence.** The pile ticks on the same frames on both
+#   sides if the rate agrees; a different ladder is a rate difference even
+#   when `income` matches.
+# - **`escrow` all zero**, `econ 8 8 8 4 6 0`, `rate 62 62 56 20 0 0`,
+#   `worst_good 4`, `best_good 0`. `rate` and `best_good` are here because
+#   item 290 *changed* them: `LeaderData::get_mod_resource_cap@006d65b0`
+#   scales the commerce cap by difficulty for a computer leader — half on
+#   the easiest, three quarters on easy — and nine call sites here read
+#   the raw cap. run84's window says the fix is right at 7029; this says
+#   whether it is still right 550 frames on.
+# - **The twenty-four `PERSONALITY` rolls**, `production_step`,
+#   `script_step`, `effective_pop`, `territory`, `city_num`, `pop`,
+#   `peasants`, `gatherers`, `free_peasants`, `caras`, `merchants`.
+#
+# Same game: the trace word for word against run53, this map's own 24k run.
+check: python3 tools/gamelog/rngcmp.py rontrace-run53.log rontrace-run91.log
+# **The overlap, and it is total: run89 contains this whole window.** The
+# maintenance rule's `--exclude <the category you raised>` case, and the
+# trap it names — `samegame.py` exits 0 when nothing is in common — so
+# this asserts the count, the range and the zero rather than the verdict.
+# Calibrated first on the pair that has already run: run79 (`GUYS=2`,
+# `LEADERS=1`) against run84 (`GUYS=2`, `LEADERS=9`) prints
+# `80 in common (6950..7029)` and `differ: 0` under the same one
+# `--exclude`, which is exactly this shape one band earlier.
+check: python3 tools/gamelog/samegame.py gamelog-run89-greatlakes-wordframe.txt gamelog-run91-greatlakes-wordledger.txt --exclude LEADERDATA | tee /dev/stderr | awk '/in common/{split($0,a,", "); n=a[2]+0; r=$0; sub(/.*in common /,"",r)} /^differ:/{d=$2+0} END{print "run89 overlap: common="n" "r" differ="d; exit !(n==86 && d==0 && r=="(7514..7599)")}'
+# **The tooth that only `LEADERS=9` can pass, and the capture is bought
+# for it.** Made to fail first on both neighbours: run84 prints
+# `0 (0..0)` here (it has eighty `bucket` blocks, all of them in
+# [6950, 7030)) and run89 prints `0 (0..0)` too (`LEADERS=1` writes no
+# `bucket` on any of its 246 blocks in this very band). Only a capture
+# that raised the category can print 86.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|bucket" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run91-greatlakes-wordledger.txt" | awk '/BEGIN FRAME/{f=$3} /^bucket$/{if(f!="")seen[f]=1} END{n=0; lo=0; hi=0; for(k in seen){v=k+0; if(v>=7514&&v<7600){n++; if(lo==0||v<lo)lo=v; if(v>hi)hi=v}} print "frame blocks with a bucket in [7514,7600): "n" ("lo".."hi")"; exit !(n==86 && lo==7514 && hi==7599)}'
+# **And the tooth that says nothing was traded away for it.** A stanza
+# that raised `LEADERS` and let `GUYS` fall back to run84's 2 would pass
+# the line above and lose the animation clock, the collision fields, the
+# order list and the path stack — which is the half of the window that
+# makes it comparable to run89 at all. `cur_anim` is `GUYS=4`'s and it
+# prints **86 (7514..7599)** on run89 itself, so this is the neighbour's
+# own measured number rather than an estimate; it prints `0 (0..0)` and
+# exits 1 on run84.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|cur_anim" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run91-greatlakes-wordledger.txt" | awk '/BEGIN FRAME/{f=$3} /cur_anim/{if(f!="")seen[f]=1} END{n=0; lo=0; hi=0; for(k in seen){v=k+0; if(v>=7514&&v<7600){n++; if(lo==0||v<lo)lo=v; if(v>hi)hi=v}} print "frame blocks with a cur_anim in [7514,7600): "n" ("lo".."hi")"; exit !(n==86 && lo==7514 && hi==7599)}'
+# TAKEN 2026-09-07 — eight minutes (16:43:20 to 16:50:54), **87 blocks,
+# 170,485,873 bytes** (86 window + the `!quit` block at 7616), which is
+# 1.86 MB a block against the 1.84 the stanza predicted. All four checks
+# ok: `rngcmp.py` against run53 **0 differing, 7,616 identical**; the
+# run89 overlap **86 in common (7514..7599), 0 differing** under the one
+# `--exclude LEADERDATA` — the whole window contained in its neighbour;
+# and both teeth **86 (7514..7599)**.
+#
+# **AND IT REFUSED THE PREDICTION THE STANZA WAS WRITTEN FOR.** The
+# original's `bucket[0]` on block 7585 is **88** — this crate's own
+# number — and the two food ladders are identical **tick for tick over
+# all 72 blocks** of [7514, 7585]: 76 at 7514, 77 at 7520, and every step
+# after it on the same frame on both sides. Item 287's `98 ≤ food < 160`
+# is dead, and so is "the word is the AI's stockpile". Every prediction
+# listed under "expected to AGREE" held: `income`, `resources`,
+# `resource_cap`, `escrow`, `econ`, `rate`, `worst_good`, `best_good`,
+# `gather_slots`, `filled_gather_slots`, the twenty-four `PERSONALITY`
+# rolls, `production_step`, `script_step`, `effective_pop`, `territory`,
+# `city_num`, `pop`, `peasants`, `gatherers`, `free_peasants`, `caras`,
+# `merchants` — all of them.
+#
+# **What it found instead is the make-list head.** The original's slot 0
+# is a **Temple** (`t 437`, `val 2499999`, cat 8, `num 1`); this crate's
+# is three Slingers (`t 82`, `val 9999999`, cat 6, `num 3`) — and
+# `9999999` is `create_units`' `val < 0` overflow guard, where the
+# original values the same Slingers at **360000, `num 1`** in slot 6. A
+# Temple costs no food, and `make_stuff`'s good loop only tries a good the
+# **head** costs, so the original never puts food on trial and buys the
+# Citizen at slot 5: `val` 697 -> 6 and `bucket[0]` 88 -> 45 on the next
+# block. `docs/AI.md` §34; `run91_s_window_is_the_leader_s_ledger_at_the_word`
+# is the assertion. The word does **not** move.

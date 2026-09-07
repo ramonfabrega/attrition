@@ -3781,17 +3781,27 @@ the missing draw rather than a second fault: one word behind, the
 wing-beat coin reads `CHAR_JOG` and `Guy::move`'s `field_0x9c == 8` does
 not stand for a jog.
 
-**So the word is the AI's stockpile, not its rules.** Bounds from the
+~~**So the word is the AI's stockpile, not its rules.** Bounds from the
 original's own refusals: slot 5's purchase puts food **≥ 98** on 7585,
 and 7582's step-8 `make_stuff` spends two `+0x221` and no `+0x63d` while
 slot 9 (Empire, 160 food) is blocked by nothing else, so food was **< 160**
-three frames earlier. This crate has **88**. The gap is 10 to 72.
+three frames earlier. This crate has **88**. The gap is 10 to 72.~~
+**Refuted by run91 — §34.** The original's food on 7585 is **88**, this
+crate's own number, and the ladder is identical tick for tick over the 72
+blocks below the word. Both bounds came from assuming the original's
+make-list *head* is this crate's; it is a **Temple**, which costs no food,
+so the good loop never tests food and the arithmetic above never runs.
 
-**What is not established: where the gap comes from.** Nothing in the
+**What is not established: where the gap comes from.** ~~Nothing in the
 harness compares a leader's `bucket`, because the ledger is written only
 at `LEADERS=9` and run89 is at run87's detail; no Great Lakes capture on
 this disk carries it past setup, run53's own 24k dump included
-(`200/200/100/0/0/0`, its first frames). Inside the window the pile is
+(`200/200/100/0/0/0`, its first frames).~~ **Both halves of that were
+wrong and §33 is the answer**: run84 and run80 both carry `LEADERS=9` on
+this map, the whole record is compared over run84's window now, and the
+ledger is **exact** there — so the gap opens inside `[7183, 7585]`, with
+the one purchase in between matched against run79's own queue record.
+Inside the window the pile is
 monotonic and unspent — 39 food at 7300 to 88 at 7580 with `income[0]` a
 flat 1920 — so the gap did not open there. Two live seams sit upstream of
 it:
@@ -3812,3 +3822,240 @@ it:
 The whole of the above but the last two bullets is asserted by
 `run89_s_window_is_great_lakes_word_frame`, and every constant in it was
 made to fail on purpose first.
+
+---
+
+## 33. The leader's ledger, compared at last (2026-09-07)
+
+**What was missing.** `bucket` — the AI's stockpile — is written only at
+`LEADERS=9`, and until item 290 the only part of that ~250-field record
+compared over a *window* was six of its goods rows
+(`great_lakes_goods_record_and_its_trade_routes_are_the_original_s`, §30.3)
+and the whole of it on exactly one frame of one game
+(`run9_s_frame_1_leader_record_is_the_census_after_the_sweep`). Great
+Lakes' word at 7585 is a *value* in that record and nothing else (§32), so
+the record is now mapped field for field —
+`crates/rondata/src/diff/leader.rs`, whose `rows` is the whole of the
+mapping and whose `UNMODELLED` names what this crate has no value for.
+
+### 33.1 What the disk already knew, and it narrowed the question by 550 frames
+
+Two Great Lakes archives carry `LEADERS=9`: run84 (`[6950, 7030)`) and
+run80 (`[23960, 24000)`). Widening the whole record over run84's eighty
+blocks, **both players**, says the ledger is **exact** there — `bucket`,
+`leftover`, `resource_cap`, `over_cap`, `resources`, `income`, `escrow`,
+`escrow_rate`, `econ`, `gather_slots`, `filled_gather_slots`,
+`gather_slots_high`, `worst_good`, `shortages`, 160 blocks of them.
+
+That leaves `[7030, 7585]`, and run79's own blocks close most of it. This
+crate spends food exactly twice in that span: **sim-frame 7182**, where it
+pays 60 food, 120 timber and 40 knowledge, and sim-frame 7582, which costs
+no food. run79 dumps `BUILDS=7` over `[6910, 7250)`, so the original's
+side of 7182 is on disk: block 7183 gains building **2018**
+(`orig_type 428`, a Stable) and appends a third entry to Barracks
+`2016`'s queue reading `cost[0] 60`, `good[0] 0` and `cost[1] 40`,
+`good[1] 4` — sixty food and forty knowledge, the same purchase. Nothing
+else in the original's queues moves.
+
+So the ledger agreed at 7029 and the one purchase between there and the
+word was matched, which left `[7183, 7585]` as the only place a shortfall
+could open and no capture covering it. run91 is that capture
+(`tools/gamelog/captures.txt`), and the grep is why its window is 86
+blocks rather than 246. **It found no shortfall at all** — §34.
+
+### 33.2 `get_mod_resource_cap` is not the ledger's cap
+
+`LeaderData::get_mod_resource_cap@006d65b0` is what **nine** of the
+production AI's call sites read where the commerce cap is wanted, and it is
+not `LeaderDataEncrypt::resource_cap`. Read whole, twelve lines:
+
+- `starting_resources == 8` (unlimited) → **0**.
+- Otherwise `cap = resource_cap[g] ^ 0x1281`, then: with
+  `semaphore[0] & 4` **or** `leader_flags & 4` (a human) → `cap`
+  unchanged; else `get_diff() == 0` → `cap × 0.5f`, `get_diff() == 1` →
+  `cap × 0.75f`, and everything above → `cap × 1.0f`.
+
+So on the two easy difficulties a *computer* leader reads a cap smaller
+than the one it holds, and a human always reads its own. The multiplier
+is an `f32` truncated to `int`; 0.5 and 0.75 are exact in binary and the
+caps are small, so [`sim::Sim::mod_resource_cap`]'s `cap / 2` and
+`cap * 3 / 4` are the same arithmetic rather than an approximation
+(`docs/DECISIONS.md` entry 16).
+
+The nine sites: step 3 and step 4 of §2.5 (six calls between them),
+`create_buildings`' three — the `income[g] < cap` gate on a gather
+building's offer, and `rate[worst_good] < cap/32`'s escrow flag —
+`create_units`' two, and `research_techs`' one (`goods_near_cap`). Every
+one of them read the raw cap in this crate until item 290. §33.3 has what that was worth.
+
+### 33.3 What the widening was worth
+
+Three fields of run84's window closed on the cap alone: `rate[0]` and
+`rate[1]` — 120 and 120 here against the original's 62 and 62, which is
+`min(cap/2, income)/16` against `min(cap, income)/16` — and `best_good`,
+which is downstream of them. With food and timber both reading 62 the
+`>` in the rate pass keeps the **first** maximum and the original's
+`best_good` is food; with 120 against 125 this crate's was timber, and
+`create_buildings` halves the offer of a gather building for the best
+good. `econ`, `worst_good` and `shortages` are unchanged by the fix,
+which is what makes it safe: the thresholds land in the same places.
+
+**The word did not move.** Great Lakes stays at **7585** and East Indies
+at **7806** with the fix in. It is a record-field landing, not a score
+one, and it is booked as such.
+
+**The third scoreboard line moved a long way, though**, and mostly the
+right way (DECISIONS 36 asks for the number rather than a trade):
+**Great Lakes' endpoint `off` 84 → 73**, the largest single fall either
+endpoint has had, with eight of its roster unlinked in exchange; East
+Indies' 79 → 80 with **all eleven of its extras gone** and four building
+field-rows closer; and both ladder rungs lost extras too — 22 → 13 and
+20 → 9. Four rows, one change, 16,000 frames past a word that did not
+move: the AI values differently everywhere the cap is read, and what that
+buys is a smaller *spurious* roster on every East Indies row.
+
+### 33.4 The residue, pinned by name
+
+Seventy-one `(player, field)` pairs still part over run84's window and
+`run84_s_window_is_the_original_s_whole_leader_record` names every one of
+them (`PARTS_ON_RUN84`), so a field that leaves the list is a fix and one
+that joins it is a regression. Three families:
+
+- **Player 0's census is empty here.** `active`, `peasants`, `gatherers`,
+  `filled_gather_slots`, `peasant_high`, `scouts`, `ally_mask` and the
+  three team-territory counters all read zero for the human, because
+  §2.3's sweep runs only for a computer leader in this crate and the
+  original runs it for both. Ten fields, one cause, and none of them is
+  read by anything the human does — which is why it has gone unseen.
+- **The ten sites are a different list** (§2.7's known seam), and
+  `SITE.reg` is a whole-list row of its own: the original writes `0` in
+  a site's region where this crate writes the site's own.
+- **Named unmodelled state**: `tech_frame` and `tech_cat_frame[0..3]`
+  (written only by `Leader::init` here), `other_team_terr` and
+  `min_other_team_terr`, the `attack`/`defense`/`scouts`/`active` unit
+  classes, and `gather_stamp` — a cadence rather than a value, and whose
+  outputs (`resources`, `income`, `rate`) all agree.
+
+### 33.5 Coverage
+
+**Diff-backed**: everything above. 36,800 field-frames over 160 blocks of
+run84, both players; the 7182 purchase off run79's own queue record; the
+two words measured before and after.
+
+**Established by reading**: `get_mod_resource_cap`'s twelve lines, read
+whole at `006d65b0`, and its nine call sites counted in the export
+(`create_buildings` 3, `create_units` 2, `production_ai_setup` 6,
+`research_techs` 1 — the six inside §2.5 are the rate pass's one and the
+threshold pass's five). The human bypass is `leader_flags & 4`, which
+`docs/ARMY.md`, `docs/CITIES.md` and `docs/ECONOMY.md` already read as
+"human"; run84's own record has player 0 at `leader_flags 7` and player 1
+at `524307`, so the bit is set for exactly one of them.
+
+**Not established.**
+
+- **The `semaphore[0] & 4` arm** of `get_mod_resource_cap` and of
+  `get_diff` — a multiplayer path with no capture, so the crate takes the
+  lobby's difficulty unconditionally.
+- **Where the shortfall comes from.** Bounded to `[7183, 7585]` and
+  otherwise open. Two seams stand in it and neither is implemented:
+  `use_market`'s draw-free buy branch and `market_speculation`'s buy loop
+  (§2.15), which on this AI's stock levels passes every one of its four
+  bucket tests. Both spend wealth, which is why run91's window carries
+  wealth beside food.
+- **Player 0's sweep.** Running it would change nothing the human does
+  but would close ten of the residue's rows; whether the original's human
+  census feeds anything an AI reads is unread.
+
+---
+
+## 34. Great Lakes' word at 7585 is the make-list head (2026-09-07)
+
+**Item 287 read it as the AI's stockpile and run91 refused that.** The
+reasoning was sound and the conclusion was wrong: every gate of
+`make_stuff` step 6 agreed, the good loop over food came out
+`88 < 55 + 43 + 4`, and giving this crate **98** food made 7585 agree nine
+draws for nine — so the original's food was inferred at `98 ≤ food < 160`.
+run91 is the first `LEADERS=9` capture this map has ever had near the
+word, and it says the original's food on block 7585 is **88**, this
+crate's own number, with the two ladders identical **tick for tick over
+all 72 blocks** of `[7514, 7585]`. §32's bounds are struck.
+
+**What is actually wrong is the head of the make list.** run91's block
+7585, leader 1, slot for slot:
+
+| slot | this crate | the original |
+| --- | --- | --- |
+| 0 | `t 82` Slingers, `val 9999999`, cat 6, `num 3` | `t 437` **Temple**, `val 2499999`, cat 8, `num 1` |
+| 1 | `t 132`, `val 2812500`, cat 6 | `t 419`, `val 810000`, cat 4 |
+| 2 | `t 437` Temple, `val 2499999`, cat 8 | `t 420`, `val 506250`, cat 4 |
+| 5 | `t 50` Citizen, `val 697`, cat 5 | the same, exactly |
+| 6 | `t 82` Slingers, `val 9999999`, `num 3` | `t 82` Slingers, **`val 360000`**, `num 1` |
+| 7 | `t 133`, `val 31488` | `t 133`, `val 62976` — exactly twice |
+| 8 | `t 437` Temple, `val 2499999` | the same, exactly |
+
+**And the head is what the good loop reads.** `make_stuff@006c8af0:172`
+tests a good only when the **head's** cost in it is non-zero *and* the
+slot's own is: `type_avail(g) && head_cost[g] != 0 && slot_cost[g] != 0`,
+and only then `bucket[g] < head_cost[g] + slot_cost[g] + need`. A Temple
+costs no food. So on the original's list **food is never put on trial**,
+the Citizen at slot 5 passes, `make_this(5)` runs and the slot expiry
+spends the `Leader::make_stuff+0x63d` this crate does not. `need` is the
+same shape one step up — the average of `head_cost[g] - bucket[g]` over
+the goods **the head costs** — so with a Temple head it is not the 4 that
+287 computed either.
+
+The dump carries the receipt on the next block: slot 5's `val` goes
+**697 → 6**, which is §2.6's `val /= 100` on a buy, and `bucket[0]` goes
+**88 → 45**, which is the Citizen's 43.
+
+### 34.1 Where the head came from: an overflow guard
+
+`9999999` is not a valuation. It is `create_units`' tail —
+`out = fac × (want × val / divisor) / 256`, and then **`if out < 0 { out =
+9999999 }`**, the guard the original puts on a wrapped 32-bit product
+(`crates/sim/src/ai_units.rs`, the `wm` note). The original's answer for
+the same Slingers on the same frame is **360,000**, so its product did not
+wrap. This crate's did, the guard turned a negative into the largest value
+in the list, and the Slingers took rank 0 from the Temple.
+
+`num` says the same thing one field over: `batch_size` answers **3** here
+against the original's **1**.
+
+So the word is `create_units`' value chain for a land military type —
+`war_multiplier`, the age term, `army_ladder`, the siege arms, the tail's
+`val × remaining × 10` (or `× 1000`) — and the finding is that one of its
+factors is large enough here to wrap where the original's is not. That is
+the successor item, not this one: naming it took run91, and fixing it is a
+value-chain audit with `360000`, `num 1` and slot 7's exact factor of two
+as three simultaneous oracles.
+
+### 34.2 Coverage
+
+**Diff-backed**, `run91_s_window_is_the_leader_s_ledger_at_the_word`:
+58,480 field-frames over 172 blocks, both players; the food ladder
+asserted equal on all 72 blocks at or below the word; the 43 the original
+pays on 7586; the head's `t`, `cat`, `num` and `val` on the word's own
+frame; and the whole residue pinned by name (`PARTS_ON_RUN91`, 114 rows,
+35 of them make-list rows).
+
+**The capture itself**: run91, `[7514, 7600)`, 170,485,873 bytes, 87
+blocks. `rngcmp` against run53 **7,616 identical, 0 differing**; the run89
+overlap **86 in common (7514..7599), 0 differing** under one
+`--exclude LEADERDATA`, which is the whole window contained in its
+neighbour; both teeth **86 (7514..7599)**. Its stanza wrote every figure
+above down as a prediction *before* it ran, and named `bucket[0]` as the
+one expected to part. It did not.
+
+**Not established.**
+
+- **Which factor of `create_units`' chain wraps.** The successor item.
+- **The other make-list rows.** Slot 1 is a different type entirely
+  (`132` against `419`), slot 7's value is exactly half, and slots 9 and
+  10 carry types one below the original's (`565`/`566`, `572`/`573`) on
+  every block of both windows — an off-by-one in a type index that
+  predates this item and now has a name.
+- **Why this crate's Temple sits at slot 2 and the original's at slot 8
+  only.** Both lists hold the Temple at `val 2499999`; the ranks differ
+  because the head differs, and whether anything else moved with it is
+  unread.
+

@@ -19628,3 +19628,72 @@ predicate**, whose both arms are printed fields on run90's own blocks. And
 one for the ledger: **three units part downstream of the word** — `0/5` at
 7824, `1/2` at 7872, `1/5` at 7895 — pinned as the shuffle's wake rather
 than scored, and any of them moving *below* the word now fails.
+
+## 2026-09-07, item 290 — the leader's ledger, and a capture written to be refused (Opus)
+
+`bucket` — the AI's stockpile — had never been compared over a window on
+Great Lakes, and item 287 had reduced the map's word at 7585 to a single
+inequality inside `make_stuff` step 6: every gate agreed but the good loop
+over food, `88 < 55 + 43 + 4`. Give the AI 98 food and 7585 agrees nine
+draws for nine. So the brief was "the divergence is the stockpile, not the
+rules", and the job was to prove it with a `LEADERS=9` window.
+
+**The disk went first and moved the question 550 frames.** Two Great Lakes
+archives carry `LEADERS=9`: run84 (`[6950, 7030)`) and run80 (the
+endpoint). Mapping the whole `LEADERDATA` record — `rows` in the new
+`crates/rondata/src/diff/leader.rs`, keyed by the dump's own field names —
+and running it over run84's eighty blocks for **both** players said the
+ledger is exact there: `bucket`, `leftover`, `resource_cap`, `over_cap`,
+`resources`, `income`, `escrow`, `escrow_rate`, `econ`, `gather_slots`,
+`filled_gather_slots`, `gather_slots_high`, `worst_good`, `shortages`.
+Then run79's own blocks 7182 and 7183 matched the one purchase between
+there and the word — the Stable `2018` and a queue entry at `cost[0] 60`,
+`cost[1] 40` — against this crate's 60 food, 120 timber, 40 knowledge on
+the same frame. So the shortfall, if there was one, had to open inside
+`[7183, 7585]`, and that is what run91 was sized for: 86 blocks, not
+run89's 246, because `leftover` is the sub-food accumulator and a dozen
+ticks measure the rate.
+
+**The widening found a defect before the capture ran.** `rate[0]` and
+`rate[1]` read 120 and 120 here against the original's 62 and 62 on all
+eighty blocks, and `best_good` followed them. The cause is
+`LeaderData::get_mod_resource_cap@006d65b0`, twelve lines: the commerce
+cap **scaled by difficulty for a computer leader** — half on the easiest,
+three quarters on easy, unchanged for a human (`leader_flags & 4`) — and
+nine call sites in this crate read the raw cap instead. Landing it closed
+all three fields and left `econ`, `worst_good` and `shortages` untouched.
+The word did not move. `docs/AI.md` §33.2.
+
+**run91 was written to be refused, and was.** The stanza put this crate's
+whole ledger for both players on blocks 7514, 7585, 7586 and 7599 down as
+predictions, said which were expected to part, and named `income` as the
+one most worth being refused. The capture — 87 blocks, 170,485,873 bytes,
+eight minutes, all four checks ok, the whole window contained in run89's
+under one `--exclude LEADERDATA` — says the original's food on 7585 is
+**88**, this crate's own number, with the two ladders identical **tick for
+tick over all 72 blocks** below the word. Every "expected to agree" held.
+287's `98 ≤ food < 160` is dead.
+
+**What it found instead is the head of the make list.** The original's
+slot 0 is a **Temple** (`t 437`, `val 2499999`, cat 8, `num 1`); this
+crate's is three Slingers (`t 82`, `val 9999999`, cat 6, `num 3`), and the
+original values the same Slingers at **360000, `num 1`** in slot 6.
+`9999999` is not a valuation — it is `create_units`' `val < 0` guard on a
+wrapped 32-bit product. And `make_stuff@006c8af0:172` tests a good only
+where the **head's** cost in it is non-zero, so a Temple head never puts
+food on trial: the Citizen at slot 5 is bought, `val` goes 697 → 6 and
+`bucket[0]` 88 → 45 on the next block. The whole of 287's inequality was
+computed from the wrong head. `docs/AI.md` §34.
+
+The lesson is 285's one record up and it is now three for three: **widen
+the whole record**. The make list was inside `LEADERDATA` the entire time
+and nothing compared it; adding it took eleven lines and named the word in
+one run. Thirty-five of run91's 114 pinned residue rows are make-list rows,
+and two of them are findings of their own — slot 7's value is exactly half
+the original's on every block of both windows, and slots 9 and 10 carry
+types one below the original's throughout.
+
+**The score did not move**: Great Lakes 7585, East Indies 7806. What moved
+is that the word's cause is named and falsifiable rather than inferred,
+and the successor is a value-chain audit of `create_units` with three
+simultaneous oracles — `360000`, `num 1`, and slot 7's factor of two.

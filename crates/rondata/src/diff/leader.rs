@@ -1,0 +1,1022 @@
+//! The `LEADERDATA` record, whole, over a window — the leader's ledger and
+//! its census against the original's own, frame for frame.
+//!
+//! **Why this module exists.** `bucket` — the AI's stockpile — is written
+//! only at `LEADERS=9`, and until item 290 the only thing compared out of
+//! that record over a *window* was six of its goods rows
+//! (`great_lakes_goods_record_and_its_trade_routes_are_the_original_s`).
+//! The rest of a ~250-field record went uncompared on every capture that
+//! carries it, which is the shape item 285 names one record up. Great
+//! Lakes' word at 7585 is inside it: every gate of `make_stuff` step 6
+//! agrees and the AI is short of food (`docs/AI.md` §32), so what parts is
+//! a *value* in this record and nothing else.
+//!
+//! [`rows`] is the whole of the mapping: the crate's leader state keyed by
+//! the dump's own field names, so a widening is a line here rather than a
+//! new test. What the crate does not model is listed in
+//! [`UNMODELLED`] rather than left silent — the widening ledger's rule
+//! (`docs/DATALAYER.md` §4).
+
+use crate::diff::setup::Built;
+use crate::gamelog::Block;
+use sim::economy::RESOURCES;
+
+/// One scalar of a leader's record: the dump's key, and this crate's value.
+pub(crate) type Row = (String, i64);
+
+/// The `LEADERDATA` keys this crate has no value for, and why — the
+/// widening ledger's own list, so "not compared" is a statement rather
+/// than an omission. Every other scalar the record prints is in [`rows`].
+pub(crate) const UNMODELLED: &[(&str, &str)] = &[
+    ("score", "no score is kept"),
+    ("gov", "governments are not modelled"),
+    ("defeated_by", "no defeat path"),
+    ("misery", "the misery counter is unread"),
+    ("att", "the attrition score counters are unread"),
+    ("anti_att", "the attrition score counters are unread"),
+    ("blacken", "fog bookkeeping"),
+    ("explored", "check_explore's visibility recount is a seam"),
+    ("known_rares", "rares are a leader-level seam"),
+    ("pop_issues", "the population-pressure counter is unread"),
+    (
+        "misc_stamps",
+        "the twenty-odd *_stamp counters have no writers here",
+    ),
+    (
+        "handicap",
+        "`Holdings::handicap` is the income percentage, a different field",
+    ),
+    ("multi_diff", "the lobby difficulty is an input, not state"),
+    (
+        "wonder_mark",
+        "`Census::wonder_mark` has no writer here and the original DOES move \
+         it — 1 on forty of run80's records — so the row would be a \
+         constant against a moving field, which is worse than not \
+         comparing it. It returns when the wonder bookkeeping lands.",
+    ),
+    ("DIPLOMACY", "the diplomacy block is not modelled"),
+    ("num_bonus_cards", "bonus cards are Conquer-the-World's"),
+    ("average_*_rate", "the combat averages are score counters"),
+];
+
+/// Whether a good's index is one the record prints in its per-good block.
+const GOODS: [&str; RESOURCES] = ["food", "timber", "metal", "wealth", "knowledge", "oil"];
+
+/// This crate's whole leader record, keyed by the dump's own names.
+///
+/// The per-good rows are flattened as `bucket[0]` … `bucket[5]`, which is
+/// what makes a residue line name the good rather than a slot.
+pub(crate) fn rows(built: &Built, who: usize) -> Vec<Row> {
+    let l = &built.sim.ledgers[who];
+    let h = &built.sim.holdings[who];
+    let a = &built.sim.ai[who];
+    let c = &a.census;
+    let mut out: Vec<Row> = Vec::new();
+    fn six(out: &mut Vec<Row>, key: &str, v: [i32; RESOURCES]) {
+        for (g, name) in GOODS.iter().enumerate() {
+            out.push((format!("{key}[{g}:{name}]"), i64::from(v[g])));
+        }
+    }
+    // The encrypted goods block, per good, in the order the record prints
+    // it: `bucket leftover resource_cap over_cap resources support income
+    // rate bonus`. Six of the nine are modelled; `support` and `bonus` are
+    // the support ledger's and are not, and `over_cap` is an enum here.
+    six(&mut out, "bucket", l.bucket);
+    six(&mut out, "leftover", l.leftover);
+    six(&mut out, "resource_cap", l.cap);
+    six(&mut out, "resources", l.rate);
+    six(&mut out, "income", l.income);
+    six(&mut out, "rate", a.rate);
+    six(&mut out, "escrow", l.escrow);
+    six(&mut out, "escrow_rate", c.escrow_rate);
+    six(&mut out, "econ", a.econ);
+    six(&mut out, "gather_slots", l.gather_slots);
+    six(&mut out, "filled_gather_slots", c.filled_gather_slots);
+    six(&mut out, "gather_slots_high", l.gather_slots_high);
+    six(&mut out, "bonus_cap", h.bonus_cap);
+    // `home_reg` and every `SITE.reg` are region ids, and the two sides
+    // number regions differently: `Built::region_map` is the translation
+    // and without it the whole family reads as a divergence.
+    let region = |r: i32| -> i64 {
+        built
+            .region_map
+            .iter()
+            .find(|(_, s)| i64::from(*s) == i64::from(r))
+            .map_or(i64::from(r), |(d, _)| *d)
+    };
+    six(
+        &mut out,
+        "over_cap",
+        std::array::from_fn(|g| match l.over_cap[g] {
+            sim::economy::OverCap::Under => 0,
+            sim::economy::OverCap::At => 1,
+            sim::economy::OverCap::Uncapped => 2,
+        }),
+    );
+    // The AI's own step machine and its biases.
+    out.push(("production_step".to_string(), i64::from(a.step.number())));
+    out.push(("prod_script_run".to_string(), i64::from(a.script_live)));
+    out.push(("script_step".to_string(), i64::from(a.script_step)));
+    out.push(("worst_good".to_string(), a.worst_good as i64));
+    out.push(("best_good".to_string(), a.best_good as i64));
+    out.push(("shortages".to_string(), i64::from(a.shortages)));
+    out.push(("wonder_mod".to_string(), i64::from(a.wonder_mod)));
+    out.push(("ground_mod".to_string(), i64::from(a.ground_mod)));
+    out.push(("air_mod".to_string(), i64::from(a.air_mod)));
+    out.push(("sea_mod".to_string(), i64::from(a.sea_mod)));
+    out.push(("infra_mod".to_string(), i64::from(a.infra_mod)));
+    out.push(("defense_mod".to_string(), i64::from(a.defense_mod)));
+    out.push(("effective_pop".to_string(), i64::from(a.effective_pop)));
+    out.push(("gather_stamp".to_string(), l.gather_stamp));
+    out.push(("tech_frame".to_string(), a.tech_frame));
+    out.push(("frame_attacked".to_string(), a.frame_attacked));
+    out.push(("attacked_by".to_string(), i64::from(a.attacked_by)));
+    for (i, f) in a.tech_cat_frame.iter().enumerate() {
+        out.push((format!("tech_cat_frame[{i}]"), *f));
+    }
+    // The census — `docs/AI.md` §2.3, under the PDB's names.
+    for (k, v) in [
+        ("active", c.active),
+        ("combat", c.combat),
+        ("siege", c.siege),
+        ("non_siege", c.non_siege),
+        ("sea_combat", c.sea_combat),
+        ("defense", c.defense),
+        ("attack", c.attack),
+        ("naval", c.naval),
+        ("transports", c.transports),
+        ("peasants", c.peasants),
+        ("scholars", c.scholars),
+        ("caras", c.caras),
+        ("merchants", c.merchants),
+        ("scouts", c.scouts),
+        ("fighters", c.fighters),
+        ("bombers", c.bombers),
+        ("cruise", c.cruise),
+        ("nuke", c.nuke),
+        ("pop", c.pop),
+        ("free_peasants", c.free_peasants),
+        ("xport_peasants", c.xport_peasants),
+        ("gatherers", c.gatherers),
+        ("attacked", c.attacked),
+        ("full_cities", c.full_cities),
+        ("my_team_terr", c.my_team_terr),
+        ("other_team_terr", c.other_team_terr),
+        ("min_other_team_terr", c.min_other_team_terr),
+        ("wars", c.wars),
+        ("allies", c.allies),
+        ("active_wars", c.active_wars),
+        ("peasant_high", c.peasant_high),
+        ("scholar_high", c.scholar_high),
+        ("merchant_high", c.merchant_high),
+        ("caravan_high", c.caravan_high),
+        ("village_num", c.village_num),
+        ("territory", h.territory),
+    ] {
+        out.push((k.to_string(), i64::from(v)));
+    }
+    out.push(("home_reg".to_string(), region(c.home_reg)));
+    out.push((
+        "active_wars_with".to_string(),
+        i64::from(c.active_wars_with),
+    ));
+    out.push(("ally_mask".to_string(), i64::from(c.ally_mask)));
+    // `city_num`: the live cities this leader owns.
+    out.push((
+        "city_num".to_string(),
+        built
+            .sim
+            .cities
+            .iter()
+            .filter(|x| x.alive && usize::from(x.owner) == who)
+            .count() as i64,
+    ));
+    // The personality — twenty-four rolls, and `Leader::init` is their one
+    // writer, so a parting here is a setup fault rather than a drift.
+    let p = &a.pers;
+    for (k, v) in [
+        ("rush", p.rush),
+        ("cities", p.cities),
+        ("upgrades", p.upgrades),
+        ("arms", p.arms),
+        ("army", p.army),
+        ("army_size", p.army_size),
+        ("raid", p.raid),
+        ("invade", p.invade),
+        ("target", p.target),
+        ("strategy", p.strategy),
+        ("raze", p.raze),
+        ("spells", p.spells),
+        ("forts", p.forts),
+        ("nukes", p.nukes),
+        ("air", p.air),
+        ("naval", p.naval),
+        ("market", p.market),
+        ("scouts", p.scouts),
+        ("civilians", p.civilians),
+        ("early_army", p.early_army),
+        ("friendly_human", p.friendly_human),
+        ("alliance_human", p.alliance_human),
+        ("friendly_ai", p.friendly_ai),
+        ("alliance_ai", p.alliance_ai),
+    ] {
+        out.push((format!("PERSONALITY.{k}"), i64::from(v)));
+    }
+    // **The make list, slot for slot** — eleven `MAKEOBJECT` blocks, ten
+    // fields each. It is part of this record and was compared nowhere over
+    // a window: `make_stuff`'s whole decision is a function of it
+    // (`docs/AI.md` §2.6), so a head that is the wrong type spends the
+    // wrong draws with every arithmetic step correct.
+    for (i, m) in a.make_list.list.iter().enumerate() {
+        for (k, v) in [
+            ("t", i64::from(m.t)),
+            ("val", i64::from(m.val)),
+            ("escrow", i64::from(m.escrow)),
+            ("city", i64::from(m.city)),
+            ("up", i64::from(m.up)),
+            ("o", i64::from(m.o)),
+            ("num", i64::from(m.num)),
+            ("cat", i64::from(m.cat)),
+            ("wx", i64::from(m.wx)),
+            ("wy", i64::from(m.wy)),
+        ] {
+            out.push((format!("MAKE[{i}].{k}"), v));
+        }
+    }
+    // The ten sites, slot for slot.
+    for (i, s) in a.sites.iter().enumerate() {
+        for (k, v) in [
+            ("wx", i64::from(s.wx)),
+            ("wy", i64::from(s.wy)),
+            ("val", i64::from(s.val)),
+            ("reg", region(s.reg)),
+            ("dist", i64::from(s.dist)),
+            ("rank", i64::from(s.rank)),
+        ] {
+            out.push((format!("SITE[{i}].{k}"), v));
+        }
+    }
+    out
+}
+
+/// The dump's side of [`rows`] for one `LEADERDATA` block: the same keys,
+/// read off the record. A key the block does not carry is absent, which is
+/// what keeps a thinner capture from reading as a page of divergences.
+pub(crate) fn theirs(block: &Block<'_>) -> std::collections::BTreeMap<String, i64> {
+    let mut out = std::collections::BTreeMap::new();
+    let all = |k: &str| -> Vec<i64> {
+        block
+            .all(k)
+            .iter()
+            .map(|v| v.trim().parse().unwrap_or(i64::MIN))
+            .collect()
+    };
+    // The per-good rows: nine keys repeated once per good in the encrypted
+    // block, and the `[scan]` arrays after it.
+    for key in [
+        "bucket",
+        "leftover",
+        "resource_cap",
+        "over_cap",
+        "resources",
+        "income",
+        "rate",
+    ] {
+        let v = all(key);
+        // `resource_cap` is printed a seventh time after the six goods
+        // (the block's own trailer); only the first six are the goods.
+        for (g, name) in GOODS.iter().enumerate() {
+            if let Some(x) = v.get(g) {
+                out.insert(format!("{key}[{g}:{name}]"), *x);
+            }
+        }
+    }
+    for key in [
+        "escrow",
+        "escrow_rate",
+        "econ",
+        "gather_slots",
+        "filled_gather_slots",
+        "bonus_cap",
+    ] {
+        let v = all(&format!("{key}[scan]"));
+        for (g, name) in GOODS.iter().enumerate() {
+            if let Some(x) = v.get(g) {
+                out.insert(format!("{key}[{g}:{name}]"), *x);
+            }
+        }
+    }
+    // **`gather_slots_high` is twelve entries and it is `[6][2]`**, not
+    // six: run84's block 7000 prints `10 10 12 12 1 1 0 0 0 0 0 0`
+    // against a `gather_slots` of `10 12 1 0 0 0`, so the good's own
+    // high-water mark is at stride two and the six-in-a-row reading
+    // reported five of the six goods as divergences on every frame.
+    let v = all("gather_slots_high[scan]");
+    for (g, name) in GOODS.iter().enumerate() {
+        if let Some(x) = v.get(g * 2) {
+            out.insert(format!("gather_slots_high[{g}:{name}]"), *x);
+        }
+    }
+    for key in [
+        "production_step",
+        "prod_script_run",
+        "script_step",
+        "worst_good",
+        "best_good",
+        "shortages",
+        "wonder_mod",
+        "ground_mod",
+        "air_mod",
+        "sea_mod",
+        "infra_mod",
+        "defense_mod",
+        "effective_pop",
+        "gather_stamp",
+        "tech_frame",
+        "frame_attacked",
+        "attacked_by",
+        "active",
+        "combat",
+        "siege",
+        "non_siege",
+        "sea_combat",
+        "defense",
+        "attack",
+        "naval",
+        "transports",
+        "peasants",
+        "scholars",
+        "caras",
+        "merchants",
+        "scouts",
+        "fighters",
+        "bombers",
+        "cruise",
+        "nuke",
+        "pop",
+        "free_peasants",
+        "xport_peasants",
+        "gatherers",
+        "attacked",
+        "full_cities",
+        "home_reg",
+        "my_team_terr",
+        "other_team_terr",
+        "min_other_team_terr",
+        "wars",
+        "allies",
+        "active_wars",
+        "active_wars_with",
+        "ally_mask",
+        "peasant_high",
+        "scholar_high",
+        "merchant_high",
+        "caravan_high",
+        "village_num",
+        "territory",
+        "city_num",
+    ] {
+        if let Some(x) = block.int(key) {
+            out.insert(key.to_string(), x);
+        }
+    }
+    let v = all("tech_cat_frame[scan]");
+    for (i, x) in v.iter().enumerate().take(4) {
+        out.insert(format!("tech_cat_frame[{i}]"), *x);
+    }
+    if let Some(p) = block.kid("PERSONALITY") {
+        for k in [
+            "rush",
+            "cities",
+            "upgrades",
+            "arms",
+            "army",
+            "army_size",
+            "raid",
+            "invade",
+            "target",
+            "strategy",
+            "raze",
+            "spells",
+            "forts",
+            "nukes",
+            "air",
+            "naval",
+            "market",
+            "scouts",
+            "civilians",
+            "early_army",
+            "friendly_human",
+            "alliance_human",
+            "friendly_ai",
+            "alliance_ai",
+        ] {
+            if let Some(x) = p.int(k) {
+                out.insert(format!("PERSONALITY.{k}"), x);
+            }
+        }
+    }
+    for (i, m) in block.make_list().iter().enumerate().take(11) {
+        for (k, v) in [
+            ("t", m.t),
+            ("val", m.val),
+            ("escrow", m.escrow),
+            ("city", m.city),
+            ("up", m.up),
+            ("o", m.o),
+            ("num", m.num),
+            ("cat", m.cat),
+            ("wx", m.wx),
+            ("wy", m.wy),
+        ] {
+            out.insert(format!("MAKE[{i}].{k}"), v);
+        }
+    }
+    for (i, s) in block.kids("SITE").enumerate().take(10) {
+        for k in ["wx", "wy", "val", "reg", "dist", "rank"] {
+            if let Some(x) = s.int(k) {
+                out.insert(format!("SITE[{i}].{k}"), x);
+            }
+        }
+    }
+    out
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{rows, theirs};
+    use crate::diff::setup::{Built, borrow_from_siblings, build_sim};
+    use crate::diff::testkit::sibling_texts;
+    use crate::gamelog::{Initial, Log};
+    use crate::testenv::{dump, install};
+    use sim::Tuning;
+
+    /// Great Lakes' game, stood up from run53's start dump and ticked to
+    /// `last`, keeping this crate's whole leader record for both players
+    /// on every frame from `first`.
+    type Kept = std::collections::BTreeMap<(i64, usize), Vec<(String, i64)>>;
+
+    fn great_lakes(first: i64, last: i64) -> Option<(Kept, Built)> {
+        let inst = install()?;
+        let state = dump("gamelog-run53-greatlakes-24k-trace.txt").or_else(|| {
+            eprintln!("skipping: no run53 capture (set RON_GAMELOG_DIR)");
+            None
+        })?;
+        let loaded = crate::load::load(&inst).unwrap();
+        let texts = sibling_texts();
+        let text = crate::capture::read(&state);
+        let log = Log::parse(&text);
+        let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
+        let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+        let refs: Vec<&Initial> = inits.iter().collect();
+        let mut init = log.initial().unwrap();
+        borrow_from_siblings(&mut init, &refs);
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        let mut kept = std::collections::BTreeMap::new();
+        for n in 1..=last {
+            built.tick();
+            if n < first {
+                continue;
+            }
+            for who in 0..2usize {
+                kept.insert((n, who), rows(&built, who));
+            }
+        }
+        Some((kept, built))
+    }
+
+    /// **The leader record, whole, over run84's window** — item 290.
+    ///
+    /// Until this, six of the record's ~250 fields were compared over a
+    /// window and the rest of it on no capture at all past frame 1
+    /// (`run9_s_frame_1_leader_record_is_the_census_after_the_sweep`).
+    /// The record carries the AI's stockpile, its census, its personality
+    /// and its ten sites, and Great Lakes' word at 7585 is a *value* in it
+    /// (`docs/AI.md` §32) — so what a window of it says is the whole of
+    /// what that word is waiting on.
+    #[test]
+    fn run84_s_window_is_the_original_s_whole_leader_record() {
+        const FIRST: i64 = 6950;
+        const LAST: i64 = 7029;
+        let Some(path) = dump("gamelog-run84-greatlakes-makelist.txt") else {
+            eprintln!("skipping: no run84 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let Some((ours, _)) = great_lakes(FIRST, LAST) else {
+            return;
+        };
+        let wtext = crate::capture::read(&path);
+        let wlog = Log::parse(&wtext);
+        let mut compared = 0usize;
+        let mut blocks = 0usize;
+        let mut missing: std::collections::BTreeSet<String> = Default::default();
+        let mut residue: std::collections::BTreeMap<(usize, String), (usize, i64, i64, i64)> =
+            Default::default();
+        for n in FIRST..=LAST {
+            for who in 0..2usize {
+                let Some(block) = wlog.leader_block(n, who as i64) else {
+                    continue;
+                };
+                blocks += 1;
+                let t = theirs(&block);
+                for (k, mine) in &ours[&(n, who)] {
+                    let Some(&yours) = t.get(k) else {
+                        missing.insert(k.clone());
+                        continue;
+                    };
+                    compared += 1;
+                    if *mine != yours {
+                        let e = residue
+                            .entry((who, k.clone()))
+                            .or_insert((0, *mine, yours, n));
+                        e.0 += 1;
+                    }
+                }
+            }
+        }
+        eprintln!("run84 [{FIRST}, {LAST}]: {blocks} blocks, {compared} field-frames");
+        if !missing.is_empty() {
+            eprintln!("  the record does not carry: {missing:?}");
+        }
+        for ((who, k), (n, o, t, first)) in &residue {
+            eprintln!("  {who}/{k}: {n} frames, ours {o} theirs {t} on {first}");
+        }
+        assert_eq!(blocks, 160, "eighty frames, two leaders");
+        // [`UNMODELLED`] and [`rows`] are two halves of one statement and
+        // may not overlap: a key in both would claim the field is compared
+        // and not compared at once. `wonder_mark` was in both for an hour.
+        let keys: std::collections::BTreeSet<&str> = ours[&(FIRST, 1)]
+            .iter()
+            .map(|(k, _)| k.split(['[', '.']).next().unwrap())
+            .collect();
+        let clash: Vec<&str> = super::UNMODELLED
+            .iter()
+            .map(|(k, _)| *k)
+            .filter(|k| keys.contains(k))
+            .collect();
+        assert!(clash.is_empty(), "UNMODELLED and rows both carry {clash:?}");
+        assert_eq!(
+            compared, 54_240,
+            "160 blocks of the record, every field the mapping carries"
+        );
+        assert!(
+            missing.is_empty(),
+            "the record does not carry {missing:?} — the mapping names a key \
+             the original does not print"
+        );
+        // **The residue is pinned by name, not by count.** Every field
+        // below parts on run84's window today and the reason is recorded
+        // in `docs/AI.md` §33; a field that leaves this list is a fix and
+        // a field that joins it is a regression, and either way the test
+        // says which. Made to fail on purpose both ways before it landed.
+        let parting: Vec<(usize, &str)> = residue.keys().map(|(w, k)| (*w, k.as_str())).collect();
+        assert_eq!(
+            parting,
+            PARTS_ON_RUN84,
+            "run84's leader residue moved: {} fields",
+            parting.len()
+        );
+    }
+
+    /// **The leader record over run91's window, and the word is in it** —
+    /// item 290. Great Lakes' 7585 is `make_stuff` step 6's good loop
+    /// over food (`docs/AI.md` §32), and this is the first capture on
+    /// this map ever to carry `bucket` anywhere near it.
+    #[test]
+    fn run91_s_window_is_the_leader_s_ledger_at_the_word() {
+        const FIRST: i64 = 7514;
+        const LAST: i64 = 7599;
+        let Some(path) = dump("gamelog-run91-greatlakes-wordledger.txt") else {
+            eprintln!("skipping: no run91 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let Some((ours, _)) = great_lakes(FIRST, LAST) else {
+            return;
+        };
+        let wtext = crate::capture::read(&path);
+        let wlog = Log::parse(&wtext);
+        let mut compared = 0usize;
+        let mut blocks = 0usize;
+        let mut residue: std::collections::BTreeMap<(usize, String), (usize, i64, i64, i64)> =
+            Default::default();
+        let mut food: Vec<(i64, i64, i64)> = Vec::new();
+        for n in FIRST..=LAST {
+            for who in 0..2usize {
+                let Some(block) = wlog.leader_block(n, who as i64) else {
+                    continue;
+                };
+                blocks += 1;
+                let t = theirs(&block);
+                for (k, mine) in &ours[&(n, who)] {
+                    let Some(&yours) = t.get(k) else { continue };
+                    compared += 1;
+                    if *mine != yours {
+                        let e = residue
+                            .entry((who, k.clone()))
+                            .or_insert((0, *mine, yours, n));
+                        e.0 += 1;
+                    }
+                    if who == 1 && k == "bucket[0:food]" {
+                        food.push((n, *mine, yours));
+                    }
+                }
+            }
+        }
+        eprintln!("run91 [{FIRST}, {LAST}]: {blocks} blocks, {compared} field-frames");
+        for ((who, k), (n, o, t, first)) in &residue {
+            eprintln!("  {who}/{k}: {n} frames, ours {o} theirs {t} on {first}");
+        }
+        let ladder: Vec<String> = food
+            .iter()
+            .map(|(n, o, t)| format!("{n}:{o}/{t}"))
+            .collect();
+        eprintln!("  food ours/theirs: {}", ladder.join(" "));
+        // **The two make lists at the word, slot for slot.** This is what
+        // `make_stuff` reads on sim-frame 7585, and `docs/AI.md` §34 is
+        // written off it.
+        for n in [7585i64, 7586] {
+            let block = wlog.leader_block(n, 1).expect("run91 carries the block");
+            let t = theirs(&block);
+            let o: std::collections::BTreeMap<String, i64> =
+                ours[&(n, 1)].iter().cloned().collect();
+            eprintln!("  block {n}, leader 1's make list:");
+            for i in 0..11 {
+                let f = |k: &str| -> (i64, i64) {
+                    let key = format!("MAKE[{i}].{k}");
+                    (o[&key], t[&key])
+                };
+                let (ot, tt) = f("t");
+                let (ov, tv) = f("val");
+                let (oc, tc) = f("cat");
+                let (on, tn) = f("num");
+                let (oy, ty) = f("city");
+                eprintln!(
+                    "    {i:>2}  ours t {ot:>5} val {ov:>8} cat {oc:>2} num {on} city {oy:>2}   \
+                     theirs t {tt:>5} val {tv:>8} cat {tc:>2} num {tn} city {ty:>2}"
+                );
+            }
+        }
+        assert_eq!(blocks, 172, "86 frames, two leaders");
+        assert_eq!(
+            compared, 58_308,
+            "172 blocks of the record, every field the mapping carries"
+        );
+
+        // **The refusal, and it is the whole of the item.** Item 287 read
+        // Great Lakes' word as the AI's *stockpile* — `88 < 55 + 43 + 4`
+        // in `make_stuff` step 6, with the original's food inferred at
+        // `98 ≤ food < 160` from its own refusals — and this capture was
+        // written to test that. The original has **88**, and the ladder is
+        // identical tick for tick over every one of the 72 blocks up to
+        // and including the word's own. The stockpile was never wrong.
+        let under: Vec<&(i64, i64, i64)> = food.iter().filter(|(n, _, _)| *n <= 7585).collect();
+        assert_eq!(under.len(), 72, "7514..=7585");
+        assert!(
+            under.iter().all(|(_, o, t)| o == t),
+            "the food ladder parts at or below the word: {:?}",
+            under.iter().find(|(_, o, t)| o != t)
+        );
+
+        // **And the original spends 43 of it on the word's own frame.**
+        // Block 7586 is the state at the end of sim-frame 7585: the
+        // Citizen out of make-list slot 5, at the price this crate's own
+        // tables give the next one, and this crate buys nothing.
+        let at = |n: i64| food.iter().find(|(f, _, _)| *f == n).copied().unwrap();
+        assert_eq!(at(7585), (7585, 88, 88), "the word's frame, both sides");
+        assert_eq!(
+            at(7586),
+            (7586, 88, 45),
+            "the original pays 43 and we pay nothing"
+        );
+
+        // **What the gate actually reads, and it is the head.** The good
+        // loop tests only goods the head's cost is non-zero in
+        // (`make_stuff@006c8af0:172`), so a Temple head — which costs no
+        // food — never puts food on trial and slot 5 is bought. This
+        // crate's head is three Slingers at the `val < 0` overflow guard.
+        // `docs/AI.md` §34.
+        let head = |k: &str| -> (i64, i64) {
+            let key = format!("MAKE[0].{k}");
+            let block = wlog.leader_block(7585, 1).unwrap();
+            let t = theirs(&block);
+            let o: std::collections::BTreeMap<String, i64> =
+                ours[&(7585, 1)].iter().cloned().collect();
+            (o[&key], t[&key])
+        };
+        assert_eq!(head("t"), (82, 437), "ours Slingers, theirs a Temple");
+        assert_eq!(head("cat"), (6, 8), "a unit against a civic building");
+        assert_eq!(head("num"), (3, 1));
+        assert_eq!(
+            head("val"),
+            (9_999_999, 2_499_999),
+            "9999999 is `create_units`' `val < 0` guard, so the product wrapped"
+        );
+
+        // The residue, pinned by name the way run84's is.
+        let parting: Vec<(usize, &str)> = residue.keys().map(|(w, k)| (*w, k.as_str())).collect();
+        assert_eq!(
+            parting,
+            PARTS_ON_RUN91,
+            "run91's leader residue moved: {} fields",
+            parting.len()
+        );
+    }
+
+    /// The `(player, field)` pairs that part over run91's window — the
+    /// word's own. `docs/AI.md` §34.
+    ///
+    /// Everything run84's list holds is here too (the same three families
+    /// — a human whose census does not run, the sites, and named
+    /// unmodelled state), and on top of it **thirty-five make-list rows**:
+    /// the head is a different offer, and every slot below it is shifted
+    /// by the insertion that displaced it.
+    const PARTS_ON_RUN91: &[(usize, &str)] = &[
+        (0, "SITE[0].reg"),
+        (0, "SITE[1].reg"),
+        (0, "SITE[2].reg"),
+        (0, "SITE[3].reg"),
+        (0, "SITE[4].reg"),
+        (0, "SITE[5].reg"),
+        (0, "SITE[6].reg"),
+        (0, "SITE[7].reg"),
+        (0, "SITE[8].reg"),
+        (0, "SITE[9].reg"),
+        (0, "active"),
+        (0, "ally_mask"),
+        (0, "filled_gather_slots[0:food]"),
+        (0, "filled_gather_slots[1:timber]"),
+        (0, "gather_stamp"),
+        (0, "gatherers"),
+        (0, "min_other_team_terr"),
+        (0, "my_team_terr"),
+        (0, "other_team_terr"),
+        (0, "peasant_high"),
+        (0, "peasants"),
+        (0, "scouts"),
+        (1, "MAKE[0].cat"),
+        (1, "MAKE[0].city"),
+        (1, "MAKE[0].escrow"),
+        (1, "MAKE[0].num"),
+        (1, "MAKE[0].t"),
+        (1, "MAKE[0].val"),
+        (1, "MAKE[10].t"),
+        (1, "MAKE[1].cat"),
+        (1, "MAKE[1].city"),
+        (1, "MAKE[1].escrow"),
+        (1, "MAKE[1].t"),
+        (1, "MAKE[1].val"),
+        (1, "MAKE[2].cat"),
+        (1, "MAKE[2].city"),
+        (1, "MAKE[2].t"),
+        (1, "MAKE[2].val"),
+        (1, "MAKE[3].cat"),
+        (1, "MAKE[3].city"),
+        (1, "MAKE[3].escrow"),
+        (1, "MAKE[3].t"),
+        (1, "MAKE[3].val"),
+        (1, "MAKE[4].city"),
+        (1, "MAKE[4].escrow"),
+        (1, "MAKE[4].t"),
+        (1, "MAKE[5].city"),
+        (1, "MAKE[5].val"),
+        (1, "MAKE[6].city"),
+        (1, "MAKE[6].escrow"),
+        (1, "MAKE[6].num"),
+        (1, "MAKE[6].t"),
+        (1, "MAKE[6].val"),
+        (1, "MAKE[7].val"),
+        (1, "MAKE[8].city"),
+        (1, "MAKE[8].t"),
+        (1, "MAKE[9].t"),
+        (1, "SITE[0].reg"),
+        (1, "SITE[2].dist"),
+        (1, "SITE[2].rank"),
+        (1, "SITE[2].val"),
+        (1, "SITE[2].wx"),
+        (1, "SITE[2].wy"),
+        (1, "SITE[3].dist"),
+        (1, "SITE[3].rank"),
+        (1, "SITE[3].val"),
+        (1, "SITE[3].wx"),
+        (1, "SITE[3].wy"),
+        (1, "SITE[4].dist"),
+        (1, "SITE[4].rank"),
+        (1, "SITE[4].val"),
+        (1, "SITE[4].wx"),
+        (1, "SITE[4].wy"),
+        (1, "SITE[5].dist"),
+        (1, "SITE[5].rank"),
+        (1, "SITE[5].val"),
+        (1, "SITE[5].wx"),
+        (1, "SITE[5].wy"),
+        (1, "SITE[6].dist"),
+        (1, "SITE[6].rank"),
+        (1, "SITE[6].val"),
+        (1, "SITE[6].wx"),
+        (1, "SITE[6].wy"),
+        (1, "SITE[7].dist"),
+        (1, "SITE[7].rank"),
+        (1, "SITE[7].val"),
+        (1, "SITE[7].wx"),
+        (1, "SITE[7].wy"),
+        (1, "SITE[8].dist"),
+        (1, "SITE[8].rank"),
+        (1, "SITE[8].val"),
+        (1, "SITE[8].wx"),
+        (1, "SITE[8].wy"),
+        (1, "SITE[9].dist"),
+        (1, "SITE[9].rank"),
+        (1, "SITE[9].val"),
+        (1, "SITE[9].wx"),
+        (1, "SITE[9].wy"),
+        (1, "active"),
+        (1, "attack"),
+        (1, "bucket[0:food]"),
+        (1, "bucket[1:timber]"),
+        (1, "bucket[4:knowledge]"),
+        (1, "combat"),
+        (1, "gather_stamp"),
+        (1, "min_other_team_terr"),
+        (1, "non_siege"),
+        (1, "other_team_terr"),
+        (1, "scouts"),
+        (1, "tech_cat_frame[0]"),
+        (1, "tech_cat_frame[1]"),
+        (1, "tech_cat_frame[2]"),
+        (1, "tech_cat_frame[3]"),
+        (1, "tech_frame"),
+    ];
+
+    /// The `(player, field)` pairs of the leader record that part over
+    /// run84's window, and nothing else does — `docs/AI.md` §33.
+    ///
+    /// Three families, and each is one fact:
+    ///
+    /// - **Player 0's census is empty here**, because the sweep
+    ///   (`plan_strategy`, §2.3) runs only for a computer leader in this
+    ///   crate and the original runs it for the human too. Ten fields.
+    /// - **The ten sites are a different list** — a known seam (§2.7);
+    ///   `reg` is a whole-list row because the original writes `0` in a
+    ///   site's region where this crate writes the site's own.
+    /// - **The rest is unmodelled state named as such**: `tech_frame` and
+    ///   its four categories (written only by `Leader::init` here),
+    ///   `other_team_terr`/`min_other_team_terr` (census step 4's
+    ///   other-team pass), `attack`/`defense`/`scouts`/`active` (unit
+    ///   classes the sweep counts), and `gather_stamp` — the frame of the
+    ///   last rate reassembly, which is a cadence rather than a value and
+    ///   whose *outputs* (`resources`, `income`, `rate`) all agree.
+    const PARTS_ON_RUN84: &[(usize, &str)] = &[
+        (0, "SITE[0].reg"),
+        (0, "SITE[1].reg"),
+        (0, "SITE[2].reg"),
+        (0, "SITE[3].reg"),
+        (0, "SITE[4].reg"),
+        (0, "SITE[5].reg"),
+        (0, "SITE[6].reg"),
+        (0, "SITE[7].reg"),
+        (0, "SITE[8].reg"),
+        (0, "SITE[9].reg"),
+        (0, "active"),
+        (0, "ally_mask"),
+        (0, "filled_gather_slots[0:food]"),
+        (0, "filled_gather_slots[1:timber]"),
+        (0, "gatherers"),
+        (0, "min_other_team_terr"),
+        (0, "my_team_terr"),
+        (0, "other_team_terr"),
+        (0, "peasant_high"),
+        (0, "peasants"),
+        (0, "production_step"),
+        (0, "scouts"),
+        (1, "MAKE[0].city"),
+        (1, "MAKE[0].t"),
+        (1, "MAKE[10].t"),
+        (1, "MAKE[1].city"),
+        (1, "MAKE[1].escrow"),
+        (1, "MAKE[1].t"),
+        (1, "MAKE[2].city"),
+        (1, "MAKE[2].t"),
+        (1, "MAKE[2].val"),
+        (1, "MAKE[3].city"),
+        (1, "MAKE[3].escrow"),
+        (1, "MAKE[3].t"),
+        (1, "MAKE[3].val"),
+        (1, "MAKE[4].city"),
+        (1, "MAKE[4].escrow"),
+        (1, "MAKE[4].val"),
+        (1, "MAKE[6].city"),
+        (1, "MAKE[7].city"),
+        (1, "MAKE[8].city"),
+        (1, "MAKE[8].t"),
+        (1, "MAKE[9].t"),
+        (1, "SITE[0].reg"),
+        (1, "SITE[1].reg"),
+        (1, "SITE[2].dist"),
+        (1, "SITE[2].rank"),
+        (1, "SITE[2].val"),
+        (1, "SITE[2].wx"),
+        (1, "SITE[2].wy"),
+        (1, "SITE[3].reg"),
+        (1, "SITE[4].dist"),
+        (1, "SITE[4].rank"),
+        (1, "SITE[4].val"),
+        (1, "SITE[4].wy"),
+        (1, "SITE[5].dist"),
+        (1, "SITE[5].rank"),
+        (1, "SITE[5].val"),
+        (1, "SITE[5].wx"),
+        (1, "SITE[5].wy"),
+        (1, "SITE[6].dist"),
+        (1, "SITE[6].rank"),
+        (1, "SITE[6].val"),
+        (1, "SITE[6].wx"),
+        (1, "SITE[6].wy"),
+        (1, "SITE[7].dist"),
+        (1, "SITE[7].rank"),
+        (1, "SITE[7].val"),
+        (1, "SITE[7].wx"),
+        (1, "SITE[7].wy"),
+        (1, "SITE[8].dist"),
+        (1, "SITE[8].rank"),
+        (1, "SITE[8].val"),
+        (1, "SITE[8].wx"),
+        (1, "SITE[8].wy"),
+        (1, "SITE[9].dist"),
+        (1, "SITE[9].rank"),
+        (1, "SITE[9].val"),
+        (1, "SITE[9].wx"),
+        (1, "SITE[9].wy"),
+        (1, "active"),
+        (1, "attack"),
+        (1, "defense"),
+        (1, "gather_stamp"),
+        (1, "min_other_team_terr"),
+        (1, "other_team_terr"),
+        (1, "scouts"),
+        (1, "tech_cat_frame[0]"),
+        (1, "tech_cat_frame[1]"),
+        (1, "tech_cat_frame[2]"),
+        (1, "tech_cat_frame[3]"),
+        (1, "tech_frame"),
+    ];
+
+    /// The predictions run91's stanza is written from: what this crate
+    /// holds for both leaders across run91's own window.
+    #[test]
+    #[ignore]
+    fn probe_the_word_s_leader_record() {
+        let Some((ours, _)) = great_lakes(7514, 7599) else {
+            return;
+        };
+        for n in [7514i64, 7585, 7586, 7599] {
+            for who in 0..2usize {
+                let Some(r) = ours.get(&(n, who)) else {
+                    continue;
+                };
+                let line: Vec<String> = r
+                    .iter()
+                    .filter(|(k, _)| {
+                        k.starts_with("bucket")
+                            || k.starts_with("leftover")
+                            || k.starts_with("income")
+                            || k.starts_with("resources")
+                            || k.starts_with("escrow[")
+                            || k.starts_with("econ")
+                            || k.starts_with("gather_slots[")
+                            || k.starts_with("filled_gather")
+                    })
+                    .map(|(k, v)| format!("{k}={v}"))
+                    .collect();
+                eprintln!("block {n} who {who}: {}", line.join(" "));
+                if who == 1 {
+                    let rest: Vec<String> = r
+                        .iter()
+                        .filter(|(k, _)| {
+                            !k.contains('[')
+                                || k.starts_with("resource_cap")
+                                || k.starts_with("rate[")
+                                || k.starts_with("over_cap")
+                        })
+                        .map(|(k, v)| format!("{k}={v}"))
+                        .collect();
+                    eprintln!("   scalars: {}", rest.join(" "));
+                }
+            }
+        }
+        // The food ladder over the window: every frame the pile moves.
+        let mut prev = -1i64;
+        let mut ticks = Vec::new();
+        for n in 7514..=7599i64 {
+            let f = ours[&(n, 1)]
+                .iter()
+                .find(|(k, _)| k == "bucket[0:food]")
+                .map(|(_, v)| *v)
+                .unwrap();
+            if f != prev {
+                ticks.push(format!("{n}:{f}"));
+                prev = f;
+            }
+        }
+        eprintln!("food ladder who 1: {}", ticks.join(" "));
+    }
+}
