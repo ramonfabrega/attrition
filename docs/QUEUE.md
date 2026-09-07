@@ -25,12 +25,10 @@ lines, or lets the handoff pass 32.
 - **The nine worktrees are reaped and one was not empty.** `loop-234` held
   406 uncommitted lines no branch carried, and `8b37e5f` had deleted
   230–234 in one go: two had landed, **232, 233 and 234 never did**. On
-  `rescue-234`, re-booked below, audited in `docs/audit/queue-ledger.md`.
-- **`tools/queueledger.py` is the guard that would have caught it**: a
-  number leaves this file only if the journal names it or the ledger says
-  where it went, and a `not-landed` line is owed a queue entry. 165 of 191
-  already complied. **A branch check cannot see a dirty tree** — ccc holds
-  the other half as their item 32.
+  `rescue-234`, re-booked below, audited in `docs/audit/queue-ledger.md`
+  and guarded by `tools/queueledger.py` — a number leaves this file only
+  if the journal names it or the ledger says where it went. **A branch
+  check cannot see a dirty tree**; ccc holds that half as their item 32.
 - **The gate is pinned to two threads** — `.cargo/config.toml`, guarded in
   `floors.rs`; 15 GB at two against 24–33 at sixteen. **No pipe between
   `memcap.sh` and the exit code.** The stopping rule stands at two, with
@@ -64,8 +62,8 @@ unless a better order is obvious, and say so. Numbers are stable.
     falsifier. (220) TECH §13's twenty range blocks. (209) **the
     once-per-game events a dump install swallows** — a `set_*` whose
     **return value** drives an irreversible record; **takes 224**. (203)
-    `mark_behind_tiles`' `0x4` is a building *finishing*. (240) the
-    merchant's `gather_down`/`special` −1 at 6929; **takes 184**. (216)
+    `mark_behind_tiles`' `0x4` is a building *finishing*; (240) the
+    merchant's `gather_down`/`special` −1 at 6929, **takes 184**; (216)
     `create_buildings` offers a gather building the original does not.
 
 (242) **The crate's group id is not the original's** — `GroupData +0x4 =
@@ -77,14 +75,13 @@ grouped order records no test windows** — run79's 453, run31's 945.
 
 255. **`go_to_unit`'s `0x480` and `go_to`'s `MOVE_TO` arm are read and
     never run** — every joiner on disk is farther than `0x480` from its
-    army's `get_unit(0)`; the falsifier is one born beside its army.
+    army's `get_unit(0)`, so the falsifier is one born beside its army.
     (256) `come_out`'s three `action_move_to` sites stay unreached.
 
 247. **An upgrade is an in-place guy-type change on the standing unit** —
     run76's **6737**, three Archers going guy **170 → 177** keeping
-    `(who, o)` and `group 64`, not a modifier on a type; East Indies'
-    `1/32` does 340 → 341, danger row moving by `(110 − 100) / 2`. (181)
-    CARAVAN §7.2–§7.3.
+    `(who, o)` and `group 64`; East Indies' `1/32` does 340 → 341, the
+    danger row moving by `(110 − 100) / 2`. (181) CARAVAN §7.2–§7.3.
 
 234. **Four rules of the turn/idle animation neither side has** (ANIM §9),
     written and never landed — branch `rescue-234`. **The two static
@@ -98,6 +95,13 @@ grouped order records no test windows** — run79's 453, run31's 945.
     (CITIES §5). (232) `Levels::for_player` ignores its player, answering
     a constant whose `taxation` is 0 (ECONOMY, audit R8).
 
+262. **Cap items, not lines** (lore, 09-07): the 200-line bound cost **43
+    fitting episodes and 117 USD** since 08-25, and its remedy is a
+    *retelling* — which is how 232–234 died. N open items at ~8 lines
+    each, the guard naming the one to shrink, sections may-only-shrink;
+    (263) the split, parked items off the boot path, which
+    `queueledger.py` already reads. **Fleet call, with Ramon and lore.**
+
 **The widening ledger** (87, DATALAYER §4, §4.1): **19** fields the
 harness names nowhere, **44** one capture names; blind spot `avg_speed`
 (210) — it counts *fields* and cannot see a record the parser never
@@ -108,8 +112,7 @@ of 617; (72) every `+0xNN` a document pins vs its module; (89) the guard;
 257. **Nineteen kept tests compare a torn block** (252): a closing dump is
     frame n but for the one unit the quit caught mid-update, and every
     nested archive's last `FRAME n` body *is* its closing dump. No live
-    case found, but unaudited; the fix is `compare_shutdown`'s n−1
-    allowance given to those last blocks.
+    case found, unaudited; fix is `compare_shutdown`'s n−1 allowance.
 
 175. **The uber chain past its birth**: `Objects::init_unit` threads
     `uber_size` objects (CITIES §4.3); nothing else reads it. Takes (48)
@@ -151,8 +154,8 @@ half (GROUPS §6.4), run52 the blocker; (103) a woodcutter's clock, 445 v
 251. **`memcap.sh` has no fixture and a real hole** (lore): its `ps | awk`
     reads `0 0` when `ps` answers nothing, so a refused sample reads as no
     memory used and the ceiling never fires — Friday's crash by another
-    door, under the guard width two rests on. Wants a fixture: past the
-    cap, dead in N seconds, exit 137.
+    door, under the guard width two rests on. Wants one: past the cap,
+    dead in N seconds, exit 137.
 
 Older backlog: (39) a 2D viewer over `Sim`; (41) `scenario.py`; a
 `find_target` block; run7's orders; a mounted attacker; `calc_gather`
@@ -163,27 +166,24 @@ non-flat; `Leader::diplomacy`; (77) ANIM §3.2; (58) ROADS §7.4.
 - **End of session:** rewrite "Where things stand" from scratch, headline
   first and whether it moved; delete finished items to the journal. **The
   200-line bound is a budget** — a new item is paid for by compressing old
-  ones, and you count the lines before writing, not after.
+  ones, counted before writing, not after (but see 262).
 - **A floor that moves** moves `FLOORS`, the assert reading it, and the
-  `Scoreboard:` line together.
-- **Start of session:** merge the lanes, then "Where things stand", the
-  item, its document. Lanes never write this file.
-- **A brief names `docs/audit/2026-09-05-<doc>-vs-code.md`** where one
-  exists — candidate items, taken on the way through.
+  `Scoreboard:` line together. **Start of session:** merge the lanes, then
+  "Where things stand", the item, its document. Lanes never write this
+  file, and a brief names its `docs/audit/…-vs-code.md` where one exists.
 - **Overlap a capture's neighbours on purpose.** The run-up is free, so an
   overlap costs seconds and turns "same seed, therefore same game" into a
   state check. Six blocks each end is the floor (run83); a neighbour that
-  **contains** yours is free and total (run84, 80 of 80) with `--exclude
-  <the category you raised>`. **The trap**: `samegame.py` exits 0 when
-  nothing is in common, so assert the count, not the verdict.
+  **contains** yours is free and total (run84) with `--exclude <the
+  category you raised>`. **The trap**: `samegame.py` exits 0 when nothing
+  is in common, so assert the count, not the verdict.
 - **Grep for the derived quantity, the mechanic's SHAPE and the GATE — not
   only for coverage of a frame.** `BUILDQUEUE` prints
   `queue[scan].cost[0..2]`, so a price the original *paid* is on disk
   wherever `BUILDS` is on (238); 178's two passes write different
   footprints, so a half-cell with no building in its 3×3 isolates the unit
   pass in archives already held. And a term zero in every dump is either
-  zero-valued or switched off: 117 and 178 were booked on the first and
-  were the second.
+  zero-valued or switched off: 117 and 178 were booked on the first.
 - **A check on a field never cleared must assert a CHANGE, not a value** —
   `collide_frame` is a permanent stamp, so "some unit has one in the band"
   is true of any window, and run85's first teeth check passed on a band

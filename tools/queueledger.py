@@ -38,7 +38,13 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-QUEUE = "docs/QUEUE.md"
+# The files an item may live in. `docs/QUEUE.md` is the only one today;
+# the second is here because the sprint/backlog split lore proposed on
+# 2026-09-07 would otherwise break this guard on its first commit — every
+# parked item would read as a number that had left the queue in silence,
+# and the guard's first act would be to fire on a hundred rows nobody
+# lost. Moving a number between these files is not a deletion.
+QUEUES = ["docs/QUEUE.md", "docs/PARKED.md"]
 JOURNAL = ROOT / "docs/JOURNAL.md"
 LEDGER = ROOT / "docs/audit/queue-ledger.md"
 
@@ -68,21 +74,20 @@ def booked(text):
 
 
 def main():
-    revs = git("log", "--format=%H", "--", QUEUE).split()
     ever = {}
-    for rev in reversed(revs):
-        for n in booked(git("show", "%s:%s" % (rev, QUEUE))):
-            ever.setdefault(n, rev)
-
-    current = (ROOT / QUEUE).read_text()
-    # An item is still live if the queue books it or refers to it as `(N)`
-    # — the compressed form a finished-but-not-closed row takes.
-    # A live reference is `(N)`, and also the compound forms the queue's
-    # residue rows use — `(105/45)`, `(88, 72)` — where one parenthesis
-    # carries several numbers.
-    live = booked(current)
-    for group in re.findall(r"\(([\d/,\s]+)\)", current):
-        live |= {int(n) for n in re.findall(r"\d{1,3}", group)}
+    live = set()
+    for queue in [q for q in QUEUES if (ROOT / q).exists()]:
+        for rev in reversed(git("log", "--format=%H", "--", queue).split()):
+            for n in booked(git("show", "%s:%s" % (rev, queue))):
+                ever.setdefault(n, rev)
+        current = (ROOT / queue).read_text()
+        # An item is still live if a queue file books it or refers to it
+        # as `(N)` — the compressed form a finished-but-not-closed row
+        # takes — including the compound forms the residue rows use,
+        # `(105/45)` and `(88, 72)`, where one parenthesis carries several.
+        live |= booked(current)
+        for group in re.findall(r"\(([\d/,\s]+)\)", current):
+            live |= {int(n) for n in re.findall(r"\d{1,3}", group)}
 
     journal = JOURNAL.read_text()
     headings = [l for l in journal.split("\n") if l.startswith("## ")]
