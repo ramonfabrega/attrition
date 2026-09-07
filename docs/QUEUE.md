@@ -12,35 +12,35 @@ lines, or lets the handoff pass 32.
 
 ## Where things stand
 
-*2026-09-07, Opus commanding — **East Indies 7448 → 7529** on run86, the
-first move in four landings; Great Lakes still **6994**, with 250 live on
-its named cause. The stopping rule fired at three and reset here.*
+*2026-09-07, Opus commanding — **both words moved**: Great Lakes 6994 →
+**7176** (250, +182) and East Indies 7448 → **7529** (241). The stopping
+rule fired at three no-score landings and reset on the fourth; 252 is live.*
 
-- **East Indies' new word, 7529**: a `Guy::set_anim` under
+- **Great Lakes 7176**: 97 draws differing at 93 — the original in
+  `Unit::do_idle+0x7d`, this crate in `Guy::inc_time+0x271`. A unit goes
+  idle there and not here; run79's `[6910,7250]` covers it.
+- **East Indies 7529**: a `Guy::set_anim` under
   `Unit::do_non_flat_gather+0xb99` the original spends and this does not.
-- **6994's cause is named and 250 is live on it**: the two
-  `Unit::do_move+0xe84` draws are the **second squad's** — `1/31`–`1/33`,
-  born 6993 and orderless when the frame opens — not the marching Archers
-  (run84: `dest = 1`, `unit_masks & 8`). The gap is an order this crate
-  never issues, `Unit::come_out`'s `Group::action_move_to`; ARMY §16.7.
-  No screen owed; `when` gives 7213–7216, 7440/7441, 7675/7676 free.
-- **Take the gap whole, not a section's sampled windows** (241): run86
-  took `[6924,7410)` for one run where two were booked, and the eject at
-  **7284** is six frames before the booked window would have opened. A
-  reading can enumerate the geometry and miss a scalar — §13's three
-  suspects were geometric; it was `myspeed 30` on a `MOVES` of 25.
-- **Width two on the gate** (15.8 GB of 20 GiB). `ccc update <ref>` for a
-  base, never a raw merge. **Reap at merge time**: `done idle` is not
-  reaped; 0.1.29's `ccc rm` takes the worktree and local branch.
-- **Lanes and ccc** (251b, 25): a lane is cheap on memory and on tokens
-  only if it waits **blocking** — one polled a task file 381× for 63 USD.
-  Each `stalled` line in `~/ccc-stream/` wants a word in `verdicts.txt`.
+- **Widen the record before reading the candidate** (249, 250): twice the
+  named mechanism was wrong and eighty `UNITDATA` blocks said so in twenty
+  minutes — 6994 was `add_to_army`'s walk, never `come_out`. And **a
+  draw-stream gain is not a correctness proof**: 182 frames of exact draws
+  came with an anchor two tiles wrong, because that tile refused the same
+  lines. Diff the value, not the word.
+- **Take the gap whole, not sampled windows** (241): run86 covered
+  `[6924,7410)` in one run where two were booked, and its eject at 7284
+  predates the booked window. A reading can miss a scalar for geometry.
+- **Loop hygiene**: width two on the gate (15.8 GB of 20 GiB); `ccc
+  update <ref>` for a base, never a raw merge; **reap at merge time** —
+  `done idle` is not reaped, and 0.1.29's `ccc rm` takes worktree and
+  branch. A lane is cheap on tokens only if it waits **blocking** (251b);
+  each `stalled` line in `~/ccc-stream/` still wants a word (25).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w7529 of 24,000 · GreatLakes w7176 of 24,000
 
-**Opener: commander on Opus (DECISIONS 34). `loop-250` is live and alone;
-the screen is free and 252 is the cheapest thing on the board.**
+**Opener: commander on Opus (DECISIONS 34). `loop-252` is live and alone;
+the screen is free. A Fable steering pass is owed once it lands.**
 
 ## The queue
 
@@ -66,8 +66,12 @@ five agree on all 630 and 237 reports the row without scoring it. (243)
 `UnitDump::group` is parsed and **nothing compares it**. (244) **1,428
 grouped order records no test windows** — run79's 453, run31's 945; run79
 is the cheapest second capture for 237's rows. (245) `focus.sh` matched a
-concurrent worker's shell on run84. (249b) `1/31`'s group reads **66** in
-run79's docstring and **64** in run84 at 6995 — one grep, taken with 242.
+concurrent worker's shell on run84.
+
+255. **`go_to_unit`'s `0x480` and `go_to`'s `MOVE_TO` arm are read and
+    never run** — every joiner on disk is farther than `0x480` from its
+    army's `get_unit(0)`; the falsifier is one born beside its army.
+    (256) `come_out`'s three `action_move_to` sites stay unreached.
 
 AI residues, measured, none near a word: (169) `compute_site_stats`'
 arithmetic, 7,122 of run63's 27,000 site fields (AI §2.13); (172) the
@@ -79,8 +83,7 @@ of 61 draws without a `self.mark(`; (153) `TRIBE`; (20) the `Census` rows.
 247. **An upgrade is an in-place guy-type change on the standing unit** —
     run76's **6737**, three Archers going guy **170 → 177** keeping
     `(who, o)` and `group 64`, not a modifier on a type; East Indies'
-    `1/32` does 340 → 341, danger row moving by `(110 − 100) / 2`.
-    Anything reading cost, attack or speed across one wants it. (181)
+    `1/32` does 340 → 341, danger row moving by `(110 − 100) / 2`. (181)
     CARAVAN §7.2–§7.3.
 
 **The widening ledger** (87, DATALAYER §4): **19** fields the harness
@@ -96,7 +99,7 @@ pins vs its module, **with `att-audit`**; (89) the guard; (35) VISION §7.
 175. **The uber chain past its birth**: `Objects::init_unit` threads
     `uber_size` objects (CITIES §4.3), nothing else reads it and
     `build_sim` leaves `o_up`/`o_down` unset. Takes (48) COLLISION §3/§7;
-    (73) `UnitData::group`'s back-pointer, **242's other half**; (56) ARMY §13.
+    (73) `UnitData::group`'s back-pointer, **242's half**; (56) ARMY §13.
 
 248. **ATTRITION's Territory section is 15,625 bytes of 16,000** and wants
     a retelling pass before anything else is added to it. Territory's
@@ -117,10 +120,9 @@ five goods, 1392 v 2000 (ECONOMY); (107) `epoch[0]` is Military.
     on it. (195) `find_repair_spot` is `build_done`'s last of three.
 
 253. **`1/13` parts at 6938**, a citizen at `myspeed 25` — run86's only
-    other divergence, and run82's 6946 dump shows the same unit off by
-    (11,7). A diff, not a capture. (254) `come_out`'s ring has one sample
-    (7284) and wants a second disembark at another angle. (167) run61's
-    two: the landing search's *cell*, `Unit::do_strafe` (SYNC §3.9).
+    other divergence, and run82's 6946 dump shows it off by (11,7). A
+    diff, not a capture. (254) `come_out`'s ring has one sample (7284)
+    and wants a second disembark. (167) run61's two (SYNC §3.9).
 
 211. **`get_speed`'s three remaining arms** (MOVEMENT): `unit_masks &
     0x10`, set and cleared inside a frame; `has_general(0, 0x162)`'s siege
