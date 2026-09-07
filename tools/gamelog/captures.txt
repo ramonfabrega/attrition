@@ -2261,3 +2261,17 @@ check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|collide_frame" "$HOME/ron-data/App
 # The word does **not** move. `run90_s_window_is_east_indies_shuffle` is the
 # assertion; `docs/ORACLE.md`, "run90 — East Indies' word is a waypoint this
 # crate walks to", and `docs/COLLISION.md` §8.6.
+#
+# LANDED 2026-09-07, item 289 — **East Indies' word 7806 -> 7812**, and this
+# stanza's refusal is why. The arrival rule is `move_step`'s ordinary
+# post-step test (`005fb45f`): Manhattan, against **`UnitData::tolerance`**,
+# and only on a frame whose step was accepted. `resolve_unit_collision`'s
+# `LAB_005fa37a` pushes the sidestep and stores the order's `+0x2c`/`+0x30`
+# and touches that field not at all, and the entry's own `tolerance 0`
+# reaches the unit only through `do_move`'s `dest == 0` take, which the
+# waypoint never goes through. So it is walked under the interrupted leg's
+# 384 and retired from fifteen units away — the original's four-block cycle.
+# This crate zeroed the tolerance with the push; deleting that one line makes
+# `1/6` part at 7827 instead of 7805, with its collision fields and its whole
+# order record (path stack included) agreeing over the cycle.
+# `docs/COLLISION.md` §8.7.

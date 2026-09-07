@@ -5449,6 +5449,27 @@ path length moved to 5, its `pause 8` to a 9, `1/6`'s 7805 row to
 (39730, 38802), `1/7`'s first parted block to 7812, the parted set's `1/6`
 to 7807, and the stand list's 7810 to 7811. All six failed.
 
+**And the same day the reading landed and the word moved: 7806 → 7812**
+(item 289, `docs/COLLISION.md` §8.7). The rule is `move_step`'s ordinary
+post-step arrival test — Manhattan, against `UnitData::tolerance` — and
+`resolve_unit_collision`'s sidestep push never writes that field, so the
+waypoint is walked under the interrupted leg's 384 and retired from fifteen
+units away. One deleted line. `1/6` parts at 7827 instead of 7805, its
+collision fields and its whole order record agree over the cycle, and this
+capture's own assertions turned over with it: the parted set, `1/6`'s and
+`1/7`'s first rows, and a new pair pinning the four-block cycle from the
+dump's side. run88's closing block loses `1/6` from its residue at the same
+time.
+
+**The capture is why the reading was cheap.** Every field the rule turns on
+— the path stack, `dest`, the order's `dest_x/dest_y`, the position — is
+printed on every block of the cycle at `UNITS=3`, so the 4 → 5 → 4 with the
+unit *not on the point* is one record's own three rows and the decompile was
+only asked to name the store that is missing. This is the "diff first, then
+read what no run reaches" rule paying twice on one window: the capture
+refused the reading it was booked to test, and then made the next reading a
+twenty-minute one.
+
 ## 178 needed no screen — the danger map's unit pass was on disk four times (2026-09-06)
 
 **What it is.** Not a run. `docs/DANGER.md` §8 had the unit pass of

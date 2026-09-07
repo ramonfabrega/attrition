@@ -6869,18 +6869,19 @@ mod tests {
 
         // **Two units part below the word and no more, and both are the
         // same standing Merchant constant.** `1/13` was the third and is
-        // gone; `1/6` and `1/7` are on 7816, the closing block.
+        // gone. `1/6` was the fourth, on the closing block 7816, and is
+        // gone too: item 289 put the sidestep waypoint's arrival rule
+        // right, so the citizen that walked one step past the original on
+        // every collision now walks the original's shuffle and stands
+        // where the original stands on the block the `!quit` catches.
+        // `1/7`, the other half of that shuffle, is still on 7816 — it is
+        // §6 step 5's wait-versus-pause row, which 289 did not touch.
         assert_eq!(
             parted
                 .iter()
                 .map(|(&k, &f)| (k, f))
                 .collect::<Vec<((i64, i64), i64)>>(),
-            vec![
-                ((1, 6), 7_816),
-                ((1, 7), 7_816),
-                ((1, 19), 7_474),
-                ((1, 20), 7_663)
-            ],
+            vec![((1, 7), 7_816), ((1, 19), 7_474), ((1, 20), 7_663)],
             "run88's parted set, whole"
         );
 
@@ -6921,17 +6922,25 @@ mod tests {
         // on the map, so the question the item asked was whether the
         // `!quit`'s own block explains it. It does not explain the
         // *mechanism* — 7800..7815 is undumped and that is where the
-        // shuffle happens — but it names the two units and prices them:
-        // `1/6` is 46 east and 51 south of the original's, `1/7` six west
+        // shuffle happens — but it named the two units and priced them:
+        // `1/6` was 46 east and 51 south of the original's, `1/7` six west
         // and twelve south, and `1/19`/`1/20` are the two standing
         // Merchant constants that were already here.
         //
         // A closing dump is frame *n* except for the one unit the quit
         // caught mid-update (item 257, open), so the rows below are worth
         // exactly as much as a corroborating instrument makes them. The
-        // trace is that instrument and it is not a dump: `1/6`'s stop is
-        // one frame late on it (`docs/COLLISION.md` §8.5), which no torn
-        // record can fake.
+        // trace was that instrument and it is not a dump: `1/6`'s stop was
+        // one frame late on it, which no torn record can fake.
+        //
+        // **And `1/6`'s row is gone** (item 289, 2026-09-07). run90 dumped
+        // the shuffle 7800..7815 that this block could only stand
+        // downstream of, and the frame was the sidestep waypoint's arrival
+        // rule (`docs/COLLISION.md` §8.7). The citizen the closing block
+        // priced at (+46, +51) now stands where the original stands on the
+        // block the `!quit` catches. `1/7`, the other half of the shuffle,
+        // is still (−6, +12) out: that is §6 step 5's wait-versus-pause
+        // row, which 289 did not touch and which is now the word.
         let residue: Vec<(i64, i64, i32, i32, i32, i32)> = report
             .frames
             .iter()
@@ -6942,7 +6951,6 @@ mod tests {
         assert_eq!(
             residue,
             vec![
-                (1, 6, 39_624, 38_808, 39_578, 38_757),
                 (1, 7, 39_666, 38_676, 39_672, 38_664),
                 (1, 19, 32_280, 36_888, 32_256, 36_864),
                 (1, 20, 28_632, 24_024, 28_608, 24_000),
@@ -7134,10 +7142,28 @@ mod tests {
     /// nothing, so the wait-versus-repath predicate is wrong — the shape
     /// `docs/audit/README.md` says the errors take.
     ///
-    /// The word does **not** move here; nothing was fixed. What the
-    /// capture buys is that East Indies 7806 stops being a draw-stream
-    /// report and becomes a field with a value diff beside it, two frames
-    /// earlier than the stream noticed.
+    /// The capture itself moved no word; what it bought is that East
+    /// Indies 7806 stopped being a draw-stream report and became a field
+    /// with a value diff beside it, two frames earlier than the stream
+    /// noticed.
+    ///
+    /// **And then item 289 read the rule and this test turned over**
+    /// (2026-09-07, `docs/COLLISION.md` §8.7). The arrival rule is
+    /// `move_step`'s ordinary post-step test — Manhattan, against
+    /// **`UnitData::tolerance`**, and only on a frame whose step was
+    /// accepted — and `resolve_unit_collision@005f9d30`'s `LAB_005fa37a`
+    /// never writes that field: it pushes the entry and stores the order's
+    /// `+0x2c`/`+0x30`, and the entry's own `tolerance 0` reaches the unit
+    /// only through `do_move`'s `dest == 0` take, which this waypoint never
+    /// goes through. So the sidestep is walked under the interrupted leg's
+    /// tolerance — 384 — and fifteen units is arrival. This crate zeroed it
+    /// with the push and had to walk the remainder.
+    ///
+    /// One deleted line. `1/6` parts at **7827** instead of 7805, its
+    /// collision fields and its whole order record agree over the cycle,
+    /// and [`LONG_WORD_EAST_INDIES`] moves 7806 → **7812** — where the
+    /// remaining frame is `1/7`'s wait-versus-pause row, the second of
+    /// run90's two refusals.
     #[test]
     fn run90_s_window_is_east_indies_shuffle() {
         let Some(inst) = install() else { return };
@@ -7299,12 +7325,26 @@ mod tests {
             eprintln!("  {who}/{o} parts at {frame}");
         }
 
-        // **`1/6` parts on 7805 and that is two blocks below the word.**
-        // The draw stream's [`LONG_WORD_EAST_INDIES`] is sim-frame 7806,
-        // which is block 7807; the position is already wrong on 7805.
-        // That is the standing rule in one row — a draw stream agrees on a
-        // wrong destination for a while, and only a value comparison tells
-        // the two apart.
+        // **`1/6` walks the original's shuffle now, and block 7805 is the
+        // pin** (item 289). It was the first parted block — this crate on
+        // its own sidestep waypoint (39720, 38808) where the original had
+        // already left it behind at (39729, 38802) — and it is the row the
+        // arrival rule was read from, so it is the row that says the
+        // reading landed. Nothing of `1/6` disagrees at or below the word:
+        // not a coordinate, not a collision field, not the path stack.
+        assert!(
+            report
+                .frames
+                .iter()
+                .flat_map(|f| f.diverged.iter())
+                .all(|d| (d.who, d.o) != (1, 6) || d.frame >= 7_827),
+            "`1/6` parts below 7827: {:?}",
+            report
+                .frames
+                .iter()
+                .flat_map(|f| f.diverged.iter())
+                .find(|d| (d.who, d.o) == (1, 6) && d.frame < 7_827)
+        );
         let six: Vec<(i64, i32, i32, i32, i32)> = report
             .frames
             .iter()
@@ -7316,25 +7356,87 @@ mod tests {
         assert_eq!(
             six,
             vec![
-                (7_805, 39_720, 38_808, 39_729, 38_802),
-                (7_806, 39_720, 38_808, 39_708, 38_789),
-                (7_807, 39_699, 38_795, 39_708, 38_789),
-                (7_808, 39_699, 38_795, 39_685, 38_801),
+                (7_827, 39_368, 38_615, 39_347, 38_600),
+                (7_828, 39_373, 38_591, 39_326, 38_585),
+                (7_829, 39_378, 38_567, 39_305, 38_570),
+                (7_830, 39_383, 38_543, 39_284, 38_555),
             ],
             "`1/6`'s first four parted blocks, both sides' coordinates — \
-             the walk to (39720, 38808) the original never makes"
+             fifteen blocks past the word and a different fault: the unit \
+             turns north-east onto a leg the original does not take"
         );
         assert!(
-            parted.get(&(1, 6)) == Some(&7_805)
-                && *parted.get(&(1, 6)).unwrap() < LONG_WORD_EAST_INDIES + 1,
+            parted.get(&(1, 6)) == Some(&7_827)
+                && *parted.get(&(1, 6)).unwrap() > LONG_WORD_EAST_INDIES,
             "`1/6` parts at {:?}, and the word's own block is {}",
             parted.get(&(1, 6)),
             LONG_WORD_EAST_INDIES + 1
         );
 
-        // **`1/7` parts on 7811, the block the original rolls its 8 on.**
-        // This crate holds the sidestep point it walked to; the original
-        // steps back onto (39672, 38664) and pauses there.
+        // **The cycle, which is the mechanism and not the symptom.** The
+        // original's blocked cycle is four blocks — block, step, turn,
+        // step — and this crate's was five, because it walked the
+        // remainder of the sidestep as a second step. Two records say the
+        // cycle now matches, and neither is a position:
+        //
+        // - **the collision fields**, `collide`/`collide_o`/`collide_who`/
+        //   `collide_guy`/`collide_frame`, on every block of the window:
+        //   `1/6` never disagrees, so its `collide_o 7` falls on 7803,
+        //   7807 and 7811 exactly as the dump's own rows above say;
+        // - **the path stack and the move order**, likewise: `1/6`'s first
+        //   order-record disagreement is 7828, one block after the
+        //   position parts, so the stack goes 4 → 5 → 4 on the original's
+        //   blocks and `dest_x/dest_y` name the original's points.
+        //
+        // A four-block cycle whose stack length and whose `collide_o` are
+        // both the original's is the same cycle, and the five-block one
+        // could not have produced either.
+        //
+        // Made to fail on purpose, and the two are not the same kind of
+        // fence. The **order** row is the one that failed on the old code:
+        // with the sidestep's tolerance zeroed again it reads 7804, the
+        // block the original pops the waypoint and this crate does not, so
+        // it dates the fault one block below even the position. The
+        // **collision** row held before item 289 as well — the cycle's
+        // `collide_o` was always the original's, which is exactly why the
+        // fault took three sessions to find — so its teeth were shown the
+        // other way, by pointing it at `1/7`, whose three rows on 7809 it
+        // named at once.
+        let six_coll: Vec<(i64, &str, i64, i64)> = report
+            .frames
+            .iter()
+            .flat_map(|f| f.collide_diverged.iter())
+            .filter(|d| (d.who, d.o) == (1, 6))
+            .map(|d| (d.frame, d.field, d.ours, d.theirs))
+            .collect();
+        assert!(
+            six_coll.is_empty(),
+            "`1/6`'s collision fields part over the shuffle: {six_coll:?}"
+        );
+        let six_ord: Vec<i64> = report
+            .frames
+            .iter()
+            .flat_map(|f| f.order_diverged.iter())
+            .filter(|d| (d.who, d.o) == (1, 6))
+            .map(|d| d.frame)
+            .collect();
+        assert_eq!(
+            six_ord.first(),
+            Some(&7_828),
+            "`1/6`'s order record — the path stack included — first parts at \
+             {:?}; the whole four-block cycle is below it",
+            six_ord.first()
+        );
+
+        // **`1/7` parts on 7812 and it is the wait-versus-pause row**, the
+        // second of run90's two refusals and the one item 289 did not
+        // touch. Its whole collision divergence over the window is a
+        // single block — **7809**, where the original has it colliding
+        // with `1/6` (`collide 1`, `collide_o 6`) and this crate has it
+        // clear — and two blocks later its order kind parts, this crate
+        // taking §6 step 5's wait where the original repaths and rolls
+        // the `pause 8` the table above holds. The remaining frame of
+        // East Indies' word is on this row, not on `1/6`'s.
         let seven: Vec<(i64, i32, i32, i32, i32)> = report
             .frames
             .iter()
@@ -7346,10 +7448,27 @@ mod tests {
         assert_eq!(
             seven,
             vec![
-                (7_811, 39_654, 38_682, 39_672, 38_664),
-                (7_812, 39_654, 38_682, 39_672, 38_664),
+                (7_812, 39_666, 38_676, 39_672, 38_664),
+                (7_813, 39_666, 38_676, 39_672, 38_664),
             ],
             "`1/7`'s first two parted blocks, both sides' coordinates"
+        );
+        let seven_coll: Vec<(i64, &str, i64, i64)> = report
+            .frames
+            .iter()
+            .flat_map(|f| f.collide_diverged.iter())
+            .filter(|d| (d.who, d.o) == (1, 7))
+            .map(|d| (d.frame, d.field, d.ours, d.theirs))
+            .collect();
+        assert_eq!(
+            seven_coll,
+            vec![
+                (7_809, "collide", 0, 1),
+                (7_809, "collide_o", -1, 6),
+                (7_809, "collide_who", -1, 1),
+            ],
+            "`1/7`'s whole collision divergence over run90 — one block, and \
+             it is the collision this crate does not make"
         );
 
         // **The whole parted set, and nothing below 7805 is new.** `1/19`
@@ -7369,11 +7488,11 @@ mod tests {
                 .map(|(&k, &f)| (k, f))
                 .collect::<Vec<((i64, i64), i64)>>(),
             vec![
-                ((0, 5), 7_824),
+                ((0, 4), 7_887),
                 ((1, 2), 7_872),
                 ((1, 5), 7_895),
-                ((1, 6), 7_805),
-                ((1, 7), 7_811),
+                ((1, 6), 7_827),
+                ((1, 7), 7_812),
                 ((1, 19), 7_790),
                 ((1, 20), 7_790)
             ],
@@ -7382,10 +7501,10 @@ mod tests {
         assert!(
             parted
                 .iter()
-                .filter(|(k, _)| ![(1, 6), (1, 19), (1, 20)].contains(k))
-                .all(|(_, &f)| f > LONG_WORD_EAST_INDIES),
-            "a unit other than `1/6` and the two Merchant constants parts at \
-             or below the word: {parted:?}"
+                .filter(|(k, _)| ![(1, 19), (1, 20)].contains(k))
+                .all(|(_, &f)| f >= LONG_WORD_EAST_INDIES),
+            "a unit other than the two Merchant constants parts below the \
+             word: {parted:?}"
         );
 
         // **And the draw counts, block for block, up to the word.** The
@@ -7437,9 +7556,11 @@ mod tests {
             "the blocks whose `1/6` names `collide_o 7` are the stands' own \
              blocks — the trace and the dump on the same three frames"
         );
-        // And the same three, four blocks apart, are five apart here: this
-        // crate's own stands are 7802, 7807 and 7812, one frame more per
-        // cycle, which is the whole of the word.
+        // And the three are four apart — the cycle length, off the
+        // instrument that is not a dump. This crate's own three were five
+        // apart (7802, 7807, 7812) until item 289; the `six_coll` and
+        // `six_ord` assertions above are the same claim from the dump's
+        // side, and both are needed because only the trace dates a *draw*.
         assert!(
             stands.windows(2).all(|w| w[1] - w[0] == 4),
             "the original's cycle is four frames: {stands:?}"

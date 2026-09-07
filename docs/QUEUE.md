@@ -35,8 +35,8 @@ each section's non-item prose pinned and falling only.
   again. `FABLE:` owed — 37, 280's UB ground, 283, CLAUDE.md's wait rule.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w7806 of 24,000 · GreatLakes w7585 of 24,000
-Endpoint 24001: EastIndies 79 off, 0 unlinked · GreatLakes 84 off, 0 unlinked
+Long captures: EastIndies w7812 of 24,000 · GreatLakes w7585 of 24,000
+Endpoint 24001: EastIndies 78 off, 0 unlinked · GreatLakes 80 off, 0 unlinked
 
 **Opener: commander on Opus (DECISIONS 34), spawning — never working.
 Nothing in flight, board clean. Next: 290 (Great Lakes' word, wanting a

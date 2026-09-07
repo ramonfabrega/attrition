@@ -422,7 +422,31 @@ pub(crate) fn sibling_texts() -> Vec<String> {
 /// 21 (`docs/TECH.md`, "An age snaps every figure";
 /// [`sim::Sim::gain_tech`]). It cost `1/13` one frame at the tile, 545
 /// frames of `+1`, and 277 frames of this counter.
-pub(crate) const LONG_WORD_EAST_INDIES: i64 = 7_806;
+///
+/// **7806 for a day, and the frame was a waypoint this crate walked to.**
+/// run90 dumps the whole shuffle — 111 blocks over `[7790, 7900)` — and
+/// `1/6`'s position parted on block **7805**, two blocks *below* the draw
+/// stream's word, which is the standing rule in one row: a stream agrees
+/// on a wrong destination for a while and only a value diff dates it. Both
+/// sides push the same §6 step 4 sidestep, `(39720, 38808)` `flags 2`; the
+/// original's path drops 5 → 4 on the very next block with the unit at
+/// (39729, 38802), which is not that point. It takes one step along the
+/// bearing and **abandons** the waypoint.
+///
+/// The rule is one store that is not made.
+/// `resolve_unit_collision@005f9d30`'s `LAB_005fa37a` pushes the entry and
+/// writes the order's `+0x2c`/`+0x30`, and touches `UnitData::tolerance`
+/// **not at all**; the entry's own `tolerance 0` reaches the unit only
+/// through `do_move`'s `dest == 0` take, which this waypoint never goes
+/// through because `dest` is already 1 by the time `move_step` runs. So
+/// the sidestep is walked under the *current leg's* tolerance — 384 for a
+/// citizen on a world-grid plan — and `move_step`'s post-step Manhattan
+/// test (`005fb45f`: `tolerance < |dx| + |dy|`) retires it on the first
+/// successful step, from fifteen units away. This crate zeroed the
+/// tolerance with the push and had to walk the remainder as a second step:
+/// a five-block cycle against the original's four, one frame per
+/// collision (`docs/COLLISION.md` §8.7, item 289).
+pub(crate) const LONG_WORD_EAST_INDIES: i64 = 7_812;
 
 /// Great Lakes' word on the **long** capture (run53), the second of
 /// `docs/DECISIONS.md` entry 29's counters — and, since run61 put the
