@@ -4560,6 +4560,97 @@ flags. The deploy was 137 frames away.
   `find_merchant_spot`'s missing `detect_unit_collision` test costs nothing
   here and is untested by this game.
 
+## run83 — the last Great Lakes hole, and the deflection inside it (2026-09-06)
+
+**What it is.** run53's game, `[6864, 6916)` at run76's and run79's detail —
+53 blocks, **22 MB**, `cover=0`, four minutes end to end. It closes the only
+stretch of either map's run-up that no archive held: run76 stops at block
+6869, run79 starts at 6910, and **6870–6909 existed nowhere**.
+
+**Three checks, and two of them are new in kind.** `rngcmp.py
+rontrace-run53.log rontrace-run83.log` → **differing frames: 0** over 6,931.
+Then `samegame.py` against **both** neighbours, on the twelve blocks of
+deliberate overlap:
+
+| against | common | differ |
+| --- | --- | --- |
+| run76 | **6 (6864..6869)** | **0** |
+| run79 | **6 (6910..6915)** | **0** |
+
+That is a *state* digest, not the LCG word, and it is the claim `rngcmp.py`
+cannot make. A window is priced by its blocks and the frames before it are
+free, so twelve blocks of overlap cost about seven seconds and turned "same
+seed, therefore same game" into something that either matches or does not.
+**Each check asserts the common count as well as the verdict**, because
+`samegame.py` exits 0 when nothing differs *including when nothing is in
+common* — a vacuous pass that a bare exit code would have hidden.
+
+**The disk was grepped first**, every archive, for any block labelled
+6850–6930. One candidate was not run76 or run79: **run16**
+(`gamelog-run16-attrition.txt`, MAP_STYLE 14, seed 12345, blocks 1–6872),
+which does hold 6870, 6871 and 6872. It is a different game —
+`samegame.py` against run76 is **230 of 230 common frames differing** —
+because it is the cheat-driven attrition run and parts from its first
+`peace` at label 341; its detail is thinner too (`BUILDS=1 CITIES=1 GUYS=1`
+against 7/5/2). The hole was 6870–6909 entire.
+
+**What the original does in the forty frames.** Very little, and one thing
+that matters. **No unit is born and none dies** — 77 units on all 53 blocks,
+by `(who, o)`, no exceptions. Five units take a new order: `1/5` on 6865,
+`1/15` on 6871, `0/5` on 6875, `0/4` on 6891, `1/17` on 6907. And there is
+exactly **one blocked stand**, `1/29`'s on sim-frame **6892**:
+
+| block | `1/29` | `collide` | `collide_o` / `collide_who` | `collide_frame` |
+| --- | --- | --- | --- | --- |
+| 6892 | (42388, 23858), stepping (−19, −18) | 0 | −1 / −1 | −1 |
+| **6893** | **(42408, 23880)** — *backwards* | **1** | **17 / 1** | **6892** |
+| 6894–6898 | 42382 → 42282, **y pinned at 23880** | 1 | −1 / −1 | 6892 |
+| 6899 | (42264, 23880), diagonal resumes | 0 | −1 / −1 | 6892 |
+
+**The blocker is `1/17`, and it never moves.** A citizen — `myspeed 25`
+against the Archers' 26, `form 9` — parked at **(42360, 23736)** with
+`orders_x/y` equal to its own position and `collide_frame 3831`, an ancient
+stamp it does not touch. It registers nothing; the whole interaction is
+written on the walker.
+
+**And the shape is a deflection, not a stop.** `1/29` is pushed *back* one
+step on the frame after the block, then **slides along the obstacle** — five
+frames at exactly −26 in x with y constant to the unit — before resuming its
+bearing. It never idles: `idle` is 0 throughout. Anything that models a
+blocked step as "stand still and repath" gets six frames and about 1.6 tiles
+wrong here.
+
+**One field-lifetime fact a differ needs.** The three collision fields have
+three different lives. `collide_o`/`collide_who` name the blocker for
+**exactly one block** and are −1 the next; `collide` is a latch that stays 1
+for six; `collide_frame` keeps the stamp permanently — `1/27` still carries
+6861 and `1/28` 6862 fifty blocks later, and half the AI's units carry stamps
+in the hundreds and thousands. A comparison that reads `collide_o` a frame
+late sees −1 and calls it agreement.
+
+**Why it was taken, and what it does not do.** It was booked when Great
+Lakes' word stood at 6862 and the next divergence looked likely to land in
+the gap. The word moved to **6982** while the stanza was being written, which
+run79 already covers, so **this run moves no score**. What it does is retire
+the last stretch whose lockstep rested on the draw stream alone: over
+6870–6909 no record of any kind had ever been compared, and a state
+divergence that did not perturb draws for seventy frames would have been
+attributed to the economy at 6982 by everyone who looked. The forty frames
+are now a diff like every other.
+
+**Positions across the hole**, for whoever diffs it next:
+
+| unit | 6870 | 6890 | 6909 |
+| --- | --- | --- | --- |
+| `1/13` citizen | (42744, 24504) | (42744, 24504) | (42744, 24504) |
+| `1/17` citizen | (42360, 23736) | (42360, 23736) | (42324, 23702) |
+| `1/27` Archer | (43040, 24552) | (43094, 24189) | (42729, 24106) |
+| `1/28` Archer | (42622, 24647) | (42337, 24323) | (42129, 24036) |
+| `1/29` Archer | (42806, 24254) | (42426, 23894) | (42153, 23848) |
+
+All three Archers hold `group 64` throughout; `1/13` and `1/17` are `form 9`
+and ungrouped.
+
 ## The window nobody can see — CrossOver's expired bottle (2026-09-04)
 
 **run 76 did not run, and the reason had nothing to do with permissions.**
