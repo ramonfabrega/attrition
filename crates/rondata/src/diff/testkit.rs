@@ -406,7 +406,23 @@ pub(crate) fn sibling_texts() -> Vec<String> {
 /// units of lag, the passenger comes ashore that much later, and the
 /// stand at 7448 is met on time with the fix
 /// (`docs/TRANSPORT.md` §6.2, `run86_s_window_is_the_transport_ride`).
-pub(crate) const LONG_WORD_EAST_INDIES: i64 = 7_529;
+///
+/// **7529 for a day, and the frame was an age.** The AI citizen `1/13`
+/// carried a `GATHERORDER` `wait` of `theirs + 1` on all 55 blocks of the
+/// cycle that ends there, so the original's countdown ran out on 7529
+/// where this crate still held 1. The countdown's arithmetic was never
+/// wrong: it is seeded by the **arrival** frame, and this crate arrived a
+/// frame late. run86 has the whole of it — the *only* angle divergence in
+/// its 487 blocks is `1/13`'s facing on block **6937**, which is the
+/// block every one of player 1's buildings flips `max_age` 0 → 1 on.
+/// `Leader::gain_tech`'s `is_age_type` arm re-places every unit of the
+/// leader with `Unit::set_new_location(u, u.x, u.y, 1, 1)`, and those two
+/// snap flags write the figure's facing and body outright — a free turn
+/// for the one unit that was mid-turn, and nothing at all for the other
+/// 21 (`docs/TECH.md`, "An age snaps every figure";
+/// [`sim::Sim::gain_tech`]). It cost `1/13` one frame at the tile, 545
+/// frames of `+1`, and 277 frames of this counter.
+pub(crate) const LONG_WORD_EAST_INDIES: i64 = 7_806;
 
 /// Great Lakes' word on the **long** capture (run53), the second of
 /// `docs/DECISIONS.md` entry 29's counters — and, since run61 put the

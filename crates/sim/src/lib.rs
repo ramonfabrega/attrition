@@ -2420,10 +2420,52 @@ impl Sim {
             }
         }
         self.apply_gained(who);
+        // **An age re-places every one of the leader's units where it
+        // already stands** — `Leader::gain_tech@006dcb60:2366`, gated on
+        // `TypeData::is_age_type` (the type vtable's `+0x34`, `is_epoch_type`
+        // is `+0x38` and does not qualify). The loop is
+        // `Unit::update_gpiece` then `Unit::set_new_location(u, u.x, u.y,
+        // 1, 1)`, and it is the **snap** flags that matter here rather than
+        // the graphic: `param_4` runs `Guy::set_angle(guy 0, unit->angle,
+        // 1)`, which writes the figure's own facing outright, and `param_3`
+        // puts guy 0 and every tracked crew figure on their points.
+        //
+        // For a unit standing still, or one already facing the way it is
+        // going, this changes nothing — which is why a once-per-age event
+        // is invisible almost everywhere. For a unit **mid-turn** it is a
+        // free turn: the frame's step has already been taken along the old
+        // facing, and the next one starts from the heading.
+        //
+        // [`Sim::tick`] runs the buildings after the unit loop, so the snap
+        // lands after the frame's own step, which is what run86 shows.
+        if matches!(self.tech_tree.kind(t), tech::Kind::Age(_)) {
+            self.age_snap_units(who);
+        }
         // `Leader::gain_tech`'s tail: `check_transport` (`docs/TRANSPORT.md`
         // §4).
         self.check_transport(who);
         events
+    }
+
+    /// The age's re-placement loop, for one leader — `Leader::gain_tech`'s
+    /// `is_age_type` arm (`docs/TECH.md`, "An age snaps every figure").
+    ///
+    /// `Unit::set_new_location(u, u.x, u.y, 1, 1)` on a unit that is already
+    /// there reduces to three writes: the figure's facing takes the unit's
+    /// own `+0x50` (this crate's [`crate::Movement::heading`]), guy 0's body
+    /// goes onto the unit, and each tracked crew figure is **put** on its
+    /// offset rather than told to walk to it — [`Sim::crew_des`]'s `snap`.
+    fn age_snap_units(&mut self, who: Player) {
+        for u in 0..self.units.len() {
+            if !self.units[u].alive() || self.units[u].owner != who {
+                continue;
+            }
+            let pos = self.units[u].pos;
+            let angle = self.units[u].movement.heading;
+            self.units[u].movement.set_facing(angle);
+            self.units[u].movement.body.pos = pos;
+            self.crew_des(u, pos, angle, true);
+        }
     }
 
     /// `Leader::gain_tech@006dcb60`'s goods loop: **the starting grant
