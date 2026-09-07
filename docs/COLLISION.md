@@ -308,8 +308,13 @@ whether the order carries a group — `0x13`/`0x15` sit *inside* the gated
 seven, beside the `1`/`2` this crate writes them as — so the crate's old
 `m.group.is_none() ||` escape was an invention with no counterpart here.
 
-A soft collision at the end of the scan sets `unit_masks & 0x100000`, the
-one-shot half step `docs/MOVEMENT.md` names, and returns 0.
+A soft collision at the end of the scan sets `unit_masks & 0x100000`
+(`00617817`), the one-shot half step `docs/MOVEMENT.md` names, and returns
+0. **It is set once for the whole nine-cell sweep**, whatever the scan
+found, and it is set only on the full call — the `nocoll` and quick forms
+return before the loop. The step it pays for is the *next* frame's:
+`move_step` decides the halving before it probes, so the flag a frame sets
+is spent by the frame after.
 
 Anything else is **hard**, unless the corner rule lets the two slip past:
 
@@ -712,10 +717,17 @@ frame's turn is instant. Without that the snapped unit spends a frame
 turning and is one step behind for the rest of its walk — which is exactly
 what run10's frame 124 showed before it was modelled.
 
+**The soft half-step flag landed 2026-09-06** (item 219), and it is the
+mechanic's first appearance in a *score*. `Unit::half_step` had been
+written here since §4.3's group arm and nothing read it; `move_step` now
+takes it as an argument, halves the step on the arm that owes less than
+45°, and reports back so the caller clears the bit
+(`sim::movement::Step::half_step_used`, `docs/MOVEMENT.md`). The three
+Archers of run76 crowd each other on the frames after the group order and
+pay for it exactly there — Great Lakes 6848 → 6862.
+
 Not modelled, each listed in §9: `detect_boat_collision` (no ships); step 1
-(`+0x2b4 & 0x2000`) and step 3 (the enemy ladder); the soft half-step flag
-(`Unit::half_step` is written and nothing reads it — the halving lives
-inside `move_step`, which this crate does not thread it into); the
+(`+0x2b4 & 0x2000`) and step 3 (the enemy ladder); the
 `TRADE_ROUTE`, `0xc` and group arms of §4.3; §5.2's own group arm and its
 general `find_unit_with_radius` path;
 `do_move`'s own collision arm — the every-other-frame re-probe of
@@ -883,8 +895,13 @@ buildings join the chain, which is why §8 does not claim it.
 
 **Reading-only** — no capture has executed these:
 
-- §4.3's `TRADE_ROUTE` and `0xc` arms, and the soft half-step flag. ~~The
-  group arm~~ — landed 2026-09-04, §9.
+- §4.3's `TRADE_ROUTE` and `0xc` arms. ~~The group arm~~ — landed
+  2026-09-04, §9. ~~The soft half-step flag~~ — landed 2026-09-06, and it
+  is **diff-backed twice**: run76's three Archers march 6652 → 6861 on the
+  original's own points and run53's word moved 6848 → 6862, and run79's
+  second squad is 256 more frames of the bit's own record — seven flagged
+  frames, seven halved steps after them, and no other half step in the
+  march (`docs/ORDERS.md` §15.1).
 - §4.3's **figure-centred `is_corner`** (2026-09-04). Both long words are
   unmoved by it, so no run on disk has a blocker whose figures answer
   differently from the blocker — which is what one would expect while the

@@ -465,6 +465,11 @@ pub struct Step {
     /// either — the arms that cover no ground and hand `Guy::do_turn` its
     /// animation override (`docs/ANIM.md` §4.8).
     pub turned_in_place: Option<TurnArm>,
+    /// Whether this frame **spent** the one-shot half step —
+    /// `unit_masks & 0x100000`, which `move_step`'s `005fb219` halves the step
+    /// by and clears in the same breath. The caller owns the bit, so it
+    /// clears it on a `true` here (`docs/COLLISION.md` §7).
+    pub half_step_used: bool,
 }
 
 /// The two arms of `Unit::move_step` that spend the frame turning, told
@@ -500,7 +505,8 @@ pub enum TurnArm {
 ///    or more further out (80° for a ship, aircraft or vehicle two tiles out
 ///    or more).
 /// 3. Otherwise **walk at half speed** while still owing 45° (22.5° for a slow
-///    type).
+///    type) — and, owing less than that, walk at half speed anyway if
+///    `half_step` is set, spending it.
 /// 4. Snap onto the destination if the Manhattan distance is within the step.
 /// 5. Otherwise take the trig components **along the new facing**, clamp each
 ///    axis to what remains — only when within two steps, which is also the
@@ -520,6 +526,15 @@ pub enum TurnArm {
 /// there; this crate passes `false`, since a unit with no path is walking
 /// straight at its destination and the near-distance arm covers the last
 /// tile anyway.
+///
+/// `half_step` is `unit_masks & 0x100000` — the one-shot the **soft**
+/// collision arm sets when a unit's proposed point is occupied by someone it
+/// is allowed to squeeze past rather than stop for, a squadmate above all
+/// (`docs/COLLISION.md` §4.3, §7). It is read only on the arm that owes less
+/// than 45°, and reading it there is what makes a marching formation's
+/// leader step `26, 13, 26, 26, 13` where an unimpeded walk steps 26 flat.
+/// The bit lives on the unit, so the caller clears it when
+/// [`Step::half_step_used`] comes back true.
 #[allow(clippy::too_many_arguments)]
 pub fn move_step(
     from: Pos,
@@ -529,6 +544,7 @@ pub fn move_step(
     turning: &Turning,
     turn_rate: u32,
     turn_first: bool,
+    half_step: bool,
 ) -> Step {
     let (dx, dy) = (dest.x - from.x, dest.y - from.y);
     let heading = find_angle(dx, dy);
@@ -548,6 +564,7 @@ pub fn move_step(
         arrived: false,
         snapped: false,
         turned_in_place: None,
+        half_step_used: false,
     };
     if manh < slow * UNITS_PER_TILE || turn_first {
         // Close in — or told to by the waypoint — any turn still owed
@@ -572,10 +589,17 @@ pub fn move_step(
         }
     }
 
-    // Half a step while still turning hard. (The original also has a one-shot
-    // half step here, `unit_masks & 0x100000`, which a *soft* collision sets
-    // — `Unit::half_step`, written but not yet read: `docs/COLLISION.md` §7.)
+    // Half a step while still turning hard — and, when the turn is *not*
+    // hard, the one-shot half step a **soft** collision left behind
+    // (`unit_masks & 0x100000`, `005fb1f4`–`005fb219`). The two are the two
+    // arms of one `if`: a unit still owing 45° halves whatever the flag
+    // says and keeps the flag, and a unit owing less halves only if the
+    // flag is set and spends it doing so (`docs/COLLISION.md` §7).
+    let mut half_step_used = false;
     let step = if owed >= FORTY_FIVE / slow as u32 {
+        step / 2
+    } else if half_step {
+        half_step_used = true;
         step / 2
     } else {
         step
@@ -590,6 +614,7 @@ pub fn move_step(
             arrived: true,
             snapped: true,
             turned_in_place: None,
+            half_step_used,
         };
     }
 
@@ -616,6 +641,7 @@ pub fn move_step(
         arrived: pos == dest,
         snapped: false,
         turned_in_place: None,
+        half_step_used,
     }
 }
 
@@ -1063,7 +1089,7 @@ mod tests {
         let mut frames = 0;
         loop {
             let rate = turn_speed(&T, &CITIZEN, 25, 25, TurnMode::Unit);
-            let step = move_step(pos, facing, dest, 25, &CITIZEN, rate, false);
+            let step = move_step(pos, facing, dest, 25, &CITIZEN, rate, false, false);
             pos = step.pos;
             facing = step.facing;
             frames += 1;
@@ -1095,6 +1121,7 @@ mod tests {
             &CITIZEN,
             rate,
             false,
+            false,
         );
         assert_eq!(s.facing, Angle::WEST);
         assert_eq!(s.owed, 0);
@@ -1116,7 +1143,7 @@ mod tests {
         let mut stood = 0;
         let s = loop {
             let rate = turn_speed(&T, &SIEGE, 0, 0, TurnMode::Unit);
-            let s = move_step(pos, facing, dest, 25, &SIEGE, rate, false);
+            let s = move_step(pos, facing, dest, 25, &SIEGE, rate, false, false);
             facing = s.facing;
             if s.pos != pos {
                 break s;
@@ -1136,6 +1163,67 @@ mod tests {
     }
 
     #[test]
+    fn a_soft_collision_costs_the_next_step_its_half_and_is_spent_doing_it() {
+        // `unit_masks & 0x100000`, `move_step@005faf30`'s `005fb1f4`–`005fb219`: the
+        // one-shot a **soft** collision leaves behind
+        // (`docs/COLLISION.md` §4.3, §7). It is read on the arm that owes
+        // *less* than 45° — the arm a marching squad spends every frame on
+        // — and reading it is what makes run76's captain step
+        // `26, 13, 26, 26, 13` where the same walk unimpeded steps 26 flat.
+        let rate = turn_speed(&T, &CITIZEN, 25, 25, TurnMode::Unit);
+        let dest = Pos::new(0, -10_000);
+        let plain = move_step(
+            Pos::new(0, 0),
+            Angle::NORTH,
+            dest,
+            26,
+            &CITIZEN,
+            rate,
+            false,
+            false,
+        );
+        assert_eq!(plain.owed, 0);
+        assert_eq!(plain.pos, Pos::new(0, -26));
+        assert!(!plain.half_step_used);
+        let soft = move_step(
+            Pos::new(0, 0),
+            Angle::NORTH,
+            dest,
+            26,
+            &CITIZEN,
+            rate,
+            false,
+            true,
+        );
+        assert_eq!(soft.pos, Pos::new(0, -13), "the one-shot half step");
+        assert!(soft.half_step_used, "and the frame spends it");
+
+        // **The other arm does not spend it.** A turn of 45° or more halves
+        // the step on its own, and the original's `else` never touches the
+        // bit — so a unit that soft-collided while turning hard still owes
+        // itself a half step when the turn is done. The siege piece's fifth
+        // frame is that arm (`a_siege_piece_turns_in_place_and_then_walks…`).
+        let mut pos = Pos::new(0, 0);
+        let mut facing = Angle::EAST;
+        let turning = loop {
+            let rate = turn_speed(&T, &SIEGE, 0, 0, TurnMode::Unit);
+            let s = move_step(pos, facing, dest, 25, &SIEGE, rate, false, true);
+            facing = s.facing;
+            if s.pos != pos {
+                break s;
+            }
+            pos = s.pos;
+        };
+        assert!(turning.owed >= FORTY_FIVE / 2, "the hard-turn arm");
+        assert_eq!(
+            turning.pos.x.abs() + turning.pos.y.abs(),
+            16,
+            "halved once, not twice"
+        );
+        assert!(!turning.half_step_used, "the hard-turn arm keeps the bit");
+    }
+
+    #[test]
     fn close_to_the_destination_any_turn_owed_costs_the_frame() {
         // Within a tile — two for a slow type — the unit will not move while it
         // owes anything at all, even a turn it could otherwise walk through.
@@ -1150,6 +1238,7 @@ mod tests {
             &SIEGE,
             rate,
             false,
+            false,
         );
         assert!(near.owed != 0 && near.owed < FORTY_FIVE);
         assert_eq!(near.pos, Pos::new(0, 0));
@@ -1161,6 +1250,7 @@ mod tests {
             25,
             &SIEGE,
             rate,
+            false,
             false,
         );
         assert_eq!(far.owed, near.owed);
@@ -1181,6 +1271,7 @@ mod tests {
             &SIEGE,
             rate,
             true,
+            false,
         );
         assert_eq!(told.owed, near.owed);
         assert_eq!(told.pos, Pos::new(0, 0), "the flag costs the whole frame");
@@ -1194,6 +1285,7 @@ mod tests {
             &SIEGE,
             rate,
             true,
+            false,
         );
         assert_eq!(facing.owed, 0);
         assert_ne!(facing.pos, Pos::new(0, 0));
@@ -1217,6 +1309,7 @@ mod tests {
             &CITIZEN,
             rate,
             false,
+            false,
         );
         // Both clamps fire, so it lands exactly on the destination — and with
         // a zero tolerance that is arrival, even though the snap never said so.
@@ -1236,6 +1329,7 @@ mod tests {
             149,
             &CITIZEN,
             rate,
+            false,
             false,
         );
         assert_eq!(s.pos, near);

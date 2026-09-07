@@ -437,7 +437,11 @@ what stops a lumbering type from spending its last tile spinning.
 **It walks at half speed while still turning.** Owing 45° or more (22.5° for a
 slow type) after this frame's turn halves the step. A separate one-shot half
 step, `unit_masks & 0x100000`, is set by `detect_unit_collision` and consumed
-here; it is collision's, not movement's, and is not modelled.
+here — it is collision's, not movement's, and it is the **`elif`**: the
+hard-turn arm never touches the bit, so a unit that soft-collided while
+turning still owes itself a half step afterwards. Modelled since 2026-09-06
+(item 219): it is what makes a marching squad's captain step
+`26, 13, 26, 26, 13` where the same walk unimpeded steps 26 flat.
 
 **The trig uses the facing after this frame's turn**, `new`, not the heading
 `want`. A unit that cannot complete its turn this frame walks along where it
@@ -1255,8 +1259,8 @@ the checks below.
   `docs/COLLISION.md` and `crates/sim/src/collide.rs`. `detect_unit_collision`
   runs on every proposed step, `resolve_unit_collision` when it fails,
   `UnitData::tolerance` is set to `2 × manh` when the unit gives up, and the
-  `0x100000` one-shot half step is collision's — the last of those is the only
-  part still unmodelled (§7 there). `PUSH_SIZE` and `PUSH_CIRCLES` in
+  `0x100000` one-shot half step is collision's — **modelled since 2026-09-06**,
+  item 219 (§7 there). `PUSH_SIZE` and `PUSH_CIRCLES` in
   `unitrules.xml` remain unread; the occupancy profile the mechanic actually
   uses is `BLOCK_RADIUS`.
 - **Formations and groups.** `Group::compute_speed`, `report_speed` and

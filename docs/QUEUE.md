@@ -16,11 +16,12 @@ lines, or lets the handoff pass 32.
 new blocker.* **Great Lakes 6848, East Indies 7448**; 227's window parting
 moved 6640 → 6652.
 
-- **227 is done**: a squad member sweeps its **captain's** ring, not the
-  trainer's (`come_out` swaps the host at `618022`, CITIES §6.5.1). What
-  is left of Great Lakes 6848 is the **march** — the original steps
-  `26, 13, 26, …` and this crate steps `26` flat — which is **item 219**,
-  now the default item.
+- **219 is done**: the march's halving is neither the speed nor the group
+  cap but `unit_masks & 0x100000`, the one-shot half step a **soft**
+  collision leaves behind (COLLISION §4.3, ORDERS §15.1). The squad now
+  walks the original's points 6652 → 6861, and run79's second squad is the
+  mechanic's second sample, asserted. **Item 236** is what stands at 6862,
+  and it is the default item.
 - **The Mac went down on 2026-09-04** under the release suite: 27.6 GB
   resident, swap full. `tools/memcap.sh <gib> <cmd…>` is the guard, and
   **every release run goes through it** — `zsh tools/memcap.sh 20 cargo
@@ -34,7 +35,7 @@ moved 6640 → 6652.
   --cwd` on a worktree cut here, `--permission-mode auto`.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w7448 of 24,000 · GreatLakes w6848 of 24,000
+Long captures: EastIndies w7448 of 24,000 · GreatLakes w6862 of 24,000
 
 ## The queue
 
@@ -50,6 +51,15 @@ journal is indexed by them.
     passes 18 GB and took the machine down once. An arena for fields and
     children, or a frame-lazy `Log`, and a measured peak in the guard's own
     output. Everything else waits on the gate this owns.
+
+236. **The squad meets the citizen — Great Lakes 6862's blocked stand.**
+    219's successor and the map's nearest divergence: the original spends
+    `Guy::set_anim+0x97a < Unit::move_step+0x823` on 6862 and this crate
+    does not. First field to part is `1/29` on 6861 — the original widens
+    its `tolerance` to 384 (`manh × 2`, COLLISION §5) and steps a full 26
+    to `(42968, 24407)` where this crate steps 22 to `(42971, 24409)`;
+    `1/28` then stands on 6862 where the original steps. run76's window
+    covers it all.
 
 226. **`cover=1` dies in the wow64 bop at the exe's entry**, layout-sensitive
     and reproduced by `tools/trace/wow64bop.c` (ORACLE, "The falsifier for
@@ -145,7 +155,10 @@ Military level and `army.rs` reads `ages`**, `army.rs:769,1365`.
 211. **`get_speed`'s three remaining arms** (MOVEMENT, "The river halves…"):
     `unit_masks & 0x10`, set and cleared inside a frame; `has_general(0,
     0x162)`'s siege doubling; the group cap, whose `movement::group_capped`
-    is uncalled — now 219's second half.
+    is uncalled — and 219 established the cap's gate is
+    `action_type == 0`, which a marching unit never answers (ORDERS §15.1),
+    so it needs a capture with a grouped unit holding no action.
+
 
 229. **A figure in melee does not step its clock** — `unit_masks2 & 0x10`
     freezes `Guy::inc_time` (ANIM §5), pinned off run17/run44's own

@@ -700,12 +700,21 @@ pub(crate) const LONG_WORD_EAST_INDIES: i64 = 7448;
 /// trainer and `Wall::decrement_stats@00642da0` takes it out again
 /// ([`sim::Sim::mil_trainer_open`], `docs/AI.md` §29).
 ///
-/// **6848**, and it is one extra `Guy::set_anim+0x97a <
+/// It was **6848** for one item, and that item was the **march**: the
+/// AI's Archer squad ran ahead of the original's because this crate
+/// stepped 26 flat where the captain steps `26, 13, 26, 26, 13`. The
+/// halving is `unit_masks & 0x100000`, the one-shot a **soft** collision
+/// leaves behind — a squadmate in the way is squeezed past rather than
+/// stopped for, and the price is the next step's half
+/// (`docs/COLLISION.md` §4.3, §7, `docs/ORDERS.md` §15). The bit was
+/// written and nothing read it; `move_step` reads it now.
+///
+/// **6862**, and it is one missing `Guy::set_anim+0x97a <
 /// Unit::move_step+0x823` — the blocked walker's stand
-/// (`sim::anim::SITE_BLOCKED`, `docs/COLLISION.md` §5). A unit's step is
-/// refused here and taken there, which is the same site East Indies
-/// parts on at 7448 with the sign the other way round (item 214).
-pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 6848;
+/// (`sim::anim::SITE_BLOCKED`, `docs/COLLISION.md` §5), where the squad
+/// meets the standing citizen `1/13`. The same site East Indies parts on
+/// at 7448 (item 214); the sign is the original's here.
+pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 6862;
 
 /// The frame the AI's library takes its **Coinage** job on, and the
 /// frame run58's `QUEUE` record used to part on: twenty-four rows of

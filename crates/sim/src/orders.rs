@@ -2792,6 +2792,11 @@ impl Sim {
             .path
             .last()
             .is_some_and(|e| e.flags & path_flag::TURN_FIRST != 0);
+        // `unit_masks & 0x100000`, the one-shot half step the **soft**
+        // collision arm left on this unit last frame
+        // (`docs/COLLISION.md` §7). `move_step` spends it and says so;
+        // the bit is the unit's, so the clearing is here.
+        let half = self.units[u].half_step;
         let step = movement::move_step(
             from,
             m.facing,
@@ -2800,7 +2805,11 @@ impl Sim {
             &m.turning,
             rate,
             turn_first,
+            half,
         );
+        if step.half_step_used {
+            self.units[u].half_step = false;
+        }
         // `Unit::move_step`'s own `set_angle`, which is the one call of the
         // eighteen this simulation makes — and it is where a marching
         // leader's turn-around flips its group's mirror flag
