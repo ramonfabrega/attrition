@@ -36,6 +36,7 @@ mod harness;
 mod order;
 mod report;
 mod setup;
+mod shutdown;
 mod unit;
 
 #[cfg(test)]
@@ -52,4 +53,5 @@ pub use harness::*;
 pub use order::*;
 pub use report::*;
 pub use setup::*;
+pub use shutdown::*;
 pub use unit::*;

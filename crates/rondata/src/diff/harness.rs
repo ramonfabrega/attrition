@@ -6989,23 +6989,33 @@ mod tests {
         borrow_from_siblings(&mut init, &refs);
         borrow_pasture(&mut init, &tr);
         let mut built = build_sim(&loaded, &init, Tuning::RON);
-        for _ in 0..fin.n {
+        for _ in 0..fin.n - 1 {
             built.tick();
         }
-        let end = compare(&built, &fin, 8);
-        let off: std::collections::BTreeMap<(i64, i64), (i32, i32)> = end
-            .diverged
-            .iter()
-            .map(|d| ((d.who, d.o), (d.ours.x - d.theirs.x, d.ours.y - d.theirs.y)))
-            .collect();
+        // Stepping to 6945 and letting [`compare_shutdown`] take the last
+        // frame is what separates the dump's **own** one-tick tear from a
+        // divergence that is ours (`docs/ORACLE.md`, "The shutdown dump").
+        // When this test first landed it did not, and `0/3` was booked as a
+        // gap of (-18, 18) that this crate did not have: the closing dump
+        // simply holds that unit on its 6945 position, which is where the
+        // simulation had it a tick before.
+        let end = compare_shutdown(&mut built, &fin, 8);
+        let off = end.off.clone();
         eprintln!(
-            "run82 6946: {} compared, {} unlinked, off {off:?}",
-            end.compared, end.unlinked
+            "run82 6946: {} compared, {} unlinked, torn {:?}, off {off:?}",
+            end.compared,
+            end.unlinked.len(),
+            end.torn
         );
         assert_eq!(
-            (end.compared, end.unlinked),
+            (end.compared, end.unlinked.len()),
             (28, 0),
             "the shutdown dump's 28 player units all link"
+        );
+        assert_eq!(
+            end.torn,
+            vec![(0, 3)],
+            "`0/3` is the closing dump's tear, not a divergence"
         );
 
         // **`1/20` is exact at 6946 — the whole of item 241 in one row.**
@@ -7017,13 +7027,13 @@ mod tests {
             "`1/20` is on the original's own position at 6946: {off:?}"
         );
 
-        // The rest of the block, whole: the unpack's constant, and **two
-        // units that part inside the sixteen frames after the window** —
-        // neither of them near the word, and neither ever compared before
-        // this test existed.
+        // The rest of the block, whole: the unpack's constant, and **one
+        // unit that parts inside the sixteen frames after the window** —
+        // `1/13`, which run86 also has parting at 6938 (item 253). It is
+        // off at 6945 too, by (33, 19), so it is not the dump's tear.
         assert_eq!(
             off,
-            [((0, 3), (-18, 18)), ((1, 13), (11, 7)), ((1, 19), (24, 24)),]
+            [((1, 13), (11, 7)), ((1, 19), (24, 24))]
                 .into_iter()
                 .collect(),
             "run82's shutdown dump, every unit of it"

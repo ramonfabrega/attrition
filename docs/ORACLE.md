@@ -3673,9 +3673,11 @@ The single disagreement is the same unit in both — `0/5`, the human's one
 *moving* citizen, which the closing block holds at its 6620 position while
 every other unit, five of them mid-step, is at 6621. Two independent
 captures, one unit. So a closing block is block `n` for almost everything
-and one tick behind for at least one unit, and the harness scores no unit
-position in it. Why that unit is the exception is unread; the fix does not
-need it.
+and one tick behind for at least one unit. ~~And the harness scores no unit
+position in it.~~ **It does, since 2026-09-07**: the lag is decidable,
+because a torn unit is on the simulation's own `n - 1` position — see "The
+shutdown dump" below, and `rondata::diff::compare_shutdown`. Why the quit
+catches the unit it does is still unread; the fix does not need it.
 
 It had cost something already: `run66_s_window_is_the_original_s_unit_for_unit`
 excepted `0/5` by name for a day as queue item 188, on the strength of a
@@ -5421,6 +5423,111 @@ capture on disk stays comparable to every capture taken from here on.
   the lane can do either way — but it is the sharpest lead anyone reading
   Wine's dispatch would want, and the two builds are one `-DROUNDS=` apart
   (`wow64bop.sh`), so reproducing the pair costs a minute.
+
+## The shutdown dump — 65 archives of free ground truth, and its one-tick tear (2026-09-07)
+
+`GameLog::end_game` writes a **whole-map state on the way out of every game
+that is quit rather than killed**. It costs no capture, no window and no
+`DUMP_ALL`; it is already on disk, in almost every archive, and until item 241
+nothing had parsed one. This is the sweep of all of them.
+
+### The census: 65 of 95
+
+`cargo test -p rondata the_census_is_the_corpus` is the table, one row per
+archive, and it is asserted rather than reported:
+
+| shape | archives | who reads it |
+| --- | --- | --- |
+| **sibling** of the last `FRAME n`, at `FRAME`'s own indent | **65** | `Log::final_state`, and nothing before it |
+| **child** of that block — the quit landed before the indent popped | 25 | `Log::frame_states`, all along |
+| a `DUMP_ALL` run's trailing `FULL DUMP` | 4 | `Log::dumps`, all along |
+| no closing state at all | 1 (run1) | — |
+
+A rough grep for "object records after the last `FRAME` line" answers **92 of
+92** and is the wrong number: it counts the `FULL DUMP` and the nested shapes
+too, and the gap between 92 and 65 is exactly the population those two make
+up. Only the reader can say.
+
+**Which shape a run lands in is not a property of the capture's settings.**
+run81 and run82 are the same recipe on the same map and both are siblings;
+run83 through run86 are the same recipe again and all four are nested. It is
+where inside the frame the quit fired.
+
+### It is frame `n`, and the label is not a guess
+
+Two independent checks, and they have to be two, because within one file both
+records are written at the same instant:
+
+- **Within a file.** 36 archives carry a closing dump *and* an ordinary
+  `FRAME n` body at the same `n`. On all 36 the two agree on **every unit's
+  position and every unit's flags** — 110 unit-moves inside those frames, so
+  it is not a corpus of armies standing still
+  (`a_closing_dump_and_its_own_block_are_one_state`). That is consistency.
+- **Across captures.** run72 quit at 4811 with its window long closed, so its
+  closing dump is the only record it has of that frame; run71 is the same
+  Great Lakes game running past it, dumping every frame. **27 of the 28 units
+  agree.** The twenty-eighth, `0/3`, sits on run71's **4810** position, and on
+  4811 run71 has it (−18, +18) further on
+  (`the_closing_dump_lags_one_tick_on_one_unit`). That is accuracy.
+
+So the closing dump is frame `n` for almost everything, and one tick behind
+for a unit whose update had not run when the quit fired.
+
+### The tear is decidable, which is what makes the dump scoreable
+
+run68 saw the same lag from the other side — `0/5`, one unit, one tick, on two
+captures — and concluded that *the harness scores no unit position in a
+closing block*. It can. A torn unit is on the simulation's own `n − 1`
+position, so stepping to `n − 1` and taking the last frame inside the
+comparison separates the dump's tear from a divergence that is ours.
+`rondata::diff::compare_shutdown` is that, and `ShutdownResult` keeps the two
+apart: `torn` and `off`.
+
+It has to be decided rather than excepted, because **it is a different unit
+every time**: `0/3` on run72 and run82, `0/4` on run64, `0/5` on run56, run57
+and run68's pair, nothing at all on the other nine. An exception list would be
+a list of accidents.
+
+It had already cost an assertion. `run82_s_window_is_the_east_indies_ride_s_run_up`
+landed the night before with `0/3` booked as a gap of (−18, 18) this crate
+did not have; it is the tear, and the row is gone.
+
+### What the sweep bought, and what it did not
+
+Fourteen closing dumps are now diffed whole, every unit of every record, on
+the two scored maps:
+
+| map | frames | new? |
+| --- | --- | --- |
+| Great Lakes | 2001, 3001, **4811**, 5001, **5591** | 4811 is 6 frames past run72's last block; 5591 is 12 past run73's |
+| East Indies | 1501, 3001, 3584, 4001, 5201, 5401, 6181, 6221, **6816**, **6946** | 6816 is 17 past run81's; 6946 is 17 past run82's |
+
+All fourteen reproduce. The only residue anywhere in them is run82's `1/13`
+(item 253) and its `1/19` unpack constant.
+
+**No word moved, and none could have.** Great Lakes' long word is 7176 and
+East Indies' is 7529; the furthest closing dump below either is 6946. Every
+archive that quit *above* a word — run77, run78, run85, run86 — is the nested
+shape, so `frame_states` has had its state all along. What the sweep bought is
+**coverage under the word**, which is worth having precisely because a draw
+stream that matches is not a position that matches: item 250 bought 182 frames
+of exactly matching draws on a destination that was still two tiles wrong.
+
+**Setup is the whole game in a sweep like this.** The same nine East Indies
+archives read 18 divergences apiece against a generic sibling set and **zero**
+against run38's start block with the pasture borrowed from their own trace.
+A sweep's first numbers are a finder, not a finding.
+
+### What is still on the table
+
+Ten archives carry a closing dump and **no ordinary block anywhere in the
+file** — the long traces, whose per-frame categories were off. Among them are
+whole-map states at frame **24001** on both scored maps (run53 Great Lakes,
+run21/run23/run54 East Indies) and at 15105, 15401, 16007 and 16489 on East
+Indies. Those are the finish line's own frames, already on disk, free. They
+are 8,000 frames past where either map holds today, so they are an endpoint
+oracle rather than a next item — but when a map's word reaches them, the
+record is waiting.
 
 ## The falsifier for 226, costed — and it turned out to be 3.5 KB
 

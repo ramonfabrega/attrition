@@ -770,6 +770,25 @@ original writes.
 Read it with `cargo test -p rondata the_widening_ledger -- --nocapture`; the
 per-record breakdown is the output, and it is the queue of cheap widenings.
 
+### 4.1 The other axis: the records nothing *reads* (2026-09-07)
+
+The ledger above counts **fields**: what the parser fills and the differ
+never names. There is a second axis, and it cost twelve months of a free
+oracle before anyone swept it — **records the reader cannot reach at all**.
+
+`GameLog::end_game` writes a whole-map state on the way out of every game
+that is quit. On 65 of this machine's 95 archives it lands as a *sibling* of
+the last `FRAME n` block rather than a child, so the frame walk cannot see it
+and `Log::dumps` catches it only under a `DUMP_ALL`'s `FULL DUMP`.
+`Log::final_state` is the reader, and until 2026-09-07 exactly one capture
+used it. Fourteen of those states are now diffed whole and the census is a
+test (`docs/ORACLE.md`, "The shutdown dump"; `crates/rondata/src/diff/shutdown.rs`).
+
+The lesson generalises past this one record: **the field ledger cannot see a
+record the parser never visits**, the same way it cannot see a field the
+parser never parses (its own blind spot, above). Both are found by walking
+what the original writes, not by walking what this crate reads.
+
 ---
 
 ## What is not established
