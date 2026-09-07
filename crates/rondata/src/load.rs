@@ -1443,6 +1443,21 @@ pub fn load_tables(
     };
     tree.roles.fishermen_preq = [bonus_at(19), bonus_at(20), bonus_at(21)];
     tree.roles.merchants_preq = [bonus_at(99), bonus_at(100), bonus_at(101), bonus_at(102)];
+    // And the five ladders `docs/ECONOMY.md` indexes by — `GRANARY2..5`,
+    // `LUMBERMILL2..4`, `SMELTER2..4`, `UNIVERSITY2..6` and `TAX_1..4`, at
+    // `0x2bb`, `0x2c2`, `0x2c5`, `0x2e1` and `0x30b` off `BASE_BONUSTYPES`
+    // (`crate::tech::Roles::granary_preq`). They bracket the two above.
+    tree.roles.granary_preq = [bonus_at(15), bonus_at(16), bonus_at(17), bonus_at(18)];
+    tree.roles.lumbermill_preq = [bonus_at(22), bonus_at(23), bonus_at(24)];
+    tree.roles.smelter_preq = [bonus_at(25), bonus_at(26), bonus_at(27)];
+    tree.roles.university_preq = [
+        bonus_at(53),
+        bonus_at(54),
+        bonus_at(55),
+        bonus_at(56),
+        bonus_at(57),
+    ];
+    tree.roles.taxation_preq = [bonus_at(95), bonus_at(96), bonus_at(97), bonus_at(98)];
     ai_load::compute_ai_values(
         &mut tree,
         &tech::Setup::STANDARD,

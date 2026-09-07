@@ -1921,6 +1921,55 @@ fn object_numbers_are_per_player_and_a_dead_slot_is_reused() {
     assert_eq!(sim.units[u3].index, 1);
 }
 
+/// **A building's periodic phase is its object number, not its handle**
+/// (`Build::process@0061edf0:728`; `docs/CITIES.md` §5.8, item 233).
+///
+/// This is the assertion that would have caught the defect: the handle and
+/// the object number agree in **no** game — `o` is per player and starts at
+/// [`crate::BUILD_BASE`] (2000, which is 16 mod 32), the handle is global
+/// and starts at 0 — so the whole 32-frame family fired sixteen frames off
+/// for player 0's first building and somewhere else again for everyone
+/// else's. Both directions are tested on the same building, so a keying
+/// that happened to agree on one frame cannot pass.
+#[test]
+fn a_building_s_periodic_phase_is_its_object_number() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let (b0, _) = city_at(&mut sim, &t, 0, 32, 32);
+    let (b1, _) = city_at(&mut sim, &t, 1, 8, 8);
+    // Handle 0 and 1; object number 2000 for both, because the band is per
+    // player. Neither handle is congruent to 2000 mod 32.
+    assert_eq!((b0, sim.buildings[b0].index), (0, 2000));
+    assert_eq!((b1, sim.buildings[b1].index), (1, 2000));
+    for b in [b0, b1] {
+        assert_ne!(
+            (b as i64) % 32,
+            i64::from(sim.buildings[b].index) % 32,
+            "the fixture must be one where the two keyings disagree",
+        );
+    }
+
+    // The under-attack decay (§1.3) is the cheapest of the family to
+    // observe: `0x3` becomes `0x2` on the phase frame and on no other.
+    for b in [b0, b1] {
+        let o = i64::from(sim.buildings[b].index);
+        let mut fired = Vec::new();
+        for frame in 0..64 {
+            sim.buildings[b].under_attack = 0x3;
+            sim.process_building(b, frame);
+            if sim.buildings[b].under_attack != 0x3 {
+                fired.push(frame);
+            }
+        }
+        assert_eq!(
+            fired,
+            (0..64).filter(|f| (f + o) % 32 == 0).collect::<Vec<i64>>(),
+            "building {b} (o {o}): the 32-frame work is phased by o, not by \
+             the handle",
+        );
+    }
+}
+
 // ----------------------------------------------------------------------
 // A technology in the queue — `docs/PRODUCTION.md`, the research step
 // ----------------------------------------------------------------------

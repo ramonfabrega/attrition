@@ -1355,18 +1355,40 @@ far as anything read goes they are as dead as `calc_support`.
 adjudication). 112 stated rules traced to the code that implements them;
 twenty-one disagree, all twenty-one confirmed, none struck.
 
-**The sharpest is that this document's five indexed ladders never move.**
-`Levels::for_player` ignores its player and answers a constant whose
-`taxation` is 0, so "The territory tax"'s `TERRITORY_TAXES[taxation_level]`
-is `TERRITORY_TAXES[0]` — zero per cent — for the life of every game, and
-"The enhancers"' granary, lumber mill and smelter and "What a city gives"'
-university are all pinned at level 1. `crates/sim/src/holdings.rs` carries
-the seam; **this document does not**, and states the five as live
-arithmetic. The territory tax is the one that matters: it is not a level too
-low, it is a whole income line that can never be non-zero. No capture
-separates them — run60's 5,400 frames leave no territory-tax row — but
-run60's own `resource_cap` step at 2958 says the commerce line is being
-researched there, and the taxation ladder sits beside it.
+**The sharpest was that this document's five indexed ladders never moved
+— closed, item 232, 2026-09-07.** `Levels::for_player` ignored its player
+and answered a constant whose `taxation` is 0, so "The territory tax"'s
+`TERRITORY_TAXES[taxation_level]` was `TERRITORY_TAXES[0]` — zero per cent
+— for the life of every game, and "The enhancers"' granary, lumber mill and
+smelter and "What a city gives"' university were all pinned at level 1. It
+was not a level too low but a whole income line that could never be
+non-zero.
+
+The five now load like the two ladders beside them.
+`crate::tech::Roles` carries `granary_preq`, `lumbermill_preq`,
+`smelter_preq`, `university_preq` and `taxation_preq`, read from
+`TECHBONUSES` at 15–18, 22–24, 25–27, 53–57 and 95–98 off `BASE_BONUSTYPES`
+(`enums/TypeIndex.txt`; they bracket `FISHERMEN1..3` at 19–21 and
+`MERCHANTS_1..4` at 99–102, which the loader already had), and
+`Levels::for_player` answers each one's highest held rung through
+`Sim::bonus_level`. The four enhancers floor at 1 and taxation at 0 —
+`get_granary@006db340`'s `(held) + 1` against `get_taxation@006d6e20`'s
+`(uint)(held != 0)` — so a tree naming none of the rows still answers
+`Levels::BASE`, and the change is a widening. `assemble_holdings_with` now
+writes `Holdings::taxation`, which was the second half of the defect:
+nothing wrote it at all, so it kept its `Default` zero however the levels
+were computed.
+
+**No capture on disk can falsify any of this**, and that is stated here
+rather than left implied. The original's own territory tax is zero through
+every captured window too — neither leader reaches a taxation level inside
+one ("What run60 leaves") — so the two sides agreed before the fix and
+agree after it, and the endpoint at 24,001 does not move. This is
+correctness argued from `get_taxation`'s own listing, not from a diff. The
+check that would give it an oracle is a capture taken past a `TAX_1`
+research, with `LEADERDATA`'s `resources[2]` and `income[2]` on the frame
+after; run60's `resource_cap` step at 2958 says the commerce line *is*
+being researched there, and the taxation ladder sits beside it.
 
 Two rows are deliberate negatives and are not bugs. The `over_cap == 2`
 threshold is `999 × 16 − 16` in the code and `999 × 16 − 1` here, and the

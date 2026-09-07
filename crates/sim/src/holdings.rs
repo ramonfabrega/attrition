@@ -100,17 +100,17 @@ use crate::world::Player;
 /// `get_taxation@006d6e20` is the odd one out: `TAX_4…TAX_1` returning 4…1 and
 /// **0** when none is held.
 ///
-/// **These five are a seam.** `GRANARY2` is `TypeIndex` `0x2bb` and
-/// `BASE_BONUSTYPES` is `0x2ac`, so all of them — `GRANARY2..5`,
+/// **These five were a seam until item 232.** `GRANARY2` is `TypeIndex`
+/// `0x2bb` and `BASE_BONUSTYPES` is `0x2ac`, so all of them — `GRANARY2..5`,
 /// `LUMBERMILL2..4`, `SMELTER2..4`, `UNIVERSITY2..6`, `TAX_1..4` — are
-/// *bonus* types, and the tree `crates/rondata` loads holds units, buildings,
-/// goods, ages and techs but not bonuses. There is nothing in `Sim` to read
-/// them off yet. [`Levels::BASE`] is what the original answers for a player
-/// who holds none of them, which is every player at the start of a game, so
-/// it is the right default rather than a placeholder — but a game that runs
-/// long enough to research Agriculture will need them. The natural home is
-/// `city::Nation`, which already carries `temple_level` and
-/// `fort_garrison_level` for exactly this reason.
+/// *bonus* types, and the tree read them off nowhere: [`Levels::for_player`]
+/// answered [`Levels::BASE`] whatever the player held, so `taxation` was 0
+/// and the territory tax identically zero for the life of every game
+/// (`docs/audit/2026-09-05-economy-vs-code.md` R8). They are now loaded like
+/// the two ladders beside them — [`crate::tech::Roles::granary_preq`] and its
+/// four siblings, from the same `TECHBONUSES` list `FISHERMEN` and
+/// `MERCHANTS` come from — and read here through
+/// [`Sim::bonus_level`].
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Levels {
     /// `LeaderData::get_granary`, 1..=5.
@@ -138,13 +138,31 @@ impl Levels {
         taxation: 0,
     };
 
-    /// The levels for one player, as far as the simulation can tell.
+    /// The levels for one player: each ladder's highest row whose
+    /// prerequisite the player holds.
     ///
-    /// [`Levels::BASE`] today — see the type's note. This is the one function
-    /// to change when the bonus types arrive.
+    /// The four enhancers floor at **1** and taxation at **0**, which is the
+    /// only difference between `LeaderData::get_granary@006db340`,
+    /// `CityData::lumber_level@00736820`, `get_smelter@006db3f0` and
+    /// `get_university@006db1f0` on one side and
+    /// `get_taxation@006d6e20` on the other. A tree that names none of the
+    /// rows — every fixture that builds its own — therefore still answers
+    /// [`Levels::BASE`], so this is a widening and not a change of default.
+    ///
+    /// `lumber_level` and `granary_level` are `CityData` methods gated on the
+    /// city's own `city_flags & 0x400` / `& 0x200`; that gate is
+    /// [`Sim::city_holdings`]' `any(Ident::Lumbermill)` and
+    /// `any(Ident::Granary)`, and only the leader half is here.
     pub fn for_player(sim: &Sim, who: Player) -> Levels {
         debug_assert!((who as usize) < sim.holdings.len(), "no such player");
-        Levels::BASE
+        let roles = &sim.tech_tree.roles;
+        Levels {
+            granary: 1 + sim.bonus_level(who, &roles.granary_preq) as i32,
+            lumber_mill: 1 + sim.bonus_level(who, &roles.lumbermill_preq) as i32,
+            smelter: 1 + sim.bonus_level(who, &roles.smelter_preq) as i32,
+            university: 1 + sim.bonus_level(who, &roles.university_preq) as i32,
+            taxation: sim.bonus_level(who, &roles.taxation_preq),
+        }
     }
 }
 
@@ -337,13 +355,13 @@ impl Sim {
     /// Rebuilds the derivable half of one player's [`economy::Holdings`] from the live
     /// state — the walk `Leader::calc_gather` does before it starts summing.
     ///
-    /// Writes `cities`, `refineries`, `commerce` and `handicap`. **Leaves
-    /// alone** the four fields the simulation maintains elsewhere or has no
+    /// Writes `cities`, `refineries`, `commerce`, `handicap` and — since
+    /// item 232 — `taxation`, from the `levels` it is handed. **Leaves
+    /// alone** the fields the simulation maintains elsewhere or has no
     /// source for: `territory` and `land_size`
     /// (`Sim::update_territory_holdings`), `available` and `discovered` (the
-    /// tech layer), `bonus_cap` (scenario scripts only —
-    /// `ScenarioFuncSet::set_bonus_cap` is its one writer in the executable)
-    /// and `taxation` (a bonus type; see [`Levels`]).
+    /// tech layer) and `bonus_cap` (scenario scripts only —
+    /// `ScenarioFuncSet::set_bonus_cap` is its one writer in the executable).
     pub fn assemble_holdings(&mut self, who: Player) {
         let levels = Levels::for_player(self, who);
         self.assemble_holdings_with(who, levels);
@@ -388,6 +406,7 @@ impl Sim {
         h.refineries = refineries;
         h.commerce = commerce;
         h.handicap = handicap;
+        h.taxation = levels.taxation;
         h.british = self.nation[w].british;
         h.egyptians = self.nation[w].egyptians;
         h.french = self.nation[w].french;
@@ -856,6 +875,136 @@ mod tests {
         assert_eq!(outside[0].resource, Resource::Timber);
     }
 
+    /// A tree carrying the five `TECHBONUSES` ladders, nothing else: the
+    /// rows in level order, so `roles.*_preq[i]` is the `i+1`-th rung.
+    fn with_the_ladders(sim: &mut Sim) {
+        use crate::tech::{Line, TechTree, TypeDef, TypeId};
+        let mut tree = TechTree::new();
+        let rung = |tree: &mut TechTree, n: &str| -> Option<TypeId> {
+            Some(tree.add(TypeDef::epoch(n, Line::Commerce, 0)))
+        };
+        let g = [
+            rung(&mut tree, "GRANARY2"),
+            rung(&mut tree, "GRANARY3"),
+            rung(&mut tree, "GRANARY4"),
+            rung(&mut tree, "GRANARY5"),
+        ];
+        let l = [
+            rung(&mut tree, "LUMBERMILL2"),
+            rung(&mut tree, "LUMBERMILL3"),
+            rung(&mut tree, "LUMBERMILL4"),
+        ];
+        let sm = [
+            rung(&mut tree, "SMELTER2"),
+            rung(&mut tree, "SMELTER3"),
+            rung(&mut tree, "SMELTER4"),
+        ];
+        let u = [
+            rung(&mut tree, "UNIVERSITY2"),
+            rung(&mut tree, "UNIVERSITY3"),
+            rung(&mut tree, "UNIVERSITY4"),
+            rung(&mut tree, "UNIVERSITY5"),
+            rung(&mut tree, "UNIVERSITY6"),
+        ];
+        let tx = [
+            rung(&mut tree, "TAX_1"),
+            rung(&mut tree, "TAX_2"),
+            rung(&mut tree, "TAX_3"),
+            rung(&mut tree, "TAX_4"),
+        ];
+        tree.roles.granary_preq = g;
+        tree.roles.lumbermill_preq = l;
+        tree.roles.smelter_preq = sm;
+        tree.roles.university_preq = u;
+        tree.roles.taxation_preq = tx;
+        sim.set_tech_tree(tree);
+    }
+
+    /// **The five ladders answer their floor, and only their floor, with
+    /// nothing held** — one everywhere, and **zero** for taxation. That
+    /// asymmetry is `get_granary@006db340`'s `(held) + 1` against
+    /// `get_taxation@006d6e20`'s `(uint)(held != 0)`, and it is the whole
+    /// reason the territory tax is the sharp one (item 232, ECONOMY R8).
+    #[test]
+    fn the_five_ladders_floor_at_one_except_taxation_which_floors_at_zero() {
+        let mut sim = world_sim();
+        with_the_ladders(&mut sim);
+        assert_eq!(Levels::for_player(&sim, 0), Levels::BASE);
+        assert_eq!(Levels::BASE.taxation, 0);
+
+        // And a tree that names none of the rows — every fixture that builds
+        // its own — answers the same, so item 232 is a widening.
+        let bare = world_sim();
+        assert_eq!(Levels::for_player(&bare, 0), Levels::BASE);
+    }
+
+    /// **Each ladder is the highest rung the player holds**, tested most
+    /// advanced first: holding rung 2 and rung 4 answers 4.
+    #[test]
+    fn each_ladder_answers_the_highest_rung_held() {
+        let mut sim = world_sim();
+        with_the_ladders(&mut sim);
+        let roles = sim.tech_tree.roles.clone();
+        for (rows, floor, want) in [
+            (roles.granary_preq.to_vec(), 1, 5),
+            (roles.lumbermill_preq.to_vec(), 1, 4),
+            (roles.smelter_preq.to_vec(), 1, 4),
+            (roles.university_preq.to_vec(), 1, 6),
+            (roles.taxation_preq.to_vec(), 0, 4),
+        ] {
+            let mut s = world_sim();
+            with_the_ladders(&mut s);
+            // The second rung alone: floor + 2.
+            s.tech[0].tech[rows[1].unwrap()] = true;
+            assert_eq!(s.bonus_level(0, &rows) + floor, floor + 2);
+            // The top rung as well — the ladder does not add up, it picks.
+            s.tech[0].tech[rows[rows.len() - 1].unwrap()] = true;
+            assert_eq!(s.bonus_level(0, &rows) + floor, want);
+            // And it is per player.
+            assert_eq!(s.bonus_level(1, &rows), 0);
+        }
+    }
+
+    /// **The territory tax is a whole income line that could never fire**
+    /// (audit R8): `Holdings::taxation` was written by nothing, so it kept
+    /// its `Default` zero and `TERRITORY_TAXES[0]` — 0 per cent — for the
+    /// life of every game. `assemble_holdings` writes it now.
+    ///
+    /// **No capture can falsify this.** The original's own territory tax is
+    /// zero through every run on disk too, because neither leader reaches a
+    /// taxation level inside any captured window (ECONOMY, "What run60
+    /// leaves"), so the two agree before the fix and after it. This is
+    /// correctness with no oracle behind it, and the check that would give
+    /// it one is a capture past a `TAX_1` research with `LEADERDATA`'s
+    /// `resources[2]`/`income[2]` on the frame after.
+    #[test]
+    fn taxation_reaches_the_territory_tax() {
+        let mut sim = world_sim();
+        let t = install(&mut sim);
+        with_the_ladders(&mut sim);
+        build(&mut sim, 0, t.village, 32, 32);
+        sim.update_territory_holdings();
+        assert!(sim.holdings[0].territory > 0 && sim.holdings[0].land_size > 0);
+
+        sim.assemble_holdings(0);
+        assert_eq!(sim.holdings[0].taxation, 0, "no TAX_n held");
+        assert_eq!(economy::territory_tax(&sim.tuning, &sim.holdings[0]), 0);
+
+        let tax2 = sim.tech_tree.roles.taxation_preq[1].unwrap();
+        sim.tech[0].tech[tax2] = true;
+        sim.assemble_holdings(0);
+        assert_eq!(sim.holdings[0].taxation, 2);
+        let h = &sim.holdings[0];
+        assert_eq!(
+            economy::territory_tax(&sim.tuning, h),
+            h.territory * sim.tuning.territory_taxes[2] * RATE_SCALE / h.land_size,
+        );
+        assert!(
+            economy::territory_tax(&sim.tuning, h) > 0,
+            "the line the audit called unfirable",
+        );
+    }
+
     #[test]
     fn the_commerce_level_is_the_commerce_epoch() {
         // `calc_resource_caps` reads `LeaderDataEncrypt + 0xf0`, which is
@@ -910,7 +1059,11 @@ mod tests {
         assert!(!h.available[Resource::Oil.index()]);
         assert!(h.discovered[Resource::Oil.index()]);
         assert_eq!(h.bonus_cap[Resource::Wealth.index()], 42);
-        assert_eq!(h.taxation, 4, "a bonus type this module cannot read");
+        // `taxation` was on this list until item 232, and the hand-set 4
+        // survived because nothing wrote it. It is assembled now, from the
+        // player's `TAX_n` ladder, so a hand-set value is *overwritten* —
+        // which is the point of the fix.
+        assert_eq!(h.taxation, 0, "assembled from the ladder, not preserved");
     }
 
     #[test]

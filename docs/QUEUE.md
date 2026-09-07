@@ -85,12 +85,6 @@ grouped order records no test windows** — run79's 453, run31's 945.
     turning types are in neither scored game). Takes the ledger's nine
     `unverified` rows on the way.
 
-233. **A building's periodic phase is its object number**, not its slot:
-    `Build::process@0061edf0:728` keys the 32-frame phase on `o`;
-    `process_building` uses `frame + b`, right until a slot is reused
-    (CITIES §5). (232) `Levels::for_player` ignores its player, answering
-    a constant whose `taxation` is 0 (ECONOMY, audit R8).
-
 265. **`1/2007`'s city `free` reads −1 here against 255 there** — a width
     or sign difference, and it read `ours 0` until the Tower finished, so
     261's widening is what surfaced it. Found by a worker who said plainly

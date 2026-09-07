@@ -69,7 +69,7 @@ impl Sim {
     /// tree does not know is not held — the opposite of the *bonus* rule
     /// ([`crate::tech::Roles::colonize_preq`]), because here a missing
     /// name must not invent an upgrade the player never bought.
-    fn bonus_level(&self, who: Player, rows: &[Option<TypeId>]) -> usize {
+    pub(crate) fn bonus_level(&self, who: Player, rows: &[Option<TypeId>]) -> usize {
         for (i, row) in rows.iter().enumerate().rev() {
             let Some(t) = *row else { continue };
             if self

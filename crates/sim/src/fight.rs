@@ -1025,7 +1025,7 @@ impl Sim {
             return;
         }
         let bd = &self.buildings[b];
-        let phase = (frame + b as i64) & 0x1f;
+        let phase = bd.phase(frame) & 0x1f;
         // Without a target, `do_attack` runs every 32nd frame.
         if bd.target.is_none() && phase != 0 {
             return;
@@ -1053,7 +1053,7 @@ impl Sim {
             Some(t) => {
                 !self.valid_target(me, t)
                     || (!bd.ordered
-                        && ((frame + b as i64 + 14) & 0x1f) == 0
+                        && ((bd.phase(frame) + 14) & 0x1f) == 0
                         && matches!(t, Obj::Unit(u) if self.units[u].movement.dest.is_none()
                             && !self.profile(t).combat_role))
             }

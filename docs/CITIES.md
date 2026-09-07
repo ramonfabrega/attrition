@@ -2050,15 +2050,43 @@ arms**, the assimilation arithmetic, the city heal, `Build::plunder`'s
 ladder, `blocked_site`'s verdict precedence, city and fort spacing, the
 colonise rule and the even circle were all found faithful.
 
-**One row is not a missing rule but a wrong one, and it fires every frame.**
-§5's periodic phase is the object number `o` (`Build::process@0061edf0:728`);
-`Sim::process_building` uses `frame + b`, where `b` is the building's index
-in this crate's `Vec`. The two agree only while every handle equals its
-object number — true at the start of a game, false the first time a slot is
-reused or a building is created out of the original's `o` order. Every
-32-frame phase downstream then fires on the wrong frame for that building
-for the rest of the game. It is a divergence *generator*, which is why no
-single frame has been attributed to it.
+**One row was not a missing rule but a wrong one, and it fired every
+frame — fixed, and measured to change nothing (item 233, 2026-09-07).**
+The periodic phase is the object number `o` (`Build::process@0061edf0:728`);
+`Sim::process_building` and `Sim::process_building_combat` used `frame + b`,
+where `b` is the building's index in this crate's `Vec`. The two never
+agree: `o` is per player from `BUILD_BASE` (2000, which is **16** mod 32)
+and is recycled by `Objects::find_free`, the handle is global from 0 and the
+`Vec` only grows. Both now read [`Building::phase`], the twin of
+`Unit::phase`, and `a_building_s_periodic_phase_is_its_object_number` pins
+it in both directions — on the old code it fired on frames 0 and 32 where
+the original fires on 16 and 48.
+
+**What the fix moved: nothing, and that is the finding.** The endpoint at
+24,001 (`rondata::diff::endpoint`) reads 80 off / 0 unlinked on East Indies
+and 73 off / 7 unlinked on Great Lakes both before and after, and a per-frame
+digest of every building's `under_attack`, `damage`, `health`, `recharging`,
+`target`, `alive` and `active` and every unit's position and health is
+**byte-identical for all 24,000 frames of both scored games**. The reason is
+that every branch the phase gates is a no-op in these two games — measured
+over the same two walks:
+
+| | East Indies (run54) | Great Lakes (run53) |
+| --- | --- | --- |
+| object numbers a second handle later reused | **10** | **7** |
+| building-frames with `under_attack` set (§1.3) | 0 | 0 |
+| building-frames on enemy territory (§9.5) | 0 | 0 |
+| building-frames live and damaged (§8.2's heal) | 0 | 0 |
+| building-frames holding a target (COMBAT §8.6) | 0 | 0 |
+| buildings that changed owner (§7.1) | 0 | 0 |
+
+So the slot reuse the row predicted **does happen** — seventeen times across
+the two games — and every periodic it would have mis-phased is one no game on
+disk ever arms: nothing is ever shot at, nothing stands in enemy land, no
+live building is ever damaged, and no tower ever finds a target. The rule is
+right and the correction is unfalsifiable here; the capture that would
+falsify it is a **war**, with `BUILDS=6` over a building taking damage, and
+`BUILDDATA.damage` on the frames either side of a 32-frame boundary.
 
 **One is cross-confirmed by another document's pass.** `Build::remove_from_city`
 does not regenerate the city's roads — reached independently as ROADS' own
