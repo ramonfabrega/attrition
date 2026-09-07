@@ -1037,6 +1037,258 @@ mod tests {
         );
     }
 
+    /// **Great Lakes' goods record, and the trade routes under it**
+    /// (2026-09-06).
+    ///
+    /// run59's census (below) is the East Indies map's, and it has been
+    /// exact since 2026-09-02. Great Lakes had no equivalent, and it was
+    /// hiding a defect that the long capture could only show as an AI
+    /// decision 400 frames downstream: at sim-frame 6982 this crate's
+    /// `make_stuff` bought a **University** the original declined
+    /// (`docs/AI.md` §30), because its wealth bucket read 42 against the
+    /// original's 28 and `check_income` therefore did not quarter the
+    /// entry's value.
+    ///
+    /// The surplus was one field: **`CityData::trade_val`**, 240 a city
+    /// here against the original's 128 (`docs/CARAVAN.md` §3.1). Two
+    /// separate errors, each worth a factor:
+    ///
+    /// - `CityData::get_trade_value@007363f0` is `num_buildings` — the
+    ///   whole chain, the city building included, finished members only —
+    ///   and this crate counted `members.len()`, so a city of nine scored
+    ///   eight.
+    /// - `Caravan::distance@0073d300` bands a distance measured **in
+    ///   cells**, the grid `WorldData::xs` counts, and this crate measured
+    ///   it in world units. Every pair on every map came out in band 3 and
+    ///   every route's value doubled.
+    ///
+    /// Three windows, and each is a different check:
+    ///
+    /// - **run18b, 6374–6589**: the whole goods record, both players, six
+    ///   fields, six goods — 216 frames that drifted a wealth every
+    ///   nineteen and are now exact.
+    /// - **run76, run83 and run79, 6640–7249**: `trade_val` itself, city
+    ///   by city, over 610 frames and three separate archives. It is 128
+    ///   on both of the AI's cities on every one of them.
+    /// - **run84, 6950–7029**: the goods record again, past the gap. It
+    ///   was the last two wealth of the surplus that lived here, and the
+    ///   ramp fix took them; both windows are now exact.
+    #[test]
+    fn great_lakes_goods_record_and_its_trade_routes_are_the_original_s() {
+        let Some(inst) = install() else { return };
+        let Some(state) = dump("gamelog-run53-greatlakes-24k-trace.txt") else {
+            eprintln!("skipping: no run53 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let texts = sibling_texts();
+        let text = std::fs::read_to_string(&state).unwrap();
+        let log = Log::parse(&text);
+        let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
+        let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+        let refs: Vec<&Initial> = inits.iter().collect();
+        let mut init = log.initial().unwrap();
+        borrow_from_siblings(&mut init, &refs);
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+
+        const FIRST: i64 = 6374;
+        const LAST: i64 = 7249;
+        // Per frame: the six goods rows for each player, and every live
+        // city's `trade_val` keyed the way a dump names it — the owner and
+        // the city building's world position.
+        type Goods = Vec<(i64, &'static str, [i32; sim::economy::RESOURCES])>;
+        let mut goods: std::collections::BTreeMap<i64, Goods> = Default::default();
+        let mut trade: std::collections::BTreeMap<i64, Vec<(i64, i64, i64, i64)>> =
+            Default::default();
+        for n in 1..=LAST {
+            built.tick();
+            if n < FIRST {
+                continue;
+            }
+            let mut rows: Goods = Vec::new();
+            for who in 0..2usize {
+                let l = &built.sim.ledgers[who];
+                for (key, v) in [
+                    ("bucket", l.bucket),
+                    ("leftover", l.leftover),
+                    ("resources", l.rate),
+                    ("income", l.income),
+                    ("resource_cap", l.cap),
+                    ("gather_slots[scan]", l.gather_slots),
+                ] {
+                    rows.push((who as i64, key, v));
+                }
+            }
+            goods.insert(n, rows);
+            trade.insert(
+                n,
+                built
+                    .sim
+                    .cities
+                    .iter()
+                    .filter(|c| c.alive)
+                    .map(|c| {
+                        (
+                            i64::from(c.owner),
+                            i64::from(c.pos.x),
+                            i64::from(c.pos.y),
+                            i64::from(c.trade_val),
+                        )
+                    })
+                    .collect(),
+            );
+        }
+
+        // --- the goods record, over the two windows that carry it ---
+        let mut compared = 0usize;
+        let mut residue: std::collections::BTreeMap<(i64, String, usize), (usize, i64, i64)> =
+            Default::default();
+        let mut counts: Vec<(&str, usize, usize)> = Vec::new();
+        for (file, lo, hi) in [
+            ("gamelog-run18b-window-6374-6590.txt", 6374i64, 6589i64),
+            ("gamelog-run84-greatlakes-makelist.txt", 6950, 7029),
+        ] {
+            let Some(path) = dump(file) else {
+                eprintln!("skipping: no {file} (set RON_GAMELOG_DIR)");
+                return;
+            };
+            let wtext = std::fs::read_to_string(&path).unwrap();
+            let wlog = Log::parse(&wtext);
+            let (mut here, mut wrong) = (0usize, 0usize);
+            for n in lo..=hi {
+                let Some(rows) = goods.get(&n) else { continue };
+                for (who, key, ours) in rows {
+                    let Some(block) = wlog.leader_block(n, *who) else {
+                        continue;
+                    };
+                    let theirs: Vec<i64> = block
+                        .all(key)
+                        .iter()
+                        .map(|v| v.trim().parse().unwrap_or(i64::MIN))
+                        .collect();
+                    if theirs.len() < sim::economy::RESOURCES {
+                        continue;
+                    }
+                    for g in 0..sim::economy::RESOURCES {
+                        compared += 1;
+                        here += 1;
+                        if i64::from(ours[g]) != theirs[g] {
+                            wrong += 1;
+                            let e = residue
+                                .entry((*who, format!("{file}:{key}"), g))
+                                .or_insert((0, i64::from(ours[g]), theirs[g]));
+                            e.0 += 1;
+                        }
+                    }
+                }
+            }
+            counts.push((file, here, wrong));
+        }
+        for (f, n, w) in &counts {
+            eprintln!("  {f}: {w} of {n} good-frames disagree");
+        }
+        for (k, (n, o, t)) in &residue {
+            eprintln!("    {k:?}: {n} frames, ours {o} theirs {t} on the first");
+        }
+        assert_eq!(
+            compared, 21_312,
+            "216 + 80 frames, two players, six fields, six goods"
+        );
+
+        // **run18b's window is exact.** Before the caravan fix its wealth
+        // drifted by one every nineteen frames — 108 rows wrong, all of
+        // them the AI's `bucket` and `leftover` in good 2 — and the AI was
+        // four wealth up by 6581. Made to fail on purpose that way first.
+        assert_eq!(
+            counts[0].2, 0,
+            "run18b's 216 frames are the original's goods record, whole"
+        );
+
+        // **And so is run84's, past the gap.** It did not start that way:
+        // before the ramp fix the AI stood **two wealth and two timber**
+        // ahead on every one of these eighty frames, banked in the one
+        // span of this game no archive dumps a leader's goods over
+        // ([6590, 6949]). The bank was the two Longbowmen of sim-frame
+        // 6782, and run76's own `BUILDQUEUE` holds the receipt: the
+        // Barracks' two entries read `cost 31, 51` and `cost 33, 53`, and
+        // this crate charged 31/51 twice (`docs/COSTS.md`, "The count").
+        // Thirty wealth against the original's twenty-eight is exactly
+        // what a University costs, which is why one field of the ramp
+        // decided an AI purchase two hundred frames later.
+        assert_eq!(
+            residue
+                .iter()
+                .filter(|((_, k, _), _)| k.starts_with("gamelog-run84"))
+                .count(),
+            0,
+            "run84's eighty frames are the original's goods record too"
+        );
+        assert_eq!(counts[1].2, 0, "and nothing in it disagrees");
+
+        // --- `trade_val`, over three archives and 610 frames ---
+        let mut tv_compared = 0usize;
+        let mut tv_wrong: Vec<String> = Vec::new();
+        for (file, lo, hi) in [
+            ("gamelog-run76-greatlakes-archermarch.txt", 6640i64, 6869i64),
+            ("gamelog-run83-greatlakes-wordwindow.txt", 6870, 6930),
+            ("gamelog-run79-greatlakes-secondsquad.txt", 6931, 7249),
+        ] {
+            let Some(path) = dump(file) else {
+                eprintln!("skipping: no {file} (set RON_GAMELOG_DIR)");
+                return;
+            };
+            let wtext = std::fs::read_to_string(&path).unwrap();
+            let wlog = Log::parse(&wtext);
+            for f in wlog.frame_states() {
+                if !(lo..=hi).contains(&f.n) || f.cities.is_empty() {
+                    continue;
+                }
+                let Some(ours) = trade.get(&f.n) else {
+                    continue;
+                };
+                for c in &f.cities {
+                    let mine = ours
+                        .iter()
+                        .find(|(who, x, y, _)| *who == c.who && *x == c.x && *y == c.y);
+                    let Some((_, _, _, val)) = mine else {
+                        tv_wrong.push(format!(
+                            "frame {} who {}: no city at {},{}",
+                            f.n, c.who, c.x, c.y
+                        ));
+                        continue;
+                    };
+                    tv_compared += 1;
+                    if *val != c.trade_val {
+                        tv_wrong.push(format!(
+                            "frame {} who {} o {}: trade_val ours {val} theirs {}",
+                            f.n, c.who, c.o, c.trade_val
+                        ));
+                    }
+                }
+            }
+        }
+        eprintln!(
+            "  trade_val: {} of {tv_compared} city-frames disagree",
+            tv_wrong.len()
+        );
+        assert_eq!(
+            tv_compared, 1_785,
+            "three cities over 610 frames of three archives"
+        );
+        assert!(
+            tv_wrong.is_empty(),
+            "the AI's two cities carry 128 each on every frame of three \
+             archives, and the human's carries nothing; before the fix \
+             this crate read 240:\n  {}",
+            tv_wrong
+                .iter()
+                .take(6)
+                .cloned()
+                .collect::<Vec<_>>()
+                .join("\n  ")
+        );
+    }
+
     /// The **sim-frame** the scout plans on — `docs/PATHFINDER.md` §12's
     /// search, which every document before this one called frame 1477
     /// because that is the label of the dump block it lands in, and a

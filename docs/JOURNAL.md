@@ -17463,3 +17463,90 @@ and not chased: `calc_danger`'s building pass walks its **viewer** loop to the
 end of the leaders array where the clear loop and the whole unit pass walk
 exactly eight slots — and this game's leader 8, Gaia, has both leader bits set.
 There is no `danger[8]`. Listing question, not a capture one.
+
+## 2026-09-06 — item 238: the fourteen wealth behind a building the AI should not have bought (Great Lakes 6982 → 6994, Opus)
+
+**The item was booked as an AI decision and it was an economy defect two
+mechanics away.** At 6982 this crate's `make_stuff` places a building and
+the original does not; the queue called it "the 6782 row's shape again",
+which was right about the shape and wrong about where to look. Item 222's
+6782 had been a field with no writer inside the AI. This one was not in the
+AI at all.
+
+**The capture that cracked it was booked before the reading started.** The
+lane's run84 — `LEADERS=9` over 6950–7029 on run53's own game — prints the
+original's eleven make-list slots at the end of every frame, and the two
+lists at 6982 are the *same shopping list ranked differently*: a Stable at
+`val 5722784` heads the original's, a University at `val 6075000` heads
+this crate's, and the original's own University reads **1518750**. Exactly
+four times, and 6075000 is what the original carried until its list was
+rebuilt five frames earlier. Four is `check_income`'s: `0x100` for a type
+the leader can afford one of, `0x40` for one it cannot with escrow on. The
+original could not afford a University. This crate could.
+
+**A University costs 60 timber and 30 wealth, and the wealth was fourteen
+over.** Everything else in the bucket agreed to the unit — food,
+knowledge, metal — which is what made the number worth chasing rather than
+the AI. It came from two places, neither of them in `ai_build.rs`:
+
+- **Twelve from the caravan.** `CityData::trade_val` read 240 a city here
+  against the original's 128, and there were two independent factors in
+  it. `CityData::get_trade_value@007363f0` is `num_buildings` — the chain
+  walked from the city's own `o`, so the **city building is in the count**
+  — and this crate used `members.len()`, which is nine against eight. And
+  `Caravan::distance@0073d300` bands a distance handed to it as four
+  `div_3_table[coord >> 8]` values, which is the **tile** grid
+  `WorldData::xs` counts; this crate measured world units against a tile
+  width, so every pair of cities on every map came out in band 3 and every
+  route's value doubled.
+- **Two from the ramp.** `LeaderData::get_support_count@006da110` answers
+  `<group>_queued + <group>_units` for a by-group progression, and
+  `produce_unit` queues its batch one unit at a time, so the second pays
+  the first's step. `Muster::by_group` here had no queued sibling, so the
+  two Longbowmen of 6782 both paid 31 timber and 51 wealth. run76's
+  `BUILDQUEUE` at dump-frame 6783 holds the receipt in the original's own
+  hand: `cost[0] 31, cost[1] 51` and `cost[0] 33, cost[1] 53`.
+
+**What it moved.** Great Lakes **6982 → 6994**, count and sequence
+together, and the new parting is `Unit::do_move+0xe84` — a movement row,
+not an economy one. East Indies unmoved at 7448.
+
+**The assertion, and it is a census rather than a row.** run59's goods
+diff has pinned East Indies' leader record since 2026-09-02 and Great
+Lakes had no equivalent; that gap is exactly where this lived. There is
+one now — the leader's `bucket`, `leftover`, `resources`, `income`,
+`resource_cap` and `gather_slots`, both players, six goods, over run18b's
+6374–6589 and run84's 6950–7029: **21,312 good-frames, all of them the
+original's**. Beside it, `trade_val` itself over run76, run83 and run79 —
+610 frames, three archives, 1,785 city-frames, 128 on each of the AI's
+cities and nothing on the human's. Made to fail three ways before it was
+kept: the whole fix reverted (768 rows), the count half alone (1,190
+city-frames at 120 against 128) and the ramp half alone (392 rows, and
+those were the last two wealth).
+
+**Three things worth carrying.**
+
+**The disk answers more often than a capture does, but only if you ask the
+right record.** No archive dumps a leader's goods between 6589 and 6949 —
+I checked all fifty-odd — and the last two wealth were banked in exactly
+that hole. The window that would have settled it was never taken, because
+`BUILDQUEUE` prints a queue entry's **cost**, and run76 covers 6782. A
+price the original wrote down beats a bucket you have to integrate.
+
+**A field that pays a rate in sixteenths hides for hours.** The caravan
+error was live on every map from the first trade route and cost the AI
+fourteen wealth a minute; nothing failed, because `trade_val` reaches
+nothing that draws. It surfaced only when a third mechanic spent the
+surplus. The economy audit of 2026-09-05 lists "`trade_val` first into
+wealth" among its agreed rows — it checked where the field *goes* and
+never what it *is*, which is the difference between a placement claim and
+a value claim, and it is worth a line in the audit README.
+
+**And the indexing note, because it will be read again.** The dump's
+`Cities` is an array **per player** — the eight `length 20 size 20` blocks
+under one `BEGIN CITIES` — and a `MakeObject`'s `city` is an index into
+the owner's own. This crate keeps one global list, so its make-list `city`
+reads 1 and 2 where the original's reads 0 and 1. The two are isomorphic
+and nothing here depends on it, but a make-list comparison slot for slot
+would have to translate, and half an hour went on believing the head's
+city was out of range.

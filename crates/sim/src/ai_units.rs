@@ -2283,6 +2283,9 @@ mod tests {
         ty.combat.combat_role = true;
         ty.combat.attack = 100;
         ty.combat.domain = crate::attrition::Domain::Land;
+        // Every shipped fighting unit belongs to a production group; the
+        // muster's group counters are sized from this at registration.
+        ty.group = Some(0);
         let rec = sim.add_unit_type(ty);
 
         // The building type: a military trainer (`BUILD_FLAGS 5`).
@@ -2459,6 +2462,57 @@ mod tests {
         assert_eq!(sim.queued_units(0), 1);
         sim.tech[0].tech[ids.unit] = false;
         assert_eq!(sim.queued_units(0), 0, "type_avail below 4 does not count");
+    }
+
+    /// **A batch's second unit pays the first one's ramp step**
+    /// (2026-09-06).
+    ///
+    /// `LeaderData::get_support_count@006da110` answers
+    /// `<group>_queued + <group>_units` for a type whose `PROGRESSION` is
+    /// by-group — the same `queued + built` it answers by type — and
+    /// `Leader::produce_unit` queues its `num` units **one at a time**, so
+    /// the second is priced with the first already in the queue.
+    ///
+    /// [`Muster::by_group`] carried only the built half, so the group ramp
+    /// stood still inside a batch. run76's `BUILDQUEUE` at dump-frame 6783
+    /// is the receipt: the AI's Barracks holds two Longbowmen at
+    /// `cost 31, 51` and `cost 33, 53`, and this crate charged 31/51
+    /// twice. Two timber and two wealth, and two hundred frames later they
+    /// were the difference between affording a University and not
+    /// (`docs/AI.md` §30).
+    #[test]
+    fn a_batch_s_second_unit_pays_the_first_one_s_group_ramp_step() {
+        let (mut sim, ids) = barracks_sim(false);
+        // Triangular by group, one timber a step — the shape nearly every
+        // fighting unit ships with.
+        {
+            let price = &mut sim.unit_types[ids.rec].price;
+            price.progression = crate::cost::Progression::PROGRESSIVE_BY_GROUP;
+            price.support = [Some((crate::economy::Resource::Timber, 1)), None];
+        }
+        sim.ledgers[0].bucket = [10_000; crate::economy::RESOURCES];
+        let timber = crate::economy::Resource::Timber.index();
+
+        let first = sim.price_of(0, ids.rec)[timber];
+        sim.queue_up(ids.b, ids.rec).expect("the first is queued");
+        let second = sim.price_of(0, ids.rec)[timber];
+        sim.queue_up(ids.b, ids.rec).expect("the second is queued");
+        let third = sim.price_of(0, ids.rec)[timber];
+        assert!(
+            first < second && second < third,
+            "the queue is half the count: {first}, {second}, {third}"
+        );
+        assert_eq!(sim.muster[0].queued_by_group[0], 2, "and it is the queue");
+
+        // And it comes back off. `Build::close`'s refund path is one of the
+        // six that move `queued_by_type`, and every one of them moves this
+        // beside it.
+        let mut ledger = crate::economy::Ledger::default();
+        sim.buildings[ids.b].queue.unqueue(0, false, &mut ledger);
+        sim.muster[0].queued_by_type[ids.rec] -= 1;
+        sim.track_queued_for_test(0, ids.rec, -1);
+        assert_eq!(sim.muster[0].queued_by_group[0], 1);
+        assert_eq!(sim.price_of(0, ids.rec)[timber], second);
     }
 
     #[test]

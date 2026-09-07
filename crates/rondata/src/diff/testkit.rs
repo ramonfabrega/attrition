@@ -729,7 +729,7 @@ pub(crate) const LONG_WORD_EAST_INDIES: i64 = 7448;
 /// original is still in `Leader::make_stuff+0x221`: the AI buys a
 /// building here that the original does not — the same shape as the
 /// 6782 row above, and an economy question rather than a movement one.
-pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 6982;
+pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 6994;
 
 /// The frame the AI's library takes its **Coinage** job on, and the
 /// frame run58's `QUEUE` record used to part on: twenty-four rows of

@@ -121,6 +121,7 @@ city is the caravan owner's own, and the highest wins:
 v = get_trade_value(a) + get_trade_value(b)
 d = distance band                                (0 under ¼ the map's width,
                                                   1 under ½, 2 under ⅘, 3 beyond)
+                                                 — **in cells**, see below
 if d: v = (d + 3)·v / 3
 if the two cities have different owners: v = v·3/2
 if the Indian tribe bonus:  v = v·(indians_caravan + 100)/100
@@ -129,7 +130,21 @@ if the spice rare:          v = v·(spice_caravan_income + 100)/100
 
 `CityData::get_trade_value@007363f0` is the city's building count, plus
 two for a Large City (`TOWN`) and four for a Major City or the Forbidden
-City.
+City. **The count is `CityData::num_buildings@00738190`** — the member
+chain walked from the city's own `o`, so the **city building itself is in
+it**, and only its *finished* members are. Not the member list's length:
+a city of nine buildings scores nine, not eight.
+
+**And the band is measured on the tile grid.** `Caravan::trade_value`
+hands `Caravan::distance@0073d300` four `div_3_table[coord >> 8]` values —
+`floor(floor(x / 256) / 3)`, one coordinate at a time, the same double
+floor `produce_building`'s builder distance takes (`docs/AI.md` §2.20) —
+and `distance` compares `vector_dist` of their differences against
+`WorldData::xs`, which is that same grid's width. Measuring the
+**world-unit** distance against a tile width puts every pair of cities on
+every map in band 3 and doubles every route's value. Both errors were
+live here until 2026-09-06; together they read `trade_val` 240 on Great
+Lakes' AI where the original reads 128, and §8 says what that cost.
 
 Then the two cities are ordered by **distance from the caravan** — the
 nearer becomes `city2`, the search's start — both cities gain a
@@ -446,6 +461,23 @@ original_s_node_for_node`, and its Great Lakes sibling on run73):
   `CARAVAN-DEFAULT-AGE0-CREW1`/`-CREW2`), their packets are empty, and
   they pay two idle rolls every third frame from the moment the unit
   starts moving.
+
+- **`trade_val` itself, over 610 frames and three archives** (2026-09-06,
+  `rondata::diff::tests::great_lakes_goods_record_and_its_trade_routes_
+  are_the_original_s`): run76's, run83's and run79's `CITY` records over
+  Great Lakes' 6640–7249, 1,785 city-frames. The AI's two cities carry
+  **128** each on every one of them and the human's carries nothing.
+  Before 2026-09-06 this crate read 240 — `members.len()` for the count
+  and world units for the band, each worth a factor — and the two of them
+  put fourteen wealth a minute into the AI's purse that the original does
+  not have. The consequence was an **AI decision**: at Great Lakes 6982
+  the surplus was what let `make_stuff` afford a University the original
+  declined (`docs/AI.md` §30), and the long capture's word had stood at
+  6982 on it. The check that found it is the goods record beside this one
+  — the same test compares the leader's `bucket`, `leftover`, `resources`,
+  `income`, `resource_cap` and `gather_slots`, both players, six goods,
+  over run18b's 6374–6589 and run84's 6950–7029, and all 21,312
+  good-frames are the original's.
 
 **Reading-only, and each names the capture that would falsify it:**
 

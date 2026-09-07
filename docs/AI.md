@@ -3451,6 +3451,10 @@ stay 0 wrong, run59's census stays where it was.
   slot 1 fails `can_pay_slot` and slot 4 is dropped as a duplicate of a
   ranked slot — so the draws still agree; the *list* does not. §2.19's
   arithmetic is what would settle it, and run18b's window covers it.
+  **Narrowed 2026-09-06, §30.3**: the goods record over that whole window
+  is now the original's, frame for frame, so the offer is not an
+  affordability difference — it is `create_buildings`' own valuation or
+  its gate.
 - ~~**What is born at 6612.**~~ **No queue** — answered 2026-09-04,
   `docs/CITIES.md` §4.3. The AI's Barracks finishes its construction on that
   exact frame, and `Build::activate`'s high-water block pays a **British**
@@ -3604,3 +3608,94 @@ before the test was kept.
 - **The original stores `o`, this crate stores the building index.** The
   two coincide in ordering but not in value, and a dump comparison would
   have to translate.
+
+---
+
+## 30. The University the AI buys and the original does not (2026-09-06)
+
+Great Lakes' word stood at **6982** on a single make-list decision. Both
+sides run `Leader::make_stuff` on that frame; the original spends three
+draws (two `+0x221` over the head's type, one `+0x63d` over the slot it
+buys) and this crate spends five — the same three plus
+`produce_building`'s two `+0x1805` jitter draws, which is a **building
+placed**. It is §29's shape a second time: the wrong thing is not in the
+mechanic the draw points at.
+
+### 30.1 The two lists, side by side
+
+run84 (`LEADERS=9`, Great Lakes 6950–7029, taken for this item) prints the
+original's eleven slots at the end of every frame. At dump-frame 6982 —
+the state `make_stuff` reads on sim-frame 6982 — the two lists are the
+same shopping list ranked differently:
+
+| slot | the original | this crate |
+| --- | --- | --- |
+| 0 | `t 428` Stable, `val 5722784`, cat 7 | `t 420` University, `val 6075000`, cat 4 |
+| … | `t 420` University, `val 1518750`, at 2 and 4 | `t 428` Stable, `val 5722784`, at 7 |
+
+The **University's own valuation** is the whole difference: 6075000 here
+against 1518750 there, exactly four times, and 6075000 is what the
+original itself carried until its list was rebuilt at 6977. Four is
+`Leader::check_income@006cc800`'s: it answers `0x100` for a type the
+leader can afford one of and **`0x40`** for one it cannot when escrow is
+on, and `create_buildings` multiplies the offer by that over 256 before
+`make_me`. The original could not afford a University; this crate could.
+
+So the head became the University instead of the Stable, `can_pay(0)`
+passed, `make_this(0)` placed the building, and two draws appeared that
+the original never spends. **The AI's arithmetic was right at every step.**
+
+### 30.2 What it actually was: fourteen wealth, from two places
+
+A University costs 60 timber and **30 wealth**. On sim-frame 6981 the
+original's bucket reads `[99, 85, 28, 103, 100, 0]` and this crate's read
+`[100, 87, 42, 103, 100, 0]` — food, knowledge and metal exact, wealth
+**fourteen** over. Twenty-eight is under thirty and forty-two is not.
+
+The fourteen were two separate defects, neither of them in `ai_build.rs`:
+
+- **Twelve of them were the caravan's** — `CityData::trade_val` 240 a
+  city here against the original's 128, from `get_trade_value` counting
+  `members.len()` instead of `num_buildings`, and from `Caravan::distance`
+  banding a world-unit distance against a tile width.
+  `docs/CARAVAN.md` §4 and §8.
+- **The last two were the ramp's** — the group half of
+  `get_support_count` had no queued counter here, so the two Longbowmen
+  the AI ordered on sim-frame 6782 both paid the first one's price
+  (31 timber, 51 wealth) where the original paid 31/51 then **33/53**.
+  `docs/COSTS.md`, "The count".
+
+Both were invisible on their own: a trade route pays a city rate in
+sixteenths and a ramp step is two of a good, and neither spends a draw.
+What made them visible was a *third* mechanic's decision two hundred
+frames downstream.
+
+### 30.3 Coverage
+
+**Diff-backed.** Great Lakes' long word **6982 → 6994**, and the new
+parting is a movement one (`Unit::do_move+0xe84`) rather than an economy
+one. East Indies unmoved at 7448. The goods record itself is now pinned
+frame for frame over two windows — `rondata::diff::tests::great_lakes_
+goods_record_and_its_trade_routes_are_the_original_s`, 21,312 good-frames
+and 1,785 city-frames, all exact — which is the check that would have
+caught either defect on the frame it started rather than on the frame the
+AI acted on it.
+
+**Not established.**
+
+- **The original's own escrow flag on this entry.** run84 reads `escrow 1`
+  on the University at 6982 and this crate writes 0. It changes nothing
+  here — an unaffordable entry with escrow off would be worth `0` rather
+  than a quarter, and this crate's is affordable either way — but the
+  block that sets it (`create_buildings@006c1be0:1120–1180`, the
+  `can_pay(0)`-of-the-head test with its gather-building arm) is
+  unimplemented. It is the next thing to read in this neighbourhood.
+- **§27.3's other offer stands.** At 6582 this crate's list still carries
+  a gather building (`t 418`, cat 4) at slots 1 and 4 that the original's
+  does not. The goods record over that window is now exact, so whatever
+  produces it is not an affordability difference.
+- **The make list is diffed only where the original's own transitions
+  are** (§15.7's replay). Nothing compares this crate's *offers* against
+  the original's slot for slot on a frame both sides fill, which is what
+  would have shown both of the above at once. run84's eighty frames are
+  where that check would now be cheapest.

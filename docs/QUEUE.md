@@ -36,7 +36,7 @@ Lakes 6862 → 6982**, five landed, suite 218. East Indies **7448 unmoved**.*
   `captures.txt` are its handoff, so cycling it is free.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w7448 of 24,000 · GreatLakes w6982 of 24,000
+Long captures: EastIndies w7448 of 24,000 · GreatLakes w6994 of 24,000
 
 **Opener: the main thread is the commander (DECISIONS 34), on Opus. 238
 and 241 are in flight — one headline each — and the capture lane is on

@@ -716,3 +716,24 @@ building the 68-trace union and carried the stale fact forward. The reader
 checked rather than believing it and said so in its report, which is the
 behaviour the brief asks for and the reason the error cost nothing.
 
+
+### One row's afterword, 2026-09-06 — a placement claim is not a value claim
+
+The 2026-09-05 economy pass lists `trade_val` first into wealth` among the
+claims it agreed with. It was right, and it was checking **where the field
+goes**. What the field *is* — `Caravan::trade_value` over
+`CityData::get_trade_value`, both of which this crate had wrong by a factor
+apiece — was not a row in that reading, because the document did not make a
+claim about it that a reader could disagree with.
+
+The defect paid the AI fourteen wealth a minute on every map, from the first
+trade route, and nothing failed for a fortnight: a rate in sixteenths reaches
+nothing that spends a draw. It surfaced only when a third mechanic — the make
+list — bought a building with the surplus (item 238, `docs/AI.md` §30).
+
+**The lesson for the next pass's brief.** When a document says a field is
+added somewhere, that is two claims, and the second one is usually the
+unwritten one. Ask which of them the reading is checking, and prefer a
+**diff over the field itself** to either: the assertion that closed this is a
+`CITY`-record census over 610 frames and three archives, which no reading
+would have produced and which now checks on every commit.
