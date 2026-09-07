@@ -12,36 +12,36 @@ each section's non-item prose pinned and falling only.
 
 ## Where things stand
 
-*2026-09-07, the eighth steer (Fable, with the user) — no word moved; the
-ratchet is reverted, 266 is resolved, and the loop resumes at width two.*
+*2026-09-07, the commander's first unattended pair (Opus) — the headline
+moved 129 frames, and the two maps swapped places.*
 
-- **The endpoint line is telemetry again** (DECISIONS 36). 258's
-  may-only-fall assertion was falsified by the first landing after it and
-  re-pinned upward three times in two days; the 09-01 rule stands —
-  assert up to the word, print past it. `endpoint.rs` now pins the counts
-  **exactly** and the handoff line must equal them: a move in either
-  direction is a one-line re-pin naming the item, and no trade is owed.
-- **266 was half stale, and the half that stands is entry 29's own rule.**
-  run87 covers Great Lakes 7244–7520, so the word's cause (267's second
-  row, the 7418 tick) is a diff. East Indies' coverage ends at run85's
-  7480 and the word is 7529, so the map is owed a capture: **`[7474,
-  7800)` at run85's detail**, six blocks over run85's tail, about ten
-  minutes and 200 MB. Batching ahead of the word waits on 260.
-- **The stopping rule fired correctly** at two after 264's reset and the
-  commander asked; it stands unchanged. What it caught was not drift but
-  a queue with nothing headline-nearest on disk — which the lane fixes.
-- **The commander spawns; it does not work items.** 267 was done in the
-  main thread and spent the commander's context (a clear owed). The
-  marked-row batch is empty; everything is merged, pushed and main level.
+- **Great Lakes' word is 7584** (was 7455). `Group::compute_form`'s tail
+  has a **second** reverse test, distinct from the `facing` toggle above
+  it: with the caller supplying the formation angle — every army call —
+  it compares that against the bearing to the destination on the same
+  ±90° window and negates every member's `off_x`/`off_y` on both the
+  `Form` and the `GroupData`, leaving `to` alone, so a flipped formation
+  **stands on the wrong side of its leader**. GROUPS §6.3 had it written
+  down and never built; 7418 is over the line by a quarter of a degree.
+- **East Indies is the lower map now, and its word is one field.** run88
+  `[7474, 7800)` landed — 327 blocks, 187 MB, three checks that could
+  each fail, and the corpus's first total overlap needing no flag. 271 is
+  the whole of 7529 and needs no screen: 425 rows are already on disk.
+- **The negation costs East Indies three endpoint counters, measured
+  rather than reasoned** — 267b disabled it in place and got the old pin
+  back exactly. DECISIONS 36 governs (telemetry past the word, no trade
+  owed), but the cost is named here rather than absorbed silently.
+- **260 has a number behind it now**, from the second capture in two days
+  to say so. Both landings clean; the marked-row batch is empty.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w7529 of 24,000 · GreatLakes w7584 of 24,000
 Endpoint 24001: EastIndies 80 off, 0 unlinked · GreatLakes 78 off, 2 unlinked
 
-**Opener: commander on Opus (DECISIONS 34), spawning — never working —
-two at once: a worker for 267's second row (Great Lakes' 7418 tick, ARMY
-§5, run87 on disk, a diff) and the East Indies capture lane above, booked
-here and needing no further ask. Then the backlog at width two.**
+**Opener: commander on Opus (DECISIONS 34), spawning — never working — two
+at once: a worker for 271 (East Indies' gather countdown, the headline,
+run86's 425 rows on disk, a diff) and the capture lane for 272 (Great Lakes
+`[7530, 7760)` at run87's detail), booked here and needing no further ask.**
 
 ## The queue
 
@@ -49,12 +49,23 @@ In dependency order, headline-nearest first; **the headline is the long
 captures' word**, lower map first — Great Lakes. Take the first unstarted
 unless a better order is obvious, and say so. Numbers are stable.
 
+271. **The gather countdown is a tick long** — East Indies' word whole,
+    and the map is now the lower one. `1/13`'s `GATHERORDER wait` reads
+    `theirs + 1` on all 55 blocks of the cycle ending at 7529, so the
+    original fires (`wait −1`) where this crate still holds 1 and spends
+    `Guy::set_anim+0x97a < Unit::do_non_flat_gather+0xb99` a frame late;
+    the step is 24 units on 7531. Unbroken from run86's 6985 through
+    7409 — **425 rows on disk** — and into run88's 7474. A diff, no
+    screen. Falsified by a run86 block under 6985 where the waits agree.
+
 260. **The parser goes lazy and the gate sub-GB** — `Log::parse` builds
     all 76.6 M fields of an 800 MB dump (235) where a test reads hundreds.
     Frame offsets in one pass, blocks on demand over a memory-mapped file,
     whole-file scans (252) stream; the 230 tests are the oracle. (266)
-    Batching captures ahead of the word waits on this: a capture is
-    sized to what the parser can hold, so a batch costs what it saves.
+    Batching captures ahead of the word waits on this. **Now measured**:
+    the gate peaked 15,479 then 16,169 MiB of the 20 GiB cap with run87's
+    121 MB and run88's 187 MB in, a 700 MiB swing at two threads — a third
+    run over 16 GiB makes the next window of this size unbookable.
 
 226. **`cover=1` dies in the wow64 bop** (ORACLE), an x86 host the
     falsifier. (220) TECH §13's twenty range blocks. (209) **the
@@ -132,7 +143,9 @@ of 617; (72) every `+0xNN` a document pins vs its module; (89) the guard;
 
 253. **`1/13` parts at 6938**, a citizen at `myspeed 25` — run86's only
     other divergence, and run82's 6946 dump shows it off by (11,7). A
-    diff, not a capture. (254) `come_out`'s ring has one sample (7284)
+    diff, not a capture. **Not 271's countdown**: the position parts at
+    6938 and the first `wait` row is 6985, 47 blocks apart, so folding
+    the two would lose one. (254) `come_out`'s ring has one sample (7284)
     and wants a second disembark. (167) run61's two (SYNC §3.9).
 
 211. **`get_speed`'s three remaining arms** (MOVEMENT): `unit_masks &
@@ -150,14 +163,23 @@ of 617; (72) every `+0xNN` a document pins vs its module; (89) the guard;
     you to use it never said. Wants a fixture: past the cap, dead in N
     seconds, exit 137 — and a gate that cannot be run wrong.
 
-267. **The six-slot assignment at Great Lakes' 7418 tick** — what the
-    word is made of, now that its run-up is clean (264, run87, ARMY §5).
-    On sim-frame 7418 — `7162 + 256`, `frame ≡ 250 (mod 256)`, the tick
-    261 fixed at 7162 — all six AI soldiers take a fresh `orders_x/y` and
-    **four come out on a different path waypoint**, `1/32` and `1/33` on
-    exactly each other's (`dest_x` 39838 against 39863, swapped). `1/36`
-    is 94 units adrift by 7455 and that is the stand. A diff, not a
-    capture. (268) `AnimalData::ox`/`whom`/`aid` are `GUYS ≥ 3`, unparsed.
+272. **Great Lakes' word has no dump under it** — 7584 is outside run87's
+    `[7244, 7520)`, so the headline map's next value diff is a capture:
+    **`[7530, 7760)` at run87's detail**, `cover=0`, six blocks under the
+    tail, ~230 blocks, ~100 MB. At 7584 the polarity reverses (48 draws
+    against 49, the original spending `Guy::set_anim+0x97a <
+    Guy::move+0x19f` at index 24). (268) `AnimalData::ox`/`whom`/`aid` are
+    `GUYS ≥ 3`, unparsed: `samegame.py --drop ox --drop whom --drop aid`,
+    and assert the count. (274) run87's `1/26`, the window's last residue.
+
+273. **`refresh_group_order` re-origins on the order's `form_id`, not the
+    member's list position** — `713ac3` reads `[eax+0x10]` off the
+    `GroupOrder` the `+0x94` vcall returns, where `Sim::group_refresh_order`
+    uses `g.list.iter().position(member)`. `do_group_move` step 2 rewrites
+    `form_id` every frame, so the two agree except where membership changed
+    and the follower arm has not run: wants a `GROUPS=1` window across a
+    death or a join in a marching formation. (275) `MoveOrder::facing`
+    still does not score; 267 split the two mechanisms, so re-read that.
 
 ## How to maintain this file
 
