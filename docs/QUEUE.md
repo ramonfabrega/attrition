@@ -131,17 +131,15 @@ five goods, 1392 v 2000 (ECONOMY); (107) `epoch[0]` is Military.
     freezes `Guy::inc_time` (ANIM §5), 26 of 26 off run17/run44; no field
     here, and the arm waits on a word that reaches a melee frame.
 
-251. **Two guards the loop leans on and does not have** (lore). (a)
+251. **The guard the loop leans on and does not have** (lore). (a)
     `memcap.sh` has no fixture and a real hole: its `ps | awk` reads
     `0 0` when `ps` answers nothing, so a refused sample reads as no
     memory used and the ceiling never fires — Friday's crash by another
     door, under the guard DECISIONS 34 cites for width two. Wants one:
-    past the cap, dead in N seconds, exit 137. (b) **a poll guard** —
-    refuse the *third* consecutive Bash read of the same `tasks/` path;
-    on att-capture 326 of 349 reads sat in runs of ≥3 and every honest
-    check was a run of 1–2, so the signal is clean and an until-loop in
-    one call passes by construction. It is a **hook**, so it is the
-    user's call and not a peer's, and it is not installed.
+    past the cap, dead in N seconds, exit 137. The poll guard that stood
+    here has landed as `tools/pollguard.py` — it activates in a checkout
+    once `tools/` holds it, because `$CLAUDE_PROJECT_DIR` resolves to the
+    repo root and never to a worktree.
 
 Older backlog: (235) the capture `String` each test reads, ~5 GB of the
 suite's 10 — a rounded-up read buffer at ~100 call sites, no score; (39) a
