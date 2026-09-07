@@ -16,19 +16,20 @@ each section's non-item prose pinned and falling only.
 one day, 129 frames and 277, and the maps swapped twice.*
 
 - **East Indies is 7806** (was 7529) and **Great Lakes 7584** (was 7455),
-  so Great Lakes is the lower map again and 272 is headline-nearest.
+  so Great Lakes leads and 284 — its word's cause — is headline-nearest.
 - **An age snaps every figure** (TECH): `Leader::gain_tech`, gated on
   `is_age_type`, snaps every live unit's facing and body — a free turn
   **and a frame** for one mid-turn. 271 was the countdown's seed, not its
   sum; **253 closed with it**. Great Lakes' twin is `compute_form`'s second
-  reverse test (GROUPS §6.3, written down and never built). **Both were
-  found by widening the whole record**, not the field the brief named.
-- **260 halved the gate**, 16,061 → **8,321 MiB** at 243 tests; its ceiling
-  was never a ratchet (251: `memcap.sh` under-reports a sawtooth and
-  over-counts a mapping). **280 took the mapping back out** — the tree is
-  one `forbid(unsafe_code)` again, gated at **10,266 MiB** here against
-  280's own 9,921 (two workers live). The FFI was hand-rolled rather than
-  memmap2, which is worse than a dependency, not a detail.
+  reverse test. **Both were found by widening the whole record.**
+- **260 halved the gate** (16,061 → 8,321 MiB); its ceiling was never a
+  ratchet (251). **280 took the mapping back out** — one
+  `forbid(unsafe_code)` again, and the FFI was hand-rolled rather than
+  memmap2, which is worse than a dependency. Now 11,260 MiB at 244 tests.
+- **272 made Great Lakes' word a value diff without moving it** (run89,
+  `[7514, 7760)`, four checks, neighbour overlap needing no flag): the
+  parting entry is a **gaia bird's arrival stand**, 284. It also found the
+  `CITY` record parting on 246 of 246 blocks with nothing asserting it, 285.
 - **A Fable pass is owed, with an agenda**: DECISIONS 37 (drafted,
   unratified), the perf/UB ground 280 opened, and 283. Nothing else marked.
 
@@ -36,11 +37,10 @@ Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w7806 of 24,000 · GreatLakes w7584 of 24,000
 Endpoint 24001: EastIndies 79 off, 0 unlinked · GreatLakes 78 off, 2 unlinked
 
-**Opener: commander on Opus (DECISIONS 34), spawning — never working. In
-flight: 276 (East Indies' 7806 — grep run88's 7816 block before booking a
-screen) and the lane on 272 (Great Lakes' word window, the headline). Then
-283, the allocator. Order set with the user after the stopping rule fired
-at two: score first, infrastructure behind it, Fable as needed.**
+**Opener: commander on Opus (DECISIONS 34), spawning — never working. 276
+is in flight (East Indies' 7806). Next is 284, Great Lakes' bird stand and
+the headline; then 285's city record, then 283's allocator. Score first,
+infrastructure behind it, Fable as needed — the order set with the user.**
 
 ## The queue
 
@@ -174,14 +174,23 @@ of 617; (72) every `+0xNN` a document pins vs its module; (89) the guard;
     text, and a 2 s poll under-reports a sawtooth besides. Wants a fixture:
     past the cap, dead in N seconds, exit 137.
 
-272. **Great Lakes' word has no dump under it** — 7584 is outside run87's
-    `[7244, 7520)`, so the headline map's next value diff is a capture:
-    **`[7530, 7760)` at run87's detail**, `cover=0`, six blocks under the
-    tail, ~230 blocks, ~100 MB. At 7584 the polarity reverses (48 draws
-    against 49, the original spending `Guy::set_anim+0x97a <
-    Guy::move+0x19f` at index 24). (268) `AnimalData::ox`/`whom`/`aid` are
-    `GUYS ≥ 3`, unparsed: `samegame.py --drop ox --drop whom --drop aid`,
-    and assert the count. (274) run87's `1/26`, the window's last residue.
+284. **Great Lakes' word is a bird's arrival stand** — run89 makes 7584 a
+    value diff at last: 7580–7583 agree draw for draw, 7584 is 48 against
+    49, and dropping one entry at index 24 makes them equal entry for
+    entry. The original spends `Guy::set_anim+0x97a < Guy::move+0x19f`
+    there — ANIM §9's arrival stand — between the fourth and fifth bird's
+    `Animal::think_bird` triple, so it is a gaia bird's figure coming to
+    rest; which bird the dump cannot say at this detail. (268)
+    `AnimalData::ox`/`whom`/`aid` are unparsed, and name it. (274) `1/26`.
+
+285. **The CITY record parts on every block and nothing asserts it** — 18
+    fields on 246 of 246 of run89's window, found by widening the whole
+    record, and **no window test on either map asserts `city_diverged`**.
+    Nine tenths of a dumped record once went uncompared for a month and
+    the first widening failed on its first run; this is that shape one
+    record up. The word's value diff rides here: `1/3` takes a fresh
+    `MOVEORDER` on 7585, ours `(+192, +192)` on all four with `x − off_x`
+    identical both sides — an offset that cancels, so suspect 273.
 
 273. **`refresh_group_order` re-origins on the order's `form_id`, not the
     member's list position** — `713ac3` reads `[eax+0x10]` off the

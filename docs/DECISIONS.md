@@ -1491,6 +1491,38 @@ code** — redirect to a file and read the file. With the pin, two workers
 at two threads each are about 32 GB against 128, and the discretion above
 stands unchanged.
 
+**Amended 2026-09-07, the commander's own loop — a worker's message is the
+completion signal, and session state is not.** An orchestrator needs to know
+"has the work landed"; session state answers "what is the process doing",
+and the two come apart constantly. In one day: a worker read `working idle`
+long after it was finished; another read `working busy` while its report was
+already delivered; a third finished unnoticed because the watcher was
+filtering the refs of two workers already reaped, and the user had to say so.
+Two earlier attempts failed the same way — a hand-rolled `ccc list --json`
+poller that exited 0 with no output, and a `ccc watch | grep <name>` whose
+filter matched other repos' sessions and then the commander's own status
+text, because the state line and the detail line share a stream. **Every
+peer message, all day, was accurate and prompt.** So: the worker's own
+report is the signal, every brief asks for it explicitly, and monitoring is
+demoted to a coarse dead-man watch — a crashed or quota-killed worker sends
+nothing, and the quota wall takes every agent in flight at once, so silence
+must still be detectable. Two riders. A brief must say **verify your own
+landing before reporting it** — state the tip SHA and that
+`git log <base>..<branch>` is non-empty — because a worker wrote "pushed"
+from its plan while the run was still going, and the same sentence in a
+journal entry has no verifier. And **an enumerated watch filter is a
+snapshot of a roster that moves**: the missed landing was watched by a
+filter naming two workers that had since been reaped, while the two live
+ones had never been in it — valid syntax, matching nothing, silently. Any
+filter written once has that bug; only lineage ("what I spawned") or push
+survives it. The tooling half was filed with ccc and is not this repo's to
+build, and ccc corrected the ask in a way worth keeping: a completion event
+whose payload the *worker types* is the same unverified claim in a new
+shape, so the payload must be **computed from refs**, and a dead-man
+watchdog cannot itself be an agent — the quota wall would take it in the
+same instant as everything it watches. Which is the real split: the roster's
+state field answers "is it alive" well and "is it done" badly.
+
 ## 35. The paperwork is bounded by items, and a deletion is a claim
 
 **Decided 2026-09-07**, with the user, after lore priced the queue's
