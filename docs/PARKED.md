@@ -142,6 +142,32 @@ rather than in any lane. Set against it: the opt-level trade is **bounded**
 — it costs `guard.sh`'s incremental compiles and nothing else — while this
 one is unbounded in the wrong direction.
 
+## Parked at the 289/290 merge, 2026-09-07
+
+(296) **Great Lakes' endpoint is eight units short and nobody knows which**
+— 290's `get_mod_resource_cap` fix halves the AI's commerce cap on this
+lobby's Easiest, which is the right-hand side of every `income < cap` gate
+in `create_buildings`, `create_units` and `research_techs`. It took 33
+spurious units off the four endpoint rows and on Great Lakes went eight
+past the mark: `(1,73)`-`(1,80)`, the last eight object numbers the AI ever
+reaches. run53's endpoint is MISC-only, so their positions are known and
+their types are not. **The cheapest falsifier is already on disk and was
+not spent**: run80 is Great Lakes `LEADERS=9` over [23960, 24000), and that
+record carries `num_units` and `num_queued`, which would name exactly which
+types the AI is short of. Parked rather than booked because the queue stood
+at 18 of 18 and this sits 16,400 frames past a word neither map moved, on
+streams that are nobody's. What keeps the change that caused it is that its
+own evidence is local and strong — twelve lines of decompile at 006d65b0,
+and `rate[0]`, `rate[1]` and `best_good` going from wrong on all 80 blocks
+of run84 to right on all 80. Expected in direction, unchased in size, and
+290 declined to call it clean rather than papering it over.
+
+**Two senses of one word, kept apart on purpose.** At the endpoint,
+`unlinked` is a `(who, o)` the dump has and the simulation does not — a
+unit the original built and we did not. In item 291 it is a caravan not
+linked to a city. Same word, different counter, and blurring them would
+make either number unreadable.
+
 ## Measured residues, none near a word
 
 (246) step 6's repath rests on run83's single event (239); (169)
