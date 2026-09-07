@@ -16787,3 +16787,57 @@ of a capture, not a tick, so neither long word changed. What it converts is
 a reading-only claim into one a diff keeps checking. And it takes the
 border half of `docs/audit/2026-09-05-economy-vs-code.md`'s R18; the
 pop-cap recompute and the two further dirty bits are still open there.
+
+## 2026-09-06 — the merchant's unpack, caught on the second window (capture lane, Opus)
+
+Item 192 wanted the one thing no capture had: a `MERCHANT` deploying.
+`docs/MERCHANT.md` §7 said so and the disk agreed. The scan could be
+exhaustive rather than clever, because `SpellType::cast_unpack@006709c0`
+clears one bit — `& 0xfff7ffff` — so the tell is `unit_masks & 0x80000` and
+a grep over every archive in `Logs/` answers it. Ten archives ever carry a
+unit with the bit set; in none of them does any `(who, o, uid)` gain or lose
+it between blocks. No pack, no unpack, in the project's whole history.
+
+**run81 was booked on run68's own game for `[6730, 6800)`, and it missed —
+which is what it was for.** The merchant `1/19` finishes its walk on 6735
+and the cast begins on 6736, where four fields move at once: `cur_anim`
+8 → 24, `end_time` 15 → 149, `stopped` 0 → 1, and the `spell 656` order's
+`paid` 0 → 1. `cur_time` then advances **exactly one a frame** — 1 on 6736,
+64 on 6799, no reset. The deploy is a 149-frame animation the *arrival*
+starts, not an event on arrival, and that is why every window ever aimed at
+this merchant has been short of it by construction: run68's by 149 frames,
+run81's by 85. §7's own bound — the deploy is inside `[6730, 6746]`, from
+run68's closing block — was wrong for a reason nobody could have seen
+without a frame state, and the closing block was not to blame. Its
+(32280, 36888) and `flags 1` match run81's *ordinary* 6746 exactly.
+
+**run82 spent the prediction and it was one frame off, in the right
+direction.** `[6860, 6930)` with `LEADERS=9` riding along; 70 blocks,
+151 MB, rngcmp identical against run54, and the teeth check
+`blocks=70 packed first=1 last=0` — the sentence the item was booked to make
+true. The unpack lands on **6883**, not 6884, because the cast fires at
+`cur_time == end_time - 1`. `unit_masks` 9175050 → 8650762 is `& ~0x80000`
+and nothing else. The position goes (32280, 36888) → (32256, 36864), which
+is tile (168, 192) times 0xc0 exactly, so `set_new_location` **teleports**
+the unit onto the cell corner rather than walking it; `orders_x/y` follow,
+`mylos` steps 3 → 5, and `flags` goes 1 → 9 on the frame after.
+
+**The half that justified `LEADERS=9` is that the pay is not on the deploy.**
+`gather_stamp` moves 6767 → 6887 — exactly 120 — so the recompute is periodic
+and the Citrus is picked up by the next one, five frames after the bit
+clears. Block 6888 carries `rare 26` and `good_obj 10` on the unit and, on the
+leader, **+160 into each of two resource slots** with `rares_collected[20]`
+going to 1. Two slots of 160 is `calc_rare` reading the good's two
+`(BONUS_TYPE, BONUS_NUM)` pairs and multiplying by sixteen, which is
+`docs/ECONOMY.md` step 6's arithmetic *and* its pair confirmed by one diff;
+and `rare 26` landing in `rares_collected[20]` is run80's −6 offset falling
+out again on a different map from a single unit. Fourteen of 11,796 leader
+fields move. The 66 `BEGIN GOOD` records do not move at all — ownership of a
+rare lives on the unit and the leader, never on the deposit.
+
+Two captures, eleven minutes of screen, and both were booked off the disk
+rather than a guess: run81 off a grep that refused, run82 off sixty-four
+measured samples of a counter the dump prints. The residue is honest —
+`gather_down` and `special` are still -1 at 6929, 46 frames past the deploy,
+where run76's long-settled merchant has 18 and 6, so the frame they fill in
+is still past every window.
