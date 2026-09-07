@@ -56,6 +56,48 @@ comes back. It carries the ledger's nine `unverified` rows on the way, so
 whoever unparks it inherits that audit. Nothing here is a cross-item
 constraint: no live worker is in `crates/sim`'s animation code.
 
+## Steering candidates, booked 2026-09-07 with Ramon
+
+Neither is a mechanic and neither moves a word, which is why both park
+rather than take a slot under a cap that stood at 18 of 18 the day they
+were booked. Both are for a **Fable** pass — the model that steers, per
+CLAUDE.md's fan-out rules — and 293 wants **lore** in the room with it.
+
+(292) **Nothing in this tree has ever been profiled** — no bench target, no
+criterion, no flamegraph, no samply, and no mention of Instruments anywhere
+under `docs/`, `crates/` or `tools/`, grepped 2026-09-07. Every measurement
+the gate has ever been given is **memory**: the 15,128 MiB peak at two
+threads, the memcap in front of it, and the ratchet items 235, 260, 280 and
+283 that came off it. Its **256 seconds** is a wall-clock fact with nothing
+under it — no split between parsing a dump and comparing it, which is the
+obvious first cut when run89 is 121 MB and run90 72 MB of text. That
+ignorance is upstream of more than the gate's runtime: 283 proposes a
+`#[global_allocator]` on reasoning about what macOS's allocator keeps, and a
+profile is what would settle it rather than argue it. Cheap to start —
+one bench target over the differ's parse and one over a sim tick — and it
+earns its dependency the moment it prints a number nobody predicted.
+
+(293) **Is the guard pipeline paying for itself, or taxing the loop?** —
+Ramon's observation, 2026-09-07: the guards work, and they are still spammy
+and reach further into a session than their value seems to want; the
+suspected cause is the long-running suites. Two mechanical candidates worth
+measuring before any redesign — `tools/guard.sh` is **four separate cargo
+invocations**, docs_guard, no_float, the_handoff and one per filter, each
+re-checking freshness and printing its own summary where one filtered run
+might do; and `docs_guard` itself reads the entire paperwork surface, the
+queue, every specification's sections and the decompile index, which is
+likely what "reaches in" is naming. But the shape of the script is not the
+question. The question is whether the guard-and-gate pipeline is improving
+the loop or taxing it, and **lore is the oracle that can answer it across
+sessions rather than by anecdote**: `lore tools` counts how often
+`guard.sh` is actually invoked against the release gate, `lore trace` and
+`lore usage` price the turns each costs, and `lore polls` already prices
+the waiting shape that grows around long runs. On the table and none of it
+prejudged: optimise the pipeline before deepening it, or fall back to a
+single-runner mode, which Ramon doubts. **A cross-item constraint if it is
+ever taken** — every worker runs `guard.sh`, so a change to it belongs in
+briefs the day it starts, not the day it lands.
+
 ## Measured residues, none near a word
 
 (246) step 6's repath rests on run83's single event (239); (169)
