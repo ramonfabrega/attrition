@@ -31,8 +31,8 @@ each section's non-item prose pinned and falling only.
 - **276 grepped instead of capturing and it paid**: run88's `!quit` block
   at 7816 is East Indies' residue, not its mechanism — 286. 272 found
   `CITY` unasserted on 246 of 246 blocks, 285.
-- **260 halved the gate** and **280 took the mapping back out** — one
-  `forbid(unsafe_code)` again. Fable is owed 37, 280's UB ground, and 283.
+- **260 halved the gate**; **280 took the mapping back out**, one `forbid`
+  again. `FABLE:` owed — 37, 280's UB ground, 283, CLAUDE.md's wait rule.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w7806 of 24,000 · GreatLakes w7585 of 24,000
