@@ -5173,6 +5173,14 @@ run86's window, which is earlier than 6985 and a separate row; and its
 second cycle here (7721..7799) opens at `+1` and ends 47 apart, which is
 downstream of the word and nobody's.
 
+**One cost, and it is the one run87 warned about.** run88 is 187 MB against
+run87's 121, and `Log::parse` is still eager (item 260): with both windows in
+it the release diff suite's peak measured **15,479 MiB on one run and 16,169
+MiB on the next**, of the 20 GiB `memcap.sh` ceiling — a 700 MiB swing at two
+threads, so the headroom is now under a fifth and the number is not stable
+enough to plan against. The next window of this size wants item 260 landed
+first, or a raised cap; this is the second capture in two days to say so.
+
 **So the word does not move.** Nothing was fixed here; what the capture
 buys is that East Indies 7529 stops being a draw-stream report and becomes
 a field with a value diff beside it.
