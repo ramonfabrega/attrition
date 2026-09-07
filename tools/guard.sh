@@ -9,6 +9,7 @@ cd "$(dirname "$0")/.."
 cargo test -q -p sim docs_guard
 cargo test -q -p sim no_float
 cargo test -q -p rondata the_handoff
+python3 tools/queueledger.py
 for f in "$@"; do
   cargo test -q -p sim "$f"
 done
