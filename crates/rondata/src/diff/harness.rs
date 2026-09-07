@@ -3284,8 +3284,19 @@ mod tests {
                     )
                 })
                 .collect();
+            // The **collision** half of the line, added for item 276:
+            // East Indies' word at 7806 is a stop, and every frame of the
+            // shuffle behind it is a `collide` / wait-flag / `pause`
+            // question (`docs/COLLISION.md` §6). All five are dumped
+            // fields, so a line that prints them is a row a capture over
+            // the gap can refuse.
+            let pause = match x.orders.front().map(|ord| &ord.body) {
+                Some(sim::orders::Body::Move(m)) => m.pause,
+                _ => -1,
+            };
             eprintln!(
-                "  f{f} {who}/{o} at ({}, {}) ang {} hdg {} path {} top {:?} order {:?} {}",
+                "  f{f} {who}/{o} at ({}, {}) ang {} hdg {} path {} top {:?} order {:?} \
+                 coll {}/{}/{} wait {} pause {pause} {}",
                 x.pos.x,
                 x.pos.y,
                 x.movement.facing.0,
@@ -3293,6 +3304,10 @@ mod tests {
                 x.path.len(),
                 x.path.last().map(|p| (p.to.x, p.to.y, p.flags)),
                 x.orders.front().map(|ord| ord.index()),
+                x.collide,
+                x.collide_who,
+                x.collide_o,
+                x.waiting_on,
                 clocks.join(" ")
             );
         }
@@ -6898,11 +6913,82 @@ mod tests {
             twenty.first()
         );
 
+        use crate::diff::order::OrderMismatch as OM;
+
+        // **The closing block is the word's own residue, and this is its
+        // value diff** (item 276, 2026-09-07). `LONG_WORD_EAST_INDIES` is
+        // 7806, ten frames under this block and past every dumped frame
+        // on the map, so the question the item asked was whether the
+        // `!quit`'s own block explains it. It does not explain the
+        // *mechanism* — 7800..7815 is undumped and that is where the
+        // shuffle happens — but it names the two units and prices them:
+        // `1/6` is 46 east and 51 south of the original's, `1/7` six west
+        // and twelve south, and `1/19`/`1/20` are the two standing
+        // Merchant constants that were already here.
+        //
+        // A closing dump is frame *n* except for the one unit the quit
+        // caught mid-update (item 257, open), so the rows below are worth
+        // exactly as much as a corroborating instrument makes them. The
+        // trace is that instrument and it is not a dump: `1/6`'s stop is
+        // one frame late on it (`docs/COLLISION.md` §8.5), which no torn
+        // record can fake.
+        let residue: Vec<(i64, i64, i32, i32, i32, i32)> = report
+            .frames
+            .iter()
+            .flat_map(|f| f.diverged.iter())
+            .filter(|d| d.frame == 7_816)
+            .map(|d| (d.who, d.o, d.ours.x, d.ours.y, d.theirs.x, d.theirs.y))
+            .collect();
+        assert_eq!(
+            residue,
+            vec![
+                (1, 6, 39_624, 38_808, 39_578, 38_757),
+                (1, 7, 39_666, 38_676, 39_672, 38_664),
+                (1, 19, 32_280, 36_888, 32_256, 36_864),
+                (1, 20, 28_632, 24_024, 28_608, 24_000),
+            ],
+            "the closing block's whole residue, both sides' coordinates"
+        );
+
+        // **And the order records, every field, over every block.** The
+        // position comparison above is a quarter of what this capture
+        // dumps; the rest went untallied until item 276 and it is a
+        // standing set, not a moving one. `1/6` and `1/7` hold **no**
+        // order row at all — which is what says their divergence opens
+        // after 7799 rather than earlier and quietly.
+        let mut tally: std::collections::BTreeMap<(i64, i64, String), usize> = Default::default();
+        for d in report.frames.iter().flat_map(|f| f.order_diverged.iter()) {
+            let field = match &d.what {
+                OM::Group { field, .. } => format!("Group.{field}"),
+                OM::Move { field, .. } => format!("Move.{field}"),
+                w => format!("{w:?}")
+                    .split('{')
+                    .next()
+                    .unwrap()
+                    .trim()
+                    .to_string(),
+            };
+            *tally.entry((d.who, d.o, field)).or_default() += 1;
+        }
+        assert_eq!(
+            tally
+                .iter()
+                .map(|((w, o, f), n)| ((*w, *o, f.as_str()), *n))
+                .collect::<Vec<_>>(),
+            vec![
+                ((1, 0, "Move.facing"), 101),
+                ((1, 18, "Action"), 326),
+                ((1, 18, "Flags"), 326),
+                ((1, 18, "Move.angle"), 324),
+            ],
+            "run88's order-field residue, whole — `1/18` is the parked \
+             Transport Barge and `1/0` the AI's first citizen"
+        );
+
         // **The field the word used to be.** `1/13`'s `wait` read
         // `theirs + 1` on all 56 blocks up to 7529, where the original's
         // reached its end (`-1`) and this crate still held 1. The age snap
         // put the arrival frame right and there is no row left at all.
-        use crate::diff::order::OrderMismatch as OM;
         let wait: Vec<(i64, i64, i64)> = report
             .frames
             .iter()
