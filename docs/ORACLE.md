@@ -5335,6 +5335,97 @@ eight failed. The guard that stays in permanently is the last one, because
 "equal once one entry is dropped" says nothing on a frame pair that was never
 equal, and a mis-read trace is also a stream that agrees with nothing.
 
+
+## run90 — East Indies' word is a waypoint this crate walks to (2026-09-07)
+
+**What it is.** run54's game, `[7790, 7900)` at run88's `[End Frame]` detail
+**exactly** — **111 blocks, 71,645,977 bytes**, `cover=0`, six minutes from
+the start click to the last block. It is the first dump of **any** frame in
+`[7800, 7899]` on either map, which is where East Indies' word at 7806
+actually turns: run88 stops at 7799 and its `!quit` block sits at 7816.
+
+**The disk was grepped first and it found one file.** Every archive, for any
+block labelled 7790-7899 on any map: only **run88**, and only its own tail
+(7790..7799) plus that 7816 closing block — which item 276 had already read.
+So the whole shuffle was undumped and this was a capture rather than a diff.
+
+**Four checks, and the first attempt was a permission failure, not a
+result.** Launched from the session's own process tree, `screencapture`
+wrote nothing — Screen Recording is granted to `~/bin/RonDriver.app` and not
+to the current Claude Code version's path — and `runqueue.sh` said so and
+stopped. Re-launched through `tools/gamelog/viadriver.sh` it ran clean:
+`rngcmp.py rontrace-run54.log rontrace-run90.log` → **0 differing, 7,916
+identical**; the run88 overlap → **10 in common (7790..7799), 0 differing**,
+with no `--exclude` and no `--drop`, which is what taking the neighbour's
+detail exactly buys; and both teeth → **110 frame blocks, 7790..7899**,
+`cur_anim` for `GUYS=4` and `collide_frame`'s *presence* for `UNITS=3`. Not
+run85's `collide_frame` **transition**, which run88's worker measured at
+zero over 486 East Indies frames and refused.
+
+**This capture was booked to be refused, and the predictions were written
+into its stanza before the run.** Item 276 had dated the word off the trace
+and produced this crate's own `collide`/`pause`/`wait` rows for `1/6` and
+`1/7`; the stanza carries them with a line each saying what a refusal would
+mean. Two held exactly, two were refused, and the refusals are the finding.
+
+**Held.** Both sides make the first collision on block 7803 — `1/6`
+`collide_o 7`, `1/7` `collide 1 / collide_o 6` — and `1/7`'s `MOVEORDER
+pause` reads **3, 3, 2, 1, 0** over 7803-7807 on both sides.
+
+**Refused: the position parts two blocks below the word.** `1/6` is out on
+**7805**, where the draw stream does not part until 7806:
+
+| block | ours | theirs | delta |
+| --- | --- | --- | --- |
+| 7804 | (39729, 38802) | (39729, 38802) | — |
+| **7805** | **(39720, 38808)** | **(39729, 38802)** | **(−9, +6)** |
+| 7806 | (39720, 38808) | (39708, 38789) | (+12, +19) |
+| 7807 | (39699, 38795) | (39708, 38789) | (−9, +6) |
+
+**And the mechanism is the waypoint's arrival rule, not the response.** The
+original pushes the *identical* sidestep — `(39720, 38808)` `flags 2` on
+7803, `(39672, 38808)` on 7807, `(39624, 38808)` on 7811 — and its path
+stack drops 5 → 4 on the **next** block with the unit at (39729, 38802),
+which is not that point: one full step along the bearing and the waypoint is
+abandoned. This crate keeps it and walks the remainder, a short (−9, +6)
+step. The original's blocked cycle is **four** blocks; this crate's is
+**five**; the extra frame per cycle is the word.
+
+**Refused, second: the pause roll on 7810 is `1/7`'s.** §8.5 could not
+attribute it. `1/7`'s `MOVEORDER` carries **`pause 8`** on block 7811 where
+this crate sets §6 step 5's wait flag and rolls nothing — the
+wait-versus-repath predicate is wrong. It is also the **first non-zero
+`MOVEORDER pause` any dump on this disk has printed**: every one of run88's
+1,467 is 0, which was `docs/COLLISION.md` §9's standing row. A rule comes
+with it that no reading had stated — the countdown is **frozen while
+`collide` is set**, holding 8 over eleven blocks (7811..7821) before ticking
+down to 0 on 7829.
+
+**The trace and the dump corroborate on the same three frames**, which a
+closing block never could: the original's `SITE_BLOCKED` falls on sim-frames
+7802, 7806, 7810, and the blocks whose `1/6` names `collide_o 7` are 7803,
+7807, 7811 — the same three, four apart.
+
+**One cost, and item 260 has closed the one run87 and run88 both warned
+about.** run90 is 71 MB, and the release diff suite with this window in it
+peaked at **11,015 MiB across the tree, 10,984 in the largest single
+process, of the 20 GiB `memcap.sh` ceiling**, at 245 tests. That is at or
+under the ~11.1 GiB the tree measured at 244 without it, so a 71 MB window's
+cost sits **inside the run-to-run swing** and is not separable here — the
+delta is not claimed. It is nowhere near the 15,479-16,169 of before item
+260, and run89's ~2 GiB for 112 MB remains the only figure on this tree that
+actually isolated a window.
+
+**So the word does not move.** Nothing was fixed here; what the capture buys
+is that East Indies 7806 stops being a draw-stream report and becomes a
+field with a value diff beside it — **two frames earlier than the stream
+noticed**, which is the standing rule in one row.
+`run90_s_window_is_east_indies_shuffle` is the assertion, and its six claims
+were each made to fail on purpose before being believed: the original's 7804
+path length moved to 5, its `pause 8` to a 9, `1/6`'s 7805 row to
+(39730, 38802), `1/7`'s first parted block to 7812, the parted set's `1/6`
+to 7807, and the stand list's 7810 to 7811. All six failed.
+
 ## 178 needed no screen — the danger map's unit pass was on disk four times (2026-09-06)
 
 **What it is.** Not a run. `docs/DANGER.md` §8 had the unit pass of
