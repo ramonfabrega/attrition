@@ -86,13 +86,14 @@ between steps 13 and 16; (159) the `CITY` record's two seams on run58;
 thirteen `Census` fields written for consumers not built
 (`rondata::writers`' no-reader ledger, 20 rows, may only fall).
 
-178. **The danger map's unit pass — its falsifier may be a grep.** `role
-    & 0x10000`, `(attack · 5) / 10` and the war gate rest on a reading
-    (DANGER §8), but `danger[who][scan]` is on disk in **eighteen**
-    archives — run29's 15100 carries 96 `TARGETORDER`s beside its danger
-    map, run27's 46, past the 15000 rebuild boundary. **Unverified**: the
-    army at the *rebuild* frame. Confirm §2's schedule, then no capture.
-    (181) CARAVAN §7.2–§7.3's unreached arithmetic.
+247. **An upgrade is an in-place guy-type change on the standing unit.**
+    On run76's own frame **6737** the three Archers `1/27`–`1/29` all go
+    guy **170 → 177** (Bowmen → Longbowmen) in one frame, keeping
+    `(who, o)` and `group 64` — not a modifier on a type. East Indies'
+    `1/32` does the same 340 → 341, and its danger row moves by exactly
+    `(110 − 100) / 2`. Anything reading a unit's cost, attack or speed
+    across an upgrade wants this. (181) CARAVAN §7.2–§7.3's unreached
+    arithmetic.
 
 **The widening ledger is built** (87, DATALAYER §4): **19** parsed fields
 the harness names nowhere and **44** one capture names (237 moved both);
@@ -178,6 +179,15 @@ non-flat; `Leader::diplomacy`; (77) ANIM §3.2; (58) ROADS §7.4.
   80) with `--exclude <the category you raised>`. **The trap**:
   `samegame.py` exits 0 when nothing is in common, so assert the common
   count and range, not the verdict.
+- **Grep for the derived quantity, and for the mechanic's SHAPE — not
+  only for coverage of a frame.** `BUILDQUEUE` prints
+  `queue[scan].cost[0..2]`, so a price the original *paid* is on disk
+  wherever `BUILDS` is on, which retired a booked `LEADERS=9` window
+  (238). And 178 needed no capture at all: its two passes write different
+  footprints — the building pass a 3×3 to every viewer including the
+  owner, the unit pass one half-cell and never the owner's — so a
+  half-cell with no building in its 3×3 isolates the unit pass in
+  archives already held, with no contemporaneous dump required.
 - **A check on a field that is never cleared must assert a CHANGE, not a
   value** — `collide_frame` is a permanent stamp, so "some unit has one in
   the band" is true of any window on the game, and run85's first teeth
