@@ -641,7 +641,21 @@ fn the_border_that_kills_also_pays() {
 
     // Full taxation, and nothing else at all: no cities in the economy sense,
     // no citizens, no markets. Every coin below comes from holding ground.
-    sim.holdings[1].taxation = 2;
+    // The level is the player's `TAX_n` ladder since item 232, so it is
+    // granted rather than poked into `Holdings` — where the assembly would
+    // now overwrite it.
+    let mut tree = tech::TechTree::new();
+    let tax = [
+        Some(tree.add(tech::TypeDef::epoch("TAX_1", tech::Line::Commerce, 0))),
+        Some(tree.add(tech::TypeDef::epoch("TAX_2", tech::Line::Commerce, 0))),
+        None,
+        None,
+    ];
+    tree.roles.taxation_preq = tax;
+    sim.set_tech_tree(tree);
+    sim.tech[1].tech[tax[1].unwrap()] = true;
+    sim.assemble_holdings(1);
+    assert_eq!(sim.holdings[1].taxation, 2);
     let wealth = economy::Resource::Wealth.index();
     let period = Tuning::RON.gather_rate as i64;
     let before = sim.ledgers[1].bucket[wealth];
@@ -1814,8 +1828,13 @@ fn a_tower_picks_a_target_and_reloads_by_its_arrows() {
         movement::Angle::WEST,
     );
     sim.set_stance(b, Stance::HoldFire);
-    // The building thinks on `(frame + index) & 0x1f == 0`: frame 0.
-    run(&mut sim, 1);
+    // The building thinks on `(frame + o) & 0x1f == 0`, and `o` is 2000 —
+    // the first of player 0's band, and 16 mod 32 — so the first think is
+    // frame **16**, not frame 0 (item 233; `docs/CITIES.md` §12.1). This
+    // test wrote the rule down correctly against code that keyed on the
+    // handle, and counted the frames the code's way.
+    assert_eq!(sim.buildings[tower].index, 2000);
+    run(&mut sim, 17);
     assert_eq!(sim.buildings[tower].target, Some(Obj::Unit(b)));
     assert_eq!(sim.projectiles.len(), 1);
     assert_eq!(

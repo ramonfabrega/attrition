@@ -18206,3 +18206,85 @@ The other half of the worktree gap is ccc's and they took it (their item
 sharper framing, worth keeping: it is a detector keyed on the wrong field,
 the same shape as their item 25, and this fleet was bitten by it twice in
 two days.
+
+## 2026-09-07 — item 233: the building's phase is its object number, and no game on disk can tell (no score moved, Opus, worker)
+
+`docs/audit/2026-09-05-cities-vs-code.md`' R3, the one row that pass called a
+wrong rule rather than a missing one: `Build::process@0061edf0:728` phases a
+building's periodic work on its object number `o`, and `Sim::process_building`
+phased it on `b`, the handle into this crate's `Vec`.
+`Sim::process_building_combat` did the same at two sites (COMBAT §8.6). Both
+now read `Building::phase(frame)`, the twin of `Unit::phase` that has been
+sitting eight hundred lines away since the unit half was written.
+
+**The row understated it.** It said the two agree "at the start of a game" and
+part "the first time a slot is reused". They agree in no game at all: `o` is
+per player from `BUILD_BASE` — 2000, which is **16** mod 32 — and the handle is
+global from 0, so player 0's very first building was already sixteen frames
+out. `a_building_s_periodic_phase_is_its_object_number` is the assertion, made
+to fail first: on the old code it fires on frames 0 and 32 where the original
+fires on 16 and 48.
+
+**And the row was right about the reuse, and it still changes nothing.** The
+endpoint at 24,001 reads **80 off / 0 unlinked** on East Indies and **73 off /
+7 unlinked** on Great Lakes before the fix and after it — every one of the
+seven counts on both maps, and both ladder rungs, unmoved. That is not the
+diff being blind: a per-frame digest of every building's `under_attack`,
+`damage`, `health`, `recharging`, `target`, `alive` and `active`, and every
+unit's position and health, is byte-identical across all 24,000 frames of both
+scored walks.
+
+Instrumenting the same two walks says why, and the numbers are worth keeping
+because they describe the captures rather than the defect. Object numbers a
+second handle later reused: **10** on East Indies, **7** on Great Lakes — so
+slot reuse is real and frequent. Building-frames with `under_attack` set: **0**
+and **0**. On enemy territory: **0**. Live and damaged: **0**. Holding a
+target: **0**. Buildings that changed owner: **0**. Every branch the 32-frame
+phase gates is a no-op in both games, so the phase can be as wrong as it likes.
+
+The honest reading is that these two captures contain **no combat against a
+building at all** — nobody is shot at, nothing bleeds in enemy land, no tower
+ever acquires a target — and a whole family of rules this crate implements is
+therefore unfalsifiable by anything on the disk. That is a fact about the
+capture library, not about item 233, and it is the argument for the war
+capture the queue keeps not booking. Written into CITIES §12.1 with the
+falsifier named: `BUILDS=6` over a building taking damage, `BUILDDATA.damage`
+either side of a 32-frame boundary.
+
+## 2026-09-07 — item 232: the five ladders that never moved, and the tax that could not be non-zero (no score moved, Opus, worker)
+
+`docs/audit/2026-09-05-economy-vs-code.md`' R8. `Levels::for_player` ignored
+its `who` — it only `debug_assert!`ed the index — and answered the constant
+`Levels::BASE`, so the granary, lumber mill, smelter and university ladders sat
+at level 1 for every player of every game and `taxation` at 0. The territory
+tax then multiplied by `TERRITORY_TAXES[0]`, which the shipped table gives as
+**0 per cent**, so a whole documented income line — the economic mirror of
+`docs/ATTRITION.md` — could not be non-zero.
+
+The five load like the two ladders that were already right. `enums/TypeIndex.txt`
+gives `GRANARY2..5`, `LUMBERMILL2..4`, `SMELTER2..4`, `UNIVERSITY2..6` and
+`TAX_1..4` at `0x2bb`, `0x2c2`, `0x2c5`, `0x2e1` and `0x30b`, which off
+`BASE_BONUSTYPES` (`0x2ac`) is 15–18, 22–24, 25–27, 53–57 and 95–98 — and those
+**bracket** the two the loader already had, `FISHERMEN1..3` at 19–21 and
+`MERCHANTS_1..4` at 99–102, which is the check that the arithmetic is right
+rather than plausible. `Roles` carries the five preq arrays, `for_player`
+answers each ladder's highest held rung through `Sim::bonus_level`, and the
+four enhancers floor at 1 where taxation floors at 0 — `get_granary@006db340`'s
+`(held) + 1` against `get_taxation@006d6e20`'s `(uint)(held != 0)`.
+
+**The second half of the defect was quieter and would have made the first
+useless.** `assemble_holdings_with` wrote `Holdings::taxation` nowhere, and its
+own test asserted that as a feature — a hand-set 4 survived the assembly
+because nothing touched it. So computing the level correctly would have changed
+nothing at all. The assembly writes it now and that test asserts the opposite.
+
+**And it moves no score, which is the honest half.** ECONOMY §"The
+docs-versus-code pass" now says so in its own words: the original's territory
+tax is zero through every captured window too, because neither leader reaches a
+taxation level inside one, so the two sides agreed before and agree after. The
+endpoint at 24,001 is unmoved. This is correctness argued from `get_taxation`'s
+listing, not from a diff, and the capture that would give it an oracle is one
+taken past a `TAX_1` research with `LEADERDATA`'s `resources[2]`/`income[2]` on
+the frame after. Two of the day's three re-booked items therefore land as
+**right rules no game on disk can check** — which is the same sentence item 233
+wrote, and between them they are an argument for the war capture.

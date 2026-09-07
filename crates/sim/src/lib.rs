@@ -1066,6 +1066,25 @@ impl Building {
     pub const fn is_under_attack(&self) -> bool {
         self.under_attack & 0x2 != 0
     }
+
+    /// The frame counter this building's periodic work is phased against —
+    /// **its object number, not its handle** ([`Unit::phase`]'s twin).
+    ///
+    /// `Build::process@0061edf0:728` reads `(frame + o)`, and every period
+    /// the building keeps hangs off it: the under-attack decay and the
+    /// building's own attrition every 32 (`docs/CITIES.md` §1.3, §9.5), the
+    /// road replan every 16 (`docs/ROADS.md` §1), the capture re-test every
+    /// 64 (§7.1), the city heal every `CITY_HEAL_RATE` (§8.2) and the
+    /// tower's target search (`docs/COMBAT.md` §8.6).
+    ///
+    /// [`Building::index`] is that `o`; the handle is this crate's `Vec`
+    /// slot, which agrees with it in no game at all — `o` is per player and
+    /// starts at [`BUILD_BASE`] (2000, which is 16 mod 32), the handle is
+    /// global and starts at 0, and `o` is recycled by [`Sim::find_free`]
+    /// while the `Vec` only grows.
+    pub const fn phase(&self, frame: i64) -> i64 {
+        frame + self.index as i64
+    }
 }
 
 /// A unit that came out of a queue this frame.

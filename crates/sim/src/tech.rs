@@ -318,6 +318,27 @@ pub struct Roles {
     /// with the highest held, and **level 0 is 100%**, so the whole term is
     /// inert until Taxation.
     pub merchants_preq: [Option<TypeId>; 4],
+    /// The five *enhancer and taxation* ladders, in level order — the
+    /// `TECHBONUSES` rows `docs/ECONOMY.md`'s indexed arithmetic is keyed
+    /// by, and the same shape as [`Roles::merchants_preq`]: a row the tree
+    /// does not know is simply not held.
+    ///
+    /// `BASE_BONUSTYPES` is `TypeIndex` `0x2ac`, so these are bonuses 15–18
+    /// (`GRANARY2..5`), 22–24 (`LUMBERMILL2..4`), 25–27 (`SMELTER2..4`),
+    /// 53–57 (`UNIVERSITY2..6`) and 95–98 (`TAX_1..4`) — read off
+    /// `enums/TypeIndex.txt`, and bracketing the two indices `load.rs`
+    /// already had right (`FISHERMEN1..3` at 19–21, `MERCHANTS_1..4` at
+    /// 99–102).
+    ///
+    /// `LeaderData::get_granary@006db340`, `CityData::lumber_level@00736820`,
+    /// `get_smelter@006db3f0` and `get_university@006db1f0` all answer
+    /// **`1`** when none is held; `get_taxation@006d6e20` answers **`0`**.
+    /// That is the whole difference between the four enhancers and the tax.
+    pub granary_preq: [Option<TypeId>; 4],
+    pub lumbermill_preq: [Option<TypeId>; 3],
+    pub smelter_preq: [Option<TypeId>; 3],
+    pub university_preq: [Option<TypeId>; 5],
+    pub taxation_preq: [Option<TypeId>; 4],
     pub airbase: Option<TypeId>,
     pub market: Option<TypeId>,
     pub knowledge: Option<TypeId>,

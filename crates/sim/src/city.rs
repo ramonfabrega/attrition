@@ -1713,7 +1713,7 @@ impl Sim {
             }
             return;
         }
-        let phase = frame + b as i64;
+        let phase = self.buildings[b].phase(frame);
         if phase & 31 == 0 {
             let bd = &mut self.buildings[b];
             if bd.under_attack & 0x1 != 0 {
