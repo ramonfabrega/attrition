@@ -4322,6 +4322,82 @@ already booked inside the archive.
 march from 6994 to 7250 — 256 frames — and the second's first 37, from the
 same building, on the map 219 already owns.
 
+## run80 — the four territory seams at 24,000, and one of them fires (2026-09-06)
+
+**What it is.** Great Lakes, seed 12345, 40 frame blocks over `[23960,
+24000)` at `LEADERS=9`, 79 MB, `cover=0`. Same game: `rngcmp.py
+rontrace-run53.log rontrace-run80.log` → **differing frames: 0, identical
+frames: 24001**. The run-up to 23,960 took **forty seconds**: run53's stanza
+warns this game is hours, and that was the `cover=1` int3 forest, not the
+game.
+
+**What it was for.** `docs/ATTRITION.md`, "Territory", names four inputs
+inert on every capture so far. The disk was grepped before the booking and
+refused to answer — the five archives that reach 24,000 carry thirteen
+`orig_type` lines each, which is their start dump and nothing after it — so
+this is the recon frame the item needed. **Not a coverage run**: no capture
+on this machine shrinks `report.py … blind`, because coverage is exactly
+what `cover=0` costs (226). What it does instead is the other route to the
+same finish line — convert a reading-only claim into one a dump either
+contains or refuses.
+
+**The verdict, seam by seam.**
+
+| seam | at 23,999 | why |
+|---|---|---|
+| gem rare | **FIRES** | player 1 has collected Gems |
+| temple border techs | cannot have fired | no Temple exists |
+| fort border techs | cannot have fired | no Fort exists, `fort_mark 0` |
+| Colosseum / Eiffel | not built | but the AI does build wonders |
+| AI handicap | inert by construction | `handicap 0`, both players, both maps |
+
+**The gem fires, and the map says so by name.** `rares_collected[44]` on
+player 1 is `{11, 13, 23, 27}`, and the array runs over resources 6–49 —
+the six below it are the base goods, which `escrow[]`'s six entries
+independently confirm. Offset by six the four are Amber, Tobacco, **Gems**
+and Wool. **All four are on this map and none of the offset-0 readings are**
+(Silk, Salt, Bison, Sugar), which settles the indexing: a `BEGIN GOOD`
+record prints its resource **by name**, and the start dump's 35 goods are
+Oil ×14, Fish ×12, then one each of Amber, Dye, Tobacco, Cotton, Wool,
+**Gems**, Citrus, Aluminum, Rubber. One Gems on Great Lakes, and player 1
+has it. So the term is live in a game the project already diffs, and
+`territory` at 23,999 — **player 0 at 266, player 1 at 568** — is wrong
+without it.
+
+**The two building seams are blocked at their prerequisite.** Player 1's 27
+buildings at 23,999 are Farm ×10, Small City ×2, Woodcutter's Camp ×2,
+Barracks ×2, Stable ×2, University ×2, Mine ×2, Library, Market, Tower,
+Senate and the **Pyramids**; player 0's five are Small City, Woodcutter's
+Camp, Farm, Library, Market. No Temple (437), no Fort (443), no Fortress
+(445), and `fort_mark 0`. `has_preq(TEMPLEBORDERS2..4)` and
+`has_preq(FORTBORDERS2..4)` therefore cannot be true — not "did not happen
+to fire", but could not. The Pyramids matter for the other pair: the AI
+**does** build wonders on this map, so the Colosseum and Eiffel terms are
+reachable in principle and simply are not reached by 24,000.
+
+**The handicap is zero by the lobby, not by the frame.** `handicap 0` on
+both players here, and the same on East Indies 5379 (run59) and Great Lakes
+779 (run41). `(handicap + 15) / 25` is 0 at 0, so the allowance has been
+inert in every capture ever taken and will stay inert until a stanza changes
+the lobby's difficulty. That is a click, not a longer wait.
+
+**So 117 splits.** One seam is live and needs modelling now; two are blocked
+behind buildings the AI does not build in 24,000 frames of this scenario;
+one is blocked behind a lobby setting. Three of the four need a scripted
+setup rather than a longer capture, which is a session's work and not the
+screen's.
+
+**Two things the dump gave for free.** A `BEGIN GOOD` record names its
+resource, so any start dump lists the map's whole rare inventory without a
+lookup. And at `LEADERS=9` a frame block writes each object **twice** — the
+full record, then a seven-key stub of position alone — so a count taken off
+one such block is doubled; `births.py` is unaffected, the stub set being
+stable frame to frame, but a hand count is not.
+
+**What it did not establish.** How much territory the gem adds. One frame
+cannot separate the flat additions from each other, and the falsifier is a
+capture either side of the Merchant reaching the Gems.
+
 ## The window nobody can see — CrossOver's expired bottle (2026-09-04)
 
 **run 76 did not run, and the reason had nothing to do with permissions.**

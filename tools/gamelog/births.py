@@ -22,6 +22,12 @@ That is the comparison run78 made by hand.
 Streaming, two frames of state at a time — an archive is hundreds of MB and
 the memory ceiling applies to the capture lane's own tools too.
 
+**A frame block can hold a second, thin pass.** At `LEADERS=9` detail
+(run80) each object is written twice: the full record, then a seven-key stub
+with position and nothing else. The stub set is stable frame to frame, so it
+cancels in the comparison and no phantom is reported — but a per-kind count
+printed off such a block is doubled, and any hand count off one is too.
+
 **Pass the capture's own window.** Outside it the dump reverts to the run's
 `[End Frame]` detail, where `uid` and the `GUY` records are gone, and every
 object on the map then reads as gained — which is what run76's archive does
