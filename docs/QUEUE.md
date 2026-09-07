@@ -37,7 +37,7 @@ unmoved.* Verdict: **back to Opus commanding**, at the width below.
   worker takes its base's tip with `ccc update <ref>`, never `git merge`.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w7448 of 24,000 · GreatLakes w6862 of 24,000
+Long captures: EastIndies w7448 of 24,000 · GreatLakes w6982 of 24,000
 
 **Opener: the main thread is the commander (DECISIONS 34), on Opus; the
 first worker takes 236.** How the loop runs is entry 34's, not this file's.

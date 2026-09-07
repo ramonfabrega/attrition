@@ -3982,11 +3982,28 @@ mod tests {
     /// three on the original's own point from 6652 to **6861**, and moved
     /// run53's word 6848 → **6862**.
     ///
-    /// **What is left** is 6862's own blocked stand, where the squad
-    /// meets the standing citizen `1/13`: the original gives `1/29`
-    /// `tolerance 384` on 6861 — `manh × 2`, §5's give-up — and steps it a
-    /// full 26 to `(42968, 24407)` where this crate steps 22 to
-    /// `(42971, 24409)`, and on 6862 `1/28` stands here and steps there.
+    /// **And 6862 was the formation's end, not a stand** (item 236,
+    /// 2026-09-06). The record said so before any reading did: on 6861
+    /// all three Archers' order kind goes `GROUPATTACKTOORDER` →
+    /// `ATTACKTOORDER`, `1/28` loses `PATHED` and its whole path stack,
+    /// the leader `1/27`'s `dest` goes 1 → 0 with its stack kept, and
+    /// `1/29` — processed after the ungroup, in the same frame — plans a
+    /// fresh **nine-entry world-grid path**, 768 apart with `tolerance
+    /// 384`, and steps the full 26 to `(42968, 24407)` where this crate
+    /// stepped 22 to `(42971, 24409)` still in formation. That is
+    /// `ungroup_move_order` from end to end.
+    ///
+    /// What fires it is the follower's own tail: `move_step` answers
+    /// **0** from three places — blocked and still owing a turn, blocked
+    /// and handed to `resolve_unit_collision`, and a tile the world
+    /// refused — and `do_group_move` ungroups the squad on every one of
+    /// them (`5e856d`–`5e8660`, `docs/ORDERS.md` §8.3). `1/28` is
+    /// squeezed onto its own cell centre `(42792, 24648)` on 6861 by
+    /// `resolve_unit_collision`, which is the 0; this crate did the same
+    /// snap and answered `Did::Something`, so the formation held. With
+    /// the two arms answering `Did::Nothing` and the follower reading
+    /// them, all three Archers hold the original's own point for the
+    /// **whole** window, and run53's word moved 6862 → **6982**.
     ///
     /// Driven through [`run_traced`], so this is the whole record and not
     /// the squad's.
@@ -4042,6 +4059,67 @@ mod tests {
         for (&(who, o), &frame) in &parted {
             eprintln!("  {who}/{o} parts at {frame}");
         }
+        // **The ungroup, asserted** (item 236). The positions above say
+        // the three Archers walk where the original walks; this says they
+        // walk there for the original's reason. The dump prints a
+        // follower's group order as `GROUPATTACKTOORDER` and the plain one
+        // as `ATTACKTOORDER`, and the comparison reads that as an order
+        // `Kind` — so a squad that stays in formation past 6861, or one
+        // that leaves it early, shows up here as a `Kind` row and nowhere
+        // else until three frames later. Before this the whole march
+        // carried one every frame and nothing looked at it.
+        let kinds: Vec<&OrderDivergence> = report
+            .frames
+            .iter()
+            .flat_map(|f| f.order_diverged.iter())
+            .filter(|d| {
+                d.who == 1
+                    && (27..=29).contains(&d.o)
+                    && matches!(d.what, crate::diff::order::OrderMismatch::Kind { .. })
+            })
+            .collect();
+        eprintln!(
+            "run76: squad order-kind rows {:?}..{:?} ({} of them)",
+            kinds.first().map(|d| d.frame),
+            kinds.last().map(|d| d.frame),
+            kinds.len()
+        );
+        // The `Kind` rows themselves are **not** the oracle, and saying so
+        // is worth a line: this crate calls a group attack-move `ATTACK_TO`
+        // with a `group` beside it where the dump writes
+        // `GROUPATTACKTOORDER` (kind 21), so ours reads 2 on every frame of
+        // the march and the rows mark the frames the *original* is grouped,
+        // not the frames this crate is. They end at 6860 because the
+        // original ungroups on 6861, and they would end there whatever this
+        // crate did. What the ungroup is actually pinned by is below.
+        assert!(
+            kinds.first().map(|d| d.frame) == Some(6_651)
+                && kinds.last().map(|d| d.frame) == Some(6_860),
+            "the original's group order does not run 6651..6860 in this file: \
+             {:?}..{:?}",
+            kinds.first().map(|d| d.frame),
+            kinds.last().map(|d| d.frame)
+        );
+        // **The ungroup, pinned** (item 236). From the frame the formation
+        // ends, the three Archers agree with the original on every order
+        // and path field the dump prints — the nine-entry world-grid path
+        // each plans for itself, its `tolerance 384` rows, the `PATHED`
+        // bit two of them lose, and the waypoint and `coll_x/coll_y` that
+        // follow. Before the follower read `move_step`'s 0 this window
+        // carried `PathLength`, `PathTo`, `PathField`, `Move` and `Coll`
+        // rows from 6861 to its end, because all three were still walking
+        // a formation the original had already dissolved.
+        let post: Vec<&OrderDivergence> = report
+            .frames
+            .iter()
+            .flat_map(|f| f.order_diverged.iter())
+            .filter(|d| d.who == 1 && (27..=29).contains(&d.o) && d.frame >= 6_861)
+            .collect();
+        assert!(
+            post.is_empty(),
+            "the squad's orders part after the ungroup: {:?}",
+            post.iter().take(6).collect::<Vec<_>>()
+        );
         // The squad itself, printed whole: the three archers are the units
         // the item is about, and their first disagreeing field is what says
         // whether the slot, the speed or the step is wrong.
@@ -4076,13 +4154,18 @@ mod tests {
                  birth placement, and every frame to the group order on 6650 \
                  is it standing still"
             );
-            // **And the march itself** (item 219). The one-shot half step
-            // carries all three from the group order to 6861, where the
-            // standing citizen `1/13` is the next thing in the way.
+            // **And the march itself** (item 219, then 236). The
+            // one-shot half step carries all three from the group order
+            // to 6861, and the ungroup carries them past the standing
+            // citizen `1/13` to the end of the capture: not one of the
+            // three leaves the original's point in the whole window, so
+            // this is pinned against the last block rather than a frame
+            // inside it.
             assert!(
-                f > 6_860,
+                f > blocks.last().copied().unwrap_or(6_860),
                 "Archer 1/{o} parts at {f}: the march is the one-shot half \
-                 step, and it holds to 6861"
+                 step and then the ungroup, and neither of the three leaves \
+                 the original's point before the window ends"
             );
         }
     }

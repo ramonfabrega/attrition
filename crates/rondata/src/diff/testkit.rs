@@ -709,12 +709,27 @@ pub(crate) const LONG_WORD_EAST_INDIES: i64 = 7448;
 /// (`docs/COLLISION.md` §4.3, §7, `docs/ORDERS.md` §15). The bit was
 /// written and nothing read it; `move_step` reads it now.
 ///
-/// **6862**, and it is one missing `Guy::set_anim+0x97a <
-/// Unit::move_step+0x823` — the blocked walker's stand
-/// (`sim::anim::SITE_BLOCKED`, `docs/COLLISION.md` §5), where the squad
-/// meets the standing citizen `1/13`. The same site East Indies parts on
-/// at 7448 (item 214); the sign is the original's here.
-pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 6862;
+/// It was **6862** for one item, and it was one missing
+/// `Guy::set_anim+0x97a < Unit::move_step+0x823` — the blocked walker's
+/// stand (`sim::anim::SITE_BLOCKED`, `docs/COLLISION.md` §5), where the
+/// squad meets the standing citizen `1/13`. The stand was not the
+/// mechanic: what the record showed was that on that frame the original
+/// **ungroups the squad** and this crate did not. `move_step` answers 0
+/// from exactly three places — blocked and still owing a turn, blocked
+/// and handed to `resolve_unit_collision`, and a tile the world refused
+/// — and `do_group_move` reads that 0 on both sides of the formation,
+/// the leader's through `do_move` and the follower's straight off
+/// `move_step`. Every one of them degrades the group move into N
+/// independent moves (`docs/ORDERS.md` §8.3, `docs/COLLISION.md` §5.3).
+/// This crate answered `Did::Something` from the two collision arms, so
+/// the Archers stayed in formation for the rest of their march where the
+/// original scatters them onto three world-grid paths of their own.
+///
+/// **6982**, and it is `Leader::produce_building+0x1805` where the
+/// original is still in `Leader::make_stuff+0x221`: the AI buys a
+/// building here that the original does not — the same shape as the
+/// 6782 row above, and an economy question rather than a movement one.
+pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 6982;
 
 /// The frame the AI's library takes its **Coinage** job on, and the
 /// frame run58's `QUEUE` record used to part on: twenty-four rows of
