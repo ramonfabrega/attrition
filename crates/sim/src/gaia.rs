@@ -214,7 +214,7 @@ impl Sim {
         unit.type_index = self.unit_types[ty].type_index;
         // The flight reads both (`crate::air`): `MOVES` is already position
         // units a frame, and `TURN_SPEED` is what scales the bank's rate.
-        unit.movement.speed = self.unit_types[ty].moves;
+        unit.movement.speed = self.type_speed(BIRD_OWNER, ty);
         unit.movement.turning = self.turning_for(ty);
         // `Unit::init@00612100:282–309` — a bird's type answers
         // `STANCE_NONE`, so this is the `default:` arm (`crate::stance`).

@@ -468,6 +468,14 @@ The boat is born at the **caster's own** (48-snapped) position and walked
 to the water; the caster never enters it.
 
 1. `Objects::init_unit(who, boat, unit.x, unit.y)` — one `Guy::init_real`;
+   and the boat is initialised like any other unit, so its cached speed is
+   **`Unit::update_speed`'s**, not the type's raw `MOVES`
+   (`docs/MOVEMENT.md` §1). run86 measures the difference on the only ride
+   ever captured: East Indies' `1/22` prints `myspeed` **30** on a
+   `MOVES` of 25 — the Whales rare's `+WHALES_SHIPS_MOVE%` — and steps
+   `(−27, −13)` a frame. This crate set the raw 25 here and nowhere else,
+   which cost the passenger 933 units over 190 frames of water and held
+   East Indies' word at 7448 for three sessions;
 2. `same_damage` — the boat takes the caster's damage as a fraction of its
    own hit points, in 256ths;
 3. `set_new_location(boat, spot, 1, 1)` — onto the water the spot search
@@ -1059,35 +1067,35 @@ Checks, cheapest first:
    Indies' word is **3978**, and run57's four thousand frames have four
    units ever off the original's point rather than eleven
    (`rondata::diff::tests::run57_s_four_thousand…`).
+7. **run86's 6924–7409, the only ride ever captured whole** (2026-09-06,
+   `rondata::diff::tests::run86_s_window_is_the_transport_ride`): the
+   cast, 190 frames of open water and the eject, 486 blocks at `UNITS=3`,
+   with neither the barge nor its passenger ever off the original's
+   position. It is what backs §6.2 step 1's speed, §6.4's ring on its one
+   sample, and the freeze the passenger rides in. run82's own window and
+   its shutdown dump at 6946 came with it
+   (`run82_s_window_is_the_east_indies_ride_s_run_up`), which is where the
+   792 was shown to be born inside the ride rather than before it.
 
 ## 13. What is not established
 
-- **The whole ride, end to end, is un-oracled — and East Indies' long
-  word is downstream of it** (2026-09-06, item 241). Between run82's last
-  block (6929) and run85's first (7400) the AI's Merchant `1/20` casts
-  transport, rides a Transport Barge and is put ashore, and no dump on
-  disk covers any of it. This crate is **one frame ahead** at 6929 and
-  **792 units behind** at 7400 — about thirty-four frames — and that lag,
-  not any collision rule, is why the word parts at 7448
-  (`docs/COLLISION.md` §8.2). The draw stream cannot see it: the trace
-  dates the barge's birth at 7093 on both sides (`Guy::init_real`), and
-  the eject spends **no draw at all**, so nothing pins the landfall. The
-  ceiling arithmetic says the original runs 6929–7400 at 99.5 % of a
-  straight line and this crate at 93.8 %, so the 792 is a **route**, and
-  the three places it can hide are `cast_transport`'s birth spot (§6.1),
-  the barge's own `find_upath` plan and [`Sim::come_out_unit_host_spot`]'s
-  ring (§6.4) — a 48-unit nudge to the last of them puts nineteen units
-  off position inside run85's window, so none of the three is a detail.
-  *Capture:* East Indies at run85's detail over `[7080, 7140)` and
-  `[7290, 7340)`, the cast and the landfall, with `UNITS=3` — which is
-  the only thing that can say which.
-- **A passenger's `x_internal`/`y_internal` while aboard.**
-  [`Sim::board`] freezes them at the boarding point and nothing reads
-  them until [`Sim::disembark`] takes the ring off the **boat's**
-  position, so the freeze is believed harmless; the original's own value
-  is unwitnessed, because no dump in hand holds a frame with a live
-  passenger. Fold into the capture above: `[7290, 7340)` opens with the
-  barge still carrying.
+- ~~**The whole ride, end to end, is un-oracled** … the three places the
+  792 can hide are the birth spot, the barge's plan and the ring.~~
+  **Captured whole and settled, 2026-09-06 (run86, item 241): none of the
+  three.** The barge's **speed** was the lag — `myspeed` 30 against the
+  raw `MOVES` of 25, §6.2 step 1 — and with it right the birth spot, all
+  190 frames of the crossing and `come_out`'s ring are exact on every one
+  of run86's 486 blocks. East Indies' word 7448 → **7529**.
+- ~~**A passenger's `x_internal`/`y_internal` while aboard.**~~
+  **Witnessed on 191 blocks** (run86): `1/20` prints its boarding point
+  `(34530, 32268)` from 7093 to 7283 and the ring spot on 7284, which is
+  exactly what [`Sim::board`]'s freeze does. Not a seam.
+- **`come_out`'s ring has one sample and cannot be told from a fallback.**
+  run86's eject puts `1/20` at `(30408, 28152)` off a boat last seen at
+  `(30521, 28243)` — §6.4's geometry reproduces it, and one sample cannot
+  distinguish the first bearing of the first ring from a later one or from
+  the host's own point. *Capture:* a second disembark, on any map, with a
+  different approach angle.
 - ~~**Which shipped row grants `TRANSPORT_BONUS`** (0x2ae).~~ **Settled
   from the data**: it is the third `BONUS` of `rules.xml`'s `TECHBONUSES`
   ("Units can be transported by sea", `preq0="Written Word"`), the bonus

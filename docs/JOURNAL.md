@@ -17709,3 +17709,76 @@ never been observed, grep for the gate**, not only for the value. A term that
 is zero in every dump is either zero-valued or switched off, and those two
 cost very different things to reach. Both of this session's items were booked
 on the assumption of the first and turned out to be the second.
+
+## 2026-09-06 — item 241: the boat was born without its rare (East Indies 7448 → 7529, capture lane, Opus)
+
+**The score.** `LONG_WORD_EAST_INDIES` 7448 → **7529**. The second map's word
+had not moved for three sessions.
+
+**The grep came first, and it found a whole class of record nobody reads.**
+The item was booked on "nothing on disk covers 6930–7399". Scanning every
+archive for a frame label in that band found four, and one of them —
+**run82** — is East Indies: its `!quit` left blocks 6945 and 6946, and
+`GameLog::end_game`'s shutdown dump landed *after* them with all 28 player
+units in it. Nothing had ever parsed that dump, on run82 or on any other
+capture, because it is written at `FRAME`'s own indent and is therefore a
+**sibling** of the last frame rather than a child. `Log::final_state` is the
+reader; the first thing it was pointed at came back with two divergences at
+6946 that no test had ever seen. run82's own 70 blocks had never been
+compared either, and that diff landed with it.
+
+> The first draft of `final_state` returned an empty dump on every file,
+> and the reason is worth keeping: `Iterator::find` **consumes** the
+> iterator it is called on, so the `None` arm handed the record walk a
+> slice already at its end. The old code rebuilt the slice in that arm and
+> the refactor bound it to a variable. It failed loudly on a file whose
+> answer was known, which is the only reason it was caught in a minute.
+
+What 6946 bought before a frame was captured: **`1/20` is on the original's
+own position there**, seventeen frames past where East Indies' coverage was
+believed to stop. So the (36, 792) run85 opens with is made inside the ride,
+not before it. The grep narrowed the band and strengthened the booking.
+
+**The window was taken whole, against the brief's two samples, and that is
+what caught the eject.** `docs/TRANSPORT.md` §13 booked `[7080, 7140)` and
+`[7290, 7340)` — the cast and a *guess* at the landfall, which spends no draw
+and so had no frame anyone could name. One window over `[6924, 7410)` is 486
+blocks, 272 MB and thirteen minutes, and it butts against both neighbours:
+six blocks over run82, ten over run85, with the detail copied from run85 so
+the top overlap is byte for byte (`samegame.py`: **10 in common, 0
+differing**). The eject turned out to be **7284** — six frames before the
+booked window opens.
+
+**And the ride was one field.** The Transport Barge `1/22` is born on 7094
+and prints `myspeed` **30** on a type whose `MOVES` is **25**. That is the
+Whales rare's `+WHALES_SHIPS_MOVE%`, a bonus this crate has had since run63
+and applies at every spawn — except `cast_transport`, which set the boat's
+speed from the raw `MOVES`, and which is the only place in this crate where
+a **naval** unit is born. The barge stepped (−23, −11) a frame where the
+original steps (−27, −13); 190 frames of that is 933 units, and the passenger
+rides it ashore that late. With `type_speed` in that one line, neither the
+boat nor the Merchant is ever off the original's position across all 486
+blocks — the birth spot, the crossing and `come_out`'s ring all exact.
+
+**None of §13's three suspects was it**, which is the lesson: the reading had
+enumerated the *geometry* — birth spot, `find_upath` plan, disembark ring —
+and the answer was a scalar the geometry never touches. A window wide enough
+to hold the boat's whole life is what let the step be measured rather than
+the endpoints compared.
+
+**The rule became a guard.** `rares::tests::a_unit_s_speed_is_never_set_from_
+the_raw_moves` reads the simulation's own source and rejects any line that
+assigns `movement.speed` from a type's `moves`. It was made to fail first: it
+found three more sites — the pasture's animals, a farm's, and the dock's gull
+— all behaviour-identical today only because owner 9 holds no rares. All
+three now go through `type_speed`.
+
+**§13's second row came free.** A passenger's position while aboard was
+unwitnessed on every dump in hand; run86 has it on 191 blocks. `1/20` prints
+its boarding point (34530, 32268) from 7093 to 7283 and the ring spot on
+7284 — which is exactly what `Sim::board`'s freeze does, so "believed
+harmless" is now measured.
+
+**What the new word is.** 7529, and its frame is a `Guy::set_anim` under
+`Unit::do_non_flat_gather+0xb99` that the original spends and this crate does
+not — a gatherer's animation. Next.

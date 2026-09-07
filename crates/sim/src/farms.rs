@@ -491,7 +491,7 @@ impl Sim {
             // `think_farm_animal` hands out is an order the animal can
             // never step: it stands still and its arrival — two
             // `Animal::do_idle` draws — never comes.
-            unit.movement.speed = self.unit_types[ty].moves;
+            unit.movement.speed = self.type_speed(9, ty);
             unit.movement.turning = self.turning_for(ty);
             // `TypeIndex` `FARMPIG`/`FARMCHICKEN`. Without it the gaia
             // table cannot be keyed and every animation length reads

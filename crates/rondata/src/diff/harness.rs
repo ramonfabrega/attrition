@@ -6278,18 +6278,23 @@ mod tests {
              — a capture below `UNITS=3` is the wrong file"
         );
 
-        // **Three units, and the walker is one of them from the window's
-        // first block.** Whatever 7448 is, it is not a collision this
-        // crate declines to see: `1/20` is 792 short of the animal on the
-        // frame it should meet it, and was already 792 short when the
-        // window opened.
+        // **One unit, and the walker is not it.** It was three until
+        // 2026-09-06 — `1/20` opened the window (36, 792) behind and
+        // `0/5` parted at 7468 downstream of it — and both went with the
+        // barge's speed (item 241, run86): `1/20` now rides the transport
+        // ashore on the original's own frame, walks into the animal on
+        // time, and the stand at 7448 is this crate's too. What is left
+        // is `1/19`'s unpack constant, which is the same row run82's
+        // window carries from 6883 on.
         assert_eq!(
             parted,
-            [((0, 5), 7_468), ((1, 19), 7_400), ((1, 20), 7_400)]
-                .into_iter()
-                .collect(),
+            [((1, 19), 7_400)].into_iter().collect(),
             "run85's parted set"
         );
+
+        // That the crate now *spends* 7448's two draws is pinned where
+        // the word is, not here: [`LONG_WORD_EAST_INDIES`] is 7529, and
+        // `run54_s_24000_frames…` asserts the floor on the same game.
 
         // `1/19` is the unpacked Merchant standing on its trade-post
         // spot: **a constant (24, 24), on every block, both sides
@@ -6311,21 +6316,22 @@ mod tests {
             merchant.first()
         );
 
-        // **And `1/20` is behind on its own chain, not beside it.** The
-        // order record says so without a position: the waypoint's
-        // **column** agrees for the window's first 28 blocks — both sides
-        // walk the x = 29496 leg of the same `find_upath` plan — while
-        // the **row** is a waypoint out from the first, because this
-        // crate is one leg further back. A unit on a different route
-        // parts on both at once.
-        let (first_x, first_y) = (
-            tally.get(&(1, 20, "Move.dest_x".into())).map(|e| e.1),
-            tally.get(&(1, 20, "Move.dest_y".into())).map(|e| e.1),
-        );
-        assert_eq!(
-            (first_x, first_y),
-            (Some(7_428), Some(7_400)),
-            "`1/20`'s waypoint: the column parts 28 blocks after the row"
+        // **And `1/20` holds no divergence of any kind now** — not a
+        // position, not a waypoint. It used to hold both, and the pair
+        // was the measurement item 241 was taken from: the waypoint's
+        // **column** agreed for 28 blocks while the **row** was a
+        // waypoint out, which is what "behind on its own chain rather
+        // than beside it" looks like in the order record, and the lag
+        // opened at exactly (36, 792). A unit on a different route parts
+        // on both at once; this one was late, and the lateness was the
+        // barge's speed.
+        assert!(
+            tally.keys().all(|(who, o, _)| (*who, *o) != (1, 20)),
+            "`1/20` holds an order divergence again: {:?}",
+            tally
+                .keys()
+                .filter(|(who, o, _)| (*who, *o) == (1, 20))
+                .collect::<Vec<_>>()
         );
         let lag: Vec<(i64, i32, i32)> = report
             .frames
@@ -6334,11 +6340,383 @@ mod tests {
             .filter(|d| (d.who, d.o) == (1, 20))
             .map(|d| (d.frame, d.ours.x - d.theirs.x, d.ours.y - d.theirs.y))
             .collect();
+        assert!(
+            lag.is_empty(),
+            "`1/20` is on the original's point for all 81 blocks: {:?}",
+            lag.first()
+        );
+    }
+
+    /// **run86 — the transport ride, whole, and the field the word was
+    /// short of.**
+    ///
+    /// East Indies' word stood at 7448 for three sessions: `1/20`, the
+    /// AI's Merchant, reaches the animal it is blocked by 792 units late
+    /// (run85). The 792 is made between run82's 6929 and run85's 7400,
+    /// and this capture is the **whole** of that gap — 486 blocks at
+    /// run85's own detail, butting against both neighbours (six blocks
+    /// over run82, ten over run85, `differ: 0` on each).
+    ///
+    /// **It is one field.** The Transport Barge `1/22` is born on 7094
+    /// and prints `myspeed` **30** on a type whose `MOVES` is 25: the
+    /// Whales rare's `+WHALES_SHIPS_MOVE%`, which this crate has applied
+    /// since run63 to every unit born through [`sim::Sim::spawn_unit`]
+    /// and did **not** apply in [`sim::Sim::cast_transport`], the one
+    /// place a boat is born. 190 frames of 25 against 30 is the lag; the
+    /// passenger rides it ashore and never catches up.
+    ///
+    /// And it settles `docs/TRANSPORT.md` §13's second row on the way
+    /// past: **a passenger's position while aboard is frozen at the
+    /// boarding point**. `1/20` prints (34530, 32268) on all 191 blocks
+    /// from 7093 to 7283 and is put down at (30408, 28152) on 7284 —
+    /// which is what [`sim::Sim::board`] does, believed harmless and now
+    /// witnessed.
+    #[test]
+    fn run86_s_window_is_the_transport_ride() {
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(sib), Some(tr)) = (
+            dump("gamelog-run86-eastindies-transportride.txt"),
+            dump("gamelog-run38-islands-start.txt"),
+            trace("rontrace-run86.log"),
+        ) else {
+            eprintln!("skipping: no run86 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = std::fs::read_to_string(&path).unwrap();
+        let sib_text = std::fs::read_to_string(&sib).unwrap();
+        let log = Log::parse(&text);
+        let sib_log = Log::parse(&sib_text);
+        let sib_init = sib_log.initial().expect("run38 is a start dump");
+        let refs: Vec<&Initial> = vec![&sib_init];
+
+        // The window's own facts, off the disk, before this crate runs.
+        let states = log.frame_states();
+        let theirs: Vec<i64> = states.iter().map(|f| f.n).collect();
+        assert!(
+            theirs.first() == Some(&6_924) && theirs.contains(&7_409) && theirs.len() >= 486,
+            "run86's blocks: {:?}..{:?} ({}) — the wrong file",
+            theirs.first(),
+            theirs.last(),
+            theirs.len()
+        );
+        let at = |n: i64, o: i64| -> Option<&crate::gamelog::UnitDump> {
+            states
+                .iter()
+                .find(|f| f.n == n)?
+                .units
+                .iter()
+                .find(|u| u.who == 1 && u.o == o)
+        };
+
+        // **The barge, and the field.** Born 7094, `myspeed` 30 — and the
+        // type it is born from carries `MOVES` 25, so the dump itself is
+        // the evidence for the bonus rather than a reading of it.
+        let boat = at(7_094, 22).expect("run86 block 7094 has the barge `1/22`");
         assert_eq!(
-            lag.first(),
-            Some(&(7_400, 36, 792)),
-            "`1/20` opens the window 792 behind — about 34 frames of its \
-             own 23-a-frame walk, and the whole of item 241"
+            (boat.pos.x, boat.pos.y, boat.myspeed),
+            (34_653, 32_075, Some(30)),
+            "the barge's birth row"
+        );
+        assert!(
+            at(7_093, 22).is_none(),
+            "7093 is the frame before the barge exists"
+        );
+        let boat_ty = loaded
+            .unit_types
+            .iter()
+            .position(|t| t.tree == Some(sim::transport::ty::TRANSPORTBARGE))
+            .expect("the install has a Transport Barge");
+        assert_eq!(
+            loaded.unit_types[boat_ty].moves, 25,
+            "`MOVES` is 25 and the dump says 30 — the difference is the rare"
+        );
+
+        // **The passenger, frozen at the boarding point** (§13's second
+        // row). 7093 is the last frame it walks; 7284 is the ring.
+        let held: Vec<(i64, i64)> = (7_093..=7_283)
+            .filter_map(|n| at(n, 20).map(|u| (u.pos.x, u.pos.y)))
+            .collect();
+        assert!(
+            held.len() == 191 && held.iter().all(|&p| p == (34_530, 32_268)),
+            "`1/20` is frozen at its boarding point for the ride: {} blocks, {:?}",
+            held.len(),
+            held.first()
+        );
+        assert_eq!(
+            at(7_284, 20).map(|u| (u.pos.x, u.pos.y)),
+            Some((30_408, 28_152)),
+            "`come_out`'s ring puts the Merchant ashore on 7284"
+        );
+        assert_eq!(
+            at(7_283, 22).map(|u| (u.pos.x, u.pos.y)),
+            Some((30_521, 28_243)),
+            "the boat's last position, which the ring is measured from"
+        );
+        assert!(
+            at(7_284, 22).is_none(),
+            "the barge dies on the frame it unloads"
+        );
+
+        // Now the comparison, over the whole window.
+        let report = run_traced(&loaded, &log, Tuning::RON, None, None, &refs, Some(&tr)).unwrap();
+        let blocks: Vec<i64> = report
+            .frames
+            .iter()
+            .filter(|f| f.compared > 0)
+            .map(|f| f.frame)
+            .collect();
+        assert!(
+            blocks.first() == Some(&6_924) && blocks.last() == Some(&7_426) && blocks.len() == 487,
+            "run86's compared blocks: {:?}..{:?} ({})",
+            blocks.first(),
+            blocks.last(),
+            blocks.len()
+        );
+        // This one quit *into* its frame block rather than after it, so
+        // its state is 7426's own child and [`Log::final_state`] has
+        // nothing to add — the other shape, and the reason that reader
+        // returns an option (`run82_s_window_is_the_east_indies_ride_s_run_up`).
+        assert!(
+            log.final_state().is_none(),
+            "run86's shutdown dump is inside FRAME 7426, not after it"
+        );
+        let parted: std::collections::BTreeMap<(i64, i64), i64> = report
+            .first_divergence_by_unit()
+            .into_iter()
+            .map(|(w, o, f)| ((w, o), f))
+            .collect();
+        eprintln!(
+            "run86: {} unit fields, {} order/path fields, {} angles over {} blocks; parted {:?}",
+            report.frames.iter().map(|f| f.compared).sum::<usize>(),
+            report
+                .frames
+                .iter()
+                .map(|f| f.order_compared)
+                .sum::<usize>(),
+            report
+                .frames
+                .iter()
+                .map(|f| f.angle_compared)
+                .sum::<usize>(),
+            blocks.len(),
+            parted
+        );
+        assert!(
+            report
+                .frames
+                .iter()
+                .map(|f| f.order_compared)
+                .sum::<usize>()
+                >= 10_000,
+            "run86 is a `UNITS=3` capture — a file without orders is the wrong one"
+        );
+        assert!(
+            report.frames.iter().all(|f| f.unlinked_units.is_empty()),
+            "every unit of every block links, the barge included"
+        );
+
+        // **The ride is exact, both halves of it.** Neither the boat nor
+        // its passenger is ever off the original's position — through the
+        // cast, 190 frames of open water, and the ring it is put down on.
+        // Before the fix `1/22` parted on its **birth frame** and was 933
+        // units adrift by 7283, and `1/20` was 4,122 out the moment it
+        // came ashore.
+        assert_eq!(
+            parted,
+            [((1, 13), 6_938), ((1, 19), 6_924)].into_iter().collect(),
+            "run86's parted set: the ride is not in it"
+        );
+    }
+
+    /// **run82's own window had never been compared, and its shutdown
+    /// dump reaches seventeen frames further than anyone had read.**
+    ///
+    /// Item 241 booked a capture over the transport ride on the sentence
+    /// "nothing on disk covers 6930–7399". The disk was re-grepped first
+    /// and one thing does: `!quit` left run82 a shutdown dump labelled
+    /// **6946**, inside the band, holding all 28 player units — and
+    /// nothing had ever parsed it, on this capture or any other
+    /// ([`Log::final_state`]). So this test is both halves: the window
+    /// [6860, 6930) that had no diff at all, and the block past it.
+    ///
+    /// **What it settles for 241: the 792 is born in the ride.** `1/20`
+    /// is on the original's own position for all seventy blocks *and* at
+    /// 6946, so the lag run85 opens with at 7400 is not a run-up that
+    /// drifted — every unit of it is made after 6946, in the cast, the
+    /// barge's own plan or the ring it is put ashore on
+    /// (`docs/TRANSPORT.md` §13).
+    #[test]
+    fn run82_s_window_is_the_east_indies_ride_s_run_up() {
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(sib), Some(tr)) = (
+            dump("gamelog-run82-islands-merchantcast.txt"),
+            dump("gamelog-run38-islands-start.txt"),
+            trace("rontrace-run82.log"),
+        ) else {
+            eprintln!("skipping: no run82 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = std::fs::read_to_string(&path).unwrap();
+        let sib_text = std::fs::read_to_string(&sib).unwrap();
+        let log = Log::parse(&text);
+        let sib_log = Log::parse(&sib_text);
+        let sib_init = sib_log.initial().expect("run38 is a start dump");
+        let refs: Vec<&Initial> = vec![&sib_init];
+
+        // The window's own shape, off the disk. 70 blocks, and then the
+        // two the `!quit` writes — 6945 and 6946 — which carry no records
+        // of their own because the state lands *after* them.
+        let states = log.frame_states();
+        let theirs: Vec<i64> = states.iter().map(|f| f.n).collect();
+        assert!(
+            theirs == (6_860..=6_929).chain([6_945, 6_946]).collect::<Vec<_>>(),
+            "run82's blocks: {:?}..{:?} ({}) — the wrong file",
+            theirs.first(),
+            theirs.last(),
+            theirs.len()
+        );
+        assert!(
+            states
+                .iter()
+                .filter(|f| f.n >= 6_945)
+                .all(|f| f.units.is_empty()),
+            "the quit frames are empty — the dump is their sibling"
+        );
+
+        // **The shutdown dump, which is the whole point.** The same 28
+        // player units the window carries, plus gaia's 104 animals, plus
+        // the buildings and the leaders — a whole-map state at 6946.
+        let fin = log.final_state().expect("run82 quit, so it wrote one");
+        assert_eq!(
+            (
+                fin.n,
+                fin.units.len(),
+                fin.builds.len(),
+                fin.leaders.len(),
+                fin.cities.len()
+            ),
+            (6_946, 132, 21, 4, 3),
+            "run82's shutdown dump"
+        );
+
+        // The window first: the whole record, block by block.
+        let report = run_traced(&loaded, &log, Tuning::RON, None, None, &refs, Some(&tr)).unwrap();
+        let blocks: Vec<i64> = report
+            .frames
+            .iter()
+            .filter(|f| f.compared > 0)
+            .map(|f| f.frame)
+            .collect();
+        assert!(
+            blocks.first() == Some(&6_860) && blocks.last() == Some(&6_929) && blocks.len() == 70,
+            "run82's compared blocks: {:?}..{:?} ({})",
+            blocks.first(),
+            blocks.last(),
+            blocks.len()
+        );
+        let parted: std::collections::BTreeMap<(i64, i64), i64> = report
+            .first_divergence_by_unit()
+            .into_iter()
+            .map(|(w, o, f)| ((w, o), f))
+            .collect();
+        eprintln!(
+            "run82: {} unit fields, {} order/path fields, {} angles over {} blocks; parted {:?}",
+            report.frames.iter().map(|f| f.compared).sum::<usize>(),
+            report
+                .frames
+                .iter()
+                .map(|f| f.order_compared)
+                .sum::<usize>(),
+            report
+                .frames
+                .iter()
+                .map(|f| f.angle_compared)
+                .sum::<usize>(),
+            blocks.len(),
+            parted
+        );
+        assert!(
+            report
+                .frames
+                .iter()
+                .map(|f| f.order_compared)
+                .sum::<usize>()
+                >= 1_000,
+            "run82 is a `UNITS=3` capture — a file without orders is the wrong one"
+        );
+
+        // **One unit parts in the whole window, and it is the unpack.**
+        // `1/19` is the Merchant `cast_unpack` teleports onto the tile
+        // corner on 6883 (`docs/ORACLE.md`, "run82"); this crate leaves it
+        // on the half-tile it walked to, so the gap is a constant (24, 24)
+        // from that frame to the last block.
+        assert_eq!(
+            parted,
+            [((1, 19), 6_883)].into_iter().collect(),
+            "run82's parted set"
+        );
+        let merchant: Vec<(i64, i32, i32)> = report
+            .frames
+            .iter()
+            .flat_map(|f| f.diverged.iter())
+            .map(|d| (d.frame, d.ours.x - d.theirs.x, d.ours.y - d.theirs.y))
+            .collect();
+        assert!(
+            merchant.len() == 47
+                && merchant.first().map(|d| d.0) == Some(6_883)
+                && merchant.iter().all(|d| (d.1, d.2) == (24, 24)),
+            "`1/19` is a constant (24, 24) from 6883: {} rows, {:?}",
+            merchant.len(),
+            merchant.first()
+        );
+
+        // **And now the block nobody had read.** Step the same simulation
+        // seventeen frames past the window's end and compare the shutdown
+        // dump whole.
+        let mut init = log.initial().unwrap();
+        borrow_from_siblings(&mut init, &refs);
+        borrow_pasture(&mut init, &tr);
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        for _ in 0..fin.n {
+            built.tick();
+        }
+        let end = compare(&built, &fin, 8);
+        let off: std::collections::BTreeMap<(i64, i64), (i32, i32)> = end
+            .diverged
+            .iter()
+            .map(|d| ((d.who, d.o), (d.ours.x - d.theirs.x, d.ours.y - d.theirs.y)))
+            .collect();
+        eprintln!(
+            "run82 6946: {} compared, {} unlinked, off {off:?}",
+            end.compared, end.unlinked
+        );
+        assert_eq!(
+            (end.compared, end.unlinked),
+            (28, 0),
+            "the shutdown dump's 28 player units all link"
+        );
+
+        // **`1/20` is exact at 6946 — the whole of item 241 in one row.**
+        // run85 opens at 7400 with it 792 short (`docs/TRANSPORT.md`
+        // §13); nothing of that lag exists here, so the transport ride
+        // between the two owns all of it.
+        assert!(
+            !off.contains_key(&(1, 20)),
+            "`1/20` is on the original's own position at 6946: {off:?}"
+        );
+
+        // The rest of the block, whole: the unpack's constant, and **two
+        // units that part inside the sixteen frames after the window** —
+        // neither of them near the word, and neither ever compared before
+        // this test existed.
+        assert_eq!(
+            off,
+            [((0, 3), (-18, 18)), ((1, 13), (11, 7)), ((1, 19), (24, 24)),]
+                .into_iter()
+                .collect(),
+            "run82's shutdown dump, every unit of it"
         );
     }
 }
