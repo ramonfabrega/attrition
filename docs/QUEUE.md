@@ -28,19 +28,20 @@ one day, 129 frames and 277, and the maps swapped twice.*
 - **`Group::compute_form`'s tail has a second reverse test** (GROUPS §6.3,
   written down and never built): it negates every member's `off_x`/`off_y`
   when the angle opposes the bearing — Great Lakes' 7418 tick.
-- **The gate peak is noise, not a ratchet** — 16,732 / 15,873 / 16,061 MiB
-  on a tree that only grew. `memcap.sh` polls every 2 s so it under-reports
-  a sawtooth, and over-counts mapped captures macOS will not hand back
-  (260 measured it on run58; the pages are clean). "Three over 16" is unmet.
+- **260 halved the gate**, 16,061 → **8,321 MiB** at 243 tests — and the
+  ceiling it was booked against was never a ratchet (four readings on a
+  growing tree; `memcap.sh` under-reports a sawtooth and over-counts a
+  mapping, 251). **The mapping now comes back out** (280, with the user):
+  the lazy half is safe Rust, and `runqueue.sh` can truncate under a map.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w7806 of 24,000 · GreatLakes w7584 of 24,000
 Endpoint 24001: EastIndies 79 off, 0 unlinked · GreatLakes 78 off, 2 unlinked
 
-**Opener: commander on Opus (DECISIONS 34), spawning — never working. 260
-is in flight on the lazy parser. Great Lakes leads again, so 272 (its
-`[7530, 7760)` window) is the headline item and the lane's next — held only
-until 260 says whether the ceiling is real. Merge 260, then spawn 272.**
+**Opener: commander on Opus (DECISIONS 34), spawning — never working. 280
+is in flight (the mmap back out). The gate is 8,321 MiB of 20, so nothing
+holds the lane any more: Great Lakes leads at 7584, and 272 — its
+`[7530, 7760)` window at run87's detail — is the next spawn, with 276.**
 
 ## The queue
 
@@ -83,14 +84,14 @@ unless a better order is obvious, and say so. Numbers are stable.
     number per group — but make it fail on purpose first, both ways: a
     real deletion must still be caught. The guard's loudness is correct.
 
-260. **The parser goes lazy and the gate sub-GB** — `Log::parse` builds
-    all 76.6 M fields of an 800 MB dump (235) where a test reads hundreds.
-    Frame offsets in one pass, blocks on demand over a memory-mapped file,
-    whole-file scans (252) stream; the 230 tests are the oracle. (266)
-    Batching captures ahead of the word waits on this. **Now measured**:
-    the gate peaked 15,479 then 16,169 MiB of the 20 GiB cap with run87's
-    121 MB and run88's 187 MB in, a 700 MiB swing at two threads — a third
-    run over 16 GiB makes the next window of this size unbookable.
+280. **The mmap comes back out** — decided with the user 2026-09-07, in
+    flight. 260's two halves are separable: lazy frame indexing is safe
+    Rust and is most of the win (run58's arena 2,221 → 17 MiB), while the
+    mapping needs `Mmap::map` and cost `crates/rondata` the workspace's
+    `forbid(unsafe_code)`. `Mmap::map` is unsafe because a writer can
+    truncate under a live `&[u8]`, and this repo has one: `runqueue.sh`
+    renames over an archive name while tests run. Acceptance is a grep —
+    no `allow(unsafe_code)` in `crates`. (266) closed by 260.
 
 226. **`cover=1` dies in the wow64 bop** (ORACLE), an x86 host the
     falsifier. (220) TECH §13's twenty range blocks. (209) **the
@@ -170,13 +171,14 @@ of 617; (72) every `+0xNN` a document pins vs its module; (89) the guard;
     step its clock — `unit_masks2 & 0x10` freezes `Guy::inc_time` (ANIM
     §5), and that arm waits on a melee frame.
 
-251. **`memcap.sh` has no fixture and three doors**: its `ps | awk` reads
+251. **`memcap.sh` has four doors and no fixture**: its `ps | awk` reads
     `0 0` when `ps` answers nothing, so a refused sample reads as no memory
-    used and the ceiling never fires (lore); it was **mode 644**, so
-    `tools/memcap.sh …` exited 126 having run no test, until 09-07; and it
-    takes a **GiB cap as its first argument**, which the line below telling
-    you to use it never said. Wants a fixture: past the cap, dead in N
-    seconds, exit 137 — and a gate that cannot be run wrong.
+    used and the ceiling never fires (lore); it was mode 644 until 09-07;
+    it takes a **GiB cap as its first argument**; and (281) it reads `ps
+    rss`, which **over-counts a mapped capture** — macOS refuses to hand a
+    private file mapping back, so ~1.3 GB of 260's 8,816 is run58's clean
+    text, and a 2 s poll under-reports a sawtooth besides. Wants a fixture:
+    past the cap, dead in N seconds, exit 137.
 
 272. **Great Lakes' word has no dump under it** — 7584 is outside run87's
     `[7244, 7520)`, so the headline map's next value diff is a capture:
