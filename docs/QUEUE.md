@@ -25,9 +25,10 @@ one day, 129 frames and 277, and the maps swapped twice.*
   found by widening the whole record**, not the field the brief named.
 - **260 halved the gate**, 16,061 → **8,321 MiB** at 243 tests; its ceiling
   was never a ratchet (251: `memcap.sh` under-reports a sawtooth and
-  over-counts a mapping). **The mapping came back out** (280, the user's
-  steer) — `runqueue.sh` renames over an archive while tests run, so the
-  UB was reachable here, and the lazy half is safe Rust and most of the win.
+  over-counts a mapping). **280 took the mapping back out** — the tree is
+  one `forbid(unsafe_code)` again, gated at **10,266 MiB** here against
+  280's own 9,921 (two workers live). The FFI was hand-rolled rather than
+  memmap2, which is worse than a dependency, not a detail.
 - **A Fable pass is owed, with an agenda**: DECISIONS 37 (drafted,
   unratified), the perf/UB ground 280 opened, and 283. Nothing else marked.
 
@@ -37,9 +38,9 @@ Endpoint 24001: EastIndies 79 off, 0 unlinked · GreatLakes 78 off, 2 unlinked
 
 **Opener: commander on Opus (DECISIONS 34), spawning — never working. In
 flight: 276 (East Indies' 7806 — grep run88's 7816 block before booking a
-screen) and the lane on 272 (Great Lakes' word window, the headline). 280
-is landing. Then 283, the allocator. Order set with the user after the
-stopping rule fired at two: score first, infrastructure behind it.**
+screen) and the lane on 272 (Great Lakes' word window, the headline). Then
+283, the allocator. Order set with the user after the stopping rule fired
+at two: score first, infrastructure behind it, Fable as needed.**
 
 ## The queue
 
@@ -90,15 +91,6 @@ unless a better order is obvious, and say so. Numbers are stable.
     written two numbers in one paren group, so the fix is likely a single
     number per group — but make it fail on purpose first, both ways: a
     real deletion must still be caught. The guard's loudness is correct.
-
-280. **The mmap comes back out** — decided with the user 2026-09-07, in
-    flight. 260's two halves are separable: lazy frame indexing is safe
-    Rust and is most of the win (run58's arena 2,221 → 17 MiB), while the
-    mapping needs `Mmap::map` and cost `crates/rondata` the workspace's
-    `forbid(unsafe_code)`. `Mmap::map` is unsafe because a writer can
-    truncate under a live `&[u8]`, and this repo has one: `runqueue.sh`
-    renames over an archive name while tests run. Acceptance is a grep —
-    no `allow(unsafe_code)` in `crates`. (266) closed by 260.
 
 226. **`cover=1` dies in the wow64 bop** (ORACLE), an x86 host the
     falsifier. (220) TECH §13's twenty range blocks. (209) **the
