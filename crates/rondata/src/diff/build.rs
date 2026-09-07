@@ -1292,6 +1292,186 @@ mod tests {
         assert!(ran > 0, "neither census window is on this machine");
     }
 
+    /// **run80 — the gem term, and Great Lakes' territory at 23,999
+    /// (item 117).**
+    ///
+    /// The other territory check above ticks a game from frame 1 and
+    /// compares as it goes. That cannot reach the far end of a 24,000-frame
+    /// capture — Great Lakes' word is 6862 — so this one is **seeded**: the
+    /// world and its regions come from run80's own start dump, the cities
+    /// and the two leader rows from the frame under test, and the only
+    /// thing computed is the border pass itself. It is a check of
+    /// `World::compute_reg_territory`'s table and sweep against
+    /// `LeaderData::territory`, not of the game that produced the state.
+    ///
+    /// **What it establishes.** Player 1 has a Merchant on the map's one
+    /// Gems deposit — the frame's `rares_collected[44]` is non-zero at
+    /// `{11, 13, 23, 27}` and `known_rares` is 4 — and bit 23 is
+    /// `GEMS - BASE_RARE`. With the gem arm wired
+    /// ([`sim::Sim::has_rare`], [`sim::Sim::player_borders`]) both players
+    /// land on the original's own count, **266 and 568**, on every frame
+    /// of the window. Without it player 1 comes out at **525**: the gem is
+    /// worth forty-three cells here, which is the number
+    /// `docs/ATTRITION.md` had down as unestablished. That second count is
+    /// asserted too, so the check cannot pass by accident.
+    ///
+    /// **Why `rares_collected` and not the `rare` mask.** The frame writes
+    /// both, and they agree — `BitMask<44>::log_data` prints
+    /// `040128800` for player 1, which is bytes `[0, 40, 128, 8, 0, 0]`
+    /// and the same four bits. But it prints each byte with `%u` and no
+    /// separator, so a six-byte mask is not uniquely decodable from the
+    /// text (`[0, 4, 0, 128, 80, 0]` reads it too). `rares_collected` is
+    /// an `int[44]` written one value a line by the *same* walk —
+    /// `Leader::calc_gather@006ceee0` clears it at the top and hands it to
+    /// `Unit::do_gather` beside `rare_owned` — so it is the same fact in a
+    /// form that parses.
+    ///
+    /// **What it does not establish.** The gem's flat addition and its one
+    /// step onto the distance limit fire together, so this frame cannot
+    /// separate them; 43 is their sum for two Small Cities at Civic 2.
+    /// Nothing here checks *when* the bit arrives, which is
+    /// `Leader::calc_gather`'s walk and needs a capture either side of the
+    /// Merchant settling.
+    #[test]
+    fn run80_s_gem_widens_the_ai_s_border_by_forty_three_cells() {
+        let Some(inst) = install() else { return };
+        let Some(path) = dump("gamelog-run80-greatlakes-latecensus.txt") else {
+            eprintln!("skipping: no gamelog-run80-greatlakes-latecensus.txt (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = std::fs::read_to_string(&path).unwrap();
+        let log = Log::parse(&text);
+        let init = log.initial().unwrap();
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+
+        // The window's own `CITY` records. They do not move inside it, and
+        // that is asserted rather than assumed: a city founded mid-window
+        // would make one seed serve forty frames it did not belong to.
+        let window: Vec<(i64, Block)> = log
+            .frames()
+            .into_iter()
+            .filter(|(n, _)| (23_960..24_000).contains(n))
+            .collect();
+        assert_eq!(window.len(), 40, "run80's window is [23960, 24000)");
+        let sited = |f: &Block| -> Vec<(i64, i64, i64)> {
+            f.find("CITIES")
+                .into_iter()
+                .flat_map(|c| c.kids("CITY").collect::<Vec<_>>())
+                .map(|c| {
+                    (
+                        c.int("who").unwrap_or(-1),
+                        c.int("x").unwrap_or(0),
+                        c.int("y").unwrap_or(0),
+                    )
+                })
+                .collect()
+        };
+        let cities = sited(&window[0].1);
+        assert_eq!(cities.len(), 3, "three cities stand at 23,960");
+        for (n, f) in &window {
+            assert_eq!(
+                sited(f),
+                cities,
+                "frame {n}: the cities moved inside the window"
+            );
+        }
+
+        // `build_sim` stands the two **starting** cities up from the start
+        // dump; the AI's second is founded during the game, so it is placed
+        // here at the position the frame gives it.
+        let ty = loaded
+            .build_named("Small City")
+            .expect("no Small City type");
+        for (who, x, y) in &cities {
+            let pos = sim::world::Pos::new(*x as i32, *y as i32);
+            if built
+                .sim
+                .cities
+                .iter()
+                .any(|c| c.alive && c.pos == pos && i64::from(c.owner) == *who)
+            {
+                continue;
+            }
+            let b = built
+                .sim
+                .init_build(u8::try_from(*who).unwrap(), ty, pos, false);
+            built.sim.activate(b, false, false);
+        }
+        assert_eq!(
+            built.sim.cities.iter().filter(|c| c.alive).count(),
+            3,
+            "the window's three cities, and no more"
+        );
+
+        // Each frame's own leader row, and the border pass under it.
+        let owned = |sim: &sim::Sim| -> Vec<i64> {
+            let mut out = vec![0i64; sim.players.len()];
+            for y in 0..sim.world.height() {
+                for x in 0..sim.world.width() {
+                    if let sim::world::Owner::Player(p) =
+                        sim.world.owner(sim::world::Cell::new(x, y))
+                    {
+                        out[p as usize] += 1;
+                    }
+                }
+            }
+            out
+        };
+        let mut compared = 0usize;
+        let mut wrong: Vec<String> = Vec::new();
+        let mut gemless: Vec<Vec<i64>> = Vec::new();
+        for (n, _) in &window {
+            for who in 0..2usize {
+                let blk = log.leader_block(*n, who as i64).expect("a leader row");
+                for (i, e) in blk.all("epoch_get(scan)").iter().enumerate() {
+                    built.sim.tech[who].epoch[i] = e.trim().parse().unwrap();
+                }
+                let mut rare = 0u64;
+                for (i, v) in blk.all("rares_collected[scan]").iter().enumerate() {
+                    if v.trim() != "0" {
+                        rare |= 1 << i;
+                    }
+                }
+                built.sim.ledgers[who].rare = rare;
+            }
+            built.sim.sync_territory();
+            let ours = owned(&built.sim);
+            for (who, mine) in ours.iter().enumerate().take(2) {
+                let blk = log.leader_block(*n, who as i64).expect("a leader row");
+                compared += 1;
+                let theirs = blk.int("territory");
+                if theirs != Some(*mine) {
+                    wrong.push(format!(
+                        "frame {n} who {who}: ours {mine} theirs {theirs:?}"
+                    ));
+                }
+            }
+            // The same seed with the gem bit taken back out, which is what
+            // this crate computed before the term was wired.
+            if gemless.is_empty() {
+                for who in 0..2usize {
+                    built.sim.ledgers[who].rare &=
+                        !(1u64 << (sim::economy::GEMS - sim::economy::BASE_RARE));
+                }
+                built.sim.sync_territory();
+                gemless.push(owned(&built.sim));
+            }
+        }
+        assert!(
+            wrong.is_empty(),
+            "{} of {compared} leader-frames hold the original's territory:\n  {}",
+            compared - wrong.len(),
+            wrong.join("\n  ")
+        );
+        assert_eq!(compared, 80, "forty frames, two leaders");
+        assert_eq!(
+            gemless[0],
+            vec![266, 525],
+            "without the gem the AI's border is forty-three cells short"
+        );
+    }
+
     /// **The production queues, whole**, against run39's own record —
     /// every building of both players, every live slot, every field
     /// `BuildQueue::log_data` writes.
