@@ -27,12 +27,12 @@ user spent one more worker rather than steer: 249 named the cause.*
   §13); `cap-241` is live on run86, `[7080,7140)`+`[7290,7340)`, `UNITS=3`.
 - **A call chain names a function, not a cast** (249): eighty `UNITDATA`
   blocks either side answer "who changed" with no hypothesis. Widen first.
-- **Width two on the gate** (15.8 GB peak of a 20 GiB cap; four threads
-  stay off). `ccc update <ref>` for a base, never a raw merge; reap at
-  merge time; `ccc rm` leaves the branch, so that `--worktree` name fails.
-- **A lane is cheap on memory, and on tokens only if it waits blocking.**
-  One polled a task file 381× for 63 USD — 41% of all lane spend, against
-  2% for the captures themselves (lore, 09-07). Steering owes this a rule.
+- **Width two on the gate** (15.8 GB peak of 20 GiB; four threads stay
+  off). `ccc update <ref>` for a base, never a raw merge. **Reap at merge
+  time**: `done idle` is not reaped, and 0.1.29's `ccc rm` takes the
+  worktree and local branch (remote ref stays).
+- **A lane is cheap on memory; on tokens only if it waits blocking** —
+  one polled a task file 381× for 63 USD, 41% of lane spend (lore, 251b).
 - **Owed to ccc** (item 25): `~/ccc-stream/` — each `stalled` line wants a
   word in `verdicts.txt`, none has fired yet, a watch restart blinds it.
 
