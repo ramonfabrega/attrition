@@ -17649,3 +17649,63 @@ dump saying so.
 **Also landed:** `tools/trace/report.py`'s `when` verb crashed with a
 `NameError` instead of reporting "no draw is made from here", which is the
 answer half the time — it is what said the eject spends none.
+
+## 2026-09-06 — 117 is not a lobby click, and the branch cannot be taken here (capture lane, Opus)
+
+Second item in a row closed without a capture, and this one closed harder.
+
+117 was the last of the four flat territory terms a capture could still reach:
+`(handicap + 15) / 25`, inert in every dump because `handicap` reads 0, and —
+run80's section said — reachable by changing the lobby difficulty, "a click,
+not a longer wait". The brief asked me to establish, before anything else,
+whether the lobby handicap is reachable through the driver at all, and to stop
+and say so if it needed a UI path that does not exist. It is not reachable, and
+the reason is not the driver.
+
+**The lobby half is easy and was never the problem.** `check.ini` already
+carries `PLAYER0_HANDICAP` and `PLAYER1_HANDICAP`, and
+`GameInfo::load_from_config` matches each by exact name against `rules.xml`'s
+`handicaps` category — 21 entries, `Standard` then `Skill +1` to `Skill +20`,
+`DATA` = index × 5 — and stores the index. No click needed.
+
+**The gate is the problem.** `compute_reg_territory` reads the handicap only
+when the leader is an AI *and* `Game::semaphore` bit 2 is set. That bit is set
+in exactly one function in the executable — `Game::run_gamespy`, the GameSpy
+multiplayer path — and `Game::run_solo`, `Game::run_scenario`,
+`Game::run_editor` and `RecordGame::read_package` all clear it. I checked every
+write to that byte across all 48k exported functions, inline and through
+`BitMask<256>::set`; the console sets bits 1, 11 and 12 and never 2. And the
+gate is not local to territory: `get_handicap` has exactly two live callers,
+territory and `ObjectData::train_time`, and both carry it. So the whole
+handicap mechanism is multiplayer-only, and the solo path switches it off on
+the way in. 117 is not a scripted-setup item either — `run_scenario` clears the
+same bit.
+
+**Two corrections fell out on the way past, and the second is the kind that
+matters.** The term is `(get_handicap() + 15) / 25`, not the raw field, and
+`get_handicap` returns `handicaps.list[handicap].DATA` = index × 5 — so the
+allowance runs 0 to 4 where reading the field would cap it at 1. And
+`LeaderData::handicap` is not the lobby's `PLAYERn_HANDICAP` at all:
+`Game::init_handicaps` recomputes it as `clamp(strongest team's summed handicap
+− own team's, 0, 20) / max(num_teams − 1, 1)`, a catch-up deficit, so equal
+lobby handicaps leave every leader at 0 whatever the value and it is the
+*weaker* side that would be paid. Both are exactly the "which array a level
+indexes" predicate the audit README says is where reading errors live, and
+both would have survived a capture that simply set a handicap and looked at
+`territory`.
+
+**What I did not spend.** The capture was ready: Great Lakes,
+`PLAYER0_HANDICAP=Skill +20`, run84's window and detail, with `rngcmp` against
+run53 and `samegame.py --exclude LEADERDATA` against run84 as the falsifier
+that the handicap changed nothing. It confirms a negative the decompile already
+settles exhaustively, and the brief said to stop rather than work around. So I
+stopped.
+
+**The pattern across two sessions, which is worth naming.** Yesterday's rule
+was grep for the derived quantity the original writes down. This morning's was
+grep for the shape a mechanic leaves in a record you already have. Today's is
+the other side of the same coin: **before booking a capture for a term that has
+never been observed, grep for the gate**, not only for the value. A term that
+is zero in every dump is either zero-valued or switched off, and those two
+cost very different things to reach. Both of this session's items were booked
+on the assumption of the first and turned out to be the second.

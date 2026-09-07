@@ -545,8 +545,9 @@ Bonuses accumulate from:
 - Flat additions from the Colosseum, the Eiffel Tower, gems, and Russian
   borders (which also scale per age). The Russians take half of each of the
   others, since their own per-age bonus is meant to be the one that counts.
-- An AI handicap allowance, `(handicap + 15) / 25`, which is the one bonus that
-  buys no matching extension to the limit.
+- An AI handicap allowance, `(get_handicap() + 15) / 25` — **not** the raw
+  `handicap` field — which is the one bonus that buys no matching extension to
+  the limit, and the one no single-player game can reach at all.
 
 The per-player half of that is recomputed for all eight players at the top of
 every region pass; the per-object half is resolved inside the per-cell loop.
@@ -633,12 +634,26 @@ over all 24,001 frames):
   expose) cannot be true in this game at all. The Colosseum and Eiffel
   terms are *reachable* — player 1 built the Pyramids, so the AI does
   build wonders here — and simply are not reached by 24,000.
-- **The handicap is zero by the lobby**, not by chance: `handicap 0` on
-  both players at Great Lakes 23,999 and 779 and at East Indies 5,379, and
-  `(handicap + 15) / 25` is 0 there. It has been inert in every capture
-  ever taken and stays inert until a stanza changes the lobby difficulty —
-  a click, not a longer wait, and the only one of the four a capture alone
-  could still reach.
+- **The handicap term is unreachable, and not because the lobby happens to
+  hold 0** (2026-09-06, capture lane; the earlier "a click, not a longer
+  wait" was wrong). `compute_reg_territory@006b0bb0:255` takes it only when
+  `leader_flags & 4` — an AI — **and** `Game::semaphore` bit 2 are both set,
+  and that bit is set in **exactly one function in the executable**:
+  `Game::run_gamespy@00587060`, the multiplayer lobby. `Game::run_solo@00587830`,
+  `Game::run_scenario@005860c0`, `Game::run_editor@00586440` and
+  `RecordGame::read_package@00952d90` all **clear** it; the console sets
+  `game->semaphore` bits 1, 11 and 12 and never 2. The only sibling consumer,
+  `ObjectData::train_time@006508c0`, and the lobby handicap's one other
+  reader, `Game::init_teams@0058ae70`, carry the same gate. So `handicap 0`
+  in every dump understates it: the branch is dead in any game run here.
+- **And the value is not the field.** `LeaderData::get_handicap@006da740`
+  returns `handicaps.list[handicap].DATA`, which `rules.xml` fills with
+  `index * 5` over 21 entries, so the allowance runs **0 to 4**, not the 0 or
+  1 the raw field gives. Nor is `LeaderData::handicap` the lobby's
+  `PLAYERn_HANDICAP`: `Game::init_handicaps@0058abf0` makes it
+  `clamp(strongest team's summed handicap - own team's, 0, 20) /
+  max(num_teams - 1, 1)` — a catch-up deficit, so equal lobby handicaps leave
+  every leader at 0 and the *weaker* side is the one paid.
 
 ### Distance is not Euclidean, and this matters
 
