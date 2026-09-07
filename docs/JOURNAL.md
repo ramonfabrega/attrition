@@ -17259,3 +17259,125 @@ Unnamed here, and deliberately: what `1/20` is, what animations 0/7/8/9 are,
 why the 60-frame animation is discarded after one frame, and whether an animal
 in `collide_who` means the collision search treats animals as units or runs a
 separate pass. The dump shows the outcome, not the search.
+
+## 2026-09-06 — item 239: a blocked step is a deflection, and the response was already right (Opus, worker)
+
+**The item was booked on a live hypothesis and the hypothesis died, which is
+the result.** East Indies' word has stood at **7448** all session; item 236
+closed the Great Lakes member of the same draw-site family this morning and
+did not move it, so a second cause was owed. The candidate was this crate's
+answer to a *block*: run83, captured today, shows the original's `1/29`
+pushed backwards a step and then sliding along an axis for six frames at
+full speed, and a model that stands still and repaths would be six frames
+and about 1.6 tiles wrong there. Test it, do not assume it — and the test
+says this crate already walks every one of those points.
+
+**First the window, because nothing read the capture.** `gamelog-run83-
+greatlakes-wordwindow.txt` is 53 blocks over `[6864, 6916)` plus the
+shutdown's own 6931 — the last stretch of either map's run-up that no
+archive held, since run76 stops at 6869 and run79 starts at 6910. It was
+taken this morning, checked three ways (`rngcmp` 6,931 frames on run53 with
+none differing; `samegame` against **both** neighbours on twelve blocks of
+deliberate overlap, six in common each way and none differing) and **no test
+read it.** `run83_s_window_is_the_last_great_lakes_hole` reads it now,
+driven through `run_traced` so the comparison is the whole record: **1,961
+unit fields, 1,924 order and path fields, 3,640 angles** over the 53 blocks.
+
+**What the forty frames hold.** Very little, and it is all pinned off the
+dump before the comparison runs, so nothing this crate does can move it.
+No unit is born and none dies — the same 77 by `(who, o)` on every block.
+Five take a new order: `1/5` on 6865, `1/15` on 6871, `0/5` on 6875, `0/4`
+on 6891 and `1/17` on 6907. And there is exactly one blocked stand.
+
+**The block, and it is step 6 rather than the sidestep.** `1/29` proposes
+`(42369, 23840)` on 6892 and is refused by `1/17`, a citizen standing at
+`(42360, 23736)` with `myspeed 25`, `form 9`, `orders_x/y` equal to its own
+position and `collide_frame 3831` — an ancient stamp it does not touch. It
+registers nothing; the whole interaction is written on the walker. The
+blocker's current order is a **`GATHERORDER`**, so both fences that read
+*the other unit's* order kind — §6 step 4's sidestep and step 5's wait —
+refuse, and what runs is the repath. The dump prints all three of its parts:
+`1/29` is put on **its own** 48-cell centre `(42408, 23880)`, which is the
+step "backwards"; the order's `dest` is cleared; and a three-entry
+`find_upath` plan — `(41784, 23400)`, `(42264, 23880)`, `(42360, 23880)`,
+each `tolerance 0` `flags 2` — goes on the stack above the untouched
+nine-entry world-grid one, 9 → 12.
+
+The top two entries share the cell row the snap put it on, and that is the
+whole of the "deflection": the unit slides **due west at the full 26**,
+truncated to 22 and 18 on the two frames it lands on a waypoint, for six
+frames with `y` pinned at 23880, and takes its diagonal again on 6900.
+`idle` is 0 for all of it. The measurement the item was booked on read the
+slide as five frames of a flat −26; the dump is `−26, −22, −26, −26, −26,
+−18`, and the two short ones are arrivals, which is what makes the shape a
+consequence of the plan rather than a rule of its own.
+
+**And this crate does all of it.** Over 53 blocks, three units are ever off
+position and each is accounted for: `1/24` and `1/25` are already off inside
+run76's window (6640 and 6745 there) and so part here on the window's
+*first* block, and `0/3` parts only on 6931, the shutdown's block, sixteen
+frames past the window's end where nothing is observed. **Not one unit parts
+inside the hole.** The order rows are three families: the caravan `1/23`'s
+`Action`, `Flags` and `Move.angle`, off from the first block and therefore
+carried in, and the three Archers' `Group.id` — `GroupData +0x4`, the
+stand-in run76's window pins the same way. No `Kind` row anywhere, on any of
+the 77 units, on any block.
+
+**A thing nobody had seen: the AI re-groups.** On **6907** the same three
+Archers go back into a `GROUPATTACKTOORDER` — 46 frames after run76 watched
+them leave one on 6861 — and this crate follows it on the frame it happens,
+carrying only the stand-in for the nine blocks to the window's end and
+ungrouping again before 6931. That is the ungroup of item 236 run backwards,
+and it had no test.
+
+**One field-lifetime fact a differ needs**, asserted here so the next
+comparison cannot get it wrong: the three collision fields have three
+different lives. `collide_o`/`collide_who` name the blocker for exactly
+**one** block and are −1 the next; `collide` latches 1 for six; and
+`collide_frame` keeps the stamp permanently. A comparison that reads
+`collide_o` a frame late sees −1 and calls it agreement.
+
+**Made to fail.** Gating step 6's `set_new_location(ucell centre)` off for
+four frames — the stand, which is what the hypothesis proposed — puts `1/29`
+off position from 6893 and fails the window's "nothing parts inside the
+hole" row. Removing the whole `resolve_unit_collision` call fails it far
+more loudly, on most of the board.
+
+**The score: none, and that is the honest answer.** Great Lakes' word is
+6982 and this window ends at 6915, so it could not move; East Indies' 7448 is
+on a map this capture is not. What the item does is retire the last forty
+frames whose lockstep rested on the draw stream alone — `rngcmp` compares
+the LCG word, which is strong and is not state, and a divergence that did
+not perturb draws for seventy frames would have been attributed to the
+economy at 6982 by everyone who looked.
+
+**And the hypothesis is dead, in the useful direction.** A wrong answer to
+a block is no longer a candidate cause for East Indies 7448 on either map:
+the response is now diff-backed end to end, snap, plan and walk. What is
+left of that word is what `docs/COLLISION.md` §9 already said on
+2026-09-04 — a *position*, four of the five moving units
+proposing a point inside their own unit cell where §4.1's gate 6 refuses the
+test before it starts — and the new fact is that **no East Indies capture on
+disk reaches 7448 at all**: the map's windows are 5150–5400, 6730–6800,
+6860–6930, 10150–10400 and 15700–15900. The five units are a reading of the
+trace's draw sites and not a record. A `[7420, 7480)` window at run39's
+detail is the successor, and it goes to the back of the queue.
+
+**Rows of `docs/audit/2026-09-05-collision-vs-code.md`.** None taken, and
+the reasons are the same reason. R3 (`CHANGE_FORM` missing from step 4/5's
+order set) and R4 (the `CAST_SPELL 0x28a` arm) both *narrow* the set of
+colliders that earn a sidestep or a wait; run83's collider is a `GATHER`,
+which neither the document's set nor the code's contains, so both refuse
+alike and the capture cannot tell them apart. R8's wait guard sits behind
+that same order-kind test and is never reached. R9 is step 4's two extra
+writes, and step 4 does not run here. R1 and R2 went to item 236 this
+morning. What run83 *does* add to that page is the first diff-backed
+confirmation of the fences' **refusing** direction: a non-move collider
+falls through to step 6, and the whole of step 6 is then the original's.
+
+**What is not established.** That the sidestep of step 4 is right in its
+*accepting* direction — no capture on disk has a collider whose own order is
+a move, so §6 step 4 is still reading-only and R9 with it. Whether `1/23`'s
+three carried-in order rows matter: they are steady from the window's first
+block, agree in position throughout, and nothing has read them. And the
+window says nothing about 6916–6982, where Great Lakes' word actually sits.

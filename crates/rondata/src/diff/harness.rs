@@ -5667,4 +5667,440 @@ mod tests {
             "the farmers' disagreements grew: orders {farmer_orders}, paths {farmer_paths}"
         );
     }
+
+    /// **run83 — the last Great Lakes hole, and the deflection inside
+    /// it** (2026-09-06, item 239).
+    ///
+    /// run53's game once more, window `[6864, 6916)` plus the shutdown's
+    /// own block: 53 blocks over the only stretch of either map's run-up
+    /// that no archive held. run76 stops at 6869 and run79 starts at 6910,
+    /// so 6870–6909 existed nowhere and "in lockstep to 6982" rested, for
+    /// forty of those frames, on the draw stream alone. `rngcmp.py` puts
+    /// it on run53 over 6,931 frames and `samegame.py` puts its twelve
+    /// overlapping blocks on run76 and run79 with none differing
+    /// (`docs/ORACLE.md`, "run83").
+    ///
+    /// **What is inside it.** No unit is born and none dies — 77 units on
+    /// all 53 blocks. Five take a new order. There is exactly one blocked
+    /// stand, `1/29`'s on **6892** against the standing citizen `1/17`,
+    /// which registers nothing: the whole interaction is written on the
+    /// walker. And the AI puts the three Archers **back** into a formation
+    /// on 6907, 46 frames after run76 watched them leave one.
+    ///
+    /// **And the block is a deflection, not a stop** — but it is not the
+    /// sidestep. `1/17` holds a `GATHERORDER`, so both of the fences that
+    /// read *the other unit's* order kind fail (`docs/COLLISION.md` §6
+    /// steps 4 and 5) and what runs is **step 6, the repath**: `1/29` is
+    /// put on its own cell centre — the step "backwards" — its order's
+    /// `dest` is cleared, and a three-entry `find_upath` plan goes on the
+    /// stack above the world-grid one. The top two entries share the cell
+    /// row it was snapped onto, so it slides due west at full speed for
+    /// six frames with `y` pinned and takes its diagonal again on 6900.
+    /// `idle` is 0 for all of it. Anything modelling a block as "stand
+    /// still and repath" is six frames and about 1.6 tiles wrong here.
+    ///
+    /// Driven through [`run_traced`], so this is the whole record and not
+    /// the walker's.
+    #[test]
+    fn run83_s_window_is_the_last_great_lakes_hole() {
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(tr)) = (
+            dump("gamelog-run83-greatlakes-wordwindow.txt"),
+            trace("rontrace-run83.log"),
+        ) else {
+            eprintln!("skipping: no run83 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = std::fs::read_to_string(&path).unwrap();
+        let log = Log::parse(&text);
+        let texts = sibling_texts();
+        let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
+        let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+        let refs: Vec<&Initial> = inits.iter().collect();
+
+        // **The window's own facts, read straight off the dump**, so that
+        // nothing this crate does can move them. 53 blocks: `[6864, 6916)`
+        // entire, and then the **quit frame**, 6931, which the shutdown
+        // dumps on its way out. A file with fewer is the wrong file.
+        let states = log.frame_states();
+        let theirs: Vec<i64> = states.iter().map(|f| f.n).collect();
+        assert!(
+            theirs
+                == (6_864..=6_915)
+                    .chain(std::iter::once(6_931))
+                    .collect::<Vec<_>>(),
+            "run83's blocks: {:?}..{:?} ({}) — the wrong file",
+            theirs.first(),
+            theirs.last(),
+            theirs.len()
+        );
+        // No birth and no death across the hole: the same 77 units, by
+        // `(who, o)`, on every block.
+        let census: std::collections::BTreeSet<Vec<(i64, i64)>> = states
+            .iter()
+            .map(|f| {
+                let mut v: Vec<(i64, i64)> = f.units.iter().map(|u| (u.who, u.o)).collect();
+                v.sort_unstable();
+                v
+            })
+            .collect();
+        assert_eq!(
+            census.len(),
+            1,
+            "the roster changes across run83's window — a birth or a death"
+        );
+        assert_eq!(
+            census.iter().next().map(Vec::len),
+            Some(77),
+            "run83 should carry 77 units on every block"
+        );
+
+        // **And the five new orders**, which are everything else that
+        // happens in the hole: the units whose `orders_x`/`orders_y` move
+        // between blocks, with `1/17`'s falling on the same frame the
+        // squad re-groups. None of the five is in the parted set below, so
+        // this crate takes all five where the original does.
+        let mut retargets: Vec<(i64, i64, i64)> = Vec::new();
+        for pair in states.windows(2) {
+            if pair[1].n > 6_915 {
+                break;
+            }
+            for u in &pair[1].units {
+                if let Some(was) = pair[0].units.iter().find(|p| p.who == u.who && p.o == u.o)
+                    && (was.orders_x, was.orders_y) != (u.orders_x, u.orders_y)
+                {
+                    retargets.push((pair[1].n, u.who, u.o));
+                }
+            }
+        }
+        assert_eq!(
+            retargets,
+            vec![
+                (6_865, 1, 5),
+                (6_871, 1, 15),
+                (6_875, 0, 5),
+                (6_891, 0, 4),
+                (6_907, 1, 17),
+            ],
+            "the window's own new orders"
+        );
+
+        // **The block itself, off the dump.** `1/29`'s track over
+        // 6892..=6900, with the collision fields, the order's `dest` and
+        // the path stack's depth beside it.
+        let walker: Vec<(i64, LogPos, i64, i64, i64, usize, i64)> = states
+            .iter()
+            .filter(|f| (6_892..=6_900).contains(&f.n))
+            .filter_map(|f| {
+                let u = f.units.iter().find(|u| u.who == 1 && u.o == 29)?;
+                let ord = u.current_order()?;
+                Some((
+                    f.n,
+                    u.pos,
+                    u.collide?,
+                    u.collide_o?,
+                    u.collide_frame?,
+                    u.path.len(),
+                    ord.dest?,
+                ))
+            })
+            .collect();
+        assert_eq!(walker.len(), 9, "run83's `1/29` over 6892..=6900");
+        eprintln!("run83: 1/29 across the block: {walker:?}");
+        // The three collision fields have three different lives, and a
+        // comparison that reads `collide_o` a frame late sees −1 and calls
+        // it agreement.
+        assert!(
+            walker[0].2 == 0 && walker[0].4 == -1 && walker[0].5 == 9,
+            "1/29 should be unblocked on 6892 with its nine-entry world-grid \
+             plan: {:?}",
+            walker[0]
+        );
+        assert!(
+            walker[1].2 == 1 && walker[1].3 == 17 && walker[1].4 == 6_892,
+            "1/29 should name `1/17` on 6893: {:?}",
+            walker[1]
+        );
+        assert!(
+            walker[2..].iter().all(|r| r.3 == -1),
+            "`collide_o` names the blocker for exactly one block: {walker:?}"
+        );
+        assert!(
+            walker[1..].iter().all(|r| r.4 == 6_892),
+            "`collide_frame` keeps the stamp: {walker:?}"
+        );
+        assert!(
+            walker[1..7].iter().all(|r| r.2 == 1) && walker[7..].iter().all(|r| r.2 == 0),
+            "`collide` should latch 1 over 6893..=6898 and clear on 6899: {walker:?}"
+        );
+        // **It is step 6, the repath.** The dump prints all three of its
+        // parts: the unit is put on **its own** 48-cell centre, its
+        // order's `dest` is cleared, and a fresh `find_upath` plan of
+        // three cell-centre entries (`tolerance 0`, `flags 2`) sits on the
+        // stack above the world-grid one, which is untouched beneath.
+        assert_eq!(
+            (walker[1].1.x, walker[1].1.y),
+            (42_408, 23_880),
+            "6893 should put `1/29` on its own 48-cell centre"
+        );
+        assert!(
+            walker[1].6 == 0 && walker[1].5 == 12,
+            "6893 should clear `dest` and carry the nine-entry plan plus a \
+             three-entry `find_upath`: {:?}",
+            walker[1]
+        );
+        let plan: Vec<(i64, i64, i64, i64)> = states
+            .iter()
+            .find(|f| f.n == 6_893)
+            .and_then(|f| f.units.iter().find(|u| u.who == 1 && u.o == 29))
+            .map(|u| {
+                u.path
+                    .iter()
+                    .skip(9)
+                    .map(|w| (w.to.0, w.to.1, w.tolerance, w.flags))
+                    .collect()
+            })
+            .unwrap();
+        assert_eq!(
+            plan,
+            vec![
+                (41_784, 23_400, 0, 2),
+                (42_264, 23_880, 0, 2),
+                (42_360, 23_880, 0, 2),
+            ],
+            "the repath's `find_upath` plan, top last"
+        );
+        // And the walk it produces, which is what "stand still and repath"
+        // gets wrong: six frames due west at the full 26, truncated only
+        // where the unit lands on a waypoint.
+        let slide: Vec<(i64, i64)> = walker
+            .windows(2)
+            .map(|w| (w[1].1.x - w[0].1.x, w[1].1.y - w[0].1.y))
+            .collect();
+        eprintln!("run83: 1/29's steps across the block: {slide:?}");
+        assert_eq!(
+            slide,
+            vec![
+                (20, 22),  // 6893: the snap onto its own cell centre
+                (-26, 0),  // 6894: the first upath leg, at full speed
+                (-22, 0),  // 6895: truncated — it lands on (42360, 23880)
+                (-26, 0),  // 6896
+                (-26, 0),  // 6897
+                (-26, 0),  // 6898
+                (-18, 0),  // 6899: truncated — it lands on (42264, 23880)
+                (-26, -1), // 6900: the diagonal again
+            ],
+            "the block's whole track"
+        );
+        assert!(
+            states
+                .iter()
+                .filter(|f| (6_892..=6_900).contains(&f.n))
+                .filter_map(|f| f.units.iter().find(|u| u.who == 1 && u.o == 29))
+                .all(|u| u.idle == Some(0)),
+            "`1/29` never idles across the block"
+        );
+        // **And the blocker registers nothing.** `1/17` is a standing
+        // citizen — `myspeed 25`, `form 9`, a `GATHERORDER` whose target
+        // is where it stands, which is why steps 4 and 5 both fall through
+        // — carrying an ancient stamp it does not touch.
+        let blocker: Vec<(i64, LogPos, i64, i64)> = states
+            .iter()
+            .filter(|f| (6_890..=6_899).contains(&f.n))
+            .filter_map(|f| {
+                let u = f.units.iter().find(|u| u.who == 1 && u.o == 17)?;
+                Some((f.n, u.pos, u.collide?, u.collide_frame?))
+            })
+            .collect();
+        assert!(
+            blocker.len() == 10
+                && blocker
+                    .iter()
+                    .all(|r| r.1.x == 42_360 && r.1.y == 23_736 && r.2 == 0 && r.3 == 3_831),
+            "`1/17` should stand still through the block, registering nothing: {blocker:?}"
+        );
+
+        // Now the comparison.
+        let report = run_traced(&loaded, &log, Tuning::RON, None, None, &refs, Some(&tr)).unwrap();
+        let blocks: Vec<i64> = report
+            .frames
+            .iter()
+            .filter(|f| f.compared > 0)
+            .map(|f| f.frame)
+            .collect();
+        assert!(
+            blocks.first() == Some(&6_864) && blocks.last() == Some(&6_931) && blocks.len() == 53,
+            "run83's compared blocks: {:?}..{:?} ({})",
+            blocks.first(),
+            blocks.last(),
+            blocks.len()
+        );
+        let parted: std::collections::BTreeMap<(i64, i64), i64> = report
+            .first_divergence_by_unit()
+            .into_iter()
+            .map(|(w, o, f)| ((w, o), f))
+            .collect();
+        let ord_fields: usize = report.frames.iter().map(|f| f.order_compared).sum();
+        let angles: usize = report.frames.iter().map(|f| f.angle_compared).sum();
+        eprintln!(
+            "run83: {} unit fields, {ord_fields} order/path fields, {angles} angles \
+             over {} blocks; {} unit(s) ever off position",
+            report.frames.iter().map(|f| f.compared).sum::<usize>(),
+            blocks.len(),
+            parted.len()
+        );
+        for (&(who, o), &frame) in &parted {
+            eprintln!("  {who}/{o} parts at {frame}");
+        }
+        use crate::diff::order::OrderMismatch as OM;
+        let mut tally: std::collections::BTreeMap<(i64, i64, String), (usize, i64)> =
+            std::collections::BTreeMap::new();
+        for d in report.frames.iter().flat_map(|f| f.order_diverged.iter()) {
+            let field = match &d.what {
+                OM::Group { field, .. } => format!("Group.{field}"),
+                OM::Move { field, .. } => format!("Move.{field}"),
+                w => format!("{w:?}")
+                    .split('{')
+                    .next()
+                    .unwrap()
+                    .trim()
+                    .to_string(),
+            };
+            let e = tally.entry((d.who, d.o, field)).or_insert((0, d.frame));
+            e.0 += 1;
+        }
+        for ((who, o, what), (n, first)) in &tally {
+            eprintln!("  order {who}/{o} {what}: {n} rows, first {first}");
+        }
+        assert!(
+            ord_fields >= 1_000 && angles >= 1_000,
+            "the window's own rows: {ord_fields} order fields and {angles} angles \
+             — a capture below `UNITS=3` is the wrong file"
+        );
+
+        // **What the hole holds: nothing new.** Every disagreement in the
+        // window is one this crate carried into it, the group-id stand-in,
+        // or the quit frame — so the forty frames nobody had ever compared
+        // add no divergence of their own.
+        //
+        // Positions, three units and each accounted for: `1/24` and `1/25`
+        // are already off inside run76's window (6640 and 6745 there) and
+        // so part here on the window's **first** block; `0/3` parts only
+        // on **6931**, the shutdown's own block, sixteen frames past the
+        // window's end where nothing is observed.
+        let inherited: Vec<(i64, i64)> = parted
+            .iter()
+            .filter(|&(_, &f)| f <= 6_864)
+            .map(|(&k, _)| k)
+            .collect();
+        assert_eq!(
+            inherited,
+            vec![(1, 24), (1, 25)],
+            "the units already off position when the window opens: {parted:?}"
+        );
+        let inside: Vec<((i64, i64), i64)> = parted
+            .iter()
+            .filter(|&(_, &f)| f > 6_864 && f <= 6_915)
+            .map(|(&k, &f)| (k, f))
+            .collect();
+        assert!(
+            inside.is_empty(),
+            "a unit parts from the original's position **inside** the hole \
+             nothing had ever compared: {inside:?}"
+        );
+        assert_eq!(
+            parted.len(),
+            3,
+            "run83's parted set should be `1/24`, `1/25` and the quit \
+             frame's `0/3`: {parted:?}"
+        );
+
+        // Orders: three families and no fourth. `1/23` is the caravan, off
+        // on the same three rows from the window's first block and so
+        // carried in; the three Archers carry `Group.id` — `GroupData
+        // +0x4`, the stand-in run76's window pins the same way — and
+        // nothing else.
+        let families: Vec<(i64, i64, String, usize, i64)> = tally
+            .iter()
+            .map(|((w, o, f), (n, first))| (*w, *o, f.clone(), *n, *first))
+            .collect();
+        assert_eq!(
+            families,
+            vec![
+                (1, 23, "Action".into(), 52, 6_864),
+                (1, 23, "Flags".into(), 52, 6_864),
+                (1, 23, "Move.angle".into(), 52, 6_864),
+                (1, 27, "Group.id".into(), 9, 6_907),
+                (1, 28, "Group.id".into(), 9, 6_907),
+                (1, 29, "Group.id".into(), 9, 6_907),
+            ],
+            "run83's order rows are the caravan's three, carried into the \
+             window, and the group-id stand-in from the re-group"
+        );
+
+        // **The re-group on 6907, which nothing had ever seen.** The AI
+        // puts the three Archers back into a `GROUPATTACKTOORDER` (`type
+        // 21`) nine blocks before the window ends — 46 frames after run76
+        // watched the same squad *leave* one on 6861 — and this crate
+        // follows it on the frame it happens: the only rows the three
+        // carry from 6907 on are the `id` stand-in, one per grouped
+        // unit-frame. A squad that misses the re-group, or takes it late,
+        // puts a `Kind` row here.
+        let regrouped: Vec<i64> = states
+            .iter()
+            .filter(|f| {
+                f.units.iter().any(|u| {
+                    u.who == 1 && (27..=29).contains(&u.o) && u.orders.iter().any(|o| o.index == 21)
+                })
+            })
+            .map(|f| f.n)
+            .collect();
+        assert_eq!(
+            regrouped,
+            (6_907..=6_915).collect::<Vec<_>>(),
+            "the original's re-group should run 6907 to the window's end — \
+             and be over by the quit block, 6931"
+        );
+        let squad_rows: Vec<&OrderDivergence> = report
+            .frames
+            .iter()
+            .flat_map(|f| f.order_diverged.iter())
+            .filter(|d| {
+                d.who == 1
+                    && (27..=29).contains(&d.o)
+                    && !matches!(d.what, OM::Group { field: "id", .. })
+            })
+            .collect();
+        assert!(
+            squad_rows.is_empty(),
+            "the squad parts from the original's order record: {:?}",
+            squad_rows.iter().take(6).collect::<Vec<_>>()
+        );
+
+        // **And the walker's own record, which is what the item is
+        // about.** `1/29` is blocked on 6892 and recovers by the repath;
+        // this crate does the same, so it holds the original's position
+        // for the whole window and carries no order or path row across the
+        // block. Made to fail on purpose: making `Sim::unit_step`'s
+        // collision arm return without calling `resolve` — the stand — put
+        // `1/29` off position from 6893 to the window's end.
+        assert!(
+            !parted.contains_key(&(1, 29)),
+            "`1/29` parts at {:?}: the block on 6892 is a deflection, not a \
+             stop, and six frames of it are 1.6 tiles",
+            parted.get(&(1, 29))
+        );
+        let block_rows: Vec<&OrderDivergence> = report
+            .frames
+            .iter()
+            .flat_map(|f| f.order_diverged.iter())
+            .filter(|d| d.who == 1 && d.o == 29 && (6_890..=6_905).contains(&d.frame))
+            .collect();
+        assert!(
+            block_rows.is_empty(),
+            "`1/29`'s order or path record parts across the block: {:?}",
+            block_rows.iter().take(6).collect::<Vec<_>>()
+        );
+    }
 }
