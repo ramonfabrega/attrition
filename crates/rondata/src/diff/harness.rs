@@ -6716,6 +6716,249 @@ mod tests {
         );
     }
 
+    /// **run88 — East Indies' word is a gather countdown one tick long**
+    /// (2026-09-07, the capture lane).
+    ///
+    /// run54's game over `[7474, 7800)` at run85's detail **exactly** —
+    /// **327 blocks, 186,777,592 bytes**, six of deliberate overlap over
+    /// run85's tail (`differ: 0`, byte for byte and with no `--exclude`
+    /// at all) and 326 above it. Until this capture East Indies had **no
+    /// dumped frame above 7480** except run85's own `GameLog::end_game`
+    /// block at 7496, so [`LONG_WORD_EAST_INDIES`] — the second of
+    /// `docs/DECISIONS.md` entry 29's two counters — was the one that
+    /// could not be read as a field at all.
+    ///
+    /// **It is one field, and it is off by one.** `1/13` is an AI
+    /// citizen gathering at `gather_down 12`; its `GATHERORDER`'s `wait`
+    /// countdown reads **`theirs + 1` on all 55 blocks** of the cycle
+    /// that ends at the word, so the original's reaches its end on 7529
+    /// (`wait −1`, the order done) while this crate still holds **1**.
+    /// The original spends its extra `Guy::set_anim+0x97a <
+    /// Unit::do_non_flat_gather+0xb99` draw there and this crate spends
+    /// the same one a frame later, which is exactly what the word says.
+    ///
+    /// **And the value diff is one step.** The original's `1/13` takes
+    /// its next order on block 7530 — `orders_x/y` (40536, 37560) →
+    /// (40344, 38520) — and steps to (40560, 37560) on 7531, where this
+    /// crate is still on (40536, 37560): **(−24, 0)**, one 24-unit step,
+    /// and it never gets it back. Nothing else on the map parts at or
+    /// below the word except `1/19`, the standing Merchant constant
+    /// run85's window already carries.
+    #[test]
+    fn run88_s_window_is_east_indies_word_frame() {
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(sib), Some(tr)) = (
+            dump("gamelog-run88-eastindies-wordframe.txt"),
+            dump("gamelog-run38-islands-start.txt"),
+            trace("rontrace-run88.log"),
+        ) else {
+            eprintln!("skipping: no run88 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = std::fs::read_to_string(&path).unwrap();
+        let sib_text = std::fs::read_to_string(&sib).unwrap();
+        let log = Log::parse(&text);
+        let sib_log = Log::parse(&sib_text);
+        let sib_init = sib_log.initial().expect("run38 is a start dump");
+        let refs: Vec<&Initial> = vec![&sib_init];
+
+        // The window's own extent: the 326 blocks and the
+        // `GameLog::end_game` block the `!quit` writes, which is run85's
+        // shape one window along.
+        let states = log.frame_states();
+        let theirs: Vec<i64> = states.iter().map(|f| f.n).collect();
+        assert!(
+            theirs
+                == (7_474..=7_799)
+                    .chain(std::iter::once(7_816))
+                    .collect::<Vec<_>>(),
+            "run88's blocks: {:?}..{:?} ({}) — the wrong file",
+            theirs.first(),
+            theirs.last(),
+            theirs.len()
+        );
+
+        // **The gather countdown, straight off the dump.** `1/13` stands
+        // on its resource with `orders_x/y` equal to its own position
+        // until 7530, when the original gives it the next job.
+        let job: Vec<(i64, i64, i64, i64, i64)> = states
+            .iter()
+            .filter(|f| (7_526..=7_532).contains(&f.n))
+            .filter_map(|f| {
+                let u = f.units.iter().find(|u| u.who == 1 && u.o == 13)?;
+                Some((f.n, u.pos.x, u.pos.y, u.orders_x?, u.orders_y?))
+            })
+            .collect();
+        assert_eq!(
+            job,
+            vec![
+                (7_526, 40_536, 37_560, 40_536, 37_560),
+                (7_527, 40_536, 37_560, 40_536, 37_560),
+                (7_528, 40_536, 37_560, 40_536, 37_560),
+                (7_529, 40_536, 37_560, 40_536, 37_560),
+                (7_530, 40_536, 37_560, 40_344, 38_520),
+                (7_531, 40_560, 37_560, 40_344, 38_520),
+                (7_532, 40_584, 37_560, 40_344, 38_520),
+            ],
+            "the original's `1/13`: standing on its resource, then the next \
+             job on 7530 and the first step on 7531"
+        );
+
+        // Now the comparison — every unit of every block.
+        let report = run_traced(&loaded, &log, Tuning::RON, None, None, &refs, Some(&tr)).unwrap();
+        let blocks: Vec<i64> = report
+            .frames
+            .iter()
+            .filter(|f| f.compared > 0)
+            .map(|f| f.frame)
+            .collect();
+        assert!(
+            blocks.first() == Some(&7_474) && blocks.last() == Some(&7_816) && blocks.len() == 327,
+            "run88's compared blocks: {:?}..{:?} ({})",
+            blocks.first(),
+            blocks.last(),
+            blocks.len()
+        );
+        let parted: std::collections::BTreeMap<(i64, i64), i64> = report
+            .first_divergence_by_unit()
+            .into_iter()
+            .map(|(w, o, f)| ((w, o), f))
+            .collect();
+        let ord_fields: usize = report.frames.iter().map(|f| f.order_compared).sum();
+        let angles: usize = report.frames.iter().map(|f| f.angle_compared).sum();
+        eprintln!(
+            "run88: {} unit fields, {ord_fields} order/path fields, {angles} angles \
+             over {} blocks; {} unit(s) ever off position",
+            report.frames.iter().map(|f| f.compared).sum::<usize>(),
+            blocks.len(),
+            parted.len()
+        );
+        for (&(who, o), &frame) in &parted {
+            eprintln!("  {who}/{o} parts at {frame}");
+        }
+        assert!(
+            ord_fields >= 1_000 && angles >= 1_000,
+            "the window's own rows: {ord_fields} order fields and {angles} angles \
+             — a capture below `UNITS=3` is the wrong file"
+        );
+
+        // **Two units part at or below the word and no more.** Everything
+        // else is 7577 or later, downstream of it.
+        let early: Vec<((i64, i64), i64)> = parted
+            .iter()
+            .filter(|&(_, &f)| f <= 7_531)
+            .map(|(&k, &f)| (k, f))
+            .collect();
+        assert_eq!(
+            early,
+            vec![((1, 13), 7_531), ((1, 19), 7_474)],
+            "run88's parted set at or below the word"
+        );
+
+        // `1/19` is run85's row one window along: the unpacked Merchant
+        // standing on its trade-post spot, **a constant (24, 24) on every
+        // block, both sides still** (`docs/MERCHANT.md`).
+        let merchant: Vec<(i32, i32)> = report
+            .frames
+            .iter()
+            .flat_map(|f| f.diverged.iter())
+            .filter(|d| (d.who, d.o) == (1, 19))
+            .map(|d| (d.ours.x - d.theirs.x, d.ours.y - d.theirs.y))
+            .collect();
+        assert!(
+            merchant.len() == 327 && merchant.iter().all(|&d| d == (24, 24)),
+            "`1/19` is a standing constant: {} rows, {:?}",
+            merchant.len(),
+            merchant.first()
+        );
+
+        // **The word's own field.** `1/13`'s `wait` is `theirs + 1` on
+        // every block of the cycle, and on 7529 the original's has
+        // reached its end (`-1`) while this crate still holds 1.
+        use crate::diff::order::OrderMismatch as OM;
+        let wait: Vec<(i64, i64, i64)> = report
+            .frames
+            .iter()
+            .flat_map(|f| f.order_diverged.iter())
+            .filter(|d| (d.who, d.o) == (1, 13) && d.frame <= 7_529)
+            .filter_map(|d| match d.what {
+                OM::Gather {
+                    field: "wait",
+                    ours,
+                    theirs,
+                } => Some((d.frame, ours, theirs)),
+                _ => None,
+            })
+            .collect();
+        assert!(
+            wait.len() == 56
+                && wait[0] == (7_474, 56, 55)
+                && wait[..55].iter().all(|&(_, o, t)| o == t + 1)
+                && wait[55] == (7_529, 1, -1),
+            "`1/13`'s gather countdown over the cycle that ends at the word: \
+             {} rows, {:?}..{:?}",
+            wait.len(),
+            wait.first(),
+            wait.last()
+        );
+        // **The reader is shown able to see something other than a +1**,
+        // because "every row is off by one" is also what a reader that
+        // subtracts wrong looks like. `1/7`'s own `wait` opens at 375
+        // against 334 — forty-one out, and downstream of the word.
+        let other: Option<(i64, i64, i64, i64)> = report
+            .frames
+            .iter()
+            .flat_map(|f| f.order_diverged.iter())
+            .filter(|d| (d.who, d.o) != (1, 13))
+            .find_map(|d| match d.what {
+                OM::Gather {
+                    field: "wait",
+                    ours,
+                    theirs,
+                } => Some((d.who, d.o, ours, theirs)),
+                _ => None,
+            });
+        assert_eq!(
+            other,
+            Some((1, 7, 375, 334)),
+            "no gather row on the map that is not a +1 — the reader would \
+             then prove nothing about `1/13`'s"
+        );
+
+        // **And the value diff is one 24-unit step, from 7531.** `1/13`
+        // holds no position row at all before then.
+        let step: Vec<(i64, i32, i32)> = report
+            .frames
+            .iter()
+            .flat_map(|f| f.diverged.iter())
+            .filter(|d| (d.who, d.o) == (1, 13))
+            .map(|d| (d.frame, d.ours.x - d.theirs.x, d.ours.y - d.theirs.y))
+            .collect();
+        assert!(
+            step.first().map(|&(f, _, _)| f) == Some(7_531)
+                && step[..3].iter().all(|&(_, dx, dy)| (dx, dy) == (-24, 0)),
+            "`1/13` parts on 7531 by one step: {:?}",
+            &step[..step.len().min(4)]
+        );
+
+        // **The original's own draw stream at the word**, off this run's
+        // trace: three draws on 7529, one of them the gather that fires,
+        // and a single `inc_time` on 7530 — which is the frame this crate
+        // spends its own `do_non_flat_gather` on
+        // (`run54_s_24000_frames…`, `RON_DEBUG_SITES=7526-7533`).
+        const GATHER_ANIM: &str = "Guy::set_anim+0x97a < Unit::do_non_flat_gather+0xb99";
+        let at_word = tr.labels(LONG_WORD_EAST_INDIES);
+        let after = tr.labels(LONG_WORD_EAST_INDIES + 1);
+        assert!(
+            at_word.len() == 3
+                && at_word.iter().any(|l| l == GATHER_ANIM)
+                && after.len() == 1
+                && !after.iter().any(|l| l == GATHER_ANIM),
+            "the original's draws either side of the word: {at_word:?} then {after:?}"
+        );
+    }
+
     /// **run86 — the transport ride, whole, and the field the word was
     /// short of.**
     ///

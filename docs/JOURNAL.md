@@ -18735,3 +18735,67 @@ Gate: 241 rondata release tests green at the pinned two threads — 239 on
 the first full run plus the two `*_is_pinned` tests that failed it and pass
 re-pinned, peak 15,970 MiB of 20 GiB; 818 sim; `cargo clippy --all-targets`
 and `cargo fmt` clean; `rondata -- <install>` zero.
+
+## 2026-09-07 — East Indies' word is a gather countdown one tick long (run88, no word moved, Opus, capture lane)
+
+The capture the eighth steer booked into the lane rather than into the
+queue: East Indies' word stands at **7529** and that map's coverage on disk
+stopped at run85's **7480**, so the second of entry 29's two counters was
+the one nobody could read as a field. `[7474, 7800)` at run85's `[End
+Frame]` detail exactly — six blocks of deliberate overlap over run85's tail
+and 326 above it.
+
+**The disk was grepped first and it found one frame.** Every archive, for a
+block labelled 7480–7899: run87's Great Lakes tail, and **run85's single
+`GameLog::end_game` block at 7496**. One East Indies frame in the whole
+band, 33 short of the word.
+
+**Ten minutes, 327 blocks, 186,777,592 bytes** — 537 KB a block, the
+estimate to within 1%. `rngcmp.py` against run54: **0 differing, 7,816
+identical**. The overlap: **6 in common (7474..7479), 0 differing, and with
+no `--exclude` or `--drop` at all** — the first total overlap in the corpus
+that needed no flag, because the detail was taken from the neighbour
+*exactly* rather than nearly. The teeth: **326 frame blocks carrying a
+`cur_anim`, 7474..7799**.
+
+**The tooth run85 used was measured and refused before booking.** run85
+asserted a `collide_frame` transition; over run86's 486 East Indies frames
+there are **zero**, so the same line over 326 frames would have failed for a
+reason that is not the capture. What replaced it — the window's own extent
+and detail in one line — was made to fail first on real data both ways:
+`6 (7474..7479)` exit 1 on run85, `0 (0..0)` exit 1 on run86, and 80 and 486
+and exit 0 with each file's own numbers.
+
+**The word is one field, and the field is off by one.** `1/13`, an AI
+citizen gathering at `gather_down 12`, carries a `GATHERORDER` `wait` of
+**`theirs + 1` on all 55 blocks** of the cycle that ends at the word: the
+original's reaches its end on 7529 (`wait −1`, the order done) where this
+crate still holds 1. The draw stream says the same thing one frame apart —
+7529 is `ours 2 theirs 3` with the extra being
+`Guy::set_anim+0x97a < Unit::do_non_flat_gather+0xb99`, and 7530 is
+`ours 2 theirs 1` with this crate spending that same site. Not a missing
+call, not a wrong predicate, not a unit in the wrong place: the same call,
+one tick late.
+
+**And the value diff beside it.** The original's `1/13` takes its next job
+on block 7530 — `orders_x/y` (40536, 37560) → (40344, 38520) — and steps to
+**(40560, 37560)** on 7531 where this crate is still on **(40536, 37560)**:
+**(−24, 0)**, one step of a 24-a-frame walk, held to the end of the window.
+Nothing else on the map parts at or below the word except `1/19`, the
+standing Merchant constant run85 already carries; the other thirteen are
+7577 or later.
+
+**The successor needs no screen.** The same `+1` runs unbroken through
+**run86's** window from block **6985** — 425 rows, on a capture taken two
+days ago and never read for this field — so the frame that seeds it is
+already on disk and the next step is a diff, not a run. Reported unnumbered
+to the commander, with two things deliberately not folded into it: `1/13`'s
+*position* parts at 6938 in run86's window, earlier and separate, and its
+second cycle here (7721..7799) opens at `+1` and ends 47 apart, downstream
+of the word and nobody's.
+
+**The score.** No word moved — nothing was fixed here. East Indies 7529 and
+Great Lakes 7455 stand; what changed is that 7529 is now a field with a
+value diff beside it rather than a draw-stream report.
+`run88_s_window_is_east_indies_word_frame` is the assertion, and its five
+claims were each made to fail on purpose before it was believed.
