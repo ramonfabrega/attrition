@@ -18887,3 +18887,105 @@ four `*_is_pinned` counts that failed it and pass re-pinned — peak 14,023 MiB
 of the 20 GiB cap on the clean run and 14,566 on the one that found the
 moves; 819 sim tests; `cargo clippy --all-targets` and `cargo fmt` clean;
 `rondata -- <install>` zero.
+
+## 2026-09-07 — item 271: an age snaps every figure, and 253 was the same event (East Indies' word 7529 → 7806, Opus, worker)
+
+The brief was East Indies' whole word in one field: `1/13`, an AI citizen at
+`gather_down 12`, carrying a `GATHERORDER` `wait` of `theirs + 1` on all 55
+blocks of the cycle that ends at 7529 — 425 more rows of the same on disk in
+run86 and never read. It named a neighbouring item, 253, `1/13`'s *position*
+parting at 6938, and said explicitly not to fold the two together but to say
+so with evidence if they turned out to share a cause. **They are one event.**
+
+**The countdown was never wrong.** `track.py` over run86 answers the first
+question in six seconds: the original's `wait` holds at its rolled **545** for
+all 61 blocks 6924–6984 and takes its first decrement on 6985. 6984 is the
+block whose `x_internal`/`y_internal` first equal `orders_x`/`orders_y`. So
+the countdown is seeded by the **arrival** frame — `do_non_flat_gather`'s "at
+the tile and not yet in the loop" arm — and this crate, which arrives on 6985,
+counts from 6986. One frame in, `+1` for 545 frames, out at 7530 instead of
+7529. The brief's falsifier (a block below 6985 where the two waits agree) is
+met everywhere below 6985: they agree on all 61 of them, which is what says
+the seed and not the decrement is the thing to find.
+
+**The whole-record widening found it in one run.** Reporting every angle
+divergence over run86's 487 blocks rather than `1/13`'s `wait`: there is
+exactly **one**, and it is `1/13`'s facing on block **6937** — ours
+−268435455, theirs −612630528. Nothing else in the window, on any unit, in
+either angle. The original's figure lands on its unit's own heading in a
+frame where the turn rate is `0x5555555`, 7.5°, and the owed angle is 36.35°.
+
+**And it is not `Guy::move`.** The arrived arm turns at the body rate and
+would fit the jump, but it zeroes `last_speed`; the dump has `last_speed` 25
+and `avg_speed` holding at 22 across the block. What the dump does have is
+`guy.last_x`/`last_y` equal to the figure's **own** position on 6937 and the
+previous frame's on every neighbour — the signature of `Guy::set_new_location`
+with its snap flag, which is a *write* after the step rather than a turn.
+
+**So who wrote it.** `Unit::set_new_location(x, y, 1, 1)` is the only shape
+that writes the facing outright and leaves the speeds alone, and the call
+sites that pass `(1, 1)` are all events. The census settled it in one pass:
+on block 6937 **every one of player 1's 22 units** has `last_x == x`, against
+fourteen and fifteen on the blocks either side, and players 0 and 8 do not
+move at all. Same block, `max_age` goes 0 → 1 on all fourteen of player 1's
+buildings and building `1/2005`'s queue empties. It is the Classical Age.
+
+`Leader::gain_tech@006dcb60:2366`, gated on the type vtable's `+0x34` —
+`TypeData::is_age_type`, with `is_epoch_type` at `+0x38` and not qualifying —
+runs `Unit::update_gpiece` and `Unit::set_new_location(u, u.x, u.y, 1, 1)`
+over every live unit of the leader, then `update_gpiece` over its buildings
+and walls. The graphics half is presentation; the two snap flags are not.
+`docs/TECH.md`, "An age snaps every figure".
+
+**Twenty-two units, and one of them was mid-turn.** That is why a
+once-per-age event stayed invisible: for a standing unit, and for one already
+facing the way it walks, the write changes nothing. `1/13` was turning, so it
+got its heading for free where this crate spent four more frames at 7.5°,
+took an extra stalled frame at 6941, and tracked the original's own positions
+exactly one frame late from 6956 on — arriving on 6985 where the original
+arrived on 6984.
+
+**The fix is nine lines** — `Sim::age_snap_units`, called from
+`Sim::gain_tech` when the gained type is `Kind::Age`, setting each of the
+leader's units' facing to its own heading, its body onto it, and each tracked
+crew figure onto its offset through `crew_des(…, snap)`. `Sim::tick` already
+runs the buildings after the unit loop, which is the order the dump shows: the
+frame's step is taken along the old facing and the next one starts from the
+heading.
+
+**What moved.** East Indies' long word **7529 → 7806**, 277 frames and the
+largest single step it has taken; the new frame is a `Guy::inc_time+0x271`
+against the original's `Guy::move+0x823` at index 2 of 8. run86's parted set
+loses `1/13` and is now `1/19` alone. run82's shutdown dump at 6946 loses
+`1/13`'s (11, 7) — **item 253 in full, on the same change**. run88 loses every
+gather `wait` row it had, `1/7`'s 41-frame gap included, and its draw counts
+agree on every block of `[7474, 7800)`. What is left below the new word is the
+standing Merchant constant twice over: `1/19` from 7474 and `1/20` from 7663,
+each a flat (24, 24), 137 frames apart and the same known residue.
+
+**Two widenings, because the evidence was in unparsed fields.**
+`GuyData::last_x`/`last_y`/`last_z` become `Guy::last_pos` and
+`BuildData::max_age` becomes `BuildDump::max_age`; both are asserted in
+run86's test, so "the age landed on this block and placed all 22" is a check
+rather than a paragraph. They raise the widening ledger's single-capture half
+by two, 44 → 46 — the commander's line to re-book.
+
+**Endpoints, re-pinned per DECISIONS 36 and no trade claimed.** 24001:
+EastIndies 80 → 79 off, `build_diverged` 31 → 32 — one closer and one further,
+16,195 frames past a word this same change moved by 277. Ladder C at 15401:
+extra 23 → 22, `build_diverged` 9 → 8. Ladder B at 16489: extra 25 → 20, the
+largest fall that rung has had. Great Lakes untouched, and its scored floors
+and both maps' scored words unchanged.
+
+**What it cost.** Three hours, no screen, no capture: the item said the
+evidence was on disk and it was. The one thing that nearly went wrong was
+scope — the mechanism is a movement/animation write and the temptation was to
+hand it back as 253's. What kept it in the session was that the *census* is
+cheap: "which units have `last_x == x` on this block" is a ten-line pass over
+a dump that had already been parsed, and it named the caller without a single
+function being read past the one the field pointed at.
+
+Gate: 820 sim tests and 242 rondata release tests green, peak **15,873 MiB**
+of the 20 GiB cap — the run that found the five pin moves peaked 14,939 and
+the one that found the ledger's own +1 peaked 15,497; `cargo clippy
+--all-targets` and `cargo fmt` clean; `rondata -- <install>` zero.

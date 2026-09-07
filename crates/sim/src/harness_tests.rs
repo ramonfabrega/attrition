@@ -1184,6 +1184,69 @@ fn a_trained_citizen_walks_and_bleeds_like_any_other() {
     assert!(sim.units[unit].health < 40);
 }
 
+/// **An age snaps every one of the leader's figures where it stands** —
+/// `Leader::gain_tech@006dcb60:2366`'s `is_age_type` arm
+/// (`docs/TECH.md`, "An age snaps every figure").
+///
+/// The visible half is the facing: a unit **mid-turn** takes its own
+/// heading outright rather than the frame's worth of turn rate, which is
+/// worth a frame to it. A unit already aligned notices nothing, which is
+/// why the event hid for as long as it did — and a plain tech does not
+/// take the arm at all, which is the half that can fail.
+#[test]
+fn an_age_snaps_the_leader_s_figures_and_a_plain_tech_does_not() {
+    use crate::tech::{TechTree, TypeDef};
+
+    let mut tree = TechTree::new();
+    let classical = tree.add(TypeDef::age("Classical Age", 0));
+    let library = tree.add(TypeDef::building("Library"));
+    let writing = tree.add(TypeDef::plain("Writing", 0).at(library));
+
+    let mut sim = skirmish(4);
+    sim.set_tech_tree(tree);
+    sim.start_techs(0);
+    sim.start_techs(1);
+
+    // One unit each, both owed a quarter turn: facing north, heading east.
+    let mut turners = Vec::new();
+    for who in 0..2u8 {
+        let u = sim.add_unit(Unit::new(
+            who,
+            i16::from(who),
+            centre_of(Cell::new(2 + i32::from(who), 0)),
+            100,
+        ));
+        make_mobile(&mut sim, u, movement::Angle::NORTH);
+        sim.units[u].movement.heading = movement::Angle::EAST;
+        turners.push(u);
+    }
+    let owed = |s: &Sim, u: usize| s.units[u].movement.facing != s.units[u].movement.heading;
+    assert!(owed(&sim, turners[0]) && owed(&sim, turners[1]));
+
+    // A plain tech leaves both turns owed — the gate is the type, not the
+    // gain.
+    sim.gain_tech(0, writing);
+    assert!(
+        owed(&sim, turners[0]) && owed(&sim, turners[1]),
+        "a plain tech takes no unit through `Unit::set_new_location`"
+    );
+
+    // The age settles player 0's and leaves player 1's alone: the loop is
+    // over one leader's own objects.
+    sim.gain_tech(0, classical);
+    assert_eq!(sim.tech[0].ages, 1);
+    assert!(
+        !owed(&sim, turners[0]),
+        "the age puts player 0's figure on its own heading"
+    );
+    assert!(owed(&sim, turners[1]), "and touches nothing of player 1's");
+    // The body goes with it — `Guy::set_new_location(guy 0, des, 1)`.
+    assert_eq!(
+        sim.units[turners[0]].movement.body.pos,
+        sim.units[turners[0]].pos
+    );
+}
+
 /// **Gaining a unit type converts the units of the line it replaces**
 /// (`docs/TECH.md` §7's object half) — the pass that turns run53's three
 /// Bowmen into Archers on frame 6736.

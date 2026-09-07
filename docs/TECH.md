@@ -688,6 +688,90 @@ game-rule path calls them.
 
 ---
 
+## An age snaps every figure — 2026-09-07
+
+Step 14's "an age refreshes every unit's and wall's graphics" is not only a
+graphics refresh. `Leader::gain_tech@006dcb60:2366` is gated on the type
+vtable's `+0x34`, `TypeData::is_age_type` (`+0x38` is `is_epoch_type` and
+does **not** qualify), and for every live unit of the leader it runs
+
+```text
+Unit::update_gpiece(u);
+Unit::set_new_location(u, u.x, u.y, 1, 1);
+```
+
+then the same `update_gpiece` over the player's buildings from slot 2000 and
+over its walls. The graphics half is presentation. The **arguments** are not:
+`Unit::set_new_location(x, y, param_3, param_4)` re-places the unit where it
+already stands, and
+
+- `param_4 != 0` calls `Guy::set_angle(guy 0, this->angle /* +0x50 */, 1)`,
+  whose snap flag writes `GuyData::angle` (`+0x18`) and `last_angle`
+  (`+0x1c`) outright rather than leaving them to the turn rate; and
+- `param_3 != 0` calls `Guy::set_new_location(guy 0, des, 1)`, which writes
+  `x`/`y` and `last_x`/`last_y`/`last_z`, and whose crew loop **puts** every
+  tracked figure on its rotated offset instead of telling it to walk there.
+
+So an age gives every one of a player's units its own heading for free. For a
+unit standing still, or one already facing the way it is walking, that is no
+change at all — which is why a once-per-age event was invisible for as long
+as it was. For a unit **mid-turn** it is a free turn, and it costs the frame
+the turn would have taken.
+
+`Sim::tick` runs the buildings after the unit loop, so a research that
+completes on frame *n* lands its snap **after** that frame's own step: the
+step is taken along the old facing and the next one starts from the heading.
+
+### What run86 proves
+
+`gamelog-run86-eastindies-transportride.txt`, block 6937 (the end of sim
+frame 6936), and it is three independent readings of the same event:
+
+- **Every building of player 1 flips `max_age` 0 → 1** on that block, and
+  building `1/2005`'s `queued` goes 1 → 0. The Classical Age completed.
+- **Every one of player 1's 22 units has `guy.last_x == guy.x`** on that
+  block and no other. On 6934–6936 and 6938–6941 only its *standing* units
+  do — thirteen of them, the ones whose `Guy::move` wrote `last` and then did
+  not move. Players 0 and 8 are unchanged across the boundary, which is what
+  makes it the leader's loop rather than anything global.
+- **`1/13` is the only unit of the game that is mid-turn on it.** Its
+  `guy.angle` goes −178956970 → −612630528 in one frame — 36.35°, where its
+  turn rate is `0x5555555`, 7.5° a frame — and lands exactly on its own
+  `UnitData::angle`. It is not `Guy::move`'s arrived arm, which would have
+  zeroed `last_speed`: `last_speed` is 25 and `avg_speed` holds at 22 across
+  the block. It is a write *after* the step.
+
+### What it cost, and the countdown it seeded
+
+`1/13` is an AI Citizen walking to the wood tile `(211, 196)` at
+`gather_down 12`. Without the snap this crate turned it at 7.5° a frame for
+seven frames where the original was aligned after three, which cost it one
+stalled frame at 6941 and left it tracking the original's own positions
+**one frame delayed** from 6956 on.
+
+The `GATHERORDER` countdown is seeded by the **arrival** frame, not by the
+order: `wait` holds at its rolled 545 for all 61 blocks 6924–6984 while the
+citizen walks, and takes its first decrement on the block after the one whose
+position first equals `orders_x/y` — `do_non_flat_gather`'s "at the tile and
+not yet in the loop" arm (`docs/ORDERS.md` §6.4). The original arrives on
+6984 and counts from 6985; this crate arrived on 6985 and counted from 6986.
+One frame in, `theirs + 1` for the whole 545-frame cycle, and the original's
+countdown reached its end on **7529** where this crate still held 1 — which
+was East Indies' long word for a day. The gather arithmetic was never wrong.
+
+### Coverage
+
+Diff-backed on every claim above: `run86_s_window_is_the_transport_ride`
+(487 blocks, `1/13` now off the parted set), `run82_s_window…` (its shutdown
+dump's `(11, 7)` gone) and `run88_s_window_is_east_indies_word_frame` (the
+`wait` rows gone, and `1/13` off the parted set below the word). Not
+established: whether an age reached through a **cascade** rather than
+directly takes the same arm — the gate is read off the type the call was
+made with, and no capture on this disk has one; and the buildings' and walls'
+half is `update_gpiece` alone, so nothing in the simulation reads it.
+
+---
+
 ## The starting position
 
 `Leader::init` lays the bits down before frame 0:

@@ -35,8 +35,8 @@ moved 129 frames, and the two maps swapped places.*
   to say so. Both landings clean; the marked-row batch is empty.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w7529 of 24,000 · GreatLakes w7584 of 24,000
-Endpoint 24001: EastIndies 80 off, 0 unlinked · GreatLakes 78 off, 2 unlinked
+Long captures: EastIndies w7806 of 24,000 · GreatLakes w7584 of 24,000
+Endpoint 24001: EastIndies 79 off, 0 unlinked · GreatLakes 78 off, 2 unlinked
 
 **Opener: commander on Opus (DECISIONS 34), spawning — never working — two
 at once: a worker for 271 (East Indies' gather countdown, the headline,
@@ -99,7 +99,7 @@ grouped order records no test windows** — run79's 453, run31's 945.
     `unverified` rows on the way.
 
 **The widening ledger** (87, DATALAYER §4, §4.1): **19** fields the
-harness names nowhere, **44** one capture names; blind spot `avg_speed`
+harness names nowhere, **45** one capture names; blind spot `avg_speed`
 (210) — it counts *fields* and cannot see a record the parser never
 visits, which is what hid 252's dumps. Uncounted: (88) the blind list, 101
 of 617; (72) every `+0xNN` a document pins vs its module; (89) the guard;
