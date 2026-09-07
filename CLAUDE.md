@@ -366,7 +366,14 @@ and makes the eventual diff mechanical rather than a translation exercise.
   after a document rewrite.
 - **A wait on an external process is backgrounded** (`run_in_background`,
   Monitor), never a foreground sleep-and-grep loop — every poll turn
-  re-bills the whole context.
+  re-bills the whole context — **and then the turn ENDS.** The harness
+  re-invokes the session when the task exits, so there is nothing to stay
+  alive for: a no-op turn held open to wait (`true`, `:`, `echo waiting`,
+  a bare "still going" line) gains no information and costs a full context
+  read each time. A command whose only purpose is to have run a command is
+  the shape. Measured once: 107 of them in 242 seconds, $28, 57% of that
+  session's whole spend — by a worker that had backgrounded its waits
+  correctly and had been told only how *not* to wait.
 - **A multi-line Rust patch from Bash rides the python-heredoc pattern**
   (`python3 - <<'PYEOF'` with `old="""…"""`/`new="""…"""`), chained with
   its test run in the same call — edit and verify in one turn, and safer
