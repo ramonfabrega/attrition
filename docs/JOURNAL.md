@@ -16548,3 +16548,73 @@ GB against a 793 MB dump**, a tenfold blow-up on a parse that is already
 zero-copy. The cause is structural, not a leak: 2.96 million blocks and
 ~42.8 million fields, each block owning two `Vec`s, is ~5.9 million small
 allocations with their slack and their allocator overhead. Item 235.
+
+## 2026-09-06 — item 219: the march, and the halving was collision's all along (Opus)
+
+**The item, as booked.** 227 closed the Archers' birth and left the walk.
+run76's captain `1/27` steps `26, 13, 26, 26, 13` out of frame 6651 and
+this crate stepped **26 flat**, so the squad ran 154 units of x and 142 of
+y ahead by 6840 and reached the standing citizen `1/13` about 1.1 tiles
+early. The brief named four seams in `docs/ORDERS.md` §15 and pointed at
+two of them: `do_group_move`'s speed pair, and item 211's group cap.
+
+**Both were wrong, and the dump said so before either reading did.** The
+frames that halve are the **leader's**, and a leader spends a plain
+`do_move` — the speed pair is the follower's. And the group cap in
+`UnitData::get_speed@00608720` is gated on `param_3 == 0 && group >= 0 &&`
+**`action_type == 0`**: the *action*'s order type, which is zero only when
+`get_action` returns nothing. A marching Archer has an action, so no squad
+in any capture ever reaches the cap. `movement::group_capped` stays
+uncalled for a better reason than it had.
+
+What the leader arm at `5e7a94` actually writes is a two-slot pipeline —
+`new_speed = old speed; speed = get_speed(x, y, 1)` — with each agreeing
+follower lowering both to its own `UnitData::speed` when that is smaller.
+`Group::compute_speed`'s job, done inline, feeding a cap nothing here asks
+for.
+
+**The halving is `unit_masks & 0x100000`, and it is a bit this crate had
+been writing for two days without reading.** `move_step@005faf30`:
+
+```
+if owed < 0x20000000 / slow:
+    if unit_masks & 0x100000:  step /= 2;  unit_masks &= ~0x100000
+else:
+    step /= 2
+```
+
+`detect_unit_collision@00617060` sets it at `00617817`, once for its whole
+nine-cell sweep, whenever anything in the way was **soft** — a squadmate
+above all, which is the group arm §15 landed on 2026-09-04. So the price of
+squeezing past your own formation instead of standing blocked on it is the
+*next* frame's half step, and it is paid on the arm that owes less than
+45°; the hard-turn arm halves anyway and leaves the bit alone. Three
+Archers crowd each other on the frames after their group order and pay for
+it exactly there.
+
+**The dump prints the bit.** `1/27` carries `unit_masks 0x140008` at the end
+of 6651 and 6654 and `0x40008` on every other frame of the march, and its
+step is 13 on exactly 6652 and 6655 — which is also why the "alternating
+speed" the item was booked on is not alternating at all: two halvings at
+the start, and 26 for the rest.
+
+**What it moved.** All three Archers walk the original's own points from
+6652 to **6861** (run76's window now asserts it), and run53's word moved
+**6848 → 6862** — the first time the soft-collision arm has shown up in a
+score. `crates/sim/src/movement.rs`'s `move_step` takes the bit as an
+argument and reports back through `Step::half_step_used`; the caller owns
+the clearing. The unit test was made to fail once, on both halves: the
+one-shot spends itself, and the hard-turn arm does not spend it.
+
+**What stands at 6862** is the squad meeting `1/13`: the original spends
+`Guy::set_anim+0x97a < Unit::move_step+0x823` there and this crate does
+not. The first field to part is `1/29`'s position on 6861, where the
+original widens its `tolerance` to 384 — `manh × 2`, `docs/COLLISION.md`
+§5's give-up — and steps a full 26 to `(42968, 24407)` against this crate's
+22 to `(42971, 24409)`. Item 236, and run76's window already covers it.
+
+**The lesson, which is one of the file's own.** The reading that would have
+been booked — `do_group_move` and `Group::update_positions`, both named in
+the brief — was the wrong function twice over. What found it was grepping
+the dump for the field that changes on the frames that halve, and the field
+was in a record already on disk.

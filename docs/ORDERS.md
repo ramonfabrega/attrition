@@ -3974,3 +3974,64 @@ leader at 6716.
 24,000 frames draw for draw. What stands at 6736 is 6612's question again:
 six draws opening with `Guy::init_real+0x52`, another three-object unit
 arriving that this crate does not make.
+
+### 15.1 The march, and it is none of the four seams (2026-09-06, item 219)
+
+With the birth closed (§6.5.1 of `docs/CITIES.md`, item 227), what was left
+of Great Lakes 6848 was the walk: run76's captain `1/27` steps
+`26, 13, 26, 26, 13` out of frame 6651 and this crate stepped **26 flat**,
+so the squad ran 154 units of x and 142 of y ahead by 6840 and reached the
+standing citizen `1/13` about 1.1 tiles early.
+
+**It is not the speed, and it is not the group cap.** Both were the
+obvious readings and both are wrong:
+
+- `do_group_move`'s speed pair — agreeing `get_speed(x, y, 1) + min(v/3, 9)`,
+  disagreeing `get_speed(x, y, 0) / 2` — is the **follower's**, and the
+  frames that halve are the **leader's**, which spends a plain `do_move`.
+- The group cap in `UnitData::get_speed@00608720` reads `groups[g] + 0x40`
+  and is gated on `param_3 == 0 && group >= 0 && `**`action_type == 0`** —
+  the *action*'s order type, zero only when `get_action` returns nothing.
+  A marching Archer has an action, so a squad never reaches the cap at all.
+  What the leader arm at `5e7a94`–`5e7ab6` writes is a two-slot pipeline —
+  `new_speed = old speed; speed = get_speed(x, y, 1)` — and each agreeing
+  follower lowers **both** to its own `UnitData::speed` when that is
+  smaller (`5e845e`), which is `Group::compute_speed`'s job done inline.
+  Modelled here as a seam still: no capture reaches the cap's own gate.
+
+**It is `unit_masks & 0x100000`, and it belongs to collision.**
+`move_step@005faf30`, at `005fb1f4`–`005fb219`:
+
+```
+if owed < 0x20000000 / slow:
+    if unit_masks & 0x100000:  step /= 2;  unit_masks &= ~0x100000
+else:
+    step /= 2
+```
+
+The bit is set by `detect_unit_collision@00617060` at `00617817`, the end of its
+nine-cell sweep whenever anything in the way was **soft** — a squadmate
+above all (`docs/COLLISION.md` §4.3's group arm). So the price of squeezing
+past your own formation instead of standing blocked on it is the next
+frame's half step, and it is paid on the arm that owes *less* than 45°: the
+hard-turn arm halves anyway and leaves the bit alone.
+
+The dump prints it. run76's `1/27` carries `unit_masks 0x140008` at the end
+of 6651 and 6654 and `0x40008` on every other frame of the march, and its
+step is 13 on exactly 6652 and 6655.
+
+**What it is worth.** All three Archers walk the original's own points from
+6652 to **6861**, and run53's word moved 6848 → **6862** — where the squad
+reaches `1/13` and the original spends the blocked stand
+(`Guy::set_anim+0x97a < Unit::move_step+0x823`) this crate does not. The
+first field to part is `1/29`'s position on 6861: the original gives it
+`tolerance 384` — `manh × 2`, `docs/COLLISION.md` §5's give-up — and steps
+it a full 26 to `(42968, 24407)` where this crate steps 22 to
+`(42971, 24409)`.
+
+**What §15 still has not established.** The other three seams stand: the
+`unit_masks & 4` exemption `Unit::set_in_danger@005fcfb0` writes, the flock
+of birds an invalid slot near an ocean cell adds, and `cavarch_fight`. The
+speed pair above is read and not modelled, and the group cap's gate is
+unreached by any capture on disk — a claim only a run whose grouped unit
+has no action would falsify.

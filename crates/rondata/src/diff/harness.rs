@@ -3968,13 +3968,25 @@ mod tests {
     /// every block up to the group order, which the loop above now
     /// asserts; the parting moves 6640 → **6652**.
     ///
-    /// **What is left is the march, and it is item 219.** The original's
-    /// captain steps `26, 13, 26, 26, 13, …` out of 6650 and this crate
-    /// steps `26` flat, so the squad runs ahead: 154 units of x and 142 of
-    /// y by 6840. That is why run53's word still parts at 6848 —
-    /// `1/28` reaches the standing citizen `1/13`'s block about 1.1 tiles
-    /// early, twelve frames before the original's own blocked stand at
-    /// 6860. The exit spot is closed; `do_group_move`'s speed pair is not.
+    /// **And the march was item 219, closed 2026-09-06.** The captain
+    /// steps `26, 13, 26, 26, 13, …` out of 6650 where this crate stepped
+    /// `26` flat, and the halving is neither the speed nor the group cap:
+    /// it is `unit_masks & 0x100000`, the **one-shot half step** a *soft*
+    /// collision leaves behind (`detect_unit_collision@00617060`, `00617817`), spent
+    /// and cleared by `move_step@005faf30`'s `005fb1f4`–`005fb219` on the arm that owes
+    /// less than 45°. A squadmate in the way is squeezed past rather than
+    /// stopped for, and the price is the next frame's half step — so the
+    /// three Archers step 13 exactly on the frames after they crowd each
+    /// other, and 26 for the rest of the march. The bit was written here
+    /// and nothing read it (`docs/COLLISION.md` §7); reading it walks all
+    /// three on the original's own point from 6652 to **6861**, and moved
+    /// run53's word 6848 → **6862**.
+    ///
+    /// **What is left** is 6862's own blocked stand, where the squad
+    /// meets the standing citizen `1/13`: the original gives `1/29`
+    /// `tolerance 384` on 6861 — `manh × 2`, §5's give-up — and steps it a
+    /// full 26 to `(42968, 24407)` where this crate steps 22 to
+    /// `(42971, 24409)`, and on 6862 `1/28` stands here and steps there.
     ///
     /// Driven through [`run_traced`], so this is the whole record and not
     /// the squad's.
@@ -4063,6 +4075,14 @@ mod tests {
                 "Archer 1/{o} parts at {f}: the squad's exit spots are the \
                  birth placement, and every frame to the group order on 6650 \
                  is it standing still"
+            );
+            // **And the march itself** (item 219). The one-shot half step
+            // carries all three from the group order to 6861, where the
+            // standing citizen `1/13` is the next thing in the way.
+            assert!(
+                f > 6_860,
+                "Archer 1/{o} parts at {f}: the march is the one-shot half \
+                 step, and it holds to 6861"
             );
         }
     }
