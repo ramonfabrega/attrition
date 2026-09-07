@@ -4651,6 +4651,86 @@ are now a diff like every other.
 All three Archers hold `group 64` throughout; `1/13` and `1/17` are `form 9`
 and ungrouped.
 
+## run84 — the make-list across 6982, and the rebuild nobody had seen (2026-09-06)
+
+**What it is.** run53's game, `[6950, 7030)` at run79's detail with `LEADERS`
+raised 1 → 9 and nothing else moved — 81 blocks, **145 MB**, `cover=0`, six
+minutes. It is the first capture booked because the frames were **covered and
+the detail was not**: run79's window is [6910, 7250) and holds 6982, but at
+`LEADERS=1` it carries **22 `BEGIN MAKEOBJECT` records in the whole file** —
+the start dump and nothing per-frame — against run80's 902 over 41 blocks,
+exactly 22 a block.
+
+**Three checks, and the overlap is now the whole window.**
+
+| check | result |
+| --- | --- |
+| `rngcmp.py` vs `rontrace-run53.log` | **0 differing**, 7,046 identical |
+| `samegame.py --exclude LEADERDATA` vs run79 | **80 in common (6950..7029), 0 differ** |
+| frame blocks carrying a `MAKEOBJECT` | **80** (run79 gives **0**) |
+
+The window sits **entirely inside run79's**, which takes run83's overlap
+practice to its limit: 80 blocks of state agreement rather than six, for
+nothing, because a window is priced by its blocks and the frames before it are
+free. `LEADERS` is the only category that moved, so `--exclude LEADERDATA`
+asks exactly the right question and the answer is that **everything the two
+runs record in common is identical**. Checked before booking that the
+exclusion suffices: `LEADERS=9` does *not* double the top-level object
+records — run80's block 23960 has 127 `UNITDATA` and 127 distinct
+`(who, o)` — so that stanza's "each object twice" note is about stubs inside
+the census block, which the exclusion removes with it. The third check was
+made to fail first: it prints 40 on run80 and **0** on run79, which is
+precisely the gap that made this capture necessary.
+
+**The make-list is rebuilt from empty, and 6982 is when the buildings land.**
+Player 1's list has **11 slots**; live entries by `(type, val, city, cat)`:
+
+| block | entries | what changed |
+| --- | --- | --- |
+| 6950–6976 | 7 | 2× 420 (`val 6075000`, city 1), 2× 428 (`val 5722784`, city 1), 437, 566, 573 |
+| **6977** | **0** | the whole list is dropped |
+| 6979 | 5 | +552, +2× 566 (`val 2100000`), +2× 573 (`val 165000`) |
+| 6981 | 7 | +2× 82, +1× 132 (both `val 2445568`, city 0, cat 6); −566 |
+| **6982** | **9** | **+2× 420 (`val 1518750`), +2× 428 (`val 5722784`)** — the city-1 buildings; −573, −82 |
+| 6983 | 8 | **−1× 428** — consumed; 132's `val` collapses 2445568 → 24455 |
+
+Three things fall out of that, and none of them was visible before:
+
+- **The list is rebuilt, not amended.** It empties completely on 6977 and
+  refills over the next six frames. Anything that models the make-list as an
+  incremental queue is wrong in kind, not in degree.
+- **`type=420`'s valuation drops by exactly four across the rebuild** —
+  6075000 before, **1518750** after, and 6075000 / 4 = 1518750. The same
+  entry, the same `city`, the same `cat`, a quarter of the price.
+- **`type=437` is dropped and never returns.** run80 identified 437 as the
+  **Temple**; it is live in every block from 6950 to 6976 and in none after.
+  So the rebuild does not merely re-price the list, it changes its membership.
+
+**And 6983 is where `make_stuff` chooses**: one `428` leaves the list, which
+is the building the original actually buys. That is the row the divergence
+becomes — the sim's `Leader::produce_building+0x1805` against the original's
+`Leader::make_stuff+0x221` at frame 6982 stops being a draw-count difference
+and becomes "the original's list held these nine entries at these valuations
+and took a 428 on the next frame".
+
+**What it does not establish.** **The type numbers are not named here.** The
+buildings standing on this map carry `orig_type` 414, 417, 418, 427, 435, 436
+and 439; neither 420 nor 428 is built, which is consistent with their being
+*wanted*, and naming them needs the install's own type table through
+`rondata` rather than a guess off the neighbours. `val`'s units are unread —
+the factor-of-four is exact and what it is a factor *of* is not. And `cat`
+(4, 6, 7, 8, 9, 10) is taken as a category index on the evidence that `city`
+is 1 for the two building entries, 0 for the cat-6 pair and −1 for cat 8–10;
+nothing here proves that reading.
+
+**One tooling note.** The launch line printed `ready (riseofnations.exe, …)`
+where every previous run printed `riseofnations_trace.exe`. The traced
+executable *was* what ran — `riseofnations_trace.exe -config check.ini`, and
+the trace word matches run53 for all 7,046 frames. The window query had
+matched a **concurrent repo worker's shell command**, which contained the
+string `riseofnations.exe` in its gate line. Cosmetic here; a future session
+reading that line as evidence the untraced binary launched would be wrong.
+
 ## The window nobody can see — CrossOver's expired bottle (2026-09-04)
 
 **run 76 did not run, and the reason had nothing to do with permissions.**

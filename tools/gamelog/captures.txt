@@ -1365,3 +1365,86 @@ check: python3 tools/gamelog/samegame.py gamelog-run79-greatlakes-secondsquad.tx
 # one block, `collide` latches for six, `collide_frame` keeps the stamp for
 # ever. Five new orders (`1/5` 6865, `1/15` 6871, `0/5` 6875, `0/4` 6891,
 # `1/17` 6907). `docs/ORACLE.md`, "run83 — the last Great Lakes hole".
+
+run: 84
+tag: greatlakes-makelist
+item: 238
+why: Great Lakes' word parts at 6982 on a building this crate buys and the original does not — and the one dump that covers the frame carries no per-frame make-list
+# **The frames are covered and the detail is not**, which is the one case
+# where re-capturing an already-covered range is right. run79's window is
+# [6910, 7250) and holds 6982 — but at `LEADERS=1` it carries **22
+# `BEGIN MAKEOBJECT` records in the whole file**, which is the start dump
+# and nothing per-frame. run80, at `LEADERS=9` over 41 blocks, carries
+# **902** — exactly 22 a block. So the make-list is a `LEADERS=9` record and
+# the divergence is a make-list question:
+#
+#     frame 6982: ours 7 theirs 5 — at 0,
+#       ours   Leader::produce_building+0x1805
+#       theirs Leader::make_stuff+0x221
+#
+# The falsifier this window is bought for: what player 1's make-list holds,
+# frame by frame across 6982, and what `Leader::make_stuff` chooses from it —
+# so "this crate queues a building the original does not" becomes a row that
+# fails rather than a draw count that differs. `BUILDS=7` and `CITIES=5` stay
+# in the detail because they name the building that gets queued, and the tail
+# runs 47 frames past the parting so the choice's *consequence* is on disk
+# too, not only the choice.
+#
+# **The window sits entirely inside run79's**, which makes the overlap check
+# the whole window rather than six blocks. This is run83's practice taken to
+# its limit: a window is priced by its blocks and the frames before it are
+# free, so anchoring to a neighbour costs nothing and turns "same seed,
+# therefore same game" into a digest. `LEADERS` is the **only** category
+# that moves between the two stanzas, so `--exclude LEADERDATA` asks exactly
+# the right question — is everything the two runs record in common identical.
+# Checked before booking that the exclusion is enough: `LEADERS=9` does
+# **not** double the top-level object records (run80's block 23960 has 127
+# `UNITDATA` and 127 distinct `(who, o)`), so that stanza's "each object
+# twice" note is about stubs inside the census block, which the exclusion
+# removes with it.
+frames: 7045
+mapstyle: 14
+# run79's detail with LEADERS 1 -> 9, and nothing else moved.
+end: MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,DEATHS=1,LEADERS=9
+frame_window: 6950 7030
+# cover=0 is not a choice on this machine — the `cover:` key's note above.
+cover: cover=0
+# run76/run79/run80/run83's Great Lakes floor: the start dump is 10.9 MB at
+# this `start:` detail and the log does not grow until 6950.
+settle_min: 14000000
+# **Sized from the dumping.** run80 measured `LEADERS=9` on this map at
+# ~1.66 MB a block (79 MB over 41 blocks above a 10.9 MB start), so 80
+# blocks is ~145 MB and four or five minutes of dumping on a fifty-second
+# run-up. 120 polls is forty minutes. Not a 900.
+poll_max: 120
+# Same game: the trace word for word against run53, this map's own 24k run.
+check: python3 tools/gamelog/rngcmp.py rontrace-run53.log rontrace-run84.log
+# **The overlap, and it is the whole window.** All 80 blocks are inside
+# run79's range, so this is 80 blocks of state agreement rather than run83's
+# six. `--exclude LEADERDATA` because that is the only category that moved;
+# the count and range are asserted as well as the verdict, because
+# `samegame.py` exits 0 when nothing differs **including when nothing is in
+# common**.
+check: python3 tools/gamelog/samegame.py --exclude LEADERDATA gamelog-run79-greatlakes-secondsquad.txt gamelog-run84-greatlakes-makelist.txt | tee /dev/stderr | grep -qF "80 in common (6950..7029)"
+# **The teeth: the make-list must actually be per-frame.** Made to fail
+# first — this line prints 40 and exits 0 on run80, and prints **0** and
+# exits 1 on run79, which is precisely the gap that made this capture
+# necessary. 80 window blocks, each of which must carry a `MAKEOBJECT`.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|BEGIN MAKEOBJECT" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run84-greatlakes-makelist.txt" | awk '/BEGIN FRAME/{f=$3} /MAKEOBJECT/{if(f!="")seen[f]=1} END{n=0; for(k in seen)n++; print "frame blocks with a MAKEOBJECT: "n; exit !(n>=80)}'
+# TAKEN 2026-09-06 — six minutes, 81 blocks, 145,236,453 bytes. All three
+# checks ok: rngcmp 7046/7046 identical against run53; `samegame.py
+# --exclude LEADERDATA` against run79 **80 in common (6950..7029), 0
+# differing** — the whole window, not six blocks; and 80 frame blocks
+# carrying a MAKEOBJECT where run79 gives 0.
+#
+# **The make-list is REBUILT FROM EMPTY, not amended.** Player 1's 11 slots
+# hold 7 live entries through 6976; the list is dropped entirely on **6977**
+# and refills 6979 (5) -> 6981 (7) -> **6982 (9)** -> 6983 (8). The two
+# `city=1` building entries — 2x `type=420` and 2x `type=428` — enter on
+# **6982**, the divergence frame, and one `428` is **consumed on 6983**,
+# which is `make_stuff` choosing. Two more findings ride along: `type=420`'s
+# `val` drops by exactly four across the rebuild (6075000 -> 1518750), and
+# `type=437` — run80's **Temple** — is live in every block to 6976 and in
+# none after, so the rebuild changes membership and not only price.
+# The type numbers are NOT named here; that needs rondata's type table.
+# `docs/ORACLE.md`, "run84 — the make-list across 6982".

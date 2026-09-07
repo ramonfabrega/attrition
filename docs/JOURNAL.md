@@ -17156,3 +17156,54 @@ agreement for the seven the compiler folded — no run reaches them.
 is six-sevenths of the original's and nothing can tell. And the group id is
 a known-wrong number that a comparison now prints on every grouped frame; it
 stays wrong until this crate has a group pool.
+
+## 2026-09-06 — the make-list is rebuilt from empty, and 6982 is when the buildings land (capture lane, Opus)
+
+The first capture booked because the frames were **covered and the detail was
+not**. Great Lakes' word parts at 6982 on `Leader::produce_building+0x1805`
+against the original's `Leader::make_stuff+0x221` — this crate buys a building
+the original does not — and run79's window holds the frame. But at `LEADERS=1`
+run79 carries **22 `BEGIN MAKEOBJECT` records in the whole file**, which is its
+start dump and nothing per-frame, against run80's 902 over 41 blocks: exactly
+22 a block. So the make-list is a `LEADERS=9` record and the one dump that
+covered the frame could not answer the question asked of it. That is the one
+case where re-capturing an already-covered range is right, and it is worth
+writing down as a shape: **coverage is a function of detail, not of frames.**
+
+**The overlap check reached its limit and it cost nothing.** run83 anchored to
+its neighbours with six blocks; this window sits *entirely inside* run79's, so
+`samegame.py --exclude LEADERDATA` compares **all 80 blocks — 0 differing**.
+A window is priced by its blocks and the frames before it are free, so
+anchoring to a neighbour is free whenever one exists. `LEADERS` was the only
+category that moved, which is what makes the exclusion honest; and that was
+checked before booking rather than assumed, because run80's stanza warns that
+`LEADERS=9` writes each object twice. It does not — run80's block 23960 has
+127 `UNITDATA` and 127 distinct `(who, o)` — so that note is about stubs
+*inside* the census block, which the exclusion takes with it.
+
+**What the window shows.** Player 1's make-list has eleven slots and seven
+live entries through 6976. On **6977 the whole list is dropped**, and it
+refills over the next six frames: five entries on 6979, seven on 6981, **nine
+on 6982**, eight on 6983. The two `city=1` building entries — 2× `type=420`
+and 2× `type=428` — enter on **6982**, the divergence frame itself, and one
+`428` is **consumed on 6983**. That is `make_stuff` choosing, and it is the
+row the divergence becomes: not a draw-count difference but "the original's
+list held these nine entries at these valuations and took a 428 on the next
+frame".
+
+Two things fell out that nobody had asked for. `type=420`'s valuation drops by
+**exactly four** across the rebuild — 6075000 before, 1518750 after, same
+entry, same city, same category. And `type=437`, which run80 identified as the
+**Temple**, is live in every block from 6950 to 6976 and in none after: the
+rebuild changes the list's *membership*, not only its prices. Neither 420 nor
+428 is named here — the buildings standing on this map are `orig_type` 414,
+417, 418, 427, 435, 436, 439, and naming the two wanted ones needs the
+install's type table through `rondata` rather than a guess off the neighbours.
+
+**One tooling wart, recorded because it would mislead.** The launch printed
+`ready (riseofnations.exe, …)` where every earlier run printed
+`riseofnations_trace.exe`. The traced binary is what ran, and the trace word
+matches run53 for all 7,046 frames; the window query had matched a
+**concurrent repo worker's shell command**, whose gate line contains the
+string `riseofnations.exe`. Harmless here, and a future session reading that
+line as evidence the untraced binary launched would be wrong.
