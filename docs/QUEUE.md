@@ -12,36 +12,34 @@ lines, or lets the handoff pass 32.
 
 ## Where things stand
 
-*2026-09-06, Opus commanding a nine-landing loop at width two — **Great
-Lakes 6862 → 6982 → 6994**, suite 220. East Indies **7448 unmoved**, but
-241 found its cause and it is not a collision.*
+*2026-09-06, Opus commanding a ten-landing loop at width two — **Great
+Lakes 6862 → 6982 → 6994**, suite 220, everything merged and pushed.
+East Indies **7448 unmoved**, but 241 found its cause.*
 
-- **Great Lakes 6994 is the headline**, unmeasured beyond this: at draw 2
-  the original spends `Unit::do_move+0xe84` and this crate spends nothing
-  (ours 2, theirs 4). run84 `[6950, 7029]` at `LEADERS=9` covers it.
+- **Great Lakes 6994 is the headline**: at draw 2 the original spends
+  `Unit::do_move+0xe84` and this crate nothing (2 draws v 4); run84
+  `[6950, 7029]` at `LEADERS=9` covers it, no capture owed.
 - **East Indies 7448 is a position, not a predicate** (241): `1/20` is off
-  by (36, 792) at run85's *first* block, ~34 frames of its own walk, so it
-  is never there to meet the animal. The gap is a **transport ride**
-  between run82's 6929 and 7400 — barge birth 7093 on both sides, eject
-  spends no draw. TRANSPORT §13; nothing covers 6930–7399.
-- **Two commander hypotheses were refuted in a row** (239's deflection,
-  241's `who < 8` fence), both killed by going to the dump. Brief the
-  *measured seam*, not the mechanism you suspect behind it.
+  by (36, 792) at run85's *first* block, ~34 frames of its own walk. The
+  gap is a **transport ride** between run82's 6929 and 7400 (barge birth
+  7093 both sides, eject spends no draw) and **nothing covers 6930–7399**.
+  TRANSPORT §13; this one wants the capture.
+- **Two commander hypotheses were refuted in a row** (239, 241), both by
+  the dump: brief the *measured seam*, not the mechanism behind it.
 - **Width two on the gate** (14.8 GB each; four threads stay off). `ccc
-  update <ref>` for a base, never `git merge`; reap at merge time. `ccc
-  rm` leaves the branch, so reusing that `--worktree` name fails.
-- **The capture lane is per-item now**: cycling cost nothing and the fresh
-  lane closed 178 by grep rather than spend a drafted 154 MB stanza.
-- **Owed to ccc** (their item 25): `~/ccc-stream/` holds `watch.jsonl`,
-  `watch-stall10.jsonl` and a 60 s `list.jsonl` sampler; each `stalled`
-  line wants a word in `verdicts.txt`. Restarting `ccc watch` blinds it.
+  update <ref>` for a base, never `git merge`; reap at merge time; `ccc
+  rm` leaves the branch, so that `--worktree` name then fails. The capture
+  lane is **per-item** — the fresh one closed 178 by grep rather than
+  spend a drafted 154 MB stanza.
+- **Owed to ccc** (item 25): `~/ccc-stream/` holds two watches and a 60 s
+  `list.jsonl`; each `stalled` line wants a word in `verdicts.txt`, and
+  restarting `ccc watch` blinds it.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w7448 of 24,000 · GreatLakes w6994 of 24,000
 
-**Opener: the main thread is the commander (DECISIONS 34), on Opus. Two
-repo slots are free and both maps have a named seam — Great Lakes 6994,
-East Indies' transport gap. `att-capture` (23d49f15) is mid-117.**
+**Opener: commander on Opus (DECISIONS 34). Nothing is running — both
+repo slots and the screen are free.**
 
 ## The queue
 
@@ -172,28 +170,30 @@ non-flat; `Leader::diplomacy`; (77) ANIM §3.2; (58) ROADS §7.4.
   dumped blocks and the run-up is free, so the overlap costs seconds and
   turns "same seed, therefore same game" into a state check where `rngcmp`
   is only a word. Six blocks each end is the floor (run83); when a
-  neighbour's window **contains** yours it is free and total (run84, 80 of
-  80) with `--exclude <the category you raised>`. **The trap**:
-  `samegame.py` exits 0 when nothing is in common, so assert the common
-  count and range, not the verdict.
+  neighbour **contains** yours it is free and total (run84, 80 of 80) with
+  `--exclude <the category you raised>`. **The trap**: `samegame.py` exits
+  0 when nothing is in common, so assert the count, not the verdict.
 - **Grep for the derived quantity, and for the mechanic's SHAPE — not
   only for coverage of a frame.** `BUILDQUEUE` prints
   `queue[scan].cost[0..2]`, so a price the original *paid* is on disk
-  wherever `BUILDS` is on, which retired a booked `LEADERS=9` window
-  (238). And 178 needed no capture at all: its two passes write different
-  footprints — the building pass a 3×3 to every viewer including the
-  owner, the unit pass one half-cell and never the owner's — so a
-  half-cell with no building in its 3×3 isolates the unit pass in
-  archives already held, with no contemporaneous dump required.
-- **Grep for the GATE, not only the value.** A term that is zero in every
-  dump is either zero-valued or switched off, and those cost very
-  different things to reach: 117's handicap and 178's unit pass were both
-  booked on the first reading and were both the second.
+  wherever `BUILDS` is on, which retired a booked window (238). And 178
+  needed no capture: its two passes write different footprints — the
+  building pass a 3×3 to every viewer including the owner, the unit pass
+  one half-cell and never the owner's — so a half-cell with no building
+  in its 3×3 isolates the unit pass in archives already held.
+- **Grep for the GATE, not only the value.** A term zero in every dump is
+  either zero-valued or switched off, and those cost very different things
+  to reach: 117 and 178 were both booked on the first and were the second.
 - **A check on a field that is never cleared must assert a CHANGE, not a
   value** — `collide_frame` is a permanent stamp, so "some unit has one in
   the band" is true of any window on the game, and run85's first teeth
   check passed on a band where nothing happened. Test both directions on
   real data before the capture runs.
+- **A commander's clear is free when**: every landed branch merged, gate
+  green and pushed; nothing in flight whose result it owes elsewhere; this
+  handoff current with the headline *measured*; nothing unfiled in its
+  head. `ccc clear <ref> --then "continue"` (0.1.28) arms it, refusing a
+  dirty tree but **not** unpushed commits.
 - **Run the diff suite with `--release`**; a long wait is the capture, not
   a hang. **Before a blind fan-out**, `grep -n <mechanic> CLAUDE.md` and
   the memory index — a subagent inherits both, and neither they nor a
