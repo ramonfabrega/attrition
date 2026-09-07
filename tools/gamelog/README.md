@@ -106,6 +106,21 @@ on the map *now*", cut the last frame out of the growing log and look at it:
 answer to "was the site disbanded?". Object numbers are **per player** — units
 from 0, buildings from 2000 — so an object is (kind, who, o), never o alone.
 
+Those four take a frame cut by `frame.py` or `lastframe.py`, which **strip the
+indentation**. `danger.py` reads the archive itself and keeps it, because the
+dump nests by depth and the danger map's question is about whole records:
+
+    danger.py map   FILE FRAME [--differ|--same]   the map in each FULL DUMP
+    danger.py units FILE FRAME [--types A] [--least N]
+
+A `DUMP_ALL` block carries the world twice — `GameLog::begin_frame` before the
+frame ran and `GameLog::end_frame` after — so `map --differ` asks whether the
+rebuild between them changed anything, and exits non-zero when it did not.
+`units` lists the units whose type has the military bit `role & 0x10000` with
+the half-cell each indexes and what every leader's row holds there; `--types`
+borrows the `UNITTYPE` table from a `DUMP_ALL` archive, which a cheap window
+has none of. `docs/DANGER.md` §2 and §8.1.
+
 ## The sync stream
 
     rngtrace.py [gamelog] [cap]   every `game_random seed` the log carries,

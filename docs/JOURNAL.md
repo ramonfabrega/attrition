@@ -17381,3 +17381,85 @@ a move, so §6 step 4 is still reading-only and R9 with it. Whether `1/23`'s
 three carried-in order rows matter: they are steady from the window's first
 block, agree in position throughout, and nothing has read them. And the
 window says nothing about 6916–6982, where Great Lakes' word actually sits.
+
+## 2026-09-06 — the capture that was drafted, costed and not taken (capture lane, Opus)
+
+Item 178: `docs/DANGER.md` §8 had the unit pass of `GameDaemon::calc_danger`
+down as reading-only — `role & 0x10000`, `(attack · 5) / 10`, the war gate —
+because no capture was thought to have a military unit on a frame divisible by
+200. The outgoing lane had grepped and found military units in four late East
+Indies combat windows, and stated its own caveat: it had not checked whether
+the units were there *at the rebuild frame itself*. Resolving that was the
+item, and the honest answer to it turned out to close the whole thing.
+
+**First, the schedule, because everything downstream depends on where in a
+frame `calc_danger` sits.** `Game::do_frame@00591ef0` runs `begin_frame`, then
+the leaders, then `GameDaemon::process_all` (which is where the rebuild is),
+then `Objects::process_all` — which is where anything moves — then increments
+the frame and runs `end_frame`. So a `DUMP_ALL` block labelled `FRAME N`
+carries the world **twice**, before and after, and on a rebuild frame the
+objects in its first dump are exactly the ones the rebuild read. That makes a
+single block a complete, self-contained oracle, needing no simulation from
+frame 0. It also says the archives the outgoing lane found are 24 to 129 frames
+too late: the map at 15100 is the 15000 rebuild's.
+
+**So the grep, properly.** Every archive in `Logs/`, for the frame block each
+`danger[who][scan]` sits in: 71 files carry the map, 22 carry it per-frame, and
+**exactly two blocks on disk are on a rebuild frame** — run65's East Indies
+6200 and run72's Great Lakes 4800. Neither holds a unit with the military bit.
+The premise held, the capture was owed, and the target was picked: Great Lakes
+**7000**, six Longbowmen alive in two clusters, the same 25 buildings at the same positions,
+hit points and flags as 6800 — so `dump1 ≠ dump2` in that one block would be the unit pass and
+nothing else. Two `danger.py` checks were written and made to fail on real data
+in both directions. 154 MB, a fifty-second run-up. Ready to run.
+
+**And then it was not run, because the dump does not have to be
+contemporaneous.** The two passes write different *shapes*. Buildings write a
+3 × 3 of half-cells to every active viewer including the owner; units write one
+half-cell and never the owner's. So a half-cell with no building anywhere in
+its 3 × 3 is zero in all eight rows from the building pass, and anything
+non-zero there is the unit pass and can be nothing else. Every combat window on
+disk has exactly two of them, and they hold 30 and 212 (run26, block 12024) or
+30 and 217 (run29 and run27, block 15100), with `danger[owner]` exactly 0 at
+both and all eight neighbours zero.
+
+The type table in the same dump finishes it. `(attack · 5) / 10` halved once by
+`do_danger`'s enemy arm gives 324 → 30, 334 → 132, 340 → 50, 341 → 55.
+**30 + 132 + 50 = 212. 30 + 132 + 55 = 217.** The five between the two frames
+is one unit's upgrade from type 340 to 341, (110 − 100) / 2, three thousand
+frames apart. Four types, two frames, two independent captures of one of them,
+and the arithmetic closes to the unit.
+
+Five more claims fall out with it: the owner is skipped, the write is one
+half-cell and not a footprint, `role & 0x10000` gates it in both directions
+(45 half-cells outside every building's 3 × 3 holding only non-military units,
+all 45 zero in all eight rows), the single halving is `is_seen` and not peace
+(both `diplos` rows are 0 in the same block), and — from run25's 12129, which
+prints the same two values at the same two cells with the units already gone —
+the map really is rebuilt only every 200 frames and never decays.
+
+**The lesson, and it is the queue's own rule with a sharper edge.** "Grep the
+disk before booking a capture" has been read as *is the frame covered*. The
+better question is *what shape does the thing I want leave in a record I
+already have* — because a mechanic that writes differently from its neighbours
+can be separated from them by a dump that is a hundred frames stale. The
+capture would have been cheap and it would have been waste: the four claims
+that still rest on a reading — the peace arm, the garrisoned case, the
+`LEADER_VALID`/`LEADER_ACTIVE` split, an upgrade inside `attack()` — are none
+of them reachable by a second two-leaders-at-war game, which is all Great Lakes
+7000 is. The stanza is kept, commented, in `captures.txt` so nobody costs it
+again.
+
+**What it leaves.** `tools/gamelog/danger.py`, the third reach for this probe
+shape and so a tool. It reads the archive with **indentation intact**, which
+`frame.py` does not: the dump nests by depth, and closing records by name
+instead silently hands the last `UNITDATA` of a dump the `BEGIN GUY` records of
+the top-level guy pool and of all 674 `GROUPDATA` after it. That bug inflated
+the first military census I took by one unit carrying sixteen types, and it is
+the kind that reads as a finding rather than a fault.
+
+One thing the reading turned up that no dump can settle, so it is written down
+and not chased: `calc_danger`'s building pass walks its **viewer** loop to the
+end of the leaders array where the clear loop and the whole unit pass walk
+exactly eight slots — and this game's leader 8, Gaia, has both leader bits set.
+There is no `danger[8]`. Listing question, not a capture one.
