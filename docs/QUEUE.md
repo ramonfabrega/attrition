@@ -60,14 +60,13 @@ journal is indexed by them.
     and ~1.6 tiles wrong here. Behind the word (6982) and so never yet
     compared: run83 is the first dump over [6870, 6910).
 
-226. **`cover=1` dies in the wow64 bop at the exe's entry**, reproduced by
-    `tools/trace/wow64bop.c` (ORACLE); an x86 host is the falsifier. (220)
-    **TECH §13's twenty range blocks** are unloaded, no capture reaches
-    one. (209) **The once-per-game events a dump install swallows** (207's
-    general half): a `set_*` whose **return value** drives an irreversible
-    record. **Takes 224**, AI §29.4's three other `mil_trainers` writers.
-    (203) `Wall::mark_behind_tiles`' `0x4` is a building *finishing*, 32 at
-    4802 and **45** at 4803, pinned by count and kind (ROADS §6). (240) **The deployed
+226. **`cover=1` dies in the wow64 bop** (ORACLE), an x86 host the
+    falsifier; `tools/trace/wow64bop.c` reproduces it. (220) TECH §13's
+    twenty range blocks are unloaded. (209) **The once-per-game events a
+    dump install swallows** (207's general half): a `set_*` whose **return
+    value** drives an irreversible record; **takes 224**, AI §29.4's three
+    other `mil_trainers` writers. (203) `mark_behind_tiles`' `0x4` is a
+    building *finishing*, 32 at 4802 and 45 at 4803 (ROADS §6). (240) **The deployed
     merchant's own record, unasserted** — run82 caught the unpack on 6883
     and `gather_down`/`special` are still −1 at 6929, 46 frames on, where
     run76's settled merchant has 18 and 6; MERCHANT §7 is one field short.
@@ -82,7 +81,9 @@ army group's *slot*, 1; the other five group fields agree on all 630, and
 237 reports the row without scoring it. (243) `UnitDump::group` is parsed
 and **nothing compares it**. (244) **1,428 grouped order records no test
 windows** — run79's 453 and run31's 945; windowing run79 is the cheapest
-second capture for 237's newly-live rows.
+second capture for 237's newly-live rows. (245) **`focus.sh` matched a concurrent
+worker's shell** on run84 — `ready (riseofnations.exe…)` where the traced
+binary had launched; a reader would conclude otherwise.
 
 AI residues, measured, none near a word: (169) `compute_site_stats`'
 arithmetic — an extra site drags every `rank` (AI §2.13), 7,122 of run63's
@@ -163,16 +164,15 @@ Military and `army.rs` reads `ages`, `army.rs:769,1365`.
 
 
 229. **A figure in melee does not step its clock** — `unit_masks2 & 0x10`
-    freezes `Guy::inc_time` (ANIM §5), 26 of 26 off run17/run44.
-    `unit_masks2` has no field here, and the arm waits on a word that
-    reaches a melee frame.
+    freezes `Guy::inc_time` (ANIM §5), 26 of 26 off run17/run44; no field
+    here, and the arm waits on a word that reaches a melee frame.
 
 Older backlog: **the capture `String` each test reads**, ~5 GB of the
 suite's remaining 10 — a rounded-up read buffer at ~100 call sites, and it
 moves no score (235). (39) a read-only 2D viewer over `Sim`, dump overlaid;
 (41) `scenario.py`'s fate — fuzz `424242 1000 1300`, blind report, delete;
-a `find_target` block; run7's order stream; a mounted attacker;
-`calc_gather` non-flat; `Leader::diplomacy`; (77) ANIM §3.2; (58) ROADS §7.4.
+a `find_target` block; run7's orders; a mounted attacker; `calc_gather`
+non-flat; `Leader::diplomacy`; (77) ANIM §3.2; (58) ROADS §7.4.
 
 ## How to maintain this file
 
@@ -182,19 +182,19 @@ a `find_target` block; run7's order stream; a mounted attacker;
   bound is a budget: a new item is paid for by compressing old ones.**
 - **A floor that moves** moves three things together: `FLOORS` in
   `rondata::diff`, the assert that reads it, and the `Scoreboard:` line.
-- **Start of session:** merge `lane-capture` and `lane-audit`, then "Where
-  things stand", the item, then its document. Lanes never write this file.
+- **Start of session:** merge the lanes, then "Where things stand", the
+  item, then its document. Lanes never write this file.
 - **A brief names `docs/audit/2026-09-05-<doc>-vs-code.md`** where one
   exists: its rows are candidate items, taken on the way through.
-- **Overlap a capture's neighbours on purpose** — six blocks at each end,
-  checked with `samegame.py` both ways (run83: 6 in common, 0 differing,
-  twice). A window is priced by its dumped blocks and the run-up is free,
-  so an overlap costs seconds and turns "same seed, therefore same game"
-  into a state check where `rngcmp` is only a word. **The trap**:
-  `samegame.py` exits 0 when nothing differs *including* when nothing is
-  in common, so assert the common count and range, not the verdict.
-- **Run the diff suite with `--release`** — 92 s against debug's 285 s
-  since run53's 24,000 frames. A long wait is the capture, not a hang.
-- **Before a blind fan-out:** `grep -n <mechanic> CLAUDE.md`, and the memory
-  index — a subagent inherits both. **Never** quote this file or the journal
-  into `CLAUDE.md`, a brief, an agent definition, or a memory hook.
+- **Overlap a capture's neighbours on purpose.** A window is priced by its
+  dumped blocks and the run-up is free, so the overlap costs seconds and
+  turns "same seed, therefore same game" into a state check where `rngcmp`
+  is only a word. Six blocks each end is the floor (run83); when a
+  neighbour's window **contains** yours it is free and total (run84, 80 of
+  80) with `--exclude <the category you raised>`. **The trap**:
+  `samegame.py` exits 0 when nothing is in common, so assert the common
+  count and range, not the verdict.
+- **Run the diff suite with `--release`**; a long wait is the capture, not
+  a hang. **Before a blind fan-out**, `grep -n <mechanic> CLAUDE.md` and
+  the memory index — a subagent inherits both, and neither they nor a
+  brief nor an agent definition may quote this file or the journal.
