@@ -174,7 +174,10 @@ mod tests {
     /// **23 on 2026-09-03.** The pin may only fall: a widening deletes
     /// rows, and a field the parser gains arrives here until somebody
     /// compares it, which is the point.
-    const UNCOMPARED: usize = 22;
+    /// **19 on 2026-09-06**, when item 237 gave the `GROUPORDER` row a
+    /// comparison — `group_angle`, `group_id` and `in_group` left this
+    /// half for the one below.
+    const UNCOMPARED: usize = 19;
 
     /// Fields exactly one test function names — the per-capture half.
     /// **41 on 2026-09-04**, down from 51 when run68's window widened
@@ -185,7 +188,12 @@ mod tests {
     /// gave `des_angle` a third. This one is a *ceiling on fragility*, not
     /// a target of zero: a field a single window can see is not a defect,
     /// it is a field whose next capture should be asked to carry it too.
-    const SINGLE_CAPTURE: usize = 42;
+    /// **44 on 2026-09-06**, and this is the one direction in which a
+    /// rise is progress: item 237's three `GROUPORDER` fields arrived
+    /// here *from* the uncompared half, which fell by three at the same
+    /// time. Only run76 marches a formation, so they are single-capture
+    /// until run79's squad is windowed too.
+    const SINGLE_CAPTURE: usize = 44;
 
     #[test]
     fn the_widening_ledger_counts_what_nothing_compares() {

@@ -2011,7 +2011,9 @@ mod tests {
             MoveKind::AttackTo,
             true,
         );
-        assert_eq!(s.order_type(m), index::ATTACK_TO);
+        // A land formation of two, so both members hold the grouped
+        // spelling of the kind (item 237; `docs/ORDERS.md` §1.2).
+        assert_eq!(s.order_type(m), index::GROUP_ATTACK_TO);
 
         // Hurrying, with a city at the destination: the siege is stabled
         // and the footman still marches.
@@ -2026,11 +2028,18 @@ mod tests {
             MoveKind::AttackTo,
             true,
         );
-        assert_eq!(s.order_type(f), index::ATTACK_TO, "the line still marches");
-        assert_ne!(
-            s.order_type(m),
-            index::ATTACK_TO,
-            "the siege is sent into the city instead"
+        assert_eq!(
+            s.order_type(f),
+            index::GROUP_ATTACK_TO,
+            "the line still marches, and the group is still two"
+        );
+        assert!(
+            !matches!(
+                s.order_type(m),
+                index::ATTACK_TO | index::GROUP_ATTACK_TO
+            ),
+            "the siege is sent into the city instead, not at it: {}",
+            s.order_type(m)
         );
     }
 

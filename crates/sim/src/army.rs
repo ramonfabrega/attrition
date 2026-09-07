@@ -2746,7 +2746,10 @@ mod tests {
         let want = step_along(cell_centre(Cell { x: 20, y: 20 }), Angle(0), 0xc0);
         for u in [a, b] {
             let o = *sim.current_order(u).expect("an order from do_forming");
-            assert_eq!(o.index(), crate::orders::index::ATTACK_TO);
+            // Two of them in a land formation, so the order the original
+            // hands each is a `GroupAttackToOrder` — `GROUP_ATTACK_TO`,
+            // not the plain `ATTACK_TO` (item 237; §1.2).
+            assert_eq!(o.index(), crate::orders::index::GROUP_ATTACK_TO);
             let crate::orders::Body::Move(m) = o.body else {
                 panic!("a move");
             };

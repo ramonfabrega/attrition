@@ -755,9 +755,12 @@ impl Sim {
     /// not. `iVar7` is the collider's *order* type and `local_28` its
     /// *action*'s, so nothing here asks whether the order carries a
     /// group: `0x13`/`0x15` (`GROUP_MOVE`/`GROUP_ATTACK_TO`) sit in the
-    /// gated seven beside the plain `1`/`2` they are written as here, and
+    /// gated seven beside the plain `1`/`2`, and
     /// [`crate::orders::GroupMove`] is not consulted (2026-09-05, the
-    /// docs-versus-code pass's R7).
+    /// docs-versus-code pass's R7). ~~and are written as `1`/`2`
+    /// here~~ — item 237: [`crate::orders::Order::index`] answers the
+    /// original's own `get_type()` now, so
+    /// [`index::is_move_family`] is the set said once.
     ///
     /// SEAM: `UnitData +0x104`, the suspended pathfinder search, which
     /// this crate does not keep — read as zero, which widens the arm.
@@ -793,12 +796,7 @@ impl Sim {
                     | crate::orders::spell::PACK_MERCHANT
                     | crate::orders::spell::PACK_FISHERMEN
             ),
-            crate::orders::Body::Move(_) => {
-                matches!(
-                    front.index(),
-                    index::MOVE_TO | index::ATTACK_TO | index::EXPLORE_TO | index::FLEE_TO
-                ) && not_attacking
-            }
+            crate::orders::Body::Move(_) => index::is_move_family(front.index()) && not_attacking,
             _ => false,
         }
     }
@@ -979,10 +977,11 @@ impl Sim {
         }
 
         let its_order = other.map_or(index::NONE, |o| self.order_type(o));
-        let its_move = matches!(
-            its_order,
-            index::MOVE_TO | index::ATTACK_TO | index::EXPLORE_TO | index::FLEE_TO
-        );
+        // The **move family**, all seven (`005f9d30:261`, `:381`) — not
+        // the four plain kinds. Until item 237 a grouped move answered
+        // `MOVE_TO`/`ATTACK_TO` here and passed by accident; now it
+        // answers `GROUP_MOVE`/`GROUP_ATTACK_TO` and passes by name.
+        let its_move = index::is_move_family(its_order);
 
         // Step 4: the sidestep, only against a unit that is itself moving
         // — and only for a **land** unit. `005f9d30:265` reads
