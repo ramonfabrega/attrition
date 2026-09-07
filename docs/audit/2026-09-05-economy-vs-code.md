@@ -293,6 +293,14 @@ later implementer working through `calc_resource_bonuses` alone would miss it.
 | difference shows | `LEADERDATA`'s pop cap on the frame a merchant settles on a pop-cap rare, and the border cells around a territory rare. Today it is **no observable**: `cost::pop_cap` reads `m.bonuses` (`lib.rs:1422`) and nothing wires a rare into that array, so the recompute would be a no-op even if it were called |
 | reached | reached (`Leader::gather`); `Leader::process@006b88b0`, the function the document cites for the same-frame `0x4000000` handling, is **blind** |
 
+**Half closed, 2026-09-06 (item 117).** The border redraw is landed: the
+arm is one bit wide — Gems, `rare.ptr[2] >> 7` — and `Sim::tick` now calls
+`sync_territory` when it moves, which `run80_s_gem_widens_the_ai_s_border_
+by_forty_three_cells` pins against the original's own `LeaderData::
+territory` at Great Lakes 23,999 (`docs/ATTRITION.md`, "Territory"). The
+pop-cap recompute and the two further dirty bits are still open, and the
+observable is still dead for the same reason.
+
 The row is worth keeping despite the dead observable: the moment any rare is
 wired into `Muster::bonuses` the missing call becomes a live one-frame-late bug,
 and the code has no comment marking the gap.

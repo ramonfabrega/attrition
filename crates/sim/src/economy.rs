@@ -133,6 +133,15 @@ pub const FISH: usize = 6;
 /// second of the two `LeaderData::calc_rare` treats as a **fisherman's**
 /// rather than a merchant's.
 pub const WHALES: usize = 31;
+/// `TypeIndex::GEMS` — the one rare the **border** table reads.
+///
+/// `World::compute_reg_territory@006b0bb0`'s flat-bonus arm is an inlined
+/// `LeaderData::has_rare(GEMS)`: `rare.ptr[2] & 0x80 || rare_conquest.ptr[2]
+/// & 0x80`, and byte 2 bit 7 is bit `29 - `[`BASE_RARE`]` = 23`. The same
+/// bit is the only one `Leader::calc_gather` singles out — when it and it
+/// alone changes, the mask's writer calls `Regions::fix_all_borders`
+/// (`docs/ATTRITION.md`, "Territory").
+pub const GEMS: usize = 29;
 
 /// What one `resourcerules.xml` record pays whoever stands on it —
 /// `GoodTypeData`'s two `(BONUS_TYPE, BONUS_NUM)` pairs, which is the whole

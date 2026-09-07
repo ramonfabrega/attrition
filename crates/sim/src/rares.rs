@@ -14,7 +14,11 @@
 //!    `rare_owned`.
 //! 2. **The mask.** `Leader::gather@006ce280` then sets `rare =
 //!    rare_owned | rare_conquest` and, when that differs from last frame's,
-//!    raises `LeaderData`'s `0x4000000`.
+//!    raises `LeaderData`'s `0x4000000`. One bit of the forty-four is
+//!    singled out there: when **Gems** ([`economy::GEMS`], bit 23) moves,
+//!    and only then, the writer invalidates every region's border stamp —
+//!    so [`Sim::tick`] re-runs `sync_territory` on that change alone
+//!    (`docs/ATTRITION.md`, "Territory").
 //! 3. **`Leader::calc_unit_stats@006cf970`**, which `Leader::process` runs on
 //!    the same frame the flag goes up, calls `Unit::update_speed@006055c0` on
 //!    every one of that player's units. Its one rare arm is **Whales**:
@@ -178,9 +182,16 @@ impl Sim {
         speed
     }
 
-    /// `LeaderData::has_rare(good)` — a good's bit in the player's `rare`
-    /// mask. A good below [`economy::BASE_RARE`] is not a rare and is never
-    /// in it.
+    /// `LeaderData::has_rare@006e0770` — a good's bit in the player's
+    /// `rare` mask, by **type index** rather than by bit. A good below
+    /// [`economy::BASE_RARE`] is not a rare and is never in it, which is
+    /// what the original's own `param_1 + -6 >> 3` would index off the
+    /// front of.
+    ///
+    /// The original reads two masks and takes their union,
+    /// `rare | rare_conquest`; this crate keeps the union itself in
+    /// [`crate::economy::Ledger::rare`], which `Sim::tick` rebuilds every
+    /// frame as `Leader::gather` does, so the one field answers both.
     pub fn has_rare(&self, who: Player, good: usize) -> bool {
         let Some(l) = self.ledgers.get(who as usize) else {
             return false;

@@ -40,6 +40,15 @@ matched a C++ method at all. A lookup that finds nothing reads exactly like a
 symbol with no callers. Both functions have one caller and it is ordinary
 code.
 
+**Which territory claims a diff backs.** Two, and they are named where
+they are made. `run40_and_run41_s_sites_and_territory_are_the_original_s`
+pins `LeaderData::territory` for both players over two early windows of a
+ticked game; `run80_s_gem_widens_the_ai_s_border_by_forty_three_cells` pins
+it at the far end of a 24,000-frame capture from a seeded state, and is
+what carries the gem term. Everything else under "Territory" — the
+contraction, the tie-break, the temple, fort, Colosseum, Eiffel and
+handicap arms — rests on the reading and the 2026-08-20 audit alone.
+
 **Where the implementation is.** `crates/sim`, in three modules that follow
 this document's three sections: `world` for the grid and its units of length,
 `territory` for the border computation, `attrition` for the rate and the
@@ -562,19 +571,59 @@ Four inputs were seams here. **run80 split them three ways** (2026-09-06,
 Great Lakes `[23960, 24000)` at `LEADERS=9`, verified identical to run53
 over all 24,001 frames):
 
-- **The gem term is live, and it is a diff target.** Player 1's
-  `rares_collected[44]` reads `{11, 13, 23, 27}`. The array runs over
-  resources **6–49** — the six below it are the base goods, which
-  `escrow[]`'s six entries confirm independently — so offset by six the
-  four are Amber, Tobacco, **Gems**, Wool. What settles the indexing is
-  that a `BEGIN GOOD` record names its resource in words: the start dump's
-  35 goods are Oil ×14, Fish ×12, then one each of Amber, Dye, Tobacco,
-  Cotton, Wool, **Gems**, Citrus, Aluminum, Rubber. All four offset-6
-  readings are on this map and none of the offset-0 readings (Silk, Salt,
-  Bison, Sugar) is. So territory at 23,999 — player 0 at 266, player 1 at
-  568 — is wrong here without the gem addition. *How much* it adds is not
-  established: one frame cannot separate the flat additions, and the
-  falsifier is a capture either side of the Merchant reaching the Gems.
+- **The gem term is live, it is modelled, and it is diff-backed**
+  (2026-09-06, item 117). Player 1's `rares_collected[44]` reads
+  `{11, 13, 23, 27}`. The array runs over resources **6–49** — the six
+  below it are the base goods, which `escrow[]`'s six entries confirm
+  independently — so offset by six the four are Amber, Tobacco, **Gems**,
+  Wool. What settles the indexing is that a `BEGIN GOOD` record names its
+  resource in words: the start dump's 35 goods are Oil ×14, Fish ×12, then
+  one each of Amber, Dye, Tobacco, Cotton, Wool, **Gems**, Citrus,
+  Aluminum, Rubber. All four offset-6 readings are on this map and none of
+  the offset-0 readings (Silk, Salt, Bison, Sugar) is.
+
+  **The predicate, from the type record rather than the code around it.**
+  `compute_reg_territory`'s arm tests `field_0x6da6 & 0x80` or
+  `field_0x6dce & 0x80`. `LeaderData` has `rare` at `+0x6d98` and
+  `rare_conquest` at `+0x6dc0`, both `BitMask<44>` — `bits`, `size`,
+  `flags`, then `ptr` at `+0xc` — so the two bytes are `rare.ptr[2]` and
+  `rare_conquest.ptr[2]`, and `0x80` there is **bit 23**.
+  `LeaderData::has_rare@006e0770` indexes `good - 6`, which puts bit 23 on
+  resource 29, `GEMS`. The arm is an inlined `has_rare(GEMS)` and nothing
+  else. `Leader::calc_gather@006ceee0` corroborates it from the other
+  side: it maintains `rare = rare_owned | rare_conquest` and, of the
+  forty-four bits, calls `Regions::fix_all_borders@0067f7d0` when **`ptr[2]
+  >> 7` alone** has moved. `rare_conquest` has no writer outside the
+  constructor and `Leader::init@006e3930`'s clear, and the dump prints it
+  empty, so `rare` is the whole of the test here.
+
+  **The assignment is not a departure.** The gem arm *sets* the flat slot
+  where the Colosseum and Eiffel arms add to it — but the line above zeroes
+  that slot, so gems-first-then-add is the same shape, and its one step
+  onto the limit is `+= TERRITORY_LIMIT_CIVIC`.
+  `crates/sim/src/territory.rs` builds them in that order. And
+  `fix_all_borders` only zeroes each region's border stamp (64 records,
+  stride `0x88`, offset `0x2c`), so the sweep it schedules reads the *new*
+  mask: the decompile's assign-after-invalidate order is not observable,
+  and `Sim::tick` assigns first for that reason.
+
+  **What the diff pins.** `run80_s_gem_widens_the_ai_s_border_by_forty_
+  three_cells` seeds the world and regions from run80's own start dump, the
+  three cities from the window's `CITY` records and each leader row's Civic
+  level and rare set from the frame itself, then runs the border pass:
+  **266 and 568**, the original's own `LeaderData::territory`, on all forty
+  frames. With the gem bit taken back out player 1 falls to **525**, so the
+  term is worth **forty-three cells** in this configuration — which the
+  earlier draft of this bullet had down as unestablished. The seed reads
+  `rares_collected[44]` rather than the `rare` mask because
+  `BitMask::log_data` prints each byte with `%u` and no separator
+  (`040128800`), which is not uniquely decodable; the `int[44]` beside it
+  is written by the same walk.
+
+  Still **not** established: the flat addition and the limit step fire
+  together, so one frame cannot separate them — 43 is their sum for two
+  Small Cities at Civic 2 — and nothing here checks *when* the bit arrives.
+  Both want a capture either side of the Merchant reaching the Gems.
 - **The two building terms are blocked at their prerequisite**, which is
   stronger than "did not fire": at 23,999 player 1 holds 27 buildings and
   player 0 five, with no Temple (437), no Fort (443), no Fortress (445),

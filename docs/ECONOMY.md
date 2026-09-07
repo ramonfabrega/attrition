@@ -266,6 +266,16 @@ previous frame's `rare` mask; when it differs the player's population cap is
 recomputed, the borders are marked for a redraw if the rare that changed is
 one of the territory-affecting ones, and two more dirty bits go up.
 
+**There is exactly one territory-affecting rare, and it is Gems**
+(2026-09-06, item 117). The redraw arm compares `rare.ptr[2] >> 7` before
+and after — bit 23, which is `GEMS - BASE_RARE` — and calls
+`Regions::fix_all_borders@0067f7d0`, which zeroes each region's border
+stamp rather than recomputing anything, so the sweep it schedules reads the
+mask *after* the assignment. It is the same bit
+`World::compute_reg_territory@006b0bb0` tests, as an inlined
+`LeaderData::has_rare@006e0770`; `docs/ATTRITION.md`, "Territory", has the
+field derivation and the diff that pins it.
+
 ### Step 6, whole (2026-09-02)
 
 `Unit::do_gather@005fce20` is `UnitData::calc_gather@00609180` with its

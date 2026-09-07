@@ -2539,14 +2539,23 @@ impl Sim {
     /// field `LeaderData::get_city_limit` reads, and it feeds both
     /// `CIVIC_UPGRADE_TERR` and the Russians' per-step flat bonus.
     ///
+    /// **The gem term is live**, and it is the one of the four seams a
+    /// capture ever reached: Great Lakes' AI has a Merchant on the map's
+    /// one Gems deposit by frame 23,999 (run80), so its border is wider
+    /// than a gem-less table's. `compute_reg_territory`'s arm is an
+    /// inlined `LeaderData::has_rare(`[`economy::GEMS`]`)` over
+    /// `rare | rare_conquest`, which is what [`Sim::has_rare`] answers.
+    ///
     /// **Still seams**, because nothing here models them: the temple and
     /// fort border levels (`has_preq(TEMPLEBORDERS2..4)`,
     /// `has_preq(FORTBORDERS2..4)` — bonus types `0x2c8..0x2ca` and
     /// `0x2d1..0x2d3`, which this crate loads as `bonus_preqs` and does not
-    /// expose), the Colosseum and Eiffel Tower, a gem rare, and the AI
-    /// handicap allowance. All four are inert on every capture so far: no
-    /// player in one holds a Temple, a Fort, either wonder or a gem, and
-    /// the lobbies run at handicap 0.
+    /// expose), the Colosseum and Eiffel Tower, and the AI handicap
+    /// allowance. All three are inert on every capture so far — no player
+    /// in one holds a Temple, a Fort or either wonder, and the lobbies run
+    /// at handicap 0 — and the first two are blocked at their
+    /// prerequisite rather than merely unreached (`docs/ATTRITION.md`,
+    /// "Territory").
     fn player_borders(&self, who: Player) -> territory::PlayerBorders {
         let w = who as usize;
         let civic = self.tech[w].epoch[tech::Line::Civic.index()].max(0);
@@ -2564,7 +2573,7 @@ impl Sim {
             &territory::NationBonuses {
                 roman: n.romans,
                 russian: n.russians,
-                gems: false,
+                gems: self.has_rare(who, economy::GEMS),
                 civic,
             },
             0,
@@ -2690,8 +2699,23 @@ impl Sim {
             // it every frame and so does this ([`crate::rares`]).
             let rare = self.holdings[who].rare_owned;
             if self.ledgers[who].rare != rare {
+                // `Leader::calc_gather`'s own border arm, and it is one
+                // bit wide: the writer compares `rare.ptr[2] >> 7` before
+                // and after and calls `Regions::fix_all_borders` only when
+                // **the gem bit** moved, because no other rare is in the
+                // border table. `fix_all_borders` merely zeroes each
+                // region's border stamp, so the recompute it schedules
+                // reads the *new* mask; this crate recomputes on the spot
+                // and therefore assigns first (`docs/ATTRITION.md`,
+                // "Territory"; `docs/audit/2026-09-05-economy-vs-code.md`
+                // R18).
+                let gem = 1u64 << (economy::GEMS - economy::BASE_RARE);
+                let gems_moved = (self.ledgers[who].rare ^ rare) & gem != 0;
                 self.ledgers[who].rare = rare;
                 self.unit_stats_dirty[who] = true;
+                if gems_moved {
+                    self.sync_territory();
+                }
             }
             // `Leader::process` also answers the wall-stats dirty flag here,
             // before any building is touched.

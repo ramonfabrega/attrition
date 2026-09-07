@@ -16729,3 +16729,61 @@ under a new queue rule; the memory focus is closed with 235; `att-audit`
 stays held until the headline sits two sessions. The one thing the seat
 found that nobody had asked: the wave's product was stranded in
 `docs/audit/`, a directory the loop never reads.
+
+
+## 2026-09-06 — 117, the gem term: a seam becomes a diff (Opus, worker)
+
+The last of the four territory seams that a capture could still reach, and
+it turned out to be the cheapest of the four to close and the only one
+worth 43 cells.
+
+**The predicate first, because that is where this project's errors live.**
+`World::compute_reg_territory@006b0bb0` tests `field_0x6da6 & 0x80` or
+`field_0x6dce & 0x80` and adds `GEMS_TERRITORY_BONUS`. The type record
+settles both: `LeaderData` carries `rare` at `+0x6d98` and `rare_conquest`
+at `+0x6dc0`, both `BitMask<44>` with `ptr` at `+0xc`, so the two bytes are
+`ptr[2]` of each and `0x80` is bit 23. `LeaderData::has_rare@006e0770`
+indexes `good - 6`, which puts bit 23 on resource 29 — `GEMS`. The
+difference `0x6dce - 0x6da6 = 0x28` is the distance between the two masks,
+not a stride inside one, which is the hint the brief said to check against
+the struct rather than against a guess.
+
+Two independent corroborations arrived free. `Leader::calc_gather@006ceee0`
+maintains `rare = rare_owned | rare_conquest` and, of the forty-four bits,
+singles out exactly `ptr[2] >> 7` — when *that* moves it calls
+`Regions::fix_all_borders@0067f7d0`. And `fix_all_borders` turns out to be
+four lines: it zeroes offset `0x2c` in each of 64 region records and
+returns. So the invalidate-then-assign order in the decompile is not
+observable, which is why this crate assigns first and recomputes on the
+spot.
+
+**The input was already there.** `crates/sim` has modelled `rare_owned`
+since the merchants' item; `Sim::has_rare` already existed for the Whales
+speed arm. `Sim::player_borders` was passing `gems: false` and nothing had
+ever wired the two together. The whole sim change is that one expression,
+a `GEMS` constant, and a border resync on the bit.
+
+**The diff had to be seeded, not ticked.** Great Lakes' word is 6862 and
+the finding is at 23,999, so the run40/41 shape — build from the start dump
+and tick — cannot reach it. Instead: world and regions from run80's own
+start dump, the three cities from the window's `CITY` records, and each
+frame's Civic level and rare set from its own leader row. Then the border
+pass alone. **266 and 568 on all forty frames**, the original's own
+`LeaderData::territory`, first run, no residue. With the gem bit taken back
+out player 1 falls to 525 — so the term is worth **43 cells** here, the
+number the document had down as unestablished — and that second count is
+asserted too, so the check cannot pass by accident. It was made to fail on
+purpose first: `gems: false` puts 40 of the 80 leader-frames wrong.
+
+**One small trap worth writing down.** `BitMask::log_data` prints each byte
+with `%u` and no separator, so player 1's mask reads `040128800` — which is
+`[0, 40, 128, 8, 0, 0]` and also `[0, 4, 0, 128, 80, 0]`, both valid. A
+dumped bitmask is not uniquely decodable from the text. The `int[44]`
+`rares_collected` beside it is written by the same walk and parses, so that
+is what the seed reads.
+
+**What did not move.** The headline: this is a seeded check at the far end
+of a capture, not a tick, so neither long word changed. What it converts is
+a reading-only claim into one a diff keeps checking. And it takes the
+border half of `docs/audit/2026-09-05-economy-vs-code.md`'s R18; the
+pop-cap recompute and the two further dirty bits are still open there.
