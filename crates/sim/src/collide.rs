@@ -1153,7 +1153,18 @@ impl Sim {
                 m.has_waypoint = true;
                 m.waypoint = p;
             }
-            self.units[u].tolerance = 0;
+            // **`UnitData::tolerance` is deliberately not written here**
+            // (§8.7). `LAB_005fa37a` in `resolve_unit_collision@005f9d30`
+            // makes exactly three stores — the `Stack<PathData>::push` and
+            // the order's `+0x2c`/`+0x30` — and the entry's own
+            // `tolerance 0` reaches the unit only through `do_move`'s
+            // `dest == 0` take, which this waypoint never goes through
+            // because `dest` is already 1 by the time `move_step` runs.
+            // So the sidestep is walked *under the current leg's*
+            // tolerance, and `move_step`'s post-step Manhattan test
+            // retires it on the first successful step. Zeroing it here
+            // made this crate walk the remainder as a second step and cost
+            // a frame per collision cycle — East Indies' word.
             return true;
         }
         false

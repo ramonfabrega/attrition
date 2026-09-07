@@ -19628,3 +19628,91 @@ predicate**, whose both arms are printed fields on run90's own blocks. And
 one for the ledger: **three units part downstream of the word** — `0/5` at
 7824, `1/2` at 7872, `1/5` at 7895 — pinned as the shuffle's wake rather
 than scored, and any of them moving *below* the word now fails.
+
+## 2026-09-07 — Item 289: the sidestep waypoint's arrival rule is one store that is not made (East Indies 7806 → 7812)
+
+**The question run90 left, in one sentence.** §8.6 named the fault and not
+the rule: both sides push the same `flags 2` sidestep, the original's path
+drops 5 → 4 on the next block with the unit *not on that point*, and this
+crate walks the remainder. Which of `move_step`'s tests retires a sidestep
+one step in, and is it unconditional or a tolerance this crate has too
+small?
+
+**Neither. It is the ordinary arrival test, reading a field the push never
+writes.** `move_step@005faf30` ends an accepted step with
+`if (UnitData::tolerance < |dest_x − x| + |dest_y − y|) return 1;` and
+otherwise sets `dest = 0` and pops the stack. Three things about that line
+matter, and all three are load-bearing here: the distance is **Manhattan**,
+not the octagonal `vector_dist` `do_move`'s own take uses; the tolerance is
+the **unit's field**, never the path entry's; and it runs **only after an
+accepted step**, so a blocked frame never reaches it.
+
+`resolve_unit_collision@005f9d30`'s `LAB_005fa37a` makes exactly three
+stores when it pushes the sidestep — the `Stack<PathData>::push` and the
+order's `+0x2c`/`+0x30` — and `UnitData::tolerance` is not among them. A
+path entry's tolerance reaches that field in one place only, `do_move`'s
+`dest == 0` take, and the sidestep never goes through it because `dest` is
+already 1 by the time `move_step` runs. **So a sidestep is walked under the
+interrupted leg's tolerance**, which for a citizen on a world-grid plan is
+384 — and the waypoint is one 48-unit cell away, so the first unblocked
+step ends the leg wherever it lands. The fix is the deletion of one line:
+this crate zeroed the tolerance with the push.
+
+**The dump had already said it, and that is the order this went in.** run90
+prints the path stack, `dest`, `dest_x/dest_y` and the position on every
+block at `UNITS=3`, so the whole cycle is one record's own rows:
+
+| block | `1/6` | stack | |
+|---|---|---|---|
+| 7803 | (39750, 38787) | 5 | blocked; the sidestep pushed, no step, **no arrival test** |
+| 7804 | (39729, 38802) | 4 | one step; 9 + 6 = 15 ≤ 384, popped **from fifteen units away** |
+| 7805 | (39729, 38802) | 4 | `dest` 0 → 1, turn, no step |
+| 7806 | (39708, 38789) | 4 | a step — and blocked again on 7807 |
+
+Four blocks. The decompile was then asked only to name the store that is
+missing, which took twenty minutes. This is "diff first, then read what no
+run reaches" paying twice on one window: the capture refused the reading it
+was booked to test, and then made the next reading cheap.
+
+**What moved.** East Indies' long word **7806 → 7812** — the first time this
+map's headline has moved since 271 — and the new word is
+`PathFinder::calc_road_cost+0x46`, 142 draws this crate spends on 7812 and
+the original spends on 7833. Great Lakes' word does not move. Both maps'
+endpoints do, which is the mark of a mechanic every colliding unit walks
+through: Great Lakes 24,001 falls **84 → 80** off and 2 → 1 extra, its
+largest single fall; East Indies 79 → 78 off and 11 → 13 extra; the C rung
+46 → 47 and 22 → 24; the B rung 20 → 19 extra. All four re-pinned under
+DECISIONS 36, the number and not a trade.
+
+**The value diff beside the word.** `1/6` parts at **7827** instead of 7805
+— twenty-two blocks, and fifteen past the word — and over the cycle its
+collision fields and its **whole order record, path stack included**, are
+the original's. run88's closing block loses it from the residue at the same
+time: the citizen the `!quit` caught 46 east and 51 south now stands where
+the original stands.
+
+**Made to fail first, and the two new fences are not the same kind.** The
+*order* fence failed on the old code at **7804** — the block the original
+pops and this crate does not, one below even the position — so it dates the
+fault lower than any instrument had. The *collision* fence held before the
+fix as well: `1/6`'s `collide_o` was always the original's, which is
+precisely why the fault survived three sessions of looking at collision
+fields, and its teeth were shown the other way, by pointing it at `1/7`,
+whose three rows on 7809 it named at once. The position fence failed with
+the value diff printed: block 7805, ours (39720, 38808), theirs
+(39729, 38802).
+
+**Gate:** 245 tests, peak **11,218 MiB** of 20 GiB.
+
+Successors, unnumbered. **§6 step 5's wait-versus-pause predicate is now the
+whole of East Indies' word**, and run90 prices it exactly now that `1/6` is
+out of the way: `1/7`'s *entire* collision-field divergence over 111 blocks
+is one block, **7809**, where the original has `collide 1 / collide_o 6 /
+collide_who 1` and this crate has it clear. So the first question is not
+"which arm" but "why does this crate not collide on 7809 at all" — and every
+field of it is already on disk. Two smaller ones for the ledger: whether any
+route reaches `move_step` with `dest` clear (in which case the original
+*would* take the sidestep and pick up its `tolerance 0`, and this crate
+would not — nothing on disk shows one); and a sidestep off a `find_upath`
+leg, whose `tolerance 0` would make the same code walk the waypoint exactly,
+which no run reaches.

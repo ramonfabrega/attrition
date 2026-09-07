@@ -474,6 +474,23 @@ if detect(proposed, quick 0):
 
 `big_radius` is `ObjectType +0x244`.
 
+**And the step's own tail, which is where the leg ends** (`005fb45f`,
+item 289). After a step is accepted — either arm, the partial one or the
+snap — `move_step` runs
+
+```
+if tolerance < |dest_x − x| + |dest_y − y|: return 1        # not there yet
+dest = 0; pop the path stack                                # arrived
+if not popped.flags & 1: return 1                           # a middle leg
+… set_angle, clear the pathed bit, kill the order           # the goal
+```
+
+Three things about it matter and each has cost a frame: the distance is
+**Manhattan**, not the octagonal `vector_dist` `do_move`'s own take uses;
+the tolerance is **`UnitData::tolerance`**, the unit's field, never the path
+entry's; and it runs **only after an accepted step**, so a blocked frame
+never reaches it. §8.7 is the mechanic that turns on all three.
+
 The `set_anim(CHAR_DEFAULT)` is the call at `005fb74e`, so its draw site is
 `Unit::move_step+0x823` and the trace names it
 `sim::anim::SITE_BLOCKED` (`docs/SYNC.md` §3.10). Note where it sits: it is
@@ -699,6 +716,14 @@ In order, with the first that fires winning:
    The first that is neither `invalid_loc` nor colliding is pushed as
    `{cell centre, tol 0, flags 2}` and written into the order's
    `+0x2c/+0x30`. Done.
+
+   **Those are the only three stores `LAB_005fa37a` makes**, and the two it
+   does *not* make are the mechanic (§8.7): it never touches
+   `UnitData::tolerance`, so the entry's own `tolerance 0` is never the one
+   the arrival test reads; and it never touches `MoveOrder::dest`, which is
+   already 1 whenever `move_step` runs, so the waypoint is never *taken*
+   through `do_move`'s `dest == 0` block either. A sidestep is walked under
+   whatever tolerance the interrupted leg had.
    *(`d == (0, 0)` raises "Collided in my space?" — an error box, not a
    branch.)*
 5. Otherwise **`collide += 1`, `collide_frame = frame`**, and:
@@ -1067,6 +1092,10 @@ buildings join the chain, which is why §8 does not claim it.
   (`run83_s_window_is_the_last_great_lakes_hole`, written to fail first:
   dropping step 6's cell-centre snap for four frames puts `1/29` off
   position from 6893).
+- **§6 step 4's sidestep, retired by §5's post-step Manhattan test against
+  the *unit's* tolerance and not the entry's** (§8.7). run90's `1/6` walks
+  the original's four-block cycle — position, the five collision fields and
+  the path stack alike — over the whole shuffle.
 - The path stack's length and every waypoint — the headline's own order
   score, which the recovery's output now feeds.
 - §2's clear-on-move, §2.2's repaint, §4's naming and §6's snap-and-replan
@@ -1374,13 +1403,23 @@ this crate takes two more cycles, and its `PathFinder::calc_road_cost`
 search of 137 cells runs on **7814** where the original's 136-cell search
 runs on **7833**.
 
-**Where the frame is lost.** `1/6` arrives on its own sidestep waypoint
+~~**Where the frame is lost.** `1/6` arrives on its own sidestep waypoint
 (39720, 38808) on `f7804` and pops it; on `f7805` it turns without stepping
 (facing −1341784064 against a heading of −671481856) and takes the step on
 `f7806`, which is the frame the original was already blocked on. So the
 candidate is the **approach** — `f7804`/`f7805`, one frame of turn-versus-step
 after a waypoint pop — and not the collision response, which §8.3 and run83
-have both diffed clean.
+have both diffed clean.~~
+
+**Dead, and refused by the capture it booked** (§8.6, and the answer is
+§8.7). The original never arrives on that waypoint at all: it retires it
+after one step from fifteen units away, because `resolve_unit_collision`
+does not write `UnitData::tolerance` when it pushes it. The frame goes into
+the step *to* the waypoint, one block earlier, and there is no late pop to
+find. This paragraph is kept because the shape of the error is the method's:
+a draw stream dated the word two frames after the value diff would have, and
+a reading written from the stream alone put the mechanism on the wrong side
+of the pop.
 
 **The suspicion that is not established.** On 7810 the original spends a
 pause roll and this crate spends none; the unit this crate has in collision
@@ -1481,6 +1520,102 @@ to 7807, and the stand list's 7810 to 7811. All six failed.
 downstream of it (`0/5` at 7824, `1/2` at 7872, `1/5` at 7895) and are
 pinned as the shuffle's wake rather than scored.
 
+## 8.7 The sidestep waypoint's arrival rule — one store that is not made (2026-09-07)
+
+§8.6 left the mechanism open in one sentence: *which of `move_step`'s tests
+drops a `flags 2` waypoint one step in, and is the drop unconditional or a
+tolerance this crate has too small.* It is neither. **The drop is the
+ordinary arrival test, and the tolerance is not the waypoint's.**
+
+**The rule.** `move_step@005faf30` ends an accepted step with
+
+```
+if (UnitData::tolerance < |dest_x − x| + |dest_y − y|) return 1;
+dest = 0; path.length -= 1;                       // arrived: pop
+```
+
+(§5, and the fields are the obfuscated `+0x10`/`+0x14` pair). The tolerance
+is the **unit's**, and `resolve_unit_collision@005f9d30`'s `LAB_005fa37a`
+never writes it: it pushes `{cell centre, tol 0, flags 2}` and stores the
+order's `+0x2c`/`+0x30`, and that is all (§6 step 4). A path entry's own
+tolerance reaches `UnitData::tolerance` in exactly one place —
+`do_move`'s `dest == 0` take (`docs/ORDERS.md` §4.4) — and the sidestep
+never goes through it, because `dest` is already 1 by the time `move_step`
+runs and step 4 does not clear it.
+
+So a sidestep waypoint is walked under **the interrupted leg's** tolerance.
+For a citizen on a world-cell plan that is 384, and the sidestep is one
+48-unit cell away, so the first step that is not blocked ends the leg
+wherever it lands.
+
+**What it cost.** This crate zeroed `UnitData::tolerance` with the push, so
+the arrival test could only fire on the waypoint itself and the unit had to
+spend a second step walking the remainder. One frame per collision, and a
+five-block cycle where the original's is four.
+
+**The cycle, both sides, run90 blocks 7802-7807.** The original:
+
+| block | `1/6` | stack | what happened |
+|---|---|---|---|
+| 7802 | (39750, 38787) | 4 | a step on the leg to (38856, 38232) |
+| 7803 | (39750, 38787) | **5** | blocked by `1/7`; step 4 pushes (39720, 38808) `flags 2`, no step, **no arrival test** |
+| 7804 | (39729, 38802) | **4** | one step along the bearing; 9 + 6 = 15 ≤ 384, so `dest = 0` and the waypoint is popped **from fifteen units away** |
+| 7805 | (39729, 38802) | 4 | `dest` 0 → 1 takes (38856, 38232) again and turns; no step |
+| 7806 | (39708, 38789) | 4 | a step |
+| 7807 | (39708, 38789) | 5 | blocked again — four blocks later |
+
+This crate had 7805 at (39720, 38808) — the waypoint itself — and its
+7807 where the original's 7806 is. The pushed points are identical on both
+sides on all three cycles ((39720, 38808), (39672, 38808), (39624, 38808)),
+which is what said the *sidestep* was right and the *arrival* was not.
+
+**How this was established.** From the dump first and the decompile second,
+which is the order the working agreement asks for. run90 is 111 blocks of
+`UNITS=3` over `[7790, 7900)`, so the path stack, the move order and the
+five collision fields are all printed on every block of the cycle; the
+4 → 5 → 4 with the unit **not on the point** is one record's own three rows
+and needs no reading at all. The reading then names the store that is
+missing rather than guessing at a predicate.
+
+**Confidence: high, and diff-backed.** The change is the deletion of one
+line. `run90_s_window_is_east_indies_shuffle` now pins, on the original's
+own blocks: `1/6`'s position agreeing through 7826; its collision fields —
+`collide`, `collide_o`, `collide_who`, `collide_guy`, `collide_frame` —
+never disagreeing anywhere in the window, so `collide_o 7` falls on 7803,
+7807 and 7811 as the dump's rows say; and its **order record, path stack
+included**, first disagreeing on 7828. A four-block cycle whose stack
+length and whose `collide_o` are both the original's is the same cycle, and
+the five-block one could not have produced either. run88's closing block
+loses `1/6` from its residue at the same time — the citizen the `!quit`
+caught 46 east and 51 south of the original's now stands where it stands.
+
+**What moved.** East Indies' long word **7806 → 7812**, and the new word is
+`PathFinder::calc_road_cost+0x46`, 142 draws this crate spends on 7812 and
+the original spends on 7833. Great Lakes' word does not move; its
+**endpoint** at 24,001 falls 84 → 80 off and 2 → 1 extra, which is the
+mechanic being one every colliding unit on either map walks through.
+East Indies' own endpoint goes 79 → 78 off and 11 → 13 extra, the C rung
+46 → 47 and 22 → 24, the B rung 20 → 19 extra.
+
+**What this has *not* established.**
+
+- **Whether `MoveOrder::dest` can be 0 when `resolve_unit_collision` runs.**
+  Every path into `move_step` sets it — `do_move`'s take, and both arms of
+  the straight-line check — so this crate still writes `has_waypoint = true`
+  with the push, which is a no-op on every frame any capture has reached.
+  If a route exists that reaches `move_step` with `dest` clear, the original
+  would *take* the sidestep next frame and pick up its `tolerance 0` after
+  all, and this crate would not. Nothing on disk shows one.
+- **The Manhattan-versus-`vector_dist` split.** `move_step`'s tail is
+  Manhattan and `do_move`'s take is the octagonal `vector_dist`; both are
+  modelled as read, and no capture separates them, because every arrival a
+  run has reached is far inside either.
+- **Whether a non-384 leg changes the story.** Every sidestep on disk
+  interrupts a `find_wpath` leg at `tolerance 384`. A unit sidestepping off
+  a `find_upath` leg carries `tolerance 0` and would then have to walk the
+  waypoint exactly — the same code, the opposite behaviour, and no run
+  reaches it.
+
 ## 9. What is not established
 
 - ~~**East Indies' long word, 7806, is a collision question and the frame
@@ -1493,14 +1628,25 @@ pinned as the shuffle's wake rather than scored.
   reading of §8.5 is superseded and kept for the method. What remains open
   is the *arrival rule itself*: which of `move_step`'s tests drops a
   `flags 2` waypoint one step in, and whether the drop is unconditional or
-  a tolerance this crate has too small. That is a reading of `move_step`'s
-  waypoint block, not a run — every frame of it is now dumped.
+  ~~a tolerance this crate has too small. That is a reading of `move_step`'s
+  waypoint block, not a run — every frame of it is now dumped.~~
+  **Read and landed as §8.7** (item 289, 2026-09-07): it is `move_step`'s
+  ordinary post-step arrival test, and the drop is neither unconditional
+  nor a tolerance too small — the tolerance is the *interrupted leg's*,
+  because `resolve_unit_collision` never writes `UnitData::tolerance` when
+  it pushes the waypoint. East Indies' word 7806 → **7812**.
 
-- **§6 step 5's wait flag is taken where the original rolls a pause.** On
-  sim-frame 7810 the original's `1/7` rolls `pause 8` (§8.6) and this crate
-  sets `waiting_on` instead, reaching step 6 two frames later. The
-  predicate that chooses between them is wrong, and both arms are dumped
-  fields on run90's own blocks. *Capture:* none needed.
+- **§6 step 5's wait flag is taken where the original rolls a pause**, and
+  since 289 it is the whole of East Indies' word. On sim-frame 7810 the
+  original's `1/7` rolls `pause 8` (§8.6) and this crate sets `waiting_on`
+  instead, reaching step 6 two frames later. run90 prices it exactly now
+  that `1/6` is out of the way: `1/7`'s **entire** collision-field
+  divergence over the window's 111 blocks is one block, **7809**, where the
+  original has `collide 1 / collide_o 6 / collide_who 1` and this crate has
+  it clear; its position parts on 7812 and its order *kind* with it. So the
+  first question is not "which arm" but "why does this crate not collide on
+  7809 at all" — and both arms are dumped fields on run90's own blocks.
+  *Capture:* none needed.
 
 - ~~**Great Lakes' long word is a `SITE_BLOCKED` this crate spends and the
   original does not.**~~ **Settled by run76** (item 236, 2026-09-06), and

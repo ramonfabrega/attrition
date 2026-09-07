@@ -224,9 +224,15 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // the word — which the change moves 7529 → 7806, its own map's
         // headline and the largest single step it has taken. DECISIONS 36
         // asks for the number rather than a trade.
-        off: 79,
+        //
+        // Then **79 → 78 and 11 → 13** on 2026-09-07, item 289 — the
+        // sidestep waypoint's arrival rule (`docs/COLLISION.md` §8.7),
+        // which moves this map's own word 7806 → 7812. One position
+        // closer and two spurious units, 16,189 frames past the word.
+        // DECISIONS 36: the number, not a trade.
+        off: 78,
         unlinked: 0,
-        extra: 11,
+        extra: 13,
         build_unlinked: 0,
         // 33 → 32 on 2026-09-07, item 265: `CityData::free` is a byte that
         // wraps, and the AI reading 255 where it read −1 takes one building
@@ -268,9 +274,16 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // are found and two spurious ones take their place, six positions
         // are further out and one building field-row is closer. DECISIONS
         // 36 asks for the number rather than a trade.
-        off: 84,
+        //
+        // Then **84 → 80 and 2 → 1** on 2026-09-07, item 289 — East
+        // Indies' sidestep arrival rule (`docs/COLLISION.md` §8.7). Great
+        // Lakes' own word does not move on it at all and its endpoint
+        // falls by four positions and one spurious unit 16,416 frames
+        // past that word: a mechanic every colliding unit on either map
+        // walks through, and the largest fall this row has had.
+        off: 80,
         unlinked: 0,
-        extra: 2,
+        extra: 1,
         build_unlinked: 0,
         build_diverged: 12,
         city_unlinked: 3,
@@ -305,14 +318,21 @@ pub const LADDER: [Endpoint; 2] = [
         // entry above describes, one item later — `CityData::free` wrapping
         // to 255 the way the original's byte does costs one position here,
         // 7,872 frames past the word, and takes four spurious units off.
-        off: 46,
+        // Then 46 → 47 on item 289; see `extra` below.
+        off: 47,
         unlinked: 17,
         // 20 → 21 on 2026-09-07, item 267's repaint: one spurious unit
         // back, 7,872 frames past the word, and nothing else on this rung
         // moved. Then 21 → 23 on 267's second row, the `§6.3` tail
         // negation — two more, and again nothing else on the rung. Then
-        // **23 → 22 and 9 → 8** on item 271's age snap, both falls.
-        extra: 22,
+        // **23 → 22 and 9 → 8** on item 271's age snap, both falls. Then
+        // **22 → 24 and 46 → 47** on item 289's sidestep arrival rule
+        // (`docs/COLLISION.md` §8.7): two spurious units and one position
+        // out, 7,872 frames past this rung's own word, on the change that
+        // moves East Indies' 7806 → 7812 and takes four off Great Lakes'
+        // endpoint. The B rung moved the other way on the same change,
+        // one spurious unit fewer and nothing else.
+        extra: 24,
         build_unlinked: 10,
         build_diverged: 8,
         city_unlinked: 3,
@@ -339,8 +359,11 @@ pub const LADDER: [Endpoint; 2] = [
         // exact pin of the eighth steer (DECISIONS 36) took it, and 27 → 26
         // with it, on its first run. Then **25 → 20** on item 271's age
         // snap — five spurious units gone, 8,960 frames past the word, and
-        // the largest single fall this rung has had.
-        extra: 20,
+        // the largest single fall this rung has had. Then **20 → 19** on
+        // item 289's sidestep arrival rule, one more gone and `off`
+        // unmoved; the C rung above took two the other way on the same
+        // change.
+        extra: 19,
         build_unlinked: 19,
         build_diverged: 0,
         city_unlinked: 4,
