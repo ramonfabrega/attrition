@@ -12,35 +12,36 @@ lines, or lets the handoff pass 32.
 
 ## Where things stand
 
-*2026-09-06, Opus commanding, the loop's first run at width two — **Great
-Lakes 6862 → 6982**, five landed, suite 218. East Indies **7448 unmoved**.*
+*2026-09-06, Opus commanding a nine-landing loop at width two — **Great
+Lakes 6862 → 6982 → 6994**, suite 220. East Indies **7448 unmoved**, but
+241 found its cause and it is not a collision.*
 
-- **Both headline items are live and both have their capture.** 238 has
-  Great Lakes' word with run84: at 6982 this crate spends
-  `Leader::produce_building+0x1805` where the original spends
-  `Leader::make_stuff+0x221`. 241 has East Indies' 7448 with run85, where
-  the blocker is **gaia's animal** and `chain_hit`'s `who < 8` filter is
-  the standing hypothesis. 239 killed the other one: the deflection was
-  already right, diff-backed end to end on run83.
-- **Width two works.** The gate is `zsh tools/memcap.sh 20 cargo test -p
-  rondata --release -- --test-threads=2` (14.8 GB, ~29 GB for two); four
-  threads stay off. A worker takes its base's tip with `ccc update <ref>`,
-  never `git merge`; a landed session is removed at merge time. `ccc rm`
-  leaves the branch, so reusing that `--worktree` name **fails silently**.
-- **Grep the detail, not only the range**: run79 covers 6982 and cannot
-  answer it — 22 `MAKELIST` occurrences against run80's 902.
-- **The wave is not a ratification question** — two of this repo's texts
-  disagreeing, the diff their oracle; 6 are assertions, the rest sit in
-  `docs/audit/2026-09-05-<doc>-vs-code.md`, read by whoever touches it.
-- Lanes: `att-capture` holds the screen, corpus 235; `ORACLE.md` and
-  `captures.txt` are its handoff, so cycling it is free.
+- **Great Lakes 6994 is the headline**, unmeasured beyond this: at draw 2
+  the original spends `Unit::do_move+0xe84` and this crate spends nothing
+  (ours 2, theirs 4). run84 `[6950, 7029]` at `LEADERS=9` covers it.
+- **East Indies 7448 is a position, not a predicate** (241): `1/20` is off
+  by (36, 792) at run85's *first* block, ~34 frames of its own walk, so it
+  is never there to meet the animal. The gap is a **transport ride**
+  between run82's 6929 and 7400 — barge birth 7093 on both sides, eject
+  spends no draw. TRANSPORT §13; nothing covers 6930–7399.
+- **Two commander hypotheses were refuted in a row** (239's deflection,
+  241's `who < 8` fence), both killed by going to the dump. Brief the
+  *measured seam*, not the mechanism you suspect behind it.
+- **Width two on the gate** (14.8 GB each; four threads stay off). `ccc
+  update <ref>` for a base, never `git merge`; reap at merge time. `ccc
+  rm` leaves the branch, so reusing that `--worktree` name fails.
+- **The capture lane is per-item now**: cycling cost nothing and the fresh
+  lane closed 178 by grep rather than spend a drafted 154 MB stanza.
+- **Owed to ccc** (their item 25): `~/ccc-stream/` holds `watch.jsonl`,
+  `watch-stall10.jsonl` and a 60 s `list.jsonl` sampler; each `stalled`
+  line wants a word in `verdicts.txt`. Restarting `ccc watch` blinds it.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w7448 of 24,000 · GreatLakes w6994 of 24,000
 
-**Opener: the main thread is the commander (DECISIONS 34), on Opus. 238
-and 241 are in flight — one headline each — and the capture lane is on
-178, which may close by grep. Suite at 218.**
+**Opener: the main thread is the commander (DECISIONS 34), on Opus. Two
+repo slots are free and both maps have a named seam — Great Lakes 6994,
+East Indies' transport gap. `att-capture` (23d49f15) is mid-117.**
 
 ## The queue
 
