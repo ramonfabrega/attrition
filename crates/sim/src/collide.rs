@@ -984,8 +984,17 @@ impl Sim {
             index::MOVE_TO | index::ATTACK_TO | index::EXPLORE_TO | index::FLEE_TO
         );
 
-        // Step 4: the sidestep, only against a unit that is itself moving.
-        if its_move
+        // Step 4: the sidestep, only against a unit that is itself moving
+        // — and only for a **land** unit. `005f9d30:265` reads
+        // `ObjectType +0x218` (`domain`) off the asking unit and requires
+        // it to be 0, so a boat blocked by a boat goes straight to the
+        // wait and the repath and never pushes a `{cell centre, tol 0,
+        // flags 2}` waypoint (the docs-versus-code wave's R2, taken
+        // 2026-09-06 with item 236; §6 step 4 had it and the code did
+        // not). No capture on disk collides two boats, so this is the
+        // decompile's word and not a run's.
+        if self.units[u].kind.domain == Domain::Land
+            && its_move
             && self.units[u].collide_o >= 0
             && self.units[u]
                 .path
@@ -1133,9 +1142,22 @@ impl Sim {
         let snap = ucell_centre(ucell(from));
         self.set_new_location(u, snap, true);
         self.moved_to(u, from, true);
+        // **`anti` is a conjunction, not my half of one** (the
+        // docs-versus-code wave's R1, taken 2026-09-06 with item 236).
+        // `005f9d30:473-480` tests `update_action(this)`'s order type
+        // against `ATTACK` **and** `UnitData::action_type(the collider)`
+        // against `ATTACK`; this crate asked only the first, so it planned
+        // an anti-unit path against every collider an attacking unit met.
+        // The second conjunct is read off the unit `resolve` was handed —
+        // the same one the pause roll below re-reads — not off `collide_o`
+        // again.
         let anti = self
             .action_of(u)
-            .is_some_and(|a| self.units[u].orders[a].index() == index::ATTACK);
+            .is_some_and(|a| self.units[u].orders[a].index() == index::ATTACK)
+            && other.is_some_and(|o| {
+                self.action_of(o)
+                    .is_some_and(|a| self.units[o].orders[a].index() == index::ATTACK)
+            });
         let r = self.find_upath(u, anti);
         // **`dest = 0`, on both arms** — `005f9d30`'s last two blocks are
         // the same store through `update_order()->get_move_order()`, and

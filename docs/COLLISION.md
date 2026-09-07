@@ -514,6 +514,46 @@ long word was **5819** with the pairwise pair and **6164** with the radius
 one (and its draw *count* holds to 6165) (`run59_s_census_is_where_the_ai_s_timber_goes`,
 `run63_s_window_is_where_the_ai_s_colony_site_appears`).
 
+### 5.3 The block's **return value**, which is the formation's end condition (2026-09-06)
+
+`move_step` answers `1` almost everywhere and `0` from exactly three
+places. Two of them are this block:
+
+- `005fb689` — blocked, and **still owing a turn**: `set_anim(CHAR_DEFAULT)`
+  and out.
+- `005fb6df` — blocked, and handed to `resolve_unit_collision`: the
+  sidestep, the wait, or the snap-and-repath, and out.
+
+The third is the tile refusal a few lines below (`005fb7c1`–`005fb7fd`,
+§5's `invalid_loc` arm). Every other exit — the four world-bounds tests,
+`set_new_location` refusing, the arrival, the kill — answers `1`.
+
+**And the zero is read.** `Unit::do_group_move@005e79a0` takes it on both
+sides of a formation: the leader's through `do_move`, whose own tail
+returns whatever `move_step` gave it, and a **follower's straight off
+`move_step`** at `5e856d`. Both then run the same tail — re-read the head
+order, take the attack hand-off if the collider is a valid target of an
+attack-context move, and otherwise **`ungroup_move_order`**, which
+degrades the group move into N independent moves for the whole squad, up
+the captain chain and back down (`docs/ORDERS.md` §8.3).
+
+So a squad does not merely *stall* on a unit in its way: the first member
+whose step is refused by a collision dissolves the formation, and every
+Archer re-plans for itself on the world grid the next time `do_move`
+reaches the grid roll. That is what run76's 6861 is, and the record names
+it without a reading: all three Archers' order kind goes
+`GROUPATTACKTOORDER` → `ATTACKTOORDER` on that frame, `1/28` loses
+`PATHED` and its whole path stack, the leader `1/27` keeps its stack and
+loses `dest`, and `1/29` — processed after the ungroup, in the same frame
+— builds a nine-entry `find_wpath` plan 768 apart with `tolerance 384`
+and steps the full 26 along it. The unit whose step was refused is
+`1/28`, squeezed onto its own cell centre `(42792, 24648)` by step 6's
+snap.
+
+This crate answered `Did::Something` from both arms and its follower
+ignored the value entirely, so its squad marched on in formation. Reading
+it moved Great Lakes' long word 6862 → **6982** (item 236).
+
 ## 6. `Unit::resolve_unit_collision`
 
 In order, with the first that fires winning:
@@ -717,6 +757,13 @@ frame's turn is instant. Without that the snapped unit spends a frame
 turning and is one step behind for the rest of its walk — which is exactly
 what run10's frame 124 showed before it was modelled.
 
+**The block's return value landed 2026-09-06** (item 236), and it is
+§5.3: both collision arms of `Sim::unit_step` answer `Did::Nothing`, the
+value `move_step` answers, and `Sim::group_move_follower` reads it and
+ungroups the squad — the same tail `Sim::group_move_leader` already took
+off `do_move`. The attack-context hand-off above it is the leader arm's
+own seam and stays one (§9).
+
 **The soft half-step flag landed 2026-09-06** (item 219), and it is the
 mechanic's first appearance in a *score*. `Unit::half_step` had been
 written here since §4.3's group arm and nothing read it; `move_step` now
@@ -887,6 +934,24 @@ buildings join the chain, which is why §8 does not claim it.
   store as `005f9d30` writes it, `1/7` takes the waypoint on 5502, arrives
   on it the same frame, walks the detour and reaches its farm on 5508.
   Great Lakes' long word **5502 → 5571**.
+- **§5.3's return value, and the ungroup it drives** (item 236,
+  2026-09-06). run76's window carries the whole of it: from the frame the
+  formation ends, the three Archers `1/27`/`1/28`/`1/29` agree with the
+  original on **every order and path field the dump prints** — the
+  nine-entry `find_wpath` plan each builds for itself, its `tolerance
+  384` rows, the `PATHED` bit the two non-leaders lose, and the waypoint
+  and `coll_x/coll_y` that follow — and not one of the three leaves the
+  original's point for the rest of the capture. Before the follower read
+  `move_step`'s zero, that window carried `PathLength`, `PathTo`,
+  `PathField`, `Move` and `Coll` rows from 6861 to its end. Great Lakes'
+  long word **6862 → 6982**
+  (`run76_s_window_is_the_ai_squad_s_march`, written to fail first).
+
+  What the run does **not** back is the attack-context hand-off above the
+  ungroup: every collider in every capture on disk belongs to the
+  colliding unit's own player, so `valid_target` is false everywhere and
+  the tail always reaches the ungroup. It stays a seam, and it is the
+  leader arm's own.
 - The path stack's length and every waypoint — the headline's own order
   score, which the recovery's output now feeds.
 - §2's clear-on-move, §2.2's repaint, §4's naming and §6's snap-and-replan
@@ -911,6 +976,10 @@ buildings join the chain, which is why §8 does not claim it.
   the decompile; `collide.rs`'s own test is what exercises it, and it was
   written to fail first.
 - §6 steps 1 and 3.
+- §6 step 6's `anti` conjunction and §6 step 4's `domain == 0` gate, both
+  taken from the docs-versus-code wave with item 236 (§8.1). No capture
+  has an attacking collider or two colliding boats, so neither is
+  diff-backed and neither moved a frame.
 - §6 step 5's wait-for-it branch (`unit_masks & 0x40`).
 - The throttle's `repaths ≥ 4` and `≥ 8` arms. The decay of §6 step 6
   makes them rarer, not commoner: a player reaches 4 only by repathing
@@ -957,12 +1026,19 @@ above. The other half was a code error: the crate granted a wait where the
 original refuses one when the collider's `collide_o` is negative. Both are
 fixed, with the decompiled clause quoted in step 5; likewise no frame.
 
-**Eight are stated, unimplemented and unreached.** §6 step 6's `anti` flag
-drops the "and *its* action is `ATTACK`" conjunct
-(`resolve_unit_collision@005f9d30:473-480` is a conjunction; the crate tests
-only its own side, so it plans an anti-unit path wherever the original plans
-a plain one); §6 step 4's sidestep has no `domain == 0` gate, so a sea unit
-sidesteps here; §6 step 4/5's order set is four kinds where the original has
+**Two more were taken with item 236** (2026-09-06), because that item's
+work went through step 6 and the two are three lines between them. ~~§6
+step 6's `anti` flag~~ is a conjunction now — my action `ATTACK` **and**
+the collider's, read off the unit `resolve` was handed, as
+`005f9d30:473-480` writes it. ~~§6 step 4's sidestep~~ carries its
+`domain == 0` gate (`005f9d30:265`, `ObjectType +0x218`), so a boat
+blocked by a boat goes to the wait and the repath. Neither moved a long
+word — no capture has an attacking collider or two colliding boats — so
+both remain the decompile's word and not a run's, and both are listed in
+§8's reading-only half.
+
+**Six are stated, unimplemented and unreached.** §6 step 4/5's order set
+is four kinds where the original has
 five, because **`CHANGE_FORM` is not an order kind this crate has at all** —
 and `Unit::do_form_change@005e8670` being on the blind list is the useful
 negative, since the missing kind cannot have cost a frame yet; §6 step 5's
@@ -981,59 +1057,32 @@ group-mate, which is the capture §9 already owes.
 
 ## 9. What is not established
 
-- **Where both long words now part, and it is a *position* and not a
-  predicate** (2026-09-04, queue item 223). Great Lakes 6848 is one
-  `SITE_BLOCKED` this crate spends and the original does not; East Indies
-  7448 is two the original spends and this crate does not.
+- ~~**Great Lakes' long word is a `SITE_BLOCKED` this crate spends and the
+  original does not.**~~ **Settled by run76** (item 236, 2026-09-06), and
+  the answer was not in this block at all: on 6861 the original
+  **ungroups the squad**, and the stand this crate spent on 6862 is the
+  stand of a follower still walking a formation the original had already
+  dissolved. §5.3 has the rule and the record that names it. The reading
+  the row asked for — the group's `speed`/`new_speed` pair, the slot
+  table — was not needed: the *dump* said it, because the order kind, the
+  `PATHED` bit, the emptied path stack and the nine-entry world-grid plan
+  are all printed and only the position had ever been compared. Great
+  Lakes 6862 → **6982**, and the new word is
+  `Leader::produce_building+0x1805` against `Leader::make_stuff+0x221` —
+  an AI purchase, not a movement question.
 
-  Great Lakes' is named whole. The blocked unit is the AI's Archer `1/28`,
-  a **follower of the marching squad** `1/27`/`1/28`/`1/29`
-  (`docs/ORDERS.md` §15); the blocker is the standing citizen `1/13` at
-  `(42744, 24504)` — exactly where run18b's dump has it, so the blocker is
-  not in doubt. `1/28` stands on unit cell `(891, 513)`, its slot this
-  frame is `(42773, 24617)` on cell `(891, 512)`, `dy = −1` takes §4.2's
-  leading edge, and the row `y = 511` hits `(890, 511)`, a cell of `1/13`'s
-  block. `will_be_corner` NW against `is_corner` 0 → hard. Every step of
-  that is forced once the two blocks overlap, and they do overlap: **the
-  predicate is not what is wrong**. What the original has to be is
-  somewhere else, and the trace says by how much — its own first blocked
-  stand in that neighbourhood is at **6860, twelve frames later**, and
-  another at 6892.
-
-  East Indies 7448 is the same shape read from the other side. Five units
-  are moving there — `0/3`, `1/0`, `1/10`, `1/18`, `1/20`, none of them
-  within a thousand units of another — and **four of the five propose a
-  point inside their own unit cell**, where §4.1's gate 6 refuses the test
-  before it starts. Only `1/0`'s step and `1/10`'s `do_move` waypoint
-  probe cross a boundary at all, and both miss. So for the original to
-  spend two blocked stands on that frame at least two of its units must be
-  crossing a cell this crate's are not: a position again, and not a
-  predicate. (`1/18` lands on `x = 36480 = 760 × 48`, the boundary exactly,
-  and crosses on 7449.)
-
-  Twelve frames at 26 units a frame is ~330 units, about 1.7 tiles: the
-  squad marches slower there, or starts later, or walks a different line.
-  §15's own two seams are the candidates — the group's `speed`/`new_speed`
-  pair, which has no reader here, and `Group::update_positions`' slot
-  table — and neither can be told from the other without positions.
-
-  *Capture, owed and not run:* Great Lakes, `frames 6870`,
-  `frame_window 6640 6870`, `end: MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,
-  DEATHS=1,LEADERS=1` — run75's recipe with the window moved, opened
-  before `Army::do_forming` issues the group order on 6650 so the whole
-  march is on disk. `UNITS=3` writes each archer's position, `angle`,
-  `orders_x/y`, the `MOVEORDER`'s `dest`/`coll_x`/`coll_y` and the path
-  stack, and `collide_o`/`collide_who`/`collide_frame` say on which frame
-  the original's squad first refuses a step. It is stanza **run 76** in
-  `tools/gamelog/captures.txt`.
-
-  *It has not landed.* Two launches through `tools/gamelog/viadriver.sh`
-  both stalled in `waitwin.sh` with the game at 0 % CPU and no window,
-  and the reason is neither a permission nor the port: **CrossOver's
-  bottle licence has expired**, and the window `wineloader` is showing is
-  titled `Expired Bottle: ron`. The lane needs a human to renew or
-  re-activate CrossOver; nothing in the harness can. See
-  `docs/ORACLE.md`, "The window nobody can see".
+- **East Indies 7448 is still open, and it is a *position* and not a
+  predicate** (2026-09-04, queue item 223). Two `SITE_BLOCKED` the
+  original spends and this crate does not. Five units are moving there —
+  `0/3`, `1/0`, `1/10`, `1/18`, `1/20`, none of them within a thousand
+  units of another — and **four of the five propose a point inside their
+  own unit cell**, where §4.1's gate 6 refuses the test before it starts.
+  Only `1/0`'s step and `1/10`'s `do_move` waypoint probe cross a
+  boundary at all, and both miss. So for the original to spend two
+  blocked stands on that frame at least two of its units must be crossing
+  a cell this crate's are not: a position, and not a predicate. (`1/18`
+  lands on `x = 36480 = 760 × 48`, the boundary exactly, and crosses on
+  7449.)
 
 - **`ObjectType +0x2b4 & 0x2000`** — the "attack what you bump into" bit.
   Read as a flag, not traced to its XML column.

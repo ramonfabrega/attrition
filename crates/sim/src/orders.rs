@@ -2199,7 +2199,29 @@ impl Sim {
             self.ungroup_move_order(u, gm.id);
             return;
         }
-        self.unit_step(u, mo, v);
+        // 10. **The step's own answer is the formation's end condition**
+        //     (`5e856d`–`5e8660`). `move_step` returns 0 from exactly
+        //     three places — blocked and still owing a turn, blocked and
+        //     handed to `resolve_unit_collision`, and a tile the world
+        //     refused ([`Sim::unit_step`]) — and every one of them drops
+        //     the follower out of formation: the head order is re-read,
+        //     and unless the attack hand-off takes it the group move
+        //     degrades into N independent moves. It is the same tail the
+        //     leader takes off `do_move`'s 0 in
+        //     [`Sim::group_move_leader`], and `docs/ORDERS.md` §8.3 read
+        //     it as "arrived", which is the one thing a 0 never means:
+        //     arrival returns 1.
+        //
+        //     SEAM: the attack-context hand-off above it —
+        //     `Group::action_attack` for a `GROUP_ATTACK_TO` whose
+        //     `collide_o` is a valid target, `kill_current_order`
+        //     otherwise — is the leader arm's own seam and is not
+        //     modelled; no capture reaches it, because every collider in
+        //     the captures on disk belongs to the colliding unit's own
+        //     player.
+        if self.unit_step(u, mo, v) == Did::Nothing && self.still_group_move(u, gm.id) {
+            self.ungroup_move_order(u, gm.id);
+        }
     }
 
     /// `ObjectData::get_captain` — the head of `u`'s own squad, up the
@@ -2871,10 +2893,22 @@ impl Sim {
                 // `move_step` returns.
                 self.mark(crate::anim::SITE_BLOCKED);
                 self.set_default_anim(u);
+                // **The two arms `move_step` answers 0 from**
+                // (`005fb689` and `005fb6df`, the only `return 0`s the
+                // function has besides the tile refusal below). The value
+                // is not decoration: `do_group_move` reads it on **both**
+                // sides of the formation — the leader's through
+                // `do_move`, the follower's straight off `move_step` —
+                // and a zero ungroups the whole squad
+                // (`docs/ORDERS.md` §8.3). Answering `Did::Something`
+                // here kept run76's Archer squad in formation for the
+                // rest of its march where the original degrades it into
+                // three independent moves on the frame the leading
+                // Archer is squeezed onto its cell centre (item 236).
                 if step.owed != 0 {
                     let flags = self.current_order(u).map_or(0, |o| o.flags);
                     self.store_move(u, mo, flags);
-                    return Did::Something;
+                    return Did::Nothing;
                 }
                 let manh = dx.abs() + dy.abs();
                 let reach = self.profile(Obj::Unit(u)).big_radius
@@ -2890,7 +2924,7 @@ impl Sim {
                         let mo = self.current_move(u).expect("a move order");
                         self.store_move(u, mo, flags);
                     }
-                    return Did::Something;
+                    return Did::Nothing;
                 }
                 // Give up on reaching it exactly: the waypoint is close
                 // enough now.

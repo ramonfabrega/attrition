@@ -2879,8 +2879,20 @@ my slot, `group_angle`, `in_group`.
   heading disagrees: `v = get_speed(x, y, 0) / 2`. An invalid slot within
   `0x300` Manhattan may add a flock of birds (**one sync-stream draw**) and
   `ungroup`. **`move_step(this, G, v)`** — the seam into `docs/MOVEMENT.md`'s
-  unit step with the speed passed in. Arrived with the head still `G` →
-  `ungroup` (or the attack-context hand-off).
+  unit step with the speed passed in — and **its return value is the
+  formation's end condition**: `move_step` answers `0` from exactly three
+  places, all of them a step it did *not* take (blocked and still owing a
+  turn, blocked and handed to `resolve_unit_collision`, and a tile
+  `invalid_loc` refused), and on any of them the head order is re-read and
+  the squad `ungroup`s — or takes the attack-context hand-off, when the
+  action is `ATTACK`/`GROUP_ATTACK` or the order is `GROUP_ATTACK_TO`,
+  `collide != 0`, and `collide_o/collide_who` is a valid target
+  (`Group::action_attack` for a grouped `GROUP_ATTACK_TO`,
+  `kill_current_order` otherwise). **The first reading read that zero as
+  "arrived"**, which is the one thing it never means — arrival returns 1
+  — and it is struck: `docs/COLLISION.md` §5.3 has the three sites and
+  the run that pins them (item 236, 2026-09-06). The leader's tail off
+  `do_move`'s own 0, three bullets up, is the same tail.
 
 `ungroup_move_order@005fd140(id, sub)`: finds the group order with that `id`
 and **replaces it in place with a plain `MoveOrder`** (`GROUP_MOVE → MOVE_TO`,
@@ -4022,12 +4034,21 @@ step is 13 on exactly 6652 and 6655.
 
 **What it is worth.** All three Archers walk the original's own points from
 6652 to **6861**, and run53's word moved 6848 → **6862** — where the squad
-reaches `1/13` and the original spends the blocked stand
-(`Guy::set_anim+0x97a < Unit::move_step+0x823`) this crate does not. The
-first field to part is `1/29`'s position on 6861: the original gives it
-`tolerance 384` — `manh × 2`, `docs/COLLISION.md` §5's give-up — and steps
-it a full 26 to `(42968, 24407)` where this crate steps 22 to
-`(42971, 24409)`.
+reaches `1/13`.
+
+**And 6861 is the end of the formation, not a stand** (item 236,
+2026-09-06). What looked like a missing `Guy::set_anim+0x97a <
+Unit::move_step+0x823` was a squad that should no longer have existed:
+`1/28` is squeezed onto its own cell centre by `resolve_unit_collision`,
+`move_step` answers **0**, and §8.3's follower tail **ungroups** all
+three. `1/29`, processed after the ungroup in the same frame, plans a
+fresh nine-entry `find_wpath` path — 768 apart, `tolerance 384` — and
+steps the full 26 to `(42968, 24407)` where this crate, still in
+formation, stepped 22 to `(42971, 24409)`. The dump names every part of
+it: the order kind goes `GROUPATTACKTOORDER` → `ATTACKTOORDER` on 6861
+for all three, `1/28` loses `PATHED` and its whole path stack, and the
+leader keeps its stack and loses `dest`. Great Lakes 6862 → **6982**;
+`docs/COLLISION.md` §5.3.
 
 **And run79 is the second sample, taken the same day.** Great Lakes
 `[6910, 7250)`, the same game: a squad of three **Longbowmen** born at 6994

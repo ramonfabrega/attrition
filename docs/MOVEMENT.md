@@ -494,6 +494,14 @@ refusal returns 1. The unit therefore stands where it is, turns another
 frame's worth on the next one, and tries the step again from a bearing it
 has turned further round.
 
+**"Every other refusal" is two arms, not none**, and the zero is read
+rather than dropped: `005fb689` and `005fb6df` — blocked and still owing
+a turn, blocked and handed to `resolve_unit_collision` — answer 0 as
+well, and all three sites drop a formation out of its group move
+(`docs/COLLISION.md` §5.3, `docs/ORDERS.md` §8.3). The four world-bounds
+tests, `set_new_location` refusing, the arrival and the kill all answer
+1.
+
 The consequence is a **turn that costs more frames than the turn rate
 says**, and it is what East Indies' word parted on for one item. run65's
 caravan owes 38.9° on sim-frame 6206 — inside the 45° gate — so both the

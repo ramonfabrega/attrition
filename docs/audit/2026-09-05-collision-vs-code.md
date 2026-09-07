@@ -20,6 +20,10 @@ against the code either way and a row costs less than a miss.
 
 ### R1 — `find_upath`'s `anti` flag: the code drops half the predicate
 
+**Taken 2026-09-06, item 236.** The conjunction is in `collide_repath`
+now; no long word moved, and no capture has an attacking collider, so it
+stays reading-only. `docs/COLLISION.md` §8.1.
+
 | | |
 |---|---|
 | document | COLLISION.md §6 step 6, "`find_upath(anti = my action is ATTACK and its action is ATTACK)`" |
@@ -61,6 +65,10 @@ first conjunct and not the second, so it will plan an anti-unit path in
 every case where the document (and the original) plan a plain one.
 
 ### R2 — §6 step 4's sidestep has no `domain == 0` gate in the code
+
+**Taken 2026-09-06, item 236.** The gate is on `Sim::resolve_unit_collision`'s
+step 4 now; no long word moved, and no capture collides two boats, so it
+stays reading-only. `docs/COLLISION.md` §8.1.
 
 | | |
 |---|---|

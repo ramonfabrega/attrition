@@ -16729,3 +16729,80 @@ under a new queue rule; the memory focus is closed with 235; `att-audit`
 stays held until the headline sits two sessions. The one thing the seat
 found that nobody had asked: the wave's product was stranded in
 `docs/audit/`, a directory the loop never reads.
+
+## 2026-09-06 — item 236: the stand was a squad that should not have existed (Opus, worker)
+
+Booked as Great Lakes' nearest divergence: at 6862 the original spends a
+`Guy::set_anim+0x97a < Unit::move_step+0x823` — the blocked walker's
+stand — where this crate spends none, and the brief named the seam as
+`move_step`'s collision block, `docs/COLLISION.md` §5, with the give-up
+tolerance and the arrival test as the two arms to read. It also said not
+to take that as a verdict. It was right not to.
+
+**The dump answered before any reading.** run76 is already on disk and
+covers `[6640, 6870)` whole, so the first move was `grep`, not Ghidra:
+pull unit `1/29`'s record for 6856–6866 and print every field, not the
+position. Three rows said it at once. On 6861 the unit's `tolerance` goes
+0 → 384 — but so does *every entry of its path stack*, and the stack goes
+from two entries to **nine, 768 apart**, which is `find_wpath`'s grid and
+not a widened tolerance at all. `path_recursion` goes 0 → 1. And the
+order's own header changes: `BEGIN GROUPATTACKTOORDER` becomes
+`BEGIN ATTACKTOORDER`, and the `GROUPORDER` block under it is gone.
+
+The other two Archers say the same thing from the other side. `1/28`
+loses `PATHED` (flags 5 → 4) and its whole path stack on 6861; the leader
+`1/27` keeps its ten-entry stack and loses `dest`. That is
+`ungroup_move_order` field for field: the leader keeps its plan, every
+subordinate loses the pathed bit and its path, and all of them lose the
+waypoint. **On 6861 the original dissolves the squad**, and the stand
+this crate did not spend on 6862 was the stand of a follower still
+walking a formation that no longer existed.
+
+**What fires it.** `Unit::move_step@005faf30` answers `1` almost
+everywhere and `0` from exactly three places: blocked and still owing a
+turn (`005fb689`), blocked and handed to `resolve_unit_collision`
+(`005fb6df`), and the tile refusal `docs/MOVEMENT.md` already had
+(`005fb7c1`). `Unit::do_group_move@005e79a0` reads that zero on **both**
+sides of a formation — the leader's through `do_move`, which this crate
+already modelled, and a **follower's straight off `move_step`** at
+`5e856d`, which it did not — and either way re-reads the head order and
+ungroups. `1/28` is squeezed onto its own cell centre `(42792, 24648)` by
+step 6's snap on 6861; that is the zero. `1/29`, processed after the
+ungroup in the same frame, plans on the world grid and steps the full 26
+to `(42968, 24407)` where this crate, still in formation, stepped 22.
+
+Two lines of code. `Sim::unit_step`'s two collision arms answer
+`Did::Nothing` instead of `Did::Something` — the value `move_step`
+answers — and `Sim::group_move_follower` reads the return of its
+`unit_step` and ungroups, the same tail `Sim::group_move_leader` already
+took off `do_move`. **Great Lakes' long word 6862 → 6982**, and the new
+one is `Leader::produce_building+0x1805` against
+`Leader::make_stuff+0x221`: the AI buys a building here that the original
+does not, which is the 6782 row's shape again and an economy question
+rather than a movement one.
+
+**The assertion, made to fail first.** run76's window now pins the
+ungroup rather than the three positions: from 6861 to the end of the
+capture the squad has **no order or path divergence at all** — the
+nine-entry plan each Archer builds for itself, its `tolerance 384` rows,
+the `PATHED` bit two of them lose, the waypoints and the `coll_x/coll_y`
+that follow. With the follower's read removed it fails on six rows at
+6861, the first of them the leader's `dest`.
+
+**What the run does not back**, and it is written into §8: the
+attack-context hand-off above the ungroup — `Group::action_attack` for a
+grouped `GROUP_ATTACK_TO` whose `collide_o` is a valid target — is
+unreached, because every collider in every capture on disk belongs to the
+colliding unit's own player. It stays a seam, and it is the leader arm's
+own seam already.
+
+**Two things worth carrying.** The document was wrong where it mattered
+and the wrongness was invisible: `docs/ORDERS.md` §8.3 read `move_step`'s
+zero as "arrived", which is the one thing it never means — arrival
+returns 1 — and no test could catch a misreading of a value nothing read.
+Struck and replaced. And the comparison's own `Kind` row was no oracle
+here: this crate calls a group attack-move `ATTACK_TO` with a `group`
+beside it where the dump writes `GROUPATTACKTOORDER`, so ours reads 2 on
+every frame of the march and the rows mark the frames the *original* is
+grouped, whatever this crate does. Six hundred and thirty of them ran
+through the march and told nobody anything.
