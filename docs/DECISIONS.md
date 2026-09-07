@@ -1507,6 +1507,19 @@ short "done" message** — the report stays where it is, and the ping is one
 line on top of it; a worker that only writes its own transcript has told
 nobody. The user proposed this three times before the fourth failure made
 it unarguable, which is its own lesson about whose signal to trust.
+
+**The ping is the wake; refs are the evidence.** An earlier draft of this
+note said the worker's message *is* the completion signal, and that
+overstates it in exactly the direction that nearly bought a bad merge: the
+message is what makes the commander look, and `git log <base>..<branch>` is
+what makes it true. ccc built the other half the same day — a `landed` event
+keyed on the branch tip rather than on daemon state, so it fires for a
+session that never leaves `working` — which covers the git-shaped part
+without the worker having to remember anything. It covers **only** that
+part: a capture whose product is a log outside the repo, or a reading whose
+product is a document section, lands nothing a ref can see. So the ping
+stays unconditional rather than "unless the detector covers you", because a
+worker cannot reliably tell which case it is in.
 Two earlier attempts failed the same way — a hand-rolled `ccc list --json`
 poller that exited 0 with no output, and a `ccc watch | grep <name>` whose
 filter matched other repos' sessions and then the commander's own status
