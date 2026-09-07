@@ -91,6 +91,12 @@ grouped order records no test windows** — run79's 453, run31's 945.
     (CITIES §5). (232) `Levels::for_player` ignores its player, answering
     a constant whose `taxation` is 0 (ECONOMY, audit R8).
 
+265. **`1/2007`'s city `free` reads −1 here against 255 there** — a width
+    or sign difference, and it read `ours 0` until the Tower finished, so
+    261's widening is what surfaced it. Found by a worker who said plainly
+    it was not its own row; unbooked findings are how items die. Cheap:
+    the field's type in the parser and in `city.rs`, and a value diff.
+
 **The widening ledger** (87, DATALAYER §4, §4.1): **19** fields the
 harness names nowhere, **44** one capture names; blind spot `avg_speed`
 (210) — it counts *fields* and cannot see a record the parser never
