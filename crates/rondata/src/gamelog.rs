@@ -1266,6 +1266,20 @@ pub struct BuildDump {
     /// as gathering here, by object number, `−1` for none
     /// (`docs/ORDERS.md` §6.1). Written at **`BUILDS=1`**.
     pub gather_down: Option<i64>,
+    /// **The construction clock**, `WallData`'s own three — the block one
+    /// level in from `BUILDDATA`, beside `gpiece` and `frame_started`.
+    /// `job_counter` climbs in hundredths of a frame towards
+    /// `constr_time`, which `Wall::update_construct_time@0063d560` bakes
+    /// from the type's `job_time × 100` and the owner's nation, wonder,
+    /// rare and tech modifiers (`docs/CITIES.md` §3.2). Written from
+    /// **`BUILDS=1`**, parsed and compared nowhere until item 261 — where
+    /// the original's Tower read **90909** against this crate's 100000
+    /// for four hundred frames.
+    pub job_counter: Option<i64>,
+    pub constr_time: Option<i64>,
+    /// `WallData::construct_hits` — the hit points the site has been
+    /// raised to, logged as `(int)construct_hits`.
+    pub construct_hits: Option<i64>,
     /// `BuildData::queued` (`+0x82`) — how many entries of the queue are
     /// live. Written from **`BUILDS=1`**; `None` below it.
     pub queued: Option<i64>,
@@ -2176,6 +2190,7 @@ fn unit_of(b: Block<'_>) -> Option<UnitDump> {
 
 fn build_of(b: Block<'_>) -> Option<BuildDump> {
     let (flags, o, who, pos) = object_base(b)?;
+    let wall = b.kid("WALLDATA");
     // The mining list, pair by pair in file order. `Block` keeps fields in
     // the order they were written, so a `ty` is the partner of the `tx`
     // before it; anything else between them would mean the shape changed.
@@ -2209,6 +2224,12 @@ fn build_of(b: Block<'_>) -> Option<BuildDump> {
         mtn: b.int("mtn"),
         cliff: b.int("cliff"),
         gather_down: b.int("gather_down"),
+        // The clock lives on the `WALLDATA` block, one level in from
+        // `BUILDDATA` — `kid`, not `find`, because only the direct child
+        // is the building's own.
+        job_counter: wall.and_then(|w| w.int("job_counter")),
+        constr_time: wall.and_then(|w| w.int("constr_time")),
+        construct_hits: wall.and_then(|w| w.int("(int)construct_hits")),
         queued: b.int("queued"),
         queue: b.kid("BUILDQUEUE").map(queue_of).unwrap_or_default(),
     })

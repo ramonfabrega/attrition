@@ -138,6 +138,17 @@ pub const FISH: usize = 6;
 /// second of the two `LeaderData::calc_rare` treats as a **fisherman's**
 /// rather than a merchant's.
 pub const WHALES: usize = 31;
+/// `TypeIndex::TOBACCO` — the rare `Wall::update_construct_time` reads.
+///
+/// `0063d560:32` tests `LeaderData +0x6da5 & 0x20` **or** `+0x6dcd &
+/// 0x20`, the two rare masks, and divides the construction clock by
+/// `(tobacco_building_speed + 100) / 100`. Byte 1 bit 5 of the mask is bit
+/// `19 - `[`BASE_RARE`]` = 13`, and the same byte's bit 7 is Furs
+/// (`docs/VISION.md` §1's `+0x6da5 & 0x80`), so the two anchors agree; the
+/// second field is `rare_conquest`, which this crate keeps unioned into
+/// [`Ledger::rare`] already ([`crate::Sim::has_rare`]).
+pub const TOBACCO: usize = 19;
+
 /// `TypeIndex::GEMS` — the one rare the **border** table reads.
 ///
 /// `World::compute_reg_territory@006b0bb0`'s flat-bonus arm is an inlined

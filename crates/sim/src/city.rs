@@ -49,11 +49,12 @@ pub struct Nation {
     pub taj_mahal: bool,
     pub red_fort: bool,
     pub tikal: bool,
-    /// The Tobacco rare; `BUILDINGS_CREATED_FASTER`;
-    /// `GLOBAL_GOVERNMENT_BONUS`. `COLONIZE_BONUS` was here too until
-    /// 2026-09-02 and is not a nation's at all — it is a technology's
-    /// prerequisite, and lives in `Roles::colonize_preq`.
-    pub tobacco: bool,
+    /// `BUILDINGS_CREATED_FASTER`; `GLOBAL_GOVERNMENT_BONUS`.
+    /// `COLONIZE_BONUS` was here too until 2026-09-02 and is not a
+    /// nation's at all — it is a technology's prerequisite, and lives in
+    /// `Roles::colonize_preq`. **The Tobacco rare left on 2026-09-07**
+    /// (item 261): it is not a nation flag at all, nothing ever wrote this
+    /// field, and the clock reads [`crate::Sim::has_rare`] now.
     pub created_faster: bool,
     pub global_government: bool,
     /// `get_building_speed_upgrade`, `get_building_hp_upgrade`, 0..3.
@@ -98,7 +99,6 @@ impl Default for Nation {
             taj_mahal: false,
             red_fort: false,
             tikal: false,
-            tobacco: false,
             created_faster: false,
             global_government: false,
             speed_upgrade: 0,
@@ -1130,7 +1130,16 @@ impl Sim {
             maya: n.maya,
             created_faster: n.created_faster,
             versailles: n.versailles,
-            tobacco: n.tobacco,
+            // **The rare, not a nation flag** — `Nation::tobacco` was
+            // never written by anything, so this term was dead until item
+            // 261. Great Lakes' AI collects Tobacco before it places its
+            // Tower, and the original's `constr_time` for that Tower is
+            // **90909** where `job_time * 100` is 100000: exactly
+            // `× 100 / (10 + 100)`. Every earlier building of the same
+            // game carries a round number, because the clock is baked at
+            // placement and re-baked only for the **unfinished**
+            // (`calc_wall_stats`).
+            tobacco: self.has_rare(who, crate::economy::TOBACCO),
             british: n.british,
             dutch: n.dutch,
             romans: n.romans,

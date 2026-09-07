@@ -507,7 +507,10 @@ mod tests {
         for &(who, o, frame, field, ours, theirs) in &first {
             eprintln!("  {who}/{o} from f{frame}: {field} ours {ours} theirs {theirs}");
         }
-        assert_eq!(seen, 92_626, "two fields on every linked building-frame");
+        assert_eq!(
+            seen, 140_491,
+            "the site and the clock on every linked building-frame"
+        );
         // **Every building of both players stands on the original's own
         // point for all 3,000 frames** — the pre-placed ones, the farms
         // and the second city this crate sites itself, the camp of item
@@ -3329,5 +3332,127 @@ mod tests {
         }
         got.sort_unstable();
         assert_eq!(got, vec![(0, 82, 7), (1, 61, 5)], "the camps' slot counts");
+    }
+
+    /// **The Tobacco rare on the Tower's clock — Great Lakes 7176 →
+    /// 7455** (2026-09-07, item 261).
+    ///
+    /// The value diff beside the word. Great Lakes' AI places a Tower
+    /// `1/2017` on frame 6494 and the original's `constr_time` for it
+    /// reads the type's own `job_time × 100` — **100000** — through frame
+    /// 6751, and **90909** from **6752** to the end of the game: exactly
+    /// `× 100 / (TOBACCO_BUILDING_SPEED + 100)` with the constant at 10.
+    /// 6751 is the frame this crate's own `rare_owned` gains bit
+    /// `19 − BASE_RARE = 13`, so the rare arrives here on the original's
+    /// frame and the *bake* is what was missing: `Leader::gather@006ce280`
+    /// raises **`0xc000000`** when the mask moves — the unit-stats flag
+    /// and the **wall-stats** one — and this crate raised only the first,
+    /// so `Wall::update_construct_time` never ran again and the Tower
+    /// carried 100000 for four hundred frames.
+    ///
+    /// The consequence is the word: the site finishes when `job_counter`
+    /// (150 a frame) passes `constr_time`, so the original's finishes on
+    /// **7176** — `job_counter` 90800 → 0, `construct_hits` 749 → 750,
+    /// `flags` 3 → 7 — its builder `1/20` drops its `BUILDORDER` and goes
+    /// `idle 1` the frame after, and that idle is the
+    /// `Guy::set_anim+0x97a < Unit::do_idle+0x7d` draw the crate did not
+    /// spend. Great Lakes' long word had sat at 7176 for exactly this.
+    ///
+    /// Both halves are asserted: the original's own record, read straight
+    /// off two dumps so that nothing this crate does can move it, and
+    /// this crate's agreement with it frame for frame. `constr_time` and
+    /// `job_counter` are compared on **every** capture now
+    /// (`crate::diff::compare`), so this test is the dated statement and
+    /// the harness is the guard.
+    #[test]
+    fn run76_and_run79_date_the_tobacco_rare_on_the_tower_s_clock() {
+        let Some(inst) = install() else { return };
+        let (Some(r76), Some(r79), Some(tr)) = (
+            dump("gamelog-run76-greatlakes-archermarch.txt"),
+            dump("gamelog-run79-greatlakes-secondsquad.txt"),
+            trace("rontrace-run79.log"),
+        ) else {
+            eprintln!("skipping: no run76/run79 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let t76 = std::fs::read_to_string(&r76).unwrap();
+        let t79 = std::fs::read_to_string(&r79).unwrap();
+        let l76 = Log::parse(&t76);
+        let l79 = Log::parse(&t79);
+
+        // ---- the original's own record, off the disk ----
+        let tower = |log: &Log| -> Vec<(i64, i64, i64, i64)> {
+            log.frame_states()
+                .into_iter()
+                .filter_map(|f| {
+                    let b = f.builds.iter().find(|b| b.who == 1 && b.o == 2017)?;
+                    Some((f.n, b.constr_time?, b.job_counter?, b.flags))
+                })
+                .collect()
+        };
+        let early = tower(&l76);
+        let late = tower(&l79);
+        assert!(
+            early.len() >= 220 && late.len() >= 330,
+            "run76 gives {} Tower blocks and run79 {} — the wrong files",
+            early.len(),
+            late.len()
+        );
+        // The transition, to the frame: the last 100000 and the first
+        // 90909 are consecutive blocks, and 6752 is the second.
+        let baked = early
+            .iter()
+            .find(|&&(_, ct, _, _)| ct == 90_909)
+            .map(|&(n, _, _, _)| n);
+        assert_eq!(baked, Some(6752), "run76 dates the re-bake: {early:?}");
+        assert!(
+            early
+                .iter()
+                .all(|&(n, ct, _, _)| ct == if n < 6752 { 100_000 } else { 90_909 }),
+            "run76's Tower clock is 100000 then 90909 and nothing else"
+        );
+        assert!(
+            late.iter().all(|&(_, ct, _, _)| ct == 90_909),
+            "run79's Tower clock holds the baked 90909 to the end"
+        );
+        // And the completion: `job_counter` climbs 150 a frame to 90800
+        // and is zeroed on 7176, where `flags` takes the `4` bit.
+        let done = late
+            .iter()
+            .find(|&&(_, _, _, flags)| flags & 4 != 0)
+            .map(|&(n, _, jc, _)| (n, jc));
+        assert_eq!(done, Some((7176, 0)), "run79 dates the Tower's finish");
+        let before = late
+            .iter()
+            .find(|&&(n, _, _, _)| n == 7175)
+            .map(|&(_, _, jc, _)| jc);
+        assert_eq!(before, Some(90_800), "the last block before the finish");
+
+        // ---- and this crate, frame for frame ----
+        let loaded = crate::load::load(&inst).unwrap();
+        let texts = sibling_texts();
+        let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
+        let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+        let refs: Vec<&Initial> = inits.iter().collect();
+        let report = run_traced(&loaded, &l79, Tuning::RON, None, None, &refs, Some(&tr)).unwrap();
+        let clock: Vec<&BuildDivergence> = report
+            .frames
+            .iter()
+            .flat_map(|f| f.build_diverged.iter())
+            .filter(|d| d.field == "constr_time" || d.field == "job_counter")
+            .collect();
+        assert!(
+            clock.is_empty(),
+            "the construction clock parted on {} of run79's building rows, \
+             first eight: {:?}",
+            clock.len(),
+            &clock[..clock.len().min(8)]
+        );
+        let compared: usize = report.frames.iter().map(|f| f.build_compared).sum();
+        assert!(
+            compared >= 16_000,
+            "run79's building rows: {compared} — a capture without BUILDDATA \
+             would pass this test saying nothing"
+        );
     }
 }

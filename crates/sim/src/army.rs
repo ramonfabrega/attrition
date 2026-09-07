@@ -278,9 +278,21 @@ impl Sim {
 
     // ---- membership and the counts (§3) ----
 
-    /// `UnitData::is_captain`: `o_up < 0`, a unit inside nothing.
+    /// `UnitData::is_captain@0046ceb0`: **`o_up < 0`** and nothing else —
+    /// the head of its own uber squad ([`Unit::captain`]). It is not a
+    /// test of where the unit is: `Group::get_num_cap@007145c0` gates on
+    /// the object being *active* and calls this through vslot `0xe8`, and
+    /// the garrison chain the record prints beside it (`inside_up`,
+    /// `ObjectData`) is a different chain from this one (`o_up`,
+    /// `UnitData` — `docs/ORACLE.md`, run79).
+    ///
+    /// It read `on_map && inside.is_none()` until item 261, which made
+    /// every figure of a three-figure squad a captain: Great Lakes'
+    /// army held six units and counted six, where the original counts
+    /// **two** — one per squad — and `release_mustering`'s `n < 5`
+    /// therefore kept it mustering (`docs/ARMY.md` §3.3, §7).
     pub(crate) fn is_captain(&self, u: usize) -> bool {
-        self.units[u].on_map && self.units[u].inside.is_none()
+        self.units[u].captain
     }
 
     /// `is(SUPPLYWAGON)` as the sim can test it (see [`seams`]).
