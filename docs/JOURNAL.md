@@ -18491,3 +18491,76 @@ where nothing happened.
 fixed, and the handoff says so. What the run leaves is two successors, both
 movement and formation rather than collision: `1/35`'s step size on 7253, and
 the six-slot assignment at the army's 7418 tick.
+
+## 2026-09-07 — item 265: `CityData::free` is a byte, and it wraps (no word moved, Opus, worker)
+
+Item 261's widening of run79 turned up one row its author flagged as not its
+own: `1/2007`'s city `free` read **−1 here against 255 there**, from frame
+7183 to the end of the window. −1 against 255 is a width or a sign, and the
+brief was to find out *which side* was wrong before changing either, because
+a parser that mis-reads the dump and a sim field of the wrong width have
+opposite fixes.
+
+**The parser was right and the simulation was wrong**, and three independent
+things say so. The type record: `struct CityData +0x5a` is a **`uchar`**, and
+a name is settled there and not by the surrounding code. The dump: `log_data`
+prints `255`, which a `char` could not do — the widening is a zero extension,
+so the field is unsigned. And the writers: `Leader::plan_strategy@006b9620`
+`:839` and `Leader::produce_building@006e1400:1145` are each a bare
+`*pcVar1 = *pcVar1 ± 1` on a single byte with **no clamp**, six lines from a
+`space[]` loop in the same function that clamps at zero explicitly — so the
+absence next door is the original's shape rather than the decompiler's. The
+parser reads the printed integer and had nothing to do with it;
+`rondata`'s `CityDump::free` was already faithful.
+
+So `ai::CityAi::free` is a `u8` with `wrapping_sub`/`wrapping_add`, and its
+five readers take `i32::from`. `busy` and the ten counters under it are the
+same width in the original and are still `i32` here — named, not fixed, per
+the brief: one row does not license a family.
+
+**Diff-backed, and made to fail first.** The assertion is inside
+`run79_s_window_is_every_unit_s_whole_record`, which excludes the rest of the
+`CITY` record; on the old code it fired on **67 city-frames**, `f7183 1/2007
+free -1 v 255` the first. The wrap lands on the *same frame* on both sides,
+which is what says this was only ever a width and never a timing difference.
+
+**What moved, measured across four walks.** Nothing at the headline: Great
+Lakes 24,001 is identical in all seven counts before and after (85 compared,
+75 off, 2 unlinked, 0 extra, builds 0/14, cities 3/0), and both words hold —
+Great Lakes 7455, East Indies 7529. `city_unlinked` and `city_diverged` are
+**3/0, 3/0, 3/0, 4/0** on the endpoint and the two rungs before the change and
+after it; the `CITY` record's own counts never moved. What did move is the two
+rungs and one building count:
+
+| row | before | after |
+| --- | --- | --- |
+| EastIndies 24001 | build_diverged 33 | **32** |
+| EastIndies C 15401 | off 45, extra 24 | **off 46, extra 20** |
+| EastIndies B 16489 | extra 33 | **27** |
+
+Ten fewer units this crate has that the original does not, one more unit
+standing somewhere else, one building field-row fewer — 7,872 and
+8,960 frames past the word, which is exactly the reshuffle the entry three
+above this one describes. Re-pinned under that entry's precedent, with the
+reason on each row. East Indies' own `off 80 → 79` and `extra 11 → 10` are
+**not** this item's; they were already standing when the session opened, and
+are left at their looser pins rather than claimed.
+
+The value of the fix is not on the scoreboard. `free` had been compared on
+run58's 5,201 frames since item 154 and agreed on every one, because no game
+on disk had decremented it at zero before run79 did. The consumers that
+*add* the counter rather than test it against zero — `find_gather_spot`'s
+"fewer than two citizens", `create_units` and `create_buildings`' `free +
+busy` against a city's slots — were seeing 9 where the original saw 265.
+
+**The axis is the finding.** The widening ledger counts fields the differ
+never *names*; item 252 found the second axis, records the parser never
+*visits*. This is a third: a field parsed, named, and compared on every frame
+of every capture, and still wrong because this crate holds it in a type the
+original does not. Both existing lists count names, and a name says nothing
+about a width. `docs/DATALAYER.md` §4.2 carries it and **item 269** books it;
+`docs/CITIES.md` §5.8 is the field's own evidence; `docs/AI.md` §31 is the
+census's copy, because §2 is at its size pin to the byte.
+
+Gate: 240 rondata release tests green, peak 14,392 MiB of 20 GiB at the
+pinned two threads; 817 sim; `rondata -- <install>` zero.

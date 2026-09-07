@@ -1158,6 +1158,49 @@ both of the AI's cities on all 5,201 frames:
 Before this the record was read four fields deep (`x`, `y`, `pop`, `who`)
 and compared only at frame 1 of one capture.
 
+### 5.8 `free` is a byte, and it wraps (2026-09-07)
+
+`CityData +0x5a free` is a **`uchar`** in the type record, and both of its
+writers are a bare byte `±1` with no clamp: `Leader::plan_strategy@006b9620`
+`:839` increments it for every citizen of the city the sweep finds idle
+(`docs/AI.md` §2.3 step 10), and `Leader::produce_building@006e1400:1145`
+decrements it when the builder it chose came off the free peasants rather
+than the gatherers (§2.20). So a decrement at zero lands on **255**.
+
+Three things say that is the original's shape rather than the decompiler's.
+The `space[]` loop six lines above the second writer *does* clamp — `iVar13
+= *(byte *)(iVar23 + 0x67 + iVar12) - 1; if (iVar13 < 0) iVar13 = 0;` —
+so the absence next to it is deliberate. `log_data` prints **255** and not
+−1, which is a zero extension and so a `uchar`. And the one consumer that
+reads the counter back rather than testing it against zero,
+`Unit::find_gather_spot@005f5170:116`, widens it the same way:
+`(uint)*(byte *)(iVar7 + 0x5a)`.
+
+**Diff-backed.** run79's `1/2007` wraps on frame **7183** — the same frame
+this crate's own decrement fires, so this was a width and never a timing
+difference — and read `-1` here against `255` there on all 67 frames to the
+end of the window, until `ai::CityAi::free` became a `u8`. The assertion is
+in `run79_s_window_is_every_unit_s_whole_record`, which excludes the rest of
+the `CITY` record; it was made to fail on those 67 rows first.
+
+The consumers this moves are the ones that add the counter rather than test
+it: `find_gather_spot`'s "fewer than two citizens" gate (`free + gatherers`),
+and `create_units`/`create_buildings`' `free + busy` against the city's
+slots. Every one of them saw 9 where the original saw 265.
+
+**The rest of the record is the same width and is not yet.** `busy`,
+`gatherers`, `ocean`, `land`, `filled`, `bordering`, `ocean_filled`,
+`dock_tile`, `space[3]` and `ter[6]` are all `uchar` at `+0x5b`–`+0x71` and
+all `i32` in `ai::CityAi`, and `pop` at `+0x5d` is one on `sim::City`;
+`gatherers` has a bare byte decrement of its own at
+`produce_building@006e1400:1135`. No capture on disk shows one of them
+wrapping — `docs/DATALAYER.md` §4.2 carries the row.
+
+The two `free + busy` consumers above are also the fourth reading of the
+width, taken from the other end: `create_buildings@006c1be0:1606` widens
+`+0x5a` with `(uint)` before it adds `+0x5b` to it, and
+`create_units@006c40a0:1209` does the same. Four sites, one answer.
+
 ---
 
 ## 6. Garrisons

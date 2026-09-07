@@ -602,7 +602,7 @@ impl Sim {
             }
             if let Some((c, dist)) = found {
                 let rec = &mut self.ai[w].city_ai[c];
-                rec.free += 1;
+                rec.free = rec.free.wrapping_add(1);
                 rec.peasant_dist = rec.peasant_dist.min(dist / CELL);
             }
             return;

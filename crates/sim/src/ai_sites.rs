@@ -1193,7 +1193,8 @@ impl Sim {
             if gatherer {
                 self.ai[w].city_ai[ci].gatherers -= 1;
             } else {
-                self.ai[w].city_ai[ci].free -= 1;
+                let f = &mut self.ai[w].city_ai[ci].free;
+                *f = f.wrapping_sub(1);
             }
         }
         let census = &mut self.ai[w].census;

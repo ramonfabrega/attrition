@@ -863,7 +863,8 @@ impl Sim {
             } else {
                 leader.census.free_peasants -= 1;
                 if let Some(c) = city {
-                    leader.city_ai[c].free -= 1;
+                    let f = &mut leader.city_ai[c].free;
+                    *f = f.wrapping_sub(1);
                 }
                 if let Some(r) = reg
                     && let Some(v) = leader.census.reg_free_peasants.get_mut(r)

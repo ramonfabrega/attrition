@@ -12,36 +12,36 @@ each section's non-item prose pinned and falling only.
 
 ## Where things stand
 
-*2026-09-07, Opus commanding (DECISIONS 34) — 258 and 261 landed, 233 is
-out, and the reap found three items the crash had eaten.*
+*2026-09-07, Opus commanding (DECISIONS 34) — five landings, one word, and
+the loop stopped itself on the rule rather than on a wall.*
 
-- **Great Lakes 7455** (leads, +279 on item 261): the widening parted the
-  *field* diff at **7163**, ahead of the draw stream and on all six
-  soldiers — `is_captain` is `o_up < 0`, this crate counted six captains
-  against two, and the muster marched early. 7176 was Tobacco's re-bake
-  never raising the wall-stats flag: `constr_time` 100000 v 90909.
-  **East Indies holds at 7529.**
-- **258's endpoint fired on the first item to land after it**, falsifying
-  the claim it was booked on: 261's diff-backed fixes moved Great Lakes'
-  `off` **73 → 75** while `unlinked` fell 7 → 2, and both rungs' `extra`
-  rose. At 24001 the streams parted 16,500 frames ago, so `off` counts
-  reshuffle. Re-pinned; **whether a count past the word may assert at all
-  is a steer question.**
-- **Three items the crash ate are back.** `loop-234`'s tree held 406
-  uncommitted lines no branch carried; `8b37e5f` deleted 230–234 and two of
-  the five had landed. 232/233/234 re-booked, work on `rescue-234`, audit
-  in `docs/audit/queue-ledger.md`. **A branch check cannot see a dirty
-  tree** — ccc holds that half as their item 32.
-- **The queue is bounded by items** (262, 263, DECISIONS 35): 18 at 8 lines,
-  sections pinned, backlog parked. `memcap.sh` wanted its exec bit.
+- **Great Lakes 7455** (leads, +279 on 261): `is_captain` is `o_up < 0`,
+  and this crate counted six captains against two so the muster marched
+  early; 7176 was Tobacco's re-bake never raising the wall-stats flag,
+  `constr_time` 100000 v 90909. **East Indies holds at 7529.**
+- **The word's own frame is not the defect** (264/run87): the original
+  stands nothing at 7455 and its three `collide_frame` stamps are ours. The
+  cause is **202 frames upstream** — `1/35`'s y-step on 7253, and four of
+  six soldiers on wrong waypoints at 7418. **267, and run87 paid for it.**
+- **Both words sit in capture gaps** (266), so score-bearing work queues
+  behind one screen. Batch the lane rather than one capture per item.
+- **The endpoint ratchet fires and re-pins under its own precedent**: 261
+  moved Great Lakes `off` 73 → 75 with `unlinked` 7 → 2; 265 moved East
+  Indies `build_diverged` 33 → 32 and both rungs' `extra` down ten. Past
+  the word, `off` counts reshuffle — **whether it may assert at all is a
+  steer question**, and the rule it overturned now has evidence.
+- **Three items the crash ate are back** (232/233/234, ledger in
+  `docs/audit/`); the queue is bounded by **items** (262/263, DECISIONS 35);
+  a worker reports and the commander books, after two collisions in a day.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w7529 of 24,000 · GreatLakes w7455 of 24,000
 Endpoint 24001: EastIndies 80 off, 0 unlinked · GreatLakes 75 off, 2 unlinked
 
-**Opener: commander on Opus (DECISIONS 34). Merge 233, gate, file. Then the
-headline is Great Lakes 7455 — widen run79 past 7163 the way 261 did, the
-field diff ahead of the draw stream, with 234's two assertions beside it.**
+**Opener: commander on Opus (DECISIONS 34). 267 is the item — run87 is on
+disk and the cause is named, so it is a diff, not a capture. The stopping
+rule fired at three no-word landings and the reason is 266; ask before
+booking another lane.**
 
 ## The queue
 
@@ -85,12 +85,6 @@ grouped order records no test windows** — run79's 453, run31's 945.
     turning types are in neither scored game). Takes the ledger's nine
     `unverified` rows on the way.
 
-265. **`1/2007`'s city `free` reads −1 here against 255 there** — a width
-    or sign difference, and it read `ours 0` until the Tower finished, so
-    261's widening is what surfaced it. Found by a worker who said plainly
-    it was not its own row; unbooked findings are how items die. Cheap:
-    the field's type in the parser and in `city.rs`, and a value diff.
-
 266. **Both words are in capture gaps, so the score is single-threaded
     through the screen.** Great Lakes 7455 is past run79's 7250, the only
     archive with any block in 7200–7699; East Indies 7529 sits in the
@@ -105,6 +99,15 @@ harness names nowhere, **44** one capture names; blind spot `avg_speed`
 visits, which is what hid 252's dumps. Uncounted: (88) the blind list, 101
 of 617; (72) every `+0xNN` a document pins vs its module; (89) the guard;
 (35) VISION §7.
+
+269. **The third axis: a field compared at the wrong width** (DATALAYER
+    §4.2, from 265). Ten `CityData` counters are `uchar` in the type record
+    and `i32` in `ai::CityAi` — `busy` and `gatherers` have bare byte
+    writers of their own — and `pop` is an eleventh on `sim::City`. None
+    has been seen to wrap; the falsifier is a capture where the sweep's
+    count and the producers' decrements cross zero. Same question one
+    record up, for every `char`/`short` of `LeaderData` held as an `i32`.
+    A guard wants the PDB's widths beside the sim's structs, not a grep.
 
 257. **Nineteen kept tests compare a torn block** (252): a closing dump is
     frame n but for the one unit the quit caught mid-update, and every

@@ -789,6 +789,35 @@ record the parser never visits**, the same way it cannot see a field the
 parser never parses (its own blind spot, above). Both are found by walking
 what the original writes, not by walking what this crate reads.
 
+### 4.2 The third axis: the field is compared, at the wrong width (2026-09-07)
+
+A field can be on neither list — parsed, named, compared on every frame of
+every capture — and still be wrong, because this crate holds it in a type
+the original does not. Both lists count *names*, and a name says nothing
+about a width.
+
+`CityData::free` is the case that found the axis (item 265). It is a `uchar`
+at `+0x5a` whose two writers are a bare byte `±1` with no clamp, so the
+original's counter wraps 0 → 255 where this crate's `i32` went to −1
+(`docs/CITIES.md` §5.8). It had been compared on run58's 5,201 frames since
+item 154 and agreed on every one of them, because no game on disk had ever
+decremented it at zero until run79 did on frame 7183.
+
+**The booked row.** Ten fields of the same record are `uchar` in the type
+record and `i32` in `ai::CityAi` — `busy`, `gatherers`, `ocean`, `land`,
+`filled`, `bordering`, `ocean_filled`, `dock_tile`, `space[3]`, `ter[6]` —
+`pop` at `+0x5d` is an eleventh on `sim::City`, and `gatherers` has a bare
+byte decrement of its own
+(`Leader::produce_building@006e1400:1135`). None has been seen to wrap on
+any capture on disk, so none was fixed on the strength of `free`'s row; the
+falsifier for each is a capture where the sweep's count and the producers'
+decrements cross zero. The same question is open one record up, for every
+`char`/`uchar`/`short` of `LeaderData` this crate holds as an `i32`.
+
+This axis has no guard. A ledger for it would have to read the PDB's type
+record beside the sim's struct — `types.txt` names every width — and that is
+a tool, not a grep.
+
 ---
 
 ## What is not established

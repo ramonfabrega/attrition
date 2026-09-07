@@ -437,7 +437,15 @@ pub const SITES: usize = 10;
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct CityAi {
     /// Citizens of this city with no action, and with one.
-    pub free: i32,
+    ///
+    /// **`free` is a byte, and it wraps** — `CityData +0x5a` is a `uchar`
+    /// and both of its writers are a bare `*p = *p + 1` / `*p = *p - 1`
+    /// with no clamp, so a decrement at zero lands on 255 rather than on
+    /// −1 (`docs/AI.md` §2.20). Every reader of it in the original widens
+    /// it with a zero extension, so the readers here take `i32::from`.
+    /// `busy` and the counters under it are the same width in the
+    /// original and are still `i32` here — the widening ledger's row.
+    pub free: u8,
     pub busy: i32,
     pub gatherers: i32,
     /// The nearest free or gathering citizen, in `dist / 0x300`; 100 when
