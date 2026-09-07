@@ -12,27 +12,29 @@ lines, or lets the handoff pass 32.
 
 ## Where things stand
 
-*2026-09-06, Opus — 227 closed, the machine recovered, the suite is the
-new blocker.* **Great Lakes 6848, East Indies 7448**; 227's window parting
-moved 6640 → 6652.
+*2026-09-06, Opus commanding — **Great Lakes 6848 → 6862**, the first
+headline the loop moved with no human in it.* East Indies 7448 unmoved.
 
-- **219 is done**: the march's halving is neither the speed nor the group
-  cap but `unit_masks & 0x100000`, the one-shot half step a **soft**
-  collision leaves behind (COLLISION §4.3, ORDERS §15.1). The squad now
-  walks the original's points 6652 → 6861, and run79's second squad is the
-  mechanic's second sample, asserted. **Item 236** is what stands at 6862,
-  and it is the default item.
-- **The Mac went down on 2026-09-04** under the release suite: 27.6 GB
-  resident, swap full. `tools/memcap.sh <gib> <cmd…>` is the guard, and
-  **every release run goes through it** — `zsh tools/memcap.sh 20 cargo
-  test -p rondata --release -- --test-threads=1`. **Serialized until 235
-  lands**: four threads reached 20 GB and were killed; one thread peaks at
-  **15.4 GB** and passes 214 tests in 256 s.
-- **235 is the suite itself** and it blocks every worker's gate.
-- Lanes: `att-capture` holds run79 unpushed (Great Lakes' 6993 birth) and
-  the corpus; `att-audit`'s wave 2 readers were lost with the machine and
-  re-run from the same brief. Workers are respawned per item, `ccc spawn
-  --cwd` on a worktree cut here, `--permission-mode auto`.
+- **219 is done, and it was neither seam the brief named**: the march's
+  halving is `unit_masks & 0x100000`, the one-shot half step a **soft**
+  collision leaves behind — set by `detect_unit_collision@00617060` (at
+  `617817`), spent by `Unit::move_step@005faf30` (at `5fb1f4`) on the arm
+  owing under 45° (ORDERS §15.1). So
+  the "26, 13, 26, 26, 13" is two halvings and then 26. `Unit::half_step`
+  had sat unread for two days. run79's second squad is the second sample,
+  asserted and made to fail on a neighbouring bit. **236** is what stands
+  at 6862 and is the default item; no capture needed.
+- **235 blocks every worker's gate** — the release suite is 15 GB and 337 s
+  serialized. Until it lands: **one worker at a time**, and every release
+  run is `zsh tools/memcap.sh 20 cargo test -p rondata --release --
+  --test-threads=1` (DECISIONS 34; the Mac went down without it on 09-04).
+- **117 split three ways** on run80: the **gem term is live** and
+  unmodelled (a diff target, not a capture), the temple and fort terms
+  cannot fire in any game on disk, the handicap is 0 by the lobby.
+- **A late-game capture is now cheap**: 40 s to reach frame 23,960. The
+  hours in run53's stanza were the `cover=1` int3 forest, not the game.
+- Lanes: `att-capture` idle, screen free, corpus current at 229 objects;
+  `att-audit` held at the user's call while the loop is ironed out.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w7448 of 24,000 · GreatLakes w6862 of 24,000
