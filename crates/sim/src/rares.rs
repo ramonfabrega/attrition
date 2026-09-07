@@ -750,4 +750,51 @@ mod tests {
         s.tick();
         assert!(!s.ledgers[1].dirty, "one transition, one mark");
     }
+
+    /// **A unit's cached speed comes from [`Sim::type_speed`], and the
+    /// rule is a guard rather than a sentence.**
+    ///
+    /// `Unit::update_speed`'s Whales arm has been landed since run63 and
+    /// was applied at every spawn site but one: `cast_transport` set the
+    /// boat's speed from the type's raw `MOVES`, and that is the only
+    /// place in this crate where a **naval** unit is born. East Indies'
+    /// long word sat at 7448 for three sessions on that one line, and it
+    /// took a 272 MB capture to name it (run86, `docs/ORACLE.md`). Every
+    /// new spawn site is another chance to forget, and the failure is
+    /// silent everywhere the owner holds no rare — so the source itself
+    /// is read here. Made to fail on the three gaia sites it found
+    /// (`farms.rs`, `gaia.rs`, the dock's gull), each of which was
+    /// behaviour-identical only because owner 9 holds nothing.
+    #[test]
+    fn a_unit_s_speed_is_never_set_from_the_raw_moves() {
+        let dir = concat!(env!("CARGO_MANIFEST_DIR"), "/src");
+        let mut bad: Vec<String> = Vec::new();
+        for entry in std::fs::read_dir(dir).expect("the crate's own src/") {
+            let path = entry.expect("a readable entry").path();
+            if path.extension().is_none_or(|e| e != "rs") {
+                continue;
+            }
+            let name = path
+                .file_name()
+                .and_then(|n| n.to_str())
+                .unwrap_or_default()
+                .to_string();
+            // `rares.rs` is where `type_speed` reads it, which is the
+            // point of the rule and not a breach of it.
+            if name == "rares.rs" {
+                continue;
+            }
+            let text = std::fs::read_to_string(&path).expect("a readable source file");
+            for (i, line) in text.lines().enumerate() {
+                let code = line.split("//").next().unwrap_or("");
+                if code.contains("movement.speed =") && code.contains(".moves") {
+                    bad.push(format!("{name}:{}: {}", i + 1, line.trim()));
+                }
+            }
+        }
+        assert!(
+            bad.is_empty(),
+            "a spawn site sets `movement.speed` from the type's raw `MOVES`;              use `Sim::type_speed`, which is `Unit::update_speed`: {bad:#?}"
+        );
+    }
 }

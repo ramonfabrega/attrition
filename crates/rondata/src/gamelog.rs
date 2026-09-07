@@ -378,6 +378,15 @@ impl<'a> Children<'a> {
             end: (self.at + n).min(self.end),
         }
     }
+
+    /// Every child but the first `n` — the `[n..]` half of [`Self::head`].
+    pub fn tail(&self, n: usize) -> Children<'a> {
+        Children {
+            log: self.log,
+            at: (self.at + n).min(self.end),
+            end: self.end,
+        }
+    }
 }
 
 impl<'a> Iterator for Children<'a> {
@@ -2388,6 +2397,18 @@ pub(crate) fn records(
     } else {
         b.children().len()
     };
+    records_range(b, 0, stop)
+}
+
+/// [`records`] over a chosen slice of a block's children, which is what the
+/// end-of-game state needs: `GameLog::end_game`'s dump is written at
+/// `FRAME`'s own indent *after* the last frame, so it is a run of `GAME`'s
+/// trailing children rather than a block of its own ([`Log::final_state`]).
+pub(crate) fn records_range(
+    b: Block<'_>,
+    start: usize,
+    stop: usize,
+) -> (Vec<UnitDump>, Vec<BuildDump>, Vec<LeaderDump>) {
     // A `DUMP_ALL` dump nests each state under a `FULL DUMP` block — the
     // start-of-game state under the first of `GAME`'s two (the second is
     // `begin_frame(0)`'s, the same state), and engine frame `n − 1`'s end
@@ -2395,11 +2416,27 @@ pub(crate) fn records(
     // same block) — so the object lists are that block's children and the
     // `leader_flags` run is on its fields. Any other dump writes them on
     // `GAME` and `FRAME` directly.
-    let (b, kids): (Block<'_>, Children<'_>) =
-        match b.children().head(stop).find(|c| c.name() == "FULL DUMP") {
-            Some(dump) => (dump, dump.children()),
-            None => (b, b.children().head(stop)),
-        };
+    let slice = || b.children().head(stop).tail(start);
+    // The `leader_flags` pairs are the *parent's* flat fields, in document
+    // order over the whole block, so a slice that starts past some
+    // `LEADERDATA` children has to index the run from there — otherwise the
+    // end-of-game leaders take the start dump's flags. A `FULL DUMP` body
+    // carries its own run and starts at nought.
+    let mut flag_skip = b
+        .children()
+        .head(start)
+        .filter(|c| c.name() == "LEADERDATA")
+        .count();
+    // `find` consumes the iterator it is called on, so the `None` arm takes
+    // a **fresh** slice — reusing the exhausted one hands every caller an
+    // empty dump, which is what the first draft of this did.
+    let (b, kids): (Block<'_>, Children<'_>) = match slice().find(|c| c.name() == "FULL DUMP") {
+        Some(dump) => {
+            flag_skip = 0;
+            (dump, dump.children())
+        }
+        None => (b, slice()),
+    };
     // Gaia's animals are written as `ANIMALDATA` → `UNITDATA` (the
     // `AnimalData::log_data` wrapper adds `ox`, `whom`, `aid` after the
     // unit), in the leader-8 run after every player's units.
@@ -2434,10 +2471,10 @@ pub(crate) fn records(
     };
     let (flags, flags2) = (run("leader_flags"), run("leader_flags2"));
     for (i, l) in leaders.iter_mut().enumerate() {
-        if let Some(&f) = flags.get(i) {
+        if let Some(&f) = flags.get(i + flag_skip) {
             l.leader_flags = f;
         }
-        if let Some(&f) = flags2.get(i) {
+        if let Some(&f) = flags2.get(i + flag_skip) {
             l.leader_flags2 = f;
         }
     }
@@ -2649,6 +2686,52 @@ impl<'a> Log<'a> {
     }
 
     /// Every frame's typed state, in order.
+    /// The state `GameLog::end_game` writes on the way out, as a [`Frame`]
+    /// labelled with the run's last frame.
+    ///
+    /// **Every capture that quits has one, and nothing had ever read it.**
+    /// `!quit` leaves the last `FRAME n` blocks empty and the shutdown dump
+    /// lands *after* them at `FRAME`'s own indent — a run of `GAME`'s
+    /// trailing children, which the frame walk cannot reach and
+    /// [`Self::dumps`] catches only when it is wrapped in a `FULL DUMP`
+    /// (the `DUMP_ALL` shape). On an ordinary windowed capture it is not,
+    /// so the whole map's positions at the quit frame sat unparsed: run82's
+    /// **6946** is seventeen frames past the last block anyone had read of
+    /// East Indies, and inside the band item 241 was booked to buy.
+    ///
+    /// `None` when the trailing run holds no object record — which is every
+    /// `DUMP_ALL` capture (theirs is a `FULL DUMP`, and [`Self::dumps`]
+    /// already has it) and every log that was killed rather than quit.
+    pub fn final_state(&'a self) -> Option<Frame> {
+        let game = self.game()?;
+        let kids = game.children();
+        let last = kids
+            .enumerate()
+            .filter(|(_, c)| c.name().starts_with("FRAME "))
+            .last()?;
+        let n: i64 = last.1.name().strip_prefix("FRAME ")?.trim().parse().ok()?;
+        let start = last.0 + 1;
+        if start >= kids.len() {
+            return None;
+        }
+        let (units, builds, leaders) = records_range(game, start, kids.len());
+        if units.is_empty() && builds.is_empty() && leaders.is_empty() {
+            return None;
+        }
+        let cities = kids
+            .tail(start)
+            .find(|c| c.name() == "CITIES")
+            .map(|c| c.kids("CITY").map(city_of).collect())
+            .unwrap_or_default();
+        Some(Frame {
+            n,
+            units,
+            builds,
+            leaders,
+            cities,
+        })
+    }
+
     pub fn frame_states(&'a self) -> Vec<Frame> {
         self.frames()
             .into_iter()
@@ -2852,6 +2935,57 @@ BEGIN GAME
     y_internal 2
     z_internal 3
 ";
+
+    /// **The shutdown dump is a sibling, and the frame walk cannot see
+    /// it.** `!quit` closes the last `FRAME n` block empty and
+    /// `GameLog::end_game` then writes the whole map at `FRAME`'s own
+    /// indent, so on every windowed capture the last state on disk is a
+    /// run of `GAME`'s trailing children. `SAMPLE`'s tail is that shape —
+    /// a `BUILDDATA` and a `UNITDATA` after `FRAME 2` — and
+    /// [`Log::final_state`] is the only reader of it.
+    #[test]
+    fn the_shutdown_dump_is_a_frame_the_frame_walk_cannot_reach() {
+        let log = Log::parse(SAMPLE);
+        // The frame walk itself sees nothing of it.
+        let states = log.frame_states();
+        assert_eq!(
+            states.iter().map(|f| f.n).collect::<Vec<_>>(),
+            vec![1, 2],
+            "SAMPLE's frames"
+        );
+        assert!(
+            states.iter().all(|f| !f.units.iter().any(|u| u.o == 9)),
+            "the trailing unit is nobody's frame child"
+        );
+        // `final_state` reads it, labelled with the run's last frame.
+        let fin = log.final_state().expect("SAMPLE quits after FRAME 2");
+        assert_eq!(fin.n, 2, "the shutdown dump takes the last frame's label");
+        assert_eq!(
+            fin.units.iter().map(|u| (u.who, u.o)).collect::<Vec<_>>(),
+            vec![(0, 9)],
+            "the trailing UNITDATA, and only it"
+        );
+        assert_eq!(
+            fin.builds.iter().map(|b| (b.who, b.o)).collect::<Vec<_>>(),
+            vec![(0, 2007)],
+            "the trailing BUILDDATA with it"
+        );
+        // And it is `None` rather than a duplicate when the last frame is
+        // the last thing in the file — which is every capture that was
+        // killed rather than quit. Cutting SAMPLE at the frame's end is
+        // how this was made to fail.
+        let cut = &SAMPLE[..SAMPLE.rfind(" BEGIN BUILDDATA\n").unwrap()];
+        let cut = Log::parse(cut);
+        assert_eq!(
+            cut.frame_states().iter().map(|f| f.n).collect::<Vec<_>>(),
+            vec![1, 2],
+            "the cut keeps both frames — otherwise the None below is vacuous"
+        );
+        assert!(
+            cut.final_state().is_none(),
+            "no trailing run, no final state"
+        );
+    }
 
     /// The arena's widths are the whole of item 235, and prose does not
     /// hold them: a `Block` that grows a `Vec` back, or a `Field` that

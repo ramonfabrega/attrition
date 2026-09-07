@@ -4860,6 +4860,87 @@ one frame. And whether `collide_o`/`collide_who` naming an animal means the
 collision test treats animals as units or as a separate pass — the dump shows
 the outcome, not the search.
 
+## run86 — the transport ride, and the one field the boat was born without (2026-09-06)
+
+**What it is.** run54's game, `[6924, 7410)` at run85's detail exactly — 487
+blocks, **272,628,481 bytes**, `cover=0`, thirteen minutes. Same game:
+`rngcmp.py rontrace-run54.log rontrace-run86.log` → **differing frames: 0,
+identical frames: 7,426**. East Indies' long word went **7448 → 7529** on
+one line of it.
+
+**The disk was grepped first and it answered a piece.** Every archive, for
+any block labelled 6930–7399 on any map: four have one — run79, run83, run84
+(all Great Lakes) and **run82, which is East Indies**. run82 quit at 6945/6946
+and `GameLog::end_game`'s shutdown dump landed after those blocks, holding all
+28 player units at **6946**. Nothing had ever parsed it, on that capture or any
+other: it is written at `FRAME`'s own indent, so it is a *sibling* of the last
+frame rather than a child, and the frame walk cannot reach a sibling.
+`Log::final_state` is that reader, and
+`run82_s_window_is_the_east_indies_ride_s_run_up` the diff — which also gave
+run82's own 70 blocks their first comparison of any kind.
+
+What 6946 settled before a frame was captured: **`1/20` is on the original's
+own position there**, as it is on all seventy of run82's blocks. run85 opens at
+7400 with it (36, 792) adrift, so the lag is not a run-up that drifted — every
+unit of it is made in `[6947, 7399]`. The grep narrowed the band and
+strengthened the booking rather than closing it.
+
+**The window is the whole gap, not the two samples §13 booked.** §13 asked for
+`[7080, 7140)` and `[7290, 7340)` — the cast, and a *guess* at the landfall,
+which spends no draw and so has no frame anyone could name. One run over
+`[6924, 7410)` is 486 blocks, ~258 MB and under ten minutes of dumping, and it
+**butts against both neighbours**: six blocks over run82 at the bottom, ten
+over run85 at the top. Both overlaps were checked, and the top one is byte for
+byte — `samegame.py` against run85, **10 in common, 0 differing** — because the
+detail was copied from the neighbour rather than chosen. After this, East
+Indies has no uncompared frame below 7480.
+
+> The guess would have missed. The eject is **7284**, six frames before
+> §13's window opens. Taking the gap whole rather than sampling it is what
+> caught that, and it cost one run instead of two.
+
+**The ride, dated, off `births.py`:**
+
+| frame | what |
+| --- | --- |
+| 7093 | `1/20` takes its last step and freezes at **(34530, 32268)** |
+| **7094** | `1/22` is born — uid 39, guy 320, 50 hits, at **(34653, 32075)** |
+| 7177 | a building, `1/2014`, `orig_type 439` — not the ride's |
+| **7284** | the barge dies; `1/20` appears at **(30408, 28152)** and walks |
+
+**And it is one field.** `1/22` prints **`myspeed 30`** on every block, and the
+Transport Barge's `MOVES` is **25**. The difference is
+`+WHALES_SHIPS_MOVE%` — the Whales rare, whose naval arm this crate has had
+since run63 and which `docs/MOVEMENT.md` §1 measures at exactly "25 → 30 on a
+Transport Barge". `Sim::cast_transport` set the boat's speed from
+`unit_types[ty].moves` rather than `Unit::update_speed`'s cached value, so the
+one place in the crate where a *boat* is born was the one place the bonus was
+not applied. Every other spawn already went through `type_speed`.
+
+The measurement is the step: the original walks the barge **(−27, −13)** a
+frame, this crate walked **(−23, −11)** — magnitudes 30.0 and 25.5, the same
+heading to three digits. Over 190 frames of open water that is 933 units, and
+the passenger comes ashore that much late. With `type_speed` in that line,
+**neither `1/22` nor `1/20` is ever off the original's position** across all
+486 blocks: the birth spot, the whole crossing and `come_out`'s ring are exact,
+and none of §13's three suspects was the cause.
+
+**§13's second row came free with it.** A passenger's `x_internal`/`y_internal`
+while aboard was unwitnessed on every dump in hand; here it is on 191 of them.
+`1/20` prints **(34530, 32268)** — its boarding point — on every block from
+7093 to 7283 inclusive, then the ring spot on 7284. `Sim::board` freezes the
+passenger at exactly that point, and what was "believed harmless" is now what
+the original does.
+
+**What it does not answer.** Why `1/13` parts at 6938 — a citizen walking
+south-west at `myspeed 25`, the window's only other divergence besides the
+known `1/19` unpack constant, and no capture has covered its frame. What the
+ring's own arithmetic is: (30408, 28152) against a boat last at (30521, 28243)
+is one sample of `come_out`'s eight bearings, and one sample cannot tell a
+bearing from a fallback. And the new word, **7529**, is a `Guy::set_anim` under
+`Unit::do_non_flat_gather+0xb99` the original spends and this crate does not —
+a gatherer's animation, and the next item.
+
 ## 178 needed no screen — the danger map's unit pass was on disk four times (2026-09-06)
 
 **What it is.** Not a run. `docs/DANGER.md` §8 had the unit pass of

@@ -1577,3 +1577,102 @@ check: python3 tools/gamelog/track.py UNITDATA collide_frame --frames 7400-7479 
 # and run65's 6200. `samegame.py` has no bite here — run79's neighbouring
 # window is a cheap dump and this one is `DUMP_ALL`, so every block would
 # differ for a reason that is not the game (run43's note above).
+
+run: 86
+tag: eastindies-transportride
+item: 241
+why: East Indies' 792-unit lag is born inside the transport ride, and the ride is the last stretch of that map with no record compared
+# **THE DISK WAS GREPPED FIRST, and it answered a piece.** Every archive,
+# for any block labelled 6930–7399 on any map: four have one — run79, run83
+# and run84 (all Great Lakes), and **run82, which is East Indies**. run82's
+# `!quit` left blocks 6945 and 6946, and the shutdown dump `GameLog::end_game`
+# writes after them holds all 28 player units. Nothing had ever parsed it —
+# on this capture or any other — because it lands at `FRAME`'s own indent and
+# the frame walk cannot reach a sibling (`Log::final_state`, added with this
+# stanza; `run82_s_window_is_the_east_indies_ride_s_run_up` is the diff).
+#
+# What that block settles: **`1/20` is on the original's own position at
+# 6946**, as it is on all seventy of run82's blocks. run85 opens at 7400 with
+# it (36, 792) adrift. So the lag is not a run-up that drifted — every unit of
+# it is made in `[6947, 7399]`, which is the cast, the barge's own `find_upath`
+# plan and the ring `come_out` puts the passenger down on (`docs/TRANSPORT.md`
+# §13). The grep narrowed the band and strengthened the booking; it did not
+# close it, and no other archive prints either the Merchant's or the barge's
+# position anywhere inside it.
+#
+# **The window is the whole gap, not §13's two samples.** §13 booked
+# `[7080, 7140)` and `[7290, 7340)` — the cast and a *guess* at the landfall,
+# which spends no draw and so has no frame anyone can name. Two runs with a
+# blind middle cost more than one run with none: 486 blocks at run85's own
+# detail is ~258 MB and under ten minutes, and it **butts against both
+# neighbours** — six blocks over run82 at the bottom, ten over run85 at the
+# top — which is the total-overlap check run84 bought and run85 could not use.
+# After this, East Indies has no uncompared frame below 7480.
+#
+# The detail is run85's **exactly**, so the top overlap is byte-for-byte
+# rather than a translation: `UNITS=3` for the order list and the path stack
+# (the barge's plan, and the cast order `add_cast_order` queues), `GUYS=4`
+# for the figures' clocks, `MISC` for the births. run82's own `LEADERS=9` is
+# what the bottom overlap has to exclude.
+frames: 7425
+mapstyle: 18
+end: MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,DEATHS=1,LEADERS=1
+frame_window: 6924 7410
+# cover=0 is not a choice on this machine — the `cover:` key's note above.
+cover: cover=0
+# run68/run81/run85's East Indies floor: the start dump is 11,053,641 bytes
+# at this `start:` detail and does not grow until 6924.
+settle_min: 20000000
+# **Sized from the dumping.** run79 wrote 340 blocks in three minutes at
+# ~13k lines a block; these are ~29.6k lines each (run85's measurement), so
+# 486 of them is eight to ten minutes on a fifty-second run-up. 90 polls is
+# thirty minutes. Not a 900.
+poll_max: 90
+# Same game: the trace word for word against run54, this map's own 24k run.
+check: python3 tools/gamelog/rngcmp.py rontrace-run54.log rontrace-run86.log
+# **The neighbours, both ends, and the count is the claim.** `samegame.py`
+# exits 0 when nothing is in common, so a bare verdict says nothing; these
+# assert the number of frames compared as well as the zero.
+check: python3 tools/gamelog/samegame.py gamelog-run86-eastindies-transportride.txt gamelog-run85-eastindies-blockedstand.txt | awk '/in common/{split($0,a,", "); n=a[2]+0} /^differ:/{d=$2+0} END{print "run85 overlap: common="n" differ="d; exit !(n>=10 && d==0)}'
+# **run82's `LEADERS=9` adds five block kinds, not one.** The first draft
+# excluded `LEADERDATA` alone and every common frame differed — `DIPLOMACY`,
+# `GOOD`, `MAKEOBJECT`, `PERSONALITY` and `SITE` are all `LEADERS=9` records
+# too, and `GOOD` carries 66 `SUBOBJECT`s with it. With all six out, the six
+# frames both files dumped properly agree; the seventh in common, **6945**, is
+# run82's own `!quit` stub (`Creating Report` and nothing else) and differs for
+# that reason, so the check names it rather than tolerating a count.
+check: python3 tools/gamelog/samegame.py --exclude LEADERDATA --exclude DIPLOMACY --exclude GOOD --exclude MAKEOBJECT --exclude PERSONALITY --exclude SITE gamelog-run86-eastindies-transportride.txt gamelog-run82-islands-merchantcast.txt | awk '/in common/{split($0,a,", "); n=a[2]+0} /^differ:/{d=$2+0; f=$0; sub(/.*first: /,"",f)} END{print "run82 overlap: common="n" differ="d" first="f; exit !(n>=7 && d==1 && f=="[6945]")}'
+# **The teeth: the window must actually contain the barge's birth.** The
+# trace dates `Guy::init_real` for it at 7093 on both sides, so a player-1
+# object number that is absent at 7085 and present at 7105 is the boat and
+# nothing else. Made to fail first, on real data, two ways: run85's whole
+# window has no birth at all (exit 1), and so has run82's own [6900, 6929]
+# (exit 1) — while run82's [6860, 6880] finds `1/21` and run79's window six
+# Great Lakes units, so the shape passes where a birth exists.
+check: python3 tools/gamelog/track.py UNITDATA flags --where who=1 --frames 7085-7105 --file "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run86-eastindies-transportride.txt" | awk '{fr=$2; o=$4; sub("o=","",o); roster[fr" "o]=1; if(lo==0||fr<lo)lo=fr; if(fr>hi)hi=fr} END{n=0; for(k in roster){split(k,a," "); if(a[1]==hi && !((lo" "a[2]) in roster)){print "  born: 1/"a[2]; n++}} print "player-1 units born in ["lo", "hi"]: "n; exit !(n>0)}'
+# TAKEN 2026-09-06 — thirteen minutes, **487 blocks, 272,628,481 bytes**.
+# `rngcmp.py` against run54: **0 differing, 7,426 identical**. The run85
+# overlap is **10 frames, 0 differing** — total, byte for byte, which is what
+# taking the detail from the neighbour bought. The teeth found the boat:
+# **`1/22` born in [7085, 7105]**.
+#
+# **The ride is one field, and the word moved 7448 → 7529.** The barge `1/22`
+# is born on **7094** at (34653, 32075) and prints `myspeed` **30** on a type
+# whose `MOVES` is **25** — the Whales rare's `+WHALES_SHIPS_MOVE%`, a bonus
+# this crate has applied since run63 to every unit born through `spawn_unit`
+# and did not apply in `cast_transport`, the one place a boat is born. It
+# stepped (−23, −11) a frame where the original steps (−27, −13); 190 frames
+# of that is 933 units, and the passenger rides it ashore that much late.
+# With `type_speed` in that line neither the boat nor `1/20` is ever off the
+# original's position across all 486 blocks.
+#
+# **§13's landfall guess would have missed it by six frames.** The eject is
+# **7284** — the barge dies on the frame it unloads — and the booked window
+# was [7290, 7340). Taking the whole gap rather than two samples inside it is
+# what caught that, and it cost one run instead of two.
+#
+# And the second §13 row came free: a passenger's position while aboard is
+# **frozen at the boarding point**, (34530, 32268) on all 191 blocks from 7093
+# to 7283, then the ring at (30408, 28152) off a boat last seen at (30521,
+# 28243). `docs/ORACLE.md`, "run86 — the transport ride, and the one field the
+# boat was born without".

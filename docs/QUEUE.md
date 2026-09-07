@@ -37,7 +37,7 @@ user spent one more worker rather than steer: 249 named the cause.*
   word in `verdicts.txt`, none has fired yet, a watch restart blinds it.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w7448 of 24,000 · GreatLakes w6994 of 24,000
+Long captures: EastIndies w7529 of 24,000 · GreatLakes w6994 of 24,000
 
 **Opener: commander on Opus (DECISIONS 34). `loop-250` and `cap-241` are
 live; merge, gate, push, file — then the stopping rule is armed again.**

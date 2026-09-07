@@ -430,7 +430,7 @@ impl Sim {
             // beat's coin — the pasture's own bug, one type over
             // (`docs/SYNC.md` §3.11).
             unit.type_index = self.unit_types[gt].type_index;
-            unit.movement.speed = self.unit_types[gt].moves;
+            unit.movement.speed = self.type_speed(9, gt);
             unit.movement.turning = self.turning_for(gt);
             // `Unit::init@00612100:282–309` (`crate::stance`).
             unit.stance = self.init_stance(9, gt);
@@ -936,7 +936,15 @@ impl Sim {
         boat.kind = self.unit_types[ty].kind;
         boat.ty = Some(ty);
         boat.type_index = self.unit_types[ty].type_index;
-        boat.movement.speed = self.unit_types[ty].moves;
+        // **`Unit::update_speed`, not the type's raw `MOVES`.** The boat is
+        // born like any other unit and takes the cached speed the same way
+        // — which for a `NAVAL` type whose owner holds the Whales rare is
+        // `MOVES × (WHALES_SHIPS_MOVE + 100) / 100`. run86 measures it:
+        // East Indies' barge `1/22` prints `myspeed 30` on a `MOVES` of 25
+        // and steps (−27, −13) a frame where this crate stepped (−23, −11),
+        // and 190 frames of that is the whole of the 792 the word parted on
+        // (`docs/TRANSPORT.md` §6.2, `docs/MOVEMENT.md` §1).
+        boat.movement.speed = self.type_speed(who, ty);
         boat.movement.turning = self.turning_for(ty);
         // `Unit::init@00612100:282–309` (`crate::stance`).
         boat.stance = self.init_stance(who, ty);

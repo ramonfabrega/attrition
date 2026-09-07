@@ -390,7 +390,23 @@ pub(crate) fn sibling_texts() -> Vec<String> {
 /// free where the original pays the idle roll
 /// (`docs/ANIM.md` §4.8, item 212). Great Lakes' 6463 is the frame
 /// that named it; East Indies came with it.
-pub(crate) const LONG_WORD_EAST_INDIES: i64 = 7448;
+///
+/// **7448 until 2026-09-06, and the frame was a blocked stand this
+/// crate reached 792 units short of** — `1/20`, the AI's Merchant,
+/// walking into gaia's animal 34 frames late (run85). The 792 was made
+/// on the **transport ride** between run82's 6929 and run85's 7400, and
+/// run86 — the whole of that gap, 486 blocks — names it in one field:
+/// the Transport Barge `1/22` prints `myspeed` **30** on a `MOVES` of
+/// 25 and steps (−27, −13) a frame where this crate stepped (−23, −11).
+/// [`sim::Sim::cast_transport`] set the boat's speed from the type's raw
+/// `MOVES` instead of `Unit::update_speed`'s cached value, so the boat
+/// alone missed the **Whales** rare's `+WHALES_SHIPS_MOVE%` — a bonus
+/// this crate has had since run63 and applied everywhere a unit is born
+/// except the one place a boat is. 190 frames at 25 against 30 is 933
+/// units of lag, the passenger comes ashore that much later, and the
+/// stand at 7448 is met on time with the fix
+/// (`docs/TRANSPORT.md` §6.2, `run86_s_window_is_the_transport_ride`).
+pub(crate) const LONG_WORD_EAST_INDIES: i64 = 7_529;
 
 /// Great Lakes' word on the **long** capture (run53), the second of
 /// `docs/DECISIONS.md` entry 29's counters — and, since run61 put the
