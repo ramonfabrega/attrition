@@ -17040,3 +17040,119 @@ row, is not taken — the arm that belongs to *this* loop is implemented
 (`Sim::starting_good` answers 99,999 under `STARTING_RESOURCES == 8`), but
 R4's site is `economy::pay`'s per-frame assignment and that is still absent.
 
+
+## 2026-09-06 — item 237: the `Kind` row was never an oracle (Opus, worker)
+
+Item 236 found it twenty minutes after landing, in its own note: across
+run76's whole Archer march the order comparison's `Kind` row read `ours: 2`
+against `theirs: 21`, on **every frame**, 630 rows, and the rows marked the
+frames the *original* was grouped rather than anything this crate did. A
+field that cannot fail is worse than no field, and this one was worse than
+that: a kind disagreement makes `compare_orders` `continue`, so on all 630
+of those unit-frames the whole `MOVEORDER` row — destination, angle,
+waypoint, `pause`, `timer`, `facing`, the cell offsets — and the whole
+`GROUPORDER` row, and `Action`, `Flags`, `Target` and `Coll` besides, went
+uncompared. The march's most interesting frames were its least checked.
+
+**The cause is one line, and it is a category error.** `OrderIndex` is a
+*class* identity: `get_type()` is a vslot each of the 27 order classes
+overrides with a constant. `crates/sim` has ten `Body` variants and a
+`MoveKind`, and `Order::index()` was mapping those onto the enum by name —
+which is the identity for eleven kinds and wrong for the twelfth, because the
+original has no "move with a group beside it". `Group::action_move_near` asks
+the pool for a `GroupMoveOrder` or a `GroupAttackToOrder`
+(`get_type@00485a10` → `GROUP_MOVE`, `@004825b0` → `GROUP_ATTACK_TO`), and
+`ungroup_move_order@005fd140` swaps the object for a plain one — which is
+exactly why run76's block header changes on 6861. So `Option<GroupMove>` is
+this crate's stand-in for the class, and `Order::index()` now reads it.
+`docs/ORDERS.md` §1.7 is the two spaces written down.
+
+**The enumeration, because fixing the one is not the item.** Every `get_type`
+body in the export was read: twenty of the twenty-seven classes have one and
+every one returns §1.2's value; the other seven are COMDAT folds. The grouped
+pair is the only disagreement with this crate's spelling, and there is no
+grouped explore or flee — `action_move_near`'s own gate is
+`MOVE_TO`/`ATTACK_TO`. The complementary set, `index::is_modelled`, is what
+the crate *cannot* produce; the fifty captures the suite reads hold two of
+them (`GUARDORDER` 3,267 times, `ATTACKGROUNDORDER` 94), and those now get
+`OrderMismatch::Unspellable` rather than being folded into a `Kind` row, so a
+tally tells a hole in the crate from a disagreement about the state. Both
+score: a silent pass is what produced this item.
+
+**Three callers were reading the four plain kinds where the original reads
+the family of seven**, and would have broken silently: `resolve_unit_
+collision@005f9d30:261` and `:381` (`its_move`, both sites), `detect_unit_
+collision@00617060:366` (the soft-collision gate), and — in the diff's own
+scene builder — `UnitData::get_action@00608450`'s walk, which is
+`is_move() && !(flags & 4)` **or** `get_type() == CHANGE_FORM` whatever the
+flags. All four are `index::is_move_family` now, which is six-sevenths of the
+original's set and says so: `CHANGE_FORM` is an order this crate has no
+representation for at all.
+
+**What turned red.** With the mapping alone: exactly one test in 217, and it
+was item 236's own assertion that the 630 vacuous rows existed. Nothing else
+in the suite moved — no capture that has nothing to do with formations, no
+position, no word. The `Kind` row across every other capture was already
+comparing like with like, and is simply live now.
+
+**Then the record it had been hiding.** The `GROUPORDER` row was parsed and
+compared nowhere, so it went in whole — `oxx`, `whose`, `id`, `form_id`,
+`group_angle`, `in_group`. Five of the six agree with the original on all 630
+grouped unit-frames of run76, first time. The sixth is a real divergence and
+a successor: the original's Archers carry `id 6656400` where this crate
+computes 6650100, which is `(GroupData::id + frame × 10) × 100 + order_num`
+with the original's group id **64** — the number the unit block also prints
+as `group 64` — against this crate's stand-in, the army group's *slot*, 1.
+`crates/sim`'s `group_id` says outright that it has no group pool and that
+uniqueness per owner is all `group_move_id` needs, so this is a declared
+stand-in rather than a drift: the row is reported, does not score, and is
+pinned at exactly one per grouped unit-frame so it cannot start failing for a
+second reason. `UnitDump::group` — the same number, on the unit — is parsed
+and compared by nothing, which is where a fix would start.
+
+**And the dump states the kind twice.** The block's own name and the `type`
+line beside it are independent: `type` is written by `OrderList::log_data` on
+the enclosing `UNITDATA` and paired **positionally**, the name by the order's
+own `log_data`. They disagree exactly when the pairing has slid — which is
+what a block name the walk drops does, and `GroupMoveOrder`, the one
+mixed-case name in the family, has done it once already. `OrderMismatch::
+Header` compares them now.
+
+**A second parser gap fell out of the same block.** `in_group` is
+`GroupMoveOrder`'s own field, past both bases — so on a `GROUPATTACKTOORDER`
+it sits one block in, and reading it off the outer block returned `None` for
+every grouped attack-move ever captured. It reads off the `GroupMoveOrder`
+base now, and agrees on all 630.
+
+**Made to fail, twice.** Dropping item 236's follower ungroup puts
+`Kind { ours: 21, theirs: 2 }` on 6861 — the exact frame the original
+dissolves the squad, and one of the 630 rows that used to be
+indistinguishable. Perturbing `form_id` and `group_angle` by one puts 840
+rows across the march. Both restored.
+
+**The score.** Not a word: neither long word moved, and neither could — the
+mapping changes no arithmetic and the group id is not read by anything that
+steps. What moved is the sub-score the item was booked on. Order slots whose
+`Kind` row could not fail: **630 → 0**, all of them run76's, which is the
+only capture whose grouped orders reach `compare_orders` at all — and the
+same 630 slots had their whole record skipped behind that row, some twenty
+fields each, so about **12,600** field comparisons that could not run now
+do. The captures hold 1,428 more grouped order records that no
+order-comparing test windows — run79's 453 and run31's 945 — and windowing
+run79 through the differ is the cheapest way to give the new rows a second
+capture. Fields of the original's records that nothing
+compares (`rondata::ledger`): **22 → 19**, with the single-capture half
+**42 → 44** — the three arriving there *from* the uncompared half, so the
+ledger's total fell by one. Both pins moved deliberately, in opposite
+directions, and each says why on its constant.
+
+Takes `docs/audit/2026-09-05-orders-vs-code.md` **R7** whole. Nothing else on
+that page was in the path; R1 and R2 went to item 236 the same day.
+
+**What is not established.** That no *other* class's `get_type` disagrees
+with §1.2 rests on the export for twenty classes and on §1.2's own three-way
+agreement for the seven the compiler folded — no run reaches them.
+`CHANGE_FORM` is in no capture on disk, so every `is_move_family` test here
+is six-sevenths of the original's and nothing can tell. And the group id is
+a known-wrong number that a comparison now prints on every grouped frame; it
+stays wrong until this crate has a group pool.

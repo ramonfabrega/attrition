@@ -755,12 +755,11 @@ impl Sim {
     /// not. `iVar7` is the collider's *order* type and `local_28` its
     /// *action*'s, so nothing here asks whether the order carries a
     /// group: `0x13`/`0x15` (`GROUP_MOVE`/`GROUP_ATTACK_TO`) sit in the
-    /// gated seven beside the plain `1`/`2`, and
-    /// [`crate::orders::GroupMove`] is not consulted (2026-09-05, the
-    /// docs-versus-code pass's R7). ~~and are written as `1`/`2`
-    /// here~~ — item 237: [`crate::orders::Order::index`] answers the
-    /// original's own `get_type()` now, so
-    /// [`index::is_move_family`] is the set said once.
+    /// gated seven in their own right, and [`crate::orders::GroupMove`]
+    /// is not consulted (2026-09-05, the docs-versus-code pass's R7).
+    /// ~~and are written as the plain `1`/`2` here~~ — item 237 gave
+    /// [`crate::orders::Order::index`] the original's own `get_type()`,
+    /// so this is [`index::is_move_family`], the set said once.
     ///
     /// SEAM: `UnitData +0x104`, the suspended pathfinder search, which
     /// this crate does not keep — read as zero, which widens the arm.

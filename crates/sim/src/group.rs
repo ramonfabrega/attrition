@@ -2034,10 +2034,7 @@ mod tests {
             "the line still marches, and the group is still two"
         );
         assert!(
-            !matches!(
-                s.order_type(m),
-                index::ATTACK_TO | index::GROUP_ATTACK_TO
-            ),
+            !matches!(s.order_type(m), index::ATTACK_TO | index::GROUP_ATTACK_TO),
             "the siege is sent into the city instead, not at it: {}",
             s.order_type(m)
         );

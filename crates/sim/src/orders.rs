@@ -69,22 +69,16 @@ pub mod index {
     pub const fn is_move_family(kind: u8) -> bool {
         matches!(
             kind,
-            MOVE_TO
-                | ATTACK_TO
-                | EXPLORE_TO
-                | FLEE_TO
-                | CHANGE_FORM
-                | GROUP_MOVE
-                | GROUP_ATTACK_TO
+            MOVE_TO | ATTACK_TO | EXPLORE_TO | FLEE_TO | CHANGE_FORM | GROUP_MOVE | GROUP_ATTACK_TO
         )
     }
 
     /// Whether this crate can ever *produce* `kind` — the domain of
     /// [`super::Order::index`]. The complement is the set of
     /// `OrderIndex` values a dump can hold and the simulation cannot,
-    /// which is what `crate::diff`'s `Kind` row reports as a structural
-    /// gap rather than a state divergence (`docs/ORDERS.md` §1.2's
-    /// second table).
+    /// which `crate::diff` reports as a structural gap of its own
+    /// (`OrderMismatch::Unspellable`) rather than as a state divergence
+    /// (`docs/ORDERS.md` §1.7).
     pub const fn is_modelled(kind: u8) -> bool {
         matches!(
             kind,

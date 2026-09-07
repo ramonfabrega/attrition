@@ -411,3 +411,31 @@ taking the top (marked `UNSURE:`, left marked).
 the reader said so in the file rather than letting the count imply
 coverage it did not have. That is the right disclosure and it is why this
 document's count is not directly comparable with the others'.
+
+
+## Rows taken — 2026-09-06, item 237
+
+**R7, taken.** §13's "not implemented" list is struck in place and points at
+the new §1.7, which states the same thing as a *set* (`index::is_modelled`)
+rather than a sentence, and which a comparison checks: an `OrderIndex` the
+crate cannot produce now gets `OrderMismatch::Unspellable` instead of being
+folded into a `Kind` row. `ATTACK_TO`, `GroupMoveOrder`, cast and trade are
+struck; `CHANGE_FORM`/`FormOrder` is added, because it was missing from the
+list and it is the one unmodelled kind that also sits inside a predicate
+(the move family).
+
+Nothing else on this page was in item 237's path. R1 and R2 were taken by
+item 236 the same day; the remaining fifteen rows stand.
+
+**What the item added to the page's own method note.** The pass observed
+that "a comment that states what the original does is doing the same job as
+the document and is not checked against it by anything". Item 237 is the
+same gap one level further out: a *comparison field* that states what the
+original does — `Kind`, reading `get_type()` — was not checked against
+anything either, and had been comparing this crate's `MoveKind` against the
+original's class identity since it was written. It fired on all 630 frames
+of run76's Archer march and could not have done otherwise, which is the
+mirror of R6's vacuity: R6 is a field the sim writes that nothing reads,
+this is a field the diff reads that nothing could falsify. The check that
+would have caught it is the one now in place — make the row fail on
+purpose before believing it.

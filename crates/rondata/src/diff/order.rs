@@ -273,11 +273,9 @@ pub(crate) fn compare_orders(
                 // state; both are reported and both score, and the two
                 // are told apart so a tally can say which it is.
                 match u8::try_from(theirs.index) {
-                    Ok(k) if !sim::orders::index::is_modelled(k) => {
-                        OrderMismatch::Unspellable {
-                            theirs: theirs.index,
-                        }
-                    }
+                    Ok(k) if !sim::orders::index::is_modelled(k) => OrderMismatch::Unspellable {
+                        theirs: theirs.index,
+                    },
                     _ => OrderMismatch::Kind {
                         ours: kind,
                         theirs: theirs.index,

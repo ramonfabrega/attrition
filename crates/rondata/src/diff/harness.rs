@@ -4079,9 +4079,7 @@ mod tests {
             .iter()
             .filter(|f| {
                 f.units.iter().any(|u| {
-                    u.who == 1
-                        && (27..=29).contains(&u.o)
-                        && u.orders.iter().any(|o| o.index == 21)
+                    u.who == 1 && (27..=29).contains(&u.o) && u.orders.iter().any(|o| o.index == 21)
                 })
             })
             .map(|f| f.n)

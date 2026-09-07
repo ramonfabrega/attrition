@@ -293,7 +293,7 @@ So in execution order the queue is `head->prev, head->prev->prev, …, head`;
 `add` appends to the *back* of the queue; and the front is rotated by moving
 `head` one step along `next`.
 
-### 1.5 `QueuePos` — the three enqueue modes
+## 1.5 `QueuePos` — the three enqueue modes
 
 Values settled in the listing of `Unit::add_move_facing_order@005e55c0`
 (`cmp eax,2 / jne` guards the clearing path; the decompile prints that clear
@@ -338,14 +338,14 @@ the object is. `crates/sim` does not have 28 order types — it has ten
 crate's state rather than a stored tag, and the two spaces only agree if that
 function is written to answer what `get_type()` would.
 
-For eleven of the twelve kinds the crate can produce, it is the identity. The
-twelfth is the whole of the difference, and it hid a comparison defect for as
-long as the comparison existed (item 237):
+The crate can produce fourteen of the values. For twelve of them the mapping
+is the identity; the other two are the whole of the difference, and they hid
+a comparison defect for as long as the comparison existed (item 237):
 
 | the original | this crate | evidence |
 |---|---|---|
-| `MoveOrder`, `get_type` → `MOVE_TO` (1) | `Body::Move`, `MoveKind::MoveTo`, `group: None` | |
-| `AttackToOrder` → `ATTACK_TO` (2) | …`MoveKind::AttackTo`, `group: None` | |
+| `MoveOrder`, `get_type` → `MOVE_TO` (1) | `Body::Move`, `MoveKind::MoveTo`, `group: None` | §1.2 |
+| `AttackToOrder` → `ATTACK_TO` (2) | …`MoveKind::AttackTo`, `group: None` | §1.2 |
 | `GroupMoveOrder` → `GROUP_MOVE` (**19**) | …`MoveKind::MoveTo`, `group: Some` | `GroupMoveOrder::get_type@00485a10` |
 | `GroupAttackToOrder` → `GROUP_ATTACK_TO` (**21**) | …`MoveKind::AttackTo`, `group: Some` | `GroupAttackToOrder::get_type@004825b0` |
 
@@ -362,7 +362,7 @@ flee: `action_move_near`'s own gate is `MOVE_TO`/`ATTACK_TO`.
 **What follows for a caller.** A predicate over "is this a move" must be over
 the **family** — `{1, 2, 3, 4, 18, 19, 21}`, `index::is_move_family` — and
 never over the four plain kinds, because a grouped move now answers 19/21
-where it used to answer 1/2 by accident. The three sites that were the four:
+where it used to answer 1/2 by accident. The four sites that were the four:
 `Unit::resolve_unit_collision@005f9d30:261` and `:381` (both list all seven),
 `detect_unit_collision@00617060:366` (the gated seven of §4.3's soft
 collision), and `UnitData::get_action@00608450`, whose walk is `is_move() &&
@@ -381,11 +381,15 @@ family: every `is_move_family` test here is six-sevenths of the original's.
 hole in the crate from a disagreement about the state; both score.
 
 **Coverage.** Diff-backed: the four rows of the table above, on every order
-of every unit of every frame of run76 and run79 — `OrderMismatch::Kind`
-compares `Order::index()` against the dump's `type`, and since 2026-09-06
-the two are the same quantity. The `GROUPORDER` row beneath it
-(`oxx`, `whose`, `id`, `form_id`, `group_angle`, `in_group`) is diffed on the
-same frames. Reading-only: that no *other* class's `get_type` disagrees with
+of every unit of every frame of **run76** — `OrderMismatch::Kind` compares
+`Order::index()` against the dump's `type`, and since 2026-09-06 the two are
+the same quantity. The `GROUPORDER` row beneath it (`oxx`, `whose`, `id`,
+`form_id`, `group_angle`, `in_group`) is diffed on the same frames; five of
+the six agree on all 630 grouped unit-frames and `id` is the stand-in of
+`crate::sim::group_id`, reported and not scored. run76 is the **only**
+capture whose grouped orders reach the comparison: run79 carries 453 more
+`GROUPATTACKTOORDER` records and run31 945 `GroupMoveOrder` ones, and
+neither is run through the order differ yet. Reading-only: that no *other* class's `get_type` disagrees with
 §1.2's table — **twenty** of the twenty-seven classes have a `get_type`
 body in the export and every one returns §1.2's value; the seven the
 compiler folded onto other slots (`MoveOrder`, `AttackToOrder`,
@@ -3729,10 +3733,17 @@ what is listed as an input is stated as such in the code):
   §8.2 was **incomplete**: `action_move_near` has an AI branch keyed on
   `!human && group.army >= 0` and then on the army's `hurry`, read in
   `docs/GROUPS.md` §6.5.
-- **Not implemented** (documented above, stated here): `ATTACK_TO` as an
-  order kind of its own, `GUARD`, `FOLLOW`, `PATROL`, `ATTACK_GROUND`,
-  `GroupMoveOrder` (§8.3, §8.4), board/await-board, cast, trade, strafe,
-  air, special-anim; `check_target_path`'s 16-frame re-path;
+- **Not implemented** (documented above, stated here):
+  ~~`ATTACK_TO` as an order kind of its own~~, `GUARD`, `FOLLOW`,
+  `PATROL`, `ATTACK_GROUND`, ~~`GroupMoveOrder` (§8.3, §8.4)~~,
+  board/await-board, ~~cast~~, ~~trade~~, strafe, air, special-anim,
+  `CHANGE_FORM`/`FormOrder`
+  — the strikes are the docs-versus-code pass's **R7** (2026-09-05),
+  taken with item 237: `ATTACK_TO` is `MoveKind::AttackTo`, the group
+  move landed 2026-09-04 (§15) and cast and trade are `Body` variants
+  with their own steps. **§1.7 is the authoritative list**, as
+  `index::is_modelled`, and it is checked by a comparison rather than
+  stated here. `check_target_path`'s 16-frame re-path;
   `find_nearby_spot`'s **general** collision path — `FILTER_ALL` and a
   squad placement, whose `find_unit_with_radius` circle is
   `docs/COLLISION.md` §9's last entry (~~the collision half of
