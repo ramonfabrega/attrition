@@ -19370,3 +19370,87 @@ is uninvestigated — a parked barge disagreeing on `Action`, `Flags` and
 `Move.angle` for 326 blocks is a whole standing order record nothing has
 read; and `RON_DEBUG_UNIT` now prints the five collision fields beside the
 clocks, which is the line every collision item has wanted.
+
+## 2026-09-07 — item 284: the bird's figure lags its unit (Great Lakes' word 7584 → 7585, Opus, worker)
+
+**No screen, and the answer was on the disk twice over.** Item 272 had left
+the headline map's word at 7584 as one named call site — the original
+spending a `Guy::set_anim+0x97a < Guy::move+0x19f` between the fourth and
+fifth bird's `Animal::think_bird` triple that this crate did not — and the
+brief's first suggestion was to parse `AnimalData`'s `ox`, `whom` and `aid`
+(item 268's widening-ledger row) in the hope they would name the bird. They
+would not: **all three are −1 on all forty animals on every block of run89's
+window**, which is worth knowing and is not a bird's name. What named it was
+the rest of the record, which was already parsed.
+
+**The elimination.** No dump prints owner 9 (`docs/SYNC.md` §3.9), but
+run89 at `GUYS=4` prints all forty of gaia's owner-8 animals in full, guy
+and all. `Guy::move@005d9240:57` tests `field_0x9c == 8` — the **slot**
+`CHAR_WALK`, not the category — and on block 7584 **not one of the forty is
+on it**; the thirteen owner-1 guys that are on it all carry `stopped 0`, so
+they take the arm that only marks them stopped. No dumped figure could have
+spent 7584's stand. Its neighbours put it in the animal pass. It is a
+bird's, and no capture on this disk or off it could have said more.
+
+**The mechanism was one argument, and the brief's own falsifier found it.**
+"Does an arrival stand fire for this crate's birds too?" — no, because
+`guys_follow` returned early for every air gaia, on the reading that "a bird
+has no ground body to follow". That reading was wrong in a way the trace
+made loud: the chain is `Guy::move+0x19f < Guy::process+0x13`, and
+`Animal::process@005d72c0` is the `+0x188` think and then `Guy::process` per
+figure, with nothing in `Guy::move` excluding owner 9. What excuses a bird
+on nearly every frame is `Unit::do_air_physics`'s tail —
+`set_new_location(nx, ny, 0, 1)`, whose **`param_3` is zero**.
+`Unit::set_new_location@005f8d20:158` writes guy 0's `des` to the unit's new
+point unconditionally and only a non-zero `param_3` teleports it at `:161`,
+so the figure is *told* where to be and not put there. It catches up inside
+`Guy::move` itself. So `des == pos` at that function's entry means **the
+bird did not move this frame** — which for a patrolling bird happens exactly
+when `WorldData::restrict` clamps a refused step back onto the boundary it
+already stands on. This crate passed `move_guys: true` and teleported it.
+
+**The trace confirmed the shape before a line was written.** The stand
+leaves the figure on `CHAR_DEFAULT`, so the next frame's `set_anim(CHAR_WALK,
+0, 1)` is a category change and misses gaia's `who >= 8` early return: a
+wing-beat coin. run89 spends **16** `Guy::set_anim+0x104b < Unit::set_anim+0x56
+< Unit::do_air_physics+0x683` in 7,776 frames and **four of them are 7585,
+7586, 7587 and 7588** — 7584 stands with no coin, 7585–7587 pay coin and
+stand together, and 7588's coin takes `CHAR_JOG`, whose slot is 9 and not 8,
+and the run ends. A per-frame draw would have been thousands.
+
+**Two lines of code.** `air.rs` passes `false` where it passed `true`, and
+`guys_follow`'s air-gaia return narrows to the gull, which this crate still
+does not fly (`Unit::do_strafe` is unmodelled) and whose figure would
+otherwise sit on its unit rolling idles for ever. Both were made to fail on
+purpose in the new sim test before it was believed.
+
+**What moved.** Great Lakes' long word **7584 → 7585**, and 7584 now agrees
+**49 draws for 49, entry for entry**, with the stand at index 24 on both
+sides. The value diff beside the word closed with it, which is the check the
+brief asked for: `1/3`'s fresh `MOVEORDER` on block 7585 used to read
+(42168, 17400) off (696, 504) against the original's (41976, 17208) off
+(504, 312) — `(+192, +192)` on all four from a base both sides agreed on —
+and every field of it agrees now. **Nothing at all parts at or below block
+7585** any more but run87's own carried residue (`1/23`, `1/24`, `1/25`,
+`1/26` and item 242's group id). The Great Lakes endpoint at 24,001 moved
+and is re-pinned in both directions: off 78 → **84**, unlinked 2 → **0**,
+extra 0 → **2**, build_diverged 13 → **12**. East Indies did not move.
+
+**The new word is the AI, not the animals.** 7585 is seven draws against
+nine, parting at index 2 where the original spends a
+`Leader::make_stuff+0x63d` — the slot-expiry walk, `docs/AI.md` §2.6 — that
+this crate does not. The bird's own stand is missing from that frame too, at
+index 4, but downstream of the AI draw: one word behind, the wing-beat coin
+takes the jog and `field_0x9c == 8` does not stand for one.
+
+The gate peaked at **11,399 MiB across the tree, 11,368 in the largest
+single process, of 20 GiB** at 244 tests.
+
+Successors, unnumbered: **`Leader::make_stuff+0x63d`, the slot-expiry
+walk**, is the headline now and it is a grep before it is a capture — run89
+prints `BUILDS=7` over the whole window and `make_stuff`'s bought slots are
+what expire; **`Unit::do_strafe`**, which would fly the gull and take
+`guys_follow`'s last air-gaia exemption off; and **`AnimalData::ox`/`whom`/
+`aid` are −1 on every animal of every block of run89** — the ledger row is
+closed as *observed and constant*, and a capture that ever prints one
+non-negative is the thing worth looking at.

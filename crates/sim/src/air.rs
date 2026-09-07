@@ -210,8 +210,18 @@ impl Sim {
         }
         // `WorldData::restrict`, which runs only on the refused step — the
         // accepted one is already inside.
+        //
+        // **`param_3` is zero** (`005e86d0:237`, `set_new_location(x, y,
+        // 0, 1)`), so the figure is *told* where to be and not put there:
+        // `Unit::set_new_location@005f8d20:158` writes guy 0's `des` from
+        // the unit's new point whatever `param_3` says, and only a
+        // non-zero one teleports it (`:161`). The figure catches up in
+        // `Guy::move`, one step later in the same frame — which is what
+        // makes `des == pos` there mean *the bird did not move this
+        // frame*, and that is the whole of its arrival stand
+        // (`anim.rs`'s `guys_follow`, `docs/SYNC.md` §3.9).
         let to = Pos::new(nx.clamp(0, xs - 1), ny.clamp(0, ys - 1));
-        self.set_new_location(u, to, true);
+        self.set_new_location(u, to, false);
     }
 
     /// `Unit::bank_aircraft(des, &speed, 0)` — the bank angle, and the
@@ -387,12 +397,90 @@ mod tests {
         let mut u = crate::Unit::new(crate::gaia::BIRD_OWNER, 0, at, 1);
         u.ty = Some(ty);
         u.kind = s.unit_types[ty].kind;
+        u.type_index = crate::anim::BIRD_TYPE;
         u.movement.speed = 35;
         u.movement.turning = crate::turning_of(&s.unit_types[ty]);
         u.movement.heading = Angle(heading);
         let b = s.add_unit(u);
+        // The figure, because `Guy::move` runs for a bird like anybody
+        // else and the arrival stand is its own draw.
+        s.init_guys(b, Some(ty));
         s.gaia.bird_goals.push((b, at));
         (s, b)
+    }
+
+    /// **The figure lags its unit by a step, and that is what the arrival
+    /// stand reads.** `Unit::do_air_physics` ends in `set_new_location(x,
+    /// y, 0, 1)` — `param_3` zero (`005e86d0:237`) — so
+    /// `Unit::set_new_location@005f8d20:158` writes guy 0's `des` to the
+    /// unit's new point and `:161`'s teleport is skipped: the figure is
+    /// still on last frame's point when `Guy::process` runs, and takes the
+    /// **moving** arm. A bird pinned on the boundary, whose step
+    /// `WorldData::restrict` hands back unchanged, is at its `des` instead
+    /// and takes the arrival one.
+    ///
+    /// Made to fail on purpose both ways: with `move_guys` back at `true`
+    /// the figure never lags and the flying frame pays a stand it should
+    /// not; with `guys_follow`'s old air-gaia return in place the pinned
+    /// frame pays none.
+    #[test]
+    fn a_bird_s_figure_lags_its_unit_and_stands_only_when_the_step_is_refused() {
+        // Pointed due west, sixteen units from the edge, with the patrol
+        // point behind it so the heading stands.
+        let at = crate::world::Pos::new(16, 20_000);
+        let (mut s, b) = bird(at, Angle::WEST.0);
+        let goal = crate::world::Pos::new(20_000, 20_000);
+        s.gaia.bird_goals[0].1 = goal;
+        s.art.lengths.insert((-1, crate::anim::WALK), 31);
+        s.art.lengths.insert((-1, crate::anim::JOG), 23);
+        s.art.lengths.insert((-1, crate::anim::DEFAULT), 3);
+        s.units[b].guys[0].anim = crate::anim::WALK;
+        s.units[b].guys[0].end_time = 31;
+        s.units[b].guys[0].stopped = true;
+        s.trace_phases = true;
+
+        // Frame one: the step is refused and `restrict` puts the bird on
+        // the boundary, which is a move — the figure lags and the moving
+        // arm runs, no stand.
+        s.do_air_physics(b, goal, 1);
+        assert_eq!(s.units[b].pos.x, 0, "restrict puts it on the boundary");
+        assert_ne!(
+            s.units[b].movement.body.pos, s.units[b].pos,
+            "the figure has not been teleported with the unit"
+        );
+        let before = s.rng.seed;
+        s.process_movement(b);
+        assert_eq!(s.rng.seed, before, "a bird that moved pays no stand");
+        assert!(!s.units[b].guys[0].stopped, "and is marked unstopped");
+        assert_eq!(s.units[b].movement.body.pos, s.units[b].pos, "it caught up");
+
+        // Frame two: still pointed off the map and already on the
+        // boundary, so `restrict` hands back the point it stands on. The
+        // figure is on its `des`, the first visit only marks it stopped.
+        s.do_air_physics(b, goal, 2);
+        assert_eq!(s.units[b].pos.x, 0, "still pinned");
+        let before = s.rng.seed;
+        s.process_movement(b);
+        assert_eq!(s.rng.seed, before, "the first standing frame only stops it");
+        assert!(s.units[b].guys[0].stopped);
+
+        // Frame three: stopped, on `CHAR_WALK`, and at its destination —
+        // the stand, one draw, and the slot goes to `CHAR_DEFAULT`, which
+        // is what makes the *next* frame's `set_anim(CHAR_WALK)` throw the
+        // wing-beat coin instead of taking gaia's early return.
+        s.do_air_physics(b, goal, 3);
+        let before = s.rng.seed;
+        s.phase_marks.clear();
+        s.process_movement(b);
+        assert_ne!(s.rng.seed, before, "the arrival stand's draw");
+        assert_eq!(s.units[b].guys[0].anim, crate::anim::DEFAULT);
+        assert!(
+            s.phase_marks
+                .iter()
+                .any(|(l, _)| l == crate::anim::SITE_ARRIVE),
+            "and it is marked as the arrival stand: {:?}",
+            s.phase_marks
+        );
     }
 
     /// **The edge coin, end to end.** A bird pointed at the western edge

@@ -259,11 +259,20 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // row, the tail negation of `§6.3`: three positions closer, the
         // four spurious units gone and two missing again, on the change
         // that moves the word itself 7455 → 7584.
-        off: 78,
-        unlinked: 2,
-        extra: 0,
+        //
+        // Then **78 → 84, 2 → 0, 0 → 2 and 13 → 12** on 2026-09-07, item
+        // 284 — the gaia bird's arrival stand and the figure's lagging
+        // step behind it (`docs/SYNC.md` §3.9). It moves the word 7584 →
+        // 7585 and closes `1/3`'s spot, the value diff beside it, 16,416
+        // frames before this endpoint; here the roster's two missing units
+        // are found and two spurious ones take their place, six positions
+        // are further out and one building field-row is closer. DECISIONS
+        // 36 asks for the number rather than a trade.
+        off: 84,
+        unlinked: 0,
+        extra: 2,
         build_unlinked: 0,
-        build_diverged: 13,
+        build_diverged: 12,
         city_unlinked: 3,
         city_diverged: 0,
     },

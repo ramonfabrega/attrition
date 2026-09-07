@@ -2213,52 +2213,54 @@ mod tests {
     /// it, so until this capture the headline map's own frame could be read
     /// as a draw stream and as nothing else. `docs/ORACLE.md`, "run89".
     ///
-    /// **The word reproduces from this capture's own trace**, not run53's:
-    /// frames 7580–7583 agree draw for draw (12, 19, 7, 9) and 7584 is
+    /// **The word reproduced from this capture's own trace**, not run53's:
+    /// frames 7580–7583 agreed draw for draw (12, 19, 7, 9) and 7584 was
     /// **48 against 49**, parting at index **24** — where the original
     /// spends a [`sim::anim::SITE_ARRIVE`], `Guy::set_anim+0x97a <
-    /// Guy::move+0x19f`, that this crate does not. Removing that one entry
-    /// makes the two frames equal, entry for entry, so the whole of the
-    /// word is one missing draw and not a reordering.
+    /// Guy::move+0x19f`, that this crate did not. It sits between the
+    /// fourth and fifth bird's `Animal::think_bird` triple, inside the
+    /// animal pass.
     ///
-    /// **It sits inside the animal pass**, between the fourth and fifth
-    /// bird's `Animal::think_bird` triple — an arrival stand for one of the
-    /// gaia birds' figures, the frame after it stops walking
-    /// (`docs/ANIM.md` §9, the `Guy::move:59` row). *Which* bird this
-    /// capture cannot say: player 9's herd is not in the dump at this
-    /// detail — [`borrow_pasture`] takes it from the trace — so naming it
-    /// wants a capture that carries the herd.
+    /// **Item 284 named the animal by elimination over the whole dumped
+    /// record and then closed the frame.** Player 9 is in no dump
+    /// (`docs/SYNC.md` §3.9), but its 40 owner-8 animals are, in full: on
+    /// block 7584 not one of them is on `CHAR_WALK`, which
+    /// `Guy::move@005d9240:57` tests for by slot, and no owner-1 guy on
+    /// the walk is `stopped` — so the stand is a **bird's**, and the
+    /// thirteen units that could have taken it could not. The mechanism
+    /// was `Unit::do_air_physics`'s own `set_new_location(x, y, 0, 1)`:
+    /// `param_3` zero, so guy 0's `des` is written to the unit's new point
+    /// and the figure is **not** put there. It lags a step, takes
+    /// `Guy::move`'s moving arm on every frame the bird flew, and the
+    /// arrival arm on a frame the bird did not move — a step
+    /// `WorldData::restrict` clamps back onto the boundary it already
+    /// stands on. This crate teleported the figure with the unit and
+    /// skipped `Guy::move` for a bird outright.
     ///
-    /// **And the field it costs is on the same frame.** Nineteen draws
-    /// later the frame spends two `GameAccess::rnd+0x20 < Unit::do_job+0x67`
-    /// on `1/3`, an AI citizen whose `GATHERORDER` works building `2002`
-    /// (`build_type 417`, `been_there 1`, `goto_build 1`), and both sides
-    /// push it a fresh `MOVEORDER` on **block 7585**, which is the state at
-    /// the end of sim-frame 7584 — the word's own frame, in the block
-    /// numbering run88 used. They disagree only on where:
+    /// **7584 now agrees 49 for 49, entry for entry**, and the value diff
+    /// beside it closes with the draw. Nineteen draws later the frame
+    /// spends two `GameAccess::rnd+0x20 < Unit::do_job+0x67` on `1/3`, an
+    /// AI citizen whose `GATHERORDER` works building `2002` (`build_type
+    /// 417`, `been_there 1`, `goto_build 1`), and both sides push it a
+    /// fresh `MOVEORDER` on **block 7585** — the state at the end of
+    /// sim-frame 7584. It used to land one tile out on each axis, ours
+    /// (42168, 17400) off (696, 504) against the original's (41976,
+    /// 17208) off (504, 312), from a base both sides agreed on; now every
+    /// field of it agrees and **nothing at all parts at or below block
+    /// 7585** but run87's own carried residue — `1/23`'s order angle and
+    /// flags, `1/24`/`1/25`/`1/26` twenty-four units off their cell, and
+    /// item 242's group id, all older than this window and present on its
+    /// first block.
     ///
-    /// | field | ours | theirs |
-    /// | --- | --- | --- |
-    /// | `x`, `dest_x` | 42168 | **41976** |
-    /// | `y`, `dest_y` | 17400 | **17208** |
-    /// | `off_x` | 696 | **504** |
-    /// | `off_y` | 504 | **312** |
-    ///
-    /// — exactly **(+192, +192)** on all four, one tile in each axis, with
-    /// `x − off_x` = 41472 and `y − off_y` = 16896 **identical on both
-    /// sides**. So the base the spot is measured from agrees and the tile
-    /// chosen off it does not, which is what a stream one draw out of step
-    /// looks like rather than a second, independent fault. The position
-    /// follows on 7586 — ours (41615, 17585) against theirs (41609,
-    /// 17575) — and never comes back.
-    ///
-    /// **Nothing else parts at or below the word**, and past it the two
-    /// streams are nobody's, so only the block-7585-and-below set is
-    /// asserted (run57's rule: what has teeth is the half a shared stream
-    /// backs). What is left there is run87's own carried residue —
-    /// `1/23`'s order angle and flags, `1/24`/`1/25`/`1/26` twenty-four
-    /// units off their cell, and item 242's group id — all of them older
-    /// than this window and present on its first block.
+    /// **The word is 7585**, one frame on, and it is the AI: seven draws
+    /// against nine, parting at index 2 where the original spends a
+    /// `Leader::make_stuff+0x63d` ([`sim::ai_make::SITE_EXPIRE_SLOT`])
+    /// this crate does not. The bird's own stand is missing from that
+    /// frame at index 4 as well, but downstream of it — one draw behind,
+    /// the wing-beat coin reads a different word and takes `CHAR_JOG`,
+    /// and `Guy::move`'s `field_0x9c == 8` does not stand for a jog.
+    /// Past 7585 both sides run on streams that are nobody's, so only the
+    /// block-7585-and-below set is asserted (run57's rule).
     #[test]
     fn run89_s_window_is_great_lakes_word_frame() {
         let Some(inst) = install() else { return };
@@ -2288,49 +2290,81 @@ mod tests {
         built.sim.trace_phases = true;
         let mut under: Vec<(i64, usize, usize, bool)> = Vec::new();
         let mut word: Option<(Vec<String>, Vec<String>)> = None;
-        for f in 0..7585i64 {
+        let mut stand: Option<(Vec<String>, Vec<String>)> = None;
+        for f in 0..7586i64 {
             built.tick();
-            if (7580..7585).contains(&f) {
+            if (7580..7586).contains(&f) {
                 let ours =
                     mark_sites(&built.sim.phase_marks, built.sim.rng.seed).unwrap_or_default();
                 let theirs = tr.labels(f);
                 under.push((f, ours.len(), theirs.len(), ours == theirs));
                 if f == 7584 {
+                    stand = Some((ours.clone(), theirs.clone()));
+                }
+                if f == 7585 {
                     word = Some((ours, theirs));
                 }
             }
         }
-        eprintln!("run89: draws 7580..7585 {under:?}");
+        eprintln!("run89: draws 7580..7586 {under:?}");
+        // **The anti-vacuity guard, and it is the one that stays.** "Equal
+        // once one entry is dropped" said nothing on a frame pair that was
+        // never equal, and the same holds for "the stand is at index 24":
+        // a mis-read trace is also a stream that agrees with nothing. The
+        // five frames under the word must agree entry for entry, 7584 —
+        // the frame the stand is on — included.
         assert!(
-            under.iter().filter(|r| r.0 < 7584).all(|r| r.3),
-            "run89's draw stream already parts under the word, so the \
-             word's own frame says nothing: {under:?}"
+            under.iter().filter(|r| r.0 < 7585).all(|r| r.3),
+            "run89's draw stream parts under the word, so the word's own \
+             frame says nothing: {under:?}"
         );
-        let (ours, theirs) = word.expect("frame 7584 traced");
+        // **The stand itself, still named on the frame it is spent on**:
+        // 49 for 49 with a `Guy::set_anim+0x97a < Guy::move+0x19f` at
+        // index 24 on *both* sides, between the fourth and fifth bird's
+        // `Animal::think_bird` triple. Without this the frame could agree
+        // on 49 draws that were not these ones.
+        let (ours, theirs) = stand.expect("frame 7584 traced");
         assert_eq!(
             (ours.len(), theirs.len()),
-            (48, 49),
-            "run89's frame 7584 is not 48 against 49"
+            (49, 49),
+            "run89's frame 7584 is not 49 against 49"
         );
         assert_eq!(
-            theirs.get(24).map(String::as_str),
-            Some(sim::anim::SITE_ARRIVE),
-            "the original's extra draw at 7584 index 24 is not the arrival \
-             stand: {:?}",
+            (
+                ours.get(24).map(String::as_str),
+                theirs.get(24).map(String::as_str)
+            ),
+            (Some(sim::anim::SITE_ARRIVE), Some(sim::anim::SITE_ARRIVE)),
+            "7584's index 24 is not the bird's arrival stand on both sides: {:?}",
             first_parting(&ours, &theirs).map(|(_, s)| s)
         );
-        let without: Vec<String> = theirs
-            .iter()
-            .enumerate()
-            .filter(|(i, _)| *i != 24)
-            .map(|(_, l)| l.clone())
-            .collect();
         assert_eq!(
-            ours,
-            without,
-            "run89's 7584 is not the original's frame minus one arrival \
-             stand: {:?}",
-            first_parting(&ours, &without).map(|(_, s)| s)
+            (
+                ours.get(23).map(String::as_str),
+                ours.get(25).map(String::as_str)
+            ),
+            (
+                Some(sim::gaia::SITE_BIRD_LAND),
+                Some(sim::gaia::SITE_BIRD_WANDER_X)
+            ),
+            "the stand does not sit between two birds' triples: {ours:?}"
+        );
+        // **And the word, one frame on**: `Leader::make_stuff+0x63d`, the
+        // slot-expiry walk, at index 2 of 7585.
+        let (ours, theirs) = word.expect("frame 7585 traced");
+        assert_eq!(
+            (ours.len(), theirs.len()),
+            (7, 9),
+            "run89's frame 7585 is not 7 against 9"
+        );
+        assert_eq!(
+            (
+                first_parting(&ours, &theirs).map(|(i, _)| i),
+                theirs.get(2).map(String::as_str)
+            ),
+            (Some(2), Some(sim::ai_make::SITE_EXPIRE_SLOT)),
+            "run89's word is not `make_stuff`'s slot expiry: {:?}",
+            first_parting(&ours, &theirs).map(|(_, s)| s)
         );
 
         // **The original's own record of the spot**, read off the dump
@@ -2364,8 +2398,9 @@ mod tests {
             "the original's 1/3 is sent somewhere else on block 7585"
         );
 
-        // And ours, off the diff — the same order, one tile out on each
-        // axis, from a base both sides agree on.
+        // And ours, off the diff — the same order, and since item 284 the
+        // same *spot*: the diverging list for `1/3` on this block is
+        // empty.
         let report = run_traced(&loaded, &log, Tuning::RON, None, None, &refs, Some(&tr)).unwrap();
         let blocks: Vec<i64> = report
             .frames
@@ -2423,35 +2458,20 @@ mod tests {
             .collect();
         spot.sort();
         eprintln!("run89: 1/3's spot on 7585 {spot:?}");
-        assert_eq!(
-            spot,
-            vec![
-                ("angle", 817_758_208, 497_287_168),
-                ("off_x", 696, 504),
-                ("off_y", 504, 312),
-                ("x", 42168, 41976),
-                ("y", 17400, 17208),
-            ],
-            "1/3's fresh move order on block 7585 is not run89's"
+        assert!(
+            spot.is_empty(),
+            "1/3's spot on block 7585 parts again — item 284 closed it: {spot:?}"
         );
-        // **The base agrees and the tile does not** — the claim the table
-        // in the doc comment is making, as arithmetic rather than as five
-        // separate numbers.
-        let by = |f: &str| {
-            let (_, o, t) = *spot.iter().find(|r| r.0 == f).unwrap();
-            (o, t)
-        };
-        let (x, ox, y, oy) = (by("x"), by("off_x"), by("y"), by("off_y"));
-        assert_eq!(
-            (x.0 - ox.0, x.1 - ox.1, y.0 - oy.0, y.1 - oy.1),
-            (41472, 41472, 16896, 16896),
-            "the two sides do not measure 1/3's spot from the same base"
-        );
-        assert_eq!(
-            (x.0 - x.1, y.0 - y.1, ox.0 - ox.1, oy.0 - oy.1),
-            (192, 192, 192, 192),
-            "1/3's spot is not one tile out on each axis"
-        );
+        // **And the order is this crate's own**, not an absence: the same
+        // `MOVEORDER` the original writes, field for field. A comparison
+        // that stopped finding the unit would also print an empty list.
+        let mine = report
+            .frames
+            .iter()
+            .find(|f| f.frame == 7585)
+            .map(|f| f.compared)
+            .unwrap_or_default();
+        assert!(mine > 0, "block 7585 compares nothing at all");
 
         // **What parts at or below the word, and nothing is asserted above
         // it**: past 7584 both sides run on streams that are nobody's, so
@@ -2479,21 +2499,10 @@ mod tests {
             wrong.iter().map(|r| (r.1, r.2)).collect();
         assert_eq!(
             parted,
-            [(1, 3)].into_iter().collect(),
-            "run89 parts on more than 1/3 at or below the word: {:?}",
-            wrong
-                .iter()
-                .filter(|r| (r.1, r.2) != (1, 3))
-                .take(8)
-                .collect::<Vec<_>>()
-        );
-        // And the floor under it: 1/3's own rows start at the word's own
-        // block and not before it.
-        assert_eq!(
-            wrong.iter().map(|r| r.0).min(),
-            Some(7585),
-            "run89's field diff parts before the word: {:?}",
-            wrong.first()
+            std::collections::BTreeSet::new(),
+            "run89 parts on a unit at or below the word — since item 284 \
+             nothing but the carried residue does: {:?}",
+            wrong.iter().take(8).collect::<Vec<_>>()
         );
         // **The city record parts on every block of the window and no
         // window test asserts it** — printed here so the gap is on the

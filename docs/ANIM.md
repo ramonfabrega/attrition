@@ -1349,7 +1349,16 @@ two passes.
   open there is the animals' positions, and their lengths are the pasture
   pair §3.1 leaves out. ~~**The birds after creation**~~ — `think_bird` and
   `Guy::set_anim`'s bird arm are read and modelled (`docs/SYNC.md` §3.9);
-  `do_air_physics`'s **flight** is not.
+  ~~`do_air_physics`'s **flight** is not~~ — modelled 2026-09-02, and its
+  figure since 2026-09-07: **§4.6's arrival row fires for a bird**, on
+  every frame its step is refused and `WorldData::restrict` hands back the
+  point it stands on. `Unit::do_air_physics` ends in `set_new_location(x,
+  y, 0, 1)` and the zero is `param_3`, so the figure is told where to be
+  and not put there; it lags a step, and `des == pos` in `Guy::move` reads
+  as *the bird did not move*. Great Lakes' word 7584 → 7585
+  (`docs/SYNC.md` §3.9, "The arrival stand"; item 284). What is still
+  unmodelled is `Unit::do_strafe`, so the dock's **gull** does not fly and
+  its figure is left out of the follow.
 - ~~**The 4-draw tail of frame 0** is still not a wrap (`docs/SYNC.md` §6).~~
   It is a wrap, at 110–113 rather than at the end (the trace, above); the
   farms are the tail.
