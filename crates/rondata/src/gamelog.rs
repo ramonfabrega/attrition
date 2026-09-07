@@ -64,6 +64,7 @@
 //! non-XML members (camera, editor and scenario state). That is what makes it
 //! a direct oracle for every representation claim `sim::tuning::Slot` makes.
 
+use std::cell::RefCell;
 use std::fmt;
 
 /// A growable array in **fixed-size chunks**, which is what keeps one
@@ -79,8 +80,8 @@ use std::fmt;
 /// Chunks of one fixed size are the fix — every chunk any log frees fits
 /// every chunk the next log wants, and nothing is ever copied on growth.
 #[derive(Clone, Debug)]
-struct Chunks<T> {
-    chunks: Vec<Box<[T]>>,
+struct Chunks<T: Copy + Default> {
+    chunks: Vec<crate::mapped::Pages<T>>,
     len: usize,
 }
 
@@ -89,7 +90,7 @@ struct Chunks<T> {
 /// worth counting, large enough that the chunk list is not.
 const CHUNK: usize = 1 << 16;
 
-impl<T> Default for Chunks<T> {
+impl<T: Copy + Default> Default for Chunks<T> {
     fn default() -> Self {
         Chunks {
             chunks: Vec::new(),
@@ -118,10 +119,15 @@ impl<T: Copy + Default> Chunks<T> {
         self.chunks[i / CHUNK][i % CHUNK] = v;
     }
 
+    /// Forgets the entries without giving the chunks back — what a
+    /// scratch arena reused frame after frame is for (item 260).
+    fn clear(&mut self) {
+        self.len = 0;
+    }
+
     fn push(&mut self, v: T) {
-        if self.len.is_multiple_of(CHUNK) {
-            self.chunks
-                .push(vec![T::default(); CHUNK].into_boxed_slice());
+        if self.len == self.chunks.len() * CHUNK {
+            self.chunks.push(crate::mapped::Pages::new(CHUNK));
         }
         self.chunks[self.len / CHUNK][self.len % CHUNK] = v;
         self.len += 1;
@@ -161,6 +167,22 @@ struct Node {
     kids_len: u32,
 }
 
+impl Node {
+    /// `fields_len` for a block the first pass **indexed rather than
+    /// read**: it has no fields and no children yet, so those four words
+    /// carry the byte range of its own text instead — `fields_at` is where
+    /// it starts and `kids_at` how long it is (item 260). Committing the
+    /// block writes the real counts over both, which is what un-marks it.
+    /// The alternative was two more words on every node, and item 235's
+    /// guard is right that a node's width is worth 76.6 MB a byte.
+    const LAZY: u32 = u32::MAX;
+
+    /// The byte range of an indexed block's own text, if it still has one.
+    fn body(&self) -> Option<(u32, u32)> {
+        (self.fields_len == Node::LAZY).then_some((self.fields_at, self.kids_at))
+    }
+}
+
 /// One `BEGIN` block: its name, its fields in file order, and its children.
 ///
 /// A cursor into the [`Log`]'s arena rather than a node of its own, so it
@@ -193,7 +215,16 @@ impl Eq for Block<'_> {}
 
 impl<'a> Block<'a> {
     fn node(&self) -> Node {
-        self.log.nodes.get(self.node as usize)
+        self.log.node(self.node)
+    }
+
+    /// Reads this block's own text into the arena if the first pass only
+    /// indexed it. Everything that hands back a field or a child goes
+    /// through here; a name and an indent come from the index and do not.
+    fn ensure(&self) {
+        if let Some(body) = self.node().body() {
+            self.log.materialise(self.node, body);
+        }
     }
 
     /// The text after `BEGIN `, e.g. `UNITDATA`, `FRAME 100`, `GAME INFO`.
@@ -209,6 +240,7 @@ impl<'a> Block<'a> {
 
     /// `(key, value)` in file order. The value may be empty and keys repeat.
     pub fn fields(&self) -> Fields<'a> {
+        self.ensure();
         let n = self.node();
         Fields {
             log: self.log,
@@ -219,6 +251,7 @@ impl<'a> Block<'a> {
 
     /// The child blocks, in file order.
     pub fn children(&self) -> Children<'a> {
+        self.ensure();
         let n = self.node();
         Children {
             log: self.log,
@@ -366,7 +399,7 @@ impl<'a> Children<'a> {
     pub fn get(&self, i: usize) -> Option<Block<'a>> {
         (self.at + i < self.end).then(|| Block {
             log: self.log,
-            node: self.log.kids.get(self.at + i),
+            node: self.log.kid(self.at + i),
         })
     }
 
@@ -395,7 +428,7 @@ impl<'a> Iterator for Children<'a> {
         (self.at < self.end).then(|| {
             let b = Block {
                 log: self.log,
-                node: self.log.kids.get(self.at),
+                node: self.log.kid(self.at),
             };
             self.at += 1;
             b
@@ -439,6 +472,18 @@ pub struct Log<'a> {
     text: &'a str,
     /// Lines before the first `BEGIN`, as `(first token, rest)`.
     pub preamble: Vec<(&'a str, &'a str)>,
+    /// Behind a cell because a block is read **when it is asked for**: a
+    /// capture's frames are indexed by the first pass and parsed one at a
+    /// time thereafter, so an accessor taking `&self` has to be able to
+    /// grow the arena (item 260). Nothing borrows out of it — every read
+    /// copies the fixed-size record out — so the cell is never held across
+    /// a call.
+    arena: RefCell<Arena>,
+}
+
+/// The three flat vectors every block's ranges point into, and the roots.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+struct Arena {
     nodes: Chunks<Node>,
     fields: Chunks<Field>,
     kids: Chunks<u32>,
@@ -451,11 +496,19 @@ impl<'a> Log<'a> {
     }
 
     fn field(&self, i: usize) -> (&'a str, &'a str) {
-        let f = self.fields.get(i);
+        let f = self.arena.borrow().fields.get(i);
         (
             self.slice(f.key_at, f.key_len),
             self.slice(f.val_at, f.val_len),
         )
+    }
+
+    fn node(&self, i: u32) -> Node {
+        self.arena.borrow().nodes.get(i as usize)
+    }
+
+    fn kid(&self, i: usize) -> u32 {
+        self.arena.borrow().kids.get(i)
     }
 
     /// The top-level blocks, in file order.
@@ -463,7 +516,21 @@ impl<'a> Log<'a> {
         Roots {
             log: self,
             at: 0,
-            end: self.roots.len(),
+            end: self.arena.borrow().roots.len(),
+        }
+    }
+
+    /// [`Self::roots`] for a borrow that is **shorter** than the text's.
+    ///
+    /// `Log<'a>` is covariant in `'a`, so a scratch parse living on the
+    /// stack — which is what a streaming scan of the frames is — can still
+    /// be walked; `roots` cannot do it, because its `&'a self` pins the
+    /// borrow to the text's own lifetime.
+    fn roots_here(&self) -> Roots<'_> {
+        Roots {
+            log: self,
+            at: 0,
+            end: self.arena.borrow().roots.len(),
         }
     }
 
@@ -484,10 +551,181 @@ impl<'a> Log<'a> {
             text,
             ..Log::default()
         };
-        let base = text.as_ptr() as usize;
-        // Every slice below is cut from `text`, so its offset is the
-        // difference of the two pointers.
-        let off = |s: &str| (s.as_ptr() as usize - base) as u32;
+        fill(
+            &mut log.arena.borrow_mut(),
+            Some(&mut log.preamble),
+            text,
+            0,
+            None,
+            true,
+        );
+        log
+    }
+
+    /// [`Self::parse`] with the laziness off — the whole text read in one
+    /// pass, which is what `the_lazy_tree_is_the_eager_tree` compares
+    /// against.
+    #[cfg(test)]
+    pub(crate) fn parse_eager(text: &'a str) -> Log<'a> {
+        let mut log = Log {
+            text,
+            ..Log::default()
+        };
+        fill(
+            &mut log.arena.borrow_mut(),
+            Some(&mut log.preamble),
+            text,
+            0,
+            None,
+            false,
+        );
+        log
+    }
+
+    /// How many blocks the first pass indexed and has not yet read — what
+    /// says a lazy/eager comparison is comparing anything at all.
+    #[cfg(test)]
+    pub(crate) fn indexed(&self) -> usize {
+        let a = self.arena.borrow();
+        (0..a.nodes.len())
+            .filter(|&i| a.nodes.get(i).body().is_some())
+            .count()
+    }
+
+    /// The root named `GAME`, as a node id, without pinning the borrow to
+    /// the text's lifetime the way [`Self::game`] does.
+    fn game_node(&self) -> Option<u32> {
+        let a = self.arena.borrow();
+        a.roots.iter().copied().find(|&id| {
+            let n = a.nodes.get(id as usize);
+            self.slice(n.name_at, n.name_len) == "GAME"
+        })
+    }
+
+    /// Forgets everything read so far, keeping the chunks — a scratch
+    /// arena between two frames.
+    fn reset(&self) {
+        let mut a = self.arena.borrow_mut();
+        a.nodes.clear();
+        a.fields.clear();
+        a.kids.clear();
+        a.roots.clear();
+    }
+
+    /// **Walks `GAME`'s children one at a time, on an arena thrown away
+    /// between them** — the whole-file scan of item 260.
+    ///
+    /// A capture's frames are all children of `GAME`, and every whole-log
+    /// product this module has (`frame_states`, `frame_seeds`,
+    /// `anim_lengths`, the height grid, and the four walks `initial` used
+    /// to do separately) wants each of them once and keeps something
+    /// **owned**. Reading them into the log's own arena is what made a
+    /// 1.3 GB capture cost 2.2 GB of nodes and fields; reading them into a
+    /// scratch arena that is cleared before the next one costs one frame.
+    ///
+    /// A child the first pass read eagerly — everything before the first
+    /// `FRAME` — is handed over from the log's own arena instead, so the
+    /// walk is the complete list either way. `f` answers whether to carry
+    /// on.
+    fn scan_children(&self, mut f: impl FnMut(Block<'_>) -> bool) {
+        let Some(game) = self.game_node() else {
+            return;
+        };
+        let ids: Vec<u32> = {
+            let a = self.arena.borrow();
+            let n = a.nodes.get(game as usize);
+            (0..n.kids_len)
+                .map(|i| a.kids.get((n.kids_at + i) as usize))
+                .collect()
+        };
+        let scratch = Log {
+            text: self.text,
+            ..Log::default()
+        };
+        for id in ids {
+            match self.node(id).body() {
+                Some((at, len)) => {
+                    scratch.reset();
+                    fill(
+                        &mut scratch.arena.borrow_mut(),
+                        None,
+                        self.slice(at, len),
+                        at,
+                        None,
+                        false,
+                    );
+                    let Some(b) = scratch.roots_here().next() else {
+                        continue;
+                    };
+                    if !f(b) {
+                        return;
+                    }
+                }
+                None => {
+                    let b = Block {
+                        log: self,
+                        node: id,
+                    };
+                    if !f(b) {
+                        return;
+                    }
+                }
+            }
+        }
+    }
+
+    /// Reads an indexed block's own text into the arena — what
+    /// [`Block::ensure`] calls the first time anyone asks a lazily indexed
+    /// block for a field or a child.
+    fn materialise(&self, id: u32, (at, len): (u32, u32)) {
+        let region = self.slice(at, len);
+        let mut arena = self.arena.borrow_mut();
+        let roots_before = arena.roots.len();
+        // The region begins on the block's own `BEGIN` line, so the pass
+        // hands it back the node it already has rather than making one —
+        // and committing it writes the real field and child counts over
+        // the range that marked it lazy.
+        fill(&mut arena, None, region, at, Some(id), false);
+        // Its own block closed with nothing under it on the stack, so the
+        // pass called it a root of the region; it is not one of the log's.
+        arena.roots.truncate(roots_before);
+        // A region always opens on the block's own `BEGIN`, so committing
+        // it has written the counts over the marker. If it somehow has
+        // not, clear the marker anyway: a block that stays lazy after
+        // being read is one that is read again on every access, for ever.
+        let mut n = arena.nodes.get(id as usize);
+        if n.body().is_some() {
+            n.fields_len = 0;
+            n.kids_len = 0;
+            arena.nodes.set(id as usize, n);
+        }
+    }
+}
+
+/// Reads `region` — a whole text, or one indexed block's own — into
+/// `arena`.
+///
+/// `base` is `region`'s offset in the log's text, so that every span
+/// recorded is an offset into *that* however deep the region sits.
+/// `root` names a node already in the arena for the region's first block,
+/// which is what makes a second pass over one block's text fill in the
+/// node the first pass indexed rather than duplicate it. With `lazy`, the
+/// pass stops reading at the first `FRAME` child of the top-level block
+/// and **indexes** the rest; it answers whether it did.
+fn fill<'a>(
+    arena: &mut Arena,
+    mut preamble: Option<&mut Vec<(&'a str, &'a str)>>,
+    region: &'a str,
+    base: u32,
+    root: Option<u32>,
+    lazy: bool,
+) -> bool {
+    {
+        let log = &mut *arena;
+        let base_ptr = region.as_ptr() as usize;
+        // Every slice below is cut from `region`, so its offset is the
+        // difference of the two pointers plus where the region begins.
+        let off = |s: &str| base + (s.as_ptr() as usize - base_ptr) as u32;
 
         // The open-block stack, innermost last, indents strictly
         // increasing. A block leaves it when something at its own indent or
@@ -502,8 +740,16 @@ impl<'a> Log<'a> {
         let mut trailing: Option<Open> = None;
         // Closed blocks' scratch vectors, kept for the next block to use.
         let mut pool: Vec<Open> = Vec::new();
+        // The node the region's first block is to be written back into,
+        // when the region is one already-indexed block's own text.
+        let mut first = root;
 
-        for line in text.lines() {
+        // Whether the tail was indexed rather than read, and whether it is
+        // still worth offering.
+        let mut split = false;
+        let mut try_lazy = lazy;
+        let mut lines = region.lines();
+        while let Some(line) = lines.next() {
             let trimmed = line.trim_start_matches(' ');
             if trimmed.is_empty() {
                 continue;
@@ -512,20 +758,59 @@ impl<'a> Log<'a> {
             let trimmed = trimmed.trim_end();
             if let Some(name) = trimmed.strip_prefix("BEGIN ") {
                 if let Some(t) = trailing.take() {
-                    commit(&mut log, &mut stack, &mut pool, t);
+                    commit(log, &mut stack, &mut pool, t);
                 }
                 while stack.last().is_some_and(|o| o.indent >= indent) {
                     let o = stack.pop().expect("just checked");
-                    commit(&mut log, &mut stack, &mut pool, o);
+                    commit(log, &mut stack, &mut pool, o);
+                }
+                // **The lazy split** (item 260). A capture's frames are all
+                // children of one block, and a test reads one of them; the
+                // first `FRAME` child is therefore where reading stops and
+                // indexing begins. The rest of the file is walked below
+                // without a field being stored — each child of the open
+                // block becomes a node holding nothing but its name and the
+                // byte range of its own text, which `Block::ensure` reads
+                // when someone asks it for something.
+                if try_lazy
+                    && stack.len() == 1
+                    && indent > 0
+                    && name.trim_start().starts_with("FRAME ")
+                {
+                    // The `BEGIN` line just read is the first span's, so
+                    // the index picks up from it rather than after it.
+                    let rest = &region[(off(line) - base) as usize..];
+                    if let Some(stop) = index_tail(log, &mut stack, off, rest, indent) {
+                        split = true;
+                        // The index reads to the end unless a line closes
+                        // the parent; the eager pass picks up there.
+                        lines = region[(stop - base) as usize..].lines();
+                        continue;
+                    }
+                    // The tail is a shape the index cannot model, so it is
+                    // read eagerly — and never offered again. Asking at
+                    // every later `FRAME` rescans the rest of the file once
+                    // per frame, which is the file squared: a first draft
+                    // did exactly that and got 34 tests done in the 220 s
+                    // the whole suite used to take.
+                    try_lazy = false;
                 }
                 let name = name.trim();
-                let node = log.nodes.len() as u32;
-                log.nodes.push(Node {
-                    name_at: off(name),
-                    name_len: name.len() as u32,
-                    indent: indent as u32,
-                    ..Node::default()
-                });
+                let node = match first.take() {
+                    // The region's own block already has a node: the pass
+                    // that indexed it made one.
+                    Some(id) => id,
+                    None => {
+                        let id = log.nodes.len() as u32;
+                        log.nodes.push(Node {
+                            name_at: off(name),
+                            name_len: name.len() as u32,
+                            indent: indent as u32,
+                            ..Node::default()
+                        });
+                        id
+                    }
+                };
                 let mut o = pool.pop().unwrap_or_default();
                 o.indent = indent;
                 o.node = node;
@@ -574,14 +859,14 @@ impl<'a> Log<'a> {
                 // block is not ambiguous and only closes.
                 if trailing.as_ref().is_some_and(|t| t.indent != indent) {
                     let t = trailing.take().expect("just checked");
-                    commit(&mut log, &mut stack, &mut pool, t);
+                    commit(log, &mut stack, &mut pool, t);
                 }
                 while stack.last().is_some_and(|o| o.indent >= indent) {
                     let o = stack.pop().expect("just checked");
                     if o.indent == indent && trailing.is_none() {
                         trailing = Some(o);
                     } else {
-                        commit(&mut log, &mut stack, &mut pool, o);
+                        commit(log, &mut stack, &mut pool, o);
                     }
                 }
                 if let Some(t) = trailing.as_mut()
@@ -591,23 +876,131 @@ impl<'a> Log<'a> {
                 }
                 match stack.last_mut() {
                     Some(top) => top.fields.push(field),
-                    None => log.preamble.push((key, value)),
+                    None => {
+                        if let Some(p) = preamble.as_deref_mut() {
+                            p.push((key, value));
+                        }
+                    }
                 }
             }
         }
         if let Some(t) = trailing.take() {
-            commit(&mut log, &mut stack, &mut pool, t);
+            commit(log, &mut stack, &mut pool, t);
         }
         while let Some(o) = stack.pop() {
-            commit(&mut log, &mut stack, &mut pool, o);
+            commit(log, &mut stack, &mut pool, o);
         }
-        log
+        split
     }
+}
+
+/// Indexes the rest of a capture rather than reading it: every remaining
+/// child of the open block becomes a node holding its name, its indent and
+/// the byte range of its own text — and nothing else, so a 1.3 GB capture
+/// whose frames nobody opens costs a few thousand nodes instead of
+/// seventy-six million fields (item 260).
+///
+/// A span runs from its own `BEGIN` line to the next line at or above the
+/// children's indent that opens one, so the trailing fields the writers put
+/// at a block's *own* indent — `leader_flags` and its kind — fall inside the
+/// span they belong to, exactly as the eager pass attributes them. The same
+/// fields belong to the **parent** as well, and those are the only ones this
+/// records.
+///
+/// Answers `false`, having changed nothing, if the tail does anything the
+/// index cannot model — a line shallower than the children, or a block
+/// opened after a field has already closed the span. Then the caller reads
+/// the rest eagerly, and the only cost is the scan. Neither has been seen
+/// in a capture; the check is what makes the laziness safe rather than
+/// hopeful.
+fn index_tail<'a>(
+    log: &mut Arena,
+    stack: &mut [Open],
+    off: impl Fn(&str) -> u32,
+    rest: &'a str,
+    child_indent: usize,
+) -> Option<u32> {
+    let end_of_rest = off(rest) + rest.len() as u32;
+    // `(name, indent, start)` per span, and the parent's own fields, both
+    // held here until the whole tail has been read: a tail this cannot
+    // model must leave the arena as it found it.
+    let mut spans: Vec<(&'a str, u32)> = Vec::new();
+    let mut fields: Vec<Field> = Vec::new();
+    let mut ends: Vec<u32> = Vec::new();
+    let mut span_open = false;
+    // Where the index gave up and the eager pass takes over: a line
+    // shallower than the children closes the parent, and every capture
+    // ends with one (`GameInfo closing`, at indent 0, which belongs to
+    // `GAME` *and* to the preamble). It is one line, so it is read rather
+    // than modelled.
+    let mut stop = end_of_rest;
+    for line in rest.lines() {
+        let trimmed = line.trim_start_matches(' ');
+        if trimmed.is_empty() {
+            continue;
+        }
+        let indent = line.len() - trimmed.len();
+        let trimmed = trimmed.trim_end();
+        let begins = trimmed.starts_with("BEGIN ");
+        if indent < child_indent {
+            stop = off(line);
+            break;
+        }
+        if indent > child_indent {
+            // Inside the current span — unless a field has already closed
+            // it, in which case what opens here is a child of the *parent*
+            // and the index has no node for it.
+            if begins && !span_open {
+                return None;
+            }
+            continue;
+        }
+        if begins {
+            let name = trimmed["BEGIN ".len()..].trim();
+            if !spans.is_empty() {
+                ends.push(off(line));
+            }
+            spans.push((name, off(line)));
+            span_open = true;
+        } else {
+            let (key, value) = match trimmed.find(' ') {
+                Some(p) => (&trimmed[..p], trimmed[p + 1..].trim_start()),
+                None => (trimmed, &trimmed[trimmed.len()..]),
+            };
+            fields.push(Field {
+                key_at: off(key),
+                key_len: key.len() as u32,
+                val_at: off(value),
+                val_len: value.len() as u32,
+            });
+            span_open = false;
+        }
+    }
+    if spans.is_empty() {
+        return None;
+    }
+    ends.push(stop);
+    let parent = stack.last_mut()?;
+    for ((name, start), end) in spans.into_iter().zip(ends) {
+        let id = log.nodes.len() as u32;
+        log.nodes.push(Node {
+            name_at: off(name),
+            name_len: name.len() as u32,
+            indent: child_indent as u32,
+            fields_at: start,
+            fields_len: Node::LAZY,
+            kids_at: end - start,
+            kids_len: 0,
+        });
+        parent.kids.push(id);
+    }
+    parent.fields.extend(fields);
+    Some(stop)
 }
 
 /// Moves a closed block's scratch into the arena, records its ranges, and
 /// hands it to its parent — the block below it on the stack, or the roots.
-fn commit(log: &mut Log<'_>, stack: &mut [Open], pool: &mut Vec<Open>, mut o: Open) {
+fn commit(log: &mut Arena, stack: &mut [Open], pool: &mut Vec<Open>, mut o: Open) {
     let fields_at = log.fields.len() as u32;
     log.fields.extend(&o.fields);
     let kids_at = log.kids.len() as u32;
@@ -655,7 +1048,7 @@ impl<'a> Iterator for Roots<'a> {
         (self.at < self.end).then(|| {
             let b = Block {
                 log: self.log,
-                node: self.log.roots[self.at],
+                node: self.log.arena.borrow().roots[self.at],
             };
             self.at += 1;
             b
@@ -754,15 +1147,50 @@ impl<'a> Log<'a> {
     /// record — so that record is the frame's last word: engine frame
     /// `n − 1`'s, the state frame `n` begins on. Empty for any other dump.
     pub fn frame_seeds(&'a self) -> Vec<(i64, u32)> {
-        self.frames()
-            .into_iter()
-            .filter_map(|(n, b)| {
-                let dump = b.kid("FULL DUMP")?;
-                let c = checksums_in(dump.fields());
-                c.first().map(|c| (n - 1, c.seed))
-            })
-            .collect()
+        let mut out = Vec::new();
+        self.scan_children(|b| {
+            if let Some(n) = frame_number(b)
+                && let Some(dump) = b.kid("FULL DUMP")
+                && let Some(c) = checksums_in(dump.fields()).first()
+            {
+                out.push((n - 1, c.seed));
+            }
+            true
+        });
+        out
     }
+}
+
+/// Every `(gpiece, cur_anim, end_time)` under one block, the block itself
+/// included — the walk behind [`Log::anim_lengths`], out here so that
+/// [`Log::initial`] can fold it into its own single pass over the frames.
+fn anims_in(b: Block<'_>, out: &mut Vec<(i64, i64, i64)>) {
+    if b.name() == "GUY" {
+        if let (Some(p), Some(a), Some(e)) = (b.int("gpiece"), b.int("cur_anim"), b.int("end_time"))
+            && e > 0
+        {
+            out.push((p, a, e));
+        }
+        return;
+    }
+    for c in b.children() {
+        anims_in(c, out);
+    }
+}
+
+/// A block named `name`, taking the block itself as a candidate — which is
+/// what a search over a *list* of blocks wants and [`Block::find`], which
+/// only looks below, does not do.
+fn find_here<'a>(b: Block<'a>, name: &str) -> Option<Block<'a>> {
+    if b.name() == name {
+        return Some(b);
+    }
+    b.find(name)
+}
+
+/// The number of a `FRAME n` block, or `None` for any other child.
+fn frame_number(b: Block<'_>) -> Option<i64> {
+    b.name().strip_prefix("FRAME ")?.trim().parse().ok()
 }
 
 /// The `CHECKSUM n / FILE / LINE / … / game_random seed` records among a
@@ -858,7 +1286,20 @@ impl<'a> Log<'a> {
     /// block at the same indent — the one whose `length` is over 1,000
     /// (the forts list itself is `length 0`). Empty when no dump has it.
     pub fn terrain_heights(&'a self) -> Vec<i64> {
-        self.roots().find_map(heights_in).unwrap_or_default()
+        for r in self.roots() {
+            if Some(r.node) == self.game_node() {
+                continue;
+            }
+            if let Some(h) = heights_in(r) {
+                return h;
+            }
+        }
+        let mut found = None;
+        self.scan_children(|b| {
+            found = heights_in(b);
+            found.is_none()
+        });
+        found.unwrap_or_default()
     }
 
     /// The height grid **of one frame's block** — the same table, as it
@@ -2613,8 +3054,22 @@ impl<'a> Log<'a> {
         init.builds = builds;
         init.leaders = leaders;
         init.checksums = self.checksums();
-        init.heights = self.terrain_heights();
-        if let Some(r) = game.find("REGIONS") {
+        // **The start-of-game state is read from the start of the game.**
+        // These four used to be whole-log searches, which on a capture with
+        // no `DUMP_ALL` head walked every frame to answer `None` — and
+        // where one *did* answer, it answered with a mid-game block's
+        // regions or heights as though they were the opening state. The
+        // head is `GAME`'s children before its first `FRAME`, which is what
+        // `records(game, true)` already takes.
+        let kids = game.children();
+        let head = kids.head(
+            kids.clone()
+                .position(|c| c.name().starts_with("FRAME"))
+                .unwrap_or(kids.len()),
+        );
+        let at_head = |name: &str| head.into_iter().find_map(|c| find_here(c, name));
+        init.heights = head.into_iter().find_map(heights_in).unwrap_or_default();
+        if let Some(r) = at_head("REGIONS") {
             init.regions = r
                 .kids("REGION")
                 .map(|b| RegionDump {
@@ -2624,7 +3079,7 @@ impl<'a> Log<'a> {
                 })
                 .collect();
         }
-        if let Some(h) = game.find("HERDS") {
+        if let Some(h) = at_head("HERDS") {
             init.herds = h
                 .kids("HERD")
                 .map(|b| HerdDump {
@@ -2640,7 +3095,7 @@ impl<'a> Log<'a> {
         // `Good::log_data@0066e610` writes the type's name as a bare line
         // and then the `SubObject` base, so the name is the record's one
         // field with no value.
-        if let Some(d) = game.find("FULL DUMP") {
+        if let Some(d) = at_head("FULL DUMP") {
             init.goods = d
                 .kids("GOOD")
                 .map(|b| {
@@ -2659,14 +3114,30 @@ impl<'a> Log<'a> {
                 .collect();
         }
         init.farms = farms_of(body);
-        init.frame_seeds = self.frame_seeds();
-        init.anim_lengths = self.anim_lengths();
-        // One walk of the frames, two products: the clocks the harness
-        // installs, and the figures' own positions, which it compares.
-        // The two filters are different — a dump can print a `GUY` block's
-        // position without its clock — and the walk is expensive enough on
-        // a 790 MB capture to be worth doing once.
-        for (n, b) in self.frames() {
+        // **One walk of the frames, four products** — the seeds, the
+        // animation lengths, the clocks the harness installs, and the
+        // figures' own positions, which it compares. The two figure filters
+        // are different (a dump can print a `GUY` block's position without
+        // its clock), and since item 260 the walk *re-reads* the capture
+        // rather than crossing an arena that is already built, so doing it
+        // four times over is four parses of a 790 MB file rather than four
+        // pointer chases.
+        for r in self.roots() {
+            if Some(r.node) == self.game_node() {
+                continue;
+            }
+            anims_in(r, &mut init.anim_lengths);
+        }
+        self.scan_children(|b| {
+            anims_in(b, &mut init.anim_lengths);
+            let Some(n) = frame_number(b) else {
+                return true;
+            };
+            if let Some(dump) = b.kid("FULL DUMP")
+                && let Some(c) = checksums_in(dump.fields()).first()
+            {
+                init.frame_seeds.push((n - 1, c.seed));
+            }
             let (units, _, _) = records(b, false);
             let rows: Vec<FrameUnit> = units
                 .into_iter()
@@ -2703,7 +3174,10 @@ impl<'a> Log<'a> {
             if !bodied.is_empty() {
                 init.frame_bodies.push((n - 1, bodied));
             }
-        }
+            true
+        });
+        init.anim_lengths.sort_unstable();
+        init.anim_lengths.dedup();
         Some(init)
     }
 
@@ -2712,24 +3186,19 @@ impl<'a> Log<'a> {
     /// printed, the frames included. A `DUMP_ALL` dump only; the lengths
     /// are the animation packets' frame counts (`docs/ANIM.md` §3).
     pub fn anim_lengths(&'a self) -> Vec<(i64, i64, i64)> {
-        fn walk(b: Block<'_>, out: &mut Vec<(i64, i64, i64)>) {
-            if b.name() == "GUY" {
-                if let (Some(p), Some(a), Some(e)) =
-                    (b.int("gpiece"), b.int("cur_anim"), b.int("end_time"))
-                    && e > 0
-                {
-                    out.push((p, a, e));
-                }
-                return;
-            }
-            for c in b.children() {
-                walk(c, out);
-            }
-        }
+        let walk = anims_in;
         let mut out = Vec::new();
+        let game = self.game_node();
         for r in self.roots() {
+            if Some(r.node) == game {
+                continue;
+            }
             walk(r, &mut out);
         }
+        self.scan_children(|b| {
+            walk(b, &mut out);
+            true
+        });
         out.sort_unstable();
         out.dedup();
         out
@@ -2783,9 +3252,9 @@ impl<'a> Log<'a> {
     }
 
     pub fn frame_states(&'a self) -> Vec<Frame> {
-        self.frames()
-            .into_iter()
-            .map(|(n, b)| {
+        let mut out = Vec::new();
+        self.scan_children(|b| {
+            if let Some(n) = frame_number(b) {
                 let (units, builds, leaders) = records(b, false);
                 // `find`, not `kid`: a `DUMP_ALL` frame nests its state
                 // under `FULL DUMP` exactly as the initial block does.
@@ -2793,15 +3262,17 @@ impl<'a> Log<'a> {
                     .find("CITIES")
                     .map(|c| c.kids("CITY").map(city_of).collect())
                     .unwrap_or_default();
-                Frame {
+                out.push(Frame {
                     n,
                     units,
                     builds,
                     leaders,
                     cities,
-                }
-            })
-            .collect()
+                });
+            }
+            true
+        });
+        out
     }
 }
 
@@ -3034,6 +3505,90 @@ BEGIN GAME
         assert!(
             cut.final_state().is_none(),
             "no trailing run, no final state"
+        );
+    }
+
+    /// Every block of one tree, as a string: the shape a lazy read has to
+    /// reproduce exactly.
+    #[cfg(test)]
+    fn spell(b: Block<'_>, depth: usize, out: &mut String) {
+        out.push_str(&format!("{:indent$}[{}]\n", "", b.name(), indent = depth));
+        for (k, v) in b.fields() {
+            out.push_str(&format!("{:indent$}{k}={v}\n", "", indent = depth + 1));
+        }
+        for c in b.children() {
+            spell(c, depth + 1, out);
+        }
+    }
+
+    #[cfg(test)]
+    fn spelled(log: &Log<'_>) -> String {
+        let mut out = String::new();
+        for (k, v) in &log.preamble {
+            out.push_str(&format!("!{k}={v}\n"));
+        }
+        for r in log.roots_here() {
+            spell(r, 0, &mut out);
+        }
+        out
+    }
+
+    /// **The lazy read is the eager read, block for block and field for
+    /// field.** Item 260 stops [`Log::parse`] at the first `FRAME` and
+    /// indexes the rest; every rule the eager pass has — the trailing run
+    /// at a block's own indent, the `leader_flags` written before the block
+    /// they describe, a field belonging to two blocks at once — has to
+    /// survive being applied to one frame's text in isolation. This is the
+    /// check that says it does, and it is the reason the refactor is
+    /// reversible: made to fail by indexing a span that stops at its last
+    /// child rather than at the next `BEGIN`, which drops every trailing
+    /// field, it reports the first block that differs.
+    #[test]
+    fn the_lazy_tree_is_the_eager_tree() {
+        // A tail with every shape the index has to model: a field at the
+        // frames' own indent (the `leader_flags` quirk, which belongs to
+        // the parent *and* to the frame it follows), a frame whose last
+        // line is a field rather than a block, and a sibling of `FRAME`
+        // that is not one.
+        let quirky = "BEGIN GAME\n BEGIN WORLD\n  xs 60\n BEGIN FRAME 1\n  BEGIN UNITDATA\n   o 0\n  who 1\n  tail 7\n BEGIN FRAME 2\n  BEGIN UNITDATA\n   o 1\n flag 9\n flag2 10\n BEGIN LEADERDATA\n  who 0\n BEGIN FRAME 3\n  BEGIN UNITDATA\n   o 2\n";
+        for (what, text) in [("the sample", SAMPLE), ("the quirky tail", quirky)] {
+            let lazy = Log::parse(text);
+            let eager = Log::parse_eager(text);
+            assert!(
+                lazy.indexed() >= 3,
+                "{what} indexed {} blocks — the comparison is vacuous",
+                lazy.indexed()
+            );
+            assert_eq!(spelled(&lazy), spelled(&eager), "{what} reads differently");
+        }
+        // And on a real capture, where the writers' inconsistencies are.
+        let Some(path) = crate::testenv::dump("gamelog-run87-greatlakes-blockedwalker.txt") else {
+            eprintln!("skipping the capture half: no dumps (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let text = crate::mapped::read(&path);
+        // The first frames only: the whole file spells to gigabytes, and
+        // the shapes this has to get right are all in the head and the
+        // first frame boundary.
+        let cut = text.find(" BEGIN FRAME ").expect("a capture has frames");
+        let after = text[cut + 1..]
+            .match_indices(" BEGIN FRAME ")
+            .nth(3)
+            .map_or(text.len(), |(i, _)| cut + 1 + i);
+        let text = &text[..after];
+        let lazy = Log::parse(text);
+        let eager = Log::parse_eager(text);
+        assert!(
+            lazy.frames().len() >= 3 && lazy.indexed() >= 3,
+            "the cut kept {} frames and indexed {} blocks — the comparison \
+             would be vacuous",
+            lazy.frames().len(),
+            lazy.indexed()
+        );
+        assert_eq!(
+            spelled(&lazy),
+            spelled(&eager),
+            "run87 reads differently lazily"
         );
     }
 

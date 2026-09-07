@@ -961,8 +961,8 @@ mod tests {
             return;
         };
         let loaded = crate::load::load(&inst).unwrap();
-        let text = std::fs::read_to_string(&path).unwrap();
-        let sib_text = std::fs::read_to_string(&sib).unwrap();
+        let text = crate::mapped::read(&path);
+        let sib_text = crate::mapped::read(&sib);
         let log = Log::parse(&text);
         let sib_log = Log::parse(&sib_text);
         let sib_init = sib_log.initial().expect("run38 is a start dump");
@@ -1102,8 +1102,8 @@ mod tests {
             return;
         };
         let loaded = crate::load::load(&inst).unwrap();
-        let text = std::fs::read_to_string(&path).unwrap();
-        let sib_text = std::fs::read_to_string(&sib).unwrap();
+        let text = crate::mapped::read(&path);
+        let sib_text = crate::mapped::read(&sib);
         let log = Log::parse(&text);
         let sib_log = Log::parse(&sib_text);
         let sib_init = sib_log.initial().expect("run38 is a start dump");
@@ -1536,7 +1536,7 @@ mod tests {
             return;
         };
         let loaded = crate::load::load(&inst).unwrap();
-        let text = std::fs::read_to_string(&path).unwrap();
+        let text = crate::mapped::read(&path);
         let log = Log::parse(&text);
         let texts = sibling_texts();
         let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
@@ -1727,7 +1727,7 @@ mod tests {
             return;
         };
         let loaded = crate::load::load(&inst).unwrap();
-        let text = std::fs::read_to_string(&path).unwrap();
+        let text = crate::mapped::read(&path);
         let log = Log::parse(&text);
         let texts = sibling_texts();
         let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
@@ -1902,7 +1902,7 @@ mod tests {
             eprintln!("skipping: no gamelog-run12-dumpall-seeds.txt (set RON_GAMELOG_DIR)");
             return;
         };
-        let text = std::fs::read_to_string(&path).unwrap();
+        let text = crate::mapped::read(&path);
         let log = Log::parse(&text);
         assert_eq!(
             log.frame_seeds(),
@@ -1985,7 +1985,7 @@ mod tests {
                 continue;
             };
             ran += 1;
-            let text = std::fs::read_to_string(&path).unwrap();
+            let text = crate::mapped::read(&path);
             let log = Log::parse(&text);
             let init = log.initial().unwrap();
             let mut built = build_sim(&loaded, &init, Tuning::RON);
@@ -2084,7 +2084,7 @@ mod tests {
         };
         let loaded = crate::load::load(&inst).unwrap();
         let texts = sibling_texts();
-        let text = std::fs::read_to_string(&path).unwrap();
+        let text = crate::mapped::read(&path);
         let log = Log::parse(&text);
         let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
         let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
@@ -2501,7 +2501,7 @@ mod tests {
         };
         let loaded = crate::load::load(&inst).unwrap();
         let texts = sibling_texts();
-        let text = std::fs::read_to_string(&path).unwrap();
+        let text = crate::mapped::read(&path);
         let log = Log::parse(&text);
         let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
         let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
@@ -3028,7 +3028,7 @@ mod tests {
         };
         let loaded = crate::load::load(&inst).unwrap();
         let texts = sibling_texts();
-        let text = std::fs::read_to_string(&path).unwrap();
+        let text = crate::mapped::read(&path);
         let log = Log::parse(&text);
         let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
         let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
@@ -3189,8 +3189,8 @@ mod tests {
             return;
         };
         let loaded = crate::load::load(&inst).unwrap();
-        let text = std::fs::read_to_string(&path).unwrap();
-        let sib_text = std::fs::read_to_string(&sib).unwrap();
+        let text = crate::mapped::read(&path);
+        let sib_text = crate::mapped::read(&sib);
         let log = Log::parse(&text);
         let sib_log = Log::parse(&sib_text);
         let sib_init = sib_log.initial().expect("run38 is a start dump");
@@ -3403,15 +3403,15 @@ mod tests {
             return;
         };
         let loaded = crate::load::load(&inst).unwrap();
-        let text = std::fs::read_to_string(&path).unwrap();
-        let sib_text = std::fs::read_to_string(&sib).unwrap();
+        let text = crate::mapped::read(&path);
+        let sib_text = crate::mapped::read(&sib);
         let log = Log::parse(&text);
         let sib_log = Log::parse(&sib_text);
         let sib_init = sib_log.initial().expect("run38 is a start dump");
         let mut init = log.initial().unwrap();
         borrow_from_siblings(&mut init, &[&sib_init]);
         borrow_pasture(&mut init, &tr);
-        let text64 = std::fs::read_to_string(&r64).unwrap();
+        let text64 = crate::mapped::read(&r64);
         let theirs = Log::parse(&text64)
             .initial()
             .expect("run64 carries a start block")
@@ -3612,7 +3612,7 @@ mod tests {
         };
         let loaded = crate::load::load(&inst).unwrap();
         let texts = sibling_texts();
-        let text = std::fs::read_to_string(&path).unwrap();
+        let text = crate::mapped::read(&path);
         let log = Log::parse(&text);
         let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
         let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
@@ -3621,7 +3621,7 @@ mod tests {
         borrow_from_siblings(&mut init, &refs);
         borrow_pasture(&mut init, &trace);
 
-        let text73 = std::fs::read_to_string(&r73).unwrap();
+        let text73 = crate::mapped::read(&r73);
         let theirs = Log::parse(&text73)
             .initial()
             .expect("run73 carries a start block")
@@ -3798,7 +3798,7 @@ mod tests {
             return;
         };
         let loaded = crate::load::load(&inst).unwrap();
-        let text = std::fs::read_to_string(&path).unwrap();
+        let text = crate::mapped::read(&path);
         let log = Log::parse(&text);
         let texts = sibling_texts();
         let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
@@ -3936,7 +3936,7 @@ mod tests {
             return;
         };
         let loaded = crate::load::load(&inst).unwrap();
-        let text = std::fs::read_to_string(&path).unwrap();
+        let text = crate::mapped::read(&path);
         let log = Log::parse(&text);
         let texts = sibling_texts();
         let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
@@ -4116,7 +4116,7 @@ mod tests {
             return;
         };
         let loaded = crate::load::load(&inst).unwrap();
-        let text = std::fs::read_to_string(&path).unwrap();
+        let text = crate::mapped::read(&path);
         let log = Log::parse(&text);
         let texts = sibling_texts();
         let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
@@ -4339,7 +4339,7 @@ mod tests {
             eprintln!("skipping: no run79 capture (set RON_GAMELOG_DIR)");
             return;
         };
-        let text = std::fs::read_to_string(&path).unwrap();
+        let text = crate::mapped::read(&path);
         let log = Log::parse(&text);
         // `1/31` is the second squad's captain — `o_up −1`, `o_down 32`,
         // group 66 — born on 6994 and marching to the window's end.
@@ -4467,7 +4467,7 @@ mod tests {
             eprintln!("skipping: no run84 capture (set RON_GAMELOG_DIR)");
             return;
         };
-        let text = std::fs::read_to_string(&path).unwrap();
+        let text = crate::mapped::read(&path);
         let log = Log::parse(&text);
         let states = log.frame_states();
         let at = |n: i64| {
@@ -4612,7 +4612,7 @@ mod tests {
         };
         let loaded = crate::load::load(&inst).unwrap();
         let texts = sibling_texts();
-        let text = std::fs::read_to_string(&path).unwrap();
+        let text = crate::mapped::read(&path);
         let log = Log::parse(&text);
         let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
         let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
@@ -4625,7 +4625,7 @@ mod tests {
             built.tick();
         }
 
-        let text84 = std::fs::read_to_string(&theirs).unwrap();
+        let text84 = crate::mapped::read(&theirs);
         let log84 = Log::parse(&text84);
         let states = log84.frame_states();
         let at = states
@@ -5324,8 +5324,8 @@ mod tests {
             return;
         };
         let loaded = crate::load::load(&inst).unwrap();
-        let text = std::fs::read_to_string(&path).unwrap();
-        let sib_text = std::fs::read_to_string(&sib).unwrap();
+        let text = crate::mapped::read(&path);
+        let sib_text = crate::mapped::read(&sib);
         let log = Log::parse(&text);
         let sib_log = Log::parse(&sib_text);
         let sib_init = sib_log.initial().expect("run38 is a start dump");
@@ -5456,8 +5456,8 @@ mod tests {
             return;
         };
         let loaded = crate::load::load(&inst).unwrap();
-        let text = std::fs::read_to_string(&path).unwrap();
-        let sib_text = std::fs::read_to_string(&sib).unwrap();
+        let text = crate::mapped::read(&path);
+        let sib_text = crate::mapped::read(&sib);
         let log = Log::parse(&text);
         let sib_log = Log::parse(&sib_text);
         let sib_init = sib_log.initial().expect("run38 is a start dump");
@@ -5680,7 +5680,7 @@ mod tests {
             return;
         };
         let loaded = crate::load::load(&inst).unwrap();
-        let text = std::fs::read_to_string(&path).unwrap();
+        let text = crate::mapped::read(&path);
         let log = Log::parse(&text);
 
         // The lobby, read from `GAMEINFO`: `docs/INPUT.md` §2's settings,
@@ -6084,7 +6084,7 @@ mod tests {
             return;
         };
         let loaded = crate::load::load(&inst).unwrap();
-        let text = std::fs::read_to_string(&path).unwrap();
+        let text = crate::mapped::read(&path);
         let log = Log::parse(&text);
         let texts = sibling_texts();
         let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
@@ -6499,8 +6499,8 @@ mod tests {
             return;
         };
         let loaded = crate::load::load(&inst).unwrap();
-        let text = std::fs::read_to_string(&path).unwrap();
-        let sib_text = std::fs::read_to_string(&sib).unwrap();
+        let text = crate::mapped::read(&path);
+        let sib_text = crate::mapped::read(&sib);
         let log = Log::parse(&text);
         let sib_log = Log::parse(&sib_text);
         let sib_init = sib_log.initial().expect("run38 is a start dump");
@@ -6764,8 +6764,8 @@ mod tests {
             return;
         };
         let loaded = crate::load::load(&inst).unwrap();
-        let text = std::fs::read_to_string(&path).unwrap();
-        let sib_text = std::fs::read_to_string(&sib).unwrap();
+        let text = crate::mapped::read(&path);
+        let sib_text = crate::mapped::read(&sib);
         let log = Log::parse(&text);
         let sib_log = Log::parse(&sib_text);
         let sib_init = sib_log.initial().expect("run38 is a start dump");
@@ -7040,8 +7040,8 @@ mod tests {
             return;
         };
         let loaded = crate::load::load(&inst).unwrap();
-        let text = std::fs::read_to_string(&path).unwrap();
-        let sib_text = std::fs::read_to_string(&sib).unwrap();
+        let text = crate::mapped::read(&path);
+        let sib_text = crate::mapped::read(&sib);
         let log = Log::parse(&text);
         let sib_log = Log::parse(&sib_text);
         let sib_init = sib_log.initial().expect("run38 is a start dump");
@@ -7284,8 +7284,8 @@ mod tests {
             return;
         };
         let loaded = crate::load::load(&inst).unwrap();
-        let text = std::fs::read_to_string(&path).unwrap();
-        let sib_text = std::fs::read_to_string(&sib).unwrap();
+        let text = crate::mapped::read(&path);
+        let sib_text = crate::mapped::read(&sib);
         let log = Log::parse(&text);
         let sib_log = Log::parse(&sib_text);
         let sib_init = sib_log.initial().expect("run38 is a start dump");

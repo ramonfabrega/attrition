@@ -120,7 +120,7 @@ mod tests {
             return;
         };
         let loaded = crate::load::load(&inst).unwrap();
-        let text = std::fs::read_to_string(&path).unwrap();
+        let text = crate::mapped::read(&path);
         let log = Log::parse(&text);
         let init = log.initial().unwrap();
         let mut built = build_sim(&loaded, &init, Tuning::RON);
@@ -155,7 +155,7 @@ mod tests {
             eprintln!("skipping: no gamelog-run22-islands-dock-window.txt (set RON_GAMELOG_DIR)");
             return;
         };
-        let text = std::fs::read_to_string(&path).unwrap();
+        let text = crate::mapped::read(&path);
         let log = Log::parse(&text);
         let frames = log.frames();
         let (_, block) = *frames.iter().find(|(f, _)| *f == 3579).expect("block 3579");
@@ -759,7 +759,7 @@ mod tests {
             return None;
         };
         let loaded = crate::load::load(&inst).unwrap();
-        let text = std::fs::read_to_string(&path).unwrap();
+        let text = crate::mapped::read(&path);
         let log = Log::parse(&text);
         Some(frames.iter().map(|&f| scene_at(&loaded, &log, f)).collect())
     }
@@ -980,7 +980,7 @@ mod tests {
             eprintln!("skipping: no {name} (set RON_GAMELOG_DIR)");
             return None;
         };
-        let text = std::fs::read_to_string(&path).unwrap();
+        let text = crate::mapped::read(&path);
         let log = Log::parse(&text);
         let out = log
             .frames()
@@ -1052,7 +1052,7 @@ mod tests {
         // Read from the block rather than the parsed struct, because the
         // order *is* the assertion (`docs/GROUPS.md` §1).
         let name = "gamelog-run29-islands-engagement-window.txt";
-        let text = std::fs::read_to_string(dump(name).unwrap()).unwrap();
+        let text = crate::mapped::read(dump(name).unwrap());
         let log = Log::parse(&text);
         let mut seen = 0usize;
         for (f, b) in log.frames() {
@@ -1398,7 +1398,7 @@ mod tests {
             eprintln!("skipping: no {name} (set RON_GAMELOG_DIR)");
             return;
         };
-        let text = std::fs::read_to_string(&path).unwrap();
+        let text = crate::mapped::read(&path);
         let log = Log::parse(&text);
         let mut pool = 0usize;
         let mut hotkey = 0usize;
@@ -1468,7 +1468,7 @@ mod tests {
             eprintln!("skipping: no {name} (set RON_GAMELOG_DIR)");
             return;
         };
-        let text = std::fs::read_to_string(&path).unwrap();
+        let text = crate::mapped::read(&path);
         let log = Log::parse(&text);
         let mut seen = 0;
         for (f, b) in log.frames() {
@@ -1907,7 +1907,7 @@ mod tests {
             eprintln!("skipping: no {name} (set RON_GAMELOG_DIR)");
             return;
         };
-        let text = std::fs::read_to_string(&path).unwrap();
+        let text = crate::mapped::read(&path);
         let log = Log::parse(&text);
         let (mut moves, mut collided, mut frames) = (0usize, 0usize, 0usize);
         for (f, b) in log.dumps() {
@@ -1994,7 +1994,7 @@ mod tests {
             eprintln!("skipping: no {name} (set RON_GAMELOG_DIR)");
             return None;
         };
-        let text = std::fs::read_to_string(&path).unwrap();
+        let text = crate::mapped::read(&path);
         let log = Log::parse(&text);
         let mut out: Vec<HumanMove> = Vec::new();
         for (frame, block) in log.frames() {
@@ -2617,7 +2617,7 @@ mod tests {
             eprintln!("skipping: no {name} (set RON_GAMELOG_DIR)");
             return None;
         };
-        let text = std::fs::read_to_string(&path).unwrap();
+        let text = crate::mapped::read(&path);
         let log = Log::parse(&text);
         let mut out = std::collections::BTreeMap::new();
         for (frame, block) in log.frames() {
