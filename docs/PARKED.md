@@ -117,6 +117,31 @@ alone, so serialising the lanes' gates may be worth more than any profile
 flag, and it bears directly on entry 34's width-two discretion. Reported by
 loop-289 while waiting on the very run it was measuring.
 
+**Corrected within the hour by loop-290, and the correction matters more
+than the finding.** The contention was **three** unoptimised copies of the
+heaviest suite, not two: loop-290 had launched the debug `cargo test`
+**twice by mistake** and killed its duplicate once it ran `ps`. So the
+sentence above must not be read as evidence against entry 34's width two —
+a third of that load was one worker's own error, and an operator mistake
+and a structural cost look identical from the outside. What survives the
+correction is narrower and still worth the steer: even two honest copies of
+a 45-minute debug run on one box is a poor way to spend a lane, and neither
+worker could see the other's load without being asked. **What is not
+established is whether width two alone, run cleanly, costs anything at
+all** — no one has measured that, and this pair cannot answer it.
+
+**And the sharpest form of it is loop-289's, because it names what the
+contention actually broke.** Two lanes on one box do not merely halve each
+other's throughput — they inflate every lane's **wall-clock**, and wall
+clock is exactly what a commander reads to decide whether a lane is stuck.
+289's hour looked like a red-gate loop from outside for precisely that
+reason, and the commander went and asked both workers on that reading. So
+the cost is not only throughput; it is that the loop's own health signal
+degrades as width rises, which is a defect in entry 34's width discretion
+rather than in any lane. Set against it: the opt-level trade is **bounded**
+— it costs `guard.sh`'s incremental compiles and nothing else — while this
+one is unbounded in the wrong direction.
+
 ## Measured residues, none near a word
 
 (246) step 6's repath rests on run83's single event (239); (169)
