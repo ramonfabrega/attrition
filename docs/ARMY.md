@@ -1340,6 +1340,49 @@ islands runs and was never checked against the corpus —
 not asked. The lesson is the tool's own: a blind claim is only blind
 against *every* trace on disk.
 
+### 16.7 run84 — the second squad's own order, and Great Lakes 6994
+
+*2026-09-06, item 249.* Great Lakes' long capture parts at **6994** on two
+draws of `Unit::do_move+0xe84 < Unit::do_attack_to+0x11 < Unit::do_job+0x4b`
+— `sim::orders::SITE_MOVE_GRID`, the `% 5` grid roll a move spends when
+`find_path` refuses its straight line (`docs/ORDERS.md` §4.4) — with a
+third on 6995. The obvious reading, and the wrong one, is that they belong
+to the **marching** squad: `1/27`–`1/29`, the Archers of §16's run76, the
+only units on an `ATTACK_TO` when the frame opens.
+
+run84's `UNITDATA` refuses it. All three open 6994 with `dest = 1` and
+`unit_masks & 8` set, and `do_move@005f7b30` reaches the roll from exactly
+two states — `dest == 0`, which takes a waypoint and clears the bit, or the
+bit already clear. Neither holds. Their records across the frame are a step
+and a tolerance arrival and nothing else, and this crate reproduces them to
+the unit.
+
+**The draws are the second squad's.** `1/31`, `1/32` and `1/33` are born on
+6993 — the frame's three `Guy::init_real < Unit::init < Objects::init_unit`
+draws — stand orderless when 6994 opens, and by 6995 each carries an
+`ATTACK_TO` of its own to `(41352, 22920)`, `(41256, 23016)` and
+`(41448, 22824)`, one shared heading (`-560070656`), a planned stack, and
+**the marching squad's group**. A fresh move plans, takes its first
+waypoint, clears `line_ok` and is precisely the shape that reaches the
+roll; two of the three reach it on 6994 and the third on 6995. The
+marching squad's own order point does not move across the frame, so this
+was not a group order over all six.
+
+So the seam is an **order this crate never issues**, not a pathfinder that
+refuses a line this crate accepts. The membership is already right: by the
+end of 6994 this simulation has all six in one army (§4), which is what
+makes the gap an order rather than a bookkeeping bug. What is missing is
+whatever gives a newly produced unit its own move — `Unit::come_out@00617c10`
+is the candidate, one of the five callers of `Group::action_move_to@0070fba0`
+outside the army and the scenario layer, and §4.1 models only its `add_to_army`
+tail. Two details the successor has to reproduce and this section does not
+explain: the anchor `(41352, 22920)` — near the marching squad, not at its
+centre of gravity — and why `1/31` comes out on tile waypoints (tolerance
+384) while `1/32` and `1/33` come out on the fine grid (96).
+
+Pinned by `run84_says_great_lakes_6994_belongs_to_the_second_squad` and by
+run53's own membership row (§17).
+
 ## 17. What the simulation carries, and what checks it
 
 `crates/sim/src/army.rs`: the record and the pool (§2 — `init_army`'s
@@ -1419,6 +1462,14 @@ Checks, cheapest first (`rondata::diff`, `army_tests`):
    `status 32`, `city −1`, point and angle, and asserts the absence of
    `FORMING`. Passes; failed first when the tail ORed `0x10` in.
    `scenes()` parses one 250 MB window once for both blocks.
+7. **Great Lakes 6994's own membership** —
+   `run84_says_great_lakes_6994_belongs_to_the_second_squad` and the
+   membership row inside
+   `run53_s_24000_frames_put_the_ceiling_where_run33_did` (§16.7): the
+   dump's three new `ATTACK_TO` orders, their anchor, heading, group and
+   planners; and, on the long run, that this crate has all six archers in
+   one army by the parting frame. Both pass; the first was failed by
+   pointing it a frame later, the second by adding a citizen to the six.
 
 ## 18. What is not established
 
@@ -1428,6 +1479,11 @@ Checks, cheapest first (`rondata::diff`, `army_tests`):
 - ~~**The `combat` average's field.**~~ `sea_combat`, from the listing's
   base register (B.20, §12) — the first reading's own "settlement" was the
   error.
+- **The order a newly produced unit comes out with** (§16.7). `come_out`'s
+  army coin is modelled (§4.1) and its `Group::action_move_to` is not, so a
+  squad this crate leaves standing is marching in the original — Great Lakes
+  6994, and the headline. *Capture:* none owed; run84 already carries the
+  three orders, their anchor and their planners.
 - **`find_city`'s index in `do_defending`** (A.73): the search returns a
   per-leader city index and `do_defending` resolves it against the army
   owner's list; whether `SEARCH_FRIENDLY` can hand back an ally's index is

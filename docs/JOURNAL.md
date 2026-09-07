@@ -17709,3 +17709,60 @@ never been observed, grep for the gate**, not only for the value. A term that
 is zero in every dump is either zero-valued or switched off, and those two
 cost very different things to reach. Both of this session's items were booked
 on the assumption of the first and turned out to be the second.
+
+## 2026-09-06 — Great Lakes 6994 belongs to the other squad (item 249, Opus)
+
+The headline did not move, and the item found out why the two before it did
+not either.
+
+6994 parts on two draws of `Unit::do_move+0xe84 < Unit::do_attack_to+0x11 <
+Unit::do_job+0x4b` — the `% 5` grid roll a move spends when `find_path`
+refuses its straight line — with a third on 6995. The brief named the seam
+exactly and then named the wrong units with it: the only things on an
+`ATTACK_TO` when the frame opens are `1/27`–`1/29`, the Archers of run76's
+march, so the question looked like a pathfinder one. Which of three is
+true, it asked: they are not on an attack-move, their `line_ok` is already
+true, or their `find_path` succeeds where the original's refuses.
+
+**None of the three.** run84 covers 6994 per frame, and `do_move` reaches
+the roll from exactly two states: `dest == 0`, which takes a waypoint and
+clears `line_ok`, or the bit already clear. All three Archers open the
+frame with `dest = 1` and `unit_masks & 8` set, and close it having taken a
+step and popped a waypoint on tolerance — which is what this crate does
+too, to the unit. They cannot be spending the draws, and no amount of
+reading `do_move` was going to say who was.
+
+What said it was widening the record from three units to eighty. `1/31`,
+`1/32` and `1/33` are born on 6993 — the frame's three `Guy::init_real <
+Unit::init < Objects::init_unit` draws, which had been sitting in the same
+`draws` output the whole time — stand orderless when 6994 opens, and by
+6995 each carries an `ATTACK_TO` of its own, a planned stack, and the
+marching squad's group. A fresh move plans, takes its first waypoint,
+clears `line_ok`, and is exactly the shape that reaches the roll. Two of
+the three reach it on 6994 and the third on 6995. So the seam is **an order
+this crate never issues**, and the mechanic behind it is `Unit::come_out`'s
+group move (`docs/ARMY.md` §4.1 models only its `add_to_army` tail), not
+anything in the pathfinder.
+
+The membership is already right, which is the part that makes this an order
+gap and not a bookkeeping one: by the end of 6994 this simulation has all
+six archers in one army. That row is now asserted inside run53's own test,
+failed first by adding a citizen to the six; the dump-side half —
+the three destinations, the shared heading, the one group, the two planners
+(`1/31` on tile waypoints, the other two on the fine grid), and the
+marching squad's order point *not* moving — is
+`run84_says_great_lakes_6994_belongs_to_the_second_squad`, failed first by
+pointing it a frame later. `debug_unit` now prints each unit's army slot,
+because "is it even in the army?" is the first question an AI-order
+divergence asks and it cost a patch to answer.
+
+**The lesson is one level below the last three.** The queue already says to
+brief the measured seam rather than the mechanism behind it, and this brief
+did: the four draws, the caller chain, the reproduction command. It still
+sent two sessions at the wrong units, because a call chain names a
+*function* and the frame's cast was assumed from the three units that
+already had that order. The rule that would have caught it in ten minutes
+is the one the working agreement already has and neither session applied
+here: **diff the whole record, not the units you came for.** Eighty
+`UNITDATA` blocks either side of the frame answer "who changed" without a
+hypothesis; three of them answer nothing.

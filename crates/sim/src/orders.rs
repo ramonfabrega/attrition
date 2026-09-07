@@ -555,6 +555,12 @@ pub const SITE_FARM_CELL: &str = "GameAccess::rnd+0x20 < Unit::do_job+0x67";
 /// so the site is `+0xe84` (§4.4, `docs/SYNC.md` §6's frame-3 item). The
 /// sim reaches it where the original does not, and naming it is what turns
 /// that from an unattributed unit-loop draw into a row.
+///
+/// It is also Great Lakes' parting frame, and there in the other
+/// direction: on 6994 the original spends two of these under
+/// `Unit::do_attack_to` and this crate none, because the units that spend
+/// them are a squad the original has just given an order to and this crate
+/// leaves standing — `docs/ARMY.md` §16.7, not a pathfinder question.
 pub const SITE_MOVE_GRID: &str = "Unit::do_move+0xe84";
 
 /// The 31 bearings of one ring of `find_nearby_spot`, as multiples of a

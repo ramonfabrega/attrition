@@ -537,6 +537,12 @@ pub fn run_with(
 /// question a one-draw turn or step divergence asks first, and answering
 /// it by guessing unit numbers costs a run apiece (item 207).
 ///
+/// The line also carries the unit's **army slot** ([`sim::Sim::army_of`]).
+/// The dump's `group` is the group and not the army, so a divergence over
+/// an AI order — item 249's, where the original orders a squad this crate
+/// leaves standing — asks "is it even in the army?" before it asks
+/// anything else, and that answer used to cost a patch.
+///
 /// The shape is run54's own probe (`docs/JOURNAL.md`, item 175), which was
 /// welded into that one test's hand-rolled tick loop; the third capture
 /// to want it graduates it here. run54's keeps its own copy because it
@@ -698,9 +704,15 @@ pub(crate) fn debug_unit(built: &Built, u: &sim::Unit, frame: i64) {
         })
         .collect();
     eprintln!(
-        "  f{frame} {who}/{o} TY {:?} PACKS {:?} at ({}, {}) in {:?} on {} ang {} hdg {} path {:?} orders {:?} {}",
+        "  f{frame} {who}/{o} TY {:?} PACKS {:?} army {:?} at ({}, {}) in {:?} on {} ang {} hdg {} path {:?} orders {:?} {}",
         u.ty,
         u.ty.map(|t| built.sim.unit_types[t].combat.packs),
+        built
+            .sim
+            .units
+            .iter()
+            .position(|x| std::ptr::eq(x, u))
+            .and_then(|i| built.sim.army_of(i)),
         u.pos.x,
         u.pos.y,
         u.inside_unit
@@ -2983,17 +2995,43 @@ mod tests {
         // them into `frame_sites`, and item 204's whole question is *which*
         // unit spends the extra draw. Both cost nothing when unset.
         let unit_window = site_window();
+        // **The parting frame's own membership** (item 249): the two draws
+        // 6994 parts on are the *second* squad's — `1/31`, `1/32`, `1/33`,
+        // born on 6993 and given an `ATTACK_TO` apiece by the frame's end
+        // (`run84_says_great_lakes_6994_belongs_to_the_second_squad`). This
+        // crate does not issue that order, and the row that says the gap is
+        // an order rather than a membership bug is this one: by the frame's
+        // end all six are already in **one army**.
+        let mut squad_army: Vec<(i64, Option<usize>)> = Vec::new();
         for _ in 0..last {
             let f = built.sim.frame;
             built.tick();
             debug_watch(&built, f);
             debug_builds(&built, f);
+            if f == LONG_WORD_GREAT_LAKES {
+                squad_army = [27, 28, 29, 31, 32, 33]
+                    .into_iter()
+                    .map(|o| {
+                        let at = built.sim.units.iter().position(|u| {
+                            u.alive() && i64::from(u.owner) == 1 && i64::from(u.index) == o
+                        });
+                        (o, at.and_then(|i| built.sim.army_of(i)))
+                    })
+                    .collect();
+            }
             if unit_window.is_some_and(|(lo, hi)| (lo..=hi).contains(&f)) {
                 for (label, who) in attributed_sites(&built) {
                     eprintln!("  f{f} {who}: {label}");
                 }
             }
         }
+        assert_eq!(squad_army.len(), 6, "the parting frame was never reached");
+        assert!(
+            squad_army
+                .iter()
+                .all(|&(_, a)| a.is_some() && a == squad_army[0].1),
+            "the six Great Lakes archers are not one army at              {LONG_WORD_GREAT_LAKES}: {squad_army:?}"
+        );
         let first_part = built
             .frame_sites
             .iter()
@@ -4324,6 +4362,153 @@ mod tests {
                 .iter()
                 .filter(|&&d| (13..=15).contains(&d))
                 .collect::<Vec<_>>()
+        );
+    }
+
+    /// **run84 — who actually spends Great Lakes 6994's two draws** (item
+    /// 249, 2026-09-06).
+    ///
+    /// `LONG_WORD_GREAT_LAKES` parts at 6994 on two draws of
+    /// `Unit::do_move+0xe84 < Unit::do_attack_to+0x11 < Unit::do_job+0x4b`
+    /// — `sim::orders::SITE_MOVE_GRID`, the `% 5` roll a move spends when
+    /// `find_path` refuses its straight line — with a third on 6995. The
+    /// obvious reading is that they belong to the **marching** squad, the
+    /// three Archers `1/27`–`1/29` that are the only units on an
+    /// `ATTACK_TO` when the frame opens. run84 says they cannot be: all
+    /// three open 6994 with `dest = 1` and `unit_masks & 8` set, and
+    /// `do_move` reaches the roll only past `dest == 0` (which takes a
+    /// waypoint and clears the bit) or with the bit already clear. Their
+    /// records across the frame are a step and a tolerance arrival,
+    /// nothing else, and this crate reproduces them to the unit.
+    ///
+    /// **The draws are the *second* squad's.** `1/31`, `1/32` and `1/33`
+    /// are born on 6993 — the three `Guy::init_real < Unit::init <
+    /// Objects::init_unit` draws that frame — stand orderless when 6994
+    /// opens, and by 6995 each carries an `ATTACK_TO` of its own, a path,
+    /// and the marching squad's group. A fresh move plans, takes its first
+    /// waypoint, clears `line_ok`, and is exactly the shape that reaches
+    /// the roll; two of the three reach it on 6994 and the third on 6995.
+    /// So the seam is not the pathfinder refusing a line this crate
+    /// accepts — it is **an order this crate never issues**, and the
+    /// mechanic behind it is `Unit::come_out`'s group move rather than
+    /// anything in `do_move`.
+    ///
+    /// What this pins is the original's own record, frame for frame, so
+    /// the successor starts from the units rather than re-deriving them:
+    /// the newcomers' three destinations, their shared heading, the group
+    /// they land in, and — the part that says the order went to them and
+    /// not to the group — that the marching squad's order point does not
+    /// move across the same frame.
+    ///
+    /// The one crate-side row is the join: this simulation already puts
+    /// all six in **one army** by 6995 (`Sim::army_of`, `docs/ARMY.md`
+    /// §4), which is what makes the missing order an order and not a
+    /// membership bug.
+    #[test]
+    fn run84_says_great_lakes_6994_belongs_to_the_second_squad() {
+        let Some(path) = dump("gamelog-run84-greatlakes-makelist.txt") else {
+            eprintln!("skipping: no run84 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let text = std::fs::read_to_string(&path).unwrap();
+        let log = Log::parse(&text);
+        let states = log.frame_states();
+        let at = |n: i64| {
+            states
+                .iter()
+                .find(|f| f.n == n)
+                .unwrap_or_else(|| panic!("run84 carries no block {n}"))
+        };
+        let unit = |n: i64, o: i64| {
+            at(n)
+                .units
+                .iter()
+                .find(|u| u.who == 1 && u.o == o)
+                .unwrap_or_else(|| panic!("{n}: no 1/{o}"))
+        };
+        let (before, after) = (LONG_WORD_GREAT_LAKES, LONG_WORD_GREAT_LAKES + 1);
+        assert_eq!(before, 6994, "this test is written about the headline");
+
+        // **The marching squad cannot be spending the draws.** `dest` is
+        // the "I hold a waypoint" flag and `unit_masks & 8` is `line_ok`
+        // (`docs/ORDERS.md` §4.4): with both set, `do_move` runs from the
+        // speed straight to `move_step` and never reaches the roll.
+        for o in [27, 29] {
+            let u = unit(before, o);
+            let od = u.orders.last().expect("the current order");
+            assert_eq!(od.kind, "ATTACKTOORDER", "1/{o} is the marching squad");
+            assert_eq!(od.dest, Some(1), "1/{o} opens {before} holding a waypoint");
+            assert_eq!(
+                u.unit_masks.unwrap_or(0) & 8,
+                8,
+                "1/{o} opens {before} with `line_ok` set"
+            );
+        }
+        // And the frame leaves their **order** where it was — only the
+        // waypoint is consumed. This is what says the new order was not a
+        // group order over all six.
+        for o in [27, 28, 29] {
+            let (a, b) = (unit(before, o), unit(after, o));
+            assert_eq!(
+                (a.orders_x, a.orders_y),
+                (b.orders_x, b.orders_y),
+                "1/{o}'s order point moved across {before}"
+            );
+        }
+
+        // **The second squad, orderless when the frame opens.**
+        for o in [31, 32, 33] {
+            let u = unit(before, o);
+            assert!(
+                u.orders.is_empty(),
+                "1/{o} already has an order at {before}"
+            );
+            assert!(u.path.is_empty(), "1/{o} already has a path at {before}");
+        }
+        // And ordered when it closes: one `ATTACK_TO` each, at three
+        // points on one heading, every one snapped to its 48-unit cell
+        // centre (`u × 0x30 + 0x18`, `docs/ORDERS.md` §4.1).
+        let want = [
+            (31, 41_352, 22_920),
+            (32, 41_256, 23_016),
+            (33, 41_448, 22_824),
+        ];
+        for (o, x, y) in want {
+            let u = unit(after, o);
+            assert_eq!(u.orders.len(), 1, "1/{o} carries one order at {after}");
+            let od = &u.orders[0];
+            assert_eq!(od.kind, "ATTACKTOORDER", "1/{o}");
+            assert_eq!(
+                od.index,
+                i64::from(sim::orders::index::ATTACK_TO),
+                "1/{o}'s order index"
+            );
+            assert_eq!((od.x, od.y), (Some(x), Some(y)), "1/{o}'s destination");
+            assert_eq!((x % 0x30, y % 0x30), (0x18, 0x18), "1/{o}: cell centre");
+            assert_eq!(od.angle, Some(-560_070_656), "1/{o}: the shared heading");
+            assert!(!u.path.is_empty(), "1/{o} planned nothing");
+        }
+        // One group, all six — so the newcomers joined the marching
+        // squad's rather than forming their own.
+        let groups: Vec<Option<i64>> = [27, 28, 29, 31, 32, 33]
+            .into_iter()
+            .map(|o| unit(after, o).group)
+            .collect();
+        assert!(
+            groups.iter().all(|g| *g == groups[0]) && groups[0].is_some_and(|g| g >= 0),
+            "the six are not one group at {after}: {groups:?}"
+        );
+        // The planners they came out of differ, and the successor has to
+        // reproduce both: `1/31` is on tile waypoints (tolerance 384) and
+        // the other two on the fine grid (96). That difference is why two
+        // of the three reach the roll on 6994 and the third on 6995.
+        let tol = |o: i64| unit(after, o).path.last().map(|p| p.tolerance);
+        assert_eq!(tol(31), Some(384), "1/31's stack is the tile grid's");
+        assert_eq!(tol(32), Some(96), "1/32's stack is the fine grid's");
+        assert_eq!(tol(33), Some(96), "1/33's stack is the fine grid's");
+        eprintln!(
+            "run84: {before} is 1/31, 1/32 and 1/33's order, not 1/27-1/29's;              stacks {:?}",
+            [31, 32, 33].map(|o| unit(after, o).path.len())
         );
     }
 
