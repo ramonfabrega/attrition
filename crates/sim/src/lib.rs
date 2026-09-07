@@ -2896,10 +2896,20 @@ impl Sim {
                 frame,
             );
             // `Leader::gather`'s own tail, every frame: `rare = rare_owned |
-            // rare_conquest`, and a change raises `0x4000000` for the
-            // unit-stats pass below. `rare_owned` only moves on a recompute
-            // frame, so this can only fire on one — but the original tests
-            // it every frame and so does this ([`crate::rares`]).
+            // rare_conquest`, and a change raises **`0xc000000`**
+            // (`006ce280`, the `operator!=` arm's last line) — the
+            // unit-stats pass below *and* the wall-stats one, which
+            // re-bakes every unfinished building's construction clock.
+            // `rare_owned` only moves on a recompute frame, so this can
+            // only fire on one — but the original tests it every frame and
+            // so does this ([`crate::rares`]).
+            //
+            // **The wall half arrived with item 261.** It was `0x4000000`
+            // alone here, and the missing half is a whole rare's building
+            // bonus never reaching a site: Great Lakes' AI collects
+            // Tobacco on 6751 and the original's Tower drops from 100000
+            // to **90909** on 6752, finishing at 7176 where this crate's
+            // ran on (`docs/CITIES.md` §3.2).
             let rare = self.holdings[who].rare_owned;
             if self.ledgers[who].rare != rare {
                 // `Leader::calc_gather`'s own border arm, and it is one
@@ -2916,6 +2926,7 @@ impl Sim {
                 let gems_moved = (self.ledgers[who].rare ^ rare) & gem != 0;
                 self.ledgers[who].rare = rare;
                 self.unit_stats_dirty[who] = true;
+                self.wall_stats_dirty[who] = true;
                 if gems_moved {
                     self.sync_territory();
                 }

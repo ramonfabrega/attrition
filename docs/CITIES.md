@@ -598,39 +598,39 @@ constr_time = t
 ```
 
 **This is evaluated at placement — and again on every `Leader::calc_wall_stats`.**
-*(Second reading. A first draft said "once, at placement; nothing else writes
-`constr_time`". `Leader::process` answers the `leader_flags & 0x8000000`
-dirty flag with `calc_wall_stats@006cf7c0`, which walks every alive building
-of the player and calls `update_construct_time` on each one that is **not
-yet active** — then `update_hits` on all. The flag is set by `Wall::activate`,
-`Build::close`, `check_upgrade`, `gain_tech` and more.)* So a speed tech, a
-wonder, or the nomad's first city finishing **does** reach every site still
-under construction, on the next frame; what is frozen is only the value
-between two dirty flags. `crates/sim` keeps the flag per player
+*(Second reading; the first said "once, at placement". `Leader::process`
+answers the `leader_flags & 0x8000000` dirty flag with
+`calc_wall_stats@006cf7c0`, which calls `update_construct_time` on every
+alive building of the player that is **not yet active**, then
+`update_hits` on all. The flag is set by `Wall::activate`,
+`Build::close`, `check_upgrade`, `gain_tech` and more — and
+`Leader::gather@006ce280`, which raises `0xc000000` (the unit-stats flag
+*and* this one) whenever the rare mask moves.)* So a speed tech, a
+wonder, a **rare** or the nomad's first city **does** reach every site
+still under construction on the next frame; only the value between two
+dirty flags is frozen. `crates/sim` keeps the flag per player
 (`Sim::wall_stats_dirty`) and re-bakes in `tick` before any object runs.
 
-**Confirmed in a logged run (2026-08-20)**, and it is the second reading that
-was right. A tower site placed with no techs held `constr_time = 100000`. With
-`cheat tech all on` (`docs/ORACLE.md`) a freshly placed tower site read
-**70000** — exactly `(10 − 3) × 100000 / 10`, so all three `BUILDINGS_FASTER`
-upgrades were counted by `get_building_speed_upgrade()`. Then `cheat tech all
-off` while that site was still standing unstarted, and its `constr_time`
-went **70000 → 100000** within a few frames, without the site being touched.
-A value frozen at placement cannot do that.
+**The Tobacco row is diff-backed** (2026-09-07, item 261): Great Lakes'
+Tower `1/2017` reads `constr_time` **100000** through 6751 and **90909**
+from **6752**, the frame the AI's `rare_owned` gains bit
+`19 − BASE_RARE = 13` — `× 100 / 110` to the digit, so arithmetic, bit
+and re-bake are confirmed at once
+(`run76_and_run79_date_the_tobacco_rare_on_the_tower_s_clock`), and the
+harness compares `constr_time` and `job_counter` on every capture now.
+The mask's bytes begin at `LeaderData +0x6da4`, so `+0x6da5` bit 5 is
+Tobacco and bit 7 of it Furs (`docs/VISION.md` §1).
 
-The same run pins the *scope* of the re-bake, which is the part a reading is
-most likely to get wrong. The tower built earlier (`flags = 7`, active) kept
-`constr_time = 100000` across both the grant and the revocation, and the
-completed barracks kept 42000. So `calc_wall_stats` really does skip active
-buildings and touch only the not-yet-active ones — and note that "not yet
-active" includes a site **nobody has started building**, not merely one under
-construction.
-
-One thing the run did *not* show: `BUILDINGS_CREATED_FASTER` (`0x313`, the
-`t × 3 >> 2` step). With every tech granted the tower still landed on exactly
-`100000 × 7/10`, with no sign of a further ×3/4. Either the preq is not a
-tech `cheat tech all` reaches, or it is gated on something else. Recorded as
-open; the arithmetic of the other steps is unaffected.
+**Confirmed in a logged run (2026-08-20)**, and the second reading was
+right. A tower site with no techs held `constr_time = 100000`; under
+`cheat tech all on` (`docs/ORACLE.md`) a fresh one read **70000**, exactly
+`(10 − 3) × 100000 / 10`, so `get_building_speed_upgrade()` counted all
+three `BUILDINGS_FASTER`; and `cheat tech all off` took that untouched,
+unstarted site **70000 → 100000** within a few frames, which a value
+frozen at placement cannot do. The run pins the re-bake's *scope* too —
+the active tower kept 100000 across both and the finished barracks 42000
+— so `calc_wall_stats` touches only not-yet-active buildings, a site
+**nobody has started** included.
 
 **The per-call modifiers — `BuildData::construct_time(flag)@0062d5c0`**,
 vtable `+0x18c`, what `job_counter` is compared against. `flag != 0` returns
@@ -1946,6 +1946,13 @@ heal, ejection), then the sites' `construct_hits` refresh.
 ---
 
 ## 12. What is not established
+
+- **`BUILDINGS_CREATED_FASTER` (`0x313`) never fires.** §3.2's
+  `t × 3 >> 2` step: with every tech granted the 2026-08-20 run's tower
+  still landed on exactly `100000 × 7/10`. Either the preq is not one
+  `cheat tech all` reaches or it is gated on something else; the other
+  steps of the clock are unaffected, and the Tobacco row beside it is
+  now diff-backed.
 
 1. **`BUILD_FLAGS`'s column** — the letter ↔ bit rule is read; which column
    feeds `+0x2c0` is inferred from the read order and the DTD, corroborated

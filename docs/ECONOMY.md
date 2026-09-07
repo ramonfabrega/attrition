@@ -264,7 +264,13 @@ for every rare inside the player's own territory.
 After the rare terms, `rare_owned | rare_conquest` is compared against the
 previous frame's `rare` mask; when it differs the player's population cap is
 recomputed, the borders are marked for a redraw if the rare that changed is
-one of the territory-affecting ones, and two more dirty bits go up.
+one of the territory-affecting ones, and **`0xc000000`** goes up
+(`006ce280`, the `operator!=` arm's last line) — *both* dirty bits, not
+one: `0x4000000` is the unit-stats pass below, and `0x8000000` is
+`Leader::calc_wall_stats`, which re-bakes every **unfinished** building's
+`constr_time`. The second half is Tobacco's ten per cent reaching a site
+already standing, and it was missing here until item 261
+(`docs/CITIES.md` §3.2).
 
 **There is exactly one territory-affecting rare, and it is Gems**
 (2026-09-06, item 117). The redraw arm compares `rare.ptr[2] >> 7` before
@@ -348,8 +354,8 @@ Only one of them is modelled here, because only one has ever moved a number:
 a type with objmask `0x2000` (`NAVAL`) by `(WHALES_SHIPS_MOVE + 100) / 100`,
 which as shipped is `+20%`.
 
-The cached speed is not recomputed on demand: `Leader::calc_gather`'s tail
-raises `LeaderData`'s `0x4000000`, `Leader::process@006b88b0` acts on it in the
+The cached speed is not recomputed on demand: `Leader::gather`'s tail
+raises `LeaderData`'s `0x4000000` (with `0x8000000` beside it, above), `Leader::process@006b88b0` acts on it in the
 **same frame**, and `Leader::calc_unit_stats@006cf970` walks every one of that
 player's units calling `Unit::update_speed` and `Unit::update_armor`. Because
 `Leaders::process_all` runs before `Objects::process_all`, the new speed is the

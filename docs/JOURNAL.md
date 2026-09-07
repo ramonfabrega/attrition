@@ -18206,3 +18206,129 @@ The other half of the worktree gap is ccc's and they took it (their item
 sharper framing, worth keeping: it is a detector keyed on the wrong field,
 the same shape as their item 25, and this fleet was bitten by it twice in
 two days.
+
+## 2026-09-07 — item 261: the rare that never reached the site (Great Lakes 7176 → 7455, Opus, worker)
+
+The headline, and the mandated order paid twice: **widen before naming a
+mechanism**, and both mechanisms the window named were ones no brief had.
+
+**The widening.** run79 covers `[6910, 7250)` at 340 blocks and no test
+had ever compared a unit field on it. `run79_s_window_is_every_unit_s_
+whole_record` drives it through `run_traced` — every unit, every order,
+every path slot, every angle, the collision, gather, building, queue and
+city records — and the field diff parted at **7163**, thirteen frames
+ahead of the draw stream, on all six of the AI's soldiers at once. That
+is not what the brief said was there.
+
+**7163 was `is_captain`.** At 7162 the original's army re-issues its
+attack-to as a `GROUPATTACKTOORDER` for all six, `id 7168402` =
+`group_move_id(64, 7162, 2)`; this crate issued six plain `ATTACK_TO`s.
+The 256-frame tick fires on the same frame on both sides (ARMY §5,
+leader 1's army 1 at `frame ≡ 250`), so the difference was inside
+`Army::release_mustering`: `num_standard` is **2** there and was **6**
+here. `UnitData::is_captain@0046ceb0` is `return this->o_up < 0;` and
+nothing else — the head of an uber squad — and this crate had it as "on
+the map and inside nothing". ARMY §3.3 had said the same thing in prose,
+conflating `o_up`/`o_down` (`UnitData`, the squad chain) with
+`inside_up`/`inside_down` (`ObjectData`, the garrison one), which the
+dump prints side by side in the same record. Three Longbowmen are one
+captain; `n < 5` keeps the original mustering, and this crate marched.
+The window then held to 7176 for every unit and every field.
+
+**7176 was a rare that never reached a site.** The unit going idle there
+is a **builder**: the AI's Tower `1/2017` finishes on that frame in the
+original — `job_counter` 90800 → 0, `construct_hits` 749 → 750, `flags`
+3 → 7 — and its citizen `1/20` drops the `BUILDORDER` and takes
+`idle 1`. The clock is why: `constr_time` reads **90909** there against
+100000 here, which is `× 100 / (TOBACCO_BUILDING_SPEED + 100)` with the
+constant at 10. run76 dates the re-bake to **6752**, and 6751 is the
+frame this crate's own `rare_owned` gains bit 13 — so the rare arrived
+on the original's frame and the *bake* was missing:
+`Leader::gather@006ce280` raises **`0xc000000`** when the mask moves,
+the unit-stats flag **and** the wall-stats one, and this crate raised
+only the first. Two lines: that flag, and `BuildMods::tobacco` reading
+`has_rare` instead of a `Nation` field nothing had ever written.
+
+**Three anchors fix the bit**, none of them a guess: the mask's bytes
+begin at `LeaderData +0x6da4` (the `memcpy` in `gather`'s own tail), so
+`+0x6da5` bit 5 is rare 13 = good 19, Tobacco; bit 7 of the same byte is
+Furs, which is VISION §1's `+0x6da5 & 0x80`; and byte 2 bit 7 is Gems,
+which is the border table's. The dump agrees from the other side —
+run84's `LEADERS=9` block has leader 1 with `rares_collected[11]` and
+`[13]` set, and the array is 44 long over goods 6–49.
+
+**The value diff, and it fails first.** `constr_time` and `job_counter`
+were parsed nowhere and compared nowhere; they are in `BuildDump` and in
+`crate::diff::compare` now, on every capture that dumps a building —
+`constr_time` always, `job_counter` while both sides still call the site
+unfinished. `run76_and_run79_date_the_tobacco_rare_on_the_tower_s_clock`
+asserts the original's own record off two dumps (100000 through 6751,
+90909 from 6752, the finish at 7176 with `job_counter` 0 and `flags & 4`)
+and then this crate's agreement frame for frame; reverting the flag makes
+it print `ours 100000, theirs 90909` on 341 blocks. The widening test
+fails the same way on the `is_captain` half — `Kind { ours: 2, theirs:
+21 }` on six units at 7163 — and both were made to fail on purpose before
+they were kept. The three building-row counts elsewhere moved with the
+widening (92,626 → 140,491; 130,326 → 197,932; `RUN58_BUILD_FIELDS`
+178,326 → 270,173) with nothing wrong in any of them.
+
+**The score.** Great Lakes **7176 → 7455**, +279; East Indies holds at
+7529. The new parting is eight draws against seven, and at index 2 this
+crate spends a `Guy::set_anim+0x97a < Unit::move_step+0x823` the original
+does not — the blocked walker's stand, so a unit is stopped here and
+walks there. Gate green at 233 tests, peak **15,570 MiB** of the 20 GiB
+ceiling at the pinned two threads.
+
+**What the window leaves.** Four residues inside run79 and each is named
+in the test rather than hidden: `1/24` and `1/25` off their cell from the
+first block, `1/23`'s order angle, `1/14`'s `collide` on 7090, and the
+`GROUPORDER` `id` — item 242, whose frame and order number now agree
+exactly (`group_move_id(1, 7162, 2)` against `group_move_id(64, 7162,
+2)`), which is what says the order itself landed on the original's own
+frame. One new row appeared and is not mine: `1/2007`'s city `free`
+reads −1 here against 255 there, a width or sign difference that was
+`ours 0` before the Tower finished.
+
+## 2026-09-07 — the endpoint ratchet fires on its first day, and the claim it was booked on is false (items 258 and 261 meeting; Opus, commander)
+
+Item 258 landed the third scoreboard line in the morning and item 261
+landed the headline in the afternoon, and neither worker's gate could see
+the other's: 261 was cut before `endpoint.rs` existed and gated on 233
+tests; 258 gated before 261 touched the simulation. The merged tree is the
+first place they meet, and the endpoint ratchet failed there.
+
+**Great Lakes' `off` rose 73 → 75 while its `unlinked` fell 7 → 2**, and
+both East Indies rungs' `extra` rose — run28's 22 → 24, run24's 19 → 33,
+the latter alongside an `off` that *fell* 51 → 50. The changes that did it
+are the two least doubtful things landed all week: `is_captain` is
+`o_up < 0` and nothing else, and the Tower's `constr_time` reads 90,909 in
+the original's own dump against this crate's 100,000. Both are value diffs
+on the frame they act. The word moved 279 frames.
+
+**So the module's own justification is falsified, by the first item to land
+after it.** It reads: *"this is how many units of the original's own map
+this crate has somewhere else on a fixed frame, and there is no way to make
+that worse by making the simulation better."* There is, and this is how. At
+24,001 the two simulations parted 16,500 frames ago. A behavioural change at
+6751 re-deals every position downstream of it, and `off` counts the deal —
+the metric is monotone in fidelity only as the word approaches the frame it
+is measured on, and the word is at 7,455 of 24,000.
+
+That is not an argument that 258 was wrong to build. `unlinked` fell by
+five on the same run, and a structural count — does this crate have the
+unit at all, and is it linked to its counterpart — is far less exposed to
+the reshuffle than a coordinate is. The finish line still needs a number
+that moves in units rather than frames.
+
+It *is* an argument that the 2026-09-01 steer's standing rule — **assert up
+to the word, print past it** — was overturned on a booking rather than on
+evidence, and that the evidence has now arrived on the other side. Whether
+these two rows should assert at all, or assert only their structural
+counts, is a steer question and is left as one. Re-pinned meanwhile, with
+the numbers and the reason in `endpoint.rs` beside each row, because the
+alternative — a red gate carried across a session boundary — is worse than
+a pin that says what it is.
+
+The narrow lesson for the loop: **two workers whose gates cannot see each
+other need the merged tree gated before either is called done.** That cost
+one extra 3.5-minute run here and would have cost a session to find later.

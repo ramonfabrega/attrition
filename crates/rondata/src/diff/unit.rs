@@ -1726,4 +1726,169 @@ mod tests {
         );
         assert!(wrong.is_empty(), "run67's window parted: {wrong:?}");
     }
+
+    /// **run79 — the whole record, every unit, over the second squad's
+    /// window** (2026-09-07, item 261).
+    ///
+    /// The widening the headline was booked with, and it refuted the
+    /// briefed candidate: Great Lakes' word sat at 7176 with a unit going
+    /// idle there, run79 already covered `[6910, 7250)` at 340 frame
+    /// blocks, and nothing had ever compared a unit field on that window.
+    /// Driven through [`run_traced`], so it is every unit of every block
+    /// and not the squad's.
+    ///
+    /// **The field diff parted thirteen frames ahead of the draw stream,
+    /// on 7163**, and on all six of the AI's soldiers at once: the
+    /// original's army re-issues its attack-to as a `GROUPATTACKTOORDER`
+    /// (`type 21`, `id 7168402` — `group_move_id(64, 7162, 2)`) with the
+    /// second squad folded into a six-slot formation, and this crate held
+    /// six plain `ATTACK_TO`s. The army's 256-frame tick fires on 7162 for
+    /// both (`docs/ARMY.md` §5, leader 1's army 1 at `frame ≡ 250`), and
+    /// what differed was `Army::release_mustering`: `num_standard` is
+    /// **2** there and was **6** here, because
+    /// `UnitData::is_captain@0046ceb0` is `o_up < 0` — the head of an uber
+    /// squad — and this crate had it as "on the map and inside nothing".
+    /// Three Longbowmen are one captain, so `n < 5` kept the original
+    /// mustering and this crate marched (§3.3, §7).
+    ///
+    /// With that landed the window holds to the word for every unit,
+    /// every order, every path slot, every angle and the whole collision,
+    /// gather, building and queue record. What is left is named below and
+    /// nothing else, which is what makes this an assertion rather than a
+    /// print.
+    #[test]
+    fn run79_s_window_is_every_unit_s_whole_record() {
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(tr)) = (
+            dump("gamelog-run79-greatlakes-secondsquad.txt"),
+            trace("rontrace-run79.log"),
+        ) else {
+            eprintln!("skipping: no run79 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = std::fs::read_to_string(&path).unwrap();
+        let log = Log::parse(&text);
+        let texts = sibling_texts();
+        let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
+        let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+        let refs: Vec<&Initial> = inits.iter().collect();
+        let report = run_traced(&loaded, &log, Tuning::RON, None, None, &refs, Some(&tr)).unwrap();
+        let blocks: Vec<i64> = report
+            .frames
+            .iter()
+            .filter(|f| f.compared > 0)
+            .map(|f| f.frame)
+            .collect();
+        eprintln!(
+            "run79: {} blocks {:?}..{:?}",
+            blocks.len(),
+            blocks.first(),
+            blocks.last()
+        );
+        let sum = |g: fn(&FrameResult) -> usize| report.frames.iter().map(g).sum::<usize>();
+        eprintln!(
+            "run79: {} unit fields, {} order/path, {} angle, {} collide, {} los, \
+             {} packed, {} gather, {} build, {} queue, {} city",
+            sum(|f| f.compared),
+            sum(|f| f.order_compared),
+            sum(|f| f.angle_compared),
+            sum(|f| f.collide_compared),
+            sum(|f| f.los_compared),
+            sum(|f| f.packed_compared),
+            sum(|f| f.gather_compared),
+            sum(|f| f.build_compared),
+            sum(|f| f.queue_compared),
+            sum(|f| f.city_compared),
+        );
+        // **The exceptions, each named and each an open item.** The
+        // `CITY` record is excluded whole — the human's city is not
+        // driven at all here and the AI's `trade_val`/`vans` are the
+        // caravan seam (`crate::diff::city`, run79's own rows) — and
+        // three unit-level residues stand, all of them older than this
+        // window:
+        //
+        // - `1/24` and `1/25`, twenty-four units off their cell on every
+        //   block from the first, which is where the window opens rather
+        //   than where they parted;
+        // - `1/23`'s order angle and its second slot's action flag, the
+        //   same shape and the same age;
+        // - the `GROUPORDER` **`id`**, item 242: this crate's group id is
+        //   the army group's slot (1) where the original's is `GroupData
+        //   +0x4` (64), so every group order's id is off by the same 6300
+        //   and nothing else in the row is. The frame and the order
+        //   number inside it agree — `7162102` against `7168402` is
+        //   `group_move_id(1, 7162, 2)` against `group_move_id(64, 7162,
+        //   2)` — which is exactly what says the *order* landed on the
+        //   original's own frame.
+        // - `1/14`'s `collide` on 7090.
+        let excused = |who: i64, o: i64, what: &str| -> bool {
+            matches!((who, o), (1, 24) | (1, 25) | (1, 23))
+                || (who == 1 && o == 14 && what == "collide")
+                || what == "group id"
+        };
+        let mut wrong: Vec<String> = Vec::new();
+        for fr in &report.frames {
+            let mut note = |who: i64, o: i64, what: &str, row: String| {
+                if !excused(who, o, what) {
+                    wrong.push(format!("f{} {who}/{o} {what}: {row}", fr.frame));
+                }
+            };
+            for d in &fr.diverged {
+                note(d.who, d.o, "pos", format!("{:?} v {:?}", d.ours, d.theirs));
+            }
+            for d in &fr.order_diverged {
+                let what = if matches!(d.what, OrderMismatch::Group { field: "id", .. }) {
+                    "group id"
+                } else {
+                    "order"
+                };
+                note(d.who, d.o, what, format!("{:?}", d.what));
+            }
+            for d in &fr.angle_diverged {
+                note(d.who, d.o, "angle", format!("{d:?}"));
+            }
+            for d in &fr.collide_diverged {
+                note(d.who, d.o, d.field, format!("{} v {}", d.ours, d.theirs));
+            }
+            for d in &fr.los_diverged {
+                note(d.who, d.o, "los", format!("{d:?}"));
+            }
+            for d in &fr.packed_diverged {
+                note(d.who, d.o, "packed", format!("{d:?}"));
+            }
+            for d in &fr.gather_diverged {
+                note(d.who, d.o, "gather", format!("{d:?}"));
+            }
+            for d in &fr.build_diverged {
+                note(d.who, d.o, "build", format!("{d:?}"));
+            }
+            for d in &fr.queue_diverged {
+                note(d.who, d.o, "queue", format!("{d:?}"));
+            }
+            for &(who, o) in &fr.unlinked_units {
+                note(who, o, "unlinked", String::new());
+            }
+            for &(who, o) in &fr.extra_units {
+                note(who, o, "extra", String::new());
+            }
+        }
+        for w in wrong.iter().take(24) {
+            eprintln!("  {w}");
+        }
+        // The window's own rows, so that a capture without `UNITS=3` or
+        // `BUILDS=7` cannot pass this test saying nothing.
+        assert!(
+            sum(|f| f.compared) >= 13_000
+                && sum(|f| f.order_compared) >= 13_000
+                && sum(|f| f.collide_compared) >= 60_000
+                && sum(|f| f.build_compared) >= 17_000,
+            "run79's own rows are missing — the wrong file"
+        );
+        assert!(
+            wrong.is_empty(),
+            "run79's window parted on {} rows, first twenty-four printed above",
+            wrong.len()
+        );
+    }
 }

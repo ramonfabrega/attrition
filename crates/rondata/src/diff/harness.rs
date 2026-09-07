@@ -235,6 +235,45 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
         // that chose a different *site* for the same object number linked
         // cleanly and read as agreement. That is what East Indies' word at
         // 3021 turned out to be.
+        // **And the construction clock** (item 261). `constr_time` is
+        // `Wall::update_construct_time`'s baked answer — the type's
+        // `job_time × 100` through the owner's nation, wonder, **rare**
+        // and tech modifiers — and `job_counter` the hundredths of a
+        // frame the site has earned towards it. Both are written from
+        // `BUILDS=1` and neither was compared until Great Lakes' word sat
+        // at 7176 for a Tower whose clock read 100000 here and **90909**
+        // there: the Tobacco rare's ten per cent, which this crate
+        // collected on the original's own frame and never baked
+        // (`docs/CITIES.md` §3.2).
+        //
+        // A finished building's clock is not state either side owns —
+        // the original zeroes `job_counter` on completion and this crate
+        // leaves it climbing — so the counter is compared only while
+        // **both** sides still call the site unfinished. `constr_time` is
+        // compared always: it is a baked constant, and a wrong one is
+        // wrong whether the building has finished or not.
+        let clock: &[(&'static str, i64, Option<i64>)] = &[
+            ("constr_time", i64::from(ours.constr_time), b.constr_time),
+            (
+                "job_counter",
+                i64::from(ours.job_counter),
+                b.job_counter.filter(|_| !ours.active && b.flags & 4 == 0),
+            ),
+        ];
+        for &(field, mine, theirs) in clock {
+            let Some(theirs) = theirs else { continue };
+            r.build_compared += 1;
+            if mine != theirs {
+                r.build_diverged.push(BuildDivergence {
+                    frame: frame.n,
+                    who: b.who,
+                    o: b.o,
+                    field,
+                    ours: mine,
+                    theirs,
+                });
+            }
+        }
         for (field, mine, theirs) in [
             ("x_internal", i64::from(ours.pos.x), b.pos.x),
             ("y_internal", i64::from(ours.pos.y), b.pos.y),
@@ -1009,7 +1048,10 @@ mod tests {
             parted.len() <= 1,
             "one unit ever leaves the original's point in 4,000 frames: {parted:?}"
         );
-        assert_eq!(builds, 130_326, "two fields on every linked building-frame");
+        assert_eq!(
+            builds, 197_932,
+            "the site and the clock on every linked building-frame"
+        );
         assert!(
             coll >= 350_928,
             "five fields on every agreeing unit-frame, and the count only \
@@ -1422,7 +1464,7 @@ mod tests {
         );
         assert_eq!(
             builds, RUN58_BUILD_FIELDS,
-            "two fields on every linked building-frame"
+            "the site and the clock on every linked building-frame"
         );
         assert!(
             coll >= RUN58_COLL_FIELDS,
@@ -4901,7 +4943,11 @@ mod tests {
     /// for row on the frame each is planned, so the boats have no pin of
     /// their own any more — they are inside the ordinary assert.
     const RUN58_PARTED: usize = 0;
-    const RUN58_BUILD_FIELDS: usize = 178_326;
+    /// 178,326 until item 261 widened the building row from the site
+    /// alone to the site **and the construction clock** — `constr_time`
+    /// always, `job_counter` while both sides still call the site
+    /// unfinished.
+    const RUN58_BUILD_FIELDS: usize = 270_173;
     const RUN58_COLL_FIELDS: usize = 449_279;
     /// Unit-frames carrying `unit_masks` and `mylos` — one apiece per
     /// linked unit-frame, which is every one, so the floor only grows.

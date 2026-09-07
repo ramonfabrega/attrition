@@ -12,36 +12,36 @@ each section's non-item prose pinned and falling only.
 
 ## Where things stand
 
-*2026-09-07, Opus commanding (DECISIONS 34) — 258 landed, 261 is still
+*2026-09-07, Opus commanding (DECISIONS 34) — 258 and 261 landed, 233 is
 out, and the reap found three items the crash had eaten.*
 
-- **Great Lakes 7176** (leads; item **261** in flight): 97 draws differing
-  at 93 — the original in `Unit::do_idle+0x7d`, this crate in
-  `Guy::inc_time+0x271`; a unit goes idle there and not here, and run79's
-  `[6910,7250]` covers it. **East Indies 7529**: a `Guy::set_anim` under
-  `Unit::do_non_flat_gather+0xb99` the original spends and this does not.
-- **258 landed**: the endpoint at 24001 is pinned on both maps and may only
-  fall (`diff/endpoint.rs`, 260's split first cut). The disk holds **four
-  games, not two**, and `borrow_from_siblings` had read East Indies against
-  Great Lakes' herds; `check_setup` asserts each map's fingerprint now.
+- **Great Lakes 7455** (leads, +279 on item 261): the widening parted the
+  *field* diff at **7163**, ahead of the draw stream and on all six
+  soldiers — `is_captain` is `o_up < 0`, this crate counted six captains
+  against two, and the muster marched early. 7176 was Tobacco's re-bake
+  never raising the wall-stats flag: `constr_time` 100000 v 90909.
+  **East Indies holds at 7529.**
+- **258's endpoint fired on the first item to land after it**, falsifying
+  the claim it was booked on: 261's diff-backed fixes moved Great Lakes'
+  `off` **73 → 75** while `unlinked` fell 7 → 2, and both rungs' `extra`
+  rose. At 24001 the streams parted 16,500 frames ago, so `off` counts
+  reshuffle. Re-pinned; **whether a count past the word may assert at all
+  is a steer question.**
 - **Three items the crash ate are back.** `loop-234`'s tree held 406
-  uncommitted lines no branch carried; `8b37e5f` deleted 230–234 and only
-  two of the five had landed. 232/233/234 re-booked, the work on
-  `rescue-234`, audited in `docs/audit/queue-ledger.md`. **A branch check
-  cannot see a dirty tree** — ccc holds that half as their item 32.
-- **The queue is bounded by items** (262, 263): 18 at 8 lines, sections
-  pinned, backlog parked. **A new item costs no compression** — shorten
-  what you are touching, never another author's item.
-- **The gate**: 238 tests, 208 s, 16,027 MiB at the pinned two threads.
-  **No pipe between `memcap.sh` and the exit code.**
+  uncommitted lines no branch carried; `8b37e5f` deleted 230–234 and two of
+  the five had landed. 232/233/234 re-booked, work on `rescue-234`, audit
+  in `docs/audit/queue-ledger.md`. **A branch check cannot see a dirty
+  tree** — ccc holds that half as their item 32.
+- **The queue is bounded by items** (262, 263, DECISIONS 35): 18 at 8 lines,
+  sections pinned, backlog parked. `memcap.sh` wanted its exec bit.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w7529 of 24,000 · GreatLakes w7176 of 24,000
-Endpoint 24001: EastIndies 80 off, 0 unlinked · GreatLakes 73 off, 7 unlinked
+Long captures: EastIndies w7529 of 24,000 · GreatLakes w7455 of 24,000
+Endpoint 24001: EastIndies 80 off, 0 unlinked · GreatLakes 75 off, 2 unlinked
 
-**Opener: commander on Opus (DECISIONS 34). Merge 261 and 258, gate, file;
-then the headline is whatever Great Lakes' word reads after 261. 232, 233
-and 234 are re-booked and cheap — 234's two static assertions first.**
+**Opener: commander on Opus (DECISIONS 34). Merge 233, gate, file. Then the
+headline is Great Lakes 7455 — widen run79 past 7163 the way 261 did, the
+field diff ahead of the draw stream, with 234's two assertions beside it.**
 
 ## The queue
 

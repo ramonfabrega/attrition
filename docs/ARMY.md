@@ -213,12 +213,25 @@ num_standard += captains − count(COUNT_CASTERS) − count(NON_DECOY_TYPE, SUPP
 role         |= group.role
 ```
 
-`get_num_cap@007145c0` counts the group's active units for which
-`UnitData::is_captain@0046ceb0` holds — `o_up < 0`, a unit **not inside
-another object** (not garrisoned, not carried; `docs/ANIM.md`'s
-`inside_up`). So `num_captains` is "units on the map" and
-`num_standard` the fighting line: captains less spellcasters, supply
-wagons, decoys and anti-air. `GroupData::count@00711720` is the
+`get_num_cap@007145c0` counts the group's active units (`flags & 1`) for
+which `UnitData::is_captain@0046ceb0` holds — and that function is
+**`return this->o_up < 0;` and nothing else**, the head of an uber squad.
+~~a unit not inside another object (not garrisoned, not carried;
+`docs/ANIM.md`'s `inside_up`)~~ was this section's gloss until
+2026-09-07 and it is wrong: `o_up`/`o_down` (`UnitData +0x8e`/`+0x90`)
+are the **squad** chain and `inside_up`/`inside_down` (`ObjectData`) the
+garrison one, and the dump prints both under those names in the same
+record (`docs/ORACLE.md`, run79, "The chain IS in the dump"). So
+`num_captains` is "**squads** on the map, one per squad" — three
+Longbowmen are one — and `num_standard` the fighting line: captains less
+spellcasters, supply wagons, decoys and anti-air.
+
+The difference is a whole item. Great Lakes' AI army holds six units in
+two three-figure squads at frame 7162; the original counts
+`num_standard` **2** and this crate counted **6**, so §7's `n < 5` kept
+the original mustering and sent this crate marching, and the
+`GROUPATTACKTOORDER` the 256-frame tick issues there never went out
+(item 261, `run79_s_window_is_every_unit_s_whole_record`). `GroupData::count@00711720` is the
 `CountIndex` switch; the cases this family uses:
 
 | `CountIndex` | counts a unit that is |

@@ -751,11 +751,34 @@ pub(crate) const LONG_WORD_EAST_INDIES: i64 = 7_529;
 /// walks a joiner to the army's first member, and this crate never
 /// issued that walk (item 250, `docs/ARMY.md` §4.3).
 ///
-/// **7176** is where it stands: at draw 93 of ninety-seven the original
-/// is in `Guy::set_anim+0x97a < Unit::do_idle+0x7d` and this crate in
-/// `Guy::set_anim+0x97a < Guy::inc_time+0x271` — a unit going idle
-/// there that does not here.
-pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 7176;
+/// **7176** for one item, and the unit going idle was a **builder**.
+/// The AI's Tower `1/2017` finishes on that frame in the original —
+/// `job_counter` 90800 → 0, `construct_hits` 749 → 750, `flags` 3 → 7 —
+/// its citizen `1/20` drops the `BUILDORDER` and takes `idle 1`, and
+/// `Unit::do_idle+0x7d` rolls the anim this crate did not. The clock is
+/// why: `constr_time` reads **90909** there and 100000 here, the Tobacco
+/// rare's ten per cent (`TOBACCO_BUILDING_SPEED`). The rare arrives on
+/// the original's own frame — 6751 — and the **bake** was missing:
+/// `Leader::gather@006ce280` raises `0xc000000` when the mask moves, the
+/// unit-stats flag *and* the wall-stats one, and this crate raised only
+/// the first (item 261, `docs/CITIES.md` §3.2).
+///
+/// The widening that found it refuted the briefed candidate first. The
+/// field diff parts at **7163**, thirteen frames earlier and on all six
+/// of the AI's soldiers: `UnitData::is_captain@0046ceb0` is `o_up < 0`
+/// and this crate had it as "on the map and inside nothing", so an army
+/// of two three-figure squads counted six captains where the original
+/// counts two, `Army::release_mustering`'s `n < 5` let it march, and the
+/// group attack-to its 256-frame tick issues on 7162 never went out
+/// (`docs/ARMY.md` §3.3, §7;
+/// `run79_s_window_is_every_unit_s_whole_record`).
+///
+/// **7455** is where it stands: eight draws against seven, and at index
+/// 2 this crate spends a `Guy::set_anim+0x97a < Unit::move_step+0x823`
+/// the original does not — the blocked walker's stand
+/// (`sim::anim::SITE_BLOCKED`, `docs/COLLISION.md` §5), so a unit is
+/// stopped here and walks there.
+pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 7455;
 
 /// The frame Great Lakes' **second** squad joins the army on — 6994, the
 /// word's own parting from 2026-09-06 to 2026-09-07 and now a landed

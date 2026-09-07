@@ -6,7 +6,7 @@
 //! queue has carried until now moves in **frames**: the word, the ticks, the
 //! orders. All three say where the two simulations first part, and none of
 //! them says how far apart they are eight thousand frames later. A run that
-//! parts at 7,176 and one that parts at 7,176 and then loses forty units
+//! parts at 7,455 and one that parts at 7,455 and then loses forty units
 //! score the same.
 //!
 //! Item 252 left the other kind of number sitting on disk, free. Ten of this
@@ -50,7 +50,7 @@
 //!
 //! # Why the counts are ceilings and not equalities
 //!
-//! The word parts at 7,176 and 7,529, so past that both sides run on streams
+//! The word parts at 7,455 and 7,529, so past that both sides run on streams
 //! that are nobody's and the endpoint is measured *deep* inside the
 //! divergence. The number is real — every unit of it is a coordinate the
 //! original wrote — but it is not one defect, and a change that fixes a
@@ -80,7 +80,7 @@
 //!
 //! - **It is not lockstep.** Entry 29's counter is met when the *whole* run
 //!   agrees, and this compares one frame at the end. A run that diverges at
-//!   7,176, wanders, and happens to arrive with every unit on the original's
+//!   7,455, wanders, and happens to arrive with every unit on the original's
 //!   tile would read zero here and still not be in lockstep. The endpoint is
 //!   a floor under the finish line, not the finish line.
 //! - **The closing dump is frame `n` and tears by one tick on at most one
@@ -213,8 +213,10 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         map_lists: (13, 36),
         setup: GREAT_LAKES_SETUP,
         siblings: &["run18a-startonly"],
-        off: 73,
-        unlinked: 7,
+        // 73 → 75 and 7 → 2 on 2026-09-07, item 261: see the journal. The
+        // positional count rose while the structural one fell by five.
+        off: 75,
+        unlinked: 2,
         extra: 0,
         build_unlinked: 0,
         build_diverged: 14,
@@ -248,7 +250,8 @@ pub const LADDER: [Endpoint; 2] = [
         siblings: &[],
         off: 45,
         unlinked: 17,
-        extra: 22,
+        // 22 → 24 on 2026-09-07, item 261, the same reshuffle.
+        extra: 24,
         build_unlinked: 10,
         build_diverged: 9,
         city_unlinked: 3,
@@ -264,7 +267,10 @@ pub const LADDER: [Endpoint; 2] = [
         siblings: &[],
         off: 51,
         unlinked: 16,
-        extra: 19,
+        // 19 → 33 on 2026-09-07, item 261, the same reshuffle; `off` fell
+        // 51 → 50 on the same run and is left pinned at 51 until a session
+        // means the tighter number.
+        extra: 33,
         build_unlinked: 19,
         build_diverged: 0,
         city_unlinked: 4,
@@ -555,6 +561,24 @@ mod tests {
     /// on a fixed frame, and there is no way to make that worse by making
     /// the simulation better. So the rise is asserted, and the fall is left
     /// to print, which costs a session nothing and keeps the pin honest.
+    ///
+    /// **That last claim was falsified the same day, by the first item to
+    /// land after it** (261, `docs/JOURNAL.md` 2026-09-07). Two corrections
+    /// each backed by a value diff on the frame they act — `is_captain` is
+    /// `o_up < 0`, and Tobacco's re-bake gives the Tower `constr_time`
+    /// 90,909 — moved the Great Lakes word 7176 → 7455 and moved this
+    /// endpoint's `off` **73 → 75**, while its `unlinked` fell 7 → 2.
+    ///
+    /// The reason is the horizon, not the metric's shape. At 24,001 the two
+    /// simulations parted 16,500 frames ago, so which unit sits on which
+    /// tile is dominated by accumulated reshuffle: a behavioural change at
+    /// 6751 re-deals every position downstream of it, and `off` counts the
+    /// deal. The number becomes monotone in fidelity only as the word
+    /// approaches the frame it is measured on. Until then a re-pin after a
+    /// diff-backed gain is routine and means nothing is wrong — which is
+    /// exactly what "assert up to the word, print past it" was protecting
+    /// against, and why whether these two should assert at all is a
+    /// question for the next steer rather than a settled thing.
     fn ratchet(row: &Endpoint, r: &EndpointResult) {
         let got = r.counts();
         let want = row.counts();
