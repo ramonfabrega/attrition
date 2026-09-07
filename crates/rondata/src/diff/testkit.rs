@@ -773,12 +773,19 @@ pub(crate) const LONG_WORD_EAST_INDIES: i64 = 7_529;
 /// (`docs/ARMY.md` §3.3, §7;
 /// `run79_s_window_is_every_unit_s_whole_record`).
 ///
-/// **7455** is where it stands: eight draws against seven, and at index
-/// 2 this crate spends a `Guy::set_anim+0x97a < Unit::move_step+0x823`
-/// the original does not — the blocked walker's stand
-/// (`sim::anim::SITE_BLOCKED`, `docs/COLLISION.md` §5), so a unit is
-/// stopped here and walks there.
-pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 7455;
+/// ~~**7455**~~ — eight draws against seven, this crate spending a
+/// `Guy::set_anim+0x97a < Unit::move_step+0x823` the original does not:
+/// `1/36` inside `1/17`'s disc, 94 units adrift because the army's
+/// 7418 tick put every follower of the formation on the wrong side of
+/// its leader (item 267, `docs/GROUPS.md` §6.3's tail negation).
+///
+/// **7584** is where it stands, 129 frames on and **past run87's own
+/// window** (`[7244, 7520)`), so the map's next value diff is owed a
+/// capture. Forty-eight draws against forty-nine, and at index 24 the
+/// original spends a `Guy::set_anim+0x97a < Guy::move+0x19f` this crate
+/// does not — a crew figure's animation rather than a walker's stand,
+/// and the reverse polarity of the row it replaces.
+pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 7584;
 
 /// The frame Great Lakes' **second** squad joins the army on — 6994, the
 /// word's own parting from 2026-09-06 to 2026-09-07 and now a landed

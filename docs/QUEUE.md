@@ -35,8 +35,8 @@ ratchet is reverted, 266 is resolved, and the loop resumes at width two.*
   marked-row batch is empty; everything is merged, pushed and main level.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w7529 of 24,000 · GreatLakes w7455 of 24,000
-Endpoint 24001: EastIndies 79 off, 0 unlinked · GreatLakes 81 off, 0 unlinked
+Long captures: EastIndies w7529 of 24,000 · GreatLakes w7584 of 24,000
+Endpoint 24001: EastIndies 80 off, 0 unlinked · GreatLakes 78 off, 2 unlinked
 
 **Opener: commander on Opus (DECISIONS 34), spawning — never working —
 two at once: a worker for 267's second row (Great Lakes' 7418 tick, ARMY

@@ -18799,3 +18799,91 @@ Great Lakes 7455 stand; what changed is that 7529 is now a field with a
 value diff beside it rather than a draw-stream report.
 `run88_s_window_is_east_indies_word_frame` is the assertion, and its five
 claims were each made to fail on purpose before it was believed.
+## 2026-09-07 — item 267's second row: the formation stood on the wrong side of its leader (Great Lakes' word 7455 → 7584, Opus, worker)
+
+**The headline moved, and it is the first Great Lakes move since 261.** The
+word is **7584 of 24,000**, up 129 frames from 7455, and the value diff is
+`compute_form`'s tail negation (`docs/GROUPS.md` §6.3) — a line of the
+original that this crate had read, written down, and never implemented.
+
+**The brief was a diff, and run87 answered it without a screen.** Block 7419
+is sim-frame 7418 — `7162 + 256`, the army tick — and all six of the AI's
+soldiers take a fresh `GROUPATTACKTOORDER` on it. Widening the whole record
+either side of the tick said the assignment was *right*: `orders_x/orders_y`,
+`oxx`, `whose`, `form_id`, `group_angle`, the path stack's bottom and the
+order's own kind and flags all agree, member for member. Exactly one row
+disagreed — `PathTo { slot: 1 }` and the `dest_x/dest_y` beside it — and it
+disagreed for `1/32`, `1/33`, `1/34`, `1/35` and `1/36` on every frame from
+7419 on.
+
+**The arithmetic named the mechanism before any reading did.** The follower's
+waypoint is `leader.pos + curr[i]`, so subtracting the leader's own position
+from the dump gives the original's `curr` table directly:
+
+| member | ours at block 7420 | the original's |
+|---|---|---|
+| `1/32` | (+64, +129) | (−65, −130) |
+| `1/33` | (−65, −130) | (+64, +129) |
+| `1/34` | (+385, +775) | (−386, −776) |
+| `1/35` | (+450, +904) | (−451, −905) |
+| `1/36` | (+321, +646) | (−322, −647) |
+
+Every one is `−ours − 1`, componentwise — the signature of a sign flip applied
+*before* a floor, not after. `1/32` and `1/33` looked like a swap only because
+they are symmetric about the leader. Two hypotheses fit — the rotation angle
+180° out, or the offsets negated — and they are algebraically identical for a
+single-rank line, so the numbers alone could not separate them.
+
+**What separated them was the destinations.** The original's own slot
+destinations pin the un-reoriginned offset table to `[0, −3, 3, 9, 6, 12, −9,
+−12, −6]` — which is exactly what this crate computes — so `off` could not be
+mirrored and `to` right at the same time. That forced the answer to be a
+negation applied *after* `Form::compute` had written both tables, and
+`Group::compute_form@00707c80`'s tail is it: at `707e09` a second reverse test
+(`bVar8`), live only when the caller supplied the angle, comparing it against
+`find_angle(dest − group_loc)` on the same inclusive ±90° window; at `707eb8`
+a loop negating `off_x`/`off_y` on **both** the `Form` and the `GroupData` and
+touching `to` not at all. The document already had it, in one clause of §6.3
+and one aside at the end of §12.2 — it had simply never been built.
+
+**So a flipped formation marches to the slots it was laid out with and stands
+on the opposite side of its leader.** On 7418 the group's angle is −66.75° and
+the bearing to its destination 23.5°: 90.25° apart, over the line by a quarter
+of a degree. Every follower took its slot mirrored, `1/36` came out 94 units
+adrift by 7455, and it walked into `1/17` — the standing citizen run87 was
+captured to exonerate, and which it did exonerate.
+
+**The measurement.** run87's window is 277 blocks and 12,154 unit fields,
+12,108 order and path rows, 22,702 angles, 73,409 collision fields, 21,856
+building and 10,952 queue rows. Before: `1/26` and the five soldiers. After:
+**`1/26` alone**, whose twenty-four units are the `1/24`/`1/25` shape arriving
+late and older than the window. The test's claim is now the whole window
+rather than its run-up.
+
+**And the word is past the capture.** 7584 is outside run87's `[7244, 7520)`,
+so Great Lakes' next value diff is owed a window — the first time since 264
+that the map's headline has no dump under it. What the draw stream says about
+7584 is the reverse polarity of what it said about 7455: forty-eight draws
+against forty-nine, and at index 24 the *original* spends a
+`Guy::set_anim+0x97a < Guy::move+0x19f` this crate does not — a crew figure's
+animation rather than a walker's stand.
+
+**The costs, and the one that was avoidable.** Two wrong turns, both cheap and
+both caught by running rather than reading: the first was assuming the
+divergence was a *pathfinder* result (the waypoint is a formation slot, and
+the whole-record widening said so in one run); the second was implementing the
+180° hypothesis, which wrecked the run-up from frame 0 and proved nothing,
+because a behavioural change re-deals the state the probe was reading. What
+settled it was going back to the destinations — the quantity both sides
+already agreed on — and asking which hypothesis could keep them.
+
+**East Indies does not move**: its word stays at 7529, and its endpoint drifts
+by one in each of three counts 16,000 frames past it. Great Lakes' endpoint
+goes 81 → 78 off, 0 → 2 unlinked, 4 → 0 extra. Re-pinned per DECISIONS 36,
+naming the item; no direction claimed.
+
+Gate: 241 rondata release tests green — 238 on the first full run plus the
+four `*_is_pinned` counts that failed it and pass re-pinned — peak 14,023 MiB
+of the 20 GiB cap on the clean run and 14,566 on the one that found the
+moves; 819 sim tests; `cargo clippy --all-targets` and `cargo fmt` clean;
+`rondata -- <install>` zero.

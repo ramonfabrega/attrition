@@ -1963,22 +1963,30 @@ mod tests {
     /// this crate makes a stand on each of those three frames, on the
     /// same walker, blamed on the same blocker (`1/11`, `1/21`, `1/11`).
     ///
-    /// **What is wrong is a position, and it parts 202 frames ahead of
-    /// the draw stream.** `1/35` steps 25 units in y on 7253 where the
-    /// original steps 12, and from 7419 — sim-frame **7418**, the army's
-    /// own 256-frame tick, `7162 + 256` and `frame ≡ 250 (mod 256)`,
-    /// the same tick item 261 fixed at 7162 (`docs/ARMY.md` §5) — all
-    /// six of the AI's soldiers take a fresh group order and four of
-    /// them come out of it on a different path waypoint, `1/32` and
-    /// `1/33` on exactly each other's. `1/36` is 94 units adrift by
-    /// 7455, which is the three and a half frames that put it inside
-    /// `1/17`'s disc.
+    /// ~~**What is wrong is a position, and it parts 202 frames ahead of
+    /// the draw stream.**~~ Both of the capture's rows are closed and the
+    /// window holds one residue. `1/35` stepped 25 units in y on 7253
+    /// where the original steps 12 — a soft collision this crate did not
+    /// make, closed by 267's first row (`docs/COLLISION.md` §2.3). And
+    /// from 7419 — sim-frame **7418**, the army's own 256-frame tick,
+    /// `7162 + 256` and `frame ≡ 250 (mod 256)`, the same tick item 261
+    /// fixed at 7162 (`docs/ARMY.md` §5) — all six of the AI's soldiers
+    /// took a fresh group order and four came out on a different path
+    /// waypoint, `1/32` and `1/33` on exactly each other's, `1/36` 94
+    /// units adrift by 7455 and inside `1/17`'s disc. That was
+    /// `compute_form`'s **tail negation** (`docs/GROUPS.md` §6.3), which
+    /// this crate did not make: when the caller supplies the formation
+    /// angle and it is 90° or more from the bearing to the destination,
+    /// the original negates every member's offsets and leaves the
+    /// destinations alone, so the whole formation stands on the far side
+    /// of its leader. The map's word went **7455 → 7584**.
     ///
-    /// **The word's own frame is not comparable as a field**, which is
-    /// why only the draw stream sees it: [`compare`] tests the collision
+    /// **The word's own frame was not comparable as a field**, which is
+    /// why only the draw stream saw it: [`compare`] tests the collision
     /// record only where the two positions agree, so `1/36`'s divergence
-    /// from 7420 takes its collision out of the diff on every later
-    /// block.
+    /// from 7420 took its collision out of the diff on every later block.
+    /// 7584 is **past run87's own `[7244, 7520)`**, so the next value diff
+    /// on this map is owed a capture.
     #[test]
     fn run87_s_window_is_great_lakes_word_frame() {
         let Some(inst) = install() else { return };
@@ -2159,30 +2167,37 @@ mod tests {
                 && sum(|f| f.build_compared) >= 21_000,
             "run87's own rows are missing — the wrong file"
         );
-        // **The two claims about the run-up, and they are ceilings that may
-        // only rise.** ~~Nothing parts before 7253~~ — **7315** since item
-        // 267 gave the world-cell crossing its disc repaint
-        // (`docs/COLLISION.md` §2.3): `1/35`'s step-size row was a soft
-        // collision this crate did not make, and with it made the unit
-        // walks the original's own point for the whole run-up. The only
-        // unit that parts at all before the army's 7418 tick is now
-        // `1/26`, whose twenty-four units are the `1/24`/`1/25` shape
-        // arriving late and older than this window.
+        // **The claim, and it is the whole window rather than its run-up.**
+        // ~~Nothing parts before 7253~~ ~~7315~~ — since item 267's second
+        // row landed `compute_form`'s tail negation (`docs/GROUPS.md` §6.3)
+        // **no unit parts anywhere in these 277 blocks but `1/26`**, whose
+        // twenty-four units are the `1/24`/`1/25` shape arriving late and
+        // older than this window. Every unit field, order and path row,
+        // angle, collision field, line of sight, packed word, gather,
+        // build and queue row of every unit of every block, and one
+        // residue.
+        //
+        // Made to fail on purpose by reverting the negation, which puts
+        // `1/32`–`1/36` back on the list from block 7419 with `1/32` and
+        // `1/33` holding exactly each other's waypoints.
+        let parted: std::collections::BTreeSet<(i64, i64)> =
+            wrong.iter().map(|r| (r.1, r.2)).collect();
+        assert_eq!(
+            parted,
+            [(1, 26)].into_iter().collect(),
+            "run87's window parts on more than 1/26: {:?}",
+            wrong
+                .iter()
+                .filter(|r| (r.1, r.2) != (1, 26))
+                .take(8)
+                .collect::<Vec<_>>()
+        );
+        // And the floor under it: the one residue is late, not early.
         let first = wrong.iter().map(|r| r.0).min().unwrap_or(i64::MAX);
         assert!(
             first >= 7315,
             "run87's field diff parted at {first}, ahead of 7315: {:?}",
             wrong.iter().find(|r| r.0 == first)
-        );
-        let early: std::collections::BTreeSet<(i64, i64)> = wrong
-            .iter()
-            .filter(|r| r.0 < 7419)
-            .map(|r| (r.1, r.2))
-            .collect();
-        assert_eq!(
-            early,
-            [(1, 26)].into_iter().collect(),
-            "the unit parting before the army's 7418 tick is not 1/26 alone"
         );
     }
 }

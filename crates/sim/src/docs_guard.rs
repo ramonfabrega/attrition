@@ -129,7 +129,7 @@ const OVER: &[(&str, &str, usize)] = &[
     (
         "GROUPS.md",
         "6. The move — `Group::action_move_near@00704990`",
-        44_907,
+        44_885,
     ),
     ("ORDERS.md", "4. The move order", 37_806),
     (
