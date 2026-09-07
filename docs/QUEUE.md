@@ -16,8 +16,7 @@ lines, or lets the handoff pass 32.
 6848 → 6862 by the loop with nobody in the room; East Indies 7448
 unmoved.* Verdict: **back to Opus commanding**, at the width below.
 
-- **236** is the default item, the map's nearest divergence; no capture
-  needed. 219's story is in the journal.
+- **236** is the default item, the map's nearest divergence; no capture.
 - **Width: two when the second brief is tight**, at the commander's
   discretion (DECISIONS 34, amended). 236 alone first; 117's gem term is
   the candidate second — a different module, a diff target, no capture.
@@ -28,8 +27,7 @@ unmoved.* Verdict: **back to Opus commanding**, at the width below.
   their oracle. 3 became assertions; the other 98 sit in
   `docs/audit/2026-09-05-<doc>-vs-code.md`. Rule below: a worker on an
   item touching a document reads its vs-code file first.
-- **Memory focus is closed**; the read-buffer piece stays in the backlog.
-  `att-audit` stays held until the headline sits two sessions.
+- Memory focus closed; `att-audit` held until the headline sits two sessions.
 - **117 split three ways** on run80: the gem term is live and
   unmodelled; the temple and fort terms cannot fire in any game on disk;
   the handicap is 0 by the lobby.
@@ -41,9 +39,8 @@ unmoved.* Verdict: **back to Opus commanding**, at the width below.
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w7448 of 24,000 · GreatLakes w6862 of 24,000
 
-**Opener: the main thread is the commander (DECISIONS 34), on Opus.**
-`ccc spawn --worktree` one Opus worker on 236 with a brief that names the
-score it moves; merge, guard, push, fast-forward `origin/main`, next.
+**Opener: the main thread is the commander (DECISIONS 34), on Opus; the
+first worker takes 236.** How the loop runs is entry 34's, not this file's.
 
 ## The queue
 
