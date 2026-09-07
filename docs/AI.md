@@ -3699,3 +3699,22 @@ AI acted on it.
   the original's slot for slot on a frame both sides fill, which is what
   would have shown both of the above at once. run84's eighty frames are
   where that check would now be cheapest.
+
+---
+
+## 31. The census counters are bytes, and `free` wraps (2026-09-07)
+
+§2.3 step 2 zeroes `free`/`busy`/`gatherers`, step 10 increments them and
+§2.20 decrements `free` or `gatherers` — and all three are **byte** operations on
+`CityData`, not `int` ones. `+0x5a free`, `+0x5b busy` and `+0x5c gatherers`
+are `uchar` in the type record, and every writer is a bare `*p = *p ± 1`
+with no clamp, unlike the `space[]` loop six lines from §2.20's decrement,
+which clamps at zero explicitly.
+
+So §2.20's `free--` at zero lands on **255**, not −1, and every consumer
+that *adds* the counter rather than testing it against zero sees the
+difference: `find_gather_spot`'s "fewer than two citizens" gate, and
+`create_units`/`create_buildings`' `free + busy` against a city's slots.
+run79's `1/2007` is the case, and it is diff-backed — the full evidence,
+the falsifier and the eleven fields of the same record that are still `i32`
+here are `docs/CITIES.md` §5.8 and `docs/DATALAYER.md` §4.2 (item 265).

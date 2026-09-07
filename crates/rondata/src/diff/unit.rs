@@ -1890,5 +1890,46 @@ mod tests {
             "run79's window parted on {} rows, first twenty-four printed above",
             wrong.len()
         );
+
+        // **`CityData::free`, the one field of the `CITY` record this
+        // window pins** (item 265). The record is excluded whole above,
+        // but item 261's widening surfaced one row inside it that was
+        // nobody's open seam: `1/2007`'s `free` read **0** on both sides
+        // until the AI's Tower finished, and then **-1 here against 255
+        // there**. `CityData +0x5a` is a `uchar` and the two writers —
+        // `Leader::plan_strategy@006b9620:839` and
+        // `Leader::produce_building@006e1400:1145` — are a bare byte
+        // increment and decrement with no clamp (the `space[]` loop six
+        // lines above the latter *does* clamp, so the absence is the
+        // original's shape rather than the decompiler's), so a decrement
+        // at zero wraps. The dump printing 255 rather than -1 is what
+        // proves the widening is zero-extension, and
+        // `Unit::find_gather_spot@005f5170:116` reads it back the same
+        // way, `(uint)*(byte *)`.
+        let free_wrong: Vec<String> = report
+            .frames
+            .iter()
+            .flat_map(|f| f.city_diverged.iter())
+            .filter(|d| d.field == "free")
+            .map(|d| {
+                format!(
+                    "f{} {}/{} free {} v {}",
+                    d.frame, d.who, d.o, d.ours, d.theirs
+                )
+            })
+            .collect();
+        for w in free_wrong.iter().take(4) {
+            eprintln!("  {w}");
+        }
+        assert!(
+            sum(|f| f.city_compared) >= 10_000,
+            "run79's `CITY` record is missing — the wrong file"
+        );
+        assert!(
+            free_wrong.is_empty(),
+            "`CityData::free` is a byte that wraps: {} city-frames disagree, \
+             first four printed above",
+            free_wrong.len()
+        );
     }
 }

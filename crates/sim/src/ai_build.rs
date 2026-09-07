@@ -391,7 +391,7 @@ impl Sim {
             slots,
             open_slots,
             total_slots,
-            free: ai.free,
+            free: i32::from(ai.free),
             busy: ai.busy,
             gatherers: ai.gatherers,
             peasant_dist: ai.peasant_dist,

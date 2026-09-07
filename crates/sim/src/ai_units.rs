@@ -1399,7 +1399,7 @@ impl Sim {
             return None;
         }
         let ca = self.ai[w].city_ai.get(c).copied().unwrap_or_default();
-        let (free, busy, gatherers) = (ca.free, ca.busy, ca.gatherers);
+        let (free, busy, gatherers) = (i32::from(ca.free), ca.busy, ca.gatherers);
         if busy == 0 && free == 0 && q == 0 {
             b = wm(b, 30);
         }

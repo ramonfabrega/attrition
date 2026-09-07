@@ -85,18 +85,21 @@ grouped order records no test windows** — run79's 453, run31's 945.
     turning types are in neither scored game). Takes the ledger's nine
     `unverified` rows on the way.
 
-265. **`1/2007`'s city `free` reads −1 here against 255 there** — a width
-    or sign difference, and it read `ours 0` until the Tower finished, so
-    261's widening is what surfaced it. Found by a worker who said plainly
-    it was not its own row; unbooked findings are how items die. Cheap:
-    the field's type in the parser and in `city.rs`, and a value diff.
-
 **The widening ledger** (87, DATALAYER §4, §4.1): **19** fields the
 harness names nowhere, **44** one capture names; blind spot `avg_speed`
 (210) — it counts *fields* and cannot see a record the parser never
 visits, which is what hid 252's dumps. Uncounted: (88) the blind list, 101
 of 617; (72) every `+0xNN` a document pins vs its module; (89) the guard;
 (35) VISION §7.
+
+266. **The third axis: a field compared at the wrong width** (DATALAYER
+    §4.2, from 265). Ten `CityData` counters are `uchar` in the type record
+    and `i32` in `ai::CityAi` — `busy` and `gatherers` have bare byte
+    writers of their own — and `pop` is an eleventh on `sim::City`. None
+    has been seen to wrap; the falsifier is a capture where the sweep's
+    count and the producers' decrements cross zero. Same question one
+    record up, for every `char`/`short` of `LeaderData` held as an `i32`.
+    A guard wants the PDB's widths beside the sim's structs, not a grep.
 
 257. **Nineteen kept tests compare a torn block** (252): a closing dump is
     frame n but for the one unit the quit caught mid-update, and every

@@ -358,7 +358,7 @@ mod tests {
                 ("land", ours.land),
                 ("filled", ours.filled),
                 ("dock_tile", ours.dock_tile),
-                ("free", ours.free),
+                ("free", i32::from(ours.free)),
                 ("busy", ours.busy),
                 ("gatherers", ours.gatherers),
                 ("peasant_dist", ours.peasant_dist),

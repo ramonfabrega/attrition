@@ -201,7 +201,10 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         unlinked: 0,
         extra: 11,
         build_unlinked: 0,
-        build_diverged: 33,
+        // 33 → 32 on 2026-09-07, item 265: `CityData::free` is a byte that
+        // wraps, and the AI reading 255 where it read −1 takes one building
+        // field-row off the diverging list.
+        build_diverged: 32,
         city_unlinked: 3,
         city_diverged: 0,
     },
@@ -248,10 +251,13 @@ pub const LADDER: [Endpoint; 2] = [
         map_lists: (41, 66),
         setup: EAST_INDIES_SETUP,
         siblings: &[],
-        off: 45,
+        // 45 → 46 and 24 → 20 on 2026-09-07, item 265: the same trade the
+        // entry above describes, one item later — `CityData::free` wrapping
+        // to 255 the way the original's byte does costs one position here,
+        // 7,872 frames past the word, and takes four spurious units off.
+        off: 46,
         unlinked: 17,
-        // 22 → 24 on 2026-09-07, item 261, the same reshuffle.
-        extra: 24,
+        extra: 20,
         build_unlinked: 10,
         build_diverged: 9,
         city_unlinked: 3,
@@ -267,10 +273,12 @@ pub const LADDER: [Endpoint; 2] = [
         siblings: &[],
         off: 51,
         unlinked: 16,
-        // 19 → 33 on 2026-09-07, item 261, the same reshuffle; `off` fell
-        // 51 → 50 on the same run and is left pinned at 51 until a session
-        // means the tighter number.
-        extra: 33,
+        // 19 → 33 on 2026-09-07, item 261, the same reshuffle, then 33 →
+        // **27** the same day on item 265's byte — this rung took the
+        // structural half of that trade and none of the positional one.
+        // `off` fell 51 → 50 on 261's run and is left pinned at 51 until a
+        // session means the tighter number.
+        extra: 27,
         build_unlinked: 19,
         build_diverged: 0,
         city_unlinked: 4,
