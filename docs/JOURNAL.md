@@ -19454,3 +19454,77 @@ what expire; **`Unit::do_strafe`**, which would fly the gull and take
 `aid` are −1 on every animal of every block of run89** — the ledger row is
 closed as *observed and constant*, and a capture that ever prints one
 non-negative is the thing worth looking at.
+
+---
+
+## 2026-09-07 — item 287: the word at 7585 is a Citizen the stockpile cannot buy
+
+*(Opus, a worker under the commander's loop; a diff on run89, no capture.)*
+
+**The word did not move.** What moved is what it is: 284 left `Leader::
+make_stuff+0x63d` as a name, and 287 turned it into a purchase, a record and
+a number, and then found the number in the wrong place.
+
+**It was a grep and a widening, not a reading.** `report.py … draws 7585`
+gave the call site — `production_ai+0x236`, the step-11 `make_stuff`, not
+step 8's `+0x1fa` — and, more usefully, showed **no draw between the
+`+0x221` pair and the `+0x63d`**. A slot bought through `produce_building`
+draws twice (frame 7182 is the shape, `make_stuff+0x45a`), so whatever this
+one bought was draw-free. Then the queue: block **7586** takes player 1's
+city building `2007` from `queued 0` to `queued 1` with one item `type 50,
+job_counter 100, cost[0] 43` — a **Citizen at 43**, which is exactly the
+price this crate's own tables give the next one — over the stale `type 50 …
+cost[0] 42` the array still carried. It is the only queue row that parts at
+or below that block. Draw and record name the same purchase, and the slot is
+**5**.
+
+**Every gate but one agrees.** Head is Slingers (`val 9 999 999`, `num 3`,
+55 food and 55 timber), `can_pay(0)` is 0 on a timber purse of 14 so the
+leader is saving, `need` is 4, the Citizen's type is available and
+`can_pay_cost` says **two** are affordable against `num 1`. What fails is
+step 6's good loop over food: `88 < 55 + 43 + 4`. The slot-5 exception —
+`free_peasants` and `gatherers` both zero — was the obvious way in and is
+not it: they are 1 and 20 here, run19's `LEADERS=9` record has a mid-game AI
+at 2 and 20, and the per-city halves of the same census agree with the
+original on all 246 blocks. It is a no-workers-at-all clause.
+
+**Give it food and the frame closes.** `need` falls as the purse rises, so
+the least food that buys is **98**, not 102. With 98 on that frame this
+crate's 7585 agrees with the original **nine draws for nine, entry for
+entry** — including the bird's `Guy::set_anim+0x97a < Guy::move+0x19f` at
+index 4, which 284 had already called downstream of the AI draw and which
+comes back on its own the moment the stream is back in step. So the word is
+one number: **the AI's food stockpile**, 88 here against 98–159 there (the
+upper bound is the original's own 7582, where slot 9's Empire at 160 food is
+blocked by nothing else and is not bought).
+
+**And nothing has ever compared it.** A leader's `bucket` is written only at
+`LEADERS=9`; run89 is at run87's detail, and no Great Lakes capture on this
+disk carries it past setup — run53's own 24k dump prints `200/200/100/0/0/0`
+on its first frames and never again. Inside the window the pile is monotonic
+and unspent (39 food at 7300 to 88 at 7580, `income[0]` a flat 1920), so the
+gap did not open there.
+
+**One thing the disk settled for free.** `use_market`'s gate is *true* for
+player 1 here and its shortfall on 7585 is timber, so the original trades
+where this crate does not — but **no draw in run53's whole 24,000-frame
+trace is made from `use_market`, `do_sell`, `do_buy`, `market_speculation`
+or `calc_market_prices`**. The original's one roll lives in the sell branch,
+so that branch never runs in this game: whatever the market does to this
+AI's pile it does through the draw-free **buy** branch alone. That is a
+smaller thing to land than the seam as written, and it was a `when` query
+rather than a capture.
+
+Eight new constants went into `run89_s_window_is_great_lakes_word_frame` and
+each was made to fail on purpose first: the queue row's block, its `(who, o,
+field, ours, theirs)`, the queued type and its 43, the head's and slot 5's
+names and prices, this crate's own 88, the refusal at 88, the threshold at
+98, and the affordability the slot does reach. `docs/AI.md` §32.
+
+Successors, unnumbered: **the AI's food stockpile is 10–72 short at 7585 and
+nothing compares a leader's ledger** — the falsifier is one `LEADERS=9`
+window on this game, and until there is one the AI's own affordability
+refusals are the only oracle; **`use_market`'s buy branch**, now known to be
+the only half that runs here; and **the AI's caravans are not linked** —
+`vans.length` 0 against 1 and `trade_val` 0 against 128 on *both* of player
+1's cities, 246 of 246 blocks, and wealth is what a market buy spends.
