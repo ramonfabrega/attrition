@@ -1490,3 +1490,71 @@ most two is set, and **no pipe stands between `memcap.sh` and the exit
 code** — redirect to a file and read the file. With the pin, two workers
 at two threads each are about 32 GB against 128, and the discretion above
 stands unchanged.
+
+## 35. The paperwork is bounded by items, and a deletion is a claim
+
+**Decided 2026-09-07**, with the user, after lore priced the queue's
+200-line cap and the morning's reap found three booked items that had died
+without anyone noticing. Extends entry 21 (which file holds what) and entry
+33 (only the main loop writes the queue); overturns the line bound entry 21
+implied and `docs_guard.rs` enforced.
+
+**The queue's line cap was buying the opposite of what it was for.** lore's
+measurement across 221 sessions: 43 *fitting episodes* — the span from the
+first `QUEUE.md` edit to the last `docs_guard` run in the same turn — 614
+requests and 117 USD of list price since 08-25, with 22 of the 43 needing
+two or more guard runs. The fitting loop was the cost, not the edit, and
+the "count the lines before writing, not after" rule of `d03c279` had not
+ended it. The session that received this measurement was itself the 44th
+episode: it compressed **eleven** entries to seat three, and in one round
+reflowed a paragraph past the file's own 76-column wrap to get under the
+count — meeting the metric while defeating what it measures.
+
+**But the argument that decided it is correctness, not tokens.** A global
+line count is satisfied by compressing *any* item, so its remedy is a
+retelling of entries the author has no reason to have read, and every one
+of those edits is a chance to drop somebody else's finding. That is not a
+worry, it is a post-mortem: `8b37e5f`, the post-crash rewrite that landed
+item 227 and whose own message says "Recovered from the worktree the crash
+left behind", shed 196 lines of queue and took items 230 through 234 with
+it — the only run of five in the file's history. Two had landed. **Three
+had not**, and one of those three, item 234, existed only as 406
+uncommitted lines in a worktree that the next session was instructed to
+delete. It survived because `git worktree remove` refuses a dirty tree.
+
+So the queue is bounded **by items**: at most 18 open, at most 8 lines
+each, with each section's *non-item* prose pinned where it stands and
+falling only. There is no line count on the file. A new item costs no
+compression of anything, which is the whole point — the pressure lands on
+the item being added, applied by the person who knows what is safe to cut.
+
+**And the backlog stops booting.** `docs/PARKED.md` holds what is not in
+flight or next, and a fresh session does not read it; it is opened when a
+*wave is composed*, which is a rarer moment. Two conditions came out of
+asking the commander whether it could pick a wave without the backlog in
+view — it can pick, but it cannot *brief* without it, because cross-item
+constraints ("this file is about to be split", "this mechanism cannot move
+a scored word") live in items nobody is taking. So: the parked file is read
+at wave composition, and a cross-item constraint is stated in the worker's
+brief or the item comes back. Rot is lore's to surface.
+
+**A deletion is a claim, and `tools/queueledger.py` audits it.** A number
+that leaves the queue is named in the journal (`item N`) or carries a line
+in `docs/audit/queue-ledger.md` saying where it went. This wrote down the
+existing practice rather than inventing one: **165 of the 191 retirements
+before it already complied**. Its `not-landed` disposition is a promise
+rather than a pardon — it fails until the item is booked again, because a
+ledger that lets "this was lost" sit forever is the original bug wearing
+the fix's clothes.
+
+**The lesson under all three is one sentence: every check anyone ran was a
+branch check, and the loss was one level below it.** `loop-234`'s branch
+tip was a docs-only handoff commit that merged clean, so `git rev-list
+--count`, ccc's roster and the queue's own reap instruction all agreed
+nothing was owed while the work sat in the tree. ccc took that half (their
+item 32) with a sharper name for it than we had: a detector keyed on the
+wrong field, the same shape as their item 25.
+
+**The measure.** If the next tranche books items without anyone mentioning
+line counts, this worked. If a session is seen compressing an item it did
+not write, it did not.
