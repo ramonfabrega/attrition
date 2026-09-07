@@ -182,13 +182,18 @@ mod tests {
         );
         assert_eq!(
             wrong.len(),
-            1_500,
-            "the census's own count. run59 measured 4,798; item 162 took 500 \
-             with the pre-placed camp's six timber slots and 798 more with \
-             the wealth slot a dock claims — which is the whole timber \
-             lineage, bucket and income both — and item 165 took the last \
-             2,000 with `Leader::calc_gather` step 6, the AI's Fisherman on \
-             its fish. What is left is item 156's three hundreds"
+            0,
+            "the census's own count, and it is now **nothing**. run59 \
+             measured 4,798; item 162 took 500 with the pre-placed camp's \
+             six timber slots and 798 more with the wealth slot a dock \
+             claims — which is the whole timber lineage, bucket and income \
+             both — item 165 took 2,000 with `Leader::calc_gather` step 6, \
+             the AI's Fisherman on its fish, and item 156 took the last \
+             1,500: the starting grant of knowledge, metal and oil arrives \
+             with the age and not at `Leader::init`, so neither player holds \
+             a hundred of any of the three. Eighteen thousand good-frames, \
+             two players, six goods, six fields, and every one of them is \
+             the original's"
         );
 
         // **The record, and every shape in it is a standing state.** Each row
@@ -266,13 +271,19 @@ mod tests {
             assert_eq!(n(0, "resources", g), 0, "the human's rate, good {g}");
             assert_eq!(n(0, "leftover", g), 0, "the human's leftover, good {g}");
         }
-        // **And the hundred in goods 3, 4 and 5 is item 156**, unchanged
-        // since run40 measured it: `STARTING_GOODS` arrives with the age, so
-        // the original holds none of the three in the Ancient age. Inert —
-        // an unavailable good is never charged and never accrues.
+        // **And the hundred in goods 3, 4 and 5 was item 156, and it is
+        // gone.** Each of the three read `(250, 100, 0)` — every frame of
+        // the window, both players, a hundred here against the original's
+        // nothing. `STARTING_GOODS` arrives **with the good**: `Leader::init`
+        // pays only what `type_avail` already holds and `Leader::gain_tech`
+        // pays the rest as their age lands, so in the Ancient age a leader
+        // holds no knowledge, no metal and no oil
+        // ([`sim::Sim::lay_starting_goods`]; `docs/COSTS.md`, "The starting
+        // grant arrives with the good"). This is 1,500 of the 1,500 rows
+        // above, which is why the count is zero.
         for g in 3..sim::economy::RESOURCES {
-            assert_eq!(row(0, "bucket", g), Some((250, 100, 0)));
-            assert_eq!(row(1, "bucket", g), Some((250, 100, 0)));
+            assert_eq!(row(0, "bucket", g), None, "the human's good {g}");
+            assert_eq!(row(1, "bucket", g), None, "the AI's good {g}");
         }
 
         // **The step machine, at the other end of the same record**
@@ -820,21 +831,22 @@ mod tests {
         );
 
         // **The record**: 2,880 good-frames — forty frames, two players, six
-        // goods, six fields — and 360 disagree, in exactly two shapes, both
-        // of them a *standing* state rather than anything the window does.
+        // goods, six fields — and **120** disagree, in one shape, a
+        // *standing* state rather than anything the window does.
         //
-        // - **240 are `bucket` on goods 3, 4 and 5** (knowledge, metal,
-        //   oil), both players, every frame: the original holds **0** and
-        //   this crate holds **100**. Inert here because none of the three
-        //   is available in the Ancient age and an unavailable good is never
-        //   charged — but it is a hundred of something nobody gave the
-        //   leader, and it is booked.
         // - **120 are `gather_slots`** — the two woodcutters' camps and the
         //   human's odd wealth slot, three per frame, for the two reasons
         //   the doc comment above sets out.
         //
-        // `resource_cap` was the third shape and is gone: 200 to **0**, the
-        // British commerce bonus arriving with the dump's own `tribe`.
+        // Two shapes are gone. `resource_cap` was 200 and is **0**, the
+        // British commerce bonus arriving with the dump's own `tribe`. And
+        // **`bucket` on goods 3, 4 and 5 was 240 and is 0**: the starting
+        // grant of a good arrives **with the age**, not at `Leader::init`,
+        // so the Ancient age holds no knowledge, no metal and no oil where
+        // this crate used to hand out a hundred of each
+        // ([`sim::Sim::lay_starting_goods`] and its half in
+        // `Sim::gain_tech`; `docs/COSTS.md`, "The starting grant arrives
+        // with the good").
         //
         // Everything else is exact on every frame: both players' `bucket` on
         // food, timber and wealth — which is the item — every `leftover`,
@@ -856,6 +868,16 @@ mod tests {
             "food, timber and wealth are the original's on every frame: {wrong:?}"
         );
         assert_eq!(
+            (
+                of("bucket good 3"),
+                of("bucket good 4"),
+                of("bucket good 5")
+            ),
+            (0, 0, 0),
+            "and so are knowledge, metal and oil, which the Ancient age has \
+             not granted yet: {wrong:?}"
+        );
+        assert_eq!(
             (of("leftover"), of("resources"), of("income")),
             (0, 0, 0),
             "the rate and its accumulator are exact: {wrong:?}"
@@ -871,9 +893,9 @@ mod tests {
             "both players' whole commerce cap, the British +25% included: {wrong:?}"
         );
         assert!(
-            of("gather_slots") <= 120 && wrong.len() <= 360,
+            of("gather_slots") <= 120 && wrong.len() <= 120,
             "the census fell: {} of {compared}, slots {} — the floors are \
-             360 and 120",
+             120 and 120",
             wrong.len(),
             of("gather_slots")
         );

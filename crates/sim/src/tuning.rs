@@ -183,8 +183,14 @@ pub struct Tuning {
     // ---- economy ----
     /// Frames a gather rate is quoted over. 450 is thirty seconds.
     pub gather_rate: i32,
-    /// What each player starts with.
+    /// What each player starts with, per good — before the lobby's
+    /// `STARTING_RESOURCES` row scales it. See `docs/COSTS.md`, "The
+    /// starting grant arrives with the good".
     pub starting_goods: [i32; 6],
+    /// Persians: percent added to the starting **food** grant. The file
+    /// writes `50%` and the engine reads the face value, so the grant is
+    /// `(50 + 100) x food / 100`.
+    pub persians_bonus_food: i32,
     /// A free trickle per resource, before anything is built. Ships as zero.
     pub basic_gather: [i32; 6],
     /// What a city is worth per period before anybody works in it.
@@ -789,6 +795,7 @@ impl Tuning {
 
         gather_rate: 450,
         starting_goods: [200, 200, 100, 100, 100, 100],
+        persians_bonus_food: 50,
         basic_gather: [0, 0, 0, 0, 0, 0],
         city_gather: [10, 10, 0, 0, 0, 0],
         peasant_rate: 2560,
@@ -1036,7 +1043,7 @@ impl Tuning {
     /// This is what lets a tool re-derive [`Tuning::RON`] from a real install
     /// and report a drift, rather than us asserting numbers into the void. The
     /// two entries with no constant behind them are absent by design.
-    pub const fn ron_slots() -> [(&'static str, Slot); 288] {
+    pub const fn ron_slots() -> [(&'static str, Slot); 289] {
         const T: Tuning = Tuning::RON;
         [
             ("ATTRITION", Slot::Value(T.attrition)),
@@ -1179,6 +1186,7 @@ impl Tuning {
             ("UNIVERSITY_LITERACY", Slot::Value(T.university_literacy)),
             ("LIBRARY_LITERACY", Slot::Value(T.library_literacy)),
             ("STARTING_GOODS", Slot::Entries(&T.starting_goods)),
+            ("PERSIANS_BONUS_FOOD", Slot::Value(T.persians_bonus_food)),
             ("BASIC_GATHER", Slot::Entries(&T.basic_gather)),
             ("CITY_GATHER", Slot::Entries(&T.city_gather)),
             ("FISHERMEN_BONUS", Slot::Entries(&T.fishermen_bonus)),

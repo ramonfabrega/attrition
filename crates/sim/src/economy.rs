@@ -52,6 +52,11 @@ pub enum Resource {
 /// How many basic resources there are. Six, everywhere, forever.
 pub const RESOURCES: usize = 6;
 
+/// What a bucket holds under the unlimited lobby (`STARTING_RESOURCES == 8`).
+/// The original writes it as the masked literal `0x104be`, which is 99,999
+/// once the `bucket` XOR comes off.
+pub const UNLIMITED_GOODS: i32 = 99_999;
+
 impl Resource {
     pub const ALL: [Resource; RESOURCES] = [
         Resource::Food,
