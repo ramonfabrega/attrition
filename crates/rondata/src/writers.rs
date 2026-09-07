@@ -58,6 +58,17 @@ use std::path::PathBuf;
 /// these, delete its row; the guard will then check it for real.
 const EXEMPT: &[(&str, &str, &str)] = &[
     (
+        "village_num",
+        "Census::village_num",
+        "villages are not a settlement kind this simulation founds, and the \
+         original does not raise the counter either on anything on disk: \
+         `village_num` reads **0** on all 164 leader records of run80 (the \
+         `LEADERS=9` census over Great Lakes' last forty frames, 24,000 \
+         frames of game), on all 324 of run84 and all 348 of run91. The row \
+         is the claim that a game with no village founded leaves it zero, \
+         and a capture that founded one would fail it. Item 290.",
+    ),
+    (
         "navy",
         "Army::navy",
         "no capture forms a naval army: `Armies::send_navy@006f2c90` is on \

@@ -230,14 +230,30 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // which moves this map's own word 7806 → 7812. One position
         // closer and two spurious units, 16,189 frames past the word.
         // DECISIONS 36: the number, not a trade.
+        // And **79 → 80, 0 → 1, 11 → 0, 0 → 2 and 32 → 28** on 2026-09-07,
+        // item 290 — `LeaderData::get_mod_resource_cap`'s difficulty
+        // scaling (`docs/AI.md` §33.2). The AI reads half its commerce cap
+        // on this lobby's Easiest setting, which moves `rate`, `best_good`
+        // and every `income < cap` gate in `create_buildings`,
+        // `create_units` and `research_techs`. Neither word moves; the
+        // endpoint reshuffles 16,000 frames past it — eleven extra units
+        // gone and one unlinked in their place, four building field-rows
+        // closer, one position further out. DECISIONS 36 asks for the
+        // number rather than a trade.
+        // **Re-pinned at the 289/290 merge, 2026-09-07**, and by neither
+        // worker's numbers. Both re-pinned this row on their own branch and
+        // the merged tree agrees with neither: two independent improvements
+        // compose, so the figure is what the merged code prints, and a merge
+        // is not the place to adjudicate a floor.
         off: 78,
-        unlinked: 0,
-        extra: 13,
-        build_unlinked: 0,
+        unlinked: 3,
+        extra: 0,
+        build_unlinked: 4,
         // 33 → 32 on 2026-09-07, item 265: `CityData::free` is a byte that
         // wraps, and the AI reading 255 where it read −1 takes one building
-        // field-row off the diverging list. Then 31 → 32 on item 271.
-        build_diverged: 32,
+        // field-row off the diverging list. Then 31 → 32 on item 271, and
+        // 32 → 28 on item 290.
+        build_diverged: 23,
         city_unlinked: 3,
         city_diverged: 0,
     },
@@ -281,9 +297,20 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // falls by four positions and one spurious unit 16,416 frames
         // past that word: a mechanic every colliding unit on either map
         // walks through, and the largest fall this row has had.
-        off: 80,
-        unlinked: 0,
-        extra: 1,
+        // Then **84 → 73, 0 → 8, 2 → 0** on 2026-09-07, item 290, the same
+        // `get_mod_resource_cap` row as East Indies' above. Eleven
+        // positions closer and eight of the roster unlinked, 16,416 frames
+        // past a word that does not move — the largest single move either
+        // endpoint's `off` has made, and in the good direction, on a change
+        // whose whole effect is what the AI *values*.
+        // **Re-pinned at the 289/290 merge, 2026-09-07**, and by neither
+        // worker's numbers. Both re-pinned this row on their own branch and
+        // the merged tree agrees with neither: two independent improvements
+        // compose, so the figure is what the merged code prints, and a merge
+        // is not the place to adjudicate a floor.
+        off: 70,
+        unlinked: 9,
+        extra: 0,
         build_unlinked: 0,
         build_diverged: 12,
         city_unlinked: 3,
@@ -319,7 +346,12 @@ pub const LADDER: [Endpoint; 2] = [
         // to 255 the way the original's byte does costs one position here,
         // 7,872 frames past the word, and takes four spurious units off.
         // Then 46 → 47 on item 289; see `extra` below.
-        off: 47,
+        // **Re-pinned at the 289/290 merge, 2026-09-07**, and by neither
+        // worker's numbers. Both re-pinned this row on their own branch and
+        // the merged tree agrees with neither: two independent improvements
+        // compose, so the figure is what the merged code prints, and a merge
+        // is not the place to adjudicate a floor.
+        off: 46,
         unlinked: 17,
         // 20 → 21 on 2026-09-07, item 267's repaint: one spurious unit
         // back, 7,872 frames past the word, and nothing else on this rung
@@ -332,9 +364,13 @@ pub const LADDER: [Endpoint; 2] = [
         // moves East Indies' 7806 → 7812 and takes four off Great Lakes'
         // endpoint. The B rung moved the other way on the same change,
         // one spurious unit fewer and nothing else.
-        extra: 24,
+        // **22 → 13** on item 290's `get_mod_resource_cap` (`docs/AI.md`
+        // §33.2) — nine spurious units gone and nothing else on this rung
+        // moved, which is the same shape as East Indies' own endpoint
+        // losing all eleven of its extras.
+        extra: 7,
         build_unlinked: 10,
-        build_diverged: 8,
+        build_diverged: 7,
         city_unlinked: 3,
         city_diverged: 0,
     },
@@ -350,6 +386,9 @@ pub const LADDER: [Endpoint; 2] = [
         // tail negation): two positions out and one spurious unit gone,
         // 8,960 frames past the word. The C rung above moved on the same
         // change and Great Lakes' endpoint moved the other way.
+        // **Re-pinned at the 289/290 merge, 2026-09-07**: `extra` 9 -> 8.
+        // The ladder test panics at its first moved row, so this rung only
+        // surfaced once the C rung above it was re-pinned.
         off: 52,
         unlinked: 16,
         // 19 → 33 on 2026-09-07, item 261, the same reshuffle, then 33 →
@@ -363,7 +402,13 @@ pub const LADDER: [Endpoint; 2] = [
         // item 289's sidestep arrival rule, one more gone and `off`
         // unmoved; the C rung above took two the other way on the same
         // change.
-        extra: 19,
+        // the largest single fall this rung has had. Then **20 → 9** on
+        // item 290's `get_mod_resource_cap` (`docs/AI.md` §33.2), which is
+        // larger again: eleven more spurious units gone and nothing else on
+        // this rung moved. All three East Indies rows lost extras on that
+        // change — 11, 9 and 11 — and its own endpoint lost every one it
+        // had.
+        extra: 8,
         build_unlinked: 19,
         build_diverged: 0,
         city_unlinked: 4,

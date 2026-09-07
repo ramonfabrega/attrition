@@ -1340,7 +1340,7 @@ impl Sim {
             if unlimited || gfree[KNOWLEDGE] == 0 {
                 return None;
             }
-            let cap_food = self.ledgers[w].cap[FOOD];
+            let cap_food = self.mod_resource_cap(who, FOOD);
             if self.ledgers[w].bucket[KNOWLEDGE] > (cap_food / 16) * 3 / 2 {
                 return None;
             }
@@ -1413,7 +1413,7 @@ impl Sim {
                     continue;
                 }
                 let inc = self.ledgers[w].income[g];
-                let cap = self.ledgers[w].cap[g];
+                let cap = self.mod_resource_cap(who, g);
                 if inc < cap {
                     room += ((cap - inc) / 160).min(gf);
                 } else {

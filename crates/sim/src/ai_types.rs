@@ -131,6 +131,39 @@ impl Sim {
         self.lobby.difficulty
     }
 
+    /// `LeaderData::get_mod_resource_cap@006d65b0` — the commerce cap **as
+    /// the production AI reads it**, which is not the ledger's own.
+    ///
+    /// `docs/AI.md` §2.5.1. Three answers: `0` under
+    /// `starting_resources == 8`; the raw cap for a human
+    /// (`leader_flags & 4`) or a multiplayer semaphore; and otherwise the
+    /// cap scaled by `get_diff()` — **half** on the easiest and three
+    /// quarters on easy, so a computer leader on those settings reads a
+    /// smaller cap than it holds. The original multiplies by an `f32`
+    /// (`0.5f`, `0.75f`, `1.0f`) and truncates; both constants are exact
+    /// in binary and the cap fits a mantissa many times over, so the
+    /// integer forms here are the same arithmetic and not an
+    /// approximation (`docs/DECISIONS.md` entry 16).
+    ///
+    /// Nine call sites read it and every one of them used the raw cap
+    /// here until item 290: the goods picture's rate pass and threshold
+    /// pass (§2.5), `create_buildings`' three, `create_units`' two and
+    /// `research_techs`' one.
+    pub fn mod_resource_cap(&self, who: Player, g: usize) -> i32 {
+        if self.lobby.resources_unlimited() {
+            return 0;
+        }
+        let cap = self.ledgers[who as usize].cap[g];
+        if self.nation[who as usize].human {
+            return cap;
+        }
+        match self.ai_difficulty() {
+            0 => cap / 2,
+            1 => cap * 3 / 4,
+            _ => cap,
+        }
+    }
+
     /// `City::count_gather_slots@00737dc0`: over the city's chain, each
     /// finished gather building's `gather_max` per good, how much of it is
     /// unfilled, and the total **excluding knowledge** (good 3 — the

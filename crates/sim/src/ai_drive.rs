@@ -208,7 +208,7 @@ impl Sim {
             lakota: self.tech_tree.has_tribe_bonus(&self.setup, p, 0x13),
             next_age_cost: next_age.map(|t| self.tech_price(who, t)),
             available: self.holdings[w].available,
-            cap: self.ledgers[w].cap,
+            cap: std::array::from_fn(|g| self.mod_resource_cap(who, g)),
         }
     }
 }

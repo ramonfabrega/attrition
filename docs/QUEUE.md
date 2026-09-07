@@ -12,36 +12,36 @@ each section's non-item prose pinned and falling only.
 
 ## Where things stand
 
-*2026-09-07, the commander's loop unattended (Opus) — both words moved,
-130 frames and 277, and the maps swapped twice.*
+*2026-09-07, the commander's loop, two workers wide (Opus) — East Indies
+moved 6 frames, Great Lakes did not, and its brief's premise died.*
 
-- **East Indies 7806** (was 7529), **Great Lakes 7585** (was 7455) and
-  leading, so 290 — its word's cause — is headline-nearest.
-- **Three words fell to one method**: widen the whole record, never the
-  field the brief names — an age snaps every figure (271),
-  `compute_form`'s tail has a second reverse test (267), and a bird's
-  figure lags its unit (284, `do_air_physics` passing **0 as `param_3`**).
-  Each time the brief's own named mechanism was wrong.
-- **run90 was written to be refused, and was** — 286 put this crate's
-  collide/pause/wait rows down as predictions *before* the capture; the
-  original refused two of four. The cause is a **waypoint the original
-  abandons and this crate walks to** (289), and `1/7`'s `pause 8` is the
-  disk's first non-zero `MOVEORDER` pause, settling COLLISION §9.
-- **Great Lakes' word is one number** — `88 < 55 + 43 + 4` in `make_stuff`
-  step 6, so it is the AI's **stockpile, not its rules** (290), and a
-  leader's `bucket` has never been compared on this map. 291 is a live
-  candidate: the AI's caravans are unlinked on 246 of 246 blocks.
-- **260 halved the gate**; **280 took the mapping back out**, one `forbid`
-  again. `FABLE:` owed — 37, 280's UB ground, 283, CLAUDE.md's wait rule.
+- **East Indies 7812** (was 7806), **Great Lakes 7585** unmoved and still
+  leading, so 295 — its word's cause — is headline-nearest.
+- **289 was one deleted line.** `move_step`'s arrival test is Manhattan
+  against `UnitData::tolerance`, which `resolve_unit_collision` never
+  writes when it pushes a sidestep, so the original retires the waypoint
+  from fifteen units away under the interrupted leg's 384. `1/6` now parts
+  at 7827, 15 blocks past the word, order record and path stack agreeing.
+- **run91 killed 287's premise, and that is 290's result.** The original
+  holds **88** food on 7585 — our own number — ladders identical over all
+  72 blocks below the word, so `98 <= food < 160` is dead. The cause is
+  the make-list **head**: theirs a Temple, ours three Slingers at `val`
+  9999999, `create_units`' `val < 0` guard where the original reads
+  360000. A Temple costs no food, so food never goes on trial (295).
+- **Two improvements compose and agree with neither author** — both
+  workers re-pinned the same endpoint rows; the merged tree prints a third.
+  Re-run the endpoint tests after a merge, never pick a side. `FABLE:`
+  owed — 37, 280's UB ground, 283, the wait rule, and now **292/293**
+  (PARKED): the debug suite is **12.7x** the release gate on 245 tests.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w7812 of 24,000 · GreatLakes w7585 of 24,000
-Endpoint 24001: EastIndies 78 off, 0 unlinked · GreatLakes 80 off, 0 unlinked
+Endpoint 24001: EastIndies 78 off, 3 unlinked · GreatLakes 70 off, 9 unlinked
 
-**Opener: commander on Opus (DECISIONS 34), spawning — never working.
-Nothing in flight, board clean. Next: 290 (Great Lakes' word, wanting a
-`LEADERS=9` window — the lane's) with 291 or 289 beside it; then 285, 283.
-Every brief ends with a "done" ping, and `landed` beats it (entry 34).**
+**Opener: a Fable steer is owed first — 292/293 with lore in the room,
+then the marked rows. After it: 295 (Great Lakes' word, `create_units`'
+value chain) with 294 beside it; then 291, 285. A worker verifies its
+landing with `merge-base --is-ancestor`; a merge empties `base..branch`.**
 
 ## The queue
 
@@ -49,14 +49,21 @@ In dependency order, headline-nearest first; **the headline is the long
 captures' word**, lower map first — Great Lakes. Take the first unstarted
 unless a better order is obvious, and say so. Numbers are stable.
 
-289. **The original abandons a sidestep waypoint this crate walks to** —
-    run90 refused 286's candidate and moved the cause two blocks below the
-    word. On 7805 `1/6` is (39720, 38808) against the original's (39729,
-    38802); **both sides push the same waypoint**, and the original drops
-    it after one step where this crate walks all the way to it — a
-    four-block cycle against five. §8.5's turn-versus-step reading is
-    **dead**, not merely unconfirmed. run90 is on disk, so this is a diff.
-    East Indies' word holds at 7806 and this is what sits under it.
+294. **Why does this crate not collide on 7809 at all** — 289 left East
+    Indies' word as one block. `1/7`'s entire collision-field divergence
+    over run90's 111 blocks is 7809, where the original has `collide 1 /
+    collide_o 6 / collide_who 1` and this crate has it clear. So the first
+    question is not which arm of §6 step 5 fires but why the detection
+    misses, and no capture is needed: every field is on disk. Takes §6's
+    wait-versus-pause predicate, which is now the whole of the word.
+
+295. **`create_units` values three Slingers at 9999999** — the `val < 0`
+    overflow guard firing where the original prints 360000, num 1, which
+    puts a Temple at the make-list head on Great Lakes 7585 and ours three
+    Slingers. A Temple costs no food, and `make_stuff:172` only tries the
+    goods the head costs, so food never goes on trial and the Citizen is
+    bought. Headline-nearest. Three oracles for the value chain: 360000,
+    `num 1`, and slot 7's exact factor of two. AI §33, §34.
 
 278. **`Unit::work@0060d180:440` is a second `set_new_location(…, 1, 1)`**
     and nothing models it — two units of one type within `0x180` are
@@ -76,13 +83,14 @@ unless a better order is obvious, and say so. Numbers are stable.
     crate carries it — and closes 235's ratchet for every large owned
     buffer, not the two that were mapped. Take it after the score moves.
 
-279. **`queueledger.py` reads a coordinate as a booking** — its group
-    regex `\(([\d/,\s]+)\)` then pulls every `\d{1,3}`, so item 253's
-    "off by (11,7)" booked numbers 7 and 11, and deleting 253 reported 7
-    as having left in silence (ledger, 2026-09-07). No queue item has ever
-    written two numbers in one paren group, so the fix is likely a single
-    number per group — but make it fail on purpose first, both ways: a
-    real deletion must still be caught. The guard's loudness is correct.
+279. **`queueledger.py` has two regex defects and both cried wolf** — its
+    group regex pulls every `\d{1,3}` from a paren, so item 253's "off by
+    (11,7)" booked 7 and 11 and deleting 253 reported 7 as gone in silence;
+    and it matches `item N` **case-sensitively**, so a journal heading
+    reading `Item 289` failed that deletion at the 289/290 merge. No item
+    has ever written two numbers in one group. Make each fail on purpose
+    first, both ways — a real deletion must still be caught. The guard's
+    loudness is correct; the false alarms are the regexes'.
 
 226. **`cover=1` dies in the wow64 bop** (ORACLE), an x86 host the
     falsifier. (220) TECH §13's twenty range blocks. (209) **the
@@ -165,15 +173,6 @@ of 617; (72) every `+0xNN` a document pins vs its module; (89) the guard;
     private file mapping back, so ~1.3 GB of 260's 8,816 is run58's clean
     text, and a 2 s poll under-reports a sawtooth besides. Wants a fixture:
     past the cap, dead in N seconds, exit 137.
-
-290. **Nothing has ever compared a leader's ledger, and Great Lakes' word
-    is in it** — 287 reduced 7585 to one number: every gate of
-    `make_stuff` step 6 agrees but the good loop over food,
-    `88 < 55 + 43 + 4`. Give the AI **98** food on that frame and 7585
-    agrees 9 draws for 9, the bird at index 4 included. So the word is the
-    AI's **stockpile, not its rules** — 98 ≤ food < 160 against this
-    crate's 88. `bucket` is written only at `LEADERS=9` and no Great Lakes
-    capture carries it past setup: the falsifier is one such window.
 
 291. **The AI's caravans are not linked** — `vans.length` 0 against 1 and
     `trade_val` 0 against 128 on **both** of player 1's cities, 246 of 246
