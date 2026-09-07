@@ -200,11 +200,26 @@ pub fn category(anim: i8) -> i8 {
 /// `<LOOPING>` / `<NONLOOPING>` in the install's `anim_graphics.xml`
 /// (`GraphicPieces::init_anims_pool@008fca40`); which file a piece's slot
 /// names is packet data this sim does not read, so the rule here is by
-/// slot, from the names: the attacks, deaths, turns, pack/unpack and the
-/// two dumps are non-looping, every walk, idle and work animation loops.
+/// slot, from the names: **`CHAR_ATTACKWALK`**, the attacks, deaths,
+/// turns, pack/unpack and the two dumps are non-looping, every walk, idle
+/// and work animation loops.
 /// For a category-0 animation the flag changes nothing — both restarts
 /// go through the idle roll (§4) — so it matters only for the dumps and
 /// the attacks (§6).
+///
+/// **Slot 10 is in the range deliberately, and the install says so**
+/// (2026-09-05, `docs/ANIM.md` §5). The range's lower bound reads like it
+/// was chosen to start at the attacks and picked slot 10 up by
+/// arithmetic; `anim_graphics.xml` settles it. Thirty-eight distinct
+/// animations are named by a `CHAR_ATTACKWALK` row of the install's 795,
+/// and **thirty-six sit under `<NONLOOPING>`** — every `… AttackWalk` and
+/// `… AttackRun` file among them. The two that do not are
+/// `Carbineer Idle1` and `TrebuchetWorkhorse Walk`, two pieces that point
+/// slot 10 at art they already use elsewhere, and for those the slot rule
+/// is wrong. That is §9's "should be a per-piece table beside
+/// [`Art::piece_lengths`] rather than a rule", with a number on it:
+/// `rondata::diff`'s `char_attackwalk_is_non_looping_but_for_two_pieces`
+/// pins the pair so the day a per-file table lands it has its answer.
 ///
 /// **This is only the third of `Guy::inc_time`'s three tests.** The
 /// original reads `loopings[packet->ids[slot]]` behind `slot <
@@ -856,6 +871,38 @@ impl Sim {
         }
     }
 
+    /// Whether **this guy's** angle has reached the one it is turning to —
+    /// `des_angle == angle` (`+0x64` against `+0x18`), the test
+    /// `Guy::set_anim`'s turn arm makes and the one [`Sim::guys_follow`]
+    /// makes for the standing walk.
+    ///
+    /// Guy 0's pair is the unit's own — `Movement::facing` against
+    /// `Movement::heading` — and a tracked crew figure has its own. An
+    /// **untracked** crew figure is never owed a turn: `Guy::do_turn` writes
+    /// guy 0's new angle into every carried figure as *both* its angle and
+    /// its `des_angle`, so the two are equal on every frame
+    /// ([`Sim::guys_follow`]'s `g >= SQUAD_SIZE`).
+    fn body_settled(&self, u: usize, g: usize) -> bool {
+        let unit = &self.units[u];
+        match unit.guys.get(g).and_then(|g| g.follow) {
+            Some(f) => f.facing == f.des_angle,
+            None => g >= SQUAD_SIZE || unit.movement.facing == unit.movement.heading,
+        }
+    }
+
+    /// `guy_flags & 0x80` — the scholar bit.
+    ///
+    /// `Guy::init_real@005db6b0:233` sets it when the unit's `TypeIndex` is
+    /// `0x34` or `0x35`, which is exactly [`crate::orders::Worker::Scholar`],
+    /// so it is derived here rather than stored — the same choice
+    /// [`Sim::guy_turns`] makes, and for the same reason: a type does not
+    /// change under a guy. Run25's `GUYS=4` window is the record — its
+    /// thirteen scholars carry `guy_flags 144` (`0x80 | 0x10`) and nothing
+    /// else in the corpus carries the bit at all.
+    fn guy_is_scholar(&self, u: usize) -> bool {
+        self.worker_of(u) == crate::orders::Worker::Scholar
+    }
+
     /// `Guy::set_anim@005da300`, the paths a unit on open ground reaches
     /// (`docs/ANIM.md` §4). Returns whether the stream was drawn from.
     pub(crate) fn guy_set_anim(&mut self, u: usize, g: usize, anim: i8, force: bool, p3: bool) {
@@ -866,15 +913,53 @@ impl Sim {
         let who = self.units[u].owner;
         let at_des = self.body_at_des(u, g);
 
+        // **The head arm, ahead of every early return** (`set_anim:88–103`,
+        // `docs/ANIM.md` §4.9). A `CHAR_ATTACKWALK` request on a guy not
+        // already on that slot zeroes its unit's `recharging`
+        // (`UnitData+0xae`) — or, once the counter has reached six, becomes
+        // a plain `CHAR_WALK` instead. Nothing in this crate passes
+        // `CHAR_ATTACKWALK` yet (`Guy::move:110`'s mounted arm is
+        // unmodelled), so the arm is written for the day something does.
+        let anim = if anim == ATTACKWALK {
+            if guy.anim == ATTACKWALK {
+                anim
+            } else if self.units[u].combat.recharging < 6 {
+                self.units[u].combat.recharging = 0;
+                anim
+            } else {
+                WALK
+            }
+        } else {
+            anim
+        };
+
         // The early returns (`set_anim:155–224`).
         if anim == DEFAULT && !force {
             if cur_cat == 0 {
                 if guy.cur_time < guy.end_time {
                     return;
                 }
-            } else if cur_cat == 8 && !at_des {
-                // A walking guy asked to idle before its body has arrived:
-                // nothing, or a rewind once the walk cycle has run out.
+            } else if cur_cat == 8 {
+                if !at_des {
+                    // A walking guy asked to idle before its body has
+                    // arrived: nothing, or a rewind once the walk cycle has
+                    // run out.
+                    if guy.cur_time >= guy.end_time {
+                        self.units[u].guys[g].cur_time = 0;
+                    }
+                    return;
+                }
+            } else if (guy.anim == TURN_LEFT || guy.anim == TURN_RIGHT) && !self.body_settled(u, g)
+            {
+                // **A guy actually playing a turn has the same protection**
+                // (`set_anim:184–202`, `docs/ANIM.md` §4 step 1). It is the
+                // walking guy's arm one branch above with "still owed a
+                // turn" in place of "still on its way": inside its length it
+                // returns, past its length it rewinds `cur_time` to zero —
+                // and neither spends a draw. `Guy::move`'s slot exclusions
+                // keep such a guy on its turn animation (§4.7); this is what
+                // keeps the idle roll off it, so the turn costs no draw at
+                // all until the angle settles.
                 if guy.cur_time >= guy.end_time {
                     self.units[u].guys[g].cur_time = 0;
                 }
@@ -898,15 +983,35 @@ impl Sim {
             } else {
                 anim
             };
-        let target_cat = category(anim);
+        // **A scholar collapses every slot above `CHAR_UNPACK` into the
+        // idle**, on both sides of the test that follows (`set_anim:205–221`,
+        // `docs/ANIM.md` §4.11). `guy_flags & 0x80` is
+        // `Guy::init_real@005db6b0:233`'s bit — the unit's `TypeIndex` is
+        // `0x34` or `0x35` — and it rewrites `UnitAnimCat[cur_anim]` for a
+        // guy on slot 25 or above, and `UnitAnimCat[requested]` for a
+        // request of slot 25 or above when the call does not force. The
+        // remapped pair is what the same-category return and the idle
+        // roll's variant gate read; the **apply** reads the raw categories,
+        // which is why only these two are remapped here.
+        let scholar = self.guy_is_scholar(u);
+        let cur_cat_test = if scholar && guy.anim > UNPACK {
+            DEFAULT
+        } else {
+            cur_cat
+        };
+        let target_cat = if scholar && anim > UNPACK && !force {
+            DEFAULT
+        } else {
+            category(anim)
+        };
         // `set_anim:219` — the same category, already inside its length,
         // is left alone. The walk category is the exception, because a
         // walk re-resolves its slot from the body's speed every time it is
         // asked — **unless the type is `BIRD`**, whose slot is a coin and
         // is not re-thrown while the wing beat is still running.
         if !force
-            && cur_cat == target_cat
-            && (cur_cat != 8 || self.units[u].type_index == BIRD_TYPE)
+            && cur_cat_test == target_cat
+            && (cur_cat_test != 8 || self.units[u].type_index == BIRD_TYPE)
             && guy.cur_time < guy.end_time
         {
             return;
@@ -926,11 +1031,24 @@ impl Sim {
                 // `openlist == 0`: a unit with a suspended search does not
                 // draw. The sim keeps no suspended search (`path.rs`).
                 let p = self.rng.roll() % 100;
-                if cur_cat == 0 && p3 {
+                if cur_cat_test == 0 && p3 {
                     let peasant_on_masked = self.is_peasant(u) && self.on_masked_tile(u);
                     v = idle_variant(p, self.units[u].guy_flag_0x20, peasant_on_masked);
                 }
             }
+            // The variant fallback. `set_anim`'s `LAB_005daba0` is one
+            // disjunction with **six** terms and this is the first three of
+            // them — the packet is null, the slot is past `action_ids`'
+            // count, or its id is negative. The fourth and fifth are the
+            // animation file failing to load, which no data this crate has
+            // can answer; the sixth is not about the packet at all.
+            //
+            // SEAM: `unit_masks & 0x2000000` also forces `CHAR_DEFAULT`
+            // (`set_anim:553`, `docs/ANIM.md` §4 step 2). `unit_masks` is
+            // not a field of this crate, and the bit is set on **no unit of
+            // any capture on disk** — 191 distinct values across the whole
+            // corpus, whose bitwise or is `0x58dd17ce`, guarded by
+            // `rondata::diff`'s `no_capture_carries_the_no_animations_bit`.
             if v != DEFAULT && guy.gpiece >= 0 && !self.packet_has(u, guy.gpiece, v) {
                 v = DEFAULT;
             }
@@ -938,7 +1056,7 @@ impl Sim {
         } else if target_cat == 12 {
             // An attack: `ATTACK1` / `ATTACK2` / `ATTACK3` by one draw when
             // asked with `p3` (30 / 40 / 30 percent); §6.
-            if p3 {
+            let a = if p3 {
                 let p = self.rng.roll() % 100;
                 if p < 30 {
                     ATTACK1
@@ -949,6 +1067,17 @@ impl Sim {
                 }
             } else {
                 anim
+            };
+            // **And the attack arm falls back to its own category's slot**,
+            // `set_anim:588–591` — the same rule the idle's `:546` and the
+            // walk's `:596` have, against **this guy's own** packet, and it
+            // applies whether or not the roll was thrown. A piece that names
+            // `CHAR_ATTACK2` and neither of its neighbours plays `ATTACK2`
+            // for all three (`docs/ANIM.md` §4 step 3).
+            if guy.gpiece >= 0 && !self.packet_has(u, guy.gpiece, a) {
+                ATTACK2
+            } else {
+                a
             }
         } else if target_cat == 8 {
             self.walk_variant(u, g)
@@ -1658,6 +1787,183 @@ mod tests {
         assert_eq!(s.rng.seed, stepped(before, 1));
         let g = s.units[u].guys[0];
         assert_eq!((g.anim, g.cur_time, g.end_time), (DEFAULT, 0, 90));
+    }
+
+    /// **A guy actually playing a turn is not idled out of it** — the
+    /// third early return of `Guy::set_anim` (`:184–202`,
+    /// `docs/ANIM.md` §4 step 1, item 234 / audit row R4).
+    ///
+    /// The shape is the walking guy's arm one branch above it with "still
+    /// owed a turn" in place of "still on its way": while `des_angle !=
+    /// angle` an idle request returns, and once the turn animation has run
+    /// past its length it rewinds `cur_time` to zero — neither spending a
+    /// draw. The moment the angle settles the same request rolls.
+    ///
+    /// Made to fail by deleting the arm: the first `set_default_anim` then
+    /// spends a draw and puts the guy on `CHAR_DEFAULT`, which is the
+    /// `Guy::set_anim+0x97a` the original does not spend.
+    #[test]
+    fn a_turning_guy_is_not_idled_out_of_its_turn_animation() {
+        let mut s = sim_at(7);
+        s.art.lengths.insert((436, TURN_LEFT), 15);
+        s.art.lengths.insert((436, DEFAULT), 32);
+        let u = animal(&mut s, 0, 12, 436, TURN_LEFT, 4, 15);
+        s.units[u].movement.body.pos = s.units[u].pos;
+        s.units[u].movement.facing = crate::movement::Angle::NORTH;
+        s.units[u].movement.heading = crate::movement::Angle::EAST;
+
+        // Inside its length and still owed the turn: nothing at all.
+        let before = s.rng.seed;
+        s.set_default_anim(u);
+        assert_eq!(s.rng.seed, before, "no draw while the turn is owed");
+        let g = s.units[u].guys[0];
+        assert_eq!((g.anim, g.cur_time), (TURN_LEFT, 4), "and the clock stands");
+
+        // Past its length, still owed: the no-draw rewind.
+        s.units[u].guys[0].cur_time = 15;
+        s.set_default_anim(u);
+        assert_eq!(s.rng.seed, before, "the rewind spends nothing either");
+        let g = s.units[u].guys[0];
+        assert_eq!((g.anim, g.cur_time), (TURN_LEFT, 0), "rewound to zero");
+
+        // The angle settles and the same request rolls.
+        s.units[u].movement.heading = crate::movement::Angle::NORTH;
+        s.set_default_anim(u);
+        assert_eq!(s.rng.seed, stepped(before, 1), "one draw once settled");
+        let g = s.units[u].guys[0];
+        assert_eq!((g.anim, g.cur_time, g.end_time), (DEFAULT, 0, 32));
+    }
+
+    /// **And the wrap cannot take it off either.** `Guy::inc_time`'s
+    /// non-looping arm calls `set_anim(CHAR_DEFAULT, 0, 1)`, which is the
+    /// same request — so a turn animation that runs out while the angle is
+    /// unsettled cycles its clock and spends no wrap draw. run44's
+    /// catapults hold 27 and 19 consecutive frames of one without ever
+    /// reaching `end_time`; this is the frame past that.
+    #[test]
+    fn a_turn_animation_that_runs_out_while_owed_a_turn_costs_no_wrap_draw() {
+        let mut s = sim_at(7);
+        s.art.lengths.insert((6903, TURN_LEFT), 30);
+        s.art.lengths.insert((6903, DEFAULT), 50);
+        let u = animal(&mut s, 0, 15, 6903, TURN_LEFT, 29, 30);
+        s.units[u].movement.body.pos = s.units[u].pos;
+        s.units[u].movement.facing = crate::movement::Angle::NORTH;
+        s.units[u].movement.heading = crate::movement::Angle::EAST;
+        let before = s.rng.seed;
+        s.guys_inc_time();
+        assert_eq!(s.rng.seed, before, "the wrap's own `set_anim` returns");
+        let g = s.units[u].guys[0];
+        assert_eq!((g.anim, g.cur_time), (TURN_LEFT, 0), "rewound, not rolled");
+    }
+
+    /// **The attack roll falls back to its own category's slot** —
+    /// `set_anim:588–591` (`docs/ANIM.md` §4 step 3, audit row R5).
+    ///
+    /// A piece whose packet names `CHAR_ATTACK2` and neither of its
+    /// neighbours plays `ATTACK2` whatever the roll says, rather than the
+    /// missing slot and its three frames. The draw is spent either way.
+    #[test]
+    fn an_attack_the_packet_lacks_falls_back_to_attack2() {
+        let mut s = sim_at(7);
+        // A piece the install describes: only `CHAR_ATTACK2` is named, so
+        // `ATTACK1` and `ATTACK3` are the packet's own missing slots.
+        s.art
+            .piece_lengths
+            .insert(436, [(ATTACK2, 57i32 as u32)].into_iter().collect());
+        let u = animal(&mut s, 0, 12, 436, DEFAULT, 0, 32);
+        let before = s.rng.seed;
+        s.set_anim(u, ATTACK2, false, true);
+        assert_eq!(s.rng.seed, stepped(before, 1), "the roll is spent");
+        let g = s.units[u].guys[0];
+        assert_eq!((g.anim, g.end_time), (ATTACK2, 57), "whatever it rolled");
+
+        // And a piece that has all three keeps what the roll gave it.
+        let mut s = sim_at(7);
+        s.art.piece_lengths.insert(
+            436,
+            [(ATTACK1, 40u32), (ATTACK2, 57), (ATTACK3, 60)]
+                .into_iter()
+                .collect(),
+        );
+        let u = animal(&mut s, 0, 12, 436, DEFAULT, 0, 32);
+        s.set_anim(u, ATTACK2, false, true);
+        let rolled = s.units[u].guys[0].anim;
+        assert!(
+            (ATTACK1..=ATTACK3).contains(&rolled),
+            "one of the three: {rolled}"
+        );
+    }
+
+    /// **A scholar's same-category test collapses every slot above
+    /// `CHAR_UNPACK`** — `set_anim:205–221` (`docs/ANIM.md` §4.11, audit
+    /// row R8). Both sides are remapped, so a scholar asked for one work
+    /// slot while playing another keeps the clock it has instead of
+    /// restarting; a non-scholar on the same pair restarts.
+    #[test]
+    fn a_scholar_keeps_its_clock_between_two_work_slots() {
+        let mut s = sim_at(7);
+        s.art.lengths.insert((6338, DUMP_ORE), 80);
+        s.art.lengths.insert((6338, MINE_ORE), 30);
+        let scholar = s.add_unit_type(crate::UnitType {
+            worker: crate::orders::Worker::Scholar,
+            ..Default::default()
+        });
+        let u = animal(&mut s, 1, 33, 6338, DUMP_ORE, 62, 80);
+        s.units[u].ty = Some(scholar);
+        let before = s.rng.seed;
+        s.set_anim(u, MINE_ORE, false, true);
+        assert_eq!(s.rng.seed, before, "the same-category return draws nothing");
+        let g = s.units[u].guys[0];
+        assert_eq!(
+            (g.anim, g.cur_time, g.end_time),
+            (DUMP_ORE, 62, 80),
+            "the scholar keeps slot and clock"
+        );
+
+        // The control: the same pair on a unit that is not a scholar.
+        let mut s = sim_at(7);
+        s.art.lengths.insert((6338, DUMP_ORE), 80);
+        s.art.lengths.insert((6338, MINE_ORE), 30);
+        let u = animal(&mut s, 1, 33, 6338, DUMP_ORE, 62, 80);
+        s.set_anim(u, MINE_ORE, false, true);
+        let g = s.units[u].guys[0];
+        assert_eq!((g.anim, g.cur_time, g.end_time), (MINE_ORE, 0, 30));
+    }
+
+    /// **`CHAR_ATTACKWALK`'s head arm zeroes `UnitData::recharging`** —
+    /// `set_anim:88–103` (`docs/ANIM.md` §4.9, audit row R9). Ahead of
+    /// every early return: a guy not already on slot 10 asked for it
+    /// clears the counter, unless the counter has reached six, in which
+    /// case the request becomes a plain `CHAR_WALK` instead.
+    #[test]
+    fn an_attackwalk_request_clears_the_recharge_or_becomes_a_walk() {
+        let mut s = sim_at(7);
+        s.art.lengths.insert((436, ATTACKWALK), 20);
+        s.art.lengths.insert((436, WALK), 15);
+        let u = animal(&mut s, 0, 12, 436, DEFAULT, 0, 32);
+        s.units[u].combat.recharging = 5;
+        s.set_anim(u, ATTACKWALK, false, true);
+        assert_eq!(s.units[u].combat.recharging, 0, "under six: cleared");
+        assert_eq!(s.units[u].guys[0].anim, ATTACKWALK);
+
+        // At six the request is a walk and the counter stands.
+        let mut s = sim_at(7);
+        s.art.lengths.insert((436, ATTACKWALK), 20);
+        s.art.lengths.insert((436, WALK), 15);
+        let u = animal(&mut s, 0, 12, 436, DEFAULT, 0, 32);
+        s.units[u].combat.recharging = 6;
+        s.set_anim(u, ATTACKWALK, false, true);
+        assert_eq!(s.units[u].combat.recharging, 6, "at six: untouched");
+        assert_eq!(s.units[u].guys[0].anim, WALK, "and the request is a walk");
+
+        // A guy already on slot 10 skips the arm entirely.
+        let mut s = sim_at(7);
+        s.art.lengths.insert((436, ATTACKWALK), 20);
+        let u = animal(&mut s, 0, 12, 436, ATTACKWALK, 3, 20);
+        s.units[u].combat.recharging = 6;
+        s.set_anim(u, ATTACKWALK, false, true);
+        assert_eq!(s.units[u].combat.recharging, 6);
+        assert_eq!(s.units[u].guys[0].anim, ATTACKWALK);
     }
 
     /// **The standing body still owed a turn walks in place** —
