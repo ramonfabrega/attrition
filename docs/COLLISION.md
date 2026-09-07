@@ -952,6 +952,39 @@ buildings join the chain, which is why §8 does not claim it.
   colliding unit's own player, so `valid_target` is false everywhere and
   the tail always reaches the ungroup. It stays a seam, and it is the
   leader arm's own.
+- **Steps 4 and 5 in the *refusing* direction, and the whole track of the
+  recovery behind them** (item 239, 2026-09-06). run83 closes the last
+  forty frames of Great Lakes' run-up that no archive held, and the one
+  event inside them is `1/29`'s block on **6892**. Its blocker `1/17`
+  holds a `GATHERORDER`, so both fences that read *the other unit's*
+  order kind refuse and what runs is step 6 — and the dump prints all
+  three of its parts: the walker is put on **its own** cell centre
+  `(42408, 23880)`, which is the step "backwards"; `dest` is cleared; and
+  a three-entry `find_upath` plan goes on the stack above the untouched
+  nine-entry world-grid one. The top two entries share the cell row the
+  snap put it on, so it slides **due west at the full 26** — truncated to
+  22 and 18 on the two frames it lands on a waypoint — for six frames
+  with `y` pinned, and takes its diagonal again on 6900. `idle` is 0
+  throughout, and this crate walks every one of those points. So a block
+  is a **deflection, not a stop**: a model that stands still and repaths
+  is six frames and about 1.6 tiles wrong here.
+
+  The same window pins three things nothing had. The three collision
+  fields have **three different lives** — `collide_o`/`collide_who` name
+  the blocker for exactly *one* block and are −1 the next, `collide`
+  latches 1 for six, `collide_frame` keeps the stamp for ever — so a
+  comparison that reads `collide_o` a frame late sees −1 and calls it
+  agreement. The AI **re-groups** the same three Archers into a
+  `GROUPATTACKTOORDER` on **6907**, 46 frames after run76 watched them
+  leave one, and this crate follows it on the frame it happens, carrying
+  only the `id` stand-in. And the negative, which is the capture's own
+  point: over 53 blocks **no unit parts from the original's position
+  inside the hole and no order kind disagrees anywhere in it** — the only
+  rows are the caravan `1/23`'s three, already off on the window's first
+  block, and the stand-in. It moved no score
+  (`run83_s_window_is_the_last_great_lakes_hole`, written to fail first:
+  dropping step 6's cell-centre snap for four frames puts `1/29` off
+  position from 6893).
 - The path stack's length and every waypoint — the headline's own order
   score, which the recovery's output now feeds.
 - §2's clear-on-move, §2.2's repaint, §4's naming and §6's snap-and-replan
@@ -1083,6 +1116,19 @@ group-mate, which is the capture §9 already owes.
   a cell this crate's are not: a position, and not a predicate. (`1/18`
   lands on `x = 36480 = 760 × 48`, the boundary exactly, and crosses on
   7449.)
+
+  **And it is not the *response* either** (item 239, 2026-09-06). run83
+  puts a blocked unit's whole recovery under a diff — step 6's snap, the
+  `find_upath` plan it builds and the six frames of walk that come out of
+  it, every point the original's — so "this crate answers a block
+  differently" is no longer a candidate cause for this word, on either
+  map. What remains unwitnessed is the frame itself: **no East Indies
+  capture on disk reaches 7448** (the map's windows are 5150–5400,
+  6730–6800, 6860–6930, 10150–10400 and 15700–15900), so the five units
+  above are a reading of the trace's draw sites and not a record.
+  *Capture:* `[7420, 7480)` at run39's detail, which would put their
+  positions and their `collide` block under the differ and say whether
+  the two stands are a position at all.
 
 - **`ObjectType +0x2b4 & 0x2000`** — the "attack what you bump into" bit.
   Read as a flag, not traced to its XML column.
