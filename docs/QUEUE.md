@@ -37,6 +37,7 @@ thirteen landings, all merged, all Opus. Verdicts below; Opus resumes.*
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w7529 of 24,000 · GreatLakes w7176 of 24,000
+Endpoint 24001: EastIndies 80 off, 0 unlinked · GreatLakes 73 off, 7 unlinked
 
 **Opener: commander on Opus (DECISIONS 34). Great Lakes 7176 is the item —
 widen run79's `[6910,7250]` whole before naming a mechanism — with 258 at

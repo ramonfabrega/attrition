@@ -51,8 +51,11 @@ fn read(name: &str) -> String {
 /// board holds ~20 live items whose booked shape is five or six lines
 /// each, so 180 had sessions golfing lines instead of deleting stories —
 /// the bound should bite on bloat, not on the working agreement's own
-/// item size.
-const QUEUE_LINES: usize = 200;
+/// item size. Raised 200 → 202 on 2026-09-07: the handoff's scoreboard
+/// block took a permanent third line — the endpoint's units-off count at
+/// 24,001 (item 258) — and the two the bound gains are that line and the
+/// slack a bound with none has, not room for a story.
+const QUEUE_LINES: usize = 202;
 
 /// The handoff section, in lines including blanks. The file says "about
 /// twenty"; this is the tolerance.

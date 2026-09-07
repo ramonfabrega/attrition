@@ -5529,6 +5529,87 @@ are 8,000 frames past where either map holds today, so they are an endpoint
 oracle rather than a next item — but when a map's word reaches them, the
 record is waiting.
 
+**Taken, 2026-09-07 (item 258).** Both 24001s and two of the four East Indies
+rungs are diffed and pinned; the next section is what they say, and why the
+other two rungs are not there. The endpoint became a scoreboard line without
+waiting for the word to reach it.
+
+## The finish line's own frame — 24,001 diffed whole, and the four families (2026-09-07)
+
+`rondata::diff::endpoint` walks the simulation to the frame each long capture
+quit on and compares the whole closing state against it — every unit, every
+building, every city. The two counts are the third scoreboard line, and they
+may only fall:
+
+| map | capture | compared | **off** | **unlinked** | extra | torn | builds unlinked/diverged | cities |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| East Indies | run54 | 89 | **80** | **0** | 11 | 1 | 0 / 33 | 3 / 0 |
+| Great Lakes | run53 | 80 | **73** | **7** | 0 | 0 | 0 / 14 | 3 / 0 |
+
+The two maps are wrong in different shapes, which is the first thing the
+number says that no word could. East Indies **has every unit the original
+has** at 24,001 and eleven it should not, and it has 80 of the 89 standing
+somewhere else. Great Lakes is missing seven and has invented none. Both are
+8,000 frames past their word, so this is a measure of how far a diverged run
+wanders, not of a defect — but it is a *coordinate* measure, and the queue has
+never had one at the end of a game.
+
+**The ladder underneath**, on East Indies, is 45 off at 15,401 (run28) and 51
+at 16,489 (run24) against 80 at 24,001: a **slope**, not a plateau. The last
+7,500 frames cost about as much again as the first 15,000.
+
+### The archives are four games, not two
+
+The ladder's rungs are *not* rungs of the endpoint's own run, and the way that
+was found is `Trace::frames` — `game_random`'s word at every `do_frame` entry,
+which `tools/gamelog/rngcmp.py` compares and
+`the_endpoint_captures_are_four_families` now asserts:
+
+| family | captures | identical over | closing dumps |
+| --- | --- | --- | --- |
+| Great Lakes | run53, run18a | all 24,001 frames | 24,001 (both) |
+| East Indies A | run54, run21, run23 | all 24,001 frames | 24,001 (all three) |
+| East Indies B | run24, run25, run26, run27 | 16,007 | 16,489, 16,007 |
+| East Indies C | run28, run29 | 15,105 | 15,401, 15,105 |
+
+The three East Indies families are **one game to 12,000 and part on 12,001**;
+B and C stay together to 15,020 and part on **15,021**. So walking run54's
+simulation to 15,401 and reading run28's closing dump there compares two
+different games — a mistake that produces a plausible number rather than an
+error. Each rung is its own walk from its own capture's start block.
+
+What splits them at 12,001 is not established. A round number in a run that
+was driven suggests a click or a window opening; that is a guess.
+
+The families also buy the endpoint its own cross-check: run21's and run23's
+closing dumps at 24,001 are asserted to be run54's, unit for unit, and
+run18a's to be run53's. That is stronger than item 252's within-file pair —
+those two records are written at the same instant, and these are four separate
+runs of the same game.
+
+### The setup trap, and it cost the first number
+
+`borrow_from_siblings` gates the world cells and the heights on the sibling's
+own world scalars, but takes **`regions`, `herds`, `goods` and `farms` from
+the first sibling that has them, whatever map it is**. run54's own start block
+carries cells and none of those four, so offering it the Great Lakes sibling
+set rebuilt East Indies on **Great Lakes' 13 herds and 36 goods** and produced
+a completely plausible 65 units off. The correct sibling — run38, which the
+East Indies tests have used since item 252 — gives 41 and 66, and 80 off.
+
+A setup defect reads exactly like a fidelity number. `check_setup` now asserts
+both halves per row: every list non-empty after the borrow, and `(herds,
+goods)` equal to the map's own pair. Without a sibling at all, run28 walks a
+region-less world to **12 units compared of 71** with its AI leader 24,789
+units out; that is what the first half catches.
+
+### Why 15,105 and 16,007 are not on the ladder
+
+They live only in the 250 MB window captures (run29, run25/26/27), which
+`Log::parse` reads whole — a quarter-gigabyte parse to reach one record, which
+is the cost item 260 exists to remove. The queue records run29's 15,105 as 51
+off and 22 unlinked; the rungs go in when the parser goes lazy.
+
 ## The falsifier for 226, costed — and it turned out to be 3.5 KB
 
 The open question above is one bit: **Wine's wow64, or this machine's 32-bit
