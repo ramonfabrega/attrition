@@ -4349,7 +4349,7 @@ contains or refuses.
 | temple border techs | cannot have fired | no Temple exists |
 | fort border techs | cannot have fired | no Fort exists, `fort_mark 0` |
 | Colosseum / Eiffel | not built | but the AI does build wonders |
-| AI handicap | inert by construction | `handicap 0`, both players, both maps |
+| AI handicap | **unreachable**, not merely zero | the branch is gated on a multiplayer-only flag — amended 2026-09-06, below |
 
 **The gem fires, and the map says so by name.** `rares_collected[44]` on
 player 1 is `{11, 13, 23, 27}`, and the array runs over resources 6–49 —
@@ -4375,11 +4375,12 @@ to fire", but could not. The Pyramids matter for the other pair: the AI
 **does** build wonders on this map, so the Colosseum and Eiffel terms are
 reachable in principle and simply are not reached by 24,000.
 
-**The handicap is zero by the lobby, not by the frame.** `handicap 0` on
+~~**The handicap is zero by the lobby, not by the frame.**~~ `handicap 0` on
 both players here, and the same on East Indies 5379 (run59) and Great Lakes
-779 (run41). `(handicap + 15) / 25` is 0 at 0, so the allowance has been
-inert in every capture ever taken and will stay inert until a stanza changes
-the lobby's difficulty. That is a click, not a longer wait.
+779 (run41) — but **"a click, not a longer wait" was wrong, and so was the
+whole of this paragraph's conclusion.** The allowance is not zero-valued, it
+is **switched off**: see "117 is not a lobby click" below and
+`docs/ATTRITION.md`, Territory.
 
 **So 117 splits.** One seam is live and needs modelling now; two are blocked
 behind buildings the AI does not build in 24,000 frames of this scenario;
@@ -4938,6 +4939,77 @@ exactly eight slots. This game's leader 8 — Gaia, whose `leader_flags` is
 `0x2000007`, both bits set — is therefore an active viewer of the building
 pass and there is no `danger[8]`. Whether that writes past the array or the
 loop bound is a decompiler artefact is a listing question, not a capture one.
+
+## 117 is not a lobby click — the handicap branch no single-player game can take (2026-09-06)
+
+**What it is.** Not a run, and the second item in a row the lane closed without
+one. 117 was booked as the last of `docs/ATTRITION.md`'s four flat territory
+terms a capture could still reach: `(handicap + 15) / 25`, inert in every dump
+because `handicap` reads 0, and reachable — run80's section said — by changing
+the lobby difficulty, "a click, not a longer wait". The brief asked, before
+anything else, whether the lobby handicap is reachable through the driver at
+all. It is not, and the reason is not the driver.
+
+**The good news first: it is not a click at all.** `check.ini` already carries
+`PLAYER0_HANDICAP=Standard` and `PLAYER1_HANDICAP=Standard`, and
+`GameInfo::load_from_config@005d4da0` matches each by **exact name** against
+`rules.xml`'s `handicaps` category — 21 entries, `Standard` then `Skill +1` to
+`Skill +20`, `DATA` = index × 5 — and stores the matched **index** into that
+player's slot. So the lobby half needs no UI path: it is a file key of the same
+shape as `PLAYERn_TRIBE`.
+
+**The bad news is a gate, and it is exhaustive.** `compute_reg_territory@006b0bb0`
+line 255 reads the handicap only when `leader_flags & 4` (an AI) **and**
+`Game::semaphore` bit 2 are both set:
+
+```
+if ((leader_flags & 4) == 0 || (game->semaphore.ptr[0] & 4) == 0) v = 0;
+else                                                             v = get_handicap();
+territory_bonus += (v + 15) / 25;
+```
+
+That bit is **set in exactly one function in the executable** —
+`Game::run_gamespy@00587060`, the GameSpy multiplayer path — and it is
+explicitly **cleared** by `Game::run_solo@00587830`, `Game::run_scenario@005860c0`,
+`Game::run_editor@00586440` and `RecordGame::read_package@00952d90`. Checked by
+grepping every write to `Game::semaphore`'s byte 0 across all 48k exported
+functions, in both the inline (`*p = *p | 4`) and out-of-line
+(`BitMask<256>::set`) forms: the console sets `game->semaphore` bits **1, 11
+and 12** and never 2, and its two computed `BitMask<256>::set`/`toggle` calls
+target `MiscAccess::scene->flags` and a leader's tech mask, not the game.
+
+The gate is not local to territory. `LeaderData::get_handicap@006da740` has
+exactly two live callers — `compute_reg_territory` and
+`ObjectData::train_time@006508c0` — and **both** carry it, as does
+`Game::init_teams@0058ae70`, the one other reader of the lobby handicap.
+(`LeaderData::get_handicap_level@006d6740` returns the raw field and has no
+callers at all.) So the whole handicap mechanism is multiplayer-only, and
+`Game::run_solo` turns it off on the way into every skirmish this lane runs.
+
+**Two things the reading corrected on the way past.**
+
+- **The term is not `(handicap + 15) / 25` on the field.** It is
+  `(get_handicap() + 15) / 25`, and `get_handicap` returns
+  `handicaps.list[handicap].DATA` — index × 5 — so the allowance runs **0 to
+  4**, where reading the raw field would cap it at 1. Exactly the "which array
+  a level indexes" predicate `docs/audit/README.md` says is where the errors
+  are.
+- **`LeaderData::handicap` is not the lobby's `PLAYERn_HANDICAP`.**
+  `Game::init_handicaps@0058abf0` recomputes it per leader as
+  `clamp(strongest team's summed handicap − own team's, 0, 20) /
+  max(num_teams − 1, 1)` — a catch-up deficit clamped to the list's own index
+  range. So equal lobby handicaps leave every leader at 0 whatever the value,
+  and it is the **weaker** side that would be paid: to hand the AI an
+  allowance you raise `PLAYER0_HANDICAP`, the human's.
+
+**What was not spent.** A run84-shaped capture was ready — Great Lakes,
+`PLAYER0_HANDICAP=Skill +20`, `frame_window` [6950, 7030) at run84's own
+`LEADERS=9` detail, with `rngcmp` against run53 and `samegame.py --exclude
+LEADERDATA` against run84 as the falsifier that the handicap changed nothing.
+It would confirm a negative the decompile already settles exhaustively, and the
+brief's instruction was to stop and say so rather than work around it. **117 is
+not a scripted-setup item either**, because `run_scenario` clears the same bit.
+It is a multiplayer item, or nothing.
 
 ## The window nobody can see — CrossOver's expired bottle (2026-09-04)
 
