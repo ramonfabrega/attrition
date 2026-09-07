@@ -17,31 +17,29 @@ one day, 129 frames and 277, and the maps swapped twice.*
 
 - **East Indies is 7806** (was 7529) and **Great Lakes 7584** (was 7455),
   so Great Lakes is the lower map again and 272 is headline-nearest.
-- **An age snaps every figure** (TECH). `Leader::gain_tech`, gated on
-  `TypeData::is_age_type`, runs `set_new_location(u, u.x, u.y, 1, 1)` over
-  every live unit: the snap flags write facing and body outright, a free
-  turn **and a frame** for one mid-turn. The gather arithmetic was never
-  wrong — 271 was its seed, not its sum. **253 closed with it.**
-- **The whole-record widening found it in one run**: run86's only angle
-  divergence in 487 blocks, `last_x == x` on that block alone, all 22 of
-  player 1's units, `max_age` 0 → 1 on all fourteen of its buildings.
-- **`Group::compute_form`'s tail has a second reverse test** (GROUPS §6.3,
-  written down and never built): it negates every member's `off_x`/`off_y`
-  when the angle opposes the bearing — Great Lakes' 7418 tick.
-- **260 halved the gate**, 16,061 → **8,321 MiB** at 243 tests — and the
-  ceiling it was booked against was never a ratchet (four readings on a
-  growing tree; `memcap.sh` under-reports a sawtooth and over-counts a
-  mapping, 251). **The mapping now comes back out** (280, with the user):
-  the lazy half is safe Rust, and `runqueue.sh` can truncate under a map.
+- **An age snaps every figure** (TECH): `Leader::gain_tech`, gated on
+  `is_age_type`, snaps every live unit's facing and body — a free turn
+  **and a frame** for one mid-turn. 271 was the countdown's seed, not its
+  sum; **253 closed with it**. Great Lakes' twin is `compute_form`'s second
+  reverse test (GROUPS §6.3, written down and never built). **Both were
+  found by widening the whole record**, not the field the brief named.
+- **260 halved the gate**, 16,061 → **8,321 MiB** at 243 tests; its ceiling
+  was never a ratchet (251: `memcap.sh` under-reports a sawtooth and
+  over-counts a mapping). **The mapping came back out** (280, the user's
+  steer) — `runqueue.sh` renames over an archive while tests run, so the
+  UB was reachable here, and the lazy half is safe Rust and most of the win.
+- **A Fable pass is owed, with an agenda**: DECISIONS 37 (drafted,
+  unratified), the perf/UB ground 280 opened, and 283. Nothing else marked.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w7806 of 24,000 · GreatLakes w7584 of 24,000
 Endpoint 24001: EastIndies 79 off, 0 unlinked · GreatLakes 78 off, 2 unlinked
 
-**Opener: commander on Opus (DECISIONS 34), spawning — never working. 280
-is in flight (the mmap back out). The gate is 8,321 MiB of 20, so nothing
-holds the lane any more: Great Lakes leads at 7584, and 272 — its
-`[7530, 7760)` window at run87's detail — is the next spawn, with 276.**
+**Opener: commander on Opus (DECISIONS 34), spawning — never working. In
+flight: 276 (East Indies' 7806 — grep run88's 7816 block before booking a
+screen) and the lane on 272 (Great Lakes' word window, the headline). 280
+is landing. Then 283, the allocator. Order set with the user after the
+stopping rule fired at two: score first, infrastructure behind it.**
 
 ## The queue
 
@@ -75,6 +73,15 @@ unless a better order is obvious, and say so. Numbers are stable.
     within 700 units of `1/13` — but `Guy::last_pos` now makes the
     signature searchable on every dump: a unit that moved whose figure has
     `last_x == x`. run79's squad first. Falsified by no pair closing.
+
+283. **The ratchet wants a `#[global_allocator]`, not a mapping** — 280's
+    +1,563 MiB is *not* live data: a mapping is `munmap`ed at drop, while a
+    freed `String` of a capture's size is kept by macOS's allocator and
+    cannot serve the next capture's different size (260's own 5,332-MiB-
+    with-nothing-alive probe, again). An allocator that returns large
+    blocks recovers most of it with **no `unsafe` in this tree** — the
+    crate carries it — and closes 235's ratchet for every large owned
+    buffer, not the two that were mapped. Take it after the score moves.
 
 279. **`queueledger.py` reads a coordinate as a booking** — its group
     regex `\(([\d/,\s]+)\)` then pulls every `\d{1,3}`, so item 253's
@@ -154,11 +161,6 @@ of 617; (72) every `+0xNN` a document pins vs its module; (89) the guard;
 175. **The uber chain past its birth**: `Objects::init_unit` threads
     `uber_size` objects (CITIES §4.3); nothing else reads it. Takes (48)
     COLLISION §3/§7, (73) `UnitData::group`'s back-pointer, (56) ARMY §13.
-
-248. **ATTRITION's Territory section is 15,625 bytes of 16,000** and wants
-    a retelling pass before anything is added. Its remaining terms are
-    closed — handicap, temple and fort are unreachable in any game that
-    runs here; read it before re-booking any. (AI §2.1's `check_explore`.)
 
 161. **The make-list block is 2,500 frames behind East Indies' word**:
     `create_buildings` first runs on 9982 (AI §25), so `building_value`,
