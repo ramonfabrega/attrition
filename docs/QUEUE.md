@@ -12,34 +12,34 @@ lines, or lets the handoff pass 32.
 
 ## Where things stand
 
-*2026-09-06, Opus commanding a ten-landing loop at width two — **Great
-Lakes 6862 → 6982 → 6994**, suite 220, everything merged and pushed.
-East Indies **7448 unmoved**, but 241 found its cause.*
+*2026-09-07, Opus commanding — **both words unmoved**, and the stopping
+rule fired: 241, 117 and 249 landed in a row without a score. Asked, the
+user spent one more worker rather than steer: 249 named the cause.*
 
-- **Great Lakes 6994 is the headline**: at draw 2 the original spends
-  `Unit::do_move+0xe84` and this crate nothing (2 draws v 4); run84
-  `[6950, 7029]` at `LEADERS=9` covers it, no capture owed.
-- **East Indies 7448 is a position, not a predicate** (241): `1/20` is off
-  by (36, 792) at run85's *first* block, ~34 frames of its own walk. The
-  gap is a **transport ride** between run82's 6929 and 7400 (barge birth
-  7093 both sides, eject spends no draw) and **nothing covers 6930–7399**.
-  TRANSPORT §13; this one wants the capture.
-- **Two commander hypotheses were refuted in a row** (239, 241), both by
-  the dump: brief the *measured seam*, not the mechanism behind it.
-- **Width two on the gate** (14.8 GB each; four threads stay off). `ccc
-  update <ref>` for a base, never `git merge`; reap at merge time; `ccc
-  rm` leaves the branch, so that `--worktree` name then fails. The capture
-  lane is **per-item** — the fresh one closed 178 by grep rather than
-  spend a drafted 154 MB stanza.
-- **Owed to ccc** (item 25): `~/ccc-stream/` holds two watches and a 60 s
-  `list.jsonl`; each `stalled` line wants a word in `verdicts.txt`, and
-  restarting `ccc watch` blinds it.
+- **6994's cause is named and 250 is live on it**: the two
+  `Unit::do_move+0xe84` draws are the **second squad's** — `1/31`–`1/33`,
+  born 6993, orderless when the frame opens — not the marching Archers,
+  whom run84 refuses (`dest = 1`, `unit_masks & 8`). The gap is an order
+  this crate never issues, `Unit::come_out`'s `Group::action_move_to`;
+  ARMY §16.7, §18. No screen owed; `when` gives 7213–7216, 7440/7441,
+  7675/7676 free.
+- **East Indies 7448 is a position** (241): 6930–7399 is uncovered (TRANSPORT
+  §13); `cap-241` is live on run86, `[7080,7140)`+`[7290,7340)`, `UNITS=3`.
+- **A call chain names a function, not a cast** (249). Two sessions went
+  at the three units that already held the order; eighty `UNITDATA`
+  blocks either side answer "who changed" with no hypothesis. Widen first.
+- **Width two on the gate** (15.8 GB peak of a 20 GiB cap; four threads
+  stay off). `ccc update <ref>` for a base, never a raw merge; reap at
+  merge time; `ccc rm` leaves the branch, so that name then fails.
+- **Owed to ccc** (item 25): `~/ccc-stream/` holds a Monitor, two shells,
+  `verdicts.txt` and `clear-probe.txt`; each `stalled` line wants a word
+  and none has fired yet. Restarting a watch blinds it.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w7448 of 24,000 · GreatLakes w6994 of 24,000
 
-**Opener: commander on Opus (DECISIONS 34). Nothing is running — both
-repo slots and the screen are free.**
+**Opener: commander on Opus (DECISIONS 34). `loop-250` and `cap-241` are
+live; merge, gate, push, file — then the stopping rule is armed again.**
 
 ## The queue
 
@@ -68,7 +68,8 @@ five agree on all 630 and 237 reports the row without scoring it. (243)
 `UnitDump::group` is parsed and **nothing compares it**. (244) **1,428
 grouped order records no test windows** — run79's 453, run31's 945; run79
 is the cheapest second capture for 237's rows. (245) `focus.sh` matched a
-concurrent worker's shell on run84.
+concurrent worker's shell on run84. (249b) `1/31`'s group reads **66** in
+run79's docstring and **64** in run84 at 6995 — one grep, taken with 242.
 
 AI residues, measured, none near a word: (169) `compute_site_stats`'
 arithmetic, 7,122 of run63's 27,000 site fields (AI §2.13); (172) the
@@ -98,19 +99,11 @@ blind list, 101 of 617; (72) every `+0xNN` a document pins vs its module,
     whole (COLLISION §3, §7); (73) `UnitData::group`'s missing
     back-pointer — **242 is its other half**; (56) ARMY §13's cell bit.
 
-117. **Territory's remaining terms are out of reach, the handicap
-    permanently.** The gem term landed (43 cells, run80). Temple and fort
-    are blocked at their prerequisite in every game on disk. The handicap
-    is **multiplayer-only**: `compute_reg_territory:255` needs
-    `Game::semaphore` bit 2, set only by `run_gamespy@00587060` and
-    *cleared* by `run_solo`/`run_scenario`/`run_editor`/`read_package`, so
-    no capture and no scripted setup reaches it. Two corrections came with
-    it: the term is `(get_handicap() + 15) / 25` and `get_handicap`
-    returns `DATA` = index × 5, so it runs **0–4**; and
-    `LeaderData::handicap` is a catch-up **deficit**
-    (`init_handicaps@0058abf0`), not `PLAYERn_HANDICAP`. **248**:
-    ATTRITION's Territory section is 15,625 bytes of 16,000 and wants a
-    retelling pass before anything else is added. (AI §2.1's
+248. **ATTRITION's Territory section is 15,625 bytes of 16,000** and wants
+    a retelling pass before anything else is added to it. Territory's own
+    remaining terms are closed: handicap, temple and fort are all
+    unreachable in any game that runs here, and ATTRITION carries the
+    reasons in full — read it before re-booking any of them. (AI §2.1's
     `check_explore` answers the grid whole, 900 v 36/19.)
 
 Seven measured one-liners: (23) the formation byte's sign, Echelon half
@@ -189,11 +182,17 @@ non-flat; `Leader::diplomacy`; (77) ANIM §3.2; (58) ROADS §7.4.
   the band" is true of any window on the game, and run85's first teeth
   check passed on a band where nothing happened. Test both directions on
   real data before the capture runs.
+- **A timestamp wearing a `Z` it has not earned survives every check that
+  compares only its own two sides.** `stat -t '%FT%TZ'` prints *local*
+  time and appends a literal Z; `%z` is the fix. The class is wider than
+  `stat`: a self-consistent before/after pair can be uniformly wrong.
 - **A commander's clear is free when**: every landed branch merged, gated
   and pushed; nothing in flight owing its result elsewhere; this handoff
   current with the headline *measured*; nothing unfiled. `ccc clear <ref>
-  --then "continue"` arms it — but on **0.1.28 it never fires while a
-  Monitor or background shell lives**, so clear by hand until 0.1.29.
+  --then "continue"` arms it, and **0.1.29 fixed the gate** that 0.1.28
+  stalled on a Monitor or a background shell. A clear is not a restart:
+  both kinds survive it tracked *and* writing (04:02Z, `~/ccc-stream/
+  clear-probe.txt`), so the streams outlive the context that started them.
 - **Run the diff suite with `--release`**; a long wait is the capture, not
   a hang. **Before a blind fan-out**, `grep -n <mechanic> CLAUDE.md` and
   the memory index — a subagent inherits both, and neither they nor a
