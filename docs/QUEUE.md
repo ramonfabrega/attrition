@@ -77,11 +77,12 @@ journal is indexed by them.
     list finally acted on**.
 
 (242) **The crate's group id is not the original's** — run76's Archers carry
-`GroupData +0x4 = 64` (the unit block's own `group`) where `crates/sim`'s
-`group_id` stands in with the army group's *slot*, 1; the other five group
-fields agree on all 630 rows, and 237 marked the `id` row non-scoring with
-the seam named. (243) `UnitDump::group` is parsed and **nothing compares
-it** — the widening-ledger row 242 was found in.
+`GroupData +0x4 = 64` where `crates/sim`'s `group_id` stands in with the
+army group's *slot*, 1; the other five group fields agree on all 630, and
+237 reports the row without scoring it. (243) `UnitDump::group` is parsed
+and **nothing compares it**. (244) **1,428 grouped order records no test
+windows** — run79's 453 and run31's 945; windowing run79 is the cheapest
+second capture for 237's newly-live rows.
 
 AI residues, measured, none near a word: (169) `compute_site_stats`'
 arithmetic — an extra site drags every `rank` (AI §2.13), 7,122 of run63's
@@ -183,9 +184,8 @@ a `find_target` block; run7's order stream; a mounted attacker;
   `rondata::diff`, the assert that reads it, and the `Scoreboard:` line.
 - **Start of session:** merge `lane-capture` and `lane-audit`, then "Where
   things stand", the item, then its document. Lanes never write this file.
-- **A brief on an item touching `docs/<DOC>.md` names
-  `docs/audit/2026-09-05-<doc>-vs-code.md`** where one exists: its rows
-  are candidate items, the diff settles them, taken on the way through.
+- **A brief names `docs/audit/2026-09-05-<doc>-vs-code.md`** where one
+  exists: its rows are candidate items, taken on the way through.
 - **Overlap a capture's neighbours on purpose** — six blocks at each end,
   checked with `samegame.py` both ways (run83: 6 in common, 0 differing,
   twice). A window is priced by its dumped blocks and the run-up is free,
