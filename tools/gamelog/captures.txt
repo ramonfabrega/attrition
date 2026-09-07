@@ -2054,3 +2054,164 @@ check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|collide_frame" "$HOME/ron-data/App
 # means *the bird did not move*. 7584 agrees **49 for 49**, `1/3`'s spot
 # closes, and the word is **7585**, `Leader::make_stuff+0x63d`.
 # `docs/ORACLE.md`, "run89 — Great Lakes' word is a bird's arrival stand".
+
+run: 90
+tag: eastindies-shuffle
+item: 286
+why: East Indies' word is the second stand of a two-citizen shuffle and every frame it turns on is above run88's tail, so the collide/pause/wait rows this crate predicts have never met a dump
+# **The second counter, and the first capture booked to be *refused*.** Item
+# 276 dated East Indies' 7806 off the trace: `SITE_BLOCKED`/`SITE_PAUSE` over
+# [7800, 7820] show both sides making the **first** collision at 7802 and
+# agreeing there, and then the original standing at **7806** where this crate
+# stands at **7807**. `1/6` pops its sidestep waypoint on f7804, spends f7805
+# turning without stepping, and steps on f7806 — the frame the original is
+# already blocked on. So the candidate is the *approach*, not the response,
+# and the approach is undumped: run88's window stops at 7799.
+#
+# **THE DISK WAS GREPPED FIRST**, every archive, for any block labelled
+# 7790-7899 on any map. Exactly one file has any — **run88** itself,
+# 7790..7799 (its own tail) plus its `!quit` block at 7816 — and 7816 is
+# what item 276 already read: it prices the residue (`1/6` (39624, 38808)
+# against (39578, 38757), `1/7` (39666, 38676) against (39672, 38664), both
+# pinned) and it cannot explain it, because it carries positions only, sits
+# ten frames downstream and falls inside item 257's unaudited tearing
+# hazard. Nothing on this disk holds 7800-7815 on either map.
+#
+# **The detail is run88's exactly**, not nearly — the same trade run88 made
+# with run85 and run89 with run87 — so the ten-block overlap below needs no
+# `--exclude` and no `--drop` at all. `UNITS=3` carries `collide`,
+# `collide_o`, `collide_who`, `collide_frame`, the `unit_masks` wait bit,
+# the order list with its `pause` and the path stack; `GUYS=4` carries
+# `cur_anim`, `cur_time`, `end_time` and `stopped`.
+#
+# **The window butts against run88's tail.** [7790, 7900) puts ten blocks
+# (7790..7799) over run88's own coverage — about five seconds of dumping —
+# and reaches past the original's own 7833 repath, so the diff sees the
+# approach, the word, the whole shuffle and the recovery.
+frames: 7915
+mapstyle: 18
+# run85's, run86's and run88's detail exactly, so the overlap is byte for byte.
+end: MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,DEATHS=1,LEADERS=1
+frame_window: 7790 7900
+# cover=0 is not a choice on this machine — the `cover:` key's note above.
+cover: cover=0
+# run68/run81/run85/run86/run88's East Indies floor: the start dump is
+# 11,053,641 bytes at this `start:` detail and the log does not grow until
+# the window opens.
+settle_min: 20000000
+# **Sized from run88's own measurement, not from an estimate.** run88 wrote
+# 327 blocks for 186,777,592 bytes over an 11.05 MB start dump, which is
+# 537 KB a block at this map, era and detail. 110 blocks is therefore ~59 MB
+# above the start, ~70 MB whole, and run88 took ten minutes end to end on a
+# 7,474-frame run-up — of which the run-up is under a minute at `cover=0`
+# (run80 reached 23,960 in forty seconds). So this is three to four minutes.
+# 60 polls is twenty minutes. Not a 900.
+poll_max: 60
+#
+# ==== THE PREDICTIONS, WRITTEN BEFORE THE RUN ====
+#
+# Generated on the tip of 2026-09-07 from run54's own harness
+# (`RON_DEBUG_UNIT=1/6@7790-7900` and `1/7@7790-7900`, the probe item 276
+# widened to the five collision fields), and they reproduce §8.5's table
+# exactly. **The dump prints a block as `FRAME n+1`, so sim-frame f is
+# block f+1**; the block numbers below are the dump's.
+#
+#   block  1/6                                    1/7
+#   7803   (39750,38787) coll 0/1/7  pause 0      (39720,38664) coll 1/1/6 pause 3
+#   7804   (39729,38802) coll 0/-1   pause 0      (39695,38664) coll 1/-1  pause 3
+#   7805   (39720,38808) coll 0/-1   pause 0      (39695,38664) coll 1/-1  pause 2
+#   7806   (39720,38808) coll 0/-1   pause 0      (39695,38664) coll 1/-1  pause 1
+#   7807   (39699,38795) coll 0/-1   pause 0      (39695,38664) coll 1/-1  pause 0
+#   7808   (39699,38795) coll 0/1/7  pause 0      (39672,38664) coll 1/-1  pause 0
+#   7810   (39672,38808) coll 0/-1   pause 0      (39654,38682) coll 0/-1  pause 0
+#   7811   (39672,38808) coll 0/-1   pause 0      (39654,38682) coll 1/1/6 WAIT
+#   7812   (39651,38794) coll 0/-1   pause 0      (39654,38682) coll 2/1/6 WAIT
+#   7813   (39651,38794) coll 0/1/7  pause 0      (39672,38664) coll 3/1/6 pause 6 WAIT
+#   7814   (39628,38806) coll 0/-1   pause 0      (39666,38676) coll 3/-1  BUILD, path 0
+#   7816   (39624,38808) coll 0/-1   pause 0      (39666,38676) coll 3/-1  BUILD
+#   7818   (39624,38808) coll 1/1/7  pause 0      (39666,38676) parked to the end
+#   7832   (39384,38616) coll 0/-1   pause 0
+#   7843   (39384,38424) coll 0/-1   pause 0
+#   7899   (38428,37471) coll 0/-1   pause 0   (the window's last block)
+#
+# **What each row would falsify.**
+#
+# * **Block 7807, `1/6`.** This crate steps to (39699, 38795); the trace
+#   says the original is *blocked* on that frame. If the original's `1/6`
+#   is still on (39720, 38808) there, the word is the step and the fault is
+#   in f7805's turn-without-step after the waypoint pop — §8.5's candidate,
+#   confirmed. If the original is on (39699, 38795) too, that candidate is
+#   **refused** and the stand belongs to a unit or a figure this reading
+#   never named.
+# * **Blocks 7805-7806, `1/6`.** Two blocks on (39720, 38808) is the
+#   waypoint pop and the turn. If the original spends one block there, the
+#   frame is lost in the *turn* and `Guy::move`'s heading test is the row;
+#   if it spends three, the pop is early here.
+# * **Blocks 7811-7813, `1/7`.** This crate sets §6 step 5's **wait** flag
+#   (`coll 1/1/6`, then 2, then 3) and reaches step 6's stagger roll only on
+#   7813. The trace says the original spends a `SITE_PAUSE` on 7810 and this
+#   crate spends none. If the original's `1/7` carries a non-zero `pause`
+#   on block 7811, the roll on that frame is `1/7`'s and the
+#   **wait-versus-repath predicate is wrong** — which is the shape
+#   `docs/audit/README.md` says the errors take. If its `pause` is 0 there,
+#   the missing roll is the frame offset carried forward and the predicate
+#   stands.
+# * **Block 7803, `1/7`, `pause 3`.** No dump on this disk has ever printed
+#   a non-zero `MOVEORDER pause` — every one of run88's 1,467 is 0 — so
+#   `docs/COLLISION.md` §9's standing row ("the `% 9 + 1` itself rests on
+#   the listing") is settled either way by this block: the original prints
+#   its own value or it prints 0 and the roll is not where §6 step 6 puts
+#   it.
+# * **Block 7814, `1/7`.** This crate ends the walk here — order 6, path
+#   emptied, parked on (39666, 38676) for the remaining 86 blocks. A
+#   different arrival block makes the residue a build-arrival question and
+#   not a collision one.
+# * **Blocks 7790-7802.** Both sides agree here or the whole framing is
+#   wrong: the trace says everything below 7806 agrees, and ten of those
+#   blocks are run88's own and already byte for byte.
+#
+# Same game: the trace word for word against run54, this map's own 24k run.
+check: python3 tools/gamelog/rngcmp.py rontrace-run54.log rontrace-run90.log
+# **The overlap, and the count is the claim.** `samegame.py` exits 0 when
+# nothing differs *including when nothing is in common*, which is the
+# vacuous pass run83 caught, so this asserts the number of frames compared,
+# which frames they are, and the zero. Both files drop their last block, so
+# run88 offers 7474..7799 and this run 7790..7899 — **ten in common
+# (7790..7799)**, and **with no `--exclude` and no `--drop` at all**, which
+# is a prediction and not a convenience: the detail is run88's exactly, so
+# nothing moves and the ten blocks must be byte for byte. If this comes
+# back differing, the difference is real and is the finding.
+check: python3 tools/gamelog/samegame.py gamelog-run88-eastindies-wordframe.txt gamelog-run90-eastindies-shuffle.txt | tee /dev/stderr | awk '/in common/{split($0,a,", "); n=a[2]+0; r=$0; sub(/.*in common /,"",r)} /^differ:/{d=$2+0} END{print "run88 overlap: common="n" "r" differ="d; exit !(n==10 && d==0 && r=="(7790..7799)")}'
+# **The teeth, and neither of them is run85's `collide_frame` transition.**
+# run88's worker measured that one over run86's 486 East Indies frames —
+# **zero transitions** — and refused it; a permanent stamp asserted as a
+# change passes or fails for a reason that is not the capture. What is
+# asserted here is the same field's **presence**, which is what pins the
+# `end:` category, and the window's own extent, which is what a truncation
+# or a mis-landed `frame_window` breaks. Two fields from two categories, so
+# a downgrade of either is caught.
+#
+# The three ways this capture can come back useless are a `GUYS` downgrade
+# that answers nothing, a `frame_window` that landed somewhere else, and a
+# `poll_max` truncation — and a truncation is silent, because the loop
+# `pkill`s and archives whatever is there.
+#
+# **`cur_anim` pins `GUYS=4`.** Made to fail first, on real data, both
+# ways: this line prints "10 (7790..7799)" and exits 1 on **run88** (the
+# neighbour, same map, same detail — its ten overlap blocks are all it has,
+# and its 7816 shutdown block carries no `cur_anim`), "0 (0..0)" and exits
+# 1 on **run89** (Great Lakes, same detail, wrong band) and on **run86**
+# (same map, `GUYS=2`, wrong band); and with run88's own range and count
+# the same shape prints 326 and exits 0.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|cur_anim" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run90-eastindies-shuffle.txt" | awk '/BEGIN FRAME/{f=$3} /cur_anim/{if(f!="")seen[f]=1} END{n=0; lo=0; hi=0; for(k in seen){v=k+0; if(v>=7790&&v<7900){n++; if(lo==0||v<lo)lo=v; if(v>hi)hi=v}} print "frame blocks with a cur_anim in [7790,7900): "n" ("lo".."hi")"; exit !(n==110 && lo==7790 && hi==7899)}'
+# **`collide_frame` pins `UNITS=3`, which the line above cannot** — and
+# `UNITS=3` is the whole point of this capture, because `collide`,
+# `collide_o`, `collide_who`, the `unit_masks` wait bit and the order's
+# `pause` are the five fields every prediction above is written in. A
+# stanza that kept `GUYS=4` and dropped `UNITS` would pass the `cur_anim`
+# tooth and lose all of them. Made to fail first the same way: "10
+# (7790..7799)" and exit 1 on **run88**, "0 (0..0)" and exit 1 on **run89**
+# (wrong band) and on **run53** (this era's thin 24k dump, which carries no
+# `collide_frame` on any block at all); 326 on run88 with its own range,
+# exit 0.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|collide_frame" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run90-eastindies-shuffle.txt" | awk '/BEGIN FRAME/{f=$3} /collide_frame/{if(f!="")seen[f]=1} END{n=0; lo=0; hi=0; for(k in seen){v=k+0; if(v>=7790&&v<7900){n++; if(lo==0||v<lo)lo=v; if(v>hi)hi=v}} print "frame blocks with a collide_frame in [7790,7900): "n" ("lo".."hi")"; exit !(n==110 && lo==7790 && hi==7899)}'
