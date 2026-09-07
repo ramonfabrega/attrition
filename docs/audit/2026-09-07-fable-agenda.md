@@ -48,17 +48,30 @@ Amended 2026-09-07 **by the commander with the user**, not by a steering
 session, and flagged here because the fan-out rules reserve rewrites of that
 file for Fable. The gap: the rule named the wrong way to wait (a foreground
 sleep-and-grep loop) and stopped, so a worker obeying it to the letter had no
-sanctioned way to be idle and invented one that was worse — 107 no-op turns
-in 242 seconds, 18.04M cache-read tokens, **$28**, 57% of that session's whole
-spend, by a worker (`lane-286`) that had backgrounded its waits *correctly*.
-The added clause is "and then the turn ENDS", plus naming the no-op shape
-(`true`, `:`, `echo waiting`) so it reads as banned rather than as the
-loophole. Found by lore reading the transcript; the same worker scored **zero**
-on lore's `polls` lint, which counts re-reads of a task's output file and is
-blind to this shape.
+sanctioned way to be idle and invented one that was worse.
 
-Two things for the pass. The wording is the commander's and deserves a second
-eye. And the precedent is the real row: whether a one-line safety clause with
-unambiguous evidence is a thing the commander may land in `CLAUDE.md`, or
-whether every such fix waits for a pass — during which the gap stays open,
-protected only by briefs that a fresh commander does not inherit.
+**The numbers moved twice and the second version is the one in the file.**
+First report: `lane-286`, 107 no-op turns, "$28, 57% of the session". Both
+figures were wrong — lore had priced Opus from memory at 3x the rate table,
+and the share was computed against a shorter session. The true figures are
+**$9.48 and 38%**. Worse, the same corrected scan found the shape was not
+rare: a throwaway regex had matched a bare `echo` but not `echo .`, hiding
+`loop-258`'s **282 idle turns in a run of 187, $39.99**, thirteen hours
+earlier and unnoticed. Fleet-wide it is 447 turns over ten sessions, and
+**five attrition worktrees are 93% of the bill**. So this is a shape of *this
+repo's* workers — the ones that background a long external wait are exactly
+the ones that reach for a way to stay alive.
+
+The clause is "and then the turn ENDS", and the ban is deliberately on **any
+command whose purpose is to yield the turn** rather than on a list: the first
+draft listed `true`, `:` and `echo waiting`, and `echo .` — the costliest
+case — would have walked straight through it.
+
+Three things for the pass. The wording is the commander's and deserves a
+second eye. The precedent is the real row: whether a one-line safety clause
+with unambiguous evidence is a thing the commander may land in `CLAUDE.md`,
+or whether every such fix waits for a pass while the gap stays open. And the
+method lesson, which is the durable one: a canon rule carrying a measured
+number is only as good as the measurement, and this one shipped wrong for an
+hour — **a number in a rule wants its source named**, so the next reader can
+check it rather than inherit it.

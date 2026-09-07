@@ -17,20 +17,18 @@ each section's non-item prose pinned and falling only.
 
 - **East Indies 7806** (was 7529), **Great Lakes 7585** (was 7455) and
   leading, so 287 — its new word's cause — is headline-nearest.
-- **An age snaps every figure** (TECH): `Leader::gain_tech`, gated on
-  `is_age_type`, snaps every live unit's facing and body — a free turn
-  **and a frame** for one mid-turn. 271 was the countdown's seed, not its
-  sum; **253 closed with it**. Great Lakes' twin is `compute_form`'s second
-  reverse test, and its next is a bird (284) — **all three were found by
-  widening the whole record**, never the field the brief named.
-- **A bird's figure lags its unit** (284): `do_air_physics` ends in
-  `set_new_location(x, y, 0, 1)` and that **zero is `param_3`**, so the
-  point goes to guy 0's `des` and the teleport is skipped — the figure
-  catches up in `Guy::move`, making `des == pos` there mean *the bird did
-  not move*. 7584 agrees 49 for 49 now; the new word is 287.
-- **276 grepped instead of capturing and it paid**: run88's `!quit` block
-  at 7816 is East Indies' residue, not its mechanism — 286. 272 found
-  `CITY` unasserted on 246 of 246 blocks, 285.
+- **Three words fell to one method**: widen the whole record, never the
+  field the brief names. An age snaps every figure (271, TECH);
+  `compute_form`'s tail has a second reverse test (267, GROUPS §6.3); and
+  a bird's figure lags its unit (284) — `do_air_physics` passes **0 as
+  `param_3`**, so the point goes to guy 0's `des` and the teleport is
+  skipped, which is what makes `des == pos` in `Guy::move` mean *the bird
+  did not move*. Each time the brief's own named mechanism was wrong.
+- **run90 was written to be refused, and was** — 286 put this crate's
+  collide/pause/wait rows down as predictions *before* the capture and the
+  original refused two of four: the cause is a **waypoint the original
+  abandons and this crate walks to** (289), and `1/7`'s `pause 8` is the
+  disk's first non-zero `MOVEORDER` pause, settling COLLISION §9.
 - **260 halved the gate**; **280 took the mapping back out**, one `forbid`
   again. `FABLE:` owed — 37, 280's UB ground, 283, CLAUDE.md's wait rule.
 
@@ -38,10 +36,10 @@ Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w7806 of 24,000 · GreatLakes w7585 of 24,000
 Endpoint 24001: EastIndies 79 off, 0 unlinked · GreatLakes 84 off, 0 unlinked
 
-**Opener: commander on Opus (DECISIONS 34), spawning — never working.
-Nothing in flight. Next: 287 (Great Lakes' new word, a diff on run89) and
-the lane on 286; then 285, then 283. Every brief ends with a "done" ping to
-the commander — session state was wrong four ways in one day (entry 34).**
+**Opener: commander on Opus (DECISIONS 34), spawning — never working. 287
+is in flight (Great Lakes' new word, a diff on run89). Next: 289, then 285,
+then 283. Every brief ends with a "done" ping — session state was wrong
+four ways in one day, and `ccc watch`'s `landed` beat the ping (entry 34).**
 
 ## The queue
 
@@ -49,14 +47,14 @@ In dependency order, headline-nearest first; **the headline is the long
 captures' word**, lower map first — Great Lakes. Take the first unstarted
 unless a better order is obvious, and say so. Numbers are stable.
 
-286. **East Indies' word is the second stand, not the first** — 276 dated
-    it off the trace: `SITE_BLOCKED`/`SITE_PAUSE` over [7800, 7820] show
-    both sides making the **first** collision at 7802 and agreeing, then
-    the original standing at 7806 where this crate stands at 7807. `1/6`
-    pops its sidestep waypoint on f7804, turns without stepping on f7805,
-    and steps on f7806 — the frame the original is already blocked on. The
-    capture is `[7790, 7900)` at run88's detail, this crate's
-    collide/pause/wait rows written as predictions (COLLISION §8.5, §9).
+289. **The original abandons a sidestep waypoint this crate walks to** —
+    run90 refused 286's candidate and moved the cause two blocks below the
+    word. On 7805 `1/6` is (39720, 38808) against the original's (39729,
+    38802); **both sides push the same waypoint**, and the original drops
+    it after one step where this crate walks all the way to it — a
+    four-block cycle against five. §8.5's turn-versus-step reading is
+    **dead**, not merely unconfirmed. run90 is on disk, so this is a diff.
+    East Indies' word holds at 7806 and this is what sits under it.
 
 277. **An age gained through a cascade is unmodelled** — `Sim::gain_tech`
     reads the age gate off the type the call was made with, as the

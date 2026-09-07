@@ -368,12 +368,15 @@ and makes the eventual diff mechanical rather than a translation exercise.
   Monitor), never a foreground sleep-and-grep loop — every poll turn
   re-bills the whole context — **and then the turn ENDS.** The harness
   re-invokes the session when the task exits, so there is nothing to stay
-  alive for: a no-op turn held open to wait (`true`, `:`, `echo waiting`,
-  a bare "still going" line) gains no information and costs a full context
-  read each time. A command whose only purpose is to have run a command is
-  the shape. Measured once: 107 of them in 242 seconds, $28, 57% of that
-  session's whole spend — by a worker that had backgrounded its waits
-  correctly and had been told only how *not* to wait.
+  alive for: a no-op turn held open to wait gains no information and costs
+  a full context read each time. **The ban is on any command whose purpose
+  is to yield the turn**, never on a list of spellings — `true`, `:`,
+  `echo waiting` and `echo .` have all been used here, and enumerating them
+  is how the next one gets through. Measured across this repo's own
+  workers: **427 such turns in five sessions, $56** — 93% of the fleet's
+  whole bill for the shape, the worst a single run of 187 — all by workers
+  that had backgrounded their waits correctly and had been told only how
+  *not* to wait.
 - **A multi-line Rust patch from Bash rides the python-heredoc pattern**
   (`python3 - <<'PYEOF'` with `old="""…"""`/`new="""…"""`), chained with
   its test run in the same call — edit and verify in one turn, and safer
