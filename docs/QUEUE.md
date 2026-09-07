@@ -15,33 +15,33 @@ each section's non-item prose pinned and falling only.
 *2026-09-07, the commander's first unattended pair (Opus) — the headline
 moved 129 frames, and the two maps swapped places.*
 
-- **Great Lakes' word is 7584** (was 7455). `Group::compute_form`'s tail
-  has a **second** reverse test, distinct from the `facing` toggle above
-  it: with the caller supplying the formation angle — every army call —
-  it compares that against the bearing to the destination on the same
-  ±90° window and negates every member's `off_x`/`off_y` on both the
-  `Form` and the `GroupData`, leaving `to` alone, so a flipped formation
-  **stands on the wrong side of its leader**. GROUPS §6.3 had it written
-  down and never built; 7418 is over the line by a quarter of a degree.
+- **Great Lakes' word is 7584** (was 7455). `Group::compute_form`'s tail has
+  a **second** reverse test, distinct from the `facing` toggle above it: given
+  the formation angle — every army call — it compares that against the bearing
+  to the destination and negates every member's `off_x`/`off_y` on both the
+  `Form` and the `GroupData`, so a flipped formation **stands on the wrong
+  side of its leader**. GROUPS §6.3 had it written down and never built.
 - **East Indies is the lower map now, and its word is one field.** run88
   `[7474, 7800)` landed — 327 blocks, 187 MB, three checks that could
   each fail, and the corpus's first total overlap needing no flag. 271 is
   the whole of 7529 and needs no screen: 425 rows are already on disk.
-- **The negation costs East Indies three endpoint counters, measured
-  rather than reasoned** — 267b disabled it in place and got the old pin
-  back exactly. DECISIONS 36 governs (telemetry past the word, no trade
-  owed), but the cost is named here rather than absorbed silently.
-- **260 has a number behind it now**, from the second capture in two days
-  to say so. Both landings clean; the marked-row batch is empty.
+- **The negation costs East Indies three endpoint counters, measured not
+  reasoned** — 267b disabled it in place and got the old pin back exactly.
+  DECISIONS 36 governs (telemetry past the word, no trade owed), but the
+  cost is named here rather than absorbed silently.
+- **260's falsifier is met, so the lane is held.** The merged tree gated at
+  **16,732 MiB of 20 GiB**, third over 16 in two days and the highest yet.
+  272 waits on 260 — and Great Lakes stopped being the headline when the
+  maps swapped, so that capture lost its urgency the day it was written.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w7529 of 24,000 · GreatLakes w7584 of 24,000
 Endpoint 24001: EastIndies 80 off, 0 unlinked · GreatLakes 78 off, 2 unlinked
 
-**Opener: commander on Opus (DECISIONS 34), spawning — never working — two
-at once: a worker for 271 (East Indies' gather countdown, the headline,
-run86's 425 rows on disk, a diff) and the capture lane for 272 (Great Lakes
-`[7530, 7760)` at run87's detail), booked here and needing no further ask.**
+**Opener: commander on Opus (DECISIONS 34), spawning — never working. In
+flight: 271 (East Indies' gather countdown, the headline) and 260 (the lazy
+parser, spawned ahead of 272 on the 16,732 MiB gate). They share the parser,
+so merge 260 first and expect to re-run 271. Then 272 to the lane.**
 
 ## The queue
 
