@@ -5077,6 +5077,122 @@ units. Two anti-vacuity guards are in the test permanently for the first two:
 run85's first teeth check passed on a band where nothing happened, and an
 *absent* `collide_frame` is what a mis-read file also looks like.
 
+## run88 — East Indies' word is a gather countdown one tick long (2026-09-07)
+
+**What it is.** run54's game, `[7474, 7800)` at run85's `[End Frame]` detail
+**exactly** — **327 blocks, 186,777,592 bytes**, `cover=0`, ten minutes from
+the start click to the last block. It is the first East Indies dump ever
+taken at that map's own word, which stands at **7529**, and it closes the
+last hole in entry 29's second counter: before it the map had **no dumped
+frame above 7480 at all**.
+
+**The disk was grepped first, and it found one frame.** Every archive, for
+any block labelled 7480–7899 on any map: exactly two files have any —
+**run87**, 7480..7519 with its shutdown block at 7536, which is Great Lakes,
+and **run85**, a *single* block at **7496**, which is the
+`GameLog::end_game` final state its `!quit` writes rather than a window. So
+East Indies had one dumped frame in the whole band, 33 frames short of the
+word, and this was a capture rather than a diff.
+
+**Three checks, and the middle one cost nothing to make total.** `rngcmp.py
+rontrace-run54.log rontrace-run88.log` → **0 differing, 7,816 identical**.
+The overlap against run85's tail → **6 in common (7474..7479), 0 differing**
+— and, unlike every overlap before it, **with no `--exclude` and no `--drop`
+at all**: taking the neighbour's detail *exactly* rather than nearly is what
+made it byte for byte, where run87's `GUYS` 2 → 4 needed three dropped
+fields to say the same thing. The teeth → **326 frame blocks carrying a
+`cur_anim`, 7474..7799**, which is the detail, the window's placement and
+the absence of a `poll_max` truncation in one line.
+
+> **The tooth run85 used was measured and refused.** run85 asserted a
+> `collide_frame` transition because its eighty frames were bought for a
+> stand. Over **run86's 486 East Indies frames there are zero** — measured
+> before booking — so the same line over 326 frames would have been a
+> hypothesis wearing a check's clothes, failing for a reason that is not the
+> capture. What replaced it is the window itself, and it was made to fail
+> first on real data both ways: it prints `6 (7474..7479)` and exits 1 on
+> run85, `0 (0..0)` and exits 1 on run86, and with each file's own range and
+> count it prints 80 and 486 and exits 0.
+
+**The word is one field, and the field is off by one.** `1/13` is an AI
+citizen gathering at `gather_down 12`, standing on its resource with
+`orders_x/y` equal to its own position. Its `GATHERORDER`'s `wait` countdown
+reads **`theirs + 1` on all 55 blocks** of the cycle that ends at the word:
+
+| block | ours | theirs |
+| --- | --- | --- |
+| 7474 | 56 | 55 |
+| … | … | … |
+| 7528 | 2 | 1 |
+| **7529** | **1** | **−1** |
+
+— on 7529 the original's countdown has reached its end and the order is
+done; this crate's still has a tick to run. That is the whole of it.
+
+**And the draw stream says the same thing one frame apart.**
+
+| frame | ours | theirs | first difference |
+| --- | --- | --- | --- |
+| 7528 | 32 | 32 | — |
+| **7529** | **2** | **3** | theirs `Guy::set_anim+0x97a < Unit::do_non_flat_gather+0xb99` |
+| **7530** | **2** | **1** | ours the same site |
+| 7531 | 4 | 4 | — |
+
+The gather animation the original asks for on 7529 is the one this crate
+asks for on 7530. The word is not a missing call, a wrong predicate or a
+unit in the wrong place: it is the same call, one tick late.
+
+**The value diff is one 24-unit step, and it is the dump's own
+coordinates.** The original's `1/13` takes its next job on block **7530** —
+`orders_x/y` (40536, 37560) → (40344, 38520) — and steps on 7531:
+
+| block | ours | theirs | delta |
+| --- | --- | --- | --- |
+| 7529 | (40536, 37560) | (40536, 37560) | — |
+| 7530 | (40536, 37560) | (40536, 37560) | — |
+| **7531** | **(40536, 37560)** | **(40560, 37560)** | **(−24, 0)** |
+| 7532 | (40560, 37560) | (40584, 37560) | (−24, 0) |
+| 7533 | (40584, 37560) | (40608, 37560) | (−24, 0) |
+
+One step of its 24-a-frame walk, and it never gets it back.
+
+**Nothing else parts at or below the word.** Over 9,156 unit fields, 9,128
+order/path fields and 14,124 angles across 327 blocks, fifteen units are
+ever off position and thirteen of them part at **7577 or later**. The two
+that do not are `1/13` at 7531 and `1/19` — the unpacked Merchant standing
+on its trade-post spot, a constant **(24, 24)** on every block, which is
+run85's own excused row one window along (`docs/MERCHANT.md`).
+
+**And the successor needs no screen.** The same `+1` runs unbroken through
+**run86's** window from block **6985** — `(6985, 545, 544)` through
+`(7409, 121, 120)`, 425 rows on a capture taken two days ago and never read
+for this field. So the frame that seeds the off-by-one is inside a dump
+already on disk and the next step is a **diff, not a capture**. Two things
+are deliberately not claimed with it: `1/13`'s *position* parts at 6938 in
+run86's window, which is earlier than 6985 and a separate row; and its
+second cycle here (7721..7799) opens at `+1` and ends 47 apart, which is
+downstream of the word and nobody's.
+
+**One cost, and it is the one run87 warned about.** run88 is 187 MB against
+run87's 121, and `Log::parse` is still eager (item 260): with both windows in
+it the release diff suite's peak measured **15,479 MiB on one run and 16,169
+MiB on the next**, of the 20 GiB `memcap.sh` ceiling — a 700 MiB swing at two
+threads, so the headroom is now under a fifth and the number is not stable
+enough to plan against. The next window of this size wants item 260 landed
+first, or a raised cap; this is the second capture in two days to say so.
+
+**So the word does not move.** Nothing was fixed here; what the capture
+buys is that East Indies 7529 stops being a draw-stream report and becomes
+a field with a value diff beside it.
+`run88_s_window_is_east_indies_word_frame` is the assertion, and its five
+claims were each made to fail on purpose before it was believed: the word's
+own row moved to `(7529, 1, 0)`, `1/13` dropped from the parted set, the
+non-`+1` guard moved to `(1, 7, 335, 334)`, the step moved to `(−25, 0)`,
+and the original's draw count moved to four. All five failed; the guard that
+stays in permanently is the third, because "every row is off by one" is also
+what a reader that subtracts wrong looks like, and `1/7`'s own `wait` opens
+at 375 against 334.
+
 ## 178 needed no screen — the danger map's unit pass was on disk four times (2026-09-06)
 
 **What it is.** Not a run. `docs/DANGER.md` §8 had the unit pass of
