@@ -13,7 +13,7 @@ mod tests {
 
     /// Every `BEGIN ARMY` block under a frame block's first `FULL DUMP`, in
     /// order — `ArmyData::log_data` prints only the valid slots.
-    fn army_records<'a, 'b>(frame: &'a Block<'b>) -> Vec<&'a Block<'b>> {
+    fn army_records<'b>(frame: Block<'b>) -> Vec<Block<'b>> {
         let b = frame.kid("FULL DUMP").unwrap_or(frame);
         b.kids("ARMY").collect()
     }
@@ -75,7 +75,7 @@ mod tests {
     }
 
     /// Every field of every record, in one list of disagreements.
-    fn compare(built: &Built, theirs: &[&Block<'_>], skip: &[&str]) -> Vec<String> {
+    fn compare(built: &Built, theirs: &[Block<'_>], skip: &[&str]) -> Vec<String> {
         let mut wrong = Vec::new();
         let mut mine: Vec<&Army> = Vec::new();
         for who in 0..built.sim.armies.len() {
@@ -128,7 +128,7 @@ mod tests {
         // Block 4 is the quit's own: a `FRAME 4` header with no dump.
         for n in 1..=3 {
             built.sim.tick();
-            let (_, block) = frames
+            let (_, block) = *frames
                 .iter()
                 .find(|(f, _)| *f == n)
                 .expect("the frame block");
@@ -158,11 +158,11 @@ mod tests {
         let text = std::fs::read_to_string(&path).unwrap();
         let log = Log::parse(&text);
         let frames = log.frames();
-        let (_, block) = frames.iter().find(|(f, _)| *f == 3579).expect("block 3579");
+        let (_, block) = *frames.iter().find(|(f, _)| *f == 3579).expect("block 3579");
         let dumpb = block.kid("FULL DUMP").unwrap_or(block);
         let theirs = army_records(block);
         assert_eq!(theirs.len(), 2, "two armies at 3579");
-        let cities: Vec<&Block<'_>> = dumpb
+        let cities: Vec<Block<'_>> = dumpb
             .find("CITIES")
             .expect("CITIES")
             .kids("CITY")
@@ -357,13 +357,13 @@ mod tests {
         // below already tolerates — each opens with
         // `kid("FULL DUMP").unwrap_or(b)`.
         let dumps = log.dumps();
-        let (_, block) = dumps
+        let (_, block) = *dumps
             .iter()
             .find(|(f, _)| *f == frame)
             .expect("a FULL DUMP stamped with this frame");
         let body = block.kid("FULL DUMP").unwrap_or(block);
         let mut notes = Vec::new();
-        let world_fields = body.kid("WORLD").expect("a WORLD block").fields.clone();
+        let world_fields = body.kid("WORLD").expect("a WORLD block").fields().to_vec();
         let (world, region_map) = world_from(&world_fields, &[], &mut notes);
         assert!(
             !region_map.is_empty(),
@@ -454,9 +454,9 @@ mod tests {
         /// children — a `BUILDDATA` record nests its class chain
         /// (`WALLDATA` → `OBJECT` → `SUBOBJECT`) and `who`, `o` and `damage`
         /// sit at the inner levels.
-        fn deep_int(b: &Block<'_>, key: &str) -> Option<i64> {
+        fn deep_int(b: Block<'_>, key: &str) -> Option<i64> {
             b.int(key)
-                .or_else(|| b.children.iter().find_map(|c| deep_int(c, key)))
+                .or_else(|| b.children().find_map(|c| deep_int(c, key)))
         }
         let mut cities = Vec::new();
         let mut slots = Vec::new();
@@ -491,7 +491,7 @@ mod tests {
             // damaged city of one's own.
             let damage = body
                 .kids("BUILDDATA")
-                .find(|bd| deep_int(bd, "who") == Some(who) && deep_int(bd, "o") == Some(o))
+                .find(|&bd| deep_int(bd, "who") == Some(who) && deep_int(bd, "o") == Some(o))
                 .and_then(|bd| deep_int(bd, "damage"))
                 .unwrap_or(0) as i32;
             let bd = &mut sim.buildings[b];
@@ -1053,10 +1053,10 @@ mod tests {
             }
             let body = b.kid("FULL DUMP").unwrap_or(b);
             for g in body.kids("GROUPDATA") {
-                let keys: Vec<&str> = g.fields.iter().take(20).map(|(k, _)| *k).collect();
+                let keys: Vec<&str> = g.fields().take(20).map(|(k, _)| k).collect();
                 assert_eq!(keys, GROUP_FIELDS, "{f}: log_data's own order");
                 assert!(
-                    !g.fields.iter().any(|(k, _)| *k == "march"),
+                    !g.fields().any(|(k, _)| k == "march"),
                     "{f}: march is the one GroupData field the engine never logs"
                 );
                 seen += 1;

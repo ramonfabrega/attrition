@@ -375,7 +375,7 @@ pub fn sim_at_frame(loaded: &Loaded, log: &Log, frame: i64, tuning: Tuning) -> O
     if heights.is_empty() {
         notes.push("no master_land_heights in this block: the map is flat".to_string());
     }
-    let (world, region_map) = world_from(&w.fields, &heights, &mut notes);
+    let (world, region_map) = world_from(&w.fields().to_vec(), &heights, &mut notes);
     let (_, builds, leaders) = crate::gamelog::records(body, false);
     let players = builds
         .iter()
@@ -1975,7 +1975,7 @@ mod tests {
         }
     }
 
-    fn make_list_of(leader: &crate::gamelog::Block<'_>) -> [MakeObject; MAKE_SLOTS] {
+    fn make_list_of(leader: crate::gamelog::Block<'_>) -> [MakeObject; MAKE_SLOTS] {
         let v: Vec<MakeObject> = leader.make_list().iter().map(make_object).collect();
         v.try_into()
             .unwrap_or_else(|v: Vec<MakeObject>| panic!("{} MAKEOBJECTs, not eleven", v.len()))
@@ -2470,16 +2470,15 @@ mod tests {
 
     /// The personality block of one leader's start-of-game `LEADERDATA`
     /// (`LEADERS=9` under `[Start Game]`), by field name.
-    fn personality_of<'a>(log: &Log<'a>, who: i64) -> Vec<(&'a str, i64)> {
+    fn personality_of<'a>(log: &'a Log<'a>, who: i64) -> Vec<(&'a str, i64)> {
         log.game()
             .expect("GAME")
             .kids("LEADERDATA")
             .find(|l| l.int("who") == Some(who))
             .and_then(|l| l.kid("PERSONALITY"))
             .expect("a PERSONALITY block")
-            .fields
-            .iter()
-            .filter_map(|(k, v)| Some((*k, v.trim().parse().ok()?)))
+            .fields()
+            .filter_map(|(k, v)| Some((k, v.trim().parse().ok()?)))
             // The 24 ints; what follows is the next sibling's fields at the
             // same indent, which the parser records on both candidates.
             .take(24)

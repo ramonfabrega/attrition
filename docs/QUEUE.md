@@ -24,10 +24,11 @@ moved 6640 → 6652.
 - **The Mac went down on 2026-09-04** under the release suite: 27.6 GB
   resident, swap full. `tools/memcap.sh <gib> <cmd…>` is the guard, and
   **every release run goes through it** — `zsh tools/memcap.sh 20 cargo
-  test -p rondata --release -- --test-threads=1`. **Serialized until 235
-  lands**: four threads reached 20 GB and were killed; one thread peaks at
-  **15.4 GB** and passes 214 tests in 256 s.
-- **235 is the suite itself** and it blocks every worker's gate.
+  test -p rondata --release -- --test-threads=2`. **235 landed
+  2026-09-06** and the gate is no longer serialized: two threads peak at
+  **14.8 GB** and pass 215 tests in 136 s, where before they peaked at
+  20.5 GB — 17 MiB under the ceiling. One thread peaks at 10.1 GB in 295 s;
+  four threads still cross 20 GB and stay off the table.
 - Lanes: `att-capture` holds run79 unpushed (Great Lakes' 6993 birth) and
   the corpus; `att-audit`'s wave 2 readers were lost with the machine and
   re-run from the same brief. Workers are respawned per item, `ccc spawn
@@ -42,14 +43,6 @@ In dependency order, headline-nearest first; **the headline is the long
 captures' word**, lower map first — Great Lakes. Take the first unstarted
 unless a better order is obvious — and say so. Numbers are stable; the
 journal is indexed by them.
-
-235. **The diff suite's memory is the gate's own hazard.** 793 MB of dump
-    becomes **7.8 GB** in one test (run71): 2.96 M blocks × two `Vec`s each
-    is ~5.9 M small allocations, slack and overhead, on a parse that is
-    already zero-copy. Serialized the suite peaks at 13.5 GB, in parallel it
-    passes 18 GB and took the machine down once. An arena for fields and
-    children, or a frame-lazy `Log`, and a measured peak in the guard's own
-    output. Everything else waits on the gate this owns.
 
 226. **`cover=1` dies in the wow64 bop at the exe's entry**, layout-sensitive
     and reproduced by `tools/trace/wow64bop.c` (ORACLE, "The falsifier for
