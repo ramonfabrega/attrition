@@ -59,6 +59,12 @@ journal is indexed by them.
     map as a third scoreboard line that may only fall; (259) run29's 15105
     already reads **51 off, 22 unlinked**. Harness only, no mechanic.
 
+260. **Booked (steer 09-07): the parser goes lazy and the gate sub-GB** —
+    `Log::parse` builds every block and field of an 800 MB dump (76.6 M,
+    235) where a test reads a few hundred. Index frame offsets in one pass,
+    parse a block on demand over a memory-mapped file, whole-file scans
+    (252's census) stream; the 230 tests are the oracle. Behind 258.
+
 226. **`cover=1` dies in the wow64 bop** (ORACLE), an x86 host the
     falsifier. (220) TECH §13's twenty range blocks. (209) **the
     once-per-game events a dump install swallows** — a `set_*` whose
@@ -141,14 +147,10 @@ half (GROUPS §6.4), run52 the blocker; (103) a woodcutter's clock, 445 v
 251. **`memcap.sh` has no fixture and a real hole** (lore): its `ps | awk`
     reads `0 0` when `ps` answers nothing, so a refused sample reads as no
     memory used and the ceiling never fires — Friday's crash by another
-    door, under the guard DECISIONS 34 cites for width two. Wants one:
-    past the cap, dead in N seconds, exit 137. Its sibling landed as
-    `tools/pollguard.py`, live once a checkout's `tools/` holds it
-    (`$CLAUDE_PROJECT_DIR` is the repo root, never a worktree).
+    door, under the guard width two rests on. Wants one: past the cap,
+    dead in N seconds, exit 137. (`tools/pollguard.py` is live.)
 
-Older backlog: (235) the capture `String` each test reads, ~5 GB of the
-suite's 10 — lore's shape: tests over one dump share one parsed instance,
-so memory scales with distinct dumps, not threads; no score; (39) a 2D viewer over `Sim`; (41) `scenario.py`; a
+Older backlog: (39) a 2D viewer over `Sim`; (41) `scenario.py`; a
 `find_target` block; run7's orders; a mounted attacker; `calc_gather`
 non-flat; `Leader::diplomacy`; (77) ANIM §3.2; (58) ROADS §7.4.
 
