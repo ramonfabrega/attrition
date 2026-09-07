@@ -1,6 +1,6 @@
 #!/bin/zsh
-# backup.sh [sync|restore|ls] — the off-machine copy of everything the diffs
-# are pinned against and git does not hold.
+# backup.sh [sync|restore|ls [prefix]] — the off-machine copy of everything
+# the diffs are pinned against and git does not hold.
 #
 # Until 2026-09-04 the capture corpus had exactly one copy, on a disk with
 # 50 GB free and no Time Machine destination. `rondata::diff`'s floors are
@@ -66,7 +66,12 @@ common=(--exclude '.DS_Store' --exclude '*/.DS_Store' --exclude '*__pycache__/*'
 
 case $mode in
   ls)
-    aws s3 ls "s3://$BUCKET/" --summarize --human-readable --recursive | tail -3
+    # With no argument the whole bucket, which is the ghidra export's tens of
+    # thousands of files plus the corpus and answers "is the mirror ~22 GB".
+    # With one it is a prefix — `ls rise-of-nations` is the count that moves
+    # by one archive and one trace per capture, and is the one a capture lane
+    # actually checks.
+    aws s3 ls "s3://$BUCKET/${2:-}" --summarize --human-readable --recursive | tail -3
     ;;
   sync|restore)
     for t in "${trees[@]}"; do
