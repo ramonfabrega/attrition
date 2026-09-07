@@ -218,11 +218,20 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         siblings: &["run18a-startonly"],
         // 73 → 75 and 7 → 2 on 2026-09-07, item 261: see the journal. The
         // positional count rose while the structural one fell by five.
-        off: 75,
-        unlinked: 2,
-        extra: 0,
+        //
+        // Then **75 → 81, 2 → 0, 0 → 4 and 14 → 13** the same day on item
+        // 267's world-cell repaint (`docs/COLLISION.md` §2.3). The roster
+        // moves both ways — the two units this crate was missing are here
+        // now, and four it should not have are with them — 16,546 frames
+        // past the word, which is the reshuffle the entry above describes
+        // and the trade DECISIONS 26 allows: the mechanic is the
+        // decompile's own, and it takes the last unit divergence off Great
+        // Lakes' run-up 200 frames before the word.
+        off: 81,
+        unlinked: 0,
+        extra: 4,
         build_unlinked: 0,
-        build_diverged: 14,
+        build_diverged: 13,
         city_unlinked: 3,
         city_diverged: 0,
     },
@@ -257,7 +266,10 @@ pub const LADDER: [Endpoint; 2] = [
         // 7,872 frames past the word, and takes four spurious units off.
         off: 46,
         unlinked: 17,
-        extra: 20,
+        // 20 → 21 on 2026-09-07, item 267's repaint: one spurious unit
+        // back, 7,872 frames past the word, and nothing else on this rung
+        // moved.
+        extra: 21,
         build_unlinked: 10,
         build_diverged: 9,
         city_unlinked: 3,

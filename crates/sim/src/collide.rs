@@ -376,6 +376,25 @@ impl Sim {
             }
             if cell_change {
                 self.chain_remove(u);
+                // **The world-cell crossing heals the unit's own disc**
+                // (§2.3, item 267). `Unit::set_new_location@005f8d20`
+                // brackets the coordinate write with
+                // `Object::remove_from_world` and `Object::add_to_world`
+                // on a **world-cell** change, and both of those walk
+                // `radius[coll_size]` around each figure's *current*
+                // point — which is still the old one, since the guys do
+                // not move until `Guy::process`. The clear and the set
+                // cover the same cells under the same region gate, so
+                // the pair is a **set** of the whole disc: every hole a
+                // neighbour's `move_unit` punched in this unit's block
+                // is filled before the block is moved.
+                //
+                // It is the second healer, and unlike
+                // [`Self::coll_repaint`]'s sixty-fourth frame — which
+                // asks `avg_speed == 0` and so only ever reaches a unit
+                // standing still — this one fires for a unit **on the
+                // march**, once every sixteen unit cells.
+                self.coll_add(u);
             }
             if on_map {
                 self.coll_move(u, from, to);
@@ -1511,6 +1530,64 @@ mod tests {
                 "the sixty-fourth frame put {c:?} back"
             );
         }
+    }
+
+    /// **§2.3 — crossing a world cell puts back what the walker took**,
+    /// and it is the only healer a unit on the march ever meets.
+    ///
+    /// `Unit::set_new_location` brackets the coordinate write with
+    /// `Object::remove_from_world` and `Object::add_to_world` on a
+    /// **world**-cell change, and the two walk the same disc around the
+    /// figure's own — still unmoved — point, one clearing and one setting.
+    /// So the pair sets the whole old block, and `move_unit` then carries a
+    /// healed disc onto the new cell. §2.2's sixty-fourth frame cannot do
+    /// this job: it asks `avg_speed == 0`.
+    ///
+    /// Both halves are asserted, and the second is what makes the first a
+    /// check: the **same** puncture and the **same** one-cell step leave
+    /// the hole standing when the step does not cross a world cell. Delete
+    /// the `coll_add` in [`Sim::set_new_location`] and the first half
+    /// fails; make it unconditional and the second does.
+    #[test]
+    fn a_world_cell_crossing_heals_the_block_a_neighbour_punctured() {
+        // `A` at unit cell `(ax, 10)`, `B` at `(ax + 2, 11)`, whose block
+        // covers `A`'s eastern column. `B` walks two cells south and its
+        // clear pass takes the row `y = 10` with it — `(ax + 1, 10)` is
+        // `A`'s, and `A` has not moved.
+        let punch = |ax: i32| {
+            let (mut sim, a, b) = pair(
+                ucell_centre(Pos::new(ax, 10)),
+                ucell_centre(Pos::new(ax + 2, 11)),
+            );
+            assert!(
+                sim.coll.get(ax + 1, 10),
+                "A's block starts whole at ({}, 10)",
+                ax + 1
+            );
+            sim.set_new_location(b, ucell_centre(Pos::new(ax + 2, 13)), true);
+            assert!(
+                !sim.coll.get(ax + 1, 10),
+                "B's clear pass did not punch ({}, 10) out of A's block",
+                ax + 1
+            );
+            // One cell east. `move_unit` re-sets only the column the block
+            // is entering, so nothing but the crossing can put this hole
+            // back — it is `A`'s new **centre**.
+            sim.set_new_location(a, ucell_centre(Pos::new(ax + 1, 10)), true);
+            sim.coll.get(ax + 1, 10)
+        };
+        // 15 → 16 crosses: sixteen unit cells to a world cell, so the
+        // object is re-seated and the disc repainted on the way.
+        assert!(
+            punch(15),
+            "the world-cell crossing did not repaint A's own disc"
+        );
+        // 5 → 6 does not, and the same hole is still standing.
+        assert!(
+            !punch(5),
+            "a step inside one world cell repainted the disc — the heal is \
+             `Unit::set_new_location`'s `local_10`, not every move"
+        );
     }
 
     /// §4: a unit walking into another one detects it, names it, and

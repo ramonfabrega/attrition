@@ -18564,3 +18564,103 @@ census's copy, because §2 is at its size pin to the byte.
 
 Gate: 240 rondata release tests green, peak 14,392 MiB of 20 GiB at the
 pinned two threads; 817 sim; `rondata -- <install>` zero.
+
+## 2026-09-07 — item 267: crossing a world cell heals the block, and one bit of a word had never been compared (no word moved, Opus, commander)
+
+**What it is.** 264 left Great Lakes' word at 7455 with the cause named two
+rows upstream and both of them on disk, so this was a diff and not a
+capture. The first row: `1/35`, a Longbowman of the AI's second squad, steps
+**25** units of y on sim-frame 7252 where the original steps **12**, 202
+frames ahead of the draw stream, and by 7269 the two hold path stacks of
+different lengths.
+
+**The widening was the whole diagnosis, and it took twenty minutes.**
+`UnitData::unit_masks` is printed on every capture that prints the record.
+The harness took `0x80000` out of it for the packed bit in `compare` and
+`0x8` for the verified line inside one window's test, and left the other
+thirty bits alone. One of them is `0x100000` — the one-shot half step a
+**soft** collision leaves behind (`docs/COLLISION.md` §4.3), modelled here
+since item 219 and compared by nothing. Added to the collision record's own
+row set, under the same position gate as `collide`/`collide_o`/`safe`, it
+answered the whole question on the first run: run87's window carries
+**10,458** of the new rows and exactly one disagreed —
+
+    f7252 1/35 half_step: 0 v 1
+
+— which dates the parting a frame earlier than the position diff could and
+says the step size was never computed wrong. The original made a soft
+collision on 7251 that this crate did not make.
+
+**And the cause was the occupancy index, not the collision rules.** The
+original's `1/35` proposes a point in unit cell `(952, 544)` from
+`(952, 545)`, so `collide_here`'s fast path sweeps the leading edge — the
+row `y = 543` at `x = 951` and `953` — and `(953, 543)` is `1/34`'s own
+centre cell, a file-mate one cell east, which §4.3's group arm makes soft.
+This crate's grid had that cell **clear**. Two frames earlier, on 7249,
+`1/36` had left cell `(954, 542)` for `(954, 541)` and its `move_unit` clear
+pass took the whole row `y = 543` with it, `(953, 543)` included — the
+bitmask is not refcounted and §2's paragraph has said so since the index was
+written.
+
+**What puts it back is a second healer, and §2.2 explicitly said there
+wasn't one.** The sixty-fourth-frame repaint asks `avg_speed == 0`, so it
+never reaches a unit that is walking, and §2.2's own last line read "a
+moving guy needs no repaint: `move_unit`'s set pass has just written its
+whole new disc." That is false — the set pass writes only the cells the old
+disc did not already cover, so a hole inside the overlap survives the move.
+`Unit::set_new_location@005f8d20` brackets the coordinate write with
+`Object::remove_from_world` and `Object::add_to_world` on a **world**-cell
+change (768 units, sixteen unit cells), and both of those walk the
+occupancy bitmask, not just the object chain: one clears
+`move_x[0 .. radius[coll_size])` around each figure's own point, the other
+sets the same walk under the same region gate. The figures have not moved
+yet — `move_step` calls `set_new_location(x, y, 0, 0)` and `Guy::process`
+is what calls `move_unit` at all — so both walks are around the **old**
+cell, and clear-then-set over one cell set is a **set**: the whole old disc,
+healed, and then moved. `1/34` crossed from world cell `(59, 34)` to
+`(59, 33)` on sim-frame 7251 — the same frame as `1/35`'s probe, one unit
+ahead of it in the step order.
+
+`docs/COLLISION.md` §2.3 is the mechanic, §8.4 the widening, and §2.2's
+wrong sentence is struck in place with the correction named.
+
+**What moved.** `1/35` leaves run87's diff entirely: the earliest parting in
+the 277-block window goes **7253 → 7315**, and the only unit that parts at
+all before the army's 7418 tick is now `1/26`, whose twenty-four units are
+older than the window. Both test ceilings are re-pinned downward.
+
+**The word did not move.** Great Lakes still parts at **7455**, on the same
+draw and the same index — eight against seven, `Guy::set_anim+0x97a <
+Unit::move_step+0x823` at index 2 — because 264 named *two* rows and this
+was the first of them. The word's own walker is `1/36`, and what puts it 94
+units adrift is the six-slot assignment at the army's 7418 tick, which is
+item 267's successor and untouched here. East Indies holds at 7529.
+
+**What the counts did, measured.** The two collision-record populations rose
+with the sixth field and neither gained a wrong row: run10 139,514 →
+**166,215**, run56 249,413 → **298,052**. Past the word the roster
+reshuffles both ways and the endpoint ratchet fired:
+
+| row | before | after |
+| --- | --- | --- |
+| GreatLakes 24001 | off 75, unlinked 2, extra 0, build_diverged 14 | **off 81, unlinked 0, extra 4, build_diverged 13** |
+| EastIndies C 15401 | extra 20 | **extra 21** |
+
+The two units this crate was missing at 24,001 are there now and four it
+should not have are with them, 16,546 frames past the word. Re-pinned as a
+deliberate trade under DECISIONS 26 and the precedent items 261 and 265 set
+the same day: the mechanic is the decompile's own, it is asserted by a
+`#[test]` that was made to fail in both directions, and it takes the last
+unit divergence off Great Lakes' run-up two hundred frames before the word.
+
+**The fourth axis, and it is booked.** The widening ledger counts field
+*names*, so a 32-bit word counts as compared the moment anything mentions
+it. `unit_masks` has been on neither list since the packed bit got a row,
+with one of at least eight modelled bits actually compared.
+`docs/DATALAYER.md` §4.3 carries the axis and the sweep it wants — nine
+dumped masks, a per-*bit* census rather than a per-name one, and the same
+tool §4.2 already asks for.
+
+Gate: 241 rondata release tests green at the pinned two threads, peak
+16,165 MiB of 20 GiB; 818 sim; `cargo clippy --all-targets` and
+`cargo fmt` clean; `rondata -- <install>` zero.

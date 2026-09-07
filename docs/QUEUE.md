@@ -12,36 +12,36 @@ each section's non-item prose pinned and falling only.
 
 ## Where things stand
 
-*2026-09-07, Opus commanding (DECISIONS 34) — five landings, one word, and
-the loop stopped itself on the rule rather than on a wall.*
+*2026-09-07, Opus commanding (DECISIONS 34) — one item, no word, and a
+widening did the whole diagnosis in twenty minutes.*
 
-- **Great Lakes 7455** (leads, +279 on 261): `is_captain` is `o_up < 0`,
-  and this crate counted six captains against two so the muster marched
-  early; 7176 was Tobacco's re-bake never raising the wall-stats flag,
-  `constr_time` 100000 v 90909. **East Indies holds at 7529.**
-- **The word's own frame is not the defect** (264/run87): the original
-  stands nothing at 7455 and its three `collide_frame` stamps are ours. The
-  cause is **202 frames upstream** — `1/35`'s y-step on 7253, and four of
-  six soldiers on wrong waypoints at 7418. **267, and run87 paid for it.**
-- **Both words sit in capture gaps** (266), so score-bearing work queues
-  behind one screen. Batch the lane rather than one capture per item.
-- **The endpoint ratchet fires and re-pins under its own precedent**: 261
-  moved Great Lakes `off` 73 → 75 with `unlinked` 7 → 2; 265 moved East
-  Indies `build_diverged` 33 → 32 and both rungs' `extra` down ten. Past
-  the word, `off` counts reshuffle — **whether it may assert at all is a
-  steer question**, and the rule it overturned now has evidence.
-- **Three items the crash ate are back** (232/233/234, ledger in
-  `docs/audit/`); the queue is bounded by **items** (262/263, DECISIONS 35);
-  a worker reports and the commander books, after two collisions in a day.
+- **The run-up is clean to 7315 and the word holds at 7455** (267): the
+  `1/35` row 264 named was never a step size. `unit_masks & 0x100000`, the
+  soft one-shot, is printed on every capture and was compared by nothing;
+  added, it disagreed on **one** of run87's 10,458 new rows and dated the
+  parting to 7252. The cause is the occupancy index, not a collision rule.
+- **Crossing a world cell repaints a unit's own disc** (COLLISION §2.3):
+  `remove_from_world`/`add_to_world` bracket `set_new_location`'s
+  coordinate write and both walk the bitmask, so a unit **on the march**
+  heals the holes its neighbours punch. §2.2's sixty-fourth frame asks
+  `avg_speed == 0` and never reaches one; its "a moving guy needs no
+  repaint" line was wrong and is struck in place.
+- **The ratchet fired and was re-pinned as a trade** (DECISIONS 26,
+  precedent 261/265): Great Lakes 24001 `off` 75 → 81, `unlinked` 2 → 0,
+  `extra` 0 → 4, `build_diverged` 14 → 13, all 16,546 frames past the word;
+  East Indies C `extra` 20 → 21. Whether the line may assert past the word
+  at all is **still 266's steer question**.
+- **The word's own cause is untouched**: 267's second row, the six-slot
+  assignment at the army's 7418 tick. run87 answers it from disk.
+  East Indies holds at 7529. (270) is the fourth ledger axis.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w7529 of 24,000 · GreatLakes w7455 of 24,000
-Endpoint 24001: EastIndies 80 off, 0 unlinked · GreatLakes 75 off, 2 unlinked
+Endpoint 24001: EastIndies 80 off, 0 unlinked · GreatLakes 81 off, 0 unlinked
 
-**Opener: commander on Opus (DECISIONS 34). 267 is the item — run87 is on
-disk and the cause is named, so it is a diff, not a capture. The stopping
-rule fired at three no-word landings and the reason is 266; ask before
-booking another lane.**
+**Opener: commander on Opus (DECISIONS 34). 267 is still the item — its
+second row is what the word is made of and run87 is on disk, so it is a
+diff. Ask before booking a capture lane; 266 has not been steered.**
 
 ## The queue
 
@@ -109,6 +109,15 @@ of 617; (72) every `+0xNN` a document pins vs its module; (89) the guard;
     record up, for every `char`/`short` of `LeaderData` held as an `i32`.
     A guard wants the PDB's widths beside the sim's structs, not a grep.
 
+270. **The fourth axis: a word compared one bit at a time** (DATALAYER
+    §4.3, from 267). The ledger scans the differ for a field's *name*, so
+    `unit_masks` has been on neither list since the packed bit got a row
+    while one of at least eight modelled bits was actually compared —
+    and the missing one, `0x100000`, named Great Lakes' run-up cause on
+    its first run. Nine dumped masks want a per-**bit** census:
+    `unit_masks`, `unit_masks2`, `guy_flags`, `node_flags`, `city_flags`,
+    `leader_flags`, `leader_flags2`, `build_flags`, `role`. Same tool 269.
+
 257. **Nineteen kept tests compare a torn block** (252): a closing dump is
     frame n but for the one unit the quit caught mid-update, and every
     nested archive's last `FRAME n` body *is* its closing dump. No live
@@ -147,14 +156,14 @@ of 617; (72) every `+0xNN` a document pins vs its module; (89) the guard;
     you to use it never said. Wants a fixture: past the cap, dead in N
     seconds, exit 137 — and a gate that cannot be run wrong.
 
-267. **Great Lakes 7455 is a position, not a collision** (264, run87,
-    ORACLE and COLLISION §8.3): the original stands nothing there, and the
-    cause is two rows upstream. **`1/35` steps 25 units of y on 7253 where
-    the original steps 12** — 202 frames ahead of the draw stream, and by
-    7269 a path of 21 slots against 22. And on sim-frame **7418**, the
-    army's `7162 + 256` tick, four of six soldiers come out of the fresh
-    group order on a different waypoint, `1/32` and `1/33` on each other's.
-    (268) `AnimalData::ox`/`whom`/`aid` are `GUYS ≥ 3` and unparsed.
+267. **The six-slot assignment at Great Lakes' 7418 tick** — what the
+    word is made of, now that its run-up is clean (264, run87, ARMY §5).
+    On sim-frame 7418 — `7162 + 256`, `frame ≡ 250 (mod 256)`, the tick
+    261 fixed at 7162 — all six AI soldiers take a fresh `orders_x/y` and
+    **four come out on a different path waypoint**, `1/32` and `1/33` on
+    exactly each other's (`dest_x` 39838 against 39863, swapped). `1/36`
+    is 94 units adrift by 7455 and that is the stand. A diff, not a
+    capture. (268) `AnimalData::ox`/`whom`/`aid` are `GUYS ≥ 3`, unparsed.
 
 ## How to maintain this file
 

@@ -103,6 +103,19 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
                 ("collide_who", i64::from(un.collide_who), u.collide_who),
                 ("collide_guy", i64::from(un.collide_guy), u.collide_guy),
                 ("safe", i64::from(un.safe), u.safe),
+                // **`unit_masks & 0x100000`, the one-shot half step**
+                // (`docs/COLLISION.md` §4.3, `docs/MOVEMENT.md`): a soft
+                // collision's whole product. `detect_unit_collision` sets
+                // it at the end of the nine-cell sweep and the *next*
+                // frame's `move_step` spends it, so an end-of-frame dump
+                // holds exactly the flag the following step will read.
+                // It is printed on every capture that prints the record
+                // and nothing compared it until item 267.
+                (
+                    "half_step",
+                    i64::from(un.half_step),
+                    u.unit_masks.map(|m| i64::from(m & 0x10_0000 != 0)),
+                ),
             ] {
                 let Some(theirs) = logged else { continue };
                 r.collide_compared += 1;

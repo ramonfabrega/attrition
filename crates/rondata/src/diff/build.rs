@@ -2905,12 +2905,17 @@ mod tests {
         // 128,672 -> **139,514** with item 114, the twenty-seventh and the
         // last one this capture can make: no unit parts anywhere, so every
         // field-frame run10 holds is comparable and the number is now the
-        // capture's own size rather than a score. It moves again only when
-        // a longer capture replaces this one.
+        // capture's own size rather than a score. ~~It moves again only
+        // when a longer capture replaces this one.~~ Or when the record
+        // grows a **field**: 139,514 -> **166,215** on 2026-09-07, item
+        // 267, which added `unit_masks & 0x100000` — the soft one-shot,
+        // printed since the first capture and compared by nothing
+        // (`docs/COLLISION.md` §8.4). The block is still empty over every
+        // one of them.
         let coll_seen: usize = report.frames.iter().map(|f| f.collide_compared).sum();
         assert_eq!(
-            coll_seen, 139_514,
-            "five fields on every agreeing unit-frame"
+            coll_seen, 166_215,
+            "six fields on every agreeing unit-frame"
         );
         // **The emptiness, scoped to what the capture can speak to.**
         // Item 64 took the block to zero over the whole run; item 66

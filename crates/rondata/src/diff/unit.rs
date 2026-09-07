@@ -756,9 +756,13 @@ mod tests {
         // (`docs/ORDERS.md` §10) put that right too. **`1/11` now agrees
         // for the whole capture**, and the only unit that parts at all is
         // player 0's Citizen `o 5` on the quit's own half-written frame.
+        //
+        // **249,413 -> 298,052** on 2026-09-07 (item 267): the sixth
+        // field, `unit_masks & 0x100000`, and East Indies' longest capture
+        // agrees on every one of the 48,639 new rows.
         assert_eq!(
-            seen, 249_413,
-            "five fields on every agreeing unit-frame of run56"
+            seen, 298_052,
+            "six fields on every agreeing unit-frame of run56"
         );
         assert!(
             bad.is_empty(),
@@ -2156,14 +2160,18 @@ mod tests {
             "run87's own rows are missing — the wrong file"
         );
         // **The two claims about the run-up, and they are ceilings that may
-        // only rise.** Nothing parts before 7253, and the only two units
-        // that part at all before the army's 7418 tick are `1/35` — the
-        // step-size row — and `1/26`, whose twenty-four units are the
-        // `1/24`/`1/25` shape arriving late.
+        // only rise.** ~~Nothing parts before 7253~~ — **7315** since item
+        // 267 gave the world-cell crossing its disc repaint
+        // (`docs/COLLISION.md` §2.3): `1/35`'s step-size row was a soft
+        // collision this crate did not make, and with it made the unit
+        // walks the original's own point for the whole run-up. The only
+        // unit that parts at all before the army's 7418 tick is now
+        // `1/26`, whose twenty-four units are the `1/24`/`1/25` shape
+        // arriving late and older than this window.
         let first = wrong.iter().map(|r| r.0).min().unwrap_or(i64::MAX);
         assert!(
-            first >= 7253,
-            "run87's field diff parted at {first}, ahead of 7253: {:?}",
+            first >= 7315,
+            "run87's field diff parted at {first}, ahead of 7315: {:?}",
             wrong.iter().find(|r| r.0 == first)
         );
         let early: std::collections::BTreeSet<(i64, i64)> = wrong
@@ -2173,8 +2181,8 @@ mod tests {
             .collect();
         assert_eq!(
             early,
-            [(1, 35), (1, 26)].into_iter().collect(),
-            "the units parting before the army's 7418 tick are not 1/35 and 1/26"
+            [(1, 26)].into_iter().collect(),
+            "the unit parting before the army's 7418 tick is not 1/26 alone"
         );
     }
 }

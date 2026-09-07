@@ -149,8 +149,12 @@ Four gates, and they are the original's in its order:
 - **`GuyData::avg_speed == 0`** (`+0x84`) — the guy is standing still.
   `Guy::move`'s tail folds `last_speed` into it a quarter at a time
   (`avg = (avg * 3 + last) / 4`), so it reaches zero a few frames after a
-  unit stops and is non-zero for every frame of a walk. A moving guy needs
-  no repaint: `move_unit`'s set pass has just written its whole new disc.
+  unit stops and is non-zero for every frame of a walk. ~~A moving guy needs
+  no repaint: `move_unit`'s set pass has just written its whole new disc.~~
+  **That is wrong, and §2.3 is the correction**: `move_unit`'s set pass
+  writes only the cells the *old* disc did not already cover, so a hole a
+  neighbour punched inside the overlap survives the move. A marching unit
+  is healed by the world-cell crossing instead, and by nothing else.
 
 So a hole lives for at most sixty-four frames, and the index is
 self-healing rather than exact.
@@ -172,6 +176,79 @@ of every cell the two searches probed on frame 1970, `(849, 366)` is the
 `process_movement` as `Guy::process` calls it. SEAM: this crate marks one
 figure a unit (§2), so it repaints guy 0's disc and no other's, and the
 `squad_size` gate is thereby always satisfied.
+
+### 2.3 The world-cell crossing, which heals a unit on the march (2026-09-07)
+
+§2.2's healer asks `avg_speed == 0`, so it never reaches a unit that is
+walking. **There is a second one, and it is the only healer a marching unit
+ever meets.**
+
+`Unit::set_new_location@005f8d20` brackets the coordinate write with the
+object chain's own pair:
+
+```
+local_10 = on_map && world_cell(x_internal, y_internal) != world_cell(new)   // v / 768
+...
+if (local_10)  Object::remove_from_world(this)
+LAB_005f9033:  x_internal = new x;  y_internal = new y;  z = find_tcoord_z(tile)
+if (local_10)  Object::add_to_world(this)
+```
+
+and both halves of that pair walk the occupancy bitmask, not just the chain:
+
+- `Object::remove_from_world@00647970` **clears** `move_x[0 .. radius[coll_size])`
+  around each figure's own unit cell, `0 .. guy_mark` (`UnitData +0xb5`),
+  under §2's region gate, and only where the `CollBlock` already exists;
+- `Object::add_to_world@0064d8c0` **sets** the same walk under the same
+  gate, allocating with `World::new_coll_block` where there is none.
+
+Two things make that pair a heal rather than a no-op.
+
+**The two walks cover the same cells, so clear-then-set is set.** Both read
+`GuyData::x`/`y` (`+0xc`, `+0x10`) — the *figure's* point, not the unit's
+`x_internal` — and the figures have not moved yet: `move_step` calls
+`Unit::set_new_location(x, y, 0, 0)` with `param_3` **zero**, so the guys
+only take the new point in `Guy::process` afterwards, and `Guy::move`'s own
+`set_new_location` is what calls `move_unit` at all (it is the function's
+only caller). So both walks are around the unit's **old** cell, and what
+comes out of the pair is the whole old disc, set — every hole a neighbour's
+`move_unit` clear had punched in it, filled. `move_unit` then moves that
+healed disc onto the new cell.
+
+**And it fires on the march.** The trigger is a *world*-cell change — 768
+units, sixteen unit cells — so a unit walking a straight line repaints
+itself every sixteen cells, about every twenty-nine frames at `MOVES` 26,
+wherever it stands in §2.2's sixty-four-frame phase. The two healers do not
+overlap: §2.2's is for a unit that has stopped, this one for a unit that
+has not.
+
+Note that the figure loop is bounded by `UnitData::guy_mark` (`+0xb5`) in
+both halves, where §2.2's repaint uses the type's `squad_size` (`+0x304`).
+The two are not the same field, and this crate marks one figure a unit, so
+neither bound is reached here.
+
+**The diff that says so** (item 267, run87). Great Lakes' `1/35`, a
+Longbowman marching in the AI's second squad, steps 25 units of y on
+sim-frame 7252 where the original steps **12** — a half step, and the
+original's own `unit_masks` says why: it carries `0x100000`, the one-shot a
+**soft** collision leaves behind (§4.3, `docs/MOVEMENT.md`). The soft
+collision is with `1/34`, its file-mate one unit cell east, and the cell
+that names it is `(953, 543)` — `1/34`'s own centre. This crate did not
+have it: on sim-frame 7249 `1/36`, leaving cell `(954, 542)` for
+`(954, 541)`, cleared the row `y = 543` from `x = 953` to `955`, and
+`(953, 543)` is inside `1/34`'s block. In the original `1/34` crossed from
+world cell `(59, 34)` to `(59, 33)` on sim-frame 7251 and repainted its
+whole disc on the way — two frames after the hole was punched, and in the
+same frame as `1/35`'s probe but one unit ahead of it in the step order.
+(Frames are the dump's blocks where a row is quoted and sim-frames where a
+step is: block `n` is the end state of sim-frame `n − 1`.)
+
+The row is a diff rather than a reading: the harness compares
+`unit_masks & 0x100000` on every unit-frame whose positions agree (the
+widening this item landed, §8.4), and the whole 277-block window carries
+**10,458** of them. Exactly one disagreed — `f7252 1/35 half_step 0 v 1` —
+and with the repaint in, none do, and `1/35` walks the original's own point
+for the entire run-up.
 
 ## 3. The object chain
 
@@ -1218,6 +1295,34 @@ rightly — otherwise a walker that is elsewhere colliding with something else
 counts the position gap twice). `1/36`'s position parts at 7420, so a stand
 invented at 7455 costs a draw and produces no row at all: on this map the
 draw stream is the only oracle for the word's own frame.
+
+## 8.4 The soft flag is a dumped field, and now a compared one (2026-09-07)
+
+`UnitData::unit_masks` is printed on every capture that prints the record,
+and `0x100000` — §4.3's soft one-shot — sat in it uncompared from the day
+the flag was modelled (item 219) until item 267. The harness took `0x80000`
+out of the same word for the packed bit and left the rest.
+
+It is now a row of the collision record's own comparison in
+`rondata::diff`'s `compare`, beside `collide`, `collide_o`, `collide_who`,
+`collide_guy` and `safe`, and gated the same way: only on unit-frames whose
+positions agree, because a unit standing somewhere else soft-collides with
+something else as a consequence. The alignment needs no allowance —
+`detect_unit_collision` sets the flag at the end of the nine-cell sweep and
+the *next* frame's `move_step` spends it, so an end-of-frame dump holds
+exactly the flag the following step will read.
+
+**What it caught on its first run.** run87's window carries **10,458** of
+these rows and one disagreed: `f7252 1/35 half_step 0 v 1`, which dated
+Great Lakes' run-up divergence a frame earlier than the position diff had
+(7253 → 7252) and named the mechanism outright — a soft collision this
+crate did not make, rather than a step size it computed wrong. §2.3 is the
+cause and the fix; with it in, the row is clean and the earliest parting in
+the window moves to **7315**, a unit older than the window.
+
+The rest of the word is still an occupancy question and not a predicate
+one: nothing in §4's gates, §4.3's ladder or §5's block was wrong, and the
+index that feeds them was.
 
 ## 9. What is not established
 

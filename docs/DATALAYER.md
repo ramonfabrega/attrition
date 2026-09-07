@@ -818,6 +818,36 @@ This axis has no guard. A ledger for it would have to read the PDB's type
 record beside the sim's struct — `types.txt` names every width — and that is
 a tool, not a grep.
 
+### 4.3 The fourth axis: the field is a word, and one bit of it is read (2026-09-07)
+
+The ledger scans the differ's source for the field's *name*, so a bitfield
+counts as compared the moment anything mentions it — however few of its bits
+that anything actually looks at.
+
+`UnitData::unit_masks` is the case (item 267). The harness has named it
+since the packed bit (`0x80000`) got a row, and named it again for the
+verified line (`0x8`) inside one window's test, so it has never been on
+either list. It carries at least eight bits this crate models — `1` the
+placement ghost, `8` the verified line, `0x40` the collision wait, `0x400`
+the builder, `0x800` the tribe-bonus road, `0x80000` packed, `0x100000` the
+soft one-shot, `0x800000` the dock walker — and until item 267 exactly one
+of them was compared on every capture.
+
+The one that was missing paid for itself on its first run: `0x100000` is
+§4.3-of-COLLISION's soft half-step, printed since the first `UNITDATA` ever
+captured, and comparing it dated Great Lakes' run-up divergence a frame
+earlier than the position diff could and named the mechanism outright
+(`docs/COLLISION.md` §8.4).
+
+**The booked row is the sweep**: `unit_masks`, `unit_masks2`, `guy_flags`,
+`node_flags`, `city_flags`, `leader_flags`, `leader_flags2`, `build_flags`
+and `role` are all words the dumps print whole and the harness reads a bit
+or two of. The ledger cannot see this any more than it can see a width, and
+for the same reason — it counts names. What would see it is a per-*bit*
+census: for each dumped mask, which bits this crate models at all, and which
+of those the differ compares. That is the same shape of tool §4.2 asks for
+and could be the same tool.
+
 ---
 
 ## What is not established
