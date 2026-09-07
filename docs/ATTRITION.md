@@ -558,11 +558,38 @@ territorial — a cell of an ally's, and `is_ally` is reflexive — so twenty-ni
 cells the AI should have owned were *dark* to the site scorer, and it founded
 its second city in the wrong place (`docs/AI.md` §18).
 
-Four inputs are still seams here, all inert on every capture so far: the
-temple and fort border levels (`has_preq(TEMPLEBORDERS2..4)`,
-`has_preq(FORTBORDERS2..4)` — bonus types `0x2c8..0x2ca` and `0x2d1..0x2d3`,
-which the loader reads as `bonus_preqs` and does not expose), the Colosseum
-and Eiffel Tower, a gem rare, and the AI handicap allowance.
+Four inputs were seams here. **run80 split them three ways** (2026-09-06,
+Great Lakes `[23960, 24000)` at `LEADERS=9`, verified identical to run53
+over all 24,001 frames):
+
+- **The gem term is live, and it is a diff target.** Player 1's
+  `rares_collected[44]` reads `{11, 13, 23, 27}`. The array runs over
+  resources **6–49** — the six below it are the base goods, which
+  `escrow[]`'s six entries confirm independently — so offset by six the
+  four are Amber, Tobacco, **Gems**, Wool. What settles the indexing is
+  that a `BEGIN GOOD` record names its resource in words: the start dump's
+  35 goods are Oil ×14, Fish ×12, then one each of Amber, Dye, Tobacco,
+  Cotton, Wool, **Gems**, Citrus, Aluminum, Rubber. All four offset-6
+  readings are on this map and none of the offset-0 readings (Silk, Salt,
+  Bison, Sugar) is. So territory at 23,999 — player 0 at 266, player 1 at
+  568 — is wrong here without the gem addition. *How much* it adds is not
+  established: one frame cannot separate the flat additions, and the
+  falsifier is a capture either side of the Merchant reaching the Gems.
+- **The two building terms are blocked at their prerequisite**, which is
+  stronger than "did not fire": at 23,999 player 1 holds 27 buildings and
+  player 0 five, with no Temple (437), no Fort (443), no Fortress (445),
+  and `fort_mark 0` — so `has_preq(TEMPLEBORDERS2..4)` and
+  `has_preq(FORTBORDERS2..4)` (bonus types `0x2c8..0x2ca` and
+  `0x2d1..0x2d3`, which the loader reads as `bonus_preqs` and does not
+  expose) cannot be true in this game at all. The Colosseum and Eiffel
+  terms are *reachable* — player 1 built the Pyramids, so the AI does
+  build wonders here — and simply are not reached by 24,000.
+- **The handicap is zero by the lobby**, not by chance: `handicap 0` on
+  both players at Great Lakes 23,999 and 779 and at East Indies 5,379, and
+  `(handicap + 15) / 25` is 0 there. It has been inert in every capture
+  ever taken and stays inert until a stanza changes the lobby difficulty —
+  a click, not a longer wait, and the only one of the four a capture alone
+  could still reach.
 
 ### Distance is not Euclidean, and this matters
 
