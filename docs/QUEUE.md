@@ -36,7 +36,7 @@ East Indies **7448 unmoved**, but 241 found its cause.*
   restarting `ccc watch` blinds it.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w7448 of 24,000 · GreatLakes w6994 of 24,000
+Long captures: EastIndies w7448 of 24,000 · GreatLakes w7176 of 24,000
 
 **Opener: commander on Opus (DECISIONS 34). Nothing is running — both
 repo slots and the screen are free.**

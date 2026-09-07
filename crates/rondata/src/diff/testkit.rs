@@ -729,7 +729,28 @@ pub(crate) const LONG_WORD_EAST_INDIES: i64 = 7448;
 /// original is still in `Leader::make_stuff+0x221`: the AI buys a
 /// building here that the original does not — the same shape as the
 /// 6782 row above, and an economy question rather than a movement one.
-pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 6994;
+///
+/// **6994** was the second squad's own order, and it was neither the
+/// marching Archers' path nor `come_out`: `Unit::add_to_army@005f7740`
+/// walks a joiner to the army's first member, and this crate never
+/// issued that walk (item 250, `docs/ARMY.md` §4.3).
+///
+/// **7176** is where it stands: at draw 93 of ninety-seven the original
+/// is in `Guy::set_anim+0x97a < Unit::do_idle+0x7d` and this crate in
+/// `Guy::set_anim+0x97a < Guy::inc_time+0x271` — a unit going idle
+/// there that does not here.
+pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 7176;
+
+/// The frame Great Lakes' **second** squad joins the army on — 6994, the
+/// word's own parting from 2026-09-06 to 2026-09-07 and now a landed
+/// mechanic rather than a score. Two tests are written about the event
+/// and not about the headline, so they name this rather than
+/// [`LONG_WORD_GREAT_LAKES`], which has moved past it:
+/// `run84_says_great_lakes_6994_belongs_to_the_second_squad` (the
+/// original's record) and
+/// `great_lakes_6994_issues_the_second_squad_s_walk_to_the_army` (this
+/// crate's answer to it). `docs/ARMY.md` §4.3 and §16.7.
+pub(crate) const GREAT_LAKES_SECOND_SQUAD: i64 = 6994;
 
 /// The frame the AI's library takes its **Coinage** job on, and the
 /// frame run58's `QUEUE` record used to part on: twenty-four rows of

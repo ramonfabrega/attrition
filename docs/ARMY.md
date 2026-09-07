@@ -422,6 +422,95 @@ member calls `do_move`; in the original only the *leader* does and the
 followers take `move_step`. So the word is still 6650, and what stands
 there now is `Unit::do_group_move` rather than the missing order.
 
+### 4.3 The walk to the army — `go_to_unit` and `go_to` (2026-09-07)
+
+`add_to_army` is not only a join. Between picking the army and adding the
+unit it **orders the newcomer to walk to the army's first member**, and
+that limb is the whole of Great Lakes 6994 (§16.7).
+
+```
+army = find_army / find_army(0x2400) / find_local_army   # §4, unchanged
+if none: army = init_army(nearest friendly city); goto ADD   # 005f7891
+normalize()
+if num_units != 0:
+    u0 = get_unit(0)                                      # ArmyData::get_unit@006f9df0
+    if u0 >= 0 and objects[who][u0].is_active(): go_to_unit(this, u0, who)
+ADD: add_unit(army, this.o)
+```
+
+`get_unit(k)` walks `list` in order, skips a building group, and takes the
+`k`-th entry of the groups' own member arrays — so `get_unit(0)` is the
+**first unit that ever joined**, not `find_leader`'s pick and nothing on
+the muster record. Note the seeded arm's `goto`: an army the unit itself
+creates has no first member and issues no walk, which is why run53's
+*first* squad (frame 6612, §4.2) spends nothing and its second does.
+
+**`Unit::go_to_unit(o, who)@005f78c0`** — the listing `5f78c0`–`5f79b3`,
+because the decompiler loses both `vector_dist` arguments:
+
+```
+c = get_captain()                                   # this.o when o_up < 0
+while c >= 0: units[who][c].unit_masks |= 4; c = units[who][c].o_down
+d = vector_dist(target.x − this.x, target.y − this.y)      # 5f7987–5f7991
+if d > 0x480: go_to(this, target.x, target.y, ATTACK_TO, 0, 0x300)
+```
+
+The mask walk runs whatever the distance says. `unit_masks & 4` is
+`docs/GROUPS.md` §6.6 step 6's "no `GroupMoveOrder`" bit, so a squad sent
+this way marches as plain move orders rather than as a formation — and
+run84's `1/31`, `1/32` and `1/33` all carry the bit at 6995 while their
+orders are plain `ATTACKTOORDER`/`MOVEORDER` records, which is what names
+this function rather than any other writer of it.
+
+**`Unit::go_to(x, y, orders, min, max)@005f7a50`** — the listing
+`5f7a50`–`5f7b21` for the argument order:
+
+```
+if find_nearby_spot(type, x, y, &x, &y, min, max, step 0, angle 0x55555555,
+                    FILTER_NOT_ME, this.o, this.who, 0, uber 1, -1, 0, -1) == 0:
+    g = Group(); g.add(this.o, this.who, 0, 0)
+    slot = push_group(who, g, force 1)
+    action_move_to(groups[slot], x, y, QUEUE_NEW, set_angle 0, angle 0,
+                   orders, action 0, form −1, width −1, disembark 0)
+```
+
+A refusal issues **nothing at all**. `Group::add` on a captain takes the
+whole squad (`docs/GROUPS.md` §4.1), so one call moves three figures; the
+bias angle is a third of a turn and the rings are an eighth of the span
+apart, `min` and `max` being 0 and `0x300`; and because `set_angle` and
+`angle` are both 0 the heading is `action_move_near`'s own.
+
+**`uber_unit = 1` is load-bearing**, and it is what a first
+implementation gets wrong (`docs/ORDERS.md` §10): it grows the collision
+block to `block_radius + ((uber_size − 1) × guy_spacing) / 2 + 0x30`, and
+it leaves `bVar17` clear, so the sweep asks `find_unit_with_radius` and
+`find_unit_ordered_with_radius` rather than the pairwise pair. Without it
+the ring at 192 answers where the original walks out to 288 and the
+anchor lands two tiles off — **with the draw stream unchanged**, which is
+exactly the kind of error only a coordinate diff catches.
+
+**Great Lakes 6994, end to end.** `1/31`–`1/33` are born on 6993 and
+placed by `come_out`; on 6994 the captain's first idle frame takes
+`think`'s step 3 into `think_attack` (§4.2), `add_to_army` finds army 1 —
+already holding the marching squad — and walks it to `1/27`. The sweep
+answers `(41352, 22920)` — the ring at 288, its `k = 0` bearing, and
+nothing to do with the army's own destination `(36312, 23352)`; the
+formation lays the other
+two either side at `(41256, 23016)` and `(41448, 22824)` on one heading;
+`Army::add_unit` then moves all three from their `come_out` group into the
+marching squad's. `1/32` and `1/33` are stepped later in the same frame
+and each pays `do_move`'s grid roll; `1/31`, whose turn the order spent,
+pays its own on 6995. Those are 6994's two draws and 6995's one.
+
+**What is diff-backed.** `great_lakes_6994_issues_the_second_squad_s_walk_
+to_the_army` reproduces all three destinations, the shared heading and the
+order index against run84's own block, and leaves the marching squad's
+order point where the original leaves it. The mask walk, the `0x480`
+threshold and the `MOVE_TO` arm of `go_to` are read and not run: no
+capture on disk holds a joiner nearer than `0x480` to `get_unit(0)`, and
+`go_to`'s only other caller, `Unit::go_to_city@005f79c0`, is
+`think_attack`'s tail and is not modelled here (§4.2).
+
 ## 5. The frame hook and the cadence
 
 **`Game::do_frame@00591ef0:272`**: after `Leaders::strategy_all` and
@@ -1371,24 +1460,37 @@ was not a group order over all six.
 So the seam is an **order this crate never issues**, not a pathfinder that
 refuses a line this crate accepts. The membership is already right: by the
 end of 6994 this simulation has all six in one army (§4), which is what
-makes the gap an order rather than a bookkeeping bug. What is missing is
-whatever gives a newly produced unit its own move — `Unit::come_out@00617c10`
-is the candidate, one of the five callers of `Group::action_move_to@0070fba0`
-outside the army and the scenario layer, and §4.1 models only its `add_to_army`
-tail. Two details the successor has to reproduce and this section does not
-explain: the anchor `(41352, 22920)` — near the marching squad, not at its
-centre of gravity — and why `1/31` comes out on tile waypoints (tolerance
-384) while `1/32` and `1/33` come out on the fine grid (96).
+makes the gap an order rather than a bookkeeping bug.
+
+~~What is missing is whatever gives a newly produced unit its own move —
+`Unit::come_out@00617c10` is the candidate.~~ **It is not `come_out`, and
+the three questions this section left open are §4.3's** (2026-09-07, item
+250). `come_out` places the squad on 6993 and gives it its group; the
+order is `Unit::add_to_army@005f7740`'s own middle limb on 6994, which
+walks a joiner to `ArmyData::get_unit(0)` — the army's first member,
+`1/27`. So the **anchor** is `find_nearby_spot`'s answer around `1/27`
+rather than any point on the army record; the **heading** is
+`action_move_near`'s own, `go_to` passing `set_angle 0`; and the two
+**tolerances** are one planner and not two — `1/31` still carries the
+tile-grid stack `action_move_near` planned, while `1/32` and `1/33` were
+stepped later in the same frame, had their straight line refused, and
+re-planned on the fine grid inside `do_move`. That is also why two of the
+three draws fall on 6994 and the third on 6995.
 
 Pinned by `run84_says_great_lakes_6994_belongs_to_the_second_squad` and by
-run53's own membership row (§17).
+run53's own membership row (§17); the crate's answer to it — the same
+three destinations, the same heading, the marching squad untouched — is
+`great_lakes_6994_issues_the_second_squad_s_walk_to_the_army`. The word
+went to **7176** with the limb in.
 
 ## 17. What the simulation carries, and what checks it
 
 `crates/sim/src/army.rs`: the record and the pool (§2 — `init_army`'s
 slot rule and eviction, `Army::init`'s muster cell from the city, `close`),
 the counts as a function of the groups' units (§3.3), `add_to_army`'s
-army choice and `find_army` / `find_local_army` / `find_useful_army` /
+army choice **and its walk to `get_unit(0)`** — `army_get_unit`,
+`go_to_unit`, `go_to` and `find_nearby_spot_squad` (§4.3) — plus
+`find_army` / `find_local_army` / `find_useful_army` /
 `find_aggressive_army` / `num_armies` (§15) over the sim's own units, the
 cadence (§5), the tick's disband / merge / muster-midpoint / status
 normalisation (§6), `release_mustering` and `do_mustering`'s table (§7),
@@ -1479,11 +1581,22 @@ Checks, cheapest first (`rondata::diff`, `army_tests`):
 - ~~**The `combat` average's field.**~~ `sea_combat`, from the listing's
   base register (B.20, §12) — the first reading's own "settlement" was the
   error.
-- **The order a newly produced unit comes out with** (§16.7). `come_out`'s
-  army coin is modelled (§4.1) and its `Group::action_move_to` is not, so a
-  squad this crate leaves standing is marching in the original — Great Lakes
-  6994, and the headline. *Capture:* none owed; run84 already carries the
-  three orders, their anchor and their planners.
+- ~~**The order a newly produced unit comes out with** (§16.7).~~ Not
+  `come_out` at all: `add_to_army`'s walk to the army's first member,
+  built 2026-09-07 (§4.3), and the word went 6994 → 7176. `come_out`'s
+  own three `Group::action_move_to` sites remain unmodelled and unreached
+  — the trained squad's **group** does come out of `come_out` (its
+  `Group::add` + `Groups::push_group` pair, guarded by the type's squad
+  size) and its **order** does not, which is what run84's block 6994
+  shows: group 66 already set, no order yet. Left from the build:
+  - `go_to_unit`'s `0x480` threshold and `go_to`'s `MOVE_TO` arm are read
+    and never run — every joiner on disk is further than `0x480` from
+    `get_unit(0)` and every walk is an `ATTACK_TO`. *Capture:* a joiner
+    born beside its army, which a Barracks next to a mustering squad
+    would give;
+  - `go_to` has exactly two callers in the export, `go_to_unit` and
+    `Unit::go_to_city@005f79c0`, and the second is `think_attack`'s tail
+    (§4.2) — unmodelled here, so `go_to` has one caller in this crate.
 - **`find_city`'s index in `do_defending`** (A.73): the search returns a
   per-leader city index and `do_defending` resolves it against the army
   owner's list; whether `SEARCH_FRIENDLY` can hand back an ally's index is

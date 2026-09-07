@@ -577,11 +577,16 @@ pub enum Coll {
     /// `FILTER_NOT_ME` / `FILTER_CAN_COLLIDE` with a real `(o, who)` and no
     /// squad — every build, repair, gather, garrison, idle and stable site:
     /// `Objects::find_collision` and then `find_ordered_collision`.
+    ///
+    /// A **squad** placement wears the same name and takes the other path:
+    /// [`Sim::find_nearby_spot_squad`] passes `uber = 1`, and the
+    /// original's `bVar17` is written only in the arm `uber_unit != 0`
+    /// jumps over (`61df3e`).
     Pairwise,
     /// Accept any passable candidate. The original's `nocoll != 0`, and —
-    /// as a stated seam — its **general** path too: `FILTER_ALL` and a
-    /// squad placement go through `ObjectsData::find_unit_with_radius`,
-    /// whose `big_radius + r_coll` circle this crate does not model.
+    /// as a stated seam — its `FILTER_ALL` general path, whose
+    /// `big_radius + r_coll` circle is modelled only for the two forms
+    /// that reach it here (the `(-1, -1)` cast and the squad).
     None,
 }
 
@@ -3255,6 +3260,37 @@ impl Sim {
             angle,
             footprint_of,
             coll,
+            false,
+        )
+    }
+
+    /// The same sweep with the original's **`uber_unit`** argument set —
+    /// `Unit::go_to@005f7a50`'s call, and the only one in this crate
+    /// (`docs/ARMY.md` §4.3).
+    ///
+    /// A squad placement changes two things at once (`docs/ORDERS.md`
+    /// §10): the collision block grows by half the formation's span, and
+    /// the pairwise pair is not asked at all — the general radius query
+    /// and its ordered twin are.
+    pub fn find_nearby_spot_squad(
+        &self,
+        u: usize,
+        centre: Pos,
+        min: i32,
+        max: i32,
+        step: i32,
+        angle: Angle,
+    ) -> Option<Pos> {
+        self.spot_sweep(
+            Seeker::Unit(u),
+            centre,
+            min,
+            max,
+            step,
+            angle,
+            None,
+            Coll::Pairwise,
+            true,
         )
     }
 
@@ -3283,6 +3319,7 @@ impl Sim {
             angle,
             None,
             Coll::Pairwise,
+            false,
         )
     }
 
@@ -3297,6 +3334,7 @@ impl Sim {
         angle: Angle,
         footprint_of: Option<usize>,
         coll: Coll,
+        uber: bool,
     ) -> Option<Pos> {
         let p = match who {
             Seeker::Unit(u) => self.profile(Obj::Unit(u)),
@@ -3328,6 +3366,12 @@ impl Sim {
         } else {
             step
         };
+        // **The squad's own collision radius** (`61df42`–`61df58`): with
+        // `uber_unit != 0` the block the general query is asked with is
+        // `block_radius + ((uber_size − 1) × guy_spacing) / 2 + 0x30` —
+        // half the formation's own span plus a quarter-tile, so a squad
+        // asks for the room it will actually stand in.
+        let uber_r = p.block_radius + ((p.uber_size - 1) * p.guy_spacing) / 2 + 0x30;
         let farm_ok = footprint_of.is_some_and(|b| self.building_ident(b) == Ident::Farm)
             && matches!(who, Seeker::Unit(u) if self.worker_of(u) == Worker::Citizen);
         let air = matches!(p.domain, crate::attrition::Domain::Air);
@@ -3399,11 +3443,39 @@ impl Sim {
                 // unit is standing on — or has already been sent to — is
                 // taken.
                 let hit = coll == Coll::Pairwise
-                    && match who {
-                        Seeker::Unit(u) => {
+                    && match (uber, who) {
+                        // **A squad placement never takes the pairwise
+                        // pair.** `bVar17` — the flag that selects
+                        // `find_collision` plus `find_ordered_collision` —
+                        // is written only in the arm `uber_unit != 0`
+                        // jumps over (`61df3e`, the write at
+                        // `61df5f`–`61df7c`), so a squad goes down the general
+                        // path whatever its filter says: one radius query
+                        // against every player's positions, and, because
+                        // `not_who` is a real player here, the *ordered*
+                        // one beside it.
+                        (true, _) => {
+                            let exempt = match who {
+                                Seeker::Unit(u) => Some(u),
+                                Seeker::Type(_) => None,
+                            };
+                            self.find_unit_with_radius(uber_r, c, exempt)
+                                || match who {
+                                    Seeker::Unit(u) => self.find_unit_ordered_with_radius(
+                                        uber_r,
+                                        c,
+                                        self.units[u].owner,
+                                        exempt,
+                                    ),
+                                    Seeker::Type(_) => false,
+                                }
+                        }
+                        (false, Seeker::Unit(u)) => {
                             self.find_collision(u, c) || self.find_ordered_collision(u, c)
                         }
-                        Seeker::Type(_) => self.find_unit_with_radius(p.block_radius, c),
+                        (false, Seeker::Type(_)) => {
+                            self.find_unit_with_radius(p.block_radius, c, None)
+                        }
                     };
                 if hit {
                     continue;

@@ -170,7 +170,7 @@ impl Sim {
     /// drags every other player's `o`-th unit into its squad — Gaia's
     /// animals included, which is how the first trained citizen to go
     /// through here put a herd inside London.
-    fn squad_of(&self, captain: usize) -> Vec<usize> {
+    pub(crate) fn squad_of(&self, captain: usize) -> Vec<usize> {
         let (c, who) = (
             self.units[captain].combat.captain,
             self.units[captain].owner,
@@ -183,7 +183,7 @@ impl Sim {
             .collect()
     }
 
-    fn captain_of(&self, unit: usize) -> usize {
+    pub(crate) fn captain_of(&self, unit: usize) -> usize {
         let (c, who) = (self.units[unit].combat.captain, self.units[unit].owner);
         self.units
             .iter()

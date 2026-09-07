@@ -847,13 +847,60 @@ impl Sim {
     /// fewer cells than the game has units; this takes the second, which
     /// answers the same because the predicate's reach — a block plus a
     /// block, under 400 units — never leaves the disc.
-    pub(crate) fn find_unit_with_radius(&self, r_coll: i32, at: Pos) -> bool {
+    ///
+    /// `exempt` is `FILTER_NOT_ME`'s `not_o`, which the `(-1, -1)` form
+    /// has none of and a squad placement (`docs/ARMY.md` §4.3) does.
+    pub(crate) fn find_unit_with_radius(
+        &self,
+        r_coll: i32,
+        at: Pos,
+        exempt: Option<usize>,
+    ) -> bool {
         (0..self.units.len()).any(|o| {
             let u = &self.units[o];
-            u.owner < 8
+            Some(o) != exempt
+                && u.owner < 8
                 && u.alive()
                 && u.on_map
                 && crate::world::vector_dist(at.x - u.pos.x, at.y - u.pos.y)
+                    <= self.profile(Obj::Unit(o)).big_radius + r_coll
+        })
+    }
+
+    /// `ObjectsData::find_unit_ordered_with_radius(x, y, who, r_coll, ·,
+    /// filter, not_o, not_who)@00658ef0` — the *ordered* twin of
+    /// [`Sim::find_unit_with_radius`], and the second half of the general
+    /// path `find_nearby_spot` takes for a **squad** placement
+    /// (`docs/ORDERS.md` §10).
+    ///
+    /// It walks one player's own array — `param_3` is the sweep's
+    /// `not_who` — and looks only at units whose current order is one of
+    /// the seven that walk somewhere: `MOVE_TO`, `ATTACK_TO`,
+    /// `EXPLORE_TO`, `FLEE_TO`, `CHANGE_FORM`, `GROUP_MOVE`,
+    /// `GROUP_ATTACK_TO` (`658fad`–`658fce`). The predicate is the same
+    /// disc as the position query and against the same `big_radius`
+    /// (`659002`), but measured to the unit's `orders_x/orders_y`
+    /// (`658fdc`): a spot one of my own units is already walking to is
+    /// taken.
+    pub(crate) fn find_unit_ordered_with_radius(
+        &self,
+        r_coll: i32,
+        at: Pos,
+        who: crate::Player,
+        exempt: Option<usize>,
+    ) -> bool {
+        (0..self.units.len()).any(|o| {
+            let u = &self.units[o];
+            if Some(o) == exempt || u.owner != who || !u.alive() {
+                return false;
+            }
+            // The seven `MoveOrder` kinds, which `orders::index` already
+            // names as the move family.
+            let walking = self
+                .current_order(o)
+                .is_some_and(|od| crate::orders::index::is_move_family(od.index()));
+            walking
+                && crate::world::vector_dist(at.x - u.orders_pos.x, at.y - u.orders_pos.y)
                     <= self.profile(Obj::Unit(o)).big_radius + r_coll
         })
     }
