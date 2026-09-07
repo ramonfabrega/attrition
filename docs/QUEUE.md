@@ -12,36 +12,36 @@ each section's non-item prose pinned and falling only.
 
 ## Where things stand
 
-*2026-09-07, Opus commanding (DECISIONS 34) — one item, no word, and a
-widening did the whole diagnosis in twenty minutes.*
+*2026-09-07, the eighth steer (Fable, with the user) — no word moved; the
+ratchet is reverted, 266 is resolved, and the loop resumes at width two.*
 
-- **The run-up is clean to 7315 and the word holds at 7455** (267): the
-  `1/35` row 264 named was never a step size. `unit_masks & 0x100000`, the
-  soft one-shot, is printed on every capture and was compared by nothing;
-  added, it disagreed on **one** of run87's 10,458 new rows and dated the
-  parting to 7252. The cause is the occupancy index, not a collision rule.
-- **Crossing a world cell repaints a unit's own disc** (COLLISION §2.3):
-  `remove_from_world`/`add_to_world` bracket `set_new_location`'s
-  coordinate write and both walk the bitmask, so a unit **on the march**
-  heals the holes its neighbours punch. §2.2's sixty-fourth frame asks
-  `avg_speed == 0` and never reaches one; its "a moving guy needs no
-  repaint" line was wrong and is struck in place.
-- **The ratchet fired and was re-pinned as a trade** (DECISIONS 26,
-  precedent 261/265): Great Lakes 24001 `off` 75 → 81, `unlinked` 2 → 0,
-  `extra` 0 → 4, `build_diverged` 14 → 13, all 16,546 frames past the word;
-  East Indies C `extra` 20 → 21. Whether the line may assert past the word
-  at all is **still 266's steer question**.
-- **The word's own cause is untouched**: 267's second row, the six-slot
-  assignment at the army's 7418 tick. run87 answers it from disk.
-  East Indies holds at 7529. (270) is the fourth ledger axis.
+- **The endpoint line is telemetry again** (DECISIONS 36). 258's
+  may-only-fall assertion was falsified by the first landing after it and
+  re-pinned upward three times in two days; the 09-01 rule stands —
+  assert up to the word, print past it. `endpoint.rs` now pins the counts
+  **exactly** and the handoff line must equal them: a move in either
+  direction is a one-line re-pin naming the item, and no trade is owed.
+- **266 was half stale, and the half that stands is entry 29's own rule.**
+  run87 covers Great Lakes 7244–7520, so the word's cause (267's second
+  row, the 7418 tick) is a diff. East Indies' coverage ends at run85's
+  7480 and the word is 7529, so the map is owed a capture: **`[7474,
+  7800)` at run85's detail**, six blocks over run85's tail, about ten
+  minutes and 200 MB. Batching ahead of the word waits on 260.
+- **The stopping rule fired correctly** at two after 264's reset and the
+  commander asked; it stands unchanged. What it caught was not drift but
+  a queue with nothing headline-nearest on disk — which the lane fixes.
+- **The commander spawns; it does not work items.** 267 was done in the
+  main thread and spent the commander's context (a clear owed). The
+  marked-row batch is empty; everything is merged, pushed and main level.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w7529 of 24,000 · GreatLakes w7455 of 24,000
-Endpoint 24001: EastIndies 80 off, 0 unlinked · GreatLakes 81 off, 0 unlinked
+Endpoint 24001: EastIndies 79 off, 0 unlinked · GreatLakes 81 off, 0 unlinked
 
-**Opener: commander on Opus (DECISIONS 34). 267 is still the item — its
-second row is what the word is made of and run87 is on disk, so it is a
-diff. Ask before booking a capture lane; 266 has not been steered.**
+**Opener: commander on Opus (DECISIONS 34), spawning — never working —
+two at once: a worker for 267's second row (Great Lakes' 7418 tick, ARMY
+§5, run87 on disk, a diff) and the East Indies capture lane above, booked
+here and needing no further ask. Then the backlog at width two.**
 
 ## The queue
 
@@ -52,7 +52,9 @@ unless a better order is obvious, and say so. Numbers are stable.
 260. **The parser goes lazy and the gate sub-GB** — `Log::parse` builds
     all 76.6 M fields of an 800 MB dump (235) where a test reads hundreds.
     Frame offsets in one pass, blocks on demand over a memory-mapped file,
-    whole-file scans (252) stream; the 230 tests are the oracle.
+    whole-file scans (252) stream; the 230 tests are the oracle. (266)
+    Batching captures ahead of the word waits on this: a capture is
+    sized to what the parser can hold, so a batch costs what it saves.
 
 226. **`cover=1` dies in the wow64 bop** (ORACLE), an x86 host the
     falsifier. (220) TECH §13's twenty range blocks. (209) **the
@@ -84,14 +86,6 @@ grouped order records no test windows** — run79's 453, run31's 945.
     assertions are the cheap half**; the limbs move no score (§4.7's
     turning types are in neither scored game). Takes the ledger's nine
     `unverified` rows on the way.
-
-266. **Both words are in capture gaps, so the score is single-threaded
-    through the screen.** Great Lakes 7455 is past run79's 7250, the only
-    archive with any block in 7200–7699; East Indies 7529 sits in the
-    3,200-frame hole between run82's 6929 and run77's 10150. Neither can
-    be advanced by a diff against anything on disk. **Batch the lane** —
-    one session, both maps' windows and their neighbours' overlap — rather
-    than one capture per item, and say what a batch costs. Steer-shaped.
 
 **The widening ledger** (87, DATALAYER §4, §4.1): **19** fields the
 harness names nowhere, **44** one capture names; blind spot `avg_speed`

@@ -5672,12 +5672,14 @@ waiting for the word to reach it.
 
 `rondata::diff::endpoint` walks the simulation to the frame each long capture
 quit on and compares the whole closing state against it — every unit, every
-building, every city. The two counts are the third scoreboard line, and they
-may only fall:
+building, every city. The two counts are the third scoreboard line, pinned
+exactly and asserted in no direction — the ratchet 258 booked was reverted
+the same evening (DECISIONS 36; the 09-01 rule, assert up to the word and
+print past it, stands):
 
 | map | capture | compared | **off** | **unlinked** | extra | torn | builds unlinked/diverged | cities |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| East Indies | run54 | 89 | **80** | **0** | 11 | 1 | 0 / 33 | 3 / 0 |
+| East Indies | run54 | 89 | **79** | **0** | 10 | 1 | 0 / 30 | 3 / 0 |
 | Great Lakes | run53 | 80 | **73** | **7** | 0 | 0 | 0 / 14 | 3 / 0 |
 
 The two maps are wrong in different shapes, which is the first thing the

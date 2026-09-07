@@ -1558,3 +1558,79 @@ wrong field, the same shape as their item 25.
 **The measure.** If the next tranche books items without anyone mentioning
 line counts, this worked. If a session is seen compressing an item it did
 not write, it did not.
+
+## 36. The endpoint is telemetry until the word reaches it, and the lane is owed by a rule that already exists
+
+**Decided 2026-09-07**, the eighth steer (Fable, with the user), opened by
+the commander under entry 34's stopping rule: five landings after 261 moved
+no word, and the commander asked instead of spawning. Overturns the
+assertion item 258 booked on the morning's steer; restores the 2026-09-01
+rule in `docs/ORACLE.md`'s run57 ratification; extends entry 29.
+
+**The ratchet is reverted.** The 09-01 pass *declined* a ratchet past the
+word on evidence — item 134 improved fidelity and the past-the-word totals
+moved both ways — and left the rule "assert up to the word, print past
+it". Item 258 overturned that on a booking, arguing that a count of units on
+the original's own tile cannot be made worse by making the simulation
+better. The first landing after it falsified the claim (261: Great Lakes
+`off` 73 → 75 while `unlinked` 7 → 2, on two value-diff-backed corrections),
+and the line was then re-pinned *upward* three times in two days — 261,
+265, 267 — every time on a mechanic the decompile owns, every time under a
+rule that said it may only fall. The number is measured 16,500 frames inside
+the divergence; a behavioural change at 6,751 re-deals every position after
+it, and `off` counts the deal. A count like that is monotone in fidelity
+only as the word approaches the frame it is measured on, and a guard whose
+failures teach number-editing is not a guard.
+
+What replaces it is an **exact pin, asserted in no direction**:
+`rondata::diff::endpoint` fails when a count moves either way, and the
+queue's `Endpoint` line must equal the pinned counts. A moved count is
+re-pinned with the item's number beside it and nothing more is owed — no
+trade under entry 26, no justification in the journal beyond the item's own
+story. That keeps the one thing the ratchet was buying, that the number is
+noticed and written down, and drops the ceremony. When a map's word reaches
+24,001 the pin becomes the finish line's own assertion, and it reads zero.
+
+**Item 266 resolves to entry 29's own rule.** It was booked when both words
+sat in capture gaps; run87 landed one commit later and covers Great Lakes
+7244–7520, so that map's word (7455) and its cause — the six-slot
+assignment at the army's 7418 tick, 267's second row — are a diff against
+disk. East Indies is the real gap: its coverage ends at run85's 7480 and
+its word is 7529, so by the rule entry 29 ratified — a map earns its next
+capture when its word crosses the newest one it has — the map is owed a
+lane, sized to the word with headroom: `[7474, 7800)` at run85's detail,
+six blocks over run85's tail, on run86/run87's precedent about ten minutes
+and 200 MB. The lane runs beside the worker under entry 34's standing
+exception. 266's other half, batching captures ahead of the word, is
+declined for now and its reason filed on item 260: every capture is sized
+to what `Log::parse` can hold, so the parser going lazy is what would make
+a batch cheaper than a capture per word.
+
+**The stopping rule stands.** It fired at two after 264's reset, exactly as
+written, and the commander asked. Entry 34's own measure was applied: the
+loop stopped for something real, not for nothing. What it caught was not a
+regression in the work — 264, 265 and 267 are each sound, and 267's
+widening found a never-compared bit of a word in twenty minutes — but a
+queue with no headline-nearest item reachable from disk, which is the
+lane's job to fix and the reason it runs beside the workers rather than
+instead of them.
+
+**One operating note for entry 34: the commander spawns; it does not work
+items.** 267 was done in the commander's own thread — 224 requests, nine
+tenths of them shell — on a handoff that read "commander on Opus", taken as
+naming the session's model rather than the loop. The item cost what a
+worker would have cost and left the commander's context spent and a clear
+owed. The opener now says "spawning — never working", and a handoff that
+names a model says which seat it names.
+
+**And the pin failed on its first run, in the direction the ratchet never
+looked.** East Indies' 24,001 counts were below their pins — `off` 80 → 79,
+`extra` 11 → 10, `build_diverged` 32 → 30 — and so was the 16,489 rung. The
+ratchet printed a fall to stderr, which a green `cargo test` captures and
+shows nobody, so the handoff's `Endpoint` line had been wrong for at least
+one landing. Re-pinned here; which landing moved them is not established.
+
+**The measure.** If the endpoint line moves in the next tranche and nobody
+writes more than the item's number beside the re-pin, the pin is doing what
+the ratchet could not. If East Indies' word moves on the lane's window,
+266 was the bottleneck it said it was.

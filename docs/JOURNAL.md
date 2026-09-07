@@ -18664,3 +18664,74 @@ tool §4.2 already asks for.
 Gate: 241 rondata release tests green at the pinned two threads, peak
 16,165 MiB of 20 GiB; 818 sim; `cargo clippy --all-targets` and
 `cargo fmt` clean; `rondata -- <install>` zero.
+
+## 2026-09-07 — the eighth steer: the ratchet reverted, item 266 resolved into the lane already owed, and the loop resumes (Fable)
+
+Opened by the user after the commander's own stop — Opus, asked whether the
+loop had "defaulted back" and "regressed", checked the facts and answered
+that the stopping rule had fired and Fable was overdue by `CLAUDE.md`'s own
+trigger. The pass is the charter's three questions, the three the commander
+left, and one thing the seat found.
+
+**Is the tranche real.** Yes, and it is the first since the first steer to
+move no word. Eight landings since the seventh steer: 258, the ledger
+(262/263), 261 (Great Lakes 7176 → **7455**), 233, 232, 264, 265, 267. Every
+branch is merged into `worktree-replan-pdb` and pushed; `rescue-234` is the
+only unmerged branch and it is a parked item. The marked-row batch is
+empty — every `FABLE:` marker in the tree is struck or a deliberate pointer,
+as the seventh steer found. Opus served every session (`lore sessions`).
+
+**Has the headline moved.** Once, on 261, and then five landings that did
+not — the run the stopping rule exists for, and the rule fired at two after
+264's reset. The commander stopped and asked instead of spawning, which is
+entry 34's measure met: it stopped for something real. What the five
+landings had in common was not weak work — 264's capture named the word's
+cause and 267's widening found a never-compared bit of `unit_masks` in
+twenty minutes — but that nothing headline-nearest was reachable from disk,
+which is item 266's observation and the lane's job.
+
+**The three questions the commander left, and the verdicts.**
+
+- **The endpoint ratchet is reverted** (DECISIONS 36). Item 258 booked the
+  24,001 counts as ceilings on the morning's steer; the first landing after
+  it moved Great Lakes' `off` up and its `unlinked` down on two
+  value-diff-backed corrections, and the line was re-pinned upward three
+  times in two days under a rule that said it may only fall. The 09-01
+  rule stands — assert up to the word, print past it — and what is left is
+  an exact pin asserted in no direction: `rondata::diff::endpoint`'s tests
+  are renamed `*_is_pinned`, fail on a move either way, and ask for a
+  re-pin naming the item and nothing more. `docs/ORACLE.md`'s endpoint
+  section says so beside its table.
+- **Item 266 is resolved, and it was half stale when it landed.** run87
+  arrived one commit after it and covers Great Lakes 7244–7520, so that
+  map's word and its cause are a diff against disk (267's second row).
+  East Indies is the gap that stands — coverage ends at run85's 7480, word
+  at 7529 — and entry 29's own rule already owes it a capture: `[7474,
+  7800)` at run85's detail, six blocks over run85's tail, on run86/run87's
+  numbers about ten minutes and 200 MB. Booked in the opener, to run
+  beside the 267 worker under entry 34's lane exception. Batching ahead of
+  the word is declined and its reason filed on 260: a capture is sized to
+  what the parser can hold.
+- **The stopping rule stands unchanged.** It fired at exactly two.
+
+**What the seat found.** The commander worked 267 itself — 224 requests,
+nine tenths of them shell, no spawn, a direct commit — on a handoff that
+read "commander on Opus" and was taken as naming the model. The item is
+sound; the cost was the commander's context and a clear owed. Entry 34
+takes the note, and the opener now says "spawning — never working".
+
+**The pin failed on its first run, and that is the finding.** East Indies'
+24,001 counts sat *below* their pins — `off` 80 → 79, `extra` 11 → 10,
+`build_diverged` 32 → 30 — and the 16,489 rung with them (51 → 50, 27 →
+26). The ratchet's "a fall prints" half printed to a stderr that a green
+`cargo test` captures, so the handoff's `Endpoint` line had been stale for
+at least one landing and nobody could have seen it. Re-pinned, with the
+landing that moved them left unestablished.
+
+**The score.** East Indies 7529, Great Lakes 7455, unchanged; the endpoint
+line re-read as 79/0 and 81/0. No word moved and the handoff says so.
+
+Gate: 241 rondata release tests green at the pinned two threads — 239 on
+the first full run plus the two `*_is_pinned` tests that failed it and pass
+re-pinned, peak 15,970 MiB of 20 GiB; 818 sim; `cargo clippy --all-targets`
+and `cargo fmt` clean; `rondata -- <install>` zero.

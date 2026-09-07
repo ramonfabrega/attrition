@@ -17,10 +17,11 @@
 //! frame the original quit on, and count the units it has somewhere else.
 //!
 //! That is what this module pins. [`ENDPOINTS`] is one row a map and every
-//! count in it is a **ceiling that may only fall** — the third scoreboard
-//! line. Unlike the word, which a wrong destination can sit under for two
-//! hundred frames (item 250), this is a coordinate comparison of every unit
-//! on the map, so it cannot be met by drawing the right number of times.
+//! count in it is **pinned exactly, in neither direction** — the third
+//! scoreboard line, printed past the word (see below). Unlike the word,
+//! which a wrong destination can sit under for two hundred frames (item
+//! 250), this is a coordinate comparison of every unit on the map, so it
+//! cannot be met by drawing the right number of times.
 //!
 //! # The archives are three East Indies games and one Great Lakes game
 //!
@@ -48,23 +49,30 @@
 //! run that was driven, so a click or a window opening is the obvious guess,
 //! and a guess is all it is.
 //!
-//! # Why the counts are ceilings and not equalities
+//! # Why the counts are pinned and not ratcheted
 //!
 //! The word parts at 7,455 and 7,529, so past that both sides run on streams
 //! that are nobody's and the endpoint is measured *deep* inside the
 //! divergence. The number is real — every unit of it is a coordinate the
 //! original wrote — but it is not one defect, and a change that fixes a
 //! mechanic can move it in either direction for reasons that have nothing to
-//! do with the mechanic. What a ceiling buys is the one direction that is
-//! always news: a change that makes the endpoint **worse** fails the gate,
-//! and a change that makes it better lands a smaller number here.
+//! do with the mechanic.
 //!
-//! This is the same argument `run53_s_24000_frames_put_the_ceiling_where_run33_did`
-//! makes for *not* pinning its own draw totals, and it comes out the other
-//! way for exactly one reason: those totals are a coincidence rate that
-//! moves with any unrelated change, and this is a count of units on the
-//! original's own tile. Coincidence does not put a unit on a tile 24,000
-//! frames in.
+//! Item 258 booked these counts as ceilings that may only fall, on the
+//! argument that coincidence does not put a unit on a tile 24,000 frames in.
+//! The first landing after it (261) raised Great Lakes' `off` while lowering
+//! its `unlinked`, on two value-diff-backed corrections, and the line was
+//! re-pinned upward three times in two days (261, 265, 267), each time on a
+//! mechanic the decompile owns. A behavioural change at 6,751 re-deals every
+//! position downstream of it and `off` counts the deal; the count is
+//! monotone in fidelity only as the word approaches the frame it is measured
+//! on. So the 2026-09-01 rule stands — **assert up to the word, print past
+//! it** — and the ratchet is reverted (`docs/DECISIONS.md` entry 36). What
+//! is left is an exact pin: a count that moves in *either* direction fails
+//! here and is re-pinned with the item's number and nothing more owed, so
+//! the number is noticed and written down, and no direction is claimed. When
+//! a map's word reaches 24,001 the pin is the finish line's own assertion,
+//! and it reads zero.
 //!
 //! # What it costs, measured
 //!
@@ -109,10 +117,10 @@ use std::collections::BTreeMap;
 /// one-based label the original writes on the way out.
 pub const ENDPOINT_FRAME: i64 = 24_001;
 
-/// One closing dump this crate is scored against, and every count that may
-/// only fall.
+/// One closing dump this crate is scored against, and every count of it,
+/// pinned exactly.
 ///
-/// The scoring tests assert `<=` on each field rather than their own
+/// The scoring tests assert equality on each field rather than their own
 /// literals, and the queue's handoff states the two headline counts on an
 /// `Endpoint:` line that [`ENDPOINTS`]' own test parses — so a count that
 /// moves without the handoff, or a handoff written off a run that is not
@@ -197,14 +205,19 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         map_lists: (41, 66),
         setup: EAST_INDIES_SETUP,
         siblings: &["run21-islands-long", "run23-islands-war"],
-        off: 80,
+        // 80 → 79, 11 → 10 and 32 → 30 on 2026-09-07, the eighth steer
+        // (DECISIONS 36): the ratchet let falls go unrecorded — its
+        // IMPROVED line went to a captured stderr — and the exact pin found
+        // them on its first run. Which landing made them is not established;
+        // 267's repaint is the only one since 265's re-pin.
+        off: 79,
         unlinked: 0,
-        extra: 11,
+        extra: 10,
         build_unlinked: 0,
         // 33 → 32 on 2026-09-07, item 265: `CityData::free` is a byte that
         // wraps, and the AI reading 255 where it read −1 takes one building
         // field-row off the diverging list.
-        build_diverged: 32,
+        build_diverged: 30,
         city_unlinked: 3,
         city_diverged: 0,
     },
@@ -283,14 +296,15 @@ pub const LADDER: [Endpoint; 2] = [
         map_lists: (41, 66),
         setup: EAST_INDIES_SETUP,
         siblings: &[],
-        off: 51,
+        off: 50,
         unlinked: 16,
         // 19 → 33 on 2026-09-07, item 261, the same reshuffle, then 33 →
         // **27** the same day on item 265's byte — this rung took the
         // structural half of that trade and none of the positional one.
-        // `off` fell 51 → 50 on 261's run and is left pinned at 51 until a
-        // session means the tighter number.
-        extra: 27,
+        // `off` fell 51 → 50 on 261's run and was left pinned at 51; the
+        // exact pin of the eighth steer (DECISIONS 36) took it, and 27 → 26
+        // with it, on its first run.
+        extra: 26,
         build_unlinked: 19,
         build_diverged: 0,
         city_unlinked: 4,
@@ -323,7 +337,7 @@ pub struct EndpointResult {
 }
 
 impl EndpointResult {
-    /// The counts in [`Endpoint`]'s own order, for the `<=` comparison and
+    /// The counts in [`Endpoint`]'s own order, for the comparison and
     /// the failure message.
     pub fn counts(&self) -> [usize; 7] {
         [
@@ -339,7 +353,7 @@ impl EndpointResult {
 }
 
 impl Endpoint {
-    /// The pinned ceilings, in [`EndpointResult::counts`]' order.
+    /// The pinned counts, in [`EndpointResult::counts`]' order.
     pub fn counts(&self) -> [usize; 7] {
         [
             self.off,
@@ -564,103 +578,69 @@ mod tests {
         Some(r)
     }
 
-    /// The `<=` against the pinned row, count by count.
+    /// The equality against the pinned row, count by count.
     ///
-    /// **A rise fails; a fall prints.** The asymmetry is deliberate and it
-    /// is not the default here: the 2026-09-01 steering pass *declined* a
-    /// ratchet on run57's past-the-word collision total, because item 134
-    /// had just made that total fall while improving fidelity, and a
-    /// two-sided pin on a number like that trains number-editing. The
-    /// standing rule it left is "assert up to the word, print past it".
-    ///
-    /// This is past the word and asserted anyway, on the 2026-09-07 steer's
-    /// booking, and the difference is what the number counts. run57's is a
-    /// *coincidence rate* — how many of two wandering streams' field-frames
-    /// happen to agree — and it moves with any change at all. This is how
-    /// many units of the original's own map this crate has somewhere else
-    /// on a fixed frame, and there is no way to make that worse by making
-    /// the simulation better. So the rise is asserted, and the fall is left
-    /// to print, which costs a session nothing and keeps the pin honest.
-    ///
-    /// **That last claim was falsified the same day, by the first item to
-    /// land after it** (261, `docs/JOURNAL.md` 2026-09-07). Two corrections
-    /// each backed by a value diff on the frame they act — `is_captain` is
-    /// `o_up < 0`, and Tobacco's re-bake gives the Tower `constr_time`
-    /// 90,909 — moved the Great Lakes word 7176 → 7455 and moved this
-    /// endpoint's `off` **73 → 75**, while its `unlinked` fell 7 → 2.
-    ///
-    /// The reason is the horizon, not the metric's shape. At 24,001 the two
-    /// simulations parted 16,500 frames ago, so which unit sits on which
-    /// tile is dominated by accumulated reshuffle: a behavioural change at
-    /// 6751 re-deals every position downstream of it, and `off` counts the
-    /// deal. The number becomes monotone in fidelity only as the word
-    /// approaches the frame it is measured on. Until then a re-pin after a
-    /// diff-backed gain is routine and means nothing is wrong — which is
-    /// exactly what "assert up to the word, print past it" was protecting
-    /// against, and why whether these two should assert at all is a
-    /// question for the next steer rather than a settled thing.
-    fn ratchet(row: &Endpoint, r: &EndpointResult) {
+    /// **Either direction fails, and neither is a verdict.** Item 258 made
+    /// this a `<=` — a rise failed, a fall printed — on the claim that there
+    /// is no way to make the endpoint worse by making the simulation better.
+    /// The first landing after it (261) did exactly that, and the line was
+    /// re-pinned upward three times in two days; the module header and
+    /// `docs/DECISIONS.md` entry 36 have the reasoning. The 2026-09-01 rule
+    /// stands: assert up to the word, print past it. This is past the word,
+    /// so what is asserted is only that the pinned number is the measured
+    /// one — a moved count is noticed and written down, in
+    /// `ENDPOINTS`/`LADDER` and on the queue's `Endpoint` line together,
+    /// with the item's number beside it, and nothing more is owed.
+    fn pinned(row: &Endpoint, r: &EndpointResult) {
         let got = r.counts();
         let want = row.counts();
-        let risen: Vec<String> = (0..got.len())
-            .filter(|&i| got[i] > want[i])
-            .map(|i| format!("{} {} > {}", COUNT_NAMES[i], got[i], want[i]))
+        let moved: Vec<String> = (0..got.len())
+            .filter(|&i| got[i] != want[i])
+            .map(|i| format!("{} {} (pinned {})", COUNT_NAMES[i], got[i], want[i]))
             .collect();
         assert!(
-            risen.is_empty(),
-            "{}'s endpoint at {} got worse: {}. This is the third scoreboard \
-             line and it may only fall (item 258). If the rise is a deliberate \
-             trade, re-pin `ENDPOINTS`/`LADDER` and the queue's `Endpoint:` \
-             line together, with the reason in the journal.\n  off {:?}\n  \
-             unlinked {:?}\n  extra {:?}",
+            moved.is_empty(),
+            "{}'s endpoint at {} moved: {}. This is the third scoreboard line, \
+             pinned exactly and asserted in no direction (DECISIONS 36): re-pin \
+             `ENDPOINTS`/`LADDER` and the queue's `Endpoint` line together, \
+             naming the item.
+  off {:?}
+  unlinked {:?}
+  extra {:?}",
             row.map,
             row.frame,
-            risen.join(", "),
+            moved.join(", "),
             r.off,
             r.unlinked,
             r.extra,
         );
-        let fallen: Vec<String> = (0..got.len())
-            .filter(|&i| got[i] < want[i])
-            .map(|i| format!("{} {} < {}", COUNT_NAMES[i], got[i], want[i]))
-            .collect();
-        if !fallen.is_empty() {
-            eprintln!(
-                "  {}'s endpoint at {} IMPROVED: {} — re-pin `ENDPOINTS`/`LADDER`, \
-                 and the queue's `Endpoint:` line beside it if `off` or \
-                 `unlinked` moved",
-                row.map,
-                row.frame,
-                fallen.join(", "),
-            );
-        }
     }
 
     /// **East Indies at 24,001** — the finish line's own frame, every unit,
     /// every building, every city, against run54's closing dump and its two
     /// siblings' agreement that the record is the game's.
     #[test]
-    fn east_indies_endpoint_may_only_fall() {
+    fn east_indies_endpoint_is_pinned() {
         let row = &ENDPOINTS[0];
         let Some(r) = score(row) else { return };
-        ratchet(row, &r);
+        pinned(row, &r);
     }
 
     /// **Great Lakes at 24,001**, the same, against run53's.
     #[test]
-    fn great_lakes_endpoint_may_only_fall() {
+    fn great_lakes_endpoint_is_pinned() {
         let row = &ENDPOINTS[1];
         let Some(r) = score(row) else { return };
-        ratchet(row, &r);
+        pinned(row, &r);
     }
 
     /// **The two rungs under the endpoint**, each its own game and its own
     /// walk (see the module header): run28's 15,401 and run24's 16,489.
     #[test]
-    fn the_east_indies_ladder_may_only_fall() {
+    fn the_east_indies_ladder_is_pinned() {
         for row in &LADDER {
             let Some(r) = score(row) else { return };
-            ratchet(row, &r);
+            pinned(row, &r);
         }
     }
 
@@ -862,7 +842,7 @@ mod tests {
     /// for the other two lines.
     ///
     /// Only `off` and `unlinked` are on the line. The other five counts are
-    /// pinned in [`ENDPOINTS`] and guarded by the same ratchet; putting all
+    /// pinned in [`ENDPOINTS`] and held by the same pin; putting all
     /// seven in the handoff would cost four lines of a section bounded at
     /// thirty-two to say what one failure message says better.
     #[test]
