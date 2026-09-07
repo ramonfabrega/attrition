@@ -823,7 +823,7 @@ impl Sim {
         // `facing 1` and mirrors (§6.3, §12.3).
         let facing = self.group_facing(g);
         let reverse = facing != self.group_leader_faces_away(g, angle);
-        let slots = self.form_compute(
+        let mut slots = self.form_compute(
             g,
             to,
             angle,
@@ -833,6 +833,28 @@ impl Sim {
             false,
             &self.group_angles(g),
         );
+        // §6.3's **second** test, and it is not a mirror: with the angle
+        // supplied — every army call — `compute_form` measures its own
+        // `find_angle(dest − group_loc)` against it, and when the two are
+        // `90°` or more apart the tail negates every member's offsets on
+        // both the `Form` and the group, leaving the destinations alone.
+        // A group laid out this way walks to the slots it was given and
+        // carries the opposite offsets, so `update_positions` puts every
+        // follower on the far side of its leader.
+        //
+        // SEAM: the scenario-editor bit (`semaphore[1] & 8`) forces this
+        // false with `facing`; nothing in this simulation sets it.
+        if set_angle
+            && let Some(p) = from
+            && reversing(Angle(
+                find_angle(to.x - p.x, to.y - p.y).0.wrapping_sub(angle.0),
+            ))
+        {
+            slots.flipped = true;
+            for off in &mut slots.off {
+                *off = (-off.0, -off.1);
+            }
+        }
 
         for (i, &u) in g.list.iter().enumerate() {
             match plan[i] {
@@ -1424,16 +1446,19 @@ impl Sim {
     /// which is what run29's window compares against.
     fn record_form(&mut self, g: &Group, f: &crate::form::Form, to: Pos) {
         let Some(s) = g.army else { return };
-        let off: Vec<(i32, i32)> = f
-            .off
-            .iter()
-            .map(|&(x, y)| {
-                (
-                    crate::form::Form::quantise(x),
-                    crate::form::Form::quantise(y),
-                )
-            })
-            .collect();
+        // The group's table is quantised from the `Form`'s **before**
+        // `compute_form`'s tail negates either (§6.3): the tail negates two
+        // tables that have already been written, and `quantise` is a floor
+        // divide, so negating the raw value first would round the other
+        // way.
+        let q = |v: i32| {
+            if f.flipped {
+                -crate::form::Form::quantise(-v)
+            } else {
+                crate::form::Form::quantise(v)
+            }
+        };
+        let off: Vec<(i32, i32)> = f.off.iter().map(|&(x, y)| (q(x), q(y))).collect();
         let theta = f.o.map_or(Angle(0), |u| self.units[u].movement.heading);
         let curr = Sim::form_update_positions(&off, theta);
         let (o_angle, o_dist) = Sim::form_leader_offset(f, to);
@@ -1714,6 +1739,98 @@ mod tests {
         // asking for one still slides the block it does reach.
         st.reorigin(2);
         assert_eq!(st.off, vec![(-9, 3), (-18, 3), (0, 0), (99, 99)]);
+    }
+
+    /// §6.3's **tail negation** — `bVar8` at `707e09` and the loop at
+    /// `707eb8` — which is not the mirror above it and which this crate
+    /// went without until item 267.
+    ///
+    /// With the caller supplying the angle (`set_angle`, which is every
+    /// army call) `compute_form` measures its own `find_angle(dest −
+    /// group_loc)` against it, and when the two are `90°` or more apart it
+    /// negates every member's `off_x/off_y` on **both** the `Form` and the
+    /// group *after* `Form::compute` has written them — leaving `to`
+    /// alone. So two groups given the same destination and the same angle
+    /// from opposite sides march to the **same slots** and hold
+    /// **opposite offsets**, and the offsets are where each follower
+    /// stands relative to its leader on every later frame
+    /// (`Group::update_positions` → `curr` → `do_group_move`).
+    ///
+    /// Angle 0 is north, which is also a fresh unit's heading, so the
+    /// `facing` toggle above cannot fire and the tail is measured alone.
+    ///
+    /// Made to fail on purpose twice: with the negation dropped the two
+    /// offset tables agree, and with `to` negated alongside them the two
+    /// destination lists no longer do.
+    #[test]
+    fn compute_form_negates_the_offsets_when_the_bearing_opposes_the_angle() {
+        const DEST: Pos = Pos::new(0x4000, 0x4000);
+        let run = |from: Pos| {
+            let mut s = sim();
+            // A type with a formation footprint — `fighter`'s spacing is
+            // zero, and a table of zeroes negates to itself.
+            let t = {
+                let mut t = UnitType {
+                    hits: 100,
+                    combat: combat::Profile {
+                        attack: 15,
+                        uber_size: 1,
+                        x_spacing: 0xc0,
+                        y_spacing: 0x180,
+                        ..combat::Profile::default()
+                    },
+                    ..UnitType::default()
+                };
+                t.cols.role |= role::MILITARY;
+                s.add_unit_type(t)
+            };
+            let slot = s.init_army(1, None);
+            let a = spawn(&mut s, 1, t, from);
+            let b = spawn(&mut s, 1, t, Pos::new(from.x + 0x100, from.y));
+            s.army_add_unit(1, slot, a);
+            s.army_add_unit(1, slot, b);
+            let g = s.army_group(1, slot);
+            s.group_action_move_to(
+                &g,
+                DEST,
+                QueuePos::New,
+                true,
+                Angle(0),
+                MoveKind::AttackTo,
+                true,
+            );
+            let off = s.armies[1].list[slot].group.off.clone();
+            let dests: Vec<Pos> = [a, b]
+                .iter()
+                .map(|&u| match s.current_order(u).expect("a move order").body {
+                    Body::Move(m) => m.dest,
+                    _ => unreachable!("a group move is a move"),
+                })
+                .collect();
+            (off, dests)
+        };
+        // South of the destination: the bearing to it is north, which is
+        // the angle, so the tail does not fire.
+        let (aligned, aligned_dests) = run(Pos::new(DEST.x, DEST.y + 0x2000));
+        // North of it: the bearing is due south, 180° from the angle.
+        let (opposed, opposed_dests) = run(Pos::new(DEST.x, DEST.y - 0x2000));
+
+        assert!(
+            aligned.iter().any(|&o| o != (0, 0)),
+            "a table of zeroes negates to itself and says nothing: {aligned:?}"
+        );
+        assert_eq!(
+            aligned_dests, opposed_dests,
+            "the tail leaves the destinations alone"
+        );
+        assert_eq!(
+            opposed,
+            aligned
+                .iter()
+                .map(|&(x, y)| (-x, -y))
+                .collect::<Vec<(i32, i32)>>(),
+            "the offsets are negated: {aligned:?} against {opposed:?}"
+        );
     }
 
     #[test]

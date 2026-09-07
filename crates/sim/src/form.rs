@@ -236,6 +236,19 @@ pub struct Form {
     /// Not the same flag as `compute_form`'s own reverse, which negates
     /// both offsets *after* the call.
     pub reverse: bool,
+    /// **`compute_form`'s own reverse** — `bVar8` at `707e09`, the second
+    /// of §6.3's two tests and the one that is not a mirror: when the
+    /// caller supplied the angle and it is `>= 90°` from `find_angle(dest
+    /// − group_loc)`, the tail at `707eb8` negates every member's
+    /// `off_x/off_y` on **both** this record and the group's, and leaves
+    /// [`Self::to`] alone.
+    ///
+    /// So a flipped layout marches to the destinations it was laid out
+    /// with and *holds the opposite offsets* — which is what
+    /// `Group::update_positions` rotates into `curr` every frame, and
+    /// therefore where every follower of that formation stands relative to
+    /// its leader.
+    pub flipped: bool,
 }
 
 impl Form {
@@ -268,6 +281,7 @@ impl Form {
             total: 0,
             guarding: false,
             reverse: false,
+            flipped: false,
         }
     }
 

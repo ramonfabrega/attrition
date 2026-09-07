@@ -210,14 +210,21 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // IMPROVED line went to a captured stderr — and the exact pin found
         // them on its first run. Which landing made them is not established;
         // 267's repaint is the only one since 265's re-pin.
-        off: 79,
+        //
+        // Then **79 → 80, 10 → 11 and 30 → 31** the same day on item 267's
+        // second row — `compute_form`'s tail negation (`docs/GROUPS.md`
+        // §6.3). East Indies' word does not move on it and its endpoint
+        // drifts by one in each of three counts, 16,000 frames past the
+        // word; Great Lakes' word does move, by 129 frames. The trade
+        // DECISIONS 26 allows, on a mechanic the listing owns.
+        off: 80,
         unlinked: 0,
-        extra: 10,
+        extra: 11,
         build_unlinked: 0,
         // 33 → 32 on 2026-09-07, item 265: `CityData::free` is a byte that
         // wraps, and the AI reading 255 where it read −1 takes one building
         // field-row off the diverging list.
-        build_diverged: 30,
+        build_diverged: 31,
         city_unlinked: 3,
         city_diverged: 0,
     },
@@ -240,9 +247,14 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // and the trade DECISIONS 26 allows: the mechanic is the
         // decompile's own, and it takes the last unit divergence off Great
         // Lakes' run-up 200 frames before the word.
-        off: 81,
-        unlinked: 0,
-        extra: 4,
+        //
+        // And **81 → 78, 0 → 2, 4 → 0** on the same day on 267's second
+        // row, the tail negation of `§6.3`: three positions closer, the
+        // four spurious units gone and two missing again, on the change
+        // that moves the word itself 7455 → 7584.
+        off: 78,
+        unlinked: 2,
+        extra: 0,
         build_unlinked: 0,
         build_diverged: 13,
         city_unlinked: 3,
@@ -281,8 +293,9 @@ pub const LADDER: [Endpoint; 2] = [
         unlinked: 17,
         // 20 → 21 on 2026-09-07, item 267's repaint: one spurious unit
         // back, 7,872 frames past the word, and nothing else on this rung
-        // moved.
-        extra: 21,
+        // moved. Then 21 → 23 on 267's second row, the `§6.3` tail
+        // negation — two more, and again nothing else on the rung.
+        extra: 23,
         build_unlinked: 10,
         build_diverged: 9,
         city_unlinked: 3,
@@ -296,7 +309,11 @@ pub const LADDER: [Endpoint; 2] = [
         map_lists: (41, 66),
         setup: EAST_INDIES_SETUP,
         siblings: &[],
-        off: 50,
+        // 50 → 52 and 26 → 25 on 2026-09-07, item 267's second row (§6.3's
+        // tail negation): two positions out and one spurious unit gone,
+        // 8,960 frames past the word. The C rung above moved on the same
+        // change and Great Lakes' endpoint moved the other way.
+        off: 52,
         unlinked: 16,
         // 19 → 33 on 2026-09-07, item 261, the same reshuffle, then 33 →
         // **27** the same day on item 265's byte — this rung took the
@@ -304,7 +321,7 @@ pub const LADDER: [Endpoint; 2] = [
         // `off` fell 51 → 50 on 261's run and was left pinned at 51; the
         // exact pin of the eighth steer (DECISIONS 36) took it, and 27 → 26
         // with it, on its first run.
-        extra: 26,
+        extra: 25,
         build_unlinked: 19,
         build_diverged: 0,
         city_unlinked: 4,
