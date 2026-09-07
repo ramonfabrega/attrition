@@ -17550,3 +17550,102 @@ reads 1 and 2 where the original's reads 0 and 1. The two are isomorphic
 and nothing here depends on it, but a make-list comparison slot for slot
 would have to translate, and half an hour went on believing the head's
 city was out of range.
+
+## 2026-09-06 — item 241: the word's frame is a position, and the walker is thirty-four frames late (Opus, worker)
+
+**The item.** East Indies' long word, 7448, the counter that had not moved
+all day while Great Lakes went 6848 → 6862 → 6982. The brief carried a
+well-grounded hypothesis: the original's `1/20` is blocked by
+`collide_who 8`, gaia's animal `8/0`, and `Sim::chain_hit`'s own doc
+comment says it walks "every other unit of a **player** (`who < 8`, so
+gaia's animals are invisible to it)" — so if that fence sits on the step's
+probe, this crate cannot see the thing that blocks the walk, falls through
+to the animation clock, and spends the two draws the word is short in the
+wrong place.
+
+**The hypothesis is dead, and it is dead three times over.** `chain_hit`
+backs `find_ordered_collision` and the sea/air arm of `find_collision` —
+§5.2's spot search — and a step's probe enters neither: a step probes `Sim::collide_here`, the
+occupancy bitmask, which `Sim::coll_paint` writes for every unit with a
+block and no owner test at all, and then `Sim::name_collider` walks the
+3×3 chain skipping only itself, non-units and the dead or off-map. The
+original does the same — `detect_unit_collision@00617060:150-172` asks
+`alive`, vfunc `+0x18`, `domain != 2`, `is_on_map` and `is_here`, and
+never `who`. And the dump settles it from the third side: the original's
+own `collide_who` **is** 8, which it could not be if either side filtered
+gaia out.
+
+**run85 was built into a window, and that is what actually answered the
+item.** `run85_s_window_is_the_east_indies_word_frame` drives run54's game
+through `run_traced` over `[7400, 7480)` plus the quit block — 81 blocks,
+2,268 compared unit fields, the whole record and not the walker's, the
+first capture East Indies has ever had within 3,200 frames of its own
+word. Three units are ever off position in it. `1/20`, the Merchant, is
+off from the **first** block by `(36, 792)` — about thirty-four frames of
+its own 23-a-frame walk — so on 7448 it is 792 units short of the animal
+and simply never has the meeting. Not a predicate, not a response: a
+walker that is not there.
+
+**It is behind on its own chain, not beside it**, and the order record
+says so without a position. `1/20`'s waypoint **column** agrees for 28
+more blocks (`Move.dest_x` first parts at 7428) while the **row** parts
+at once (`Move.dest_y`, 7400): both sides are on the same `find_upath`
+plan with the same destination `(28728, 24120)` and the same stale
+`coll_x/coll_y` `(34999, 37321)`, and this crate is one leg further back.
+
+**The two draws are one unit's two figures**, which the brief had right
+for a reason it did not have: `Unit::set_anim@00616f40` has two loops, the
+squad's `0 .. guy_mark` and the crew's `type->squad_size .. guy_num`, and
+the trace's 7448 spends `Unit::set_anim+0x56` and `+0xb6`, not two units'
+guys. A Merchant is `UBER_SIZE 1, CREW_SIZE 1`, so `guy_mark` is 1 and the
+dump prints one `GUY` while the frame pays two. The crew's draw is not
+owed on every stand — run66's 6571 spends `+0x56` alone, because that crew
+figure's body was still walking — and both cases were already modelled;
+`a_gaia_animal_blocks_a_player_s_walker_and_a_crew_pays_the_stand_twice`
+now asserts the pair, and was made to fail by putting `owner >= 8` into
+`name_collider`'s chain walk.
+
+**Where the thirty-four frames go is un-oracled, and that is the
+successor.** At run82's last block, 6929, this crate is one frame
+**ahead**. In the 470 frames between that and run85's first block `1/20`
+casts transport, rides a Transport Barge and is put ashore, and no dump on
+disk covers any of it. The draw stream cannot see it either: the trace
+dates the barge's birth at **7093** on both sides (`Guy::init_real`, and
+`report.py … when` says so), and the eject spends **no draw at all**, so
+nothing pins the landfall. The ceiling arithmetic bounds the shape —
+straight from each side's own 6929 point, the original's 7400 point is
+11,458 units away and this crate's 10,794 over the same 471 frames,
+against a mix-ceiling of 11,514 — so the original runs the stretch at 99.5 % of a
+straight line and this crate at 93.8 %. That is a **route**: the barge's
+birth spot, its own `find_upath` plan, or `come_out`'s ring. A 48-unit
+nudge to the last of those puts *nineteen* units off position inside this
+same window, which is how the new test was made to fail and also how
+little slack there is.
+
+**And a second thing the window found for free.** `1/19`, the unpacked
+Merchant, is off by a constant `(24, 24)` on all 81 blocks with both sides
+standing still: the original sits on the tile corner
+`(32256, 36864) = 192 × (168, 192)` and this crate 24 out on each axis.
+run82's closing block has the original on *this crate's* point, so the
+`(-24, -24)` happens after the unpack and inside the same blind 470
+frames. `docs/MERCHANT.md` §7 has it.
+
+**The score: none.** East Indies' word is still 7448 and Great Lakes'
+6982; no floor moved and `LONG_WORD_EAST_INDIES` is untouched. What moved
+is the *kind* of question 7448 is — it leaves `docs/COLLISION.md`
+altogether and becomes `docs/TRANSPORT.md` §13's first row — and the
+capture that would settle it is named there: East Indies at run85's detail
+over `[7080, 7140)` and `[7290, 7340)`, the cast and the landfall. It goes
+to the back of the queue.
+
+**Rows of `docs/audit/2026-09-05-collision-vs-code.md`.** None taken. The
+work went through §4.1's gates and §4.3's chain walk, and neither carries
+a row; R1 and R2 went to item 236, R3/R4/R8/R9 all sit on step 4/5/6,
+which this frame never reaches on either side. What the item *adds* to
+§4.3 is a diff-backed confirmation the page did not have: the walk's
+membership test has no owner in it, and run85's `collide_who 8` is the
+dump saying so.
+
+**Also landed:** `tools/trace/report.py`'s `when` verb crashed with a
+`NameError` instead of reporting "no draw is made from here", which is the
+answer half the time — it is what said the eject spends none.
