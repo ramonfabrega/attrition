@@ -24,6 +24,19 @@ here too, except the item cap — a parked item is not an open one.
 
 ## Parked from the queue, 2026-09-07
 
+(277) **An age gained through a cascade is unmodelled** — `Sim::gain_tech`
+reads the age gate off the type the call was made with, as the original does,
+but the original **recurses into `gain_tech`** per cascaded grant where this
+crate flattens the cascade into events, so a cascaded age would take 271's
+snap arm there and not here. Parked to seat 290/291 under the cap, on the
+ground that **no capture on this disk gains an age other than directly**, so
+nothing can falsify it today. It is cheap to unpark: `BuildDump::max_age` is
+parsed, so the falsifier is a grep rather than a reading — a block whose
+`max_age` moves on research that is not one of the seven ages. Cross-item
+constraint, and the reason this is not a silent drop: **271's snap arm is
+live code**, so anyone touching `Sim::gain_tech` inherits this question.
+
+
 (248) **ATTRITION's Territory section is 15,625 bytes of 16,000** and wants a
 retelling pass before anything is added. Parked to seat 283; its remaining
 terms are **closed** — handicap, temple and fort are unreachable in any game

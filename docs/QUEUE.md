@@ -16,19 +16,21 @@ each section's non-item prose pinned and falling only.
 130 frames and 277, and the maps swapped twice.*
 
 - **East Indies 7806** (was 7529), **Great Lakes 7585** (was 7455) and
-  leading, so 287 — its new word's cause — is headline-nearest.
+  leading, so 290 — its word's cause — is headline-nearest.
 - **Three words fell to one method**: widen the whole record, never the
-  field the brief names. An age snaps every figure (271, TECH);
-  `compute_form`'s tail has a second reverse test (267, GROUPS §6.3); and
-  a bird's figure lags its unit (284) — `do_air_physics` passes **0 as
-  `param_3`**, so the point goes to guy 0's `des` and the teleport is
-  skipped, which is what makes `des == pos` in `Guy::move` mean *the bird
-  did not move*. Each time the brief's own named mechanism was wrong.
+  field the brief names — an age snaps every figure (271),
+  `compute_form`'s tail has a second reverse test (267), and a bird's
+  figure lags its unit (284, `do_air_physics` passing **0 as `param_3`**).
+  Each time the brief's own named mechanism was wrong.
 - **run90 was written to be refused, and was** — 286 put this crate's
-  collide/pause/wait rows down as predictions *before* the capture and the
-  original refused two of four: the cause is a **waypoint the original
+  collide/pause/wait rows down as predictions *before* the capture; the
+  original refused two of four. The cause is a **waypoint the original
   abandons and this crate walks to** (289), and `1/7`'s `pause 8` is the
   disk's first non-zero `MOVEORDER` pause, settling COLLISION §9.
+- **Great Lakes' word is one number** — `88 < 55 + 43 + 4` in `make_stuff`
+  step 6, so it is the AI's **stockpile, not its rules** (290), and a
+  leader's `bucket` has never been compared on this map. 291 is a live
+  candidate: the AI's caravans are unlinked on 246 of 246 blocks.
 - **260 halved the gate**; **280 took the mapping back out**, one `forbid`
   again. `FABLE:` owed — 37, 280's UB ground, 283, CLAUDE.md's wait rule.
 
@@ -36,10 +38,10 @@ Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w7806 of 24,000 · GreatLakes w7585 of 24,000
 Endpoint 24001: EastIndies 79 off, 0 unlinked · GreatLakes 84 off, 0 unlinked
 
-**Opener: commander on Opus (DECISIONS 34), spawning — never working. 287
-is in flight (Great Lakes' new word, a diff on run89). Next: 289, then 285,
-then 283. Every brief ends with a "done" ping — session state was wrong
-four ways in one day, and `ccc watch`'s `landed` beat the ping (entry 34).**
+**Opener: commander on Opus (DECISIONS 34), spawning — never working.
+Nothing in flight, board clean. Next: 290 (Great Lakes' word, wanting a
+`LEADERS=9` window — the lane's) with 291 or 289 beside it; then 285, 283.
+Every brief ends with a "done" ping, and `landed` beats it (entry 34).**
 
 ## The queue
 
@@ -55,15 +57,6 @@ unless a better order is obvious, and say so. Numbers are stable.
     four-block cycle against five. §8.5's turn-versus-step reading is
     **dead**, not merely unconfirmed. run90 is on disk, so this is a diff.
     East Indies' word holds at 7806 and this is what sits under it.
-
-277. **An age gained through a cascade is unmodelled** — `Sim::gain_tech`
-    reads the age gate off the type the call was made with, as the
-    original does, but the original **recurses into `gain_tech`** per
-    cascaded grant where this crate flattens the cascade into events, so a
-    cascaded age would take 271's snap arm there and not here. No capture
-    on this disk gains an age other than directly. Now a grep rather than
-    a reading: `BuildDump::max_age` is parsed, so the falsifier is a block
-    whose `max_age` moves on research that is not one of the seven ages.
 
 278. **`Unit::work@0060d180:440` is a second `set_new_location(…, 1, 1)`**
     and nothing models it — two units of one type within `0x180` are
@@ -173,23 +166,32 @@ of 617; (72) every `+0xNN` a document pins vs its module; (89) the guard;
     text, and a 2 s poll under-reports a sawtooth besides. Wants a fixture:
     past the cap, dead in N seconds, exit 137.
 
-287. **Great Lakes' new word at 7585 is the AI** — `Leader::make_stuff
-    +0x63d`, the slot expiry, named by 284 as it moved the word off the
-    bird. run89 covers it (`[7514, 7760)`, on disk), so this is a diff and
-    not a capture. Below it nothing parts but run87's carried residue.
-    (288) the gull's `do_strafe` is still unmodelled — 284 narrowed
-    `do_air_physics`' early return to that one bird. (274) run87's `1/26`.
-    (268) `AnimalData::ox`/`whom`/`aid` **carry nothing**: −1 on all forty
-    animals on all 247 blocks, so they can never name one. Closed, not open.
+290. **Nothing has ever compared a leader's ledger, and Great Lakes' word
+    is in it** — 287 reduced 7585 to one number: every gate of
+    `make_stuff` step 6 agrees but the good loop over food,
+    `88 < 55 + 43 + 4`. Give the AI **98** food on that frame and 7585
+    agrees 9 draws for 9, the bird at index 4 included. So the word is the
+    AI's **stockpile, not its rules** — 98 ≤ food < 160 against this
+    crate's 88. `bucket` is written only at `LEADERS=9` and no Great Lakes
+    capture carries it past setup: the falsifier is one such window.
+
+291. **The AI's caravans are not linked** — `vans.length` 0 against 1 and
+    `trade_val` 0 against 128 on **both** of player 1's cities, 246 of 246
+    blocks (287). That names two of 285's eighteen fields and gives them a
+    mechanism, and wealth is what a market buy spends, so it is a live
+    candidate for 290's shortfall rather than a separate residue. (288)
+    the gull's `do_strafe`, unmodelled. (274) run87's `1/26`. (268)
+    `AnimalData::ox`/`whom`/`aid` carry nothing — −1 on all forty animals
+    on all 247 blocks. Closed as answered, not open.
 
 285. **The CITY record parts on every block and nothing asserts it** — 18
     fields on 246 of 246 of run89's window, found by widening the whole
     record, and **no window test on either map asserts `city_diverged`**.
     Nine tenths of a dumped record once went uncompared for a month and
     the first widening failed on its first run; this is that shape one
-    record up. `1/3`'s `(+192, +192)` `MOVEORDER` was booked here and
-    **closed itself** when 284 landed the air-physics fix — it was the
-    missing draw's consequence, exactly as 272's worker read it.
+    record up. Two of the eighteen are named now (291, the unlinked
+    caravans). `1/3`'s `(+192, +192)` `MOVEORDER` was booked here and
+    **closed itself** when 284 landed the air-physics fix.
 
 273. **`refresh_group_order` re-origins on the order's `form_id`, not the
     member's list position** — `713ac3` reads `[eax+0x10]` off the

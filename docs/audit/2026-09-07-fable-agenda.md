@@ -75,3 +75,18 @@ method lesson, which is the durable one: a canon rule carrying a measured
 number is only as good as the measurement, and this one shipped wrong for an
 hour — **a number in a rule wants its source named**, so the next reader can
 check it rather than inherit it.
+
+The generalization arrived from lore the same evening, and it is the sharper
+statement: **the prose a tool ships is code, and wants the same gates code
+gets.** Its corrected description then failed to compile — an unescaped
+apostrophe closed a string in `cli.ts` — and 251 tests stayed green, because
+the verb descriptions are imported by nothing. The syntax error reached
+master and surfaced only when the installer tried to bundle it, with the bad
+commit already pushed. The parallel here is exact and unguarded: `docs_guard`
+reads the queue's *shape* — item count, section pins, handoff length, cited
+function addresses against the decompile index — and nothing reads a **number**
+in `CLAUDE.md` or a mechanic document. So the ledger on one paragraph of this
+repo's canon is three failures deep: a figure recalled rather than measured,
+a commander restating it, and the upstream correction that did not compile.
+Whether that warrants a guard, and what such a guard could even assert, is a
+question for the pass rather than a change the commander should invent.
