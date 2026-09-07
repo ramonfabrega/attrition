@@ -120,7 +120,7 @@ pub(crate) fn first_parting(ours: &[String], theirs: &[String]) -> Option<(usize
 /// run3 (`DUMP_ALL` — the terrain heights, the regions' coordinate
 /// lists) and run12 (`DUMP_ALL` with the per-frame sync words and the
 /// herds, `docs/SYNC.md`). Whichever the machine has.
-pub(crate) fn sibling_texts() -> Vec<String> {
+pub(crate) fn sibling_texts() -> Vec<crate::mapped::Text> {
     [
         "gamelog-run11-checksum.txt",
         "gamelog-run3-fulldump-types.txt",
@@ -129,7 +129,7 @@ pub(crate) fn sibling_texts() -> Vec<String> {
     ]
     .iter()
     .filter_map(|n| dump(n))
-    .filter_map(|p| std::fs::read_to_string(p).ok())
+    .map(crate::mapped::read)
     .collect()
 }
 

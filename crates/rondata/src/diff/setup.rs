@@ -1620,7 +1620,7 @@ mod tests {
             return;
         };
         let loaded = crate::load::load(&inst).unwrap();
-        let text = std::fs::read_to_string(&path).unwrap();
+        let text = crate::mapped::read(&path);
         let log = Log::parse(&text);
         let built = build_sim(&loaded, &log.initial().unwrap(), Tuning::RON);
         let tree = &built.sim.tech_tree;
@@ -1718,7 +1718,7 @@ mod tests {
         // Run9 predates the trace and never had the heights; run11 (the
         // trace) and run3 (`DUMP_ALL`, the heights) are the same map.
         let texts = sibling_texts();
-        let text = std::fs::read_to_string(&path).unwrap();
+        let text = crate::mapped::read(&path);
         let log = Log::parse(&text);
         let mut init = log.initial().unwrap();
         let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
@@ -2149,7 +2149,7 @@ mod tests {
                 eprintln!("skipping: no {} (set RON_GAMELOG_DIR)", w.file);
                 return;
             };
-            let text = std::fs::read_to_string(&path).unwrap();
+            let text = crate::mapped::read(&path);
             let log = Log::parse(&text);
             // The AI's list at the end of every frame that dumps it whole;
             // a block below level 9 (the quit's) has no MAKEOBJECTs and is
@@ -2301,7 +2301,7 @@ mod tests {
             !loaded.gaia_lengths.is_empty(),
             "the install's graphics tables read"
         );
-        let text = std::fs::read_to_string(&path).unwrap();
+        let text = crate::mapped::read(&path);
         let log = Log::parse(&text);
         let init = log.initial().unwrap();
         let built = build_sim(&loaded, &init, Tuning::RON);
@@ -2422,7 +2422,7 @@ mod tests {
                 eprintln!("skipping {name} (set RON_GAMELOG_DIR)");
                 continue;
             };
-            let text = std::fs::read_to_string(&path).unwrap();
+            let text = crate::mapped::read(&path);
             let log = Log::parse(&text);
             let init = log.initial().unwrap();
             let built = build_sim(&loaded, &init, Tuning::RON);
@@ -2533,7 +2533,7 @@ mod tests {
             return;
         };
         let loaded = crate::load::load(&inst).unwrap();
-        let text = std::fs::read_to_string(&path).unwrap();
+        let text = crate::mapped::read(&path);
         let log = Log::parse(&text);
         let c = log.checksums();
         assert_eq!(c.len(), 146, "every accepted call site printed its seed");
@@ -2711,7 +2711,7 @@ mod tests {
         let Some(run18b) = dump("gamelog-run18b-window-6374-6590.txt") else {
             return;
         };
-        let text = std::fs::read_to_string(&run18b).unwrap();
+        let text = crate::mapped::read(&run18b);
         let log = Log::parse(&text);
         let at = |sim_frame: i64| -> (i64, i64) {
             let b = log

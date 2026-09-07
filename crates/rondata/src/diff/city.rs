@@ -39,7 +39,7 @@ mod tests {
             return;
         };
         let loaded = crate::load::load(&inst).unwrap();
-        let text = std::fs::read_to_string(&path).unwrap();
+        let text = crate::mapped::read(&path);
         let log = Log::parse(&text);
         let mut built = build_sim(&loaded, &log.initial().unwrap(), Tuning::RON);
         for _ in 0..3 {
@@ -94,8 +94,8 @@ mod tests {
             return;
         };
         let loaded = crate::load::load(&inst).unwrap();
-        let text = std::fs::read_to_string(&path).unwrap();
-        let sib_text = std::fs::read_to_string(&sib).unwrap();
+        let text = crate::mapped::read(&path);
+        let sib_text = crate::mapped::read(&sib);
         let log = Log::parse(&text);
         let sib_log = Log::parse(&sib_text);
         let sib_init = sib_log.initial().expect("run38 is a start dump");
@@ -391,8 +391,8 @@ mod tests {
             return;
         };
         let loaded = crate::load::load(&inst).unwrap();
-        let text = std::fs::read_to_string(&path).unwrap();
-        let sib_text = std::fs::read_to_string(&sib).unwrap();
+        let text = crate::mapped::read(&path);
+        let sib_text = crate::mapped::read(&sib);
         let log = Log::parse(&text);
         let sib_log = Log::parse(&sib_text);
         let sib_init = sib_log.initial().expect("run38 is a start dump");
@@ -495,8 +495,8 @@ mod tests {
             return;
         };
         let loaded = crate::load::load(&inst).unwrap();
-        let text = std::fs::read_to_string(&path).unwrap();
-        let sib_text = std::fs::read_to_string(&sib).unwrap();
+        let text = crate::mapped::read(&path);
+        let sib_text = crate::mapped::read(&sib);
         let log = Log::parse(&text);
         let sib_log = Log::parse(&sib_text);
         let sib_init = sib_log.initial().expect("run38 is a start dump");
@@ -602,8 +602,8 @@ mod tests {
             theirs.len()
         );
         let loaded = crate::load::load(&inst).unwrap();
-        let text = std::fs::read_to_string(&path).unwrap();
-        let sib_text = std::fs::read_to_string(&sib).unwrap();
+        let text = crate::mapped::read(&path);
+        let sib_text = crate::mapped::read(&sib);
         let log = Log::parse(&text);
         let sib_log = Log::parse(&sib_text);
         let sib_init = sib_log.initial().expect("run38 is a start dump");
@@ -746,7 +746,7 @@ mod tests {
         };
         let loaded = crate::load::load(&inst).unwrap();
         let texts = sibling_texts();
-        let text = std::fs::read_to_string(&path).unwrap();
+        let text = crate::mapped::read(&path);
         let log = Log::parse(&text);
         let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
         let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
@@ -978,8 +978,8 @@ mod tests {
         );
 
         let loaded = crate::load::load(&inst).unwrap();
-        let text = std::fs::read_to_string(&path).unwrap();
-        let sib_text = std::fs::read_to_string(&sib).unwrap();
+        let text = crate::mapped::read(&path);
+        let sib_text = crate::mapped::read(&sib);
         let log = Log::parse(&text);
         let sib_log = Log::parse(&sib_text);
         let sib_init = sib_log.initial().expect("run38 is a start dump");
@@ -1082,7 +1082,7 @@ mod tests {
         };
         let loaded = crate::load::load(&inst).unwrap();
         let texts = sibling_texts();
-        let text = std::fs::read_to_string(&state).unwrap();
+        let text = crate::mapped::read(&state);
         let log = Log::parse(&text);
         let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
         let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
@@ -1152,7 +1152,7 @@ mod tests {
                 eprintln!("skipping: no {file} (set RON_GAMELOG_DIR)");
                 return;
             };
-            let wtext = std::fs::read_to_string(&path).unwrap();
+            let wtext = crate::mapped::read(&path);
             let wlog = Log::parse(&wtext);
             let (mut here, mut wrong) = (0usize, 0usize);
             for n in lo..=hi {
@@ -1237,7 +1237,7 @@ mod tests {
                 eprintln!("skipping: no {file} (set RON_GAMELOG_DIR)");
                 return;
             };
-            let wtext = std::fs::read_to_string(&path).unwrap();
+            let wtext = crate::mapped::read(&path);
             let wlog = Log::parse(&wtext);
             for f in wlog.frame_states() {
                 if !(lo..=hi).contains(&f.n) || f.cities.is_empty() {

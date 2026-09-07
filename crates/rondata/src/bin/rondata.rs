@@ -202,14 +202,19 @@ fn diff_report(
 ) -> Result<usize, rondata::Error> {
     use rondata::gamelog::{Initial, Log};
 
-    let read = |p: &str| {
-        std::fs::read_to_string(p).map_err(|source| rondata::Error::Io {
-            path: p.to_string(),
-            source,
-        })
+    let read = |p: &str| -> Result<rondata::mapped::Text, rondata::Error> {
+        let t = rondata::mapped::read(p);
+        if t.is_empty() && std::fs::metadata(p).is_err() {
+            return Err(rondata::Error::Missing {
+                path: p.to_string(),
+                what: "readable gamelog text".into(),
+            });
+        }
+        Ok(t)
     };
     // The siblings' texts must outlive the initial state borrowed from them.
-    let sibling_texts: Vec<String> = siblings.iter().map(|p| read(p)).collect::<Result<_, _>>()?;
+    let sibling_texts: Vec<rondata::mapped::Text> =
+        siblings.iter().map(|p| read(p)).collect::<Result<_, _>>()?;
     let text = read(path)?;
     let log = Log::parse(&text);
     let sibling_logs: Vec<Log> = sibling_texts.iter().map(|t| Log::parse(t)).collect();
@@ -482,10 +487,13 @@ fn gamelog_report(install: &Install, path: &str) -> Result<usize, rondata::Error
     use rondata::dump::{self, Loaded};
     use rondata::gamelog::Log;
 
-    let text = std::fs::read_to_string(path).map_err(|source| rondata::Error::Io {
-        path: path.to_string(),
-        source,
-    })?;
+    let text = rondata::mapped::read(path);
+    if text.is_empty() && std::fs::metadata(path).is_err() {
+        return Err(rondata::Error::Missing {
+            path: path.to_string(),
+            what: "readable gamelog text".into(),
+        });
+    }
     let log = Log::parse(&text);
     let Some(init) = log.initial() else {
         return Err(rondata::Error::Missing {

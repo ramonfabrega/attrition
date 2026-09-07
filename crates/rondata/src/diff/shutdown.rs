@@ -333,9 +333,10 @@ mod tests {
         let mut seen = 0usize;
         for (name, want) in CENSUS {
             let path = dir.join(format!("gamelog-{name}.txt"));
-            let Ok(text) = std::fs::read_to_string(&path) else {
+            let text = crate::mapped::read(&path);
+            if text.is_empty() {
                 continue;
-            };
+            }
             seen += 1;
             let log = Log::parse(&text);
             let states = log.frame_states();
@@ -411,9 +412,10 @@ mod tests {
                 continue;
             }
             let path = dir.join(format!("gamelog-{name}.txt"));
-            let Ok(text) = std::fs::read_to_string(&path) else {
+            let text = crate::mapped::read(&path);
+            if text.is_empty() {
                 continue;
-            };
+            }
             let log = Log::parse(&text);
             let fin = log.final_state().expect("the census says it has one");
             let states = log.frame_states();
@@ -495,8 +497,8 @@ mod tests {
             eprintln!("skipping: no run71/run72 capture (set RON_GAMELOG_DIR)");
             return;
         };
-        let at = std::fs::read_to_string(&a).unwrap();
-        let bt = std::fs::read_to_string(&b).unwrap();
+        let at = crate::mapped::read(&a);
+        let bt = crate::mapped::read(&b);
         let closing = Log::parse(&at).final_state().expect("run72 quit");
         let long = Log::parse(&bt);
         let ordinary = long.frame_states();
@@ -574,7 +576,7 @@ mod tests {
                 continue;
             };
             ran += 1;
-            let text = std::fs::read_to_string(&path).unwrap();
+            let text = crate::mapped::read(&path);
             let log = Log::parse(&text);
             let fin = log.final_state().expect("the census says it has one");
             assert_eq!(fin.n, *frame, "{name}'s closing dump");
@@ -648,7 +650,7 @@ mod tests {
             return;
         };
         let loaded = crate::load::load(&inst).unwrap();
-        let sib_text = std::fs::read_to_string(&sib).unwrap();
+        let sib_text = crate::mapped::read(&sib);
         let sib_log = Log::parse(&sib_text);
         let sib_init = sib_log.initial().expect("run38 is a start dump");
         let refs: Vec<&Initial> = vec![&sib_init];
@@ -663,7 +665,7 @@ mod tests {
                 continue;
             };
             ran += 1;
-            let text = std::fs::read_to_string(&path).unwrap();
+            let text = crate::mapped::read(&path);
             let log = Log::parse(&text);
             let fin = log.final_state().expect("the census says it has one");
             assert_eq!(fin.n, *frame, "{name}'s closing dump");

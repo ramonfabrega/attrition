@@ -79,8 +79,8 @@ use std::fmt;
 /// Chunks of one fixed size are the fix — every chunk any log frees fits
 /// every chunk the next log wants, and nothing is ever copied on growth.
 #[derive(Clone, Debug)]
-struct Chunks<T> {
-    chunks: Vec<Box<[T]>>,
+struct Chunks<T: Copy + Default> {
+    chunks: Vec<crate::mapped::Pages<T>>,
     len: usize,
 }
 
@@ -89,7 +89,7 @@ struct Chunks<T> {
 /// worth counting, large enough that the chunk list is not.
 const CHUNK: usize = 1 << 16;
 
-impl<T> Default for Chunks<T> {
+impl<T: Copy + Default> Default for Chunks<T> {
     fn default() -> Self {
         Chunks {
             chunks: Vec::new(),
@@ -120,8 +120,7 @@ impl<T: Copy + Default> Chunks<T> {
 
     fn push(&mut self, v: T) {
         if self.len.is_multiple_of(CHUNK) {
-            self.chunks
-                .push(vec![T::default(); CHUNK].into_boxed_slice());
+            self.chunks.push(crate::mapped::Pages::new(CHUNK));
         }
         self.chunks[self.len / CHUNK][self.len % CHUNK] = v;
         self.len += 1;

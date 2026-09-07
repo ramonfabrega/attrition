@@ -118,7 +118,7 @@ mod tests {
             "gamelog-run58-islands-5k2.txt",
         ] {
             let Some(path) = dump(name) else { continue };
-            let text = std::fs::read_to_string(&path).unwrap();
+            let text = crate::mapped::read(&path);
             let log = Log::parse(&text);
             let Some(init) = log.initial() else { continue };
             let built = build_sim(&loaded, &init, Tuning::RON);
@@ -213,7 +213,7 @@ mod tests {
             "gamelog-run13-window-95-105.txt",
         ] {
             let Some(path) = dump(name) else { continue };
-            let text = std::fs::read_to_string(&path).unwrap();
+            let text = crate::mapped::read(&path);
             let log = Log::parse(&text);
             names.push(name);
             for frame in log.frame_states() {
@@ -305,7 +305,7 @@ mod tests {
             "gamelog-run58-islands-5k2.txt",
         ] {
             let Some(path) = dump(name) else { continue };
-            let text = std::fs::read_to_string(&path).unwrap();
+            let text = crate::mapped::read(&path);
             let log = Log::parse(&text);
             let Some(init) = log.initial() else { continue };
             let built = build_sim(&loaded, &init, Tuning::RON);
@@ -489,7 +489,7 @@ mod tests {
             "gamelog-run27-islands-defending-window.txt",
         ] {
             let Some(path) = dump(name) else { continue };
-            let text = std::fs::read_to_string(&path).unwrap();
+            let text = crate::mapped::read(&path);
             let log = Log::parse(&text);
             let Some(init) = log.initial() else { continue };
             let built = build_sim(&loaded, &init, Tuning::RON);
@@ -578,8 +578,8 @@ mod tests {
             return;
         };
         let loaded = crate::load::load(&inst).unwrap();
-        let text = std::fs::read_to_string(&path).unwrap();
-        let sib_text = std::fs::read_to_string(&sib).unwrap();
+        let text = crate::mapped::read(&path);
+        let sib_text = crate::mapped::read(&sib);
         let log = Log::parse(&text);
         let sib_log = Log::parse(&sib_text);
         let sib_init = sib_log.initial().expect("run38 is a start dump");
@@ -708,8 +708,8 @@ mod tests {
             return;
         };
         let loaded = crate::load::load(&inst).unwrap();
-        let text = std::fs::read_to_string(&path).unwrap();
-        let sib_text = std::fs::read_to_string(&sib).unwrap();
+        let text = crate::mapped::read(&path);
+        let sib_text = crate::mapped::read(&sib);
         let log = Log::parse(&text);
         let sib_log = Log::parse(&sib_text);
         let sib_init = sib_log.initial().expect("run38 is a start dump");
@@ -859,8 +859,8 @@ mod tests {
             return;
         };
         let loaded = crate::load::load(&inst).unwrap();
-        let text = std::fs::read_to_string(&path).unwrap();
-        let sib_text = std::fs::read_to_string(&sib).unwrap();
+        let text = crate::mapped::read(&path);
+        let sib_text = crate::mapped::read(&sib);
         let log = Log::parse(&text);
         let sib_log = Log::parse(&sib_text);
         let sib_init = sib_log.initial().expect("run38 is a start dump");
@@ -868,7 +868,7 @@ mod tests {
         borrow_from_siblings(&mut init, &[&sib_init]);
         borrow_pasture(&mut init, &tr);
 
-        let text65 = std::fs::read_to_string(&r65).unwrap();
+        let text65 = crate::mapped::read(&r65);
         let l65 = Log::parse(&text65);
         let frames = l65.frame_states();
         let window: Vec<i64> = frames.iter().map(|f| f.n).collect();
@@ -1138,8 +1138,8 @@ mod tests {
             return;
         };
         let loaded = crate::load::load(&inst).unwrap();
-        let text = std::fs::read_to_string(&path).unwrap();
-        let sib_text = std::fs::read_to_string(&sib).unwrap();
+        let text = crate::mapped::read(&path);
+        let sib_text = crate::mapped::read(&sib);
         let log = Log::parse(&text);
         let sib_log = Log::parse(&sib_text);
         let sib_init = sib_log.initial().expect("run38 is a start dump");
@@ -1147,7 +1147,7 @@ mod tests {
         borrow_from_siblings(&mut init, &[&sib_init]);
         borrow_pasture(&mut init, &tr);
 
-        let text66 = std::fs::read_to_string(&r66).unwrap();
+        let text66 = crate::mapped::read(&r66);
         let l66 = Log::parse(&text66);
         let frames = l66.frame_states();
         let window: Vec<i64> = frames.iter().map(|f| f.n).collect();
@@ -1303,8 +1303,8 @@ mod tests {
             return;
         };
         let loaded = crate::load::load(&inst).unwrap();
-        let text = std::fs::read_to_string(&path).unwrap();
-        let sib_text = std::fs::read_to_string(&sib).unwrap();
+        let text = crate::mapped::read(&path);
+        let sib_text = crate::mapped::read(&sib);
         let log = Log::parse(&text);
         let sib_log = Log::parse(&sib_text);
         let sib_init = sib_log.initial().expect("run38 is a start dump");
@@ -1312,7 +1312,7 @@ mod tests {
         borrow_from_siblings(&mut init, &[&sib_init]);
         borrow_pasture(&mut init, &tr);
 
-        let text68 = std::fs::read_to_string(&r68).unwrap();
+        let text68 = crate::mapped::read(&r68);
         let l68 = Log::parse(&text68);
         let frames = l68.frame_states();
         let window: Vec<i64> = frames.iter().map(|f| f.n).collect();
@@ -1576,8 +1576,8 @@ mod tests {
             return;
         };
         let loaded = crate::load::load(&inst).unwrap();
-        let text = std::fs::read_to_string(&path).unwrap();
-        let sib_text = std::fs::read_to_string(&sib).unwrap();
+        let text = crate::mapped::read(&path);
+        let sib_text = crate::mapped::read(&sib);
         let log = Log::parse(&text);
         let sib_log = Log::parse(&sib_text);
         let sib_init = sib_log.initial().expect("run38 is a start dump");
@@ -1585,7 +1585,7 @@ mod tests {
         borrow_from_siblings(&mut init, &[&sib_init]);
         borrow_pasture(&mut init, &tr);
 
-        let text67 = std::fs::read_to_string(&r67).unwrap();
+        let text67 = crate::mapped::read(&r67);
         let l67 = Log::parse(&text67);
         let frames = l67.frame_states();
         let window: Vec<i64> = frames.iter().map(|f| f.n).collect();
@@ -1771,7 +1771,7 @@ mod tests {
             return;
         };
         let loaded = crate::load::load(&inst).unwrap();
-        let text = std::fs::read_to_string(&path).unwrap();
+        let text = crate::mapped::read(&path);
         let log = Log::parse(&text);
         let texts = sibling_texts();
         let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
@@ -1998,7 +1998,7 @@ mod tests {
             return;
         };
         let loaded = crate::load::load(&inst).unwrap();
-        let text = std::fs::read_to_string(&path).unwrap();
+        let text = crate::mapped::read(&path);
         let log = Log::parse(&text);
 
         // **The original's own record of the word's frame**, read off the
