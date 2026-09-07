@@ -57,10 +57,9 @@ journal is indexed by them.
     once-per-game events a dump install swallows** — a `set_*` whose
     **return value** drives an irreversible record; **takes 224**. (203)
     `mark_behind_tiles`' `0x4` is a building *finishing* (ROADS §6). (240)
-    **the deployed merchant's record** — `gather_down`/`special` −1 at
-    6929 against run76's 18 and 6; grep what they count before booking a
-    window; **takes 184**. (216) `create_buildings` offers a gather
-    building the original does not, 6582's slots 1 and 4.
+    the deployed merchant's `gather_down`/`special` −1 at 6929 v run76's
+    18 and 6 — grep what they count before a window; **takes 184**. (216)
+    `create_buildings` offers a gather building the original does not.
 
 (242) **The crate's group id is not the original's** — `GroupData +0x4 =
 64` against `group_id`'s stand-in, the army group's *slot* 1; the other
@@ -77,8 +76,8 @@ arithmetic, 7,122 of run63's 27,000 site fields (AI §2.13); (172) the
 leader, skipped here (AI §23.1); (159) the `CITY` record's two seams on
 run58; (146) `train_time`'s nine national arms (PRODUCTION); (142)
 `World::tregion` is not `get_tregion` (PATHFINDER §15–16); (122) 16 of 61
-draws without a `self.mark(`; (153) the `TRIBE` record; the thirteen
-`Census` fields written for consumers not built (20 rows, may only fall).
+draws without a `self.mark(`; (153) `TRIBE`; the thirteen `Census` fields
+written for consumers not built (20 rows, may only fall).
 
 247. **An upgrade is an in-place guy-type change on the standing unit** —
     run76's frame **6737**, the three Archers going guy **170 → 177**
@@ -120,16 +119,12 @@ reads `ages`.
     on it — **238 is the Great Lakes half, live now**. (195)
     `find_repair_spot` is `build_done`'s last of three.
 
-241. **East Indies' word, 7448, is a POSITION** — 241 closed the
-    collision reading three ways (a step probes the bitmask, which
-    `coll_paint` writes with no owner test; `detect_unit_collision`'s walk
-    never asks `who`; the dump reads `collide_who 8`). `1/20` is off by
-    (36, 792) at run85's *first* block, ~34 frames of its own walk, so it
-    never meets the animal. The gap is a **transport ride** between
-    run82's 6929 and 7400 — barge birth 7093 on both sides, eject spends
-    no draw — and **nothing covers 6930–7399**. TRANSPORT §13. (167)
-    run61's two: the landing search's *cell*, `Unit::do_strafe`
-    (SYNC §3.9).
+241. **East Indies' word, 7448, is a POSITION**, and the collision
+    reading is closed three ways (COLLISION §8.2). `1/20` is off by
+    (36, 792) at run85's first block, ~34 frames of its own walk, so it
+    never meets the animal; the ride 6930–7399 is uncovered. TRANSPORT
+    §13, and `cap-241` is on it. (167) run61's two: the landing search's
+    *cell*, `Unit::do_strafe` (SYNC §3.9).
 
 211. **`get_speed`'s three remaining arms** (MOVEMENT): `unit_masks &
     0x10`, set and cleared inside a frame; `has_general(0, 0x162)`'s siege
@@ -140,6 +135,13 @@ reads `ages`.
 229. **A figure in melee does not step its clock** — `unit_masks2 & 0x10`
     freezes `Guy::inc_time` (ANIM §5), 26 of 26 off run17/run44; no field
     here, and the arm waits on a word that reaches a melee frame.
+
+251. **`memcap.sh` is the one guard with no fixture** (lore, verified
+    here): its `ps | awk` reads `0 0` when `ps` answers nothing, so a
+    refused sample is indistinguishable from no memory used and the
+    ceiling never fires — Friday's crash by another door, under the guard
+    DECISIONS 34 cites for width two. Wants one: allocate past the cap,
+    die within N seconds, exit 137.
 
 Older backlog: (235) the capture `String` each test reads, ~5 GB of the
 suite's 10 — a rounded-up read buffer at ~100 call sites, no score; (39) a
@@ -182,17 +184,16 @@ non-flat; `Leader::diplomacy`; (77) ANIM §3.2; (58) ROADS §7.4.
   the band" is true of any window on the game, and run85's first teeth
   check passed on a band where nothing happened. Test both directions on
   real data before the capture runs.
-- **A timestamp wearing a `Z` it has not earned survives every check that
-  compares only its own two sides.** `stat -t '%FT%TZ'` prints *local*
-  time and appends a literal Z; `%z` is the fix. The class is wider than
-  `stat`: a self-consistent before/after pair can be uniformly wrong.
+- **A timestamp wearing a `Z` it has not earned** survives every check
+  comparing only its own two sides: `stat -t '%FT%TZ'` prints *local* time
+  and appends a literal Z (`%z` is the fix). A self-consistent
+  before/after pair can be uniformly wrong.
 - **A commander's clear is free when**: every landed branch merged, gated
   and pushed; nothing in flight owing its result elsewhere; this handoff
   current with the headline *measured*; nothing unfiled. `ccc clear <ref>
-  --then "continue"` arms it, and **0.1.29 fixed the gate** that 0.1.28
-  stalled on a Monitor or a background shell. A clear is not a restart:
-  both kinds survive it tracked *and* writing (04:02Z, `~/ccc-stream/
-  clear-probe.txt`), so the streams outlive the context that started them.
+  --then "continue"` arms it, and **0.1.29 fixed the gate** 0.1.28 stalled
+  on a Monitor or background shell. A clear is not a restart: both kinds
+  survive it tracked *and* writing (`~/ccc-stream/clear-probe.txt`).
 - **Run the diff suite with `--release`**; a long wait is the capture, not
   a hang. **Before a blind fan-out**, `grep -n <mechanic> CLAUDE.md` and
   the memory index — a subagent inherits both, and neither they nor a
