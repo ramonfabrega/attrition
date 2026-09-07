@@ -98,6 +98,25 @@ single-runner mode, which Ramon doubts. **A cross-item constraint if it is
 ever taken** — every worker runs `guard.sh`, so a change to it belongs in
 briefs the day it starts, not the day it lands.
 
+**Measured on the 289/290 pair, 2026-09-07, and it is not what this item
+guessed.** Neither worker was in a red-gate loop. 289's release gate went
+green on its **third** run — 245 tests, peak 11,218 MiB — and stayed green
+for an hour; its two red runs were expected re-pins of numbers its own
+change had moved, not a fix-and-retry cycle. The hour went to **one
+unoptimised debug `cargo test`, still running past 45 minutes**, against
+that release gate's five. What the debug run buys over the release gate is
+**eleven `debug_assert!`s** — four in `rondata/src/load.rs`'s tree loaders,
+seven across `sim` — and **no `#[cfg(debug_assertions)]` path at all**,
+because `[profile.release]` already sets `overflow-checks = true`. So
+`[profile.dev] opt-level = 2` would keep all eleven and cost the
+incremental compile speed `tools/guard.sh`'s whole reflex is built on:
+a real trade, and a steer's call rather than a worker's. **And the second
+half is not the compile at all** — two lanes running six threads of diff
+harness on one box is most of why that hour bought what five minutes buys
+alone, so serialising the lanes' gates may be worth more than any profile
+flag, and it bears directly on entry 34's width-two discretion. Reported by
+loop-289 while waiting on the very run it was measuring.
+
 ## Measured residues, none near a word
 
 (246) step 6's repath rests on run83's single event (239); (169)
