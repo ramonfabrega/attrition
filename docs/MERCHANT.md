@@ -508,6 +508,18 @@ corpus, where no capture has an ally.
 
 ## 7. What is not established
 
+- **Where an unpacked merchant finally stands, to the unit-cell**
+  (2026-09-06, item 241). run85's 81 blocks put East Indies' `1/19` on
+  `(32256, 36864)` — the tile corner, `192 × (168, 192)`, the spot §3's
+  search picks — and this crate on `(32280, 36888)`, a constant
+  `(24, 24)` out, with both sides standing still for the whole window.
+  run82's closing block (6929) has the original **on this crate's**
+  point, so the original moved it by `(-24, -24)` somewhere in the 470
+  frames no dump covers, and the move is not the unpack (6883, run82) but
+  something after it. 24 is half a `BLOCK_RADIUS`, which is what a snap
+  onto a unit-cell corner rather than its centre looks like.
+  *Capture:* fold into `docs/TRANSPORT.md` §13's East Indies windows —
+  `1/19` is in every block of them.
 - **The order two goods first seen in the *same* start-of-game reveal take
   in `new_rares`** (§2.2.2). `Sim::seed_new_rares_from_fog` walks the
   installed fog grid row-major; the original walked whichever sweeps

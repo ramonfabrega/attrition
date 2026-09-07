@@ -698,11 +698,14 @@ pub(crate) fn debug_unit(built: &Built, u: &sim::Unit, frame: i64) {
         })
         .collect();
     eprintln!(
-        "  f{frame} {who}/{o} TY {:?} PACKS {:?} at ({}, {}) ang {} hdg {} path {:?} orders {:?} {}",
+        "  f{frame} {who}/{o} TY {:?} PACKS {:?} at ({}, {}) in {:?} on {} ang {} hdg {} path {:?} orders {:?} {}",
         u.ty,
         u.ty.map(|t| built.sim.unit_types[t].combat.packs),
         u.pos.x,
         u.pos.y,
+        u.inside_unit
+            .map(|b| (built.sim.units[b].owner, built.sim.units[b].index)),
+        u.on_map,
         u.movement.facing.0,
         u.movement.heading.0,
         u.path,
@@ -6101,6 +6104,241 @@ mod tests {
             block_rows.is_empty(),
             "`1/29`'s order or path record parts across the block: {:?}",
             block_rows.iter().take(6).collect::<Vec<_>>()
+        );
+    }
+
+    /// **run85 — East Indies' word window, and the walker that is not
+    /// there** (2026-09-06, item 241).
+    ///
+    /// run54's game, window `[7400, 7480)` plus the quit block 7496: 81
+    /// blocks over the frame the second map's word parts on, which no
+    /// dump had come within 3,200 frames of. `rngcmp.py` puts it on run54
+    /// over 7,496 frames with none differing (`docs/ORACLE.md`, "run85").
+    ///
+    /// This is the whole record, not the walker's, and that is what it is
+    /// for: the word's own frame names `1/20`, and the window says the
+    /// unit is nowhere near the animal it collides with.
+    #[test]
+    fn run85_s_window_is_the_east_indies_word_frame() {
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(sib), Some(tr)) = (
+            dump("gamelog-run85-eastindies-blockedstand.txt"),
+            dump("gamelog-run38-islands-start.txt"),
+            trace("rontrace-run85.log"),
+        ) else {
+            eprintln!("skipping: no run85 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = std::fs::read_to_string(&path).unwrap();
+        let sib_text = std::fs::read_to_string(&sib).unwrap();
+        let log = Log::parse(&text);
+        let sib_log = Log::parse(&sib_text);
+        let sib_init = sib_log.initial().expect("run38 is a start dump");
+        let refs: Vec<&Initial> = vec![&sib_init];
+
+        // The window's own facts, read straight off the dump.
+        let states = log.frame_states();
+        let theirs: Vec<i64> = states.iter().map(|f| f.n).collect();
+        assert!(
+            theirs
+                == (7_400..=7_479)
+                    .chain(std::iter::once(7_496))
+                    .collect::<Vec<_>>(),
+            "run85's blocks: {:?}..{:?} ({}) — the wrong file",
+            theirs.first(),
+            theirs.last(),
+            theirs.len()
+        );
+
+        // **The blocked stand itself, off the disk.** `1/20` walks
+        // south-west at (-13, -19) a frame, is put *back* to (29256,
+        // 24888) on 7449 with `collide 1, collide_o 0, collide_who 8` —
+        // gaia's animal — stands four frames while its angle snaps due
+        // west, and slides west with `y` pinned from 7454.
+        let walker: Vec<(i64, i64, i64, i64, i64, i64)> = states
+            .iter()
+            .filter(|f| (7_446..=7_455).contains(&f.n))
+            .filter_map(|f| {
+                let u = f.units.iter().find(|u| u.who == 1 && u.o == 20)?;
+                Some((
+                    f.n,
+                    u.pos.x,
+                    u.pos.y,
+                    u.collide?,
+                    u.collide_o?,
+                    u.collide_who?,
+                ))
+            })
+            .collect();
+        assert_eq!(
+            walker,
+            vec![
+                (7_446, 29_268, 24_914, 0, -1, -1),
+                (7_447, 29_255, 24_895, 0, -1, -1),
+                (7_448, 29_242, 24_876, 0, -1, -1),
+                (7_449, 29_256, 24_888, 1, 0, 8),
+                (7_450, 29_256, 24_888, 1, -1, -1),
+                (7_451, 29_256, 24_888, 1, -1, -1),
+                (7_452, 29_256, 24_888, 1, -1, -1),
+                (7_453, 29_256, 24_888, 1, -1, -1),
+                (7_454, 29_233, 24_888, 1, -1, -1),
+                (7_455, 29_210, 24_888, 0, -1, -1),
+            ],
+            "run85's blocked stand: the walker's own record"
+        );
+
+        // Now the comparison — the whole record over the window.
+        let report = run_traced(&loaded, &log, Tuning::RON, None, None, &refs, Some(&tr)).unwrap();
+        let blocks: Vec<i64> = report
+            .frames
+            .iter()
+            .filter(|f| f.compared > 0)
+            .map(|f| f.frame)
+            .collect();
+        assert!(
+            blocks.first() == Some(&7_400) && blocks.last() == Some(&7_496) && blocks.len() == 81,
+            "run85's compared blocks: {:?}..{:?} ({})",
+            blocks.first(),
+            blocks.last(),
+            blocks.len()
+        );
+        let parted: std::collections::BTreeMap<(i64, i64), i64> = report
+            .first_divergence_by_unit()
+            .into_iter()
+            .map(|(w, o, f)| ((w, o), f))
+            .collect();
+        let ord_fields: usize = report.frames.iter().map(|f| f.order_compared).sum();
+        let angles: usize = report.frames.iter().map(|f| f.angle_compared).sum();
+        eprintln!(
+            "run85: {} unit fields, {ord_fields} order/path fields, {angles} angles \
+             over {} blocks; {} unit(s) ever off position",
+            report.frames.iter().map(|f| f.compared).sum::<usize>(),
+            blocks.len(),
+            parted.len()
+        );
+        for (&(who, o), &frame) in &parted {
+            eprintln!("  {who}/{o} parts at {frame}");
+        }
+        let unlinked: std::collections::BTreeSet<(i64, i64)> = report
+            .frames
+            .iter()
+            .flat_map(|f| f.unlinked_units.iter().copied())
+            .collect();
+        eprintln!("run85: unlinked {unlinked:?}");
+        use crate::diff::order::OrderMismatch as OM;
+        let mut tally: std::collections::BTreeMap<(i64, i64, String), (usize, i64)> =
+            std::collections::BTreeMap::new();
+        for d in report.frames.iter().flat_map(|f| f.order_diverged.iter()) {
+            let field = match &d.what {
+                OM::Group { field, .. } => format!("Group.{field}"),
+                OM::Move { field, .. } => format!("Move.{field}"),
+                w => format!("{w:?}")
+                    .split('{')
+                    .next()
+                    .unwrap()
+                    .trim()
+                    .to_string(),
+            };
+            let e = tally.entry((d.who, d.o, field)).or_insert((0, d.frame));
+            e.0 += 1;
+        }
+        for ((who, o, what), (n, first)) in &tally {
+            eprintln!("  order {who}/{o} {what}: {n} rows, first {first}");
+        }
+
+        // **What the word is missing, off the trace.** Frame 7448 spends
+        // 34 draws and two of them are the blocked stand — not two
+        // figures of two units but `Unit::set_anim@00616f40`'s two loops,
+        // the squad's and the crew's, over one Merchant with `CREW_SIZE
+        // 1` (`docs/COLLISION.md` §8.2).
+        let theirs_7448 = tr.labels(7_448);
+        assert_eq!(theirs_7448.len(), 34, "run85's 7448 spends 34 draws");
+        assert_eq!(
+            theirs_7448
+                .iter()
+                .filter(|l| *l == sim::anim::SITE_BLOCKED)
+                .count(),
+            2,
+            "the two draws the word is short are both the blocked stand"
+        );
+        for f in report.frames.iter().filter(|f| {
+            f.frame == 7_400 || f.frame == 7_448 || f.frame == 7_449 || f.frame == 7_479
+        }) {
+            for d in &f.diverged {
+                eprintln!(
+                    "  f{} {}/{} ours ({}, {}) theirs ({}, {})",
+                    d.frame, d.who, d.o, d.ours.x, d.ours.y, d.theirs.x, d.theirs.y
+                );
+            }
+        }
+        assert!(
+            ord_fields >= 1_000 && angles >= 1_000,
+            "the window's own rows: {ord_fields} order fields and {angles} angles \
+             — a capture below `UNITS=3` is the wrong file"
+        );
+
+        // **Three units, and the walker is one of them from the window's
+        // first block.** Whatever 7448 is, it is not a collision this
+        // crate declines to see: `1/20` is 792 short of the animal on the
+        // frame it should meet it, and was already 792 short when the
+        // window opened.
+        assert_eq!(
+            parted,
+            [((0, 5), 7_468), ((1, 19), 7_400), ((1, 20), 7_400)]
+                .into_iter()
+                .collect(),
+            "run85's parted set"
+        );
+
+        // `1/19` is the unpacked Merchant standing on its trade-post
+        // spot: **a constant (24, 24), on every block, both sides
+        // still**. The original moved it onto the tile corner (32256,
+        // 36864) = 192 x (168, 192) somewhere in the 470 frames no dump
+        // covers, and this crate left it where run82's closing block had
+        // it (`docs/MERCHANT.md`, and the successor in the queue).
+        let merchant: Vec<(i32, i32)> = report
+            .frames
+            .iter()
+            .flat_map(|f| f.diverged.iter())
+            .filter(|d| (d.who, d.o) == (1, 19))
+            .map(|d| (d.ours.x - d.theirs.x, d.ours.y - d.theirs.y))
+            .collect();
+        assert!(
+            merchant.len() == 81 && merchant.iter().all(|&d| d == (24, 24)),
+            "`1/19` is a standing constant: {} rows, {:?}",
+            merchant.len(),
+            merchant.first()
+        );
+
+        // **And `1/20` is behind on its own chain, not beside it.** The
+        // order record says so without a position: the waypoint's
+        // **column** agrees for the window's first 28 blocks — both sides
+        // walk the x = 29496 leg of the same `find_upath` plan — while
+        // the **row** is a waypoint out from the first, because this
+        // crate is one leg further back. A unit on a different route
+        // parts on both at once.
+        let (first_x, first_y) = (
+            tally.get(&(1, 20, "Move.dest_x".into())).map(|e| e.1),
+            tally.get(&(1, 20, "Move.dest_y".into())).map(|e| e.1),
+        );
+        assert_eq!(
+            (first_x, first_y),
+            (Some(7_428), Some(7_400)),
+            "`1/20`'s waypoint: the column parts 28 blocks after the row"
+        );
+        let lag: Vec<(i64, i32, i32)> = report
+            .frames
+            .iter()
+            .flat_map(|f| f.diverged.iter())
+            .filter(|d| (d.who, d.o) == (1, 20))
+            .map(|d| (d.frame, d.ours.x - d.theirs.x, d.ours.y - d.theirs.y))
+            .collect();
+        assert_eq!(
+            lag.first(),
+            Some(&(7_400, 36, 792)),
+            "`1/20` opens the window 792 behind — about 34 frames of its \
+             own 23-a-frame walk, and the whole of item 241"
         );
     }
 }

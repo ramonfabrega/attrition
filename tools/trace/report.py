@@ -218,7 +218,7 @@ def main():
             if per_frame[f] >= least:
                 print(f"f{f:<7} {per_frame[f]}")
         if not per_frame:
-            print(f"no draw in this trace is made from {want_name}")
+            print(f"no draw in this trace is made from {' < '.join(want_chain)}")
         return
 
     want = set(frame_arg(a) for a in rest) if rest and cmd != "blind" else None

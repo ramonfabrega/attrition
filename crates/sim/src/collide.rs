@@ -1603,6 +1603,77 @@ mod tests {
         assert_eq!(sim.units[y].pos, b, "the blocker never moved");
     }
 
+    /// **The other side of the same coin: an animal is a blocker like any
+    /// other, and a crewed walker pays the stand twice** (2026-09-06,
+    /// item 241).
+    ///
+    /// §4.3's chain walk skips itself, non-units and aircraft, and asks
+    /// nothing about the owner —`detect_unit_collision@00617060:150-172`
+    /// tests `alive`, vfunc `+0x18`, `domain != 2`, `is_on_map` and
+    /// `is_here`, and no `who`. [`Sim::chain_hit`]'s `who < 8` fence is
+    /// **not** on this path: a step probes [`Sim::collide_here`], the
+    /// occupancy bitmask, which [`Sim::coll_paint`] writes for every unit
+    /// with a block, gaia's included. So East Indies' `1/20` is blocked
+    /// by gaia's animal `8/0` on run85's frame 7448 and the crate models
+    /// that, whatever else it does with the frame
+    /// (`docs/COLLISION.md` §8.2).
+    ///
+    /// And it pays it **once per figure**: `Unit::set_anim@00616f40` has
+    /// two loops, the squad's `0 .. guy_mark` and the crew's `squad_size
+    /// .. guy_num`, and run85's 7448 spends one draw from each —
+    /// `Unit::set_anim+0x56` and `+0xb6`, both under
+    /// [`crate::anim::SITE_BLOCKED`]. A Merchant is `CREW_SIZE 1`, so the
+    /// frame owes two draws and not one.
+    #[test]
+    fn a_gaia_animal_blocks_a_player_s_walker_and_a_crew_pays_the_stand_twice() {
+        let a = Pos::new(30 * 0x30 + 0x18, 30 * 0x30 + 0x18);
+        let b = Pos::new(27 * 0x30 + 0x18, 30 * 0x30 + 0x18);
+        let (mut sim, x, y) = pair(a, b);
+        // The **blocker** is gaia's; the walker is a player's, which is
+        // run85's 7448 the way round the animal test above is not.
+        sim.units[y].owner = 8;
+        for slot in 0..4 {
+            sim.art.lengths.insert((1, slot), 40);
+        }
+        // Two figures, the Merchant's shape: `UBER_SIZE 1, CREW_SIZE 1`.
+        sim.units[x].guys = vec![crate::anim::Guy::fresh(1), crate::anim::Guy::fresh(1)];
+        sim.trace_phases = true;
+        sim.order_move(x, Pos::new(20 * 0x30 + 0x18, 30 * 0x30 + 0x18));
+        let mut marks = None;
+        for _ in 0..60 {
+            sim.tick();
+            if sim.units[x].collide_o >= 0 {
+                marks = Some(sim.phase_marks.clone());
+                break;
+            }
+        }
+        let marks = marks.expect("gaia's animal blocked the player's walker");
+        assert_eq!(
+            (sim.units[x].collide_o, sim.units[x].collide_who),
+            (sim.units[y].index, 8),
+            "the blocker named is the animal, owner and all"
+        );
+        let at = marks
+            .iter()
+            .position(|(l, _)| l == crate::anim::SITE_BLOCKED)
+            .expect("the blocked stand is marked on that frame");
+        // How many draws the mark covers: walk the LCG from the word it
+        // recorded to the next mark's (or the frame's end).
+        let after = marks.get(at + 1).map_or(sim.rng.seed, |(_, w)| *w);
+        let mut r = crate::combat::Rng::new(marks[at].1);
+        let mut drew = 0;
+        while r.seed != after && drew < 8 {
+            r.get(0, 0xffff);
+            drew += 1;
+        }
+        assert_eq!(
+            (r.seed, drew),
+            (after, 2),
+            "one draw per figure — `Unit::set_anim`'s two loops, run85's \
+             `Unit::set_anim+0x56` and `+0xb6` on 7448"
+        );
+    }
+
     /// **`collide` chooses the grid the re-plan runs on**
     /// (`docs/ORDERS.md` §4.4, `Unit::do_move@005f7b30`'s `field_0x88`
     /// test).

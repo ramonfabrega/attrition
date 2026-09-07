@@ -1062,6 +1062,32 @@ Checks, cheapest first:
 
 ## 13. What is not established
 
+- **The whole ride, end to end, is un-oracled — and East Indies' long
+  word is downstream of it** (2026-09-06, item 241). Between run82's last
+  block (6929) and run85's first (7400) the AI's Merchant `1/20` casts
+  transport, rides a Transport Barge and is put ashore, and no dump on
+  disk covers any of it. This crate is **one frame ahead** at 6929 and
+  **792 units behind** at 7400 — about thirty-four frames — and that lag,
+  not any collision rule, is why the word parts at 7448
+  (`docs/COLLISION.md` §8.2). The draw stream cannot see it: the trace
+  dates the barge's birth at 7093 on both sides (`Guy::init_real`), and
+  the eject spends **no draw at all**, so nothing pins the landfall. The
+  ceiling arithmetic says the original runs 6929–7400 at 99.5 % of a
+  straight line and this crate at 93.8 %, so the 792 is a **route**, and
+  the three places it can hide are `cast_transport`'s birth spot (§6.1),
+  the barge's own `find_upath` plan and [`Sim::come_out_unit_host_spot`]'s
+  ring (§6.4) — a 48-unit nudge to the last of them puts nineteen units
+  off position inside run85's window, so none of the three is a detail.
+  *Capture:* East Indies at run85's detail over `[7080, 7140)` and
+  `[7290, 7340)`, the cast and the landfall, with `UNITS=3` — which is
+  the only thing that can say which.
+- **A passenger's `x_internal`/`y_internal` while aboard.**
+  [`Sim::board`] freezes them at the boarding point and nothing reads
+  them until [`Sim::disembark`] takes the ring off the **boat's**
+  position, so the freeze is believed harmless; the original's own value
+  is unwitnessed, because no dump in hand holds a frame with a live
+  passenger. Fold into the capture above: `[7290, 7340)` opens with the
+  barge still carrying.
 - ~~**Which shipped row grants `TRANSPORT_BONUS`** (0x2ae).~~ **Settled
   from the data**: it is the third `BONUS` of `rules.xml`'s `TECHBONUSES`
   ("Units can be transported by sea", `preq0="Written Word"`), the bonus

@@ -794,6 +794,11 @@ buildings join the chain, which is why §8 does not claim it.
 
 **Diff-backed** — `rondata::diff` against run10:
 
+- **A gaia animal is a blocker like any other**, and the step's probe has
+  no owner test on either side (§8.2). run85's block 7449 carries the
+  original's own `collide_who 8`, so this is the dump's word and not a
+  reading's.
+
 - **The whole mechanic, once, field for field.** run10's `1/6` proposes
   `(41880, 17065)` on frame 122. `collide_here` reports the hit cell
   `(871, 354)`, inside `1/3`'s block; the corner rule makes it hard
@@ -1088,6 +1093,98 @@ every row is "reached" by that list's rule — but that is a fact about the
 *function*, not the arm. Both of §4.3's arms need a marching squad with a
 group-mate, which is the capture §9 already owes.
 
+## 8.2 run85 — the word's frame is a position, and the animal is not the question (2026-09-06)
+
+`run85_s_window_is_the_east_indies_word_frame`. run54's game, `[7400,
+7480)` plus the quit block 7496 — 81 blocks at `UNITS=3, GUYS=4,
+BUILDS=7, CITIES=5, DEATHS=1, LEADERS=1`, driven through
+[`run_traced`](../crates/rondata/src/diff/harness.rs), so what is compared
+is the whole record and not the walker's. It is the first capture East
+Indies has ever had within 3,200 frames of its own word, and it closes the
+row §9 opened on 2026-09-04.
+
+**The frame, off the disk.** `1/20` walks south-west at `(-13, -19)` a
+frame, is put *back* to `(29256, 24888)` on 7449 with `collide 1,
+collide_o 0, collide_who 8` — gaia's animal `8/0`, standing at
+`(29304, 24696)` — holds that point for four frames while its angle snaps
+to `-1073741824` (due west), and slides west with `y` pinned from 7454.
+That is §6 step 6's repath, the shape run83 pinned on Great Lakes.
+
+**And the two draws are one unit's two figures.** The trace's 7448 is 34
+draws; the two the word is short are
+`Guy::set_anim+0x97a < Unit::set_anim+0x56 < Unit::move_step+0x823` and
+the same with `+0xb6`. `Unit::set_anim@00616f40` has **two loops** — the
+squad's `0 .. guy_mark` and the crew's `type->squad_size .. guy_num` —
+and `1/20` is a Merchant, `UBER_SIZE 1, CREW_SIZE 1`, so `guy_mark` is 1
+and the record prints one `GUY` while the frame pays two set_anims. The
+crew's is not owed on every stand: run66's 6571 spends `+0x56` alone,
+because that crew figure's body was still walking and `Guy::set_anim`'s
+early return takes it (`docs/ANIM.md` §4 step 1). `Sim::set_anim` loops
+every guy and `Sim::body_at_des` is that gate, so both cases are already
+modelled;
+`collide::tests::a_gaia_animal_blocks_a_player_s_walker_and_a_crew_pays_the_stand_twice`
+asserts the pair on a two-figure walker at rest.
+
+**Gaia is not filtered out of a step, and never was.** The candidate cause
+this window was opened to test — that `Sim::chain_hit`'s `who < 8` fence
+(§5.2) makes an animal invisible — is **dead**, on both sides. Here, a
+step probes `Sim::collide_here`, the occupancy bitmask, which
+`Sim::coll_paint` writes for every unit with a block and no owner test at
+all — §5.2 says so in as many words, "a land caller's `collide_here` sees
+the cells a sheep paints, because the bitmask has no owner". `chain_hit`
+is the *other* index, and it backs `find_ordered_collision` and the
+sea/air arm of `find_collision`: §5.2's spot search, which a step's probe
+never enters.  In the original,
+`detect_unit_collision@00617060:150-172` walks the `down` chain asking
+`alive`, vfunc `+0x18`, `domain != 2`, `is_on_map` and `is_here`, and
+never `who`. The dump settles it from the third side: the original's own
+`collide_who` **is** 8.
+
+**What the window actually says.** Over 81 blocks and 2,268 compared unit
+fields, **three** units are ever off position and none of them parts
+inside the window on account of it:
+
+- `1/20`, the Merchant, off from the **first** block — `(36, 792)`, which
+  is about 34 frames of its own 23-a-frame walk. It is *behind on its own
+  chain, not beside it*: its waypoint's **column** agrees for 28 more
+  blocks (`Move.dest_x` first parts at 7428) while the **row** parts at
+  once (`Move.dest_y`, 7400), because this crate is one leg further back
+  on the same `find_upath` plan, and both sides carry the same
+  `MOVEORDER` destination `(28728, 24120)` and the same stale
+  `coll_x/coll_y` `(34999, 37321)`.
+- `1/19`, the unpacked Merchant, off by a **constant `(24, 24)` on every
+  block**, both sides standing still. The original put it on the tile
+  corner `(32256, 36864) = 192 × (168, 192)` somewhere in the 470 frames
+  no dump covers; this crate left it where run82's closing block had it.
+- `0/5`, the human's, from 7468 — past the word and outside the item.
+
+So East Indies 7448 is not a collision hole. It is `1/20` arriving
+thirty-four frames late at a meeting it therefore never has, and the
+thirty-four frames are spent between run82's last block (6929, where this
+crate is one frame **ahead**) and this window's first (7400).
+
+**Where they go is un-oracled.** In that gap `1/20` casts transport —
+the trace dates the barge's birth at **7093** on both sides,
+`Guy::init_real`, and this crate's is the same frame — rides it, and is
+put ashore around 7321; the eject spends no draw at all (`report.py …
+when Unit::come_out` is empty), so the word cannot date it and does not
+constrain the ride. The arithmetic bounds it. Straight from each
+side's own 6929 point — they differ by one frame's step — the original's
+7400 point is **11,458** units away and this crate's **10,794**, both
+over the same 471 frames; the ceiling for the
+mix — 227 frames of barge at 26, which is this crate's ride, and the
+other 244 at the Merchant's 23 — is **11,514**. So the original spends
+**99.5 %** of those frames' full speed making straight-line progress and
+this crate **93.8 %**. That is a
+**route**, and it is the barge's: its birth spot, its `find_upath` plan
+and `come_out`'s ring are the three places 792 units can hide, and a
+48-unit nudge to the last of them puts nineteen units off position in
+this same window. *Capture, owed:* East Indies at run85's detail over
+`[7080, 7140)` and `[7290, 7340)` — the cast and the landfall — which is
+the only thing that can say which of the three it is. Until then the
+long word stays at 7448 (`docs/TRANSPORT.md` §6, and `docs/MERCHANT.md`
+for `1/19`).
+
 ## 9. What is not established
 
 - ~~**Great Lakes' long word is a `SITE_BLOCKED` this crate spends and the
@@ -1104,8 +1201,19 @@ group-mate, which is the capture §9 already owes.
   `Leader::produce_building+0x1805` against `Leader::make_stuff+0x221` —
   an AI purchase, not a movement question.
 
-- **East Indies 7448 is still open, and it is a *position* and not a
-  predicate** (2026-09-04, queue item 223). Two `SITE_BLOCKED` the
+- ~~**East Indies 7448 is still open, and it is a *position* and not a
+  predicate**~~ **Settled as a collision question by run85** (item 241,
+  2026-09-06): it *is* a position, and §8.2 has the record. The two
+  `SITE_BLOCKED` are one Merchant's two figures, the blocker is gaia's
+  animal `8/0` and nothing filters gaia out of a step; what is missing is
+  the walker, 792 units and about thirty-four frames short of the meeting,
+  and the frames are spent on an un-captured barge ride between 6929 and
+  7400. The row that remains is `docs/TRANSPORT.md`'s, not this
+  document's. The reading below is superseded — four of its five units
+  were named off the trace and the window says only three units on the
+  map are off position at all — and is kept for the method.
+
+  Two `SITE_BLOCKED` the
   original spends and this crate does not. Five units are moving there —
   `0/3`, `1/0`, `1/10`, `1/18`, `1/20`, none of them within a thousand
   units of another — and **four of the five propose a point inside their
@@ -1126,9 +1234,8 @@ group-mate, which is the capture §9 already owes.
   capture on disk reaches 7448** (the map's windows are 5150–5400,
   6730–6800, 6860–6930, 10150–10400 and 15700–15900), so the five units
   above are a reading of the trace's draw sites and not a record.
-  *Capture:* `[7420, 7480)` at run39's detail, which would put their
-  positions and their `collide` block under the differ and say whether
-  the two stands are a position at all.
+  ~~*Capture:* `[7420, 7480)` at run39's detail~~ — **taken**, as run85's
+  `[7400, 7480)`, and it answered: a position (§8.2).
 
 - **`ObjectType +0x2b4 & 0x2000`** — the "attack what you bump into" bit.
   Read as a flag, not traced to its XML column.
