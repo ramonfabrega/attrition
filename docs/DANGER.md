@@ -8,9 +8,11 @@ dump prints the whole map**, `danger[who][scan]`, eight rows of `reg_size`
 `int`s, and every `DUMP_ALL` capture in the corpus has been carrying it
 since the first one. Confidence: **high** for the object, the schedule, the
 building pass and the three arms of `do_danger` — all 7,200 values of
-run64's frame-6167 map are asserted against the dump's own — and
-**medium-low** for the unit pass, which run64 does not exercise at all
-(neither leader has a military unit on the map at frame 6000).*
+run64's frame-6167 map are asserted against the dump's own. **The unit pass
+was medium-low until 2026-09-06 and is now high too**: run64 does not
+exercise it, but run26's frame 12024 does, and its arithmetic closes to the
+unit (§8.1). What is left resting on a reading alone is the peace arm, the
+garrisoned case and the `LEADER_VALID`/`LEADER_ACTIVE` split.*
 
 The mechanic is `docs/QUEUE.md`'s item 136, and it was booked as "the danger
 grid has no writer, and four readers index it wrongly". Both halves were
@@ -59,7 +61,29 @@ Third in that function, after the repath decay and `process_victory` and
 before `update_all_seen`. **Nothing decays the map between rebuilds** — it
 is thrown away and reassembled from the live objects — so every read is of
 a map up to 199 frames stale. A building finished on frame 201 weighs
-nothing until 400.
+nothing until 400. That staleness is diff-backed and visibly so: run25's
+frame 12129 prints a map whose two unit contributions sit at half-cells the
+units had already **left**, and they are the same two values run26 prints at
+12024 (§8.1).
+
+**Where it sits in the frame, which is what makes a capture of it exact.**
+`Game::do_frame@00591ef0` runs
+
+```
+GameLog::begin_frame@00932a70          # a DUMP_ALL block's first FULL DUMP
+  ... Leaders::process_all, Leaders::strategy_all@006ed430 ...
+GameDaemon::process_all@00732700       # calc_danger, when frame % 200 == 0
+  ... Armies::process_all ...
+Objects::process_all@0065dce0          # every object moves, here and not before
+  ...
+this->frame += 1
+GameLog::end_frame@009329d0            # the block's second FULL DUMP
+```
+
+so a `DUMP_ALL` block labelled `FRAME N` holds the map **before** and
+**after** everything sim-frame N did, and on a rebuild frame the objects in
+its *first* dump are exactly the ones `calc_danger` read — nothing has moved
+between the two. `tools/gamelog/danger.py` is the reader for both halves.
 
 ## 3. `GameDaemon::calc_danger@00732d10` — the rebuild
 
@@ -223,14 +247,11 @@ not that nothing did.
   (`run64_s_window_clocks_are_the_original_s`): 2,061 fields of run64's
   eight-frame window, of which thirty-four used to part and none does.
 - East Indies' word, indirectly: 6198.
+- **The unit pass — the formula, the military gate both ways, the
+  owner skip and the single-cell write.** §8.1; the archives are run26,
+  run29, run27 and run25, and no capture was needed.
 
 **Reading-only, and each names the capture that would falsify it:**
-
-- **The unit pass, entirely.** run64's two leaders have no military unit on
-  the map on frame 6000, so `role & 0x10000`, `(attack · 5) / 10`, and the
-  war gate are all unexercised. A capture with a `DUMP_ALL` `WORLD` block on
-  a frame divisible by 200 *after* either side has an army would settle it —
-  run16's attrition scenario is one, and its window is cheap.
 - `UnitData::is_seen`, which is a live-visibility read with the stealth and
   detection machinery behind it. This crate answers it with the same
   ever-seen fog bit a building takes, so a unit standing on ground the
@@ -246,6 +267,72 @@ not that nothing did.
   separate them.
 - `obj_base[1]`, taken as 2000 because every dumped building's `o` is in
   `[2000, 3000)`.
+
+### 8.1 The unit pass, and it was on disk all along
+
+Item 178 was booked for a capture — a `DUMP_ALL` `WORLD` block on a frame
+divisible by 200 with an army alive — and closed by a grep instead
+(`docs/ORACLE.md`, "178 needed no screen"). The whole corpus holds **two**
+blocks on a rebuild frame and neither has a military unit in it; what settles
+the pass is a different property of the dump entirely.
+
+**The building pass writes to every active viewer, the owner included, over a
+3 × 3 of half-cells (§3). So a half-cell with no building anywhere in its 3 × 3
+is zero in every row from the building pass, and anything non-zero there is
+the unit pass and nothing else.** Every combat window on disk has exactly two
+such half-cells, and `tools/gamelog/danger.py` plus a fifteen-line probe finds
+them:
+
+| archive | block | rebuild | half-cell | `danger[0]` | `danger[1]` | the units standing there |
+| --- | --- | --- | --- | --- | --- | --- |
+| run26 | 12024 | 12000 | (27, 20) | **30** | 0 | `1/35` type 324 |
+| run26 | 12024 | 12000 | (28, 21) | **212** | 0 | `1/32` **340**, `1/34` 324, `1/38` 334 |
+| run29, run27 | 15100 | 15000 | (22, 28) | **30** | 0 | `1/35` type 324 |
+| run29, run27 | 15100 | 15000 | (23, 29) | **217** | 0 | `1/32` **341**, `1/34` 324, `1/38` 334 |
+
+The type table in the same dump gives each type's `attack`, and
+`(attack · 5) / 10` halved once by `do_danger`'s enemy arm reproduces every
+value **to the unit**:
+
+| type | `attack` | `(attack · 5) / 10` | halved |
+| --- | --- | --- | --- |
+| 324 | 120 | 60 | **30** |
+| 334 | 530 | 265 | **132** |
+| 340 | 200 | 100 | **50** |
+| 341 | 220 | 110 | **55** |
+
+30 + 132 + 50 = **212**, and 30 + 132 + 55 = **217**. The five between them is
+`1/32`'s own: its type is **340** at 12024 and **341** at 15100, an upgrade,
+and (110 − 100) / 2 = 5 is exactly what the map moves by. Two frames three
+thousand apart, four types, and the arithmetic closes on both.
+
+Six claims come out of that, and each was a reading:
+
+- **`(attack · 5) / 10`**, with `attack()` returning the *type's* `attack` for
+  all six of these units. What an upgrade does to it is still unexercised —
+  340 → 341 is a type change, not a modifier on one type.
+- **One halving, and it is `is_seen`, not peace.** Both leaders' `diplos` rows
+  are `0` toward each other in the same block, so the `diplos == 1` arm never
+  ran; the halving is `UnitData::is_seen@00607a60` answering false. §7 settled
+  the same ambiguity for buildings on a different game.
+- **The owner's row is untouched.** `danger[1]` is exactly 0 at both cells the
+  units of leader 1 stand in — `viewer != owner`, and the pass never reaches
+  `do_danger`'s own-side arm.
+- **One half-cell, not a footprint.** All eight neighbours of each cell are
+  zero in every row. A building there would have left `value / 2` all round.
+- **`role & 0x10000` gates it, and the negative side holds too.** run26's
+  frame 12024 has **45** half-cells that lie outside every building's 3 × 3
+  and hold a non-military unit and no military one; all 45 are zero in all
+  eight rows.
+- **The map really is 200 frames stale.** run25's 12129 prints the same two
+  values at the same two half-cells with the units already gone (§2).
+
+**What a diff should assert**: not all 7,200 values — the block's records are
+24 frames younger than the map and only the *military* units are provably
+unmoved — but `calc_danger` over the block's own first dump reproducing the
+dump's map at every half-cell holding a military unit and at every half-cell
+outside every building's 3 × 3. run64's frame 6167 already carries the
+whole-map form for the building pass.
 
 **Not established at all:** what the map is *for* beyond `calc_cost` and the
 five producers — `Army`'s own reads, if any, are unlooked-at; and whether

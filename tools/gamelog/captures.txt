@@ -1531,3 +1531,49 @@ check: python3 tools/gamelog/track.py UNITDATA collide_frame --frames 7400-7479 
 # Item 236 dissolved the squad behind the Great Lakes member and could not
 # have moved this one — there is no squad here.
 # `docs/ORACLE.md`, "run85 — East Indies' blocked stand at 7448".
+
+# --- item 178 was taken by the capture lane on 2026-09-06 and NOT booked.
+#
+# The item asked for a `DUMP_ALL` `WORLD` block on a frame divisible by 200
+# with a military unit alive, to settle `docs/DANGER.md` §8's unit pass. The
+# grep that was meant to pick the frame closed the item instead, and the
+# stanza below was drafted, costed and then not spent. Do not re-book it
+# without reading `docs/DANGER.md` §8.1 and `docs/ORACLE.md`, "178 needed no
+# screen" — the arithmetic is diff-backed off run26's block 12024, and the
+# four claims that still rest on a reading (the peace arm, the garrisoned
+# case, the `LEADER_VALID`/`LEADER_ACTIVE` split, an upgrade inside
+# `attack()`) are none of them reachable by a second two-leaders-at-war game.
+#
+# What the grep found, so nobody repeats it: 71 archives carry
+# `danger[who][scan]`, 22 carry it per-frame, and **exactly two blocks on
+# disk sit on a rebuild frame** — run65's East Indies 6200 and run72's Great
+# Lakes 4800 — with no military unit in either.
+#
+# The stanza that was not run, kept because it is costed and correct if a
+# contemporaneous whole-map assertion is ever wanted. Great Lakes 7000 is a
+# rebuild frame with six Longbowmen alive in two clusters (run79 shows them) and
+# the same 25 buildings at the same positions, hit points and flags as at
+# 6800, so `dump1 != dump2` in that one
+# block is the unit pass and nothing else. ~154 MB: a 29.6 MB start dump plus
+# two 61.6 MB blocks (run72's own measurement), on a fifty-second run-up.
+#
+#   run: 86
+#   tag: greatlakes-dangerarmy
+#   item: 178
+#   why: the danger map's unit pass, on the one rebuild frame with an army
+#   frames: 7003
+#   mapstyle: 14
+#   window: 7000 7002
+#   cover: cover=0
+#   settle_min: 50000000
+#   poll_max: 90
+#   check: python3 tools/gamelog/rngcmp.py rontrace-run53.log rontrace-run86.log
+#   check: python3 tools/gamelog/danger.py map gamelog-run86-greatlakes-dangerarmy.txt 7000 --differ
+#   check: python3 tools/gamelog/danger.py units gamelog-run86-greatlakes-dangerarmy.txt 7000 --least 3
+#
+# Both `danger.py` checks were made to fail first, on real data, both ways:
+# `--differ` exits 1 on run72's 4800, run65's 6200 and run29's 15100; and
+# `--least 3` exits 0 on run79's 7000 and run76's 6800 and 1 on run72's 4800
+# and run65's 6200. `samegame.py` has no bite here — run79's neighbouring
+# window is a cheap dump and this one is `DUMP_ALL`, so every block would
+# differ for a reason that is not the game (run43's note above).

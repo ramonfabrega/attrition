@@ -4667,8 +4667,30 @@ are now a diff like every other.
 | `1/28` Archer | (42622, 24647) | (42337, 24323) | (42129, 24036) |
 | `1/29` Archer | (42806, 24254) | (42426, 23894) | (42153, 23848) |
 
-All three Archers hold `group 64` throughout; `1/13` and `1/17` are `form 9`
-and ungrouped.
+All three hold `group 64` throughout; `1/13` and `1/17` are `form 9` and
+ungrouped.
+
+**Amended 2026-09-06 (capture lane), twice, and both are about what run76 and
+run83 can be *used* as.**
+
+**Neither is a goods oracle.** Both carry exactly **one** leader goods block —
+24 `bucket` lines in the *initial* dump, the `[200, 200, 100, …]` grant — and
+**no** frame block in either file carries one, against run80's 41 at
+`LEADERS=9`. `loop-238` hit this looking for where two units of wealth were
+banked and it is verified here by counting. A booking that assumes run76 or
+run83 can be integrated forward for a leader's goods would waste its window.
+
+**And the squad's own type changes inside run76's window.** run79's section
+below says guy type 170, `Bowmen`, "is what its units carry"; that is true of
+run76 up to **6736** and false after. On **frame 6737** all three of `1/27`,
+`1/28` and `1/29` go **170 → 177** — `Longbowmen` — in one frame, keeping their
+`(who, o)` and their `group 64`. So an upgrade in this engine is an **in-place
+guy-type change on the standing unit**, not a modifier applied to a type, which
+is the same shape `docs/DANGER.md` §8.1 finds on East Indies (`1/32`, type
+340 → 341, and the danger map moves by exactly (110 − 100) / 2). run79's
+"trained Bowmen at 6612 and Longbowmen at 6994" is about **births** and stands;
+what it does not say is that the 6612 squad had already become Longbowmen by
+6737.
 
 ## run84 — the make-list across 6982, and the rebuild nobody had seen (2026-09-06)
 
@@ -4732,12 +4754,20 @@ becomes — the sim's `Leader::produce_building+0x1805` against the original's
 and becomes "the original's list held these nine entries at these valuations
 and took a 428 on the next frame".
 
-**What it does not establish.** **The type numbers are not named here.** The
-buildings standing on this map carry `orig_type` 414, 417, 418, 427, 435, 436
-and 439; neither 420 nor 428 is built, which is consistent with their being
-*wanted*, and naming them needs the install's own type table through
-`rondata` rather than a guess off the neighbours. `val`'s units are unread —
-the factor-of-four is exact and what it is a factor *of* is not. And `cat`
+**What it does not establish.** ~~**The type numbers are not named here.**~~
+**Named 2026-09-06 by `loop-238` through `rondata`'s table: 420 is the
+University, 428 the Stable, 437 the Temple.** The buildings standing on this
+map carry `orig_type` 414, 417, 418, 427, 435, 436 and 439; neither 420 nor 428
+is built, which is consistent with their being *wanted*. ~~`val`'s units are
+unread — the factor-of-four is exact and what it is a factor *of* is not.~~
+**Also answered, and the caution was right to have: the factor of four is not
+a re-price.** `Leader::check_income@006cc800` returns `0x100` for a type the
+leader can afford one of and **`0x40`** for one it cannot while escrow is on,
+and `Leader::create_buildings@006c1be0` multiplies the offer by that over 256.
+So the University's `val` fell because the leader **stopped being able to
+afford it**, not because the rebuild re-priced it — and "the price fell" would
+have sent the item the wrong way. The Temple flag resolved the other way: the
+membership change is real and this crate follows it. And `cat`
 (4, 6, 7, 8, 9, 10) is taken as a category index on the evidence that `city`
 is 1 for the two building entries, 0 for the cat-6 pair and −1 for cat 8–10;
 nothing here proves that reading.
@@ -4828,6 +4858,86 @@ animations 0, 7, 8 and 9 are. Why the 60-frame animation is discarded after
 one frame. And whether `collide_o`/`collide_who` naming an animal means the
 collision test treats animals as units or as a separate pass — the dump shows
 the outcome, not the search.
+
+## 178 needed no screen — the danger map's unit pass was on disk four times (2026-09-06)
+
+**What it is.** Not a run. `docs/DANGER.md` §8 had the unit pass of
+`GameDaemon::calc_danger` down as reading-only — `role & 0x10000`,
+`(attack · 5) / 10` and the war gate — because "no capture has a military unit
+on a frame divisible by 200", the rebuild boundary. The grep that was meant to
+choose *which* capture to book closed the item instead.
+
+**Two greps, and the first one confirmed the premise.** Every archive in
+`Logs/` was scanned for `danger[who][scan]` and for the frame block it sits in:
+71 files carry the map at all, 22 carry it per-frame, and of every block on
+disk **exactly two are on a rebuild frame** — run65's East Indies 6200 and
+run72's Great Lakes 4800. Neither has a single unit whose type carries the
+military bit. So the premise held: a capture *was* owed, and the target was
+picked — Great Lakes frame **7000**, where run79 already shows six Longbowmen
+(guy type 177, `role 0x150c00`) in two clusters and the same 25 buildings
+stand at the same positions, hit points and flags as at 6800 — so
+`dump1 ≠ dump2` in that one block would be the unit pass and nothing else.
+
+**Then the second grep made the capture unnecessary.** The dump does not have
+to be *contemporaneous* to be decisive, because the two passes write different
+shapes. The building pass writes a 3 × 3 of half-cells to **every** active
+viewer, the owner included; the unit pass writes **one** half-cell and never
+the owner's. So a half-cell with no building anywhere in its 3 × 3 is zero in
+all eight rows from the building pass, and anything non-zero there is the unit
+pass. Every combat window on disk has exactly two of them:
+
+| archive | block | rebuilt at | half-cell | `danger[0]` | `danger[1]` |
+| --- | --- | --- | --- | --- | --- |
+| run26 | 12024 | 12000 | (27, 20) | **30** | 0 |
+| run26 | 12024 | 12000 | (28, 21) | **212** | 0 |
+| run29, run27 | 15100 | 15000 | (22, 28) | **30** | 0 |
+| run29, run27 | 15100 | 15000 | (23, 29) | **217** | 0 |
+
+Leader 1's units standing on them, and the type table in the same dump, give
+`(attack · 5) / 10` halved once by `do_danger`'s enemy arm: 324 → 30,
+334 → 132, 340 → 50, 341 → 55. **30 + 132 + 50 = 212** and
+**30 + 132 + 55 = 217**, and the five between the two frames is `1/32`'s
+upgrade from type 340 to 341 — (110 − 100) / 2. The whole of
+`docs/DANGER.md` §8.1 falls out of that, negative side included: run26's 12024
+has 45 half-cells outside every building's 3 × 3 holding only non-military
+units, and all 45 are zero in all eight rows (run29's 15100 gives 44 of 44,
+run25's 12129 45 of 45).
+
+**And run25 is the control nobody designed.** Its block 12129 prints the same
+two values at the same two half-cells with the units **already gone** — the map
+is the 12000 rebuild's, 129 frames stale, and that is §2's "nothing decays
+between rebuilds" as a dump rather than a reading.
+
+**So no capture was booked.** The Great Lakes 7000 stanza was drafted, costed
+(~154 MB: a 29.6 MB start dump plus two 61.6 MB `DUMP_ALL` blocks, on a
+fifty-second run-up) and then not spent, because the only thing it would add
+over the archives is a *contemporaneous* whole-map assertion, and the four
+reading-only claims that remain — the peace arm, the garrisoned case, the
+`LEADER_VALID`/`LEADER_ACTIVE` split, an upgrade inside `attack()` — are none
+of them reachable by it. Two leaders at war with an army on the map is exactly
+what run26 already is.
+
+**What it left behind.** `tools/gamelog/danger.py`, the third reach for the
+same probe shape and so a tool: `danger.py map FILE FRAME [--differ|--same]`
+compares the two `FULL DUMP`s' maps in one block, and `danger.py units FILE
+FRAME [--types A] [--least N]` lists the units whose `role` has the military
+bit with the half-cell each indexes and what every row holds there. Both were
+made to fail first, on real data, in both directions: `--differ` exits 1 on
+run72's 4800, run65's 6200 and run29's 15100 and 0 on nothing yet; `--least 3`
+exits 0 on run79's 7000 and run76's 6800 and 1 on run72's 4800 and run65's
+6200. It reads the archive with **indentation intact** — `frame.py` strips it,
+and a record then has to be closed by name rather than depth, which silently
+hands the last `UNITDATA` of a dump the `BEGIN GUY` records of the top-level
+guy pool and all 674 `GROUPDATA` after it. That bug inflated the first military
+census of run29's 15100 by one unit with sixteen types.
+
+**One thing the reading turned up that no dump can settle.** `calc_danger`'s
+building pass walks its **viewer** loop to the end of the leaders array
+(`local_28 < 0xe71af0`), where the clear loop and the whole unit pass walk
+exactly eight slots. This game's leader 8 — Gaia, whose `leader_flags` is
+`0x2000007`, both bits set — is therefore an active viewer of the building
+pass and there is no `danger[8]`. Whether that writes past the array or the
+loop bound is a decompiler artefact is a listing question, not a capture one.
 
 ## The window nobody can see — CrossOver's expired bottle (2026-09-04)
 
