@@ -676,16 +676,16 @@ mod tests {
         assert_eq!(built.sim.lobby.map_style, 18, "East Indies");
 
         let frames = log.frames();
-        let block = |n: i64| -> &Block<'_> {
-            let (_, b) = frames
+        let block = |n: i64| -> Block<'_> {
+            let (_, b) = *frames
                 .iter()
                 .find(|(f, _)| *f == n)
                 .expect("the frame block");
             b.kid("FULL DUMP").unwrap_or(b)
         };
-        let sub = |b: &Block<'_>, key: &str| -> Option<i64> { b.find("SUBOBJECT")?.int(key) };
+        let sub = |b: Block<'_>, key: &str| -> Option<i64> { b.find("SUBOBJECT")?.int(key) };
         // The unit bits, by owner: (with the bit, without).
-        let bits = |b: &Block<'_>, who: i64| -> (usize, usize) {
+        let bits = |b: Block<'_>, who: i64| -> (usize, usize) {
             let mut on = 0;
             let mut off = 0;
             for u in b.kids("UNITDATA") {
@@ -700,7 +700,7 @@ mod tests {
             }
             (on, off)
         };
-        fn active_docks<'a, 'b>(b: &'a Block<'b>) -> Vec<&'a Block<'b>> {
+        fn active_docks<'b>(b: Block<'b>) -> Vec<Block<'b>> {
             b.kid("DOCKS")
                 .map(|d| {
                     d.kids("DOCK")
@@ -730,7 +730,7 @@ mod tests {
         // The building, and its cell in the harness's world.
         let bd = after
             .kids("BUILDDATA")
-            .find(|b| sub(b, "o") == Some(o) && sub(b, "who") == Some(1))
+            .find(|&b| sub(b, "o") == Some(o) && sub(b, "who") == Some(1))
             .expect("the dock's BUILDDATA");
         assert_eq!(bd.int("orig_type"), Some(432), "DOCK");
         let pos = Pos::new(
@@ -1061,7 +1061,7 @@ mod tests {
                 let Some(block) = log.leader_block(n, who) else {
                     continue;
                 };
-                let theirs: Vec<&Block> = block.kids("SITE").collect();
+                let theirs: Vec<Block> = block.kids("SITE").collect();
                 if theirs.len() != sim::ai::SITES {
                     continue;
                 }

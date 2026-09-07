@@ -824,7 +824,7 @@ mod tests {
                 .unwrap_or_else(|| panic!("frame {n} is dumped"));
             let w = body.kid("WORLD").expect("a WORLD block");
             let mut notes = Vec::new();
-            world_from(&w.fields, heights, &mut notes).0
+            world_from(&w.fields().to_vec(), heights, &mut notes).0
         };
         let roads = |w: &World| -> std::collections::BTreeSet<(i32, i32)> {
             let (tw, th) = (w.width() * 4, w.height() * 4);
@@ -1257,7 +1257,7 @@ mod tests {
             .kid("WORLD")
             .expect("run13's frame 95 carries a WORLD block");
         let mut notes = Vec::new();
-        let (theirs, _) = world_from(&w.fields, &[], &mut notes);
+        let (theirs, _) = world_from(&w.fields().to_vec(), &[], &mut notes);
         let (xs, ys) = (theirs.width(), theirs.height());
         assert_eq!((xs, ys), (60, 60), "the cell grid of run10's map");
 
@@ -1521,7 +1521,7 @@ mod tests {
             heights.len() > 1_000,
             "run72's block carries the height grid"
         );
-        let (theirs_world, _) = world_from(&w.fields, &heights, &mut notes);
+        let (theirs_world, _) = world_from(&w.fields().to_vec(), &heights, &mut notes);
         let (xs, ys) = (theirs_world.width(), theirs_world.height());
         let mut z_off = Vec::new();
         let mut mask_off = Vec::new();
@@ -1773,7 +1773,7 @@ mod tests {
             return;
         }
         let mut notes = Vec::new();
-        let (theirs_world, _) = world_from(&w.fields, &heights, &mut notes);
+        let (theirs_world, _) = world_from(&w.fields().to_vec(), &heights, &mut notes);
         let (xs, ys) = (theirs_world.width(), theirs_world.height());
 
         // The road tiles first, on their own, because they are the point: a
@@ -1941,7 +1941,7 @@ mod tests {
             heights.len() > 1000,
             "run64's block carries the height grid"
         );
-        let (theirs, _) = world_from(&w.fields, &heights, &mut notes);
+        let (theirs, _) = world_from(&w.fields().to_vec(), &heights, &mut notes);
         let (xs, ys) = (theirs.width(), theirs.height());
         let mut z_off = Vec::new();
         for ty in 0..ys * 4 {
@@ -2053,9 +2053,9 @@ mod tests {
             .expect("run64 dumped frame 6171");
         // The record sits under the leader's own block, which sits under
         // `FULL DUMP`; walk the subtree rather than pin the depth.
-        fn vans_of<'a, 'b>(b: &'a Block<'b>, out: &mut Vec<&'a Block<'b>>) {
-            for c in &b.children {
-                if c.name == "CARAVAN" {
+        fn vans_of<'b>(b: Block<'b>, out: &mut Vec<Block<'b>>) {
+            for c in b.children() {
+                if c.name() == "CARAVAN" {
                     out.push(c);
                 }
                 vans_of(c, out);
@@ -2138,7 +2138,7 @@ mod tests {
             .find_map(|(n, body)| {
                 (n == 6168).then(|| {
                     let w = body.kid("WORLD")?;
-                    let d = crate::gamelog::world_danger(&w.fields);
+                    let d = crate::gamelog::world_danger(&w.fields().to_vec());
                     (!d.is_empty()).then_some(d)
                 })?
             })
@@ -2281,7 +2281,7 @@ mod tests {
             heights.len() > 1_000,
             "run73's block carries the height grid"
         );
-        let (theirs_world, _) = world_from(&w.fields, &heights, &mut notes);
+        let (theirs_world, _) = world_from(&w.fields().to_vec(), &heights, &mut notes);
         let (xs, ys) = (theirs_world.width(), theirs_world.height());
         let mut z_off = Vec::new();
         let mut mask_off = Vec::new();
@@ -2709,7 +2709,7 @@ mod tests {
             .into_iter()
             .filter_map(|(n, body)| {
                 let w = body.kid("WORLD")?;
-                let fog = crate::gamelog::world_fog(&w.fields);
+                let fog = crate::gamelog::world_fog(&w.fields().to_vec());
                 (!fog.is_empty()).then_some((n, fog))
             })
             .collect();

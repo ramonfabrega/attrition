@@ -24,10 +24,13 @@ headline the loop moved with no human in it.* East Indies 7448 unmoved.
   had sat unread for two days. run79's second squad is the second sample,
   asserted and made to fail on a neighbouring bit. **236** is what stands
   at 6862 and is the default item; no capture needed.
-- **235 blocks every worker's gate** — the release suite is 15 GB and 337 s
-  serialized. Until it lands: **one worker at a time**, and every release
-  run is `zsh tools/memcap.sh 20 cargo test -p rondata --release --
-  --test-threads=1` (DECISIONS 34; the Mac went down without it on 09-04).
+- **235 landed and the gate is cheap again.** The parse is an arena in
+  fixed chunks: one test 9.4 → **5.4 GB**, the suite serialized 15.3 →
+  **10.1 GB**, and **two threads 20.5 → 14.8 GB, 215 tests in 136 s**. So
+  every release run is `zsh tools/memcap.sh 20 cargo test -p rondata
+  --release -- --test-threads=2`; four threads still cross 20 GB and stay
+  off the table (DECISIONS 34; the Mac went down without the guard on
+  09-04). **The serial rule can relax — that is the user's call.**
 - **117 split three ways** on run80: the **gem term is live** and
   unmodelled (a diff target, not a capture), the temple and fort terms
   cannot fire in any game on disk, the handicap is 0 by the lobby.
@@ -45,14 +48,6 @@ In dependency order, headline-nearest first; **the headline is the long
 captures' word**, lower map first — Great Lakes. Take the first unstarted
 unless a better order is obvious — and say so. Numbers are stable; the
 journal is indexed by them.
-
-235. **The diff suite's memory is the gate's own hazard.** 793 MB of dump
-    becomes **7.8 GB** in one test (run71): 2.96 M blocks × two `Vec`s each
-    is ~5.9 M small allocations, slack and overhead, on a parse that is
-    already zero-copy. Serialized the suite peaks at 13.5 GB, in parallel it
-    passes 18 GB and took the machine down once. An arena for fields and
-    children, or a frame-lazy `Log`, and a measured peak in the guard's own
-    output. Everything else waits on the gate this owns.
 
 236. **The squad meets the citizen — Great Lakes 6862's blocked stand.**
     219's successor and the map's nearest divergence: the original spends
@@ -167,7 +162,11 @@ Military level and `army.rs` reads `ages`**, `army.rs:769,1365`.
     `last_time`, 26 of 26. `unit_masks2` has no field here; the arm in
     `Sim::guy_inc_time` waits on a word that reaches a melee frame.
 
-Older backlog: (39) a read-only 2D viewer over `Sim` with the dump overlaid;
+Older backlog: **the capture `String` each test reads**, ~5 GB of the
+suite's remaining 10 — its size is the file's own, so it defeats the
+uniform-chunk rule the arena won on; the fix is a rounded-up read buffer at
+~100 call sites and it moves no score (235, 2026-09-06). (39) a read-only
+2D viewer over `Sim` with the dump overlaid;
 (41) `scenario.py`'s fate — fuzz `424242 1000 1300`, the blind report, then
 delete; a `find_target` block; run7's order stream; a mounted attacker;
 `calc_gather` non-flat; `Leader::diplomacy`; (77) ANIM §3.2; (58) ROADS §7.4.

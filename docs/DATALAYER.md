@@ -80,7 +80,29 @@ rules the writers force on a reader:
 - **Keys repeat.** An array constant is one line per element under one key
   (`fort_upgrade_terr[scan] 2`, `… 4`, `… 6`, `… 9`), in index order.
 
-Everything borrows from the text; the 114 MB dump parses in about a second.
+Everything borrows from the text, and **the tree is an arena** (item 235,
+2026-09-06). A block is a twelve-byte cursor — a `&Log` and a node index —
+and every block's fields and children live in three flat chunked vectors
+that the block indexes by range; a field is four `u32` offsets into the
+text rather than a pair of fat pointers. The shape it replaced was a tree
+of `Vec`s, two per block, and on the 793 MB run71 capture that was 2.96 M
+blocks holding 4.0 M live allocations, 1.3 GB of doubling slack and 2.3 GB
+of pointer pairs: **4,668 MiB resident for 793 MiB of text**, against
+**2,017 MiB** now. The block and field counts are unchanged — 2,955,663 and
+76,624,335 — because the grammar is unchanged; only the storage moved.
+
+The chunk size is fixed (65,536 entries) and that is the load-bearing part
+for the *suite* rather than for one parse. macOS's allocator does not return
+a freed block of this size to the system, and a differently sized block from
+the next capture cannot reuse it, so a suite that parses forty captures of
+forty sizes **ratchets**: it reached 15,275 MiB serialized while its largest
+single test held 5,425 MiB. With one fixed chunk size every chunk a log
+frees fits every chunk the next log wants — a second parse after a first is
+dropped costs 10 MiB where it cost 353 — and the serialized peak is
+**10,075 MiB**. What is left of the ratchet is the `String` each test reads
+the capture into, which is the file's own size and so a different size every
+time.
+
 `Log::initial()` gives the start-of-game state — `GAME INFO` → `GAMEINFO` and
 its `PLAYER`s, `WORLD`, `CITIES`, `CONSTANTS`, every `UNITDATA` with its
 `GUY`s, every `BUILDDATA`, every `LEADERDATA` — and `Log::frame_states()` the

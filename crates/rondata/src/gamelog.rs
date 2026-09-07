@@ -66,22 +66,170 @@
 
 use std::fmt;
 
-/// One `BEGIN` block: its name, its fields in file order, and its children.
-#[derive(Clone, Debug, Default, PartialEq, Eq)]
-pub struct Block<'a> {
-    /// The text after `BEGIN `, e.g. `UNITDATA`, `FRAME 100`, `GAME INFO`.
-    pub name: &'a str,
-    /// Leading spaces on the `BEGIN` line.
-    pub indent: usize,
-    /// `(key, value)` in file order. The value may be empty and keys repeat.
-    pub fields: Vec<(&'a str, &'a str)>,
-    pub children: Vec<Block<'a>>,
+/// A growable array in **fixed-size chunks**, which is what keeps one
+/// capture's parse from making the next one bigger.
+///
+/// A plain `Vec` doubles: the field arena of a 793 MB capture passes
+/// through 300 MB, 600 MB and 1.2 GB blocks, and the two it abandons stay
+/// abandoned — macOS's allocator caches a freed block of that size rather
+/// than returning it, and a *differently* sized block from the next
+/// capture cannot use it. The diff suite parses forty captures of forty
+/// sizes one after another, so the process ratchets: before item 235 it
+/// reached 15.3 GB serialized where its largest single test held 5.4 GB.
+/// Chunks of one fixed size are the fix — every chunk any log frees fits
+/// every chunk the next log wants, and nothing is ever copied on growth.
+#[derive(Clone, Debug)]
+struct Chunks<T> {
+    chunks: Vec<Box<[T]>>,
+    len: usize,
 }
 
+/// 65,536 entries a chunk: 1 MiB of [`Field`], 1.8 MiB of [`Node`], 256 KiB
+/// of child index. Small enough that the tail of the last chunk is not
+/// worth counting, large enough that the chunk list is not.
+const CHUNK: usize = 1 << 16;
+
+impl<T> Default for Chunks<T> {
+    fn default() -> Self {
+        Chunks {
+            chunks: Vec::new(),
+            len: 0,
+        }
+    }
+}
+
+impl<T: Copy + Default + PartialEq> PartialEq for Chunks<T> {
+    fn eq(&self, other: &Self) -> bool {
+        self.len == other.len && (0..self.len).all(|i| self.get(i) == other.get(i))
+    }
+}
+impl<T: Copy + Default + PartialEq> Eq for Chunks<T> {}
+
+impl<T: Copy + Default> Chunks<T> {
+    fn len(&self) -> usize {
+        self.len
+    }
+
+    fn get(&self, i: usize) -> T {
+        self.chunks[i / CHUNK][i % CHUNK]
+    }
+
+    fn set(&mut self, i: usize, v: T) {
+        self.chunks[i / CHUNK][i % CHUNK] = v;
+    }
+
+    fn push(&mut self, v: T) {
+        if self.len.is_multiple_of(CHUNK) {
+            self.chunks
+                .push(vec![T::default(); CHUNK].into_boxed_slice());
+        }
+        self.chunks[self.len / CHUNK][self.len % CHUNK] = v;
+        self.len += 1;
+    }
+
+    fn extend(&mut self, vs: &[T]) {
+        for &v in vs {
+            self.push(v);
+        }
+    }
+}
+
+/// One field, as byte ranges into the log's own text.
+///
+/// **Why ranges and not `(&str, &str)`.** A 793 MB capture parses to 76.6 M
+/// of these, and a pair of fat pointers is 32 bytes where a pair of
+/// offsets is 16 — 2.3 GB against 1.2 GB, for text that can never exceed
+/// the 4 GiB [`Log::parse`] asserts (the largest capture on disk is 1.4 GB).
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+struct Field {
+    key_at: u32,
+    key_len: u32,
+    val_at: u32,
+    val_len: u32,
+}
+
+/// One `BEGIN` block as it sits in the arena: its name and the ranges of
+/// its fields and its children, all three into [`Log`]'s own flat vectors.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+struct Node {
+    name_at: u32,
+    name_len: u32,
+    indent: u32,
+    fields_at: u32,
+    fields_len: u32,
+    kids_at: u32,
+    kids_len: u32,
+}
+
+/// One `BEGIN` block: its name, its fields in file order, and its children.
+///
+/// A cursor into the [`Log`]'s arena rather than a node of its own, so it
+/// is `Copy` and costs twelve bytes to pass around. Everything it hands
+/// back — a name, a key, a value — is a slice of the original text.
+#[derive(Clone, Copy)]
+pub struct Block<'a> {
+    log: &'a Log<'a>,
+    node: u32,
+}
+
+impl fmt::Debug for Block<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("Block")
+            .field("name", &self.name())
+            .field("indent", &self.indent())
+            .field("fields", &self.fields().len())
+            .field("children", &self.children().len())
+            .finish()
+    }
+}
+
+/// Two blocks are the same block: the same arena, the same node.
+impl PartialEq for Block<'_> {
+    fn eq(&self, other: &Self) -> bool {
+        std::ptr::eq(self.log, other.log) && self.node == other.node
+    }
+}
+impl Eq for Block<'_> {}
+
 impl<'a> Block<'a> {
+    fn node(&self) -> Node {
+        self.log.nodes.get(self.node as usize)
+    }
+
+    /// The text after `BEGIN `, e.g. `UNITDATA`, `FRAME 100`, `GAME INFO`.
+    pub fn name(&self) -> &'a str {
+        let n = self.node();
+        self.log.slice(n.name_at, n.name_len)
+    }
+
+    /// Leading spaces on the `BEGIN` line.
+    pub fn indent(&self) -> usize {
+        self.node().indent as usize
+    }
+
+    /// `(key, value)` in file order. The value may be empty and keys repeat.
+    pub fn fields(&self) -> Fields<'a> {
+        let n = self.node();
+        Fields {
+            log: self.log,
+            at: n.fields_at as usize,
+            end: (n.fields_at + n.fields_len) as usize,
+        }
+    }
+
+    /// The child blocks, in file order.
+    pub fn children(&self) -> Children<'a> {
+        let n = self.node();
+        Children {
+            log: self.log,
+            at: n.kids_at as usize,
+            end: (n.kids_at + n.kids_len) as usize,
+        }
+    }
+
     /// The first value under `key`.
     pub fn get(&self, key: &str) -> Option<&'a str> {
-        self.fields.iter().find(|(k, _)| *k == key).map(|(_, v)| *v)
+        self.fields().find(|(k, _)| *k == key).map(|(_, v)| v)
     }
 
     /// The first value under `key`, parsed as an integer.
@@ -91,28 +239,27 @@ impl<'a> Block<'a> {
 
     /// Every value under `key`, in order — the array-constant shape.
     pub fn all(&self, key: &str) -> Vec<&'a str> {
-        self.fields
-            .iter()
+        self.fields()
             .filter(|(k, _)| *k == key)
-            .map(|(_, v)| *v)
+            .map(|(_, v)| v)
             .collect()
     }
 
     /// The child blocks whose name is exactly `name`.
-    pub fn kids(&self, name: &str) -> impl Iterator<Item = &Block<'a>> {
-        self.children.iter().filter(move |b| b.name == name)
+    pub fn kids<'n>(&self, name: &'n str) -> impl Iterator<Item = Block<'a>> + use<'a, 'n> {
+        self.children().filter(move |b| b.name() == name)
     }
 
     /// The first child block named `name`.
-    pub fn kid(&self, name: &str) -> Option<&Block<'a>> {
-        self.kids(name).next()
+    pub fn kid(&self, name: &str) -> Option<Block<'a>> {
+        self.children().find(|b| b.name() == name)
     }
 
     /// The first child named `name`, searching depth-first through the
     /// whole subtree.
-    pub fn find(&self, name: &str) -> Option<&Block<'a>> {
-        for c in &self.children {
-            if c.name == name {
+    pub fn find(&self, name: &str) -> Option<Block<'a>> {
+        for c in self.children() {
+            if c.name() == name {
                 return Some(c);
             }
             if let Some(f) = c.find(name) {
@@ -123,36 +270,229 @@ impl<'a> Block<'a> {
     }
 }
 
+/// One block's fields, as a random-access range over the arena.
+#[derive(Clone, Copy)]
+pub struct Fields<'a> {
+    log: &'a Log<'a>,
+    at: usize,
+    end: usize,
+}
+
+impl<'a> Fields<'a> {
+    /// How many fields the block has.
+    pub fn len(&self) -> usize {
+        self.end - self.at
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.at == self.end
+    }
+
+    /// The `i`th field.
+    pub fn get(&self, i: usize) -> Option<(&'a str, &'a str)> {
+        (self.at + i < self.end).then(|| self.log.field(self.at + i))
+    }
+
+    /// The fields from `i` on — the slicing a `[i..]` used to do.
+    pub fn from(&self, i: usize) -> Fields<'a> {
+        Fields {
+            log: self.log,
+            at: (self.at + i).min(self.end),
+            end: self.end,
+        }
+    }
+
+    /// The first `n`, for a caller that stops partway.
+    pub fn head(&self, n: usize) -> Fields<'a> {
+        Fields {
+            log: self.log,
+            at: self.at,
+            end: (self.at + n).min(self.end),
+        }
+    }
+
+    /// Materialised, for the readers that want a slice.
+    pub fn to_vec(&self) -> Vec<(&'a str, &'a str)> {
+        self.collect()
+    }
+}
+
+impl<'a> Iterator for Fields<'a> {
+    type Item = (&'a str, &'a str);
+    fn next(&mut self) -> Option<Self::Item> {
+        (self.at < self.end).then(|| {
+            let f = self.log.field(self.at);
+            self.at += 1;
+            f
+        })
+    }
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        (self.len(), Some(self.len()))
+    }
+}
+impl ExactSizeIterator for Fields<'_> {}
+impl DoubleEndedIterator for Fields<'_> {
+    fn next_back(&mut self) -> Option<Self::Item> {
+        (self.at < self.end).then(|| {
+            self.end -= 1;
+            self.log.field(self.end)
+        })
+    }
+}
+
+impl fmt::Debug for Fields<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_list().entries(*self).finish()
+    }
+}
+
+/// One block's children, as a random-access range over the arena.
+#[derive(Clone, Copy)]
+pub struct Children<'a> {
+    log: &'a Log<'a>,
+    at: usize,
+    end: usize,
+}
+
+impl<'a> Children<'a> {
+    pub fn len(&self) -> usize {
+        self.end - self.at
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.at == self.end
+    }
+
+    pub fn get(&self, i: usize) -> Option<Block<'a>> {
+        (self.at + i < self.end).then(|| Block {
+            log: self.log,
+            node: self.log.kids.get(self.at + i),
+        })
+    }
+
+    /// The first `n` children — the slicing a `[..n]` used to do.
+    pub fn head(&self, n: usize) -> Children<'a> {
+        Children {
+            log: self.log,
+            at: self.at,
+            end: (self.at + n).min(self.end),
+        }
+    }
+}
+
+impl<'a> Iterator for Children<'a> {
+    type Item = Block<'a>;
+    fn next(&mut self) -> Option<Self::Item> {
+        (self.at < self.end).then(|| {
+            let b = Block {
+                log: self.log,
+                node: self.log.kids.get(self.at),
+            };
+            self.at += 1;
+            b
+        })
+    }
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        (self.len(), Some(self.len()))
+    }
+}
+impl ExactSizeIterator for Children<'_> {}
+
+impl fmt::Debug for Children<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_list().entries(*self).finish()
+    }
+}
+
+/// A block being built: its scratch fields and children, which move into
+/// the arena in one piece when it closes.
+#[derive(Default)]
+struct Open {
+    indent: usize,
+    node: u32,
+    fields: Vec<Field>,
+    kids: Vec<u32>,
+}
+
 /// A parsed log: the preamble fields and the top-level blocks.
+///
+/// **The tree is an arena.** Every block's fields and children live in
+/// three flat vectors — `nodes`, `fields`, `kids` — with each block holding
+/// index ranges into them. A tree of `Vec`s costs two allocations per
+/// block, which on a 793 MB capture is 4.0 M live allocations and 1.3 GB of
+/// doubling slack, and the slack is not the worst of it: freeing that many
+/// small blocks leaves the allocator holding the pages, so a test suite
+/// that parses one capture after another **ratchets** rather than returning
+/// to its floor. Three big vectors are three `munmap`s (item 235).
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct Log<'a> {
+    /// The text every slice in the arena points into.
+    text: &'a str,
     /// Lines before the first `BEGIN`, as `(first token, rest)`.
     pub preamble: Vec<(&'a str, &'a str)>,
-    pub roots: Vec<Block<'a>>,
+    nodes: Chunks<Node>,
+    fields: Chunks<Field>,
+    kids: Chunks<u32>,
+    roots: Vec<u32>,
 }
 
 impl<'a> Log<'a> {
+    fn slice(&self, at: u32, len: u32) -> &'a str {
+        &self.text[at as usize..(at + len) as usize]
+    }
+
+    fn field(&self, i: usize) -> (&'a str, &'a str) {
+        let f = self.fields.get(i);
+        (
+            self.slice(f.key_at, f.key_len),
+            self.slice(f.val_at, f.val_len),
+        )
+    }
+
+    /// The top-level blocks, in file order.
+    pub fn roots(&'a self) -> Roots<'a> {
+        Roots {
+            log: self,
+            at: 0,
+            end: self.roots.len(),
+        }
+    }
+
     /// Parses the whole text. Never fails: there is nothing in the grammar
     /// that can be malformed, only unexpected.
+    ///
+    /// # Panics
+    ///
+    /// On a text of 4 GiB or more, which no capture is and the arena's
+    /// `u32` offsets could not address.
     pub fn parse(text: &'a str) -> Log<'a> {
-        let mut log = Log::default();
-        // The open-block stack, as paths of child indices from the roots, so
-        // the tree can be built in place without parent pointers.
-        let mut stack: Vec<(usize, usize)> = Vec::new(); // (indent, index in parent's children)
-        // The block most recently closed by a field at its own indent, and
-        // that indent: a *run* of such fields (`leader_flags`,
-        // `leader_flags2`) all belong to it, so it stays associated until the
-        // next `BEGIN`.
-        let mut trailing: Option<(usize, Vec<(usize, usize)>)> = None;
+        assert!(
+            text.len() < u32::MAX as usize,
+            "a gamelog of {} bytes is past the arena's 4 GiB reach",
+            text.len()
+        );
+        let mut log = Log {
+            text,
+            ..Log::default()
+        };
+        let base = text.as_ptr() as usize;
+        // Every slice below is cut from `text`, so its offset is the
+        // difference of the two pointers.
+        let off = |s: &str| (s.as_ptr() as usize - base) as u32;
 
-        fn open_mut<'b, 'a>(log: &'b mut Log<'a>, stack: &[(usize, usize)]) -> &'b mut Block<'a> {
-            let (_, first) = stack[0];
-            let mut b = &mut log.roots[first];
-            for &(_, i) in &stack[1..] {
-                b = &mut b.children[i];
-            }
-            b
-        }
+        // The open-block stack, innermost last, indents strictly
+        // increasing. A block leaves it when something at its own indent or
+        // shallower arrives, and *then* it goes into the arena.
+        let mut stack: Vec<Open> = Vec::new();
+        // The block most recently closed by a field at its own indent: a
+        // *run* of such fields (`leader_flags`, `leader_flags2`) all belong
+        // to it, so it stays open — off the stack, but not yet committed —
+        // until the run ends. Committing it is what attaches it to its
+        // parent, so the parent must still be on the stack when it happens:
+        // every path that could pop the parent flushes this first.
+        let mut trailing: Option<Open> = None;
+        // Closed blocks' scratch vectors, kept for the next block to use.
+        let mut pool: Vec<Open> = Vec::new();
 
         for line in text.lines() {
             let trimmed = line.trim_start_matches(' ');
@@ -162,29 +502,38 @@ impl<'a> Log<'a> {
             let indent = line.len() - trimmed.len();
             let trimmed = trimmed.trim_end();
             if let Some(name) = trimmed.strip_prefix("BEGIN ") {
-                while stack.last().is_some_and(|&(i, _)| i >= indent) {
-                    stack.pop();
+                if let Some(t) = trailing.take() {
+                    commit(&mut log, &mut stack, &mut pool, t);
                 }
-                trailing = None;
-                let block = Block {
-                    name: name.trim(),
-                    indent,
-                    fields: Vec::new(),
-                    children: Vec::new(),
-                };
-                let idx = if stack.is_empty() {
-                    log.roots.push(block);
-                    log.roots.len() - 1
-                } else {
-                    let parent = open_mut(&mut log, &stack);
-                    parent.children.push(block);
-                    parent.children.len() - 1
-                };
-                stack.push((indent, idx));
+                while stack.last().is_some_and(|o| o.indent >= indent) {
+                    let o = stack.pop().expect("just checked");
+                    commit(&mut log, &mut stack, &mut pool, o);
+                }
+                let name = name.trim();
+                let node = log.nodes.len() as u32;
+                log.nodes.push(Node {
+                    name_at: off(name),
+                    name_len: name.len() as u32,
+                    indent: indent as u32,
+                    ..Node::default()
+                });
+                let mut o = pool.pop().unwrap_or_default();
+                o.indent = indent;
+                o.node = node;
+                stack.push(o);
             } else {
                 let (key, value) = match trimmed.find(' ') {
                     Some(p) => (&trimmed[..p], trimmed[p + 1..].trim_start()),
-                    None => (trimmed, ""),
+                    // The empty value is cut from the text's own tail rather
+                    // than written as `""`: every span in the arena is an
+                    // offset into `text`, and a literal is not in it.
+                    None => (trimmed, &trimmed[trimmed.len()..]),
+                };
+                let field = Field {
+                    key_at: off(key),
+                    key_len: key.len() as u32,
+                    val_at: off(value),
+                    val_len: value.len() as u32,
                 };
                 // Nothing writes `END` — `Log::end` emits only for a non-empty
                 // name and the order writers all pass the empty string
@@ -211,57 +560,123 @@ impl<'a> Log<'a> {
                 // So the ambiguous field is recorded on **both** candidates:
                 // the enclosing block the indent rule gives, and the block it
                 // just closed. Every reader then finds it where it expects,
-                // and the cost is one duplicated `(key, value)` on a block
-                // that will not be asked for it. A field *shallower* than the
-                // open block is not ambiguous and only closes.
-                let mut closed_same_indent = None;
-                while let Some(&(i, _)) = stack.last() {
-                    if i < indent {
-                        break;
-                    }
-                    if i == indent && closed_same_indent.is_none() {
-                        closed_same_indent = Some(stack.clone());
-                    }
-                    stack.pop();
+                // and the cost is one duplicated field on a block that will
+                // not be asked for it. A field *shallower* than the open
+                // block is not ambiguous and only closes.
+                if trailing.as_ref().is_some_and(|t| t.indent != indent) {
+                    let t = trailing.take().expect("just checked");
+                    commit(&mut log, &mut stack, &mut pool, t);
                 }
-                if closed_same_indent.is_some() {
-                    trailing = closed_same_indent.map(|p| (indent, p));
+                while stack.last().is_some_and(|o| o.indent >= indent) {
+                    let o = stack.pop().expect("just checked");
+                    if o.indent == indent && trailing.is_none() {
+                        trailing = Some(o);
+                    } else {
+                        commit(&mut log, &mut stack, &mut pool, o);
+                    }
                 }
-                if let Some((i, path)) = &trailing
-                    && *i == indent
+                if let Some(t) = trailing.as_mut()
+                    && t.indent == indent
                 {
-                    let path = path.clone();
-                    open_mut(&mut log, &path).fields.push((key, value));
+                    t.fields.push(field);
                 }
-                if stack.is_empty() {
-                    log.preamble.push((key, value));
-                } else {
-                    open_mut(&mut log, &stack).fields.push((key, value));
+                match stack.last_mut() {
+                    Some(top) => top.fields.push(field),
+                    None => log.preamble.push((key, value)),
                 }
             }
         }
+        if let Some(t) = trailing.take() {
+            commit(&mut log, &mut stack, &mut pool, t);
+        }
+        while let Some(o) = stack.pop() {
+            commit(&mut log, &mut stack, &mut pool, o);
+        }
         log
     }
+}
 
+/// Moves a closed block's scratch into the arena, records its ranges, and
+/// hands it to its parent — the block below it on the stack, or the roots.
+fn commit(log: &mut Log<'_>, stack: &mut [Open], pool: &mut Vec<Open>, mut o: Open) {
+    let fields_at = log.fields.len() as u32;
+    log.fields.extend(&o.fields);
+    let kids_at = log.kids.len() as u32;
+    log.kids.extend(&o.kids);
+    let mut n = log.nodes.get(o.node as usize);
+    n.fields_at = fields_at;
+    n.fields_len = o.fields.len() as u32;
+    n.kids_at = kids_at;
+    n.kids_len = o.kids.len() as u32;
+    log.nodes.set(o.node as usize, n);
+    match stack.last_mut() {
+        Some(parent) => parent.kids.push(o.node),
+        None => log.roots.push(o.node),
+    }
+    o.fields.clear();
+    o.kids.clear();
+    // Two scratch vectors per open depth is all this ever needs, and the
+    // pool is what keeps the block count from being an allocation count.
+    if pool.len() < 64 {
+        pool.push(o);
+    }
+}
+
+/// The log's top-level blocks, as a range over the arena.
+#[derive(Clone, Copy)]
+pub struct Roots<'a> {
+    log: &'a Log<'a>,
+    at: usize,
+    end: usize,
+}
+
+impl<'a> Roots<'a> {
+    pub fn len(&self) -> usize {
+        self.end - self.at
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.at == self.end
+    }
+}
+
+impl<'a> Iterator for Roots<'a> {
+    type Item = Block<'a>;
+    fn next(&mut self) -> Option<Self::Item> {
+        (self.at < self.end).then(|| {
+            let b = Block {
+                log: self.log,
+                node: self.log.roots[self.at],
+            };
+            self.at += 1;
+            b
+        })
+    }
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        (self.len(), Some(self.len()))
+    }
+}
+impl ExactSizeIterator for Roots<'_> {}
+
+impl<'a> Log<'a> {
     /// The first root named `name`.
-    pub fn root(&self, name: &str) -> Option<&Block<'a>> {
-        self.roots.iter().find(|b| b.name == name)
+    pub fn root(&'a self, name: &str) -> Option<Block<'a>> {
+        self.roots().find(|b| b.name() == name)
     }
 
     /// The `BEGIN GAME` block, which holds the initial state and the frames.
-    pub fn game(&self) -> Option<&Block<'a>> {
+    pub fn game(&'a self) -> Option<Block<'a>> {
         self.root("GAME")
     }
 
     /// The `BEGIN FRAME n` blocks in order, with their frame numbers.
-    pub fn frames(&self) -> Vec<(i64, &Block<'a>)> {
+    pub fn frames(&'a self) -> Vec<(i64, Block<'a>)> {
         let Some(game) = self.game() else {
             return Vec::new();
         };
-        game.children
-            .iter()
+        game.children()
             .filter_map(|b| {
-                let n = b.name.strip_prefix("FRAME ")?.trim().parse().ok()?;
+                let n = b.name().strip_prefix("FRAME ")?.trim().parse().ok()?;
                 Some((n, b))
             })
             .collect()
@@ -284,15 +699,15 @@ impl<'a> Log<'a> {
     /// invisible for that reason alone. This walk takes a frame's nested
     /// dump when it has one and the sibling that follows it when it does
     /// not.
-    pub fn dumps(&self) -> Vec<(i64, &Block<'a>)> {
+    pub fn dumps(&'a self) -> Vec<(i64, Block<'a>)> {
         let Some(game) = self.game() else {
             return Vec::new();
         };
-        let mut out: Vec<(i64, &Block<'a>)> = Vec::new();
+        let mut out: Vec<(i64, Block<'a>)> = Vec::new();
         let mut open: Option<i64> = None;
-        for b in &game.children {
+        for b in game.children() {
             if let Some(n) = b
-                .name
+                .name()
                 .strip_prefix("FRAME ")
                 .and_then(|s| s.trim().parse().ok())
             {
@@ -303,7 +718,7 @@ impl<'a> Log<'a> {
                     }
                     None => open = Some(n),
                 }
-            } else if b.name == "FULL DUMP"
+            } else if b.name() == "FULL DUMP"
                 && let Some(n) = open.take()
             {
                 out.push((n, b));
@@ -318,8 +733,8 @@ impl<'a> Log<'a> {
     /// preamble as flat fields: `CHECKSUM n`, `FILE f`, `LINE l`, the
     /// subsystem checksums, then `game_random seed s`. A record without the
     /// seed line (`check_all_level < 14`) is dropped — it pins nothing.
-    pub fn checksums(&self) -> Vec<Checksum<'a>> {
-        checksums_in(&self.preamble)
+    pub fn checksums(&'a self) -> Vec<Checksum<'a>> {
+        checksums_in(self.preamble.iter().copied())
     }
 
     /// The sync stream's word at the **end of each frame**, from a
@@ -329,12 +744,12 @@ impl<'a> Log<'a> {
     /// — a `FULL DUMP` child whose first fields are the `say_checksum`
     /// record — so that record is the frame's last word: engine frame
     /// `n − 1`'s, the state frame `n` begins on. Empty for any other dump.
-    pub fn frame_seeds(&self) -> Vec<(i64, u32)> {
+    pub fn frame_seeds(&'a self) -> Vec<(i64, u32)> {
         self.frames()
             .into_iter()
             .filter_map(|(n, b)| {
                 let dump = b.kid("FULL DUMP")?;
-                let c = checksums_in(&dump.fields);
+                let c = checksums_in(dump.fields());
                 c.first().map(|c| (n - 1, c.seed))
             })
             .collect()
@@ -343,11 +758,11 @@ impl<'a> Log<'a> {
 
 /// The `CHECKSUM n / FILE / LINE / … / game_random seed` records among a
 /// run of fields, in order.
-fn checksums_in<'a>(fields: &[(&'a str, &'a str)]) -> Vec<Checksum<'a>> {
+fn checksums_in<'a>(fields: impl IntoIterator<Item = (&'a str, &'a str)>) -> Vec<Checksum<'a>> {
     {
         let mut out = Vec::new();
         let mut cur: Option<Checksum<'a>> = None;
-        for &(key, value) in fields {
+        for (key, value) in fields {
             match key {
                 "CHECKSUM" => {
                     cur = value.trim().parse().ok().map(|n| Checksum {
@@ -390,16 +805,19 @@ fn checksums_in<'a>(fields: &[(&'a str, &'a str)]) -> Vec<Checksum<'a>> {
 /// at the same indent — the one whose `length` is over 1,000 (the forts
 /// list itself is `length 0`). The waterline arrays that follow land there
 /// too, so the values are taken in field order rather than by key.
-fn heights_in(b: &Block<'_>) -> Option<Vec<i64>> {
-    if b.name == "UnbuiltForts"
+fn heights_in(b: Block<'_>) -> Option<Vec<i64>> {
+    if b.name() == "UnbuiltForts"
         && let Some(at) = b
-            .fields
-            .iter()
-            .position(|(k, v)| *k == "length" && v.trim().parse::<usize>().is_ok_and(|n| n > 1000))
+            .fields()
+            .position(|(k, v)| k == "length" && v.trim().parse::<usize>().is_ok_and(|n| n > 1000))
     {
-        let n: usize = b.fields[at].1.trim().parse().unwrap_or(0);
-        let values: Vec<i64> = b.fields[at + 1..]
-            .iter()
+        let n: usize = b
+            .fields()
+            .get(at)
+            .map_or(0, |(_, v)| v.trim().parse().unwrap_or(0));
+        let values: Vec<i64> = b
+            .fields()
+            .from(at + 1)
             .filter(|(k, _)| *k == "list[scan]")
             .take(n)
             .filter_map(|(_, v)| micro(v.trim()))
@@ -408,14 +826,14 @@ fn heights_in(b: &Block<'_>) -> Option<Vec<i64>> {
             return Some(values);
         }
     }
-    b.children.iter().find_map(heights_in)
+    b.children().find_map(heights_in)
 }
 
 impl<'a> Log<'a> {
     /// The `BUILDDATA` records of one frame's block — every building the
     /// original had standing at the end of sim-frame `n − 1`, with the
     /// `orig_type` and `build_masks` a `DUMP_ALL` block always carries.
-    pub fn frame_builds(&self, n: i64) -> Vec<BuildDump> {
+    pub fn frame_builds(&'a self, n: i64) -> Vec<BuildDump> {
         self.dumps()
             .into_iter()
             .find(|(f, _)| *f == n)
@@ -430,8 +848,8 @@ impl<'a> Log<'a> {
     /// `length N` and the `list[scan]` values land on the `UnbuiltForts`
     /// block at the same indent — the one whose `length` is over 1,000
     /// (the forts list itself is `length 0`). Empty when no dump has it.
-    pub fn terrain_heights(&self) -> Vec<i64> {
-        self.roots.iter().find_map(heights_in).unwrap_or_default()
+    pub fn terrain_heights(&'a self) -> Vec<i64> {
+        self.roots().find_map(heights_in).unwrap_or_default()
     }
 
     /// The height grid **of one frame's block** — the same table, as it
@@ -441,7 +859,7 @@ impl<'a> Log<'a> {
     /// game re-terraforms the grid (`TerrainOut::terraform_for_building`,
     /// `docs/QUEUE.md` item 57), so anything comparing a mid-game search
     /// has to ask the frame rather than the game.
-    pub fn frame_heights(&self, n: i64) -> Vec<i64> {
+    pub fn frame_heights(&'a self, n: i64) -> Vec<i64> {
         self.frames()
             .into_iter()
             .find(|(f, _)| *f == n)
@@ -455,7 +873,7 @@ impl<'a> Log<'a> {
     /// key (`Block::all("reg_land[scan]")`), and the `SITES`/`MAKELIST`
     /// children. The block's own `who` field identifies it; the
     /// `leader_flags` pair that precedes it in the file is not in it.
-    pub fn leader_block(&self, frame: i64, who: i64) -> Option<&Block<'a>> {
+    pub fn leader_block(&'a self, frame: i64, who: i64) -> Option<Block<'a>> {
         let (_, b) = self.frames().into_iter().find(|(n, _)| *n == frame)?;
         // A `DUMP_ALL` frame nests its state under `FULL DUMP` (see
         // `records`); run20 is the first such capture whose leader record
@@ -950,7 +1368,7 @@ pub struct CityDump {
 /// array**, not to the city, which is why nothing here reads them; the
 /// enclosing `CITIES` array writes its own three a level up, and a `Block`
 /// keeps only the first value under a key anyway.
-pub(crate) fn city_of(b: &Block<'_>) -> CityDump {
+pub(crate) fn city_of(b: Block<'_>) -> CityDump {
     let i = |k: &str| b.int(k).unwrap_or(0);
     let arr = |k: &str| -> Vec<i64> {
         b.all(k)
@@ -976,8 +1394,7 @@ pub(crate) fn city_of(b: &Block<'_>) -> CityDump {
         assimilation_timer: i("assimilation_timer"),
         capture_strength: i("capture_strength"),
         vans: b
-            .children
-            .iter()
+            .children()
             .filter(|c| c.get("cara").is_some())
             .map(|c| (c.int("cara").unwrap_or(-1), c.int("who").unwrap_or(-1)))
             .collect(),
@@ -1469,7 +1886,7 @@ pub struct Frame {
     pub cities: Vec<CityDump>,
 }
 
-fn pos_of(b: &Block<'_>) -> Pos {
+fn pos_of(b: Block<'_>) -> Pos {
     Pos {
         x: b.int("x_internal").unwrap_or(0),
         y: b.int("y_internal").unwrap_or(0),
@@ -1478,7 +1895,7 @@ fn pos_of(b: &Block<'_>) -> Pos {
 }
 
 /// The `OBJECT` → `SUBOBJECT` base of a unit or building block.
-fn object_base(b: &Block<'_>) -> Option<(i64, i64, i64, Pos)> {
+fn object_base(b: Block<'_>) -> Option<(i64, i64, i64, Pos)> {
     let sub = b.find("SUBOBJECT")?;
     Some((
         sub.int("flags")?,
@@ -1496,7 +1913,7 @@ fn object_base(b: &Block<'_>) -> Option<(i64, i64, i64, Pos)> {
 /// pairing is by position: the k-th `type` belongs to the k-th `*ORDER`
 /// child. Nothing else writes a bare `type` at this level — a `GUY`'s is
 /// inside its own block.
-fn orders_of(b: &Block<'_>) -> Vec<OrderDump> {
+fn orders_of(b: Block<'_>) -> Vec<OrderDump> {
     let ints = |k: &str| -> Vec<i64> {
         b.all(k)
             .iter()
@@ -1510,9 +1927,8 @@ fn orders_of(b: &Block<'_>) -> Vec<OrderDump> {
     // two bases open `"MOVEORDER"` and `"GROUPORDER"`. A case-sensitive test
     // dropped it silently, which also slid every later `type`/`metric` onto
     // the wrong body, since the pairing is positional (§11.1).
-    b.children
-        .iter()
-        .filter(|c| c.name.to_ascii_uppercase().ends_with("ORDER"))
+    b.children()
+        .filter(|c| c.name().to_ascii_uppercase().ends_with("ORDER"))
         .enumerate()
         .map(|(i, o)| {
             // `ox/whom/uid` live on the `TARGETORDER` sub-block and `flags` on
@@ -1528,7 +1944,7 @@ fn orders_of(b: &Block<'_>) -> Vec<OrderDump> {
             // a plain `MOVEORDER` *is* the block. `find` looks at
             // children only, so the block itself has to be offered first.
             let base = |name: &str| {
-                if o.name == name {
+                if o.name() == name {
                     Some(o)
                 } else {
                     o.find(name)
@@ -1543,7 +1959,7 @@ fn orders_of(b: &Block<'_>) -> Vec<OrderDump> {
             OrderDump {
                 index: types.get(i).copied().unwrap_or(-1),
                 metric: metrics.get(i).copied().unwrap_or(0),
-                kind: o.name.to_string(),
+                kind: o.name().to_string(),
                 flags: unit_order.and_then(|u| u.int("flags")).unwrap_or(0),
                 ox: target.and_then(|t| t.int("ox")),
                 whom: target.and_then(|t| t.int("whom")),
@@ -1606,7 +2022,7 @@ fn orders_of(b: &Block<'_>) -> Vec<OrderDump> {
 /// `length/size/increment` are flat lines on `UNITDATA` itself. An empty
 /// stack writes its `BEGIN` and nothing under it, which reads back as no
 /// `PATHDATA` children.
-pub fn path_of(b: &Block<'_>) -> Vec<PathDump> {
+pub fn path_of(b: Block<'_>) -> Vec<PathDump> {
     let Some(stack) = b.kid("STACK<TYPE>") else {
         return Vec::new();
     };
@@ -1620,7 +2036,7 @@ pub fn path_of(b: &Block<'_>) -> Vec<PathDump> {
         .collect()
 }
 
-fn unit_of(b: &Block<'_>) -> Option<UnitDump> {
+fn unit_of(b: Block<'_>) -> Option<UnitDump> {
     let (flags, o, who, pos) = object_base(b)?;
     let orders = orders_of(b);
     let path = path_of(b);
@@ -1701,15 +2117,15 @@ fn unit_of(b: &Block<'_>) -> Option<UnitDump> {
     })
 }
 
-fn build_of(b: &Block<'_>) -> Option<BuildDump> {
+fn build_of(b: Block<'_>) -> Option<BuildDump> {
     let (flags, o, who, pos) = object_base(b)?;
     // The mining list, pair by pair in file order. `Block` keeps fields in
     // the order they were written, so a `ty` is the partner of the `tx`
     // before it; anything else between them would mean the shape changed.
     let mut gather_from = Vec::new();
     let mut tx: Option<i64> = None;
-    for (k, v) in &b.fields {
-        match *k {
+    for (k, v) in b.fields() {
+        match k {
             "tx" => tx = v.trim().parse().ok(),
             "ty" => {
                 if let (Some(x), Ok(y)) = (tx.take(), v.trim().parse()) {
@@ -1749,7 +2165,7 @@ fn build_of(b: &Block<'_>) -> Option<BuildDump> {
 /// run length is `queue_size`. A slot the log did not reach reads as zero,
 /// which is why the count is taken from the shortest run rather than
 /// assumed.
-fn queue_of(b: &Block<'_>) -> Vec<QueueItemDump> {
+fn queue_of(b: Block<'_>) -> Vec<QueueItemDump> {
     let ints = |k: &str| -> Vec<i64> {
         b.all(k)
             .iter()
@@ -1787,7 +2203,7 @@ fn queue_of(b: &Block<'_>) -> Vec<QueueItemDump> {
 /// `HOTKEYGROUPS`, one `HOTKEYGROUPDATA` wrapper each with a `GROUPDATA`
 /// nested inside it, and mixing them in is what makes `priority` look like
 /// it takes both values in the same array.
-pub fn groups(block: &Block<'_>) -> Vec<GroupDump> {
+pub fn groups(block: Block<'_>) -> Vec<GroupDump> {
     let body = block.kid("FULL DUMP").unwrap_or(block);
     body.kids("GROUPDATA").map(group_of).collect()
 }
@@ -1800,7 +2216,7 @@ pub fn groups(block: &Block<'_>) -> Vec<GroupDump> {
 /// to the innermost open block" rule hands it to the **last** `GROUPDATA`.
 /// Same shape as the leaders' `leader_flags` (see this module's header);
 /// re-attached here by position rather than by indentation.
-pub fn last_group(block: &Block<'_>) -> Vec<i64> {
+pub fn last_group(block: Block<'_>) -> Vec<i64> {
     let body = block.kid("FULL DUMP").unwrap_or(block);
     let Some(last) = body.kids("GROUPDATA").last() else {
         return Vec::new();
@@ -1811,7 +2227,7 @@ pub fn last_group(block: &Block<'_>) -> Vec<i64> {
         .collect()
 }
 
-fn group_of(b: &Block<'_>) -> GroupDump {
+fn group_of(b: Block<'_>) -> GroupDump {
     let i = |k| b.int(k).unwrap_or(0);
     let col = |k: &str| -> Vec<i64> {
         b.all(k)
@@ -1860,7 +2276,7 @@ fn group_of(b: &Block<'_>) -> GroupDump {
     }
 }
 
-fn leader_of(b: &Block<'_>) -> LeaderDump {
+fn leader_of(b: Block<'_>) -> LeaderDump {
     let i = |k| b.int(k).unwrap_or(0);
     LeaderDump {
         who: i("who"),
@@ -1878,12 +2294,12 @@ fn leader_of(b: &Block<'_>) -> LeaderDump {
     }
 }
 
-fn constants_of<'a>(b: &Block<'a>) -> Vec<ConstantDump<'a>> {
+fn constants_of<'a>(b: Block<'a>) -> Vec<ConstantDump<'a>> {
     let mut out: Vec<ConstantDump<'a>> = Vec::new();
-    for (key, value) in &b.fields {
+    for (key, value) in b.fields() {
         let (name, array) = match key.find('[') {
             Some(p) => (&key[..p], true),
-            None => (*key, false),
+            None => (key, false),
         };
         let Ok(v) = value.trim().parse::<i64>() else {
             continue;
@@ -1914,16 +2330,15 @@ fn constants_of<'a>(b: &Block<'a>) -> Vec<ConstantDump<'a>> {
 /// starting citizens whose derived order was `None` because the duplicate
 /// links took the assignment.
 pub(crate) fn records(
-    b: &Block<'_>,
+    b: Block<'_>,
     before_frames: bool,
 ) -> (Vec<UnitDump>, Vec<BuildDump>, Vec<LeaderDump>) {
     let stop = if before_frames {
-        b.children
-            .iter()
-            .position(|c| c.name.starts_with("FRAME"))
-            .unwrap_or(b.children.len())
+        b.children()
+            .position(|c| c.name().starts_with("FRAME"))
+            .unwrap_or(b.children().len())
     } else {
-        b.children.len()
+        b.children().len()
     };
     // A `DUMP_ALL` dump nests each state under a `FULL DUMP` block — the
     // start-of-game state under the first of `GAME`'s two (the second is
@@ -1932,32 +2347,28 @@ pub(crate) fn records(
     // same block) — so the object lists are that block's children and the
     // `leader_flags` run is on its fields. Any other dump writes them on
     // `GAME` and `FRAME` directly.
-    let (b, kids): (&Block<'_>, &[Block<'_>]) =
-        match b.children[..stop].iter().find(|c| c.name == "FULL DUMP") {
-            Some(dump) => (dump, &dump.children[..]),
-            None => (b, &b.children[..stop]),
+    let (b, kids): (Block<'_>, Children<'_>) =
+        match b.children().head(stop).find(|c| c.name() == "FULL DUMP") {
+            Some(dump) => (dump, dump.children()),
+            None => (b, b.children().head(stop)),
         };
     // Gaia's animals are written as `ANIMALDATA` → `UNITDATA` (the
     // `AnimalData::log_data` wrapper adds `ox`, `whom`, `aid` after the
     // unit), in the leader-8 run after every player's units.
     let units = kids
-        .iter()
-        .filter(|c| c.name == "UNITDATA")
+        .filter(|c| c.name() == "UNITDATA")
         .chain(
-            kids.iter()
-                .filter(|c| c.name == "ANIMALDATA")
+            kids.filter(|c| c.name() == "ANIMALDATA")
                 .filter_map(|a| a.kid("UNITDATA")),
         )
         .filter_map(unit_of)
         .collect();
     let builds = kids
-        .iter()
-        .filter(|c| c.name == "BUILDDATA")
+        .filter(|c| c.name() == "BUILDDATA")
         .filter_map(build_of)
         .collect();
     let mut leaders: Vec<LeaderDump> = kids
-        .iter()
-        .filter(|c| c.name == "LEADERDATA")
+        .filter(|c| c.name() == "LEADERDATA")
         .map(leader_of)
         .collect();
     // `Leaders::log_data` writes each leader's `leader_flags` pair **before**
@@ -1968,8 +2379,7 @@ pub(crate) fn records(
     // The parent block accumulates every pair in document order (the
     // both-candidates rule), so the correct assignment is a zip by index.
     let run = |key: &str| -> Vec<i64> {
-        b.fields
-            .iter()
+        b.fields()
             .filter(|(k, _)| *k == key)
             .filter_map(|(_, v)| v.trim().parse().ok())
             .collect()
@@ -1991,13 +2401,13 @@ pub(crate) fn records(
 /// nearest `who`/`o` pair before that. Every other `who`/`o` on the block
 /// (the leaders' run, the ambience) is left alone because none of them is
 /// followed by a `farm_type` without an intervening pair.
-pub(crate) fn farms_of(b: &Block<'_>) -> Vec<FarmDump> {
+pub(crate) fn farms_of(b: Block<'_>) -> Vec<FarmDump> {
     let int = |v: &str| v.trim().parse::<i64>().ok();
     let mut out = Vec::new();
     let (mut who, mut o, mut valid) = (None, None, None);
     let (mut status, mut adds): (Vec<i64>, Vec<i64>) = (Vec::new(), Vec::new());
-    for (k, v) in &b.fields {
-        match *k {
+    for (k, v) in b.fields() {
+        match k {
             "who" => who = int(v),
             "o" => o = int(v),
             "valid" => valid = int(v),
@@ -2041,12 +2451,12 @@ pub(crate) fn farms_of(b: &Block<'_>) -> Vec<FarmDump> {
 impl<'a> Log<'a> {
     /// The start-of-game state, from `GAME INFO` and the body of `GAME`
     /// before the first frame.
-    pub fn initial(&self) -> Option<Initial<'a>> {
+    pub fn initial(&'a self) -> Option<Initial<'a>> {
         let game = self.game()?;
         let mut init = Initial::default();
         if let Some(gi) = self.root("GAME INFO").and_then(|g| g.kid("GAMEINFO")) {
-            init.game_info = gi.fields.clone();
-            init.players = gi.kids("PLAYER").map(|p| p.fields.clone()).collect();
+            init.game_info = gi.fields().to_vec();
+            init.players = gi.kids("PLAYER").map(|p| p.fields().to_vec()).collect();
         }
         // A `DUMP_ALL` dump writes the start-of-game state under `GAME`'s
         // first `FULL DUMP` rather than on `GAME` itself (`records` takes the
@@ -2055,7 +2465,7 @@ impl<'a> Log<'a> {
         // `[Start Game] WORLD` said — run20 is read this way.
         let body = game.kid("FULL DUMP").unwrap_or(game);
         if let Some(w) = body.kid("WORLD") {
-            init.world = w.fields.clone();
+            init.world = w.fields().to_vec();
         }
         if let Some(c) = body.kid("CITIES") {
             init.cities = c.kids("CITY").map(city_of).collect();
@@ -2102,10 +2512,9 @@ impl<'a> Log<'a> {
                     let sub = b.kid("SUBOBJECT");
                     GoodDump {
                         name: b
-                            .fields
-                            .iter()
+                            .fields()
                             .find(|(_, v)| v.is_empty())
-                            .map_or("", |(k, _)| *k),
+                            .map_or("", |(k, _)| k),
                         o: sub.and_then(|s| s.int("o")).unwrap_or(-1),
                         x: sub.and_then(|s| s.int("x_internal")).unwrap_or(0),
                         y: sub.and_then(|s| s.int("y_internal")).unwrap_or(0),
@@ -2167,9 +2576,9 @@ impl<'a> Log<'a> {
     /// with `end_time > 0`, deduplicated and sorted — every state the dump
     /// printed, the frames included. A `DUMP_ALL` dump only; the lengths
     /// are the animation packets' frame counts (`docs/ANIM.md` §3).
-    pub fn anim_lengths(&self) -> Vec<(i64, i64, i64)> {
-        fn walk(b: &Block<'_>, out: &mut Vec<(i64, i64, i64)>) {
-            if b.name == "GUY" {
+    pub fn anim_lengths(&'a self) -> Vec<(i64, i64, i64)> {
+        fn walk(b: Block<'_>, out: &mut Vec<(i64, i64, i64)>) {
+            if b.name() == "GUY" {
                 if let (Some(p), Some(a), Some(e)) =
                     (b.int("gpiece"), b.int("cur_anim"), b.int("end_time"))
                     && e > 0
@@ -2178,12 +2587,12 @@ impl<'a> Log<'a> {
                 }
                 return;
             }
-            for c in &b.children {
+            for c in b.children() {
                 walk(c, out);
             }
         }
         let mut out = Vec::new();
-        for r in &self.roots {
+        for r in self.roots() {
             walk(r, &mut out);
         }
         out.sort_unstable();
@@ -2192,7 +2601,7 @@ impl<'a> Log<'a> {
     }
 
     /// Every frame's typed state, in order.
-    pub fn frame_states(&self) -> Vec<Frame> {
+    pub fn frame_states(&'a self) -> Vec<Frame> {
         self.frames()
             .into_iter()
             .map(|(n, b)| {
@@ -2396,12 +2805,40 @@ BEGIN GAME
     z_internal 3
 ";
 
+    /// The arena's widths are the whole of item 235, and prose does not
+    /// hold them: a `Block` that grows a `Vec` back, or a `Field` that
+    /// goes back to fat pointers, doubles the suite's peak in silence.
+    /// 76.6 M fields on one capture is what makes each of these bytes
+    /// worth 76.6 MB.
+    #[test]
+    fn the_arena_s_widths_are_what_item_235_bought() {
+        assert_eq!(size_of::<Field>(), 16, "four u32 offsets, not two &str");
+        assert_eq!(size_of::<Block<'_>>(), 16, "a cursor: a &Log and an index");
+        assert!(
+            size_of::<Node>() <= 32,
+            "a node is ranges, not owned vectors: {}",
+            size_of::<Node>()
+        );
+        // And the chunks are one size, which is what lets a log reuse the
+        // pages the log before it gave back.
+        let mut c: Chunks<u32> = Chunks::default();
+        for i in 0..(CHUNK as u32 + 3) {
+            c.push(i);
+        }
+        assert_eq!(c.len(), CHUNK + 3);
+        assert_eq!(c.chunks.len(), 2, "one chunk per CHUNK entries, exactly");
+        assert!(c.chunks.iter().all(|k| k.len() == CHUNK));
+        assert_eq!(c.get(0), 0);
+        assert_eq!(c.get(CHUNK - 1), CHUNK as u32 - 1);
+        assert_eq!(c.get(CHUNK + 2), CHUNK as u32 + 2);
+    }
+
     #[test]
     fn preamble_and_roots() {
         let log = Log::parse(SAMPLE);
         assert_eq!(log.preamble[0], ("play2,", "team 0 8"));
         assert_eq!(log.preamble[1], ("init_teams:", "on_team 0"));
-        let names: Vec<_> = log.roots.iter().map(|b| b.name).collect();
+        let names: Vec<_> = log.roots().map(|b| b.name()).collect();
         assert_eq!(names, vec!["GAME INFO", "GAME"]);
     }
 
@@ -2409,7 +2846,7 @@ BEGIN GAME
     fn blocks_nest_by_indent_and_close_on_dedent() {
         let log = Log::parse(SAMPLE);
         let game = log.game().unwrap();
-        let names: Vec<_> = game.children.iter().map(|b| b.name).collect();
+        let names: Vec<_> = game.children().map(|b| b.name()).collect();
         assert_eq!(
             names,
             vec![
@@ -2432,7 +2869,7 @@ BEGIN GAME
         );
         // The building's SUBOBJECT is three levels down.
         let sub = game.kid("BUILDDATA").unwrap().find("SUBOBJECT").unwrap();
-        assert_eq!(sub.indent, 4);
+        assert_eq!(sub.indent(), 4);
         assert_eq!(sub.int("o"), Some(2000));
     }
 
@@ -2450,10 +2887,9 @@ BEGIN GAME
         assert_eq!(leaders[0].int("leader_flags"), Some(176160787));
         assert_eq!(leaders[1].int("leader_flags"), None);
         let run: Vec<_> = game
-            .fields
-            .iter()
+            .fields()
             .filter(|(k, _)| *k == "leader_flags")
-            .map(|(_, v)| *v)
+            .map(|(_, v)| v)
             .collect();
         assert_eq!(run, ["176160775", "176160787"]);
     }
@@ -2598,7 +3034,7 @@ BEGIN GAME
     #[test]
     fn an_empty_text_is_an_empty_log() {
         let log = Log::parse("");
-        assert!(log.roots.is_empty());
+        assert!(log.roots().is_empty());
         assert!(log.initial().is_none());
         assert!(log.frame_states().is_empty());
     }

@@ -16634,3 +16634,79 @@ and was made to fail on a neighbouring bit. The window is entirely past
 6862, so it pins the original's own record rather than the two sides'
 agreement — which is the right shape for a claim about a mechanic and not
 about a score.
+## 2026-09-06 — item 235, the diff suite's memory (Opus)
+
+The gate had been serialized since the machine went down, and 235 was the
+item that owned it. The starting numbers, all re-measured here under
+`tools/memcap.sh` so that before and after are the same command: run71's
+test alone peaked at **9,394 MiB**, the suite serialized at **15,275 MiB**
+in 304 s, and four threads crossed the 20 GiB ceiling and were killed.
+
+**The floor came first, and it moved the target.** A probe that parses
+run71 and walks the tree says 2,955,663 blocks and **76,624,335** stored
+fields — not the ~42.8 M field *lines* the item assumed, because the
+ambiguous-field rule records a field on both candidate blocks and about
+31 M of them are duplicates. At 32 bytes a `(&str, &str)` that is 2,338
+MiB of pointer pairs, against 793 MiB of text; the `Vec`s holding them had
+110 M slots for 76.6 M fields, so **1,025 MiB was doubling slack**, and
+4.0 M of the allocations were live at once. Resident after parse: 4,668
+MiB. So the item's own framing — "5.9 M small allocations, slack and
+overhead" — was right about the mechanism and short by a third on the
+size, and the pointer pairs were the bigger half.
+
+**Candidate (a), the arena, with the field made half as wide.** Blocks
+became twelve-byte cursors into three flat vectors, and a field became
+four `u32` offsets into the text rather than two fat pointers — the text
+can never reach the 4 GiB that would break, the largest capture on disk
+being 1.4 GB. That is 4,668 → **2,017 MiB** for one parse, with the block
+and field counts bit-identical, which is the check that the grammar did
+not move. (b), the frame-lazy `Log`, was not needed and was not built: it
+buys a bound of one frame instead of one file, at the price of a lifetime
+on every reader, and the arena already took the suite where it needed to
+go.
+
+**Then the measurement said the interesting thing.** Serialized, the suite
+peaked at 12.1 GB with the arena — while its largest single test held 5.4
+GB. A suite that runs one test at a time cannot peak at twice its largest
+test unless memory is never given back, and a probe that parses run71,
+drops it, and parses it again confirmed it: RSS did not fall by a byte on
+the drop, and the second parse of the same file cost another gigabyte.
+macOS's allocator caches a freed block of that size rather than returning
+it, and **a differently sized block from the next capture cannot reuse
+it** — which is exactly what a suite of forty captures of forty sizes
+does. The `Vec`-doubling arena had traded 4.0 M small allocations for a
+handful of enormous ones and kept the ratchet.
+
+The fix is that the arenas grow in **chunks of one fixed size** (65,536
+entries), never reallocating: every chunk any log frees fits every chunk
+the next log wants. On the probe, a second parse after a first is dropped
+went from +353 MiB to **+10 MiB**. On the suite, serialized went 12.1 →
+**10.1 GB**. What is left of the ratchet is the `String` each test reads
+its capture into, whose size is the file's and therefore different every
+time; that is not the parser's to fix.
+
+**The three numbers, memcap's own output.** One test alone **9,394 →
+5,425 MiB** (and 10.9 → 7.1 s). Serialized **15,275 → 10,075 MiB** (304 →
+295 s). Two threads **20,463 → 15,920 MiB** at the same 214 tests, and
+**14,791 MiB** in **136 s** on the tree as committed — and 20,463 is 17 MiB
+under the ceiling, so two threads was a coin flip before and has 5 GB of
+headroom now. (A GB of run-to-run spread on the same command is normal
+here; memcap samples every two seconds.) **Four threads still crosses 20 GB**, and
+that is honest concurrency rather than the ratchet: four heavy captures
+held at once is four times five gigabytes. So the gate comes off `1` and
+goes to `2`, which is 2.1× faster, and `4` stays off the table.
+
+214 tests before, 214 after, and no test's assertions changed — the whole
+diff is storage. The 215th is new: a guard on the arena's widths, because
+`size_of::<Field>()` is worth 76.6 MB a byte on one capture and prose does
+not hold a number like that. It was made to fail before it was landed. Where a reader used `block.fields` or `block.children` it
+now calls them; `kid`, `find` and `kids` hand back a `Block` by value
+instead of a reference, because a cursor is `Copy`. The two readers that
+wanted a slice (`world_from`, `world_fog`) take `fields().to_vec()`, which
+is one WORLD block and a temporary.
+
+One bug the change introduced and the existing tests caught within a
+minute: a field line with no space stored its empty value as the literal
+`""`, whose pointer is not in the text, so the offset arithmetic
+underflowed. Every span in an arena has to be cut from the buffer it
+indexes, and `&trimmed[trimmed.len()..]` is how you spell an empty one.
