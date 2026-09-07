@@ -1342,19 +1342,20 @@ Both are exact, and neither is a candidate of the *trainer's* ring at all:
 31-bearing counter never produces (`docs/ORDERS.md` §10) — which is what
 named this item.
 
-**The dump cannot show the chain.** `UnitData::o_up`/`o_down` are
-`+0x8e`/`+0x90` (`types.txt`), and `is_captain` is the **sign bit of
-`o_up`** (`00617c10:172`) — not the `ObjectData` `up`/`down`/`down_who` the
-log prints, which is the per-cell object list and mixes units with buildings.
-What the dump gives is the positions, and three of them fix the whole arm.
+~~**The dump cannot show the chain.**~~ **It does, and a `grep` would have
+said so before two captures were booked** (2026-09-06). `o_up`/`o_down` are
+`+0x8e`/`+0x90` and `is_captain` is the sign bit of `o_up`
+(`00617c10:172`); the `ObjectData` `up`/`down` printed early in a record is
+the per-cell list, but at `UNITS=3` the tail prints `o_up`/`o_down` under
+those names — run79 reads `-1/32, 31/33, 32/-1`, run76 `-1/28, 27/29,
+28/-1`. The captain is the head of the list, in the dump, all along.
 
-**Before the garrison.** `Objects::init_unit@0065e0c0` builds the squad in
-one loop and gives each member a spot around the captain —
-`[f × 0x30, f × 0x60 + 0xc0]`, `f` the captain's raw `BLOCK_RADIUS`
-(`+0x248`), bias its `angle` — then `set_new_location`. `Build::train` calls
-it at the trainer's centre and `go_inside` swallows all three at once, so a
-trained squad never keeps it; a squad created on open ground does. Not
-modelled, and no capture reaches it.
+**Before the garrison.** `Objects::init_unit@0065e0c0` gives each member a
+spot around the captain — `[f × 0x30, f × 0x60 + 0xc0]`, `f` the captain's
+raw `BLOCK_RADIUS` (`+0x248`), bias its `angle` — then `set_new_location`.
+`Build::train` calls it at the trainer's centre and `go_inside` swallows
+all three at once, so a trained squad never keeps it and one born on open
+ground does. Not modelled, and no capture reaches it.
 
 **What is not established.** Whether a member is turned to its captain's
 `angle` on the way out. `come_out`'s tail splits on the same `is_captain`
@@ -1911,7 +1912,15 @@ heal, ejection), then the sites' `construct_hits` refresh.
   squad's members each run the search for themselves, around the captain**
   (§6.5.1): the `o_down` recursion at `00617c10:535`, and then the unit-host
   arm, which `Sim::come_out_unit_host_spot` shares with the transport's own
-  disembark. run76's three Archers are all three exact. Not modelled: the
+  disembark. run76's three **Bowmen** — guy type 177 is unit record 120,
+  Bowmen at 70 hits, not record 121's Archers; the `type 21` that named
+  them is the first `type` line of a *marching* unit's record and belongs
+  to its order (2026-09-06) — are all three exact, and so are run79's two
+  Longbowmen squads, born from the same Barracks 601 frames apart on the
+  **same three points**. Two unit types, three squads, nine units: the
+  placement depends on `(trainer, captain)` and on nothing else — not the
+  frame, not the draw, not the member's own type, not what else stands on
+  the map. Not modelled: the
   member's turn to its captain's angle (§6.5.1's open question), and
   `init_unit`'s pre-garrison placement of a squad born on open ground.
 - **`valid_filter(8)`** in the capture count is taken as "alive and on the

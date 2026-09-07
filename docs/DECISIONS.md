@@ -1373,3 +1373,55 @@ blind reader, budget or no budget: entry 24's evidence stands.
 **The measure.** The seventh steer asks whether 226 was settled either way,
 whether the audit lane's verdicts changed code, and whether the merges cost
 anything. Keep or kill on the answer, per lane.
+
+## 34. The commander loop: one worker per item, serial until the gate is cheap
+
+**Decided 2026-09-06**, with the user, after the first full day of the
+lane-and-worker shape and the crash in the middle of it. Extends entry 33;
+overturns nothing.
+
+**The bottleneck was never the model.** Before this shape the loop was a
+person typing `/clear` and `continue` between items — so the throughput of
+a project with a 24,000-frame oracle and a hundred-item queue was set by
+how often its author was at a keyboard. What the swarm actually bought was
+not parallelism. It was **removing the human from the routine step**: an
+orchestrating session spawns a worker per item, merges its branch, files
+its findings into the queue, runs the guards, pushes, fast-forwards
+`origin/main`, and spawns the next. That ran for hours unattended on
+2026-09-06 and it is the shape to keep.
+
+**And it is serial, deliberately, for a measured reason.** Every worker's
+own gate is `cargo test -p rondata --release`: **15.4 GB and 256 seconds**
+(item 235). Two workers on that gate at once is not a coordination problem,
+it is Friday's crash — 27.6 GB resident, swap full, the machine gone in
+eight minutes. So the default is **one worker at a time**, and the
+question reopens on 235's measurement rather than on taste. The capture
+lane is the standing exception: it owns the screen, costs no memory, and
+its products are logs outside the repo.
+
+**The stopping rule is the one the queue already has.** A commander that
+never stops will spend a budget on items that move nothing. So: an item is
+spawned only with the score it moves named in its brief, and after **two
+items in a row that move no score** the commander stops and asks rather
+than continuing. That is what keeps no-human-in-the-loop from becoming
+no-judgment-in-the-loop, and it is the same instinct as entry 24's.
+
+**The operating notes, each of which cost something to learn.**
+
+- **Stop a lane's old job before respawning it.** A lane lives in a named,
+  persistent worktree, so a respawn under the same name gives two live
+  sessions one working tree and makes by-name routing ambiguous. Workers
+  never hit this: a fresh worktree and a fresh name per item.
+- **Every spawn carries `--permission-mode auto`.** A worker that stops on
+  a prompt is a worker that has silently ended the run.
+- **Identity comes from liveness, not from a pid.** `ccc list`'s pid column
+  can point at a pre-warmed spare process rather than the session.
+- **A command chain gates on an exit code, never on grep finding text.** A
+  red paperwork guard reached a commit that way on the first night.
+- **`tools/memcap.sh` in front of anything that can grow.** A warning
+  message cannot save a machine that is already thrashing.
+
+**The measure.** The next steering pass asks whether the commander moved
+the headline without the user in the loop, and what it stopped to ask
+about. If the answer to the second is "nothing", the stopping rule is too
+loose rather than the work too smooth.

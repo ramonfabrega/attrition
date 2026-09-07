@@ -369,6 +369,24 @@ Buildings reach the same two slots through named columns instead —
 `buildingrules.xml`, with the resource written out as a word rather than a
 letter. Same fields, two spellings.
 
+### A dumped `type` and a `orig_type` index one object-type space
+
+Established 2026-09-06 from run79's window, and it names every object any
+dump prints. A guy's `type` and a `BuildData`'s `orig_type` are offsets
+into a **single** space laid out in load order, so the record index is
+recovered by subtraction:
+
+    resources   0-49
+    units       50-413    (50 + the `unitrules.xml` record)
+    buildings   414-542   (414 + the `buildingrules.xml` record)
+
+Buildings begin at 414 and `unitrules.xml` holds 364 records, which puts
+units at 50 and leaves exactly the 50 of `resourcerules.xml` below them.
+Every type in run79's window resolves hits for hits under it — guy 50
+Citizen at 40, 59 Caravan at 90, 61 Merchant at 90, 69 Scout at 50, 177
+Longbowmen at 88 (`UBER_SIZE 3`, upgraded from Bowmen), building 427 a
+Barracks and 428 a Stable — with nothing left over.
+
 ### `resourcerules.xml` wraps its records one level deeper
 
 Every other record table hangs its records off the document root.
