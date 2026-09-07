@@ -91,6 +91,14 @@ grouped order records no test windows** — run79's 453, run31's 945.
     it was not its own row; unbooked findings are how items die. Cheap:
     the field's type in the parser and in `city.rs`, and a value diff.
 
+266. **Both words are in capture gaps, so the score is single-threaded
+    through the screen.** Great Lakes 7455 is past run79's 7250, the only
+    archive with any block in 7200–7699; East Indies 7529 sits in the
+    3,200-frame hole between run82's 6929 and run77's 10150. Neither can
+    be advanced by a diff against anything on disk. **Batch the lane** —
+    one session, both maps' windows and their neighbours' overlap — rather
+    than one capture per item, and say what a batch costs. Steer-shaped.
+
 **The widening ledger** (87, DATALAYER §4, §4.1): **19** fields the
 harness names nowhere, **44** one capture names; blind spot `avg_speed`
 (210) — it counts *fields* and cannot see a record the parser never
