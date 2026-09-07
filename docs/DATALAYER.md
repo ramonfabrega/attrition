@@ -115,7 +115,7 @@ its `PLAYER`s, `WORLD`, `CITIES`, `CONSTANTS`, every `UNITDATA` with its
 Item 235 made the tree an arena and its chunks one size; what it could not
 fix is that **the arena is built at all**. `Log::parse` read all 76.6 M
 fields of a 793 MB capture where a test reads hundreds, and the release
-suite peaked at **14,721 MiB** of the 20 GiB ceiling — the number that made
+suite peaked at **15,791 MiB** of the 20 GiB ceiling — the number that made
 the next long capture unbookable. Two things were wrong, and only the second
 is the one the item named.
 
@@ -129,7 +129,8 @@ sizes reports the **sum of everything it ever held**. Both are mappings now
 (`crates/rondata/src/mapped.rs`): `Text` is the capture, deref'ing to `str`
 so `Log::parse(&text)` is unchanged, and `Pages<T>` is the arena's 1 MiB
 chunk. `munmap` returns them where `free` did not, and the same probe ends
-at 1,647 MiB instead of 5,332. This alone took the suite to 12,182 MiB.
+at 1,647 MiB instead of 5,332. On the tree this was measured on, that alone
+took the suite from 14,721 MiB to 12,182.
 
 What a mapping does *not* buy here is a scan that runs without the file
 resident. The pages are clean and file-backed, so a walk that has finished
@@ -182,7 +183,10 @@ the next one. What it keeps is owned, so the memory is one frame rather than
 all of them; but the walk is a **re-read** where it used to cross an arena
 already built, so `initial` does its four in one pass, and a test that wants
 both the initial state and the frame states parses the capture twice. The
-suite is **300 s against 220 s** for **7,966 MiB against 14,721**.
+suite is **309 s against 221 s** for **8,816 MiB against 15,791** — both
+ends measured on the same tree, a detached worktree at the base's tip for
+the before-number, because a benchmark against a base that has moved is
+worth nothing.
 
 Two changes of behaviour ride along, both towards the type's own
 documentation: `Initial`'s regions, herds, goods and height grid are taken

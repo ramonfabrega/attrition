@@ -18990,14 +18990,17 @@ of the 20 GiB cap — the run that found the five pin moves peaked 14,939 and
 the one that found the ledger's own +1 peaked 15,497; `cargo clippy
 --all-targets` and `cargo fmt` clean; `rondata -- <install>` zero.
 
-## 2026-09-07 — item 260: the parse goes lazy, and the gate's peak falls from 14,721 MiB to 7,966 (no word moved, Opus, worker)
+## 2026-09-07 — item 260: the parse goes lazy, and the gate's peak falls from 15,791 MiB to 8,816 (no word moved, Opus, worker)
 
-**The item was booked as a memory number and it moved: 14,721 MiB → 7,966
-MiB of the 20 GiB ceiling, 243 tests green.** The falsifier the queue named
-had been met rather than refuted — three measurements in two days at
-15,479, 16,169 and 16,732 MiB — and the capture lane was being held on it.
-It is decisively off the ceiling now, at 40 % of the cap with run87's and
-run88's dumps in.
+**The item was booked as a memory number and it moved: 15,791 MiB → 8,816
+MiB of the 20 GiB ceiling, 243 tests green.** Both ends were measured on
+the same tree, with 271's landing merged in, because a benchmark against a
+base that has since moved is worth nothing: a detached worktree at
+`b565a22` for the before, this branch for the after. The falsifier the
+queue named had been met rather than refuted — 15,479, 16,169 and 16,732
+MiB in two days, and 15,791 on the merged tip — and the capture lane was
+being held on it. It is at 44 % of the cap now, with run87's and run88's
+dumps in.
 
 **The first finding was that the gate's number was not a measurement.** A
 probe parsed three captures in one process and read its own resident set
@@ -19014,11 +19017,12 @@ deref'ing to `str` so `Log::parse(&text)` takes it exactly as it took a
 `String` — the change at 182 call sites is `read_to_string(..).unwrap()`
 becoming `mapped::read(..)` and nothing else — and `Pages<T>` is the
 arena's 1 MiB chunk. `munmap` returns them at the moment of the drop. The
-probe ends at 1,647 MiB instead of 5,332, and the suite fell to 12,182 MiB
-on that alone. **A mapping cannot be made in safe Rust and no crate hides
-it** (`memmap2::Mmap::map` is itself an `unsafe fn`), so `crates/rondata`
-stops inheriting the workspace's `unsafe_code = "forbid"` and denies it
-itself, with `mapped.rs` and nothing else allowed; `crates/sim` and
+probe ends at 1,647 MiB instead of 5,332, and on the pre-merge tree the
+suite fell from 14,721 MiB to 12,182 on that alone. **A mapping cannot be
+made in safe Rust and no crate hides it** (`memmap2::Mmap::map` is itself
+an `unsafe fn`), so `crates/rondata` stops inheriting the workspace's
+`unsafe_code = "forbid"` and denies it itself, with `mapped.rs` and nothing
+else allowed; `crates/sim` and
 `crates/fixed` keep the ban, which is where it was aimed.
 
 **Then the parse itself.** A capture's frames are all children of `GAME`,
@@ -19065,9 +19069,12 @@ whole-log product now goes through `scan_children`, which reads each of
 and keeps only what the caller owns. But that walk is a *re-read* where it
 used to cross an arena already built, so `initial()` folds its four walks
 into one, and a test that wants both the initial state and the frame states
-parses the capture twice. **The suite is 300 s against 220.** That is the
-trade this item makes: 36 % more wall clock for 46 % less memory, on the
-number the queue said was blocking the lane.
+parses the capture twice. **The suite is 309 s against 221.** Some of that
+gap is contention — the commander's own suite was running in `replan-pdb`
+for a stretch of the after-run — and the clean pre-merge pair was 300 s
+against 220, so call it a third more wall clock for 44 % less memory. That
+is the trade this item makes, on the number the queue said was blocking the
+lane.
 
 **What is left is not the parser.** On run58 — 1,345 MiB, 5,201 frames —
 the peak is 1,347 MiB of mapped text, 1,244 MiB of `Initial`'s own

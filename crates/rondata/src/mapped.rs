@@ -1,4 +1,3 @@
-#![allow(unsafe_code)]
 //! Memory the process can actually give back.
 //!
 //! The gate's peak is not a live-data measurement. On 2026-09-07 a probe
@@ -28,6 +27,12 @@
 //! `tools/memcap.sh` reports counts it. It is *clean* — the kernel would
 //! evict it under real pressure rather than swap it — which is why a
 //! machine with 128 GB never noticed; the meter counts it all the same.
+//!
+//! This module is the one place in `crates/rondata` where `unsafe` is
+//! allowed: a mapping cannot be made in safe Rust and no crate hides it
+//! (`memmap2::Mmap::map` is itself an `unsafe fn`). The crate's
+//! `Cargo.toml` says the same from the other side.
+#![allow(unsafe_code)]
 
 use std::ffi::c_void;
 use std::ops::Deref;
@@ -52,6 +57,10 @@ mod sys {
     pub const PROT_READ: i32 = 0x1;
     pub const PROT_WRITE: i32 = 0x2;
     pub const MAP_PRIVATE: i32 = 0x0002;
+    // The one constant the two kernels disagree on.
+    #[cfg(target_os = "linux")]
+    pub const MAP_ANON: i32 = 0x20;
+    #[cfg(not(target_os = "linux"))]
     pub const MAP_ANON: i32 = 0x1000;
 
     pub fn failed(p: *mut c_void) -> bool {

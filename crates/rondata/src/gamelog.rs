@@ -689,6 +689,16 @@ impl<'a> Log<'a> {
         // Its own block closed with nothing under it on the stack, so the
         // pass called it a root of the region; it is not one of the log's.
         arena.roots.truncate(roots_before);
+        // A region always opens on the block's own `BEGIN`, so committing
+        // it has written the counts over the marker. If it somehow has
+        // not, clear the marker anyway: a block that stays lazy after
+        // being read is one that is read again on every access, for ever.
+        let mut n = arena.nodes.get(id as usize);
+        if n.body().is_some() {
+            n.fields_len = 0;
+            n.kids_len = 0;
+            arena.nodes.set(id as usize, n);
+        }
     }
 }
 
