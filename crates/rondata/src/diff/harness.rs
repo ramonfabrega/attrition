@@ -6728,22 +6728,30 @@ mod tests {
     /// `docs/DECISIONS.md` entry 29's two counters — was the one that
     /// could not be read as a field at all.
     ///
-    /// **It is one field, and it is off by one.** `1/13` is an AI
+    /// **It was one field, and it was off by one.** `1/13` is an AI
     /// citizen gathering at `gather_down 12`; its `GATHERORDER`'s `wait`
-    /// countdown reads **`theirs + 1` on all 55 blocks** of the cycle
-    /// that ends at the word, so the original's reaches its end on 7529
-    /// (`wait −1`, the order done) while this crate still holds **1**.
-    /// The original spends its extra `Guy::set_anim+0x97a <
-    /// Unit::do_non_flat_gather+0xb99` draw there and this crate spends
-    /// the same one a frame later, which is exactly what the word says.
+    /// countdown read **`theirs + 1` on all 55 blocks** of the cycle that
+    /// ends at the word, so the original's reached its end on 7529 (`wait
+    /// −1`, the order done) while this crate still held **1**, and the
+    /// original spent its extra `Guy::set_anim+0x97a <
+    /// Unit::do_non_flat_gather+0xb99` draw there a frame before this
+    /// crate did. The original's own value diff was one 24-unit step: it
+    /// takes its next job on 7530 — `orders_x/y` (40536, 37560) →
+    /// (40344, 38520) — and steps to (40560, 37560) on 7531.
     ///
-    /// **And the value diff is one step.** The original's `1/13` takes
-    /// its next order on block 7530 — `orders_x/y` (40536, 37560) →
-    /// (40344, 38520) — and steps to (40560, 37560) on 7531, where this
-    /// crate is still on (40536, 37560): **(−24, 0)**, one 24-unit step,
-    /// and it never gets it back. Nothing else on the map parts at or
-    /// below the word except `1/19`, the standing Merchant constant
-    /// run85's window already carries.
+    /// **Item 271 closed it 545 frames upstream, and not in the gather
+    /// code.** The countdown is seeded by the *arrival* frame and this
+    /// crate arrived one late: run86's block 6937 is where player 1 takes
+    /// the Classical Age, and `Leader::gain_tech`'s `is_age_type` arm
+    /// re-places every one of its units where it already stands, which
+    /// hands the one unit that is mid-turn its heading for free
+    /// (`docs/TECH.md`, "An age snaps every figure"). With the snap in,
+    /// `1/13`'s `wait` agrees on every block of this window and its
+    /// position never parts; [`LONG_WORD_EAST_INDIES`] moved 7529 → 7806.
+    ///
+    /// What is left below the new word is the **standing Merchant
+    /// constant**, twice: `1/19` from the first block and `1/20` from
+    /// 7663, each a flat (24, 24) (`docs/MERCHANT.md`).
     #[test]
     fn run88_s_window_is_east_indies_word_frame() {
         let Some(inst) = install() else { return };
@@ -6782,27 +6790,28 @@ mod tests {
         // **The gather countdown, straight off the dump.** `1/13` stands
         // on its resource with `orders_x/y` equal to its own position
         // until 7530, when the original gives it the next job.
-        let job: Vec<(i64, i64, i64, i64, i64)> = states
+        let job: Vec<(i64, i64, i64, i64, i64, i64)> = states
             .iter()
             .filter(|f| (7_526..=7_532).contains(&f.n))
             .filter_map(|f| {
                 let u = f.units.iter().find(|u| u.who == 1 && u.o == 13)?;
-                Some((f.n, u.pos.x, u.pos.y, u.orders_x?, u.orders_y?))
+                let wait = u.orders.iter().find_map(|o| o.wait)?;
+                Some((f.n, u.pos.x, u.pos.y, u.orders_x?, u.orders_y?, wait))
             })
             .collect();
         assert_eq!(
             job,
             vec![
-                (7_526, 40_536, 37_560, 40_536, 37_560),
-                (7_527, 40_536, 37_560, 40_536, 37_560),
-                (7_528, 40_536, 37_560, 40_536, 37_560),
-                (7_529, 40_536, 37_560, 40_536, 37_560),
-                (7_530, 40_536, 37_560, 40_344, 38_520),
-                (7_531, 40_560, 37_560, 40_344, 38_520),
-                (7_532, 40_584, 37_560, 40_344, 38_520),
+                (7_526, 40_536, 37_560, 40_536, 37_560, 3),
+                (7_527, 40_536, 37_560, 40_536, 37_560, 2),
+                (7_528, 40_536, 37_560, 40_536, 37_560, 1),
+                (7_529, 40_536, 37_560, 40_536, 37_560, -1),
+                (7_530, 40_536, 37_560, 40_344, 38_520, 32),
+                (7_531, 40_560, 37_560, 40_344, 38_520, 32),
+                (7_532, 40_584, 37_560, 40_344, 38_520, 32),
             ],
-            "the original's `1/13`: standing on its resource, then the next \
-             job on 7530 and the first step on 7531"
+            "the original's `1/13`: the countdown out on 7529, the next job \
+             on 7530 with `wait` re-rolled, and the first step on 7531"
         );
 
         // Now the comparison — every unit of every block.
@@ -6843,45 +6852,62 @@ mod tests {
              — a capture below `UNITS=3` is the wrong file"
         );
 
-        // **Two units part at or below the word and no more.** Everything
-        // else is 7577 or later, downstream of it.
-        let early: Vec<((i64, i64), i64)> = parted
-            .iter()
-            .filter(|&(_, &f)| f <= 7_531)
-            .map(|(&k, &f)| (k, f))
-            .collect();
+        // **Two units part below the word and no more, and both are the
+        // same standing Merchant constant.** `1/13` was the third and is
+        // gone; `1/6` and `1/7` are on 7816, the closing block.
         assert_eq!(
-            early,
-            vec![((1, 13), 7_531), ((1, 19), 7_474)],
-            "run88's parted set at or below the word"
+            parted
+                .iter()
+                .map(|(&k, &f)| (k, f))
+                .collect::<Vec<((i64, i64), i64)>>(),
+            vec![
+                ((1, 6), 7_816),
+                ((1, 7), 7_816),
+                ((1, 19), 7_474),
+                ((1, 20), 7_663)
+            ],
+            "run88's parted set, whole"
         );
 
         // `1/19` is run85's row one window along: the unpacked Merchant
         // standing on its trade-post spot, **a constant (24, 24) on every
         // block, both sides still** (`docs/MERCHANT.md`).
-        let merchant: Vec<(i32, i32)> = report
-            .frames
-            .iter()
-            .flat_map(|f| f.diverged.iter())
-            .filter(|d| (d.who, d.o) == (1, 19))
-            .map(|d| (d.ours.x - d.theirs.x, d.ours.y - d.theirs.y))
-            .collect();
+        let merchant = |o: i64| -> Vec<(i32, i32)> {
+            report
+                .frames
+                .iter()
+                .flat_map(|f| f.diverged.iter())
+                .filter(|d| (d.who, d.o) == (1, o))
+                .map(|d| (d.ours.x - d.theirs.x, d.ours.y - d.theirs.y))
+                .collect()
+        };
+        let (nineteen, twenty) = (merchant(19), merchant(20));
         assert!(
-            merchant.len() == 327 && merchant.iter().all(|&d| d == (24, 24)),
+            nineteen.len() == 327 && nineteen.iter().all(|&d| d == (24, 24)),
             "`1/19` is a standing constant: {} rows, {:?}",
-            merchant.len(),
-            merchant.first()
+            nineteen.len(),
+            nineteen.first()
+        );
+        // `1/20` is the same shape one Merchant along: it stands on its own
+        // trade-post spot from 7663 and is a flat (24, 24) for every block
+        // after, both sides still.
+        assert!(
+            twenty.len() == 138 && twenty.iter().all(|&d| d == (24, 24)),
+            "`1/20` is the second standing constant: {} rows, {:?}",
+            twenty.len(),
+            twenty.first()
         );
 
-        // **The word's own field.** `1/13`'s `wait` is `theirs + 1` on
-        // every block of the cycle, and on 7529 the original's has
-        // reached its end (`-1`) while this crate still holds 1.
+        // **The field the word used to be.** `1/13`'s `wait` read
+        // `theirs + 1` on all 56 blocks up to 7529, where the original's
+        // reached its end (`-1`) and this crate still held 1. The age snap
+        // put the arrival frame right and there is no row left at all.
         use crate::diff::order::OrderMismatch as OM;
         let wait: Vec<(i64, i64, i64)> = report
             .frames
             .iter()
             .flat_map(|f| f.order_diverged.iter())
-            .filter(|d| (d.who, d.o) == (1, 13) && d.frame <= 7_529)
+            .filter(|d| (d.who, d.o) == (1, 13))
             .filter_map(|d| match d.what {
                 OM::Gather {
                     field: "wait",
@@ -6892,42 +6918,44 @@ mod tests {
             })
             .collect();
         assert!(
-            wait.len() == 56
-                && wait[0] == (7_474, 56, 55)
-                && wait[..55].iter().all(|&(_, o, t)| o == t + 1)
-                && wait[55] == (7_529, 1, -1),
-            "`1/13`'s gather countdown over the cycle that ends at the word: \
-             {} rows, {:?}..{:?}",
+            wait.is_empty(),
+            "`1/13`'s gather countdown, over the whole window: {} rows, \
+             {:?}..{:?}",
             wait.len(),
             wait.first(),
             wait.last()
         );
-        // **The reader is shown able to see something other than a +1**,
-        // because "every row is off by one" is also what a reader that
-        // subtracts wrong looks like. `1/7`'s own `wait` opens at 375
-        // against 334 — forty-one out, and downstream of the word.
-        let other: Option<(i64, i64, i64, i64)> = report
+        // **And no other worker's either.** `1/7`'s own `wait` used to open
+        // at 375 against 334 — forty-one out, downstream of the word and
+        // proof at the time that the comparison could see something other
+        // than a `+1`. It went with the same fix, so the assertion is now
+        // over the whole map: not one gather countdown on it disagrees,
+        // and the `job` rows above are what say the field is there to
+        // disagree about.
+        let all_waits: Vec<(i64, i64, i64, i64, i64)> = report
             .frames
             .iter()
             .flat_map(|f| f.order_diverged.iter())
-            .filter(|d| (d.who, d.o) != (1, 13))
-            .find_map(|d| match d.what {
+            .filter_map(|d| match d.what {
                 OM::Gather {
                     field: "wait",
                     ours,
                     theirs,
-                } => Some((d.who, d.o, ours, theirs)),
+                } => Some((d.frame, d.who, d.o, ours, theirs)),
                 _ => None,
-            });
-        assert_eq!(
-            other,
-            Some((1, 7, 375, 334)),
-            "no gather row on the map that is not a +1 — the reader would \
-             then prove nothing about `1/13`'s"
+            })
+            .collect();
+        assert!(
+            all_waits.is_empty(),
+            "gather countdowns still disagreeing on run88: {} rows, {:?}",
+            all_waits.len(),
+            all_waits.first()
         );
 
-        // **And the value diff is one 24-unit step, from 7531.** `1/13`
-        // holds no position row at all before then.
+        // **And the value diff is gone with it.** `1/13` used to part on
+        // 7531 by one 24-unit step and never get it back; it now holds the
+        // original's own point on every block of the window, the two job
+        // changes above included.
         let step: Vec<(i64, i32, i32)> = report
             .frames
             .iter()
@@ -6936,26 +6964,43 @@ mod tests {
             .map(|d| (d.frame, d.ours.x - d.theirs.x, d.ours.y - d.theirs.y))
             .collect();
         assert!(
-            step.first().map(|&(f, _, _)| f) == Some(7_531)
-                && step[..3].iter().all(|&(_, dx, dy)| (dx, dy) == (-24, 0)),
-            "`1/13` parts on 7531 by one step: {:?}",
-            &step[..step.len().min(4)]
+            step.is_empty(),
+            "`1/13` is on the original's point for all 327 blocks: {:?}",
+            step.first()
         );
 
-        // **The original's own draw stream at the word**, off this run's
-        // trace: three draws on 7529, one of them the gather that fires,
-        // and a single `inc_time` on 7530 — which is the frame this crate
-        // spends its own `do_non_flat_gather` on
-        // (`run54_s_24000_frames…`, `RON_DEBUG_SITES=7526-7533`).
+        // **The original's own draw stream at 7529**, off this run's
+        // trace, and it is unchanged: three draws there, one of them the
+        // gather that fires, and a single `inc_time` on 7530. This crate
+        // used to spend its `do_non_flat_gather` on the later of the two;
+        // the check below is that the whole window's counts now agree.
         const GATHER_ANIM: &str = "Guy::set_anim+0x97a < Unit::do_non_flat_gather+0xb99";
-        let at_word = tr.labels(LONG_WORD_EAST_INDIES);
-        let after = tr.labels(LONG_WORD_EAST_INDIES + 1);
+        let at_7529 = tr.labels(7_529);
+        let after = tr.labels(7_530);
         assert!(
-            at_word.len() == 3
-                && at_word.iter().any(|l| l == GATHER_ANIM)
+            at_7529.len() == 3
+                && at_7529.iter().any(|l| l == GATHER_ANIM)
                 && after.len() == 1
                 && !after.iter().any(|l| l == GATHER_ANIM),
-            "the original's draws either side of the word: {at_word:?} then {after:?}"
+            "the original's draws either side of 7529: {at_7529:?} then {after:?}"
+        );
+
+        // **And the draw counts themselves, block for block.** The word is
+        // the frame the two streams part, and on this window they do not:
+        // every traced block of [7474, 7800) spends what the original
+        // spends, which is what took [`LONG_WORD_EAST_INDIES`] past the
+        // end of this capture to 7806 (`run54_s_24000_frames…`).
+        let apart: Vec<(i64, Option<u32>, Option<u32>)> = report
+            .rng_frames
+            .iter()
+            .filter(|(n, _, _)| (7_474..7_800).contains(n))
+            .filter(|(_, ours, theirs)| ours != theirs)
+            .copied()
+            .collect();
+        assert!(
+            apart.is_empty(),
+            "run88's draw counts part inside its own window: {:?}",
+            apart.first()
         );
     }
 
@@ -7136,8 +7181,77 @@ mod tests {
         // came ashore.
         assert_eq!(
             parted,
-            [((1, 13), 6_938), ((1, 19), 6_924)].into_iter().collect(),
-            "run86's parted set: the ride is not in it"
+            [((1, 19), 6_924)].into_iter().collect(),
+            "run86's parted set: the ride is not in it, and neither is the age"
+        );
+
+        // **And the age, which is the rest of this window** (item 271,
+        // `docs/TECH.md`, "An age snaps every figure"). `1/13` parted at
+        // 6938 until 2026-09-07 and the cause was one field on the block
+        // before: the **only** angle disagreement in all 487 blocks was
+        // its facing on 6937, where this crate turned it 7.5° and the
+        // original put it on its heading outright.
+        let angles: Vec<(i64, i64, i64, i32, i64)> = report
+            .frames
+            .iter()
+            .flat_map(|f| f.angle_diverged.iter())
+            .map(|d| (d.frame, d.who, d.o, d.ours, d.theirs))
+            .collect();
+        assert!(
+            angles.is_empty(),
+            "run86's angle disagreements — 6937 was `1/13`'s and the age              answers it: {angles:?}"
+        );
+
+        // The block itself, off the disk: player 1's buildings take the
+        // age, and **every one of its 22 units** has its figure's `last_x`
+        // on its own `x` — the `Guy::set_new_location(…, 1)` the leader's
+        // loop hands each of them. Its neighbours have only the standing
+        // ones, and no other player moves.
+        let block = |n: i64| states.iter().find(|f| f.n == n).expect("the block");
+        // A figure whose `last_x`/`last_y` are its **own** position was
+        // *placed* rather than stepped: `Guy::move` writes them from the
+        // pre-step point, and only `Guy::set_new_location(..., 1)` writes
+        // them from the point it is putting the figure on.
+        let placed = |n: i64, who: i64| -> (usize, usize) {
+            let live: Vec<&crate::gamelog::UnitDump> =
+                block(n).units.iter().filter(|u| u.who == who).collect();
+            let placed = live
+                .iter()
+                .filter(|u| {
+                    u.guys
+                        .first()
+                        .and_then(|g| g.last_pos)
+                        .is_some_and(|l| (l.x, l.y) == (u.pos.x, u.pos.y))
+                })
+                .count();
+            (placed, live.len())
+        };
+        assert_eq!(
+            [6_936_i64, 6_937, 6_938].map(|n| placed(n, 1)),
+            [(14, 22), (22, 22), (15, 22)],
+            "player 1's figures over the age: all 22 are placed on 6937, and \
+             only the standing ones — fourteen and fifteen — on either side"
+        );
+        assert_eq!(
+            [6_936_i64, 6_937, 6_938].map(|n| placed(n, 0)),
+            [(5, 6), (5, 6), (5, 6)],
+            "player 0's are untouched across the block — an age is one \
+             leader's own loop, and the same five of its six read as placed \
+             on all three"
+        );
+        let aged = |n: i64| -> (usize, usize) {
+            let mine: Vec<&crate::gamelog::BuildDump> =
+                block(n).builds.iter().filter(|b| b.who == 1).collect();
+            (
+                mine.iter().filter(|b| b.max_age == Some(1)).count(),
+                mine.len(),
+            )
+        };
+        assert_eq!(
+            [6_936_i64, 6_937].map(aged),
+            [(0, 14), (14, 14)],
+            "the Classical Age lands on block 6937 — `max_age` 0 -> 1 on \
+             every one of player 1's buildings, which is what dates it"
         );
     }
 
@@ -7335,10 +7449,8 @@ mod tests {
         // off at 6945 too, by (33, 19), so it is not the dump's tear.
         assert_eq!(
             off,
-            [((1, 13), (11, 7)), ((1, 19), (24, 24))]
-                .into_iter()
-                .collect(),
-            "run82's shutdown dump, every unit of it"
+            [((1, 19), (24, 24))].into_iter().collect(),
+            "run82's shutdown dump, every unit of it — `1/13`'s (11, 7) went              with the age snap (item 271, `docs/TECH.md`)"
         );
     }
 }

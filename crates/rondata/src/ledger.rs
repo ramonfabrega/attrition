@@ -193,7 +193,14 @@ mod tests {
     /// here *from* the uncompared half, which fell by three at the same
     /// time. Only run76 marches a formation, so they are single-capture
     /// until run79's squad is windowed too.
-    const SINGLE_CAPTURE: usize = 44;
+    /// **45 on 2026-09-07**, item 271: `GuyData::last_x`/`last_y` arrive as
+    /// `Guy::last_pos` and only run86's window reads them. They are what
+    /// tells a figure that was *placed* from one that walked, which is how
+    /// `Leader::gain_tech`'s age snap is read off a dump at all
+    /// (`docs/TECH.md`, "An age snaps every figure"); the same item's
+    /// `BuildDump::max_age` lands with more than one reader and so does not
+    /// count here.
+    const SINGLE_CAPTURE: usize = 45;
 
     #[test]
     fn the_widening_ledger_counts_what_nothing_compares() {

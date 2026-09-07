@@ -1377,6 +1377,18 @@ pub struct Guy {
     /// a body of its own (`docs/MOVEMENT.md`, "Where the track offset
     /// comes from").
     pub track: Option<(i64, i64)>,
+    /// `GuyData::last_x` / `last_y` (`+0x68` / `+0x6c`) — where the figure
+    /// was before this frame's step, which `Guy::move` writes from `x`/`y`
+    /// at its very first statement.
+    ///
+    /// **The one place it is not the previous position is a write**:
+    /// `Guy::set_new_location(…, 1)` sets it from the point it is putting
+    /// the figure on, so `last_pos == pos` on a block is the signature of
+    /// a figure that was *placed* rather than one that walked. That is how
+    /// an age is read off a dump — `Leader::gain_tech`'s `is_age_type` arm
+    /// places every one of the leader's units where it already stands
+    /// (`docs/TECH.md`, "An age snaps every figure").
+    pub last_pos: Option<Pos>,
     /// `GuyData::last_speed` (`+0x80`) — the distance this figure moved
     /// on its last step, zeroed at the head of `Guy::move`'s standing
     /// arm.
@@ -1667,6 +1679,11 @@ pub struct BuildDump {
     /// `orig_type` — the `TypeIndex` the building was created as. Written at
     /// **`BUILDS=6`** and above, and the only type the dump ever carries.
     pub orig_type: Option<i64>,
+    /// `max_age` — the age byte `Leader::gain_tech` step 6 rewrites on
+    /// **every** building of the player the moment an age is gained, which
+    /// makes it the one field of the dump that dates an age to a block
+    /// (`docs/TECH.md`, "An age snaps every figure").
+    pub max_age: Option<i64>,
     /// `WallData::build_masks`, whose `0x100` is "my roads want replanning"
     /// — the schedule's own field (`docs/ROADS.md` §1), written from
     /// **`BUILDS=1`**. `None` where the level did not print it.
@@ -2570,6 +2587,17 @@ fn unit_of(b: Block<'_>) -> Option<UnitDump> {
                 (Some(x), Some(y)) => Some((x, y)),
                 _ => None,
             },
+            // `last_x`/`last_y` carry a `last_z` of their own, and it is
+            // the figure's, so the third slot is filled where the record
+            // has it and left at zero where it does not.
+            last_pos: match (g.int("last_x"), g.int("last_y")) {
+                (Some(x), Some(y)) => Some(Pos {
+                    x,
+                    y,
+                    z: g.int("last_z").unwrap_or(0),
+                }),
+                _ => None,
+            },
             last_speed: g.int("last_speed"),
             avg_speed: g.int("avg_speed"),
         })
@@ -2644,6 +2672,7 @@ fn build_of(b: Block<'_>) -> Option<BuildDump> {
         who,
         pos,
         orig_type: b.int("orig_type"),
+        max_age: b.int("max_age"),
         build_masks: b.int("build_masks"),
         gather_from,
         // `length` and `size` sit at `BUILDDATA`'s own indent, between

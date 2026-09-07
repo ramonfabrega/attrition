@@ -217,14 +217,21 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // drifts by one in each of three counts, 16,000 frames past the
         // word; Great Lakes' word does move, by 129 frames. The trade
         // DECISIONS 26 allows, on a mechanic the listing owns.
-        off: 80,
+        //
+        // And **80 → 79, 31 → 32** the same day on item 271, the age snap
+        // (`docs/TECH.md`, "An age snaps every figure"). One position
+        // closer and one building field-row further out, 16,195 frames past
+        // the word — which the change moves 7529 → 7806, its own map's
+        // headline and the largest single step it has taken. DECISIONS 36
+        // asks for the number rather than a trade.
+        off: 79,
         unlinked: 0,
         extra: 11,
         build_unlinked: 0,
         // 33 → 32 on 2026-09-07, item 265: `CityData::free` is a byte that
         // wraps, and the AI reading 255 where it read −1 takes one building
-        // field-row off the diverging list.
-        build_diverged: 31,
+        // field-row off the diverging list. Then 31 → 32 on item 271.
+        build_diverged: 32,
         city_unlinked: 3,
         city_diverged: 0,
     },
@@ -294,10 +301,11 @@ pub const LADDER: [Endpoint; 2] = [
         // 20 → 21 on 2026-09-07, item 267's repaint: one spurious unit
         // back, 7,872 frames past the word, and nothing else on this rung
         // moved. Then 21 → 23 on 267's second row, the `§6.3` tail
-        // negation — two more, and again nothing else on the rung.
-        extra: 23,
+        // negation — two more, and again nothing else on the rung. Then
+        // **23 → 22 and 9 → 8** on item 271's age snap, both falls.
+        extra: 22,
         build_unlinked: 10,
-        build_diverged: 9,
+        build_diverged: 8,
         city_unlinked: 3,
         city_diverged: 0,
     },
@@ -320,8 +328,10 @@ pub const LADDER: [Endpoint; 2] = [
         // structural half of that trade and none of the positional one.
         // `off` fell 51 → 50 on 261's run and was left pinned at 51; the
         // exact pin of the eighth steer (DECISIONS 36) took it, and 27 → 26
-        // with it, on its first run.
-        extra: 25,
+        // with it, on its first run. Then **25 → 20** on item 271's age
+        // snap — five spurious units gone, 8,960 frames past the word, and
+        // the largest single fall this rung has had.
+        extra: 20,
         build_unlinked: 19,
         build_diverged: 0,
         city_unlinked: 4,
