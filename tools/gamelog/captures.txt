@@ -2215,3 +2215,49 @@ check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|cur_anim" "$HOME/ron-data/AppData/
 # `collide_frame` on any block at all); 326 on run88 with its own range,
 # exit 0.
 check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|collide_frame" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run90-eastindies-shuffle.txt" | awk '/BEGIN FRAME/{f=$3} /collide_frame/{if(f!="")seen[f]=1} END{n=0; lo=0; hi=0; for(k in seen){v=k+0; if(v>=7790&&v<7900){n++; if(lo==0||v<lo)lo=v; if(v>hi)hi=v}} print "frame blocks with a collide_frame in [7790,7900): "n" ("lo".."hi")"; exit !(n==110 && lo==7790 && hi==7899)}'
+# TAKEN 2026-09-07 — six minutes (15:29:18 to 15:35:18), **111 blocks,
+# 71,645,977 bytes** (110 window + the `!quit` block at 7916), which is
+# 548 KB a block and run88's own measurement to within 2%.
+#
+# **The first attempt was a permission failure, not a result.** Launched
+# from the session's own process tree, `screencapture` wrote nothing —
+# Screen Recording is granted to `~/bin/RonDriver.app`, not to the current
+# Claude Code version's path — and `runqueue.sh` said so and stopped.
+# Re-launched through `viadriver.sh` it ran clean. All four checks ok:
+# `rngcmp.py` against run54 **0 differing, 7,916 identical**; the run88
+# overlap **10 in common (7790..7799), 0 differing** — byte for byte, with
+# no `--exclude` and no `--drop`, which is the prediction this stanza made;
+# and both teeth **110 (7790..7899)**.
+#
+# **TWO PREDICTIONS HELD, TWO WERE REFUSED, AND THE REFUSALS ARE THE
+# FINDING.** Held: both sides make the first collision on block 7803
+# (`1/6` `collide_o 7`, `1/7` `collide 1 / collide_o 6`), and `1/7`'s
+# `pause` reads **3, 3, 2, 1, 0** over 7803-7807 on both sides.
+#
+# Refused, first: **`1/6`'s position parts on block 7805**, two blocks
+# *below* the word — ours (39720, 38808) against theirs (39729, 38802),
+# **(−9, +6)**. Both sides push the **same** sidestep waypoint
+# ((39720, 38808) `flags 2` on 7803, (39672, 38808) on 7807,
+# (39624, 38808) on 7811); the original's path drops 5 -> 4 on the **next**
+# block with the unit at (39729, 38802), which is not that point. It takes
+# one step along the bearing and **abandons** the waypoint where this crate
+# walks to it. Four-block cycle against this crate's five, and that extra
+# frame per cycle is the word. So §8.5's candidate — turn-versus-step
+# *after* the pop — is refused: the frame goes in the step *to* the
+# waypoint, one block earlier.
+#
+# Refused, second: **the `SITE_PAUSE` on sim-frame 7810 is `1/7`'s.** Its
+# `MOVEORDER` carries **`pause 8`** on block 7811, where this crate sets the
+# wait flag and rolls nothing — the wait-versus-repath predicate is wrong.
+# It is also the first non-zero `MOVEORDER pause` on this disk (every one of
+# run88's 1,467 is 0), which settles `docs/COLLISION.md` §9's standing row;
+# and the countdown turns out to be **frozen while `collide` is set**,
+# holding 8 over eleven blocks before ticking down to 0 on 7829.
+#
+# The trace and the dump corroborate on the same three frames, which a torn
+# closing block never could: `SITE_BLOCKED` on sim-frames 7802, 7806, 7810
+# and `collide_o 7` on blocks 7803, 7807, 7811.
+#
+# The word does **not** move. `run90_s_window_is_east_indies_shuffle` is the
+# assertion; `docs/ORACLE.md`, "run90 — East Indies' word is a waypoint this
+# crate walks to", and `docs/COLLISION.md` §8.6.

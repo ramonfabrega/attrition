@@ -7090,6 +7090,362 @@ mod tests {
         );
     }
 
+    /// **run90 — East Indies' word is a sidestep waypoint this crate walks
+    /// to and the original abandons** (2026-09-07, the capture lane).
+    ///
+    /// run54's game over `[7790, 7900)` at run88's detail **exactly** —
+    /// **111 blocks, 71,645,977 bytes**, ten of deliberate overlap over
+    /// run88's tail (`differ: 0`, byte for byte and with no `--exclude`)
+    /// and 100 above it. It is the first dump of any frame in
+    /// `[7800, 7899]` on either map, which is where
+    /// [`LONG_WORD_EAST_INDIES`] — the second of `docs/DECISIONS.md` entry
+    /// 29's counters — actually turns.
+    ///
+    /// **It was booked to be refused and it refused.** Item 276 dated the
+    /// word off the trace and wrote this crate's `collide`/`pause`/`wait`
+    /// rows into the capture's stanza as predictions. Two held exactly:
+    /// `1/7`'s `pause` reads **3, 3, 2, 1, 0** on blocks 7803-7807 on both
+    /// sides — the first non-zero `MOVEORDER pause` any dump on this disk
+    /// has ever printed — and both sides make the first collision on 7803
+    /// with `collide_o 7` / `collide_who 1`.
+    ///
+    /// **The two that were refused are the finding.** `1/6`'s position
+    /// parts on block **7805**, two blocks *below* the draw stream's word,
+    /// and the cause is the sidestep waypoint §6 step 4 pushes. Both sides
+    /// push the **same point** — `(39720, 38808)` with `flags 2` on 7803,
+    /// `(39672, 38808)` on 7807, `(39624, 38808)` on 7811 — but the
+    /// original's path drops from length 5 to 4 on the **next** block with
+    /// the unit at (39729, 38802), which is not that point: it takes one
+    /// full step along the bearing and abandons the waypoint. This crate
+    /// keeps it and walks the remainder, a short `(−9, +6)` step, so every
+    /// collision cycle costs it one frame — the original's is four blocks
+    /// (block, step, turn, step) and this crate's is five.
+    ///
+    /// So `docs/COLLISION.md` §8.5's candidate — "one frame of
+    /// turn-versus-step *after* a waypoint pop" — is refused: the frame is
+    /// lost in the step *to* the waypoint, one block earlier, and the pop
+    /// is not late but never arrives.
+    ///
+    /// **And §8.5's unestablished suspicion is established.** The
+    /// `SITE_PAUSE` the original spends on sim-frame 7810 is `1/7`'s: its
+    /// `MOVEORDER` carries **`pause 8`** on block 7811, held while
+    /// `collide` counts 1..9 through 7819 and counted down over
+    /// 7822-7828. This crate sets §6 step 5's wait flag there and rolls
+    /// nothing, so the wait-versus-repath predicate is wrong — the shape
+    /// `docs/audit/README.md` says the errors take.
+    ///
+    /// The word does **not** move here; nothing was fixed. What the
+    /// capture buys is that East Indies 7806 stops being a draw-stream
+    /// report and becomes a field with a value diff beside it, two frames
+    /// earlier than the stream noticed.
+    #[test]
+    fn run90_s_window_is_east_indies_shuffle() {
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(sib), Some(tr)) = (
+            dump("gamelog-run90-eastindies-shuffle.txt"),
+            dump("gamelog-run38-islands-start.txt"),
+            trace("rontrace-run90.log"),
+        ) else {
+            eprintln!("skipping: no run90 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = crate::capture::read(&path);
+        let sib_text = crate::capture::read(&sib);
+        let log = Log::parse(&text);
+        let sib_log = Log::parse(&sib_text);
+        let sib_init = sib_log.initial().expect("run38 is a start dump");
+        let refs: Vec<&Initial> = vec![&sib_init];
+
+        // The window's own extent: 110 blocks and the `GameLog::end_game`
+        // block the `!quit` writes, which is run88's shape one window
+        // along.
+        let states = log.frame_states();
+        let theirs: Vec<i64> = states.iter().map(|f| f.n).collect();
+        assert!(
+            theirs
+                == (7_790..=7_899)
+                    .chain(std::iter::once(7_916))
+                    .collect::<Vec<_>>(),
+            "run90's blocks: {:?}..{:?} ({}) — the wrong file",
+            theirs.first(),
+            theirs.last(),
+            theirs.len()
+        );
+
+        // **The original's own sidestep, straight off the dump, before any
+        // comparison.** The path stack goes 4 → 5 → 4 across the
+        // collision: the waypoint is pushed on the blocked block and gone
+        // on the next, with the unit **not** on it. That is the whole
+        // mechanism and it is one record's own three rows.
+        // `(block, x, y, path length, top.x, top.y, top.flags)`.
+        let sidestep: Vec<[i64; 7]> = states
+            .iter()
+            .filter(|f| (7_802..=7_806).contains(&f.n))
+            .filter_map(|f| {
+                let u = f.units.iter().find(|u| u.who == 1 && u.o == 6)?;
+                let top = u.path.last()?;
+                Some([
+                    f.n,
+                    u.pos.x,
+                    u.pos.y,
+                    u.path.len() as i64,
+                    top.to.0,
+                    top.to.1,
+                    top.flags,
+                ])
+            })
+            .collect();
+        assert_eq!(
+            sidestep,
+            vec![
+                [7_802, 39_750, 38_787, 4, 38_856, 38_232, 0],
+                [7_803, 39_750, 38_787, 5, 39_720, 38_808, 2],
+                [7_804, 39_729, 38_802, 4, 38_856, 38_232, 0],
+                [7_805, 39_729, 38_802, 4, 38_856, 38_232, 0],
+                [7_806, 39_708, 38_789, 4, 38_856, 38_232, 0],
+            ],
+            "the original's `1/6`: the sidestep waypoint (39720, 38808) is \
+             pushed on the blocked block 7803 and **gone on 7804** with the \
+             unit at (39729, 38802), which is not it — one step along the \
+             bearing and the waypoint is abandoned, not walked to"
+        );
+
+        // **The first non-zero `MOVEORDER pause` on this disk.** Every one
+        // of run88's 1,467 is 0 (`docs/COLLISION.md` §9), so the `% 9 + 1`
+        // roll had never been witnessed as a value. `1/7` carries 3 on the
+        // block it is first blocked and counts it down; the second roll,
+        // an 8, is the one §8.5 could not attribute.
+        //
+        // **And the countdown is frozen while the unit is still
+        // colliding**, which no reading had said: the 8 stands on eleven
+        // blocks (7811..7821, where `collide` runs 1..9 and then clears)
+        // and only then ticks down, one a block, to 0 on 7829. The rows
+        // are folded to their transitions so the shape is readable.
+        let pauses: Vec<(i64, i64)> = states
+            .iter()
+            .filter(|f| (7_800..=7_830).contains(&f.n))
+            .filter_map(|f| {
+                let u = f.units.iter().find(|u| u.who == 1 && u.o == 7)?;
+                Some((f.n, u.orders.iter().find_map(|o| o.pause)?))
+            })
+            .collect();
+        let mut runs: Vec<(i64, i64, i64)> = Vec::new();
+        for &(n, v) in &pauses {
+            match runs.last_mut() {
+                Some(last) if last.2 == v => last.1 = n,
+                _ => runs.push((n, n, v)),
+            }
+        }
+        assert_eq!(
+            runs,
+            vec![
+                (7_800, 7_802, 0),
+                (7_803, 7_804, 3),
+                (7_805, 7_805, 2),
+                (7_806, 7_806, 1),
+                (7_807, 7_810, 0),
+                (7_811, 7_821, 8),
+                (7_822, 7_822, 7),
+                (7_823, 7_823, 6),
+                (7_824, 7_824, 5),
+                (7_825, 7_825, 4),
+                (7_826, 7_826, 3),
+                (7_827, 7_827, 2),
+                (7_828, 7_828, 1),
+                (7_829, 7_830, 0),
+            ],
+            "the original's `1/7` `pause` as (from, to, value): the 3 this \
+             crate also rolls, and the **8** on 7811 that names the \
+             `SITE_PAUSE` §8.5 could not attribute — held for eleven \
+             blocks while `collide` runs, then ticked down"
+        );
+
+        // Now the comparison — every unit of every block.
+        let report = run_traced(&loaded, &log, Tuning::RON, None, None, &refs, Some(&tr)).unwrap();
+        let blocks: Vec<i64> = report
+            .frames
+            .iter()
+            .filter(|f| f.compared > 0)
+            .map(|f| f.frame)
+            .collect();
+        assert!(
+            blocks.first() == Some(&7_790) && blocks.last() == Some(&7_916) && blocks.len() == 111,
+            "run90's compared blocks: {:?}..{:?} ({})",
+            blocks.first(),
+            blocks.last(),
+            blocks.len()
+        );
+        let ord_fields: usize = report.frames.iter().map(|f| f.order_compared).sum();
+        let angles: usize = report.frames.iter().map(|f| f.angle_compared).sum();
+        assert!(
+            ord_fields >= 300 && angles >= 300,
+            "the window's own rows: {ord_fields} order fields and {angles} angles \
+             — a capture below `UNITS=3` is the wrong file"
+        );
+        let parted: std::collections::BTreeMap<(i64, i64), i64> = report
+            .first_divergence_by_unit()
+            .into_iter()
+            .map(|(w, o, f)| ((w, o), f))
+            .collect();
+        eprintln!(
+            "run90: {} unit fields, {ord_fields} order/path fields, {angles} angles \
+             over {} blocks; {} unit(s) ever off position",
+            report.frames.iter().map(|f| f.compared).sum::<usize>(),
+            blocks.len(),
+            parted.len()
+        );
+        for (&(who, o), &frame) in &parted {
+            eprintln!("  {who}/{o} parts at {frame}");
+        }
+
+        // **`1/6` parts on 7805 and that is two blocks below the word.**
+        // The draw stream's [`LONG_WORD_EAST_INDIES`] is sim-frame 7806,
+        // which is block 7807; the position is already wrong on 7805.
+        // That is the standing rule in one row — a draw stream agrees on a
+        // wrong destination for a while, and only a value comparison tells
+        // the two apart.
+        let six: Vec<(i64, i32, i32, i32, i32)> = report
+            .frames
+            .iter()
+            .flat_map(|f| f.diverged.iter())
+            .filter(|d| (d.who, d.o) == (1, 6))
+            .map(|d| (d.frame, d.ours.x, d.ours.y, d.theirs.x, d.theirs.y))
+            .take(4)
+            .collect();
+        assert_eq!(
+            six,
+            vec![
+                (7_805, 39_720, 38_808, 39_729, 38_802),
+                (7_806, 39_720, 38_808, 39_708, 38_789),
+                (7_807, 39_699, 38_795, 39_708, 38_789),
+                (7_808, 39_699, 38_795, 39_685, 38_801),
+            ],
+            "`1/6`'s first four parted blocks, both sides' coordinates — \
+             the walk to (39720, 38808) the original never makes"
+        );
+        assert!(
+            parted.get(&(1, 6)) == Some(&7_805)
+                && *parted.get(&(1, 6)).unwrap() < LONG_WORD_EAST_INDIES + 1,
+            "`1/6` parts at {:?}, and the word's own block is {}",
+            parted.get(&(1, 6)),
+            LONG_WORD_EAST_INDIES + 1
+        );
+
+        // **`1/7` parts on 7811, the block the original rolls its 8 on.**
+        // This crate holds the sidestep point it walked to; the original
+        // steps back onto (39672, 38664) and pauses there.
+        let seven: Vec<(i64, i32, i32, i32, i32)> = report
+            .frames
+            .iter()
+            .flat_map(|f| f.diverged.iter())
+            .filter(|d| (d.who, d.o) == (1, 7))
+            .map(|d| (d.frame, d.ours.x, d.ours.y, d.theirs.x, d.theirs.y))
+            .take(2)
+            .collect();
+        assert_eq!(
+            seven,
+            vec![
+                (7_811, 39_654, 38_682, 39_672, 38_664),
+                (7_812, 39_654, 38_682, 39_672, 38_664),
+            ],
+            "`1/7`'s first two parted blocks, both sides' coordinates"
+        );
+
+        // **The whole parted set, and nothing below 7805 is new.** `1/19`
+        // and `1/20` are the two standing Merchant constants run88 already
+        // carries (`docs/MERCHANT.md`) — both open on the window's first
+        // block, as they did on run88's. `1/6` and `1/7` are the shuffle.
+        //
+        // The last three are **downstream of the word** and are pinned
+        // rather than scored: past [`LONG_WORD_EAST_INDIES`] both sides
+        // are on streams that are nobody's, so 7824, 7872 and 7895 move
+        // with any unrelated change and are the shuffle's wake, not
+        // separate faults. They are here so that a *new* unit parting, or
+        // one of these moving **below** the word, fails.
+        assert_eq!(
+            parted
+                .iter()
+                .map(|(&k, &f)| (k, f))
+                .collect::<Vec<((i64, i64), i64)>>(),
+            vec![
+                ((0, 5), 7_824),
+                ((1, 2), 7_872),
+                ((1, 5), 7_895),
+                ((1, 6), 7_805),
+                ((1, 7), 7_811),
+                ((1, 19), 7_790),
+                ((1, 20), 7_790)
+            ],
+            "run90's parted set, whole"
+        );
+        assert!(
+            parted
+                .iter()
+                .filter(|(k, _)| ![(1, 6), (1, 19), (1, 20)].contains(k))
+                .all(|(_, &f)| f > LONG_WORD_EAST_INDIES),
+            "a unit other than `1/6` and the two Merchant constants parts at \
+             or below the word: {parted:?}"
+        );
+
+        // **And the draw counts, block for block, up to the word.** The
+        // stream agrees through 7805 and parts at
+        // [`LONG_WORD_EAST_INDIES`], which is the two frames the position
+        // is already wrong for.
+        let apart: Vec<i64> = report
+            .rng_frames
+            .iter()
+            .filter(|(n, _, _)| (7_790..7_900).contains(n))
+            .filter(|(_, ours, theirs)| ours != theirs)
+            .map(|(n, _, _)| *n)
+            .collect();
+        assert!(
+            apart.is_empty(),
+            "run90's per-block draw counts part: {:?}",
+            apart.first()
+        );
+
+        // **The trace and the dump, tied to each other on the same
+        // frames.** This is the corroboration §8.5 asked for and could not
+        // have: the original's [`sim::anim::SITE_BLOCKED`] falls on
+        // sim-frames 7802, 7806 and 7810 — the three whose *blocks* (7803,
+        // 7807, 7811) are exactly the ones whose `UNITDATA` carries
+        // `collide_o 7`, three blocks apart. A torn dump could fake one
+        // row; it cannot fake three that line up with an instrument that
+        // is not a dump.
+        let stands: Vec<i64> = (7_795..7_815)
+            .filter(|&n| tr.labels(n).iter().any(|l| l == sim::anim::SITE_BLOCKED))
+            .collect();
+        assert_eq!(
+            stands,
+            vec![7_802, 7_806, 7_810],
+            "the original's blocked stands over the shuffle, off run90's own trace"
+        );
+        let flagged: Vec<i64> = states
+            .iter()
+            .filter(|f| (7_796..7_816).contains(&f.n))
+            .filter(|f| {
+                f.units
+                    .iter()
+                    .any(|u| (u.who, u.o) == (1, 6) && u.collide_o == Some(7))
+            })
+            .map(|f| f.n)
+            .collect();
+        assert_eq!(
+            flagged,
+            stands.iter().map(|n| n + 1).collect::<Vec<_>>(),
+            "the blocks whose `1/6` names `collide_o 7` are the stands' own \
+             blocks — the trace and the dump on the same three frames"
+        );
+        // And the same three, four blocks apart, are five apart here: this
+        // crate's own stands are 7802, 7807 and 7812, one frame more per
+        // cycle, which is the whole of the word.
+        assert!(
+            stands.windows(2).all(|w| w[1] - w[0] == 4),
+            "the original's cycle is four frames: {stands:?}"
+        );
+    }
+
     /// **run86 — the transport ride, whole, and the field the word was
     /// short of.**
     ///
