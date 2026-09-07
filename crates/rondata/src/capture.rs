@@ -25,7 +25,7 @@
 //! `from_utf8_unchecked` — so no caller could see the obligation, and a
 //! rewrite mid-read was UB rather than a SIGBUS.
 //!
-//! So the trade is taken the other way (`docs/DECISIONS.md` 35): the tree
+//! So the trade is taken the other way (`docs/DECISIONS.md` 37): the tree
 //! is back under one `forbid(unsafe_code)`, no crate in the tree spends an
 //! allowance against it, and the memory is paid back to the meter. What survives of item 260 is the half that was always safe and
 //! was always the larger win — the parse is lazy, the frames are indexed

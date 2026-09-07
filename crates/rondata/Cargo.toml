@@ -19,6 +19,6 @@ sim = { path = "../sim" }
 # The workspace forbids `unsafe`, and this crate is under it like every
 # other — item 280. Item 260 took it down to `deny` with one module
 # exempt, for a memory-mapped capture; `src/capture.rs` says why that was
-# a bad trade and `docs/DECISIONS.md` 35 records the rule that stands.
+# a bad trade and `docs/DECISIONS.md` 37 records the rule that stands.
 [lints]
 workspace = true
