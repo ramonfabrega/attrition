@@ -12,36 +12,35 @@ each section's non-item prose pinned and falling only.
 
 ## Where things stand
 
-*2026-09-07, the commander's first unattended pair (Opus) — the headline
-moved 129 frames, and the two maps swapped places.*
+*2026-09-07, the commander's loop unattended (Opus) — both words moved in
+one day, 129 frames and 277, and the maps swapped twice.*
 
-- **Great Lakes' word is 7584** (was 7455). `Group::compute_form`'s tail has
-  a **second** reverse test, distinct from the `facing` toggle above it: given
-  the formation angle — every army call — it compares that against the bearing
-  to the destination and negates every member's `off_x`/`off_y` on both the
-  `Form` and the `GroupData`, so a flipped formation **stands on the wrong
-  side of its leader**. GROUPS §6.3 had it written down and never built.
-- **East Indies is the lower map now, and its word is one field.** run88
-  `[7474, 7800)` landed — 327 blocks, 187 MB, three checks that could
-  each fail, and the corpus's first total overlap needing no flag. 271 is
-  the whole of 7529 and needs no screen: 425 rows are already on disk.
-- **The negation costs East Indies three endpoint counters, measured not
-  reasoned** — 267b disabled it in place and got the old pin back exactly.
-  DECISIONS 36 governs (telemetry past the word, no trade owed), but the
-  cost is named here rather than absorbed silently.
-- **260's falsifier is met, so the lane is held.** The merged tree gated at
-  **16,732 MiB of 20 GiB**, third over 16 in two days and the highest yet.
-  272 waits on 260 — and Great Lakes stopped being the headline when the
-  maps swapped, so that capture lost its urgency the day it was written.
+- **East Indies is 7806** (was 7529) and **Great Lakes 7584** (was 7455),
+  so Great Lakes is the lower map again and 272 is headline-nearest.
+- **An age snaps every figure** (TECH). `Leader::gain_tech`, gated on
+  `TypeData::is_age_type`, runs `set_new_location(u, u.x, u.y, 1, 1)` over
+  every live unit: the snap flags write facing and body outright, a free
+  turn **and a frame** for one mid-turn. The gather arithmetic was never
+  wrong — 271 was its seed, not its sum. **253 closed with it.**
+- **The whole-record widening found it in one run**: run86's only angle
+  divergence in 487 blocks, `last_x == x` on that block alone, all 22 of
+  player 1's units, `max_age` 0 → 1 on all fourteen of its buildings.
+- **`Group::compute_form`'s tail has a second reverse test** (GROUPS §6.3,
+  written down and never built): it negates every member's `off_x`/`off_y`
+  when the angle opposes the bearing — Great Lakes' 7418 tick.
+- **The gate peak is noise, not a ratchet** — 16,732 / 15,873 / 16,061 MiB
+  on a tree that only grew. `memcap.sh` polls every 2 s so it under-reports
+  a sawtooth, and over-counts mapped captures macOS will not hand back
+  (260 measured it on run58; the pages are clean). "Three over 16" is unmet.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w7806 of 24,000 · GreatLakes w7584 of 24,000
 Endpoint 24001: EastIndies 79 off, 0 unlinked · GreatLakes 78 off, 2 unlinked
 
-**Opener: commander on Opus (DECISIONS 34), spawning — never working. In
-flight: 271 (East Indies' gather countdown, the headline) and 260 (the lazy
-parser, spawned ahead of 272 on the 16,732 MiB gate). They share the parser,
-so merge 260 first and expect to re-run 271. Then 272 to the lane.**
+**Opener: commander on Opus (DECISIONS 34), spawning — never working. 260
+is in flight on the lazy parser. Great Lakes leads again, so 272 (its
+`[7530, 7760)` window) is the headline item and the lane's next — held only
+until 260 says whether the ceiling is real. Merge 260, then spawn 272.**
 
 ## The queue
 
@@ -49,14 +48,40 @@ In dependency order, headline-nearest first; **the headline is the long
 captures' word**, lower map first — Great Lakes. Take the first unstarted
 unless a better order is obvious, and say so. Numbers are stable.
 
-271. **The gather countdown is a tick long** — East Indies' word whole,
-    and the map is now the lower one. `1/13`'s `GATHERORDER wait` reads
-    `theirs + 1` on all 55 blocks of the cycle ending at 7529, so the
-    original fires (`wait −1`) where this crate still holds 1 and spends
-    `Guy::set_anim+0x97a < Unit::do_non_flat_gather+0xb99` a frame late;
-    the step is 24 units on 7531. Unbroken from run86's 6985 through
-    7409 — **425 rows on disk** — and into run88's 7474. A diff, no
-    screen. Falsified by a run86 block under 6985 where the waits agree.
+276. **East Indies' word has a shutdown dump above it already** — 7806 is
+    past run88's `[7474, 7800)` and this crate spends `Guy::set_anim+0x97a
+    < Guy::inc_time+0x271` at index 2 of 8 where the original spends
+    `< Unit::move_step+0x823`. **Grep before booking a screen**: run88's
+    `!quit` left a block at **7816**, ten frames above the word, carrying
+    `1/6` and `1/7` parting and never read as its residue. Falsified by
+    that block explaining the two; if it does not, the window is
+    `[7740, 7900)` at run88's detail, ~160 blocks, ~90 MB.
+
+277. **An age gained through a cascade is unmodelled** — `Sim::gain_tech`
+    reads the age gate off the type the call was made with, as the
+    original does, but the original **recurses into `gain_tech`** per
+    cascaded grant where this crate flattens the cascade into events, so a
+    cascaded age would take 271's snap arm there and not here. No capture
+    on this disk gains an age other than directly. Now a grep rather than
+    a reading: `BuildDump::max_age` is parsed, so the falsifier is a block
+    whose `max_age` moves on research that is not one of the seven ages.
+
+278. **`Unit::work@0060d180:440` is a second `set_new_location(…, 1, 1)`**
+    and nothing models it — two units of one type within `0x180` are
+    pushed apart by half their separation and **both snapped**, gated on
+    `field_0x82 < 0` and the order's `+0x30` vcall (read, never run; the
+    gate's meaning is the unread half). Ruled out for 271's 6937 — nothing
+    within 700 units of `1/13` — but `Guy::last_pos` now makes the
+    signature searchable on every dump: a unit that moved whose figure has
+    `last_x == x`. run79's squad first. Falsified by no pair closing.
+
+279. **`queueledger.py` reads a coordinate as a booking** — its group
+    regex `\(([\d/,\s]+)\)` then pulls every `\d{1,3}`, so item 253's
+    "off by (11,7)" booked numbers 7 and 11, and deleting 253 reported 7
+    as having left in silence (ledger, 2026-09-07). No queue item has ever
+    written two numbers in one paren group, so the fix is likely a single
+    number per group — but make it fail on purpose first, both ways: a
+    real deletion must still be caught. The guard's loudness is correct.
 
 260. **The parser goes lazy and the gate sub-GB** — `Log::parse` builds
     all 76.6 M fields of an 800 MB dump (235) where a test reads hundreds.
@@ -85,18 +110,15 @@ grouped order records no test windows** — run79's 453, run31's 945.
 255. **`go_to_unit`'s `0x480` and `go_to`'s `MOVE_TO` arm are read and
     never run** — every joiner on disk is farther than `0x480` from its
     army's `get_unit(0)`, so the falsifier is one born beside its army.
-    (256) `come_out`'s three `action_move_to` sites stay unreached.
+    (256) `come_out`'s three `action_move_to` sites stay unreached; (254)
+    its ring has one sample (7284) and wants a second disembark. (167)
+    run61's two (SYNC §3.9). All four came off 253, which 271 closed:
+    `1/13`'s 6938 parting was the age snap, not a movement fault.
 
 247. **An upgrade is an in-place guy-type change on the standing unit** —
     run76's **6737**, three Archers going guy **170 → 177** keeping
     `(who, o)` and `group 64`; East Indies' `1/32` does 340 → 341, the
     danger row moving by `(110 − 100) / 2`. (181) CARAVAN §7.2–§7.3.
-
-234. **Four rules of the turn/idle animation neither side has** (ANIM §9),
-    written and never landed — branch `rescue-234`. **The two static
-    assertions are the cheap half**; the limbs move no score (§4.7's
-    turning types are in neither scored game). Takes the ledger's nine
-    `unverified` rows on the way.
 
 **The widening ledger** (87, DATALAYER §4, §4.1): **19** fields the
 harness names nowhere, **45** one capture names; blind spot `avg_speed`
@@ -140,13 +162,6 @@ of 617; (72) every `+0xNN` a document pins vs its module; (89) the guard;
 161. **The make-list block is 2,500 frames behind East Indies' word**:
     `create_buildings` first runs on 9982 (AI §25), so `building_value`,
     `gather_value` and §24.4's arm wait on it. (195) `find_repair_spot`.
-
-253. **`1/13` parts at 6938**, a citizen at `myspeed 25` — run86's only
-    other divergence, and run82's 6946 dump shows it off by (11,7). A
-    diff, not a capture. **Not 271's countdown**: the position parts at
-    6938 and the first `wait` row is 6985, 47 blocks apart, so folding
-    the two would lose one. (254) `come_out`'s ring has one sample (7284)
-    and wants a second disembark. (167) run61's two (SYNC §3.9).
 
 211. **`get_speed`'s three remaining arms** (MOVEMENT): `unit_masks &
     0x10`, set and cleared inside a frame; `has_general(0, 0x162)`'s siege

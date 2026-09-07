@@ -74,3 +74,16 @@ file; each one is a ten-minute read of the code the row names.
 - **200** unverified — `1/2015`'s `y_internal` four cells south from 4577,
   15936 against 15744, four hundred frames downstream of the parting.
 - **214** unverified.
+
+## Never an item — a parser false positive, 2026-09-07
+
+- **7** was never booked. `queueledger.py` reads item references with
+  `re.findall(r"\(([\d/,\s]+)\)", …)` and then pulls every `\d{1,3}` out
+  of the group, so item 253's **coordinate** `(11,7)` — "run82's 6946 dump
+  shows it off by (11,7)" — registered 7 and 11 as live numbers. Deleting
+  253 when item 271 closed it therefore reported 7 as having left in
+  silence. Dropped on purpose: there is no finding behind it.
+- The guard is right to be loud and the entry is the cheap unblock, but
+  the parser is wrong and the next coordinate in an item will do this
+  again. Booked as a queue item rather than fixed here, because the
+  commander books and does not work items.

@@ -22,6 +22,17 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Parked from the queue, 2026-09-07
+
+(234) **Four rules of the turn/idle animation neither side has** (ANIM §9),
+written and never landed — branch `rescue-234`. Parked by the commander to
+seat 276–279 under the item cap, on the item's own words: the limbs move no
+score, since §4.7's turning types are in neither scored game. **The two
+static assertions are the cheap half** and are what to take first if it
+comes back. It carries the ledger's nine `unverified` rows on the way, so
+whoever unparks it inherits that audit. Nothing here is a cross-item
+constraint: no live worker is in `crates/sim`'s animation code.
+
 ## Measured residues, none near a word
 
 (246) step 6's repath rests on run83's single event (239); (169)
