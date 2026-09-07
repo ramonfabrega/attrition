@@ -46,7 +46,17 @@
 #   poll_max:   20-second polls before the loop gives up and kills the game
 #               (default 160 = 53 minutes). **The give-up is a truncation,
 #               not a stop**, so any capture that can run longer than its
-#               bound must raise it
+#               bound must raise it. **Size it from the dumping, not the
+#               run-up.** run53's stanza below says "this run is hours" and
+#               takes 900 for 24,000 frames; that was the `cover=1` int3
+#               forest, and run80 reached frame 23,960 of the same game in
+#               **forty seconds** at `cover=0`. Every 900 in this file is on
+#               a completed `cover=1` run where it was right — checked
+#               2026-09-06, and no `cover=0` stanza carries one — but a new
+#               stanza sized from run53's sentence would over-budget by two
+#               orders. What costs wall-clock now is the window: run79 spent
+#               fifty seconds on 6,910 frames of run-up and three minutes on
+#               340 dumped ones
 #   check:      a command run after the capture, from the repo root, to say
 #               whether it landed; repeatable, and a non-zero exit is loud
 #
