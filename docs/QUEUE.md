@@ -136,6 +136,15 @@ of 617; (72) every `+0xNN` a document pins vs its module; (89) the guard;
     you to use it never said. Wants a fixture: past the cap, dead in N
     seconds, exit 137 — and a gate that cannot be run wrong.
 
+265. **Great Lakes 7455 is a position, not a collision** (264, run87,
+    ORACLE and COLLISION §8.3): the original stands nothing there, and the
+    cause is two rows upstream. **`1/35` steps 25 units of y on 7253 where
+    the original steps 12** — 202 frames ahead of the draw stream, and by
+    7269 a path of 21 slots against 22. And on sim-frame **7418**, the
+    army's `7162 + 256` tick, four of six soldiers come out of the fresh
+    group order on a different waypoint, `1/32` and `1/33` on each other's.
+    (266) `AnimalData::ox`/`whom`/`aid` are `GUYS ≥ 3` and unparsed.
+
 ## How to maintain this file
 
 - **End of session:** rewrite "Where things stand" from scratch, headline

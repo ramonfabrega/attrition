@@ -18332,3 +18332,80 @@ a pin that says what it is.
 The narrow lesson for the loop: **two workers whose gates cannot see each
 other need the merged tree gated before either is called done.** That cost
 one extra 3.5-minute run here and would have cost a session to find later.
+
+## 2026-09-07 — item 264: the stand Great Lakes never makes (run87, Opus, capture lane)
+
+The word did not move, and the capture is worth more than a move would have
+been: **Great Lakes 7455 stops being a collision question**, the way East
+Indies 7448 stopped being one on run85.
+
+**The booking.** The disk was grepped first, per the rule, and refused
+completely: every archive, any block labelled 7200–7699 on any map, and
+**exactly one has any** — run79, `[6910, 7250)`, and run85's `[7400, 7480)`
+is East Indies. Great Lakes had nothing within 205 frames of its own word, so
+this was a screen rather than a diff. run87 is run53's game over `[7244,
+7520)` at run79's detail with `GUYS` 2 → 4 — run85's detail exactly, so the
+two maps' stands are comparable record for record — **277 blocks,
+120,956,729 bytes, six minutes**. Six blocks of deliberate overlap on run79's
+tail, because the run-up is free.
+
+**The answer, in one line: the original stands nothing there.** This crate's
+extra `Guy::set_anim+0x97a < Unit::move_step+0x823` is `1/36`, a Longbowman of
+run79's second squad, stopped by `1/17` — run83's own standing citizen. The
+original's `1/36` walks an unbroken (−25, −23) a frame across 7455 with
+`collide 0` and `collide_frame −1` on every block of the window, and `1/17`
+stands at **(41784, 23928)**, which is exactly where this crate has it. The
+blocker's position is right; the predicate is right; the stand is invented.
+
+**And the machinery is right wherever the two sides stand in the same place.**
+The original's only three `collide_frame` transitions in the window before the
+word — `1/31` on 7285, `1/7` on 7287, `1/32` on 7293 — are this crate's own
+three, same walker, same blocker each time. It also stands `1/34` four frames
+late (7485 against 7481), which is a position gap wearing a rule gap's clothes.
+
+**The cause is 202 frames upstream, and it is two rows.** Driven through
+`run_traced`, the whole record of every unit of all 276 blocks parts at
+**7253** on `1/35` — a *step size*, 25 units of y where the original takes 12,
+which by 7269 is a path of 21 slots against 22 — and then at block **7419**,
+sim-frame **7418**. That is `7162 + 256`: the army's 256-frame group tick, the
+very tick item 261 fixed at 7162 the day before. All six soldiers take a fresh
+group order on it and four come out on a different path waypoint, `1/32` and
+`1/33` on exactly each other's. `1/36` is 94 units adrift by 7455 — three and a
+half frames of its walk — and that is what puts it inside `1/17`'s disc.
+
+**Why the field diff was silent at the word's own frame.** The harness compares
+the collision record and the two angles *only where the positions agree*, and
+rightly: otherwise a walker that is somewhere else colliding with something
+else counts the position gap twice. `1/36`'s position parts at 7420, so from
+there its whole collision record leaves the diff. **A stand invented at 7455
+costs a draw and produces no row** — which is the case for keeping the draw
+stream as the headline rather than replacing it with the field diff.
+
+**The overlap check failed first, and the failure was a finding.** `--exclude
+GUY` came back "6 in common, differ 6" on a run whose LCG word matched over
+7,536 frames. The whole difference across all six blocks was **+120 lines and
+nothing else**: at `GUYS=4` an **`ANIMALDATA` prints three fields of its own**
+— `ox`, `whom`, `aid` — after its nested `UNITDATA` and outside any `GUY`
+block, forty animals times three keys. `--exclude ANIMALDATA` would have
+thrown away all forty animals to remove them, so `samegame.py` grew **`--drop
+KEY`** — a field, not a record — and the overlap is 6 in common, 0 differing.
+Checked that the flag did not blunt the tool: run16 against run76, a different
+game, still differs on all 230 common blocks with the same flags. Three fields
+for the widening ledger with it.
+
+**The assertion, and its four claims each made to fail on purpose.**
+`run87_s_window_is_great_lakes_word_frame` asserts that the original stands
+`1/36` nowhere in the window, that `1/17` holds (41784, 23928) for all sixty
+blocks of `[7420, 7480)`, that nothing parts before 7253, and that the only
+units parting before the 7418 tick are `1/35` and `1/26`. Each was falsified
+by hand: pointing the `collide_frame` reader at `1/32` (which the original
+*does* stand), moving the citizen's band to `[7500, 7520)` where it walks off
+on 7514, raising the floor to 7254, dropping `1/26` from the pair. **Two of
+those guards are in the test permanently** — an absent `collide_frame` is what
+a mis-read file also looks like, and run85's first teeth check passed on a band
+where nothing happened.
+
+**The score.** Great Lakes stays at **7455**; East Indies at 7529. Nothing was
+fixed, and the handoff says so. What the run leaves is two successors, both
+movement and formation rather than collision: `1/35`'s step size on 7253, and
+the six-slot assignment at the army's 7418 tick.

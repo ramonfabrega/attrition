@@ -34,6 +34,17 @@ still worth asking: is everything the two runs *do* record in common
 identical, frame for frame. It is a weaker claim than a bare run and should
 be read as one — the excluded record is unchecked, not checked and equal.
 
+`--drop KEY` drops every line whose first token is KEY, wherever it sits.
+It exists because `--exclude` is a **record** and the smallest thing a
+detail level adds is sometimes a *field*: at `GUYS=4` an `ANIMALDATA`
+prints three of its own — `ox`, `whom`, `aid` — after its nested
+`UNITDATA` and outside any `GUY` block, so `--exclude GUY` alone leaves
+120 lines a block (forty animals) between run79 and run87 and
+`--exclude ANIMALDATA` would throw away all forty animals to remove them.
+Dropping the three keys removes exactly those lines and keeps every
+animal's record. Weaker than a bare run, and to be read as one: the
+dropped field is unchecked, not checked and equal.
+
 A block runs from its `BEGIN NAME` to the next line indented no deeper,
 except that a line at the *same* depth which is not itself a `BEGIN` still
 belongs to it: the dump indents a leader's `who` one deeper than its `BEGIN
@@ -50,10 +61,11 @@ ARCHIVE = os.environ.get(
         "~/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs"))
 
 
-def digests(path, exclude=()):
+def digests(path, exclude=(), drop=()):
     """{frame: sha1 of the block's indented lines}, minus the excluded blocks."""
     out, frame, h = {}, None, None
     heads = tuple(b"BEGIN " + e.encode() for e in exclude)
+    keys = tuple(k.encode() for k in drop)
     skip_depth = None
     with open(path, "rb") as f:
         for line in f:
@@ -82,6 +94,8 @@ def digests(path, exclude=()):
             if heads and any(t == e or t.startswith(e + b" ") for e in heads):
                 skip_depth = depth
                 continue
+            if keys and t.split(b" ", 1)[0] in keys:
+                continue
             if frame is not None and s.startswith(b" "):
                 h.update(s + b"\n")
     if frame is not None:
@@ -90,20 +104,26 @@ def digests(path, exclude=()):
 
 
 def main():
-    args, exclude = [], []
+    args, exclude, drop = [], [], []
     it = iter(sys.argv[1:])
     for a in it:
         if a == "--exclude":
             exclude.append(next(it))
         elif a.startswith("--exclude="):
             exclude.append(a.split("=", 1)[1])
+        elif a == "--drop":
+            drop.append(next(it))
+        elif a.startswith("--drop="):
+            drop.append(a.split("=", 1)[1])
         else:
             args.append(a)
     a, b = (p if os.path.isabs(p) else os.path.join(ARCHIVE, p)
             for p in args[:2])
     if exclude:
         print("excluding: %s" % ", ".join(exclude))
-    da, db = digests(a, exclude), digests(b, exclude)
+    if drop:
+        print("dropping keys: %s" % ", ".join(drop))
+    da, db = digests(a, exclude, drop), digests(b, exclude, drop)
     for d in (da, db):
         if d:
             del d[max(d)]

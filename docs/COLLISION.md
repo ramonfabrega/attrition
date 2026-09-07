@@ -1185,6 +1185,40 @@ the only thing that can say which of the three it is. Until then the
 long word stays at 7448 (`docs/TRANSPORT.md` §6, and `docs/MERCHANT.md`
 for `1/19`).
 
+## 8.3 run87 — Great Lakes 7455 is not a collision question either (2026-09-07)
+
+`run87_s_window_is_great_lakes_word_frame`. run53's game, `[7244, 7520)` at
+run79's detail with `GUYS` 2 → 4 — 277 blocks, 121 MB, the first Great Lakes
+dump within 200 frames of its own word. The parting is the mirror of §8.2's:
+**this crate** spends a `SITE_BLOCKED` on 7455 and the original spends none.
+
+**The stand is invented, and the blocker is where we put it.** The walker is
+`1/36`, a Longbowman of run79's second squad; the blocker this crate names is
+`1/17`, run83's own standing citizen. In the original `1/36` walks an
+unbroken (−25, −23) a frame across 7455 with `collide 0`, `collide_o −1` and
+`collide_frame −1` on every block of the window, and `1/17` stands at
+**(41784, 23928)** — the point this crate has for it — for all sixty blocks
+of `[7420, 7480)`. So §4's gates and §5's block are not what is wrong.
+
+**And they are right wherever the two sides stand in the same place.** The
+original's only three `collide_frame` transitions in the window are `1/31`
+on 7285, `1/7` on 7287 and `1/32` on 7293, and this crate stands on those
+three frames, on the same walker, blamed on the same blocker.
+
+What is wrong is `1/36`'s position — 94 units, about three and a half frames
+of its walk, adrift by 7455 — and the field diff dates that to two rows
+neither of them this document's: `1/35`'s step size on **7253** (25 units of
+y where the original takes 12) and the six-slot assignment at the army's
+**7418** tick, where four soldiers come out on a different waypoint and
+`1/32` and `1/33` on exactly each other's. `docs/ORACLE.md`, "run87".
+
+**One thing this window says about the diff itself.** The harness compares
+the collision record only where the two positions agree (`compare`, and
+rightly — otherwise a walker that is elsewhere colliding with something else
+counts the position gap twice). `1/36`'s position parts at 7420, so a stand
+invented at 7455 costs a draw and produces no row at all: on this map the
+draw stream is the only oracle for the word's own frame.
+
 ## 9. What is not established
 
 - ~~**Great Lakes' long word is a `SITE_BLOCKED` this crate spends and the

@@ -4943,6 +4943,140 @@ bearing from a fallback. And the new word, **7529**, is a `Guy::set_anim` under
 `Unit::do_non_flat_gather+0xb99` the original spends and this crate does not —
 a gatherer's animation, and the next item.
 
+## run87 — Great Lakes' word frame, and the stand is this crate's alone (2026-09-07)
+
+**What it is.** run53's game, `[7244, 7520)` at run79's detail with `GUYS`
+2 → 4 — **277 blocks, 120,956,729 bytes**, `cover=0`, six minutes. It is the
+first Great Lakes dump ever taken within 200 frames of the map's own word,
+which stands at **7455**: eight draws against seven, and at index 2 **this
+crate** spends a `Guy::set_anim+0x97a < Unit::move_step+0x823` the original
+does not. That is the reverse of run85's East Indies 7448, where the original
+spent two such calls and this crate none.
+
+**The disk was grepped first and it refused completely.** Every archive, for
+any block labelled 7200–7699 on any map: exactly one has any — **run79**, and
+its window is `[6910, 7250)`; run85's `[7400, 7480)` is East Indies. So Great
+Lakes had no dump within 205 frames of 7455 and this was a capture rather
+than a diff.
+
+**Three checks, and the second of them found something.** `rngcmp.py
+rontrace-run53.log rontrace-run87.log` → **0 differing, 7,536 identical**. The
+teeth — the animation state must actually be per-frame, since the whole run is
+bought for `cur_anim`/`end_time`/`stopped` — gave **276 frame blocks carrying a
+`cur_anim`** where run79, same map, same era, `GUYS=2`, gives **0**.
+
+And the overlap against run79's tail came back **6 in common (7244..7249),
+differ 6** — six of six, on a run whose LCG word had just matched over 7,536
+frames.
+
+> **The exclusion was one record short, and the record was not the one that
+> moved.** At `GUYS=4` an **`ANIMALDATA` prints three fields of its own** —
+> `ox`, `whom`, `aid` — after its nested `UNITDATA` and *outside* any `GUY`
+> block, so `--exclude GUY` cannot reach them. Across all six blocks the
+> whole difference was **+120 lines and nothing else**: forty animals times
+> three keys, none deleted, none changed. `--exclude ANIMALDATA` would have
+> thrown away all forty animals to remove them, so `samegame.py` grew
+> **`--drop KEY`** — a field, not a record — and the overlap is **6 in
+> common, 0 differing**. Checked that the new flag did not blunt the tool:
+> run16 against run76, a different game, still differs on all 230 common
+> blocks with these same flags, and run79 against run83 still passes.
+>
+> Three fields for the widening ledger with it: nothing in the harness
+> names `AnimalData`'s `ox`, `whom` or `aid`, and only a `GUYS ≥ 3` capture
+> prints them.
+
+**The original does not stand anything at 7455.** This crate's extra draw is
+**`1/36`** — a Longbowman of run79's second squad, group 64 — stopped by
+**`1/17`**, the standing citizen that blocked `1/29` on run83's 6892. The
+original's `1/36` walks straight through:
+
+| block | `1/36` | `collide` / `collide_o` / `collide_who` | `collide_frame` |
+| --- | --- | --- | --- |
+| 7453 | (42032, 23883) | 0 / −1 / −1 | −1 |
+| 7454 | (42007, 23859) | 0 / −1 / −1 | −1 |
+| **7455** | **(41982, 23836)** | **0 / −1 / −1** | **−1** |
+| 7456 | (41957, 23813) | 0 / −1 / −1 | −1 |
+| 7457 | (41931, 23791) | 0 / −1 / −1 | −1 |
+
+— an unbroken (−25, −23) a frame, no stand anywhere in the window. And
+`1/17` stands at **(41784, 23928)** for all sixty blocks of `[7420, 7480)`,
+which is **exactly the point this crate has for it**. So neither the
+blocker's position nor the collision predicate is the fault, and the reading
+that would have blamed one is closed before it is written.
+
+**The machinery is right wherever the positions agree.** The original's only
+three `collide_frame` transitions in the window before the word are
+
+| stamped | walker | blocker |
+| --- | --- | --- |
+| 7285 | `1/31` | `1/11` |
+| 7287 | `1/7` | `1/21` |
+| 7293 | `1/32` | `1/11` |
+
+and this crate makes a stand on each of those three frames, on the same
+walker, blamed on the same blocker. It also stands `1/34` on **7485** where
+the original stands it on **7481** — a four-frame near miss on the same
+event, which is the shape of a position gap rather than a rule gap.
+
+**What is wrong is a position, and it parts 202 frames ahead of the draw
+stream.** Driven through `run_traced`, so every unit of every block: over
+12,154 unit fields, 12,108 order/path rows, 20,916 angles, 57,306 collision
+fields, 21,856 building and 10,952 queue rows, the window parts at **7253**,
+and only two units part at all before 7419.
+
+- **`1/35` on 7253** — the earliest row on the map. Both sides are at
+  (45704, 26155) on 7252; on 7253 the original steps **12** units in y to
+  (45707, 26143) and this crate steps **25**, to (45710, 26130). It is a
+  *step size*, not a heading: the original's walk down this leg alternates
+  25 and 12 with repeats, and this crate takes the long step where the
+  original takes the short one. By 7269 the two have different path
+  lengths — **21 slots against 22** — and by 7270 different headings.
+- **`1/26` from 7315** — a constant (24, 24), the same shape as `1/24` and
+  `1/25`, both of which are older than either window and already excused.
+
+**And then the army's own tick.** Block **7419** is sim-frame **7418**, which
+is `7162 + 256` and `frame ≡ 250 (mod 256)` — the 256-frame group tick
+`docs/ARMY.md` §5 names, and **the same tick item 261 fixed at 7162**. All six
+of the AI's soldiers take a fresh `orders_x/orders_y` on it —
+
+    1/31 → (36456, 22968)   1/34 → (36120, 23736)
+    1/32 → (36408, 23064)   1/35 → (36072, 23880)
+    1/33 → (36552, 22824)   1/36 → (36168, 23592)
+
+— and four of them (`1/32`, `1/33`, `1/34`, `1/36`) come out of it on a
+different path waypoint from this crate's, with **`1/32` and `1/33` on
+exactly each other's** (`dest_x` 39838 and 39863, swapped). `1/36` is **94
+units adrift** by 7455 — about three and a half frames of its 26-a-frame walk
+— and that is what puts it inside `1/17`'s disc.
+
+**The word's own frame is not comparable as a field**, which is why only the
+draw stream ever saw it. The harness tests the collision record and the two
+angles **only where the two positions agree** (`compare`, and deliberately —
+counting a walker that is somewhere else colliding with something else would
+measure the position gap twice). `1/36`'s position parts at 7420, so from
+there on its `collide`, `collide_o`, `collide_who` and `collide_frame` leave
+the diff entirely. A stand this crate invents at 7455 costs a draw and no
+row.
+
+**One cost worth recording.** run87 is 121 MB and `Log::parse` is still eager
+(item 260), so the release diff suite's peak went to **15,376 MiB of the
+20 GiB `memcap.sh` ceiling** with this test in it — the highest any capture
+has pushed it. The next Great Lakes window of this size wants item 260 landed
+first, or a raised cap.
+
+**So the word does not move.** Nothing was fixed here; what the capture buys
+is that Great Lakes 7455 stops being a collision question. The successors are
+the two rows above — `1/35`'s step size on 7253, and the six-slot assignment
+at the 7418 tick — and both are movement and formation, not collision.
+`run87_s_window_is_great_lakes_word_frame` is the assertion, and its four
+claims were each made to fail on purpose: pointing the `collide_frame`
+reader at `1/32` (which the original *does* stand, 7293) rather than `1/36`,
+moving `1/17`'s band to `[7500, 7520)` where it walks off on **7514**,
+raising the parting floor to 7254, and dropping `1/26` from the pair of early
+units. Two anti-vacuity guards are in the test permanently for the first two:
+run85's first teeth check passed on a band where nothing happened, and an
+*absent* `collide_frame` is what a mis-read file also looks like.
+
 ## 178 needed no screen — the danger map's unit pass was on disk four times (2026-09-06)
 
 **What it is.** Not a run. `docs/DANGER.md` §8 had the unit pass of

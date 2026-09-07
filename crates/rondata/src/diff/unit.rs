@@ -1891,4 +1891,249 @@ mod tests {
             wrong.len()
         );
     }
+
+    /// **run87 — Great Lakes' word frame, and the stand is this crate's
+    /// alone** (2026-09-07, item 264).
+    ///
+    /// run53's game over `[7244, 7520)` at run79's detail with `GUYS`
+    /// 2 → 4 — **276 blocks, 120,956,729 bytes**, the first Great Lakes
+    /// dump ever taken within 200 frames of its own word. Driven through
+    /// [`run_traced`], so it is every unit of every block and not the
+    /// walker's. `docs/ORACLE.md`, "run87".
+    ///
+    /// **The word's frame carries no collision at all on the original's
+    /// side.** At 7455 this crate spends a `SITE_BLOCKED` the original
+    /// does not: `1/36`, a Longbowman of the second squad, stopped by
+    /// `1/17`, the standing citizen that blocked `1/29` on run83's 6892.
+    /// The original's `1/36` walks straight through — `collide 0`,
+    /// `collide_o −1`, `collide_frame −1` on every block of the window —
+    /// and `1/17` stands at **(41784, 23928)**, which is the point this
+    /// crate has for it. So neither the blocker's position nor the
+    /// collision predicate is the fault, and the two claims below are the
+    /// ones this capture licenses.
+    ///
+    /// **The collision machinery is right where the positions agree.**
+    /// The original stamps exactly three `collide_frame` transitions in
+    /// the window — `1/31` on 7285, `1/7` on 7287, `1/32` on 7293 — and
+    /// this crate makes a stand on each of those three frames, on the
+    /// same walker, blamed on the same blocker (`1/11`, `1/21`, `1/11`).
+    ///
+    /// **What is wrong is a position, and it parts 202 frames ahead of
+    /// the draw stream.** `1/35` steps 25 units in y on 7253 where the
+    /// original steps 12, and from 7419 — sim-frame **7418**, the army's
+    /// own 256-frame tick, `7162 + 256` and `frame ≡ 250 (mod 256)`,
+    /// the same tick item 261 fixed at 7162 (`docs/ARMY.md` §5) — all
+    /// six of the AI's soldiers take a fresh group order and four of
+    /// them come out of it on a different path waypoint, `1/32` and
+    /// `1/33` on exactly each other's. `1/36` is 94 units adrift by
+    /// 7455, which is the three and a half frames that put it inside
+    /// `1/17`'s disc.
+    ///
+    /// **The word's own frame is not comparable as a field**, which is
+    /// why only the draw stream sees it: [`compare`] tests the collision
+    /// record only where the two positions agree, so `1/36`'s divergence
+    /// from 7420 takes its collision out of the diff on every later
+    /// block.
+    #[test]
+    fn run87_s_window_is_great_lakes_word_frame() {
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(tr)) = (
+            dump("gamelog-run87-greatlakes-blockedwalker.txt"),
+            trace("rontrace-run87.log"),
+        ) else {
+            eprintln!("skipping: no run87 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = std::fs::read_to_string(&path).unwrap();
+        let log = Log::parse(&text);
+
+        // **The original's own record of the word's frame**, read off the
+        // dump rather than off the report: `1/36` never collides, and
+        // `1/17` never moves off the point this crate blames it for.
+        let states = log.frame_states();
+        let stand = |who: i64, o: i64| -> Vec<(i64, i64)> {
+            states
+                .iter()
+                .filter(|f| (7244..7520).contains(&f.n))
+                .filter_map(|f| {
+                    let u = f.units.iter().find(|u| u.who == who && u.o == o)?;
+                    Some((f.n, u.collide_frame?))
+                })
+                .filter(|&(_, c)| c >= 0)
+                .collect()
+        };
+        // **The probe is shown able to see before it is believed empty.**
+        // `collide_frame` is a permanent stamp, and an *absent* one is
+        // what a mis-read record also looks like — run85's first teeth
+        // check passed vacuously on exactly that. So the same reader is
+        // pointed at a unit the original **does** stand: `1/32`, whose
+        // stamp goes −1 → 7293 inside this window.
+        assert!(
+            stand(1, 32).iter().any(|&(_, c)| c == 7293),
+            "run87 does not carry 1/32's own stand at 7293, so an empty \
+             answer for 1/36 would mean nothing: {:?}",
+            stand(1, 32)
+        );
+        assert!(
+            stand(1, 36).is_empty(),
+            "the original stands 1/36 somewhere in run87's window: {:?} — \
+             the word's frame is supposed to be this crate's stand alone",
+            stand(1, 36)
+        );
+        let citizen: Vec<(i64, crate::gamelog::Pos)> = states
+            .iter()
+            .filter(|f| (7244..7520).contains(&f.n))
+            .filter_map(|f| {
+                let u = f.units.iter().find(|u| u.who == 1 && u.o == 17)?;
+                Some((f.n, u.pos))
+            })
+            .collect();
+        assert!(
+            citizen.len() >= 276,
+            "run87's window does not hold 1/17 on every block: {} of 276",
+            citizen.len()
+        );
+        // The citizen reaches its `orders_x/y` on 7411 and stands there
+        // until **7514**, when it takes its next job and walks off — so
+        // the band is the stand, not the window, and it is the frames
+        // either side of the word rather than a value asserted forever.
+        let banded = || citizen.iter().filter(|(n, _)| (7420..7480).contains(n));
+        assert!(
+            banded().count() == 60 && banded().all(|(_, p)| (p.x, p.y) == (41784, 23928)),
+            "1/17 does not stand at (41784, 23928) for all sixty blocks of \
+             [7420, 7480): {} blocks, first mover {:?}",
+            banded().count(),
+            banded().find(|(_, p)| (p.x, p.y) != (41784, 23928))
+        );
+        // And the same guard on the other side: a unit that never moves in
+        // *any* band would make the line above true for free. `1/17` takes
+        // its next job on **7514** and walks, so the tail of the window
+        // sees it move.
+        assert!(
+            citizen
+                .iter()
+                .any(|(n, p)| *n >= 7480 && (p.x, p.y) != (41784, 23928)),
+            "1/17 never moves anywhere in run87's window, so its standing \
+             still over [7420, 7480) says nothing"
+        );
+
+        let texts = sibling_texts();
+        let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
+        let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+        let refs: Vec<&Initial> = inits.iter().collect();
+        let report = run_traced(&loaded, &log, Tuning::RON, None, None, &refs, Some(&tr)).unwrap();
+        let blocks: Vec<i64> = report
+            .frames
+            .iter()
+            .filter(|f| f.compared > 0)
+            .map(|f| f.frame)
+            .collect();
+        eprintln!(
+            "run87: {} blocks {:?}..{:?}",
+            blocks.len(),
+            blocks.first(),
+            blocks.last()
+        );
+        let sum = |g: fn(&FrameResult) -> usize| report.frames.iter().map(g).sum::<usize>();
+        eprintln!(
+            "run87: {} unit fields, {} order/path, {} angle, {} collide, {} los, \
+             {} packed, {} gather, {} build, {} queue",
+            sum(|f| f.compared),
+            sum(|f| f.order_compared),
+            sum(|f| f.angle_compared),
+            sum(|f| f.collide_compared),
+            sum(|f| f.los_compared),
+            sum(|f| f.packed_compared),
+            sum(|f| f.gather_compared),
+            sum(|f| f.build_compared),
+            sum(|f| f.queue_compared),
+        );
+        // run79's own excused residues, carried forward unchanged and all
+        // of them older than this window: `1/24` and `1/25` twenty-four
+        // units off their cell, `1/23`'s order angle and action flag, and
+        // item 242's group id.
+        let excused = |who: i64, o: i64, what: &str| {
+            matches!((who, o), (1, 24) | (1, 25) | (1, 23)) || what == "group id"
+        };
+        let mut wrong: Vec<(i64, i64, i64, String, String)> = Vec::new();
+        for fr in &report.frames {
+            let mut note = |who: i64, o: i64, what: &str, row: String| {
+                if !excused(who, o, what) {
+                    wrong.push((fr.frame, who, o, what.to_string(), row));
+                }
+            };
+            for d in &fr.diverged {
+                note(d.who, d.o, "pos", format!("{:?} v {:?}", d.ours, d.theirs));
+            }
+            for d in &fr.order_diverged {
+                let what = if matches!(d.what, OrderMismatch::Group { field: "id", .. }) {
+                    "group id"
+                } else {
+                    "order"
+                };
+                note(d.who, d.o, what, format!("{:?}", d.what));
+            }
+            for d in &fr.angle_diverged {
+                note(d.who, d.o, "angle", format!("{d:?}"));
+            }
+            for d in &fr.collide_diverged {
+                note(d.who, d.o, d.field, format!("{} v {}", d.ours, d.theirs));
+            }
+            for d in &fr.los_diverged {
+                note(d.who, d.o, "los", format!("{d:?}"));
+            }
+            for d in &fr.packed_diverged {
+                note(d.who, d.o, "packed", format!("{d:?}"));
+            }
+            for d in &fr.gather_diverged {
+                note(d.who, d.o, "gather", format!("{d:?}"));
+            }
+            for d in &fr.build_diverged {
+                note(d.who, d.o, "build", format!("{d:?}"));
+            }
+            for d in &fr.queue_diverged {
+                note(d.who, d.o, "queue", format!("{d:?}"));
+            }
+            for &(who, o) in &fr.unlinked_units {
+                note(who, o, "unlinked", String::new());
+            }
+            for &(who, o) in &fr.extra_units {
+                note(who, o, "extra", String::new());
+            }
+        }
+        for (f, who, o, what, row) in wrong.iter().filter(|r| r.0 < 7419).take(12) {
+            eprintln!("  f{f} {who}/{o} {what}: {row}");
+        }
+        // The window's own rows, so a capture without `UNITS=3` or
+        // `BUILDS=7` cannot pass this test saying nothing.
+        assert!(
+            sum(|f| f.compared) >= 12_000
+                && sum(|f| f.order_compared) >= 12_000
+                && sum(|f| f.collide_compared) >= 57_000
+                && sum(|f| f.build_compared) >= 21_000,
+            "run87's own rows are missing — the wrong file"
+        );
+        // **The two claims about the run-up, and they are ceilings that may
+        // only rise.** Nothing parts before 7253, and the only two units
+        // that part at all before the army's 7418 tick are `1/35` — the
+        // step-size row — and `1/26`, whose twenty-four units are the
+        // `1/24`/`1/25` shape arriving late.
+        let first = wrong.iter().map(|r| r.0).min().unwrap_or(i64::MAX);
+        assert!(
+            first >= 7253,
+            "run87's field diff parted at {first}, ahead of 7253: {:?}",
+            wrong.iter().find(|r| r.0 == first)
+        );
+        let early: std::collections::BTreeSet<(i64, i64)> = wrong
+            .iter()
+            .filter(|r| r.0 < 7419)
+            .map(|r| (r.1, r.2))
+            .collect();
+        assert_eq!(
+            early,
+            [(1, 35), (1, 26)].into_iter().collect(),
+            "the units parting before the army's 7418 tick are not 1/35 and 1/26"
+        );
+    }
 }
