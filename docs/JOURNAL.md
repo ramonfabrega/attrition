@@ -16886,8 +16886,8 @@ differ reading `collide_o` one frame late sees −1 and calls it agreement.
 **And a capture that may not need taking.** Chasing item 178 — the danger
 map's unit pass, reading-only because no capture has a military unit on a
 rebuild boundary — the same grep habit found that `danger[who][scan]` is
-already on disk in eighteen archives, and four of them are late combat
-windows. **run29's frame 15100 carries 96 `TARGETORDER`s and a danger map**,
+already on disk in **22** archives, and four of them are late combat
+windows on East Indies. **run29's frame 15100 carries 96 `TARGETORDER`s and a danger map**,
 just past the 15000 rebuild; run27's 15100 has 46, and run25/run26 have
 12k-frame windows. So 178's falsifier may be a `grep` rather than a run.
 Whoever takes it should confirm the schedule reading first — the block at
