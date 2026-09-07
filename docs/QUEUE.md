@@ -12,36 +12,35 @@ lines, or lets the handoff pass 32.
 
 ## Where things stand
 
-*2026-09-06, Opus commanding, the loop's first run at width two —
-**Great Lakes 6862 → 6982**, four items landed, gate green at 217. East
-Indies **7448 unmoved**, and it is now the map with the work.*
+*2026-09-06, Opus commanding, the loop's first run at width two — **Great
+Lakes 6862 → 6982**, five landed, suite 218. East Indies **7448 unmoved**.*
 
-- **Both headline items are live.** 238 is Great Lakes' word: at 6982 this
-  crate spends `Leader::produce_building+0x1805` where the original spends
-  `Leader::make_stuff+0x221` — it queues a building the original does not.
-  East Indies 7448 is `Guy::set_anim+0x97a < Guy::inc_time+0x271` here
-  against `< Unit::move_step+0x823` there — the family 236 dissolved on
-  the other map — and **no dump goes near it** (run77/78 are at 10150+).
-- **Width two works.** Every gate is `zsh tools/memcap.sh 20 cargo test -p
+- **Both headline items are live and both have their capture.** 238 has
+  Great Lakes' word with run84: at 6982 this crate spends
+  `Leader::produce_building+0x1805` where the original spends
+  `Leader::make_stuff+0x221`. 241 has East Indies' 7448 with run85, where
+  the blocker is **gaia's animal** and `chain_hit`'s `who < 8` filter is
+  the standing hypothesis. 239 killed the other one: the deflection was
+  already right, diff-backed end to end on run83.
+- **Width two works.** The gate is `zsh tools/memcap.sh 20 cargo test -p
   rondata --release -- --test-threads=2` (14.8 GB, ~29 GB for two); four
-  threads stay off the table. A worker takes its base's tip with `ccc
-  update <ref>`, never `git merge`; the commander removes a landed
-  worker's session at merge time, not at session end.
+  threads stay off. A worker takes its base's tip with `ccc update <ref>`,
+  never `git merge`; a landed session is removed at merge time. `ccc rm`
+  leaves the branch, so reusing that `--worktree` name **fails silently**.
 - **Grep the detail, not only the range**: run79 covers 6982 and cannot
   answer it — 22 `MAKELIST` occurrences against run80's 902.
-- **The docs-versus-code wave is not a ratification question** — its rows
-  are two of this repo's texts disagreeing, the diff is their oracle, 6
-  are assertions, the rest sit in `docs/audit/2026-09-05-<doc>-vs-code.md`
-  and are read by any worker whose item touches that document.
-- Lanes: `att-capture` holds the screen, corpus 232; cycle it after East
-  Indies lands — `ORACLE.md` and `captures.txt` are its handoff.
+- **The wave is not a ratification question** — two of this repo's texts
+  disagreeing, the diff their oracle; 6 are assertions, the rest sit in
+  `docs/audit/2026-09-05-<doc>-vs-code.md`, read by whoever touches it.
+- Lanes: `att-capture` holds the screen, corpus 235; `ORACLE.md` and
+  `captures.txt` are its handoff, so cycling it is free.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w7448 of 24,000 · GreatLakes w6982 of 24,000
 
-**Opener: the main thread is the commander (DECISIONS 34), on Opus. 237
-and 238 are in flight; East Indies 7448 is the next unstarted, and it is
-the counter that has not moved.**
+**Opener: the main thread is the commander (DECISIONS 34), on Opus. 238
+and 241 are in flight — one headline each — and the capture lane is on
+178, which may close by grep. Suite at 218.**
 
 ## The queue
 
@@ -50,13 +49,12 @@ captures' word**, lower map first — Great Lakes. Take the first unstarted
 unless a better order is obvious — and say so. Numbers are stable; the
 journal is indexed by them.
 
-239. **A blocked step is a deflection, not a stop** — run83, Great Lakes
-    6892: `1/29`, blocked by the standing citizen `1/17`, is pushed *back*
-    on 6893 with `collide 1`, slides due west at exactly −26/frame for
-    6894–6898 with **`y` pinned**, and resumes the diagonal on 6899;
-    `idle` 0 throughout and `1/17` registers nothing. "Stand still and
-    repath" is six frames and ~1.6 tiles wrong. run83 is the first dump
-    over [6870, 6910), so this is behind the word and never compared.
+246. **Step 6's repath is diff-backed on one capture only** — 239 pinned
+    the cell-centre snap, the cleared `dest` and the three-entry
+    `find_upath` plan above the untouched world-grid one (its top two
+    entries share the snapped row, which makes the slide) on run83's one
+    event. A second blocked walker would say whether it is general;
+    run85's obstacle class differs and does not serve.
 
 226. **`cover=1` dies in the wow64 bop** (ORACLE), an x86 host the
     falsifier; `tools/trace/wow64bop.c` reproduces it. (220) TECH §13's
