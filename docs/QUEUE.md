@@ -12,36 +12,36 @@ each section's non-item prose pinned and falling only.
 
 ## Where things stand
 
-*2026-09-07, the commander's loop unattended (Opus) — both words moved in
-one day, 129 frames and 277, and the maps swapped twice.*
+*2026-09-07, the commander's loop unattended (Opus) — both words moved,
+130 frames and 277, and the maps swapped twice.*
 
-- **East Indies is 7806** (was 7529) and **Great Lakes 7584** (was 7455),
-  so Great Lakes leads and 284 — its word's cause — is headline-nearest.
+- **East Indies 7806** (was 7529), **Great Lakes 7585** (was 7455) and
+  leading, so 287 — its new word's cause — is headline-nearest.
 - **An age snaps every figure** (TECH): `Leader::gain_tech`, gated on
   `is_age_type`, snaps every live unit's facing and body — a free turn
   **and a frame** for one mid-turn. 271 was the countdown's seed, not its
   sum; **253 closed with it**. Great Lakes' twin is `compute_form`'s second
-  reverse test. **Both were found by widening the whole record.**
-- **260 halved the gate** (16,061 → 8,321 MiB); its ceiling was never a
-  ratchet (251). **280 took the mapping back out** — one
-  `forbid(unsafe_code)` again, at 11,172 MiB and 244 tests.
-- **272 made Great Lakes' word a value diff without moving it** (run89):
-  the parting entry is a **gaia bird's arrival stand**, 284. It also found
-  the `CITY` record parting on 246 of 246 blocks, unasserted — 285.
-- **276 grepped instead of capturing, and it paid**: run88's own `!quit`
-  block at 7816 *is* East Indies' residue (`1/6`, `1/7` pinned both sides)
-  but cannot be its mechanism. The trace dated it instead: 286.
-- **A Fable pass is owed, with an agenda**: DECISIONS 37 (drafted,
-  unratified), the perf/UB ground 280 opened, and 283. Nothing else marked.
+  reverse test, and its next is a bird (284) — **all three were found by
+  widening the whole record**, never the field the brief named.
+- **A bird's figure lags its unit** (284): `do_air_physics` ends in
+  `set_new_location(x, y, 0, 1)` and that **zero is `param_3`**, so the
+  point goes to guy 0's `des` and the teleport is skipped — the figure
+  catches up in `Guy::move`, making `des == pos` there mean *the bird did
+  not move*. 7584 agrees 49 for 49 now; the new word is 287.
+- **276 grepped instead of capturing and it paid**: run88's `!quit` block
+  at 7816 is East Indies' residue, not its mechanism — 286. 272 found
+  `CITY` unasserted on 246 of 246 blocks, 285.
+- **260 halved the gate** and **280 took the mapping back out** — one
+  `forbid(unsafe_code)` again. Fable is owed 37, 280's UB ground, and 283.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w7806 of 24,000 · GreatLakes w7585 of 24,000
 Endpoint 24001: EastIndies 79 off, 0 unlinked · GreatLakes 84 off, 0 unlinked
 
-**Opener: commander on Opus (DECISIONS 34), spawning — never working. 284
-is in flight (Great Lakes' bird stand, the headline). The lane is free and
-286 is its next; then 285's city record, then 283's allocator. Score first,
-infrastructure behind — the order set with the user. Stopping rule at one.**
+**Opener: commander on Opus (DECISIONS 34), spawning — never working.
+Nothing in flight. Next: 287 (Great Lakes' new word, a diff on run89) and
+the lane on 286; then 285, then 283. Every brief ends with a "done" ping to
+the commander — session state was wrong four ways in one day (entry 34).**
 
 ## The queue
 
@@ -175,23 +175,23 @@ of 617; (72) every `+0xNN` a document pins vs its module; (89) the guard;
     text, and a 2 s poll under-reports a sawtooth besides. Wants a fixture:
     past the cap, dead in N seconds, exit 137.
 
-284. **Great Lakes' word is a bird's arrival stand** — run89 makes 7584 a
-    value diff at last: 7580–7583 agree draw for draw, 7584 is 48 against
-    49, and dropping one entry at index 24 makes them equal entry for
-    entry. The original spends `Guy::set_anim+0x97a < Guy::move+0x19f`
-    there — ANIM §9's arrival stand — between the fourth and fifth bird's
-    `Animal::think_bird` triple, so it is a gaia bird's figure coming to
-    rest; which bird the dump cannot say at this detail. (268)
-    `AnimalData::ox`/`whom`/`aid` are unparsed, and name it. (274) `1/26`.
+287. **Great Lakes' new word at 7585 is the AI** — `Leader::make_stuff
+    +0x63d`, the slot expiry, named by 284 as it moved the word off the
+    bird. run89 covers it (`[7514, 7760)`, on disk), so this is a diff and
+    not a capture. Below it nothing parts but run87's carried residue.
+    (288) the gull's `do_strafe` is still unmodelled — 284 narrowed
+    `do_air_physics`' early return to that one bird. (274) run87's `1/26`.
+    (268) `AnimalData::ox`/`whom`/`aid` **carry nothing**: −1 on all forty
+    animals on all 247 blocks, so they can never name one. Closed, not open.
 
 285. **The CITY record parts on every block and nothing asserts it** — 18
     fields on 246 of 246 of run89's window, found by widening the whole
     record, and **no window test on either map asserts `city_diverged`**.
     Nine tenths of a dumped record once went uncompared for a month and
     the first widening failed on its first run; this is that shape one
-    record up. The word's value diff rides here: `1/3` takes a fresh
-    `MOVEORDER` on 7585, ours `(+192, +192)` on all four with `x − off_x`
-    identical both sides — an offset that cancels, so suspect 273.
+    record up. `1/3`'s `(+192, +192)` `MOVEORDER` was booked here and
+    **closed itself** when 284 landed the air-physics fix — it was the
+    missing draw's consequence, exactly as 272's worker read it.
 
 273. **`refresh_group_order` re-origins on the order's `form_id`, not the
     member's list position** — `713ac3` reads `[eax+0x10]` off the

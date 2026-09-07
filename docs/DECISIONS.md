@@ -1498,6 +1498,15 @@ and the two come apart constantly. In one day: a worker read `working idle`
 long after it was finished; another read `working busy` while its report was
 already delivered; a third finished unnoticed because the watcher was
 filtering the refs of two workers already reaped, and the user had to say so.
+**And a fourth never transitioned at all** — `loop-284` sat at `working
+idle` with its branch pushed and its item done, so no watch could fire,
+because there was no event. That one is not a filter bug and no flag fixes
+it: the state machine simply did not move. It is the case that settles the
+argument. **So every brief ends with an instruction to send the commander a
+short "done" message** — the report stays where it is, and the ping is one
+line on top of it; a worker that only writes its own transcript has told
+nobody. The user proposed this three times before the fourth failure made
+it unarguable, which is its own lesson about whose signal to trust.
 Two earlier attempts failed the same way — a hand-rolled `ccc list --json`
 poller that exited 0 with no output, and a `ccc watch | grep <name>` whose
 filter matched other repos' sessions and then the commander's own status
