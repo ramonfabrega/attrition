@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "g=\"$CLAUDE_PROJECT_DIR/tools/pollguard.py\"; [ -f \"$g\" ] || exit 0; python3 \"$g\"",
+            "command": "g=\"${CLAUDE_PROJECT_DIR:-$PWD}/tools/pollguard.py\"; [ -f \"$g\" ] || exit 0; python3 \"$g\"",
             "timeout": 10
           }
         ]

@@ -19851,3 +19851,16 @@ symlink nor the pointer: the uncommitted `AGENTS.md` and `.codex/hooks.json`
 copies were deleted from the main checkout, so there is one rules file and
 one hook again, and a second harness earns its pointer when it is used.
 `origin/main` fast-forwarded to the pass.
+
+**Corrected within the hour: that paragraph misread the ask.** "Clear the
+symlink" meant make it, the shape 297 had named, not remove the copies. So
+the two are now **tracked symlinks** — `AGENTS.md → CLAUDE.md` and
+`.codex/hooks.json → ../.claude/settings.json` — and the hook line reads
+`${CLAUDE_PROJECT_DIR:-$PWD}`, which is 297's second defect closed: under a
+harness that does not set the variable the guard runs from the project
+root rather than exiting as a silent no-op. Tested by running the hook's
+own command line with the variable unset. What a symlink does not settle:
+whether the other harness reads that path and sends the same payload; if
+it does not, the hook is inert there and says nothing, which is the state
+297 found. The memory path a symlinked `AGENTS.md` names is Claude's, by
+construction, and that is the intent — one memory, not two.
