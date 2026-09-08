@@ -6232,8 +6232,10 @@ nothing here has been rented, downloaded or installed.
 `cover=1` runs under free Wine again. run906 is the first coverage capture
 off CrossOver: run903's game, 401 frame blocks, **10,950 HIT records over
 6,733 functions**, a per-frame set for each of the four window frames, and
-the word identical to run53 on every one of the 401 frames — the
-instrument records without moving the simulation. run907, `cover=0` with
+the word identical to run53 on every one of the 401 frames, and
+`game_random` drawing **120, 54, 6, 6** times on frames 0–3, run14's own
+verification numbers — the instrument records without moving the
+simulation. run907, `cover=0` with
 the rebuilt DLL, is the proof the instrument owes after any change:
 rngcmp against run53 **0 differing, 401 identical**; samegame against
 run10 **400 in common, 0 differ**. Five minutes each, end to end.
