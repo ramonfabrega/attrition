@@ -19864,3 +19864,51 @@ whether the other harness reads that path and sends the same payload; if
 it does not, the hook is inert there and says nothing, which is the state
 297 found. The memory path a symlinked `AGENTS.md` names is Claude's, by
 construction, and that is the intent — one memory, not two.
+
+## 2026-09-08 — 226: coverage is back, and the bop was never about the handler (tools lane, Fable 5.1)
+
+Lore's brief proposed one-shot jump stubs in place of the int3 forest — a
+proposal to check against `tracer.c`, with a fallback ladder Ramon had
+ruled. The proposal survived the reading and did not survive the game,
+twice, and what it died of is the finding.
+
+**The falsifier had been measuring something else.** `wow64bop.c`'s
+ROUNDS loop calls a pure function, and at `-O1` clang hoists that call out
+of the loop; the binary that faulted 12/12 was "eight plain stores to a
+translated page, each followed by a syscall, then one breakpoint". Found by
+`llvm-objdump`, not by reasoning. The stub shape then passed every
+single-threaded variant — locked or plain writes, 1 or 1,024 pages, a write
+across a page, the debug-string exception, the ID flag, the syscall from
+inside the stub — and the game died anyway, on a single armed function,
+whichever function it was. Eleven 25-second startup probes with no display
+narrowed it: attach and arming alone survive; a hit that restores and logs
+nothing survives; a hit whose stub issues a `WriteFile` dies. Then, with a
+flusher thread added so the records outlived the process, the death moved
+to a thread that had run no stub at all.
+
+**The two-thread falsifier reproduces it, and the control does not.** A
+second thread that only makes syscalls dies beside a main thread running
+stubs; with no stub at all it survives 4/4. One instruction class per
+build, a million times: `popad` kills the other thread 3/3, `popfd` now
+and then, and a code write does too; plain push/pop, `lahf`/`sahf` and
+calls into the RWX page are clean. So the instrument was rebuilt on three
+lines — write the executable once, at attach, with one thread alive; no
+`popad`/`popfd` where a stub runs; no syscall from a stub — which meant
+displaced-prologue stubs that never restore: `funcs.py` now reads the
+executable, decodes each entry's first whole instructions with capstone,
+rewrites relative branches to rel32 with fixups, sweeps `.text` for
+branches landing inside the displaced range, and names every exclusion in
+a sidecar. 47 of 48,233: 7 too close to the next entry, 13 with an
+interior branch target (the run without that check died on the one at
+`FUN_004ec042`), 27 unnamed Ghidra chunks.
+
+**run906** is the first coverage capture on free Wine: run903's game,
+10,950 HIT records over 6,733 functions, a per-frame set for each window
+frame, rngcmp against run53 0 differing / 401 identical, frame 0 drawing
+336 times as run14 and run53 do. **run907** re-proves `cover=0` with the
+rebuilt DLL: 0/401 against run53, 400/400 against run10. Five minutes
+each. Counter 2, re-read on run53, run54 and run906: 802 cited, 650
+entered, 152 never. No score moved. The draw hooks still carry
+`pushad`/`popad` at a few thousand calls a frame and have never tripped;
+moving them onto the flag-free sequence is the one follow-up, with its own
+proof run. `docs/ORACLE.md`, "Coverage is back".

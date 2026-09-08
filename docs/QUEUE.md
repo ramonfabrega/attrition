@@ -17,12 +17,9 @@ marked rows ruled, no score moved, and the hour 289 lost has a guard.*
 
 - **Great Lakes 7585** leads and is unmoved; **East Indies 7812**. 295 —
   `create_units`' value chain, the make-list head — is headline-nearest.
-- **The loop's tax was the rulebook, not the width.** The definition of
-  done said `cargo test`, the gate said `--release`, and four workers in
-  a day ran the dump-backed suite unoptimised: 4,101 s against 322 s.
-  `guard.sh` is 35 s warm and the sim suite 8 s; nothing else is slow.
-  `testenv::dump` now refuses a debug run in a second and names the
-  command; `RON_DIFF_DEBUG=1` steps one test through. Width two stands.
+- **The loop's tax was the rulebook, not the width.** Done said `cargo
+  test`, the gate said `--release`; the dump-backed suite is 4,101 s
+  unoptimised against 322 s. `testenv::dump` now refuses a debug run.
 - **The loop's price is a ratio now**: 21 USD a landing on the human-
   driven days against 32 on the loop's, 42 against 102 per word-moving
   landing, with ~200 of the loop's 1,018 in shapes now guarded. The next
@@ -34,6 +31,9 @@ marked rows ruled, no score moved, and the hour 289 lost has a guard.*
 - **Rows**: 37 ratified; 280's UB ground closed; 283 parked behind 292;
   the wait rule ratified with its figures moved out and the one-clause
   precedent written; 293 closed. `docs/audit/2026-09-07-fable-pass-2.md`.
+- **226 closed, `cover=1` back on free Wine** (tools lane, Fable 5.1,
+  09-08): run906 covers run903's game word for word; counter 2 re-read
+  on run53+54+906 is **802 cited, 650 entered, 152 never**. No score moved.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w7812 of 24,000 · GreatLakes w7585 of 24,000
@@ -83,8 +83,7 @@ unless a better order is obvious, and say so. Numbers are stable.
     first, both ways — a real deletion must still be caught. The guard's
     loudness is correct; the false alarms are the regexes'.
 
-226. **`cover=1` dies in the wow64 bop** (ORACLE), an x86 host the
-    falsifier. (220) TECH §13's twenty range blocks. (209) **the
+220. **TECH §13's twenty range blocks.** (209) **the
     once-per-game events a dump install swallows** — a `set_*` whose
     **return value** drives an irreversible record; **takes 224**. (203)
     `mark_behind_tiles`' `0x4` is a building *finishing*; (240) the

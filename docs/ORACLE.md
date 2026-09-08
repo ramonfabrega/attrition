@@ -5831,6 +5831,13 @@ the 3 frames/second `UNITS=3` costs here.
 
 ## 226: the fault is the bop, not the handler (2026-09-04, capture lane)
 
+**Superseded on 2026-09-08 by "Coverage is back", below.** The measurements
+here stand; two of the readings do not. The fault is not "the thread that
+went through the exception path": it is another thread's mode switch,
+broken by this thread writing code or running `popad`/`popfd`, and the
+falsifier's ROUNDS loop was not the loop its source described. `cover=1`
+runs again on this machine.
+
 **Three probes, no lobby drive, six seconds each.** The fault lands during
 startup — after `Game::init_common_data`, before the window — so the
 discriminator needs no screen at all: set `rontrace.cfg` to
@@ -5940,16 +5947,16 @@ capture on disk stays comparable to every capture taken from here on.
 
 **What is not established**, and it is two things now, not one.
 
-- **Wine's call-gate setup or Rosetta's translation of the far transfer.**
-  The falsifying run is `wow64bop.exe` on an x86 host: `PASS` there makes it
-  Rosetta's, the same fault makes it Wine's. Nothing on this machine can
-  tell the two apart, which is what the next section costs.
-- **Why one shape of the same program faults and another does not.** Both
-  do a continue and then a syscall; only one dies. The difference was not
-  chased past establishing that it exists, because it does not change what
-  the lane can do either way — but it is the sharpest lead anyone reading
-  Wine's dispatch would want, and the two builds are one `-DROUNDS=` apart
-  (`wow64bop.sh`), so reproducing the pair costs a minute.
+- ~~**Wine's call-gate setup or Rosetta's translation of the far transfer.**~~
+  Settled on this machine alone: the two-thread shapes of "Coverage is
+  back" separate the instruction classes that break the switch from the
+  ones that do not, and the tracer routes around them. Whether the same
+  program passes on an x86 host is still unmeasured, and no longer needed.
+- ~~**Why one shape of the same program faults and another does not.**~~
+  Because the shapes were not what the source said: the ROUNDS loop's
+  call was hoisted by the compiler, so `-DROUNDS=8` was eight plain
+  stores interleaved with eight syscalls and `-DROUNDS=1` was one — the
+  single-threaded form of the finding ("Coverage is back").
 
 ## The shutdown dump — 65 archives of free ground truth, and its one-tick tear (2026-09-07)
 
@@ -6141,6 +6148,11 @@ off and 22 unlinked; the rungs go in when the parser goes lazy.
 
 ## The falsifier for 226, costed — and it turned out to be 3.5 KB
 
+**Overtaken on 2026-09-08**: no second host was needed. The same file,
+given a second thread, reproduced the game's death on this machine and
+named the cause ("Coverage is back", below). The plan here is kept as the
+record of what it would have cost.
+
 The open question above is one bit: **Wine's wow64, or this machine's 32-bit
 x86 emulation?** Nothing on this Mac separates them, because there is only
 one 32-bit executor here. The falsifier is therefore a second host — and the
@@ -6214,3 +6226,108 @@ possible but not worth it: software Vulkan under software x86 for a
 
 None of this is booked. It is Ramon's spend and Ramon's machine time, and
 nothing here has been rented, downloaded or installed.
+
+## Coverage is back — the stub forest, and what actually broke the bop (2026-09-08, tools lane, Fable 5.1)
+
+`cover=1` runs under free Wine again. run906 is the first coverage capture
+off CrossOver: run903's game, 401 frame blocks, **10,950 HIT records over
+6,733 functions**, a per-frame set for each of the four window frames, and
+the word identical to run53 on every one of the 401 frames — the
+instrument records without moving the simulation. run907, `cover=0` with
+the rebuilt DLL, is the proof the instrument owes after any change:
+rngcmp against run53 **0 differing, 401 identical**; samegame against
+run10 **400 in common, 0 differ**. Five minutes each, end to end.
+
+**What the coverage instrument is now.** `funcs.py` reads the executable
+as well as the index and writes a table: for every listed entry, the
+smallest run of whole instructions covering the five bytes a `jmp rel32`
+overwrites, with every EIP-relative branch in it rewritten to its rel32
+form and its target left for the DLL to fix up. `rontrace.dll` builds one
+stub per entry in a region it writes as data and then makes executable,
+and plants the jmps **once, at attach, with one thread alive** — nothing is
+ever restored, no exception is ever raised. A stub records the entry (the
+first per run; inside the window, the first per frame), runs the copy and
+jumps back. Outside a window a recorded function's stub is a flag test and
+a branch. The stub saves `eax`, `ecx`, `edx` by hand and the flags through
+`lahf`/`seto`, and it does so for a measured reason (below). The table
+excludes **47** of the 48,233 entries, each named in
+`rontrace.funcs.excluded.txt` beside it: 7 whose next entry is under five
+bytes away, 13 with a direct branch from elsewhere landing inside the
+displaced range (found by a linear sweep of `.text`; the run without this
+check died on exactly one, `FUN_004ec042`), and Ghidra's 27 unnamed
+`FUN_` chunks, which are labels rather than functions. The five hook sites
+and, when a `callwin` is set, the eight proxied sites carry their own
+jumps and are skipped as before.
+
+**How the cause was found, because the falsifier had been wrong twice.**
+
+- The shipped `wow64bop.c` loop was not its source. At `-O1` clang hoists
+  the pure `target(41)` out of the ROUNDS loop, so the 12/12 fault was
+  "eight plain stores to a translated page, each followed by a syscall,
+  then one breakpoint", and the 5/5 pass at `ROUNDS=1` was one store and
+  one syscall. Read off the disassembly; the recorded numbers stand, their
+  explanation did not.
+- Single-threaded, every stub shape passes: locked or plain writes,
+  batched or interleaved with syscalls, one page or 1,024, a write across
+  a page boundary, an `OutputDebugString` exception first, `EFLAGS.ID`
+  set, the syscall from inside the stub. The first page-count matrix ran
+  with its flag never defined — zsh does not word-split `${X:+-DA -DB}` —
+  and was re-run.
+- The game died on a single armed function (the entry point, the cookie
+  init, the 100th, 1,000th and 2,500th startup function alone), and did not
+  die with attach and arming but no hit, nor with a hit that restored and
+  logged nothing. Eleven startup probes, 25 seconds each, no display.
+- With a flusher thread added so records survived, the next death was on a
+  thread that had run no stub at all: a Concurrency-runtime worker,
+  `wow64cpu+0x123d`, and then the flusher itself.
+- **The two-thread falsifier reproduces it, and the control does not.** A
+  second thread that only makes syscalls, beside a main thread running the
+  rounds: with writes and `popad`/`popfd`, dies; with no writes after the
+  arm, dies; with no flag ops either, intermittent. With no stub at all —
+  both threads storming syscalls — **survives 4/4**. Then one instruction
+  class per build, a million times: **`popad` dies 3/3, `popfd` dies now
+  and then**; an indirect call into the RWX page, `lahf`/`seto` and
+  `sahf`, `push`/`pop` and a direct call **survive 3/3**. The victim is
+  the *other* thread: it enters the bop still in 32-bit mode (read of
+  `0x4ECD`), or runs 32-bit ntdll as 64-bit code (`rip=0xC7BC628D4`).
+
+So the rule the instrument is built on is three lines: no write to the
+executable's code after attach; no `popad`, no `popfd`, anywhere a stub
+runs; no syscall from a stub (the records are buffered and the flusher and
+the frame hook write them). The two probes that put the last line in: a
+`WriteFile` from inside the stub, right after a locked restore, died at
+the next bop 4 times out of 4, while the same restore followed by the
+game's own syscalls lived.
+
+**What it costs.** Every call of every function passes through its stub.
+run906's 400 frames took the same five minutes run907's did — startup and
+the dump dominate at this length — but a 24,000-frame coverage run is not
+free the way a `cover=0` one now is; budget it. The re-arm per window frame
+is gone: a window costs a `memset` of 48 KB at its first frame and the C
+callback once per function per frame inside it.
+
+**What is not established.**
+
+- **Why `popad` and a code write on one thread break another thread's
+  mode switch.** The instruction classes are measured, the mechanism is
+  not; it lives in Rosetta's 32-bit support for Wine's wow64 and is not
+  ours to fix. The draw hooks still use `pushad`/`popad` and
+  `pushfd`/`popfd` at a few thousand calls a frame; ninety captures have
+  not tripped on it, the coverage stubs at millions of calls a second did
+  within seconds. Moving the hooks onto the same flag-free sequence is a
+  one-change item that owes its own run905-shaped proof.
+- **A branch target inside a displaced range that the sweep cannot see** —
+  a jump-table entry. The 13 the sweep found were direct branches; an
+  indirect one into the first five bytes of a listed function would run a
+  displacement as code. No run has shown one; the signature is a fault in
+  game code at `entry+n` for small `n`.
+- **Whether the falsifier's int3 shape passes on an x86 host.** It was the
+  question the previous section costed; the answer is no longer needed
+  and nothing was rented to get it.
+
+The blind list, counter 2 of `docs/DECISIONS.md` entry 29, re-read on the
+three coverage traces there are: **802 functions cited under `docs/`, 650
+entered by run53, run54 and run906, 152 never** — run906 alone enters
+511, and adds one function the two CrossOver runs never reached.
+`report.py … blind docs/ <logs>` is the command, and it accepts as many
+logs as there are.

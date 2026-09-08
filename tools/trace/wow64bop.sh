@@ -19,7 +19,16 @@ RLLD=$(rustc --print sysroot)/lib/rustlib/$HOST/bin/rust-lld
 OUT=${1:-${TMPDIR:-/tmp}/rontrace-build}
 mkdir -p $OUT
 
+# STUB=1 builds the jump-stub shape instead of the int3 one; STRADDLE=1 is
+# the stub shape with the target two bytes before a page boundary; the other
+# flags are the shapes the header of wow64bop.c lists. The default, with
+# none, is the int3 shape unmodified. **One flag per expansion**: zsh does
+# not word-split `${X:+-DA -DB}`, and clang then sees one argument — the
+# first page-count matrix was run with PAGES never defined because of it.
 $LLVM/clang @$HERE/compile_flags.txt -O1 ${ROUNDS:+-DROUNDS=$ROUNDS} \
+    ${STUB:+-DSTUB} ${STRADDLE:+-DSTUB} ${STRADDLE:+-DSTRADDLE} ${NOCAS:+-DNOCAS} \
+    ${DIAG:+-DDIAG} ${BATCH:+-DBATCH} ${NOSAY:+-DNOSAY} ${SAYIN:+-DSAYIN} ${ARMONE:+-DARMONE} ${IDFLAG:+-DIDFLAG} ${THREADS:+-DTHREADS} ${NORESTORE:+-DNORESTORE} ${NOFLAGS:+-DNOFLAGS} ${POPFONLY:+-DPOPFONLY} ${NOARM:+-DNOARM} ${LOOPOP:+-DLOOPOP=$LOOPOP} \
+    ${PAGES:+-DBATCH} ${PAGES:+-DPAGES=$PAGES} ${ODS:+-DODS} \
     -c $HERE/wow64bop.c -o $OUT/wow64bop.obj
 $LLVM/llvm-dlltool -m i386 -k -d $HERE/wow64bop.def -l $OUT/wow64bop-k32.lib
 $RLLD -flavor link /machine:x86 /entry:start /nodefaultlib /subsystem:console \

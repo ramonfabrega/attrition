@@ -21,17 +21,13 @@
 #   start:      `[Start Game]` detail, setlog.py's `start:` list
 #   dump_all:   DUMP_ALL, default 0
 #   window:     "LO HI" for a DUMP_ALL window instead of the cheap dump
-#   cover:      rontrace.cfg's body, default `cover=1`. **On this machine
-#               every stanza must say `cover: cover=0`.** The int3 forest
-#               cannot run under free Wine: a thread that has been through
-#               the 32-bit vectored-exception path takes its next 32->64
-#               transition without switching mode and dies inside
-#               `wow64cpu`'s bop entry — settled 2026-09-04, `docs/ORACLE.md`,
-#               "226: the fault is the bop, not the handler". Captures are
-#               unaffected (the draw hooks are plain jumps and the trace word
-#               still matches run53); **function coverage is what is lost**,
-#               so `report.py … blind` cannot shrink until the oracle runs on
-#               a host with native 32-bit x86.
+#   cover:      rontrace.cfg's body, default `cover=1`. `cover=1` runs on
+#               this machine again since 2026-09-08 (run906; `docs/ORACLE.md`,
+#               "Coverage is back"): the stubs write nothing after attach and
+#               use no popad/popfd. Say `cover: cover=0` when the question is
+#               only the draw stream — a coverage run passes every call
+#               through a stub and is slower over a long run — and add
+#               `cover: window=LO-HI` for per-frame sets.
 #   cmd:        one `rontrace.cmd` line, repeatable, in file order
 #   driver:     a script driven while the game runs, for the right-clicks the
 #               cheat channel cannot issue — `move` is a teleport and **no
@@ -2456,3 +2452,49 @@ check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|cur_anim" "$HOME/ron-data/AppData/
 # Citizen at slot 5: `val` 697 -> 6 and `bucket[0]` 88 -> 45 on the next
 # block. `docs/AI.md` §34; `run91_s_window_is_the_leader_s_ledger_at_the_word`
 # is the assertion. The word does **not** move.
+
+run: 906
+tag: greatlakes-coverage
+item: 226
+why: cover=1 back on free Wine — the displaced-prologue stubs, no restore, no popad; run903's game with the coverage instrument on
+frames: 400
+mapstyle: 14
+# The first coverage capture on free Wine. Same game as run903/run905 (the
+# proof runs), so the draw stream must be word for word run53's while the
+# coverage records fill: the instrument must not move the simulation.
+cover: cover=1
+cover: window=0-3
+# The word: every frame identical to run53, none differing.
+check: python3 tools/gamelog/rngcmp.py rontrace-run53.log rontrace-run906.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=400)}'
+# Coverage happened: functions entered over the run, and a per-frame set for
+# each of the four window frames.
+# `functions` prints its count on stderr, after the list.
+check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run906.log" functions 2>&1 >/dev/null | tee /dev/stderr | awk '/functions entered/{exit !($1+0 > 5000)}'
+check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run906.log" coverage 0 1 2 3 | grep -c "^== frame" | tee /dev/stderr | awk '{exit !($1==4)}'
+# The draw trampolines are untouched: frame 0 draws the same number of times
+# as run53's frame 0.
+check: test "$(python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run906.log" draws 0 | wc -l)" = "$(python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run53.log" draws 0 | wc -l)"
+# TAKEN 2026-09-08 — five minutes (02:27 to 02:32:39), **401 blocks, 8.7 MB
+# gamelog, 9.0 MB trace: 10,950 HIT records over 6,733 functions**, a set
+# for each of frames 0..3 (1,656 / 1,230 / 988 / 1,105). rngcmp against
+# run53 **0 differing, 401 identical**; frame 0 draws 336 times, as run14
+# and run53 do. The `functions` check as first written read stdout and
+# failed on its own shape (the count is on stderr), fixed above; the
+# coverage data passed. The 16 functions run53 enters by frame 400 that
+# run906 does not are exactly the 16 of its 47 table exclusions that run
+# there; the 207 run906 enters that run53 never does are window and key
+# handlers and `log_data` — this lobby was clicked, that one was not.
+
+run: 907
+tag: greatlakes-wineproof3
+item: 226
+why: the tracer changed, so the cover=0 instrument owes run905's proof again — same game, word for word
+frames: 400
+mapstyle: 14
+cover: cover=0
+check: python3 tools/gamelog/rngcmp.py rontrace-run53.log rontrace-run907.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=400)}'
+check: python3 tools/gamelog/samegame.py gamelog-run10-world6-long.txt gamelog-run907-greatlakes-wineproof3.txt | tee /dev/stderr | awk '/^differ:/{d=$2+0} END{exit !(d==0)}'
+# TAKEN 2026-09-08 — five minutes (02:33 to 02:38:26), 401 blocks. Both
+# checks ok: rngcmp against run53 **0 differing, 401 identical**; samegame
+# against run10 **400 in common, 0 differ**. The rebuilt `rontrace.dll`
+# with `cover=0` is the instrument every capture on disk was taken with.

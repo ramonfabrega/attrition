@@ -13,13 +13,23 @@
  *      `Game::do_frame` is trampolined too, which is where the frame comes
  *      from (`Game+0x550`) and where the per-frame seed is recorded.
  *
- *   2. Function coverage. Every function entry in the Ghidra export
- *      (`rontrace.funcs`, u32 RVAs) gets an `int 3`; a vectored exception
- *      handler logs the first hit, restores the byte and resumes. Armed once
- *      at attach (so the log holds every function the run ever entered, with
- *      the frame it was first entered on) and re-armed at the start of every
- *      frame inside the window in `rontrace.cfg`, which gives per-frame sets
- *      for those frames.
+ *   2. Function coverage. Every function entry in the coverage table
+ *      (`rontrace.funcs`, built by `funcs.py` from the Ghidra export and
+ *      the executable) gets a 5-byte `jmp` to a stub of its own; the stub
+ *      records the entry, runs a **copy** of the instructions the jmp
+ *      displaced (branches rewritten, the table carries them) and jumps
+ *      back to the rest of the function. The entry is written once, at
+ *      attach, with one thread alive, and never touched again: no
+ *      exception is raised and no code is restored. The first entry of
+ *      each function over the run is recorded, and inside the frame window
+ *      of `rontrace.cfg` the first entry per frame, which gives per-frame
+ *      sets for those frames; outside the window a recorded function's
+ *      stub takes a two-instruction fast path. Until 2026-09-08 this was an
+ *      `int 3` per entry, a vectored handler and a restore per hit; under
+ *      free Wine on Apple Silicon that died at a 32->64 transition, and
+ *      `wow64bop.c` found the reason in the game's own shape: a write to
+ *      translated code while another thread is mid-syscall breaks that
+ *      thread's mode switch — the exception path was never the cause.
  *
  *   3. The cheat channel. `rontrace.cmd` beside the exe lists `<frame> <line>`
  *      entries; at the entry of `Game::do_frame` for that sim-frame each line
@@ -34,7 +44,7 @@
  *   4. The call proxies. `rontrace.cfg`'s `callwin=LO-HI` replaces each
  *      listed function with a proxy that logs its arguments, calls the
  *      original, and logs its **answer** — the one thing neither a draw hook
- *      nor an `int 3` can give, and the one thing the gamelog has no
+ *      nor a coverage stub can give, and the one thing the gamelog has no
  *      category for. `PathFinder::calc_cost` is why it exists: a per-step
  *      cost dump over one frame's searches, delimited by
  *      `PathFinder::astar_path`'s own entry and return. Without a `callwin`
@@ -67,13 +77,14 @@ IMPORT(i32, CloseHandle, (HANDLE));
 IMPORT(u32, GetFileSize, (HANDLE, u32 *));
 IMPORT(i32, VirtualProtect, (void *, u32, u32, u32 *));
 IMPORT(void *, VirtualAlloc, (void *, u32, u32, u32));
-IMPORT(void *, AddVectoredExceptionHandler, (u32, void *));
 IMPORT(void *, GetModuleHandleA, (const char *));
 IMPORT(u32, GetModuleFileNameA, (void *, char *, u32));
 IMPORT(i32, FlushInstructionCache, (HANDLE, const void *, u32));
 IMPORT(HANDLE, GetCurrentProcess, (void));
 IMPORT(u32, GetCurrentThreadId, (void));
 IMPORT(void, OutputDebugStringA, (const char *));
+IMPORT(HANDLE, CreateThread, (void *, u32, void *, void *, u32, u32 *));
+IMPORT(void, Sleep, (u32));
 
 #define GENERIC_READ 0x80000000u
 #define GENERIC_WRITE 0x40000000u
@@ -83,34 +94,10 @@ IMPORT(void, OutputDebugStringA, (const char *));
 #define FILE_ATTRIBUTE_NORMAL 0x80u
 #define INVALID_HANDLE ((HANDLE)(i32)-1)
 #define PAGE_EXECUTE_READWRITE 0x40u
+#define PAGE_EXECUTE_READ 0x20u
+#define PAGE_READWRITE 0x04u
 #define MEM_COMMIT 0x1000u
 #define MEM_RESERVE 0x2000u
-#define EXCEPTION_BREAKPOINT 0x80000003u
-
-typedef struct {
-    u32 code, flags;
-    void *record, *address;
-    u32 nparams;
-    u32 info[15];
-} EXCEPTION_RECORD;
-
-/* x86 CONTEXT: Eip is at +0xb8 — ContextFlags, six debug registers, the
- * 112-byte FLOATING_SAVE_AREA, four segment registers, then the integer
- * registers in this order. */
-typedef struct {
-    u32 ContextFlags;
-    u32 Dr[6];
-    u8 fsave[112];
-    u32 SegGs, SegFs, SegEs, SegDs;
-    u32 Edi, Esi, Ebx, Edx, Ecx, Eax, Ebp, Eip, SegCs, EFlags, Esp, SegSs;
-    u8 ext[512];
-} CONTEXT;
-
-typedef struct {
-    EXCEPTION_RECORD *rec;
-    CONTEXT *ctx;
-} EXCEPTION_POINTERS;
-
 /* ---- the executable ---------------------------------------------------- */
 
 #define TEXT_RVA 0x1000u
@@ -163,6 +150,8 @@ enum {
     I_CMD_NOCONSOLE = 10, /* a line was due but MiscAccess::console_win is null: a = frame, b = index */
     I_CMDS = 11, /* attach: a = lines parsed from rontrace.cmd */
     I_PROXIED = 12, /* a call site is proxied: a = rva, b = stub, c = nargs */
+    I_COVER = 13, /* the coverage stubs are built: a = region, b = stubs, c = table entries excluded */
+    I_DROPPED = 14, /* records lost to a full buffer since the last flush: a = count */
 };
 
 typedef struct {
@@ -275,16 +264,37 @@ static i32 g_cover = 1;
 static i32 g_cw_lo = -1, g_cw_hi = -2; /* the call proxies log when lo <= frame <= hi */
 static i32 g_calls = 0; /* proxies installed (only when a callwin was given) */
 
-static u32 g_funcs[65536];
+/* The coverage table, one record per listed function (`funcs.py`). */
+typedef struct {
+    u32 rva;
+    u8 orig_len; /* bytes the copy stands in for; 0 = excluded */
+    u8 code_len;
+    u8 nfix;
+    u8 pad;
+    u8 code[24]; /* the displaced prologue, branches rewritten to rel32 */
+    u8 fix_off[4]; /* rel32 slots in `code` */
+    u32 fix_target[4]; /* their absolute targets */
+} Entry;
+#define MAX_FUNCS 65536
+static Entry g_funcs[MAX_FUNCS];
 static u32 g_nfuncs;
-static u8 g_orig[TEXT_SIZE]; /* the byte under the int3 */
-static u8 g_armed[TEXT_SIZE]; /* 1 while an int3 is planted */
-static u8 g_saved[TEXT_SIZE]; /* g_orig valid */
-
-#define BUF_RECS 32768
+static u8 g_hit[MAX_FUNCS]; /* entered at least once this run */
+static i32 g_hit_frame[MAX_FUNCS]; /* the frame of the last recorded entry */
+static u8 g_fast[MAX_FUNCS]; /* the stub skips its call: recorded, and no window open */
+static i32 g_in_window; /* the current frame is inside rontrace.cfg's window */
+static u8 *g_stubs; /* one STUB_BYTES slot per table entry */
+static u32 g_nstubs;
+#define STUB_BYTES 80 /* 42 of stub, up to 24 of copy, 5 of jmp */
+/* 4 MB: every function in the table can be entered between two flushes (a
+ * window frame records each once) and the coverage stubs never flush — see
+ * `emit_nosys`. */
+#define BUF_RECS 131072
+#ifndef FLUSH_RECS
 #define FLUSH_RECS 256 /* 8 KB writes; a kill loses at most this many records */
+#endif
 static u32 g_buf[BUF_RECS * 8];
 static u32 g_nbuf;
+static u32 g_dropped; /* records lost to a full buffer, reported at the next flush */
 
 static char g_dir[300]; /* the exe's directory, with the trailing backslash */
 
@@ -371,6 +381,16 @@ static void path_join(char *out, const char *name) {
 
 static void flush_locked(void) {
     u32 written;
+    if (g_dropped && g_nbuf < BUF_RECS) { /* I_DROPPED: a = records lost */
+        u32 *r = g_buf + g_nbuf * 8;
+        r[0] = K_INFO;
+        r[1] = I_DROPPED;
+        r[2] = g_dropped;
+        r[3] = r[4] = r[5] = r[6] = 0;
+        r[7] = (u32)g_frame;
+        g_nbuf++;
+        g_dropped = 0;
+    }
     if (g_log != INVALID_HANDLE && g_nbuf)
         WriteFile(g_log, g_buf, g_nbuf * 32, &written, 0);
     g_nbuf = 0;
@@ -378,16 +398,23 @@ static void flush_locked(void) {
 
 static void emit(u32 k, u32 a, u32 b, u32 c, u32 d, u32 e, u32 f) {
     lock();
-    u32 *r = g_buf + g_nbuf * 8;
-    r[0] = k;
-    r[1] = a;
-    r[2] = b;
-    r[3] = c;
-    r[4] = d;
-    r[5] = e;
-    r[6] = f;
-    r[7] = (u32)g_frame;
-    if (++g_nbuf == FLUSH_RECS) flush_locked();
+    if (g_nbuf >= BUF_RECS) {
+        g_dropped++;
+    } else {
+        u32 *r = g_buf + g_nbuf * 8;
+        r[0] = k;
+        r[1] = a;
+        r[2] = b;
+        r[3] = c;
+        r[4] = d;
+        r[5] = e;
+        r[6] = f;
+        r[7] = (u32)g_frame;
+        g_nbuf++;
+    }
+    /* `>=`, not `==`: the coverage stubs add records without flushing, so
+     * the count can pass FLUSH_RECS between two emits from here. */
+    if (g_nbuf >= FLUSH_RECS) flush_locked();
     unlock();
 }
 
@@ -397,12 +424,45 @@ static void flush(void) {
     unlock();
 }
 
+/* A record from a coverage stub: no flush, ever. A stub runs inside the
+ * game's own call, on every thread the game has, and a syscall from there
+ * was one of the shapes that died in the probes behind "Coverage is back"
+ * (`docs/ORACLE.md`); the flusher and the frame hook write the log. A full
+ * buffer drops the record and counts it. */
+static void emit_nosys(u32 k, u32 a, u32 b) {
+    lock();
+    if (g_nbuf < BUF_RECS) {
+        u32 *r = g_buf + g_nbuf * 8;
+        r[0] = k;
+        r[1] = a;
+        r[2] = b;
+        r[3] = r[4] = r[5] = r[6] = 0;
+        r[7] = (u32)g_frame;
+        g_nbuf++;
+    } else {
+        g_dropped++;
+    }
+    unlock();
+}
+
+/* The flusher: a thread of the instrument's own that writes the buffer out
+ * every 20 ms. The coverage stubs never flush (`emit_nosys`) and the frame
+ * hook flushes once a frame, so without this a startup's records would sit
+ * in memory until the first frame, and a death before it would lose them
+ * all — which is how the eleven probes behind "Coverage is back" were read. */
+static u32 WINAPI flusher(void *arg) {
+    (void)arg;
+    for (;;) {
+        Sleep(20);
+        flush();
+    }
+}
+
 /* ---- coverage ---------------------------------------------------------- */
 
-/* A patched entry must never also carry an int3: the coverage byte would land
- * on the `jmp` and the handler would restore it, unhooking the site. A
- * proxied function therefore has no HIT record — its CALL/RET records are
- * the stronger evidence anyway. */
+/* A hooked or proxied entry carries its own `jmp` already, and the copy a
+ * coverage stub runs would be that jmp. A proxied function therefore has no
+ * HIT record — its CALL/RET records are the stronger evidence anyway. */
 static int is_hook_site(u32 rva) {
     for (u32 i = 0; i < NHOOKS; i++)
         if (rva >= HOOKS[i].rva && rva < HOOKS[i].rva + HOOKS[i].len) return 1;
@@ -412,61 +472,167 @@ static int is_hook_site(u32 rva) {
     return 0;
 }
 
-/* Plant an int3 on every listed function that is not currently armed. The
- * first pass records the original byte; later passes only re-plant. */
-static u32 arm_all(void) {
-    u32 n = 0;
-    for (u32 i = 0; i < g_nfuncs; i++) {
-        u32 rva = g_funcs[i];
-        u32 off = rva - TEXT_RVA;
-        if (off >= TEXT_SIZE || is_hook_site(rva)) continue;
-        if (g_armed[off]) continue;
-        u8 *p = (u8 *)(g_base + rva);
-        if (!g_saved[off]) {
-            g_orig[off] = *p;
-            g_saved[off] = 1;
-        }
-        *p = 0xCC;
-        g_armed[off] = 1;
-        n++;
+/* `lock cmpxchg8b` n bytes at offset `at` of the 8-byte word `w`. */
+static void cas_word(u8 *w, u32 at, const u8 *bytes, u32 n) {
+    for (;;) {
+        u32 lo = *(volatile u32 *)w, hi = *(volatile u32 *)(w + 4);
+        u8 b[8];
+        *(u32 *)b = lo;
+        *(u32 *)(b + 4) = hi;
+        for (u32 i = 0; i < n; i++) b[at + i] = bytes[i];
+        u32 nlo = *(u32 *)b, nhi = *(u32 *)(b + 4);
+        u8 ok;
+        __asm__ volatile("lock cmpxchg8b %0\n\tsete %1"
+                         : "+m"(*(u32 *)w), "=q"(ok), "+a"(lo), "+d"(hi)
+                         : "b"(nlo), "c"(nhi)
+                         : "cc", "memory");
+        if (ok) return;
     }
-    FlushInstructionCache(g_proc, (void *)(g_base + TEXT_RVA), TEXT_SIZE);
+}
+
+/* Write five bytes over code with locked writes: one `cmpxchg8b` where
+ * [p, p+5) sits inside an 8-byte word, two where it straddles. Only ever
+ * called from `arm_all` at attach, when the process has one thread. */
+static void patch5(u8 *p, const u8 *five) {
+    u32 at = (u32)p & 7;
+    u8 *w = p - at;
+    u32 first = 8 - at;
+    if (first > 5) first = 5;
+    cas_word(w, at, five, first);
+    if (first < 5) cas_word(w + 8, 0, five + first, 5 - first);
+}
+
+/* A coverage stub's slow path: the first entry of the function this run,
+ * and inside the window the first entry per frame. Two threads can arrive
+ * together; the worst case is one duplicate record, which the reader folds.
+ * No syscall is made here — none is needed, and none could be: the log is
+ * written by the flusher and the frame hook. */
+static void __cdecl on_cover(u32 i) {
+    if (!g_hit[i]) {
+        g_hit[i] = 1;
+        g_hit_frame[i] = g_frame;
+        emit_nosys(K_HIT, g_base + g_funcs[i].rva, rd_fs(0x24));
+    } else if (g_in_window && g_hit_frame[i] != g_frame) {
+        g_hit_frame[i] = g_frame;
+        emit_nosys(K_HIT, g_base + g_funcs[i].rva, rd_fs(0x24));
+    }
+    if (!g_in_window) g_fast[i] = 1;
+}
+
+/*
+ * The stub, one per table entry, in a region written as data and then made
+ * executable. **No `pushad`/`popad` and no `pushfd`/`popfd`**: a thread
+ * running `popad` — reliably — or `popfd` — now and then — while another
+ * thread is mid-syscall breaks that thread's 32->64 switch on this machine
+ * (`wow64bop.c`'s one-instruction loops, `docs/ORACLE.md`, "Coverage is
+ * back"); plain push/pop, lahf/sahf and calls are clean. So the flags go
+ * through `lahf`/`seto` and come back through `add al,0x7f`/`sahf`, and
+ * only the registers the cdecl callee may clobber are saved:
+ *
+ *   50                     push eax
+ *   9F                     lahf                   ; SF ZF AF PF CF -> ah
+ *   0F 90 C0               seto al                ; OF -> al
+ *   80 3D ff ff ff ff 00   cmp byte ptr [g_fast+i], 0
+ *   75 rr                  jne done               ; recorded, no window open
+ *   51 52                  push ecx; push edx
+ *   50                     push eax               ; the saved flags, across the call
+ *   68 ii ii ii ii         push i
+ *   B8 hh hh hh hh         mov eax, on_cover
+ *   FF D0                  call eax
+ *   83 C4 04               add esp, 4
+ *   58                     pop eax                ; the saved flags
+ *   5A 59                  pop edx; pop ecx
+ *   done:
+ *   04 7F                  add al, 0x7f           ; OF <- (al == 1)
+ *   9E                     sahf                   ; the rest <- ah
+ *   58                     pop eax
+ *   <code_len bytes>       the displaced prologue, rel32 slots fixed up
+ *   E9 bb bb bb bb         jmp rva + orig_len
+ *
+ * The registers, the flags and the stack are exactly the caller's when the
+ * copy runs — on both paths, since a label reached by a jump can be
+ * carrying live flags — and the copy runs the original's own instructions.
+ */
+static u32 build_cover_stub(u8 *st, u32 i) {
+    const Entry *e = &g_funcs[i];
+    u32 n = 0;
+    static const u8 head[] = {0x50, 0x9F, 0x0F, 0x90, 0xC0, 0x80, 0x3D};
+    memcpy(st + n, head, sizeof head);
+    n += sizeof head;
+    *(u32 *)(st + n) = (u32)&g_fast[i];
+    n += 4;
+    st[n++] = 0x00;
+    st[n++] = 0x75; /* jne done */
+    u32 jne_at = n++;
+    static const u8 save[] = {0x51, 0x52, 0x50, 0x68};
+    memcpy(st + n, save, sizeof save);
+    n += sizeof save;
+    *(u32 *)(st + n) = i;
+    n += 4;
+    st[n++] = 0xB8; /* mov eax, on_cover */
+    *(u32 *)(st + n) = (u32)(void *)on_cover;
+    n += 4;
+    static const u8 call[] = {0xFF, 0xD0, 0x83, 0xC4, 0x04, 0x58, 0x5A, 0x59};
+    memcpy(st + n, call, sizeof call);
+    n += sizeof call;
+    st[jne_at] = (u8)(n - (jne_at + 1));
+    static const u8 done[] = {0x04, 0x7F, 0x9E, 0x58};
+    memcpy(st + n, done, sizeof done);
+    n += sizeof done;
+    u32 copy_at = n;
+    memcpy(st + n, e->code, e->code_len);
+    n += e->code_len;
+    for (u32 k = 0; k < e->nfix; k++) {
+        u8 *slot = st + copy_at + e->fix_off[k];
+        *(u32 *)slot = e->fix_target[k] - ((u32)slot + 4);
+    }
+    st[n++] = 0xE9;
+    u32 back = g_base + e->rva + e->orig_len;
+    *(u32 *)(st + n) = back - ((u32)(st + n) + 4);
+    n += 4;
     return n;
 }
 
-/* Claim every breakpoint at an address we ever planted on, armed or not:
- * two threads can trap on the same int3 before either handler runs, and the
- * second must not be handed to the game as an unhandled exception. Restoring
- * the byte twice is harmless. */
-static i32 WINAPI veh(EXCEPTION_POINTERS *ep) {
-    if (ep->rec->code != EXCEPTION_BREAKPOINT) return 0;
-    u32 a = (u32)ep->rec->address;
-    u32 off = a - g_base - TEXT_RVA;
-    if (off >= TEXT_SIZE || !g_saved[off]) {
-        /* the other convention: Eip already past the int3 */
-        a = ep->ctx->Eip - 1;
-        off = a - g_base - TEXT_RVA;
-        if (off >= TEXT_SIZE || !g_saved[off]) {
-            u32 o2 = (u32)ep->rec->address - g_base - TEXT_RVA;
-            emit(K_INFO, I_DECLINED, (u32)ep->rec->address, ep->ctx->Eip,
-                 o2 < TEXT_SIZE ? g_armed[o2] : 0xffffffffu,
-                 o2 < TEXT_SIZE ? g_saved[o2] : 0xffffffffu, o2 < TEXT_SIZE ? g_orig[o2] : 0);
-            flush();
-            return 0;
-        }
+/* Build every stub, then plant the jmps — all of it at attach, before the
+ * executable's entry point, when this is the only thread. */
+static u32 arm_all(void) {
+    u32 excluded = 0;
+    for (u32 i = 0; i < g_nfuncs; i++) {
+        Entry *e = &g_funcs[i];
+        u32 off = e->rva - TEXT_RVA;
+        if (e->orig_len && (off >= TEXT_SIZE || off + e->orig_len > TEXT_SIZE || is_hook_site(e->rva)))
+            e->orig_len = 0;
+        if (!e->orig_len) excluded++;
     }
-    *(u8 *)a = g_orig[off];
-    g_armed[off] = 0;
-    /* No Win32 call here — see docs/ORACLE.md, item 226. Under free Wine's
-     * wow64 a syscall made from inside a vectored handler does not switch
-     * mode: the thread lands on `wow64cpu+0x1110` still in 32-bit code and
-     * dies at +0x1139 on the 64-bit `mov 0x4ecd(%rip),%edx` decoded as an
-     * absolute read of 0x4ECD. `FlushInstructionCache` was the first such
-     * call and `GetCurrentThreadId` the second; the thread id comes out of
-     * the TEB directly instead. */
-    emit(K_HIT, a, rd_fs(0x24), 0, 0, 0, 0);
-    ep->ctx->Eip = a;
-    return -1; /* EXCEPTION_CONTINUE_EXECUTION */
+    u32 size = (STUB_BYTES * g_nfuncs + 4095) & ~4095u;
+    g_stubs = (u8 *)VirtualAlloc(0, size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+    if (!g_stubs) return 0;
+    for (u32 i = 0; i < g_nfuncs; i++)
+        if (g_funcs[i].orig_len) build_cover_stub(g_stubs + STUB_BYTES * i, i);
+    u32 old;
+    if (!VirtualProtect(g_stubs, size, PAGE_EXECUTE_READ, &old)) {
+        emit(K_INFO, I_PROTECT_FAIL, 1, 0, 0, 0, 0);
+        g_stubs = 0;
+        return 0;
+    }
+    /* The copies are taken from the table, not the live bytes, so the
+     * order of the writes does not matter: an entry inside another's
+     * displaced range still reads as the original did. */
+    u32 n = 0;
+    for (u32 i = 0; i < g_nfuncs; i++) {
+        if (!g_funcs[i].orig_len) continue;
+        u8 *p = (u8 *)(g_base + g_funcs[i].rva);
+        u8 j[5];
+        j[0] = 0xE9;
+        u8 *st = g_stubs + STUB_BYTES * i;
+        *(u32 *)(j + 1) = (u32)st - ((u32)p + 5);
+        patch5(p, j);
+        n++;
+    }
+    g_nstubs = n;
+    FlushInstructionCache(g_proc, (void *)(g_base + TEXT_RVA), TEXT_SIZE);
+    emit(K_INFO, I_COVER, (u32)g_stubs, n, excluded, 0, 0);
+    return n;
 }
 
 /* ---- the hooks --------------------------------------------------------- */
@@ -486,7 +652,12 @@ static void __cdecl on_hook(u32 kind, u32 ecx, u32 ebp, u32 caller, u32 arg0) {
         g_frame = frame;
         u32 seed = *(u32 *)(g_base + RVA_GAME_RANDOM);
         u32 armed = 0;
-        if (g_cover && frame >= g_win_lo && frame <= g_win_hi) armed = arm_all();
+        if (g_cover && g_stubs) {
+            i32 in = frame >= g_win_lo && frame <= g_win_hi;
+            if (in && !g_in_window) memset(g_fast, 0, g_nfuncs); /* every stub records again */
+            g_in_window = in;
+            if (in) armed = g_nstubs; /* the stubs recording this frame */
+        }
         emit(K_FRAME, (u32)frame, seed, armed, caller, 0, 0);
         flush();
         run_cmds(frame);
@@ -848,10 +1019,11 @@ i32 WINAPI DllMain(void *inst, u32 reason, void *reserved) {
                             FILE_ATTRIBUTE_NORMAL, 0);
         read_cfg();
         read_cmds();
-        g_nfuncs = read_file("rontrace.funcs", g_funcs, sizeof g_funcs) / 4;
+        g_nfuncs = read_file("rontrace.funcs", g_funcs, sizeof g_funcs) / sizeof(Entry);
 
-        /* header: magic, version, base, .text, nfuncs, window */
-        emit(0x544E4F52u, 1, g_base, TEXT_RVA, TEXT_SIZE, g_nfuncs, (u32)g_win_lo);
+        /* header: magic, version (2 = the displaced-prologue table), base,
+         * .text, nfuncs, window */
+        emit(0x544E4F52u, 2, g_base, TEXT_RVA, TEXT_SIZE, g_nfuncs, (u32)g_win_lo);
         g_buf[7] = (u32)g_win_hi;
 
         u32 old;
@@ -867,9 +1039,9 @@ i32 WINAPI DllMain(void *inst, u32 reason, void *reserved) {
         }
         if (g_cover) {
             if (!g_nfuncs) emit(K_INFO, I_NOFUNCS, 0, 0, 0, 0, 0);
-            AddVectoredExceptionHandler(1, (void *)veh);
             u32 armed = arm_all();
             emit(K_INFO, I_ARMED, (u32)-1, armed, 0, 0, 0);
+            CreateThread(0, 0, (void *)flusher, 0, 0, 0);
         }
         emit(K_INFO, I_ATTACH, g_base, g_nfuncs, (u32)g_win_lo, (u32)g_win_hi, g_cover);
         emit(K_INFO, I_CMDS, g_ncmds, 0, 0, 0, 0);

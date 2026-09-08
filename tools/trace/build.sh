@@ -27,7 +27,9 @@ mkdir -p $OUT
 # Compile flags live in compile_flags.txt, one per line: clang expands it as a
 # response file, and clangd reads the same file, so editors analyze this file as
 # the freestanding 32-bit Windows target it is rather than as host macOS code.
-$LLVM/clang @$HERE/compile_flags.txt -O2 -c $HERE/tracer.c -o $OUT/tracer.obj
+# TRACER_DEFS: extra -D flags for a diagnostic build (`-DFLUSH_RECS=1` writes
+# every record as it is made, so a death loses nothing; slow).
+$LLVM/clang @$HERE/compile_flags.txt -O2 ${=TRACER_DEFS} -c $HERE/tracer.c -o $OUT/tracer.obj
 # stdcall: the .def carries the @N decoration for the symbol, -k strips it from the import name
 $LLVM/llvm-dlltool -m i386 -k -d $HERE/kernel32.def -l $OUT/kernel32.lib
 $RLLD -flavor link /dll /machine:x86 /entry:DllMain /nodefaultlib /subsystem:windows \
@@ -35,5 +37,7 @@ $RLLD -flavor link /dll /machine:x86 /entry:DllMain /nodefaultlib /subsystem:win
 $LLVM/llvm-readobj --file-headers $INSTALL/rontrace.dll | grep -E "Machine|AddressOfEntryPoint"
 $LLVM/llvm-readobj --coff-exports $INSTALL/rontrace.dll | grep -E "Name:"
 
-python3 $HERE/funcs.py $DECOMP/INDEX.tsv $INSTALL/rontrace.funcs
+# The coverage table needs the executable's own bytes (the displaced
+# prologues) and capstone, which `uv run` supplies from the script's header.
+uv run $HERE/funcs.py $DECOMP/INDEX.tsv $INSTALL/riseofnations.exe $INSTALL/rontrace.funcs
 python3 $HERE/patch_exe.py $INSTALL/riseofnations.exe $INSTALL/riseofnations_trace.exe rontrace.dll

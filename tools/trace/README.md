@@ -29,12 +29,12 @@ the how-to.
 
 | file | role |
 | --- | --- |
-| `tracer.c` | `rontrace.dll`: freestanding 32-bit, kernel32 only, no CRT, no floats. Trampolines `Random::get` (both), `MathUtilFuncSet::rand_real`, `Random::reseed` and `Game::do_frame`; plants `int 3` on every function entry and catches them in a vectored exception handler; **proxies** the `CALLS` sites so their arguments and answers are logged; runs `rontrace.cmd`'s cheat lines at the top of their frames through `ConsoleWin::parse_cmd`. |
+| `tracer.c` | `rontrace.dll`: freestanding 32-bit, kernel32 only, no CRT, no floats. Trampolines `Random::get` (both), `MathUtilFuncSet::rand_real`, `Random::reseed` and `Game::do_frame`; plants a `jmp` on every function entry to a stub of its own that records the entry and runs a copy of the displaced prologue (no exception, no restore — the entries are written once, at attach, and never again); **proxies** the `CALLS` sites so their arguments and answers are logged; runs `rontrace.cmd`'s cheat lines at the top of their frames through `ConsoleWin::parse_cmd`. |
 | `kernel32.def` | the fourteen imports, stdcall-decorated for `llvm-dlltool -k` |
 | `build.sh <install>` | clang (Homebrew LLVM) → `llvm-dlltool` → the pinned toolchain's `rust-lld -flavor link`; then `funcs.py` and `patch_exe.py`. Nothing to install. |
-| `funcs.py` | `INDEX.tsv` → `rontrace.funcs`, the function entries as u32 RVAs |
+| `funcs.py` | `INDEX.tsv` + the executable → `rontrace.funcs`, the coverage table: one 52-byte record per entry with the displaced prologue (capstone, via `uv run`), its branches rewritten to rel32 with fixups for the DLL, and `rontrace.funcs.excluded.txt` beside it naming every entry coverage cannot take and why |
 | `patch_exe.py` | `riseofnations.exe` → `riseofnations_trace.exe`: a copy with one added section carrying a copy of the import table plus one descriptor for `rontrace.dll`. The install's own exe is never modified. |
-| `wow64bop.c`, `.def`, `.sh` | **not part of a trace** — a 3.5 KB standalone that decides whether `cover=1`'s fault is Wine's or the host's 32-bit emulation. One vectored handler, one `int 3`, one syscall afterwards; no install, no graphics, no display. `docs/ORACLE.md`, "The falsifier for 226, costed". |
+| `wow64bop.c`, `.def`, `.sh` | **not part of a trace** — the standalone that reproduced `cover=1`'s fault and, shape by shape, found what it is: a thread running `popad`/`popfd` or writing code while another thread is mid-syscall breaks that thread's 32→64 switch under free Wine on Apple Silicon. Its header lists every shape and its verdict; `docs/ORACLE.md`, "Coverage is back". |
 | `report.py` | the reader: `summary`, `draws`, `sites`, `coverage`, `functions`, `blind`. `draws` prints **the value each draw returned**: the record carries the seed *before* the step, so stepping the LCG once and applying `Random::get`'s scaling recovers an outcome no dump holds — a setup coin, a direction. |
 
 Everything staged lands in the install directory (`/game`, gitignored):
@@ -62,14 +62,14 @@ loses at most the current frame.
   re-armed, giving a per-frame entered set for each. Outside the window the
   arming is one-shot from attach, so the cumulative set is still complete;
   each function's record carries the frame it was first entered on.
-- `cover=0` — draws only, no `int 3`s. Fast; use it when the question is only
-  the stream. **On this machine it is not a choice**: under free Wine the
-  int3 forest cannot run at all, because a thread that has been through the
-  32-bit vectored-exception path takes its next 32→64 transition without
-  switching mode (`docs/ORACLE.md`, "226: the fault is the bop, not the
-  handler"). Captures are unaffected — the draw hooks are plain jumps — but
-  `coverage`, `functions` and `blind` below have no new input until the
-  oracle runs where 32-bit x86 is native.
+- `cover=0` — draws only, no coverage stubs. Fast; use it when the question
+  is only the stream. `cover=1` runs again on this machine since 2026-09-08
+  (`docs/ORACLE.md`, "Coverage is back"): the stubs write nothing after
+  attach and use no `popad`/`popfd`, the two things the falsifier showed
+  break another thread's mode switch under free Wine. Every function call
+  passes through its stub — a two-instruction fast path once the function
+  is recorded and no window is open — so a coverage run is slower than a
+  `cover=0` one; budget the frames.
 - `callwin=LO-HI` — sim-frames over which the **proxied** sites log a record
   a call. Absent, nothing is patched and the run is byte-for-byte the
   instrument every capture up to run54 used, so leaving it out is how an
@@ -118,8 +118,8 @@ count**, and the fact that it is `__thiscall` and callee-clean — read the
 the prologue it expects and refuses on a mismatch, which catches a wrong
 address but not a wrong arity.
 
-A proxied entry carries no `int 3`, so a proxied function has **no HIT
-record**; `report.py blind` counts a `CALL` record as its entry instead.
+A proxied entry carries no coverage stub, so a proxied function has **no
+HIT record**; `report.py blind` counts a `CALL` record as its entry instead.
 
 ## Staging a scenario from a file: `rontrace.cmd`
 
@@ -156,9 +156,10 @@ their `x,y`. The line does not travel the order stream; a recording of the
 run does not contain it. Nothing here is faster than the dump: at
 `UNITS=3` the sim runs ~3 frames a second, so budget the frames.
 
-Cost: an `int 3` is one exception per function per arming — a few thousand
-per re-armed frame — which under Rosetta and Wine's WoW64 is a fraction of a
-second. The draw hooks are plain jumps and cost nothing measurable.
+Cost: with `cover=1` every call of every function takes its stub — the
+recorded, no-window fast path is a flag test, and inside a window frame the
+C callback runs once per function per frame. The draw hooks are plain jumps
+and cost nothing measurable.
 
 ## Reading it
 
@@ -240,10 +241,13 @@ rva, stub, argument count).
   local seed (graphics, not hooked). Four sites in `.text` carry the
   multiplier; a fifth would show up as a seed jump between consecutive draw
   records.
-- **`int 3` on a function entry that is not one** would corrupt data. The
-  list is Ghidra's function set with the PDB's names, all inside `.text`;
-  nothing in it is data. Import thunks are code and are armed like anything
-  else.
-- The exception handler resumes at the function's first byte after restoring
-  it, so a function that is entered by two threads at once is logged twice —
-  harmless.
+- **A `jmp` on a function entry that is not one** would corrupt data, and
+  one whose first five bytes are a branch target from elsewhere would run
+  a displacement as code. The list is Ghidra's function set with the PDB's
+  names, all inside `.text`; `funcs.py` sweeps `.text` for branches into
+  a displaced range and drops Ghidra's unnamed `FUN_` chunks, which are
+  labels rather than entries, and names every exclusion in
+  `rontrace.funcs.excluded.txt`. Import thunks are code and are armed like
+  anything else.
+- A function entered by two threads at once can be logged twice —
+  harmless; the reader folds on the first record.

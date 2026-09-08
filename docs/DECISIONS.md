@@ -1299,11 +1299,13 @@ Two things made the choice cheap, and both are method rather than luck:
   game is PE32. **Check the artifact before buying the plan**, even when
   the plan is yours.
 
-The cost is recorded rather than hidden: the traced executable needs
+The cost is recorded rather than hidden: ~~the traced executable needs
 `cover=0` under free Wine (item 226), so **function coverage is off** until
-that is fixed, and the coverage list is the queue of blind readings
-(`CLAUDE.md`, "Prefer a diff to a reading"). Captures and diffs are
-unaffected.
+that is fixed~~ — paid on 2026-09-08: `cover=1` runs again on stubs that
+write nothing after attach and use no `popad`/`popfd` (`docs/ORACLE.md`,
+"Coverage is back"; run906). The coverage list is the queue of blind
+readings (`CLAUDE.md`, "Prefer a diff to a reading"). Captures and diffs
+were unaffected throughout.
 
 This does not overturn the horizon in `docs/ORACLE.md`: Rosetta 2 ends with
 macOS 28, and the durable answer is still an x86 machine running the
@@ -1321,7 +1323,9 @@ frames on the lower map in one day, and the lane rebuilt off CrossOver the
 same day. What the loop's own rule starves are the two other counters entry
 29 names as "sim done". The blind list is frozen at 101 of 617 because
 function coverage page-faults under free Wine (item 226), and nothing can
-shrink it until that is looked at. And the rule "every reading-only claim
+shrink it until that is looked at — *unfrozen 2026-09-08: 802 cited, 650
+entered, 152 never, on run53, run54 and run906 (ORACLE, "Coverage is
+back")*. And the rule "every reading-only claim
 gets a blind second reading" has been broken at scale: nine mechanic
 documents have never had one, 261 commits landed since the last audit, and
 four times this week a document stated a rule the code did not implement,
