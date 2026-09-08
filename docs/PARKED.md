@@ -118,25 +118,6 @@ unit the original built and we did not. In item 291 it is a caravan not
 linked to a city. Same word, different counter, and blurring them would
 make either number unreadable.
 
-(297) **Codex parity is a copy today and would rot** — a second agent's
-setup was stood up in the main checkout on 2026-09-07 and deliberately NOT
-committed: `AGENTS.md`, 26,352 bytes against `CLAUDE.md`'s 26,359 with
-**three lines differing** — the rules table's own filename row, the memory
-path, and "a Claude Code update resets the permissions". A hand-maintained
-near-duplicate of the one file this project calls "the rules" is the drift
-this repo exists to avoid, and no guard reads the copy, so it would go
-stale in silence the first time `CLAUDE.md` changed — which is weekly.
-Ramon's call, and the shape he named: **a symlink or a pointer file rather
-than a copy, and the hook generated rather than transcribed.** Two defects
-in the copy are the evidence that transcription had already gone wrong on
-day one: the memory path read `~/.Codex/…` with a capital C, a
-find-and-replace artifact rather than a real path; and `.codex/hooks.json`
-invoked the poll guard through **`$CLAUDE_PROJECT_DIR`**, a variable the
-other harness does not set, behind an `[ -f ] || exit 0` that would have
-made the hook a silent no-op rather than an error. Parked, not booked: it
-moves no word, and `docs_guard` would need to learn the pointer before the
-symlink is safe.
-
 ## Measured residues, none near a word
 
 (246) step 6's repath rests on run83's single event (239); (169)

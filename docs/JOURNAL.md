@@ -19845,3 +19845,9 @@ its first cut named.
 
 **The score did not move**: Great Lakes 7585, East Indies 7812. The
 opener is 295 with 294 beside it.
+
+**Item 297 closed the same evening, by removal.** Ramon chose neither the
+symlink nor the pointer: the uncommitted `AGENTS.md` and `.codex/hooks.json`
+copies were deleted from the main checkout, so there is one rules file and
+one hook again, and a second harness earns its pointer when it is used.
+`origin/main` fast-forwarded to the pass.
