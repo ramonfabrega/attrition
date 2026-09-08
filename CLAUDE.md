@@ -169,8 +169,10 @@ only the number says whether the whole is converging.
 - The implementation, in its own module.
 - Tests, including the end-to-end kind that run the new mechanic against the
   ones already there.
-- `cargo test`, `cargo clippy --all-targets` and `cargo fmt` clean, and
-  `cargo run -p rondata -- <install>` exiting zero.
+- `cargo test --release`, `cargo clippy --all-targets` and `cargo fmt`
+  clean, and `cargo run -p rondata -- <install>` exiting zero. The debug
+  profile is for the reflex (`tools/guard.sh`) and for stepping through
+  one test; a debug run that reaches a kept dump refuses, by design.
 - Committed. Any open question this closes in another document is struck
   through there and pointed at its answer, per the amend-in-place rule below.
 
@@ -324,7 +326,20 @@ line; then the batched ratification of the *marked rows only*,
 any verdict that overturns an earlier one, a listing read where the
 decompiler is wrong, and the rewrites of this file and the queue. It writes
 the next opener. Never Sonnet; the model is said in user-visible text each
-time.
+time. A commander may land a **one-clause safety fix in this file itself**
+when its evidence is measured and its source named, filing a `FABLE:` row
+the same day; everything else in this file waits for the pass.
+
+**A worker's landing is verified by refs and announced by the worker.**
+Before reporting, a worker states its tip SHA and that `git log
+<base>..<branch>` is non-empty — or, for a capture or a reading, where the
+product is — and then sends its commander a one-line done message: a
+report that only sits in the worker's own transcript has told nobody, and
+a session's state is not a signal. A worker that has not landed **ninety
+minutes** after its spawn sends a one-line status instead — the item, the
+step it is on, whether a gate is running — because two lanes on one box
+stretch every lane's wall clock, and wall clock is the one signal a
+commander cannot read. `docs/DECISIONS.md` entry 34.
 
 An Opus adjudication is acceptable under the marker discipline — append each
 verdict as it is settled, and mark what cannot be settled `FABLE:` rather
@@ -372,11 +387,12 @@ and makes the eventual diff mechanical rather than a translation exercise.
   a full context read each time. **The ban is on any command whose purpose
   is to yield the turn**, never on a list of spellings — `true`, `:`,
   `echo waiting` and `echo .` have all been used here, and enumerating them
-  is how the next one gets through. Measured across this repo's own
-  workers: **427 such turns in five sessions, $56** — 93% of the fleet's
-  whole bill for the shape, the worst a single run of 187 — all by workers
-  that had backgrounded their waits correctly and had been told only how
-  *not* to wait.
+  is how the next one gets through. `lore polls` measured the shape on
+  2026-09-07 — the figures and their source are in
+  `docs/audit/2026-09-07-fable-pass-2.md` — and every session that did it
+  was one of this repo's own workers, which had backgrounded its wait
+  correctly and been told only how *not* to wait. **A number in a rule
+  names its source**: the first figure written here was wrong by 3x.
 - **A multi-line Rust patch from Bash rides the python-heredoc pattern**
   (`python3 - <<'PYEOF'` with `old="""…"""`/`new="""…"""`), chained with
   its test run in the same call — edit and verify in one turn, and safer

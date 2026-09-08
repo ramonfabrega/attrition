@@ -60,8 +60,9 @@ constraint: no live worker is in `crates/sim`'s animation code.
 
 Neither is a mechanic and neither moves a word, which is why both park
 rather than take a slot under a cap that stood at 18 of 18 the day they
-were booked. Both are for a **Fable** pass — the model that steers, per
-CLAUDE.md's fan-out rules — and 293 wants **lore** in the room with it.
+were booked. Ruled by the second Fable pass the same day
+(`docs/audit/2026-09-07-fable-pass-2.md`): 293 closed there, 292 stays,
+and 283 came here from the queue to sit behind it.
 
 (292) **Nothing in this tree has ever been profiled** — no bench target, no
 criterion, no flamegraph, no samply, and no mention of Instruments anywhere
@@ -76,71 +77,20 @@ ignorance is upstream of more than the gate's runtime: 283 proposes a
 profile is what would settle it rather than argue it. Cheap to start —
 one bench target over the differ's parse and one over a sim tick — and it
 earns its dependency the moment it prints a number nobody predicted.
+**Ruled 2026-09-07**: stays parked with this first cut; the gate's five
+minutes is not what the loop was losing time to (293), and the item is
+taken by whichever worker next touches the gate's runtime, or with 283.
 
-(293) **Is the guard pipeline paying for itself, or taxing the loop?** —
-Ramon's observation, 2026-09-07: the guards work, and they are still spammy
-and reach further into a session than their value seems to want; the
-suspected cause is the long-running suites. Two mechanical candidates worth
-measuring before any redesign — `tools/guard.sh` is **four separate cargo
-invocations**, docs_guard, no_float, the_handoff and one per filter, each
-re-checking freshness and printing its own summary where one filtered run
-might do; and `docs_guard` itself reads the entire paperwork surface, the
-queue, every specification's sections and the decompile index, which is
-likely what "reaches in" is naming. But the shape of the script is not the
-question. The question is whether the guard-and-gate pipeline is improving
-the loop or taxing it, and **lore is the oracle that can answer it across
-sessions rather than by anecdote**: `lore tools` counts how often
-`guard.sh` is actually invoked against the release gate, `lore trace` and
-`lore usage` price the turns each costs, and `lore polls` already prices
-the waiting shape that grows around long runs. On the table and none of it
-prejudged: optimise the pipeline before deepening it, or fall back to a
-single-runner mode, which Ramon doubts. **A cross-item constraint if it is
-ever taken** — every worker runs `guard.sh`, so a change to it belongs in
-briefs the day it starts, not the day it lands.
-
-**Measured on the 289/290 pair, 2026-09-07, and it is not what this item
-guessed.** Neither worker was in a red-gate loop. 289's release gate went
-green on its **third** run — 245 tests, peak 11,218 MiB — and stayed green
-for an hour; its two red runs were expected re-pins of numbers its own
-change had moved, not a fix-and-retry cycle. The hour went to **one
-unoptimised debug `cargo test`, still running past 45 minutes**, against
-that release gate's five. What the debug run buys over the release gate is
-**eleven `debug_assert!`s** — four in `rondata/src/load.rs`'s tree loaders,
-seven across `sim` — and **no `#[cfg(debug_assertions)]` path at all**,
-because `[profile.release]` already sets `overflow-checks = true`. So
-`[profile.dev] opt-level = 2` would keep all eleven and cost the
-incremental compile speed `tools/guard.sh`'s whole reflex is built on:
-a real trade, and a steer's call rather than a worker's. **And the second
-half is not the compile at all** — two lanes running six threads of diff
-harness on one box is most of why that hour bought what five minutes buys
-alone, so serialising the lanes' gates may be worth more than any profile
-flag, and it bears directly on entry 34's width-two discretion. Reported by
-loop-289 while waiting on the very run it was measuring.
-
-**Corrected within the hour by loop-290, and the correction matters more
-than the finding.** The contention was **three** unoptimised copies of the
-heaviest suite, not two: loop-290 had launched the debug `cargo test`
-**twice by mistake** and killed its duplicate once it ran `ps`. So the
-sentence above must not be read as evidence against entry 34's width two —
-a third of that load was one worker's own error, and an operator mistake
-and a structural cost look identical from the outside. What survives the
-correction is narrower and still worth the steer: even two honest copies of
-a 45-minute debug run on one box is a poor way to spend a lane, and neither
-worker could see the other's load without being asked. **What is not
-established is whether width two alone, run cleanly, costs anything at
-all** — no one has measured that, and this pair cannot answer it.
-
-**And the sharpest form of it is loop-289's, because it names what the
-contention actually broke.** Two lanes on one box do not merely halve each
-other's throughput — they inflate every lane's **wall-clock**, and wall
-clock is exactly what a commander reads to decide whether a lane is stuck.
-289's hour looked like a red-gate loop from outside for precisely that
-reason, and the commander went and asked both workers on that reading. So
-the cost is not only throughput; it is that the loop's own health signal
-degrades as width rises, which is a defect in entry 34's width discretion
-rather than in any lane. Set against it: the opt-level trade is **bounded**
-— it costs `guard.sh`'s incremental compiles and nothing else — while this
-one is unbounded in the wrong direction.
+(283) **The ratchet wants a `#[global_allocator]`, not a mapping** — 280's
++1,563 MiB is *not* live data: a mapping is `munmap`ed at drop, while a
+freed `String` of a capture's size is kept by macOS's allocator and cannot
+serve the next capture's different size (260's own 5,332-MiB-with-nothing-
+alive probe, again). An allocator that returns large blocks recovers most
+of it with **no `unsafe` in this tree** — the crate carries it — and closes
+235's ratchet for every large owned buffer, not the two that were mapped.
+**Parked by the pass behind 292**: the retained memory is not live, not a
+score, and not a hazard behind `memcap.sh`; a dependency is earned by a
+measurement, and 292's bench is that measurement.
 
 ## Parked at the 289/290 merge, 2026-09-07
 

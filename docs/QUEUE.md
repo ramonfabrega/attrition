@@ -12,36 +12,36 @@ each section's non-item prose pinned and falling only.
 
 ## Where things stand
 
-*2026-09-07, the commander's loop, two workers wide (Opus) — East Indies
-moved 6 frames, Great Lakes did not, and its brief's premise died.*
+*2026-09-07, Fable steering (Fable 5.1) with lore in the room — the five
+marked rows ruled, no score moved, and the hour 289 lost has a guard.*
 
-- **East Indies 7812** (was 7806), **Great Lakes 7585** unmoved and still
-  leading, so 295 — its word's cause — is headline-nearest.
-- **289 was one deleted line.** `move_step`'s arrival test is Manhattan
-  against `UnitData::tolerance`, which `resolve_unit_collision` never
-  writes when it pushes a sidestep, so the original retires the waypoint
-  from fifteen units away under the interrupted leg's 384. `1/6` now parts
-  at 7827, 15 blocks past the word, order record and path stack agreeing.
-- **run91 killed 287's premise, and that is 290's result.** The original
-  holds **88** food on 7585 — our own number — ladders identical over all
-  72 blocks below the word, so `98 <= food < 160` is dead. The cause is
-  the make-list **head**: theirs a Temple, ours three Slingers at `val`
-  9999999, `create_units`' `val < 0` guard where the original reads
-  360000. A Temple costs no food, so food never goes on trial (295).
-- **Two improvements compose and agree with neither author** — both
-  workers re-pinned the same endpoint rows; the merged tree prints a third.
-  Re-run the endpoint tests after a merge, never pick a side. `FABLE:`
-  owed — 37, 280's UB ground, 283, the wait rule, and now **292/293**
-  (PARKED): the debug suite is **12.7x** the release gate on 245 tests.
+- **Great Lakes 7585** leads and is unmoved; **East Indies 7812**. 295 —
+  `create_units`' value chain, the make-list head — is headline-nearest.
+- **The loop's tax was the rulebook, not the width.** The definition of
+  done said `cargo test`, the gate said `--release`, and four workers in
+  a day ran the dump-backed suite unoptimised: 4,101 s against 322 s.
+  `guard.sh` is 35 s warm and the sim suite 8 s; nothing else is slow.
+  `testenv::dump` now refuses a debug run in a second and names the
+  command; `RON_DIFF_DEBUG=1` steps one test through. Width two stands.
+- **The loop's price is a ratio now**: 21 USD a landing on the human-
+  driven days against 32 on the loop's, 42 against 102 per word-moving
+  landing, with ~200 of the loop's 1,018 in shapes now guarded. The next
+  steer reads USD per word-moving landing; a doubling from 102 stops it.
+- **Workers read their contract in `CLAUDE.md` now** — the landing check,
+  the done ping, and a status line at ninety minutes unlanded. The poll
+  hook lost its reset door: reads inside sixty seconds count whatever
+  sits between them (lane-run88 had typed `echo reset`).
+- **Rows**: 37 ratified; 280's UB ground closed; 283 parked behind 292;
+  the wait rule ratified with its figures moved out and the one-clause
+  precedent written; 293 closed. `docs/audit/2026-09-07-fable-pass-2.md`.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w7812 of 24,000 · GreatLakes w7585 of 24,000
 Endpoint 24001: EastIndies 78 off, 3 unlinked · GreatLakes 70 off, 9 unlinked
 
-**Opener: a Fable steer is owed first — 292/293 with lore in the room,
-then the marked rows. After it: 295 (Great Lakes' word, `create_units`'
-value chain) with 294 beside it; then 291, 285. A worker verifies its
-landing with `merge-base --is-ancestor`; a merge empties `base..branch`.**
+**Opener: 295 (Great Lakes' word, `create_units`' value chain, three
+oracles) with 294 beside it; then 291, 285. Every brief carries
+`CLAUDE.md`'s worker paragraph, and the gate is `--release`.**
 
 ## The queue
 
@@ -73,15 +73,6 @@ unless a better order is obvious, and say so. Numbers are stable.
     within 700 units of `1/13` — but `Guy::last_pos` now makes the
     signature searchable on every dump: a unit that moved whose figure has
     `last_x == x`. run79's squad first. Falsified by no pair closing.
-
-283. **The ratchet wants a `#[global_allocator]`, not a mapping** — 280's
-    +1,563 MiB is *not* live data: a mapping is `munmap`ed at drop, while a
-    freed `String` of a capture's size is kept by macOS's allocator and
-    cannot serve the next capture's different size (260's own 5,332-MiB-
-    with-nothing-alive probe, again). An allocator that returns large
-    blocks recovers most of it with **no `unsafe` in this tree** — the
-    crate carries it — and closes 235's ratchet for every large owned
-    buffer, not the two that were mapped. Take it after the score moves.
 
 279. **`queueledger.py` has two regex defects and both cried wolf** — its
     group regex pulls every `\d{1,3}` from a paren, so item 253's "off by
@@ -168,10 +159,10 @@ of 617; (72) every `+0xNN` a document pins vs its module; (89) the guard;
 251. **`memcap.sh` has four doors and no fixture**: its `ps | awk` reads
     `0 0` when `ps` answers nothing, so a refused sample reads as no memory
     used and the ceiling never fires (lore); it was mode 644 until 09-07;
-    it takes a **GiB cap as its first argument**; and (281) it reads `ps
-    rss`, which **over-counts a mapped capture** — macOS refuses to hand a
-    private file mapping back, so ~1.3 GB of 260's 8,816 is run58's clean
-    text, and a 2 s poll under-reports a sawtooth besides. Wants a fixture:
+    it takes a **GiB cap as its first argument**; and (281) it read `ps
+    rss`, which **over-counted the mapping 280 removed** — ~1.3 GB of
+    260's 8,816 was run58's clean text — and a 2 s poll under-reports a
+    sawtooth besides. Wants a fixture:
     past the cap, dead in N seconds, exit 137.
 
 291. **The AI's caravans are not linked** — `vans.length` 0 against 1 and

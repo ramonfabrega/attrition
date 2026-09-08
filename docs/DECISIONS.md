@@ -1570,6 +1570,27 @@ watchdog cannot itself be an agent — the quota wall would take it in the
 same instant as everything it watches. Which is the real split: the roster's
 state field answers "is it alive" well and "is it done" badly.
 
+**Amended 2026-09-07, Fable steering, with lore in the room — the loop's
+price, and the rule that was taxing it.** Ramon's doubt, raised while 289
+and 290 ran, was right and the width was innocent: the hour a worker lost
+went to the dump-backed suite in debug, reached through the definition of
+done's own literal `cargo test`, and lore's census found the shape four
+times in a day (235, 276, 289, 290). `testenv::dump` now refuses a debug
+run in a second and the definition of done says `--release`. Width two
+stands — the one contention event was self-inflicted twice over, and clean
+width two is measured by lore per landing at the next steer, not ruled from
+one pair. Two riders on the worker contract above, and both now live in
+`CLAUDE.md` where a worker reads them: the done ping and the landing check,
+verbatim; and **a status line at ninety minutes** from a worker that has
+not landed, because wall clock is the signal contention corrupts and the
+worker's own signal is the one that survives it. **The measure for the
+next pass is a ratio, not a feeling**: lore priced the human-driven days at
+21 USD a landing and 42 a word-moving landing, the loop's day at 32 and
+102, with around 200 USD of the loop's 1,018 in shapes now guarded —
+polling, idle turns, the debug suite. The loop pays for itself while those
+stay closed; the next steer reads USD per word-moving landing, and a
+doubling from 102 is a stop. `docs/audit/2026-09-07-fable-pass-2.md`.
+
 ## 35. The paperwork is bounded by items, and a deletion is a claim
 
 **Decided 2026-09-07**, with the user, after lore priced the queue's

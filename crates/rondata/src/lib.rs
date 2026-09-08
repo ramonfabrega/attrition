@@ -407,12 +407,47 @@ pub(crate) mod testenv {
     /// One of the kept dumps, if this machine has it: `$RON_GAMELOG_DIR`, or
     /// the bottle's `Logs\` — the same default `tools/gamelog/` uses.
     pub(crate) fn dump(name: &str) -> Option<String> {
+        let path = dump_path(name)?;
+        assert!(
+            !cfg!(debug_assertions) || std::env::var_os("RON_DIFF_DEBUG").is_some(),
+            "the diff suite runs in release: `cargo test -p rondata --release` \
+             (the same tests took 4,101 s unoptimised against 322 s, item 293). \
+             To step through one test in this profile, set RON_DIFF_DEBUG=1."
+        );
+        Some(path)
+    }
+
+    fn dump_path(name: &str) -> Option<String> {
         let dir = std::env::var("RON_GAMELOG_DIR").unwrap_or_else(|_| {
             let home = std::env::var("HOME").unwrap_or_default();
             format!("{home}/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs")
         });
         let path = format!("{dir}/{name}");
         std::path::Path::new(&path).is_file().then_some(path)
+    }
+
+    /// The diff suite runs in release, and this is the door that says so.
+    /// A kept dump is only ever reached from a test, and every such test
+    /// is the gate's: 245 of them took 4,101 s unoptimised against 322 s
+    /// in release for the same work (item 293), a shape one worker fell
+    /// into by running the literal `cargo test`. A debug run that reaches
+    /// a dump on a machine that has one fails here, in a second, naming
+    /// the command — unless `RON_DIFF_DEBUG` is set, which is how one test
+    /// is stepped through in this profile on purpose. A machine without
+    /// dumps is untouched: its tests skip before they get here.
+    #[test]
+    fn a_debug_run_that_reaches_a_kept_dump_refuses() {
+        if !cfg!(debug_assertions) || std::env::var_os("RON_DIFF_DEBUG").is_some() {
+            return;
+        }
+        if dump_path("gamelog-run11-checksum.txt").is_none() {
+            return;
+        }
+        let r = std::panic::catch_unwind(|| dump("gamelog-run11-checksum.txt"));
+        assert!(
+            r.is_err(),
+            "a debug test reached a kept dump and was let through"
+        );
     }
 }
 

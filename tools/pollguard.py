@@ -14,31 +14,38 @@ re-invokes the session when it exits, so the answer was already coming.
 broken anyway, by the lanes and by the commander. That is the repo's own rule
 about a rule that could be a guard and is only prose.
 
-**The shape, and why it is this one.** Refuse on the third CONSECUTIVE read of
-the same path, where "consecutive" means no other Bash call in between. One or
-two reads pass, so a legitimate check is never blocked; an `until` loop inside a
-single Bash call is one call and passes by construction. Any other Bash command
-resets the run, which is what keeps the rule about polling rather than about
-counting.
+**The shape, and why it is this one.** Refuse on the third read of the same
+path inside a sixty-second window, whatever other Bash calls sit between them.
+One or two reads pass, so a legitimate check is never blocked; an `until` loop
+inside a single Bash call is one call and passes by construction; a read of the
+finished output after the notification is a first read again once the window
+has passed.
 
-**What it does not catch**, deliberately: a session alternating between two long
-jobs never reaches three in a row on one path (1,119 of the 1,975 measured reads
-are this wider "reread" shape). `lore polls` reports both columns; this guard
-takes the half with a clean margin and leaves the half that would need a
-judgement call.
+The first version counted CONSECUTIVE reads and let any other command reset the
+run — and told the worker so in its deny text. lane-run88 (2026-09-07) was
+denied four times and typed `echo reset` and `date` between reads, naming the
+reset in the command's own description. A reset clause is a door, and a deny
+text that explains the counter is the key; the window has neither.
 
-Reads state from ~/.claude/poll-guard/<session_id>, one line: "<count> <path>".
+**What it does not catch**, deliberately: reads spaced more than a minute apart.
+`lore polls` prices the wider "reread" shape; this guard takes the half with a
+clean margin and leaves the half that would need a judgement call.
+
+Reads state from ~/.claude/poll-guard/<session_id>: one "<epoch> <path>" line
+per recent read.
 """
 
 import json
 import os
 import re
 import sys
+import time
 
 # The harness's background-task output files. Matching the directory rather
 # than the whole prefix keeps this working if the tmp root moves.
 TASK_FILE = re.compile(r"[^\s'\";|&<>()]*/tasks/[A-Za-z0-9_.-]+\.output")
 LIMIT = 3
+WINDOW_S = 60
 
 
 def main() -> int:
@@ -51,34 +58,33 @@ def main() -> int:
     session = payload.get("session_id") or "unknown"
 
     hits = TASK_FILE.findall(command)
-    # Exactly one distinct task file, or this is not the polling shape.
-    path = hits[0] if len(set(hits)) == 1 else None
+    # Exactly one distinct task file, or this is not the polling shape. Any
+    # other command is simply not a read: it neither counts nor resets.
+    if len(set(hits)) != 1:
+        return 0
+    path = hits[0]
+    now = int(time.time())
 
     state_dir = os.path.expanduser("~/.claude/poll-guard")
     state_file = os.path.join(state_dir, re.sub(r"[^A-Za-z0-9_-]", "_", session))
 
-    last_path, count = None, 0
+    recent: list[int] = []
     try:
         with open(state_file, encoding="utf-8") as fh:
-            head, _, rest = fh.read().strip().partition(" ")
-            count, last_path = int(head), rest
+            for line in fh:
+                head, _, rest = line.strip().partition(" ")
+                if rest == path and now - int(head) <= WINDOW_S:
+                    recent.append(int(head))
     except Exception:
         pass
 
-    if path is None:
-        # Any other command breaks the run. That is what "consecutive" means.
-        try:
-            os.remove(state_file)
-        except OSError:
-            pass
-        return 0
-
-    count = count + 1 if path == last_path else 1
+    recent.append(now)
+    count = len(recent)
 
     try:
         os.makedirs(state_dir, exist_ok=True)
         with open(state_file, "w", encoding="utf-8") as fh:
-            fh.write(f"{count} {path}")
+            fh.writelines(f"{t} {path}\n" for t in recent)
     except OSError:
         pass
 
@@ -86,15 +92,14 @@ def main() -> int:
         return 0
 
     reason = (
-        f"Polling guard: this is read #{count} in a row of the same background-task "
-        f"output file with nothing in between, which is the shape that cost 456 USD "
-        f"across 206 sessions. The read buys nothing — a run_in_background task "
-        f"re-invokes this session when it exits, so the result is already coming. "
-        f"Do one of these instead: (1) end the turn and wait for the task "
-        f"notification; (2) put the wait inside ONE Bash call, e.g. "
-        f"`until <condition>; do sleep 5; done`, with a long tool timeout; "
-        f"(3) use Monitor with an until condition. Run any other Bash command to "
-        f"reset this counter."
+        f"Polling guard: this is read #{count} of the same background-task output "
+        f"file inside {WINDOW_S} s, which is the shape that cost 456 USD across 206 "
+        f"sessions. The read buys nothing — a run_in_background task re-invokes "
+        f"this session when it exits, so the result is already coming. Do one of "
+        f"these instead: (1) end the turn and wait for the task notification; "
+        f"(2) put the wait inside ONE Bash call, e.g. `until <condition>; do "
+        f"sleep 5; done`, with a long tool timeout; (3) use Monitor with an until "
+        f"condition."
     )
     print(
         json.dumps(

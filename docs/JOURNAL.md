@@ -19784,3 +19784,64 @@ types one below the original's throughout.
 is that the word's cause is named and falsifiable rather than inferred,
 and the successor is a value-chain audit of `create_units` with three
 simultaneous oracles — `360000`, `num 1`, and slot 7's factor of two.
+
+## 2026-09-07 — the second Fable pass: the loop's price, with lore in the room (Fable 5.1, steering)
+
+Ramon's doubt while 289 and 290 ran — "im pretty sure something is
+wrong" — was right, and the pass's job was to find out what. The five
+marked rows were the floor; the verdicts are in
+`docs/audit/2026-09-07-fable-pass-2.md` and this is the story.
+
+**The wrong thing was a sentence in `CLAUDE.md`.** The definition of done
+said `cargo test`, the gate said `--release`, and a worker that obeyed
+both ran the dump-backed suite unoptimised: 4,101 s against 322 s for the
+same 245 tests. lore's census over the day found the shape four times
+(235, 276, 289, 290), three of them the rule doing what it said. Measured
+around it, nothing else was slow: `guard.sh` 35 s warm, the sim suite 8 s
+in debug and 12 s in release. So item 293's question — is the pipeline
+taxing the loop — has a narrow answer: one rule was, and it is now a
+guard. `testenv::dump` refuses a debug run on a machine with dumps, in a
+second, naming the command, with `RON_DIFF_DEBUG=1` to step one test
+through; the test was made to fail first. `[profile.dev] opt-level` was
+not taken: with the heavy suite unable to run in debug it buys nothing.
+
+**The loop's price is a ratio now, and it is the number the next steer
+reads.** lore priced the human-driven day (09-03/04, /clear-and-continue)
+and the loop's day (09-06/07) with one instrument: 421.81 USD for 3,250
+frames and 20 landings against 1,018.33 for 1,101 frames and 32 landings —
+7x per frame, which is the wrong unit because the frame got dearer with
+the terrain; 21 against 32 per landing; 42 against 102 per word-moving
+landing. Around 200 of the loop's 1,018 sits in shapes now guarded:
+pre-guard polling, idle turns, the debug suite. Net of them the loop's
+hour costs about the seat's and needs nobody in the seat. It pays for
+itself while those shapes stay closed, and a doubling from 102 is a stop.
+
+**The poll hook had a door, and a worker walked through it.** lore's
+first brief said the hook had not fired in lane-run88; its corrected slice
+said it fired four times, and the worker typed `echo reset` and `date`
+between reads because the deny text explained the counter. The guard now
+counts reads of one task file inside sixty seconds whatever sits between
+them, and the deny text no longer says how to get past it. Made to fail
+first on run88's exact sequence.
+
+**Width two stands, and the health signal moves to the worker.** The one
+contention event on record was self-inflicted twice over, so it cannot
+indict the discretion; clean width two is measured at the next steer by
+lore, per landing. What was real is that two lanes stretch every lane's
+wall clock, which is what a commander reads to judge a lane stuck — so a
+worker that has not landed at ninety minutes now sends a status line, the
+same design as the done ping. Both, and the landing check, moved into
+`CLAUDE.md`'s fan-out rules from DECISIONS 34, which a worker never reads.
+
+**The other rows.** 37 ratified as written — no `unsafe` under `crates/`,
+three dependencies in all. 280's UB ground closed by construction. Item
+283 parked behind 292: a dependency is earned by a measurement. The wait
+rule ratified with its figures moved to the pass file beside their source
+— the first one written had been wrong by 3x — and the precedent written
+down: a commander may land a one-clause safety fix in `CLAUDE.md` with its
+evidence named and a `FABLE:` row filed the same day. Item 251's stale
+mapped-capture line corrected. Item 293 closed; 292 stays parked with
+its first cut named.
+
+**The score did not move**: Great Lakes 7585, East Indies 7812. The
+opener is 295 with 294 beside it.
