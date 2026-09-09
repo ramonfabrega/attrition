@@ -32,7 +32,12 @@ def inspect(path):
                 if row[1] == 176 and len(result['fault_addresses']) < 8:
                     result['fault_addresses'].append(f'0x{row[2]:08x}')
                     result['fault_contexts'].append({'ip': row[2], 'sp': row[3],
-                                                     'bp': row[4], 'access_address': row[5]})
+                                                     'bp': row[4], 'access_address': row[5], 'ordinal': row[6]})
+            elif row[:2] == (5, 178):
+                for fault in result['fault_contexts']:
+                    if row[6] and fault['ordinal'] == row[6]:
+                        fault['segments'] = {'cs': row[2], 'ss': row[3], 'eflags': row[4], 'context_flags': row[5]}
+                        break
             elif row[:2] == (5, 180):
                 result['startup_event_count'] += 1
                 if len(result['startup_events']) < 16:

@@ -120,3 +120,15 @@ fails without game assets or renderer setup. If it reproduces, it gives us a
 small test for a runtime repair. If not, add coarse engine initialization
 witnesses after the now-observed MF pair. Full headless operation and the
 canonical command adapter remain downstream of reliable acquisition.
+
+## Follow-up: prior repository evidence located
+
+The proposed minimal reproducer already exists as `tools/trace/wow64bop.c`.
+[ORACLE, Coverage is back](../ORACLE.md#coverage-is-back--the-stub-forest-and-what-actually-broke-the-bop-2026-09-08-tools-lane-fable-51)
+records this fault class and the instruction-isolation experiments. The earlier
+plan here missed that existing work. The coverage stubs had been migrated to
+individual register saves and LAHF/SETO/SAHF; the RNG/frame hooks explicitly
+remained on POPAD/POPFD. The lab's modal wrapper also used them. This is a
+known compatibility hazard still present in those paths, rather than a newly
+discovered Wine mechanism. See the follow-up lab report for migration and
+current reproduction limits.

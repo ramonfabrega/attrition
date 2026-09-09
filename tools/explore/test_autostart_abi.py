@@ -13,6 +13,7 @@ import re
 import struct
 import subprocess
 import tempfile
+from test_hook_stub import reject_unsafe
 from unicorn import Uc, UC_ARCH_X86, UC_MODE_32, UC_HOOK_CODE
 from unicorn.x86_const import (UC_X86_REG_EAX, UC_X86_REG_EBX, UC_X86_REG_ECX,
     UC_X86_REG_EDX, UC_X86_REG_ESI, UC_X86_REG_EDI, UC_X86_REG_EBP,
@@ -48,7 +49,7 @@ def exercise(code, seed):
     uc.mem_write(0x8000,stack)
     regs={r:rand.getrandbits(32) for r in (UC_X86_REG_EBX,UC_X86_REG_ECX,UC_X86_REG_EDX,
                                           UC_X86_REG_ESI,UC_X86_REG_EDI,UC_X86_REG_EBP)}
-    regs.update({UC_X86_REG_EAX:0x4000,UC_X86_REG_ESP:0x8000,UC_X86_REG_EFLAGS:0x247})
+    regs.update({UC_X86_REG_EAX:0x4000,UC_X86_REG_ESP:0x8000,UC_X86_REG_EFLAGS:0x202 | sum(1<<bit for i,bit in enumerate((0,2,4,6,7,11)) if seed & (1<<i)) | (((seed >> 6) & 1)<<21)})
     for reg,value in regs.items(): uc.reg_write(reg,value)
     seen=[]
     def hook(uc,address,size,data):
@@ -59,7 +60,8 @@ def exercise(code, seed):
             assert mode==struct.unpack_from('<I',stack,4)[0], 'wrong mode'
             seen.append('callback')
             for reg in (UC_X86_REG_EAX,UC_X86_REG_ECX,UC_X86_REG_EDX): uc.reg_write(reg,0xbad)
-            uc.reg_write(UC_X86_REG_EFLAGS,0x202)
+            # A cdecl callback may change arithmetic flags, not IF/DF/ID.
+            uc.reg_write(UC_X86_REG_EFLAGS,uc.reg_read(UC_X86_REG_EFLAGS) & ~0x8d5)
             uc.reg_write(UC_X86_REG_ESP,esp+4)
             uc.reg_write(UC_X86_REG_EIP,ret)
         elif address==0x3000:
@@ -75,9 +77,10 @@ def exercise(code, seed):
 
 if __name__=='__main__':
     code=compiled()
+    reject_unsafe(code)
     for seed in range(256): exercise(code,seed)
     bad=bytearray(code)
-    at=bad.index(b'\x8b\x44\x24\x28');bad[at+3]=0x2c
+    at=bad.index(b'\x8b\x44\x24\x14');bad[at+3]=0x18
     try: exercise(bad,0)
     except AssertionError: pass
     else: raise AssertionError('wrong argument offset escaped the regression')

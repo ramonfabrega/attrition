@@ -41,6 +41,15 @@ class StartupEvidenceTests(unittest.TestCase):
         self.assertEqual(result['startup_events'][0], {'site':1,'phase':0,'version':0x20070,'flags':0,'result':0})
         self.assertNotIn('success', result)
 
+    def test_segments_join_by_fault_ordinal(self):
+        data = record(0x544e4f52,2,0x400000)
+        data += record(5,176,0x1234,0x8000,0x8100,0x44,1)
+        data += record(5,176,0x5678,0x9000,0x9100,0x55,2)
+        data += record(5,178,0x23,0x2b,0x202,0x10007,1)
+        result = self.read(data)
+        self.assertEqual(result['fault_contexts'][0]['segments']['cs'], 0x23)
+        self.assertNotIn('segments',result['fault_contexts'][1])
+
     def test_counts_do_not_imply_frame_continuity(self):
         result = self.read(record(0x544e4f52,2,0x400000)+record(2,8)+record(2,3))
         self.assertEqual(result['frames_observed'], 2)

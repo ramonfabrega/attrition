@@ -280,3 +280,9 @@ For the opt-in Media Foundation startup witnesses, add `--startup-probe` to
 addresses. See `docs/lab/2026-09-09-startup-transition.md` for fixed diagnostic
 cohorts and the still-unproven WoW64 mode-transition hypothesis. The compiled
 wrapper regression is `uv run tools/explore/test_startup_abi.py`.
+
+`uv run tools/explore/test_hook_stub.py` validates the production RNG/frame
+stub emitter. Together with `test_autostart_abi.py`, it rejects bulk register
+and flags instructions in the migrated capture paths. See
+`docs/lab/2026-09-09-hook-restore-migration.md` for the remaining startup fault
+and the optional capsule wrappers that have not yet been migrated.

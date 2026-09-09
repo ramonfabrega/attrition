@@ -5,12 +5,17 @@
 IMPORT(void, ExitProcess, (u32));
 IMPORT(void *, AddVectoredExceptionHandler, (u32, void *));
 IMPORT(i32, ReadProcessMemory, (HANDLE, const void *, void *, u32, u32 *));
+static u32 auto_fault_count;
 static i32 WINAPI auto_fault(u32 *pointers) {
     u32 *record = (u32 *)pointers[0], *ctx = (u32 *)pointers[1];
     if (record[0] != 0xc0000005) return 0;
     /* Windows x86 CONTEXT: Ebp 180, Eip 184, Esp 196. */
     u32 words[8], n=0;
-    emit(K_INFO, 176, ctx[46], ctx[49], ctx[45], record[6], 0);
+    u32 ordinal = __sync_add_and_fetch(&auto_fault_count, 1);
+    emit(K_INFO, 176, ctx[46], ctx[49], ctx[45], record[6], ordinal);
+    /* x86 CONTEXT, also declared by tools/trace/wow64bop.c. Record this
+     * even without MF probing; it runs only after an access violation. */
+    emit(K_INFO, 178, ctx[47], ctx[50], ctx[48], ctx[0], ordinal);
     if (ReadProcessMemory(GetCurrentProcess(), (void *)ctx[49], words, sizeof words, &n) && n==sizeof words) {
         emit(K_INFO, 177, words[0], words[1], words[2], words[3], 0);
         emit(K_INFO, 177, words[4], words[5], words[6], words[7], 1);
@@ -42,10 +47,12 @@ static void __attribute__((used,noinline)) auto_modal_enter(void *self, i32 mode
  * silently truncates these arguments. EAX is the caller's original vtable. */
 static void __attribute__((naked)) auto_modal(void) {
     __asm__ volatile(
-        "pushfl\n\tpushal\n\t"
-        "movl 24(%esp), %ecx\n\tmovl 40(%esp), %eax\n\t"
-        "pushl %eax\n\tpushl %ecx\n\tcall _auto_modal_enter\n\t"
-        "addl $8, %esp\n\tpopal\n\tpopfl\n\tjmp *0x3c0(%eax)"
+        "pushl %eax\n\tlahf\n\tseto %al\n\t"
+        "pushl %ecx\n\tpushl %edx\n\tpushl %eax\n\t"
+        "movl 20(%esp), %eax\n\tpushl %eax\n\tpushl %ecx\n\t"
+        "call _auto_modal_enter\n\taddl $8, %esp\n\t"
+        "popl %eax\n\tpopl %edx\n\tpopl %ecx\n\t"
+        "addb $0x7f, %al\n\tsahf\n\tpopl %eax\n\tjmp *0x3c0(%eax)"
     );
 }
 static void auto_idle(void) {
