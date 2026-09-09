@@ -109,3 +109,15 @@ Measure logging, simulation, startup, and render costs separately. Device-free
 startup, full application teardown, arbitrary profiles with introductory
 prompts, and same-process match reset are not established. The original game
 still owns a visible window during acquisition.
+
+## Landing validation
+
+Commit 04684a6 passed the release suite: 269 rondata tests (one ignored),
+822 sim tests, 13 fixed tests, and three doctests. Clippy with warnings denied,
+format checking, the install survey, and repository guards passed. Twelve
+new lifecycle/runner tests and the compiled 256-state modal ABI regression
+passed, including deliberately malformed inputs and a wrong argument offset.
+The default tracer's preprocessed source was byte-identical to its parent.
+Final sampled gate peak was 3838 MiB under the 20 GiB cap; this observation
+is not attributed to the capture change. The game was closed and all five
+backed-up settings files verified unchanged before the branch was pushed.
