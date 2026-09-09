@@ -171,6 +171,11 @@ impl IndexedCapture {
         Ok(())
     }
 
+    /// Check that the finalized source still has its indexed length and mtime.
+    pub fn validate(&self) -> io::Result<()> {
+        self.check_metadata(self.file.metadata()?)
+    }
+
     pub fn frames(&self) -> &[FrameRange] {
         &self.frames
     }
@@ -189,6 +194,88 @@ impl IndexedCapture {
             return Err(invalid("indexed frame did not parse as one matching FRAME"));
         }
         Ok(states.pop().expect("one frame"))
+    }
+
+    /// Preserve the prefix, GAME-level fields, first setup-relevant children
+    /// and non-GAME roots. A marker keeps late children outside the initial
+    /// record range. Uses the index's validated conventional indentation.
+    pub fn read_replay_setup(&mut self) -> io::Result<String> {
+        self.check_metadata(self.file.metadata()?)?;
+        self.file.seek(SeekFrom::Start(0))?;
+        let first = self.frames.first().map_or(self.length, |f| f.offset);
+        let mut reader = BufReader::with_capacity(256 * 1024, &mut self.file);
+        let mut line = String::new();
+        let mut out = String::new();
+        let mut offset = 0u64;
+        let mut in_game = false;
+        let mut keep = true;
+        let mut seen = std::collections::BTreeSet::new();
+        loop {
+            line.clear();
+            let n = reader.read_line(&mut line)?;
+            if n == 0 {
+                break;
+            }
+            if line.trim().is_empty() {
+                if offset < first || keep {
+                    out.push_str(&line);
+                }
+                offset += n as u64;
+                continue;
+            }
+            let trim = line.trim_start_matches(' ');
+            let indent = line.len() - trim.len();
+            let name = trim.trim_end().strip_prefix("BEGIN ");
+            if indent == 0 {
+                in_game = name == Some("GAME");
+            }
+            let relevant = indent == 1
+                && in_game
+                && matches!(name, Some("FULL DUMP" | "WORLD" | "CITIES" | "CONSTANTS"));
+            if offset < first {
+                if relevant {
+                    seen.insert(name.unwrap().to_owned());
+                }
+                out.push_str(&line);
+            } else {
+                if offset == first {
+                    out.push_str(" BEGIN FRAME 0\n");
+                }
+                if !in_game || indent == 0 {
+                    keep = true;
+                } else if indent == 1 && name.is_some() {
+                    keep = relevant && seen.insert(name.unwrap().to_owned());
+                } else if indent == 1 && !trim.trim().is_empty() {
+                    // Flat GAME fields include leader flags and farm records.
+                    keep = true;
+                }
+                if keep {
+                    out.push_str(&line);
+                }
+            }
+            offset += n as u64;
+        }
+        self.check_metadata(self.file.metadata()?)?;
+        Ok(out)
+    }
+
+    /// Build setup with borrowed strings confined to this call. Whole-capture
+    /// observations are accumulated from one frame plus its siblings at a time.
+    pub fn with_replay_initial<R>(
+        &mut self,
+        use_initial: impl FnOnce(crate::gamelog::Initial<'_>) -> R,
+    ) -> io::Result<R> {
+        let text = self.read_replay_setup()?;
+        let log = crate::gamelog::Log::parse(&text);
+        let mut init = log
+            .replay_initial()
+            .ok_or_else(|| invalid("no initial state"))?;
+        for i in 0..self.frames.len() {
+            let chunk = self.read_frame_and_siblings(i)?;
+            crate::gamelog::Log::parse(&chunk).append_observations(&mut init, false);
+        }
+        self.check_metadata(self.file.metadata()?)?;
+        Ok(use_initial(init))
     }
 
     pub fn source_bytes(&self) -> u64 {
@@ -269,6 +356,34 @@ mod tests {
         fn drop(&mut self) {
             let _ = std::fs::remove_file(&self.0);
         }
+    }
+
+    #[test]
+    fn replay_setup_preserves_late_lookups_fields_and_roots() {
+        for text in [
+            "BEGIN GAME\n BEGIN LEADERDATA\n  who 0\n BEGIN FRAME 9\n\n  BEGIN CITIES\n   BEGIN CITY\n    who 1\n    o 2000\n leader_flags 7\n BEGIN CITIES\n  BEGIN CITY\n   who 0\n   o 2001\nBEGIN GAME INFO\n BEGIN GAMEINFO\n  map late\n",
+            "BEGIN GAME\n BEGIN FRAME 1\n BEGIN FULL DUMP\n  BEGIN WORLD\n   cell_x 4\n  who 0\n  o 2001\n  valid 1\n  farm_type 2\n BEGIN FULL DUMP\n  BEGIN WORLD\n   cell_x 99\n BEGIN FRAME 1\n",
+            "BEGIN GAME\n who 0\n o 2001\n BEGIN FRAME 1\n farm_type 2\n",
+            "BEGIN GAME\n BEGIN WORLD\n  cell_x 3\n",
+        ] {
+            let input = Input::new(text);
+            let log = crate::gamelog::Log::parse(text);
+            let mut expected = log.initial().unwrap();
+            expected.frame_bodies.clear();
+            IndexedCapture::open(&input.0)
+                .unwrap()
+                .with_replay_initial(|actual| assert_eq!(actual, expected))
+                .unwrap();
+        }
+    }
+
+    #[test]
+    fn changed_source_refuses_setup_scan() {
+        let input = Input::new("BEGIN GAME\n BEGIN FRAME 1\n");
+        let mut source = IndexedCapture::open(&input.0).unwrap();
+        std::fs::write(&input.0, "BEGIN GAME\n").unwrap();
+        assert!(source.read_replay_setup().is_err());
+        assert!(source.validate().is_err());
     }
 
     #[test]

@@ -3141,6 +3141,12 @@ impl<'a> Log<'a> {
         // rather than crossing an arena that is already built, so doing it
         // four times over is four parses of a 790 MB file rather than four
         // pointer chases.
+        self.append_observations(&mut init, collect_bodies);
+        Some(init)
+    }
+
+    /// Append owned observation products; none borrow the chunk being scanned.
+    pub(crate) fn append_observations(&self, init: &mut Initial<'_>, collect_bodies: bool) {
         for r in self.roots() {
             if Some(r.node) == self.game_node() {
                 continue;
@@ -3207,7 +3213,6 @@ impl<'a> Log<'a> {
         });
         init.anim_lengths.sort_unstable();
         init.anim_lengths.dedup();
-        Some(init)
     }
 
     /// Every `(gpiece, cur_anim, end_time)` the dump's `GUY` blocks show,

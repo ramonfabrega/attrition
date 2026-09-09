@@ -8,18 +8,20 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
     let args: Vec<_> = std::env::args().skip(1).collect();
     if args.len() < 3 {
-        return Err("INSTALL CAPTURE NEW_OUTPUT.html [--from FRAME] [--count 1..200] [--sibling CAPTURE] [--trace TRACE] [--recording REC]".into());
+        return Err("INSTALL CAPTURE NEW_OUTPUT.html [--reader memory|indexed] [--from FRAME] [--count 1..200] [--sibling CAPTURE] [--trace TRACE] [--recording REC]".into());
     }
     let (install, capture, output) = (&args[0], &args[1], PathBuf::from(&args[2]));
     if output.exists() {
         return Err("output already exists; choose a new file".into());
     }
+    let mut reader = "memory";
     let (mut from, mut count) = (1i64, 40usize);
     let (mut siblings, mut trace_path, mut recording) = (Vec::new(), None, None);
     let mut i = 3;
     while i < args.len() {
         let value = args.get(i + 1).ok_or("option needs a value")?;
         match args[i].as_str() {
+            "--reader" => reader = value,
             "--from" => from = value.parse()?,
             "--count" => count = value.parse()?,
             "--sibling" => siblings.push(value.clone()),
@@ -33,12 +35,27 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         return Err("count must be 1..200".into());
     }
     let loaded = rondata::load::load(&Install::new(install))?;
-    let text = std::fs::read_to_string(capture)?;
+    if !["memory", "indexed"].contains(&reader) {
+        return Err("reader must be memory or indexed".into());
+    }
+    let text = if reader == "memory" {
+        std::fs::read_to_string(capture)?
+    } else {
+        String::new()
+    };
     let log = Log::parse(&text);
-    let frame_names = log.frames();
+    let mut source = if reader == "indexed" {
+        Some(rondata::capture::indexed::IndexedCapture::open(capture)?)
+    } else {
+        None
+    };
+    let frame_names: Vec<i64> = match &source {
+        Some(source) => source.frames().iter().map(|f| f.number).collect(),
+        None => log.frames().iter().map(|(n, _)| *n).collect(),
+    };
     let start = frame_names
         .iter()
-        .position(|(n, _)| *n >= from)
+        .position(|n| *n >= from)
         .ok_or("no frames at or after --from")?;
     let limit = (start + count).min(frame_names.len());
     let sibling_texts = siblings
@@ -64,17 +81,30 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .transpose()?;
     let mut stream = rec.as_ref().map(Stream::new);
     let mut window = rondata::debug_view::Window::new(start, count)?;
-    let report = diff::run_traced_observed(
-        &loaded,
-        &log,
-        sim::Tuning::RON,
-        Some(limit),
-        stream.as_mut(),
-        &refs,
-        trace.as_ref(),
-        |built, frame, result| window.observe(built, frame, result),
-    )
-    .ok_or("capture lacks initial state")?;
+    let report = if let Some(source) = &mut source {
+        diff::run_indexed_observed(
+            &loaded,
+            source,
+            sim::Tuning::RON,
+            Some(limit),
+            stream.as_mut(),
+            &refs,
+            trace.as_ref(),
+            |built, frame, result| window.observe(built, frame, result),
+        )?
+    } else {
+        diff::run_traced_observed(
+            &loaded,
+            &log,
+            sim::Tuning::RON,
+            Some(limit),
+            stream.as_mut(),
+            &refs,
+            trace.as_ref(),
+            |built, frame, result| window.observe(built, frame, result),
+        )
+        .ok_or("capture lacks initial state")?
+    };
     let reproduction =
         std::iter::once("cargo run -p rondata --release --example debug_view --".to_owned())
             .chain(
@@ -85,7 +115,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             .join(" ");
     let meta = rondata::debug_view::Metadata {
         capture: capture.clone(),
-        source_bytes: text.len(),
+        source_bytes: source
+            .as_ref()
+            .map_or(text.len(), |s| s.source_bytes() as usize),
         siblings,
         trace: trace_path,
         recording,

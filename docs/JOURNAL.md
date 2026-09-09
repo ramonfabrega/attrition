@@ -20066,3 +20066,35 @@ Validation: full release gate passed 264 rondata tests (one ignored), 821 sim,
 8,757 MiB under the 20 GiB ceiling. Clippy with warnings denied, fmt, seven
 paperwork guards and the install survey passed. These suite measurements are
 reported separately from the isolated paired replay measurements above.
+
+
+## 2026-09-09 — Optional indexed differential replay
+
+Continued the exploration branch's memory work without taking a queue item.
+The indexed capture reader now supplies replay setup and one compared frame at
+a time. The existing and indexed entry points share ticking, recorded-order
+application, comparison and report assembly. The viewer exposes the new lane
+with `--reader indexed`, keeping the existing default.
+
+Complete run69 reports match at 30 and 3,000 records, including the preceding
+commit's saved reports. Peak RSS fell from 530,497,536 to 79,413,248 bytes for the
+prefix and from 565,444,608 to 117,751,808 for the full run. Source loading plus
+replay rose from 2.006 to 3.705 seconds and 3.539 to 6.078 seconds respectively;
+this is a memory tradeoff, not a demonstrated throughput win. The updated probe
+times source loading too, so its seconds are not directly comparable to the
+previous entry's replay-only timer.
+
+The setup selector preserves late first lookup children, trailing GAME fields
+and non-GAME roots; whole-capture correction observations are accumulated from
+bounded segments through the existing parser. Six real complete setups agree.
+Synthetic cases cover the late/flat/blank/duplicate/no-frame boundaries and
+changed-source refusal. A real release test covers zero and 12 records with a
+sibling. The canonical viewer's four-sibling export has identical full frame
+records and notes across 30 records / 450 positions. Details, measurements and
+remaining memory bounds are in `docs/audit/2026-09-09-indexed-replay.md`.
+
+Validation: full release gate passed 267 rondata tests (one ignored), 821 sim,
+13 fixed and three doctests. Rondata took 242.08 s; sampled process-tree peak
+was 8,618 MiB under the 20 GiB ceiling. Clippy with warnings denied, formatting,
+seven paperwork guards and the real-install survey passed. The sampled suite
+peak is distinct from the isolated process high-water marks above.
