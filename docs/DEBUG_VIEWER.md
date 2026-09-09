@@ -54,7 +54,8 @@ and inspector mode. Playback is a viewing cadence, not the original clock.
 categories; the position-only filter affects map markers. Zero position errors
 can coexist with order, angle, collision, building or other disagreements.
 The full frame comparison remains available alongside each unit's parsed original
-record and Rust record. These are debug representations, not a field-aligned diff.
+record and Rust record. The raw records remain debug representations. Section 5 describes the typed
+field-difference table, which is now the default inspection mode.
 
 The reproduction download records source paths, capture byte size, revision,
 inputs, harness notes, application counts, frame index and the export command.
@@ -89,9 +90,8 @@ which dominate its size. Terrain, borders, per-figure overlays and building
 markers are not exported yet. No new original-format claim is made here.
 
 Section 4 now implements failure-window export for the first test integration.
-Extending that integration to other assertion families comes next. Compact shared
-unit metadata and field-aligned changes can then reduce artifact size while making
-non-position failures as immediate to inspect as displacement.
+Extending that integration to other assertion families comes next. Section 5 adds field-aligned disagreements. Compact shared unit metadata remains
+a possible artifact-size improvement.
 
 ## 4. Failure artifacts from tests
 
@@ -111,7 +111,7 @@ reruns the complete test replay on failure; passing runs pay no second replay
 cost. The HTML window is bounded, but the replay's original memory costs remain.
 
 The first integration is run69's whole-capture unit-position and building-field
-assertions. It selects their earliest failing frame, repeats the existing loaded
+assertions, plus its current-waypoint assertion before the word. It selects their earliest failing frame, repeats the existing loaded
 data, log, sibling references and trace, and prints the artifact path. Output
 uses a unique file under the OS temporary directory's `attrition-diff-failures/`.
 No additional environment configuration is needed. Artifact errors are printed
@@ -138,3 +138,43 @@ the 450 paired-position counts. The intentional acceptance-test artifact contain
 comparator. That test deliberately supplies no setup siblings, trace or recording.
 Browser inspection confirmed initial selection of frame 11 (source index 10),
 with the exact disagreement for unit 0/1 displayed as (+110, +168).
+
+
+## 5. Field differences
+
+New exports include a structured presentation of every disagreement category in
+`FrameResult`: position and presence, angle, sight, packed state, collision,
+orders and paths, building identity, gather records, production queues and cities.
+The table reads typed comparator results; it does not parse debug strings or
+perform another simulation comparison. Original and Rust values are JSON strings
+so even the extremes of `i64` reach the browser without rounding. Unit, building
+and city identifiers have distinct prefixes. Missing building/city links carry
+aggregate counts because the report does not provide their identities.
+
+Filter by entity, field, value or classification, or show only the selected unit.
+A unit link selects its map marker. Buildings and cities remain inspectable in the
+table without pretending they have map markers. Paths name their bottom-first
+slot, matching the comparator, while the map draws the stack top first. The table
+contains disagreements only: an absent row does not establish that a field was
+logged, compared or implemented. Coverage counts and the full report remain
+available. Old exports without these optional rows display an explicit fallback.
+
+Order rows retain `OrderMismatch::scores()`: reported-only flags and other
+excluded fields are labeled as such. A source header/type inconsistency shows
+both original statements and explicitly says it is not a Rust value comparison.
+An unmodelled order kind is labeled as a structural gap. The order-variant match
+is exhaustive, so adding a variant requires its presentation to be considered.
+
+The export verifier checks that the row weights cover the entire existing issue
+count, in addition to its coordinate checks. Tests pin score exclusions, header
+semantics, slot numbering, integer extremes and aggregate coverage. A deliberate
+removed row is rejected by the verifier. The canonical 30-record run6 window
+exports 449 difference rows while retaining its original records and 450 paired
+positions unchanged. On frame 400, unit 1/0 has matching coordinates but
+`order[0].move.facing` is original 1 / Rust 0, explicitly excluded from the order
+score. Browser inspection verified filtering and selection on that record.
+
+Failure artifacts now also cover run69's already-existing assertion that
+`dest_x` and `dest_y` agree before `LONG_WORD_GREAT_LAKES`. This is the test's
+existing predicate, not a new score requirement; other reported order residue
+does not trigger an artifact. No acceptance assertion was weakened or removed.

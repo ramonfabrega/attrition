@@ -17,7 +17,7 @@
  const screen=p=>[(p[0]-camera.x)*camera.scale+w/2,(p[1]-camera.y)*camera.scale+h/2];
  const world=p=>[(p[0]-w/2)/camera.scale+camera.x,(p[1]-h/2)/camera.scale+camera.y];
  function fit(){camera={x:(bounds[0]+bounds[2])/2,y:(bounds[1]+bounds[3])/2,scale:Math.min(w/Math.max(1,bounds[2]-bounds[0]),h/Math.max(1,bounds[3]-bounds[1]))*.9};draw();}
- function resize(){const r=canvas.getBoundingClientRect();w=r.width;h=r.height;const d=window.devicePixelRatio||1;canvas.width=w*d;canvas.height=h*d;ctx.setTransform(d,0,0,d,0,0);draw();}
+ function resize(){const r=canvas.getBoundingClientRect();w=r.width;h=r.height;const d=window.devicePixelRatio||1;canvas.width=w*d;canvas.height=h*d;ctx.setTransform(d,0,0,d,0,0);if(w>0&&h>0&&(!Number.isFinite(camera.scale)||camera.scale<=0))fit();else draw();}
  function line(a,b,color,dashed=false){const p=screen(a),q=screen(b);ctx.strokeStyle=color;ctx.setLineDash(dashed?[5,4]:[]);ctx.beginPath();ctx.moveTo(...p);ctx.lineTo(...q);ctx.stroke();ctx.setLineDash([]);}
  function draw(){
   ctx.clearRect(0,0,w,h);ctx.fillStyle='#eaf0f6';ctx.fillRect(0,0,w,h);hits=[];
@@ -42,11 +42,26 @@
   }
  }
  function provenance(){return JSON.stringify({capture:data.capture,sourceBytes:data.sourceBytes,revision:data.revision,siblings:data.siblings,trace:data.trace,recording:data.recording,seedInputs:data.seedInputs,guyInputs:data.guyInputs,frame:frame().n,sourceFrameIndex:frame().index,seedInstalledThisTick:frame().seedInstalledThisTick,rngAfterHarnessTick:frame().rng,notes:data.notes,applied:data.applied,reproduce:data.reproduce},null,2);}
+ function fields(){
+  const all=frame().differences;
+  $('field-rows').replaceChildren();
+  if(!Array.isArray(all)){$('field-summary').textContent='This older export has no structured differences. Use Full frame comparison.';return;}
+  const query=$('field-filter').value.trim().toLowerCase();
+  const rows=all.filter(d=>(!$('selected-fields').checked||d.entity==='unit:'+selected)&&(!query||[d.entity,d.field,d.original,d.rust,d.assessment].join(' ').toLowerCase().includes(query)));
+  $('field-summary').textContent=`${rows.length} of ${all.length} rows. Disagreements only; absence does not establish coverage. Order-score exclusions are labeled.`;
+  for(const d of rows){const tr=document.createElement('tr'),name=document.createElement('td');
+   const entity=document.createElement(d.entity.startsWith('unit:')&&frame().units.some(u=>'unit:'+u.id===d.entity)?'button':'span');entity.textContent=d.entity;
+   if(entity.tagName==='BUTTON')entity.onclick=()=>{selected=d.entity.slice(5);render();};name.append(entity);
+   const field=document.createElement('div');field.textContent=d.field;name.append(field);
+   const assessment=document.createElement('small');assessment.textContent=d.assessment+(d.weight>1?` · ${d.weight} issues`:'');name.append(assessment);tr.append(name);
+   for(const value of [d.original,d.rust]){const td=document.createElement('td');td.textContent=value;tr.append(td);}$('field-rows').append(tr);
+  }
+ }
  function inspect(){
   const u=unit();$('unit-title').textContent=u?`Unit ${u.id}`:'Unit absent on this frame';
   $('status').textContent=u?`${status(u)}. Path vertices run from stack top toward the goal. Empty paths or orders can mean they were not logged.`:'Choose a unit present in this frame.';
   $('coordinates').replaceChildren();for(const [axis,i] of [['x',0],['y',1]]){const tr=document.createElement('tr');const vals=[axis,u?.original?.[i]??'—',u?.rust?.[i]??'—',u?.original&&u?.rust?u.rust[i]-u.original[i]:'—'];for(const v of vals){const td=document.createElement('td');td.textContent=v;tr.append(td);}$('coordinates').append(tr);}
-  const mode=$('record').value;$('details').textContent=mode==='report'?frame().report:mode==='provenance'?provenance():u?.[mode]??'This unit is not present in the exported frame.';
+  const mode=$('record').value;$('details').hidden=mode==='fields';$('field-panel').hidden=mode!=='fields';if(mode==='fields')fields();$('details').textContent=mode==='report'?frame().report:mode==='provenance'?provenance():u?.[mode]??'This unit is not present in the exported frame.';
   $('focus').disabled=!u?.original&&!u?.rust;draw();
  }
  function link(){const p=new URLSearchParams({index:String(index),unit:selected??'',record:$('record').value});return '#'+p.toString();}
@@ -62,7 +77,7 @@
  function move(i){index=Math.max(0,Math.min(data.frames.length-1,i));render();}
  function stop(){if(playing)clearInterval(playing);playing=null;$('play').textContent='Play';}
  function play(){if(playing)return stop();if(index===data.frames.length-1)move(0);playing=setInterval(()=>{if(index===data.frames.length-1)stop();else move(index+1);},180);$('play').textContent='Pause';}
- function restore(){const p=new URLSearchParams(location.hash.slice(1));index=Math.max(0,Math.min(data.frames.length-1,Number(p.get('index')??data.focusIndex??0)||0));index=Math.floor(index);selected=p.get('unit')||null;if(['originalRecord','rustRecord','report','provenance'].includes(p.get('record')))$('record').value=p.get('record');render();}
+ function restore(){const p=new URLSearchParams(location.hash.slice(1));index=Math.max(0,Math.min(data.frames.length-1,Number(p.get('index')??data.focusIndex??0)||0));index=Math.floor(index);selected=p.get('unit')||null;if(['fields','originalRecord','rustRecord','report','provenance'].includes(p.get('record')))$('record').value=p.get('record');render();}
  bounds=[0,0,data.world[0],data.world[1]];for(const f of data.frames)for(const u of f.units)for(const p of [u.original,u.rust])if(p){bounds[0]=Math.min(bounds[0],p[0]);bounds[1]=Math.min(bounds[1],p[1]);bounds[2]=Math.max(bounds[2],p[0]);bounds[3]=Math.max(bounds[3],p[1]);}
  $('source').textContent=data.capture.split(/[\\/]/).pop()+` · ${data.revision}`;
  $('assistance').textContent=data.seedInputs?'Assisted replay inputs configured':'No RNG reseeding configured';
@@ -71,6 +86,7 @@
  $('slider').max=data.frames.length-1;data.frames.forEach((f,i)=>{if(f.issues){const mark=document.createElement('i');mark.style.left=`${i/Math.max(1,data.frames.length-1)*100}%`;$('marks').append(mark);}});
  $('slider').oninput=()=>{stop();move(Number($('slider').value));};$('previous').onclick=()=>move(index-1);$('next').onclick=()=>move(index+1);$('play').onclick=play;
  $('next-issue').onclick=()=>{stop();for(let k=1;k<=data.frames.length;k++){const i=(index+k)%data.frames.length;if(data.frames[i].issues){move(i);selected=frame().units.find(issue)?.id??selected;render();return;}}$('feedback').textContent='No reported issues in this window';};
+ $('field-filter').oninput=fields;$('selected-fields').onchange=fields;
  $('unit').onchange=()=>{selected=$('unit').value;inspect();};$('record').onchange=inspect;$('only').onchange=draw;$('paths').onchange=draw;$('fit').onclick=fit;
  $('focus').onclick=()=>{const u=unit(),p=u?.original??u?.rust;if(p){camera.x=p[0];camera.y=p[1];camera.scale=Math.max(camera.scale,Math.min(w,h)/3000);draw();}};
  $('link').onclick=async()=>{location.hash=link();try{await navigator.clipboard.writeText(location.href);$('feedback').textContent='Link copied';}catch{$('feedback').textContent='Selection saved in URL';}};

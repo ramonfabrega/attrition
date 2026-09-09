@@ -20007,3 +20007,32 @@ Validation: release suite passed 260 rondata tests (one ignored), 821 sim tests,
 peaked at 10,023 MiB under its 20 GiB ceiling. Clippy with warnings denied, fmt,
 seven paperwork guards and the install survey passed. The documented run69
 reproduction command was checked to select exactly that test.
+
+## 2026-09-09 — Typed field disagreements in the viewer
+
+The viewer now aligns Original and Rust values directly from every disagreement
+category in `FrameResult`. It includes unit, order/path, building, production,
+gather and city fields; unlinked building/city identities remain aggregate
+coverage counts because the report has no identities for them. Values stay
+strings through JSON, preserving integer extremes. Order-score exclusions,
+unmodelled kinds and source header inconsistencies retain their distinct meaning.
+
+The table filters by entity/field/value and can follow the selected unit. On
+run6 frame 400, unit 1/0 agrees in position but has `move.facing` 1 versus 0,
+correctly labeled as excluded from the order score. The canonical 30-frame
+window contains 449 field rows, all original records unchanged, and 450 paired
+positions. Removing one row deliberately fails the issue-count verifier.
+Browser inspection checked filtering and linked unit selection, and exposed an
+initial zero-size canvas fit in the narrow panel; the resize path now recovers
+from a zero or non-finite scale.
+
+Run69's diagnostic hook now also covers its existing current-waypoint assertion
+before the word. The acceptance predicate is unchanged and unrelated order
+residue does not trigger diagnostics. No queue or parity floor moved.
+`docs/DEBUG_VIEWER.md` section 5 records semantics and coverage limitations.
+
+Validation: full release suite passed 262 rondata tests (one ignored), 821 sim,
+13 fixed and three doctests. Rondata took 249.25 s; sampled tree RSS peaked at
+10,653 MiB under the 20 GiB ceiling. Clippy with warnings denied, fmt, seven
+paperwork guards and install survey passed. The two new presentation tests cover
+lossless values and the comparator's score/source distinctions.

@@ -1607,13 +1607,23 @@ mod tests {
         let report = run_traced(&loaded, &log, Tuning::RON, None, None, &refs, Some(&tr)).unwrap();
         // A test-selected fidelity failure, not every known comparator residue.
         // Reuse the same loaded data, parsed log, siblings and trace; no inferred CLI.
-        if let Some(index) = report
-            .frames
-            .iter()
-            .position(|f| !f.diverged.is_empty() || !f.build_diverged.is_empty())
-        {
+        if let Some(index) = report.frames.iter().position(|f| {
+            !f.diverged.is_empty()
+                || !f.build_diverged.is_empty()
+                || (f.frame < LONG_WORD_GREAT_LAKES
+                    && f.order_diverged.iter().any(|d| {
+                        matches!(
+                            d.what,
+                            OrderMismatch::Move {
+                                field: "dest_x" | "dest_y",
+                                ..
+                            }
+                        )
+                    }))
+        }) {
             let artifact = (|| -> Result<_, Box<dyn std::error::Error>> {
-                let output = crate::debug_view::failure_path("run69-position-or-building")?;
+                let output =
+                    crate::debug_view::failure_path("run69-position-building-or-waypoint")?;
                 let meta = crate::debug_view::Metadata {
                     capture: path.clone(), source_bytes: text.len(),
                     siblings: refs.iter().enumerate().map(|(i,_)| format!("already-parsed sibling Initial {i} from testkit::sibling_texts()" )).collect(),
@@ -1625,7 +1635,7 @@ mod tests {
                     &report,
                     Some((
                         index,
-                        "unit positions and building fields must agree throughout run69",
+                        "unit positions and building fields must agree throughout run69; current waypoints must agree before the word",
                     )),
                     &meta,
                     &output,

@@ -1,4 +1,6 @@
 //! Bounded diagnostic exports over the existing read-only replay observer.
+mod fields;
+
 use crate::{
     diff::{Built, FrameResult, Report},
     gamelog::Frame,
@@ -159,8 +161,13 @@ impl Window {
             + result.queue_diverged.len()
             + result.city_diverged.len()
             + result.city_unlinked;
+        let differences = fields::differences(result)
+            .iter()
+            .map(fields::Difference::json)
+            .collect::<Vec<_>>()
+            .join(",");
         let json = format!(
-            "{{\"n\":{},\"index\":{index},\"issues\":{issues},\"compared\":{},\"positionMismatches\":{},\"orderCompared\":{},\"rng\":{},\"seedInstalledThisTick\":{},\"units\":[{}],\"report\":{}}}",
+            "{{\"n\":{},\"index\":{index},\"issues\":{issues},\"compared\":{},\"positionMismatches\":{},\"orderCompared\":{},\"rng\":{},\"seedInstalledThisTick\":{},\"differences\":[{differences}],\"units\":[{}],\"report\":{}}}",
             frame.n,
             result.compared,
             result.diverged.len(),

@@ -20,6 +20,11 @@ def verify(data):
                 raise ValueError(f"source frame {frame['index']}: {message}")
         require(previous is None or frame['index'] == previous + 1, 'nonconsecutive source indices')
         previous = frame['index']
+        if 'differences' in frame:
+            rows = frame['differences']
+            require(all(type(d['weight']) is int and d['weight'] > 0 for d in rows), 'invalid issue weight')
+            require(sum(d['weight'] for d in rows) == frame['issues'], 'field rows lose reported issues')
+            require(all(isinstance(d[k], str) for d in rows for k in ('entity', 'field', 'original', 'rust', 'assessment')), 'field values must remain lossless strings')
         units = frame['units']
         require(len({u['id'] for u in units}) == len(units), 'duplicate unit identity')
         paired = [u for u in units if u['scope'] and u['original'] is not None and u['rust'] is not None]
