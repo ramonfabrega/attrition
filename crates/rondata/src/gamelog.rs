@@ -3036,6 +3036,17 @@ impl<'a> Log<'a> {
     /// The start-of-game state, from `GAME INFO` and the body of `GAME`
     /// before the first frame.
     pub fn initial(&'a self) -> Option<Initial<'a>> {
+        self.initial_with_bodies(true)
+    }
+
+    /// Replay setup keeps all seeding and animation inputs, but not the
+    /// figure-position audit series. `build_sim` does not consume that series;
+    /// audits must continue to use `initial`.
+    pub(crate) fn replay_initial(&'a self) -> Option<Initial<'a>> {
+        self.initial_with_bodies(false)
+    }
+
+    fn initial_with_bodies(&'a self, collect_bodies: bool) -> Option<Initial<'a>> {
         let game = self.game()?;
         let mut init = Initial::default();
         if let Some(gi) = self.root("GAME INFO").and_then(|g| g.kid("GAMEINFO")) {
@@ -3167,6 +3178,16 @@ impl<'a> Log<'a> {
                     }
                 })
                 .collect();
+            if !collect_bodies {
+                let clocked: Vec<FrameUnit> = rows
+                    .into_iter()
+                    .filter(|u| u.guys.iter().any(Guy::has_clock))
+                    .collect();
+                if !clocked.is_empty() {
+                    init.frame_guys.push((n - 1, clocked));
+                }
+                return true;
+            }
             let clocked: Vec<FrameUnit> = rows
                 .iter()
                 .filter(|u| u.guys.iter().any(Guy::has_clock))
@@ -3259,27 +3280,40 @@ impl<'a> Log<'a> {
         })
     }
 
-    pub fn frame_states(&'a self) -> Vec<Frame> {
-        let mut out = Vec::new();
+    /// Decode ordinary frames in source order, retaining only the current frame
+    /// unless the visitor keeps it. The limit counts records, not frame labels.
+    /// A zero limit does not scan children; reaching the limit stops before the
+    /// next child is decoded. This does not change `initial`'s whole-log scan.
+    pub fn visit_frame_states(&self, limit: Option<usize>, mut visit: impl FnMut(Frame)) {
+        let mut remaining = limit.unwrap_or(usize::MAX);
+        if remaining == 0 {
+            return;
+        }
         self.scan_children(|b| {
             if let Some(n) = frame_number(b) {
                 let (units, builds, leaders) = records(b, false);
-                // `find`, not `kid`: a `DUMP_ALL` frame nests its state
-                // under `FULL DUMP` exactly as the initial block does.
                 let cities = b
                     .find("CITIES")
                     .map(|c| c.kids("CITY").map(city_of).collect())
                     .unwrap_or_default();
-                out.push(Frame {
+                visit(Frame {
                     n,
                     units,
                     builds,
                     leaders,
                     cities,
                 });
+                remaining -= 1;
             }
-            true
+            remaining != 0
         });
+    }
+
+    /// Every frame's typed state, in order. Use `visit_frame_states` for a
+    /// bounded consumer rather than retaining the entire decoded sequence.
+    pub fn frame_states(&'a self) -> Vec<Frame> {
+        let mut out = Vec::new();
+        self.visit_frame_states(None, |frame| out.push(frame));
         out
     }
 }
@@ -3293,6 +3327,58 @@ impl fmt::Display for Pos {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn replay_initial_preserves_every_correction_input() {
+        let Some(path) = crate::testenv::dump("gamelog-run13-window-95-105.txt") else {
+            return;
+        };
+        let text = std::fs::read_to_string(path).unwrap();
+        let log = Log::parse(&text);
+        let mut full = log.initial().unwrap();
+        assert!(!full.frame_seeds.is_empty());
+        assert!(!full.frame_guys.is_empty());
+        assert!(!full.frame_bodies.is_empty());
+        full.frame_bodies.clear();
+        assert_eq!(log.replay_initial().unwrap(), full);
+    }
+
+    #[test]
+    fn frame_visitor_matches_direct_blocks_and_limits_by_record() {
+        let text = "BEGIN GAME\n BEGIN FRAME 9\n  BEGIN FULL DUMP\n   BEGIN CITIES\n    BEGIN CITY\n     who 1\n     o 2000\n BEGIN FRAME 9\n BEGIN FRAME 12\n  BEGIN CITIES\n   BEGIN CITY\n    who 0\n    o 2001\n";
+        let reference = Log::parse(text);
+        let expected: Vec<_> = reference
+            .frames()
+            .into_iter()
+            .map(|(n, b)| {
+                let (units, builds, leaders) = records(b, false);
+                let cities = b
+                    .find("CITIES")
+                    .map(|c| c.kids("CITY").map(city_of).collect())
+                    .unwrap_or_default();
+                Frame {
+                    n,
+                    units,
+                    builds,
+                    leaders,
+                    cities,
+                }
+            })
+            .collect();
+        assert_eq!(
+            expected.iter().map(|f| f.n).collect::<Vec<_>>(),
+            vec![9, 9, 12]
+        );
+        for limit in [0, 1, 2, 3, 8] {
+            let log = Log::parse(text);
+            let mut actual = Vec::new();
+            log.visit_frame_states(Some(limit), |f| actual.push(f));
+            assert_eq!(actual, expected[..limit.min(expected.len())]);
+        }
+        let log = Log::parse(text);
+        assert_eq!(log.frame_states(), expected);
+        Log::parse("BEGIN GAME\n").visit_frame_states(None, |_| panic!("invented a frame"));
+    }
 
     // Every snippet below is the shape of real lines from this install's
     // logs, trimmed; see the module note for where they come from.

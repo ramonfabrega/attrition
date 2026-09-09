@@ -20036,3 +20036,33 @@ Validation: full release suite passed 262 rondata tests (one ignored), 821 sim,
 10,653 MiB under the 20 GiB ceiling. Clippy with warnings denied, fmt, seven
 paperwork guards and install survey passed. The two new presentation tests cover
 lossless values and the comparator's score/source distinctions.
+
+## 2026-09-09 — Stream replay comparisons and omit audit-only retention
+
+The replay harness now consumes one typed frame at a time, stopping decoding at
+its record limit. `frame_states` remains the collecting API. The new crate-private
+replay setup reader keeps all animation, seed and clock-correction inputs but
+omits the figure-position audit series, which `build_sim` never consumes. Public
+`initial` remains complete. The harness drops setup after building its owned
+simulation inputs. No simulation arithmetic or acceptance floor changed.
+
+On isolated run69 with no siblings/trace/recording, 30 records fell from
+1,586,479,104 to 530,497,536 bytes peak RSS and from 3.273 to 1.691 seconds of
+replay time. All 3,000 records fell from 1,623,834,624 to 567,803,904 bytes, with
+replay time essentially unchanged (3.312 versus 3.272 seconds). Saved binaries
+produced identical complete reports at both limits. The canonical viewer export
+also retained all 30 full frame records and notes unchanged with its four siblings.
+`docs/audit/2026-09-09-streaming-replay.md` records the intermediate measurement,
+method, report serialization caveat and remaining resident-source boundary.
+
+Tests cover visitor limits and duplicate labels against direct block traversal,
+and exact replay setup equality after clearing only the unused audit series on
+both a position-only capture and a capture with seeds and clock corrections.
+The standalone measurement probe saves complete reports outside git and buffers
+its output so future timing does not pay one syscall per debug-format token.
+
+Validation: full release gate passed 264 rondata tests (one ignored), 821 sim,
+13 fixed and three doctests. Rondata took 240.61 s; sampled tree peak was
+8,757 MiB under the 20 GiB ceiling. Clippy with warnings denied, fmt, seven
+paperwork guards and the install survey passed. These suite measurements are
+reported separately from the isolated paired replay measurements above.

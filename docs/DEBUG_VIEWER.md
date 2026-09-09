@@ -83,9 +83,10 @@ links, focus and filtering; a separately labeled synthetic displacement showed
 the exact (+1200, −600) coordinate difference and its connecting line. These windows exercise other reported field
 issues; they are not evidence of a new parity floor. No queue score changed.
 
-The bounded window does not make setup or frame parsing lazy: the current
-harness still constructs whole-capture observations, and replay starts at setup
-before reaching `--from`. The HTML retains full selected unit debug records,
+The harness now decodes compared frames incrementally and omits unused figure-
+position audit observations from replay setup. Initialization still scans the
+whole capture for correction inputs and animation lengths, and replay starts at
+setup before reaching `--from`. See `audit/2026-09-09-streaming-replay.md`. The HTML retains full selected unit debug records,
 which dominate its size. Terrain, borders, per-figure overlays and building
 markers are not exported yet. No new original-format claim is made here.
 

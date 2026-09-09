@@ -877,21 +877,22 @@ pub fn run_traced_observed<'a, 'b: 'a>(
     trace: Option<&crate::trace::Trace>,
     mut observe: impl FnMut(&Built, &Frame, &FrameResult),
 ) -> Option<Report> {
-    let mut init = log.initial()?;
+    let mut init = log.replay_initial()?;
     borrow_from_siblings(&mut init, siblings);
     if let Some(tr) = trace {
         borrow_pasture(&mut init, tr);
     }
     let players = player_count(&init);
     let mut built = build_sim(loaded, &init, tuning);
+    // Built owns its correction inputs; release duplicate setup observations.
+    drop(init);
     let mut report = Report {
         notes: std::mem::take(&mut built.notes),
         ..Report::default()
     };
     let mut stream = stream;
-    let frames = log.frame_states();
     let mut last = 0i64;
-    for f in frames.iter().take(limit.unwrap_or(usize::MAX)) {
+    log.visit_frame_states(limit, |f| {
         // `FRAME n` is the state at the end of frame n; step up to it.
         while last < f.n {
             // The package for recording frame `last` is processed by the
@@ -906,10 +907,10 @@ pub fn run_traced_observed<'a, 'b: 'a>(
             #[cfg(test)]
             debug_watch(&built, last);
         }
-        let result = compare(&built, f, players);
-        observe(&built, f, &result);
+        let result = compare(&built, &f, players);
+        observe(&built, &f, &result);
         report.frames.push(result);
-    }
+    });
     report.notes.append(&mut built.notes);
     report.rng_frames = built.rng_frames.clone();
     report.first_divergence = (0..players as i64)
@@ -942,6 +943,14 @@ mod tests {
         let loaded = crate::load::load(&inst).unwrap();
         let text = std::fs::read_to_string(path).unwrap();
         let log = Log::parse(&text);
+        let mut complete_setup = log.initial().unwrap();
+        assert!(
+            !complete_setup.frame_bodies.is_empty(),
+            "fixture must exercise the audit series"
+        );
+        complete_setup.frame_bodies.clear();
+        assert_eq!(log.replay_initial().unwrap(), complete_setup);
+        drop(complete_setup);
         let baseline = run_traced(&loaded, &log, Tuning::RON, Some(8), None, &[], None).unwrap();
         let mut observed = Vec::new();
         let report = run_traced_observed(
