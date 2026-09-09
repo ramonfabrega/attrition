@@ -58,3 +58,13 @@ mode, then run `whole`, `indexed`, `indexed-warm`, or `verify` against a finaliz
 capture. The warm mode excludes initial index construction from its reported
 scan time. `verify` intentionally loads the full baseline and is not a memory
 benchmark. `python3 tools/explore/test_memcap.py` exercises sampling failures.
+
+## Native call graphs
+
+`docs/audit/2026-09-09-native-profile.md` records the census profiles and the
+selective frame lookup they motivated. Build a release test binary with
+`CARGO_PROFILE_RELEASE_DEBUG=1`, then run `profile_native.py BINARY EXACT_TEST
+NEW_OUTPUT` under `tools/memcap.sh`, with `RON_INSTALL` set. `sample_graph.py`
+converts its sample file into a graph and hotspot JSON; `--help` lists the
+external FlameGraph checkout and LLVM demangler arguments. Graphs select the
+test thread and retain its waiting states, so their denominator is explicit.

@@ -19926,3 +19926,17 @@ loss after launch, with injected-failure regression checks. The input boundary,
 measurements and process-isolation follow-up are recorded in
 `docs/audit/2026-09-09-streaming-captures.md`; the next reader migration is the
 replay harness that currently decodes all frames before applying its limit.
+
+
+## 2026-09-09 — native profile of the census
+
+At the user's request to own the performance graph, sampled the 95-capture
+census with release debug symbols. `frame_states` occupied 65.5% of its test
+thread's samples, although the census only asks about one frame number.
+Selecting matching indexed blocks with the existing record reader kept all
+95 census assertions and reduced an unsampled test body from 78.61 s to
+28.91 s. Peak RSS rose from 6.28 GB to 6.72 GB in that pair; this is a speed
+win, not a memory claim. The after-profile contains no `frame_states` stacks.
+Reusable native sampling and graph tools, measurement caveats, and the next
+storage/iteration experiments are in `docs/audit/2026-09-09-native-profile.md`.
+No simulation rule or acceptance floor changed.

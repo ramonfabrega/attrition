@@ -339,7 +339,16 @@ mod tests {
             }
             seen += 1;
             let log = Log::parse(&text);
-            let states = log.frame_states();
+            // The census asks about one frame number, not the intervening
+            // states. Frame names are indexed; decode only matching blocks,
+            // with the same record reader frame_states uses. Keep `any` so
+            // duplicate frame labels retain the original semantics.
+            let has_units = |n: i64| {
+                log.frames()
+                    .into_iter()
+                    .filter(|(number, _)| *number == n)
+                    .any(|(_, block)| !crate::gamelog::records(block, false).0.is_empty())
+            };
             let got: Result<(i64, usize, usize, usize, usize, bool), &str> = match log.final_state()
             {
                 Some(f) => Ok((
@@ -348,16 +357,13 @@ mod tests {
                     f.builds.len(),
                     f.leaders.len(),
                     f.cities.len(),
-                    states.iter().any(|s| s.n == f.n && !s.units.is_empty()),
+                    has_units(f.n),
                 )),
                 None => {
                     let last = log.frames().last().map(|f| f.0);
                     Err(if log.dumps().iter().any(|(n, _)| Some(*n) == last) {
                         "fulldump"
-                    } else if states
-                        .iter()
-                        .any(|s| Some(s.n) == last && !s.units.is_empty())
-                    {
+                    } else if last.is_some_and(has_units) {
                         "nested"
                     } else {
                         "none"
