@@ -461,7 +461,7 @@ void WINAPI start(void) {
 #ifdef IDFLAG
     /* -DIDFLAG: set EFLAGS.ID (bit 21) first — the game's threads carry it
      * and the stub's popfd writes it back; the falsifier's do not. */
-    __asm__ volatile("pushfd\n\torl $0x200000, (%%esp)\n\tpopfd" : : : "memory", "cc");
+    __asm__ volatile("pushfl\n\torl $0x200000, (%%esp)\n\tpopfl" : : : "memory", "cc");
     say("idflag set\n");
 #endif
     /* B: arm, call, ROUNDS times — the int3 shape's loop with the stub in
@@ -517,7 +517,7 @@ void WINAPI start(void) {
 #ifdef POPFONLY
     /* -DPOPFONLY: no stub at all — a million pushfd/popfd pairs, with the
      * other thread making syscalls. */
-    for (i32 i = 0; i < 1000000; i++) __asm__ volatile("pushfd\n\tpopfd" : : : "memory", "cc");
+    for (i32 i = 0; i < 1000000; i++) __asm__ volatile("pushfl\n\tpopfl" : : : "memory", "cc");
 #endif
 #ifdef LOOPOP
     /* -DLOOPOP=n: a million iterations of one instruction class on this
@@ -529,7 +529,7 @@ void WINAPI start(void) {
     void *retsite = page + 4000;
     for (i32 i = 0; i < 1000000; i++) {
 #if LOOPOP == 2
-        __asm__ volatile("pushad\n\tpopad" : : : "memory");
+        __asm__ volatile("pushal\n\tpopal" : : : "memory");
 #elif LOOPOP == 3
         __asm__ volatile("call *%0" : : "r"(retsite) : "memory", "cc");
 #elif LOOPOP == 4
@@ -577,9 +577,17 @@ void WINAPI start(void) {
     say_int(r);
     say("\n");
 
-    if (g_hits == ROUNDS && g_declined == 0 && r == 42) {
+    u32 expected_hits = ROUNDS;
+#ifdef NOARM
+    expected_hits = 0; /* The instruction/control lane never arms a hook. */
+#endif
+    if (g_hits == expected_hits && g_declined == 0 && r == 42) {
+#ifdef NOARM
+        say("PASS: the unarmed instruction/control lane completed\n");
+#else
         say("PASS: a jump stub can record an entry, restore it and return to it\n"
             "      here, and a syscall afterwards still switches mode.\n");
+#endif
         ExitProcess(0);
     }
     say("ODD: the stub did not behave as expected — read the counters above\n");
