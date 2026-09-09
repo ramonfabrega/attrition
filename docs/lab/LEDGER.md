@@ -42,6 +42,8 @@ Fable worker or capture.
 | L26 | One gate read run13 fifty times; decoding improvements do not eliminate all duplicate reads. | [Profiled gate](2026-09-09-methodology-exploration.md#7-gate-cost). | Candidate fixture/index reuse; shared caches introduce lifetime and isolation costs. | Open optimization; no blanket cache proposed. |
 | L27 | Whole-function literal signatures are unnecessary for the clear-call compatibility check. | `live_capsule_probe.h`; fingerprint validation and mutation test. | Replace literal bytes with a 64-bit compatibility fingerprint; SHA-256 image binding remains separate. | Validated: authored vectors, 168 installed-code bit mutations, Windows cross-compile/link. Current header contains only the fingerprint; published history is unchanged. |
 
+| L28 | Both WinMain MF calls returned before three reproduced startup failures; two faults map to WoW64 transition RVA 0x1139. | [Startup transition diagnostics](2026-09-09-startup-transition.md); two fixed four-pair cohorts and dual-mode installed-byte decode. | Opt-in call witnesses and bounded failure contexts; wrong-mode execution is a hypothesis, not a runtime fix. | Diagnostic tooling validated; segment/context falsifier next. No score move. |
+
 ## Adoption boundary
 
 Steering may adopt individual concerns against its current tip and release gate.

@@ -79,6 +79,9 @@ static i32 auto_different(const void *a, const void *b, u32 n) {
     for (u32 i=0; i<n; i++) if (x[i] != y[i]) return 1;
     return 0;
 }
+#ifdef RON_STARTUP_PROBE
+#include "live_startup_probe.h"
+#endif
 static void install_autostart(void) {
     AddVectoredExceptionHandler(1, (void *)auto_fault);
     static const u8 menu[] = {0x55,0x8b,0xec,0x64,0xa1,0,0,0,0};
@@ -112,5 +115,8 @@ static void install_autostart(void) {
     auto_branch(0x1994a0, (u32)auto_idle, 0xe9);
     auto_branch(0x1c7e37, (u32)auto_modal, 0xe8);
     *(u8 *)(g_base+0x1c7e3c) = 0x90;
+#ifdef RON_STARTUP_PROBE
+    install_startup_probe();
+#endif
     emit(K_INFO, 175, 1, 0, 0, 0, 0);
 }

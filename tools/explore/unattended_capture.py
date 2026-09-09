@@ -98,7 +98,8 @@ def capture(args, output, style):
         rise = args.profile / 'rise.ini'
         rise.write_text(live_session.key(rise.read_text(), 'Seed (0 for random)', args.seed))
         env = os.environ.copy()
-        env['TRACER_DEFS'] = '-DRON_AUTOSTART'
+        report['startup_probe'] = getattr(args, 'startup_probe', False)
+        env['TRACER_DEFS'] = '-DRON_AUTOSTART' + (' -DRON_STARTUP_PROBE' if report['startup_probe'] else '')
         with (output / 'build.log').open('w') as log:
             subprocess.run(['zsh', str(ROOT/'tools/trace/build.sh'), str(output)],
                            env=env, stdout=log, stderr=subprocess.STDOUT, check=True, timeout=180)
@@ -106,6 +107,7 @@ def capture(args, output, style):
         report['sha256'] = {name: sha(output/name) for name in
                             ('riseofnations.exe','riseofnations_trace.exe','rontrace.dll','rontrace.cmd','rontrace.cfg')}
         report['launch_args'] = LAUNCH_ARGS[:]
+        report['wine_debug'] = os.environ.get('WINEDEBUG', '-all')
         launch = time.monotonic()
         process = subprocess.Popen(['zsh','-c',LAUNCH,'unattended',str(ROOT/'tools/gamelog/winelaunch.sh'),
                                     str(output/'wine.log'),str(output/'riseofnations_trace.exe'),*LAUNCH_ARGS],
@@ -165,6 +167,7 @@ def main():
     ap.add_argument('--end-frame',type=int,default=36)
     ap.add_argument('--seed',type=int,default=12345)
     ap.add_argument('--timeout',type=int,default=180)
+    ap.add_argument('--startup-probe',action='store_true',help='observe WinMain Media Foundation calls')
     args=ap.parse_args()
     signal.signal(signal.SIGTERM, interrupted)
     args.install,args.profile,args.output=(p.resolve() for p in (args.install,args.profile,args.output))

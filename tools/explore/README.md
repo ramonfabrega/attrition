@@ -274,3 +274,9 @@ counts, and up to eight fault addresses using constant memory. It is for failed
 or partial captures: its output never certifies success. Use the strict
 `autostart_receipt.py` and `compare_unattended.py` for acceptance. The fixed
 cohort protocol and results live in `docs/lab/2026-09-09-startup-cohort.md`.
+
+For the opt-in Media Foundation startup witnesses, add `--startup-probe` to
+`unattended_capture.py`. `WINEDEBUG=+loaddll` additionally records module load
+addresses. See `docs/lab/2026-09-09-startup-transition.md` for fixed diagnostic
+cohorts and the still-unproven WoW64 mode-transition hypothesis. The compiled
+wrapper regression is `uv run tools/explore/test_startup_abi.py`.

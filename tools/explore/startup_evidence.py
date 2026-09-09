@@ -13,7 +13,8 @@ import struct
 def inspect(path):
     result = {'diagnostic_only': True, 'header_supported': False,
               'records': 0, 'trailing_bytes': 0, 'driver_events': {},
-              'frames_observed': 0, 'last_frame': None, 'fault_addresses': []}
+              'startup_events': [], 'startup_event_count': 0,
+              'frames_observed': 0, 'last_frame': None, 'fault_addresses': [], 'fault_contexts': []}
     with path.open('rb') as stream:
         while data := stream.read(32):
             if len(data) != 32:
@@ -30,6 +31,13 @@ def inspect(path):
                 result['driver_events'][key] = result['driver_events'].get(key, 0) + 1
                 if row[1] == 176 and len(result['fault_addresses']) < 8:
                     result['fault_addresses'].append(f'0x{row[2]:08x}')
+                    result['fault_contexts'].append({'ip': row[2], 'sp': row[3],
+                                                     'bp': row[4], 'access_address': row[5]})
+            elif row[:2] == (5, 180):
+                result['startup_event_count'] += 1
+                if len(result['startup_events']) < 16:
+                    result['startup_events'].append({'site': row[2], 'phase': row[3],
+                                                     'version': row[4], 'flags': row[5], 'result': row[6]})
             elif row[0] == 2:
                 result['frames_observed'] += 1
                 result['last_frame'] = row[1]
