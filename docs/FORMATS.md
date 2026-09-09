@@ -881,3 +881,21 @@ The unit slice is +0x104 through +0x14b; recycler headers include 16 bytes, whil
 the replay grants only the first 12 to reject allocator growth. Complete bounds,
 physical versus logical counts and live coverage are recorded in
 `docs/audit/2026-09-09-natural-search-graph.md`.
+
+## Restore-entry prefix packet (2026-09-09)
+
+`PathFinder::find_upath_restore@00688f40`'s PE listing establishes its three
+stack arguments (path stack, owner, object ID), ret 12 and the direct call to
+`PathFinder::find_upath@00682f30` at 0x688fa5. It reads GameAccess globals
+0xc061bc/0xc0618c, the selected repath counter, object pointer and encoded
+coordinate words, and writes the established pathfinder limit/saving pair.
+
+The authored `restore-prefix.bin` packet is 49 u32s: magic 0x31545352, version 1,
+frame, unit; nine entry registers in pushad/flags order with corrected ESP;
+four entry stack words; daemon/objects/slots/object pointers, repaths, encoded
+x/y and pre-call limit/saving; nine delegation registers; twelve delegation
+stack words; final limit/saving. INFO 160 names the hook version and three code
+boundaries; 161 records unit/owner/ID/path-stack/repaths; 162 records
+status/unit/bytes-written/expected-bytes/limit; 163 records a refusal. Every
+record retains the tracer's current frame. The graph receipt and unit/frame
+must also match. Evidence and scope: `docs/audit/2026-09-09-restore-entry.md`.

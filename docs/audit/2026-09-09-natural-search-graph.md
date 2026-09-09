@@ -121,3 +121,8 @@ formatting, install survey and documentation guards pass. The graph, census and
 scenario Python suites pass (5/9/5 tests), both C collector fixtures pass,
 the graph-without-census build rejects, the live DLL links without warnings,
 and default tracer preprocessing remains unchanged.
+
+Follow-up: `docs/audit/2026-09-09-restore-entry.md` captures the native restore
+entry at frame 224 and replays its wrapper up to delegation. The next native
+A* call succeeds. Headless replay of the larger search remains open, starting
+with explicitly missing Windows thread/exception context.

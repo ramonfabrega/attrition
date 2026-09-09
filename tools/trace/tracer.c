@@ -61,6 +61,10 @@
  * records of eight u32s; see `report.py` for the reader.
  */
 
+#if defined(RON_RESTORE_PROBE) && !defined(RON_SEARCH_GRAPH)
+#error RON_RESTORE_PROBE requires structural graph capture
+#endif
+
 #if defined(RON_SEARCH_GRAPH) && !defined(RON_SEARCH_CENSUS)
 #error RON_SEARCH_GRAPH requires the bounded census lane
 #endif
@@ -796,6 +800,9 @@ static u32 build_stub(u8 *s, const HookSite *h) {
 #ifdef RON_SEARCH_CENSUS
 #include "../explore/live_search_census.h"
 #endif
+#ifdef RON_RESTORE_PROBE
+#include "../explore/live_restore_probe.h"
+#endif
 
 static void __cdecl on_call(u32 site, u32 self, u32 a0, u32 a1, u32 a2, u32 a3) {
     if (g_frame < g_cw_lo || g_frame > g_cw_hi) return;
@@ -926,6 +933,9 @@ static void install_calls(void) {
         return;
     }
     emit(K_INFO, 136, 0, 1, 64, 0, 0);
+#ifdef RON_RESTORE_PROBE
+    install_restore_probe();
+#endif
 #endif
     u8 *page = (u8 *)VirtualAlloc(0, 4096, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
     if (!page) return;

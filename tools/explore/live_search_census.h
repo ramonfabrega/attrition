@@ -41,6 +41,8 @@ static void census_suspension(void) {
     }
     emit(K_INFO, 134, sequence, 5, 7, 0, 0);
 #ifdef RON_SEARCH_GRAPH
+#ifndef RON_RESTORE_PROBE
     if (sequence == 1) capture_search_graph(unit);
+#endif
 #endif
 }

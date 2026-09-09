@@ -20386,3 +20386,15 @@ explicitly stops at its first container allocator boundary. The instrumented
 run matches the earlier scenario's RNG/order/search projections and all original
 settings are restored. No headline moved; no resumption or full-cleanup claim.
 Evidence: `docs/audit/2026-09-09-natural-search-graph.md`.
+
+## 2026-09-09 — Capture the restore before it succeeds
+
+Native restore entry is captured at frame 224 for owner 0/object 16. The
+wrapper reaches its live delegation registers, stack and modes exactly in
+31 instructions with 36 semantic bytes and 32 KiB mapped. The subsequent
+native A* call succeeds; waiting for another suspension would miss it.
+The larger pathfinder's first uncaptured input is Windows FS:[0] exception
+state, reached after five instructions with the captured graph available.
+This narrows the next dependency experiment but is not resumed-search replay.
+Reference scenario projections match; settings restored; no headline moved.
+Evidence: `docs/audit/2026-09-09-restore-entry.md`.
