@@ -2,6 +2,9 @@
  * Layout evidence: docs/FORMATS.md, suspended-search census. */
 IMPORT(i32, ReadProcessMemory, (HANDLE, const void *, void *, u32, u32 *));
 static u32 search_census_count;
+#ifdef RON_SEARCH_GRAPH
+#include "live_search_graph.h"
+#endif
 
 static i32 census_read(u32 sequence, u32 address, void *out, u32 size) {
     u32 copied = 0;
@@ -37,4 +40,7 @@ static void census_suspension(void) {
         emit(K_INFO, 132, sequence, i, header[0], header[1], header[2]);
     }
     emit(K_INFO, 134, sequence, 5, 7, 0, 0);
+#ifdef RON_SEARCH_GRAPH
+    if (sequence == 1) capture_search_graph(unit);
+#endif
 }

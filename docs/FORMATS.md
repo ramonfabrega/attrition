@@ -860,3 +860,24 @@ before/after/issue frame, 143 is group/target x/y/two reserved zeros, and 144 is
 failure reason/context/three reserved zeros. The enclosing record carries the
 current frame. Source evidence, packet bounds and live coverage are in
 `docs/audit/2026-09-09-congestion-probe.md`.
+
+## Structural suspended-search graph (2026-09-09)
+
+PDB `Tree<PathNode*,int>` and `Tree<CollBlock*,int>` have 28-byte headers and
+20-byte nodes; the three BRTree variants have 24-byte headers and nodes. All
+nodes place left/right/parent/data at +0/+4/+8/+0xc. BRTree nodes additionally
+place `red` and `removed` at +0x14/+0x15. PDB `PathNode` is 36 bytes with its
+parent at +0x20; `CollBlock` has size 108 but no exported fields. Native
+`PathFinder::kill_tree@00687ba0` confirms the removed predicate for closed-tree
+payload disposal. `PathFinder::kill_tree@00687c10` is its open-tree counterpart.
+
+The authored graph file starts with eight u32s: magic 0x31475352, version 1,
+frame, unit address, record count, file bytes, physical node count and PathNode
+count. Each record is kind/owner/address/byte length followed by those bytes.
+Kinds 1–7 are unit search slice, container, tree node, PathNode, opaque CollBlock,
+recycler header and recycler array. Owner selects the existing five-container
+or seven-recycler census order; scalar unit/PathNode records use owner zero.
+The unit slice is +0x104 through +0x14b; recycler headers include 16 bytes, while
+the replay grants only the first 12 to reject allocator growth. Complete bounds,
+physical versus logical counts and live coverage are recorded in
+`docs/audit/2026-09-09-natural-search-graph.md`.

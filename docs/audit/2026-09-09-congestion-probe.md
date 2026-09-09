@@ -113,3 +113,8 @@ log `/tmp/congestion-release.log`. Clippy with warnings denied, formatting,
 install survey and documentation guards pass. Five scenario Python tests, nine
 census Python tests, host C driver checks, incompatible-macro rejection, final
 DLL linking and unchanged default preprocessing pass.
+
+Follow-up: `docs/audit/2026-09-09-natural-search-graph.md` captures the first
+witness's structural graph and replays native PathNode disposal. The 202 logical
+entries correspond to 223 physical nodes, including removed reference nodes.
+Full allocator-dependent cleanup and search resumption remain open.

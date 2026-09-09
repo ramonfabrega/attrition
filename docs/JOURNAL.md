@@ -20373,3 +20373,16 @@ repeat validator turn setup failures into errors. Original settings restored.
 No headline floor moved; no full-state parity or Rust resumption claim. Evidence
 and the next complete-graph capture boundary:
 `docs/audit/2026-09-09-congestion-probe.md`.
+
+## 2026-09-09 — A natural graph in a 52 KiB native replay
+
+The congestion witness now yields a validated structural graph: 223 physical
+nodes versus 202 logical entries, because the open reference index retains 21
+removed nodes; 67 PathNodes close their own parent chains. Native payload
+disposal runs on the captured recycler without an allocator adapter: 3,484
+semantic bytes, 52 KiB mapped, 1,807 instructions. Fresh/reused executions
+agree; 73 missing dependencies and four corrupt outputs refuse. Full cleanup
+explicitly stops at its first container allocator boundary. The instrumented
+run matches the earlier scenario's RNG/order/search projections and all original
+settings are restored. No headline moved; no resumption or full-cleanup claim.
+Evidence: `docs/audit/2026-09-09-natural-search-graph.md`.

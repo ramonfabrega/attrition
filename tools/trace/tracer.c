@@ -61,6 +61,10 @@
  * records of eight u32s; see `report.py` for the reader.
  */
 
+#if defined(RON_SEARCH_GRAPH) && !defined(RON_SEARCH_CENSUS)
+#error RON_SEARCH_GRAPH requires the bounded census lane
+#endif
+
 #if defined(RON_CONGESTION_PROBE) && (!defined(RON_SEARCH_CENSUS) || defined(RON_COMMAND_PROBE))
 #error RON_CONGESTION_PROBE requires census and excludes the single-unit command probe
 #endif
