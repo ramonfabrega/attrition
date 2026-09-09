@@ -20246,3 +20246,31 @@ Final release gate passes: 269 rondata (one ignored), 821 sim, 13 fixed and
 three doctests. Rondata took 228.98 s, with the watchdog recording a 9,710 MiB
 process-tree peak under its 20 GiB ceiling. The whole-run comparator also rejects
 an altered logged frame body and a missing capsule receipt.
+
+## 2026-09-09 — Natural path deletion, original → bounded replay → Rust
+
+The natural path-deletion capsule observed 2 → 0 waypoints at frame 36 during
+shutdown. The original replay matches live registers, flags and captured gameplay
+memory; scratch is initialized-on-write and compared across fresh/reset emulators,
+not against the live exit callback's overwritten stack. Nine omitted-region
+controls fail. The 35-instruction call uses 167 declared bytes in 16 KiB of guest
+mappings, including a nested null-search check without mapping its allocator path.
+
+The existing Rust deletion loop is now `Unit::discard_current_path_segment`,
+called by production Sim order teardown and by the lightweight oracle example.
+The natural result and 4,096 deterministic mutations agree on every surviving
+waypoint field; 682 cases retain waypoints. No world or simulation is constructed
+by the checker. The normal control agrees on 19 full logged frame bodies and
+37 frame/RNG records. All five original settings/profile files were restored,
+and the game is closed. No parity score moved. Scope and reproduction are in
+`docs/audit/2026-09-09-natural-path-capsule.md`.
+
+Validation: all 4,097 original/Rust rows pass, including 682 retained prefixes.
+Eight new framing tests and the prior capsule, executor, staging and focus
+regressions pass. Wrong survivor counts and empty oracle input fail; altered
+live registers/waypoints/lengths fail; the control rejects changed frame bodies,
+missing receipts and receipts for unobserved frames. Clippy, formatting,
+documentation guards and the install survey pass. Default tracer tokens are
+unchanged; default/experimental builds deny warnings and incompatible flags fail.
+The full release gate passes: 269 rondata (one ignored), 821 sim, 13 fixed,
+three doctests; rondata 230.02 s, process-tree peak 9,258 MiB under 20 GiB.

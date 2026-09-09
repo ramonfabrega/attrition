@@ -127,3 +127,19 @@ Add `--mutations 4096` to the order replay to poison the three stale cache field
 with deterministic bit patterns. Every result must reconstruct the full live
 exit state and match a fresh emulator. These are live-derived synthetic inputs,
 not extra natural captures or a Rust order-list differential test.
+
+## Natural path deletion with a Rust comparison
+
+`RON_PATH_CAPSULE` captures a nonempty `Unit::kill_current_path` call with no
+suspended search. Bind staged images before launch as for other capsules.
+`replay_path_capsule.py INSTALL OUTPUT --mutations 4096 --oracle-rows` emits
+semantic rows for the release Cargo example `path_capsule_check`; redirect them
+outside the repo and require the producer to exit zero before running the checker.
+Omit `--oracle-rows` for the replay/mutation report. The first live sample was
+shutdown path deletion, 2 → 0; synthetic lengths range from zero to two.
+
+`compare_natural_capsule_runs.py CONTROL OUTPUT --kind path` checks the standard
+bounded run; `--kind order` supports the previous natural capsule too. Eight
+framing tests are in `test_path_capsule.py`. The explicit live-scratch exclusion,
+code-region bounds and remaining gaps are in
+`docs/audit/2026-09-09-natural-path-capsule.md`.

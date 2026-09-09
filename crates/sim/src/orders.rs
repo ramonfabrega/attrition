@@ -23,7 +23,7 @@ use crate::economy;
 use crate::garrison::GarrisonRefused;
 use crate::movement::{self, Angle, find_angle};
 use crate::world::{tile, vector_dist};
-use crate::{Player, Pos, Sim, farms};
+use crate::{Player, Pos, Sim, Unit, farms};
 
 /// `OrderIndex` — the value the gamelog's `type` line carries.
 pub mod index {
@@ -609,6 +609,20 @@ pub enum Worker {
     Scholar,
 }
 
+impl Unit {
+    /// Discard waypoints through the current segment's final waypoint.
+    ///
+    /// This is the path-only operation used by order teardown (ORDERS §3.2).
+    /// It can also be replayed on a unit without constructing a world or sim.
+    pub fn discard_current_path_segment(&mut self) {
+        while let Some(p) = self.path.pop() {
+            if p.flags & path_flag::FINAL != 0 {
+                break;
+            }
+        }
+    }
+}
+
 impl Sim {
     // ------------------------------------------------------------------
     // The list
@@ -878,12 +892,7 @@ impl Sim {
     /// `kill_current_path`: pop the stack until an entry with the final flag
     /// is popped.
     fn kill_current_path(&mut self, u: usize) {
-        let path = &mut self.units[u].path;
-        while let Some(p) = path.pop() {
-            if p.flags & path_flag::FINAL != 0 {
-                break;
-            }
-        }
+        self.units[u].discard_current_path_segment();
     }
 
     /// `Unit::close_orders`: kill everything, oldest first.
