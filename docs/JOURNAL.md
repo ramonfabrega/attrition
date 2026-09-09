@@ -20213,3 +20213,36 @@ formatting, seven documentation guards and the install survey pass. A final
 executor rerun also passes every fresh/reversed/omitted-dependency check.
 The whole-export caller search points to boat-collision handling, so reachability
 needs a witness before assuming the earlier land-unit capture can exercise it.
+
+## 2026-09-09 — A natural pointer-graph call, and fail-closed lobby input
+
+Existing coverage selected Unit's order-cache refresh: frame-zero HITs in runs
+53, 54 and 906. The opt-in witness now captures a natural invocation, and two
+fresh bounded emulators plus a reset replay match all captured registers,
+flags and memory. The 14-instruction replay uses 98 declared bytes in 16 KiB
+of guest mappings; it verifies three equal-value stores and rejects five
+missing dependencies. Zero live unit bytes changed in this sample. Rust's
+order representation differs; no Rust layout-equivalence claim is made.
+The normal control agrees on 19 complete logged frame bodies and 37 frame/RNG
+records. `docs/audit/2026-09-09-natural-order-capsule.md` records scope and evidence.
+
+One launch faulted in Wine before the first frame; the same staged binary
+succeeded on retry. The failure exposed a control bug: no game window counted
+as focus success, and the lobby ignored focusing errors. Both now stop input
+on failure. Four mocked tests pass; both no-click tests fail against the old
+scripts. Eight capsule framing, 11 bounded executor, 11 prior capsule and five
+staging tests pass, along with clippy, formatting, documentation guards and the
+install survey. Default tracer tokens are unchanged; experimental/default builds
+pass with warnings denied. All five backed-up settings/profile files match the
+pre-experiment bytes and the launched games are closed. No parity score moved.
+
+The same live capsule now supplies 4,096 deterministic stale-cache mutations:
+zero, all-one, and seeded random values in cached data/node/metric. Every case
+reconstructs the full live exit state and matches a fresh emulator. This is a
+nonempty-list cache-independence check, not broader queue or gameplay coverage;
+`replay_order_capsule.py --mutations 4096` makes the experiment repeatable.
+
+Final release gate passes: 269 rondata (one ignored), 821 sim, 13 fixed and
+three doctests. Rondata took 228.98 s, with the watchdog recording a 9,710 MiB
+process-tree peak under its 20 GiB ceiling. The whole-run comparator also rejects
+an altered logged frame body and a missing capsule receipt.

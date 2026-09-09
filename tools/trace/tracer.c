@@ -65,6 +65,10 @@
 #error RON_CAPSULE_PROBE requires RON_COMMAND_PROBE and excludes RON_HIDE_SCENE
 #endif
 
+#if defined(RON_ORDER_CAPSULE) && (defined(RON_CAPSULE_PROBE) || defined(RON_HIDE_SCENE))
+#error RON_ORDER_CAPSULE excludes RON_CAPSULE_PROBE and RON_HIDE_SCENE
+#endif
+
 #if defined(RON_HIDE_SCENE) && !defined(RON_TURN_PROBE)
 #error RON_HIDE_SCENE requires RON_TURN_PROBE for the render-call witness
 #endif
@@ -1047,6 +1051,10 @@ static void read_cmds(void) {
 #include "../explore/live_capsule_probe.h"
 #endif
 
+#ifdef RON_ORDER_CAPSULE
+#include "../explore/live_order_capsule.h"
+#endif
+
 /* cdecl, so the export table names it `Hook` — what patch_exe.py imports */
 __declspec(dllexport) void Hook(void) {}
 
@@ -1090,6 +1098,9 @@ i32 WINAPI DllMain(void *inst, u32 reason, void *reserved) {
         }
 #ifdef RON_CAPSULE_PROBE
         install_capsule();
+#endif
+#ifdef RON_ORDER_CAPSULE
+        install_order_capsule();
 #endif
         if (g_cover) {
             if (!g_nfuncs) emit(K_INFO, I_NOFUNCS, 0, 0, 0, 0, 0);

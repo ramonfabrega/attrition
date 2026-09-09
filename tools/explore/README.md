@@ -108,3 +108,22 @@ This is synthetic-state differential testing, not natural live capture.
 immutable code and CPU/data reset. `uv run tools/explore/test_bounded_call.py`
 checks it with authored machine code. Bounds, measurements and next live-witness
 requirements are in `docs/audit/2026-09-09-bounded-turn-angles.md`.
+
+## Natural order-cache capsule
+
+`RON_ORDER_CAPSULE` intercepts a natural `Unit::update_order` call in frames
+0–35, with coverage disabled. It excludes the copy-capsule and render-suppression
+experiments. Bind the staged images with `replay_capsule.py bind`, then use
+`replay_order_capsule.py INSTALL OUTPUT` and
+`compare_order_capsule_runs.py CONTROL OUTPUT`. The first successful witness was
+an equal-value refresh: see `docs/audit/2026-09-09-natural-order-capsule.md` for
+its scope and the distinction between live entry/exit bytes and replay stores.
+
+`uv run tools/explore/test_order_capsule.py` checks capsule framing;
+`python3 tools/explore/test_lobby_focus.py` verifies missing windows and
+Automation failures cannot reach lobby clicks, using mocked commands only.
+
+Add `--mutations 4096` to the order replay to poison the three stale cache fields
+with deterministic bit patterns. Every result must reconstruct the full live
+exit state and match a fresh emulator. These are live-derived synthetic inputs,
+not extra natural captures or a Rust order-list differential test.
