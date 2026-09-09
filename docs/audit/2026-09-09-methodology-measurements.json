@@ -1,0 +1,123 @@
+{
+  "counts": {
+    "read": 561,
+    "parse": 571,
+    "scan": 605
+  },
+  "elapsed_span_seconds": {
+    "read": 20.67165092199997,
+    "parse": 116.61015132800003,
+    "scan": 345.6441932840001
+  },
+  "bytes_read": 154693938770,
+  "distinct_read_paths": 100,
+  "most_read": [
+    {
+      "path": "gamelog-run13-window-95-105.txt",
+      "reads": 50,
+      "bytes": 642100524,
+      "total_bytes": 32105026200
+    },
+    {
+      "path": "gamelog-run38-islands-start.txt",
+      "reads": 49,
+      "bytes": 153477471,
+      "total_bytes": 7520396079
+    },
+    {
+      "path": "gamelog-run12-dumpall-seeds.txt",
+      "reads": 47,
+      "bytes": 262222051,
+      "total_bytes": 12324436397
+    },
+    {
+      "path": "gamelog-run3-fulldump-types.txt",
+      "reads": 44,
+      "bytes": 152269808,
+      "total_bytes": 6699871552
+    },
+    {
+      "path": "gamelog-run11-checksum.txt",
+      "reads": 43,
+      "bytes": 30409192,
+      "total_bytes": 1307595256
+    },
+    {
+      "path": "gamelog-run39-islands-longtrace.txt",
+      "reads": 20,
+      "bytes": 482309960,
+      "total_bytes": 9646199200
+    },
+    {
+      "path": "gamelog-run20-islands-dumpall.txt",
+      "reads": 14,
+      "bytes": 278197503,
+      "total_bytes": 3894765042
+    },
+    {
+      "path": "gamelog-run29-islands-engagement-window.txt",
+      "reads": 12,
+      "bytes": 251324874,
+      "total_bytes": 3015898488
+    }
+  ],
+  "heaviest_queries": [
+    {
+      "phase": "scan",
+      "test": "diff::shutdown::tests::the_census_is_the_corpus",
+      "elapsed_seconds": 53.05929370799998
+    },
+    {
+      "phase": "scan",
+      "test": "diff::shutdown::tests::a_closing_dump_and_its_own_block_are_one_state",
+      "elapsed_seconds": 36.116630377000014
+    },
+    {
+      "phase": "parse",
+      "test": "diff::shutdown::tests::the_census_is_the_corpus",
+      "elapsed_seconds": 18.250272625999997
+    },
+    {
+      "phase": "scan",
+      "test": "diff::shutdown::tests::east_indies_closing_dumps_are_the_original_s",
+      "elapsed_seconds": 15.561240707999998
+    },
+    {
+      "phase": "scan",
+      "test": "diff::harness::tests::run58_s_five_thousand_frames_stand_where_the_original_s_do",
+      "elapsed_seconds": 10.135928957
+    },
+    {
+      "phase": "parse",
+      "test": "diff::shutdown::tests::a_closing_dump_and_its_own_block_are_one_state",
+      "elapsed_seconds": 9.998063874
+    },
+    {
+      "phase": "scan",
+      "test": "diff::unit::tests::the_walk_gives_every_dumped_guy_its_own_piece",
+      "elapsed_seconds": 8.571858041
+    },
+    {
+      "phase": "scan",
+      "test": "diff::unit::tests::every_dumped_unit_has_crew_size_plus_one_figures",
+      "elapsed_seconds": 8.456248415
+    },
+    {
+      "phase": "scan",
+      "test": "diff::harness::tests::run57_s_four_thousand_frames_stand_where_the_original_s_do",
+      "elapsed_seconds": 8.162684167
+    },
+    {
+      "phase": "scan",
+      "test": "diff::shutdown::tests::great_lakes_closing_dumps_are_the_original_s",
+      "elapsed_seconds": 7.325506375
+    }
+  ],
+  "completion": [
+    "    Finished `release` profile [optimized] target(s) in 8.41s",
+    "test result: ok. 248 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 289.66s",
+    "memcap: peak 0 MiB across the tree, 0 MiB in the largest single process, of a 20 GiB ceiling"
+  ],
+  "wrapper_wall_seconds": 300.2385391659918,
+  "memory_measurement": "unavailable: sandbox denied ps; memcap printed zero"
+}
