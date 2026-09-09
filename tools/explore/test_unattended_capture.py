@@ -1,0 +1,88 @@
+"""Runner failure and restoration tests; all install/profile data is authored."""
+from pathlib import Path
+import tempfile
+from types import SimpleNamespace
+import unittest
+from unittest.mock import patch
+import json
+import unattended_capture as runner
+
+
+class RunnerTest(unittest.TestCase):
+    def setUp(self):
+        self.temp=tempfile.TemporaryDirectory();self.addCleanup(self.temp.cleanup)
+        self.root=Path(self.temp.name)
+
+    def test_capture_lane_refuses_second_owner_then_releases(self):
+        with runner.capture_lane(self.root):
+            with self.assertRaises(BlockingIOError):
+                with runner.capture_lane(self.root): pass
+        with runner.capture_lane(self.root): pass
+
+    def test_missing_backup_cannot_claim_restoration(self):
+        with self.assertRaisesRegex(ValueError,'incomplete settings backup'):
+            runner.verify_restored(self.root/'missing',self.root)
+
+    def test_map_edits_validate_before_writing(self):
+        profile=self.root/'profile';(profile/'PlayerProfile').mkdir(parents=True)
+        path=profile/'PlayerProfile'/'Player.dat'
+        original=b'<MAP_STYLE>14</MAP_STYLE>\r\n<MAP_STYLE value="14"/>\r\n<MAP_STYLE value="14"/>\r\n'
+        path.write_bytes(original)
+        runner.set_map(profile,18)
+        self.assertEqual(path.read_bytes(),original.replace(b'14',b'18'))
+        path.write_bytes(original.replace(b'<MAP_STYLE>14</MAP_STYLE>',b''))
+        before=path.read_bytes()
+        with self.assertRaises(ValueError):runner.set_map(profile,18)
+        self.assertEqual(path.read_bytes(),before)
+
+    def test_identity_and_closing_are_required(self):
+        log=self.root/'game.log'
+        log.write_text(' MAP_STYLE 18\nBEGIN FRAME 37\n GameInfo closing\n')
+        self.assertEqual(runner.verify_game(log,18,36)['map_style'],18)
+        with self.assertRaises(ValueError):runner.verify_game(log,18,36,12345)
+        log.write_text(log.read_text()+' (int)seed 12345\n')
+        self.assertEqual(runner.verify_game(log,18,36,12345)['seed_observed'],[12345])
+        with self.assertRaises(ValueError):runner.verify_game(log,14,36)
+        with self.assertRaises(ValueError):runner.verify_game(log,18,37)
+        log.write_text('MAP_STYLE 18\n')
+        with self.assertRaises(ValueError):runner.verify_game(log,18,36)
+
+    def test_failure_after_stage_still_restores_and_records(self):
+        output=self.root/'output';output.mkdir()
+        args=SimpleNamespace(install=self.root,profile=self.root,end_frame=36)
+        with patch.object(runner.live_session,'require_closed'), \
+             patch.object(runner.live_session,'stage'), \
+             patch.object(runner,'set_map',side_effect=ValueError('bad profile')), \
+             patch.object(runner.live_session,'restore') as restore, \
+             patch.object(runner,'verify_restored',return_value=5):
+            with self.assertRaisesRegex(ValueError,'bad profile'):runner.capture(args,output,14)
+        restore.assert_called_once_with(output)
+        receipt=json.loads((output/'receipt.json').read_text())
+        self.assertFalse(receipt['success']);self.assertTrue(receipt['settings_restored'])
+        self.assertEqual(receipt['restored_files'],5)
+
+    def test_live_game_blocks_restoration_and_records_cleanup_failure(self):
+        output=self.root/'output';output.mkdir()
+        args=SimpleNamespace(install=self.root,profile=self.root,end_frame=36)
+        with patch.object(runner.live_session,'require_closed',side_effect=[None,RuntimeError('game remains')]), \
+             patch.object(runner.live_session,'stage'), \
+             patch.object(runner,'set_map',side_effect=ValueError('bad profile')), \
+             patch.object(runner.live_session,'restore') as restore:
+            with self.assertRaisesRegex(RuntimeError,'game remains'):runner.capture(args,output,14)
+        restore.assert_not_called()
+        receipt=json.loads((output/'receipt.json').read_text())
+        self.assertFalse(receipt['settings_restored']);self.assertIn('game remains',receipt['cleanup_error'])
+
+    def test_every_backed_up_file_is_verified(self):
+        output=self.root/'output';profile=self.root/'profile'
+        for root in (output/'settings-backup',profile):
+            (root/'PlayerProfile').mkdir(parents=True)
+            for name in runner.live_session.NAMES:
+                (root/name).write_bytes(b'ini')
+            (root/'PlayerProfile'/'Player.dat').write_bytes(b'profile')
+        self.assertEqual(runner.verify_restored(output,profile),4)
+        (profile/'PlayerProfile'/'Player.dat').write_bytes(b'changed')
+        with self.assertRaises(ValueError):runner.verify_restored(output,profile)
+
+
+if __name__=='__main__':unittest.main()

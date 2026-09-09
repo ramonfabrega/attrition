@@ -237,3 +237,25 @@ Run `uv run --with unicorn==2.1.4 python -m unittest discover -s tools/explore
 -p test_restore_prefix.py` for authored packet tests. Compile
 `test_live_restore_probe.c` with host Clang and
 `-Wno-int-to-pointer-cast -Wno-pointer-to-int-cast` for callback refusal tests.
+
+### Unattended original-game acquisition
+
+`unattended_capture.py INSTALL NEW_OUTPUT PROFILE` runs Great Lakes and East
+Indies without clicks, one Wine process per map. It retains native setup and
+Start validation, checks contiguous frame receipts plus map/seed read-back and
+the closing dump, then restores and verifies settings. `--end-frame 1400`
+schedules native fast-forward after the detailed logging window. The shared
+profile's cooperative lock protects other instances of this runner; manual
+capture tools still need an explicit lane handoff.
+
+Wine and a display remain required. Exit is controlled after native match
+shutdown; full application teardown has a known fault. Failures retain a JSON
+receipt and stop the pair. This captures the profile's existing rules, not an
+asserted replacement for the headline fixtures. Evidence, the failed ABI
+experiment, a pre-menu startup failure, and limits are in
+`docs/audit/2026-09-09-autostart.md`.
+
+Checks: `python3 -m unittest discover -s tools/explore -p test_autostart_receipt.py`,
+`python3 -m unittest discover -s tools/explore -p test_unattended_capture.py`, and
+`uv run tools/explore/test_autostart_abi.py` (compiled x86 ABI regression with
+an intentionally failing mutation; no install needed).

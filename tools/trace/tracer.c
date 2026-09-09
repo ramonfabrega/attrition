@@ -1109,6 +1109,10 @@ static void read_cmds(void) {
 #include "../explore/live_path_capsule.h"
 #endif
 
+#ifdef RON_AUTOSTART
+#include "../explore/live_autostart.h"
+#endif
+
 /* cdecl, so the export table names it `Hook` — what patch_exe.py imports */
 __declspec(dllexport) void Hook(void) {}
 
@@ -1146,6 +1150,9 @@ i32 WINAPI DllMain(void *inst, u32 reason, void *reserved) {
             return 1;
         }
         install_hooks();
+#ifdef RON_AUTOSTART
+        install_autostart();
+#endif
         if (g_cw_hi >= g_cw_lo) {
             g_calls = 1;
             install_calls();

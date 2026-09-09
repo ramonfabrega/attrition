@@ -20398,3 +20398,16 @@ state, reached after five instructions with the captured graph available.
 This narrows the next dependency experiment but is not resumed-search replay.
 Reference scenario projections match; settings restored; no headline moved.
 Evidence: `docs/audit/2026-09-09-restore-entry.md`.
+
+## 2026-09-09 — Drive the native lobby without clicks
+
+An opt-in native menu/modal driver now acquires both maps through frame 1400
+without mouse or keyboard input. Map and seed read-back, contiguous frame
+receipts, closing dumps, controlled post-match exit, and all five restored
+settings files are verified. The shared prefix agrees with independent short
+captures on 18 complete logged bodies and 37 RNG frame/seed pairs per map.
+An incorrect modal ABI wrapper failed live and now has a compiled x86
+regression; a mutated argument offset is rejected. Two pre-menu startup
+failures remain unexplained, and full application teardown still faults, so
+this is an opt-in acquisition tool, not reliable device-free execution.
+No headline moved. Evidence: `docs/audit/2026-09-09-autostart.md`.
