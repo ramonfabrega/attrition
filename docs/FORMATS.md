@@ -66,8 +66,9 @@ struct CommandPackage : GameAccess {   // sizeof 536
   +8    int   valid;
   +12   int   group;
   +16   i16   size;       // bytes used in data
-  +18   byte  data[514];  // packed variable-length commands
-  +532  byte  padding[4];
+  +18   byte  data[512];  // packed variable-length commands
+  +530  byte  alignment[2];
+  +532  Random padding;
 };
 // methods: add_command, add_group, add_chat, add_spline, copy_data,
 //          walk_data, log_data, process, process_all, process_group,
@@ -85,6 +86,12 @@ struct RandomLogEntry {   // sizeof 32
   +28   int    seed;
 };
 ```
+
+The exported `types.txt` `/rise.pdb/CommandPackage` record establishes the
+512-byte array and `Random` at +532; the two intervening bytes are alignment,
+not payload. This corrects the earlier 514-byte label. The live clear-call
+capsule verifies writes at +16 and +532; see
+`audit/2026-09-09-live-call-capsule.md`.
 
 Three things follow, and they are the most consequential facts we have.
 

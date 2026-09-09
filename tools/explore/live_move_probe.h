@@ -41,4 +41,7 @@ static void probe_move(i32 frame) {
                                    group, x, y, 2, 0, 0, 0, 0, 0, 0);
     emit(K_INFO, 100, 0, before, *(u16 *)(package + 0x10), (u32)x, (u32)y);
     flush();
+#ifdef RON_CAPSULE_PROBE
+    capsule_request_copy(package);
+#endif
 }

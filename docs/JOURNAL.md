@@ -20150,3 +20150,39 @@ peak was 8,881 MiB under the 20 GiB ceiling. Clippy with warnings denied,
 formatting, seven paperwork guards and the real-install survey passed. The suite
 run overlapped report verification and viewer export, so its elapsed time is
 reported as gate evidence rather than a controlled throughput comparison.
+
+
+## 2026-09-09 — A strict capsule of a live-derived mutating call
+
+Returned to the original-game lane after the replay memory work. The standalone
+CommandPackage clear hook was not reached in the first bounded pilot. The
+successful probe instead invokes that original function on a byte-for-byte copy
+of the live 536-byte package after the existing frame-20 MoveTo issuer. This is
+a probe-created call, not a natural call or synthesized scalar fixture.
+
+The capsule replays twice in fresh Unicorn instances, mapping only 572 captured
+bytes across page allocations. All eight GPRs, EFLAGS and captured bytes match
+the live exit. Two writes are verified, including the equal-value seed write:
+length 37 becomes zero; padding seed remains 12345. Uncaptured byte ranges are
+rejected even within mapped pages; there are no imported-function adapters or
+full-image data mappings. Executable/tracer identity and trace receipts are
+checked. A matched normal control agrees on all 19 logged frame bodies and
+37 frame/RNG records. The real command packet is preserved.
+
+`docs/audit/2026-09-09-live-call-capsule.md` records the narrow contract, local
+artifacts and the remaining gap to pointer-rich mutators and automatic dependency
+capture. The PDB type record also corrected FORMATS' old 514-byte payload label:
+there are 512 payload bytes, two alignment bytes, then Random padding.
+
+Eleven synthetic strict-replay guard tests and five staging tests pass. Default
+and experimental tracers compile with warnings denied; default preprocessed
+tokens match the branch's prior tip. The staging helper now targets Logging
+Options keys by section after an actual duplicate-key-in-another-section refusal.
+All backed-up shared settings and profile files were restored byte-for-byte;
+new game files are retained. No production Rust behavior or parity floor changed.
+
+Final checks also passed workspace clippy with warnings denied, formatting,
+seven paperwork guards and the install survey. Both unsupported capsule flag
+combinations were deliberately compiled and rejected. The shared settings and
+all originally backed-up profile files match the pre-experiment bytes; the
+launched game processes are closed.

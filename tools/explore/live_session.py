@@ -30,6 +30,21 @@ def key(text, name, value):
     return text
 
 
+def section_key(text, section, name, value):
+    lines = text.splitlines(keepends=True)
+    current, count = '', 0
+    for i, line in enumerate(lines):
+        if line.startswith('['):
+            current = line.strip()
+        if current == section and line.startswith(name + '='):
+            ending = '\r\n' if line.endswith('\r\n') else '\n' if line.endswith('\n') else ''
+            lines[i] = name + '=' + str(value) + ending
+            count += 1
+    if count != 1:
+        raise ValueError(f'expected one {section} {name}, found {count}')
+    return ''.join(lines)
+
+
 def restore(output):
     metadata = json.loads((output / 'session.json').read_text())
     profile = Path(metadata['profile'])
@@ -57,15 +72,19 @@ def stage(args):
     rise2 = key(key((profile / 'rise2.ini').read_text(), 'LogStartFrame', 18), 'LogEndFrame', 36)
     # Wine Z: maps the host root. Keep backslashes out of re.sub replacement strings.
     wine_output = 'Z:' + str(output).replace('/', '\\')
-    log = key(key(key((profile / 'gamelog.ini').read_text(), 'DUMP_ALL', 0),
-                  'LogFile', wine_output + '\\gamelog.txt'),
-              'DumpFileName', wine_output + '\\dumplog.txt')
+    log = (profile / 'gamelog.ini').read_text()
+    for name, value in [('DUMP_ALL', 0), ('LogFile', wine_output + '\\gamelog.txt'),
+                        ('DumpFileName', wine_output + '\\dumplog.txt')]:
+        log = section_key(log, '[Logging Options]', name, value)
     lines, section = [], ''
     for line in log.splitlines():
         if line.startswith('['):
             section = line
         if '=' in line and section != '[Logging Options]':
             name = line.split('=', 1)[0]
+            if name in ('DumpFileName', 'LogFile', 'DUMP_ALL'):
+                lines.append(line)
+                continue
             value = 3 if section == '[End Frame]' and name == 'UNITS' else \
                 1 if section == '[Misc Logging]' and name == 'COMMANDMANAGER' else 0
             line = f'{name}={value}'

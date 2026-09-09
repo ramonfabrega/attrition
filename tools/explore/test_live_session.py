@@ -51,6 +51,16 @@ class SessionTest(unittest.TestCase):
             module.stage(self.args)
         self.assert_restored()
 
+    def test_same_key_in_another_section_is_not_ambiguous(self):
+        self.original['gamelog.ini'] += b'DumpFileName=other-section\n'
+        (self.profile / 'gamelog.ini').write_bytes(self.original['gamelog.ini'])
+        module.stage(self.args)
+        text = (self.profile / 'gamelog.ini').read_text()
+        self.assertIn('DumpFileName=other-section', text)
+        self.assertIn('\\dumplog.txt', text)
+        module.restore(self.output)
+        self.assert_restored()
+
     def test_partial_shared_write_is_rolled_back(self):
         write = Path.write_text
         def fail_second(path, text, *args, **kwargs):

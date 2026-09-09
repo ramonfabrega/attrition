@@ -73,3 +73,24 @@ test thread and retain its waiting states, so their denominator is explicit.
 reads. Its `verify` mode accepts one capture or a directory of finalized
 `gamelog-*.txt` archives. See `docs/audit/2026-09-09-shutdown-streaming.md` for
 complete-record coverage, the census migration, and limits of the memory claim.
+
+
+## Strict live-derived call capsules
+
+`docs/audit/2026-09-09-live-call-capsule.md` records the bounded clear-call
+experiment, evidence and limitations. `RON_CAPSULE_PROBE` requires
+`RON_COMMAND_PROBE`; it invokes the original clear function on a complete copy
+of a live command package, preserving the gameplay packet. It is not a natural
+call interception or an automatic arbitrary-state capture.
+
+- `uv run replay_capsule.py bind INSTALL OUTPUT` pins staged executable/DLL
+  identities before the run; `replay INSTALL OUTPUT` verifies the captured
+  call twice in fresh emulators and rejects missing dependencies.
+- `python3 compare_capsule_runs.py CONTROL OUTPUT` checks full logged frames,
+  frame/RNG records and command/copy receipts against a normal command run.
+- `uv run test_capsule.py` exercises strict access, output and execution guards
+  with authored fixtures. It needs no game install.
+
+Use full paths under `tools/explore/` when running from the workspace root.
+Capture binaries and reports must remain outside the repository. Restore the
+backed-up shared settings with `live_session.py restore` after the game closes.

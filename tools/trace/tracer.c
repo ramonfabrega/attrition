@@ -61,6 +61,10 @@
  * records of eight u32s; see `report.py` for the reader.
  */
 
+#if defined(RON_CAPSULE_PROBE) && (!defined(RON_COMMAND_PROBE) || defined(RON_HIDE_SCENE))
+#error RON_CAPSULE_PROBE requires RON_COMMAND_PROBE and excludes RON_HIDE_SCENE
+#endif
+
 #if defined(RON_HIDE_SCENE) && !defined(RON_TURN_PROBE)
 #error RON_HIDE_SCENE requires RON_TURN_PROBE for the render-call witness
 #endif
@@ -657,6 +661,9 @@ static u32 stack_ret(u32 ebp, u32 lo, u32 hi, u32 *next) {
 }
 
 #ifdef RON_COMMAND_PROBE
+#ifdef RON_CAPSULE_PROBE
+static void capsule_request_copy(u8 *package);
+#endif
 #include "../explore/live_move_probe.h"
 #endif
 
@@ -1036,6 +1043,10 @@ static void read_cmds(void) {
 
 /* ---- entry ------------------------------------------------------------- */
 
+#ifdef RON_CAPSULE_PROBE
+#include "../explore/live_capsule_probe.h"
+#endif
+
 /* cdecl, so the export table names it `Hook` — what patch_exe.py imports */
 __declspec(dllexport) void Hook(void) {}
 
@@ -1077,6 +1088,9 @@ i32 WINAPI DllMain(void *inst, u32 reason, void *reserved) {
             g_calls = 1;
             install_calls();
         }
+#ifdef RON_CAPSULE_PROBE
+        install_capsule();
+#endif
         if (g_cover) {
             if (!g_nfuncs) emit(K_INFO, I_NOFUNCS, 0, 0, 0, 0, 0);
             u32 armed = arm_all();
