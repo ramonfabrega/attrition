@@ -62,11 +62,12 @@
  function move(i){index=Math.max(0,Math.min(data.frames.length-1,i));render();}
  function stop(){if(playing)clearInterval(playing);playing=null;$('play').textContent='Play';}
  function play(){if(playing)return stop();if(index===data.frames.length-1)move(0);playing=setInterval(()=>{if(index===data.frames.length-1)stop();else move(index+1);},180);$('play').textContent='Pause';}
- function restore(){const p=new URLSearchParams(location.hash.slice(1));index=Math.max(0,Math.min(data.frames.length-1,Number(p.get('index'))||0));index=Math.floor(index);selected=p.get('unit')||null;if(['originalRecord','rustRecord','report','provenance'].includes(p.get('record')))$('record').value=p.get('record');render();}
+ function restore(){const p=new URLSearchParams(location.hash.slice(1));index=Math.max(0,Math.min(data.frames.length-1,Number(p.get('index')??data.focusIndex??0)||0));index=Math.floor(index);selected=p.get('unit')||null;if(['originalRecord','rustRecord','report','provenance'].includes(p.get('record')))$('record').value=p.get('record');render();}
  bounds=[0,0,data.world[0],data.world[1]];for(const f of data.frames)for(const u of f.units)for(const p of [u.original,u.rust])if(p){bounds[0]=Math.min(bounds[0],p[0]);bounds[1]=Math.min(bounds[1],p[1]);bounds[2]=Math.max(bounds[2],p[0]);bounds[3]=Math.max(bounds[3],p[1]);}
  $('source').textContent=data.capture.split(/[\\/]/).pop()+` · ${data.revision}`;
  $('assistance').textContent=data.seedInputs?'Assisted replay inputs configured':'No RNG reseeding configured';
  $('scope').textContent=`Capture-derived setup. ${data.seedInputs} RNG seed records; ${data.guyInputs} figure-state records. Recording: ${data.recording==='Not supplied'?'not supplied':'supplied'}; trace: ${data.trace==='Not supplied'?'not supplied':'supplied'}. Map colors distinguish implementations, not players. Terrain and border layers are not exported.`;
+ const failureNote=data.notes.find(n=>n.startsWith('Failure selected by test:'));if(failureNote)$('scope').textContent+=' '+failureNote;
  $('slider').max=data.frames.length-1;data.frames.forEach((f,i)=>{if(f.issues){const mark=document.createElement('i');mark.style.left=`${i/Math.max(1,data.frames.length-1)*100}%`;$('marks').append(mark);}});
  $('slider').oninput=()=>{stop();move(Number($('slider').value));};$('previous').onclick=()=>move(index-1);$('next').onclick=()=>move(index+1);$('play').onclick=play;
  $('next-issue').onclick=()=>{stop();for(let k=1;k<=data.frames.length;k++){const i=(index+k)%data.frames.length;if(data.frames[i].issues){move(i);selected=frame().units.find(issue)?.id??selected;render();return;}}$('feedback').textContent='No reported issues in this window';};

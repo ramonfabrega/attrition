@@ -19977,3 +19977,33 @@ and three doctests passed. Rondata took 239.56 s; sampled process-tree peak was
 guards, clippy with warnings denied, fmt and install survey passed. Next tooling
 step: export the first failure automatically with the exact test inputs, then
 compact repeated metadata and align non-position fields for inspection.
+
+## 2026-09-09 — Failure-selected replay artifacts
+
+Moved the viewer serializer into `rondata::debug_view`, shared by the CLI and
+assertion diagnostics. `write_failure` receives a test-selected record and
+replays the test's own closure, retaining eight records either side. It refuses
+to write unless the complete repeated report equals the first, and does no
+replay or filesystem work for a passing check. Unique temporary outputs preserve
+existing files; the viewer opens at the selected failure and displays its reason.
+
+Run69 now exports context for its earliest unit-position or building-field
+failure, using its already loaded install, log, siblings and trace. Existing
+assertions remain intact even if artifact production fails. Other assertion
+families still need explicit integration; known comparator residue is not a
+universal failure predicate. No queue or acceptance score changed.
+
+The canonical CLI export retained every frame record and harness note across the
+refactor. Tests cover passing-path nonexecution, changed-report refusal,
+overwrite refusal and an intentional acceptance failure on real replay records.
+The 17-record test artifact independently agrees with the comparator on 204
+paired positions and 82 disagreements; no setup siblings are supplied in that
+test. The browser opens at source index 10, frame 11, and shows unit 0/1's exact
+(+110, +168) difference. An invalid focus index fails the export verifier.
+`docs/DEBUG_VIEWER.md` section 4 documents scope and costs.
+
+Validation: release suite passed 260 rondata tests (one ignored), 821 sim tests,
+13 fixed tests and three doctests. Rondata took 245.63 s; the monitored tree
+peaked at 10,023 MiB under its 20 GiB ceiling. Clippy with warnings denied, fmt,
+seven paperwork guards and the install survey passed. The documented run69
+reproduction command was checked to select exactly that test.

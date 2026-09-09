@@ -30,6 +30,7 @@ pub mod artdata;
 pub mod balance;
 pub mod capture;
 pub mod commands;
+pub mod debug_view;
 pub mod diff;
 pub mod dump;
 pub mod gamelog;

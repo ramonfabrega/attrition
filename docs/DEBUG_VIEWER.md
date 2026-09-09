@@ -88,7 +88,53 @@ before reaching `--from`. The HTML retains full selected unit debug records,
 which dominate its size. Terrain, borders, per-figure overlays and building
 markers are not exported yet. No new original-format claim is made here.
 
-The next useful extension is automatic export around a test's first failing
-frame, using that test's exact inputs. After that, compact shared unit metadata
-and field-aligned changes can reduce artifact size while making non-position
-failures as immediate to inspect as displacement.
+Section 4 now implements failure-window export for the first test integration.
+Extending that integration to other assertion families comes next. Compact shared
+unit metadata and field-aligned changes can then reduce artifact size while making
+non-position failures as immediate to inspect as displacement.
+
+## 4. Failure artifacts from tests
+
+`debug_view::Window` now owns the serializer shared by the command-line exporter
+and tests. `write_failure` takes the original `Report`, an optional failing source
+record index and reason, metadata, an output path, and a replay closure. With no
+failure it performs no replay, serialization or filesystem work. On failure it
+retains up to eight records before and eight after the selected record, then
+opens the viewer on that record. Selection uses source indices, so repeated
+frame labels do not shift the window.
+
+The closure receives a window to observe and uses the test's **same in-memory
+inputs**. It must reconstruct any consumed order stream. Before writing anything,
+the entire repeated `Report` must equal the original: a changed stream or setup
+is an explicit diagnostic error, not a misleading artifact. This deliberately
+reruns the complete test replay on failure; passing runs pay no second replay
+cost. The HTML window is bounded, but the replay's original memory costs remain.
+
+The first integration is run69's whole-capture unit-position and building-field
+assertions. It selects their earliest failing frame, repeats the existing loaded
+data, log, sibling references and trace, and prints the artifact path. Output
+uses a unique file under the OS temporary directory's `attrition-diff-failures/`.
+No additional environment configuration is needed. Artifact errors are printed
+without replacing or suppressing any existing assertion. Other run69 assertions
+and other tests are not automatically covered yet: each needs to identify the
+record relevant to its own acceptance rule, rather than export known residue.
+
+For this integration, provenance identifies borrowed sibling values by their
+index in `testkit::sibling_texts()` and names the parsed trace; the reproduction
+command reruns the test. These labels are not invented file paths or a portable
+bundle. The command needs the same install and capture environment as the test.
+
+Tests exercise the zero-work passing path, changed-report refusal, overwrite
+refusal and a deliberately selected acceptance failure over real, unmodified
+replay records. The latter retains source indices 2–18 around index 10 and writes
+a clearly labeled local test artifact; it does not assert that the original game
+was wrong. The existing independent JSON verifier still checks the exported
+coordinate counts against the comparator.
+
+The shared serializer was checked against the pre-refactor canonical run6 export:
+all 30 complete frame records and all harness notes were equal, beyond matching
+the 450 paired-position counts. The intentional acceptance-test artifact contains
+204 paired positions over 17 records; its 82 position disagreements match the
+comparator. That test deliberately supplies no setup siblings, trace or recording.
+Browser inspection confirmed initial selection of frame 11 (source index 10),
+with the exact disagreement for unit 0/1 displayed as (+110, +168).

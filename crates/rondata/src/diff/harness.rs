@@ -1605,6 +1605,50 @@ mod tests {
         let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
         let refs: Vec<&Initial> = inits.iter().collect();
         let report = run_traced(&loaded, &log, Tuning::RON, None, None, &refs, Some(&tr)).unwrap();
+        // A test-selected fidelity failure, not every known comparator residue.
+        // Reuse the same loaded data, parsed log, siblings and trace; no inferred CLI.
+        if let Some(index) = report
+            .frames
+            .iter()
+            .position(|f| !f.diverged.is_empty() || !f.build_diverged.is_empty())
+        {
+            let artifact = (|| -> Result<_, Box<dyn std::error::Error>> {
+                let output = crate::debug_view::failure_path("run69-position-or-building")?;
+                let meta = crate::debug_view::Metadata {
+                    capture: path.clone(), source_bytes: text.len(),
+                    siblings: refs.iter().enumerate().map(|(i,_)| format!("already-parsed sibling Initial {i} from testkit::sibling_texts()" )).collect(),
+                    trace: Some("already-parsed testkit::trace(rontrace-run69.log)".into()),
+                    reproduce: "cargo test -p rondata --release run69_s_three_thousand_frames_stand_where_the_original_s_do -- --exact diff::harness::tests::run69_s_three_thousand_frames_stand_where_the_original_s_do --nocapture".into(),
+                    ..Default::default()
+                };
+                crate::debug_view::write_failure(
+                    &report,
+                    Some((
+                        index,
+                        "unit positions and building fields must agree throughout run69",
+                    )),
+                    &meta,
+                    &output,
+                    |window| {
+                        run_traced_observed(
+                            &loaded,
+                            &log,
+                            Tuning::RON,
+                            None,
+                            None,
+                            &refs,
+                            Some(&tr),
+                            |built, frame, result| window.observe(built, frame, result),
+                        )
+                    },
+                )?;
+                Ok(output)
+            })();
+            match artifact {
+                Ok(path) => eprintln!("differential failure artifact: {}", path.display()),
+                Err(error) => eprintln!("differential artifact unavailable: {error}"),
+            }
+        }
         assert!(
             report.frames.len() >= 3_000,
             "run69's length is {} — a short file here is a wrong file",

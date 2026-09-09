@@ -9,6 +9,9 @@ from pathlib import Path
 def verify(data):
     if data.get('schema') != 1 or not data.get('frames'):
         raise ValueError('unsupported or empty export')
+    focus = data.get("focusIndex")
+    if focus is not None and (type(focus) is not int or not 0 <= focus < len(data["frames"])):
+        raise ValueError("failure focus outside exported window")
     compared = mismatches = 0
     previous = None
     for frame in data['frames']:
