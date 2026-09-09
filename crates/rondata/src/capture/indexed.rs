@@ -23,6 +23,7 @@ pub struct IndexedCapture {
     length: u64,
     modified: SystemTime,
     frames: Arc<[FrameRange]>,
+    setup: Arc<[(u64, u64)]>,
 }
 
 // Share only offsets, never capture text or parsed state. A process-wide
@@ -33,14 +34,72 @@ struct Cached {
     length: u64,
     modified: SystemTime,
     frames: Arc<[FrameRange]>,
+    setup: Arc<[(u64, u64)]>,
 }
 static INDEX_CACHE: OnceLock<Mutex<Vec<Cached>>> = OnceLock::new();
 const CACHE_BYTES: usize = 8 * 1024 * 1024;
 fn cache_bytes(entries: &[Cached]) -> usize {
-    entries
-        .iter()
-        .map(|e| std::mem::size_of_val(e.frames.as_ref()) + e.path.as_os_str().len())
-        .sum()
+    entries.iter().map(Cached::bytes).sum()
+}
+
+impl Cached {
+    fn bytes(&self) -> usize {
+        std::mem::size_of_val(self.frames.as_ref())
+            + std::mem::size_of_val(self.setup.as_ref())
+            + self.path.as_os_str().len()
+    }
+}
+
+// Select setup while the index already has each line in hand. Adjacent kept
+// lines coalesce; no source text is retained in the cache.
+struct SetupRanges {
+    ranges: Vec<(u64, u64)>,
+    in_game: bool,
+    keep: bool,
+    seen: std::collections::BTreeSet<String>,
+}
+impl SetupRanges {
+    fn new() -> Self {
+        Self {
+            ranges: Vec::new(),
+            in_game: false,
+            keep: true,
+            seen: Default::default(),
+        }
+    }
+    fn line(&mut self, offset: u64, bytes: u64, indent: usize, trimmed: &str, before: bool) {
+        if !trimmed.is_empty() {
+            let name = trimmed.strip_prefix("BEGIN ");
+            if indent == 0 {
+                self.in_game = name == Some("GAME");
+            }
+            let relevant = indent == 1
+                && self.in_game
+                && matches!(name, Some("FULL DUMP" | "WORLD" | "CITIES" | "CONSTANTS"));
+            if before {
+                if relevant {
+                    self.seen.insert(name.unwrap().to_owned());
+                }
+            } else if !self.in_game || indent == 0 {
+                self.keep = true;
+            } else if indent == 1
+                && let Some(name) = name
+            {
+                self.keep = relevant && self.seen.insert(name.to_owned());
+            } else if indent == 1 {
+                self.keep = true;
+            }
+        }
+        if before || self.keep {
+            if let Some((start, length)) = self.ranges.last_mut()
+                && *start + *length == offset
+            {
+                *length += bytes;
+            } else {
+                self.ranges.push((offset, bytes));
+            }
+        }
+    }
 }
 
 fn invalid(message: &str) -> io::Error {
@@ -67,6 +126,7 @@ impl IndexedCapture {
                 length: meta.len(),
                 modified,
                 frames: Arc::clone(&entry.frames),
+                setup: Arc::clone(&entry.setup),
             });
         }
         let mut reader = BufReader::with_capacity(256 * 1024, file);
@@ -77,6 +137,7 @@ impl IndexedCapture {
         let mut active: Option<usize> = None;
         let mut frames: Vec<FrameRange> = Vec::new();
         let mut closed_by_field = false;
+        let mut setup = SetupRanges::new();
         loop {
             line.clear();
             let bytes = reader.read_until(b'\n', &mut line)?;
@@ -88,6 +149,7 @@ impl IndexedCapture {
             let indent = text.len() - trimmed.len();
             let trimmed = trimmed.trim_end();
             if trimmed.is_empty() {
+                setup.line(offset, bytes as u64, indent, trimmed, frames.is_empty());
                 offset += bytes as u64;
                 continue;
             }
@@ -130,6 +192,7 @@ impl IndexedCapture {
                     ));
                 }
             }
+            setup.line(offset, bytes as u64, indent, trimmed, frames.is_empty());
             offset += bytes as u64;
         }
         if let Some(i) = active {
@@ -143,6 +206,7 @@ impl IndexedCapture {
             length: meta.len(),
             modified,
             frames: frames.into(),
+            setup: setup.ranges.into(),
         };
         capture.check_metadata(capture.file.metadata()?)?;
         let entry = Cached {
@@ -150,9 +214,9 @@ impl IndexedCapture {
             length: capture.length,
             modified,
             frames: Arc::clone(&capture.frames),
+            setup: Arc::clone(&capture.setup),
         };
-        if std::mem::size_of_val(entry.frames.as_ref()) + entry.path.as_os_str().len()
-            <= CACHE_BYTES
+        if entry.bytes() <= CACHE_BYTES
             && let Ok(mut entries) = cache.lock()
         {
             entries.retain(|e| e.path != entry.path);
@@ -200,63 +264,24 @@ impl IndexedCapture {
     /// and non-GAME roots. A marker keeps late children outside the initial
     /// record range. Uses the index's validated conventional indentation.
     pub fn read_replay_setup(&mut self) -> io::Result<String> {
-        self.check_metadata(self.file.metadata()?)?;
-        self.file.seek(SeekFrom::Start(0))?;
-        let first = self.frames.first().map_or(self.length, |f| f.offset);
-        let mut reader = BufReader::with_capacity(256 * 1024, &mut self.file);
-        let mut line = String::new();
-        let mut out = String::new();
-        let mut offset = 0u64;
-        let mut in_game = false;
-        let mut keep = true;
-        let mut seen = std::collections::BTreeSet::new();
-        loop {
-            line.clear();
-            let n = reader.read_line(&mut line)?;
-            if n == 0 {
-                break;
+        self.validate()?;
+        let mut bytes = Vec::new();
+        for (i, &(offset, length)) in self.setup.iter().enumerate() {
+            let size = usize::try_from(length).map_err(|_| invalid("setup too large"))?;
+            bytes
+                .try_reserve(size)
+                .map_err(|e| io::Error::other(e.to_string()))?;
+            let start = bytes.len();
+            bytes.resize(start + size, 0);
+            self.file.seek(SeekFrom::Start(offset))?;
+            self.file.read_exact(&mut bytes[start..])?;
+            if i == 0 && !self.frames.is_empty() {
+                // The first range is the complete prefix, ending at FRAME.
+                bytes.extend_from_slice(b" BEGIN FRAME 0\n");
             }
-            if line.trim().is_empty() {
-                if offset < first || keep {
-                    out.push_str(&line);
-                }
-                offset += n as u64;
-                continue;
-            }
-            let trim = line.trim_start_matches(' ');
-            let indent = line.len() - trim.len();
-            let name = trim.trim_end().strip_prefix("BEGIN ");
-            if indent == 0 {
-                in_game = name == Some("GAME");
-            }
-            let relevant = indent == 1
-                && in_game
-                && matches!(name, Some("FULL DUMP" | "WORLD" | "CITIES" | "CONSTANTS"));
-            if offset < first {
-                if relevant {
-                    seen.insert(name.unwrap().to_owned());
-                }
-                out.push_str(&line);
-            } else {
-                if offset == first {
-                    out.push_str(" BEGIN FRAME 0\n");
-                }
-                if !in_game || indent == 0 {
-                    keep = true;
-                } else if indent == 1 && name.is_some() {
-                    keep = relevant && seen.insert(name.unwrap().to_owned());
-                } else if indent == 1 && !trim.trim().is_empty() {
-                    // Flat GAME fields include leader flags and farm records.
-                    keep = true;
-                }
-                if keep {
-                    out.push_str(&line);
-                }
-            }
-            offset += n as u64;
         }
-        self.check_metadata(self.file.metadata()?)?;
-        Ok(out)
+        self.validate()?;
+        String::from_utf8(bytes).map_err(|_| invalid("setup is not UTF-8"))
     }
 
     /// Build setup with borrowed strings confined to this call. Whole-capture
@@ -375,6 +400,41 @@ mod tests {
                 .with_replay_initial(|actual| assert_eq!(actual, expected))
                 .unwrap();
         }
+    }
+
+    #[test]
+    fn setup_ranges_skip_frame_bodies_and_survive_cached_reopen() {
+        let prefix = "BEGIN GAME\r\n BEGIN WORLD\r\n  value head\r\n";
+        let late = " leader_flags 7\r\n BEGIN CITIES\r\n  value late\r\n";
+        let tail = "BEGIN GAME INFO\r\n BEGIN GAMEINFO\r\n  value root";
+        let text = format!(
+            "{prefix} BEGIN FRAME 1\r\n  ignored {}\r\n\r\n{late} BEGIN FRAME 1\r\n  ignored second\r\n{tail}",
+            "x".repeat(100_000)
+        );
+        let input = Input::new(&text);
+        let mut first = IndexedCapture::open(&input.0).unwrap();
+        let expected = format!("{prefix} BEGIN FRAME 0\n{late}{tail}");
+        assert_eq!(first.read_replay_setup().unwrap(), expected);
+        assert_eq!(
+            first.setup.iter().map(|r| r.1).sum::<u64>() as usize,
+            prefix.len() + late.len() + tail.len()
+        );
+        let mut cached = IndexedCapture::open(&input.0).unwrap();
+        assert!(Arc::ptr_eq(&first.setup, &cached.setup));
+        assert_eq!(cached.read_replay_setup().unwrap(), expected);
+        let entry = Cached {
+            path: input.0.clone(),
+            length: first.length,
+            modified: first.modified,
+            frames: Arc::clone(&first.frames),
+            setup: Arc::clone(&first.setup),
+        };
+        assert_eq!(
+            entry.bytes(),
+            std::mem::size_of_val(first.frames.as_ref())
+                + std::mem::size_of_val(first.setup.as_ref())
+                + input.0.as_os_str().len()
+        );
     }
 
     #[test]

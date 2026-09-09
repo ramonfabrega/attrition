@@ -55,9 +55,10 @@ in `2026-09-09-streaming-replay.md`.
 
 These single observations show approximately 85% and 79% less peak memory,
 respectively, with extra scan/parsing cost. They do not establish higher test
-throughput. Cold index construction, setup selection, observation collection and
-frame decoding currently require separate passes; fusing setup selection with
-observation collection is a candidate to measure next. A cached correction
+throughput. At this revision, cold index construction, setup selection, observation
+collection and frame decoding require separate passes. The subsequent
+`2026-09-09-replay-setup-ranges.md` removes the separate setup-selection scan
+by selecting ranges during index construction. A cached correction
 product would need explicit versioning and invalidation before it could be an
 oracle input.
 

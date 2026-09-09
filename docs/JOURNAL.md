@@ -20098,3 +20098,30 @@ Validation: full release gate passed 267 rondata tests (one ignored), 821 sim,
 was 8,618 MiB under the 20 GiB ceiling. Clippy with warnings denied, formatting,
 seven paperwork guards and the real-install survey passed. The sampled suite
 peak is distinct from the isolated process high-water marks above.
+
+
+## 2026-09-09 — Select setup ranges during indexing
+
+Profiled the new indexed replay lane: it spent 0.895 s scanning a 467.8 MB
+capture to retain 10.8 MB of setup text. Selecting byte ranges during the index's
+existing scan removes that pass; reading selected setup now takes about 0.001 s.
+The ranges coalesce, retain no source text, and count toward the bounded index
+cache. Late fields and roots retain their existing semantics.
+
+Paired full run69 replay fell from 6.044 to 5.141 s; a 30-record prefix fell
+from 3.754 to 2.927 s. Complete reports agree at both limits, as do all eight
+reports in a four-process comparison of both current readers. That comparison
+favored the in-memory reader (5.092 s per batch versus 6.879 indexed), so no
+default or concurrency setting changed. The method and limitations are recorded
+in `docs/audit/2026-09-09-replay-setup-ranges.md`; the next measured target is
+correction-observation parsing, not a speculative increase in test concurrency.
+Added a release-only phase probe and a regression test covering exact retained
+text, skipped bytes, cached range reuse and cache byte accounting. No queue
+score moved.
+
+Validation: the full release gate passed 268 rondata tests (one ignored),
+821 sim, 13 fixed and three doctests. Rondata took 248.11 s; sampled tree peak
+was 9,195 MiB under the 20 GiB ceiling. Clippy with warnings denied, formatting,
+seven paperwork guards and the real-install survey passed. This suite run is a
+correctness gate, not an isolated performance comparison; setup verification
+and viewer export also ran while it was active.
