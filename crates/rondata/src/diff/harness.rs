@@ -848,6 +848,35 @@ pub fn run_traced<'a, 'b: 'a>(
     siblings: &[&Initial<'b>],
     trace: Option<&crate::trace::Trace>,
 ) -> Option<Report> {
+    run_traced_observed(
+        loaded,
+        log,
+        tuning,
+        limit,
+        stream,
+        siblings,
+        trace,
+        |_, _, _| {},
+    )
+}
+
+/// The same replay as `run_traced`, with a read-only observation after each
+/// comparison. `Built::tick` corrections have already been applied; exporters
+/// must label those inputs rather than calling this autonomous continuation.
+#[expect(
+    clippy::too_many_arguments,
+    reason = "Existing replay inputs plus a read-only observer"
+)]
+pub fn run_traced_observed<'a, 'b: 'a>(
+    loaded: &Loaded,
+    log: &Log<'a>,
+    tuning: Tuning,
+    limit: Option<usize>,
+    stream: Option<&mut crate::input::Stream>,
+    siblings: &[&Initial<'b>],
+    trace: Option<&crate::trace::Trace>,
+    mut observe: impl FnMut(&Built, &Frame, &FrameResult),
+) -> Option<Report> {
     let mut init = log.initial()?;
     borrow_from_siblings(&mut init, siblings);
     if let Some(tr) = trace {
@@ -877,7 +906,9 @@ pub fn run_traced<'a, 'b: 'a>(
             #[cfg(test)]
             debug_watch(&built, last);
         }
-        report.frames.push(compare(&built, f, players));
+        let result = compare(&built, f, players);
+        observe(&built, f, &result);
+        report.frames.push(result);
     }
     report.notes.append(&mut built.notes);
     report.rng_frames = built.rng_frames.clone();
@@ -901,6 +932,37 @@ mod tests {
     use crate::diff::testkit::*;
 
     use crate::testenv::{dump, install};
+
+    #[test]
+    fn observing_a_replay_preserves_the_complete_report() {
+        let Some(inst) = install() else { return };
+        let Some(path) = dump("gamelog-run6-ancient-nubian-builds7.txt") else {
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = std::fs::read_to_string(path).unwrap();
+        let log = Log::parse(&text);
+        let baseline = run_traced(&loaded, &log, Tuning::RON, Some(8), None, &[], None).unwrap();
+        let mut observed = Vec::new();
+        let report = run_traced_observed(
+            &loaded,
+            &log,
+            Tuning::RON,
+            Some(8),
+            None,
+            &[],
+            None,
+            |built, frame, result| {
+                assert!(!built.sim.units.is_empty());
+                assert_eq!(frame.n, result.frame);
+                observed.push(result.clone());
+            },
+        )
+        .unwrap();
+        assert_eq!(observed.len(), 8);
+        assert_eq!(observed, report.frames);
+        assert_eq!(report, baseline);
+    }
 
     /// **run57, the thousand frames past run56** — the same game at the
     /// same detail carried to 4,000, asked for both position records at

@@ -19954,3 +19954,26 @@ comparison now selects only its matching and preceding populated frames;
 No acceptance floor moved. The next replay change must separate initial setup
 from `Initial`'s whole-capture observation products before promising that a
 prefix request avoids all suffix decoding.
+
+## 2026-09-09 — A read-only differential debug viewer
+
+Added a standalone HTML export over the existing replay comparator: original
+and Rust unit positions, path stacks, integer deltas, frame navigation, complete
+comparison records and a reproduction manifest. The borrowed observer preserves
+the full `Report` in a real-capture regression. No sim dependency or acceptance
+floor changed. Captured setup, RNG and figure corrections are labeled explicitly;
+this is a view of the existing assisted harness, not autonomous parity.
+
+Two run6 windows independently verified 450 paired positions each against the
+harness counts. A deliberate coordinate corruption failed the export verifier;
+a labeled synthetic displacement exercised the browser's error display. The
+30-frame canonical-sibling export is 7.7 MB and sampled 1,353 MiB resident memory;
+whole-capture setup/parsing remains the next memory boundary. Generated capture
+records stay outside git. `docs/DEBUG_VIEWER.md` covers usage and limitations.
+
+Validation: release gate 256 rondata tests passed, one ignored; 821 sim, 13 fixed
+and three doctests passed. Rondata took 239.56 s; sampled process-tree peak was
+10,874 MiB under the 20 GiB ceiling. The exporter escaping test, seven paperwork
+guards, clippy with warnings denied, fmt and install survey passed. Next tooling
+step: export the first failure automatically with the exact test inputs, then
+compact repeated metadata and align non-position fields for inspection.
