@@ -93,12 +93,12 @@ Temporary evidence:
   observations, not a comparative speedup or a renderer cost measurement.
 - `/tmp/attrition-unattended-prefix-comparison.json`: on each map, the
   independent short/long runs agree on all 18 complete logged frame bodies
-  (18..35) and all 37 frame/seed pairs (0..36). `samegame.digests` excludes
-  closing records; no record category or field was excluded. This confirms
+  (18..35) and all 37 frame/seed pairs (0..36). The shared frame range excludes
+  the distinct closing records; no record category or field was excluded. This confirms
   the shared observed prefix only, not complete state or the long tail.
 - `/tmp/attrition-unattended-1400-repeat`: the next independent pair stopped
   on Great Lakes during startup, exit 9, before menu selection. The receipt
-  records failure and five restored files. Thus longer-run repeatability is
+  records failure and five restored files. Before the intro-skip follow-up below, longer-run repeatability was
   not established. There are two distinct pre-menu failures to investigate;
   neither is silently retried or relabelled as a successful capture.
 
@@ -121,3 +121,36 @@ The default tracer's preprocessed source was byte-identical to its parent.
 Final sampled gate peak was 3838 MiB under the 20 GiB cap; this observation
 is not attributed to the capture change. The game was closed and all five
 backed-up settings files verified unchanged before the branch was pushed.
+
+## Intro-skip follow-up
+
+The launcher now passes `+skipIntro` as well as `-automation` and records its
+exact argument vector in each receipt. `System::init@00599700` reads this
+switch directly from the command line; it is not in `System::init_cmdlineopts`'s
+six-option dispatch. Its result gates the introductory video branch. The
+profile used for the experiments had `SkipIntroMovies=0`. This is a native
+startup option, not another executable patch; graphics initialization remains.
+
+Three explicit two-map trials, all to frame 1400, completed six launches
+without a failure or retry. `/tmp/attrition-skip-intro-{1,2,3}` holds each pair;
+`/tmp/attrition-skip-intro-comparison.json` holds their comparisons with the
+previous successful `/tmp/attrition-unattended-1400` pair. **Every trial matches
+all 19 logged frame bodies (18..35 and closing 1401) and all 1,401 frame/seed
+pairs** for its map. Map/seed read-back, lifecycle, code-0 exit, and five restored
+files passed on each launch. No field/category was dropped from frame bodies;
+only unindented ambient logger chatter is outside the comparison.
+
+Great Lakes launch-to-exit times were 20.587 / 19.645 / 19.522 s; East Indies
+24.446 / 24.350 / 24.458 s. Earlier single observations were 23.212 / 24.219 s.
+These are not an interleaved timing experiment, and the small sample does not
+establish a startup reliability rate or prove that intro playback caused the
+earlier faults. Those failure diagnoses remain open. Complete native state
+parity remains unproven even when every observed record and frame seed agrees.
+
+`compare_unattended.py LEFT_MAP_DIRECTORY RIGHT_MAP_DIRECTORY` rechecks both
+acquisitions' lifecycle and identity, requires the entire expected logging
+window and closing record, then compares each full indented body and every
+frame seed. Missing frames, false success, field changes, closing-record changes,
+and seed changes are exercised by authored fixtures. Earlier prefix comparisons
+excluded closing records because their frame numbers differed; `samegame.digests`
+itself retains them (the old command-line wrapper is what removes the last).

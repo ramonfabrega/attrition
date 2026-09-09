@@ -21,8 +21,9 @@ import live_session
 from autostart_receipt import receipt_file
 
 ROOT = Path(__file__).resolve().parents[2]
+LAUNCH_ARGS = ['-automation', '+skipIntro']
 LAUNCH = '''source "$1"
-ron_wine "$2" "$3" -automation
+ron_wine "$2" "$3" "${@:4}"
 wait $RON_WINE_PID
 '''
 
@@ -104,9 +105,10 @@ def capture(args, output, style):
         report['build_seconds'] = time.monotonic()-started
         report['sha256'] = {name: sha(output/name) for name in
                             ('riseofnations.exe','riseofnations_trace.exe','rontrace.dll','rontrace.cmd','rontrace.cfg')}
+        report['launch_args'] = LAUNCH_ARGS[:]
         launch = time.monotonic()
         process = subprocess.Popen(['zsh','-c',LAUNCH,'unattended',str(ROOT/'tools/gamelog/winelaunch.sh'),
-                                    str(output/'wine.log'),str(output/'riseofnations_trace.exe')],
+                                    str(output/'wine.log'),str(output/'riseofnations_trace.exe'),*LAUNCH_ARGS],
                                    cwd=output, start_new_session=True)
         report['exit_code'] = process.wait(timeout=args.timeout)
         report['launch_to_exit_seconds'] = time.monotonic()-launch

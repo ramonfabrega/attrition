@@ -259,3 +259,10 @@ Checks: `python3 -m unittest discover -s tools/explore -p test_autostart_receipt
 `python3 -m unittest discover -s tools/explore -p test_unattended_capture.py`, and
 `uv run tools/explore/test_autostart_abi.py` (compiled x86 ABI regression with
 an intentionally failing mutation; no install needed).
+
+The runner passes the original's `+skipIntro` option and records launch arguments.
+For two acquisitions with the same endpoint, compare each map with
+`python3 tools/explore/compare_unattended.py LEFT_MAP_DIRECTORY RIGHT_MAP_DIRECTORY`.
+This requires all expected frame bodies, including the closing dump, and all
+frame/seed pairs. It reports observed agreement, not complete native state parity.
+`test_compare_unattended.py` includes negative field, coverage, and seed cases.

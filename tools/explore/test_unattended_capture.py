@@ -5,6 +5,7 @@ from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
 import json
+import subprocess
 import unattended_capture as runner
 
 
@@ -12,6 +13,14 @@ class RunnerTest(unittest.TestCase):
     def setUp(self):
         self.temp=tempfile.TemporaryDirectory();self.addCleanup(self.temp.cleanup)
         self.root=Path(self.temp.name)
+
+    def test_launch_forwards_exact_arguments_with_spaces(self):
+        helper=self.root/'launch helper.zsh';log=self.root/'launch args.log'
+        helper.write_text('setopt NO_BG_NICE\nron_wine() {\n printf "%s\\n" "$@" > "$1"\n /usr/bin/true &\n RON_WINE_PID=$!\n}\n')
+        subprocess.run(['zsh','-c',runner.LAUNCH,'test',str(helper),str(log),
+                        '/authored game.exe',*runner.LAUNCH_ARGS],check=True)
+        self.assertEqual(log.read_text().splitlines(),
+                         [str(log),'/authored game.exe','-automation','+skipIntro'])
 
     def test_capture_lane_refuses_second_owner_then_releases(self):
         with runner.capture_lane(self.root):

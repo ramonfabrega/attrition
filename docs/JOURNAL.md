@@ -20411,3 +20411,15 @@ regression; a mutated argument offset is rejected. Two pre-menu startup
 failures remain unexplained, and full application teardown still faults, so
 this is an opt-in acquisition tool, not reliable device-free execution.
 No headline moved. Evidence: `docs/audit/2026-09-09-autostart.md`.
+
+## 2026-09-09 — Skip native intro playback and compare complete acquisitions
+
+The unattended launcher now passes the original's separately parsed
+`+skipIntro` flag and records its exact arguments. Three two-map trials reached
+frame 1400 with six successful exits and verified restoration. Every trial
+matches the preceding successful capture on all 19 logged bodies, including
+closing 1401, and all 1401 frame/seed pairs. A streaming comparison tool now
+checks that projection with negative fixtures. This improves the evidence from
+a shared prefix to the full observed run; it does not prove full-state parity
+or diagnose the earlier pre-menu faults. No headline moved.
+Evidence: `docs/audit/2026-09-09-autostart.md`, intro-skip follow-up.
