@@ -20186,3 +20186,30 @@ seven paperwork guards and the install survey. Both unsupported capsule flag
 combinations were deliberately compiled and rejected. The shared settings and
 all originally backed-up profile files match the pre-experiment bytes; the
 launched game processes are closed.
+
+## 2026-09-09 — Sparse pointer-graph mutation and reset
+
+The next capsule target, Guy's angle calculation, now runs its nested turn-speed
+call with explicit field-sized dependencies: 453 declared bytes, 44 KiB of guest
+mappings. All 4,096 authored cases match Rust on the output-pointer heading and
+returned remainder. All match again in reverse order and in fresh emulators;
+removing each of 18 regions fails. Reused execution measured 0.868 s versus
+2.384 s fresh for the same cases; this is a local experiment, not a whole-loop
+speed claim. CPU/data reset and write-before-read scratch prevent stale state
+from supplying dependencies. Eleven authored guard tests cover the new executor.
+
+`docs/audit/2026-09-09-bounded-turn-angles.md` records the evidence and scope.
+Natural live-call capture remains outstanding: the leaf exit witness would
+clobber this nested call's dead stack, so it cannot be reused unchanged. This
+tranche establishes the bounded replay and Rust comparison side first. No parity
+floor or production sim behavior changed; original-derived rows remain in /tmp.
+
+Validation: 11 new executor tests, 11 existing capsule tests, all 4,096 composed
+original/Rust comparisons, and both Rust-checker negative controls pass. Full
+`cargo test --release` passes: 269 rondata (one ignored), 821 sim, 13 fixed,
+and three doctests; rondata took 230.45 s. The memory watchdog reported a
+9,115 MiB process-tree peak under its 20 GiB ceiling. Clippy with warnings denied,
+formatting, seven documentation guards and the install survey pass. A final
+executor rerun also passes every fresh/reversed/omitted-dependency check.
+The whole-export caller search points to boat-collision handling, so reachability
+needs a witness before assuming the earlier land-unit capture can exercise it.

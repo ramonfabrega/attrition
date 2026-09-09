@@ -94,3 +94,17 @@ call interception or an automatic arbitrary-state capture.
 Use full paths under `tools/explore/` when running from the workspace root.
 Capture binaries and reports must remain outside the repository. Restore the
 backed-up shared settings with `live_session.py restore` after the game closes.
+
+## Sparse pointer-graph calls
+
+`turn_angles_oracle.py INSTALL [--cases 4096]` executes the original angle
+mutator and nested turn-speed function on authored normal-member fixtures.
+Redirect its rows outside the repo, then pipe them into the release Cargo
+example `turn_angles_oracle_check`. It checks fresh versus reset execution,
+reverse input order, missing dependencies, pointer writes and stack cleanup.
+This is synthetic-state differential testing, not natural live capture.
+
+`bounded_call.py` provides explicit byte regions, initialized-on-write scratch,
+immutable code and CPU/data reset. `uv run tools/explore/test_bounded_call.py`
+checks it with authored machine code. Bounds, measurements and next live-witness
+requirements are in `docs/audit/2026-09-09-bounded-turn-angles.md`.
