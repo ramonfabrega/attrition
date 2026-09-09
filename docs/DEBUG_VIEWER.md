@@ -36,7 +36,9 @@ python3 tools/viewer/verify_export.py /tmp/replay.html
 `memory`. It substantially reduces resident source memory at the cost of extra
 scans. Siblings still use the in-memory reader. See
 `audit/2026-09-09-indexed-replay.md` for supported inputs and
-`audit/2026-09-09-replay-setup-ranges.md` for the latest measurements.
+`audit/2026-09-09-replay-setup-ranges.md` for range-selection measurements.
+Both readers now select clock-bearing units before full observation decoding;
+`audit/2026-09-09-selective-clock-observations.md` records that comparison.
 
 `--sibling` is repeatable and its order is retained. `--trace TRACE` supplies the
 existing trace reader; `--recording REC` supplies the existing order stream.

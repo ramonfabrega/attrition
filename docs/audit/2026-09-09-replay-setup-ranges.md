@@ -67,9 +67,9 @@ concurrency may differ, but this experiment does not establish that threshold.
 Remaining costs include parsing correction observations across the entire
 capture and parsing compared frames. This probe produces zero clock frames on
 run69, yet the observation accumulator still decodes full unit records before
-filtering out units without clocks. Measuring a selective clock reader is a
-concrete next experiment; it must preserve seeds and animation lengths even
-when no clock rows survive. Raising concurrency solely because RSS is lower is
+filtering out units without clocks. The subsequent `2026-09-09-selective-clock-observations.md` implements and
+measures that selection, preserving seeds and animation lengths even when no
+clock rows survive. Raising concurrency solely because RSS is lower is
 not supported by these measurements.
 
 ## Verification and reproduction

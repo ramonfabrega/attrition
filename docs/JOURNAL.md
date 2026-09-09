@@ -20125,3 +20125,28 @@ was 9,195 MiB under the 20 GiB ceiling. Clippy with warnings denied, formatting,
 seven paperwork guards and the real-install survey passed. This suite run is a
 correctness gate, not an isolated performance comparison; setup verification
 and viewer export also ran while it was active.
+
+
+## 2026-09-09 — Select clock observations before full unit decoding
+
+Continued profiling the replay core loop. Observation collection now visits the
+same unit blocks as the full record parser, rejects units without clock fields
+before constructing typed records, and omits discarded building/leader products.
+Selected units retain all figures and correction fields. Public full setup still
+keeps the figure-position audit series; seeds and animation lengths are still
+collected independently of clock selection. No queue score moved.
+
+Paired run69 replay improved from 3.579 to 2.844 s in memory and 5.100 to 4.396 s
+indexed, with essentially unchanged peak memory and byte-identical complete
+reports. Independent before/after reports also match on clocked/full-dump run13,
+run20 and run82. A synthetic differential test covers incomplete and invalid
+clocks, zeros, mixed figures, animal wrappers and both record nestings. Details
+and measurement limitations are in
+`docs/audit/2026-09-09-selective-clock-observations.md`.
+
+Validation: the full release gate passed 269 rondata tests (one ignored),
+821 sim, 13 fixed and three doctests. Rondata took 228.40 s; sampled process-tree
+peak was 8,881 MiB under the 20 GiB ceiling. Clippy with warnings denied,
+formatting, seven paperwork guards and the real-install survey passed. The suite
+run overlapped report verification and viewer export, so its elapsed time is
+reported as gate evidence rather than a controlled throughput comparison.

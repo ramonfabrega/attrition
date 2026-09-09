@@ -2939,14 +2939,7 @@ pub(crate) fn records_range(
     // Gaia's animals are written as `ANIMALDATA` → `UNITDATA` (the
     // `AnimalData::log_data` wrapper adds `ox`, `whom`, `aid` after the
     // unit), in the leader-8 run after every player's units.
-    let units = kids
-        .filter(|c| c.name() == "UNITDATA")
-        .chain(
-            kids.filter(|c| c.name() == "ANIMALDATA")
-                .filter_map(|a| a.kid("UNITDATA")),
-        )
-        .filter_map(unit_of)
-        .collect();
+    let units = unit_blocks(kids).filter_map(unit_of).collect();
     let builds = kids
         .filter(|c| c.name() == "BUILDDATA")
         .filter_map(build_of)
@@ -2978,6 +2971,49 @@ pub(crate) fn records_range(
         }
     }
     (units, builds, leaders)
+}
+
+// Keep the record ordering shared: direct units first, then animal wrappers.
+fn unit_blocks(kids: Children<'_>) -> impl Iterator<Item = Block<'_>> {
+    kids.filter(|c| c.name() == "UNITDATA").chain(
+        kids.filter(|c| c.name() == "ANIMALDATA")
+            .filter_map(|a| a.kid("UNITDATA")),
+    )
+}
+
+fn observation_rows(b: Block<'_>, collect_bodies: bool) -> Vec<FrameUnit> {
+    let body = b.kid("FULL DUMP").unwrap_or(b);
+    unit_blocks(body.children())
+        .filter(|u| {
+            // Match Guy::has_clock using the same integer field accessor as
+            // unit_of. Retain the whole unit (including unclocked figures)
+            // when any figure carries a clock.
+            collect_bodies
+                || u.kids("GUY").any(|g| {
+                    g.int("cur_time").is_some()
+                        && g.int("end_time").is_some()
+                        && g.int("cur_anim").is_some()
+                })
+        })
+        .filter_map(unit_of)
+        .map(|u| {
+            let goal = u.orders_front_first().next().and_then(|o| {
+                Some(Pos {
+                    x: o.x?,
+                    y: o.y?,
+                    z: 0,
+                })
+            });
+            FrameUnit {
+                who: u.who,
+                o: u.o,
+                orderless: u.orders.is_empty(),
+                pos: u.pos,
+                goal,
+                guys: u.guys,
+            }
+        })
+        .collect()
 }
 
 /// `Farms::log_data`'s list off the enclosing block's flat fields: one
@@ -3163,27 +3199,7 @@ impl<'a> Log<'a> {
             {
                 init.frame_seeds.push((n - 1, c.seed));
             }
-            let (units, _, _) = records(b, false);
-            let rows: Vec<FrameUnit> = units
-                .into_iter()
-                .map(|u| {
-                    let goal = u.orders_front_first().next().and_then(|o| {
-                        Some(Pos {
-                            x: o.x?,
-                            y: o.y?,
-                            z: 0,
-                        })
-                    });
-                    FrameUnit {
-                        who: u.who,
-                        o: u.o,
-                        orderless: u.orders.is_empty(),
-                        pos: u.pos,
-                        goal,
-                        guys: u.guys,
-                    }
-                })
-                .collect();
+            let rows = observation_rows(b, collect_bodies);
             if !collect_bodies {
                 let clocked: Vec<FrameUnit> = rows
                     .into_iter()
@@ -3332,6 +3348,52 @@ impl fmt::Display for Pos {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn selected_clock_rows_match_complete_records() {
+        let unit = |id, clock: &str| {
+            format!(
+                "BEGIN UNITDATA\n BEGIN SUBOBJECT\n  flags 1\n  o {id}\n  who 0\n BEGIN GUY\n  x 1\n  y 2\n  z 3\n{clock} BEGIN GUY\n  type 99\n"
+            )
+        };
+        let indent = |text: &str| text.lines().map(|l| format!(" {l}\n")).collect::<String>();
+        let valid = "  cur_time 0\n  end_time 0\n  cur_anim 0\n";
+        let body = format!(
+            "{}{}{}{}{}",
+            indent(&unit(1, "")),
+            indent(&unit(2, valid)),
+            indent(&unit(3, "  cur_time bad\n  end_time 1\n  cur_anim 2\n")),
+            indent(&unit(4, "  cur_time 1\n  end_time 2\n")),
+            format_args!(" BEGIN ANIMALDATA\n{}", indent(&indent(&unit(5, valid))))
+        );
+        for nested in [false, true] {
+            let text = if nested {
+                format!("BEGIN FRAME 7\n BEGIN FULL DUMP\n{}", indent(&body))
+            } else {
+                format!("BEGIN FRAME 7\n{body}")
+            };
+            let log = Log::parse(&text);
+            let frame = log.roots().next().unwrap();
+            let expected: Vec<_> = records(frame, false)
+                .0
+                .into_iter()
+                .filter(|u| u.guys.iter().any(Guy::has_clock))
+                .map(|u| FrameUnit {
+                    who: u.who,
+                    o: u.o,
+                    orderless: true,
+                    pos: u.pos,
+                    goal: None,
+                    guys: u.guys,
+                })
+                .collect();
+            let actual = observation_rows(frame, false);
+            assert_eq!(actual, expected);
+            assert_eq!(actual.iter().map(|u| u.o).collect::<Vec<_>>(), [2, 5]);
+            assert!(actual.iter().all(|u| u.guys.len() == 2));
+            assert_eq!(observation_rows(frame, true).len(), 5);
+        }
+    }
 
     #[test]
     fn replay_initial_preserves_every_correction_input() {
