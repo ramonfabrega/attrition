@@ -3,6 +3,9 @@
  * The return address is redirected to an exit witness; all GPRs and EFLAGS
  * are preserved. The captured stack contains that explicit stop address.
  */
+#include "probe_code_hash.h"
+#define CLEAR_CODE_HASH 0x19e6f1197d276c80ULL
+
 typedef struct {
     u32 magic, version, entry, stop, frame, self, global, game, caller;
     u32 before_regs[9], after_regs[9]; /* pushad order, then EFLAGS; ESP normalized */
@@ -63,14 +66,13 @@ static u32 capsule_callback(u8 *s, void *fn) {
 }
 
 static void install_capsule(void) {
-    const u8 signature[21] = {0x33,0xc0,0x66,0x89,0x41,0x10,0xa1,0xec,0x61,0xc0,0x00,
-                             0x8b,0x40,0x10,0x89,0x81,0x14,0x02,0x00,0x00,0xc3};
     u8 *target = (u8 *)(g_base + 0x54c1c0u);
     if (g_base != 0x400000u || g_cover) {
         emit(K_INFO, 121, 1, g_base, (u32)g_cover, 0, 0); return;
     }
-    for (u32 i=0; i<sizeof signature; i++) if (target[i] != signature[i]) {
-        emit(K_INFO, 121, 2, i, target[i], signature[i], 0); return;
+    unsigned long long actual_hash = probe_code_hash(target, 21);
+    if (actual_hash != CLEAR_CODE_HASH) {
+        emit(K_INFO, 121, 2, (u32)actual_hash, (u32)(actual_hash >> 32), 21, 0); return;
     }
     u8 *stub = VirtualAlloc(0, 4096, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
     if (!stub) { emit(K_INFO, 121, 3, 0, 0, 0, 0); return; }
