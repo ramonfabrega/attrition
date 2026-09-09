@@ -41,6 +41,25 @@ class SessionTest(unittest.TestCase):
         self.assertEqual((self.install / 'riseofnations.exe').read_bytes(), b'fixture only')
         self.assertEqual((self.profile / 'PlayerProfile' / 'player').read_bytes(), b'profile')
 
+    def test_long_run_fast_forwards_after_the_dump_window(self):
+        self.args.end_frame = 8000
+        self.args.fast_forward = True
+        module.stage(self.args)
+        self.assertEqual((self.output/'rontrace.cmd').read_text(), '37 !ffwd 9\n8000 !quit\n')
+        self.assertEqual((self.output/'rontrace.cfg').read_text(), 'cover=0\ncallwin=0-8000\n')
+        self.assertIn('LogEndFrame=36', (self.profile/'rise2.ini').read_text())
+        module.restore(self.output)
+        self.assert_restored()
+
+    def test_invalid_long_run_never_changes_settings(self):
+        for end, fast, hide in [(35, False, False), (24001, False, False),
+                                 (36, True, False), (37, True, False), (8000, True, True)]:
+            self.args.end_frame, self.args.fast_forward, self.args.hide_scene = end, fast, hide
+            with self.assertRaises(ValueError):
+                module.stage(self.args)
+            self.assertFalse(self.output.exists())
+            self.assert_restored()
+
     def test_restore_preserves_original_bytes_and_keeps_outputs(self):
         module.stage(self.args)
         (self.output / 'rontrace.log').write_bytes(b'capture')

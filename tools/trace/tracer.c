@@ -61,6 +61,10 @@
  * records of eight u32s; see `report.py` for the reader.
  */
 
+#if defined(RON_SEARCH_CENSUS) && (defined(RON_PATH_CAPSULE) || defined(RON_ORDER_CAPSULE) || defined(RON_CAPSULE_PROBE) || defined(RON_HIDE_SCENE))
+#error RON_SEARCH_CENSUS excludes capsule and suppression experiments
+#endif
+
 #if defined(RON_CAPSULE_PROBE) && (!defined(RON_COMMAND_PROBE) || defined(RON_HIDE_SCENE))
 #error RON_CAPSULE_PROBE requires RON_COMMAND_PROBE and excludes RON_HIDE_SCENE
 #endif
@@ -774,6 +778,10 @@ static u32 build_stub(u8 *s, const HookSite *h) {
 #include "../explore/live_turn_probe.h"
 #endif
 
+#ifdef RON_SEARCH_CENSUS
+#include "../explore/live_search_census.h"
+#endif
+
 static void __cdecl on_call(u32 site, u32 self, u32 a0, u32 a1, u32 a2, u32 a3) {
     if (g_frame < g_cw_lo || g_frame > g_cw_hi) return;
     emit(K_CALL, site, self, a0, a1, a2, a3);
@@ -787,6 +795,9 @@ static void __cdecl on_ret(u32 site, u32 ret, u32 a4, u32 a5, u32 a6, u32 a7) {
     u32 out = 0xffffffffu;
     if (site < NCALLS && CALLS[site].out7 && a7 > 0x10000u) out = *(u8 *)a7;
     emit(K_RET, site, ret, a4, a5, a6, out);
+#ifdef RON_SEARCH_CENSUS
+    if (site == 0 && ret == 0xffffffffu) census_suspension();
+#endif
 }
 
 /*
@@ -894,10 +905,20 @@ static u32 build_proxy(u8 *s, const CallSite *h, u32 site) {
 }
 
 static void install_calls(void) {
+#ifdef RON_SEARCH_CENSUS
+    if (g_base != 0x400000u || g_cover) {
+        emit(K_INFO, 136, 1, g_base, (u32)g_cover, 0, 0);
+        return;
+    }
+    emit(K_INFO, 136, 0, 1, 64, 0, 0);
+#endif
     u8 *page = (u8 *)VirtualAlloc(0, 4096, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
     if (!page) return;
     u32 used = 0;
     for (u32 i = 0; i < NCALLS; i++) {
+#ifdef RON_SEARCH_CENSUS
+        if (i != 0) continue; /* No per-node cost proxies in the census lane. */
+#endif
         const CallSite *h = &CALLS[i];
         u8 *t = (u8 *)(g_base + h->rva);
         int ok = 1;

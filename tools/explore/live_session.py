@@ -63,6 +63,12 @@ def restore(output):
 
 def stage(args):
     install, output, profile = args.install.resolve(), args.output.resolve(), args.profile.resolve()
+    end = getattr(args, 'end_frame', 36)
+    fast = getattr(args, 'fast_forward', False)
+    if not 36 <= end <= 24000 or (fast and end <= 37):
+        raise ValueError('end-frame must be 36..24000; fast-forward requires at least 38')
+    if args.hide_scene and end != 36:
+        raise ValueError('render-suppression experiment requires end-frame 36')
     if output.is_relative_to(install) or output.is_relative_to(profile):
         raise ValueError('output must be outside the install and profile trees')
     if not (install / 'riseofnations.exe').is_file():
@@ -106,8 +112,9 @@ def stage(args):
             elif source.suffix.lower() != '.log':
                 target.symlink_to(source, target_is_directory=source.is_dir())
         (output / 'Logs').mkdir()
-        (output / 'rontrace.cfg').write_text('cover=0\ncallwin=0-36\n')
-        (output / 'rontrace.cmd').write_text('36 !quit\n')
+        (output / 'rontrace.cfg').write_text(f'cover=0\ncallwin=0-{end}\n')
+        commands = f'37 !ffwd {(end+899)//900}\n' if fast else ''
+        (output / 'rontrace.cmd').write_text(commands+f'{end} !quit\n')
         for name, text in zip(NAMES, (rise, rise2, '\n'.join(lines) + '\n')):
             (profile / name).write_text(text)
     except BaseException:
@@ -127,6 +134,9 @@ def main():
     s.add_argument('output', type=Path)
     s.add_argument('profile', type=Path)
     s.add_argument('--hide-scene', action='store_true')
+    s.add_argument('--end-frame', type=int, default=36)
+    s.add_argument('--fast-forward', action='store_true',
+                   help='schedule native ffwd at frame 37, after the detailed logging window')
     r = modes.add_parser('restore')
     r.add_argument('output', type=Path)
     args = ap.parse_args()

@@ -166,3 +166,23 @@ fresh engines. It maps recycler state explicitly and rejects growth; it does
 not map payloads or replace allocator calls. Redirect output outside the repo.
 Scope, negative controls and the remaining natural-capture requirement are in
 `docs/audit/2026-09-09-search-cleanup.md`.
+
+## Live suspended-search census
+
+`RON_SEARCH_CENSUS` instruments only the A* proxy. On a suspension return it
+reads bounded container/pool metadata, with explicit read-failure and cap
+receipts. It requires `cover=0` and a `callwin`. Stage a longer run with
+`live_session.py stage INSTALL NEW_OUTPUT PROFILE --end-frame 8000 --fast-forward`,
+then build with `TRACER_DEFS='-DRON_COMMAND_PROBE -DRON_SEARCH_CENSUS'`, bind its
+images and launch normally. The original's fast-forward command runs at frame
+37, after the detailed log window; the configured endpoint quits the match.
+Close the application and restore the staged settings afterward.
+
+`search_census.py TRACE` rejects incomplete metadata and reports a zero-event
+run explicitly. `--archive` scans legacy proxy traces without requiring the
+experimental receipts. Reports belong outside the repo. Run
+`python3 tools/explore/test_search_census.py` for the protocol tests; compile
+`test_live_search_census.c` with host Clang and
+`-Wno-int-to-void-pointer-cast` for the callback's mocked-read tests. Coverage
+and the successful 8,000-frame census are recorded in
+`docs/audit/2026-09-09-search-census.md`.

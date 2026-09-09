@@ -820,3 +820,23 @@ increment is deliberately inaccessible. The executable's bytes are loaded
 from the user's install, never stored in source. Complete-record native checks
 and the untested branches are documented in
 `docs/audit/2026-09-09-search-cleanup.md`.
+
+## Suspended-search census metadata (2026-09-09)
+
+The optional `RON_SEARCH_CENSUS` callback observes a natural
+`PathFinder::astar_path@00683770` return of −1. `PathFinderData`'s PDB fields
+`pathing_unit`, `limit` and `saving` are at +0x14/+0x40/+0x44 within the data
+base, which `docs/PATHFINDER.md` §2 places at +0x40 in the complete object.
+Together with the listing's singleton address, that selects the three reads
+in `live_search_census.h`. The five saved unit pointers and recycler header
+operands use the preceding cleanup fixture's evidence. The callback copies
+headers through checked `ReadProcessMemory` calls, not direct graph walks.
+
+INFO tags 130–136 are **our authored diagnostic protocol**, not original-game
+format: 130 starts an event; 131 supplies each of five container pointer,
+length and root triples; 132 supplies each of seven pool list, capacity and
+length triples; 133 reports a failed or short read; 134 completes an event;
+135 marks the 64-event cap; 136 declares version/cap or refuses installation.
+Every packet carries its suspension ordinal and frame. No live suspension
+has validated the metadata-reading branch yet; host fixtures test its protocol
+and failure handling. `docs/audit/2026-09-09-search-census.md` records coverage.

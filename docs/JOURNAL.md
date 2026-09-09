@@ -20324,3 +20324,36 @@ Validation: full release gate passes (269 rondata, one ignored; 822 sim;
 under 20 GiB. Clippy with warnings denied, formatting, documentation guards,
 the install survey and 11 bounded-executor tests pass. The release log is
 `/tmp/search-cleanup-release.log`.
+
+## 2026-09-09 — Measure the missing suspension before capturing its graph
+
+The streaming census accepts all 87 retained traces and finds 82 paired A*
+returns, none suspended. A minimal live proxy lane then agrees with the retained
+36-frame control on 19 full logged bodies and 37 frame/RNG records. Its three
+searches all succeed. A scripted run through 8,000 observes 139 successful
+searches, including 47 unit-grid searches, and still no suspension. It preserves
+the early control window and has all 8,001 frame records; the later gameplay is
+not a fidelity comparison. No parity score moved or natural graph was captured.
+
+`RON_SEARCH_CENSUS` now records container/pool sizes only on suspension, with
+checked reads, a 64-event cap and explicit completion/error records. Default
+tracer tokens are unchanged. Nine parser tests and the exact callback's host
+fixture reject missing records, malformed input, all 30 failed/short reads and
+missing cap receipts. Four incompatible build combinations fail. Seven staging
+tests cover the new bounded endpoint and scripted fast-forward, including
+restoration and refusal before settings change.
+
+An interactive normal-speed long attempt paused in chat and was discarded as
+evidence; its test process was closed and settings restored before the scripted
+restart. The successful captures remain outside git, the game is closed, and
+all five backed-up settings/profile files are verified restored. The next
+capture should target congestion/obstacles: this passive seed is demonstrated
+not to exercise the desired branch through 8,000. Scope and artifacts are in
+`docs/audit/2026-09-09-search-census.md`.
+
+Validation: full release gate passes (269 rondata, one ignored; 822 sim;
+13 fixed; three doctests), rondata 231.67 seconds, process-tree peak 9,064 MiB
+under 20 GiB. Clippy with warnings denied, formatting, documentation guards and
+the install survey pass. Default and census tracer builds deny warnings; the
+default preprocessed tokens match the prior commit. Gate log:
+`/tmp/search-census-release.log`.
