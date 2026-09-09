@@ -2297,3 +2297,22 @@ fn a_knowledge_price_lands_in_food_until_the_classical_age() {
         "and the timber half of the price is untouched by either"
     );
 }
+
+#[test]
+fn reduced_path_counterexample_stops_at_a_combined_final_flag() {
+    // Reduced against the original executable from an injected equality-for-
+    // bitmask fault. Authored semantic input; no install or capsule required.
+    let previous_segment = orders::PathData {
+        to: Pos::new(0, 0),
+        tolerance: 0,
+        flags: 0,
+    };
+    let current_segment = orders::PathData {
+        flags: orders::path_flag::FINAL | orders::path_flag::SIDESTEP,
+        ..previous_segment
+    };
+    let mut unit = Unit::new(0, 0, Pos::new(0, 0), 1);
+    unit.path.extend([previous_segment, current_segment]);
+    unit.discard_current_path_segment();
+    assert_eq!(unit.path, vec![previous_segment]);
+}

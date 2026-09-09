@@ -20274,3 +20274,29 @@ documentation guards and the install survey pass. Default tracer tokens are
 unchanged; default/experimental builds deny warnings and incompatible flags fail.
 The full release gate passes: 269 rondata (one ignored), 821 sim, 13 fixed,
 three doctests; rondata 230.02 s, process-tree peak 9,258 MiB under 20 GiB.
+
+## 2026-09-09 — Mismatch reduction into a permanent synthetic regression
+
+A persistent Rust worker agrees with the original on all 4,096 path cases. To
+validate failure handling, the FINAL bitmask predicate was temporarily replaced
+with exact equality in an isolated worker build, then source restored and the
+correct worker rebuilt. The injected fault diverged on case 9. Reduction took
+24 evaluations and left two zero-coordinate waypoints, flags 0 and 3: the
+original retains the earlier segment and the mutant deletes it. Five smaller
+neighbors fail to preserve that mismatch, each certified with a fresh original
+engine and independent Rust process.
+
+The authored minimal case is a permanent install-independent Rust regression;
+it fails under the injected source fault and passes after restoration. Nine
+reducer/IPC tests distinguish disagreements from crashed, timed-out or malformed
+oracles and require explicit local minimality. Reports carry source/capsule/worker
+identities and stay outside git. The local clean search took 0.741 seconds; fault
+search/reduction/fresh certification took 1.034 seconds. This is the two-entry,
+no-search path domain, not new native coverage or a newly discovered production
+bug. No parity score moved. `docs/audit/2026-09-09-path-counterexample-reduction.md`
+records the method, limits and artifacts.
+
+Validation: the full release gate passes: 269 rondata (one ignored), 822 sim,
+13 fixed and three doctests; rondata 229.49 seconds, process-tree peak
+8,663 MiB under a 20 GiB ceiling. Clippy with warnings denied, formatting,
+documentation guards, the install survey and nine reducer/IPC tests pass.

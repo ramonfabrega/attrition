@@ -143,3 +143,17 @@ bounded run; `--kind order` supports the previous natural capsule too. Eight
 framing tests are in `test_path_capsule.py`. The explicit live-scratch exclusion,
 code-region bounds and remaining gaps are in
 `docs/audit/2026-09-09-natural-path-capsule.md`.
+
+## Semantic counterexample reduction
+
+Build the release example `path_capsule_worker`, then run
+`minimize_path_capsule.py INSTALL CAPTURE --worker WORKER --output /tmp/NEW.json`.
+It searches deterministic cases, preserving mismatch class while deleting
+waypoints and clearing field bits. The final certificate rechecks every smaller
+neighbor with fresh original engines and Rust processes. A correct worker returns
+`no_mismatch`; infrastructure failures abort. Reports must stay outside the repo.
+
+`python3 tools/explore/test_path_counterexample.py` needs no game or emulator.
+The promoted `reduced_path_counterexample` Rust test also runs without original
+files. The deliberately injected fault, local minimality limits and measurements
+are recorded in `docs/audit/2026-09-09-path-counterexample-reduction.md`.
