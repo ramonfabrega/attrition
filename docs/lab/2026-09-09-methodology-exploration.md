@@ -173,6 +173,11 @@ that every frame can immediately be reconstructed.
 
 ## 4. The completion counters need an external denominator
 
+**Steering disposition (2026-09-09):** independent contracts are evidence and
+item types, not an alternate completion score. Decision 29 remains authoritative.
+The original proposal below is retained as the exploration record.
+
+
 Decision 29 measures long captures, cited functions entered, and parsed fields
 compared. All three are useful regression measures. None enumerates all
 required gameplay behavior independently of what has already been inspected.

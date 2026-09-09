@@ -155,3 +155,17 @@ seven paperwork guards and the install survey. Both unsupported capsule flag
 combinations were deliberately compiled and rejected. The shared settings and
 all originally backed-up profile files match the pre-experiment bytes; the
 launched game processes are closed.
+
+## Compatibility fingerprint follow-up
+
+The clear-call hook now compares an FNV-1a-64 fingerprint of the installed
+21-byte span instead of embedding that whole function as a literal. This is
+a compatibility check, not authentication; the capsule manifest's independent
+SHA-256 image binding remains required. The current header no longer contains
+the body; published Git history has not been rewritten.
+
+Validation: the standalone authored empty/`a`/`foobar` vectors pass. Feeding
+the installed span to `test_probe_code_hash.c` produces the expected hash,
+and all 168 single-bit mutations differ. The capsule/command tracer also
+cross-compiles and links as a freestanding x86 Windows DLL. These checks do
+not claim collision resistance or broaden the captured function's closure.

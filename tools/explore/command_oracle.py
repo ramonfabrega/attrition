@@ -11,7 +11,7 @@ cargo run -p rondata --release --example command_oracle_check < /tmp/command-ora
 Synthetic single-player fixture, NOT a live capture or scheduling test.
 Original code runs unchanged. The imported memcpy has a bounded host adapter.
 Output contains original-derived packets; keep it outside the repository.
-Layout evidence and limits: docs/audit/2026-09-09-command-loop-experiment.md.
+Layout evidence and limits: docs/lab/2026-09-09-command-loop-experiment.md.
 """
 import importlib.util
 from pathlib import Path

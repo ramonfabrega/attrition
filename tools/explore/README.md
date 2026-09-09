@@ -1,8 +1,10 @@
 # Methodology exploration probes
 
 These are experiments, not changes to the simulation or its acceptance floors.
+Start with the [lab claim ledger](../../docs/lab/LEDGER.md) for evidence,
+limitations, and adoption status.
 Findings and limitations are in
-`docs/audit/2026-09-09-methodology-exploration.md`.
+`docs/lab/2026-09-09-methodology-exploration.md`.
 
 - `turn_oracle.py INSTALL` executes a small object-graph fixture in Unicorn.
   Its stdout is derived original-game output: redirect it outside the repo.
@@ -26,12 +28,12 @@ captures or the Ghidra project. Oracle tables and full gate output stay local.
   `cargo run -p rondata --release --example command_oracle_check` to compare
   all packet fields with the existing decoder. It uses synthesized state and
   a bounded imported-memcpy adapter; it does not test live scheduling.
-  See `docs/audit/2026-09-09-command-loop-experiment.md` for measured capacity
+  See `docs/lab/2026-09-09-command-loop-experiment.md` for measured capacity
   hazards and the live permission blocker.
 
 ## Live oracle experiments
 
-`docs/audit/2026-09-09-live-oracle-unlocks.md` records the measured live results
+`docs/lab/2026-09-09-live-oracle-unlocks.md` records the measured live results
 and the remaining boundary to true headless execution.
 
 - `live_session.py stage INSTALL NEW_OUTPUT PROFILE_DIRECTORY [--hide-scene]`
@@ -52,7 +54,7 @@ and the remaining boundary to true headless execution.
 
 ## Capture memory experiments
 
-`docs/audit/2026-09-09-streaming-captures.md` records separate-process RSS and
+`docs/lab/2026-09-09-streaming-captures.md` records separate-process RSS and
 complete-record equivalence checks. Build `frame_memory` with Cargo in release
 mode, then run `whole`, `indexed`, `indexed-warm`, or `verify` against a finalized
 capture. The warm mode excludes initial index construction from its reported
@@ -61,7 +63,7 @@ benchmark. `python3 tools/explore/test_memcap.py` exercises sampling failures.
 
 ## Native call graphs
 
-`docs/audit/2026-09-09-native-profile.md` records the census profiles and the
+`docs/lab/2026-09-09-native-profile.md` records the census profiles and the
 selective frame lookup they motivated. Build a release test binary with
 `CARGO_PROFILE_RELEASE_DEBUG=1`, then run `profile_native.py BINARY EXACT_TEST
 NEW_OUTPUT` under `tools/memcap.sh`, with `RON_INSTALL` set. `sample_graph.py`
@@ -71,13 +73,13 @@ test thread and retain its waiting states, so their denominator is explicit.
 
 `shutdown_memory` similarly compares whole-file and suffix-only closing-state
 reads. Its `verify` mode accepts one capture or a directory of finalized
-`gamelog-*.txt` archives. See `docs/audit/2026-09-09-shutdown-streaming.md` for
+`gamelog-*.txt` archives. See `docs/lab/2026-09-09-shutdown-streaming.md` for
 complete-record coverage, the census migration, and limits of the memory claim.
 
 
 ## Strict live-derived call capsules
 
-`docs/audit/2026-09-09-live-call-capsule.md` records the bounded clear-call
+`docs/lab/2026-09-09-live-call-capsule.md` records the bounded clear-call
 experiment, evidence and limitations. `RON_CAPSULE_PROBE` requires
 `RON_COMMAND_PROBE`; it invokes the original clear function on a complete copy
 of a live command package, preserving the gameplay packet. It is not a natural
@@ -107,7 +109,7 @@ This is synthetic-state differential testing, not natural live capture.
 `bounded_call.py` provides explicit byte regions, initialized-on-write scratch,
 immutable code and CPU/data reset. `uv run tools/explore/test_bounded_call.py`
 checks it with authored machine code. Bounds, measurements and next live-witness
-requirements are in `docs/audit/2026-09-09-bounded-turn-angles.md`.
+requirements are in `docs/lab/2026-09-09-bounded-turn-angles.md`.
 
 ## Natural order-cache capsule
 
@@ -116,7 +118,7 @@ requirements are in `docs/audit/2026-09-09-bounded-turn-angles.md`.
 experiments. Bind the staged images with `replay_capsule.py bind`, then use
 `replay_order_capsule.py INSTALL OUTPUT` and
 `compare_order_capsule_runs.py CONTROL OUTPUT`. The first successful witness was
-an equal-value refresh: see `docs/audit/2026-09-09-natural-order-capsule.md` for
+an equal-value refresh: see `docs/lab/2026-09-09-natural-order-capsule.md` for
 its scope and the distinction between live entry/exit bytes and replay stores.
 
 `uv run tools/explore/test_order_capsule.py` checks capsule framing;
@@ -142,7 +144,7 @@ shutdown path deletion, 2 → 0; synthetic lengths range from zero to two.
 bounded run; `--kind order` supports the previous natural capsule too. Eight
 framing tests are in `test_path_capsule.py`. The explicit live-scratch exclusion,
 code-region bounds and remaining gaps are in
-`docs/audit/2026-09-09-natural-path-capsule.md`.
+`docs/lab/2026-09-09-natural-path-capsule.md`.
 
 ## Semantic counterexample reduction
 
@@ -156,7 +158,7 @@ neighbor with fresh original engines and Rust processes. A correct worker return
 `python3 tools/explore/test_path_counterexample.py` needs no game or emulator.
 The promoted `reduced_path_counterexample` Rust test also runs without original
 files. The deliberately injected fault, local minimality limits and measurements
-are recorded in `docs/audit/2026-09-09-path-counterexample-reduction.md`.
+are recorded in `docs/lab/2026-09-09-path-counterexample-reduction.md`.
 
 ## Suspended-search recycler boundary
 
@@ -165,7 +167,7 @@ native complete-record and ownership assertions, reverse-order reset runs and
 fresh engines. It maps recycler state explicitly and rejects growth; it does
 not map payloads or replace allocator calls. Redirect output outside the repo.
 Scope, negative controls and the remaining natural-capture requirement are in
-`docs/audit/2026-09-09-search-cleanup.md`.
+`docs/lab/2026-09-09-search-cleanup.md`.
 
 ## Live suspended-search census
 
@@ -185,7 +187,7 @@ experimental receipts. Reports belong outside the repo. Run
 `test_live_search_census.c` with host Clang and
 `-Wno-int-to-void-pointer-cast` for the callback's mocked-read tests. Coverage
 and the successful 8,000-frame census are recorded in
-`docs/audit/2026-09-09-search-census.md`.
+`docs/lab/2026-09-09-search-census.md`.
 
 ## Targeted congestion scenario
 
@@ -201,7 +203,7 @@ Redirect reports outside git. Five Python tests and `test_live_congestion_probe.
 (host Clang with `-Wno-int-to-pointer-cast -Wno-pointer-to-int-cast`) cover refusal
 paths. Two live runs reach 1,787 natural suspensions each; measured graph bounds,
 limitations and the next capsule boundary are in
-`docs/audit/2026-09-09-congestion-probe.md`.
+`docs/lab/2026-09-09-congestion-probe.md`.
 
 ## Natural suspended-search graph
 
@@ -213,7 +215,7 @@ PathNode disposal. Redirect reports outside git. This is not full cleanup or
 resumption: allocator growth remains a refusal, and CollBlock bytes are opaque.
 The live graph, measured 3,484-byte replay projection, negative controls and
 remaining boundaries are documented in
-`docs/audit/2026-09-09-natural-search-graph.md`.
+`docs/lab/2026-09-09-natural-search-graph.md`.
 
 Run `python3 -m unittest discover -s tools/explore -p test_search_graph.py` for
 install-independent validation fixtures. `test_live_search_graph.c` compiles
@@ -231,7 +233,7 @@ at its delegation boundary. Restore original settings after the run as usual.
 replays the wrapper exactly and reports the first uncaptured downstream input.
 Use this reader for restore graphs; `search_graph.py`'s CLI expects a suspension
 return instead. Reports belong outside git. No resumed A* replay is claimed.
-See `docs/audit/2026-09-09-restore-entry.md` for evidence and limits.
+See `docs/lab/2026-09-09-restore-entry.md` for evidence and limits.
 
 Run `uv run --with unicorn==2.1.4 python -m unittest discover -s tools/explore
 -p test_restore_prefix.py` for authored packet tests. Compile
@@ -253,7 +255,7 @@ shutdown; full application teardown has a known fault. Failures retain a JSON
 receipt and stop the pair. This captures the profile's existing rules, not an
 asserted replacement for the headline fixtures. Evidence, the failed ABI
 experiment, a pre-menu startup failure, and limits are in
-`docs/audit/2026-09-09-autostart.md`.
+`docs/lab/2026-09-09-autostart.md`.
 
 Checks: `python3 -m unittest discover -s tools/explore -p test_autostart_receipt.py`,
 `python3 -m unittest discover -s tools/explore -p test_unattended_capture.py`, and
@@ -266,3 +268,9 @@ For two acquisitions with the same endpoint, compare each map with
 This requires all expected frame bodies, including the closing dump, and all
 frame/seed pairs. It reports observed agreement, not complete native state parity.
 `test_compare_unattended.py` includes negative field, coverage, and seed cases.
+
+`startup_evidence.py TRACE` summarizes retained startup event counts, frame
+counts, and up to eight fault addresses using constant memory. It is for failed
+or partial captures: its output never certifies success. Use the strict
+`autostart_receipt.py` and `compare_unattended.py` for acceptance. The fixed
+cohort protocol and results live in `docs/lab/2026-09-09-startup-cohort.md`.

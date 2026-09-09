@@ -1,6 +1,6 @@
 /* Opt-in, one-match menu driver. Calls the original Start handler from the
  * setup modal's idle loop; no input events, simulation writes, or worker thread.
- * Reading/byte evidence and limitations: docs/audit/2026-09-09-autostart.md.
+ * Reading/byte evidence and limitations: docs/lab/2026-09-09-autostart.md.
  */
 IMPORT(void, ExitProcess, (u32));
 IMPORT(void *, AddVectoredExceptionHandler, (u32, void *));
