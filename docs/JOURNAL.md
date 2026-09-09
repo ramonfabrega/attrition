@@ -20300,3 +20300,27 @@ Validation: the full release gate passes: 269 rondata (one ignored), 822 sim,
 13 fixed and three doctests; rondata 229.49 seconds, process-tree peak
 8,663 MiB under a 20 GiB ceiling. Clippy with warnings denied, formatting,
 documentation guards, the install survey and nine reducer/IPC tests pass.
+
+## 2026-09-09 — Bounded suspended-search recycler teardown
+
+The original clears authored open-search trees through its real recycler code
+in a 44 KiB guest mapping, with 5,208 declared bytes and no mapped PathNode
+payloads. All 6,144 combinations of node count (0–31), three tree shapes,
+optional empty containers and initial pool occupancy pass ownership and complete-
+record checks, reverse-order reset runs and fresh engines. The initial checked
+sweep took 11.459 seconds; fresh runs took 15.425 seconds, with different checking
+overhead included. This is synthetic cleanup coverage, not live suspension,
+resumption, a Rust comparison, host RSS or a parity-score improvement.
+
+All 31 missing-region controls fail, as do eight corrupted outputs and growth
+at each of seven full recycler pools. Every failed growth attempt is followed by
+an exact clean-baseline replay on the same engine. This earns explicit recycler
+state as a bounded test dependency without importing the engine allocator.
+`docs/audit/2026-09-09-search-cleanup.md` records evidence and limits. Natural
+graph capture remains the next step before expanding into search resumption.
+
+Validation: full release gate passes (269 rondata, one ignored; 822 sim;
+13 fixed; three doctests), rondata 231.10 seconds, process-tree peak 9,041 MiB
+under 20 GiB. Clippy with warnings denied, formatting, documentation guards,
+the install survey and 11 bounded-executor tests pass. The release log is
+`/tmp/search-cleanup-release.log`.

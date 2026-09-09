@@ -157,3 +157,12 @@ neighbor with fresh original engines and Rust processes. A correct worker return
 The promoted `reduced_path_counterexample` Rust test also runs without original
 files. The deliberately injected fault, local minimality limits and measurements
 are recorded in `docs/audit/2026-09-09-path-counterexample-reduction.md`.
+
+## Suspended-search recycler boundary
+
+`search_cleanup_oracle.py INSTALL` checks 6,144 authored cleanup graphs against
+native complete-record and ownership assertions, reverse-order reset runs and
+fresh engines. It maps recycler state explicitly and rejects growth; it does
+not map payloads or replace allocator calls. Redirect output outside the repo.
+Scope, negative controls and the remaining natural-capture requirement are in
+`docs/audit/2026-09-09-search-cleanup.md`.

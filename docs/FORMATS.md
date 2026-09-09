@@ -799,3 +799,24 @@ played on. `game/scenario/` and `game/mapstyles/` are unexamined.
 - What is the `bond/` directory?
 - Does `gamemath.cpp` imply the original sim is fixed-point, and if so at what
   scale? This bears directly on whether `Fx` at Q16.16 is the right shape.
+
+## Suspended-search cleanup fixture (2026-09-09)
+
+`tools/explore/search_cleanup_oracle.py` uses authored instances of the local
+PDB export's `Tree<PathNode*,int>` (28 bytes), its 20-byte tree node, and the
+24-byte BRTree headers. `types.txt` names the tree's current data/metric at
+0/4, length at 8, root/current/parent pointers at 12/16/20, and the ordinary
+tree's ordered word at 24. Its node has left/right/parent pointers at 0/4/8,
+data at 12 and metric at 16. The CollBlock tree has the same 28-byte header.
+These are PDB-backed fixture layouts, not a new serialized format.
+
+The listing of `Unit::clear_partial_path@005e3920` establishes the five unit
+pointers at +0x104 through +0x114 and the recycler list/capacity/length words
+used by this probe. `Tree<PathNode*,int>::clear@0046da60`,
+`Tree<PathNode*,int>::delete_children@004550c0` and
+`PathFinder::kill_tree@00687c10` establish the node and payload recycler
+operands. The fixture maps only those three recycler words; the growth
+increment is deliberately inaccessible. The executable's bytes are loaded
+from the user's install, never stored in source. Complete-record native checks
+and the untested branches are documented in
+`docs/audit/2026-09-09-search-cleanup.md`.
