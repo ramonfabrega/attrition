@@ -152,10 +152,12 @@ wrapping each requested span in a short-lived GAME String. Its iterator yields
 one owned Frame at a time, so the borrowed `Log` API does not need to change.
 The frozen-clock test now uses it: isolated peak RSS fell from 1,313.4 MB to
 90.7 MB, with unchanged assertions and test-body time 3.84 s versus 4.07 s.
-Complete Frame equality passed on five captures (726 frames). Setup/shutdown
-and other whole-log consumers still use `capture::read`; this is a bounded
-migration, not a whole-suite memory claim. Measurements and input restrictions:
-`docs/audit/2026-09-09-streaming-captures.md`.
+Complete Frame equality passed on five captures (726 frames). Shutdown tails
+now also stream: all 102 archives matched full-reader closing records, and the
+95-capture census fell from 6.52 GB to 260 MB peak RSS at similar time. Setup
+and other whole-log consumers still use `capture::read`. Boundaries and evidence:
+`docs/audit/2026-09-09-streaming-captures.md` and
+`docs/audit/2026-09-09-shutdown-streaming.md`.
 The earlier run58 experiment still rules out an `madvise` shortcut: macOS
 accepted `MADV_DONTNEED` on the private mapping but held RSS at 1,347 MiB;
 `MADV_FREE_REUSABLE` rejected non-anonymous memory with `EINVAL`.

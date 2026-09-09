@@ -333,22 +333,34 @@ mod tests {
         let mut seen = 0usize;
         for (name, want) in CENSUS {
             let path = dir.join(format!("gamelog-{name}.txt"));
-            let text = crate::capture::read(&path);
-            if text.is_empty() {
+            if !path.is_file() || path.metadata().unwrap().len() == 0 {
                 continue;
             }
             seen += 1;
-            let log = Log::parse(&text);
-            // The census asks about one frame number, not the intervening
-            // states. Frame names are indexed; decode only matching blocks,
-            // with the same record reader frame_states uses. Keep `any` so
-            // duplicate frame labels retain the original semantics.
-            let has_units = |n: i64| {
-                log.frames()
-                    .into_iter()
-                    .filter(|(number, _)| *number == n)
-                    .any(|(_, block)| !crate::gamelog::records(block, false).0.is_empty())
-            };
+            let mut source = crate::capture::indexed::IndexedCapture::open(&path)
+                .expect("index finalized census capture");
+            let tail = source.read_shutdown().expect("read shutdown tail");
+            let log = Log::parse(&tail);
+            let last = source.frames().last().map(|f| f.number);
+            // Duplicate labels need every matching block, not just the last
+            // occurrence. Read each with its siblings for FULL DUMP pairing.
+            let matching: Vec<_> = source
+                .frames()
+                .iter()
+                .enumerate()
+                .filter(|(_, f)| Some(f.number) == last)
+                .map(|(i, _)| i)
+                .collect();
+            let mut has_units = false;
+            let mut has_dump = false;
+            for index in matching {
+                let text = source
+                    .read_frame_and_siblings(index)
+                    .expect("read census frame");
+                let frame = Log::parse(&text);
+                has_units |= frame.frame_states().iter().any(|f| !f.units.is_empty());
+                has_dump |= frame.dumps().iter().any(|(n, _)| Some(*n) == last);
+            }
             let got: Result<(i64, usize, usize, usize, usize, bool), &str> = match log.final_state()
             {
                 Some(f) => Ok((
@@ -357,18 +369,15 @@ mod tests {
                     f.builds.len(),
                     f.leaders.len(),
                     f.cities.len(),
-                    has_units(f.n),
+                    has_units,
                 )),
-                None => {
-                    let last = log.frames().last().map(|f| f.0);
-                    Err(if log.dumps().iter().any(|(n, _)| Some(*n) == last) {
-                        "fulldump"
-                    } else if last.is_some_and(has_units) {
-                        "nested"
-                    } else {
-                        "none"
-                    })
-                }
+                None => Err(if has_dump {
+                    "fulldump"
+                } else if has_units {
+                    "nested"
+                } else {
+                    "none"
+                }),
             };
             assert_eq!(&got, want, "gamelog-{name}.txt's closing dump");
         }
@@ -418,25 +427,42 @@ mod tests {
                 continue;
             }
             let path = dir.join(format!("gamelog-{name}.txt"));
-            let text = crate::capture::read(&path);
-            if text.is_empty() {
+            if !path.is_file() || path.metadata().unwrap().len() == 0 {
                 continue;
             }
-            let log = Log::parse(&text);
+            let mut source = crate::capture::indexed::IndexedCapture::open(&path)
+                .expect("index finalized closing pair");
+            let tail = source.read_shutdown().expect("read closing pair tail");
+            let log = Log::parse(&tail);
             let fin = log.final_state().expect("the census says it has one");
-            let states = log.frame_states();
-            let st = states
+            let same: Vec<_> = source
+                .frames()
                 .iter()
-                .find(|s| s.n == fin.n && !s.units.is_empty())
+                .enumerate()
+                .filter(|(_, f)| f.number == fin.n)
+                .map(|(i, _)| i)
+                .collect();
+            let st = same
+                .into_iter()
+                .find_map(|i| {
+                    let frame = source.frame_state(i).expect("read matching frame");
+                    (!frame.units.is_empty()).then_some(frame)
+                })
                 .expect("the census says it is paired");
             pairs += 1;
-            // How many units the frame moved, so a run of standing armies
-            // cannot pass this by holding still.
-            if let Some(prev) = states
+            let earlier: Vec<_> = source
+                .frames()
                 .iter()
+                .enumerate()
                 .rev()
-                .find(|s| s.n < fin.n && !s.units.is_empty())
-            {
+                .filter(|(_, f)| f.number < fin.n)
+                .map(|(i, _)| i)
+                .collect();
+            let prev = earlier.into_iter().find_map(|i| {
+                let frame = source.frame_state(i).expect("read preceding frame");
+                (!frame.units.is_empty()).then_some(frame)
+            });
+            if let Some(prev) = prev {
                 moving += st
                     .units
                     .iter()

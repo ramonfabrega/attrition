@@ -68,3 +68,8 @@ NEW_OUTPUT` under `tools/memcap.sh`, with `RON_INSTALL` set. `sample_graph.py`
 converts its sample file into a graph and hotspot JSON; `--help` lists the
 external FlameGraph checkout and LLVM demangler arguments. Graphs select the
 test thread and retain its waiting states, so their denominator is explicit.
+
+`shutdown_memory` similarly compares whole-file and suffix-only closing-state
+reads. Its `verify` mode accepts one capture or a directory of finalized
+`gamelog-*.txt` archives. See `docs/audit/2026-09-09-shutdown-streaming.md` for
+complete-record coverage, the census migration, and limits of the memory claim.

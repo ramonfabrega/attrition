@@ -102,11 +102,13 @@ artifacts are `/tmp/attrition-census-graph/flamegraph.svg` and
 
 The next useful experiments are ordered by this evidence:
 
-1. Extend file-backed indexing to the shutdown tail. The proposed reader would
+1. **Implemented:** shutdown streaming is verified and measured in
+   `2026-09-09-shutdown-streaming.md`. The original proposal was to extend
+   file-backed indexing to the shutdown tail. The proposed reader would
    retain the last frame label and read only the following GAME children into
    the existing closing-state parser. Validate complete records and all census
    classifications, including nested and FULL DUMP cases, before migrating it.
-   This is a design proposal, not a claim that the current index supports it.
+   The linked follow-up records the implemented suffix boundary and checks.
 2. Give the replay harness a frame iterator and apply its limit before decoding.
    Keep setup ownership explicit. This removes work without changing arithmetic.
 3. Measure a content-addressed local typed-frame cache for repeated suite runs.

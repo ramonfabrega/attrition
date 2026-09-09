@@ -4,7 +4,7 @@
 //! into an owned String and wrapped in GAME, so the existing parser and its
 //! borrowed accessors can be used unchanged. Drop that String/Log before reading
 //! the next frame to keep memory proportional to the largest requested frame.
-//! Setup and shutdown siblings are deliberately not included in this API.
+//! Setup is separate; `read_shutdown` retains the last frame and its siblings.
 use std::fs::{File, Metadata};
 use std::io::{self, BufRead, BufReader, Read, Seek, SeekFrom};
 use std::path::{Path, PathBuf};
@@ -178,14 +178,17 @@ impl IndexedCapture {
     /// Parse and yield one owned frame at a time. Unlike Log::frame_states,
     /// this does not collect the entire capture's decoded state before yielding.
     pub fn frame_states(&mut self) -> impl Iterator<Item = io::Result<crate::gamelog::Frame>> + '_ {
-        (0..self.frames.len()).map(|i| {
-            let text = self.read_frame(i)?;
-            let mut states = crate::gamelog::Log::parse(&text).frame_states();
-            if states.len() != 1 || states[0].n != self.frames[i].number {
-                return Err(invalid("indexed frame did not parse as one matching FRAME"));
-            }
-            Ok(states.pop().expect("one frame"))
-        })
+        (0..self.frames.len()).map(|i| self.frame_state(i))
+    }
+
+    /// Decode one frame by index, preserving duplicate labels by position.
+    pub fn frame_state(&mut self, index: usize) -> io::Result<crate::gamelog::Frame> {
+        let text = self.read_frame(index)?;
+        let mut states = crate::gamelog::Log::parse(&text).frame_states();
+        if states.len() != 1 || states[0].n != self.frames[index].number {
+            return Err(invalid("indexed frame did not parse as one matching FRAME"));
+        }
+        Ok(states.pop().expect("one frame"))
     }
 
     pub fn source_bytes(&self) -> u64 {
@@ -196,12 +199,38 @@ impl IndexedCapture {
     /// Metadata checks catch ordinary edits/truncation; use finalized inputs.
     /// This is safe I/O, not a memory mapping or a claim of atomic snapshots.
     pub fn read_frame(&mut self, index: usize) -> io::Result<String> {
-        self.check_metadata(self.file.metadata()?)?;
         let range = self
             .frames
             .get(index)
             .ok_or_else(|| invalid("frame index out of range"))?;
-        let size = usize::try_from(range.length).map_err(|_| invalid("frame too large"))?;
+        self.read_wrapped(range.offset, range.length)
+    }
+
+    /// Last GAME frame and everything following it, wrapped in GAME. Keeping
+    /// the frame itself preserves trailing fields and the closing reader's
+    /// sibling boundary. No frames yields an empty GAME, hence no final state.
+    pub fn read_shutdown(&mut self) -> io::Result<String> {
+        match self.frames.last() {
+            Some(last) => self.read_wrapped(last.offset, self.length - last.offset),
+            None => self.read_wrapped(0, 0),
+        }
+    }
+
+    /// One frame plus its following GAME siblings, stopping at the next frame.
+    /// Used for FULL DUMP classification; duplicate frame numbers remain distinct.
+    pub fn read_frame_and_siblings(&mut self, index: usize) -> io::Result<String> {
+        let start = self
+            .frames
+            .get(index)
+            .ok_or_else(|| invalid("frame index out of range"))?
+            .offset;
+        let end = self.frames.get(index + 1).map_or(self.length, |f| f.offset);
+        self.read_wrapped(start, end - start)
+    }
+
+    fn read_wrapped(&mut self, offset: u64, length: u64) -> io::Result<String> {
+        self.check_metadata(self.file.metadata()?)?;
+        let size = usize::try_from(length).map_err(|_| invalid("frame too large"))?;
         let mut bytes = Vec::new();
         bytes
             .try_reserve_exact(
@@ -211,7 +240,7 @@ impl IndexedCapture {
             .map_err(|e| io::Error::other(e.to_string()))?;
         bytes.extend_from_slice(b"BEGIN GAME\n");
         bytes.resize(size + 11, 0);
-        self.file.seek(SeekFrom::Start(range.offset))?;
+        self.file.seek(SeekFrom::Start(offset))?;
         self.file.read_exact(&mut bytes[11..])?;
         self.check_metadata(self.file.metadata()?)?;
         String::from_utf8(bytes).map_err(|_| invalid("frame is not UTF-8"))
@@ -256,6 +285,48 @@ mod tests {
         assert_eq!(got.len(), 2);
         assert_eq!(got[0].units[0].pos.x, 234);
         assert_eq!(got[1].units[0].pos.x, 999);
+    }
+
+    #[test]
+    fn shutdown_keeps_trailing_flags_but_not_setup_records() {
+        let text = "BEGIN GAME\n leader_flags 101\n BEGIN LEADERDATA\n  who 0\n BEGIN FRAME 1\n  value 1\n BEGIN FRAME 2\n  value 2\n leader_flags 202\n BEGIN LEADERDATA\n  who 1\n BEGIN UNITDATA\n  BEGIN OBJECT\n   BEGIN SUBOBJECT\n    flags 1\n    o 9\n    who 1\n    x_internal 234\nGameInfo closing\n";
+        let input = Input::new(text);
+        let mut source = IndexedCapture::open(&input.0).unwrap();
+        let tail = source.read_shutdown().unwrap();
+        let state = crate::gamelog::Log::parse(&tail).final_state().unwrap();
+        assert_eq!(
+            Some(state.clone()),
+            crate::gamelog::Log::parse(text).final_state()
+        );
+        assert_eq!(state.n, 2);
+        assert_eq!(state.units[0].o, 9);
+        assert_eq!(state.leaders.len(), 1);
+        assert_eq!(state.leaders[0].leader_flags, 202);
+        assert!(!tail.contains("leader_flags 101"));
+        std::fs::write(&input.0, "BEGIN GAME\n").unwrap();
+        assert!(source.read_shutdown().is_err());
+    }
+
+    #[test]
+    fn duplicate_labels_and_full_dump_siblings_keep_their_pairing() {
+        let text =
+            "BEGIN GAME\n BEGIN FRAME 2\n BEGIN FULL DUMP\n  value 1\n BEGIN FRAME 2\n  value 2\n";
+        let input = Input::new(text);
+        let mut source = IndexedCapture::open(&input.0).unwrap();
+        for (index, count) in [(0, 1), (1, 0)] {
+            let slice = source.read_frame_and_siblings(index).unwrap();
+            let log = crate::gamelog::Log::parse(&slice);
+            assert_eq!(log.frames().len(), 1);
+            assert_eq!(log.dumps().len(), count);
+        }
+        let tail = source.read_shutdown().unwrap();
+        assert!(crate::gamelog::Log::parse(&tail).final_state().is_none());
+        let empty = Input::new("BEGIN GAME\n value 1\n");
+        let tail = IndexedCapture::open(&empty.0)
+            .unwrap()
+            .read_shutdown()
+            .unwrap();
+        assert!(crate::gamelog::Log::parse(&tail).final_state().is_none());
     }
 
     #[test]

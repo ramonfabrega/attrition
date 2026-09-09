@@ -36,8 +36,10 @@
 //! `indexed::IndexedCapture` now provides that successor for ordinary FRAME
 //! records: safe file reads, a bounded offset cache, and one owned Frame yielded
 //! at a time. The borrowed `Log` API stays unchanged by parsing each frame in a
-//! short-lived GAME wrapper. Setup/shutdown and other whole-log consumers still
-//! use `read`. See `docs/audit/2026-09-09-streaming-captures.md` for equivalence
+//! short-lived GAME wrapper. Shutdown tails and frame/sibling slices are also
+//! available; setup and other whole-log consumers still use `read`. See
+//! `docs/audit/2026-09-09-shutdown-streaming.md` and the earlier streaming
+//! report for equivalence
 //! checks, measured memory, and the supported input boundary.
 
 use std::path::Path;

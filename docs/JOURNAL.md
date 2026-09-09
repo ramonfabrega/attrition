@@ -19940,3 +19940,17 @@ win, not a memory claim. The after-profile contains no `frame_states` stacks.
 Reusable native sampling and graph tools, measurement caveats, and the next
 storage/iteration experiments are in `docs/audit/2026-09-09-native-profile.md`.
 No simulation rule or acceptance floor changed.
+
+## 2026-09-09 — stream shutdown tails
+
+Extended the safe offset reader to retain the last frame and its shutdown
+siblings. Complete closing-record equality passed against the full reader on
+102 archived captures (67 closing states, 6,442 units). The census's unchanged
+95-capture assertions now run at 260 MB maximum RSS versus 6.52 GB, with test
+body 27.40 s versus 27.16 s in a fresh sequential pair. The closing/ordinary
+comparison now selects only its matching and preceding populated frames;
+36 pairs and 110 unit movements are unchanged, at 174 MB isolated peak RSS.
+`docs/audit/2026-09-09-shutdown-streaming.md` records boundaries and validation.
+No acceptance floor moved. The next replay change must separate initial setup
+from `Initial`'s whole-capture observation products before promising that a
+prefix request avoids all suffix decoding.
