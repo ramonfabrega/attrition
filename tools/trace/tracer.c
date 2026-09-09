@@ -61,6 +61,10 @@
  * records of eight u32s; see `report.py` for the reader.
  */
 
+#if defined(RON_HIDE_SCENE) && !defined(RON_TURN_PROBE)
+#error RON_HIDE_SCENE requires RON_TURN_PROBE for the render-call witness
+#endif
+
 typedef unsigned char u8;
 typedef unsigned short u16;
 typedef unsigned int u32;
@@ -249,6 +253,12 @@ static const CallSite CALLS[] = {
      * push ebx; mov ebx,esp; sub esp,8 — not the usual frame, so the
      * displaced prologue is `53 8b dc 83 ec 08`. */
     {0x286300, 6, 5, 0, {0x53, 0x8b, 0xdc, 0x83, 0xec, 0x08, 0, 0, 0, 0}},
+#ifdef RON_TURN_PROBE
+    /* GuyData::turn_speed(int), ret 4; opt-in field replay experiment. */
+    {0x1de340, 6, 1, 0, {0x55, 0x8b, 0xec, 0x53, 0x8b, 0xd9, 0, 0, 0, 0}},
+    /* Scene::render(int,int,int), ret 12: presentation boundary witness. */
+    {0x4b3270, 10, 3, 0, {0x55, 0x8b, 0xec, 0x6a, 0xff, 0x68, 0x98, 0xed, 0xa9, 0x00}},
+#endif
 };
 #define NCALLS (sizeof(CALLS) / sizeof(CALLS[0]))
 
@@ -646,6 +656,10 @@ static u32 stack_ret(u32 ebp, u32 lo, u32 hi, u32 *next) {
     return *(u32 *)(ebp + 4);
 }
 
+#ifdef RON_COMMAND_PROBE
+#include "../explore/live_move_probe.h"
+#endif
+
 static void __cdecl on_hook(u32 kind, u32 ecx, u32 ebp, u32 caller, u32 arg0) {
     if (kind == K_FRAME) {
         i32 frame = *(i32 *)(ecx + GAME_FRAME_OFF);
@@ -660,7 +674,26 @@ static void __cdecl on_hook(u32 kind, u32 ecx, u32 ebp, u32 caller, u32 arg0) {
         }
         emit(K_FRAME, (u32)frame, seed, armed, caller, 0, 0);
         flush();
+#ifdef RON_HIDE_SCENE
+        /* Experimental unsupported display mode skips both Scene::render
+         * branches in Game::loop_render while retaining its service work.
+         * Restore before the scheduled quit; this is not startup-headless. */
+        static u8 saved_display;
+        u8 *scene = *(u8 **)(g_base + 0x80620cu);
+        if (frame == 18 && scene) {
+            saved_display = scene[0x218];
+            scene[0x218] = 3;
+            emit(K_INFO, 120, (u32)frame, saved_display, 3, 0, 0);
+        }
+        if (frame == 35 && scene) {
+            scene[0x218] = saved_display;
+            emit(K_INFO, 120, (u32)frame, 3, saved_display, 0, 0);
+        }
+#endif
         run_cmds(frame);
+#ifdef RON_COMMAND_PROBE
+        probe_move(frame);
+#endif
         return;
     }
     u32 self = (kind == K_REAL) ? g_base + RVA_GAME_RANDOM : ecx;
@@ -722,9 +755,16 @@ static u32 build_stub(u8 *s, const HookSite *h) {
 
 /* ---- the call proxies -------------------------------------------------- */
 
+#ifdef RON_TURN_PROBE
+#include "../explore/live_turn_probe.h"
+#endif
+
 static void __cdecl on_call(u32 site, u32 self, u32 a0, u32 a1, u32 a2, u32 a3) {
     if (g_frame < g_cw_lo || g_frame > g_cw_hi) return;
     emit(K_CALL, site, self, a0, a1, a2, a3);
+#ifdef RON_TURN_PROBE
+    if (site == 8) probe_turn(self);
+#endif
 }
 
 static void __cdecl on_ret(u32 site, u32 ret, u32 a4, u32 a5, u32 a6, u32 a7) {
