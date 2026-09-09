@@ -743,52 +743,11 @@ static void __cdecl on_hook(u32 kind, u32 ecx, u32 ebp, u32 caller, u32 arg0) {
     emit(kind, caller, self, seed, ret2, ret3, arg0);
 }
 
-/*
- * The stub, per hook (built at attach in an RWX page):
- *
- *   9C                  pushfd
- *   60                  pushad             ; [esp+0x24] = return address, +0x28 = arg0
- *   8B 44 24 28         mov eax,[esp+0x28]
- *   50                  push eax           ; arg0
- *   8B 44 24 28         mov eax,[esp+0x28] ; return address (shifted by the push)
- *   50                  push eax           ; caller
- *   8B 44 24 10         mov eax,[esp+0x10] ; pushad's ebp (shifted by two pushes)
- *   50                  push eax           ; ebp
- *   51                  push ecx           ; this
- *   68 kk kk kk kk      push kind
- *   B8 hh hh hh hh      mov eax, on_hook
- *   FF D0               call eax
- *   83 C4 14            add esp, 20
- *   61                  popad
- *   9D                  popfd
- *   <displaced prologue bytes>
- *   E9 rr rr rr rr      jmp target+len
- */
+#include "hook_stub.h"
+
 static u32 build_stub(u8 *s, const HookSite *h) {
-    u32 n = 0;
-    static const u8 head[] = {0x9C, 0x60, 0x8B, 0x44, 0x24, 0x28, 0x50, 0x8B, 0x44, 0x24,
-                              0x28, 0x50, 0x8B, 0x44, 0x24, 0x10, 0x50, 0x51, 0x68};
-    memcpy(s, head, sizeof head);
-    n = sizeof head;
-    *(u32 *)(s + n) = h->kind;
-    n += 4;
-    s[n++] = 0xB8;
-    *(u32 *)(s + n) = (u32)(void *)on_hook;
-    n += 4;
-    s[n++] = 0xFF;
-    s[n++] = 0xD0;
-    s[n++] = 0x83;
-    s[n++] = 0xC4;
-    s[n++] = 0x14;
-    s[n++] = 0x61;
-    s[n++] = 0x9D;
-    memcpy(s + n, (void *)(g_base + h->rva), h->len);
-    n += h->len;
-    s[n++] = 0xE9;
-    u32 back = g_base + h->rva + h->len;
-    *(u32 *)(s + n) = back - ((u32)(s + n) + 4);
-    n += 4;
-    return n;
+    return build_hook_stub(s, (u32)s, g_base+h->rva, h->kind, (u32)(void *)on_hook,
+                           (const u8 *)(g_base+h->rva), h->len);
 }
 
 /* ---- the call proxies -------------------------------------------------- */
