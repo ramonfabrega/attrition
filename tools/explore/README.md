@@ -20,3 +20,11 @@ Findings and limitations are in
 
 No probe launches the game, modifies the install, or writes to existing
 captures or the Ghidra project. Oracle tables and full gate output stay local.
+
+- `command_oracle.py INSTALL` executes the original MoveTo issuer and replays
+  its touched data pages. Pipe stdout (outside the repo) to
+  `cargo run -p rondata --release --example command_oracle_check` to compare
+  all packet fields with the existing decoder. It uses synthesized state and
+  a bounded imported-memcpy adapter; it does not test live scheduling.
+  See `docs/audit/2026-09-09-command-loop-experiment.md` for measured capacity
+  hazards and the live permission blocker.
