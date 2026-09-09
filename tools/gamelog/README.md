@@ -9,8 +9,11 @@ is the knob", for what the log contains and how to make it contain it.
 The readers default to this machine's corpus path:
 `~/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/`. Its only
 other copy is the R2 bucket `backup.sh` mirrors it into — `zsh
-tools/gamelog/backup.sh sync` after a capture session, `restore` on a new
-machine, `ls` to see what is there.
+tools/gamelog/backup.sh sync` after a capture session, `pending` for what
+that would send without sending it, `restore` on a new machine, `ls` to see
+what is there. Ctrl-C is safe in every mode and a re-run resumes. It shows
+a live byte counter on a terminal and one line per file everywhere else, so
+a lane's tool result stays readable without a flag.
 
 ## `setlog.py` — write `gamelog.ini`
 
