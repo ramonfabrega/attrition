@@ -88,3 +88,10 @@ under 20 GiB. Clippy with warnings denied, formatting, documentation guards and
 the install survey pass. Default and census tracer builds deny warnings; the
 default preprocessed tokens match the prior commit. Gate log:
 `/tmp/search-census-release.log`.
+
+
+Follow-up: `docs/audit/2026-09-09-congestion-probe.md` completes the targeted
+scenario experiment above. Two launches each reach 1,787 natural suspensions,
+with matching observed projections and 64 live metadata events. The negative
+passive census remains as measured; the metadata-reading branch is no longer
+host-fixture-only. Complete graph capture and resumption remain open.

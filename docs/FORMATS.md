@@ -837,6 +837,26 @@ format: 130 starts an event; 131 supplies each of five container pointer,
 length and root triples; 132 supplies each of seven pool list, capacity and
 length triples; 133 reports a failed or short read; 134 completes an event;
 135 marks the 64-event cap; 136 declares version/cap or refuses installation.
-Every packet carries its suspension ordinal and frame. No live suspension
-has validated the metadata-reading branch yet; host fixtures test its protocol
-and failure handling. `docs/audit/2026-09-09-search-census.md` records coverage.
+Every packet carries its suspension ordinal and frame. The congestion experiment
+now validates the metadata-reading branch in two live runs; host fixtures also
+test its protocol and failure handling. Coverage is recorded in
+`docs/audit/2026-09-09-search-census.md` and its successor
+`docs/audit/2026-09-09-congestion-probe.md`.
+
+
+## Congestion driver registry and receipts (2026-09-09)
+
+`Units::make_valid@0061a960` establishes the owner-zero high-water length and
+capacity at the units singleton +4/+8, with pointer array +0x10 (the PDB
+`PtrArray<Unit>` layout); owner arrays stride 0x1c. The opt-in driver reads at
+most 512 slots, retaining active ID/UID pairs across its baseline and selection.
+The existing command probe's ObjectData/UnitData fields and
+`CommandPackage::add_group@0094bb60` establish the group layout and ID packing.
+No additional original serialization format is introduced.
+
+INFO tags 140–144 are authored receipts: 140 is group/ID/UID/x/y, 141 is the
+two group counts/centroid x/y/registry length, 142 is group/count/package length
+before/after/issue frame, 143 is group/target x/y/two reserved zeros, and 144 is
+failure reason/context/three reserved zeros. The enclosing record carries the
+current frame. Source evidence, packet bounds and live coverage are in
+`docs/audit/2026-09-09-congestion-probe.md`.

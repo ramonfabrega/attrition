@@ -186,3 +186,19 @@ experimental receipts. Reports belong outside the repo. Run
 `-Wno-int-to-void-pointer-cast` for the callback's mocked-read tests. Coverage
 and the successful 8,000-frame census are recorded in
 `docs/audit/2026-09-09-search-census.md`.
+
+## Targeted congestion scenario
+
+Stage `live_session.py stage INSTALL OUTPUT PROFILE --end-frame 1400 --fast-forward`,
+then write `python3 tools/explore/congestion_probe.py schedule > OUTPUT/rontrace.cmd`.
+Build into OUTPUT with `TRACER_DEFS='-DRON_CONGESTION_PROBE -DRON_SEARCH_CENSUS -Werror'`;
+bind, launch and restore as above. This macro excludes `RON_COMMAND_PROBE`.
+It orders two groups of newly spawned captains through the original issuer;
+it does not modify search limits. `congestion_probe.py report TRACE` validates
+spawn/order receipts and census metadata. `compare TRACE REPEAT` also requires
+matching frame/RNG and search projections, without claiming full-state parity.
+Redirect reports outside git. Five Python tests and `test_live_congestion_probe.c`
+(host Clang with `-Wno-int-to-pointer-cast -Wno-pointer-to-int-cast`) cover refusal
+paths. Two live runs reach 1,787 natural suspensions each; measured graph bounds,
+limitations and the next capsule boundary are in
+`docs/audit/2026-09-09-congestion-probe.md`.

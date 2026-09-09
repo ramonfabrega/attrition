@@ -61,6 +61,10 @@
  * records of eight u32s; see `report.py` for the reader.
  */
 
+#if defined(RON_CONGESTION_PROBE) && (!defined(RON_SEARCH_CENSUS) || defined(RON_COMMAND_PROBE))
+#error RON_CONGESTION_PROBE requires census and excludes the single-unit command probe
+#endif
+
 #if defined(RON_SEARCH_CENSUS) && (defined(RON_PATH_CAPSULE) || defined(RON_ORDER_CAPSULE) || defined(RON_CAPSULE_PROBE) || defined(RON_HIDE_SCENE))
 #error RON_SEARCH_CENSUS excludes capsule and suppression experiments
 #endif
@@ -679,6 +683,10 @@ static void capsule_request_copy(u8 *package);
 #include "../explore/live_move_probe.h"
 #endif
 
+#ifdef RON_CONGESTION_PROBE
+#include "../explore/live_congestion_probe.h"
+#endif
+
 static void __cdecl on_hook(u32 kind, u32 ecx, u32 ebp, u32 caller, u32 arg0) {
     if (kind == K_FRAME) {
         i32 frame = *(i32 *)(ecx + GAME_FRAME_OFF);
@@ -710,6 +718,9 @@ static void __cdecl on_hook(u32 kind, u32 ecx, u32 ebp, u32 caller, u32 arg0) {
         }
 #endif
         run_cmds(frame);
+#ifdef RON_CONGESTION_PROBE
+        probe_congestion(frame);
+#endif
 #ifdef RON_COMMAND_PROBE
         probe_move(frame);
 #endif

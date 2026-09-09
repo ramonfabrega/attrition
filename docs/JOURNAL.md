@@ -20357,3 +20357,19 @@ under 20 GiB. Clippy with warnings denied, formatting, documentation guards and
 the install survey pass. Default and census tracer builds deny warnings; the
 default preprocessed tokens match the prior commit. Gate log:
 `/tmp/search-census-release.log`.
+
+
+## 2026-09-09 — A repeatable natural suspension scenario
+
+Targeted congestion turns the passive census's zero witnesses into 1,787 native
+A* suspension returns over 1,400 frames. Two launches match all 1,401 observed
+frame/seed pairs, roster/order receipts, ordered search returns and the first
+64 metadata shapes. The first witness is frame 223; its five containers total
+202 entries. The captured maximum simultaneous total is 1,059, so the synthetic
+cleanup fixture's 31-node bound cannot stand in for a live graph. The new opt-in
+driver uses the original spawn and MoveTo paths, never writes the search budget,
+and rejects missing/stale identities and overflowing packets. Tests and the
+repeat validator turn setup failures into errors. Original settings restored.
+No headline floor moved; no full-state parity or Rust resumption claim. Evidence
+and the next complete-graph capture boundary:
+`docs/audit/2026-09-09-congestion-probe.md`.
