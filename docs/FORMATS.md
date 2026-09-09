@@ -819,7 +819,7 @@ operands. The fixture maps only those three recycler words; the growth
 increment is deliberately inaccessible. The executable's bytes are loaded
 from the user's install, never stored in source. Complete-record native checks
 and the untested branches are documented in
-`docs/audit/2026-09-09-search-cleanup.md`.
+`docs/lab/2026-09-09-search-cleanup.md`.
 
 ## Suspended-search census metadata (2026-09-09)
 
@@ -840,8 +840,8 @@ length triples; 133 reports a failed or short read; 134 completes an event;
 Every packet carries its suspension ordinal and frame. The congestion experiment
 now validates the metadata-reading branch in two live runs; host fixtures also
 test its protocol and failure handling. Coverage is recorded in
-`docs/audit/2026-09-09-search-census.md` and its successor
-`docs/audit/2026-09-09-congestion-probe.md`.
+`docs/lab/2026-09-09-search-census.md` and its successor
+`docs/lab/2026-09-09-congestion-probe.md`.
 
 
 ## Congestion driver registry and receipts (2026-09-09)
@@ -859,7 +859,7 @@ two group counts/centroid x/y/registry length, 142 is group/count/package length
 before/after/issue frame, 143 is group/target x/y/two reserved zeros, and 144 is
 failure reason/context/three reserved zeros. The enclosing record carries the
 current frame. Source evidence, packet bounds and live coverage are in
-`docs/audit/2026-09-09-congestion-probe.md`.
+`docs/lab/2026-09-09-congestion-probe.md`.
 
 ## Structural suspended-search graph (2026-09-09)
 
@@ -880,7 +880,7 @@ or seven-recycler census order; scalar unit/PathNode records use owner zero.
 The unit slice is +0x104 through +0x14b; recycler headers include 16 bytes, while
 the replay grants only the first 12 to reject allocator growth. Complete bounds,
 physical versus logical counts and live coverage are recorded in
-`docs/audit/2026-09-09-natural-search-graph.md`.
+`docs/lab/2026-09-09-natural-search-graph.md`.
 
 ## Restore-entry prefix packet (2026-09-09)
 
@@ -898,4 +898,4 @@ stack words; final limit/saving. INFO 160 names the hook version and three code
 boundaries; 161 records unit/owner/ID/path-stack/repaths; 162 records
 status/unit/bytes-written/expected-bytes/limit; 163 records a refusal. Every
 record retains the tracer's current frame. The graph receipt and unit/frame
-must also match. Evidence and scope: `docs/audit/2026-09-09-restore-entry.md`.
+must also match. Evidence and scope: `docs/lab/2026-09-09-restore-entry.md`.

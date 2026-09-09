@@ -38,7 +38,7 @@
 //! at a time. The borrowed `Log` API stays unchanged by parsing each frame in a
 //! short-lived GAME wrapper. Shutdown tails and frame/sibling slices are also
 //! available; setup and other whole-log consumers still use `read`. See
-//! `docs/audit/2026-09-09-shutdown-streaming.md` and the earlier streaming
+//! `docs/lab/2026-09-09-shutdown-streaming.md` and the earlier streaming
 //! report for equivalence
 //! checks, measured memory, and the supported input boundary.
 

@@ -722,7 +722,7 @@ popped); `give_obj`; `clear_partial_path`; `update_action`.
 The path-only operation is exposed as `Unit::discard_current_path_segment`.
 A natural shutdown call and boundary-flag mutations compare it with the original
 without a world or renderer; scope and evidence are recorded in
-`docs/audit/2026-09-09-natural-path-capsule.md`.
+`docs/lab/2026-09-09-natural-path-capsule.md`.
 
 `close_orders(silent)@005e37f0` is `while (head && current->get_type() != NONE)
 kill_current_order(silent)` — it empties the list oldest first, so every
