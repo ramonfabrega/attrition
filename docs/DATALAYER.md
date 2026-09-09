@@ -146,19 +146,19 @@ the suite by design. On this tree the release gate went from **8,358 MiB to
 9,921 MiB** of the 20 GiB ceiling, 243 tests green either way and 281 s
 against 274 s — both measured on this tree, the mapping in and out.
 
-**What would beat both is a capture that is never resident.** The index
-below already holds every frame's byte range, so a frame could be read with
-`FileExt::read_exact_at` into a reusable buffer and the file neither mapped
-nor slurped — and since `ps rss` counts a mapped capture's clean pages, that
-lands *under* the mapping rather than conceding to it. What stands in the
-way is the borrow, not the read: `Log`'s accessors hand back `&'a str` into
-the text, and lending out text loaded *after* the borrow began wants either
-`&mut self` through every accessor or a self-referential arena. That is an
-API change across the suite's call sites, and it is this section's
-successor. It is not an `madvise`: macOS accepts `MADV_DONTNEED` over a
-private file mapping, answers 0, and leaves the resident set where it was,
-and `MADV_FREE_REUSABLE` refuses anything but anonymous memory with `EINVAL`
-(measured on run58, 1,347 MiB before the call and after it).
+**The successor now exists for ordinary FRAME records.**
+`capture::indexed::IndexedCapture` uses safe file reads and an offset cache,
+wrapping each requested span in a short-lived GAME String. Its iterator yields
+one owned Frame at a time, so the borrowed `Log` API does not need to change.
+The frozen-clock test now uses it: isolated peak RSS fell from 1,313.4 MB to
+90.7 MB, with unchanged assertions and test-body time 3.84 s versus 4.07 s.
+Complete Frame equality passed on five captures (726 frames). Setup/shutdown
+and other whole-log consumers still use `capture::read`; this is a bounded
+migration, not a whole-suite memory claim. Measurements and input restrictions:
+`docs/audit/2026-09-09-streaming-captures.md`.
+The earlier run58 experiment still rules out an `madvise` shortcut: macOS
+accepted `MADV_DONTNEED` on the private mapping but held RSS at 1,347 MiB;
+`MADV_FREE_REUSABLE` rejected non-anonymous memory with `EINVAL`.
 
 **And the frames are indexed rather than read.** A capture's frames are all
 children of `GAME`, so `Log::parse` reads eagerly up to the first `FRAME`

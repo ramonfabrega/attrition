@@ -19912,3 +19912,17 @@ entered, 152 never. No score moved. The draw hooks still carry
 `pushad`/`popad` at a few thousand calls a frame and have never tripped;
 moving them onto the flag-free sequence is the one follow-up, with its own
 proof run. `docs/ORACLE.md`, "Coverage is back".
+
+## 2026-09-09 — methodology exploration: stream capture frames
+
+Under the user's exploration mandate, added safe file-backed frame iteration
+without changing the borrowed gamelog parser or advancing a mechanic floor.
+Complete Frame equality against the existing reader passed across five captures
+(726 frames, 89,811 unit records). Migrating the frozen-clock test reduced its
+isolated peak RSS from 1,313.4 MB to 90.7 MB, with test-body time 3.84 s versus
+4.07 s; this is an observed single-test result, not a suite-wide reduction.
+The full release suite passed. RSS sampling failures now fail closed, including
+loss after launch, with injected-failure regression checks. The input boundary,
+measurements and process-isolation follow-up are recorded in
+`docs/audit/2026-09-09-streaming-captures.md`; the next reader migration is the
+replay harness that currently decodes all frames before applying its limit.

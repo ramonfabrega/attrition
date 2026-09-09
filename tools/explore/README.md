@@ -49,3 +49,12 @@ and the remaining boundary to true headless execution.
 - `replay_live_turn.py INSTALL TRACE [--mutations N]` replays actual captured
   inputs and emits deterministic mutation rows for `turn_oracle_check`.
   Redirect its output outside the repository.
+
+## Capture memory experiments
+
+`docs/audit/2026-09-09-streaming-captures.md` records separate-process RSS and
+complete-record equivalence checks. Build `frame_memory` with Cargo in release
+mode, then run `whole`, `indexed`, `indexed-warm`, or `verify` against a finalized
+capture. The warm mode excludes initial index construction from its reported
+scan time. `verify` intentionally loads the full baseline and is not a memory
+benchmark. `python3 tools/explore/test_memcap.py` exercises sampling failures.
