@@ -13,7 +13,7 @@ class CompareTest(unittest.TestCase):
         def row(*words): return tuple(words)+(0,)*(8-len(words))
         self.rows=[row(0x544E4F52,2,0x400000),row(5,175,1),row(5,170,1,1),
                    row(5,171,4096),row(5,172,4096,8192),row(5,173,4096)]
-        self.rows += [row(2,n,n*7) for n in range(37)] + [row(5,170,21,2)]
+        self.rows += [row(2,n,n*7,0,0,0,0,n) for n in range(37)] + [row(5,170,21,2)]
         self.log=' MAP_STYLE 14\n (int)seed 12345\n'
         self.log+=''.join(f'BEGIN FRAME {n}\n value {n}\n' for n in range(18,36))
         self.log+='BEGIN FRAME 37\n GameInfo closing\n value 99\n'
@@ -41,8 +41,17 @@ class CompareTest(unittest.TestCase):
         (self.right/'gamelog.txt').write_text(self.log.replace('BEGIN FRAME 18\n value 18\n',''))
         with self.assertRaisesRegex(ValueError,'coverage'): compare(self.left,self.right)
 
+    def test_equal_but_unhealthy_traces_refuse(self):
+        bad_frames = self.rows[:]
+        bad_frames[7] = (2,1,7,0,0,0,0,2)
+        for rows, message in ((self.rows+[(5,14,1,0,0,0,0,0)], 'dropped records'),
+                              (bad_frames, 'FRAME fields disagree')):
+            with self.subTest(message=message):
+                for path in (self.left, self.right): self.trace(path,rows)
+                with self.assertRaisesRegex(ValueError,message): compare(self.left,self.right)
+
     def test_seed_divergence_and_false_success_refuse(self):
-        rows=self.rows[:];rows[6+20]=(2,20,999,0,0,0,0,0);self.trace(self.right,rows)
+        rows=self.rows[:];rows[6+20]=(2,20,999,0,0,0,0,20);self.trace(self.right,rows)
         with self.assertRaisesRegex(ValueError,'frame seed: frame 20'): compare(self.left,self.right)
         (self.right/'receipt.json').write_text('{"success":false}')
         with self.assertRaisesRegex(ValueError,'did not succeed'):compare(self.left,self.right)

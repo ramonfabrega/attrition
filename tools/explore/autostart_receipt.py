@@ -34,11 +34,17 @@ def receipt_records(records, end_frame, exit_code):
         raise ValueError('missing or unsupported trace header')
     events, frame_count = [], 0
     for row in rows:
+        # Match the finalized Rust reader's transport checks. A complete
+        # lifecycle cannot make a lossy or internally inconsistent trace valid.
+        if row[0] == 5 and row[1] == 14 and row[2] != 0:
+            raise ValueError('trace reports dropped records')
         if row[0] == 5 and 170 <= row[1] <= 177:
             events.append(row)
             if len(events) > 6:
                 raise ValueError('extra lifecycle or fault records')
         elif row[0] == 2:
+            if row[1] != row[7]:
+                raise ValueError('trace FRAME fields disagree')
             if row[1] != frame_count or frame_count > end_frame:
                 raise ValueError('missing, repeated, or unexpected simulation frames')
             frame_count += 1
