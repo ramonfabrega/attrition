@@ -78,6 +78,8 @@ Fable worker or capture.
 
 | L46 | Scoped road construction still retains whole primary captures. | [Indexed primary inputs and complete-field comparison](2026-09-10-road-primary-indexing.md). | Market-road RSS 1.91–1.95 GB → 1.03 GB; rings 0.97–1.02 GB → 0.53–0.55 GB, no observed cold-time penalty. | Correction scan remains; whole comparison capture is a separate opportunity. |
 
+| L47 | Market-road comparison loads run72 whole for one frame. | [Bounded frame, WORLD fields and heights equality](2026-09-10-road-frame-indexing.md). | Peak 1.03 GB → 0.57–0.60 GB, runtime about 6.1 s. | Offset scan remains; no universal or whole-suite gain claimed. |
+
 ## Current direction
 
 The runtime factor-isolation experiment is paused at the user's request after
