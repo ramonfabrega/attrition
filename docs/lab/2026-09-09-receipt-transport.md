@@ -36,11 +36,11 @@ The runtime experiment remains paused; its drafts are untouched.
 
 ## Remaining regression wiring
 
-The Rust release gate and `tools/guard.sh` do not invoke these Python tests.
-They were run explicitly for this change. A next infrastructure step is a
-reviewed offline Python test lane, invoked by the gate, so receipt regressions
-cannot disappear behind a clean Rust run. Avoid indiscriminate discovery of
-experimental runtime tests; select and document the offline suites.
+These Python tests were run explicitly for the receipt change. The release
+gate now invokes them through a [reviewed offline Python lane](2026-09-09-offline-test-lane.md).
+`tools/guard.sh` remains the Rust/document reflex; invoke the offline lane
+directly for quick acquisition-tool checks. Experimental runtime tests are
+not discovered implicitly.
 
 ## Pre-commit gate
 

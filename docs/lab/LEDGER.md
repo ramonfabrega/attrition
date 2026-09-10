@@ -60,6 +60,8 @@ Fable worker or capture.
 
 | L37 | Python acquisition receipts ignored positive loss notices and conflicting FRAME fields despite complete lifecycle/endpoint checks. | [Failing receipts and stored revalidation](2026-09-09-receipt-transport.md); 19 focused tests and four retained captures. | Shared streamed/in-memory validator now rejects both; equal malformed acquisitions also fail comparison. | Transport/lifecycle only; no new native experiment or fidelity claim. |
 
+| L38 | Receipt and acquisition Python regressions were absent from the release gate. | [Offline lane and injected failure](2026-09-09-offline-test-lane.md); 27 reviewed tests. | Explicit module list runs before survey/release and propagates failure; direct use needs no install. | Reviewed offline selection, not an OS sandbox; new modules require review. |
+
 ## Current direction
 
 The runtime factor-isolation experiment is paused at the user's request after
