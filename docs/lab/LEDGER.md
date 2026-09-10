@@ -52,6 +52,8 @@ Fable worker or capture.
 | L32 | Indexed sibling text preserves run71's complete replay report and every retained Initial field. | [Tradeoff and evidence](2026-09-09-sibling-retention-and-gates.md). | Isolated RSS 2.225 → 1.495 GB; elapsed 7.47 → 8.58 s. Observation arrays still grow with data. | One test migrated; no blanket speed or suite-RSS claim. |
 | L33 | Explicit-install orchestration and finalized trace validation prevent two silent validation gaps. | [Gate and trace boundaries](2026-09-09-sibling-retention-and-gates.md); authored negative cases, 87-file preflight. | Required install passed to all gate children; malformed supplied traces fail visibly. | Missing optional captures and semantic completeness remain open. |
 
+| L34 | Optional fixture requests can disappear behind passing test counts. | [Request audit and empty-directory check](2026-09-09-fixture-request-audit.md); test-only lookup records and retained gate report. | Shows present/missing requests per test; optional strict policy. Does not infer unrequested dependencies or complete corpus coverage. | Implemented in explicit-install gate; no new universal fixture requirement. |
+
 ## Current direction
 
 The runtime factor-isolation experiment is paused at the user's request after

@@ -10,7 +10,11 @@ For the full install-backed local gate, use
 `python3 tools/release_gate.py INSTALL` from the repository root. It exports
 RON_INSTALL explicitly, surveys the data, then runs release tests, lint,
 formatting and guards. A missing optional capture is still a separate coverage
-issue. See [gate and reader boundaries](../../docs/lab/2026-09-09-sibling-retention-and-gates.md).
+issue. Add `--report-dir NEW_DIRECTORY` to retain fixture-request coverage in
+an explicit location; `--require-fixtures` fails on any observed missing lookup.
+The default reports gaps without requiring every historical capture. See
+[fixture-request audit](../../docs/lab/2026-09-09-fixture-request-audit.md) and
+[gate and reader boundaries](../../docs/lab/2026-09-09-sibling-retention-and-gates.md).
 
 - `turn_oracle.py INSTALL` executes a small object-graph fixture in Unicorn.
   Its stdout is derived original-game output: redirect it outside the repo.
