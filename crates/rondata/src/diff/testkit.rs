@@ -87,9 +87,11 @@ pub(crate) fn trace(name: &str) -> Option<crate::trace::Trace> {
     // The same default as [`dump`]: a machine with the captures but no
     // `RON_GAMELOG_DIR` used to skip every trace-backed half silently.
     let path = dump(name)?;
-    crate::trace::Trace::read(std::path::Path::new(&path))
-        .ok()
-        .flatten()
+    Some(
+        crate::trace::Trace::read(std::path::Path::new(&path))
+            .expect("invalid finalized trace")
+            .expect("missing RONT header"),
+    )
 }
 
 /// The two sequences a whole frame folds to, in one place — ours from
