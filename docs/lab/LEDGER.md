@@ -54,6 +54,8 @@ Fable worker or capture.
 
 | L34 | Optional fixture requests can disappear behind passing test counts. | [Request audit and empty-directory check](2026-09-09-fixture-request-audit.md); test-only lookup records and retained gate report. | Shows present/missing requests per test; optional strict policy. Does not infer unrequested dependencies or complete corpus coverage. | Implemented in explicit-install gate; no new universal fixture requirement. |
 
+| L35 | Soak activity counted replay digests containing the frame counter; frozen gameplay yielded 401 distinct states. | [Negative control and separate activity signal](2026-09-09-soak-activity.md). | One traversal now separates selected gameplay activity from replay clock/RNG state; existing thresholds unchanged. | Implemented and regression-backed. Useful mechanic coverage and full state equality are not claimed. |
+
 ## Current direction
 
 The runtime factor-isolation experiment is paused at the user's request after
