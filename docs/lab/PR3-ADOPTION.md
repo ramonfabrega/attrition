@@ -81,3 +81,8 @@ lets the one-command demo verify three nearby windows from one checkpoint.
 Every new process still replays from setup. Adopt this API
 only with its recording and corrected-capture continuation tests; it is not a
 portable snapshot format or a source-bound replay bundle.
+
+The [controlled figure intervention](2026-09-10-figure-intervention.md) adds a
+separate `branch_experiment.py` command and optional checkpoint correction policy.
+It preserves the standard replay and explicitly labels the treatment. Its first
+result is a verified local null effect, not a reason to remove correction support.

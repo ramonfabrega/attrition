@@ -86,6 +86,8 @@ Fable worker or capture.
 
 | L50 | The exporter still restarts setup for every nearby window. | [Checkpoint export, global cursors and complete-window checks](2026-09-10-checkpoint-export.md). | Three restored windows match uninterrupted replay; clone/continue/write 19–22 ms each after prefix. | One open source handle plus metadata; demo hashes inputs; no persistent or portable snapshot. |
 
+| L51 | Need controlled hypotheses, not only fast window replay. | [Figure-only intervention, verified null result and clone profile](2026-09-10-figure-intervention.md). | Ten future figure records removed; all 130 exported records stay equal. Report clone+drop 0.71 ms versus sim 0.52 ms. | Local negative result; no root-cause or complete heap-size claim. |
+
 ## Current direction
 
 The runtime factor-isolation experiment is paused at the user's request after
