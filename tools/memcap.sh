@@ -64,7 +64,9 @@ descendants() {
     done
 }
 
-"$@" &
+# Mark only the monitored child and its descendants, using this wrapper's
+# actual cap rather than any inherited marker. This is a cooperative contract.
+RON_TEST_MEMCAP_GIB="$cap_gib" "$@" &
 pid=$!
 
 peak_kb=0

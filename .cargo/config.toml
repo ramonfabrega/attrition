@@ -1,9 +1,7 @@
-# The release diff suite parses whole captures and every test thread holds
-# its own copy: serialized it peaks near 15 GiB, at two threads near 16, and
-# at this machine's default sixteen threads it reached 33 GiB in one process
-# on 2026-09-07 and was killed by the 20 GiB memcap. Two is the width
-# DECISIONS 34 measured. A `--test-threads` on the command line still
-# overrides this, and `diff::floors::the_gate_is_pinned_to_two_threads`
-# fails the suite when neither pin is present on a machine that has dumps.
+# Conservative default for direct Cargo runs. Historical wider
+# runs exceeded the 20 GiB limit (DECISIONS 34). The explicit release gate
+# may select up to four threads under tools/memcap.sh; its child-only marker
+# is checked by diff::floors::tests::the_gate_has_a_bounded_test_width.
+# Measured adoption evidence: docs/lab/2026-09-10-test-concurrency.md.
 [env]
 RUST_TEST_THREADS = "2"

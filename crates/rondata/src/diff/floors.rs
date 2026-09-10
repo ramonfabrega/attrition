@@ -40,24 +40,39 @@ mod tests {
 
     use crate::diff::testkit::*;
 
-    /// The queue's handoff states the floors, verbatim — the `Scoreboard:`
-    /// line against [`FLOORS`]. Static: no install, no dump, every machine.
-    /// If a score moved, move the floor first (the assert that reads it is
-    /// beside it), then rewrite the line; if only the line changed, the
-    /// floors are the truth and the line is wrong.
-    /// The gate is `cargo test -p rondata --release`, and every test thread
-    /// holds its own parsed capture: serialized the suite peaks near 15 GiB
-    /// (item 235), at two threads near 16, and at this machine's default
-    /// sixteen threads it reached 33 GiB in one process on 2026-09-07 and
-    /// was killed by the 20 GiB memcap — through a pipe, which turned the
-    /// 137 into an exit 0. So the width DECISIONS 34 rests on is a pin, and
-    /// the pin is checked here rather than remembered: `.cargo/config.toml`
-    /// sets `RUST_TEST_THREADS=2` for every invocation, a `--test-threads`
-    /// on the command line may lower it, and a run with neither fails
-    /// before it can grow. Only where the dumps are — a machine without
-    /// them runs a light suite and may use every core.
+    fn permitted_test_width(threads: usize, cap: Option<&str>) -> bool {
+        (1..=2).contains(&threads)
+            || (3..=4).contains(&threads)
+                && cap
+                    .and_then(|value| value.parse::<u32>().ok())
+                    .is_some_and(|gib| (1..=20).contains(&gib))
+    }
+
     #[test]
-    fn the_gate_is_pinned_to_two_threads() {
+    fn wider_test_width_requires_a_bounded_monitor_contract() {
+        for threads in [1, 2] {
+            assert!(permitted_test_width(threads, None));
+        }
+        for threads in [3, 4] {
+            for cap in [None, Some(""), Some("0"), Some("21"), Some("invalid")] {
+                assert!(!permitted_test_width(threads, cap));
+            }
+            for cap in ["1", "20"] {
+                assert!(permitted_test_width(threads, Some(cap)));
+            }
+        }
+        for threads in [0, 5, 16, usize::MAX] {
+            assert!(!permitted_test_width(threads, Some("20")));
+        }
+    }
+
+    /// Unmonitored runs retain the conservative two-thread policy from
+    /// DECISIONS 34. Three/four threads require memcap's child-only marker
+    /// for a positive cap no greater than 20 GiB; the monitor owns that
+    /// environment contract, not a cryptographic attestation. Measurements:
+    /// docs/lab/2026-09-10-test-concurrency.md.
+    #[test]
+    fn the_gate_has_a_bounded_test_width() {
         if crate::testenv::install().is_none() {
             return;
         }
@@ -84,10 +99,11 @@ mod tests {
                  machine's default it reaches 33 GiB and is killed by memcap"
             ),
         };
+        let cap = std::env::var("RON_TEST_MEMCAP_GIB").ok();
         assert!(
-            threads <= 2,
-            "the diff suite is running at {threads} test threads; two is the \
-             width DECISIONS 34 measured (item 235), and four crossed 20 GiB"
+            permitted_test_width(threads, cap.as_deref()),
+            "the diff suite is running at {threads} test threads; use at most two \
+             directly, or at most four under tools/memcap.sh with a cap <= 20 GiB"
         );
     }
 

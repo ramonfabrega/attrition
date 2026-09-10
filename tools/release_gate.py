@@ -33,7 +33,9 @@ def summarize_requests(directory, *, release_completed):
             'complete_corpus_claim': False, 'fixtures': rows}
 
 
-def gate(install, *, report_dir=None, require_fixtures=False, run=subprocess.run):
+def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, run=subprocess.run):
+    if type(test_threads) is not int or test_threads not in (2, 3, 4):
+        raise ValueError('test threads must be 2, 3, or 4')
     install = Path(install).resolve()
     if not (install / 'Data/rules.xml').is_file():
         raise ValueError(f'not an install: missing {install / "Data/rules.xml"}')
@@ -46,12 +48,17 @@ def gate(install, *, report_dir=None, require_fixtures=False, run=subprocess.run
     audit_dir.mkdir()
     env = os.environ.copy()
     env.pop('RON_FIXTURE_AUDIT_DIR', None)
+    env.pop('RON_TEST_MEMCAP_GIB', None)
+    env['RUST_TEST_THREADS'] = '2'
     env['RON_INSTALL'] = str(install)
-    # No executable launch: rondata surveys the user's data files.
+    (report_dir / 'gate-policy.json').write_text(json.dumps(
+        {'schema': 1, 'release_test_threads': test_threads, 'memory_cap_gib': 20},
+        indent=2) + '\n')
+    # No game launch: rondata surveys the user's data files.
     commands = [
         [sys.executable, 'tools/offline_tests.py'],
         ['cargo', 'run', '-p', 'rondata', '--', str(install)],
-        ['zsh', 'tools/memcap.sh', '20', 'cargo', 'test', '--release'],
+        ['zsh', 'tools/memcap.sh', '20', 'cargo', 'test', '--release', '--', f'--test-threads={test_threads}'],
         ['cargo', 'clippy', '--all-targets', '--', '-D', 'warnings'],
         ['cargo', 'fmt', '--check'],
         ['zsh', 'tools/guard.sh'],
@@ -88,9 +95,11 @@ def main():
     parser.add_argument('install', type=Path, help='owned install directory; always exported as RON_INSTALL')
     parser.add_argument('--report-dir', type=Path, help='fresh output directory; defaults to a retained temporary directory')
     parser.add_argument('--require-fixtures', action='store_true', help='fail if any observed fixture request was missing')
+    parser.add_argument('--test-threads', type=int, choices=(2, 3, 4), default=2,
+                        help='release width under the 20 GiB monitor; default: 2')
     args = parser.parse_args()
     try:
-        gate(args.install, report_dir=args.report_dir, require_fixtures=args.require_fixtures)
+        gate(args.install, report_dir=args.report_dir, require_fixtures=args.require_fixtures, test_threads=args.test_threads)
     except ValueError as exc:
         parser.error(str(exc))
 

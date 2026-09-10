@@ -7,6 +7,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 
 spec = importlib.util.spec_from_file_location('release_gate', Path(__file__).resolve().parents[1]/'release_gate.py')
 gate = importlib.util.module_from_spec(spec)
@@ -39,6 +40,34 @@ class GateTests(unittest.TestCase):
             self.assertEqual(calls[0], [sys.executable, 'tools/offline_tests.py'])
             self.assertEqual(calls[1][:4], ['cargo','run','-p','rondata'])
             self.assertIn('--release', calls[2])
+
+    def test_wider_release_is_capped_and_other_children_stay_conservative(self):
+        for width in (2, 3, 4):
+            with self.subTest(width=width), tempfile.TemporaryDirectory() as tmp:
+                path=Path(tmp);(path/'Data').mkdir();(path/'Data/rules.xml').touch()
+                calls=[]
+                def run(command, **kwargs):
+                    calls.append(command)
+                    self.assertEqual(kwargs['env']['RUST_TEST_THREADS'], '2')
+                    self.assertNotIn('RON_TEST_MEMCAP_GIB', kwargs['env'])
+                    if '--release' in command:
+                        self.assertEqual(command[:3], ['zsh','tools/memcap.sh','20'])
+                        self.assertEqual(command[-2:], ['--', f'--test-threads={width}'])
+                        self.assertNotIn('--skip', command)
+                        write_request(kwargs['env']['RON_FIXTURE_AUDIT_DIR'])
+                with patch.dict('os.environ', RUST_TEST_THREADS='16', RON_TEST_MEMCAP_GIB='999'):
+                    gate.gate(path, report_dir=path/'report', test_threads=width, run=run)
+                self.assertEqual(len(calls), 6)
+                policy=json.loads((path/'report/gate-policy.json').read_text())
+                self.assertEqual(policy['release_test_threads'], width)
+                self.assertEqual(policy['memory_cap_gib'], 20)
+
+    def test_unmeasured_width_never_runs(self):
+        for width in (0, 1, 5, 16, '4', 4.0, True):
+            with self.subTest(width=width), tempfile.TemporaryDirectory() as tmp:
+                path=Path(tmp);(path/'Data').mkdir();(path/'Data/rules.xml').touch()
+                with self.assertRaises(ValueError):
+                    gate.gate(path, test_threads=width, run=lambda *a, **k: self.fail('ran invalid width'))
 
     def test_offline_failure_stops_before_install_survey_and_release(self):
         with tempfile.TemporaryDirectory() as tmp:
