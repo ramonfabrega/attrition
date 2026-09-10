@@ -1,5 +1,8 @@
 //! The harness itself: one frame compared, a whole log run, and the traced runs.
 
+mod checkpoint;
+pub use checkpoint::ReplaySession;
+
 use super::*;
 
 /// Compares one logged frame against the simulation as it stands.
@@ -891,6 +894,7 @@ pub fn run_traced_observed<'a, 'b: 'a>(
     Some(replay.finish())
 }
 
+#[derive(Clone)]
 struct Replay {
     built: Built,
     players: usize,

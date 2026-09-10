@@ -14,7 +14,7 @@ pub struct UnitLink {
 }
 
 /// The simulation plus the maps back into the log's ids.
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct Built {
     pub sim: Sim,
     pub units: Vec<UnitLink>,
