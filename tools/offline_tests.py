@@ -12,6 +12,7 @@ import sys
 import unittest
 
 sys.path.insert(0, str(Path(__file__).resolve().parent / 'explore'))
+sys.path.insert(0, str(Path(__file__).resolve().parent / 'viewer'))
 
 SUITES = (
     'test_autostart_receipt',
@@ -19,6 +20,7 @@ SUITES = (
     'test_unattended_capture',
     'test_release_gate',
     'test_memcap',
+    'test_lab_demo',
 )
 
 if __name__ == '__main__':
