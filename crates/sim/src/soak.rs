@@ -61,11 +61,8 @@ impl Fnv {
 /// checksum is a claim about what is simulation state, and writing it out is
 /// how that claim stays reviewable. Anything missing here is something a
 /// divergence could hide in, so the list is meant to grow with the sim.
-fn digest(sim: &Sim) -> u64 {
+fn sample(sim: &Sim) -> Sample {
     let mut h = Fnv::new();
-    h.eat(sim.frame);
-    // The next random outcome can diverge before any visible field does.
-    h.eat(i64::from(sim.rng.seed));
     h.eat(sim.units.len() as i64);
     for u in &sim.units {
         h.eat(i64::from(u.owner));
@@ -146,7 +143,14 @@ fn digest(sim: &Sim) -> u64 {
             h.eat(i64::from(good));
         }
     }
-    h.0
+    // Snapshot activity before adding state that advances in a frozen world.
+    let activity = h.0;
+    h.eat(sim.frame);
+    h.eat(i64::from(sim.rng.seed));
+    Sample {
+        replay: h.0,
+        activity,
+    }
 }
 
 /// The type table the soak plays with: enough shapes for the branches to be
@@ -367,12 +371,38 @@ fn issue(sim: &mut Sim, rng: &mut Rng) {
     }
 }
 
+#[derive(Clone, Copy)]
+struct Sample {
+    replay: u64,
+    activity: u64,
+}
+
+fn digest(sim: &Sim) -> u64 {
+    sample(sim).replay
+}
+
+fn distinct_activity(samples: &[Sample]) -> usize {
+    let mut values: Vec<u64> = samples.iter().map(|s| s.activity).collect();
+    values.sort_unstable();
+    values.dedup();
+    values.len()
+}
+
+fn require_activity(seed: u32, samples: &[Sample]) -> usize {
+    let distinct = distinct_activity(samples);
+    assert!(
+        distinct > 50,
+        "seed {seed}: only {distinct} distinct gameplay states — generated game is barely active"
+    );
+    distinct
+}
+
 /// Plays one game and returns its per-frame digests.
-fn play(seed: u32, frames: usize) -> Vec<u64> {
+fn play(seed: u32, frames: usize) -> Vec<Sample> {
     let mut rng = Rng::new(seed);
     let (mut sim, _types) = scenario(&mut rng);
     let mut out = Vec::with_capacity(frames + 1);
-    out.push(digest(&sim));
+    out.push(sample(&sim));
     for _ in 0..frames {
         // A burst of orders now and then rather than one a frame: a unit that
         // is re-ordered every frame never reaches the interesting half of any
@@ -383,7 +413,7 @@ fn play(seed: u32, frames: usize) -> Vec<u64> {
             }
         }
         sim.tick();
-        out.push(digest(&sim));
+        out.push(sample(&sim));
     }
     out
 }
@@ -391,6 +421,37 @@ fn play(seed: u32, frames: usize) -> Vec<u64> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn clock_and_rng_only_progress_cannot_satisfy_activity_guard() {
+        let (mut sim, _) = scenario(&mut Rng::new(12345));
+        let initial = sample(&sim);
+        sim.frame += 1;
+        assert_eq!(sample(&sim).activity, initial.activity);
+        assert_ne!(
+            sample(&sim).replay,
+            initial.replay,
+            "replay still includes the clock"
+        );
+        sim.frame -= 1;
+        let mut samples = vec![sample(&sim)];
+        for _ in 0..400 {
+            sim.frame += 1;
+            sim.rng.roll();
+            samples.push(sample(&sim));
+        }
+        assert!(
+            samples
+                .windows(2)
+                .all(|pair| pair[0].replay != pair[1].replay)
+        );
+        assert_eq!(
+            distinct_activity(&samples),
+            1,
+            "clock/RNG changes are not gameplay activity"
+        );
+        assert!(std::panic::catch_unwind(|| require_activity(12345, &samples)).is_err());
+    }
 
     #[test]
     fn rng_only_changes_part_the_digest_before_visible_state_changes() {
@@ -472,27 +533,16 @@ mod tests {
             let a = play(seed, 400);
             let b = play(seed, 400);
             assert_eq!(a.len(), b.len());
-            if let Some(frame) = (0..a.len()).find(|&i| a[i] != b[i]) {
+            if let Some(frame) = (0..a.len()).find(|&i| a[i].replay != b[i].replay) {
                 panic!(
                     "seed {seed}: two runs of the same game diverged at frame {frame} \
                      ({:#x} vs {:#x}). Re-run with `play({seed}, 400)`.",
-                    a[frame], b[frame]
+                    a[frame].replay, b[frame].replay
                 );
             }
             // A soak of frozen games would pass this test perfectly and
             // prove nothing, so count how much actually happened.
-            let distinct = {
-                let mut d = a.clone();
-                d.sort_unstable();
-                d.dedup();
-                d.len()
-            };
-            assert!(
-                distinct > 50,
-                "seed {seed}: only {distinct} distinct states in 400 frames — \
-                 the generated game is barely alive, so its replay agreeing \
-                 says nothing"
-            );
+            let distinct = require_activity(seed, &a);
             moved += distinct;
         }
         assert!(moved > 24 * 100, "the sweep as a whole is too quiet");
@@ -514,11 +564,15 @@ mod tests {
         let mut rng = Rng::new(7);
         let (mut sim, _) = scenario(&mut rng);
         let before = digest(&sim);
+        let activity = sample(&sim).activity;
         sim.units[0].pos.x += 1;
+        assert_ne!(activity, sample(&sim).activity, "movement is activity");
         assert_ne!(before, digest(&sim), "a moved unit");
         sim.units[0].pos.x -= 1;
         assert_eq!(before, digest(&sim), "and back again");
+        assert_eq!(activity, sample(&sim).activity, "restored position");
         sim.units[0].health -= 1;
+        assert_ne!(activity, sample(&sim).activity, "damage is activity");
         assert_ne!(before, digest(&sim), "a wounded unit");
     }
 }
