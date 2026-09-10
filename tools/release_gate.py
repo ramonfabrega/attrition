@@ -5,6 +5,7 @@ import json
 import os
 from pathlib import Path
 import subprocess
+import sys
 import tempfile
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -48,6 +49,7 @@ def gate(install, *, report_dir=None, require_fixtures=False, run=subprocess.run
     env['RON_INSTALL'] = str(install)
     # No executable launch: rondata surveys the user's data files.
     commands = [
+        [sys.executable, 'tools/offline_tests.py'],
         ['cargo', 'run', '-p', 'rondata', '--', str(install)],
         ['zsh', 'tools/memcap.sh', '20', 'cargo', 'test', '--release'],
         ['cargo', 'clippy', '--all-targets', '--', '-D', 'warnings'],

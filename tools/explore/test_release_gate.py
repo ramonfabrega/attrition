@@ -4,6 +4,7 @@ import importlib.util
 import json
 from pathlib import Path
 import subprocess
+import sys
 import tempfile
 import unittest
 
@@ -34,9 +35,24 @@ class GateTests(unittest.TestCase):
                 if '--release' in command:
                     write_request(kwargs['env']['RON_FIXTURE_AUDIT_DIR'])
             gate.gate(path, report_dir=path/'report', run=run)
-            self.assertEqual(len(calls), 5)
-            self.assertEqual(calls[0][:4], ['cargo','run','-p','rondata'])
-            self.assertIn('--release', calls[1])
+            self.assertEqual(len(calls), 6)
+            self.assertEqual(calls[0], [sys.executable, 'tools/offline_tests.py'])
+            self.assertEqual(calls[1][:4], ['cargo','run','-p','rondata'])
+            self.assertIn('--release', calls[2])
+
+    def test_offline_failure_stops_before_install_survey_and_release(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path=Path(tmp);(path/'Data').mkdir();(path/'Data/rules.xml').touch()
+            calls=[]
+            def run(command, **kwargs):
+                calls.append(command)
+                if command == [sys.executable, 'tools/offline_tests.py']:
+                    raise subprocess.CalledProcessError(1, command)
+                if '--release' in command:
+                    write_request(kwargs['env']['RON_FIXTURE_AUDIT_DIR'])
+            with self.assertRaises(subprocess.CalledProcessError):
+                gate.gate(path, report_dir=path/'report', run=run)
+            self.assertEqual(calls, [[sys.executable, 'tools/offline_tests.py']])
 
     def test_failed_survey_stops_before_tests(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -44,10 +60,11 @@ class GateTests(unittest.TestCase):
             calls=[]
             def fail(command, **kwargs):
                 calls.append(command)
-                raise subprocess.CalledProcessError(1, command)
+                if command[0] == 'cargo':
+                    raise subprocess.CalledProcessError(1, command)
             with self.assertRaises(subprocess.CalledProcessError):
                 gate.gate(path, report_dir=path/'report', run=fail)
-            self.assertEqual(len(calls), 1)
+            self.assertEqual(len(calls), 2)
 
     def test_summary_reports_requests_not_skipped_tests(self):
         with tempfile.TemporaryDirectory() as tmp:
