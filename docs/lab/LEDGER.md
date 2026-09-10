@@ -64,6 +64,8 @@ Fable worker or capture.
 
 | L39 | Leader-window setup retained whole sibling captures while ticking; only parsed initial state is needed for construction. | [Exact output and clean isolated measurements](2026-09-09-leader-fixture-memory.md); 112,548 leader values unchanged. | Isolated RSS 1.56–1.57 GB → 0.86–1.07 GB; roughly 0.8 s more test time across two tests. | Scoped memory/time tradeoff; no full-suite RSS or speedup claim. |
 
+| L40 | Indexed observation chunks were lazily indexed immediately before a full observation walk reparsed them. | [Profile and clean timing](2026-09-09-indexed-single-pass.md); complete sibling Initial equality. | Existing eager parser used only for bounded observation chunks: isolated leader pair 6.41–6.42 s → 5.35–5.36 s. | About 17% in this workload; no universal speed or memory claim. |
+
 ## Current direction
 
 The runtime factor-isolation experiment is paused at the user's request after
