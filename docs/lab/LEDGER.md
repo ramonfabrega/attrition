@@ -46,6 +46,14 @@ Fable worker or capture.
 
 | L29 | RNG/frame and modal hooks can preserve their ABI without bulk register/flags restores, following the existing coverage-stub rule. | [Migration and current reproduction limits](2026-09-09-hook-restore-migration.md); 512 emitted/compiled ABI cases and negative opcode checks. | Shared hook emitter is a separate adoption concern; optional live capsule wrappers still need migration. The startup fault persists. | Validated compatibility hardening, not a complete startup fix; fixed cohort recorded in report. |
 
+## Current direction
+
+The runtime factor-isolation experiment is paused at the user's request after
+a product cybersecurity restriction; no four-way results exist. Its draft
+files, completed ABI-only check, and the independent replay-memory target are
+recorded in [the handoff](2026-09-09-paused-runtime-experiment.md). L29 remains
+compatibility hardening with unresolved startup reliability, not a runtime fix.
+
 ## Adoption boundary
 
 Steering may adopt individual concerns against its current tip and release gate.
