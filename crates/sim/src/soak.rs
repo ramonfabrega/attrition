@@ -15,8 +15,8 @@
 //! hand-written test cannot cover by construction.
 //!
 //! 1. **Replay equality.** The two runs must agree on a per-frame digest of
-//!    everything a lockstep peer would have to agree on. A mismatch names the
-//!    frame, which is where a desync hunt starts.
+//!    selected gameplay state and the gameplay RNG state. A mismatch names
+//!    the frame, which is where a desync hunt starts.
 //! 2. **No panic.** The generator deliberately issues orders that are legal
 //!    to *call* and unreasonable to *mean* — a move to a position off the
 //!    map, a gather on a building that is not a gather type, an attack on a
@@ -55,7 +55,7 @@ impl Fnv {
     }
 }
 
-/// Everything two lockstep peers would have to agree on, in one number.
+/// Selected lockstep state, including the gameplay RNG, in one number.
 ///
 /// Deliberately explicit rather than derived from `Debug`: what belongs in a
 /// checksum is a claim about what is simulation state, and writing it out is
@@ -64,6 +64,8 @@ impl Fnv {
 fn digest(sim: &Sim) -> u64 {
     let mut h = Fnv::new();
     h.eat(sim.frame);
+    // The next random outcome can diverge before any visible field does.
+    h.eat(i64::from(sim.rng.seed));
     h.eat(sim.units.len() as i64);
     for u in &sim.units {
         h.eat(i64::from(u.owner));
@@ -389,6 +391,33 @@ fn play(seed: u32, frames: usize) -> Vec<u64> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn rng_only_changes_part_the_digest_before_visible_state_changes() {
+        let (mut sim, _) = scenario(&mut Rng::new(12345));
+        let seed = sim.rng.seed;
+        let baseline = digest(&sim);
+        // Only the gameplay generator changes: no tick or order is issued.
+        for bit in 0..32 {
+            sim.rng.seed = seed ^ (1 << bit);
+            assert_ne!(
+                digest(&sim),
+                baseline,
+                "an RNG-only seed change at bit {bit}"
+            );
+        }
+        sim.rng.seed = seed;
+        assert_eq!(digest(&sim), baseline);
+        sim.rng.roll();
+        assert_ne!(sim.rng.seed, seed);
+        assert_ne!(
+            digest(&sim),
+            baseline,
+            "an extra gameplay draw must be visible immediately"
+        );
+        sim.rng.seed = seed;
+        assert_eq!(digest(&sim), baseline);
+    }
 
     /// The hang the soak found, reduced to one order.
     ///
