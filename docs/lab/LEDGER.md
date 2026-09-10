@@ -62,6 +62,8 @@ Fable worker or capture.
 
 | L38 | Receipt and acquisition Python regressions were absent from the release gate. | [Offline lane and injected failure](2026-09-09-offline-test-lane.md); 27 reviewed tests. | Explicit module list runs before survey/release and propagates failure; direct use needs no install. | Reviewed offline selection, not an OS sandbox; new modules require review. |
 
+| L39 | Leader-window setup retained whole sibling captures while ticking; only parsed initial state is needed for construction. | [Exact output and clean isolated measurements](2026-09-09-leader-fixture-memory.md); 112,548 leader values unchanged. | Isolated RSS 1.56–1.57 GB → 0.86–1.07 GB; roughly 0.8 s more test time across two tests. | Scoped memory/time tradeoff; no full-suite RSS or speedup claim. |
+
 ## Current direction
 
 The runtime factor-isolation experiment is paused at the user's request after
