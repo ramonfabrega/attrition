@@ -72,6 +72,8 @@ Fable worker or capture.
 
 | L43 | Four-thread throughput previously required filtering the conservative width assertion in benchmarks. | [Monitored opt-in gate and negative controls](2026-09-10-monitored-wide-gate.md). | Full four-thread gate passed in 117.51 rondata seconds at 13,016 MiB, no filtered tests; all 550 fixture requests present. | Direct-Cargo default stays two; environment marker is cooperative, not tamper-proof. |
 
+| L44 | Repeated sibling scans recover about 1.22 MB of owned observations from 1.09 GB of source. | [Bounded observation reuse, warmed equality and timing](2026-09-10-observation-cache.md). | 8 MiB accounted / 32-entry cache; leader pair 5.16–5.17 s → 4.02–4.09 s. | Metadata identity, independent caller copies; measured RSS higher, no universal speed claim. |
+
 ## Current direction
 
 The runtime factor-isolation experiment is paused at the user's request after
