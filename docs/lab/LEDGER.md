@@ -66,6 +66,8 @@ Fable worker or capture.
 
 | L40 | Indexed observation chunks were lazily indexed immediately before a full observation walk reparsed them. | [Profile and clean timing](2026-09-09-indexed-single-pass.md); complete sibling Initial equality. | Existing eager parser used only for bounded observation chunks: isolated leader pair 6.41–6.42 s → 5.35–5.36 s. | About 17% in this workload; no universal speed or memory claim. |
 
+| L41 | Single indexed frame decoding repeated a lazy indexing pass immediately before a full decode. | [726 complete decoded records and isolated timing](2026-09-09-indexed-frame-decode.md). | Existing eager parser reduces the five-capture clock test from 4.32 s to 3.64–3.65 s. | About 16% for this workload; no full-suite speedup or universal RSS claim. |
+
 ## Current direction
 
 The runtime factor-isolation experiment is paused at the user's request after
