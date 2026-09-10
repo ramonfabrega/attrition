@@ -1965,11 +1965,9 @@ mod tests {
         let loaded = crate::load::load(&inst).unwrap();
         let text = crate::capture::read(&path);
         let log = Log::parse(&text);
-        let texts = sibling_texts();
-        let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
-        let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
-        let refs: Vec<&Initial> = inits.iter().collect();
-        let report = run_traced(&loaded, &log, Tuning::RON, None, None, &refs, Some(&tr)).unwrap();
+        let report = with_sibling_initials(|refs| {
+            run_traced(&loaded, &log, Tuning::RON, None, None, refs, Some(&tr)).unwrap()
+        });
         assert!(
             report.frames.len() >= 5_000,
             "run71's length is {} — a short file here is a wrong file",

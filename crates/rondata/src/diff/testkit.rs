@@ -135,6 +135,45 @@ pub(crate) fn sibling_texts() -> Vec<String> {
         .collect()
 }
 
+/// Retain bounded setup text plus owned observations, not whole sibling files.
+/// Each scoped initial lives until the innermost callback returns.
+pub(crate) fn with_sibling_initials<R>(use_initials: impl FnOnce(&[&Initial<'_>]) -> R) -> R {
+    fn visit<R>(
+        paths: &[String],
+        inits: &[&Initial<'_>],
+        use_initials: impl FnOnce(&[&Initial<'_>]) -> R,
+    ) -> R {
+        let Some((path, rest)) = paths.split_first() else {
+            return use_initials(inits);
+        };
+        crate::capture::indexed::IndexedCapture::open(path)
+            .unwrap()
+            .with_replay_initial(|init| {
+                let mut refs = inits.to_vec();
+                refs.push(&init);
+                visit(rest, &refs, use_initials)
+            })
+            .unwrap()
+    }
+    let paths: Vec<String> = SIBLING_DUMPS.iter().filter_map(|n| dump(n)).collect();
+    visit(&paths, &[], use_initials)
+}
+
+#[test]
+fn indexed_siblings_preserve_every_initial_field_except_audit_bodies() {
+    with_sibling_initials(|inits| {
+        let paths: Vec<String> = SIBLING_DUMPS.iter().filter_map(|n| dump(n)).collect();
+        assert_eq!(inits.len(), paths.len());
+        for (path, actual) in paths.iter().zip(inits) {
+            let text = crate::capture::read(path);
+            let log = crate::gamelog::Log::parse(&text);
+            let mut expected = log.initial().unwrap();
+            expected.frame_bodies.clear();
+            assert_eq!(**actual, expected, "sibling {path}");
+        }
+    });
+}
+
 /// East Indies' word on run54, the headline.
 ///
 /// **6739 since 2026-09-03, and 6715 was one line of
