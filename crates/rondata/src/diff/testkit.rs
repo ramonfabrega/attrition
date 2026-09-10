@@ -162,6 +162,26 @@ pub(crate) fn with_sibling_initials<R>(use_initials: impl FnOnce(&[&Initial<'_>]
 }
 
 #[test]
+fn indexed_road_setups_preserve_every_initial_field_except_audit_bodies() {
+    for name in [
+        "gamelog-run10-world6-long.txt",
+        "gamelog-run71-greatlakes-5k.txt",
+    ] {
+        let Some(path) = dump(name) else { continue };
+        let text = crate::capture::read(&path);
+        let log = crate::gamelog::Log::parse(&text);
+        let mut expected = log.initial().unwrap();
+        expected.frame_bodies.clear();
+        let mut source = crate::capture::indexed::IndexedCapture::open(&path).unwrap();
+        for _ in 0..2 {
+            source
+                .with_replay_initial(|actual| assert_eq!(actual, expected, "primary {name}"))
+                .unwrap();
+        }
+    }
+}
+
+#[test]
 fn indexed_siblings_preserve_every_initial_field_except_audit_bodies() {
     // Exercise reuse before comparing every retained field to whole-text parsing.
     with_sibling_initials(|_| ());

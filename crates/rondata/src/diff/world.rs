@@ -721,11 +721,14 @@ mod tests {
         let loaded = crate::load::load(&inst).unwrap();
         // Capture inputs are needed only while constructing the owned simulation.
         let mut built = with_sibling_initials(|refs| {
-            let text = crate::capture::read(&path);
-            let log = Log::parse(&text);
-            let mut init = log.initial().unwrap();
-            borrow_from_siblings(&mut init, refs);
-            build_sim(&loaded, &init, Tuning::RON)
+            crate::capture::indexed::IndexedCapture::open(&path)
+                .unwrap()
+                .with_replay_initial(|init| {
+                    let mut init = init;
+                    borrow_from_siblings(&mut init, refs);
+                    build_sim(&loaded, &init, Tuning::RON)
+                })
+                .unwrap()
         });
         let (tw, th) = (
             built.sim.world.width() * sim::world::TILES_PER_CELL,
@@ -1728,14 +1731,17 @@ mod tests {
         let loaded = crate::load::load(&inst).unwrap();
         // Capture inputs are needed only while constructing the owned simulation.
         let mut built = with_sibling_initials(|refs| {
-            let text = crate::capture::read(&path);
-            let log = Log::parse(&text);
-            let mut init = log.initial().unwrap();
-            borrow_from_siblings(&mut init, refs);
-            if let Some(tr) = trace("rontrace-run71.log") {
-                borrow_pasture(&mut init, &tr);
-            }
-            build_sim(&loaded, &init, Tuning::RON)
+            crate::capture::indexed::IndexedCapture::open(&path)
+                .unwrap()
+                .with_replay_initial(|init| {
+                    let mut init = init;
+                    borrow_from_siblings(&mut init, refs);
+                    if let Some(tr) = trace("rontrace-run71.log") {
+                        borrow_pasture(&mut init, &tr);
+                    }
+                    build_sim(&loaded, &init, Tuning::RON)
+                })
+                .unwrap()
         });
         // 4,804 ticks stops at the end of sim-frame 4803 — the frame the
         // Market finishes and `place_roads` runs — so this is the world
