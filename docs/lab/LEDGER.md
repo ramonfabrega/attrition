@@ -80,6 +80,8 @@ Fable worker or capture.
 
 | L47 | Market-road comparison loads run72 whole for one frame. | [Bounded frame, WORLD fields and heights equality](2026-09-10-road-frame-indexing.md). | Peak 1.03 GB → 0.57–0.60 GB, runtime about 6.1 s. | Offset scan remains; no universal or whole-suite gain claimed. |
 
+| L48 | PR #3 needs a reproducible introduction and a clear adoption boundary. | [One-command diagnostic demo and package comparison](2026-09-10-review-demo.md), [adoption map](PR3-ADOPTION.md). | Same city-field witness in 130-record reader comparison and three-record focused replay; artifact 37.7 MB → 0.91 MB. | Diagnostic-window reduction only; full replay inputs and external install remain required. |
+
 ## Current direction
 
 The runtime factor-isolation experiment is paused at the user's request after
