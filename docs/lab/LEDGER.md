@@ -76,6 +76,8 @@ Fable worker or capture.
 
 | L45 | Road regressions keep whole sibling captures through ticking and comparison. | [Scoped construction and isolated RSS measurements](2026-09-10-road-test-memory.md). | Market-road peak 3.21–3.24 GB → 1.90–1.93 GB; road rings 1.81–1.82 GB → 1.02 GB. | Cold tests about 7% and 12–15% slower; assertions unchanged, no whole-suite claim. |
 
+| L46 | Scoped road construction still retains whole primary captures. | [Indexed primary inputs and complete-field comparison](2026-09-10-road-primary-indexing.md). | Market-road RSS 1.91–1.95 GB → 1.03 GB; rings 0.97–1.02 GB → 0.53–0.55 GB, no observed cold-time penalty. | Correction scan remains; whole comparison capture is a separate opportunity. |
+
 ## Current direction
 
 The runtime factor-isolation experiment is paused at the user's request after
