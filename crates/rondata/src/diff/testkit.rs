@@ -120,17 +120,19 @@ pub(crate) fn first_parting(ours: &[String], theirs: &[String]) -> Option<(usize
 /// run3 (`DUMP_ALL` — the terrain heights, the regions' coordinate
 /// lists) and run12 (`DUMP_ALL` with the per-frame sync words and the
 /// herds, `docs/SYNC.md`). Whichever the machine has.
+pub(crate) const SIBLING_DUMPS: &[&str] = &[
+    "gamelog-run11-checksum.txt",
+    "gamelog-run3-fulldump-types.txt",
+    "gamelog-run12-dumpall-seeds.txt",
+    "gamelog-run13-window-95-105.txt",
+];
+
 pub(crate) fn sibling_texts() -> Vec<String> {
-    [
-        "gamelog-run11-checksum.txt",
-        "gamelog-run3-fulldump-types.txt",
-        "gamelog-run12-dumpall-seeds.txt",
-        "gamelog-run13-window-95-105.txt",
-    ]
-    .iter()
-    .filter_map(|n| dump(n))
-    .map(crate::capture::read)
-    .collect()
+    SIBLING_DUMPS
+        .iter()
+        .filter_map(|n| dump(n))
+        .map(crate::capture::read)
+        .collect()
 }
 
 /// East Indies' word on run54, the headline.
