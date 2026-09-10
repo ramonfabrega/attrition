@@ -93,12 +93,21 @@ pub struct Window {
 }
 impl Window {
     pub fn new(start: usize, count: usize) -> Result<Self, &'static str> {
+        Self::resume(start, count, 0)
+    }
+
+    /// Observe a continuation whose next record has this global source index.
+    pub fn resume(start: usize, count: usize, next_record: usize) -> Result<Self, &'static str> {
+        if next_record > start {
+            return Err("continuation begins after the requested window");
+        }
         if !(1..=200).contains(&count) {
             return Err("count must be 1..200");
         }
         Ok(Self {
             start,
             count,
+            visited: next_record,
             ..Self::default()
         })
     }
@@ -301,6 +310,16 @@ pub fn failure_path(label: &str) -> std::io::Result<std::path::PathBuf> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn resumed_window_keeps_the_global_cursor_and_refuses_a_late_start() {
+        assert!(Window::resume(10, 3, 11).is_err());
+        assert!(Window::resume(10, 0, 10).is_err());
+        let resumed = Window::resume(10, 3, 7).unwrap();
+        assert_eq!(resumed.visited, 7);
+        assert_eq!(resumed.start, 10);
+        assert_eq!(Window::new(10, 3).unwrap().visited, 0);
+    }
+
     #[test]
     fn passing_check_does_not_replay_or_write() {
         let result = write_failure(

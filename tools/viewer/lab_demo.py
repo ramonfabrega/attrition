@@ -41,6 +41,19 @@ def witness(data):
     raise ValueError('expected city-field discrepancy no longer exists; investigate, do not invent it')
 
 
+
+def verify_checkpoint_windows(broad, focused, restored_windows):
+    if len(restored_windows) != 3:
+        raise ValueError('expected three checkpoint windows')
+    if restored_windows[0]['frames'] != focused['frames']:
+        raise ValueError('checkpoint window differs from uninterrupted focused replay')
+    first = focused['frames'][0]['index']
+    for i, restored in enumerate(restored_windows):
+        matching_frames(broad, restored)
+        if len(restored['frames']) != 3 or restored['frames'][0]['index'] != first + i * 3:
+            raise ValueError('checkpoint window has wrong global indices or length')
+
+
 def main(install, logs, destination):
     repo = Path(__file__).resolve().parents[2]
     output = Path(destination).resolve()
@@ -57,10 +70,12 @@ def main(install, logs, destination):
     binary_hash = digest(binary)
     measurements = []
 
-    def export(name, reader, start, count):
+    def export(name, reader, start, count, windows=1):
         target = output / (name + '.html')
         cmd = [str(binary), str(Path(install).resolve()), str(paths[0]), str(target),
                '--reader', reader, '--from', str(start), '--count', str(count), '--trace', str(paths[1])]
+        if windows != 1:
+            cmd += ['--windows', str(windows)]
         for sibling in paths[2:]:
             cmd += ['--sibling', str(sibling)]
         begin = time.perf_counter()
@@ -87,6 +102,10 @@ def main(install, logs, destination):
     matching_frames(broad, focused)
     if witness(focused) != found:
         raise ValueError('focused replay changed the witness')
+    export('checkpoint', 'checkpoint', found['frame'], 3, windows=3)
+    restored_windows = [read(output / ('checkpoint.html' if i == 0 else f'checkpoint.window-{i}.html'))
+                        for i in range(3)]
+    verify_checkpoint_windows(broad, focused, restored_windows)
     after = {str(p): digest(p) for p in paths}
     if digest(binary) != binary_hash:
         raise ValueError('exporter binary changed during demonstration')
@@ -95,9 +114,10 @@ def main(install, logs, destination):
     report = {'schema': 1, 'witness': found, 'inputs_sha256': before,
               'binary_sha256': binary_hash, 'install': str(Path(install).resolve()),
               'install_content_bound': False, 'measurements': measurements,
+              'checkpoint_windows_verified': 3,
               'reduction': {'broad_records': len(broad['frames']), 'focused_records': len(focused['frames']),
                             'standalone_replay': False,
-                            'blockers': ['Replay starts at setup; no resumable state snapshot is exported.',
+                            'blockers': ['The in-memory checkpoint is not serialized; a new process still starts at setup.',
                                          'Full captures supply correction observations and lookup data.',
                                          'The same external install is required; its contents are not bundled or hashed.']}}
     (output / 'result.json').write_text(json.dumps(report, indent=2) + '\n')
