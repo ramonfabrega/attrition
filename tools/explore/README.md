@@ -6,6 +6,12 @@ limitations, and adoption status.
 Findings and limitations are in
 `docs/lab/2026-09-09-methodology-exploration.md`.
 
+For the full install-backed local gate, use
+`python3 tools/release_gate.py INSTALL` from the repository root. It exports
+RON_INSTALL explicitly, surveys the data, then runs release tests, lint,
+formatting and guards. A missing optional capture is still a separate coverage
+issue. See [gate and reader boundaries](../../docs/lab/2026-09-09-sibling-retention-and-gates.md).
+
 - `turn_oracle.py INSTALL` executes a small object-graph fixture in Unicorn.
   Its stdout is derived original-game output: redirect it outside the repo.
   `cargo run -p rondata --release --example turn_oracle_check` consumes the
