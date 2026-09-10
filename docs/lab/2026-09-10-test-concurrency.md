@@ -116,3 +116,7 @@ not a changed execution policy. The experiment's entire code baseline remains
 
 Control log: `/tmp/concurrency-control-final-gate.log`; fixture report:
 `/tmp/attrition-gate-concurrency-control-20260910/fixture-coverage.json`.
+
+The subsequent [monitored wide-gate implementation](2026-09-10-monitored-wide-gate.md)
+adds this opt-in lane with the width guard included and preserves the direct
+two-thread default. This report remains the earlier benchmark evidence.

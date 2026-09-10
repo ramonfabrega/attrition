@@ -70,6 +70,8 @@ Fable worker or capture.
 
 | L42 | Reader memory reductions leave room to revisit the two-thread gate policy. | [Monitored three/four-thread experiments](2026-09-10-test-concurrency.md); four-thread runs 118 s versus fresh two-thread control 240.43 s, with identical fixture-request records. | Four-thread sampled peaks 12,596–13,662 MiB under 20 GiB; candidate for an explicit monitored lane. | Benchmark omits only width assertion; default and guard unchanged pending deliberate adoption. |
 
+| L43 | Four-thread throughput previously required filtering the conservative width assertion in benchmarks. | [Monitored opt-in gate and negative controls](2026-09-10-monitored-wide-gate.md). | Full four-thread gate passed in 117.51 rondata seconds at 13,016 MiB, no filtered tests; all 550 fixture requests present. | Direct-Cargo default stays two; environment marker is cooperative, not tamper-proof. |
+
 ## Current direction
 
 The runtime factor-isolation experiment is paused at the user's request after
