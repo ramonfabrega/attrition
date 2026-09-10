@@ -589,12 +589,25 @@ impl Trace {
         if !matches!(word(bytes, 1), 1 | 2) {
             return Err(invalid("unsupported trace version"));
         }
-        // Writer protocol: INFO (5), I_DROPPED (14), count in slot 2.
-        if bytes[32..]
-            .chunks_exact(32)
-            .any(|r| word(r, 0) == 5 && word(r, 1) == 14 && word(r, 2) != 0)
-        {
-            return Err(invalid("trace reports dropped records"));
+        let mut previous_frame = None;
+        for record in bytes[32..].chunks_exact(32) {
+            // Writer protocol: INFO (5), I_DROPPED (14), count in slot 2.
+            if word(record, 0) == 5 && word(record, 1) == 14 && word(record, 2) != 0 {
+                return Err(invalid("trace reports dropped records"));
+            }
+            if word(record, 0) == 2 {
+                // tracer.c emits Game::frame in both slots at do_frame entry.
+                // Finalized evidence represents one consecutive run; diagnostics
+                // may still inspect discontinuous streams through `parse`.
+                let frame = i64::from(word(record, 1) as i32);
+                if word(record, 1) != word(record, 7) {
+                    return Err(invalid("trace FRAME fields disagree"));
+                }
+                if previous_frame.is_some_and(|previous| frame != previous + 1) {
+                    return Err(invalid("trace FRAME sequence is not consecutive"));
+                }
+                previous_frame = Some(frame);
+            }
         }
         Self::parse(bytes).ok_or_else(|| invalid("not a trace"))
     }
@@ -909,6 +922,39 @@ mod tests {
                 .contains("version")
         );
         assert!(Trace::parse_finalized(b"RONT").is_err());
+    }
+
+    #[test]
+    fn finalized_frames_require_a_consecutive_single_run() {
+        for version in [1, 2] {
+            let header = [MAGIC, version, IMAGE_BASE, 0, 0, 0, 0, 0];
+            let frame = |n: u32| [2, n, 123, 0, 0, 0, 0, n];
+            // Arbitrary starts and non-frame records between frames are valid.
+            let valid = bytes(&[header, frame(71), [5, 14, 0, 0, 0, 0, 0, 71], frame(72)]);
+            assert_eq!(Trace::parse_finalized(&valid).unwrap().frames.len(), 2);
+            for next in [71, 73, 0] {
+                let invalid = bytes(&[header, frame(71), frame(next)]);
+                assert!(Trace::parse(&invalid).is_some());
+                assert_eq!(
+                    Trace::parse_finalized(&invalid).unwrap_err().kind(),
+                    std::io::ErrorKind::InvalidData,
+                    "duplicate, gap, or reset ending at {next}"
+                );
+            }
+            let mut mismatched = frame(71);
+            mismatched[7] = 72;
+            assert!(Trace::parse_finalized(&bytes(&[header, mismatched])).is_err());
+            // Interpret the writer's frame as signed, without integer overflow.
+            assert!(Trace::parse_finalized(&bytes(&[header, frame(u32::MAX), frame(0)])).is_ok());
+            assert!(
+                Trace::parse_finalized(&bytes(&[
+                    header,
+                    frame(i32::MAX as u32),
+                    frame(i32::MIN as u32)
+                ]))
+                .is_err()
+            );
+        }
     }
 
     #[test]
