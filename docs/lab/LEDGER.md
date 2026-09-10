@@ -56,6 +56,8 @@ Fable worker or capture.
 
 | L35 | Soak activity counted replay digests containing the frame counter; frozen gameplay yielded 401 distinct states. | [Negative control and separate activity signal](2026-09-09-soak-activity.md). | One traversal now separates selected gameplay activity from replay clock/RNG state; existing thresholds unchanged. | Implemented and regression-backed. Useful mechanic coverage and full state equality are not claimed. |
 
+| L36 | Finalized traces previously accepted duplicate, skipped, reset, or internally inconsistent FRAME records. | [Sequence contract and negative regression](2026-09-09-trace-frame-sequence.md); 87-file offline preflight. | Matching frame fields and consecutive signed frames checked in the existing validation pass. | Single-run integrity only; endpoint completeness and trace/dump identity remain open. |
+
 ## Current direction
 
 The runtime factor-isolation experiment is paused at the user's request after
