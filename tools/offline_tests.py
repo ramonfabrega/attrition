@@ -21,6 +21,7 @@ SUITES = (
     'test_release_gate',
     'test_memcap',
     'test_lab_demo',
+    'test_branch_experiment',
 )
 
 if __name__ == '__main__':

@@ -8,13 +8,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
     let args: Vec<_> = std::env::args().skip(1).collect();
     if args.len() < 3 {
-        return Err("INSTALL CAPTURE NEW_OUTPUT.html [--reader memory|indexed|checkpoint] [--windows 1..8] [--from FRAME] [--count 1..200] [--sibling CAPTURE] [--trace TRACE] [--recording REC]".into());
+        return Err("INSTALL CAPTURE NEW_OUTPUT.html [--reader memory|indexed|checkpoint] [--windows 1..8] [--corrections standard|without-future-figures|compare-figures] [--from FRAME] [--count 1..200] [--sibling CAPTURE] [--trace TRACE] [--recording REC]".into());
     }
     let (install, capture, output) = (&args[0], &args[1], PathBuf::from(&args[2]));
     if output.exists() {
         return Err("output already exists; choose a new file".into());
     }
     let mut reader = "memory";
+    let mut corrections = "standard";
     let mut windows = 1usize;
     let (mut from, mut count) = (1i64, 40usize);
     let (mut siblings, mut trace_path, mut recording) = (Vec::new(), None, None);
@@ -23,6 +24,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let value = args.get(i + 1).ok_or("option needs a value")?;
         match args[i].as_str() {
             "--reader" => reader = value,
+            "--corrections" => corrections = value,
             "--windows" => windows = value.parse()?,
             "--from" => from = value.parse()?,
             "--count" => count = value.parse()?,
@@ -35,6 +37,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
     if !(1..=200).contains(&count) {
         return Err("count must be 1..200".into());
+    }
+    if !["standard", "without-future-figures", "compare-figures"].contains(&corrections)
+        || (reader != "checkpoint" && corrections != "standard")
+    {
+        return Err(
+            "nonstandard corrections require checkpoint reader and without-future-figures policy"
+                .into(),
+        );
     }
     let loaded = rondata::load::load(&Install::new(install))?;
     if !(1..=8).contains(&windows) || (reader != "checkpoint" && windows != 1) {
@@ -124,7 +134,25 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 }
             })
             .collect();
-        if outputs.iter().any(|p| p.exists()) {
+        let outputs: Vec<_> = outputs
+            .into_iter()
+            .enumerate()
+            .flat_map(|(w, path)| {
+                if corrections == "compare-figures" {
+                    let variant = path.with_file_name(format!(
+                        "{}.without-future-figures.html",
+                        path.file_stem().unwrap().to_string_lossy()
+                    ));
+                    vec![
+                        (w, path, "standard"),
+                        (w, variant, "without-future-figures"),
+                    ]
+                } else {
+                    vec![(w, path, corrections)]
+                }
+            })
+            .collect();
+        if outputs.iter().any(|(_, p, _)| p.exists()) {
             return Err("checkpoint output already exists".into());
         }
         let prefix_start = std::time::Instant::now();
@@ -147,11 +175,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         );
         // This operation owns one source handle. Checkpoints cannot be rebound
         // to another capture through the CLI; ordinary mutations are validated.
-        for (w, destination) in outputs.iter().enumerate() {
+        for (w, destination, policy) in &outputs {
             source.validate()?;
             let begin = std::time::Instant::now();
-            let mut restored = session.clone();
-            let first = start + w * count;
+            let mut restored = if *policy == "standard" {
+                session.clone()
+            } else {
+                session.fork_without_future_figure_corrections()?
+            };
+            let first = start + *w * count;
             let mut window =
                 rondata::debug_view::Window::resume(first, count, restored.next_record())?;
             for i in restored.next_record()..first + count {
@@ -162,7 +194,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             source.validate()?;
             let report = restored.finish();
             let bytes = window.write(&report, &meta, destination)?;
-            eprintln!("checkpoint window {w}: {:?}", begin.elapsed());
+            eprintln!("checkpoint window {w} ({policy}): {:?}", begin.elapsed());
             println!("{bytes} bytes: {}", destination.display());
         }
         return Ok(());

@@ -37,6 +37,31 @@ impl ReplaySession {
         &self.replay.built
     }
 
+    /// Lab intervention: clone the checkpoint and omit only future figure-clock
+    /// corrections. RNG reseeding, input cursor and past state remain intact.
+    /// Refuse a vacuous intervention; this is not an alternative fidelity mode.
+    pub fn fork_without_future_figure_corrections(&self) -> std::io::Result<Self> {
+        let frame = self.replay.built.sim.frame;
+        let removed = self
+            .replay
+            .built
+            .frame_guys
+            .iter()
+            .filter(|(n, _)| *n >= frame)
+            .count();
+        if removed == 0 {
+            return Err(std::io::Error::other(
+                "no future figure corrections to remove",
+            ));
+        }
+        let mut fork = self.clone();
+        fork.replay.built.frame_guys.retain(|(n, _)| *n < frame);
+        fork.replay.built.notes.push(format!(
+            "LAB INTERVENTION: removed {removed} figure correction records from sim frame {frame}; seed corrections retained"
+        ));
+        Ok(fork)
+    }
+
     /// Append the next source record. Repeated frame labels and forward gaps
     /// retain the harness semantics; skipped indices and backwards ticks fail
     /// before mutating state. Clone this session between calls to checkpoint it.
@@ -99,6 +124,68 @@ mod tests {
         let clone_start = Instant::now();
         let checkpoint = session.clone();
         let clone_time = clone_start.elapsed();
+        // Profile components without calling shallow vector capacity a full heap size.
+        for (name, elapsed) in [
+            ("sim", {
+                let t = Instant::now();
+                std::hint::black_box(checkpoint.replay.built.sim.clone());
+                t.elapsed()
+            }),
+            ("report", {
+                let t = Instant::now();
+                std::hint::black_box(checkpoint.replay.report.clone());
+                t.elapsed()
+            }),
+            ("corrections", {
+                let t = Instant::now();
+                std::hint::black_box((
+                    checkpoint.replay.built.frame_seeds.clone(),
+                    checkpoint.replay.built.frame_guys.clone(),
+                ));
+                t.elapsed()
+            }),
+        ] {
+            eprintln!("checkpoint component clone+drop {name}: {elapsed:?}");
+        }
+        let b = &checkpoint.replay.built;
+        let figure_bytes = b.frame_guys.capacity()
+            * std::mem::size_of::<(i64, Vec<crate::gamelog::FrameUnit>)>()
+            + b.frame_guys
+                .iter()
+                .map(|(_, units)| {
+                    units.capacity() * std::mem::size_of::<crate::gamelog::FrameUnit>()
+                        + units
+                            .iter()
+                            .map(|u| u.guys.capacity() * std::mem::size_of::<crate::gamelog::Guy>())
+                            .sum::<usize>()
+                })
+                .sum::<usize>();
+        eprintln!(
+            "checkpoint allocation subset: seed vectors {} bytes, figure vectors {} bytes; report {} records, sim inline {} bytes (excludes owned heaps)",
+            b.frame_seeds.capacity() * std::mem::size_of::<(i64, u32)>(),
+            figure_bytes,
+            checkpoint.replay.report.frames.len(),
+            std::mem::size_of_val(&b.sim)
+        );
+        assert!(
+            checkpoint.fork_without_future_figure_corrections().is_err(),
+            "this late window has no future figure records"
+        );
+        let mut authored = checkpoint.clone();
+        let at = authored.built().sim.frame;
+        authored.replay.built.frame_guys.push((at, Vec::new()));
+        let original = authored.clone();
+        let mut fork = authored.fork_without_future_figure_corrections().unwrap();
+        assert!(fork.built().frame_guys.iter().all(|(n, _)| *n < at));
+        assert_eq!(fork.built().frame_seeds, original.built().frame_seeds);
+        // Normalize only the two declared changes; everything else remains identical.
+        fork.replay.built.frame_guys = original.built().frame_guys.clone();
+        fork.replay.built.notes = original.built().notes.clone();
+        assert_eq!(
+            format!("{:?}", fork.built()),
+            format!("{:?}", original.built())
+        );
+        assert_eq!(fork.finish(), original.finish());
         let frame = source.frame_state(1899).unwrap();
         assert!(session.push(1900, &frame).is_err());
         assert_eq!(session.next_record(), 1899);
