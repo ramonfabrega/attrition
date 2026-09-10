@@ -94,3 +94,8 @@ The [overwrite audit](2026-09-10-correction-overwrites.md) adds optional counter
 at the actual correction writes and a paired-control release example. It separates
 attempts from state changes and identifies Gaia reseating as the only observed
 overwrite family in three measured intervals. Standard replay keeps its policy.
+
+[Individual reseat interventions](2026-09-10-single-reseat-interventions.md)
+address a single correction by tick and unit while retaining clocks. They expose
+an original-observed Gaia heading loss invisible to the player comparator; this
+is a diagnostic/fidelity witness, not a change to the standard correction policy.

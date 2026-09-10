@@ -22,6 +22,20 @@ impl CorrectionCounter {
     }
 }
 
+/// One addressable Gaia correction in the retained input records.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct ReseatKey {
+    pub frame: i64,
+    pub who: i64,
+    pub o: i64,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct ReseatSkip {
+    pub key: ReseatKey,
+    pub hits: u64,
+}
+
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct CorrectionAudit {
     pub seed: CorrectionCounter,
@@ -29,8 +43,21 @@ pub struct CorrectionAudit {
     pub gaia_reseat: CorrectionCounter,
     /// Guy equality immediately around set_guy, including preserved follow state.
     pub clock: CorrectionCounter,
+    /// First 128 changed reseat identities, in execution order.
+    pub changed_reseats: Vec<ReseatKey>,
+    pub omitted_reseats: u64,
     pub unlinked_units: u64,
     pub predicate_skipped_units: u64,
+}
+
+impl CorrectionAudit {
+    pub(crate) fn record_reseat_change(&mut self, key: ReseatKey) {
+        if self.changed_reseats.len() < 128 {
+            self.changed_reseats.push(key);
+        } else {
+            self.omitted_reseats += 1;
+        }
+    }
 }
 
 pub(super) fn install_clock(
@@ -58,6 +85,21 @@ pub(super) fn install_clock(
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn reseat_identity_history_reports_truncation() {
+        let mut audit = CorrectionAudit::default();
+        for frame in 0..130 {
+            audit.record_reseat_change(ReseatKey {
+                frame,
+                who: 8,
+                o: 0,
+            });
+        }
+        assert_eq!(audit.changed_reseats.len(), 128);
+        assert_eq!(audit.omitted_reseats, 2);
+        assert_eq!(audit.changed_reseats[127].frame, 127);
+    }
+
     #[test]
     fn clock_writes_distinguish_insert_noop_and_overwrite() {
         let mut sim = sim::Sim::new(sim::Tuning::RON, sim::World::new(4, 4), 2);

@@ -16,6 +16,8 @@ pub struct UnitLink {
 /// The simulation plus the maps back into the log's ids.
 #[derive(Clone, Debug)]
 pub struct Built {
+    /// Single-write lab intervention; ordinary replay leaves this unset.
+    pub gaia_reseat_skip: Option<ReseatSkip>,
     /// Lab-only overwrite observation; disabled in ordinary replay.
     pub correction_audit: Option<CorrectionAudit>,
     pub sim: Sim,
@@ -924,6 +926,7 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
         );
     }
     Built {
+        gaia_reseat_skip: None,
         correction_audit: None,
         sim,
         units,
@@ -1312,11 +1315,32 @@ impl Built {
                             .correction_audit
                             .as_ref()
                             .map(|_| self.sim.units[u].clone());
-                        let d =
+                        let key = ReseatKey {
+                            frame,
+                            who: *who,
+                            o: *o,
+                        };
+                        let skip = self
+                            .gaia_reseat_skip
+                            .as_mut()
+                            .filter(|skip| skip.key == key);
+                        let d = if let Some(skip) = skip {
+                            skip.hits += 1;
+                            0
+                        } else {
                             self.sim
-                                .reseat_animal(u, pos_of(state.pos), state.goal.map(pos_of));
-                        if let (Some(audit), Some(before)) = (&mut self.correction_audit, before) {
+                                .reseat_animal(u, pos_of(state.pos), state.goal.map(pos_of))
+                        };
+                        if let (Some(audit), Some(before)) = (&mut self.correction_audit, before)
+                            && !self
+                                .gaia_reseat_skip
+                                .as_ref()
+                                .is_some_and(|skip| skip.key == key)
+                        {
                             let after = &self.sim.units[u];
+                            if before != *after {
+                                audit.record_reseat_change(key);
+                            }
                             audit.gaia_reseat.observe(frame, before != *after, || format!(
                                 "unit {who}/{o}: position {:?} -> {:?}; path {:?} -> {:?}; orders {:?} -> {:?}",
                                 before.pos, after.pos, before.path, after.path, before.orders, after.orders));

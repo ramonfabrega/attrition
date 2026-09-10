@@ -318,6 +318,7 @@ mod tests {
         sim.units
             .push(sim::Unit::new(8, 0, sim::Pos { x: 12, y: 34 }, 100));
         let built = Built {
+            gaia_reseat_skip: None,
             correction_audit: None,
             sim,
             units: vec![],

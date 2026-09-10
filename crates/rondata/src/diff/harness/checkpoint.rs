@@ -34,6 +34,41 @@ impl ReplaySession {
         self.replay.built.correction_audit = Some(CorrectionAudit::default());
     }
 
+    /// Suppress exactly one future Gaia reseating call, retaining its clock payloads.
+    /// Refuse ambiguous, past, non-Gaia or seed-gated-out correction keys.
+    pub fn fork_without_gaia_reseat(&self, key: ReseatKey) -> std::io::Result<Self> {
+        let built = self.built();
+        let matches = built
+            .frame_guys
+            .iter()
+            .filter(|(n, _)| *n == key.frame)
+            .flat_map(|(_, units)| units)
+            .filter(|u| u.who == key.who && u.o == key.o)
+            .count();
+        if built.gaia_reseat_skip.is_some()
+            || key.frame < built.sim.frame
+            || key.who < 8
+            || built
+                .frame_guys
+                .iter()
+                .filter(|(n, _)| *n == key.frame)
+                .count()
+                != 1
+            || matches != 1
+            || !built.frame_seeds.iter().any(|(n, _)| *n == key.frame)
+        {
+            return Err(std::io::Error::other(
+                "reseat key must identify one future seed-enabled Gaia correction",
+            ));
+        }
+        let mut fork = self.clone();
+        fork.replay.built.gaia_reseat_skip = Some(ReseatSkip { key, hits: 0 });
+        fork.replay.built.notes.push(format!(
+            "LAB INTERVENTION: skip Gaia reseat {key:?}; clocks and seed corrections retained"
+        ));
+        Ok(fork)
+    }
+
     pub fn next_record(&self) -> usize {
         self.next_record
     }
@@ -460,6 +495,218 @@ mod tests {
                 );
                 assert_eq!(observed.finish(), control.finish());
             }
+        }
+        source.validate().unwrap();
+    }
+    #[test]
+    fn run69_single_reseat_interventions_follow_the_remaining_capture() {
+        let Some(inst) = install() else { return };
+        let Some(path) = dump("gamelog-run69-greatlakes-3k.txt") else {
+            return;
+        };
+        let Some(trace) = trace("rontrace-run69.log") else {
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let mut source = crate::capture::indexed::IndexedCapture::open(&path).unwrap();
+        let initial = with_sibling_initials(|siblings| {
+            source
+                .with_replay_initial(|init| {
+                    let mut init = init;
+                    borrow_from_siblings(&mut init, siblings);
+                    borrow_pasture(&mut init, &trace);
+                    ReplaySession::new(&loaded, &init, Tuning::RON, None)
+                })
+                .unwrap()
+        });
+        let count = source.frames().len();
+        assert_eq!(count, 3001);
+        eprintln!(
+            "RESEAT_RANGE records={count}, last_source_frame={}",
+            source.frames()[count - 1].number
+        );
+        let mut scan = initial.clone();
+        scan.enable_correction_audit();
+        for i in 0..count {
+            scan.push(i, &source.frame_state(i).unwrap()).unwrap();
+        }
+        let audit = scan.built().correction_audit.as_ref().unwrap();
+        assert_eq!(
+            audit.omitted_reseats, 0,
+            "cannot call a truncated event list complete"
+        );
+        let keys = audit.changed_reseats.clone();
+        assert_eq!(
+            keys,
+            (94..=100)
+                .map(|frame| ReseatKey {
+                    frame,
+                    who: 8,
+                    o: 0
+                })
+                .collect::<Vec<_>>()
+        );
+        drop(scan);
+        let mut checkpoint = initial;
+        let earliest = keys.iter().map(|k| k.frame).min().unwrap();
+        while checkpoint.built().sim.frame < earliest {
+            let i = checkpoint.next_record();
+            checkpoint.push(i, &source.frame_state(i).unwrap()).unwrap();
+        }
+        assert_eq!(checkpoint.built().sim.frame, earliest);
+        let key = keys[0];
+        let mut ambiguous = checkpoint.clone();
+        let record = ambiguous
+            .built()
+            .frame_guys
+            .iter()
+            .find(|(n, _)| *n == key.frame)
+            .unwrap()
+            .clone();
+        ambiguous.replay.built.frame_guys.push(record);
+        assert!(ambiguous.fork_without_gaia_reseat(key).is_err());
+        let mut gated = checkpoint.clone();
+        gated
+            .replay
+            .built
+            .frame_seeds
+            .retain(|(n, _)| *n != key.frame);
+        assert!(gated.fork_without_gaia_reseat(key).is_err());
+        drop((ambiguous, gated));
+        for key in keys {
+            let mut control = checkpoint.clone();
+            let mut branch = checkpoint.fork_without_gaia_reseat(key).unwrap();
+            // Only the explicit skip selector and provenance note differ at fork.
+            let mut normalized = branch.clone();
+            normalized.replay.built.gaia_reseat_skip = None;
+            normalized.replay.built.notes = control.built().notes.clone();
+            assert_eq!(
+                format!("{:?}", normalized.built()),
+                format!("{:?}", control.built())
+            );
+            assert_eq!(normalized.finish(), control.clone().finish());
+            assert!(branch.fork_without_gaia_reseat(key).is_err());
+            assert!(
+                checkpoint
+                    .fork_without_gaia_reseat(ReseatKey { who: 0, ..key })
+                    .is_err()
+            );
+            assert!(
+                checkpoint
+                    .fork_without_gaia_reseat(ReseatKey { frame: -1, ..key })
+                    .is_err()
+            );
+            let mut changed = 0;
+            let mut first = None;
+            let mut last = None;
+            let mut effects = [None; 5];
+            for i in checkpoint.next_record()..count {
+                let frame = source.frame_state(i).unwrap();
+                let expected = control.push(i, &frame).unwrap().clone();
+                let actual = branch.push(i, &frame).unwrap().clone();
+                let a = &control.built().sim;
+                let b = &branch.built().sim;
+                if a.units != b.units {
+                    changed += 1;
+                    last = Some(frame.n);
+                    if first.is_none() {
+                        first = Some(frame.n);
+                        let id = a.unit_by_o(key.who as sim::Player, key.o as i16).unwrap();
+                        let other = b.unit_by_o(key.who as sim::Player, key.o as i16).unwrap();
+                        eprintln!(
+                            "{key:?} first difference at source {}: path {:?} -> {:?}; orders {:?} -> {:?}",
+                            frame.n,
+                            a.units[id].path,
+                            b.units[other].path,
+                            a.units[id].orders,
+                            b.units[other].orders
+                        );
+                    }
+                }
+                if key.frame == 99 && (102..=655).contains(&frame.n) {
+                    assert_eq!(a.units.len(), b.units.len());
+                    for (a, b) in a.units.iter().zip(&b.units).filter(|(a, b)| a != b) {
+                        assert_eq!((a.owner, a.index), (8, 0));
+                        if frame.n == 106 {
+                            let original =
+                                frame.units.iter().find(|u| u.who == 8 && u.o == 0).unwrap();
+                            eprintln!(
+                                "RESEAT_ORACLE source_frame=106 unit=8/0 original_angle={:?} control={} treatment={}",
+                                original.angle, a.movement.heading.0, b.movement.heading.0
+                            );
+                            assert_eq!(original.angle, Some(i64::from(a.movement.heading.0)));
+                            assert_ne!(original.angle, Some(i64::from(b.movement.heading.0)));
+                        }
+                        let mut normalized = b.clone();
+                        normalized.movement.facing = a.movement.facing;
+                        normalized.movement.frame_facing = a.movement.frame_facing;
+                        normalized.movement.heading = a.movement.heading;
+                        normalized.movement.des_angle = a.movement.des_angle;
+                        assert_eq!(
+                            &normalized, a,
+                            "persistent difference beyond the four angles"
+                        );
+                    }
+                }
+                // Include membership in each projection, not just matched pairs.
+                fn clocks(sim: &sim::Sim) -> Vec<(sim::Player, i16, &Vec<sim::anim::Guy>)> {
+                    sim.units
+                        .iter()
+                        .map(|u| (u.owner, u.index, &u.guys))
+                        .collect()
+                }
+                let positions = |sim: &sim::Sim| {
+                    sim.units
+                        .iter()
+                        .map(|u| (u.owner, u.index, u.pos))
+                        .collect::<Vec<_>>()
+                };
+                fn players(sim: &sim::Sim) -> Vec<&sim::Unit> {
+                    sim.units
+                        .iter()
+                        .filter(|u| usize::from(u.owner) < sim.players.len())
+                        .collect()
+                }
+                let flags = [
+                    clocks(a) != clocks(b),
+                    positions(a) != positions(b),
+                    players(a) != players(b),
+                    a.rng.seed != b.rng.seed,
+                    expected != actual,
+                ];
+                for (n, flag) in flags.into_iter().enumerate() {
+                    if flag && effects[n].is_none() {
+                        effects[n] = Some(frame.n);
+                    }
+                }
+            }
+            assert_eq!(branch.built().gaia_reseat_skip.as_ref().unwrap().hits, 1);
+            eprintln!(
+                "RESEAT_RESULT {key:?}: changed_frames={changed}, first={first:?}, last={last:?}, first [clock,position,player,RNG,comparator]={effects:?}"
+            );
+            let expected_frames = if key.frame == 99 { 556 } else { 1 };
+            let expected_last = if key.frame == 99 { 655 } else { key.frame + 1 };
+            assert_eq!(
+                (changed, first, last),
+                (expected_frames, Some(key.frame + 1), Some(expected_last))
+            );
+            assert_eq!(effects, [None; 5]);
+            let mut normalized = branch.built().clone();
+            normalized.gaia_reseat_skip = None;
+            normalized
+                .notes
+                .retain(|n| !n.starts_with("LAB INTERVENTION: skip Gaia reseat "));
+            eprintln!(
+                "RESEAT_FINAL {key:?}: complete_built_equal={}",
+                format!("{normalized:?}") == format!("{:?}", control.built())
+            );
+            assert_eq!(format!("{normalized:?}"), format!("{:?}", control.built()));
+            branch
+                .replay
+                .built
+                .notes
+                .retain(|n| !n.starts_with("LAB INTERVENTION: skip Gaia reseat "));
+            assert_eq!(branch.finish(), control.finish());
         }
         source.validate().unwrap();
     }
