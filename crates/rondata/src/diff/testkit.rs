@@ -162,6 +162,40 @@ pub(crate) fn with_sibling_initials<R>(use_initials: impl FnOnce(&[&Initial<'_>]
 }
 
 #[test]
+fn indexed_market_road_frame_preserves_world_fields_and_heights() {
+    let Some(path) = dump("gamelog-run72-greatlakes-marketroad.txt") else {
+        return;
+    };
+    let text = crate::capture::read(&path);
+    let whole = Log::parse(&text);
+    let mut source = crate::capture::indexed::IndexedCapture::open(&path).unwrap();
+    let index = source
+        .frames()
+        .iter()
+        .position(|f| f.number == 4_804)
+        .unwrap();
+    let slice = source.read_frame(index).unwrap();
+    let bounded = Log::parse(&slice);
+    let world_fields = |log: &Log<'_>| {
+        let (_, frame) = log.frames().into_iter().find(|(n, _)| *n == 4_804).unwrap();
+        frame
+            .kid("FULL DUMP")
+            .unwrap_or(frame)
+            .kid("WORLD")
+            .unwrap()
+            .fields()
+            .map(|(k, v)| (k.to_owned(), v.to_owned()))
+            .collect::<Vec<_>>()
+    };
+    let expected = world_fields(&whole);
+    assert!(!expected.is_empty());
+    assert_eq!(world_fields(&bounded), expected);
+    let heights = whole.frame_heights(4_804);
+    assert!(heights.len() > 1_000);
+    assert_eq!(bounded.frame_heights(4_804), heights);
+}
+
+#[test]
 fn indexed_road_setups_preserve_every_initial_field_except_audit_bodies() {
     for name in [
         "gamelog-run10-world6-long.txt",

@@ -1750,7 +1750,12 @@ mod tests {
             built.tick();
         }
 
-        let text72 = crate::capture::read(&r72);
+        let mut source = crate::capture::indexed::IndexedCapture::open(&r72).unwrap();
+        let Some(index) = source.frames().iter().position(|f| f.number == 4_804) else {
+            eprintln!("skipping: run72 has no FRAME 4804 block");
+            return;
+        };
+        let text72 = source.read_frame(index).unwrap();
         let l72 = Log::parse(&text72);
         let Some(block) = l72
             .frames()
