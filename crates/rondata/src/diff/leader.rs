@@ -446,8 +446,8 @@ pub(crate) fn theirs(block: &Block<'_>) -> std::collections::BTreeMap<String, i6
 mod tests {
     use super::{rows, theirs};
     use crate::diff::setup::{Built, borrow_from_siblings, build_sim};
-    use crate::diff::testkit::sibling_texts;
-    use crate::gamelog::{Initial, Log};
+    use crate::diff::testkit::with_sibling_initials;
+    use crate::gamelog::Log;
     use crate::testenv::{dump, install};
     use sim::Tuning;
 
@@ -463,15 +463,15 @@ mod tests {
             None
         })?;
         let loaded = crate::load::load(&inst).unwrap();
-        let texts = sibling_texts();
-        let text = crate::capture::read(&state);
-        let log = Log::parse(&text);
-        let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
-        let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
-        let refs: Vec<&Initial> = inits.iter().collect();
-        let mut init = log.initial().unwrap();
-        borrow_from_siblings(&mut init, &refs);
-        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        // Only construction borrows capture data. Keep sibling observations,
+        // not their whole text, and release all inputs before ticking.
+        let mut built = with_sibling_initials(|refs| {
+            let text = crate::capture::read(&state);
+            let log = Log::parse(&text);
+            let mut init = log.initial().unwrap();
+            borrow_from_siblings(&mut init, refs);
+            build_sim(&loaded, &init, Tuning::RON)
+        });
         let mut kept = std::collections::BTreeMap::new();
         for n in 1..=last {
             built.tick();
