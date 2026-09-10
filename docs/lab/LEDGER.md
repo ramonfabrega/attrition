@@ -68,6 +68,8 @@ Fable worker or capture.
 
 | L41 | Single indexed frame decoding repeated a lazy indexing pass immediately before a full decode. | [726 complete decoded records and isolated timing](2026-09-09-indexed-frame-decode.md). | Existing eager parser reduces the five-capture clock test from 4.32 s to 3.64–3.65 s. | About 16% for this workload; no full-suite speedup or universal RSS claim. |
 
+| L42 | Reader memory reductions leave room to revisit the two-thread gate policy. | [Monitored three/four-thread experiments](2026-09-10-test-concurrency.md); four-thread runs 118 s versus fresh two-thread control 240.43 s, with identical fixture-request records. | Four-thread sampled peaks 12,596–13,662 MiB under 20 GiB; candidate for an explicit monitored lane. | Benchmark omits only width assertion; default and guard unchanged pending deliberate adoption. |
+
 ## Current direction
 
 The runtime factor-isolation experiment is paused at the user's request after
