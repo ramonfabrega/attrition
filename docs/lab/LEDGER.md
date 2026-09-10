@@ -58,6 +58,8 @@ Fable worker or capture.
 
 | L36 | Finalized traces previously accepted duplicate, skipped, reset, or internally inconsistent FRAME records. | [Sequence contract and negative regression](2026-09-09-trace-frame-sequence.md); 87-file offline preflight. | Matching frame fields and consecutive signed frames checked in the existing validation pass. | Single-run integrity only; endpoint completeness and trace/dump identity remain open. |
 
+| L37 | Python acquisition receipts ignored positive loss notices and conflicting FRAME fields despite complete lifecycle/endpoint checks. | [Failing receipts and stored revalidation](2026-09-09-receipt-transport.md); 19 focused tests and four retained captures. | Shared streamed/in-memory validator now rejects both; equal malformed acquisitions also fail comparison. | Transport/lifecycle only; no new native experiment or fidelity claim. |
+
 ## Current direction
 
 The runtime factor-isolation experiment is paused at the user's request after

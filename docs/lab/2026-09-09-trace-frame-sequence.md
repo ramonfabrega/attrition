@@ -42,9 +42,9 @@ The runtime experiment remains paused.
 `tools/explore/autostart_receipt.py` already requires frames 0 through its
 configured endpoint and an ordered lifecycle. Its record loop currently does
 not reject dropped-record INFO notices or disagreement between FRAME slots.
-Bring those transport checks into agreement with the finalized Rust reader,
-using authored negative receipts before changing the validator. This is a
-separate Python acquisition concern; no live capture is needed to test it.
+Those transport checks are now aligned with the finalized Rust reader; see
+[the failing receipts and stored revalidation](2026-09-09-receipt-transport.md).
+This is a separate Python acquisition concern, tested without live capture.
 
 ## Full gate
 
