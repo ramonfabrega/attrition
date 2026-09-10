@@ -71,3 +71,12 @@ The accompanying [review experiment](2026-09-10-review-demo.md) records the
 actual demonstration and a fresh pinned baseline/candidate suite comparison.
 That comparison measures the package with its intended scheduling and expanded
 coverage; it does not attribute the whole result to any single optimization.
+
+## Follow-on: in-memory continuation
+
+The [owned replay checkpoint experiment](2026-09-10-replay-checkpoint.md) adds
+`diff::ReplaySession`. It reuses the existing replay state machine and clones
+Built plus the recording stream/cursor together. It is independent of the
+one-command viewer demo: that runner still replays from setup. Adopt this API
+only with its recording and corrected-capture continuation tests; it is not a
+portable snapshot format or a source-bound replay bundle.

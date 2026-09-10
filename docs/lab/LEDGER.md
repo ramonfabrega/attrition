@@ -82,6 +82,8 @@ Fable worker or capture.
 
 | L48 | PR #3 needs a reproducible introduction and a clear adoption boundary. | [One-command diagnostic demo and package comparison](2026-09-10-review-demo.md), [adoption map](PR3-ADOPTION.md). | Same city-field witness in 130-record reader comparison and three-record focused replay; artifact 37.7 MB → 0.91 MB. | Diagnostic-window reduction only; full replay inputs and external install remain required. |
 
+| L49 | Focused diagnostics still replay every prefix from setup. | [Owned session checkpoint and recorded-input counterexample](2026-09-10-replay-checkpoint.md). | Run69 clone 1.3 ms, clone + three-record suffix + checks 12.7 ms; run7 restored complete report equals existing replay. | In-memory, full-history clone; no portable snapshot or capture-content binding. |
+
 ## Current direction
 
 The runtime factor-isolation experiment is paused at the user's request after
