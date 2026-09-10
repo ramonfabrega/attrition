@@ -76,7 +76,8 @@ coverage; it does not attribute the whole result to any single optimization.
 
 The [owned replay checkpoint experiment](2026-09-10-replay-checkpoint.md) adds
 `diff::ReplaySession`. It reuses the existing replay state machine and clones
-Built plus the recording stream/cursor together. It is independent of the
-one-command viewer demo: that runner still replays from setup. Adopt this API
+Built plus the recording stream/cursor together. The [checkpoint export integration](2026-09-10-checkpoint-export.md) now
+lets the one-command demo verify three nearby windows from one checkpoint.
+Every new process still replays from setup. Adopt this API
 only with its recording and corrected-capture continuation tests; it is not a
 portable snapshot format or a source-bound replay bundle.

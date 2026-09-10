@@ -84,6 +84,8 @@ Fable worker or capture.
 
 | L49 | Focused diagnostics still replay every prefix from setup. | [Owned session checkpoint and recorded-input counterexample](2026-09-10-replay-checkpoint.md). | Run69 clone 1.3 ms, clone + three-record suffix + checks 12.7 ms; run7 restored complete report equals existing replay. | In-memory, full-history clone; no portable snapshot or capture-content binding. |
 
+| L50 | The exporter still restarts setup for every nearby window. | [Checkpoint export, global cursors and complete-window checks](2026-09-10-checkpoint-export.md). | Three restored windows match uninterrupted replay; clone/continue/write 19–22 ms each after prefix. | One open source handle plus metadata; demo hashes inputs; no persistent or portable snapshot. |
+
 ## Current direction
 
 The runtime factor-isolation experiment is paused at the user's request after
