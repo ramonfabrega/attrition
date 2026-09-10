@@ -253,7 +253,8 @@ impl IndexedCapture {
     /// Decode one frame by index, preserving duplicate labels by position.
     pub fn frame_state(&mut self, index: usize) -> io::Result<crate::gamelog::Frame> {
         let text = self.read_frame(index)?;
-        let mut states = crate::gamelog::Log::parse(&text).frame_states();
+        // This is one indexed frame, and decoding visits its whole body.
+        let mut states = crate::gamelog::Log::parse_eager(&text).frame_states();
         if states.len() != 1 || states[0].n != self.frames[index].number {
             return Err(invalid("indexed frame did not parse as one matching FRAME"));
         }
