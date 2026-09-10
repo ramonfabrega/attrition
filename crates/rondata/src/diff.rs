@@ -31,6 +31,7 @@ use sim::{Pos, Sim, Tuning, Unit, World};
 
 mod build;
 mod city;
+mod corrections;
 mod endpoint;
 mod floors;
 mod harness;
@@ -51,6 +52,7 @@ mod world;
 
 pub use build::*;
 pub use city::*;
+pub use corrections::*;
 pub use endpoint::*;
 pub use floors::*;
 pub use harness::*;

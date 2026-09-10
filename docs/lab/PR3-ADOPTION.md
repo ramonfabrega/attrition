@@ -89,3 +89,8 @@ It preserves the standard replay and explicitly labels the treatment. Its origin
 blind spot and separates clocks from reseating. Whole-record removal changes Gaia
 paths for 11 frames; clocks-only suppression changes no measured state through
 frame 3000 in this capture. Neither result justifies removing correction support.
+
+The [overwrite audit](2026-09-10-correction-overwrites.md) adds optional counters
+at the actual correction writes and a paired-control release example. It separates
+attempts from state changes and identifies Gaia reseating as the only observed
+overwrite family in three measured intervals. Standard replay keeps its policy.

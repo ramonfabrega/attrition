@@ -16,6 +16,8 @@ pub struct UnitLink {
 /// The simulation plus the maps back into the log's ids.
 #[derive(Clone, Debug)]
 pub struct Built {
+    /// Lab-only overwrite observation; disabled in ordinary replay.
+    pub correction_audit: Option<CorrectionAudit>,
     pub sim: Sim,
     pub units: Vec<UnitLink>,
     /// The pre-placed buildings: simulation handle → the log's object number.
@@ -922,6 +924,7 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
         );
     }
     Built {
+        correction_audit: None,
         sim,
         units,
         builds,
@@ -1261,6 +1264,12 @@ impl Built {
                 ours.map_or("?".to_string(), |n| n.to_string()),
                 orig.map_or("?".to_string(), |n| n.to_string()),
             ));
+            if let Some(audit) = &mut self.correction_audit {
+                let before = self.sim.rng.seed;
+                audit
+                    .seed
+                    .observe(frame, before != theirs, || format!("{before} -> {theirs}"));
+            }
             self.sim.rng.seed = theirs;
             // And the clocks, where the dump printed them: every linked
             // unit's guys as they stood at this frame's end, so the next
@@ -1283,6 +1292,9 @@ impl Built {
                                 .and_then(|o| self.sim.unit_by_o(*who as sim::Player, o))
                         });
                     let Some(u) = unit else {
+                        if let Some(audit) = &mut self.correction_audit {
+                            audit.unlinked_units += 1;
+                        }
                         continue;
                     };
                     // **Gaia's animals are re-seated, not compared.** Where
@@ -1296,16 +1308,33 @@ impl Built {
                     // original's draws; the drift is reported rather than
                     // hidden.
                     if *who >= 8 {
+                        let before = self
+                            .correction_audit
+                            .as_ref()
+                            .map(|_| self.sim.units[u].clone());
                         let d =
                             self.sim
                                 .reseat_animal(u, pos_of(state.pos), state.goal.map(pos_of));
+                        if let (Some(audit), Some(before)) = (&mut self.correction_audit, before) {
+                            let after = &self.sim.units[u];
+                            audit.gaia_reseat.observe(frame, before != *after, || format!(
+                                "unit {who}/{o}: position {:?} -> {:?}; path {:?} -> {:?}; orders {:?} -> {:?}",
+                                before.pos, after.pos, before.path, after.path, before.orders, after.orders));
+                        }
                         if d > 0 {
                             reseated += 1;
                             drift = drift.max(d);
                         }
                         for (n, g) in guys.iter().enumerate() {
                             if let Some(guy) = guy_of(g) {
-                                self.sim.set_guy(u, n, guy);
+                                super::corrections::install_clock(
+                                    &mut self.sim,
+                                    &mut self.correction_audit,
+                                    frame,
+                                    u,
+                                    n,
+                                    guy,
+                                );
                                 installed += 1;
                             }
                         }
@@ -1337,6 +1366,9 @@ impl Built {
                         .is_some_and(|a| sim::anim::category(a as i8) == 8);
                     if walking_here != walking_there {
                         if !(walking_there && state.orderless && !walking_here) {
+                            if let Some(audit) = &mut self.correction_audit {
+                                audit.predicate_skipped_units += 1;
+                            }
                             skipped += 1;
                             continue;
                         }
@@ -1344,7 +1376,14 @@ impl Built {
                     }
                     for (n, g) in guys.iter().enumerate() {
                         if let Some(guy) = guy_of(g) {
-                            self.sim.set_guy(u, n, guy);
+                            super::corrections::install_clock(
+                                &mut self.sim,
+                                &mut self.correction_audit,
+                                frame,
+                                u,
+                                n,
+                                guy,
+                            );
                             installed += 1;
                         }
                     }

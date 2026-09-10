@@ -29,6 +29,11 @@ impl ReplaySession {
         }
     }
 
+    /// Begin a fresh diagnostic interval. Clones retain the accumulated audit.
+    pub fn enable_correction_audit(&mut self) {
+        self.replay.built.correction_audit = Some(CorrectionAudit::default());
+    }
+
     pub fn next_record(&self) -> usize {
         self.next_record
     }
@@ -330,6 +335,8 @@ mod tests {
         });
         for split in [0, 94] {
             let mut control = initial.clone();
+            let mut observed = initial.clone();
+            observed.enable_correction_audit();
             for i in 0..split {
                 control.push(i, &source.frame_state(i).unwrap()).unwrap();
             }
@@ -367,6 +374,9 @@ mod tests {
             for i in split..3000 {
                 let frame = source.frame_state(i).unwrap();
                 let expected = control.push(i, &frame).unwrap().clone();
+                if split == 0 {
+                    assert_eq!(observed.push(i, &frame).unwrap(), &expected);
+                }
                 for (which, branch) in variants.iter_mut().enumerate() {
                     let actual = branch.push(i, &frame).unwrap().clone();
                     let pairs: Vec<_> = control
@@ -438,6 +448,18 @@ mod tests {
             );
             assert_eq!(seen, [[Some(95), None, None, None, None, None], [None; 6]]);
             assert_eq!(affected, [(11, Some(105)), (0, None)]);
+            if split == 0 {
+                let audit = observed.replay.built.correction_audit.take().unwrap();
+                eprintln!("correction audit: {audit:#?}");
+                assert!(audit.clock.attempted > 0);
+                assert_eq!(audit.clock.changed, 0);
+                assert!(audit.gaia_reseat.changed > 0);
+                assert_eq!(
+                    format!("{:?}", observed.built()),
+                    format!("{:?}", control.built())
+                );
+                assert_eq!(observed.finish(), control.finish());
+            }
         }
         source.validate().unwrap();
     }

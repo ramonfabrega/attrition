@@ -88,6 +88,7 @@ Fable worker or capture.
 
 | L51 | Need controlled hypotheses, not only fast window replay. | [Figure-record intervention, restricted-export null and clone profile](2026-09-10-figure-intervention.md). | Ten future figure records removed; 130 restricted exports agreed (Gaia hidden; corrected by L52). Report clone+drop 0.71 ms versus sim 0.52 ms. | Local negative result; no root-cause or complete heap-size claim. |
 | L52 | Intervention effects were hidden by player-only export linkage; whole figure removal also suppresses Gaia reseating. | [Expose Gaia and isolate clock installation](2026-09-10-intervention-observability.md). | Whole-record removal changes unit state on frames 95–105; clocks-only removal has no measured effect through 3000, from either checkpoint. | One capture; corrected prefix/setup and RNG policy retained; no fidelity score moved. |
+| L53 | Correction installation counts include no-op writes. | [Opt-in overwrite audit and paired replay survey](2026-09-10-correction-overwrites.md). | Three intervals: zero changed clocks/seeds; Great Lakes seven actual Gaia reseat changes, East Indies none. | Shared sibling inputs; not corpus-wide redundancy or a policy change. |
 
 ## Current direction
 
