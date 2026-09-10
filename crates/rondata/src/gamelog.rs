@@ -572,9 +572,14 @@ impl<'a> Log<'a> {
 
     /// [`Self::parse`] with the laziness off — the whole text read in one
     /// pass, which is what `the_lazy_tree_is_the_eager_tree` compares
-    /// against.
-    #[cfg(test)]
+    /// against. Also used for bounded indexed chunks that are immediately
+    /// traversed in full; whole captures should keep the lazy entry point.
     pub(crate) fn parse_eager(text: &'a str) -> Log<'a> {
+        assert!(
+            text.len() < u32::MAX as usize,
+            "a gamelog of {} bytes is past the arena's 4 GiB reach",
+            text.len()
+        );
         let mut log = Log {
             text,
             ..Log::default()

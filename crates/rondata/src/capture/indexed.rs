@@ -297,7 +297,10 @@ impl IndexedCapture {
             .ok_or_else(|| invalid("no initial state"))?;
         for i in 0..self.frames.len() {
             let chunk = self.read_frame_and_siblings(i)?;
-            crate::gamelog::Log::parse(&chunk).append_observations(&mut init, false);
+            // The chunk is already bounded to one frame and its siblings.
+            // Decode it once: a lazy parse would index it only for the
+            // observation walk to immediately parse the same blocks again.
+            crate::gamelog::Log::parse_eager(&chunk).append_observations(&mut init, false);
         }
         self.check_metadata(self.file.metadata()?)?;
         Ok(use_initial(init))
