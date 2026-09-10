@@ -1,5 +1,11 @@
 # A controlled figure-correction experiment
 
+**Correction (L52):** the original viewer hid Rust state for Gaia units. The
+historical equality below applies to that restricted export, not all unit state.
+Whole `frame_guys` removal suppresses Gaia reseating as well as clock installation.
+The [follow-up](2026-09-10-intervention-observability.md) separates those policies,
+exposes Gaia and finds a transient path difference at frame 95.
+
 ## Hypothesis and isolation
 
 Could future figure-clock corrections explain an existing replay discrepancy?
@@ -29,7 +35,7 @@ control artifact remain in `/tmp/figure-branches-1900.log` and its named HTML.
 
 The active experiment instead checkpoints before source frame 95 (sim frame 94).
 It removes ten future figure records, retaining seed corrections, and compares
-130 records through frame 224. **Every exported record remains identical**,
+130 records through frame 224. **Every record exported by the then-current viewer remained identical**,
 including all 1,704 paired positions, RNG values and typed comparator rows.
 At frame 95, city `0/2000` still reports `peasant_dist` original 1, Rust 0.
 That mismatch survives this intervention; these future figure inputs do not
@@ -88,7 +94,7 @@ from a changed field and refuse branches with different source indices; both
 positive and negative reporting paths are exercised in the offline gate.
 
 The concrete experiment is observational over one interval and the fields the
-viewer exports. Next, use a capture interval that exercises an actual correction
+viewer exports. The follow-up above supersedes the suggested next experiment. Use a capture interval that exercises an actual correction
 of divergent state, or investigate the surviving city residue with a separate
 single-policy experiment. Do not generalize this null result or remove correction
 support on its strength. Native/runtime drafts and the normal queue stay untouched.

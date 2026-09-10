@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Compare run69 figure-correction policies from one owned checkpoint.
-Usage: python3 tools/viewer/branch_experiment.py INSTALL LOGS NEW_OUTPUT_DIRECTORY
+Usage: python3 tools/viewer/branch_experiment.py INSTALL LOGS NEW_OUTPUT_DIRECTORY [figures|clocks]
 """
 import json
 from pathlib import Path
@@ -29,11 +29,20 @@ def compare(control, treatment):
             first = dict(frame=a['n'], source_index=a['index'],
                          changed_keys=[k for k in sorted(set(a) | set(b)) if a.get(k) != b.get(k)],
                          control_differences=a['differences'], treatment_differences=b['differences'])
+            left = {u['id']: u for u in a['units']}
+            right = {u['id']: u for u in b['units']}
+            first['unit_changes'] = [dict(id=identity, fields={
+                key: dict(control=left.get(identity, {}).get(key), treatment=right.get(identity, {}).get(key))
+                for key in sorted(set(left.get(identity, {})) | set(right.get(identity, {})))
+                if left.get(identity, {}).get(key) != right.get(identity, {}).get(key)
+            }) for identity in sorted(set(left) | set(right)) if left.get(identity) != right.get(identity)]
     return dict(records=len(control['frames']), first_changed_record=first,
                 all_exported_records_equal=first is None)
 
 
-def main(install, logs, destination):
+def main(install, logs, destination, intervention='figures'):
+    if intervention not in ('figures', 'clocks'):
+        raise ValueError('intervention must be figures or clocks')
     repo = Path(__file__).resolve().parents[2]
     output = Path(destination).resolve()
     if output.is_relative_to(repo):
@@ -49,7 +58,7 @@ def main(install, logs, destination):
     binary_hash = digest(binary)
     commands = []
     for name, reader, policy in [('reference', 'indexed', 'standard'),
-                                 ('control', 'checkpoint', 'compare-figures')]:
+                                 ('control', 'checkpoint', 'compare-' + intervention)]:
         cmd = [str(binary), str(Path(install).resolve()), str(paths[0]), str(output / (name + '.html')),
                '--reader', reader, '--corrections', policy, '--from', '95', '--count', '130',
                '--trace', str(paths[1])]
@@ -61,7 +70,7 @@ def main(install, logs, destination):
         commands.append(dict(command=cmd, seconds=time.perf_counter()-start))
     reference = read(output / 'reference.html')
     control = read(output / 'control.html')
-    treatment = read(output / 'control.without-future-figures.html')
+    treatment = read(output / ('control.without-future-' + intervention + '.html'))
     matching_frames(reference, control)
     if len(reference['frames']) != 130 or len(control['frames']) != 130:
         raise ValueError('reference or control is truncated')
@@ -81,6 +90,6 @@ def main(install, logs, destination):
 
 
 if __name__ == '__main__':
-    if len(sys.argv) != 4:
+    if len(sys.argv) not in (4, 5):
         sys.exit(__doc__)
     main(*sys.argv[1:])

@@ -8,7 +8,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
     let args: Vec<_> = std::env::args().skip(1).collect();
     if args.len() < 3 {
-        return Err("INSTALL CAPTURE NEW_OUTPUT.html [--reader memory|indexed|checkpoint] [--windows 1..8] [--corrections standard|without-future-figures|compare-figures] [--from FRAME] [--count 1..200] [--sibling CAPTURE] [--trace TRACE] [--recording REC]".into());
+        return Err("INSTALL CAPTURE NEW_OUTPUT.html [--reader memory|indexed|checkpoint] [--windows 1..8] [--corrections standard|without-future-figures|compare-figures|without-future-clocks|compare-clocks] [--from FRAME] [--count 1..200] [--sibling CAPTURE] [--trace TRACE] [--recording REC]".into());
     }
     let (install, capture, output) = (&args[0], &args[1], PathBuf::from(&args[2]));
     if output.exists() {
@@ -38,12 +38,18 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     if !(1..=200).contains(&count) {
         return Err("count must be 1..200".into());
     }
-    if !["standard", "without-future-figures", "compare-figures"].contains(&corrections)
+    if ![
+        "standard",
+        "without-future-figures",
+        "compare-figures",
+        "without-future-clocks",
+        "compare-clocks",
+    ]
+    .contains(&corrections)
         || (reader != "checkpoint" && corrections != "standard")
     {
         return Err(
-            "nonstandard corrections require checkpoint reader and without-future-figures policy"
-                .into(),
+            "unsupported correction policy or nonstandard policy without checkpoint reader".into(),
         );
     }
     let loaded = rondata::load::load(&Install::new(install))?;
@@ -138,15 +144,17 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             .into_iter()
             .enumerate()
             .flat_map(|(w, path)| {
-                if corrections == "compare-figures" {
+                if corrections == "compare-figures" || corrections == "compare-clocks" {
+                    let treatment = if corrections == "compare-clocks" {
+                        "without-future-clocks"
+                    } else {
+                        "without-future-figures"
+                    };
                     let variant = path.with_file_name(format!(
-                        "{}.without-future-figures.html",
+                        "{}.{treatment}.html",
                         path.file_stem().unwrap().to_string_lossy()
                     ));
-                    vec![
-                        (w, path, "standard"),
-                        (w, variant, "without-future-figures"),
-                    ]
+                    vec![(w, path, "standard"), (w, variant, treatment)]
                 } else {
                     vec![(w, path, corrections)]
                 }
@@ -180,6 +188,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             let begin = std::time::Instant::now();
             let mut restored = if *policy == "standard" {
                 session.clone()
+            } else if *policy == "without-future-clocks" {
+                session.fork_without_future_clocks()?
             } else {
                 session.fork_without_future_figure_corrections()?
             };

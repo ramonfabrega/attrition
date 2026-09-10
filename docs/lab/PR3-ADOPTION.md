@@ -84,5 +84,8 @@ portable snapshot format or a source-bound replay bundle.
 
 The [controlled figure intervention](2026-09-10-figure-intervention.md) adds a
 separate `branch_experiment.py` command and optional checkpoint correction policy.
-It preserves the standard replay and explicitly labels the treatment. Its first
-result is a verified local null effect, not a reason to remove correction support.
+It preserves the standard replay and explicitly labels the treatment. Its original null result was limited by hidden Gaia state; the
+[observability follow-up](2026-09-10-intervention-observability.md) corrects that
+blind spot and separates clocks from reseating. Whole-record removal changes Gaia
+paths for 11 frames; clocks-only suppression changes no measured state through
+frame 3000 in this capture. Neither result justifies removing correction support.

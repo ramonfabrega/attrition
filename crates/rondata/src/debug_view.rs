@@ -64,8 +64,12 @@ fn row(
     let rust_path = ours.map_or(Vec::new(), |u| {
         u.path.iter().rev().map(|p| point(p.to)).collect()
     });
+    let clocks = ours.map(|u| u.guys.iter().map(|g| format!(
+        "{{\"cur_time\":{},\"end_time\":{},\"last_time\":{},\"anim\":{},\"gpiece\":{},\"stopped\":{}}}",
+        g.cur_time, g.end_time, g.last_time, g.anim, g.gpiece, g.stopped
+    )).collect::<Vec<_>>().join(",")).map_or("null".to_owned(), |s| format!("[{s}]"));
     format!(
-        "{{\"id\":{},\"who\":{who},\"o\":{o},\"original\":{a},\"rust\":{b},\"scope\":{scope},\"originalPath\":[{}],\"rustPath\":[{}],\"originalRecord\":{},\"rustRecord\":{}}}",
+        "{{\"id\":{},\"who\":{who},\"o\":{o},\"original\":{a},\"rust\":{b},\"scope\":{scope},\"originalPath\":[{}],\"rustPath\":[{}],\"originalRecord\":{},\"rustRecord\":{},\"rustClocks\":{clocks}}}",
         quoted(&format!("{who}/{o}")),
         original_path.join(","),
         rust_path.join(","),
@@ -127,20 +131,18 @@ impl Window {
         let mut units = Vec::new();
         for unit in &frame.units {
             let scope = (0..players).contains(&unit.who);
-            let linked = if scope {
-                built
-                    .units
-                    .iter()
-                    .find(|l| l.who == unit.who && l.o == unit.o)
-                    .map(|l| l.unit)
-                    .or_else(|| {
-                        i16::try_from(unit.o)
-                            .ok()
-                            .and_then(|o| built.sim.unit_by_o(unit.who as sim::Player, o))
-                    })
-            } else {
-                None
-            };
+            // Non-player units are diagnostic state too. Keep their comparator
+            // scope false, but do not hide Gaia corrections from branch inspection.
+            let linked = built
+                .units
+                .iter()
+                .find(|l| l.who == unit.who && l.o == unit.o)
+                .map(|l| l.unit)
+                .or_else(|| {
+                    let who = sim::Player::try_from(unit.who).ok()?;
+                    let o = i16::try_from(unit.o).ok()?;
+                    built.sim.unit_by_o(who, o)
+                });
             units.push(row(
                 unit.who,
                 unit.o,
@@ -310,6 +312,40 @@ pub fn failure_path(label: &str) -> std::io::Result<std::path::PathBuf> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn gaia_state_is_visible_without_entering_player_comparator_scope() {
+        let mut sim = sim::Sim::new(sim::Tuning::RON, sim::World::new(4, 4), 2);
+        sim.units
+            .push(sim::Unit::new(8, 0, sim::Pos { x: 12, y: 34 }, 100));
+        let built = Built {
+            sim,
+            units: vec![],
+            builds: vec![],
+            region_map: vec![],
+            notes: vec![],
+            frame_seeds: vec![],
+            rng_frames: vec![],
+            frame_guys: vec![],
+            frame_sites: vec![],
+            type_index: vec![],
+            unit_tree: vec![],
+        };
+        let frame = Frame {
+            units: vec![crate::gamelog::UnitDump {
+                who: 8,
+                o: 0,
+                ..Default::default()
+            }],
+            ..Default::default()
+        };
+        let mut window = Window::new(0, 1).unwrap();
+        window.observe(&built, &frame, &FrameResult::default());
+        let exported = &window.frames[0];
+        assert!(exported.contains("\"rust\":[12,34],\"scope\":false"));
+        assert!(exported.contains("\"rustClocks\":[]"));
+        assert!(exported.contains("\"compared\":0"));
+    }
+
     #[test]
     fn resumed_window_keeps_the_global_cursor_and_refuses_a_late_start() {
         assert!(Window::resume(10, 3, 11).is_err());

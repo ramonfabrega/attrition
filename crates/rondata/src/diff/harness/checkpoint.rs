@@ -37,8 +37,8 @@ impl ReplaySession {
         &self.replay.built
     }
 
-    /// Lab intervention: clone the checkpoint and omit only future figure-clock
-    /// corrections. RNG reseeding, input cursor and past state remain intact.
+    /// Lab intervention: clone the checkpoint and omit future figure-record
+    /// corrections (clock installation AND Gaia reseating). RNG reseeding, input cursor and past state remain intact.
     /// Refuse a vacuous intervention; this is not an alternative fidelity mode.
     pub fn fork_without_future_figure_corrections(&self) -> std::io::Result<Self> {
         let frame = self.replay.built.sim.frame;
@@ -59,6 +59,42 @@ impl ReplaySession {
         fork.replay.built.notes.push(format!(
             "LAB INTERVENTION: removed {removed} figure correction records from sim frame {frame}; seed corrections retained"
         ));
+        Ok(fork)
+    }
+
+    /// Suppress only future clock payloads, retaining each frame's Gaia reseat
+    /// inputs. This preserves the existing reseating and RNG policy.
+    pub fn fork_without_future_clocks(&self) -> std::io::Result<Self> {
+        let frame = self.replay.built.sim.frame;
+        let clocks: usize = self
+            .replay
+            .built
+            .frame_guys
+            .iter()
+            .filter(|(n, _)| *n >= frame)
+            .flat_map(|(_, units)| units)
+            .map(|u| u.guys.iter().filter(|g| g.has_clock()).count())
+            .sum();
+        if clocks == 0 {
+            return Err(std::io::Error::other("no future clock payloads to remove"));
+        }
+        let mut fork = self.clone();
+        for (_, units) in fork
+            .replay
+            .built
+            .frame_guys
+            .iter_mut()
+            .filter(|(n, _)| *n >= frame)
+        {
+            for unit in units {
+                // Preserve animation-category predicates and all reseat fields;
+                // only make clock installation ineligible through guy_of.
+                for guy in &mut unit.guys {
+                    guy.cur_time = None;
+                }
+            }
+        }
+        fork.replay.built.notes.push(format!("LAB INTERVENTION: removed {clocks} future clock payloads from sim frame {frame}; Gaia reseat records and seed corrections retained"));
         Ok(fork)
     }
 
@@ -171,6 +207,7 @@ mod tests {
             checkpoint.fork_without_future_figure_corrections().is_err(),
             "this late window has no future figure records"
         );
+        assert!(checkpoint.fork_without_future_clocks().is_err());
         let mut authored = checkpoint.clone();
         let at = authored.built().sim.frame;
         authored.replay.built.frame_guys.push((at, Vec::new()));
@@ -269,5 +306,139 @@ mod tests {
             broken.push(i, frame).unwrap();
         }
         assert_ne!(broken.finish(), expected, "stream reset must be observable");
+    }
+    #[test]
+    fn run69_intervention_effects_are_visible_beyond_player_comparisons() {
+        let Some(inst) = install() else { return };
+        let Some(path) = dump("gamelog-run69-greatlakes-3k.txt") else {
+            return;
+        };
+        let Some(trace) = trace("rontrace-run69.log") else {
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let mut source = crate::capture::indexed::IndexedCapture::open(&path).unwrap();
+        let initial = with_sibling_initials(|siblings| {
+            source
+                .with_replay_initial(|init| {
+                    let mut init = init;
+                    borrow_from_siblings(&mut init, siblings);
+                    borrow_pasture(&mut init, &trace);
+                    ReplaySession::new(&loaded, &init, Tuning::RON, None)
+                })
+                .unwrap()
+        });
+        for split in [0, 94] {
+            let mut control = initial.clone();
+            for i in 0..split {
+                control.push(i, &source.frame_state(i).unwrap()).unwrap();
+            }
+            let mut variants = [
+                control.fork_without_future_figure_corrections().unwrap(),
+                control.fork_without_future_clocks().unwrap(),
+            ];
+            // Prove isolation against every Built field, not just the measured outputs.
+            let mut normalized = variants[1].clone();
+            for ((n, units), (_, original)) in normalized
+                .replay
+                .built
+                .frame_guys
+                .iter_mut()
+                .zip(&control.replay.built.frame_guys)
+            {
+                if *n >= control.replay.built.sim.frame {
+                    for (unit, before) in units.iter_mut().zip(original) {
+                        for (guy, old) in unit.guys.iter_mut().zip(&before.guys) {
+                            assert!(crate::diff::setup::guy_of(guy).is_none());
+                            guy.cur_time = old.cur_time;
+                        }
+                    }
+                }
+            }
+            normalized.replay.built.notes = control.replay.built.notes.clone();
+            assert_eq!(
+                format!("{:?}", normalized.built()),
+                format!("{:?}", control.built())
+            );
+            assert_eq!(normalized.next_record(), control.next_record());
+            assert_eq!(normalized.finish(), control.clone().finish());
+            let mut seen = [[None; 6]; 2];
+            let mut affected = [(0usize, None); 2];
+            for i in split..3000 {
+                let frame = source.frame_state(i).unwrap();
+                let expected = control.push(i, &frame).unwrap().clone();
+                for (which, branch) in variants.iter_mut().enumerate() {
+                    let actual = branch.push(i, &frame).unwrap().clone();
+                    let pairs: Vec<_> = control
+                        .built()
+                        .sim
+                        .units
+                        .iter()
+                        .filter_map(|u| {
+                            branch
+                                .built()
+                                .sim
+                                .units
+                                .iter()
+                                .find(|v| v.owner == u.owner && v.index == u.index)
+                                .map(|v| (u, v))
+                        })
+                        .collect();
+                    let any_unit = pairs.iter().find(|(u, v)| u != v);
+                    let clock = pairs.iter().find(|(u, v)| u.guys != v.guys);
+                    let position = pairs.iter().find(|(u, v)| u.pos != v.pos);
+                    let player = pairs
+                        .iter()
+                        .find(|(u, v)| usize::from(u.owner) < control.replay.players && u != v);
+                    let flags = [
+                        control.built().sim.units != branch.built().sim.units,
+                        clock.is_some(),
+                        position.is_some(),
+                        player.is_some(),
+                        control.built().sim.rng.seed != branch.built().sim.rng.seed,
+                        expected != actual,
+                    ];
+                    if flags[0] {
+                        affected[which].0 += 1;
+                        affected[which].1 = Some(frame.n);
+                    }
+                    for (kind, differs) in flags.into_iter().enumerate() {
+                        if differs && seen[which][kind].is_none() {
+                            seen[which][kind] = Some(frame.n);
+                            eprintln!(
+                                "split {split}, policy {which} first {} at frame {}",
+                                [
+                                    "any unit",
+                                    "clock",
+                                    "position",
+                                    "player unit",
+                                    "RNG",
+                                    "comparator"
+                                ][kind],
+                                frame.n
+                            );
+                            if let Some((u, v)) = match kind {
+                                0 => any_unit,
+                                1 => clock,
+                                2 => position,
+                                3 => player,
+                                _ => None,
+                            } {
+                                eprintln!(
+                                    "  unit {}/{}: position {:?} -> {:?}; clocks {:?} -> {:?}",
+                                    u.owner, u.index, u.pos, v.pos, u.guys, v.guys
+                                );
+                            }
+                        }
+                    }
+                }
+            }
+            eprintln!(
+                "split {split}, policy effects [any unit, clock, position, player unit, RNG, comparator]: {seen:?}; affected counts/last: {affected:?}"
+            );
+            assert_eq!(seen, [[Some(95), None, None, None, None, None], [None; 6]]);
+            assert_eq!(affected, [(11, Some(105)), (0, None)]);
+        }
+        source.validate().unwrap();
     }
 }

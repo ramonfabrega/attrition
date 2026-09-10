@@ -86,7 +86,8 @@ Fable worker or capture.
 
 | L50 | The exporter still restarts setup for every nearby window. | [Checkpoint export, global cursors and complete-window checks](2026-09-10-checkpoint-export.md). | Three restored windows match uninterrupted replay; clone/continue/write 19–22 ms each after prefix. | One open source handle plus metadata; demo hashes inputs; no persistent or portable snapshot. |
 
-| L51 | Need controlled hypotheses, not only fast window replay. | [Figure-only intervention, verified null result and clone profile](2026-09-10-figure-intervention.md). | Ten future figure records removed; all 130 exported records stay equal. Report clone+drop 0.71 ms versus sim 0.52 ms. | Local negative result; no root-cause or complete heap-size claim. |
+| L51 | Need controlled hypotheses, not only fast window replay. | [Figure-record intervention, restricted-export null and clone profile](2026-09-10-figure-intervention.md). | Ten future figure records removed; 130 restricted exports agreed (Gaia hidden; corrected by L52). Report clone+drop 0.71 ms versus sim 0.52 ms. | Local negative result; no root-cause or complete heap-size claim. |
+| L52 | Intervention effects were hidden by player-only export linkage; whole figure removal also suppresses Gaia reseating. | [Expose Gaia and isolate clock installation](2026-09-10-intervention-observability.md). | Whole-record removal changes unit state on frames 95–105; clocks-only removal has no measured effect through 3000, from either checkpoint. | One capture; corrected prefix/setup and RNG policy retained; no fidelity score moved. |
 
 ## Current direction
 

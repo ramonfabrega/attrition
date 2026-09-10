@@ -27,6 +27,20 @@ def verify(data):
             require(all(isinstance(d[k], str) for d in rows for k in ('entity', 'field', 'original', 'rust', 'assessment')), 'field values must remain lossless strings')
         units = frame['units']
         require(len({u['id'] for u in units}) == len(units), 'duplicate unit identity')
+        for unit in units:
+            if 'rustClocks' not in unit:
+                continue  # Earlier schema-1 exports did not expose typed clocks.
+            clocks = unit['rustClocks']
+            require((clocks is None) == (unit['rust'] is None), 'clock linkage disagrees with unit linkage')
+            if clocks is None:
+                continue
+            require(isinstance(clocks, list), 'clocks must be an array')
+            bounds = dict(cur_time=(0, 2**32-1), end_time=(0, 2**32-1),
+                          last_time=(-2**31, 2**31-1), anim=(-128, 127), gpiece=(-2**31, 2**31-1))
+            for clock in clocks:
+                require(isinstance(clock, dict) and set(clock) == set(bounds) | {'stopped'}, 'invalid clock fields')
+                require(all(type(clock[k]) is int and lo <= clock[k] <= hi for k, (lo, hi) in bounds.items()), 'invalid clock integer')
+                require(type(clock['stopped']) is bool, 'invalid stopped flag')
         paired = [u for u in units if u['scope'] and u['original'] is not None and u['rust'] is not None]
         different = sum(u['original'] != u['rust'] for u in paired)
         require(len(paired) == frame['compared'], 'coordinate rows disagree with harness comparison count')
