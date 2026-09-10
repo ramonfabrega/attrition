@@ -5,6 +5,8 @@
 //! borrowed accessors can be used unchanged. Drop that String/Log before reading
 //! the next frame to keep memory proportional to the largest requested frame.
 //! Setup is separate; `read_shutdown` retains the last frame and its siblings.
+mod observations;
+
 use std::fs::{File, Metadata};
 use std::io::{self, BufRead, BufReader, Read, Seek, SeekFrom};
 use std::path::{Path, PathBuf};
@@ -20,6 +22,7 @@ pub struct FrameRange {
 
 pub struct IndexedCapture {
     file: File,
+    path: PathBuf,
     length: u64,
     modified: SystemTime,
     frames: Arc<[FrameRange]>,
@@ -123,6 +126,7 @@ impl IndexedCapture {
         {
             return Ok(Self {
                 file,
+                path: path.clone(),
                 length: meta.len(),
                 modified,
                 frames: Arc::clone(&entry.frames),
@@ -203,6 +207,7 @@ impl IndexedCapture {
         }
         let capture = Self {
             file: reader.into_inner(),
+            path: path.clone(),
             length: meta.len(),
             modified,
             frames: frames.into(),
@@ -296,14 +301,18 @@ impl IndexedCapture {
         let mut init = log
             .replay_initial()
             .ok_or_else(|| invalid("no initial state"))?;
-        for i in 0..self.frames.len() {
-            let chunk = self.read_frame_and_siblings(i)?;
-            // The chunk is already bounded to one frame and its siblings.
-            // Decode it once: a lazy parse would index it only for the
-            // observation walk to immediately parse the same blocks again.
-            crate::gamelog::Log::parse_eager(&chunk).append_observations(&mut init, false);
+        if let Some(cached) = observations::get(&self.path, self.length, self.modified) {
+            cached.apply(&mut init);
+        } else {
+            for i in 0..self.frames.len() {
+                let chunk = self.read_frame_and_siblings(i)?;
+                // The bounded chunk is immediately traversed in full.
+                crate::gamelog::Log::parse_eager(&chunk).append_observations(&mut init, false);
+            }
+            self.validate()?;
+            observations::insert(&self.path, self.length, self.modified, &init);
         }
-        self.check_metadata(self.file.metadata()?)?;
+        self.validate()?;
         Ok(use_initial(init))
     }
 
@@ -399,10 +408,18 @@ mod tests {
             let log = crate::gamelog::Log::parse(text);
             let mut expected = log.initial().unwrap();
             expected.frame_bodies.clear();
-            IndexedCapture::open(&input.0)
-                .unwrap()
-                .with_replay_initial(|actual| assert_eq!(actual, expected))
-                .unwrap();
+            for _ in 0..2 {
+                IndexedCapture::open(&input.0)
+                    .unwrap()
+                    .with_replay_initial(|mut actual| {
+                        assert_eq!(actual, expected);
+                        // A caller's edits must not poison the cached observation set.
+                        actual.frame_seeds.push((-1, 123));
+                        actual.anim_lengths.clear();
+                        actual.frame_guys.clear();
+                    })
+                    .unwrap();
+            }
         }
     }
 
@@ -445,7 +462,9 @@ mod tests {
     fn changed_source_refuses_setup_scan() {
         let input = Input::new("BEGIN GAME\n BEGIN FRAME 1\n");
         let mut source = IndexedCapture::open(&input.0).unwrap();
+        source.with_replay_initial(|_| ()).unwrap();
         std::fs::write(&input.0, "BEGIN GAME\n").unwrap();
+        assert!(source.with_replay_initial(|_| ()).is_err());
         assert!(source.read_replay_setup().is_err());
         assert!(source.validate().is_err());
     }

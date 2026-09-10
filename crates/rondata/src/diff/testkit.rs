@@ -163,6 +163,8 @@ pub(crate) fn with_sibling_initials<R>(use_initials: impl FnOnce(&[&Initial<'_>]
 
 #[test]
 fn indexed_siblings_preserve_every_initial_field_except_audit_bodies() {
+    // Exercise reuse before comparing every retained field to whole-text parsing.
+    with_sibling_initials(|_| ());
     with_sibling_initials(|inits| {
         let paths: Vec<String> = SIBLING_DUMPS.iter().filter_map(|n| dump(n)).collect();
         assert_eq!(inits.len(), paths.len());
