@@ -809,7 +809,8 @@ impl Sim {
         self.update_action(u);
     }
 
-    /// `Unit::clear_partial_path@005e3920`, and it is a **no-op here**.
+    /// `Unit::clear_partial_path@005e3920` — the drop of a suspended
+    /// pathfinder search, and nothing else.
     ///
     /// The original's body is the suspended pathfinder search and nothing
     /// else: `UnitData +0x104` and `+0x10c`, the two `Tree<PathNode *>`s
@@ -892,10 +893,28 @@ impl Sim {
         self.update_action(u);
     }
 
-    /// `kill_current_path`: pop the stack until an entry with the final flag
-    /// is popped.
-    fn kill_current_path(&mut self, u: usize) {
+    /// `Unit::kill_current_path@005e31d0`: pop the stack until an entry
+    /// with the final flag is popped — **and then free the suspended
+    /// search**.
+    ///
+    /// The `clear_partial_path` call sits inside the function's own `0 <
+    /// length` guard, so an already-empty stack frees nothing; that guard
+    /// is the whole of the difference between this and
+    /// [`Sim::kill_current_order`], which clears unconditionally.
+    ///
+    /// It is what ends a suspended search that no longer has an order to
+    /// serve. `Unit::ungroup_move_order@005fd140` calls this on every
+    /// member that is not the leader (`docs/GROUPS.md`, and
+    /// `docs/PATHFINDER.md` §18.4), so the frame a formation degrades is
+    /// the frame each follower's stash goes — and the follower re-plans on
+    /// the next frame instead of standing in `do_move`'s suspended block
+    /// for the rest of the capture.
+    pub(crate) fn kill_current_path(&mut self, u: usize) {
+        if self.units[u].path.is_empty() {
+            return;
+        }
         self.units[u].discard_current_path_segment();
+        self.clear_partial_path(u);
     }
 
     /// `Unit::close_orders`: kill everything, oldest first.
@@ -1736,16 +1755,19 @@ impl Sim {
         // fourth `o + frame`, `collide` counts up every frame and
         // [`Sim::find_upath_restore`] resumes the search.
         //
-        // Wired, it is right on the mechanic and wrong on the score:
-        // run90's `1/6` and `1/7` stop parting anywhere in the capture's
-        // 111 blocks, and Great Lakes' long word falls 7679 → 6862,
-        // because run76's `1/28` still holds a `GROUP_ATTACK_TO` at 6860
-        // and the original's order becomes `ATTACK_TO` during that frame —
-        // whose enqueue frees the search through `clear_partial_path` —
-        // while this crate's `1/28` is already on a plain `ATTACK_TO`
-        // before 6858, so its formation ended early and no order change is
-        // left to free the stash. The row is the queue's **item 304**, and
-        // the wired block is one commit on the branch
+        // **Its Great Lakes cost is paid** (item 304,
+        // `docs/PATHFINDER.md` §18.5). Wired, the block used to cost
+        // Great Lakes' long word 7679 → 6862, and the cause was upstream
+        // of every line of it: run76's `1/28` degrades out of formation on
+        // 6860 on the original's own frame, but this crate's
+        // [`Sim::kill_current_path`] popped the path segment without the
+        // `clear_partial_path` under it, so the follower kept a suspended
+        // search that no order was left to serve and stood in this block
+        // for the rest of the capture. With that one call in place the
+        // wired measurement is East Indies 7812 → **8193** and Great Lakes
+        // **7679**, unmoved.
+        //
+        // What remains is the wiring itself, one commit on the branch
         // `worktree-loop-301-suspend`. `docs/PATHFINDER.md` §18.
 
         // `timer`: a self-destruct.

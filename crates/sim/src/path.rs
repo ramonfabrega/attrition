@@ -1939,6 +1939,54 @@ mod tests {
         );
     }
 
+    /// **`kill_current_path` frees the stash, and an empty stack does
+    /// not** (§18.4, item 304). `Unit::kill_current_path@005e31d0` pops
+    /// the stack back through the current segment's final waypoint and
+    /// then calls `clear_partial_path` — and the call sits *inside* the
+    /// function's own `0 < length` guard, so a unit with nothing on its
+    /// stack keeps whatever search it had.
+    ///
+    /// That guard is the whole difference between this and
+    /// `kill_current_order`, which clears unconditionally, and it is why
+    /// the assertion below is two-sided rather than one. The behaviour it
+    /// buys is `Unit::ungroup_move_order@005fd140`'s: a follower dropped
+    /// out of formation loses its suspended search on the same frame, and
+    /// re-plans on the next one instead of standing in `do_move`'s
+    /// suspended block for the rest of the capture.
+    ///
+    /// Made to fail on purpose both ways: without the `clear_partial_path`
+    /// call the first assertion fails (and run76's `1/28` stops re-planning
+    /// on 6861), and without the emptiness guard the second does.
+    #[test]
+    fn killing_the_current_path_frees_a_suspended_search() {
+        let mut sim = flat_sim(20);
+        let u = walker(&mut sim, Pos::new(0x18, 0x18));
+        let goal = Pos::new(0x18 + 40 * 0x30, 0x18 + 40 * 0x30);
+
+        push_goal(&mut sim, u, goal);
+        assert_eq!(sim.upath(u, false, 10, false), -1, "the plan suspends");
+        assert!(sim.units[u].search.is_some(), "the stash is on the unit");
+        // The suspend leaves the caller's final goal on the stack, so the
+        // pop runs and the clear with it.
+        assert_eq!(sim.units[u].path.len(), 1);
+        sim.kill_current_path(u);
+        assert!(
+            sim.units[u].path.is_empty() && sim.units[u].search.is_none(),
+            "a non-empty stack: the segment goes and the stash goes with it"
+        );
+
+        // And the guard. Suspend a second search, empty the stack by hand,
+        // and the teardown is a no-op on both.
+        push_goal(&mut sim, u, goal);
+        assert_eq!(sim.upath(u, false, 10, false), -1);
+        sim.units[u].path.clear();
+        sim.kill_current_path(u);
+        assert!(
+            sim.units[u].search.is_some(),
+            "`0 < length` gates the clear: an empty stack frees nothing"
+        );
+    }
+
     #[test]
     fn the_unit_grid_plans_in_48_cells_and_compacts_the_line() {
         let mut sim = flat_sim(12);
