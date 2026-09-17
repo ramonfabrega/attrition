@@ -1244,7 +1244,10 @@ as a **change** (`run90_s_window_is_east_indies_shuffle`).
 
 A `grep` of the disk puts the mechanic's reach beyond this one window:
 twenty-three captures carry a non-zero `start_dist`, run16 with 8,752 rows.
-The suspend is not a corner of the pathfinder.
+The suspend is not a corner of the pathfinder. **§19 is that sweep, done**
+— and it amends this paragraph twice: ~~the suspend block is the field's
+only writer~~ it is the only writer of a *value*, two initialisers zero it,
+and the reach is asserted per capture rather than grepped.
 
 ### 18.3 What is implemented, and what is not wired
 
@@ -1270,8 +1273,9 @@ The suspend is not a corner of the pathfinder.
 - `Sim::clear_partial_path` stopped being a no-op: it is what frees the
   stash, which is the original's whole body for `005e3920`.
 
-**Read, built and not wired** (`docs/DECISIONS.md` entry 30), all three
-together because they are one change:
+~~**Read, built and not wired**~~ — **wired on 2026-09-17**, all three
+together because they are one change (`docs/DECISIONS.md` entry 30), and
+§19's comparison runs against the wired tree:
 
 - the §18.1 gate;
 - `find_upath`'s limit `500 / max(1, repaths²)`, halved with `anti`
@@ -1443,3 +1447,132 @@ and those two are run76's standing `1/24` and `1/25`.
 `Group::action_*` family and the `think_carry*` family are the two blocks
 with no counterpart call in this crate at all, and no run on disk reaches
 either with a stash pending.
+
+## 19. `start_dist` over every capture on disk, and what it is made of (2026-09-17)
+
+§18.2 established `UnitData::start_dist` from **one** window: run90's `1/7`
+reads 144, and 144 is the Manhattan from its snapped cell centre to its move
+order's goal. One unit, one value, one capture — and a single value can agree
+with a wrong reading for a long time. Item 308 asked the same question of
+every capture already on disk. **Twenty-three carry a non-zero value**, over
+**1,184,141 dumped rows** and **51 stamped units**; run16 alone holds 8,752
+stamped rows. Nothing was captured for this: the rows were already there.
+
+The assertable count is **16,617 stamped rows in 23 captures**, and it is
+what the `FRAME` records carry — the only thing a frame diff can ever reach.
+A raw `grep` of the same files finds 16,643 and 53 units; the extra 26 rows
+and 2 units sit in root-level `FULL DUMP` blocks written *outside* any frame,
+which the four islands window captures each end with. That difference is
+worth naming rather than rounding away: a sweep that counts the file and a
+diff that walks the frames are not measuring the same thing, and the smaller
+number is the honest one.
+
+**The writers, all three.** §18.2 said "exactly one writer in the whole
+executable", which is right about *values* and incomplete about the field:
+
+| site | what it writes |
+|---|---|
+| `PathFinder::astar_path@00683770:517` | the value — the suspend block, and the only place a non-zero ever comes from |
+| `UnitData::UnitData@00606670:74` | 0, at construction |
+| `Unit::init@00612100:567` | 0, beside the five container pointers |
+
+The third matters, and the corpus proves it acts. The value itself is built at
+`:453`, `local_6c = |local_50| + |local_4c|` — the sign-mask idiom for
+`abs(dx) + abs(dy)` — from the start-to-goal delta of the search about to run,
+and it is read back at `:297` on a resume, so a resumed search keeps the
+distance the *first* attempt started from and does not recompute it.
+
+**Three invariants, each of which the decompile predicts and none of which a
+mis-read field would satisfy.** They are asserted per capture in
+`the_suspend_s_stamp_is_a_48_grid_manhattan_on_every_capture`.
+
+- **Every non-zero value is a positive multiple of 48.** Both ends of the
+  delta are 48-cell *centres*, so the difference is a whole number of cells
+  however the goal was arrived at. 16,617 rows, 29 distinct values, from 144
+  (3 cells) to 42,960 (895), and not one off the grid. This is the check that
+  would have caught a field read at the wrong offset or the wrong width —
+  item 269's third axis — because an `int` misread would land off the grid
+  almost surely.
+- **Every stamped unit-frame has `collide_frame >= 0`.** The 48-grid search a
+  unit can suspend is the one `resolve_unit_collision` step 6 starts, so a
+  stamp with no collision behind it would say the suspend is reached some
+  other way. There is none in 16,617 rows.
+- **Nothing clears it within a unit's life.** Keyed on `uid` there are **zero**
+  non-zero → zero transitions in 1,184,141 rows.
+
+**The one apparent clear is the proof, not the exception.** Keyed on the
+per-player `o` alone there is exactly one in the whole corpus: run16's `1/9`
+reads 768 at block 3016 and 0 at block 3960. The unit is absent from the dump
+for the 944 blocks between, and the record either side names two different
+objects —
+
+```
+ block 3016   who 1  o 9   uid 17   myhits 40   start_dist 768
+ block 3960   who 1  o 9   uid 25   myhits 70   start_dist 0
+```
+
+— so `o` was handed back out and a new unit was born into it. That is
+`Unit::init@00612100:567` zeroing the stamp, observed acting once. It is also
+why `uid` is now parsed (`UnitDump::uid`): `o` is a slot and cannot carry a
+claim about permanence.
+
+**And the stamp is not a high-water mark.** The frames hold 22 transitions —
+17 first stamps and **5 re-stamps**, non-zero → non-zero, in both directions
+(run50's `0/21` goes 3120 → 816, run16's `1/12` goes 720 → 1440). A later
+suspend simply overwrites it, which is what a single unconditional assignment
+at `:517` says and what a "furthest search so far" reading would have got
+wrong.
+
+**The transitions are what is asserted, not the values.** A field nothing
+clears is checked on the block it *changes*, never on the block it reads —
+`collide_frame`'s rule, and the shape run85's first teeth check fell into.
+Once run90's `1/7` reads 144 it reads 144 on all 89 of its later blocks, so a
+value assertion there passes 89 times for the price of one; the suspend is
+dated by 7811, the block the value appears on, and that is the row. The pinned
+table is every transition in every capture — `(block, who, o, from, to)` — and
+it holds the two the earlier items proved as ordinary rows of a larger set:
+run90's `(7811, 1, 7, 0, 144)` and run76's `(6861, 1, 28, 0, 7680)`. Thirteen
+of the twenty-three have none to pin, because a window capture that opens
+after its unit suspended carries the stamp already standing; for those the row
+and unit counts are what says the reader could see anything at all.
+
+**The field is now compared, not only asserted.** `UnitData::log_data` writes
+`start_dist` at *every* detail level — it is there in the smallest capture on
+disk — and nothing compared it until this item: `FrameResult::search_compared`
+/ `search_diverged` check it on every unit-frame whose position the two sides
+agree on, in both directions from zero. A stamp this crate does **not** have
+is the interesting half, because it says the original gave up on a search
+where this crate did not. That required the stamp to move out of `path::Search`
+and onto `sim::Unit`: in the original it lives on `UnitData` and outlives the
+containers handed over beside it, so it still reads back long after
+`clear_partial_path` has freed them, and a copy that dies with the stash could
+never match a dump taken after the search ended.
+
+**Where the reach is.** Sixteen of the twenty-three captures are Great Lakes or
+East Indies — the two maps the finish line names — and the suspend is dense in
+exactly the windows the word sits in: run76 (9 rows, `1/28`, §18.5), run83,
+run84, run87, run89, run91 all carry the same two Great Lakes units at 6336 and
+7680. The mechanism §18.3 wires is not a corner of one window.
+
+**And on the wired tree it agrees.** The comparison was run on the base's
+own tip — `7cfd663`, which carries the suspend wired (§18.3) — against the
+two windows the suspend was found in:
+
+| | unit-frames compared | disagreements |
+|---|---|---|
+| run76 (Great Lakes) | 8,032 | **0** |
+| run90 (East Indies) | 2,860 | **0** |
+
+10,892 comparisons, nothing apart. That is a *value* diff, not a draw
+stream: it says this crate's `1/7` stamps 144 on 7811 and `1/28` stamps
+7680 on 6861, the same blocks and the same numbers the original does, and
+keeps them for the rest of both windows. The column would have been all
+disagreement a day ago — an unwired suspend stamps nothing — so the new
+counter is also a standing check that the wiring stays wired.
+
+**What this does not establish.** The three invariants are properties of the
+original's own dump. They say the field is what §18 claims; they do not say
+this crate reproduces a row on any capture the comparison has not run, and
+the two windows above are the only ones it has. The other twenty-one carry
+stamped rows that no test yet replays — that is reach for the taking, and
+each one is a capture already on disk.

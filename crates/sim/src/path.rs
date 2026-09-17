@@ -844,6 +844,13 @@ impl Sim {
                 if over_limit && manh > arrive && anti == 0 {
                     open.insert(key, cur_id);
                     open_by_metric.insert(cur.metric, (key.1.0, cur.value, cur_id));
+                    // The stamp goes on the **unit**, not into the stash:
+                    // `astar_path@00683770:517` writes `UnitData +0x130`,
+                    // which outlives the containers it hands over beside it
+                    // (`docs/PATHFINDER.md` §18.6). Nothing but a unit's
+                    // birth clears it, so this is the one field of the
+                    // hand-over that survives `clear_partial_path`.
+                    self.units[u].start_dist = start_dist;
                     self.units[u].search = Some(Box::new(Search {
                         nodes,
                         open,

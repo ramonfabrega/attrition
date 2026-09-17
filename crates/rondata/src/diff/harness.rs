@@ -153,6 +153,37 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
                 }
             }
         }
+        // **`UnitData::start_dist` (`+0x130`)** — the dumped witness that
+        // a 48-grid search suspended on this unit, and the one field of
+        // `astar_path`'s hand-over that outlives the hand-over
+        // (`docs/PATHFINDER.md` §18.6). It is written by the suspend block
+        // and by nothing else that writes a value, and cleared only at a
+        // unit's birth, so it is a permanent stamp exactly the way
+        // `collide_frame` is — and unlike `collide_frame` it is compared
+        // in both directions from zero, because a stamp this crate does
+        // *not* have is the interesting half: it says the original gave up
+        // on a search here and this crate did not.
+        //
+        // Gated on the positions agreeing for the same reason the
+        // collision block is: a unit that has walked somewhere else
+        // suspends on different searches as a consequence, and counting
+        // that would measure the position gap twice.
+        if ours == theirs
+            && built.sim.units[link.unit].on_map
+            && let Some(theirs_dist) = u.start_dist
+        {
+            r.search_compared += 1;
+            let ours_dist = i64::from(built.sim.units[link.unit].start_dist);
+            if ours_dist != theirs_dist {
+                r.search_diverged.push(SearchDivergence {
+                    frame: frame.n,
+                    who: u.who,
+                    o: u.o,
+                    ours: ours_dist,
+                    theirs: theirs_dist,
+                });
+            }
+        }
         // The two angles, each against its own field — **on the unit-frames
         // where the two sides still agree on the position**. A unit that has
         // walked somewhere else is facing somewhere else as a consequence,
@@ -4438,6 +4469,30 @@ mod tests {
         );
 
         let report = run_traced(&loaded, &log, Tuning::RON, None, None, &refs, Some(&tr)).unwrap();
+
+        // **And `UnitData::start_dist`, on every unit of every block**
+        // (item 308, `docs/PATHFINDER.md` §19). The field is written at
+        // every detail level and nothing in this crate compared it until
+        // 308 gave it a column of its own; with the suspend wired it
+        // agrees over the whole window, so `1/28` stamps 7680 on block 6861 — the frame §18.5's
+        // `kill_current_path` fix lands on — and holds it.
+        //
+        // It would have been all disagreement a day ago — an unwired
+        // suspend stamps nothing — so this is the check that the wiring
+        // stays wired, and it is a value diff rather than a draw stream.
+        let sd_compared: usize = report.frames.iter().map(|f| f.search_compared).sum();
+        let sd_diverged: Vec<_> = report
+            .frames
+            .iter()
+            .flat_map(|f| f.search_diverged.iter())
+            .collect();
+        assert!(
+            sd_compared == 8_032 && sd_diverged.is_empty(),
+            "run76's `start_dist` column: {sd_compared} compared, {} apart — \
+             first {:?}",
+            sd_diverged.len(),
+            sd_diverged.first()
+        );
         let blocks: Vec<i64> = report
             .frames
             .iter()
@@ -7753,6 +7808,30 @@ mod tests {
 
         // Now the comparison — every unit of every block.
         let report = run_traced(&loaded, &log, Tuning::RON, None, None, &refs, Some(&tr)).unwrap();
+
+        // **And `UnitData::start_dist`, on every unit of every block**
+        // (item 308, `docs/PATHFINDER.md` §19). The field is written at
+        // every detail level and nothing in this crate compared it until
+        // 308 gave it a column of its own; with the suspend wired it
+        // agrees over the whole window, so `1/7` stamps 144 on block 7811 and holds it to 7899,
+        // the blocks and the values the original's own record carries.
+        //
+        // It would have been all disagreement a day ago — an unwired
+        // suspend stamps nothing — so this is the check that the wiring
+        // stays wired, and it is a value diff rather than a draw stream.
+        let sd_compared: usize = report.frames.iter().map(|f| f.search_compared).sum();
+        let sd_diverged: Vec<_> = report
+            .frames
+            .iter()
+            .flat_map(|f| f.search_diverged.iter())
+            .collect();
+        assert!(
+            sd_compared == 2_860 && sd_diverged.is_empty(),
+            "run90's `start_dist` column: {sd_compared} compared, {} apart — \
+             first {:?}",
+            sd_diverged.len(),
+            sd_diverged.first()
+        );
         let blocks: Vec<i64> = report
             .frames
             .iter()

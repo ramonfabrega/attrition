@@ -48,6 +48,23 @@ pub struct CollideDivergence {
     pub theirs: i64,
 }
 
+/// One unit-frame whose **`UnitData::start_dist` (`+0x130`)** the two
+/// sides disagree on — the dumped witness that a 48-grid search suspended
+/// (`docs/PATHFINDER.md` §18.6).
+///
+/// It is its own row rather than one more `field` of
+/// [`CollideDivergence`] because it is its own mechanic: the collision
+/// block says what is in the way, and this says the search gave up on
+/// going round it.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct SearchDivergence {
+    pub frame: i64,
+    pub who: i64,
+    pub o: i64,
+    pub ours: i64,
+    pub theirs: i64,
+}
+
 /// One unit whose line of sight the two sides disagree on.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct LosDivergence {
@@ -2882,5 +2899,259 @@ mod tests {
             out.push((who, o, "extra".into(), String::new()));
         }
         out
+    }
+
+    /// Every capture on disk that carries a non-zero `UnitData::start_dist`
+    /// — the suspend's whole reach (`docs/PATHFINDER.md` §18.6): the file,
+    /// its stamped unit-frames, its stamped units, and **every transition of
+    /// the stamp inside it** as `(block, who, o, from, to)`.
+    ///
+    /// Named rather than globbed so each one goes through [`dump`] and into
+    /// the fixture audit, and so a capture that stops carrying the field is a
+    /// failure rather than a silence.
+    ///
+    /// **The transitions are the assertion with teeth.** Nothing clears the
+    /// field inside a unit's life, so once run90's `1/7` reads 144 it reads
+    /// 144 on every later block and a value check there passes on 89 rows for
+    /// the price of one — the shape run85's first teeth check fell into. What
+    /// the suspend actually dates is the block the value *appears* on, so that
+    /// is what is pinned; the row and unit counts stay beside it as the proof
+    /// that the reader could see anything at all.
+    ///
+    /// An empty list is not an absent stamp: a window capture that opens after
+    /// its unit suspended carries the stamp already standing, which is why
+    /// thirteen of the twenty-three have no transition to pin.
+    #[expect(
+        clippy::type_complexity,
+        reason = "one pinned row per capture, read as a table"
+    )]
+    const SUSPEND_CAPTURES: &[(&str, usize, usize, &[(i64, i64, i64, i64, i64)])] = &[
+        (
+            "gamelog-run16-attrition.txt",
+            8_752,
+            3,
+            &[
+                (2015, 1, 9, 0, 768),
+                (2583, 1, 12, 0, 720),
+                (2735, 1, 12, 720, 1440),
+                (2738, 1, 10, 0, 2112),
+            ],
+        ),
+        (
+            "gamelog-scratch-2026-08-20-2219.txt",
+            1_729,
+            1,
+            &[(2610, 1, 10, 0, 240)],
+        ),
+        (
+            "gamelog-run50-greatlakes-echelon.txt",
+            1_114,
+            3,
+            &[
+                (468, 0, 6, 0, 1248),
+                (538, 0, 21, 0, 3120),
+                (539, 0, 21, 3120, 816),
+                (586, 0, 16, 0, 1248),
+            ],
+        ),
+        (
+            "gamelog-run79-greatlakes-secondsquad.txt",
+            649,
+            2,
+            &[(6941, 1, 29, 0, 6336)],
+        ),
+        (
+            "gamelog-run46-greatlakes-fourthclick.txt",
+            643,
+            1,
+            &[(259, 0, 17, 0, 1440)],
+        ),
+        ("gamelog-run17-combat.txt", 625, 1, &[(1977, 1, 0, 0, 1296)]),
+        ("gamelog-run80-greatlakes-latecensus.txt", 560, 14, &[]),
+        ("gamelog-run87-greatlakes-blockedwalker.txt", 552, 2, &[]),
+        ("gamelog-run89-greatlakes-wordframe.txt", 492, 2, &[]),
+        (
+            "gamelog-run44-islands-turners.txt",
+            481,
+            3,
+            &[
+                (321, 1, 9, 0, 1584),
+                (345, 1, 7, 0, 2544),
+                (543, 1, 11, 0, 1728),
+                (598, 1, 11, 1728, 1920),
+            ],
+        ),
+        ("gamelog-run77-eastindies-squadbirth.txt", 250, 1, &[]),
+        ("gamelog-run78-eastindies-threeborn.txt", 200, 1, &[]),
+        ("gamelog-run91-greatlakes-wordledger.txt", 172, 2, &[]),
+        ("gamelog-run84-greatlakes-makelist.txt", 160, 2, &[]),
+        (
+            "gamelog-run90-eastindies-shuffle.txt",
+            89,
+            1,
+            &[(7811, 1, 7, 0, 144)],
+        ),
+        ("gamelog-run83-greatlakes-wordwindow.txt", 52, 1, &[]),
+        ("gamelog-run19-window-8174-8192.txt", 36, 2, &[]),
+        (
+            "gamelog-run30-humangroup-nogroups.txt",
+            34,
+            2,
+            &[
+                (345, 0, 32, 0, 3072),
+                (349, 0, 6, 0, 1824),
+                (350, 0, 32, 3072, 3024),
+                (362, 0, 32, 3024, 3120),
+            ],
+        ),
+        ("gamelog-run27-islands-defending-window.txt", 6, 2, &[]),
+        ("gamelog-run29-islands-engagement-window.txt", 6, 2, &[]),
+        (
+            "gamelog-run76-greatlakes-archermarch.txt",
+            9,
+            1,
+            &[(6861, 1, 28, 0, 7680)],
+        ),
+        ("gamelog-run25-islands-emergency-window.txt", 3, 1, &[]),
+        ("gamelog-run26-islands-findtarget-window.txt", 3, 1, &[]),
+    ];
+
+    /// **The suspend, over every capture that has ever recorded one**
+    /// (2026-09-17, item 308). `docs/PATHFINDER.md` §18.6.
+    ///
+    /// §18.2 established `UnitData::start_dist` (`+0x130`) from a single
+    /// window: run90's `1/7` reads 144, and 144 is the Manhattan from its
+    /// snapped cell centre to its move order's goal. One unit, one value,
+    /// one capture. This is the same claim asked of **23 captures,
+    /// 16,617 stamped rows and 51 stamped units**, and it is asked of
+    /// the field's *shape* rather than of any one value, because a shape
+    /// is what a second window can falsify.
+    ///
+    /// The counts are what the **`FRAME` records** carry, which is what a
+    /// frame diff can ever reach. A raw `grep` of the same 23 files finds
+    /// 16,643 and 53: the extra 26 rows and 2 units sit in root-level
+    /// `FULL DUMP` blocks written *outside* any frame — the four islands
+    /// window captures each end with one — and no per-frame comparison
+    /// visits them.
+    ///
+    /// Three invariants, each of which the decompile predicts and none of
+    /// which a mis-read field would satisfy:
+    ///
+    /// - **Every non-zero value is a positive multiple of 48.**
+    ///   `astar_path@00683770:453` computes `|dx| + |dy|` between two
+    ///   points the 48-grid search has snapped to cell *centres*, so the
+    ///   difference is a whole number of cells however the goal was
+    ///   reached. Over the corpus the values run 144 (3 cells) to 42,960
+    ///   (895), 29 distinct, and not one of them is off the grid.
+    /// - **Every stamped unit-frame has `collide_frame >= 0`.** The
+    ///   48-grid search a unit can suspend is the one
+    ///   `resolve_unit_collision` step 6 starts, so a stamp without a
+    ///   collision behind it would say the suspend is reached some other
+    ///   way. None is.
+    /// - **Nothing clears it within a unit's life.** Keyed on `uid` there
+    ///   are zero non-zero → zero transitions in 1,184,141 rows; keyed on
+    ///   the per-player `o` alone there is exactly one, and it is the
+    ///   proof rather than the exception — run16's `1/9` reads 768 at
+    ///   block 3016 under `uid 17` and 0 at block 3960 under **`uid 25`**,
+    ///   a recycled slot, which is `Unit::init@00612100:567` zeroing the
+    ///   stamp beside the five container pointers at a unit's birth.
+    ///
+    /// The 24 transitions the corpus does hold are 19 first stamps and
+    /// **5 re-stamps**, nonzero → nonzero, in both directions (run50's
+    /// `0/21` goes 3120 → 816). So the field is not a high-water mark and
+    /// is not monotone: a later suspend simply overwrites it, exactly as
+    /// the single assignment at `:517` says.
+    ///
+    /// Streamed one frame at a time, so the memory cap holds over 5.3 GB.
+    #[test]
+    fn the_suspend_s_stamp_is_a_48_grid_manhattan_on_every_capture() {
+        let mut seen = 0;
+        let mut rows_total = 0;
+        let mut units_total = 0;
+        for &(name, want_rows, want_units, want_changes) in SUSPEND_CAPTURES {
+            let Some(path) = dump(name) else { continue };
+            let mut source = match crate::capture::indexed::IndexedCapture::open(&path) {
+                Ok(s) => s,
+                Err(e) => panic!("{name} will not index: {e}"),
+            };
+            seen += 1;
+            let mut rows = 0;
+            let mut units = std::collections::BTreeSet::new();
+            let mut off_grid = Vec::new();
+            let mut uncollided = Vec::new();
+            let mut cleared = Vec::new();
+            let mut changes: Vec<(i64, i64, i64, i64, i64)> = Vec::new();
+            let mut last: std::collections::BTreeMap<(i64, i64, i64), i64> =
+                std::collections::BTreeMap::new();
+            for frame in source.frame_states() {
+                let frame = frame.expect("indexed frame");
+                for u in &frame.units {
+                    let Some(dist) = u.start_dist else { continue };
+                    let uid = u.uid.unwrap_or(-1);
+                    if dist != 0 {
+                        rows += 1;
+                        units.insert((u.who, u.o));
+                        if dist <= 0 || dist % 48 != 0 {
+                            off_grid.push((frame.n, u.who, u.o, dist));
+                        }
+                        if u.collide_frame.is_some_and(|c| c < 0) {
+                            uncollided.push((frame.n, u.who, u.o, dist));
+                        }
+                    }
+                    let key = (u.who, u.o, uid);
+                    if dist == 0 && last.get(&key).is_some_and(|&p| p != 0) {
+                        cleared.push((frame.n, u.who, u.o, uid));
+                    }
+                    match last.insert(key, dist) {
+                        Some(before) if before != dist => {
+                            changes.push((frame.n, u.who, u.o, before, dist));
+                        }
+                        // The first block a window capture carries a unit
+                        // on is not a transition: the stamp may already be
+                        // standing from before the window opened.
+                        _ => {}
+                    }
+                }
+            }
+            assert!(
+                off_grid.is_empty(),
+                "{name}: {} stamps are not a positive multiple of 48 —                  `astar_path` snaps both ends to a 48-cell centre, so this                  is a field read at the wrong offset or the wrong width:                  {:?}",
+                off_grid.len(),
+                &off_grid[..off_grid.len().min(4)]
+            );
+            assert!(
+                uncollided.is_empty(),
+                "{name}: {} stamped unit-frames never collided — the                  48-grid search a unit suspends is the one                  `resolve_unit_collision` step 6 starts: {:?}",
+                uncollided.len(),
+                &uncollided[..uncollided.len().min(4)]
+            );
+            assert!(
+                cleared.is_empty(),
+                "{name}: {} stamps were cleared inside one unit's life —                  only `Unit::init` zeroes the field, and that is a birth:                  {:?}",
+                cleared.len(),
+                &cleared[..cleared.len().min(4)]
+            );
+            assert_eq!(
+                (rows, units.len()),
+                (want_rows, want_units),
+                "{name}'s suspend rows"
+            );
+            assert_eq!(
+                changes, want_changes,
+                "{name}'s `start_dist` transitions — the blocks the suspend \
+                 dates, which is what a never-cleared field is checked on"
+            );
+            rows_total += rows;
+            units_total += units.len();
+        }
+        if seen == 0 {
+            eprintln!("skipping: no suspend captures (set RON_GAMELOG_DIR)");
+            return;
+        }
+        assert_eq!(
+            (seen, rows_total, units_total),
+            (23, 16_617, 51),
+            "the suspend's reach on this machine"
+        );
     }
 }

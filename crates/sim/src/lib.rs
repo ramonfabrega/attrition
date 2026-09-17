@@ -196,6 +196,19 @@ pub struct Unit {
     /// the search instead (`docs/ORDERS.md` §4.4 step 2).
     /// [`Sim::clear_partial_path`] is what drops it.
     pub search: Option<Box<path::Search>>,
+    /// **`UnitData::start_dist` (`+0x130`) — the dumped witness that this
+    /// unit suspended a 48-grid search** (`docs/PATHFINDER.md` §18.6).
+    ///
+    /// It is a *stamp on the unit*, not a field of the stash: the original
+    /// keeps it on `UnitData`, so it outlives the search that wrote it and
+    /// still reads back long after `clear_partial_path` has freed the five
+    /// containers. Three writers in the whole executable, and only one
+    /// writes a value — `astar_path@00683770:517`, the suspend, which
+    /// stores the search's start-to-goal Manhattan; the other two zero it
+    /// at a unit's birth (`UnitData::UnitData@00606670:74` and
+    /// `Unit::init@00612100:567`), which is why a recycled `o` slot reads
+    /// 0 again and a live unit never does.
+    pub start_dist: i32,
     /// `UnitData::tolerance`: the current waypoint's arrival radius.
     pub tolerance: i32,
     /// `unit_masks & 8`: a straight line to the waypoint has been verified.
@@ -641,6 +654,9 @@ impl Unit {
             pos,
             health,
             search: None,
+            // `Unit::init@00612100:567` zeroes the stamp beside the five
+            // container pointers: a unit's search state starts empty.
+            start_dist: 0,
             damage_frac: 0,
             squad_size: 1,
             kind: attrition::UnitKind::default(),

@@ -53,6 +53,15 @@ pub struct FrameResult {
     /// disagreed (`docs/COLLISION.md` §8).
     pub collide_compared: usize,
     pub collide_diverged: Vec<CollideDivergence>,
+    /// **`UnitData::start_dist` (`+0x130`)**, compared on every unit-frame
+    /// the dump carries it for — which is every one, at every detail level
+    /// (`docs/PATHFINDER.md` §18.6). A non-zero value is the original
+    /// saying a 48-grid search suspended on that unit and never came back
+    /// to the goal; the field is written by `astar_path`'s suspend block
+    /// alone and cleared only at a unit's birth, so it dates the suspend
+    /// and then stands for the rest of that unit's life.
+    pub search_compared: usize,
+    pub search_diverged: Vec<SearchDivergence>,
     /// Gather-record fields compared this frame, and the ones that
     /// disagreed. `BUILDS=7` is what writes the mining list; below it only
     /// `gather_down` is compared, and on a capture with no `BUILDDATA` at
