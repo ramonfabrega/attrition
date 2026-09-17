@@ -2202,6 +2202,162 @@ mod tests {
         );
     }
 
+    /// **run89 says what Great Lakes' 7679 draw is made of — the block's
+    /// own geometry on 7675, read off the original and nothing else**
+    /// (item 312).
+    ///
+    /// The headline word is `1/39` spending a `Guy::set_anim+0x97a <
+    /// Unit::move_step+0x823` the original does not, and that site is
+    /// **`move_step:281`'s blocked-step idle request** (`docs/ANIM.md` §4's
+    /// caller table, [`sim::anim::SITE_BLOCKED`]) — not the walk call at
+    /// `:304`. A blocked step is a position question, and the position is
+    /// four frames upstream: on **7675**, the first block after the
+    /// `GROUP_ATTACK_TO` of frame 7674, this crate's block leader `1/37`
+    /// carries **one waypoint more** than the original's, aims 7° off
+    /// because of it, and `Group::update_positions` turns every follower's
+    /// slot with the leader's aim.
+    ///
+    /// Everything below is the **original's** record, so it stays true
+    /// whatever this crate does and is the target a fix has to hit. What
+    /// this crate holds against it is the journal's
+    /// (`docs/journal/2026-09-17-item-312.md`); the live comparison is the
+    /// `RON_DEBUG_ROWS` widening on
+    /// [`Self::run89_s_window_is_great_lakes_word_frame`].
+    #[test]
+    fn run89_says_great_lakes_7675_is_the_word_s_own_block() {
+        let Some(path) = dump("gamelog-run89-greatlakes-wordframe.txt") else {
+            eprintln!("skipping: no run89 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let text = crate::capture::read(&path);
+        let log = Log::parse(&text);
+        let states = log.frame_states();
+        let at = |n: i64| {
+            states
+                .iter()
+                .find(|f| f.n == n)
+                .unwrap_or_else(|| panic!("run89 carries no block {n}"))
+        };
+        let unit = |n: i64, o: i64| {
+            at(n)
+                .units
+                .iter()
+                .find(|u| u.who == 1 && u.o == o)
+                .unwrap_or_else(|| panic!("block {n}: no 1/{o}"))
+        };
+        // The 48-grid cell a world-unit point falls in — the grid
+        // `find_wpath` plans on, and the unit the waypoint count is
+        // counted in.
+        let cell = |p: (i64, i64)| (p.0.div_euclid(0x300), p.1.div_euclid(0x300));
+
+        // **The block and its leader.** `1/37` is a captain (`o_up −1`)
+        // with `1/38` under it, and the group order names it as the
+        // formation's own index 9.
+        let l75 = unit(7675, 37);
+        assert_eq!(l75.o_up, Some(-1), "1/37 is not a captain on 7675");
+        assert_eq!(
+            (l75.pos.x, l75.pos.y),
+            (43155, 24567),
+            "1/37 does not open 7675 where the word's block puts it"
+        );
+        assert_eq!(
+            l75.angle,
+            Some(-598605824),
+            "1/37's `angle` on 7675 is the slot table's rotation input \
+             (`docs/GROUPS.md`, `Group::update_positions`)"
+        );
+
+        // **Nine waypoints, and the head the original does not plan.**
+        // The chain is `base + k·0x300`; its bottom is the leader's raw
+        // slot destination and its head is two cells from the leader's
+        // own, not one.
+        let base = (36303, 23348);
+        assert_eq!(l75.path.len(), 9, "1/37's chain on 7675 is not nine long");
+        assert_eq!(
+            (l75.path[0].to, l75.path[0].flags),
+            (base, 1),
+            "the chain's bottom is not the leader's raw slot"
+        );
+        let head = l75.path.last().expect("a head").to;
+        assert_eq!(head, (41688, 23352), "the chain's head moved");
+        assert_eq!(
+            (cell(head), cell((l75.pos.x, l75.pos.y))),
+            ((54, 30), (56, 31)),
+            "the head is no longer two cells off the leader's own"
+        );
+        // The frame before, on the **old** order, the same search from the
+        // same cell left a chain one longer, ending on the cell the new
+        // one skips: `(42456, 24120)` is cell (55, 31), and it is exactly
+        // the entry this crate's 7675 chain carries and the original's
+        // does not.
+        let l74 = unit(7674, 37);
+        assert_eq!(cell((l74.pos.x, l74.pos.y)), (56, 32), "1/37 moved cell");
+        assert_eq!(l74.path.len(), 10, "the old chain is not ten long");
+        assert_eq!(
+            l74.path.last().expect("a head").to,
+            (42744, 24168),
+            "the old chain's head moved"
+        );
+        assert_eq!(cell((42456, 24120)), (55, 31), "the skipped cell moved");
+
+        // **The two followers' targets, symmetric about the leader.**
+        // Each is one leg plus the goal, and the leg is the slot the
+        // rotated block puts it in: the pair spreads `(185, −221)` about
+        // `1/37`'s own position, which is what a 7° error in the leader's
+        // aim turns.
+        let (f38, f39) = (unit(7675, 38), unit(7675, 39));
+        for (o, u, leg) in [(38, f38, (43062, 24677)), (39, f39, (43247, 24456))] {
+            assert_eq!(u.path.len(), 2, "1/{o}'s stack on 7675 is not goal + leg");
+            assert_eq!(u.path.last().expect("a leg").to, leg, "1/{o}'s leg moved");
+            let m = u.orders.last().expect("1/{o}'s order");
+            assert_eq!(
+                (m.dest_x, m.dest_y),
+                (Some(leg.0), Some(leg.1)),
+                "1/{o}'s order does not name its own leg"
+            );
+            assert_eq!(
+                m.group_angle,
+                Some(-796327936),
+                "1/{o}'s group angle is not the block's"
+            );
+        }
+        let spread = (
+            f39.path[1].to.0 - f38.path[1].to.0,
+            f39.path[1].to.1 - f38.path[1].to.1,
+        );
+        assert_eq!(spread, (185, -221), "the block's spread moved");
+        // Symmetric to the unit — the sums are odd, so the midpoint
+        // truncates a unit short of the leader on both axes.
+        let sum = (
+            f38.path[1].to.0 + f39.path[1].to.0,
+            f38.path[1].to.1 + f39.path[1].to.1,
+        );
+        assert_eq!(
+            (sum.0 - 2 * l75.pos.x, sum.1 - 2 * l75.pos.y),
+            (-1, -1),
+            "the two slots are not symmetric about the leader"
+        );
+
+        // **And the original walks the word frame clean.** `1/39` never
+        // collides across the window — `collide_frame` stands at 7659 —
+        // and its order is still the group's on 7684, five blocks past the
+        // frame this crate's blocked step degrades it on.
+        for n in 7675..=7684 {
+            let u = unit(n, 39);
+            assert_eq!(u.collide, Some(0), "1/39 collides on block {n}");
+            assert_eq!(
+                u.collide_frame,
+                Some(7659),
+                "1/39's last collision moved on block {n}"
+            );
+            assert_eq!(
+                u.orders.last().map(|o| o.group_angle),
+                Some(Some(-796327936)),
+                "1/39 has left the group by block {n}"
+            );
+        }
+    }
+
     /// **run89 — Great Lakes' word is a bird's arrival stand, and it costs
     /// a citizen's next gather spot on the same frame** (2026-09-07, item
     /// 272).
@@ -2588,6 +2744,20 @@ mod tests {
             eprintln!("  f{f} {who}/{o} {what}: {row}");
         }
         eprintln!("run89: {above} rows above the word, printed and not pinned");
+        // **The window's own rows, above the word.** `RON_DEBUG_ROWS=<lo>-<hi>`
+        // prints every diverging row of every unit on those blocks, which is
+        // what "diff the whole record, and every unit on the frame" costs when
+        // the question is a draw past 7585 (item 312).
+        if let Some((lo, hi)) = crate::diff::harness::site_window_named("RON_DEBUG_ROWS") {
+            for fr in &report.frames {
+                if !(lo..=hi).contains(&fr.frame) {
+                    continue;
+                }
+                for (who, o, what, row) in rows(fr) {
+                    eprintln!("  f{} {who}/{o} {what}: {row}", fr.frame);
+                }
+            }
+        }
         let parted: std::collections::BTreeSet<(i64, i64)> =
             wrong.iter().map(|r| (r.1, r.2)).collect();
         assert_eq!(
