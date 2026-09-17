@@ -2358,6 +2358,163 @@ mod tests {
         }
     }
 
+    /// **run92 says the extra waypoint is `GroupData::get_loc`'s second
+    /// arm, and it names the cell** (item 314).
+    ///
+    /// Item 312 left one question: the leader `1/37` plans a chain with
+    /// **one head waypoint more** than the original's from what looked
+    /// like the same start, and either `find_wpath_from` emits it or
+    /// `GroupData::get_loc@0070e030` hands the original a *different*
+    /// start. No Great Lakes dump on disk carried a `GROUPDATA` past
+    /// **5591**, so nothing could say which; run92 is a `GROUPS` window
+    /// over `[7668, 7690)` on run53's own game, taken for this one field.
+    ///
+    /// It is the seam. Everything below is the **original's** record on
+    /// block 7674 — the state the plan of sim-frame 7674 reads — and the
+    /// two gates are arithmetic over it:
+    ///
+    /// - the group's own `(ox, oy)` is `(36303, 23348)`, and the leader
+    ///   stands `6981` from it, so the first arm (`70e128`) is refused;
+    /// - the leader's current `MoveOrder`'s destination is `(36600,
+    ///   23400)`, `301` from `(ox, oy)` and **inside** the `0x180` the
+    ///   second gate (`70e1b7`) allows, so the second arm fires;
+    /// - its answer is `pos - order.dest + (ox, oy)` = **`(42877,
+    ///   24531)`**, whose `0x300` cell is **`(55, 31)`** where the
+    ///   leader's own is `(56, 32)`.
+    ///
+    /// `(55, 31)` is exactly the cell of the head waypoint this crate used
+    /// to emit and the original does not: the original's search starts
+    /// *inside* that cell and never has to step into it. One diagonal
+    /// cell, and it is the first link of item 312's five-link chain.
+    ///
+    /// **The operands are the listing's, not the decompiler's.** Both
+    /// `vector_dist` calls lose their pairs to `unaff_EDI`/`unaff_ESI`;
+    /// `70e109` and `70e190` supply them, and `MoveOrder +0x4`/`+0x8` is
+    /// named **`x`/`y`** by the type record — the order's *destination*.
+    /// It is not `orig_x`/`orig_y`, which live at `+0x44`/`+0x48` and read
+    /// identically in the surrounding code. On this very block the two
+    /// happen to hold the same pair, so the dump cannot separate them and
+    /// only the layout can.
+    ///
+    /// Made to fail once on the arm-2 gate, by asserting `301 > 0x180`.
+    #[test]
+    fn run92_says_great_lakes_7674_takes_get_loc_s_second_arm() {
+        let name = "gamelog-run92-greatlakes-groupox.txt";
+        let Some(path) = dump(name) else {
+            eprintln!("skipping: no run92 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let text = crate::capture::read(&path);
+        let log = Log::parse(&text);
+
+        // **The window itself.** A truncated capture is archived rather
+        // than stopped, so the block count is part of the claim.
+        let frames: Vec<i64> = log.frames().into_iter().map(|(f, _)| f).collect();
+        assert_eq!(
+            (frames.first().copied(), frames.len()),
+            (Some(7668), 23),
+            "run92's window is not [7668, 7690) plus its quit block: {frames:?}"
+        );
+
+        // **The group pool on the plan's own block.** `GROUPS` comes out
+        // empty unless `DEATHS` is off (`docs/ORACLE.md`, "The group pool
+        // is a per-frame record"), and an empty pool would sail past every
+        // assertion below by never finding the group — so the pool's own
+        // size is asserted first.
+        let body = log
+            .frames()
+            .into_iter()
+            .find(|(f, _)| *f == 7674)
+            .map(|(_, b)| b)
+            .expect("run92 carries no block 7674");
+        let pool = crate::gamelog::groups(body);
+        assert_eq!(pool.len(), 512, "block 7674: 8 leaders x 64 slots");
+        let g = pool
+            .iter()
+            .find(|g| g.id == 64)
+            .expect("block 7674: no group 64");
+        assert_eq!((g.who, g.army, g.num), (1, 1, 12), "group 64 moved");
+        assert!(
+            [37, 38, 39]
+                .iter()
+                .all(|o| g.members.iter().any(|m| m.o == *o)),
+            "group 64 does not hold the squad item 312 named"
+        );
+        // `form_num 9` against `num 12`: the squad is in the group and not
+        // yet in the **formation**, which is what frame 7674's
+        // `GROUP_ATTACK_TO` is about to lay out again.
+        assert_eq!(
+            (g.form_num, g.order_num),
+            (9, 4),
+            "group 64's formation state"
+        );
+        let o = (g.ox, g.oy);
+        assert_eq!(o, (36303, 23348), "group 64's (ox, oy) on the plan block");
+
+        // **The leader, and the order the second arm reads.**
+        let states = log.frame_states();
+        let l = states
+            .iter()
+            .find(|f| f.n == 7674)
+            .expect("no block 7674")
+            .units
+            .iter()
+            .find(|u| u.who == 1 && u.o == 37)
+            .expect("block 7674: no 1/37");
+        assert_eq!(
+            (l.pos.x, l.pos.y),
+            (43174, 24583),
+            "1/37's position on 7674"
+        );
+        // `UnitData::get_order` is the **head** of the list, and on this
+        // block 1/37 carries exactly one order, so there is no ambiguity
+        // to resolve between the head and the tail.
+        assert_eq!(l.orders.len(), 1, "1/37's order list on 7674");
+        let head = &l.orders[0];
+        let dest = (
+            head.x.expect("the head order has no x"),
+            head.y.expect("the head order has no y"),
+        );
+        assert_eq!(dest, (36600, 23400), "1/37's current order's destination");
+
+        // **Both gates, as arithmetic over the record above.**
+        let vd = |a: (i64, i64), b: (i64, i64)| {
+            i64::from(sim::world::vector_dist(
+                (a.0 - b.0) as i32,
+                (a.1 - b.1) as i32,
+            ))
+        };
+        let near = 0x180;
+        let arm1 = vd((l.pos.x, l.pos.y), o);
+        assert_eq!(arm1, 6981, "the leader's distance from (ox, oy) moved");
+        assert!(
+            arm1 > near,
+            "the first arm would fire and `get_loc` would return (ox, oy)"
+        );
+        let arm2 = vd(dest, o);
+        assert_eq!(arm2, 301, "the order's distance from (ox, oy) moved");
+        assert!(
+            arm2 <= near,
+            "the second arm is refused at {arm2} against {near} — the \
+             substitution this item landed would not run"
+        );
+
+        // **And the answer, in the cell the search plans on.**
+        let loc = (l.pos.x - dest.0 + o.0, l.pos.y - dest.1 + o.1);
+        assert_eq!(loc, (42877, 24531), "`get_loc`'s answer on the plan block");
+        let cell = |p: (i64, i64)| (p.0.div_euclid(0x300), p.1.div_euclid(0x300));
+        assert_eq!(
+            cell(loc),
+            (55, 31),
+            "the start cell the original plans from"
+        );
+        assert_eq!(
+            cell((l.pos.x, l.pos.y)),
+            (56, 32),
+            "the leader's own cell, one diagonal step away"
+        );
+    }
+
     /// **run89 — Great Lakes' word is a bird's arrival stand, and it costs
     /// a citizen's next gather spot on the same frame** (2026-09-07, item
     /// 272).

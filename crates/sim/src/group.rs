@@ -39,7 +39,12 @@ use crate::attrition::Domain;
 use crate::combat::{Obj, Stance};
 use crate::movement::{Angle, find_angle};
 use crate::orders::{Body, MoveKind, Order, QueuePos, flag, index};
-use crate::world::Pos;
+use crate::world::{Pos, vector_dist};
+
+/// `GroupData::get_loc`'s two gates, `70e128` and `70e1b7`. The compare is
+/// `cmpl $0x180` followed by `jg`, so the bound is **inclusive** and the
+/// decompiler's `< 0x181` names the same set.
+const GROUP_LOC_NEAR: i32 = 0x180;
 use crate::{Player, Sim};
 
 /// Where this module knowingly stands in for the original, in one list.
@@ -505,12 +510,63 @@ impl Sim {
         form
     }
 
-    /// `GroupData::get_loc`: the leader's position (the `(ox, oy)`
-    /// substitutions of §6.3 need a live move order's origin, which the
-    /// simulation's `MoveOrder` does not keep — stated in `docs/GROUPS.md`
-    /// §12).
+    /// `GroupData::get_loc@0070e030`: the leader's position, **and the two
+    /// `(ox, oy)` substitutions on top of it** (§6.3, §12.5).
+    ///
+    /// Both gates are a `vector_dist` whose operands the decompiler loses
+    /// to `unaff_EDI`/`unaff_ESI`; the listing at `70e109` and `70e190`
+    /// supplies them, and `jg 0x180` makes both bounds **inclusive**:
+    ///
+    /// - the leader within `0x180` of the group's own `(ox, oy)` returns
+    ///   `(ox, oy)` outright;
+    /// - otherwise, the leader's **current move order's destination**
+    ///   within `0x180` of `(ox, oy)` returns the leader's position
+    ///   translated by the difference, `pos - order.dest + (ox, oy)` —
+    ///   "where the group will be".
+    ///
+    /// The second arm's pair is `MoveOrder +0x4`/`+0x8`, which the type
+    /// record names **`x`/`y`** — the order's destination. It is *not*
+    /// `orig_x`/`orig_y`, which sit at `+0x44`/`+0x48`; the surrounding
+    /// code reads the same in both spellings and only the layout settles
+    /// it.
+    ///
+    /// This matters because [`Self::group_move`] feeds the answer to both
+    /// the formation angle **and** `group_plan_path`'s start, so a
+    /// substitution here moves the cell the leader's route is planned
+    /// from.
     fn group_loc(&self, g: &Group) -> Option<Pos> {
-        self.group_find_leader(g).map(|u| self.units[u].pos)
+        let u = self.group_find_leader(g)?;
+        let pos = self.units[u].pos;
+        let o = self.group_o(g);
+        // `70e0f8`/`70e103`: either coordinate negative and the record is
+        // not a point at all — a group that has never moved.
+        if o.x < 0 || o.y < 0 {
+            return Some(pos);
+        }
+        if vector_dist(pos.x - o.x, pos.y - o.y) <= GROUP_LOC_NEAR {
+            return Some(o);
+        }
+        // `70e14b`/`70e162`: the object must be a unit and `is_moving` —
+        // which is `orderlist` head, `get_type`, non-zero — and then
+        // `get_move_order` must hand back a `MoveOrder`. All three
+        // collapse here to "the current order is a move".
+        let Some(dest) = self.current_order(u).and_then(Order::move_dest) else {
+            return Some(pos);
+        };
+        if vector_dist(dest.x - o.x, dest.y - o.y) > GROUP_LOC_NEAR {
+            return Some(pos);
+        }
+        Some(Pos::new(pos.x - dest.x + o.x, pos.y - dest.y + o.y))
+    }
+
+    /// `GroupData +0x18`/`+0x1c` — the point the last move was ordered
+    /// **to**, before any slot offset. A group with no army has no record
+    /// to read, and the original's `(-1, -1)` initialiser is what a
+    /// never-moved group holds.
+    fn group_o(&self, g: &Group) -> Pos {
+        g.army.map_or(Pos::new(-1, -1), |s| {
+            self.armies[g.who as usize].list[s].group.o
+        })
     }
 
     // ------------------------------------------------------------------

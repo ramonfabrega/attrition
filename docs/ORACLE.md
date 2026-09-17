@@ -5470,6 +5470,50 @@ read what no run reaches" rule paying twice on one window: the capture
 refused the reading it was booked to test, and then made the next reading a
 twenty-minute one.
 
+## run92 — Great Lakes' extra waypoint is `get_loc`'s second arm (2026-09-17)
+
+**What it is.** run53's game, a **`GROUPS`** window over `[7668, 7690)` —
+**23 blocks** (22 window plus the `!quit` block at 7701), **21,362,086
+bytes**, `cover=0`, **four minutes** from the start click to the archive,
+of which the 7,668-frame run-up was ninety seconds. It exists for one
+field: the group's own `(ox, oy)` on the frame its leader plans.
+
+**The disk was grepped first and came back empty.** Five Great Lakes
+archives carry a `GROUPDATA` at all and the highest frame any of them
+reaches is **5591** — run73's `DUMP_ALL` window; run34 stops at 6, run46
+and run50 at 901, run72 at 4811. So the headline map had no group record
+within two thousand frames of its word, and this was the rare item where
+"grep the disk before booking a capture" argues *for* the capture.
+
+**The detail is run45's, and the trap is the whole reason.**
+`end: MISC=9,UNITS=9,GROUPS=9,GUYS=9,LEADERS=1` with **`DEATHS` off**:
+`GroupData::log_data@0045e1d0` sets no type of its own, and
+`dump_deaths@0092fd80` ends by calling `WorldData::log_data` twice, so with
+`DEATHS` on the pool is accepted against `WORLD`'s threshold and vanishes
+silently ("The group pool is a per-frame record", above). At `UNITS=9` the
+window is nobody's sibling by detail, so there is no `samegame.py` here —
+the same-game claim is the draw stream instead.
+
+**Three checks, and one of them was wrong about its own capture.**
+`rngcmp.py rontrace-run53.log rontrace-run92.log` → **0 differing, 7,701
+identical**; the pool tooth → **22 blocks (7668..7689)**, made to fail
+first and printing `0 (0..0)` on both run89 and run73. The third asserted
+the window's last block at **7700** and the dump says **7701**: `!quit` at
+frame `N` writes its block at `N + 1` (run89's `frames: 7775` closes at
+7776), and the stanza's author read that as "fifteen past HI" rather than
+`FRAMES + 1`. The count and the lower end were right; the prediction was
+off by one and is corrected in the stanza rather than quietly fixed.
+
+**And the field decided it in one read.** On block 7674 group `64` carries
+`(ox, oy) = (36303, 23348)`; its leader `1/37` stands at `(43174, 24583)`,
+**6981** away, so `get_loc`'s first arm is refused; the leader's current
+move order's destination is `(36600, 23400)`, **301** from `(ox, oy)` and
+inside the `0x180` the second gate allows. So the original's group location
+is `(42877, 24531)` — cell **(55, 31)** against the leader's own **(56,
+32)** — and the search starts one diagonal cell along, inside the very cell
+this crate had to emit as a head waypoint. `docs/GROUPS.md` §12.5 has both
+gates' operands off the listing; the word moved **7679 → 7930**.
+
 ## 178 needed no screen — the danger map's unit pass was on disk four times (2026-09-06)
 
 **What it is.** Not a run. `docs/DANGER.md` §8 had the unit pass of
