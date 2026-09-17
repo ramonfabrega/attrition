@@ -423,6 +423,17 @@ impl Sim {
             if unit.owner != who || !unit.alive() {
                 continue;
             }
+            // **Captains only** — `Group::get_num_cap@007145c0`'s `is_captain`
+            // through vslot `+0xe8`, the sweep's own iteration (`docs/AI.md`
+            // §2.3 step 10). A follower of a squad is an object of mine and
+            // is not one of my units for any of these counters: run91's
+            // leader 1 stands nine Longbowmen in three squads and three
+            // Hoplites in one, and the original's `active` is **32** — the
+            // roster less those eight followers, to the unit. Item 295,
+            // `docs/AI.md` §35.
+            if !self.is_captain(u) {
+                continue;
+            }
             // `type->control_cost != 0`: a unit that costs no population is
             // not counted at all.
             let control_cost = unit.ty.map_or(0, |t| self.unit_types[t].price.pop);
@@ -435,7 +446,14 @@ impl Sim {
             let land_reg = self.region_is_land(reg);
             let domain = self.unit_domain(u);
             let profile = unit.ty.map(|t| &self.unit_types[t].combat);
-            let roles = profile.map_or(0, |p| p.roles);
+            // **`UnitTypeData::role`, not [`crate::combat::Profile::roles`]**
+            // — item 295. The two words share no bit assignment: this
+            // crate's own profile bitfield puts `CARAVAN` at `1 << 16` and
+            // `V2ROCKET` at `1 << 4`, exactly where the original's role word
+            // keeps `combat_role` and the scout bit, so the sweep read a
+            // caravan as the leader's only soldier and every Hoplite and
+            // Longbowman as a civilian. `docs/AI.md` §35.
+            let roles = unit.ty.map_or(0, |rec| self.role_word_of_rec(rec));
             let obj_masks = profile.map_or(0, |p| p.obj_masks);
             let siege = profile.is_some_and(|p| p.siege);
             let military = roles & ROLE_MILITARY != 0;
@@ -1461,6 +1479,59 @@ mod tests {
         assert_eq!(TILES_PER_CELL, 4);
     }
 
+    /// **The sweep reads `UnitTypeData::role`, over captains** — item
+    /// 295, and both halves failed on purpose before they landed.
+    ///
+    /// The role word the producers read (`ai_load::role`) and this crate's
+    /// own profile bitfield (`combat::role`, `docs/DECISIONS.md` entry 18)
+    /// collide twice: `1 << 16` is `MILITARY` in one and `CARAVAN` in the
+    /// other, `1 << 4` is the scout bit and `V2ROCKET`. The sweep read the
+    /// wrong one, so on run91's Great Lakes the leader's caravan was its
+    /// only soldier and nine Longbowmen and three Hoplites were civilians.
+    /// And it walked every live object where the original walks captains
+    /// (`docs/AI.md` §2.3 step 10), so the twelve of those that stand in
+    /// four squads counted twelve rather than four.
+    ///
+    /// Here: a three-figure squad of a military type and a lone caravan.
+    /// `active` is 2 and not 4, `combat` is 1 and not 3, and the caravan
+    /// is on neither count. **`attack` is the half that separates the two
+    /// faults**: under the profile word the caravan took the military
+    /// branch and `combat` read 1 for the wrong unit, with a zero attack
+    /// where the soldier's is 15.
+    #[test]
+    fn the_census_counts_captains_under_the_original_s_role_word() {
+        let mut f = fix();
+        build(&mut f.sim, 1, f.village, 20, 20);
+        f.sim.ai[1].census.resize(f.sim.world.region_count(), 2);
+
+        // A military type by the original's word, and a caravan by this
+        // crate's — whose `1 << 16` the sweep used to read as military.
+        let soldier = f.sim.unit_types[f.scout].clone();
+        let soldier = f.sim.add_unit_type(soldier);
+        f.sim.unit_types[soldier].cols.role = ROLE_MILITARY;
+        f.sim.unit_types[soldier].combat.attack = 150;
+        let trader = f.sim.unit_types[f.scout].clone();
+        let trader = f.sim.add_unit_type(trader);
+        f.sim.unit_types[trader].combat.roles = crate::combat::role::CARAVAN;
+
+        let squad: Vec<usize> = (0..3)
+            .map(|i| spawn(&mut f.sim, 1, soldier, 20 + i, 22))
+            .collect();
+        for w in squad.windows(2) {
+            f.sim.units[w[1]].captain = false;
+            f.sim.units[w[1]].o_up = Some(w[0]);
+            f.sim.units[w[0]].o_down = Some(w[1]);
+        }
+        spawn(&mut f.sim, 1, trader, 24, 22);
+
+        f.sim.census(1);
+        let c = &f.sim.ai[1].census;
+        assert_eq!(c.active, 2, "the squad's followers are counted as units");
+        assert_eq!(c.combat, 1, "one squad is one soldier");
+        assert_eq!(c.non_siege, 1);
+        assert_eq!(c.attack, 15, "`attack() / 10`, the captain's alone");
+    }
+
     /// A military unit of mine standing on another leader's land shows up
     /// in *their* `invaders[me]`, and the count is cleared each sweep.
     #[test]
@@ -1477,7 +1548,7 @@ mod tests {
         }
         let u = spawn(&mut f.sim, 1, f.scout, 34, 34);
         let ty = f.sim.units[u].ty.unwrap();
-        f.sim.unit_types[ty].combat.roles = ROLE_MILITARY;
+        f.sim.unit_types[ty].cols.role = ROLE_MILITARY;
         f.sim.ai[0].census.resize(f.sim.world.region_count(), 2);
 
         f.sim.census(1);

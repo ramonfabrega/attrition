@@ -245,15 +245,24 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // the merged tree agrees with neither: two independent improvements
         // compose, so the figure is what the merged code prints, and a merge
         // is not the place to adjudicate a floor.
-        off: 78,
-        unlinked: 3,
+        // And **78 → 70, 3 → 9, 4 → 0 and 23 → 30** on 2026-09-17, item
+        // 295 — `census_units` reading `UnitTypeData::role` over captains
+        // (`docs/AI.md` §35). The sweep counted a caravan as the leader's
+        // only soldier and every figure of a squad as its own unit, so
+        // this is the AI's whole view of its army changing at once, on
+        // both maps and 16,000 frames past either word. Eight positions
+        // closer, six more of the roster unlinked, every unlinkable
+        // building linked and seven more building field-rows apart.
+        // DECISIONS 36 asks for the number rather than a trade.
+        off: 70,
+        unlinked: 9,
         extra: 0,
-        build_unlinked: 4,
+        build_unlinked: 0,
         // 33 → 32 on 2026-09-07, item 265: `CityData::free` is a byte that
         // wraps, and the AI reading 255 where it read −1 takes one building
-        // field-row off the diverging list. Then 31 → 32 on item 271, and
-        // 32 → 28 on item 290.
-        build_diverged: 23,
+        // field-row off the diverging list. Then 31 → 32 on item 271,
+        // 32 → 28 on item 290, and 23 → 30 on item 295.
+        build_diverged: 30,
         city_unlinked: 3,
         city_diverged: 0,
     },
@@ -308,11 +317,18 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // the merged tree agrees with neither: two independent improvements
         // compose, so the figure is what the merged code prints, and a merge
         // is not the place to adjudicate a floor.
-        off: 70,
-        unlinked: 9,
+        // Then **70 → 56, 9 → 26 and 12 → 10** on 2026-09-17, item 295 —
+        // the census fix above, which on this map moves the word itself
+        // **7585 → 7679**. Fourteen positions closer, the largest single
+        // fall this row has had and the second in a row from a change to
+        // what the AI *counts*; seventeen more of the roster unlinked in
+        // exchange, and two building field-rows closer. DECISIONS 36 asks
+        // for the number rather than a trade.
+        off: 56,
+        unlinked: 26,
         extra: 0,
         build_unlinked: 0,
-        build_diverged: 12,
+        build_diverged: 10,
         city_unlinked: 3,
         city_diverged: 0,
     },
@@ -351,7 +367,11 @@ pub const LADDER: [Endpoint; 2] = [
         // the merged tree agrees with neither: two independent improvements
         // compose, so the figure is what the merged code prints, and a merge
         // is not the place to adjudicate a floor.
-        off: 46,
+        // Then **46 → 47** on 2026-09-17, item 295's census fix
+        // (`docs/AI.md` §35): one position out, 7,872 frames past this
+        // rung's word, on the change that moves Great Lakes' own word
+        // 7585 → 7679 and takes fourteen off its endpoint.
+        off: 47,
         unlinked: 17,
         // 20 → 21 on 2026-09-07, item 267's repaint: one spurious unit
         // back, 7,872 frames past the word, and nothing else on this rung
@@ -368,7 +388,13 @@ pub const LADDER: [Endpoint; 2] = [
         // §33.2) — nine spurious units gone and nothing else on this rung
         // moved, which is the same shape as East Indies' own endpoint
         // losing all eleven of its extras.
-        extra: 7,
+        // Then **7 → 18** on 2026-09-17, item 295's census fix: eleven
+        // spurious units back, and this rung is the only row of the four
+        // whose `extra` moved at all. The AI counting captains instead of
+        // figures changes what it thinks it has, so what it builds moves
+        // with it; the direction here is the wrong one and it is on the
+        // record rather than traded away.
+        extra: 18,
         build_unlinked: 10,
         build_diverged: 7,
         city_unlinked: 3,
@@ -408,7 +434,12 @@ pub const LADDER: [Endpoint; 2] = [
         // this rung moved. All three East Indies rows lost extras on that
         // change — 11, 9 and 11 — and its own endpoint lost every one it
         // had.
-        extra: 8,
+        // Then **8 → 14** on 2026-09-17, item 295's census fix
+        // (`docs/AI.md` §35): six spurious units back, `off` unmoved, and
+        // the C rung above took eleven the same way on the same change.
+        // Both East Indies rungs gained extras where Great Lakes' own
+        // word moved 7585 → 7679; the number, not a trade.
+        extra: 14,
         build_unlinked: 19,
         build_diverged: 0,
         city_unlinked: 4,

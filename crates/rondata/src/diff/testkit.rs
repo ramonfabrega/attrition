@@ -932,15 +932,26 @@ pub(crate) const LONG_WORD_EAST_INDIES: i64 = 7_812;
 /// spot on block 7585 — the value diff beside the word — closes with
 /// it.
 ///
-/// **7585** is where it stands, and it is the AI rather than the
-/// animals: seven draws against nine, parting at index 2 where the
-/// original spends a `Leader::make_stuff+0x63d`
-/// ([`sim::ai_make::SITE_EXPIRE_SLOT`], `docs/AI.md` §2.6) this crate
-/// does not. The bird's own stand is missing from that frame too, at
-/// index 4 — but downstream: one draw behind, the wing-beat coin reads
-/// a different word and takes `CHAR_JOG`, which `Guy::move`'s
-/// `field_0x9c == 8` then does not stand for.
-pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 7585;
+/// ~~**7585**~~ — the AI rather than the animals: seven draws against
+/// nine, parting at index 2 where the original spends a
+/// `Leader::make_stuff+0x63d` ([`sim::ai_make::SITE_EXPIRE_SLOT`],
+/// `docs/AI.md` §2.6) this crate did not. Item 287 read that as the AI's
+/// stockpile and run91 refuted it (§34); item 295 found the head of the
+/// make list instead, and under the head **`census_units` reading the
+/// wrong role word over the wrong objects** (§35). The sweep tested
+/// `role & 0x10000` on [`sim::combat::Profile::roles`], whose `1 << 16`
+/// is `CARAVAN`, and counted every figure of a squad as a unit of its
+/// own — so leader 1's army read as one caravan, `land_army` came out 1
+/// rather than 3, the land branch's `base × 100` arm ran, and the
+/// product wrapped into `create_units`' `val < 0` guard. With the census
+/// right the frame agrees nine draws for nine, the bird's stand at index
+/// 4 included.
+///
+/// **7679** is where it stands: four draws against three, parting at
+/// index 1 where this crate spends a `Guy::set_anim+0x97a <
+/// Unit::move_step+0x823` against the original's `Guy::set_anim+0x97a <
+/// Guy::inc_time+0x271`.
+pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 7679;
 
 /// The frame Great Lakes' **second** squad joins the army on — 6994, the
 /// word's own parting from 2026-09-06 to 2026-09-07 and now a landed

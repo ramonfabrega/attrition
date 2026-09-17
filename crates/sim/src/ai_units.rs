@@ -188,6 +188,21 @@ impl Sim {
         r
     }
 
+    /// The same word for a unit **record**, which is all a sweep over the
+    /// live objects has to hand ([`Sim::census_units`] reads it through
+    /// `UnitData::get_type`, not through the tree).
+    ///
+    /// A record whose type is in the tree defers to [`Self::role_word`];
+    /// one outside it — a type stood up by hand in a test — has only its
+    /// own column, and the scout bit of the reconstruction is then out of
+    /// reach because that arm resolves the name through the tree.
+    pub(crate) fn role_word_of_rec(&self, rec: usize) -> u32 {
+        match self.unit_types[rec].tree {
+            Some(t) => self.role_word(t, rec),
+            None => self.unit_types[rec].cols.role,
+        }
+    }
+
     /// **Seam** — `ObjectTypeData::is(t, <named root>)`. The original tests a
     /// `TypeIndex` constant; per `docs/DECISIONS.md` entry 18 the simulation
     /// wants a role bit on the profile instead, and the handful this module
