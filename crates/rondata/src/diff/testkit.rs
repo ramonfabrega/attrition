@@ -996,7 +996,18 @@ pub(crate) const LONG_WORD_EAST_INDIES: i64 = 8_193;
 /// tick. Two of the ten draws were unnamed on **both** sides until this
 /// item — `rondata::trace` carried neither `006f6dc0` nor `006f718f`, so
 /// the sequence word had been comparing a symbol against a hex string.
-pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 8030;
+/// **8030 for one item, and the frame was a whole subsystem returning
+/// zero** (item 319). The extra `Unit::do_move+0xe84` was not the army's
+/// at all but the AI scout `1/0`'s: [`sim::Sim::scout_danger`] answered a
+/// flat 0 behind a comment claiming `World::danger_half` was keyed
+/// differently, and it is keyed identically — the grid itself has been
+/// diff-backed against run64 the whole time. run94's block 8002 is the
+/// value diff: the original sends the scout to (4344, 32760), cell
+/// (5, 42), where this crate sent it to (2808, 31992), cell (3, 41), with
+/// frame 8001 spending the same 38 draws on both sides entry for entry.
+/// The word moves **one frame**, which is what a dense region looks like:
+/// the successor is already dated and asserted at 8002.
+pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 8031;
 
 /// The frame Great Lakes' **second** squad joins the army on — 6994, the
 /// word's own parting from 2026-09-06 to 2026-09-07 and now a landed

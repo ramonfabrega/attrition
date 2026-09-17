@@ -394,11 +394,19 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // counterpart at 24001 now have one**, 15,971 frames past the word:
         // a change to what the army *targets* relinks a fifth of the
         // roster. DECISIONS 36 asks for the number rather than a trade.
-        off: 60,
-        unlinked: 20,
+        // Then **60 → 59, 20 → 23 and 10 → 8** on 2026-09-17, item 319 —
+        // `scout_danger` answering a flat 0 (SCOUT, MOVEMENT), which moves
+        // this map's own word 8030 → 8031. One position closer and two
+        // building field-rows closer, 15,970 frames past the word; three
+        // more of the roster unlinked in exchange. A one-frame word move
+        // and a three-count endpoint move on the same change, which is
+        // what a dense region looks like from both ends. DECISIONS 36 asks
+        // for the number rather than a trade.
+        off: 59,
+        unlinked: 23,
         extra: 0,
         build_unlinked: 0,
-        build_diverged: 10,
+        build_diverged: 8,
         city_unlinked: 3,
         city_diverged: 0,
     },
