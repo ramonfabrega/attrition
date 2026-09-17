@@ -1185,3 +1185,141 @@ waypoint parts before it; the word moved **2419 → 2808** with the fix.
 `run68_s_window_is_every_unit_s_whole_record_to_the_word` compares `1/13`'s
 stack whole — the exception is deleted rather than kept — and its window now
 runs to 6730 with no field of any unit parting but `stance`.
+
+## 18. The pre-walk's gate, and the suspend, which is landed unwired (2026-09-17)
+
+Item 301 was booked as "East Indies 7811/7812 is `find_upath`'s suspend".
+The suspend is real, is reached, and is now implemented — and it is **not**
+what 7811 was. Two separate things came out of the window, and they are
+written down separately because only one of them is a defect this crate
+could see before the dump was widened.
+
+### 18.1 The pre-walk is gated, and the gate is not `find_wpath`'s
+
+`find_upath@00682f30`'s goal pull-back (§3, "the pre-walk") runs inside
+
+```c
+if ((*(int *)(type + 0x218) < 2) && (can_transport(unit) == 0)) { do { … } while (…); }
+```
+
+at `00683095` — the type's **domain** `+0x218 < 2` (not air) **and**
+`UnitData::can_transport@0046f960` answering 0. It is a **conjunction with
+no vfunc `+0x8` disjunct**, where `find_wpath@00688fc0:91` has the
+disjunctive form §3 already records: `domain < 2 && (vfunc+8 == 0 ||
+!can_transport)`. The two wrappers' gates are different, and this crate had
+`find_upath` running the walk unconditionally.
+
+`can_transport` is `(unit_masks & 0x800000 && !(unit_masks2 & 0x2000)) ||
+(type unit_flags & 0x10)` — the same predicate §7's tile tolerance reads.
+run90's `1/7` prints `unit_masks 8651786` = `0x84040A`, so `0x800000` is
+set (its side has a Dock) and `unit_masks2` is 0: **the original never pulls
+that citizen's 48-grid goal back at all.**
+
+This crate did, and the pull-back is what block 7811 was. On frame 7810
+`resolve_unit_collision` step 6 hands `find_upath` the move order's own goal
+`(39624, 38760)`; `valid_ucoord` refuses it, because the other citizen
+`1/6`'s 3×3 occupancy block covers that cell, so the walk stepped the goal
+`0x18` at a time along the bearing — `(39634, 38739)`, `(39644, 38718)`,
+`(39655, 38697)` — until it landed on the unit's **own** 48-cell, and
+returned it as a one-entry final leg. `1/7` then walked six units and
+arrived on 7812, killing its `EXPLORE_TO` twenty-one frames early. The
+original's stack on 7811 is the untouched goal, at `(39624, 38760)`.
+
+### 18.2 The suspend is reached, and `start_dist` is the proof
+
+With the gate applied the search runs for real and **suspends**: `r = −1`,
+with the stack left holding exactly one entry, the caller's final goal, tol
+0 flags 1 — because `astar_path` pops its own start and goal at entry and
+pushes nothing. That is the original's block 7811, field for field.
+
+The corroboration is a field nobody had looked at. **`UnitData::start_dist`
+(`+0x130`) has exactly one writer in the whole executable** — the suspend
+block at `astar_path@00683770:517` — and it stores the search's
+start-to-goal Manhattan. Over run90's 111 blocks and every unit of each it
+is zero everywhere except `1/7`, where it reads **144** from block 7811 to
+the end of the capture; 144 is `|39672 − 39624| + |38664 − 38760|`, the
+Manhattan from `1/7`'s snapped cell centre to its move order's goal. Nothing
+clears it, so it is a permanent stamp like `collide_frame` and is asserted
+as a **change** (`run90_s_window_is_east_indies_shuffle`).
+
+A `grep` of the disk puts the mechanic's reach beyond this one window:
+twenty-three captures carry a non-zero `start_dist`, run16 with 8,752 rows.
+The suspend is not a corner of the pathfinder.
+
+### 18.3 What is implemented, and what is not wired
+
+**Implemented and landed** (`crates/sim/src/path.rs`):
+
+- [`Search`] — the stash, one field per `UnitData +0x104..0x148` name:
+  the open list, its metric refs, the closed list and the validity memo
+  (`blocklist` has no counterpart, the unit search never fills it), plus
+  `tol`, `offset` (which is the direction **preference**, not an offset),
+  `start_dist`, `avoid_land`/`avoid_sea`, `endx`/`endy` and `traversed`.
+  `valid_hit` is a counter nothing reads and is not kept.
+- `astar_path`'s suspend: re-insert the stop node into the open list, move
+  the state onto the unit, return −1. The re-insert matters — without it
+  the resumed search finds that node again through its neighbours and comes
+  out on a different chain.
+- `astar_path(…, resume)` — the original's `PathFinder::saving` — which
+  skips the whole prologue, **does not pop the stack**, and jumps into the
+  loop with the restored state; `arrive` is rebuilt from the restored `tol`.
+- `Sim::find_upath_restore` (`00688f40`): `saving = 1`, `anti = 0`, limit
+  `300 / max(1, repaths²)`, and `find_upath`'s failure teardown suppressed —
+  `00683380`'s pop-and-kill sits inside the same `saving == 0` guard as the
+  prologue, so a resumed search that gives up leaves the order alone.
+- `Sim::clear_partial_path` stopped being a no-op: it is what frees the
+  stash, which is the original's whole body for `005e3920`.
+
+**Read, built and not wired** (`docs/DECISIONS.md` entry 30), all three
+together because they are one change:
+
+- the §18.1 gate;
+- `find_upath`'s limit `500 / max(1, repaths²)`, halved with `anti`
+  (`00688eb0`) — a seam since item 80 even though `repaths` has been
+  modelled since;
+- `do_move`'s suspended-search block, `docs/ORDERS.md` §4.4 step 2: while
+  the stash is `Some`, **no step happens**, the "has the blocker gone" probe
+  fires on the 5th, 7th, 9th … frame after `collide_frame`, `repaths` ticks
+  on every fourth `o + frame`, `collide` counts up **every** frame, and
+  `find_upath_restore` resumes. `UnitData +0x48` in that block is
+  `collide_frame` by the type record, so its clock is `frame −
+  collide_frame`; that is what run90's `1/7` counts 1 → 9 over 7812-7820.
+
+Wired, it is right on the mechanic and wrong on the score, which is entry
+30's case exactly. On `worktree-loop-301`'s tip, measured on this branch:
+
+| | East Indies (run54) | Great Lakes (run53) |
+|---|---|---|
+| base (`75e13a4`) | 7812 | 7679 |
+| landed here | 7812 | 7679 |
+| with §18.3 wired | **8193** | **6862** |
+
+run90's `1/6` and `1/7` stop parting **anywhere** in the capture's 111
+blocks with it wired — the whole two-citizen shuffle, positions, collision
+fields, order records and path stacks, agrees — which is the measurement
+that will justify wiring it. The Great Lakes fall is upstream and named:
+run76's `1/28` still holds a `GROUP_ATTACK_TO` at 6860 and the original's
+order becomes `ATTACK_TO` during that frame, whose enqueue frees the
+suspended search through `clear_partial_path`; this crate's `1/28` is
+already on a plain `ATTACK_TO` before 6858, so its formation ended early and
+no order change is left to free the stash. Both sides are running the *same*
+search there — the original's `start_dist` is 7680 against this crate's
+7669 start. That row is the queue's **item 304**.
+
+The wired change is one commit on the branch **`worktree-loop-301-suspend`**.
+
+### 18.4 What is not established
+
+- **Why `1/7`'s 7810 search costs more than 500 probes** for a goal three
+  48-cells away is not explained here. It does — measured, both sides —
+  and the nine resumes over 7811-7819 never finish it either; the original
+  abandons it on frame 7819 through the blocker-gone arm and walks the
+  remaining stack. A cell-by-cell expansion diff (the §17 proxy, pointed at
+  the 48 grid) would settle it and no run needs it to.
+- **`valid_hit`** is saved and restored by the original and is not kept
+  here; nothing reads it in any path either reading has found.
+- **The pre-walk's give-up exit targets the wrong label here.** `00683082`
+  is push-and-return-length; this crate's `break` falls through to the near
+  test and the search. With the gate unwired the arm is only reachable for a
+  unit that cannot transport, and no capture on disk reaches it, so it is
+  recorded rather than changed.

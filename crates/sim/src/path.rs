@@ -99,8 +99,48 @@ impl CostMark {
     }
 }
 
+/// **A suspended 48-grid search** — `UnitData +0x104..0x148`
+/// (`docs/PATHFINDER.md` §4.3 step 3, §18).
+///
+/// The original hands the five `PathFinder` containers to the unit and
+/// takes fresh ones from the recyclers; here the containers *are* the
+/// state, so the struct is the hand-over. Every field is one the original
+/// stores by name: the PDB calls them `openlist`, `openlistrefs`,
+/// `closedlist`, `validlist`, `blocklist`, then `tol` (`+0x128`), `offset`
+/// (`+0x12c`, which is the direction *preference*, not an offset),
+/// `start_dist` (`+0x130`), `valid_hit` (`+0x134`), `avoid_land`/
+/// `avoid_sea` (`+0x138`/`+0x13c`), `endx`/`endy` (`+0x140`/`+0x144`) and
+/// `traversed` (`+0x148`).
+///
+/// `blocklist` has no counterpart here — the unit search never fills it
+/// (`docs/PATHFINDER.md` §2) — and `valid_hit` is a counter nothing reads.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct Search {
+    nodes: Vec<Node>,
+    open: BTreeMap<(i32, std::cmp::Reverse<u64>), u32>,
+    open_by_metric: BTreeMap<i64, (u64, i32, u32)>,
+    closed: BTreeMap<i64, u32>,
+    valid_memo: BTreeMap<i64, bool>,
+    seq: u64,
+    /// `+0x128` — the *final* goal entry's tolerance, which is what
+    /// `arrive` is built from and is not re-read from the stack on resume.
+    tol: i32,
+    /// `+0x12c` — the direction wheel's start.
+    pref: i32,
+    /// `+0x140`/`+0x144`.
+    goal: Pos,
+    /// `+0x130`. **The one dumped witness that a search suspended**: the
+    /// start-to-goal Manhattan, and `astar_path`'s suspend block is its
+    /// only writer in the whole executable.
+    start_dist: i32,
+    /// `+0x148` — `traversed + probes` at the moment of the suspend.
+    traversed: i32,
+    avoid_land: i32,
+    avoid_sea: i32,
+}
+
 /// One search node — `PathNode`, minus the allocator.
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 struct Node {
     x: i32,
     y: i32,
@@ -627,34 +667,58 @@ impl Sim {
         }
     }
 
+    /// `astar_path`'s `avoid_land`/`avoid_sea`, off the start's terrain
+    /// (§4.1). **The world grid does not ask `get_tregion`** — it reads
+    /// `WData.region` (`+0x4`) of the two cells straight out of the array
+    /// and compares the shorts (§4.1, "The same-region test is two
+    /// functions"); only the tile and unit grids call `get_tregion`, and
+    /// only they take the coastal refinement.
+    ///
+    /// Not asked again on a resume: the pair is stashed and restored.
+    fn avoid_flags(&self, u: usize, start: Pos, goal: Pos, step: i32) -> (i32, i32) {
+        let same_region = if step == STEP_WORLD {
+            self.world.region_of(start.cell()) == self.world.region_of(goal.cell())
+        } else {
+            self.world.tregion_alt(start.tile()) == self.world.tregion_alt(goal.tile())
+        };
+        if same_region {
+            let on_water = if step == STEP_WORLD {
+                self.world.is_ocean(start.cell())
+            } else {
+                self.world.tile_mask(start.tile()) & tile::SURFACE == tile::SURFACE_OCEAN
+            };
+            // SEAM: the amphibious exception (`unit_flags & 0x10` with
+            // `unit_masks & 0x40000`) never fires.
+            if on_water {
+                return (1, 0);
+            }
+            let attacking = self
+                .action_of(u)
+                .is_some_and(|a| matches!(self.units[u].orders[a].body, Body::Attack(_)));
+            return (0, if attacking { 2 } else { 1 });
+        }
+        if self.current_order(u).is_some_and(|o| o.flags & 0x20 != 0) {
+            return (1, 0);
+        }
+        (0, 0)
+    }
+
     /// `PathFinder::astar_path` (`docs/PATHFINDER.md` §4). Returns 1 on a
     /// path pushed, 0 on failure, −1 on a suspended unit-grid search.
     ///
-    /// SEAM: suspension stashes nothing — `find_upath_restore` still has
-    /// no caller, so a suspended search is simply lost. The condition and
-    /// return are the original's.
-    fn astar_path(&mut self, u: usize, m: &Modes, step: i32, anti: i32) -> i32 {
-        let stack_len = self.units[u].path.len();
-        if stack_len < 2 {
-            // The wrappers always push start and goal; anything else is a
-            // caller bug, answered the way the engine answers an empty
-            // list.
-            return 0;
-        }
-        let start_e = self.units[u].path.pop().expect("start entry");
-        let goal_e = self.units[u].path.pop().expect("goal entry");
-        let (start, goal) = (start_e.to, goal_e.to);
-        // The arrival tolerance is the *final* goal's — the entry now on
-        // top — not the search-goal entry's.
-        let tol = self.units[u].path.last().map_or(0, |p| p.tolerance);
-
+    /// `resume` is the original's `PathFinder::saving` (`+0x84`): set, the
+    /// whole prologue is skipped — **the stack is not popped** — and the
+    /// state comes off the unit instead (§4.3 step 3). Everything the
+    /// prologue derives from the *arguments* rather than from the stack is
+    /// recomputed either way, exactly as `00683770` does: the work cap, the
+    /// stride, the row width, the direction increment and `toff`.
+    fn astar_path(&mut self, u: usize, m: &Modes, step: i32, anti: i32, resume: bool) -> i32 {
         let work_cap = if step == STEP_UNIT { 500 } else { 50 } * 64;
         // SEAM: the unit-grid stride is `(type collision + 1) / 2`, which
         // is 1 for every `BLOCK_RADIUS 1` type — all of them in every
         // capture so far (`docs/COLLISION.md` §2).
         let su: i32 = 1;
         let stride = su * step;
-        let arrive = tol / 2 + stride;
         let width = i64::from(self.world.width());
         let row = match step {
             STEP_WORLD => width,
@@ -665,84 +729,96 @@ impl Sim {
         // The prologue's `toff`; zero when the current order is not a move,
         // which is exactly what the probe's `− 0x180` then means.
         let toff = self.toff(u).unwrap_or((0, 0));
-
-        // avoid_land / avoid_sea from the start's terrain (§4.1). **The
-        // world grid does not ask `get_tregion`** — it reads `WData.region`
-        // (`+0x4`) of the two cells straight out of the array and compares
-        // the shorts (§4.1, "The same-region test is two functions"); only
-        // the tile and unit grids call `get_tregion`, and only they take
-        // the coastal refinement.
-        let same_region = if step == STEP_WORLD {
-            self.world.region_of(start.cell()) == self.world.region_of(goal.cell())
-        } else {
-            self.world.tregion_alt(start.tile()) == self.world.tregion_alt(goal.tile())
-        };
-        let (mut avoid_land, mut avoid_sea) = (0, 0);
-        if same_region {
-            let on_water = if step == STEP_WORLD {
-                self.world.is_ocean(start.cell())
-            } else {
-                self.world.tile_mask(start.tile()) & tile::SURFACE == tile::SURFACE_OCEAN
-            };
-            // SEAM: the amphibious exception (`unit_flags & 0x10` with
-            // `unit_masks & 0x40000`) never fires.
-            if on_water {
-                avoid_land = 1;
-            } else {
-                avoid_sea = 1;
-                if self
-                    .action_of(u)
-                    .is_some_and(|a| matches!(self.units[u].orders[a].body, Body::Attack(_)))
-                {
-                    avoid_sea = 2;
-                }
-            }
-        } else if self.current_order(u).is_some_and(|o| o.flags & 0x20 != 0) {
-            avoid_land = 1;
-        }
         let no_danger = m.no_danger;
         let m = Modes { no_danger, ..*m };
 
-        // The arena and the three keyed views.
-        let mut nodes: Vec<Node> = Vec::new();
-        // Min `value` first; equal values newest-first (LIFO), as the
-        // original's BST leans (§2.1).
-        let mut open: BTreeMap<(i32, std::cmp::Reverse<u64>), u32> = BTreeMap::new();
-        let mut open_by_metric: BTreeMap<i64, (u64, i32, u32)> = BTreeMap::new();
-        let mut closed: BTreeMap<i64, u32> = BTreeMap::new();
-        let mut valid_memo: BTreeMap<i64, bool> = BTreeMap::new();
-        let mut seq: u64 = 0;
-
-        let root = Node {
-            x: start.x,
-            y: start.y,
-            length: 0,
-            estimate: Self::estimate(start.x - goal.x, start.y - goal.y, step),
-            value: Self::estimate(start.x - goal.x, start.y - goal.y, step),
-            timeout: 0,
-            metric: self.metric_of(start, step),
-            transport: false,
-            building: false,
-            parent: None,
-        };
-        nodes.push(root);
-        open.insert((root.value, std::cmp::Reverse(seq)), 0);
-        open_by_metric.insert(root.metric, (seq, root.value, 0));
-        seq += 1;
-
-        // The direction preference: the wheel starts one past this, at the
-        // cardinal facing the goal.
-        let (dx0, dy0) = (start.x - goal.x, start.y - goal.y);
-        let pref: i32 = if dy0.abs() < dx0.abs() {
-            if goal.x < start.x { 7 } else { 3 }
-        } else if start.y <= goal.y {
-            5
+        // **The resume.** `00683a2d` takes the five containers and the nine
+        // scalars off the unit and jumps straight to the loop; the open
+        // list is non-empty by construction, because the suspend re-inserted
+        // the node it stopped on.
+        #[allow(clippy::type_complexity)]
+        let (mut nodes, mut open, mut open_by_metric, mut closed, mut valid_memo, mut seq): (
+            Vec<Node>,
+            BTreeMap<(i32, std::cmp::Reverse<u64>), u32>,
+            BTreeMap<i64, (u64, i32, u32)>,
+            BTreeMap<i64, u32>,
+            BTreeMap<i64, bool>,
+            u64,
+        );
+        let (tol, pref, goal, start_dist, traversed, avoid_land, avoid_sea);
+        if resume {
+            let Some(sus) = self.units[u].search.take() else {
+                return 0;
+            };
+            let sus = *sus;
+            nodes = sus.nodes;
+            open = sus.open;
+            open_by_metric = sus.open_by_metric;
+            closed = sus.closed;
+            valid_memo = sus.valid_memo;
+            seq = sus.seq;
+            tol = sus.tol;
+            pref = sus.pref;
+            goal = sus.goal;
+            start_dist = sus.start_dist;
+            traversed = sus.traversed;
+            avoid_land = sus.avoid_land;
+            avoid_sea = sus.avoid_sea;
         } else {
-            1
-        };
-
+            let stack_len = self.units[u].path.len();
+            if stack_len < 2 {
+                // The wrappers always push start and goal; anything else is
+                // a caller bug, answered the way the engine answers an empty
+                // list.
+                return 0;
+            }
+            let start_e = self.units[u].path.pop().expect("start entry");
+            let goal_e = self.units[u].path.pop().expect("goal entry");
+            let start;
+            (start, goal) = (start_e.to, goal_e.to);
+            // The arrival tolerance is the *final* goal's — the entry now on
+            // top — not the search-goal entry's.
+            tol = self.units[u].path.last().map_or(0, |p| p.tolerance);
+            (avoid_land, avoid_sea) = self.avoid_flags(u, start, goal, step);
+            nodes = Vec::new();
+            // Min `value` first; equal values newest-first (LIFO), as the
+            // original's BST leans (§2.1).
+            open = BTreeMap::new();
+            open_by_metric = BTreeMap::new();
+            closed = BTreeMap::new();
+            valid_memo = BTreeMap::new();
+            seq = 0;
+            let root = Node {
+                x: start.x,
+                y: start.y,
+                length: 0,
+                estimate: Self::estimate(start.x - goal.x, start.y - goal.y, step),
+                value: Self::estimate(start.x - goal.x, start.y - goal.y, step),
+                timeout: 0,
+                metric: self.metric_of(start, step),
+                transport: false,
+                building: false,
+                parent: None,
+            };
+            nodes.push(root);
+            open.insert((root.value, std::cmp::Reverse(seq)), 0);
+            open_by_metric.insert(root.metric, (seq, root.value, 0));
+            seq += 1;
+            // The direction preference: the wheel starts one past this, at
+            // the cardinal facing the goal.
+            let (dx0, dy0) = (start.x - goal.x, start.y - goal.y);
+            start_dist = dx0.abs() + dy0.abs();
+            pref = if dy0.abs() < dx0.abs() {
+                if goal.x < start.x { 7 } else { 3 }
+            } else if start.y <= goal.y {
+                5
+            } else {
+                1
+            };
+            traversed = 0;
+        }
+        let arrive = tol / 2 + stride;
         let mut probes: i32 = 0;
-        let traversed: i32 = 0; // restored on resume; always 0 here.
 
         while let Some((&key, &cur_id)) = open.first_key_value() {
             open.remove(&key);
@@ -758,9 +834,31 @@ impl Sim {
             let manh = (cur.x - goal.x).abs() + (cur.y - goal.y).abs();
             let over_limit = m.anti_unit && m.limit < probes;
             if manh <= arrive || traversed + probes >= work_cap || over_limit {
-                // Suspend (§4.3 step 3): a unit-grid search over its limit,
-                // still short of the goal, without `anti`.
+                // **Suspend** (§4.3 step 3): a unit-grid search over its
+                // limit, still short of the goal, without `anti`. The node
+                // it stopped on goes back on the open list — so the resumed
+                // search expands it first and loses nothing — and the whole
+                // state moves onto the unit. `find_upath` then returns −1
+                // without touching the stack, which is left holding the
+                // caller's final goal and nothing else.
                 if over_limit && manh > arrive && anti == 0 {
+                    open.insert(key, cur_id);
+                    open_by_metric.insert(cur.metric, (key.1.0, cur.value, cur_id));
+                    self.units[u].search = Some(Box::new(Search {
+                        nodes,
+                        open,
+                        open_by_metric,
+                        closed,
+                        valid_memo,
+                        seq,
+                        tol,
+                        pref,
+                        goal,
+                        start_dist,
+                        traversed: traversed + probes,
+                        avoid_land,
+                        avoid_sea,
+                    }));
                     return -1;
                 }
                 let mut end_id = cur_id;
@@ -1199,7 +1297,7 @@ impl Sim {
             tolerance: 0,
             flags: 0,
         });
-        let r = self.astar_path(u, &modes, STEP_WORLD, 0);
+        let r = self.astar_path(u, &modes, STEP_WORLD, 0, false);
         if r == 0 {
             let popped = self.units[u].path.pop();
             return -i32::from(popped.is_some_and(|p| p.flags & path_flag::FINAL != 0));
@@ -1280,7 +1378,7 @@ impl Sim {
             no_danger: self.no_danger_mode(u),
             ..Modes::default()
         };
-        let r = self.astar_path(u, &modes, STEP_TILE, 0);
+        let r = self.astar_path(u, &modes, STEP_TILE, 0, false);
         if r < 1 {
             if self.units[u]
                 .path
@@ -1299,9 +1397,42 @@ impl Sim {
     /// only. Its caller is `Sim::resolve_unit_collision`
     /// (`docs/COLLISION.md` §6 step 6).
     pub fn find_upath(&mut self, u: usize, anti: bool) -> i32 {
-        // SEAM: `repaths[who]` is 0 with no collision pressure model, so
-        // the limit is the full 500 (250 with `anti`).
+        // **The `repaths` divisor is read and not applied** (item 301,
+        // `docs/DECISIONS.md` entry 30). `00688eb0` sets `limit = 500 /
+        // max(1, repaths[who]²)`, halved with `anti`, and this crate has
+        // `repaths` since item 80 — so the seam below is a *choice*, not a
+        // gap. Applied, it is right on the wrapper and wrong on the score:
+        // it puts `1/7`'s 7810 search over its budget where the full 500
+        // carries it, and East Indies' long capture parts at 7812 instead
+        // of 8193 because the suspend it then reaches is not wired
+        // (`docs/PATHFINDER.md` §18). It lands with the suspend, on
+        // `worktree-loop-301-suspend`, not before.
         let limit = if anti { 250 } else { 500 };
+        self.upath(u, anti, limit, false)
+    }
+
+    /// `PathFinder::find_upath_restore@00688f40` — the four-argument form
+    /// that re-enters a suspended 48-grid search.
+    ///
+    /// It is `find_upath` with `saving = 1`, `anti = 0` and a **300**
+    /// numerator instead of 500, and `saving` is what makes `find_upath`
+    /// skip its whole pre-A\* block: no pop, no pull-back, no near test,
+    /// no pushes. The stack is exactly as the suspend left it and the
+    /// reconstruction pushes onto it.
+    ///
+    /// Its only caller is `do_move`'s suspended-search block
+    /// (`docs/ORDERS.md` §4.4 step 2).
+    pub fn find_upath_restore(&mut self, u: usize) -> i32 {
+        let sq = self.repaths[self.units[u].owner as usize].pow(2).max(1);
+        self.upath(u, false, 300 / sq, true)
+    }
+
+    /// `PathFinder::find_upath@00682f30`, the big form. `resume` is the
+    /// global `saving`.
+    fn upath(&mut self, u: usize, anti: bool, limit: i32, resume: bool) -> i32 {
+        if resume {
+            return self.upath_search(u, anti, limit, true);
+        }
         let Some(mut goal_e) = self.units[u].path.pop() else {
             return 0;
         };
@@ -1324,34 +1455,63 @@ impl Sim {
         }
         let mut goal = goal_e.to;
         let mut memo = BTreeMap::new();
-        loop {
-            let gg = g48(goal);
-            let metric = i64::from(gg.x) + i64::from(gg.y) * i64::from(self.world.width()) * 16;
-            if self.world.tregion_alt(goal.tile()) == self.world.tregion_alt(here.tile())
-                && self.valid_ucoord(u, goal, metric, &mut memo)
-            {
-                break;
-            }
-            let (dx, dy) = (here.x - goal.x, here.y - goal.y);
-            if dx.abs() < 0x18 && dy.abs() < 0x18 {
-                if goal_e.flags & path_flag::FINAL == 0 {
-                    return 0;
+        // **The pre-walk is gated, and the gate is not `find_wpath`'s**
+        // (item 301). `00683095` tests the type's domain `+0x218 < 2` and
+        // `UnitData::can_transport@0046f960` — a **conjunction with no
+        // vfunc `+0x8` disjunct**, where `find_wpath@00688fc0:91` has
+        // `domain < 2 && (vfunc+8 == 0 || !can_transport)`. So a land unit
+        // whose side has a Dock — `unit_masks & 0x800000` without
+        // `unit_masks2 & 0x2000`, which every citizen on an island map
+        // carries — never pulls its 48-grid goal back at all: it goes
+        // straight to the near test and the search.
+        // **The pre-walk's gate is read and not applied** (item 301,
+        // `docs/DECISIONS.md` entry 30, `docs/PATHFINDER.md` §18).
+        // `00683095` runs the whole pull-back only when the type's domain
+        // `+0x218 < 2` **and** `UnitData::can_transport@0046f960` answers
+        // 0 — a conjunction with no vfunc `+0x8` disjunct, where
+        // `find_wpath@00688fc0:91` has `domain < 2 && (vfunc+8 == 0 ||
+        // !can_transport)`. So a land unit whose side has a Dock —
+        // `unit_masks & 0x800000` without `unit_masks2 & 0x2000`, which
+        // run90's `1/7` carries as `0x84040A` — never pulls its 48-grid
+        // goal back at all.
+        //
+        // Applied alone it makes the port worse: `1/7`'s 7810 search then
+        // reaches the suspend, which is landed unwired, and East Indies'
+        // long capture parts at 7812 instead of 8193. The gate, the
+        // `repaths` divisor above and the suspended-search block in
+        // `do_move` are one change, and they land together on
+        // `worktree-loop-301-suspend` when the queue's item 304 closes.
+        let pulls_back = true;
+        if pulls_back {
+            loop {
+                let gg = g48(goal);
+                let metric = i64::from(gg.x) + i64::from(gg.y) * i64::from(self.world.width()) * 16;
+                if self.world.tregion_alt(goal.tile()) == self.world.tregion_alt(here.tile())
+                    && self.valid_ucoord(u, goal, metric, &mut memo)
+                {
+                    break;
                 }
-                break;
-            }
-            let ang = movement::find_angle(dx, dy);
-            // `0x18` here — `mov edi, 0x18` at `0x68318b`.
-            let s = 0x18;
-            let sx = movement::sin_component(ang, s);
-            let cy = movement::cos_component(ang, s);
-            goal = Pos::new(goal.x + sx, goal.y - cy);
-            goal_e.to = goal;
-            if g48(goal) == hg {
-                self.units[u].path.push(goal_e);
-                return self.units[u].path.len() as i32;
-            }
-            if sx == 0 && cy == 0 {
-                break;
+                let (dx, dy) = (here.x - goal.x, here.y - goal.y);
+                if dx.abs() < 0x18 && dy.abs() < 0x18 {
+                    if goal_e.flags & path_flag::FINAL == 0 {
+                        return 0;
+                    }
+                    break;
+                }
+                let ang = movement::find_angle(dx, dy);
+                // `0x18` here — `mov edi, 0x18` at `0x68318b`.
+                let s = 0x18;
+                let sx = movement::sin_component(ang, s);
+                let cy = movement::cos_component(ang, s);
+                goal = Pos::new(goal.x + sx, goal.y - cy);
+                goal_e.to = goal;
+                if g48(goal) == hg {
+                    self.units[u].path.push(goal_e);
+                    return self.units[u].path.len() as i32;
+                }
+                if sx == 0 && cy == 0 {
+                    break;
+                }
             }
         }
         let gg = g48(goal);
@@ -1372,15 +1532,24 @@ impl Sim {
             tolerance: 0,
             flags: 0,
         });
+        self.upath_search(u, anti, limit, false)
+    }
+
+    /// `find_upath`'s tail: `anti_unit` around the search, then the
+    /// failure teardown and the success compaction. A **resume** skips the
+    /// failure teardown entirely — `00683380`'s pop-and-kill block is
+    /// inside the same `saving == 0` guard as the prologue, so a resumed
+    /// search that gives up leaves the order alone.
+    fn upath_search(&mut self, u: usize, anti: bool, limit: i32, resume: bool) -> i32 {
         let modes = Modes {
             anti_unit: true,
             limit,
             no_danger: self.no_danger_mode(u),
             ..Modes::default()
         };
-        let r = self.astar_path(u, &modes, STEP_UNIT, i32::from(anti));
+        let r = self.astar_path(u, &modes, STEP_UNIT, i32::from(anti), resume);
         if r < 1 {
-            if r == 0 {
+            if r == 0 && !resume {
                 if self.units[u]
                     .path
                     .last()
@@ -1676,6 +1845,98 @@ mod tests {
         assert!(sim.find_tpath(u) > 1, "expected a tile route");
         let vetoed: Vec<i32> = sim.units[u].path[1..].iter().map(|p| p.tolerance).collect();
         assert_eq!(vetoed, plain, "the veto puts the half-tile back");
+    }
+
+    /// **The suspend, and the resume that finishes what it started**
+    /// (§4.3 step 3, §18, item 301). A 48-grid plan across a long stretch
+    /// of open ground with the budget cut to a handful of probes stops
+    /// short, hands its whole state to the unit, and returns −1 with the
+    /// stack holding nothing but the caller's final goal. Resumed — over
+    /// and over, exactly as `do_move`'s suspended-search block resumes it —
+    /// it reaches the same goal it would have reached in one call.
+    ///
+    /// Made to fail on purpose twice: with the stash dropped instead of
+    /// stored the resume answers 0 on the first call, and with the stop
+    /// node **not** re-inserted into the open list the resumed plan is a
+    /// different chain — 52 entries where the one call's compacts to 3,
+    /// because the node the search stopped on is reached again through its
+    /// neighbours instead of being expanded first.
+    #[test]
+    fn a_suspended_unit_search_is_resumed_where_it_stopped() {
+        let mut sim = flat_sim(20);
+        let u = walker(&mut sim, Pos::new(0x18, 0x18));
+        let goal = Pos::new(0x18 + 40 * 0x30, 0x18 + 40 * 0x30);
+
+        // The whole plan, in one call, is the control.
+        push_goal(&mut sim, u, goal);
+        assert!(sim.find_upath(u, false) > 1, "the control plan");
+        let whole = sim.units[u].path.clone();
+        sim.units[u].path.clear();
+
+        // Now the same plan on a budget of ten probes.
+        push_goal(&mut sim, u, goal);
+        assert_eq!(
+            sim.upath(u, false, 10, false),
+            -1,
+            "a 48-grid plan over its limit and short of the goal suspends"
+        );
+        assert!(
+            sim.units[u].search.is_some(),
+            "the suspend hands the search to the unit"
+        );
+        assert_eq!(
+            sim.units[u].path,
+            vec![PathData {
+                to: goal,
+                tolerance: 0,
+                flags: path_flag::FINAL
+            }],
+            "`astar_path` popped its own start and goal and pushed nothing: \
+             the stack is the caller's final goal and nothing else"
+        );
+        let stashed = sim.units[u].search.as_ref().expect("the stash");
+        assert_eq!(
+            stashed.start_dist,
+            (goal.x - 0x18).abs() + (goal.y - 0x18).abs(),
+            "`UnitData::start_dist` is the start-to-goal Manhattan, and the \
+             suspend is its only writer"
+        );
+        assert_eq!(stashed.goal, goal, "`endx`/`endy`");
+
+        // Resume until it lands. Each resume is `find_upath_restore`'s own
+        // call with the same small budget.
+        let mut resumes = 0;
+        let r = loop {
+            resumes += 1;
+            assert!(resumes < 400, "the resumed search never finished");
+            let r = sim.upath(u, false, 10, true);
+            if r != -1 {
+                break r;
+            }
+        };
+        assert!(resumes > 1, "one resume would not have tested anything");
+        assert!(r > 1, "the resumed search lands a path, got {r}");
+        assert!(
+            sim.units[u].search.is_none(),
+            "a finished search leaves no stash"
+        );
+        assert_eq!(
+            sim.units[u].path, whole,
+            "the resumed plan is the one call's plan, entry for entry"
+        );
+
+        // And `clear_partial_path` is what frees a stash that never
+        // finishes — the original's `Unit::clear_partial_path@005e3920`.
+        sim.units[u].path.clear();
+        push_goal(&mut sim, u, goal);
+        assert_eq!(sim.upath(u, false, 10, false), -1);
+        sim.clear_partial_path(u);
+        assert!(sim.units[u].search.is_none(), "the teardown frees it");
+        assert_eq!(
+            sim.upath(u, false, 10, true),
+            0,
+            "a resume with nothing stashed is a failure, not a panic"
+        );
     }
 
     #[test]
