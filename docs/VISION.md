@@ -385,14 +385,40 @@ simulation sets `visible`.
   that moved that scout is not one of the sites above, or not on the frame
   they would put it. *Check:* `GUYS=2 LEADERS=9` over frames 195–210 with
   `rontrace` attached — the trace names the function that ran.
-- **No dump on disk carries a *second* fog plane to diff against.** The
-  `WORLD` scan — `seen[scan]`/`seen2[scan]`/`seen3[scan]`, 14,400 triples
-  on a 60×60 map — is written only under `[Start Game]`, so every capture
-  has the frame-0 snapshot and nothing after it. The check that would turn
-  §3–§6 into a diff is `[End Frame] WORLD=6` over a short window: about
-  180k lines a frame, which is affordable for ten frames the way
-  `tools/gamelog/window.py` already cuts one. Until then §2 is diffed and
-  §3–§6 are not.
+- ~~**No dump on disk carries a *second* fog plane to diff against.**~~
+  **Three do, and no capture was needed** (item 320, 2026-09-17). The
+  `WORLD` scan is written under `[Start Game]` *and* on every block a
+  `DUMP_ALL` **window** covers, which is a `window:` line in
+  `tools/gamelog/captures.txt` rather than a raised `[End Frame]` category.
+  On Great Lakes, run13 carries the plane at blocks **95–104**, run73 at
+  **5564–5580** and run93 at **7929–7936**; each block holds 14,400
+  `seen2[scan]` values (printed six times over, once per `WORLD` record)
+  beside every cell's `WData` and all 57,600 tile masks.
+  `run13_s_fog_grid_is_the_original_s_on_every_cell_of_ten_frames`
+  had the first; item 320 added
+  `run93_s_block_7932_is_this_crate_s_world_cell_for_cell`, and **this
+  crate's fog plane is the original's at block 7932 — 14,400 of 14,400
+  half-cells, 7,932 frames of every reveal §3–§6 makes.** So §3–§6 are
+  diff-backed now, out to seventy frames under this map's own word, and the
+  costed capture is not owed. What is still not diffed is any frame past
+  7936 and any plane but `seen2`.
+- **`Unit::update_local_seen` is not a corner: it is Great Lakes' 8031**
+  (item 320, 2026-09-17). The bullet below has said since 2026-08-31 that
+  it is "not modelled; nothing in this simulation sets `visible`". run95
+  puts a price on that. At block 8002 this crate's plane parts from the
+  original's on **fourteen half-cells** — a 3 × 5 block at `x` 6–8,
+  `y` 78–82, which is two `circle_radius[1]` discs centred on `(7, 79)` and
+  `(7, 81)`, plus the single points `(10, 73)` and `(11, 73)` — and every
+  one is **player 1's bit over ground player 0 holds**. Two of them are the
+  `2c + 1` half-cells of the cells the AI scout's route reads, so the
+  original prices that step **328** and this crate **9**
+  (`docs/PATHFINDER.md` §20.2). A mask that is not the owner's bit is
+  exactly what §6's reveal has and `Object::update_seen`'s disc does not,
+  and no disc of the one AI unit in the west can make the shape. The
+  reveal lands between blocks **7937 and 7998**; `visible`'s **writer** is
+  what this document still owes, and
+  `run95_s_block_8002_is_where_the_fog_parts_and_the_price_with_it` is the
+  standing check.
 
 ## 8. What the simulation carries, and what checks it
 

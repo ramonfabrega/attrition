@@ -1576,3 +1576,157 @@ this crate reproduces a row on any capture the comparison has not run, and
 the two windows above are the only ones it has. The other twenty-one carry
 stamped rows that no test yet replays — that is reach for the taking, and
 each one is a capture already on disk.
+
+## 20. The scout's route through a city footprint — what block 8002 is not (2026-09-17)
+
+Great Lakes' word stands at **8031** and its first divergence is one
+`find_wpath` call: the AI scout `1/0` takes an `EXPLORETOORDER` to
+`(4344, 32760)` on block 8002 — the destination §8.2 of `docs/SCOUT.md`
+bought — and plans a **five**-entry stack where the original plans **six**.
+
+| slot | this crate | the original | cell |
+|---|---|---|---|
+| 0 | `(4320, 32736)` tol 0 flag 1 | same | the order's own goal |
+| 1 | `(2808, 31992)` | same | `(3, 41)` |
+| 2 | `(2808, 31224)` | `(2040, 31224)` | `(3, 40)` v `(2, 40)` |
+| 3 | `(2808, 30456)` | `(2040, 30456)` | `(3, 39)` v `(2, 39)` |
+| 4 | `(3576, 29688)` | `(2808, 29688)` | `(4, 38)` v `(3, 38)` |
+| 5 | — | `(3576, 29688)` | `(4, 38)` |
+
+Read top-down, the original walks `(5,38) → (4,38) → (3,38) → (2,39) →
+(2,40) → (3,41)` and this crate `(5,38) → (4,38) → (3,39) → (3,40) →
+(3,41)`. Cells `(3,39)` and `(3,40)` are two of the four the **human
+capital's 6 × 6 footprint** sits on (tiles 13–18 × 157–162, nine blocked
+tiles a cell); the original goes round them to the west and this crate
+through them. Its **position** then parts on block 8014, the frame the
+routes' headings separate — `(3912, 29680)` against `(3912, 29677)`.
+
+**Two forcings reproduce the original's stack entry for entry**, and no
+third was found:
+
+- half-cells `(7, 79)` and `(7, 81)` read as *seen* by player 1 — those are
+  `div_3_table[to >> 7]` of the two nodes, the exact points `calc_cost`'s
+  fog test reads — which moves both cells out of the fog branch and prices
+  them at `0x400 / 8 + 20 × 9 + …`;
+- cells `(3, 39)` and `(3, 40)` refused by `valid_wcoord`.
+
+Either alone is not enough: with `(7, 79)` only, slot 2 still parts; with
+`(7, 81)` only, three rows do.
+
+### 20.1 What block 8002 is **not**, and the diff that says so
+
+Everything the search reads was eliminated against the original's own
+`WORLD` scan rather than by reading, and that was possible because
+`docs/VISION.md` §7's "no dump on disk carries a *second* fog plane to
+diff against" is **wrong**: a `DUMP_ALL` *window* prints the whole scan on
+every block it covers, and three Great Lakes archives carry one mid-game —
+run13 at 95–104, run73 at 5564–5580 and **run93 at 7929–7936**, seventy
+frames under the word. `run93_s_block_7932_is_this_crate_s_world_cell_for_cell`
+is the diff:
+
+| plane | compared | parting |
+|---|---|---|
+| fog (`seen2`) | 14,400 half-cells | **0** |
+| cells (`flags`, `who`, `blocked`, `solid`, `bad`) | 3,600 | **0** |
+| tile masks | 57,600 | 171, one cluster |
+
+So at block 8002 the search reads the original's own world. Ruled out with
+it:
+
+- **the danger grid** — diff-backed against run64, and unread in the fog
+  branch anyway;
+- **`think_scout`** — the destination and the frame's 38 draws are the
+  original's (`docs/SCOUT.md` §8.2);
+- **the cost arithmetic** — every priced step of this crate's search
+  reproduces its exact number by hand, seen and unseen: `(4,38)` costs
+  `128 + 8 + 4 = 140` (base `0x400` scouting, `danger 65 >> 3`, the enemy
+  `+4`), `(4,39)` `328` (the same plus `20 × 9`), `(3,38)` and `(3,39)`
+  `1` and `9` (base `8`, no extra, the diagonal's `8`);
+- **the search's mode flags** — `scouting`, `army`, `worker`, `no_danger`
+  and `iroquois` were each forced on and off; none produces the original's
+  stack, and three of them move the *destination*, which is already pinned.
+
+### 20.2 It is the fog, and the reveal is not a unit's disc (run95)
+
+~~Why the fog is the weaker of the two, and what is still open.~~ **The
+capture overturned this section's conclusion the same day it was written,
+and the elimination below was right in its premise and wrong in its
+verdict.** run95's `callwin` proxy over `calc_cost` on sim-frame 8001 —
+116 records, the whole of `1/0`'s search — prices the step from cell
+`(4, 38)` into `(3, 39)` at **328**, and the neighbouring step into
+`(3, 38)` at **1**:
+
+| step | the original | this crate | what 328 is made of |
+|---|---|---|---|
+| `(4,38) → (3,38)` W | **1** | 1 | base `8`, unseen, scouting |
+| `(4,38) → (3,39)` SW | **328** | 9 | `128` seen base + `8` danger + `4` enemy + `20 × 9` terrain + `8` diagonal |
+| `(3,38) → (3,39)` S | **320** | — | the same without the diagonal |
+| `(3,38) → (2,39)` SW | **9** | 9 | unseen |
+
+The step is **priced, not refused** — and a `valid_wcoord` refusal happens
+upstream of `calc_cost`, so the record's presence is itself the verdict
+that the predicate passed. So `invalid_loc` is not the answer (§20.3's two
+gaps stand on their own), and the fog forcing was the right one all along.
+
+run95's own `DUMP_ALL` window then says why, at the block the search runs
+on. **Fourteen half-cells of 14,400 part at block 8002**, in two patches,
+and every one is player 1's bit over ground player 0 holds:
+
+```
+ y=78  (6,78) (7,78)        the 3 x 5 block x 6-8, y 78-82, which is
+ y=79  (6,79) (7,79)        two radius-1 discs — circle_radius[1], the
+ y=80  (6,80) (7,80)        3 x 3 — centred on (7,79) and (7,81): the
+ y=81  (6,81) (7,81) (8,81) 2c+1 half-cells of cells (3,39) and (3,40)
+ y=82  (6,82) (7,82) (8,82)
+ y=73  (10,73) (11,73)      two single points, beside the human's 0/1 and 0/2
+```
+
+`(7, 79)` and `(7, 81)` are exactly the two the route reads, which is why
+forcing them seen reproduced the original's stack entry for entry.
+
+**And §20.2's premise survives: no `update_seen` disc of the scout can make
+this.** `1/0` is the only owner-1 unit ever west of cell 37, its `mylos`
+is 6 on every compared frame so its radius is 3, and its projected sweep
+centre runs `(15,81) → (14,81) → (13,81) → (12,81) → (12,80) → (12,79) →
+(11,78) → (11,77) → (10,76) → (10,77) → (9,77)` — never within five
+half-cells of `(7, 81)`. Nor is the shape a disc of any radius: a
+radius-1 pair is, and a radius-1 disc centred on a **cell's own centre
+half-cell** is not something `Object::update_seen` produces for a unit at
+all.
+
+**So it is a second reveal this simulation does not make, and
+`docs/VISION.md` §6 already names one.**
+`Unit::update_local_seen@0060e410` lights `circle_radius[type->x_size]`
+points around an object's **own** half-cell into `seen2` and `seen`, with
+`ObjectData::visible` as the **mask** rather than the owner's bit — so a
+human object whose `visible` carries player 1's bit lights the *AI's*
+plane, which is exactly the fourteen. Nothing in this crate sets
+`visible`. The reveal lands between blocks **7937 and 7998**: run93's 7936
+still has all fourteen dark and run95's 7999 already has them lit, and the
+planes are identical at 7932 (§20.1). What would falsify the candidate is
+a `visible` of 0 on those objects inside that window.
+
+The assertion is
+`run95_s_block_8002_is_where_the_fog_parts_and_the_price_with_it`, which
+pins the fourteen by place and the original's 328 and 1 by value.
+
+### 20.3 Two gaps `invalid_loc` has here either way
+
+Neither moves this map's word; both are real and cited so a successor does
+not re-derive them.
+
+- **The land arm's cell test.** `invalid_loc@00607c30`'s `param_4 == 0`
+  branch opens with `if ((cellflags & 0x70) && ((cellflags & 0x20) == 0 ||
+  !(unit_masks2 & 0x4000)) && param_3 && param_6) return 2` — mountain,
+  forest or the unnamed `0x40` refuses a **land** unit at the *cell*, and
+  it is the twin of the `0x70` test this crate already makes on the sea
+  arm (`SEA_REFUSES`). `p3` and `p6` are both 1 only from `valid_wcoord`,
+  so it is a **world-grid-only** refusal: `valid_tcoord` and
+  `valid_ucoord` pass `p3 = 0`. Unimplemented.
+- **The fog shortcut.** `param_4` (`1 < timeout`) plus `leaders.list[who]
+  & 4` returns **valid** early when all four of the tile's cell's fog
+  half-cells are unseen, skipping every terrain test. `_fog_relax` is an
+  unused parameter here. It is a relaxation, so it can only ever make this
+  crate refuse where the original allows — and the two are a pair in the
+  same sense §5's fog branch and terrain row are: landing the first
+  without the second would refuse unseen rough ground the original walks.
