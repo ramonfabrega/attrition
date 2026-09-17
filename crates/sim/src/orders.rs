@@ -1746,17 +1746,12 @@ impl Sim {
         };
         let mut flags = flags;
 
-        // **The suspended-search block is read, built and not wired**
-        // (`docs/DECISIONS.md` entry 30, item 301). §4.4 step 2 is
-        // `do_move`'s first block after the cavalry-archer fire: while
-        // [`crate::Unit::search`] is `Some`, **no step happens** — every
-        // arm returns — the "has the blocker gone" probe fires on the 5th,
-        // 7th, 9th … frame after `collide_frame`, `repaths` ticks on every
-        // fourth `o + frame`, `collide` counts up every frame and
-        // [`Sim::find_upath_restore`] resumes the search.
+        // **A suspended search** (§4.4 step 2, item 301). `do_move`'s
+        // first block after the cavalry-archer fire, and **no step happens
+        // while one is pending**: every arm below returns.
         //
         // **Its Great Lakes cost is paid** (item 304,
-        // `docs/PATHFINDER.md` §18.5). Wired, the block used to cost
+        // `docs/PATHFINDER.md` §18.5). Wired, this block used to cost
         // Great Lakes' long word 7679 → 6862, and the cause was upstream
         // of every line of it: run76's `1/28` degrades out of formation on
         // 6860 on the original's own frame, but this crate's
@@ -1767,8 +1762,48 @@ impl Sim {
         // wired measurement is East Indies 7812 → **8193** and Great Lakes
         // **7679**, unmoved.
         //
-        // What remains is the wiring itself, one commit on the branch
-        // `worktree-loop-301-suspend`. `docs/PATHFINDER.md` §18.
+        // The clock is `frame − collide_frame` — `UnitData +0x48`, which is
+        // `collide_frame` by the type record, not a second stamp — so the
+        // "has the blocker gone" probe fires on the 5th, 7th, 9th … frame
+        // after the collision that suspended the search, and the `repaths`
+        // tick on every fourth `o + frame`.
+        //
+        // SEAM: the `ATTACK` retarget (`find_new_target` every 4 frames)
+        // and the `GATHER` park (`vector_dist < 0x120`) are the two arms
+        // above this one and are dormant; no capture has reached either.
+        if self.units[u].search.is_some() {
+            let elapsed = frame - self.units[u].collide_frame;
+            let coll = mo.coll.unwrap_or(self.units[u].pos);
+            if elapsed > 3
+                && (elapsed - 1) % 2 == 0
+                && self.detect_unit_collision(u, coll).is_none()
+            {
+                // The blocker has gone: drop the search and re-plan next
+                // frame off the stack as it stands.
+                mo.has_waypoint = false;
+                self.clear_partial_path(u);
+                flags |= flag::PATHED;
+                self.units[u].collide = 0;
+                self.store_move(u, mo, flags);
+                return Did::Nothing;
+            }
+            if (i64::from(self.units[u].index) + frame) % 4 == 0 {
+                let who = self.units[u].owner as usize;
+                self.repaths[who] += 1;
+            }
+            self.units[u].collide += 1;
+            mo.has_waypoint = false;
+            self.store_move(u, mo, flags);
+            self.find_upath_restore(u);
+            if self.units[u].search.is_some() {
+                return Did::Nothing;
+            }
+            if frame - 5 <= self.units[u].collide_frame {
+                return Did::Nothing;
+            }
+            self.units[u].collide = 0;
+            return Did::Nothing;
+        }
 
         // `timer`: a self-destruct.
         if mo.timer > 0 {
