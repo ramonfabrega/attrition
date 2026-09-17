@@ -876,8 +876,11 @@ target order decides its transit legs are stale.
    unit (`avoid_x/y = pos`, resets the gather fields, kills the move); else
    every other frame from 4 on, `detect_unit_collision(coll_x, coll_y, …) ==
    0` → `dest = 0; clear_partial_path; flags |= 1; collide = 0; return 0` (the
-   blocker has gone — re-plan next frame); otherwise every 4 frames
-   `repaths[who]++`, `collide++`, `dest = 0`, `PathFinder::find_upath_restore`
+   blocker has gone — re-plan next frame); otherwise `collide++` and
+   `dest = 0` **every frame** (the increment is outside the
+   `& 0x80000003` test, which guards only `repaths[who]++` — this row read
+   "every 4 frames" until run90 dumped `collide` counting 1 → 9 one a
+   block, `docs/COLLISION.md` §8.8), then `PathFinder::find_upath_restore`
    resumes the A\* with limit `300 / repaths²`. **No step while a search is
    pending.**
 3. **`timer`**: `> 0`: at 1 → `kill_current_order(0); work(); return 0`; else
@@ -1113,23 +1116,18 @@ detour's recursive call passes a waypoint of its own rather than
 `mo->dest_x/dest_y`. `go_around_building@005fc350`, which the pull-back
 cannot stand in for, is §4.6.1 and landed 2026-08-26.
 
-~~**The march as written above has a fixed point, and it hung the simulation
-(2026-08-22).**~~ **Settled, 2026-08-23, by the pathfinder reading**
-(`docs/PATHFINDER.md` §9): the fixed point was a mistranscription, twice
-over. The original recomputes `find_angle` from the *current* remainder on
-every iteration (the transcription hoisted it out of the loop), and clamps
-each component to its axis' remainder (`|sinx| > |dx| → step_x = dx`), so an
-axis that closes stays closed and the next angle points wholly along the
-other axis. The exit tests are: loop only while `spd < manh`; return 0 when
-`manh` grew; return 0 when the remainder is within one **actual clamped
-step** on both axes (`<=`). With `spd >= 3` the dominant `sinx/cosx`
-component is ≥ 2 after truncation, so a no-progress step is unreachable and
-the original needs no guard. The citizen case that hung us — `(60, 1600)` at
-`spd 25` — walks: y closes exactly, the angle re-aims due east, x closes,
-return 0, no `find_wpath` draw. The sim's interim "return 1 on no progress"
-guard (and its stated sync divergence) is retired; the march is now
-transcribed as above, and the soak that found the hang stands guard over the
-rewrite. `go_around_building@005fc350` is §4.6.1; its trigger — an invalid
+**The march has no fixed point, and the two things that stop it having one
+are transcription rules** (settled 2026-08-23 by the pathfinder reading,
+`docs/PATHFINDER.md` §9; the story is the journal's). `find_angle` is
+recomputed from the *current* remainder on every iteration — never hoisted
+out of the loop — and each component is clamped to its own axis' remainder
+(`|sinx| > |dx| → step_x = dx`), so an axis that closes stays closed and the
+next angle points wholly along the other. The exit tests: loop only while
+`spd < manh`; return 0 when `manh` grew; return 0 when the remainder is
+within one **actual clamped step** on both axes (`<=`). With `spd >= 3` the
+dominant component is ≥ 2 after truncation, so a no-progress step is
+unreachable and the original needs no guard.
+`go_around_building@005fc350` is §4.6.1; its trigger — an invalid
 tile on the straight line — open ground never has.
 
 ### 4.6.1 `Unit::go_around_building@005fc350` — the detour, and how `find_path` accepts it

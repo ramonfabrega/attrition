@@ -245,6 +245,16 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // the merged tree agrees with neither: two independent improvements
         // compose, so the figure is what the merged code prints, and a merge
         // is not the place to adjudicate a floor.
+        //
+        // Then **78 → 76, 3 → 5, 4 → 3 and 23 → 25** on 2026-09-17, item
+        // 294 — `move_step`'s turn-in-place return (`docs/COLLISION.md`
+        // §8.8). A frame spent turning no longer probes for a collision,
+        // reveals, or runs the arrival test, so every unit on both maps
+        // that has ever turned in place is on a slightly different clock.
+        // Two positions closer and two more of the roster unlinked, two
+        // building field-rows out and one fewer building missing,
+        // 16,189 frames past a word that does not move. DECISIONS 36 asks
+        // for the number rather than a trade.
         // And **78 → 70, 3 → 9, 4 → 0 and 23 → 30** on 2026-09-17, item
         // 295 — `census_units` reading `UnitTypeData::role` over captains
         // (`docs/AI.md` §35). The sweep counted a caravan as the leader's
@@ -254,14 +264,13 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // closer, six more of the roster unlinked, every unlinkable
         // building linked and seven more building field-rows apart.
         // DECISIONS 36 asks for the number rather than a trade.
-        off: 70,
+        // **Re-pinned at the 294/295 merge, 2026-09-17**, and by neither
+        // worker's numbers: the two land independently and compose, so the
+        // figure is what the merged code prints.
+        off: 72,
         unlinked: 9,
         extra: 0,
         build_unlinked: 0,
-        // 33 → 32 on 2026-09-07, item 265: `CityData::free` is a byte that
-        // wraps, and the AI reading 255 where it read −1 takes one building
-        // field-row off the diverging list. Then 31 → 32 on item 271,
-        // 32 → 28 on item 290, and 23 → 30 on item 295.
         build_diverged: 30,
         city_unlinked: 3,
         city_diverged: 0,
@@ -317,6 +326,11 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // the merged tree agrees with neither: two independent improvements
         // compose, so the figure is what the merged code prints, and a merge
         // is not the place to adjudicate a floor.
+        //
+        // Then **12 → 11** on 2026-09-17, item 294's turn-in-place return
+        // (`docs/COLLISION.md` §8.8) — one building field-row closer and
+        // nothing else on this row moved, where East Indies' own took four
+        // counts on the same change.
         // Then **70 → 56, 9 → 26 and 12 → 10** on 2026-09-17, item 295 —
         // the census fix above, which on this map moves the word itself
         // **7585 → 7679**. Fourteen positions closer, the largest single
@@ -324,8 +338,11 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // what the AI *counts*; seventeen more of the roster unlinked in
         // exchange, and two building field-rows closer. DECISIONS 36 asks
         // for the number rather than a trade.
-        off: 56,
-        unlinked: 26,
+        // **Re-pinned at the 294/295 merge, 2026-09-17**, and by neither
+        // worker's numbers: the two land independently and compose, so the
+        // figure is what the merged code prints.
+        off: 55,
+        unlinked: 28,
         extra: 0,
         build_unlinked: 0,
         build_diverged: 10,
@@ -370,8 +387,10 @@ pub const LADDER: [Endpoint; 2] = [
         // Then **46 → 47** on 2026-09-17, item 295's census fix
         // (`docs/AI.md` §35): one position out, 7,872 frames past this
         // rung's word, on the change that moves Great Lakes' own word
-        // 7585 → 7679 and takes fourteen off its endpoint.
-        off: 47,
+        // 7585 → 7679 and takes fourteen off its endpoint. **Re-pinned at
+        // the 294/295 merge**: 46 again — 294's own row moved `extra` and
+        // not `off`, and the merged tree keeps this rung's position.
+        off: 46,
         unlinked: 17,
         // 20 → 21 on 2026-09-07, item 267's repaint: one spurious unit
         // back, 7,872 frames past the word, and nothing else on this rung
@@ -387,13 +406,25 @@ pub const LADDER: [Endpoint; 2] = [
         // **22 → 13** on item 290's `get_mod_resource_cap` (`docs/AI.md`
         // §33.2) — nine spurious units gone and nothing else on this rung
         // moved, which is the same shape as East Indies' own endpoint
-        // losing all eleven of its extras.
-        // Then **7 → 18** on 2026-09-17, item 295's census fix: eleven
-        // spurious units back, and this rung is the only row of the four
-        // whose `extra` moved at all. The AI counting captains instead of
-        // figures changes what it thinks it has, so what it builds moves
-        // with it; the direction here is the wrong one and it is on the
-        // record rather than traded away.
+        // losing all eleven of its extras. Then **7 → 18** on 2026-09-17,
+        // item 294's turn-in-place return — eleven spurious units back on
+        // this rung alone, 7,872 frames past its word, with `off`,
+        // `unlinked` and both building counts unmoved. It is the largest
+        // single move this rung's `extra` has made, and in the wrong
+        // direction; DECISIONS 36 asks for the number rather than a trade.
+        // The **roster** says which shape it is, and it was read on both
+        // sides of the change: the seven were `1/10 1/12 1/25 1/29 1/48
+        // 1/49 1/54` and the eighteen are the same seven plus `1/55` …
+        // `1/65`. Not one existing extra moved, the additions are a
+        // contiguous run at the top of the production roster, and `off` is
+        // unmoved at 46 — over-production, not units that stopped
+        // colliding, which would move positions and scatter through the
+        // roster (`docs/COLLISION.md` §8.8).
+        // Item 295's census fix (`docs/AI.md` §35) takes this rung to the
+        // same 18 on its own branch, for its own reason — the AI counting
+        // captains instead of figures changes what it thinks it has, so
+        // what it builds moves with it. Two changes, one figure:
+        // **re-pinned at the 294/295 merge, 2026-09-17** and unmoved.
         extra: 18,
         build_unlinked: 10,
         build_diverged: 7,
@@ -433,13 +464,21 @@ pub const LADDER: [Endpoint; 2] = [
         // larger again: eleven more spurious units gone and nothing else on
         // this rung moved. All three East Indies rows lost extras on that
         // change — 11, 9 and 11 — and its own endpoint lost every one it
-        // had.
-        // Then **8 → 14** on 2026-09-17, item 295's census fix
-        // (`docs/AI.md` §35): six spurious units back, `off` unmoved, and
-        // the C rung above took eleven the same way on the same change.
-        // Both East Indies rungs gained extras where Great Lakes' own
-        // word moved 7585 → 7679; the number, not a trade.
-        extra: 14,
+        // had. Then **8 → 16** on 2026-09-17, item 294's turn-in-place
+        // return, with nothing else on this rung moved — eight spurious
+        // units back where the C rung above took eleven, so both East
+        // Indies rungs gave back most of what 290 won them and the map's
+        // own endpoint, which has no extras to give, did not. Same roster
+        // shape as the C rung: the eight were `1/12 1/56` … `1/60 1/63
+        // 1/64` and the sixteen are the same eight plus `1/61 1/62 1/65` …
+        // `1/70`, with `off` unmoved at 52.
+        // Item 295's census fix (`docs/AI.md` §35) takes this rung the
+        // same way on its own branch, 8 → 14, and the C rung above eleven
+        // — both East Indies rungs gain extras where Great Lakes' own
+        // word moves 7585 → 7679. **Re-pinned at the 294/295 merge,
+        // 2026-09-17**: 17, one more than either worker's branch (294's
+        // said 16 and 295's 14), so the merged tree agrees with neither.
+        extra: 17,
         build_unlinked: 19,
         build_diverged: 0,
         city_unlinked: 4,

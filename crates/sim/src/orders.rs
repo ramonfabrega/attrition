@@ -2946,6 +2946,33 @@ impl Sim {
         let unit = &mut self.units[u];
         unit.movement.facing = step.facing;
 
+        // **And there the frame ends** (`docs/COLLISION.md` §8.8). Both
+        // turn-in-place arms are `call Guy::do_turn(…, 0, 1); mov eax,1;
+        // ret 8` on the listing — the far one returning at `005fb2b9`,
+        // the near one at `005fb2e6` — so a frame spent turning reaches
+        // **none** of what follows: not the four world-bounds tests, not
+        // the collision probe, not `invalid_loc`, not `set_new_location`
+        // and its reveal, and not the tail's arrival test.
+        //
+        // The probe is the one that cost a frame. `detect_unit_collision`
+        // does its clearing on **every** path out (§4.1), so running it on
+        // a turning unit wipes the `collide_o`/`collide_who` that
+        // `do_move`'s own waypoint probe wrote three statements earlier
+        // and ages `collide` to zero — the original keeps both, because it
+        // never asks. run90 block 7809 is the case: `1/7` turns 44° in
+        // place with `1/6`'s block over the cell its new leg ends in, and
+        // the original carries `collide 1 / collide_o 6 / collide_who 1`
+        // into the dump where this crate carried the fields clear.
+        //
+        // The store is still owed — this crate steps on a *copy* of the
+        // order, and `do_move`'s waypoint block writes `coll_x`/`coll_y`
+        // into the real one (§4.3's "the store is into the order").
+        if step.turned_in_place.is_some() {
+            let flags = self.current_order(u).map_or(0, |o| o.flags);
+            self.store_move(u, mo, flags);
+            return Did::Something;
+        }
+
         // **The collision block** (`docs/COLLISION.md` §5). The proposed
         // point is tested against the occupancy index; a blocked step
         // either snaps through onto a sidestep waypoint, waits out the
