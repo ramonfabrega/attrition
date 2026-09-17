@@ -36,6 +36,17 @@ of 260's 8,816 was run58's clean text — and a 2 s poll under-reports a
 sawtooth. Still wants the fixture with teeth: past the cap, dead in N
 seconds, exit 137.
 
+(318) **A gate that overlaps a queue rewrite fails on paperwork that is
+fine.** `the_handoff_s_endpoint_is_the_pinned_counts` and
+`the_handoff_s_scoreboard_is_the_floors` read `docs/QUEUE.md` from disk, so
+a worker's gate running while the commander rewrites the handoff goes red on
+a file neither of them is wrong about — seen on item 308's first run,
+passing alone and in a clean re-run. It is a real race with two lanes and a
+commander, and it will get worse, not better. The fix is the pass's to
+choose: the guards read the queue at the commit under test rather than the
+working tree, or the commander holds queue rewrites until no gate is in
+flight. Costs a re-run each time until then.
+
 (313) **The landing chain wants one verb.** Merge, gate, push and reap are
 one chain by rule since 09-17; ccc has `merge`, `update` and `clear`, and
 the reap is a separate command a commander typed after the chain twice and
@@ -98,8 +109,9 @@ run76's **6737**, three Archers going guy **170 → 177** keeping `(who, o)`
 and `group 64`; East Indies' `1/32` does 340 → 341, the danger row moving
 by `(110 − 100) / 2`. (181) CARAVAN §7.2–§7.3.
 
-**The widening ledger** (87, DATALAYER §4, §4.1): **19** fields the harness
-names nowhere, **45** one capture names; blind spot `avg_speed` (210) — it
+**The widening ledger** (87, DATALAYER §4, §4.1): **18** fields the harness
+names nowhere, **46** one capture names — item 308 moved both on 2026-09-17,
+`start_dist` off the uncompared list and `uid` onto the single-capture one; blind spot `avg_speed` (210) — it
 counts *fields* and cannot see a record the parser never visits, which is
 what hid 252's dumps. Uncounted: (88) the blind list, 101 of 617; (72)
 every `+0xNN` a document pins vs its module; (89) the guard; (35) VISION §7.

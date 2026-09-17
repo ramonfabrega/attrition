@@ -12,36 +12,36 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-17, an Opus commander wave of two, both on Great Lakes.
-**East Indies +381; Great Lakes unmoved, its cause named.**
-Next: the capture 312 asks for.*
+*2026-09-17, an Opus commander loop, two waves of two.
+**Both maps moved: East Indies +381, Great Lakes +251.**
+Next: 317, the new Great Lakes frame.*
 
-- **Great Lakes 7679**, **East Indies 8193** — the largest single step that
-  word has taken. 301's suspend is wired; nothing is banked unwired now.
-- **Both items overturned their own framing, and the widening did it.**
-  304: run76's formation was never early — the squad degrades on 6860, the
-  original's own frame, and the missing line is the `clear_partial_path`
-  inside `kill_current_path`'s `0 < length` guard, which this crate popped
-  without. That one call is the whole of the 7679 → 6862 the wiring cost.
-  312: `move_step+0x823` is a **blocked** step, not the walk, so 7679 is a
-  position question. Two named mechanisms, both wrong, both found by
-  widening the dumped record before touching anything.
-- **Seven pins moved, not 304's five.** The ladder's B rung surfaces only
-  once the C rung is re-pinned, and run90 grew a new row (315, parked).
-  run90's window and run88's closing residue are now the two Merchant
-  constants alone.
-- Two items open, eighteen parked. `docs/journal/2026-09-17-item-304.md`,
-  `docs/journal/2026-09-17-item-312.md`.
+- **Great Lakes 7930**, **East Indies 8193**. 304 wired 301's suspend
+  (+381); 314's capture closed the `get_loc` seam (+251); 312 named 7679's
+  cause and 308 took the suspend's reach from two windows to 23 captures.
+- **Four items, four named mechanisms, three of them wrong** — and the
+  widening found each inside twenty minutes. 304's formation was never
+  early; 312's draw site is a *blocked* step, not the walk; 314's extra
+  waypoint is the `get_loc` seam, not `find_wpath_from`'s emission, which
+  only the listing could settle. Brief the widening as the item, not as a
+  preliminary.
+- **`MoveOrder +0x4`/`+0x8` is `x`/`y` by the type record**, not
+  `orig_x`/`orig_y`; GROUPS §6.3 said "origin" and was wrong. A name is
+  settled by the type record, never by the surrounding code.
+- **The capture lane is four minutes and needs no human** (`viadriver.sh
+  runqueue.sh - <item>`, run92): a capture is no longer a reason to stop.
+- One item open, twenty parked. Journals: items 304, 308, 312, 314.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w8193 of 24,000 · GreatLakes w7930 of 24,000
 Endpoint 24001: EastIndies 66 off, 16 unlinked · GreatLakes 55 off, 28 unlinked
 
-**Opener: the capture lane, then one worker on 314 — a `GROUPS` window over
-Great Lakes [7670, 7686), `DEATHS` off, which decides 7679's cause in one
-read. No Great Lakes dump carries `GROUPDATA` past 5591 (run73), so this is
-the rare item the disk cannot answer. 308 is unblocked, and is a second
-worker's if its brief is as tight.**
+**Opener: `loop-317` is live on the headline and owns the screen — Great
+Lakes 7930, eight draws against ten parting at index 0, `Army::find_target`
+unspent here, and no dump under the frame. Widen first. When it lands, take
+its pins (they are the commander's), then spawn the next off what it found;
+the parked file has nothing that names a score, so a second lane needs a
+takes-chain or it waits.**
 
 ## The queue
 
@@ -59,14 +59,6 @@ score names it.
     its neighbours, every dumped record, every unit — and only then the
     mechanism. ARMY is the module; 314's run92 shows the capture lane is
     four minutes and click-free.
-
-308. **`UnitData::start_dist` is parsed, and twenty-three captures carry a
-    non-zero value** — run16 alone has 8,752 rows, and `+0x130`'s only
-    writer is astar's suspend block, so every row is a unit whose search
-    the original suspended, on a capture already on disk. 301 proved it
-    reads 144 for run90's `1/7` and 0 for every other unit there. The
-    suspend is wired now, so the rows check live behaviour rather than a
-    banked branch, and every one is free. PATHFINDER §18.
 
 ## How to maintain this file
 
