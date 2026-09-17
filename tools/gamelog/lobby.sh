@@ -95,7 +95,7 @@ lobby_click() {
   fi
   local -a xy
   xy=(${=where})
-  zsh "$RON_TOOLS/focus.sh" >/dev/null 2>&1
+  zsh "$RON_TOOLS/focus.sh" >/dev/null || return 1
   sleep 0.5
   cliclick m:${xy[1]},${xy[2]} w:400 c:${xy[1]},${xy[2]}
   sleep $settle
@@ -109,9 +109,9 @@ lobby_start() {
   local settle=${1:-20} prefix=$2 i
   for i in $(seq 1 ${LOBBY_STARTS:-1}); do
     if [ "$i" -lt "${LOBBY_STARTS:-1}" ]; then
-      lobby_click start 3 ${prefix:+${prefix}start$i.png}
+      lobby_click start 3 ${prefix:+${prefix}start$i.png} || return 1
     else
-      lobby_click start $settle ${prefix:+${prefix}start$i.png}
+      lobby_click start $settle ${prefix:+${prefix}start$i.png} || return 1
     fi
   done
 }

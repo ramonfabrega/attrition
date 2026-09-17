@@ -33,14 +33,14 @@
 //! `Block::ensure`), which took the arena of a 1.3 GB capture from 2,221
 //! MiB to 17.
 //!
-//! **What would beat both** is a capture whose text is never resident at
-//! all: the byte-range index is already here, so a frame could be read
-//! with `FileExt::read_exact_at` into a small reusable buffer. It is not
-//! done here because `Log`'s accessors hand out `&'a str` slices of the
-//! text, and lending out text loaded *after* the borrow began needs either
-//! `&mut self` through every accessor or a self-referential arena — an API
-//! change rather than a swap. `docs/DATALAYER.md` §1 states it as the
-//! successor.
+//! `indexed::IndexedCapture` now provides that successor for ordinary FRAME
+//! records: safe file reads, a bounded offset cache, and one owned Frame yielded
+//! at a time. The borrowed `Log` API stays unchanged by parsing each frame in a
+//! short-lived GAME wrapper. Shutdown tails and frame/sibling slices are also
+//! available; setup and other whole-log consumers still use `read`. See
+//! `docs/lab/2026-09-09-shutdown-streaming.md` and the earlier streaming
+//! report for equivalence
+//! checks, measured memory, and the supported input boundary.
 
 use std::path::Path;
 
@@ -52,3 +52,5 @@ use std::path::Path;
 pub fn read(path: impl AsRef<Path>) -> String {
     std::fs::read_to_string(path).unwrap_or_default()
 }
+
+pub mod indexed;

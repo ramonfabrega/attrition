@@ -1563,10 +1563,10 @@ mod tests {
         let (Some(path), Some(sib), Some(tr)) = (
             dump("gamelog-run39-islands-longtrace.txt"),
             dump("gamelog-run38-islands-start.txt"),
-            dump("rontrace-run39.log").and_then(|p| {
+            dump("rontrace-run39.log").map(|p| {
                 crate::trace::Trace::read(std::path::Path::new(&p))
-                    .ok()
-                    .flatten()
+                    .expect("invalid finalized trace")
+                    .expect("missing RONT header")
             }),
         ) else {
             eprintln!("skipping: no East Indies capture (set RON_GAMELOG_DIR)");

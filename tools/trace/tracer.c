@@ -61,6 +61,38 @@
  * records of eight u32s; see `report.py` for the reader.
  */
 
+#if defined(RON_RESTORE_PROBE) && !defined(RON_SEARCH_GRAPH)
+#error RON_RESTORE_PROBE requires structural graph capture
+#endif
+
+#if defined(RON_SEARCH_GRAPH) && !defined(RON_SEARCH_CENSUS)
+#error RON_SEARCH_GRAPH requires the bounded census lane
+#endif
+
+#if defined(RON_CONGESTION_PROBE) && (!defined(RON_SEARCH_CENSUS) || defined(RON_COMMAND_PROBE))
+#error RON_CONGESTION_PROBE requires census and excludes the single-unit command probe
+#endif
+
+#if defined(RON_SEARCH_CENSUS) && (defined(RON_PATH_CAPSULE) || defined(RON_ORDER_CAPSULE) || defined(RON_CAPSULE_PROBE) || defined(RON_HIDE_SCENE))
+#error RON_SEARCH_CENSUS excludes capsule and suppression experiments
+#endif
+
+#if defined(RON_CAPSULE_PROBE) && (!defined(RON_COMMAND_PROBE) || defined(RON_HIDE_SCENE))
+#error RON_CAPSULE_PROBE requires RON_COMMAND_PROBE and excludes RON_HIDE_SCENE
+#endif
+
+#if defined(RON_PATH_CAPSULE) && (defined(RON_ORDER_CAPSULE) || defined(RON_CAPSULE_PROBE) || defined(RON_HIDE_SCENE))
+#error RON_PATH_CAPSULE excludes other capsule and suppression experiments
+#endif
+
+#if defined(RON_ORDER_CAPSULE) && (defined(RON_CAPSULE_PROBE) || defined(RON_HIDE_SCENE))
+#error RON_ORDER_CAPSULE excludes RON_CAPSULE_PROBE and RON_HIDE_SCENE
+#endif
+
+#if defined(RON_HIDE_SCENE) && !defined(RON_TURN_PROBE)
+#error RON_HIDE_SCENE requires RON_TURN_PROBE for the render-call witness
+#endif
+
 typedef unsigned char u8;
 typedef unsigned short u16;
 typedef unsigned int u32;
@@ -249,6 +281,12 @@ static const CallSite CALLS[] = {
      * push ebx; mov ebx,esp; sub esp,8 — not the usual frame, so the
      * displaced prologue is `53 8b dc 83 ec 08`. */
     {0x286300, 6, 5, 0, {0x53, 0x8b, 0xdc, 0x83, 0xec, 0x08, 0, 0, 0, 0}},
+#ifdef RON_TURN_PROBE
+    /* GuyData::turn_speed(int), ret 4; opt-in field replay experiment. */
+    {0x1de340, 6, 1, 0, {0x55, 0x8b, 0xec, 0x53, 0x8b, 0xd9, 0, 0, 0, 0}},
+    /* Scene::render(int,int,int), ret 12: presentation boundary witness. */
+    {0x4b3270, 10, 3, 0, {0x55, 0x8b, 0xec, 0x6a, 0xff, 0x68, 0x98, 0xed, 0xa9, 0x00}},
+#endif
 };
 #define NCALLS (sizeof(CALLS) / sizeof(CALLS[0]))
 
@@ -646,6 +684,17 @@ static u32 stack_ret(u32 ebp, u32 lo, u32 hi, u32 *next) {
     return *(u32 *)(ebp + 4);
 }
 
+#ifdef RON_COMMAND_PROBE
+#ifdef RON_CAPSULE_PROBE
+static void capsule_request_copy(u8 *package);
+#endif
+#include "../explore/live_move_probe.h"
+#endif
+
+#ifdef RON_CONGESTION_PROBE
+#include "../explore/live_congestion_probe.h"
+#endif
+
 static void __cdecl on_hook(u32 kind, u32 ecx, u32 ebp, u32 caller, u32 arg0) {
     if (kind == K_FRAME) {
         i32 frame = *(i32 *)(ecx + GAME_FRAME_OFF);
@@ -660,7 +709,29 @@ static void __cdecl on_hook(u32 kind, u32 ecx, u32 ebp, u32 caller, u32 arg0) {
         }
         emit(K_FRAME, (u32)frame, seed, armed, caller, 0, 0);
         flush();
+#ifdef RON_HIDE_SCENE
+        /* Experimental unsupported display mode skips both Scene::render
+         * branches in Game::loop_render while retaining its service work.
+         * Restore before the scheduled quit; this is not startup-headless. */
+        static u8 saved_display;
+        u8 *scene = *(u8 **)(g_base + 0x80620cu);
+        if (frame == 18 && scene) {
+            saved_display = scene[0x218];
+            scene[0x218] = 3;
+            emit(K_INFO, 120, (u32)frame, saved_display, 3, 0, 0);
+        }
+        if (frame == 35 && scene) {
+            scene[0x218] = saved_display;
+            emit(K_INFO, 120, (u32)frame, 3, saved_display, 0, 0);
+        }
+#endif
         run_cmds(frame);
+#ifdef RON_CONGESTION_PROBE
+        probe_congestion(frame);
+#endif
+#ifdef RON_COMMAND_PROBE
+        probe_move(frame);
+#endif
         return;
     }
     u32 self = (kind == K_REAL) ? g_base + RVA_GAME_RANDOM : ecx;
@@ -672,59 +743,32 @@ static void __cdecl on_hook(u32 kind, u32 ecx, u32 ebp, u32 caller, u32 arg0) {
     emit(kind, caller, self, seed, ret2, ret3, arg0);
 }
 
-/*
- * The stub, per hook (built at attach in an RWX page):
- *
- *   9C                  pushfd
- *   60                  pushad             ; [esp+0x24] = return address, +0x28 = arg0
- *   8B 44 24 28         mov eax,[esp+0x28]
- *   50                  push eax           ; arg0
- *   8B 44 24 28         mov eax,[esp+0x28] ; return address (shifted by the push)
- *   50                  push eax           ; caller
- *   8B 44 24 10         mov eax,[esp+0x10] ; pushad's ebp (shifted by two pushes)
- *   50                  push eax           ; ebp
- *   51                  push ecx           ; this
- *   68 kk kk kk kk      push kind
- *   B8 hh hh hh hh      mov eax, on_hook
- *   FF D0               call eax
- *   83 C4 14            add esp, 20
- *   61                  popad
- *   9D                  popfd
- *   <displaced prologue bytes>
- *   E9 rr rr rr rr      jmp target+len
- */
+#include "hook_stub.h"
+
 static u32 build_stub(u8 *s, const HookSite *h) {
-    u32 n = 0;
-    static const u8 head[] = {0x9C, 0x60, 0x8B, 0x44, 0x24, 0x28, 0x50, 0x8B, 0x44, 0x24,
-                              0x28, 0x50, 0x8B, 0x44, 0x24, 0x10, 0x50, 0x51, 0x68};
-    memcpy(s, head, sizeof head);
-    n = sizeof head;
-    *(u32 *)(s + n) = h->kind;
-    n += 4;
-    s[n++] = 0xB8;
-    *(u32 *)(s + n) = (u32)(void *)on_hook;
-    n += 4;
-    s[n++] = 0xFF;
-    s[n++] = 0xD0;
-    s[n++] = 0x83;
-    s[n++] = 0xC4;
-    s[n++] = 0x14;
-    s[n++] = 0x61;
-    s[n++] = 0x9D;
-    memcpy(s + n, (void *)(g_base + h->rva), h->len);
-    n += h->len;
-    s[n++] = 0xE9;
-    u32 back = g_base + h->rva + h->len;
-    *(u32 *)(s + n) = back - ((u32)(s + n) + 4);
-    n += 4;
-    return n;
+    return build_hook_stub(s, (u32)s, g_base+h->rva, h->kind, (u32)(void *)on_hook,
+                           (const u8 *)(g_base+h->rva), h->len);
 }
 
 /* ---- the call proxies -------------------------------------------------- */
 
+#ifdef RON_TURN_PROBE
+#include "../explore/live_turn_probe.h"
+#endif
+
+#ifdef RON_SEARCH_CENSUS
+#include "../explore/live_search_census.h"
+#endif
+#ifdef RON_RESTORE_PROBE
+#include "../explore/live_restore_probe.h"
+#endif
+
 static void __cdecl on_call(u32 site, u32 self, u32 a0, u32 a1, u32 a2, u32 a3) {
     if (g_frame < g_cw_lo || g_frame > g_cw_hi) return;
     emit(K_CALL, site, self, a0, a1, a2, a3);
+#ifdef RON_TURN_PROBE
+    if (site == 8) probe_turn(self);
+#endif
 }
 
 static void __cdecl on_ret(u32 site, u32 ret, u32 a4, u32 a5, u32 a6, u32 a7) {
@@ -732,6 +776,9 @@ static void __cdecl on_ret(u32 site, u32 ret, u32 a4, u32 a5, u32 a6, u32 a7) {
     u32 out = 0xffffffffu;
     if (site < NCALLS && CALLS[site].out7 && a7 > 0x10000u) out = *(u8 *)a7;
     emit(K_RET, site, ret, a4, a5, a6, out);
+#ifdef RON_SEARCH_CENSUS
+    if (site == 0 && ret == 0xffffffffu) census_suspension();
+#endif
 }
 
 /*
@@ -839,10 +886,23 @@ static u32 build_proxy(u8 *s, const CallSite *h, u32 site) {
 }
 
 static void install_calls(void) {
+#ifdef RON_SEARCH_CENSUS
+    if (g_base != 0x400000u || g_cover) {
+        emit(K_INFO, 136, 1, g_base, (u32)g_cover, 0, 0);
+        return;
+    }
+    emit(K_INFO, 136, 0, 1, 64, 0, 0);
+#ifdef RON_RESTORE_PROBE
+    install_restore_probe();
+#endif
+#endif
     u8 *page = (u8 *)VirtualAlloc(0, 4096, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
     if (!page) return;
     u32 used = 0;
     for (u32 i = 0; i < NCALLS; i++) {
+#ifdef RON_SEARCH_CENSUS
+        if (i != 0) continue; /* No per-node cost proxies in the census lane. */
+#endif
         const CallSite *h = &CALLS[i];
         u8 *t = (u8 *)(g_base + h->rva);
         int ok = 1;
@@ -996,6 +1056,22 @@ static void read_cmds(void) {
 
 /* ---- entry ------------------------------------------------------------- */
 
+#ifdef RON_CAPSULE_PROBE
+#include "../explore/live_capsule_probe.h"
+#endif
+
+#ifdef RON_ORDER_CAPSULE
+#include "../explore/live_order_capsule.h"
+#endif
+
+#ifdef RON_PATH_CAPSULE
+#include "../explore/live_path_capsule.h"
+#endif
+
+#ifdef RON_AUTOSTART
+#include "../explore/live_autostart.h"
+#endif
+
 /* cdecl, so the export table names it `Hook` — what patch_exe.py imports */
 __declspec(dllexport) void Hook(void) {}
 
@@ -1033,10 +1109,22 @@ i32 WINAPI DllMain(void *inst, u32 reason, void *reserved) {
             return 1;
         }
         install_hooks();
+#ifdef RON_AUTOSTART
+        install_autostart();
+#endif
         if (g_cw_hi >= g_cw_lo) {
             g_calls = 1;
             install_calls();
         }
+#ifdef RON_CAPSULE_PROBE
+        install_capsule();
+#endif
+#ifdef RON_ORDER_CAPSULE
+        install_order_capsule();
+#endif
+#ifdef RON_PATH_CAPSULE
+        install_path_capsule();
+#endif
         if (g_cover) {
             if (!g_nfuncs) emit(K_INFO, I_NOFUNCS, 0, 0, 0, 0, 0);
             u32 armed = arm_all();

@@ -30,6 +30,7 @@ pub mod artdata;
 pub mod balance;
 pub mod capture;
 pub mod commands;
+pub mod debug_view;
 pub mod diff;
 pub mod dump;
 pub mod gamelog;
@@ -380,6 +381,7 @@ pub(crate) fn parse<'a>(path: &Path, text: &'a str) -> Result<roxmltree::Documen
 /// `RON_INSTALL`, or the data layer is untested.
 #[cfg(test)]
 pub(crate) mod testenv {
+    mod fixture_audit;
     /// The install's root: `$RON_INSTALL`, else the checkout's `game/`, else
     /// — from a worktree under `.claude/worktrees/<name>/` — the main
     /// checkout's `game/`, three directories up. The last is what stops
@@ -407,7 +409,9 @@ pub(crate) mod testenv {
     /// One of the kept dumps, if this machine has it: `$RON_GAMELOG_DIR`, or
     /// the bottle's `Logs\` — the same default `tools/gamelog/` uses.
     pub(crate) fn dump(name: &str) -> Option<String> {
-        let path = dump_path(name)?;
+        let path = dump_path(name);
+        fixture_audit::record(name, path.is_some());
+        let path = path?;
         assert!(
             !cfg!(debug_assertions) || std::env::var_os("RON_DIFF_DEBUG").is_some(),
             "the diff suite runs in release: `cargo test -p rondata --release` \

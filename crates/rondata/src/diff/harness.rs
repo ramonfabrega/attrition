@@ -1,5 +1,8 @@
 //! The harness itself: one frame compared, a whole log run, and the traced runs.
 
+mod checkpoint;
+pub use checkpoint::ReplaySession;
+
 use super::*;
 
 /// Compares one logged frame against the simulation as it stands.
@@ -848,50 +851,150 @@ pub fn run_traced<'a, 'b: 'a>(
     siblings: &[&Initial<'b>],
     trace: Option<&crate::trace::Trace>,
 ) -> Option<Report> {
-    let mut init = log.initial()?;
+    run_traced_observed(
+        loaded,
+        log,
+        tuning,
+        limit,
+        stream,
+        siblings,
+        trace,
+        |_, _, _| {},
+    )
+}
+
+/// The same replay as `run_traced`, with a read-only observation after each
+/// comparison. `Built::tick` corrections have already been applied; exporters
+/// must label those inputs rather than calling this autonomous continuation.
+#[expect(
+    clippy::too_many_arguments,
+    reason = "Existing replay inputs plus a read-only observer"
+)]
+pub fn run_traced_observed<'a, 'b: 'a>(
+    loaded: &Loaded,
+    log: &Log<'a>,
+    tuning: Tuning,
+    limit: Option<usize>,
+    stream: Option<&mut crate::input::Stream>,
+    siblings: &[&Initial<'b>],
+    trace: Option<&crate::trace::Trace>,
+    mut observe: impl FnMut(&Built, &Frame, &FrameResult),
+) -> Option<Report> {
+    let mut init = log.replay_initial()?;
     borrow_from_siblings(&mut init, siblings);
     if let Some(tr) = trace {
         borrow_pasture(&mut init, tr);
     }
-    let players = player_count(&init);
-    let mut built = build_sim(loaded, &init, tuning);
-    let mut report = Report {
-        notes: std::mem::take(&mut built.notes),
-        ..Report::default()
-    };
+    let mut replay = Replay::new(loaded, &init, tuning);
+    drop(init);
     let mut stream = stream;
-    let frames = log.frame_states();
-    let mut last = 0i64;
-    for f in frames.iter().take(limit.unwrap_or(usize::MAX)) {
+    log.visit_frame_states(limit, |frame| {
+        replay.step(&frame, &mut stream, &mut observe)
+    });
+    Some(replay.finish())
+}
+
+#[derive(Clone)]
+struct Replay {
+    built: Built,
+    players: usize,
+    report: Report,
+    last: i64,
+}
+impl Replay {
+    fn new(loaded: &Loaded, init: &Initial<'_>, tuning: Tuning) -> Self {
+        let players = player_count(init);
+        let mut built = build_sim(loaded, init, tuning);
+        let report = Report {
+            notes: std::mem::take(&mut built.notes),
+            ..Report::default()
+        };
+        Self {
+            built,
+            players,
+            report,
+            last: 0,
+        }
+    }
+    fn with_siblings<'a>(
+        loaded: &Loaded,
+        mut init: Initial<'a>,
+        tuning: Tuning,
+        siblings: &[&Initial<'a>],
+        trace: Option<&crate::trace::Trace>,
+    ) -> Self {
+        borrow_from_siblings(&mut init, siblings);
+        if let Some(tr) = trace {
+            borrow_pasture(&mut init, tr);
+        }
+        Self::new(loaded, &init, tuning)
+    }
+    fn step(
+        &mut self,
+        f: &Frame,
+        stream: &mut Option<&mut crate::input::Stream>,
+        observe: &mut impl FnMut(&Built, &Frame, &FrameResult),
+    ) {
         // `FRAME n` is the state at the end of frame n; step up to it.
-        while last < f.n {
+        while self.last < f.n {
             // The package for recording frame `last` is processed by the
             // game frame the log then reports as `FRAME last + 1`, which is
             // the tick about to run.
             if let Some(s) = stream.as_deref_mut() {
-                let did = s.apply(last as i32, &mut built);
-                report.applied.merge(&did);
+                let did = s.apply(self.last as i32, &mut self.built);
+                self.report.applied.merge(&did);
             }
-            built.tick();
-            last += 1;
+            self.built.tick();
+            self.last += 1;
             #[cfg(test)]
-            debug_watch(&built, last);
+            debug_watch(&self.built, self.last);
         }
-        report.frames.push(compare(&built, f, players));
+        let result = compare(&self.built, f, self.players);
+        observe(&self.built, f, &result);
+        self.report.frames.push(result);
     }
-    report.notes.append(&mut built.notes);
-    report.rng_frames = built.rng_frames.clone();
-    report.first_divergence = (0..players as i64)
-        .map(|who| {
-            let first = report
-                .frames
-                .iter()
-                .find(|f| f.diverged.iter().any(|d| d.who == who))
-                .map(|f| f.frame);
-            (who, first)
-        })
-        .collect();
-    Some(report)
+    fn finish(mut self) -> Report {
+        self.report.notes.append(&mut self.built.notes);
+        self.report.rng_frames = self.built.rng_frames.clone();
+        self.report.first_divergence = (0..self.players as i64)
+            .map(|who| {
+                let first = self
+                    .report
+                    .frames
+                    .iter()
+                    .find(|f| f.diverged.iter().any(|d| d.who == who))
+                    .map(|f| f.frame);
+                (who, first)
+            })
+            .collect();
+        self.report
+    }
+}
+
+/// The same replay state machine over a finalized indexed file. Only setup,
+/// correction observations, the current frame and the report stay resident.
+#[expect(
+    clippy::too_many_arguments,
+    reason = "Same inputs as the existing replay observer"
+)]
+pub fn run_indexed_observed(
+    loaded: &Loaded,
+    source: &mut crate::capture::indexed::IndexedCapture,
+    tuning: Tuning,
+    limit: Option<usize>,
+    stream: Option<&mut crate::input::Stream>,
+    siblings: &[&Initial<'_>],
+    trace: Option<&crate::trace::Trace>,
+    mut observe: impl FnMut(&Built, &Frame, &FrameResult),
+) -> std::io::Result<Report> {
+    let mut replay = source
+        .with_replay_initial(|init| Replay::with_siblings(loaded, init, tuning, siblings, trace))?;
+    let mut stream = stream;
+    for frame in source.frame_states().take(limit.unwrap_or(usize::MAX)) {
+        replay.step(&frame?, &mut stream, &mut observe);
+    }
+    source.validate()?;
+    Ok(replay.finish())
 }
 
 #[cfg(test)]
@@ -901,6 +1004,89 @@ mod tests {
     use crate::diff::testkit::*;
 
     use crate::testenv::{dump, install};
+
+    #[test]
+    fn indexed_replay_preserves_reports_with_sibling_corrections() {
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(sibling)) = (
+            dump("gamelog-run6-ancient-nubian-builds7.txt"),
+            dump("gamelog-run13-window-95-105.txt"),
+        ) else {
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = std::fs::read_to_string(&path).unwrap();
+        let log = Log::parse(&text);
+        let sibling_text = std::fs::read_to_string(sibling).unwrap();
+        let sibling_log = Log::parse(&sibling_text);
+        let initial = sibling_log.initial().unwrap();
+        for limit in [0, 12] {
+            let expected = run_traced(
+                &loaded,
+                &log,
+                Tuning::RON,
+                Some(limit),
+                None,
+                &[&initial],
+                None,
+            )
+            .unwrap();
+            let mut source = crate::capture::indexed::IndexedCapture::open(&path).unwrap();
+            let mut observed = Vec::new();
+            let actual = run_indexed_observed(
+                &loaded,
+                &mut source,
+                Tuning::RON,
+                Some(limit),
+                None,
+                &[&initial],
+                None,
+                |_, _, r| observed.push(r.clone()),
+            )
+            .unwrap();
+            assert_eq!(actual, expected);
+            assert_eq!(observed, actual.frames);
+        }
+    }
+
+    #[test]
+    fn observing_a_replay_preserves_the_complete_report() {
+        let Some(inst) = install() else { return };
+        let Some(path) = dump("gamelog-run6-ancient-nubian-builds7.txt") else {
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = std::fs::read_to_string(path).unwrap();
+        let log = Log::parse(&text);
+        let mut complete_setup = log.initial().unwrap();
+        assert!(
+            !complete_setup.frame_bodies.is_empty(),
+            "fixture must exercise the audit series"
+        );
+        complete_setup.frame_bodies.clear();
+        assert_eq!(log.replay_initial().unwrap(), complete_setup);
+        drop(complete_setup);
+        let baseline = run_traced(&loaded, &log, Tuning::RON, Some(8), None, &[], None).unwrap();
+        let mut observed = Vec::new();
+        let report = run_traced_observed(
+            &loaded,
+            &log,
+            Tuning::RON,
+            Some(8),
+            None,
+            &[],
+            None,
+            |built, frame, result| {
+                assert!(!built.sim.units.is_empty());
+                assert_eq!(frame.n, result.frame);
+                observed.push(result.clone());
+            },
+        )
+        .unwrap();
+        assert_eq!(observed.len(), 8);
+        assert_eq!(observed, report.frames);
+        assert_eq!(report, baseline);
+    }
 
     /// **run57, the thousand frames past run56** — the same game at the
     /// same detail carried to 4,000, asked for both position records at
@@ -1543,6 +1729,60 @@ mod tests {
         let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
         let refs: Vec<&Initial> = inits.iter().collect();
         let report = run_traced(&loaded, &log, Tuning::RON, None, None, &refs, Some(&tr)).unwrap();
+        // A test-selected fidelity failure, not every known comparator residue.
+        // Reuse the same loaded data, parsed log, siblings and trace; no inferred CLI.
+        if let Some(index) = report.frames.iter().position(|f| {
+            !f.diverged.is_empty()
+                || !f.build_diverged.is_empty()
+                || (f.frame < LONG_WORD_GREAT_LAKES
+                    && f.order_diverged.iter().any(|d| {
+                        matches!(
+                            d.what,
+                            OrderMismatch::Move {
+                                field: "dest_x" | "dest_y",
+                                ..
+                            }
+                        )
+                    }))
+        }) {
+            let artifact = (|| -> Result<_, Box<dyn std::error::Error>> {
+                let output =
+                    crate::debug_view::failure_path("run69-position-building-or-waypoint")?;
+                let meta = crate::debug_view::Metadata {
+                    capture: path.clone(), source_bytes: text.len(),
+                    siblings: refs.iter().enumerate().map(|(i,_)| format!("already-parsed sibling Initial {i} from testkit::sibling_texts()" )).collect(),
+                    trace: Some("already-parsed testkit::trace(rontrace-run69.log)".into()),
+                    reproduce: "cargo test -p rondata --release run69_s_three_thousand_frames_stand_where_the_original_s_do -- --exact diff::harness::tests::run69_s_three_thousand_frames_stand_where_the_original_s_do --nocapture".into(),
+                    ..Default::default()
+                };
+                crate::debug_view::write_failure(
+                    &report,
+                    Some((
+                        index,
+                        "unit positions and building fields must agree throughout run69; current waypoints must agree before the word",
+                    )),
+                    &meta,
+                    &output,
+                    |window| {
+                        run_traced_observed(
+                            &loaded,
+                            &log,
+                            Tuning::RON,
+                            None,
+                            None,
+                            &refs,
+                            Some(&tr),
+                            |built, frame, result| window.observe(built, frame, result),
+                        )
+                    },
+                )?;
+                Ok(output)
+            })();
+            match artifact {
+                Ok(path) => eprintln!("differential failure artifact: {}", path.display()),
+                Err(error) => eprintln!("differential artifact unavailable: {error}"),
+            }
+        }
         assert!(
             report.frames.len() >= 3_000,
             "run69's length is {} — a short file here is a wrong file",
@@ -1729,11 +1969,9 @@ mod tests {
         let loaded = crate::load::load(&inst).unwrap();
         let text = crate::capture::read(&path);
         let log = Log::parse(&text);
-        let texts = sibling_texts();
-        let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
-        let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
-        let refs: Vec<&Initial> = inits.iter().collect();
-        let report = run_traced(&loaded, &log, Tuning::RON, None, None, &refs, Some(&tr)).unwrap();
+        let report = with_sibling_initials(|refs| {
+            run_traced(&loaded, &log, Tuning::RON, None, None, refs, Some(&tr)).unwrap()
+        });
         assert!(
             report.frames.len() >= 5_000,
             "run71's length is {} — a short file here is a wrong file",
@@ -5329,10 +5567,10 @@ mod tests {
         let (Some(path), Some(sib), Some(tr)) = (
             dump("gamelog-run39-islands-longtrace.txt"),
             dump("gamelog-run38-islands-start.txt"),
-            dump("rontrace-run39.log").and_then(|p| {
+            dump("rontrace-run39.log").map(|p| {
                 crate::trace::Trace::read(std::path::Path::new(&p))
-                    .ok()
-                    .flatten()
+                    .expect("invalid finalized trace")
+                    .expect("missing RONT header")
             }),
         ) else {
             eprintln!("skipping: no East Indies capture (set RON_GAMELOG_DIR)");

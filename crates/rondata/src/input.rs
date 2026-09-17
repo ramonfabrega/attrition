@@ -130,6 +130,7 @@ impl Applied {
 /// `objects` — means "the same selection as this player's previous group
 /// command" (`docs/COMMANDS.md` §3). The selection is therefore *state*, and
 /// it has to be carried across frames exactly as the engine carries it.
+#[derive(Clone)]
 pub struct Stream {
     input: Vec<Input>,
     next: usize,

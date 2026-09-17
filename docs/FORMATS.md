@@ -66,8 +66,9 @@ struct CommandPackage : GameAccess {   // sizeof 536
   +8    int   valid;
   +12   int   group;
   +16   i16   size;       // bytes used in data
-  +18   byte  data[514];  // packed variable-length commands
-  +532  byte  padding[4];
+  +18   byte  data[512];  // packed variable-length commands
+  +530  byte  alignment[2];
+  +532  Random padding;
 };
 // methods: add_command, add_group, add_chat, add_spline, copy_data,
 //          walk_data, log_data, process, process_all, process_group,
@@ -85,6 +86,12 @@ struct RandomLogEntry {   // sizeof 32
   +28   int    seed;
 };
 ```
+
+The exported `types.txt` `/rise.pdb/CommandPackage` record establishes the
+512-byte array and `Random` at +532; the two intervening bytes are alignment,
+not payload. This corrects the earlier 514-byte label. The live clear-call
+capsule verifies writes at +16 and +532; see
+`audit/2026-09-09-live-call-capsule.md`.
 
 Three things follow, and they are the most consequential facts we have.
 
@@ -792,3 +799,103 @@ played on. `game/scenario/` and `game/mapstyles/` are unexamined.
 - What is the `bond/` directory?
 - Does `gamemath.cpp` imply the original sim is fixed-point, and if so at what
   scale? This bears directly on whether `Fx` at Q16.16 is the right shape.
+
+## Suspended-search cleanup fixture (2026-09-09)
+
+`tools/explore/search_cleanup_oracle.py` uses authored instances of the local
+PDB export's `Tree<PathNode*,int>` (28 bytes), its 20-byte tree node, and the
+24-byte BRTree headers. `types.txt` names the tree's current data/metric at
+0/4, length at 8, root/current/parent pointers at 12/16/20, and the ordinary
+tree's ordered word at 24. Its node has left/right/parent pointers at 0/4/8,
+data at 12 and metric at 16. The CollBlock tree has the same 28-byte header.
+These are PDB-backed fixture layouts, not a new serialized format.
+
+The listing of `Unit::clear_partial_path@005e3920` establishes the five unit
+pointers at +0x104 through +0x114 and the recycler list/capacity/length words
+used by this probe. `Tree<PathNode*,int>::clear@0046da60`,
+`Tree<PathNode*,int>::delete_children@004550c0` and
+`PathFinder::kill_tree@00687c10` establish the node and payload recycler
+operands. The fixture maps only those three recycler words; the growth
+increment is deliberately inaccessible. The executable's bytes are loaded
+from the user's install, never stored in source. Complete-record native checks
+and the untested branches are documented in
+`docs/lab/2026-09-09-search-cleanup.md`.
+
+## Suspended-search census metadata (2026-09-09)
+
+The optional `RON_SEARCH_CENSUS` callback observes a natural
+`PathFinder::astar_path@00683770` return of −1. `PathFinderData`'s PDB fields
+`pathing_unit`, `limit` and `saving` are at +0x14/+0x40/+0x44 within the data
+base, which `docs/PATHFINDER.md` §2 places at +0x40 in the complete object.
+Together with the listing's singleton address, that selects the three reads
+in `live_search_census.h`. The five saved unit pointers and recycler header
+operands use the preceding cleanup fixture's evidence. The callback copies
+headers through checked `ReadProcessMemory` calls, not direct graph walks.
+
+INFO tags 130–136 are **our authored diagnostic protocol**, not original-game
+format: 130 starts an event; 131 supplies each of five container pointer,
+length and root triples; 132 supplies each of seven pool list, capacity and
+length triples; 133 reports a failed or short read; 134 completes an event;
+135 marks the 64-event cap; 136 declares version/cap or refuses installation.
+Every packet carries its suspension ordinal and frame. The congestion experiment
+now validates the metadata-reading branch in two live runs; host fixtures also
+test its protocol and failure handling. Coverage is recorded in
+`docs/lab/2026-09-09-search-census.md` and its successor
+`docs/lab/2026-09-09-congestion-probe.md`.
+
+
+## Congestion driver registry and receipts (2026-09-09)
+
+`Units::make_valid@0061a960` establishes the owner-zero high-water length and
+capacity at the units singleton +4/+8, with pointer array +0x10 (the PDB
+`PtrArray<Unit>` layout); owner arrays stride 0x1c. The opt-in driver reads at
+most 512 slots, retaining active ID/UID pairs across its baseline and selection.
+The existing command probe's ObjectData/UnitData fields and
+`CommandPackage::add_group@0094bb60` establish the group layout and ID packing.
+No additional original serialization format is introduced.
+
+INFO tags 140–144 are authored receipts: 140 is group/ID/UID/x/y, 141 is the
+two group counts/centroid x/y/registry length, 142 is group/count/package length
+before/after/issue frame, 143 is group/target x/y/two reserved zeros, and 144 is
+failure reason/context/three reserved zeros. The enclosing record carries the
+current frame. Source evidence, packet bounds and live coverage are in
+`docs/lab/2026-09-09-congestion-probe.md`.
+
+## Structural suspended-search graph (2026-09-09)
+
+PDB `Tree<PathNode*,int>` and `Tree<CollBlock*,int>` have 28-byte headers and
+20-byte nodes; the three BRTree variants have 24-byte headers and nodes. All
+nodes place left/right/parent/data at +0/+4/+8/+0xc. BRTree nodes additionally
+place `red` and `removed` at +0x14/+0x15. PDB `PathNode` is 36 bytes with its
+parent at +0x20; `CollBlock` has size 108 but no exported fields. Native
+`PathFinder::kill_tree@00687ba0` confirms the removed predicate for closed-tree
+payload disposal. `PathFinder::kill_tree@00687c10` is its open-tree counterpart.
+
+The authored graph file starts with eight u32s: magic 0x31475352, version 1,
+frame, unit address, record count, file bytes, physical node count and PathNode
+count. Each record is kind/owner/address/byte length followed by those bytes.
+Kinds 1–7 are unit search slice, container, tree node, PathNode, opaque CollBlock,
+recycler header and recycler array. Owner selects the existing five-container
+or seven-recycler census order; scalar unit/PathNode records use owner zero.
+The unit slice is +0x104 through +0x14b; recycler headers include 16 bytes, while
+the replay grants only the first 12 to reject allocator growth. Complete bounds,
+physical versus logical counts and live coverage are recorded in
+`docs/lab/2026-09-09-natural-search-graph.md`.
+
+## Restore-entry prefix packet (2026-09-09)
+
+`PathFinder::find_upath_restore@00688f40`'s PE listing establishes its three
+stack arguments (path stack, owner, object ID), ret 12 and the direct call to
+`PathFinder::find_upath@00682f30` at 0x688fa5. It reads GameAccess globals
+0xc061bc/0xc0618c, the selected repath counter, object pointer and encoded
+coordinate words, and writes the established pathfinder limit/saving pair.
+
+The authored `restore-prefix.bin` packet is 49 u32s: magic 0x31545352, version 1,
+frame, unit; nine entry registers in pushad/flags order with corrected ESP;
+four entry stack words; daemon/objects/slots/object pointers, repaths, encoded
+x/y and pre-call limit/saving; nine delegation registers; twelve delegation
+stack words; final limit/saving. INFO 160 names the hook version and three code
+boundaries; 161 records unit/owner/ID/path-stack/repaths; 162 records
+status/unit/bytes-written/expected-bytes/limit; 163 records a refusal. Every
+record retains the tracer's current frame. The graph receipt and unit/frame
+must also match. Evidence and scope: `docs/lab/2026-09-09-restore-entry.md`.

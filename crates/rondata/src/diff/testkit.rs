@@ -87,9 +87,11 @@ pub(crate) fn trace(name: &str) -> Option<crate::trace::Trace> {
     // The same default as [`dump`]: a machine with the captures but no
     // `RON_GAMELOG_DIR` used to skip every trace-backed half silently.
     let path = dump(name)?;
-    crate::trace::Trace::read(std::path::Path::new(&path))
-        .ok()
-        .flatten()
+    Some(
+        crate::trace::Trace::read(std::path::Path::new(&path))
+            .expect("invalid finalized trace")
+            .expect("missing RONT header"),
+    )
 }
 
 /// The two sequences a whole frame folds to, in one place — ours from
@@ -120,17 +122,114 @@ pub(crate) fn first_parting(ours: &[String], theirs: &[String]) -> Option<(usize
 /// run3 (`DUMP_ALL` — the terrain heights, the regions' coordinate
 /// lists) and run12 (`DUMP_ALL` with the per-frame sync words and the
 /// herds, `docs/SYNC.md`). Whichever the machine has.
+pub(crate) const SIBLING_DUMPS: &[&str] = &[
+    "gamelog-run11-checksum.txt",
+    "gamelog-run3-fulldump-types.txt",
+    "gamelog-run12-dumpall-seeds.txt",
+    "gamelog-run13-window-95-105.txt",
+];
+
 pub(crate) fn sibling_texts() -> Vec<String> {
-    [
-        "gamelog-run11-checksum.txt",
-        "gamelog-run3-fulldump-types.txt",
-        "gamelog-run12-dumpall-seeds.txt",
-        "gamelog-run13-window-95-105.txt",
-    ]
-    .iter()
-    .filter_map(|n| dump(n))
-    .map(crate::capture::read)
-    .collect()
+    SIBLING_DUMPS
+        .iter()
+        .filter_map(|n| dump(n))
+        .map(crate::capture::read)
+        .collect()
+}
+
+/// Retain bounded setup text plus owned observations, not whole sibling files.
+/// Each scoped initial lives until the innermost callback returns.
+pub(crate) fn with_sibling_initials<R>(use_initials: impl FnOnce(&[&Initial<'_>]) -> R) -> R {
+    fn visit<R>(
+        paths: &[String],
+        inits: &[&Initial<'_>],
+        use_initials: impl FnOnce(&[&Initial<'_>]) -> R,
+    ) -> R {
+        let Some((path, rest)) = paths.split_first() else {
+            return use_initials(inits);
+        };
+        crate::capture::indexed::IndexedCapture::open(path)
+            .unwrap()
+            .with_replay_initial(|init| {
+                let mut refs = inits.to_vec();
+                refs.push(&init);
+                visit(rest, &refs, use_initials)
+            })
+            .unwrap()
+    }
+    let paths: Vec<String> = SIBLING_DUMPS.iter().filter_map(|n| dump(n)).collect();
+    visit(&paths, &[], use_initials)
+}
+
+#[test]
+fn indexed_market_road_frame_preserves_world_fields_and_heights() {
+    let Some(path) = dump("gamelog-run72-greatlakes-marketroad.txt") else {
+        return;
+    };
+    let text = crate::capture::read(&path);
+    let whole = Log::parse(&text);
+    let mut source = crate::capture::indexed::IndexedCapture::open(&path).unwrap();
+    let index = source
+        .frames()
+        .iter()
+        .position(|f| f.number == 4_804)
+        .unwrap();
+    let slice = source.read_frame(index).unwrap();
+    let bounded = Log::parse(&slice);
+    let world_fields = |log: &Log<'_>| {
+        let (_, frame) = log.frames().into_iter().find(|(n, _)| *n == 4_804).unwrap();
+        frame
+            .kid("FULL DUMP")
+            .unwrap_or(frame)
+            .kid("WORLD")
+            .unwrap()
+            .fields()
+            .map(|(k, v)| (k.to_owned(), v.to_owned()))
+            .collect::<Vec<_>>()
+    };
+    let expected = world_fields(&whole);
+    assert!(!expected.is_empty());
+    assert_eq!(world_fields(&bounded), expected);
+    let heights = whole.frame_heights(4_804);
+    assert!(heights.len() > 1_000);
+    assert_eq!(bounded.frame_heights(4_804), heights);
+}
+
+#[test]
+fn indexed_road_setups_preserve_every_initial_field_except_audit_bodies() {
+    for name in [
+        "gamelog-run10-world6-long.txt",
+        "gamelog-run71-greatlakes-5k.txt",
+    ] {
+        let Some(path) = dump(name) else { continue };
+        let text = crate::capture::read(&path);
+        let log = crate::gamelog::Log::parse(&text);
+        let mut expected = log.initial().unwrap();
+        expected.frame_bodies.clear();
+        let mut source = crate::capture::indexed::IndexedCapture::open(&path).unwrap();
+        for _ in 0..2 {
+            source
+                .with_replay_initial(|actual| assert_eq!(actual, expected, "primary {name}"))
+                .unwrap();
+        }
+    }
+}
+
+#[test]
+fn indexed_siblings_preserve_every_initial_field_except_audit_bodies() {
+    // Exercise reuse before comparing every retained field to whole-text parsing.
+    with_sibling_initials(|_| ());
+    with_sibling_initials(|inits| {
+        let paths: Vec<String> = SIBLING_DUMPS.iter().filter_map(|n| dump(n)).collect();
+        assert_eq!(inits.len(), paths.len());
+        for (path, actual) in paths.iter().zip(inits) {
+            let text = crate::capture::read(path);
+            let log = crate::gamelog::Log::parse(&text);
+            let mut expected = log.initial().unwrap();
+            expected.frame_bodies.clear();
+            assert_eq!(**actual, expected, "sibling {path}");
+        }
+    });
 }
 
 /// East Indies' word on run54, the headline.

@@ -513,7 +513,7 @@ pub fn walk_to_close(built: &mut Built, fin: &Frame, players: usize) -> Endpoint
 mod tests {
     use super::*;
 
-    use crate::diff::testkit::{sibling_texts, trace};
+    use crate::diff::testkit::trace;
     use crate::gamelog::Log;
     use crate::testenv::{dump, install};
 
@@ -919,23 +919,11 @@ mod tests {
     /// checked here so the two cannot drift apart in silence.
     #[test]
     fn the_setup_lists_are_the_suite_s() {
-        if crate::testenv::dump("gamelog-run11-checksum.txt").is_none() {
-            eprintln!("skipping: no archives (set RON_GAMELOG_DIR)");
-            return;
-        }
-        let named: Vec<String> = GREAT_LAKES_SETUP
-            .iter()
-            .filter_map(|n| dump(n))
-            .map(crate::capture::read)
-            .collect();
-        let sibs = sibling_texts();
+        // Compare the contract, not gigabytes of file contents. This also
+        // checks absent captures and distinct names with identical contents.
         assert_eq!(
-            named.len(),
-            sibs.len(),
-            "GREAT_LAKES_SETUP is not testkit::sibling_texts's list any more"
-        );
-        assert!(
-            named.iter().map(|t| &**t).eq(sibs.iter().map(|t| &**t)),
+            GREAT_LAKES_SETUP,
+            crate::diff::testkit::SIBLING_DUMPS,
             "GREAT_LAKES_SETUP names different files from testkit::sibling_texts"
         );
     }

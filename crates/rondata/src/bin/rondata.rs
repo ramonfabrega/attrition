@@ -273,9 +273,16 @@ fn diff_report(
     // The trace is a source, not only a report: a pasture's five animals
     // are in no dump and they draw every frame, so a run without them is a
     // different game (`run_traced`).
-    let tr = trace
-        .and_then(|p| rondata::trace::Trace::read(std::path::Path::new(p)).ok())
-        .flatten();
+    let tr = match trace {
+        Some(p) => match rondata::trace::Trace::read(std::path::Path::new(p)) {
+            Ok(Some(t)) => Some(t),
+            result => {
+                eprintln!("[FAIL] requested trace {p}: {result:?}");
+                return Ok(failures + 1);
+            }
+        },
+        None => None,
+    };
     let Some(report) = rondata::diff::run_traced(
         &loaded,
         &log,

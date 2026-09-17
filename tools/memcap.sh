@@ -1,6 +1,6 @@
 #!/bin/zsh
-# memcap.sh <gib> <command…> — run a command under a hard resident-memory
-# ceiling, and kill it the moment it crosses.
+# memcap.sh <gib> <command…> — run a command under a sampled resident-memory
+# ceiling, and kill it on the first sample over the limit.
 #
 # **Why this exists.** On 2026-09-04 a worker's `cargo test -p rondata
 # --release` grew to 27.6 GB resident at 472 % CPU; swap filled, 14 MB of
@@ -31,11 +31,24 @@
 # Exit status is the command's own, except when the ceiling fires: then it
 # is 137 (128 + SIGKILL) and the reason is on stderr, so a gate that reads
 # the exit code cannot mistake an OOM kill for a test failure.
+# RSS sampling failure returns 125; the command is not left unmonitored.
 set -u
 
 if (( $# < 2 )); then
     print -u2 "usage: memcap.sh <gib> <command…>"
     exit 2
+fi
+
+# A missing process-sampling grant must not turn a guarded run into an
+# unmonitored one that reports a fictitious zero-MiB peak.
+probe_rss=$(ps -o rss= -p $$ 2>/dev/null) || {
+    print -u2 "memcap: cannot sample process RSS; refusing to launch an unmonitored command"
+    exit 125
+}
+probe_rss=${probe_rss//[[:space:]]/}
+if [[ "$probe_rss" != <-> ]] || (( probe_rss <= 0 )); then
+    print -u2 "memcap: invalid RSS sample; refusing to launch an unmonitored command"
+    exit 125
 fi
 
 cap_gib=$1; shift
@@ -51,7 +64,9 @@ descendants() {
     done
 }
 
-"$@" &
+# Mark only the monitored child and its descendants, using this wrapper's
+# actual cap rather than any inherited marker. This is a cooperative contract.
+RON_TEST_MEMCAP_GIB="$cap_gib" "$@" &
 pid=$!
 
 peak_kb=0
@@ -59,7 +74,16 @@ peak_one_kb=0
 rung=0
 while kill -0 $pid 2>/dev/null; do
     tree=($pid ${(f)"$(descendants $pid)"})
-    sample=$(ps -o rss= -p ${(j:,:)tree} 2>/dev/null | awk '{s+=$1; if ($1>m) m=$1} END {print s+0, m+0}')
+    if ! rss_rows=$(ps -o rss= -p ${(j:,:)tree} 2>/dev/null); then
+        # A short-lived command may finish between kill -0 and ps. Otherwise
+        # fail closed rather than let a live command run without monitoring.
+        kill -0 $pid 2>/dev/null || break
+        print -u2 "memcap: RSS sampling failed while the command is live — stopping its process tree"
+        kill -9 ${tree[@]} 2>/dev/null
+        wait $pid 2>/dev/null
+        exit 125
+    fi
+    sample=$(print -r -- "$rss_rows" | awk '{s+=$1; if ($1>m) m=$1} END {print s+0, m+0}')
     rss_kb=${sample%% *}
     one_kb=${sample##* }
     (( rss_kb > peak_kb )) && peak_kb=$rss_kb

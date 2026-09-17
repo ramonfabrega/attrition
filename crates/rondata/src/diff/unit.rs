@@ -213,10 +213,11 @@ mod tests {
             "gamelog-run13-window-95-105.txt",
         ] {
             let Some(path) = dump(name) else { continue };
-            let text = crate::capture::read(&path);
-            let log = Log::parse(&text);
+            let mut source = crate::capture::indexed::IndexedCapture::open(&path)
+                .expect("index finalized clock capture");
             names.push(name);
-            for frame in log.frame_states() {
+            for frame in source.frame_states() {
+                let frame = frame.expect("read clock capture frame");
                 for u in &frame.units {
                     let Some(m2) = u.unit_masks2 else { continue };
                     let frozen = m2 & FROZEN != 0;

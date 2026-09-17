@@ -20,7 +20,7 @@
 title=${RON_WINDOW:-Rise of Nations}
 mode=${1:-focus}
 
-osascript - "$title" "$mode" <<'EOF'
+found=$(osascript - "$title" "$mode" <<'EOF'
 on run argv
   set want to item 1 of argv
   set mode to item 2 of argv
@@ -38,3 +38,9 @@ on run argv
   return ""
 end run
 EOF
+) || exit $?
+if [[ -z "$found" && "$mode" != "--title" ]]; then
+  print -u2 -- "focus: no matching game window: $title"
+  exit 1
+fi
+print -r -- "$found"

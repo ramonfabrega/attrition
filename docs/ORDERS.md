@@ -719,6 +719,11 @@ Then: reposition, `remove_current`; if the removed order `is_move && is_pathed`
 → `kill_current_path` (pop the path stack until an entry with `flags & 1` is
 popped); `give_obj`; `clear_partial_path`; `update_action`.
 
+The path-only operation is exposed as `Unit::discard_current_path_segment`.
+A natural shutdown call and boundary-flag mutations compare it with the original
+without a world or renderer; scope and evidence are recorded in
+`docs/lab/2026-09-09-natural-path-capsule.md`.
+
 `close_orders(silent)@005e37f0` is `while (head && current->get_type() != NONE)
 kill_current_order(silent)` — it empties the list oldest first, so every
 teardown fires in queue order. `clear_orders@005e3860` is the `QUEUE_NEW`

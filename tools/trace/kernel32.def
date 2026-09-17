@@ -16,3 +16,6 @@ GetCurrentThreadId@0
 OutputDebugStringA@4
 CreateThread@24
 Sleep@4
+ReadProcessMemory@20
+
+ExitProcess@4

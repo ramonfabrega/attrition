@@ -719,15 +719,17 @@ mod tests {
             return;
         };
         let loaded = crate::load::load(&inst).unwrap();
-        let texts = sibling_texts();
-        let text = crate::capture::read(&path);
-        let log = Log::parse(&text);
-        let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
-        let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
-        let refs: Vec<&Initial> = inits.iter().collect();
-        let mut init = log.initial().unwrap();
-        borrow_from_siblings(&mut init, &refs);
-        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        // Capture inputs are needed only while constructing the owned simulation.
+        let mut built = with_sibling_initials(|refs| {
+            crate::capture::indexed::IndexedCapture::open(&path)
+                .unwrap()
+                .with_replay_initial(|init| {
+                    let mut init = init;
+                    borrow_from_siblings(&mut init, refs);
+                    build_sim(&loaded, &init, Tuning::RON)
+                })
+                .unwrap()
+        });
         let (tw, th) = (
             built.sim.world.width() * sim::world::TILES_PER_CELL,
             built.sim.world.height() * sim::world::TILES_PER_CELL,
@@ -1727,18 +1729,20 @@ mod tests {
             return;
         };
         let loaded = crate::load::load(&inst).unwrap();
-        let text = crate::capture::read(&path);
-        let log = Log::parse(&text);
-        let texts = sibling_texts();
-        let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
-        let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
-        let refs: Vec<&Initial> = inits.iter().collect();
-        let mut init = log.initial().unwrap();
-        borrow_from_siblings(&mut init, &refs);
-        if let Some(tr) = trace("rontrace-run71.log") {
-            borrow_pasture(&mut init, &tr);
-        }
-        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        // Capture inputs are needed only while constructing the owned simulation.
+        let mut built = with_sibling_initials(|refs| {
+            crate::capture::indexed::IndexedCapture::open(&path)
+                .unwrap()
+                .with_replay_initial(|init| {
+                    let mut init = init;
+                    borrow_from_siblings(&mut init, refs);
+                    if let Some(tr) = trace("rontrace-run71.log") {
+                        borrow_pasture(&mut init, &tr);
+                    }
+                    build_sim(&loaded, &init, Tuning::RON)
+                })
+                .unwrap()
+        });
         // 4,804 ticks stops at the end of sim-frame 4803 — the frame the
         // Market finishes and `place_roads` runs — so this is the world
         // run72's `FRAME 4804` block prints.
@@ -1746,7 +1750,12 @@ mod tests {
             built.tick();
         }
 
-        let text72 = crate::capture::read(&r72);
+        let mut source = crate::capture::indexed::IndexedCapture::open(&r72).unwrap();
+        let Some(index) = source.frames().iter().position(|f| f.number == 4_804) else {
+            eprintln!("skipping: run72 has no FRAME 4804 block");
+            return;
+        };
+        let text72 = source.read_frame(index).unwrap();
         let l72 = Log::parse(&text72);
         let Some(block) = l72
             .frames()
@@ -2926,10 +2935,10 @@ mod tests {
         let (Some(path), Some(sib), Some(tr)) = (
             dump("gamelog-run39-islands-longtrace.txt"),
             dump("gamelog-run38-islands-start.txt"),
-            dump("rontrace-run39.log").and_then(|p| {
+            dump("rontrace-run39.log").map(|p| {
                 crate::trace::Trace::read(std::path::Path::new(&p))
-                    .ok()
-                    .flatten()
+                    .expect("invalid finalized trace")
+                    .expect("missing RONT header")
             }),
         ) else {
             eprintln!("skipping: no East Indies capture (set RON_GAMELOG_DIR)");
@@ -3231,10 +3240,10 @@ mod tests {
         let (Some(path), Some(sib), Some(tr)) = (
             dump("gamelog-run39-islands-longtrace.txt"),
             dump("gamelog-run38-islands-start.txt"),
-            dump("rontrace-run39.log").and_then(|p| {
+            dump("rontrace-run39.log").map(|p| {
                 crate::trace::Trace::read(std::path::Path::new(&p))
-                    .ok()
-                    .flatten()
+                    .expect("invalid finalized trace")
+                    .expect("missing RONT header")
             }),
         ) else {
             eprintln!("skipping: no East Indies capture (set RON_GAMELOG_DIR)");
@@ -3420,10 +3429,10 @@ mod tests {
         let (Some(path), Some(sib), Some(tr)) = (
             dump("gamelog-run39-islands-longtrace.txt"),
             dump("gamelog-run38-islands-start.txt"),
-            dump("rontrace-run39.log").and_then(|p| {
+            dump("rontrace-run39.log").map(|p| {
                 crate::trace::Trace::read(std::path::Path::new(&p))
-                    .ok()
-                    .flatten()
+                    .expect("invalid finalized trace")
+                    .expect("missing RONT header")
             }),
         ) else {
             eprintln!("skipping: no East Indies capture (set RON_GAMELOG_DIR)");
@@ -3556,10 +3565,10 @@ mod tests {
         let (Some(path), Some(sib), Some(tr)) = (
             dump("gamelog-run39-islands-longtrace.txt"),
             dump("gamelog-run38-islands-start.txt"),
-            dump("rontrace-run39.log").and_then(|p| {
+            dump("rontrace-run39.log").map(|p| {
                 crate::trace::Trace::read(std::path::Path::new(&p))
-                    .ok()
-                    .flatten()
+                    .expect("invalid finalized trace")
+                    .expect("missing RONT header")
             }),
         ) else {
             eprintln!("skipping: no East Indies capture (set RON_GAMELOG_DIR)");
@@ -3686,10 +3695,10 @@ mod tests {
         let (Some(path), Some(sib), Some(tr)) = (
             dump("gamelog-run39-islands-longtrace.txt"),
             dump("gamelog-run38-islands-start.txt"),
-            dump("rontrace-run39.log").and_then(|p| {
+            dump("rontrace-run39.log").map(|p| {
                 crate::trace::Trace::read(std::path::Path::new(&p))
-                    .ok()
-                    .flatten()
+                    .expect("invalid finalized trace")
+                    .expect("missing RONT header")
             }),
         ) else {
             eprintln!("skipping: no East Indies capture (set RON_GAMELOG_DIR)");
@@ -3785,10 +3794,10 @@ mod tests {
         let (Some(path), Some(sib), Some(tr)) = (
             dump("gamelog-run39-islands-longtrace.txt"),
             dump("gamelog-run38-islands-start.txt"),
-            dump("rontrace-run39.log").and_then(|p| {
+            dump("rontrace-run39.log").map(|p| {
                 crate::trace::Trace::read(std::path::Path::new(&p))
-                    .ok()
-                    .flatten()
+                    .expect("invalid finalized trace")
+                    .expect("missing RONT header")
             }),
         ) else {
             eprintln!("skipping: no East Indies capture (set RON_GAMELOG_DIR)");
@@ -3898,10 +3907,10 @@ mod tests {
         let (Some(path), Some(sib), Some(tr)) = (
             dump("gamelog-run39-islands-longtrace.txt"),
             dump("gamelog-run38-islands-start.txt"),
-            dump("rontrace-run39.log").and_then(|p| {
+            dump("rontrace-run39.log").map(|p| {
                 crate::trace::Trace::read(std::path::Path::new(&p))
-                    .ok()
-                    .flatten()
+                    .expect("invalid finalized trace")
+                    .expect("missing RONT header")
             }),
         ) else {
             eprintln!("skipping: no East Indies capture (set RON_GAMELOG_DIR)");
