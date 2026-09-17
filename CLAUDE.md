@@ -170,9 +170,12 @@ only the number says whether the whole is converging.
 - Tests, including the end-to-end kind that run the new mechanic against the
   ones already there.
 - `cargo test --release`, `cargo clippy --all-targets` and `cargo fmt`
-  clean, and `cargo run -p rondata -- <install>` exiting zero. The debug
-  profile is for the reflex (`tools/guard.sh`) and for stepping through
-  one test; a debug run that reaches a kept dump refuses, by design.
+  clean, and `cargo run -p rondata -- <install>` exiting zero — which is
+  `python3 tools/release_gate.py <install> --test-threads 4` in one
+  command, under the memory cap, with the fixture audit and the paperwork
+  guards; that is the gate a landing names. The debug profile is for the
+  reflex (`tools/guard.sh`) and for stepping through one test; a debug
+  run that reaches a kept dump refuses, by design.
 - Committed. Any open question this closes in another document is struck
   through there and pointed at its answer, per the amend-in-place rule below.
 
@@ -442,6 +445,14 @@ and makes the eventual diff mechanical rather than a translation exercise.
   every structural claim in `docs/FORMATS.md` from the user's own files. If a
   claim stops being true it exits non-zero. Run it after touching anything
   that reads the game's data.
+- **The lab** (`docs/lab/`, `tools/explore/`, `tools/viewer/`) is a second
+  harness's exploration, merged whole on 2026-09-17 (`docs/DECISIONS.md`
+  entry 38). Its claim ledger is `docs/lab/LEDGER.md`; the guards do not
+  scan it. Two of its products are opt-in tools: a read-only diff viewer
+  with in-memory replay checkpoints (`docs/DEBUG_VIEWER.md`), and a
+  click-free capture lane (`tools/explore/unattended_capture.py`, a
+  `RON_AUTOSTART` tracer build) that needs no TCC grant and no human at
+  the menu, and starts most pairs rather than all of them.
 
 ## Prior art worth reading
 

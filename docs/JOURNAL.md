@@ -19912,3 +19912,72 @@ entered, 152 never. No score moved. The draw hooks still carry
 `pushad`/`popad` at a few thousand calls a frame and have never tripped;
 moving them onto the flag-free sequence is the one follow-up, with its own
 proof run. `docs/ORACLE.md`, "Coverage is back".
+
+## 2026-09-17 — The lab lands whole, and the gate is one command (Fable steering, Fable 5.1)
+
+A week away, and the question on return was what to take from the lab —
+the Codex harness that ran unattended off the tip from 09-08 to 09-10 on
+`codex/methodology-exploration` — and whether to go back to the commander
+loop or work single-threaded. Both answered, and the first was landed.
+
+**The lab is merged whole, not cherry-picked.** 80 commits, 185 files,
+18k lines, a 54-row claim ledger of its own under `docs/lab/`, and no
+score moved. It merged onto the tip with no conflicts, every runtime piece
+is behind a flag or a separate script, and its own adoption map warns that
+the commit titles are mixed, so picking groups would have been a week of
+archaeology ending in the same tree. The rule for landing here is the
+gate, and the gate ran green on the merge. DECISIONS 38 has the decision
+and the split: what is a default now, what waits on a landing, what stays
+research.
+
+**The gate is one command and about half the time.** The lab rebuilt the
+dump readers so a test owns one frame's bytes rather than the capture,
+fixed a fixture-name guard that held two copies of four captures to
+compare names, and added an opt-in four-thread lane under the memory cap.
+`python3 tools/release_gate.py <install> --test-threads 4` runs the
+survey, the offline Python tests, the release suite with a fixture-request
+audit, clippy, fmt and the paperwork guards, gating on exit codes. The
+merge's own run: rondata 288 passed in 132 s at a 12,646 MiB tree peak,
+577 fixture requests and none missing, sim 824 passed — against 288 s and
+10,869 MiB at two threads before the lab. Bare `cargo test` stays pinned
+at two; DECISIONS 34 amended in place, and `CLAUDE.md`'s done line names
+the wrapper.
+
+**Four guards that were lying, now fixed.** The soak digest omitted the
+RNG seed, so an RNG-only divergence was invisible, and it hashed the frame
+counter, so a frozen game read as active — both regressions made to fail
+first. The trace reader accepted unknown versions, truncated tails and
+duplicate or skipped `FRAME` records; finalized reads now refuse them.
+`memcap.sh` printed a zero peak when `ps` was refused, which is how a
+20 GiB cap becomes a no-op; it now exits 125 and refuses to launch, which
+closes one of item 251's four doors. And `focus.sh` returns 1 on a missed
+window, so the six `set -e` capture scripts abort where they used to click
+the desktop — adopted as fail-closed; a capture that aborts there was one
+that would have been wrong.
+
+**Programmatic game start exists, as an opt-in lane.** A `RON_AUTOSTART`
+tracer build replaces the two menu functions and clicks Start from inside
+the modal loop; every successful start matched all 19 logged bodies and
+1,401 frame seeds against a hand-driven baseline, and `+skipIntro` is
+free. It started 6 of 10 pairs and 15 of 19 launches, with a pre-menu
+fault at the WoW64 transition — 226's family — that the hook migration did
+not cure and whose factor-isolation experiment is paused. Parked as 298
+with its falsifier; cliclick stays the fallback. Two more findings parked
+with numbers: 299, a single Gaia reseat correction hiding a 556-frame
+heading difference the player comparator never scores; 300, the
+original's 68 `issue_*` command entries the fuzzer never calls while the
+replay adapter lowers only `MoveTo`. The lab's central critique — that
+entry 29's counters lack an external denominator — keeps the 09-09
+disposition: evidence and item types, not an alternate score.
+
+**Opt-in until a landing uses it**: the read-only diff viewer and the
+in-memory replay checkpoint (`docs/DEBUG_VIEWER.md`), where a nearby
+window costs about 20 ms after the prefix instead of a replay from setup.
+It is piloted on 295's first window rather than adopted on its own.
+
+**Loop or seat.** This landed single-threaded on purpose: the gate a
+worker runs must hold still while it changes. The loop resumes as a
+two-lane commander wave on Opus — 295 on Great Lakes, 294 on East Indies,
+one per map, both capture-free — and the next steer reads USD per
+word-moving landing against 102, the ratio the last pass set. **The score
+did not move**: Great Lakes 7585, East Indies 7812.

@@ -1595,6 +1595,24 @@ polling, idle turns, the debug suite. The loop pays for itself while those
 stay closed; the next steer reads USD per word-moving landing, and a
 doubling from 102 is a stop. `docs/audit/2026-09-07-fable-pass-2.md`.
 
+**Amended 2026-09-17, Fable steering — the width is four under the
+wrapper, and the wrapper is the gate.** The lab (entry 38) rebuilt the dump
+readers so a test owns one frame's bytes rather than the capture it came
+from, and measured the release suite twice on the same install: 248 tests
+in 288 s at 10,869 MiB peak at two threads before, 280 tests in 122 s at
+13,307 MiB at four monitored threads after; this tip's own merge gate ran
+132 s at 12,646 MiB. So width two stays the bare `cargo test` default
+in `.cargo/config.toml`; the floors test is now
+`diff::floors::the_gate_has_a_bounded_test_width`, which reads the
+`RON_TEST_MEMCAP_GIB` marker `memcap.sh` sets on its child and refuses a
+wider run without it; and `python3 tools/release_gate.py <install>
+--test-threads 4` is the gate a landing names — survey, the offline Python
+tests, the release suite under `memcap.sh 20` with a fixture-request audit,
+clippy, fmt and the paperwork guards, one command, gating on exit codes.
+The marker is cooperative and the cap is what enforces. The loop's width
+discretion is unchanged: two workers at four threads are about 27 GB
+against 128.
+
 ## 35. The paperwork is bounded by items, and a deletion is a claim
 
 **Decided 2026-09-07**, with the user, after lore priced the queue's
@@ -1799,3 +1817,62 @@ work; neither is an exception.
 the next entry that wants to narrow this comes here first — an exception
 that lives only in a mechanic's document and the journal is how this one
 was taken without the user's word (item 280's brief).
+
+## 38. A lab branch lands by merge, and adoption is a decision about defaults
+
+**Decided 2026-09-17**, Fable steering, with the user, after a week away.
+
+**What happened.** Between 09-08 and 09-10 a second harness (Codex, "the
+lab") ran unattended off this branch's tip on `codex/methodology-exploration`:
+80 commits, 185 files, 18k lines, a 54-row claim ledger of its own
+(`docs/lab/LEDGER.md`), its narrative kept out of the journal
+(`docs/lab/HISTORY.md`), and no score moved. It was asked to explore the
+method, not to work the queue, and its ledger says of itself that it is an
+adoption menu and not a merge proposal.
+
+**The decision is to merge it whole and decide adoption by default versus
+opt-in, not to cherry-pick.** Three reasons. It merged onto the tip with no
+conflicts, and every runtime-side piece is behind a build flag or a
+separate script. Its own adoption map warns that the commit titles are
+mixed — a reader commit carries a tool, a tool commit carries a doc — so
+picking groups is a week of archaeology that ends with the same tree. And
+this repo's rule for landing is the gate, not provenance: the full release
+gate ran green on the merge, so it is in.
+
+**What is a default now**, because each is a guard or reader that was
+measured against the old one and made to fail first: the dump readers own
+one frame rather than the capture (the release suite 288 s → 122 s, entry
+34's amendment); the soak digest carries the RNG seed, which it had
+omitted, and reports gameplay activity apart from the clock, which a frozen
+game had been passing on; the trace reader rejects unknown versions,
+truncated tails and duplicate or skipped `FRAME` records; `memcap.sh`
+refuses to launch when it cannot sample RSS instead of printing a zero
+peak; `focus.sh` exits 1 on a missed window, and six `set -e` capture
+scripts abort there rather than click the desktop.
+
+**What is opt-in until a landing on the queue uses it**: the read-only
+diff viewer and the in-memory replay checkpoint (`docs/DEBUG_VIEWER.md`),
+to be piloted on the opener's first divergence; and the click-free capture
+lane (`tools/explore/unattended_capture.py`, a `RON_AUTOSTART` tracer
+build), which starts 6 of 10 pairs and is parked as item 298 until the
+startup fault is closed. **What stays research**: the live call capsules,
+native probes, search census and restore-prefix work under
+`tools/explore/`. None of it is on any gate's path.
+
+**What the lab said about the method, and the disposition.** Its central
+critique is that the completion counters of entry 29 have no external
+denominator: a citation regex over Markdown and two long games cannot
+enumerate what a whole engine must do. The 09-09 steering disposition
+stands: contracts and capability inventories are evidence and item types,
+not an alternate score, and the three counters remain the finish line. The
+two findings under it are real and are booked — 300, that the original's
+command manager has 68 `issue_*` entries the fuzzer never calls while the
+replay adapter lowers only `MoveTo`; and 299, a Gaia reseat correction
+hiding a 556-frame heading difference the player comparator never scores.
+
+**The rule going forward.** A lab branch lands by merge when its gate is
+green on this tip; its ledger's "ready for pilot" rows become defaults
+only when a queue landing uses them; its paperwork lives under `docs/lab/`,
+which the guards do not scan, and anything it finds that wants the loop is
+booked with a number like everything else. And the loop resumes after such
+a landing, never during it: the gate a worker runs must hold still.

@@ -12,36 +12,36 @@ each section's non-item prose pinned and falling only.
 
 ## Where things stand
 
-*2026-09-07, Fable steering (Fable 5.1) with lore in the room — the five
-marked rows ruled, no score moved, and the hour 289 lost has a guard.*
+*2026-09-17, Fable steering (Fable 5.1) — the lab merged whole, the
+gate is one command, no score moved.*
 
-- **Great Lakes 7585** leads and is unmoved; **East Indies 7812**. 295 —
-  `create_units`' value chain, the make-list head — is headline-nearest.
-- **The loop's tax was the rulebook, not the width.** Done said `cargo
-  test`, the gate said `--release`; the dump-backed suite is 4,101 s
-  unoptimised against 322 s. `testenv::dump` now refuses a debug run.
-- **The loop's price is a ratio now**: 21 USD a landing on the human-
-  driven days against 32 on the loop's, 42 against 102 per word-moving
-  landing, with ~200 of the loop's 1,018 in shapes now guarded. The next
-  steer reads USD per word-moving landing; a doubling from 102 stops it.
-- **Workers read their contract in `CLAUDE.md` now** — the landing check,
-  the done ping, and a status line at ninety minutes unlanded. The poll
-  hook lost its reset door: reads inside sixty seconds count whatever
-  sits between them (lane-run88 had typed `echo reset`).
-- **Rows**: 37 ratified; 280's UB ground closed; 283 parked behind 292;
-  the wait rule ratified with its figures moved out and the one-clause
-  precedent written; 293 closed. `docs/audit/2026-09-07-fable-pass-2.md`.
-- **226 closed, `cover=1` back on free Wine** (tools lane, Fable 5.1,
-  09-08): run906 covers run903's game word for word; counter 2 re-read
-  on run53+54+906 is **802 cited, 650 entered, 152 never**. No score moved.
+- **Great Lakes 7585** leads and is unmoved; **East Indies 7812**. 295
+  is headline-nearest, 294 beside it, one per map.
+- **The lab landed whole** — `codex/methodology-exploration`, 80
+  commits, DECISIONS 38; ledger `docs/lab/LEDGER.md`. Defaults now:
+  readers that own one frame, a soak digest carrying the RNG seed and
+  an activity signal apart from the clock, a trace reader refusing torn
+  frames, `memcap.sh` refusing an unsampled run, `focus.sh` fail-closed.
+- **The gate**: `python3 tools/release_gate.py <install> --test-threads
+  4` — survey, offline tests, release suite under the cap with a fixture
+  audit, clippy, fmt, guards. This merge's run: 132 rondata s at
+  12,646 MiB, against 288 s / 10,869 at two threads before. DECISIONS
+  34 amended; bare `cargo test` stays at two.
+- **Opt-in until a landing uses it**: the diff viewer and checkpoint
+  replay (`docs/DEBUG_VIEWER.md`), piloted on 295's first window; the
+  click-free capture lane, 6 of 10 pairs, parked as 298 with 299 (a
+  Gaia reseat heading witness) and 300 (the unused command API).
+- **Loop**: landed single-threaded so the gate held still; it resumes
+  as a two-lane wave, and the next steer reads USD per word-moving
+  landing against 102.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w7812 of 24,000 · GreatLakes w7585 of 24,000
 Endpoint 24001: EastIndies 78 off, 3 unlinked · GreatLakes 70 off, 9 unlinked
 
 **Opener: 295 (Great Lakes' word, `create_units`' value chain, three
-oracles) with 294 beside it; then 291, 285. Every brief carries
-`CLAUDE.md`'s worker paragraph, and the gate is `--release`.**
+oracles) and 294 (the 7809 collision miss) as a two-lane commander wave
+on Opus; gate `tools/release_gate.py`; briefs carry `CLAUDE.md`'s worker paragraph.**
 
 ## The queue
 
@@ -155,14 +155,14 @@ of 617; (72) every `+0xNN` a document pins vs its module; (89) the guard;
     step its clock — `unit_masks2 & 0x10` freezes `Guy::inc_time` (ANIM
     §5), and that arm waits on a melee frame.
 
-251. **`memcap.sh` has four doors and no fixture**: its `ps | awk` reads
-    `0 0` when `ps` answers nothing, so a refused sample reads as no memory
-    used and the ceiling never fires (lore); it was mode 644 until 09-07;
-    it takes a **GiB cap as its first argument**; and (281) it read `ps
-    rss`, which **over-counted the mapping 280 removed** — ~1.3 GB of
-    260's 8,816 was run58's clean text — and a 2 s poll under-reports a
-    sawtooth besides. Wants a fixture:
-    past the cap, dead in N seconds, exit 137.
+251. **`memcap.sh` has two doors left and half a fixture**: the refused
+    sample that read as zero and let the ceiling sleep is closed — it exits
+    125 and refuses to launch (lab L25, `tools/explore/test_memcap.py`) —
+    and the mode-644 door closed 09-07. Left: it takes a **GiB cap as its
+    first argument**; and (281) it read `ps rss`, which **over-counted the
+    mapping 280 removed** — ~1.3 GB of 260's 8,816 was run58's clean text
+    — and a 2 s poll under-reports a sawtooth. Still wants the fixture
+    with teeth: past the cap, dead in N seconds, exit 137.
 
 291. **The AI's caravans are not linked** — `vans.length` 0 against 1 and
     `trade_val` 0 against 128 on **both** of player 1's cities, 246 of 246
@@ -224,8 +224,8 @@ of 617; (72) every `+0xNN` a document pins vs its module; (89) the guard;
   and pushed; nothing in flight owing its result elsewhere; this handoff
   current with the headline *measured*; nothing unfiled. `ccc clear <ref>
   --then "continue"` arms it, and takes a session name from 0.1.31.
-- **Run the diff suite with `--release`** under `tools/memcap.sh 20` — the
-  cap is its first argument — to a file, never piped (a pipe launders the
-  137), keeping the `peak` line. **Before a blind fan-out**, grep
+- **Run the diff suite with `--release`** under `tools/memcap.sh 20` — or
+  `tools/release_gate.py <install> --test-threads 4`, which wraps it — to a
+  file, never piped (a pipe launders the 137), keeping the `peak` line. **Before a blind fan-out**, grep
   `CLAUDE.md` and the memory index: a subagent inherits both, and neither
   they nor a brief may quote this file or the journal.

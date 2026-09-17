@@ -22,6 +22,37 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Parked from the lab, 2026-09-17
+
+(298) **The click-free capture lane starts 6 of 10 pairs** — a
+`RON_AUTOSTART` tracer build replaces the two menu functions and clicks
+Start from inside the modal loop; every success matched 19 logged bodies and
+1,401 frame seeds against a hand-driven run. The failures are 180 s timeouts
+and exit 40 before the menu; two faults map to the WoW64 transition RVA
+0x1139, and moving the hooks off bulk restores (226's family) did not cure
+it. The factor-isolation experiment is paused
+(`docs/lab/2026-09-09-paused-runtime-experiment.md`). Falsifier: a ten-pair
+cohort at 10/10. Lab rows L18, L19, L28, L29.
+
+(299) **A single Gaia reseat correction hides a 556-frame heading
+difference** — run69, Great Lakes: of seven actual reseat writes across
+three intervals, removing tick 99's leaves this crate's Gaia heading off the
+original's for 556 frames, only the control matches at 106, and all seven
+converge by 3001 — invisible to the player comparator throughout. Lab rows
+L53, L54, `docs/lab/2026-09-10-single-reseat-interventions.md`. Wants a
+Gaia heading row in the differ; unscored today.
+
+(300) **The original's command API is unused, and the replay adapter lowers
+only `MoveTo`** — `CommandManager` has 68 `issue_*` entries;
+`CommandManager::issue_move_to@00941720` builds the command and appends it
+to `local_package` after `CommandManager::check_accept_issue@00940a70`,
+while `tools/fuzz/scenario.py` teleports. On this side `input::Stream::one`
+applies selection and `MoveTo` and skips production, repair and market. Lab
+row L08: acceptance is not emission — package capacity can refuse after
+selection changes — so an adapter needs acceptance, emission and
+processed-frame witnesses. A prerequisite for manufactured falsifiers and
+phase 5, not headline work.
+
 ## Parked from the queue, 2026-09-07
 
 (277) **An age gained through a cascade is unmodelled** — `Sim::gain_tech`
