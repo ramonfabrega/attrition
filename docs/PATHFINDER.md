@@ -1652,7 +1652,8 @@ it:
 capture overturned this section's conclusion the same day it was written,
 and the elimination below was right in its premise and wrong in its
 verdict.** run95's `callwin` proxy over `calc_cost` on sim-frame 8001 —
-116 records, the whole of `1/0`'s search — prices the step from cell
+**83** records, the whole of `1/0`'s one search and the only search the
+window holds — prices the step from cell
 `(4, 38)` into `(3, 39)` at **328**, and the neighbouring step into
 `(3, 38)` at **1**:
 
@@ -1703,12 +1704,39 @@ human object whose `visible` carries player 1's bit lights the *AI's*
 plane, which is exactly the fourteen. Nothing in this crate sets
 `visible`. The reveal lands between blocks **7937 and 7998**: run93's 7936
 still has all fourteen dark and run95's 7999 already has them lit, and the
-planes are identical at 7932 (§20.1). What would falsify the candidate is
-a `visible` of 0 on those objects inside that window.
+planes are identical at 7932 (§20.1).
+
+**And inside that window nothing happened that could have called it.**
+`update_local_seen` is reached only from `update_seen(0)`, and the three
+callers of `update_seen(0)` each need something the window does not have:
+`update_all_seen` runs at frame 7933 — a block before run93's 7936, which
+is still dark — and `Build::activate`, `Wall::activate` and `Unit::init`
+need a roster change that did not occur. The rosters are identical at
+blocks 7932 and 7999: **`BUILDDATA` 56, `WALLDATA` 56, `UNITDATA` 180,
+`ANIMALDATA` 80.** Nothing was built, walled, born or killed. So the
+successor inherits an elimination rather than a candidate, and
+`docs/VISION.md` §7 carries the whole table — including that
+`ObjectData +0x3a` is `infiltrated` (script-written only), not `visible`,
+which is `+0x40`.
 
 The assertion is
 `run95_s_block_8002_is_where_the_fog_parts_and_the_price_with_it`, which
 pins the fourteen by place and the original's 328 and 1 by value.
+
+**And the word at 8031 is this route's own**, which was worth measuring
+rather than assuming. `RON_DEBUG_SITES=8025-8035` with
+`RON_DEBUG_UNIT=1/0@8025-8035` on run53's 24,000-frame trace attributes the
+parting draw: `f8031 unit 1/0: Unit::do_move+0xe84` — the same unit and the
+same call site as 8030, which item 319 moved. What it is doing there is the
+route: by 8031 this crate's scout has consumed its column-3 waypoints, sits
+at `(3427, 29988)` with `[goal, (2808, 31992)]` left on the stack, and
+spends a **tile-grid** repath — thirteen entries at tolerance `0x60` —
+going round the capital's footprint it should never have been beside. The
+original spends no `Unit::do_move` draw between 7676 and 9443. So the fog
+fix and the word are the same item rather than two: with `(7, 79)` and
+`(7, 81)` lit the scout takes the original's western route, never marches
+into those tiles, and never spends the draw. **By how much the word then
+moves is still unmeasured** — the next parting could be anywhere.
 
 ### 20.3 Two gaps `invalid_loc` has here either way
 
