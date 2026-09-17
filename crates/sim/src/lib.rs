@@ -2079,13 +2079,7 @@ impl Sim {
             match (head, prev) {
                 (None, _) => {
                     head = Some(u);
-                    let pop = self.unit_types[ty].price.pop;
-                    let muster = &mut self.muster[who as usize];
-                    muster.by_type[ty] += 1;
-                    muster.control += pop;
-                    if let Some(g) = self.unit_types[ty].group {
-                        muster.by_group[g] += 1;
-                    }
+                    self.track_unit_type(who, ty, 1);
                 }
                 (Some(h), Some(p)) => {
                     let captain = self.units[h].index;
@@ -2204,14 +2198,7 @@ impl Sim {
         let who = self.units[u].owner;
         let captain = self.units[u].captain;
         if captain {
-            let pop = self.unit_types[old].price.pop;
-            let group = self.unit_types[old].group;
-            let muster = &mut self.muster[who as usize];
-            muster.by_type[old] -= 1;
-            muster.control -= pop;
-            if let Some(g) = group {
-                muster.by_group[g] -= 1;
-            }
+            self.track_unit_type(who, old, -1);
         }
         let damage = self.units[u].max_health - self.units[u].health;
         let hits = self.unit_types[rec].hits;
@@ -2227,14 +2214,7 @@ impl Sim {
         self.units[u].movement.turning = self.turning_for(rec);
         self.reinit_guys(u, rec);
         if captain {
-            let pop = self.unit_types[rec].price.pop;
-            let group = self.unit_types[rec].group;
-            let muster = &mut self.muster[who as usize];
-            muster.by_type[rec] += 1;
-            muster.control += pop;
-            if let Some(g) = group {
-                muster.by_group[g] += 1;
-            }
+            self.track_unit_type(who, rec, 1);
         }
     }
 
@@ -2674,6 +2654,34 @@ impl Sim {
         }
     }
 
+    /// `Leader::track_unit_type`, and the two lines every one of its call
+    /// sites carries beside it: `control` and **`active`**.
+    ///
+    /// `active` is not a census output. `Unit::set_type@00612fa0:74,284`
+    /// moves `num_units`, `control` and `active` in one guarded block in
+    /// each direction, and `Objects::init_unit@0065e0c0:92,174` undoes all
+    /// three when the new unit turns out to be a squad follower; the
+    /// sweep's own recount (`Leader::plan_strategy@006b9620:127,508`) only
+    /// re-derives every two hundred frames what these writers have been
+    /// keeping live. Modelling the recount alone left `active` a stale
+    /// snapshot — 31 against the original's 32 on 62 of run91's 86 blocks,
+    /// item 303. `docs/AI.md` §37.
+    ///
+    /// Keeping the four on one statement is the same reasoning as
+    /// [`Sim::track_tree_queued`]: they agree by construction rather than
+    /// by inspection.
+    pub fn track_unit_type(&mut self, who: Player, ty: usize, delta: i32) {
+        let pop = self.unit_types[ty].price.pop;
+        let group = self.unit_types[ty].group;
+        let muster = &mut self.muster[who as usize];
+        muster.by_type[ty] += delta;
+        muster.control += pop * delta;
+        if let Some(g) = group {
+            muster.by_group[g] += delta;
+        }
+        self.ai[who as usize].census.active += delta;
+    }
+
     /// Builds one unit of a type, if the player can pay for it and has room.
     ///
     /// This is the *instant* path — the price and the unit in one call, with
@@ -2697,12 +2705,7 @@ impl Sim {
         }
         cost::pay(&charges, &mut self.ledgers[who as usize], &available, false);
 
-        let muster = &mut self.muster[who as usize];
-        muster.by_type[ty] += 1;
-        if let Some(g) = self.unit_types[ty].group {
-            muster.by_group[g] += 1;
-        }
-        muster.control += pop;
+        self.track_unit_type(who, ty, 1);
 
         let index = self
             .find_free(who, UNIT_BASE, BUILD_BASE)

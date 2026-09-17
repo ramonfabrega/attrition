@@ -49,11 +49,6 @@ In dependency order, headline-nearest first; **the headline is the long
 captures' word**, lower map first — Great Lakes. Take the first unstarted
 unless a better order is obvious, and say so. Numbers are stable.
 
-303. **`active` is 31 against the original's 32** on 62 of run91's 86
-    blocks — one captain short, and which one is unread. The last
-    whole-roster counter still parting after 295 fixed the census's two
-    defects, so it is a third thing rather than residue of those. AI §35.
-
 301. **East Indies 7811/7812 is `find_upath`'s suspend** (in flight) —
     the original's repath on 7810 leaves `dest` 0 and a one-entry stack
     holding the goal while `do_move`'s suspended-search block counts
