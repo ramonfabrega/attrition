@@ -75,15 +75,24 @@ file; each one is a ten-minute read of the code the row names.
   15936 against 15744, four hundred frames downstream of the parting.
 - **214** unverified.
 
-## Never an item — a parser false positive, 2026-09-07
+## Item 7, and the parser that hid it, 2026-09-07 / 2026-09-17
 
-- **7** was never booked. `queueledger.py` reads item references with
-  `re.findall(r"\(([\d/,\s]+)\)", …)` and then pulls every `\d{1,3}` out
-  of the group, so item 253's **coordinate** `(11,7)` — "run82's 6946 dump
-  shows it off by (11,7)" — registered 7 and 11 as live numbers. Deleting
-  253 when item 271 closed it therefore reported 7 as having left in
-  silence. Dropped on purpose: there is no finding behind it.
-- The guard is right to be loud and the entry is the cheap unblock, but
-  the parser is wrong and the next coordinate in an item will do this
-  again. Booked as a queue item rather than fixed here, because the
-  commander books and does not work items.
+- **7** landed — Orders, `docs/ORDERS.md` and `crates/sim/src/orders.rs`,
+  struck through in the queue as done on 2026-08-21 (`57546c07`) and never
+  named `item 7` in the journal because the entry predates the phrasing.
+- The 09-07 row here said 7 "was never booked", and that was wrong:
+  `queueledger.py` then read item references with
+  `re.findall(r"\(([\d/,\s]+)\)", …)` and pulled every `\d{1,3}` out of the
+  group, so item 253's **coordinate** `(11,7)` registered 7 and 11 as live
+  numbers and the real item 7 was hidden behind the false one. Item 279
+  booked the fix; the third Fable pass (2026-09-17) landed it — `(N)` and
+  `(N/M)` only, and `item N` case-insensitive — and the guard's first run
+  with the fix named the real 7 above. Both false alarms were made to
+  fail on purpose first (`docs/audit/2026-09-17-fable-pass-3.md`).
+
+## Referenced and never booked — the phantom check, 2026-09-17
+
+- **304** and **224** were each written into an item as a dependency
+  ("wire when 304 closes"; "takes 224", since 2026-09-04) and never booked
+  in any form. The ledger now fails on a number the queue *refers to* that
+  no revision ever booked; both were booked the day the check landed.

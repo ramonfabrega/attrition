@@ -22,6 +22,152 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Loop — the steering pass's, never a worker's
+
+Tooling, guards and the queue's own rules. The Fable pass takes these
+(`CLAUDE.md`, "Fan-out rules"); a commander never spawns one. Item 279's
+two ledger regexes closed in the third pass, 2026-09-17.
+
+(251) **`memcap.sh` has two doors left and half a fixture**: the refused
+sample that read as zero is closed (exit 125, lab L25) and the mode-644
+door closed 09-07. Left: it takes a **GiB cap as its first argument**; and
+(281) it read `ps rss`, which over-counted the mapping 280 removed — ~1.3 GB
+of 260's 8,816 was run58's clean text — and a 2 s poll under-reports a
+sawtooth. Still wants the fixture with teeth: past the cap, dead in N
+seconds, exit 137.
+
+(313) **The landing chain wants one verb.** Merge, gate, push and reap are
+one chain by rule since 09-17; ccc has `merge`, `update` and `clear`, and
+the reap is a separate command a commander typed after the chain twice and
+forgot twice. Filed with ccc as `land <ref>` or `merge --reap`; until it
+exists, the chain is one shell line in the commander's brief.
+
+## Parked by the third Fable pass, 2026-09-17 — names no score
+
+Every item below left the queue under the rule that a finding parks unless
+it names the headline's frame, a floor, or a takes-chain to one. Nothing
+here is dropped; an item comes back the day a score names it.
+
+(310) **Nothing decrements the muster on death** — not `by_type`,
+`by_group`, `control` or `active`. The original's `Unit::close@0060ee50:235`
+undoes all three and this crate has no counterpart. No unit of players 0
+or 1 dies in either window, so no diff reaches it, which is why 303 could
+land `Sim::track_unit_type` correct in both directions of `set_type` and
+still leave this open. Falsified by a window containing a death. AI §37.
+
+(305) **The make list's five building values, and a factor of ten** — the
+building producer's rows `MAKE[0]`..`MAKE[4]` still part, with `MAKE[2].cat`
+beside them, and two are exactly ten times out: `MAKE[1]` 202500 against
+2025000, `MAKE[2]` 165000 against 1012500. A different producer from 302's
+`upgrade_units`, and the factor-of-ten shape is as strong an oracle as 302's
+factor of two was. Value diff on disk, no capture needed. AI §36. Parked
+because 302 and 303 closed make-list rows and moved no word.
+
+(278) **`Unit::work@0060d180:440` is a second `set_new_location(…, 1, 1)`**
+and nothing models it — two units of one type within `0x180` are pushed
+apart by half their separation and **both snapped**, gated on
+`field_0x82 < 0` and the order's `+0x30` vcall (read, never run). Ruled out
+for 271's 6937; `Guy::last_pos` makes the signature searchable on every
+dump: a unit that moved whose figure has `last_x == x`. run79's squad first.
+
+(220) **TECH §13's twenty range blocks.** (209) **the once-per-game events a
+dump install swallows** — a `set_*` whose **return value** drives an
+irreversible record; **takes 224**. (224) **`mil_trainers`' other three
+writers** (AI §29.4) — a trainer that changes city, upgrades in place or is
+captured is filed by neither; referenced since 09-04, booked 09-17. (203)
+`mark_behind_tiles`' `0x4` is a building *finishing*; (240) the merchant's
+`gather_down`/`special` −1 at 6929, **takes 184**; (216) `create_buildings`
+offers a gather building the original does not.
+
+(242) **The crate's group id is not the original's** — `GroupData +0x4 =
+64` against `group_id`'s stand-in, the army group's *slot* 1; the other
+five agree on all 630 and 237 reports the row without scoring it. (243)
+`UnitDump::group` is parsed and **nothing compares it**. (244) **1,428
+grouped order records no test windows** — run79's 453, run31's 945. (245)
+`focus.sh` matched a concurrent worker's shell on run84.
+
+(255) **`go_to_unit`'s `0x480` and `go_to`'s `MOVE_TO` arm are read and
+never run** — every joiner on disk is farther than `0x480` from its army's
+`get_unit(0)`, so the falsifier is one born beside its army. (256)
+`come_out`'s three `action_move_to` sites stay unreached; (254) its ring
+has one sample (7284) and wants a second disembark. (167) run61's two (SYNC
+§3.9). All four came off 253, which 271 closed.
+
+(247) **An upgrade is an in-place guy-type change on the standing unit** —
+run76's **6737**, three Archers going guy **170 → 177** keeping `(who, o)`
+and `group 64`; East Indies' `1/32` does 340 → 341, the danger row moving
+by `(110 − 100) / 2`. (181) CARAVAN §7.2–§7.3.
+
+**The widening ledger** (87, DATALAYER §4, §4.1): **19** fields the harness
+names nowhere, **45** one capture names; blind spot `avg_speed` (210) — it
+counts *fields* and cannot see a record the parser never visits, which is
+what hid 252's dumps. Uncounted: (88) the blind list, 101 of 617; (72)
+every `+0xNN` a document pins vs its module; (89) the guard; (35) VISION §7.
+
+(269) **The third axis: a field compared at the wrong width** (DATALAYER
+§4.2, from 265). Ten `CityData` counters are `uchar` in the type record and
+`i32` in `ai::CityAi` — `busy` and `gatherers` have bare byte writers of
+their own — and `pop` is an eleventh on `sim::City`. None has been seen to
+wrap; the falsifier is a capture where the sweep's count and the producers'
+decrements cross zero. Same question one record up, for every
+`char`/`short` of `LeaderData` held as an `i32`. A guard wants the PDB's
+widths beside the sim's structs, not a grep.
+
+(270) **The fourth axis: a word compared one bit at a time** (DATALAYER
+§4.3, from 267). The ledger scans the differ for a field's *name*, so
+`unit_masks` has been on neither list since the packed bit got a row while
+one of at least eight modelled bits was actually compared — and the missing
+one, `0x100000`, named Great Lakes' run-up cause on its first run. Nine
+dumped masks want a per-**bit** census: `unit_masks`, `unit_masks2`,
+`guy_flags`, `node_flags`, `city_flags`, `leader_flags`, `leader_flags2`,
+`build_flags`, `role`. Same tool as 269.
+
+(257) **Nineteen kept tests compare a torn block** (252): a closing dump is
+frame n but for the one unit the quit caught mid-update, and every nested
+archive's last `FRAME n` body *is* its closing dump. No live case found,
+unaudited; fix is `compare_shutdown`'s n−1 allowance.
+
+(175) **The uber chain past its birth**: `Objects::init_unit` threads
+`uber_size` objects (CITIES §4.3); nothing else reads it. Takes (48)
+COLLISION §3/§7, (73) `UnitData::group`'s back-pointer, (56) ARMY §13.
+
+(161) **The make-list block is 2,500 frames behind East Indies' word**:
+`create_buildings` first runs on 9982 (AI §25), so `building_value`,
+`gather_value` and §24.4's arm wait on it. (195) `find_repair_spot`.
+
+(211) **`get_speed`'s three remaining arms** (MOVEMENT): `unit_masks &
+0x10`, set and cleared inside a frame; `has_general(0, 0x162)`'s siege
+doubling; the group cap, gated on `action_type == 0` (219) — it wants a
+grouped unit holding no action. (229) a figure in melee does not step its
+clock — `unit_masks2 & 0x10` freezes `Guy::inc_time` (ANIM §5), and that
+arm waits on a melee frame. **312 names this first** if the 7679 figure is
+in melee.
+
+(291) **The AI's caravans are not linked** — `vans.length` 0 against 1 and
+`trade_val` 0 against 128 on **both** of player 1's cities, 246 of 246
+blocks (287). That names two of 285's eighteen fields and gives them a
+mechanism, and wealth is what a market buy spends, so it is a live
+candidate for 290's shortfall. (288) the gull's `do_strafe`, unmodelled.
+(274) run87's `1/26`. (268) `AnimalData::ox`/`whom`/`aid` carry nothing —
+−1 on all forty animals on all 247 blocks. Closed as answered, not open.
+
+(285) **The CITY record parts on every block and nothing asserts it** — 18
+fields on 246 of 246 of run89's window, found by widening the whole record,
+and **no window test on either map asserts `city_diverged`**. Two of the
+eighteen are named now (291, the unlinked caravans). `1/3`'s `(+192, +192)`
+`MOVEORDER` was booked here and closed itself when 284 landed the
+air-physics fix.
+
+(273) **`refresh_group_order` re-origins on the order's `form_id`, not the
+member's list position** — `713ac3` reads `[eax+0x10]` off the `GroupOrder`
+the `+0x94` vcall returns, where `Sim::group_refresh_order` uses
+`g.list.iter().position(member)`. `do_group_move` step 2 rewrites `form_id`
+every frame, so the two agree except where membership changed and the
+follower arm has not run: wants a `GROUPS=1` window across a death or a
+join in a marching formation. (275) `MoveOrder::facing` still does not
+score; 267 split the two mechanisms, so re-read that. **304 is the nearest
+live window** to this — a formation ending early on run76.
+
 ## Parked from the lab, 2026-09-17
 
 (309) **`find_upath`'s pre-walk give-up exit targets the wrong label** —

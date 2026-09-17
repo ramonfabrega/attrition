@@ -135,7 +135,8 @@ subagent inherits this file and the memory index, and nothing else
 |---|---|---|---|
 | `CLAUDE.md` | the rules | rarely changes | **yes** |
 | `docs/QUEUE.md` | where things stand, and the backlog | rewritten every session; **deletes** finished items; guarded | no |
-| `docs/JOURNAL.md` | the chronicle, dated, and every finished item's story | append-only | no |
+| `docs/journal/<date>-item-<N>.md` | a landing's story, one file per item | written once, by the worker whose item it is; nobody else edits it | no |
+| `docs/JOURNAL.md` | the chronicle to 2026-09-17, and the steering passes' entries since | append-only, the main thread only | no |
 | `docs/<MECHANIC>.md` | the specification: rules, fields, formulas, coverage | amended in place; its section numbers are an API the code cites; the story goes to the journal; size guarded | no |
 | `docs/DECISIONS.md` | decisions and their rationale | append; amend in place, never delete | no |
 | `docs/audit/` | the second readings' verdicts, and the method's record | one file per audit | no |
@@ -153,9 +154,14 @@ the implementation rather than after.
 
 **An item is booked with the score it moves.** The headline, or a sub-score
 the queue names — and the item nearest the headline's first divergence is
-the default. An item that turns out to be something else spawns its
-successors at the *back* of the queue, not the front, and a session that
-moved no score says so in the handoff. **A word that moved lands with the
+the default. **A finding that names no score parks** (`docs/PARKED.md`)
+rather than queues: the queue holds only what names the headline's frame,
+a floor, or a takes-chain to one. **And the headline slot is never
+empty**: when no open item names the current word's frame and draw, the
+next brief is to widen every dumped record on that frame and name the
+cause, not to run the nearest residue row. An item that turns out to be
+something else spawns its successors in the parked file, and a session
+that moved no score says so in the handoff. **A word that moved lands with the
 value diff beside it** — the dump's own coordinates on the frame it moved —
 because a draw stream can agree on a wrong destination for a long time,
 and only a value comparison tells the two apart. This is the stopping rule
@@ -327,8 +333,10 @@ when the headline has not moved for two sessions running — in the main
 thread: is the tranche real, has the headline moved, what is the finish
 line; then the batched ratification of the *marked rows only*,
 any verdict that overturns an earlier one, a listing read where the
-decompiler is wrong, and the rewrites of this file and the queue. It writes
-the next opener. Never Sonnet; the model is said in user-visible text each
+decompiler is wrong, the rewrites of this file and the queue, and **the
+loop's own items** — tooling, guards, the queue's rules — which live in
+`docs/PARKED.md`'s Loop section and are never spawned to a worker. It
+writes the next opener. Never Sonnet; the model is said in user-visible text each
 time. A commander may land a **one-clause safety fix in this file itself**
 when its evidence is measured and its source named, filing a `FABLE:` row
 the same day; everything else in this file waits for the pass.
@@ -342,7 +350,15 @@ a session's state is not a signal. A worker that has not landed **ninety
 minutes** after its spawn sends a one-line status instead — the item, the
 step it is on, whether a gate is running — because two lanes on one box
 stretch every lane's wall clock, and wall clock is the one signal a
-commander cannot read. `docs/DECISIONS.md` entry 34.
+commander cannot read. **A worker's story is its own file**,
+`docs/journal/<date>-item-<N>.md`; it touches neither `docs/JOURNAL.md`
+nor `docs/QUEUE.md`, and the numbers it reports are the commander's to
+book and to write on the scoreboard line. **A number a worker reports is
+measured on the tree after its last `ccc update`**, or the report says
+which tree it was measured on — an attribution taken against a moving
+base is unreliable in both directions. On the commander's side, **merge,
+gate, push and reap are one chain**; a reap left for "before the next
+spawn" is a reap that does not happen. `docs/DECISIONS.md` entry 34.
 
 An Opus adjudication is acceptable under the marker discipline — append each
 verdict as it is settled, and mark what cannot be settled `FABLE:` rather

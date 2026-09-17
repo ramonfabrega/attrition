@@ -93,7 +93,7 @@ const HANDOFF_LINES: usize = 32;
 /// widening ledger and the `(242)` cluster.
 const QUEUE_SECTIONS: &[(&str, usize)] = &[
     ("", 12),
-    ("The queue", 20),
+    ("The queue", 8),
     ("How to maintain this file", 38),
 ];
 
@@ -118,9 +118,9 @@ const OVER: &[(&str, &str, usize)] = &[
     (
         "AI.md",
         "15. The behavioural run — run18, 2026-08-25",
-        27_527,
+        27_421,
     ),
-    ("CITIES.md", "3. Construction", 16_381),
+    ("CITIES.md", "3. Construction", 16_280),
     (
         "DATALAYER.md",
         "2. The loader — the tables into the sim's types",
@@ -131,7 +131,7 @@ const OVER: &[(&str, &str, usize)] = &[
         "6. The move — `Group::action_move_near@00704990`",
         44_885,
     ),
-    ("ORDERS.md", "4. The move order", 37_806),
+    ("ORDERS.md", "4. The move order", 37_601),
     (
         "ORDERS.md",
         "5. Build, repair, garrison — and what a citizen does next",

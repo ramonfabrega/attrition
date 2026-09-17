@@ -1613,6 +1613,10 @@ The marker is cooperative and the cap is what enforces. The loop's width
 discretion is unchanged: two workers at four threads are about 27 GB
 against 128.
 
+**Amended 2026-09-17, the third Fable pass — the measure was applied and
+the queue's population, not the loop, was the defect.** The rulings are
+entry 39, which extends this one and overturns nothing in it.
+
 ## 35. The paperwork is bounded by items, and a deletion is a claim
 
 **Decided 2026-09-07**, with the user, after lore priced the queue's
@@ -1876,3 +1880,56 @@ only when a queue landing uses them; its paperwork lives under `docs/lab/`,
 which the guards do not scan, and anything it finds that wants the loop is
 booked with a number like everything else. And the loop resumes after such
 a landing, never during it: the gate a worker runs must hold still.
+
+## 39. The queue holds what names a score; the board, not the loop, set the price
+
+**Decided 2026-09-17**, the third Fable pass, with the user. Extends
+entry 34 and its measure; overturns nothing.
+
+The first Opus wave after the lab landed ran five workers and moved one
+word: Great Lakes +94 (item 295), East Indies unmoved, item 301 banking
++381 unwired. lore priced it at **152 USD per word-moving landing against
+the 102 the second pass set** — 1.5x, under the doubling that stops the
+loop — and **1.61 USD per frame against 0.92 and 0.13** over the three
+windows on record. The stopping rule fired correctly after three no-score
+landings. What the price measured was not the workers: the queue's own
+handoff named item 305 as headline-nearest while item 302's landing had
+just written that the word's frame is a figure's draw and "not where the
+make list's residue is", and no item on the board named that frame at
+all. Sixteen of the eighteen open items named no score, because a queue
+held at its ceiling for weeks (12.5 numbers booked a day against five
+landings) had made every booking a forced triage under a rule — "least
+score-connected parks" — that only the commander had. **The defect was
+the population, not the cap.** Six rulings, each in the place a worker
+reads it:
+
+- **A finding parks by default**; the queue takes only what names the
+  headline's frame, a floor, or a takes-chain to one. **The headline slot
+  is never empty** — with no item on the word's frame, the next brief is
+  the widening of that frame, the twenty-minute shape 294, 295 and 301
+  all followed. `CLAUDE.md`, and the queue's maintenance rules.
+- **Loop items are the steering pass's** — tooling, guards, the queue's
+  rules — filed in `docs/PARKED.md`'s Loop section, never spawned. The
+  user's framing: loop improvement is what the pass is *for*.
+- **The journal is a directory**, `docs/journal/<date>-item-<N>.md`, one
+  file per landing, the worker's; `git merge-tree` over the 58 merges since
+  09-06 found **27 real conflicts** in `JOURNAL.md` and 7 in `QUEUE.md`,
+  because an append-only file puts every addition at the same anchor. A
+  worker now edits neither; it reports and the commander books.
+- **A number is measured on the tip**, after the worker's last `ccc
+  update`, or the report says which tree — 301's +381 was attributed to
+  the wrong half against the pre-295 base, and would have landed wired.
+- **Merge, gate, push, reap are one chain.** The reap was forgotten twice
+  in one session as a step "before the next spawn"; a `land` verb is
+  filed with ccc (item 313).
+- **The ledger fails on a number the queue refers to and never booked.**
+  Its first run found two: 304 ("wire when 304 closes"), the Great Lakes
+  cause the banked suspend waits on, and 224, referenced since 09-04.
+  Item 279's two regex defects landed in the same change, each made to
+  fail first, and the real item 7 they had hidden was ledgered.
+
+The next steer reads the same ratio, and asks one more thing: whether the
+first wave under the parking rule spent its workers on the word's frame.
+If 312 and 304 both land and neither moves Great Lakes, the diagnosis
+here was wrong, and that pass says so.
+`docs/audit/2026-09-17-fable-pass-3.md`.

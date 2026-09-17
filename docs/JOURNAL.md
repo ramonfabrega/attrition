@@ -20317,3 +20317,44 @@ not `by_type`, not `by_group`, not `control`, and now not `active`
 either; the original's `Unit::close` has no counterpart here. No unit of
 players 0 or 1 dies inside either window, so no diff on disk reaches it.
 It predates this item and it is `by_type`'s gap as much as `active`'s.
+
+## 2026-09-17 — the third Fable pass: the board was wrong, not the workers (Fable 5.1, steering)
+
+The wave that ended the day before this pass ran five Opus workers and
+moved one word — Great Lakes 7585 → 7679 on item 295 — with 301 banking
++381 on East Indies unwired. lore priced it at 152 USD per word-moving
+landing against the 102 the last pass set: 1.5x, under the doubling that
+stops the loop, and 1.61 USD a frame against 0.92 and 0.13. The stopping
+rule fired correctly after three no-score landings. What the price
+measured was the queue. Item 302's own entry, hours old, said the Great
+Lakes word is a figure's draw and not the make list's; no item on the
+board named that frame; the wave ran the residue rows nearest it and each
+closed a whole record row and moved nothing, as 302 had said it would.
+Sixteen of eighteen open items named no score.
+
+**Two phantoms.** The banked suspend branch waited on "item 304", and 304
+had never been booked — nor had 224, referenced as a dependency since
+09-04. `queueledger.py` now fails on a number the queue refers to and no
+revision ever booked; it failed first on the tree as it stood, and both
+are booked. Item 279 closed in the same change: the paren group takes
+`(N)` and `(N/M)` only, `item N` is case-insensitive, each shown failing
+on its own input before the fix, and the fixed guard's first run named
+the real item 7 the coordinate had hidden — Orders, done 2026-08-21, now
+ledgered as landed.
+
+**The journal splits.** Ramon doubted that workers should write the
+journal at all; `git merge-tree` over the 58 merges since 09-06 found 27
+real conflicts in `JOURNAL.md` and 7 in `QUEUE.md`, because an
+append-only file puts every addition at the same anchor. A landing's
+story is now its own file under `docs/journal/`, the worker's, and a
+worker edits neither the chronicle nor the queue. This file is the
+chronicle to today and the passes' entries after.
+
+**The rulings**, in `docs/audit/2026-09-17-fable-pass-3.md` and DECISIONS
+34's third amendment: a finding parks by default and the queue holds only
+what names the headline's frame, a floor, or a takes-chain to one; the
+headline slot is never empty; loop items are the pass's, in the parked
+file's Loop section; a number is measured on the tip; merge, gate, push,
+reap is one chain. Fifteen items parked, none dropped, three open: 312
+(the 7679 draw, a widening first), 304, 308. **No score moved**: Great
+Lakes 7679, East Indies 7812.

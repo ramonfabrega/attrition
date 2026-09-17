@@ -29,6 +29,19 @@ was written for. A ledger line for a number that is live in the queue again
 is reported and does not fail: an item can be re-booked, and the ledger is
 allowed to lag by a commit.
 
+Two more checks since 2026-09-17 (the third Fable pass):
+
+    a number the queue REFERS to — `item N`, `takes N`, `N closes`,
+    `(N)` — must have been booked at some point.
+
+Item 304 was written into the queue twice as a dependency ("wire when 304
+closes", "takes 304") and never booked, and the banked suspend branch
+waited on a number that did not exist. And the journal is a directory as
+well as a file: `docs/journal/*.md`, one entry per landing, written by the
+worker — because `docs/JOURNAL.md` conflicted on 27 of the 58 merges
+since 2026-09-06 (append-only means both sides add at the same anchor).
+Both texts are one journal to this guard.
+
 Run from anywhere; `tools/guard.sh` runs it between edits.
 """
 
@@ -46,6 +59,12 @@ ROOT = Path(__file__).resolve().parent.parent
 # lost. Moving a number between these files is not a deletion.
 QUEUES = ["docs/QUEUE.md", "docs/PARKED.md"]
 JOURNAL = ROOT / "docs/JOURNAL.md"
+# One file per landing since 2026-09-17, written by the worker whose item it
+# is; the single file above is the chronicle up to that day and the
+# steering passes' own entries. A file's first line is the same `## date —
+# item N: title` heading the single file uses, so both regexes below read
+# the two texts as one.
+JOURNAL_DIR = ROOT / "docs/journal"
 LEDGER = ROOT / "docs/audit/queue-ledger.md"
 
 
@@ -53,6 +72,19 @@ def git(*args):
     return subprocess.run(
         ["git", *args], cwd=ROOT, capture_output=True, text=True, check=True
     ).stdout
+
+
+def parens(text):
+    """`(N)` and the slash-compound `(105/45)` — the compressed form a row
+    takes once its item is finished-but-not-closed, and also the form a
+    finding is *first* booked in when it rides another item's paragraph.
+    Item 279 found the older `[\\d/,\\s]+` group pulling 7 and 11 out of
+    "off by (11,7)" and booking both; a comma form was never used for items.
+    """
+    out = set()
+    for group in re.findall(r"\((\d{1,3}(?:/\d{1,3})*)\)", text):
+        out |= {int(n) for n in group.split("/")}
+    return out
 
 
 def booked(text):
@@ -75,21 +107,50 @@ def booked(text):
 
 def main():
     ever = {}
+    ever_any = set()
     live = set()
+    referenced = set()
     for queue in [q for q in QUEUES if (ROOT / q).exists()]:
         for rev in reversed(git("log", "--format=%H", "--", queue).split()):
-            for n in booked(git("show", "%s:%s" % (rev, queue))):
+            text = git("show", "%s:%s" % (rev, queue))
+            for n in booked(text):
                 ever.setdefault(n, rev)
+            # The paren form is too loose to say a number LEFT — the older
+            # lessons list numbered itself `(4)`, and a frame count in
+            # parens is not an item — but it is exactly loose enough to
+            # say a number was ever WRITTEN, which is all the phantom
+            # check below asks.
+            ever_any |= parens(text)
         current = (ROOT / queue).read_text()
+        # The working tree is a revision too: a number booked in this very
+        # edit is not a phantom, and the guard runs before the commit.
+        for n in booked(current):
+            ever.setdefault(n, "worktree")
+        ever_any |= parens(current)
         # An item is still live if a queue file books it or refers to it
         # as `(N)` — the compressed form a finished-but-not-closed row
         # takes — including the compound forms the residue rows use,
         # `(105/45)` and `(88, 72)`, where one parenthesis carries several.
         live |= booked(current)
-        for group in re.findall(r"\(([\d/,\s]+)\)", current):
-            live |= {int(n) for n in re.findall(r"\d{1,3}", group)}
+        # `(N)` and the slash-compound `(105/45)` only: item 279 found the
+        # older `[\d/,\s]+` group pulling 7 and 11 out of "off by (11,7)"
+        # and booking both. A comma form was never used for items.
+        live |= parens(current)
+        # The dependency forms an item writes about ANOTHER item — the only
+        # forms that can name a number nobody booked, since `(N)` is itself
+        # a booking by the queue's convention.
+        refs = set()
+        for span in re.findall(r"\b(?:items?|takes)\s+(\d{1,3})\b", current, re.I):
+            refs.add(int(span))
+        for span in re.findall(r"\b(\d{1,3})\s+closes\b", current):
+            refs.add(int(span))
+        live |= refs
+        referenced |= refs
 
     journal = JOURNAL.read_text()
+    if JOURNAL_DIR.is_dir():
+        for f in sorted(JOURNAL_DIR.glob("*.md")):
+            journal += "\n" + f.read_text()
     headings = [l for l in journal.split("\n") if l.startswith("## ")]
     # `- **N** <disposition> — …`. Three dispositions account for a number
     # and let it rest: `landed` (the work is in the tree, and the line says
@@ -129,7 +190,9 @@ def main():
     #   117 is not a lobby click", the older form, where the number is the
     #   subject rather than a measurement.
     named = set()
-    for span in re.findall(r"items?\s+((?:\d{1,3}|,|\s|and|half of)+)", journal):
+    # Case-insensitive since item 279: a heading reading `Item 289` failed
+    # the 289/290 merge's deletion of it.
+    for span in re.findall(r"items?\s+((?:\d{1,3}|,|\s|and|half of)+)", journal, re.I):
         named |= {int(x) for x in re.findall(r"\d{1,3}", span)}
     for h in headings:
         m = re.search(r"—\s*(\d{1,3})\b", h)
@@ -140,6 +203,7 @@ def main():
         n for n in sorted(ever) if n not in live and n not in named and n not in ledgered
     ]
     stale = sorted(n for n, d in ledger.items() if d != "re-booked" and n in live)
+    phantom = sorted(n for n in referenced if n not in ever and n not in ever_any)
 
     print(
         "queue ledger: %d numbers ever booked, %d live, %d ledgered"
@@ -168,7 +232,17 @@ def main():
         for n in owed:
             print("  %4d" % n)
 
-    return 1 if (silent or owed) else 0
+    if phantom:
+        print()
+        print("FAIL: the queue refers to these numbers and none was ever booked —")
+        print("      a dependency on an item that does not exist (item 304, 2026-09-17):")
+        for n in phantom:
+            print("  %4d" % n)
+        print()
+        print("Book it — in docs/QUEUE.md or docs/PARKED.md — or say which item")
+        print("is meant. A number is a claim that an item exists.")
+
+    return 1 if (silent or owed or phantom) else 0
 
 
 if __name__ == "__main__":
