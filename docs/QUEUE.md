@@ -13,35 +13,35 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 ## Where things stand
 
 *2026-09-17, an Opus commander loop. **East Indies +381, Great Lakes
-+352.** Next: 320, already dated.*
++352.** Seven landings, four word-moving. Next: 322.*
 
-- **Great Lakes 8031**, **East Indies 8193**. Six landings: +381 (304's
-  suspend), +251 (314's `get_loc` seam), +100 (317's `do_marching` arm),
-  +1 (319's `scout_danger`). 312 and 308 named causes and reach.
-- **The last move was one frame, and that is the signal.** 319 fixed a
-  whole subsystem answering zero and bought one frame, because 8002's
-  pathfinder row was already under it. Expect stacked causes here.
-- **Six items, five named mechanisms wrong**, each overturned by the
-  widening inside twenty minutes: 304's formation was never early, 312's
-  draw site is a *blocked* step, 314's waypoint is the `get_loc` seam
-  (only the listing settled it), 317's was a status re-read, 319's draw
-  was the scout's, not the army's. Brief the widening as the item, and
-  tell the worker to assume its named mechanism is wrong.
-- **A comment is not evidence.** `scout_danger` returned 0 behind one
-  claiming the grid was keyed differently; ARMY §18 filed `role` as
-  carried and nothing does; GROUPS §6.3 called `MoveOrder +0x4` an origin
-  where the type record says `x`. Grep the writers.
-- **A capture is four minutes and needs no human** (`viadriver.sh
-  runqueue.sh - <item>`); grep the disk first — twice today it answered a
-  question it was not taken for. One item open, twenty parked.
+- **Great Lakes 8031**, **East Indies 8193**: +381 (304's suspend), +251
+  (314's `get_loc` seam), +100 (317's `do_marching` arm), +1 (319's
+  `scout_danger`); 312, 308 and 320 named causes and reach.
+- **The last move was one frame, and 320 then moved none.** 319 fixed a
+  subsystem answering zero and bought one, because 8002's row was already
+  under it. Stacked causes here; expect eliminations, not fixes.
+- **Seven items, six named mechanisms wrong**, each overturned by
+  measurement: 304's formation was never early, 312's site is a *blocked*
+  step, 314's waypoint is the `get_loc` seam (the listing settled it),
+  317's was a status re-read, 319's draw was the scout's, 320's forcing
+  was validity and is fog. Tell the worker to assume its mechanism is
+  wrong; that is now seven for seven as a briefing rule.
+- **A comment is not evidence, and a name is not a field.**
+  `scout_danger` returned 0 behind a false comment; ARMY §18 filed `role`
+  as carried; GROUPS §6.3 called `MoveOrder +0x4` an origin; VISION read
+  `ObjectData +0x3a` as `visible` where it is `infiltrated`. Grep the
+  writers, **by offset** — 320's elimination failed on an unstated
+  one-writer premise. A capture is four minutes and needs no human, but
+  grep the disk first. One item open, twenty-one parked.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w8193 of 24,000 · GreatLakes w8031 of 24,000
 Endpoint 24001: EastIndies 66 off, 16 unlinked · GreatLakes 59 off, 23 unlinked
 
-**Opener: 320 — the scout's route at 8002, dated and asserted, run94 on
-disk. Its pins are the commander's; a red `great_lakes_endpoint_is_pinned`
-in a worker's gate is expected, not its bug.**
+**Opener: 322 — first step is an attribution run at 8031, not vision
+work: nobody has attributed that frame and the word may be run94's
+residue, not `1/0`'s. Book no number; the honest state is unknown.**
 
 ## The queue
 
@@ -51,14 +51,14 @@ unless a better order is obvious, and say so. Numbers are stable; the
 backlog is `docs/PARKED.md`, and an item comes back from it only when a
 score names it.
 
-320. **The scout's route parts at 8002, and it is a pathfinder item**
-    — dated and asserted by 319, not a hypothesis. `1/0` carries no row
-    below block 8002; there its order parts on `find_wpath`'s route (the
-    original swings west of the human city footprint to (2040, 31224),
-    this crate keeps to column 2808 and runs **through** it — five stack
-    entries against six), and its position parts at 8014. run94 is on
-    disk and covers it. PATHFINDER, not SCOUT: the danger grid is now
-    diff-backed and is not the cause.
+322. **Something lights 14 half-cells between 7937 and 7998 and no named
+    writer can** — 320's elimination, not a candidate: every `seen2`
+    writer the decompile names is ruled out over that window by roster
+    identity (VISION §7's table). The original prices the step into cell
+    (3,39) at **328** against this crate's 9, and lighting (7,79)/(7,81)
+    reproduces its six-entry stack. **First step is an attribution run at
+    8031** (`RON_DEBUG_SITES=8020-8040`, run53) — the word may not be
+    `1/0`'s. Then `World +0x160` and `ObjectData +0x40` **by offset**.
 
 ## How to maintain this file
 
