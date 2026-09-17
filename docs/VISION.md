@@ -386,7 +386,7 @@ simulation sets `visible`.
   they would put it. *Check:* `GUYS=2 LEADERS=9` over frames 195–210 with
   `rontrace` attached — the trace names the function that ran.
 - ~~**No dump on disk carries a *second* fog plane to diff against.**~~
-  **Four do, and no capture was needed** (item 320, 2026-09-17). The
+  **Three do, and no capture was needed** (item 320, 2026-09-17). The
   `WORLD` scan is written under `[Start Game]` *and* on every block a
   `DUMP_ALL` **window** covers, which is a `window:` line in
   `tools/gamelog/captures.txt` rather than a raised `[End Frame]` category.
@@ -394,7 +394,8 @@ simulation sets `visible`.
   **5564–5580** and run93 at **7929–7936**; each block holds 14,400
   `seen2[scan]` values (printed six times over, once per `WORLD` record)
   beside every cell's `WData` and all 57,600 tile masks.
-  `run13_s_ten_worlds_are_this_crate_s_fog` had the first; item 320 added
+  `run13_s_fog_grid_is_the_original_s_on_every_cell_of_ten_frames`
+  had the first; item 320 added
   `run93_s_block_7932_is_this_crate_s_world_cell_for_cell`, and **this
   crate's fog plane is the original's at block 7932 — 14,400 of 14,400
   half-cells, 7,932 frames of every reveal §3–§6 makes.** So §3–§6 are
