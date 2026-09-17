@@ -444,9 +444,9 @@ clamped up to 0; `group.form = form`. `width = param_10`, or
 `get_form_mod_option()` when −1. The group's own location comes from
 `get_loc_to` for `QUEUE_LAST` and `get_loc` otherwise
 (`GroupData::get_loc@0070e030`: the leader's position, replaced by
-`(ox, oy)` when the leader is within `0x181` of it, or by the leader's
-position translated by its current move's origin when that origin is within
-`0x180` of `(ox, oy)` — "where the group *will* be").
+`(ox, oy)` within `0x180`, else `leader − order + (ox, oy)` when the move
+**order's destination** is within `0x180` of `(ox, oy)` — "where the group
+*will* be". Both gates' operands: §12.5).
 
 **`Group::compute_form@00707c80`** then:
 
@@ -1847,9 +1847,95 @@ care where in the stack they sit.
   and the invert does not. Red first by gating the invert on the same
   `Member::Move` the rest of the section uses.
 
+## 12.5 `get_loc`'s two substitutions, and the cell they move
+
+**Closed 2026-09-17, item 314.** §12's second seam said the `(ox, oy)`
+substitutions were unmodelled and that `Sim::group_loc` returned the
+leader's position flat. It does not any more, and the thing that closed it
+was **one field of one record**.
+
+**Why it mattered.** `group_move` feeds `get_loc`'s answer to two places:
+the formation angle (§6.3) **and** `group_plan_path`'s start, which is the
+cell `find_wpath_from` searches from. A substitution here therefore moves
+the route, not just the bearing — and item 312's five-link chain on Great
+Lakes began with the leader `1/37` planning **one head waypoint more** than
+the original from what looked like the same start.
+
+**Both gates, from the listing.** The decompiler loses both `vector_dist`
+operand pairs to `unaff_EDI`/`unaff_ESI`, so no reading of
+`funcs/GroupData/get_loc@0070e030.c` can settle them.
+`llvm-objdump -d --start-address=0x70e030` does, in a minute:
+
+| | at | operands | on success |
+| --- | --- | --- | --- |
+| arm 1 | `70e109`–`70e12d` | `vector_dist(leader − (ox, oy))` | return `(ox, oy)` |
+| arm 2 | `70e190`–`70e1bc` | `vector_dist(order − (ox, oy))` | return `leader − order + (ox, oy)` |
+
+Both compares are `cmpl $0x180` followed by `jg`, so **both bounds are
+inclusive** and the decompiler's `< 0x181` on the first names the same set.
+Before either, `ox < 0 || oy < 0` returns the leader's position untouched
+(`70e0f8`, `70e103`).
+
+**`order` is the order's `x`/`y`, and only the type record says so.** Arm 2
+calls the order's vtable `+0xb8` — `MoveOrder::get_move_order` — and reads
+`[+4]` and `[+8]` off what comes back. `MoveOrder +0x4`/`+0x8` are named
+**`x`/`y`**, the order's *destination*; `orig_x`/`orig_y` are at `+0x44`
+and `+0x48`. The surrounding code reads identically either way, and on the
+block that settled this the two hold the **same pair**, so neither the
+decompile nor the dump can separate them — the layout can. (§6.3's prose
+said "origin" until this entry.)
+
+The two gates either side of arm 2 are the object's `+0x18` (it is a unit)
+and `UnitData::is_moving` (`+0xd8` — the head order exists and its
+`get_type` is non-zero); with `get_move_order` after them, all three
+collapse in this simulation to "the current order is a move".
+
+**The values, from run92.** No Great Lakes dump carried a `GROUPDATA` past
+**5591**, so a `GROUPS` window over `[7668, 7690)` was taken for this one
+field (`docs/ORACLE.md`, "run92"). On block 7674 — the state the plan of
+sim-frame 7674 reads:
+
+- group `64` (`who 1`, `army 1`, `num 12`, `form_num 9`) carries
+  `(ox, oy) = (36303, 23348)`;
+- the leader `1/37` stands at `(43174, 24583)`, **6981** from it — arm 1
+  refused;
+- its current order's destination is `(36600, 23400)`, **301** from
+  `(ox, oy)` — inside `0x180`, so **arm 2 fires**;
+- the answer is `(42877, 24531)`, whose `0x300` cell is **`(55, 31)`**
+  against the leader's own **`(56, 32)`**.
+
+`(55, 31)` is exactly the cell of the head waypoint this crate used to emit
+and the original does not: the original's search begins *inside* that cell
+and never steps into it. One diagonal cell, and it was the first link of
+the chain that cost the headline 251 frames.
+
+`run92_says_great_lakes_7674_takes_get_loc_s_second_arm` is the assertion —
+the original's record and the arithmetic over it, made to fail once on the
+arm-2 gate.
+
+**What this does not establish.** `get_loc`'s off-map arm — `is_on_map`
+(`+0xbc`) failing, then `ObjectData::get_inside` re-aiming both the player
+and the object index at the container — is still not modelled; the
+simulation reads the leader's own position and no traced group has had a
+garrisoned leader. Nor is the `buildings` branch (`list[0]` instead of
+`find_leader`), which no simulated group takes. Both are in §13.
+
 ## 13. What is not established
 
 Still open:
+
+- **`get_loc`'s other two arms** (§12.5). The substitutions landed; two
+  branches around them did not. `is_on_map` (`+0xbc`) failing sends the
+  original through `ObjectData::get_inside`, which re-aims **both** the
+  player index and the object index at the container before either
+  substitution is considered — a garrisoned leader's group therefore
+  measures from the building, and `Sim::group_loc` reads the leader's own
+  position. And `buildings != 0` takes `list[0]` where `find_leader` is
+  taken otherwise. Neither is reached: no traced group has had a leader
+  inside anything, and no simulated group is a building group.
+  *Capture:* a `GROUPS` window over an army whose leader boards a
+  transport or garrisons, read for the group's `(ox, oy)` and the
+  member's own position on the same block.
 
 - ~~**§6.7 is not implemented at all**, and run20 measures the cost.~~
   **Implemented 2026-08-26**, `crates/sim/src/grouppath.rs`; §12.4 has the

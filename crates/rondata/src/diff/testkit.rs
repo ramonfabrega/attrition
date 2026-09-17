@@ -963,7 +963,24 @@ pub(crate) const LONG_WORD_EAST_INDIES: i64 = 8_193;
 /// index 1 where this crate spends a `Guy::set_anim+0x97a <
 /// Unit::move_step+0x823` against the original's `Guy::set_anim+0x97a <
 /// Guy::inc_time+0x271`.
-pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 7679;
+/// **7679 until the `get_loc` seam closed, 2026-09-17** (items 312 and
+/// 314). The site above is a **blocked** step and not the walk (ANIM §4's
+/// caller table), so the frame was a position question: on run89 the AI
+/// squad `1/37`, `1/38`, `1/39` parts on 7675, the block after a
+/// `GROUP_ATTACK_TO`, because the leader's chain carries one extra head
+/// waypoint from an identical start and goal. run92 — captured for this,
+/// `GROUPS` over [7670, 7686) with `DEATHS` off — says the head is the
+/// seam and not `find_wpath_from`: on 7674 group 64 carries
+/// `(ox, oy) = (36303, 23348)`, 6981 from the leader at (43174, 24583) so
+/// `get_loc`'s first arm refuses, while the order's own destination
+/// (36600, 23400) is 301 away and inside the `0x180` the second arm
+/// allows. The original's group location is therefore (42877, 24531) —
+/// cell (55, 31) against the leader's own (56, 32), one diagonal cell,
+/// and exactly the cell of the waypoint this crate emitted. Both
+/// `vector_dist` operand pairs came off the listing; the decompiler loses
+/// them. `MoveOrder +0x4`/`+0x8` is `x`/`y` by the type record and not
+/// `orig_x`/`orig_y` — GROUPS §6.3 said "origin" and was wrong.
+pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 7930;
 
 /// The frame Great Lakes' **second** squad joins the army on — 6994, the
 /// word's own parting from 2026-09-06 to 2026-09-07 and now a landed

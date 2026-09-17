@@ -2453,6 +2453,118 @@ check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|cur_anim" "$HOME/ron-data/AppData/
 # block. `docs/AI.md` §34; `run91_s_window_is_the_leader_s_ledger_at_the_word`
 # is the assertion. The word does **not** move.
 
+run: 92
+tag: greatlakes-groupox
+item: 314
+why: Great Lakes' word is a path one waypoint too long, and only the group's own ox/oy on the plan frame says whether GroupData::get_loc fed the original a different start — no Great Lakes dump carries GROUPDATA past 5591
+# **The headline map's own frame, and the record nobody has there.** Great
+# Lakes stands at **7679** against East Indies' 8193, so this is the
+# headline-nearest capture on the board. Item 312 took the word apart from
+# run89 and the chain is five links long: the leader `1/37` plans a chain
+# with **one extra head waypoint** on frame 7674, aims 7.1 deg off,
+# `group_update_positions` turns both followers' slots 7.4 deg about the
+# same centre, `1/39` is 18 units off its slot by 7679, its step is refused
+# (`move_step+0x823`, `SITE_BLOCKED`) and `group_move_follower` step 10
+# ungroups it four frames before the original does.
+#
+# Both sides plan from the **same** start — a probe in `group_plan_path`
+# prints `from = start = (43174, 24583)`, the original's own `1/37`
+# position on block 7674 — and the same goal, so the extra waypoint is
+# either `find_wpath_from`'s own emission or the declared `get_loc` seam:
+# `GroupData::get_loc@0070e030` returns `(ox, oy)` outright when a
+# `vector_dist` comes in under `0x181`, and otherwise the leader's position
+# translated by its current move's origin under a second gate, and
+# `crates/sim/src/group.rs`'s `group_loc` models neither (`docs/GROUPS.md`
+# §12). The decompiler loses **both** `vector_dist` operand pairs
+# (`unaff_EDI`, `unaff_ESI`), so no reading settles which arm fires. The
+# group's own `ox`/`oy` on the plan frame does, in one read.
+#
+# **THE DISK WAS GREPPED FIRST**, every Great Lakes archive, for any
+# `GROUPDATA` at all: five files have one and the highest frame any of them
+# reaches is **5591** (run73's DUMP_ALL window; run34 stops at 6, run46 and
+# run50 at 901, run72 at 4811). So this map has no group record within two
+# thousand frames of the word and this is a capture rather than a diff.
+frames: 7700
+mapstyle: 14
+# **run45's detail exactly, and the reason is the trap that has cost three
+# runs.** `GROUPS=1` is what `GameLog::full_dump` gates `dump_groups` on,
+# but `GroupData::log_data@0045e1d0` never calls the Log vtable's
+# `set_type`/`set_detail`, so its lines are accepted against whatever the
+# **previous** dumper left — and `dump_deaths@0092fd80` ends by calling
+# `WorldData::log_data` twice, leaving the type at `WORLD`. With `WORLD=0`
+# under `[End Frame]` the whole pool is dropped silently. **`DEATHS` off**
+# is the fix: the type `dump_groups` then inherits is `UNITS`, set high
+# enough to accept anything (`docs/ORACLE.md`, "The group pool is a
+# per-frame record").
+end: MISC=9,UNITS=9,GROUPS=9,GUYS=9,LEADERS=1
+start: MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1,GROUPS=1
+# [7668, 7690): six blocks before the `GROUP_ATTACK_TO` of 7674 and six
+# after 7684, the last block on which the original still holds all three
+# members in the group. Block 7674 carries the group's `ox`/`oy` as the
+# plan reads them and 7675 as the new order leaves them, which is the pair
+# that separates the two arms.
+frame_window: 7668 7690
+# The question is the draw stream and one record, not coverage.
+cover: cover=0
+# run89's Great Lakes floor: the start dump is ~11 MB at this `start:`
+# detail (plus the pool's ~130 KB) and the log does not grow until 7668.
+settle_min: 14000000
+# run31 measured this exact `end:` line at **684 KB a frame and ~0.6
+# sim-frames a second**, so 22 blocks is ~15 MB and ~40 seconds of dumping
+# over a `cover=0` run-up that run80 did at 600 frames a second. Minutes.
+poll_max: 90
+# Same game: the trace word for word against run53, this map's own 24k run.
+# There is no `samegame.py` check, for run45's reason — at `UNITS=9` every
+# frame differs against run89 for a reason that is not the game, and
+# excluding enough records to fix that would leave nothing being asked.
+check: python3 tools/gamelog/rngcmp.py rontrace-run53.log rontrace-run92.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{print "rngcmp: differing="d" identical="s; exit !(d==0 && s>=7700)}'
+# **The tooth is the pool, and it is the one thing that can come back
+# empty.** Made to fail first, on real data: this line prints "0 (0..0)"
+# and exits 1 on **run89** (the same map, the same game, the containing
+# window, no `GROUPS`) and on **run73** (the only Great Lakes file with a
+# group pool at all, 2,100 frames below this band); with run73's own range
+# and count the same shape prints "17 (5564..5591)" and exits 0.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|BEGIN GROUPDATA" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run92-greatlakes-groupox.txt" | awk '/BEGIN FRAME/{f=$3} /GROUPDATA/{if(f!="")seen[f]=1} END{n=0; lo=0; hi=0; for(k in seen){v=k+0; if(v>=7668&&v<7690){n++; if(lo==0||v<lo)lo=v; if(v>hi)hi=v}} print "frame blocks with a GROUPDATA in [7668,7690): "n" ("lo".."hi")"; exit !(n==22 && lo==7668 && hi==7689)}'
+# **And the window itself, which the tooth above cannot see.** A run that
+# gave up early is archived rather than stopped, so a truncation is silent:
+# this asserts the block count and both ends. It prints "247 (7514..7776)"
+# and exits 1 on run89.
+#
+# **CORRECTED AFTER THE RUN, and the correction is the `!quit` block's own
+# number.** As written this line said `hi==7700` and the dump came back
+# `23 (7668..7701)`: `!quit` at frame N writes its block at **N + 1**, and
+# run89's `frames: 7775` closing at 7776 was read as "fifteen past HI"
+# rather than as `FRAMES + 1`. The count and the lower end were right; only
+# the predicted last block was wrong, and it failed loudly on its own
+# capture, which is what a tooth is for.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run92-greatlakes-groupox.txt" | awk '{n++; v=$3+0; if(lo==""||v<lo)lo=v; if(v>hi)hi=v} END{print "frame blocks: "n" ("lo".."hi")"; exit !(n==23 && lo==7668 && hi==7701)}'
+# TAKEN 2026-09-17 — four minutes (15:09:18 to 15:12:20), **23 blocks,
+# 21,362,086 bytes**, of which the 7,668-frame `cover=0` run-up was ninety
+# seconds and the window itself twenty. `rngcmp.py` against run53 **0
+# differing, 7,701 identical**; the pool tooth **22 (7668..7689)**, so the
+# `DEATHS`-off line worked first time; the window tooth failed on its own
+# off-by-one and passes as corrected above.
+#
+# **AND IT IS THE SEAM, NOT THE PATHFINDER.** Block 7674 — the state the
+# plan of sim-frame 7674 reads — gives group `64` `(ox, oy) = (36303,
+# 23348)`, its leader `1/37` at `(43174, 24583)` (**6981** away, so
+# `get_loc`'s first arm is refused) and that leader's current move order's
+# destination at `(36600, 23400)`, **301** from `(ox, oy)` and inside the
+# `0x180` the second gate allows. So the original's group location is
+# `(42877, 24531)`, cell **(55, 31)** against the leader's own **(56,
+# 32)** — one diagonal cell, and exactly the cell of the head waypoint
+# this crate emitted and the original did not.
+#
+# Both `vector_dist` operand pairs came off the **listing**
+# (`llvm-objdump -d --start-address=0x70e030`), which the decompiler loses
+# to `unaff_EDI`/`unaff_ESI`; and `MoveOrder +0x4`/`+0x8` is `x`/`y`, the
+# order's destination, by the **type record** — not the `orig_x`/`orig_y`
+# at `+0x44`/`+0x48` that the surrounding code reads identically and that
+# this very block happens to hold the same pair in. Great Lakes' word
+# moved **7679 -> 7930**. `docs/GROUPS.md` §12.5, `docs/ORACLE.md`,
+# "run92"; `run92_says_great_lakes_7674_takes_get_loc_s_second_arm` is
+# the assertion.
+
 run: 906
 tag: greatlakes-coverage
 item: 226

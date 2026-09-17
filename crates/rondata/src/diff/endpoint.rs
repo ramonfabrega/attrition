@@ -381,11 +381,17 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // positions out and two building field-rows out, 16,322 frames past
         // that word, against East Indies' 7812 → 8193. DECISIONS 36 asks
         // for the number rather than a trade.
-        off: 59,
-        unlinked: 23,
+        // Then **59 → 55, 23 → 28 and 12 → 10** on 2026-09-17, items 312
+        // and 314 — the `get_loc` seam (GROUPS §12, PATHFINDER §3), which
+        // moves this map's own word **7679 → 7930**. Four positions closer
+        // and two building field-rows closer, 16,071 frames past the word;
+        // five more of the roster unlinked in exchange. DECISIONS 36 asks
+        // for the number rather than a trade.
+        off: 55,
+        unlinked: 28,
         extra: 0,
         build_unlinked: 0,
-        build_diverged: 12,
+        build_diverged: 10,
         city_unlinked: 3,
         city_diverged: 0,
     },
