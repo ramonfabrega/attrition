@@ -826,9 +826,12 @@ impl Sim {
     /// which is 335 of run65's 450 unit-frames (`docs/MOVEMENT.md`,
     /// "The verified line's lifecycle", 2026-09-05).
     ///
-    /// SEAM: the suspended search itself is not modelled, so there is
-    /// nothing left to free.
-    pub(crate) fn clear_partial_path(&mut self, _u: usize) {}
+    /// ~~SEAM: the suspended search itself is not modelled, so there is
+    /// nothing left to free.~~ It is, since item 301: the stash is
+    /// [`crate::Unit::search`] and this is the function that drops it.
+    pub(crate) fn clear_partial_path(&mut self, u: usize) {
+        self.units[u].search = None;
+    }
 
     /// `Unit::kill_current_order(0)` (§3.2): the per-kind teardown, then the
     /// pop, the path segment, `update_action`.
@@ -1723,6 +1726,27 @@ impl Sim {
             return Did::Nothing;
         };
         let mut flags = flags;
+
+        // **The suspended-search block is read, built and not wired**
+        // (`docs/DECISIONS.md` entry 30, item 301). §4.4 step 2 is
+        // `do_move`'s first block after the cavalry-archer fire: while
+        // [`crate::Unit::search`] is `Some`, **no step happens** — every
+        // arm returns — the "has the blocker gone" probe fires on the 5th,
+        // 7th, 9th … frame after `collide_frame`, `repaths` ticks on every
+        // fourth `o + frame`, `collide` counts up every frame and
+        // [`Sim::find_upath_restore`] resumes the search.
+        //
+        // Wired, it is right on the mechanic and wrong on the score:
+        // run90's `1/6` and `1/7` stop parting anywhere in the capture's
+        // 111 blocks, and Great Lakes' long word falls 7679 → 6862,
+        // because run76's `1/28` still holds a `GROUP_ATTACK_TO` at 6860
+        // and the original's order becomes `ATTACK_TO` during that frame —
+        // whose enqueue frees the search through `clear_partial_path` —
+        // while this crate's `1/28` is already on a plain `ATTACK_TO`
+        // before 6858, so its formation ended early and no order change is
+        // left to free the stash. The row is the queue's **item 304**, and
+        // the wired block is one commit on the branch
+        // `worktree-loop-301-suspend`. `docs/PATHFINDER.md` §18.
 
         // `timer`: a self-destruct.
         if mo.timer > 0 {

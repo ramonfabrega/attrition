@@ -187,6 +187,15 @@ pub struct Unit {
     pub orders: std::collections::VecDeque<orders::Order>,
     /// The path stack; the top is the current waypoint (§4.2).
     pub path: Vec<orders::PathData>,
+    /// **A 48-grid search this unit suspended** — `UnitData +0x104..0x148`,
+    /// the five containers and the nine scalars `astar_path` hands over
+    /// when it runs out of `limit` short of the goal
+    /// (`docs/PATHFINDER.md` §4.3 step 3, §18).
+    ///
+    /// While it is `Some`, `do_move` does not step: its first block resumes
+    /// the search instead (`docs/ORDERS.md` §4.4 step 2).
+    /// [`Sim::clear_partial_path`] is what drops it.
+    pub search: Option<Box<path::Search>>,
     /// `UnitData::tolerance`: the current waypoint's arrival radius.
     pub tolerance: i32,
     /// `unit_masks & 8`: a straight line to the waypoint has been verified.
@@ -631,6 +640,7 @@ impl Unit {
             index,
             pos,
             health,
+            search: None,
             damage_frac: 0,
             squad_size: 1,
             kind: attrition::UnitKind::default(),

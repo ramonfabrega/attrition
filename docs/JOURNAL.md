@@ -20184,3 +20184,80 @@ rule is that only the number tells you whether the whole is converging,
 and this item is evidence that the make list's remaining residue is not
 where the word is.
 
+## 2026-09-17 — item 301: the booked cause was innocent, and the guilty one is a conjunction (Opus 5)
+
+The item was "East Indies 7811/7812 is `find_upath`'s suspend", and it was
+half right in the way that costs a session: the suspend is reached, is real,
+and had never been wired — and it is not what 7811 was.
+
+The window's own dump settled it in twenty minutes, before a line was
+written. `1/7` stands at `(39672, 38664)` on blocks 7811-7820 with a
+one-entry stack holding its move order's own goal `(39624, 38760)`, `dest`
+0, `pause` 8 and `collide` running 1 → 9. This crate's stack held
+`(39666, 38676)` instead — a point six units from the unit itself — and that
+is the whole of the 7811 order divergence and the 7812 position. A probe on
+`find_upath`'s pre-walk printed four pull-back steps ending on the unit's
+own 48-cell, with `invalid_loc` clean and `detect_unit_collision` refusing
+every one of them, because `1/6`'s occupancy block covers the goal cell.
+
+So the question became why the original does not pull back, and the answer
+is in the gate this crate never had. `00683095` runs the walk only when
+`domain < 2 && can_transport == 0`; `find_wpath@00688fc0:91` runs its own
+under `domain < 2 && (vfunc+8 == 0 || !can_transport)`. A conjunction
+against a disjunction, in two wrappers that §3 had read as one shape —
+which is precisely the class `docs/audit/README.md` says the errors live
+in, and which no test written from the same reading could have caught.
+`1/7`'s `unit_masks 0x84040A` gives it the Dock bit, so the original skips
+the walk entirely. `docs/PATHFINDER.md` §18.1.
+
+With the gate applied the search runs and suspends — `r = −1`, stack left as
+the caller's goal alone, exactly the dump's block 7811. The corroboration
+came from grepping the writers of a field nobody had parsed:
+**`UnitData::start_dist` (`+0x130`) has one writer in the executable**,
+`astar_path`'s suspend block, and run90 prints it as 144 for `1/7` from
+block 7811 to the end of the capture and 0 for every other unit of all 111
+blocks. 144 is the Manhattan from the snapped cell centre to the goal. That
+is a diff-backed proof that the suspend is reached, and it is now an
+assertion. Across the whole log directory twenty-three captures carry a
+non-zero `start_dist`; run16 has 8,752 rows of it.
+
+The suspend, `find_upath_restore` and `do_move`'s §4.4 step 2 block were
+then implemented in full, and they work: run90's `1/6` and `1/7` stop
+parting **anywhere** in the capture's 111 blocks — positions, collision
+fields, order records, path stacks — and East Indies' long capture goes
+7812 → **8193**. Great Lakes goes 7679 → **6862**, and the cause is upstream
+and named. run76's `1/28` still holds a `GROUP_ATTACK_TO` at 6860 and the
+original's order becomes `ATTACK_TO` during that frame, whose enqueue frees
+the suspended search through `clear_partial_path`; this crate's `1/28` is
+already on a plain `ATTACK_TO` before 6858, so its formation ended early and
+there is no order change left to free the stash. Both sides are running the
+same search — `start_dist 7680` against this crate's 7669 start. That is the
+commander's item 304.
+
+So this lands under `docs/DECISIONS.md` entry 30, the second time the
+project has taken it: the module lands with its own tests, the three
+behaviour-changing lines do not, and each carries the comment saying why.
+What is banked is the expensive half — the gate, the suspend's whole state
+transfer, the restore, and a *dumped oracle* for the mechanic that entry
+30's corollary says is usually what such a branch lacks. The wired change is
+one commit on the branch **`worktree-loop-301-suspend`**, ready to merge the
+day 304 closes.
+
+The score did not move. The item that was booked to move it moved a
+different lane's instead, and that is the finding.
+
+One more thing came out of the landing, and it is the part worth carrying
+past this item. Mid-flight I reported to the commander that the pre-walk
+gate alone moved East Indies 7812 → 8193 and that the suspend was the half
+that cost Great Lakes — a clean story, and wrong. That measurement was
+taken before `ccc update`, on the pre-295 tree; re-run on the tip, the gate
+and the limit together move **nothing** on either map, and the whole +381 is
+the suspend's. 295's census fix had changed which divergence binds East
+Indies' long capture, so every figure taken against the older tree was
+measured against a different binding constraint. What makes it worth a
+paragraph rather than a correction is the counterfactual: on the old tree
+this would have landed `path.rs` wired, as a pure gain with no cost on
+either map, and nothing downstream would ever have contradicted it, because
+a wired change that moves a word is precisely what no one re-derives. The
+three unbundled rows now in `docs/PATHFINDER.md` §18.3 are there so the next
+reader does not have to take the grouping on trust.
