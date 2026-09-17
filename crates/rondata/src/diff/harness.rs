@@ -3390,6 +3390,38 @@ mod tests {
                 }
             }
         }
+        // **The army's release tick, entry for entry** (item 317,
+        // `docs/ARMY.md` §16.8). 7930 is the first `Army::find_target`
+        // draw in the whole game and the frame the AI's first army leaves
+        // the muster: §6's dispatch `if`s re-read `status`, so
+        // `do_mustering`'s `status = 2` reaches `do_marching` in the same
+        // tick holding `target_o = -1`, and the original's `iVar4 < 0`
+        // arm goes straight to `find_target`. This crate spent nothing
+        // here until the arm was modelled. The head is the whole claim —
+        // the difficulty gate's coin once, then the per-candidate score
+        // twice — and the equality behind it is what says the rest of the
+        // frame did not move to pay for it.
+        let ours_7930 = built
+            .frame_sites
+            .iter()
+            .find(|(f, _)| *f == 7930)
+            .map(|(_, s)| s.clone())
+            .unwrap_or_default();
+        assert_eq!(
+            ours_7930,
+            trace.labels(7930),
+            "Great Lakes 7930 is the army's release tick and must agree \
+             entry for entry"
+        );
+        assert_eq!(
+            ours_7930.iter().take(3).collect::<Vec<_>>(),
+            vec![
+                sim::army::SITE_FIND_TARGET_COIN,
+                sim::army::SITE_FIND_TARGET_SCORE,
+                sim::army::SITE_FIND_TARGET_SCORE,
+            ],
+            "7930 opens with find_target's coin and two candidate scores"
+        );
         assert!(
             first_count >= LONG_WORD_GREAT_LAKES && first_part >= LONG_WORD_GREAT_LAKES,
             "run53's ceiling fell: word {first_count}, sequence {first_part}; \
