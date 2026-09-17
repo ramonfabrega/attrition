@@ -12,36 +12,36 @@ each section's non-item prose pinned and falling only.
 
 ## Where things stand
 
-*2026-09-17, Fable steering (Fable 5.1) — the lab merged whole, the
-gate is one command, no score moved.*
+*2026-09-17, Opus commander wave — the headline moved +94, and the loop
+ran two lanes for the first time since the lab landed.*
 
-- **Great Lakes 7679** leads, moved +94 by 295; **East Indies 7812**.
-  295 was `create_units`' value chain and was the census under it.
-- **The lab landed whole** — `codex/methodology-exploration`, 80
-  commits, DECISIONS 38; ledger `docs/lab/LEDGER.md`. Defaults now:
-  readers that own one frame, a soak digest carrying the RNG seed and
-  an activity signal apart from the clock, a trace reader refusing torn
-  frames, `memcap.sh` refusing an unsampled run, `focus.sh` fail-closed.
-- **The gate**: `python3 tools/release_gate.py <install> --test-threads
-  4` — survey, offline tests, release suite under the cap with a fixture
-  audit, clippy, fmt, guards. This merge's run: 132 rondata s at
-  12,646 MiB, against 288 s / 10,869 at two threads before. DECISIONS
-  34 amended; bare `cargo test` stays at two.
-- **Opt-in until a landing uses it**: the diff viewer and checkpoint
-  replay (`docs/DEBUG_VIEWER.md`), piloted on 295's first window; the
-  click-free capture lane, 6 of 10 pairs, parked as 298 with 299 (a
-  Gaia reseat heading witness) and 300 (the unused command API).
-- **Loop**: landed single-threaded so the gate held still; it resumes
-  as a two-lane wave, and the next steer reads USD per word-moving
-  landing against 102.
+- **Great Lakes 7679** leads, +94 by 295; **East Indies 7812**, unmoved
+  by 294 but no longer a collision question. 301 is in flight on East
+  Indies; 302 is headline-nearest of the unstarted.
+- **295 was not what it was booked as.** The value chain was innocent:
+  `census_units` tested `role & 0x10000` against *this crate's*
+  DECISIONS-18 bitfield and walked live objects where §2.3 step 10 walks
+  captains — leader 1's army read as one caravan (AI §35).
+- **294 removed a clearing, not a detection** — `move_step`'s two
+  turn-in-place arms `return 1` before the collision block, byte-verified;
+  the rung `extra` rises are over-production, open in COLLISION §8.8.
+- **The gate**: `tools/release_gate.py <install> --test-threads 4`, both
+  merged runs green, 288/825, 12,854 MiB. Endpoints re-pinned by the
+  MERGED tree — 289/290's lesson applied.
+- **The reap has no written contract, and it showed** — a worktree and a
+  merged branch left behind, and no spawn into the freed slot until asked.
+  `ccc rm <ref>` does all three in one call; `ccc merge`/`push --base`/
+  `pull --repo` refuse here, acting on the main checkout while this base
+  lives in the commander's worktree (filed with ccc). **FABLE:** the
+  prediction to test is that it recurs across a commander clear.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w7812 of 24,000 · GreatLakes w7679 of 24,000
 Endpoint 24001: EastIndies 72 off, 9 unlinked · GreatLakes 55 off, 28 unlinked
 
-**Opener: 295 (Great Lakes' word, `create_units`' value chain, three
-oracles) and 294 (the 7809 collision miss) as a two-lane commander wave
-on Opus; gate `tools/release_gate.py`; briefs carry `CLAUDE.md`'s worker paragraph.**
+**Opener: 302 (`Muster::by_type` counts squad heads, §34's last open
+oracle) beside 301 already in flight; gate `tools/release_gate.py`; briefs
+carry `CLAUDE.md`'s worker paragraph, and a lane is reaped with `ccc rm`.**
 
 ## The queue
 
@@ -49,21 +49,26 @@ In dependency order, headline-nearest first; **the headline is the long
 captures' word**, lower map first — Great Lakes. Take the first unstarted
 unless a better order is obvious, and say so. Numbers are stable.
 
-294. **Why does this crate not collide on 7809 at all** — 289 left East
-    Indies' word as one block. `1/7`'s entire collision-field divergence
-    over run90's 111 blocks is 7809, where the original has `collide 1 /
-    collide_o 6 / collide_who 1` and this crate has it clear. So the first
-    question is not which arm of §6 step 5 fires but why the detection
-    misses, and no capture is needed: every field is on disk. Takes §6's
-    wait-versus-pause predicate, which is now the whole of the word.
+302. **`Muster::by_type` counts squad heads where `upgrade_units`'
+    `owned` wants units** — §34's third oracle and the last one open.
+    `MAKE[7]` (`t 133` Phalanx) is exactly half, 31488 against the
+    original's 62976, and `(owned + 2) / 2` halves with it: owned 0 here
+    against the original's 2. Headline-nearest. Value diff on disk, no
+    capture needed. AI §34, §35.
 
-295. **`create_units` values three Slingers at 9999999** — the `val < 0`
-    overflow guard firing where the original prints 360000, num 1, which
-    puts a Temple at the make-list head on Great Lakes 7585 and ours three
-    Slingers. A Temple costs no food, and `make_stuff:172` only tries the
-    goods the head costs, so food never goes on trial and the Citizen is
-    bought. Headline-nearest. Three oracles for the value chain: 360000,
-    `num 1`, and slot 7's exact factor of two. AI §33, §34.
+303. **`active` is 31 against the original's 32** on 62 of run91's 86
+    blocks — one captain short, and which one is unread. The last
+    whole-roster counter still parting after 295 fixed the census's two
+    defects, so it is a third thing rather than residue of those. AI §35.
+
+301. **East Indies 7811/7812 is `find_upath`'s suspend** (in flight) —
+    the original's repath on 7810 leaves `dest` 0 and a one-entry stack
+    holding the goal while `do_move`'s suspended-search block counts
+    `collide` 1 → 9 for ten blocks; this crate walks the goal back onto
+    the unit's own cell and returns it as a one-entry final leg, killing
+    the `EXPLORE_TO` 21 frames early. PATHFINDER §7 step 3 specifies the
+    stash completely and §11 admits the seam is dormant; run90 is the
+    first capture to reach it. From 294.
 
 278. **`Unit::work@0060d180:440` is a second `set_new_location(…, 1, 1)`**
     and nothing models it — two units of one type within `0x180` are
