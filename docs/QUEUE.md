@@ -15,8 +15,8 @@ each section's non-item prose pinned and falling only.
 *2026-09-17, Fable steering (Fable 5.1) — the lab merged whole, the
 gate is one command, no score moved.*
 
-- **Great Lakes 7585** leads and is unmoved; **East Indies 7812**. 295
-  is headline-nearest, 294 beside it, one per map.
+- **Great Lakes 7679** leads, moved +94 by 295; **East Indies 7812**.
+  295 was `create_units`' value chain and was the census under it.
 - **The lab landed whole** — `codex/methodology-exploration`, 80
   commits, DECISIONS 38; ledger `docs/lab/LEDGER.md`. Defaults now:
   readers that own one frame, a soak digest carrying the RNG seed and
@@ -36,8 +36,8 @@ gate is one command, no score moved.*
   landing against 102.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w7812 of 24,000 · GreatLakes w7585 of 24,000
-Endpoint 24001: EastIndies 76 off, 5 unlinked · GreatLakes 70 off, 9 unlinked
+Long captures: EastIndies w7812 of 24,000 · GreatLakes w7679 of 24,000
+Endpoint 24001: EastIndies 72 off, 9 unlinked · GreatLakes 55 off, 28 unlinked
 
 **Opener: 295 (Great Lakes' word, `create_units`' value chain, three
 oracles) and 294 (the 7809 collision miss) as a two-lane commander wave

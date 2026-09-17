@@ -19982,6 +19982,8 @@ one per map, both capture-free — and the next steer reads USD per
 word-moving landing against 102, the ratio the last pass set. **The score
 did not move**: Great Lakes 7585, East Indies 7812.
 
+---
+
 ## 2026-09-17 — item 294: a turning unit does not probe, and East Indies 7809 was never a predicate (Opus 5)
 
 `1/7`'s **entire** collision-field divergence over run90's 111 blocks was
@@ -20060,3 +20062,61 @@ turning unit takes no step either way. What a turn frame does lose is the
 reveal, the crew reseat and the leg's arrival test — all three faithful, and
 which of them pays for the extra units is open, with both rungs' `BUILDS=1`
 queue records already on disk to answer it.
+
+---
+
+## 2026-09-17 — the census counted the wrong word, and the wrong objects (item 295, Opus 5)
+
+**Great Lakes 7585 → 7679.** East Indies unmoved at 7812.
+
+Item 295 was booked as `create_units`' value chain: the AI values three
+Slingers at `9999999`, which is the `val < 0` overflow guard firing on a
+wrapped 32-bit product, and the original's answer for the same type on
+the same frame is `360000` at `num 1`. The brief named three simultaneous
+oracles and said any proposed factor must satisfy all three.
+
+**The chain was never wrong.** The widening said so in twenty minutes and
+no reading was booked. run91 already prints the whole `LEADERDATA` record
+over the window, and `combat` and `non_siege` part on every one of its 86
+blocks — ours 1, theirs 3. Two faults, both in `census_units`, §2.3's step
+10:
+
+- It tested `role & 0x10000` on `combat::Profile::roles`, this crate's own
+  DECISIONS-18 bitfield, where `1 << 16` is `CARAVAN` and `1 << 4` is
+  `V2ROCKET` — exactly where the original's role word keeps `combat_role`
+  and the scout bit. The sweep read leader 1's army as one **caravan**,
+  with nine Longbowmen and three Hoplites as civilians. The loader had the
+  right word on the type all along and nothing read it.
+- It walked every live object where the original walks **captains**. run91's
+  block 7514 settles it to the unit: 40 objects, of which twelve stand in
+  four squads, and the record's own `o_up` chain makes 32 of them captains
+  — the original's `active` on that block is 32.
+
+With both in, `land_army` is 3 rather than 1, so the land-military
+branch's `land_army < mil_level * 3` is false, its `base × 100` /
+`escrow = 1` arm never runs, and the product that used to wrap is a
+hundredth of itself. The make list's head is the Temple the original heads
+it with; slot 6 is `t 82 val 360000 num 1`, the original's answer exactly
+— **two of the three oracles closed by one change**. A Temple costs no
+food, so `make_stuff` step 6 puts no good on trial, the Citizen at slot 5
+buys, and the food ladder agrees on all 86 blocks including the `88 → 45`
+at 7586 that this crate used to miss. run89's word frame goes from seven
+draws against nine to **nine for nine, entry for entry**, and the queue
+diff at or below block 7586 is empty.
+
+**What it cost elsewhere, on the record rather than traded away.** Great
+Lakes' endpoint `off` 70 → 56, the largest single fall it has had, with
+seventeen more of the roster unlinked (9 → 26) and two building field-rows
+closer; East Indies' 78 → 70, 3 → 9 unlinked, every unlinkable building
+linked (4 → 0) and seven more field-rows apart (23 → 30). Both East Indies
+rungs gained spurious units — C's `extra` 7 → 18, B's 8 → 14 — which is
+the AI building differently once it knows what it has. The scored floors
+did not move.
+
+**The third oracle survives and names its own successor.** `MAKE[7]` —
+`t 133` Phalanx — is still exactly half, 31488 against 62976, and was
+before this item. `upgrade_units`' `owned` walks the predecessor chain
+summing `Muster::by_type`, which this crate increments only for a squad's
+head, and the `(owned + 2) / 2` step halves with it. Whether the
+original's per-type count is over units where its census is over captains
+is the question, and the exact factor of two is the oracle that answers it.

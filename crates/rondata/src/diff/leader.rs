@@ -662,13 +662,14 @@ mod tests {
             "172 blocks of the record, every field the mapping carries"
         );
 
-        // **The refusal, and it is the whole of the item.** Item 287 read
-        // Great Lakes' word as the AI's *stockpile* — `88 < 55 + 43 + 4`
-        // in `make_stuff` step 6, with the original's food inferred at
-        // `98 ≤ food < 160` from its own refusals — and this capture was
-        // written to test that. The original has **88**, and the ladder is
-        // identical tick for tick over every one of the 72 blocks up to
-        // and including the word's own. The stockpile was never wrong.
+        // **The refusal, and it was the whole of item 290.** Item 287
+        // read Great Lakes' word as the AI's *stockpile* — `88 < 55 + 43
+        // + 4` in `make_stuff` step 6, with the original's food inferred
+        // at `98 ≤ food < 160` from its own refusals — and this capture
+        // was written to test that. The original has **88**, and the
+        // ladder is identical tick for tick over every one of the 72
+        // blocks up to and including the word's own. The stockpile was
+        // never wrong.
         let under: Vec<&(i64, i64, i64)> = food.iter().filter(|(n, _, _)| *n <= 7585).collect();
         assert_eq!(under.len(), 72, "7514..=7585");
         assert!(
@@ -677,40 +678,51 @@ mod tests {
             under.iter().find(|(_, o, t)| o != t)
         );
 
-        // **And the original spends 43 of it on the word's own frame.**
-        // Block 7586 is the state at the end of sim-frame 7585: the
-        // Citizen out of make-list slot 5, at the price this crate's own
-        // tables give the next one, and this crate buys nothing.
+        // **And both sides spend 43 of it on the word's own frame** —
+        // item 295. Block 7586 is the state at the end of sim-frame 7585:
+        // the Citizen out of make-list slot 5, at the price this crate's
+        // own tables give the next one. ~~`(7586, 88, 45)` — the original
+        // pays 43 and we pay nothing~~; the whole ladder agrees now, all
+        // 86 blocks of it, and that is the assertion below.
         let at = |n: i64| food.iter().find(|(f, _, _)| *f == n).copied().unwrap();
         assert_eq!(at(7585), (7585, 88, 88), "the word's frame, both sides");
-        assert_eq!(
-            at(7586),
-            (7586, 88, 45),
-            "the original pays 43 and we pay nothing"
+        assert_eq!(at(7586), (7586, 45, 45), "both sides pay the Citizen's 43");
+        assert!(
+            food.iter().all(|(_, o, t)| o == t),
+            "the food ladder parts somewhere in the window: {:?}",
+            food.iter().find(|(_, o, t)| o != t)
         );
 
-        // **What the gate actually reads, and it is the head.** The good
-        // loop tests only goods the head's cost is non-zero in
+        // **What the gate reads, and it is the head.** The good loop tests
+        // only goods the head's cost is non-zero in
         // (`make_stuff@006c8af0:172`), so a Temple head — which costs no
         // food — never puts food on trial and slot 5 is bought. This
-        // crate's head is three Slingers at the `val < 0` overflow guard.
-        // `docs/AI.md` §34.
-        let head = |k: &str| -> (i64, i64) {
-            let key = format!("MAKE[0].{k}");
+        // crate's head was three Slingers at the `val < 0` overflow guard
+        // until the census learned to read `UnitTypeData::role` over
+        // captains; it is the original's Temple now, `val`, `cat` and
+        // `num` alike, and slot 6's Slingers carry the original's own
+        // **360000** at **num 1** — §34's first two oracles, closed by the
+        // one change. `docs/AI.md` §34, §35.
+        let head = |i: usize, k: &str| -> (i64, i64) {
+            let key = format!("MAKE[{i}].{k}");
             let block = wlog.leader_block(7585, 1).unwrap();
             let t = theirs(&block);
             let o: std::collections::BTreeMap<String, i64> =
                 ours[&(7585, 1)].iter().cloned().collect();
             (o[&key], t[&key])
         };
-        assert_eq!(head("t"), (82, 437), "ours Slingers, theirs a Temple");
-        assert_eq!(head("cat"), (6, 8), "a unit against a civic building");
-        assert_eq!(head("num"), (3, 1));
+        assert_eq!(head(0, "t"), (437, 437), "the head is not the Temple");
+        assert_eq!(head(0, "cat"), (8, 8), "a civic building on both sides");
+        assert_eq!(head(0, "num"), (1, 1));
+        assert_eq!(head(0, "val"), (2_499_999, 2_499_999));
+        assert_eq!(head(6, "t"), (82, 82), "slot 6 is not the Slingers");
         assert_eq!(
-            head("val"),
-            (9_999_999, 2_499_999),
-            "9999999 is `create_units`' `val < 0` guard, so the product wrapped"
+            head(6, "val"),
+            (360_000, 360_000),
+            "slot 6's value is not the original's — the wrap is back, or \
+             the census is"
         );
+        assert_eq!(head(6, "num"), (1, 1), "slot 6's batch is not one");
 
         // The residue, pinned by name the way run84's is.
         let parting: Vec<(usize, &str)> = residue.keys().map(|(w, k)| (*w, k.as_str())).collect();
@@ -723,13 +735,18 @@ mod tests {
     }
 
     /// The `(player, field)` pairs that part over run91's window — the
-    /// word's own. `docs/AI.md` §34.
+    /// word's own. `docs/AI.md` §34, §35.
     ///
     /// Everything run84's list holds is here too (the same three families
     /// — a human whose census does not run, the sites, and named
-    /// unmodelled state), and on top of it **thirty-five make-list rows**:
-    /// the head is a different offer, and every slot below it is shifted
-    /// by the insertion that displaced it.
+    /// unmodelled state), and on top of it the make-list rows below the
+    /// head: the offers still rank differently from the third slot down.
+    ///
+    /// It was **114 rows** before item 295, thirty-five of them make-list
+    /// rows. The census fix took fifteen of those, and with them the
+    /// whole of `bucket`, `attack`, `combat` and `non_siege` — the head
+    /// is the original's Temple now and the stockpile agrees on every
+    /// block of the window.
     const PARTS_ON_RUN91: &[(usize, &str)] = &[
         (0, "SITE[0].reg"),
         (0, "SITE[1].reg"),
@@ -753,14 +770,11 @@ mod tests {
         (0, "peasant_high"),
         (0, "peasants"),
         (0, "scouts"),
-        (1, "MAKE[0].cat"),
         (1, "MAKE[0].city"),
         (1, "MAKE[0].escrow"),
-        (1, "MAKE[0].num"),
         (1, "MAKE[0].t"),
         (1, "MAKE[0].val"),
         (1, "MAKE[10].t"),
-        (1, "MAKE[1].cat"),
         (1, "MAKE[1].city"),
         (1, "MAKE[1].escrow"),
         (1, "MAKE[1].t"),
@@ -769,21 +783,15 @@ mod tests {
         (1, "MAKE[2].city"),
         (1, "MAKE[2].t"),
         (1, "MAKE[2].val"),
-        (1, "MAKE[3].cat"),
         (1, "MAKE[3].city"),
-        (1, "MAKE[3].escrow"),
         (1, "MAKE[3].t"),
         (1, "MAKE[3].val"),
         (1, "MAKE[4].city"),
         (1, "MAKE[4].escrow"),
         (1, "MAKE[4].t"),
+        (1, "MAKE[4].val"),
         (1, "MAKE[5].city"),
-        (1, "MAKE[5].val"),
         (1, "MAKE[6].city"),
-        (1, "MAKE[6].escrow"),
-        (1, "MAKE[6].num"),
-        (1, "MAKE[6].t"),
-        (1, "MAKE[6].val"),
         (1, "MAKE[7].val"),
         (1, "MAKE[8].city"),
         (1, "MAKE[8].t"),
@@ -830,14 +838,8 @@ mod tests {
         (1, "SITE[9].wx"),
         (1, "SITE[9].wy"),
         (1, "active"),
-        (1, "attack"),
-        (1, "bucket[0:food]"),
-        (1, "bucket[1:timber]"),
-        (1, "bucket[4:knowledge]"),
-        (1, "combat"),
         (1, "gather_stamp"),
         (1, "min_other_team_terr"),
-        (1, "non_siege"),
         (1, "other_team_terr"),
         (1, "scouts"),
         (1, "tech_cat_frame[0]"),
@@ -947,7 +949,6 @@ mod tests {
         (1, "SITE[9].wx"),
         (1, "SITE[9].wy"),
         (1, "active"),
-        (1, "attack"),
         (1, "defense"),
         (1, "gather_stamp"),
         (1, "min_other_team_terr"),

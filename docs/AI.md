@@ -4021,13 +4021,13 @@ in the list, and the Slingers took rank 0 from the Temple.
 `num` says the same thing one field over: `batch_size` answers **3** here
 against the original's **1**.
 
-So the word is `create_units`' value chain for a land military type —
-`war_multiplier`, the age term, `army_ladder`, the siege arms, the tail's
-`val × remaining × 10` (or `× 1000`) — and the finding is that one of its
-factors is large enough here to wrap where the original's is not. That is
-the successor item, not this one: naming it took run91, and fixing it is a
-value-chain audit with `360000`, `num 1` and slot 7's exact factor of two
-as three simultaneous oracles.
+~~So the word is `create_units`' value chain for a land military type~~ —
+and it is not. The chain is right; **the census under it was not**, twice
+over, and with `combat`/`non_siege` reading 3 rather than 1 the land
+branch's `base × 100` arm does not run and the same code produces
+`360000` at `num 1`. §35 (item 295) has both faults, and closes the first
+two of the three oracles below. Slot 7's factor of two is still open and
+is `upgrade_units`' `owned`, not `create_units`'.
 
 ### 34.2 Coverage
 
@@ -4036,7 +4036,8 @@ as three simultaneous oracles.
 asserted equal on all 72 blocks at or below the word; the 43 the original
 pays on 7586; the head's `t`, `cat`, `num` and `val` on the word's own
 frame; and the whole residue pinned by name (`PARTS_ON_RUN91`, 114 rows,
-35 of them make-list rows).
+35 of them make-list rows — **99 and twenty since item 295**, and the
+whole of `bucket`, `attack`, `combat` and `non_siege` gone from it).
 
 **The capture itself**: run91, `[7514, 7600)`, 170,485,873 bytes, 87
 blocks. `rngcmp` against run53 **7,616 identical, 0 differing**; the run89
@@ -4059,3 +4060,109 @@ one expected to part. It did not.
   because the head differs, and whether anything else moved with it is
   unread.
 
+
+---
+
+## 35. The census counted the wrong word and the wrong objects (2026-09-17)
+
+**Item 295 was booked as `create_units`' value chain and the chain was
+never wrong.** The overflow §34.1 names is real — `out = -7777216` on
+sim-frame 7583, guarded to `9999999` — but every factor of it is this
+crate's own arithmetic applied to a **census that had two independent
+faults**, and with the census right the same code produces the original's
+`val 360000, num 1` on the first run.
+
+Both faults are in `Sim::census_units` (`crates/sim/src/ai_census.rs`),
+§2.3's step 10, and the widening found them without a reading: run91
+already prints the whole leader record, and `combat`/`non_siege` part at
+**ours 1, theirs 3** on every one of its 86 blocks.
+
+### 35.1 `roles` was this crate's own bitfield, not `UnitTypeData::role`
+
+Step 10 tests `role & 0x10000` for "military". The sweep read that bit off
+[`sim::combat::Profile::roles`] — a **different word with a different
+layout**, the hand-rolled one `docs/DECISIONS.md` entry 18 introduced so a
+rule can ask "is this a catapult" without a type id. The two collide
+twice:
+
+| bit | `UnitTypeData::role` (`ai_load::role`) | `combat::Profile::roles` |
+| --- | --- | --- |
+| `0x10` | `SCOUT` — the invader-count exemption | `V2ROCKET` |
+| `0x1_0000` | `MILITARY` — `combat_role` | `CARAVAN` |
+
+So on run91's block 7514 the sweep read leader 1's roster as one soldier —
+its **Caravan** (`ti 59`, `Profile::roles 0x10000`) — and every Hoplite
+(`ti 132`) and Longbowman (`ti 177`) as a civilian, because their profile
+word is `0x80` (`BARRACKS_MADE`) and carries no `1 << 16`. `attack` came
+out **0** for the same reason: a caravan's attack is zero, and it was the
+only thing counted. The original's own word for those types is `0x50803`
+and `0x150c00`, both with `0x10000` set — this crate's loader derives it
+correctly and puts it on `UnitType::cols.role`; nothing read it.
+
+The fix is [`sim::Sim::role_word_of_rec`], the record-keyed sibling of the
+`role_word` `create_units` already uses — `UnitTypeData::role` for a type
+in the tree, the column itself for one stood up by hand.
+
+### 35.2 The sweep is over **captains**, and it was over every object
+
+§2.3 step 10 opens "every captain of mine (`is_captain`, vslot `+0xe8`)".
+The loop had no such test, so every figure of a squad was counted — the
+same error `docs/ARMY.md` §3.3 records against `release_mustering`, in a
+second place.
+
+run91's block 7514 settles it to the unit. Leader 1 owns **40** objects:
+23 Citizens, 3 Merchants, a Caravan, a Scout, **nine Longbowmen in three
+squads** and **three Hoplites in one**. `is_captain` is `o_up < 0`
+(`docs/ARMY.md`), and the record's own `o_up` chain makes **32** of them
+captains. The original's `active` on that block is **32**.
+
+### 35.3 What the two fixes are worth
+
+With both in, on run91's window:
+
+- `combat`, `non_siege` and `attack` **leave the residue entirely** —
+  they parted on all 86 blocks before.
+- **The make list's head is the Temple**, `t 437 val 2499999 cat 8
+  num 1`, where it was three Slingers at the overflow guard.
+- **Slot 6 is `t 82 val 360000 num 1`, the original's answer exactly** —
+  both of §34's first two oracles, closed by the same change. The chain
+  that reaches it is unaltered: `land_army` is 3 rather than 1, so
+  `land_army < mil_level * 3` (3 < 3) is **false**, the `base × 100` /
+  `escrow = 1` arm of the land-military branch never runs, and the product
+  that used to wrap — `256 × (30 × 36,000,000 / 30)` — is a hundredth of
+  itself and does not.
+- **The food ladder agrees on all 86 blocks, the buy included**: `88 → 45`
+  on block 7586, the Citizen out of slot 5 at 43 food, where this crate
+  bought nothing. §34's "the original pays 43 and we pay nothing" is
+  struck.
+- **Great Lakes' long-capture word moves 7585 → 7679**, and the new word
+  is `Guy::set_anim+0x97a < Unit::move_step+0x823` against the original's
+  `Guy::set_anim+0x97a < Guy::inc_time+0x271` at index 1 — four draws
+  against three.
+
+### 35.4 Coverage
+
+**Diff-backed**: everything in §35.3, plus the classification itself —
+`run91_s_window_is_the_leader_s_ledger_at_the_word` compares the whole
+record over 172 blocks and both players, and
+`the_census_counts_captains_under_the_original_s_role_word` pins the two
+faults directly on run91's own frame. The **32** of §35.2 is the
+original's `active`, re-derived from its `o_up` chain.
+
+**Established by reading**: nothing new. Both faults are the documents'
+own words (§2.3 step 10, `ai_load::role`) against the code.
+
+**Not established.**
+
+- **`active` is 31 here against the original's 32**, on 62 of 86 blocks —
+  one captain short, and which one is unread. It is the last whole-roster
+  counter still parting.
+- **`MAKE[7].val` — `t 133` Phalanx — is still exactly half**, 31488
+  against 62976, and was before this item. `upgrade_units`' `owned`
+  walks the predecessor chain summing `Muster::by_type`, which this crate
+  increments **only for a squad's head**; the `(owned + 2) / 2` step then
+  halves with it. Whether the original's per-type count is over units or
+  over captains — the census is over captains — is the successor's
+  question, and the exact factor of two is its oracle.
+- **The other make-list rows** §34.2 names (`MAKE[9]`/`MAKE[10]`'s
+  off-by-one type index, the `city` column) are untouched by this item.
