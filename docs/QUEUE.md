@@ -12,42 +12,59 @@ each section's non-item prose pinned and falling only.
 
 ## Where things stand
 
-*2026-09-17, Opus commander wave — three landings, the headline +94, and
-East Indies +381 in flight.*
+*2026-09-17, Opus commander wave — four landings, one word, and the
+stopping rule fired. **The next session is the Fable steering pass.***
 
-- **Great Lakes 7679** (+94, 295); **East Indies 7812**, with 301 holding a
-  measured **8193** not yet landed. 303 is headline-nearest and in flight.
-- **Three items in a row were misbooked one layer shallow.** 294 booked as a
-  collision predicate, was a missing early return; 295 as `create_units`'
-  value chain, was two predicates in `census_units`; 302 as `Muster::by_type`'s
-  count, was a recounted `village_num` divisor plus an accumulator the original
-  zeroes. Each named a reachable mechanism while the defect sat one layer over.
-  All three landed and two moved a word, so the booking is not wrong so much as
-  systematically shallow. **FABLE:** that is a question about how an item is
-  written, and the pass's.
-- **FABLE: the reap is in no sequence the commander runs, and writing it down
-  did not fix it.** Twice in one session — 295's lane, then 302's, the second
-  after this section named the failure and predicted it — so the prediction was
-  wrong where it counts: not context loss across a clear, but that merge → gate
-  → push is a chain and reap → spawn is not in it. `ccc rm <ref>` does all three.
-- **ccc 0.1.37** fixed `merge`/`pull` for a base held in a worktree; the loop
-  uses those and `push --base` now. **The gate**: `release_gate.py <install>
-  --test-threads 4`, three merged runs green, 288/825, ~12.8 GiB; endpoints
-  re-pinned by the MERGED tree.
+- **Great Lakes 7679** (+94, item 295); **East Indies 7812**. Three landings
+  in a row then moved no word (302, 301, 303), past DECISIONS 34's stop.
+  305 is headline-nearest, 308 the best lead; both wait on the pass.
+- **FABLE: an attribution measured against a moving base is unreliable both
+  ways.** 301 reported EI +381 for `path.rs` measured pre-295; on the tip it
+  is zero and the gain is wholly the suspend's. The row that stood here —
+  "items are booked one layer shallow" (294/295/302) — is refuted: 301's
+  item was right and the worker's mid-flight rejection was the error.
+  PATHFINDER §18.3, six configurations on one tree.
+- **FABLE: the reap is in no sequence the commander runs** — twice in one
+  session, the second after this section predicted it would take a clear, so
+  not context loss: merge → gate → push is a chain, reap → spawn is not.
+- **FABLE: the queue has been at its ceiling for weeks, not occasionally.**
+  Over all 310 commits touching this file: **12.5 numbers/day** (+9 to +44),
+  127 commits at 18+, the recent series never leaving 17-18; 247 booked, 93
+  live, ~75 parked. Every booking is a forced triage, and "least
+  score-connected" — used twice today — is this commander's rule, not one
+  the project has.
+- **Banked unwired**: `worktree-loop-301-suspend` (`4521ccc`) — EI 8193, GL 6862, DECISIONS 30; wire when 304 closes.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w7812 of 24,000 · GreatLakes w7679 of 24,000
 Endpoint 24001: EastIndies 70 off, 10 unlinked · GreatLakes 57 off, 23 unlinked
 
-**Opener: 305 (the make list's building values, a factor of ten) beside 303 and
-301 in flight; briefs carry `CLAUDE.md`'s worker paragraph; a lane is merged
-with `ccc merge` and reaped with `ccc rm` in the turn it lands.**
+**Opener: the Fable steering pass — the three FABLE rows, the marked rows
+since 2026-09-07, and DECISIONS 34's measure (USD per word-moving landing,
+against 102). It is the session: bank, `/clear`, switch. Then 305 and 308.**
 
 ## The queue
 
 In dependency order, headline-nearest first; **the headline is the long
 captures' word**, lower map first — Great Lakes. Take the first unstarted
 unless a better order is obvious, and say so. Numbers are stable.
+
+308. **`UnitData::start_dist` is parsed, and twenty-three captures carry a
+    non-zero value** — run16 alone has 8,752 rows, and `+0x130`'s only writer
+    in the executable is astar's suspend block, so every row is a unit whose
+    search the original suspended, on a capture already on disk. 301 proved
+    it reads 144 for run90's `1/7` and 0 for every other unit there. The best
+    lead on the board: it makes the suspend's reach assertable far past the
+    two windows that found it, and every row is free. PATHFINDER §18.
+    Takes 304.
+
+310. **Nothing decrements the muster on death** — not `by_type`, `by_group`,
+    `control` or `active`. The original's `Unit::close@0060ee50:235` undoes
+    all three and this crate has no counterpart. No unit of players 0 or 1
+    dies in either window, so no diff reaches it, which is why 303 could
+    land `Sim::track_unit_type` correct in both directions of `set_type` and
+    still leave this open. It is `by_type`'s gap as much as `active`'s.
+    Falsified by a window containing a death. AI §37.
 
 305. **The make list's five building values, and a factor of ten** — the
     building producer's rows `MAKE[0]`..`MAKE[4]` still part, with
@@ -56,15 +73,6 @@ unless a better order is obvious, and say so. Numbers are stable.
     A different producer from 302's `upgrade_units`, and the factor-of-ten
     shape is as strong an oracle as 302's factor of two was. Value diff on
     disk, no capture needed. AI §36.
-
-301. **East Indies 7811/7812 is `find_upath`'s suspend** (in flight) —
-    the original's repath on 7810 leaves `dest` 0 and a one-entry stack
-    holding the goal while `do_move`'s suspended-search block counts
-    `collide` 1 → 9 for ten blocks; this crate walks the goal back onto
-    the unit's own cell and returns it as a one-entry final leg, killing
-    the `EXPLORE_TO` 21 frames early. PATHFINDER §7 step 3 specifies the
-    stash completely and §11 admits the seam is dormant; run90 is the
-    first capture to reach it. From 294.
 
 278. **`Unit::work@0060d180:440` is a second `set_new_location(…, 1, 1)`**
     and nothing models it — two units of one type within `0x180` are

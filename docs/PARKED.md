@@ -24,6 +24,20 @@ here too, except the item cap — a parked item is not an open one.
 
 ## Parked from the lab, 2026-09-17
 
+(309) **`find_upath`'s pre-walk give-up exit targets the wrong label** —
+`00683082` is push-and-return-length where this crate's `break` falls
+through to the near test and the search. Unreachable today for a
+transport-capable unit and no capture reaches it, so 301 recorded it in
+PATHFINDER §18.4 rather than changing it. Parked because its falsifier does
+not exist on disk.
+
+(311) **The zero-pop predicate disagrees on paper and nowhere else** — the
+original counts a `control_cost == 0` unit only when `is(0x134)` or
+`is_gov_hero`; this crate's muster seams apply no test at all and its sweep
+skips every zero-pop unit outright. Two different wrong answers that agree
+on every capture, because nothing on disk separates them. AI §37. Parked
+with 309: a reading-only disagreement with no falsifier.
+
 (298) **The click-free capture lane starts 6 of 10 pairs** — a
 `RON_AUTOSTART` tracer build replaces the two menu functions and clicks
 Start from inside the modal loop; every success matched 19 logged bodies and
