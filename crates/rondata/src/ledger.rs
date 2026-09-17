@@ -177,7 +177,11 @@ mod tests {
     /// **19 on 2026-09-06**, when item 237 gave the `GROUPORDER` row a
     /// comparison — `group_angle`, `group_id` and `in_group` left this
     /// half for the one below.
-    const UNCOMPARED: usize = 19;
+    /// **18 on 2026-09-17**, item 308: `UnitData::start_dist` is compared
+    /// now (`FrameResult::search_compared`, `docs/PATHFINDER.md` §19). It
+    /// had been parsed since item 301 and read only off the original's own
+    /// dump, which is exactly the shape this half exists to catch.
+    const UNCOMPARED: usize = 18;
 
     /// Fields exactly one test function names — the per-capture half.
     /// **41 on 2026-09-04**, down from 51 when run68's window widened
@@ -200,7 +204,13 @@ mod tests {
     /// (`docs/TECH.md`, "An age snaps every figure"); the same item's
     /// `BuildDump::max_age` lands with more than one reader and so does not
     /// count here.
-    const SINGLE_CAPTURE: usize = 45;
+    /// **46 on 2026-09-17**, item 308: `UnitDump::uid` arrives, named by
+    /// the corpus sweep alone. It is the identity behind the per-player
+    /// `o`, and it is parsed because a claim about a field nothing clears
+    /// cannot be carried by a slot number — run16's `1/9` reads
+    /// `start_dist` 768 under `uid 17` and 0 under `uid 25`. It stays
+    /// single-capture until a window test has a reason to link on it.
+    const SINGLE_CAPTURE: usize = 46;
 
     #[test]
     fn the_widening_ledger_counts_what_nothing_compares() {
