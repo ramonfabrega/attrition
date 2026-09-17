@@ -2768,3 +2768,62 @@ check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|to_x" "$HOME/ron-data/AppData/Roam
 # differently from `World::danger_half`. It is keyed identically.
 # Great Lakes **8030 → 8031**. `docs/SCOUT.md` §8.2, and the assertion is
 # `run94_s_window_is_great_lakes_scout_repath`.
+
+run: 95
+tag: greatlakes-scoutcosts
+item: 320
+why: Great Lakes 8031 is the scout's route through the human capital's footprint, and every world input the search reads is now diffed exact — so the only thing left is the original's own calc_cost, which only a callwin proxy carries
+# **The world is eliminated, not suspected.** run93's block 7932 carries the
+# whole `WORLD` scan and this crate agrees with all of it: the fog plane
+# **14,400 of 14,400 half-cells**, every cell's `flags`/`who`/`blocked`/
+# `solid`/`bad`, and 57,429 of 57,600 tile masks (the 171 that differ are one
+# cluster at tiles (209..215, 74..77) — the AI's own base, 200 cells east of
+# this scout, and item 320's successor's, not this one's). run73's 5564 says
+# the same for the fog. So at block 8002 the search reads the original's own
+# world, and the route still parts.
+#
+# **What parts, by value.** `1/0` takes an `EXPLORETOORDER` to (4344, 32760)
+# on block 8002 — the destination item 319 bought — and plans a **five**-entry
+# stack through cells (3,39) and (3,40), the two cells of the human capital's
+# 6x6 footprint, where the original plans **six** and swings west through
+# (2,39) and (2,40). Both cells are unseen by player 1 on both sides, so a
+# scouting step into either prices `(8 * 32) / 256 = 1` plus the diagonal's 8,
+# and nothing in the fog branch of `calc_cost` can tell (3,39) from (3,38) —
+# which the original walks into, blocked probe tile and all.
+#
+# **Two forcings reproduce the original's stack entry for entry** and no
+# third was found: half-cells (7,79) and (7,81) read as *seen* (which prices
+# the cells at `20 x 9` of terrain), or cells (3,39)/(3,40) refused by
+# `valid_wcoord`. The first is ruled out as a *reveal* — `1/0` is the only
+# AI unit that has ever been west of cell 37, its `mylos` is 6 on every
+# compared frame so its disc radius is 3, and its sweep centre never comes
+# within 5 half-cells of (7,81); the second is ruled out by `invalid_loc`
+# itself — `valid_wcoord` passes `p3 = 1`, which skips the building test, and
+# the cell flags (0x80, checked against run93) carry none of the `0x70` the
+# land arm refuses. Both eliminations are readings. **The proxy is the
+# measurement.**
+frames: 8010
+mapstyle: 14
+# run55's shape, and item 125's: `callwin` replaces `astar_path` and
+# `calc_cost` with stubs that log their arguments and `eax`, so the window
+# carries every node the original priced and what it charged for it. run55
+# found its answer in **one** search of 110 calls; this window holds the
+# scout's own, and the sim-frame is **8001** — the search that produces block
+# 8002 (`docs/ORACLE.md`, run55: "the frame label bit again").
+cover: cover=0
+cover: callwin=7998-8004
+# Five blocks of `DUMP_ALL` over the parting, so the state the proxied
+# sequence reads is pinned at the frame it reads it — the fog plane, the
+# per-cell `WData` and the tile masks at **8002** rather than at 7932.
+window: 7999 8003
+end: MISC
+# A thin `end:` does not reach the 10 MB default until the window opens.
+settle_min: 9000000
+poll_max: 200
+check: python3 tools/gamelog/rngcmp.py rontrace-run53.log rontrace-run95.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=8000)}'
+# **The proxies are the point, and an empty `calls` listing is the failure
+# this catches** — run55's first listing came back empty on the frame-label
+# bit alone.
+check: test "$(LC_ALL=C grep -ac 'calc_cost' "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run95.log")" -ge 20
+# And the `DUMP_ALL` window really covered the parting block.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|seen2\[scan\]" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run95-greatlakes-scoutcosts.txt" | awk '/BEGIN FRAME/{f=$3} /seen2/{c[f]++} END{exit !(c[8002]>0)}'
