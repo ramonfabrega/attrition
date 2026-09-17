@@ -20121,7 +20121,70 @@ head, and the `(owned + 2) / 2` step halves with it. Whether the
 original's per-type count is over units where its census is over captains
 is the question, and the exact factor of two is the oracle that answers it.
 
-## 2026-09-17 — item 301: the booked cause was innocent, and the guilty one is a conjunction
+## 2026-09-17 — item 302: the muster was right, the denominator was not
+
+Booked as `Muster::by_type` counting squad heads where `upgrade_units`'
+`owned` wants units, with §34's third oracle as the test: `MAKE[7].val`,
+`t 133` Phalanx, exactly half at 31,488 against the original's 62,976.
+The brief said the title was a hypothesis and not the answer, and it was
+not the answer.
+
+**The widening settled the booked question in twenty minutes and the
+reading never had to run.** `LEADERDATA` prints `num_units` and
+`num_queued` *whole* — 352 and 806 entries — and neither had ever been
+compared, on any capture, in either window. Adding both to the leader
+mapping costs 704 rows a block and it answered the item outright: leader
+1's one Hoplite squad of three figures counts **one** on the original's
+side and its three Longbowman squads count **three**, the six nonzero
+entries sum to the block's own `active 32`, and both arrays agree with
+this crate on every type, every block and both players. The original
+counts captains. `by_type` was never wrong, and neither was the
+predecessor chain that sums it.
+
+The widening also found its own bug on the first run, which is the
+familiar shape: the two arrays are keyed **differently** — `num_units`
+from `BASE_UNITTYPES`, `num_queued` from `TypeIndex` 0 — so reading both
+as record-keyed reported every queued type as a divergence at two indices
+at once. The `352` is `BASE_GAIATYPES - BASE_UNITTYPES`, the array
+stopping before the twelve animals.
+
+**What the factor of two actually was.** With `owned` and the chain
+cleared, the difference had to be upstream, and the dump's own scalars
+named it in one line: `city_num 2, village_num 0` against this crate's
+debug print of `city_num=2 vil=2`. `upgrade_units` opens with `base = pop
+* 1000 / max(city_num + village_num, 1)` — `LeaderData+0x3f8` plus
+`+0x3fc` — and this crate divided by `city_num` plus a **recount** of
+which of its cities are still villages. `village_num` is a declared seam
+that answers 0, the original's answers 0 on all 86 blocks, and every
+other producer already read it through `Sim::village_num`. Only this one
+recounted, `base` was 500 against 1000, and every value in the make list
+halved. One line, and `MAKE[7].val` is 62,976 on both sides.
+
+**And then the rest of the row, because 63 of 86 blocks were still
+parting and they were a different type.** Slot 7 carries `t 66`
+**Militia** on 7514–7576 and Phalanx only from 7580; Militia came out
+7,936 against 41,856, and solving the chain numerically over `(owned,
+gap, aff)` left exactly one answer: `gap` 0 here against 1. `gap` is
+`age_t - age_p`, and `age_p` is an **accumulator the original zeroes**
+(`6c660d xor edi,edi`) whose guard is the accumulator itself (`6c6643
+test edi,edi / jne`) — so a type with no available predecessor gets `gap
+= age_t`, not 0, and a predecessor of age zero leaves the walk still
+looking. Read in the decompile, confirmed in the PE's own listing before
+it was believed. `MAKE[7].val` then leaves run91's residue entirely, all
+86 blocks, Militia's rows and Phalanx's alike — 99 residue rows to 98,
+and it is the only row that left.
+
+**The headline did not move.** Great Lakes' long-capture word is 7679
+either side of this item, the same `Guy::set_anim+0x97a <
+Unit::move_step+0x823` against `Guy::set_anim+0x97a <
+Guy::inc_time+0x271` at index 1. That frame is a figure's draw and not
+the AI's, and the item says so with a number: it closed an oracle and a
+whole record row, and moved no score. Worth saying plainly, because the
+rule is that only the number tells you whether the whole is converging,
+and this item is evidence that the make list's remaining residue is not
+where the word is.
+
+## 2026-09-17 — item 301: the booked cause was innocent, and the guilty one is a conjunction (Opus 5)
 
 The item was "East Indies 7811/7812 is `find_upath`'s suspend", and it was
 half right in the way that costs a session: the suspend is reached, is real,

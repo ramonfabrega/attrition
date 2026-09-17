@@ -4049,12 +4049,14 @@ one expected to part. It did not.
 
 **Not established.**
 
-- **Which factor of `create_units`' chain wraps.** The successor item.
+- ~~**Which factor of `create_units`' chain wraps.**~~ §35: the chain was
+  never wrong; the census under it was. Slot 7's own factor of two is
+  §36.
 - **The other make-list rows.** Slot 1 is a different type entirely
-  (`132` against `419`), slot 7's value is exactly half, and slots 9 and
-  10 carry types one below the original's (`565`/`566`, `572`/`573`) on
-  every block of both windows — an off-by-one in a type index that
-  predates this item and now has a name.
+  (`132` against `419`), ~~slot 7's value is exactly half~~ (§36), and
+  slots 9 and 10 carry types one below the original's (`565`/`566`,
+  `572`/`573`) on every block of both windows — an off-by-one in a type
+  index that predates this item and now has a name.
 - **Why this crate's Temple sits at slot 2 and the original's at slot 8
   only.** Both lists hold the Temple at `val 2499999`; the ranks differ
   because the head differs, and whether anything else moved with it is
@@ -4157,12 +4159,161 @@ own words (§2.3 step 10, `ai_load::role`) against the code.
 - **`active` is 31 here against the original's 32**, on 62 of 86 blocks —
   one captain short, and which one is unread. It is the last whole-roster
   counter still parting.
-- **`MAKE[7].val` — `t 133` Phalanx — is still exactly half**, 31488
-  against 62976, and was before this item. `upgrade_units`' `owned`
-  walks the predecessor chain summing `Muster::by_type`, which this crate
-  increments **only for a squad's head**; the `(owned + 2) / 2` step then
-  halves with it. Whether the original's per-type count is over units or
-  over captains — the census is over captains — is the successor's
-  question, and the exact factor of two is its oracle.
+- ~~**`MAKE[7].val` — `t 133` Phalanx — is still exactly half**, 31488
+  against 62976~~ — **closed by item 302, and not where this section
+  looked.** `Muster::by_type` is right: the original's `num_units` is
+  over captains too, and its own array says so (§36.2). The halving was
+  `upgrade_units` dividing by a **recount** of its villages where the
+  original adds `LeaderData::village_num`, which is 0 (§36.3); the
+  remainder of the row was `age_p`'s default (§36.4).
 - **The other make-list rows** §34.2 names (`MAKE[9]`/`MAKE[10]`'s
   off-by-one type index, the `city` column) are untouched by this item.
+
+
+---
+
+## 36. The muster was right; the denominator was not (2026-09-17)
+
+**Item 302 was booked as `Muster::by_type` counting squad heads where
+`upgrade_units`' `owned` wants units, and the original counts heads too.**
+§35 left the question open — is the original's per-type count over units
+or over captains — and the answer is on disk rather than in the
+decompile: `LEADERDATA` prints `num_units` and `num_queued` **whole**, and
+nothing here had ever compared either. Widening the record answered the
+item in twenty minutes and then named the real cause, which is in neither
+`by_type` nor the predecessor chain.
+
+### 36.1 The two arrays, and they are keyed differently
+
+`num_units` is **352** entries and its index 0 is `BASE_UNITTYPES`, so
+this crate's record index *is* the dump's index. `num_queued` is **806**
+and its index 0 is `TypeIndex` 0, so the same Hoplites sit at 82 in one
+array and 132 in the other. Reading both as record-keyed reported every
+queued type as a divergence at two indices at once, which is how the
+offset was found; both are re-keyed to the record in
+[`rondata::diff::leader::rows`].
+
+The 352 is not arbitrary. It is `BASE_GAIATYPES - BASE_UNITTYPES`: the
+array stops before the twelve gaia types, which is why this crate's unit
+table is 364 records and the muster rows are cut at 352.
+
+### 36.2 Over captains, settled by the original's own array
+
+run91's block 7585, leader 1, every nonzero entry:
+
+| record | `TypeIndex` | type | `num_units` | objects owned |
+| --- | --- | --- | --- | --- |
+| 0 | 50 | Citizen | 23 | 23, each its own squad |
+| 9 | 59 | Caravan | 1 | 1 |
+| 11 | 61 | Merchant | 3 | 3 |
+| 19 | 69 | Scout | 1 | 1 |
+| 82 | 132 | Hoplites | **1** | **three figures in one squad** |
+| 127 | 177 | Longbowmen | **3** | **nine figures in three squads** |
+
+The six sum to **32**, which is the block's own `active`. So the
+original's per-type count is over **captains**, exactly as this crate's
+`Muster::by_type` is, and the item's title is refuted by the original
+rather than by a reading. The guard has teeth: incrementing `by_type` for
+every figure — the item's own hypothesis — parts `num_units[82]`,
+`num_units[120]` and `num_units[127]`, and nothing else.
+
+Both arrays now agree on every type, every block and both players, over
+run91's window *and* run84's — **233,728** field-frames the record was
+printing and no test was reading.
+
+### 36.3 What the factor of two was: `village_num`, recounted
+
+`upgrade_units@006c6430` opens its value with
+
+```
+iVar5 = city_num + village_num;  local_20 = 1;  if (1 < iVar5) local_20 = iVar5;
+local_20 = (pop * 1000) / local_20;
+```
+
+— `LeaderData+0x3f8` plus `+0x3fc`, the two fields the record prints
+side by side. This crate divided by `city_num` plus a **recount** of
+which of its cities are still villages, and on Great Lakes' leader 1 that
+answers **2** where the original's `village_num` is **0** on all 86
+blocks of the window. `base` was 500 against 1000 and **every value in
+the make list halved** — visible only at slot 7, because it is the one
+row whose other factors leave the halving unclamped and unshared.
+
+`village_num` is a declared seam here (`ai_census.rs`, the seam table),
+its census field answers 0, the original's answers 0, and every other
+producer already reads it through [`sim::Sim::village_num`]. Only this
+one recounted.
+
+With the denominator right, `MAKE[7].val` on run91's block 7585 is
+**62,976** against the original's 62,976 — §34's third oracle, and an
+exact factor of two is a strong oracle precisely because almost no wrong
+change reproduces it.
+
+### 36.4 And the rest of the row: `age_p` is an accumulator, not a default
+
+That left 63 of the window's 86 blocks still parting, and they are not
+Phalanx at all: slot 7 carries **`t 66` Militia** on 7514–7576, `-1` on
+7577–7579 and `t 133` Phalanx from 7580. Militia's own value came out
+**7,936** against 41,856, and the solved difference is `gap`: ours 0,
+the original's 1.
+
+`gap` is `age_t - age_p`, and the listing settles what `age_p` is.
+`6c660d xor edi,edi` zeroes the accumulator between the chain's head and
+the walk, and the walk's guard is `6c6643 test edi,edi / jne` — the
+accumulator itself, not a "have I found one" flag. Two consequences this
+crate had wrong, both from defaulting `age_p` to the type's own age:
+
+- A type with **no available predecessor** gets `gap = age_t - 0`, its
+  own age. Militia is age 1, so its gap is 1; defaulting to `age_t`
+  gives 0, and `m = 5 * gap + 2` and the later `(gap + 2) / 2` both
+  collapse with it.
+- A predecessor whose own age is **0** leaves the walk still looking,
+  where a boolean flag stops it.
+
+`avail` (`local_20`, `6c663c`) is a separate flag and is raised by
+*every* available predecessor, which this crate had right.
+
+With both fixes `MAKE[7].val` leaves run91's residue entirely — all 86
+blocks, Militia's rows and Phalanx's alike.
+
+### 36.5 What it moved, and what it did not
+
+- **`MAKE[7].val` is gone from the residue**, 99 rows to 98, and it is
+  the only row that left. Nothing joined.
+- **The headline did not move.** Great Lakes' long-capture word is
+  **7679** either side of this item, the same `Guy::set_anim+0x97a <
+  Unit::move_step+0x823` against `Guy::set_anim+0x97a <
+  Guy::inc_time+0x271` at index 1 — a figure's draw, not the AI's. The
+  AI's value chain is not what that frame is about, and this item says
+  so with a number rather than a hope.
+- The endpoints moved and were re-pinned; §36.6 has the figures.
+
+### 36.6 Coverage
+
+**Diff-backed**, `run91_s_window_is_the_leader_s_ledger_at_the_word` and
+`run84_s_window_is_the_original_s_whole_leader_record`: the whole
+per-type muster, both arrays, 352 types over 332 blocks and two windows;
+`MAKE[7].t` and `MAKE[7].val` on the word's own frame, asserted at
+`(133, 133)` and `(62_976, 62_976)`. The record's compared field-frames
+go 58,308 → 179,396 on run91 and 54,240 → 166,880 on run84. Both new
+claims were made to fail on purpose before they landed — the muster one
+by counting figures, the slot-7 one by restoring the village recount.
+
+**Established by reading**: §36.4's accumulator, and it is the listing
+rather than the decompiler — `6c660d`, `6c6643`, `6c663c` in the PE's own
+bytes. The decompiled `iVar9 = 0` says the same thing; the listing is
+what makes it evidence.
+
+**Not established.**
+
+- **The make list's other values.** Five `val` rows still part, and
+  they are the building producer's — `MAKE[0]`–`MAKE[4]`, with
+  `MAKE[2].cat` beside them — ours and theirs a factor of ten apart on
+  two of them. A different producer and a different item.
+- **`MAKE[9]`/`MAKE[10]`'s off-by-one type index** (`565`/`566`,
+  `572`/`573`) is untouched, and the `city` column is still one high on
+  every row that carries one. Both predate this item.
+- **`active` 31 against 32** on 62 of 86 blocks, unmoved.
+- **Whether `age_p`'s zero-age quirk is ever reached.** No type in the
+  shipped tree exercised the "a predecessor of age 0 leaves the walk
+  looking" arm on either window, so that half of §36.4 is the listing's
+  word and not a diff's.

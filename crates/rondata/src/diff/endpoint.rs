@@ -267,11 +267,23 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // **Re-pinned at the 294/295 merge, 2026-09-17**, and by neither
         // worker's numbers: the two land independently and compose, so the
         // figure is what the merged code prints.
-        off: 72,
-        unlinked: 9,
+        //
+        // Then **72 → 70, 9 → 10 and 30 → 31** on 2026-09-17, item 302 —
+        // `upgrade_units` dividing by `LeaderData::village_num` instead of
+        // a recount of its own, and `age_p` defaulting to the type's own
+        // age (`docs/AI.md` §36). Both halve or flatten what the AI is
+        // willing to pay for an upgrade, so this is again the AI's
+        // valuation changing on both maps, 16,189 frames past a word that
+        // does not move — two positions closer, one more of the roster
+        // unlinked, one more building field-row apart. DECISIONS 36 asks
+        // for the number rather than a trade. **Branch figures**: measured
+        // on `worktree-loop-302` with 301 still in flight, so the merge
+        // re-runs them.
+        off: 70,
+        unlinked: 10,
         extra: 0,
         build_unlinked: 0,
-        build_diverged: 30,
+        build_diverged: 31,
         city_unlinked: 3,
         city_diverged: 0,
     },
@@ -341,8 +353,16 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // **Re-pinned at the 294/295 merge, 2026-09-17**, and by neither
         // worker's numbers: the two land independently and compose, so the
         // figure is what the merged code prints.
-        off: 55,
-        unlinked: 28,
+        // Then **55 → 57 and 28 → 23** on 2026-09-17, item 302 — the same
+        // two `upgrade_units` faults as East Indies' row above
+        // (`docs/AI.md` §36). Two positions out and five of the roster
+        // linked again, 16,322 frames past a word that does **not** move:
+        // this item closed §34's third oracle and the whole of
+        // `MAKE[7].val`, and Great Lakes' 7679 is unchanged either side of
+        // it. DECISIONS 36 asks for the number rather than a trade.
+        // **Branch figures**, measured on `worktree-loop-302`.
+        off: 57,
+        unlinked: 23,
         extra: 0,
         build_unlinked: 0,
         build_diverged: 10,
@@ -478,7 +498,11 @@ pub const LADDER: [Endpoint; 2] = [
         // word moves 7585 → 7679. **Re-pinned at the 294/295 merge,
         // 2026-09-17**: 17, one more than either worker's branch (294's
         // said 16 and 295's 14), so the merged tree agrees with neither.
-        extra: 17,
+        // Then **17 → 16** on 2026-09-17, item 302's `upgrade_units` fixes
+        // (`docs/AI.md` §36): one spurious unit gone, 8,960 frames past
+        // this rung's word, with nothing else on it moved and the C rung
+        // above unmoved entirely. **Branch figure.**
+        extra: 16,
         build_unlinked: 19,
         build_diverged: 0,
         city_unlinked: 4,

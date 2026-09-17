@@ -12,36 +12,36 @@ each section's non-item prose pinned and falling only.
 
 ## Where things stand
 
-*2026-09-17, Opus commander wave — the headline moved +94, and the loop
-ran two lanes for the first time since the lab landed.*
+*2026-09-17, Opus commander wave — three landings, the headline +94, and
+East Indies +381 in flight.*
 
-- **Great Lakes 7679** leads, +94 by 295; **East Indies 7812**, unmoved
-  by 294 but no longer a collision question. 301 is in flight on East
-  Indies; 302 is headline-nearest of the unstarted.
-- **295 was not what it was booked as.** The value chain was innocent:
-  `census_units` tested `role & 0x10000` against *this crate's*
-  DECISIONS-18 bitfield and walked live objects where §2.3 step 10 walks
-  captains — leader 1's army read as one caravan (AI §35).
-- **294 removed a clearing, not a detection** — `move_step`'s two
-  turn-in-place arms `return 1` before the collision block, byte-verified;
-  the rung `extra` rises are over-production, open in COLLISION §8.8.
-- **The gate**: `tools/release_gate.py <install> --test-threads 4`, both
-  merged runs green, 288/825, 12,854 MiB. Endpoints re-pinned by the
-  MERGED tree — 289/290's lesson applied.
-- **The reap has no written contract, and it showed** — a worktree and a
-  merged branch left behind, and no spawn into the freed slot until asked.
-  `ccc rm <ref>` does all three in one call; `ccc merge`/`push --base`/
-  `pull --repo` refuse here, acting on the main checkout while this base
-  lives in the commander's worktree (filed with ccc). **FABLE:** the
-  prediction to test is that it recurs across a commander clear.
+- **Great Lakes 7679** (+94, 295); **East Indies 7812**, with 301 holding a
+  measured **8193** not yet landed. 303 is headline-nearest and in flight.
+- **Three items in a row were misbooked one layer shallow.** 294 booked as a
+  collision predicate, was a missing early return; 295 as `create_units`'
+  value chain, was two predicates in `census_units`; 302 as `Muster::by_type`'s
+  count, was a recounted `village_num` divisor plus an accumulator the original
+  zeroes. Each named a reachable mechanism while the defect sat one layer over.
+  All three landed and two moved a word, so the booking is not wrong so much as
+  systematically shallow. **FABLE:** that is a question about how an item is
+  written, and the pass's.
+- **FABLE: the reap is in no sequence the commander runs, and writing it down
+  did not fix it.** Twice in one session — 295's lane, then 302's, the second
+  after this section named the failure and predicted it — so the prediction was
+  wrong where it counts: not context loss across a clear, but that merge → gate
+  → push is a chain and reap → spawn is not in it. `ccc rm <ref>` does all three.
+- **ccc 0.1.37** fixed `merge`/`pull` for a base held in a worktree; the loop
+  uses those and `push --base` now. **The gate**: `release_gate.py <install>
+  --test-threads 4`, three merged runs green, 288/825, ~12.8 GiB; endpoints
+  re-pinned by the MERGED tree.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w7812 of 24,000 · GreatLakes w7679 of 24,000
-Endpoint 24001: EastIndies 72 off, 9 unlinked · GreatLakes 55 off, 28 unlinked
+Endpoint 24001: EastIndies 70 off, 10 unlinked · GreatLakes 57 off, 23 unlinked
 
-**Opener: 302 (`Muster::by_type` counts squad heads, §34's last open
-oracle) beside 301 already in flight; gate `tools/release_gate.py`; briefs
-carry `CLAUDE.md`'s worker paragraph, and a lane is reaped with `ccc rm`.**
+**Opener: 305 (the make list's building values, a factor of ten) beside 303 and
+301 in flight; briefs carry `CLAUDE.md`'s worker paragraph; a lane is merged
+with `ccc merge` and reaped with `ccc rm` in the turn it lands.**
 
 ## The queue
 
@@ -49,12 +49,13 @@ In dependency order, headline-nearest first; **the headline is the long
 captures' word**, lower map first — Great Lakes. Take the first unstarted
 unless a better order is obvious, and say so. Numbers are stable.
 
-302. **`Muster::by_type` counts squad heads where `upgrade_units`'
-    `owned` wants units** — §34's third oracle and the last one open.
-    `MAKE[7]` (`t 133` Phalanx) is exactly half, 31488 against the
-    original's 62976, and `(owned + 2) / 2` halves with it: owned 0 here
-    against the original's 2. Headline-nearest. Value diff on disk, no
-    capture needed. AI §34, §35.
+305. **The make list's five building values, and a factor of ten** — the
+    building producer's rows `MAKE[0]`..`MAKE[4]` still part, with
+    `MAKE[2].cat` beside them, and two are exactly ten times out:
+    `MAKE[1]` 202500 against 2025000, `MAKE[2]` 165000 against 1012500.
+    A different producer from 302's `upgrade_units`, and the factor-of-ten
+    shape is as strong an oracle as 302's factor of two was. Value diff on
+    disk, no capture needed. AI §36.
 
 303. **`active` is 31 against the original's 32** on 62 of run91's 86
     blocks — one captain short, and which one is unread. The last
