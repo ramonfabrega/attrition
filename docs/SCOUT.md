@@ -32,9 +32,10 @@ it** — the surface probe's tile, `(4x, 4y + 2)` where the listing reads the
 cell centre; §7's own subsection has the misreading and what settled it, and
 run33's frame 361 is now a diff (2026-08-30, item 76). Every frame-0 trace
 had agreed with the wrong tile, because no candidate at frame 0 straddles a
-shoreline. The score (§8) is read from the listing and is arithmetic no capture
-separates yet — the danger term is zero in every run on disk and the goods
-term needs a leader with exactly one city; medium. The target's rejection
+shoreline. The score (§8) is read from the listing and was arithmetic no capture
+separated — ~~the danger term is zero in every run on disk~~ and the goods
+term needs a leader with exactly one city; **the danger term separated on
+2026-09-17** and §8.2 is what it cost. The target's rejection
 test (§9, `find_unit_ordered`) is read only as far as this mechanic reaches
 into it. ~~The branch this document does **not** establish is the region
 fallback's cell walk (§11);~~ **§11 landed 2026-08-31** (item 110) and is
@@ -429,13 +430,65 @@ good on it is worth double** while the leader is still small. `score /= 2`
 is the arithmetic halving (`cltd; sub; sar`), rounding toward zero.
 
 `danger` is `WorldData +0x13c`, an `int *[8]` at half the cell resolution
-(`reg_xs = world +0x24`). It is zero in every capture on disk at the frames
-this mechanic has been observed at.
+(`reg_xs = world +0x24`). ~~It is zero in every capture on disk at the
+frames this mechanic has been observed at.~~ It is not: §8.2.
 
 `find_unit_ordered` is what stops two scouts converging: a unit of the same
 `basic_type`, of the scout's own leader, that is not the scout, within
 `0x600` (two cells) of the candidate's centre, rejects the candidate
 outright.
+
+### 8.2 The danger term was routed to zero, and Great Lakes paid a hundred frames for it
+
+The line above stood from the day this document was written: the term is in
+the formula, the grid is `world +0x13c`, and every capture read had it zero,
+so `Sim::scout_danger` returned `0` and said so in its own doc comment —
+"keyed differently from `World::danger`, so it is not routed there".
+
+**Both halves of that sentence were wrong.** `World::danger_half(who, c)` is
+`(c.y / 2) * reg_xs + (c.x / 2)` on a non-negative cell, which is the
+listing's shift **exactly**; and the grid behind it is not a stand-in but a
+rebuild diffed value for value — all 7,200 of them — against run64's own
+`danger[who][scan]` at frame 6167, where 58 of each leader's cells are
+non-zero (`docs/DANGER.md` §8). The seam was the *routing* and nothing else.
+
+The listing says the two scans read it the same way twice, which is worth
+recording because the decompiler renders them as two unrelated pointer
+walks: `sarl` on each cell coordinate, `imull 0x24(%ecx)` for `reg_xs`, the
+row at `0x13c(%ecx,who,4)`, then the load and the `addl` that carries the
+not-mine four with it — `005f66d2` in the city loop
+(`Unit::think_scout+0x6c2`) and `005f6b45` in the region scan (`+0xb35`).
+The region scan's is unreachable for an AI scout (`local_74`, §11), so the
+city loop's is the one that matters.
+
+**What separated it was Great Lakes 8030, and it was a value, not a
+stream.** Frame 8001 is the AI scout `1/0` arriving at its explore target
+and taking the next one, and both sides spend the **same 38 draws, entry
+for entry** — eleven ring rotation/phase pairs and five `+0x64c` cell
+jitters. The five candidates ring the *human's* city at cell `(4, 40)` and
+score, with the same rolls on both sides:
+
+| cell | ring | `dist × 8 + roll % 8` | score without danger | half-cell |
+| --- | --- | --- | --- | --- |
+| (3, 41) | 1 | 29 | **62** | (1, 20) |
+| (3, 42) | 2 | 38 | 80 | (1, 21) |
+| (4, 42) | 2 | 33 | 70 | (2, 21) |
+| (5, 42) | 2 | 32 | **68** | (2, 21) |
+| (2, 41) | 2 | 35 | 74 | (1, 20) |
+
+With the term at zero the nearest cell `(3, 41)` wins at 62 and the scout is
+sent to `(2808, 31992)`. run94's block 8002 says the original goes to
+**`(4344, 32760)`** — cell `(5, 42)`, the 68 — which needs
+`danger[1][(1, 20)] ≥ danger[1][(2, 21)] + 7`: the half-cell over the human's
+city is more dangerous to the AI than the one south-east of it, which is what
+a danger map is for. Routing the term reproduces the original's destination
+and its `dest_angle` exactly, and Great Lakes' word moved **8030 → 8031**.
+
+A hundred frames of the word had been sitting behind a seam whose own
+comment said it could not be closed. The lesson is the comment: a seam that
+names a reason should have the reason re-read before it is believed, because
+the reason here was a claim about *this* crate's own code, not about the
+original's.
 
 ### 8.1 `find_unit_ordered`, read rather than named
 
@@ -774,6 +827,12 @@ run58's block 4314 holds as its `EXPLORE_TO`. With this arm the word is
   the previous label and East Indies' frame 1373 read as a seventh ring
   rather than a fallback. A draw without a mark is not a neutral omission:
   it is a mislabelled draw, and it sent item 110 to the wrong mechanic.
+- `Sim::scout_danger` — §8's danger term, `World::danger_half` since
+  2026-09-17 (item 319) and a returned `0` before it. Its **only**
+  reachable caller is `Sim::scout_cell`: `Sim::scout_region_scan` keeps the
+  call on its non-quartered arm, which no AI scout takes (§11's `local_74`).
+  What checks it is `run94_s_window_is_great_lakes_scout_repath` — the
+  destination the term decides, on the block it is written.
 - `Sim::was_really_seen` — §7's fog read; the sibling of
   `crate::ai_sites`' `site_was_seen`, which is `was_seen` and is a
   different function with one word between their names. **The grid it
@@ -944,9 +1003,13 @@ The checks:
    this call site — the one that fires on East Indies is
    `Unit::do_explore_to`'s fifteen-frame look, and by the time a scout is
    idle beside a box the box is taken.
-3. **The score's danger term** (§8). Zero in every capture. *Capture:* a
+3. ~~**The score's danger term** (§8). Zero in every capture. *Capture:* a
    window at a frame where `GameDaemon::calc_danger` has written a non-zero
-   figure near a scout, with the scout's chosen target in the same window.
+   figure near a scout, with the scout's chosen target in the same window.~~
+   **That capture was taken and it is run94** (2026-09-17, item 319): the
+   window [7754, 8045) holds the AI scout's whole explore leg on Great
+   Lakes, block 8002 carries the destination the term decides, and §8.2 is
+   the answer. The term is routed to `World::danger_half` and diff-backed.
 4. **The goods halving** (§8) needs `city_num` to be 0 or 1; every capture
    has the AI at exactly one city at frame 0, so the `& 0x10` arm is live
    and the `& 0x02` arm is not. Which good bits those are is not read.

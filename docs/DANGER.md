@@ -247,6 +247,16 @@ not that nothing did.
   (`run64_s_window_clocks_are_the_original_s`): 2,061 fields of run64's
   eight-frame window, of which thirty-four used to part and none does.
 - East Indies' word, indirectly: 6198.
+- **Great Lakes' word, directly: 8030 → 8031** (2026-09-17, item 319).
+  The map has a **third** consumer, and it had never been wired to one:
+  `Unit::think_scout`'s score adds
+  `danger[who][(y >> 1) * reg_xs + (x >> 1)]` to every candidate cell —
+  `005f66d2` in the city loop and `005f6b45` in the region scan, the same
+  five instructions twice — and `Sim::scout_danger` answered a flat zero
+  behind a comment saying this grid was keyed differently. It is not:
+  [`World::danger_half`] is that expression. Routed, the AI's scout picks
+  the cell the original picks (`docs/SCOUT.md` §8.2), and
+  `run94_s_window_is_great_lakes_scout_repath` is what checks it.
 - **The unit pass — the formula, the military gate both ways, the
   owner skip and the single-cell write.** §8.1; the archives are run26,
   run29, run27 and run25, and no capture was needed.

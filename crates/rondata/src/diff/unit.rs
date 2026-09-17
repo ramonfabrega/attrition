@@ -3001,6 +3001,290 @@ mod tests {
         );
     }
 
+    /// **run94 — the AI scout's explore leg, and the danger term it turns
+    /// on** (item 319, `docs/SCOUT.md` §8.2).
+    ///
+    /// Great Lakes' word stood at **8030**, where this crate spent one
+    /// extra `Unit::do_move+0xe84`. The attributed fold named `1/0`, the
+    /// AI's **scout**, and not the marching army the brief had named; the
+    /// disk then named the rest. run89's 247 blocks carry the same unit's
+    /// whole record and this crate agrees with every one of them, and
+    /// `report.py … when Unit::do_move` puts the original's nearest draws
+    /// either side of 8030 at 7676 and 9443 — so the pathfinder was not
+    /// the difference, the **state** it was handed was.
+    ///
+    /// This capture is [7754, 8045) at run87/run89's detail, six blocks
+    /// over run89's tail, and it holds the whole arc: the explore order
+    /// the scout is given on block 8002, every waypoint it consumes, and
+    /// fifteen blocks past the parting.
+    ///
+    /// **What it says is a value.** Frame 8001 spends the same 38 draws on
+    /// both sides, entry for entry, over five candidate cells ringing the
+    /// *human's* city — and the two sides then pick different ones,
+    /// because `think_scout`'s score adds
+    /// `danger[who][(y >> 1) * reg_xs + (x >> 1)]` and this crate's
+    /// `scout_danger` returned a flat zero. With the term routed to
+    /// `World::danger_half` — the same key, and a grid already diff-backed
+    /// value for value against run64 — the destination is the original's:
+    /// **`(4344, 32760)`**, cell `(5, 42)`, against the `(2808, 31992)`
+    /// the nearest-cell answer gave. Great Lakes' word moved **8030 →
+    /// 8031**.
+    ///
+    /// **And 8031 is a different mechanic, named here rather than left to
+    /// be rediscovered.** Both sides now plan from the same order to the
+    /// same final, and the stack's bottom two entries agree; the original
+    /// then swings one cell **west** of the human's city — `(2040, 31224)`
+    /// and `(2040, 30456)` where this crate keeps to column `2808`, which
+    /// runs through the city's own cells — and carries six entries where
+    /// this crate carries five. That is `find_wpath`, not `think_scout`,
+    /// and it is asserted below by value so the successor has to come back
+    /// and change it.
+    #[test]
+    fn run94_s_window_is_great_lakes_scout_repath() {
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(tr)) = (
+            dump("gamelog-run94-greatlakes-scoutrepath.txt"),
+            trace("rontrace-run94.log"),
+        ) else {
+            eprintln!("skipping: no run94 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = crate::capture::read(&path);
+        let log = Log::parse(&text);
+        let texts = sibling_texts();
+        let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
+        let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+        let refs: Vec<&Initial> = inits.iter().collect();
+        let report = run_traced(&loaded, &log, Tuning::RON, None, None, &refs, Some(&tr)).unwrap();
+
+        // The window itself, at both ends: a `frame_window` that landed
+        // somewhere else, or a `poll_max` truncation, is silent otherwise.
+        let blocks: Vec<i64> = report
+            .frames
+            .iter()
+            .filter(|f| f.compared > 0)
+            .map(|f| f.frame)
+            .collect();
+        eprintln!(
+            "run94: {} blocks {:?}..{:?}",
+            blocks.len(),
+            blocks.first(),
+            blocks.last()
+        );
+        assert!(
+            blocks.len() >= 291 && blocks.first() == Some(&7754),
+            "run94's window is not [7754, 8045): {} blocks from {:?}",
+            blocks.len(),
+            blocks.first()
+        );
+        let sum = |g: fn(&FrameResult) -> usize| report.frames.iter().map(g).sum::<usize>();
+        eprintln!(
+            "run94: {} unit fields, {} order/path, {} angle, {} collide, {} build",
+            sum(|f| f.compared),
+            sum(|f| f.order_compared),
+            sum(|f| f.angle_compared),
+            sum(|f| f.collide_compared),
+            sum(|f| f.build_compared),
+        );
+        // `UNITS=3`'s own rows, so a capture at a thinner detail cannot
+        // pass this test saying nothing.
+        assert!(
+            sum(|f| f.compared) >= 13_000
+                && sum(|f| f.order_compared) >= 13_000
+                && sum(|f| f.collide_compared) >= 70_000,
+            "run94's own rows are missing — the wrong file"
+        );
+
+        // **The original's own record of the order**, read off the dump
+        // rather than off the report: the destination the danger term
+        // decides, and the six-entry stack planned from it.
+        let states = log.frame_states();
+        let scout = |n: i64| {
+            states
+                .iter()
+                .find(|f| f.n == n)
+                .map(|f| {
+                    f.units
+                        .iter()
+                        .find(|u| u.who == 1 && u.o == 0)
+                        .expect("run94 has no 1/0 — the wrong file")
+                })
+                .expect("run94 has no such block")
+        };
+        let before = scout(8001);
+        let after = scout(8002);
+        assert_eq!(
+            (before.orders.len(), after.orders.len(), after.path.len()),
+            (0, 1, 6),
+            "1/0 does not take its explore order on block 8002"
+        );
+        let m = after.orders.first().expect("the explore order");
+        assert_eq!(
+            (m.kind.as_str(), m.x, m.y),
+            ("EXPLORETOORDER", Some(4344), Some(32760)),
+            "the original's scout is sent somewhere else on block 8002 — \
+             this is the cell the danger term chooses"
+        );
+        assert_eq!(
+            (
+                after.path[0].to,
+                after.path[0].tolerance,
+                after.path[0].flags
+            ),
+            ((4320, 32736), 0, 1),
+            "block 8002's stack does not bottom out on the order's own goal"
+        );
+
+        // **And this crate's answer to it, off the diff.** The order row
+        // is what the danger term bought: every scoring `MOVEORDER` field
+        // of `1/0` on the block agrees, `x`/`y` — the destination — first
+        // among them.
+        //
+        // `facing` is left out and is the one row this order does carry:
+        // it is already declared non-scoring
+        // ([`OrderMismatch::scores`], `docs/MOVEORDER`'s own open
+        // question at `docs/ORDERS.md` §4.5), the original logs `0` here
+        // and this crate `1`, and it is the same row on **every** explore
+        // order in this window rather than anything the destination
+        // decides. Printed below with the rest of the residue.
+        let at_8002 = report
+            .frames
+            .iter()
+            .find(|f| f.frame == 8002)
+            .expect("block 8002");
+        let move_rows: Vec<(&str, i64, i64)> = at_8002
+            .order_diverged
+            .iter()
+            .filter(|d| (d.who, d.o) == (1, 0))
+            .filter_map(|d| match d.what {
+                OrderMismatch::Move {
+                    field,
+                    ours,
+                    theirs,
+                } => Some((field, ours, theirs)),
+                _ => None,
+            })
+            .filter(|(field, _, _)| *field != "facing")
+            .collect();
+        assert_eq!(
+            move_rows,
+            vec![],
+            "1/0's explore order parts on block 8002 — the danger term is \
+             the only thing that chooses this destination: {move_rows:?}"
+        );
+        // And the exclusion is shown to be an exclusion rather than an
+        // empty filter: the row it names is really there.
+        assert!(
+            at_8002.order_diverged.iter().any(|d| (d.who, d.o) == (1, 0)
+                && matches!(
+                    d.what,
+                    OrderMismatch::Move {
+                        field: "facing",
+                        ours: 1,
+                        theirs: 0
+                    }
+                )),
+            "block 8002 carries no `facing` row for 1/0, so filtering it \
+             out above says nothing — if it has closed, drop the filter"
+        );
+
+        // **The successor, by value.** The stack's bottom two entries are
+        // the original's and the rest is `find_wpath`'s own route: the
+        // original goes round the human's city to the west, this crate
+        // through the column its footprint sits in. Pinned so the item
+        // that closes it has to come back here.
+        let path_rows: Vec<&OrderMismatch> = at_8002
+            .order_diverged
+            .iter()
+            .filter(|d| (d.who, d.o) == (1, 0))
+            .map(|d| &d.what)
+            .filter(|w| w.is_path())
+            .collect();
+        eprintln!("run94: 1/0's stack on 8002 {path_rows:?}");
+        assert!(
+            path_rows
+                .iter()
+                .all(|w| !matches!(w, OrderMismatch::PathTo { slot, .. } if *slot < 2)),
+            "the stack's bottom two entries part as well, so this is no \
+             longer the route alone: {path_rows:?}"
+        );
+        assert!(
+            path_rows.iter().any(|w| matches!(
+                w,
+                OrderMismatch::PathTo {
+                    slot: 2,
+                    theirs: (2040, 31224),
+                    ..
+                }
+            )),
+            "slot 2 no longer parts at the original's (2040, 31224) — if \
+             `find_wpath` has closed, this assertion is the one to rewrite \
+             (`docs/PATHFINDER.md`): {path_rows:?}"
+        );
+
+        // The word's own frame is pinned where it is measured —
+        // `run53_s_24000_frames_put_the_ceiling_where_run33_did`, on this
+        // map's 24,000-frame trace. This capture's job is the value under
+        // it, and running the whole stream twice would double its cost for
+        // a number that test already carries.
+
+        // **What parts across the window, printed and not pinned.** Past
+        // the word both sides run on streams that are nobody's (run57's
+        // rule); below it the residue is what this window inherits.
+        let mut wrong: Vec<(i64, i64, i64, String, String)> = Vec::new();
+        let mut above = 0usize;
+        for fr in &report.frames {
+            for (who, o, what, row) in rows(fr) {
+                if fr.frame > 8031 {
+                    above += 1;
+                } else {
+                    wrong.push((fr.frame, who, o, what, row));
+                }
+            }
+        }
+        let mut by_unit: std::collections::BTreeMap<(i64, i64, String), usize> =
+            std::collections::BTreeMap::new();
+        for (_, who, o, what, _) in &wrong {
+            *by_unit.entry((*who, *o, what.clone())).or_default() += 1;
+        }
+        eprintln!("run94: rows at or below 8031 by (who, o, what): {by_unit:?}");
+        // **The scout's own two dates, and they are the successor's.**
+        // `1/0` carries no row at all below block 8002 — 248 blocks of
+        // exact agreement, the whole approach and the explore order before
+        // this one — its order parts on 8002 (the route, above) and its
+        // **position** first on 8014, the frame it takes the third
+        // waypoint and the two routes separate. Anything earlier than
+        // either would mean this window's finding is not what it says.
+        let first = |what: &str| -> Option<i64> {
+            wrong
+                .iter()
+                .filter(|(_, who, o, w, _)| (*who, *o) == (1, 0) && w == what)
+                .map(|(f, _, _, _, _)| *f)
+                .min()
+        };
+        assert_eq!(
+            (first("order"), first("pos")),
+            (Some(8002), Some(8014)),
+            "1/0's record parts somewhere else: order {:?}, pos {:?}",
+            first("order"),
+            first("pos")
+        );
+        eprintln!("run94: {above} rows above the word, printed and not pinned");
+        // `RON_DEBUG_ROWS=<lo>-<hi>` prints every diverging row of every
+        // unit on those blocks (item 312's instrument).
+        if let Some((lo, hi)) = crate::diff::harness::site_window_named("RON_DEBUG_ROWS") {
+            for fr in &report.frames {
+                if !(lo..=hi).contains(&fr.frame) {
+                    continue;
+                }
+                for (who, o, what, row) in rows(fr) {
+                    eprintln!("  f{} {who}/{o} {what}: {row}", fr.frame);
+                }
+            }
+        }
+    }
+
     /// Every disagreement one frame's comparison holds, as
     /// `(who, o, what, row)` — the whole record rather than the field a
     /// mechanic happens to care about (`CLAUDE.md`, "Prefer a diff to a

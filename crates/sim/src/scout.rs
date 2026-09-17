@@ -594,12 +594,25 @@ impl Sim {
         scan.ring = scan.ring.min(ring);
     }
 
-    /// **Seam** — `WorldData::danger[who]` at half the cell resolution
-    /// (`(y >> 1) * reg_xs + (x >> 1)`), the grid `crate::ai_sites`'
-    /// `site_danger` names. Zero in every capture, and keyed differently
-    /// from [`crate::world::World::danger`], so it is not routed there.
-    fn scout_danger(&self, _who: Player, _c: Cell) -> i32 {
-        0
+    /// `WorldData::danger[who][(y >> 1) * reg_xs + (x >> 1)]`, the term
+    /// both of `think_scout`'s scans add to a candidate's score. The
+    /// listing settles that they are the **same** expression twice —
+    /// `sarl` on each cell coordinate, `imull 0x24(%ecx)` for `reg_xs`,
+    /// the row at `0x13c(%ecx,who,4)`, then the load and the `addl` that
+    /// carries the not-mine four with it: `005f66d2` in the city loop
+    /// (`Unit::think_scout+0x6c2`) and `005f6b45` in the region scan
+    /// (`+0xb35`).
+    ///
+    /// ~~**Seam** … keyed differently from `World::danger`, so it is not
+    /// routed there.~~ It is not keyed differently:
+    /// [`crate::world::World::danger_half`] is `(c.y / 2) * reg_xs +
+    /// (c.x / 2)` on a non-negative cell, which is the listing's shift
+    /// exactly, and the grid behind it is diff-backed value for value
+    /// against run64's own `danger[who][scan]` (`docs/DANGER.md` §8).
+    /// The seam was the routing and nothing else, and it cost Great
+    /// Lakes a hundred frames: `docs/SCOUT.md` §8.1.
+    fn scout_danger(&self, who: Player, c: Cell) -> i32 {
+        self.world.danger_half(who, c)
     }
 
     /// `find_unit_ordered(<same type, mine, not me, within 0x600>)` (§8):

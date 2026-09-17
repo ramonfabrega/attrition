@@ -2670,3 +2670,101 @@ check: test "$(python3 tools/gamelog/armyrecs.py gamelog-run93-greatlakes-firstt
 # word; `docs/ARMY.md` §18). The assertion is
 # `run93_says_great_lakes_7930_releases_and_takes_its_target_in_one_tick`.
 
+
+run: 94
+tag: greatlakes-scoutrepath
+item: 319
+why: Great Lakes' word is at 8030 and the extra Unit::do_move+0xe84 is the AI scout's own re-path, not the army's — and this map has no archive at all between run89's 7776 and run80's 23960
+# **The named mechanism was wrong again, and the widening said so.** The
+# brief read 8030 as "the marching army's own walk, one frame out". The
+# attributed fold says the extra draw belongs to **`1/0`**, the AI's
+# **scout** (type 19), on an `EXPLORETO` order — not to any unit of army
+# `1/1`. `RON_DEBUG_UNIT=1/0@…` on run53's own trace is what named it,
+# and it cost twenty minutes.
+#
+# **THE DISK WAS GREPPED FIRST**, every archive, for a block labelled
+# 7937-8173 on any map: **there is none**. Great Lakes' coverage runs
+# run93 [7929, 7936] at `MISC` alone, run89 [7514, 7776) at this detail,
+# and then nothing until run80's 23960. East Indies' stops at run90's
+# 7916.
+#
+# **And run89 was read before this was booked.** Its 247 blocks carry
+# `1/0`'s whole record — position, order, and the `PATHDATA` stack — and
+# this crate agrees with every one of them: `RON_DEBUG_ROWS=7514-7780`
+# prints 1080 diverging rows over the window and **not one is `1/0`**
+# (they are `1/23`'s order, `1/24`/`1/25`/`1/26`'s position and the group
+# ids, all carried residue). So the scout's planner is not wrong *in
+# general*, which is exactly what makes 8030 worth a capture rather than
+# a patch.
+#
+# What run89 also shows is the shape the answer has to have: at block
+# 7700 the original's own stack is down to **one** entry — the final
+# `(10464, 28128)`, tolerance 0, flag 1 — 1,750 away, and it walks the
+# whole leg to 7754 with **no `Unit::do_move` draw at all** (`report.py …
+# when Unit::do_move` says the original's nearest are 7676 and 9443). At
+# 8030 this crate is in that same one-entry state and *does* draw: the
+# march from (3450, 29962) to the final (2784, 31968) steps into tile
+# (17, 157), which this crate's world has `BLOCKED` with a building
+# footprint, `go_around_building` picks the westward opening five tiles
+# out over the eastward one two tiles out (it is nearer the waypoint),
+# and 971 > 0x300 gives up — `find_path` returns 1 and the grid draw is
+# spent. So the question is a **value**: what is the original's `1/0`
+# holding on blocks 8030 and 8031 — where is it, what is its order's
+# `dest_x/dest_y`, and how many `PATHDATA` are on its stack.
+frames: 8060
+mapstyle: 14
+# run87/run89's detail exactly, so the overlap needs no `--exclude` and
+# no `--drop`. `UNITS=3` is what carries the path stack and the order
+# list, which is the whole record this capture is for.
+end: MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,DEATHS=1,LEADERS=1
+# **The window overlaps its neighbour on purpose.** run89's own window
+# ends at 7759, so opening at **7754** puts six blocks over it and turns
+# "same seed, therefore same game" into a state digest, for about two
+# seconds of dumping. The 291 blocks then cover the *whole* arc: the
+# order the scout is given at 8001, every waypoint it consumes, the
+# parting at 8030 and fifteen blocks past it.
+frame_window: 7754 8045
+cover: cover=0
+# run76/run79/run80/run83/run84/run87/run89's Great Lakes floor: the
+# start dump is 10.9 MB at this `start:` detail and the log does not grow
+# until 7754.
+settle_min: 14000000
+# **Sized from run89's own measurement, not from an estimate.** run89
+# wrote 247 blocks for 112,314,402 bytes at this map, era and detail —
+# 412 KB a block after a 10.9 MB start dump — over eight minutes on a
+# fifty-second run-up. 291 blocks is therefore ~120 MB above the start,
+# ~131 MB whole, and about ten minutes end to end. 120 polls is forty.
+poll_max: 120
+# Same game: the trace word for word against run53, this map's own 24k run.
+check: python3 tools/gamelog/rngcmp.py rontrace-run53.log rontrace-run94.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=8000)}'
+# **The overlap, and the count is the claim** — `samegame.py` exits 0
+# when nothing is in common, which is the vacuous pass run83 caught.
+check: python3 tools/gamelog/samegame.py gamelog-run89-greatlakes-wordframe.txt gamelog-run94-greatlakes-scoutrepath.txt | tee /dev/stderr | awk '/in common/{r=$0; sub(/.*in common /,"",r); split($0,a,", "); n=a[2]+0} /^differ:/{d=$2+0} END{print "run89 overlap: common="n" "r" differ="d; exit !(n==6 && d==0 && r=="(7754..7759)")}'
+# **`to_x` pins `UNITS=3`, which is the half of the record this capture is
+# bought for.** A stanza that kept `GUYS=4` and dropped `UNITS` would
+# lose the path stack and answer nothing. Made to fail first, on real
+# data: this line prints "6 (7754..7759)" and exits 1 on **run89** (the
+# neighbour, same map, same detail — its six overlap blocks are all it
+# has here), "0 (0..0)" and exits 1 on **run53** (this map's own thin 24k
+# dump, which carries no `PATHDATA` at all), and 291 with its own range
+# on this capture.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|to_x" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run94-greatlakes-scoutrepath.txt" | awk '/BEGIN FRAME/{f=$3} /to_x/{if(f!="")seen[f]=1} END{n=0; lo=0; hi=0; for(k in seen){v=k+0; if(v>=7754&&v<8045){n++; if(lo==0||v<lo)lo=v; if(v>hi)hi=v}} print "frame blocks with a to_x in [7754,8045): "n" ("lo".."hi")"; exit !(n==291 && lo==7754 && hi==8044)}'
+# TAKEN 2026-09-17 — nine minutes (16:50:33 to 16:59:40), **292 blocks,
+# 134,579,630 bytes** (291 window + the `!quit` block at 8061), which is
+# 425 KB a block and run89's own measurement to within 4%. All three
+# checks ok first time: `rngcmp` against run53 **0 differing, 8,061
+# identical**; the run89 overlap **6 in common (7754..7759), 0 differ** —
+# byte for byte, with no `--exclude` and no `--drop`, the prediction this
+# stanza made; and the `to_x` tooth **291 (7754..8044)**.
+#
+# **AND THE DESTINATION IS A DIFFERENT CELL.** Block 8002 has `1/0`
+# taking an `EXPLORETOORDER` to **`(4344, 32760)`** with a six-entry
+# stack; this crate was sending it to `(2808, 31992)`. Frame 8001 spends
+# the same **38 draws on both sides, entry for entry** over five
+# candidates ringing the human's city, so the scan is right and the
+# *score* was not: `think_scout` adds
+# `danger[who][(y >> 1) * reg_xs + (x >> 1)]` and `Sim::scout_danger`
+# returned a flat zero behind a comment claiming the grid was keyed
+# differently from `World::danger_half`. It is keyed identically.
+# Great Lakes **8030 → 8031**. `docs/SCOUT.md` §8.2, and the assertion is
+# `run94_s_window_is_great_lakes_scout_repath`.

@@ -5514,6 +5514,55 @@ is `(42877, 24531)` — cell **(55, 31)** against the leader's own **(56,
 this crate had to emit as a head waypoint. `docs/GROUPS.md` §12.5 has both
 gates' operands off the listing; the word moved **7679 → 7930**.
 
+## run94 — the AI scout's explore leg, and the danger term it turns on (2026-09-17)
+
+**What it is.** run53's game, a `UNITS=3`/`GUYS=4` window over
+**[7754, 8045)** — 292 blocks (291 window plus the `!quit` block at 8061),
+**134,579,630 bytes**, `cover=0`, **nine minutes** from the start click to
+the archive, of which the 7,754-frame run-up was about ninety seconds. It
+exists for one unit's record: the AI's scout `1/0` over the frames it is
+given an explore order and walks it.
+
+**The disk was grepped first, and this time it argued for the capture.**
+No archive on either map carries a block labelled 7937–8173: Great Lakes
+runs run89 [7514, 7776), run93 [7929, 7936] at `MISC` alone, and then
+nothing until run80's 23960; East Indies stops at run90's 7916.
+
+**But run89 was read before this was booked, and it moved the item.** Its
+247 blocks carry the same unit's whole record — position, order and the
+`PATHDATA` stack — and `RON_DEBUG_ROWS=7514-7780` prints 1,080 diverging
+rows over the window of which **not one is `1/0`**. So the scout's planner
+was not wrong in general, which is what made 8030 a value question rather
+than a patch. `report.py … when Unit::do_move` said the same from the
+other side: the original's nearest `Unit::do_move` draws either side of
+8030 are **7676 and 9443**.
+
+**Three checks, all ok first time.** `rngcmp.py rontrace-run53.log
+rontrace-run94.log` → **0 differing, 8,061 identical**; the run89 overlap
+→ **6 in common (7754..7759), 0 differ**, with no `--exclude` and no
+`--drop`, which is what taking the neighbour's detail exactly rather than
+nearly buys; and the `to_x` tooth → **291 (7754..8044)**, made to fail
+first on run89 (6) and on run53 (0).
+
+**What it says.** Block 8002 has `1/0` taking an `EXPLORETOORDER` to
+**`(4344, 32760)`** with a six-entry stack bottoming out on `(4320,
+32736)`. This crate was sending it to `(2808, 31992)`: frame 8001 spends
+the same **38 draws on both sides, entry for entry**, over five candidate
+cells ringing the *human's* city, and the score that separates them adds
+`danger[who][(y >> 1) * reg_xs + (x >> 1)] ` — a term
+`Sim::scout_danger` returned a flat zero for, behind a doc comment
+claiming the grid was keyed differently from the one this crate already
+has. It is not (`docs/SCOUT.md` §8.2). Routed, the destination is the
+original's and Great Lakes' word moves **8030 → 8031**.
+
+**And the window dates its own successor.** `1/0` carries no row at all
+below block 8002 — 248 blocks of exact agreement — its order parts on
+8002 where the two `find_wpath` routes separate (the original swings a
+cell west of the city's footprint, `(2040, 31224)`, where this crate keeps
+to column `2808` and runs through it), and its **position** on 8014.
+`run94_s_window_is_great_lakes_scout_repath` is the assertion and it pins
+both dates.
+
 ## 178 needed no screen — the danger map's unit pass was on disk four times (2026-09-06)
 
 **What it is.** Not a run. `docs/DANGER.md` §8 had the unit pass of
