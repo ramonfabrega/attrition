@@ -415,10 +415,26 @@ simulation sets `visible`.
   (`docs/PATHFINDER.md` §20.2). A mask that is not the owner's bit is
   exactly what §6's reveal has and `Object::update_seen`'s disc does not,
   and no disc of the one AI unit in the west can make the shape. The
-  reveal lands between blocks **7937 and 7998**; `visible`'s **writer** is
-  what this document still owes, and
+  reveal lands between blocks **7937 and 7998**, and
   `run95_s_block_8002_is_where_the_fog_parts_and_the_price_with_it` is the
   standing check.
+
+  **What the successor inherits is an elimination, not a candidate.** Every
+  writer of the `seen2` plane the decompile names was checked against that
+  window and none of them can have run in it:
+
+  | writer | ruled out by |
+  |---|---|
+  | `Object::update_seen`'s disc, via `World::set_seen` | the mask is the owner's bit, and no disc of the one AI unit in the west has the shape (§3's radius and centre, measured) |
+  | `Object::update_seen`'s tail, `set_seen2` masked by `ObjectData::infiltrated` (`+0x3a`, **not** `visible`) | `infiltrated`'s only writers are `ScenarioFuncSet::add_infiltrated`/`remove_infiltrated` — script functions a normal game never calls |
+  | `Unit::update_local_seen` / `Wall::update_local_seen` | reached only from `update_seen(0)` and `update_all_seen`, and **no `update_seen(0)` happens in the window**: `update_all_seen` runs at frame 7933 (block 7934, and run93's 7936 is still dark), and `Build::activate`/`Wall::activate`/`Unit::init` need a roster change that did not occur — `BUILDDATA` 56, `WALLDATA` 56, `UNITDATA` 180 and `ANIMALDATA` 80, identical at 7932 and 7999 |
+  | `Ammo::do_damage`'s `set_seen2(…, 0xff, 0)` | it is the **nuke** flash — `ACHIEVEEVENT_NUKE_EXPLOSION`, `Nuke::add_nuke` — in the Ancient age |
+  | `ScenarioFuncSet::set_explored` / `set_seen` | script-only |
+
+  So the writer is **unestablished**, and the next move is an *offset*
+  search — writes to `World +0x160` and to `ObjectData +0x40` — rather than
+  another grep by name, which is what missed `infiltrated` being the tail's
+  mask in the first place.
 
 ## 8. What the simulation carries, and what checks it
 
