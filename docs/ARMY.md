@@ -705,8 +705,22 @@ orders, every tick, until `is_moving`/`is_engaged` says otherwise.
 
 **`Army::do_marching@006f3df0`**: `count(COUNT_ATTACK) < 1` → `close()`,
 return — an army with nothing that can attack disbands. Then the target
-is **validated**, and any failure goes to the retarget below. With
-`target_o >= 0`, `t = objects[target_who][target_o].data()` (vslot
+is **validated**, and any failure goes to the retarget below.
+
+**Holding no target is itself a failure, and it is the common one.** The
+function's third instruction is `iVar4 = field_0x30` and its fourth
+`if (iVar4 < 0) goto LAB_006f3fb2` (`006f3df0`+0x1d) — the same label
+every validation failure below jumps to — so an army that reaches
+`do_marching` with `target_o == -1` goes **straight to `find_target`**
+and never touches `march_to_target`. That is not an edge case: it is
+what happens on the very tick `do_mustering` releases an army, because
+§6's dispatch `if`s each re-read `status` and `do_mustering`'s `status =
+2` (§7) leaves `target_o` at `-1`. Release and first target are one
+tick, not two. Great Lakes 7930 is that tick for the AI's first army and
+the crate spent nothing there against the original's three draws, which
+is what item 317 closed (§16.8).
+
+With `target_o >= 0`, `t = objects[target_who][target_o].data()` (vslot
 `+0xac`):
 
 - `t.flags & OBJECT_VALID`, else *keep marching* (a dead target is left
@@ -1059,11 +1073,27 @@ farm.
 **No target after both passes**: return with `target` unchanged (−1 from
 the retarget); `do_marching` sets `status = 8` (§9).
 
-**The draws.** One `Random::get(game_random, 0, 0xffff)` per candidate
-city that reaches the score, one per candidate fort, and one in the
-difficulty gate's coin — all in the sync stream (`docs/SYNC.md` §3). The
-city draw is `find_target+0x7df` in the trace; run26's frame 12024 opens
-with three of them and no coin (§16.5).
+**The draws, and both addresses.** One `Random::get(game_random, 0,
+0xffff)` per candidate city that reaches the score, one per candidate
+fort, and one in the difficulty gate's coin — all in the sync stream
+(`docs/SYNC.md` §3).
+
+- **`find_target+0x7df`** (return `006f718f`, the call at `006f718a`) is
+  the per-candidate score. The listing reads `cltd` / `mov $0xc8,%ecx` /
+  `idiv %ecx` / `lea 0x384(%edx),%ebx` — the `% 200 + 900` above.
+- **`find_target+0x410`** (return `006f6dc0`, the call at `006f6dbb`) is
+  the difficulty gate's coin, read `and $0x80000001,%eax` / `jne` — so
+  the leader is considered when the draw is **even**. The `jmp 0x6f6dcb`
+  at `006f6dac` is `find_aggressive_army`'s non-negative arm skipping
+  the call entirely, which is why the coin is thrown only when nothing
+  is already aggressive.
+
+run26's frame 12024 opens with three scores and no coin (§16.5); Great
+Lakes 7930 is one coin and two scores (§16.8). Both are
+[`sim::army::SITE_FIND_TARGET_COIN`] and `SITE_FIND_TARGET_SCORE` in the
+crate and in `rondata::trace`'s table — the draws were always made, and
+until item 317 neither side of the diff named them, so the trace spelled
+them as bare addresses.
 
 ## 13. The muster spot — `Army::find_muster_spot(o, who, flag)@006f5cc0`
 
@@ -1496,6 +1526,31 @@ three destinations, the same heading, the marching squad untouched — is
 `great_lakes_6994_issues_the_second_squad_s_walk_to_the_army`. The word
 went to **7176** with the limb in.
 
+### 16.8 Great Lakes 7930 — release and first target are one tick (2026-09-17)
+
+Item 317; story in `docs/journal/2026-09-17-item-317.md`.
+
+- **7930 is the first `find_target` draw of the whole 24,000-frame
+  game**, every one after on `frame % 256 ∈ {250, 248}` — §5's gate,
+  leader 1's slots 1 and 2, dated by `report.py <log> when
+  Army::find_target`. Chain: `find_target < do_marching+0x248 <
+  process+0x42c`.
+- **Both sides release on the same tick**, so the muster was never it:
+  run92's group 64 is `num` **12 on blocks 7673/7674, 15 on 7676**, this
+  crate's `num_standard` 4 at 7674 and 5 at 7930.
+- **It is `do_marching`'s empty-target arm** (§9). §6's `if`s re-read
+  `status`, so `status = 2` reaches `do_marching` in the same tick with
+  `target_o = -1`. With `retarget = target.is_none()` the frame agrees
+  **ten for ten, entry for entry** — coin once, score twice (§12), both
+  unnamed on both sides until now.
+- **run93 checked the value**, `DUMP_ALL` at [7929, 7933). Block 7931:
+  `status 18`, `city -1`, **`target_o 2007, target_who 1`**, the AI's own
+  building; `x, y` stay **41568, 25440** — `find_target`'s tail, not the
+  muster centre `do_mustering` wrote. Field for field here, `role`
+  excepted (§18).
+
+**Word 7930 → 8030**; 8318 frames draw for draw (8193). Successor: 8030.
+
 ## 17. What the simulation carries, and what checks it
 
 `crates/sim/src/army.rs`: the record and the pool (§2 — `init_army`'s
@@ -1588,6 +1643,22 @@ Checks, cheapest first (`rondata::diff`, `army_tests`):
 
 ## 18. What is not established
 
+- ~~**Which target Great Lakes 7930 actually picks**~~ (item 317,
+  §16.8) — **run93 settled it**: `target_o 2007, target_who 1`, the AI's
+  own building, and this crate's record agrees field for field. The
+  successor frame, **8030**, is still open: this crate spends one extra
+  `Unit::do_move+0xe84` there — the marching army's own walk, one frame
+  out — and the target is now ruled out as its cause.
+- **`do_marching`'s inline `do_forming`, once or twice.** The original's
+  `LAB_006f3fb2` calls `do_forming` itself before returning (§9), and
+  `Army::process` then calls it again on its own `status & 0x10` arm —
+  so on this path the original runs it **twice** and `army.rs` once,
+  leaving it to §6's dispatch. It makes **no draw difference at 7930**
+  (the frame agrees entry for entry with the single call), so nothing
+  observed separates the two and the crate was left as it is rather than
+  changed on a reading alone. The check that would settle it is a frame
+  where `do_forming` draws — its `find_muster_spot` ring (§13) — reached
+  from a retarget.
 - ~~**`leader_flags & 8`**~~ — the PDB names it `LEADER_COOP_SOLO` (audit
   A.56): a human seat the AI plays for; `production_ai` runs for such a
   leader and the armies do not (B.16). Never set in a skirmish.
@@ -1646,7 +1717,14 @@ Checks, cheapest first (`rondata::diff`, `army_tests`):
 - **`rally_dist`** is written (`0x1200` on a new target) and never read
   in the family or anywhere the export shows. Dumped, so diffed, so kept.
 - **`role`** is the OR of the groups' `GroupData::role` words; nothing in
-  the family reads it. *Same.*
+  the family reads it — and, **unlike `rally_dist` above, this crate does
+  not carry it**: `army_normalize` writes a flat `0` because
+  `group::GroupState` has no role word to OR. run93's block 7931 is the
+  first whole-record `ARMY` diff to reach it and `role` is its one
+  skipped field (item 317); the original has `1379331` there, which is
+  group 64's own `role` in run92's pool. Carrying it means giving the
+  group state a role word, which is a `docs/GROUPS.md` job and not an
+  army one.
 - **The order of two multipliers in §12** — the enemy-capital
   `GLOBAL_GOVERNMENT_BONUS` block and the `bordering` block — is as the
   decompile lists them; the listing was not read for these two, and the

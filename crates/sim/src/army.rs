@@ -45,6 +45,14 @@ pub mod seams {}
 pub const SLOTS: usize = 16;
 
 /// `Unit::come_out+0x25ca` — the scout arm's coin, `% 2`.
+/// `find_target`'s two draw sites, under the original's own offsets
+/// (§12). `+0x410` is the per-leader coin at `6f6dbb` — taken only when
+/// `find_aggressive_army` answers nothing — and `+0x7df` the per-candidate
+/// `% 200 + 900` at `6f718a`. Both are in the trace's sequence and neither
+/// was named until item 317; the draws themselves were always made.
+pub const SITE_FIND_TARGET_COIN: &str = "Army::find_target+0x410";
+pub const SITE_FIND_TARGET_SCORE: &str = "Army::find_target+0x7df";
+
 pub const SITE_COME_OUT: &str = "Unit::come_out+0x25ca";
 /// `Unit::come_out+0x25b0` — the naval-scout arm's coin, `% 3`.
 pub const SITE_COME_OUT_BARK: &str = "Unit::come_out+0x25b0";
@@ -1047,7 +1055,18 @@ impl Sim {
             self.close_army(who, slot);
             return;
         }
-        let mut retarget = false;
+        // **No target is the retarget branch, not the march.** The
+        // original opens on `iVar4 = field_0x30; if (iVar4 < 0) goto
+        // LAB_006f3fb2` (`006f3df0`+0x1d), so an army that reaches
+        // `do_marching` holding nothing goes straight to `find_target` —
+        // and it reaches it holding nothing on the very tick
+        // `do_mustering` releases it, because `Army::process` re-reads
+        // `status` between its dispatch `if`s and `status = 2` leaves the
+        // target at `-1` (§9, §11). Modelling only the "target present but
+        // stale" arm cost Great Lakes' word 7930: the original spends
+        // `find_target`'s coin once and its per-candidate score twice
+        // there and this crate spent nothing (item 317).
+        let mut retarget = self.armies[w].list[slot].target.is_none();
         if let Some(t) = self.armies[w].list[slot].target {
             let tw = self.owner_of(t);
             if self.active(t) {
@@ -1683,7 +1702,10 @@ impl Sim {
                         }
                         let go = match self.find_aggressive_army(who) {
                             Some(k) => k == slot,
-                            None => self.rng.get(0, 0xffff) & 1 == 0,
+                            None => {
+                                self.mark(SITE_FIND_TARGET_COIN);
+                                self.rng.get(0, 0xffff) & 1 == 0
+                            }
                         };
                         if !go {
                             continue;
@@ -1733,6 +1755,7 @@ impl Sim {
                     if diff <= 1 && allied && cd.founder != who {
                         continue;
                     }
+                    self.mark(SITE_FIND_TARGET_SCORE);
                     let mut v = self.rng.get(0, 0xffff) % 200 + 900;
                     if let Some(cap) = capital
                         && enemy

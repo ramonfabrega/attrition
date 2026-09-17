@@ -195,6 +195,15 @@ pub const SITES: &[(u32, Option<u32>, &str)] = &[
     // and that is a distinction neither arm makes.
     (0x0061_a1c0, None, sim::army::SITE_COME_OUT_BARK),
     (0x0061_a1da, None, sim::army::SITE_COME_OUT),
+    // `Army::find_target@006f69b0` — its own two, and until item 317 the
+    // trace spelled both as bare addresses while the sim spelled neither.
+    // `+0x410` is the per-leader coin at the call `6f6dbb`, whose answer
+    // is read `and $0x80000001` / `jne`; `+0x7df` the per-candidate score
+    // at `6f718a`, read `cltd` / `idiv $0xc8` / `lea 0x384(%edx)` — the
+    // `% 200 + 900` of `docs/ARMY.md` §12. Both are the army's own
+    // address, so no chain is needed.
+    (0x006f_6dc0, None, sim::army::SITE_FIND_TARGET_COIN),
+    (0x006f_718f, None, sim::army::SITE_FIND_TARGET_SCORE),
     // `Unit::do_non_flat_gather@005f0170` — the wood machine's own three.
     // The last two are one apparent branch and two real ones: `+0xcc3` is
     // the chopping guy's `% 100 + 300` and `+0xdad` the arrival frame's

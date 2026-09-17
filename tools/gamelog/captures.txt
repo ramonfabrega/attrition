@@ -2610,3 +2610,63 @@ check: python3 tools/gamelog/samegame.py gamelog-run10-world6-long.txt gamelog-r
 # checks ok: rngcmp against run53 **0 differing, 401 identical**; samegame
 # against run10 **400 in common, 0 differ**. The rebuilt `rontrace.dll`
 # with `cover=0` is the instrument every capture on disk was taken with.
+
+run: 93
+tag: greatlakes-firsttarget
+item: 317
+why: Great Lakes' word moved to 8030 on find_target's first call in the whole game, and the target those three draws chose is the one thing no dump on disk can answer — no Great Lakes archive carries an ARMY record past run73's 5591
+# **The headline map's own frame, and the record nobody has there.** Item
+# 317 closed Great Lakes 7930 from the disk alone: `report.py … when
+# Army::find_target` dated the call (7930 is its first in 24,000 frames,
+# and every one after falls on §5's 256-frame army slot), run92's
+# `GROUPS=9` window showed group 64 at `num 12` on blocks 7673/7674 and
+# 15 on 7676 — so both sides release the muster on the *same* tick — and
+# the decompile's `if (iVar4 < 0) goto LAB_006f3fb2` named the arm this
+# crate had not modelled. Frame 7930 now agrees **ten draws for ten,
+# entry for entry** (`docs/ARMY.md` §16.8).
+#
+# **What the draw stream cannot say is which city won.** The coin fires
+# once and the per-candidate `% 200 + 900` twice on both sides, so both
+# scanned one leader and two cities; but a stream agrees on a wrong
+# destination for a long time, and `target_o`/`target_who` is a *value*.
+# The ARMY record carries it (`tools/gamelog/armyrecs.py`) and it is a
+# `DUMP_ALL` record, not a per-frame category.
+#
+# **THE DISK WAS GREPPED FIRST**, every archive, for `BEGIN ARMY`: 21
+# files have one and only two are Great Lakes — **run72** (4800..4811)
+# and **run73** (5564..5591). So this map has no army record within two
+# thousand frames of the word, exactly as run92 found for groups.
+#
+# A `FRAME n` block is the end of sim-frame `n-1` (`window.py`), so
+# [7929, 7933) gives the state **before** the 7930 tick (block 7930) and
+# **after** it (block 7931), with a block either side.
+frames: 7935
+mapstyle: 14
+window: 7929 7933
+# The per-frame detail stays at `MISC` alone: 7,900 frames of anything
+# richer buys nothing this item needs and the DUMP_ALL window is where
+# the record is. The same-game proof is the word, not a block overlap —
+# there is no neighbour at this detail to overlap with.
+end: MISC
+# The word: every frame identical to run53's, none differing.
+check: python3 tools/gamelog/rngcmp.py rontrace-run53.log rontrace-run93.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=7900)}'
+# The record is there, on both sides of the tick: four blocks of ARMY.
+check: test "$(python3 tools/gamelog/armyrecs.py gamelog-run93-greatlakes-firsttarget.txt | grep -c 'FRAME 793[0-1]')" -ge 2
+# TAKEN 2026-09-17 — thirteen minutes (15:59 to 16:12), **308 MB gamelog**,
+# 7,936 blocks, four of them `DUMP_ALL`. Both checks ok first time:
+# `rngcmp` against run53 **0 differing, 7,936 identical** — the same game,
+# word for word — and the `ARMY` record present either side of the tick.
+#
+# **AND THE TARGET IS THE SAME ONE.** Block 7930 has army `1/1` at
+# `status 17`, five squads, `city 1`, `target_o -1`; block 7931 has it at
+# `status 18`, `city -1`, **`target_o 2007, target_who 1`** — the AI's own
+# building, §12's `L == me` arm, the same shape as run26's navy at 12025.
+# `angle` takes the old `muster_angle` (`do_mustering`'s tail,
+# `field_0x40 = field_0x50`), `muster_angle` is rewritten by
+# `find_target`'s own `find_muster_spot`, and `x, y` stay **41568, 25440**
+# — `find_target`'s tail overwriting the muster-cell centre
+# `do_mustering` had just put there. This crate reaches that record
+# **field for field**, `role` alone excepted (it carries no group role
+# word; `docs/ARMY.md` §18). The assertion is
+# `run93_says_great_lakes_7930_releases_and_takes_its_target_in_one_tick`.
+
