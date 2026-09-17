@@ -786,7 +786,13 @@ pub(crate) fn debug_unit(built: &Built, u: &sim::Unit, frame: i64) {
 /// window, which is why this returns `None` for it.
 #[cfg(test)]
 pub(crate) fn site_window() -> Option<(i64, i64)> {
-    let v = std::env::var("RON_DEBUG_SITES").ok()?;
+    site_window_named("RON_DEBUG_SITES")
+}
+
+/// [`site_window`] over any named variable: `<lo>-<hi>`, or `None`.
+#[cfg(test)]
+pub(crate) fn site_window_named(var: &str) -> Option<(i64, i64)> {
+    let v = std::env::var(var).ok()?;
     let (lo, hi) = v.split_once('-')?;
     Some((lo.trim().parse().ok()?, hi.trim().parse().ok()?))
 }
