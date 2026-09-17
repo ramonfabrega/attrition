@@ -1286,13 +1286,46 @@ together because they are one change:
   collide_frame`; that is what run90's `1/7` counts 1 → 9 over 7812-7820.
 
 Wired, it is right on the mechanic and wrong on the score, which is entry
-30's case exactly. On `worktree-loop-301`'s tip, measured on this branch:
+30's case exactly. Every row below measured on **one tree**, `1397b05`,
+the subsets by taking `4521ccc`'s two files onto the landed tip one at a
+time — `crates/sim/src/path.rs` is the gate and the limit, `orders.rs` is
+`do_move`'s block:
 
 | | East Indies (run54) | Great Lakes (run53) |
 |---|---|---|
 | base (`75e13a4`) | 7812 | 7679 |
-| landed here | 7812 | 7679 |
-| with §18.3 wired | **8193** | **6862** |
+| landed here (none of the three) | 7812 | 7679 |
+| the gate alone | 7812 | 7679 |
+| the gate and the limit (`path.rs`) | 7812 | 7679 |
+| `do_move`'s block alone (`orders.rs`) | 7812 | **6862** |
+| **all three** | **8193** | **6862** |
+
+**Every proper subset is neutral or worse; only the whole gains.** The gate
+is a *prerequisite* for reaching the suspend and buys not one frame by
+itself — without it `1/7`'s 7810 plan never gets past the pull-back — and
+`do_move`'s block without the gate pays the entire Great Lakes cost for
+none of the East Indies gain, because `1/28`'s 6860 search suspends whether
+or not the gate is there and `1/7`'s does not. So "all three together
+because they are one change" is a **measured** causal claim rather than a
+convenience of presentation, and the reason `worktree-loop-301-suspend`
+cannot be split into a safe half and a risky half is a fact rather than an
+assertion: the halves are separately worthless, and one of them is
+separately harmful.
+
+**And the unbundled row was taken twice, against two different trees, and
+only the second is true.** Measured on the pre-295 tree the gate and the
+limit alone read East Indies **8193**, and that figure was reported as
+theirs. It is not: 295's census fix changed *which* divergence binds East
+Indies' long capture, so a measurement of any change against a pre-295 tree
+was measuring against a different binding constraint, and the +381 belongs
+entirely to the suspend once 295 is in. The counterfactual is the point.
+On the old tree this would have landed `path.rs` **wired**, as a clean +381
+with no cost on either map, and the attribution would have been wrong and
+would have stayed wrong — a wired change that moves a word is exactly the
+thing nobody goes back and re-derives. The rule it leaves is not about how
+an item is written: **an attribution measured against a moving base is
+unreliable in both directions**, and the only fix is to re-measure every
+row on the tip before attributing any of them.
 
 run90's `1/6` and `1/7` stop parting **anywhere** in the capture's 111
 blocks with it wired — the whole two-citizen shuffle, positions, collision

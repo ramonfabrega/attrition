@@ -20245,3 +20245,19 @@ day 304 closes.
 
 The score did not move. The item that was booked to move it moved a
 different lane's instead, and that is the finding.
+
+One more thing came out of the landing, and it is the part worth carrying
+past this item. Mid-flight I reported to the commander that the pre-walk
+gate alone moved East Indies 7812 → 8193 and that the suspend was the half
+that cost Great Lakes — a clean story, and wrong. That measurement was
+taken before `ccc update`, on the pre-295 tree; re-run on the tip, the gate
+and the limit together move **nothing** on either map, and the whole +381 is
+the suspend's. 295's census fix had changed which divergence binds East
+Indies' long capture, so every figure taken against the older tree was
+measured against a different binding constraint. What makes it worth a
+paragraph rather than a correction is the counterfactual: on the old tree
+this would have landed `path.rs` wired, as a pure gain with no cost on
+either map, and nothing downstream would ever have contradicted it, because
+a wired change that moves a word is precisely what no one re-derives. The
+three unbundled rows now in `docs/PATHFINDER.md` §18.3 are there so the next
+reader does not have to take the grouping on trust.
