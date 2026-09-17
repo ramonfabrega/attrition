@@ -47,6 +47,19 @@ choose: the guards read the queue at the commit under test rather than the
 working tree, or the commander holds queue rewrites until no gate is in
 flight. Costs a re-run each time until then.
 
+(321) **A document that cites a dead-listed function by address cites
+code the game does not run.** `LeaderData::is_human@006ec170` is on
+EMULATOR.md §4's dead list — no call, no jmp, no embedded address — so
+audit V14's `leaders.list[who] & 4` verdict was read from a standalone
+body the executable never executes; the verdict itself survives on
+evidence (run58's dump has the AI carrying `& 4` and the human not), but
+the citation does not. Found by item 320 on 2026-09-17 while in
+EMULATOR.md for another reason. `docs_guard` already checks every
+function address a specification cites against the decompile export's
+index — extending that check to the **dead list** is the guard shape, and
+it would name every other document in this position at once. The steering
+pass's: a guard, and then whatever it finds.
+
 (313) **The landing chain wants one verb.** Merge, gate, push and reap are
 one chain by rule since 09-17; ccc has `merge`, `update` and `clear`, and
 the reap is a separate command a commander typed after the chain twice and
