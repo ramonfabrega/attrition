@@ -34,8 +34,8 @@ Next: the capture 312 asks for.*
   `docs/journal/2026-09-17-item-312.md`.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w8193 of 24,000 · GreatLakes w7679 of 24,000
-Endpoint 24001: EastIndies 66 off, 16 unlinked · GreatLakes 59 off, 23 unlinked
+Long captures: EastIndies w8193 of 24,000 · GreatLakes w7930 of 24,000
+Endpoint 24001: EastIndies 66 off, 16 unlinked · GreatLakes 55 off, 28 unlinked
 
 **Opener: the capture lane, then one worker on 314 — a `GROUPS` window over
 Great Lakes [7670, 7686), `DEATHS` off, which decides 7679's cause in one
@@ -51,14 +51,14 @@ unless a better order is obvious, and say so. Numbers are stable; the
 backlog is `docs/PARKED.md`, and an item comes back from it only when a
 score names it.
 
-314. **Great Lakes 7679's cause is named; a capture decides between two
-    mechanisms** (312). `1/39`'s squad parts on **7675**, after 7674's
-    `GROUP_ATTACK_TO`: the leader's chain carries one extra head waypoint
-    from the same start and goal, aims 7.1 deg off, turns both followers'
-    slots 7.4 deg, and by 7679 `1/39` is 18 off its slot — (43032, 24216)
-    against (43054, 24237). Is that head `find_wpath_from`'s own emission
-    or the `get_loc` seam starting it a cell short (GROUPS §12)? A
-    `GROUPS` window over [7670, 7686), **`DEATHS` off**, prints `ox`/`oy`.
+317. **Great Lakes 7930 is eight draws against ten, parting at index 0**
+    — the original spends `Army::find_target+0x410` once and `+0x7df`
+    twice that this crate does not (item 314). **No dump sits under it**:
+    the nearest Great Lakes window is run89's, which ends 154 frames
+    short, so the brief is the widening first — a window over 7930 and
+    its neighbours, every dumped record, every unit — and only then the
+    mechanism. ARMY is the module; 314's run92 shows the capture lane is
+    four minutes and click-free.
 
 308. **`UnitData::start_dist` is parsed, and twenty-three captures carry a
     non-zero value** — run16 alone has 8,752 rows, and `+0x130`'s only
