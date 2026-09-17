@@ -4375,6 +4375,62 @@ mod tests {
         let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
         let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
         let refs: Vec<&Initial> = inits.iter().collect();
+        // **The second capture that dates a suspended search, and the
+        // whole of the queue's item 304** (item 301). `UnitData::start_dist`
+        // (`+0x130`) is written by `astar_path@00683770`'s suspend block
+        // and by nothing else in the executable, so the block it first
+        // reads non-zero is the block after the frame a 48-grid search ran
+        // out of budget short of its goal. Over run76's window that is
+        // `1/28` alone, on block **6861**, reading **7680** — the
+        // start-to-goal Manhattan of the plan
+        // `resolve_unit_collision` step 6 started on frame 6860, and the
+        // same search this crate runs there (its own start is 11 units
+        // further out, at 7669).
+        //
+        // And the row that makes it matter: on the **same frame** the
+        // original's order goes `GROUP_ATTACK_TO` → `ATTACK_TO`, and that
+        // enqueue frees the search through `clear_partial_path`, so block
+        // 6862 plans afresh on the world grid — ten waypoints at tolerance
+        // 0x180, which no 48-grid reconstruction can produce. This crate is
+        // already on a plain `ATTACK_TO` before 6858, so its formation
+        // ended early and nothing is left to free the stash; that is why
+        // `docs/PATHFINDER.md` §18.3's block is landed unwired.
+        let states = log.frame_states();
+        let stamped: Vec<(i64, i64, i64, i64)> = states
+            .iter()
+            .flat_map(|f| {
+                f.units
+                    .iter()
+                    .filter_map(move |u| Some((f.n, u.who, u.o, u.start_dist?)))
+            })
+            .filter(|r| r.3 != 0)
+            .collect();
+        assert!(
+            stamped.iter().all(|r| (r.1, r.2, r.3) == (1, 28, 7_680))
+                && stamped.first().map(|r| r.0) == Some(6_861)
+                && stamped.len() == 9,
+            "run76's `start_dist`: {} rows, first {:?} — the suspend's only \
+             dumped witness is `1/28`'s, 7680, from 6861",
+            stamped.len(),
+            stamped.first()
+        );
+        let kinds = |n: i64| -> Vec<i64> {
+            states
+                .iter()
+                .find(|f| f.n == n)
+                .into_iter()
+                .flat_map(|f| f.units.iter())
+                .filter(|u| (u.who, u.o) == (1, 28))
+                .flat_map(|u| u.orders.iter().map(|o| o.index))
+                .collect()
+        };
+        assert_eq!(
+            (kinds(6_860), kinds(6_861)),
+            (vec![21], vec![2]),
+            "`1/28`'s orders either side of the suspend: a `GROUP_ATTACK_TO` \
+             on 6860, a bare `ATTACK_TO` on 6861"
+        );
+
         let report = run_traced(&loaded, &log, Tuning::RON, None, None, &refs, Some(&tr)).unwrap();
         let blocks: Vec<i64> = report
             .frames
@@ -7628,6 +7684,50 @@ mod tests {
                 .collect::<Vec<_>>(),
             "the original's `1/7` over 7811..7820: standing on its cell \
              centre with the move's own goal as its whole path stack"
+        );
+
+        // **And the field that says the search was suspended, whole
+        // cast and whole window** (item 301). `UnitData::start_dist`
+        // (`+0x130`) has exactly one writer in the executable —
+        // `astar_path@00683770`'s suspend block — so a non-zero value is
+        // the original telling us a 48-grid search stopped short of its
+        // goal and handed its five containers to the unit
+        // (`docs/PATHFINDER.md` §18). Over all 111 blocks and every unit
+        // of each, it is non-zero for **`1/7` alone**, from block **7811**
+        // — the block after the repath — to the end of the capture, and
+        // its value is 144: exactly the Manhattan from `1/7`'s snapped
+        // cell centre (39672, 38664) to its move order's own goal
+        // (39624, 38760), which is the search `resolve_unit_collision`
+        // step 6 started on frame 7810 and never finished.
+        //
+        // Nothing clears the field, so this is asserted as a **change**
+        // rather than a value, the way 294 asserts `collide_frame`'s two
+        // stamps: it is 0 for every unit on every block up to 7810 and
+        // 144 for `1/7` from 7811 on.
+        let dists: Vec<(i64, i64, i64, i64)> = states
+            .iter()
+            .flat_map(|f| {
+                f.units
+                    .iter()
+                    .filter_map(move |u| Some((f.n, u.who, u.o, u.start_dist?)))
+            })
+            .filter(|r| r.3 != 0)
+            .collect();
+        let (first, last) = (dists.first().copied(), dists.last().copied());
+        assert!(
+            dists.iter().all(|r| (r.1, r.2, r.3) == (1, 7, 144))
+                && first.map(|r| r.0) == Some(7_811)
+                && last.map(|r| r.0) == Some(7_899)
+                && dists.len() == 89,
+            "run90's `start_dist`: {} rows, {first:?} .. {last:?} — the \
+             suspend's only dumped witness is `1/7`'s, 144, from 7811",
+            dists.len()
+        );
+        assert_eq!(
+            (39_672 - 39_624) + (38_760 - 38_664),
+            144,
+            "and 144 is the Manhattan from `1/7`'s cell centre to the \
+             move order's goal — the search that suspended"
         );
 
         // Now the comparison — every unit of every block.

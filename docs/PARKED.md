@@ -168,3 +168,15 @@ first bad 1658 (SYNC §4.2); (124) the loop flag is per animation file;
 (39) a 2D viewer over `Sim`; (41) `scenario.py`; a `find_target` block;
 run7's orders; a mounted attacker; `calc_gather` non-flat;
 `Leader::diplomacy`; (77) ANIM §3.2; (58) ROADS §7.4.
+306. **The `city` column is one high on every make row that carries one** —
+    ours 1/2 against theirs 0/1, on all 86 blocks of **both** windows, so an
+    off-by-one in whatever city index `make_me` is passed. Unrelated to any
+    value, which is what makes it separable from 305. AI §36.
+
+307. **`age_p`'s zero-age arm is unexercised** — no type in the shipped tree
+    reaches "a predecessor of age 0 leaves the walk looking" on either
+    window, so that half of 302's fix rests on the PE listing and not on a
+    diff. It is a reading-only claim in a document otherwise diff-backed,
+    which is exactly what the coverage sections exist to flag. AI §36.4,
+    §36.6. Falsified by a capture where a zero-age predecessor exists.
+

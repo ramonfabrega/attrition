@@ -1669,6 +1669,16 @@ pub struct UnitDump {
     pub collide_guy: Option<i64>,
     /// `UnitData::safe` — the cooldown a failed 48-grid search buys.
     pub safe: Option<i64>,
+    /// **`UnitData::start_dist` (`+0x130`) — the one dumped witness that a
+    /// 48-grid search suspended.** `PathFinder::astar_path@00683770`'s
+    /// suspend block is its **only** writer in the whole executable
+    /// (grepped, item 301), so a non-zero value says the unit stopped a
+    /// search short of its goal and handed it the containers, and the value
+    /// is that search's start-to-goal Manhattan
+    /// (`docs/PATHFINDER.md` §4.3 step 3, §18). Nothing clears it: like
+    /// `collide_frame` it is a permanent stamp, so a **change** dates a
+    /// suspend and a value does not.
+    pub start_dist: Option<i64>,
     /// `ObjectData::down`/`down_who` and `up`/`up_who`: this object's place
     /// in its world cell's chain, on the `OBJECT` level
     /// (`docs/COLLISION.md` §3).
@@ -2663,6 +2673,7 @@ fn unit_of(b: Block<'_>) -> Option<UnitDump> {
         collide_who: b.int("collide_who"),
         collide_guy: b.int("collide_guy"),
         safe: b.int("safe"),
+        start_dist: b.int("start_dist"),
         down: obj.and_then(|o| o.int("down")),
         down_who: obj.and_then(|o| o.int("down_who")),
         up: obj.and_then(|o| o.int("up")),
