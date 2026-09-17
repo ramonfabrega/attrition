@@ -2749,6 +2749,171 @@ mod tests {
         }
     }
 
+    /// **The fog plane at the parting block, and the price it buys**
+    /// (item 320, 2026-09-17) — run95.
+    ///
+    /// The test above says this crate's world is the original's at block
+    /// 7932. **Seventy blocks later it is not**, and the difference is the
+    /// whole of Great Lakes' 8031: `1/0`'s `find_wpath` prices the step
+    /// into cell `(3, 39)` — one of the four the human capital's footprint
+    /// stands on — at **9**, the unseen scouting price, where the original
+    /// prices it at **328**, the seen one (`docs/PATHFINDER.md` §20).
+    ///
+    /// run95's `callwin` proxy carries that number directly, and its
+    /// `DUMP_ALL` window carries the plane the number comes from, so both
+    /// halves are pinned here:
+    ///
+    /// - **14 half-cells** of 14,400 part at block 8002, in two patches.
+    ///   The larger is the 3 × 5 block `x` 6–8, `y` 78–82 — which is two
+    ///   radius-1 discs (`circle_radius[1]`, the 3 × 3) centred on `(7, 79)`
+    ///   and `(7, 81)`, the `2c + 1` half-cells of cells `(3, 39)` and
+    ///   `(3, 40)`. The smaller is `(10, 73)` and `(11, 73)`, single points
+    ///   beside the human's `0/1` and `0/2`. Every one is the **AI's** bit
+    ///   over ground the **human** occupies.
+    /// - the original's own `calc_cost` for the two steps, off the trace.
+    ///
+    /// `docs/VISION.md` §6's `Unit::update_local_seen@0060e410` is the
+    /// leading candidate and the successor's first read: it lights
+    /// `circle_radius[type->x_size]` points around an object's own
+    /// half-cell into `seen2` **with `ObjectData::visible` as the mask**,
+    /// so a human object whose `visible` carries player 1's bit lights the
+    /// AI's plane. Nothing in this simulation sets `visible`. What would
+    /// falsify it is a `visible` of 0 on those objects at a block inside
+    /// [7937, 7998] — the window the reveal lands in, since run93's 7936
+    /// still has all fourteen dark.
+    #[test]
+    fn run95_s_block_8002_is_where_the_fog_parts_and_the_price_with_it() {
+        let Some(inst) = install() else { return };
+        let (Some(seed_dump), Some(tr53), Some(scan), Some(tr95)) = (
+            dump("gamelog-run53-greatlakes-24k-trace.txt"),
+            trace("rontrace-run53.log"),
+            dump("gamelog-run95-greatlakes-scoutcosts.txt"),
+            trace("rontrace-run95.log"),
+        ) else {
+            eprintln!("skipping: no run53/run95 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+
+        // **The original's own price, off the proxy.** `calc_cost` is
+        // entered once per step the search considers, so the *presence* of
+        // a record is itself a verdict: a `valid_wcoord` refusal happens
+        // upstream of the call, and there is no refusal here — the step is
+        // priced, and priced as seen ground with nine blocked tiles.
+        let costs = tr95.calls_in(8001, crate::trace::call_site::CALC_COST);
+        assert_eq!(
+            costs.len(),
+            83,
+            "run95's frame 8001 no longer carries 83 calc_cost records — \
+             the whole of `1/0`'s one search, and the only search the \
+             window holds"
+        );
+        let priced = |from: (i32, i32), to: (i32, i32)| -> Vec<i32> {
+            costs
+                .iter()
+                .filter(|c| {
+                    (c.args[0], c.args[1]) == (from.0, from.1)
+                        && (c.args[2], c.args[3]) == (to.0, to.1)
+                })
+                .map(|c| c.ret)
+                .collect()
+        };
+        assert_eq!(
+            priced((3456, 29568), (2688, 30336)),
+            vec![328],
+            "the original's step from cell (4,38) into the capital's cell \
+             (3,39) is no longer 328 — 128 base at a scout's seen rate, \
+             8 of danger, 4 of enemy ground, 20 x 9 of terrain and the \
+             diagonal's 8. This crate prices it 9."
+        );
+        assert_eq!(
+            priced((3456, 29568), (2688, 29568)),
+            vec![1],
+            "the original's step into cell (3,38) is no longer 1 — it is \
+             the unseen scouting price, and it is what says the difference \
+             is the fog rather than the terrain: (3,38) carries nine \
+             blocked tiles too"
+        );
+
+        // **And the plane those prices read.** run95's DUMP_ALL window
+        // covers 7999–8003; block 8002 is the one the search runs on.
+        let mut ix = crate::capture::indexed::IndexedCapture::open(&scan).unwrap();
+        let at = ix
+            .frames()
+            .iter()
+            .position(|f| f.number == 8002)
+            .expect("run95 has no block 8002 — the wrong file");
+        let body = ix.read_frame(at).unwrap();
+        let parsed = Log::parse(&body);
+        let block = parsed
+            .frames()
+            .into_iter()
+            .find(|(n, _)| *n == 8002)
+            .map(|(_, b)| b)
+            .expect("run95's block 8002 did not re-parse");
+        let world = block
+            .kid("FULL DUMP")
+            .unwrap_or(block)
+            .kid("WORLD")
+            .expect("block 8002 has no WORLD record");
+        let theirs = crate::gamelog::world_fog(&world.fields().to_vec());
+        assert_eq!(theirs.len(), 14_400, "block 8002's fog plane");
+
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = crate::capture::read(&seed_dump);
+        let log = Log::parse(&text);
+        let texts = sibling_texts();
+        let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
+        let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+        let refs: Vec<&Initial> = inits.iter().collect();
+        let mut init = log.initial().unwrap();
+        borrow_from_siblings(&mut init, &refs);
+        crate::diff::setup::borrow_pasture(&mut init, &tr53);
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        for _ in 0..8002 {
+            built.tick();
+        }
+        let w = &built.sim.world;
+        let (fw, fh) = (w.fog_xs(), w.fog_ys());
+        let bad: Vec<(i32, i32, u8, u8)> = (0..fh)
+            .flat_map(|y| (0..fw).map(move |x| (x, y)))
+            .filter_map(|(x, y)| {
+                let t = theirs[(y * fw + x) as usize];
+                let o = w.seen2(x, y).unwrap_or(0);
+                (o != t).then_some((x, y, o, t))
+            })
+            .collect();
+        eprintln!("run95 8002: {} half-cells part {bad:?}", bad.len());
+        let want: Vec<(i32, i32)> = vec![
+            (10, 73),
+            (11, 73),
+            (6, 78),
+            (7, 78),
+            (6, 79),
+            (7, 79),
+            (6, 80),
+            (7, 80),
+            (6, 81),
+            (7, 81),
+            (8, 81),
+            (6, 82),
+            (7, 82),
+            (8, 82),
+        ];
+        assert_eq!(
+            bad.iter().map(|&(x, y, _, _)| (x, y)).collect::<Vec<_>>(),
+            want,
+            "the fog plane no longer parts on exactly these fourteen \
+             half-cells at block 8002 — the two the scout's route reads are \
+             (7,79) and (7,81), and a landing that lights them should empty \
+             this list rather than change it"
+        );
+        assert!(
+            bad.iter().all(|&(_, _, o, t)| t == o | 2),
+            "a differing half-cell is no longer the AI's own bit over \
+             ground the human holds: {bad:?}"
+        );
+    }
+
     /// **The mid-game world, whole, against the original's own scan**
     /// (item 320, 2026-09-17).
     ///

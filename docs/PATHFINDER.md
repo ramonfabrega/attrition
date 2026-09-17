@@ -1646,35 +1646,69 @@ it:
   and `iroquois` were each forced on and off; none produces the original's
   stack, and three of them move the *destination*, which is already pinned.
 
-### 20.2 Why the fog is the weaker of the two, and what is still open
+### 20.2 It is the fog, and the reveal is not a unit's disc (run95)
 
-The fog forcing is ruled out **as a reveal**. `1/0` is the only AI unit
-that has ever been west of cell 37 in this game — every other owner-1 unit
-on block 8002 is at `x ≥ 28992` — it enters the region on block 7893 from
-the east, and its `mylos` is **6** on every compared frame, so
-`update_seen`'s radius is `6 × 0xc0 / 0x180 = 3`. The disc is
-`dx² + dy² ≤ 13`, centred one half-cell ahead of the unit's nose
-(`docs/VISION.md` §3), and over the whole approach the centre runs
-`(15,81) → (14,81) → (13,81) → (12,81) → (12,80) → (12,79) → (11,78) →
-(11,77) → (10,76) → (10,77) → (9,77)`. Half-cell `(7, 81)` needs a centre
-at `x ≤ 10` while `y` is 79–83; the nearest this scout ever comes is
-`x = 12`. No radius-3 disc it throws can light it, and the plane it does
-light is the original's at 7932 (above).
+~~Why the fog is the weaker of the two, and what is still open.~~ **The
+capture overturned this section's conclusion the same day it was written,
+and the elimination below was right in its premise and wrong in its
+verdict.** run95's `callwin` proxy over `calc_cost` on sim-frame 8001 —
+116 records, the whole of `1/0`'s search — prices the step from cell
+`(4, 38)` into `(3, 39)` at **328**, and the neighbouring step into
+`(3, 38)` at **1**:
 
-The validity forcing is ruled out **as a predicate this crate is missing**
-in the obvious place: `valid_wcoord` passes `p3 = 1` to `invalid_loc`,
-which skips the building test outright — so the probe tile being
-`0x4000`-blocked cannot refuse, and indeed the original walks into
-`(3,38)`, whose own probe tile `(14, 154)` is blocked. The land arm's
-`cell flags & 0x70` refusal **is** unimplemented here (§20.3), and it does
-not fire: run93 says those cells carry `0x80`, road and nothing else.
+| step | the original | this crate | what 328 is made of |
+|---|---|---|---|
+| `(4,38) → (3,38)` W | **1** | 1 | base `8`, unseen, scouting |
+| `(4,38) → (3,39)` SW | **328** | 9 | `128` seen base + `8` danger + `4` enemy + `20 × 9` terrain + `8` diagonal |
+| `(3,38) → (3,39)` S | **320** | — | the same without the diagonal |
+| `(3,38) → (2,39)` SW | **9** | 9 | unseen |
 
-**So what is open is the measurement rather than another reading**, and
-run95 is it: a `callwin` proxy over `calc_cost` and `astar_path` on
-sim-frame 8001, the instrument that answered item 125 in one reading
-(`docs/ORACLE.md`, run55 — "all seven that did not were steps into the
-four cells under player 1's second city"). It logs every node the original
-priced and what it charged.
+The step is **priced, not refused** — and a `valid_wcoord` refusal happens
+upstream of `calc_cost`, so the record's presence is itself the verdict
+that the predicate passed. So `invalid_loc` is not the answer (§20.3's two
+gaps stand on their own), and the fog forcing was the right one all along.
+
+run95's own `DUMP_ALL` window then says why, at the block the search runs
+on. **Fourteen half-cells of 14,400 part at block 8002**, in two patches,
+and every one is player 1's bit over ground player 0 holds:
+
+```
+ y=78  (6,78) (7,78)        the 3 x 5 block x 6-8, y 78-82, which is
+ y=79  (6,79) (7,79)        two radius-1 discs — circle_radius[1], the
+ y=80  (6,80) (7,80)        3 x 3 — centred on (7,79) and (7,81): the
+ y=81  (6,81) (7,81) (8,81) 2c+1 half-cells of cells (3,39) and (3,40)
+ y=82  (6,82) (7,82) (8,82)
+ y=73  (10,73) (11,73)      two single points, beside the human's 0/1 and 0/2
+```
+
+`(7, 79)` and `(7, 81)` are exactly the two the route reads, which is why
+forcing them seen reproduced the original's stack entry for entry.
+
+**And §20.2's premise survives: no `update_seen` disc of the scout can make
+this.** `1/0` is the only owner-1 unit ever west of cell 37, its `mylos`
+is 6 on every compared frame so its radius is 3, and its projected sweep
+centre runs `(15,81) → (14,81) → (13,81) → (12,81) → (12,80) → (12,79) →
+(11,78) → (11,77) → (10,76) → (10,77) → (9,77)` — never within five
+half-cells of `(7, 81)`. Nor is the shape a disc of any radius: a
+radius-1 pair is, and a radius-1 disc centred on a **cell's own centre
+half-cell** is not something `Object::update_seen` produces for a unit at
+all.
+
+**So it is a second reveal this simulation does not make, and
+`docs/VISION.md` §6 already names one.**
+`Unit::update_local_seen@0060e410` lights `circle_radius[type->x_size]`
+points around an object's **own** half-cell into `seen2` and `seen`, with
+`ObjectData::visible` as the **mask** rather than the owner's bit — so a
+human object whose `visible` carries player 1's bit lights the *AI's*
+plane, which is exactly the fourteen. Nothing in this crate sets
+`visible`. The reveal lands between blocks **7937 and 7998**: run93's 7936
+still has all fourteen dark and run95's 7999 already has them lit, and the
+planes are identical at 7932 (§20.1). What would falsify the candidate is
+a `visible` of 0 on those objects inside that window.
+
+The assertion is
+`run95_s_block_8002_is_where_the_fog_parts_and_the_price_with_it`, which
+pins the fourteen by place and the original's 328 and 1 by value.
 
 ### 20.3 Two gaps `invalid_loc` has here either way
 

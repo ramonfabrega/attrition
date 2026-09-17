@@ -402,6 +402,23 @@ simulation sets `visible`.
   diff-backed now, out to seventy frames under this map's own word, and the
   costed capture is not owed. What is still not diffed is any frame past
   7936 and any plane but `seen2`.
+- **`Unit::update_local_seen` is not a corner: it is Great Lakes' 8031**
+  (item 320, 2026-09-17). The bullet below has said since 2026-08-31 that
+  it is "not modelled; nothing in this simulation sets `visible`". run95
+  puts a price on that. At block 8002 this crate's plane parts from the
+  original's on **fourteen half-cells** — a 3 × 5 block at `x` 6–8,
+  `y` 78–82, which is two `circle_radius[1]` discs centred on `(7, 79)` and
+  `(7, 81)`, plus the single points `(10, 73)` and `(11, 73)` — and every
+  one is **player 1's bit over ground player 0 holds**. Two of them are the
+  `2c + 1` half-cells of the cells the AI scout's route reads, so the
+  original prices that step **328** and this crate **9**
+  (`docs/PATHFINDER.md` §20.2). A mask that is not the owner's bit is
+  exactly what §6's reveal has and `Object::update_seen`'s disc does not,
+  and no disc of the one AI unit in the west can make the shape. The
+  reveal lands between blocks **7937 and 7998**; `visible`'s **writer** is
+  what this document still owes, and
+  `run95_s_block_8002_is_where_the_fog_parts_and_the_price_with_it` is the
+  standing check.
 
 ## 8. What the simulation carries, and what checks it
 

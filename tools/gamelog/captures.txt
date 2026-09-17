@@ -2824,6 +2824,23 @@ check: python3 tools/gamelog/rngcmp.py rontrace-run53.log rontrace-run95.log | t
 # **The proxies are the point, and an empty `calls` listing is the failure
 # this catches** — run55's first listing came back empty on the frame-label
 # bit alone.
-check: test "$(LC_ALL=C grep -ac 'calc_cost' "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run95.log")" -ge 20
+# **This check was wrong on its first run and is kept in its fixed form**:
+# the trace is a binary log and carries no symbol names, so grepping it for
+# `calc_cost` answers 0 on a capture whose proxies worked perfectly.
+# `report.py … calls` is the reader.
+check: test "$(python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run95.log" calls 8001 | grep -c calc_cost)" -eq 83
+# TAKEN 2026-09-17 — twelve minutes (18:23 to 18:36), **308 MB** and 8,011
+# blocks, and it overturned the item that booked it. `rngcmp` against
+# run53: **0 differing, 8,011 identical**, so it is run53's game and the
+# proxies cost the stream nothing — the sixth capture in a row of which
+# that is true. The window's 83 `calc_cost` records are the whole of
+# `1/0`'s one search, and the step from cell (4,38) into the human
+# capital's (3,39) is priced **328** where this crate prices it 9 — so the
+# step is priced rather than refused, `valid_wcoord` is not the answer, and
+# the fog is. The `DUMP_ALL` half then says why: **14 half-cells of 14,400
+# part at block 8002**, all of them player 1's bit over player 0's ground,
+# in the shape of two `circle_radius[1]` discs on cells (3,39) and (3,40).
+# `docs/PATHFINDER.md` §20.2, `docs/VISION.md` §7, and the assertion is
+# `run95_s_block_8002_is_where_the_fog_parts_and_the_price_with_it`.
 # And the `DUMP_ALL` window really covered the parting block.
 check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|seen2\[scan\]" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run95-greatlakes-scoutcosts.txt" | awk '/BEGIN FRAME/{f=$3} /seen2/{c[f]++} END{exit !(c[8002]>0)}'
