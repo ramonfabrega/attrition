@@ -4312,8 +4312,130 @@ what makes it evidence.
 - **`MAKE[9]`/`MAKE[10]`'s off-by-one type index** (`565`/`566`,
   `572`/`573`) is untouched, and the `city` column is still one high on
   every row that carries one. Both predate this item.
-- **`active` 31 against 32** on 62 of 86 blocks, unmoved.
+- ~~**`active` 31 against 32** on 62 of 86 blocks, unmoved.~~ Closed
+  by item 303: it is not a census counter at all — §37.
 - **Whether `age_p`'s zero-age quirk is ever reached.** No type in the
   shipped tree exercised the "a predecessor of age 0 leaves the walk
   looking" arm on either window, so that half of §36.4 is the listing's
   word and not a diff's.
+
+
+## 37. `active` is the muster's cardinality, not a census counter (2026-09-17)
+
+**Item 303 was booked as "one captain short, and which one is unread".**
+It is not a captain question. §36.2 had already shown that this crate's
+`Muster::by_type` agrees with the original's `num_units` on every type,
+every block and both players across both windows, and that leader 1's six
+nonzero entries sum to 32 — the block's own `active`. The title's reading
+required a captain the sweep drops; the dump says no captain is dropped.
+
+### 37.1 The dump answers it before any reading
+
+`active` equals the sum of the record's own `num_units` on **every** block
+of both windows — 332 of them, both players — not only on the frames a
+sweep runs. That is one `grep` over a capture already on disk, and it is
+now an assertion ([`rondata::diff::leader`]'s
+`active_is_the_muster_summed`, called from both windows' loops).
+
+run84 makes the point sharper than run91 can. Its window carries the one
+frame in either capture where the roster *changes*: `num_units[127]` goes
+1 → 2 at block 6994, and the original's `active` goes 29 → 30 **on that
+same block**. A counter rebuilt by a two-hundred-frame sweep cannot do
+that.
+
+### 37.2 The writers, and the sweep is the smallest of them
+
+Grepping `LeaderData+0x93c` — `active`, with `control` at `+0x940` beside
+it — over the whole decompile gives five writers, and only one is the
+census:
+
+| function | what it does |
+| --- | --- |
+| `Unit::set_type@00612fa0:74` | `track_unit_type(old, −1)`, `control −= pop`, `active −= 1` |
+| `Unit::set_type@00612fa0:284` | `track_unit_type(new, +1)`, `control += pop`, `active += 1` |
+| `Objects::init_unit@0065e0c0:92,174` | the same three **undone**, when the new unit turns out to be a squad follower |
+| `Unit::close@0060ee50:235` | the decrement on death |
+| `Leader::plan_strategy@006b9620:127,508` | the sweep: zero, then one per counted unit |
+
+The muster increment and `active` sit inside **one** guarded block in each
+direction, under the same predicate: not a follower (`unit+0x68 & 1`),
+and either `control_cost != 0` or `is(0x134)` or `is_gov_hero`. That
+adjacency is why `active` tracks the muster exactly — it is not a
+coincidence of these captures but the shape of the code.
+
+So `active` is a live count that the sweep happens to re-derive, and this
+crate modelled only the re-derivation. Its sweep runs every 200 frames
+(6175, 6375, … 7575 on this game), so between sweeps `active` was a stale
+snapshot: 31 from the sweep at 7375, against a roster that had gained its
+Hoplite squad since. It caught up at 7576, which is why the divergence was
+62 of 86 blocks rather than all of them — and why the shape looked like a
+missing captain.
+
+### 37.3 The change, and the fourth copy that was hiding
+
+[`sim::Sim::track_unit_type`] is the original's own call shape: `by_type`,
+`by_group`, `control` and `active` on one statement, `delta` either way.
+Its three sim call sites — [`Sim::init_unit`]'s head, [`Sim::set_unit_type`]
+both directions, and [`Sim::produce`] — were already moving the first
+three; they now move the fourth too.
+
+The fourth copy of those increments was **outside the sim**: the diff
+harness's stand-up ([`rondata::diff::setup`]) has its own tally for a unit
+read out of a start dump, and it is the only one that matters for a human
+player, whose sweep never runs here (§33). Seeding `active` there is what
+takes player 0's row from `ours 0 theirs 6` to agreement — the same fix,
+one layer out, and it would have been missed by reading the sim alone.
+
+### 37.4 What it moved
+
+- **`active` leaves the residue on both windows and both players.**
+  run91: `1/active` (62 frames, 31/32) and `0/active` (86 frames, 0/6)
+  gone. run84: `1/active` (36 frames, 29/30) and `0/active` (80 frames,
+  0/6) gone. Four rows, and nothing joined.
+- **`control` joins the record and agrees everywhere.** `active`'s twin
+  had never been compared, on any capture; it is `Muster::control` here
+  and it is right on all 332 blocks.
+- **The headline did not move.** Great Lakes' long-capture word is
+  **7679** either side of this item, and both endpoints are unchanged —
+  70 off / 10 unlinked on East Indies, 57 / 23 on Great Lakes. Nothing in
+  the sim *reads* `census.active`: it is a state field the record prints
+  and the AI does not consult, so the fix cannot move a draw. The item
+  closes a counter, not a frame, and this is that said with a number.
+
+### 37.5 Coverage
+
+**Diff-backed**, `run91_s_window_is_the_leader_s_ledger_at_the_word` and
+`run84_s_window_is_the_original_s_whole_leader_record`: `active` and
+`control` on 332 blocks, both players; and §37.1's structural claim —
+`active == Σ num_units` on the original's own side — asserted on the same
+332. Compared field-frames go 179,396 → 179,568 on run91 and 166,880 →
+167,040 on run84. All three claims were made to fail on purpose first:
+the structural one by summing `num_queued` (6 against 0 on the first
+block of each window), the `control` row by adding one (80 and 86 frames
+apart on both players), and the fix by dropping `active` from
+`track_unit_type` (which restores all four residue rows exactly).
+
+**Established by reading**: only the predicate table in §37.2 — which of
+the five writers exist, and the guard they share. The *consequence* of
+that table is what the diff checks.
+
+**Not established.**
+
+- **No writer decrements the muster on death.** `by_type`, `by_group`,
+  `control` and now `active` are moved by creation and by
+  [`Sim::set_unit_type`], and by nothing else; the original's
+  `Unit::close@0060ee50:235` has no counterpart here. No unit of players
+  0 or 1 dies inside either window, so no diff reaches it — the gap
+  predates this item and is `by_type`'s as much as `active`'s. It wants
+  its own item, and the capture that would settle it is a window over a
+  frame where the original's `num_units` **falls**.
+- **The zero-pop predicate.** The original counts a `control_cost == 0`
+  unit only when `is(0x134)` or `is_gov_hero`; this crate's muster seams
+  apply no such test and its sweep skips every zero-pop unit outright.
+  The two disagree on paper and no unit in either window is zero-pop, so
+  nothing on disk separates them.
+- **Why `combat` lags and `active` does not.** The original's `combat`
+  moves only on a sweep (3 → 4 at block 7576, the same frame this crate
+  sweeps) while `active` moves live. That this crate's sweep cadence is
+  in phase with the original's is evidence from one coincidence, not a
+  claim: no item has yet pinned the cadence itself.

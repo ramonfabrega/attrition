@@ -145,6 +145,17 @@ pub(crate) fn rows(built: &Built, who: usize) -> Vec<Row> {
     for (i, f) in a.tech_cat_frame.iter().enumerate() {
         out.push((format!("tech_cat_frame[{i}]"), *f));
     }
+    // **`control` is `active`'s twin and it had never been compared** —
+    // item 303. The original writes the two on adjacent lines at every
+    // writer it has (`Unit::set_type@00612fa0:74,284`,
+    // `Objects::init_unit@0065e0c0:92,174`), so a row that moves one and
+    // not the other is exactly the bug the pair is here to catch. It
+    // lives on [`sim::Muster`] rather than the census because the price
+    // ramp reads it.
+    out.push((
+        "control".to_string(),
+        i64::from(built.sim.muster[who].control),
+    ));
     // The census — `docs/AI.md` §2.3, under the PDB's names.
     for (k, v) in [
         ("active", c.active),
@@ -361,6 +372,7 @@ pub(crate) fn theirs(block: &Block<'_>) -> std::collections::BTreeMap<String, i6
         "frame_attacked",
         "attacked_by",
         "active",
+        "control",
         "combat",
         "siege",
         "non_siege",
@@ -525,6 +537,39 @@ mod tests {
         Some((kept, built))
     }
 
+    /// **`active` is the muster's cardinality, and that is what item 303
+    /// established.** It reads like a census counter — it is
+    /// `LeaderData+0x93c`, the sweep zeroes it and counts into it
+    /// (`Leader::plan_strategy@006b9620:127,508`), and the record prints it
+    /// among the unit classes — and it is not one. Its live writers are
+    /// `Unit::set_type@00612fa0:74,284`, which moves `num_units`, `control`
+    /// and `active` in one guarded block in each direction, and
+    /// `Objects::init_unit@0065e0c0:92,174`, which undoes all three when
+    /// the new unit turns out to be a squad follower. So the original's
+    /// `active` equals the sum of its own `num_units` on **every** block,
+    /// not only on the frames its sweep runs — which is why modelling the
+    /// recount alone left this crate a stale snapshot, 31 against 32 for
+    /// 62 of run91's 86 blocks. `docs/AI.md` §37.
+    ///
+    /// Called from both windows' loops: 332 blocks. Made to fail on
+    /// purpose by summing `num_queued` instead.
+    fn active_is_the_muster_summed(
+        t: &std::collections::BTreeMap<String, i64>,
+        n: i64,
+        who: usize,
+    ) {
+        let sum: i64 = t
+            .iter()
+            .filter(|(k, _)| k.starts_with("num_units["))
+            .map(|(_, v)| *v)
+            .sum();
+        assert_eq!(
+            t["active"], sum,
+            "block {n}, leader {who}: the original's `active` is not its own \
+             per-type muster summed"
+        );
+    }
+
     /// **The leader record, whole, over run84's window** — item 290.
     ///
     /// Until this, six of the record's ~250 fields were compared over a
@@ -559,6 +604,7 @@ mod tests {
                 };
                 blocks += 1;
                 let t = theirs(&block);
+                active_is_the_muster_summed(&t, n, who);
                 for (k, mine) in &ours[&(n, who)] {
                     let Some(&yours) = t.get(k) else {
                         missing.insert(k.clone());
@@ -596,7 +642,7 @@ mod tests {
             .collect();
         assert!(clash.is_empty(), "UNMODELLED and rows both carry {clash:?}");
         assert_eq!(
-            compared, 166_880,
+            compared, 167_040,
             "160 blocks of the record, every field the mapping carries"
         );
         assert!(
@@ -647,6 +693,7 @@ mod tests {
                 };
                 blocks += 1;
                 let t = theirs(&block);
+                active_is_the_muster_summed(&t, n, who);
                 for (k, mine) in &ours[&(n, who)] {
                     let Some(&yours) = t.get(k) else { continue };
                     compared += 1;
@@ -698,7 +745,7 @@ mod tests {
         }
         assert_eq!(blocks, 172, "86 frames, two leaders");
         assert_eq!(
-            compared, 179_396,
+            compared, 179_568,
             "172 blocks of the record, every field the mapping carries"
         );
 
@@ -837,7 +884,6 @@ mod tests {
         (0, "SITE[7].reg"),
         (0, "SITE[8].reg"),
         (0, "SITE[9].reg"),
-        (0, "active"),
         (0, "ally_mask"),
         (0, "filled_gather_slots[0:food]"),
         (0, "filled_gather_slots[1:timber]"),
@@ -915,7 +961,6 @@ mod tests {
         (1, "SITE[9].val"),
         (1, "SITE[9].wx"),
         (1, "SITE[9].wy"),
-        (1, "active"),
         (1, "gather_stamp"),
         (1, "min_other_team_terr"),
         (1, "other_team_terr"),
@@ -956,7 +1001,6 @@ mod tests {
         (0, "SITE[7].reg"),
         (0, "SITE[8].reg"),
         (0, "SITE[9].reg"),
-        (0, "active"),
         (0, "ally_mask"),
         (0, "filled_gather_slots[0:food]"),
         (0, "filled_gather_slots[1:timber]"),
@@ -1026,7 +1070,6 @@ mod tests {
         (1, "SITE[9].val"),
         (1, "SITE[9].wx"),
         (1, "SITE[9].wy"),
-        (1, "active"),
         (1, "defense"),
         (1, "gather_stamp"),
         (1, "min_other_team_terr"),
@@ -1038,6 +1081,41 @@ mod tests {
         (1, "tech_cat_frame[3]"),
         (1, "tech_frame"),
     ];
+
+    /// Item 303's probe: this crate's `active` against this crate's own
+    /// per-type muster, frame by frame, and the original's beside them.
+    #[test]
+    #[ignore]
+    fn probe_active_against_the_muster() {
+        let Some(path) = dump("gamelog-run91-greatlakes-wordledger.txt") else {
+            return;
+        };
+        let Some((ours, _)) = great_lakes(7514, 7599) else {
+            return;
+        };
+        let wtext = crate::capture::read(&path);
+        let wlog = Log::parse(&wtext);
+        for n in 7514..=7599i64 {
+            for who in 0..2usize {
+                let r: std::collections::BTreeMap<String, i64> =
+                    ours[&(n, who)].iter().cloned().collect();
+                let sum: i64 = r
+                    .iter()
+                    .filter(|(k, _)| k.starts_with("num_units["))
+                    .map(|(_, v)| *v)
+                    .sum();
+                let block = wlog.leader_block(n, who as i64).unwrap();
+                let t = theirs(&block);
+                eprintln!(
+                    "n {n} who {who}: ours active {} sum {sum} control {}  theirs active {}                      control {}",
+                    r["active"],
+                    r.get("control").copied().unwrap_or(-1),
+                    t["active"],
+                    t.get("control").copied().unwrap_or(-1),
+                );
+            }
+        }
+    }
 
     /// The predictions run91's stanza is written from: what this crate
     /// holds for both leaders across run91's own window.

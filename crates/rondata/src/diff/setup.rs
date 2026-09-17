@@ -768,21 +768,17 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
         // reading the dump's `GUY x/y` is deliberate — it is what lets
         // `run56_s_scout_dog_walks_its_own_body` compare the two.
         sim.seat_guys(idx);
-        // `Unit::init`'s tally — `num_units`, the group count, `control` —
-        // which the price ramp and `population()` read. A unit stood up
-        // from the dump counts exactly as a trained one does.
+        // `Unit::init`'s tally — `num_units`, the group count, `control`
+        // and `active` — which the price ramp, `population()` and the make
+        // list read. A unit stood up from the dump counts exactly as a
+        // trained one does, which is why this is [`sim::Sim::track_unit_type`]
+        // and not a fourth copy of the four increments: `active` was
+        // missing from this one until item 303, and a human player's
+        // record has no sweep to re-derive it. `docs/AI.md` §37.
         if let Some(ty) = kind
             && !gaia
         {
-            let who = u.who as usize;
-            let group = sim.unit_types[ty].group;
-            let pop = sim.unit_types[ty].price.pop;
-            let m = &mut sim.muster[who];
-            m.by_type[ty] += 1;
-            if let Some(g) = group {
-                m.by_group[g] += 1;
-            }
-            m.control += pop;
+            sim.track_unit_type(u.who as sim::Player, ty, 1);
         }
         units.push(UnitLink {
             who: u.who,

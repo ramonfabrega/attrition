@@ -20261,3 +20261,59 @@ either map, and nothing downstream would ever have contradicted it, because
 a wired change that moves a word is precisely what no one re-derives. The
 three unbundled rows now in `docs/PATHFINDER.md` §18.3 are there so the next
 reader does not have to take the grouping on trust.
+
+## 2026-09-17 — item 303: `active` was never a census counter (Opus 5)
+
+**The title was the observation, and the diagnosis was one layer over
+again** — the fourth time in a day. 303 was booked as "one captain short,
+and which one is unread", and the honest first move was the one the item
+asked for: show that `active` is counted the way the title assumes,
+before going looking for the captain. It is not.
+
+**One `grep` over a capture already on disk settled it.** Summing the
+record's own `num_units` per block and putting it beside `active`: they
+are equal on all 332 blocks of both windows, both players. And run84 —
+not run91, whose roster never changes — carries the frame that makes it a
+proof rather than a coincidence: `num_units[127]` goes 1 → 2 at block
+6994 and `active` goes 29 → 30 on that same block. A counter rebuilt by a
+two-hundred-frame sweep cannot follow the roster that closely.
+
+**The writers say the same thing, and the sweep is the smallest of
+them.** `LeaderData+0x93c` has five: `Unit::set_type` in each direction,
+`Objects::init_unit` undoing all three counters when the new unit turns
+out to be a squad follower, `Unit::close` on death, and only then
+`Leader::plan_strategy`'s zero-and-recount. The muster increment and
+`active` sit inside *one* guarded block — which is why `active` tracks
+the muster exactly, by construction rather than by luck.
+
+**So this crate had modelled the re-derivation and none of the live
+half.** Its sweep runs at 6175, 6375 … 7575; leader 1 gained its Hoplite
+squad between 7375 and 7514, so `active` sat at the 7375 snapshot of 31
+until the 7575 sweep caught up at block 7576. Sixty-two of eighty-six
+blocks, and the residual shape read exactly like a dropped captain.
+
+**The fourth copy of the increments was outside the sim.** Three sim call
+sites moved `by_type`, `by_group` and `control` together and now move
+`active` with them, through one `track_unit_type` named after the
+original's own. The fourth was the diff harness's stand-up, which builds
+a unit straight out of a start dump — and that is the only one that
+matters for a **human** player, whose sweep never runs here. Seeding
+`active` there is what took player 0's row from `ours 0 theirs 6` to
+agreement. Reading the sim alone would have closed half the item and left
+the other half looking like a seam.
+
+**What landed, and what did not.** Four residue rows gone across the two
+windows and nothing joined; `control` — `active`'s twin, adjacent in
+`LeaderData` and written by the same code, never compared on any capture
+— added and right on all 332 blocks. All three new claims were made to
+fail first. **The headline did not move**: Great Lakes is 7679 either
+side, both endpoints unchanged, and the reason is structural rather than
+unlucky — nothing in the sim *reads* `census.active`. It is state the
+record prints and the AI does not consult, so the fix could not have
+moved a draw, and saying that with a number is worth more than hoping.
+
+**One finding for the queue.** Nothing decrements the muster on death —
+not `by_type`, not `by_group`, not `control`, and now not `active`
+either; the original's `Unit::close` has no counterpart here. No unit of
+players 0 or 1 dies inside either window, so no diff on disk reaches it.
+It predates this item and it is `by_type`'s gap as much as `active`'s.
