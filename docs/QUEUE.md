@@ -37,7 +37,7 @@ ran two lanes for the first time since the lab landed.*
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w7812 of 24,000 · GreatLakes w7679 of 24,000
-Endpoint 24001: EastIndies 72 off, 9 unlinked · GreatLakes 55 off, 28 unlinked
+Endpoint 24001: EastIndies 70 off, 10 unlinked · GreatLakes 57 off, 23 unlinked
 
 **Opener: 302 (`Muster::by_type` counts squad heads, §34's last open
 oracle) beside 301 already in flight; gate `tools/release_gate.py`; briefs
@@ -48,13 +48,6 @@ carry `CLAUDE.md`'s worker paragraph, and a lane is reaped with `ccc rm`.**
 In dependency order, headline-nearest first; **the headline is the long
 captures' word**, lower map first — Great Lakes. Take the first unstarted
 unless a better order is obvious, and say so. Numbers are stable.
-
-302. **`Muster::by_type` counts squad heads where `upgrade_units`'
-    `owned` wants units** — §34's third oracle and the last one open.
-    `MAKE[7]` (`t 133` Phalanx) is exactly half, 31488 against the
-    original's 62976, and `(owned + 2) / 2` halves with it: owned 0 here
-    against the original's 2. Headline-nearest. Value diff on disk, no
-    capture needed. AI §34, §35.
 
 303. **`active` is 31 against the original's 32** on 62 of run91's 86
     blocks — one captain short, and which one is unread. The last

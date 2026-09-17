@@ -18,6 +18,17 @@
 //! (`docs/DATALAYER.md` §4).
 
 use crate::diff::setup::Built;
+/// `BASE_UNITTYPES` — the `TypeIndex` of the first unit record, which is
+/// the offset between this crate's record index and the dump's own
+/// `num_queued` index. `docs/DATALAYER.md`.
+const BASE_UNITTYPES: usize = 0x32;
+/// `BASE_GAIATYPES - BASE_UNITTYPES`: the width of the record's own
+/// `num_units` array, which is **352** and stops before the twelve gaia
+/// types. This crate's unit table is 364 records for exactly that reason,
+/// so the muster rows are cut here rather than naming twelve keys the
+/// record cannot carry.
+const MUSTER_WIDTH: usize = 0x192 - 0x32;
+
 use crate::gamelog::Block;
 use sim::economy::RESOURCES;
 
@@ -243,6 +254,20 @@ pub(crate) fn rows(built: &Built, who: usize) -> Vec<Row> {
             out.push((format!("MAKE[{i}].{k}"), v));
         }
     }
+    // **The per-type muster, whole** — `num_units` and `num_queued`, the
+    // two 352-wide arrays the record prints under those names. Item 302:
+    // `MAKE[7].val` is a function of `upgrade_units`' `owned`, which sums
+    // `num_units` over a type's predecessor chain, and nothing here
+    // compared either array. The dump's index is the record's own — the
+    // array is keyed by `TypeIndex - BASE_UNITTYPES` and this crate's
+    // record index is the same number (`UnitType::type_index`).
+    let m = &built.sim.muster[who];
+    for (r, n) in m.by_type.iter().enumerate().take(MUSTER_WIDTH) {
+        out.push((format!("num_units[{r}]"), i64::from(*n)));
+    }
+    for (r, n) in m.queued_by_type.iter().enumerate().take(MUSTER_WIDTH) {
+        out.push((format!("num_queued[{r}]"), i64::from(*n)));
+    }
     // The ten sites, slot for slot.
     for (i, s) in a.sites.iter().enumerate() {
         for (k, v) in [
@@ -378,6 +403,21 @@ pub(crate) fn theirs(block: &Block<'_>) -> std::collections::BTreeMap<String, i6
     ] {
         if let Some(x) = block.int(key) {
             out.insert(key.to_string(), x);
+        }
+    }
+    // **The per-type muster, whole — and the two arrays are keyed
+    // differently.** `num_units` is 352 wide and its index 0 is
+    // `BASE_UNITTYPES`; `num_queued` is **806** wide and its index 0 is
+    // `TypeIndex` 0, so the same Hoplite sits at 82 in one and 132 in the
+    // other. Reading both as record-keyed reported every queued type as a
+    // divergence at two indices at once, which is how the offset was
+    // found (item 302). Both are re-keyed to this crate's record here.
+    for (r, x) in all("num_units[scan]").iter().enumerate() {
+        out.insert(format!("num_units[{r}]"), *x);
+    }
+    for (i, x) in all("num_queued[scan]").iter().enumerate() {
+        if let Some(r) = i.checked_sub(BASE_UNITTYPES) {
+            out.insert(format!("num_queued[{r}]"), *x);
         }
     }
     let v = all("tech_cat_frame[scan]");
@@ -556,7 +596,7 @@ mod tests {
             .collect();
         assert!(clash.is_empty(), "UNMODELLED and rows both carry {clash:?}");
         assert_eq!(
-            compared, 54_240,
+            compared, 166_880,
             "160 blocks of the record, every field the mapping carries"
         );
         assert!(
@@ -658,8 +698,29 @@ mod tests {
         }
         assert_eq!(blocks, 172, "86 frames, two leaders");
         assert_eq!(
-            compared, 58_308,
+            compared, 179_396,
             "172 blocks of the record, every field the mapping carries"
+        );
+
+        // **The per-type muster, whole — and it is what settled item
+        // 302.** `num_units` is the original's own per-type count, 352
+        // wide, and `num_queued` its 806-wide sibling; neither had ever
+        // been compared. They agree on every type, every block and both
+        // players, and *that* is the answer to "is the original's count
+        // over units or over captains": leader 1's one Hoplite squad of
+        // three figures counts **one** on both sides and its three
+        // Longbowman squads count **three**, which is this crate's own
+        // convention. The item was booked as `Muster::by_type` counting
+        // squad heads where the original counts units; the original
+        // counts heads. `docs/AI.md` §36.
+        let muster: Vec<&str> = residue
+            .keys()
+            .map(|(_, k)| k.as_str())
+            .filter(|k| k.starts_with("num_units[") || k.starts_with("num_queued["))
+            .collect();
+        assert!(
+            muster.is_empty(),
+            "the per-type muster parts from the original's: {muster:?}"
         );
 
         // **The refusal, and it was the whole of item 290.** Item 287
@@ -723,6 +784,24 @@ mod tests {
              the census is"
         );
         assert_eq!(head(6, "num"), (1, 1), "slot 6's batch is not one");
+        // **Slot 7's factor of two, closed — item 302.** `t 133` Phalanx
+        // is `upgrade_units`' one military offer in this list, and its
+        // value was exactly half the original's on every block of both
+        // windows. The cause is neither `Muster::by_type` nor the
+        // predecessor chain, both of which the muster assertion above
+        // shows correct: it is the **denominator**. The original divides
+        // `pop * 1000` by `city_num + village_num` — two fields it adds
+        // — and this crate recounted "cities that are still villages"
+        // instead, answering 2 where the original's `village_num` is 0,
+        // so `base` was 500 against 1000 and every value in the list
+        // halved. `docs/AI.md` §36.
+        assert_eq!(head(7, "t"), (133, 133), "slot 7 is not the Phalanx");
+        assert_eq!(
+            head(7, "val"),
+            (62_976, 62_976),
+            "slot 7's value is not the original's — `village_num` is \
+             being recounted again, or `owned` moved"
+        );
 
         // The residue, pinned by name the way run84's is.
         let parting: Vec<(usize, &str)> = residue.keys().map(|(w, k)| (*w, k.as_str())).collect();
@@ -792,7 +871,6 @@ mod tests {
         (1, "MAKE[4].val"),
         (1, "MAKE[5].city"),
         (1, "MAKE[6].city"),
-        (1, "MAKE[7].val"),
         (1, "MAKE[8].city"),
         (1, "MAKE[8].t"),
         (1, "MAKE[9].t"),

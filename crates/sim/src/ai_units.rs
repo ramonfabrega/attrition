@@ -1573,7 +1573,14 @@ impl Sim {
             .filter(|(_, d)| d.kind.is_unit())
             .map(|(i, _)| i)
             .collect();
-        let city_num = self.cities_of(who).len() as i32;
+        // `LeaderData::city_num + LeaderData::village_num`, the two fields
+        // the original adds (`upgrade_units@006c6430`, `+0x3f8` and
+        // `+0x3fc`) — **not** a recount of which cities are still
+        // villages. `village_num` is a declared seam and answers 0 here,
+        // which is also the original's answer on run91's own frames
+        // (`docs/AI.md` §36); the recount this used to do answered **2**
+        // for Great Lakes' leader 1 and halved every value in the list.
+        let settlements = (self.city_num(who) + self.village_num(who)).max(1);
         let pop = self.ai[w].census.pop;
 
         for t in units {
@@ -1595,7 +1602,17 @@ impl Sim {
             // The predecessor chain: what I own of it and whether any of it
             // is available, and the age it came in at.
             let age_t = f.age;
-            let mut age_p = age_t;
+            // **`age_p` is an accumulator the original zeroes, not a
+            // default of my own age.** `6c660d xor edi,edi` sits between
+            // the chain's head and the walk, and the walk's own guard is
+            // `6c6643 test edi,edi / jne` — the accumulator itself, not a
+            // "have I found one" flag. Two consequences this crate had
+            // wrong: a type with **no available predecessor** gets `gap =
+            // age_t - 0`, its own age, where defaulting `age_p = age_t`
+            // gives zero; and a predecessor whose own age is zero leaves
+            // the walk still looking. `avail` (`local_20`) is a separate
+            // flag and is raised by *every* available predecessor.
+            let mut age_p = 0;
             let mut owned = 0;
             let mut avail = false;
             let mut p =
@@ -1606,11 +1623,13 @@ impl Sim {
                 if let Some(rec) = self.unit_record(x) {
                     owned += self.muster[w].by_type[rec];
                 }
-                if self.type_avail(who, x) == tech::AVAILABLE && !avail {
+                if self.type_avail(who, x) == tech::AVAILABLE {
                     avail = true;
-                    age_p = self
-                        .unit_record(x)
-                        .map_or(age_t, |r| self.unit_types[r].combat.age);
+                    if age_p == 0 {
+                        age_p = self
+                            .unit_record(x)
+                            .map_or(0, |r| self.unit_types[r].combat.age);
+                    }
                 }
                 p = self.tech_tree.get_graft(
                     &self.setup,
@@ -1623,7 +1642,7 @@ impl Sim {
             }
             // The value. `k` is the recency factor, four for every
             // non-negative elapsed time (report §9.5).
-            let base = pop * 1000 / (city_num + self.village_count(who)).max(1);
+            let base = pop * 1000 / settlements;
             let k = 4;
             let gap = age_t - age_p;
             let m = (5 * gap + 2).max(1);
@@ -1733,16 +1752,6 @@ impl Sim {
                 .make_list
                 .make_me(t as i32, wm(aff, v / 256), 1, cat, -1, 0, 1, 0, 0);
         }
-    }
-
-    /// `LeaderData::village_num` — the leader's cities that are still
-    /// villages. The simulation keeps one city record per city, so this is
-    /// the count of level-one ones.
-    fn village_count(&self, who: Player) -> i32 {
-        self.cities_of(who)
-            .into_iter()
-            .filter(|&c| self.city_level_of(c) <= 1)
-            .count() as i32
     }
 
     /// `Leaders::max_enemy_age(who)`: the highest age among leaders not
