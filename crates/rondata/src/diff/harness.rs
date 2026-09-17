@@ -7168,14 +7168,19 @@ mod tests {
         // right, so the citizen that walked one step past the original on
         // every collision now walks the original's shuffle and stands
         // where the original stands on the block the `!quit` catches.
-        // `1/7`, the other half of that shuffle, is still on 7816 — it is
-        // §6 step 5's wait-versus-pause row, which 289 did not touch.
+        // `1/7` was the fifth — the other half of that shuffle, §6 step
+        // 5's wait-versus-pause row, which 289 did not touch — and it went
+        // on 2026-09-17 with the suspended-search block (items 301 and
+        // 304, `docs/PATHFINDER.md` §18.5): the original's repath leaves
+        // the search suspended where this crate walked the goal back onto
+        // the unit's own cell, and with the block wired the stack is the
+        // original's and the position never parts.
         assert_eq!(
             parted
                 .iter()
                 .map(|(&k, &f)| (k, f))
                 .collect::<Vec<((i64, i64), i64)>>(),
-            vec![((1, 7), 7_816), ((1, 19), 7_474), ((1, 20), 7_663)],
+            vec![((1, 19), 7_474), ((1, 20), 7_663)],
             "run88's parted set, whole"
         );
 
@@ -7234,7 +7239,18 @@ mod tests {
         // priced at (+46, +51) now stands where the original stands on the
         // block the `!quit` catches. `1/7`, the other half of the shuffle,
         // is still (−6, +12) out: that is §6 step 5's wait-versus-pause
-        // row, which 289 did not touch and which is now the word.
+        // row, which 289 did not touch and which was the word.
+        //
+        // **And `1/7`'s row is gone too** (items 301 and 304, 2026-09-17).
+        // run90 dumped that half of the shuffle as well, and the mechanism
+        // was the suspended search: the original's repath on 7810 leaves
+        // the stack as the move's own goal and the search suspended, where
+        // this crate walked the goal back onto the unit's own cell.
+        // `do_move`'s §4.4 step 2 block is what models it, and
+        // `kill_current_path`'s `clear_partial_path` is what let it be
+        // wired (`docs/PATHFINDER.md` §18.5). The closing block's residue
+        // is now the two standing Merchant constants and nothing else, on
+        // a 327-block window.
         let residue: Vec<(i64, i64, i32, i32, i32, i32)> = report
             .frames
             .iter()
@@ -7245,7 +7261,6 @@ mod tests {
         assert_eq!(
             residue,
             vec![
-                (1, 7, 39_666, 38_676, 39_672, 38_664),
                 (1, 19, 32_280, 36_888, 32_256, 36_864),
                 (1, 20, 28_632, 24_024, 28_608, 24_000),
             ],
@@ -7768,52 +7783,29 @@ mod tests {
             eprintln!("  {who}/{o} parts at {frame}");
         }
 
-        // **`1/6` walks the original's shuffle now, and block 7805 is the
-        // pin** (item 289). It was the first parted block — this crate on
-        // its own sidestep waypoint (39720, 38808) where the original had
-        // already left it behind at (39729, 38802) — and it is the row the
-        // arrival rule was read from, so it is the row that says the
-        // reading landed. Nothing of `1/6` disagrees at or below the word:
-        // not a coordinate, not a collision field, not the path stack.
-        assert!(
-            report
-                .frames
-                .iter()
-                .flat_map(|f| f.diverged.iter())
-                .all(|d| (d.who, d.o) != (1, 6) || d.frame >= 7_827),
-            "`1/6` parts below 7827: {:?}",
-            report
-                .frames
-                .iter()
-                .flat_map(|f| f.diverged.iter())
-                .find(|d| (d.who, d.o) == (1, 6) && d.frame < 7_827)
-        );
+        // **`1/6` does not part at all now, and that is the second
+        // tightening of this row.** It was the window's first parted block
+        // at 7805 — this crate on its own sidestep waypoint (39720, 38808)
+        // where the original had already left it behind at (39729, 38802),
+        // the row item 289's arrival rule was read from — and item 289 took
+        // it to 7827, fifteen blocks past the word, where the unit turned
+        // north-east onto a leg the original does not take. That remainder
+        // was the unwired suspend: with item 301's block wired (item 304,
+        // `docs/PATHFINDER.md` §18.5) `1/6` is on the original's point for
+        // all 111 blocks. So the pin is emptiness, in every record the
+        // window carries, and any reappearance fails.
         let six: Vec<(i64, i32, i32, i32, i32)> = report
             .frames
             .iter()
             .flat_map(|f| f.diverged.iter())
             .filter(|d| (d.who, d.o) == (1, 6))
             .map(|d| (d.frame, d.ours.x, d.ours.y, d.theirs.x, d.theirs.y))
-            .take(4)
             .collect();
         assert_eq!(
             six,
-            vec![
-                (7_827, 39_368, 38_615, 39_347, 38_600),
-                (7_828, 39_373, 38_591, 39_326, 38_585),
-                (7_829, 39_378, 38_567, 39_305, 38_570),
-                (7_830, 39_383, 38_543, 39_284, 38_555),
-            ],
-            "`1/6`'s first four parted blocks, both sides' coordinates — \
-             fifteen blocks past the word and a different fault: the unit \
-             turns north-east onto a leg the original does not take"
-        );
-        assert!(
-            parted.get(&(1, 6)) == Some(&7_827)
-                && *parted.get(&(1, 6)).unwrap() > LONG_WORD_EAST_INDIES,
-            "`1/6` parts at {:?}, and the word's own block is {}",
-            parted.get(&(1, 6)),
-            LONG_WORD_EAST_INDIES + 1
+            vec![],
+            "`1/6`'s parted blocks, both sides' coordinates — it walked the \
+             whole shuffle at 7827 before the suspend wired"
         );
 
         // **The cycle, which is the mechanism and not the symptom.** The
@@ -7864,37 +7856,38 @@ mod tests {
             .map(|d| d.frame)
             .collect();
         assert_eq!(
-            six_ord.first(),
-            Some(&7_828),
-            "`1/6`'s order record — the path stack included — first parts at \
-             {:?}; the whole four-block cycle is below it",
+            six_ord,
+            Vec::<i64>::new(),
+            "`1/6`'s order record — the path stack included — parts at \
+             {:?}; it read 7828 while the suspend was unwired, one block \
+             after the position, and the whole four-block cycle was below it",
             six_ord.first()
         );
 
-        // **`1/7` parts on 7812 and it is the wait-versus-pause row**, the
-        // second of run90's two refusals and the one item 289 did not
-        // touch. Its whole collision divergence over the window is a
-        // single block — **7809**, where the original has it colliding
-        // with `1/6` (`collide 1`, `collide_o 6`) and this crate has it
-        // clear — and two blocks later its order kind parts, this crate
-        // taking §6 step 5's wait where the original repaths and rolls
-        // the `pause 8` the table above holds. The remaining frame of
-        // East Indies' word is on this row, not on `1/6`'s.
+        // **`1/7` does not part either, and it was East Indies' word.**
+        // This was the second of run90's two refusals and the one item 289
+        // did not touch: on 7809 the original had it colliding with `1/6`
+        // (`collide 1`, `collide_o 6`) where this crate had it clear, two
+        // blocks later its order kind parted — this crate taking §6 step 5's
+        // wait where the original repaths and rolls a `pause 8` — and its
+        // position went at 7812, which *was* [`LONG_WORD_EAST_INDIES`].
+        // Item 301 read the mechanism (the original suspends the search
+        // rather than walking the goal back onto the unit's own cell) and
+        // banked it unwired; item 304 paid its Great Lakes cost, and with
+        // the block wired `1/7` holds the original's point through the
+        // window's last block and the word runs to 8193.
         let seven: Vec<(i64, i32, i32, i32, i32)> = report
             .frames
             .iter()
             .flat_map(|f| f.diverged.iter())
             .filter(|d| (d.who, d.o) == (1, 7))
             .map(|d| (d.frame, d.ours.x, d.ours.y, d.theirs.x, d.theirs.y))
-            .take(2)
             .collect();
         assert_eq!(
             seven,
-            vec![
-                (7_812, 39_666, 38_676, 39_672, 38_664),
-                (7_813, 39_666, 38_676, 39_672, 38_664),
-            ],
-            "`1/7`'s first two parted blocks, both sides' coordinates"
+            vec![],
+            "`1/7`'s parted blocks, both sides' coordinates — it parted at \
+             7812, the old word, before the suspend wired"
         );
         let seven_coll: Vec<(i64, &str, i64, i64)> = report
             .frames
@@ -7905,15 +7898,21 @@ mod tests {
             .collect();
         assert_eq!(
             seven_coll,
-            vec![],
+            vec![(7_820, "collide_o", -1, 6), (7_820, "collide_who", -1, 1),],
             "`1/7`'s whole collision divergence over run90"
         );
 
         // **And the whole cast's, over the whole window** — every unit of
-        // every block, all five fields. It was `1/7`'s three rows on 7809
-        // and it is now empty, which is the strongest thing run90 says
-        // about the mechanic: 111 blocks of a two-citizen shuffle with
-        // three collisions each and not one collision field apart.
+        // every block, all five fields. It was `1/7`'s three rows on 7809,
+        // item 289 emptied it, and wiring the suspend put **two rows back
+        // on 7820**: the original names the blocker there
+        // (`collide_who 1`, `collide_o 6`) and this crate leaves both at
+        // −1 while `collide` itself, the count, agrees. That is a residue
+        // and not a fault the window can price — every position, every
+        // angle, every order record and every draw count in these 111
+        // blocks agrees, so nothing downstream of it is visible here. It
+        // is pinned rather than scored, and it is the one row run90 has
+        // left to explain.
         let all_coll: Vec<(i64, i64, i64, &str, i64, i64)> = report
             .frames
             .iter()
@@ -7922,16 +7921,22 @@ mod tests {
             .collect();
         assert_eq!(
             all_coll,
-            vec![],
+            vec![
+                (7_820, 1, 7, "collide_o", -1, 6),
+                (7_820, 1, 7, "collide_who", -1, 1),
+            ],
             "run90's collision fields, whole cast and whole window"
         );
 
-        // **`1/7`'s order record parts at 7811, one block below the word,
-        // and it is not a collision fault** (item 294). The original's
-        // repath on 7810 leaves the stack as the move's own goal and the
-        // search **suspended**; this crate's `find_upath` walks that goal
-        // back onto the unit's own cell and returns it as a one-entry
-        // final leg, which the unit reaches on 7812 — the word.
+        // **And `1/7`'s order record holds too, where it parted at 7811**
+        // — one block below the old word, and never a collision fault (item
+        // 294). The original's repath on 7810 leaves the stack as the
+        // move's own goal and the search **suspended**; this crate's
+        // `find_upath` used to walk that goal back onto the unit's own cell
+        // and return it as a one-entry final leg, which the unit reached on
+        // 7812. The suspended-search block is what makes the stack the
+        // original's, so this row is the wiring's own assertion: it fails
+        // the moment the block stops holding.
         let seven_ord: Vec<i64> = report
             .frames
             .iter()
@@ -7940,46 +7945,28 @@ mod tests {
             .map(|d| d.frame)
             .collect();
         assert_eq!(
-            seven_ord.first(),
-            Some(&7_811),
-            "`1/7`'s order record first parts at {:?}",
-            seven_ord.first()
+            seven_ord,
+            Vec::<i64>::new(),
+            "`1/7`'s order record parts over run90: {seven_ord:?}"
         );
 
-        // **The whole parted set, and nothing below 7805 is new.** `1/19`
-        // and `1/20` are the two standing Merchant constants run88 already
-        // carries (`docs/MERCHANT.md`) — both open on the window's first
-        // block, as they did on run88's. `1/6` and `1/7` are the shuffle.
-        //
-        // The last three are **downstream of the word** and are pinned
-        // rather than scored: past [`LONG_WORD_EAST_INDIES`] both sides
-        // are on streams that are nobody's, so 7824, 7872 and 7895 move
-        // with any unrelated change and are the shuffle's wake, not
-        // separate faults. They are here so that a *new* unit parting, or
-        // one of these moving **below** the word, fails.
+        // **The whole parted set is now the two Merchant constants, and
+        // nothing else.** `1/19` and `1/20` are the standing rows run88
+        // already carries (`docs/MERCHANT.md`), both open on the window's
+        // first block as they did on run88's. Everything that used to sit
+        // beside them went with the suspend: `1/6` at 7827 and `1/7` at
+        // 7812, and the three that were downstream wake rather than faults
+        // — `(0, 4)` 7887, `(1, 2)` 7872 and `(1, 5)` 7895 — which is what
+        // "the shuffle's wake" always predicted and nothing had shown.
+        // 111 blocks of the East Indies shuffle, every unit of every
+        // block, and two rows apart.
         assert_eq!(
             parted
                 .iter()
                 .map(|(&k, &f)| (k, f))
                 .collect::<Vec<((i64, i64), i64)>>(),
-            vec![
-                ((0, 4), 7_887),
-                ((1, 2), 7_872),
-                ((1, 5), 7_895),
-                ((1, 6), 7_827),
-                ((1, 7), 7_812),
-                ((1, 19), 7_790),
-                ((1, 20), 7_790)
-            ],
+            vec![((1, 19), 7_790), ((1, 20), 7_790)],
             "run90's parted set, whole"
-        );
-        assert!(
-            parted
-                .iter()
-                .filter(|(k, _)| ![(1, 19), (1, 20)].contains(k))
-                .all(|(_, &f)| f >= LONG_WORD_EAST_INDIES),
-            "a unit other than the two Merchant constants parts below the \
-             word: {parted:?}"
         );
 
         // **And the draw counts, block for block, up to the word.** The

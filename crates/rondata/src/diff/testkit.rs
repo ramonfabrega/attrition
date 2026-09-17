@@ -545,7 +545,19 @@ fn indexed_siblings_preserve_every_initial_field_except_audit_bodies() {
 /// tolerance with the push and had to walk the remainder as a second step:
 /// a five-block cycle against the original's four, one frame per
 /// collision (`docs/COLLISION.md` §8.7, item 289).
-pub(crate) const LONG_WORD_EAST_INDIES: i64 = 7_812;
+/// **7812 until the suspend wired, 2026-09-17.** `find_upath`'s pre-walk
+/// gate, its `500 / max(1, repaths²)` limit and `do_move`'s suspended-search
+/// block (`docs/ORDERS.md` §4.4 step 2) were read, implemented and banked
+/// *unwired* by item 301, because wiring them cost Great Lakes' long word
+/// 7679 → 6862. Item 304 named that cost and it was not the suspend's:
+/// `Unit::kill_current_path@005e31d0` frees the stash with its pop, inside
+/// its own `0 < length` guard, and this crate had the pop alone — so on
+/// run76's 6860, the frame the original's own squad degrades out of
+/// formation, every follower kept a suspended search no order was left to
+/// serve and stood in `do_move`'s block for the rest of the capture. With
+/// that one call under the pop the wiring is free on Great Lakes and this
+/// word runs to **8193** (`docs/PATHFINDER.md` §18.5).
+pub(crate) const LONG_WORD_EAST_INDIES: i64 = 8_193;
 
 /// Great Lakes' word on the **long** capture (run53), the second of
 /// `docs/DECISIONS.md` entry 29's counters — and, since run61 put the

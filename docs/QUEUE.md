@@ -33,8 +33,8 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 - Three items open, fifteen parked by the rule. `docs/audit/2026-09-17-fable-pass-3.md`.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w7812 of 24,000 · GreatLakes w7679 of 24,000
-Endpoint 24001: EastIndies 70 off, 10 unlinked · GreatLakes 57 off, 23 unlinked
+Long captures: EastIndies w8193 of 24,000 · GreatLakes w7679 of 24,000
+Endpoint 24001: EastIndies 66 off, 16 unlinked · GreatLakes 59 off, 23 unlinked
 
 **Opener: an Opus commander wave, two workers, Great Lakes both — 312 (the
 word's own frame, a widening first) and 304 (the formation that ends early,

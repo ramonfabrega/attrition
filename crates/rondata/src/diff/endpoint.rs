@@ -279,11 +279,23 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // for the number rather than a trade. **Branch figures**: measured
         // on `worktree-loop-302` with 301 still in flight, so the merge
         // re-runs them.
-        off: 70,
-        unlinked: 10,
+        //
+        // Then **70 → 66, 10 → 16 and 31 → 30** on 2026-09-17, items 301
+        // and 304 — the suspended search wired (`docs/PATHFINDER.md` §18,
+        // §18.5): `find_upath`'s pre-walk gate, its `500 / max(1, repaths²)`
+        // limit, `do_move`'s §4.4 step 2 block, and the `clear_partial_path`
+        // under `kill_current_path`'s pop that pays their Great Lakes cost.
+        // This is the change that moves this map's own word **7812 → 8193**,
+        // the largest single step it has taken, and it empties run90's
+        // shuffle of everything but the two Merchant constants. Four
+        // positions closer and one building field-row closer, 15,808 frames
+        // past the word; six more of the roster unlinked in exchange.
+        // DECISIONS 36 asks for the number rather than a trade.
+        off: 66,
+        unlinked: 16,
         extra: 0,
         build_unlinked: 0,
-        build_diverged: 31,
+        build_diverged: 30,
         city_unlinked: 3,
         city_diverged: 0,
     },
@@ -361,11 +373,19 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // `MAKE[7].val`, and Great Lakes' 7679 is unchanged either side of
         // it. DECISIONS 36 asks for the number rather than a trade.
         // **Branch figures**, measured on `worktree-loop-302`.
-        off: 57,
+        // Then **57 → 59 and 10 → 12** on 2026-09-17, items 301 and 304 —
+        // the suspended search wired, the same row as East Indies' above.
+        // This map's word does **not** move on it: 7679 either side, which
+        // is the whole point of item 304, since the block cost 7679 → 6862
+        // while `kill_current_path` popped without freeing the stash. Two
+        // positions out and two building field-rows out, 16,322 frames past
+        // that word, against East Indies' 7812 → 8193. DECISIONS 36 asks
+        // for the number rather than a trade.
+        off: 59,
         unlinked: 23,
         extra: 0,
         build_unlinked: 0,
-        build_diverged: 10,
+        build_diverged: 12,
         city_unlinked: 3,
         city_diverged: 0,
     },
@@ -445,7 +465,12 @@ pub const LADDER: [Endpoint; 2] = [
         // captains instead of figures changes what it thinks it has, so
         // what it builds moves with it. Two changes, one figure:
         // **re-pinned at the 294/295 merge, 2026-09-17** and unmoved.
-        extra: 18,
+        // Then **18 → 19** on 2026-09-17, items 301 and 304's suspended
+        // search: one spurious unit back on this rung, 7,872 frames past
+        // its word, with `off`, `unlinked` and both building counts
+        // unmoved — the only count either rung moves on a change that takes
+        // East Indies' own word 7812 → 8193.
+        extra: 19,
         build_unlinked: 10,
         build_diverged: 7,
         city_unlinked: 3,
@@ -466,7 +491,13 @@ pub const LADDER: [Endpoint; 2] = [
         // **Re-pinned at the 289/290 merge, 2026-09-07**: `extra` 9 -> 8.
         // The ladder test panics at its first moved row, so this rung only
         // surfaced once the C rung above it was re-pinned.
-        off: 52,
+        // Then **52 → 50 and 16 → 12** on 2026-09-17, items 301 and 304's
+        // suspended search: two positions closer and four spurious units
+        // gone, 8,960 frames past this rung's word. The C rung above moved
+        // one count the other way on the same change, and this rung only
+        // surfaced once that one was re-pinned — the ladder test panics at
+        // its first moved row.
+        off: 50,
         unlinked: 16,
         // 19 → 33 on 2026-09-07, item 261, the same reshuffle, then 33 →
         // **27** the same day on item 265's byte — this rung took the
@@ -502,7 +533,12 @@ pub const LADDER: [Endpoint; 2] = [
         // (`docs/AI.md` §36): one spurious unit gone, 8,960 frames past
         // this rung's word, with nothing else on it moved and the C rung
         // above unmoved entirely. **Branch figure.**
-        extra: 16,
+        // Then **16 → 12** on 2026-09-17 with the `off` above, on items
+        // 301 and 304's suspended search: four spurious units gone, the
+        // largest fall this rung's `extra` has had, on the change that
+        // moves East Indies' own word 7812 → 8193. The C rung above gained
+        // one on the same change.
+        extra: 12,
         build_unlinked: 19,
         build_diverged: 0,
         city_unlinked: 4,
