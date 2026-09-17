@@ -140,6 +140,93 @@ mod tests {
         }
     }
 
+    /// **run93, blocks 7930 and 7931 — Great Lakes' word, as a value**
+    /// (item 317, `docs/ARMY.md` §16.8).
+    ///
+    /// 7930 is the frame the AI's first army leaves the muster and takes
+    /// its first target, and the two happen in **one tick**: §6's
+    /// dispatch `if`s re-read `status`, so `do_mustering`'s `status = 2`
+    /// reaches `do_marching` holding `target_o = -1` and the original's
+    /// `if (iVar4 < 0) goto LAB_006f3fb2` retargets at once (§9). The
+    /// draw stream says the two sides spend the same ten draws there;
+    /// **this says they reach the same state**, which a stream agreeing
+    /// on a wrong destination would not.
+    ///
+    /// Both blocks, whole record, no skips: 7930 is the army still
+    /// `status 17` with five squads and no target, and 7931 is
+    /// `status 18`, `city -1`, **`target_o 2007, target_who 1`** — the
+    /// AI's own building, §12's `L == me` arm — with `angle` taking the
+    /// muster angle (`do_mustering`'s tail, `field_0x40 = field_0x50`),
+    /// `muster_angle` rewritten by `find_target`'s own
+    /// `find_muster_spot` (§13), and `x, y` **left at 41568, 25440** by
+    /// `find_target`'s tail rather than at the muster cell's centre that
+    /// `do_mustering` had just written there.
+    #[test]
+    fn run93_says_great_lakes_7930_releases_and_takes_its_target_in_one_tick() {
+        let Some(inst) = install() else { return };
+        let Some(path) = dump("gamelog-run93-greatlakes-firsttarget.txt") else {
+            eprintln!("skipping: no gamelog-run93 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let texts = crate::diff::testkit::sibling_texts();
+        let text = crate::capture::read(&path);
+        let log = Log::parse(&text);
+        let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
+        let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+        let refs: Vec<&Initial> = inits.iter().collect();
+        let mut init = log.initial().unwrap();
+        borrow_from_siblings(&mut init, &refs);
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        let frames = log.frames();
+        for _ in 0..7931 {
+            built.tick();
+        }
+        // Block `n` is the end of sim-frame `n - 1`, so 7930 is the state
+        // the tick reads and 7931 the state it leaves.
+        for (n, want_status, want_target) in [(7930i64, 0x11i32, false), (7931, 0x12, true)] {
+            let (_, block) = *frames
+                .iter()
+                .find(|(f, _)| *f == n)
+                .unwrap_or_else(|| panic!("run93 has no block {n}"));
+            let theirs = army_records(block);
+            assert_eq!(theirs.len(), 2, "two armies of the AI at {n}");
+            let a = theirs
+                .iter()
+                .find(|t| t.int("army") == Some(1))
+                .expect("army 1");
+            assert_eq!(a.int("status"), Some(i64::from(want_status)), "block {n}");
+            assert_eq!(
+                a.int("target_o").is_some_and(|o| o >= 0),
+                want_target,
+                "block {n}: the target"
+            );
+            if want_target {
+                assert_eq!(
+                    (a.int("target_o"), a.int("target_who")),
+                    (Some(2007), Some(1)),
+                    "7931's target is the AI's own 2007"
+                );
+            }
+        }
+        // The state the tick left, against this crate's — every field.
+        let (_, block) = *frames.iter().find(|(f, _)| *f == 7931).expect("block 7931");
+        // `role` alone is skipped, and this widening is what found out
+        // why: `Army::normalize` ORs the groups' `GroupData::role` words
+        // (§3.3) and `army_normalize` writes a flat `0`, because
+        // `group::GroupState` carries no role word at all. Nothing in the
+        // family reads it (§18) so it costs no behaviour — but the
+        // document had it among the fields that are kept *because* they
+        // are dumped, beside `rally_dist`, which really is carried and
+        // agrees here at `0x1200`. §18 says so now.
+        let wrong = compare(&built, &army_records(block), &["role"]);
+        assert!(
+            wrong.is_empty(),
+            "Great Lakes 7931, the release-and-target tick:\n  {}",
+            wrong.join("\n  ")
+        );
+    }
+
     /// Run22's block 3579: two armies of the AI, one per city, both
     /// mustering **and** forming (`status 17`) — `do_mustering`'s first
     /// arm, a muster spot found at an active city — with `x, y` the city's

@@ -2652,3 +2652,21 @@ end: MISC
 check: python3 tools/gamelog/rngcmp.py rontrace-run53.log rontrace-run93.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=7900)}'
 # The record is there, on both sides of the tick: four blocks of ARMY.
 check: test "$(python3 tools/gamelog/armyrecs.py gamelog-run93-greatlakes-firsttarget.txt | grep -c 'FRAME 793[0-1]')" -ge 2
+# TAKEN 2026-09-17 — thirteen minutes (15:59 to 16:12), **308 MB gamelog**,
+# 7,936 blocks, four of them `DUMP_ALL`. Both checks ok first time:
+# `rngcmp` against run53 **0 differing, 7,936 identical** — the same game,
+# word for word — and the `ARMY` record present either side of the tick.
+#
+# **AND THE TARGET IS THE SAME ONE.** Block 7930 has army `1/1` at
+# `status 17`, five squads, `city 1`, `target_o -1`; block 7931 has it at
+# `status 18`, `city -1`, **`target_o 2007, target_who 1`** — the AI's own
+# building, §12's `L == me` arm, the same shape as run26's navy at 12025.
+# `angle` takes the old `muster_angle` (`do_mustering`'s tail,
+# `field_0x40 = field_0x50`), `muster_angle` is rewritten by
+# `find_target`'s own `find_muster_spot`, and `x, y` stay **41568, 25440**
+# — `find_target`'s tail overwriting the muster-cell centre
+# `do_mustering` had just put there. This crate reaches that record
+# **field for field**, `role` alone excepted (it carries no group role
+# word; `docs/ARMY.md` §18). The assertion is
+# `run93_says_great_lakes_7930_releases_and_takes_its_target_in_one_tick`.
+

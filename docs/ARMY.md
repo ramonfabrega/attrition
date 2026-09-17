@@ -1528,26 +1528,28 @@ went to **7176** with the limb in.
 
 ### 16.8 Great Lakes 7930 — release and first target are one tick (2026-09-17)
 
-Item 317, closed from the disk: no capture. Story in
-`docs/journal/2026-09-17-item-317.md`; findings here.
+Item 317; story in `docs/journal/2026-09-17-item-317.md`.
 
 - **7930 is the first `find_target` draw of the whole 24,000-frame
-  game**, and every one after falls on `frame % 256 ∈ {250, 248}` — §5's
-  gate, leader 1's slots 1 and 2, dated by `report.py <log> when
+  game**, every one after on `frame % 256 ∈ {250, 248}` — §5's gate,
+  leader 1's slots 1 and 2, dated by `report.py <log> when
   Army::find_target`. Chain: `find_target < do_marching+0x248 <
   process+0x42c`.
-- **Both sides release the muster on the same tick.** run92's group 64 is
-  `num` **12 on blocks 7673/7674, 15 on 7676**, matching this crate's
-  `num_standard` (4 at 7674, 5 at 7930); the original's squad births are
-  6612, 6993, 7212, 7439, **7674** — the tick frame itself.
+- **Both sides release on the same tick**, so the muster was never it:
+  run92's group 64 is `num` **12 on blocks 7673/7674, 15 on 7676**, this
+  crate's `num_standard` 4 at 7674 and 5 at 7930.
 - **It is `do_marching`'s empty-target arm** (§9). §6's `if`s re-read
   `status`, so `status = 2` reaches `do_marching` in the same tick with
   `target_o = -1`. With `retarget = target.is_none()` the frame agrees
   **ten for ten, entry for entry** — coin once, score twice (§12), both
   unnamed on both sides until now.
+- **run93 checked the value**, `DUMP_ALL` at [7929, 7933). Block 7931:
+  `status 18`, `city -1`, **`target_o 2007, target_who 1`**, the AI's own
+  building; `x, y` stay **41568, 25440** — `find_target`'s tail, not the
+  muster centre `do_mustering` wrote. Field for field here, `role`
+  excepted (§18).
 
-**Word 7930 → 8030**; 8318 frames draw for draw (8193); endpoint 24001
-off 60, unlinked 20 (from 55 / 28). Open in §18.
+**Word 7930 → 8030**; 8318 frames draw for draw (8193). Successor: 8030.
 
 ## 17. What the simulation carries, and what checks it
 
@@ -1641,17 +1643,12 @@ Checks, cheapest first (`rondata::diff`, `army_tests`):
 
 ## 18. What is not established
 
-- **Which target Great Lakes 7930 actually picks** (item 317, §16.8).
-  The frame agrees ten draws for ten and the head is `find_target`'s
-  coin and two candidate scores on both sides, so both scanned the same
-  number of leaders and cities — but `target_o` / `target_who` is a
-  value and no Great Lakes archive on disk carries an `ARMY` record past
-  run73's **5591**. **The check is named and booked**: run93,
-  `greatlakes-firsttarget`, a `DUMP_ALL` window at [7929, 7933) — the
-  state before the tick (block 7930) and after it (block 7931) — against
-  `tools/gamelog/armyrecs.py`. The successor frame, **8030**, is one
-  extra `Unit::do_move+0xe84` of this crate's, which is the marching
-  army's own walk and the first thing a wrong target would show as.
+- ~~**Which target Great Lakes 7930 actually picks**~~ (item 317,
+  §16.8) — **run93 settled it**: `target_o 2007, target_who 1`, the AI's
+  own building, and this crate's record agrees field for field. The
+  successor frame, **8030**, is still open: this crate spends one extra
+  `Unit::do_move+0xe84` there — the marching army's own walk, one frame
+  out — and the target is now ruled out as its cause.
 - **`do_marching`'s inline `do_forming`, once or twice.** The original's
   `LAB_006f3fb2` calls `do_forming` itself before returning (§9), and
   `Army::process` then calls it again on its own `status & 0x10` arm —
@@ -1720,7 +1717,14 @@ Checks, cheapest first (`rondata::diff`, `army_tests`):
 - **`rally_dist`** is written (`0x1200` on a new target) and never read
   in the family or anywhere the export shows. Dumped, so diffed, so kept.
 - **`role`** is the OR of the groups' `GroupData::role` words; nothing in
-  the family reads it. *Same.*
+  the family reads it — and, **unlike `rally_dist` above, this crate does
+  not carry it**: `army_normalize` writes a flat `0` because
+  `group::GroupState` has no role word to OR. run93's block 7931 is the
+  first whole-record `ARMY` diff to reach it and `role` is its one
+  skipped field (item 317); the original has `1379331` there, which is
+  group 64's own `role` in run92's pool. Carrying it means giving the
+  group state a role word, which is a `docs/GROUPS.md` job and not an
+  army one.
 - **The order of two multipliers in §12** — the enemy-capital
   `GLOBAL_GOVERNMENT_BONUS` block and the `bordering` block — is as the
   decompile lists them; the listing was not read for these two, and the
