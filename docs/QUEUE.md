@@ -12,34 +12,36 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-17, the third Fable steering pass (Fable 5.1, the main thread).
-**No score moved; none was meant to.** Next: an Opus commander wave.*
+*2026-09-17, an Opus commander wave of two, both on Great Lakes.
+**East Indies +381; Great Lakes unmoved, its cause named.**
+Next: the capture 312 asks for.*
 
-- **Great Lakes 7679**, **East Indies 7812**. The 09-17 wave: five landings,
-  one word (+94, item 295), and 301 banked **+381 on East Indies unwired**
-  (`worktree-loop-301-suspend`, `4521ccc`), which costs Great Lakes
-  7679 → 6862 until 304 closes.
-- **The measure**: 152 USD per word-moving landing against 102 (1.5x,
-  under the doubling that stops); 1.61 USD per frame against 0.92 and
-  0.13. The cause was the queue, not the workers: no item named the word's
-  frame, and the wave ran residue rows. DECISIONS 34, third amendment.
-- **Rulings landed here**: a finding parks by default and the headline slot
-  is never empty; the journal is a directory (27 of 58 merges conflicted on
-  `JOURNAL.md`); a worker edits neither journal nor queue; a number is
-  measured on the tip; merge, gate, push, reap is one chain; loop items are
-  the pass's, in `docs/PARKED.md`'s Loop section. Item 279 closed.
-- **Two phantoms**: 304 and 224 were referenced as dependencies and never
-  booked; the ledger now fails on that, and both are booked.
-- Three items open, fifteen parked by the rule. `docs/audit/2026-09-17-fable-pass-3.md`.
+- **Great Lakes 7679**, **East Indies 8193** — the largest single step that
+  word has taken. 301's suspend is wired; nothing is banked unwired now.
+- **Both items overturned their own framing, and the widening did it.**
+  304: run76's formation was never early — the squad degrades on 6860, the
+  original's own frame, and the missing line is the `clear_partial_path`
+  inside `kill_current_path`'s `0 < length` guard, which this crate popped
+  without. That one call is the whole of the 7679 → 6862 the wiring cost.
+  312: `move_step+0x823` is a **blocked** step, not the walk, so 7679 is a
+  position question. Two named mechanisms, both wrong, both found by
+  widening the dumped record before touching anything.
+- **Seven pins moved, not 304's five.** The ladder's B rung surfaces only
+  once the C rung is re-pinned, and run90 grew a new row (315, parked).
+  run90's window and run88's closing residue are now the two Merchant
+  constants alone.
+- Two items open, eighteen parked. `docs/journal/2026-09-17-item-304.md`,
+  `docs/journal/2026-09-17-item-312.md`.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w8193 of 24,000 · GreatLakes w7679 of 24,000
 Endpoint 24001: EastIndies 66 off, 16 unlinked · GreatLakes 59 off, 23 unlinked
 
-**Opener: an Opus commander wave, two workers, Great Lakes both — 312 (the
-word's own frame, a widening first) and 304 (the formation that ends early,
-which unwires +381). When 304 closes, merge `4521ccc` and re-measure both
-maps on the tip before attributing anything. 308 waits on 304.**
+**Opener: the capture lane, then one worker on 314 — a `GROUPS` window over
+Great Lakes [7670, 7686), `DEATHS` off, which decides 7679's cause in one
+read. No Great Lakes dump carries `GROUPDATA` past 5591 (run73), so this is
+the rare item the disk cannot answer. 308 is unblocked, and is a second
+worker's if its brief is as tight.**
 
 ## The queue
 
@@ -49,31 +51,22 @@ unless a better order is obvious, and say so. Numbers are stable; the
 backlog is `docs/PARKED.md`, and an item comes back from it only when a
 score names it.
 
-312. **Great Lakes 7679 is a figure's draw, and nothing names its cause** —
-    `Guy::set_anim+0x97a` reached from `Unit::move_step+0x823` here and
-    from `Guy::inc_time+0x271` in the original, index 1, four draws against
-    three (AI §35.3, item 295's landing). Not the make list: 302 and 303
-    closed rows there and moved nothing. **Widen every dumped record on
-    7679 and its neighbours first** — name the unit and the mechanism, then
-    fix. If the figure is in melee, 211's `unit_masks2 & 0x10` clock
-    freeze (ANIM §5) is the first suspect; a value diff lands beside the word.
-
-304. **run76's `1/28` ends its formation early** — a plain `ATTACK_TO`
-    before 6858 where the original still holds `GROUP_ATTACK_TO` through
-    6860, whose change to `ATTACK_TO` *during* 6860 frees the suspended
-    search via `clear_partial_path`. Both sides run the same search
-    (`start_dist` 7680 against 7669). Closing it wires the banked suspend:
-    East Indies 7812 → 8193 at no Great Lakes cost (PATHFINDER §18.3).
-    Grep run76's `GROUPS` record over 6850–6862 first; the formation's end
-    is GROUPS §'s `move_step` zero (item 236) or an order-change arm.
+314. **Great Lakes 7679's cause is named; a capture decides between two
+    mechanisms** (312). `1/39`'s squad parts on **7675**, after 7674's
+    `GROUP_ATTACK_TO`: the leader's chain carries one extra head waypoint
+    from the same start and goal, aims 7.1 deg off, turns both followers'
+    slots 7.4 deg, and by 7679 `1/39` is 18 off its slot — (43032, 24216)
+    against (43054, 24237). Is that head `find_wpath_from`'s own emission
+    or the `get_loc` seam starting it a cell short (GROUPS §12)? A
+    `GROUPS` window over [7670, 7686), **`DEATHS` off**, prints `ox`/`oy`.
 
 308. **`UnitData::start_dist` is parsed, and twenty-three captures carry a
-    non-zero value** — run16 alone has 8,752 rows, and `+0x130`'s only writer
-    in the executable is astar's suspend block, so every row is a unit whose
-    search the original suspended, on a capture already on disk. 301 proved
-    it reads 144 for run90's `1/7` and 0 for every other unit there. It
-    makes the suspend's reach assertable far past the two windows that
-    found it, and every row is free. PATHFINDER §18. Takes 304.
+    non-zero value** — run16 alone has 8,752 rows, and `+0x130`'s only
+    writer is astar's suspend block, so every row is a unit whose search
+    the original suspended, on a capture already on disk. 301 proved it
+    reads 144 for run90's `1/7` and 0 for every other unit there. The
+    suspend is wired now, so the rows check live behaviour rather than a
+    banked branch, and every one is free. PATHFINDER §18.
 
 ## How to maintain this file
 

@@ -168,6 +168,23 @@ join in a marching formation. (275) `MoveOrder::facing` still does not
 score; 267 split the two mechanisms, so re-read that. **304 is the nearest
 live window** to this — a formation ending early on run76.
 
+(315) **run90's `1/7` names no blocker on 7820** — `collide_o` and
+`collide_who` read −1 where the original has 6 and 1, with `collide`
+itself, the count, agreeing. New on 2026-09-17 with the suspend wiring
+(items 301/304), and the window cannot price it: every position, every
+angle, every order record and every draw count over those 111 blocks
+agrees, and the two Merchant constants are the only parted units left.
+Pinned in `run90_s_window_is_east_indies_shuffle` so it cannot move in
+silence. Parked because it names no score — the falsifier is a capture
+where a missing blocker identity changes a decision.
+
+(316) **Sixty-two other callers of `clear_partial_path` are unchecked**
+— item 304 fixed `kill_current_path`'s and no capture reaches the rest.
+The `Group::action_*` and `think_carry*` families have **no counterpart
+call in this crate at all**, which is the shape 304 turned out to be, one
+level up. Parked because it names no score; it comes back the day a
+window contains one of them.
+
 ## Parked from the lab, 2026-09-17
 
 (309) **`find_upath`'s pre-walk give-up exit targets the wrong label** —
