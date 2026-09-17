@@ -16,9 +16,9 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 **Both maps moved: East Indies +381, Great Lakes +251.**
 Next: 317, the new Great Lakes frame.*
 
-- **Great Lakes 7930**, **East Indies 8193**. 304 wired 301's suspend
-  (+381); 314's capture closed the `get_loc` seam (+251); 312 named 7679's
-  cause and 308 took the suspend's reach from two windows to 23 captures.
+- **Great Lakes 8030**, **East Indies 8193**. 304 wired 301's suspend
+  (+381); 314's capture closed the `get_loc` seam (+251); 317's one clause
+  in `do_marching` (+100); 312 and 308 named causes and reach.
 - **Four items, four named mechanisms, three of them wrong** — and the
   widening found each inside twenty minutes. 304's formation was never
   early; 312's draw site is a *blocked* step, not the walk; 314's extra
@@ -33,15 +33,14 @@ Next: 317, the new Great Lakes frame.*
 - One item open, twenty parked. Journals: items 304, 308, 312, 314.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w8193 of 24,000 · GreatLakes w7930 of 24,000
-Endpoint 24001: EastIndies 66 off, 16 unlinked · GreatLakes 55 off, 28 unlinked
+Long captures: EastIndies w8193 of 24,000 · GreatLakes w8030 of 24,000
+Endpoint 24001: EastIndies 66 off, 16 unlinked · GreatLakes 60 off, 20 unlinked
 
-**Opener: `loop-317` is live on the headline and owns the screen — Great
-Lakes 7930, eight draws against ten parting at index 0, `Army::find_target`
-unspent here, and no dump under the frame. Widen first. When it lands, take
-its pins (they are the commander's), then spawn the next off what it found;
-the parked file has nothing that names a score, so a second lane needs a
-takes-chain or it waits.**
+**Opener: 319, the new Great Lakes frame — widen before capturing; run93
+is on disk and does not reach 8030. Take the first unstarted item, and
+when it lands take its pins: `LONG_WORD_GREAT_LAKES`, `ENDPOINTS` and the
+two lines above are the commander's, and a red
+`great_lakes_endpoint_is_pinned` in a worker's gate is expected.**
 
 ## The queue
 
@@ -51,14 +50,14 @@ unless a better order is obvious, and say so. Numbers are stable; the
 backlog is `docs/PARKED.md`, and an item comes back from it only when a
 score names it.
 
-317. **Great Lakes 7930 is eight draws against ten, parting at index 0**
-    — the original spends `Army::find_target+0x410` once and `+0x7df`
-    twice that this crate does not (item 314). **No dump sits under it**:
-    the nearest Great Lakes window is run89's, which ends 154 frames
-    short, so the brief is the widening first — a window over 7930 and
-    its neighbours, every dumped record, every unit — and only then the
-    mechanism. ARMY is the module; 314's run92 shows the capture lane is
-    four minutes and click-free.
+319. **Great Lakes 8030 spends one extra `Unit::do_move+0xe84`** — the
+    marching army's walk, one frame out, and the target is **ruled out**:
+    run93 pins block 7931 field for field, `role` excepted (317). A
+    movement question, and run93 does not reach 8030 — widen first,
+    capture only if the disk cannot answer. ARMY §18, MOVEMENT. Carry
+    317's deliberate non-change: the original runs `do_forming` twice on
+    the `LAB_006f3fb2` path where this crate runs it once, on a reading
+    alone. 8030 may be the evidence that settles it.
 
 ## How to maintain this file
 

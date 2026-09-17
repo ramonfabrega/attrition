@@ -387,8 +387,15 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // and two building field-rows closer, 16,071 frames past the word;
         // five more of the roster unlinked in exchange. DECISIONS 36 asks
         // for the number rather than a trade.
-        off: 55,
-        unlinked: 28,
+        // Then **55 → 60 and 28 → 20** on 2026-09-17, item 317 — the
+        // `do_marching` empty-target arm (ARMY §18), which moves this map's
+        // own word **7930 → 8030** and takes its draw-for-draw frame count
+        // 8193 → 8318. Five positions out and **twenty units that had no
+        // counterpart at 24001 now have one**, 15,971 frames past the word:
+        // a change to what the army *targets* relinks a fifth of the
+        // roster. DECISIONS 36 asks for the number rather than a trade.
+        off: 60,
+        unlinked: 20,
         extra: 0,
         build_unlinked: 0,
         build_diverged: 10,

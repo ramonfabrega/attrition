@@ -980,7 +980,23 @@ pub(crate) const LONG_WORD_EAST_INDIES: i64 = 8_193;
 /// `vector_dist` operand pairs came off the listing; the decompiler loses
 /// them. `MoveOrder +0x4`/`+0x8` is `x`/`y` by the type record and not
 /// `orig_x`/`orig_y` — GROUPS §6.3 said "origin" and was wrong.
-pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 7930;
+/// **7930 until `do_marching`'s empty-target arm, 2026-09-17** (item 317).
+/// 7930 is the **first** `Army::find_target` draw in the whole 24,000-frame
+/// game — dated off run53's own trace with no capture — and every one after
+/// it falls on `frame % 256` in {250, 248}, ARMY §5's army slot.
+/// `Army::process` re-reads status between its dispatch ifs, so
+/// `do_mustering`'s `status = 2` reaches `do_marching` in the **same** tick
+/// still holding `target_o = -1`, and the original's
+/// `if (iVar4 < 0) goto LAB_006f3fb2` makes an empty target the retarget
+/// branch. One clause — `retarget = target.is_none()` — and the frame
+/// agrees ten draws for ten, entry for entry. run92's `GROUPS` window,
+/// taken for item 314 and never read for this, is what killed the muster
+/// hypothesis: group 64 is num 12 on 7673/7674 and 15 on 7676, matching
+/// this crate's `num_standard` exactly, so both sides release on the same
+/// tick. Two of the ten draws were unnamed on **both** sides until this
+/// item — `rondata::trace` carried neither `006f6dc0` nor `006f718f`, so
+/// the sequence word had been comparing a symbol against a hex string.
+pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 8030;
 
 /// The frame Great Lakes' **second** squad joins the army on — 6994, the
 /// word's own parting from 2026-09-06 to 2026-09-07 and now a landed
