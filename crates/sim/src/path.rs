@@ -1397,17 +1397,8 @@ impl Sim {
     /// only. Its caller is `Sim::resolve_unit_collision`
     /// (`docs/COLLISION.md` §6 step 6).
     pub fn find_upath(&mut self, u: usize, anti: bool) -> i32 {
-        // **The `repaths` divisor is read and not applied** (item 301,
-        // `docs/DECISIONS.md` entry 30). `00688eb0` sets `limit = 500 /
-        // max(1, repaths[who]²)`, halved with `anti`, and this crate has
-        // `repaths` since item 80 — so the seam below is a *choice*, not a
-        // gap. Applied, it is right on the wrapper and wrong on the score:
-        // it puts `1/7`'s 7810 search over its budget where the full 500
-        // carries it, and East Indies' long capture parts at 7812 instead
-        // of 8193 because the suspend it then reaches is not wired
-        // (`docs/PATHFINDER.md` §18). It lands with the suspend, on
-        // `worktree-loop-301-suspend`, not before.
-        let limit = if anti { 250 } else { 500 };
+        let sq = self.repaths[self.units[u].owner as usize].pow(2).max(1);
+        let limit = if anti { 500 / sq / 2 } else { 500 / sq };
         self.upath(u, anti, limit, false)
     }
 
@@ -1464,24 +1455,18 @@ impl Sim {
         // `unit_masks2 & 0x2000`, which every citizen on an island map
         // carries — never pulls its 48-grid goal back at all: it goes
         // straight to the near test and the search.
-        // **The pre-walk's gate is read and not applied** (item 301,
-        // `docs/DECISIONS.md` entry 30, `docs/PATHFINDER.md` §18).
-        // `00683095` runs the whole pull-back only when the type's domain
-        // `+0x218 < 2` **and** `UnitData::can_transport@0046f960` answers
-        // 0 — a conjunction with no vfunc `+0x8` disjunct, where
+        // **The pre-walk is gated, and the gate is not `find_wpath`'s**
+        // (item 301, `docs/PATHFINDER.md` §18.1). `00683095` tests the
+        // type's domain `+0x218 < 2` and `UnitData::can_transport@0046f960`
+        // — a **conjunction with no vfunc `+0x8` disjunct**, where
         // `find_wpath@00688fc0:91` has `domain < 2 && (vfunc+8 == 0 ||
         // !can_transport)`. So a land unit whose side has a Dock —
         // `unit_masks & 0x800000` without `unit_masks2 & 0x2000`, which
-        // run90's `1/7` carries as `0x84040A` — never pulls its 48-grid
-        // goal back at all.
-        //
-        // Applied alone it makes the port worse: `1/7`'s 7810 search then
-        // reaches the suspend, which is landed unwired, and East Indies'
-        // long capture parts at 7812 instead of 8193. The gate, the
-        // `repaths` divisor above and the suspended-search block in
-        // `do_move` are one change, and they land together on
-        // `worktree-loop-301-suspend` when the queue's item 304 closes.
-        let pulls_back = true;
+        // every citizen on an island map carries — never pulls its 48-grid
+        // goal back at all: it goes straight to the near test and the
+        // search.
+        let pulls_back =
+            self.unit_domain_of(u) != crate::attrition::Domain::Air && !self.unit_can_transport(u);
         if pulls_back {
             loop {
                 let gg = g48(goal);
@@ -1936,6 +1921,54 @@ mod tests {
             sim.upath(u, false, 10, true),
             0,
             "a resume with nothing stashed is a failure, not a panic"
+        );
+    }
+
+    /// **`kill_current_path` frees the stash, and an empty stack does
+    /// not** (§18.4, item 304). `Unit::kill_current_path@005e31d0` pops
+    /// the stack back through the current segment's final waypoint and
+    /// then calls `clear_partial_path` — and the call sits *inside* the
+    /// function's own `0 < length` guard, so a unit with nothing on its
+    /// stack keeps whatever search it had.
+    ///
+    /// That guard is the whole difference between this and
+    /// `kill_current_order`, which clears unconditionally, and it is why
+    /// the assertion below is two-sided rather than one. The behaviour it
+    /// buys is `Unit::ungroup_move_order@005fd140`'s: a follower dropped
+    /// out of formation loses its suspended search on the same frame, and
+    /// re-plans on the next one instead of standing in `do_move`'s
+    /// suspended block for the rest of the capture.
+    ///
+    /// Made to fail on purpose both ways: without the `clear_partial_path`
+    /// call the first assertion fails (and run76's `1/28` stops re-planning
+    /// on 6861), and without the emptiness guard the second does.
+    #[test]
+    fn killing_the_current_path_frees_a_suspended_search() {
+        let mut sim = flat_sim(20);
+        let u = walker(&mut sim, Pos::new(0x18, 0x18));
+        let goal = Pos::new(0x18 + 40 * 0x30, 0x18 + 40 * 0x30);
+
+        push_goal(&mut sim, u, goal);
+        assert_eq!(sim.upath(u, false, 10, false), -1, "the plan suspends");
+        assert!(sim.units[u].search.is_some(), "the stash is on the unit");
+        // The suspend leaves the caller's final goal on the stack, so the
+        // pop runs and the clear with it.
+        assert_eq!(sim.units[u].path.len(), 1);
+        sim.kill_current_path(u);
+        assert!(
+            sim.units[u].path.is_empty() && sim.units[u].search.is_none(),
+            "a non-empty stack: the segment goes and the stash goes with it"
+        );
+
+        // And the guard. Suspend a second search, empty the stack by hand,
+        // and the teardown is a no-op on both.
+        push_goal(&mut sim, u, goal);
+        assert_eq!(sim.upath(u, false, 10, false), -1);
+        sim.units[u].path.clear();
+        sim.kill_current_path(u);
+        assert!(
+            sim.units[u].search.is_some(),
+            "`0 < length` gates the clear: an empty stack frees nothing"
         );
     }
 

@@ -1333,11 +1333,15 @@ fields, order records and path stacks, agrees — which is the measurement
 that will justify wiring it. The Great Lakes fall is upstream and named:
 run76's `1/28` still holds a `GROUP_ATTACK_TO` at 6860 and the original's
 order becomes `ATTACK_TO` during that frame, whose enqueue frees the
-suspended search through `clear_partial_path`; this crate's `1/28` is
+suspended search through `clear_partial_path`; ~~this crate's `1/28` is
 already on a plain `ATTACK_TO` before 6858, so its formation ended early and
-no order change is left to free the stash. Both sides are running the *same*
+no order change is left to free the stash~~ — **that half was wrong, and
+§18.5 has the measurement: the formation ends on the original's own frame,
+and what this crate was missing is `kill_current_path`'s own
+`clear_partial_path` call.** Both sides are running the *same*
 search there — the original's `start_dist` is 7680 against this crate's
-7669 start. That row is the queue's **item 304**.
+7669 start. That row was the queue's **item 304**, closed on 2026-09-17
+by §18.5.
 
 The wired change is one commit on the branch **`worktree-loop-301-suspend`**.
 
@@ -1356,3 +1360,86 @@ The wired change is one commit on the branch **`worktree-loop-301-suspend`**.
   test and the search. With the gate unwired the arm is only reachable for a
   unit that cannot transport, and no capture on disk reaches it, so it is
   recorded rather than changed.
+
+### 18.5 The Great Lakes cost was `kill_current_path`, not the formation (2026-09-17)
+
+Item 304 was booked as "run76's `1/28` ends its formation early", off §18.3's
+reading of the fall. **It does not.** With `4521ccc`'s three lines applied,
+`run76_s_window_is_the_ai_squad_s_march` reports **zero** scoring kind or
+`GROUPORDER` rows over all 630 marching unit-frames: this crate's squad holds
+its `GROUP_ATTACK_TO` to 6860 and degrades on 6860 exactly as the original's
+does. The formation's end was never the disagreement — and the record said so
+on the first run, which is the widening rule working. What the run does report
+is three rows on **6862 and 6863**, `1/28` alone:
+
+| field | ours | theirs |
+|---|---|---|
+| order flags | 4 | 5 |
+| `MOVEORDER::dest` | 0 | 1 |
+| path length (6862) | 0 | 10 |
+| path length (6863) | 0 | 13 |
+| `coll_x`/`coll_y` (6863) | (42770, 24618) | (42754, 24612) |
+
+The original re-plans on 6861 and this crate does not: its `1/28` is still
+holding the search that suspended on 6860, and `do_move`'s §4.4 step 2 returns
+before every arm while one is pending. It stands there for the rest of the
+capture. The frames either side of the ungroup, out of the dump itself:
+
+```
+ block 6860  GROUPATTACKTOORDER  collide_frame -1    collide 0  start_dist 0     stack 2
+ block 6861  ATTACKTOORDER       collide_frame 6860  collide 1  start_dist 7680  stack 0
+ block 6862  ATTACKTOORDER       …                              start_dist 7680  stack 10
+```
+
+**`Unit::kill_current_path@005e31d0` is what frees it**, and this crate's had
+only half the body:
+
+```c
+if (0 < this->path_length) {
+  do { … } while (((stack[len].flags & 1) == 0) && (len != 0));
+  clear_partial_path(this);          // ← this crate did not do this
+}
+```
+
+The pop back through the segment's final waypoint was modelled; the
+`clear_partial_path` under it was not. `Unit::ungroup_move_order@005fd140`
+calls it on every member that is **not** the leader, so the frame a formation
+degrades is the frame each follower's stash goes — which is precisely the
+"the order change frees the search" §18.3 named without naming the function.
+It is not an order-adder's doing at all: the `ATTACK_TO` that replaces the
+`GROUP_ATTACK_TO` is built by `MoveOrder::operator=` and spliced into the
+list, and no `add_*_order` runs.
+
+Four functions call it in the executable — `kill_current_order`,
+`kill_group_move`, `kill_group_order`, `ungroup_move_order` — and this crate
+calls it from the same four, so the one line covers all of them. Note the
+guard: the clear sits **inside** the `0 < length` test, so a unit with an
+empty stack keeps its search. That is the whole difference between this and
+`kill_current_order@005e2cb0`, which clears unconditionally at its tail, and
+both halves are asserted
+(`killing_the_current_path_frees_a_suspended_search`, made to fail both ways).
+
+**The score, measured on one tree.** Base is `5430558` plus this section's
+one-line fix; "wired" adds `4521ccc`'s two files on top of that.
+
+| | East Indies (run54) | Great Lakes (run53) |
+|---|---|---|
+| base, suspend unwired | 7812 | 7679 |
+| this fix alone, unwired | 7812 | 7679 |
+| `4521ccc` wired, without this fix | 8193 | 6862 |
+| **`4521ccc` wired, with it** | **8193** | **7679** |
+
+So the fix is neutral until the suspend is wired — a stash nothing reads is a
+stash nothing misses — and with it wired the Great Lakes cost is gone and the
+East Indies **+381** stands. The value diff beside the words is the table
+above: `1/28`'s own `dest`, path length and `coll` on 6862-6863, which agree
+after it; `run76_s_window_is_the_ai_squad_s_march` drops from four units ever
+off position to **two** (`1/5` at 6866 and `1/28` at 6862 both stop parting),
+and those two are run76's standing `1/24` and `1/25`.
+
+**What this does not establish.** Whether any *other* caller of
+`clear_partial_path` is missing here — the executable has 63, and only the
+`kill_current_path` one was checked against a capture. The
+`Group::action_*` family and the `think_carry*` family are the two blocks
+with no counterpart call in this crate at all, and no run on disk reaches
+either with a stash pending.
