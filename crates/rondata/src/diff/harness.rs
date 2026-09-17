@@ -7525,6 +7525,111 @@ mod tests {
              blocks while `collide` runs, then ticked down"
         );
 
+        // **`1/7` names a collider on twelve blocks and `resolve` runs on
+        // two of them** (item 294) — and the claim is a *change*, because
+        // `collide_frame` is a permanent stamp and a value test on it says
+        // nothing. `resolve_unit_collision` step 5 writes `collide += 1`
+        // and `collide_frame = frame` together, so the stamp moving is the
+        // one dumped witness that the resolver ran. It moves on **7803**
+        // and **7811** and nowhere else in the window.
+        //
+        // Block **7809** is the third naming, and it is the one this crate
+        // did not make. `collide_o 6` is written with the stamp left at
+        // 7802, `collide` left at 1, and the **position unchanged** from
+        // 7808: a `detect_unit_collision` that ran and a resolver that did
+        // not. That is `do_move`'s waypoint probe on its own, on a frame
+        // `move_step` never reaches its own probe — it turns 44° in place
+        // and returns at `005fb2e6` (`docs/COLLISION.md` §8.8). The
+        // remaining nine namings, 7812..7820, are `do_move`'s
+        // suspended-search block counting `collide` up with the stamp
+        // untouched.
+        let seven_rows: Vec<(i64, i64, i64, i64, i64, i64)> = states
+            .iter()
+            .filter(|f| (7_790..7_900).contains(&f.n))
+            .filter_map(|f| {
+                let u = f.units.iter().find(|u| u.who == 1 && u.o == 7)?;
+                Some((
+                    f.n,
+                    u.pos.x,
+                    u.pos.y,
+                    u.collide?,
+                    u.collide_o?,
+                    u.collide_frame?,
+                ))
+            })
+            .collect();
+        let names: Vec<i64> = seven_rows
+            .iter()
+            .filter(|r| r.4 >= 0)
+            .map(|r| r.0)
+            .collect();
+        assert_eq!(
+            names,
+            vec![
+                7_803, 7_809, 7_811, 7_812, 7_813, 7_814, 7_815, 7_816, 7_817, 7_818, 7_819, 7_820
+            ],
+            "the blocks the original's `1/7` names a collider on"
+        );
+        let mut stamps: Vec<(i64, i64)> = Vec::new();
+        let mut prev = seven_rows.first().map_or(0, |r| r.5);
+        for r in &seven_rows {
+            if r.5 != prev {
+                stamps.push((r.0, r.5));
+                prev = r.5;
+            }
+        }
+        assert_eq!(
+            stamps,
+            vec![(7_803, 7_802), (7_811, 7_810)],
+            "`collide_frame` moves on exactly the two blocks the resolver \
+             ran — and 7809, which names a collider, is not one of them"
+        );
+        let at_seven = |n: i64| -> (i64, i64, i64, i64, i64, i64) {
+            *seven_rows
+                .iter()
+                .find(|r| r.0 == n)
+                .expect("run90 has the block")
+        };
+        assert_eq!(
+            (at_seven(7_808), at_seven(7_809)),
+            (
+                (7_808, 39_672, 38_664, 1, -1, 7_802),
+                (7_809, 39_672, 38_664, 1, 6, 7_802)
+            ),
+            "block 7809: the collider is named, the stamp and the counter \
+             are untouched, and the unit has not moved"
+        );
+
+        // **And the block the word now sits on, from the original's side
+        // alone.** The repath on 7810 leaves `1/7` with a **one-entry**
+        // stack whose top is the move order's own goal, and the unit stands
+        // on its snapped cell centre for ten blocks while the search that
+        // was suspended is resumed — `docs/COLLISION.md` §8.8's successor.
+        // This crate rewrites that goal and walks to the rewrite, which is
+        // the 7811 order divergence and the 7812 position below.
+        let standing: Vec<(i64, i64, i64, usize, i64, i64)> = seven_rows
+            .iter()
+            .filter(|r| (7_811..=7_820).contains(&r.0))
+            .map(|r| {
+                let f = states.iter().find(|f| f.n == r.0).expect("the block");
+                let u = f
+                    .units
+                    .iter()
+                    .find(|u| u.who == 1 && u.o == 7)
+                    .expect("`1/7`");
+                let top = u.path.last().expect("a one-entry stack");
+                (r.0, r.1, r.2, u.path.len(), top.to.0, top.to.1)
+            })
+            .collect();
+        assert_eq!(
+            standing,
+            (7_811..=7_820)
+                .map(|n| (n, 39_672, 38_664, 1, 39_624, 38_760))
+                .collect::<Vec<_>>(),
+            "the original's `1/7` over 7811..7820: standing on its cell \
+             centre with the move's own goal as its whole path stack"
+        );
+
         // Now the comparison — every unit of every block.
         let report = run_traced(&loaded, &log, Tuning::RON, None, None, &refs, Some(&tr)).unwrap();
         let blocks: Vec<i64> = report
@@ -7700,13 +7805,45 @@ mod tests {
             .collect();
         assert_eq!(
             seven_coll,
-            vec![
-                (7_809, "collide", 0, 1),
-                (7_809, "collide_o", -1, 6),
-                (7_809, "collide_who", -1, 1),
-            ],
-            "`1/7`'s whole collision divergence over run90 — one block, and \
-             it is the collision this crate does not make"
+            vec![],
+            "`1/7`'s whole collision divergence over run90"
+        );
+
+        // **And the whole cast's, over the whole window** — every unit of
+        // every block, all five fields. It was `1/7`'s three rows on 7809
+        // and it is now empty, which is the strongest thing run90 says
+        // about the mechanic: 111 blocks of a two-citizen shuffle with
+        // three collisions each and not one collision field apart.
+        let all_coll: Vec<(i64, i64, i64, &str, i64, i64)> = report
+            .frames
+            .iter()
+            .flat_map(|f| f.collide_diverged.iter())
+            .map(|d| (d.frame, d.who, d.o, d.field, d.ours, d.theirs))
+            .collect();
+        assert_eq!(
+            all_coll,
+            vec![],
+            "run90's collision fields, whole cast and whole window"
+        );
+
+        // **`1/7`'s order record parts at 7811, one block below the word,
+        // and it is not a collision fault** (item 294). The original's
+        // repath on 7810 leaves the stack as the move's own goal and the
+        // search **suspended**; this crate's `find_upath` walks that goal
+        // back onto the unit's own cell and returns it as a one-entry
+        // final leg, which the unit reaches on 7812 — the word.
+        let seven_ord: Vec<i64> = report
+            .frames
+            .iter()
+            .flat_map(|f| f.order_diverged.iter())
+            .filter(|d| (d.who, d.o) == (1, 7))
+            .map(|d| d.frame)
+            .collect();
+        assert_eq!(
+            seven_ord.first(),
+            Some(&7_811),
+            "`1/7`'s order record first parts at {:?}",
+            seven_ord.first()
         );
 
         // **The whole parted set, and nothing below 7805 is new.** `1/19`

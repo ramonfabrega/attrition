@@ -37,7 +37,7 @@ gate is one command, no score moved.*
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w7812 of 24,000 · GreatLakes w7585 of 24,000
-Endpoint 24001: EastIndies 78 off, 3 unlinked · GreatLakes 70 off, 9 unlinked
+Endpoint 24001: EastIndies 76 off, 5 unlinked · GreatLakes 70 off, 9 unlinked
 
 **Opener: 295 (Great Lakes' word, `create_units`' value chain, three
 oracles) and 294 (the 7809 collision miss) as a two-lane commander wave
