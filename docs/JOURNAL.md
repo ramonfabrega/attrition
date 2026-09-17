@@ -19981,3 +19981,82 @@ two-lane commander wave on Opus — 295 on Great Lakes, 294 on East Indies,
 one per map, both capture-free — and the next steer reads USD per
 word-moving landing against 102, the ratio the last pass set. **The score
 did not move**: Great Lakes 7585, East Indies 7812.
+
+## 2026-09-17 — item 294: a turning unit does not probe, and East Indies 7809 was never a predicate (Opus 5)
+
+`1/7`'s **entire** collision-field divergence over run90's 111 blocks was
+one block, 7809, where the original prints `collide 1 / collide_o 6 /
+collide_who 1` and this crate had the fields clear. §8.6 had filed it as
+§6 step 5's wait-versus-pause predicate — a suspect of exactly the kind
+`docs/audit/README.md` says the errors are. The item's brief asked the
+other question instead: **why does this crate not collide on 7809 at all.**
+
+It does. It collides and then throws the collision away, three statements
+later, on a frame the original never asks. `Unit::move_step@005faf30`'s
+two turn-in-place arms are `Guy::do_turn(guy 0, …, 1); return 1` and
+nothing else — `005fb2b4` and `005fb2e1`, each `call / mov eax,1 / pops /
+ret 8` on the listing — so a frame spent turning reaches none of the
+world-bounds tests, `detect_unit_collision`, `invalid_loc`,
+`set_anim(CHAR_WALK)`, `set_new_location` or the post-step arrival test.
+This crate walked on to the collision block for the store it genuinely
+owes — it steps on a *copy* of the move order — and the probe rode along.
+`detect_unit_collision` does its clearing on **every** path out, so a
+probe on a turning unit wipes the collider `do_move`'s own waypoint probe
+named in the same frame, and ages `collide` to zero with it.
+
+**The dump said it without the reading, and the trap was the one the brief
+named.** `collide_frame` is a permanent stamp, so a value test on it says
+nothing; a *change* in it is the one dumped witness that
+`resolve_unit_collision` ran, because step 5 writes the stamp and the
+counter together. Over the window `1/7` names a collider on twelve blocks
+and the stamp moves on exactly two — 7803 and 7811. 7809 is a naming with
+no resolve and no step, which is a probe that ran and was not followed by
+a second one.
+
+One early return. `run90_s_window_is_east_indies_shuffle` widens to the
+twelve namings, the two stamp changes, block 7809's row beside 7808's, and
+the original's ten standing blocks — five new claims, each made to fail on
+purpose first — and the comparison's side now pins the window's collision
+divergence as **empty for the whole cast**: 111 blocks, every unit, all
+five fields, where it was three rows. `1/7` rolls the original's `pause 8`
+on 7811 off the shared stream with `collide_frame 7810` to match, so §6
+step 5's predicate was right all along and had only ever been reached with
+the wrong inputs.
+
+**The word does not move.** East Indies stays at 7812 and Great Lakes at
+7585. What 7812 sits on is no longer a collision question: `1/7`'s order
+record is now the first thing to part, on **7811**, and run90 prints both
+sides. The original's repath on 7810 pops to the move's own goal and its
+`find_upath` **suspends** — `dest 0`, a one-entry stack holding
+(39624, 38760), the unit standing on its cell centre for ten blocks while
+`do_move`'s suspended-search block counts `collide` 1 → 9 (the increment
+is unconditional per frame; only the `repaths` bump is on the four-frame
+phase, which `docs/ORDERS.md` §4.4 had the other way round). This crate's
+`find_upath` instead walks the goal back in 0x18 steps while
+`valid_ucoord` refuses it — (39624, 38760) is in `1/6`'s paint that frame
+— until the walk lands in the unit's own 48-cell, pushes it as a one-entry
+final leg, and the `EXPLORE_TO` dies twenty-one frames early.
+`docs/PATHFINDER.md` §11 calls the suspend a dormant seam whose "restorer
+has no caller until collision recovery exists". It exists, and run90 is
+the first capture to reach it.
+
+**And the census the commander stopped it on.** Both East Indies ladder
+rungs' `extra` rose — C 7 → 18, B 8 → 16, the largest rise either has taken
+on a change that moves no word — which is the exact shape a too-broad early
+return would make. It is not that, and the rosters say so on both sides of
+the change: the C rung's seven were `1/10 1/12 1/25 1/29 1/48 1/49 1/54` and
+its eighteen are the **same seven** plus `1/55` … `1/65`; the B rung's eight
+are all still there with `1/61 1/62 1/65` … `1/70` beside them. Not one
+existing extra moved, every addition is a contiguous run at the top of the
+production roster, and `off` is unmoved on both rungs. That is
+over-production, not units that stopped colliding — which would move
+positions and scatter through the roster.
+
+The code half is stronger than the census half. Both turn arms leave the unit
+where it stood, so the probe the return deletes was handed the unit's **own**
+cell and §4.1's gate 6 refused it before it ran: the call could only ever
+take the clearing path. The change removes a clearing and no detection, and a
+turning unit takes no step either way. What a turn frame does lose is the
+reveal, the crew reseat and the leg's arrival test — all three faithful, and
+which of them pays for the extra units is open, with both rungs' `BUILDS=1`
+queue records already on disk to answer it.

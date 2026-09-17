@@ -245,15 +245,26 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // the merged tree agrees with neither: two independent improvements
         // compose, so the figure is what the merged code prints, and a merge
         // is not the place to adjudicate a floor.
-        off: 78,
-        unlinked: 3,
+        //
+        // Then **78 → 76, 3 → 5, 4 → 3 and 23 → 25** on 2026-09-17, item
+        // 294 — `move_step`'s turn-in-place return (`docs/COLLISION.md`
+        // §8.8). A frame spent turning no longer probes for a collision,
+        // reveals, or runs the arrival test, so every unit on both maps
+        // that has ever turned in place is on a slightly different clock.
+        // Two positions closer and two more of the roster unlinked, two
+        // building field-rows out and one fewer building missing,
+        // 16,189 frames past a word that does not move. DECISIONS 36 asks
+        // for the number rather than a trade.
+        off: 76,
+        unlinked: 5,
         extra: 0,
-        build_unlinked: 4,
+        build_unlinked: 3,
         // 33 → 32 on 2026-09-07, item 265: `CityData::free` is a byte that
         // wraps, and the AI reading 255 where it read −1 takes one building
         // field-row off the diverging list. Then 31 → 32 on item 271, and
-        // 32 → 28 on item 290.
-        build_diverged: 23,
+        // 32 → 28 on item 290. Then 23 → 25 on item 294's turn-in-place
+        // return.
+        build_diverged: 25,
         city_unlinked: 3,
         city_diverged: 0,
     },
@@ -308,11 +319,16 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // the merged tree agrees with neither: two independent improvements
         // compose, so the figure is what the merged code prints, and a merge
         // is not the place to adjudicate a floor.
+        //
+        // Then **12 → 11** on 2026-09-17, item 294's turn-in-place return
+        // (`docs/COLLISION.md` §8.8) — one building field-row closer and
+        // nothing else on this row moved, where East Indies' own took four
+        // counts on the same change.
         off: 70,
         unlinked: 9,
         extra: 0,
         build_unlinked: 0,
-        build_diverged: 12,
+        build_diverged: 11,
         city_unlinked: 3,
         city_diverged: 0,
     },
@@ -367,8 +383,21 @@ pub const LADDER: [Endpoint; 2] = [
         // **22 → 13** on item 290's `get_mod_resource_cap` (`docs/AI.md`
         // §33.2) — nine spurious units gone and nothing else on this rung
         // moved, which is the same shape as East Indies' own endpoint
-        // losing all eleven of its extras.
-        extra: 7,
+        // losing all eleven of its extras. Then **7 → 18** on 2026-09-17,
+        // item 294's turn-in-place return — eleven spurious units back on
+        // this rung alone, 7,872 frames past its word, with `off`,
+        // `unlinked` and both building counts unmoved. It is the largest
+        // single move this rung's `extra` has made, and in the wrong
+        // direction; DECISIONS 36 asks for the number rather than a trade.
+        // The **roster** says which shape it is, and it was read on both
+        // sides of the change: the seven were `1/10 1/12 1/25 1/29 1/48
+        // 1/49 1/54` and the eighteen are the same seven plus `1/55` …
+        // `1/65`. Not one existing extra moved, the additions are a
+        // contiguous run at the top of the production roster, and `off` is
+        // unmoved at 46 — over-production, not units that stopped
+        // colliding, which would move positions and scatter through the
+        // roster (`docs/COLLISION.md` §8.8).
+        extra: 18,
         build_unlinked: 10,
         build_diverged: 7,
         city_unlinked: 3,
@@ -407,8 +436,15 @@ pub const LADDER: [Endpoint; 2] = [
         // larger again: eleven more spurious units gone and nothing else on
         // this rung moved. All three East Indies rows lost extras on that
         // change — 11, 9 and 11 — and its own endpoint lost every one it
-        // had.
-        extra: 8,
+        // had. Then **8 → 16** on 2026-09-17, item 294's turn-in-place
+        // return, with nothing else on this rung moved — eight spurious
+        // units back where the C rung above took eleven, so both East
+        // Indies rungs gave back most of what 290 won them and the map's
+        // own endpoint, which has no extras to give, did not. Same roster
+        // shape as the C rung: the eight were `1/12 1/56` … `1/60 1/63
+        // 1/64` and the sixteen are the same eight plus `1/61 1/62 1/65` …
+        // `1/70`, with `off` unmoved at 52.
+        extra: 16,
         build_unlinked: 19,
         build_diverged: 0,
         city_unlinked: 4,
