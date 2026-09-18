@@ -12,33 +12,34 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-17 into 09-18, an Opus commander loop: twenty landings, fourteen
-word-moving. **GL +903, EI +1,899.** Next: 348, and a capture lane.*
+*2026-09-17 into 09-18, an Opus commander loop: twenty-one landings, fifteen
+word-moving. **GL +940, EI +1,899.** Next: 350.*
 
-- **The largest landing of the loop, and one change did both maps** (346):
-  Great Lakes 8404 → **8582**, East Indies 8495 → **9711**. Both words were
-  the seated scholar's first animation wrap. `Guy::set_anim` remaps a
-  scholar's every slot from `0x19` up to `CHAR_DEFAULT`, so `inc_time`'s
-  looping restart of a teach slot arrives as an **idle request** — it draws,
-  and it re-rolls the variant (`docs/ANIM.md` §5.1).
-- **run97 has been read, and it paid**: 127,324 clock fields below the word,
-  the first test ever to open it. The capture lane's product is spent and
-  it bought +178 and +1,216 in one item.
-- **East Indies has outrun its captures again** — 9711 against run98's last
-  block 8789, **922 short**, and run98's whole window now sits below that
-  map's word. Great Lakes still has **767 frames of runway** in run97
-  `[8030, 9349]`. So the lane is owed one East Indies window above 8789,
-  and the map jumped 1,216 frames in a single item, so make it wide.
-- Two items open, thirty-one parked. **Fable backlog: eleven Loop items**
+- **Great Lakes 8582 → 8619** (item 348): the word was the AI's first market
+  draw, and `BUY_SELL`'s prerequisite is **Coinage/Commerce 2**, not the
+  Market building or Barter. East Indies unchanged at 9711.
+- **Pin a growing residue with its rate, not just its size.** 348 re-pinned
+  the walk-slot floor at 5,853 and wrote the arithmetic beside it — **33.5
+  fields a frame against the 33.2 it has always cost** — so the next session
+  can divide before calling growth a regression. Every item that widens a
+  window inherits a bigger residue; this is how the number stays readable.
+- **The successor is named with a unit**: 8619 is one extra
+  `Guy::set_anim+0x97a < Unit::do_idle+0x7d`, folded to **`1/39`**, against
+  five `inc_time` wraps both sides agree. run97 covers it with 730 frames
+  above, so the value diff is on disk.
+- **East Indies is still owed a capture above 8789** — 922+ frames short
+  since 346, its whole window below the word. Great Lakes needs none:
+  run97 runs to 9349. Awaiting the go, it is the lane's and not a worker's.
+- Two items open, thirty-two parked. **Fable backlog: eleven Loop items**
   (313, 318, 321, 330, 331, 332, 335, 339, 341, 343, 345). 318+339 are one
   question; 341+343 are one; 345 moves the commander's own verbs into git.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w9711 of 24,000 · GreatLakes w8582 of 24,000
-Endpoint 24001: EastIndies 61 off, 8 unlinked · GreatLakes 58 off, 11 unlinked
+Long captures: EastIndies w9711 of 24,000 · GreatLakes w8619 of 24,000
+Endpoint 24001: EastIndies 61 off, 11 unlinked · GreatLakes 63 off, 7 unlinked
 
-**Opener: 348 — widen Great Lakes 8582, which run97 still dumps. The East
-Indies capture is the lane's, not a worker's.**
+**Opener: 350 — a strict successor, unit already named: the extra
+`do_idle+0x7d` on `1/39` at 8619, with run97 dumping the frame.**
 
 ## The queue
 
@@ -48,16 +49,15 @@ unless a better order is obvious, and say so. Numbers are stable; the
 backlog is `docs/PARKED.md`, and an item comes back from it only when a
 score names it.
 
-348. **Great Lakes 8582 is the headline and run97 still dumps it** — 346
-    took both maps past their words and named nothing on this frame, so the
-    brief is its widening: every record, every field, every unit, both
-    sequences whole, then the cause. run97 `[8030, 9349]` covers it with
-    767 frames of runway; run94 is the neighbour below. 346 read that
-    capture frame by frame for the first time, so the instrument exists.
+350. **Great Lakes 8619 is one extra idle draw on `1/39`** — 348 named it
+    on the frame: `Guy::set_anim+0x97a < Unit::do_idle+0x7d`, folded to that
+    unit, against five `inc_time` wraps both sides agree on. A strict
+    successor, no widening owed. run97 `[8030, 9349]` dumps 8619 with 730
+    frames above, so compare `1/39`'s clocks and order state either side
+    before reading `do_idle`.
 
 342. **Host choice seats the scholar on the wrong university** — 338's
-    residue. 346 re-pinned its test again: still four exact of eleven, but
-    `1/51` out and `1/50` in, so **re-measure before diagnosing** — the
+    residue, re-pinned twice since. **Re-measure before diagnosing**: the
     vector `1/2020 − 1/2019` is the claim, never the count.
 
 ## How to maintain this file
