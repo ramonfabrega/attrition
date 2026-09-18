@@ -3635,6 +3635,32 @@ mod tests {
             "below the word Great Lakes seats three scholars, on 8272, 8680 \
              and 9087"
         );
+        // **Great Lakes 9134, the snap arm's blocked stand** (item 360,
+        // `docs/COLLISION.md` §5.4). The frame is **one draw on each
+        // side** and the count never parted here: the original's was a
+        // bare `5dac7a`, `Guy::set_anim+0x97a` under a twelfth `ebp`
+        // chain the table did not name, and this crate spent the eleventh
+        // — `Unit::move_step+0x823`, §5's partial-step block — where the
+        // original spends `+0x4e2`, the snap's. One draw replacing one
+        // draw is exactly the claim a count cannot make, so the frame is
+        // the assertion and the label beside it.
+        let ours_9134 = built
+            .frame_sites
+            .iter()
+            .find(|(f, _)| *f == 9134)
+            .map(|(_, s)| s.clone())
+            .unwrap_or_default();
+        assert_eq!(
+            ours_9134,
+            trace.labels(9134),
+            "Great Lakes 9134 is `move_step`'s snap arm and must agree \
+             entry for entry"
+        );
+        assert_eq!(
+            ours_9134.as_slice(),
+            [sim::anim::SITE_SNAP_BLOCKED.to_string()],
+            "9134 is one draw, and it is the snap's stand and not §5's"
+        );
         // **Great Lakes 8582, the AI's first market draw** (item 348,
         // `docs/AI.md` §40). `make_stuff` calls `use_market` first thing,
         // so the draw sits at index 0 and the frame is otherwise the two
@@ -4446,6 +4472,138 @@ mod tests {
         assert_eq!(
             ys, MUSTER_GOAL_Y,
             "the army's nine do not hold run97 block 8443's own path goals"
+        );
+    }
+
+    /// **Great Lakes 9134's value diff: `1/32` stands, and three fields
+    /// say which arm stood it** (item 360, `docs/COLLISION.md` §5.4,
+    /// §8.9).
+    ///
+    /// The word moved on a draw-site name, and a draw stream can agree on
+    /// a wrong destination for a long time; this is the value comparison
+    /// beside it. run97 dumps `UNITS=3`, so the three fields that part the
+    /// snap arm from §5's are all on disk:
+    ///
+    /// - `x_internal`/`y_internal` — the snap arm takes **no step**;
+    /// - `coll_x`/`coll_y` — the probe *did* return a hard collision, so
+    ///   the point it refused is stored into the order;
+    /// - `collide_o`/`collide_who` — and are then **cleared** two
+    ///   instructions later (`field_0x8a = 0xffff`, `field_0xb3 = 0xff`),
+    ///   which §5's arm never does;
+    /// - `collide_frame` — nine hundred frames stale, because
+    ///   `resolve_unit_collision` did not run. The original's own resolve
+    ///   lands on 9135 and dates it there.
+    ///
+    /// The path stack is the fifth: `1/32` walks its formation slot in
+    /// ~24-unit hops and the hop it snaps to is a **middle** leg, so the
+    /// pop returns 1 and the real goal `(44576, 22755)` is still on the
+    /// stack at 9135. That is the half `collide::tests::a_blocked_snap_
+    /// stands_and_eats_its_waypoint_without_resolving` cannot reach, its
+    /// own waypoint being the final one.
+    ///
+    /// Made to fail by taking the arm back out: the 9135 row then reads
+    /// `pos (42792, 22824)` and an empty path, which is the original's
+    /// **9136**.
+    #[test]
+    fn great_lakes_9134_is_the_snap_arm_s_blocked_stand() {
+        const LAST: i64 = 9_136;
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(r97)) = (
+            dump("gamelog-run53-greatlakes-24k-trace.txt"),
+            dump("gamelog-run97-greatlakes-valuewindow.txt"),
+        ) else {
+            eprintln!("skipping: no run53/run97 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let mut ix = crate::capture::indexed::IndexedCapture::open(&r97).unwrap();
+        let loaded = crate::load::load(&inst).unwrap();
+        let texts = sibling_texts();
+        let text = crate::capture::read(&path);
+        let log = Log::parse(&text);
+        let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
+        let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+        let refs: Vec<&Initial> = inits.iter().collect();
+        let mut init = log.initial().unwrap();
+        borrow_from_siblings(&mut init, &refs);
+        if let Some(t) = trace("rontrace-run53.log") {
+            borrow_pasture(&mut init, &t);
+        }
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        let mut rows = 0usize;
+        let mut wrong: Vec<String> = Vec::new();
+        for f in 0..LAST {
+            built.tick();
+            // The block numbered `f + 1` is the state this tick left
+            // behind, the same convention every run97 test here uses.
+            if !(9_133..LAST).contains(&f) {
+                continue;
+            }
+            let Some(at) = ix.frames().iter().position(|x| x.number == f + 1) else {
+                continue;
+            };
+            let body = ix.read_frame(at).unwrap();
+            let parsed = Log::parse(&body);
+            let Some(block) = parsed
+                .frames()
+                .into_iter()
+                .find(|(n, _)| *n == f + 1)
+                .map(|(_, b)| b)
+            else {
+                continue;
+            };
+            let (units, _, _) = crate::gamelog::records(block, false);
+            let Some(theirs) = units.iter().find(|u| u.who == 1 && u.o == 32) else {
+                continue;
+            };
+            let ours = built
+                .sim
+                .units
+                .iter()
+                .find(|x| x.alive() && i64::from(x.owner) == 1 && i64::from(x.index) == 32)
+                .unwrap_or_else(|| {
+                    panic!("run97 block {} has 1/32 and this crate does not", f + 1)
+                });
+            rows += 1;
+            let mine = (
+                i64::from(ours.pos.x),
+                i64::from(ours.pos.y),
+                i64::from(ours.collide_o),
+                i64::from(ours.collide_who),
+                ours.collide_frame,
+                ours.orders
+                    .front()
+                    .and_then(|o| match &o.body {
+                        sim::orders::Body::Move(m) => Some(m.coll),
+                        _ => None,
+                    })
+                    .flatten()
+                    .map(|c| (i64::from(c.x), i64::from(c.y))),
+                ours.path.len(),
+            );
+            let theirs_coll = theirs
+                .current_order()
+                .and_then(|o| match (o.coll_x, o.coll_y) {
+                    (Some(0), Some(0)) | (None, _) | (_, None) => None,
+                    (Some(x), Some(y)) => Some((x, y)),
+                });
+            let yours = (
+                theirs.pos.x,
+                theirs.pos.y,
+                theirs.collide_o.unwrap_or(-1),
+                theirs.collide_who.unwrap_or(-1),
+                theirs.collide_frame.unwrap_or(0),
+                theirs_coll,
+                theirs.path.len(),
+            );
+            if mine != yours {
+                wrong.push(format!("block {}: ours {mine:?} theirs {yours:?}", f + 1));
+            }
+        }
+        assert_eq!(rows, 3, "run97's blocks 9134-9136 are not all here: {rows}");
+        assert!(
+            wrong.is_empty(),
+            "Great Lakes 9134 is `move_step`'s snap arm standing still, and \
+             the record says so field for field: {wrong:?}"
         );
     }
 

@@ -104,6 +104,18 @@ pub const SITE_STAND_RETURN: &str = "Guy::set_anim+0x97a < Unit::do_non_flat_gat
 /// disambiguator is the frame above it (`docs/COLLISION.md` §5).
 pub const SITE_BLOCKED: &str = "Guy::set_anim+0x97a < Unit::move_step+0x823";
 
+/// The **other** blocked stand: `Unit::move_step`'s *arrival* arm, whose
+/// `set_anim(CHAR_DEFAULT, 0, 1)` is the call at `005fb40d` and so the
+/// site `+0x4e2`.
+///
+/// `move_step` splits on `param_2 < local_28` — the frame's step against
+/// the Manhattan distance left to the waypoint — and the two arms have
+/// **two** collision blocks, not one. [`SITE_BLOCKED`] is the partial
+/// step's; this is the snap's, and it does far less: it names no
+/// collider, resolves nothing, and just consumes the waypoint where it
+/// stands (`docs/COLLISION.md` §5.4).
+pub const SITE_SNAP_BLOCKED: &str = "Guy::set_anim+0x97a < Unit::move_step+0x4e2";
+
 /// `Guy::move@005d9240+0x19f` — the arrival stand. A guy whose body has
 /// caught up with its destination and whose angle is settled, still on a
 /// walk it has been told to stop (`field_0x9c == 8 && field_0x9d`), is

@@ -20358,3 +20358,34 @@ file's Loop section; a number is measured on the tip; merge, gate, push,
 reap is one chain. Fifteen items parked, none dropped, three open: 312
 (the 7679 draw, a widening first), 304, 308. **No score moved**: Great
 Lakes 7679, East Indies 7812.
+
+## 2026-09-18 — the fourth Fable pass: the loop converged, and its rules moved into git (Fable 5.1, steering)
+
+The loop that ran from the third pass to this one landed twenty-six items
+under one Opus commander, twenty of them word-moving — Great Lakes 7679 →
+9182, East Indies 7812 → 9711 — and lore priced it at 31 USD a
+word-moving landing on the workers alone, 39 with the commander's whole
+well, against the 57 item 330 measured on its first eleven and the 152
+that triggered the third pass. 0.18–0.23 USD a frame against 1.61. The
+third pass's own test passed: 312 and 304 landed and both moved the word.
+No marked row stood anywhere in the tree, so the floor was empty and the
+pass was the Loop backlog, which the handoff counted as twelve over
+thirteen items.
+
+Six rulings, each a change in the tree. **Item 339**: the worker's gate
+passes `--no-fail-fast`, tees the release run to a log with no pipe in
+front of the exit code, and prints a per-binary summary naming each failed
+test — the test asserting the flag failed first against the old command.
+**Item 318**: the handoff guards stay on the working tree, and nothing
+under `docs/` is edited while a gate runs. **Item 345**: the commander's
+chain — `ccc merge --no-ff`, gate, `ccc push --base`, `ccc rm` — is one
+paragraph in `CLAUDE.md`'s fan-out rules, and the memory file that held it
+is a pointer. **Item 330**: width two may run a parked value-diff row
+beside the word's frame, never instead of it, the stop a doubling from 39.
+**Item 331**: the commander counts its landings and stops at twenty; a
+free clear is taken at a seam, never mid-chain; a spawn's JSON is never
+filtered. **Item 332**: the handoff's Loop count is a guard, and it failed
+first on twelve against thirteen. DECISIONS 40 carries the rationale;
+`docs/audit/2026-09-18-fable-pass-4.md` the measurements. Seven Loop items
+stay parked, 356 and 321 first in line. `capture-lane-2` ran on the screen
+throughout and lands on its own report.

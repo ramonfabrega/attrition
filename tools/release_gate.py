@@ -4,11 +4,63 @@ import argparse
 import json
 import os
 from pathlib import Path
+import re
 import subprocess
 import sys
 import tempfile
 
 ROOT = Path(__file__).resolve().parents[1]
+
+RUNNING = re.compile(r'^\s*Running (?:unittests )?\S+ \((\S+)\)$')
+DOC_TESTS = re.compile(r'^\s*Doc-tests (\S+)$')
+RESULT = re.compile(r'^test result: (ok|FAILED)\. (\d+) passed; (\d+) failed;')
+FAILED_TEST = re.compile(r'^test (\S+) \.\.\. FAILED$')
+
+
+def run_logged(command, *, cwd, env, check, log=None):
+    """`subprocess.run`, or — with `log` — the same command with its output
+    copied line by line to that file as well as to stdout. No shell pipe
+    stands between the command and its exit status: a `| tee` launders
+    `memcap.sh`'s 137 into a 0, and the release command's exit code is the
+    gate's verdict."""
+    if log is None:
+        return subprocess.run(command, cwd=cwd, env=env, check=check)
+    with open(log, 'wb') as sink, subprocess.Popen(
+            command, cwd=cwd, env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT) as child:
+        for line in child.stdout:
+            sys.stdout.buffer.write(line)
+            sys.stdout.buffer.flush()
+            sink.write(line)
+    completed = subprocess.CompletedProcess(command, child.returncode)
+    if check:
+        completed.check_returncode()
+    return completed
+
+
+def summarize_tests(log, *, release_completed):
+    """Every `test result:` line in a release log, keyed by the binary that
+    printed it, plus the name of every test that failed. `--no-fail-fast`
+    makes cargo run every binary; this is what makes the run readable
+    afterwards — a red rondata by design on a word-moving item, and the
+    sim suite behind it, are two lines instead of one truncated run."""
+    binaries = []
+    current = None
+    failed_tests = []
+    for raw in Path(log).read_bytes().splitlines():
+        line = raw.decode('utf-8', 'replace')
+        if match := RUNNING.match(line):
+            name = Path(match.group(1)).name
+            current = name.rsplit('-', 1)[0] if '-' in name else name
+        elif match := DOC_TESTS.match(line):
+            current = f'doc-tests {match.group(1)}'
+        elif match := FAILED_TEST.match(line):
+            failed_tests.append(f'{current}::{match.group(1)}')
+        elif match := RESULT.match(line):
+            binaries.append({'name': current or '?', 'result': match.group(1),
+                             'passed': int(match.group(2)), 'failed': int(match.group(3))})
+    return {'schema': 1, 'release_completed': release_completed,
+            'binaries': binaries, 'failed_tests': failed_tests,
+            'binaries_failed': sum(row['failed'] > 0 for row in binaries)}
 
 
 def summarize_requests(directory, *, release_completed):
@@ -33,7 +85,7 @@ def summarize_requests(directory, *, release_completed):
             'complete_corpus_claim': False, 'fixtures': rows}
 
 
-def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, run=subprocess.run):
+def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, run=run_logged):
     if type(test_threads) is not int or test_threads not in (2, 3, 4):
         raise ValueError('test threads must be 2, 3, or 4')
     install = Path(install).resolve()
@@ -58,7 +110,7 @@ def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, ru
     commands = [
         [sys.executable, 'tools/offline_tests.py'],
         ['cargo', 'run', '-p', 'rondata', '--', str(install)],
-        ['zsh', 'tools/memcap.sh', '20', 'cargo', 'test', '--release', '--', f'--test-threads={test_threads}'],
+        ['zsh', 'tools/memcap.sh', '20', 'cargo', 'test', '--release', '--no-fail-fast', '--', f'--test-threads={test_threads}'],
         ['cargo', 'clippy', '--all-targets', '--', '-D', 'warnings'],
         ['cargo', 'fmt', '--check'],
         ['zsh', 'tools/guard.sh'],
@@ -69,8 +121,9 @@ def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, ru
         completed = False
         if is_release:
             child_env['RON_FIXTURE_AUDIT_DIR'] = str(audit_dir)
+        extra = {'log': str(report_dir / 'release-tests.log')} if is_release else {}
         try:
-            run(command, cwd=ROOT, env=child_env, check=True)
+            run(command, cwd=ROOT, env=child_env, check=True, **extra)
             completed = True
         finally:
             if is_release:
@@ -82,9 +135,22 @@ def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, ru
                 for row in summary['fixtures']:
                     if row['missing_requests']:
                         print(f"  missing: {row['name']}", flush=True)
+                tests = summarize_tests(extra['log'], release_completed=completed) \
+                    if Path(extra['log']).is_file() else \
+                    {'schema': 1, 'release_completed': completed, 'binaries': [],
+                     'failed_tests': [], 'binaries_failed': 0}
+                (report_dir / 'test-summary.json').write_text(json.dumps(tests, indent=2) + '\n')
+                print('Test summary: ' + ('; '.join(
+                    f"{row['name']} {row['result']} {row['passed']} passed"
+                    + (f" / {row['failed']} failed" if row['failed'] else '')
+                    for row in tests['binaries']) or 'no test result observed'), flush=True)
+                for name in tests['failed_tests']:
+                    print(f"  failed: {name}", flush=True)
         if is_release:
             if not summary['observed_requests']:
                 raise ValueError('release produced no fixture audit; coverage is unobserved')
+            if not tests['binaries']:
+                raise ValueError('release printed no test result; the suite is unobserved')
             if require_fixtures and summary['missing_fixtures']:
                 raise ValueError('requested fixtures are missing; see fixture-coverage.json')
     return report_dir

@@ -654,6 +654,66 @@ This crate answered `Did::Something` from both arms and its follower
 ignored the value entirely, so its squad marched on in formation. Reading
 it moved Great Lakes' long word 6862 → **6982** (item 236).
 
+### 5.4 The **snap** arm's own collision block — the other half of the `if` (2026-09-18)
+
+§5 above is one of **two** collision blocks, not the only one.
+`Unit::move_step@005faf30` splits on `param_2 < local_28` — the frame's
+step against the Manhattan distance still owed to `dest_x`/`dest_y` — and
+each side probes for itself:
+
+| | the arm | the probe's return address | what it does on a hit |
+|---|---|---|---|
+| `param_2 < local_28` | the **partial step**, the sine/cosine one | `005fb753`, `Unit::move_step+0x823` | §5: snap-through, wait, resolve, widen |
+| `local_28 <= param_2` | the **snap**, which lands on the waypoint exactly | `005fb412`, `Unit::move_step+0x4e2` | this section |
+
+Both call `detect_unit_collision(dest, 0, 1, 0, 0, 0)` with the same seven
+arguments, so both write `coll_x`/`coll_y` and both name the collider. The
+similarity ends there. The snap arm's block is nine instructions
+(`005fb3bd`–`005fb412`):
+
+```
+collide_o = -1                       # field_0x8a = 0xffff
+collide_who = -1                     # field_0xb3 = 0xff
+order->dest = 0
+if path.length < 1: path.length = 1
+path.length -= 1                     # pop, clamped
+flags = path.list[path.length].flags
+set_anim(CHAR_DEFAULT, 0, 1)         # ← the draw, +0x4e2
+→ join the accepted step's tail at 005fb4c4
+```
+
+Three things it does **not** do, each of which §5 does:
+
+- **It never reaches `resolve_unit_collision`.** No sidestep, no pause
+  roll, no cell-centre snap, no stack unwind.
+- **It does not wait on an owed turn** and does not widen `tolerance`.
+- **It clears the collider it just named.** `collide_o` and `collide_who`
+  go back to −1 in the two instructions after the probe returns, so a
+  dumped unit blocked on its snap carries `coll_x`/`coll_y` from the
+  refused point and `collide_o −1` beside them. `collide` and
+  `collide_frame` are not touched at all.
+
+What it does instead is **consume the waypoint where the unit stands**:
+`dest = 0` and the pop are the accepted step's own arrival bookkeeping,
+taken without the step. The popped entry's `& 1` then decides as it always
+does — a middle leg returns 1 and the walk resumes next frame from the
+same place; the final one falls into `set_angle` and
+`kill_current_order`. So a blocked snap costs the unit exactly **one
+frame** and one draw, and nothing else.
+
+**Great Lakes 9134 is the frame** (item 360). It is one draw on each side,
+and the original's was a bare `5dac7a` — the trace's table names
+`Guy::set_anim+0x97a` by its `ebp` chain and had no entry for this caller,
+so eleven named chains and one unnamed address read as a match on count
+for as long as nobody looked. `1/32` walks its formation slot in ~24-unit
+hops, arrives on each within one step — `dest_x`/`dest_y` equal to
+`x_internal`/`y_internal` at every frame boundary from 9132 — and on 9134
+the hop it snaps to is blocked. The original stands, keeps `(42801,
+22824)`, takes `coll_x 42825 / coll_y 22827` and `collide_o −1`, and does
+everything else a frame later. This crate ran §5's give-up chain instead,
+snapped the unit back to `(42792, 22824)` and ungrouped it on 9134 rather
+than 9135. §8.9.
+
 ## 6. `Unit::resolve_unit_collision`
 
 In order, with the first that fires winning:
@@ -808,9 +868,9 @@ Modelled: the bitmask with its clear-on-move semantics and the region gate;
 the object chain over units; the probe with its parity filter and disc
 order, **and its leading-edge fast path with the `nocoll` argument that
 selects it** (§4.2, item 183); the `safe`, `DETOUR`, same-cell and
-`coll_size 0` gates; the corner rule; the same-player-attack exemption; `move_step`'s block, **including its
-`set_anim(CHAR_DEFAULT)`** (§5) **and the probe's write back into the
-order** (§4.3, item 115); **`do_move`'s waypoint test with both of
+`coll_size 0` gates; the corner rule; the same-player-attack exemption; `move_step`'s **two** blocks, **including
+both `set_anim(CHAR_DEFAULT)` calls** (§5 and §5.4, item 360) **and the
+probe's write back into the order** (§4.3, item 115); **`do_move`'s waypoint test with both of
 its arms** (§5.1, item 63); and `resolve`'s steps **0** — the animal's
 whole-queue clear, `Sim::clear_orders` behind `Unit::is_gaia` — 2, with
 its `is_flat` fence (§6, item 64), 4, 5 and 6, the last including the
@@ -1794,8 +1854,105 @@ a dormant seam — "suspend returns −1 without stashing (its restorer has no
 caller until collision recovery exists)". Collision recovery exists now, and
 run90 is the first capture to reach it.
 
+## 8.9 Great Lakes 9134 — the arm this crate did not have (2026-09-18)
+
+Item 360's brief was a widening with no hypothesis, and the widening took
+twenty minutes because the frame is **one draw on each side**.
+
+```
+frame 9134: ours 1 theirs 1 — at 0,
+  ours Some("Guy::set_anim+0x97a < Unit::move_step+0x823")
+  theirs Some("5dac7a")
+```
+
+`5dac7a` is `Guy::set_anim+0x97a`, the address eleven entries of
+`rondata::diff::SITES` already carry under eleven different `ebp` chains.
+The twelfth chain — `Unit::set_anim+0x56 < Unit::move_step+0x4e2`, read
+straight off `report.py … draws 9134` — had no entry, so the trace printed
+the bare address and the comparison could not fail on the *count*. It is
+the clearest case yet of the rule the working agreement states: a bare
+address in a dumped sequence is a comparison that cannot fail, and naming
+it is the whole assertion.
+
+**The unit is `1/32`, and run97 has it whole.** Tabulating its
+`x_internal`/`y_internal`, `dest_x`/`dest_y`, `coll_x`/`coll_y`, order
+flags and path stack over `[9119, 9137]` — every field of the record, not
+the ones the brief named — puts the two runs one frame apart from 9134
+and nowhere before it:
+
+| | ours, after tick N | run97 at N+1 | |
+|---|---|---|---|
+| 9133 | `(42801, 22824)`, path `[(44576, 22755) f1]` | `(42801, 22824)`, path `[(44576, 22755) f1]` | agree |
+| **9134** | `(42792, 22824)`, path `[]`, order flags 4, ungrouped | `(42801, 22824)`, path `[(44576, 22755) f1]`, flags 5 | **part** |
+| 9135 | `(42792, 22824)`, path `[(44568, 22776) f1]` | `(42792, 22824)`, path `[]`, flags 4, ungrouped | ours is 9134's |
+| 9136 | the eight-entry `find_upath` plan | `[(44568, 22776) f1]` | ours is 9135's |
+
+Everything the original does on 9135 this crate did on 9134. The cause is
+§5.4: `1/32` is close enough to its next formation hop to land on it in
+one step, the hop is blocked, and the original's snap arm stands for the
+frame while this crate ran §5's give-up chain into
+`resolve_unit_collision`.
+
+Three fields of the same record say the arm is the snap's and not §5's,
+without reading anything: on 9135 the original carries `coll_x 42825 /
+coll_y 22827` (so the probe *did* return a hard collision) beside
+`collide_o −1 / collide_who −1` (so something cleared them) and
+`collide_frame 7293` (so `resolve_unit_collision` never ran — it is nine
+hundred frames stale, and the original's own resolve on 9135 writes
+`collide_frame 9135`).
+
+**What it moved.** Great Lakes `8029..` widened either side, both columns
+measured at the new word so the windows match:
+
+| | base | now |
+|---|---|---|
+| Great Lakes long word (run53) | 9134 | **9182** |
+| East Indies long word (run54) | 9711 | 9711 |
+| point-and-goal fields wrong below the word | 183 | **6** |
+| — per frame of `[8029, 9182)` | 0.159 | **0.0052** |
+| — units ever off position | 6 | **4** |
+| walk-slot residue | 103 | **0** |
+| — per frame | 0.089 | **0** |
+| standing trio's own (24, 24) | `6 × frames` | `6 × frames` |
+
+`1/31` and `1/32` leave the off-position list entirely; what is left is
+the standing trio `1/24`–`1/26`, excused and older than every window on
+this map, and `1/33`'s late drift from 8584.
+
+**The successor is 9182, and it is the market's**, exactly where item 358
+left it: the original spends three `Leader::use_market+0x1ed` and two
+`Leader::make_stuff+0x221` where this crate spends one, three, and two
+`+0x63d` slot expiries. Its tail differs too — one
+`Guy::set_anim+0x104b` against three. `docs/AI.md` §41 names the
+`LEADERS=9` window that would settle the leader half.
+
+**No frame past run97's 9349 was wanted at any point.** The widening ran
+`[9119, 9145]`, the cause is at 9134, and the new word at 9182 leaves
+**167 frames** of run97 still ahead of it. The next capture is owed rather
+than urgent — but the margin is now thin enough that a successor to 9182
+may well want `[9350, …)`.
+
 ## 9. What is not established
 
+- **The snap arm's `invalid_loc` refusal** (§5.4). The same `if` has a
+  *free* sub-arm, and its tile refusal at `005fb443` does **not** behave
+  like §5's: it jumps to `005fb48e`, which is the accepted step's own
+  `dest = 0` and pop, so the waypoint is consumed without the step and
+  `unit_masks & 8` is left standing. §5's refusal (`005fb7c1`–`005fb7fd`)
+  clears the bit and answers 0. This crate has only §5's, for both arms —
+  item 360 modelled the snap's *collision* sub-arm and left this one
+  alone, because no frame on disk demands it. *What would refuse it:* a
+  `UNITS=3` window over a unit whose last hop into a waypoint crosses into
+  a tile `invalid_loc` rejects — the record would show the original's
+  `dest_x`/`dest_y` and path stack moving on where this crate's stand.
+- **`Movement::dest` on a blocked snap.** This crate sets it to `None`
+  there, matching what the accepted step's arrival tail does, because the
+  waypoint has been consumed. The original has no such field — it is a
+  sim-side proxy for "is this unit going somewhere", read by
+  `docs/COMBAT.md`'s target tests — so the choice is an inference from the
+  control flow rather than from a dump. *What would refuse it:* a capture
+  in which a unit blocked on its snap is the target of an attack decision
+  on the same frame.
 - ~~**East Indies' long word, 7806, is a collision question and the frame
   it turns on is undumped.**~~ ~~*Capture:* `[7790, 7900)` at run88's
   detail exactly.~~ **Taken, as run90, and it refused the candidate**

@@ -1617,6 +1617,11 @@ against 128.
 the queue's population, not the loop, was the defect.** The rulings are
 entry 39, which extends this one and overturns nothing in it.
 
+**Amended 2026-09-18, the fourth Fable pass — the loop's own governance:
+the commander's half of the chain, the stop at twenty, width on parked
+rows, and the gate that ran every binary.** Entry 40, which extends this
+one and overturns nothing in it.
+
 ## 35. The paperwork is bounded by items, and a deletion is a claim
 
 **Decided 2026-09-07**, with the user, after lore priced the queue's
@@ -1933,3 +1938,82 @@ first wave under the parking rule spent its workers on the word's frame.
 If 312 and 304 both land and neither moves Great Lakes, the diagnosis
 here was wrong, and that pass says so.
 `docs/audit/2026-09-17-fable-pass-3.md`.
+
+## 40. The loop governs itself: the commander's chain in git, a stop at twenty, and width on parked rows
+
+**Decided 2026-09-18**, the fourth Fable pass, with the user
+(`docs/audit/2026-09-18-fable-pass-4.md`). Extends entries 34 and 39;
+overturns nothing.
+
+**The measure was applied and the loop converged.** Twenty-six landings
+under one Opus commander since the third pass, twenty word-moving, Great
+Lakes +1,503 and East Indies +1,899, at **31–39 USD a word-moving
+landing** (lore, list price: workers 620.52 over 23 wells, the commander's
+well 160.56) against 57, 152, 102 and 42 before it, and **0.18–0.23 USD a
+frame** against 0.45 and 1.61. The third pass's test — 312 and 304 both
+landing and both moving Great Lakes — passed. So this pass ruled on
+nothing about the board or the workers, only on the loop's own rules,
+which were living in three places and a per-user memory file.
+
+**The commander's chain is in `CLAUDE.md`, and it is ccc's** (parked
+345). `ccc merge <ref> --no-ff`, the gate to a file, `ccc push <ref>
+--base`, `ccc rm <ref>` — the reap removes session, worktree and the
+merged branch, and keeps a branch whose commits are nowhere else. Items
+334, 336 and 338 were merged raw and reaped by hand, leaving dead roster
+rows, because the only text saying otherwise was a memory hook a day
+stale. Memory is invisible to every session but its own and read by no
+guard; the fan-out rules are inherited by every session. The memory file
+is now a pointer at the rule.
+
+**Nothing under `docs/` is edited while a gate runs** (parked 318). The
+handoff guards read the working tree because the gate runs before the
+commit that would be the other source, and that stays. The race they hit
+is the commander editing the queue during its own gate — a worker's tree
+cannot see the commander's rewrite except through `ccc update`, which a
+worker never runs mid-gate. A discipline, not a code change; it costs a
+re-run each time it is broken and nothing when it is kept.
+
+**The commander stops at twenty landings** (parked 331). The charter
+fired a steering pass every twenty items and named no counter, so the
+loop ran seven hours on 09-17 and twenty-six landings on 09-18 with
+nothing in its rules able to end it; both clears were Ramon's. The
+commander owns the count now — the handoff already carries it — and at
+the twentieth landing since its boot it writes the handoff and ends its
+turn saying the pass is due. It cannot switch the model, so stopping is
+the whole act. Between, a free clear is taken at a **seam** — the
+successor chain gone cold, a map crossover — never mid-chain, where the
+context that made the briefs cheap is paid for again. The lineage rider:
+`ccc spawn --json`'s answer is never filtered, because seven landings of
+`lore jobs` parentage were lost to a `grep -E '"ref"|"branch"'` that
+saved four lines of scrollback.
+
+**Width two may run a parked value-diff row beside the word's frame,
+never instead of it** (parked 330). Entry 39's rule — only what names a
+score books — was made against a wave that ran residue rows *instead of*
+the headline. Eight of the twelve landings item 330 measured were strict
+successors, so the second lane sat idle. With the headline lane occupied,
+a parked row that names a dump field and a frame, needs no capture, and
+touches a module the headline item does not may be spawned from
+`docs/PARKED.md` directly; its products park unless they name a score.
+The stop stays a doubling — 78 from today's 39 — and whether the lane
+*paid* is the next pass's, from `lore spawns`.
+
+**The worker's gate runs every binary** (parked 339). `release_gate.py`
+passes `--no-fail-fast`, tees the release run to a log with no pipe
+between `memcap.sh` and the exit code, and prints a per-binary summary
+naming each failed test. Rondata is red by design on every word-moving
+item, and cargo's default stop at the first red binary had kept the sim
+suite — `no_float`, `soak`, `docs_guard` — out of every worker's gate;
+336 landed a red guard that way. The test that asserts the flag was run
+against the old command first.
+
+**The handoff's count of the Loop backlog is a guard** (parked 332).
+`docs_guard::the_handoff_counts_the_loop_backlog` parses the handoff's
+`Fable backlog: N Loop items` against the parked file's Loop section; it
+failed first on twelve against thirteen. The steering pass has no queue
+of its own: the section is the queue and the count is its opener.
+
+**The measure for the next pass**: the ratio against 78; whether a parked
+row ran beside the headline and what it cost; and whether the
+twenty-landing stop fired. If the handoff's count and `lore jobs`
+disagree, the commander's is the wrong one.

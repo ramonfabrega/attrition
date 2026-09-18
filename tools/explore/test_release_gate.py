@@ -19,6 +19,54 @@ def write_request(directory, present=True, name='fixture', test='test'):
         stream.write(f"{int(present)}\t{name.encode().hex()}\t{test.encode().hex()}\n")
 
 
+# A release log in cargo's own shape: `Running` on stderr and the results on
+# stdout, both in one stream. rondata red on the two queue tests by design,
+# the sim suite green behind it — the run 339 says the gate never showed.
+RELEASE_LOG = """\
+     Running unittests src/lib.rs (target/release/deps/fixed-0a1b2c)
+
+running 13 tests
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running unittests src/main.rs (target/release/deps/rondata-3d4e5f)
+
+running 305 tests
+test diff::endpoint::the_handoff_s_endpoint_is_the_pinned_counts ... FAILED
+test diff::floors::the_handoff_s_scoreboard_is_the_floors ... FAILED
+test diff::floors::the_gate_has_a_bounded_test_width ... ok
+
+failures:
+
+---- diff::floors::the_handoff_s_scoreboard_is_the_floors stdout ----
+docs/QUEUE.md's Scoreboard line is stale
+
+failures:
+    diff::endpoint::the_handoff_s_endpoint_is_the_pinned_counts
+    diff::floors::the_handoff_s_scoreboard_is_the_floors
+
+test result: FAILED. 303 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 101.20s
+
+     Running unittests src/lib.rs (target/release/deps/sim-6a7b8c)
+
+running 831 tests
+test result: ok. 831 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 9.87s
+
+   Doc-tests sim
+
+running 3 tests
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.40s
+
+error: 1 target failed:
+    `-p rondata --bin rondata`
+"""
+
+
+def release_ran(kwargs, log=RELEASE_LOG, present=True):
+    """What a release child leaves behind: the fixture audit and the log."""
+    write_request(kwargs['env']['RON_FIXTURE_AUDIT_DIR'], present)
+    Path(kwargs['log']).write_text(log)
+
+
 class GateTests(unittest.TestCase):
     def test_missing_install_never_runs(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -34,7 +82,7 @@ class GateTests(unittest.TestCase):
                 self.assertTrue(kwargs['check'])
                 calls.append(command)
                 if '--release' in command:
-                    write_request(kwargs['env']['RON_FIXTURE_AUDIT_DIR'])
+                    release_ran(kwargs)
             gate.gate(path, report_dir=path/'report', run=run)
             self.assertEqual(len(calls), 6)
             self.assertEqual(calls[0], [sys.executable, 'tools/offline_tests.py'])
@@ -54,7 +102,7 @@ class GateTests(unittest.TestCase):
                         self.assertEqual(command[:3], ['zsh','tools/memcap.sh','20'])
                         self.assertEqual(command[-2:], ['--', f'--test-threads={width}'])
                         self.assertNotIn('--skip', command)
-                        write_request(kwargs['env']['RON_FIXTURE_AUDIT_DIR'])
+                        release_ran(kwargs)
                 with patch.dict('os.environ', RUST_TEST_THREADS='16', RON_TEST_MEMCAP_GIB='999'):
                     gate.gate(path, report_dir=path/'report', test_threads=width, run=run)
                 self.assertEqual(len(calls), 6)
@@ -78,7 +126,7 @@ class GateTests(unittest.TestCase):
                 if command == [sys.executable, 'tools/offline_tests.py']:
                     raise subprocess.CalledProcessError(1, command)
                 if '--release' in command:
-                    write_request(kwargs['env']['RON_FIXTURE_AUDIT_DIR'])
+                    release_ran(kwargs)
             with self.assertRaises(subprocess.CalledProcessError):
                 gate.gate(path, report_dir=path/'report', run=run)
             self.assertEqual(calls, [[sys.executable, 'tools/offline_tests.py']])
@@ -118,7 +166,7 @@ class GateTests(unittest.TestCase):
                 path=Path(tmp);(path/'Data').mkdir();(path/'Data/rules.xml').touch()
                 def run(command, **kwargs):
                     if '--release' in command and emit:
-                        write_request(kwargs['env']['RON_FIXTURE_AUDIT_DIR'], False)
+                        release_ran(kwargs, present=False)
                 if succeeds:
                     gate.gate(path, report_dir=path/'report', run=run, require_fixtures=strict)
                 else:
@@ -132,12 +180,58 @@ class GateTests(unittest.TestCase):
             path=Path(tmp);(path/'Data').mkdir();(path/'Data/rules.xml').touch()
             def run(command, **kwargs):
                 if '--release' in command:
-                    write_request(kwargs['env']['RON_FIXTURE_AUDIT_DIR'])
+                    release_ran(kwargs)
                     raise subprocess.CalledProcessError(1, command)
             with self.assertRaises(subprocess.CalledProcessError):
                 gate.gate(path, report_dir=path/'report', run=run)
             report=json.loads((path/'report/fixture-coverage.json').read_text())
             self.assertFalse(report['release_completed'])
+            # 339: the red binary does not hide the ones behind it.
+            tests=json.loads((path/'report/test-summary.json').read_text())
+            self.assertFalse(tests['release_completed'])
+            self.assertEqual([row['name'] for row in tests['binaries']], ['fixed','rondata','sim','doc-tests sim'])
+            self.assertEqual(tests['failed_tests'], [
+                'rondata::diff::endpoint::the_handoff_s_endpoint_is_the_pinned_counts',
+                'rondata::diff::floors::the_handoff_s_scoreboard_is_the_floors'])
+            self.assertEqual(tests['binaries_failed'], 1)
+            self.assertEqual(tests['binaries'][2], {'name':'sim','result':'ok','passed':831,'failed':0})
+
+    def test_release_runs_every_binary_past_a_red_one(self):
+        # 339: cargo's default stops at the first failing binary, and on a
+        # word-moving item rondata is red by design — so the sim suite,
+        # no_float, soak and docs_guard included, never ran in a worker's gate.
+        with tempfile.TemporaryDirectory() as tmp:
+            path=Path(tmp);(path/'Data').mkdir();(path/'Data/rules.xml').touch()
+            calls=[]
+            def run(command, **kwargs):
+                calls.append(command)
+                if '--release' in command:
+                    self.assertIn('--no-fail-fast', command)
+                    self.assertLess(command.index('--no-fail-fast'), command.index('--'))
+                    release_ran(kwargs)
+            gate.gate(path, report_dir=path/'report', run=run)
+            self.assertIn('--no-fail-fast', calls[2])
+
+    def test_release_without_a_test_result_is_unobserved(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path=Path(tmp);(path/'Data').mkdir();(path/'Data/rules.xml').touch()
+            def run(command, **kwargs):
+                if '--release' in command:
+                    release_ran(kwargs, log='     Running unittests src/lib.rs (target/release/deps/sim-6a7b8c)\n')
+            with self.assertRaises(ValueError):
+                gate.gate(path, report_dir=path/'report', run=run)
+
+    def test_the_default_runner_keeps_the_exit_code_and_the_log(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            log=Path(tmp)/'release-tests.log'
+            script='import sys; print("test result: ok. 1 passed; 0 failed; 0 ignored"); print("boom", file=sys.stderr); sys.exit(137)'
+            with self.assertRaises(subprocess.CalledProcessError) as caught:
+                gate.run_logged([sys.executable,'-c',script], cwd=tmp, env={}, check=True, log=str(log))
+            self.assertEqual(caught.exception.returncode, 137)
+            text=log.read_text()
+            self.assertIn('test result: ok. 1 passed', text)
+            self.assertIn('boom', text)
+            self.assertEqual(gate.summarize_tests(log, release_completed=False)['binaries'][0]['passed'], 1)
 
 
 if __name__ == '__main__':
