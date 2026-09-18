@@ -564,7 +564,16 @@ fn indexed_siblings_preserve_every_initial_field_except_audit_bodies() {
 /// 24,000 frames. Neither map's item named the other, and one change
 /// moved both — see [`LONG_WORD_GREAT_LAKES`] and `docs/CITIES.md`
 /// §6.5.2.
-pub(crate) const LONG_WORD_EAST_INDIES: i64 = 8_495;
+///
+/// **8495 → 8555 on item 346, and it was the same event again** — the
+/// seated scholar's *first wrap*. `1/22` sits down on 8466 on slot 25,
+/// `Scholar Teach1`, thirty frames long, and 8466 + 30 − 1 is 8495. The
+/// original re-rolls that wrap instead of restarting the slot; this crate
+/// restarted it, so the frame was one `Guy::set_anim+0x97a <
+/// Guy::inc_time+0x271` short. `sim::anim::Sim::seated_scholar` and
+/// `docs/ANIM.md` §5.1. One change moved both maps for the second item
+/// running, and again neither map's brief named the other.
+pub(crate) const LONG_WORD_EAST_INDIES: i64 = 9_711;
 
 /// The frame East Indies' **first scholar** — `1/22` — is seated inside
 /// its university, one of the fourteen `Unit::go_inside+0x280` draws in
@@ -1166,7 +1175,17 @@ pub(crate) const EAST_INDIES_FIRST_SCHOLAR: i64 = 8_466;
 /// position for `1/2021`, and `great_lakes_first_mine_lists_its_mountain_range`
 /// pins the list against run80's own record. `docs/ECONOMY.md`, "The
 /// mine's range".
-pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 8404;
+///
+/// **8404 → 8464 on item 346: the scholar's teach slot does not
+/// restart.** 8404 is `1/44`'s first wrap on slot 25 — `Scholar Teach1`,
+/// thirty frames, entered at the 8374 wrap — and the original spends a
+/// second `Guy::set_anim+0x97a < Guy::inc_time+0x271` on it that this
+/// crate did not. run97 is what settled it: Great Lakes' first value
+/// window over `[8029, 9348]`, and `1/44`'s slot over its 1,320 blocks
+/// goes 27→25→25→28→27→25→25→25→27→25→…→26, which a
+/// `set_anim(same, 0, 1)` restart cannot produce.
+/// [`sim::anim::Sim::seated_scholar`], `docs/ANIM.md` §5.1.
+pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 8582;
 
 /// The frame Great Lakes' **second** squad joins the army on — 6994, the
 /// word's own parting from 2026-09-06 to 2026-09-07 and now a landed

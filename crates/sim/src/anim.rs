@@ -907,7 +907,16 @@ impl Sim {
             } else {
                 anim
             };
-        let target_cat = category(anim);
+        // From `0x5da5ef` on, a scholar's categories are the remapped
+        // ones ([`Sim::scholar_cat`]) — the current slot's always, the
+        // request's on an unforced call. The early returns above are
+        // `0x5da36f..0x5da5ef`, which read `UnitAnimCat` raw.
+        let cur_cat = self.scholar_cat(u, guy.anim);
+        let target_cat = if force {
+            category(anim)
+        } else {
+            self.scholar_cat(u, anim)
+        };
         // `set_anim:219` — the same category, already inside its length,
         // is left alone. The walk category is the exception, because a
         // walk re-resolves its slot from the body's speed every time it is
@@ -1278,6 +1287,61 @@ impl Sim {
                 self.guy_set_anim(u, g, DEFAULT, false, false);
             }
         }
+    }
+
+    /// **A scholar's every slot from `0x19` up is the idle category** —
+    /// `Guy::set_anim@005da300`'s own remap, and the whole of item 346.
+    ///
+    /// The listing at `0x5da5ef`, which the decompiler renders as two
+    /// unrelated `param_2`s:
+    ///
+    /// ```text
+    /// 5da602  local_20 = UnitAnimCat[cur_anim]
+    /// 5da613  cx = guy_flags & 0x80              ; the scholar bit
+    /// 5da617  je   ..                            ; not a scholar: keep it
+    /// 5da619  cmp  cur_anim, 0x19
+    /// 5da624  cmovge local_20, 0                 ; a slot 25+ IS CHAR_DEFAULT
+    /// 5da62b  edx = UnitAnimCat[param_1]         ; the request's category
+    /// 5da632  test edi, edi                      ; edi is param_2, loaded at 5da329
+    /// 5da63a  jne  ..                            ; a forced call keeps it
+    /// 5da643  cmp  param_1, 0x19
+    /// 5da646  cmovge edx, 0                      ; so does the REQUEST
+    /// 5da64c  cmp  local_20, edx  ; the same-category early return
+    /// 5da709  test edx, edx      ; and the idle arm is entered on edx
+    /// ```
+    ///
+    /// Two consequences, and each was a word:
+    ///
+    /// - **`Guy::inc_time`'s looping restart of a teach slot is an idle
+    ///   request.** The wrap calls `set_anim(cur_anim, 0, 1)` — `param_2`
+    ///   is the zero, so the remap fires — and `0x5da709` then enters the
+    ///   `CHAR_DEFAULT` arm, which **draws** and re-rolls the variant.
+    ///   `loopings[Scholar Teach1]` really is 1 (the `<LOOPING>` section,
+    ///   and `force_load`'s own last-key rule gives slot 27 the 103
+    ///   frames the dump shows, which it could not under a 0), so the
+    ///   restart branch is taken and produces a fresh slot anyway. That
+    ///   is Great Lakes **8404** and East Indies **8495**, both the
+    ///   seated scholar's first wrap.
+    /// - **The variant bands apply to it**, because `local_20` is
+    ///   `CHAR_DEFAULT` too: `set_anim:281`'s gate is
+    ///   `local_20 == CHAR_DEFAULT && param_3 != 0`. Great Lakes
+    ///   **8434** is `1/44`'s next wrap and the original takes variant 3
+    ///   — slot 28, 105 frames — where a crate reading the raw category
+    ///   25 discards the roll and lands on 0x19 every time.
+    ///
+    /// run97 is what made it visible: `1/44`'s slot over the window's
+    /// 1,320 blocks goes 27→25→25→28→27→25→25→25→27→25→…→26, and a
+    /// plain `set_anim(same, 0, 1)` restart cannot change a slot at all.
+    ///
+    /// The bit itself is [`Sim::scholar_slot`]'s: `Guy::init_real`'s
+    /// `guy_flags |= 0x80` for `UnitTypeData +0x4` in `{0x34, 0x35}`,
+    /// which this crate reads as the unit's current [`Worker::Scholar`]
+    /// (`docs/ANIM.md` §4.11's third seam).
+    fn scholar_cat(&self, u: usize, anim: i8) -> i8 {
+        if anim >= 0x19 && self.worker_of(u) == crate::orders::Worker::Scholar {
+            return DEFAULT;
+        }
+        category(anim)
     }
 
     /// The walk's start and the arrival, as the body follow sees them —

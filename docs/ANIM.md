@@ -1057,7 +1057,11 @@ Three things follow.
   neither of which draws; a non-looping one (`Lumberjack Dump`, `Miner
   Dump`, the attacks, the deaths, pack/unpack) falls to `DEFAULT` and draws
   — `anim::non_looping` is the rule by slot, from the XML's names (§9), and
-  `Sim::packet_has` is the pair of index tests in front of it.
+  `Sim::packet_has` is the pair of index tests in front of it. **A
+  scholar is the exception to the whole bullet: its teach slot is
+  looping, the restart is taken, and `set_anim` turns that restart into
+  an idle request anyway, because for a scholar every slot from `0x19`
+  up *is* the idle category — §5.1.**
 - **The mirror.** A member past the squad's size that is not walking copies
   guy 0's slot and time and never steps or draws itself: the scout's dog.
   Run13's sim-frame 101: the human scout's two guys go `60/61 → 0/61` on
@@ -1098,6 +1102,93 @@ apply, which leaves `cur_time` where it was rather than at 0, so
 `0/232, last −1` is a wrap that *changed* slot and `1/47, last 0` an
 ordinary step. `rondata::diff`'s whole-frame check reproduces all four in
 place on both traced maps.
+
+## 5.1 A scholar's every slot from `0x19` up is `CHAR_DEFAULT` (2026-09-18)
+
+`Guy::set_anim`'s own remap, four instructions the decompiler renders as two
+unrelated `param_2`s. The listing at `0x5da5ef`:
+
+```text
+5da602  local_20 = UnitAnimCat[cur_anim]      ; the CURRENT category
+5da613  cx = guy_flags & 0x80                 ; the scholar bit (§4.11)
+5da617  je   ..                               ; not a scholar: keep it
+5da619  cmp  cur_anim, 0x19
+5da624  cmovge local_20, 0                    ; a slot 25+ IS CHAR_DEFAULT
+5da62b  edx = UnitAnimCat[param_1]            ; the REQUEST's category
+5da632  test edi, edi                         ; edi is param_2, from 5da329
+5da63a  jne  ..                               ; a forced call keeps it
+5da643  cmp  param_1, 0x19
+5da646  cmovge edx, 0                         ; so does the request
+5da649  [ebp+0xc] = edx
+5da64c  cmp  local_20, edx                    ; the same-category early return
+5da709  test edx, edx                         ; and the idle arm is entered on edx
+```
+
+`edi` is **`param_2`**, loaded at the prologue's `0x5da329`, and not `param_3`:
+the same register gates the same-category early return, which is `!force` in
+this crate. So the *request's* category is remapped on every unforced call —
+which every one of `Guy::inc_time`'s wrap calls is, since they pass
+`set_anim(slot, 0, 1)`.
+
+**Two consequences, and each was a map's word.**
+
+- **A wrap of a teach slot is an idle request.** `Guy::inc_time`'s looping
+  arm calls `set_anim(cur_anim, 0, 1)`; the remap makes `edx` zero, and
+  `0x5da709` then enters the `CHAR_DEFAULT` arm — which **draws** at
+  `+0x97a` and rolls a fresh variant. Nothing about the looping flag is
+  involved: `loopings[Scholar Teach1]` really is 1. The `<LOOPING>` section
+  says so, and `AnimMgr::force_load@0053ade0`'s last-key rule (§3.3) is the
+  independent witness — slot 27 is 103 frames under a 1 and 102 under a 0,
+  and `1/44`'s `GUY` block on run97's block 8273 reads `end_time 103`.
+- **The variant bands apply to it**, because `local_20` is `CHAR_DEFAULT`
+  too and `set_anim:281`'s gate is `local_20 == CHAR_DEFAULT && param_3 != 0`.
+  A crate reading the raw category 25 discards the roll and lands on
+  `0 + 0x19` every time.
+
+**What made it visible was a value diff, not the reading.** run97 is Great
+Lakes' first value window — `[8029, 9348]` in sim-frames, 1,320 blocks with
+`GUYS` detail — and `1/44`'s slot across it goes
+
+```
+27 → 25 → 25 → 28 → 27 → 25 → 25 → 25 → 27 → 25 → 25 … 25 → 26 → 26
+```
+
+at 8272, 8374, 8404, 8434, 8539, 8642, 8672, 8702, 8732, 8835, … , 9165,
+9265. A `set_anim(same, 0, 1)` restart cannot change a slot at all, so the
+restart had to be producing a roll. The wrap cadence is the slot's own
+length — 30, 100, 103, 105 frames for `Scholar Teach1..4` — which is the
+arithmetic §4.11 used at 8374 and now holds twenty-two times over.
+
+**What it moved.** Great Lakes **8404 → 8582** and East Indies **8495 →
+9711**; 8404 and 8495 are each map's seated scholar's *first* wrap
+(8374 + 30 and 8466 + 30 − 1). This is the second item running whose one
+change moved both maps, and again neither map's brief named the other.
+
+**The value diff.** `run97_s_window_clocks_are_the_original_s` compares
+**127,324** clock fields below the word — the first frame-by-frame reading
+of run97 by anything — and `run98_s_window_clocks_are_the_original_s`
+**126,508**, its whole window now below East Indies' word. Both hold every
+`cur_anim`, `cur_time`, `end_time` and `last_time` of every player figure.
+
+**What this does not establish.**
+
+- **The remap's upper bound.** `cmovge` fires for every slot from `0x19` to
+  37, so a scholar asked for `CHAR_BUILD` or `CHAR_SOW` on an unforced call
+  would idle instead. Nothing asks a scholar for either, and no capture
+  could refuse it.
+- **A *forced* request for a teach slot.** `0x5da63a` leaves the request's
+  category alone when `param_2 != 0`; `local_20` is still remapped, so such
+  a call would take the non-idle arms with an idle `local_20`. No call site
+  in the traced games passes one.
+- **Whether the bit survives a type change** — §4.11's third seam, unchanged:
+  this crate reads the unit's current `Worker`, the original the type the
+  figure was born with.
+- **The walk-slot residue this now uncovers.** run97's 127,324 fields part
+  on **4,615** of them, all from block 8443 on, all on player 1's army, and
+  every `cur_anim` among them is one of `SLOG`/`WALK`/`JOG` disagreeing with
+  another — §4.3's speed test, which costs no draw because the three share a
+  category. It is counted and floored by the test rather than listed, and it
+  is the successor item: the falsifier is run97 itself, block 8443, `1/27`.
 
 ## 6. What the sim does with it
 

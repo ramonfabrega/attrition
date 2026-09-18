@@ -4699,6 +4699,148 @@ mod tests {
         assert!(wrong.is_empty(), "run94's clocks parted: {wrong:?}");
     }
 
+    /// **run97's animation clocks, frame for frame** — Great Lakes'
+    /// `[8030, 9349]`, 1,320 consecutive frames of `GUYS` detail across
+    /// the map's word (item 346).
+    ///
+    /// The first test to read run97 at all. run94 stops at 8043 and the
+    /// word was 8404, so between them lay 361 frames in which no Great
+    /// Lakes clock had ever been compared — and 8404 was a wrap.
+    #[test]
+    fn run97_s_window_clocks_are_the_original_s() {
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(trace), Some(r97)) = (
+            dump("gamelog-run53-greatlakes-24k-trace.txt"),
+            trace("rontrace-run53.log"),
+            dump("gamelog-run97-greatlakes-valuewindow.txt"),
+        ) else {
+            eprintln!("skipping: no run53/run97 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let texts = sibling_texts();
+        let text = crate::capture::read(&path);
+        let log = Log::parse(&text);
+        let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
+        let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+        let refs: Vec<&Initial> = inits.iter().collect();
+        let mut init = log.initial().unwrap();
+        borrow_from_siblings(&mut init, &refs);
+        borrow_pasture(&mut init, &trace);
+
+        let theirs = {
+            let text97 = crate::capture::read(&r97);
+            Log::parse(&text97)
+                .initial()
+                .expect("run97 carries a start block")
+                .frame_guys
+        };
+        let window: Vec<i64> = theirs.iter().map(|(n, _)| *n).collect();
+        assert!(
+            window.first() == Some(&8_029)
+                && window.last() == Some(&9_348)
+                && window.len() >= 1_320,
+            "run97's clock window is not [8029, 9348] in sim-frames: {:?}..{:?} ({})",
+            window.first(),
+            window.last(),
+            window.len()
+        );
+        let last = *window.last().unwrap();
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        built.frame_guys.clear();
+        let mut compared = 0usize;
+        let mut above = 0usize;
+        let mut unmatched = 0usize;
+        let mut walk = 0usize;
+        let mut wrong: Vec<String> = Vec::new();
+        for f in 0..=last {
+            built.tick();
+            let Some((_, units)) = theirs.iter().find(|(n, _)| *n == f) else {
+                continue;
+            };
+            for state in units {
+                if !(0..8).contains(&state.who) {
+                    continue;
+                }
+                let Some(u) = (0..built.sim.units.len()).find(|&i| {
+                    let x = &built.sim.units[i];
+                    x.alive() && i64::from(x.owner) == state.who && i64::from(x.index) == state.o
+                }) else {
+                    unmatched += 1;
+                    continue;
+                };
+                for (n, g) in state.guys.iter().enumerate() {
+                    if !g.has_clock() {
+                        continue;
+                    }
+                    let Some(ours) = built.sim.units[u].guys.get(n) else {
+                        continue;
+                    };
+                    // The known seam, and the only one left below the
+                    // word: a guy on the **walk category** whose slot
+                    // this crate resolves to a different one of `SLOG` /
+                    // `WALK` / `JOG` (`docs/ANIM.md` §4.3's speed test).
+                    // Three slots of one category cost no draw, which is
+                    // why the stream runs 139 frames past the first of
+                    // them. Counted and floored rather than listed; a
+                    // disagreement anywhere else is a failure.
+                    let walking = i64::from(sim::anim::category(ours.anim)) == 8
+                        || g.cur_anim.map(|a| sim::anim::category(a as i8)) == Some(8);
+                    let rows: [(&str, i64, Option<i64>); 4] = [
+                        ("cur_anim", i64::from(ours.anim), g.cur_anim),
+                        ("cur_time", i64::from(ours.cur_time), g.cur_time),
+                        ("end_time", i64::from(ours.end_time), g.end_time),
+                        ("last_time", i64::from(ours.last_time), g.last_time),
+                    ];
+                    for (name, o, t) in rows {
+                        let Some(t) = t else { continue };
+                        if f >= LONG_WORD_GREAT_LAKES {
+                            above += 1;
+                            continue;
+                        }
+                        compared += 1;
+                        if o == t {
+                            continue;
+                        }
+                        if walking {
+                            walk += 1;
+                            continue;
+                        }
+                        if wrong.len() < 20 {
+                            wrong.push(format!(
+                                "frame {f}: {}/{} guy {n} {name} ours {o} theirs {t}",
+                                state.who, state.o
+                            ));
+                        }
+                    }
+                }
+            }
+        }
+        eprintln!(
+            "run97 clocks: {compared} fields below the word, {walk} of them the \
+             walk-slot seam, {above} above (printed, not pinned), {unmatched} \
+             unmatched"
+        );
+        for w in &wrong {
+            eprintln!("  {w}");
+        }
+        assert!(
+            compared >= 120_000,
+            "run97's own clock rows are missing — the wrong file: {compared} below"
+        );
+        assert!(
+            wrong.is_empty(),
+            "run97's clocks parted outside the walk-slot seam: {wrong:?}"
+        );
+        // 4,615 fields over 139 frames, all on player 1's army and all
+        // downstream of one `walk_variant` choice. A floor, not a target:
+        // it may only fall.
+        assert!(
+            walk <= 4_615,
+            "run97's walk-slot residue grew: {walk} fields, the floor is 4,615"
+        );
+    }
+
     /// **run98's animation clocks, and the seated scholar's own** — East
     /// Indies `[7879, 8788]`, 910 frames of `GUYS` detail across the map's
     /// word at 8495 (item 340).
@@ -4840,8 +4982,13 @@ mod tests {
         for w in &wrong {
             eprintln!("  {w}");
         }
+        // **The whole window is below the word since item 346** — East
+        // Indies' 8495 was the seated scholar's first wrap and the fix
+        // carried the word to 9711, past 8788. So `above` is zero by
+        // construction now, and the floor is the one that matters: every
+        // one of run98's 126,508 clock fields is a checked prediction.
         assert!(
-            compared >= 80_000 && above >= 40_000,
+            compared >= 126_000,
             "run98's own clock rows are missing — the wrong file: \
              {compared} below, {above} above"
         );
