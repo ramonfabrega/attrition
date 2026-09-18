@@ -557,7 +557,7 @@ fn indexed_siblings_preserve_every_initial_field_except_audit_bodies() {
 /// serve and stood in `do_move`'s block for the rest of the capture. With
 /// that one call under the pop the wiring is free on Great Lakes and this
 /// word runs to **8193** (`docs/PATHFINDER.md` §18.5).
-pub(crate) const LONG_WORD_EAST_INDIES: i64 = 8_193;
+pub(crate) const LONG_WORD_EAST_INDIES: i64 = 8_466;
 
 /// Great Lakes' word on the **long** capture (run53), the second of
 /// `docs/DECISIONS.md` entry 29's counters — and, since run61 put the
