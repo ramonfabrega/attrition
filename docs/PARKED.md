@@ -210,6 +210,23 @@ call in this crate at all**, which is the shape 304 turned out to be, one
 level up. Parked because it names no score; it comes back the day a
 window contains one of them.
 
+(325) **`MAKE[*].city` is ours + 1 on every offer** — this crate's city
+array puts the human's at index 0 and the AI's at 1 and 2 where the dump
+reads 0 and 1. No offer in run19's window is chosen by the index, so
+nothing scores it; the falsifier is an offer whose choice depends on the
+city. Item 323, AI §38.
+
+(326) **Three tech `val`s part from before run19's window** — Empire
+2,100,000 against 1,800,000, Mercenaries 165,000 against 216,000,
+Mathematics 82,500 against 63,000, all `research_techs`' arithmetic. A
+value diff on disk, no capture needed; parked because the window that
+prints them is not a scoring one. Item 323.
+
+(327) **The Merchant is still not offered at slot 3** (`t 61`, `val
+869,565`) — `civilian_value`'s merchant arm reads `known_rares`, which is
+still a summed-region seam. Item 323, and a sibling of 291's unlinked
+caravans.
+
 ## Parked from the lab, 2026-09-17
 
 (309) **`find_upath`'s pre-walk give-up exit targets the wrong label** —

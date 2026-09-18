@@ -35,13 +35,13 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
   grep the disk first. One item open, twenty-one parked.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w8193 of 24,000 · GreatLakes w8182 of 24,000
-Endpoint 24001: EastIndies 66 off, 16 unlinked · GreatLakes 56 off, 24 unlinked
+Long captures: EastIndies w8193 of 24,000 · GreatLakes w8186 of 24,000
+Endpoint 24001: EastIndies 73 off, 7 unlinked · GreatLakes 66 off, 17 unlinked
 
-**Opener: 323 — and it needs a capture, the first item in a while that
-does: nothing on disk reaches 8186. Widen the whole record there before
-naming a mechanism; the frame is six draws against fifty-four, which is
-not one unit going wrong.**
+**Opener: 324 — combat at 8186, no capture needed, run19 covers it.
+And grep the *source's citations* before booking a capture: 323's frame
+was on disk since 08-25 and the log dir did not say so — `ai_make.rs`'s
+own docstring did.**
 
 ## The queue
 
@@ -51,13 +51,14 @@ unless a better order is obvious, and say so. Numbers are stable; the
 backlog is `docs/PARKED.md`, and an item comes back from it only when a
 score names it.
 
-323. **Great Lakes parts twice: the sequence at 8182, the count at
-    8186** — 8182 is the floor and so the nearer target
-    (`Leader::make_stuff+0x63d` against `Guy::set_anim+0x97a <
-    Unit::do_idle+0x7d`); 8186 is six draws against fifty-four at index 4,
-    on an unnamed `602129`. **No dump reaches either** — run94 ends at
-    8045, run95's `DUMP_ALL` is 7999–8003 — so this needs a capture, and
-    six against fifty-four is not one unit going wrong.
+324. **Great Lakes 8186 is combat, and run19 already covers it** — 54
+    draws against 6, of which **46** are `Unit::find_attack_pos+0xea9 <
+    +0x2d < Unit::fight+0xcb4` and three `Army::find_target+0x7df <
+    Army::do_marching+0x248`. 323 named the bare `602129` as
+    `find_attack_pos+0xea9`; `trace::SITES` models the site nowhere.
+    Start from run19's leader record: `wars`, `active_wars`,
+    `active_wars_with`, `attacked_by`, `frame_attacked` all part for the
+    human in-window and are in `PARTS_ON_RUN19`. AI §38, COMBAT.
 
 ## How to maintain this file
 

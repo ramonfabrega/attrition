@@ -291,11 +291,18 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // positions closer and one building field-row closer, 15,808 frames
         // past the word; six more of the roster unlinked in exchange.
         // DECISIONS 36 asks for the number rather than a trade.
-        off: 66,
-        unlinked: 16,
+        // Then **66 → 73, 16 → 7, 0 → 1 and 30 → 28** on 2026-09-17, item
+        // 323's scholar gate — the same row as Great Lakes' below, and
+        // **this map's word does not move on it**. The fix is in
+        // `create_units` and is not map-specific, so East Indies takes the
+        // same unlinked-down, off-up shape 16,000 frames past its own
+        // word: nine more of the roster linked, seven positions out, one
+        // building unlinked and two building field-rows closer.
+        off: 73,
+        unlinked: 7,
         extra: 0,
-        build_unlinked: 0,
-        build_diverged: 30,
+        build_unlinked: 1,
+        build_diverged: 28,
         city_unlinked: 3,
         city_diverged: 0,
     },
@@ -408,11 +415,19 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // positions closer 15,815 frames past the word, against one more
         // of the roster unlinked and one more building field-row apart.
         // DECISIONS 36 asks for the number rather than a trade.
-        off: 56,
-        unlinked: 24,
+        // Then **56 → 66, 24 → 17 and 9 → 10** on 2026-09-17, item 323 —
+        // `civilian_value`'s scholar gate reading the unhalved
+        // `get_mod_resource_cap` (AI §38), which moves this map's floor
+        // 8182 → 8186. **Unlinked down and off up on both maps**: the AI
+        // now trains units it was skipping, so they link and then differ
+        // in position rather than being absent, which is a different kind
+        // of row from the ten before it. DECISIONS 36 asks for the number
+        // rather than a trade.
+        off: 66,
+        unlinked: 17,
         extra: 0,
         build_unlinked: 0,
-        build_diverged: 9,
+        build_diverged: 10,
         city_unlinked: 3,
         city_diverged: 0,
     },
@@ -497,9 +512,13 @@ pub const LADDER: [Endpoint; 2] = [
         // its word, with `off`, `unlinked` and both building counts
         // unmoved — the only count either rung moves on a change that takes
         // East Indies' own word 7812 → 8193.
-        extra: 19,
+        // Then **19 → 23 and 7 → 8** on 2026-09-17, item 323's scholar
+        // gate: four spurious units back on this rung and one more
+        // building field-row apart, 7,872 frames past its word, on the
+        // change that takes Great Lakes' floor 8182 → 8186.
+        extra: 23,
         build_unlinked: 10,
-        build_diverged: 7,
+        build_diverged: 8,
         city_unlinked: 3,
         city_diverged: 0,
     },
@@ -524,7 +543,13 @@ pub const LADDER: [Endpoint; 2] = [
         // one count the other way on the same change, and this rung only
         // surfaced once that one was re-pinned — the ladder test panics at
         // its first moved row.
-        off: 50,
+        // Then **50 → 51** on 2026-09-17 with the `extra` below, on item
+        // 323's scholar gate — one position out, 8,960 frames past this
+        // rung's word. It surfaced only after the C rung above was
+        // re-pinned, the same way it did on item 304 this morning: the
+        // ladder test panics at its first moved row, so a change touching
+        // both rungs is reported one rung at a time.
+        off: 51,
         unlinked: 16,
         // 19 → 33 on 2026-09-07, item 261, the same reshuffle, then 33 →
         // **27** the same day on item 265's byte — this rung took the
@@ -565,7 +590,11 @@ pub const LADDER: [Endpoint; 2] = [
         // largest fall this rung's `extra` has had, on the change that
         // moves East Indies' own word 7812 → 8193. The C rung above gained
         // one on the same change.
-        extra: 12,
+        // Then **12 → 16** on 2026-09-17, item 323's scholar gate: four
+        // spurious units back, the same count the C rung above gained, on
+        // the change that takes Great Lakes' floor 8182 → 8186. The AI
+        // trains what it was skipping, so both rungs gain extras.
+        extra: 16,
         build_unlinked: 19,
         build_diverged: 0,
         city_unlinked: 4,

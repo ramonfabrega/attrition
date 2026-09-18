@@ -1033,7 +1033,23 @@ pub(crate) const LONG_WORD_EAST_INDIES: i64 = 8_193;
 /// 8031 is **+151**. The worker reported 8186 in good faith; taking it
 /// unread would have pinned a ceiling this tree does not reach, and the
 /// test said so on the first run.
-pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 8182;
+///
+/// **8182 → 8186 on item 323**, which closes the gap the paragraph above
+/// describes: the sequence now parts where the count does.
+/// `civilian_value`'s scholar gate is
+/// `bucket[knowledge] <= (resource_cap[food] / 16) * 3 / 2`
+/// (`create_units@006c40a0:1122-1127`, both operands straight out of
+/// `LeaderDataEncrypt` — `+0xc` is `bucket[3]`, `+0x30` is
+/// `resource_cap[0]`, settled by the type record), and this crate called
+/// `Sim::mod_resource_cap`, which halves on Easiest. 2000 → 1000 turned
+/// the threshold 187 into 93 against a stockpile of 159, so the AI's
+/// Scholar was never offered at sim-frame 8180, `make_stuff` bought no
+/// slot at 8182, and step 6's expiry walk never spent
+/// `Leader::make_stuff+0x63d`. `LeaderData::get_mod_resource_cap` is
+/// called exactly **twice** in that whole function, :1229 and :1232, and
+/// both are the citizen branch's — an exhaustive enumeration inside the
+/// function rather than a sample. `docs/AI.md` §38.
+pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 8186;
 
 /// The frame Great Lakes' **second** squad joins the army on — 6994, the
 /// word's own parting from 2026-09-06 to 2026-09-07 and now a landed
