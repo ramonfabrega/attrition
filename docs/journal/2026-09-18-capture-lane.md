@@ -43,9 +43,25 @@ exists**, not weakened to pass and not left asserting a window that is not
 there — the same call run96's 40-versus-41 got. They still fail loudly on a
 wrong game, a corrupted dump, or a lost overlap.
 
-## What stopped, and why
+**run97 — Great Lakes `[8030, 9350)`, and it is whole.** 616,832,145 bytes,
+**1,320 blocks 8030..9349**, no gap. Identity against run53: **0 differing,
+9,361 identical.** Overlap against run94: **15 blocks (8030..8044), 0
+differing** — byte for byte at identical detail, which is what opening at
+8030 rather than 8150 bought. And the words carry values generously:
+`to_x` on **8272 (350 records)**, **8374 (315)** and on 9349 (150), so the
+runway's far end is dumped too.
 
-**run97 — Great Lakes `[8030, 9350)` — is not taken.** Twice:
+It was taken on the third attempt, after the machine was free.
+
+**run97 completing is also the experiment that closes run98's truncation.**
+The same shape of window, the same detail, the same rate, on the same box —
+1,320 blocks without incident. So run98's death at 8788 was contention on a
+loaded machine, not a systematic fault in the window size or the tooling,
+and no paragraph is owed to it beyond the record above.
+
+## The two attempts that failed first, and why
+
+**run97 hung twice before the machine was free:**
 
 1. **00:47:08-44, hung.** No `gamelog.txt` was ever created, the trace
    froze at 352,512 bytes with **zero `FRAME` records**, and the game sat at
@@ -144,9 +160,22 @@ first is structural:
   `nodrv_CreateWindow` line belongs to winedbg's crash dialog *after* the
   fault. Settings were restored and byte-verified.
 
+## The tranche
+
+| run | map | window | bytes | blocks | identity | overlap |
+|---|---|---|---|---|---|---|
+| 96 | East Indies | `[23960, 24000)` census | 88,806,321 | 40, 23960..23999 | run54: 0 / 24,001 | — |
+| 97 | Great Lakes | `[8030, 9350)` | 616,832,145 | **1,320**, 8030..9349 | run53: 0 / 9,361 | run94: 15, 0 differing |
+| 98 | East Indies | `[7880, 9100)` | 512,298,924 | 910, 7880..**8789** | run54: 0 / 8,789 | run90: 20, 0 differing |
+
+Every word this lane was sent for now has a value diff: `to_x` on Great
+Lakes **8272** (350 records) and **8374** (315), and on East Indies **8466**
+(11) and **8495** (10).
+
 ## Storage
 
-Free disk 35.4 GiB before, 35.3 GiB with run96 landed and run98 in flight.
+Free disk 35.4 GiB before, **33.9 GiB after** — 1.2 GiB for the three
+captures, about 3 % of what was free.
 Sizes were re-derived from the siblings' own files rather than taken from
 the brief: run94 is **461 KB a block**, run90 is **645 KB a block**. A
 watchdog enforced the three hard limits rather than reporting them — free

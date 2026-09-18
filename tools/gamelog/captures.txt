@@ -2961,6 +2961,15 @@ settle_min: 14000000
 # ~37 minutes. 200 polls is 66 minutes — inside this lane's 90-minute per-run
 # cap, and not a 900.
 poll_max: 200
+# TAKEN 2026-09-18, **whole and on the third attempt** — the first two lost
+# the lobby clicks to a foreground application (see the journal). 616,832,145
+# bytes, **1,320 blocks 8030..9349**, no gap; rngcmp against run53 0 differing
+# and 9,361 identical; the run94 overlap 15 blocks byte for byte; and `to_x` on
+# **8272 (350 records)**, **8374 (315)** and 9349 (150). About 27 minutes.
+# **This run is also what closes run98's truncation**: the same detail and the
+# same rate on the same box, 1,320 blocks without incident, so run98's death at
+# 8788 was contention on a loaded machine rather than the window being too wide.
+#
 # Same game: the trace word for word against run53, this map's own 24k run —
 # run94's line, and the identity oracle every recent Great Lakes capture uses.
 check: python3 tools/gamelog/rngcmp.py rontrace-run53.log rontrace-run97.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=9000)}'
