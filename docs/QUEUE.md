@@ -15,13 +15,13 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 *2026-09-17, an Opus commander loop. **East Indies +381, Great Lakes
 +352.** Seven landings, four word-moving. Next: 322.*
 
-- **Great Lakes 8186**, **East Indies 8193**: +381 (304's suspend), +251
-  (314's `get_loc` seam), +155 (322's `check_ever_seen`), +100 (317's
-  `do_marching` arm), +1 (319); 312, 308 and 320 named causes and reach.
+- **Great Lakes 8182**, **East Indies 8193**: +381 (304), +251 (314),
+  +151 (322), +100 (317), +1 (319); 312, 308 and 320 named causes and
+  reach. 322's count parts at 8186 and its sequence at 8182: floors take
+  the lower, and a worker's reported figure is read before it is pinned.
 - **An elimination is a claim and can be wrong.** 320 ruled out every
-  named `seen2` writer; 322 found one by parsing `BUILDDATA`'s own
-  `ever_seen`. Its "only caller" was 2 of 10 vtable callers and its
-  roster count was a BEGIN-line count. Re-derive a negative.
+  named `seen2` writer; 322 found one in `BUILDDATA`'s own `ever_seen`.
+  Its "only caller" was 2 of 10; its roster a BEGIN-line count.
 - **Seven items, six named mechanisms wrong**, each overturned by
   measurement — 304's formation was never early, 314's waypoint is the
   `get_loc` seam (the listing settled it), 320's forcing was validity and
@@ -35,7 +35,7 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
   grep the disk first. One item open, twenty-one parked.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w8193 of 24,000 · GreatLakes w8186 of 24,000
+Long captures: EastIndies w8193 of 24,000 · GreatLakes w8182 of 24,000
 Endpoint 24001: EastIndies 66 off, 16 unlinked · GreatLakes 56 off, 24 unlinked
 
 **Opener: 323 — and it needs a capture, the first item in a while that
@@ -51,14 +51,13 @@ unless a better order is obvious, and say so. Numbers are stable; the
 backlog is `docs/PARKED.md`, and an item comes back from it only when a
 score names it.
 
-323. **Great Lakes 8186 is six draws against fifty-four, parting at
-    index 4** — the original spends an unnamed `602129` there, and the
-    sequence's own 8182 is `Leader::make_stuff+0x63d`. **No dump on disk
-    carries 8186's positions**: run94's per-frame window is [7754, 8045)
-    and run95's `DUMP_ALL` is 7999–8003, so the value diff under the new
-    word needs a capture. Widen the whole record on 8186 and its
-    neighbours before naming anything; six against fifty-four is not a
-    one-unit disagreement.
+323. **Great Lakes parts twice: the sequence at 8182, the count at
+    8186** — 8182 is the floor and so the nearer target
+    (`Leader::make_stuff+0x63d` against `Guy::set_anim+0x97a <
+    Unit::do_idle+0x7d`); 8186 is six draws against fifty-four at index 4,
+    on an unnamed `602129`. **No dump reaches either** — run94 ends at
+    8045, run95's `DUMP_ALL` is 7999–8003 — so this needs a capture, and
+    six against fifty-four is not one unit going wrong.
 
 ## How to maintain this file
 

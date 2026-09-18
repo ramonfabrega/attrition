@@ -1021,7 +1021,19 @@ pub(crate) const LONG_WORD_EAST_INDIES: i64 = 8_193;
 /// buildings read 3 — the capital `0/2000` at half-cell (8,80) and
 /// `0/2001` at (11,74) — and those are the centres of the two patches
 /// item 320 could not account for. `VISION.md` §6.1.
-pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 8186;
+///
+/// **The figure is 8182 and not 8186**, and the difference is this
+/// constant's own contract: `run53_…_put_the_ceiling_where_run33_did`
+/// asserts it as a floor on the **word and the sequence both**, and 322's
+/// landing parts them — the draw *count* first differs at 8186 (ours 6
+/// against 54, at index 4 on an unnamed `602129`) while the draw
+/// *sequence* first differs at 8182 (`Guy::set_anim+0x97a <
+/// Unit::do_idle+0x7d` against `Leader::make_stuff+0x63d`). A floor is
+/// the lower of the two or it is not a floor, so the gain over item 319's
+/// 8031 is **+151**. The worker reported 8186 in good faith; taking it
+/// unread would have pinned a ceiling this tree does not reach, and the
+/// test said so on the first run.
+pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 8182;
 
 /// The frame Great Lakes' **second** squad joins the army on — 6994, the
 /// word's own parting from 2026-09-06 to 2026-09-07 and now a landed
