@@ -13,7 +13,7 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 ## Where things stand
 
 *2026-09-17 into 09-18, an Opus commander loop: eighteen landings, twelve
-word-moving. **GL +703, EI +683.** Next: 344. A capture lane ran.*
+word-moving. **GL +703, EI +683.** Next: 344. The capture lane closed.*
 
 - **Great Lakes 8374 → 8382** (item 340), still the same scholar 338
   seated. `Guy::init_real` sets `guy_flags & 0x80` for type 0x34/0x35, and
@@ -21,10 +21,11 @@ word-moving. **GL +703, EI +683.** Next: 344. A capture lane ran.*
   `+0x19` for the head of the host's inside chain, `+0x1d` below it. Plus
   `is_peasant` is `{0x32,0x33}`, not "any worker", so the scholar was
   taking the peasant collapse. Only both together land on the word.
-- **The capture lane paid for itself inside the hour.** run98, taken at
-  01:20, was 340's value diff: East Indies `[7879, 8788]` at GUYS detail
-  across that map's own first scholar seating at 8466. **84,888 clock
-  fields** below the word, plus 66,300 from run94, zero differing.
+- **Both maps now have a value diff at their word, with runway** — the
+  lane's three captures, 1.2 GiB, all 0 differing against their long runs.
+  **run97** GL `[8030, 9349]`, 1,320 blocks no gap, **979 past the word**;
+  **run98** EI `[7880, 8789]`, truncated, successor owed; **run96** EI's
+  first late census. run98 was 340's oracle within the hour.
 - **339 bit exactly as parked, and the brief caught it.** 340's workspace
   gate stopped at the red rondata binary and never ran sim; told to run it
   separately, it got **831 passed** with `no_float`, `soak` and
