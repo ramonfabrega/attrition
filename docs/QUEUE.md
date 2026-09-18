@@ -24,15 +24,15 @@ word-moving. **East Indies +381, Great Lakes +508.** Next: 329.*
 - **An elimination is a claim, and a seam comment is a prediction.** 320
   ruled out every named `seen2` writer and 322 found one in `BUILDDATA`;
   `army.rs`'s "nothing changes" seam was 8186's whole frame.
-- **Four comparisons that could not fail** were found today: a symbol
+- **Five comparisons that could not fail** were found today — a symbol
   against a raw hex string, a binary trace grepped for a symbol name, a
-  tree id against the dump's `TypeIndex` (nine pinned rows rested on it),
-  and a site `trace::SITES` modelled nowhere. When a comparison has never
-  failed, ask whether it can.
-- **Grep the source's citations, not only the log dir.** 323's frame had
-  been on disk since 08-25 and `ai_make.rs`'s docstring was what said so.
-  Nine items named a mechanism up front and eight were wrong.
-- One item open, twenty-four parked.
+  tree id against the dump's `TypeIndex` (nine pinned rows rested on it).
+  When a comparison has never failed, ask whether it can.
+- **Grep the source's citations, not only the log dir** — 323's frame was
+  on disk since 08-25 and only `ai_make.rs`'s docstring said so.
+- One item open, twenty-four parked. **Fable backlog: six Loop items in
+  `docs/PARKED.md`** (313, 318, 321, 330, 331, 332) — the pass's, never a
+  worker's, and invisible at boot until this line (332).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w8193 of 24,000 · GreatLakes w8187 of 24,000

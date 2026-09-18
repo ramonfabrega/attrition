@@ -60,6 +60,97 @@ index — extending that check to the **dead list** is the guard shape, and
 it would name every other document in this position at once. The steering
 pass's: a guard, and then whatever it finds.
 
+(330) **The loop's price is measured, and it is the best but one this
+project has recorded.** 2026-09-17, eleven landings under one commander
+(304, 312, 314, 308, 317, 319, 320, 322, 323, 324, 328), seven of them
+word-moving, +381 East Indies and +508 Great Lakes:
+
+- workers **307.55 USD**, commander **89.85**, total **≈397** (`lore usage
+  --by session --since 2026-09-17`, `lore jobs`);
+- **≈57 USD per word-moving landing** against the third pass's 152 and the
+  earlier loop's 102 — a 2.7x improvement on the figure that triggered
+  that pass;
+- **≈36 USD per landing** and **≈0.45 per frame**, against 1.61 and 0.92.
+
+The human-driven baseline stays cheaper per landing — 21, and 42 per
+word-moving landing — so **the loop costs about 1.4x a person doing it by
+hand, and buys the person out of the room.** That is the trade, and it is
+now a number rather than a belief. Ramon's own reading (a bare `/clear`
+and `continue` is cheaper, having no delegation, no duplicated context and
+no cold cache reads) is confirmed by these figures and is not an argument
+against the loop; both flows belong in the repertoire, chosen by whether
+the day is time-bound or token-bound. **The pass owns which, and when.**
+
+Width is the open half. **Eight of the twelve items were strict
+successors** — each brief the previous one's product, 8002 → 8031 → 8182
+→ 8186 → 8187 — so no second lane could work the headline chain. A parked
+value-diff row (305 needs no capture and no chain) could have run
+alongside and did not, because the third pass's rule says only what names
+a score may book. **That rule was made when the headline slot was empty**,
+against a wave that ran residue rows *instead of* the word's frame. It has
+never been tested with the headline attended and a lane idle, which is a
+different case. At 57 USD a word-moving landing the marginal lane is cheap;
+whether it is *worth* it is the pass's to decide, with `lore spawns` for
+the boot cost it adds.
+
+(331) **A loop that is working never triggers its own review, and the
+commander broke its own observability without noticing.** The charter
+fires a steering pass every twenty items, or sooner when the headline has
+not moved for two sessions. Neither fired: twelve landings, the headline
+moving on seven. The session ran about seven hours with the user away and
+could neither end itself nor change its own direction — both the pass's by
+charter, and the trigger is tied to *failure*. Ramon proposed the clear;
+nothing in the rules would have. Worth deciding against evidence: a second
+trigger on elapsed landings, context consumed, or wall clock, and whether
+a commander may call its own clear under the condition the queue already
+states for a free one.
+
+**There is no self-clear rule at all, and that is the answer to "have we
+hit the trigger".** We have not hit it because it does not exist. The
+commander has no rule for ending its own session; both clears on
+2026-09-17 were Ramon's, four hours apart, and in between the loop would
+have run until the context ran out or the queue emptied. The queue states
+the condition for a *free* clear — every branch merged, gated, pushed and
+reaped, nothing in flight, the handoff current with the headline
+measured — but states it as a description of when a clear is cheap, never
+as an instruction to take one. **The pass decides whether that condition
+becomes a trigger**, and on what: elapsed landings, context consumed,
+wall clock, or a seam in the work (today's natural one was the map
+crossover, where the successor chain goes cold and the next brief stops
+being free). Note the interaction with (330): a commander that self-clears
+mid-chain pays to rebuild the context that made its briefs cheap.
+
+**And the observability defect is concrete.** `lore jobs` draws the
+parent edge from the `ccc spawn --json` answer *as it appears in the
+parent's transcript*. The first four spawns piped that through `tail -20`
+and carry `parent: attrition`; from item 317 the commander piped it
+through `grep -E '"ref"|"branch"'` to shorten its own scrollback, and
+every spawn since reads `parent: null` — seven landings of fleet lineage
+destroyed to save four lines, unnoticed until the numbers above were
+pulled. The tool was never missing the feature. **Rule: never filter
+`ccc spawn --json`'s output**; the id lore needs is not the id the
+commander reads. A guard could check it — a spawn row with a null parent
+whose well is a `loop-*` worktree is always this bug.
+
+(332) **The steering pass's own backlog is invisible at boot to the
+steering pass.** Loop items live here, in `docs/PARKED.md`'s Loop
+section, and `CLAUDE.md` says they are the pass's and never a worker's.
+But a Fable session boots exactly as a commander does — it reads
+`docs/QUEUE.md`, whose opener names the *commander's* next item — and
+this file is explicitly not read at boot ("opened when a wave is
+composed"). So the session that owns these items is the one session with
+no path to them. Five are waiting as of 2026-09-17 (313, 318, 321, 330,
+331) and nothing at boot says so.
+
+The minimal fix is in place and is a pointer, not a rule change: the
+queue's handoff now carries a one-line count of the Loop backlog, so a
+pass sees it in the same breath as the score. **What the pass owns is
+whether that is enough** — or whether steering wants its own queue with
+its own opener and its own guard, the way the worker queue has, and
+whether this file should then split. Ramon raised it while asking how to
+tag a question for Fable, which is itself the evidence: the flow had no
+answer to "where does this go so the right session finds it".
+
 (313) **The landing chain wants one verb.** Merge, gate, push and reap are
 one chain by rule since 09-17; ccc has `merge`, `update` and `clear`, and
 the reap is a separate command a commander typed after the chain twice and
