@@ -2799,6 +2799,70 @@ entries) and the attack order's `UNITORDER flags 20` = `ACTION | 0x10`.
 Without the re-entry this crate planned nothing until 8187 and stepped on
 8188, a frame behind on every chase in the game.
 
+### 7.11 `fight`'s entry puts the unit on its cell centre (item 336, 2026-09-17)
+
+`Unit::fight@005fd4d0`'s **first statement**, `LAB_005fd648`, before the
+target check, the one-in-five re-search, the range test and §7.10's chase:
+
+```
+LAB_005fd648:
+  set_new_location(this, div_3_table[x >> 4] * 0x30 + 0x18,
+                         div_3_table[y >> 4] * 0x30 + 0x18, 1, 0)
+```
+
+`x >> 4` then `div_3_table` is `x / 48` for a non-negative coordinate, so both
+axes become `(v / 48) * 48 + 24` — the **48-unit cell centre**, the same point
+`resolve_unit_collision` step 6 snaps to (`docs/COLLISION.md` §6). The fourth
+argument is 1, so the figures are carried with it.
+
+**The gate**, reading the entry block whole:
+
+| `recharging` | reached | what happens |
+|---|---|---|
+| `0` | always | snap, then the function continues |
+| non-zero, `bVar7` set | always | snap, then the function continues |
+| non-zero, type `unit_flags & 0x400` (cavalry archer) | always | snap, then continues |
+| non-zero, neither | never | the animation housekeeping arm, then `return 0` |
+
+`bVar7` is `type +0x2b8 & 1` **and** (the target is invalid **or** the action
+order carries `0x10`, §7.10's re-entry latch). Every one of the four call
+sites — `do_attack@005f1b80` twice, `do_group_attack@005e75a0` twice — passes
+`param_5 = 0`, which is the argument the whole block is conditioned on, so the
+snap is live on every ordinary attack.
+
+**The value diff.** run19's blocks 8186 and 8187 are the two sides of the one
+frame `Army::find_target`'s probe hands six units a mandatory attack order
+(§7.10). Three of the six were standing on their cell centre already and do
+not move; the three that were **walking** cross onto the grid in that frame:
+
+| unit | block 8186 | block 8187 | `(v / 48) * 48 + 24` |
+|---|---|---|---|
+| `1/40` | (39133, 21131) | (39144, 21144) | (39144, 21144) |
+| `1/41` | (36915, 23248) | (36936, 23256) | (36936, 23256) |
+| `1/42` | (36883, 23073) | (36888, 23064) | (36888, 23064) |
+
+Six coordinates, six exact. None of the three is a step: `1/42` had been
+walking at 26 units a frame on a heading of `-1599012864`, and its move here is
+10 units **back** along it, with `angle` unchanged.
+
+**Why it was worth fifteen frames of the long word.** Without the snap this
+crate left all three where they stood and then walked the original's own
+per-frame velocity from a point offset by a constant — `1/42` by exactly
+`(−5, +9)` — for the rest of the 24,000-frame capture. The draw stream saw
+nothing for fifteen frames and then parted on **one** blocked stand
+(`Guy::set_anim+0x97a < Unit::move_step+0x823`) that this crate spent on 8201
+and the original on 8202. Great Lakes' long word 8201 → 8272, and run19's last
+block, 8201, now agrees on all three walkers to the unit.
+
+**What this does not establish.** The two widening arms of the gate are read,
+not diffed: nothing on disk has a **recharging** unit enter `fight`, so neither
+`bVar7` nor the cavalry-archer arm has been observed acting, and `crates/sim`
+models the `recharging == 0` row alone — a recharging cavalry archer does not
+snap here where the original's would. Nor is it established what the snap is
+*for*: the 48-grid searches downstream (§7.10's chase, `find_upath`) all start
+from a cell, which is the obvious reading, but no run has been made to fail by
+starting one off-centre.
+
 ### 7.3 `ATTACK_GROUND` — `do_attack_ground@005f1410`
 
 `can_attack_ground` else kill; a cell at peace with me and `attack_unit == 0`

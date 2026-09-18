@@ -446,8 +446,16 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // does not move on it; its endpoint takes five positions out and
         // two spurious units off, 15,800 frames past the word.
         // DECISIONS 36: the number, not a trade.
-        off: 69,
-        unlinked: 13,
+        // Then **69 → 64 and 13 → 17** on 2026-09-17, item 336 — the
+        // cell-centre snap at `Unit::fight`'s entry (`docs/ORDERS.md`
+        // §7.11), which takes this map's word **8201 → 8272**. Five
+        // positions closer 15,729 frames past the word, against four more
+        // of the roster unlinked; the building and city rows do not move.
+        // East Indies' own endpoint is unchanged on the same commit, which
+        // is what says this is a Great Lakes cast rather than a shared
+        // reshuffle. DECISIONS 36 asks for the number rather than a trade.
+        off: 64,
+        unlinked: 17,
         extra: 0,
         build_unlinked: 0,
         build_diverged: 10,

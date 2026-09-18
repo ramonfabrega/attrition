@@ -5186,6 +5186,17 @@ impl Sim {
         if state.stance == combat::Stance::HoldFire && !state.mandatory {
             return;
         }
+        // **The cell-centre snap at `fight`'s own entry** (§7.11).
+        // `Unit::fight@005fd4d0`, `LAB_005fd648`:
+        // `set_new_location(this, div_3_table[x >> 4] * 0x30 + 0x18, …, 1,
+        // 0)` — the unit is put on its 48-unit cell centre before the
+        // function does anything else. The arm is skipped only by a
+        // recharging unit that is not a cavalry archer, which is the
+        // branch the reload gate below models.
+        if state.recharging == 0 {
+            let snap = crate::collide::ucell_centre(crate::collide::ucell(self.units[u].pos));
+            self.set_new_location(u, snap, true);
+        }
         // The reload gate: a recharging unit returns at once unless this is
         // the first frame of a fresh order, which turns and then returns.
         if state.recharging != 0 {
