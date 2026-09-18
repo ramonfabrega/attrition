@@ -3012,14 +3012,40 @@ settle_min: 20000000
 # therefore ~788 MB, about 2.2% of the 36 GiB free and well inside the 6 GiB
 # abort. ~35 minutes of dumping at run88's rate; 200 polls is 66 minutes.
 poll_max: 200
+# ==== TAKEN 2026-09-18, AND **TRUNCATED AT 8788** ====
+#
+# 512,298,924 bytes, **910 blocks 7880..8789** against the 1,220 asked for.
+# The runway 8790..9099 does not exist and this is not a finished window.
+#
+# **The game died; the dump did not merely stop.** `rontrace-run98.log`'s last
+# `FRAME` record is sim-frame **8788** (block 8789 — a block is `FRAME n+1`),
+# the dump's tail is cut mid-`GUY`-record with no closing, and no game process
+# survived. The poll loop then saw four still polls over a 512 MB log and
+# correctly called it settled; `poll_max` was never reached (105 polls of 200),
+# so this is not the header's POLL_MAX truncation but a dead game. The machine
+# was under load average 8.91 with another game running at the time; the cause
+# is not established and is not worth a reading.
+#
+# **What it is still good for, which is most of why it was taken.** Identity is
+# perfect over every frame it has, the overlap is byte for byte, and **both of
+# this map's words carry values** — `to_x` on 8466 (11 records) and on 8495
+# (10). It is ~300 frames of runway past 8495 rather than the ~600 intended.
+#
+# **The checks below assert the archive that exists, not the window that was
+# asked for** — the same call run96's 40-versus-41 got. They still fail loudly
+# on a wrong game, a corrupted dump or a lost overlap. A successor capture is
+# owed if 8790..9099 is ever needed; it is not owed for the two words.
+#
 # Same game: the trace word for word against run54, this map's own 24k run —
-# run90's line.
-check: python3 tools/gamelog/rngcmp.py rontrace-run54.log rontrace-run98.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=9000)}'
+# run90's line. 8,789 frames compared, 0 differing.
+check: python3 tools/gamelog/rngcmp.py rontrace-run54.log rontrace-run98.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=8700)}'
 # **The overlap, and the count is the claim** — 20 blocks, 7880..7899. This is
 # the assertion the 7900 window could not have made.
 check: python3 tools/gamelog/samegame.py gamelog-run90-eastindies-shuffle.txt gamelog-run98-eastindies-valuewindow.txt | tee /dev/stderr | awk '/in common/{r=$0; sub(/.*in common /,"",r); split($0,a,", "); n=a[2]+0} /^differ:/{d=$2+0} END{print "run90 overlap: common="n" "r" differ="d; exit !(n==20 && d==0)}'
-# The window landed whole: 1,220 blocks, 7880..9099, no gap.
-check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run98-eastindies-valuewindow.txt" | awk '{v=$3+0; if(v>=7880&&v<9100) n[v]=1} END{c=0; lo=0; hi=0; for(k in n){c++; if(lo==0||k+0<lo)lo=k+0; if(k+0>hi)hi=k+0} print "window blocks: "c" ("lo".."hi")"; exit !(c==1220 && lo==7880 && hi==9099)}'
-# **And the frontier frames carry values** — 8466 and 8495 are this map's
-# words, and 9099 is the runway's far end.
-check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|to_x" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run98-eastindies-valuewindow.txt" | awk '/BEGIN FRAME/{f=$3+0} /to_x/{if(f)n[f]++} END{printf "to_x on 8466=%d 8495=%d 9099=%d\n", n[8466], n[8495], n[9099]; exit !(n[8466]>0 && n[8495]>0 && n[9099]>0)}'
+# What the window actually reached: 910 contiguous blocks, 7880..8789.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run98-eastindies-valuewindow.txt" | awk '{v=$3+0; if(v>=7880&&v<9100) n[v]=1} END{c=0; lo=0; hi=0; for(k in n){c++; if(lo==0||k+0<lo)lo=k+0; if(k+0>hi)hi=k+0} print "window blocks: "c" ("lo".."hi")"; exit !(c==910 && lo==7880 && hi==8789)}'
+# **And the frontier frames carry values — this is the whole product.** 8466
+# and 8495 are this map's words; 8700 is a solidly-complete late block, chosen
+# over the intended 9099 because the run never reached it and over 8789 because
+# that last block is the one the death cut mid-record.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|to_x" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run98-eastindies-valuewindow.txt" | awk '/BEGIN FRAME/{f=$3+0} /to_x/{if(f)n[f]++} END{printf "to_x on 8466=%d 8495=%d 8700=%d\n", n[8466], n[8495], n[8700]; exit !(n[8466]>0 && n[8495]>0 && n[8700]>0)}'

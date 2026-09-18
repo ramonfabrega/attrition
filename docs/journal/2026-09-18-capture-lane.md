@@ -23,8 +23,25 @@ and East Indies had no rich end-of-game census at all (run54 is 11 MB over
 sit on the word's frame**: for a cause whose state persists, the endpoint
 dump answers it for a fiftieth of the bytes.
 
-**run98 — East Indies `[7880, 9100)`** was dumping at `BEGIN FRAME 7898`
-when this file was written.
+**run98 — East Indies `[7880, 9100)`, and it is TRUNCATED at 8788.**
+512,298,924 bytes, **910 blocks 7880..8789** against the 1,220 asked for.
+Identity against run54: **0 differing, 8,789 identical.** Overlap against
+run90: **20 blocks (7880..7899), 0 differing** — byte for byte, exactly the
+assertion the 7900 window could not have made. And **both of this map's
+words carry values**: `to_x` on 8466 (11 records) and on 8495 (10).
+
+**The game died; the dump did not merely stop.** The trace's last `FRAME`
+record is sim-frame 8788, the dump's tail is cut mid-`GUY`-record, and no
+game process survived. `poll_max` was never reached — 105 polls of 200 —
+so this is not the header's POLL_MAX truncation. The machine was at load
+average 8.91 with another game running; the cause is not established and
+was not worth a reading. The product is ~300 frames of runway past 8495
+rather than the ~600 intended, and the two words are covered.
+
+**The checks were left able to fail and retargeted at the archive that
+exists**, not weakened to pass and not left asserting a window that is not
+there — the same call run96's 40-versus-41 got. They still fail loudly on a
+wrong game, a corrupted dump, or a lost overlap.
 
 ## What stopped, and why
 
@@ -41,13 +58,18 @@ when this file was written.
    and 55,59." **Two pixels.** `tccd` shows `com.ramonfabrega.rondriver`
    being evaluated with no denial, so the grant is present.
 
-**The cause is that the screen is in use.** A League of Legends *match* has
+**The cause is contention for the screen, and nothing was broken.** A League of Legends *match* has
 been running since **00:35:33** and `LeagueofLegends` is the frontmost
 process; Discord was active at 00:55:48. Clicks that land in another window
 look exactly like failure 1, and a contended cursor looks exactly like
-failure 2. The lane stopped rather than fire more synthetic clicks into a
-machine someone is using, and rather than diagnose a human at the keyboard
-into a fact about the hardware.
+failure 2. A capture lane losing to a foreground application on a shared
+machine is the normal condition, not a defect: no tool misbehaved and no
+grant was missing. The lane stopped rather than fire more synthetic clicks
+into a machine someone was using, and rather than diagnose a human at the
+keyboard into a fact about the hardware. **run97 was taken later the same
+night, once the machine was free** — verified independently before
+restarting, not on report: the match process gone, frontmost `iTerm2`, load
+down from 8.91 to 4.88.
 
 run98 was left to finish: after its start clicks it never touches the screen
 again. **The honest framing is "costs the screen nothing and one core
