@@ -3551,10 +3551,30 @@ mod tests {
             .map(|(f, _)| *f)
             .filter(|f| *f < LONG_WORD_GREAT_LAKES)
             .collect();
+        // **Against the original's own list, not a literal.** Item 352's
+        // standing trio taught the shape: a literal here is
+        // window-length arithmetic and breaks the moment the word moves
+        // — 8680's scholar came under the word on item 354 and this
+        // assertion, not the mechanic, is what failed. The trace's own
+        // seatings below the word are the right right-hand side, and the
+        // literal stays beside it so a reader sees real frames.
+        let theirs_seatings: Vec<i64> = (0..LONG_WORD_GREAT_LAKES)
+            .filter(|f| {
+                trace
+                    .labels(*f)
+                    .iter()
+                    .any(|l| l == sim::anim::SITE_GO_INSIDE)
+            })
+            .collect();
+        assert_eq!(
+            seatings, theirs_seatings,
+            "Great Lakes' scholar seatings below the word are not the \
+             original's own"
+        );
         assert_eq!(
             seatings,
-            vec![8272],
-            "below the word Great Lakes seats exactly one scholar, on 8272"
+            vec![8272, 8680],
+            "below the word Great Lakes seats two scholars, on 8272 and 8680"
         );
         // **Great Lakes 8582, the AI's first market draw** (item 348,
         // `docs/AI.md` §40). `make_stuff` calls `use_market` first thing,
@@ -3593,10 +3613,26 @@ mod tests {
             .map(|(f, _)| *f)
             .filter(|f| *f < LONG_WORD_GREAT_LAKES)
             .collect();
+        // The original's own list below the word, for the same reason as
+        // the seatings above: 8782 and 8982 came under the word on item
+        // 354 and a literal cannot follow it.
+        let theirs_markets: Vec<i64> = (0..LONG_WORD_GREAT_LAKES)
+            .filter(|f| {
+                trace
+                    .labels(*f)
+                    .iter()
+                    .any(|l| l == sim::ai_make::SITE_MARKET_SELL)
+            })
+            .collect();
+        assert_eq!(
+            markets, theirs_markets,
+            "Great Lakes' market draws below the word are not the \
+             original's own"
+        );
         assert_eq!(
             markets,
-            vec![8582, 8585],
-            "below the word Great Lakes takes exactly two market draws"
+            vec![8582, 8585, 8782, 8982],
+            "below the word Great Lakes takes exactly four market draws"
         );
         assert!(
             first_count >= LONG_WORD_GREAT_LAKES && first_part >= LONG_WORD_GREAT_LAKES,
@@ -4352,6 +4388,160 @@ mod tests {
             ys, MUSTER_GOAL_Y,
             "the army's nine do not hold run97 block 8443's own path goals"
         );
+    }
+
+    /// The frame Great Lakes' AI sends [`PROBE_SENT`]'s six from its base
+    /// to the far south-west, and the one world path that carries all six.
+    const PROBE_PLAN_FRAME: i64 = 8186;
+
+    /// **Great Lakes 8186 plans the probe's route the original's way** —
+    /// item 354, `docs/PATHFINDER.md` §22.
+    ///
+    /// `Group::action_move_near` plans **one** `find_wpath` on the group's
+    /// leader and gives every member the same chain offset by its
+    /// formation slot (`docs/GROUPS.md` §6.7), so one wrong mode costs six
+    /// units their whole route — and does it silently, because a wrong
+    /// waypoint four hundred frames ahead spends no draw until the unit
+    /// reaches it. This crate's chain agreed with run97 block 8187's for
+    /// thirteen waypoints and then took a five-step detour that rejoined
+    /// it, and the first position to part was 393 frames later.
+    ///
+    /// What was wrong is `find_wpath`'s `army` mode: its `is_attacking`
+    /// clause calls the current order's `+0x18` virtual, and that slot is
+    /// `0041bff0` — a bare `return 0` — in every one of the seventeen
+    /// order vtables the executable ships (§22.1, read out of the PE). The
+    /// clause cannot fire, and reading it as "the unit has a combat
+    /// target" turned the mode off for precisely the unit it exists for:
+    /// an AI army walking to an `ATTACK_TO`. With the mode on, a cell
+    /// flagged `NEARBLOCK` costs an army 1024 against 32 and the two
+    /// equal-geometry routes stop tying.
+    ///
+    /// The whole stack is the assertion, every entry, because "the sixth
+    /// waypoint is right" is exactly the claim a route cannot make. The
+    /// **top** entry's `tolerance`/`flags` are compared apart: the dump
+    /// prints the current waypoint as `t0 f1` on every frame of the march
+    /// while this crate keeps the planner's `t384 f0` on it, which is a
+    /// residue of its own and not this item's (it is the same on every
+    /// block in the window, before the fix and after).
+    #[test]
+    fn great_lakes_8186_plans_the_probe_s_route_the_original_s_way() {
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(r97)) = (
+            dump("gamelog-run53-greatlakes-24k-trace.txt"),
+            dump("gamelog-run97-greatlakes-valuewindow.txt"),
+        ) else {
+            eprintln!("skipping: no run53/run97 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        // One block of a 616 MB capture, the way run93's world diff reads
+        // its own — `IndexedCapture` is what keeps this inside the gate's
+        // memory ceiling.
+        let mut ix = crate::capture::indexed::IndexedCapture::open(&r97).unwrap();
+        let at = ix
+            .frames()
+            .iter()
+            .position(|f| f.number == PROBE_PLAN_FRAME + 1)
+            .expect("run97 has no block 8187 — the wrong file");
+        let body = ix.read_frame(at).unwrap();
+        let parsed = Log::parse(&body);
+        let block = parsed
+            .frames()
+            .into_iter()
+            .find(|(n, _)| *n == PROBE_PLAN_FRAME + 1)
+            .map(|(_, b)| b)
+            .expect("run97's block 8187 did not re-parse");
+        let (theirs, _, _) = crate::gamelog::records(block, false);
+
+        let loaded = crate::load::load(&inst).unwrap();
+        let texts = sibling_texts();
+        let text = crate::capture::read(&path);
+        let log = Log::parse(&text);
+        let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
+        let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+        let refs: Vec<&Initial> = inits.iter().collect();
+        let mut init = log.initial().unwrap();
+        borrow_from_siblings(&mut init, &refs);
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        while built.sim.frame <= PROBE_PLAN_FRAME {
+            built.tick();
+        }
+        let mut checked = 0usize;
+        for &(who, o, _, _) in PROBE_SENT {
+            let them = theirs
+                .iter()
+                .find(|u| u.who == who && u.o == o)
+                .unwrap_or_else(|| panic!("run97 block 8187 has no {who}/{o}"));
+            let u = built
+                .sim
+                .units
+                .iter()
+                .position(|u| u.alive() && i64::from(u.owner) == who && i64::from(u.index) == o)
+                .unwrap_or_else(|| panic!("no live {who}/{o} at {PROBE_PLAN_FRAME}"));
+            let ours = &built.sim.units[u];
+            assert_eq!(
+                (i64::from(ours.pos.x), i64::from(ours.pos.y)),
+                (them.pos.x, them.pos.y),
+                "{who}/{o} is not standing where run97 block 8187 puts it"
+            );
+            // **The leg this frame planned, top down.** Two things below
+            // it are residues of their own, printed rather than asserted
+            // because neither belongs to the route:
+            //
+            // - **entry 0**, the raw formation slot
+            //   `Group::action_move_near` pushes under the destination
+            //   (`docs/PATHFINDER.md` §12's second item). This crate puts
+            //   `1/27`, `1/28` and `1/29` on one `y` and the original
+            //   spreads them, which is `Group::update_positions`'
+            //   rotation by the unit's angle (`docs/GROUPS.md` §6.6);
+            // - **a whole second leg** under `1/40`'s: run97 block 8187
+            //   gives it 92 entries where this crate gives 47, and the
+            //   46 extra sit *beneath* — a queued move this crate does
+            //   not hold. Its own 46 are the current leg and they agree
+            //   entry for entry, which is what the comparison below says.
+            //
+            // §22.4 names both as successors.
+            let k = ours.path.len().min(them.path.len()) - 1;
+            let ours_route: Vec<(i64, i64)> = ours.path[ours.path.len() - k..]
+                .iter()
+                .map(|p| (i64::from(p.to.x), i64::from(p.to.y)))
+                .collect();
+            let their_route: Vec<(i64, i64)> = them.path[them.path.len() - k..]
+                .iter()
+                .map(|p| p.to)
+                .collect();
+            eprintln!(
+                "  8187 {who}/{o}: {} entries ours, {} theirs; slot ours {:?} theirs {:?}",
+                ours.path.len(),
+                them.path.len(),
+                ours.path.first().map(|p| (p.to.x, p.to.y)),
+                them.path.first().map(|p| p.to)
+            );
+            assert_eq!(
+                ours_route, their_route,
+                "{who}/{o}'s world plan is not run97 block 8187's, waypoint for \
+                 waypoint"
+            );
+            // The same span's tolerances and flags, whole — except the
+            // **top** entry, which the dump prints as `t0 f1` on every
+            // frame of the march while this crate keeps the planner's
+            // `t384 f0`. That is the third residue and it is the same
+            // before this item and after.
+            let ours_rest: Vec<(i64, i64)> = ours.path[ours.path.len() - k..ours.path.len() - 1]
+                .iter()
+                .map(|p| (i64::from(p.tolerance), i64::from(p.flags)))
+                .collect();
+            let their_rest: Vec<(i64, i64)> = them.path[them.path.len() - k..them.path.len() - 1]
+                .iter()
+                .map(|p| (p.tolerance, p.flags))
+                .collect();
+            assert_eq!(
+                ours_rest, their_rest,
+                "{who}/{o}'s waypoint tolerances and flags are not run97 block \
+                 8187's"
+            );
+            checked += 1;
+        }
+        assert_eq!(checked, 6, "the probe's six");
     }
 
     /// **run54 — East Indies at thirteen times the scored length, read at
@@ -5212,9 +5402,9 @@ mod tests {
              frame over {frames_below} frames: {body_trio}"
         );
         assert!(
-            body_bad <= 601,
+            body_bad <= 6,
             "run97's point-and-goal residue grew: {body_bad} of {body_all} \
-             fields below the word, the floor is 601 — {posfirst:?}"
+             fields below the word, the floor is 6 — {posfirst:?}"
         );
     }
 
