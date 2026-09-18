@@ -37,110 +37,72 @@ sawtooth. Still wants the fixture with teeth: past the cap, dead in N
 seconds, exit 137.
 
 (335) **The commit trailer names the model the commander expected, not
-the one that ran.** This repo reads
-`git log --format=...%(trailers:key=Co-Authored-By,valueonly)` to answer
-"who wrote this tranche", and `CLAUDE.md`'s fan-out rules say to verify
-which model actually ran **from the transcript, never from the spawn
-parameter**. The trailer is sourced from exactly the thing that rule
-forbids, twice over:
+the one that ran.** This repo reads the `Co-Authored-By` trailer to answer
+"who wrote this tranche", while `CLAUDE.md`'s fan-out rules say to verify
+the model **from the transcript, never from the spawn parameter**. Both of
+the trailer's feeders are the forbidden source:
 
-- **The commander dictates it in the brief.** Eight of the twelve
-  transcript hits for the string are worker prompts reading `Commit on
-  loop-NNN with the trailer "Co-Authored-By: Claude Opus 5 …"` — loops
-  219, 227, 228, 234, 235, 236, 7448 and att-capture (`lore search
-  "Co-Authored-By"`). It is written before the worker has made one
-  request.
-- **The harness's attribution reminder is not the session's model.**
-  Measured in-session on 2026-09-17: this commander's reminder said
-  `Claude Fable 5.1` while `claude-opus-5` served every request. The
-  day's first commit went out wrong and was amended only because
-  `git log` was read by hand for an unrelated reason.
+- **The commander dictates it in the brief** — eight of twelve transcript
+  hits are worker prompts reading `Commit on loop-NNN with the trailer
+  "…Claude Opus 5…"` (loops 219, 227, 228, 234, 235, 236, 7448,
+  att-capture), written before the worker has made one request.
+- **The harness's attribution reminder is not the session's model** —
+  measured 2026-09-17, it said `Claude Fable 5.1` on a `claude-opus-5`
+  session, and the day's first commit went out wrong.
 
-**No realised wrong trailer is known in this history** — loop-329 ran
-`claude-opus-5` over 201 requests (`lore sessions --well …loop-329`) and
-its `4fb593b` says Opus 5 — so dictation has been right every time it has
-been checked. The defect is latent; it bites the first time a commander is
-wrong about what it spawned, which is the case the query exists for.
-
-Two smaller shapes on the same field, cheap in the same pass: **one model,
-two strings** — 356 commits say `Claude Opus 5 (1M context)` and 123 say
-`Claude Opus 5`, splitting one model across any rollup; and **149 of 772
-commits carry no trailer**, 46 of them merges, so a tranche landed by merge
-is unattributed. The guard shape is the repo's usual — the model is in the
-session's own transcript, so a check can compare a commit's trailer against
-what served the session that wrote it, the first-request source `lore
-spawns` already trusts. Guard, commit hook, or simply "a brief never
-dictates the trailer and the worker reads its own" is the pass's to choose.
+**No realised wrong trailer is known here**: loop-329 ran `claude-opus-5`
+over 201 requests and its `4fb593b` says Opus. Latent, and it bites the
+first time a commander is wrong about what it spawned. Two smaller shapes
+ride along: **one model, two strings** (356 commits `Claude Opus 5 (1M
+context)` against 123 `Claude Opus 5`) and **149 of 772 commits untrailered**,
+46 of them merges. A guard can compare a commit's trailer against what
+served the session that wrote it — the first-request source `lore spawns`
+already trusts. Guard, hook, or "a brief never dictates it": the pass's.
 
 (339) **A worker's gate never runs the sim suite on a word-moving item.**
-`release_gate.py` runs one `cargo test --release` for the whole workspace
-with **no `--no-fail-fast`**, so cargo stops at the first failing test
-binary. On every item that moves a word the rondata binary is red *by
-design* — `the_handoff_s_endpoint_s_pinned_counts`, and
-`the_handoff_s_scoreboard_is_the_floors` too when a floor moves — because
-the worker raises the floor and leaves the queue line to the commander. So
-exactly when a word moves, the **831-test sim suite never runs**:
-`no_float`, `soak`, and `docs_guard` included.
+`release_gate.py` runs one workspace `cargo test --release` with **no
+`--no-fail-fast`**, so cargo stops at the first failing binary. On every
+word-moving item rondata is red *by design* — the worker raises the floor
+and leaves the queue line to the commander — so the **831-test sim suite
+never runs**, `no_float`, `soak` and `docs_guard` included.
 
-It has already cost once and been hit twice in a day. Item 336 landed with
-a red `docs_guard` nobody saw — its new §7.11 had put `ORDERS.md` §7 over
-the size ceiling — and reported "299 passed / 1 failed" in good faith,
-that being the whole of what its gate reached. Item 338 hit the same wall
-and worked around it by hand, reporting "sim (831 ✓) had to be run
-separately, cargo stops at rondata and never reaches it".
+Twice in a day. Item 336 landed a red `docs_guard` nobody saw (its new
+§7.11 had put `ORDERS.md` §7 over the size ceiling) and reported "299
+passed / 1 failed" in good faith, that being all its gate reached. Item 338
+hit the same wall and ran sim by hand.
 
-The commander's own gate is unaffected and this is why it went unnoticed:
-by the time the commander gates, the queue lines are written, rondata is
-green, and the sim suite runs (831 passed on every booking this session).
-The blind spot is the *worker's* gate, which is the one that decides
-whether a branch is fit to report.
-
-The fix is one flag — `--no-fail-fast` on the release test command, with
-the runner then reading every `test result:` rather than the last. Whether
-to also make the two paperwork guards skip when the queue is behind the
-floors (318 is the same family: guards that read `docs/QUEUE.md` from disk
-race the commander's rewrite) is the pass's to decide; the two should
-probably be decided together. Until then a brief has to tell its worker to
-read the whole log, which is a rule living in prose — the shape
-`CLAUDE.md` says gets broken within the week.
+The commander's gate is unaffected, which is why it stood: by then the
+queue lines are written, rondata is green, sim runs. The blind spot is the
+*worker's* gate — the one deciding whether a branch is fit to report. The
+fix is one flag, plus a runner that reads every `test result:`. **318 is
+the same family** (guards reading `docs/QUEUE.md` from disk race the
+commander's rewrite) and the two want deciding together.
 
 (341) **The click-free lane cannot take a capture worth having, so every
 scored capture must drive the cursor.** Ramon's flag, 2026-09-18: "i
-thought we had figured out occluded/non main focus captures". We had — for
-one job, and not this one. The finding is about the tool and rests on the
-tool's own source, not on any run.
+thought we had figured out occluded/non main focus captures". We had, for
+one job and not this one. This rests on the tool's source, not on any run.
 
-`tools/explore/unattended_capture.py` needs no TCC grant and no human at
-the menu, and exposes `--end-frame`, `--seed`, `--timeout`. But the window
-and the detail live in `live_session.stage()` and are **hardwired**:
-`rise2.ini` gets `LogStartFrame 18` and `LogEndFrame 36`, and every
+`unattended_capture.py` needs no TCC grant and no human at the menu, but
+the window and detail live in `live_session.stage()` and are **hardwired**:
+`rise2.ini` gets `LogStartFrame 18` / `LogEndFrame 36`, and every
 `gamelog.ini` category is forced to `0` except `[End Frame] UNITS=3` and
-`[Misc Logging] COMMANDMANAGER=1`. That is right for the job it was built
-for — startup evidence and autostart receipts — and it cannot serve the sim
-frontier, which needs a **late window** (run96 `[23960, 24000)`, run97
-`[8030, 9350)`) and **rich categories** (run80/run96's `BUILDS=7,
-CITIES=5, GUYS=2, LEADERS=9, DEATHS=1`).
+`[Misc Logging] COMMANDMANAGER=1`. Right for startup evidence and autostart
+receipts; useless for the frontier, which needs a **late window** (run96
+`[23960, 24000)`, run97 `[8030, 9350)`) and **rich categories** (run80 and
+run96's `BUILDS=7, CITIES=5, GUYS=2, LEADERS=9, DEATHS=1`).
 
-So every capture this project scores against goes down the **clicked**
-lane: three macOS permissions, a driven cursor, and correctness that
-depends on being the frontmost window. That is a coupling, not a bug —
-it means the capture lane can only run on an unattended box. Removing it
-would make the lane safe to run whenever, which is worth more than any
-single capture on the list.
+So every scored capture goes down the **clicked** lane: three macOS
+permissions, a driven cursor, correctness contingent on being frontmost.
+That is a coupling — the lane can only run on an unattended box — not a bug.
+**The keys already exist**: `stage()` writes all of them, so the work is
+exposing them rather than pinning them, plus a caller-supplied category set.
 
-**The fix looks small and the keys already exist**: `stage()` already
-writes `LogStartFrame`, `LogEndFrame` and every `[End Frame]` key, so the
-work is exposing them through `unattended_capture.py` rather than pinning
-them, plus a caller-supplied category set.
-
-**A lesson worth keeping on its own**, separate from the above and from
-why it surfaced: a capture that loses focus mid-run fails in a shape that
-**mimics a revoked permission** — on 2026-09-18 a hang with the game alive
-at 68 % CPU and zero FRAME records, then a `perm_probe` miss two pixels
-wide, while TCC showed the driver evaluated with no denial. The
-discriminator is cheap and belongs in the runbook: **check what is
-frontmost before blaming TCC.** Contention with whoever owns the machine
-is the normal condition of a shared box, not an anomaly.
+**A separate lesson for the runbook**: losing focus mid-run fails in a shape
+that **mimics a revoked permission** — a hang with the game alive at 68 %
+CPU and zero FRAME records, then a `perm_probe` miss two pixels wide while
+TCC showed no denial. **Check what is frontmost before blaming TCC.**
+Contention with the machine's owner is the normal condition, not an anomaly.
 
 (343) **The game plays sound at whoever is near the machine**, and nothing
 turns it off. Ramon's flag the same day. The settings are three tags in
@@ -150,6 +112,33 @@ regex-substitution mechanism `unattended_capture.py`'s `set_map()` already
 uses for `<MAP_STYLE>`, already covered by `live_session`'s settings backup
 and restore. A few lines in a place the tool already edits, with the
 restore already written, and it makes an unattended run a good neighbour.
+
+(345) **The commander's own mechanics live in invisible per-user memory
+and should be in the repo.** Ramon's flag, 2026-09-18 — "i thought we had
+made it clear to use ccc rm", then "we dont like memory anyways
+(invisible) … should prolly belong in claude.md or queue or something".
+That is the item; the rest is why.
+
+**The repo names the rule and not the tool.** The queue has "Merge, gate,
+push, reap — one chain" and `DECISIONS` 34 tells a *worker* to use `ccc
+update` and forbids a brief saying `git merge`. Nothing in git says what
+the **commander's** half is. So items 334, 336 and 338 were each merged
+with a raw `git merge` and reaped as `ccc stop` + `git worktree remove` +
+`git branch -d`, leaving dead roster rows pointing at removed directories —
+which Ramon noticed and had to ask about.
+
+**The answer existed and was unreadable.** `memory/ccc-orchestrated-loop.md`
+had said since 2026-09-17 that "the whole reap is ccc's": `ccc rm <ref>`
+removes session, worktree *and* the merged branch, and `ccc merge`/`pull`
+now resolve a base held in a worktree (0.1.37). But a session is handed the
+memory **index**, not the files, and that hook still said "0.1.25 merges the
+local base" — a checkable-looking fact a day out of date.
+
+**So the fix is relocation, not repair.** Memory is invisible to everyone
+but its session, outside git, read by no guard, and its index drifts from
+its files with nothing to catch it. The commander's chain — `ccc merge`,
+gate, `ccc push`, `ccc rm` — wants one clause in `CLAUDE.md`'s fan-out
+rules or in 34 beside the worker's half. Both are the pass's to amend.
 
 (318) **A gate that overlaps a queue rewrite fails on paperwork that is
 fine.** `the_handoff_s_endpoint_is_the_pinned_counts` and
