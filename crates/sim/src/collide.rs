@@ -930,13 +930,51 @@ impl Sim {
     /// rather than where it stands, so a spot another unit has already
     /// been sent to is taken.
     ///
-    /// SEAM: the original follows the chain walk with a second pass over
+    /// ~~SEAM: the original follows the chain walk with a second pass over
     /// **my own group's** member list, which catches a member ordered next
     /// to the candidate from anywhere on the map; this crate keeps no
     /// `UnitData::group` back-pointer, and every unit in every capture so
-    /// far is ungrouped (`docs/COLLISION.md` §9).
+    /// far is ungrouped (`docs/COLLISION.md` §9).~~
+    ///
+    /// **The premise expired.** `docs/COMBAT.md` §17's probe pushes a real
+    /// group (run19's block 8187 has the six on `group 65`), and the
+    /// second pass is then the difference between a ring walk that lets
+    /// six units pile onto one spot and one that spreads them — six
+    /// members asking within one frame, each of them already a hundred
+    /// tiles from the candidate and so invisible to the 3 × 3 chain walk.
+    /// [`Sim::pushed_group`] is the pool slot this crate lacked.
+    ///
+    /// `65b4d4`-`65b58c`: the group is the asker's `+0x80`, it must belong
+    /// to the asker's own player, the asker must be **in** its member
+    /// list, and then every other member that is alive, on the map and
+    /// has a block is tested with the same unit-cell Chebyshev predicate
+    /// as the chain walk, against its `orders_x`/`orders_y`.
     pub(crate) fn find_ordered_collision(&self, u: usize, at: Pos) -> bool {
-        self.chain_hit(u, at, |s, o| ucell(s.units[o].orders_pos))
+        if self.chain_hit(u, at, |s, o| ucell(s.units[o].orders_pos)) {
+            return true;
+        }
+        let Some((who, members)) = self.pushed_group.as_ref() else {
+            return false;
+        };
+        if *who != self.units[u].owner || !members.contains(&u) {
+            return false;
+        }
+        let mine = self.coll_size(u);
+        if mine == 0 {
+            return false;
+        }
+        let c = ucell(at);
+        members.iter().any(|&o| {
+            if o == u || !self.units[o].alive() || !self.units[o].on_map {
+                return false;
+            }
+            let r = self.coll_size(o);
+            if r == 0 {
+                return false;
+            }
+            let q = ucell(self.units[o].orders_pos);
+            (c.x - q.x).abs() <= mine + r && (c.y - q.y).abs() <= mine + r
+        })
     }
 
     /// The walk both share: the nine world cells around `at`, each cell's

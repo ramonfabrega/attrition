@@ -558,10 +558,16 @@ bitmask has no owner.
 The chain arm is keyed on where the other unit *stands* while it tests
 where that unit is *going*, so a unit parked far from the candidate but
 ordered next to it is missed. That is deliberate in the original, and it is
-why `find_ordered_collision` has a second pass this crate does not model:
-if I am in a group whose `+0x49` byte is clear, every other active member
-with `inside_up < 0` and a block is tested against its ordered position
-regardless of where it stands. §9 carries it.
+why `find_ordered_collision` has a second pass: if I am in a group whose
+`+0x49` byte is clear, every other active member with `inside_up < 0` and
+a block is tested against its ordered position regardless of where it
+stands. ~~this crate does not model~~ — **landed 2026-09-17** (item 328),
+because `docs/COMBAT.md` §17's probe is the first thing in this project to
+put units in a group and then ask six of them, in one frame, where to
+stand. `Sim::pushed_group` is the pool slot, `Sim::push_group` writes it,
+and the pass is the difference between six ring walks that pile onto one
+spot and six that spread: 8186's chase goes from 51 draws to the
+original's 46 and every destination comes out to the unit.
 
 #### 5.2.1 The pair is not always the pair — `find_unit_with_radius` (2026-09-02)
 
@@ -1934,12 +1940,20 @@ run90 is the first capture to reach it.
   (`docs/ORDERS.md` §8.6). `UnitData +0x104`, the suspended pathfinder
   search the arm also tests, is still not carried and reads as zero, which
   widens it.
-- **§5.2's group arm.** `find_ordered_collision`'s second pass tests every
-  other member of my group against its ordered position, wherever it
-  stands, and this crate keeps no `UnitData::group` back-pointer to reach
-  it with. Every unit in every capture so far dumps `group -1`. *Capture:*
-  `UNITS=3` + `GROUPS=1`, a selected group ordered to build or gather at
-  one site while its members are scattered — fold into the item-23 run.
+- ~~**§5.2's group arm.** `find_ordered_collision`'s second pass tests
+  every other member of my group against its ordered position, wherever
+  it stands, and this crate keeps no `UnitData::group` back-pointer to
+  reach it with. Every unit in every capture so far dumps `group -1`.
+  *Capture:* `UNITS=3` + `GROUPS=1`, a selected group ordered to build or
+  gather at one site while its members are scattered — fold into the
+  item-23 run.~~ **Landed 2026-09-17** (item 328), and no capture was
+  needed: `docs/COMBAT.md` §17's probe pushes a real group (run19's block
+  8187 dumps `group 65` on the six), and run19's own six destinations are
+  the oracle. **The seam's premise expired without anyone editing the
+  seam** — "every unit in every capture so far dumps `group -1`" stayed
+  true-looking for a month after it stopped being a reason. Worth reading
+  as a class: a seam whose justification is "no capture reaches this yet"
+  is a claim with a shelf life, and nothing re-checks it.
 - **§5.2's general path.** `FILTER_ALL` and a squad placement use
   `ObjectsData::find_unit_with_radius` and its ordered sibling instead of
   the pairwise pair: a `vector_dist` circle of `other.big_radius +

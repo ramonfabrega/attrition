@@ -327,8 +327,14 @@ impl Sim {
     /// live without a pool: with `force == 0` a group of fewer than two is
     /// **not** installed and every member is left group-less. Returns
     /// whether the group took a slot.
-    pub fn push_group(&self, g: &Group, force: bool) -> bool {
-        force || g.num() >= 2
+    pub fn push_group(&mut self, g: &Group, force: bool) -> bool {
+        if !(force || g.num() >= 2) {
+            return false;
+        }
+        // The pool slot every member's `+0x80` then points at. Only
+        // `find_ordered_collision`'s group pass reads it.
+        self.pushed_group = Some((g.who, g.list.clone()));
+        true
     }
 
     // ------------------------------------------------------------------
@@ -1137,6 +1143,18 @@ impl Sim {
     ) {
         if !self.group_is_on_map(g) || !self.active(target) {
             return;
+        }
+        // **The leader asks first** (`action_attack@00712490:215`): one
+        // `find_attack_pos` a group order, on the group's leader, and
+        // only when `is_in_range` says the leader cannot already shoot
+        // from where it stands. `docs/COMBAT.md` §17.1 step 3 — this is
+        // the `Group::action_attack+0x41a` draw family, and it can never
+        // run longer than one call's budget.
+        if let Some(leader) = self.group_find_leader(g) {
+            let at = self.units[leader].pos;
+            if !self.is_in_range_at(Obj::Unit(leader), at, target) {
+                self.find_attack_pos(leader, target, at, crate::fight::SITE_ATTACK_POS_GROUP);
+            }
         }
         let respond = self.tuning.unit_respond_range * 0x240;
         for pass in [Domain::Land, Domain::Sea, Domain::Air] {

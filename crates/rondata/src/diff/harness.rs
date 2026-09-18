@@ -3671,6 +3671,99 @@ mod tests {
     /// farm's own corner; `1/27`, `1/28` and `1/29` are sent to a second
     /// cluster two thousand units out, which this item has **not**
     /// established the arm of.
+    /// **The crate side of the probe** (item 328, 2026-09-17) — the
+    /// answer `crates/sim` gives to the frame the test above pins the
+    /// original's answer to.
+    ///
+    /// `run53_s_8186_is_find_target_s_probe_and_its_ring_walks` says what
+    /// the original does on 8186 and takes no simulation at all; this
+    /// ticks the simulation to 8187 and asserts that the six units the
+    /// probe sends are walking to **run19's own coordinates**, to the
+    /// unit, out of `docs/COMBAT.md` §17's ring walk.
+    ///
+    /// **Why a destination and not a draw count.** Six calls that draw
+    /// forty-six times between them can be six wrong ring walks whose
+    /// budgets happen to add up: the first build of §17 drew
+    /// 15 + 15 + 15 + 2 + 2 + 2 = 51 and put *all three* archers on one
+    /// spot, and the build before the `find_ordered_collision` group pass
+    /// went in would have agreed with the trace on nothing but the shape.
+    /// A coordinate is what tells a right answer from a lucky one, and
+    /// these six are the dump's, not this crate's.
+    ///
+    /// Made to fail on purpose by moving the arc's entry step off
+    /// `(steps_per_side / 2) + 1`: the three archers move together, to
+    /// `(4392, 29784)`, `(4488, 29976)` and `(4248, 29544)`, and the
+    /// three melee figures — whose `steps_per_side` is 1, so the arc has
+    /// nowhere to go — do not move at all. Which is itself worth knowing:
+    /// half this cast cannot see an error in the arc, and a test written
+    /// on `1/40`-`1/42` alone would have passed.
+    #[test]
+    fn great_lakes_8186_sends_the_probe_s_six_where_the_original_does() {
+        let Some(inst) = install() else { return };
+        let Some(path) = dump("gamelog-run53-greatlakes-24k-trace.txt") else {
+            eprintln!("skipping: no run53 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let texts = sibling_texts();
+        let text = crate::capture::read(&path);
+        let log = Log::parse(&text);
+        let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
+        let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+        let refs: Vec<&Initial> = inits.iter().collect();
+        let mut init = log.initial().unwrap();
+        borrow_from_siblings(&mut init, &refs);
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        while built.sim.frame <= PROBE_FRAME {
+            built.tick();
+        }
+        let ours: Vec<(i64, i64, i64, i64)> = PROBE_SENT
+            .iter()
+            .map(|&(who, o, _, _)| {
+                let u = built
+                    .sim
+                    .units
+                    .iter()
+                    .position(|u| u.alive() && i64::from(u.owner) == who && i64::from(u.index) == o)
+                    .unwrap_or_else(|| panic!("no live {who}/{o} at {}", PROBE_FRAME + 1));
+                // The chase's move goes in **front** of the mandatory
+                // attack order, so it is the unit's current order.
+                let m = built.sim.units[u]
+                    .orders
+                    .iter()
+                    .find_map(|od| match od.body {
+                        sim::orders::Body::Move(m) => Some(m),
+                        _ => None,
+                    })
+                    .unwrap_or_else(|| panic!("{who}/{o} carries no move at {}", PROBE_FRAME + 1));
+                (who, o, i64::from(m.dest.x), i64::from(m.dest.y))
+            })
+            .collect();
+        assert_eq!(
+            ours, PROBE_SENT,
+            "the probe's six are not standing where run19 puts them"
+        );
+        // And the cast is a mandatory attack on the farm, which is what
+        // makes the move a chase rather than a walk.
+        for &(who, o, _, _) in PROBE_SENT {
+            let u = built
+                .sim
+                .units
+                .iter()
+                .position(|u| u.alive() && i64::from(u.owner) == who && i64::from(u.index) == o)
+                .expect("the cast");
+            assert!(
+                built.sim.units[u].combat.mandatory,
+                "{who}/{o} is not under a mandatory attack order"
+            );
+            assert_eq!(
+                built.sim.units[u].combat.stance,
+                sim::combat::Stance::HoldFire,
+                "{who}/{o}'s stance is not the probe's `action_stance(5)`"
+            );
+        }
+    }
+
     const PROBE_SENT: &[(i64, i64, i64, i64)] = &[
         (1, 27, 4344, 29736),
         (1, 28, 4440, 29880),

@@ -1063,7 +1063,15 @@ away from the spot), return; no spot → `close()`.
 and last units** (`get_unit(0)`, `get_unit(num_units − 1)`), pushed with
 `Groups::push_group`; if `L.combat == 0` — the human has no soldiers —
 `find_building(target, SEARCH_FRIENDLY, L, −1, 0x200, FILTER_TYPE, FARM
-0x1a1)`: the farm's `ever_seen |= 1 << me`, `action_stance(5)`,
+0x1a1)`. **The `−1` is the radius and the `0x200` is the flag word**, not
+the other way round (item 328): a negative radius takes
+`find_building@0065d260:36`'s *exhaustive* arm — every object, no
+distance bound, nearest by **tile**-space octagonal distance, ties to the
+last in walk order — and `0x200` is `param_6 & 0x200`, the **region**
+filter that confines the answer to the asking point's tile region.
+`docs/COMBAT.md` §17.1 has the citation; read the other way round the
+search finds no farm at all. Then the farm's `ever_seen |= 1 << me`,
+`action_stance(5)`,
 `action_attack(farm, L, 1, QUEUE_NEW, 0)`, then `action_move_to` back to
 ~~the first unit's position~~ **the pair's `GroupData::find_leader`**
 (`:1152`, read back at `:1191`; run19's block 8187 puts every member's

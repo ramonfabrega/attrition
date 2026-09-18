@@ -1944,15 +1944,13 @@ impl Sim {
             self.armies[w].list[slot].hurry = 0;
         }
         if diff == 0 && self.nation[tw as usize].human {
-            // SEAM, and **not** a quiet one: `docs/ARMY.md` §12's probe
-            // (`find_target@006f69b0:1120`-`1199`) is the whole of Great
-            // Lakes' frame 8186, where the long word parts. The comment
-            // that used to stand here said "nothing changes"; it is the
-            // frame's forty-eight `Unit::find_attack_pos` draws, the six
-            // mandatory attack orders on the farm `0/2004`, the stance 5
-            // and the pushed group. `docs/COMBAT.md` §17 specifies it and
-            // `run53_s_8186_is_find_target_s_probe_and_its_ring_walks`
-            // pins what the original does on the frame.
+            // **The probe** (`docs/ARMY.md` §12, `docs/COMBAT.md` §17):
+            // the easiest AI never takes a human's city as an army
+            // target, and instead sends two of its units — the army
+            // group's first and last, each of which arrives with its
+            // squad — to poke a farm. It is the whole of Great Lakes'
+            // frame 8186, where the long word parts.
+            self.find_target_probe(who, slot, c, tw, frame);
             return;
         }
         let target = Obj::Building(self.cities[c].building);
@@ -1977,6 +1975,116 @@ impl Sim {
         } else {
             self.close_army(who, slot);
         }
+    }
+
+    /// **The probe** — `Army::find_target@006f69b0:1120`-`1199`, the arm
+    /// the easiest difficulty takes against a human leader instead of
+    /// making the city an army target (`docs/ARMY.md` §12, "The probe";
+    /// `docs/COMBAT.md` §17.1).
+    ///
+    /// `ArmyData::get_unit(army, 0)` and `get_unit(army, count − 1)` go
+    /// into a stack-local group. **Two adds become six orders**, because
+    /// `Group::add`'s subordinate recursion brings each captain's
+    /// followers (`docs/GROUPS.md` §4.1) and Great Lakes' army group 64
+    /// is five squads of three. Then, when the target's leader has no
+    /// soldiers at all, the group is pointed at one of that leader's
+    /// **farms** — `find_building(..., FILTER_TYPE, FARM)` — with
+    /// `action_stance(5)`, a **mandatory** `action_attack`, and a
+    /// trailing `action_move_to` back to the pair's own leader; otherwise
+    /// a single `ATTACK_TO` at the city.
+    fn find_target_probe(&mut self, who: Player, slot: usize, c: usize, tw: Player, frame: i64) {
+        let w = who as usize;
+        let units = self.armies[w].list[slot].units.clone();
+        let (Some(&first), Some(&last)) = (units.first(), units.last()) else {
+            return;
+        };
+        let mut g = crate::group::Group {
+            who,
+            army: None,
+            list: Vec::new(),
+        };
+        self.group_add(&mut g, first);
+        self.group_add(&mut g, last);
+        // `Groups::push_group(who, who, &g, 1)` — forced, so a group of
+        // one still takes a slot.
+        if !self.push_group(&g, true) {
+            return;
+        }
+        let target = Obj::Building(self.cities[c].building);
+        let tpos = self.pos_of(target);
+        let farm = if self.ai[tw as usize].census.combat == 0 {
+            self.find_probe_farm(tpos, tw)
+        } else {
+            None
+        };
+        if let Some(b) = farm {
+            self.group_action_stance(&g, 5);
+            self.group_action_attack(&g, Obj::Building(b), true, QueuePos::New, 0);
+            // The trailing move goes back to the **pair's own leader**
+            // (`:1152`, read back at `:1191`), not to `get_unit(0)`.
+            if let Some(leader) = self.group_find_leader(&g) {
+                let back = self.units[leader].pos;
+                self.group_action_move_to(
+                    &g,
+                    back,
+                    QueuePos::Last,
+                    false,
+                    Angle(0),
+                    MoveKind::MoveTo,
+                    false,
+                );
+            }
+        } else {
+            self.group_action_move_to(
+                &g,
+                tpos,
+                QueuePos::New,
+                false,
+                Angle(0),
+                MoveKind::AttackTo,
+                false,
+            );
+        }
+        self.group_normalize(&mut g);
+        self.ai[tw as usize].frame_attacked = frame;
+        self.ai[tw as usize].attacked_by = i32::from(who);
+    }
+
+    /// `ObjectsData::find_building(x, y, SEARCH_FRIENDLY, who, −1,
+    /// 0x200, FILTER_TYPE, FARM, 0)@0065d260` — the probe's one call.
+    ///
+    /// **The `0x200` is the flag word, not a radius.** The radius is the
+    /// argument before it and it is **−1**, so `65d288`'s
+    /// `param_5 < 0 || 9 < (param_5 + 0x2ff)/0x300` sends the search down
+    /// the *exhaustive* arm rather than the `circle_x`/`circle_y` grid:
+    /// every object of every leader `valid_search` admits, with no
+    /// distance bound at all. `0x200` is the flag the head reads as
+    /// `param_6 & 0x200` — the **region** filter, which pins the answer
+    /// to the tile region the asking point stands in.
+    ///
+    /// The distance is measured in **tiles**, not position units
+    /// (`65d2f4`: `div_3_table[x >> 6]` on both operands before the
+    /// octagonal approximation), and the winner test is `<=` on both the
+    /// running best and the bound, so a tie goes to the **last**
+    /// candidate in walk order rather than the first.
+    fn find_probe_farm(&self, at: Pos, who: Player) -> Option<usize> {
+        let reg = self.world.tregion(at.tile());
+        let a = at.tile();
+        let mut best: Option<(i32, usize)> = None;
+        for (b, bd) in self.buildings.iter().enumerate() {
+            if bd.owner != who || !bd.alive || self.building_ident(b) != Ident::Farm {
+                continue;
+            }
+            let p = bd.pos.tile();
+            if self.world.tregion(p) != reg {
+                continue;
+            }
+            let d = vector_dist(p.x - a.x, p.y - a.y);
+            if best.is_none_or(|(bd, _)| d <= bd) {
+                best = Some((d, b));
+            }
+        }
+        best.map(|(_, b)| b)
     }
 
     // ---- the muster spot (§13) ----

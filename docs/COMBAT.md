@@ -1372,7 +1372,13 @@ inputs. See `combat::compare_target`.
 - **Stances**: AGGRESSIVE chases at respond range; DEFENSIVE ties the
   attack to a return point; STAND_GROUND ignores range in the search and
   never chases; RAID weights civilians and never retaliates; RAZE prefers
-  buildings and never retaliates; HOLD_FIRE does nothing.
+  buildings and never retaliates; HOLD_FIRE does nothing — **except under
+  a mandatory order**, which skips every stance test in `Unit::do_attack`:
+  `005f1b80:225`-`244` reads the order's `+0x1c` and jumps straight to
+  `LAB_005f2224`, the unconditional `fight(…)`, so the stance arms all sit
+  under `mandatory == 0`. §17's probe is what found it — it sets
+  `action_stance(5)` on six units and then gives them a mandatory attack
+  order, and run19's block 8187 has all six chasing (item 328).
 - **Buildings**: §8.6.
 
 
@@ -1778,35 +1784,43 @@ the height and rocky terms (flat arena). Each is a line in the next file.
 
 ## 17. `Unit::find_attack_pos` — where to stand to attack (item 324, 2026-09-17)
 
-Great Lakes' long word parts at frame **8186** on this function. The frame
-is six draws against fifty-four and forty-six of the fifty-four are one
-address, `Unit::find_attack_pos@00601280+0xea9`. This section is what that
-address is; **nothing in `crates/sim` spends it yet**, and §17.6 says what
-has been established and what has not.
+Great Lakes' long word parted at frame **8186** on this function — six
+draws against fifty-four, forty-six of them at
+`Unit::find_attack_pos@00601280+0xea9`. ~~Nothing in `crates/sim` spends
+it yet~~ — **item 328 implemented it** (`crates/sim/src/attack_pos.rs`);
+the frame agrees draw for draw with all six of §17.5's destinations
+exact, and the word parts at 8187. Writing the code found **four** errors
+below that the reading had not, each struck in place with its successor
+named (the story is in `docs/journal/2026-09-17-item-328.md`).
 
 ### 17.1 It is reached twice in 24,000 frames, and both times it is a raid
 
 `tools/trace/report.py rontrace-run53.log when Unit::find_attack_pos 1`
-answers with two frames: **8186** (48 draws) and **17656** (14). Both are
-`Army::find_target` frames — the coin at `+0x410`, three candidate scores
-at `+0x7df`, and then the ring walks. So the function is not "combat" in
-general; in a traced game it is one mechanic, and that mechanic is
-`Army::find_target@006f69b0:1120`–`1199`, **the two-unit probe**:
+answers with two frames: **8186** (48 draws) and **17656** (14), both
+`Army::find_target` frames. In a traced game the function is one
+mechanic, `Army::find_target@006f69b0:1120`–`1199`, **the two-unit
+probe**:
 
-1. `ArmyData::get_unit(army, 0)` and `get_unit(army, count − 1)` go into a
-   stack-local `Group`; `Groups::push_group(who, who, &g, 1)` returns the
-   slot the orders are actually given to. **Six** units take the orders,
-   not two, and `Group::add`'s subordinate recursion (`docs/GROUPS.md`
-   §4.1) is why: run19's block 8186 has the army's group 64 holding
-   **fifteen** units in five squads of three, chained by `o_up` under the
-   captains `27`, `31`, `34`, `37` and `40`. `get_unit(0)` and
-   `get_unit(n − 1)` are the first and last of those captains, and each
-   arrives with its two followers.
+1. `ArmyData::get_unit(army, 0)` and `get_unit(army, count − 1)` go into
+   a stack-local `Group`; `Groups::push_group(who, who, &g, 1)` returns
+   the slot the orders are given to. **Six** units take them, not two:
+   `Group::add`'s subordinate recursion (`docs/GROUPS.md` §4.1) brings
+   each captain's two followers, and run19's block 8186 has group 64
+   holding **fifteen** units in five squads of three under the captains
+   `27`, `31`, `34`, `37` and `40`.
 2. When the *target's* leader has `LeaderData +0x944` zero — `combat`, the
    human with no soldiers, read in `docs/ARMY.md` §12 — then
    `ObjectsData::find_building(target.x,
    target.y, SEARCH_FRIENDLY, target_who, −1, 0x200, FILTER_TYPE, 0x1a1,
-   0)` — **type 417 is `FARM`** — then `Group::action_stance(g, 5)`,
+   0)` — **type 417 is `FARM`**. ~~`0x200` is the radius~~: the radius is
+   the **−1** before it, and a negative radius takes
+   `find_building@0065d260:36`'s **exhaustive** arm — every object of
+   every leader `valid_search` admits, no distance bound, distance in
+   **tiles** (`65d2f4`), `<=` on both tests so a tie goes to the **last**
+   in walk order. `0x200` is `param_6 & 0x200`, the **region** filter.
+   Read as a radius the probe finds no farm at all: `0/2004` is 1,165
+   position units away and `0x200` is 512. Then
+   `Group::action_stance(g, 5)`,
    `Group::action_attack(g, farm, target_who, mandatory = 1, QUEUE_NEW, 0)`
    and `Group::action_move_to(g, leader.x, leader.y, QUEUE_LAST, …,
    MOVE_TO, …)`. Otherwise a single `action_move_to(…, ATTACK_TO, …)`.
@@ -1814,21 +1828,19 @@ general; in a traced game it is one mechanic, and that mechanic is
    `GroupData::find_leader` at `:1152` and read back at `:1191`, not
    `get_unit(0)`; `docs/ARMY.md` §12 said the first unit's position and is
    amended to match.
-3. `Group::action_attack@00712490:215` calls `find_attack_pos` **once**, on
-   the group's leader, and only when `ObjectData::is_in_range` says the
-   leader cannot already shoot. That is the `Group::action_attack+0x41a`
-   family: two draws at 8186, four at 17656.
+3. `Group::action_attack@00712490:215` calls `find_attack_pos` **once**,
+   on the group's leader, and only when `is_in_range` says the leader
+   cannot already shoot — the `+0x41a` family, two draws at 8186 and
+   four at 17656.
 4. Every member that takes the order then runs its **own** call from
-   `Unit::fight@005fd4d0+0xcb4`'s out-of-range arm — the
-   `Unit::find_attack_pos+0x2d` family, 46 draws at 8186 and 10 at 17656.
-   `+0x2d` is the *seven*-argument overload `@00602e60`, a thunk that fills
-   the last two arguments with the caller's own encrypted position.
+   `Unit::fight@005fd4d0+0xcb4`'s out-of-range arm — the `+0x2d` family,
+   46 draws at 8186 and 10 at 17656. `+0x2d` is the *seven*-argument
+   overload `@00602e60`, a thunk that fills the last two arguments with
+   the caller's own encrypted position.
 
-`crates/sim/src/army.rs` files step 1 as "The two-unit probe is a group
-order (seam); nothing changes." That comment is false: the probe is the
-whole of frame 8186, and `Group::action_attack` and `Unit::do_attack` are
-entered **zero** times in all 24,000 frames of run53 — the chain has never
-executed in this crate at all.
+~~`crates/sim/src/army.rs` files step 1 as "a group order (seam); nothing
+changes."~~ That comment was false — the probe is the whole of frame 8186
+— and item 328 replaced it with `Sim::find_target_probe`.
 
 ### 17.2 The ring
 
@@ -1862,28 +1874,56 @@ entered at its middle — `step = (steps_per_side >> 1) + 1`.
 min(0x20000000, (0x40000000 / range) / (0xc0 / stride))`, then `k =
 0x40000000 / q`, `steps_per_side = k − 1`, `angle_step = 0x40000000 / k`.
 `stride` is `0x20`, `0x40` or `0xc0` by the two footprints and the asker's
-block radius; an asker whose type has no `+0x1fc` skips all of it and takes
-`q = 0x20000000` — two steps to the quarter turn.
+~~block radius~~ **`big_radius`** (`UnitTypeData +0x244`, settled by the
+type record): `big_radius < 0x31 || t.x_size < 3 || t.y_size < 3` →
+(`big_radius > 0x18 && t.x_size > 1 && t.y_size > 1` → `0x40`, else
+`0x20`), otherwise `0xc0`. An asker whose type has no `+0x1fc` skips all
+of it and takes `q = 0x20000000` — two steps to the quarter turn — and
+`+0x1fc` is `max_range`, so that arm is the **melee** asker
+(`determine_roles@0061c320:58` sets `role & 0x400` from `+0x1fc != 0`).
 
 ### 17.3 The stand-off `local_18`, and the arms that never reach the ring
 
-`local_18` is set before the ring from `ObjectData::attack_dist` and the
-asker's own range:
+`local_18` is set before the ring from `ObjectData::attack_dist` — asked
+from the asker's **own** position, not from the approach point
+(`60138b`) — and the asker's own range. **The outer switch is not the
+distance; it is `is_unit(target)`**, and only then the distance
+(`601390`: `iVar5 = target->vtable+0x18(); if (iVar5 == 0 || d <= (range +
+8) × 0xc0)`):
 
-- target further than `(range + 8) × 0xc0`: `local_18 = (range + 2) × 0xc0`
-  — a wide approach ring — and the ring is entered directly.
-- otherwise, a type without `+0x2c8 & 0x400` takes `local_18 = 0x30` and
-  the **melee** path, `Unit::find_melee_pos@006010b0`, and returns; the
-  ring is never reached.
+- ~~target further than `(range + 8) × 0xc0`: `local_18 = (range + 2) ×
+  0xc0`, and the ring is entered directly.~~ **That arm needs
+  `is_unit(target)` too, and a unit target never reaches the ring at
+  all** — the ring's gate is the target's `+0x1c`, `is_build`. (`+0x18`
+  and `+0x1c` are `is_unit`/`is_build`; both COMDAT-fold onto the two
+  `return` constants, so `vtables.txt` cannot name them and what
+  identifies them is that the Unit and Build vtables cross.) For a
+  building the far arm is **unreachable**, and its `local_2c` only feeds
+  the half of `00601280` that ends in `find_nearby_spot`.
+- otherwise, a type without `+0x2c8 & 0x400` — `max_range == 0` — takes
+  `local_18 = 0x30`; and **only then**, if the target `is_unit` **and**
+  is not moving (`+0xd8`), the **melee** path
+  `Unit::find_melee_pos@006010b0` and a return. A melee asker with a
+  **building** target falls through with `0x30` and walks the ring, which
+  is what `1/40`-`1/42` do.
 - otherwise: inside `min_range × 0xc0 − 6` the asker projects *away* and
   `local_18 = min_range × 0xc0 + 0x90`; past `range × 0xc0 − 6` it is
-  `max(0xc0, range × 0xc0 − 0x60 [− the target's block radius])`.
+  `max(0xc0, v)` where ~~`v = range × 0xc0 − 0x60 [− the target's block
+  radius]`~~ **`v = range × 0xc0 − 0x60`, `+ big_radius − 0x30` when
+  `range < 10`, `−` the *target's* `big_radius` only when the target
+  `is_unit`** (`601544`-`60158a`). The three archers have `range = 12`,
+  so `v = 2208` with neither correction — and 2208 is what puts `1/27`
+  on run19's own `(4344, 29736)`.
 
 Two more returns precede all of this: an asker `is_on_map` already in range
 returns its own position, and a unit inside a carrier (`+0x28 ≥ 0` with the
 carrier's `+0x218 == 1`) tail-calls the carrier's own `find_attack_pos` —
 that is the recursion at `+0x2d` of the **nine**-argument form, not the
-thunk. When the ring finds nothing the function falls back to
+thunk. And a third, missed by the first reading: **an asker whose
+activity order is index 12, `GUARD`, is not moved at all** (`601616`:
+`local_34 == 0xc` → the out-parameters take the approach point and the
+function returns 0; `local_34` is `get_activity` of the asker *itself*).
+When the ring finds nothing the function falls back to
 `UnitType::find_nearby_spot@0061de70`.
 
 ### 17.4 The draw, and the ceiling on a call
@@ -1892,8 +1932,23 @@ Per iteration the candidate is snapped to the quarter-tile centre
 (`div_3_table[v >> 4] × 0x30 + 0x18`) and then tested, in order:
 `UnitData::invalid_loc(tile, 1, 0, 0, 0, 1, …)`, the world tile's `0x4000`
 bit, `Objects::find_collision@0065b1b0` and
-`Objects::find_ordered_collision@0065b440`. A candidate that clears all
-four **draws once** — `Random::get(game_random, 0, 0xffff)` at `00602124`,
+`Objects::find_ordered_collision@0065b440`.
+
+**`find_ordered_collision` is two passes, and the second is the whole
+frame.** After the 3 × 3 chain walk it walks **the asker's own group's
+member list** (`65b4d4`-`65b58c`): the group is the asker's `+0x80`, it
+must be the asker's own player's, the asker must be *in* the list, and
+every other member alive, on the map and with a block is tested by the
+same unit-cell Chebyshev predicate against its `orders_x`/`orders_y`.
+That catches a member ordered next to the candidate *from anywhere on
+the map*, which the chain walk cannot. `crates/sim` skipped it because
+"every unit in every capture so far is ungrouped"; the probe is what
+stops that being true (`docs/COLLISION.md` §5.2, §9). Without it the six
+pile onto one spot and every call runs to its ceiling — 51 draws; with
+it, **15 + 12 + 11 + 2 + 2 + 4 = 46** and every destination in §17.5 is
+exact.
+
+A candidate that clears all four **draws once** — `Random::get(game_random, 0, 0xffff)` at `00602124`,
 returning to `00602129` — and scores
 `vector_dist(candidate − from) + draw % 0xc0`, lowest kept.
 
@@ -1943,23 +1998,68 @@ the frame's fifty-four labels entry for entry, 17656's two families, the
 group, and the fifteen-unit squad structure the two captains are drawn
 from.
 
+**And `crates/sim` now answers it**, entry for entry and to the unit:
+`great_lakes_8186_sends_the_probe_s_six_where_the_original_does`. The
+per-call split is `1/27` 15, `1/28` 12, `1/29` 11, `1/40` 2, `1/41` 2,
+`1/42` 4 — the three archers carry `range = 12` and so `local_18 =
+2208`, the three melee figures take §17.3's `0x30` arm and the near
+budget's ceiling of 4.
+
 ### 17.6 Confidence, and what this has not established
 
-Diff-backed: the frame's draw sequence and the two chains' sizes (run53's
-trace); the cast, the target, the stance, the group and the six
+~~Diff-backed: the frame's draw sequence and the two chains' sizes
+(run53's trace); the cast, the target, the stance, the group and the six
 destinations (run19's dump). Reading-only, and none of it has a second
-reader yet: **every word of §17.2, §17.3 and §17.4** — the ring's geometry,
-the octant table, the stand-off arms and the budget arithmetic — is one
-reading of `00601280`'s decompile and listing.
+reader yet: every word of §17.2, §17.3 and §17.4.~~ **Item 328 moved most
+of that column.** Now:
+
+**Diff-backed**: the frame's draw sequence and the two chains' sizes
+(run53's trace); the cast, target, stance, group and six destinations
+(run19's dump); and, new, **the ring's geometry, the octant table, the
+stand-off arms, the stride/`q` arithmetic, the four rejections and the
+budget** — all of §17.2, §17.3's building arm and §17.4 — because the
+implementation built from them reproduces the forty-six draws *and* all
+six destinations to the unit. A ring one step out does not land on
+run19's own coordinates six times.
+
+**Two readings agreeing, no run**: the blind second reading
+(`docs/audit/2026-09-17-find-attack-pos-blind.md`, written without sight
+of this section or the implementation) re-derived the scoring formula,
+the minimum with strict `<` and its tie to the earlier candidate, the two
+counter-rotating walkers alternating one candidate each, the snap, and
+the budget's `100` / `4` / `+11`. Its three least-confident claims — a
+**Wall** target, the sea-domain guard on the carrier delegation, and the
+flanking block at `602800`-`602a1a` — are all outside the ring.
+
+**Reading-only still**, and nothing here has executed in any traced game:
+- `Unit::find_melee_pos@006010b0` and the whole **unit-target** half of
+  `00601280` — the flanking chase and the `find_nearby_spot` fallback.
+  `crates/sim` answers `None` for a unit target and keeps its
+  straight-line approach.
+- The far arm of §17.3, which is unreachable for a building.
+- The `project`-away arm of a minimum-range asker inside its own dead
+  zone: nothing modelled has a minimum range, so the stand-off is taken
+  and the projection is not.
+- The carrier delegation, and `local_28` (`vtable+0x10c && unit_masks &
+  0x40000 && is_build(target)`), whose middle term is a per-unit mask bit
+  this crate does not model and is taken as clear.
 
 Not established:
 
-- **Which arm each of the six chases took.** Three are put beside the farm
-  and three two thousand units away, which is the shape of two different
-  `local_18`s or of the `find_nearby_spot` fallback; §17.3 predicts but
-  does not decide it.
-- **The even sides' stride and their exit test** are read but not checked
-  against a candidate count, because no implementation has produced one.
+- ~~**Which arm each of the six chases took.**~~ Settled: the three
+  archers take the `range × 0xc0 − 0x60` arm at `local_18 = 2208` and the
+  three melee figures the `0x30` arm; §17.5 has the split.
+- ~~**The even sides' stride and their exit test** are read but not
+  checked against a candidate count~~ — they are now, by the 46.
 - The frame after this one, **8187**, spends a draw at
-  `PathFinder::astar_path+0x1697` that this crate also does not model, so
-  closing §17 moves the word one frame unless that goes with it.
+  `PathFinder::astar_path+0x1697` — the failure tail of a **unit-grid**
+  search (`astar_path@00683770:964`, `param_2 == 0x30`, the open list
+  exhausted): `Random::get(0, 0xffff) % 3 + 6` into the order's move data
+  `+0x1c`, a six-to-eight-frame retry delay, under two further gates (the
+  order's vtable `+0x14`, and that move data's `+0x20 < 0xd`). Item 328
+  did **not** close it: the draw is downstream of a search that *fails*,
+  and this crate's does not fail there — on 8187 it spends two
+  `Guy::set_anim+0x97a < Guy::move+0x19f` draws instead, two of the six
+  taking a step the original does not. A pathfinder item
+  (`crates/sim/src/path.rs`'s exhaustion tail names the seam), and the
+  word now parts at **8187**.

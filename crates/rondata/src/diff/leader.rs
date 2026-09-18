@@ -983,6 +983,13 @@ mod tests {
 
     /// The `(player, field)` pairs that part over run19's window. Filled
     /// from the first run and then pinned; `docs/AI.md` §38.
+    ///
+    /// **Item 328 deleted two of them**: `0/frame_attacked` and
+    /// `0/attacked_by`. `Army::find_target`'s probe writes both on the
+    /// human leader it pokes (`docs/ARMY.md` §12, "The probe"), and this
+    /// crate returned before reaching them until `docs/COMBAT.md` §17 was
+    /// implemented — so the residue shrank from 95 fields to 93 on the
+    /// same window, which is the shape a landed mechanic leaves here.
     const PARTS_ON_RUN19: &[(usize, &str)] = &[
         (0, "SITE[0].reg"),
         (0, "SITE[1].reg"),
@@ -997,10 +1004,8 @@ mod tests {
         (0, "active_wars"),
         (0, "active_wars_with"),
         (0, "ally_mask"),
-        (0, "attacked_by"),
         (0, "filled_gather_slots[0:food]"),
         (0, "filled_gather_slots[1:timber]"),
-        (0, "frame_attacked"),
         (0, "gatherers"),
         (0, "min_other_team_terr"),
         (0, "my_team_terr"),

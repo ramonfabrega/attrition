@@ -50,6 +50,7 @@ pub mod ai_units;
 pub mod air;
 pub mod anim;
 pub mod army;
+pub mod attack_pos;
 pub mod attrition;
 pub mod balance;
 pub mod bhs;
@@ -808,6 +809,15 @@ pub struct Sim {
     /// The game's random stream, `game_random`. Combat draws from it for
     /// projectile scatter and the one-in-five retarget roll.
     pub rng: combat::Rng,
+    /// `UnitData +0x80` → `Groups::list[gid]`, the group pool this crate
+    /// does not have. [`Sim::push_group`] records the members of the group
+    /// it installed, and [`Sim::find_ordered_collision`]'s second pass —
+    /// the one that catches a **group member** ordered next to a candidate
+    /// from anywhere on the map — is the only reader
+    /// (`docs/COLLISION.md` §9, `docs/COMBAT.md` §17.4). One slot is
+    /// enough because the original's own pool is written by the same
+    /// `push_group` and nothing here holds two at once.
+    pub(crate) pushed_group: Option<(Player, Vec<usize>)>,
     /// Whether [`Sim::tick`] records [`Sim::phase_marks`]. Off by default:
     /// the harness turns it on, the soak pays nothing.
     pub trace_phases: bool,
@@ -1156,6 +1166,7 @@ impl Sim {
         let mut mesh = mesh::RoadMesh::default();
         mesh.seed(&world);
         Sim {
+            pushed_group: None,
             transport: vec![transport::LeaderTransport::default(); players],
             docks: vec![transport::Docks::default(); players],
             caravans: vec![caravan::Caravans::default(); players],

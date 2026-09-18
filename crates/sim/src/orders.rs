@@ -5120,7 +5120,15 @@ impl Sim {
             }
             return;
         }
-        if state.stance == combat::Stance::HoldFire {
+        // **A mandatory order ignores the stance.** `Unit::do_attack@
+        // 005f1b80:225`-`244`: the order's `+0x1c` (mandatory) jumps
+        // straight to `LAB_005f2224`, which is the unconditional
+        // `fight(...)` — every stance test in the function sits under
+        // `mandatory == 0`. The probe of `docs/COMBAT.md` §17 sets
+        // `action_stance(5)` — HOLD_FIRE — on the six units it then
+        // gives a **mandatory** attack order to, and run19's block 8187
+        // has all six chasing, so this arm is what lets them.
+        if state.stance == combat::Stance::HoldFire && !state.mandatory {
             return;
         }
         // The reload gate: a recharging unit returns at once unless this is
@@ -5162,9 +5170,20 @@ impl Sim {
         if state.stance == combat::Stance::StandGround {
             return;
         }
-        // The chase: `find_attack_pos` is the target's position here; the
-        // move goes in front and runs from the next frame.
-        let dest = self.pos_of(target);
+        // **The chase** (`docs/COMBAT.md` §17): the unit asks where to
+        // stand — `Unit::fight@005fd4d0+0xcb4`'s arm, through the
+        // seven-argument thunk that fills the last two arguments with the
+        // caller's own position — and the move goes in front, to run from
+        // the next frame. A ring walk that finds nothing, and every
+        // target the ring does not cover, falls back to the target's own
+        // position, which is what this crate did for all of them until
+        // item 328.
+        let here = self.units[u].pos;
+        let dest = match self.find_attack_pos(u, target, here, crate::fight::SITE_ATTACK_POS_FIGHT)
+        {
+            Some(p) => p,
+            None => self.pos_of(target),
+        };
         self.add_move_order(u, dest, MoveKind::MoveTo, QueuePos::First, false);
     }
 
