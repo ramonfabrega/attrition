@@ -22,6 +22,22 @@ use crate::{Player, Sim};
 pub const SITE_EXPIRE_HEAD: &str = "Leader::make_stuff+0x221";
 pub const SITE_EXPIRE_SLOT: &str = "Leader::make_stuff+0x63d";
 
+/// `use_market`'s one draw — the offset the sell rotation starts from
+/// (`docs/AI.md` §2.15, §40). It is the only `game_random` step in the whole
+/// market, `use_market@006c91c0+0x1ed`, and the first one Great Lakes takes
+/// is the frame item 348 was about.
+pub const SITE_MARKET_SELL: &str = "Leader::use_market+0x1ed";
+
+/// The Commerce level `has_preq(BUY_SELL)` asks for. `BUY_SELL` is
+/// `TypeIndex` 685, the second entry of `rules.xml`'s `<TECHBONUSES>`
+/// ("Can buy and sell resources at the Market"), and its `PREQ0` is
+/// **Coinage** — the Commerce line's second library tech
+/// (`techrules.xml`, `WHERE Library`, `GRID_X 1`, `GRID_Y 2`, `AGE 1`;
+/// the line is Barter, Coinage, Trade, Mercantilism, Finance, Assembly
+/// Line, Globalization). `has_preq`'s generic arm walks the type's own
+/// prerequisites and asks `has_tech` of each, and `BUY_SELL` has the one.
+const BUY_SELL_COMMERCE_LEVEL: i32 = 2;
+
 /// Which good a gather building gathers — `make_stuff`'s switch on the build
 /// type's own `TypeIndex` (`0x1a1` food, `0x1a2` wood, `0x1a3` metal, `0x1a4`
 /// knowledge, `0x1a5`/`0x1a6` oil). An exact type test, not a lineage one, so
@@ -456,31 +472,78 @@ impl Sim {
     /// The gate both market functions open with: the ability (tribe bonus 4
     /// or `has_preq(BUY_SELL)`), a market, and no nuclear embargo.
     ///
-    /// SEAM: `BUY_SELL` is not one of [`crate::tech::Roles`]'s named types, so
-    /// the tech half of the ability cannot be asked directly; owning an
-    /// active market is taken to imply it, which is true of the shipped tree
-    /// (the Market's own prerequisite is the tech). SEAM:
-    /// `get_nuke_embargo` is not modelled and is taken as zero.
+    /// **CORRECTION (item 348).** The tech half used to be read off the
+    /// market building — "owning an active market is taken to imply it,
+    /// which is true of the shipped tree". It is not: the Market's own
+    /// prerequisite is *Barter*, Commerce 1, and `BUY_SELL`'s is **Coinage**,
+    /// Commerce 2 ([`BUY_SELL_COMMERCE_LEVEL`]). The two are a whole library
+    /// tech apart, and on Great Lakes that gap is 2,199 frames wide — the
+    /// old gate opened on 6383 and the original's first market draw is on
+    /// 8582. `docs/AI.md` §40.
+    ///
+    /// SEAM: `get_nuke_embargo` is not modelled and is taken as zero.
     fn market_gate(&self, who: Player) -> bool {
         let w = who as usize;
         let bonus = self
             .tech_tree
             .has_tribe_bonus(&self.setup, &self.tech[w], 4);
-        (bonus || self.has_market(who)) && self.has_market(who)
+        (bonus || self.can_buy_sell(who)) && self.has_market(who)
+    }
+
+    /// `LeaderData::has_preq(BUY_SELL)` — the bonus type's own prerequisite,
+    /// Coinage, asked as the Commerce line's level.
+    fn can_buy_sell(&self, who: Player) -> bool {
+        self.tech[who as usize].epoch[Line::Commerce.index()] >= BUY_SELL_COMMERCE_LEVEL
+    }
+
+    /// One good's place in `use_market`'s sell rotation, which is the whole
+    /// of what the rotation decides without a price: not knowledge, not
+    /// wealth, not oil, not the good being covered, available, a stock that
+    /// clears its own need by a hundred, and either an income at half the
+    /// commerce cap or more than 199 in the bucket.
+    ///
+    /// The filter matters beyond which good is sold: the original's
+    /// once-flag is cleared **by a candidate passing this test**, not by a
+    /// sale going through, so "nothing here is sellable" is exactly the case
+    /// where the outer loop spends one draw and stops.
+    fn market_sellable(
+        &self,
+        who: Player,
+        g2: usize,
+        covering: usize,
+        need: &[i32; RESOURCES],
+    ) -> bool {
+        if g2 == Resource::Knowledge as usize
+            || g2 == Resource::Wealth as usize
+            || g2 == Resource::Oil as usize
+            || g2 == covering
+            || !self.good_avail(who, g2)
+        {
+            return false;
+        }
+        let l = &self.ledgers[who as usize];
+        let stock = l.bucket[g2];
+        need[g2] <= stock - 100 && (l.cap[g2] / 2 <= l.income[g2] || stock > 199)
     }
 
     /// `use_market`: one buy or one sell per short good, from `make_stuff`.
     ///
-    /// SEAM, and the whole of it: `docs/ECONOMY.md` has no market —
-    /// `calc_market_prices`, `do_buy` and `do_sell` do not exist here. The
-    /// shortfall vector is computed exactly as the original computes it, and
-    /// then nothing is traded and **no draw is taken**. The original's one
-    /// `Random::get(0, 0xffff)` sits inside the sell branch, and which branch
-    /// is taken is a price question for every good but wealth — so drawing
-    /// here would invent draws as surely as not drawing loses them. The
-    /// honest choice while prices are missing is to take none, and to leave
-    /// the shape in place so that landing the market is a change to this one
-    /// block.
+    /// **The draw is taken where no price decides it** (item 348). Which
+    /// branch a short good takes is a price question — except for wealth,
+    /// which cannot be bought with wealth: `TVar3 == WEALTH` short-circuits
+    /// `use_market@006c91c0`'s own `||` before `calc_market_prices` is
+    /// called, so the sell branch, and its one
+    /// `Random::get(GameAccess::game_random, 0, 0xffff)`, is entered on the
+    /// bucket alone. The rotation that draw seeds is price-free too, so
+    /// whether a candidate clears the once-flag — and therefore whether the
+    /// outer `while` spends a *second* draw — is answerable here as well.
+    ///
+    /// SEAM, and what is left of it: `docs/ECONOMY.md` still has no market —
+    /// `calc_market_prices`, `do_buy` and `do_sell` do not exist here. So a
+    /// good that is **not** wealth takes no draw (the buy/sell choice is a
+    /// price), and a wealth shortfall that finds something sellable stops
+    /// after its first draw rather than trading and going round again. Both
+    /// **lose** draws the original takes; neither invents one.
     pub fn use_market(&mut self, who: Player) {
         let w = who as usize;
         // `need[g]`: the first `max(1, epoch[Commerce])` slots' prices.
@@ -507,9 +570,25 @@ impl Sim {
             if self.ledgers[w].bucket[g] >= short {
                 continue;
             }
-            // SEAM: buy `g`, or sell some other good to afford it. Both need
-            // `calc_market_prices`, and the sell branch is where the
-            // original's one `Random::get(0, 0xffff)` lives.
+            if g != Resource::Wealth as usize {
+                // SEAM: buy `g`, or sell to afford it — `calc_market_prices`
+                // decides, and the draw lives on the far side of it.
+                continue;
+            }
+            // Wealth is short, so the sell branch is entered without a price.
+            self.mark(SITE_MARKET_SELL);
+            // `rand % 6` is where the six-good rotation starts. Nothing is
+            // sold here, so the offset is spent rather than used; the draw
+            // itself is the sync-critical half.
+            let _start = self.rng.get(0, 0xffff) % 6;
+            if (0..RESOURCES).any(|g2| self.market_sellable(who, g2, g, &need)) {
+                // SEAM: the sale happens, clears the once-flag and sends the
+                // outer `while` round again — each pass another draw. What it
+                // would raise the bucket by is `do_sell`'s price.
+                continue;
+            }
+            // Nothing was sellable, so the once-flag stands and the original
+            // leaves the good after exactly this one draw. Exact.
         }
     }
 
@@ -1183,6 +1262,20 @@ mod tests {
         assert_eq!(s.build_types[f.farm_rec].ident, Ident::Farm);
     }
 
+    /// An active market of my own, which is half the gate.
+    fn give_a_market(s: &mut Sim) {
+        let market = s.add_build_type(BuildType {
+            ident: Ident::Market,
+            x_size: 4,
+            y_size: 4,
+            job_time: 100,
+            hits: 100,
+            ..BuildType::default()
+        });
+        let b = s.init_build(1, market, tile_pos(32, 32), false);
+        s.activate(b, false, true);
+    }
+
     /// `market_speculation` clamps a runaway escrow — and only behind the
     /// market gate.
     #[test]
@@ -1196,23 +1289,72 @@ mod tests {
             9000,
             "no market: the whole function is skipped"
         );
-        // Give the leader an active market.
-        let market = s.add_build_type(BuildType {
-            ident: Ident::Market,
-            x_size: 4,
-            y_size: 4,
-            job_time: 100,
-            hits: 100,
-            ..BuildType::default()
-        });
-        let b = s.init_build(1, market, tile_pos(32, 32), false);
-        s.activate(b, false, true);
+        // Give the leader an active market — and, since item 348, the
+        // **Coinage** that `BUY_SELL` actually asks for. A market alone is
+        // Barter, one library tech short of the ability.
+        give_a_market(s);
+        s.market_speculation(1);
+        assert_eq!(
+            s.ledgers[1].escrow[Resource::Food as usize],
+            9000,
+            "a market without Coinage is not the ability"
+        );
+        s.tech[1].epoch[Line::Commerce.index()] = BUY_SELL_COMMERCE_LEVEL;
         s.market_speculation(1);
         assert_eq!(s.ledgers[1].escrow[Resource::Food as usize], 2000);
         // Under 4000 it stands.
         s.ledgers[1].escrow[Resource::Timber as usize] = 3999;
         s.market_speculation(1);
         assert_eq!(s.ledgers[1].escrow[Resource::Timber as usize], 3999);
+    }
+
+    /// **`use_market` spends one draw on a wealth shortfall, and none on
+    /// anything else** — item 348, `docs/AI.md` §40.
+    ///
+    /// The gate is Coinage *and* a market; the draw is the sell rotation's
+    /// offset, which wealth reaches without a price because
+    /// `TVar3 == WEALTH` short-circuits `calc_market_prices` away.
+    #[test]
+    fn the_market_draws_once_for_wealth_behind_coinage() {
+        let spent = |s: &mut Sim| {
+            let before = s.rng.seed;
+            s.use_market(1);
+            draws(before, s.rng.seed)
+        };
+        let f_tower = fx().tower;
+        let mut f = fx();
+        let s = &mut f.sim;
+        // A make-list head that costs 64 wealth and nothing else, which is
+        // the shape of Great Lakes 8582 — and that map's own bucket.
+        let rec = s
+            .build_types
+            .iter()
+            .position(|b| b.ident == Ident::Tower)
+            .expect("the fixture's tower");
+        // The fixture's prices come out of `type_price` ten times their
+        // base, so 6 is the 60 a make-list slot sees.
+        s.build_types[rec].price = cost::Price::free().with_base(Resource::Wealth, 6);
+        s.ai[1].make_list.list[0] = slot(f_tower, 500);
+        s.holdings[1].available = [true, true, true, true, true, false];
+        s.ledgers[1].bucket = [58, 55, 43, 68, 54, 0];
+        assert_eq!(spent(s), 0, "no market, no ability: nothing is spent");
+        give_a_market(s);
+        assert_eq!(spent(s), 0, "a market is Barter, not Coinage");
+        s.tech[1].epoch[Line::Commerce.index()] = BUY_SELL_COMMERCE_LEVEL;
+        assert_eq!(spent(s), 1, "wealth is 43 against a need of 60");
+        // Nothing here clears `need <= bucket - 100`, so the once-flag
+        // stands and the original stops after the one draw. Raise food
+        // over the bar and the sale would go through — which this crate
+        // cannot price, so it still spends exactly the one.
+        s.ledgers[1].bucket[Resource::Food as usize] = 300;
+        assert_eq!(spent(s), 1, "a sellable good does not add a draw here");
+        // A bucket that covers the need takes nothing at all.
+        s.ledgers[1].bucket[Resource::Wealth as usize] = 60;
+        assert_eq!(spent(s), 0, "wealth is no longer short");
+        // And a shortfall in anything but wealth is a price question.
+        s.build_types[rec].price = cost::Price::free().with_base(Resource::Food, 6);
+        s.ledgers[1].bucket = [0, 0, 10_000, 0, 0, 0];
+        assert_eq!(spent(s), 0, "food's branch needs `calc_market_prices`");
     }
 
     /// A never-started site with no builder is disbanded where the danger

@@ -951,10 +951,10 @@ and they are the kind a reading alone does not catch:
 ### 2.15 The market — `use_market@006c91c0`, `market_speculation@006c8110`
 
 Both read whole. Both require the market ability — tribe bonus 4 or
-`has_preq(BUY_SELL)` — a market building (`has_market`) and no nuclear
-embargo (`get_nuke_embargo`, else `tell_embargo` and nothing); `do_buy` /
-`do_sell` are `docs/ECONOMY.md`'s, called once each (the decompile's
-`do … while (i < 1)` is a single try).
+`has_preq(BUY_SELL)`, which is **Coinage** (§40) — a market
+(`has_market`) and no nuclear embargo (`get_nuke_embargo`, else
+`tell_embargo` and nothing); `do_buy` / `do_sell` are
+`docs/ECONOMY.md`'s, called once each (`do … while (i<1)` is one try).
 
 **`use_market`** (from `make_stuff`, first thing): `need[g] = Σ` over the
 first `max(1, epoch[2])` (Commerce) make-list slots with `t > 0` and `val >
@@ -3806,15 +3806,20 @@ monotonic and unspent — 39 food at 7300 to 88 at 7580 with `income[0]` a
 flat 1920 — so the gap did not open there. Two live seams sit upstream of
 it:
 
-- **`use_market` (§2.15).** The gate is *true* for player 1 here, and its
-  `need` on 7585 is `[55, 55, 0, 0, 0, 0]` against a timber purse of 14 —
-  so the original trades where this crate does not. The narrowing this
+- **`use_market` (§2.15).** ~~The gate is *true* for player 1 here~~ — it
+  is **false**: the ability is Coinage and this crate read it off the
+  market building (§40) — and its
+  `need` on 7585 is `[55, 55, 0, 0, 0, 0]` against a timber purse of 14.
+  ~~The narrowing this
   frame buys: **no draw in run53's whole 24,000-frame trace is made from
   `use_market`, `do_sell`, `do_buy`, `market_speculation` or
   `calc_market_prices`**, and the original's one roll lives in the sell
   branch, so that branch never runs in this game. Whatever the market does
   to this AI's pile it does through the draw-free **buy** branch alone,
-  which is a smaller thing to land than the seam as written.
+  which is a smaller thing to land than the seam as written.~~ **Four of
+  the five hold; `use_market` does not** — it draws on 34 frames of run53,
+  the first on **8582**, and the sell branch is where Great Lakes' word
+  sat until item 348. §40.
 - **The caravans.** `vans.length` is 0 against 1 and `trade_val` 0 against
   128 on **both** of player 1's cities, on 246 of 246 blocks of run89 —
   and wealth is what a market buy spends.
@@ -4594,3 +4599,109 @@ own 207-tile mining list, which this crate spent none of. Both halves are
 `docs/ECONOMY.md`, "The mine's range" — the arithmetic, the reconstruction,
 the value diff against run97 and run80, and what it leaves open. The word
 moved **8382 → 8404** on them.
+
+---
+
+## 40. The market's ability is Coinage, and the gate was a building (2026-09-18)
+
+Great Lakes' word stood at 8582 with nothing named on the frame. The
+widening named it in one line: the original spends eight draws there and
+this crate seven, and the extra one is at `6c93ad` — an address the
+trace's own table did not carry, which is
+`Leader::use_market@006c91c0+0x1ed`, the single `Random::get(game_random,
+0, 0xffff)` in the whole market.
+
+**§32's narrowing was four-fifths right.** It reads: *no draw in run53's
+whole 24,000-frame trace is made from `use_market`, `do_sell`, `do_buy`,
+`market_speculation` or `calc_market_prices`*. The last four hold.
+`use_market` does not — `report.py … when Leader::use_market 1 0` dates
+**34** frames of it, the first two being **8582** and **8585**, then a
+200-frame cadence (8782, 8982, 9182×3, 10182×4 …). The conclusion drawn
+from it — that the sell branch never runs in this game — was the thing
+the word was waiting on.
+
+### The gate is a tech, and this crate read it off a building
+
+`use_market`'s gate is `(has_tribe_bonus(4) || has_preq(BUY_SELL)) &&
+has_market && !get_nuke_embargo`. `BUY_SELL` is `TypeIndex` **685** —
+`BASE_BONUSTYPES` is 684, so it is the *second* entry of `rules.xml`'s
+`<TECHBONUSES>`, "Can buy and sell resources at the Market" — and
+`has_preq`'s generic arm walks that type's own prerequisites and asks
+`has_tech` of each. It has one: **`<PREQ preq0="Coinage"/>`**.
+
+Coinage is the Commerce line's **second** library tech (`techrules.xml`:
+`WHERE Library`, `GRID_X 1`, `GRID_Y 2`, `AGE 1`; the line is Barter,
+Coinage, Trade, Mercantilism, Finance, Assembly Line, Globalization). The
+**Market building's** own `PREQ0` is *Barter* — Commerce **1**
+(`buildingrules.xml`). So the two are a whole library tech apart, and
+this crate's standing seam — *"owning an active market is taken to imply
+it, which is true of the shipped tree (the Market's own prerequisite is
+the tech)"* — was false on the one word that mattered. Its gate opened on
+Great Lakes **6383**; the original's opens between 8382 and 8582, which
+is where `epoch[Commerce]` reaches 2.
+
+The old gate is not merely early, it is *visibly* early: this crate's own
+shortfall vector already met the sell branch's condition on **8185** and
+**8382** (`need [0, 0, 32, 0, 0, 0]` against `bucket[wealth]` 11 and 27),
+and the original drew on neither. Two refusals below the word, and both
+are the tech.
+
+### The draw is price-free exactly where it matters
+
+`docs/ECONOMY.md` has no market: no `calc_market_prices`, no `do_buy`, no
+`do_sell`. That is why this crate took no draw at all — which branch a
+short good takes is a price question. **Except for wealth.** The
+condition reads
+
+```c
+if ((TVar3 == WEALTH) ||
+   (calc_market_prices(this, TVar3, &price, &need6),
+    (int)(bucket[WEALTH] - price) < need[WEALTH]))
+```
+
+and C's `||` short-circuits, so a wealth shortfall enters the sell branch
+— and spends its draw — without a price ever being computed. Wealth
+cannot be bought with wealth; the AI can only sell for it.
+
+The rotation that draw seeds is price-free too. `rand % 6` picks where to
+start, and a candidate qualifies on stock alone: not knowledge, not
+wealth, not oil, not the good being covered, `type_avail`, `need[g2] ≤
+bucket[g2] − 100`, and (`cap[g2] / 2 ≤ income[g2]` or `bucket[g2] > 199`).
+**And the once-flag is cleared by a candidate passing that test, not by
+the sale going through** (`local_c = 0; uVar5 = 0` sits after the inner
+gate's `if`, not inside it). So "nothing here is sellable" is decidable
+without a price, and it is exactly the case where the outer `while` spends
+one draw and stops.
+
+Both of Great Lakes' first two are that case:
+
+| frame | `need` | `bucket` | sellable |
+|---|---|---|---|
+| 8582 | `[0, 0, 64, 0, 0, 0]` | `[58, 55, 43, 68, 54, 0]` | food 58, timber 55, metal 54 — none clears `need ≤ stock − 100` |
+| 8585 | `[0, 0, 34, 0, 0, 0]` | `[14, 56, 12, 68, 54, 0]` | the same three, the same refusal |
+
+One draw apiece, nothing traded, and the trace agrees on both.
+
+### What is still a seam
+
+Two, and **both lose draws the original takes; neither invents one**:
+
+- A short good that is **not** wealth still takes nothing, because the
+  buy/sell choice is `calc_market_prices`.
+- A wealth shortfall that *does* find something sellable stops after its
+  first draw, where the original sells, raises `bucket[wealth]` by
+  `do_sell`'s price and goes round again — another draw per pass. Run53
+  has frames of three and four draws (9182, 10182) and this is where they
+  must come from; below the word there are none.
+
+The gate's other two terms are unchanged seams: `get_nuke_embargo` is
+taken as zero, and `has_market@006d5410` is still read as "an active
+market building of mine" rather than the original's `num_buildings[0x16]
+!= 0` **and** a city of mine with `city_flags & 0x800`. run97 says the
+substitution is harmless here — who 1's first city carries `0x800` on
+every one of the window's 1,320 blocks, unchanged — so no capture on this
+disk can separate the two, and the seam is stated rather than closed.
+
+**The word moved 8582 → 8619**, where this crate spends an extra
+`Guy::set_anim+0x97a < Unit::do_idle+0x7d` on unit `1/39` against five
+`inc_time` wraps on both sides. East Indies did not move: 9711 either way.

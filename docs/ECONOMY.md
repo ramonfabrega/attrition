@@ -1464,7 +1464,13 @@ far as anything read goes they are as dead as `calc_support`.
   the equilibrium, the eight-tick rota, and the three sync-stream draws a
   good takes when its trend runs out, pinned on run12's frame-0 values.
   What a *trade* does with the price and the flux (`Leader::buy/sell`,
-  `MARKET_SUPPLY_DEMAND`) is still unread.
+  `MARKET_SUPPLY_DEMAND`) is still unread — and **it is now what the AI's
+  own market is waiting on**. `Leader::use_market` draws once per entry
+  into its sell branch, the first on Great Lakes 8582, and the sim takes
+  that draw only where no price decides it: a wealth shortfall with
+  nothing sellable (`docs/AI.md` §40). `calc_market_prices`, `do_buy` and
+  `do_sell` are what would close the rest, and run53 has frames of three
+  and four draws waiting for them.
 - ~~**Costs.**~~ and ~~**Population.**~~ Closed by `docs/COSTS.md`, which
   specifies `UNIT_COST_FACTOR` and its siblings, the ramp, the
   unavailable-resource redirect, the discount tail, `Leader::can_pay` and
