@@ -284,6 +284,25 @@ pub const SITES: &[(u32, Option<u32>, &str)] = &[
     // shuffle, one draw a round over `4 × length` of them, under
     // `Build::init+0x55b`. Its own address, so no chain is needed.
     (0x0062_345a, None, sim::gather::SITE_SHUFFLE),
+    // `Unit::find_attack_pos@00601280+0xea9` — the ring walk's one draw,
+    // and **two chains**, because one address is two mechanics: the
+    // group order's single call on its leader, and the chase each member
+    // then runs for itself (`docs/COMBAT.md` §17). The simulation spends
+    // neither yet; the entries are here so the frame reads as itself
+    // rather than as a bare `602129`, which is a comparison that cannot
+    // fail. `+0x2d` of the *seven*-argument overload `@00602e60` is the
+    // frame between `fight` and the draw, so the `via` names the caller
+    // above it rather than the thunk.
+    (
+        0x0060_2129,
+        Some(0x005f_e184), // `Unit::fight+0xcb4`
+        sim::fight::SITE_ATTACK_POS_FIGHT,
+    ),
+    (
+        0x0060_2129,
+        Some(0x0071_28aa), // `Group::action_attack+0x41a`
+        sim::fight::SITE_ATTACK_POS_GROUP,
+    ),
 ];
 
 /// The header's `kind`: `RONT`, little-endian.

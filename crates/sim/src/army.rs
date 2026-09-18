@@ -1944,7 +1944,15 @@ impl Sim {
             self.armies[w].list[slot].hurry = 0;
         }
         if diff == 0 && self.nation[tw as usize].human {
-            // The two-unit probe is a group order (seam); nothing changes.
+            // SEAM, and **not** a quiet one: `docs/ARMY.md` §12's probe
+            // (`find_target@006f69b0:1120`-`1199`) is the whole of Great
+            // Lakes' frame 8186, where the long word parts. The comment
+            // that used to stand here said "nothing changes"; it is the
+            // frame's forty-eight `Unit::find_attack_pos` draws, the six
+            // mandatory attack orders on the farm `0/2004`, the stance 5
+            // and the pushed group. `docs/COMBAT.md` §17 specifies it and
+            // `run53_s_8186_is_find_target_s_probe_and_its_ring_walks`
+            // pins what the original does on the frame.
             return;
         }
         let target = Obj::Building(self.cities[c].building);

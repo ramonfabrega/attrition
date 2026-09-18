@@ -1065,7 +1065,10 @@ and last units** (`get_unit(0)`, `get_unit(num_units − 1)`), pushed with
 `find_building(target, SEARCH_FRIENDLY, L, −1, 0x200, FILTER_TYPE, FARM
 0x1a1)`: the farm's `ever_seen |= 1 << me`, `action_stance(5)`,
 `action_attack(farm, L, 1, QUEUE_NEW, 0)`, then `action_move_to` back to
-the first unit's position, `MOVE_TO`, `QUEUE_LAST`; else
+~~the first unit's position~~ **the pair's `GroupData::find_leader`**
+(`:1152`, read back at `:1191`; run19's block 8187 puts every member's
+`GroupMoveOrder` origin on `1/40` and its `oxx` at 40 — `docs/COMBAT.md`
+§17.5), `MOVE_TO`, `QUEUE_LAST`; else
 `action_move_to(target, QUEUE_NEW, ATTACK_TO)`. Then `normalize()`,
 `L.frame_attacked = frame`, `L.attacked_by = me`. Two units go and poke a
 farm.

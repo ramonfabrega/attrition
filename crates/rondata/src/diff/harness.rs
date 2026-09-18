@@ -3460,6 +3460,226 @@ mod tests {
         );
     }
 
+    /// **Great Lakes 8186 is `Army::find_target`'s two-unit probe, and the
+    /// draw stream bounds its cast** — item 324, `docs/COMBAT.md` §17.
+    ///
+    /// The word and the sequence both part here, six draws against
+    /// fifty-four, and forty-six of the fifty-four are one address:
+    /// `Unit::find_attack_pos@00601280+0xea9`, which
+    /// [`trace::SITES`](crate::trace::SITES) printed raw until this item
+    /// named it. `report.py … when` says the address is reached on
+    /// **two** frames of run53's 24,000 — this one and 17656 — and both
+    /// are `Army::find_target` frames, which is what says the two belong
+    /// to one mechanic rather than to combat in general.
+    ///
+    /// **What the frame is.** `find_target@006f69b0:1120`-`1199` is the
+    /// probe `crates/sim/src/army.rs` files as "a group order (seam);
+    /// nothing changes": two units off the army (`ArmyData::get_unit(0)`
+    /// and `get_unit(count − 1)`), `Groups::push_group`, a
+    /// `find_building(SEARCH_FRIENDLY, …, 0x200, FILTER_TYPE, 0x1a1)` —
+    /// type 417 is `FARM` — then `action_stance(5)`,
+    /// `action_attack(farm, mandatory)` and `action_move_to(leader)`.
+    /// `Group::action_attack@00712490:215` calls `find_attack_pos` once,
+    /// on the leader; every member that takes the order then runs its own
+    /// call from `Unit::fight@005fd4d0+0xcb4`'s chase.
+    ///
+    /// **The bound is the assertion.** One call cannot draw more than
+    /// [`sim::fight::ATTACK_POS_CAP_RANGED`] times, so forty-six draws
+    /// need at least four calls — a lower bound on the cast taken from
+    /// the draw stream **alone**, with no hypothesis about who is on the
+    /// frame. run19's blocks 8186 and 8187 then name the cast
+    /// independently: six of player 1's units take the mandatory attack
+    /// order on the farm `0/2004`. Four ≤ six, and if a later change
+    /// makes either number move the wrong way this says so.
+    #[test]
+    fn run53_s_8186_is_find_target_s_probe_and_its_ring_walks() {
+        let (Some(dpath), Some(tr)) = (
+            dump("gamelog-run19-window-8174-8192.txt"),
+            trace("rontrace-run53.log"),
+        ) else {
+            eprintln!("skipping: no run19/run53 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        use sim::fight::{ATTACK_POS_CAP_RANGED, SITE_ATTACK_POS_FIGHT, SITE_ATTACK_POS_GROUP};
+        // **The frame, entry for entry, off the original's own trace.**
+        let labels = tr.labels(PROBE_FRAME);
+        let want: Vec<&str> = std::iter::once(sim::army::SITE_FIND_TARGET_COIN)
+            .chain(std::iter::repeat_n(sim::army::SITE_FIND_TARGET_SCORE, 3))
+            .chain(std::iter::repeat_n(SITE_ATTACK_POS_GROUP, 2))
+            .chain(std::iter::once(sim::anim::SITE_IDLE_ANIMAL))
+            .chain(std::iter::repeat_n(SITE_ATTACK_POS_FIGHT, 46))
+            .chain(std::iter::once(sim::farms::SITE_CHANCE))
+            .collect();
+        assert_eq!(
+            labels, want,
+            "Great Lakes {PROBE_FRAME} is not the probe's frame any more"
+        );
+        // 17656 is the same shape with a different cast — the second and
+        // last frame in 24,000 that reaches the address at all. It is here
+        // so a reading of 8186 alone cannot be mistaken for the mechanic.
+        let other = tr.labels(17_656);
+        assert_eq!(
+            (
+                other.iter().filter(|l| *l == SITE_ATTACK_POS_GROUP).count(),
+                other.iter().filter(|l| *l == SITE_ATTACK_POS_FIGHT).count(),
+            ),
+            (4, 10),
+            "17656's two ring-walk families moved"
+        );
+        // **The bound, from the stream alone.**
+        let chases = labels
+            .iter()
+            .filter(|l| *l == SITE_ATTACK_POS_FIGHT)
+            .count();
+        let at_least = chases.div_ceil(ATTACK_POS_CAP_RANGED);
+        assert_eq!(
+            (chases, at_least),
+            (46, 4),
+            "the chase family's size or its per-call ceiling moved"
+        );
+        // **And the cast, from the dump.** The probe's orders land in the
+        // block *after* the frame that issues them, so 8186 → 8187 is the
+        // value diff beside the word.
+        let text = crate::capture::read(&dpath);
+        let log = Log::parse(&text);
+        let states = log.frame_states();
+        let at = |n: i64| states.iter().find(|f| f.n == n).expect("block");
+        let (before, after) = (at(PROBE_FRAME), at(PROBE_FRAME + 1));
+        let attackers = |f: &crate::gamelog::Frame| -> Vec<(i64, i64)> {
+            f.units
+                .iter()
+                .filter(|u| {
+                    u.orders.iter().any(|o| {
+                        o.named_index() == Some(10)
+                            && o.mandatory == Some(1)
+                            && (o.ox, o.whom, o.uid) == (Some(2004), Some(0), Some(4))
+                    })
+                })
+                .map(|u| (u.who, u.o))
+                .collect()
+        };
+        assert!(
+            attackers(before).is_empty(),
+            "the farm is already under a mandatory attack order at {PROBE_FRAME}: {:?}",
+            attackers(before)
+        );
+        assert_eq!(
+            attackers(after),
+            PROBE_CAST,
+            "the probe's cast moved — {} units take the farm order",
+            attackers(after).len()
+        );
+        assert!(
+            at_least <= PROBE_CAST.len(),
+            "the draw stream needs {at_least} `find_attack_pos` calls and the \
+             dump names only {} units to make them",
+            PROBE_CAST.len()
+        );
+        // **Where each of them is sent** — the chase's own answer, one
+        // plain `MOVEORDER` a unit, and the half of this frame a draw-for-
+        // draw agreement could never check on its own.
+        let sent: Vec<(i64, i64, i64, i64)> = after
+            .units
+            .iter()
+            .filter(|u| PROBE_CAST.contains(&(u.who, u.o)))
+            .map(|u| {
+                let m = u
+                    .orders
+                    .iter()
+                    .find(|o| o.kind == "MOVEORDER")
+                    .expect("the cast's chase move");
+                (u.who, u.o, m.x.unwrap_or(-1), m.y.unwrap_or(-1))
+            })
+            .collect();
+        assert_eq!(
+            sent, PROBE_SENT,
+            "the six chase destinations moved; the farm `0/2004` stands at \
+             (2112, 31296)"
+        );
+        // **Where the six come from**: `get_unit(0)` and `get_unit(n − 1)`
+        // are the army group's first and last **captains**, and
+        // `Group::add`'s subordinate recursion (`docs/GROUPS.md` §4.1)
+        // brings each one's two followers. The army's standing group is
+        // fifteen units in five squads of three, and that is what makes
+        // two adds into six orders.
+        let squad: Vec<(i64, i64)> = before
+            .units
+            .iter()
+            .filter(|u| u.who == 1 && u.group == Some(64))
+            .map(|u| (u.o, u.o_up.unwrap_or(i64::MIN)))
+            .collect();
+        assert_eq!(
+            squad, PROBE_SQUADS,
+            "the army's standing group is no longer five squads of three"
+        );
+        // The stance the probe sets, and the group it pushes: both are
+        // `action_stance(5)` and `push_group`'s slot, and both are in the
+        // record, so neither is a reading.
+        let stance = |f: &crate::gamelog::Frame, k: (i64, i64)| {
+            f.units
+                .iter()
+                .find(|u| (u.who, u.o) == k)
+                .and_then(|u| Some((u.stance?, u.group?)))
+        };
+        for k in PROBE_CAST {
+            assert_eq!(
+                (stance(before, *k), stance(after, *k)),
+                (Some((0, 64)), Some((5, 65))),
+                "{k:?} does not take the probe's stance and group"
+            );
+        }
+    }
+
+    /// The frame Great Lakes' long word has parted on since item 323 — the
+    /// probe's own. Named because three assertions share it and its
+    /// successor block; the floor itself is
+    /// [`LONG_WORD_GREAT_LAKES`], which this must not be confused with.
+    const PROBE_FRAME: i64 = 8186;
+
+    /// The six units of player 1 that take the probe's mandatory attack
+    /// order on the farm `0/2004`, from run19's block 8187. `1/40` is the
+    /// leader — every member's `GroupMoveOrder` carries `oxx 40` — and its
+    /// own `form_id` is 3 rather than 0.
+    const PROBE_CAST: &[(i64, i64)] = &[(1, 27), (1, 28), (1, 29), (1, 40), (1, 41), (1, 42)];
+
+    /// The army's standing group at block 8186 — `(o, o_up)` for every
+    /// unit of player 1 in slot 64, in the record's own order. Five
+    /// captains at `o_up −1`, each followed by two units chained on the
+    /// one before, which is what turns the probe's two `Group::add` calls
+    /// into six orders (`docs/GROUPS.md` §4.1, `docs/COMBAT.md` §17.1).
+    const PROBE_SQUADS: &[(i64, i64)] = &[
+        (27, -1),
+        (28, 27),
+        (29, 28),
+        (31, -1),
+        (32, 31),
+        (33, 32),
+        (34, -1),
+        (35, 34),
+        (36, 35),
+        (37, -1),
+        (38, 37),
+        (39, 38),
+        (40, -1),
+        (41, 40),
+        (42, 41),
+    ];
+
+    /// Where the chase sends each of them: the plain `MOVEORDER` that is
+    /// in front of the attack order on block 8187 and was not there on
+    /// 8186. `1/40`, `1/41` and `1/42` are put within half a tile of the
+    /// farm's own corner; `1/27`, `1/28` and `1/29` are sent to a second
+    /// cluster two thousand units out, which this item has **not**
+    /// established the arm of.
+    const PROBE_SENT: &[(i64, i64, i64, i64)] = &[
+        (1, 27, 4344, 29736),
+        (1, 28, 4440, 29880),
+        (1, 29, 4200, 29496),
+        (1, 40, 2424, 30888),
+        (1, 41, 2280, 30888),
+        (1, 42, 2568, 31320),
+    ];
+
     /// **run54 — East Indies at thirteen times the scored length, read at
     /// last** (2026-09-01).
     ///

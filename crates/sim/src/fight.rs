@@ -8,12 +8,50 @@
 //! approaches the target in a straight line (no `find_attack_pos`), a squad
 //! is a set of figures that share a captain index and nothing else, and every
 //! nation, wonder and patriot layer arrives through [`combat::Modifiers`].
+//!
+//! The first of those is **named but not spent**: [`SITE_ATTACK_POS_FIGHT`]
+//! and [`SITE_ATTACK_POS_GROUP`] exist so the two chains the original draws
+//! on read as themselves in a trace comparison rather than as the bare
+//! `602129` the harness printed until item 324. Nothing in this crate marks
+//! either yet — `docs/COMBAT.md` §17 is the specification and says so.
 
 use crate::attrition::Domain;
 use crate::combat::{self, Obj, Profile, Side, Sixteenths, Stance, Taken, mask, role};
 use crate::movement::{Angle, find_angle};
 use crate::world::{Pos, UNITS_PER_CELL, UNITS_PER_TILE, vector_dist};
 use crate::{Player, Sim};
+
+/// `Unit::find_attack_pos@00601280+0xea9` — the ring walk's one draw
+/// (`docs/COMBAT.md` §17), reached through the seven-argument overload
+/// `find_attack_pos@00602e60`, whose `+0x2d` is the return address the
+/// `ebp` chain shows, from `Unit::fight@005fd4d0+0xcb4`. That is the
+/// chase: a unit whose attack order's target is out of range asks where
+/// to stand and walks there.
+pub const SITE_ATTACK_POS_FIGHT: &str = "Unit::find_attack_pos+0xea9 < Unit::fight+0xcb4";
+
+/// The same draw from `Group::action_attack@00712490+0x41a`, which calls
+/// the nine-argument form **once**, on the group's leader, and only when
+/// `ObjectData::is_in_range` says the leader cannot already shoot
+/// (`action_attack@00712490:215`). One call a group order, so this label
+/// can never run longer than one call's budget.
+pub const SITE_ATTACK_POS_GROUP: &str = "Unit::find_attack_pos+0xea9 < Group::action_attack+0x41a";
+
+/// The most draws **one** `find_attack_pos` call can take when the
+/// stand-off `local_18` is over `0x300` — the ranged arm.
+///
+/// `00601280`'s ring loop counts iterations in `local_28` and stops on
+/// `iter - 4 >= local_24`, where `local_24` starts at 100 and is cut to
+/// `min(local_24, iter + 11)` the first time a candidate beats the
+/// best-so-far (`60215d`-`60216a`). A candidate that reaches the draw
+/// *always* beats a best-so-far of −1, so the cut happens on the first
+/// draw and the loop then runs fourteen more iterations: fifteen draws is
+/// the ceiling, whatever the map looks like. `docs/COMBAT.md` §17.4.
+pub const ATTACK_POS_CAP_RANGED: usize = 15;
+
+/// The same ceiling on the near arm — `local_18 <= 0x300`, where the cut
+/// is `min(local_24, iter)` (`60216f`-`602179`) and three iterations
+/// follow the first draw.
+pub const ATTACK_POS_CAP_NEAR: usize = 4;
 
 /// A unit that is not a combatant for the search: no type, no attack.
 fn no_profile() -> Profile {
