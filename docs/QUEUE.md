@@ -28,11 +28,10 @@ The loop before it landed 26 items, 20 word-moving, **GL +1,503, EI
   second lane may run a parked value-diff row *beside* the word's frame,
   the commander stops at twenty landings, and nothing under `docs/` is
   edited while a gate runs.
-- **IN FLIGHT — `capture-lane-2`**, ref `74a77ee7`, branch
-  `worktree-capture-lane-2`: run99 East Indies `[8780, 10400)` reached
-  its window by 09:00; Great Lakes `[9340, 10900)` follows. **When it
-  reports: `ccc merge 74a77ee7 --no-ff`, gate, `ccc push --base`, `ccc
-  rm`.** It touches only `tools/gamelog/captures.txt` and its journal.
+- **Both frontiers have runway again** (`capture-lane-2`, landed and
+  reaped): run99 East Indies `[8780, 10400)`, 1,620 blocks, values on
+  9711; run100 Great Lakes `[9340, 10900)`, 1,560 blocks, values to
+  10899. `tools/gamelog/captures.txt` has the checks; nothing in flight.
 - Two items open, 33 parked. **Fable backlog: seven Loop
   items** (251, 335, 341, 343, 356, 321, 313); 356 and 321 are guard shapes and first in line.
 
@@ -55,8 +54,8 @@ score names it.
     `use_market+0x1ed` draws against this crate's one, plus an animation
     tail of one `set_anim+0x104b` against three. `docs/AI.md` §41 names the
     `LEADERS=9` window that reads it. Named on the frame, so **no widening
-    owed**. run97 dumps 9182 with 167 frames above; `capture-lane-2` is
-    extending that above 9349 if it lands.
+    owed**. run97 dumps 9182 with 167 frames above, and run100 carries
+    the same game from 9340 to 10899.
 
 342. **Host choice seats the scholar on the wrong university** — 338's
     residue, re-pinned three times. **Re-measure before diagnosing**: the
