@@ -104,6 +104,53 @@ probably be decided together. Until then a brief has to tell its worker to
 read the whole log, which is a rule living in prose — the shape
 `CLAUDE.md` says gets broken within the week.
 
+(341) **The click-free lane cannot take a capture worth having, so every
+scored capture must drive the cursor.** Ramon's flag, 2026-09-18: "i
+thought we had figured out occluded/non main focus captures". We had — for
+one job, and not this one. The finding is about the tool and rests on the
+tool's own source, not on any run.
+
+`tools/explore/unattended_capture.py` needs no TCC grant and no human at
+the menu, and exposes `--end-frame`, `--seed`, `--timeout`. But the window
+and the detail live in `live_session.stage()` and are **hardwired**:
+`rise2.ini` gets `LogStartFrame 18` and `LogEndFrame 36`, and every
+`gamelog.ini` category is forced to `0` except `[End Frame] UNITS=3` and
+`[Misc Logging] COMMANDMANAGER=1`. That is right for the job it was built
+for — startup evidence and autostart receipts — and it cannot serve the sim
+frontier, which needs a **late window** (run96 `[23960, 24000)`, run97
+`[8030, 9350)`) and **rich categories** (run80/run96's `BUILDS=7,
+CITIES=5, GUYS=2, LEADERS=9, DEATHS=1`).
+
+So every capture this project scores against goes down the **clicked**
+lane: three macOS permissions, a driven cursor, and correctness that
+depends on being the frontmost window. That is a coupling, not a bug —
+it means the capture lane can only run on an unattended box. Removing it
+would make the lane safe to run whenever, which is worth more than any
+single capture on the list.
+
+**The fix looks small and the keys already exist**: `stage()` already
+writes `LogStartFrame`, `LogEndFrame` and every `[End Frame]` key, so the
+work is exposing them through `unattended_capture.py` rather than pinning
+them, plus a caller-supplied category set.
+
+**A lesson worth keeping on its own**, separate from the above and from
+why it surfaced: a capture that loses focus mid-run fails in a shape that
+**mimics a revoked permission** — on 2026-09-18 a hang with the game alive
+at 68 % CPU and zero FRAME records, then a `perm_probe` miss two pixels
+wide, while TCC showed the driver evaluated with no denial. The
+discriminator is cheap and belongs in the runbook: **check what is
+frontmost before blaming TCC.** Contention with whoever owns the machine
+is the normal condition of a shared box, not an anomaly.
+
+(343) **The game plays sound at whoever is near the machine**, and nothing
+turns it off. Ramon's flag the same day. The settings are three tags in
+`PlayerProfile/Player.dat` — `<MUSIC_VOL value="128"/>`, `<SOUND_VOL
+value="192"/>`, `<TAUNT_VOL value="192"/>` — the same file and the same
+regex-substitution mechanism `unattended_capture.py`'s `set_map()` already
+uses for `<MAP_STYLE>`, already covered by `live_session`'s settings backup
+and restore. A few lines in a place the tool already edits, with the
+restore already written, and it makes an unattended run a good neighbour.
+
 (318) **A gate that overlaps a queue rewrite fails on paperwork that is
 fine.** `the_handoff_s_endpoint_is_the_pinned_counts` and
 `the_handoff_s_scoreboard_is_the_floors` read `docs/QUEUE.md` from disk, so
