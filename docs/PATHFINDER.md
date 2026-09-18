@@ -1596,8 +1596,9 @@ bought — and plans a **five**-entry stack where the original plans **six**.
 Read top-down, the original walks `(5,38) → (4,38) → (3,38) → (2,39) →
 (2,40) → (3,41)` and this crate `(5,38) → (4,38) → (3,39) → (3,40) →
 (3,41)`. Cells `(3,39)` and `(3,40)` are two of the four the **human
-capital's 6 × 6 footprint** sits on (tiles 13–18 × 157–162, nine blocked
-tiles a cell); the original goes round them to the west and this crate
+capital** sits on — a Small City, 7 × 7 at corner tile `(13, 157)`, whose
+blocked template paints 6 × 6 at tiles 13–18 × 157–162, nine blocked tiles
+a cell (§20.2); the original goes round them to the west and this crate
 through them. Its **position** then parts on block 8014, the frame the
 routes' headings separate — `(3912, 29680)` against `(3912, 29677)`.
 
@@ -1646,7 +1647,7 @@ it:
   and `iroquois` were each forced on and off; none produces the original's
   stack, and three of them move the *destination*, which is already pinned.
 
-### 20.2 It is the fog, and the reveal is not a unit's disc (run95)
+### 20.2 It is the fog, and the writer is the building itself (run95)
 
 ~~Why the fog is the weaker of the two, and what is still open.~~ **The
 capture overturned this section's conclusion the same day it was written,
@@ -1695,33 +1696,59 @@ radius-1 pair is, and a radius-1 disc centred on a **cell's own centre
 half-cell** is not something `Object::update_seen` produces for a unit at
 all.
 
-**So it is a second reveal this simulation does not make, and
-`docs/VISION.md` §6 already names one.**
-`Unit::update_local_seen@0060e410` lights `circle_radius[type->x_size]`
-points around an object's **own** half-cell into `seen2` and `seen`, with
-`ObjectData::visible` as the **mask** rather than the owner's bit — so a
-human object whose `visible` carries player 1's bit lights the *AI's*
-plane, which is exactly the fourteen. Nothing in this crate sets
-`visible`. The reveal lands between blocks **7937 and 7998**: run93's 7936
-still has all fourteen dark and run95's 7999 already has them lit, and the
-planes are identical at 7932 (§20.1).
+**So it is a second reveal this simulation does not make**, and item 322
+found the writer — not by a name grep but by the offset search item 320
+booked, and then not by reading at all. ~~`Unit::update_local_seen`, with
+`ObjectData::visible` as the mask.~~ **`Wall::update_local_seen@0063ed50`,
+driven by `Wall::check_ever_seen@0063ce70`**, whose mask is the building's
+own `ever_seen` byte and whose rectangle is its footprint grown by one
+tile each way. `docs/VISION.md` §6.1 is the whole mechanic.
 
-**And inside that window nothing happened that could have called it.**
-`update_local_seen` is reached only from `update_seen(0)`, and the three
-callers of `update_seen(0)` each need something the window does not have:
-`update_all_seen` runs at frame 7933 — a block before run93's 7936, which
-is still dark — and `Build::activate`, `Wall::activate` and `Unit::init`
-need a roster change that did not occur. The rosters are identical at
-blocks 7932 and 7999: **`BUILDDATA` 56, `WALLDATA` 56, `UNITDATA` 180,
-`ANIMALDATA` 80.** Nothing was built, walled, born or killed. So the
-successor inherits an elimination rather than a candidate, and
-`docs/VISION.md` §7 carries the whole table — including that
-`ObjectData +0x3a` is `infiltrated` (script-written only), not `visible`,
-which is `+0x40`.
+**The dump had the answer printed on every record.** `BUILDDATA` writes
+`ever_seen` and `ever_seen_completed` from `BUILDS=1` and nothing here had
+ever parsed them. At block 8002 exactly **two** of player 0's seven
+buildings read `3` — the Small City `0/2000` at half-cell `(8, 80)` and
+`0/2001` at `(11, 74)` — where the other five read `1`, and the two are
+the centres of the two patches. One `grep` of a block already on disk,
+against the session item 320 spent eliminating the writers a name grep can
+find.
+
+**And the geometry is the type's size, not the blocked mask.** A Small
+City is **7 × 7** — `X_SIZE 7`, and the dump's own `mylos 15` is
+`LOS 12 + x_size / 2` (`docs/VISION.md` §2.1) — while the *blocked*
+region `BuildType::mask_me`'s template paints inside it is **6 × 6** at
+tiles 13–18 × 157–162, which is the `blocked 9` run95's `WORLD` scan
+carries on each of the four cells `(3, 39)`, `(3, 40)`, `(4, 39)`,
+`(4, 40)`. `update_local_seen` walks the *type's* rectangle: corner tile
+`(13, 157)`, `i` and `j` from `−1` to 7, tiles 12–20 × 156–164, half-cells
+**6–10 × 78–82**. The columns at `x` 9 and 10 and the three cells
+`(8, 78..80)` were already lit by the scout's own disc; the twelve that
+were not are twelve of the fourteen, and `0/2001`'s own rectangle is the
+other two.
+
+The reveal lands between blocks **7937 and 7998**: run93's 7936 still has
+all fourteen dark and run95's 7999 already has them lit, and the planes are
+identical at 7932 (§20.1). `check_ever_seen` runs on `frame & 7 == who`,
+so player 0's buildings check on 7944, 7952, … 7992 — every one of them
+inside that window.
+
+~~And inside that window nothing happened that could have called it.~~
+**That elimination was sound and its premise was too narrow.** It
+enumerated the callers of `update_seen(0)`; `update_local_seen` is vtable
+slot `+0x164` and has **ten** callers, of which `Wall::check_ever_seen`,
+`Build::process`, `Build::do_attack`, `Build::check_capture`,
+`Build::do_missile_launch` and `Build::start` are none of them. A grep of
+the *slot* rather than the name is what finds them, which is the rule
+`CLAUDE.md` already carried and item 320 had already been bitten by once
+the same day. (The roster counts it leaned on were also wrong in the other
+direction: the block carries **28** buildings, 7 of player 0's and 21 of
+player 1's, and 56 was a count of `BEGIN` lines over a nested record.)
 
 The assertion is
 `run95_s_block_8002_is_where_the_fog_parts_and_the_price_with_it`, which
-pins the fourteen by place and the original's 328 and 1 by value.
+now pins the plane **exact** — 14,400 of 14,400 — and `ever_seen` record
+for record on all 28 buildings. With it Great Lakes' word went
+**8031 → 8186**.
 
 **And the word at 8031 is this route's own**, which was worth measuring
 rather than assuming. `RON_DEBUG_SITES=8025-8035` with

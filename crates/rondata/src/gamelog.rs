@@ -1770,6 +1770,17 @@ pub struct BuildDump {
     /// `WallData::construct_hits` — the hit points the site has been
     /// raised to, logged as `(int)construct_hits`.
     pub construct_hits: Option<i64>,
+    /// `WallData::ever_seen` (`Wall +0x62`) and `ever_seen_completed`
+    /// (`+0x63`) — one bit per player: who has ever had this building's
+    /// footprint in **current** line of sight, and who has had it there
+    /// while it was finished. `Wall::check_ever_seen@0063ce70` grows them
+    /// every eighth frame, and a newly arrived foreign bit is what makes
+    /// the building light its own footprint into that player's fog
+    /// (`docs/VISION.md` §6.1). They sit on the `WALLDATA` block. Written
+    /// from **`BUILDS=1`**; unparsed until item 322, which is how Great
+    /// Lakes' 8031 stood for a day on a reveal nobody could name.
+    pub ever_seen: Option<i64>,
+    pub ever_seen_completed: Option<i64>,
     /// `BuildData::queued` (`+0x82`) — how many entries of the queue are
     /// live. Written from **`BUILDS=1`**; `None` below it.
     pub queued: Option<i64>,
@@ -2734,6 +2745,8 @@ fn build_of(b: Block<'_>) -> Option<BuildDump> {
         job_counter: wall.and_then(|w| w.int("job_counter")),
         constr_time: wall.and_then(|w| w.int("constr_time")),
         construct_hits: wall.and_then(|w| w.int("(int)construct_hits")),
+        ever_seen: wall.and_then(|w| w.int("ever_seen")),
+        ever_seen_completed: wall.and_then(|w| w.int("ever_seen_completed")),
         queued: b.int("queued"),
         queue: b.kid("BUILDQUEUE").map(queue_of).unwrap_or_default(),
     })

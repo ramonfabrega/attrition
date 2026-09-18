@@ -2772,15 +2772,23 @@ mod tests {
     ///   over ground the **human** occupies.
     /// - the original's own `calc_cost` for the two steps, off the trace.
     ///
-    /// `docs/VISION.md` §6's `Unit::update_local_seen@0060e410` is the
-    /// leading candidate and the successor's first read: it lights
-    /// `circle_radius[type->x_size]` points around an object's own
-    /// half-cell into `seen2` **with `ObjectData::visible` as the mask**,
-    /// so a human object whose `visible` carries player 1's bit lights the
-    /// AI's plane. Nothing in this simulation sets `visible`. What would
-    /// falsify it is a `visible` of 0 on those objects at a block inside
-    /// [7937, 7998] — the window the reveal lands in, since run93's 7936
-    /// still has all fourteen dark.
+    /// **Both are now zero** (item 322, 2026-09-17), and the writer was
+    /// neither `visible` nor a disc. The dump prints `ever_seen` on every
+    /// `BUILDDATA` record, and at block 8002 **exactly two** of player 0's
+    /// seven buildings carry `3` — the capital `0/2000` at half-cell
+    /// `(8, 80)` and `0/2001` at `(11, 74)` — where the other five carry
+    /// `1`. Those two are the centres of the two patches. What writes it is
+    /// `Wall::check_ever_seen@0063ce70`, every eighth frame from
+    /// `Wall::process`, and the reveal it triggers is
+    /// `Wall::update_local_seen@0063ed50` over the footprint **grown by one
+    /// tile each way** — which for the Small City's 7 × 7 at corner tile
+    /// `(13, 157)` is tiles 12–20 × 156–164, exactly half-cells 6–10 × 78–82.
+    /// `docs/VISION.md` §6.1.
+    ///
+    /// So the assertion now pins the plane **exact** — 14,400 of 14,400 —
+    /// and it still fails in both directions: losing the reveal brings the
+    /// fourteen back, and lighting the wrong rectangle adds cells of its
+    /// own.
     #[test]
     fn run95_s_block_8002_is_where_the_fog_parts_and_the_price_with_it() {
         let Some(inst) = install() else { return };
@@ -2883,34 +2891,66 @@ mod tests {
             })
             .collect();
         eprintln!("run95 8002: {} half-cells part {bad:?}", bad.len());
-        let want: Vec<(i32, i32)> = vec![
-            (10, 73),
-            (11, 73),
-            (6, 78),
-            (7, 78),
-            (6, 79),
-            (7, 79),
-            (6, 80),
-            (7, 80),
-            (6, 81),
-            (7, 81),
-            (8, 81),
-            (6, 82),
-            (7, 82),
-            (8, 82),
-        ];
         assert_eq!(
-            bad.iter().map(|&(x, y, _, _)| (x, y)).collect::<Vec<_>>(),
-            want,
-            "the fog plane no longer parts on exactly these fourteen \
-             half-cells at block 8002 — the two the scout's route reads are \
-             (7,79) and (7,81), and a landing that lights them should empty \
-             this list rather than change it"
+            bad,
+            vec![],
+            "run95's block 8002 fog plane parts from this crate's. Until \
+             item 322 it parted on fourteen half-cells — (10,73), (11,73) \
+             and the block x 6-8, y 78-82, every one the AI's bit over \
+             ground the human holds — which is the reveal \
+             `Wall::check_ever_seen` makes when a scout first lays eyes on \
+             a building (`docs/VISION.md` §6.1). Those fourteen coming back \
+             is that mechanic lost; anything else is a reveal lighting the \
+             wrong rectangle"
         );
-        assert!(
-            bad.iter().all(|&(_, _, o, t)| t == o | 2),
-            "a differing half-cell is no longer the AI's own bit over \
-             ground the human holds: {bad:?}"
+
+        // **And `ever_seen` itself, record for record.** This is the byte
+        // the reveal hangs off, and the dump has printed it on every
+        // `BUILDDATA` since `BUILDS=1`: the capital `0/2000` and `0/2001`
+        // are the only two of player 0's seven the AI has laid eyes on, and
+        // they are the centres of the two patches. Comparing the byte and
+        // not only the plane is what tells "the reveal fired late" from
+        // "the reveal fired on the wrong building".
+        let theirs_builds = parsed.frame_builds(8002);
+        assert_eq!(
+            theirs_builds.len(),
+            28,
+            "run95's block 8002 no longer carries 28 buildings — 7 of \
+             player 0's and 21 of player 1's — so it is a different game"
+        );
+        let mut parting = Vec::new();
+        for r in &theirs_builds {
+            let Some(want) = r.ever_seen else { continue };
+            let Some(b) = built
+                .sim
+                .buildings
+                .iter()
+                .position(|b| i64::from(b.owner) == r.who && i64::from(b.index) == r.o)
+            else {
+                continue;
+            };
+            let got = i64::from(built.sim.buildings[b].ever_seen);
+            if got != want {
+                parting.push((r.who, r.o, got, want));
+            }
+            // `ever_seen_completed` rides along: it is the same scan under
+            // `is_active`, and the two unfinished buildings `1/2019` and
+            // `1/2020` are what tell the pair apart — `2` against `0`.
+            if let Some(wc) = r.ever_seen_completed {
+                let gc = i64::from(built.sim.buildings[b].ever_seen_completed);
+                if gc != wc {
+                    parting.push((r.who, -r.o, gc, wc));
+                }
+            }
+        }
+        assert_eq!(
+            parting,
+            vec![],
+            "`ever_seen` parts on run95's block 8002, as (who, o, ours, \
+             theirs), `o` negated for `ever_seen_completed`. The two that \
+             matter are player 0's 2000 and 2001, which read 3 — the AI \
+             has seen them — where the other five read 1 \
+             (`docs/VISION.md` §6.1)"
         );
     }
 

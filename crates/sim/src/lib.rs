@@ -1068,6 +1068,15 @@ pub struct Building {
     /// `BuildData +0x78`: this dock's slot in its owner's registry
     /// (`docs/TRANSPORT.md` §5.1), while it is active.
     pub dock_slot: Option<usize>,
+    /// `WallData::ever_seen` (`Wall +0x62`) and `ever_seen_completed`
+    /// (`+0x63`) — the dump prints both under those names. One bit per
+    /// player: who has ever had this building's footprint in **current**
+    /// line of sight, and who has had it there while it was finished.
+    /// `Wall::check_ever_seen@0063ce70` grows them, and a newly arrived
+    /// foreign bit is what makes the building light itself into that
+    /// player's fog (`docs/VISION.md` §6.1).
+    pub ever_seen: u8,
+    pub ever_seen_completed: u8,
 }
 
 pub use farms::Farm;
@@ -1571,6 +1580,8 @@ impl Sim {
             gather_bumped: false,
             dock_slot: None,
             farm: Farm::default(),
+            ever_seen: 0,
+            ever_seen_completed: 0,
         });
         self.buildings.len() - 1
     }

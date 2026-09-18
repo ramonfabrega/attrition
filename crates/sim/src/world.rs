@@ -811,6 +811,24 @@ impl World {
         self.fog[i] != before
     }
 
+    /// `World::set_seen2@006b4bb0` with its `param_4` **set** — the call
+    /// `Wall::update_local_seen` makes for an ordinary building. It ors
+    /// `mask` into `seen2` (and the cell's `WData +0x14`, which this world
+    /// does not keep) and leaves `seen` alone, which is what keeps the
+    /// second reveal from feeding back into
+    /// [`Sim::check_ever_seen`](crate::Sim::check_ever_seen): that predicate
+    /// reads the *current* line of sight, so a building lighting its own
+    /// footprint must not make its neighbour think it has been spotted.
+    /// Answers whether `seen2` changed. `docs/VISION.md` §6.1.
+    pub fn set_seen2_only(&mut self, fx: i32, fy: i32, mask: u8) -> bool {
+        let Some(i) = self.fog_index(fx, fy) else {
+            return false;
+        };
+        let before = self.fog[i];
+        self.fog[i] = before | mask;
+        self.fog[i] != before
+    }
+
     /// The index of a fog cell, when there is a fog grid and the pair is on
     /// it.
     fn fog_index(&self, fx: i32, fy: i32) -> Option<usize> {

@@ -472,6 +472,168 @@ impl Sim {
             self.update_seen_build(b);
         }
     }
+
+    // ------------------------------------------------------------------
+    // §6.1 — the second reveal: a building the enemy has laid eyes on
+    // ------------------------------------------------------------------
+
+    /// `LeaderData +0x6929` — the byte `check_ever_seen` masks the line of
+    /// sight with when the building is unstarted, and the byte its meet
+    /// loop tests each other leader by: the leader's own bit plus every
+    /// leader allied with it.
+    pub(crate) fn seen_ally_mask(&self, who: crate::Player) -> u8 {
+        let mut m = 1u8 << (who & 7);
+        for i in 0..self.players.len().min(8) {
+            let o = i as crate::Player;
+            if o != who && self.is_ally(who, o) {
+                m |= 1 << i;
+            }
+        }
+        m
+    }
+
+    /// `Wall::check_ever_seen@0063ce70` — who has ever *looked* at this
+    /// building.
+    ///
+    /// The scan is the footprint, cell by cell, of the **current** line of
+    /// sight (`World +0x15c`, [`World::seen`](crate::world::World::seen)),
+    /// ored into `ever_seen`; while the building is unstarted the owner's
+    /// own ally mask filters it, and once started every bit is taken and
+    /// `ever_seen_completed` takes them too for a finished one. When a
+    /// leader that is not the owner appears in `ever_seen` for the first
+    /// time the building answers by lighting itself — the call at vtable
+    /// `+0x164`, [`Sim::update_local_seen_build`].
+    ///
+    /// **This is what a scout walking past a city does to the map.** Until
+    /// 2026-09-17 nothing here made that write, and Great Lakes' AI scout
+    /// therefore walked *through* the human capital's footprint on block
+    /// 8002 rather than round it: fourteen half-cells of the original's fog
+    /// plane carry player 1's bit over player 0's ground and this crate's
+    /// carried none of them (`docs/PATHFINDER.md` §20.2,
+    /// `run95_s_block_8002_is_where_the_fog_parts_and_the_price_with_it`).
+    ///
+    /// `force` is the original's `param_1`, set by the two `Wall::process`
+    /// call sites that have already put a bit in by hand.
+    pub(crate) fn check_ever_seen(&mut self, b: usize, force: bool) {
+        if !self.world.has_fog() || !self.buildings[b].alive {
+            return;
+        }
+        let who = self.buildings[b].owner;
+        let Some(ty) = self.buildings[b].ty else {
+            return;
+        };
+        if who >= 8 {
+            return;
+        }
+        let old = self.buildings[b].ever_seen;
+        let started = self.buildings[b].started;
+        let mine = self.seen_ally_mask(who);
+        // `game->everyone_mask` — the bits of the leaders in this game, so
+        // the scan stops once every one of them has seen it.
+        let all = ((1u16 << self.players.len().min(8)) - 1) as u8;
+        let want = if started { all } else { mine };
+        if self.buildings[b].ever_seen & want != want
+            || self.buildings[b].ever_seen_completed & want != want
+        {
+            let corner = self.tile_corner(ty, self.buildings[b].pos);
+            let (xs, ys) = (self.build_types[ty].x_size, self.build_types[ty].y_size);
+            let active = self.buildings[b].active;
+            let (mut es, mut ec) = (
+                self.buildings[b].ever_seen,
+                self.buildings[b].ever_seen_completed,
+            );
+            for v in 0..ys {
+                for u in 0..xs {
+                    let s = self
+                        .world
+                        .seen((corner.x + u) >> 1, (corner.y + v) >> 1)
+                        .unwrap_or(0);
+                    if started {
+                        es |= s;
+                        if active {
+                            ec |= s;
+                        }
+                    } else {
+                        es |= s & mine;
+                    }
+                }
+            }
+            self.buildings[b].ever_seen = es;
+            self.buildings[b].ever_seen_completed = ec;
+        }
+        let now = self.buildings[b].ever_seen;
+        if old == now && !force {
+            return;
+        }
+        // The meet loop. `Leader::meet` itself — the diplomatic first
+        // contact — is a seam; what is carried is its flag, which is the
+        // gate on the reveal below.
+        let mut met = false;
+        for w in 0..self.players.len().min(8) {
+            let o = w as crate::Player;
+            if o == who || self.defeated.get(w).copied().unwrap_or(false) {
+                continue;
+            }
+            let m = self.seen_ally_mask(o);
+            if now & m != 0 && old & m == 0 {
+                met = true;
+            }
+        }
+        if met {
+            self.update_local_seen_build(b);
+        }
+    }
+
+    /// `Wall::update_local_seen@0063ed50` — the building writes itself into
+    /// the fog of everyone who has seen it.
+    ///
+    /// The rectangle is the footprint **grown by one tile on every side**,
+    /// each tile mapped to its half-cell, and the mask is
+    /// `ever_seen | visible | (1 << owner)`. `docs/VISION.md` §6.1 has the
+    /// two branches; the other one — mask `0xff`, every player at once —
+    /// belongs to a started **wonder**, and is taken here on the same test
+    /// (`BuildData::is_wonder`) the original uses.
+    ///
+    /// The write is `seen2` only ([`World::set_seen2_only`]): the current
+    /// line of sight is deliberately untouched, which is what stops one
+    /// building's reveal from convincing its neighbour it has been spotted.
+    /// Returns how many half-cells changed, which nothing but the tests
+    /// reads.
+    pub(crate) fn update_local_seen_build(&mut self, b: usize) -> usize {
+        if !self.world.has_fog() || !self.buildings[b].alive {
+            return 0;
+        }
+        let who = self.buildings[b].owner;
+        let Some(ty) = self.buildings[b].ty else {
+            return 0;
+        };
+        if who >= 8 {
+            return 0;
+        }
+        // SEAM: `ObjectData::visible` (`+0x40`) is the third term of the
+        // mask and nothing here sets it; its writers in the original are
+        // `Unit::set_attacking` and `Unit::do_cast`, neither of which has a
+        // building path. §7.
+        let mask = if self.build_types[ty].wonder && self.buildings[b].started {
+            0xff
+        } else {
+            self.buildings[b].ever_seen | (1u8 << who)
+        };
+        let corner = self.tile_corner(ty, self.buildings[b].pos);
+        let (xs, ys) = (self.build_types[ty].x_size, self.build_types[ty].y_size);
+        let mut lit = 0;
+        for u in -1..=xs {
+            for v in -1..=ys {
+                if self
+                    .world
+                    .set_seen2_only((corner.x + u) >> 1, (corner.y + v) >> 1, mask)
+                {
+                    lit += 1;
+                }
+            }
+        }
+        lit
+    }
 }
 
 #[cfg(test)]

@@ -322,11 +322,99 @@ simulation lacked until 2026-08-31: the fog grew only where units walked,
 so a farm finished mid-game revealed nothing at all. What that cost is in
 §8.
 
-`Unit::update_local_seen@0060e410` is the second, smaller reveal: an
-object with `ObjectData::visible != 0` lights `circle_radius[type->x_size]`
-points around its own half-cell into `seen2` and `seen` with the
-`visible` byte as the **mask**. It is not modelled; nothing in this
-simulation sets `visible`.
+`Unit::update_local_seen@0060e410` is the unit's half of §6.1's second
+reveal: an object with `ObjectData::visible != 0` lights
+`circle_radius[type->x_size]` points around its own half-cell into `seen2`
+and `seen` with the `visible` byte as the **mask**. It is not modelled;
+nothing in this simulation sets `visible`, and `visible`'s writers in the
+original are `Unit::set_attacking@005ff5b0` and `Unit::do_cast@005ebfe0`
+(`field_0x40 |= 1 << who`, and `Unit::work@0060d180` clears it) — so it is
+the rule that **a unit which attacks you becomes visible to you**, and no
+building path reaches it.
+
+## 6.1 The second reveal: a building the enemy has laid eyes on
+
+The building's half of it is a different function and a different trigger,
+and it is not gated on `visible` at all. It is
+`Wall::update_local_seen@0063ed50`, and what drives it is
+`Wall::check_ever_seen@0063ce70`.
+
+**`Wall +0x62 ever_seen` and `+0x63 ever_seen_completed`** are one bit a
+player: who has ever had this building's footprint in **current** line of
+sight, and who has had it there while the building was finished. The names
+are the dump's own — `BUILDDATA` prints both from `BUILDS=1` — so nothing
+here is inferred from surrounding code.
+
+**`check_ever_seen(param_1)` grows them.** It scans the footprint, tile by
+tile, at `(corner + i) >> 1`, reading `World +0x15c` — `seen`, the
+*current* plane, not `seen2` — and ors what it finds in. While the
+building is unstarted the owner's own ally mask (`LeaderData +0x6929`)
+filters it; once started every bit is taken, and `ever_seen_completed`
+takes them too for an active one. The scan is skipped entirely once
+`ever_seen` and `ever_seen_completed` already hold every bit the game has
+(`Game::everyone_mask` when started, the owner's ally mask when not).
+
+Its tail is the meet loop: for every other active leader whose mask has
+**newly** appeared in `ever_seen`, `Leader::meet` fires — the diplomatic
+first contact — and then, once, `update_local_seen` at vtable `+0x164`.
+
+**`Wall::update_local_seen` is the write.** Two branches:
+
+| when | mask | `set_seen2`'s `param_4` |
+|---|---|---|
+| `is_wonder()` **and** not `flags & 0x20` **and** `type+0xfc()==0` **and** `is_started()` | `0xff` — every player at once | 0, so `seen` and `World +0x168` too |
+| otherwise | `ever_seen \| visible \| (1 << who)` | 1, so **`seen2` and `WData +0x14` only** |
+
+The rectangle is the footprint **grown by one tile on every side** —
+`i` from `−1` to `x_size` inclusive, `j` likewise, `(x_size + 2) ×
+(y_size + 2)` tiles — each mapped to its half-cell by `>> 1`.
+
+That `param_4` is load-bearing: the ordinary branch leaves the *current*
+line of sight alone, which is what stops one building's reveal from
+convincing the building next door that it has been spotted. A model that
+folds the two planes into one gets a chain reaction across the whole base.
+
+**The cadence is `Wall::process@00640450`'s first statement**, and it is
+the game's own frame rather than the object's phase:
+
+```text
+if (frame != 0 && (frame & 7) == who) { targeted = targeted * 3 / 4; check_ever_seen(0); }
+```
+
+— every eighth frame, on the one whose low three bits are the owner's
+player number. `Wall::start@0063e810` and `Wall::init@0063e9b0` each call
+it once more with `param_1 = 0`, and `Wall::process`'s enemy-adjacent arm
+twice with `param_1 = 1`, after putting a bit in by hand.
+
+**What it is worth.** This is Great Lakes' 8031. At block 8002 the
+original's fog plane carried player 1's bit on fourteen half-cells this
+crate had dark — `(10, 73)`, `(11, 73)`, and the block `x` 6–8, `y` 78–82
+— and the AI scout therefore priced the step into the human capital's cell
+`(3, 39)` at 328 where this crate priced it 9, and walked *through* the
+footprint instead of round it (`docs/PATHFINDER.md` §20). The two patches
+are the two buildings of player 0's seven whose `ever_seen` reads **3** at
+that block: the Small City `0/2000` at half-cell `(8, 80)` and `0/2001` at
+`(11, 74)`. For the Small City — 7 × 7, corner tile `(13, 157)` — the
+grown rectangle is tiles 12–20 × 156–164, which is exactly half-cells
+6–10 × 78–82; the columns at `x` 9 and 10 and the three cells `(8, 78..80)`
+were already lit by the scout's own disc, and the twelve that were not are
+the twelve that parted.
+
+With it, that plane is **14,400 of 14,400** at block 8002 and `ever_seen`
+agrees on all 28 buildings, and this map's word went **8031 → 8186**.
+
+**Seams**, all stated in the code:
+
+- `ObjectData::visible` is still 0 here, so the mask's middle term is
+  always zero.
+- `Leader::meet` itself is not modelled; only its flag, which is the gate.
+- `update_all_seen` still does not clear `seen`, so this crate's `seen` is
+  monotone where the original's is rebuilt every hundredth frame. The two
+  can only differ over the ≤ 8 frames between a sighting and the owner's
+  next check — the bit is taken on the first check either way.
+- `Wall::start`'s own direct `seen2` write over its footprint (the owner's
+  bit) is not made; it is the owner's own bit over ground the owner's own
+  line of sight covers.
 
 ## 7. What is not established
 

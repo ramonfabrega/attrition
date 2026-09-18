@@ -965,6 +965,8 @@ impl Sim {
             gather_bumped: false,
             dock_slot: None,
             farm: crate::Farm::default(),
+            ever_seen: 0,
+            ever_seen_completed: 0,
         });
         // `start_me(1)`: reserve the footprint.
         let corner = self.tile_corner(ty, pos);
@@ -1205,6 +1207,8 @@ impl Sim {
         // on the map four frames before their scheduled replans
         // (`docs/ROADS.md` §1).
         self.place_roads(b);
+        // `Wall::start@0063e810`'s own last-but-one statement.
+        self.check_ever_seen(b, false);
     }
 
     /// `Wall::mask_me` → `BuildType::mask_me`: the footprint marked (or
@@ -1721,6 +1725,14 @@ impl Sim {
                 }
             }
             return;
+        }
+        // **`Wall::process@00640450`'s first statement**, on the game's own
+        // frame and not the building's phase: every eighth frame, on the one
+        // whose low three bits are the owner's player number, a building
+        // asks who has looked at it (`docs/VISION.md` §6.1). The `targeted`
+        // decay that shares the branch is a seam.
+        if frame != 0 && frame & 7 == i64::from(self.buildings[b].owner) {
+            self.check_ever_seen(b, false);
         }
         let phase = self.buildings[b].phase(frame);
         if phase & 31 == 0 {

@@ -3209,18 +3209,16 @@ mod tests {
             "the stack's bottom two entries part as well, so this is no \
              longer the route alone: {path_rows:?}"
         );
-        assert!(
-            path_rows.iter().any(|w| matches!(
-                w,
-                OrderMismatch::PathTo {
-                    slot: 2,
-                    theirs: (2040, 31224),
-                    ..
-                }
-            )),
-            "slot 2 no longer parts at the original's (2040, 31224) — if \
-             `find_wpath` has closed, this assertion is the one to rewrite \
-             (`docs/PATHFINDER.md`): {path_rows:?}"
+        assert_eq!(
+            path_rows,
+            Vec::<&OrderMismatch>::new(),
+            "1/0's `find_wpath` stack parts on block 8002. Item 322 closed \
+             it: the human capital tells the AI where it is the moment a \
+             scout lays eyes on it (`Wall::check_ever_seen`, \
+             `docs/VISION.md` §6.1), the two half-cells (7,79) and (7,81) \
+             light, the step into cell (3,39) prices 328 rather than 9, and \
+             the route goes round the footprint as the original's does. A \
+             row here is that reveal lost: {path_rows:?}"
         );
 
         // The word's own frame is pinned where it is measured —
@@ -3249,13 +3247,17 @@ mod tests {
             *by_unit.entry((*who, *o, what.clone())).or_default() += 1;
         }
         eprintln!("run94: rows at or below 8031 by (who, o, what): {by_unit:?}");
-        // **The scout's own two dates, and they are the successor's.**
+        // **The scout's own two dates**, and item 322 closed the second.
         // `1/0` carries no row at all below block 8002 — 248 blocks of
         // exact agreement, the whole approach and the explore order before
-        // this one — its order parts on 8002 (the route, above) and its
-        // **position** first on 8014, the frame it takes the third
-        // waypoint and the two routes separate. Anything earlier than
-        // either would mean this window's finding is not what it says.
+        // this one. Its order still parts on 8002, but only on `facing`
+        // (the two assertions above say the route and the destination do
+        // not); and its **position** now parts *nowhere in this window*,
+        // where before item 322 it parted on 8014 — the frame it took the
+        // third waypoint and the two routes separated. That `None` is the
+        // value diff beside the reveal: with the capital lighting itself
+        // into the AI's fog the scout walks the original's western track
+        // for all 292 blocks, coordinate for coordinate.
         let first = |what: &str| -> Option<i64> {
             wrong
                 .iter()
@@ -3265,8 +3267,10 @@ mod tests {
         };
         assert_eq!(
             (first("order"), first("pos")),
-            (Some(8002), Some(8014)),
-            "1/0's record parts somewhere else: order {:?}, pos {:?}",
+            (Some(8002), None),
+            "1/0's record parts somewhere else: order {:?}, pos {:?}. A \
+             `pos` of 8014 is item 322's reveal lost (`docs/VISION.md` \
+             §6.1); anything below 8002 is a different finding",
             first("order"),
             first("pos")
         );
