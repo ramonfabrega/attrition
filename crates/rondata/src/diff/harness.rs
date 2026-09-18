@@ -3905,6 +3905,144 @@ mod tests {
         );
     }
 
+    /// **`Unit::fight`'s entry puts the unit on its cell centre** (item
+    /// 336, 2026-09-17, `docs/ORDERS.md` §7.11).
+    ///
+    /// The two tests above pin where the probe's six are *sent* and when
+    /// they set off. This pins what happens to the three that were
+    /// **mid-cell** when the order arrived. `Unit::fight@005fd4d0`'s first
+    /// statement, `LAB_005fd648`, is
+    ///
+    /// ```text
+    /// set_new_location(this, div_3_table[x >> 4] * 0x30 + 0x18,
+    ///                        div_3_table[y >> 4] * 0x30 + 0x18, 1, 0)
+    /// ```
+    ///
+    /// — `(v / 48) * 48 + 24` on both axes, the 48-unit cell centre. The
+    /// probe's three archers were already standing on theirs, so nothing
+    /// visible happens to them; `1/40`, `1/41` and `1/42` were walking, and
+    /// run19's blocks 8186 and 8187 catch all three crossing onto the grid
+    /// in one frame:
+    ///
+    /// ```text
+    ///          block 8186            block 8187
+    ///   1/40   (39133, 21131)   →    (39144, 21144)
+    ///   1/41   (36915, 23248)   →    (36936, 23256)
+    ///   1/42   (36883, 23073)   →    (36888, 23064)
+    /// ```
+    ///
+    /// Every one of the six coordinates is its own axis's `(v / 48) * 48 +
+    /// 24`, and none of the three is a step: `1/42`'s is 10 units *back*
+    /// along the march it had been walking at 26 a frame.
+    ///
+    /// **Why the last row is the one that matters.** Without the snap this
+    /// crate left all three where they stood, and from 8187 on they walked
+    /// the original's own velocity from a position offset by a constant —
+    /// `1/42` by exactly `(−5, +9)` — for the rest of the game. A draw
+    /// stream cannot see that: it agreed for fifteen more frames and then
+    /// parted on a single blocked stand at 8201. Block **8201** is run19's
+    /// last, 15 frames past the snap, and it is asserted here for all
+    /// three because a position is what tells a right walk from a lucky
+    /// one.
+    ///
+    /// Made to fail on purpose by deleting the snap: the pre-snap row
+    /// passes, `1/40` reads `(39133, 21131)` where run19 has `(39144,
+    /// 21144)`, and 8201 is out by the same constant on all three.
+    #[test]
+    fn great_lakes_8186_snaps_the_probe_s_walkers_onto_their_cell_centres() {
+        let Some(inst) = install() else { return };
+        let Some(path) = dump("gamelog-run53-greatlakes-24k-trace.txt") else {
+            eprintln!("skipping: no run53 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let texts = sibling_texts();
+        let text = crate::capture::read(&path);
+        let log = Log::parse(&text);
+        let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
+        let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+        let refs: Vec<&Initial> = inits.iter().collect();
+        let mut init = log.initial().unwrap();
+        borrow_from_siblings(&mut init, &refs);
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        // The three of the probe's six that were walking when it fired.
+        const WALKERS: [(i64, i64); 3] = [(1, 40), (1, 41), (1, 42)];
+        let at = |built: &Built| -> Vec<(i64, i64)> {
+            WALKERS
+                .iter()
+                .map(|&(who, o)| {
+                    let u = built
+                        .sim
+                        .units
+                        .iter()
+                        .position(|u| {
+                            u.alive() && i64::from(u.owner) == who && i64::from(u.index) == o
+                        })
+                        .unwrap_or_else(|| panic!("no live {who}/{o}"));
+                    let p = built.sim.units[u].pos;
+                    (i64::from(p.x), i64::from(p.y))
+                })
+                .collect()
+        };
+        // Block 8186 — the frame before the probe, all three mid-cell.
+        while built.sim.frame < PROBE_FRAME {
+            built.tick();
+        }
+        assert_eq!(
+            at(&built),
+            vec![(39_133, 21_131), (36_915, 23_248), (36_883, 23_073)],
+            "the three walkers are not on run19's block {PROBE_FRAME}              coordinates, so the snap below would prove nothing"
+        );
+        // And not one of them is on a cell centre, which is the whole
+        // premise: a snap is invisible on a unit that is already there.
+        for &(x, y) in &at(&built) {
+            assert!(
+                (x % 48, y % 48) != (24, 24),
+                "({x}, {y}) is already a cell centre at block {PROBE_FRAME}"
+            );
+        }
+        // Block 8187 — the probe's own frame, and the snap.
+        built.tick();
+        assert_eq!(
+            at(&built),
+            vec![(39_144, 21_144), (36_936, 23_256), (36_888, 23_064)],
+            "the probe's walkers are not on run19's block {} coordinates",
+            PROBE_FRAME + 1
+        );
+        for &(x, y) in &at(&built) {
+            assert_eq!(
+                (x % 48, y % 48),
+                (24, 24),
+                "({x}, {y}) is not a 48-unit cell centre"
+            );
+        }
+        // Blocks 8188 and 8189: the walk resumes from the snapped point.
+        const AFTER: [[(i64, i64); 3]; 2] = [
+            [(39_117, 21_155), (36_932, 23_284), (36_877, 23_091)],
+            [(39_090, 21_165), (36_928, 23_312), (36_866, 23_118)],
+        ];
+        for (i, want) in AFTER.iter().enumerate() {
+            built.tick();
+            assert_eq!(
+                at(&built),
+                want.to_vec(),
+                "the walkers are not on run19's block {} coordinates",
+                PROBE_FRAME + 2 + i as i64
+            );
+        }
+        // **Block 8201, run19's last** — the frame the long word parted on
+        // before this item, and the reason the snap is worth a test.
+        const LAST_BLOCK: i64 = 8201;
+        while built.sim.frame < LAST_BLOCK {
+            built.tick();
+        }
+        assert_eq!(
+            at(&built),
+            vec![(38_766, 21_288), (36_880, 23_648), (36_734, 23_442)],
+            "the walkers have drifted off run19's block {LAST_BLOCK}              coordinates"
+        );
+    }
+
     const PROBE_SENT: &[(i64, i64, i64, i64)] = &[
         (1, 27, 4344, 29736),
         (1, 28, 4440, 29880),

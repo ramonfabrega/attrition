@@ -895,6 +895,11 @@ to an attack position, unpacking, the cavalry-archer dual mode). The
 returns 0 at the top, after a little animation housekeeping); and `T` is in
 range (`ObjectData::is_in_range`, §13). Then, in this order:
 
+0. **The cell-centre snap, before everything else.** `fight`'s first
+   statement puts the unit on `(v / 48) * 48 + 24` on both axes unless it
+   is recharging and is neither a cavalry archer nor holding a re-entry
+   latch — `docs/ORDERS.md` §7.11 has the gate, the diff and what it does
+   not establish.
 0. *(second reading)* Before the range test, on every frame a **captain**
    with a non-mandatory order is not recharging and its target is a unit,
    **one `Random::get` draw is taken**; if the target is not a combat unit
