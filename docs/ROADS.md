@@ -53,6 +53,52 @@ flag is what makes it happen *again* sixteen frames later. Every other
 `Build::finished` line 113) or `REGEN_SIMPLE` (`Wall::close`), and those
 plan nothing.
 
+### 1.1 The gate above it: a **site** never replans
+
+*Established 2026-09-17 from East Indies 8193 (item 334), and diff-backed.*
+
+`Build::process@0061edf0`'s **second statement**, the moment `Wall::process`
+returns, is the inlined `is_active`:
+
+```
+Wall::process(this);
+if (this->vftable == Build::vftable) uVar10 = (byte)this->field_0x8 & 4;
+else                                 uVar10 = (*this->vftable[0x13])();
+if (uVar10 == 0) return;                       /* 0061edf0+0x27 */
+```
+
+and `WallData::is_active@00472350` is exactly `return (byte)this->field_0x8
+& 4;` — the same expression, so the fast arm is that call inlined. The
+schedule above sits at `LAB_00620167`, the function's **last** statement, so
+it is below the gate: **a building that is still a site never replans its
+roads, however its flag was set.** The bit is not cleared either — it simply
+waits, and the first replan happens on the first rotation slot after the
+site finishes.
+
+Everything §1 describes as "each frame" therefore means *each frame of an
+active building*. What runs for a site is `Wall::process` alone: the
+`frame & 7` visibility poll, the `phase & 31` under-attack decay, the
+`helpers` reset and the `phase & 15` attrition block (`docs/ATTRITION.md`).
+
+**The measurement.** On run54 (East Indies), `Build::activate` of `1/2014`
+flags city 2 on frame 8184, and its six members come due over
+`[8185, 8199]`. Two of them reach §3's search arm: `1/2015`, a **site** —
+started on 7982, `job_counter 21200/42000` — on 8193, and `1/2014` itself on
+8194. The original spends **no** road-cost draw on 8193 and 221 of them on
+8194; this crate spent 200 on 8193 and then 256 on 8194, the second differing
+from the original's because the first had already laid a road under it. With
+the gate in place 8193 is the original's six draws and 8194 is 225 against
+225, sequence for sequence, and the word runs from 8193 to **8466**.
+
+That is also the only shape a *draw* stream can prove this with: the site's
+own replan is a whole search, two hundred draws wide, so it cannot hide. A
+`BUILDS` record over the frame would settle the flag's fate directly —
+whether `build_masks & 0x100` on `1/2015` survives 8193 and whether it is
+still set when the site finishes — and **no East Indies dump on disk reaches
+that frame**: the map's detail captures stop at run90's 7916 and pick up
+again at run77's 10150. So the flag's fate across the gate is read, not
+diffed; what is diffed is the draw it does not spend.
+
 No traced game had shown this before run32, because none had placed a
 non-farm building: the setup's own go up before frame 0 and the AI never
 gets past its citizens. run32 places two, and frame 100's **first** 2,913

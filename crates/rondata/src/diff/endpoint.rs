@@ -298,11 +298,17 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // same unlinked-down, off-up shape 16,000 frames past its own
         // word: nine more of the roster linked, seven positions out, one
         // building unlinked and two building field-rows closer.
-        off: 73,
-        unlinked: 7,
+        // **73 → 66, 7 → 13, 1 → 0 and 28 → 30** on 2026-09-17, item 334 —
+        // `Build::process@0061edf0`'s `is_active` gate above the road
+        // replan (`docs/ROADS.md` §1.1), which moves this map's own word
+        // 8193 → 8466. Seven positions closer, six spurious units, one
+        // building linked and two more field-rows out, 15,535 frames past
+        // the word. DECISIONS 36: the number, not a trade.
+        off: 66,
+        unlinked: 13,
         extra: 0,
-        build_unlinked: 1,
-        build_diverged: 28,
+        build_unlinked: 0,
+        build_diverged: 30,
         city_unlinked: 3,
         city_diverged: 0,
     },
@@ -435,8 +441,13 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // 15,800 frames past the word, against one of the roster unlinked
         // and one building field-row out. DECISIONS 36 asks for the number
         // rather than a trade.
-        off: 64,
-        unlinked: 15,
+        // **64 → 69 and 15 → 13** on 2026-09-17, item 334 — the same
+        // `is_active` gate (`docs/ROADS.md` §1.1). Great Lakes' own word
+        // does not move on it; its endpoint takes five positions out and
+        // two spurious units off, 15,800 frames past the word.
+        // DECISIONS 36: the number, not a trade.
+        off: 69,
+        unlinked: 13,
         extra: 0,
         build_unlinked: 0,
         build_diverged: 10,
@@ -528,9 +539,13 @@ pub const LADDER: [Endpoint; 2] = [
         // gate: four spurious units back on this rung and one more
         // building field-row apart, 7,872 frames past its word, on the
         // change that takes Great Lakes' floor 8182 → 8186.
-        extra: 23,
+        // **23 → 19 and 8 → 7** on 2026-09-17, item 334's `is_active`
+        // gate (`docs/ROADS.md` §1.1): four spurious units and one
+        // building field-row gone, 7,872 frames past this rung's word,
+        // with `off` and `unlinked` unmoved.
+        extra: 19,
         build_unlinked: 10,
-        build_diverged: 8,
+        build_diverged: 7,
         city_unlinked: 3,
         city_diverged: 0,
     },
@@ -561,7 +576,11 @@ pub const LADDER: [Endpoint; 2] = [
         // re-pinned, the same way it did on item 304 this morning: the
         // ladder test panics at its first moved row, so a change touching
         // both rungs is reported one rung at a time.
-        off: 51,
+        // **51 → 53 and 16 → 15** on 2026-09-17, item 334's `is_active`
+        // gate (`docs/ROADS.md` §1.1): two positions out and one spurious
+        // unit gone, 8,960 frames past this rung's word. The C rung moved
+        // the other way on the same change.
+        off: 53,
         unlinked: 16,
         // 19 → 33 on 2026-09-07, item 261, the same reshuffle, then 33 →
         // **27** the same day on item 265's byte — this rung took the
@@ -606,7 +625,7 @@ pub const LADDER: [Endpoint; 2] = [
         // spurious units back, the same count the C rung above gained, on
         // the change that takes Great Lakes' floor 8182 → 8186. The AI
         // trains what it was skipping, so both rungs gain extras.
-        extra: 16,
+        extra: 15,
         build_unlinked: 19,
         build_diverged: 0,
         city_unlinked: 4,
