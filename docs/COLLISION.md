@@ -1382,7 +1382,7 @@ of its walk, adrift by 7455 — and the field diff dates that to two rows
 neither of them this document's: `1/35`'s step size on **7253** (25 units of
 y where the original takes 12) and the six-slot assignment at the army's
 **7418** tick, where four soldiers come out on a different waypoint and
-`1/32` and `1/33` on exactly each other's. `docs/ORACLE.md`, "run87".
+`1/32` and `1/33` on exactly each other's. `docs/RUNS.md`, "run87".
 
 **One thing this window says about the diff itself.** The harness compares
 the collision record only where the two positions agree (`compare`, and

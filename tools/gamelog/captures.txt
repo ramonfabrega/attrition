@@ -1220,7 +1220,7 @@ check: python3 tools/gamelog/track.py UNITDATA unit_masks --where who=1,o=19 --f
 # on 6799. So the deploy is a 149-frame animation the arrival starts, not an
 # event on arrival, and every window ever aimed at this merchant has been
 # short of it by construction. run82 spends the prediction.
-# `docs/ORACLE.md`, "run81 — the merchant's cast is 149 frames".
+# `docs/RUNS.md`, "run81 — the merchant's cast is 149 frames".
 
 run: 82
 tag: islands-merchantcast
@@ -1280,7 +1280,7 @@ check: python3 tools/gamelog/track.py UNITDATA unit_masks --where who=1,o=19 --f
 # `good_obj` 10 on the unit and **+160 into each of two resource slots**
 # plus `rares_collected[20]` on the leader. 14 of 11,796 leader fields move
 # and the 66 `BEGIN GOOD` records do not move at all.
-# `docs/ORACLE.md`, "run82 — the merchant unpacks".
+# `docs/RUNS.md`, "run82 — the merchant unpacks".
 
 run: 83
 tag: greatlakes-wordwindow
@@ -1310,7 +1310,7 @@ why: the last Great Lakes hole — blocks 6870–6909 exist in no archive, so fo
 # blocks 1–6872) — which does hold **6870, 6871 and 6872**, three of the
 # forty. It is not this game: `samegame.py` against run76 is **230 of 230
 # common frames differing**, because run16 is the cheat-driven attrition run
-# (`docs/ORACLE.md`, "The attrition run") and diverges from its first `peace`
+# (`docs/RUNS.md`, "The attrition run") and diverges from its first `peace`
 # at label 341; its detail is thinner too (`BUILDS=1 CITIES=1 GUYS=1`
 # against 7/5/2). So the hole is 6870–6909 entire.
 #
@@ -1360,7 +1360,7 @@ check: python3 tools/gamelog/samegame.py gamelog-run79-greatlakes-secondsquad.tx
 # differ three ways: `collide_o`/`collide_who` name the blocker for exactly
 # one block, `collide` latches for six, `collide_frame` keeps the stamp for
 # ever. Five new orders (`1/5` 6865, `1/15` 6871, `0/5` 6875, `0/4` 6891,
-# `1/17` 6907). `docs/ORACLE.md`, "run83 — the last Great Lakes hole".
+# `1/17` 6907). `docs/RUNS.md`, "run83 — the last Great Lakes hole".
 
 run: 84
 tag: greatlakes-makelist
@@ -1450,7 +1450,7 @@ check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|BEGIN MAKEOBJECT" "$HOME/ron-data/
 # `type=437` — run80's **Temple** — is live in every block to 6976 and in
 # none after, so the rebuild changes membership and not only price.
 # The type numbers are NOT named here; that needs rondata's type table.
-# `docs/ORACLE.md`, "run84 — the make-list across 6982".
+# `docs/RUNS.md`, "run84 — the make-list across 6982".
 
 run: 85
 tag: eastindies-blockedstand
@@ -1526,7 +1526,7 @@ check: python3 tools/gamelog/track.py UNITDATA collide_frame --frames 7400-7479 
 # once; here a **lone unit** is blocked by an **animal** and freezes first.
 # Item 236 dissolved the squad behind the Great Lakes member and could not
 # have moved this one — there is no squad here.
-# `docs/ORACLE.md`, "run85 — East Indies' blocked stand at 7448".
+# `docs/RUNS.md`, "run85 — East Indies' blocked stand at 7448".
 
 # --- item 178 was taken by the capture lane on 2026-09-06 and NOT booked.
 #
@@ -1785,7 +1785,7 @@ check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|cur_anim" "$HOME/ron-data/AppData/
 # the two positions agree, and `1/36`'s parted at 7420.
 # `run87_s_window_is_great_lakes_word_frame` is the assertion; the word
 # does **not** move — nothing was fixed here.
-# `docs/ORACLE.md`, "run87 — Great Lakes' word frame".
+# `docs/RUNS.md`, "run87 — Great Lakes' word frame".
 
 run: 88
 tag: eastindies-wordframe
@@ -2049,7 +2049,7 @@ check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|collide_frame" "$HOME/ron-data/App
 # be and not put there — so it lags a step and `des == pos` in `Guy::move`
 # means *the bird did not move*. 7584 agrees **49 for 49**, `1/3`'s spot
 # closes, and the word is **7585**, `Leader::make_stuff+0x63d`.
-# `docs/ORACLE.md`, "run89 — Great Lakes' word is a bird's arrival stand".
+# `docs/RUNS.md`, "run89 — Great Lakes' word is a bird's arrival stand".
 
 run: 90
 tag: eastindies-shuffle

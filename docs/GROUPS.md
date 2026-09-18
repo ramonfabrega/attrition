@@ -1900,7 +1900,7 @@ collapse in this simulation to "the current order is a move".
 
 **The values, from run92.** No Great Lakes dump carried a `GROUPDATA` past
 **5591**, so a `GROUPS` window over `[7668, 7690)` was taken for this one
-field (`docs/ORACLE.md`, "run92"). On block 7674 — the state the plan of
+field (`docs/RUNS.md`, "run92"). On block 7674 — the state the plan of
 sim-frame 7674 reads:
 
 - group `64` (`who 1`, `army 1`, `num 12`, `form_num 9`) carries

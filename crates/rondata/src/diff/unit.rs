@@ -1962,7 +1962,7 @@ mod tests {
     /// 2 → 4 — **276 blocks, 120,956,729 bytes**, the first Great Lakes
     /// dump ever taken within 200 frames of its own word. Driven through
     /// [`run_traced`], so it is every unit of every block and not the
-    /// walker's. `docs/ORACLE.md`, "run87".
+    /// walker's. `docs/RUNS.md`, "run87".
     ///
     /// **The word's frame carries no collision at all on the original's
     /// side.** At 7455 this crate spends a `SITE_BLOCKED` the original
@@ -2542,7 +2542,7 @@ mod tests {
     /// stands at **7584**: run87 covered `[7244, 7520)` and 267's
     /// `compute_form` tail negation then moved the word 129 frames past
     /// it, so until this capture the headline map's own frame could be read
-    /// as a draw stream and as nothing else. `docs/ORACLE.md`, "run89".
+    /// as a draw stream and as nothing else. `docs/RUNS.md`, "run89".
     ///
     /// **The word reproduced from this capture's own trace**, not run53's:
     /// frames 7580–7583 agreed draw for draw (12, 19, 7, 9) and 7584 was
@@ -2943,7 +2943,7 @@ mod tests {
         );
         // **The city record parts on every block of the window and no
         // window test asserts it** — printed here so the gap is on the
-        // record rather than assumed away. `docs/ORACLE.md`, "run89".
+        // record rather than assumed away. `docs/RUNS.md`, "run89".
         let mut cityc: std::collections::BTreeMap<(i64, i64, String), usize> =
             std::collections::BTreeMap::new();
         for fr in &report.frames {

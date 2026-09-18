@@ -752,7 +752,7 @@ against the host's own float over random bit patterns. The constants are
 **The flight was never the residue; the birth was.** run61 proxies
 `do_air_physics`, `air_turn_speed` and `set_new_location` over all 5,400
 frames of run54's game and folds them per bird per frame — goal, turn rate,
-landing position (`docs/ORACLE.md`, "run61"). Seeded with nothing but the
+landing position (`docs/RUNS.md`, "run61"). Seeded with nothing but the
 birth state and fed the original's own goal, `air.rs` reproduces **every
 one of the ten wild birds exactly, to the last frame** — 45,712 air frames,
 every position and every one of the bank's zero-crossings, runs up to 5,272

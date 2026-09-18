@@ -282,7 +282,7 @@ not that nothing did.
 
 Item 178 was booked for a capture — a `DUMP_ALL` `WORLD` block on a frame
 divisible by 200 with an army alive — and closed by a grep instead
-(`docs/ORACLE.md`, "178 needed no screen"). The whole corpus holds **two**
+(`docs/RUNS.md`, "178 needed no screen"). The whole corpus holds **two**
 blocks on a rebuild frame and neither has a military unit in it; what settles
 the pass is a different property of the dump entirely.
 

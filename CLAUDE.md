@@ -90,8 +90,8 @@ artifact is the next phase's tool.
    is proven and the rest is repetition. **Done**: `docs/ATTRITION.md` and
    `docs/SUPPLY.md`.
 2. **Run the original** — 32-bit x86 Windows on Apple Silicon. **Done**, on
-   free Wine, owned end to end; `docs/ORACLE.md` has the exact path, the
-   loggers the executable ships, and every run captured so far. What it unlocks is bigger
+   free Wine, owned end to end; `docs/ORACLE.md` has the exact path and the
+   loggers the executable ships; `docs/RUNS.md` every run captured so far. What it unlocks is bigger
    than recorded games: the engine's own logger dumps chosen subsystems' state
    **every frame** to a text file, and a fixed seed makes a run reproducible.
    That file, not a recording, is the per-frame ground truth the sim is diffed
@@ -140,6 +140,7 @@ subagent inherits this file and the memory index, and nothing else
 | `docs/<MECHANIC>.md` | the specification: rules, fields, formulas, coverage | amended in place; its section numbers are an API the code cites; the story goes to the journal; size guarded | no |
 | `docs/DECISIONS.md` | decisions and their rationale | append; amend in place, never delete | no |
 | `docs/audit/` | the second readings' verdicts, and the method's record | one file per audit | no |
+| `docs/RUNS.md` | the oracle's ledger, one section per capture | a capture appends its section; `docs/ORACLE.md` keeps the runbook | no |
 | memory (`~/.claude/projects/…/memory/`) | machine and account facts only | per user, outside git | **the index is** — keep its hooks free of findings |
 
 Read `docs/QUEUE.md` first — its opening section is the handoff and its last

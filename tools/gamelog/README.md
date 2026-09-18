@@ -92,7 +92,7 @@ the Ghidra export's `enums/TypeIndex.txt`.
 The slot numbers are the point: the make list is a ranked four (0–3) over
 one-per-category slots (`list[cat]`), so entries at 0, 5 and 8 with nothing
 between them is `MakeList::make_me` behaving exactly as read. `docs/AI.md`
-§15 and `docs/ORACLE.md`, "The producers' run", are what this was written
+§15 and `docs/RUNS.md`, "The producers' run", are what this was written
 for.
 
 ## One frame at a time

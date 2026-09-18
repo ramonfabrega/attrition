@@ -2009,7 +2009,7 @@ claim in §2.4–§2.11 rested on the reading alone: the shipped script blocks
 the C++ steps for the whole opening, so no `LEADERS=9` capture had a
 non-empty make list in it (§12.1 item 4). Two stages, both on run12–17's
 lobby and seed, both driven from `rontrace.cmd` with no keyboard —
-`docs/ORACLE.md`, "The producers' run", has the recipe and the `ffwd`
+`docs/RUNS.md`, "The producers' run", has the recipe and the `ffwd`
 finding that made it cheap.
 
 | | run18a | run18b |
@@ -2318,7 +2318,7 @@ self-sufficient capture (its own setup trace, heights, herds and frame
 words; 278 MB, seven minutes) that the harness reads without a sibling
 (`rondata::diff::tests::run20_s_islands_sites_walk_the_coastal_ring_from_
 the_original_cell`). **Run21** is the same lobby with the dump off and
-`!ffwd 30` to frame 24,000 (`docs/ORACLE.md`, "run20 and run21").
+`!ffwd 30` to frame 24,000 (`docs/RUNS.md`, "run20 and run21").
 
 **The guard, and what it took to make it pass.** The assertion is the
 ten-record `SITES` diff of §15.7's kind on run20's frame-1 leader record.
@@ -2689,7 +2689,7 @@ placed no woodcutter's camp at all after frame 0**. Frame 0 hid it, because
 `frame == 0` skips the gate and a uniformly-zero score accepts the spiral's
 last candidate rather than its best.
 
-**The oracle is run56's frame 2176** (`docs/ORACLE.md`, "run56"), where the
+**The oracle is run56's frame 2176** (`docs/RUNS.md`, "run56"), where the
 original places player 1's second camp — `o 2009`, tile `(198, 190)`, 48
 tiles, `4 × 48 = 192` shuffle draws. With the count in place this crate's
 AI reaches that frame at script step 13 (`place_woodcutter` in

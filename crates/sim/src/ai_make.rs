@@ -1073,7 +1073,7 @@ mod tests {
     }
 
     /// **Run18b's five expiry draws, against the original's own seeds**
-    /// (`docs/ORACLE.md`, "The producers' run"; `docs/AI.md` §15). The trace
+    /// (`docs/RUNS.md`, "The producers' run"; `docs/AI.md` §15). The trace
     /// records the seed before every `Random::get`, and the dump records
     /// which slots survived — so the two together settle the arm that
     /// `docs/AI.md` §2.6's prose gets backwards. An ordinary building (the

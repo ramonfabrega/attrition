@@ -20419,6 +20419,8 @@ the census as the fourth counter; the record on the lab's lane; the AI's
 own dump through the tracer's proxy table. Items 363, 364, 365 booked,
 367 parked to the Loop, `Golden:` on the handoff with a guard behind it,
 and DECISIONS got an index with a guard behind that. Two stale lines
-fixed — the blind list was never frozen past 09-08. Doc polish named and
-not taken: `AI.md` §2, `ORDERS.md` §4, ORACLE's split. The estimate on
-record: four to six months. `docs/audit/2026-09-18-fable-pass-5.md`.
+fixed — the blind list was never frozen past 09-08. ORACLE split the same
+session: the runbook stays, the 56 run sections moved whole to
+`docs/RUNS.md` with every outside citation repointed. Named and not
+taken: `AI.md` §2, `ORDERS.md` §4. The estimate on record: four to six
+months. `docs/audit/2026-09-18-fable-pass-5.md`.

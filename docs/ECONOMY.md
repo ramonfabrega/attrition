@@ -1597,7 +1597,7 @@ frame 800 — `LEADERS=1` at `[End Frame]` is five scalars and no goods, and
 the only `LEADERS=9` windows were run40's `[560, 600)` and run41's
 `[770, 800)`, both on Great Lakes.
 
-run59 is that window moved (`docs/ORACLE.md`, "run59"): run58's own game,
+run59 is that window moved (`docs/RUNS.md`, "run59"): run58's own game,
 `LEADERS=9` at `[End Frame]`, and the dump narrowed to 250 frames around the
 word. **18,000 good-frames** — 250 frames, two players, six goods, six
 fields — and 4,798 of them disagreed, in nine shapes. Every one is a
@@ -1706,7 +1706,7 @@ run59, by `samegame.py` and by `rngcmp.py` in turn — captured at run39's
 detail plus `LEADERS=2`, which is where `LeaderData::log_data` announces the
 encrypted block. So it prints `bucket`, `leftover`, `resources`, `income`,
 `rate` and `resource_cap`, per good, on every one of its **900** frames
-(`docs/ORACLE.md`, "run42").
+(`docs/RUNS.md`, "run42").
 
 `diff::tests::run42_s_nine_hundred_frames_are_the_census_before_the_word`
 compares five of those six fields for both players on all 900 frames —

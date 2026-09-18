@@ -3,7 +3,7 @@
 *First reading, 2026-08-25, in the main thread on Fable, from the Ghidra
 export (`~/ghidra-projects/decomp`), the PDB type records (`types.txt`),
 the listing where the decompiler dropped an argument, and run21's trace
-(`docs/ORACLE.md`, "run20 and run21"), which is the first capture to enter
+(`docs/RUNS.md`, "run20 and run21"), which is the first capture to enter
 this family. Second reading: §14.*
 
 **What this is.** Rise of Nations has no transport ship a player builds. A

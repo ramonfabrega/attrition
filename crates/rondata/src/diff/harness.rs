@@ -1245,7 +1245,7 @@ mod tests {
     /// It is a drop-in longer run56 and the tools said so before it was
     /// read: `rngcmp.py` against run54 is 4,001 frames with none
     /// differing, `samegame.py` against run56 is 3,000 in common with none
-    /// differing (`docs/ORACLE.md`, "run57"). So it inherits run38's
+    /// differing (`docs/RUNS.md`, "run57"). So it inherits run38's
     /// siblings, and what it adds is the only independent evidence anyone
     /// has about frames 3,000–4,000 of East Indies.
     ///
@@ -2865,7 +2865,7 @@ mod tests {
     /// next parts by *site*, which is what item 38 was: **run33** is run10's
     /// own game captured again under the traced executable, with run10's
     /// exact dump settings and `cover=1`, quitting at frame 1,850
-    /// (`docs/ORACLE.md`, "run33"). `tools/gamelog/samegame.py` is the
+    /// (`docs/RUNS.md`, "run33"). `tools/gamelog/samegame.py` is the
     /// proof it is the same game — every frame block of run33 and run10
     /// digests identically — so this capture inherits run10's siblings and
     /// supersedes run14 wherever the two overlap.
@@ -8512,7 +8512,7 @@ mod tests {
     /// forty of those frames, on the draw stream alone. `rngcmp.py` puts
     /// it on run53 over 6,931 frames and `samegame.py` puts its twelve
     /// overlapping blocks on run76 and run79 with none differing
-    /// (`docs/ORACLE.md`, "run83").
+    /// (`docs/RUNS.md`, "run83").
     ///
     /// **What is inside it.** No unit is born and none dies — 77 units on
     /// all 53 blocks. Five take a new order. There is exactly one blocked
@@ -8944,7 +8944,7 @@ mod tests {
     /// run54's game, window `[7400, 7480)` plus the quit block 7496: 81
     /// blocks over the frame the second map's word parts on, which no
     /// dump had come within 3,200 frames of. `rngcmp.py` puts it on run54
-    /// over 7,496 frames with none differing (`docs/ORACLE.md`, "run85").
+    /// over 7,496 frames with none differing (`docs/RUNS.md`, "run85").
     ///
     /// This is the whole record, not the walker's, and that is what it is
     /// for: the word's own frame names `1/20`, and the window says the
@@ -10577,7 +10577,7 @@ mod tests {
 
         // **One unit parts in the whole window, and it is the unpack.**
         // `1/19` is the Merchant `cast_unpack` teleports onto the tile
-        // corner on 6883 (`docs/ORACLE.md`, "run82"); this crate leaves it
+        // corner on 6883 (`docs/RUNS.md`, "run82"); this crate leaves it
         // on the half-tile it walked to, so the gap is a constant (24, 24)
         // from that frame to the last block.
         assert_eq!(

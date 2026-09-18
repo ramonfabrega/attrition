@@ -533,7 +533,7 @@ unaltered apart from the type.
 
 ## Behavioural check (run16, 2026-08-24) — the shelter observed
 
-The attrition run (`docs/ATTRITION.md`, last section; `docs/ORACLE.md`,
+The attrition run (`docs/ATTRITION.md`, last section; `docs/RUNS.md`,
 "The attrition run") is the first traced game in which `process_supply`,
 `Supplies::find_supply`, `SupplyData::get_radius` and
 `LeaderData::get_supply_upgrade` ever executed. What it showed of this

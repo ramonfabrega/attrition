@@ -243,7 +243,7 @@ mod tests {
         assert_eq!(sim.ai[1].step, Step::Script, "armed at frame 175");
     }
 
-    /// **Run18b's two ladders** (`docs/ORACLE.md`, "The producers' run").
+    /// **Run18b's two ladders** (`docs/RUNS.md`, "The producers' run").
     /// The AI's `LEADERS=9` window holds both, and they differ by one frame:
     ///
     /// - the sweep on which the script *ends* runs step 1 with the script

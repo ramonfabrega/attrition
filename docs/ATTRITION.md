@@ -859,7 +859,7 @@ coverage"). Run16 is the run that exercised them — the same lobby and seed
 as run12–14, a hoplite squad and a supply wagon placed by cheat inside the
 other player's borders, diplomacy and techs switched by cheat, 6,872 frames
 at `UNITS=3`, under the trace. The recipe and its traps are in
-`docs/ORACLE.md`, "The attrition run"; the predictions were written down
+`docs/RUNS.md`, "The attrition run"; the predictions were written down
 before the log was read, and `tools/gamelog/attr.py` is the reader (every
 unit's period timeline, every tick in sixteenths, and the phase-lock fit).
 
