@@ -36,6 +36,42 @@ of 260's 8,816 was run58's clean text — and a 2 s poll under-reports a
 sawtooth. Still wants the fixture with teeth: past the cap, dead in N
 seconds, exit 137.
 
+(335) **The commit trailer names the model the commander expected, not
+the one that ran.** This repo reads
+`git log --format=...%(trailers:key=Co-Authored-By,valueonly)` to answer
+"who wrote this tranche", and `CLAUDE.md`'s fan-out rules say to verify
+which model actually ran **from the transcript, never from the spawn
+parameter**. The trailer is sourced from exactly the thing that rule
+forbids, twice over:
+
+- **The commander dictates it in the brief.** Eight of the twelve
+  transcript hits for the string are worker prompts reading `Commit on
+  loop-NNN with the trailer "Co-Authored-By: Claude Opus 5 …"` — loops
+  219, 227, 228, 234, 235, 236, 7448 and att-capture (`lore search
+  "Co-Authored-By"`). It is written before the worker has made one
+  request.
+- **The harness's attribution reminder is not the session's model.**
+  Measured in-session on 2026-09-17: this commander's reminder said
+  `Claude Fable 5.1` while `claude-opus-5` served every request. The
+  day's first commit went out wrong and was amended only because
+  `git log` was read by hand for an unrelated reason.
+
+**No realised wrong trailer is known in this history** — loop-329 ran
+`claude-opus-5` over 201 requests (`lore sessions --well …loop-329`) and
+its `4fb593b` says Opus 5 — so dictation has been right every time it has
+been checked. The defect is latent; it bites the first time a commander is
+wrong about what it spawned, which is the case the query exists for.
+
+Two smaller shapes on the same field, cheap in the same pass: **one model,
+two strings** — 356 commits say `Claude Opus 5 (1M context)` and 123 say
+`Claude Opus 5`, splitting one model across any rollup; and **149 of 772
+commits carry no trailer**, 46 of them merges, so a tranche landed by merge
+is unattributed. The guard shape is the repo's usual — the model is in the
+session's own transcript, so a check can compare a commit's trailer against
+what served the session that wrote it, the first-request source `lore
+spawns` already trusts. Guard, commit hook, or simply "a brief never
+dictates the trailer and the worker reads its own" is the pass's to choose.
+
 (318) **A gate that overlaps a queue rewrite fails on paperwork that is
 fine.** `the_handoff_s_endpoint_is_the_pinned_counts` and
 `the_handoff_s_scoreboard_is_the_floors` read `docs/QUEUE.md` from disk, so

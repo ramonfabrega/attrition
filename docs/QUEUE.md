@@ -31,9 +31,9 @@ word-moving, ~397 USD. **EI +381, GL +522.** Next: 334, new map.*
 - **Build what a reading specifies, before ratifying it or beside it.**
   324 specified `find_attack_pos` and declined to implement; 328 then
   found four arithmetic errors in that specification by writing the code.
-- One item open, twenty-five parked. **Fable backlog: six Loop items in
-  `docs/PARKED.md`** (313, 318, 321, 330, 331, 332), invisible at boot
-  until this line (332). 330 and 331 carry the day's measurements.
+- One item open, twenty-six parked. **Fable backlog: seven Loop items in
+  `docs/PARKED.md`** (313, 318, 321, 330, 331, 332, 335), invisible at boot
+  until this line. 330/331 carry the day's price, 335 the trailer's sources.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w8193 of 24,000 · GreatLakes w8201 of 24,000
