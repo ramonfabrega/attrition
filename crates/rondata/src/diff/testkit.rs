@@ -1185,7 +1185,17 @@ pub(crate) const EAST_INDIES_FIRST_SCHOLAR: i64 = 8_466;
 /// goes 27→25→25→28→27→25→25→25→27→25→…→26, which a
 /// `set_anim(same, 0, 1)` restart cannot produce.
 /// [`sim::anim::Sim::seated_scholar`], `docs/ANIM.md` §5.1.
-pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 8582;
+///
+/// **8582 was the AI's first market draw** (item 348). `Leader::make_stuff`
+/// calls `use_market` first thing, and `use_market@006c91c0+0x1ed` is the
+/// one `game_random` step in the whole market — the offset its sell
+/// rotation starts from. It fires on 34 frames of run53 and on none below
+/// 8582, because the ability is **Coinage** (`BUY_SELL`'s own `PREQ0`,
+/// Commerce 2) and not the Market building (Barter, Commerce 1) this crate
+/// had been reading it off. A wealth shortfall enters the sell branch
+/// without a price, so the draw is exact where it is taken.
+/// [`sim::ai_make::SITE_MARKET_SELL`], `docs/AI.md` §40.
+pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 8619;
 
 /// The frame Great Lakes' **second** squad joins the army on — 6994, the
 /// word's own parting from 2026-09-06 to 2026-09-07 and now a landed

@@ -3507,6 +3507,48 @@ mod tests {
             vec![8272],
             "below the word Great Lakes seats exactly one scholar, on 8272"
         );
+        // **Great Lakes 8582, the AI's first market draw** (item 348,
+        // `docs/AI.md` §40). `make_stuff` calls `use_market` first thing,
+        // so the draw sits at index 0 and the frame is otherwise the two
+        // expiry walks it always was — which is the claim a count cannot
+        // make, so the whole frame is the assertion.
+        let ours_8582 = built
+            .frame_sites
+            .iter()
+            .find(|(f, _)| *f == 8582)
+            .map(|(_, s)| s.clone())
+            .unwrap_or_default();
+        assert_eq!(
+            ours_8582,
+            trace.labels(8582),
+            "Great Lakes 8582 is the market's first draw and must agree \
+             entry for entry"
+        );
+        assert_eq!(
+            ours_8582.first(),
+            Some(&sim::ai_make::SITE_MARKET_SELL.to_string()),
+            "8582 opens with `use_market`'s sell rotation"
+        );
+        // **And the whole schedule below the word**, which is what says
+        // the gate is Coinage and not something that happens to hold on
+        // one frame: `report.py … when Leader::use_market` dates the
+        // original's first two at 8582 and 8585 — two leaders three
+        // frames apart — and **none** earlier in the 24,000. This crate's
+        // own shortfall vector met the sell branch's condition on 8185
+        // and 8382 as well, and the tech is the only thing that refuses
+        // them. Past the word both streams are nobody's (item 89(c)).
+        let markets: Vec<i64> = built
+            .frame_sites
+            .iter()
+            .filter(|(_, s)| s.iter().any(|l| l == sim::ai_make::SITE_MARKET_SELL))
+            .map(|(f, _)| *f)
+            .filter(|f| *f < LONG_WORD_GREAT_LAKES)
+            .collect();
+        assert_eq!(
+            markets,
+            vec![8582, 8585],
+            "below the word Great Lakes takes exactly two market draws"
+        );
         assert!(
             first_count >= LONG_WORD_GREAT_LAKES && first_part >= LONG_WORD_GREAT_LAKES,
             "run53's ceiling fell: word {first_count}, sequence {first_part}; \
@@ -4832,12 +4874,24 @@ mod tests {
             wrong.is_empty(),
             "run97's clocks parted outside the walk-slot seam: {wrong:?}"
         );
-        // 4,615 fields over 139 frames, all on player 1's army and all
-        // downstream of one `walk_variant` choice. A floor, not a target:
-        // it may only fall.
+        // All on player 1's army and all downstream of one `walk_variant`
+        // choice, from run97 block 8443 to the word. A floor, not a
+        // target: it may only fall.
+        //
+        // **Moving the word re-pins it, and the rate is how to tell that
+        // from a regression.** The seam costs the same ~33.3 fields a
+        // frame wherever it is measured: 4,615 over the 139 frames
+        // `[8443, 8582)` on item 346, and 5,853 over the 176 frames
+        // `[8443, 8619)` on item 348 — 1,238 more fields for 37 more
+        // frames, which is 33.5 apiece. A successor that moves the word
+        // and finds the per-frame figure unchanged is looking at the same
+        // seam through a wider window; one that finds it risen is not.
         assert!(
-            walk <= 4_615,
-            "run97's walk-slot residue grew: {walk} fields, the floor is 4,615"
+            walk <= 5_853,
+            "run97's walk-slot residue grew: {walk} fields over the {} frames \
+             below the word, the floor is 5,853 — divide by the frames before \
+             calling it a regression",
+            LONG_WORD_GREAT_LAKES - 8_443
         );
     }
 

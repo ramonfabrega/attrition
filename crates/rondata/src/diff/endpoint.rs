@@ -341,11 +341,21 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // closer, six more of the roster unlinked and one building the
         // simulation cannot link, 14,290 frames past the new word.
         // DECISIONS 36 asks for the number rather than a trade.
+        // And **8 → 11 unlinked, 1 → 0 build_unlinked and 30 → 32
+        // build_diverged** on 2026-09-18, item 348 — the market's ability
+        // is **Coinage**, not the Market building (`docs/AI.md` §40), so
+        // the AI's `use_market` gate opens a whole library tech later and
+        // its one draw joins the stream. East Indies' word does not move
+        // (9711 either way) and its `off` holds at 61; three more of the
+        // roster unlinked and two more building field-rows out, against
+        // the one building the simulation could not link now linked,
+        // 14,290 frames past the word. DECISIONS 36 asks for the number
+        // rather than a trade.
         off: 61,
-        unlinked: 8,
+        unlinked: 11,
         extra: 0,
-        build_unlinked: 1,
-        build_diverged: 30,
+        build_unlinked: 0,
+        build_diverged: 32,
         city_unlinked: 3,
         city_diverged: 0,
     },
@@ -526,11 +536,17 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // five building fields closer, four more of the roster unlinked,
         // 15,419 frames past the new word. DECISIONS 36 asks for the
         // number rather than a trade.
-        off: 58,
-        unlinked: 11,
+        // And **58 → 63 off, 11 → 7 unlinked and 5 → 8 build_diverged** on
+        // 2026-09-18, item 348 — the market's ability is **Coinage**
+        // (`docs/AI.md` §40), which moves this map's word 8582 → 8619.
+        // Four fewer of the roster unlinked, five positions and three
+        // building field-rows further out, 15,382 frames past the new
+        // word. DECISIONS 36 asks for the number rather than a trade.
+        off: 63,
+        unlinked: 7,
         extra: 0,
         build_unlinked: 0,
-        build_diverged: 5,
+        build_diverged: 8,
         city_unlinked: 3,
         city_diverged: 0,
     },
@@ -596,7 +612,11 @@ pub const LADDER: [Endpoint; 2] = [
         // before this block. Great Lakes' word moves 8374 → 8382 on it
         // and East Indies' does not move. DECISIONS 36 asks for the
         // number rather than a trade.
-        off: 41,
+        // And **41 → 42 off** on 2026-09-18, item 348 — the market's
+        // Coinage gate (`docs/AI.md` §40). One position further out on
+        // this rung, 5,690 frames past East Indies' own word, which does
+        // not move. DECISIONS 36 asks for the number rather than a trade.
+        off: 42,
         unlinked: 17,
         // 20 → 21 on 2026-09-07, item 267's repaint: one spurious unit
         // back, 7,872 frames past the word, and nothing else on this rung
@@ -658,7 +678,11 @@ pub const LADDER: [Endpoint; 2] = [
         // spurious units gone on this rung, 5,690 frames past the new
         // word, with both building counts unmoved. DECISIONS 36 asks for
         // the number rather than a trade.
-        extra: 21,
+        // Then **21 → 16 extra** on 2026-09-18, item 348 — the same
+        // Coinage gate. Five spurious units gone on this rung, with both
+        // building counts and `unlinked` unmoved. DECISIONS 36 asks for
+        // the number rather than a trade.
+        extra: 16,
         build_unlinked: 10,
         build_diverged: 8,
         city_unlinked: 3,
@@ -715,7 +739,11 @@ pub const LADDER: [Endpoint; 2] = [
         // 6,778 frames past a word the same change takes 8495 → 9711,
         // with `unlinked` and both building counts unmoved. DECISIONS 36
         // asks for the number rather than a trade.
-        off: 48,
+        // **48 → 49 off** on 2026-09-18, item 348 — the market's Coinage
+        // gate (`docs/AI.md` §40). One position further out on this rung,
+        // 8,677 frames past East Indies' own word, which does not move.
+        // DECISIONS 36 asks for the number rather than a trade.
+        off: 49,
         unlinked: 16,
         // 19 → 33 on 2026-09-07, item 261, the same reshuffle, then 33 →
         // **27** the same day on item 265's byte — this rung took the
@@ -763,7 +791,9 @@ pub const LADDER: [Endpoint; 2] = [
         // Then **14 → 20** on 2026-09-18, item 344 — six spurious units
         // back on this rung, on the change that takes Great Lakes' word
         // 8382 → 8404.
-        extra: 17,
+        // **17 → 16 extra** on 2026-09-18, item 348, the same gate: one
+        // spurious unit gone, with both building counts unmoved.
+        extra: 16,
         build_unlinked: 19,
         build_diverged: 0,
         city_unlinked: 4,

@@ -77,6 +77,10 @@ pub const SITES: &[(u32, Option<u32>, &str)] = &[
     // the head's type and step 6's over a bought slot's (`docs/AI.md` §2.6).
     (0x006c_8d11, None, sim::ai_make::SITE_EXPIRE_HEAD),
     (0x006c_912d, None, sim::ai_make::SITE_EXPIRE_SLOT),
+    // `Leader::use_market@006c91c0` — the sell rotation's offset, the one
+    // draw in the whole market. `make_stuff` calls `use_market` first, so
+    // this precedes both expiry walks in a frame that takes it.
+    (0x006c_93ad, None, sim::ai_make::SITE_MARKET_SELL),
     // `Leader::create_units@006c40a0` and `Leader::upgrade_units@006c6430`
     // — the matchup bias over `unit_prod_value`, one draw per candidate,
     // and none on difficulty 2 (`docs/AI.md` §11).
