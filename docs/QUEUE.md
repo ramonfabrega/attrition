@@ -12,36 +12,36 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-17, an Opus commander loop: fifteen landings, ten word-moving.
-**EI +654, GL +593.** Next: 338. The day's price is parked (330).*
+*2026-09-17 into 09-18, an Opus commander loop: seventeen landings, eleven
+word-moving. **GL +695, EI +683.** Next: 340. A capture lane is running.*
 
-- **Great Lakes 8201 → 8272** (item 336): `Unit::fight@005fd4d0` snaps the
-  unit onto its 48-unit cell centre at its own entry, one call `do_attack`
-  never made. Great Lakes stays the headline; East Indies sits at 8466,
-  so the maps have swapped twice in a day.
-- **Both words are now past every detail capture on disk** — Great Lakes'
-  nearest is run19's 8201, **71** frames below; East Indies' run90's 7916,
-  **550** below. The value diff, which tells a right destination from a
-  wrong one the draw stream agrees with, is unavailable at the frontier
-  until a capture is taken. This file's rule *books* it; spending a lane
-  on it is the next structural call.
-- **A self-written trailer was verified for the first time**: 336 wrote
-  `Claude Opus 5`, its transcript says so. Briefs no longer dictate it (335).
-- **A worker's gate can be green while the tree is red.** 336 reported the
-  rondata half, "299 passed / 1 failed", and never saw its §7.11 put
-  `ORDERS.md` §7 over the size ceiling. Split on merge; the reporting gap
-  is worth a guard row.
-- One item open, twenty-seven parked. **Fable backlog: seven Loop items in
-  `docs/PARKED.md`** (313, 318, 321, 330, 331, 332, 335), invisible at boot
-  until this line. 330/331 carry the price, 335 the trailer's sources.
+- **One mechanic moved both maps** (item 338): the game's **first scholar**
+  seating itself. `Unit::go_inside`'s scholar-gated tail snaps it to its
+  host and forces the idle roll — a fourteenth caller of
+  `Guy::set_anim+0x97a` that sites never carried. GL 8272 → **8374**, EI
+  8466 → **8495**. Great Lakes stays the headline.
+- **A value diff need not sit on the word's frame.** 338's proof came from
+  run80's *endpoint*, 23960–24001, where 14 scholars sit on their
+  universities' points — not from 8272, which nothing dumps. Persistent
+  state is answered at the endpoint, cheaply; only a frame-local cause
+  (336's snap) needs the frame. The commander's "the frontier has outrun
+  the captures" brief was too narrow, and 338 disproved it same session.
+- **The residue is exact, which names the successor**: four scholars off by
+  precisely `1/2020 − 1/2019`, seated on the *other* university. The
+  arithmetic is right and **host choice** is what is left (342).
+- **A worker's gate never runs the sim suite on a word-moving item** —
+  no `--no-fail-fast`, rondata red by design, 831 sim tests skipped. It
+  cost 336 an unseen red guard. Parked as **339**; a one-flag fix.
+- Two items open, twenty-eight parked. **Fable backlog: eight Loop items in
+  `docs/PARKED.md`** (313, 318, 321, 330, 331, 332, 335, 339). 318 and 339
+  are the same family and should be decided together.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w8466 of 24,000 · GreatLakes w8272 of 24,000
-Endpoint 24001: EastIndies 66 off, 13 unlinked · GreatLakes 64 off, 17 unlinked
+Long captures: EastIndies w8495 of 24,000 · GreatLakes w8374 of 24,000
+Endpoint 24001: EastIndies 62 off, 10 unlinked · GreatLakes 61 off, 15 unlinked
 
-**Opener: 338 — widen Great Lakes 8272. Nothing dumps it (run19 stops at
-8201), so it is trace-first like 334, and its other product is the capture
-brief the frontier now needs on both maps.**
+**Opener: 340 — widen Great Lakes 8374. Check the endpoint dumps before
+calling a frame undumped: that is the mistake 338 caught.**
 
 ## The queue
 
@@ -51,14 +51,20 @@ unless a better order is obvious, and say so. Numbers are stable; the
 backlog is `docs/PARKED.md`, and an item comes back from it only when a
 score names it.
 
-338. **Great Lakes 8272, and the frontier has outrun the captures** —
-    336 moved the word past run19's last block, so **no dumped record
-    covers it**; the nearest is 8201, 71 frames below. Trace-first, then,
-    exactly like 334: `RON_DEBUG_SITES`/`_FOLD`/`_UNIT` on run53's test,
-    both sequences whole, every unit, then the cause. Its other product is
-    the **capture brief** both maps now need — the window, the categories,
-    the rows that would refuse the reading. Parked 333 (`1/28`'s stack 41
-    against run19's 42) stays a candidate, never an assumption.
+340. **Great Lakes 8374 is the headline** — 338 took both maps with one
+    mechanic, and GL stays the lower word. No item names 8374's frame, so
+    the brief is its widening: both sequences whole, every unit, then the
+    cause. **Before calling the frame undumped, check the endpoint and the
+    late captures** — 338's proof was run80's 24001, not its own frame, and
+    the commander's contrary brief was wrong. run19 (8174–8201) and run94
+    (7754–8061) are the near neighbours; run80 is the census.
+
+342. **Host choice seats the scholar on the wrong university** — 338's own
+    residue, and exact: four scholars off by precisely `1/2020 − 1/2019` at
+    run80's 24001, six of eleven already agreeing. The arithmetic is
+    settled, so this is a predicate, not a formula. Takes a chain to the
+    word only if the seating order feeds it; book after 340 unless 340's
+    widening names it.
 
 ## How to maintain this file
 

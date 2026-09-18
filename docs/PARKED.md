@@ -72,6 +72,38 @@ what served the session that wrote it, the first-request source `lore
 spawns` already trusts. Guard, commit hook, or simply "a brief never
 dictates the trailer and the worker reads its own" is the pass's to choose.
 
+(339) **A worker's gate never runs the sim suite on a word-moving item.**
+`release_gate.py` runs one `cargo test --release` for the whole workspace
+with **no `--no-fail-fast`**, so cargo stops at the first failing test
+binary. On every item that moves a word the rondata binary is red *by
+design* — `the_handoff_s_endpoint_s_pinned_counts`, and
+`the_handoff_s_scoreboard_is_the_floors` too when a floor moves — because
+the worker raises the floor and leaves the queue line to the commander. So
+exactly when a word moves, the **831-test sim suite never runs**:
+`no_float`, `soak`, and `docs_guard` included.
+
+It has already cost once and been hit twice in a day. Item 336 landed with
+a red `docs_guard` nobody saw — its new §7.11 had put `ORDERS.md` §7 over
+the size ceiling — and reported "299 passed / 1 failed" in good faith,
+that being the whole of what its gate reached. Item 338 hit the same wall
+and worked around it by hand, reporting "sim (831 ✓) had to be run
+separately, cargo stops at rondata and never reaches it".
+
+The commander's own gate is unaffected and this is why it went unnoticed:
+by the time the commander gates, the queue lines are written, rondata is
+green, and the sim suite runs (831 passed on every booking this session).
+The blind spot is the *worker's* gate, which is the one that decides
+whether a branch is fit to report.
+
+The fix is one flag — `--no-fail-fast` on the release test command, with
+the runner then reading every `test result:` rather than the last. Whether
+to also make the two paperwork guards skip when the queue is behind the
+floors (318 is the same family: guards that read `docs/QUEUE.md` from disk
+race the commander's rewrite) is the pass's to decide; the two should
+probably be decided together. Until then a brief has to tell its worker to
+read the whole log, which is a rule living in prose — the shape
+`CLAUDE.md` says gets broken within the week.
+
 (318) **A gate that overlaps a queue rewrite fails on paperwork that is
 fine.** `the_handoff_s_endpoint_is_the_pinned_counts` and
 `the_handoff_s_scoreboard_is_the_floors` read `docs/QUEUE.md` from disk, so
