@@ -51,14 +51,14 @@ unless a better order is obvious, and say so. Numbers are stable; the
 backlog is `docs/PARKED.md`, and an item comes back from it only when a
 score names it.
 
-334. **East Indies 8193 is the headline now, and its chain is cold** —
-    Great Lakes crossed it at 8201 (329), so "lower map first" changes
-    hands for the first time. Nothing has worked this map since 304, and
-    **no item names 8193's frame**, so by the queue's own rule the brief
-    is the widening of that frame: every dumped record on 8193 and its
-    neighbours, every slot, every field, every unit — then the cause.
-    run54 is the scored capture; grep the disk *and* the source's
-    citations before booking anything.
+334. **East Indies 8193 is the headline, and nothing on disk dumps it**
+    (loop-334, spawned). Great Lakes crossed it at 8201 (329), so "lower
+    map first" changes hands for the first time. The disk was greped
+    before the spawn: this map's detail stops at run90's **7916**, 277
+    frames short, and run54's `[End Frame]` is `MISC` alone — a draw
+    stream and a closing dump, no per-frame record. So the widening is
+    of the **trace**: `RON_DEBUG_SITES`/`_FOLD`/`_UNIT` over a window,
+    both sequences whole. Its other product is a capture brief.
 
 ## How to maintain this file
 
