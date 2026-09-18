@@ -1283,10 +1283,15 @@ impl<'a> Log<'a> {
     /// The `BUILDDATA` records of one frame's block — every building the
     /// original had standing at the end of sim-frame `n − 1`, with the
     /// `orig_type` and `build_masks` a `DUMP_ALL` block always carries.
+    /// A capture that writes `BUILDS` per frame without `DUMP_ALL` — run80
+    /// is one — nests nothing under a `FULL DUMP`, so the records are the
+    /// `FRAME` block's own children and [`Log::dumps`] never sees them. The
+    /// fallback only fires where this used to answer empty.
     pub fn frame_builds(&'a self, n: i64) -> Vec<BuildDump> {
         self.dumps()
             .into_iter()
             .find(|(f, _)| *f == n)
+            .or_else(|| self.frames().into_iter().find(|(f, _)| *f == n))
             .map(|(_, b)| records(b, false).1)
             .unwrap_or_default()
     }

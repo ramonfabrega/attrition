@@ -2296,3 +2296,18 @@ was doubly confirmed, what was overturned into the sections above, and
 what the reading settled for the first — is in `docs/JOURNAL.md`
 (2026-08-20). Every correction it produced is landed in `crates/sim`
 with a test.
+
+## 14. A mine is refused by a tile distance, not a cell survey (2026-09-18)
+
+§2.6.7's `NO_MOUNTAIN 0xc` is `calc_gather == 0` for a mine, and a mine's
+`calc_gather` is not the survey the camp runs: `00639e40`'s head sends
+`0x1a3` (and `0x1a4`, the university) past the circle walk, and the mine's
+arm asks `MountainsData::find_nearest` whether a **mountain tile** stands
+within `MINE_RADIUS × 0xc0` world units of the footprint's centre. The cell
+form — a mountain-centred cell inside `MINE_RADIUS` tiles of the anchor —
+passes twice as many sites, which is Great Lakes' frame 8382: eighteen of
+`Leader::produce_building`'s spiral draws against the original's nine.
+
+`docs/ECONOMY.md`, "The mine's range", has the predicate, the mining list
+that follows it, the reconstruction of a mountain range and what none of it
+establishes. `docs/AI.md` §39 has what it moved (item 344).

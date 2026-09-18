@@ -108,6 +108,8 @@
 //!   unnamed here and in `world::tile`. It is set on 1,711 tiles of run9's
 //!   map — enough that the access cap never binds there.
 
+use std::collections::BTreeSet;
+
 use crate::ai_place::{circle, gather_good};
 use crate::build::flags;
 use crate::economy::Resource;
@@ -280,7 +282,9 @@ impl Sim {
         }
         let (anchor_tile, anchor_cell) = self.gather_anchor(ty, corner);
         if good == Resource::Metal.index() {
-            return self.mine_slots(anchor_cell, who, from).max(0);
+            return self
+                .mine_slots(self.footprint_centre(ty, corner), who, from)
+                .max(0);
         }
         let radius = if good == Resource::Timber.index() {
             WOODCUTTER_RADIUS
@@ -351,15 +355,44 @@ impl Sim {
     /// tiles, every listed tile among them. Sixteen-a-cell would be 96.
     /// (`docs/ECONOMY.md`, "The gather list".)
     ///
-    /// The **metal** branch is not this walk at all: it takes the tiles of
-    /// the nearest mountain range or cliff, and is not modelled — a mine
-    /// built during a run gets an empty list here, which is what it got
-    /// before this function existed.
+    /// The **metal** branch is not this walk at all: `0x1a3` takes the tiles
+    /// of the nearest mountain range whole ([`Sim::mountain_range`]),
+    /// keeping every one that is not `SURFACE_FOREST`, stands on nobody
+    /// else's territory and is not already gathered from — the three tests
+    /// the decompiled loop makes, in that order. run97's frame 8383 is the
+    /// value diff: Great Lakes' first mine lists **207** tiles, the range
+    /// here holds 244, and the 37 it drops are exactly the forest-surfaced
+    /// ones (`docs/ECONOMY.md`, "The mine's range").
+    ///
+    /// **The cliff arm is not modelled.** `CliffsData::find_nearest` runs
+    /// beside the mountain one and wins when a scary cliff is nearer; no
+    /// capture on either map has a cliff tile at all, so a mine sited on one
+    /// still gets nothing here. The falsifier is a map with `OBJECT_CLIFF`
+    /// tiles and a mine beside them.
     pub fn gather_tcoords(&self, ty: usize, who: Player, corner: Pos) -> Vec<Pos> {
         let t = &self.build_types[ty];
         let Some(good) = gather_good(t.ident) else {
             return Vec::new();
         };
+        if good == Resource::Metal.index() {
+            let Some(range) = self.mountain_range(self.footprint_centre(ty, corner)) else {
+                return Vec::new();
+            };
+            return range
+                .tiles
+                .into_iter()
+                .filter(|&p| {
+                    let m = self.world.tile_mask(p);
+                    m & tile::SURFACE != tile::SURFACE_FOREST
+                        && m & GATHERED_FROM == 0
+                        && self
+                            .world
+                            .owner(World::cell_of_tile(p))
+                            .player()
+                            .is_none_or(|o| o == who || self.is_ally(who, o))
+                })
+                .collect();
+        }
         if good != Resource::Timber.index() {
             return Vec::new();
         }
@@ -444,6 +477,17 @@ impl Sim {
             }
         }
         self.buildings[b].gather_max = Some(self.max_gatherers(b));
+    }
+
+    /// `corner_tile@006364c0`'s own answer: the footprint's centre in world
+    /// units, `(size + 2·corner) · 96`.
+    pub(crate) fn footprint_centre(&self, ty: usize, corner: Pos) -> Pos {
+        let t = &self.build_types[ty];
+        let half = UNITS_PER_TILE / 2;
+        Pos::new(
+            corner.x * UNITS_PER_TILE + t.x_size * half,
+            corner.y * UNITS_PER_TILE + t.y_size * half,
+        )
     }
 
     /// `corner_tile@006364c0`: the footprint's centre in world units, as the
@@ -560,13 +604,14 @@ impl Sim {
     /// `@0089d170`, `CliffsData::gather_size@008a8f80` — the same shape).
     ///
     /// The range itself is [`Sim::mountain_range`]'s reconstruction.
-    fn mine_slots(&self, anchor: Cell, who: Player, from: &Source) -> i32 {
-        let Some((cells, tiles)) = self.mountain_range(anchor) else {
+    fn mine_slots(&self, centre: Pos, who: Player, from: &Source) -> i32 {
+        let Some(range) = self.mountain_range(centre) else {
             return 0;
         };
+        let tiles = i32::try_from(range.tiles.len()).unwrap_or(i32::MAX);
         let mut total = 0;
         let mut usable = 0;
-        for c in &cells {
+        for c in &range.cells {
             let sample = c.centre_tile();
             total += 1;
             let mine = match self.world.owner(*c).player() {
@@ -594,57 +639,123 @@ impl Sim {
         base
     }
 
-    /// The mountain range a mine draws on: the connected component of
-    /// mountain cells reachable from the nearest one inside `MINE_RADIUS`,
-    /// with the number of mountain **tiles** in it — what
-    /// `MountainRangeData::mount_tx` counts.
+    /// `MountainsData::find_nearest@0089cd30`, for the one question every
+    /// caller here asks of it: the **mountain tile** nearest a site, or
+    /// `None` when the nearest is further than a mine may reach.
+    ///
+    /// The original walks every placed mountain and every tile of its range
+    /// and keeps the smallest `vector_dist` **in world units** from the
+    /// footprint's centre; `calc_gather` then drops the answer outright when
+    /// it exceeds `gather_radius * 0xc0`. Only tiles inside that reach can
+    /// ever win, so the scan is the box that bounds it.
+    ///
+    /// **This is the predicate a mine's site is refused by**, and it is not
+    /// the cell walk the camp uses: measuring to a mountain **cell's centre
+    /// tile** inside `MINE_RADIUS` passes twice as many sites as measuring
+    /// to the nearest mountain tile, and Great Lakes 8382 is the difference
+    /// — eighteen friendless candidates against the original's nine
+    /// (`docs/ECONOMY.md`, "The mine's range").
+    ///
+    /// **Not established:** the tie-break. The original's order is the map
+    /// generator's range order and then each range's own tile order; this
+    /// walks rows, and a tie between two ranges at the same distance would
+    /// pick a different range's tile. No capture holds one.
+    fn nearest_mountain_tile(&self, centre: Pos) -> Option<Pos> {
+        let half = UNITS_PER_TILE / 2;
+        let span = MINE_RADIUS + 1;
+        let at = Pos::new(
+            centre.x.div_euclid(UNITS_PER_TILE),
+            centre.y.div_euclid(UNITS_PER_TILE),
+        );
+        let mut best: Option<(i32, Pos)> = None;
+        for ty in (at.y - span)..=(at.y + span) {
+            for tx in (at.x - span)..=(at.x + span) {
+                let t = Pos::new(tx, ty);
+                if !self.world.tile_in_bounds(t)
+                    || self.world.tile_mask(t) & tile::OBJECT != tile::OBJECT_MOUNTAIN
+                {
+                    continue;
+                }
+                let d = vector_dist(
+                    centre.x - (tx * UNITS_PER_TILE + half),
+                    centre.y - (ty * UNITS_PER_TILE + half),
+                );
+                if best.is_none_or(|(b, _)| d < b) {
+                    best = Some((d, t));
+                }
+            }
+        }
+        best.filter(|&(d, _)| d <= MINE_RADIUS * UNITS_PER_TILE)
+            .map(|(_, t)| t)
+    }
+
+    /// The mountain range a mine draws on — the connected component of
+    /// mountain **tiles** reachable from [`Sim::nearest_mountain_tile`],
+    /// eight-connected.
     ///
     /// **A reconstruction.** The original's ranges come out of the map
     /// generator (`Mountains`, `MountainsData::find_nearest`); nothing in the
-    /// sim carries them, and this stands in until something does.
-    pub fn mountain_range(&self, anchor: Cell) -> Option<(Vec<Cell>, i32)> {
-        let is_mtn = |c: Cell| {
-            self.world.contains(c)
-                && self.world.tile_mask(c.centre_tile()) & tile::OBJECT == tile::OBJECT_MOUNTAIN
+    /// sim carries them, and this stands in until something does. It is
+    /// pinned by value rather than by argument: run97's frame 8383 dumps
+    /// Great Lakes' first mine with `mtn 6` and a `length` of **207**, and
+    /// the component here holds **244** tiles of which exactly 37 carry
+    /// `SURFACE_FOREST` (`docs/ECONOMY.md`, "The mine's range").
+    ///
+    /// [`MountainRange::cells`] is `solid_mount_wx`/`_wy`, which
+    /// `MountainRangeData::gather_size@0089d170` counts rather than the
+    /// tiles: a cell of the range whose **centre tile** is a mountain and
+    /// whose cell is not a forest one.
+    pub fn mountain_range(&self, centre: Pos) -> Option<MountainRange> {
+        let seed = self.nearest_mountain_tile(centre)?;
+        let is_mtn = |t: Pos| {
+            self.world.tile_in_bounds(t)
+                && self.world.tile_mask(t) & tile::OBJECT == tile::OBJECT_MOUNTAIN
         };
-        // `MountainsData::find_nearest` inside `gather_radius * 0xc0`.
-        let ring = ((MINE_RADIUS + 3) / 4).clamp(0, 0x40) as usize;
-        let circle = circle();
-        let mut seed = None;
-        for i in 0..circle.radius[ring] {
-            let c = Cell::new(anchor.x + circle.x[i], anchor.y + circle.y[i]);
-            if is_mtn(c) {
-                seed = Some(c);
-                break;
-            }
-        }
-        let seed = seed?;
-        let mut seen = vec![seed];
+        let mut seen: BTreeSet<(i32, i32)> = BTreeSet::new();
+        seen.insert((seed.y, seed.x));
         let mut queue = vec![seed];
-        while let Some(c) = queue.pop() {
+        while let Some(t) = queue.pop() {
             for dy in -1..=1 {
                 for dx in -1..=1 {
-                    let n = Cell::new(c.x + dx, c.y + dy);
-                    if is_mtn(n) && !seen.contains(&n) {
-                        seen.push(n);
+                    if (dx, dy) == (0, 0) {
+                        continue;
+                    }
+                    let n = Pos::new(t.x + dx, t.y + dy);
+                    if is_mtn(n) && seen.insert((n.y, n.x)) {
                         queue.push(n);
                     }
                 }
             }
         }
-        let mut tiles = 0;
-        for c in &seen {
-            for v in 0..TILES_PER_CELL {
-                for u in 0..TILES_PER_CELL {
-                    let t = Pos::new(c.x * TILES_PER_CELL + u, c.y * TILES_PER_CELL + v);
-                    if self.world.tile_mask(t) & tile::OBJECT == tile::OBJECT_MOUNTAIN {
-                        tiles += 1;
-                    }
-                }
+        // Row-major, which is this crate's order and not the generator's;
+        // the shuffle in `find_gather_tiles` reads it, so the *sequence* a
+        // mine ends up with is not the original's even where the set is.
+        let tiles: Vec<Pos> = seen.iter().map(|&(y, x)| Pos::new(x, y)).collect();
+        let mut cells: Vec<Cell> = Vec::new();
+        for &t in &tiles {
+            let c = World::cell_of_tile(t);
+            if cells.contains(&c) || !is_mtn(c.centre_tile()) {
+                continue;
             }
+            if self.world.cell_data(c).flags & 0x20 != 0 {
+                continue;
+            }
+            cells.push(c);
         }
-        Some((seen, tiles))
+        Some(MountainRange { tiles, cells })
     }
+}
+
+/// One mountain range, as [`Sim::mountain_range`] rebuilds it.
+pub struct MountainRange {
+    /// Every mountain tile of the range — `MountainRangeData::mount_tx`,
+    /// which is both the mine's own tile list and the count the gather
+    /// rungs are chosen by.
+    pub tiles: Vec<Pos>,
+    /// `solid_mount_wx`/`_wy`: the range's cells whose centre tile is a
+    /// mountain and whose cell is not a forest one — what
+    /// `MountainRangeData::gather_size` counts.
+    pub cells: Vec<Cell>,
 }
 
 #[cfg(test)]

@@ -984,9 +984,11 @@ them. Sixteen-a-cell would be 96.
 The **metal** branch is a different walk altogether — `MountainsData::
 find_nearest` / `CliffsData::find_nearest`, then the range's or the cliff's
 own tiles, skipping forest, enemy-owned and already-gathered ones, and
-stamping `MiningList::mtn`/`::cliff` so the search is not repeated. It is
-**not modelled**: a mine placed during a run gets an empty list, which is
-what it got before any of this existed.
+stamping `MiningList::mtn`/`::cliff` so the search is not repeated.
+~~It is **not modelled**: a mine placed during a run gets an empty list,
+which is what it got before any of this existed.~~ **The mountain half is
+read and implemented, 2026-09-18** — "The mine's range" below. The cliff
+half is not.
 
 ### How it is established
 
@@ -1027,10 +1029,133 @@ of it (`docs/AI.md` §19). So the count is no longer only `gather_max`'s: it
 decides where the AI's camps go, and run56's frame 2176 is the diff that says
 so.
 
-**What it does not establish.** The **metal** branch, above. And
+**What it does not establish.** ~~The **metal** branch, above.~~ Landed
+2026-09-18; see "The mine's range" below for what *it* leaves open. And
 `Build::process`'s two re-entries — `verify_gather_tiles` on a region's
 `0x20`, `find_gather_tiles` again on its `0x10` — which no run has been
 seen to take, because the region flags are not modelled at all.
+
+## The mine's range (2026-09-18)
+
+A mine does not survey the ground around it at all. `calc_gather` sends
+`0x1a4` (the university) and `0x1a3` (the mine) past the circle walk before
+it starts — `if (!is_flat && !is(0x1a4) && !is(0x1a3))` at `00639e40`'s head
+— and the mine's own arm is the **nearest mountain range**, whole.
+
+That is two separate things, and until 2026-09-18 this crate had the second
+missing and the first standing in for it with the camp's cell walk.
+
+### The site test — `calc_gather`'s mine arm
+
+```
+reach = gather_radius(type) * 0xc0                  # MINE_RADIUS 6, so 1152 world units
+centre = corner_tile(type, corner)                  # the footprint's centre, world units
+if list is null or (list.mtn < 0 and list.cliff < 0):
+    mtn, mtn_d = MountainsData::find_nearest(mountains, centre, region)
+    clf, clf_d = CliffsData::find_nearest(scary_cliffs, centre, region)
+else:
+    mtn, clf, mtn_d, clf_d = list.mtn, list.cliff, 0, 0
+if clf >= 0 and mtn >= 0 and clf_d < mtn_d:   mtn = -1      # the cliff is nearer
+if mtn >= 0 and reach < mtn_d:                mtn = -1      # and both may be too far
+count = MountainRangeData::gather_size(mtn, …)   # or CliffsData::gather_size
+```
+
+`find_nearest@0089cd30` walks every placed mountain and **every tile of its
+range**, keeping the smallest `vector_dist` in world units; the region
+argument skips a range whose own cell is on another landmass. So the
+predicate a mine site is refused by is *"is there a mountain tile within six
+tiles of where the building would stand"* — not *"is there a mountain-centred
+**cell** within six tiles of the anchor"*, which is what the camp's walk asks
+and what this crate asked for a mine until now.
+
+**The difference is a factor of two, measured.** Great Lakes' frame 8382
+places the game's first mine. `Leader::produce_building`'s spiral draws once
+per friendless FARM/MINE candidate that clears `blocked_site`
+(`docs/AI.md` §2.20), and the cell walk let **eighteen** candidates through
+where the original passed **nine** — the nine whose nearest mountain tile is
+inside 1152 world units, exactly. Nine extra draws moved the placement
+jitter's four rolls nine places down the stream and put the mine a tile east
+of the original's.
+
+### The list — `find_gather_tcoords@0063bdc0`'s metal arm
+
+The range's tiles, in the template's own order, keeping each one that
+
+1. is not `SURFACE_FOREST` (`(mask & 0x30) != 0x30`),
+2. stands on unclaimed, own or allied territory (`WData +0xf`), and
+3. is not already gathered from (`mask & 0x1000`).
+
+`MiningList::mtn` is stamped with the range so a later `calc_gather` on the
+same building skips the search.
+
+### What `gather_size` counts, which is not the tiles
+
+`MountainRangeData::gather_size@0089d170` walks `solid_mount_wx`/`_wy` — a
+**cell** list — and counts a cell whose own `WData.flags & 0x20` is clear and
+whose centre tile is a mountain. Those are `total`; the ones in friendly
+territory and (with a list in hand) whose centre tile is on it are `usable`.
+The rung comes from `mount_tx`, the range's **tile** count, against
+`MTN_TINY_SIZE` … `MTN_HUGE_SIZE`, and is then scaled `rung * usable /
+total`, floored at 1 when anything is usable.
+
+### The reconstruction, and what run97 and run80 say about it
+
+The original's ranges are map-generator objects: a placed mountain has a
+location and a template with a tile-offset list. Nothing in a gamelog dump
+carries them. `sim::Sim::mountain_range` stands one up as the **eight-
+connected component of mountain tiles** containing the nearest one, and
+`solid_mount` as that component's cells whose centre tile is a mountain and
+whose cell is not a forest one.
+
+It is pinned by value rather than by argument:
+
+| record | says |
+| --- | --- |
+| run97 frame 8383, `1/2021` | `mtn 6`, `cliff -1`, `length 207`, and the 207 tiles |
+| run80 frames 23960–23999 | the same 207, unchanged 15,600 frames later |
+| run80, `1/2022` | a second mine, `mtn 0`, **232** tiles |
+
+This crate's component around Great Lakes' first mine holds **244** tiles, of
+which exactly **37** carry `SURFACE_FOREST` — 207 — and every one of the
+original's 207 is among them. The second mine's 232 agree too, on a range
+the reconstruction was not fitted to.
+`great_lakes_first_mine_lists_its_mountain_range` (`rondata::diff`) is that
+comparison.
+
+### What it moved
+
+Great Lakes' word **8382 → 8404**. Frame 8382 went from 46 draws to the
+original's **865**, entry for entry: three `make_stuff`, nine spiral, four
+jitter, `4 × 207 = 828` shuffle, and the rest of the frame unchanged. The
+mine lands at `(41088, 25920)`, which is the original's own position for
+`1/2021`. East Indies does not move.
+
+### What it does not establish
+
+- **The range index.** `mtn 6` is an index into the generator's placed-
+  mountain array. A component walk has no such order, so this crate does not
+  reproduce the number and does not store one; `MiningList::mtn`'s caching
+  role is unmodelled with it. The falsifier is a capture where a mine's
+  `calc_gather` is re-run after its list exists and the two answers differ.
+- **The pre-shuffle order**, and therefore the post-shuffle one. The original
+  walks the template's tile arrays; this crate walks rows. The **count** is
+  what the sync stream sees and the count is right, and the set is right, but
+  `Unit::do_non_flat_gather` ranks tiles by `i >> 2` — so *which* tile a
+  miner works first is not the original's. The falsifier is a `GATHERORDER`
+  dump over a mine's citizens.
+- **The cliff arm.** `CliffsData::find_nearest` runs beside the mountain one
+  and wins when a scary cliff is nearer, with its own `gather_size`. Neither
+  scored map has a single `OBJECT_CLIFF` tile, so nothing here is refused by
+  a capture; a mine beside a cliff still gets an empty list. The falsifier is
+  a map with cliff tiles and a mine on one.
+- **The tie-break in `find_nearest`.** The original's order is the placed-
+  mountain array's and then each range's own tile order; this crate's is
+  row-major. Two ranges the same distance away would seed different
+  components. No capture holds a tie.
+- **The region filter.** `find_nearest` takes the site's region and skips a
+  range whose location cell is elsewhere; this crate scans a box that cannot
+  reach another landmass at six tiles, so the filter never bites and is not
+  written.
 
 ## The commerce cap
 

@@ -718,14 +718,17 @@ pub(crate) fn debug_builds(built: &Built, frame: i64) {
             })
             .collect();
         eprintln!(
-            "  f{frame} B {}/{} ty{ty} act{} jc{}/{} hits{} help{} q[{}]",
+            "  f{frame} B {}/{} ty{ty} ({},{}) act{} jc{}/{} hits{} help{} gl{} q[{}]",
             b.owner,
             b.index,
+            b.pos.x,
+            b.pos.y,
             u8::from(b.active),
             b.job_counter,
             b.constr_time,
             b.construct_hits,
             b.helpers,
+            b.gather_from.len(),
             q.join(" ")
         );
     }
