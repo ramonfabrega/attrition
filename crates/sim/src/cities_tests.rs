@@ -8,7 +8,7 @@ use crate::city::{PlaceFail, capture_value, health_level};
 use crate::garrison::{GarrisonRefused, UnitTraits};
 use crate::orders::Coll;
 use crate::place::Blocked;
-use crate::world::{UNITS_PER_CELL, tile};
+use crate::world::{UNITS_PER_CELL, cell, tile};
 
 const TILE: i32 = world::UNITS_PER_TILE;
 
@@ -279,6 +279,53 @@ fn a_finished_city_projects_territory_and_the_radius_mask() {
     assert_eq!(
         sim.blocked_site(Some(0), t.village, tile_pos(57, 32), None),
         Blocked::Clear
+    );
+}
+
+/// **`mask_me`'s first write: the `BUILDING` bit on the building's own
+/// cell** — `006312a0`, `cells[y / 0x300 * xs + x / 0x300].flags |= 0x4000`
+/// when marking and `&= 0xbfff` when unmarking. `docs/CITIES.md` §3.6 named
+/// it at the first reading and nothing wrote it until item 352.
+///
+/// It is a **cell** bit, not a tile one, and it marks one cell per building
+/// however large the footprint — which is why `tile::OBJECT_BUILDING` above
+/// is not a substitute for it. Its one reader in the export is
+/// `Army::find_muster_spot`'s ring score (`docs/ARMY.md` §13), and with the
+/// bit missing the AI scored the middle of its own town as open ground:
+/// Great Lakes 8442 mustered nine units on cell (50, 27) where the original
+/// takes (58, 29), the cell of that ring with the fewest buildings beside
+/// it. run34's own start block is the confirmation that the original writes
+/// it — thirteen cells carry `0x4000` and each is a starting building's.
+#[test]
+fn a_building_marks_its_own_cell_and_unmarks_it_when_it_closes() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let centre = tile_pos(32, 32).cell();
+    assert_eq!(
+        sim.world.cell_data(centre).flags & cell::BUILDING,
+        0,
+        "nothing has been placed yet"
+    );
+    let (b, _) = city_at(&mut sim, &t, 0, 32, 32);
+    assert_ne!(
+        sim.world.cell_data(centre).flags & cell::BUILDING,
+        0,
+        "a started building marks the cell holding its own position"
+    );
+    // One cell, not the footprint: the village is four tiles across and
+    // the tile mask covers all of them, but only its own cell is flagged.
+    assert_eq!(
+        sim.world.cell_data(tile_pos(36, 32).cell()).flags & cell::BUILDING,
+        0,
+        "the neighbouring cell is not marked"
+    );
+    // And the unmark. `Build::close` calls `mask_me(0)` for a started
+    // building, which clears the bit it set.
+    sim.close_building(b, false);
+    assert_eq!(
+        sim.world.cell_data(centre).flags & cell::BUILDING,
+        0,
+        "closing a started building unmarks its cell"
     );
 }
 

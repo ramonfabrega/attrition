@@ -1204,7 +1204,18 @@ pub(crate) const EAST_INDIES_FIRST_SCHOLAR: i64 = 8_466;
 /// (`docs/GROUPS.md` §3.2), so §12's probe at 8186 takes its six out of
 /// the army for good — and 8442's retarget then turns six units the
 /// original leaves walking. `docs/ARMY.md` §3.4.
-pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 8628;
+///
+/// **8663 since item 352**, which closed 8442 itself: the army's muster
+/// was cell (50, 27) against the original's (58, 29), and two
+/// `find_muster_spot` predicates were why. The ring's same-owner spacing
+/// test is `vector_dist <= 4` (`6f633a`: `cmp $4` / `jle`), not `< 4`;
+/// and `BuildType::mask_me`'s **first** write — `W.flags |= 0x4000` on
+/// the building's own cell — was in `docs/CITIES.md` §3.6 from the first
+/// reading and in no code, so the ring scored every cell of the AI's own
+/// town as open ground. With both, run97's walk-slot band is **empty**
+/// and every one of the nine units stands on the original's own
+/// coordinates on 8442. `docs/ARMY.md` §13 and §16.9.
+pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 8663;
 
 /// The frame Great Lakes' **second** squad joins the army on — 6994, the
 /// word's own parting from 2026-09-06 to 2026-09-07 and now a landed

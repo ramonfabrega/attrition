@@ -1199,9 +1199,14 @@ within it — around `(ax, ay)`; an entry off the map is skipped outright.
 For each candidate `(cx, cy)` on the map:
 
 - **not too near another army of mine**: for each other valid slot,
-  `vector_dist(|cx − A.muster_x|, |cy − A.muster_y|) < 4` if `who` is me
-  or my ally, `< 2` otherwise, ends the candidate's walk before it scores;
-  it scores 0 and cannot become the best;
+  `vector_dist(|cx − A.muster_x|, |cy − A.muster_y|) **<= 4**` if `who` is
+  me or my ally, **`<= 2`** otherwise, ends the candidate's walk before it
+  scores; it scores 0 and cannot become the best. **The bound is
+  inclusive** — the listing is `cmp $0x4` / `jle` at `6f633a` and `cmp
+  $0x2` / the same `jle` at `6f6313`, so a candidate *at* the distance is
+  dropped, which the decompiler's `SBORROW4` idiom reads as `< 4` if the
+  `==` arm beside it is missed. Written `<` here and in the code until
+  item 352, where it was half of Great Lakes 8442's wrong muster (§16.9);
 - **the neighbourhood walk**, `move_x/y[0 .. k)` from the cell itself
   outward — `k = 0x31` (the 7 × 7, `world::MOVE_49`, read from the
   executable) with `flag`, 9 (the 3 × 3) without. Every neighbour must be
@@ -1228,7 +1233,13 @@ For each candidate `(cx, cy)` on the map:
   land**: `Lands::init@0067e730` writes it, and `combat_bonus` at
   `+0x104`, as a constant to all nine, and no other function in the
   export writes either — so a candidate scores 256 per non-building
-  neighbour, 2304 at most, and the walk order breaks every tie;
+  neighbour, 2304 at most, and the walk order breaks every tie. **This is
+  the ring's only source of difference between two admissible cells, and
+  it is the whole of what makes an army muster clear of its own town** —
+  `BuildType::mask_me@006312a0`'s first write sets the bit on the cell
+  holding a building's own position (`docs/CITIES.md` §3.6), and until
+  item 352 nothing in this crate wrote it, so every cell of the AI's
+  town scored the flat maximum (§16.9);
 - the best is by strict `>` against a running best that starts at 0 (a
   candidate whose 3 × 3 is all building cells never wins), and the walk
   stops at the first on-map candidate more than `0x28` entries past the
@@ -1531,6 +1542,13 @@ islands runs and was never checked against the corpus —
 not asked. The lesson is the tool's own: a blind claim is only blind
 against *every* trace on disk.
 
+## 16 (continued) — the Great Lakes captures
+
+The sub-numbers run on: §16.1–16.6 above are the record and the islands
+windows, §16.7–16.9 here are Great Lakes'. The break is a `## ` heading
+and nothing else — `docs_guard`'s size ceiling is per section and a
+session reads one at a time.
+
 ### 16.7 run84 — the second squad's own order, and Great Lakes 6994
 
 *2026-09-06, item 249.* Great Lakes' long capture parts at **6994** on two
@@ -1609,6 +1627,49 @@ Item 317; story in `docs/journal/2026-09-17-item-317.md`.
   excepted (§18).
 
 **Word 7930 → 8030**; 8318 frames draw for draw (8193). Successor: 8030.
+
+### 16.9 Great Lakes 8442 — the muster cell, off a record that names no army (2026-09-18)
+
+Item 352; story in `docs/journal/2026-09-18-item-352.md`.
+
+**How an army's muster is read out of a dump that has no `ARMYDATA`.**
+run97 block 8443 gives every member of group 64 a `GROUPATTACKTOORDER`
+whose `MoveOrder::orig_x/orig_y` is **(44851, 22480)** for all nine — the
+group's own destination before each unit's formation slot. §8's
+`do_forming` builds that as `cell_centre(muster)` stepped `num_groups ×
+0xc0` along `muster_angle`, and §12's tail has already added `0x80000000`
+to that angle, so the point is one tile *back* from the muster's centre.
+Swept over every centre and every muster cell on the map, **(44851,
+22480) is `(58, 29)`'s and no other's** — a 192-unit residual pins the
+cell exactly. The army's own point is London's `(target.x, target.y +
+0x300)` → cell (55, 22), which makes (58, 29) offset `(3, 7)`, entry 26
+of ring 7. This crate was mustering at `(50, 27)`, entry 10.
+
+**Two predicates of §13's ring, and they compound.** The score is 256 a
+neighbour with nothing to separate two open cells, so the *first* maximum
+in walk order wins (`local_3c < local_18`, `jle` at `6f6720` — strictly
+greater, as written):
+
+- the same-owner spacing bound is **inclusive** (`jle`, `6f633a`). Army
+  1/2's ring had a candidate exactly four cells from army 1/1's muster and
+  kept it; with the bound right that army moves to (51, 26) instead, which
+  is one cell from (50, 27) and takes (50, 27) out of army 1/1's ring;
+- **`mask_me`'s `0x4000`** was unwritten, so the AI's own town scored
+  flat. With it, ring 7's `y = 29` row scores 1792, 1280, 1024, 1536,
+  1792, **2048** from x = 53 to 58 — the buildings at (54, 29), (55, 29),
+  (54, 30), (55, 30), (56, 30) and (58, 30) — and the easternmost cell,
+  the one with a single building beside it, is the best. Neither fix alone
+  gets there: with only the spacing bound the muster is (50, 27) still,
+  and with only the flag it is (55, 29).
+
+**The value diff.** All nine of `1/31`–`1/39` stand on block 8443's own
+`x_internal`/`y_internal` and hold its own path goal on the frame,
+`1/37`'s ten-segment path included;
+`great_lakes_8442_musters_the_army_where_the_original_does` is that
+record. run97's **walk-slot band is empty** below the word — 1,747 fields
+to 0 — and its point-and-goal residue 7,009 → 601, on eight units rather
+than sixteen. **Word 8628 → 8663**; the successor is `Unit::do_move+0xe84`
+against `Farms::inc_time+0x1ae` at 8663.
 
 ## 17. What the simulation carries, and what checks it
 
@@ -1711,34 +1772,39 @@ Checks, cheapest first (`rondata::diff`, `army_tests`):
 
 ## 18. What is not established
 
-- **Which city Great Lakes 8442 picks, and where the army musters on it**
-  (item 350's successor). The frame is a `find_target` and both sides
-  spend its **two** `+0x7df` score draws, so the same two candidates are
-  walked in the same order on the same RNG — `London` (city 1, the
-  capital) and `Norwich` (city 2), both the AI's own; `Napata` is the
-  human's and `frame_attacked + 0x1c20` still excludes it from 8186's
-  probe. This crate scores London 347 and Norwich 328 — both are
-  `rnd % 200 + 900` divided by §12's `/3`, with `size_factor(1) = 1` and
-  no other factor live — takes London, and musters at cell **(50, 27)**.
-  The original's `GROUPATTACKTOORDER` on run97 block 8443 carries `orig`
-  **(44851, 22480)**, cell (58, 29), which is neither this crate's London
-  muster nor the one forcing Norwich produces (cell (47, 30), and the word
-  then falls to 8451). So either the winner or §13's ring is wrong, and
-  the two are not separable from here: **no capture on disk carries an
-  `ARMYDATA` record**, so an army's target, `pos`, `muster` and
-  `rally_dist` are only ever visible from this side (`RON_DEBUG_ARMIES`).
-  What is *not* in this crate's §12 and is in the listing: the **wonder**
-  clause (`num_wonders(city) != 0 && Game::wonder_winning() == the owner`
-  → `× 10`, `006f69b0`), and the own-city factor is taken from the city
-  **building's type** — `0x19f → 2`, `0x1a0`/`0x213 → 3`, else 1 — rather
-  than from `CityData::get_level` as `size_factor` does. Neither is live
-  at 8442 on the numbers above, and neither has been checked.
-  **The capture that would refuse it**: a run of this seed with `ARMY`
-  detail, if the engine has a category that prints one — `docs/ORACLE.md`
-  lists 37 `SyncDefine` names and no army record has ever been dumped, so
-  the cheaper falsifier is the muster itself: any frame above 8442 whose
-  `GROUPATTACKTOORDER` `orig` this crate can be made to reproduce from one
-  of the two cities pins which city it was.
+- ~~**Which city Great Lakes 8442 picks, and where the army musters on
+  it**~~ — **settled by item 352 (§16.9)**, and without an `ARMYDATA`
+  record: the order's `orig` reconstructs the muster cell uniquely through
+  §8's one-tile step, and the answer is **London** (as this crate already
+  had) mustering at **(58, 29)**. §13's ring was wrong on two predicates —
+  the inclusive spacing bound and the unwritten `mask_me` flag — and the
+  nine units now stand on run97's own coordinates on the frame.
+  Still *not* in this crate's §12, still unchecked, and no longer
+  blocking anything: the **wonder** clause (`num_wonders(city) != 0 &&
+  Game::wonder_winning() == the owner` → `× 10`, `006f69b0`), and the
+  own-city factor taken from the city **building's type** — `0x19f → 2`,
+  `0x1a0`/`0x213 → 3`, else 1 — rather than from `CityData::get_level` as
+  `size_factor` does. Neither is live at 8442 (London scores 347 against
+  Norwich's 328, each `rnd % 200 + 900` under §12's `/3` with
+  `size_factor(1) = 1`), so the choice below the word does not depend on
+  either. *Capture:* a lobby whose AI holds a Large City with a wonder,
+  where the two clauses disagree by a factor and the chosen target is the
+  observable.
+- ~~**Whether `mask_me`'s `0x4000` is written where the original writes
+  it.**~~ **Two captures already say it is, cell for cell**, and both were
+  on disk: run13's frame 95 pinned the missing bit as its *one* exception
+  over 3,600 cells and now has none, and run93's block 7932 — the only
+  mid-game world dump on disk for Great Lakes, 7,932 frames and every
+  building the AI has started — went from 27 parting cells to **12**, the
+  whole `0x4000` half of them gone.
+  What those two do *not* reach is the **unmark**, and the placement paths
+  this crate does not route: `mask_me` is also called from the scenario
+  loader and from `Wall::mask_me`'s other callers, and a demolition is the
+  only thing that clears the bit in a skirmish. **The capture that would
+  refuse it**: a `WORLD ≥ 5` block after the AI demolishes or loses a
+  building — `grep` its cells for `0x4000` and the flagged list should be
+  the live buildings' cells exactly. Neither capture on disk contains a
+  building death before its world block.
 - ~~**Which target Great Lakes 7930 actually picks**~~ (item 317,
   §16.8) — **run93 settled it**: `target_o 2007, target_who 1`, the AI's
   own building, and this crate's record agrees field for field. The

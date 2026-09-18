@@ -4197,6 +4197,163 @@ mod tests {
         (1, 42, 2568, 31320),
     ];
 
+    /// The frame Great Lakes' AI army retargets to London — `PROBE_FRAME`'s
+    /// successor, named on the frame by item 350 and closed by item 352.
+    const MUSTER_FRAME: i64 = 8442;
+
+    /// **run97 block 8443** — the nine units of player 1's army, each with
+    /// its `x_internal`/`y_internal` and the **bottom** of its path stack,
+    /// which is the goal (`gamelog::PathDump`). Their leading order is the
+    /// `GROUPATTACKTOORDER` whose `orig` is (44851, 22480) for all nine;
+    /// `1/37` is the leader (`oxx 37`) and its own goal *is* that origin.
+    const MUSTER_CAST: &[(i64, i64, i64, i64, i64)] = &[
+        (1, 31, 36_692, 23_098, 44_709),
+        (1, 32, 36_644, 23_194, 44_576),
+        (1, 33, 36_741, 22_954, 44_841),
+        (1, 34, 36_389, 23_815, 45_106),
+        (1, 35, 36_340, 23_958, 44_973),
+        (1, 36, 36_437, 23_672, 45_238),
+        (1, 37, 36_575, 23_689, 44_851),
+        (1, 38, 36_534, 23_820, 44_718),
+        (1, 39, 36_617, 23_557, 44_983),
+    ];
+
+    /// The y of each row of [`MUSTER_CAST`], same order — kept apart only
+    /// because a five-tuple of coordinates reads worse than two.
+    const MUSTER_GOAL_Y: &[i64] = &[
+        22_698, 22_755, 22_640, 22_527, 22_584, 22_469, 22_480, 22_537, 22_422,
+    ];
+
+    /// **Great Lakes 8442 musters the army on the original's own cell** —
+    /// item 352, `docs/ARMY.md` §13 and §16.9.
+    ///
+    /// 8442 is the `Army::find_target` that follows `PROBE_FRAME`'s probe.
+    /// Both sides spend its **two** `find_target+0x7df` score draws, so the
+    /// candidates, their order and the rolls all agreed; what did not was
+    /// where the army then went. This crate mustered at cell (50, 27) and
+    /// run97 block 8443's `GROUPATTACKTOORDER` carries `orig` (44851,
+    /// 22480) for all nine members — which is cell (58, 29)'s centre
+    /// stepped one tile (`0xc0 × num_groups`) along `muster_angle` after
+    /// `find_target`'s `+= 0x80000000`, and is that for **no other cell on
+    /// the map**. So (58, 29) is the original's muster, read off a record
+    /// that never names an army.
+    ///
+    /// Two predicates of §13's ring were why, and each is one token:
+    ///
+    /// - the same-owner spacing test is `vector_dist <= 4`, not `< 4`
+    ///   (`6f633a`: `cmp $0x4` then **`jle`**; `<= 2` on the enemy arm at
+    ///   `6f6313`). Army 1/2's own muster sat exactly 4 from a cell it
+    ///   therefore kept, which left (50, 27) free for army 1/1;
+    /// - `BuildType::mask_me@006312a0`'s **first** write, `W.flags |=
+    ///   0x4000` on the building's own cell, was in `docs/CITIES.md` §3.6
+    ///   from the first reading and in no code. It is the ring score's one
+    ///   reader in the export, so every cell of the AI's own town scored as
+    ///   open ground — and six ring-7 candidates tied at the maximum 2,304
+    ///   where the original sees 1,024 to 2,048.
+    ///
+    /// With both, the ring's best is (58, 29) at 2,048 and the nine units
+    /// stand on run97's own coordinates with run97's own path goals on the
+    /// very frame — `1/37`'s ten-segment path included. The band item 347
+    /// parked as a free `walk_variant` choice is **empty** below the word
+    /// (`run97_s_window_clocks_are_the_original_s`).
+    ///
+    /// Made to fail on purpose, one fix at a time. With the spacing test
+    /// back at `< 4` the muster is **(50, 27)** and every one of the nine
+    /// rows below is off; with `mask_me`'s flag write removed and the
+    /// spacing test kept it is **(55, 29)** — a cell whose own 3 × 3 holds
+    /// two of the AI's buildings — which is the half that says the flag is
+    /// doing work rather than riding along.
+    #[test]
+    fn great_lakes_8442_musters_the_army_where_the_original_does() {
+        let Some(inst) = install() else { return };
+        let Some(path) = dump("gamelog-run53-greatlakes-24k-trace.txt") else {
+            eprintln!("skipping: no run53 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let texts = sibling_texts();
+        let text = crate::capture::read(&path);
+        let log = Log::parse(&text);
+        let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
+        let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+        let refs: Vec<&Initial> = inits.iter().collect();
+        let mut init = log.initial().unwrap();
+        borrow_from_siblings(&mut init, &refs);
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        while built.sim.frame <= MUSTER_FRAME {
+            built.tick();
+        }
+        // The army that holds the nine — one slot, found by its members
+        // rather than by its number, so a pool reshuffle says so here
+        // instead of reading a stale slot.
+        let u31 = built
+            .sim
+            .units
+            .iter()
+            .position(|u| u.alive() && u.owner == 1 && u.index == 31)
+            .expect("1/31 is alive at 8442");
+        let slot = built.sim.army_of(u31).expect("1/31 is in an army at 8442");
+        let a = &built.sim.armies[1].list[slot];
+        assert_eq!(
+            (a.muster.x, a.muster.y),
+            (58, 29),
+            "the army's muster is not run97 block 8443's own cell"
+        );
+        assert_eq!(
+            a.num_units, 9,
+            "the army is not the nine run97 block 8443 orders"
+        );
+        // And `find_target`'s own two writes on the frame it takes a
+        // target: the target is London's centre and `rally_dist` is
+        // `0x1200` because the target changed (§12, "Taking it").
+        assert_eq!(
+            a.rally_dist, 0x1200,
+            "the retarget did not re-arm rally_dist"
+        );
+        let rows: Vec<(i64, i64, i64, i64, i64)> = MUSTER_CAST
+            .iter()
+            .map(|&(who, o, _, _, _)| {
+                let u = built
+                    .sim
+                    .units
+                    .iter()
+                    .position(|u| u.alive() && i64::from(u.owner) == who && i64::from(u.index) == o)
+                    .unwrap_or_else(|| panic!("no live {who}/{o} at {MUSTER_FRAME}"));
+                let g = built.sim.units[u]
+                    .path
+                    .first()
+                    .unwrap_or_else(|| panic!("{who}/{o} carries no path at {MUSTER_FRAME}"));
+                (
+                    who,
+                    o,
+                    i64::from(built.sim.units[u].pos.x),
+                    i64::from(built.sim.units[u].pos.y),
+                    i64::from(g.to.x),
+                )
+            })
+            .collect();
+        assert_eq!(
+            rows, MUSTER_CAST,
+            "the army's nine are not standing where run97 block 8443 puts them"
+        );
+        let ys: Vec<i64> = MUSTER_CAST
+            .iter()
+            .map(|&(who, o, _, _, _)| {
+                let u = built
+                    .sim
+                    .units
+                    .iter()
+                    .position(|u| u.alive() && i64::from(u.owner) == who && i64::from(u.index) == o)
+                    .expect("the cast");
+                i64::from(built.sim.units[u].path.first().expect("a path").to.y)
+            })
+            .collect();
+        assert_eq!(
+            ys, MUSTER_GOAL_Y,
+            "the army's nine do not hold run97 block 8443's own path goals"
+        );
+    }
+
     /// **run54 — East Indies at thirteen times the scored length, read at
     /// last** (2026-09-01).
     ///
@@ -4848,12 +5005,16 @@ mod tests {
         let mut body_bad = 0usize;
         let mut body_all = 0usize;
         let mut body_trio = 0usize;
+        let mut frames_below = 0usize;
         let mut posfirst: std::collections::BTreeMap<(i64, i64), i64> = Default::default();
         for f in 0..=last {
             built.tick();
             let Some((_, units)) = theirs.iter().find(|(n, _)| *n == f) else {
                 continue;
             };
+            if f < LONG_WORD_GREAT_LAKES {
+                frames_below += 1;
+            }
             for state in units {
                 if !(0..8).contains(&state.who) {
                     continue;
@@ -4981,7 +5142,7 @@ mod tests {
             eprintln!("  {w}");
         }
         eprintln!(
-            "run97 bodies: {body_bad} of {body_all} point-and-goal fields below the word wrong ({body_trio} more on the standing trio), on {} unit(s) — {posfirst:?}",
+            "run97 bodies: {body_bad} of {body_all} point-and-goal fields below the word wrong ({body_trio} more on the standing trio over {frames_below} frames), on {} unit(s) — {posfirst:?}",
             posfirst.len()
         );
         for w in &posw {
@@ -4995,29 +5156,32 @@ mod tests {
             wrong.is_empty(),
             "run97's clocks parted outside the walk-slot seam: {wrong:?}"
         );
-        // All on player 1's army, from run97 block 8443 to the word. A
-        // floor, not a target: it may only fall.
+        // **The walk-slot band is closed** (item 352). It was on player
+        // 1's army from run97 block 8443 to the word, and it cost the
+        // same ~33.3 fields a frame while it was fifteen units' — 4,615
+        // over the 139 frames `[8443, 8582)` on item 346 and 5,853 over
+        // the 176 of `[8443, 8619)` on item 348, 33.5 apiece. Item 350
+        // took it to 1,747 over the 185 frames `[8443, 8628)`, 9.4
+        // apiece, by taking the probe's six out of the army
+        // (`docs/ARMY.md` §3.4); item 352 took it to **zero** by putting
+        // the army's muster on the original's own cell (§13's two
+        // predicates — the `<= 4` spacing test and `mask_me`'s `0x4000`).
+        // Measured on 352's own window, `[8443, 8663)`, the base is
+        // **2,898, 13.2 a frame** — which is the division this comment
+        // keeps asking for, run against itself: 1,747 and 2,898 are the
+        // same simulation through two window widths.
         //
-        // **Moving the word re-pins it, and the rate is how to tell that
-        // from a regression.** It cost the same ~33.3 fields a frame
-        // while it was fifteen units' — 4,615 over the 139 frames
-        // `[8443, 8582)` on item 346 and 5,853 over the 176 of
-        // `[8443, 8619)` on item 348, 33.5 apiece — and item 350 took it
-        // to **1,747 over the 185 frames `[8443, 8628)`, 9.4 apiece**,
-        // by taking the probe's six out of the army (`docs/ARMY.md`
-        // §3.4). A successor that moves the word and finds the per-frame
-        // figure unchanged is looking at the same seam through a wider
-        // window; one that finds it risen is not.
-        //
-        // What is left is **the nine**, and item 347's reading of it as a
-        // free `walk_variant` choice no longer holds: the bodies below
-        // say they are off *position* from 8442, so their walk slot is
-        // downstream of a wrong destination rather than a coin.
-        assert!(
-            walk <= 1_747,
-            "run97's walk-slot residue grew: {walk} fields over the {} frames \
-             below the word, the floor is 1,747 — divide by the frames before \
-             calling it a regression",
+        // So this is an **equality** now, not a floor: item 347 read the
+        // band as a free `walk_variant` choice costing no draw, and the
+        // truth was that the nine were walking somewhere else. There is
+        // no remaining seam for a walking guy's slot to differ in below
+        // the word, and a successor that reopens one should say so here
+        // rather than raise a ceiling.
+        assert_eq!(
+            walk,
+            0,
+            "run97's walk-slot band reopened: {walk} fields over the {} frames \
+             below the word, and item 352 closed it at zero",
             LONG_WORD_GREAT_LAKES - 8_443
         );
         // **The rest of the record, floored** (item 350). Three families,
@@ -5025,29 +5189,32 @@ mod tests {
         //
         // - the **standing trio** `1/24`/`1/25`/`1/26`, a constant
         //   (24, 24) older than every window on this map and already
-        //   excused — counted apart, and exactly `3 × 2 × frames`;
-        // - **`1/31`–`1/39` from 8442**, the army's own nine: the frame
-        //   is an `Army::find_target` and both sides spend its two
-        //   `+0x7df` score draws, but this crate takes London and musters
-        //   at cell (50, 27) where the original's `GROUPATTACKTOORDER`
-        //   carries `orig` (44851, 22480) — cell (58, 29). Either the
-        //   winner or the muster ring is wrong, and no capture on disk
-        //   holds an `ARMYDATA` record to say which;
-        // - **`1/27`/`1/28`/`1/29`/`1/41` from 8579**, the probe's six
-        //   drifting late on their long walk southwest.
+        //   excused — counted apart, and exactly `3 × 2 × frames`, which
+        //   is what the equality below says rather than a literal that a
+        //   wider window breaks;
+        // - ~~**`1/31`–`1/39` from 8442**~~ — **closed by item 352**: the
+        //   frame is an `Army::find_target`, both sides spend its two
+        //   `+0x7df` score draws, and the army's muster is the original's
+        //   cell (58, 29) from `docs/ARMY.md` §13's two corrected
+        //   predicates. All nine stand on the original's own
+        //   `x_internal`/`y_internal` and hold its own path goal on 8442;
+        // - **`1/27`/`1/28`/`1/29`/`1/41` from 8579**, and `1/33` from
+        //   8584, the late drift on the long walk southwest — what the
+        //   601 below is, together with `1/24`–`1/26`'s goal rows.
         assert!(
             body_all >= 121_224,
             "run97's own bodies are missing — the wrong file: {body_all} fields"
         );
-        assert!(
-            body_trio <= 3_594,
-            "the standing trio is off on more than its own two fields a \
-             frame: {body_trio}"
+        assert_eq!(
+            body_trio,
+            6 * frames_below,
+            "the standing trio is not off on exactly its own two fields a \
+             frame over {frames_below} frames: {body_trio}"
         );
         assert!(
-            body_bad <= 7_009,
+            body_bad <= 601,
             "run97's point-and-goal residue grew: {body_bad} of {body_all} \
-             fields below the word, the floor is 7,009 — {posfirst:?}"
+             fields below the word, the floor is 601 — {posfirst:?}"
         );
     }
 

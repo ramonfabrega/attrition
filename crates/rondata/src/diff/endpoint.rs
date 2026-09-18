@@ -351,8 +351,17 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // the one building the simulation could not link now linked,
         // 14,290 frames past the word. DECISIONS 36 asks for the number
         // rather than a trade.
-        off: 61,
-        unlinked: 11,
+        // And **61 → 59 off and 11 → 12 unlinked** on 2026-09-18, item 352
+        // — `find_muster_spot`'s inclusive spacing bound and `mask_me`'s
+        // `0x4000` cell flag (`docs/ARMY.md` §13). Neither is
+        // map-specific: the flag is written wherever a building starts and
+        // the bound is read by every army's ring, so this map's AI musters
+        // differently too even though its word does not move (9711 either
+        // way). Two positions closer and one more of the roster unlinked,
+        // 14,290 frames past the word. DECISIONS 36 asks for the number
+        // rather than a trade.
+        off: 59,
+        unlinked: 12,
         extra: 0,
         build_unlinked: 0,
         build_diverged: 32,
@@ -553,11 +562,22 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // unchanged on the same commit — this map's AI is the only one
         // whose army has run the probe. DECISIONS 36 asks for the number
         // rather than a trade.
-        off: 58,
-        unlinked: 7,
+        // And **58 → 60 off, 7 → 8 unlinked and 7 → 6 build_diverged** on
+        // 2026-09-18, item 352 — §13's ring on the muster cell the
+        // original picks (`docs/ARMY.md` §16.9), which moves this map's
+        // word 8628 → 8663. The army goes to (58, 29) rather than (50,
+        // 27) from 8442, so nine units walk a different way across the
+        // map for the 15,000 frames after it: two positions further out
+        // and one more of the roster unlinked, one building field-row
+        // closer, 15,338 frames past the new word. **The scholar on the
+        // wrong university moved with it**, `1/53` to `1/52`, which
+        // `great_lakes_scholars_sit_on_their_universities` re-pins by
+        // name. DECISIONS 36 asks for the number rather than a trade.
+        off: 60,
+        unlinked: 8,
         extra: 0,
         build_unlinked: 0,
-        build_diverged: 7,
+        build_diverged: 6,
         city_unlinked: 3,
         city_diverged: 0,
     },
@@ -627,7 +647,12 @@ pub const LADDER: [Endpoint; 2] = [
         // Coinage gate (`docs/AI.md` §40). One position further out on
         // this rung, 5,690 frames past East Indies' own word, which does
         // not move. DECISIONS 36 asks for the number rather than a trade.
-        off: 42,
+        // And **42 → 43 off** on 2026-09-18, item 352 — the muster ring's
+        // two corrected predicates (`docs/ARMY.md` §13), which are neither
+        // map- nor capture-specific. One position further out on this rung,
+        // 5,690 frames past East Indies' own word, which does not move.
+        // DECISIONS 36 asks for the number rather than a trade.
+        off: 43,
         unlinked: 17,
         // 20 → 21 on 2026-09-07, item 267's repaint: one spurious unit
         // back, 7,872 frames past the word, and nothing else on this rung
@@ -754,7 +779,13 @@ pub const LADDER: [Endpoint; 2] = [
         // gate (`docs/AI.md` §40). One position further out on this rung,
         // 8,677 frames past East Indies' own word, which does not move.
         // DECISIONS 36 asks for the number rather than a trade.
-        off: 49,
+        // And **49 → 48 off** on 2026-09-18, item 352 — the muster ring's
+        // two corrected predicates (`docs/ARMY.md` §13). All four rows move
+        // on this one, because a building's cell flag and an army's spacing
+        // are neither map- nor capture-specific. One position closer,
+        // 6,778 frames past East Indies' own word, which does not move.
+        // DECISIONS 36 asks for the number rather than a trade.
+        off: 48,
         unlinked: 16,
         // 19 → 33 on 2026-09-07, item 261, the same reshuffle, then 33 →
         // **27** the same day on item 265's byte — this rung took the
@@ -1187,21 +1218,29 @@ mod tests {
         );
         // And the one still on the other university, by the vector between
         // the two rather than by a count.
+        //
+        // **Which scholar it is, is telemetry.** It was `1/53` from item
+        // 338 to item 350 and is `1/52` since item 352, whose muster ring
+        // re-deals every position 15,000 frames before this block
+        // (DECISIONS 36, `docs/ARMY.md` §16.9). The *offset* is the
+        // assertion — `1/2020 − 1/2019` exactly, one university away —
+        // and a scholar sitting anywhere else would not carry it.
         let delta = (768, 9984);
+        let wrong_one = 52;
         let (dx, dy) = r
             .off
-            .get(&(1, 53))
+            .get(&(1, wrong_one))
             .copied()
-            .expect("1/53 is the scholar on the wrong university");
+            .unwrap_or_else(|| panic!("1/{wrong_one} is the scholar on the wrong university"));
         assert_eq!(
             (dx.abs(), dy.abs()),
             delta,
-            "1/53 is off by ({dx}, {dy}), which is not 1/2020 − 1/2019. \
+            "1/{wrong_one} is off by ({dx}, {dy}), which is not 1/2020 − 1/2019. \
              It is seated on the wrong university, and that offset is \
              what is left of item 338"
         );
         // The rest, printed: past the word neither stream is anybody's.
-        for o in [49, 51, 52, 55, 56] {
+        for o in [49, 51, 53, 55, 56] {
             eprintln!(
                 "  scholar 1/{o}: {:?}",
                 r.off.get(&(1, o)).copied().unwrap_or((0, 0))
