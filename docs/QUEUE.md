@@ -12,35 +12,36 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-17 into 09-18, an Opus commander loop: twenty-two landings, sixteen
-word-moving. **GL +949, EI +1,899.** Next: 352.*
+*2026-09-17 into 09-18, an Opus commander loop: twenty-three landings,
+seventeen word-moving. **GL +984, EI +1,899.** Next: 354.*
 
-- **Nine frames of word, and the state behind it collapsed** (item 350).
-  `Groups::push_group` kills each member out of the group it was in, so
-  8186's probe took **six units out of the AI army for good**. GL 8619 →
-  8628 — but run97's walk-slot residue went **6,258 → 1,747** (33.8 → 9.4 a
-  frame) and its point-and-goal residue 11,159 → 7,009 of 121,224, with the
-  endpoint off 63 → 58.
-- **So read the word beside the residues, not alone.** A +9 item that
-  removes 4,511 wrong fields is worth more than its headline, and the
-  headline cannot show it. This is the clearest case the loop has produced
-  of the score under-reporting a landing.
-- **Parking 347 with its rate is what made that legible.** It was parked as
-  "names no score, no draw cost" with a falsifier and a per-frame rate; 350
-  fixed most of it as a side effect and the rate is how we can tell. A
-  parked residue is not a discarded one.
+- **Great Lakes 8628 → 8663, and run97's residues went to almost nothing**
+  (item 352): the walk-slot band **2,898 → 0**, point-and-goal **8,672 →
+  601**. 8442's muster cell *is* the original's `(58, 29)`, read off the
+  `GROUPATTACKTOORDER`'s orig through `do_forming`'s one-tile step.
+- **Two predicates were wrong, and one of them was written down and never
+  built.** The spacing bound is `<= 4` (`jle` at `6f633a`); and
+  `BuildType::mask_me`'s `W.flags |= 0x4000` on a building's own cell had
+  been in `docs/CITIES.md` §3.6 **in prose since the first reading, and in
+  no code**. Without the bit the ring's score cannot separate two open
+  cells, so the earliest tie won. Parked as **356**: nothing checks that a
+  documented claim reached the implementation.
+- **347 is closed.** The walk-slot band is zero. It was parked as naming no
+  score, with a falsifier and a rate; 350 took it 6,258 → 1,747 and 352 took
+  the rest. A parked residue is not a discarded one, and the rate is what
+  made both steps legible.
 - **East Indies is still owed a capture above 8789** — 922+ short since 346,
-  its whole window below the word. Great Lakes needs none: run97 runs to
-  9349. Awaiting the go; it is the lane's, not a worker's.
-- Three items open, thirty-two parked. **Fable backlog: eleven Loop items**
-  (313, 318, 321, 330, 331, 332, 335, 339, 341, 343, 345).
+  five items without a value diff at its frontier. Great Lakes needs none:
+  run97 runs to 9349. Awaiting the go; it is the lane's.
+- Two items open, thirty-two parked. **Fable backlog: twelve Loop items**
+  (313, 318, 321, 330, 331, 332, 335, 339, 341, 343, 345, 356).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w9711 of 24,000 · GreatLakes w8628 of 24,000
-Endpoint 24001: EastIndies 61 off, 11 unlinked · GreatLakes 58 off, 7 unlinked
+Long captures: EastIndies w9711 of 24,000 · GreatLakes w8663 of 24,000
+Endpoint 24001: EastIndies 59 off, 12 unlinked · GreatLakes 60 off, 8 unlinked
 
-**Opener: 352 — the muster destination at 8442, named with coordinates and
-below the word. 354 widens 8628 if it does not take.**
+**Opener: 354 — widen Great Lakes 8663; no item names it and run97 dumps it
+with 686 frames above.**
 
 ## The queue
 
@@ -50,22 +51,16 @@ unless a better order is obvious, and say so. Numbers are stable; the
 backlog is `docs/PARKED.md`, and an item comes back from it only when a
 score names it.
 
-352. **The AI musters where neither city says** — 350's successor, named
-    on the frame in `docs/ARMY.md` §18. At Great Lakes **8442** both sides
-    spend the same two `find_target+0x7df` score draws; this crate takes
-    London (347 against Norwich's 328) and musters at cell **(50,27)**,
-    where the original's `GROUPATTACKTOORDER` carries orig
-    **(44851,22480) = cell (58,29)** — **neither city's muster**. So the
-    score is not the disagreement and the destination is. Below the word,
-    and a takes-chain: an army in the wrong place keeps paying.
-
-354. **Widen Great Lakes 8628** — the headline's own frame, which no item
-    names. Take this only if 352 does not move the word; run97 `[8030,
-    9349]` dumps 8628 with 721 frames above.
+354. **Widen Great Lakes 8663** — the headline's own frame, which no item
+    names, so by this file's rule the brief is its widening: both sequences
+    whole, every record, every field, every unit, then the cause. run97
+    `[8030, 9349]` dumps it with **686 frames above**, and 346, 348, 350 and
+    352 have all read that capture, so the machinery exists — extend it.
+    run97's residues are now near zero, which makes anything left loud.
 
 342. **Host choice seats the scholar on the wrong university** — 338's
-    residue, re-pinned twice. **Re-measure before diagnosing**: the vector
-    `1/2020 − 1/2019` is the claim, never the count.
+    residue, re-pinned three times. **Re-measure before diagnosing**: the
+    vector `1/2020 − 1/2019` is the claim, never the count.
 
 ## How to maintain this file
 

@@ -140,6 +140,29 @@ its files with nothing to catch it. The commander's chain — `ccc merge`,
 gate, `ccc push`, `ccc rm` — wants one clause in `CLAUDE.md`'s fan-out
 rules or in 34 beside the worker's half. Both are the pass's to amend.
 
+(356) **Nothing checks that a documented claim reached the code.** Item
+352, 2026-09-18: `BuildType::mask_me@006312a0`'s first statement —
+`cells[…].flags |= 0x4000` on the mark, `&= 0xbfff` on the unmark — had
+been in `docs/CITIES.md` §3.6 **in prose since that mechanic's first
+reading**, and `crates/sim` never wrote the bit. Without it the muster
+ring's score cannot separate two open cells, so the earliest tie won and
+Great Lakes parted 221 frames early. run34's start block confirms the
+original from the other side: thirteen cells carry the bit and each is a
+starting building's.
+
+This is the method's own seam. A document is written from the original and
+the code is implemented from the document, and `docs_guard` checks that a
+cited **address** exists and that a **section** does not grow — never that
+a claim was built. So a correct reading can sit in a specification for
+weeks doing nothing, and the diff only catches it when some frame happens
+to depend on it.
+
+A tractable shape exists and 352 used it by hand: **a hex constant or flag
+named in `docs/` that appears nowhere under `crates/sim/`** is greppable,
+and would have found this one. It will be noisy — a constant can be named
+for context, or built under another spelling — so guard, report or
+author's checklist is the pass's call. The gap is real and cost frames.
+
 (318) **A gate that overlaps a queue rewrite fails on paperwork that is
 fine.** `the_handoff_s_endpoint_is_the_pinned_counts` and
 `the_handoff_s_scoreboard_is_the_floors` read `docs/QUEUE.md` from disk, so
@@ -262,26 +285,6 @@ forgot twice. Filed with ccc as `land <ref>` or `merge --reap`; until it
 exists, the chain is one shell line in the commander's brief.
 
 ## Parked by the third Fable pass, 2026-09-17 — names no score
-
-(347) **Player 1's army walk-slot band — mostly closed by 350, and the
-rate is how we know.** Parked after item 346 as a state divergence with no
-draw cost: run97's whole other residue below the Great Lakes word, player
-1's army from block 8443, every `cur_anim` one of SLOG / WALK / JOG against
-another (`docs/ANIM.md` §4.3). It named no score, so it parked.
-
-**Item 350 then fixed most of it without aiming at it.**
-`Groups::push_group` kills each member out of the group it was in, so
-8186's probe had taken six units out of the AI army for good; with that
-right the band went **6,258 → 1,747 fields, 33.8 → 9.4 a frame**.
-
-Two things worth keeping. **A parked residue is not a discarded one** — it
-was the measurement that showed 350 was worth far more than its +9 of word.
-And **the per-frame rate is what made it readable**: the total moves with
-every widened window, so only the rate says whether a change helped. 348
-wrote that rate beside the pin on purpose and 350 is what it bought.
-
-What remains is 1,747 fields at 9.4 a frame, cause unknown, still no draw
-cost. **Falsifier unchanged**: run97 block 8443, unit `1/27`.
 
 (310) **Nothing decrements the muster on death** — not `by_type`,
 `by_group`, `control` or `active`. The original's `Unit::close@0060ee50:235`
