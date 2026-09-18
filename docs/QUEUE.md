@@ -12,36 +12,33 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-17 into 09-18, an Opus commander loop: nineteen landings, thirteen
-word-moving. **GL +725, EI +683.** Next: 346.*
+*2026-09-17 into 09-18, an Opus commander loop: twenty landings, fourteen
+word-moving. **GL +903, EI +1,899.** Next: 348, and a capture lane.*
 
-- **Great Lakes 8382 → 8404** (item 344): the mine's site test is a
-  mountain-tile distance, not the camp's cell survey, and its mining list
-  is the range whole — 207 tiles, run80 and run97 agreeing to the tile.
-  8382 is now 865 draws against 865, entry for entry.
-- **An endpoint diff is a weaker oracle than a frame below the word**, and
-  this corrects yesterday's lesson rather than repeating it. 338's scholar
-  value diff fell from six exact to **four** — not because the seating
-  changed (`1/44`, its own unit, is still exact) but because 24001 sits
-  15,600 frames past the word, where both sides are on streams that are
-  nobody's and any unrelated change moves the total. Use the endpoint for
-  persistent state no frame dumps; prefer a frame below the word when one
-  exists. **run97 now means one usually does.**
-- **run97 is read by no test** — Great Lakes `[8030, 9349]` at rich detail,
-  BUILDDATA with mining lists, UNITDATA, GUY clocks, PATHDATA, every order
-  type, spanning the word both sides. All that has been taken from it is
-  one building record read by hand. That is the lane's real payoff and it
-  is unspent.
-- Two items open, thirty parked. **Fable backlog: eleven Loop items**
+- **The largest landing of the loop, and one change did both maps** (346):
+  Great Lakes 8404 → **8582**, East Indies 8495 → **9711**. Both words were
+  the seated scholar's first animation wrap. `Guy::set_anim` remaps a
+  scholar's every slot from `0x19` up to `CHAR_DEFAULT`, so `inc_time`'s
+  looping restart of a teach slot arrives as an **idle request** — it draws,
+  and it re-rolls the variant (`docs/ANIM.md` §5.1).
+- **run97 has been read, and it paid**: 127,324 clock fields below the word,
+  the first test ever to open it. The capture lane's product is spent and
+  it bought +178 and +1,216 in one item.
+- **East Indies has outrun its captures again** — 9711 against run98's last
+  block 8789, **922 short**, and run98's whole window now sits below that
+  map's word. Great Lakes still has **767 frames of runway** in run97
+  `[8030, 9349]`. So the lane is owed one East Indies window above 8789,
+  and the map jumped 1,216 frames in a single item, so make it wide.
+- Two items open, thirty-one parked. **Fable backlog: eleven Loop items**
   (313, 318, 321, 330, 331, 332, 335, 339, 341, 343, 345). 318+339 are one
   question; 341+343 are one; 345 moves the commander's own verbs into git.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w8495 of 24,000 · GreatLakes w8404 of 24,000
-Endpoint 24001: EastIndies 70 off, 2 unlinked · GreatLakes 62 off, 7 unlinked
+Long captures: EastIndies w9711 of 24,000 · GreatLakes w8582 of 24,000
+Endpoint 24001: EastIndies 61 off, 8 unlinked · GreatLakes 58 off, 11 unlinked
 
-**Opener: 346 — 8404 is one missing `Guy::inc_time+0x271` wrap, ours 6
-draws against 7, and run97 dumps the frame. Widen it there first.**
+**Opener: 348 — widen Great Lakes 8582, which run97 still dumps. The East
+Indies capture is the lane's, not a worker's.**
 
 ## The queue
 
@@ -51,19 +48,17 @@ unless a better order is obvious, and say so. Numbers are stable; the
 backlog is `docs/PARKED.md`, and an item comes back from it only when a
 score names it.
 
-346. **Great Lakes 8404 is one animation wrap, and run97 dumps it** —
-    ours 6 draws against the original's 7 at `Guy::set_anim+0x97a <
-    Guy::inc_time+0x271`, named by 344 on the frame. run97 `[8030, 9349]`
-    spans it at rich detail and **no test reads that capture yet**, so this
-    is also the first frame-by-frame widening on it. A wrap is a clock
-    question (`docs/ANIM.md`): compare `cur_time`, `end_time` and
-    `last_time` either side, every unit, before reading anything.
+348. **Great Lakes 8582 is the headline and run97 still dumps it** — 346
+    took both maps past their words and named nothing on this frame, so the
+    brief is its widening: every record, every field, every unit, both
+    sequences whole, then the cause. run97 `[8030, 9349]` covers it with
+    767 frames of runway; run94 is the neighbour below. 346 read that
+    capture frame by frame for the first time, so the instrument exists.
 
 342. **Host choice seats the scholar on the wrong university** — 338's
-    residue. Its value diff now reads four exact of eleven rather than six,
-    for the endpoint reason above, so **re-measure before diagnosing**: the
-    vector `1/2020 − 1/2019` is the claim, not the count. Book after 346
-    unless 346 names it.
+    residue. 346 re-pinned its test again: still four exact of eleven, but
+    `1/51` out and `1/50` in, so **re-measure before diagnosing** — the
+    vector `1/2020 − 1/2019` is the claim, never the count.
 
 ## How to maintain this file
 

@@ -263,6 +263,24 @@ exists, the chain is one shell line in the commander's brief.
 
 ## Parked by the third Fable pass, 2026-09-17 — names no score
 
+(347) **Player 1's whole army is in the wrong walk animation below the
+word, and it costs no draw.** Item 346's residue, named with a value:
+run97's entire remaining divergence below Great Lakes' word is **4,615
+clock fields from block 8443 on**, all player 1's army, every `cur_anim`
+one of SLOG / WALK / JOG against another of the three. That is `docs/ANIM.md`
+§4.3's speed test choosing a different band, and because all three cost the
+same draw the stream never notices — the word is unaffected.
+
+It parks by this file's rule rather than queueing, because it names no
+score. It is worth keeping anyway: it is a **state** divergence the draw
+stream cannot see, which is the exact shape `CLAUDE.md` warns about when it
+says a draw stream can agree on a wrong destination for a long time. It
+becomes an item the moment it takes a chain to a word, or if a later
+mechanic reads the band.
+
+**Falsifier, already named**: run97 block 8443, unit `1/27`.
+
+
 Every item below left the queue under the rule that a finding parks unless
 it names the headline's frame, a floor, or a takes-chain to one. Nothing
 here is dropped; an item comes back the day a score names it.
