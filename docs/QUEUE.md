@@ -12,36 +12,33 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-17 into 09-18, an Opus commander loop: twenty-three landings,
-seventeen word-moving. **GL +984, EI +1,899.** Next: 354.*
+*2026-09-17 into 09-18, an Opus commander loop: twenty-four landings,
+eighteen word-moving. **GL +1,306, EI +1,899.** Next: 358.*
 
-- **Great Lakes 8628 → 8663, and run97's residues went to almost nothing**
-  (item 352): the walk-slot band **2,898 → 0**, point-and-goal **8,672 →
-  601**. 8442's muster cell *is* the original's `(58, 29)`, read off the
-  `GROUPATTACKTOORDER`'s orig through `do_forming`'s one-tile step.
-- **Two predicates were wrong, and one of them was written down and never
-  built.** The spacing bound is `<= 4` (`jle` at `6f633a`); and
-  `BuildType::mask_me`'s `W.flags |= 0x4000` on a building's own cell had
-  been in `docs/CITIES.md` §3.6 **in prose since the first reading, and in
-  no code**. Without the bit the ring's score cannot separate two open
-  cells, so the earliest tie won. Parked as **356**: nothing checks that a
-  documented claim reached the implementation.
-- **347 is closed.** The walk-slot band is zero. It was parked as naming no
-  score, with a falsifier and a rate; 350 took it 6,258 → 1,747 and 352 took
-  the rest. A parked residue is not a discarded one, and the rate is what
-  made both steps legible.
-- **East Indies is still owed a capture above 8789** — 922+ short since 346,
-  five items without a value diff at its frontier. Great Lakes needs none:
-  run97 runs to 9349. Awaiting the go; it is the lane's.
+- **Great Lakes 8663 → 8985** (item 354), and run97's point-and-goal residue
+  **601 → 6**. `find_wpath`'s `army` mode was off for AI armies, so they
+  stopped paying 32x for NEARBLOCK cells. Great Lakes' endpoint is now
+  **0 unlinked** — every unit at 24001 has a counterpart.
+- **A virtual that is `return 0` everywhere is not a predicate.**
+  `UnitData::is_attacking` calls the current order's `+0x18`, and this
+  crate read it as "has a combat target". Verified here: **all seventeen**
+  order vtables land on `Window::get_button`, a bare `return 0` — fifteen
+  directly, and `AttackGroundOrder`/`AirAttackGroundOrder` through a
+  `vtordisp` thunk that *looks* like a real implementation and calls the
+  same stub. COMDAT folding chose the surviving name; read the body.
+- **Both maps now need captures, and Great Lakes is the newer problem.**
+  run97 ends at 9349 and the word is 8985 — **364 frames of runway**, less
+  than this one item moved. East Indies has had none above 8789 for seven
+  items. Awaiting the go; it is the lane's, not a worker's.
 - Two items open, thirty-two parked. **Fable backlog: twelve Loop items**
   (313, 318, 321, 330, 331, 332, 335, 339, 341, 343, 345, 356).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w9711 of 24,000 · GreatLakes w8663 of 24,000
-Endpoint 24001: EastIndies 59 off, 12 unlinked · GreatLakes 60 off, 8 unlinked
+Long captures: EastIndies w9711 of 24,000 · GreatLakes w8985 of 24,000
+Endpoint 24001: EastIndies 61 off, 11 unlinked · GreatLakes 67 off, 0 unlinked
 
-**Opener: 354 — widen Great Lakes 8663; no item names it and run97 dumps it
-with 686 frames above.**
+**Opener: 358 — widen Great Lakes 8985. run97 still dumps it, but only just:
+364 frames of runway left on that capture.**
 
 ## The queue
 
@@ -51,12 +48,11 @@ unless a better order is obvious, and say so. Numbers are stable; the
 backlog is `docs/PARKED.md`, and an item comes back from it only when a
 score names it.
 
-354. **Widen Great Lakes 8663** — the headline's own frame, which no item
-    names, so by this file's rule the brief is its widening: both sequences
-    whole, every record, every field, every unit, then the cause. run97
-    `[8030, 9349]` dumps it with **686 frames above**, and 346, 348, 350 and
-    352 have all read that capture, so the machinery exists — extend it.
-    run97's residues are now near zero, which makes anything left loud.
+358. **Widen Great Lakes 8985** — the headline's own frame, which no item
+    names. Both sequences whole, every record, every field, every unit, then
+    the cause. run97 `[8030, 9349]` still dumps it, with **364 frames above
+    and no more** — say in the report whether the cause needed frames past
+    9349, because that decides whether the next capture is owed urgently.
 
 342. **Host choice seats the scholar on the wrong university** — 338's
     residue, re-pinned three times. **Re-measure before diagnosing**: the
