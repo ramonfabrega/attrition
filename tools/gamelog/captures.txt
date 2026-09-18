@@ -2844,3 +2844,182 @@ check: test "$(python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Mic
 # `run95_s_block_8002_is_where_the_fog_parts_and_the_price_with_it`.
 # And the `DUMP_ALL` window really covered the parting block.
 check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|seen2\[scan\]" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run95-greatlakes-scoutcosts.txt" | awk '/BEGIN FRAME/{f=$3} /seen2/{c[f]++} END{exit !(c[8002]>0)}'
+
+run: 96
+tag: eastindies-latecensus
+item: capture-lane
+why: East Indies has no rich end-of-game census at all — run80 is Great Lakes' and the asymmetry is now costing proofs on the second map
+# **run80's East Indies twin, and the cheapest run in this tranche.**
+# `loop-338` landed the first scholar entering a building (`Unit::go_inside`'s
+# scholar-gated tail) while this lane was starting. It moved **both** maps —
+# Great Lakes 8272 -> 8374 and East Indies 8466 -> 8495 — and it could only be
+# *proved* on Great Lakes, because the value diff came from **run80, blocks
+# 23960..24001**, where the scholars sit on their universities' exact points.
+#
+# **The asymmetry, measured.** East Indies' late captures are run54
+# (11,097,398 bytes over 24,000 frames — `end: MISC` alone), run21 and run23
+# (1,750,060 and 1,750,061 bytes). Great Lakes' run80 is **82,718,584 bytes
+# over the same 40-frame span**, and its record inventory is what a census
+# means: 11,205 `GUY`, 5,259 `UNITDATA`, 1,325 `BUILDDATA`, 168 `LEADERDATA`.
+# Nothing on this disk holds East Indies at that detail on any late frame.
+#
+# **A value diff does not have to sit on the word's frame.** For a
+# frame-local cause — item 336's one-frame snap — it does, and that is what
+# the two long windows below are for. For a cause whose state *persists* — a
+# scholar seated in a building, a road replanned, a flag set — the endpoint
+# dump answers it just as well and for a fiftieth of the bytes. So this is
+# taken first: if anything later in the tranche goes wrong, this is the run
+# worth having.
+frames: 24000
+mapstyle: 18
+# run80's detail exactly, LEADERS=9 included — the expensive one, and the
+# whole point of a census. No `cfg:`, so the lobby is the profile's: run54's
+# and run90's game, not check.ini's.
+end: MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1
+frame_window: 23960 24000
+cover: cover=0
+# run68/run81/run85/run86/run88/run90's East Indies floor is an 11,053,641-byte
+# start dump, so 20 MB is the first size that cannot be the quiet stretch
+# between frame 0 and LO. run80's 41 blocks came to 82.7 MB, so this clears it
+# by 4x on a run that actually dumped.
+settle_min: 20000000
+# run80 took 300; the run-up is forty seconds at cover=0 (run80 reached 23,960
+# in that) and the 41 blocks are the cost. 200 polls is 66 minutes, inside this
+# lane's 90-minute per-run cap, and 4x the observed need.
+poll_max: 200
+# Same game: the trace word for word against run54, this map's own 24k run —
+# the identity oracle every recent East Indies capture uses, and the only one
+# available here, because run54's own dump is `MISC` alone and has no indented
+# record for `samegame.py` to compare against a census.
+check: python3 tools/gamelog/rngcmp.py rontrace-run54.log rontrace-run96.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=23000)}'
+# The window landed: **40 blocks, 23960..23999**, plus a 24001 closing block.
+# **This assertion was written as run80's 41 at 23960..24000 and failed on the
+# first run, and the capture was right both times.** `frame_window`'s HI is
+# exclusive, so [23960, 24000) is forty blocks; run80 carries a 24000 block and
+# this run carries a 24001 one instead — the `!quit` at `frames` lands a
+# closing block (`GameInfo closing`) whose number is not fixed relative to the
+# window's edge. Nothing in a census reads that block: it is the truncated one
+# `samegame.py` drops on both sides. The forty are the product, and they are
+# the same forty sim-frames run80 dumped.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run96-eastindies-latecensus.txt" | awk '{f[$3]=1} END{n=0; lo=0; hi=0; for(k in f){v=k+0; if(v>=23960&&v<24000){n++; if(lo==0||v<lo)lo=v; if(v>hi)hi=v}} print "census blocks: "n" ("lo".."hi")"; exit !(n==40 && lo==23960 && hi==23999)}'
+# **And the census is rich, not thin** — the failure this catches is a run
+# that produced 41 correctly-numbered blocks with nothing in them, which the
+# block count alone would pass. run80 has 168 LEADERDATA and 11,205 GUY over
+# its 41; this asserts the shape, not run80's numbers, because East Indies'
+# leader and unit counts at 24k are not known in advance and a zero here is
+# the finding.
+check: LC_ALL=C grep -ao "BEGIN [A-Z_]*" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run96-eastindies-latecensus.txt" | sort | uniq -c | awk '{n[$3]=$1} END{printf "census records: LEADERDATA=%d GUY=%d UNITDATA=%d BUILDDATA=%d\n", n["LEADERDATA"], n["GUY"], n["UNITDATA"], n["BUILDDATA"]; exit !(n["LEADERDATA"]>=40 && n["GUY"]>=1000 && n["UNITDATA"]>=500)}'
+
+run: 97
+tag: greatlakes-valuewindow
+item: capture-lane
+why: Great Lakes' long-capture word (8272, and 8374 since loop-338 landed) has outrun every detail capture on disk — run94's tail is 8044 — so the frontier has the draw stream and no value diff
+# **The oracle restored on the first map, with runway.** At the frontier there
+# is only run53's draw stream (`end: MISC` alone), and a draw stream can agree
+# on a wrong destination for a long time. Item 336's journal is the argument:
+# three units carried a constant position offset for fifteen frames while the
+# stream saw nothing, and 336 was provable only because run19 happened to dump
+# its frame. Item 334 worked without a value diff and succeeded; that is luck,
+# not method.
+#
+# **The window starts at 8030, not at 8150, and the reason is the overlap.**
+# The nearest Great Lakes detail capture above run94 is **run19**, whose 19
+# blocks sit in 8174..8201 — but run19 was taken at a **higher detail level**
+# than run94, and two levels are not honestly comparable field for field.
+# Measured on both files, net of their preambles (1,598,671 and 10,765,469
+# bytes): run19 is **1.54 MiB a block against run94's 0.40**, 3.9x, for the
+# *same* block kinds and the same population — the `BEGIN <KIND>` sets differ
+# by exactly one entry each way (`ATTACKORDER`, `GROUPATTACKTOORDER`, both
+# order types that depend on what units were doing), and UNITDATA runs 93 a
+# block against 90. So the extra bytes are *inside* the records: the ini value
+# is a threshold, not a flag, and `UNITS=3` and a bare `UNITS` are different
+# settings. (**This comment first said run19 was a `DUMP_ALL` window and that
+# was wrong** — a real `DUMP_ALL` block is 50-64 MiB, which is why those exist
+# only as 3-20 block windows; run19 is 1.54.) Either way `samegame.py` would
+# need an `--exclude` list long enough to throw away most of what it compares.
+# run94's tail is at **8044** and its detail is this stanza's
+# exactly, so dropping the low end to 8030 buys **15 blocks (8030..8044) that
+# compare byte for byte** for about 7 MB. run94's own 8061 is its truncated
+# `!quit` block and `samegame.py` drops each file's last block, so it is not
+# in the compared set and must not be counted in one.
+frames: 9360
+mapstyle: 14
+# run90's and run94's detail exactly, so the overlap is byte for byte. No
+# `cfg:`, so mapstyle 14 takes the default `-config check.ini` — run53's and
+# run94's lobby.
+end: MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,DEATHS=1,LEADERS=1
+frame_window: 8030 9350
+cover: cover=0
+# run94's Great Lakes floor.
+settle_min: 14000000
+# **Sized from run94's own measurement.** run94 wrote 292 blocks for
+# 134,579,630 bytes at this map, era and detail — **461 KB a block**, the low
+# end of this lane's measured 450-630 KiB. 1,320 blocks is therefore ~609 MB,
+# about 1.7% of the 36 GiB free, and nowhere near this lane's 6 GiB abort. The
+# run-up is forty seconds at cover=0 (run80 reached 23,960 in that); the dump
+# is the cost, and run88's 327 blocks took about nine minutes, so 1,320 is
+# ~37 minutes. 200 polls is 66 minutes — inside this lane's 90-minute per-run
+# cap, and not a 900.
+poll_max: 200
+# Same game: the trace word for word against run53, this map's own 24k run —
+# run94's line, and the identity oracle every recent Great Lakes capture uses.
+check: python3 tools/gamelog/rngcmp.py rontrace-run53.log rontrace-run97.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=9000)}'
+# **The overlap, and the count is the claim.** `samegame.py` exits 0 when
+# nothing differs *including when nothing is in common*, which is the vacuous
+# pass run83 caught, so this asserts the number of blocks compared. 15 is
+# 8030..8044 — run94's window tail, its 8061 quit block excluded by the
+# last-block drop on both sides.
+check: python3 tools/gamelog/samegame.py gamelog-run94-greatlakes-scoutrepath.txt gamelog-run97-greatlakes-valuewindow.txt | tee /dev/stderr | awk '/in common/{r=$0; sub(/.*in common /,"",r); split($0,a,", "); n=a[2]+0} /^differ:/{d=$2+0} END{print "run94 overlap: common="n" "r" differ="d; exit !(n==15 && d==0)}'
+# The window landed whole: 1,320 blocks, 8030..9349, no gap.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run97-greatlakes-valuewindow.txt" | awk '{v=$3+0; if(v>=8030&&v<9350) n[v]=1} END{c=0; lo=0; hi=0; for(k in n){c++; if(lo==0||k+0<lo)lo=k+0; if(k+0>hi)hi=k+0} print "window blocks: "c" ("lo".."hi")"; exit !(c==1320 && lo==8030 && hi==9349)}'
+# **And the frontier frames carry values, not just a block header** — the
+# failure this catches is a correctly-numbered window whose `[End Frame]`
+# detail never fired. 8272, 8374 and 8466 are the words this lane exists to
+# serve; each must carry unit positions.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|to_x" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run97-greatlakes-valuewindow.txt" | awk '/BEGIN FRAME/{f=$3+0} /to_x/{if(f)n[f]++} END{printf "to_x on 8272=%d 8374=%d 9349=%d\n", n[8272], n[8374], n[9349]; exit !(n[8272]>0 && n[8374]>0 && n[9349]>0)}'
+
+run: 98
+tag: eastindies-valuewindow
+item: capture-lane
+why: East Indies' long-capture word (8466, and 8495 since loop-338 landed) is 550 frames past run90's tail — the widest gap between a word and its nearest value diff on either map
+# **The same restoration on the second map, and the larger gap of the two.**
+# run90's window closed at 7899; the word has been at 8466 since item 334 and
+# at 8495 since loop-338, so nothing on this disk carries a position on any
+# frame the current frontier touches.
+#
+# **The window starts at 7880, not at 7900, and this one is a correction.**
+# run90's `frame_window` is `7790 7900` and the HI is **exclusive**, so its
+# blocks are 7790..7899 plus a 7916 `!quit` block. A window opening at 7900
+# therefore overlaps run90 in **nothing**: its only block at or above 7900 is
+# the truncated 7916, which `samegame.py` drops as each file's last. That is
+# precisely the vacuous pass run83 caught — `samegame.py` exits 0 when nothing
+# is in common — and it would have been reported as a clean same-game result.
+# Opening at 7880 instead puts **20 blocks (7880..7899)** over run90's own
+# coverage at identical detail, for about 13 MB.
+frames: 9110
+mapstyle: 18
+# run90's detail exactly, so the overlap is byte for byte. No `cfg:`, so the
+# lobby is the profile's — run54's and run90's game.
+end: MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,DEATHS=1,LEADERS=1
+frame_window: 7880 9100
+cover: cover=0
+# run68/run81/run85/run86/run88/run90's East Indies floor: an 11,053,641-byte
+# start dump, and the log does not grow until the window opens.
+settle_min: 20000000
+# **Sized from run90's own measurement.** run90 wrote 111 blocks for
+# 71,645,977 bytes at this map, era and detail — **645 KB a block**, the top
+# of this lane's measured 450-630 KiB and 1.4x Great Lakes'. 1,220 blocks is
+# therefore ~788 MB, about 2.2% of the 36 GiB free and well inside the 6 GiB
+# abort. ~35 minutes of dumping at run88's rate; 200 polls is 66 minutes.
+poll_max: 200
+# Same game: the trace word for word against run54, this map's own 24k run —
+# run90's line.
+check: python3 tools/gamelog/rngcmp.py rontrace-run54.log rontrace-run98.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=9000)}'
+# **The overlap, and the count is the claim** — 20 blocks, 7880..7899. This is
+# the assertion the 7900 window could not have made.
+check: python3 tools/gamelog/samegame.py gamelog-run90-eastindies-shuffle.txt gamelog-run98-eastindies-valuewindow.txt | tee /dev/stderr | awk '/in common/{r=$0; sub(/.*in common /,"",r); split($0,a,", "); n=a[2]+0} /^differ:/{d=$2+0} END{print "run90 overlap: common="n" "r" differ="d; exit !(n==20 && d==0)}'
+# The window landed whole: 1,220 blocks, 7880..9099, no gap.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run98-eastindies-valuewindow.txt" | awk '{v=$3+0; if(v>=7880&&v<9100) n[v]=1} END{c=0; lo=0; hi=0; for(k in n){c++; if(lo==0||k+0<lo)lo=k+0; if(k+0>hi)hi=k+0} print "window blocks: "c" ("lo".."hi")"; exit !(c==1220 && lo==7880 && hi==9099)}'
+# **And the frontier frames carry values** — 8466 and 8495 are this map's
+# words, and 9099 is the runway's far end.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|to_x" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run98-eastindies-valuewindow.txt" | awk '/BEGIN FRAME/{f=$3+0} /to_x/{if(f)n[f]++} END{printf "to_x on 8466=%d 8495=%d 9099=%d\n", n[8466], n[8495], n[9099]; exit !(n[8466]>0 && n[8495]>0 && n[9099]>0)}'
