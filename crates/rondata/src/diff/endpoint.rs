@@ -542,11 +542,22 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // Four fewer of the roster unlinked, five positions and three
         // building field-rows further out, 15,382 frames past the new
         // word. DECISIONS 36 asks for the number rather than a trade.
-        off: 63,
+        // And **63 → 58 off and 8 → 7 build_diverged** on 2026-09-18, item
+        // 350 — `Groups::push_group`'s kill out of the old group
+        // (`docs/ARMY.md` §3.4), which moves this map's word 8619 → 8628.
+        // The AI's army holds nine units from 8186 where it held fifteen,
+        // so the six of §12's probe stop being re-ordered every time the
+        // army retargets: five positions and one building field-row
+        // closer 15,373 frames past the new word, and nothing else on the
+        // row moves. East Indies' endpoint and both ladder rungs are
+        // unchanged on the same commit — this map's AI is the only one
+        // whose army has run the probe. DECISIONS 36 asks for the number
+        // rather than a trade.
+        off: 58,
         unlinked: 7,
         extra: 0,
         build_unlinked: 0,
-        build_diverged: 8,
+        build_diverged: 7,
         city_unlinked: 3,
         city_diverged: 0,
     },

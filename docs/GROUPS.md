@@ -1501,12 +1501,18 @@ army to a single group (`docs/ARMY.md` §3.2) and has no player selection:
   `march_to_target`, `engagement`, `send_here`, `charge`, `Army::close`'s
   halt and `set_stance`.
 
-**Seams**, each with what it costs:
+## 12.0 The seams, each with what it costs
+
+Split out of §12 on 2026-09-18 (item 350) because the section reached the
+paperwork guard's ceiling, and this half is the one that grows: every
+landing either closes a row or narrows one. Nothing cites it by number, and
+§12 still means the list above.
+
 
 | seam | stands in for | what it costs |
 | --- | --- | --- |
 | ~~`Form::compute`'s slot table (§6.4)~~ | — | **Closed 2026-08-26**: `crates/sim/src/form.rs`, diffed against run29's `GROUPDATA` from the install's own columns. What is left is the four limits at the end of §6.4 — Square, the wedge's uninitialised seed, Mob's rings, and `categorize`'s two type substitutions — and every one of them is the original's |
-| the group pool (§3) | 64 slots a leader, `get_open_slot`'s recycling | one group per army, never recycled; `push_group`'s `force == 0` rule and `equals_group` are modelled, the slot allocation is not |
+| the group pool (§3) | 64 slots a leader, `get_open_slot`'s recycling | one group per army, never recycled; `push_group`'s `force == 0` rule, `equals_group` and **its kill out of the old group** (item 350, `docs/ARMY.md` §3.4) are modelled, the slot allocation is not — so the only group a push can empty is an army's |
 | `GroupMoveOrder` | §6.6's per-frame formation — the follower that tracks the leader's *current* position plus a rotated offset | every member gets a `MoveOrder` and marches to its own slot independently; `docs/ORDERS.md` §8.4's verdict, unchanged. ~~And the order's angle: step 6's `angle + (angles[i] << 24)`.~~ **The angle has left this row 2026-08-26**: `Sim::add_move_facing_order` carries the formation's own bearing plus the slot's packed byte, and `MoveOrder::facing` carries the mirror, which is what §6.3's hand-back reads |
 | **Column's `cols[i]`** (§6.7) | the slot index a Column formation translates a non-final waypoint by | the member's own slot. `cols` is a function-local static of `action_move_near` (`0xee155c`) that nothing writes, so the original reads uninitialised heap there; every simulated group is form 0, and a `debug_assert!` refuses to pretend otherwise |
 | ~~the follower arm of `compute_dests` (§6.4)~~ | — | **Closed 2026-08-26**: `Sim::form_follower_slot`, read from `0072d3a0`–`0072d4f0`. ~~The simulation still has no group that *contains* a follower — `Group::add`'s `keep_captain` (§4.1).~~ It does now: `Unit::o_up`/`o_down` and `Sim::group_add_keeping` carry §4.1's two recursions whole, so a group built from captains holds every figure, and the arm is reached from the sim's own side by run31's 36-member fixture |
@@ -1524,7 +1530,9 @@ army to a single group (`docs/ARMY.md` §3.2) and has no player selection:
 0. **`compute_form_negates_the_offsets_when_the_bearing_opposes_the_angle`**
    — §6.3's tail: one destination and angle, two opposite approaches, the
    destinations agreeing and the offsets negating. Red twice.
-1. `push_group_refuses_a_singleton_unless_forced` — §3.2's one live rule.
+1. `push_group_refuses_a_singleton_unless_forced` and
+   **`a_pushed_group_takes_its_members_out_of_the_army`** — §3.2's two
+   live rules.
 2. `action_move_to_gives_every_member_the_destination` — the ordinary path
    of §6.6, and the action bit.
 3. **`a_hurrying_army_stables_its_siege_and_marches_the_rest`** and

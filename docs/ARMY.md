@@ -252,6 +252,54 @@ group; `UnitTypeData +0x14`, the same field `COUNT_CATEGORY` compares),
 group whose leader has the **lowest** category, and §3.2 adds every new
 unit to it.
 
+### 3.4 Leaving without being removed — `push_group`'s second walk (2026-09-18)
+
+Nothing in §3.1 is the *usual* way a unit leaves an army. This is:
+
+> **`Groups::push_group` kills every member out of the group it was in.**
+
+`0070f9e0`'s second walk, per member, is `if ((-1 < old) && (old != slot))
+(*old->vtbl+0x10)(unit.o, unit.who, 0, 0)` — `Group::kill@00714110` through
+the vtable (`vtables.txt`) — and only then `unit.+0x80 = slot`. `docs/GROUPS.md`
+§3.2 has had the bullet since the first reading; what had never been
+written down is **what it means for an army**, because an army's one group
+(§3.2) is the thing being emptied.
+
+A unit killed out of the army's group stops being `Army::member` (§3.1) and
+stops being counted by `Army::normalize` (§3.3) — `num_units`,
+`num_captains`, `num_standard`, `role`, all of it — and, decisively, every
+later `Group::action_*` the army issues (§8, §9, §14) walks the group's own
+list and so **goes out without it**. The army has no idea it shrank; there
+is no `remove_unit`, and nothing in the family notices.
+
+`Group::kill(o, who, 0, 0)` mirrors `Group::add`'s walk exactly
+(`docs/GROUPS.md` §4.1, §4.2): a **non-captain is replaced by its captain**,
+and a captain's `o_down` chain goes with it. So what leaves is always a
+**whole squad**, never a figure.
+
+**Great Lakes 8186 is where it bites.** §12's probe builds a stack group
+from the army group's first and last units, `Group::add` brings both
+squads, and `push_group(force = 1)` installs it — and the six leave. The
+dump says so at a glance: on run97's block 8443 (sim 8442) `1/27`, `1/28`,
+`1/29`, `1/40`, `1/41` and `1/42` carry `group 65` with an order `id`
+`8192502`, and `1/31`–`1/39` carry `group 64` with `id 8448408`. One `id`
+per group order: the army's `GROUPATTACKTOORDER` on that frame reaches
+**nine** units, not fifteen.
+
+This crate had all fifteen in the army until item 350 (§17). The cost was
+not the probe's own frame — the probe's orders were already right
+(`great_lakes_8186_sends_the_probe_s_six_where_the_original_does`) — but
+every frame after it: the army's counts were 15/5/5 where the original's
+are 9/3/3, and when 8442's `find_target` retargeted, this crate turned six
+units the original leaves walking. It is the whole of the residue item 347
+had parked as a walk-slot band "from block 8443": the band's frame is the
+frame the six were re-ordered, and it fell from 5,853 fields to 1,659 when
+they stopped being.
+
+**What it is not.** It is not a *removal*: the group object stays in the
+army's `list[16]`, `num_groups` does not change, and `Army::remove_group`
+is not called. The army simply issues orders to a shorter list.
+
 ## 4. Who joins — `Unit::add_to_army@005f7740`
 
 The one writer of membership outside the family. If `Object::get_army`
@@ -1589,7 +1637,16 @@ mark (`City::no_muster`). The census's step 16 (`ai_census.rs`) and
 `charge` (§14), `set_stance` (§6) and `Army::close`'s halt. The army's one
 group carries the live half of its `GroupData` as `army::Army::group`
 (`group::GroupState`). What still writes the record and moves nothing is
-`find_besieged_city`'s **navy** arm alone. The formation's slot table is
+`find_besieged_city`'s **navy** arm alone.
+
+**And the one way out of an army landed 2026-09-18** (§3.4, item 350):
+`Sim::push_group` calls `unseat_group`, which kills each pushed member's
+whole squad out of the army group that held it and re-runs
+`army_normalize`. `a_pushed_group_takes_its_members_out_of_the_army` is
+the unit check and `run97_s_window_clocks_are_the_original_s` the
+differential one — the latter now compares each dumped unit's **point and
+its leading move order's goal** beside the four clocks, which is what
+found this. The formation's slot table is
 `docs/GROUPS.md` §6.4's seam: every member is sent to the group's own
 destination.
 
@@ -1654,6 +1711,34 @@ Checks, cheapest first (`rondata::diff`, `army_tests`):
 
 ## 18. What is not established
 
+- **Which city Great Lakes 8442 picks, and where the army musters on it**
+  (item 350's successor). The frame is a `find_target` and both sides
+  spend its **two** `+0x7df` score draws, so the same two candidates are
+  walked in the same order on the same RNG — `London` (city 1, the
+  capital) and `Norwich` (city 2), both the AI's own; `Napata` is the
+  human's and `frame_attacked + 0x1c20` still excludes it from 8186's
+  probe. This crate scores London 347 and Norwich 328 — both are
+  `rnd % 200 + 900` divided by §12's `/3`, with `size_factor(1) = 1` and
+  no other factor live — takes London, and musters at cell **(50, 27)**.
+  The original's `GROUPATTACKTOORDER` on run97 block 8443 carries `orig`
+  **(44851, 22480)**, cell (58, 29), which is neither this crate's London
+  muster nor the one forcing Norwich produces (cell (47, 30), and the word
+  then falls to 8451). So either the winner or §13's ring is wrong, and
+  the two are not separable from here: **no capture on disk carries an
+  `ARMYDATA` record**, so an army's target, `pos`, `muster` and
+  `rally_dist` are only ever visible from this side (`RON_DEBUG_ARMIES`).
+  What is *not* in this crate's §12 and is in the listing: the **wonder**
+  clause (`num_wonders(city) != 0 && Game::wonder_winning() == the owner`
+  → `× 10`, `006f69b0`), and the own-city factor is taken from the city
+  **building's type** — `0x19f → 2`, `0x1a0`/`0x213 → 3`, else 1 — rather
+  than from `CityData::get_level` as `size_factor` does. Neither is live
+  at 8442 on the numbers above, and neither has been checked.
+  **The capture that would refuse it**: a run of this seed with `ARMY`
+  detail, if the engine has a category that prints one — `docs/ORACLE.md`
+  lists 37 `SyncDefine` names and no army record has ever been dumped, so
+  the cheaper falsifier is the muster itself: any frame above 8442 whose
+  `GROUPATTACKTOORDER` `orig` this crate can be made to reproduce from one
+  of the two cities pins which city it was.
 - ~~**Which target Great Lakes 7930 actually picks**~~ (item 317,
   §16.8) — **run93 settled it**: `target_o 2007, target_who 1`, the AI's
   own building, and this crate's record agrees field for field. The

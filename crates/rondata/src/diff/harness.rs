@@ -684,6 +684,54 @@ pub(crate) fn debug_watch(built: &Built, frame: i64) {
     }
 }
 
+/// `RON_DEBUG_ARMIES=<lo>-<hi>` — every valid army's slot, status, target,
+/// counts and membership over a window, on any capture [`run_traced`] or a
+/// hand-rolled loop drives.
+///
+/// The third probe of this family, and the one the dump cannot supply: no
+/// capture writes an `ARMYDATA` record, so an army's target, muster and
+/// membership are only ever visible from this side. What the dump *does*
+/// give is the unit's `group` number and the `orig_x`/`orig_y` of the
+/// `GROUPATTACKTOORDER` it issues, and those are what this line is read
+/// against (item 350).
+#[cfg(test)]
+pub(crate) fn debug_armies(built: &Built, frame: i64) {
+    let Some((lo, hi)) = std::env::var("RON_DEBUG_ARMIES").ok().and_then(|v| {
+        let (a, b) = v.split_once('-')?;
+        Some((a.trim().parse::<i64>().ok()?, b.trim().parse::<i64>().ok()?))
+    }) else {
+        return;
+    };
+    if !(lo..=hi).contains(&frame) {
+        return;
+    }
+    for (w, armies) in built.sim.armies.iter().enumerate() {
+        for (slot, a) in armies.valid() {
+            let members: Vec<String> = a
+                .units
+                .iter()
+                .map(|&u| format!("{}/{}", built.sim.units[u].owner, built.sim.units[u].index))
+                .collect();
+            eprintln!(
+                "  f{frame} army {w}/{slot} status {} target {:?} pos ({},{}) muster ({},{}) \
+                 rally {} hurry {} units {} caps {} std {} [{}]",
+                a.status,
+                a.target,
+                a.pos.x,
+                a.pos.y,
+                a.muster.x,
+                a.muster.y,
+                a.rally_dist,
+                a.hurry,
+                a.num_units,
+                a.num_captains,
+                a.num_standard,
+                members.join(" ")
+            );
+        }
+    }
+}
+
 /// `RON_DEBUG_BUILDS=<lo>-<hi>` — every building's construction clock and
 /// queue over a window, on any capture [`run_traced`] or a hand-rolled loop
 /// drives. The dump's `BUILDDATA` prints `orig_type`, `job_counter`,
@@ -3348,6 +3396,7 @@ mod tests {
             built.tick();
             debug_watch(&built, f);
             debug_builds(&built, f);
+            debug_armies(&built, f);
             if f == GREAT_LAKES_SECOND_SQUAD {
                 squad_army = [27, 28, 29, 31, 32, 33]
                     .into_iter()
@@ -4795,6 +4844,11 @@ mod tests {
         let mut unmatched = 0usize;
         let mut walk = 0usize;
         let mut wrong: Vec<String> = Vec::new();
+        let mut posw: Vec<String> = Vec::new();
+        let mut body_bad = 0usize;
+        let mut body_all = 0usize;
+        let mut body_trio = 0usize;
+        let mut posfirst: std::collections::BTreeMap<(i64, i64), i64> = Default::default();
         for f in 0..=last {
             built.tick();
             let Some((_, units)) = theirs.iter().find(|(n, _)| *n == f) else {
@@ -4811,6 +4865,66 @@ mod tests {
                     unmatched += 1;
                     continue;
                 };
+                // **The rest of the record** (item 350). The clocks
+                // below are four fields of a `GUY` block; the `UNITDATA`
+                // that carries them prints the unit's own point and the
+                // goal of its leading move order beside them, and for a
+                // month neither was compared on this capture. The first
+                // run of this widening found sixteen units off position
+                // from 8442 and named the cause in twenty minutes
+                // (`docs/ARMY.md` §3.4).
+                {
+                    let un = &built.sim.units[u];
+                    let ourgoal = un.orders.front().and_then(|o| match &o.body {
+                        sim::orders::Body::Move(m) => Some((m.dest.x, m.dest.y)),
+                        _ => None,
+                    });
+                    // `-1` for "no leading move order" on both sides:
+                    // whether a unit *has* a goal is half the comparison,
+                    // and a `None`/`Some` mismatch is a divergence.
+                    let rows: [(&str, i64, i64); 4] = [
+                        ("x", i64::from(un.pos.x), state.pos.x),
+                        ("y", i64::from(un.pos.y), state.pos.y),
+                        (
+                            "goal_x",
+                            ourgoal.map_or(-1, |(x, _)| i64::from(x)),
+                            state.goal.map_or(-1, |g| g.x),
+                        ),
+                        (
+                            "goal_y",
+                            ourgoal.map_or(-1, |(_, y)| i64::from(y)),
+                            state.goal.map_or(-1, |g| g.y),
+                        ),
+                    ];
+                    for (name, o, t) in rows {
+                        if f >= LONG_WORD_GREAT_LAKES {
+                            continue;
+                        }
+                        body_all += 1;
+                        if o == t {
+                            continue;
+                        }
+                        // The **standing trio**, older than any window
+                        // on this map and already excused: `1/24`, `1/25`
+                        // and `1/26` stand a constant **(24, 24)** off
+                        // their cell, from before this capture opens
+                        // (`docs/ORACLE.md`, run76/run83's rows). They
+                        // never move and never draw, so they are counted
+                        // apart rather than mixed into the live residue.
+                        if state.who == 1 && (24..=26).contains(&state.o) {
+                            body_trio += 1;
+                        } else {
+                            body_bad += 1;
+                        }
+                        posfirst.entry((state.who, state.o)).or_insert(f);
+                        if posw.len() < 40 {
+                            posw.push(format!(
+                                "frame {f}: {}/{} {name} ours {o} theirs {t}",
+                                state.who, state.o
+                            ));
+                        }
+                    }
+                }
                 for (n, g) in state.guys.iter().enumerate() {
                     if !g.has_clock() {
                         continue;
@@ -4866,6 +4980,13 @@ mod tests {
         for w in &wrong {
             eprintln!("  {w}");
         }
+        eprintln!(
+            "run97 bodies: {body_bad} of {body_all} point-and-goal fields below the word wrong ({body_trio} more on the standing trio), on {} unit(s) — {posfirst:?}",
+            posfirst.len()
+        );
+        for w in &posw {
+            eprintln!("  BODY {w}");
+        }
         assert!(
             compared >= 120_000,
             "run97's own clock rows are missing — the wrong file: {compared} below"
@@ -4874,24 +4995,59 @@ mod tests {
             wrong.is_empty(),
             "run97's clocks parted outside the walk-slot seam: {wrong:?}"
         );
-        // All on player 1's army and all downstream of one `walk_variant`
-        // choice, from run97 block 8443 to the word. A floor, not a
-        // target: it may only fall.
+        // All on player 1's army, from run97 block 8443 to the word. A
+        // floor, not a target: it may only fall.
         //
         // **Moving the word re-pins it, and the rate is how to tell that
-        // from a regression.** The seam costs the same ~33.3 fields a
-        // frame wherever it is measured: 4,615 over the 139 frames
-        // `[8443, 8582)` on item 346, and 5,853 over the 176 frames
-        // `[8443, 8619)` on item 348 — 1,238 more fields for 37 more
-        // frames, which is 33.5 apiece. A successor that moves the word
-        // and finds the per-frame figure unchanged is looking at the same
-        // seam through a wider window; one that finds it risen is not.
+        // from a regression.** It cost the same ~33.3 fields a frame
+        // while it was fifteen units' — 4,615 over the 139 frames
+        // `[8443, 8582)` on item 346 and 5,853 over the 176 of
+        // `[8443, 8619)` on item 348, 33.5 apiece — and item 350 took it
+        // to **1,747 over the 185 frames `[8443, 8628)`, 9.4 apiece**,
+        // by taking the probe's six out of the army (`docs/ARMY.md`
+        // §3.4). A successor that moves the word and finds the per-frame
+        // figure unchanged is looking at the same seam through a wider
+        // window; one that finds it risen is not.
+        //
+        // What is left is **the nine**, and item 347's reading of it as a
+        // free `walk_variant` choice no longer holds: the bodies below
+        // say they are off *position* from 8442, so their walk slot is
+        // downstream of a wrong destination rather than a coin.
         assert!(
-            walk <= 5_853,
+            walk <= 1_747,
             "run97's walk-slot residue grew: {walk} fields over the {} frames \
-             below the word, the floor is 5,853 — divide by the frames before \
+             below the word, the floor is 1,747 — divide by the frames before \
              calling it a regression",
             LONG_WORD_GREAT_LAKES - 8_443
+        );
+        // **The rest of the record, floored** (item 350). Three families,
+        // and only the second is anyone's current item:
+        //
+        // - the **standing trio** `1/24`/`1/25`/`1/26`, a constant
+        //   (24, 24) older than every window on this map and already
+        //   excused — counted apart, and exactly `3 × 2 × frames`;
+        // - **`1/31`–`1/39` from 8442**, the army's own nine: the frame
+        //   is an `Army::find_target` and both sides spend its two
+        //   `+0x7df` score draws, but this crate takes London and musters
+        //   at cell (50, 27) where the original's `GROUPATTACKTOORDER`
+        //   carries `orig` (44851, 22480) — cell (58, 29). Either the
+        //   winner or the muster ring is wrong, and no capture on disk
+        //   holds an `ARMYDATA` record to say which;
+        // - **`1/27`/`1/28`/`1/29`/`1/41` from 8579**, the probe's six
+        //   drifting late on their long walk southwest.
+        assert!(
+            body_all >= 121_224,
+            "run97's own bodies are missing — the wrong file: {body_all} fields"
+        );
+        assert!(
+            body_trio <= 3_594,
+            "the standing trio is off on more than its own two fields a \
+             frame: {body_trio}"
+        );
+        assert!(
+            body_bad <= 7_009,
+            "run97's point-and-goal residue grew: {body_bad} of {body_all} \
+             fields below the word, the floor is 7,009 — {posfirst:?}"
         );
     }
 
