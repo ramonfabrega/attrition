@@ -595,3 +595,90 @@ fn a_section_over_the_ceiling_may_not_grow() {
     }
     assert!(failures.is_empty(), "{}", failures.join("\n"));
 }
+
+/// The rules track has a slot that is never empty (DECISIONS 41). The
+/// handoff carries a `Golden:` line beside `Scoreboard:` and `Long
+/// captures:` — `none pinned` with the takes-chain until the first chapter
+/// pins, then `w<frame>` — so the golden record cannot fall out of the
+/// handoff the way the second map's capture once fell out of the queue.
+#[test]
+fn the_handoff_carries_the_golden_line() {
+    let q = read("QUEUE.md");
+    let line = q
+        .lines()
+        .find(|l| l.starts_with("Golden:"))
+        .expect("docs/QUEUE.md's handoff has no `Golden:` line; write `Golden: none pinned · <takes-chain>` or `Golden: w<frame> of <length> · …`");
+    let rest = line.trim_start_matches("Golden:").trim();
+    let pinned = rest.split_whitespace().any(|w| {
+        w.strip_prefix('w')
+            .is_some_and(|d| !d.is_empty() && d.chars().all(|c| c.is_ascii_digit()))
+    });
+    assert!(
+        pinned || rest.starts_with("none pinned"),
+        "the `Golden:` line is {rest:?}; it says `none pinned` or names a word `w<frame>`"
+    );
+}
+
+/// `docs/DECISIONS.md` is a ledger nobody reads whole, and an amended entry
+/// does not say so at its own heading; its index does (DECISIONS 41). Every
+/// `## N.` entry has an index row `- N <status> — <title>`, and no row names
+/// an entry that does not exist.
+#[test]
+fn every_decision_has_an_index_row() {
+    let d = std::fs::read_to_string(docs().join("DECISIONS.md")).expect("docs/DECISIONS.md");
+    let entries: Vec<u32> = d
+        .lines()
+        .filter_map(|l| l.strip_prefix("## "))
+        .filter_map(|h| h.split_once(". ").and_then(|(n, _)| n.parse().ok()))
+        .collect();
+    assert!(
+        !entries.is_empty(),
+        "docs/DECISIONS.md has no `## N.` entries"
+    );
+    let mut in_index = false;
+    let mut rows = Vec::new();
+    for l in d.lines() {
+        if let Some(h) = l.strip_prefix("## ") {
+            in_index = h.starts_with("Index");
+            continue;
+        }
+        if !in_index {
+            continue;
+        }
+        if let Some(r) = l.strip_prefix("- ") {
+            let (n, rest) = r.split_once(' ').unwrap_or((r, ""));
+            let n: u32 = n
+                .parse()
+                .unwrap_or_else(|_| panic!("index row {l:?} does not start with an entry number"));
+            let status = rest.split(" — ").next().unwrap_or("");
+            let ok = status == "standing"
+                || status == "amended in place"
+                || status.starts_with("amended by ")
+                || status.starts_with("extended by ")
+                || status.starts_with("superseded by ");
+            assert!(
+                ok,
+                "index row {l:?}: the status is {status:?}, not one of standing / amended in place / amended by N / extended by N / superseded by N"
+            );
+            rows.push(n);
+        }
+    }
+    assert!(
+        !rows.is_empty(),
+        "docs/DECISIONS.md has no `## Index` section with `- N` rows"
+    );
+    let missing: Vec<u32> = entries
+        .iter()
+        .copied()
+        .filter(|n| !rows.contains(n))
+        .collect();
+    let extra: Vec<u32> = rows
+        .iter()
+        .copied()
+        .filter(|n| !entries.contains(n))
+        .collect();
+    assert!(
+        missing.is_empty() && extra.is_empty(),
+        "docs/DECISIONS.md's index and its entries disagree: entries with no row {missing:?}, rows with no entry {extra:?}"
+    );
+}

@@ -3,6 +3,57 @@
 Newest last. Each entry records what was chosen, what it was chosen over, and
 why — so a future session can tell a considered decision from an accident.
 
+## Index — what stands, as of 2026-09-18
+
+Nobody reads this file whole; a session reads the entry it is pointed at,
+and an entry that has been amended or superseded does not say so at its
+own heading. This index is rewritten by the steering pass, one line per
+entry — `standing`, `amended by N`, `extended by N`, `superseded by N` —
+and `docs_guard` checks that every entry has a row. The ledger below it
+is append-only and amended in place, as it always was.
+
+- 1 amended by 8 — Fidelity before divergence
+- 2 standing — Simulation and renderer are separate
+- 3 standing — Rust
+- 4 superseded by 16 — Fixed-point, not floating-point
+- 5 standing — Phase 1 is unconditional
+- 6 standing — The shipped debug symbols are the specification
+- 7 standing — The decompiler is a reading tool, not a source
+- 8 standing — Fidelity is chosen per subsystem
+- 9 standing — Data loaders are index-keyed; tag names are labels
+- 10 extended by 19 — Exact rationals where the original used a float
+- 11 standing — The simulation takes its tuning as an input
+- 12 standing — A constant the original does not read is not tuning
+- 13 standing — Pin a table the original computes with floating point
+- 14 amended in place — A constant's scale is a fact about the loader
+- 15 standing — Reproduce the original's arithmetic, including where it is wrong
+- 16 standing — Integers at the original's scales; `Fx` is not the rule
+- 17 standing — Derived per-player state is recomputed where the original recomputes it
+- 18 standing — The rules name types by role
+- 19 standing — A mid-frame float is reproduced operation by operation
+- 20 standing — The AI's scripts are data, and the interpreter is ours
+- 21 amended by 35 — `CLAUDE.md` carries the rules; the queue lives in `docs/`
+- 22 amended in place — Opus by default; Fable by choice
+- 23 standing — Where a reading's product is a formula, the implementation is a pass of the audit
+- 24 amended by 25 — The score is the finish line, the queue deletes, and Fable steers
+- 25 amended by 26 — The headline is the pair, the pin is the section
+- 26 standing — The word is the instrument; the finish line is the tick pair
+- 27 extended by 33 — The second lane is the capture lane, a session
+- 28 standing — A check asserts its own inputs
+- 29 amended by 41 — The finish line past the scored captures
+- 30 standing — A mechanic that is worse than nothing is landed unwired
+- 31 standing — Where a mechanic's answer is a number, proxy it
+- 32 standing — The oracle runs on free Wine
+- 33 extended by 34 — Two lanes for the two starved counters
+- 34 extended by 39 and 40 — The commander loop
+- 35 standing — The paperwork is bounded by items, and a deletion is a claim
+- 36 standing — The endpoint is telemetry until the word reaches it
+- 37 standing — `forbid(unsafe_code)` is the whole tree's
+- 38 extended by 41 — A lab branch lands by merge
+- 39 extended by 40 — The queue holds what names a score
+- 40 standing — The loop governs itself
+- 41 standing — Two tracks: the rules on a golden record, the AI on the long captures
+
 ## 1. Fidelity before divergence
 
 **Chosen:** reimplement toward the original, reaching parity before changing
@@ -2017,3 +2068,136 @@ of its own: the section is the queue and the count is its opener.
 row ran beside the headline and what it cost; and whether the
 twenty-landing stop fired. If the handoff's count and `lore jobs`
 disagree, the commander's is the wrong one.
+
+## 41. Two tracks: the rules on a golden record, the AI on the long captures — and the executable as the denominator
+
+**Decided 2026-09-18**, the fifth Fable pass, with the user, in
+conversation (`docs/audit/2026-09-18-fable-pass-5.md`). Amends entry 29's
+finish line; extends entries 33 and 38; reverses one line of
+`docs/INPUT.md` §8 for the rules track; overturns nothing else.
+
+**What was asked.** Not the next item: how done the simulation is *as
+code*, and whether anything measures it. The answer was that nothing did.
+Entry 29's three counters — the long captures' word, the blind list, the
+widening ledger — are all relative to what has already been inspected:
+frames of two games, functions our own documents cite, fields the parsers
+already carry. The lab's methodology note said so on 2026-09-09
+(`docs/lab/2026-09-09-methodology-exploration.md` §4) and proposed a
+capability inventory with an external denominator; it was ruled "not an
+alternate completion score" then, correctly for the loop, and it is the
+answer to this question now.
+
+**What was measured** (`tools/census.py`, this pass; `docs/CENSUS.md`):
+
+| slice | functions | cited in `docs/` | entered, three coverage traces |
+|---|---|---|---|
+| the executable | 48,233 | 862 in 158 classes | 7,180 |
+| the 31 `*Order` classes | 410 | 44 | 205 |
+| `Unit` | 184 | 123 | 120 |
+| `Leader` / `LeaderData` | 128 / 173 | 46 / 34 | 60 / 95 |
+| `CommandManager` | 82 | 2 | 12 |
+
+Six order classes have no citation at all, and they are air, cast, trade
+and the special animation; the thin ones — target, strafe, attack, guard,
+follow, patrol at one citation each — are combat. Everything mapped is
+economy, cities, movement, building and the AI's posture. By ages the
+simulation is diffed through the Ancient and into the Classical, two of
+eight, and the 24,000-frame long captures end in the Medieval at best: the
+finish line entry 29 names leaves five ages never diffed *when it closes*.
+
+**Why the loop is serial, structurally.** Lockstep replicates orders and
+re-derives the AI, so no recording holds an AI decision (`docs/INPUT.md`
+§1), and every scored capture since 08-24 has been an idle human against
+an AI. Every rule verified so far was verified through the AI's own
+orders, one decision at a time, on one trajectory per map; the harness's
+input side maps two of eighty-two command kinds. That is why the headline
+moves one landing at a time and nobody can write ahead of it.
+
+**What already exists to change that**, all of it in the tree and run:
+`rontrace.cmd` stages chat and console lines at exact sim-frames (run16:
+`add`, `war`, `peace`, `tech`, `die`, `move`); `!ffwd` runs the sim at
+~500 frames a second with the dump windowed off; the lab's congestion
+probe (L15) staged a seeded scenario click-free — fast-forward, 32 spawns,
+orders through the original's own `issue_move_to` from the DLL — and two
+launches matched on every observed projection; `ai off` and `human who`
+silence the Leader AI, and in `Unit::think` the auto-engage call precedes
+that gate. A 24,000-frame draw-stream trace is 17–29 MB; a full-detail
+window is ~0.5 MB a frame. The speed floor was never the sim.
+
+**The decisions.**
+
+1. **Two tracks, two words.** The *rules* track runs on a **golden
+   record**: one staged game, AI off, in chapters — a chapter per order
+   class and unit line, an age jump between chapters by the `age` cheat, a
+   Temple chapter for the namesake, a war — driven from `rontrace.cmd` for
+   the spawns and cheats and from native issuers for the orders, so the
+   orders are in the recording and the cheats in the script. The *AI*
+   track stays on the long captures exactly as today. Chapters are
+   independent, so rules items run in parallel lanes with no dependency on
+   the AI's next decision. The handoff carries a `Golden:` line beside
+   `Scoreboard:` and `Long captures:` from this pass on — `none pinned`
+   with the takes-chain until the first chapter pins, then the golden
+   word — and `docs_guard` requires it, so the rules track has a slot that
+   is never empty.
+2. **Digest first, detail on demand.** Every capture is a draw-stream
+   trace for its whole length; full detail is a windowed re-run sized to
+   the word, regenerated rather than stored when the window moves. The
+   good captures already do this; it is the rule now, and with
+   fast-forward a golden-record re-run costs seconds.
+3. **The harness's input side is a mechanic.** The command dispatch of
+   `docs/COMMANDS.md` §3 mapped onto the sim's entry points, and an
+   interpreter for the fixed cheat set the record uses (`add`, `age`,
+   `tech`, `resource`, `war`/`peace`/`ally`, `die`, `damage`, `move`,
+   `human`/`ai off`). `docs/INPUT.md` §8's "capture without cheats" is
+   reversed for this track: a cheat is a modelled input from a small,
+   listed set. Item 364.
+4. **The census is the fourth counter, and the only absolute one.**
+   `tools/census.py` over the Ghidra index, the documents and the coverage
+   traces; regenerated at every steering pass into `docs/CENSUS.md`. It is
+   the map, not a score — an entered function is one a run reached, not
+   one whose predicate was checked — and the "diff-backed" column is
+   hand-tagged later. Entry 29's finish line becomes four: both long
+   captures in lockstep; the golden record in lockstep for every chapter;
+   the blind list at an enumerated residue; the widening ledger at zero.
+   Whether phase 4 waits on all four stays as 29 has it; the option to
+   open it on the rules track alone is noted here and not decided.
+5. **The golden record runs on the lab's lane** (entry 38's adoption
+   question, answered for one tool): `live_session.py stage` with the
+   tracer's command file, intro skipped, controlled exit. Parked 341's
+   "expose the window and the categories" is part of item 363's brief,
+   not a pass item; once 363 lands, a new capture stanza takes the
+   click-free lane unless it needs the mouse. The native issuer covers
+   `move_to` alone; further issuers are added the way the lab validated
+   that one, under the emulator first.
+6. **The AI gets its dump.** The original logs state and never reasoning
+   because a re-derived AI needs no reasoning logged to stay in sync; we
+   do. The tracer's proxy table gains the Leader's deciding functions —
+   `compute_sites`, `action_respond`, `create_units` first — so the AI
+   track diffs decisions, not only their effects. A Loop item, the
+   pass's.
+
+**Two corrections to the tree this pass found.** The blind list is not
+frozen: `docs/PARKED.md` still said "101 of 617" a week after ORACLE's
+"Coverage is back" (802 cited, 650 entered, 152 never), and the per-user
+memory said `cover=1` page-faults — both fixed. And the blind *readings*
+were the expensive, low-yield thing the diff-first rule starved on
+purpose; the blind *list* is a free by-product of every coverage run and
+the census subsumes it.
+
+**The estimate, written down to be wrong on record.** By frames, the long
+captures close in two to three months at the fourth pass's cadence. By
+the census, the untouched half is the half with no script to read, so:
+four to six months of the loop, at that cadence, to every order family and
+every age diff-backed on the golden record. The next pass checks it.
+
+**The measure for the next pass**: the golden word exists and which
+chapters pin; whether a rules item ran beside an AI item; the census
+re-run, order family first; the held-out third map's word, measured and
+never debugged against; and the proxy table's first AI-decision diff.
+
+**A candidate sentence for `CLAUDE.md`'s thesis, not landed**: *copy the
+rules and the designs, leave the code and the container.* The file's
+"engine" means the plumbing; the mechanics' implementations are the rules
+it treasures, and the sync-category table, `DataWalk`, and a re-derived AI
+are designs worth owning. Ramon's reading, in the room; the pass that
+rewrites the file decides it.

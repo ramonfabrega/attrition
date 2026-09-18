@@ -20389,3 +20389,36 @@ first on twelve against thirteen. DECISIONS 40 carries the rationale;
 `docs/audit/2026-09-18-fable-pass-4.md` the measurements. Seven Loop items
 stay parked, 356 and 321 first in line. `capture-lane-2` ran on the screen
 throughout and lands on its own report.
+
+## 2026-09-18 — the fifth Fable pass: how done is the sim, and two tracks (Fable 5.1, steering)
+
+Not a scheduled pass — the talk before the loop resumed, and it asked
+the whole rather than the next item: how far the reimplementation is as
+code, whether anything measures it, what the end game is. Nothing did
+measure it: all three of DECISIONS 29's counters are relative to what has
+been inspected, which the lab's methodology note had said on 09-09. So
+the pass built the missing denominator — `tools/census.py`, every
+function in the executable by class against what `docs/` cites and what
+the coverage traces entered — and read it: 862 of 48,233 cited; the 31
+order classes 44 cited of 410, six never, and they are air, cast, trade
+and the special animation; everything mapped is economy and posture,
+everything unmapped is combat and the late game. By ages, two of eight,
+and the long captures end in the Medieval at best.
+
+The structural finding was why the loop is serial: no recording holds an
+AI decision, every scored capture is an idle human against an AI, the
+harness maps two command kinds, so every rule was verified through the
+AI's own orders one decision at a time. And every tool for the other
+shape already exists and has run — `rontrace.cmd`, `!ffwd` at ~500
+frames a second, the lab's click-free lane with native issuers (L15's
+two launches matched), `ai off` with auto-engage above its gate.
+**DECISIONS 41**: two tracks, two words — the rules on a golden record,
+one staged game in chapters, the AI on the long captures unchanged;
+digest first, detail on demand; the harness's input side as a mechanic;
+the census as the fourth counter; the record on the lab's lane; the AI's
+own dump through the tracer's proxy table. Items 363, 364, 365 booked,
+367 parked to the Loop, `Golden:` on the handoff with a guard behind it,
+and DECISIONS got an index with a guard behind that. Two stale lines
+fixed — the blind list was never frozen past 09-08. Doc polish named and
+not taken: `AI.md` §2, `ORDERS.md` §4, ORACLE's split. The estimate on
+record: four to six months. `docs/audit/2026-09-18-fable-pass-5.md`.

@@ -1,0 +1,93 @@
+# The census — the executable as the denominator
+
+`tools/census.py`, regenerated at every steering pass (DECISIONS 41). Every
+function in the executable, grouped by the class Ghidra's export files it
+under, against the functions `docs/` cites by address and the functions any
+coverage trace entered. **It is the map, not a score**: a cited function is
+one a reading named, an entered one is one a run reached — constructors and
+walkers count — and neither says the predicate inside was checked. The three
+counters DECISIONS 29 names are all relative to what has been inspected;
+this table's denominator is the binary itself. A "diff-backed" column, hand
+tagged from each document's coverage section, is owed and not yet here.
+
+Regenerate with the three coverage traces (`docs/ORACLE.md`, "Coverage is
+back"; the corpus lives outside the repo), from the repo root:
+
+    python3 tools/census.py --top 30 "$LOGS/rontrace-run53.log" \
+        "$LOGS/rontrace-run54.log" "$LOGS/rontrace-run906.log"
+
+and paste the output under the dated heading below, replacing the last one.
+
+## The table, 2026-09-18
+
+```
+# the order family — one row per thing a unit can be told to do
+class                         total  cited  entered
+TargetOrder                      26      2       14
+MoveOrder                        21      5       12
+StrafeOrder                      20      1       12
+GroupMoveOrder                   19      4       13
+AirAttackGroundOrder             18      0        7
+FormOrder                        16      1        4
+AttackGroundOrder                16      1        4
+AirPatrolOrder                   16      0       10
+GuardOrder                       16      1       13
+FollowOrder                      16      1        4
+AttackOrder                      15      1        9
+GarrisonOrder                    15      4        4
+AirOrder                         14      0        2
+GroupPatrolOrder                 14      1        5
+GatherOrder                      14      4       11
+PatrolOrder                      14      1        3
+GroupOrder                       13      1        0
+GroupAttackOrder                 13      1        6
+GroupAttackToOrder               12      2        8
+CastOrder                        12      0        9
+AttackToOrder                    11      1        8
+TradeOrder                       11      0       11
+BuildOrder                        9      3        7
+AwaitBoardOrder                   9      1        4
+UnitOrder                         8      3        2
+FleeToOrder                       8      1        5
+RepairOrder                       8      1        4
+SpecialAnimOrder                  8      0        4
+ExploreToOrder                    7      1        6
+BoardOrder                        7      1        3
+ThinkOrder                        4      1        1
+(orders)                        410     44      205   classes touched by a citation: 25/31
+
+# core classes by size (free functions, CRT, STL and cut modules excluded)
+class                         total  cited  entered
+ScenarioFuncSet                 872      9       55
+Window                          329      2      128
+Unit                            184    123      120
+String                          178      2      101
+LeaderData                      173     34       95
+GraphicPieces                   166      3      107
+char_traits_wchar_t__std        148      0       33
+TerrainOut                      142      3       93
+Leader                          128     46       60
+SetupWin                        115      2       29
+GameSpy                         111      0        8
+Game                            109     14       52
+ConquestWin                     103      0        4
+CommandPackage                   98     17       10
+Buffer                           96      1       62
+ScenarioEditor                   94      1        1
+UnitData                         92     39       60
+GraphicWinXML                    88      1       39
+GameLog                          85      9       36
+details                          84      0       14
+SkyString                        83      0       27
+CommandManager                   82      2       12
+Group                            76     29       28
+SyncLogger                       70      0       29
+ConquestGame                     70      0        3
+Console                          70      0       11
+Options                          69      2        8
+WorldData                        64     19       42
+DTO                              61      0        2
+BuildTypeData                    59     13       47
+
+functions 48233  classes 2635  cited 862 in 158 classes  entered 7180  (logs: 3)
+```

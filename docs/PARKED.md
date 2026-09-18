@@ -61,7 +61,10 @@ served the session that wrote it — the first-request source `lore spawns`
 already trusts. Guard, hook, or "a brief never dictates it": the pass's.
 
 (341) **The click-free lane cannot take a capture worth having, so every
-scored capture must drive the cursor.** Ramon's flag, 2026-09-18: "i
+scored capture must drive the cursor.** *Folded into item 363's brief by
+the fifth pass (DECISIONS 41 §5): exposing the window and the categories
+is the golden record's first step, not a pass item; this row closes when
+363 lands.* Ramon's flag, 2026-09-18: "i
 thought we had figured out occluded/non main focus captures". We had, for
 one job and not this one. This rests on the tool's source, not on any run.
 
@@ -137,6 +140,16 @@ the reap is a separate command a commander typed after the chain twice and
 forgot twice. Filed with ccc as `land <ref>` or `merge --reap`; until it
 exists, the chain is one shell line in the commander's brief.
 
+(367) **The AI gets its dump** (DECISIONS 41 §6). The original logs state
+and never reasoning — a re-derived AI needs no reasoning logged to stay in
+sync — so no category prints a Leader's site scores or target choice, and
+the AI track diffs effects only. The tracer's proxy table (`tools/trace/
+tracer.c` `CALLS`, `report.py` `PROXIES`) already records a call's
+arguments and answer for `astar_path` and `calc_cost`; add the Leader's
+deciding functions — `compute_sites`, `action_respond`, `create_units`
+first — and teach `rondata` to diff the answers. The pass's: it is a
+tracer change, and a wrong proxy stub costs a run.
+
 ## Parked by the third Fable pass, 2026-09-17 — names no score
 
 (310) **Nothing decrements the muster on death** — not `by_type`,
@@ -193,7 +206,9 @@ by `(110 − 100) / 2`. (181) CARAVAN §7.2–§7.3.
 names nowhere, **46** one capture names — item 308 moved both on 2026-09-17,
 `start_dist` off the uncompared list and `uid` onto the single-capture one; blind spot `avg_speed` (210) — it
 counts *fields* and cannot see a record the parser never visits, which is
-what hid 252's dumps. Uncounted: (88) the blind list, 101 of 617; (72)
+what hid 252's dumps. Uncounted: (88) the blind list — **802 cited, 650
+entered, 152 never** since coverage came back 09-08 (ORACLE), not the 101
+of 617 this line said for a week; (72)
 every `+0xNN` a document pins vs its module; (89) the guard; (35) VISION §7.
 
 (269) **The third axis: a field compared at the wrong width** (DATALAYER
