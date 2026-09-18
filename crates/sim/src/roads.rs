@@ -164,6 +164,11 @@ impl Sim {
     /// `Build::process@0061edf0+0x1377` — the deferred regeneration. The
     /// building's own object number staggers the work across sixteen frames,
     /// so a city's seven buildings replan on seven different ones.
+    ///
+    /// The **caller** owns the other half of the rule: this is
+    /// `Build::process`'s last statement and the function returns on
+    /// `is_active` at its head, so a site never gets here and its flag
+    /// simply waits (`docs/ROADS.md` §1.1, East Indies 8193).
     pub(crate) fn regen_roads_due(&mut self, b: usize, frame: i64) {
         if !self.buildings[b].regen_roads {
             return;
@@ -926,6 +931,46 @@ mod tests {
                 "frame {frame}: object {o} fires when (frame + o) % 16 == 0"
             );
         }
+    }
+
+    /// `Build::process@0061edf0`'s `is_active` gate — `field_0x8 & 4`,
+    /// which is `WallData::is_active@00472350` inlined — stands above the
+    /// replan at the function's tail, so a **site** never replans however
+    /// its flag was set, and the flag is not cleared either.
+    ///
+    /// East Indies 8193 is the frame that said so: `1/2015`, a half-built
+    /// market, spent two hundred `calc_road_cost` draws the original never
+    /// spends (`docs/ROADS.md` §1.1, item 334).
+    #[test]
+    fn a_site_does_not_replan_and_keeps_its_flag_until_it_finishes() {
+        let (mut sim, _city, _, lib_ty) = town(Pos::new(40, 40));
+        sim.plan_roads = true;
+        let b = sim
+            .place_building(0, lib_ty, centre_of(Pos::new(40, 52)))
+            .expect("the library places");
+        sim.start_building(b);
+        assert!(!sim.buildings[b].active, "still a site");
+        let o = i64::from(sim.buildings[b].index);
+        // Its own rotation slot, the frame `regen_roads_due` would fire on.
+        let due = (ROTATION - o).rem_euclid(ROTATION);
+        sim.buildings[b].regen_roads = true;
+        let before = sim.rng.seed;
+        sim.process_building(b, due);
+        assert_eq!(sim.rng.seed, before, "a site spends no road-cost draw");
+        assert!(
+            sim.buildings[b].regen_roads,
+            "and the flag waits rather than being cleared"
+        );
+        // Finished, the same slot fires — so it is the gate that held it,
+        // not the schedule.
+        finish(&mut sim, b);
+        sim.buildings[b].regen_roads = true;
+        sim.process_building(b, due);
+        assert!(
+            sim.rng.seed != before,
+            "an active building replans on that same frame"
+        );
+        assert!(!sim.buildings[b].regen_roads, "and clears its flag");
     }
 
     #[test]

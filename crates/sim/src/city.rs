@@ -1744,7 +1744,6 @@ impl Sim {
             }
         }
         self.buildings[b].helpers = 0;
-        self.regen_roads_due(b, frame);
         // A building in enemy territory bleeds.
         let who = self.buildings[b].owner;
         if phase % build::ENEMY_TERRITORY_PERIOD == 0
@@ -1810,6 +1809,16 @@ impl Sim {
                 self.repair_building(b, level);
             }
         }
+        // **`Build::process@0061edf0`'s last statement**, and it is below
+        // the `is_active` gate — which is the function's *second*, inlined
+        // as `field_0x8 & 4` (`WallData::is_active@00472350` is exactly
+        // that expression) and taken the moment `Wall::process` returns. A
+        // building that is still a site therefore never replans its roads,
+        // however the flag was set; the flag simply stays until the site
+        // finishes. This crate ran the replan beside the helpers reset,
+        // above the gate, and East Indies 8193 is the frame that says so
+        // (`crate::roads` §1, `docs/ROADS.md` §1.1).
+        self.regen_roads_due(b, frame);
     }
 
     /// `Wall::process`'s enemy-territory hit: eight hits through
