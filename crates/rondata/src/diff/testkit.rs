@@ -1069,7 +1069,25 @@ pub(crate) const LONG_WORD_EAST_INDIES: i64 = 8_193;
 /// expired: "every unit in every capture so far is ungrouped" stayed
 /// true-looking for a month after this probe stopped it being a reason
 /// (`docs/COLLISION.md` §9).
-pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 8187;
+/// **8187 → 8201 on item 329, and the crossover.** 8201 is past East
+/// Indies' 8193, so this stops being the lower map and the queue's
+/// "lower map first" order changes hands for the first time.
+///
+/// Two causes, not one. `Unit::fight@005fd4d0`'s tail re-enters
+/// `Unit::work` through vtable `+0x188` (latched on the action order's
+/// `0x10`), so a chase **plans and walks on the frame it is ordered** —
+/// the dump's `STACK<TYPE>` block has all six of the probe's units
+/// holding path stacks at the end of 8186. And `astar_path`'s unit-grid
+/// failure roll (`retry`, `MoveOrder +0x1c`) is what spares `find_upath`
+/// from killing `1/28`'s chase. The value diff is `1/28`'s retry 8/7/6
+/// and safe 30/29/28, frozen at (36456, 23592), with `1/27` and `1/29` on
+/// run19's coordinates for all three frames.
+///
+/// Shared behaviour on both halves: every chase in the game now plans a
+/// frame earlier, and every failed 48-grid search under a transit order
+/// delays rather than cancels. `docs/ORDERS.md` §7.10 and
+/// `docs/PATHFINDER.md` §21.
+pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 8201;
 
 /// The frame Great Lakes' **second** squad joins the army on — 6994, the
 /// word's own parting from 2026-09-06 to 2026-09-07 and now a landed

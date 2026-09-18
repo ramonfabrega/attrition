@@ -428,11 +428,18 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // 8186 → 8187. Two of the three improve: three more of the roster
         // linked and one building field-row closer against one position
         // out, 15,814 frames past the word. The ladder did not move.
-        off: 67,
-        unlinked: 14,
+        // Then **67 → 64, 14 → 15 and 9 → 10** on 2026-09-17, item 329 —
+        // the chase planning on its order frame and the unit-grid failure
+        // roll (ORDERS §7.10, PATHFINDER §21), which takes this map's word
+        // 8187 → **8201** and past East Indies. Three positions closer,
+        // 15,800 frames past the word, against one of the roster unlinked
+        // and one building field-row out. DECISIONS 36 asks for the number
+        // rather than a trade.
+        off: 64,
+        unlinked: 15,
         extra: 0,
         build_unlinked: 0,
-        build_diverged: 9,
+        build_diverged: 10,
         city_unlinked: 3,
         city_diverged: 0,
     },

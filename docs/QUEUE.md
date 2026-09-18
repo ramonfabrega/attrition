@@ -12,36 +12,36 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-17, an Opus commander loop, twelve landings and seven
-word-moving. **East Indies +381, Great Lakes +508.** Next: 329.*
+*2026-09-17, an Opus commander loop: thirteen landings, eight
+word-moving, ~397 USD. **EI +381, GL +522.** Next: 334, new map.*
 
-- **Great Lakes 8187**, **East Indies 8193** — six frames apart, from 133
-  this morning: +381 (304), +251 (314), +151 (322), +100 (317), +4 (323),
-  +1 (319), +1 (328). **Great Lakes is about to stop being the lower map**
-  and the queue's "lower map first" order changes with it.
-- **Floors take the lower of word and sequence**; ask for figures by
-  symbol, since two today needed a quantity attached, not a correction.
-- **An elimination is a claim, and a seam comment is a prediction.** 320
-  ruled out every named `seen2` writer and 322 found one in `BUILDDATA`;
-  `army.rs`'s "nothing changes" seam was 8186's whole frame.
-- **Five comparisons that could not fail** were found today — a symbol
-  against a raw hex string, a binary trace grepped for a symbol name, a
-  tree id against the dump's `TypeIndex` (nine pinned rows rested on it).
-  When a comparison has never failed, ask whether it can.
-- **Grep the source's citations, not only the log dir** — 323's frame was
-  on disk since 08-25 and only `ai_make.rs`'s docstring said so.
-- One item open, twenty-four parked. **Fable backlog: six Loop items in
-  `docs/PARKED.md`** (313, 318, 321, 330, 331, 332) — the pass's, never a
-  worker's, and invisible at boot until this line (332).
+- **Great Lakes 8201 crossed East Indies 8193** (item 329). "Lower map
+  first" changes hands for the first time, so **East Indies is the
+  headline** — and its chain is cold: nothing has worked it since 304,
+  and 334 is a widening from scratch, not a successor.
+- **Eight of twelve items were strict successors**, each brief its
+  predecessor's product — the cheapest briefs this loop has had, and the
+  property that just ended. Expect 334 to cost more to brief.
+- **An elimination is a claim; a seam comment is a prediction; a seam
+  justified by "no capture reaches this yet" has a shelf life.** All
+  three bit today, the last a month after it was written.
+- **Five comparisons that could not fail** were closed — a symbol against
+  a raw hex string, a binary trace grepped for a symbol name, a tree id
+  against the dump's `TypeIndex` (nine pins rested on it).
+- **Build what a reading specifies, before ratifying it or beside it.**
+  324 specified `find_attack_pos` and declined to implement; 328 then
+  found four arithmetic errors in that specification by writing the code.
+- One item open, twenty-five parked. **Fable backlog: six Loop items in
+  `docs/PARKED.md`** (313, 318, 321, 330, 331, 332), invisible at boot
+  until this line (332). 330 and 331 carry the day's measurements.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w8193 of 24,000 · GreatLakes w8187 of 24,000
-Endpoint 24001: EastIndies 73 off, 7 unlinked · GreatLakes 67 off, 14 unlinked
+Long captures: EastIndies w8193 of 24,000 · GreatLakes w8201 of 24,000
+Endpoint 24001: EastIndies 73 off, 7 unlinked · GreatLakes 64 off, 15 unlinked
 
-**Opener: 329 — the pathfinder tail behind 8187, on disk in run19.
-328's override is the precedent worth keeping: building §17 found four
-arithmetic errors a single reading had missed, so a reading that yields
-arithmetic gets its implementation before or beside the ratification.**
+**Opener: 334 — widen East Indies 8193 whole before naming anything. Nine
+items today named a mechanism up front and eight were wrong, every one
+overturned by the widening inside the session that booked it.**
 
 ## The queue
 
@@ -51,14 +51,14 @@ unless a better order is obvious, and say so. Numbers are stable; the
 backlog is `docs/PARKED.md`, and an item comes back from it only when a
 score names it.
 
-329. **Great Lakes 8187 is `astar_path@00683770:964`, a unit-grid
-    search's failure tail** — open list exhausted, `Random::get % 3 + 6`
-    into the order's move data `+0x1c` as a 6-8 frame retry delay, under
-    two further gates (COMBAT §17.6 has both). **Not "emit one more
-    draw"**: this crate's unit-grid search does not fail there, and on
-    8187 it spends two `Guy::set_anim+0x97a < Guy::move+0x19f` instead —
-    two of the probe's six stepping where the original does not.
-    `path.rs`'s exhaustion tail names the seam; run19 covers it.
+334. **East Indies 8193 is the headline now, and its chain is cold** —
+    Great Lakes crossed it at 8201 (329), so "lower map first" changes
+    hands for the first time. Nothing has worked this map since 304, and
+    **no item names 8193's frame**, so by the queue's own rule the brief
+    is the widening of that frame: every dumped record on 8193 and its
+    neighbours, every slot, every field, every unit — then the cause.
+    run54 is the scored capture; grep the disk *and* the source's
+    citations before booking anything.
 
 ## How to maintain this file
 
