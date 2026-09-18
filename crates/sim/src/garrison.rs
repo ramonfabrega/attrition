@@ -266,6 +266,16 @@ impl Sim {
     /// `Unit::go_inside`: the whole squad goes in, appended at the bottom.
     pub fn go_inside(&mut self, unit: usize, b: usize) {
         let captain = self.captain_of(unit);
+        // **The chain is joined first.** `Object::insert_inside@00647e90`
+        // is `Unit::go_inside@0061a2e0`'s first statement, ahead of the
+        // scholar seating at its tail — and the seating's `set_anim`
+        // reads the chain it has just joined: a scholar that heads it
+        // teaches and one that does not studies
+        // ([`Sim::scholar_slot`](crate::Sim::scholar_slot)). Pushing
+        // afterwards made the game's first scholar a student of nobody.
+        if !self.buildings[b].garrison.contains(&captain) {
+            self.buildings[b].garrison.push(captain);
+        }
         for f in self.squad_of(captain) {
             // `Object::remove_from_world`: off the map is out of both
             // collision indices (`docs/COLLISION.md` §2, §3).
@@ -298,9 +308,6 @@ impl Sim {
                 self.unit_set_angle(f, crate::movement::Angle(0));
                 self.set_anim(f, crate::anim::DEFAULT, true, true);
             }
-        }
-        if !self.buildings[b].garrison.contains(&captain) {
-            self.buildings[b].garrison.push(captain);
         }
     }
 

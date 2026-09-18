@@ -1509,6 +1509,27 @@ on the other.
   `kill_current_order`, `Wall::init`, `City::assimilate` and a dozen more —
   a repaint flag on every state change, and nothing this simulation reads.
 
+**What the forced `CHAR_DEFAULT` actually resolves to** (2026-09-18, item
+340). ~~The seating leaves the scholar on an idle variant~~ — wrong, and it
+was this map's next word. `Guy::init_real@005db6b0` sets `guy_flags & 0x80`
+for a `TypeIndex` `0x34`/`0x35` figure and for no other, and
+`Guy::set_anim@005da300`'s arm on that bit turns the variant the roll just
+chose into an **offset**: the head of the host's inside chain plays
+`variant + 0x19` — `SCHOLAR`'s four `Scholar Teach` slots — and everyone
+under it `variant + 0x1d`. So the draw this section landed is spent on
+choosing *which teach animation*, not on an idle, and the clock it starts
+runs 30 to 105 frames rather than an idle's 33 to 232. `docs/ANIM.md` §4.11
+has the arm, the `is_peasant` correction that goes with it, and run98's
+value diff — East Indies' own first scholar, `cur_anim 25, end_time 30` on
+the frame it sits down. Great Lakes **8374 → 8382**.
+
+**And the chain is joined before the seating reads it.**
+`Object::insert_inside@00647e90` is `go_inside`'s first statement, so by the
+time the block above runs the unit is already in the host's `inside_down`
+list and can ask whether it heads it. This crate pushed the captain onto
+`buildings[b].garrison` *after* the seating, which made the game's first
+scholar a student of nobody; the push now happens first.
+
 ## Garrisons, continued (§6.6 – §6.8)
 
 ### 6.6 Ejecting a building — `eject_contents`, `process_ejection`

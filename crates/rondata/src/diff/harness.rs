@@ -643,6 +643,7 @@ pub(crate) fn debug_watch(built: &Built, frame: i64) {
         let (lo, hi) = w.split_once('-')?;
         let num = |s: &str| match s.trim() {
             "*" => Some(None),
+            "**" => Some(Some(i64::MIN)),
             n => n.parse::<i64>().ok().map(Some),
         };
         Some((
@@ -664,6 +665,10 @@ pub(crate) fn debug_watch(built: &Built, frame: i64) {
         .filter(|x| x.alive())
         .filter(|x| who.is_none_or(|w| i64::from(x.owner) == w))
         .filter(|x| match o {
+            // `**` is every unit alive, standing ones included: an
+            // animation clock's question is "who was *due* to wrap",
+            // and a standing guy is exactly what the moving filter hides.
+            Some(i64::MIN) => true,
             Some(n) => i64::from(x.index) == n,
             // The wildcard's own filter: moving, by order or by path.
             None => !x.path.is_empty() || x.orders.back().is_some_and(sim::orders::Order::is_move),
@@ -4559,6 +4564,312 @@ mod tests {
     /// Nothing here is installed: run73's own `frame_guys` never reach the
     /// simulation, which is built from run53's start and driven forward
     /// 5,579 frames. Every row is a prediction the dump can refuse.
+    /// **run94's animation clocks, frame for frame** — every `GUY`
+    /// block's `cur_anim`, `cur_time`, `end_time` and `last_time` over
+    /// the 291 frames of Great Lakes' `[7753, 8043]` window (item 340).
+    ///
+    /// The clock is art the simulation reads rather than computes, and
+    /// until this existed **no Great Lakes capture had ever compared
+    /// one**: run73's window is `[5564, 5578]`, fourteen frames three
+    /// thousand before the map's word, and the two Islands windows
+    /// (run64, run67) are another game. So a length this crate had wrong
+    /// for a piece run73's window does not hold could survive every
+    /// other test in the suite and show up only as a missing wrap, which
+    /// is exactly the shape Great Lakes 8374 turned out to be.
+    ///
+    /// **What it said is a negative, and the negative is the point.**
+    /// 66,300 fields, zero differing — so the lengths, the variants and
+    /// the wrap cadence of every one of the players' guys are the
+    /// original's over 291 consecutive frames three hundred short of the
+    /// word. That is what turned item 340 from "some clock is wrong"
+    /// into "the wrong clock belongs to a `(piece, slot)` pair this
+    /// window never saw", and at 8374 there were exactly four of those:
+    /// the scholar's was one (`docs/ANIM.md` §4.11).
+    ///
+    /// Nothing here is installed: run94's own `frame_guys` never reach
+    /// the simulation, which is built from run53's start and driven
+    /// forward 8,043 frames. Every row is a prediction the dump can
+    /// refuse.
+    #[test]
+    fn run94_s_window_clocks_are_the_original_s() {
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(trace), Some(r94)) = (
+            dump("gamelog-run53-greatlakes-24k-trace.txt"),
+            trace("rontrace-run53.log"),
+            dump("gamelog-run94-greatlakes-scoutrepath.txt"),
+        ) else {
+            eprintln!("skipping: no run53/run94 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let texts = sibling_texts();
+        let text = crate::capture::read(&path);
+        let log = Log::parse(&text);
+        let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
+        let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+        let refs: Vec<&Initial> = inits.iter().collect();
+        let mut init = log.initial().unwrap();
+        borrow_from_siblings(&mut init, &refs);
+        borrow_pasture(&mut init, &trace);
+
+        let text94 = crate::capture::read(&r94);
+        let theirs = Log::parse(&text94)
+            .initial()
+            .expect("run94 carries a start block")
+            .frame_guys;
+        let window: Vec<i64> = theirs.iter().map(|(n, _)| *n).collect();
+        assert!(
+            window.first() == Some(&7_753) && window.last() == Some(&8_043) && window.len() >= 291,
+            "run94's clock window is not [7753, 8043]: {:?}..{:?} ({})",
+            window.first(),
+            window.last(),
+            window.len()
+        );
+        let last = *window.last().unwrap();
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        // The window's own clocks are never installed: this is the check.
+        built.frame_guys.clear();
+        let mut compared = 0usize;
+        let mut unmatched = 0usize;
+        let mut wrong: Vec<String> = Vec::new();
+        for f in 0..=last {
+            built.tick();
+            let Some((_, units)) = theirs.iter().find(|(n, _)| *n == f) else {
+                continue;
+            };
+            for state in units {
+                // Gaia's animals are re-seated from the dump every traced
+                // frame (`Sim::reseat_animal`), so their clocks are not
+                // this crate's prediction; the players' are.
+                if !(0..8).contains(&state.who) {
+                    continue;
+                }
+                let Some(u) = (0..built.sim.units.len()).find(|&i| {
+                    let x = &built.sim.units[i];
+                    x.alive() && i64::from(x.owner) == state.who && i64::from(x.index) == state.o
+                }) else {
+                    unmatched += 1;
+                    continue;
+                };
+                for (n, g) in state.guys.iter().enumerate() {
+                    if !g.has_clock() {
+                        continue;
+                    }
+                    let Some(ours) = built.sim.units[u].guys.get(n) else {
+                        continue;
+                    };
+                    let rows: [(&str, i64, Option<i64>); 4] = [
+                        ("cur_anim", i64::from(ours.anim), g.cur_anim),
+                        ("cur_time", i64::from(ours.cur_time), g.cur_time),
+                        ("end_time", i64::from(ours.end_time), g.end_time),
+                        ("last_time", i64::from(ours.last_time), g.last_time),
+                    ];
+                    for (name, o, t) in rows {
+                        let Some(t) = t else { continue };
+                        compared += 1;
+                        if o == t {
+                            continue;
+                        }
+                        if wrong.len() < 20 {
+                            wrong.push(format!(
+                                "frame {f}: {}/{} guy {n} {name} ours {o} theirs {t}",
+                                state.who, state.o
+                            ));
+                        }
+                    }
+                }
+            }
+        }
+        eprintln!(
+            "run94 clocks: {compared} fields over {} frames, {unmatched} of the \
+             dump's units this crate has no unit for",
+            window.len()
+        );
+        for w in &wrong {
+            eprintln!("  {w}");
+        }
+        assert!(
+            compared >= 60_000,
+            "run94's own clock rows are missing — a capture without \
+             `GUYS` detail is the wrong file: {compared} fields"
+        );
+        assert!(wrong.is_empty(), "run94's clocks parted: {wrong:?}");
+    }
+
+    /// **run98's animation clocks, and the seated scholar's own** — East
+    /// Indies `[7879, 8788]`, 910 frames of `GUYS` detail across the map's
+    /// word at 8495 (item 340).
+    ///
+    /// **This is the value diff for the scholar's teach slot.** Great
+    /// Lakes' 8374 was settled by arithmetic — the map's first scholar was
+    /// seated on 8272 and the original wrapped its animation 103 frames
+    /// later, which is `SCHOLAR-DEFAULT-AGE0`'s slot **27** and no idle
+    /// variant of that piece — but nothing on Great Lakes dumps a clock
+    /// after 8043, so the slot itself was an inference. run98 dumps the
+    /// other map's first scholar, `1/22`, from the frame it is seated:
+    /// `cur_anim 25, cur_time 1, end_time 30`, and 25 is `variant 0 +
+    /// 0x19`. The original says outright that a scholar inside its
+    /// university plays a `Scholar Teach` slot rather than an idle
+    /// (`docs/ANIM.md` §4.11), and this crate now reads the same clock on
+    /// every frame of it.
+    ///
+    /// **The residue is `1/0`'s walk slot**, seven rows on 8242–8248 where
+    /// this crate reads `CHAR_SLOG` and the original `CHAR_WALK` — the
+    /// AI's scout, `walk_variant`'s speed test (`docs/ANIM.md` §4.3), and
+    /// nothing to do with this item. They are pinned by value so the
+    /// successor has to come back and change them rather than let them
+    /// drift.
+    ///
+    /// Above the word both streams are nobody's (item 89(c)), so those
+    /// rows are counted and printed and not asserted.
+    ///
+    /// Nothing here is installed: run98's own `frame_guys` never reach the
+    /// simulation, which is built from run54's start and driven forward
+    /// 8,788 frames.
+    #[test]
+    fn run98_s_window_clocks_are_the_original_s() {
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(sib), Some(tr), Some(r98)) = (
+            dump("gamelog-run54-islands-24k-trace.txt"),
+            dump("gamelog-run38-islands-start.txt"),
+            trace("rontrace-run54.log"),
+            dump("gamelog-run98-eastindies-valuewindow.txt"),
+        ) else {
+            eprintln!("skipping: no run54/run98 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = crate::capture::read(&path);
+        let sib_text = crate::capture::read(&sib);
+        let log = Log::parse(&text);
+        let sib_log = Log::parse(&sib_text);
+        let sib_init = sib_log.initial().expect("run38 is a start dump");
+        let mut init = log.initial().unwrap();
+        borrow_from_siblings(&mut init, &[&sib_init]);
+        borrow_pasture(&mut init, &tr);
+
+        let text98 = crate::capture::read(&r98);
+        let theirs = Log::parse(&text98)
+            .initial()
+            .expect("run98 carries a start block")
+            .frame_guys;
+        let window: Vec<i64> = theirs.iter().map(|(n, _)| *n).collect();
+        assert!(
+            window.first() == Some(&7_879) && window.last() == Some(&8_788) && window.len() >= 910,
+            "run98's clock window is not [7879, 8788]: {:?}..{:?} ({})",
+            window.first(),
+            window.last(),
+            window.len()
+        );
+        let last = *window.last().unwrap();
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        built.frame_guys.clear();
+        let mut compared = 0usize;
+        let mut above = 0usize;
+        let mut unmatched = 0usize;
+        let mut wrong: Vec<String> = Vec::new();
+        // The seating's own rows, by value: the first frame this crate
+        // and the dump agree the scholar is on a teach slot, and the
+        // clock it runs on afterwards.
+        let mut seating: Vec<(i64, i64, i64, i64)> = Vec::new();
+        for f in 0..=last {
+            built.tick();
+            let Some((_, units)) = theirs.iter().find(|(n, _)| *n == f) else {
+                continue;
+            };
+            for state in units {
+                if !(0..8).contains(&state.who) {
+                    continue;
+                }
+                let Some(u) = (0..built.sim.units.len()).find(|&i| {
+                    let x = &built.sim.units[i];
+                    x.alive() && i64::from(x.owner) == state.who && i64::from(x.index) == state.o
+                }) else {
+                    unmatched += 1;
+                    continue;
+                };
+                let is_scholar = built.sim.worker_of(u) == sim::orders::Worker::Scholar;
+                for (n, g) in state.guys.iter().enumerate() {
+                    if !g.has_clock() {
+                        continue;
+                    }
+                    let Some(ours) = built.sim.units[u].guys.get(n) else {
+                        continue;
+                    };
+                    if is_scholar
+                        && n == 0
+                        && (EAST_INDIES_FIRST_SCHOLAR..EAST_INDIES_FIRST_SCHOLAR + 3).contains(&f)
+                        && let (Some(a), Some(t), Some(e)) = (g.cur_anim, g.cur_time, g.end_time)
+                    {
+                        seating.push((f, a, t, e));
+                    }
+                    let rows: [(&str, i64, Option<i64>); 4] = [
+                        ("cur_anim", i64::from(ours.anim), g.cur_anim),
+                        ("cur_time", i64::from(ours.cur_time), g.cur_time),
+                        ("end_time", i64::from(ours.end_time), g.end_time),
+                        ("last_time", i64::from(ours.last_time), g.last_time),
+                    ];
+                    for (name, o, t) in rows {
+                        let Some(t) = t else { continue };
+                        // Past the word both streams are nobody's.
+                        if f >= LONG_WORD_EAST_INDIES {
+                            above += 1;
+                            continue;
+                        }
+                        compared += 1;
+                        if o == t {
+                            continue;
+                        }
+                        if wrong.len() < 20 {
+                            wrong.push(format!(
+                                "frame {f}: {}/{} guy {n} {name} ours {o} theirs {t}",
+                                state.who, state.o
+                            ));
+                        }
+                    }
+                }
+            }
+        }
+        eprintln!(
+            "run98 clocks: {compared} fields below the word, {above} above \
+             (printed, not pinned), {unmatched} unmatched"
+        );
+        for w in &wrong {
+            eprintln!("  {w}");
+        }
+        assert!(
+            compared >= 80_000 && above >= 40_000,
+            "run98's own clock rows are missing — the wrong file: \
+             {compared} below, {above} above"
+        );
+        // **The scholar's teach slot, off the original's own dump.**
+        assert_eq!(
+            seating,
+            vec![
+                (EAST_INDIES_FIRST_SCHOLAR, 25, 1, 30),
+                (EAST_INDIES_FIRST_SCHOLAR + 1, 25, 2, 30),
+                (EAST_INDIES_FIRST_SCHOLAR + 2, 25, 3, 30),
+            ],
+            "run98's first scholar is seated on slot 25 — `variant 0 + \
+             0x19` — and runs a 30-frame clock from the frame it enters"
+        );
+        // The whole residue, pinned by value: `1/0`'s walk slot on seven
+        // frames, and nothing else in 84,888 fields.
+        assert_eq!(
+            wrong,
+            vec![
+                "frame 8242: 1/0 guy 1 cur_anim ours 7 theirs 8",
+                "frame 8243: 1/0 guy 0 cur_anim ours 7 theirs 8",
+                "frame 8243: 1/0 guy 1 cur_anim ours 7 theirs 8",
+                "frame 8244: 1/0 guy 0 cur_anim ours 7 theirs 8",
+                "frame 8244: 1/0 guy 1 cur_anim ours 7 theirs 8",
+                "frame 8245: 1/0 guy 0 cur_anim ours 7 theirs 8",
+                "frame 8248: 1/0 guy 0 cur_anim ours 7 theirs 8",
+            ],
+            "run98's clock residue below the word, whole"
+        );
+    }
+
     #[test]
     fn run73_s_window_clocks_are_the_original_s() {
         let Some(inst) = install() else { return };

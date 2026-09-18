@@ -314,8 +314,19 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // Indies, 15,500 frames past both words — which the change moves
         // together, 8272 → 8374 and 8466 → 8495. DECISIONS 36 asks for the
         // number rather than a trade.
-        off: 62,
-        unlinked: 10,
+        // And **62 → 61 and 10 → 11** on 2026-09-18, item 340 — the **scholar's teach
+        // slot** (`docs/ANIM.md` §4.11). `Guy::set_anim`'s `guy_flags &
+        // 0x80` arm turns the idle roll's variant into an offset into
+        // slots 25–32 for a scholar inside its host, and
+        // `ObjectData::is_peasant` is `TypeIndex` `0x32`/`0x33` rather
+        // than any worker, so both the variant and the slot the seated
+        // scholar plays change. Every scholar in the game runs a
+        // different animation from the frame it sits down, 15,500 frames
+        // before this block. Great Lakes' word moves 8374 → 8382 on it
+        // and East Indies' does not move. DECISIONS 36 asks for the
+        // number rather than a trade.
+        off: 61,
+        unlinked: 11,
         extra: 0,
         build_unlinked: 0,
         build_diverged: 29,
@@ -474,11 +485,22 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // Indies, 15,500 frames past both words — which the change moves
         // together, 8272 → 8374 and 8466 → 8495. DECISIONS 36 asks for the
         // number rather than a trade.
-        off: 61,
+        // And **61 → 62 and 10 → 9** on 2026-09-18, item 340 — the **scholar's teach
+        // slot** (`docs/ANIM.md` §4.11). `Guy::set_anim`'s `guy_flags &
+        // 0x80` arm turns the idle roll's variant into an offset into
+        // slots 25–32 for a scholar inside its host, and
+        // `ObjectData::is_peasant` is `TypeIndex` `0x32`/`0x33` rather
+        // than any worker, so both the variant and the slot the seated
+        // scholar plays change. Every scholar in the game runs a
+        // different animation from the frame it sits down, 15,500 frames
+        // before this block. Great Lakes' word moves 8374 → 8382 on it
+        // and East Indies' does not move. DECISIONS 36 asks for the
+        // number rather than a trade.
+        off: 62,
         unlinked: 15,
         extra: 0,
         build_unlinked: 0,
-        build_diverged: 10,
+        build_diverged: 9,
         city_unlinked: 3,
         city_diverged: 0,
     },
@@ -533,7 +555,18 @@ pub const LADDER: [Endpoint; 2] = [
         // Indies, 15,500 frames past both words — which the change moves
         // together, 8272 → 8374 and 8466 → 8495. DECISIONS 36 asks for the
         // number rather than a trade.
-        off: 43,
+        // And **43 → 42 and 22 → 21** on 2026-09-18, item 340 — the **scholar's teach
+        // slot** (`docs/ANIM.md` §4.11). `Guy::set_anim`'s `guy_flags &
+        // 0x80` arm turns the idle roll's variant into an offset into
+        // slots 25–32 for a scholar inside its host, and
+        // `ObjectData::is_peasant` is `TypeIndex` `0x32`/`0x33` rather
+        // than any worker, so both the variant and the slot the seated
+        // scholar plays change. Every scholar in the game runs a
+        // different animation from the frame it sits down, 15,500 frames
+        // before this block. Great Lakes' word moves 8374 → 8382 on it
+        // and East Indies' does not move. DECISIONS 36 asks for the
+        // number rather than a trade.
+        off: 42,
         unlinked: 17,
         // 20 → 21 on 2026-09-07, item 267's repaint: one spurious unit
         // back, 7,872 frames past the word, and nothing else on this rung
@@ -581,7 +614,7 @@ pub const LADDER: [Endpoint; 2] = [
         // gate (`docs/ROADS.md` §1.1): four spurious units and one
         // building field-row gone, 7,872 frames past this rung's word,
         // with `off` and `unlinked` unmoved.
-        extra: 22,
+        extra: 21,
         build_unlinked: 10,
         build_diverged: 6,
         city_unlinked: 3,
@@ -626,7 +659,11 @@ pub const LADDER: [Endpoint; 2] = [
         // standing on the exit ring. Five positions closer and three more
         // spurious units, 8,000 frames past this rung's word. DECISIONS 36
         // asks for the number rather than a trade.
-        off: 48,
+        // And **48 → 49 and 18 → 14** on 2026-09-18, item 340 — the
+        // **scholar's teach slot** (`docs/ANIM.md` §4.11), whose rows on
+        // the other three are above. This rung's only visible once the
+        // C rung stops failing first.
+        off: 49,
         unlinked: 16,
         // 19 → 33 on 2026-09-07, item 261, the same reshuffle, then 33 →
         // **27** the same day on item 265's byte — this rung took the
@@ -671,7 +708,7 @@ pub const LADDER: [Endpoint; 2] = [
         // spurious units back, the same count the C rung above gained, on
         // the change that takes Great Lakes' floor 8182 → 8186. The AI
         // trains what it was skipping, so both rungs gain extras.
-        extra: 18,
+        extra: 14,
         build_unlinked: 19,
         build_diverged: 0,
         city_unlinked: 4,

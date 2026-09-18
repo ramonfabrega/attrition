@@ -906,6 +906,111 @@ is here. The figure's steady walking `avg_speed` is 28 against a base of
 thousand. One unit of `avg_speed` either way and the arrival test would
 have failed on its own.
 
+## 4.11 A seated scholar teaches: the idle roll's variant is an **offset** (2026-09-18)
+
+`Guy::init_real@005db6b0`'s last statement, before it returns, is one test
+and one bit:
+
+```c
+iVar6 = *(int *)(*(int *)(units[who][o] + 0x18) + 4);   // UnitTypeData +0x4
+if ((iVar6 == 0x34) || (iVar6 == 0x35)) {
+  guy_flags |= 0x80;                                    // GuyData +0x9a
+}
+```
+
+`0x34`/`0x35` is `ObjectData::is_scholar@0046d330` inline, so **the bit is
+the Scholar and nothing else**, set once per figure at birth and never
+cleared.
+
+`Guy::set_anim@005da300`'s `CHAR_DEFAULT` arm reads it. After the variant
+roll has chosen `v ∈ {0, 1, 2, 3}` (§4.1) and before the packet check that
+falls an absent slot back to `CHAR_DEFAULT` (`:546`), the arm is:
+
+```c
+v = param_2;                                  // the variant just chosen
+if (guy_flags & 0x80) {
+  if (units[who][o]->inside_up != -1) {       // UnitData +0x82
+    host_o = ObjectData::get_inside(unit, &host_who);   // walks inside_up
+    param_2 = v + 0x19;                                 //  25..28
+    if (objects[host_who][host_o]->inside_down != guy->o) {   // ObjectData +0x28
+      param_2 = v + 0x1d;                               //  29..32
+      if (param_2 == 0x20) {
+        // walk the host's inside chain; a scholar already on 0x20
+        // takes this one back to 0x1d
+      }
+    }
+  }
+}
+```
+
+So **the variant is not a slot for a scholar inside something — it is an
+offset**, and the four idle variants become the four `Scholar Teach` files.
+`SCHOLAR-DEFAULT-AGE0`'s `unit_graphics.xml` entry names them
+`CHAR_CHOP_WOOD`..`CHAR_WALK_TO_WOOD`, slots 25–28, `Scholar Teach1`
+through `Scholar Teach4`, and `rondata::artdata` reads them **30, 100, 103
+and 105** frames long against `CHAR_IDLE1`'s 232. Slots 29–32 are the
+second set.
+
+`ObjectData::get_inside@00651a80` walks `inside_up` while the thing above is
+a unit and stops at the container, so the host is the **building** whatever
+the chain's depth. `Object::insert_inside@00647e90` writes each new object
+into `inside_bottom`'s `inside_down`, so the chain is appended at the bottom
+and its head is the **first** unit to have entered: the head takes the
+`+0x19` set and everyone under it the `+0x1d` set. A teacher and its
+students, as the animation names say.
+
+### And `ObjectData::is_peasant` is a type, not a job
+
+`ObjectData::is_peasant@0046d310`'s whole body is `UnitTypeData +0x4 in
+{0x32, 0x33}` — the two **Citizen** types, which is `rondata::load`'s
+[`Worker::Citizen`] exactly. This crate read it as *any* worker, so a
+Scholar answered it `1` and took §4.1's peasant-on-a-masked-tile collapse
+to `IDLE1`. It stands on its university's own tile, whose mask carries `&
+3`, so the collapse always fired.
+
+### The two together are Great Lakes 8374
+
+The map's first scholar `1/44` is seated on 8272 (§`docs/CITIES.md` §6.5.2).
+The seating's roll draws **787**, `787 % 100 = 87`, which is `83..95` →
+variant **2**; the collapse made it 1. It heads its university's chain, so
+the slot is `2 + 0x19` = **27**, whose length on `SCHOLAR`'s piece is
+**103** — and 8272 + 103 − 1 is exactly 8374, the frame the original spends
+a `Guy::set_anim+0x97a < Guy::inc_time+0x271 < Unit::inc_time+0x3e` wrap
+this crate did not. With the collapse but without the offset the slot is
+`IDLE1`, 232 frames; with the offset but without the variant fix it is slot
+26, 100 frames and 8371. Only both give 8374. Great Lakes **8374 → 8382**.
+
+**The value diff is the other map's.** Nothing on Great Lakes dumps a guy
+clock after 8043, but run98 dumps East Indies over `[7879, 8788]` and that
+window spans **8466**, its own first scholar's seating. `1/22`'s `GUY`
+block reads `cur_anim 25, cur_time 1, end_time 30` on the frame it sits
+down — slot 25 is `variant 0 + 0x19` — and this crate now reads the same
+clock on every frame of the window
+(`rondata::diff`, `run98_s_window_clocks_are_the_original_s`, 84,888
+fields below the word). The offset is therefore read off the original's own
+dump and not inferred from one arithmetic coincidence.
+
+**What this does not establish.**
+
+- **The `+0x1d` set's tie-break.** `param_2 == 0x20` walks the host's chain
+  looking for a scholar already playing slot `0x20` and takes `0x1d`
+  instead; the decompiler's aliasing does not settle whether the walk
+  starts at the head or at the head's successor, and this crate tests
+  "any other scholar in the chain". It fires only for variant 3 on a
+  non-head scholar. The falsifier is a `GUYS` window over a university
+  holding **two or more** scholars: run98's holds one.
+- **The chain's head, for a scholar inside a *unit*.** `inside_up` points
+  at a boat as readily as at a building (`docs/TRANSPORT.md` §6); this
+  crate keeps a boat's passengers as a filter rather than in entry order,
+  so it answers "not the head" there. No capture has a scholar aboard
+  anything.
+- **`guy_flags & 0x80` survives a type change.** `Guy::init_real` sets it
+  from the type the figure was *born* with; this crate reads the unit's
+  current `Worker`. `Unit::set_type` re-runs `Guy::init_real` for the
+  figures it grows (§3.5) but the existing ones keep their bit, so a
+  scholar upgraded into something else would still take the offset in the
+  original and not here. Nothing upgrades a scholar in any capture.
+
 ## 5. `Guy::inc_time@005d9e10` — the step and the wrap
 
 Phase 7 of the frame (`docs/SYNC.md` §2): `Objects::inc_time` walks leaders
