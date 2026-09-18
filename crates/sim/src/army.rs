@@ -2234,7 +2234,7 @@ impl Sim {
             // the candidate's walk before it scores, so it cannot win.
             let too_near = others
                 .iter()
-                .any(|m| vector_dist((cand.x - m.x).abs(), (cand.y - m.y).abs()) < near);
+                .any(|m| vector_dist((cand.x - m.x).abs(), (cand.y - m.y).abs()) <= near);
             if !too_near {
                 let mut score = 0;
                 let mut out = false;
@@ -3481,6 +3481,15 @@ mod tests {
         assert_eq!(sim.armies[1].list[s].muster, Cell::new(9, 14));
     }
 
+    /// **The spacing test is `<= 4`, not `< 4`** — the listing at
+    /// `6f633a` is `cmp $0x4` then **`jle`** (and `cmp $0x2` / the same
+    /// `jle` on the enemy arm at `6f6313`), so a candidate *at* the
+    /// distance is dropped. This test asserted the off-by-one until item
+    /// 352, and it is what put Great Lakes' AI army on the wrong muster:
+    /// army 1/2's own spot sat exactly four from a cell it therefore kept,
+    /// which left army 1/1 the cell the original had already spent
+    /// (`docs/ARMY.md` §13,
+    /// `great_lakes_8442_musters_the_army_where_the_original_does`).
     #[test]
     fn a_candidate_within_four_cells_of_another_army_of_mine_is_dropped() {
         let (mut sim, c, b, s) = sim_with_army();
@@ -3489,8 +3498,9 @@ mod tests {
         assert!(sim.find_muster_spot(1, s, Obj::Building(b), true));
         assert_eq!(
             sim.armies[1].list[s].muster,
-            Cell::new(9, 18),
-            "(9, 15), (9, 16) and (9, 17) are within four; (9, 18) is at four"
+            Cell::new(9, 19),
+            "(9, 15) to (9, 18) are within four — (9, 18) is *at* four, and \
+             `jle` drops it; (9, 19) is at five"
         );
         // An invalid slot does not count.
         sim.close_army(1, s2);
@@ -3614,11 +3624,14 @@ mod tests {
         // With it the 5 × 5 is, and (10, 17) is out as well.
         assert!(sim.find_muster_spot(1, s, Obj::Building(b), true));
         assert_eq!(sim.armies[1].list[s].muster, Cell::new(10, 18));
-        // Another army's spacing is two cells for an enemy target.
+        // Another army's spacing is two cells for an enemy target, and
+        // `<= 2` rather than `< 2` (`6f6313`, the same `jle` as the ally
+        // arm): (10, 18) is one away and (10, 19) exactly two, so the
+        // first cell left is (10, 20).
         let s2 = sim.init_army(1, Some(c));
         sim.armies[1].list[s2].muster = Cell::new(10, 17);
         assert!(sim.find_muster_spot(1, s, Obj::Building(b), false));
-        assert_eq!(sim.armies[1].list[s].muster, Cell::new(10, 19));
+        assert_eq!(sim.armies[1].list[s].muster, Cell::new(10, 20));
     }
 
     // ---- gaia is outside the object searches (`world::PLAYER_SLOTS`) ----

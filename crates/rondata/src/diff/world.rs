@@ -1290,10 +1290,16 @@ mod tests {
             })
             .filter(|(_, _, a, b)| a != b)
             .collect();
-        assert_eq!(
-            flags,
-            vec![(52, 22, 0x200, 0x4200)],
-            "cell flags other than the one `BUILDING` bit nothing here sets"
+        // **Nothing parts, on any of the 3,600 cells.** This pinned the
+        // one exception `vec![(52, 22, 0x200, 0x4200)]` until item 352 —
+        // the AI's second building, missing `BUILDING 0x4000` because
+        // nothing in this crate wrote `BuildType::mask_me`'s first
+        // statement (`docs/ARMY.md` §13, `docs/CITIES.md` §3.6). It is a
+        // third capture's opinion of that bit, on run10's map rather than
+        // Great Lakes', and it was the whole of what was left here.
+        assert!(
+            flags.is_empty(),
+            "run13's cell flags part from the original's by frame 95: {flags:?}"
         );
 
         let (tw, th) = (
@@ -3085,18 +3091,26 @@ mod tests {
             })
             .collect();
         eprintln!("run93 7932: {} cells part", cell_bad.len());
-        // **The 27 that part are pinned by count and by place**, because
+        // **The 12 that part are pinned by count and by place**, because
         // they are a finding rather than noise: every one is in the AI's
         // own base (`x >= 37`, `y` 18-34), thirty cells east of the human
-        // capital this item's scout walks past, and the differences are the
-        // cell's `BUILDING` bit (`0x4000`) and a blocked/solid count one or
-        // two short — the marks a finished building leaves. **None is in
-        // the western half of the map at all**, which is what makes
-        // `docs/PATHFINDER.md` §20's elimination stand.
+        // capital this item's scout walks past, and the differences are a
+        // blocked/solid count one or two short — a mark a finished building
+        // leaves. **None is in the western half of the map at all**, which
+        // is what makes `docs/PATHFINDER.md` §20's elimination stand.
+        //
+        // **27 → 12 on item 352**, and what went was the whole of the
+        // `BUILDING 0x4000` half: `BuildType::mask_me`'s first statement
+        // sets the bit on a building's own cell and nothing in this crate
+        // wrote it (`docs/ARMY.md` §13). This block is the only mid-game
+        // world dump on disk for Great Lakes, so it is also **the capture
+        // that would have refused the fix** — 7,932 frames and every
+        // building the AI has started, cell for cell, and the bit agrees on
+        // all 3,600.
         assert_eq!(
             cell_bad.len(),
-            27,
-            "run93's block 7932 no longer parts on 27 cells — if the AI's \
+            12,
+            "run93's block 7932 no longer parts on 12 cells — if the AI's \
              base has been fixed this pin is the one to lower, and if it has \
              grown the landing that grew it is the bug: {:?}",
             &cell_bad[..cell_bad.len().min(8)]

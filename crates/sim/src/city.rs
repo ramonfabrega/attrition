@@ -1217,6 +1217,22 @@ impl Sim {
         let Some(ty) = self.buildings[b].ty else {
             return;
         };
+        // `mask_me@006312a0`'s **first** write, before the footprint walk:
+        // the flag on the cell holding the building's own position
+        // (`cells[y / 0x300 * xs + x / 0x300].flags |= 0x4000`, and
+        // `&= 0xbfff` on the unmask). `docs/CITIES.md` §3.6 named it at the
+        // first reading and nothing set it until item 352 —
+        // `Army::find_muster_spot`'s ring score is its one reader in the
+        // export, and with the flag missing every cell of the AI's own town
+        // scored as open ground (`docs/ARMY.md` §13).
+        let centre = self.buildings[b].pos.cell();
+        let mut d = self.world.cell_data(centre);
+        if on {
+            d.flags |= crate::world::cell::BUILDING;
+        } else {
+            d.flags &= !crate::world::cell::BUILDING;
+        }
+        self.world.set_cell_data(centre, d);
         let corner = self.tile_corner(ty, self.buildings[b].pos);
         // `set_blocked_at` runs only where the type's per-tile mask
         // template byte is 1 (`mask_me@006312a0`), and **clears** the bit
