@@ -81,7 +81,7 @@ function at `00683730` is four instructions and has zero callers, because
 | +0x20 | 0x60 | `dbg_collisions` | nothing | dead (printed by `log_data`, never read) |
 | +0x24 | 0x64 | `anti_unit` | `find_upath` = 1 | **"this is the unit grid"** — not the `anti` argument. Gates the `limit` budget, the suspend path, +5-per-probe at `0xc0`, and flag 2 on reconstructed waypoints |
 | +0x28/0x2c | 0x68/0x6c | `offx, offy` | `find_tpath` | target unit's sub-tile offset, `pos % 0xc0 − 0x60`; **no readers anywhere** (writers survey) — dead. `astar_path` derives its own `toff` instead, and from the **order**, not the target (§4.1) |
-| +0x30 | 0x70 | `army` | `find_wpath`; also `Group::action_move_near` (which inlines `find_wpath_army`'s body — the named function has zero callers) | military, not a worker, not attacking, start cell not river-flagged (§3) |
+| +0x30 | 0x70 | `army` | `find_wpath`; also `Group::action_move_near` (which inlines `find_wpath_army`'s body — the named function has zero callers) | military, not a worker, ~~not attacking~~, unit's own cell not river-flagged (§3). **The attacking clause is vacuous** — `is_attacking` is a `return 0` in every order vtable that ships (§22) |
 | +0x34 | 0x74 | `iroquois` | `astar_path` entry | the unit's `unit_masks2 & 0x4000` — forest-walking; zeroed by each wrapper after |
 | +0x38 | 0x78 | `worker` | `find_wpath` | `ObjectData::is_worker` |
 | +0x3c | 0x7c | `no_danger` | `astar_path` entry | 1 when the action is an attack (vfunc `+0x10` == 10), the order is `ATTACK_TO`/`GROUP_ATTACK_TO`, or `who >= 8` |
@@ -197,9 +197,13 @@ sets `saving = 1` and `limit = 300 / repaths²`; both zero `saving` after.
   `find_wpath` jumps straight to the search past the whole block (audit
   V14): for AI leaders, `army = 1` iff the type is military (`+0x1e8`
   attack ≠ 0, or its `is_supply` virtual — for the base class,
-  `unit_flags2 & 0x40`), **and** not `is_worker`, **and** not
-  `is_attacking`, **and** the start cell's flags lack `0x100` (river);
-  `worker = 1` iff `is_worker`.
+  `unit_flags2 & 0x40`), **and** not `is_worker`, ~~**and** not
+  `is_attacking`~~, **and** the **unit's own** cell's flags lack `0x100`
+  (river); `worker = 1` iff `is_worker`. The `is_attacking` clause is
+  **dead in the shipped executable** — the virtual it calls is a bare
+  `return 0` in all seventeen order vtables — and reading it as a live
+  test cost Great Lakes' word 322 frames: **§22**, which has the bytes
+  and the value diff.
 - Push `{goal-cell centre (cell*0x300+0x180), tol 0x180, flags 0}`, then
   `{start-cell centre, tol 0, flags 0}`; `astar_path(0x300, 0)`. Return 0 →
   pop the pushed goal, return `−(goal.flags & 1)`; else return the stack
@@ -1898,3 +1902,163 @@ rests on the listing alone. The residue beside it: `1/28`'s path stack is
 **41** entries where the dump says 42, an off-by-one already present at
 8186 and belonging to the world-grid plan (`find_wpath` drops one
 waypoint near the goal), not to this mechanic.
+
+## 22. `is_attacking` is a `return 0`, and the `army` mode it was switching off (2026-09-18)
+
+`find_wpath`'s mode block (§3) sets `army = 1` for an AI unit that is
+military, is not a worker, is not `is_attacking`, and does not stand on a
+cell flagged `0x100`. This crate read the third clause as "the unit has a
+combat target". **It is not that, and in the shipped executable it is not
+anything**: the clause never fires, and reading it as a live test turned
+`army` off for exactly the units the mode exists for — an AI army walking
+to an `ATTACK_TO`.
+
+### 22.1 The chain, and where it ends
+
+`UnitData::is_attacking@0060a5b0` refreshes `orderlist.field_0x4` from
+`field_0x14` and calls the **current order's** virtual `+0x18`:
+
+```
+0060a5f0:  call   *0x18(%eax)     # the order's vtable, not the unit's
+```
+
+Slot `+0x18` is `is_attack`: the only class in the export that declares an
+override there is `AttackGroundOrder`, and `rise.pdb` names its thunk
+`AttackGroundOrder::is_attack'vtordisp{-4,0}'@0048384b` — which is how the
+slot is identified at all, because every other order class folds onto a
+stub.
+
+Read straight out of `riseofnations.exe`, slot `+0x18` of each of the
+seventeen order vtables:
+
+| vtable | `+0x18` |
+|---|---|
+| `UnitOrder` `00b474f0`, `MoveOrder` `00b4a12c`, `AttackToOrder` `00b48850`, `GroupAttackToOrder` `00b47e34`, `GroupMoveOrder` `00b494b4`, `GroupOrder` `00b49330`, `ExploreToOrder` `00b48714`, `FleeToOrder` `00b485d8`, `PatrolOrder` `00b48aec`, `GroupPatrolOrder` `00b48498`, `AirOrder` `00b4788c`, `AirPatrolOrder` `00b48c50`, `FormOrder` `00b49608`, `ThinkOrder` `00b48d88`, `SpecialAnimOrder` `00b49078` | `0041bff0` |
+| `AttackGroundOrder` `00b49f1c`, `AirAttackGroundOrder` `00b49d90` | `0048384b` |
+
+`0041bff0` is the COMDAT-folded `{ return 0; }` the PDB happens to name
+`Window::get_button`. `0048384b` is a `vtordisp` thunk that adjusts `this`
+and **tail-calls `0041bff0`**. So `is_attacking` returns 0 for every order
+the game can hold, and `find_wpath` is its only caller in the whole
+executable.
+
+That is the correction: `army = military && !is_worker && !river`, with no
+attacking term at all. The bytes are the evidence a decompile listing
+cannot give on its own — a folded body reads as a foreign function name,
+and here the foreign name was the whole of the mistake.
+
+### 22.2 What the mode was worth — Great Lakes 8186
+
+The mode is not a detail. `army` is what makes §5's two army terms live:
+`base <<= 5` on a cell flagged `NEARBLOCK` (`0x200`) — 32 against 1024 for
+the step — and `+10000` on `tcost >= 5`. With it off, an army prices
+rough and built-up ground exactly like a citizen.
+
+run97 block 8187 is the frame Great Lakes' AI sends six units from its
+base to the far south-west under an `ATTACK_TO`. `Group::action_move_near`
+plans **one** world path on the leader and hands each member the same
+chain offset by its formation slot (`docs/GROUPS.md` §6.7), so one wrong
+mode costs six units their whole route. The original's chain and this
+crate's agree entry for entry from the start until the fourteenth
+waypoint, `(26712, 26808)`, and then part for five steps before rejoining
+at `(22872, 27576)`:
+
+| step | the original | this crate, before |
+|---|---|---|
+| 1 | `(25944, 26040)` — cell (33, 33) | `(25944, 27576)` — cell (33, 35) |
+| 2 | `(25176, 26040)` — (32, 33) | `(25176, 26808)` — (32, 34) |
+| 3 | `(24408, 26040)` — (31, 33) | `(24408, 27576)` — (31, 35) |
+| 4 | `(23640, 26808)` — (30, 34) | `(23640, 27576)` — (30, 35) |
+| 5 | `(22872, 27576)` — (29, 35) | `(22872, 27576)` — (29, 35) |
+
+Both routes are five steps with three diagonals, so on **geometry alone
+they tie at 184** — which is why the wrong one was reachable at all. The
+cells are what separates them. This crate's own world at 8186, on the
+cells the two routes differ over:
+
+| cell | flags | blocked | what it costs |
+|---|---|---|---|
+| (33, 33), (32, 33), (31, 33), (30, 34), (29, 35) | `0x0` | 0 | 32 either way |
+| (33, 35), (32, 34), (31, 35) | `0x200` | 0 | 32 without the mode, **1024 with it** |
+| (32, 35) | `0x220` | 12 | `+240`; what keeps *both* routes off row 35 |
+
+So the original's route costs 184 and this crate's 3160 once the mode is
+right, and the tie is broken the original's way. The danger map is zero on
+every one of these cells for both players, and run93's block 7932 puts the
+whole western half of the map cell for cell on the original's own scan
+(`crates/rondata/src/diff/world.rs`) — so neither danger nor terrain was
+ever a candidate, and the mode was the only term left.
+
+### 22.3 The value diff
+
+`crates/sim/src/path.rs`'s `Sim::army_mode`, with `!attacking` removed:
+
+| | before | after |
+|---|---|---|
+| Great Lakes word (run53) | 8663 | **8985** |
+| East Indies word (run54) | 9711 | 9711 |
+| run97 point-and-goal fields wrong below the word | 601 | **6** |
+| — per frame | 2.8 over `[8029, 8663)` | **0.006** over `[8029, 8985)` |
+| — units ever off position | 8 | **4** (three of them the standing trio) |
+
+The residue's whole live half goes: `1/27`, `1/28`, `1/29` and `1/41`, the
+four that first parted at 8579–8602, are exact for the length of the
+window. What is left is `1/33`'s six fields from 8584 and the standing
+trio's own `(24, 24)`, which is older than every capture on this map.
+
+The make-it-fail is the same edit reverted: with `attacking =
+combat.target.is_some()` back in the conjunction the word returns to 8663
+and the residue to 601, both measured.
+
+### 22.4 What this does not establish
+
+- **The river clause has no capture.** `armed && !worker && !river` is
+  implemented whole now — the flag is `cell::HALFLAND` on the unit's
+  **own** cell, read off the obfuscated position fields at `006896ae`,
+  not on the search's `here` — but adding it moved neither word and
+  neither residue by a single field: no unit in the corpus plans a
+  `find_wpath` while standing on a `0x100` cell.
+  `a_unit_on_a_river_cell_is_not_an_army` carries it from the listing
+  alone. **The capture that would refuse it**: a `WORLD`-plus-`UNITDATA`
+  window on a map where the AI's route starts on a shoreline cell, with
+  the path stack either side of the plan; East Indies is the candidate and
+  none of its blocks on disk sits on such a frame.
+- **The `is_supply` arm of the first term.** `type.attack == 0` still
+  takes the mode when the unit's `is_supply` virtual answers yes
+  (`unit_flags2 & 0x40` for the base class). Unimplemented, and named in
+  `army_mode`'s own comment; no supply unit in the corpus plans a
+  `find_wpath`.
+- **Whether `is_attacking` was ever live.** The claim here is about the
+  shipped binary's bytes and nothing else. An earlier build, or an order
+  class cut before release, may well have returned 1 from `+0x18`; the
+  vtables that ship do not.
+
+**Three residues the widening left on the same record**, each printed by
+`great_lakes_8186_plans_the_probe_s_route_the_original_s_way` and none of
+them the route:
+
+- **The bottom entry, the formation slot.** Under the destination sits the
+  raw slot `Group::action_move_near` pushes (§12's second item). At block
+  8187 this crate gives `1/27`, `1/28` and `1/29` the same `y` — 21275,
+  x 144 apart — while the original gives `(38993, 21170)`, `(39031,
+  21309)` and `(38954, 21030)`: the slot table **rotated** by the unit's
+  angle, which is `Group::update_positions@00713810` (`docs/GROUPS.md`
+  §6.6). `1/40` agrees on it and `1/41`/`1/42` do not, which is what a
+  rotation about the leader looks like. It costs no draw in this window.
+- **A whole second leg under `1/40`'s.** The original's stack is 94
+  entries where this crate's is 48, and the 46 extra sit *beneath* the
+  current leg — a queued move this crate does not hold. The 46 that
+  overlap agree entry for entry, so the plan is right and the queue is
+  short.
+- **The top entry's `tolerance`/`flags`.** The dump prints the current
+  waypoint as `t0 f1` on every frame of the march; this crate keeps the
+  planner's `t384 f0` on it. Unmoved by this item, before and after.
+
+**The successor the word names** is neither: Great Lakes 8985 is a
+`Leader::use_market+0x1ed` this crate spends where the original spends a
+third `Leader::make_stuff+0x221`, with the frame's count equal at eight
+either side — and at 9182 the exchange runs the other way, the original
+taking the market draw and this crate a `make_stuff`. The market schedule
+below the word is the original's own on all four frames it holds
+(`8582, 8585, 8782, 8982`), so it is the *order within the leaders' tick*
+that has moved, not the gate.

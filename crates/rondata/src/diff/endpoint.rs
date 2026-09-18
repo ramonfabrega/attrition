@@ -360,8 +360,16 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // way). Two positions closer and one more of the roster unlinked,
         // 14,290 frames past the word. DECISIONS 36 asks for the number
         // rather than a trade.
-        off: 59,
-        unlinked: 12,
+        // And **59 → 61 off and 12 → 11 unlinked** on 2026-09-18, item
+        // 354 — `find_wpath`'s `army` mode, whose `is_attacking` clause is
+        // a `return 0` in every order vtable the executable ships
+        // (`docs/PATHFINDER.md` §22). An AI army now pays 32× for a
+        // `NEARBLOCK` cell again, so every military route on both maps is
+        // re-planned; this map's word does not move (9711 either way) and
+        // its endpoint reshuffles 14,290 frames past it. DECISIONS 36 asks
+        // for the number rather than a trade.
+        off: 61,
+        unlinked: 11,
         extra: 0,
         build_unlinked: 0,
         build_diverged: 32,
@@ -573,11 +581,19 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // wrong university moved with it**, `1/53` to `1/52`, which
         // `great_lakes_scholars_sit_on_their_universities` re-pins by
         // name. DECISIONS 36 asks for the number rather than a trade.
-        off: 60,
-        unlinked: 8,
-        extra: 0,
+        // Then **60 → 67 off, 8 → 0 unlinked, 0 → 1 extra and 6 → 7
+        // build_diverged** on 2026-09-18, item 354 — the same `army` mode
+        // (`docs/PATHFINDER.md` §22), which moves this map's word 8663 →
+        // 8985. The whole roster links now where eight units used to go
+        // missing, and the eight land in `off` with the rest; the counts
+        // move in every column because a routing change 15,000 frames
+        // before the endpoint re-deals every position after it.
+        // DECISIONS 36 asks for the number rather than a trade.
+        off: 67,
+        unlinked: 0,
+        extra: 1,
         build_unlinked: 0,
-        build_diverged: 6,
+        build_diverged: 7,
         city_unlinked: 3,
         city_diverged: 0,
     },
@@ -718,7 +734,11 @@ pub const LADDER: [Endpoint; 2] = [
         // Coinage gate. Five spurious units gone on this rung, with both
         // building counts and `unlinked` unmoved. DECISIONS 36 asks for
         // the number rather than a trade.
-        extra: 16,
+        // Then **16 → 17 extra** on 2026-09-18, item 354 — the `army`
+        // mode again (`docs/PATHFINDER.md` §22). One spurious unit on this
+        // rung and nothing else on it moves; rung B does not move at all.
+        // DECISIONS 36 asks for the number rather than a trade.
+        extra: 17,
         build_unlinked: 10,
         build_diverged: 8,
         city_unlinked: 3,
@@ -835,7 +855,11 @@ pub const LADDER: [Endpoint; 2] = [
         // 8382 → 8404.
         // **17 → 16 extra** on 2026-09-18, item 348, the same gate: one
         // spurious unit gone, with both building counts unmoved.
-        extra: 16,
+        // Then **16 → 15 extra** on 2026-09-18, item 354 — the `army`
+        // mode again (`docs/PATHFINDER.md` §22). One spurious unit gone
+        // on this rung where the C rung above gains one, with `off`,
+        // `unlinked` and both building counts unmoved on both.
+        extra: 15,
         build_unlinked: 19,
         build_diverged: 0,
         city_unlinked: 4,

@@ -1215,7 +1215,7 @@ pub(crate) const EAST_INDIES_FIRST_SCHOLAR: i64 = 8_466;
 /// town as open ground. With both, run97's walk-slot band is **empty**
 /// and every one of the nine units stands on the original's own
 /// coordinates on 8442. `docs/ARMY.md` §13 and §16.9.
-pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 8663;
+pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 8985;
 
 /// The frame Great Lakes' **second** squad joins the army on — 6994, the
 /// word's own parting from 2026-09-06 to 2026-09-07 and now a landed

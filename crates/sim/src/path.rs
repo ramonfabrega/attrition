@@ -1691,8 +1691,28 @@ impl Sim {
         }
     }
 
-    /// The `army` mode: a military unit, not a worker, not attacking, and
-    /// (SEAM: the start cell's river flag has no layer) not on a river.
+    /// The `army` mode: a military unit, not a worker, and not standing on
+    /// a river cell (`docs/PATHFINDER.md` §3, §22).
+    ///
+    /// **`is_attacking` is not a term of it**, however the first reading
+    /// read the source: `UnitData::is_attacking@0060a5b0` is the current
+    /// order's `+0x18` virtual, and that slot is `0x41bff0` — a bare
+    /// `return 0` — in **every** order vtable the executable ships. The
+    /// two `AttackGround` classes are the only ones that even declare an
+    /// override and their thunk forwards to the same address. So the
+    /// clause is vacuous in the shipped binary, and reading it as "the
+    /// unit has a combat target" turned the mode *off* for exactly the
+    /// units it exists for — an AI army walking to an `ATTACK_TO`.
+    /// §22 has the value diff.
+    ///
+    /// The river clause is the unit's **own** cell, not the search's
+    /// start: the original reads `world.cells[unit.pos]` flags `& 0x100`
+    /// ([`cell::HALFLAND`]) off the obfuscated position fields.
+    ///
+    /// SEAM: the `is_supply` arm of the first term — `type.attack == 0`
+    /// still takes the mode when the unit's `is_supply` virtual answers
+    /// yes (`unit_flags2 & 0x40` for the base class). No supply unit in
+    /// the corpus plans a `find_wpath`.
     fn army_mode(&self, u: usize) -> bool {
         let armed = self.units[u]
             .ty
@@ -1700,8 +1720,10 @@ impl Sim {
         let worker = self.units[u]
             .ty
             .is_some_and(|t| self.unit_types[t].worker != Worker::None);
-        let attacking = self.units[u].combat.target.is_some();
-        armed && !worker && !attacking
+        let river = self.world.cell_data(self.units[u].pos.cell()).flags
+            & crate::world::cell::HALFLAND
+            != 0;
+        armed && !worker && !river
     }
 
     /// The `no_danger` mode: the danger map is ignored when attacking.
@@ -2097,6 +2119,67 @@ mod tests {
         open.insert((100, std::cmp::Reverse(2)), 20);
         let (_, &first) = open.first_key_value().unwrap();
         assert_eq!(first, 20, "LIFO on equal f");
+    }
+
+    /// **The `army` mode's predicate, all three terms** (§22).
+    ///
+    /// Made to fail on purpose three ways: put `!attacking` back into
+    /// `army_mode` and the second case flips (it is the shape that cost
+    /// Great Lakes 322 frames); drop the `!river` term and the third
+    /// flips; drop `!worker` and the fourth. The second is the one with a
+    /// value diff behind it — §22.3 — and the third and fourth rest on
+    /// the listing alone.
+    #[test]
+    fn an_army_is_armed_unworked_and_off_the_river() {
+        let mut sim = flat_sim(10);
+        let archer = sim.add_unit_type(crate::UnitType {
+            hits: 40,
+            combat: crate::combat::Profile {
+                attack: 5,
+                ..crate::combat::Profile::default()
+            },
+            ..crate::UnitType::default()
+        });
+        let citizen = sim.add_unit_type(crate::UnitType {
+            hits: 40,
+            worker: Worker::Citizen,
+            combat: crate::combat::Profile {
+                attack: 5,
+                ..crate::combat::Profile::default()
+            },
+            ..crate::UnitType::default()
+        });
+        let at = Pos::new(0x180, 0x180);
+        let u = walker(&mut sim, at);
+        sim.units[u].ty = Some(archer);
+        assert!(sim.army_mode(u), "an armed non-worker on plain ground");
+
+        // **`is_attacking` is not a term.** The original's clause calls
+        // the current order's `+0x18` virtual, and that slot is a bare
+        // `return 0` in every order vtable the executable ships (§22.1),
+        // so a unit marching on a target is still an army — which is the
+        // only kind of unit the mode exists for.
+        sim.units[u].combat.target = Some(crate::combat::Obj::Unit(0));
+        assert!(
+            sim.army_mode(u),
+            "a combat target is not what `is_attacking` tests, and nothing is"
+        );
+        sim.units[u].combat.target = None;
+
+        // The river clause, on the unit's **own** cell.
+        let mut d = sim.world.cell_data(at.cell());
+        d.flags |= crate::world::cell::HALFLAND;
+        sim.world.set_cell_data(at.cell(), d);
+        assert!(!sim.army_mode(u), "a unit standing on a `0x100` cell");
+        d.flags &= !crate::world::cell::HALFLAND;
+        sim.world.set_cell_data(at.cell(), d);
+
+        // And a worker is never an army, however well armed.
+        sim.units[u].ty = Some(citizen);
+        assert!(
+            !sim.army_mode(u),
+            "a worker with an attack is still a worker"
+        );
     }
 
     #[test]
