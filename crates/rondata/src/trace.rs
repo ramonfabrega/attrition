@@ -189,6 +189,15 @@ pub const SITES: &[(u32, Option<u32>, &str)] = &[
         Some(0x005e_d2b0), // `Unit::do_trade+0x40`, through `Unit::set_anim`
         sim::anim::SITE_TRADE,
     ),
+    // `Unit::go_inside@0061a2e0+0x280` — the scholar's seating, through
+    // `Unit::set_anim`. Great Lakes 8272 is the first birth in 24,000
+    // frames that reaches it, and every earlier one is a non-scholar
+    // (`docs/CITIES.md` §6.5.2).
+    (
+        0x005d_ac7a,
+        Some(0x0061_a560), // `Unit::go_inside+0x280`, through `Unit::set_anim`
+        sim::anim::SITE_GO_INSIDE,
+    ),
     // `Guy::init_real@005db6b0` — the creation roll.
     (0x005d_b702, None, sim::anim::SITE_INIT_REAL),
     // `Dock::init@00740a80+0x125` — a finished dock's gull, the second of

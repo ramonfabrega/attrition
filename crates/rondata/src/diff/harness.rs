@@ -3453,6 +3453,52 @@ mod tests {
             ],
             "7930 opens with find_target's coin and two candidate scores"
         );
+        // **Great Lakes 8272, the game's first scholar** (item 338,
+        // `docs/CITIES.md` §6.5.2). The frame is 38 draws on both sides —
+        // the count never parted here — and the only entry that moved was
+        // index 33, where `Unit::go_inside`'s forced `CHAR_DEFAULT` sits
+        // between the birth at 32 and the `inc_time` wraps. The whole
+        // frame is the assertion, because "one draw replaced one draw"
+        // is exactly the claim a count cannot make.
+        let ours_8272 = built
+            .frame_sites
+            .iter()
+            .find(|(f, _)| *f == 8272)
+            .map(|(_, s)| s.clone())
+            .unwrap_or_default();
+        assert_eq!(
+            ours_8272,
+            trace.labels(8272),
+            "Great Lakes 8272 is the first scholar's seating and must \
+             agree entry for entry"
+        );
+        assert_eq!(
+            (ours_8272.get(32), ours_8272.get(33)),
+            (
+                Some(&sim::anim::SITE_INIT_REAL.to_string()),
+                Some(&sim::anim::SITE_GO_INSIDE.to_string())
+            ),
+            "8272's 33rd and 34th draws are the birth and the seating"
+        );
+        // **And the seating's whole schedule**, which is what says the
+        // gate is `is_scholar` and not something that happens to hold on
+        // one frame: `report.py … when` dates the original's at exactly
+        // these fourteen frames in 24,000, and every earlier birth —
+        // 6612, 6993, 7212, 7439 and 7674, three units apiece — spends
+        // none. Only the frames below the word are asserted; past it both
+        // streams are nobody's (item 89(c)).
+        let seatings: Vec<i64> = built
+            .frame_sites
+            .iter()
+            .filter(|(_, s)| s.iter().any(|l| l == sim::anim::SITE_GO_INSIDE))
+            .map(|(f, _)| *f)
+            .filter(|f| *f < LONG_WORD_GREAT_LAKES)
+            .collect();
+        assert_eq!(
+            seatings,
+            vec![8272],
+            "below the word Great Lakes seats exactly one scholar, on 8272"
+        );
         assert!(
             first_count >= LONG_WORD_GREAT_LAKES && first_part >= LONG_WORD_GREAT_LAKES,
             "run53's ceiling fell: word {first_count}, sequence {first_part}; \

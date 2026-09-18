@@ -271,12 +271,33 @@ impl Sim {
             // collision indices (`docs/COLLISION.md` §2, §3).
             self.coll_remove(f);
             self.chain_remove(f);
-            let u = &mut self.units[f];
-            u.inside = Some(b);
-            u.on_map = false;
-            u.movement.dest = None;
-            u.combat.target = None;
-            u.combat.mandatory = false;
+            {
+                let u = &mut self.units[f];
+                u.inside = Some(b);
+                u.on_map = false;
+                u.movement.dest = None;
+                u.combat.target = None;
+                u.combat.mandatory = false;
+            }
+            // **A scholar is seated on its host** — `0061a2e0`'s tail, gated
+            // on `ObjectData::is_scholar@0046d330` (`UnitTypeData +0x4` is
+            // `0x34` or `0x35`), which is this crate's
+            // [`Worker::Scholar`](crate::orders::Worker::Scholar). Three
+            // statements: snap onto the container's own point with
+            // `param_3 = 1`, turn to angle 0, and `set_anim(CHAR_DEFAULT,
+            // 1, 1)` — the **forced** idle, whose roll is
+            // [`SITE_GO_INSIDE`](crate::anim::SITE_GO_INSIDE). The draw is
+            // the point: without it the new guy keeps `Guy::init_real`'s
+            // zero `end_time` and wraps in `Objects::inc_time` instead,
+            // which is one draw in the wrong phase and was Great Lakes
+            // 8272 (`docs/CITIES.md` §6.5.2).
+            if self.worker_of(f) == crate::orders::Worker::Scholar {
+                let host = self.buildings[b].pos;
+                self.mark(crate::anim::SITE_GO_INSIDE);
+                self.set_new_location(f, host, true);
+                self.unit_set_angle(f, crate::movement::Angle(0));
+                self.set_anim(f, crate::anim::DEFAULT, true, true);
+            }
         }
         if !self.buildings[b].garrison.contains(&captain) {
             self.buildings[b].garrison.push(captain);
