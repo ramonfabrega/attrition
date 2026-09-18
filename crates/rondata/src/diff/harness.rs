@@ -3764,6 +3764,147 @@ mod tests {
         }
     }
 
+    /// **The chase is planned on the frame it is ordered, and a blocked
+    /// chaser is delayed rather than cancelled** — item 329,
+    /// `docs/ORDERS.md` §7.10 and `docs/PATHFINDER.md` §21.
+    ///
+    /// Its sibling above pins where the probe's six are *sent*. This pins
+    /// **when** they set off and what happens to the one that cannot, and
+    /// both halves were wrong until this item: the crate planned a frame
+    /// late (so nobody moved on 8187) and then killed the chase of the
+    /// unit whose 48-grid search failed (so `1/28` was back in `fight` on
+    /// 8188 with an empty stack).
+    ///
+    /// Every number here is run19's own. Blocks 8187-8190 of
+    /// `gamelog-run19-window-8174-8192.txt` carry:
+    ///
+    /// - block **8187** (the end of sim-frame 8186, the frame the chase is
+    ///   ordered): all six with a path stack already on them — 43, 43, 43,
+    ///   94, 47, 46 entries — and the attack order's `UNITORDER flags 20`,
+    ///   which is `ACTION | 0x10`, the re-entry latch.
+    /// - blocks **8188**-**8190**: `1/28` frozen at `(36456, 23592)` with
+    ///   `collide 1`, `collide_o 36`, `retry` 8 → 7 → 6 and `safe` 30 → 29
+    ///   → 28, while `1/27` and `1/29` walk.
+    ///
+    /// **The rolled 8 is the row that matters.** A draw spent in the right
+    /// place with the wrong arithmetic agrees with the trace and disagrees
+    /// here; so does a delay taken from `pause` (`+0x18`) instead of
+    /// `retry` (`+0x1c`), which is the mistake the four adjacent counters
+    /// invite.
+    ///
+    /// Made to fail on purpose twice. With `Sim::chase_reentry`'s body
+    /// replaced by a `return` it stops on `1/27`'s latch — the six plan
+    /// nothing on 8186 and nothing is latched. With
+    /// `Sim::roll_upath_retry`'s roll suppressed it stops on the delay
+    /// table: `1/28` keeps colliding with `1/36`, so the collision
+    /// assertion still holds, and what gives it away is `retry 0`,
+    /// `safe 0` and a unit that has walked on.
+    #[test]
+    fn great_lakes_8186_plans_the_chase_and_8187_delays_the_blocked_one() {
+        let Some(inst) = install() else { return };
+        let Some(path) = dump("gamelog-run53-greatlakes-24k-trace.txt") else {
+            eprintln!("skipping: no run53 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let texts = sibling_texts();
+        let text = crate::capture::read(&path);
+        let log = Log::parse(&text);
+        let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
+        let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+        let refs: Vec<&Initial> = inits.iter().collect();
+        let mut init = log.initial().unwrap();
+        borrow_from_siblings(&mut init, &refs);
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        let find = |built: &Built, who: i64, o: i64| -> usize {
+            built
+                .sim
+                .units
+                .iter()
+                .position(|u| u.alive() && i64::from(u.owner) == who && i64::from(u.index) == o)
+                .unwrap_or_else(|| panic!("no live {who}/{o}"))
+        };
+        while built.sim.frame <= PROBE_FRAME {
+            built.tick();
+        }
+        // The frame the chase was ordered is over: every one of the six is
+        // already carrying a plan, and the attack under it is latched.
+        for &(who, o, _, _) in PROBE_SENT {
+            let u = find(&built, who, o);
+            assert!(
+                !built.sim.units[u].path.is_empty(),
+                "{who}/{o} planned nothing on {PROBE_FRAME}; run19's block \
+                 {} has all six with a path stack",
+                PROBE_FRAME + 1
+            );
+            let a = built
+                .sim
+                .action_of(u)
+                .unwrap_or_else(|| panic!("{who}/{o} has no action"));
+            assert_ne!(
+                built.sim.units[u].orders[a].flags & sim::orders::flag::FIGHT_REENTRY,
+                0,
+                "{who}/{o}'s action is not latched; run19 prints `flags 20`"
+            );
+        }
+        // Then the three frames run19 dumps of the blocked chaser and its
+        // two walking neighbours, value for value.
+        const BLOCKED: &[(i64, i64, i64, i64, i64)] = &[
+            // frame, x, y, retry, safe
+            (8187, 36_456, 23_592, 8, 30),
+            (8188, 36_456, 23_592, 7, 29),
+            (8189, 36_456, 23_592, 6, 28),
+        ];
+        const WALKING: &[(i64, i64, i64, i64, i64)] = &[
+            // frame, 1/27's x and y, 1/29's x and y
+            (8187, 36_486, 23_472, 36_578, 23_324),
+            (8188, 36_477, 23_484, 36_556, 23_344),
+            (8189, 36_468, 23_496, 36_534, 23_364),
+        ];
+        let mut blocked: Vec<(i64, i64, i64, i64, i64)> = Vec::new();
+        let mut walking: Vec<(i64, i64, i64, i64, i64)> = Vec::new();
+        for _ in 0..3 {
+            let f = built.sim.frame;
+            built.tick();
+            let u = find(&built, 1, 28);
+            let unit = &built.sim.units[u];
+            let retry = match unit.orders.front().map(|o| o.body) {
+                Some(sim::orders::Body::Move(m)) => i64::from(m.retry),
+                _ => -1,
+            };
+            blocked.push((
+                f,
+                i64::from(unit.pos.x),
+                i64::from(unit.pos.y),
+                retry,
+                i64::from(unit.safe),
+            ));
+            assert_eq!(
+                (unit.collide, unit.collide_o),
+                (1, 36),
+                "{f}: `1/28` is not blocked by `1/36`, which run19 has it \
+                 colliding with on every one of these frames"
+            );
+            let (a, b) = (find(&built, 1, 27), find(&built, 1, 29));
+            walking.push((
+                f,
+                i64::from(built.sim.units[a].pos.x),
+                i64::from(built.sim.units[a].pos.y),
+                i64::from(built.sim.units[b].pos.x),
+                i64::from(built.sim.units[b].pos.y),
+            ));
+        }
+        assert_eq!(
+            blocked, BLOCKED,
+            "`1/28`'s delay is not run19's: (frame, x, y, retry, safe)"
+        );
+        assert_eq!(
+            walking, WALKING,
+            "the two walking chasers are not on run19's coordinates: \
+             (frame, 1/27 x, y, 1/29 x, y)"
+        );
+    }
+
     const PROBE_SENT: &[(i64, i64, i64, i64)] = &[
         (1, 27, 4344, 29736),
         (1, 28, 4440, 29880),

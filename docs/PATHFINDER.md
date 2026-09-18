@@ -1785,3 +1785,116 @@ not re-derive them.
   crate refuse where the original allows — and the two are a pair in the
   same sense §5's fog branch and terrain row are: landing the first
   without the second would refuse unseen rough ground the original walks.
+
+## 21. The retry a failed unit-grid search buys, and the kill it spares (2026-09-17)
+
+The 48-grid search does not only answer "no path". When it fails it
+**buys the mover a delay** and, on the strength of that delay,
+`find_upath` leaves the order alone instead of killing it. Item 329 found
+this by widening Great Lakes 8187, where run19's `1/28` stands still for
+eight frames with a full path stack and `crates/sim` threw its chase away
+and went back to `Unit::fight`.
+
+### 21.1 The two fields
+
+`MoveOrder` (the type record, `rise.pdb`) carries four counters in a row
+and three of them had been read as one another at some point:
+
+| offset | name | what |
+|---|---|---|
+| `+0x18` | `pause` | the head-on stagger, `% 9 + 1` (`docs/COLLISION.md` §6) |
+| `+0x1c` | `retry` | **this section** — frames the move sits out after a failed unit-grid search |
+| `+0x20` | `attempts` | the ceiling counter that decides whether another `retry` may be bought |
+| `+0x24` | `timer` | the move's self-destruct |
+
+The dump prints all four on every `MOVEORDER` block, so each is checkable
+rather than argued.
+
+### 21.2 The two failure tails, and the gate that is not shared
+
+`PathFinder::astar_path@00683770` leaves a unit-grid search (`param_2 ==
+0x30`) by two doors, and **they do not have the same gate**:
+
+- **Work cap** — `traversed + probes >= work_cap && anti == 0`,
+  `00683770:552`-`564`. Gate: the current order is a **transit**. Roll:
+  `Random::get(game_random, 0, 0xffff) % 3 + 6` into that order's
+  `retry`. The draw's return address is `006848c9`
+  (`astar_path+0x1159`).
+- **Open list exhausted** — `00683770:919`-`971`. Gate: the current order
+  is a transit **and** its `attempts` is under `0xd`. Same roll, same
+  field. The draw's return address is `00684e07`
+  (`astar_path+0x1697`), and that is the one run53's trace records on
+  Great Lakes 8187.
+
+Both tails then add **30** to `UnitData::safe` (`+0xb2`), outside the
+transit test, which is the cooldown `detect_unit_collision` reads
+(`docs/COLLISION.md` §4.1).
+
+The `attempts` ceiling on one door and not the other is the kind of
+difference a single reading folds away; it is here because the listing
+was read, and because the two draw sites are separate entries in
+`rondata::trace`'s table for the same reason.
+
+### 21.3 What spares the order
+
+`PathFinder::find_upath@00682f30:174`-`196`, on `astar_path < 1` and no
+suspend: pop the top entry unless it carries `FINAL`, then
+
+```
+order = update_order(unit)
+if is_transit(order) && order->move_data->retry != 0:  leave it alone
+else:                                                  kill_current_order(unit)
+```
+
+So the kill is the **default** and the roll is the reprieve. A crate that
+implements the kill without the roll — which this one did until item 329
+— destroys every chase that meets a blocked neighbour, and the divergence
+shows up not as a missing draw but as a unit re-entering `fight` a frame
+later with an empty stack.
+
+### 21.4 What consumes it
+
+`Unit::do_move@005f7b30:348`-`369`, between the action tests and the
+planner:
+
+```
+if retry != 0:  retry -= 1; if retry == 0: attempts += 3; return
+<the modern-infantry unpack arm>
+if attempts != 0: attempts -= 1
+<push the goal, find_wpath, …>
+```
+
+A standing `retry` skips the whole planner: no plan, no waypoint, no
+step, no draw. `attempts` decays by one on every frame that reaches the
+planner and gains three each time a delay runs out, so a unit wedged
+against a neighbour climbs to the `0xd` ceiling and stops being able to
+buy quiet.
+
+**SEAM**: the unpack arm between the two — `is_modern_infantry &&
+!has_general(0x8000)` on the `(o * 0x11 + frame) & 0x7f == 0` phase,
+which sets `retry` from the type's `+0x78` and `attempts` to `−3` — is
+not modelled. No capture on disk has a packable type in it.
+
+### 21.5 The value diff
+
+run19's block window, `1/28` of Great Lakes, sim-frames 8187 onward — the
+dump's own numbers against the crate's, after item 329:
+
+| field | 8187 | 8188 | 8189 |
+|---|---|---|---|
+| `retry` | 8 | 7 | 6 |
+| `safe` | 30 | 29 | 28 |
+| position | `(36456, 23592)` | `(36456, 23592)` | `(36456, 23592)` |
+| `collide` / `collide_o` | 1 / 36 | 1 / 36 | 1 / 36 |
+
+Every row is exact on both sides, the rolled 8 included — which is what
+tells a right roll from a draw spent in the right place. The three
+chasers beside it (`1/27`, `1/29`) walk to the dump's own coordinates on
+each of the three frames.
+
+**Not established**: whether any capture reaches the *work-cap* tail —
+`006848c9` appears in no trace on disk, so its missing `attempts` gate
+rests on the listing alone. The residue beside it: `1/28`'s path stack is
+**41** entries where the dump says 42, an off-by-one already present at
+8186 and belonging to the world-grid plan (`find_wpath` drops one
+waypoint near the goal), not to this mechanic.
