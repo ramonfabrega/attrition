@@ -423,11 +423,16 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // in position rather than being absent, which is a different kind
         // of row from the ten before it. DECISIONS 36 asks for the number
         // rather than a trade.
-        off: 66,
-        unlinked: 17,
+        // Then **66 → 67, 17 → 14 and 10 → 9** on 2026-09-17, item 328's
+        // `find_attack_pos` (COMBAT §17), which moves this map's word
+        // 8186 → 8187. Two of the three improve: three more of the roster
+        // linked and one building field-row closer against one position
+        // out, 15,814 frames past the word. The ladder did not move.
+        off: 67,
+        unlinked: 14,
         extra: 0,
         build_unlinked: 0,
-        build_diverged: 10,
+        build_diverged: 9,
         city_unlinked: 3,
         city_diverged: 0,
     },

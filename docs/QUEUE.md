@@ -12,13 +12,13 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-17, an Opus commander loop, eleven landings and six word-moving.
-**East Indies +381, Great Lakes +507.** Next: 328.*
+*2026-09-17, an Opus commander loop, twelve landings and seven
+word-moving. **East Indies +381, Great Lakes +508.** Next: 329.*
 
-- **Great Lakes 8186**, **East Indies 8193** — seven frames apart, from
-  133 this morning: +381 (304), +251 (314), +151 (322), +100 (317), +4
-  (323), +1 (319). Great Lakes is about to stop being the lower map, and
-  the queue's "lower map first" order changes with it.
+- **Great Lakes 8187**, **East Indies 8193** — six frames apart, from 133
+  this morning: +381 (304), +251 (314), +151 (322), +100 (317), +4 (323),
+  +1 (319), +1 (328). **Great Lakes is about to stop being the lower map**
+  and the queue's "lower map first" order changes with it.
 - **Floors take the lower of word and sequence**; ask for figures by
   symbol, since two today needed a quantity attached, not a correction.
 - **An elimination is a claim, and a seam comment is a prediction.** 320
@@ -35,13 +35,13 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 - One item open, twenty-four parked.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w8193 of 24,000 · GreatLakes w8186 of 24,000
-Endpoint 24001: EastIndies 73 off, 7 unlinked · GreatLakes 66 off, 17 unlinked
+Long captures: EastIndies w8193 of 24,000 · GreatLakes w8187 of 24,000
+Endpoint 24001: EastIndies 73 off, 7 unlinked · GreatLakes 67 off, 14 unlinked
 
-**Opener: 328 — implement §17 against 324's oracle, blind reading in
-parallel rather than before. 324 deferred the implementation to protect
-the arithmetic; the rule is the reverse and says why, and the oracle that
-catches a wrong formula already exists.**
+**Opener: 329 — the pathfinder tail behind 8187, on disk in run19.
+328's override is the precedent worth keeping: building §17 found four
+arithmetic errors a single reading had missed, so a reading that yields
+arithmetic gets its implementation before or beside the ratification.**
 
 ## The queue
 
@@ -51,13 +51,14 @@ unless a better order is obvious, and say so. Numbers are stable; the
 backlog is `docs/PARKED.md`, and an item comes back from it only when a
 score names it.
 
-328. **Implement `find_attack_pos` against 324's pins, reading it blind
-    in parallel** — COMBAT §17.2-§17.4 is single-reading arithmetic and
-    the implementation *is* a pass of the audit (build before ratifying,
-    or alongside). The oracle is ready:
-    `run53_s_8186_is_find_target_s_probe_and_its_ring_walks` pins 8186's
-    54 labels, the ≥4-calls bound and the value diff in 0.12 s. **Take
-    8187 with it** — an unmodelled `astar_path+0x1697` on the same event.
+329. **Great Lakes 8187 is `astar_path@00683770:964`, a unit-grid
+    search's failure tail** — open list exhausted, `Random::get % 3 + 6`
+    into the order's move data `+0x1c` as a 6-8 frame retry delay, under
+    two further gates (COMBAT §17.6 has both). **Not "emit one more
+    draw"**: this crate's unit-grid search does not fail there, and on
+    8187 it spends two `Guy::set_anim+0x97a < Guy::move+0x19f` instead —
+    two of the probe's six stepping where the original does not.
+    `path.rs`'s exhaustion tail names the seam; run19 covers it.
 
 ## How to maintain this file
 

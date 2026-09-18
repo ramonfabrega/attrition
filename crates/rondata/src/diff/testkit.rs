@@ -1049,7 +1049,27 @@ pub(crate) const LONG_WORD_EAST_INDIES: i64 = 8_193;
 /// called exactly **twice** in that whole function, :1229 and :1232, and
 /// both are the citizen branch's — an exhaustive enumeration inside the
 /// function rather than a sample. `docs/AI.md` §38.
-pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 8186;
+/// **8186 → 8187 on item 328**, which implemented `find_attack_pos`
+/// (COMBAT §17) against item 324's own oracle. 8186 now agrees **entry
+/// for entry** and the value diff is all six of run19's destinations
+/// exact — `1/27` (4344, 29736), `1/28` (4440, 29880), `1/29`
+/// (4200, 29496), `1/40` (2424, 30888), `1/41` (2280, 30888), `1/42`
+/// (2568, 31320) — from a 46-draw chase split 15+12+11+2+2+4. One frame
+/// for a whole mechanic, because 8187 was already behind it.
+///
+/// **Building it is what found the arithmetic.** 324 specified §17 from a
+/// single reading and declined to implement; the implementation then
+/// found four errors no reader had — the far arm's `(range+2)*0xc0`
+/// needing a *unit* target and so unreachable for buildings, a missing
+/// `+ big_radius − 0x30` under `range < 10`, `+0x244` being `big_radius`
+/// rather than block radius, and `find_building`'s `0x200` being the flag
+/// word and not a radius (read as a radius it found no farm at all). The
+/// last five draws were `find_ordered_collision`'s pass over the unit's
+/// own group members, skipped here under a seam whose premise had
+/// expired: "every unit in every capture so far is ungrouped" stayed
+/// true-looking for a month after this probe stopped it being a reason
+/// (`docs/COLLISION.md` §9).
+pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 8187;
 
 /// The frame Great Lakes' **second** squad joins the army on — 6994, the
 /// word's own parting from 2026-09-06 to 2026-09-07 and now a landed
