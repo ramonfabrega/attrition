@@ -22,11 +22,9 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
   subsystem answering zero and bought one, because 8002's row was already
   under it. Stacked causes here; expect eliminations, not fixes.
 - **Seven items, six named mechanisms wrong**, each overturned by
-  measurement: 304's formation was never early, 312's site is a *blocked*
-  step, 314's waypoint is the `get_loc` seam (the listing settled it),
-  317's was a status re-read, 319's draw was the scout's, 320's forcing
-  was validity and is fog. Tell the worker to assume its mechanism is
-  wrong; that is now seven for seven as a briefing rule.
+  measurement — 304's formation was never early, 314's waypoint is the
+  `get_loc` seam (the listing settled it), 320's forcing was validity and
+  is fog. Brief every worker to assume its own mechanism is wrong.
 - **A comment is not evidence, and a name is not a field.**
   `scout_danger` returned 0 behind a false comment; ARMY §18 filed `role`
   as carried; GROUPS §6.3 called `MoveOrder +0x4` an origin; VISION read
@@ -39,9 +37,10 @@ Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w8193 of 24,000 · GreatLakes w8031 of 24,000
 Endpoint 24001: EastIndies 66 off, 16 unlinked · GreatLakes 59 off, 23 unlinked
 
-**Opener: 322 — first step is an attribution run at 8031, not vision
-work: nobody has attributed that frame and the word may be run94's
-residue, not `1/0`'s. Book no number; the honest state is unknown.**
+**Opener: 322 — the attribution is done (8031 is `1/0`'s own
+`do_move+0xe84`), so the offset writer search is the only open step;
+`run95_s_block_8002_…` fails both ways and will say when the two land.
+Book no number: how far the word then moves is unmeasured.**
 
 ## The queue
 
@@ -51,14 +50,14 @@ unless a better order is obvious, and say so. Numbers are stable; the
 backlog is `docs/PARKED.md`, and an item comes back from it only when a
 score names it.
 
-322. **Something lights 14 half-cells between 7937 and 7998 and no named
-    writer can** — 320's elimination, not a candidate: every `seen2`
-    writer the decompile names is ruled out over that window by roster
-    identity (VISION §7's table). The original prices the step into cell
-    (3,39) at **328** against this crate's 9, and lighting (7,79)/(7,81)
-    reproduces its six-entry stack. **First step is an attribution run at
-    8031** (`RON_DEBUG_SITES=8020-8040`, run53) — the word may not be
-    `1/0`'s. Then `World +0x160` and `ObjectData +0x40` **by offset**.
+322. **Something lights half-cells (7,79) and (7,81) at block 8002 and
+    no named writer can** — 320's elimination, and 8031 is the same
+    unit's draw, so it pays the headline directly. The original prices
+    the step into cell (3,39) at **328** against this crate's 9; lighting
+    the two reproduces its six-entry stack and the scout takes the
+    western route. Open step: an **offset** search for writers of `World
+    +0x160` and `ObjectData +0x40` — a name grep filed `+0x3a` as
+    `visible` where it is `infiltrated`. PATHFINDER §20.2, VISION §7.
 
 ## How to maintain this file
 
