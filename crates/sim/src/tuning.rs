@@ -245,6 +245,22 @@ pub struct Tuning {
     /// frames make a tick.
     pub market_basement: i32,
     pub market_equilibrium: i32,
+    /// What one trade moves a good's own price by — `do_sell` walks it
+    /// down, `do_buy` up (`docs/ECONOMY.md` §12). The file's value carries
+    /// its own gloss, "3 +/- to sell price (double to buy price)", which is
+    /// the `price * 2` in `calc_market_prices` rather than a second
+    /// constant.
+    pub market_supply_demand: i32,
+    /// The three constants `LeaderData::calc_market_prices` reads beyond
+    /// the price itself: the Nubians' spread bonus, Amber's, and the
+    /// Supercollider's buy ceiling and sell floor.
+    pub nubian_market_prices: i32,
+    pub amber_market: i32,
+    pub super_buy: i32,
+    pub super_sell: i32,
+    /// Ships as **0**, which switches off the arm that would pin both
+    /// market prices at a flat 100 for a Russian past the fifth age.
+    pub russian_communism: i32,
     pub market_min_variance: i32,
     pub market_min_trend: i32,
     pub market_trend_range: i32,
@@ -813,6 +829,12 @@ impl Tuning {
         market_taxes: 10,
         market_basement: 10,
         market_equilibrium: 65,
+        market_supply_demand: 3,
+        nubian_market_prices: 20,
+        amber_market: 10,
+        super_buy: 125,
+        super_sell: 50,
+        russian_communism: 0,
         market_min_variance: 2,
         market_min_trend: 8,
         market_trend_range: 16,
@@ -1043,7 +1065,7 @@ impl Tuning {
     /// This is what lets a tool re-derive [`Tuning::RON`] from a real install
     /// and report a drift, rather than us asserting numbers into the void. The
     /// two entries with no constant behind them are absent by design.
-    pub const fn ron_slots() -> [(&'static str, Slot); 289] {
+    pub const fn ron_slots() -> [(&'static str, Slot); 295] {
         const T: Tuning = Tuning::RON;
         [
             ("ATTRITION", Slot::Value(T.attrition)),
@@ -1177,6 +1199,12 @@ impl Tuning {
             ("MARKET_TAXES", Slot::Value(T.market_taxes)),
             ("MARKET_BASEMENT", Slot::Value(T.market_basement)),
             ("MARKET_EQUILIBRIUM", Slot::Value(T.market_equilibrium)),
+            ("MARKET_SUPPLY_DEMAND", Slot::Value(T.market_supply_demand)),
+            ("NUBIAN_MARKET_PRICES", Slot::Value(T.nubian_market_prices)),
+            ("AMBER_MARKET", Slot::Value(T.amber_market)),
+            ("SUPER_BUY", Slot::Value(T.super_buy)),
+            ("SUPER_SELL", Slot::Value(T.super_sell)),
+            ("RUSSIAN_COMMUNISM", Slot::Value(T.russian_communism)),
             ("MARKET_MIN_VARIANCE", Slot::Value(T.market_min_variance)),
             ("MARKET_MIN_TREND", Slot::Value(T.market_min_trend)),
             ("MARKET_TREND_RANGE", Slot::Value(T.market_trend_range)),

@@ -732,6 +732,63 @@ pub(crate) fn debug_armies(built: &Built, frame: i64) {
     }
 }
 
+/// `RON_DEBUG_LEADER=<lo>-<hi>` — every computer leader's step machine,
+/// make list and stockpile over a window, on any capture [`run_traced`] or
+/// a hand-rolled loop drives.
+///
+/// The fourth probe of this family, and the one a *leader* divergence
+/// asks for. `Leader::use_market` and `Leader::make_stuff`'s two expiry
+/// walks are the only draws the production AI spends on a quiet frame,
+/// and both are functions of the make list alone: the market's shortfall
+/// vector is the first `epoch[Commerce]` slots' cost, and the head walk
+/// draws once per slot repeating the head's type. So "how many draws did
+/// this leader spend" is answered by the list, and nothing else in the
+/// harness prints it.
+///
+/// `run97`'s `LEADERDATA` is the `LEADERS=1` detail — `who`, `tribe`,
+/// `score`, `leader_flags` — so the original's own list is **not** on
+/// this capture and this line is read against the *draws* rather than
+/// against a dumped list. `docs/AI.md` §41 names the capture that would
+/// print the other side.
+#[cfg(test)]
+pub(crate) fn debug_leader(built: &Built, frame: i64) {
+    let Some((lo, hi)) = std::env::var("RON_DEBUG_LEADER").ok().and_then(|v| {
+        let (a, b) = v.split_once('-')?;
+        Some((a.trim().parse::<i64>().ok()?, b.trim().parse::<i64>().ok()?))
+    }) else {
+        return;
+    };
+    if !(lo..=hi).contains(&frame) {
+        return;
+    }
+    for w in 0..built.sim.players.len() {
+        if built.sim.nation[w].human || built.sim.defeated[w] {
+            continue;
+        }
+        let l = &built.sim.ai[w];
+        let slots: Vec<String> = l
+            .make_list
+            .list
+            .iter()
+            .enumerate()
+            .map(|(k, m)| format!("{k}:t{} v{} c{} cat{}", m.t, m.val, m.city, m.cat))
+            .collect();
+        eprintln!(
+            "  f{frame} L{w} step {} ({:?}) sstep {} mark {} bucket {:?} escrow {:?} \
+             avail {:?} commerce {} | {}",
+            l.step.number(),
+            l.step,
+            l.script_step,
+            l.site_mark,
+            built.sim.ledgers[w].bucket,
+            built.sim.ledgers[w].escrow,
+            built.sim.holdings[w].available,
+            built.sim.tech[w].epoch[sim::tech::Line::Commerce.index()],
+            slots.join(" ")
+        );
+    }
+}
+
 /// `RON_DEBUG_BUILDS=<lo>-<hi>` — every building's construction clock and
 /// queue over a window, on any capture [`run_traced`] or a hand-rolled loop
 /// drives. The dump's `BUILDDATA` prints `orig_type`, `job_counter`,
@@ -3397,6 +3454,7 @@ mod tests {
             debug_watch(&built, f);
             debug_builds(&built, f);
             debug_armies(&built, f);
+            debug_leader(&built, f);
             if f == GREAT_LAKES_SECOND_SQUAD {
                 squad_army = [27, 28, 29, 31, 32, 33]
                     .into_iter()
@@ -3573,8 +3631,9 @@ mod tests {
         );
         assert_eq!(
             seatings,
-            vec![8272, 8680],
-            "below the word Great Lakes seats two scholars, on 8272 and 8680"
+            vec![8272, 8680, 9_087],
+            "below the word Great Lakes seats three scholars, on 8272, 8680 \
+             and 9087"
         );
         // **Great Lakes 8582, the AI's first market draw** (item 348,
         // `docs/AI.md` §40). `make_stuff` calls `use_market` first thing,
@@ -4387,6 +4446,183 @@ mod tests {
         assert_eq!(
             ys, MUSTER_GOAL_Y,
             "the army's nine do not hold run97 block 8443's own path goals"
+        );
+    }
+
+    /// **run97's build queues, every building, every frame of the window**
+    /// — Great Lakes `[8030, 9349]`, item 358.
+    ///
+    /// The capture's `BUILDDATA` carries a whole `BUILDQUEUE` per
+    /// building — `queue_size` slots of `type`, `job_counter` and three
+    /// `(good, cost)` pairs — and `queued` says how many of them are
+    /// live. Nothing had ever compared them on this map. The first run of
+    /// this widening found **one** divergence in 1,320 frames and it was
+    /// the word's own: the AI's University holds three scholars on 8985
+    /// and this crate could pay for one.
+    ///
+    /// That is the whole case for widening the record rather than the
+    /// field. The word's frame said only "a market draw for an expiry
+    /// draw"; the queue said *what the original bought with the wealth
+    /// this crate did not have*, which named `do_sell` in one line
+    /// (`docs/ECONOMY.md` §12).
+    ///
+    /// The residue is **floored, not asserted away**, and both rows are
+    /// downstream of the same make list:
+    ///
+    /// - `1/2020` from 8985 — a third scholar this crate does not queue.
+    ///   Its head expiry now draws three times like the original's, so
+    ///   the list has the three offers; what it does not do is *buy*
+    ///   twice, and `make_stuff`'s step 4 clears the duplicate before
+    ///   step 6 could. `docs/AI.md` §41.
+    /// - `1/2007` from 9182 — a citizen this crate queues at the city
+    ///   and the original does not, which is 9182's own count parting.
+    #[test]
+    fn run97_s_build_queues_are_the_original_s() {
+        const FIRST: i64 = 8_030;
+        const LAST: i64 = 9_349;
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(r97)) = (
+            dump("gamelog-run53-greatlakes-24k-trace.txt"),
+            dump("gamelog-run97-greatlakes-valuewindow.txt"),
+        ) else {
+            eprintln!("skipping: no run53/run97 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let mut ix = crate::capture::indexed::IndexedCapture::open(&r97).unwrap();
+        let loaded = crate::load::load(&inst).unwrap();
+        let texts = sibling_texts();
+        let text = crate::capture::read(&path);
+        let log = Log::parse(&text);
+        let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
+        let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+        let refs: Vec<&Initial> = inits.iter().collect();
+        let mut init = log.initial().unwrap();
+        borrow_from_siblings(&mut init, &refs);
+        if let Some(t) = trace("rontrace-run53.log") {
+            borrow_pasture(&mut init, &t);
+        }
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        let mut blocks = 0usize;
+        let mut compared = 0usize;
+        let mut wrong: Vec<String> = Vec::new();
+        let mut first: std::collections::BTreeMap<(i64, i64), i64> = Default::default();
+        for f in 0..=LAST {
+            built.tick();
+            if f < FIRST {
+                continue;
+            }
+            let Some(at) = ix.frames().iter().position(|x| x.number == f + 1) else {
+                continue;
+            };
+            let body = ix.read_frame(at).unwrap();
+            let parsed = Log::parse(&body);
+            let Some(block) = parsed
+                .frames()
+                .into_iter()
+                .find(|(n, _)| *n == f + 1)
+                .map(|(_, b)| b)
+            else {
+                continue;
+            };
+            blocks += 1;
+            let (_, builds, _) = crate::gamelog::records(block, false);
+            let alive = built.sim.buildings.iter().filter(|x| x.alive).count();
+            assert_eq!(
+                alive,
+                builds.len(),
+                "run97 block {} has {} buildings and this crate {alive}",
+                f + 1,
+                builds.len()
+            );
+            for b in &builds {
+                let ours = built
+                    .sim
+                    .buildings
+                    .iter()
+                    .find(|x| x.alive && i64::from(x.owner) == b.who && i64::from(x.index) == b.o)
+                    .unwrap_or_else(|| panic!("run97 block {} has no {}/{}", f + 1, b.who, b.o));
+                // `queued` is how many slots are live; the rest of the
+                // array holds whatever it was last left with.
+                let live = usize::try_from(b.queued.unwrap_or(0)).unwrap_or(0);
+                let theirs: Vec<(i64, i64)> = b
+                    .queue
+                    .iter()
+                    .take(live)
+                    .map(|q| (q.ty, q.job_counter))
+                    .collect();
+                let mine: Vec<(i64, i64)> = ours
+                    .queue
+                    .items
+                    .iter()
+                    .map(|i| {
+                        (
+                            i.tech.map_or_else(
+                                || i64::from(built.sim.unit_types[i.ty].type_index),
+                                |x| i64::from(loaded.type_index(x)),
+                            ),
+                            i64::from(i.job_counter),
+                        )
+                    })
+                    .collect();
+                compared += 1;
+                if mine != theirs {
+                    first.entry((b.who, b.o)).or_insert(f);
+                    if wrong.len() < 12 {
+                        wrong.push(format!(
+                            "frame {f}: {}/{} ours {mine:?} theirs {theirs:?}",
+                            b.who, b.o
+                        ));
+                    }
+                }
+                if let (Some(jc), Some(ct)) = (b.job_counter, b.constr_time) {
+                    assert_eq!(
+                        (jc, ct),
+                        (i64::from(ours.job_counter), i64::from(ours.constr_time)),
+                        "frame {f}: {}/{}'s construction clock is not run97's",
+                        b.who,
+                        b.o
+                    );
+                }
+            }
+        }
+        eprintln!(
+            "run97 queues: {blocks} blocks, {compared} building-frames, {} queue(s) wrong on \
+             {} building(s) — {first:?}",
+            wrong.len(),
+            first.len()
+        );
+        for w in &wrong {
+            eprintln!("  {w}");
+        }
+        assert!(
+            blocks >= 1_300 && compared >= 36_000,
+            "run97's own blocks are missing — the wrong file: {blocks} blocks, {compared} \
+             building-frames"
+        );
+        // The two rows above, and nothing else. A third building parting
+        // is a divergence this test was written to catch.
+        assert_eq!(
+            first.keys().copied().collect::<Vec<_>>(),
+            vec![(1, 2007), (1, 2020)],
+            "run97's queue residue is not the two the word left: {first:?}"
+        );
+        assert_eq!(
+            (first[&(1, 2020)], first[&(1, 2007)]),
+            (8_985, 9_182),
+            "the two queue residues do not open where item 358 left them"
+        );
+        // **The sale itself, in the queue it paid for.** Before item 358
+        // this crate held **one** entry here against the original's
+        // three, because `use_market` took its draw and traded nothing;
+        // with `do_sell` it holds two. Made to fail by taking the sale
+        // back out — the line reads `ours [(52, 400)]`.
+        assert!(
+            wrong
+                .first()
+                .is_some_and(|w| w.contains("ours [(52, 400), (52, 0)] theirs")),
+            "8985's University queue is not two deep — the timber sale on 8982 is \
+             what pays for the second scholar: {:?}",
+            wrong.first()
         );
     }
 

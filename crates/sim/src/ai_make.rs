@@ -526,24 +526,26 @@ impl Sim {
         need[g2] <= stock - 100 && (l.cap[g2] / 2 <= l.income[g2] || stock > 199)
     }
 
-    /// `use_market`: one buy or one sell per short good, from `make_stuff`.
+    /// `use_market@006c91c0`: cover every short good the market can, one
+    /// good at a time — buy it outright when wealth can stand the price,
+    /// otherwise **sell** a hundred of something else and come round again.
     ///
-    /// **The draw is taken where no price decides it** (item 348). Which
-    /// branch a short good takes is a price question — except for wealth,
-    /// which cannot be bought with wealth: `TVar3 == WEALTH` short-circuits
-    /// `use_market@006c91c0`'s own `||` before `calc_market_prices` is
-    /// called, so the sell branch, and its one
-    /// `Random::get(GameAccess::game_random, 0, 0xffff)`, is entered on the
-    /// bucket alone. The rotation that draw seeds is price-free too, so
-    /// whether a candidate clears the once-flag — and therefore whether the
-    /// outer `while` spends a *second* draw — is answerable here as well.
+    /// The draw is the sell branch's `Random::get(game_random, 0, 0xffff)
+    /// % 6`, which is where the six-good rotation starts, and it is spent
+    /// once per pass of the outer loop. The once-flag (`uVar5`) is what
+    /// bounds those passes: it clears **when a candidate passes
+    /// [`Sim::market_sellable`]**, not when a sale goes through, so a pass
+    /// that finds nothing sellable is the last one.
     ///
-    /// SEAM, and what is left of it: `docs/ECONOMY.md` still has no market —
-    /// `calc_market_prices`, `do_buy` and `do_sell` do not exist here. So a
-    /// good that is **not** wealth takes no draw (the buy/sell choice is a
-    /// price), and a wealth shortfall that finds something sellable stops
-    /// after its first draw rather than trading and going round again. Both
-    /// **lose** draws the original takes; neither invents one.
+    /// **One draw is not "nothing was sellable"** — item 358. It is also
+    /// what a *successful* sale looks like when the sale covers the need,
+    /// because the outer `while (bucket[g] < need[g])` then exits before
+    /// the once-flag is ever consulted. `docs/AI.md` §40 read the single
+    /// draws on Great Lakes 8582/8585/8782/8982 the first way, and the
+    /// second is what run97's own `BUILDDATA` says: the original queues
+    /// two more scholars at 8985 than this crate could pay for, and a
+    /// timber sale at 8982 is where the wealth comes from
+    /// (`docs/ECONOMY.md` §12).
     pub fn use_market(&mut self, who: Player) {
         let w = who as usize;
         // `need[g]`: the first `max(1, epoch[Commerce])` slots' prices.
@@ -563,33 +565,146 @@ impl Sim {
         if !self.market_gate(who) {
             return;
         }
-        for (g, &short) in need.iter().enumerate() {
+        let wealth = Resource::Wealth as usize;
+        for g in 0..RESOURCES {
             if g == Resource::Knowledge as usize || !self.good_avail(who, g) {
                 continue;
             }
-            if self.ledgers[w].bucket[g] >= short {
+            if self.ledgers[w].bucket[g] >= need[g] {
                 continue;
             }
-            if g != Resource::Wealth as usize {
-                // SEAM: buy `g`, or sell to afford it — `calc_market_prices`
-                // decides, and the draw lives on the far side of it.
-                continue;
+            // The original's `do { if (uVar5 != 0) break; uVar5 = 1; …
+            // } while (bucket[g] < need[g])`, once-flag and all.
+            let mut once = false;
+            loop {
+                if once {
+                    break;
+                }
+                once = true;
+                // `(g == WEALTH) || (bucket[WEALTH] − buy) < need[WEALTH]`.
+                // C's `||` short-circuits, so wealth never asks a price —
+                // it cannot be bought with itself.
+                let sell = g == wealth || {
+                    let (buy, _) = self.calc_market_prices(who, g);
+                    self.ledgers[w].bucket[wealth] - buy < need[wealth]
+                };
+                if sell {
+                    self.mark(SITE_MARKET_SELL);
+                    let start = usize::try_from(self.rng.get(0, 0xffff) % 6).unwrap_or(0);
+                    for k in 0..RESOURCES {
+                        let g2 = (k + start) % RESOURCES;
+                        if !self.market_sellable(who, g2, g, &need) {
+                            continue;
+                        }
+                        // The inner gate is the outer one again (the
+                        // embargo arm aside, which is zero here); the
+                        // once-flag clears whether or not it holds.
+                        if self.market_gate(who) {
+                            self.do_sell(who, g2);
+                        }
+                        once = false;
+                    }
+                } else {
+                    if self.market_gate(who) {
+                        self.do_buy(who, g);
+                    }
+                    once = false;
+                }
+                if self.ledgers[w].bucket[g] >= need[g] {
+                    break;
+                }
             }
-            // Wealth is short, so the sell branch is entered without a price.
-            self.mark(SITE_MARKET_SELL);
-            // `rand % 6` is where the six-good rotation starts. Nothing is
-            // sold here, so the offset is spent rather than used; the draw
-            // itself is the sync-critical half.
-            let _start = self.rng.get(0, 0xffff) % 6;
-            if (0..RESOURCES).any(|g2| self.market_sellable(who, g2, g, &need)) {
-                // SEAM: the sale happens, clears the once-flag and sends the
-                // outer `while` round again — each pass another draw. What it
-                // would raise the bucket by is `do_sell`'s price.
-                continue;
-            }
-            // Nothing was sellable, so the once-flag stands and the original
-            // leaves the good after exactly this one draw. Exact.
         }
+    }
+
+    /// `LeaderData::calc_market_prices@006dc2a0` — one good's `(buy, sell)`.
+    ///
+    /// The sell price is the market's own price plus its flux; the buy
+    /// price is **twice** the price plus the same flux. One bonus moves
+    /// them apart in the seller's favour — the Nubians' if the nation has
+    /// it, otherwise Amber — and it is added to the sell price and taken
+    /// off the buy price, never both. Then three floors: a sell price of
+    /// at least 1, a buy price of at least `MARKET_BASEMENT × 2`, and a
+    /// buy price at least ten over the sell price.
+    ///
+    /// Two arms are **stated rather than modelled**, and neither is
+    /// reachable by any capture on disk:
+    ///
+    /// - the Conquer-the-World per-leader market bonus, behind
+    ///   `semaphore[2] & 2` — CtW is cut from v1 (`CLAUDE.md`);
+    /// - the **Supercollider**'s clamp (`has_wonder(0x21d)`, building type
+    ///   index 541), which pins the buy price under `SUPER_BUY` and the
+    ///   sell price over `SUPER_SELL`. [`crate::tech::PlayerTech::wonders`]
+    ///   has no writer in this crate at all, so the predicate could only be
+    ///   written as a constant `false`; it is a seam instead.
+    ///
+    /// `RUSSIAN_COMMUNISM` ships as **0**, which switches its own arm off
+    /// in the original too, so the flat 100/100 it would impose is dead
+    /// data rather than a seam.
+    pub fn calc_market_prices(&self, who: Player, g: usize) -> (i32, i32) {
+        let w = who as usize;
+        let price = self.market.price[g];
+        let flux = self.market.flux[g];
+        let mut sell = price + flux;
+        let mut buy = price * 2 + flux;
+        let nubian = self.tuning.nubian_market_prices;
+        let bonus = if nubian != 0
+            && self
+                .tech_tree
+                .has_tribe_bonus(&self.setup, &self.tech[w], 4)
+        {
+            nubian
+        } else if self.has_rare(who, crate::economy::AMBER) {
+            self.tuning.amber_market
+        } else {
+            0
+        };
+        sell += bonus;
+        buy -= bonus;
+        sell = sell.max(1);
+        buy = buy.max(self.tuning.market_basement * 2);
+        buy = buy.max(sell + 10);
+        (buy, sell)
+    }
+
+    /// `Leader::do_sell@006cfc60` — a hundred of `g` for the sell price.
+    ///
+    /// `true` when the sale went through, which is the original's **0**;
+    /// its `1` is the one refusal, a stock under a hundred. The sale
+    /// releases a hundred of that good's escrow (floored at zero), pays
+    /// the wealth in, and walks the market's own price **down** by
+    /// `MARKET_SUPPLY_DEMAND`, floored at zero — the supply half of the
+    /// price feedback `GameDaemon::calc_market`'s flux rides on top of.
+    pub fn do_sell(&mut self, who: Player, g: usize) -> bool {
+        let w = who as usize;
+        let (_, sell) = self.calc_market_prices(who, g);
+        if self.ledgers[w].bucket[g] < 100 {
+            return false;
+        }
+        self.ledgers[w].bucket[g] -= 100;
+        self.ledgers[w].escrow[g] = (self.ledgers[w].escrow[g] - 100).max(0);
+        self.ledgers[w].bucket[Resource::Wealth as usize] += sell;
+        self.market.price[g] = (self.market.price[g] - self.tuning.market_supply_demand).max(0);
+        true
+    }
+
+    /// `Leader::do_buy@006cfbd0` — a hundred of `g` for the buy price.
+    ///
+    /// `true` when the purchase went through; the refusal is wealth under
+    /// the price. The escrow released is **wealth's**, not the bought
+    /// good's, and the price walks **up**, with no ceiling of its own.
+    pub fn do_buy(&mut self, who: Player, g: usize) -> bool {
+        let w = who as usize;
+        let wealth = Resource::Wealth as usize;
+        let (buy, _) = self.calc_market_prices(who, g);
+        if self.ledgers[w].bucket[wealth] < buy {
+            return false;
+        }
+        self.ledgers[w].bucket[wealth] -= buy;
+        self.ledgers[w].escrow[wealth] = (self.ledgers[w].escrow[wealth] - 100).max(0);
+        self.ledgers[w].bucket[g] += 100;
+        self.market.price[g] += self.tuning.market_supply_demand;
+        true
     }
 
     /// `market_speculation`: `production_ai_setup`'s last act.
@@ -1342,19 +1457,107 @@ mod tests {
         assert_eq!(spent(s), 0, "a market is Barter, not Coinage");
         s.tech[1].epoch[Line::Commerce.index()] = BUY_SELL_COMMERCE_LEVEL;
         assert_eq!(spent(s), 1, "wealth is 43 against a need of 60");
-        // Nothing here clears `need <= bucket - 100`, so the once-flag
-        // stands and the original stops after the one draw. Raise food
-        // over the bar and the sale would go through — which this crate
-        // cannot price, so it still spends exactly the one.
+        assert_eq!(
+            s.ledgers[1].bucket,
+            [58, 55, 43, 68, 54, 0],
+            "nothing here clears `need <= bucket - 100`, so nothing is sold"
+        );
+        // **Raise food over the bar and the sale goes through** (item
+        // 358). It is still *one* draw — not because nothing was
+        // sellable, but because the sale covers the need and the outer
+        // `while` exits before the once-flag is consulted. A hundred food
+        // leaves for the default market's `price + flux`, 65.
         s.ledgers[1].bucket[Resource::Food as usize] = 300;
-        assert_eq!(spent(s), 1, "a sellable good does not add a draw here");
+        assert_eq!(spent(s), 1, "a covering sale is also one draw");
+        assert_eq!(
+            s.ledgers[1].bucket,
+            [200, 55, 108, 68, 54, 0],
+            "a hundred food for 65 wealth"
+        );
+        assert_eq!(
+            s.market.price[Resource::Food as usize],
+            47,
+            "supply walks it down"
+        );
         // A bucket that covers the need takes nothing at all.
         s.ledgers[1].bucket[Resource::Wealth as usize] = 60;
         assert_eq!(spent(s), 0, "wealth is no longer short");
-        // And a shortfall in anything but wealth is a price question.
+        // And a shortfall in anything but wealth is **bought**, not sold
+        // for, when wealth can stand the buy price — and a buy spends no
+        // draw at all.
         s.build_types[rec].price = cost::Price::free().with_base(Resource::Food, 6);
         s.ledgers[1].bucket = [0, 0, 10_000, 0, 0, 0];
-        assert_eq!(spent(s), 0, "food's branch needs `calc_market_prices`");
+        s.market.price = [50; crate::market::GOODS];
+        assert_eq!(
+            spent(s),
+            0,
+            "food's branch is a buy, and a buy is draw-free"
+        );
+        assert_eq!(
+            s.ledgers[1].bucket,
+            [100, 0, 9_885, 0, 0, 0],
+            "a hundred food for the buy price, 2 x 50 + 15"
+        );
+    }
+
+    /// **The market's three prices and its two trades** — item 358,
+    /// `docs/ECONOMY.md` §12. Capture-free, and every clamp on its own
+    /// line.
+    #[test]
+    fn the_market_prices_a_trade_and_moves_its_own_price() {
+        let mut f = fx();
+        let s = &mut f.sim;
+        s.holdings[1].available = [true; RESOURCES];
+        let g = Resource::Timber as usize;
+        // The default market: price 50, flux 15. Sell is `price + flux`,
+        // buy is `2 x price + flux`.
+        assert_eq!(s.calc_market_prices(1, g), (115, 65));
+        // The sell floor of 1, and the buy floor of `MARKET_BASEMENT x 2`
+        // — which a price of zero reaches before the `sell + 10` floor.
+        s.market.price[g] = 0;
+        s.market.flux[g] = 0;
+        assert_eq!(s.calc_market_prices(1, g), (20, 1));
+        // And the spread floor: a buy is never under ten over a sell.
+        s.market.flux[g] = 40;
+        assert_eq!(s.calc_market_prices(1, g), (50, 40));
+        // Amber widens the spread by `AMBER_MARKET` in the holder's
+        // favour — added to the sell, taken off the buy, never both.
+        s.market.price[g] = 50;
+        s.market.flux[g] = 15;
+        s.ledgers[1].rare = 1 << (crate::economy::AMBER - crate::economy::BASE_RARE);
+        assert_eq!(s.calc_market_prices(1, g), (105, 75));
+        s.ledgers[1].rare = 0;
+        // `do_sell`: a hundred out, the sell price in, the price down by
+        // `MARKET_SUPPLY_DEMAND`, and the good's escrow released.
+        s.ledgers[1].bucket = [0, 250, 7, 0, 0, 0];
+        s.ledgers[1].escrow[g] = 40;
+        assert!(s.do_sell(1, g));
+        assert_eq!(s.ledgers[1].bucket, [0, 150, 72, 0, 0, 0]);
+        assert_eq!((s.market.price[g], s.ledgers[1].escrow[g]), (47, 0));
+        // Under a hundred in the bucket is the one refusal, and it moves
+        // nothing.
+        s.ledgers[1].bucket[g] = 99;
+        assert!(!s.do_sell(1, g));
+        assert_eq!((s.ledgers[1].bucket[g], s.market.price[g]), (99, 47));
+        // `do_buy`: the buy price out of **wealth**, a hundred of the
+        // good in, the price up, and it is *wealth's* escrow that is
+        // released.
+        s.market.price[g] = 50;
+        s.ledgers[1].bucket = [0, 0, 200, 0, 0, 0];
+        s.ledgers[1].escrow = [0, 0, 130, 0, 0, 0];
+        assert!(s.do_buy(1, g));
+        assert_eq!(s.ledgers[1].bucket, [0, 100, 85, 0, 0, 0]);
+        assert_eq!(
+            (
+                s.market.price[g],
+                s.ledgers[1].escrow[Resource::Wealth as usize]
+            ),
+            (53, 30)
+        );
+        // Wealth under the price refuses, and moves nothing.
+        s.ledgers[1].bucket[Resource::Wealth as usize] = 10;
+        assert!(!s.do_buy(1, g));
+        assert_eq!((s.ledgers[1].bucket[g], s.market.price[g]), (100, 53));
     }
 
     /// A never-started site with no builder is disbanded where the danger

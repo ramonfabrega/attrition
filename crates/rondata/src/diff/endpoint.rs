@@ -368,11 +368,20 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // re-planned; this map's word does not move (9711 either way) and
         // its endpoint reshuffles 14,290 frames past it. DECISIONS 36 asks
         // for the number rather than a trade.
-        off: 61,
-        unlinked: 11,
+        // Then **61 → 58 off, 11 → 14 unlinked, 0 → 1 build_unlinked and
+        // 32 → 30 build_diverged** on 2026-09-18, item 358 — the market's
+        // **trade** (`docs/ECONOMY.md` §12), which moves Great Lakes' word
+        // 8985 → 9134. Every AI leader on both maps can now sell a hundred
+        // of a good for wealth, so East Indies' whole economy is re-dealt
+        // 14,290 frames before this block even though its own word does
+        // not move: three positions closer, three more of the roster
+        // unlinked, and two building field-rows closer. DECISIONS 36 asks
+        // for the number rather than a trade.
+        off: 58,
+        unlinked: 14,
         extra: 0,
-        build_unlinked: 0,
-        build_diverged: 32,
+        build_unlinked: 1,
+        build_diverged: 30,
         city_unlinked: 3,
         city_diverged: 0,
     },
@@ -589,11 +598,22 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // move in every column because a routing change 15,000 frames
         // before the endpoint re-deals every position after it.
         // DECISIONS 36 asks for the number rather than a trade.
-        off: 67,
-        unlinked: 0,
-        extra: 1,
+        // Then **67 → 57 off, 0 → 6 unlinked, 1 → 0 extra and 7 → 9
+        // build_diverged** on 2026-09-18, item 358 — the market's trade
+        // (`docs/ECONOMY.md` §12), which moves this map's word 8985 →
+        // 9134. Ten positions closer and the spurious unit gone, against
+        // six of the roster going missing and two more building
+        // field-rows out: an AI that can sell buys different things for
+        // the 14,900 frames after 9134, and `great_lakes_scholars_sit_on_
+        // their_universities` re-pins the one it is *about* — the four
+        // seated scholars are still exact, and the one on the wrong
+        // university moved `1/52` to `1/56` carrying the same vector.
+        // DECISIONS 36 asks for the number rather than a trade.
+        off: 57,
+        unlinked: 6,
+        extra: 0,
         build_unlinked: 0,
-        build_diverged: 7,
+        build_diverged: 9,
         city_unlinked: 3,
         city_diverged: 0,
     },
@@ -668,7 +688,11 @@ pub const LADDER: [Endpoint; 2] = [
         // map- nor capture-specific. One position further out on this rung,
         // 5,690 frames past East Indies' own word, which does not move.
         // DECISIONS 36 asks for the number rather than a trade.
-        off: 43,
+        // Then **43 → 41 off and 17 → 13 extra** on 2026-09-18, item 358
+        // — the market's trade (`docs/ECONOMY.md` §12). Two positions
+        // closer and four spurious units gone, 5,690 frames past this
+        // rung's word; `unlinked` and both building counts are unmoved.
+        off: 41,
         unlinked: 17,
         // 20 → 21 on 2026-09-07, item 267's repaint: one spurious unit
         // back, 7,872 frames past the word, and nothing else on this rung
@@ -738,7 +762,11 @@ pub const LADDER: [Endpoint; 2] = [
         // mode again (`docs/PATHFINDER.md` §22). One spurious unit on this
         // rung and nothing else on it moves; rung B does not move at all.
         // DECISIONS 36 asks for the number rather than a trade.
-        extra: 17,
+        // Then **17 → 13 extra** on 2026-09-18, item 358 — the market's
+        // trade (`docs/ECONOMY.md` §12), which also takes two off this
+        // rung's `off` above. Four spurious units gone, with `unlinked`
+        // and both building counts unmoved.
+        extra: 13,
         build_unlinked: 10,
         build_diverged: 8,
         city_unlinked: 3,
@@ -805,7 +833,11 @@ pub const LADDER: [Endpoint; 2] = [
         // are neither map- nor capture-specific. One position closer,
         // 6,778 frames past East Indies' own word, which does not move.
         // DECISIONS 36 asks for the number rather than a trade.
-        off: 48,
+        // Then **48 → 49 off** on 2026-09-18, item 358 — the market's
+        // trade (`docs/ECONOMY.md` §12). One position out on this rung
+        // where the C rung above takes two off, 6,778 frames past this
+        // rung's word.
+        off: 49,
         unlinked: 16,
         // 19 → 33 on 2026-09-07, item 261, the same reshuffle, then 33 →
         // **27** the same day on item 265's byte — this rung took the
@@ -859,7 +891,13 @@ pub const LADDER: [Endpoint; 2] = [
         // mode again (`docs/PATHFINDER.md` §22). One spurious unit gone
         // on this rung where the C rung above gains one, with `off`,
         // `unlinked` and both building counts unmoved on both.
-        extra: 15,
+        // Then **15 → 6** on 2026-09-18, item 358's market trade — nine
+        // spurious units gone on this rung, the largest single fall any
+        // rung has taken, with `unlinked` and both building counts
+        // unmoved. **Rung B is only reached once rung C passes**: the
+        // ladder test panics at its first moved row, so this row surfaced
+        // on the second run.
+        extra: 6,
         build_unlinked: 19,
         build_diverged: 0,
         city_unlinked: 4,
@@ -1244,13 +1282,14 @@ mod tests {
         // the two rather than by a count.
         //
         // **Which scholar it is, is telemetry.** It was `1/53` from item
-        // 338 to item 350 and is `1/52` since item 352, whose muster ring
+        // 338 to item 350, `1/52` from item 352, and is `1/56` since item
+        // 358, whose market trade buys the AI two more scholars and
         // re-deals every position 15,000 frames before this block
-        // (DECISIONS 36, `docs/ARMY.md` §16.9). The *offset* is the
+        // (DECISIONS 36, `docs/ECONOMY.md` §12). The *offset* is the
         // assertion — `1/2020 − 1/2019` exactly, one university away —
         // and a scholar sitting anywhere else would not carry it.
         let delta = (768, 9984);
-        let wrong_one = 52;
+        let wrong_one = 56;
         let (dx, dy) = r
             .off
             .get(&(1, wrong_one))
@@ -1264,7 +1303,7 @@ mod tests {
              what is left of item 338"
         );
         // The rest, printed: past the word neither stream is anybody's.
-        for o in [49, 51, 53, 55, 56] {
+        for o in [49, 51, 52, 53, 55] {
             eprintln!(
                 "  scholar 1/{o}: {:?}",
                 r.off.get(&(1, o)).copied().unwrap_or((0, 0))
