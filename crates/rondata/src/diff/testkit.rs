@@ -1215,7 +1215,23 @@ pub(crate) const EAST_INDIES_FIRST_SCHOLAR: i64 = 8_466;
 /// town as open ground. With both, run97's walk-slot band is **empty**
 /// and every one of the nine units stands on the original's own
 /// coordinates on 8442. `docs/ARMY.md` §13 and §16.9.
-pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 8985;
+///
+/// **8985 since item 354**, which put `find_wpath`'s `army` mode on for
+/// an AI army: `UnitData::is_attacking` calls the current order's `+0x18`
+/// virtual, and that slot is a bare `return 0` in every one of the
+/// seventeen order vtables the executable ships, so the clause that
+/// turned the mode off cannot fire. `docs/PATHFINDER.md` §22.
+///
+/// **9134 since item 358**, which gave the AI the market's trade. The
+/// word sat on a `Leader::use_market+0x1ed` this crate spent where the
+/// original spent a third `Leader::make_stuff+0x221`, and run97's
+/// `BUILDDATA` — widened whole, every building, every frame of the
+/// window — said why in one line: the original's University queues two
+/// more scholars on 8985 than this crate can pay for. The wealth is a
+/// **timber sale** on 8982, which `docs/AI.md` §40 had read as a refusal
+/// because it cost only one draw. One draw is also what a sale that
+/// covers the need looks like. `docs/ECONOMY.md` §12.
+pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 9134;
 
 /// The frame Great Lakes' **second** squad joins the army on — 6994, the
 /// word's own parting from 2026-09-06 to 2026-09-07 and now a landed

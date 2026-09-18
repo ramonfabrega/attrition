@@ -4682,17 +4682,36 @@ Both of Great Lakes' first two are that case:
 
 One draw apiece, nothing traded, and the trace agrees on both.
 
-### What is still a seam
+**CORRECTION, item 358 (2026-09-18): one draw does not *mean* "nothing
+traded".** It is also what a pass that sold looks like when the sale
+carries the bucket over `need`, because the outer `while (bucket[g] <
+need[g])` then exits before the once-flag is consulted at all. The table
+above still holds for 8582 and 8585 — their candidates really do fail
+`need ≤ stock − 100` — but **8982 does not**: timber stands at 141 against
+a need of 0, it clears the bar, and a hundred of it leaves for eighty
+wealth. The inference "the sell branch never trades in this game" was the
+thing the word was waiting on a second time. `docs/ECONOMY.md` §12.
 
-Two, and **both lose draws the original takes; neither invents one**:
+### ~~What is still a seam~~ — both closed by item 358
 
-- A short good that is **not** wealth still takes nothing, because the
-  buy/sell choice is `calc_market_prices`.
-- A wealth shortfall that *does* find something sellable stops after its
+~~Two, and **both lose draws the original takes; neither invents one**:~~
+
+- ~~A short good that is **not** wealth still takes nothing, because the
+  buy/sell choice is `calc_market_prices`.~~ It is priced now, and a
+  non-wealth shortfall is **bought** where wealth can stand the buy price
+  — draw-free in the original too.
+- ~~A wealth shortfall that *does* find something sellable stops after its
   first draw, where the original sells, raises `bucket[wealth]` by
   `do_sell`'s price and goes round again — another draw per pass. Run53
   has frames of three and four draws (9182, 10182) and this is where they
-  must come from; below the word there are none.
+  must come from; below the word there are none.~~ The sale is landed
+  (`docs/ECONOMY.md` §12.2) and so is the loop that goes round again
+  (§12.3). 9182's three draws are **above** the word at 9134 and still
+  unexplained: this crate spends one there.
+
+What remains open is not the sell branch but the Supercollider clamp and
+CtW's bonus, both listed in `docs/ECONOMY.md` §12.5 with the capture that
+would refuse them.
 
 The gate's other two terms are unchanged seams: `get_nuke_embargo` is
 taken as zero, and `has_market@006d5410` is still read as "an active
@@ -4705,3 +4724,37 @@ disk can separate the two, and the seam is stated rather than closed.
 **The word moved 8582 → 8619**, where this crate spends an extra
 `Guy::set_anim+0x97a < Unit::do_idle+0x7d` on unit `1/39` against five
 `inc_time` wraps on both sides. East Indies did not move: 9711 either way.
+
+## 41. The scholar the make list offers and the slot loop cannot buy (2026-09-18)
+
+Item 358's residue, and it is one building's queue: `1/2020`, the AI's
+University, from **8985**. The original holds three scholars there and
+this crate two.
+
+The offers are right. The head expiry (`make_stuff+0x221`) draws **three**
+times on 8985 on both sides, which is one draw per make-list slot holding
+the head's type, so all three `t52` offers are in the list — slots 0, 2
+and 4, `create_units` having filled them on 8983. The head is bought, and
+the wealth for a second is there: §12's timber sale leaves 92 and the two
+scholars cost 36 and 38.
+
+What stops the second is the **order of `make_stuff`'s own steps**. Step 4
+— the head's expiry walk — runs before step 6's slot loop and clears every
+duplicate to `t = −1`; step 6 then reads `list[slot]` fresh and skips a
+slot whose `t` is negative. So a duplicate of the head can never be bought
+in the same pass, in this crate. In the original it plainly can.
+
+Three readings fit and no capture on this disk separates them: the expiry
+is conditional on `unconditional` being false (`expire_all`), and this
+crate's is true where the original's is not; or step 6 reads a copy of the
+list taken before step 4; or the second purchase is not step 6's at all.
+`docs/AI.md` §2.6 is written from the decompile for the first two, and the
+run that would settle it is a `LEADERS=9` window over Great Lakes
+`[8980, 8990]` — the make list slot for slot, either side of the frame.
+Nothing on disk covers it: run19's `LEADERS=9` window is `[8174, 8192]`
+and run84's and run91's are earlier still.
+
+It costs no draw (the expiry count already agrees), so it is a **value**
+residue, pinned by
+`diff::tests::run97_s_build_queues_are_the_original_s` rather than
+filtered out of it.

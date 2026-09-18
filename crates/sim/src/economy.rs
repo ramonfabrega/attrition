@@ -149,6 +149,15 @@ pub const WHALES: usize = 31;
 /// [`Ledger::rare`] already ([`crate::Sim::has_rare`]).
 pub const TOBACCO: usize = 19;
 
+/// `TypeIndex::AMBER` — the one rare the **market** reads.
+///
+/// `LeaderData::calc_market_prices@006dc2a0` tests `rare.ptr[1] & 8`, byte
+/// 1 bit 3, which is bit `17 - `[`BASE_RARE`]` = 11`; `resourcerules.xml`'s
+/// eighteenth `RESOURCE` is Amber. It widens the gap between the sell and
+/// the buy price by `AMBER_MARKET` in the holder's favour, and it is the
+/// only rare in that function.
+pub const AMBER: usize = 17;
+
 /// `TypeIndex::GEMS` — the one rare the **border** table reads.
 ///
 /// `World::compute_reg_territory@006b0bb0`'s flat-bonus arm is an inlined

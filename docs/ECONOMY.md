@@ -1463,14 +1463,13 @@ far as anything read goes they are as dead as `calc_support`.
   `crates/sim/src/market.rs`): `GameDaemon::calc_markets` — the drift toward
   the equilibrium, the eight-tick rota, and the three sync-stream draws a
   good takes when its trend runs out, pinned on run12's frame-0 values.
-  What a *trade* does with the price and the flux (`Leader::buy/sell`,
+  ~~What a *trade* does with the price and the flux (`Leader::buy/sell`,
   `MARKET_SUPPLY_DEMAND`) is still unread — and **it is now what the AI's
-  own market is waiting on**. `Leader::use_market` draws once per entry
-  into its sell branch, the first on Great Lakes 8582, and the sim takes
-  that draw only where no price decides it: a wealth shortfall with
-  nothing sellable (`docs/AI.md` §40). `calc_market_prices`, `do_buy` and
-  `do_sell` are what would close the rest, and run53 has frames of three
-  and four draws waiting for them.
+  own market is waiting on**.~~ **The trade is read and landed, 2026-09-18
+  — §12 below** (item 358): `calc_market_prices`, `do_buy` and `do_sell`,
+  and `use_market`'s own loop over them. What is left of the seam is the
+  Supercollider's clamp and Conquer-the-World's bonus, neither of which
+  any capture on disk reaches.
 - ~~**Costs.**~~ and ~~**Population.**~~ Closed by `docs/COSTS.md`, which
   specifies `UNIT_COST_FACTOR` and its siblings, the ramp, the
   unavailable-resource redirect, the discount tail, `Leader::can_pay` and
@@ -1817,3 +1816,147 @@ carries the same comparison over all 5,400.
 100 here and 0 in the original, on both players, every frame — item 156,
 `STARTING_GOODS` arrives with the age. Inert: an unavailable good is never
 charged and never accrues.
+
+---
+
+## 12. The trade — `calc_market_prices`, `do_sell`, `do_buy` (2026-09-18)
+
+Item 358. The price cycle has been landed since 2026-08-24 and the
+**trade** that reads it was the last unread piece of the AI's market. It
+is three short functions, and the word was sitting on all three.
+
+### 12.1 The two prices
+
+`LeaderData::calc_market_prices@006dc2a0` answers a good's `(buy, sell)`
+from the market's own state and nothing else:
+
+```text
+sell = market.price[g] + market.flux[g]
+buy  = market.price[g] * 2 + market.flux[g]
+```
+
+Then **one** spread bonus, added to the sell price and taken off the buy
+price — never both, and never two:
+
+- the **Nubians'** `NUBIAN_MARKET_PRICES` (20) when `NUBIAN_MARKET_PRICES`
+  is non-zero *and* the player has tribe bonus 4 — the same bonus that
+  opens `use_market`'s gate without Coinage;
+- otherwise **Amber**, `AMBER_MARKET` (10), when the player holds the rare
+  — `rare.ptr[1] & 8`, byte 1 bit 3, which is bit `17 − BASE_RARE = 11`
+  and `resourcerules.xml`'s eighteenth `RESOURCE`. It is the only rare
+  this function reads (`economy::AMBER`).
+
+Then three floors, in this order:
+
+```text
+sell = max(sell, 1)
+buy  = max(buy, MARKET_BASEMENT * 2)      // 20
+buy  = max(buy, sell + 10)
+```
+
+So the shipped default — price 50, flux 15 — is **65 to sell and 115 to
+buy**, and a good the market has been flooded with still costs at least
+20 and still sells ten under whatever it buys for.
+
+### 12.2 The two trades
+
+`Leader::do_sell@006cfc60` — a hundred of `g` for the sell price:
+
+```text
+if bucket[g] < 100: refuse (the original's 1)
+bucket[g]      -= 100
+escrow[g]       = max(0, escrow[g] - 100)
+bucket[WEALTH] += sell
+market.price[g] = max(0, market.price[g] - MARKET_SUPPLY_DEMAND)   // 3
+```
+
+`Leader::do_buy@006cfbd0` — a hundred of `g` for the buy price:
+
+```text
+if bucket[WEALTH] < buy: refuse
+bucket[WEALTH]      -= buy
+escrow[WEALTH]       = max(0, escrow[WEALTH] - 100)
+bucket[g]           += 100
+market.price[g]     += MARKET_SUPPLY_DEMAND
+```
+
+Two asymmetries are worth naming because neither is a typo. The escrow a
+**buy** releases is *wealth's*, not the bought good's — it is always the
+resource that left the purse. And the price has a floor on the way down
+and **no ceiling on the way up**; `GameDaemon::calc_markets`' drift toward
+`MARKET_EQUILIBRIUM` is the only thing that brings it back.
+
+### 12.3 `use_market`'s loop, and why one draw is not a refusal
+
+`Leader::use_market@006c91c0` walks the six goods. For each that is not
+knowledge, is available, and whose bucket is under the make list's `need`,
+it runs the original's `do { … } while (bucket[g] < need[g])` with a
+once-flag (`uVar5`):
+
+1. **Which branch.** `g == WEALTH || (bucket[WEALTH] − buy) < need[WEALTH]`
+   → sell; otherwise buy. C's `||` short-circuits, so wealth never asks a
+   price: it cannot be bought with itself.
+2. **The sell branch** spends the mechanic's one draw,
+   `Random::get(game_random, 0, 0xffff) % 6`, which is where the six-good
+   rotation starts. Every rotation position that passes the candidate test
+   (§40 of `docs/AI.md`, unchanged) is sold — the loop does not stop at the
+   first — and the once-flag clears **on the test passing**, not on the
+   sale going through.
+3. **The buy branch** spends no draw at all, buys a hundred, and clears
+   the once-flag unconditionally.
+
+**A single draw therefore has two meanings, and `docs/AI.md` §40 had only
+one of them.** It is a pass that found nothing sellable — *or* a pass that
+sold, and whose sale carried the bucket over `need`, so the outer `while`
+exited before the once-flag was ever consulted. Great Lakes' 8582, 8585,
+8782 and 8982 each cost one draw, and 8982 is the second kind: a hundred
+timber leaves for eighty wealth, and the scholars that wealth buys are in
+run97's own `BUILDDATA`.
+
+### 12.4 What this moved
+
+`LONG_WORD_GREAT_LAKES` **8985 → 9134**; East Indies unmoved at 9711.
+
+The word was a `Leader::use_market+0x1ed` this crate spent where the
+original spent a third `Leader::make_stuff+0x221` — an exchange, not a
+count, which is why 8985 held eight draws either side. What named it was
+not the frame: it was run97's `BUILDDATA` widened whole, every building
+and every field, over all 1,320 frames of the window. **One** divergence
+came out of 37,899 building-frames and it was the word's own — the AI's
+University holds three scholars from 8985 and this crate could pay for
+one.
+
+### 12.5 Coverage
+
+**Diff-backed**: §12.1's prices and §12.2's two trades, through the word
+itself — `diff::tests::run53_s_24000_frames_put_the_ceiling_where_run33_did`
+and `diff::tests::run97_s_build_queues_are_the_original_s`, which compares
+every building's whole live queue, its `job_counter` and its `constr_time`
+on every block of `[8030, 9349]`. The arithmetic is pinned clamp by clamp
+by `sim::ai_make::tests::the_market_prices_a_trade_and_moves_its_own_price`
+and the loop by `…::the_market_draws_once_for_wealth_behind_coinage`, both
+capture-free.
+
+**Not established**, and each names the capture that would refuse it:
+
+- **The Supercollider's clamp.** `has_wonder(0x21d)` — building type index
+  541 — pins the buy price under `SUPER_BUY` (125) and the sell price over
+  `SUPER_SELL` (50). `tech::PlayerTech::wonders` has no writer in this
+  crate at all, so the predicate could only be a constant `false`; it is
+  stated instead. A capture that reaches the Information age with that
+  wonder standing, dumping `LEADERS=9` across a `use_market` frame, would
+  refuse it. Nothing on disk is past the Classical age.
+- **Conquer-the-World's per-leader market bonus**, behind
+  `semaphore[2] & 2`. CtW is cut from v1.
+- **`RUSSIAN_COMMUNISM`** ships as **0**, which switches its own arm off in
+  the original too — the flat 100/100 it would impose on a Russian past the
+  fifth age is dead data rather than a seam.
+- **Whether a sale's *hundred* is the only quantity.** Both trades move
+  exactly a hundred, and no capture on disk shows a bucket step that is
+  not a multiple of it; a `LEADERS=9` window over Great Lakes 9182, where
+  the original spends **three** market draws, is the run that would say.
+- **The rotation past the first sale.** 8982 sells once and stops because
+  the sale covers the need. A frame where two goods both pass the
+  candidate test is not on any capture, so "every qualifying position
+  sells" rests on the decompile alone.
+
