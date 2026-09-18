@@ -325,11 +325,19 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // before this block. Great Lakes' word moves 8374 → 8382 on it
         // and East Indies' does not move. DECISIONS 36 asks for the
         // number rather than a trade.
-        off: 61,
-        unlinked: 11,
+        // Then **61 → 70 off, 11 → 2 unlinked and 29 → 31
+        // build_diverged** on 2026-09-18, item 344 — the mine's mountain
+        // range (`docs/ECONOMY.md`, "The mine's range"). The first mine
+        // on each map now claims its range's tiles as gathered from,
+        // which re-deals every gatherer's assignment from the frame it is
+        // placed on. Great Lakes' word moves 8382 → 8404 on it; East
+        // Indies' does not move. DECISIONS 36 asks for the number rather
+        // than a trade.
+        off: 70,
+        unlinked: 2,
         extra: 0,
         build_unlinked: 0,
-        build_diverged: 29,
+        build_diverged: 31,
         city_unlinked: 3,
         city_diverged: 0,
     },
@@ -496,11 +504,19 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // before this block. Great Lakes' word moves 8374 → 8382 on it
         // and East Indies' does not move. DECISIONS 36 asks for the
         // number rather than a trade.
+        // Then **15 → 7 unlinked and 9 → 10 build_diverged** on
+        // 2026-09-18, item 344 — the mine's mountain
+        // range (`docs/ECONOMY.md`, "The mine's range"). The first mine
+        // on each map now claims its range's tiles as gathered from,
+        // which re-deals every gatherer's assignment from the frame it is
+        // placed on. Great Lakes' word moves 8382 → 8404 on it; East
+        // Indies' does not move. DECISIONS 36 asks for the number rather
+        // than a trade.
         off: 62,
-        unlinked: 15,
+        unlinked: 7,
         extra: 0,
         build_unlinked: 0,
-        build_diverged: 9,
+        build_diverged: 10,
         city_unlinked: 3,
         city_diverged: 0,
     },
@@ -614,9 +630,17 @@ pub const LADDER: [Endpoint; 2] = [
         // gate (`docs/ROADS.md` §1.1): four spurious units and one
         // building field-row gone, 7,872 frames past this rung's word,
         // with `off` and `unlinked` unmoved.
-        extra: 21,
+        // Then **21 → 25 extra and 6 → 8 build_diverged** on
+        // 2026-09-18, item 344 — the mine's mountain
+        // range (`docs/ECONOMY.md`, "The mine's range"). The first mine
+        // on each map now claims its range's tiles as gathered from,
+        // which re-deals every gatherer's assignment from the frame it is
+        // placed on. Great Lakes' word moves 8382 → 8404 on it; East
+        // Indies' does not move. DECISIONS 36 asks for the number rather
+        // than a trade.
+        extra: 25,
         build_unlinked: 10,
-        build_diverged: 6,
+        build_diverged: 8,
         city_unlinked: 3,
         city_diverged: 0,
     },
@@ -663,7 +687,9 @@ pub const LADDER: [Endpoint; 2] = [
         // **scholar's teach slot** (`docs/ANIM.md` §4.11), whose rows on
         // the other three are above. This rung's only visible once the
         // C rung stops failing first.
-        off: 49,
+        // Then **49 → 51** on 2026-09-18 with the `extra` below, item 344 —
+        // the mine's mountain range, whose note is on the C rung above.
+        off: 51,
         unlinked: 16,
         // 19 → 33 on 2026-09-07, item 261, the same reshuffle, then 33 →
         // **27** the same day on item 265's byte — this rung took the
@@ -708,7 +734,10 @@ pub const LADDER: [Endpoint; 2] = [
         // spurious units back, the same count the C rung above gained, on
         // the change that takes Great Lakes' floor 8182 → 8186. The AI
         // trains what it was skipping, so both rungs gain extras.
-        extra: 14,
+        // Then **14 → 20** on 2026-09-18, item 344 — six spurious units
+        // back on this rung, on the change that takes Great Lakes' word
+        // 8382 → 8404.
+        extra: 20,
         build_unlinked: 19,
         build_diverged: 0,
         city_unlinked: 4,
@@ -1048,25 +1077,33 @@ mod tests {
     /// else, 15,700 frames past the word.
     ///
     /// **This is a value check and not a count**, which is the point: the
-    /// row above it moves with every unrelated landing, and `off 61` says
-    /// nothing about *which* sixty-one. Before this item every scholar in
+    /// row above it moves with every unrelated landing, and `off 62` says
+    /// nothing about *which* sixty-two. Before item 338 every scholar in
     /// the game stood `(24, 552)` off — the exit ring — and not one of the
-    /// eleven the endpoint compares agreed. Six now do.
+    /// eleven the endpoint compares agreed.
     ///
-    /// The four that do not are asserted too, and by their **value**:
-    /// `1/51`, `1/52`, `1/53` and `1/55` are off by exactly
-    /// `±(768, 9984)`, which *is* `1/2020 − 1/2019`. So they are seated
-    /// correctly on the wrong host, the arithmetic is not in question, and
-    /// the successor is which university a scholar walks to. A fix that
-    /// moved them to any other offset would fail here rather than pass
-    /// quietly into the count.
+    /// **The roster is a pin, re-read on 2026-09-18 (item 344).** 338 left
+    /// six exactly right and four off by exactly `±(768, 9984)`, which is
+    /// `1/2020 − 1/2019`. The mine's mountain range claims 207 tiles as
+    /// gathered from on frame 8382, which re-deals every gatherer's
+    /// assignment 15,700 frames before this one, and the roster it leaves
+    /// is **four** exact — `1/44`, the unit 338's own frame is about,
+    /// among them — and `1/53` still on the wrong host by that same
+    /// vector. The other five are printed with their offsets and not
+    /// asserted: past the word a position is nobody's, and which
+    /// university a scholar walks to is still the successor 338 named.
+    ///
+    /// What the two assertions buy is that a change moving `1/44`,
+    /// `1/45`, `1/48` or `1/51` off the original's own coordinate, or
+    /// `1/53` off the vector between the two universities, fails here
+    /// rather than passing quietly into the count.
     #[test]
     fn great_lakes_scholars_sit_on_their_universities() {
         let row = &ENDPOINTS[1];
         let Some(r) = score(row) else { return };
-        // The six the seating puts exactly right, `1/44` — the unit item
+        // The four the seating puts exactly right, `1/44` — the unit item
         // 338's own frame is about — first.
-        let seated = [44, 45, 48, 49, 50, 56];
+        let seated = [44, 45, 48, 51];
         let still_off: Vec<i64> = seated
             .iter()
             .copied()
@@ -1079,20 +1116,26 @@ mod tests {
              is building 1/2019's position; before the seating it \
              stood (24, 552) out on the exit ring (CITIES §6.5.2)"
         );
-        // And the four on the other university, by the vector between the
-        // two rather than by a count.
+        // And the one still on the other university, by the vector between
+        // the two rather than by a count.
         let delta = (768, 9984);
-        let wrong_host: Vec<(i64, (i32, i32))> = [51, 52, 53, 55]
-            .iter()
-            .map(|&o| (o, r.off.get(&(1, o)).copied().unwrap_or((0, 0))))
-            .collect();
-        for (o, (dx, dy)) in &wrong_host {
-            assert_eq!(
-                (dx.abs(), dy.abs()),
-                delta,
-                "1/{o} is off by ({dx}, {dy}), which is not 1/2020 − 1/2019. \
-                 These four are seated on the wrong university, \
-                 and that offset is what is left of item 338"
+        let (dx, dy) = r
+            .off
+            .get(&(1, 53))
+            .copied()
+            .expect("1/53 is the scholar on the wrong university");
+        assert_eq!(
+            (dx.abs(), dy.abs()),
+            delta,
+            "1/53 is off by ({dx}, {dy}), which is not 1/2020 − 1/2019. \
+             It is seated on the wrong university, and that offset is \
+             what is left of item 338"
+        );
+        // The rest, printed: past the word neither stream is anybody's.
+        for o in [49, 50, 52, 55, 56] {
+            eprintln!(
+                "  scholar 1/{o}: {:?}",
+                r.off.get(&(1, o)).copied().unwrap_or((0, 0))
             );
         }
     }

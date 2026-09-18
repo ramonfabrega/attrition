@@ -52,6 +52,7 @@ mod tests {
     use crate::gamelog::Block;
 
     use crate::testenv::{dump, install};
+    use std::collections::BTreeSet;
 
     /// `docs/AI.md` §5's table, first row: the opening script's first call
     /// at game frame 1 — `defensive` steps 6, 7, 9, 10 in one call (Written
@@ -1626,6 +1627,120 @@ mod tests {
             wrong <= 4,
             "{wrong} gather fields disagree; the ceiling is 4, the quit's own"
         );
+    }
+
+    /// **The mine lists its mountain range whole** — Great Lakes' first
+    /// mine, and the value diff for item 344 (`docs/ECONOMY.md`, "The
+    /// mine's range").
+    ///
+    /// `BuildTypeData::find_gather_tcoords@0063bdc0` has two arms and only
+    /// the timber one was modelled: a mine built during a run got an
+    /// **empty** list, which cost the 828 draws its shuffle spends and made
+    /// Great Lakes 8382 a 46-against-865 frame. The metal arm takes the
+    /// nearest mountain range whole and keeps every tile that is not
+    /// `SURFACE_FOREST`, stands on nobody else's territory and is not
+    /// already gathered from.
+    ///
+    /// **What the dump says.** run80's per-frame blocks carry the
+    /// `MiningList` header the closing whole-map block does not: player 1's
+    /// `2021` reads `mtn 6`, `cliff -1`, `length 207`, and run97's frame
+    /// 8383 — the frame after the placement — carries the same 207 tiles,
+    /// so the list never moves once it is built. This crate's range is the
+    /// eight-connected component of mountain tiles around the nearest one,
+    /// **244** tiles, of which exactly 37 carry `SURFACE_FOREST`: 207.
+    ///
+    /// The comparison is a **set**, and that is not a weakening: the dump's
+    /// order is the shuffle's, and the shuffle reads the list the map
+    /// generator's own range order produced. This crate walks rows, so the
+    /// order it starts from is not the original's and the order it ends
+    /// with cannot be either. The count is what the sync stream sees —
+    /// `4 × 207` draws — and the count is asserted.
+    ///
+    /// The second mine is **printed, not asserted**: it is placed past this
+    /// map's word, so nothing says the two sides should agree about it. On
+    /// the tree that landed this item it agrees anyway — `1/2022`, `mtn 0`,
+    /// 232 tiles for 232 — which is the reconstruction answering a range it
+    /// was not fitted to.
+    #[test]
+    fn great_lakes_first_mine_lists_its_mountain_range() {
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(tr), Some(late)) = (
+            dump("gamelog-run53-greatlakes-24k-trace.txt"),
+            trace("rontrace-run53.log"),
+            dump("gamelog-run80-greatlakes-latecensus.txt"),
+        ) else {
+            eprintln!("skipping: no run53/run80 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let late_text = crate::capture::read(&late);
+        let late_log = Log::parse(&late_text);
+        // 23,999 is the last frame run80 writes a `BUILDDATA` block for;
+        // its closing whole-map block carries no `MiningList` at all.
+        let theirs = late_log.frame_builds(23_999);
+        let mines: Vec<&crate::gamelog::BuildDump> = theirs
+            .iter()
+            .filter(|b| b.mtn.is_some_and(|m| m >= 0))
+            .collect();
+        assert_eq!(mines.len(), 2, "run80's frame 23,999 holds two mines");
+
+        let text = crate::capture::read(&path);
+        let log = Log::parse(&text);
+        let texts = sibling_texts();
+        let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
+        let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+        let refs: Vec<&Initial> = inits.iter().collect();
+        let mut init = log.initial().unwrap();
+        borrow_from_siblings(&mut init, &refs);
+        borrow_pasture(&mut init, &tr);
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        for _ in 0..23_999 {
+            built.tick();
+        }
+
+        let mut checked = 0;
+        for m in mines {
+            let want: BTreeSet<(i64, i64)> = m.gather_from.iter().copied().collect();
+            let found = (0..built.sim.buildings.len()).find(|&b| {
+                let bd = &built.sim.buildings[b];
+                bd.alive && i64::from(bd.owner) == m.who && i64::from(bd.index) == m.o
+            });
+            let got: BTreeSet<(i64, i64)> = found.map_or_else(BTreeSet::new, |b| {
+                built.sim.buildings[b]
+                    .gather_from
+                    .iter()
+                    .map(|p| (i64::from(p.x), i64::from(p.y)))
+                    .collect()
+            });
+            eprintln!(
+                "run80 23999: mine {}/{} mtn {:?} theirs {} tiles, ours {} \
+                 ({} shared)",
+                m.who,
+                m.o,
+                m.mtn,
+                want.len(),
+                got.len(),
+                want.intersection(&got).count()
+            );
+            // `1/2021` is placed on 8382, below this map's word, so it is
+            // the one the two sides must agree about.
+            if (m.who, m.o) != (1, 2021) {
+                continue;
+            }
+            checked += 1;
+            assert_eq!(m.gather_from.len(), 207, "run80's own list length");
+            assert_eq!(
+                got.len(),
+                want.len(),
+                "mine {}/{}: {} tiles against the dump's {}",
+                m.who,
+                m.o,
+                got.len(),
+                want.len()
+            );
+            assert_eq!(got, want, "mine {}/{}: the tiles themselves", m.who, m.o);
+        }
+        assert_eq!(checked, 1, "run80's frame 23,999 has no mine 1/2021");
     }
 
     /// **`Build::find_gather_tiles` re-derives the original's own list.**

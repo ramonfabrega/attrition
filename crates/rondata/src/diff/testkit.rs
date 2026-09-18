@@ -1151,7 +1151,22 @@ pub(crate) const EAST_INDIES_FIRST_SCHOLAR: i64 = 8_466;
 /// worker, so the scholar took the peasant-on-a-masked-tile collapse to
 /// `IDLE1` where the original's `787 % 100 = 87` gives `IDLE2`; slot 26
 /// is 100 frames and only slot 27 lands on 8374. `docs/ANIM.md` §4.11.
-pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 8382;
+///
+/// **8382 → 8404 on item 344**, and the frame is the game's first
+/// **mine**: 46 draws against 865. `BuildTypeData::calc_gather@00639e40`
+/// sends `0x1a3` past the circle walk before it starts, so a mine's site
+/// is refused on the distance to the nearest **mountain tile** —
+/// `MountainsData::find_nearest@0089cd30`, against `gather_radius * 0xc0`
+/// — and not on the camp's cell survey, which passed eighteen of
+/// `produce_building`'s friendless candidates where the original passed
+/// nine. Then `find_gather_tcoords@0063bdc0`'s metal arm takes the
+/// range's tiles whole: 244 in the component, 37 of them
+/// `SURFACE_FOREST`, **207** left, and `4 × 207` shuffle draws this crate
+/// had never spent. The mine lands at `(41088, 25920)`, the original's own
+/// position for `1/2021`, and `great_lakes_first_mine_lists_its_mountain_range`
+/// pins the list against run80's own record. `docs/ECONOMY.md`, "The
+/// mine's range".
+pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 8404;
 
 /// The frame Great Lakes' **second** squad joins the army on — 6994, the
 /// word's own parting from 2026-09-06 to 2026-09-07 and now a landed

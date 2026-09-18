@@ -4570,3 +4570,27 @@ simulation. They are gone; `MAKE[3].t` on run84 is a real one and stays.
   says the war state parts there: `wars`, `active_wars`,
   `active_wars_with`, `attacked_by` and `frame_attacked` are in
   `PARTS_ON_RUN19` for the human.
+
+## 39. The mine's site test is not the camp's survey (2026-09-18)
+
+`Leader::produce_building`'s spiral draws once per friendless FARM/MINE
+candidate that **passes every site test** (§2.20), and one of those tests is
+`blocked_site`'s gather verdict. For a MINE that verdict is not the camp's
+cell survey: `calc_gather` sends `0x1a3` past the circle walk before it
+starts and asks instead whether a **mountain tile** stands within
+`MINE_RADIUS × 0xc0` world units of the footprint's centre
+(`MountainsData::find_nearest@0089cd30`).
+
+Measuring to a mountain-centred **cell** inside `MINE_RADIUS` tiles, which is
+what this crate did until 2026-09-18, passes twice as many sites. Great
+Lakes' frame 8382 places the game's first mine and is the measurement:
+**eighteen** `+0xc99` draws against the original's **nine**, the nine whose
+nearest mountain tile is inside 1152 world units. Nine extra draws moved the
+placement jitter's four rolls nine places down the stream and put the mine a
+tile east of `1/2021`'s own position.
+
+The same frame is 828 draws of `Build::find_gather_tiles+0x10a`, the mine's
+own 207-tile mining list, which this crate spent none of. Both halves are
+`docs/ECONOMY.md`, "The mine's range" — the arithmetic, the reconstruction,
+the value diff against run97 and run80, and what it leaves open. The word
+moved **8382 → 8404** on them.
