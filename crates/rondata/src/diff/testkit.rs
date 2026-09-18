@@ -1222,7 +1222,15 @@ pub(crate) const EAST_INDIES_FIRST_SCHOLAR: i64 = 8_466;
 /// seventeen order vtables the executable ships, so the clause that
 /// turned the mode off cannot fire. `docs/PATHFINDER.md` §22.
 ///
-/// **9134 since item 358**, which gave the AI the market's trade. The
+/// **9182 since item 360**, which gave `Unit::move_step`'s *arrival*
+/// arm its own collision block. 9134 was one draw on each side and the
+/// original's was a bare `5dac7a` — `Guy::set_anim+0x97a` under
+/// `Unit::move_step+0x4e2`, a second `set_anim(CHAR_DEFAULT)` call the
+/// trace's table did not name and this crate did not have. The snap
+/// arm's block resolves nothing and widens nothing: it consumes the
+/// waypoint where the unit stands. `docs/COLLISION.md` §5.2.
+///
+/// Before that, **9134 since item 358**, which gave the AI the market's trade. The
 /// word sat on a `Leader::use_market+0x1ed` this crate spent where the
 /// original spent a third `Leader::make_stuff+0x221`, and run97's
 /// `BUILDDATA` — widened whole, every building, every frame of the
@@ -1231,7 +1239,7 @@ pub(crate) const EAST_INDIES_FIRST_SCHOLAR: i64 = 8_466;
 /// **timber sale** on 8982, which `docs/AI.md` §40 had read as a refusal
 /// because it cost only one draw. One draw is also what a sale that
 /// covers the need looks like. `docs/ECONOMY.md` §12.
-pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 9134;
+pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 9182;
 
 /// The frame Great Lakes' **second** squad joins the army on — 6994, the
 /// word's own parting from 2026-09-06 to 2026-09-07 and now a landed

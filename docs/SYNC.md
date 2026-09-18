@@ -798,6 +798,7 @@ changed no mechanic and moved run14 **192 → 198 of 284**.
 | `GameAccess::rnd@0043cca0+0x20` | the farmer's cell re-pick, **two** draws | `orders::SITE_FARM_CELL` | `Unit::do_job+0x67` |
 | `Guy::set_anim+0x97a` | the arrival stand | `anim::SITE_ARRIVE` | `Guy::move+0x19f` |
 | `Guy::set_anim+0x97a` | the blocked stand | `anim::SITE_BLOCKED` | `Unit::move_step+0x823` |
+| `Guy::set_anim+0x97a` | the **snap** arm's blocked stand | `anim::SITE_SNAP_BLOCKED` | `Unit::move_step+0x4e2` |
 
 **`GameAccess::rnd` is frameless, and its address alone names nothing** —
 it is the helper `Random::get(0, 0xffff) % ecx`, whose call returns to
@@ -813,7 +814,11 @@ disambiguator is at `up[0]`, and `Trace::label` tests both slots. It is the
 arrival stand (`docs/ANIM.md` §4). **`Unit::move_step+0x823` is named from
 the original's side only**: the stand a blocked unit plays before the three
 give-up tests (`docs/COLLISION.md` §5, §7), which this simulation does not
-take. Making the call **costs** both scores as things stand — 43340 → 42755
+take. **And `+0x4e2` is its sibling, added 2026-09-18 (item 360)**:
+`move_step` has a collision block on *each* side of its `param_2 <
+local_28` split, and this crate spent `+0x823` for both. Great Lakes 9134
+was one draw on each side against a bare `5dac7a`, which is a comparison
+that cannot fail (`docs/COLLISION.md` §5.4, §8.9). Making the call **costs** both scores as things stand — 43340 → 42755
 agreeing unit-frames, 198 → 196 traced frames — because these collisions do
 not yet fall on the original's frames. The row stays regardless: without it
 frames 122, 184 and 256 read as a bare `5dac7a`.

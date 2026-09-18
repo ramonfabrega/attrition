@@ -1847,6 +1847,103 @@ mod tests {
         );
     }
 
+    /// **The snap arm has a collision block of its own, and it resolves
+    /// nothing** (`docs/COLLISION.md` §5.4, item 360).
+    ///
+    /// `Unit::move_step@005faf30` splits on `param_2 < local_28` and
+    /// probes on *each* side. The partial step's block is §5 — snap
+    /// through, wait on an owed turn, `resolve_unit_collision`, widen the
+    /// tolerance — and this crate spent it for both arms until Great
+    /// Lakes 9134 said otherwise. The snap's, at `005fb3bd`, clears the
+    /// collider the probe just named, consumes the waypoint where the
+    /// unit stands, and joins the accepted step's tail.
+    ///
+    /// The shape here is 9134's without the capture: a walker one step
+    /// short of its final waypoint, and a blocker standing on it. The
+    /// blocker carries a move order of its own so that `do_move`'s own
+    /// waypoint probe (§5.1) takes neither of its two arms — its first
+    /// wants an action beneath the move, its second a collider that is
+    /// **not** moving — and the leg reaches `move_step` intact, which is
+    /// exactly how a formation hop reaches it.
+    #[test]
+    fn a_blocked_snap_stands_and_eats_its_waypoint_without_resolving() {
+        // Neighbouring cell centres, 48 apart, and a walker fast enough to
+        // cover that in one step — so the **first** proposal the walk
+        // makes is already the snap onto its final waypoint, and §5's
+        // partial arm is never reached.
+        let a = Pos::new(31 * 0x30 + 0x18, 30 * 0x30 + 0x18);
+        let b = Pos::new(32 * 0x30 + 0x18, 30 * 0x30 + 0x18);
+        let (mut sim, x, y) = pair(a, b);
+        for slot in 0..4 {
+            sim.art.lengths.insert((1, slot), 40);
+        }
+        sim.trace_phases = true;
+        sim.units[x].movement.speed = 60;
+        // The blocker holds a move order it can never advance, so it is
+        // "moving" to §5.1 — whose second arm wants a collider that is
+        // *not* — and standing still to everyone else.
+        sim.units[y].movement.speed = 0;
+        sim.order_move(y, Pos::new(39 * 0x30 + 0x18, 30 * 0x30 + 0x18));
+        sim.order_move(x, b);
+        let mut hit = None;
+        for _ in 0..8 {
+            let before = sim.units[x].pos;
+            sim.tick();
+            if sim
+                .phase_marks
+                .iter()
+                .any(|(l, _)| l == crate::anim::SITE_SNAP_BLOCKED)
+            {
+                hit = Some(before);
+                break;
+            }
+            assert!(
+                !sim.phase_marks
+                    .iter()
+                    .any(|(l, _)| l == crate::anim::SITE_BLOCKED),
+                "the partial step's block fired first: this walk never \
+                 reaches the snap"
+            );
+        }
+        let before = hit.expect("the walker snapped into the blocker");
+        assert_eq!(
+            sim.units[x].pos, before,
+            "the snap arm takes no step: the unit stands where it was"
+        );
+        assert_eq!(
+            (sim.units[x].collide_o, sim.units[x].collide_who),
+            (-1, -1),
+            "`field_0x8a = 0xffff` / `field_0xb3 = 0xff`: the arm clears \
+             the collider the probe named"
+        );
+        // The waypoint is consumed where the unit stands, and this one was
+        // the **final** leg, so the pop falls into `move_step`'s own tail:
+        // `set_angle`, the pathed bit, `kill_current_order`. A *middle*
+        // leg returns 1 instead and the walk resumes next frame from the
+        // same place — which is what Great Lakes 9134 is, and what
+        // `run53_s_24000_frames_put_the_ceiling_where_run33_did` pins
+        // against the original rather than against this crate.
+        assert!(
+            sim.units[x].path.is_empty() && sim.units[x].orders.is_empty(),
+            "the final waypoint is consumed and the order killed: path \
+             {:?}, orders {:?}",
+            sim.units[x].path,
+            sim.units[x].orders
+        );
+        assert_eq!(
+            sim.units[x].collide_frame, 0,
+            "`resolve_unit_collision` never ran, so nothing dated the \
+             collision — run97's 9135 carries a `collide_frame` nine \
+             hundred frames stale for the same reason"
+        );
+        // `coll_x`/`coll_y` — the point the probe refused, stored into the
+        // order — cannot be read here: this waypoint was the final one, so
+        // the order it was stored into is gone by the time the tick ends.
+        // `great_lakes_9134_is_the_snap_arm_s_blocked_stand` in
+        // `rondata::diff` is where that field is pinned, against the
+        // original's own `MOVEORDER` record on a middle leg.
+    }
+
     /// **`collide` chooses the grid the re-plan runs on**
     /// (`docs/ORDERS.md` §4.4, `Unit::do_move@005f7b30`'s `field_0x88`
     /// test).
