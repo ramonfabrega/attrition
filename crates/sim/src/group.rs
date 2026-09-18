@@ -323,18 +323,68 @@ impl Sim {
         }
     }
 
-    /// `Groups::push_group(who, g, force)` (§3.2), the one rule that is
+    /// `Groups::push_group(who, g, force)` (§3.2), two rules of which are
     /// live without a pool: with `force == 0` a group of fewer than two is
-    /// **not** installed and every member is left group-less. Returns
-    /// whether the group took a slot.
+    /// **not** installed and every member is left group-less; and an
+    /// installed group **takes its members out of the group they were
+    /// in** (§3.3). Returns whether the group took a slot.
     pub fn push_group(&mut self, g: &Group, force: bool) -> bool {
         if !(force || g.num() >= 2) {
             return false;
         }
+        self.unseat_group(g);
         // The pool slot every member's `+0x80` then points at. Only
         // `find_ordered_collision`'s group pass reads it.
         self.pushed_group = Some((g.who, g.list.clone()));
         true
+    }
+
+    /// `push_group`'s second walk (`0070f9e0`), which the first reading
+    /// left out: before a member's `+0x80` is pointed at the new slot,
+    /// **the group it was in is asked to kill it** — `(*old->vtbl+0x10)
+    /// (unit.o, unit.who, 0, 0)`, `Group::kill@00714110` through the
+    /// vtable (`vtables.txt`) — whenever that group is not the slot being
+    /// written. `Group::kill(o, who, 0, 0)` walks the squad chain exactly
+    /// as `Group::add` does (§4.1): a non-captain is replaced by its
+    /// captain, and a captain's `o_down` chain goes with it. So the unit
+    /// that leaves is always a **whole squad**.
+    ///
+    /// An army's one group is its [`Army::units`] list (`docs/ARMY.md`
+    /// §3.2), so a unit the simulation pushes into a stack group **leaves
+    /// the army** — it stops being `Army::member`, it stops being counted
+    /// by `Army::normalize`, and every later `Group::action_*` the army
+    /// issues goes out without it. That is how Great Lakes' AI army is
+    /// nine units and not fifteen from frame 8186 on: §12's probe pushes
+    /// its pair, `Group::add` brings both squads, and the six leave
+    /// (`docs/ARMY.md` §3.4).
+    fn unseat_group(&mut self, g: &Group) {
+        let w = g.who as usize;
+        if self.armies[w].list.iter().all(|a| a.units.is_empty()) {
+            return;
+        }
+        // `Group::kill`'s own walk: up to the captain, then down `o_down`.
+        let mut leaving: Vec<usize> = Vec::new();
+        for &m in &g.list {
+            if !self.units[m].alive() {
+                continue;
+            }
+            for f in self.squad_of(self.captain_of(m)) {
+                if !leaving.contains(&f) {
+                    leaving.push(f);
+                }
+            }
+        }
+        let mut touched: Vec<usize> = Vec::new();
+        for slot in 0..self.armies[w].list.len() {
+            let a = &mut self.armies[w].list[slot];
+            if a.units.iter().any(|u| leaving.contains(u)) {
+                a.units.retain(|u| !leaving.contains(u));
+                touched.push(slot);
+            }
+        }
+        for slot in touched {
+            self.army_normalize(g.who, slot);
+        }
     }
 
     // ------------------------------------------------------------------
@@ -1920,6 +1970,58 @@ mod tests {
         assert!(s.push_group(&one, true), "Army::add_unit forces it");
         let b = spawn(&mut s, 1, t, Pos::new(0x1100, 0x1000));
         assert!(s.push_group(&group_of(1, &[a, b]), false));
+    }
+
+    /// **A pushed group takes its members out of the army** — §3.2's
+    /// third bullet (`docs/ARMY.md` §3.4), which the first reading had
+    /// right and no implementation carried until item 350.
+    ///
+    /// Great Lakes is the case: §12's probe pushes two of the army's
+    /// units, `Group::add` brings both squads, and the original's army
+    /// issues every later order to the nine that are left. Here the
+    /// fixture is the same shape at two units — push one of them, and the
+    /// army is one unit, one captain, one standard.
+    #[test]
+    fn a_pushed_group_takes_its_members_out_of_the_army() {
+        let mut s = sim();
+        let t = fighter(&mut s);
+        let a = spawn(&mut s, 1, t, Pos::new(0x1000, 0x1000));
+        let b = spawn(&mut s, 1, t, Pos::new(0x1100, 0x1000));
+        let slot = s.init_army(1, None);
+        s.army_add_unit(1, slot, a);
+        s.army_add_unit(1, slot, b);
+        assert_eq!(
+            (
+                s.armies[1].list[slot].units.clone(),
+                s.armies[1].list[slot].num_captains
+            ),
+            (vec![a, b], 2),
+            "the army's one group holds both"
+        );
+        // `push_group(force = 1)`, the probe's own call.
+        assert!(s.push_group(&group_of(1, &[a]), true));
+        assert_eq!(
+            s.armies[1].list[slot].units,
+            vec![b],
+            "the pushed member is killed out of the army's group"
+        );
+        assert_eq!(
+            (
+                s.armies[1].list[slot].num_units,
+                s.armies[1].list[slot].num_captains,
+                s.armies[1].list[slot].num_standard
+            ),
+            (1, 1, 1),
+            "and `Army::normalize` recounts what is left"
+        );
+        // A group the army never held leaves it alone.
+        let c = spawn(&mut s, 1, t, Pos::new(0x1200, 0x1000));
+        assert!(s.push_group(&group_of(1, &[c]), true));
+        assert_eq!(
+            s.armies[1].list[slot].units,
+            vec![b],
+            "a non-member's push is not the army's business"
+        );
     }
 
     /// An army of two on land takes **`GroupMoveOrder`s** and a lone one

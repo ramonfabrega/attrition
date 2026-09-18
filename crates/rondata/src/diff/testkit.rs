@@ -1195,7 +1195,16 @@ pub(crate) const EAST_INDIES_FIRST_SCHOLAR: i64 = 8_466;
 /// had been reading it off. A wealth shortfall enters the sell branch
 /// without a price, so the draw is exact where it is taken.
 /// [`sim::ai_make::SITE_MARKET_SELL`], `docs/AI.md` §40.
-pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 8619;
+///
+/// **8628 since item 350**, which is `Unit::do_idle` again and a different
+/// unit: 8619's extra idle draw was `1/39`'s, and `1/39` was standing at
+/// its destination nine frames early because the AI army it marches with
+/// held **fifteen** units where the original's holds nine.
+/// `Groups::push_group` kills each member out of the group it was in
+/// (`docs/GROUPS.md` §3.2), so §12's probe at 8186 takes its six out of
+/// the army for good — and 8442's retarget then turns six units the
+/// original leaves walking. `docs/ARMY.md` §3.4.
+pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 8628;
 
 /// The frame Great Lakes' **second** squad joins the army on — 6994, the
 /// word's own parting from 2026-09-06 to 2026-09-07 and now a landed
