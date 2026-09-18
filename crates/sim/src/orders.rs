@@ -5190,9 +5190,14 @@ impl Sim {
         // `Unit::fight@005fd4d0`, `LAB_005fd648`:
         // `set_new_location(this, div_3_table[x >> 4] * 0x30 + 0x18, …, 1,
         // 0)` — the unit is put on its 48-unit cell centre before the
-        // function does anything else. The arm is skipped only by a
-        // recharging unit that is not a cavalry archer, which is the
-        // branch the reload gate below models.
+        // function does anything else. §7.11's table has four rows and
+        // this is the first: the snap is skipped **only** by a recharging
+        // unit that is neither §7.10's re-entry latch on an invalid target
+        // nor a cavalry archer (`unit_flags & 0x400`), and those two rows
+        // are unmodelled seams, not coverage — the reload gate below
+        // returns for *every* recharging unit. Nothing on disk has a
+        // recharging unit enter `fight`, which is what a capture would
+        // have to carry to refuse them (item 336).
         if state.recharging == 0 {
             let snap = crate::collide::ucell_centre(crate::collide::ucell(self.units[u].pos));
             self.set_new_location(u, snap, true);

@@ -2668,7 +2668,7 @@ which is what a grep of every dumped record says.
 
 ---
 
-## 7. The attack order, and the other combat orders
+## 7. The attack order
 
 ### 7.1 `AttackOrder` — the fields, what writes them
 
@@ -2845,14 +2845,10 @@ Six coordinates, six exact. None of the three is a step: `1/42` had been
 walking at 26 units a frame on a heading of `-1599012864`, and its move here is
 10 units **back** along it, with `angle` unchanged.
 
-**Why it was worth fifteen frames of the long word.** Without the snap this
-crate left all three where they stood and then walked the original's own
-per-frame velocity from a point offset by a constant — `1/42` by exactly
-`(−5, +9)` — for the rest of the 24,000-frame capture. The draw stream saw
-nothing for fifteen frames and then parted on **one** blocked stand
-(`Guy::set_anim+0x97a < Unit::move_step+0x823`) that this crate spent on 8201
-and the original on 8202. Great Lakes' long word 8201 → 8272, and run19's last
-block, 8201, now agrees on all three walkers to the unit.
+Without the snap each walker kept a constant offset — `1/42`'s was
+`(−5, +9)` — for the rest of the capture, and the draw stream noticed
+fifteen frames later. Great Lakes' long word 8201 → 8272
+(`docs/journal/2026-09-17-item-336.md`).
 
 **What this does not establish.** The two widening arms of the gate are read,
 not diffed: nothing on disk has a **recharging** unit enter `fight`, so neither
@@ -2862,6 +2858,8 @@ snap here where the original's would. Nor is it established what the snap is
 *for*: the 48-grid searches downstream (§7.10's chase, `find_upath`) all start
 from a cell, which is the obvious reading, but no run has been made to fail by
 starting one off-centre.
+
+## The other combat orders (§7.3 – §7.9)
 
 ### 7.3 `ATTACK_GROUND` — `do_attack_ground@005f1410`
 

@@ -1087,7 +1087,7 @@ pub(crate) const LONG_WORD_EAST_INDIES: i64 = 8_466;
 /// frame earlier, and every failed 48-grid search under a transit order
 /// delays rather than cancels. `docs/ORDERS.md` §7.10 and
 /// `docs/PATHFINDER.md` §21.
-pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 8201;
+pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 8272;
 
 /// The frame Great Lakes' **second** squad joins the army on — 6994, the
 /// word's own parting from 2026-09-06 to 2026-09-07 and now a landed

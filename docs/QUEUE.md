@@ -12,35 +12,36 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-17, an Opus commander loop: fourteen landings, nine word-moving,
-~567 USD over 22 sessions. **EI +654, GL +522.** Next: 336.*
+*2026-09-17, an Opus commander loop: fifteen landings, ten word-moving.
+**EI +654, GL +593.** Next: 338. The day's price is parked (330).*
 
-- **East Indies 8193 → 8466** (item 334): a half-built market replanning
-  its roads, which `Build::process`'s `is_active` gate forbids — 200 extra
-  `calc_road_cost` draws on one frame, the replan run above the gate
-  instead of below it. So **Great Lakes 8201 is the headline again**, one
-  item after it took the lead.
-- **The cheapest worker of the day moved the most frames.** 334 cost
-  **11.33 USD** and landed **+273**. Its brief carried the disk grep
-  already done — this map's dumps stop at 7916, run54 is `MISC` alone — so
-  the worker widened where it would have surveyed. Keep that brief shape.
-- **Grep the disk before writing the brief, not only before a capture.**
-  Four minutes, and it changed both maps' items: East Indies' word had no
-  dumped record within 277 frames, and Great Lakes' **does** — run19 runs
-  to **8201**, its last block, behind a filename that says 8192.
-- **A dictated commit trailer records what the commander expected**, not
-  what ran — Ramon's catch, parked as 335. The realised half is this
-  session: the harness's attribution reminder said Fable on an Opus run.
+- **Great Lakes 8201 → 8272** (item 336): `Unit::fight@005fd4d0` snaps the
+  unit onto its 48-unit cell centre at its own entry, one call `do_attack`
+  never made. Great Lakes stays the headline; East Indies sits at 8466,
+  so the maps have swapped twice in a day.
+- **Both words are now past every detail capture on disk** — Great Lakes'
+  nearest is run19's 8201, **71** frames below; East Indies' run90's 7916,
+  **550** below. The value diff, which tells a right destination from a
+  wrong one the draw stream agrees with, is unavailable at the frontier
+  until a capture is taken. This file's rule *books* it; spending a lane
+  on it is the next structural call.
+- **A self-written trailer was verified for the first time**: 336 wrote
+  `Claude Opus 5`, its transcript says so. Briefs no longer dictate it (335).
+- **A worker's gate can be green while the tree is red.** 336 reported the
+  rondata half, "299 passed / 1 failed", and never saw its §7.11 put
+  `ORDERS.md` §7 over the size ceiling. Split on merge; the reporting gap
+  is worth a guard row.
 - One item open, twenty-seven parked. **Fable backlog: seven Loop items in
   `docs/PARKED.md`** (313, 318, 321, 330, 331, 332, 335), invisible at boot
   until this line. 330/331 carry the price, 335 the trailer's sources.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w8466 of 24,000 · GreatLakes w8201 of 24,000
-Endpoint 24001: EastIndies 66 off, 13 unlinked · GreatLakes 69 off, 13 unlinked
+Long captures: EastIndies w8466 of 24,000 · GreatLakes w8272 of 24,000
+Endpoint 24001: EastIndies 66 off, 13 unlinked · GreatLakes 64 off, 17 unlinked
 
-**Opener: 336 — widen Great Lakes 8201 whole. run19's last block IS that
-frame, so unlike 334 the record is on disk; the frame after it is not.**
+**Opener: 338 — widen Great Lakes 8272. Nothing dumps it (run19 stops at
+8201), so it is trace-first like 334, and its other product is the capture
+brief the frontier now needs on both maps.**
 
 ## The queue
 
@@ -50,14 +51,14 @@ unless a better order is obvious, and say so. Numbers are stable; the
 backlog is `docs/PARKED.md`, and an item comes back from it only when a
 score names it.
 
-336. **Great Lakes 8201 is the headline again, and run19 dumps it** —
-    East Indies crossed back at 8466 (334). No item names 8201's frame, so
-    by this file's own rule the brief is its widening: every record, every
-    slot, every field, every unit on 8201 and the frames below it.
-    **run19 runs 8174–8201** despite its filename — the word's own frame is
-    its **last block**, so the frame *after* is the one thing no capture
-    holds. Parked 333 (`1/28`'s path stack 41 against run19's 42, a
-    `find_wpath` waypoint) is a candidate the widening tests, never assumes.
+338. **Great Lakes 8272, and the frontier has outrun the captures** —
+    336 moved the word past run19's last block, so **no dumped record
+    covers it**; the nearest is 8201, 71 frames below. Trace-first, then,
+    exactly like 334: `RON_DEBUG_SITES`/`_FOLD`/`_UNIT` on run53's test,
+    both sequences whole, every unit, then the cause. Its other product is
+    the **capture brief** both maps now need — the window, the categories,
+    the rows that would refuse the reading. Parked 333 (`1/28`'s stack 41
+    against run19's 42) stays a candidate, never an assumption.
 
 ## How to maintain this file
 
