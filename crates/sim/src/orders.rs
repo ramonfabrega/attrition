@@ -3122,6 +3122,42 @@ impl Sim {
         if let Some(m) = self.current_move(u) {
             mo.coll = m.coll;
         }
+        if let Some(_other) = hit
+            && step.snapped
+        {
+            // **The snap arm's own collision block** (`005fb3bd`,
+            // `docs/COLLISION.md` §5.4). `move_step` splits on
+            // `param_2 < local_28` and has a collision block on *each*
+            // side; this crate had only the partial step's, and spent it
+            // for both. The snap's does none of what §5 lists — no
+            // sidestep snap-through, no wait on an owed turn, no
+            // `resolve_unit_collision`, no widened tolerance. It clears
+            // the collider the probe just named (`field_0x8a = 0xffff`,
+            // `field_0xb3 = 0xff` — `collide_o` and `collide_who`),
+            // consumes the waypoint where the unit stands, and falls into
+            // the same tail the accepted step uses.
+            //
+            // Great Lakes 9134 is the frame: `1/32` walks its formation
+            // slot in ~24-unit hops, arrives on each within one step, and
+            // on 9134 the hop it snaps to is blocked. The original stands
+            // for the frame and does everything else one frame later;
+            // this crate ran the give-up chain, snapped the unit back to
+            // `(42792, 22824)` and ungrouped it a frame early.
+            self.units[u].collide_o = -1;
+            self.units[u].collide_who = -1;
+            mo.has_waypoint = false;
+            let popped = self.units[u].path.pop();
+            self.mark(crate::anim::SITE_SNAP_BLOCKED);
+            self.set_default_anim(u);
+            let flags = self.current_order(u).map_or(0, |o| o.flags);
+            self.store_move(u, mo, flags);
+            self.units[u].movement.dest = None;
+            if popped.is_none_or(|p| p.flags & path_flag::FINAL == 0) {
+                return Did::Something;
+            }
+            self.arrive(u, mo, true);
+            return Did::Something;
+        }
         if let Some(other) = hit {
             let (dx, dy) = (mo.waypoint.x - from.x, mo.waypoint.y - from.y);
             let through = top.is_some_and(|t| t.flags & path_flag::SIDESTEP != 0)

@@ -138,6 +138,16 @@ pub const SITES: &[(u32, Option<u32>, &str)] = &[
         Some(0x005f_b753), // `Unit::move_step+0x823`, the blocked stand
         sim::anim::SITE_BLOCKED,
     ),
+    // …and the **snap** arm's own, which is a different block at a
+    // different address: `Unit::move_step+0x4e2`, the collision the
+    // Manhattan arrival runs into (`docs/COLLISION.md` §5.4). Until item
+    // 360 this crate spent `+0x823` for both and the trace printed a bare
+    // `5dac7a` for the original's, which is a comparison that cannot fail.
+    (
+        0x005d_ac7a,
+        Some(0x005f_b412), // `Unit::move_step+0x4e2`, the snap's stand
+        sim::anim::SITE_SNAP_BLOCKED,
+    ),
     // …and the **turning** stand, three chains of `Guy::do_turn+0x4a`
     // (`005d97ea`). The `via` is the frame above `do_turn`, which is what
     // tells the three callers of the override apart: `Unit::move_step`'s

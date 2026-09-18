@@ -609,11 +609,21 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // seated scholars are still exact, and the one on the wrong
         // university moved `1/52` to `1/56` carrying the same vector.
         // DECISIONS 36 asks for the number rather than a trade.
+        // And **6 → 10 unlinked and 9 → 10 build_diverged** on 2026-09-18,
+        // item 360 — `Unit::move_step`'s *arrival* arm getting its own
+        // collision block (`docs/COLLISION.md` §5.4), which moves this
+        // map's word 9134 → 9182. `off` does not move at all; four more of
+        // the roster go missing and one more building field-row is out,
+        // 14,800 frames past the word. Every unit on this map that has ever
+        // been blocked on the frame it snaps onto a waypoint now stands for
+        // that frame instead of being resolved out of the way, so the
+        // late-game deal shifts. DECISIONS 36 asks for the number rather
+        // than a trade.
         off: 57,
-        unlinked: 6,
+        unlinked: 10,
         extra: 0,
         build_unlinked: 0,
-        build_diverged: 9,
+        build_diverged: 10,
         city_unlinked: 3,
         city_diverged: 0,
     },
