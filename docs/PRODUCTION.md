@@ -485,7 +485,10 @@ first order of a type yielded both the bit and a unit. It yields the bit.)
 `Build::train` itself is short. `Objects::init_unit` places the unit at the
 building's own position and returns its index, or a negative on failure;
 `Unit::go_inside` then puts it *into* the building, so every unit is born
-garrisoned and leaves by the ejection path. Stance and gather-point orders are
+garrisoned and leaves by the ejection path — **except a scholar trained at a
+university, which stays in it** (`docs/CITIES.md` §6.5.2: the exit block's
+`is(0x1a4)` arm re-reads the trained type's `is_scholar` and compares
+`gather_max` against `num_inside(1)`). Stance and gather-point orders are
 applied on the way out. `finished` returns 1 whether or not `init_unit`
 succeeded, so a placement failure still removes the entry.
 

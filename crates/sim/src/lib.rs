@@ -2071,7 +2071,34 @@ impl Sim {
             self.units[f].stance = stance;
         }
         self.go_inside(unit, at);
-        self.come_out(unit);
+        // **A scholar trained at a university stays in it** — the `else`
+        // arm of `Build::train@0062f9b0`'s exit block, reached when the
+        // *trainer* answers `ObjectData::is(0x1a4)`. It re-reads the
+        // **trained type's** `is_scholar` (`UnitTypeData +0x4` in
+        // `0x34`/`0x35`, `ObjectData::is_scholar@0046d330`), and only then
+        // compares `BuildData::gather_max` (`+0x80`, a `char`, settled by
+        // the type record) against `ObjectData::num_inside(1)` — the count
+        // *after* the unit is in. Over the limit it ejects like anyone
+        // else; at or under it calls `check_gatherers` and the scholar
+        // never reaches the exit ring.
+        //
+        // Great Lakes 8285 is what this is: `1/44`, the game's first
+        // scholar, was let out on 8272 by this crate and walked back in
+        // thirteen frames later, spending
+        // [`SITE_GO_INSIDE`](crate::anim::SITE_GO_INSIDE) a second time
+        // where the original spends it once (`docs/CITIES.md` §6.5.2).
+        // `num_inside(1)` is [`Sim::squads_inside`] here: a scholar's
+        // `uber_size` is 1, so the chain count and the captain count are
+        // the same number on every path this arm can take.
+        let inside = self.squads_inside(at);
+        let stays = self.building_ident(at) == crate::build::Ident::University
+            && self.worker_of(unit) == crate::orders::Worker::Scholar
+            && self.buildings[at].gather_max.is_none_or(|m| inside <= m);
+        if stays {
+            self.check_gatherers(at);
+        } else {
+            self.come_out(unit);
+        }
         self.economy_changed(who);
         Produced { unit, ty, at }
     }

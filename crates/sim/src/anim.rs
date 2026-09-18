@@ -139,6 +139,15 @@ pub const SITE_CAST: &str = "Guy::set_anim+0x97a < do_cast";
 /// own mark (`docs/CARAVAN.md` §7.1).
 pub const SITE_TRADE: &str = "Guy::set_anim+0x97a < do_trade";
 
+/// `Guy::set_anim+0x97a` under `Unit::go_inside+0x280` — the **scholar's
+/// seating**, the last statement but one of `Unit::go_inside@0061a2e0` and
+/// the fourteenth caller of this address (`docs/CITIES.md` §6.5.2). A unit
+/// whose `ObjectData::is_scholar` holds is snapped onto its host, turned to
+/// angle 0 and given `set_anim(CHAR_DEFAULT, 1, 1)`; the `force` is what
+/// makes the roll unconditional, so the draw is spent once a scholar, in
+/// the phase the container took it in rather than in `inc_time`.
+pub const SITE_GO_INSIDE: &str = "Guy::set_anim+0x97a < Unit::go_inside+0x280";
+
 /// `Guy::init_real@005db6b0`'s variant roll, one per guy created.
 pub const SITE_INIT_REAL: &str = "Guy::init_real+0x52";
 

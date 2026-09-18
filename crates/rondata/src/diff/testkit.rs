@@ -557,7 +557,14 @@ fn indexed_siblings_preserve_every_initial_field_except_audit_bodies() {
 /// serve and stood in `do_move`'s block for the rest of the capture. With
 /// that one call under the pop the wiring is free on Great Lakes and this
 /// word runs to **8193** (`docs/PATHFINDER.md` §18.5).
-pub(crate) const LONG_WORD_EAST_INDIES: i64 = 8_466;
+///
+/// **8466 → 8495 on item 338**, and this map's word was the *same event*
+/// as Great Lakes' 8272: run54's 8466 is East Indies' own first scholar
+/// seating, one of the fourteen `Unit::go_inside+0x280` draws in its
+/// 24,000 frames. Neither map's item named the other, and one change
+/// moved both — see [`LONG_WORD_GREAT_LAKES`] and `docs/CITIES.md`
+/// §6.5.2.
+pub(crate) const LONG_WORD_EAST_INDIES: i64 = 8_495;
 
 /// Great Lakes' word on the **long** capture (run53), the second of
 /// `docs/DECISIONS.md` entry 29's counters — and, since run61 put the
@@ -1087,7 +1094,35 @@ pub(crate) const LONG_WORD_EAST_INDIES: i64 = 8_466;
 /// frame earlier, and every failed 48-grid search under a transit order
 /// delays rather than cancels. `docs/ORDERS.md` §7.10 and
 /// `docs/PATHFINDER.md` §21.
-pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 8272;
+///
+/// **8272 → 8374 on item 338, and the two counters meet.** 8272 is the
+/// game's **first scholar**, and both halves of the difference are one
+/// mechanic. `Unit::go_inside@0061a2e0`'s tail is gated on
+/// `ObjectData::is_scholar` (`UnitTypeData +0x4` in `0x34`/`0x35`) and
+/// snaps the unit onto its host, faces it to angle 0 and calls
+/// `set_anim(CHAR_DEFAULT, 1, 1)` — a **fourteenth** caller of
+/// `Guy::set_anim+0x97a`, which [`crate::trace::SITES`] had never carried.
+/// The forced idle spends its roll in the container's own phase *and*
+/// leaves the new guy a real `end_time`, so the wrap this crate used to
+/// spend in `Objects::inc_time` never fires: one draw replaced one draw,
+/// which is why the **count** never parted here and only the sequence did.
+/// Then `Build::train`'s own scholar arm — a scholar trained at a
+/// university stays in it, `check_gatherers` rather than `come_out`,
+/// unless `BuildData::gather_max` (`+0x80`) is exceeded — without which
+/// the same unit `1/44` walked back in and seated itself a second time on
+/// 8285.
+///
+/// **The value diff is run80's**, Great Lakes 23960–24001, 15,700 frames
+/// past the word: block 24001 has fourteen scholars sitting on their two
+/// universities' exact points. `1/44` — this item's own unit — stood
+/// `(24, 552)` off it, the exit ring, and now agrees exactly at
+/// `(40416, 25248)`, which is building `1/2019`'s own position; `1/45`,
+/// `1/48`, `1/49`, `1/50` and `1/56` join it, six of the eleven compared
+/// where none agreed before. The four still out are off by exactly
+/// `±(768, 9984)`, which *is* `1/2020 − 1/2019`, so the seating arithmetic
+/// is right and which university a scholar walks to is the successor.
+/// `docs/CITIES.md` §6.5.2.
+pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 8374;
 
 /// The frame Great Lakes' **second** squad joins the army on — 6994, the
 /// word's own parting from 2026-09-06 to 2026-09-07 and now a landed

@@ -304,11 +304,21 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // 8193 → 8466. Seven positions closer, six spurious units, one
         // building linked and two more field-rows out, 15,535 frames past
         // the word. DECISIONS 36: the number, not a trade.
-        off: 66,
-        unlinked: 13,
+        // And **66 → 62, 13 → 10 and 30 → 29** on 2026-09-18, item 338
+        // — the **scholar's seating** (`docs/CITIES.md` §6.5.2).
+        // `Unit::go_inside`'s tail snaps an `is_scholar` unit onto its
+        // host, and `Build::train` keeps a scholar trained at a
+        // university inside it; every scholar
+        // in the game therefore stops standing on the exit ring. That is
+        // fourteen units on Great Lakes and the same mechanism on East
+        // Indies, 15,500 frames past both words — which the change moves
+        // together, 8272 → 8374 and 8466 → 8495. DECISIONS 36 asks for the
+        // number rather than a trade.
+        off: 62,
+        unlinked: 10,
         extra: 0,
         build_unlinked: 0,
-        build_diverged: 30,
+        build_diverged: 29,
         city_unlinked: 3,
         city_diverged: 0,
     },
@@ -454,8 +464,18 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // East Indies' own endpoint is unchanged on the same commit, which
         // is what says this is a Great Lakes cast rather than a shared
         // reshuffle. DECISIONS 36 asks for the number rather than a trade.
-        off: 64,
-        unlinked: 17,
+        // And **64 → 61 and 17 → 15** on 2026-09-18, item 338 — the
+        // **scholar's seating** (`docs/CITIES.md` §6.5.2).
+        // `Unit::go_inside`'s tail snaps an `is_scholar` unit onto its
+        // host, and `Build::train` keeps a scholar trained at a
+        // university inside it; every scholar
+        // in the game therefore stops standing on the exit ring. That is
+        // fourteen units on Great Lakes and the same mechanism on East
+        // Indies, 15,500 frames past both words — which the change moves
+        // together, 8272 → 8374 and 8466 → 8495. DECISIONS 36 asks for the
+        // number rather than a trade.
+        off: 61,
+        unlinked: 15,
         extra: 0,
         build_unlinked: 0,
         build_diverged: 10,
@@ -503,7 +523,17 @@ pub const LADDER: [Endpoint; 2] = [
         // 7585 → 7679 and takes fourteen off its endpoint. **Re-pinned at
         // the 294/295 merge**: 46 again — 294's own row moved `extra` and
         // not `off`, and the merged tree keeps this rung's position.
-        off: 46,
+        // And **46 → 43, 19 → 22 and 7 → 6** on 2026-09-18, item 338
+        // — the **scholar's seating** (`docs/CITIES.md` §6.5.2).
+        // `Unit::go_inside`'s tail snaps an `is_scholar` unit onto its
+        // host, and `Build::train` keeps a scholar trained at a
+        // university inside it; every scholar
+        // in the game therefore stops standing on the exit ring. That is
+        // fourteen units on Great Lakes and the same mechanism on East
+        // Indies, 15,500 frames past both words — which the change moves
+        // together, 8272 → 8374 and 8466 → 8495. DECISIONS 36 asks for the
+        // number rather than a trade.
+        off: 43,
         unlinked: 17,
         // 20 → 21 on 2026-09-07, item 267's repaint: one spurious unit
         // back, 7,872 frames past the word, and nothing else on this rung
@@ -551,9 +581,9 @@ pub const LADDER: [Endpoint; 2] = [
         // gate (`docs/ROADS.md` §1.1): four spurious units and one
         // building field-row gone, 7,872 frames past this rung's word,
         // with `off` and `unlinked` unmoved.
-        extra: 19,
+        extra: 22,
         build_unlinked: 10,
-        build_diverged: 7,
+        build_diverged: 6,
         city_unlinked: 3,
         city_diverged: 0,
     },
@@ -588,7 +618,15 @@ pub const LADDER: [Endpoint; 2] = [
         // gate (`docs/ROADS.md` §1.1): two positions out and one spurious
         // unit gone, 8,960 frames past this rung's word. The C rung moved
         // the other way on the same change.
-        off: 53,
+        // And **53 → 48 and 15 → 18** on 2026-09-18, item 338 — the
+        // **scholar's seating** (`docs/CITIES.md` §6.5.2).
+        // `Unit::go_inside`'s tail snaps an `is_scholar` unit onto its
+        // host, and `Build::train` keeps a scholar trained at a
+        // university inside it; every scholar in the game therefore stops
+        // standing on the exit ring. Five positions closer and three more
+        // spurious units, 8,000 frames past this rung's word. DECISIONS 36
+        // asks for the number rather than a trade.
+        off: 48,
         unlinked: 16,
         // 19 → 33 on 2026-09-07, item 261, the same reshuffle, then 33 →
         // **27** the same day on item 265's byte — this rung took the
@@ -633,7 +671,7 @@ pub const LADDER: [Endpoint; 2] = [
         // spurious units back, the same count the C rung above gained, on
         // the change that takes Great Lakes' floor 8182 → 8186. The AI
         // trains what it was skipping, so both rungs gain extras.
-        extra: 15,
+        extra: 18,
         build_unlinked: 19,
         build_diverged: 0,
         city_unlinked: 4,
@@ -961,6 +999,65 @@ mod tests {
         let row = &ENDPOINTS[1];
         let Some(r) = score(row) else { return };
         pinned(row, &r);
+    }
+
+    /// **The scholars sit on their universities, and run80 says so** —
+    /// item 338's value diff (`docs/CITIES.md` §6.5.2).
+    ///
+    /// Great Lakes' block 24001 has fourteen of player 1's units standing
+    /// on exactly two points, `(40416, 25248)` and `(41184, 15264)`, which
+    /// are buildings `1/2019`'s and `1/2020`'s own positions — seven
+    /// apiece. That shape is `Unit::go_inside`'s scholar arm and nothing
+    /// else, 15,700 frames past the word.
+    ///
+    /// **This is a value check and not a count**, which is the point: the
+    /// row above it moves with every unrelated landing, and `off 61` says
+    /// nothing about *which* sixty-one. Before this item every scholar in
+    /// the game stood `(24, 552)` off — the exit ring — and not one of the
+    /// eleven the endpoint compares agreed. Six now do.
+    ///
+    /// The four that do not are asserted too, and by their **value**:
+    /// `1/51`, `1/52`, `1/53` and `1/55` are off by exactly
+    /// `±(768, 9984)`, which *is* `1/2020 − 1/2019`. So they are seated
+    /// correctly on the wrong host, the arithmetic is not in question, and
+    /// the successor is which university a scholar walks to. A fix that
+    /// moved them to any other offset would fail here rather than pass
+    /// quietly into the count.
+    #[test]
+    fn great_lakes_scholars_sit_on_their_universities() {
+        let row = &ENDPOINTS[1];
+        let Some(r) = score(row) else { return };
+        // The six the seating puts exactly right, `1/44` — the unit item
+        // 338's own frame is about — first.
+        let seated = [44, 45, 48, 49, 50, 56];
+        let still_off: Vec<i64> = seated
+            .iter()
+            .copied()
+            .filter(|&o| r.off.contains_key(&(1, o)))
+            .collect();
+        assert!(
+            still_off.is_empty(),
+            "Great Lakes 24001: scholars {still_off:?} are off run80's own \
+             coordinates again. `1/44` sits at (40416, 25248), which \
+             is building 1/2019's position; before the seating it \
+             stood (24, 552) out on the exit ring (CITIES §6.5.2)"
+        );
+        // And the four on the other university, by the vector between the
+        // two rather than by a count.
+        let delta = (768, 9984);
+        let wrong_host: Vec<(i64, (i32, i32))> = [51, 52, 53, 55]
+            .iter()
+            .map(|&o| (o, r.off.get(&(1, o)).copied().unwrap_or((0, 0))))
+            .collect();
+        for (o, (dx, dy)) in &wrong_host {
+            assert_eq!(
+                (dx.abs(), dy.abs()),
+                delta,
+                "1/{o} is off by ({dx}, {dy}), which is not 1/2020 − 1/2019. \
+                 These four are seated on the wrong university, \
+                 and that offset is what is left of item 338"
+            );
+        }
     }
 
     /// **The two rungs under the endpoint**, each its own game and its own

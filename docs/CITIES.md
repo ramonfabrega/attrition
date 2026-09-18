@@ -1295,11 +1295,20 @@ before issuing the order, refuses an `is_unassimilated` target, and `Group::
 action_alarm` (the town bell) garrisons every citizen into its city and sets
 `CITY_ALARM`.
 
-### 6.5 In and out — `go_inside`, `come_out`
+## In and out — `go_inside`, `come_out` (§6.5)
+
+A subsection of §6 by number, and its own `##` section by size: §6.5
+and its two findings are twelve of §6's twenty-one thousand bytes, over
+the guard's ceiling, and `CLAUDE.md` splits rather than shaves. The
+numbering is unchanged — §6.5, §6.5.1 and §6.5.2 are what the code
+cites and what it still cites.
+
+### 6.5 `Unit::go_inside`, `Unit::come_out`
 
 `Unit::go_inside(o, who)`: climb to the captain; `insert_inside`; a squad
 (`uber_size > 1`) entering a building clears its orders; the followers follow
-down the `o_down` chain; scholars are moved to the container position.
+down the `o_down` chain; **a scholar is seated on the container, faced to
+angle 0 and given a forced `CHAR_DEFAULT` — one draw, §6.5.2**.
 Callers: `do_garrison`, `action_garrison`, **`Build::train` (every trained
 unit is born inside)**, the flamethrower citizens, `do_gather`/`do_board`,
 transports, the editor.
@@ -1408,6 +1417,99 @@ bit (`006191a5`) and the not-a-captain arm calls
 separate it — both angles are `Unit::init`'s initial value — so it is not
 implemented here, and the falsifier is a squad ejected from a building whose
 captain has turned.
+
+#### 6.5.2 A scholar is seated on its host, and a trained one never leaves
+
+**Diff-backed and closed** (2026-09-18, run53/run54/run80, item 338). The
+one clause §6.5 already carried — "scholars are moved to the container
+position" — is three statements, and none of them was implemented. They are
+the last block but one of `Unit::go_inside@0061a2e0`, under a gate that is
+verbatim `ObjectData::is_scholar@0046d330`:
+
+```
+iVar3 = *(int *)(*(int *)&this->field_0x18 + 4);      /* UnitTypeData +0x4 */
+if ((iVar3 == 0x34) || (iVar3 == 0x35)) {             /* == is_scholar     */
+  leaders.list[who] |= 0x2000000;
+  host = objects[param_2][param_1];
+  set_new_location(this, host->x ^ 0x63637, host->y ^ 0x63637, 1, 1);
+  set_angle(this, 0, ..., 1);
+  set_anim(this, CHAR_DEFAULT, 1, 1);
+}
+```
+
+`UnitTypeData +0x4 in {0x34, 0x35}` is not read from the surrounding code:
+`ObjectData::is_peasant@0046d310`, `is_scholar@0046d330` and
+`is_worker@0046fa10` are that comparison and nothing else, so the predicate
+has a name in the executable's own symbols. It is this crate's
+`Worker::Scholar`. The block is inside the per-unit recursion, after
+`Object::insert_inside`, so each member of a squad takes it in turn — which
+for a scholar (`uber_size` 1) is once.
+
+**`set_anim(CHAR_DEFAULT, 1, 1)` is the draw, and its `force` is the point.**
+The second argument skips `Guy::set_anim`'s "already playing" early returns,
+so the idle roll is unconditional: one `game_random` draw a figure, at
+`Guy::set_anim+0x97a` through `Unit::set_anim+0x56` — the **fourteenth**
+caller of that address (`docs/ANIM.md` §4, `docs/SYNC.md` §5). Nothing on
+either map reached it before Great Lakes 8272, which is why the site table
+had thirteen. Across run53's 24,000 frames it fires on exactly fourteen
+frames (8272, 8680, 9087, 9201, 9322, 9510, 9717, 9861, 10012, 10140, 10306,
+13555, 13736, 17570) and run54's on fourteen more, the first of them **8466**
+— which was East Indies' own word.
+
+The draw is also what *stops* one. A unit created this frame is not skipped
+by `Objects::inc_time` (`docs/ANIM.md`, the `guys_inc_time` note), and a
+scholar is not skipped for being inside either, so with `Guy::init_real`'s
+zero `end_time` the new guy wrapped at once and spent `SITE_WRAP` in phase 7.
+The seating gives it a real length before that phase runs. One draw replaces
+one draw, in a different phase — so a frame's **count** is unchanged and only
+its **order** moves, and Great Lakes 8272 parted on the sequence while the
+word ran on to 8374.
+
+**And a trained scholar does not come out.** `Build::train@0062f9b0`'s exit
+block splits on the *trainer*: when the building answers `ObjectData::is`
+`0x1a4` — the University, the same test `num_scholars@0062d430`,
+`calc_gather@0062d360`, `num_gatherers@00630450` and `could_queue@0062da50`
+use — it re-reads the **trained type's** `is_scholar` and then compares
+`BuildData::gather_max` (`+0x80`, a `char`; the type record names it) against
+`ObjectData::num_inside(1)` *after* the unit is in. Over the limit it ejects
+like anything else; at or under it calls `check_gatherers` and the scholar
+stays. §6.5's caller list said "**`Build::train` (every trained unit is born
+inside)**" and this crate let every one of them straight out again, so
+Great Lakes' `1/44` was born on 8272, ejected, walked back to its own
+university and seated itself a second time on 8285.
+
+**The value diff.** run80 dumps Great Lakes 23960–24001 at full detail,
+15,700 frames past the word. Its block 24001 has fourteen of player 1's
+units standing on exactly two points — seven at `(40416, 25248)` and seven
+at `(41184, 15264)` — which are buildings `1/2019`'s and `1/2020`'s own
+positions. `1/44` was `(24, 552)` off, the exit ring, and is now exact;
+`1/45`, `1/48`, `1/49`, `1/50` and `1/56` with it, six of the eleven the
+endpoint compares where **none** agreed before. The endpoint moves
+64 → 61 off and 17 → 15 unlinked on this map, 66 → 62, 13 → 10 and 30 → 29
+on the other.
+
+**What this does not establish.** Three things.
+
+- **Which university a scholar walks to.** `1/51`, `1/52`, `1/53` and `1/55`
+  are still off at 24001, and by exactly `±(768, 9984)` — which is
+  `1/2020 − 1/2019`. So they are seated correctly, on the wrong host. That
+  is a `do_gather` target choice and not this section; run80's own block
+  refuses any answer that does not put seven in each.
+- **The two gates above the arm are read, not diffed.** `Build::train`'s
+  outer `(BuildTypeData +0x1e4 & 0x200) == 0` — `obj_masks`, by the type
+  record — skips the whole exit block when set, and this crate does not
+  model it; no capture on disk has a trainer that takes it, and every
+  building any capture trains from ejects. The `gather_inside` arm on the
+  non-university side is likewise unmodelled. The falsifier for both is a
+  `BUILDS`+`UNITS=3` window over a **full** university: a fifteenth scholar
+  trained at one already holding `gather_max` must appear on the exit ring
+  within a block, and must not if the outer gate is what actually fires.
+- **`leaders.list[who] |= 0x2000000`** is not modelled. It is set by
+  `Unit::work`, `do_gather`, `check_idle`, `close`, `come_out`,
+  `kill_current_order`, `Wall::init`, `City::assimilate` and a dozen more —
+  a repaint flag on every state change, and nothing this simulation reads.
+
+## Garrisons, continued (§6.6 – §6.8)
 
 ### 6.6 Ejecting a building — `eject_contents`, `process_ejection`
 
