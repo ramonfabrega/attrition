@@ -1269,6 +1269,8 @@ mod tests {
                 waypoint: tile_pos(40, 40),
                 last: None,
                 pause: 0,
+                retry: 0,
+                attempts: 0,
                 timer: 0,
                 coll: None,
                 group: None,

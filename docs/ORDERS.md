@@ -2727,7 +2727,10 @@ the call, `docs/COMBAT.md` §8.5).
 - **Opportunity check** (`docs/COMBAT.md` §8.2 step 0): an AI captain rolls;
   `check_target` fails → kill, `find_melee_target(−1)`.
 - **The 1/5 re-search** (not mandatory, not recharging, captain, unit
-  target): `Random::get % 5 == 0` or flag `0x10` → `find_new_target`.
+  target): ~~`Random::get % 5 == 0` or flag `0x10` → `find_new_target`~~ —
+  **the polarity was inverted** (item 329). `005fde80`-`005fde99`: the draw
+  is spent first, and `% 5 == 0` **or** the current order's `0x10`
+  *suppresses* the search. See §7.10 for what that bit is.
 - **Range.** `in_range = is_in_range(…)`; in range → `ever_in_range = 1`. Out
   of range: the packer rule. In range and a packed packer: `add_cast_order
   (UNPACK 0x28c, QUEUE_FIRST)`, return — unless an entrenched siege unit's
@@ -2748,9 +2751,9 @@ the call, `docs/COMBAT.md` §8.5).
   MOVE_TO, QUEUE_FIRST, 0)`** — the chase is a plain `MoveOrder` rotated above
   the attack; next frame `do_job` runs `do_move`, and the attack order is
   reached again when the move ends (arrival → `kill_current_order`) or
-  something rotates it out. If the chosen cell is not the unit's own, the
-  **action's** flag `0x10` is toggled and `do_idle` runs — what makes the next
-  `fight` re-search instead of trusting the target. While chasing, `do_move`
+  something rotates it out. ~~If the chosen cell is not the unit's own, the
+  **action's** flag `0x10` is toggled and `do_idle` runs~~ — wrong slot and
+  wrong effect; §7.10 has it. While chasing, `do_move`
   itself runs the every-4th-frame `find_new_target(0, 1)` (§4.4).
 - **The strike** sets `new_ord = 0` right after `set_attacking`; returns 1.
 
@@ -2762,6 +2765,39 @@ and from the generic paths (`die`, `close_orders` on any `QUEUE_NEW`, `Group::
 action_halt`). The target's death does not touch the attacker's order: it
 finds out on its next `fight` through `valid_target`; out of sight likewise
 (`is_seen`).
+
+### 7.10 The chase runs in the frame it is ordered (item 329, 2026-09-17)
+
+`fight`'s chase does **not** leave the unit standing until the next frame.
+`005fd4d0`'s tail, immediately after the `add_move_order` at `005fe390`:
+
+```
+005fe395  x == this->x ?  je out          ; both coordinates, so
+005fe3a6  y == this->y ?  je out          ; matching EITHER returns
+005fe3b9  eax = update_action(this)
+005fe3c0  test  0x10, [eax+4]
+005fe3c4  je    set-and-call
+          ;   set:  eax = update_action(this); andb ~0x10, [eax+4]; return
+005fe3da  set-and-call: eax = update_action(this); orb 0x10, [eax+4]
+005fe3e7  call  [this->vtable + 0x188]     ; Unit::work@0060d180
+```
+
+`Unit::vftable +0x188` is **`Unit::work`**, not `do_idle` — `+0x184` is
+`do_idle`, and the earlier reading was one slot out. So the new move is
+dispatched, planned and (when the plan is short enough) walked on the same
+tick, and the bit at `+0x10` on the **action** order is nothing but the
+recursion guard: set on the way in, cleared only by a nested `fight`, which
+the ordinary path never reaches because the nested `work` dispatches the
+*move*. It therefore **stays set** while the chase runs, which is what the
+other two readers of it see (§7.2's entry test, and the one-in-five
+suppression above). `crates/sim` calls it `flag::FIGHT_REENTRY`.
+
+**The value diff.** run19's block 8187 — the end of Great Lakes sim-frame
+8186, the frame `Army::find_target`'s probe orders six units to chase a
+farm — carries all six with **full path stacks** (43, 43, 43, 94, 47, 46
+entries) and the attack order's `UNITORDER flags 20` = `ACTION | 0x10`.
+Without the re-entry this crate planned nothing until 8187 and stepped on
+8188, a frame behind on every chase in the game.
 
 ### 7.3 `ATTACK_GROUND` — `do_attack_ground@005f1410`
 

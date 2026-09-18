@@ -159,6 +159,12 @@ pub const SITES: &[(u32, Option<u32>, &str)] = &[
     // `Unit::think_fish@005f4c60` — the jitter each accepted cell spends
     // (`docs/ORDERS.md` §6.8).
     (0x005f_4eda, None, sim::fish::SITE_JITTER),
+    // `PathFinder::astar_path@00683770`'s two unit-grid failure tails —
+    // the retry roll each buys a blocked mover (`docs/PATHFINDER.md` §21).
+    // Both are `Random::get`'s own return address, so neither needs a
+    // chain; they are separate entries because their gates differ.
+    (0x0068_4e07, None, sim::path::SITE_UPATH_RETRY),
+    (0x0068_48c9, None, sim::path::SITE_UPATH_RETRY_BUDGET),
     (0x005f_a882, None, sim::collide::SITE_PAUSE),
     // `Unit::explore_goody@005f9780+0x27c` — the goody box's lottery, one
     // draw a candidate good (`docs/GOODY.md` §3).

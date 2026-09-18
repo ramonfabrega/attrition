@@ -2051,15 +2051,13 @@ Not established:
   three melee figures the `0x30` arm; §17.5 has the split.
 - ~~**The even sides' stride and their exit test** are read but not
   checked against a candidate count~~ — they are now, by the 46.
-- The frame after this one, **8187**, spends a draw at
-  `PathFinder::astar_path+0x1697` — the failure tail of a **unit-grid**
-  search (`astar_path@00683770:964`, `param_2 == 0x30`, the open list
-  exhausted): `Random::get(0, 0xffff) % 3 + 6` into the order's move data
-  `+0x1c`, a six-to-eight-frame retry delay, under two further gates (the
-  order's vtable `+0x14`, and that move data's `+0x20 < 0xd`). Item 328
-  did **not** close it: the draw is downstream of a search that *fails*,
-  and this crate's does not fail there — on 8187 it spends two
-  `Guy::set_anim+0x97a < Guy::move+0x19f` draws instead, two of the six
-  taking a step the original does not. A pathfinder item
-  (`crates/sim/src/path.rs`'s exhaustion tail names the seam), and the
-  word now parts at **8187**.
+- ~~The frame after this one, **8187**, spends a draw at
+  `PathFinder::astar_path+0x1697` … a pathfinder item, and the word now
+  parts at 8187.~~ **Closed by item 329**, and the mechanism named here
+  was only half of it. The chase does not wait for the next frame at all:
+  `fight@005fd4d0`'s tail re-enters `Unit::work` (vtable `+0x188`) behind
+  a latch on the action order, so the six plan on **8186** — run19's block
+  8187 shows all six with full path stacks. §17.5's `add_move_order` is
+  therefore not the end of the frame's work. The retry roll itself, its
+  two tails and their unequal gates are `docs/PATHFINDER.md` §21. Great
+  Lakes' word parts at **8201**.

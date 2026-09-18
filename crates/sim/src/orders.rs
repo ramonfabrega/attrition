@@ -191,8 +191,18 @@ pub mod flag {
     pub const ACTION: u8 = 0x4;
     /// A DEFENSIVE unit's "this move is my post".
     pub const POST: u8 = 0x8;
-    /// An attack order's "re-target requested".
-    pub const RETARGET: u8 = 0x10;
+    /// **`Unit::fight`'s re-entrancy latch**, on the *action* order —
+    /// `005fe3b7`-`005fe3e7`: with the bit clear the chase tail sets it
+    /// and calls `Unit::work` again (vtable `+0x188`) so the move it just
+    /// pushed runs in the same frame; a nested `fight` finds it set,
+    /// clears it and returns without recursing (`docs/ORDERS.md` §7.10).
+    ///
+    /// It was `RETARGET` until item 329, read as "re-target requested"
+    /// and never written by anything, so the one arm that read it could
+    /// not fire. `Unit::do_attack@005f1b80` reads no order flag at all;
+    /// where `fight` reads this one on the *current* order it **narrows**
+    /// the search — `005fde93`'s one-in-five suppression.
+    pub const FIGHT_REENTRY: u8 = 0x10;
 }
 
 /// `QueuePos` — where an order goes (§1.5).
@@ -243,6 +253,20 @@ pub struct MoveOrder {
     /// Where the last straight-line plan was made.
     pub last: Option<Pos>,
     pub pause: i32,
+    /// **`MoveOrder +0x1c retry`** — the type record's own name, and not
+    /// `pause` beside it: the frames a move sits still after a **failed
+    /// unit-grid search** (`crate::path`, `docs/PATHFINDER.md` §21).
+    /// `do_move@005f7b30:348` counts it down and does nothing else on
+    /// every frame it is non-zero; the frame it reaches zero,
+    /// [`MoveOrder::attempts`] gains 3.
+    pub retry: i32,
+    /// **`MoveOrder +0x20 attempts`** — the counter that decides whether a
+    /// *further* failure is allowed to buy another [`MoveOrder::retry`].
+    /// `do_move` decays it by one on every frame that reaches the planner,
+    /// a spent `retry` adds 3, and `astar_path`'s open-list-exhausted tail
+    /// rolls a new delay only while it is **under 13**
+    /// (`astar_path@00683770:949`). The work-cap tail has no such gate.
+    pub attempts: i32,
     pub timer: i32,
     /// `MoveOrder +0x3c/+0x40 coll_x/coll_y` — the point the last
     /// collision refused, which `resolve_unit_collision` sidesteps from
@@ -1026,6 +1050,8 @@ impl Sim {
                 waypoint: dest,
                 last: None,
                 pause: 0,
+                retry: 0,
+                attempts: 0,
                 timer: 0,
                 coll: None,
                 group,
@@ -1836,6 +1862,30 @@ impl Sim {
             }
         }
 
+        // **The retry delay a failed unit-grid search bought**
+        // (`do_move@005f7b30:348`-`355`, `docs/PATHFINDER.md` §21). It sits
+        // between the action tests and the planner, and while it stands the
+        // move does nothing at all — no plan, no waypoint, no step. The
+        // frame it runs out, `attempts` gains 3, which is what stops a unit
+        // wedged against a neighbour buying delay after delay for ever.
+        if mo.retry != 0 {
+            mo.retry -= 1;
+            if mo.retry == 0 {
+                mo.attempts += 3;
+            }
+            self.store_move(u, mo, flags);
+            return Did::Something;
+        }
+        // And the decay, on every frame that reaches the planner
+        // (`005f7b30:369`). SEAM: the modern-infantry unpack between the
+        // two — `is_modern_infantry && !has_general(0x8000)` on a
+        // `(o * 0x11 + frame) & 0x7f == 0` phase, which sets `retry` from
+        // the type's `+0x78` and `attempts` to −3 — is not modelled; no
+        // capture has a packed type in it.
+        if mo.attempts != 0 {
+            mo.attempts -= 1;
+            self.store_move(u, mo, flags);
+        }
         // Planning: the first time, or with an empty stack. Every fresh
         // move calls `find_wpath` exactly once; a refusal re-pushes the
         // goal and falls back to the tile grid (§4.4).
@@ -5112,7 +5162,12 @@ impl Sim {
             return;
         }
         let state = self.units[u].combat;
-        if !self.valid_target(me, target) || flags & flag::RETARGET != 0 {
+        // `Unit::do_attack@005f1b80` reads **no** order flag — grep it —
+        // so the `flags & 0x10` half this test used to carry was nobody's
+        // reading and, since nothing wrote the bit, a clause that could
+        // not fire. Item 329 gave the bit its real writer
+        // ([`flag::FIGHT_REENTRY`]) and its real readers, both in `fight`.
+        if !self.valid_target(me, target) {
             // `find_new_target`: the idle search with the order dropped.
             self.kill_current_order(u);
             if let Some(t) = self.find_melee_target(u, -1) {
@@ -5148,8 +5203,14 @@ impl Sim {
             && let Obj::Unit(t) = target
         {
             let roll = self.rng.roll();
+            // `Unit::fight@005fd4d0`, `005fde80`-`005fde99`: the draw is
+            // spent first and **then** the two suppressions are read —
+            // `roll % 5 == 0`, or the current order carrying the chase
+            // latch. So a latched order costs the draw and skips the
+            // search, which is what keeps the frame's count right.
             if !self.profile(Obj::Unit(t)).combat_role
                 && roll % 5 != 0
+                && flags & flag::FIGHT_REENTRY == 0
                 && let Some(f) = self.find_melee_target(u, -1)
                 && f != target
             {
@@ -5185,6 +5246,47 @@ impl Sim {
             None => self.pos_of(target),
         };
         self.add_move_order(u, dest, MoveKind::MoveTo, QueuePos::First, false);
+        self.chase_reentry(u, here, dest, frame);
+    }
+
+    /// **The chase runs in the frame it is ordered** — `Unit::fight@
+    /// 005fd4d0`'s tail, `005fe395`-`005fe3e7`, and `docs/ORDERS.md`
+    /// §7.10.
+    ///
+    /// `add_move_order` has just put the chase in front of the attack.
+    /// The original does not then leave the unit standing: it re-enters
+    /// **`Unit::work`** through vtable `+0x188`, so the move is dispatched,
+    /// planned and — when the plan is short enough — walked on this same
+    /// tick. `docs/ORDERS.md` §7.10 has the value diff: run19's block 8187
+    /// carries all six of the probe's units with a **full path stack**
+    /// (43, 43, 43, 94, 47, 46 entries) at the end of sim-frame 8186, the
+    /// frame the chase was ordered, and this crate planned nothing until
+    /// 8187.
+    ///
+    /// Two gates, both from the listing:
+    ///
+    /// - `005fe395`-`005fe3b1`: two `je`s out, one per coordinate. The
+    ///   re-entry happens only when the chosen spot differs from the
+    ///   unit's own position in **both** x and y — matching either one
+    ///   returns.
+    /// - `005fe3b7`-`005fe3e7`: the action order's [`flag::FIGHT_REENTRY`].
+    ///   Clear, it is set and `work` is called; set, it is cleared and
+    ///   nothing recurses. That is the whole recursion guard, and it
+    ///   leaves the latch **standing** on the ordinary path, because the
+    ///   nested call dispatches the new move rather than `fight`.
+    fn chase_reentry(&mut self, u: usize, here: Pos, dest: Pos, frame: i64) {
+        if dest.x == here.x || dest.y == here.y {
+            return;
+        }
+        let Some(a) = self.update_action(u) else {
+            return;
+        };
+        if self.units[u].orders[a].flags & flag::FIGHT_REENTRY == 0 {
+            self.units[u].orders[a].flags |= flag::FIGHT_REENTRY;
+            self.work(u, frame);
+        } else {
+            self.units[u].orders[a].flags &= !flag::FIGHT_REENTRY;
+        }
     }
 
     fn store_attack(&mut self, u: usize, a: AttackOrder) {

@@ -419,6 +419,12 @@ mod tests {
                     _ => None,
                 },
                 pause: i(od.pause),
+                // `MoveOrder +0x1c`/`+0x20` — the failed unit-grid
+                // search's retry delay and its ceiling counter, which a
+                // unit stood up from a dump carries like every other
+                // field (`docs/PATHFINDER.md` §21).
+                retry: i(od.retry),
+                attempts: i(od.attempts),
                 timer: i(od.timer),
                 // `coll_x`/`coll_y`, the point the last collision refused
                 // (`docs/COLLISION.md` §4.3). The original leaves 0 rather

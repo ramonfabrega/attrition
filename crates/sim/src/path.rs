@@ -203,6 +203,21 @@ pub(crate) mod loc {
 /// (`0x10`), forest (`0x20`) and the unnamed `0x40` beside them.
 const SEA_REFUSES: u16 = 0x70;
 
+/// **The unit-grid search's retry roll, open-list-exhausted tail** —
+/// `Random::get(game_random, 0, 0xffff)` at `00684e02`, so the trace's
+/// return address is `00684e07` (`astar_path@00683770+0x1697`). `% 3 + 6`
+/// goes into the current order's `MoveOrder::retry`, and the roll is spent
+/// only when that order is a transit **and** its `attempts` is under 13
+/// (`docs/PATHFINDER.md` §21).
+pub const SITE_UPATH_RETRY: &str = "PathFinder::astar_path+0x1697";
+
+/// **The same roll on the work-cap tail** — `006848c4`, return address
+/// `006848c9` (`+0x1159`). It is a *different* site and a **different
+/// gate**: the transit test alone, with no `attempts` ceiling
+/// (`astar_path@00683770:552`-`563` against `:934`-`967`). Reading the two
+/// tails as one is the error this pair exists to prevent.
+pub const SITE_UPATH_RETRY_BUDGET: &str = "PathFinder::astar_path+0x1159";
+
 impl Sim {
     /// `UnitData::invalid_loc(t, ignore_buildings, fog_relax,
     /// enemy_builds_only, transport_a, transport_b)` — the world's refusal
@@ -874,13 +889,20 @@ impl Sim {
                     match step {
                         STEP_TILE if m.anti_unit => return 0,
                         STEP_UNIT => {
-                            // SEAM: the pause roll happens only when the
-                            // order's target is a unit; move orders here
-                            // never target one, so no draw. The retry
-                            // cooldown is: `+0xb2 += 30`, which
+                            // **The work-cap tail**, `astar_path@00683770:
+                            // 552`-`564`. The retry roll's only gate here is
+                            // that the current order is a **transit** — the
+                            // `attempts < 0xd` ceiling belongs to the
+                            // *other* tail, below. Then `+0xb2 += 30`, which
                             // `detect_unit_collision` reads as "stop
                             // colliding for thirty frames"
                             // (`docs/COLLISION.md` §4.1).
+                            //
+                            // ~~SEAM: the pause roll happens only when the
+                            // order's target is a unit~~ — that premise was
+                            // never in the function and expired the moment
+                            // a capture reached the tail (item 329).
+                            self.roll_upath_retry(u, false);
                             self.units[u].safe += 30;
                             return 0;
                         }
@@ -1028,9 +1050,55 @@ impl Sim {
             closed.insert(cur.metric, cur_id);
         }
 
-        // Open list exhausted: no path. SEAM: the unit-grid pause roll
-        // (target-is-a-unit only) and the +30 cooldown are dormant.
+        // **Open list exhausted: no path** — and, on the unit grid, the
+        // tail that buys the unit a retry rather than killing its order
+        // (`astar_path@00683770:919`-`971`, `docs/PATHFINDER.md` §21).
+        // Run19's `1/28` on Great Lakes 8187 is the first capture to reach
+        // it: the chase it was given on 8186 walks into `1/36`, the
+        // 48-grid search finds nothing, and the roll here is what makes
+        // `find_upath` spare the order (`Sim::upath_search`).
+        if step == STEP_UNIT {
+            self.roll_upath_retry(u, true);
+            self.units[u].safe += 30;
+        }
         0
+    }
+
+    /// The retry roll both unit-grid failure tails share
+    /// (`docs/PATHFINDER.md` §21), and the one place their gates differ.
+    ///
+    /// `ceiling` is the open-list-exhausted tail's extra test — the move
+    /// data's `attempts` under 13 (`astar_path@00683770:949`). The work-cap
+    /// tail has only the transit test, so it passes `false`: reading the
+    /// two as one gate is the mistake this argument exists to make visible.
+    ///
+    /// The draw is spent **inside** the gates on both tails, so an order
+    /// that is not a transit — or one over the ceiling — costs the stream
+    /// nothing.
+    fn roll_upath_retry(&mut self, u: usize, ceiling: bool) {
+        if !self
+            .current_order(u)
+            .is_some_and(crate::orders::Order::is_transit)
+        {
+            return;
+        }
+        let Some(m) = self.current_move(u) else {
+            return;
+        };
+        if ceiling && m.attempts >= 0xd {
+            return;
+        }
+        self.mark(if ceiling {
+            SITE_UPATH_RETRY
+        } else {
+            SITE_UPATH_RETRY_BUDGET
+        });
+        let r = self.rng.roll() % 3 + 6;
+        if let Some(front) = self.units[u].orders.front_mut()
+            && let Some(m) = front.move_mut()
+        {
+            m.retry = r;
+        }
     }
 
     /// The walk back up the parent chain (`docs/PATHFINDER.md` §7).
@@ -1549,9 +1617,26 @@ impl Sim {
                 {
                     self.units[u].path.pop();
                 }
-                // Kill the order unless a pause was rolled (SEAM: no unit
-                // targets, so no pause — a failed unit-grid plan kills).
-                self.kill_current_order(u);
+                // **The kill, and what spares it** — `find_upath@
+                // 00682f30:187`-`195`: a **transit** current order whose
+                // move data carries a non-zero `retry` is left alone, and
+                // the tail of `astar_path` has just written that retry. So
+                // a failed unit-grid search kills the order only when the
+                // roll did not happen — a non-transit order, or one over
+                // the `attempts` ceiling ([`Sim::roll_upath_retry`]).
+                //
+                // Until item 329 the roll was a seam and the kill was
+                // unconditional, which cost run19's `1/28` its whole chase
+                // on Great Lakes 8187: the original stands it still for six
+                // to eight frames with its 42-entry stack intact, and this
+                // crate threw the stack away and went back to `fight`.
+                let spared = self
+                    .current_order(u)
+                    .is_some_and(crate::orders::Order::is_transit)
+                    && self.current_move(u).is_some_and(|m| m.retry != 0);
+                if !spared {
+                    self.kill_current_order(u);
+                }
             }
             return r.min(0);
         }
