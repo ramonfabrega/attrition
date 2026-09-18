@@ -12,36 +12,36 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-17, an Opus commander loop. **East Indies +381, Great Lakes
-+352.** Seven landings, four word-moving. Next: 322.*
+*2026-09-17, an Opus commander loop, eleven landings and six word-moving.
+**East Indies +381, Great Lakes +507.** Next: 328.*
 
-- **Great Lakes 8182**, **East Indies 8193**: +381 (304), +251 (314),
-  +151 (322), +100 (317), +1 (319); 312, 308 and 320 named causes and
-  reach. 322's count parts at 8186 and its sequence at 8182: floors take
-  the lower, and a worker's reported figure is read before it is pinned.
-- **An elimination is a claim and can be wrong.** 320 ruled out every
-  named `seen2` writer; 322 found one in `BUILDDATA`'s own `ever_seen`.
-  Its "only caller" was 2 of 10; its roster a BEGIN-line count.
-- **Seven items, six named mechanisms wrong**, each overturned by
-  measurement — 304's formation was never early, 314's waypoint is the
-  `get_loc` seam (the listing settled it), 320's forcing was validity and
-  is fog. Brief every worker to assume its own mechanism is wrong.
-- **A comment is not evidence, and a name is not a field.**
-  `scout_danger` returned 0 behind a false comment; ARMY §18 filed `role`
-  as carried; GROUPS §6.3 called `MoveOrder +0x4` an origin; VISION read
-  `ObjectData +0x3a` as `visible` where it is `infiltrated`. Grep the
-  writers, **by offset** — 320's elimination failed on an unstated
-  one-writer premise. A capture is four minutes and needs no human, but
-  grep the disk first. One item open, twenty-one parked.
+- **Great Lakes 8186**, **East Indies 8193** — seven frames apart, from
+  133 this morning: +381 (304), +251 (314), +151 (322), +100 (317), +4
+  (323), +1 (319). Great Lakes is about to stop being the lower map, and
+  the queue's "lower map first" order changes with it.
+- **Floors take the lower of word and sequence**; ask for figures by
+  symbol, since two today needed a quantity attached, not a correction.
+- **An elimination is a claim, and a seam comment is a prediction.** 320
+  ruled out every named `seen2` writer and 322 found one in `BUILDDATA`;
+  `army.rs`'s "nothing changes" seam was 8186's whole frame.
+- **Four comparisons that could not fail** were found today: a symbol
+  against a raw hex string, a binary trace grepped for a symbol name, a
+  tree id against the dump's `TypeIndex` (nine pinned rows rested on it),
+  and a site `trace::SITES` modelled nowhere. When a comparison has never
+  failed, ask whether it can.
+- **Grep the source's citations, not only the log dir.** 323's frame had
+  been on disk since 08-25 and `ai_make.rs`'s docstring was what said so.
+  Nine items named a mechanism up front and eight were wrong.
+- One item open, twenty-four parked.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w8193 of 24,000 · GreatLakes w8186 of 24,000
 Endpoint 24001: EastIndies 73 off, 7 unlinked · GreatLakes 66 off, 17 unlinked
 
-**Opener: 324 — combat at 8186, no capture needed, run19 covers it.
-And grep the *source's citations* before booking a capture: 323's frame
-was on disk since 08-25 and the log dir did not say so — `ai_make.rs`'s
-own docstring did.**
+**Opener: 328 — implement §17 against 324's oracle, blind reading in
+parallel rather than before. 324 deferred the implementation to protect
+the arithmetic; the rule is the reverse and says why, and the oracle that
+catches a wrong formula already exists.**
 
 ## The queue
 
@@ -51,14 +51,13 @@ unless a better order is obvious, and say so. Numbers are stable; the
 backlog is `docs/PARKED.md`, and an item comes back from it only when a
 score names it.
 
-324. **Great Lakes 8186 is combat, and run19 already covers it** — 54
-    draws against 6, of which **46** are `Unit::find_attack_pos+0xea9 <
-    +0x2d < Unit::fight+0xcb4` and three `Army::find_target+0x7df <
-    Army::do_marching+0x248`. 323 named the bare `602129` as
-    `find_attack_pos+0xea9`; `trace::SITES` models the site nowhere.
-    Start from run19's leader record: `wars`, `active_wars`,
-    `active_wars_with`, `attacked_by`, `frame_attacked` all part for the
-    human in-window and are in `PARTS_ON_RUN19`. AI §38, COMBAT.
+328. **Implement `find_attack_pos` against 324's pins, reading it blind
+    in parallel** — COMBAT §17.2-§17.4 is single-reading arithmetic and
+    the implementation *is* a pass of the audit (build before ratifying,
+    or alongside). The oracle is ready:
+    `run53_s_8186_is_find_target_s_probe_and_its_ring_walks` pins 8186's
+    54 labels, the ≥4-calls bound and the value diff in 0.12 s. **Take
+    8187 with it** — an unmodelled `astar_path+0x1697` on the same event.
 
 ## How to maintain this file
 
