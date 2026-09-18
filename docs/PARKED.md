@@ -263,27 +263,25 @@ exists, the chain is one shell line in the commander's brief.
 
 ## Parked by the third Fable pass, 2026-09-17 — names no score
 
-(347) **Player 1's whole army is in the wrong walk animation below the
-word, and it costs no draw.** Item 346's residue, named with a value:
-run97's entire remaining divergence below Great Lakes' word is **4,615
-clock fields from block 8443 on**, all player 1's army, every `cur_anim`
-one of SLOG / WALK / JOG against another of the three. That is `docs/ANIM.md`
-§4.3's speed test choosing a different band, and because all three cost the
-same draw the stream never notices — the word is unaffected.
+(347) **Player 1's army walk-slot band — mostly closed by 350, and the
+rate is how we know.** Parked after item 346 as a state divergence with no
+draw cost: run97's whole other residue below the Great Lakes word, player
+1's army from block 8443, every `cur_anim` one of SLOG / WALK / JOG against
+another (`docs/ANIM.md` §4.3). It named no score, so it parked.
 
-It parks by this file's rule rather than queueing, because it names no
-score. It is worth keeping anyway: it is a **state** divergence the draw
-stream cannot see, which is the exact shape `CLAUDE.md` warns about when it
-says a draw stream can agree on a wrong destination for a long time. It
-becomes an item the moment it takes a chain to a word, or if a later
-mechanic reads the band.
+**Item 350 then fixed most of it without aiming at it.**
+`Groups::push_group` kills each member out of the group it was in, so
+8186's probe had taken six units out of the AI army for good; with that
+right the band went **6,258 → 1,747 fields, 33.8 → 9.4 a frame**.
 
-**Falsifier, already named**: run97 block 8443, unit `1/27`.
+Two things worth keeping. **A parked residue is not a discarded one** — it
+was the measurement that showed 350 was worth far more than its +9 of word.
+And **the per-frame rate is what made it readable**: the total moves with
+every widened window, so only the rate says whether a change helped. 348
+wrote that rate beside the pin on purpose and 350 is what it bought.
 
-
-Every item below left the queue under the rule that a finding parks unless
-it names the headline's frame, a floor, or a takes-chain to one. Nothing
-here is dropped; an item comes back the day a score names it.
+What remains is 1,747 fields at 9.4 a frame, cause unknown, still no draw
+cost. **Falsifier unchanged**: run97 block 8443, unit `1/27`.
 
 (310) **Nothing decrements the muster on death** — not `by_type`,
 `by_group`, `control` or `active`. The original's `Unit::close@0060ee50:235`

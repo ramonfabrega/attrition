@@ -12,34 +12,35 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-17 into 09-18, an Opus commander loop: twenty-one landings, fifteen
-word-moving. **GL +940, EI +1,899.** Next: 350.*
+*2026-09-17 into 09-18, an Opus commander loop: twenty-two landings, sixteen
+word-moving. **GL +949, EI +1,899.** Next: 352.*
 
-- **Great Lakes 8582 → 8619** (item 348): the word was the AI's first market
-  draw, and `BUY_SELL`'s prerequisite is **Coinage/Commerce 2**, not the
-  Market building or Barter. East Indies unchanged at 9711.
-- **Pin a growing residue with its rate, not just its size.** 348 re-pinned
-  the walk-slot floor at 5,853 and wrote the arithmetic beside it — **33.5
-  fields a frame against the 33.2 it has always cost** — so the next session
-  can divide before calling growth a regression. Every item that widens a
-  window inherits a bigger residue; this is how the number stays readable.
-- **The successor is named with a unit**: 8619 is one extra
-  `Guy::set_anim+0x97a < Unit::do_idle+0x7d`, folded to **`1/39`**, against
-  five `inc_time` wraps both sides agree. run97 covers it with 730 frames
-  above, so the value diff is on disk.
-- **East Indies is still owed a capture above 8789** — 922+ frames short
-  since 346, its whole window below the word. Great Lakes needs none:
-  run97 runs to 9349. Awaiting the go, it is the lane's and not a worker's.
-- Two items open, thirty-two parked. **Fable backlog: eleven Loop items**
-  (313, 318, 321, 330, 331, 332, 335, 339, 341, 343, 345). 318+339 are one
-  question; 341+343 are one; 345 moves the commander's own verbs into git.
+- **Nine frames of word, and the state behind it collapsed** (item 350).
+  `Groups::push_group` kills each member out of the group it was in, so
+  8186's probe took **six units out of the AI army for good**. GL 8619 →
+  8628 — but run97's walk-slot residue went **6,258 → 1,747** (33.8 → 9.4 a
+  frame) and its point-and-goal residue 11,159 → 7,009 of 121,224, with the
+  endpoint off 63 → 58.
+- **So read the word beside the residues, not alone.** A +9 item that
+  removes 4,511 wrong fields is worth more than its headline, and the
+  headline cannot show it. This is the clearest case the loop has produced
+  of the score under-reporting a landing.
+- **Parking 347 with its rate is what made that legible.** It was parked as
+  "names no score, no draw cost" with a falsifier and a per-frame rate; 350
+  fixed most of it as a side effect and the rate is how we can tell. A
+  parked residue is not a discarded one.
+- **East Indies is still owed a capture above 8789** — 922+ short since 346,
+  its whole window below the word. Great Lakes needs none: run97 runs to
+  9349. Awaiting the go; it is the lane's, not a worker's.
+- Three items open, thirty-two parked. **Fable backlog: eleven Loop items**
+  (313, 318, 321, 330, 331, 332, 335, 339, 341, 343, 345).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w9711 of 24,000 · GreatLakes w8619 of 24,000
-Endpoint 24001: EastIndies 61 off, 11 unlinked · GreatLakes 63 off, 7 unlinked
+Long captures: EastIndies w9711 of 24,000 · GreatLakes w8628 of 24,000
+Endpoint 24001: EastIndies 61 off, 11 unlinked · GreatLakes 58 off, 7 unlinked
 
-**Opener: 350 — a strict successor, unit already named: the extra
-`do_idle+0x7d` on `1/39` at 8619, with run97 dumping the frame.**
+**Opener: 352 — the muster destination at 8442, named with coordinates and
+below the word. 354 widens 8628 if it does not take.**
 
 ## The queue
 
@@ -49,16 +50,22 @@ unless a better order is obvious, and say so. Numbers are stable; the
 backlog is `docs/PARKED.md`, and an item comes back from it only when a
 score names it.
 
-350. **Great Lakes 8619 is one extra idle draw on `1/39`** — 348 named it
-    on the frame: `Guy::set_anim+0x97a < Unit::do_idle+0x7d`, folded to that
-    unit, against five `inc_time` wraps both sides agree on. A strict
-    successor, no widening owed. run97 `[8030, 9349]` dumps 8619 with 730
-    frames above, so compare `1/39`'s clocks and order state either side
-    before reading `do_idle`.
+352. **The AI musters where neither city says** — 350's successor, named
+    on the frame in `docs/ARMY.md` §18. At Great Lakes **8442** both sides
+    spend the same two `find_target+0x7df` score draws; this crate takes
+    London (347 against Norwich's 328) and musters at cell **(50,27)**,
+    where the original's `GROUPATTACKTOORDER` carries orig
+    **(44851,22480) = cell (58,29)** — **neither city's muster**. So the
+    score is not the disagreement and the destination is. Below the word,
+    and a takes-chain: an army in the wrong place keeps paying.
+
+354. **Widen Great Lakes 8628** — the headline's own frame, which no item
+    names. Take this only if 352 does not move the word; run97 `[8030,
+    9349]` dumps 8628 with 721 frames above.
 
 342. **Host choice seats the scholar on the wrong university** — 338's
-    residue, re-pinned twice since. **Re-measure before diagnosing**: the
-    vector `1/2020 − 1/2019` is the claim, never the count.
+    residue, re-pinned twice. **Re-measure before diagnosing**: the vector
+    `1/2020 − 1/2019` is the claim, never the count.
 
 ## How to maintain this file
 
