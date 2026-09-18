@@ -939,6 +939,11 @@ impl Sim {
                     let peasant_on_masked = self.is_peasant(u) && self.on_masked_tile(u);
                     v = idle_variant(p, self.units[u].guy_flag_0x20, peasant_on_masked);
                 }
+                // `5da7a2` — and it sits **outside** the variant
+                // selection's `(cur_cat == 0) && p3` gate, so a scholar
+                // asked to idle from any other category takes slot 0x19
+                // rather than 0. [`Sim::scholar_slot`].
+                v = self.scholar_slot(u, v);
             }
             if v != DEFAULT && guy.gpiece >= 0 && !self.packet_has(u, guy.gpiece, v) {
                 v = DEFAULT;
@@ -1073,9 +1078,86 @@ impl Sim {
         v
     }
 
-    /// `ObjectData::is_peasant`: a worker type.
+    /// `ObjectData::is_peasant@0046d310`: `UnitTypeData +0x4` is `0x32`
+    /// or `0x33` and nothing else — the two **Citizen** types, which is
+    /// this crate's [`Worker::Citizen`](crate::orders::Worker::Citizen)
+    /// exactly (`rondata::load` assigns the enum by the same two ids).
+    ///
+    /// It is **not** "a worker type": a Scholar is `0x34`/`0x35` and
+    /// answers this `0`, and reading it as any worker put the seated
+    /// scholar's idle roll on `IDLE1` where the original takes `IDLE2`
+    /// — Great Lakes 8374 (`docs/ANIM.md` §4.1).
     fn is_peasant(&self, u: usize) -> bool {
-        self.worker_of(u) != crate::orders::Worker::None
+        self.worker_of(u) == crate::orders::Worker::Citizen
+    }
+
+    /// **A scholar inside its host plays a teach slot, not an idle**
+    /// (`Guy::set_anim@005da300:5da7a2`-`5da7e0`, `docs/ANIM.md` §4.11).
+    ///
+    /// `Guy::init_real@005db6b0`'s last statement sets `guy_flags & 0x80`
+    /// when and only when `UnitTypeData +0x4` is `0x34` or `0x35` — the
+    /// Scholar, the same test `ObjectData::is_scholar@0046d330` makes — so
+    /// the arm is scholar-only by construction. Gated on that bit together
+    /// with `UnitData::inside_up != -1`, it treats the variant the idle
+    /// roll just chose as an **offset** rather than as a slot:
+    ///
+    /// ```text
+    /// host = get_inside(unit)            # walks inside_up to the container
+    /// host->inside_down == unit->o       # the head of the host's chain
+    ///     → slot = variant + 0x19        # 25..28, the four Scholar Teach files
+    /// else
+    ///     → slot = variant + 0x1d        # 29..32
+    ///       and when that is 0x20, a scholar already on 0x20 in the
+    ///       chain takes it back to 0x1d
+    /// ```
+    ///
+    /// The chain is appended at the bottom (`Object::insert_inside@
+    /// 00647e90` writes the new object into `inside_bottom`'s
+    /// `inside_down`), so the head is the **first** unit to have entered:
+    /// the teacher, and everyone after it a student. On Great Lakes that
+    /// is `1/44`, the game's first scholar, seated on 8272 — and
+    /// `SCHOLAR-DEFAULT-AGE0`'s slot 27 is 103 frames, which is why the
+    /// word stood at 8374 (`docs/CITIES.md` §6.5.2).
+    fn scholar_slot(&self, u: usize, variant: i8) -> i8 {
+        if self.worker_of(u) != crate::orders::Worker::Scholar {
+            return variant;
+        }
+        let unit = &self.units[u];
+        // `inside_up != -1` is one field, and it points at a boat as
+        // readily as at a building (`docs/TRANSPORT.md` §6).
+        let Some(b) = unit.inside else {
+            // Inside a *unit* — the chain is that unit's passengers, which
+            // this crate keeps as a filter rather than in entry order, so
+            // the head cannot be told. No capture has a scholar aboard
+            // anything.
+            return if unit.inside_unit.is_some() {
+                self.scholar_student_slot(u, variant)
+            } else {
+                variant
+            };
+        };
+        if self.buildings[b].garrison.first() == Some(&self.captain_of(u)) {
+            return variant + 0x19;
+        }
+        self.scholar_student_slot(u, variant)
+    }
+
+    /// The not-the-head arm: `variant + 0x1d`, and the one tie-break the
+    /// listing carries — a slot 0x20 that another scholar in the same
+    /// chain is already playing falls back to 0x1d.
+    fn scholar_student_slot(&self, u: usize, variant: i8) -> i8 {
+        let slot = variant + 0x1d;
+        if slot != 0x20 {
+            return slot;
+        }
+        let taken = self.units[u].inside.is_some_and(|b| {
+            self.buildings[b].garrison.iter().any(|&c| {
+                c != u
+                    && self.worker_of(c) == crate::orders::Worker::Scholar
+                    && self.units[c].guys.first().is_some_and(|g| g.anim == 0x20)
+            })
+        });
+        if taken { 0x1d } else { slot }
     }
 
     /// The tile under the unit has `mask & 3` — the two low mask bits.

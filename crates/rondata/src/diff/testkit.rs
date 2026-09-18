@@ -566,6 +566,20 @@ fn indexed_siblings_preserve_every_initial_field_except_audit_bodies() {
 /// §6.5.2.
 pub(crate) const LONG_WORD_EAST_INDIES: i64 = 8_495;
 
+/// The frame East Indies' **first scholar** — `1/22` — is seated inside
+/// its university, one of the fourteen `Unit::go_inside+0x280` draws in
+/// run54's 24,000 frames (item 338) and the one frame in the game where a
+/// capture carries the seated scholar's own animation clock: run98's
+/// `[7879, 8788]` window spans it, and its `GUY` block reads `cur_anim
+/// 25, cur_time 1, end_time 30`.
+///
+/// That is `Guy::set_anim`'s scholar arm by value rather than by
+/// arithmetic — slot 25 is `variant 0 + 0x19`, the first of
+/// `SCHOLAR`'s four `Scholar Teach` files — and it is what
+/// `run98_s_window_clocks_are_the_original_s` pins (`docs/ANIM.md`
+/// §4.11).
+pub(crate) const EAST_INDIES_FIRST_SCHOLAR: i64 = 8_466;
+
 /// Great Lakes' word on the **long** capture (run53), the second of
 /// `docs/DECISIONS.md` entry 29's counters — and, since run61 put the
 /// bird's birth right, no longer the same number as the scored
@@ -1122,7 +1136,22 @@ pub(crate) const LONG_WORD_EAST_INDIES: i64 = 8_495;
 /// `±(768, 9984)`, which *is* `1/2020 − 1/2019`, so the seating arithmetic
 /// is right and which university a scholar walks to is the successor.
 /// `docs/CITIES.md` §6.5.2.
-pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 8374;
+///
+/// **8374 → 8382 on item 340**, and the same scholar paid for it twice.
+/// 8374 is the frame `1/44`'s seating animation ends, and the original's
+/// is not an idle at all: `Guy::init_real@005db6b0`'s last statement sets
+/// `guy_flags & 0x80` for a `TypeIndex` `0x34`/`0x35` guy, and
+/// `Guy::set_anim@005da300`'s own arm on that bit turns the idle roll's
+/// variant into an **offset** — `variant + 0x19` for the head of the
+/// host's inside chain, `variant + 0x1d` for everyone under it. Those are
+/// `SCHOLAR`'s four `Scholar Teach` files, and slot 27 is **103** frames
+/// against `CHAR_IDLE1`'s 232: exactly 8272 + 103 − 1.
+/// The variant was wrong too — `ObjectData::is_peasant@0046d310` is
+/// `UnitTypeData +0x4` in `{0x32, 0x33}` and this crate read it as *any*
+/// worker, so the scholar took the peasant-on-a-masked-tile collapse to
+/// `IDLE1` where the original's `787 % 100 = 87` gives `IDLE2`; slot 26
+/// is 100 frames and only slot 27 lands on 8374. `docs/ANIM.md` §4.11.
+pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 8382;
 
 /// The frame Great Lakes' **second** squad joins the army on — 6994, the
 /// word's own parting from 2026-09-06 to 2026-09-07 and now a landed
