@@ -15,12 +15,13 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 *2026-09-17, an Opus commander loop. **East Indies +381, Great Lakes
 +352.** Seven landings, four word-moving. Next: 322.*
 
-- **Great Lakes 8031**, **East Indies 8193**: +381 (304's suspend), +251
-  (314's `get_loc` seam), +100 (317's `do_marching` arm), +1 (319's
-  `scout_danger`); 312, 308 and 320 named causes and reach.
-- **The last move was one frame, and 320 then moved none.** 319 fixed a
-  subsystem answering zero and bought one, because 8002's row was already
-  under it. Stacked causes here; expect eliminations, not fixes.
+- **Great Lakes 8186**, **East Indies 8193**: +381 (304's suspend), +251
+  (314's `get_loc` seam), +155 (322's `check_ever_seen`), +100 (317's
+  `do_marching` arm), +1 (319); 312, 308 and 320 named causes and reach.
+- **An elimination is a claim and can be wrong.** 320 ruled out every
+  named `seen2` writer; 322 found one by parsing `BUILDDATA`'s own
+  `ever_seen`. Its "only caller" was 2 of 10 vtable callers and its
+  roster count was a BEGIN-line count. Re-derive a negative.
 - **Seven items, six named mechanisms wrong**, each overturned by
   measurement — 304's formation was never early, 314's waypoint is the
   `get_loc` seam (the listing settled it), 320's forcing was validity and
@@ -34,13 +35,13 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
   grep the disk first. One item open, twenty-one parked.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w8193 of 24,000 · GreatLakes w8031 of 24,000
-Endpoint 24001: EastIndies 66 off, 16 unlinked · GreatLakes 59 off, 23 unlinked
+Long captures: EastIndies w8193 of 24,000 · GreatLakes w8186 of 24,000
+Endpoint 24001: EastIndies 66 off, 16 unlinked · GreatLakes 56 off, 24 unlinked
 
-**Opener: 322 — the attribution is done (8031 is `1/0`'s own
-`do_move+0xe84`), so the offset writer search is the only open step;
-`run95_s_block_8002_…` fails both ways and will say when the two land.
-Book no number: how far the word then moves is unmeasured.**
+**Opener: 323 — and it needs a capture, the first item in a while that
+does: nothing on disk reaches 8186. Widen the whole record there before
+naming a mechanism; the frame is six draws against fifty-four, which is
+not one unit going wrong.**
 
 ## The queue
 
@@ -50,14 +51,14 @@ unless a better order is obvious, and say so. Numbers are stable; the
 backlog is `docs/PARKED.md`, and an item comes back from it only when a
 score names it.
 
-322. **Something lights half-cells (7,79) and (7,81) at block 8002 and
-    no named writer can** — 320's elimination, and 8031 is the same
-    unit's draw, so it pays the headline directly. The original prices
-    the step into cell (3,39) at **328** against this crate's 9; lighting
-    the two reproduces its six-entry stack and the scout takes the
-    western route. Open step: an **offset** search for writers of `World
-    +0x160` and `ObjectData +0x40` — a name grep filed `+0x3a` as
-    `visible` where it is `infiltrated`. PATHFINDER §20.2, VISION §7.
+323. **Great Lakes 8186 is six draws against fifty-four, parting at
+    index 4** — the original spends an unnamed `602129` there, and the
+    sequence's own 8182 is `Leader::make_stuff+0x63d`. **No dump on disk
+    carries 8186's positions**: run94's per-frame window is [7754, 8045)
+    and run95's `DUMP_ALL` is 7999–8003, so the value diff under the new
+    word needs a capture. Widen the whole record on 8186 and its
+    neighbours before naming anything; six against fifty-four is not a
+    one-unit disagreement.
 
 ## How to maintain this file
 

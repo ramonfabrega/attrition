@@ -402,11 +402,17 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // and a three-count endpoint move on the same change, which is
         // what a dense region looks like from both ends. DECISIONS 36 asks
         // for the number rather than a trade.
-        off: 59,
-        unlinked: 23,
+        // Then **59 → 56, 23 → 24 and 8 → 9** on 2026-09-17, item 322 —
+        // `Wall::check_ever_seen`'s reveal (VISION §6.1), which moves this
+        // map's own word **8031 → 8186**, its largest single step. Three
+        // positions closer 15,815 frames past the word, against one more
+        // of the roster unlinked and one more building field-row apart.
+        // DECISIONS 36 asks for the number rather than a trade.
+        off: 56,
+        unlinked: 24,
         extra: 0,
         build_unlinked: 0,
-        build_diverged: 8,
+        build_diverged: 9,
         city_unlinked: 3,
         city_diverged: 0,
     },

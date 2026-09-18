@@ -1007,7 +1007,21 @@ pub(crate) const LONG_WORD_EAST_INDIES: i64 = 8_193;
 /// frame 8001 spending the same 38 draws on both sides entry for entry.
 /// The word moves **one frame**, which is what a dense region looks like:
 /// the successor is already dated and asserted at 8002.
-pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 8031;
+/// **8031 until a building's own memory was parsed** (item 322). The
+/// writer nothing had named is `Wall::check_ever_seen@0063ce70` →
+/// `Wall::update_local_seen@0063ed50`: a building ors the **current**
+/// line-of-sight plane over its footprint into `WallData::ever_seen`
+/// every eighth frame (`frame & 7 == who`, `Wall::process`'s first
+/// statement), and the first time a non-owner leader appears there it ors
+/// `ever_seen | visible | (1 << who)` into `seen2` over that footprint
+/// grown one tile each way. Not `visible`, not a disc, not
+/// `update_seen(0)` — and the dump had printed it all along: `BUILDDATA`
+/// writes `ever_seen`/`ever_seen_completed` under `BUILDS=1` and nothing
+/// had ever parsed them. At block 8002 exactly two of player 0's seven
+/// buildings read 3 — the capital `0/2000` at half-cell (8,80) and
+/// `0/2001` at (11,74) — and those are the centres of the two patches
+/// item 320 could not account for. `VISION.md` §6.1.
+pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 8186;
 
 /// The frame Great Lakes' **second** squad joins the army on — 6994, the
 /// word's own parting from 2026-09-06 to 2026-09-07 and now a landed
