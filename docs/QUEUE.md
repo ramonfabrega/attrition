@@ -12,36 +12,36 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-17 into 09-18, an Opus commander loop: eighteen landings, twelve
-word-moving. **GL +703, EI +683.** Next: 344. The capture lane closed.*
+*2026-09-17 into 09-18, an Opus commander loop: nineteen landings, thirteen
+word-moving. **GL +725, EI +683.** Next: 346.*
 
-- **Great Lakes 8374 → 8382** (item 340), still the same scholar 338
-  seated. `Guy::init_real` sets `guy_flags & 0x80` for type 0x34/0x35, and
-  `set_anim`'s arm on that bit makes the idle variant an **offset** —
-  `+0x19` for the head of the host's inside chain, `+0x1d` below it. Plus
-  `is_peasant` is `{0x32,0x33}`, not "any worker", so the scholar was
-  taking the peasant collapse. Only both together land on the word.
-- **Both maps now have a value diff at their word, with runway** — the
-  lane's three captures, 1.2 GiB, all 0 differing against their long runs.
-  **run97** GL `[8030, 9349]`, 1,320 blocks no gap, **979 past the word**;
-  **run98** EI `[7880, 8789]`, truncated, successor owed; **run96** EI's
-  first late census. run98 was 340's oracle within the hour.
-- **339 bit exactly as parked, and the brief caught it.** 340's workspace
-  gate stopped at the red rondata binary and never ran sim; told to run it
-  separately, it got **831 passed** with `no_float`, `soak` and
-  `docs_guard` green. Until 339 lands, every brief must say so.
+- **Great Lakes 8382 → 8404** (item 344): the mine's site test is a
+  mountain-tile distance, not the camp's cell survey, and its mining list
+  is the range whole — 207 tiles, run80 and run97 agreeing to the tile.
+  8382 is now 865 draws against 865, entry for entry.
+- **An endpoint diff is a weaker oracle than a frame below the word**, and
+  this corrects yesterday's lesson rather than repeating it. 338's scholar
+  value diff fell from six exact to **four** — not because the seating
+  changed (`1/44`, its own unit, is still exact) but because 24001 sits
+  15,600 frames past the word, where both sides are on streams that are
+  nobody's and any unrelated change moves the total. Use the endpoint for
+  persistent state no frame dumps; prefer a frame below the word when one
+  exists. **run97 now means one usually does.**
+- **run97 is read by no test** — Great Lakes `[8030, 9349]` at rich detail,
+  BUILDDATA with mining lists, UNITDATA, GUY clocks, PATHDATA, every order
+  type, spanning the word both sides. All that has been taken from it is
+  one building record read by hand. That is the lane's real payoff and it
+  is unspent.
 - Two items open, thirty parked. **Fable backlog: eleven Loop items**
   (313, 318, 321, 330, 331, 332, 335, 339, 341, 343, 345). 318+339 are one
-  question; 341+343 are one; 345 says the commander's own verbs belong in
-  `CLAUDE.md` rather than invisible memory.
+  question; 341+343 are one; 345 moves the commander's own verbs into git.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w8495 of 24,000 · GreatLakes w8382 of 24,000
-Endpoint 24001: EastIndies 61 off, 11 unlinked · GreatLakes 62 off, 15 unlinked
+Long captures: EastIndies w8495 of 24,000 · GreatLakes w8404 of 24,000
+Endpoint 24001: EastIndies 70 off, 2 unlinked · GreatLakes 62 off, 7 unlinked
 
-**Opener: 344 — 340 named it on the frame, so this is a strict successor,
-not a widening: 46 draws against 865 at `Leader::make_stuff` →
-`produce_building`.**
+**Opener: 346 — 8404 is one missing `Guy::inc_time+0x271` wrap, ours 6
+draws against 7, and run97 dumps the frame. Widen it there first.**
 
 ## The queue
 
@@ -51,19 +51,19 @@ unless a better order is obvious, and say so. Numbers are stable; the
 backlog is `docs/PARKED.md`, and an item comes back from it only when a
 score names it.
 
-344. **Great Lakes 8382 is a build-order frame, and 340 named it** — no
-    widening owed. 46 draws against the original's **865**:
-    `Leader::make_stuff` then `Leader::produce_building`, where the
-    original leaves `+0xc99` after **twelve** draws for `+0x1805` and this
-    crate spends **twenty-one** at `+0xc99` first. A count that large is a
-    loop bound or an exit predicate, not an arithmetic slip. Build it, then
-    ratify (`DECISIONS` 23).
+346. **Great Lakes 8404 is one animation wrap, and run97 dumps it** —
+    ours 6 draws against the original's 7 at `Guy::set_anim+0x97a <
+    Guy::inc_time+0x271`, named by 344 on the frame. run97 `[8030, 9349]`
+    spans it at rich detail and **no test reads that capture yet**, so this
+    is also the first frame-by-frame widening on it. A wrap is a clock
+    question (`docs/ANIM.md`): compare `cur_time`, `end_time` and
+    `last_time` either side, every unit, before reading anything.
 
 342. **Host choice seats the scholar on the wrong university** — 338's
-    residue, exact: four scholars off by precisely `1/2020 − 1/2019` at
-    run80's 24001, six of eleven already agreeing. 340's widening did not
-    land on it. A predicate, not a formula; book after 344 unless 344 names
-    it.
+    residue. Its value diff now reads four exact of eleven rather than six,
+    for the endpoint reason above, so **re-measure before diagnosing**: the
+    vector `1/2020 − 1/2019` is the claim, not the count. Book after 346
+    unless 346 names it.
 
 ## How to maintain this file
 
