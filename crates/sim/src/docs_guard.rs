@@ -330,6 +330,81 @@ fn the_handoff_is_short() {
     );
 }
 
+/// The steering pass's backlog is the parked file's Loop section, which no
+/// session reads at boot; the queue's handoff carries its count so a Fable
+/// session sees it in the same breath as the score (parked item 332, ruled
+/// 2026-09-18). A count nobody checks drifts — it read "twelve" over thirteen
+/// items the day this was written — so the line is parsed against the section.
+#[test]
+fn the_handoff_counts_the_loop_backlog() {
+    let q = read("QUEUE.md");
+    let line = q
+        .lines()
+        .find(|l| l.contains("Fable backlog:"))
+        .expect("docs/QUEUE.md's handoff has no `Fable backlog: N Loop items` line");
+    let after = line.split("Fable backlog:").nth(1).unwrap();
+    let word = after
+        .trim_start_matches([' ', '*'])
+        .split_whitespace()
+        .next()
+        .unwrap_or("");
+    const WORDS: [&str; 21] = [
+        "zero",
+        "one",
+        "two",
+        "three",
+        "four",
+        "five",
+        "six",
+        "seven",
+        "eight",
+        "nine",
+        "ten",
+        "eleven",
+        "twelve",
+        "thirteen",
+        "fourteen",
+        "fifteen",
+        "sixteen",
+        "seventeen",
+        "eighteen",
+        "nineteen",
+        "twenty",
+    ];
+    let said = word
+        .parse::<usize>()
+        .ok()
+        .or_else(|| WORDS.iter().position(|w| *w == word))
+        .unwrap_or_else(|| panic!("`Fable backlog:` is followed by {word:?}, not a count"));
+    let parked = read("PARKED.md");
+    let mut in_loop = false;
+    let mut items = Vec::new();
+    for l in parked.lines() {
+        if l.starts_with("## ") {
+            in_loop = l.starts_with("## Loop");
+            continue;
+        }
+        // An item opens `(N) **…`; a bare `(N) ` mid-item is a reference.
+        let Some((number, _)) = l.strip_prefix('(').and_then(|l| l.split_once(") **")) else {
+            continue;
+        };
+        if let (true, Ok(n)) = (in_loop, number.parse::<u32>()) {
+            items.push(n);
+        }
+    }
+    assert!(
+        !items.is_empty(),
+        "docs/PARKED.md has no `## Loop` section with `(N) **` items"
+    );
+    assert_eq!(
+        said,
+        items.len(),
+        "docs/QUEUE.md's handoff says the Fable backlog is {said} Loop items; docs/PARKED.md's \
+         Loop section holds {}: {items:?}. Rewrite the count with the handoff",
+        items.len()
+    );
+}
+
 #[test]
 fn claude_md_carries_no_findings() {
     let text = std::fs::read_to_string(docs().join("../CLAUDE.md")).expect("CLAUDE.md");

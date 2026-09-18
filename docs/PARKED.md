@@ -26,7 +26,8 @@ here too, except the item cap — a parked item is not an open one.
 
 Tooling, guards and the queue's own rules. The Fable pass takes these
 (`CLAUDE.md`, "Fan-out rules"); a commander never spawns one. Item 279's
-two ledger regexes closed in the third pass, 2026-09-17.
+two ledger regexes closed in the third pass, 2026-09-17; the fourth pass,
+2026-09-18, ruled six (`docs/audit/2026-09-18-fable-pass-4.md`).
 
 (251) **`memcap.sh` has two doors left and half a fixture**: the refused
 sample that read as zero is closed (exit 125, lab L25) and the mode-644
@@ -58,25 +59,6 @@ context)` against 123 `Claude Opus 5`) and **149 of 772 commits untrailered**,
 46 of them merges. A guard can compare a commit's trailer against what
 served the session that wrote it — the first-request source `lore spawns`
 already trusts. Guard, hook, or "a brief never dictates it": the pass's.
-
-(339) **A worker's gate never runs the sim suite on a word-moving item.**
-`release_gate.py` runs one workspace `cargo test --release` with **no
-`--no-fail-fast`**, so cargo stops at the first failing binary. On every
-word-moving item rondata is red *by design* — the worker raises the floor
-and leaves the queue line to the commander — so the **831-test sim suite
-never runs**, `no_float`, `soak` and `docs_guard` included.
-
-Twice in a day. Item 336 landed a red `docs_guard` nobody saw (its new
-§7.11 had put `ORDERS.md` §7 over the size ceiling) and reported "299
-passed / 1 failed" in good faith, that being all its gate reached. Item 338
-hit the same wall and ran sim by hand.
-
-The commander's gate is unaffected, which is why it stood: by then the
-queue lines are written, rondata is green, sim runs. The blind spot is the
-*worker's* gate — the one deciding whether a branch is fit to report. The
-fix is one flag, plus a runner that reads every `test result:`. **318 is
-the same family** (guards reading `docs/QUEUE.md` from disk race the
-commander's rewrite) and the two want deciding together.
 
 (341) **The click-free lane cannot take a capture worth having, so every
 scored capture must drive the cursor.** Ramon's flag, 2026-09-18: "i
@@ -113,33 +95,6 @@ uses for `<MAP_STYLE>`, already covered by `live_session`'s settings backup
 and restore. A few lines in a place the tool already edits, with the
 restore already written, and it makes an unattended run a good neighbour.
 
-(345) **The commander's own mechanics live in invisible per-user memory
-and should be in the repo.** Ramon's flag, 2026-09-18 — "i thought we had
-made it clear to use ccc rm", then "we dont like memory anyways
-(invisible) … should prolly belong in claude.md or queue or something".
-That is the item; the rest is why.
-
-**The repo names the rule and not the tool.** The queue has "Merge, gate,
-push, reap — one chain" and `DECISIONS` 34 tells a *worker* to use `ccc
-update` and forbids a brief saying `git merge`. Nothing in git says what
-the **commander's** half is. So items 334, 336 and 338 were each merged
-with a raw `git merge` and reaped as `ccc stop` + `git worktree remove` +
-`git branch -d`, leaving dead roster rows pointing at removed directories —
-which Ramon noticed and had to ask about.
-
-**The answer existed and was unreadable.** `memory/ccc-orchestrated-loop.md`
-had said since 2026-09-17 that "the whole reap is ccc's": `ccc rm <ref>`
-removes session, worktree *and* the merged branch, and `ccc merge`/`pull`
-now resolve a base held in a worktree (0.1.37). But a session is handed the
-memory **index**, not the files, and that hook still said "0.1.25 merges the
-local base" — a checkable-looking fact a day out of date.
-
-**So the fix is relocation, not repair.** Memory is invisible to everyone
-but its session, outside git, read by no guard, and its index drifts from
-its files with nothing to catch it. The commander's chain — `ccc merge`,
-gate, `ccc push`, `ccc rm` — wants one clause in `CLAUDE.md`'s fan-out
-rules or in 34 beside the worker's half. Both are the pass's to amend.
-
 (356) **Nothing checks that a documented claim reached the code.** Item
 352, 2026-09-18: `BuildType::mask_me@006312a0`'s first statement —
 `cells[…].flags |= 0x4000` on the mark, `&= 0xbfff` on the unmark — had
@@ -163,17 +118,6 @@ and would have found this one. It will be noisy — a constant can be named
 for context, or built under another spelling — so guard, report or
 author's checklist is the pass's call. The gap is real and cost frames.
 
-(318) **A gate that overlaps a queue rewrite fails on paperwork that is
-fine.** `the_handoff_s_endpoint_is_the_pinned_counts` and
-`the_handoff_s_scoreboard_is_the_floors` read `docs/QUEUE.md` from disk, so
-a worker's gate running while the commander rewrites the handoff goes red on
-a file neither of them is wrong about — seen on item 308's first run,
-passing alone and in a clean re-run. It is a real race with two lanes and a
-commander, and it will get worse, not better. The fix is the pass's to
-choose: the guards read the queue at the commit under test rather than the
-working tree, or the commander holds queue rewrites until no gate is in
-flight. Costs a re-run each time until then.
-
 (321) **A document that cites a dead-listed function by address cites
 code the game does not run.** `LeaderData::is_human@006ec170` is on
 EMULATOR.md §4's dead list — no call, no jmp, no embedded address — so
@@ -186,97 +130,6 @@ function address a specification cites against the decompile export's
 index — extending that check to the **dead list** is the guard shape, and
 it would name every other document in this position at once. The steering
 pass's: a guard, and then whatever it finds.
-
-(330) **The loop's price is measured, and it is the best but one this
-project has recorded.** 2026-09-17, eleven landings under one commander
-(304, 312, 314, 308, 317, 319, 320, 322, 323, 324, 328), seven of them
-word-moving, +381 East Indies and +508 Great Lakes:
-
-- workers **307.55 USD**, commander **89.85**, total **≈397** (`lore usage
-  --by session --since 2026-09-17`, `lore jobs`);
-- **≈57 USD per word-moving landing** against the third pass's 152 and the
-  earlier loop's 102 — a 2.7x improvement on the figure that triggered
-  that pass;
-- **≈36 USD per landing** and **≈0.45 per frame**, against 1.61 and 0.92.
-
-The human-driven baseline stays cheaper per landing — 21, and 42 per
-word-moving landing — so **the loop costs about 1.4x a person doing it by
-hand, and buys the person out of the room.** That is the trade, and it is
-now a number rather than a belief. Ramon's own reading (a bare `/clear`
-and `continue` is cheaper, having no delegation, no duplicated context and
-no cold cache reads) is confirmed by these figures and is not an argument
-against the loop; both flows belong in the repertoire, chosen by whether
-the day is time-bound or token-bound. **The pass owns which, and when.**
-
-Width is the open half. **Eight of the twelve items were strict
-successors** — each brief the previous one's product, 8002 → 8031 → 8182
-→ 8186 → 8187 — so no second lane could work the headline chain. A parked
-value-diff row (305 needs no capture and no chain) could have run
-alongside and did not, because the third pass's rule says only what names
-a score may book. **That rule was made when the headline slot was empty**,
-against a wave that ran residue rows *instead of* the word's frame. It has
-never been tested with the headline attended and a lane idle, which is a
-different case. At 57 USD a word-moving landing the marginal lane is cheap;
-whether it is *worth* it is the pass's to decide, with `lore spawns` for
-the boot cost it adds.
-
-(331) **A loop that is working never triggers its own review, and the
-commander broke its own observability without noticing.** The charter
-fires a steering pass every twenty items, or sooner when the headline has
-not moved for two sessions. Neither fired: twelve landings, the headline
-moving on seven. The session ran about seven hours with the user away and
-could neither end itself nor change its own direction — both the pass's by
-charter, and the trigger is tied to *failure*. Ramon proposed the clear;
-nothing in the rules would have. Worth deciding against evidence: a second
-trigger on elapsed landings, context consumed, or wall clock, and whether
-a commander may call its own clear under the condition the queue already
-states for a free one.
-
-**There is no self-clear rule at all, and that is the answer to "have we
-hit the trigger".** We have not hit it because it does not exist. The
-commander has no rule for ending its own session; both clears on
-2026-09-17 were Ramon's, four hours apart, and in between the loop would
-have run until the context ran out or the queue emptied. The queue states
-the condition for a *free* clear — every branch merged, gated, pushed and
-reaped, nothing in flight, the handoff current with the headline
-measured — but states it as a description of when a clear is cheap, never
-as an instruction to take one. **The pass decides whether that condition
-becomes a trigger**, and on what: elapsed landings, context consumed,
-wall clock, or a seam in the work (today's natural one was the map
-crossover, where the successor chain goes cold and the next brief stops
-being free). Note the interaction with (330): a commander that self-clears
-mid-chain pays to rebuild the context that made its briefs cheap.
-
-**And the observability defect is concrete.** `lore jobs` draws the
-parent edge from the `ccc spawn --json` answer *as it appears in the
-parent's transcript*. The first four spawns piped that through `tail -20`
-and carry `parent: attrition`; from item 317 the commander piped it
-through `grep -E '"ref"|"branch"'` to shorten its own scrollback, and
-every spawn since reads `parent: null` — seven landings of fleet lineage
-destroyed to save four lines, unnoticed until the numbers above were
-pulled. The tool was never missing the feature. **Rule: never filter
-`ccc spawn --json`'s output**; the id lore needs is not the id the
-commander reads. A guard could check it — a spawn row with a null parent
-whose well is a `loop-*` worktree is always this bug.
-
-(332) **The steering pass's own backlog is invisible at boot to the
-steering pass.** Loop items live here, in `docs/PARKED.md`'s Loop
-section, and `CLAUDE.md` says they are the pass's and never a worker's.
-But a Fable session boots exactly as a commander does — it reads
-`docs/QUEUE.md`, whose opener names the *commander's* next item — and
-this file is explicitly not read at boot ("opened when a wave is
-composed"). So the session that owns these items is the one session with
-no path to them. Five are waiting as of 2026-09-17 (313, 318, 321, 330,
-331) and nothing at boot says so.
-
-The minimal fix is in place and is a pointer, not a rule change: the
-queue's handoff now carries a one-line count of the Loop backlog, so a
-pass sees it in the same breath as the score. **What the pass owns is
-whether that is enough** — or whether steering wants its own queue with
-its own opener and its own guard, the way the worker queue has, and
-whether this file should then split. Ramon raised it while asking how to
-tag a question for Fable, which is itself the evidence: the flow had no
-answer to "where does this go so the right session finds it".
 
 (313) **The landing chain wants one verb.** Merge, gate, push and reap are
 one chain by rule since 09-17; ccc has `merge`, `update` and `clear`, and
@@ -507,7 +360,6 @@ parsed, so the falsifier is a grep rather than a reading — a block whose
 constraint, and the reason this is not a silent drop: **271's snap arm is
 live code**, so anyone touching `Sim::gain_tech` inherits this question.
 
-
 (248) **ATTRITION's Territory section is 15,625 bytes of 16,000** and wants a
 retelling pass before anything is added. Parked to seat 283; its remaining
 terms are **closed** — handicap, temple and fort are unreachable in any game
@@ -516,7 +368,6 @@ to whoever next adds to that section. Read it before re-booking any of the
 three. (AI §2.1's `check_explore`.) No cross-item constraint: the size ceiling
 is per-section and `docs_guard` enforces it, so a worker cannot trip over this
 without being told by the guard itself.
-
 
 (234) **Four rules of the turn/idle animation neither side has** (ANIM §9),
 written and never landed — branch `rescue-234`. Parked by the commander to

@@ -12,28 +12,29 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-17 into 09-18, an Opus commander loop: twenty-six landings, twenty
-word-moving. **GL +1,503, EI +1,899.** Next: 362, then reap the lane below.*
+*2026-09-18, the fourth Fable pass (`docs/audit/2026-09-18-fable-pass-4.md`):
+no marked rows; six Loop items ruled; **no score moved, none meant to.**
+The loop before it landed 26 items, 20 word-moving, **GL +1,503, EI
++1,899**, at 31–39 USD a word-moving landing. Next: 362.*
 
-- **Great Lakes 9134 → 9182** (item 360) and the residues fell again over
-  `[8029, 9182)`: point-and-goal **183 → 6**, walk-slot **103 → 0**, units
-  ever off position 6 → 4. `Unit::move_step` splits on `param_2 < local_28`
-  and has a collision block on **each** side; `docs/COLLISION.md` §5 had
-  only the partial step's (`+0x823`), and 9134 was the **snap arm's**
-  (`+0x4e2`), which resolves nothing — it consumes the waypoint the unit
-  stands on, so `1/32` was resolved a frame early.
-- **The trace's site list can hide a call chain.** That draw printed as a
-  bare `5dac7a` because `SITES` carried eleven of the address's twelve
-  `ebp` chains. A missing chain looks like an unnamed address, not an error.
+- **Great Lakes 9182** (item 360): `Unit::move_step`'s snap arm has its
+  own collision block, and the residues over `[8029, 9182)` fell to
+  point-and-goal 6, walk-slot 0, units ever off position 4. **East Indies
+  9711** since item 346, on the draw stream alone until the lane below lands.
+- **The worker's gate runs every binary now** — `--no-fail-fast`, a tee'd
+  log, a per-binary summary naming each failed test — so a red rondata on
+  a word-moving item no longer hides the sim suite. The commander's chain
+  is in `CLAUDE.md`'s fan-out rules; DECISIONS 40 has the rulings: a
+  second lane may run a parked value-diff row *beside* the word's frame,
+  the commander stops at twenty landings, and nothing under `docs/` is
+  edited while a gate runs.
 - **IN FLIGHT — `capture-lane-2`**, ref `74a77ee7`, branch
-  `worktree-capture-lane-2`: Great Lakes `[9340, 10900)` past run97's 9349,
-  East Indies `[8780, 10400)` past run98's 8789. **When it reports: `ccc
-  merge <ref> --no-ff`, gate, push, `ccc rm`.** It touches only
-  `tools/gamelog/captures.txt` and its own journal. run97 has **167 frames**
-  left above the word, so this is owed, not urgent.
-- Two items open, thirty-two parked. **Fable backlog: twelve Loop items**
-  (313, 318, 321, 330, 331, 332, 335, 339, 341, 343, 345, 356). **339** is
-  one flag and has been worked around by brief eight times running.
+  `worktree-capture-lane-2`: run99 East Indies `[8780, 10400)` reached
+  its window by 09:00; Great Lakes `[9340, 10900)` follows. **When it
+  reports: `ccc merge 74a77ee7 --no-ff`, gate, `ccc push --base`, `ccc
+  rm`.** It touches only `tools/gamelog/captures.txt` and its journal.
+- Two items open, 33 parked. **Fable backlog: seven Loop
+  items** (251, 335, 341, 343, 356, 321, 313); 356 and 321 are guard shapes and first in line.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w9711 of 24,000 · GreatLakes w9182 of 24,000

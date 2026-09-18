@@ -360,6 +360,18 @@ base is unreliable in both directions. On the commander's side, **merge,
 gate, push and reap are one chain**; a reap left for "before the next
 spawn" is a reap that does not happen. `docs/DECISIONS.md` entry 34.
 
+**The commander's chain is ccc's, and it is one line.** `ccc merge <ref>
+--no-ff`, the gate to a file, `ccc push <ref> --base`, `ccc rm <ref>` —
+never a raw `git merge`, never a hand-rolled reap, and **nothing under
+`docs/` is edited while a gate runs**: the handoff is rewritten before the
+gate, not during it. `ccc spawn --json`'s answer is never filtered — the
+id lore's lineage reads is not the one the commander reads. **The
+commander counts its landings and stops at twenty**, writing the handoff
+and saying the steering pass is due; a free clear between is taken at a
+seam in the chain (`ccc clear <own ref> --then continue`), never in the
+middle of one. A second lane may run a parked value-diff row *beside* the
+word's frame, never instead of it. `docs/DECISIONS.md` entry 40.
+
 An Opus adjudication is acceptable under the marker discipline — append each
 verdict as it is settled, and mark what cannot be settled `FABLE:` rather
 than guess. **Ratification runs in batches, over what is marked**, rather
