@@ -12,33 +12,34 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-17 into 09-18, an Opus commander loop: twenty-four landings,
-eighteen word-moving. **GL +1,306, EI +1,899.** Next: 358.*
+*2026-09-17 into 09-18, an Opus commander loop: twenty-five landings,
+nineteen word-moving. **GL +1,455, EI +1,899.** Next: 360.*
 
-- **Great Lakes 8663 → 8985** (item 354), and run97's point-and-goal residue
-  **601 → 6**. `find_wpath`'s `army` mode was off for AI armies, so they
-  stopped paying 32x for NEARBLOCK cells. Great Lakes' endpoint is now
-  **0 unlinked** — every unit at 24001 has a counterpart.
-- **A virtual that is `return 0` everywhere is not a predicate.**
-  `UnitData::is_attacking` calls the current order's `+0x18`, and this
-  crate read it as "has a combat target". Verified here: **all seventeen**
-  order vtables land on `Window::get_button`, a bare `return 0` — fifteen
-  directly, and `AttackGroundOrder`/`AirAttackGroundOrder` through a
-  `vtordisp` thunk that *looks* like a real implementation and calls the
-  same stub. COMDAT folding chose the surviving name; read the body.
-- **Both maps now need captures, and Great Lakes is the newer problem.**
-  run97 ends at 9349 and the word is 8985 — **364 frames of runway**, less
-  than this one item moved. East Indies has had none above 8789 for seven
-  items. Awaiting the go; it is the lane's, not a worker's.
+- **Great Lakes 8985 → 9134** (item 358), the market's trade. East Indies
+  unmoved at 9711. The cause sat at 8982/8985, so the widening needed no
+  frame past run97's end — asked for explicitly, and the answer is that the
+  next capture is **owed, not urgent**.
+- **run97's runway is now 215 frames** (ends 9349, word 9134), and the
+  count-side word is further on again. Recent items have moved +322, +178,
+  +149, so the capture is one or two items away from being load-bearing on
+  the map doing all the productive work. East Indies has had none above
+  8789 for eight items. One window can serve both; it is the lane's.
+- **The three method notes are earning their keep** and belong in every
+  brief until they are guards: judge by the word *and* the residues with
+  per-frame rates (350); a claim can sit in a document and never reach the
+  code (352, parked 356); a vtable slot's surviving name is not its body,
+  COMDAT folding chose it (354).
 - Two items open, thirty-two parked. **Fable backlog: twelve Loop items**
-  (313, 318, 321, 330, 331, 332, 335, 339, 341, 343, 345, 356).
+  (313, 318, 321, 330, 331, 332, 335, 339, 341, 343, 345, 356). **339** —
+  the gate skipping all 835 sim tests on any word-moving item — is one flag
+  and has been worked around by brief seven times.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w9711 of 24,000 · GreatLakes w8985 of 24,000
-Endpoint 24001: EastIndies 61 off, 11 unlinked · GreatLakes 67 off, 0 unlinked
+Long captures: EastIndies w9711 of 24,000 · GreatLakes w9134 of 24,000
+Endpoint 24001: EastIndies 58 off, 14 unlinked · GreatLakes 57 off, 6 unlinked
 
-**Opener: 358 — widen Great Lakes 8985. run97 still dumps it, but only just:
-364 frames of runway left on that capture.**
+**Opener: 360 — widen Great Lakes 9134, with 215 frames of run97 left. Say
+whether the cause needs a frame past 9349; that is what books the capture.**
 
 ## The queue
 
@@ -48,11 +49,12 @@ unless a better order is obvious, and say so. Numbers are stable; the
 backlog is `docs/PARKED.md`, and an item comes back from it only when a
 score names it.
 
-358. **Widen Great Lakes 8985** — the headline's own frame, which no item
+360. **Widen Great Lakes 9134** — the headline's own frame, which no item
     names. Both sequences whole, every record, every field, every unit, then
-    the cause. run97 `[8030, 9349]` still dumps it, with **364 frames above
-    and no more** — say in the report whether the cause needed frames past
-    9349, because that decides whether the next capture is owed urgently.
+    the cause. run97 `[8030, 9349]` still dumps it, with **215 frames above
+    and no more**. As 358 was asked and answered: **say whether the cause
+    needed a frame past 9349**, because that single fact is what turns the
+    owed capture into an urgent one.
 
 342. **Host choice seats the scholar on the wrong university** — 338's
     residue, re-pinned three times. **Re-measure before diagnosing**: the
