@@ -12,34 +12,35 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-17 into 09-18, an Opus commander loop: twenty-five landings,
-nineteen word-moving. **GL +1,455, EI +1,899.** Next: 360.*
+*2026-09-17 into 09-18, an Opus commander loop: twenty-six landings, twenty
+word-moving. **GL +1,503, EI +1,899.** Next: 362, then reap the lane below.*
 
-- **Great Lakes 8985 → 9134** (item 358), the market's trade. East Indies
-  unmoved at 9711. The cause sat at 8982/8985, so the widening needed no
-  frame past run97's end — asked for explicitly, and the answer is that the
-  next capture is **owed, not urgent**.
-- **run97's runway is now 215 frames** (ends 9349, word 9134), and the
-  count-side word is further on again. Recent items have moved +322, +178,
-  +149, so the capture is one or two items away from being load-bearing on
-  the map doing all the productive work. East Indies has had none above
-  8789 for eight items. One window can serve both; it is the lane's.
-- **The three method notes are earning their keep** and belong in every
-  brief until they are guards: judge by the word *and* the residues with
-  per-frame rates (350); a claim can sit in a document and never reach the
-  code (352, parked 356); a vtable slot's surviving name is not its body,
-  COMDAT folding chose it (354).
+- **Great Lakes 9134 → 9182** (item 360) and the residues fell again over
+  `[8029, 9182)`: point-and-goal **183 → 6**, walk-slot **103 → 0**, units
+  ever off position 6 → 4. `Unit::move_step` splits on `param_2 < local_28`
+  and has a collision block on **each** side; `docs/COLLISION.md` §5 had
+  only the partial step's (`+0x823`), and 9134 was the **snap arm's**
+  (`+0x4e2`), which resolves nothing — it consumes the waypoint the unit
+  stands on, so `1/32` was resolved a frame early.
+- **The trace's site list can hide a call chain.** That draw printed as a
+  bare `5dac7a` because `SITES` carried eleven of the address's twelve
+  `ebp` chains. A missing chain looks like an unnamed address, not an error.
+- **IN FLIGHT — `capture-lane-2`**, ref `74a77ee7`, branch
+  `worktree-capture-lane-2`: Great Lakes `[9340, 10900)` past run97's 9349,
+  East Indies `[8780, 10400)` past run98's 8789. **When it reports: `ccc
+  merge <ref> --no-ff`, gate, push, `ccc rm`.** It touches only
+  `tools/gamelog/captures.txt` and its own journal. run97 has **167 frames**
+  left above the word, so this is owed, not urgent.
 - Two items open, thirty-two parked. **Fable backlog: twelve Loop items**
-  (313, 318, 321, 330, 331, 332, 335, 339, 341, 343, 345, 356). **339** —
-  the gate skipping all 835 sim tests on any word-moving item — is one flag
-  and has been worked around by brief seven times.
+  (313, 318, 321, 330, 331, 332, 335, 339, 341, 343, 345, 356). **339** is
+  one flag and has been worked around by brief eight times running.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w9711 of 24,000 · GreatLakes w9134 of 24,000
-Endpoint 24001: EastIndies 58 off, 14 unlinked · GreatLakes 57 off, 6 unlinked
+Long captures: EastIndies w9711 of 24,000 · GreatLakes w9182 of 24,000
+Endpoint 24001: EastIndies 58 off, 14 unlinked · GreatLakes 57 off, 10 unlinked
 
-**Opener: 360 — widen Great Lakes 9134, with 215 frames of run97 left. Say
-whether the cause needs a frame past 9349; that is what books the capture.**
+**Opener: 362 — the market at 9182, where 358 left it: three
+`use_market+0x1ed` against our one, and one `set_anim+0x104b` against three.**
 
 ## The queue
 
@@ -49,12 +50,12 @@ unless a better order is obvious, and say so. Numbers are stable; the
 backlog is `docs/PARKED.md`, and an item comes back from it only when a
 score names it.
 
-360. **Widen Great Lakes 9134** — the headline's own frame, which no item
-    names. Both sequences whole, every record, every field, every unit, then
-    the cause. run97 `[8030, 9349]` still dumps it, with **215 frames above
-    and no more**. As 358 was asked and answered: **say whether the cause
-    needed a frame past 9349**, because that single fact is what turns the
-    owed capture into an urgent one.
+362. **Great Lakes 9182 is the market's, and 358 left it there** — three
+    `use_market+0x1ed` draws against this crate's one, plus an animation
+    tail of one `set_anim+0x104b` against three. `docs/AI.md` §41 names the
+    `LEADERS=9` window that reads it. Named on the frame, so **no widening
+    owed**. run97 dumps 9182 with 167 frames above; `capture-lane-2` is
+    extending that above 9349 if it lands.
 
 342. **Host choice seats the scholar on the wrong university** — 338's
     residue, re-pinned three times. **Re-measure before diagnosing**: the
