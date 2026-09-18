@@ -4439,3 +4439,134 @@ that table is what the diff checks.
   sweeps) while `active` moves live. That this crate's sweep cadence is
   in phase with the original's is evidence from one coincidence, not a
   claim: no item has yet pinned the cadence itself.
+
+## 38. The scholar's gate reads the raw cap, and the disk already held the frame (2026-09-17)
+
+Item 323. Great Lakes' draw **sequence** parted at **8182** on one draw:
+the original spent `Leader::make_stuff+0x63d` where this crate spent a
+`Guy::set_anim` idle, and one extra `Unit::think_scout+0xaba` later in the
+frame put the counts back level so the *word* did not notice. `+0x63d` is
+step 6's expiry walk (§2.6) — it runs once per bought slot — so the
+missing draw says the original bought a slot this crate did not.
+
+### 38.1 The capture was already on disk
+
+The item was booked to take one. It did not need to. **run19**
+(`gamelog-run19-window-8174-8192.txt`, 2026-08-25, 32 MB, 19 blocks) holds
+dump-blocks **8174–8191** of this map's own game: `rngcmp` against
+run53 answers **0 differing, 8,201 identical**. A scan of every
+`gamelog*.txt` in the archive for a block labelled 8182 or 8186 returns
+**run19 and nothing else** — so it is not merely a capture that reaches
+the frame, it is the only one.
+
+It had been read once, for `make_stuff`'s head clause (§15.6), and
+compared field for field nowhere. The comparison is now
+`run19_s_window_is_the_leader_record_at_the_scholar`: 36 blocks, **37,584
+field-frames**, the residue pinned by name like run84's and run91's.
+
+**Two corrections to §15.6 fall out of reading it again.** Its
+"wood 92 → 32, wealth 40 → 10, metal 159 → 19" names the wrong goods:
+`resourcerules.xml` lists Food, Timber, **Wealth**, **Knowledge**, Metal,
+Oil in that order, and the record's third and fourth per-good blocks are
+Wealth and Knowledge. The 159 that falls to 19 is **knowledge**, and the
+40 that falls to 10 is wealth. And the dumped `resource_cap` for
+knowledge is 15,984 against 2,000 for every other good, which is what
+makes the knowledge gate below worth having at all.
+
+### 38.2 The gate: `bucket[knowledge] <= (resource_cap[food] / 16) * 3 / 2`
+
+`Leader::create_units@006c40a0:1122–1127`, the scholar arm of the
+civilian branch:
+
+```
+(int)(*(uint *)(*(int *)&leaders.list[who].field_0x6eb8 + 0xc) ^ 0x8221)
+  <= (((int)(uVar11 + ((int)uVar11 >> 0x1f & 0xfU)) >> 4) * 3) / 2
+       where uVar11 = *(uint *)(*(int *)&this->field_0x6eb8 + 0x30) ^ 0x1281
+```
+
+Both operands are fields of the encrypted goods block, and the **type
+record** names them — `LeaderDataEncrypt` is a struct of arrays:
+
+| offset | field | index |
+| --- | --- | --- |
+| `+0x0` | `int[6] bucket` | `+0xc` is `bucket[3]`, knowledge |
+| `+0x18` | `int[6] leftover` | |
+| `+0x30` | `int[7] resource_cap` | `+0x30` is `resource_cap[0]`, food |
+
+So the gate is the knowledge stockpile against three halves of a
+sixteenth of the **food** cap — an odd pairing, and it is what the bytes
+say.
+
+**The load-bearing half is that the cap is read raw.**
+`LeaderData::get_mod_resource_cap` divides by two on Easiest and takes
+three quarters on Easy (§2.5), and it is called **exactly twice in the
+whole of `create_units`** — at `:1229` and `:1232`, both in the citizen
+branch. Neither is this gate, which reads the field. This crate called
+`Sim::mod_resource_cap` here, and on Great Lakes' Easiest AI that turned
+a food cap of 2,000 into 1,000 and the threshold `(2000/16)*3/2 = 187`
+into `(1000/16)*3/2 = 93` — against a stockpile of **159**. The original
+passes; this crate refused, on that frame and every frame like it.
+
+### 38.3 What it moved, by value
+
+`create_units` runs at sim-frame **8180**. With the raw cap it offers the
+Scholar (`0x34` = 52, `city 1`, `val 9,999,999`) into make-list slot 1,
+exactly as the original's dump-block 8181 shows; `make_stuff` buys it at
+8182 and step 6's walk spends `+0x63d` on it. The value diff beside the
+word is the leader's stockpile, all six goods, on the dump's own blocks:
+
+| block | dump | this crate before | this crate after |
+| --- | --- | --- | --- |
+| 8181 | 148 91 40 159 24 0 | 148 91 40 159 24 0 | 148 91 40 159 24 0 |
+| 8182 | 148 92 40 159 24 0 | 148 92 40 159 24 0 | 148 92 40 159 24 0 |
+| 8183 | 149 32 **10** 19 24 0 | 149 32 **40** 19 24 0 | 149 32 **10** 19 24 0 |
+| 8184 | 149 32 11 19 24 0 | 149 32 41 19 24 0 | 149 32 11 19 24 0 |
+
+The thirty wealth is the scholar. Great Lakes' floor — the lower of word
+and sequence — goes **8182 → 8186**; the sequence moves to 8186 and the
+word was already there. Frames 8182, 8183, 8184 and 8185 now agree entry
+for entry.
+
+### 38.4 The instrument was comparing two different numbering spaces
+
+`diff::leader::rows` emitted `MAKE[i].t` as this crate's **tree id** and
+`theirs` read the dump's **`TypeIndex`**. The tree is laid out gaplessly
+(`crate::load`, "the type space"): a good, a unit and a building carry
+the same number in both, and the tech block starts at tree id 543 against
+`TypeIndex` `0x220` = 544. **Every tech offer therefore read as a
+divergence** — Coinage at 558 against 559, Empire at 565 against 566,
+Mercenaries 572 against 573, Mathematics 551 against 552 — and nine rows
+across run84's and run91's pinned residue were that and not the
+simulation. They are gone; `MAKE[3].t` on run84 is a real one and stays.
+
+### 38.5 What this does not establish
+
+- **The `city` field is still ours+1 on every offer.** This crate's city
+  array has the human's at index 0 and the AI's at 1 and 2; the dump's
+  `MAKE[i].city` for the same offers reads 0 and 1. Whether the original
+  numbers cities per leader or in a different founding order is not
+  settled here, and no offer in this window is chosen *by* the index, so
+  nothing in the sequence turns on it yet. It is `MAKE[*].city` in
+  `PARTS_ON_RUN19`.
+- **Three tech `val`s part** — Empire 2,100,000 against 1,800,000,
+  Mercenaries 165,000 against 216,000, Mathematics 82,500 against 63,000
+  — from before the window opens. `research_techs` (§2.14) values them
+  and nothing here re-derives its arithmetic.
+- **The Merchant is still not offered.** The original's `create_units`
+  puts one at slot 3 on dump-block 8181 (`t 61`, `val 869,565`,
+  `city 0`) and this crate does not; `civilian_value`'s merchant arm
+  reads `known_rares`, which §2.14's seam still sums from the per-region
+  counts. `MAKE[3].t` and `MAKE[3].cat` on run19 are that.
+- **The other three `mod_resource_cap` call sites are unexamined here
+  only in part.** `create_buildings@006c1be0` calls
+  `get_mod_resource_cap` three times and reads the raw field nowhere, and
+  `ai_build.rs` uses the modified cap three times — those agree.
+  `production_ai_setup` calls it six times and `ai_drive.rs` uses it
+  once, per good; that pairing is not checked.
+- **8186 is combat, not production.** The successor is 54 draws against
+  6, 46 of them `Unit::find_attack_pos+0xea9 < Unit::find_attack_pos+0x2d
+  < Unit::fight+0xcb4` — a site `trace::SITES` does not name at all, which
+  is why the harness prints it as `602129`. run19's own record already
+  says the war state parts there: `wars`, `active_wars`,
+  `active_wars_with`, `attacked_by` and `frame_attacked` are in
+  `PARTS_ON_RUN19` for the human.

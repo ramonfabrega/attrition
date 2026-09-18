@@ -1355,7 +1355,21 @@ impl Sim {
             if unlimited || gfree[KNOWLEDGE] == 0 {
                 return None;
             }
-            let cap_food = self.mod_resource_cap(who, FOOD);
+            // **The raw cap, not the difficulty-modified one.** The gate is
+            // `create_units@006c40a0:1122–1127`, and both its operands are
+            // fields of `LeaderDataEncrypt` read directly:
+            // `+0xc ^ 0x8221` is `bucket[3]` and `+0x30 ^ 0x1281` is
+            // `resource_cap[0]` (the type record: `bucket` is `int[6]` at
+            // `+0x0`, `resource_cap` `int[7]` at `+0x30`, so the block is a
+            // struct of arrays and the two offsets are good 3's bucket and
+            // good 0's cap). `LeaderData::get_mod_resource_cap` is called
+            // **twice** in the whole of `create_units`, at :1229 and :1232,
+            // and both are the citizen branch's — neither is this one. On
+            // Easiest the getter halves the cap, and halving it here is what
+            // refused Great Lakes' scholar at sim-frame 8180: 159 knowledge
+            // against a food cap of 2000 passes `(2000/16)*3/2 = 187` and
+            // fails the halved `(1000/16)*3/2 = 93`. `docs/AI.md` §38.
+            let cap_food = self.ledgers[w].cap[FOOD];
             if self.ledgers[w].bucket[KNOWLEDGE] > (cap_food / 16) * 3 / 2 {
                 return None;
             }

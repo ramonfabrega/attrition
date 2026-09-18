@@ -77,7 +77,7 @@ const GOODS: [&str; RESOURCES] = ["food", "timber", "metal", "wealth", "knowledg
 ///
 /// The per-good rows are flattened as `bucket[0]` … `bucket[5]`, which is
 /// what makes a residue line name the good rather than a slot.
-pub(crate) fn rows(built: &Built, who: usize) -> Vec<Row> {
+pub(crate) fn rows(loaded: &crate::load::Loaded, built: &Built, who: usize) -> Vec<Row> {
     let l = &built.sim.ledgers[who];
     let h = &built.sim.holdings[who];
     let a = &built.sim.ai[who];
@@ -249,9 +249,24 @@ pub(crate) fn rows(built: &Built, who: usize) -> Vec<Row> {
     // a window: `make_stuff`'s whole decision is a function of it
     // (`docs/AI.md` §2.6), so a head that is the wrong type spends the
     // wrong draws with every arithmetic step correct.
+    // **`t` is the original's `TypeIndex`, not this crate's tree id.** The
+    // tree is laid out gaplessly (`crate::load`, "the type space"), so a
+    // good, a unit and a building carry the same number either way and a
+    // **tech does not**: the tech block starts at tree id 543 and at
+    // `TypeIndex` `0x220` = 544. Comparing the raw id against the dump's
+    // therefore reads every tech offer as off by one — which it did, on
+    // every window, until item 323 put a scholar and three techs side by
+    // side and the techs were the ones that "differed".
+    let ti = |t: i32| -> i64 {
+        if t < 0 {
+            i64::from(t)
+        } else {
+            i64::from(loaded.type_index(t as sim::tech::TypeId))
+        }
+    };
     for (i, m) in a.make_list.list.iter().enumerate() {
         for (k, v) in [
-            ("t", i64::from(m.t)),
+            ("t", ti(m.t)),
             ("val", i64::from(m.val)),
             ("escrow", i64::from(m.escrow)),
             ("city", i64::from(m.city)),
@@ -531,7 +546,7 @@ mod tests {
                 continue;
             }
             for who in 0..2usize {
-                kept.insert((n, who), rows(&built, who));
+                kept.insert((n, who), rows(&loaded, &built, who));
             }
         }
         Some((kept, built))
@@ -860,6 +875,212 @@ mod tests {
         );
     }
 
+    /// **The leader record over run19's window, and the scholar in it** —
+    /// item 323, `docs/AI.md` §38.
+    ///
+    /// run19 sat on disk from 2026-08-25 carrying dump-blocks **8174–8191**
+    /// of this map's own game — `rngcmp` against run53 is 0 differing and
+    /// 8,201 identical, and the exhaustive scan of every `gamelog*.txt`
+    /// says it is the **only** capture anywhere that holds blocks 8182 and
+    /// 8186. It was read once for `make_stuff`'s head clause (§15.6) and
+    /// never compared field for field, which is what this does.
+    ///
+    /// **What it pins.** Great Lakes' draw sequence parted at 8182 on a
+    /// `Leader::make_stuff+0x63d` this crate never spent: the original's
+    /// `create_units` offers a **Scholar** at sim-frame 8180 and buys it
+    /// out of slot 1 at 8182, so step 6's expiry walk runs and draws. This
+    /// crate refused the offer — `civilian_value`'s scholar gate compares
+    /// `bucket[knowledge]` against `(resource_cap[food] / 16) * 3 / 2` and
+    /// was halving the cap through `get_mod_resource_cap`, which on
+    /// Easiest turns 2,000 into 1,000 and 187 into 93 against a stockpile
+    /// of 159. Block 8181's slot 1 is the assertion, and block 8183's
+    /// `bucket` is the value beside it: the scholar's thirty wealth, 40 →
+    /// 10, which this crate did not spend.
+    #[test]
+    fn run19_s_window_is_the_leader_record_at_the_scholar() {
+        const FIRST: i64 = 8174;
+        const LAST: i64 = 8191;
+        let Some(path) = dump("gamelog-run19-window-8174-8192.txt") else {
+            eprintln!("skipping: no run19 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let Some((ours, _)) = great_lakes(FIRST, LAST) else {
+            return;
+        };
+        let wtext = crate::capture::read(&path);
+        let wlog = Log::parse(&wtext);
+        let mut compared = 0usize;
+        let mut blocks = 0usize;
+        let mut missing: std::collections::BTreeSet<String> = Default::default();
+        let mut residue: std::collections::BTreeMap<(usize, String), (usize, i64, i64, i64)> =
+            Default::default();
+        // The two rows the item is about, read off the comparison rather
+        // than off the simulation, so the dump is on both sides of them.
+        let mut scholar: Option<(i64, i64)> = None;
+        let mut wealth: Option<(i64, i64)> = None;
+        for n in FIRST..=LAST {
+            for who in 0..2usize {
+                let Some(block) = wlog.leader_block(n, who as i64) else {
+                    continue;
+                };
+                blocks += 1;
+                let t = theirs(&block);
+                active_is_the_muster_summed(&t, n, who);
+                for (k, mine) in &ours[&(n, who)] {
+                    let Some(&yours) = t.get(k) else {
+                        missing.insert(k.clone());
+                        continue;
+                    };
+                    compared += 1;
+                    if who == 1 && n == 8181 && k == "MAKE[1].t" {
+                        scholar = Some((*mine, yours));
+                    }
+                    if who == 1 && n == 8183 && k == "bucket[2:metal]" {
+                        wealth = Some((*mine, yours));
+                    }
+                    if *mine != yours {
+                        let e = residue
+                            .entry((who, k.clone()))
+                            .or_insert((0, *mine, yours, n));
+                        e.0 += 1;
+                    }
+                }
+            }
+        }
+        eprintln!("run19 [{FIRST}, {LAST}]: {blocks} blocks, {compared} field-frames");
+        for ((who, k), (n, o, t, first)) in &residue {
+            eprintln!("  {who}/{k}: {n} frames, ours {o} theirs {t} on {first}");
+        }
+        assert_eq!(blocks, 36, "eighteen blocks, two leaders");
+        assert!(missing.is_empty(), "the record does not carry {missing:?}");
+        assert_eq!(
+            compared, 37_584,
+            "36 blocks of the record, every field the mapping carries"
+        );
+        // **The scholar, on the frame `create_units` offers it.** 52 is
+        // `SCHOLARS` (`0x34`), and the slot is the head's runner-up.
+        assert_eq!(
+            scholar,
+            Some((52, 52)),
+            "block 8181's make-list slot 1 is not the scholar on both              sides — this is `civilian_value`'s knowledge gate reading the              difficulty-modified food cap again, and Great Lakes' sequence              parts at 8182 when it does"
+        );
+        // **And what it costs.** The good the record names `metal` is
+        // index 2, which `resourcerules.xml` calls **Wealth** — the dump's
+        // own name for slot 2 and the one §15.6 read as metal.
+        assert_eq!(
+            wealth,
+            Some((10, 10)),
+            "block 8183's second good is the scholar's price, and 40 here              is the purchase not made"
+        );
+        let parting: Vec<(usize, &str)> = residue.keys().map(|(w, k)| (*w, k.as_str())).collect();
+        assert_eq!(
+            parting,
+            PARTS_ON_RUN19,
+            "run19's leader residue moved: {} fields",
+            parting.len()
+        );
+    }
+
+    /// The `(player, field)` pairs that part over run19's window. Filled
+    /// from the first run and then pinned; `docs/AI.md` §38.
+    const PARTS_ON_RUN19: &[(usize, &str)] = &[
+        (0, "SITE[0].reg"),
+        (0, "SITE[1].reg"),
+        (0, "SITE[2].reg"),
+        (0, "SITE[3].reg"),
+        (0, "SITE[4].reg"),
+        (0, "SITE[5].reg"),
+        (0, "SITE[6].reg"),
+        (0, "SITE[7].reg"),
+        (0, "SITE[8].reg"),
+        (0, "SITE[9].reg"),
+        (0, "active_wars"),
+        (0, "active_wars_with"),
+        (0, "ally_mask"),
+        (0, "attacked_by"),
+        (0, "filled_gather_slots[0:food]"),
+        (0, "filled_gather_slots[1:timber]"),
+        (0, "frame_attacked"),
+        (0, "gatherers"),
+        (0, "min_other_team_terr"),
+        (0, "my_team_terr"),
+        (0, "other_team_terr"),
+        (0, "peasant_high"),
+        (0, "peasants"),
+        (0, "scouts"),
+        (0, "wars"),
+        (1, "MAKE[0].city"),
+        (1, "MAKE[0].num"),
+        (1, "MAKE[0].val"),
+        (1, "MAKE[10].val"),
+        (1, "MAKE[1].city"),
+        (1, "MAKE[1].val"),
+        (1, "MAKE[2].city"),
+        (1, "MAKE[2].val"),
+        (1, "MAKE[3].cat"),
+        (1, "MAKE[3].city"),
+        (1, "MAKE[3].t"),
+        (1, "MAKE[3].val"),
+        (1, "MAKE[4].val"),
+        (1, "MAKE[8].city"),
+        (1, "MAKE[8].val"),
+        (1, "MAKE[9].val"),
+        (1, "SITE[0].reg"),
+        (1, "SITE[1].reg"),
+        (1, "SITE[2].dist"),
+        (1, "SITE[2].rank"),
+        (1, "SITE[2].val"),
+        (1, "SITE[2].wx"),
+        (1, "SITE[2].wy"),
+        (1, "SITE[3].dist"),
+        (1, "SITE[3].rank"),
+        (1, "SITE[3].val"),
+        (1, "SITE[3].wx"),
+        (1, "SITE[3].wy"),
+        (1, "SITE[4].dist"),
+        (1, "SITE[4].rank"),
+        (1, "SITE[4].val"),
+        (1, "SITE[4].wx"),
+        (1, "SITE[4].wy"),
+        (1, "SITE[5].dist"),
+        (1, "SITE[5].rank"),
+        (1, "SITE[5].val"),
+        (1, "SITE[5].wx"),
+        (1, "SITE[5].wy"),
+        (1, "SITE[6].dist"),
+        (1, "SITE[6].rank"),
+        (1, "SITE[6].val"),
+        (1, "SITE[6].wx"),
+        (1, "SITE[6].wy"),
+        (1, "SITE[7].dist"),
+        (1, "SITE[7].rank"),
+        (1, "SITE[7].val"),
+        (1, "SITE[7].wx"),
+        (1, "SITE[7].wy"),
+        (1, "SITE[8].dist"),
+        (1, "SITE[8].rank"),
+        (1, "SITE[8].val"),
+        (1, "SITE[8].wx"),
+        (1, "SITE[8].wy"),
+        (1, "SITE[9].dist"),
+        (1, "SITE[9].rank"),
+        (1, "SITE[9].val"),
+        (1, "SITE[9].wx"),
+        (1, "SITE[9].wy"),
+        (1, "active_wars"),
+        (1, "active_wars_with"),
+        (1, "gather_stamp"),
+        (1, "min_other_team_terr"),
+        (1, "other_team_terr"),
+        (1, "scouts"),
+        (1, "tech_cat_frame[0]"),
+        (1, "tech_cat_frame[1]"),
+        (1, "tech_cat_frame[2]"),
+        (1, "tech_cat_frame[3]"),
+        (1, "tech_frame"),
+        (1, "wars"),
+    ];
+
     /// The `(player, field)` pairs that part over run91's window — the
     /// word's own. `docs/AI.md` §34, §35.
     ///
@@ -873,6 +1094,8 @@ mod tests {
     /// whole of `bucket`, `attack`, `combat` and `non_siege` — the head
     /// is the original's Temple now and the stockpile agrees on every
     /// block of the window.
+    /// Three `MAKE[i].t` rows left this list in item 323 — the tree
+    /// id/`TypeIndex` correction described on [`PARTS_ON_RUN84`].
     const PARTS_ON_RUN91: &[(usize, &str)] = &[
         (0, "SITE[0].reg"),
         (0, "SITE[1].reg"),
@@ -899,7 +1122,6 @@ mod tests {
         (1, "MAKE[0].escrow"),
         (1, "MAKE[0].t"),
         (1, "MAKE[0].val"),
-        (1, "MAKE[10].t"),
         (1, "MAKE[1].city"),
         (1, "MAKE[1].escrow"),
         (1, "MAKE[1].t"),
@@ -918,8 +1140,6 @@ mod tests {
         (1, "MAKE[5].city"),
         (1, "MAKE[6].city"),
         (1, "MAKE[8].city"),
-        (1, "MAKE[8].t"),
-        (1, "MAKE[9].t"),
         (1, "SITE[0].reg"),
         (1, "SITE[2].dist"),
         (1, "SITE[2].rank"),
@@ -990,6 +1210,13 @@ mod tests {
     ///   classes the sweep counts), and `gather_stamp` — the frame of the
     ///   last rate reassembly, which is a cadence rather than a value and
     ///   whose *outputs* (`resources`, `income`, `rate`) all agree.
+    ///
+    /// **Six `MAKE[i].t` rows left this list in item 323 and none of them
+    /// was a fix**: `rows` was emitting this crate's tree id where the
+    /// dump prints the original's `TypeIndex`, which agree on a good, a
+    /// unit and a building and differ by one on a **tech**. Every tech
+    /// offer therefore read as a divergence. run91 lost three the same
+    /// way. `MAKE[3].t` here is a real one and stays.
     const PARTS_ON_RUN84: &[(usize, &str)] = &[
         (0, "SITE[0].reg"),
         (0, "SITE[1].reg"),
@@ -1013,13 +1240,9 @@ mod tests {
         (0, "production_step"),
         (0, "scouts"),
         (1, "MAKE[0].city"),
-        (1, "MAKE[0].t"),
-        (1, "MAKE[10].t"),
         (1, "MAKE[1].city"),
         (1, "MAKE[1].escrow"),
-        (1, "MAKE[1].t"),
         (1, "MAKE[2].city"),
-        (1, "MAKE[2].t"),
         (1, "MAKE[2].val"),
         (1, "MAKE[3].city"),
         (1, "MAKE[3].escrow"),
@@ -1031,8 +1254,6 @@ mod tests {
         (1, "MAKE[6].city"),
         (1, "MAKE[7].city"),
         (1, "MAKE[8].city"),
-        (1, "MAKE[8].t"),
-        (1, "MAKE[9].t"),
         (1, "SITE[0].reg"),
         (1, "SITE[1].reg"),
         (1, "SITE[2].dist"),
