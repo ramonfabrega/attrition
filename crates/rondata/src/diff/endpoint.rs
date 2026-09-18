@@ -333,11 +333,19 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // placed on. Great Lakes' word moves 8382 → 8404 on it; East
         // Indies' does not move. DECISIONS 36 asks for the number rather
         // than a trade.
-        off: 70,
-        unlinked: 2,
+        // And **70 → 61 off, 2 → 8 unlinked, 0 → 1 build_unlinked and
+        // 31 → 30 build_diverged** on 2026-09-18, item 346 — a scholar's
+        // slot from `0x19` up is the idle category (`docs/ANIM.md` §5.1),
+        // which moves this map's own word 8495 → 9711, the largest single
+        // step it has taken. Nine positions closer and one building field
+        // closer, six more of the roster unlinked and one building the
+        // simulation cannot link, 14,290 frames past the new word.
+        // DECISIONS 36 asks for the number rather than a trade.
+        off: 61,
+        unlinked: 8,
         extra: 0,
-        build_unlinked: 0,
-        build_diverged: 31,
+        build_unlinked: 1,
+        build_diverged: 30,
         city_unlinked: 3,
         city_diverged: 0,
     },
@@ -512,11 +520,17 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // placed on. Great Lakes' word moves 8382 → 8404 on it; East
         // Indies' does not move. DECISIONS 36 asks for the number rather
         // than a trade.
-        off: 62,
-        unlinked: 7,
+        // And **62 → 58 off, 7 → 11 unlinked and 10 → 5 build_diverged**
+        // on 2026-09-18, item 346 — the same one change, which moves this
+        // map's word 8404 → 8582 (`docs/ANIM.md` §5.1). Four positions and
+        // five building fields closer, four more of the roster unlinked,
+        // 15,419 frames past the new word. DECISIONS 36 asks for the
+        // number rather than a trade.
+        off: 58,
+        unlinked: 11,
         extra: 0,
         build_unlinked: 0,
-        build_diverged: 10,
+        build_diverged: 5,
         city_unlinked: 3,
         city_diverged: 0,
     },
@@ -582,7 +596,7 @@ pub const LADDER: [Endpoint; 2] = [
         // before this block. Great Lakes' word moves 8374 → 8382 on it
         // and East Indies' does not move. DECISIONS 36 asks for the
         // number rather than a trade.
-        off: 42,
+        off: 41,
         unlinked: 17,
         // 20 → 21 on 2026-09-07, item 267's repaint: one spurious unit
         // back, 7,872 frames past the word, and nothing else on this rung
@@ -638,7 +652,13 @@ pub const LADDER: [Endpoint; 2] = [
         // placed on. Great Lakes' word moves 8382 → 8404 on it; East
         // Indies' does not move. DECISIONS 36 asks for the number rather
         // than a trade.
-        extra: 25,
+        // And **42 → 41 off and 25 → 21 extra** on 2026-09-18, item 346 —
+        // the scholar's idle category (`docs/ANIM.md` §5.1), which takes
+        // East Indies' own word 8495 → 9711. One position closer and four
+        // spurious units gone on this rung, 5,690 frames past the new
+        // word, with both building counts unmoved. DECISIONS 36 asks for
+        // the number rather than a trade.
+        extra: 21,
         build_unlinked: 10,
         build_diverged: 8,
         city_unlinked: 3,
@@ -689,7 +709,13 @@ pub const LADDER: [Endpoint; 2] = [
         // C rung stops failing first.
         // Then **49 → 51** on 2026-09-18 with the `extra` below, item 344 —
         // the mine's mountain range, whose note is on the C rung above.
-        off: 51,
+        // And **51 → 48 off and 20 → 17 extra** on 2026-09-18, item 346 —
+        // the scholar's idle category (`docs/ANIM.md` §5.1). Three
+        // positions closer and three spurious units gone on this rung,
+        // 6,778 frames past a word the same change takes 8495 → 9711,
+        // with `unlinked` and both building counts unmoved. DECISIONS 36
+        // asks for the number rather than a trade.
+        off: 48,
         unlinked: 16,
         // 19 → 33 on 2026-09-07, item 261, the same reshuffle, then 33 →
         // **27** the same day on item 265's byte — this rung took the
@@ -737,7 +763,7 @@ pub const LADDER: [Endpoint; 2] = [
         // Then **14 → 20** on 2026-09-18, item 344 — six spurious units
         // back on this rung, on the change that takes Great Lakes' word
         // 8382 → 8404.
-        extra: 20,
+        extra: 17,
         build_unlinked: 19,
         build_diverged: 0,
         city_unlinked: 4,
@@ -1082,19 +1108,21 @@ mod tests {
     /// the game stood `(24, 552)` off — the exit ring — and not one of the
     /// eleven the endpoint compares agreed.
     ///
-    /// **The roster is a pin, re-read on 2026-09-18 (item 344).** 338 left
-    /// six exactly right and four off by exactly `±(768, 9984)`, which is
-    /// `1/2020 − 1/2019`. The mine's mountain range claims 207 tiles as
-    /// gathered from on frame 8382, which re-deals every gatherer's
-    /// assignment 15,700 frames before this one, and the roster it leaves
-    /// is **four** exact — `1/44`, the unit 338's own frame is about,
-    /// among them — and `1/53` still on the wrong host by that same
-    /// vector. The other five are printed with their offsets and not
-    /// asserted: past the word a position is nobody's, and which
-    /// university a scholar walks to is still the successor 338 named.
+    /// **The roster is a pin, re-read on 2026-09-18 (item 344, then 346).**
+    /// 338 left six exactly right and four off by exactly `±(768, 9984)`,
+    /// which is `1/2020 − 1/2019`. 344's mine claims 207 tiles as gathered
+    /// from on frame 8382 and re-deals every gatherer's assignment 15,700
+    /// frames before this one, leaving **four** exact; 346 carries the
+    /// word from 8404 to 8582 and the roster turns over again without
+    /// changing size — `1/51` goes out and `1/50` comes in, and `1/44`,
+    /// the unit 338's own frame is about, has stayed exact through all
+    /// three. `1/53` is still on the wrong host by that same vector. The
+    /// other five are printed with their offsets and not asserted: past
+    /// the word a position is nobody's, and which university a scholar
+    /// walks to is still the successor 338 named.
     ///
     /// What the two assertions buy is that a change moving `1/44`,
-    /// `1/45`, `1/48` or `1/51` off the original's own coordinate, or
+    /// `1/45`, `1/48` or `1/50` off the original's own coordinate, or
     /// `1/53` off the vector between the two universities, fails here
     /// rather than passing quietly into the count.
     #[test]
@@ -1103,7 +1131,7 @@ mod tests {
         let Some(r) = score(row) else { return };
         // The four the seating puts exactly right, `1/44` — the unit item
         // 338's own frame is about — first.
-        let seated = [44, 45, 48, 51];
+        let seated = [44, 45, 48, 50];
         let still_off: Vec<i64> = seated
             .iter()
             .copied()
@@ -1132,7 +1160,7 @@ mod tests {
              what is left of item 338"
         );
         // The rest, printed: past the word neither stream is anybody's.
-        for o in [49, 50, 52, 55, 56] {
+        for o in [49, 51, 52, 55, 56] {
             eprintln!(
                 "  scholar 1/{o}: {:?}",
                 r.off.get(&(1, o)).copied().unwrap_or((0, 0))
