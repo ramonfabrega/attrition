@@ -19,29 +19,29 @@ held-out map's verdict; 362 was booked as the market and was not.*
 - **The rules track has a record.** `!ai off`, six `add` squads, 901
   frames: auto-engage survives AI-off (the control with the line deleted
   differs on 899 of 901 from frame 2), two launches are one game, a
-  late-age dump parses; run101/103/105 agree on all 901 at three detail
-  levels — **41 §2 measured**. 341 closes, `viadriver.sh` always (ORACLE).
-- **362 was not the market.** `use_market` is line for line; the cause was
-  `MakeObject.num`, and the **draw stream** named it — 8985 costs three
-  `make_stuff+0x221` and zero `+0x63d` both sides, which no step-6 buy can
-  do. Retires all three of §41's readings and its window.
+  late-age dump parses, run101/103/105 agree at three detail levels —
+  **41 §2 measured**. 341 closes; `viadriver.sh` always (ORACLE).
+- **Three items, one frame, no word.** 9182 survived 358, 362 and 368;
+  each named a mechanism, none was the cause (377). Landed instead:
+  `MakeObject.num` (every civilian a batch of one) and `census_territory`'s
+  gate — the human IS a leader — dropping three leader residues on
+  disk-resident captures. 368's better product is a **closed family**:
+  31,448 gather orders below the word, zero disagreement, floored by SET.
 - **The held-out third map answers 1 tick, 0 orders** (run106, map 9
-  Himalayas — both scored maps are water), measured once and never
-  debugged against. The tick is a MINIMUM set by one of sixteen units at
-  frame 2 (others 209–501); 35,063 of 44,597 order disagreements are
-  gather and move — a **fit to two trajectories**, not a missing mechanic.
-  What generalised is the derivation: the gather-target check, from the map
-  not the log, is exact for all twenty citizens. **The pass's number.**
-- Seven open, 38 parked. **Fable backlog: eight Loop items** (251, 335,
-  343, 356, 321, 313, 367, 374). The ladder's `extra` 13→25 stays open (370).
+  Himalayas), measured once, never debugged against. The tick is a MINIMUM
+  set by one of sixteen units (others 209–501); 35,063 of 44,597
+  disagreements are gather and move — a **fit to two trajectories**. What
+  generalised is the derived check, not the trajectory. **The pass's number.**
+- Six open, 41 parked. **Fable backlog: ten Loop items** (251, 335, 343,
+  356, 321, 313, 367, 374, 375, 377).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w9711 of 24,000 · GreatLakes w9182 of 24,000
 Golden: none pinned · 364 → 365
 Endpoint 24001: EastIndies 64 off, 5 unlinked · GreatLakes 50 off, 9 unlinked
 
-**Opener: 368 on the frame the word is still stuck on, and 364 beside it —
-9182's step-6 purchases, and chapter one pinned in the harness.**
+**Opener: 369 decides which branch 9182 is on — the capture §43 names —
+and 365 writes the script beside it. 364 is in flight.**
 
 ## The queue
 
@@ -51,18 +51,14 @@ the AI, lower map first — Great Lakes. Take the first unstarted on either
 track unless a better order is obvious, and say so. Numbers are stable;
 the backlog is `docs/PARKED.md`, and an item returns only when a score names it.
 
-368. **9182's step-6 purchases, and the word is still on them** —
-    `1/2007 ours [(50,100)] theirs []`, named on the headline's frame by
-    362 as it left. The market is exonerated (`use_market` is line for
-    line) and `MakeObject.num` is fixed, so this is what 9182 now waits
-    on. **Re-measure before diagnosing**, and §41's three readings are
-    retired — do not read from them.
-
 369. **A `LEADERS=9` window over Great Lakes `[9175, 9190]`** (capture
-    lane; takes-chain to 368): 362 retired the window §41 had booked, and
-    no capture on disk carries the leader's internals at the word. run100
-    carries the same game 9340→10899, so the window is a re-run, not a
-    new game. Digest first, detail on demand (41 §2, now measured).
+    lane; the AI headline's frame): `docs/AI.md` §43 names the two
+    branches 9182 can be on and **which the window decides** — 368's
+    parting product. No capture on disk holds the leader's internals at
+    the word; run100 carries the same game 9340→10899, so this is a
+    re-run, not a new game. **Do not book a mechanism from a title** —
+    three items running named one, none was the cause (377); the frame
+    and the draw delta held every time.
 
 364. **Replay 363's script in the harness and pin chapter one** (takes
     363, which landed): an interpreter for the record's cheat set and the

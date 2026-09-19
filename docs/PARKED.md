@@ -51,22 +51,6 @@ the borrow refuses per-frame records from a run that did not. Written up
 because the next golden capture will hit it and a silently-passing
 comparison is what it looks like. Not urgent — see (376) for why.
 
-(376) **The sibling borrow is measured harmless on every scored path, and
-this is the record of it** (item 364, 2026-09-18, the negative the
-commander asked for before pinning). Five Great Lakes captures — run33,
-run53, run89, run97, run100 — take 14 `frame_seeds` and 14 `frame_guys`
-from run12/run13 at frames 0–3 and 94–103. East Indies takes **nothing**:
-setup word `793793043` never matches the donors' `1003723497`. run53 walked
-all 24,000 frames both ways gives **word parts at 9362, sequence at 9182,
-identical with the borrow and without**; run33's floor is unmoved between
-the two columns. The installs are no-ops — our sim already produces the
-original's word at each of those fourteen frames, all at frame ≤ 103 and
-9,079 below the word. Structurally, `Built::tick` pushes the frame's
-labels into `frame_sites` **before** installing anything, so an installed
-frame's draw comparison is still the sim's own work; the install can only
-re-anchor the next frame. **No pinned floor or word rests on installed
-sibling frame data.**
-
 (377) **An item's title names a mechanism, and the mechanism has been
 wrong three times running.** Measured across one day, 2026-09-18, on one
 frame: 358 left Great Lakes 9182 as "the market's three `use_market+0x1ed`
@@ -512,7 +496,7 @@ unit the original built and we did not. In item 291 it is a caravan not
 linked to a city. Same word, different counter, and blurring them would
 make either number unreadable.
 
-## Measured residues, none near a word
+## Parked 2026-09-18, the two-lane session
 
 (372) **The held-out map's 1 is comparable in kind, not in provenance.**
 run106 ran on the click-free lane's lobby, not run33/run39's `-config
@@ -529,6 +513,43 @@ only `receipt.json` said `success: false`. The silent truncation is the
 finding, not the timeout: every check that greps a dump would have passed
 on it. In `docs/ORACLE.md` beside the new knobs. A guard shape: a capture
 asserts its own block count against the window it asked for.
+
+(376) **The sibling borrow is measured harmless on every scored path, and
+this is the record of it** (item 364, 2026-09-18, the negative the
+commander asked for before pinning). Five Great Lakes captures — run33,
+run53, run89, run97, run100 — take 14 `frame_seeds` and 14 `frame_guys`
+from run12/run13 at frames 0–3 and 94–103. East Indies takes **nothing**:
+setup word `793793043` never matches the donors' `1003723497`. run53 walked
+all 24,000 frames both ways gives **word parts at 9362, sequence at 9182,
+identical with the borrow and without**; run33's floor is unmoved between
+the two columns. The installs are no-ops — our sim already produces the
+original's word at each of those fourteen frames, all at frame ≤ 103 and
+9,079 below the word. Structurally, `Built::tick` pushes the frame's
+labels into `frame_sites` **before** installing anything, so an installed
+frame's draw comparison is still the sim's own work; the install can only
+re-anchor the next frame. **No pinned floor or word rests on installed
+sibling frame data.**
+
+(378) **Put the human back into `census_wars` and `census_strategy` too,
+and the residue gets worse before it gets better.** 368 fixed
+`census_territory`'s gate (the human is a leader: `plan_strategy@006b9620:159`
+tests `leader_flags & 2`, `i != who`, `i >= 0` and nothing else, and on a
+one-human-one-AI game the human is the only other leader there is);
+`1/other_team_terr 0 theirs 266` is `0/my_team_terr 266`. The same defect
+sits in the other two loops, but fixing them makes all five of
+`weight_total`'s census facts agree and takes run19's leader residue from
+**90 fields to 147** — the make list then parts on `t`, `cat`, `city` and
+`val` across nearly every slot, because `active_wars != 0` reaches the
+danger word and the region-strategy words as well.
+
+The number is in the row on purpose: a successor that makes a residue
+worse before better does not get taken unless its cost is visible.
+Carried with it: the original runs a **full census for its human leader**
+(`0/gatherers 5`, `0/peasants 5` in every dump) and this crate runs none,
+so `census_strategy`'s `weaker` test reads the opponent's `attack` as
+nought even once the gate is fixed. That is the part to build first.
+
+## Measured residues, none near a word
 
 (371) **`market_speculation`'s two passes fire nowhere below the word.**
 Read whole by item 362, both arms' predicates recorded in
