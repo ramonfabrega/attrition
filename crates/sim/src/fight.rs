@@ -15,6 +15,8 @@
 //! `602129` the harness printed until item 324. Nothing in this crate marks
 //! either yet — `docs/COMBAT.md` §17 is the specification and says so.
 
+use crate::ai_load::uflags;
+use crate::anim;
 use crate::attrition::Domain;
 use crate::combat::{self, Obj, Profile, Side, Sixteenths, Stance, Taken, mask, role};
 use crate::movement::{Angle, find_angle};
@@ -395,6 +397,7 @@ impl Sim {
         let (from, to) = (self.units[i].pos, self.pos_of(target));
         let angle = find_angle(to.x - from.x, to.y - from.y);
         self.units[i].movement.set_heading(angle);
+        self.swing_anim(i, angle);
         if self.max_range_of(me) == 0 {
             // Melee lands now, once per figure of this `UnitData` — one here.
             if p.fires() {
@@ -415,6 +418,54 @@ impl Sim {
         };
         let r = combat::recharge(p.recharge, out, p.is(role::BOMBARD));
         self.units[i].combat.recharging = r as u8;
+    }
+
+    /// **The swing's animation** — `Unit::fight@005fd4d0`'s tail, the block
+    /// that ends at the `Unit::set_anim` call at `005feec1`
+    /// (`docs/ANIM.md` §6.2).
+    ///
+    /// It sits here, between the facing and the damage, because that is
+    /// where the original has it: `set_angle`, every guy's `des_angle`
+    /// written to the attack angle, `set_new_location`, **this**, then
+    /// `set_attacking` and `Object::do_damage` at `+0x1e72`.
+    ///
+    /// Four arms reach the call and **only the last carries the third
+    /// argument**, so only the last can roll:
+    ///
+    /// - `unit_flags & 0x2000000` — `z`, "Unit rocks left/right when it
+    ///   attacks (attack1 is left, attack2 is right)", the eighteen ship
+    ///   types: `CHAR_ATTACK2` when the direct angle to the target is at
+    ///   or past the angle the unit is attacking on, else `CHAR_ATTACK1`,
+    ///   `param_3 = 0`;
+    /// - a **target** of type `PATROLBOAT` (`0x185`): the same pair by the
+    ///   target's own domain, `param_3 = 0`;
+    /// - `is(IMMORTALS)` (`0xa2`) inside `0xc0`: `CHAR_ATTACKSPECIAL`,
+    ///   `param_3 = 0`, with its own per-figure damage;
+    /// - everything else: `CHAR_ATTACK1`, `param_3 = 1`.
+    ///
+    /// SEAM: the middle two are not modelled — three elephant types and
+    /// one target type — and neither draws, so the cost is which slot
+    /// plays rather than a word. SEAM: the `z` arm's comparison is
+    /// against `Unit::fight`'s own attack angle, which the **sideways**
+    /// flag (`g`, `unit_flags & 0x40`, "most ships") offsets by a quarter
+    /// turn either way; this crate does not model that offset, so the
+    /// difference is always zero here and a ship always rocks the one
+    /// way.
+    fn swing_anim(&mut self, i: usize, angle: Angle) {
+        let rocks = self.units[i]
+            .ty
+            .is_some_and(|t| self.unit_types[t].cols.flag(uflags::ROCKS));
+        if rocks {
+            let attack_angle = self.units[i].movement.heading;
+            let slot = if angle.0.wrapping_sub(attack_angle.0) >= 0 {
+                anim::ATTACK2
+            } else {
+                anim::ATTACK1
+            };
+            self.set_anim(i, slot, false, false);
+        } else {
+            self.set_anim(i, anim::ATTACK1, false, true);
+        }
     }
 
     /// `Object::fire_ammo` for a unit (§9.1): one `Ammo` per figure, here one.

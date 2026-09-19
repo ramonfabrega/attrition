@@ -73,6 +73,12 @@ pub(crate) fn guy_of(g: &crate::gamelog::Guy) -> Option<sim::anim::Guy> {
         anim: g.cur_anim? as i8,
         gpiece: g.gpiece.unwrap_or(-1) as i32,
         stopped: g.stopped.unwrap_or(1) != 0,
+        // `GuyData +0x9e` and `+0xa0`, the attack a guy owes and the one
+        // queued behind it (`docs/ANIM.md` §6.2). **No `GUY` record
+        // prints either**, at any detail level, so a capture that opens
+        // mid-fight starts them at zero and may miss one deferred swing.
+        pending_attack: 0,
+        queued_attack: 0,
         // A crew guy's own body is derived, not read: `Sim::seat_guys`
         // installs it from the piece's track offset once the whole unit
         // is in.
