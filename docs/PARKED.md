@@ -596,6 +596,17 @@ shows only a squad's captain searches (`1/7`, `1/8` and all of who=0 are
 find, which this crate does not model. Documented in `docs/GROUPS.md` §13.
 Not on 617's frame — 386's tie-break is — so it parks until a word names it.
 
+(393) **who=0's members take the captain's order a frame after it** —
+`docs/GROUPS.md` §13's mirror of the thing item 391 closed on the other
+side. 391 established that `Unit::target_opportunity@005fffc0`'s opening
+`while` walks `o_up` to the victim's **captain**, and that the army rather
+than the group moves a struck unit (`Armies::emergency` → `Army::process`
+→ `Group::action_siege_attack_to`; `Group::target_opportunity`'s branch is
+guarded by `type +0x2c8 & 0x10000 == 0` and never runs here). Dump-backed:
+at the end of 616 the ATTACKORDER is on `0/6` alone, `0/7`/`0/8` a frame
+later. Parks because 392's ring is what stands on the word's frame; this
+is one frame below it and will likely fall out of the same model.
+
 ## Measured residues, none near a word
 
 (371) **`market_speculation`'s two passes fire nowhere below the word.**

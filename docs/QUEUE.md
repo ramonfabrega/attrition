@@ -12,32 +12,32 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-18, two lanes all day, ten landings. **Great Lakes moves 9182 →
-9415, +233** — the first word since the pass. Six booked mechanisms were
-wrong, the frames right every time; the bugs fell out anyway.*
+*2026-09-18, two lanes all day, eleven landings. **Great Lakes 9182 →
+9415 (+233), golden 617 → 618** — both words moved. Eight booked
+mechanisms were wrong, the frames right every time.*
 
 - **The met bit is set by the fog** (385, `docs/VISION.md` §6.2), closing
   a chain six items long: `1/MAKE[0].val` → `MAKE[0].t` → `use_market`'s
   `need`, `active_wars` behind `treaties[i] & 1`, no `human` test at all.
-  Leader residues all fell, nothing arrived. **389 takes 9415**, 390 the flip.
-- **The golden word holds at 617** through 379, 384 and 386 — but the
-  frame is the original's now: `1/6` targets `0/7`, holds its seat, strikes
-  on 616. `0xf6` documented since the second reading with the call site
-  passing `false` (356), and `in_range` inverted, are **one constant read
-  at two sites**. §18's unproven ~84 extent is **refused on measurement**:
-  keeping a fit out of the code was right. 391 takes what is left.
+  Leader residues fell, nothing arrived. **389 has 9415**; 390 the flip.
+- **The golden word moves 617 → 618** (391), after 379, 384 and 386 each
+  closed something at 617 without moving it. Cause was neither suspect
+  again: `Unit::target_opportunity`'s `while` walks `o_up` to the victim's
+  **captain**, and the ARMY — never the group — walks a struck unit off
+  its seat. `0xf6` uncoded since the second reading (356) and `in_range`
+  inverted were **one constant at two sites**; §18's unproven ~84 extent
+  was **refused on measurement**, so keeping the fit out was right. 392.
 - **run97's dump ends in a truncated `BEGIN FRAME 9361`** — 47 Length rows
-  as the word passed 9349, reading like a collapsed sim; 368's **unit-SET**
-  assertion caught what a row count would have re-pinned.
+  reading like a collapsed sim; 368's **unit-SET** assertion caught what a
+  row count would have re-pinned silently (373).
 - **The namesake has never fired in a scored capture** (382): zero
-  non-exempt attrition outcomes over run53's 24,000 frames — the Temple
-  chapter is the only route. **The held-out map answers 1 tick, 0 orders**
-  (run106; floors 1851, 1772), a fit to two trajectories: **the pass's
-  number**. Six open, 45 parked; **Fable backlog: ten Loop items** (251, 335, 343, 356, 321, 313, 367, 374, 375, 377).
+  non-exempt attrition outcomes over 24,000 frames — the Temple chapter is
+  the only route. **The held-out map answers 1 tick, 0 orders** (run106),
+  a fit to two trajectories: **the pass's number**. Six open, 46 parked; **Fable backlog: ten Loop items** (251, 335, 343, 356, 321, 313, 367, 374, 375, 377).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w9711 of 24,000 · GreatLakes w9415 of 24,000
-Golden: w617 of 901 · chapter one pinned · 391 next
+Golden: w618 of 901 · chapter one pinned · 392 next
 Endpoint 24001: EastIndies 64 off, 5 unlinked · GreatLakes 54 off, 4 unlinked
 
 **Opener: 389 on the word's new frame — `1/29`'s five draws at 9415 —
@@ -65,12 +65,12 @@ the backlog is `docs/PARKED.md`, and an item returns only when a score names it.
     mechanism 385 just landed. Assert the block count against the window
     asked for — run97's truncation is why (373).
 
-391. **The group lifts the captain off its seat at the end of 617** (the
-    rules headline's frame): a `GROUP_ATTACK_TO` where the original leaves
-    it fighting (`docs/GROUPS.md` §13, parked 388's neighbourhood), and
-    `0/7`'s retaliation strikes one frame early. 386 made the frame the
-    original's otherwise — `1/6` targets `0/7`, holds (1368,7992), strikes
-    on 616 with recharging 32 — so these two are what is left at 617.
+392. **§17's ring is what stands at 618** (the rules headline's frame,
+    where 391 just moved the word): one draw, `0/6`'s second
+    `Unit::fight+0x9b0`. The original spends 617 in `docs/COMBAT.md` §17's
+    ring — `find_attack_pos` → (1080,8280) — and walks a five-node chase
+    from 618; ours answers nothing, falls back to the target's own point
+    and loses the move inside the frame.
 
 365. **`docs/GOLDEN.md`, the script itself** (a reading and a design, Opus):
     chapters from `docs/CENSUS.md`'s order family and `docs/COMMANDS.md`
