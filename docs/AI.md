@@ -5786,7 +5786,10 @@ mechanism would have buried.
   what reading is still for (`CLAUDE.md`). **§50.1 sharpens it and gives
   the reading two targets**: at least one of the three is **per-city** in
   the original and none of them is here, and the two numbers to hit on
-  that frame are 4,891,136 and 5,755,741.
+  that frame are 4,891,136 and 5,755,741. **Answered in part by §51: the
+  term is `val`, through `gfree[KNOWLEDGE]` — and correcting only that
+  costs 925 frames, because a second defect in the same arm was
+  cancelling it.**
 
   **It is expensive, not unfalsifiable, and the difference matters.**
   `tools/emu/callfn.py` can enter a function under unicorn with chosen
@@ -6050,3 +6053,127 @@ purpose by weakening the ranked insert to `<`.
 The 9510/9582 pair is instrument-measured on
 `run53_s_24000_frames_put_the_ceiling_where_run33_did` and is not pinned:
 9582 exists only under the probe.
+
+---
+
+## 51. A University's scholars are gatherers, and two wrongs were agreeing (2026-09-19)
+
+Item 438, and the reading §49.3 held and §50.4 booked: which of `val`,
+`want` and `divisor` is per-city in the original, where this crate computes
+one number for both of its cities. **The term is `val`, through
+`gfree[KNOWLEDGE]`, and the defect is a predicate rather than arithmetic.**
+Correcting it alone costs **925 frames**, which is the more useful half of
+the item.
+
+### 51.1 The subtraction is faithful; the free count is not
+
+`create_units`' scholar arm is `k = gfree[KNOWLEDGE] − <call>(1, 0x34)`.
+The call was checked first, because the arm's own `num_inside` neighbour
+made it look like an occupancy count: vtable `+0x190` on `BuildData` is
+**`BuildData::count_queue`**, so `count_queue(uni, t)` is this crate's and
+it is right. `0x34` is `TypeIndex` 52 — the Scholar exactly, not the
+`is_scholar` pair.
+
+That leaves `gfree`, which `City::count_gather_slots@00737dc0` writes as
+
+    free[g] += gather_max − BuildData::num_gatherers(0, 0)
+
+and `num_gatherers@00630450` is **two counts, not one**:
+
+- `count_inside(COUNT_TYPE, 0x32)` when the building `is(0x1a6)` — the
+  **Oil Platform**, whose citizens sit inside. `0x1a5`, the Oil Well, is
+  *not* one of them: its workers stand at the tile and ride the chain.
+- `count_inside(COUNT_TYPE, 0x34)` when it `is(0x1a4)` — the **University**,
+  whose scholars sit inside.
+- plus the `gather_down` chain, filtered by `UnitData::is_gathering_at`.
+
+`TypeData::is@004771c0` is `this->type == param_1`, so both tests are exact
+kinds and neither follows a lineage.
+
+**This crate's `count_gather_slots` adds `gather_down`'s raw length.** So a
+University's seated scholars never reduced its free slots, and on Great
+Lakes 9380 both of the AI's cities answered `k = 7`. The original's own
+record says what the answer should be: at block 9381 University `1/2019`
+stands in **city 1** holding **one** unit on its `inside_down` chain, and
+`1/2020` in **city 0** holding **four** — §47.1's five seated scholars,
+counted from the other end. Routing the one call site through
+[`sim::Sim::num_gatherers`] makes `k` **6** and **3**, and the per-city term
+goes live.
+
+**The function was already in the tree.** `Sim::num_gatherers` has
+implemented both inside arms since `docs/ORDERS.md` §6.1; only this call
+site asked the wrong question. That is the third time in a day that the
+right answer was present at the wrong call site — the others are
+`run97`'s queue assertion (§49.4) and item 432's instrument.
+
+### 51.2 What correcting it costs, and why it is not landed
+
+| tree | word |
+| --- | --- |
+| as it stands | 9510 |
+| `count_gather_slots` through `num_gatherers` | **8585** |
+
+925 frames, and it fails `LONG_WORD_GREAT_LAKES`. The correction is right by
+the decompile and it is **half a fix**: this crate's `val` post-correction is
+36,000,000 and 18,000,000 for the two cities, against the original's own
+5,755,741 and 4,891,136, and the ratio is **2** where the original's is
+**1.1768**. So `val ∝ k` is not how the original's per-city variation works
+either, at least one more term in the scholar arm is wrong, and this reading
+did not settle it. The two have to land together.
+
+### 51.3 The two defects were cancelling, and a green frame is worth less than it looks
+
+**This is the part to carry past the item.** With the over-large `gfree`,
+this crate's `val` overflowed and §45's `out < 0 → 9,999,999` clamped it —
+and the original *also* clamps on block 9375, so the two sides agreed there
+**by accident**. Correct `gfree` and the crossover inverts: at 9375 this
+crate gives 7,200,000 where the original clamps, and at 9381 it clamps where
+the original gives 5,755,741.
+
+Two wrongs producing a right, on a frame a comparison calls green. Nothing
+in the diff could see it, because both sides were internally consistent and
+the clamp erases the distance between "correct" and "enormous". So a green
+frame is evidence that the *outputs* match, never that the inputs do — and
+where an arm ends in a saturating clamp, a matching output is barely
+evidence at all. §50 found the score at 9510 propped up by a wrong purchase;
+this finds it partly propped up by a wrong agreement.
+
+### 51.4 What this has *not* established
+
+- **Which further term in the scholar arm is wrong.** The multiplier chain
+  (`infra_mod · k · 10000 / 256`, then ×60, ×10 or ×5 on `filled`/`total`)
+  reads as this crate's, and its two branch tests are `Leader` fields, so
+  they are leader-global on both sides — but the arm's product is 5–6×
+  the original's and nothing here says where. The two target numbers and
+  the landed guard are what the successor has to hit.
+- **No term is named by fitting, deliberately.** Two values and a ratio
+  are exactly the conditions under which a plausible factor appears; three
+  candidate factorisations were tried and discarded during this item, and
+  none is recorded, because §49.2's lesson is that a number downstream of a
+  clamp or a wrap may have no arithmetic relationship to its inputs at all.
+- **The `.max(0)` clamp on the free count is this crate's.** The original
+  adds `gather_max − num_gatherers` raw, so a building over its own slot
+  count lowers the city's total. Untested either way: no capture on disk
+  has an over-full gather building on a compared frame.
+- **The Korean Scholar (`0x35`) is a seam.** `num_gatherers`'s inside arm
+  counts `0x34` exactly, while `is_gathering_at`'s counts the
+  `{SCHOLARS, SCHOLARSKOREAN}` pair (`docs/ORDERS.md` §6.1, G17), so the
+  two disagree for a Korean AI. This crate's `Worker::Scholar` is the pair
+  in both places. No run on disk has a Korean scholar.
+
+### 51.5 Coverage
+
+Diff-backed: `diff::tests::run111_s_universities_hold_the_scholars_this_
+crate_counts` — the capture's own `BUILDDATA` says each building is a
+University and whose city it stands in, the `inside_down` chains give one
+and four, and this crate's `Sim::num_gatherers` agrees with both. **It
+passes today and is meant to keep passing**: it is the falsifier standing
+ready for whoever lands the pair, not a pending failure. Made to fail on
+purpose by reading `gather_down`'s raw length instead — which is the defect
+itself, and answers 0 against 1.
+
+Everything else here is **reading-only** and owed a blind second reading:
+`count_gather_slots`' two counts, `num_gatherers`' two exempt kinds, the
+exactness of `TypeData::is`, `BuildData::count_queue` at `+0x190`, and the
+missing clamp. The 9510/8585 pair is instrument-measured and not pinned —
+8585 exists only under a change that is not in the tree.

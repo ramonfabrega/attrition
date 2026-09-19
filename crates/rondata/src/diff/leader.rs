@@ -1191,6 +1191,137 @@ mod tests {
     /// on both). The original spends the proceeds on the 40-wealth
     /// Scholar and keeps **82**; this crate buys food for two Citizens
     /// and keeps **14**.
+    /// **A University's seated scholars are gatherers, and the number is
+    /// already right in this crate** — item 438, `docs/AI.md` §51.
+    ///
+    /// `City::count_gather_slots@00737dc0` writes `free[g] += gather_max −
+    /// BuildData::num_gatherers(0, 0)`, and `num_gatherers@00630450` is
+    /// **two counts**: the `gather_down` chain filtered by
+    /// `is_gathering_at`, plus `ObjectData::count_inside(COUNT_TYPE, t)`
+    /// for the two kinds whose workers sit inside rather than on the chain
+    /// — `is(0x1a4)` University with `0x34` Scholar and `is(0x1a6)` **Oil
+    /// Platform** with `0x32` Citizen. (`0x1a5`, the Oil Well, is not one
+    /// of them, and `TypeData::is@004771c0` is plain type equality, so
+    /// both are exact kinds.)
+    ///
+    /// The original's own record is the oracle for the count, and it is
+    /// the `inside_down` chain: at block 9381 University `1/2019` stands
+    /// in **city 1** holding **one** unit, and `1/2020` in **city 0**
+    /// holding **four** — the five scholars `docs/AI.md` §47.1 counted
+    /// seated below the word, from the other end.
+    ///
+    /// [`sim::Sim::num_gatherers`] has implemented both arms since
+    /// `docs/ORDERS.md` §6.1, and this pins it against those chains. **It
+    /// is a falsifier standing ready rather than a fix**: `create_units`'
+    /// scholar arm reaches the count through `count_gather_slots`, which
+    /// reads `gather_down`'s raw length instead of asking this function,
+    /// so both of the AI's cities answer `k = 7`. Routing that one call
+    /// site here makes `k` **6** and **3** — and costs **925 frames** of
+    /// the word on its own, because it uncovers a second defect in the
+    /// same arm that it had been cancelling (§51.3). The pair has to land
+    /// together, and this is the half that can be asserted today.
+    #[test]
+    fn run111_s_universities_hold_the_scholars_this_crate_counts() {
+        /// The AI's two Universities and the city each stands in, read
+        /// off the capture's own `BUILDDATA`.
+        const UNIS: [(i64, i64); 2] = [(2019, 1), (2020, 0)];
+        const BLOCK: i64 = 9381;
+        /// The University's `TypeIndex` — `create_units`' own `is(0x1a4)`.
+        const UNIVERSITY: i64 = 0x1a4;
+        let Some(path) = dump("gamelog-run111-greatlakes-makeword.txt") else {
+            eprintln!("skipping: no run111 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let Some((_, built)) = great_lakes(BLOCK, BLOCK) else {
+            return;
+        };
+        let wtext = crate::capture::read(&path);
+        let wlog = Log::parse(&wtext);
+        let (_, frame) = wlog
+            .frames()
+            .into_iter()
+            .find(|(f, _)| *f == BLOCK)
+            .expect("the capture's block");
+        // **The link rides the record's `OBJECT`, and the identity its
+        // `SUBOBJECT`.** `inside_down` is written at the `OBJECT` level
+        // and `o`/`who` one block further in, for units and buildings
+        // alike, so the chain is recovered by pairing the two — and the
+        // walk is over the whole frame because both kinds carry it.
+        let mut inside: std::collections::BTreeMap<i64, i64> = Default::default();
+        let mut builds: Vec<crate::gamelog::Block<'_>> = Vec::new();
+        fn walk<'a>(
+            b: crate::gamelog::Block<'a>,
+            inside: &mut std::collections::BTreeMap<i64, i64>,
+            builds: &mut Vec<crate::gamelog::Block<'a>>,
+        ) {
+            if b.name() == "OBJECT"
+                && let Some(d) = b.int("inside_down")
+                && let Some(sub) = b.kid("SUBOBJECT")
+                && let Some(o) = sub.int("o")
+                && sub.int("who") == Some(1)
+            {
+                inside.insert(o, d);
+            }
+            if b.name() == "BUILDDATA" {
+                builds.push(b);
+            }
+            for c in b.children() {
+                walk(c, inside, builds);
+            }
+        }
+        walk(frame, &mut inside, &mut builds);
+        assert!(!inside.is_empty(), "no inside_down links were parsed");
+        let chain = |head: i64| -> i64 {
+            let mut n = 0;
+            let mut at = inside.get(&head).copied().unwrap_or(-1);
+            while at >= 0 {
+                n += 1;
+                at = inside.get(&at).copied().unwrap_or(-1);
+            }
+            n
+        };
+        let mut seen = 0;
+        for (o, city) in UNIS {
+            let rec = builds
+                .iter()
+                .find(|b| {
+                    b.kid("WALLDATA")
+                        .and_then(|w| w.kid("OBJECT"))
+                        .and_then(|ob| ob.kid("SUBOBJECT"))
+                        .is_some_and(|sub| sub.int("o") == Some(o) && sub.int("who") == Some(1))
+                })
+                .unwrap_or_else(|| panic!("no BUILDDATA for 1/{o} on block {BLOCK}"));
+            // The capture's own record says it is a University and whose
+            // city it stands in — neither is assumed here.
+            assert_eq!(
+                rec.int("orig_type"),
+                Some(UNIVERSITY),
+                "1/{o} is a University"
+            );
+            assert_eq!(rec.int("city"), Some(city), "1/{o}'s city");
+            let theirs = chain(o);
+            let at = built
+                .sim
+                .buildings
+                .iter()
+                .position(|b| b.alive && i64::from(b.owner) == 1 && i64::from(b.index) == o)
+                .unwrap_or_else(|| panic!("this crate has no live 1/{o}"));
+            let ours = i64::from(built.sim.num_gatherers(at, false, false));
+            assert_eq!(ours, theirs, "1/{o}'s seated scholars on block {BLOCK}");
+            seen += 1;
+            eprintln!("  1/{o} (city {city}): {ours} seated, both sides");
+        }
+        assert_eq!(seen, 2, "both Universities were compared");
+        // The point of the pair: the two counts **differ**, which is what
+        // makes the Scholar's value per-city at all.
+        assert_ne!(
+            chain(UNIS[0].0),
+            chain(UNIS[1].0),
+            "the two Universities hold the same number — then nothing here \
+             says the free-slot count varies by city"
+        );
+    }
+
     /// **The original's whole make list on the re-offer block, rebuilt
     /// from four offers through this crate's `make_me`** — item 432, and
     /// the evidence for `docs/AI.md` §50.
