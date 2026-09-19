@@ -5783,7 +5783,10 @@ mechanism would have buried.
   record does not carry `want` or `divisor`. **No capture can answer it** —
   they are locals, not fields — so if it is to be settled it wants a
   **reading** of `create_units@006c40a0`'s want-and-divisor block, which is
-  what reading is still for (`CLAUDE.md`).
+  what reading is still for (`CLAUDE.md`). **§50.1 sharpens it and gives
+  the reading two targets**: at least one of the three is **per-city** in
+  the original and none of them is here, and the two numbers to hit on
+  that frame are 4,891,136 and 5,755,741.
 
   **It is expensive, not unfalsifiable, and the difference matters.**
   `tools/emu/callfn.py` can enter a function under unicorn with chosen
@@ -5832,19 +5835,28 @@ it is nearer than the want-and-divisor terms are. That makes a reading of
 `create_units@006c40a0` **less** urgent rather than more: it would say
 which term differs, and 9382 would still part on the expiry count.
 
-**And the structural reading is the one to carry away: 9510 is propped up
+~~**And the structural reading is the one to carry away: 9510 is propped up
 by the wrong purchase.** Correcting the valuation alone moves the word
 *down* by 128 frames, so the valuation and the expiry are not a queue of
-causes to peel but a **pair that has to fall together**. Anyone who fixes
-one of them on its own will see the score drop and reasonably conclude
-they broke something.
+causes to peel but a **pair that has to fall together**.~~ **Struck by
+§50**: there is one cause, not a pair. The 128 frames are real and the
+reading of them was not — probe 3 forced *both* of this crate's per-city
+Scholar offers to one number, and the tie is what bought the Scholar
+twice.
 
-**The caveat, stated because probe 3 cannot separate it.** Forcing the
+**The caveat, stated because probe 3 cannot separate it.** ~~Forcing the
 value changes the make *list*, and the expiry count is a function of the
 list, so the third `+0x63d` may follow from the list's shape rather than
-from the purchase.
+from the purchase.~~ **It did, and §50 measures it**: the third `+0x63d`
+is a tie between two per-city offers the probe flattened to one number,
+not anything the slot loop does.
 
-**Probe 4 prices the pair, and the price is eight frames.** With both
+~~**Probe 4 prices the pair, and the price is eight frames.**~~
+**Superseded by §50.3: the price is seventy-two frames, 9510 → 9582.**
+Probe 4's cap stopped the second purchase but left the category slot
+naming the wrong city, so its eight was the cap suppressing the fix it
+was meant to complete. The paragraph below stands as the record of what
+was measured under it. With both
 halves forced — the valuation on 9380 and the expiry capped at the
 original's two draws on 9382 — **frame 9382 agrees draw for draw**, eight
 against eight entry for entry, and the word advances **9510 → 9518**. So
@@ -5858,7 +5870,9 @@ nothing: the three `+0x63d` draws come from **three separate calls**, the
 slot loop calling `expire` once per bought slot. A fact about the shape of
 the difference rather than about the patch.
 
-**And the train rate at 9518 is not a second finding.** Under probe 4 the
+**And the train rate at 9518 is not a second finding** — nor is 9518
+(§50.3 strikes it as probe 4's artefact; the parting past the blockage is
+**9582**, one `use_market+0x1ed` short). Under probe 4 the
 new parting is this crate birthing the sixth scholar eight frames late —
 128 frames of job against 136 — which looks like an unblocked defect and
 is not. `run97_s_build_queues_are_the_original_s` compares `(type,
@@ -5897,3 +5911,142 @@ what says the finding is about the sign. This crate's five terms are
 instrument-measured; the original's 5,755,741 is read off run111 block
 9381 and is diff-backed by
 `diff::tests::run111_s_window_is_the_make_list_at_the_purchase`.
+
+---
+
+## 50. The Scholar is one value for two cities, and that is the whole defect (2026-09-19)
+
+Item 432. §49.4 left Great Lakes 9382 with **two** causes locked together
+— a valuation and an expiry count — priced at eight frames by a probe that
+forced the offer and capped the expiry. There is one cause. **The expiry
+was never a cause at all**, the third `Leader::make_stuff+0x63d` draw was
+the probe's own artefact, and the honest price of the one defect is
+**seventy-two frames**, 9510 → 9582.
+
+### 50.1 What this crate does, and what the original does
+
+`create_units` offers the Scholar **once per city**. On sim-frame 9380
+this crate makes three offers and two of them are Scholars:
+
+| offer | `t` | `city` | `val` | terms |
+| --- | --- | --- | --- | --- |
+| Scholar | 52 | 1 (their 0) | **45,568** | `want 20, val 42,000,000, divisor 25` |
+| Citizen | 50 | 2 (their 1) | 234,782 | |
+| Scholar | 52 | 2 (their 1) | **45,568** | `want 20, val 42,000,000, divisor 25` |
+
+The two Scholars are **the same number**, to the unit, because all three
+terms are the same for both cities. The original's are not:
+
+| offer | `t` | its `city` | `val` |
+| --- | --- | --- | --- |
+| Merchant | 61 | 0 | 869,565 |
+| **Scholar** | 52 | **0** | **4,891,136** |
+| Citizen | 50 | 1 | 234,782 |
+| **Scholar** | 52 | **1** | **5,755,741** |
+
+Those four offers are not read off the record — the record prints slots,
+never offers. They are **recovered**: `run111_s_block_9381_list_is_make_
+me_s_from_four_offers` takes the original's block 9380 list as the start,
+replays the four through `MakeList::make_me`, and lands on the original's
+block 9381 list slot for slot and field for field. The city-0 Scholar's
+4,891,136 is the sharp end of it — block 9381's slot 2 stands at `t −1,
+val 4,891,136, city 0, cat 4`, no expiry ran on 9380, and the only other
+thing that clears a ranked slot's `t` is `make_me` clearing a **same-type**
+entry as it inserts. So slot 2 held a `t52` for city 0 and its `val` is
+that offer's.
+
+**And this crate offers no Merchant on that frame**, which is why
+`MAKE[1..3]` have been standing residue since run107 (§47.6): the original
+gives those ranks `t52`/`t61` and this crate fills them with `t133`/`t66`.
+
+### 50.2 The tie is what buys the Scholar twice
+
+`make_me` ranks on `list[k].val <= val` and fills the category slot on
+`list[cat].val < val` (`006c9be0`; both senses read off the decompile and
+both are this crate's). **The asymmetry is invisible until two offers
+share a number.** Then the later offer displaces the earlier in the ranked
+list and does *not* in the category slot, and the two copies of one type
+end up naming different cities.
+
+`make_stuff` step 6's duplicate test is `t == list[k].t && city ==
+list[k].city` over slots 0..4 (`006c8af0:147–167`, also faithful). With
+the cities split it does not match, so the loop **buys the same Scholar a
+second time**: one extra `make_this`, one extra `expire` call, one extra
+`+0x63d`.
+
+That is the whole of "nine draws against eight, the extra at index 6". It
+is a property of this crate's *tie*, not of its expiry walk, and the
+original never sees it because its two Scholar offers differ, its category
+slot follows the better one, and its step 6 dedupes.
+
+### 50.3 The measurement, and what it replaces
+
+Forced to the original's **two** per-city values on 9380 — 4,891,136 for
+its first city, 5,755,741 for its second — **with no expiry cap and
+nothing else touched**:
+
+| probe | word |
+| --- | --- |
+| the tree as it stands | 9510 |
+| §49.4's probe 4 (offer forced, expiry capped) | 9518 |
+| **the two per-city values, no cap** | **9582** |
+
+Frame 9382 then agrees **draw for draw, eight against eight entry for
+entry**, and so does 9383 — which is the item's success criterion met
+without the expiry half existing.
+
+**Why the eight was wrong, and why the seventy-two is a different kind of
+number.** Capping the expiry bought the right *count* by the wrong
+*route*: it stopped the second purchase but left the category slot naming
+the wrong city, so everything past 9518 ran on a list the original never
+had. The eight was the cap suppressing the fix it was meant to complete.
+The seventy-two adds nothing — the probe changes two values on one frame
+and that is all. ~~§49.4's "a pair that has to fall together"~~ is
+**struck**: they are one thing, and so is ~~9518's scholar-birth
+divergence~~, which was probe 4's artefact through and through.
+
+**The seventy-two is still a probe number** and is stated as one: it
+measures what fixing the 9380 valuation is worth *given everything else
+this crate does*, and it becomes real only when `create_units`' scholar
+arm computes per-city.
+
+### 50.4 What this has *not* established
+
+- **Why the original's two values differ is not answered here**, and this
+  document does not guess. §49.3's question is sharper for the
+  measurement: at least one of `val`, `want` and `divisor` is **per-city**
+  in the original and none of them is in this crate, and the arm has two
+  known numbers to hit on one frame. That is the successor reading of
+  `create_units@006c40a0`.
+- **The missing Merchant is observed, not explained.** `create_units`'
+  caravan-and-merchant arm has a civilian-ceiling `continue` that would
+  drop the offer; nothing here measures whether that is what drops it.
+- **The new parting is 9582 and it is one draw.** This crate spends one
+  `Leader::use_market+0x1ed` where the original spends two — the market's
+  sell rotation, the same site the two sides agree on at 9382. 9581 and
+  9583 agree whole. It is not reachable until the valuation is real.
+- **Nothing here says the tie is rare.** A positive wrap flattens whatever
+  it swallows (§49.3), so two cities whose true values differ can collide
+  on one wrapped remainder anywhere the arm is reached — the tie and the
+  wrap are the same event seen twice.
+
+### 50.5 Coverage
+
+Diff-backed: `diff::tests::run111_s_block_9381_list_is_make_me_s_from_
+four_offers` — the four offers, both ends of the transition read from
+run111's own record, the city-0 value's derivation, and the order claim
+(the city-0 offer precedes the city-1 offer; swapped, `make_me` breaks out
+on the same type and the record is not reproduced). Made to fail on
+purpose three ways: the city-0 value moved by one, the Merchant dropped,
+and the two Scholars swapped — each restoring a different slot.
+
+Reading-backed, and only the two predicates:
+`sim::ai::tests::a_tie_splits_the_ranked_copy_from_the_category_copy`
+pins `make_me`'s `<=`/`<` asymmetry and step 6's `(t, city)` test against
+`006c9be0` and `006c8af0:147–167`, in both directions — tied offers split
+the cities and defeat the dedupe, distinct offers do not. Made to fail on
+purpose by weakening the ranked insert to `<`.
+
+The 9510/9582 pair is instrument-measured on
+`run53_s_24000_frames_put_the_ceiling_where_run33_did` and is not pinned:
+9582 exists only under the probe.

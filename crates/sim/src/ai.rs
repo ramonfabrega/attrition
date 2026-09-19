@@ -1191,6 +1191,85 @@ pub fn goods_picture(leader: &mut Leader, ledger: &mut Ledger, s: &GoodsSetup) {
 mod tests {
     use super::*;
 
+    /// **Two offers of one type at one value are not one offer**, and the
+    /// tie splits the ranked copy from the category copy — item 432.
+    ///
+    /// `make_me` ranks on `list[k].val <= val` and fills the category slot
+    /// on `list[cat].val < val` (`006c9be0`, both senses read off the
+    /// decompile). The asymmetry is invisible while every offer has its own
+    /// number and decides a purchase the moment two share one: the later
+    /// offer **displaces** the earlier in the ranked list and **does not**
+    /// in the category slot, so slot 1 and slot `cat` end up naming
+    /// different cities for the same type.
+    ///
+    /// `make_stuff`'s step 6 then walks slot `cat` with the duplicate test
+    /// `t == list[k].t && city == list[k].city` over slots 0..4
+    /// (`006c8af0:147–167`), finds no match, and **buys the same type a
+    /// second time** — one extra `make_this`, one extra `expire` call, one
+    /// extra `Leader::make_stuff+0x63d` draw.
+    ///
+    /// That is what happens on Great Lakes 9382 the moment this crate's
+    /// Scholar is given a value it can win with: `create_units` offers the
+    /// Scholar once per city and this crate computes the **same** number for
+    /// both, where the original computes two (`docs/AI.md` §50). The second
+    /// half of the test is the original's shape — distinct values — and
+    /// there the category slot follows the better offer and the duplicate
+    /// test fires.
+    ///
+    /// Made to fail on purpose by weakening the ranked insert to `<`:
+    /// the tie then does not displace, both copies name city 1, and the
+    /// first `assert!` below stops it. The test is about the two
+    /// comparison senses, not about the numbers.
+    #[test]
+    fn a_tie_splits_the_ranked_copy_from_the_category_copy() {
+        /// `make_stuff` step 6's duplicate test, verbatim: does slot `at`
+        /// repeat a `(t, city)` already among the ranked four?
+        fn deduped(l: &MakeList, at: usize) -> bool {
+            let m = l.list[at];
+            (0..4).any(|k| l.list[k].t == m.t && l.list[k].city == m.city)
+        }
+        // A head far above both offers, so neither can take slot 0 — the
+        // Great Lakes shape, where `t573` stands at 9,999,999.
+        let head = |l: &mut MakeList| l.make_me(573, 9_999_999, 1, 10, -1, 0, 1, 0, 0);
+
+        // One value for both cities: this crate's own 45,568 twice.
+        let mut tied = MakeList::new();
+        head(&mut tied);
+        tied.make_me(52, 45_568, 1, 4, 1, 0, 1, 0, 0);
+        tied.make_me(52, 45_568, 1, 4, 2, 0, 1, 0, 0);
+        assert_eq!((tied.list[1].t, tied.list[1].city), (52, 2));
+        assert_eq!((tied.list[4].t, tied.list[4].city), (52, 1));
+        // The earlier ranked copy is cleared to `t −1` and keeps its
+        // `val` and `city`, which is how a dump tells the two clears apart.
+        assert_eq!(
+            (tied.list[2].t, tied.list[2].val, tied.list[2].city),
+            (-1, 45_568, 1)
+        );
+        assert!(
+            !deduped(&tied, 4),
+            "the tie must defeat step 6's duplicate test — that is the              second purchase, and the extra expiry draw with it"
+        );
+
+        // The original's shape on the same frame: one value per city,
+        // 4,891,136 for its first and 5,755,741 for its second, in that
+        // order (run111 block 9381 is what says both the values and the
+        // order — `rondata::diff`'s reconstruction of it).
+        let mut apart = MakeList::new();
+        head(&mut apart);
+        apart.make_me(52, 4_891_136, 1, 4, 1, 0, 1, 0, 0);
+        apart.make_me(52, 5_755_741, 1, 4, 2, 0, 1, 0, 0);
+        assert_eq!((apart.list[1].t, apart.list[1].city), (52, 2));
+        assert_eq!((apart.list[4].t, apart.list[4].city), (52, 2));
+        assert_eq!(
+            (apart.list[2].t, apart.list[2].val, apart.list[2].city),
+            (-1, 4_891_136, 1)
+        );
+        assert!(
+            deduped(&apart, 4),
+            "with the offers apart the category slot follows the better one              and step 6 skips it: one purchase, two expiry draws"
+        );
+    }
+
     fn draws(seed: u32, f: impl FnOnce(&mut Rng)) -> usize {
         let mut a = Rng::new(seed);
         let mut n = 0;
