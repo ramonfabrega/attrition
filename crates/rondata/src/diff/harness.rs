@@ -766,6 +766,12 @@ pub(crate) fn debug_leader(built: &Built, frame: i64) {
             continue;
         }
         let l = &built.sim.ai[w];
+        let name = |t: i32| -> String {
+            usize::try_from(t)
+                .ok()
+                .and_then(|t| built.sim.tech_tree.types.get(t))
+                .map_or_else(|| "-".to_string(), |r| r.name.clone())
+        };
         let slots: Vec<String> = l
             .make_list
             .list
@@ -773,8 +779,19 @@ pub(crate) fn debug_leader(built: &Built, frame: i64) {
             .enumerate()
             .map(|(k, m)| {
                 format!(
-                    "{k}:t{} v{} c{} cat{} n{} e{}",
-                    m.t, m.val, m.city, m.cat, m.num, m.escrow
+                    "{k}:t{}({}) v{} c{} cat{} n{} e{} cost{:?}",
+                    m.t,
+                    name(m.t),
+                    m.val,
+                    m.city,
+                    m.cat,
+                    m.num,
+                    m.escrow,
+                    usize::try_from(m.t)
+                        .ok()
+                        .filter(|&t| t < built.sim.tech_tree.types.len())
+                        .and_then(|t| built.sim.type_price(w as sim::Player, t))
+                        .unwrap_or([0; 6]),
                 )
             })
             .collect();
@@ -4800,6 +4817,202 @@ mod tests {
                 .is_some_and(|w| w.contains("frame 9182: 1/2007 ours [(50, 100)] theirs []")),
             "9182's city queue is not the one row left: {:?}",
             wrong.first()
+        );
+    }
+
+    /// **run97's order lists, every unit, every frame of the window** —
+    /// Great Lakes `[8030, 9349]`, item 368.
+    ///
+    /// The capture writes a `STACK<TYPE>` per unit with every live order
+    /// and its own fields — a `GATHERORDER`'s tile, phase and countdown,
+    /// a `MOVEORDER`'s goal, a group order's leader and slot — and
+    /// **36,483 of them sit in this file uncompared**. run97 had its
+    /// clocks read (item 346), its positions and leading goal (item 350)
+    /// and its build queues (item 358); the order stacks that name *what
+    /// each citizen is working on* had never been looked at on this map.
+    ///
+    /// That is the record this item wanted. 9182's residue is the
+    /// leader's own ledger — three `use_market` draws against one — and
+    /// the ledger is a function of the stockpile, which is a function of
+    /// which good each gatherer is carrying. `LEADERS=1` does not print
+    /// the stockpile (item 369 is the capture that would), but the
+    /// gatherers are printed in full, and a citizen working a different
+    /// camp on either side is the one cause of a stockpile gap that a
+    /// capture on this disk can still refute.
+    #[test]
+    fn run97_s_window_orders_are_the_original_s() {
+        const FIRST: i64 = 8_030;
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(r97)) = (
+            dump("gamelog-run53-greatlakes-24k-trace.txt"),
+            dump("gamelog-run97-greatlakes-valuewindow.txt"),
+        ) else {
+            eprintln!("skipping: no run53/run97 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let mut ix = crate::capture::indexed::IndexedCapture::open(&r97).unwrap();
+        let loaded = crate::load::load(&inst).unwrap();
+        let texts = sibling_texts();
+        let text = crate::capture::read(&path);
+        let log = Log::parse(&text);
+        let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
+        let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+        let refs: Vec<&Initial> = inits.iter().collect();
+        let mut init = log.initial().unwrap();
+        borrow_from_siblings(&mut init, &refs);
+        if let Some(t) = trace("rontrace-run53.log") {
+            borrow_pasture(&mut init, &t);
+        }
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        let mut blocks = 0usize;
+        let mut compared = 0usize;
+        let mut gather_rows = 0usize;
+        let mut gather_compared = 0usize;
+        let mut rows: Vec<OrderDivergence> = Vec::new();
+        for f in 0..LONG_WORD_GREAT_LAKES {
+            built.tick();
+            if f < FIRST {
+                continue;
+            }
+            let Some(at) = ix.frames().iter().position(|x| x.number == f + 1) else {
+                continue;
+            };
+            let body = ix.read_frame(at).unwrap();
+            let parsed = Log::parse(&body);
+            let Some(block) = parsed
+                .frames()
+                .into_iter()
+                .find(|(n, _)| *n == f + 1)
+                .map(|(_, b)| b)
+            else {
+                continue;
+            };
+            blocks += 1;
+            let (units, _, _) = crate::gamelog::records(block, false);
+            for u in &units {
+                if !(0..8).contains(&u.who) {
+                    continue;
+                }
+                let Some(at) = (0..built.sim.units.len()).find(|&i| {
+                    let x = &built.sim.units[i];
+                    x.alive() && i64::from(x.owner) == u.who && i64::from(x.index) == u.o
+                }) else {
+                    continue;
+                };
+                let link = crate::diff::setup::UnitLink {
+                    who: u.who,
+                    o: u.o,
+                    unit: at,
+                    kind: None,
+                };
+                compared += 1;
+                gather_compared += built.sim.units[at]
+                    .orders
+                    .iter()
+                    .filter(|o| matches!(o.body, sim::orders::Body::Gather(_)))
+                    .count();
+                for d in compare_orders(&built, &link, u, f) {
+                    if matches!(d.what, crate::diff::order::OrderMismatch::Gather { .. }) {
+                        gather_rows += 1;
+                    }
+                    rows.push(d);
+                }
+            }
+        }
+        // **The `id` stand-in is not a divergence** — `GroupData +0x4` is
+        // a counter this crate stands in for with the army group's slot
+        // (`OrderMismatch::scores`), and it puts one row on every grouped
+        // unit-frame by construction. Everything else counts.
+        let scoring: Vec<&OrderDivergence> = rows.iter().filter(|d| d.what.scores()).collect();
+        eprintln!(
+            "run97 orders: {blocks} blocks, {compared} unit-frames below the word, \
+             {} rows ({} scoring, {gather_rows} of them gather fields over \
+             {gather_compared} gather orders)",
+            rows.len(),
+            scoring.len(),
+        );
+        let mut by_kind: std::collections::BTreeMap<String, (usize, i64, i64, i64)> =
+            Default::default();
+        for d in &scoring {
+            let key = match &d.what {
+                crate::diff::order::OrderMismatch::Move { field, .. } => format!("move/{field}"),
+                crate::diff::order::OrderMismatch::Gather { field, .. } => {
+                    format!("gather/{field}")
+                }
+                crate::diff::order::OrderMismatch::Group { field, .. } => format!("group/{field}"),
+                w => format!("{w:?}")
+                    .split_whitespace()
+                    .next()
+                    .unwrap_or("?")
+                    .to_string(),
+            };
+            let e = by_kind.entry(key).or_insert((0, d.frame, d.who, d.o));
+            e.0 += 1;
+        }
+        for (k, (n, f, who, o)) in &by_kind {
+            eprintln!("  {k}: {n} rows, first f{f} {who}/{o}");
+        }
+        let mut by_unit: std::collections::BTreeMap<(i64, i64), usize> = Default::default();
+        for d in &scoring {
+            *by_unit.entry((d.who, d.o)).or_default() += 1;
+        }
+        let mut units: Vec<_> = by_unit.into_iter().collect();
+        units.sort_by_key(|(_, n)| std::cmp::Reverse(*n));
+        eprintln!("  units: {:?}", units.iter().take(20).collect::<Vec<_>>());
+        assert!(
+            blocks >= 1_100 && compared >= 30_000 && gather_compared >= 30_000,
+            "run97's own blocks are missing — the wrong file: {blocks} blocks, \
+             {compared} unit-frames, {gather_compared} gather orders"
+        );
+        // **The product: not one gatherer disagrees.** 31,448 gather
+        // orders below the word, and every `tx`, `ty`, `wait`,
+        // `goto_build`, `been_there` and `dist_mod` of every one of them
+        // is the original's. Made to fail on purpose — `+ 1` on the
+        // comparison's own `tx` puts a row on all 31,448, one apiece —
+        // so the nought is a measurement and not a branch that never
+        // ran. What it closes is a whole family of explanation for the
+        // leader's stockpile: no citizen on this map is working a camp
+        // the original does not, on any frame below the word.
+        assert_eq!(
+            gather_rows,
+            0,
+            "a gatherer's order parts from run97's: {:?}",
+            scoring
+                .iter()
+                .find(|d| matches!(d.what, crate::diff::order::OrderMismatch::Gather { .. }))
+        );
+        // **And the residue is confined to units already named.** The
+        // window opens 412 frames before the word and this crate's army
+        // is off its position from 8442 (`docs/ARMY.md` §3.4's
+        // successor), which drags the orders those six hold with it;
+        // `1/23` is a standing unit carrying an `Action` order the dump
+        // does not and a `Move` angle to match, older than this window.
+        // The **set** is the assertion, because "48,698 rows" cannot say
+        // whether a seventh unit joined them.
+        let mut units: Vec<(i64, i64)> = scoring.iter().map(|d| (d.who, d.o)).collect();
+        units.sort_unstable();
+        units.dedup();
+        assert_eq!(
+            units,
+            vec![
+                (1, 23),
+                (1, 27),
+                (1, 28),
+                (1, 29),
+                (1, 33),
+                (1, 40),
+                (1, 41),
+                (1, 42)
+            ],
+            "run97's order residue reached a unit item 368 did not leave it on"
+        );
+        // The count is floored beneath the set, so a known unit growing
+        // a new kind of row is caught too. It may only come down.
+        assert!(
+            scoring.len() <= ORDER_RESIDUE_RUN97,
+            "run97's order residue grew past {ORDER_RESIDUE_RUN97}: {} rows, first {:?}",
+            scoring.len(),
+            scoring.first()
         );
     }
 

@@ -326,7 +326,14 @@ impl Sim {
         let mut other = 0;
         let mut min_other = 0;
         for i in 0..self.players.len() {
-            if i == w || self.nation[i].human {
+            // **Every other leader the roster holds, the human included**
+            // (item 368). `plan_strategy@006b9620:159-166`'s gate is
+            // `leader_flags & 2`, `i != who` and `i >= 0` — and bit 1 is
+            // set for *every* leader every capture prints, the human's
+            // `leader_flags 7` among them. Skipping humans here read
+            // `other_team_terr` as nought on a one-human-one-AI game,
+            // which is every capture this crate is diffed against.
+            if i == w {
                 continue;
             }
             if self.diplo_ally(i, w) && self.diplo_ally(w, i) {

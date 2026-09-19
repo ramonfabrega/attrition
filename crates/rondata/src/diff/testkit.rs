@@ -1241,6 +1241,17 @@ pub(crate) const EAST_INDIES_FIRST_SCHOLAR: i64 = 8_466;
 /// covers the need looks like. `docs/ECONOMY.md` §12.
 pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 9182;
 
+/// The floor `run97_s_window_orders_are_the_original_s` holds — item 368's
+/// widening of Great Lakes' order stacks, the 36,483 `GATHERORDER` records
+/// and their neighbours that had never been compared on this map.
+///
+/// A floor rather than a zero, because the window opens 412 frames before
+/// the word and this crate's army is off its position from 8442 already
+/// (`docs/ARMY.md` §3.4's successor): a unit standing somewhere else holds
+/// the order that took it there. **Measured, not guessed**, and it may
+/// only come down.
+pub(crate) const ORDER_RESIDUE_RUN97: usize = 48_698;
+
 /// The frame Great Lakes' **second** squad joins the army on — 6994, the
 /// word's own parting from 2026-09-06 to 2026-09-07 and now a landed
 /// mechanic rather than a score. Two tests are written about the event

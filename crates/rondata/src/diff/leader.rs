@@ -984,6 +984,31 @@ mod tests {
     /// The `(player, field)` pairs that part over run19's window. Filled
     /// from the first run and then pinned; `docs/AI.md` §38.
     ///
+    /// **Item 368 deleted `1/other_team_terr` and
+    /// `1/min_other_team_terr`**, and they are the two that matter to the
+    /// make list's *values*: `ai_research::weight_total` adds `ai[5]`
+    /// (twice over, under `min_other`) when the leader is behind on
+    /// territory, and with both facts at nought that term could never
+    /// fire. `plan_strategy@006b9620:159-166`'s loop gates on
+    /// `leader_flags & 2`, `i != who` and `i >= 0` — and nothing else:
+    /// bit 1 is set for **every** leader every capture prints, the
+    /// human's `leader_flags 7` among them, so this crate's "every other
+    /// *computer* leader" read `other_team_terr` as nought on a
+    /// one-human-one-AI game, which is every capture it is diffed
+    /// against. 92 fields to 90; **nothing else in the record moved**,
+    /// and the Great Lakes word did not either — the six
+    /// `1/MAKE[*].val` rows are unchanged, so for these four techs the
+    /// territory term is not what pays. `docs/AI.md` §43.
+    ///
+    /// The **other two loops of the same defect stay**: `census_wars`
+    /// (`1/wars`) and `census_strategy` (`1/active_wars`,
+    /// `1/active_wars_with`) skip the human on the same wrong gate, and
+    /// `weight_total`'s war term reads `active_wars`. Putting the human
+    /// back in either takes this residue from 90 fields to **147** —
+    /// the facts land and the make list then parts everywhere, because
+    /// `active_wars != 0` reaches the danger and region-strategy words
+    /// as well. Measured, not guessed; `docs/AI.md` §43 names it.
+    ///
     /// **Item 362 deleted `1/MAKE[0].num`**, and this window is what
     /// confirms the fix against a capture rather than against a draw
     /// count: run19 is a `LEADERS=9` dump of `[8174, 8192]`, eight
@@ -1084,8 +1109,6 @@ mod tests {
         (1, "active_wars"),
         (1, "active_wars_with"),
         (1, "gather_stamp"),
-        (1, "min_other_team_terr"),
-        (1, "other_team_terr"),
         (1, "scouts"),
         (1, "tech_cat_frame[0]"),
         (1, "tech_cat_frame[1]"),
@@ -1110,6 +1133,11 @@ mod tests {
     /// block of the window.
     /// Three `MAKE[i].t` rows left this list in item 323 — the tree
     /// id/`TypeIndex` correction described on [`PARTS_ON_RUN84`].
+    /// **Item 368 deleted `1/other_team_terr` and
+    /// `1/min_other_team_terr` here too** — 93 fields to 91. The
+    /// territory census counted only computer leaders where
+    /// `plan_strategy@006b9620:159` gates on `leader_flags & 2`, which
+    /// every capture sets for the human. `docs/AI.md` §43.
     const PARTS_ON_RUN91: &[(usize, &str)] = &[
         (0, "SITE[0].reg"),
         (0, "SITE[1].reg"),
@@ -1196,8 +1224,6 @@ mod tests {
         (1, "SITE[9].wx"),
         (1, "SITE[9].wy"),
         (1, "gather_stamp"),
-        (1, "min_other_team_terr"),
-        (1, "other_team_terr"),
         (1, "scouts"),
         (1, "tech_cat_frame[0]"),
         (1, "tech_cat_frame[1]"),
@@ -1231,6 +1257,11 @@ mod tests {
     /// unit and a building and differ by one on a **tech**. Every tech
     /// offer therefore read as a divergence. run91 lost three the same
     /// way. `MAKE[3].t` here is a real one and stays.
+    /// **Item 368 deleted `1/other_team_terr` and
+    /// `1/min_other_team_terr` here too** — 83 fields to 81. The
+    /// territory census counted only computer leaders where
+    /// `plan_strategy@006b9620:159` gates on `leader_flags & 2`, which
+    /// every capture sets for the human. `docs/AI.md` §43.
     const PARTS_ON_RUN84: &[(usize, &str)] = &[
         (0, "SITE[0].reg"),
         (0, "SITE[1].reg"),
@@ -1307,8 +1338,6 @@ mod tests {
         (1, "SITE[9].wy"),
         (1, "defense"),
         (1, "gather_stamp"),
-        (1, "min_other_team_terr"),
-        (1, "other_team_terr"),
         (1, "scouts"),
         (1, "tech_cat_frame[0]"),
         (1, "tech_cat_frame[1]"),
