@@ -219,6 +219,15 @@ const NO_READER: &[(&str, &str, &str)] = &[
          cap\". No capture is a scenario; the population cap never asks",
     ),
     (
+        "dz",
+        "Node",
+        "the release node's height above the guy, measured off run109's \
+         `AMMO` record and recorded because the record prints it \
+         (`docs/COMBAT.md` §22.3). Nothing reads it because the flight time \
+         is a plan distance; the arc `Ammo::init` builds from `v1z` is what \
+         would, and it is not implemented",
+    ),
+    (
         "num_guys",
         "Projectile",
         "the shooting unit's figure count, carried on the ammo and never read \

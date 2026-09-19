@@ -1423,12 +1423,26 @@ impl Sim {
             let last = if guy.cur_time == 0 { -1 } else { guy.last_time };
             let cur = i64::from(guy.cur_time);
             for t in times {
+                let start = t;
                 let t = i64::from(t);
                 if i64::from(last) < t && t <= cur {
-                    let from = self.units[u].pos;
+                    // **The shot leaves the bow hand, not the unit's own
+                    // square** (§22): `execute_game_events` adds
+                    // `GraphicPieces::get_position`'s per-(piece, node,
+                    // anim, starttime) vector to the guy's position first,
+                    // and the aim is then taken from *that* point —
+                    // `find_angle(T − launch)`, which is what run108's
+                    // `ex, ey` reproduce.
+                    let from = crate::launch::launch_point(
+                        self.units[u].pos,
+                        self.units[u].movement.facing,
+                        guy.gpiece,
+                        guy.anim,
+                        start,
+                    );
                     let to = self.pos_of(target);
                     let angle = crate::movement::find_angle(to.x - from.x, to.y - from.y);
-                    self.fire_ammo_pub(crate::combat::Obj::Unit(u), target, angle, frame);
+                    self.fire_ammo_pub(crate::combat::Obj::Unit(u), target, angle, frame, from);
                 }
             }
         }
