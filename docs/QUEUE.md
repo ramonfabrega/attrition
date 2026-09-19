@@ -12,23 +12,23 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-18, two lanes all day, eight landings. **Great Lakes moves
-9182 → 9415, +233** — the first word to move since the pass. Six booked
-mechanisms were wrong and the frames right every time; three real bugs
-fell out anyway.*
+*2026-09-18, two lanes all day, ten landings. **Great Lakes moves 9182 →
+9415, +233** — the first word since the pass. Six booked mechanisms were
+wrong, the frames right every time; the bugs fell out anyway.*
 
-- **The met bit is set by the fog** (385, `docs/VISION.md` §6.2),
-  closing a chain six items long: `1/MAKE[0].val` → `MAKE[0].t` →
-  `use_market`'s `need`, `active_wars` behind `treaties[i] & 1`, and no
-  `human` test in `plan_strategy`. Leader residues all fell and nothing
-  arrived (run19 91→80, run107 110→95). **389 takes 9415**, 390 the flip.
-- **The golden word holds at 617** through 379 and 384, whose find is the
-  day's worst bug: §13.2 has carried the HOPLITES `0xf6` reach since the
-  second reading and the one call site passed `false` — every melee unit
-  fought at `0x66` for a month (356). Tie-break documented, not coded: 386.
+- **The met bit is set by the fog** (385, `docs/VISION.md` §6.2), closing
+  a chain six items long: `1/MAKE[0].val` → `MAKE[0].t` → `use_market`'s
+  `need`, `active_wars` behind `treaties[i] & 1`, no `human` test at all.
+  Leader residues all fell, nothing arrived. **389 takes 9415**, 390 the flip.
+- **The golden word holds at 617** through 379, 384 and 386 — but the
+  frame is the original's now: `1/6` targets `0/7`, holds its seat, strikes
+  on 616. `0xf6` documented since the second reading with the call site
+  passing `false` (356), and `in_range` inverted, are **one constant read
+  at two sites**. §18's unproven ~84 extent is **refused on measurement**:
+  keeping a fit out of the code was right. 391 takes what is left.
 - **run97's dump ends in a truncated `BEGIN FRAME 9361`** — 47 Length rows
-  arriving as the word passed 9349, reading like a collapsed sim. 368's
-  **unit-SET** assertion caught it; a row count would have re-pinned it.
+  as the word passed 9349, reading like a collapsed sim; 368's **unit-SET**
+  assertion caught what a row count would have re-pinned.
 - **The namesake has never fired in a scored capture** (382): zero
   non-exempt attrition outcomes over run53's 24,000 frames — the Temple
   chapter is the only route. **The held-out map answers 1 tick, 0 orders**
@@ -37,7 +37,7 @@ fell out anyway.*
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w9711 of 24,000 · GreatLakes w9415 of 24,000
-Golden: w617 of 901 · chapter one pinned · 386 next
+Golden: w617 of 901 · chapter one pinned · 391 next
 Endpoint 24001: EastIndies 64 off, 5 unlinked · GreatLakes 54 off, 4 unlinked
 
 **Opener: 389 on the word's new frame — `1/29`'s five draws at 9415 —
@@ -65,14 +65,12 @@ the backlog is `docs/PARKED.md`, and an item returns only when a score names it.
     mechanism 385 just landed. Assert the block count against the window
     asked for — run97's truncation is why (373).
 
-386. **The tie-break that decides 617's target** (the rules headline's
-    frame; `docs/COMBAT.md` §18, open question 8, three checks named
-    cheapest-first). The original's `1/6` attacks `0/7`, but under the
-    documented score formula its three candidates **tie at divisor 4**:
-    chain order gives `0/8`, index order `0/6`. §12.2's `/ 0xc0` and
-    `(targeted + 8) × 0x30` are the suspects. The arithmetic that would
-    fit (per-side extent ~84) is in the document as a falsifier, **not**
-    in the code — keep it there until a run says otherwise.
+391. **The group lifts the captain off its seat at the end of 617** (the
+    rules headline's frame): a `GROUP_ATTACK_TO` where the original leaves
+    it fighting (`docs/GROUPS.md` §13, parked 388's neighbourhood), and
+    `0/7`'s retaliation strikes one frame early. 386 made the frame the
+    original's otherwise — `1/6` targets `0/7`, holds (1368,7992), strikes
+    on 616 with recharging 32 — so these two are what is left at 617.
 
 365. **`docs/GOLDEN.md`, the script itself** (a reading and a design, Opus):
     chapters from `docs/CENSUS.md`'s order family and `docs/COMMANDS.md`
