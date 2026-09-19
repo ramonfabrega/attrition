@@ -247,6 +247,19 @@ tracer change, and a wrong proxy stub costs a run.
 
 ## Parked by the sixth Fable pass, 2026-09-19 — a guard's first run
 
+(440) **9582, one `use_market+0x1ed` short.** The AI headline's next
+parting, measured by item 432, 2026-09-19, under the probe that gives the
+Scholar its two per-city values: ours spends **one** `Leader::use_market
++0x1ed` where the original spends **two** — the market's sell rotation,
+the same site as 9382's agreeing pair. Everything else on the frame matches
+entry for entry (`make_stuff+0x221` ×2, `+0x63d` ×2, three `set_anim`, two
+`Ammo::init`, `Farms::inc_time`), and 9581 and 9583 agree whole.
+
+Parks rather than queues because **it is not reachable on the real tree
+until `create_units` computes per-city** (438). It is booked by its frame
+and its draw delta with no mechanism named, and it replaces 9518's scholar
+birth, which was probe 4's artefact through and through.
+
 (429) **A positive i32 wrap is live wherever `create_units`' tail is
 reached.** Measured by item 422, 2026-09-19, on frame 9382:
 `out = wm(fac, wm(want, val) / divisor) / 256` with `val 42,000,000`,

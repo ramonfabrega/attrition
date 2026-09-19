@@ -12,11 +12,11 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-19, the first tranche after the sixth Fable pass. **Twelve
+*2026-09-19, the first tranche after the sixth Fable pass. **Thirteen
 landings, no score moved**; the AI headline's cause is one defect worth
 **72 frames**, and the rules headline's contradiction has sharpened.*
 
-- **The "locked pair" was our own probe** (432, landing): 430's expiry cap
+- **The "locked pair" was our own probe** (432): 430's expiry cap
   suppressed the fix it was meant to complete, and its **eight frames were
   never a measurement**. The original values the Scholar **per city** —
   5,755,741 and 4,891,136 on one frame — where this crate computes one
@@ -30,17 +30,17 @@ landings, no score moved**; the AI headline's cause is one defect worth
   arm, whose bracket `[1340, 1392)` **admits no integer**. §28.4 lists six
   things now known not to be it, and `leader_flags & 4` is **not** the
   computer-leader test. **Not implemented**: 7 moves 616 the wrong way.
-- Four open, 70 parked.
+- Four open, 71 parked.
   **Fable backlog: fifteen Loop items** (251, 335, 313, 367, 375, 416, 417,
-  419, 420, 421, 424, 428, 431, 433, 436); due at twenty, this is twelve.
+  419, 420, 421, 424, 428, 431, 433, 436); due at twenty, this is thirteen.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w9711 of 24,000 · GreatLakes w9510 of 24,000
 Golden: w626 of 901 · ch2 w616 is lower and is the headline · 439 next
 Endpoint 24001: EastIndies 64 off, 5 unlinked · GreatLakes 51 off, 11 unlinked
 
-**Opener: 439 on the rules lane — the eight bytes, 28,396 against 28,388;
-432 lands the per-city Scholar on the AI lane, then 438 reads for it.**
+**Opener: 438 on the AI lane — which of the three terms is per-city, two
+targets known; 439 on the rules lane — the eight bytes, 28,396 vs 28,388.**
 
 ## The queue
 
@@ -50,14 +50,14 @@ the AI, lower map first — Great Lakes. Take the first unstarted on either
 track unless a better order is obvious, and say so. Numbers are stable;
 the backlog is `docs/PARKED.md`, and an item returns only when a score names it.
 
-432. **9382, nine draws against eight, the extra at index 6** (the AI
-    headline's frame, unblocked by 430): worth **eight frames and the
-    instrument past 9510** — everything behind the blockage is a probe
-    artefact until this lands. `make_stuff+0x63d` is the **hypothesis**,
-    not the title, and **the caveat leads**: the expiry count is a
-    function of the make list, so the third call may follow from the
-    list's shape rather than the purchase. Success is **9382 agreeing
-    under the probe**, not the word moving — the probe is part of the item.
+438. **Which of `val`, `want`, `divisor` is per-city** (a reading of
+    `create_units@006c40a0`, released by 432's 72 frames): the original's
+    Scholar is **5,755,741** for its city 1 and **4,891,136** for its city
+    0 on one frame, where this crate computes one number for both. **At
+    least one of the three terms is per-city in the original and none is
+    here.** Two target values to hit, and 432's landed reconstruction of
+    block 9381 to check a candidate against — a reading with numbers, not
+    a survey. Reading-only; owed a blind second reading in its coverage.
 
 439. **The eight bytes: `imull $0x6eec` is 28,396, the record says 28,388**
     (a takes-chain to the rules headline, after 437 settled the branch and
