@@ -12,8 +12,8 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-18/19, two lanes all day, sixteen landings. **Great Lakes 9182 →
-9510 (+328), golden 617 → 619** — both words moved, repeatedly. Eleven booked
+*2026-09-18/19, two lanes all day, eighteen landings. **Great Lakes 9182 →
+9510 (+328), golden 617 → 619** — both words moved, repeatedly. Twelve booked
 mechanisms were wrong; the frame was right every time.*
 
 - **The arrow is the AI track's whole day**: launched by the attack
@@ -24,23 +24,24 @@ mechanisms were wrong; the frame was right every time.*
   rather than bounding it — six rows, no float, `sin_component` only,
   reproducing `sx, sy, ex, ey` and `total_time` exactly on seven frames.
   Word 9182 → 9415 → 9451 → **9510**. **402** owes the record's widening.
-- **The golden word moves 617 → 624** (391, 392, 395), chapter one's
-  frames 615–623 now the original's. The ARMY walks a struck unit off its
-  seat; §17's ring is never in the frame (the **listing** gave back three
-  things Ghidra lost); and a non-captain mirrors its captain's ATTACK in
-  `Unit::think`'s first statement. 395 **corrected 391**: the emergency IS
-  reached, its gate reading `leader_flags & 4`. **399.**
+- **The golden word moves 617 → 621**, chapter one's 615–620 the
+  original's — and it went 624 → 621 **on purpose**: `Armies::emergency`
+  is the CITY alarm's (`local_30`'s only writers are the building
+  branch's alarm arms), so a unit taking a hit never reaches it, and 391's
+  and 395's claims are struck where they stand. The three frames bought
+  the dump's own coordinates for **all six units**, and closed §21.4's
+  second residue for free. **405** takes the legs that stop 171 short.
 - **The namesake has never fired in a scored capture** (382): zero
   non-exempt attrition outcomes over 24,000 frames — the Temple chapter is
-  the only route. **The held-out map answers 1 tick, 0 orders** (run106), a fit to two trajectories: **the pass's number**. Six open, 52 parked; **Fable backlog: thirteen Loop items** (251, 335, 343, 356, 321, 313, 367, 374, 375, 377, 397, 398, 404).
+  the only route. **The held-out map answers 1 tick, 0 orders** (run106), a fit to two trajectories: **the pass's number**. Six open, 56 parked; **Fable backlog: fourteen Loop items** (251, 335, 343, 356, 321, 313, 367, 374, 375, 377, 397, 398, 404, 406).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w9711 of 24,000 · GreatLakes w9510 of 24,000
-Golden: w624 of 901 · chapter one pinned · 399 next
+Golden: w621 of 901 · chapter one pinned · 405 next
 Endpoint 24001: EastIndies 64 off, 5 unlinked · GreatLakes 48 off, 11 unlinked
 
-**Opener: 402 widens the `AMMO` record 396 read seven fields of —
-beside 399, in flight on the golden record's army march.**
+**Opener: 405 on the golden record's frame — two legs stopping 171
+short, no capture needed — beside 402, the `AMMO` record's widening.**
 
 ## The queue
 
@@ -65,14 +66,14 @@ the backlog is `docs/PARKED.md`, and an item returns only when a score names it.
     mechanism 385 just landed. Assert the block count against the window
     asked for — run97's truncation is why (373).
 
-399. **who=1's army marches where the dump holds it still** (the rules
-    headline; `docs/COMBAT.md` §21 and §20.4 carry the coordinates): at
-    618 the army walks to (38664,13320) and the dump does not. 395
-    **corrected 391** — `Object::do_damage`'s gate at `0064bbfd` reads the
-    victim's leader against `LeaderData::is_human@006ec170`, so the
-    emergency IS reached and fires in the original too. The divergence is
-    inside `Army::process` and **nothing on disk answers it**: a
-    chapter-one re-capture with `ARMY`+`GROUPS` over 610–630 is the test.
+405. **The legs that stop 171 short** (the rules headline's frame; no
+    capture needed — run110 has `UNITS=9` and already prints
+    `collide_o`/`collide_who`/`collide_frame`/`tolerance` on blocks 619
+    and 620). `1/8` ends at (1332,8121) on 619 and `1/7` at (1431,7915)
+    on 620 where the dump walks both to the end: `docs/COLLISION.md`
+    §5.1's parked-collider tolerance (`big_radius × 3` = 0xc0) firing on
+    a waypoint **re-taken mid-leg** after `resolve_unit_collision` cleared
+    `has_waypoint`. The original takes one per leg.
 
 365. **`docs/GOLDEN.md`, the script itself** (a reading and a design, Opus):
     chapters from `docs/CENSUS.md`'s order family and `docs/COMMANDS.md`

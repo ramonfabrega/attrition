@@ -73,92 +73,72 @@ hypothesis rather than as the subject. The queue's own item-title
 convention is the pass's to change.
 
 (398) **The endpoint guard makes a worker choose between a red gate and
-a rule.** `the_handoff_s_endpoint_is_the_pinned_counts` compares
-`ENDPOINTS` against `docs/QUEUE.md`'s `Endpoint 24001:` line, so any item
-that moves the endpoint fails its own gate unless the worker edits the
-queue — which `CLAUDE.md` and the queue's own rules forbid. Both answers
-have now happened in one day: item 362 landed red and named the line for
-the commander (correct, and closed on the merge), and item 395 edited the
-one line (understandable, and it conflicted on the merge). The same shape
-sits behind `the_handoff_s_scoreboard_is_the_floors`.
+a rule, and nothing says who owns which half.**
+`the_handoff_s_endpoint_is_the_pinned_counts` compares `ENDPOINTS`
+against `docs/QUEUE.md`'s line, so an item that moves the endpoint fails
+its own gate unless the worker edits the commander's file. Three workers
+read it three ways in one day: 362 re-pinned the constants and landed red
+naming the line (right); 395 re-pinned **and** edited the line (one step
+too far — it conflicted on merge); 396 left **both** to the commander
+(one step too few — three tests failed). 396 traced its own inference
+exactly: the brief's stock "you never book a number" reads as the floor
+itself, and the guard's panic says to re-pin "`ENDPOINTS`/`LADDER` **and
+the queue's `Endpoint` line** together", so the two halves look like one
+indivisible act and the act looks like the commander's. **The fix is one
+sentence in both places**: the constants and their comments are the
+worker's, the queue's line is the commander's. Take it with 406. And
+whatever replaces it must be measured on the MERGE — 394 read 58/12
+alone and 57/10 merged, 395 read 53/14 against a base of 43.
 
-It is a real coupling, not a nuisance: the guard exists so the handoff
-cannot drift from the floors, and that is worth keeping. The fix is to
-let a worker satisfy it without touching the commander's file —
-candidates: the guard reads `ENDPOINTS` alone and a separate
-commander-only test compares it with the line; an env or marker that
-makes the queue-facing half advisory inside a worktree; or the line moves
-out of `QUEUE.md` into a generated file the handoff quotes. **And the
-merged figure is never either branch's** — 394 measured 58/12 alone and
-57/10 merged; 395 measured 53/14 against a base of 43 — so whatever
-replaces it must be measured on the merge, which is the commander's tree.
-The pass's.
+(404) **A worker can inherit a base that is red between the commander's
+merge and its booking commit.** Item 396 reported
+`the_handoff_counts_the_loop_backlog` failing on a base it had not
+written — correct behaviour, and a real hole: `ccc merge` lands a branch
+that changes PARKED before the booking commit updates the handoff's
+counts, so any spawn or `ccc update` in that window takes a tree the
+paperwork guards refuse. Candidates: book in the same commit as the
+merge; have the merge step run `guard.sh` and refuse to leave the tree
+red; or generate the counted fields.
 
-(404) **A worker can inherit a base that is red for the minutes between
-the commander's merge and its booking commit.** Found by item 396, which
-reported `docs_guard::the_handoff_counts_the_loop_backlog` failing on a
-base it had not written (the handoff said eleven Loop items where PARKED
-held twelve) — correct behaviour on the worker's part, and a real hole in
-the chain: `ccc merge` lands a branch that changes PARKED before the
-commander's booking commit updates the handoff's counts, so any spawn or
-`ccc update` inside that window takes a tree the paperwork guards refuse.
-Candidates: book in the same commit as the merge; have the merge step
-run `guard.sh` and refuse to leave the tree red; or make the counted
-fields generated rather than hand-written. Cheap, and it costs a worker's
-round trip every time it happens.
+(406) **The `Golden:` line can drift silently; the other two cannot.**
+Found by item 399, 2026-09-19, when the handoff read `w624` against
+`GOLDEN_WORD_CHAPTER_ONE = 621`. `the_handoff_carries_the_golden_line`
+only checks the line **names** a `w<frame>`;
+`the_handoff_s_scoreboard_is_the_floors` does not read it at all. So the
+rules track's headline has no guard where the AI track's has two —
+`the_handoff_s_endpoint_is_the_pinned_counts` and the scoreboard's — and
+that asymmetry dates from the fifth pass inventing the line (DECISIONS 41
+§1) rather than from any decision. One assertion closes it, beside the
+two that already do exactly this shape. The pass's, and it should be
+taken with 398: the same fix wants to say **who owns which half**, since
+three workers read that three ways in one day.
 
-(397) **Two lanes append to one document's tail and collide on the
-section number.** First realised cost 2026-09-19: items 392 and 394 both
-landed a `docs/COMBAT.md` **§19** — the ring and the first wound — and the
-merge refused. `ccc update` refused twice for the same reason, so the
-worker merged by hand, verified the other side's §19 and §18.2 were
-byte-identical on its branch, renumbered to §20 in **its own commit** so
-the merge shows which side gave way, and moved eleven cross-references
-(including two stale `§9.6` refs from an earlier draft that the sweep
-caught by accident).
+(397) **Two lanes number into one shared namespace with no reservation.**
+Three collisions on 2026-09-19, every one caught by a worker noticing
+rather than by a check. `docs/COMBAT.md`: items 392, 394 and 395 wanted
+the same section number, and `ccc merge` and `ccc update` both refused;
+each loser renumbered in its own commit so the merge shows which side
+gave way. `docs/RUNS.md`: item 386's call-proxy capture took **run108**
+through `tools/explore/golden_capture.sh`, which leaves no stanza in
+`captures.txt`, so `DRY=1 runqueue.sh` — the numbering's only collision
+check — **cannot see that lane at all**; 396 and then 399 both had to
+renumber. Candidates: a commander check that two in-flight briefs do not
+name the same document; a reservation in the brief; numbering by anchor
+rather than ordinal; and making `golden_capture.sh` visible to the
+ledger. The frequency only rises — both tracks now work combat.
 
-**And it is not only sections.** Item 396 found the same hole in
-`docs/RUNS.md`'s run numbers: item 386's call-proxy capture had already
-taken **run108** through `tools/explore/golden_capture.sh`, which leaves
-no stanza in `tools/gamelog/captures.txt`, so `DRY=1 runqueue.sh` — the
-numbering's only collision check — **cannot see that lane at all**. 396
-renamed to run109 before anything cited it. Two shared namespaces, three
-collisions in one day, every one caught by a worker noticing rather than
-by a check.
-
-It resolved cleanly, and it cost a round trip that nothing prevents from
-recurring: both rules- and AI-lane items now write `COMBAT.md`, and the
-queue's "two workers in one file" rule is stated for PARKED cross-item
-constraints rather than for documents. Candidates: a commander check that
-two in-flight briefs do not name the same document; a section-number
-reservation in the brief; or numbering by anchor rather than ordinal.
-The pass's, and cheap — but the frequency will only rise, because both
-tracks are now working combat.
-
-(374) **The handoff's guards have an undocumented phrase contract, and
-finding it costs four gate-or-test round trips.** Measured 2026-09-18 by
-the commander rewriting the handoff after two landings.
-`the_handoff_is_short` reports only "the handoff is N lines; the bound is
-32" — not which lines it counted, so trimming is guess-and-retry, and it
-took four passes. Worse, `the_handoff_counts_the_loop_backlog` requires
-the literal string `Fable backlog: N Loop items`: abbreviating it to
-`Fable: seven Loop items` while trimming for the FIRST guard broke the
-second, so one guard's fix caused another's failure. Neither phrase is
-named in the queue's own "How to maintain this file", which is the only
-place a rewriting session reads.
-
-**Recurred the same day, twice more**: the commander abbreviated
-`Fable backlog: N Loop items` to `Fable: ten Loop` while trimming for the
-first guard, breaking the second — the same mistake it had already made
-two landings earlier, because nothing in the file it was editing said the
-phrase was load-bearing. Eight-plus round trips across one session.
-
-Three candidate fixes, cheapest first: have the guard print the counted
-span's first and last line so the trim is aimed; have it name the literal
-phrases it parses (`Scoreboard:`, `Long captures:`, `Golden:`, `Endpoint`,
-`Fable backlog: N Loop items`) in the panic text; or state the contract in
-the queue's maintenance section. This is the loop's own item — tooling and
-the queue's rules — so it is the pass's, never a worker's.
+(374) **The handoff's guards have an undocumented phrase contract.**
+`the_handoff_is_short` reports only "N lines; the bound is 32" — never
+which lines it counted — so trimming is guess-and-retry; it took four
+passes, then two more later the same day. And
+`the_handoff_counts_the_loop_backlog` requires the literal
+`Fable backlog: N Loop items`: abbreviating it while trimming for the
+first guard broke the second, **twice**, because nothing in the file
+being edited says the phrase is load-bearing. Eight-plus round trips in
+one session. Fixes, cheapest first: print the counted span's first and
+last line; name the literal phrases (`Scoreboard:`, `Long captures:`,
+`Golden:`, `Endpoint`, `Fable backlog: N Loop items`) in the panic text;
+or state the contract in the queue's maintenance section.
 
 (251) **`memcap.sh` has two doors left and half a fixture**: the refused
 sample that read as zero is closed (exit 125, lab L25) and the mode-644
@@ -693,6 +673,17 @@ are **measured and unusable**, because run17's `GUY` detail is 1 and
 nothing there names the animation. A **`GUYS=4` re-run of any Slinger
 fight** closes it, and the same shape closes every missile type in the
 game. Cheap, and it generalises further than the item that found it.
+
+(407) **A pool dump needs its INHERITED category set high enough, and
+"DEATHS off" is the wrong rule.** Item 399 lost a `GROUPS` pool that came
+back empty with `DEATHS` already off. `GuyData::log_data@005de6c0` sets
+type `0x14` and then walks `set_detail(1,2,3,4)`, and **`set_detail` runs
+whether or not the line is accepted**, so the pool inherits GUYS at detail
+4 and `check_accept` drops it at `GUYS=2`. The rule is that the inherited
+category must be set **at or above that dumper's highest `set_detail`**;
+run31 and run92 satisfied it by accident with `GUYS=9`. In `docs/RUNS.md`
+run110. Riding along: `tools/explore/golden_capture.sh` cds to
+`tools/explore`, so `--cmd-file` must be absolute.
 
 ## Measured residues, none near a word
 
