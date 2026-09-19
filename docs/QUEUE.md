@@ -12,34 +12,32 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-19, the first tranche after the sixth Fable pass. **Three landings,
+*2026-09-19, the first tranche after the sixth Fable pass. **Four landings,
 no score moved**: Great Lakes stands at 9510, golden at 626.*
 
-- **414's capture is on the disk, and its question got sharper before it ran.**
-  run111: `LEADERS=9`, 16 blocks 9375..9390 no gap, 352 `MAKEOBJECT`, 0
-  differing against run100 bar `LEADERDATA`, rngcmp 9,406/0 vs run53. The
-  grep that preceded it found run107 already covers 9199, where the
-  original's Scholar reads `val 9999999` against our 45568 and the
-  **Citizen's is exact** — so §47.4's pair is probably false (419).
-- **370: neither branch of 362's disjunction**, no floor moved (rung C 25,
-  rung B 19). The rosters are **not nested** — from `1/48` up every shared
-  id is a different unit — and neither type the fix frees moved. Ordinary
-  divergence past the word, not an overshoot. Earned a cross-rung
-  invariant: run24 and run28 are one simulation, 18 shared ids, floor 15.
-- **`captures.txt` had been broken since merge `9ae8070`**: one stray
-  `=======` made `runqueue.sh` refuse the whole file, so every stanza after
-  run107's was unreachable by the driver. Fixed here; wants a guard (420).
-- **Both lanes alive**: 408 on 414, 365 taking 415 with the screen. Four
-  open, 62 parked. **Fable backlog: ten Loop items** (251, 335, 313, 367,
-  375, 416, 417, 419, 420, 421) — three added today, the pass due at twenty.
+- **414 bought a cause, not a word.** On 9382 the Citizen is `val 234782`,
+  `num 2`, same city **on both sides** — the original offers it and does
+  not buy it. Both of 408's readings are dead; what stands is the third,
+  which existed only because the disk was grepped first: **the Scholar's
+  re-offer is too small**. The two numbers are the original's **5,755,741**
+  ×2 against this crate's **45,568** ×1, and 234,782 sits between them.
+- **The stanza's written prediction died with them** — it said the Scholar
+  would hold at 9,999,999/`num 5`; both sides collapse on the same block.
+  That is what writing it down before the run is for. Three free witnesses:
+  the original **names its own purchase** (57,557 = 5,755,741/100 the block
+  after), `num_queued` agrees, and the goods enter the frame identical
+  (`bucket 107 127 53 129 80 0`, both selling 100 timber).
+- **415 is on the screen** with run112. Four open, 64 parked.
+  **Fable backlog: eleven Loop items** (251, 335, 313, 367, 375, 416, 417,
+  419, 420, 421, 424) — the pass is due at twenty landings; this is four.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w9711 of 24,000 · GreatLakes w9510 of 24,000
 Golden: w626 of 901 · chapter one pinned · 415 next
 Endpoint 24001: EastIndies 64 off, 5 unlinked · GreatLakes 51 off, 11 unlinked
 
-**Opener: 414's verdict from run111 on the AI lane — one block, the make
-list whole, the prediction written first; 415 on the rules lane, run112.**
+**Opener: 422 on the AI lane — 5,755,741 against 45,568 on 9382, and no
+factor named; 415 is in flight on the rules lane, holding the screen.**
 
 ## The queue
 
@@ -49,14 +47,13 @@ the AI, lower map first — Great Lakes. Take the first unstarted on either
 track unless a better order is obvious, and say so. Numbers are stable;
 the backlog is `docs/PARKED.md`, and an item returns only when a score names it.
 
-414. **A `LEADERS=9` window over `[9375, 9390]`, and the two queue rows on
-    9382** (capture lane, run111): the AI headline's own cause frame, named
-    by 408 and unresolvable from this disk. The original queues one Scholar
-    on University `1/2019`; this crate queues two Citizens on Village
-    `1/2007`, same city, same frame. Our census of that city matches the
-    dump field for field (`free 0 busy 15 gatherers 15`), so it is the
-    **decision** and not the value — and `LEADERS=1` omits the make list.
-    Assert the block count against the window asked for (373).
+422. **5,755,741 against 45,568 on frame 9382** (the AI headline's own
+    cause, named by 414): `create_units`' scholar arm, same block, same two
+    numbers, and 234,782 — the Citizen both sides offer — sits between
+    them, so the original buys the Scholar where this crate buys the
+    Citizen. **Name no factor**: 5,755,741 / 45,568 is not an integer and
+    nothing says the gap is one cause rather than several (§48.4). run111
+    is on the disk and covers the block; grep it before booking a capture.
 
 415. **Chapter two staged and pinned** (capture lane, run112): the golden
     record's second chapter, `tools/gamelog/golden/chapter2.cmd`, from
