@@ -3184,3 +3184,116 @@ check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*" "$HOME/ron-data/AppData/Roaming/Mi
 # **And the frames carry values.** 9340 is the overlap's own first block, 10000
 # and 10800 the runway.
 check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|to_x" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run100-greatlakes-valuewindow2.txt" | awk '/BEGIN FRAME/{f=$3+0} /to_x/{if(f)n[f]++} END{printf "to_x on 9340=%d 10000=%d 10800=%d\n", n[9340], n[10000], n[10800]; exit !(n[9340]>0 && n[10000]>0 && n[10800]>0)}'
+
+run: 107
+tag: greatlakes-wordledger2
+item: 369
+why: Great Lakes' word parts at 9362 and its sequence at 9182, and no dump anywhere carries the AI's leader record within a thousand frames of it — `docs/AI.md` §43 names two branches the vector at 9182 can be on and this is the only run that decides between them
+# **THE DISK WAS GREPPED FIRST, and it says the capture is owed.** Every
+# `LEADERS>=2` stanza in this file plus run19 and run18b, by map:
+# map 14 (Great Lakes) has `LEADERS=9` at **[6950, 7030)** (run84),
+# **[7514, 7600)** (run91), **[8174, 8192)** (run19) and **[23960, 24000)**
+# (run80) — and nothing between 8192 and 23960. The two captures that do
+# cover 9182 — run97 ([8030, 9350)) and run100 ([9340, 10900)) — are both
+# `LEADERS=1`, which stops after `score`. So the leader's goods and its
+# make list are on this disk at 8191 and not again until 23959, and 368
+# has already taken run19's window as far as it goes: its six
+# `1/MAKE[*].val` rows are a thousand frames below the question.
+#
+# **It is a re-run, not a new game.** run53 is this map's own 24,000-frame
+# trace and run97/run100 are drop-in siblings of it; this stanza is
+# run97's lobby, map and seed with one category raised.
+frames: 9215
+mapstyle: 14
+# **run97's detail exactly but for `LEADERS`**, which is what run91 did to
+# run89 and for the same reason: the overlap check below then needs
+# exactly one `--exclude` and no `--drop`. run84's `samegame.py --exclude
+# LEADERDATA` against run79 is the proof that `LEADERS=9` adds lines
+# **inside** the census block and nowhere else (80 blocks, 0 differing;
+# `docs/RUNS.md`, run80's amendment). The brief said `GUYS=2`; `GUYS=4`
+# is run97's own and costs ~0.4 MB a block more over 30 blocks — 12 MB
+# for an exact same-game check against the capture that already covers
+# these frames.
+end: MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,DEATHS=1,LEADERS=9
+frame_window: 9170 9200
+# No `cfg:`, so map 14 takes the default `-config check.ini` — run53's,
+# run97's and run100's lobby.
+cover: cover=0
+# run76/run79/run80/run83/run84/run87/run89/run97/run100's Great Lakes floor.
+settle_min: 14000000
+# **Thirty blocks, and the window is the whole cost.** `LEADERS=9` at
+# `GUYS=4` measured ~1.84 MB a block on this map (run91's sizing off
+# run84's 1.43 MB at `GUYS=2` and run89's 410 KB `GUYS=4` base), so 30
+# blocks is ~55 MB plus a ~11 MB start dump. run80 reached frame 23,960
+# of this same game in forty seconds at `cover=0`, so the run-up to 9,170
+# is under a minute and the dumping is the clock. 90 polls is thirty
+# minutes against an expected four; the give-up path **truncates rather
+# than stops**, so it is sized high on purpose (parked 373).
+poll_max: 90
+#
+# ---- THE PREDICTIONS, written before the capture ran. Every figure is
+# this crate's own, on the dump's block numbering (block n is the state
+# after n ticks, so sim-frame 9182 is **block 9183**), for player 1
+# unless it says otherwise.
+#
+#   block 9181  bucket  73 84 35 111 71 0    MAKE 0 Scholar(52) val 9999999
+#               city 2 cat 4 num 5 | 1 t -1 val 6000000 city 1 cat 4 num 5
+#               | 2 Phalanx(133) val 335616 | 3 Citizen(50) val 234782
+#   block 9182  bucket  73 84 35 111 71 0    the make list unchanged
+#   block 9183  bucket  **27** 84 35 111 71 0   MAKE[0].t -1, MAKE[3].val 2347
+#   block 9184  bucket  27 84 35 111 71 0
+#   block 9185  bucket  27 85 36 111 71 0
+#   every block  income 1920 2400 960 880 480 0   territory 568
+#               my_team_terr 568   other_team_terr 0   wars 0   active_wars 0
+#   player 0    bucket 1015 811 304 0 0 0 at 9182, whole make list empty,
+#               my_team_terr 0, territory 0
+#
+# **What is expected to PART — and §43 says one of these two must.**
+#
+# - **`bucket[0]` food across 9182 -> 9183, by 46.** This crate buys the
+#   Citizen on sim-frame 9182 and the original's `can_pay` refuses it, so
+#   the original's food on block 9182 should be **under 46** where this
+#   crate has 73. If it reads 73 and the original still refuses, the
+#   whole of §43's "one number" reading is wrong and that is the finding.
+# - **or the `need` vector is not the Scholar's alone**, which wants a
+#   `bucket`/`epoch` pair this crate does not have — three short goods,
+#   or two stocks at a hundred or more. Both branches are readable off
+#   block 9182's `bucket` and its make list, and they are mutually
+#   exclusive.
+# - **The six `1/MAKE[*].val` rows** run19's window has carried for weeks
+#   (Coinage, Empire, Mercenaries, Temple and slot 3) should still part
+#   here, by the same `weight_total` terms — 368 fixed one census fact
+#   of five and none of the values moved.
+# - **Player 0's census.** The original runs a full census for its human
+#   leader and this crate runs none (§43, "What is not established"), so
+#   `0/peasants`, `0/gatherers`, `0/my_team_terr` and their neighbours
+#   are expected to part. `1/other_team_terr` is **not**, since 368.
+#
+# **What is expected to AGREE — the refusable ones.**
+#
+# - **`income` 1920 2400 960 880 480 0.** If the original's income is not
+#   this on these blocks, the gap is a *rate* difference and every
+#   sentence above about a purchase is wrong. The most worth refusing.
+# - **`MAKE[0].t 52` and `MAKE[2].t 133`** — the Scholar the list offers
+#   and the Phalanx under it. §42 pinned `num`; the types have agreed on
+#   every window since.
+# - **`territory 568`** and the whole gather-slot family, which run84's
+#   and run91's windows have agreed on field for field.
+# Same game: the trace word for word against run53, this map's own 24k run.
+check: python3 tools/gamelog/rngcmp.py rontrace-run53.log rontrace-run107.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=9200)}'
+# And the map, from the dump's own `GAME INFO`.
+check: LC_ALL=C head -c 400000 "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run107-greatlakes-wordledger2.txt" | LC_ALL=C grep -a "MAP_STYLE" | tee /dev/stderr | awk '{print; exit !($2==14)}'
+# **The window landed whole**, and this is the check parked 373 asks for:
+# thirty blocks, 9170..9199, no gap. A truncated run reads as completely
+# ordinary everywhere else.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run107-greatlakes-wordledger2.txt" | awk '{v=$3+0; if(v>=9170&&v<9200) n[v]=1} END{c=0; lo=0; hi=0; for(k in n){c++; if(lo==0||k+0<lo)lo=k+0; if(k+0>hi)hi=k+0} print "window blocks: "c" ("lo".."hi")"; exit !(c==30 && lo==9170 && hi==9199)}'
+# **And the leader record is actually in them** — the category that was
+# raised, on the window's own first and last block and on 9183. A
+# correctly-numbered window whose blocks come back without the record is
+# the failure the detail guard exists for.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|BEGIN PERSONALITY\|BEGIN MAKEOBJECT" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run107-greatlakes-wordledger2.txt" | awk '/BEGIN FRAME/{f=$3+0} /PERSONALITY/{if(f)p[f]++} /MAKEOBJECT/{if(f)m[f]++} END{printf "9170 pers=%d make=%d | 9183 pers=%d make=%d | 9199 pers=%d make=%d\n", p[9170], m[9170], p[9183], m[9183], p[9199], m[9199]; exit !(p[9170]>0 && m[9170]>0 && p[9183]>0 && m[9183]>0 && p[9199]>0 && m[9199]>0)}'
+# **The overlap with run97, and the count is the claim** — 30 blocks,
+# 9170..9199, one `--exclude` for the category that was raised. Both
+# files' highest block is dropped by `samegame.py` (mine the 9215 `!quit`
+# block, run97's its 9361), so the compared set is exactly the window.
+check: python3 tools/gamelog/samegame.py gamelog-run97-greatlakes-valuewindow.txt gamelog-run107-greatlakes-wordledger2.txt --exclude LEADERDATA | tee /dev/stderr | awk '/in common/{split($0,a,", "); n=a[2]+0} /^differ:/{d=$2+0} END{print "run97 overlap: common="n" differ="d; exit !(n==30 && d==0)}'
