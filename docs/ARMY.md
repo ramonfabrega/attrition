@@ -1348,17 +1348,63 @@ of the point's tile.
    immediate `process(1)` — when the new owner is that leader. The
    decompiler prints the first two comparisons against `+0x30`/`+0x34`;
    the third write is `+0x34`.
-8. **`emergency(who)@006f3250`** (from `Object::do_damage@0064a480:952`,
-   when an object of an AI leader takes damage and the damage was not
-   attrition/friendly — `local_30`; the caller's other gate is
-   `leaders[victim_who].leader_flags & 4 == 0`, and that bit is
-   `LeaderData::is_human@006ec170`, whose whole body is
-   `return leader_flags & 4` — so "non-human" here means the **computer**
-   leader, and item 395 confirmed it fires on the golden record's 618,
-   `docs/COMBAT.md` §21.4): for the in-use, non-human leader
+8. **`emergency(who)@006f3250`** — **the city alarm's, and a unit never
+   reaches it** (corrected 2026-09-19, item 399; ~~"when an object of an AI
+   leader takes damage and the damage was not attrition/friendly"~~ was this
+   entry's gloss and it is wrong, as was item 395's "the emergency is
+   reached on the golden record's 618", `docs/COMBAT.md` §22).
+
+   The call at `Object::do_damage@0064a480:952` is
+
+   ```
+   if (local_30 != 0 && (leaders[param_2].leader_flags & 4) == 0)
+       Armies::emergency(param_2)
+   ```
+
+   and `param_2` is the **victim**'s owner (`do_damage(A, o, who, …)`,
+   `docs/COMBAT.md` §7.1; `this->field_0x9` is the attacker's). The second
+   conjunct is `LeaderData::is_human@006ec170`, whose whole body is
+   `return leader_flags & 4`, so "non-human" is the **computer** leader —
+   that much of 395 stands. **The first conjunct is what fails at 618.**
+   `local_30` is zeroed at `0064a8dc` and has exactly **two** writers before
+   the test, both inside the **building** branch of `do_damage` (the `else`
+   at `0064a9f8`, which resolves the target through vslot `0xac` to a
+   `BuildData` and reads `+0x72 city`), and both beside a city alarm:
+
+   - the **non-capital** arm, under `city_flags & 0x10 == 0` (`0x10` is
+     *capital*, `docs/CITIES.md` §1.4), `local_34 != 0` and
+     `300 < frame − city.attack_stamp` (`CityData +0x14`) — the
+     `S_CITY_BEING_ATTACKED` notice;
+   - the **capital** arm, the same 300-frame test — `S_YOUR_CAPITAL_ATTACKED`.
+
+   `local_34` is the alarm's damage threshold, set 0 at the top of the
+   `attacker != victim` block: with `local_14 == 0` it needs
+   `building.damage + dmg >= hits / 4`, or `hits / 10` when the target
+   answers type vslot `0x104` or carries `obj_flags & 0x20`; with
+   `local_14 != 0` — a **siege** attacker (`type` vslot `0x10c`) against a
+   target that answers vslot `0x1c` — it is set unconditionally.
+
+   So the emergency means "**a city of mine is under attack**". `Unit::fight`
+   hitting a soldier never reaches it, which is why the golden record's 618
+   ticks no army: run109's group pool has group `64` (`army 0`, the three
+   hoplites) at **`order_num 0` on every block 616..629**, and `order_num`
+   is stepped by every `Group::action_*` (`docs/GROUPS.md` §10). Run24's
+   12129 — this entry's original evidence — is a blow on the AI's **capital**,
+   not on a unit.
+
+   **What `crates/sim/src/fight.rs` carries**: the building-with-a-city
+   conjunct alone. The threshold and the 300-frame cooldown are read-only
+   and both only make the emergency *rarer*, so the crate still fires where
+   the original would not on a lightly-damaged city building.
+   *Falsifier:* a `DUMP_ALL` window over a frame on which an AI leader's city
+   building takes a hit under a quarter of its hits, read for whether that
+   leader's armies' `target_o` goes to `-1`.
+
+   The body, for the in-use, non-human leader
    with `leader_flags2 & 0xa == 0`, **every valid army** has `target =
    (−1, −1)` and `Army::process(army, 1)` at once — the whole tick, cadence
-   bypassed. Run24: 12129, the first hoplite's first blow.
+   bypassed. ~~Run24: 12129, the first hoplite's first blow.~~ Run24's 12129
+   is the first blow that reaches a **city building** — see above.
 9. **`leader_defeated(who)@006f2f90`** (from `Leader::defeat`): `stop()`
    on every valid army. **`diplo_change(who)@006f30f0`** (from
    `Leader::set_diplo`, after both `diplos` are written): `process(1)` on

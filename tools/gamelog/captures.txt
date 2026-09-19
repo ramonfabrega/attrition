@@ -3297,3 +3297,91 @@ check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|BEGIN PERSONALITY\|BEGIN MAKEOBJEC
 # files' highest block is dropped by `samegame.py` (mine the 9215 `!quit`
 # block, run97's its 9361), so the compared set is exactly the window.
 check: python3 tools/gamelog/samegame.py gamelog-run97-greatlakes-valuewindow.txt gamelog-run107-greatlakes-wordledger2.txt --exclude LEADERDATA | tee /dev/stderr | awk '/in common/{split($0,a,", "); n=a[2]+0} /^differ:/{d=$2+0} END{print "run97 overlap: common="n" differ="d; exit !(n==30 && d==0)}'
+
+# ============================================================================
+# run109 — chapter one's group pool at the golden word (item 399, 2026-09-19)
+#
+# **Not a runqueue stanza: no `run:` key, on purpose.** Chapter one runs on
+# the golden lane (`viadriver.sh` + `tools/explore/golden_capture.sh`), which
+# `runqueue.sh` cannot drive, so this block is the predictions and the checks
+# written down *before* the run — the discipline run107's stanza carries —
+# and nothing here is a `longtrace.sh` input. The command is:
+#
+#   zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh \
+#       ~/ron-golden/g5 --map 14 --end-frame 640 --log-window 610 630 \
+#       --detail end:MISC=9,UNITS=9,GROUPS=9,GUYS=2,LEADERS=1 \
+#       --detail misc:COMMANDMANAGER=1 \
+#       --cmd-file tools/gamelog/golden/chapter1.cmd
+#
+# **DEATHS is off under `[End Frame]` and that is the whole trap**
+# (`docs/ORACLE.md`, "The group pool is a per-frame record"):
+# `GroupData::log_data@0045e1d0` sets no type of its own, and
+# `dump_deaths@0092fd80` ends on two `WorldData::log_data` calls, so with
+# `DEATHS` on the pool is accepted against `WORLD`'s threshold and vanishes
+# silently. With `DEATHS` off the type `dump_groups` inherits is `UNITS`,
+# raised to 9 here. `full_dump@00930380`'s dispatch order is the proof:
+# `0xd` UNITS, then `0xf` WALLS and `0x10` AMMO (both 0), then `0x11` DEATHS,
+# then `0x12` GROUPS.
+#
+# **`ARMY` is NOT an `[End Frame]` category and the brief's wording is wrong
+# about that.** There is no `ARMY` key in `gamelog.ini`, `GameLog::dump_armies
+# @0092fc50` has no caller in the export, and `full_dump`'s per-key list has
+# no armies index: `ArmiesData::log_data` is reached only from
+# `dump_all@0092f2d0`, i.e. `DUMP_ALL=1` — run25-27's shape, ~70 MB a frame.
+# So this capture takes the half that is cheap and decisive, and the ARMY
+# half is booked only if the group pool does not settle it.
+#
+# **Why it is owed.** Every chapter-one capture on disk (`~/ron-golden/{g0..g4,
+# c1,h1,t1,probe1}`, `docs/RUNS.md` run101-run108) runs `UNITS=3,BUILDS=7,
+# CITIES=5,GUYS=2,LEADERS=2,DEATHS=1` and **no `GROUPDATA` at all** — checked
+# on g4's block 618, whose record list is ANIMALDATA, ATTACKORDER, BUILDDATA,
+# BUILDQUEUE, CITIES, CITY, EXPLORETOORDER, FRAME, GATHERORDER, GUY,
+# LEADERDATA, MOVEORDER, OBJECT, PATHDATA, STACK, SUBOBJECT, TARGETORDER,
+# UNITDATA, UNITORDER, WALLDATA, WORLD. The five Great Lakes/islands archives
+# that do carry a pool are different games.
+#
+# **What the widening of UNITDATA already established, and it is new.**
+# who=1 holds **two** groups at every block 616..626, not one: `1/6`, `1/7`,
+# `1/8` carry `group 64` with `form_mod -1`, and `1/0` — who=1's explorer,
+# standing at (40424, 11725), a cell from this crate's own muster centre
+# (38784, 13440) — carries `group 65` with **`form_mod 50`**, a live
+# formation slot. This crate has one group for who=1 (army 0, three
+# hoplites) and the explorer in none. So the group topology differs before
+# any question about `Army::process` is asked.
+#
+# **The decisive field is `GroupData::army` (+0x8), which `log_data` prints**
+# (line 91 of the export), and the second is `order_num` (+0x2c), which every
+# `Group::action_*` steps.
+#
+# **What is expected to PART — and one of these two must.**
+#
+# - **`group 64`'s `army` is −1.** Then the hoplites are in no army, nothing
+#   the emergency ticks reaches them, and this crate's `Unit::add_to_army`
+#   join at 615 (`docs/ARMY.md` §4.2's `think_attack` head) is the bug — the
+#   army's own group is 65, the explorer's, which is where `form_mod 50` and
+#   the muster centre both point.
+# - **or `group 64`'s `army` is 0 and its `order_num` does not step at 618.**
+#   Then membership is right and `Army::process`'s emergency tick took a
+#   branch that issues nothing — `do_mustering`'s `status = 2` into
+#   `do_marching`'s `find_target` miss (`status = 8`, return), or a status
+#   without the `0x10` forming bit this crate carries from birth.
+#   `order_num` on blocks 618, 619 and 620 separates them.
+#
+# **What is expected to AGREE — the refusable ones.**
+#
+# - **`group 64` has `num 3`, `who 1`, `list` = 6, 7, 8** at every block from
+#   616 on, and `group 65` `num 1`, `who 1`, `list` = 0. If the pool does not
+#   say this, the `group` field on UNITDATA is not the pool index and every
+#   sentence above is wrong. The most worth refusing.
+# - **`group 65`'s `order_num` > 0 and its `form` set**, since `form_mod 50`
+#   on `1/0` says a group order was laid out for it.
+# - **The draw stream is g4's, frame for frame**, because logging takes no
+#   draws. `rngcmp.py` below is that check and it is what makes the two
+#   captures one game.
+#
+# check: python3 tools/gamelog/rngcmp.py ~/ron-golden/g4/map-14/rontrace.log ~/ron-golden/g5/map-14/rontrace.log
+# check: 20 window blocks, 610..629, no gap (parked 373: a truncated run
+#        reads as completely ordinary), plus the !quit block at 641
+# check: GROUPDATA count > 512 — the pool is 512 slots a frame, so 20 frames
+#        is ~10,240 records; `<= 512` is the DEATHS trap firing
+# ============================================================================

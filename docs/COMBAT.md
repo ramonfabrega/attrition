@@ -2945,3 +2945,127 @@ observation here has it 0, so nothing distinguishes "the captain's" from
 observation either. And the mirror has never been seen to *fail* its
 `valid_target` test, so which of the five returns fires is only backed for
 the success path.
+
+## 22. The emergency is a city alarm (item 399, 2026-09-19)
+
+**`Armies::emergency` is not reached by hitting a soldier.** That is the
+whole of this section, it closes §21.4's first residue, and it **corrects
+both of that residue's predecessors**: item 391 booked "the emergency is
+not reached" for the wrong reason, item 395 corrected it to "the emergency
+IS reached, its gate reading the victim's leader" — and 395's gate is real
+but it is the *second* conjunct of two.
+
+`Object::do_damage@0064a480:951`:
+
+```
+if (local_30 != 0 && (leaders[param_2].leader_flags & 4) == 0)
+    Armies::emergency(param_2)
+```
+
+`param_2` is the **victim**'s owner — `do_damage(A, o, who, …)` (§7.1), so
+`this` is the attacker and `this->field_0x9` its owner. The second conjunct
+is `LeaderData::is_human@006ec170` (`return leader_flags & 4`), and the
+golden record's own `LEADERDATA` blocks settle who is who: **who=0 carries
+`leader_flags 0x7`** (`& 4` set, the human) and **who=1 `0x800013`**
+(`& 4` clear, the computer), so that conjunct passes at 618 exactly as 395
+said.
+
+**`local_30` is what fails.** It is zeroed at `0064a8dc` and has exactly
+**two** writers before the test, both inside the *building* branch — the
+`else` arm that resolves the target through vslot `0xac` to a `BuildData`
+and reads `+0x72 city` — and both beside a city alarm: the non-capital
+city's `S_CITY_BEING_ATTACKED` (under `city_flags & 0x10 == 0`, the alarm
+threshold `local_34`, and `300 < frame − city.attack_stamp`) and the
+capital's `S_YOUR_CAPITAL_ATTACKED`. `docs/ARMY.md` §15.8 carries the full
+predicate and what this crate implements of it.
+
+At golden 618 `0/7` strikes `1/6` — a **unit**. `local_30` stays 0, no
+army of who=1 ticks, and nothing marches.
+
+### 22.1 The group pool says it directly (run109)
+
+The golden captures print no `GROUPDATA` at all, so this was captured:
+chapter one again, `end:MISC=9,UNITS=9,GROUPS=9,GUYS=9,LEADERS=1` over
+`[610, 630)` (`docs/RUNS.md` run109). Two live groups in the whole game,
+both who=1:
+
+| slot | `who` | `num` | `army` | `order_num` | `form` | `form_num` | members |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 64 | 1 | 3 | **0** | **0** on every block 616..629 | −1 | 0 | `1/6`, `1/7`, `1/8` |
+| 65 | 1 | 1 | −1 | 2, unchanged | 0 | 1 | `1/0`, the explorer |
+
+Two things fall out and both had been guessed the other way.
+
+- **Membership was right.** The three hoplites *are* in who=1's army 0
+  (`army 0`), so `Unit::add_to_army` at 615 and `docs/ARMY.md` §4.2's
+  `think_attack` head are doing the right thing. The `group 64` the
+  `UNITDATA` record carries is the army's group.
+- **The army issues nothing.** `order_num` is stepped by every
+  `Group::action_*` (`docs/GROUPS.md` §10), and it is 0 on all fourteen
+  blocks — so `do_forming`, `march_to_target`, `engagement` and
+  `send_here` are all unreached in the window. With the army's own cadence
+  frames at 508 and 764 (`docs/ARMY.md` §5), the window has no tick in it
+  at all, which is exactly what "the emergency never fired" predicts.
+
+`1/0`'s `form_mod 50` — which had looked like the army's formation, and is
+not — belongs to group 65, whose `army` is −1: the explorer's own group.
+
+### 22.2 The word, and what it bought
+
+The word **fell 624 → 621**, and the value diff is why it lands anyway.
+Blocks 616, 617, 618 and 619 now carry the dump's own coordinates for all
+six units; before, three of the six were on a march to `(38664, 13320)`
+from 618 and further wrong every frame:
+
+| block 619 | dump | before 399 | after |
+| --- | --- | --- | --- |
+| `1/6` pos | `1368, 7992` | `1379, 7970` | **`1368, 7992`** |
+| `1/6` `orders_x, orders_y` | `1368, 7992` | `38664, 13320` | **`1368, 7992`** |
+| `1/7` pos | `1451, 7935` | `1471, 7954` | **`1451, 7935`** |
+| `1/7` `orders_x, orders_y` | `1320, 7800` | `38760, 13224` | **`1320, 7800`** |
+| `1/8` pos | `1332, 8121` | `1360, 8126` | **`1332, 8121`** |
+| `1/8` `orders_x, orders_y` | `1176, 8088` | `38568, 13416` | **`1176, 8088`** |
+| `0/8` `orders_x, orders_y` | `1224, 8280` | `936, 7944` | **`1224, 8280`** |
+
+The last row closes §21.4's *second* residue as well: `0/8`'s chase is no
+longer a frame late and no longer aimed at the target's own point.
+
+The three frames the march was buying were a draw stream agreeing on a
+destination the original never takes — the case `CLAUDE.md`'s "a word that
+moved lands with the value diff beside it" exists for, read in the other
+direction.
+
+### 22.3 What stands at 621, and it is located
+
+`Guy::set_anim+0xf2f < Guy::move+0x166`, one draw this crate spends at
+frame 621 and the original does not. The residue under it is a **short
+leg**, and it is not combat:
+
+- `1/8` ends its leg at `(1332, 8121)` on frame 619 and `1/7` at
+  `(1431, 7915)` on 620 — both about **171** from their ordered points,
+  under the `0xc0` the parked-collider arm allows — where the dump walks
+  both to the end, `1/8` reaching `(1176, 8088)` at block 626 and `1/7`
+  `(1320, 7800)` at 626. `0/8` does the same at `(972, 7988)` on 620.
+- That is `docs/COLLISION.md` §5.1: `do_move`'s waypoint probe widens
+  `tolerance` to `other.big_radius × 3` against a **parked** collider, and
+  the arrival test on the same frame then ends the leg. It runs **once per
+  leg**, on the frame the waypoint is taken — so for it to fire at 619 the
+  waypoint was *re-taken* mid-leg, which is `resolve_unit_collision`
+  clearing `has_waypoint` (`crates/sim/src/collide.rs`, item 204's store).
+- Which half differs — whether the original re-takes the waypoint there at
+  all, or re-takes it and its `detect_unit_collision` finds nobody — is the
+  successor item. *Falsifier:* the same run109 window read for `1/8`'s
+  `collide_o`/`collide_who`/`collide_frame` and `tolerance` on blocks 619
+  and 620; run109 has `UNITS=9` and prints all four.
+
+### 22.4 Confidence
+
+Diff-backed: that no order reaches group 64 in `[616, 630)` (run109's
+pool); that the six units' coordinates are the dump's through block 619
+(the harness reproduces §22.2's table); the golden word at 621; and which
+leader carries the human bit (the dump's own `LEADERDATA`). Read-only:
+the alarm's damage threshold and its 300-frame cooldown (`docs/ARMY.md`
+§15.8), neither implemented; and the claim that `local_30` has no third
+writer, which is a read of one function rather than a run — a capture in
+which an AI leader's **unit** is hit and its armies' `target_o` goes to
+`-1` would falsify it.
