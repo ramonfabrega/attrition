@@ -684,8 +684,21 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // 4, build_diverged 9** — lower than either branch on two of the
         // three columns and on neither branch's line for any of them.
         // DECISIONS 36 asks for the number rather than a trade.
-        off: 54,
-        unlinked: 4,
+        //
+        // Then **54 → 43, 4 → 13** on 2026-09-18, item 389 — a unit's shot
+        // launched by its attack animation's own release event rather than
+        // by `Unit::fight` (`docs/COMBAT.md` §9.0), which moves this map's
+        // word 9415 → 9451. It is the first change to this row that
+        // reaches it through a **fight**: from 9425 the two archers' arrows
+        // exist on the frames the original's exist on, land on the frames
+        // they land on, and the building they are aimed at loses hit points
+        // on the original's own schedule — 14,550 frames of a war that used
+        // to start ten frames early on every shot. Eleven positions closer
+        // and nine more of the roster unlinked, all thirteen of them
+        // consecutive (`1/68`–`1/80`). `build_diverged` and the cities are
+        // unchanged. DECISIONS 36 asks for the number rather than a trade.
+        off: 43,
+        unlinked: 13,
         extra: 0,
         build_unlinked: 0,
         build_diverged: 9,
@@ -1386,6 +1399,15 @@ mod tests {
         // merely off by something else reads the same. What it does say is
         // that if a later item puts a scholar exactly one university away
         // again, this fails and names it.
+        //
+        // **And item 389 put one back**: `1/58`, at `(768, −9984)`. That
+        // is the failure this assertion was left open to catch, and it
+        // caught it on the first item after the one that emptied the set,
+        // so the shape is kept and the carrier is named again rather than
+        // the test being widened until it cannot fail. It is still
+        // telemetry — 14,550 frames past the word, on a change whose
+        // whole effect upstream is *when an arrow exists* — and it is
+        // still not a claim that the seating is right or wrong.
         let delta = (768, 9984);
         let carriers: Vec<(i64, i64)> = r
             .off
@@ -1393,11 +1415,12 @@ mod tests {
             .filter(|(_, v)| (v.0.abs(), v.1.abs()) == delta)
             .map(|(k, _)| *k)
             .collect();
-        assert!(
-            carriers.is_empty(),
-            "{carriers:?} sit one university away from the original's own \
-             coordinates — `1/2020 − 1/2019` exactly, which is what item \
-             338's residue looked like and what the 384/385 merge left \
+        assert_eq!(
+            carriers,
+            vec![(1, 58)],
+            "the set of units one university from the original's own \
+             coordinates moved — `1/2020 − 1/2019` exactly, which is what \
+             item 338's residue looked like, what the 384/385 merge left \
              nobody carrying"
         );
         // The rest, printed: past the word neither stream is anybody's.

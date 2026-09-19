@@ -410,6 +410,21 @@ pub struct Art {
     /// own `set_anim` decisions — `docs/MOVEMENT.md`, "The follower's
     /// destination".
     pub tracks: BTreeMap<i32, (i32, i32)>,
+    /// `gpiece → (attack slot → the frames its shot leaves on)`, read from
+    /// `unit_graphics.xml`'s `<RELEASEEVENT>` rows
+    /// (`rondata::artdata::piece_releases`, `docs/COMBAT.md` §9.0).
+    ///
+    /// **A unit's arrow is not launched by `Unit::fight`.** `fight` sets
+    /// the swing and the reload; `GraphicEvents::execute_game_events
+    /// @008e48e0` walks the guy's current animation's event list once a
+    /// frame and adds one `Ammo` for every event whose frame the clock has
+    /// just crossed — `last_time < t <= cur_time`. So the shot's frame,
+    /// and with it the two scatter draws, are this table's and not
+    /// `fight`'s.
+    ///
+    /// Empty when the install was not read, and a piece absent from it
+    /// does not shoot through this path at all.
+    pub releases: BTreeMap<i32, BTreeMap<i8, Vec<u32>>>,
 }
 
 impl Art {
@@ -1337,6 +1352,88 @@ impl Sim {
             }
             for g in 0..self.units[u].guys.len() {
                 self.guy_inc_time(u, g);
+            }
+            // `Objects::inc_time@0065db70`'s own pairing: per object, the
+            // vtable's `+0xa0` (`Unit::inc_time`, every guy's clock above)
+            // and then `+0x154` (`Unit::execute_events@0060edc0`, every
+            // guy's event list). So the shot is added inside this loop,
+            // after this unit's clocks and before the next unit's —
+            // which is where run53 puts its two `Ammo::init` draws on
+            // frame 9425, between the wraps and `Farms::inc_time`.
+            self.guy_release_events(u);
+        }
+    }
+
+    /// `Unit::execute_events@0060edc0` → `Guy::execute_events@005d99c0` →
+    /// `GraphicEvents::execute_game_events@008e48e0`, for the one event
+    /// kind that changes the simulation: **a shot coming into existence**
+    /// (`docs/COMBAT.md` §9.0).
+    ///
+    /// The event list is the guy's *current animation's*, so the walk is
+    /// per guy and per slot. `execute_game_events`' own gate is
+    /// `event.anim == cur_anim && last_time < event.time <= cur_time` —
+    /// a **crossing** test, which is why a clock that steps by two, or one
+    /// that wraps past an event, fires it once or not at all rather than
+    /// on an equality. `Guy::execute_events` fills the package's
+    /// `last_time` with the guy's own, and forces it to `-1` on the frame
+    /// `cur_time` is zero, so an event at frame 0 fires on the animation's
+    /// first frame rather than never.
+    ///
+    /// The target is the **order's**, not the guy's:
+    /// `Guy::execute_events`' `+0xdc` arm reads the current `UnitOrder`'s
+    /// `(o, who, uid)` and `execute_game_events` refuses the event unless
+    /// both are non-negative. A unit with no attack order in front does
+    /// not shoot, however far into an attack animation it is.
+    ///
+    /// SEAM: the launch point is the unit's own position here, where the
+    /// original adds the event node's offset through
+    /// `GraphicPieces::get_position` — a float, and a graphic one. SEAM:
+    /// the original also refuses the event when the target's `uid` has
+    /// changed under it; this crate tests that the target is still active.
+    fn guy_release_events(&mut self, u: usize) {
+        if self.art.releases.is_empty() {
+            return;
+        }
+        let Some(target) = self.units[u].combat.target else {
+            return;
+        };
+        if !self.active(target) {
+            return;
+        }
+        if !matches!(
+            self.current_order(u).map(|o| &o.body),
+            Some(crate::orders::Body::Attack(_))
+        ) {
+            return;
+        }
+        let frame = self.frame;
+        for g in 0..self.units[u].guys.len() {
+            let guy = self.units[u].guys[g];
+            let Some(times) = self
+                .art
+                .releases
+                .get(&guy.gpiece)
+                .and_then(|m| m.get(&guy.anim))
+                .cloned()
+            else {
+                continue;
+            };
+            // `Guy::execute_events@005d99c0:30` — the package's `last_time`
+            // is the guy's, forced to `-1` while the clock reads zero.
+            let last = if guy.cur_time == 0 {
+                -1
+            } else {
+                guy.last_time
+            };
+            let cur = i64::from(guy.cur_time);
+            for t in times {
+                let t = i64::from(t);
+                if i64::from(last) < t && t <= cur {
+                    let from = self.units[u].pos;
+                    let to = self.pos_of(target);
+                    let angle = crate::movement::find_angle(to.x - from.x, to.y - from.y);
+                    self.fire_ammo_pub(crate::combat::Obj::Unit(u), target, angle, frame);
+                }
             }
         }
     }

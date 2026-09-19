@@ -552,6 +552,17 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
     // what gives a scout's dog a body of its own instead of the man's
     // (`docs/MOVEMENT.md`, "The follower's destination").
     sim.art.tracks = loaded.piece_tracks.clone();
+    // And every piece's arrow-release frames, from the same file. This is
+    // when a unit's shot comes into existence (`docs/COMBAT.md` §9.0) —
+    // gameplay data the original's own simulation reads, resolved to
+    // integer frames at load.
+    sim.art.releases = loaded.piece_releases.clone();
+    if !loaded.piece_releases.is_empty() {
+        notes.push(format!(
+            "anim: {} unit pieces' arrow-release frames from the install",
+            loaded.piece_releases.len()
+        ));
+    }
     if !loaded.piece_tracks.is_empty() {
         notes.push(format!(
             "anim: {} unit pieces' crew track offsets from the install",

@@ -1444,6 +1444,18 @@ arm draws, so the cost of all three is which slot plays.
 capture stood up mid-fight starts both at zero and may miss one deferred
 swing.
 
+**And the swing carries the shot with it** (item 389, `docs/COMBAT.md`
+§9.0). This section is about which animation plays and when its variant
+roll is spent; the *arrow* rides on the same deferral, one layer further
+out. `Unit::fight` launches nothing for a unit: once the attack animation
+is playing, `Unit::execute_events@0060edc0` → `Guy::execute_events
+@005d99c0` → `GraphicEvents::execute_game_events@008e48e0` walks the
+slot's own event list every frame and adds one `Ammo` for each
+`<RELEASEEVENT>` frame the clock has just crossed. So §6.2's debt decides
+when the swing *starts* and the event track decides when the arrow
+*leaves* — on Great Lakes the two are ten frames apart, and the second was
+worth thirty-six frames of the word.
+
 ## 6.3 The squad is seated around its captain, and the positions are the oracle (2026-09-18)
 
 `Objects::init_unit@0065e0c0` does not leave a squad on one point.
