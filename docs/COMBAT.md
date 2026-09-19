@@ -1349,8 +1349,11 @@ inputs. See `combat::compare_target`.
   below HOLD_FIRE → `add_attack_order(QUEUE_NEW)`); every 32nd frame and the
   first idle frame a combat unit (`attack != 0 && role & 0x10000`) runs
   `think_attack` → `find_melee_target(−1)`: radius `(max_range + 1) × 0xc0`
-  (`+ 0x180` in AGGRESSIVE, `0x120` for melee), at least `unit_respond_range
-  × 0xc0` (`× 0x180` under AI control); DEFENSIVE: `max(max_range × 0xc0,
+  (`+ 0x180` in AGGRESSIVE, `0x120` for melee **and no bonus on top of it** —
+  the AGGRESSIVE term is inside the `max_range != 0` arm at `005ff9c0`), at
+  least `unit_respond_range × 0xc0`, and at least `unit_respond_range ×
+  0x180` again when the unit carries `unit_masks & 0x40000`; both floors and
+  the nesting landed in the code with item 384; DEFENSIVE: `max(max_range × 0xc0,
   unit_defensive_respond_range × 0xc0)`; a packed packer with auto-stance
   unpacks instead after 3 (machine guns) / 7 (human) / 21 (AI) idle frames;
   HOLD_FIRE finds nothing.
@@ -1419,7 +1422,12 @@ The target must be active, a unit target on the map, and **the attacker's
 own** tile not of class `0x30` (`& 0x30 == 0x30`; *second reading* — the
 first draft had the target's tile, and called it fog). `d = attack_dist(o, who, snap(x) + 0x18, snap(y) +
 0x18)`. **Melee** (`type.max_range == 0`): `d ≤ 0x66` (102 units — a little
-over half a tile), or `d ≤ 0xf6` for the `HOPLITES` line. **Ranged**: `d <
+over half a tile), or `d ≤ 0xf6` for the `HOPLITES` line — `is(0x84, 0)` on
+the **attacker**, at `006486b0`, and `0x84` is the tech-tree id the golden
+record's `add hoplite` lands on. Implemented and diff-backed since item 384
+(`sim::fight::HOPLITES`, §18); until then `combat::in_range`'s `hoplites`
+argument existed and nothing passed it, so every melee unit in the
+simulation fought at `0x66`. **Ranged**: `d <
 min_range() × 0xc0 − 6` is out — unless adding both units' `big_radius`
 brings it in; `d > max_range() × 0xc0 + 6` is out (`+ 0x90` more with
 `melee_bonus`); `min_range()`/`max_range()` are the virtuals of §4.4. The
@@ -1533,6 +1541,15 @@ members, which `Unit::do_attack` uses to stand an unarmed group member off at
    lookups miss, and every one of those entries keeps the 100 default.
    `rondata::balance::tail_names()` must stop emitting the matching names.
    **This also left a live defect** — see §15.
+
+8. **§12.2's two ranking constants have never been diffed.** The `/ 0xc0`
+   divisor and the `dist += (targeted + 8) × 0x30` term come from the first
+   reading and were doubly confirmed by the second — but a *reading* of two
+   constants that appear together in one expression cannot tell a scaled
+   pair from the right one, and nothing in any capture has ever forced them
+   to be right. The golden record's frame 615 is the first observation that
+   contradicts them: it makes three candidates tie and the original picks
+   the nearest. §18 has the arithmetic and the three checks, cheapest first.
 
 ---
 
@@ -2066,3 +2083,93 @@ Not established:
   therefore not the end of the frame's work. The retry roll itself, its
   two tails and their unequal gates are `docs/PATHFINDER.md` §21. Great
   Lakes' word parts at **8201**.
+
+
+---
+
+## 18. The engagement frame, read off the golden record (item 384, 2026-09-18)
+
+Chapter one spawns three hoplites for who=0 at frame 610 and three for who=1
+at 615 (`docs/INPUT.md` §11), two tiles apart, and what happens next is the
+rules headline's frame. Every claim here is the dump's own, at
+`UNITS=3`/`GUYS=2` over frames 615–621 (`docs/RUNS.md` run101–run105); the
+harness reproduces the positions exactly (`docs/ANIM.md` §6.3).
+
+**Only the captain searches**, and `near_o` is the witness.
+`ObjectData::near_o`/`near_who` are written by `find_nearby_target` and by
+nothing else, on any call that finds a candidate within `0xf00` — a per-unit
+record of *having searched*. Over all 901 frames only **`1/6` carries one**
+(`7`/`0`, from 616 on); `1/7`, `1/8` and all three of who=0 read `-1`
+throughout. The other two members get their order from
+`Unit::think_attack@005f5a80`'s tail, which on a find calls
+`Group::target_opportunity(group, o, who, …)` — the captain's target handed
+to every member. All three of who=1's carry `group 64`; who=0's carry `-1`.
+
+**who=0 never searches, and its 617–618 orders are retaliation.** `think`
+reaches `think_attack` only on a unit's first idle frame or when
+`(o + frame) & 0x1f == 0`; who=0's three are born at 610 and their next
+cadence frames are 632, 633, 634. All three take an ATTACKORDER on `1/6` —
+the unit that struck `0/7` — at 617 and 618: §12.4's "Hit" path. The dump's
+discriminator is `unit_masks`, `262144` (`0x40000`) on who=1's and `0` on
+who=0's.
+
+**Six range verdicts, and one constant decides two of them.** Seated, the
+cross-squad `attack_dist`s are
+
+| pair | `attack_dist` | the original |
+| --- | --- | --- |
+| `1/6` → `0/7` | 198 | **strikes from its seat** — `in_range 1`, `recharging 32` at dump-617, never moves off `(1368, 7992)` |
+| `0/7` → `1/6` | 198 | **strikes back** at dump-619, never moves off `(1032, 7800)` |
+| `1/6` → `0/8` | 288 | walks |
+| `1/8` → `0/7` | 316 | walks |
+| `1/6` → `0/6`, `1/7` → `0/7` | 339 | walk |
+
+`0x66` (102) puts none of them in reach; `0xf6` (246) puts exactly the two
+the dump has and no others. That is §13.2's HOPLITES arm, and it is what the
+implementation was missing.
+
+**What is *not* settled: which target the captain picks.** The original's
+`1/6` takes `0/7`; the harness takes `0/6`. Under §12.2's formula the three
+candidates tie exactly — `dist + (0 + 8) × 0x30` is 723, 582 and 672, each
+`/ 0xc0` is 3, so each scores `value / 4`, and `compare_target` returns the
+same `value` for three identical undamaged hoplites (its `get_damage` is
+called at `find_angle(0, 0)`, so bearing cannot separate them). A tie is
+broken by scan order, and **neither order gives `0/7`**: the world cell's own
+`down` chain, which `find_nearby_target` walks, is `1/8, 1/7, 1/6, 0/8, 0/7,
+0/6` (confirmed against the dump's `up`/`down`/`up_who`/`down_who` on all
+six) and yields `0/8`; the harness's unit-index order yields `0/6`. So one
+step of §12.2 or §13.1 is wrong, and `0/7` is the only answer either can be
+asked to produce.
+
+**What would settle it.** The arithmetic is only satisfied by a larger
+per-side extent: at `block_radius + 0x18 = 72` the three tie, and at ~84
+(`0x54`) `0/7` alone lands in the `/ 0xc0` bucket below the other two while
+all six range verdicts above still hold — 96 is already too large, because
+`1/8` → `0/7` then falls to 246 and would strike where the dump has it
+walking. That is a derivation, not evidence, and it is written here rather
+than fitted into the code: an extent that reproduces one frame's pick is a
+fit until something independent of this frame agrees with it.
+
+§13.1 is against it, too: that formula was read off the
+disassembly rather than the decompile, so the `block_radius + 0x18` on each
+side is the best-evidenced step of the three.
+
+Two candidates are left, and both are **reading-only constants of §12.2**
+that no diff has ever exercised: the `/ 0xc0` divisor, and the
+`(targeted + 8) × 0x30` term. Either one, differently scaled, separates 198
+from 288 without touching a range verdict: a `/ 0x60` divisor, for one,
+gives `0/7` outright. This frame cannot falsify that — `1/6` is the only
+unit in chapter one that ever searches, so there is exactly one observation
+and any number of constants fit it. That is the whole reason it is here and
+not in the code. Three checks, cheapest first: **grep the dump** for a
+frame where a searching unit's `near_o` differs from the target its order
+takes — that is the score overruling distance, and it prices the divisor;
+**read `find_nearby_target@00648da0`'s listing** at the two divisions, since
+both are magic-multiply sequences the decompiler renders from recovered
+constants; and only then a **capture** staging a tie between units of
+different `BLOCK_RADIUS`.
+
+One thing this rules out. `check_target`'s "a target in another region must
+be `is_in_range`" cannot be what rejects `0/6` and `0/8`: `get_tregion`
+resolves all six tiles to region 0 — cell `(1, 10)` carries `region 0`,
+`region2 1` and no tile of it reads ocean — so the gate never fires here.
