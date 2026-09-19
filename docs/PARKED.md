@@ -32,6 +32,29 @@ two ledger regexes closed in the third pass, 2026-09-17; the fourth pass,
 each now a guard or a clause (`docs/audit/2026-09-19-fable-pass-6.md`,
 DECISIONS 42). 341 closed 2026-09-18 by item 363.
 
+(416) **A DECISIONS entry is owed on "a purchase draws nothing."** Item
+408, 2026-09-19, measured it on the AI headline's own frame: 9382 costs
+eight draws on both sides entry for entry, two same-shaped lists with two
+different answers, and the draw stream stayed blind for the 128 frames to
+the word at 9510. Two consequences the entry should carry, both stated in
+`docs/AI.md` §47.3: a **draw-stream word is a lower bound** on when a
+decision parted, never an estimate; and `BUILDQUEUE` is the oracle for an
+AI purchase, because it is the only record that marks the frame a drawless
+decision was made on — and it is written from `BUILDS=1`, so the evidence
+was already on the disk. This is the case for the record over the frame,
+made on the headline's own frame. The measurement is the worker's and is
+landed; the entry is the pass's to write.
+
+(417) **The `Golden:` line cannot compose over chapters, and the guard is
+why.** Ruled 2026-09-19 that the composed word takes the **lowest chapter
+first**, matching the AI track's lower-map-first rule and DECISIONS 41's
+two-headline shape (`docs/GOLDEN.md` §1 recommends it and books nothing).
+It cannot be written yet: `floors.rs` pins `GOLDEN_WORD_CHAPTER_ONE` and
+nothing else, and `docs_guard.rs` parses a single `w<frame>`, so a second
+pinned chapter needs a second constant and a guard that reads more than
+one. Until then a second chapter pins its word in its own constant and the
+handoff's line stays chapter one's. A guard change, so the pass's.
+
 (375) **A staged run is indistinguishable from an unstaged one, and the
 borrow of a checksum trace is ungated.** Found by item 364, 2026-09-18,
 while measuring its own first golden word as an artefact.
@@ -110,6 +133,18 @@ first — and teach `rondata` to diff the answers. The pass's: it is a
 tracer change, and a wrong proxy stub costs a run.
 
 ## Parked by the sixth Fable pass, 2026-09-19 — a guard's first run
+
+(418) **Order coverage is a separate axis, and its unit is a native
+issuer.** Found by item 365, 2026-09-19, while designing the golden
+record's chapters. The cheat channel **stages state**; it does not order.
+So seven of the eight new chapters add no order class the tree already
+enters, chapter six adds one, and `bird` — console table case 82,
+`Unit::add_air_patrol_order@005e4350` — is the only console command that
+issues an order at all. "Every order class" is therefore not something the
+chapters can deliver, and `docs/GOLDEN.md` §13 is the order-class-to-issuer
+table DECISIONS 41 §5 was waiting for: coverage is counted in native
+issuers reached, not chapters run. Parks because it names no score yet; it
+returns when one names it.
 
 (412) **Fourteen document-address pairs cite a dead-listed function.**
 `docs_guard::a_dead_listed_address_is_cited_only_where_pinned` reads

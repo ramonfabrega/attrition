@@ -12,36 +12,34 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-19, the **sixth Fable steering pass** (`docs/audit/2026-09-19-fable-pass-6.md`,
-DECISIONS 42). No score moved; none was meant to. The tranche before it:
-nineteen landings, nine word-moving, Great Lakes **9182 → 9510**, golden
-**617 → 626**, every worker verified on Opus 5.*
+*2026-09-19, the first tranche after the sixth Fable pass. **Two landings,
+no score moved**: Great Lakes stands at 9510, golden at 626.*
 
-- **The price per word doubled and the price per landing did not**: 57
-  USD a word-moving landing (67 with the commander) against 31 / 39, because
-  **thirteen of nineteen briefs named a mechanism that was not the cause**
-  while the frame was right every time. By track: rules 45, AI **83**. So
-  **a residue item is now booked by its frame and its draw delta**, and a
-  mechanism in the title is the last item's hypothesis (`CLAUDE.md`).
-- **Ten Loop items became guards or clauses**: the `Golden:` line is read
-  against the pin; constants are the worker's, these lines the commander's;
-  the chain is merge, **book**, gate, push, reap; a refused reap is work on
-  the floor; a brief reserves run and section numbers; **a dead-listed cite
-  and an unbuilt constant now fail** unless pinned (412, 413 hold the first
-  run's rows); the unattended lane mutes the game, untested until its run.
-- **Census** cited 862 → 890, entered 7,180, no `*Order` row moved; the
-  held-out map (run106) generalises at **1 tick, 0 orders**, undebugged by rule.
-- **Nothing is in flight.** Five open, 56 parked; **Fable backlog: five
-  Loop items** (251, 335, 313, 367, 375) — 367, the AI's dump, is the next
-  pass's first build.
+- **408 widened the AI headline's own frame and the word did not move** —
+  that is the result. 172 blocks of run100 `[9340, 9511]` compared whole,
+  and exactly two keys first part *inside* the window, both on **9382**:
+  `1/2007` Village `queued ours 2 theirs 0`, `1/2019` University `0 / 1`.
+  Asserted, so 9382 is the frame rather than one of 172. `docs/AI.md` §47.
+- **A purchase draws nothing** (§47.3): 9382 costs eight draws a side entry
+  for entry and the stream stayed blind the 128 frames to the word. So a
+  draw-stream word is a **lower bound** on when a decision parted, never an
+  estimate, and `BUILDQUEUE` — from `BUILDS=1`, already on disk — is the
+  oracle for an AI purchase. A DECISIONS entry is owed: parked 416.
+- **The chapters cannot deliver "every order class"**: the channel stages
+  state, so seven of 365's eight add none. `docs/GOLDEN.md` §13 is the
+  order-class-to-issuer table DECISIONS 41 §5 awaited, and order coverage
+  is a separate axis whose unit is a native issuer (418). `bird` (case 82)
+  is the one console command that orders; 365 corrects the three that deny it.
+- **Both lanes alive**, holding 414 and 415. Five open, 59 parked; **Fable
+  backlog: seven Loop items** (251, 335, 313, 367, 375, 416, 417).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w9711 of 24,000 · GreatLakes w9510 of 24,000
-Golden: w626 of 901 · chapter one pinned · 408 next
+Golden: w626 of 901 · chapter one pinned · 415 next
 Endpoint 24001: EastIndies 64 off, 5 unlinked · GreatLakes 51 off, 11 unlinked
 
-**Opener: 408 on the AI lane — widen 9510 whole and name the cause before
-any mechanism; 365 or 370 beside it on the rules lane.**
+**Opener: 414 on the AI lane — the `LEADERS=9` window over [9375, 9390],
+run111; 415 on the rules lane — chapter two staged and pinned, run112.**
 
 ## The queue
 
@@ -51,14 +49,23 @@ the AI, lower map first — Great Lakes. Take the first unstarted on either
 track unless a better order is obvious, and say so. Numbers are stable;
 the backlog is `docs/PARKED.md`, and an item returns only when a score names it.
 
-408. **Nothing has widened frame 9510** (the AI headline's own frame).
-    402 closed the `AMMO` widening and the word did not move, but run109
-    covers `[9420, 9480)` and **9510 is outside it** — so the frame that
-    scores has no widened record behind it at all. Widen every record
-    run100 dumps on 9510, every slot and every field, and the whole cast
-    either side of it; name the cause before booking a mechanism. No
-    capture needed. Twelve booked mechanisms were wrong in two days while
-    the frame was right every time; this is that rule on the current word.
+414. **A `LEADERS=9` window over `[9375, 9390]`, and the two queue rows on
+    9382** (capture lane, run111): the AI headline's own cause frame, named
+    by 408 and unresolvable from this disk. The original queues one Scholar
+    on University `1/2019`; this crate queues two Citizens on Village
+    `1/2007`, same city, same frame. Our census of that city matches the
+    dump field for field (`free 0 busy 15 gatherers 15`), so it is the
+    **decision** and not the value — and `LEADERS=1` omits the make list.
+    Assert the block count against the window asked for (373).
+
+415. **Chapter two staged and pinned** (capture lane, run112): the golden
+    record's second chapter, `tools/gamelog/golden/chapter2.cmd`, from
+    365's `docs/GOLDEN.md` §14 — which assigns run112–run119 by what a
+    failure would teach, chapter five and chapter seven early because each
+    can invalidate work built on it. Pin chapter two's word in its **own**
+    constant: `floors.rs` holds only `GOLDEN_WORD_CHAPTER_ONE`, and the
+    composed `Golden:` line is a guard change parked to the pass (417).
+    Lowest chapter first, ruled — the AI track's rule, one map down.
 
 390. **A `LEADERS≥2` window anywhere in (7616, 8174]** (capture lane;
     takes-chain to the met bit): nothing on disk dumps a leader between
@@ -66,15 +73,6 @@ the backlog is `docs/PARKED.md`, and an item returns only when a score names it.
     against a bracket, not a frame**. The cheapest capture left on the
     mechanism 385 just landed. Assert the block count against the window
     asked for — run97's truncation is why (373).
-
-365. **`docs/GOLDEN.md`, the script itself** (a reading and a design, Opus):
-    chapters from `docs/CENSUS.md`'s order family and `docs/COMMANDS.md`
-    §3 — every order class, each unit line, an age jump between chapters,
-    the Temple chapter for attrition, a war — each chapter naming the
-    records that would falsify it. **Two constraints from 364**: the bare
-    `war` form is a no-op (it prints the diplomacy table; chapter one's
-    squads engage because a Quick Battle already starts at war), and `age`
-    leaves all four epochs Ancient, so a late-age chapter wants `library`.
 
 370. **Type the ladder's twenty-five extras** (names rung C's pinned
     `extra` floor, 13→25 under 362's batch fix; rung B +13 the same way,
