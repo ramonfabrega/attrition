@@ -931,6 +931,23 @@ pub const LADDER: [Endpoint; 2] = [
         // been capped at one buys more of everything, and this rung is
         // the furthest-out of the four counters it touches. DECISIONS 36
         // asks for the number rather than a trade.
+        //
+        // **Typed 2026-09-19, item 370, and the twelve are not an
+        // overshoot.** The question 362 left was what they are: all
+        // scholars and caravans would say the batch is too large, a mixed
+        // bag ordinary divergence. Measured against the pre-fix tree, the
+        // rosters are not nested — they are *substituted*. Scholars are 2
+        // before and 2 after and caravans 0 in both, so neither type the
+        // batch grows moved at all; the one in-scope type that does is the
+        // citizen, 2 → 8, whose `num` is `min(deficit, room)` and bounded.
+        // Of the military, Bowmen 3, Longbowmen 3 and Horse Archer 1
+        // vanish outright and Hoplites 6, Light Horse 3 and Slingers 3
+        // appear. Only 1/10, 1/12, 1/25 and 1/29 carry the same type in
+        // both trees. A too-large batch adds units of the batched types and
+        // leaves the rest alone; this is a different late production run,
+        // which is what 7,590 frames past the word buys. `extra` is still 0
+        // on both endpoint captures, which is the counter an overshoot
+        // would move.
         extra: 25,
         build_unlinked: 10,
         build_diverged: 8,
@@ -1065,9 +1082,21 @@ pub const LADDER: [Endpoint; 2] = [
         // Then **15 → 6** on 2026-09-18, item 358's market trade — nine
         // spurious units gone on this rung, the largest single fall any
         // rung has taken, with `unlinked` and both building counts
-        // unmoved. **Rung B is only reached once rung C passes**: the
+        // unmoved. ~~**Rung B is only reached once rung C passes**: the
         // ladder test panics at its first moved row, so this row surfaced
-        // on the second run.
+        // on the second run.~~ **No longer true from item 370**: both
+        // rungs are walked and typed before either is asserted, because
+        // the two are different games and a rung C failure was taking rung
+        // B's measurement with it.
+        //
+        // **Typed 2026-09-19, item 370.** 6 → 19 under 362 and the same
+        // substitution as rung C: pre-fix Bowmen 1, Cataphract 1, Citizen
+        // 1, Longbowmen 3; post-fix Cataphract 1, Citizen 6, Hoplites 6,
+        // Light Horse 3, Slingers 3, with 1/12 the only object number that
+        // keeps its type. **Rung B is rung C's own simulation 1,088 frames
+        // later**, and the block 1/56–1/72 is type-identical on the two
+        // rungs — which the ladder test now asserts, since it is the one
+        // thing about `extra` that does not churn with every AI landing.
         extra: 19,
         build_unlinked: 19,
         build_diverged: 0,
@@ -1088,6 +1117,13 @@ pub struct EndpointResult {
     pub compared: usize,
     pub unlinked: Vec<(i64, i64)>,
     pub extra: Vec<(i64, i64)>,
+    /// **What the extras are**, `(who, o, type name)` in [`Self::extra`]'s
+    /// order — the one question about them no dump can answer, because an
+    /// `extra` is by definition a unit this crate holds and the capture's
+    /// does not (item 370, `docs/AI.md` §42). [`walk_to_close`] leaves it
+    /// empty; the caller fills it, because the type table is the loader's
+    /// and not the simulation's.
+    pub extra_types: Vec<(i64, i64, String)>,
     /// Units the dump has at the simulation's `n − 1` position: its own
     /// tear, and not a divergence.
     pub torn: Vec<(i64, i64)>,
@@ -1160,6 +1196,7 @@ pub fn walk_to_close(built: &mut Built, fin: &Frame, players: usize) -> Endpoint
         compared: r.compared,
         unlinked: r.unlinked,
         extra: whole.extra_units,
+        extra_types: Vec::new(),
         torn: r.torn,
         off: r.off,
         build_unlinked: whole.build_unlinked,
@@ -1322,7 +1359,36 @@ mod tests {
         check_setup(row, &init);
         let mut built = build_sim(&loaded, &init, Tuning::RON);
         let started = std::time::Instant::now();
-        let r = walk_to_close(&mut built, &fin, 8);
+        let mut r = walk_to_close(&mut built, &fin, 8);
+        // **The extras, typed** (item 370). `extra` is what this crate holds
+        // and the capture's dump does not, so nothing on disk says what they
+        // are; the simulation that produced them is still standing here.
+        r.extra_types = r
+            .extra
+            .iter()
+            .map(|&(who, o)| {
+                let name = built
+                    .sim
+                    .units
+                    .iter()
+                    .find(|u| u.alive() && i64::from(u.owner) == who && i64::from(u.index) == o)
+                    .and_then(|u| u.ty)
+                    .and_then(|ty| loaded.unit_names.get(ty).cloned())
+                    .unwrap_or_else(|| "?".into());
+                (who, o, name)
+            })
+            .collect();
+        {
+            let mut by_type: std::collections::BTreeMap<&str, usize> =
+                std::collections::BTreeMap::new();
+            for (_, _, name) in &r.extra_types {
+                *by_type.entry(name.as_str()).or_default() += 1;
+            }
+            eprintln!("{} {} extra by type: {by_type:?}", row.map, r.extra.len());
+            for (who, o, name) in &r.extra_types {
+                eprintln!("    extra {who}/{o} {name}");
+            }
+        }
         eprintln!(
             "{} {}: {} compared, {} off, {} unlinked, {} extra, {} torn; \
              builds {}/{} unlinked/diverged, cities {}/{} — {:.1}s",
@@ -1376,7 +1442,10 @@ mod tests {
             moved.join(", "),
             r.off,
             r.unlinked,
-            r.extra,
+            // **Typed, not bare** (item 370): the count alone cannot tell an
+            // overshoot from a substitution, and twice now the roster has
+            // changed under a stable count.
+            r.extra_types,
         );
     }
 
@@ -1513,9 +1582,54 @@ mod tests {
     /// walk (see the module header): run28's 15,401 and run24's 16,489.
     #[test]
     fn the_east_indies_ladder_is_pinned() {
+        // **Both rungs are measured before either is asserted** (item 370):
+        // a failure on rung C used to take rung B's measurement with it,
+        // and the two rungs are two different games — the second is not a
+        // consequence of the first and is worth seeing when the first moves.
+        let mut rungs = Vec::new();
         for row in &LADDER {
             let Some(r) = score(row) else { return };
-            pinned(row, &r);
+            rungs.push((row, r));
+        }
+        // **The two rungs are one simulation, and their extras say so**
+        // (item 370). run24 and run28 are the same East Indies game stood
+        // up from the same borrowed setup, walked to 16,489 and 15,401 —
+        // so an object number that is `extra` on both rungs is the *same
+        // unit* seen 1,088 frames apart and must carry the same type.
+        // `the_ladder_s_borrowed_setup_is_the_endpoint_s` checks that at
+        // 6,000, under the word; this checks it past the word, where the
+        // counts live, and it is the one thing about `extra` that does not
+        // churn with every AI landing.
+        let (c, b) = (&rungs[0].1, &rungs[1].1);
+        let shared: Vec<((i64, i64), &str, &str)> = c
+            .extra_types
+            .iter()
+            .filter_map(|(w, o, name)| {
+                b.extra_types
+                    .iter()
+                    .find(|(w2, o2, _)| w2 == w && o2 == o)
+                    .map(|(_, _, other)| ((*w, *o), name.as_str(), other.as_str()))
+            })
+            .collect();
+        assert!(
+            shared.len() >= 15,
+            "only {} object numbers are `extra` on both rungs; the check is \
+             vacuous below fifteen and the two rungs may have stopped being \
+             one simulation",
+            shared.len()
+        );
+        let parted: Vec<String> = shared
+            .iter()
+            .filter(|(_, ours, theirs)| ours != theirs)
+            .map(|((w, o), ours, theirs)| format!("{w}/{o} C {ours} vs B {theirs}"))
+            .collect();
+        assert!(
+            parted.is_empty(),
+            "the two rungs disagree on what a shared `extra` object number \
+             is, so they are not one simulation seen twice: {parted:?}"
+        );
+        for (row, r) in &rungs {
+            pinned(row, r);
         }
     }
 
