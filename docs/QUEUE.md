@@ -12,35 +12,36 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-18, the fifth Fable pass (`docs/audit/2026-09-18-fable-pass-5.md`),
-in conversation: **two tracks** (DECISIONS 41). No score moved, none meant
-to. The loop before it landed 26 items, 20 word-moving, GL +1,503, EI
-+1,899, at 31–39 USD a word-moving landing. Next: 363 and 362, side by side.*
+*2026-09-18, two lanes side by side, and the two-track shape held. **No
+word moved**; five floors did. 363 gave the rules track its first staged
+run and all three answers; 362 was booked as the market and was not —
+every civilian the AI ever offered itself was a batch of one.*
 
-- **The rules track is a golden record** — one staged game, AI off, in
-  chapters, on the lab's click-free lane with `rontrace.cmd` and native
-  issuers. 363 takes the first staged run and its three answers; 364
-  replays it in the harness and pins chapter one; 365 writes the script.
-  Until 364 lands the `Golden:` line says so, and the guard reads it.
-- **The AI track is unchanged.** Great Lakes 9182 (item 360 left
-  `Unit::move_step`'s snap arm clean: point-and-goal 6, walk-slot 0, off
-  position 4 over `[8029, 9182)`); East Indies 9711 on the draw stream.
-  362 is the market at 9182. Both frontiers have runway: run99 East
-  Indies `[8780, 10400)`, run100 Great Lakes `[9340, 10900)`.
-- **The census is the fourth counter** (`tools/census.py`,
-  `docs/CENSUS.md`): 862 of 48,233 functions cited; the 31 order classes
-  44 cited of 410, six untouched — air, cast, trade, special anim. The
-  estimate on record: four to six months to every family diff-backed.
-- Four items open, 33 parked. **Fable backlog: eight Loop items** (251,
-  335, 341, 343, 356, 321, 313, 367); 367 is the AI proxy table.
+- **The rules track has a record.** `!ai off` at frame 0, six `add`
+  squads, 901 frames: auto-engage survives AI-off (the control with the
+  line deleted differs on 899 of 901 from frame 2), two launches are one
+  game (901 in common, 0 differing), a late-age dump parses. run101/103/105
+  agree on all 901 frames at three detail levels — **41 §2 measured**.
+  Parked 341 closes; every launch goes through `viadriver.sh` (ORACLE).
+- **362 was not the market.** `use_market` implements the decompile line
+  for line; `MakeObject.num` is what 9182 was waiting on, and the draw
+  stream named it — 8985 costs three `make_stuff+0x221` and **zero**
+  `+0x63d` on both sides, which no step-6 purchase can do. That
+  falsifies all three of §41's readings and retires its `LEADERS=9` window.
+  Endpoint: nine units we had none for now exist, `extra` still 0 both maps.
+- **One number stays open in the worker's words**: the ladder's `extra`
+  13→25 on rung C, compared/off/unlinked identical; no dump can type
+  them — they are ours and not theirs (370).
+- Six items open, 34 parked. **Fable backlog: seven Loop items** (251,
+  335, 343, 356, 321, 313, 367); 367 is the AI proxy table.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w9711 of 24,000 · GreatLakes w9182 of 24,000
-Golden: none pinned · 363 → 364 → 365
-Endpoint 24001: EastIndies 58 off, 14 unlinked · GreatLakes 57 off, 10 unlinked
+Golden: none pinned · 364 → 365
+Endpoint 24001: EastIndies 64 off, 5 unlinked · GreatLakes 50 off, 9 unlinked
 
-**Opener: 363 on the capture lane and 362 in the loop, side by side —
-the golden record's first staged run, and the market at 9182.**
+**Opener: 368 on the frame the word is still stuck on, and 364 beside it —
+9182's step-6 purchases, and chapter one pinned in the harness.**
 
 ## The queue
 
@@ -50,21 +51,27 @@ the AI, lower map first — Great Lakes. Take the first unstarted on either
 track unless a better order is obvious, and say so. Numbers are stable;
 the backlog is `docs/PARKED.md`, and an item returns only when a score names it.
 
-363. **The golden record's first staged run** (capture lane, Opus, its own
-    session; DECISIONS 41 §5): `live_session.py stage` with a `rontrace.cmd`
-    — `!ai off` at frame 0, `age` to a late age, spawns for two players,
-    `war`, a fight, `!quit` — the lane's window and categories exposed
-    (parked 341). Products: the draw-stream trace, a windowed dump, the
-    script, and three answers: auto-engage survives AI-off; two launches
-    give one draw stream; a late-age dump parses through rondata. Then the
-    held-out third map, one scored capture, measured and never debugged.
+368. **9182's step-6 purchases, and the word is still on them** —
+    `1/2007 ours [(50,100)] theirs []`, named on the headline's frame by
+    362 as it left. The market is exonerated (`use_market` is line for
+    line) and `MakeObject.num` is fixed, so this is what 9182 now waits
+    on. **Re-measure before diagnosing**, and §41's three readings are
+    retired — do not read from them.
+
+369. **A `LEADERS=9` window over Great Lakes `[9175, 9190]`** (capture
+    lane; takes-chain to 368): 362 retired the window §41 had booked, and
+    no capture on disk carries the leader's internals at the word. run100
+    carries the same game 9340→10899, so the window is a re-run, not a
+    new game. Digest first, detail on demand (41 §2, now measured).
 
 364. **Replay 363's script in the harness and pin chapter one** (takes
-    363): an interpreter for the record's cheat set and the command
-    dispatch of `docs/COMMANDS.md` §3 onto the sim's entry points —
-    `add_unit`, `add_building`, `gain_tech`, `set_age`, the diplomacy
+    363, which landed): an interpreter for the record's cheat set and the
+    command dispatch of `docs/COMMANDS.md` §3 onto the sim's entry points
+    — `add_unit`, `add_building`, `gain_tech`, `set_age`, the diplomacy
     state — the orders from the `.rcx`, the cheats from the script. Names
     the golden word; its first pin rewrites `Golden:`, which the guard reads.
+    Read `docs/RUNS.md` run101–run105 first: it leaves four facts 364 needs,
+    including that `age` leaves all four epochs Ancient (a chapter wants `library`).
 
 365. **`docs/GOLDEN.md`, the script itself** (a reading and a design, Opus):
     chapters from `docs/CENSUS.md`'s order family and `docs/COMMANDS.md`
@@ -72,16 +79,18 @@ the backlog is `docs/PARKED.md`, and an item returns only when a score names it.
     the Temple chapter for attrition, a war — each chapter naming the
     records that would falsify it. Written before 364's second chapter.
 
-362. **Great Lakes 9182 is the market's, and 358 left it there** — three
-    `use_market+0x1ed` draws against this crate's one, plus an animation
-    tail of one `set_anim+0x104b` against three. `docs/AI.md` §41 names the
-    `LEADERS=9` window that reads it. Named on the frame, so **no widening
-    owed**. run97 dumps 9182 with 167 frames above, and run100 carries
-    the same game from 9340 to 10899.
+370. **Type the ladder's twenty-five extras** (names rung C's pinned
+    `extra` floor, 13→25 under 362's batch fix; rung B +13 the same way,
+    compared/off/unlinked unmoved). All scholars and caravans means the
+    batch overshoots where the word is long past; a mixed bag is sibling
+    divergence on borrowed captures 7,590 and 8,700 frames past the word.
+    **No dump can answer it** — an `extra` is ours and not theirs — so
+    `docs/journal/2026-09-18-item-362.md` names the one line inside
+    `the_east_indies_ladder_is_pinned` that types all twenty-five.
 
 342. **Host choice seats the scholar on the wrong university** — 338's
-    residue, re-pinned three times. **Re-measure before diagnosing**: the
-    vector `1/2020 − 1/2019` is the claim, never the count.
+    residue, re-pinned three times, and now `1/55`. **Re-measure before
+    diagnosing**: the vector `(768, 9984)` is the claim, never the count.
 
 ## How to maintain this file
 

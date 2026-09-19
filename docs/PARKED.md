@@ -60,34 +60,13 @@ context)` against 123 `Claude Opus 5`) and **149 of 772 commits untrailered**,
 served the session that wrote it — the first-request source `lore spawns`
 already trusts. Guard, hook, or "a brief never dictates it": the pass's.
 
-(341) **The click-free lane cannot take a capture worth having, so every
-scored capture must drive the cursor.** *Folded into item 363's brief by
-the fifth pass (DECISIONS 41 §5): exposing the window and the categories
-is the golden record's first step, not a pass item; this row closes when
-363 lands.* Ramon's flag, 2026-09-18: "i
-thought we had figured out occluded/non main focus captures". We had, for
-one job and not this one. This rests on the tool's source, not on any run.
-
-`unattended_capture.py` needs no TCC grant and no human at the menu, but
-the window and detail live in `live_session.stage()` and are **hardwired**:
-`rise2.ini` gets `LogStartFrame 18` / `LogEndFrame 36`, and every
-`gamelog.ini` category is forced to `0` except `[End Frame] UNITS=3` and
-`[Misc Logging] COMMANDMANAGER=1`. Right for startup evidence and autostart
-receipts; useless for the frontier, which needs a **late window** (run96
-`[23960, 24000)`, run97 `[8030, 9350)`) and **rich categories** (run80 and
-run96's `BUILDS=7, CITIES=5, GUYS=2, LEADERS=9, DEATHS=1`).
-
-So every scored capture goes down the **clicked** lane: three macOS
-permissions, a driven cursor, correctness contingent on being frontmost.
-That is a coupling — the lane can only run on an unattended box — not a bug.
-**The keys already exist**: `stage()` writes all of them, so the work is
-exposing them rather than pinning them, plus a caller-supplied category set.
-
-**A separate lesson for the runbook**: losing focus mid-run fails in a shape
-that **mimics a revoked permission** — a hang with the game alive at 68 %
-CPU and zero FRAME records, then a `perm_probe` miss two pixels wide while
-TCC showed no denial. **Check what is frontmost before blaming TCC.**
-Contention with the machine's owner is the normal condition, not an anomaly.
+(341) closed 2026-09-18 by item 363: `live_session.stage()`'s window and
+categories are caller-supplied, the golden record's first run used them, and
+`docs/RUNS.md` run101–run105 is the evidence. The lane's real constraint was
+never the cursor — it is that a launch from inside Claude Code's own process
+tree gets no window at all (`nodrv_CreateWindow`, dead in 3.8 s, 0 frames),
+so every launch goes through `viadriver.sh` (`docs/ORACLE.md`, "The
+click-free lane needs a window").
 
 (343) **The game plays sound at whoever is near the machine**, and nothing
 turns it off. Ramon's flag the same day. The settings are three tags in
@@ -456,6 +435,14 @@ linked to a city. Same word, different counter, and blurring them would
 make either number unreadable.
 
 ## Measured residues, none near a word
+
+(371) **`market_speculation`'s two passes fire nowhere below the word.**
+Read whole by item 362, both arms' predicates recorded in
+`docs/journal/2026-09-18-item-362.md`. It was read because 362 was booked
+as the market's and was not — `use_market` implements the decompile line
+for line, and `MakeObject.num` was the cause. Parks because neither arm
+fires below either map's word: it names no score, and the reading is
+banked rather than lost.
 
 (246) step 6's repath rests on run83's single event (239); (169)
 `compute_site_stats`, 7,122 of run63's 27,000 site fields; (172) the
