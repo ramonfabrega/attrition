@@ -22,7 +22,9 @@
 602 age who=1 8
 
 # War before the spawns, so the squads are hostile from birth and nothing has
-# to be ordered — no console command issues an order at all.
+# to be ordered — and no console command this chapter uses issues an order.
+# (Exactly one in the whole vocabulary does: `bird`, table case 82, calls
+# `Unit::add_air_patrol_order@005e4350`. docs/GOLDEN.md §13.)
 604 war
 
 # `add hoplite` places three squads, not one; the leading count is not a count.
