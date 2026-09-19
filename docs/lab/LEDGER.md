@@ -93,6 +93,8 @@ Fable worker or capture.
 
 | L55 | A saved graph does not yet establish runnable search resumption; semantic search may help find the missing evidence. | [Real Jev investigation and explicit thread-state probe](2026-09-19-jev-resumption.md). | 171 passages searched for five questions; modeled original prologue advances from FS refusal at instruction 5 to `div_3_table` read at 14, with null memory still unmapped. | Authored thread/argument state, no live replay; Jev misses one half of a compound question in its top five. |
 
+| L56 | The modeled resumed-search prologue needs a coordinate table before any table entry can be used. | [Original initializer sweep and next registry refusal](2026-09-19-coordinate-table.md). | 75,456 entries across six extents match floor division; explicit table input advances attempted instruction 14 to 22. | Successful allocation modeled; live extent and unit registry not captured, no resumed A* return. |
+
 ## Current direction
 
 The runtime factor-isolation experiment is paused at the user's request after

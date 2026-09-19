@@ -57,12 +57,16 @@ class ThreadCall(BoundedCall):
 ENTRY, STOP, ESP, FS, GDT = 0x682f30, 0x400000, 0x300100, 0x70000000, 0x71000000
 
 
-def probe(image, with_thread):
+def probe(image, with_thread, table=None):
     # Authored arguments are sufficient only for this unconditional prologue.
     # No captured graph, game global or live thread value is being claimed.
     regions = [Region('code', ENTRY, image_bytes(image, ENTRY, 256), executable=True),
                Region('arguments', ESP, word(STOP) + bytes(32)),
                Region('scratch', ESP-4096, bytes(4096), writable=True, scratch=True)]
+    if table is not None:
+        require(with_thread and len(table) > 0 and len(table) % 8 == 0, 'invalid table probe input')
+        regions += [Region('coordinate_table', 0x2000000, table),
+                    Region('coordinate_center', 0xcae5fc, word(0x2000000+len(table)//2))]
     if with_thread:
         regions.append(Region('seh_head', FS, word(0xffffffff), writable=True))
         runner = ThreadCall(regions, STOP, fs_address=FS, gdt_address=GDT)
@@ -83,6 +87,8 @@ def probe(image, with_thread):
     else:
         raise ValueError('unexpected full-call success')
     expected_pc, expected_address = (0x682f54, '0xcae5fc') if with_thread else (0x682f3a, '0x0')
+    if table is not None:
+        expected_pc, expected_address = 0x682f77, '0xc0aec0'
     pc = runner.uc.reg_read(x.UC_X86_REG_EIP)
     require(pc == expected_pc and len(faults) == 1 and faults[0]['address'] == expected_address
             and faults[0]['size'] == 4 and 'READ_UNMAPPED' in refusal,
@@ -91,7 +97,8 @@ def probe(image, with_thread):
         require(bytes(runner.uc.mem_read(FS, 4)) == word(ESP-16), 'SEH link not installed')
         require(bytes(runner.uc.mem_read(ESP-16, 4)) == word(0xffffffff), 'old SEH head not saved')
         require(runner.uc.reg_read(x.UC_X86_REG_XMM0) == 0, 'prefix did not clear XMM0')
-    return {'modeled_thread': with_thread, 'fault_pc': hex(pc), 'faults': faults,
+    return {'modeled_thread': with_thread, 'table_supplied': table is not None,
+            'fault_pc': hex(pc), 'faults': faults,
             'attempted_instructions': runner.instructions, 'mapped_bytes': runner.mapped_bytes,
             'refusal': refusal, 'null_page_mapped': any(a == 0 for a, _, _ in runner.uc.mem_regions())}
 
