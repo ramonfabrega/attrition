@@ -5021,12 +5021,10 @@ one-line change.
 
 ### What is not established
 
-- **9182's own ledger**, still. The chain above says the make list's
-  values are measurably wrong a thousand frames below the word and that
-  they are what `use_market` reads, but it does not show the vector at
-  9182. The `LEADERS=9` window over `[9175, 9190]` remains the one run
-  that would print it, and it is now worth more than when §42 booked it:
-  it would say which of the two branches above the frame is on.
+- ~~**9182's own ledger**, still.~~ **Closed by item 369** — run107 is
+  that window, taken as `[9170, 9200)`, and it refuses **both** branches:
+  the original's `bucket` at 9182 is this crate's own `73 84 35 111 71 0`
+  and does not move across the frame. The head is what differs. §44.
 - **Which of `weight_total`'s terms pays for which tech.** The four
   ratios (13/10, 7/6, 55/72, 55/42) are recorded here rather than solved;
   solving them wants the per-type `ai[]` weight vectors beside them.
@@ -5036,3 +5034,127 @@ one-line change.
   reads the *other* leader's `attack` — cannot be right for a human
   opponent even with the gate fixed. That is part of the parked successor.
 - **`Build::queue_up`'s escrow**, unchanged by this item.
+
+## 44. The head at 9182 is a tech, and the goods were never the question (2026-09-18)
+
+Item 369, the capture §43 booked. **run107** is a `LEADERS=9` window over
+blocks 9170–9199 of this map's own game — 30 blocks, no gap, `rngcmp`
+against run53 0 differing over 9,216 frames, and `samegame.py --exclude
+LEADERDATA` against run97 (the same frames at `LEADERS=1`) 30 in common
+and 0 differing. `docs/RUNS.md`, run107.
+
+### Both branches are refused by one row
+
+§43 named two branches the vector at 9182 could be on, and both were
+about the **bucket**. The bucket agrees:
+
+| block | 9181 | 9182 | 9183 | 9184 |
+|---|---|---|---|---|
+| theirs | `73 84 35 111 71 0` | `73 84 35 111 71 0` | `73 84 35 111 71 0` | `73 84 35 111 71 0` |
+| ours | the same | the same | **`27` …** | `27` … |
+
+The original's stockpile is this crate's entering the frame and **does
+not move across it**; this crate spends 46 food on a Citizen there. So
+the original's refusal is not "food under 46" and not three short goods
+it happens to hold — `epoch_get(scan)` agrees too. What differs is the
+**head**.
+
+### The head is Mercenaries, and the list is rebuilt two frames before
+
+Slot 0 and the cat-10 category slot, from the dump, over the window:
+
+```
+9170..9176   slot0  t −1  val 99999      slot10  t 573  val    43,200
+9177..9178   slot0  t −1  val −1         slot10  t −1   val −1          (cleared)
+9179..9199   slot0  t 573 val 9,999,999  slot10  t 573  val 9,999,999
+```
+
+573 is `MERCENARIES`. **This crate clears and rebuilds on the same two
+frames** — `1/MAKE[0].t` parts on 19 of 30 blocks, 9181 onward, so 9177
+through 9180 agree on the type — and on the rebuild it writes
+**6,600,000** where the original writes 9,999,999, the "must have"
+ceiling every scripted offer carries. Two frames later `create_units`
+offers the Scholar at 9,999,999: against the original's ceiling it ties
+and the incumbent holds, against this crate's 6,600,000 it wins. The
+Scholar takes the head here and Mercenaries leaves the ranked four
+entirely.
+
+So the whole parting reduces to **one number on one frame**:
+`1/MAKE[0].val` on blocks 9179 and 9180, **6,600,000 against
+9,999,999** — two frames of residue, and every other row downstream of
+them.
+
+### And that is the three draws, measured
+
+`Sim::type_price` for the two heads, read off this crate's own data
+layer at 9182:
+
+| type | price |
+|---|---|
+| Mercenaries (tree 572) | `[100, 0, 0, 0, 100, 0]` |
+| Scholar (52) | `[0, 0, 40, 0, 0, 0]` |
+| Citizen (50) | `[46, 0, 0, 0, 0, 0]` |
+| Phalanx (133) | `[65, 0, 0, 0, 45, 0]` |
+
+`use_market`'s `need` is the first `max(1, epoch[Commerce])` = 2 slots'
+prices. With the original's list that is Mercenaries + Scholar =
+`[100, 0, 40, 0, 100, 0]` against a bucket of `[73, 84, 35, 111, 71, 0]`:
+**food, wealth and metal are all short**, knowledge is skipped, and the
+good loop draws once per short good — **three draws**, which is exactly
+what the original spends at index 1 of §42's ten-draw window. With this
+crate's list `need` is the Scholar's 40 wealth alone: one short good,
+**one draw**. §43's branch A was right about the shape and wrong about
+the cause: the `need` spans three goods because the *head* is a tech,
+not because the bucket differs.
+
+The rest follows without another assumption. `can_pay(head)` for
+Mercenaries asks 100 food and 100 metal against 73 and 71 and fails, so
+the original saves and buys nothing — which is why its bucket is flat
+across 9182. This crate's head is the Scholar at 40 wealth against 35,
+which also fails; but its step loop then examines only the goods the
+*head* costs, so a Phalanx and a Citizen costing no wealth are never
+examined and are bought on `can_pay` alone — four `make_stuff+0x63d`
+draws and the 46 food.
+
+### The residue, and what else this window opened
+
+109 fields over 60 blocks and 62,640 field-frames, pinned as
+`PARTS_ON_RUN107`. Three families in it are new to this window and none
+had ever been compared here:
+
+- **The ten `SITE` slots of player 1**, whole — `wx`, `wy`, `val`,
+  `dist`, `rank` — parting on 30 of 30 blocks with the *same ten sites
+  in a different order*: this crate's `SITE[3]` is the original's
+  `SITE[1]` (`val 143,725`, `dist 1250`, `wx 44`, `wy 30`), its `SITE[5]`
+  the original's `SITE[2]`, and so on. It is a ranking, not a survey —
+  `rank` itself is in the residue on every slot.
+- **`1/tech_frame` and `1/tech_cat_frame[0..3]`**, at nought here
+  against `8382`, `4976`, `8382`, `8182`, `6376` — five fields the
+  original stamps when a tech lands and this crate never writes. They
+  sit in `weight_total`'s own neighbourhood, which is the reason to name
+  them; that they *pay* is not established.
+- **Player 0's census**, as §43 predicted: `peasants`, `gatherers`,
+  `peasant_high`, `scouts`, `filled_gather_slots`, `my_team_terr 266`,
+  `wars`, `active_wars`, `ally_mask`. `1/other_team_terr` is **not**
+  in the residue — item 368's fix holds a thousand frames further on.
+
+### What is not established
+
+- **Why this crate's Mercenaries value is 6,600,000.** The measured
+  facts are the two numbers and that this crate's cat-10 slot was
+  **33,000** against the original's **43,200** before the rebuild —
+  55/72, the same ratio §43 recorded for Mercenaries at run19 a thousand
+  frames earlier — and that 6,600,000 is exactly 200 × 33,000 while
+  8,640,000 (200 × 43,200) is *not* the original's 9,999,999. So the
+  ceiling is reached by some other route than the ranked multiply, and
+  naming that route is the successor. The falsifier is cheap and local:
+  anything that puts this crate's `MAKE[0].val` at 9,999,999 on block
+  9179 should move the word, and run107 is the test that says so.
+- **Whether `make_me`'s head test breaks ties the way this reading
+  assumes.** It does not matter at these values — 6,600,000 loses to
+  9,999,999 under either rule — but it would matter to a fix that only
+  half-closes the gap.
+- **The `SITE` ordering**, which is a whole mechanic (`docs/AI.md` §2.9)
+  and now has a 30-block value diff waiting for it.
+- **`1/gather_stamp`**, ours 9183 against 8752/9095, and
+  `1/leftover[1:timber]`, both unchanged in kind from earlier windows.

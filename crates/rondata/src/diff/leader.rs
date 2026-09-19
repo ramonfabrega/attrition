@@ -981,6 +981,247 @@ mod tests {
         );
     }
 
+    /// **The leader record at the word's own frame** — item 369,
+    /// `docs/AI.md` §44. run107 is a `LEADERS=9` window over blocks
+    /// 9170–9199 of this map's own game, taken because nothing on the
+    /// disk carried the AI's goods or its make list between block 8191
+    /// (run19) and block 23959 (run80), and Great Lakes' draw sequence
+    /// parts at **9182**. The capture's own checks: 30 blocks with no
+    /// gap, `rngcmp` against run53 0 differing over 9,216 frames, and
+    /// `samegame.py --exclude LEADERDATA` against run97 — the same
+    /// frames at `LEADERS=1` — 30 in common, 0 differing.
+    ///
+    /// **What it decided.** `docs/AI.md` §43 named two branches the
+    /// vector at 9182 could be on, and the capture refuses **both**:
+    /// the original's `bucket` is `73 84 35 111 71 0` on blocks
+    /// 9181–9184, which is this crate's own value entering the frame,
+    /// and it does **not move across 9183** where this crate spends 46
+    /// food on a Citizen. The goods are not the difference. The make
+    /// list is: the original's head is `t 573 cat 10` and the Scholar
+    /// sits under it at slot 1, where this crate has promoted the
+    /// Scholar over it.
+    #[test]
+    fn run107_s_window_is_the_leader_record_at_the_word() {
+        const FIRST: i64 = 9170;
+        const LAST: i64 = 9199;
+        let Some(path) = dump("gamelog-run107-greatlakes-wordledger2.txt") else {
+            eprintln!("skipping: no run107 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let Some((ours, _)) = great_lakes(FIRST, LAST) else {
+            return;
+        };
+        let wtext = crate::capture::read(&path);
+        let wlog = Log::parse(&wtext);
+        let mut compared = 0usize;
+        let mut blocks = 0usize;
+        let mut missing: std::collections::BTreeSet<String> = Default::default();
+        let mut residue: std::collections::BTreeMap<(usize, String), (usize, i64, i64, i64)> =
+            Default::default();
+        // The two rows the item is about, read off the comparison so the
+        // dump is on both sides of them: the head's type on the frame the
+        // sequence parts, and the food it did not spend.
+        let mut head: Option<(i64, i64)> = None;
+        let mut food: Option<(i64, i64)> = None;
+        for n in FIRST..=LAST {
+            for who in 0..2usize {
+                let Some(block) = wlog.leader_block(n, who as i64) else {
+                    continue;
+                };
+                blocks += 1;
+                let t = theirs(&block);
+                active_is_the_muster_summed(&t, n, who);
+                for (k, mine) in &ours[&(n, who)] {
+                    let Some(&yours) = t.get(k) else {
+                        missing.insert(k.clone());
+                        continue;
+                    };
+                    compared += 1;
+                    if who == 1 && n == 9182 && k == "MAKE[0].t" {
+                        head = Some((*mine, yours));
+                    }
+                    if who == 1 && n == 9183 && k == "bucket[0:food]" {
+                        food = Some((*mine, yours));
+                    }
+                    if *mine != yours {
+                        let e = residue
+                            .entry((who, k.clone()))
+                            .or_insert((0, *mine, yours, n));
+                        e.0 += 1;
+                    }
+                }
+            }
+        }
+        eprintln!("run107 [{FIRST}, {LAST}]: {blocks} blocks, {compared} field-frames");
+        for ((who, k), (n, o, t, first)) in &residue {
+            eprintln!("  {who}/{k}: {n} frames, ours {o} theirs {t} on {first}");
+        }
+        assert_eq!(blocks, 60, "thirty blocks, two leaders");
+        assert!(missing.is_empty(), "the record does not carry {missing:?}");
+        assert_eq!(
+            compared, 62_640,
+            "60 blocks of the record, every field the mapping carries"
+        );
+        // **The head on the frame the sequence parts.** 573 is the
+        // original's; 52 is `SCHOLARS`. The two carry the same `val`
+        // 9,999,999, so this is a tie broken the other way — and every
+        // draw `make_stuff` spends is a function of the head.
+        // **The head on the frame the sequence parts, and it is this
+        // item's finding.** 573 is `MERCENARIES`, a tech; 52 is
+        // `SCHOLARS`. The original keeps Mercenaries at the head through
+        // the whole window and ranks the Scholar under it at slot 1;
+        // this crate promotes the Scholar over it on block 9181 and
+        // drops Mercenaries out of the ranked four. Every draw
+        // `make_stuff` spends is a function of the head, so this is the
+        // parting — **not** the goods, which agree. A fix must change
+        // this line, and the two values are why (`docs/AI.md` §44).
+        assert_eq!(
+            head,
+            Some((52, 573)),
+            "block 9182's head moved — if this crate now offers 573 the \
+             item landed; if the original's is no longer 573 the capture \
+             is being read wrong"
+        );
+        // **And the food beside it.** The original's stockpile does not
+        // move across this frame; 27 here is the Citizen this crate buys
+        // and it does not.
+        // **And the food beside it — the value diff for the frame that
+        // moved.** The original's stockpile does not move across 9182:
+        // `73 84 35 111 71 0` on 9181, 9182, 9183 and 9184 alike. This
+        // crate spends 46 food on a Citizen there. Both branches
+        // `docs/AI.md` §43 named are refused by this one row, because
+        // both were about the *bucket* and the bucket agrees entering
+        // the frame.
+        assert_eq!(
+            food,
+            Some((27, 73)),
+            "block 9183's food moved — 73 on both sides is the purchase \
+             gone, which is what this item's successor is for"
+        );
+        let parting: Vec<(usize, &str)> = residue.keys().map(|(w, k)| (*w, k.as_str())).collect();
+        assert_eq!(
+            parting,
+            PARTS_ON_RUN107,
+            "run107's leader residue moved: {} fields",
+            parting.len()
+        );
+    }
+
+    /// The `(player, field)` pairs that part over run107's window — the
+    /// word's own frame. Filled from the first run and then pinned;
+    /// `docs/AI.md` §44.
+    const PARTS_ON_RUN107: &[(usize, &str)] = &[
+        (0, "SITE[0].reg"),
+        (0, "SITE[1].reg"),
+        (0, "SITE[2].reg"),
+        (0, "SITE[3].reg"),
+        (0, "SITE[4].reg"),
+        (0, "SITE[5].reg"),
+        (0, "SITE[6].reg"),
+        (0, "SITE[7].reg"),
+        (0, "SITE[8].reg"),
+        (0, "SITE[9].reg"),
+        (0, "active_wars"),
+        (0, "active_wars_with"),
+        (0, "ally_mask"),
+        (0, "filled_gather_slots[0:food]"),
+        (0, "filled_gather_slots[1:timber]"),
+        (0, "gather_stamp"),
+        (0, "gatherers"),
+        (0, "min_other_team_terr"),
+        (0, "my_team_terr"),
+        (0, "other_team_terr"),
+        (0, "peasant_high"),
+        (0, "peasants"),
+        (0, "scouts"),
+        (0, "wars"),
+        (1, "MAKE[0].cat"),
+        (1, "MAKE[0].city"),
+        (1, "MAKE[0].num"),
+        (1, "MAKE[0].t"),
+        (1, "MAKE[0].val"),
+        (1, "MAKE[10].val"),
+        (1, "MAKE[1].city"),
+        (1, "MAKE[1].num"),
+        (1, "MAKE[1].t"),
+        (1, "MAKE[1].val"),
+        (1, "MAKE[2].cat"),
+        (1, "MAKE[2].city"),
+        (1, "MAKE[2].num"),
+        (1, "MAKE[2].t"),
+        (1, "MAKE[2].val"),
+        (1, "MAKE[3].cat"),
+        (1, "MAKE[3].city"),
+        (1, "MAKE[3].t"),
+        (1, "MAKE[3].val"),
+        (1, "MAKE[4].city"),
+        (1, "MAKE[4].t"),
+        (1, "MAKE[5].city"),
+        (1, "MAKE[7].val"),
+        (1, "MAKE[8].city"),
+        (1, "MAKE[8].val"),
+        (1, "SITE[1].dist"),
+        (1, "SITE[1].rank"),
+        (1, "SITE[1].val"),
+        (1, "SITE[1].wx"),
+        (1, "SITE[1].wy"),
+        (1, "SITE[2].dist"),
+        (1, "SITE[2].rank"),
+        (1, "SITE[2].val"),
+        (1, "SITE[2].wx"),
+        (1, "SITE[2].wy"),
+        (1, "SITE[3].dist"),
+        (1, "SITE[3].rank"),
+        (1, "SITE[3].val"),
+        (1, "SITE[3].wx"),
+        (1, "SITE[3].wy"),
+        (1, "SITE[4].dist"),
+        (1, "SITE[4].rank"),
+        (1, "SITE[4].val"),
+        (1, "SITE[4].wx"),
+        (1, "SITE[4].wy"),
+        (1, "SITE[5].dist"),
+        (1, "SITE[5].rank"),
+        (1, "SITE[5].val"),
+        (1, "SITE[5].wx"),
+        (1, "SITE[5].wy"),
+        (1, "SITE[6].dist"),
+        (1, "SITE[6].rank"),
+        (1, "SITE[6].val"),
+        (1, "SITE[6].wx"),
+        (1, "SITE[6].wy"),
+        (1, "SITE[7].dist"),
+        (1, "SITE[7].rank"),
+        (1, "SITE[7].val"),
+        (1, "SITE[7].wx"),
+        (1, "SITE[7].wy"),
+        (1, "SITE[8].dist"),
+        (1, "SITE[8].rank"),
+        (1, "SITE[8].val"),
+        (1, "SITE[8].wx"),
+        (1, "SITE[8].wy"),
+        (1, "SITE[9].dist"),
+        (1, "SITE[9].rank"),
+        (1, "SITE[9].val"),
+        (1, "SITE[9].wx"),
+        (1, "SITE[9].wy"),
+        (1, "active_wars"),
+        (1, "active_wars_with"),
+        (1, "bucket[0:food]"),
+        (1, "bucket[1:timber]"),
+        (1, "gather_stamp"),
+        (1, "leftover[1:timber]"),
+        (1, "num_queued[0]"),
+        (1, "scholars"),
+        (1, "scouts"),
+        (1, "tech_cat_frame[0]"),
+        (1, "tech_cat_frame[1]"),
+        (1, "tech_cat_frame[2]"),
+        (1, "tech_cat_frame[3]"),
+        (1, "tech_frame"),
+        (1, "wars"),
+    ];
+
     /// The `(player, field)` pairs that part over run19's window. Filled
     /// from the first run and then pinned; `docs/AI.md` §38.
     ///

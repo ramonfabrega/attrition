@@ -3909,3 +3909,57 @@ the give-up is a **truncation, not a stop**: the first attempt came back with
 is what caught it — `success: false`, `TimeoutExpired`, and the settings
 restored and byte-verified anyway — so read `receipt.json` before the dump.
 Size the timeout from the *dumping*: this capture ran 3.6 blocks a second.
+
+## run107 — the leader's ledger at Great Lakes' own word (2026-09-18, item 369)
+
+**What it is.** run53's game, a `LEADERS=9` window over `[9170, 9200)` at
+run97's detail exactly but for that one category, `!quit` at 9215,
+`cover=0`, 68,290,869 bytes, **five and a half minutes** launch to
+archive. `docs/AI.md` §44 is what it decided.
+
+**Why it was owed, and the disk was grepped first.** Great Lakes' draw
+sequence parts at **9182** and nothing anywhere on this disk carried the
+AI's goods or its make list near it: the map's `LEADERS≥2` windows are
+run84 `[6950, 7030)`, run91 `[7514, 7600)`, run19 `[8174, 8192)` and
+run80 `[23960, 24000)` — a gap of eleven and a half thousand frames with
+the word inside it. The two captures that *do* cover 9182, run97 and
+run100, are both `LEADERS=1`, which stops after `score`. Item 368 had
+already taken run19's window as far as it goes.
+
+| check | result |
+|---|---|
+| `rngcmp.py` vs `rontrace-run53.log` | **0 differing**, 9,216 identical |
+| `MAP_STYLE` from the dump's `GAME INFO` | 14, seed 12345 |
+| the window, block for block | **30 blocks, 9170..9199, no gap** |
+| the raised category is in them | `PERSONALITY` ×4 and `MAKEOBJECT` ×22 on 9170, 9183 and 9199 |
+| `samegame.py --exclude LEADERDATA` vs run97 | **30 in common, 0 differing** |
+
+The third of those is the guard parked 373 asked for — the click-free
+lane's give-up truncates rather than stops, and a short window reads as
+completely ordinary — and this stanza asserts its own block count against
+the window it asked for. It is the first capture in this file to do it.
+
+**The detail is run97's but for `LEADERS`**, which is what run91 did to
+run89: the overlap check then needs exactly one `--exclude` and no
+`--drop`. The brief asked for `GUYS=2`; `GUYS=4` is run97's own and costs
+about 0.4 MB a block more, which over thirty blocks buys an exact
+same-game check against the capture that already covers these frames.
+
+**What it says.** The original's `bucket` at 9182 is this crate's own
+`73 84 35 111 71 0` and does not move across the frame, so both branches
+`docs/AI.md` §43 named — which were both about the bucket — are refused.
+The head is what differs: the original holds **Mercenaries** (573) at
+`val 9,999,999` from block 9179 to the end of the window, where this
+crate writes 6,600,000 on the same rebuild and loses the head to a
+Scholar two frames later. `1/MAKE[0].val` on blocks 9179 and 9180 is the
+whole parting, two frames wide.
+
+**The comparison is `run107_s_window_is_the_leader_record_at_the_word`**:
+60 blocks, 62,640 field-frames, 109 fields of residue pinned by name.
+Made to fail on purpose by adding one to the comparison's own
+`territory`, which puts a row on all 30 blocks of both leaders.
+
+**What it also opened.** The ten `SITE` slots of player 1 part on every
+block with the same ten sites in a different order — a ranking, not a
+survey — and `tech_frame` and `tech_cat_frame[0..3]` are at nought here
+against five stamped frames. Neither had ever been compared on this map.
