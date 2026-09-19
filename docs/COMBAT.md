@@ -59,8 +59,8 @@ Medium for target selection (§12), read by a second reader and adjudicated.
 **Per-section coverage** — which claims a diff against the original's own
 dump now backs and which still rest on a reading — is stated where the
 measurement was made: §16 for the formula's numbers, §18 for the engagement
-frame, and §19.4 for delivery's first wound and the launch point. A reading
-§19 has *contradicted* is struck where it stood (§9.5) rather than quietly
+frame, and §20.4 for delivery's first wound and the launch point. A reading
+§20 has *contradicted* is struck where it stood (§9.5) rather than quietly
 replaced. Everything open is listed at the end.
 
 A blind second reading (`docs/audit/2026-08-20-combat.md`, two readers — one
@@ -832,7 +832,7 @@ passed on).
    `Wall` and 0 on `Object`, `Unit` and `Animal` — a unit's first wound
    draws nothing. And **the gate reads `damage`, not `damage_frac`**: a hit
    worth less than a whole point moves only the fraction, leaves `damage`
-   at zero, and the *next* hit draws again. §19 is the frame where that
+   at zero, and the *next* hit draws again. §20 is the frame where that
    matters.
 4. **Accumulate**: `t = T.damage_frac + frac; whole += t / 16 (sign-fixed);
    T.damage_frac = t % 16 (sign-fixed); T.damage += whole`.
@@ -1156,7 +1156,7 @@ whatever its draw count says.
   piece and launches immediately otherwise. That fallback is a **seam,
   not a claim**: it is what keeps every sim built from tables alone
   meaningful.
-- ~~**The launch point.**~~ Open still, but no longer vague: **§19** names
+- ~~**The launch point.**~~ Open still, but no longer vague: **§20** names
   the table it comes from, measures what it has to be worth on four shots,
   and names the capture that closes it. It is the only thing between this
   crate and Great Lakes 9451.
@@ -1317,7 +1317,7 @@ does not run — §9.0); one or two
 1`) — `Ammo::init+0xcd9` and `+0xd0b`, named in
 [`trace::SITES`](../crates/rondata/src/trace.rs) since item 389; at landing, two more for where a no-target shot punctures the ground;
 in `take_damage`, ~~one `% 100` on the first wound of a fort, temple or
-town~~ — **wrong; §19 measured it**: the `% 100` is *any* building's first
+town~~ — **wrong; §20 measured it**: the `% 100` is *any* building's first
 wound, the fort test gates only the flock, and one frame can spend it
 twice; and, outside
 the shot, one per frame from `fight`'s retarget test (§8.2 step 0). Every
@@ -2486,7 +2486,7 @@ and 621. That is §17's ring, not this section's mechanism.
 
 ---
 
-## 19. The first wound, and where an arrow starts (item 394, 2026-09-19)
+## 20. The first wound, and where an arrow starts (item 394, 2026-09-19)
 
 Great Lakes 9451 is the frame the long capture's word sat on after item 389,
 and it is the first hit point lost in the whole 24,000-frame game. The
@@ -2496,7 +2496,7 @@ identical chain `< Object::do_damage+0x159e < Ammo::do_damage+0xc11`. Nothing
 in this document explained a site drawing twice in one call chain — §9.5 said
 the draw belonged to a fort, a temple or a town, and `0/2004` is a Farm.
 
-### 19.1 It is two arrows, and the fraction is why the gate re-opens
+### 20.1 It is two arrows, and the fraction is why the gate re-opens
 
 The value diff answers it without a hypothesis. `track.py BUILDDATA
 damage,damage_frac --where who=0,o=2004 --changes` over run100:
@@ -2548,7 +2548,7 @@ evidence is the original's own 9451, which spends the site twice, and only a
 gate that ignores the fraction can. Asserted in
 `run53_s_24000_frames_put_the_ceiling_where_run33_did`.
 
-### 19.2 The seventh draw is the second arrow, and it is a frame late
+### 20.2 The seventh draw is the second arrow, and it is a frame late
 
 The launches below the word are the original's own, `[9425, 9426, 9439,
 9444]`, and this crate takes all four on the right frames (item 389). The
@@ -2588,7 +2588,7 @@ degrees) is gated on `unit_flags & 0x400000`, and `unitrules.xml` gives
 Longbowmen `<FLAGS>lmjiy</FLAGS>` — no `w`, so the arm cannot run, and the two
 scatter draws the capture shows confirm it (that flag also zeroes `s`).
 
-### 19.3 What the offset has to be, and what would close it
+### 20.3 What the offset has to be, and what would close it
 
 Bounds, from the four shots, as a reduction in the shooter-to-landing distance
 (`d = PROJ_SPEED 100 × unit_move_speed 1`, so a frame is 100 position units):
@@ -2629,7 +2629,7 @@ so this is a booking, not a grep. `tools/emu/callfn.py` is the other route and
 is the more expensive one: `get_position` reads the `GraphicPieces` singleton,
 which is an hour of synthesized state (`docs/EMULATOR.md`).
 
-### 19.4 What is diff-backed here, and what is not
+### 20.4 What is diff-backed here, and what is not
 
 - **Diff-backed** (`run100_says_great_lakes_9451_is_two_arrows_on_one_farm`,
   and `run53_s_24000_frames_put_the_ceiling_where_run33_did` for the stream):
@@ -2645,4 +2645,4 @@ which is an hour of synthesized state (`docs/EMULATOR.md`).
   immediates and are certain; what is untested is the whole arm firing.
 - **Reading only**: the war declaration below the flock, and the `param_7 < 0`
   jump that skips it.
-- **Open, and bounded above**: the launch offset (§19.2, §19.3).
+- **Open, and bounded above**: the launch offset (§20.2, §20.3).

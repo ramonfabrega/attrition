@@ -3591,14 +3591,14 @@ mod tests {
             "7930 opens with find_target's coin and two candidate scores"
         );
         // **Great Lakes 9451 is two arrows on one farm** (item 394,
-        // `docs/COMBAT.md` §19). The original spends
+        // `docs/COMBAT.md` §20). The original spends
         // `Object::take_damage+0xe1` **twice** on this one frame, back to
         // back, with the identical chain — which can only happen if the
         // first-wound gate reads `damage` and ignores `damage_frac`, because
         // a Longbowman figure's hit is thirteen sixteenths and the first of
         // the two necessarily moved the fraction and nothing else.
         //
-        // This crate lands the second arrow on 9452 rather than 9451 (§19.2,
+        // This crate lands the second arrow on 9452 rather than 9451 (§20.2,
         // the launch seam), so the count is taken over the three frames
         // rather than the one: **two first wounds**, whenever they land.
         // Adding `damage_frac == 0` to the gate makes it one — and makes

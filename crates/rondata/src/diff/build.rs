@@ -3485,7 +3485,7 @@ mod tests {
     /// (`crate::diff::compare`), so this test is the dated statement and
     /// the harness is the guard.
     /// **Great Lakes 9451 is two arrows landing on one farm** (item 394,
-    /// 2026-09-19, `docs/COMBAT.md` §7.2 step 3 and §9.6).
+    /// 2026-09-19, `docs/COMBAT.md` §7.2 step 3 and §20).
     ///
     /// The headline frame, and the mechanism is the fraction. `0/2004` is
     /// a Farm, 400 hit points, and the first hit point lost in the whole
@@ -3516,7 +3516,7 @@ mod tests {
     /// same frame: `1/28` fires on `CHAR_ATTACK2` and its shot's flight
     /// time comes out 27 against the original's 26, because the original
     /// launches from the release node's own world position and this crate
-    /// launches from the unit's (§9.6, the seam). So the totals agree one
+    /// launches from the unit's (§20.2, the seam). So the totals agree one
     /// frame late, and that lag is asserted here as it stands — when the
     /// seam closes, this assertion is what fails and says so.
     #[test]
@@ -3638,7 +3638,7 @@ mod tests {
         // **The first two arrows, and the one-frame lag.** The original
         // lands both on 9451; this crate lands the second on 9452,
         // because `1/28`'s CHAR_ATTACK2 shot flies 27 frames here and 26
-        // there (§9.6). So block 9452 differs and block 9453 agrees.
+        // there (§20.2). So block 9452 differs and block 9453 agrees.
         let at = |v: &[(i64, i64, i64)], f: i64| {
             v.iter().find(|x| x.0 == f).map(|x| (x.1, x.2)).unwrap()
         };

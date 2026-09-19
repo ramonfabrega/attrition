@@ -1731,7 +1731,7 @@ pub struct BuildDump {
     /// The pair is what dates a landing to a frame: Great Lakes' farm
     /// `0/2004` goes `0/0` → `1/10` in one block because **two** arrows
     /// land on sim-frame 9451, thirteen sixteenths apiece, and the first
-    /// of them moves only the fraction (§19).
+    /// of them moves only the fraction (§20).
     ///
     /// The rest of the `ObjectData` half — `healing`, `hold_frames`,
     /// `infiltrated`, `visible`, `launch_frames`, `inside_down`,

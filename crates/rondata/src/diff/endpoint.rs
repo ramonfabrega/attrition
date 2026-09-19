@@ -699,13 +699,13 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // unchanged. DECISIONS 36 asks for the number rather than a trade.
         //
         // Then **43 → 58, 13 → 12, 9 → 10** on 2026-09-19, item 394 — the
-        // **first wound's roll** (`docs/COMBAT.md` §19), one
+        // **first wound's roll** (`docs/COMBAT.md` §20), one
         // `Random::get(0, 0xffff)` on the first combat damage to any
         // building, taken twice on sim-frame 9451 because a Longbowman
         // figure's thirteen sixteenths leave `damage` at zero. **This map's
         // word does not move on it** — it goes from five of the original's
         // seven draws at 9451 to six, and the seventh needs the launch
-        // offset §19.3 bounds — so the whole of this row's movement is a
+        // offset §20.3 bounds — so the whole of this row's movement is a
         // stream that shifts by one draw from 9451 and then runs 14,550
         // frames on nobody's numbers. Fifteen positions further out, one
         // fewer of the roster unlinked, one more building field-row apart.
