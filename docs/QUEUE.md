@@ -12,36 +12,36 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-18/19, two lanes all day, seventeen landings. **Great Lakes 9182 →
-9510 (+328), golden 617 → 619** — both words moved, repeatedly. Twelve booked
-mechanisms were wrong; the frame was right every time.*
+*2026-09-18/19, two lanes all day, **eighteen landings**. Great Lakes **9182
+→ 9510 (+328)**, golden **617 → 621**; twelve booked mechanisms were wrong and
+the frame was right every time. **The steering pass is due** — Fable, main thread.*
 
-- **The arrow is the AI track's whole day**: launched by the attack
-  ANIMATION's event track (389), `ms × 3 / 200` truncated measured 4/4;
-  9451 is **two arrows on one farm**, the first leaving `damage` 0 so the
-  second re-opens the first-wound gate (394, §9.5 struck — ANY building's);
-  and 396 **measured** the launch offset from run109's `AMMO` record
-  rather than bounding it — six rows, no float, `sin_component` only,
-  reproducing `sx, sy, ex, ey` and `total_time` exactly on seven frames.
-  Word 9182 → 9415 → 9451 → **9510**. **402** owes the record's widening.
-- **The golden word moves 617 → 621**, chapter one's 615–620 the
-  original's — and it went 624 → 621 **on purpose**: `Armies::emergency`
-  is the CITY alarm's (`local_30`'s only writers are the building
-  branch's alarm arms), so a unit taking a hit never reaches it, and 391's
-  and 395's claims are struck where they stand. The three frames bought
-  the dump's own coordinates for **all six units**, and closed §21.4's
-  second residue for free. **405** takes the legs that stop 171 short.
-- **The namesake has never fired in a scored capture** (382): zero
-  non-exempt attrition outcomes over 24,000 frames — the Temple chapter is
-  the only route. **The held-out map answers 1 tick, 0 orders** (run106), a fit to two trajectories: **the pass's number**. Six open, 56 parked; **Fable backlog: fourteen Loop items** (251, 335, 343, 356, 321, 313, 367, 374, 375, 377, 397, 398, 404, 406).
+- **The arrow was the AI track's whole day**: the attack ANIMATION's event
+  track launches it (389), `ms × 3 / 200` truncated 4/4; 9451 is **two
+  arrows on one farm**, the first leaving `damage` 0 so the second re-opens
+  the first-wound gate (394, §9.5 struck — ANY building's); 396 **measured**
+  the launch offset off run109's record. 9182 → 9415 → 9451 → **9510**, and
+  **402's widening did not move it** — fourteen fields already the original's
+  on all 183 blocks, the record **27 fields, not 25**, a number booked from
+  one item's usage rather than from the function.
+- **The golden word moves 617 → 621**, and went 624 → 621 **on purpose**:
+  `Armies::emergency` is the CITY alarm's, so a unit taking a hit never
+  reaches it and 391's and 395's claims are struck where they stand — the
+  three frames bought the dump's own coordinates for **all six units**.
+- **The namesake has never fired in a scored capture** (382): zero non-exempt
+  outcomes over 24,000 frames, the Temple chapter the only route; the held-out map answers **1 tick, 0 orders** (run106).
+- **Nothing is in flight**, both lanes reaped; 405 was spawned into the
+  weekly limit, produced nothing, and its brief is untouched. Six open, 58
+  parked; **Fable backlog: fourteen Loop items** (251, 335, 343, 356, 321,
+  313, 367, 374, 375, 377, 397, 398, 404, 406) plus the marked rows.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w9711 of 24,000 · GreatLakes w9510 of 24,000
 Golden: w621 of 901 · chapter one pinned · 405 next
 Endpoint 24001: EastIndies 64 off, 5 unlinked · GreatLakes 48 off, 11 unlinked
 
-**Opener: 405 on the golden record's frame — two legs stopping 171
-short, no capture needed — beside 402, the `AMMO` record's widening.**
+**Opener: the fifth Fable steering pass — is the tranche real, has the headline
+moved, what is the finish line — then the marked rows; 408 and 405 wait.**
 
 ## The queue
 
@@ -51,13 +51,14 @@ the AI, lower map first — Great Lakes. Take the first unstarted on either
 track unless a better order is obvious, and say so. Numbers are stable;
 the backlog is `docs/PARKED.md`, and an item returns only when a score names it.
 
-402. **Nothing in `rondata::diff` parses the `AMMO` record** (the AI
-    headline's frame, and the widening 396 owes). The record has **25
-    fields**; 396 used 7, and its nine launch rows are constants in
-    `launch.rs`'s test rather than re-read from run109. Widen the whole
-    record and floor it — "when the original dumps a record, diff the
-    whole record" is the rule this item otherwise followed, and run109 is
-    60 blocks over `[9420, 9480)` with 0 differing against run100.
+408. **Nothing has widened frame 9510** (the AI headline's own frame).
+    402 closed the `AMMO` widening and the word did not move, but run109
+    covers `[9420, 9480)` and **9510 is outside it** — so the frame that
+    scores has no widened record behind it at all. Widen every record
+    run100 dumps on 9510, every slot and every field, and the whole cast
+    either side of it; name the cause before booking a mechanism. No
+    capture needed. Twelve booked mechanisms were wrong in two days while
+    the frame was right every time; this is that rule on the current word.
 
 390. **A `LEADERS≥2` window anywhere in (7616, 8174]** (capture lane;
     takes-chain to the met bit): nothing on disk dumps a leader between

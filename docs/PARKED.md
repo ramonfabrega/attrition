@@ -685,6 +685,30 @@ run31 and run92 satisfied it by accident with `GUYS=9`. In `docs/RUNS.md`
 run110. Riding along: `tools/explore/golden_capture.sh` cds to
 `tools/explore`, so `--cmd-file` must be absolute.
 
+(409) **The ammo pool's order is not this crate's, and a two-landing frame
+would spend the draws in the other order.** Found by item 402, 2026-09-19,
+while widening the `AMMO` record. `Objects::add_ammo@00658b10` scans its
+pool from slot 0 and takes the **lowest free slot**, so the original's
+order is slot order with reuse — measured 0, 1, 2, 3, 4, 0, 1, 2, 3 over
+run109's nine arrows. `Sim::projectiles` is a `Vec` that
+`process_projectiles` `swap_remove`s from, so from the first landing it is
+neither: at 9453 it holds a4, a3, a2 where the original's pool reads a2,
+a3, a4. **Nothing in run109's window turns on it** — no two arrows land on
+the same frame after 9451, and landing is what draws — which is why it
+parks rather than queues. It becomes an item the moment a frame lands two.
+A slot pool is the fix and it could move the word **in either direction**.
+`docs/COMBAT.md` §24.4 names the rule and the consequence.
+
+(410) **Three `AMMO` branches with no capture behind them.** Also 402. All
+183 blocks print `traj 1`, so the parser's nested-`SplineData` skip — the
+one written by indentation because the log writes no `END` — rests on a
+hand-built fixture; **a catapult, or anything whose `ammo_path` is set**,
+would make it evidence. Alongside it: `flags` bit 1, `rolling` and
+`start_roll_angle` have no behaviour behind them, and nine allocations
+from a cold pool cannot say whether `graph_index` wraps. Every row here is
+one Longbowman shooting one farm on one trajectory, and each of the three
+wants a different shooter rather than a different frame.
+
 ## Measured residues, none near a word
 
 (371) **`market_speculation`'s two passes fire nowhere below the word.**
