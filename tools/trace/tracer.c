@@ -235,6 +235,10 @@ typedef struct {
     u8 expect[10];
 } CallSite;
 
+#if defined(RON_TARGET_PROBE) && defined(RON_TURN_PROBE)
+#error "RON_TARGET_PROBE and RON_TURN_PROBE both claim call-site ids 8 and 9"
+#endif
+
 static const CallSite CALLS[] = {
     /* PathFinder::astar_path@00683770(Stack<PathData>*, step, anti) — the
      * search itself, so its entry and return delimit one plan.
@@ -281,6 +285,28 @@ static const CallSite CALLS[] = {
      * push ebx; mov ebx,esp; sub esp,8 — not the usual frame, so the
      * displaced prologue is `53 8b dc 83 ec 08`. */
     {0x286300, 6, 5, 0, {0x53, 0x8b, 0xdc, 0x83, 0xec, 0x08, 0, 0, 0, 0}},
+#ifdef RON_TARGET_PROBE
+    /* The target-selection triple (item 386, `docs/COMBAT.md` 18). One
+     * search's candidate list is not in any dump: `near_o` records only the
+     * **nearest** candidate, and the order that lands records only the
+     * winner, so a tie between equal units is unfalsifiable from outside.
+     * `find_nearby_target`'s entry and return **bracket** one search, and the
+     * two inside it are the two numbers the ranking is built from.
+     *
+     * Object::find_nearby_target@00648da0(max_dist, int *who, add_order,
+     * cavarch, flags) - `ret 0x14`; the return is the chosen `o` or -1, and
+     * `flags` rides the RET record as a4.
+     * push ebp; mov ebp,esp; sub esp,0x70 */
+    {0x248da0, 6, 5, 0, {0x55, 0x8b, 0xec, 0x83, 0xec, 0x70, 0, 0, 0, 0}},
+    /* ObjectData::attack_dist@006488f0(o, who, x, y) - 13.1's edge-to-edge
+     * distance, and the numerator of the score's divisor. `ret 0x10`.
+     * push ebp; mov ebp,esp; sub esp,8 */
+    {0x2488f0, 6, 4, 0, {0x55, 0x8b, 0xec, 0x83, 0xec, 0x08, 0, 0, 0, 0}},
+    /* Object::compare_target@0064e5c0(o, who, in_range, ai) - 12.3's value,
+     * the other half. `ret 0x10`.
+     * push ebp; mov ebp,esp; sub esp,0x2c */
+    {0x24e5c0, 6, 4, 0, {0x55, 0x8b, 0xec, 0x83, 0xec, 0x2c, 0, 0, 0, 0}},
+#endif
 #ifdef RON_TURN_PROBE
     /* GuyData::turn_speed(int), ret 4; opt-in field replay experiment. */
     {0x1de340, 6, 1, 0, {0x55, 0x8b, 0xec, 0x53, 0x8b, 0xd9, 0, 0, 0, 0}},

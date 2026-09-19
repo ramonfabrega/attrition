@@ -410,6 +410,122 @@ fn chapter_one_s_captains_reach_each_other_and_nobody_else() {
     );
 }
 
+/// **The captain's pick, and the only measurement that could have named
+/// it** — `docs/COMBAT.md` §18, item 386.
+///
+/// `1/6`'s three candidates are three identical undamaged hoplites at 198,
+/// 288 and 339, and §12.2's score puts all three in the same `/ 0xc0`
+/// bucket, so the pick is decided entirely inside `compare_target`. The
+/// dump cannot say how: `near_o` records the **nearest** candidate, not the
+/// winner, and the order that lands records only the winner. The trace's
+/// call proxies can, and run108 does (`docs/RUNS.md`):
+///
+/// ```text
+/// attack_dist o=8 = 288 · compare_target o=8 in_range=1 ai=1 =  2155
+/// attack_dist o=7 = 198 · compare_target o=7 in_range=1 ai=1 = 10771
+/// attack_dist o=6 = 339 · compare_target o=6 in_range=1 ai=1 =  2155
+/// find_nearby_target max_dist=4608 add_order=1 cavarch=0 flags=0 = 7
+/// ```
+///
+/// The candidates arrive in the cell's `down` order (`0/8` first), all
+/// three carry `in_range = 1`, and the two the attacker cannot reach come
+/// back at a **fifth** of the one it can. That is `compare_target`'s own
+/// `is_in_range` call at `0064f1ed`, which this crate had inverted: it
+/// divided when the *caller* said out of range, where the original divides
+/// when the caller says in range and its **own** test disagrees.
+///
+/// The assertion is the pick and the shape of the three values, not their
+/// absolute size — the trace's `ai=1` branch (`v /= dmg`, the AI
+/// multipliers) is not modelled here, so the crate's own numbers differ
+/// while the factor of five does not.
+#[test]
+fn chapter_one_s_captain_picks_the_one_it_can_reach() {
+    let Some(inst) = crate::testenv::install() else {
+        return;
+    };
+    let Some((dump, tracepath)) = golden("g4") else {
+        eprintln!("skipping: no golden capture (see docs/RUNS.md run101–run105)");
+        return;
+    };
+    let trace = crate::trace::Trace::read(std::path::Path::new(&tracepath))
+        .expect("a finalized golden trace")
+        .expect("missing RONT header");
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(&dump);
+    let log = Log::parse(&text);
+    let texts = sibling_texts();
+    let logs = siblings(&texts);
+    let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+    let refs: Vec<&Initial> = inits.iter().collect();
+    if refs.is_empty() {
+        eprintln!("skipping: no sibling dumps");
+        return;
+    }
+    let mut built = stand_up(&loaded, &log, &refs, &trace);
+    let mut script = chapter_one();
+    for _ in 0..616 {
+        script.stage(built.sim.frame, &mut built, &loaded);
+        built.tick();
+    }
+    let find = |b: &Built, who: u8, o: i16| {
+        sim::combat::Obj::Unit(
+            (0..b.sim.units.len())
+                .find(|&u| b.sim.units[u].owner == who && b.sim.units[u].index == o)
+                .unwrap_or_else(|| panic!("no unit {who}/{o} after chapter one's two `add` lines")),
+        )
+    };
+    let captain = find(&built, 1, 6);
+    // **The frame's own answer**, not a re-run: the search ran inside tick
+    // 615 and left its target on the unit, and a second call here would
+    // see the `targeted` bump the first one made. The dump's `1/6` reads
+    // `ox 7 whom 0 uid 14` under frame 616, and so do `1/7` and `1/8` —
+    // `Group::target_opportunity` hands the captain's find to the squad
+    // (`docs/GROUPS.md` §13), which this crate does not model, so only the
+    // captain's is asserted.
+    let sim::combat::Obj::Unit(ci) = captain else {
+        unreachable!()
+    };
+    assert_eq!(
+        built.sim.units[ci].combat.target,
+        Some(find(&built, 0, 7)),
+        "the golden record's `1/6` attacks `0/7`; the candidates arrive \
+         `0/8`, `0/7`, `0/6` in the cell's `down` order and a tie would \
+         keep the first (docs/COMBAT.md §18)"
+    );
+    // The three values the pick rests on, in the trace's own candidate
+    // order. `in_range` is the search's permission-to-test, `true` for
+    // every candidate of a non-guarding AGGRESSIVE unit.
+    let v: Vec<i32> = [(0, 8), (0, 7), (0, 6)]
+        .into_iter()
+        .map(|(w, o)| built.sim.compare_target(captain, find(&built, w, o), true))
+        .collect();
+    assert_eq!(
+        v[0], v[2],
+        "the two candidates out of reach must value alike: {v:?}"
+    );
+    assert!(
+        v[1] > v[0],
+        "the reachable candidate must outvalue the two out of reach — \
+         `compare_target`'s `/5` at `0064f1ed`: {v:?}"
+    );
+    // **And the falsifier.** `in_range = false` is the caller saying "do
+    // not test", which is the arm the old reading took for every
+    // candidate: the three then come back equal, the score's `/ 0xc0`
+    // bucket is 3 for all three, and the tie hands the pick to whichever
+    // the cell's `down` chain reached first — `0/8`. One bit of one
+    // predicate is the whole distance between this frame and the
+    // original's.
+    let flat: Vec<i32> = [(0, 8), (0, 7), (0, 6)]
+        .into_iter()
+        .map(|(w, o)| built.sim.compare_target(captain, find(&built, w, o), false))
+        .collect();
+    assert!(
+        flat[0] == flat[1] && flat[1] == flat[2],
+        "undiscounted, three identical hoplites must tie — that tie is why \
+         reading `in_range` as the verdict cost the frame: {flat:?}"
+    );
+}
+
 /// **Great Lakes' word does not rest on the borrowed frame stream.** Five
 /// Great Lakes captures share run11/run12/run13's setup word and therefore
 /// take fourteen of their per-frame words (frames 0–3, 94–103), which

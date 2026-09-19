@@ -1129,7 +1129,16 @@ impl Sim {
         if v < 0 {
             v = 9_999_999;
         }
-        if !in_range && !self.is_in_range(attacker, target) {
+        // **`in_range` is the caller's permission to test, not its verdict.**
+        // `0064f1ed` reads `param_3 != 0 && !raiding` and then calls
+        // `is_in_range` *itself*; a candidate the search deemed in range
+        // without testing (every candidate of a non-guarding unit that is
+        // not STAND_GROUND) is the one this arm actually measures. Reading
+        // it the other way round made the golden record's three candidates
+        // score equal — see `docs/COMBAT.md` §18.
+        let raiding =
+            matches!(attacker, Obj::Unit(i) if self.units[i].combat.stance == Stance::Raid);
+        if in_range && !raiding && !self.is_in_range(attacker, target) {
             v /= 5;
         }
         v = (v + 99) / 100;

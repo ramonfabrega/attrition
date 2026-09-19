@@ -98,12 +98,15 @@ def capture(args, output, style):
                                            log_window=getattr(args, 'log_window', None),
                                            detail=getattr(args, 'detail', None),
                                            cover=getattr(args, 'cover', None),
+                                           callwin=getattr(args, 'callwin', None),
                                            cmd_file=getattr(args, 'cmd_file', None)))
         # The receipt carries what was staged, so a run's window and detail are
         # read back from the run rather than from the command that asked for it.
         report['staged'] = {'log_window': getattr(args, 'log_window', None) or list(live_session.DEFAULT_WINDOW),
                             'detail': getattr(args, 'detail', None) or list(live_session.DEFAULT_DETAIL),
                             'cover': getattr(args, 'cover', None) or 'cover=0',
+                            'callwin': getattr(args, 'callwin', None),
+                            'tracer_defs': getattr(args, 'tracer_defs', None),
                             'rontrace.cmd': (output/'rontrace.cmd').read_text().splitlines()
                                             if (output/'rontrace.cmd').is_file() else None}
         staged = True
@@ -112,7 +115,9 @@ def capture(args, output, style):
         rise.write_text(live_session.key(rise.read_text(), 'Seed (0 for random)', args.seed))
         env = os.environ.copy()
         report['startup_probe'] = getattr(args, 'startup_probe', False)
-        env['TRACER_DEFS'] = '-DRON_AUTOSTART' + (' -DRON_STARTUP_PROBE' if report['startup_probe'] else '')
+        env['TRACER_DEFS'] = ('-DRON_AUTOSTART'
+                              + (' -DRON_STARTUP_PROBE' if report['startup_probe'] else '')
+                              + ''.join(' -D' + d for d in getattr(args, 'tracer_defs', None) or []))
         with (output / 'build.log').open('w') as log:
             subprocess.run(['zsh', str(ROOT/'tools/trace/build.sh'), str(output)],
                            env=env, stdout=log, stderr=subprocess.STDOUT, check=True, timeout=180)
@@ -186,6 +191,10 @@ def main():
     ap.add_argument('--log-window',type=int,nargs=2,metavar=('START','END'))
     ap.add_argument('--detail',action='append',metavar='SECTION:CAT[=N],...')
     ap.add_argument('--cover')
+    ap.add_argument('--callwin', type=int, nargs=2, metavar=('LO', 'HI'),
+                    help='sim-frames the call proxies log over; default 0-END')
+    ap.add_argument('--tracer-def', action='append', dest='tracer_defs', metavar='NAME',
+                    help='extra tracer.c define, repeatable (e.g. RON_TARGET_PROBE)')
     ap.add_argument('--cmd-file',type=Path)
     ap.add_argument('--ffwd-minute',type=int)
     args=ap.parse_args()

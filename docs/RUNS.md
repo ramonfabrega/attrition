@@ -3963,3 +3963,92 @@ Made to fail on purpose by adding one to the comparison's own
 block with the same ten sites in a different order — a ranking, not a
 survey — and `tech_frame` and `tech_cat_frame[0..3]` are at nought here
 against five stamped frames. Neither had ever been compared on this map.
+
+## run108 — the search's own answer, through the call proxies (2026-09-18, item 386)
+
+**What it is.** Chapter one again, on run101's setup exactly — map 14, seed
+12345, the same `tools/gamelog/golden/chapter1.cmd`, `!quit` at 625 instead of
+900 — with the trace's **call proxies** turned on over the engagement frame and
+three new sites in the `CALLS` table. It is the first capture taken to read a
+function's *answer* rather than the simulation's state, and it exists because
+no dump could answer the question:
+
+- `ObjectData::near_o`/`near_who` record the **nearest** candidate a search saw
+  (`00649...`'s `if (dist < best) near_o = o`), not the one it returned;
+- the `ATTACKORDER` that lands records only the winner.
+
+So a search whose candidates tie — which is what `docs/COMBAT.md` §18 said
+chapter one's is — leaves no trace of the tie, and any constant that produces
+the winner fits. `find_nearby_target`'s entry and return **bracket** one search
+the way `do_air_physics` brackets a bird's frame, and the two sites inside it
+are the two numbers the ranking is built from.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/t1 \
+    --map 14 --end-frame 625 --log-window 614 622 \
+    --detail end:UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=2,DEATHS=1 \
+    --cmd-file tools/gamelog/golden/chapter1.cmd \
+    --callwin 614 618 --tracer-def RON_TARGET_PROBE
+```
+
+`--callwin` and `--tracer-def` are new pass-throughs (`live_session.stage`
+wrote `callwin=0-END` unconditionally before, and `unattended_capture.py`
+hard-coded `TRACER_DEFS`); the proxies log every call in their window, so a
+probe that needs four frames now says so. `RON_TARGET_PROBE` adds
+`Object::find_nearby_target@00648da0`, `ObjectData::attack_dist@006488f0` and
+`Object::compare_target@0064e5c0` as sites 8, 9 and 10, and `tracer.c` refuses
+a build that also defines `RON_TURN_PROBE`, which claims 8 and 9.
+
+`success: true`, exit 0, 626 frames, `lifecycle_verified`, map 14 and seed
+12345 read back, five settings files restored. Launch to exit 18.9 s.
+
+### The run is run101's game, and the proxies do not perturb it
+
+The frame-616 dump is g3's to the digit: the six hoplites at `(888, 7800)`,
+`(1032, 7800)`, `(936, 7944)`, `(1368, 7992)`, `(1512, 7992)`, `(1416, 8136)`,
+`1/6` alone carrying `near_o 7 near_who 0`, and all three of who=1 holding
+`ATTACKORDER ox 7 whom 0 uid 14`. **What would have falsified it**: any of
+those six coordinates moving, or `1/6`'s order naming another target.
+
+### What it says — §18's tie is not a tie
+
+`report.py rontrace.log calls 615`, the whole bracket:
+
+```
+attack_dist  this=0x1575d7c4  o=8 who=0 x=1368 y=7992 = 288
+  attack_dist  this=0x1575d7c4  o=8 who=0 x=1368 y=7992 = 288
+compare_target  this=0x1575d7c4  o=8 who=0 in_range=1 ai=1 =  2155
+attack_dist  o=7 ... = 198   (nested: 198)   compare_target o=7 in_range=1 ai=1 = 10771
+attack_dist  o=6 ... = 339   (nested: 339)   compare_target o=6 in_range=1 ai=1 =  2155
+find_nearby_target  max_dist=4608  who_out=…  add_order=1  cavarch=0  flags=0 = 7
+```
+
+Five things, and four of them were open questions:
+
+- **The candidate order is the cell's `down` chain**, `0/8`, `0/7`, `0/6` —
+  §18's reading of the dump's `up`/`down`, confirmed from the other side.
+- **`attack_dist` is 288, 198, 339**, exactly §13.1's formula at
+  `block_radius + 0x18 = 72`. The ~84 per-side extent §18 wrote down as a
+  falsifier is **refused**: the original's own numbers are the documented
+  ones.
+- **`max_dist` is 4608** — `unit_respond_range` (12) `× 0x180`, the floor item
+  384 read off `find_melee_target` for a melee AGGRESSIVE unit carrying
+  `unit_masks & 0x40000`. The radius arm is now diff-backed.
+- **`in_range` is 1 for all three**, so §12.2's range gate takes the
+  "deemed in range without testing" arm, as the decompile's `local_24 == 0 &&
+  local_2c == 0` says for a non-guarding unit that is not STAND_GROUND.
+- **And the values are not equal.** `0/7` scores 10771 where the two the
+  attacker cannot reach score 2155 — a factor of 4.998. Each candidate's
+  *second*, nested `attack_dist` is what makes it: `compare_target` calls
+  `is_in_range` **itself** at `0064f1ed` and divides by five when its own test
+  fails. §12.3 has carried that `/5` since the second reading; what nobody had
+  read is that the `in_range` argument is a **permission to test**, not the
+  verdict.
+
+`ai=1` is who=1's computer bit, which `!ai off` does not clear (run104's note
+above), so the original's absolute numbers run through §12.3's AI branches
+(`v /= dmg`) and this crate's do not. The **factor of five** is what the
+comparison rests on.
+
+`compare_target` and `find_nearby_target` are entered once each in the window
+and `attack_dist` 8 times, so the whole answer is 35 lines.
