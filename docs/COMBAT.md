@@ -3733,3 +3733,99 @@ and `stance` are run112's own printed fields, and the timeline is held by
 table, §27.4's arithmetic and the belief in it, §27.5's invariance
 argument. No value of `unit_respond_range` and no branch has been run
 against the floors.
+
+## 28. The branch is settled and the arithmetic still does not close (item 437, 2026-09-19)
+
+**The capture this section was booked for was not taken.** §27.6 named a
+`LEADERS=9` window as the one question a reading cannot answer; run112's
+own dump already carries the field, printed immediately *before* each
+`BEGIN LEADERDATA` rather than inside it, which is why an earlier parse
+missed it. The answer cost a grep.
+
+### 28.1 `leader_flags & 4` is not the computer-leader test
+
+Measured on three captures — chapter two's run112, chapter one's run105
+and its AI-on control run104 — identical in all three, so it is a lobby
+property and neither a chapter's nor `ai off`'s:
+
+| leader | `leader_flags` | `& 2` | `& 4` |
+| --- | --- | --- | --- |
+| who=0, the **human** | `0x00000007` (run112 at 605) | set | **set** |
+| who=1, the **computer** | `0x03000013` | set | **clear** |
+| who=8, who=9, gaia | `0x02000007` | set | set |
+
+`docs/INPUT.md` §11.4 reads `Unit::think@005f6e40`'s
+`if ((leader_flags & 4) != 0 || ai_off != 0)` as the computer-leader gate,
+and `docs/RUNS.md` run104's note says who=1 "still carries `leader_flags`
+bit 2 at frame 899". **On this evidence the human carries bit 2 and the
+computer does not.** Whatever bit 2 means, it is not "is a computer
+leader", and every claim resting on that reading is owed a re-check. What
+it *is* is not established here.
+
+### 28.2 The branch, settled by the listing
+
+The decompiler prints `think_attack`'s leader test as
+`*(byte *)(leaders.list + who) & 2` — a byte index into an array whose
+element is nearly 29,000 bytes, which cannot be right. `CLAUDE.md`'s rule
+applies and the listing settles it in one command:
+
+```
+movzbl 0x9(%ebx), %eax          ; who
+imull  $0x6eec, %eax, %eax      ; who * the LeaderData stride
+testb  $0x2, 0xe3a390(%eax)     ; leader_flags, bit 1
+cmovel %edi, %esi               ; if clear, uVar12 = 1
+```
+
+So it is proper indexing after all, on a stride of **28,396** where the
+type record gives `LeaderData` a size of **28,388** — an eight-byte
+difference worth carrying, and not load-bearing here.
+
+who=1's `leader_flags` low byte is 19, so bit 1 is **set**, the `cmovel`
+does not fire, `uVar12` stays 0, and **`think_attack` passes 0**. who=1's
+hoplite captain takes the **zero path** of §27.2. That is settled, by the
+dump and the listing together, with no capture.
+
+### 28.3 And the arithmetic still does not close
+
+Both frames in question sit on neither of the zero path's two grids —
+`o + frame` is 621 at the birth frame and 640 at 634, and neither is a
+multiple of 256 or 1024 — so both take the same narrow arm,
+`max(unit_respond_range * 0x180, (r + 1) * 0xc0)`, and with reach 0 that
+is `unit_respond_range * 0x180`.
+
+The measured bracket is the search reaching its chosen target at **1340**
+units on frame 634 and not reaching the bowmen at **1392** on the birth
+frame. So:
+
+| multiplier | needs `unit_respond_range` in | integer? |
+| --- | --- | --- |
+| `* 0x180` (both paths' wide arms) | [3.49, 3.62) | **none** |
+| `* 0xc0` (the −1 path's plain floor) | [6.98, 7.25) | **7** |
+
+**The multiplier that fits is the one neither path applies to this unit.**
+Resolving the branch made the contradiction sharper rather than closing
+it, and this section stops here rather than proposing a third account: the
+two that have been proposed — visibility (§26.2) and the remembered-target
+arm (§26.4) — were each refuted by evidence fetched after they were
+written, and a third built on the same footing would be worth less than
+the bracket.
+
+### 28.4 What is now known not to be the answer
+
+Visibility (§26.2), the remembered-target arm (§27.1), the seating error
+and the `0x40000` respond arm considered alone (§26), the `idle`/`stance`
+gate (§27.3), and now the choice of branch (§28.2). What remains
+unexplained is narrow and stated as a number: **a melee searcher on the
+zero path behaves as though its radius were `unit_respond_range * 0xc0`
+with `unit_respond_range` 7.**
+
+### 28.5 Coverage
+
+**Diff-backed**: §28.1's table entirely — three captures' own printed
+`leader_flags` — and §28.3's two distances, which are run112's own
+coordinates.
+
+**Listing-backed, which is stronger than the decompile**: §28.2.
+
+**Reading-only, owed a blind second reading**: §28.3's identification of
+which arm each path applies, inherited from §27.2.
