@@ -2797,6 +2797,13 @@ So the click-free lane's independence is from **TCC and the cursor**, not from
 the desktop: it still cannot run on a box with no login session, and a lane
 that launches it any other way gets a fault that will be misread as DXVK.
 
+**`--timeout` truncates rather than stops**, and it defaults to 180 s — the
+same trap `tools/gamelog/captures.txt` documents for `poll_max`. run106's first
+attempt came back with 593 of 1,900 blocks in a 62 MB file that reads as
+entirely ordinary; only `receipt.json` says `success: false`. Size it from the
+dumping (run106 wrote 3.6 blocks a second), and read the receipt before the
+dump.
+
 **The window, the detail and the command file are the caller's** since this
 item (parked 341 closes here). `live_session.stage` took none of them: it
 hardwired `LogStartFrame 18` / `LogEndFrame 36` and forced every `gamelog.ini`
