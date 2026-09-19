@@ -413,6 +413,24 @@ const fn wm(a: i32, b: i32) -> i32 {
     a.wrapping_mul(b)
 }
 
+/// `create_units`' closing tail, as one expression so the claim has
+/// something to assert against — `out = wm(fac, wm(want, val) / divisor)
+/// / 256`, with the original's own `out < 0 → 9,999,999` after it.
+///
+/// **It is a 32-bit `imul` and it wraps**, which `docs/AI.md` §45
+/// established for `tech_value`'s tail and item 422 measured here. The
+/// guard catches a wrap that lands **negative**; a wrap that lands
+/// positive passes through it as an ordinary number, and
+/// [`the_scholar_offer_on_great_lakes_9379_is_a_positive_wrap`] is that
+/// case with its five terms measured off the run.
+pub fn offer_value(fac: i32, want: i32, val: i32, divisor: i32) -> i32 {
+    if divisor == 0 {
+        return 0;
+    }
+    let out = wm(fac, wm(want, val) / divisor) / 256;
+    if out < 0 { 9_999_999 } else { out }
+}
+
 /// The war multiplier the air and land-military branches put on a base `b`
 /// (`create_units` 1385–1422). `attacked_here` is the land branch's extra:
 /// a city-trained type in a city under attack takes `b·4` rather than `b·2`.
@@ -910,10 +928,7 @@ impl Sim {
                 if divisor == 0 {
                     continue;
                 }
-                let mut out = wm(fac, wm(want, val) / divisor) / 256;
-                if out < 0 {
-                    out = 9_999_999;
-                }
+                let mut out = offer_value(fac, want, val, divisor);
                 if self.ai[w].wonder_mod != 0 {
                     out /= 2;
                 }
@@ -2300,6 +2315,89 @@ mod tests {
             assert!(n < 10_000, "diverged");
         }
         n
+    }
+
+    /// **Great Lakes 9379's Scholar offer is a positive wrap** — item
+    /// 422, `docs/AI.md` §49.
+    ///
+    /// `create_units` re-offers the Scholar on this frame and the number
+    /// it files is **45,568**, which ranks below a Citizen's 234,782 and
+    /// loses the purchase three frames later — the purchase that costs
+    /// Great Lakes its sixth scholar at 9510 (§47, §48).
+    ///
+    /// 45,568 is not a valuation. It is the remainder of a 32-bit
+    /// overflow, and the five terms are measured off the run rather than
+    /// fitted:
+    ///
+    /// | term | value |
+    /// | --- | --- |
+    /// | `val` | 42,000,000 |
+    /// | `fac` | 256 |
+    /// | `want` | 20 |
+    /// | `divisor` | 25 (`want` + 0 queued + 5 standing) |
+    /// | `out` | **45,568** |
+    ///
+    /// `20 × 42,000,000 / 25` is 33,600,000; `256 ×` that is
+    /// **8,601,600,000**, which does not fit an `i32`; it wraps to
+    /// **11,665,408**, and `/256` is 45,568 exactly.
+    ///
+    /// **And the sign is the sting.** `docs/AI.md` §45's `out < 0 →
+    /// 9,999,999` catches a wrap that lands negative — the ceiling that
+    /// section is named for. This one lands **positive**, so the guard
+    /// never fires and the overflow leaves behind a small, plausible
+    /// number instead of an obvious one. The same defect as §45, in the
+    /// arm next door, wearing the one disguise the guard cannot see.
+    ///
+    /// The original's own offer on that frame is **5,755,741**, and
+    /// `5,755,741 × 256` is 1,473,469,696 — inside an `i32` with room, so
+    /// it does not wrap. Which of its three terms differs from this
+    /// crate's is **not** established (§49).
+    #[test]
+    fn the_scholar_offer_on_great_lakes_9379_is_a_positive_wrap() {
+        const VAL: i32 = 42_000_000;
+        const FAC: i32 = 256;
+        const WANT: i32 = 20;
+        const DIVISOR: i32 = 25;
+        // The offer as filed, and the arithmetic that produces it.
+        assert_eq!(offer_value(FAC, WANT, VAL, DIVISOR), 45_568);
+        let x = WANT * VAL / DIVISOR;
+        assert_eq!(x, 33_600_000);
+        // The product that does not fit, stated as the 64-bit number it
+        // would be — this is the line that says "overflow" rather than
+        // "small value".
+        assert_eq!(i64::from(FAC) * i64::from(x), 8_601_600_000);
+        assert!(i64::from(FAC) * i64::from(x) > i64::from(i32::MAX));
+        // Where it lands, and that it lands **positive** — so the
+        // original's own guard does not fire.
+        assert_eq!(wm(FAC, x), 11_665_408);
+        assert!(
+            wm(FAC, x) > 0,
+            "a negative wrap would be caught by the guard"
+        );
+        assert_eq!(wm(FAC, x) / 256, 45_568);
+        // **The guard still works where the wrap is negative**, which is
+        // what says this test is about the sign and not about the
+        // expression being broken in general: §45's own row.
+        assert_eq!(offer_value(FAC, 1, i32::MAX, 1), 9_999_999);
+        // **The Citizen it has to beat, and does not.** Both sides offer
+        // the Citizen at this value on the same block (run111), so the
+        // ranking is what the wrap decides — asserted through
+        // `offer_value` rather than between literals, which would be a
+        // tautology that says nothing.
+        const CITIZEN: i32 = 234_782;
+        const THEIRS: i32 = 5_755_741;
+        assert!(
+            offer_value(FAC, WANT, VAL, DIVISOR) < CITIZEN,
+            "the wrapped offer does not lose to the Citizen — then the \
+             purchase at 9382 is decided by something else"
+        );
+        // **And the original's number does not wrap**, said through `wm`
+        // rather than between constants: 5,755,741 × 256 survives the
+        // same multiply that eats this crate's.
+        assert_eq!(wm(FAC, THEIRS), 1_473_469_696);
+        assert!(
+            wm(FAC, THEIRS) > 0 && i64::from(wm(FAC, THEIRS)) == i64::from(FAC) * i64::from(THEIRS)
+        );
     }
 
     #[test]
