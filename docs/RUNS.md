@@ -3649,8 +3649,9 @@ player's slot. So the lobby half needs no UI path: it is a file key of the same
 shape as `PLAYERn_TRIBE`.
 
 **The bad news is a gate, and it is exhaustive.** `compute_reg_territory@006b0bb0`
-line 255 reads the handicap only when `leader_flags & 4` (an AI) **and**
-`Game::semaphore` bit 2 are both set:
+line 255 reads the handicap only when `leader_flags & 4` (~~an AI~~ — **not
+the computer-leader test**; item 437, `docs/COMBAT.md` §28.1, and what the
+bit is was not established) **and** `Game::semaphore` bit 2 are both set:
 
 ```
 if ((leader_flags & 4) == 0 || (game->semaphore.ptr[0] & 4) == 0) v = 0;
@@ -3759,8 +3760,16 @@ frame 2**, 2 identical. The line changes the simulation from the second frame,
 which is what `issue_cheat_ai_toggle` travelling in the order stream looks like
 (`Game::action_cheat_ai_toggle@005930c0`,
 `CommandPackage::process_cheat_ai_toggle@00944d20`). Note that `ai off` does not
-clear a leader's own computer bit — who=1 still carries `leader_flags` bit 2 at
-frame 899 — so the two are independent, exactly as the `||` reads.
+clear a leader's own computer bit — ~~who=1 still carries `leader_flags`
+bit 2 at frame 899~~ — so the two are independent, exactly as the `||`
+reads. **Corrected 2026-09-19, item 437** (`docs/COMBAT.md` §28.1): who=1
+does **not** carry that bit. This capture's own dump prints
+`leader_flags` — immediately *before* each `BEGIN LEADERDATA`, which is
+why it was read as absent — and who=0, the **human**, is `0x00000007`
+with bit 2 set while who=1, the **computer**, is `0x03000013` with it
+clear. run112 and run105 agree exactly, so it is a lobby property and not
+`ai off`'s doing. The independence of the two words stands; the reading of
+which is which does not, and what the bit *is* was not established.
 
 ### Two launches are one game, and so is a re-run at three times the detail
 
