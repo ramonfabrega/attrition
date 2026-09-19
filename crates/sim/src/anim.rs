@@ -124,6 +124,31 @@ pub const SITE_SNAP_BLOCKED: &str = "Guy::set_anim+0x97a < Unit::move_step+0x4e2
 /// (`docs/ANIM.md` §4, `docs/SYNC.md` §3.10).
 pub const SITE_ARRIVE: &str = "Guy::set_anim+0x97a < Guy::move+0x19f";
 
+/// **The attack roll's three sites** — `Guy::set_anim@005da300+0xf2f`, the
+/// variant draw the attack category takes when the request carries its
+/// third argument (§4.3). The address is not [`SITE_ARRIVE`]'s: the idle
+/// roll and the attack roll are two different blocks of one function, so a
+/// draw here is named by its own offset and then by its caller.
+///
+/// None of the three is the swing. `Unit::fight` asks for the attack on
+/// the frame it hits, but the guy is still turning to face its target, so
+/// the request is **deferred** into `GuyData +0x9e` and paid later (§6.2)
+/// — which is why the golden record's every attack roll and all 196 of
+/// run53's come from `Guy::move` or `Guy::inc_time` and none from
+/// `Unit::fight`.
+pub const SITE_ATTACK_STAND: &str = "Guy::set_anim+0xf2f < Guy::move+0x166";
+pub const SITE_ATTACK_TURN: &str = "Guy::set_anim+0xf2f < Guy::move+0xe3";
+pub const SITE_ATTACK_WRAP: &str = "Guy::set_anim+0xf2f < Guy::inc_time+0x271";
+pub const SITE_ATTACK_INC: &str = "Guy::set_anim+0xf2f < Guy::inc_time+0x357";
+
+/// The **idle** an attack falls to when the packet does not loop it, and
+/// it is not [`SITE_WRAP`]: `Guy::inc_time`'s wrap has two call sites, not
+/// one. `+0x271` is the shared tail every looping restart and every queued
+/// attack goes through; `+0x1ed` is the `set_anim(CHAR_DEFAULT, 0, 0)`
+/// that an attack running out takes on its way to the queue, and its
+/// **third argument is zero**, so the variant bands do not apply to it.
+pub const SITE_WRAP_ATTACK_END: &str = "Guy::set_anim+0x97a < Guy::inc_time+0x1ed";
+
 /// The **turning stand** — `Guy::set_anim+0x97a` under `Guy::do_turn+0x4a`,
 /// which is `do_turn`'s own `set_anim(CHAR_TURN_LEFT/RIGHT, 0, 1)` falling
 /// back to the idle because the piece has no turn animation to play
@@ -253,6 +278,17 @@ pub struct Guy {
     pub gpiece: i32,
     /// `stopped`: the body stood on its destination at the last follow.
     pub stopped: bool,
+    /// `+0x9e` — **the attack this guy owes**, deferred by
+    /// [`Sim::guy_set_anim`] because the body was still walking or still
+    /// turning when the swing asked for it, and paid by `Guy::move`'s own
+    /// two arms on a later frame (§6.2). Zero for none; `1` when the
+    /// request carried its third argument and the slot itself otherwise,
+    /// which is how the consumption knows whether to roll.
+    pub pending_attack: i8,
+    /// `+0xa0` — the attack asked for while an attack was **already
+    /// playing**, which `Guy::inc_time` pays when that one runs out
+    /// (§6.2). Encoded the same way as [`Guy::pending_attack`].
+    pub queued_attack: i8,
     /// A **crew** guy's own body, or `None` for one that has none.
     ///
     /// Guy 0's body is the unit's — `Movement::body` and
@@ -315,6 +351,8 @@ impl Guy {
             anim: DEFAULT,
             gpiece,
             stopped: true,
+            pending_attack: 0,
+            queued_attack: 0,
             follow: None,
         }
     }
@@ -845,7 +883,20 @@ impl Sim {
     /// "already playing" early returns), `p3` the third (an idle request
     /// with it set re-rolls the variant).
     pub(crate) fn set_anim(&mut self, u: usize, anim: i8, force: bool, p3: bool) {
+        // **`Unit::set_anim@00616f40` clears the pending attack first**, and
+        // it reads **guy 0's** current slot to decide — once per guy, but
+        // always the same test: `UnitAnimCat[guys[0]->cur_anim] !=
+        // CHAR_ATTACK2` drops every guy's `+0x9e`. So any unit-level
+        // request made while the unit is not already swinging cancels an
+        // attack it owed, whatever the request is for (§6.2).
         for g in 0..self.units[u].guys.len() {
+            // **Guy 0's slot is re-read on every pass**, not once before
+            // the loop: the original's test is inside the body, so a call
+            // that puts guy 0 on an attack spares the guys after it.
+            let lead = self.units[u].guys.first().map_or(DEFAULT, |g| g.anim);
+            if category(lead) != 12 {
+                self.units[u].guys[g].pending_attack = 0;
+            }
             self.guy_set_anim(u, g, anim, force, p3);
         }
     }
@@ -877,6 +928,27 @@ impl Sim {
         }
     }
 
+    /// Whether **this guy's** angle has reached the one it was told —
+    /// `des_angle == angle` (`+0x64` against `+0x18`), the third disjunct
+    /// of `set_anim`'s attack deferral and the same pair `Guy::move:55`
+    /// splits on.
+    ///
+    /// Guy 0's is the unit's heading against its facing. A guy past the
+    /// squad's size that is **not** tracked is never owed a turn —
+    /// `Guy::do_turn` recurses into it with guy 0's new angle as both
+    /// members of the pair ([`Sim::guys_follow`]) — and a tracked crew
+    /// figure keeps its own.
+    fn guy_settled(&self, u: usize, g: usize) -> bool {
+        match self.units[u].guys.get(g).and_then(|x| x.follow) {
+            Some(f) => f.facing == f.des_angle,
+            None if g >= SQUAD_SIZE => true,
+            None => {
+                let m = self.units[u].movement;
+                m.facing == m.heading
+            }
+        }
+    }
+
     /// `Guy::set_anim@005da300`, the paths a unit on open ground reaches
     /// (`docs/ANIM.md` §4). Returns whether the stream was drawn from.
     pub(crate) fn guy_set_anim(&mut self, u: usize, g: usize, anim: i8, force: bool, p3: bool) {
@@ -904,6 +976,30 @@ impl Sim {
         } else if who >= 8 && anim == WALK && cur_cat == 8 && guy.cur_time < guy.end_time {
             // Gaia's walkers: a walk already playing is left alone.
             return;
+        }
+        // **`set_anim:005da38a`-`005da3ba` — an attack is deferred, not
+        // played, while the body is still moving or still turning** (§6.2).
+        // The test is the guy's own `des != pos || des_angle != angle`, and
+        // `Unit::fight` writes every guy's `des_angle` to the attack angle
+        // two statements before it asks, so the swing frame itself always
+        // defers. The stored byte is `1` when the request carried `param_3`
+        // and the slot otherwise, which is what tells the consumption
+        // whether to roll. `guy_flags & 0x40` — a **plane**
+        // (`UnitData::is_plane`, `domain == 2 && !(unit_flags & 0x20)`) —
+        // is the one exemption, and it plays its attack where it is asked.
+        if category(anim) == 12 && !self.is_plane(u) {
+            let v = if p3 { 1 } else { anim };
+            if !self.body_at_des(u, g) || !self.guy_settled(u, g) {
+                self.units[u].guys[g].pending_attack = v;
+                return;
+            }
+            // And an attack asked for while an attack is **already
+            // playing** is queued instead (`+0xa0`), for `Guy::inc_time`
+            // to pay when the animation running now runs out.
+            if category(self.units[u].guys[g].anim) == 12 {
+                self.units[u].guys[g].queued_attack = v;
+                return;
+            }
         }
         // `set_anim:225–252` — **a turn the packet cannot play becomes the
         // idle.** `Guy::do_turn` asks for `CHAR_TURN_LEFT`/`CHAR_TURN_RIGHT`
@@ -1278,7 +1374,6 @@ impl Sim {
                 break;
             }
             let cat = category(guy.anim);
-            self.mark(SITE_WRAP);
             // `Guy::inc_time`'s own test is `slot < packet->count &&
             // packet->ids[slot] >= 0 && loopings[id]`: a slot the packet
             // does not name has **no animation id**, so the flag is false
@@ -1287,8 +1382,10 @@ impl Sim {
             // category-0 slot both arms make the same call, which is why
             // it was invisible until a piece with an empty packet walked.
             if self.packet_has(u, guy.gpiece, guy.anim) && !non_looping(guy.anim) {
+                self.mark(SITE_WRAP);
                 self.guy_set_anim(u, g, guy.anim, false, true);
             } else if cat != 12 {
+                self.mark(SITE_WRAP);
                 let next = if guy.anim == ATTACKWALK {
                     WALK
                 } else {
@@ -1296,9 +1393,51 @@ impl Sim {
                 };
                 self.guy_set_anim(u, g, next, false, true);
             } else {
+                // **An attack running out is the one arm with two calls**
+                // (§6.2): the idle at `+0x1ed`, and then — for a unit that
+                // is no hero — the attack it had queued while this one
+                // played, at the shared `+0x271` with `CHAR_ATTACK2` as
+                // the slot it names.
+                self.mark(SITE_WRAP_ATTACK_END);
                 self.guy_set_anim(u, g, DEFAULT, false, false);
+                let owed = self.units[u].guys[g].queued_attack;
+                if owed != 0 && !self.is_hero(u) {
+                    self.units[u].guys[g].queued_attack = 0;
+                    if owed > 1 {
+                        self.guy_set_anim(u, g, owed, false, false);
+                    } else {
+                        self.mark(SITE_ATTACK_WRAP);
+                        self.guy_set_anim(u, g, ATTACK2, false, true);
+                    }
+                }
             }
         }
+        // `Guy::inc_time+0x357`, past the loop: a guy no longer playing an
+        // attack and not walking plays the one it had queued —
+        // `CHAR_ATTACK1` here, where the in-loop site names `CHAR_ATTACK2`.
+        let guy = self.units[u].guys[g];
+        if category(guy.anim) != 12 && guy.queued_attack != 0 && guy.anim != WALK {
+            let owed = guy.queued_attack;
+            self.units[u].guys[g].queued_attack = 0;
+            if owed > 1 {
+                self.guy_set_anim(u, g, owed, false, false);
+            } else {
+                self.mark(SITE_ATTACK_INC);
+                self.guy_set_anim(u, g, ATTACK1, false, true);
+            }
+        }
+    }
+
+    /// `UnitData::is_hero@0046ce?0` as `Guy::inc_time` inlines it —
+    /// `unit_flags2 & 0x20`, the government hero and the general
+    /// ([`uflags2::GENERAL`]). It gates the queued attack's in-loop
+    /// payment and nothing else here.
+    fn is_hero(&self, u: usize) -> bool {
+        self.units[u].ty.is_some_and(|t| {
+            self.unit_types[t]
+                .cols
+                .flag2(crate::ai_load::uflags2::GENERAL)
+        })
     }
 
     /// **A scholar's every slot from `0x19` up is the idle category** —
@@ -1429,6 +1568,24 @@ impl Sim {
         let anim = self.units[u].guys[g].anim;
         if at_des {
             if settled {
+                // **The attack this guy owes is paid here, before the
+                // arrival stand** — `Guy::move:005d9381`, and the
+                // `set_anim` at `+0x166` is the rules track's word at
+                // golden 617 (§6.2). `> 1` is a slot the swing named with
+                // no third argument and costs no draw; `1` is the
+                // ordinary request and rolls.
+                let owed = self.units[u].guys[g].pending_attack;
+                if owed != 0 {
+                    if owed > 1 {
+                        self.guy_set_anim(u, g, owed, false, false);
+                    } else {
+                        self.mark(SITE_ATTACK_STAND);
+                        self.guy_set_anim(u, g, ATTACK1, false, true);
+                    }
+                    self.units[u].guys[g].pending_attack = 0;
+                    self.units[u].guys[g].stopped = true;
+                    return;
+                }
                 if anim == WALK && self.units[u].guys[g].stopped {
                     self.mark(SITE_ARRIVE);
                     self.guy_set_anim(u, g, DEFAULT, false, true);
@@ -1450,6 +1607,31 @@ impl Sim {
             // (`docs/ORDERS.md` §3), so only the first is tested.
             if self.units[u].kind.domain == crate::attrition::Domain::Sea {
                 self.units[u].guys[g].stopped = true;
+                return;
+            }
+            // The same debt, on the arm that is still turning
+            // (`Guy::move:005d92db`). Two differences from the settled arm
+            // above, and the second is the whole of why the debt survives
+            // to be paid: the guard here is the **two turn slots only**
+            // (`ATTACKWALK` is not in it, unlike the walk below), and
+            // **`+0x9e` is not cleared** — only `005d93ad`, in the settled
+            // arm, clears it. So the call re-enters `set_anim`, finds the
+            // angle still unsettled, stores the same byte back and returns
+            // without drawing; the guy keeps owing the swing until the
+            // frame its turn finishes. Clearing it here spends the debt on
+            // a call that cannot pay it, which is exactly one draw lost at
+            // golden 617.
+            let owed = self.units[u].guys[g].pending_attack;
+            if owed != 0 {
+                if anim != TURN_LEFT && anim != TURN_RIGHT {
+                    if owed > 1 {
+                        self.guy_set_anim(u, g, owed, false, false);
+                    } else {
+                        self.mark(SITE_ATTACK_TURN);
+                        self.guy_set_anim(u, g, ATTACK1, false, true);
+                    }
+                }
+                self.units[u].guys[g].stopped = false;
                 return;
             }
             if anim != TURN_LEFT && anim != TURN_RIGHT && anim != ATTACKWALK {
@@ -1639,9 +1821,107 @@ mod tests {
             anim,
             gpiece: piece,
             stopped: true,
+            pending_attack: 0,
+            queued_attack: 0,
             follow: None,
         }];
         s.add_unit(u)
+    }
+
+    /// **An attack asked of a guy that is still turning costs no draw and
+    /// is not lost** (`docs/ANIM.md` §6.2). The three states the byte can
+    /// be in, each asserted against the stream's own word: deferred (no
+    /// draw), still deferred on a turning frame (no draw, debt kept), and
+    /// paid on the frame the angle settles (one draw).
+    ///
+    /// Written to fail first: with the debt cleared on the turning frame
+    /// the third assertion sees no draw at all, which is exactly the one
+    /// the golden record is missing at 617.
+    #[test]
+    fn an_attack_asked_of_a_turning_guy_is_deferred_and_then_paid() {
+        let mut s = sim_at(12345);
+        let u = animal(&mut s, 0, 1, -1, DEFAULT, 0, 90);
+        // The swing: the heading moves, the facing has not caught up.
+        s.units[u].movement.heading = crate::movement::Angle::EAST;
+        s.units[u].movement.facing = crate::movement::Angle::NORTH;
+        s.units[u].movement.body.pos = s.units[u].pos;
+        let before = s.rng.seed;
+        s.set_anim(u, ATTACK1, false, true);
+        assert_eq!(
+            s.rng.seed, before,
+            "the deferred attack drew from the stream"
+        );
+        assert_eq!(s.units[u].guys[0].pending_attack, 1);
+        assert_eq!(
+            s.units[u].guys[0].anim, DEFAULT,
+            "the attack was played, not deferred"
+        );
+
+        // A frame still owed its turn: `Guy::move`'s other arm re-enters
+        // `set_anim`, which defers again — no draw, and the debt stands.
+        s.guy_follow_anim(u, 0, true, false);
+        assert_eq!(s.rng.seed, before, "the turning frame drew from the stream");
+        assert_eq!(
+            s.units[u].guys[0].pending_attack, 1,
+            "the turning arm cleared a debt it could not pay"
+        );
+
+        // The frame the angle settles: one draw, and an attack slot.
+        s.units[u].movement.facing = crate::movement::Angle::EAST;
+        s.guy_follow_anim(u, 0, true, true);
+        assert_eq!(
+            s.rng.seed,
+            stepped(before, 1),
+            "the settled arm did not spend the attack roll"
+        );
+        assert_eq!(s.units[u].guys[0].pending_attack, 0);
+        assert_eq!(category(s.units[u].guys[0].anim), 12);
+        assert!(s.units[u].guys[0].stopped);
+    }
+
+    /// **An attack asked of a guy already swinging is queued, not
+    /// played** — `GuyData +0xa0`, and it costs no draw either
+    /// (`docs/ANIM.md` §6.2).
+    #[test]
+    fn an_attack_asked_mid_swing_is_queued() {
+        let mut s = sim_at(999);
+        let u = animal(&mut s, 0, 1, -1, ATTACK2, 0, 20);
+        s.units[u].movement.heading = crate::movement::Angle::NORTH;
+        s.units[u].movement.facing = crate::movement::Angle::NORTH;
+        s.units[u].movement.body.pos = s.units[u].pos;
+        let before = s.rng.seed;
+        // `Unit::set_anim`'s pre-clear must **not** fire: guy 0 is already
+        // on an attack, which is the whole point of the queue.
+        s.set_anim(u, ATTACK1, false, true);
+        assert_eq!(s.rng.seed, before, "the queued attack drew from the stream");
+        assert_eq!(s.units[u].guys[0].queued_attack, 1);
+        assert_eq!(s.units[u].guys[0].pending_attack, 0);
+        assert_eq!(
+            s.units[u].guys[0].anim, ATTACK2,
+            "the queued attack was played"
+        );
+    }
+
+    /// **Any unit-level request made off an attack cancels the debt** —
+    /// `Unit::set_anim@00616f40`'s own first statement, which is why a
+    /// squad member that walks on the frame it swings never plays its
+    /// attack (`docs/ANIM.md` §6.2). The original's who=1 hoplites are
+    /// two such and one that stands still; the one that stands is the
+    /// golden record's draw at 617.
+    #[test]
+    fn a_walk_request_cancels_the_attack_a_guy_owed() {
+        let mut s = sim_at(4242);
+        let u = animal(&mut s, 0, 1, -1, DEFAULT, 0, 90);
+        s.units[u].movement.heading = crate::movement::Angle::EAST;
+        s.units[u].movement.facing = crate::movement::Angle::NORTH;
+        s.units[u].movement.body.pos = s.units[u].pos;
+        s.set_anim(u, ATTACK1, false, true);
+        assert_eq!(s.units[u].guys[0].pending_attack, 1);
+        s.set_anim(u, WALK, false, true);
+        assert_eq!(
+            s.units[u].guys[0].pending_attack, 0,
+            "the walk left the attack owing"
+        );
     }
 
     /// **A piece the install describes has its whole slot list**, and a
@@ -1930,6 +2210,8 @@ mod tests {
             anim: DEFAULT,
             gpiece: 13043,
             stopped: true,
+            pending_attack: 0,
+            queued_attack: 0,
             follow: None,
         });
         s.frame = 101;
@@ -2008,6 +2290,8 @@ mod tests {
                 anim: DEFAULT,
                 gpiece: 60063,
                 stopped: true,
+                pending_attack: 0,
+                queued_attack: 0,
                 follow: None,
             }];
             let a = s.add_unit(u);

@@ -98,6 +98,11 @@ pub mod uflags {
     pub const NO_PRODUCE: u32 = 0x8000;
     /// `r` — `is_siege`.
     pub const SIEGE: u32 = 0x20000;
+    /// `z` — `unitrules.xml`'s own legend: "Unit rocks left/right when it
+    /// attacks (attack1 is left, attack2 is right)". The eighteen ship
+    /// types carry it, and it is the one arm of `Unit::fight`'s swing
+    /// animation that picks its slot from an angle (`docs/ANIM.md` §6.2).
+    pub const ROCKS: u32 = 0x200_0000;
 }
 
 /// The bits of `unit_flags2` (`+0x2b8`).

@@ -640,8 +640,23 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // 14,800 frames later. The long capture's `first_count` moves
         // 9182 → 9362 with it; `first_part` does not, so the headline
         // word is unchanged.
-        off: 50,
-        unlinked: 9,
+        // And **50 → 66 off and 9 → 5 unlinked** on 2026-09-18, item
+        // 379 — the **attack animation's deferral** (`docs/ANIM.md`
+        // §6.2). Every unit in the game that swings now asks for an
+        // attack slot, and `Guy::inc_time` wraps that slot instead of
+        // whatever it was playing, so the animation clock of every
+        // fighting figure changes from the first engagement. **Neither
+        // word moves** — this map's is 9182 and the first attack roll on
+        // it is at 9416, 234 frames past the word — so every count here
+        // is post-divergence reshuffle: sixteen positions out against
+        // four of the roster that stop going missing, 14,800 frames past
+        // the word. East Indies' endpoint and both ladder rungs are
+        // unchanged on the same commit. The mechanism is the listing's
+        // (`005da38a`, `005d9381`, `005da081`) and the golden record's
+        // own 617 is where a diff can see it; DECISIONS 36 asks for the
+        // number rather than a trade.
+        off: 66,
+        unlinked: 5,
         extra: 0,
         build_unlinked: 0,
         build_diverged: 10,

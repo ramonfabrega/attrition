@@ -133,6 +133,40 @@ pub const SITES: &[(u32, Option<u32>, &str)] = &[
         Some(0x005d_93df), // `Guy::move+0x19f`, the arrival stand
         sim::anim::SITE_ARRIVE,
     ),
+    // …and the idle an **attack** falls to when its packet does not loop
+    // it, which is `Guy::inc_time`'s *other* call site (`docs/ANIM.md`
+    // §6.2). Reading it as `+0x271` would have read an attack's end as an
+    // ordinary wrap.
+    (
+        0x005d_ac7a,
+        Some(0x005d_9ffd), // `Guy::inc_time+0x1ed`
+        sim::anim::SITE_WRAP_ATTACK_END,
+    ),
+    // `Guy::set_anim@005da300+0xf2f` — **the attack roll**, a different
+    // block of the same function and so a different address. Three
+    // callers, none of them the swing: `Unit::fight` defers the request
+    // into `GuyData +0x9e` and these are where it is paid
+    // (`docs/ANIM.md` §6.2).
+    (
+        0x005d_b22f,
+        Some(0x005d_93a6), // `Guy::move+0x166`, the settled arm
+        sim::anim::SITE_ATTACK_STAND,
+    ),
+    (
+        0x005d_b22f,
+        Some(0x005d_9323), // `Guy::move+0xe3`, the still-turning arm
+        sim::anim::SITE_ATTACK_TURN,
+    ),
+    (
+        0x005d_b22f,
+        Some(0x005d_a081), // `Guy::inc_time+0x271`, the queued attack
+        sim::anim::SITE_ATTACK_WRAP,
+    ),
+    (
+        0x005d_b22f,
+        Some(0x005d_a167), // `Guy::inc_time+0x357`, past the wrap loop
+        sim::anim::SITE_ATTACK_INC,
+    ),
     (
         0x005d_ac7a,
         Some(0x005f_b753), // `Unit::move_step+0x823`, the blocked stand
