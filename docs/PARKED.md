@@ -55,7 +55,12 @@ DECISIONS 42 currently warn about a *brief's* named mechanism; this is the
 same failure one step earlier, in the document a widening writes, and it
 was caught only because the next item grepped before it captured. The
 generalisation — **the frame is evidence, the framing around it is not** —
-is the pass's to write, and it belongs beside 416.
+is the pass's to write, and it belongs beside 416. **Sharpened by item 414,
+whose own prediction then died the same way**: the useful half of a stanza
+is writing down what would **kill each reading** before the run, not the
+reading the author favours. 414's stanza was falsifiable in three
+directions and the block took the one it had ranked first, which is why its
+result is trustworthy rather than lucky.
 
 (420) **A merge artefact in a data file silently disabled the capture
 driver, for an unknown number of days.** One stray `=======` at
@@ -186,6 +191,26 @@ tracer change, and a wrong proxy stub costs a run.
 
 ## Parked by the sixth Fable pass, 2026-09-19 — a guard's first run
 
+(425) **A name a pinned constant carries for an index has nothing to
+disagree with.** Named by item 408 while settling 423, 2026-09-19, and it
+is the reason that defect survived from run19 to today. Both sides of the
+leader diff generate their key from the **same** `GOODS` array —
+`rows()` at `leader.rs:87` and `theirs()` beside it both `format!` the name
+in — and the dump prints `bucket` as six bare values, so the index is
+positional on both sides and **the label never participates in matching**.
+The pinned literals in `PARTS_ON_RUN19/107/111` then check only that the
+string matches whatever `GOODS` currently says. So `GOODS` and its pins can
+be wrong **together, consistently, forever**: the specifications got it
+right, the decompile export got it right, and 858 tests never looked,
+because a self-consistent label has nothing to disagree with.
+
+The guard is the check nobody wrote, and it is deliberately **wider than
+`GOODS`**: every index-to-name mapping the diff layer pins is compared
+against the type record, `GOODS` being the first instance. If others exist
+it finds them the day it lands; if none do it costs three lines and says
+so. A worker's item, not the pass's — a correctness guard about the port
+rather than loop machinery. Make it fail on purpose first.
+
 (423) **`GOODS` is mislabelled in `diff/leader.rs`.** Found by item 414,
 2026-09-19, while tracing what pays for a Scholar. Index 2 is named "metal"
 and index 2 is what pays this Scholar's 40 **wealth**:
@@ -194,10 +219,17 @@ any capture is affected** — the comparisons are index against index, so
 every number that has ever been checked was checked against its own
 counterpart — but the *names* pinned at 2, 3 and 4 in `PARTS_ON_RUN19`,
 `PARTS_ON_RUN107` and `PARTS_ON_RUN111` are the wrong resources, and a
-reader who trusts them will reason about the wrong good. Renaming churns
-three pinned constants across three items, which is why 414 recorded it in
-`docs/AI.md` §48.4 and left it rather than widening its own item. Parks
-because it names no score; it is a worker's to take, not the pass's.
+reader who trusts them will reason about the wrong good. **Corrected in
+place 2026-09-19, before the item ran**: the authority is the type record,
+`rise.pdb`'s own `TypeIndex` — `0 FOOD 1 TIMBER 2 WEALTH 3 KNOWLEDGE
+4 METAL 5 OIL` — which is `sim::economy::Resource` exactly; and the blast
+radius is **six strings in one file, every one at index 2**, not three
+constants across three items. There is no wrong row at 3 or 4, because
+who=1's knowledge and metal never parted on those windows, and the
+seventeen rows at 0, 1 and 5 are already right because those indices agree
+between the two orderings. **No document changes**: `docs/AI.md:227` and
+`docs/ECONOMY.md:861` already say wealth. Parks because it names no score;
+a worker's to take, not the pass's.
 
 (418) **Order coverage is a separate axis, and its unit is a native
 issuer.** Found by item 365, 2026-09-19, while designing the golden

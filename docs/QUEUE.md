@@ -27,9 +27,9 @@ no score moved**: Great Lakes stands at 9510, golden at 626.*
   the original **names its own purchase** (57,557 = 5,755,741/100 the block
   after), `num_queued` agrees, and the goods enter the frame identical
   (`bucket 107 127 53 129 80 0`, both selling 100 timber).
-- **415 is on the screen** with run112. Four open, 64 parked.
-  **Fable backlog: eleven Loop items** (251, 335, 313, 367, 375, 416, 417,
-  419, 420, 421, 424) — the pass is due at twenty landings; this is four.
+- **415 is on the screen** with run112; 408 takes 423 then 422. Four open,
+  65 parked. **Fable backlog: eleven Loop items** (251, 335, 313, 367, 375,
+  416, 417, 419, 420, 421, 424) — the pass is due at twenty; this is four.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w9711 of 24,000 · GreatLakes w9510 of 24,000
