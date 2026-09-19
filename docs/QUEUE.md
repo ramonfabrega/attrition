@@ -25,15 +25,15 @@ no score moved**; the day bought two cause chains and a second chapter.*
   who=1 12,40` asks internal 2400; the original seats 2424/2568/2472, ours
   2284/2428/2332 — uniformly **140 west**, first add exact.
   `find_nearby_spot` on clear ground; pinned in no direction, 426's suspect.
-- **45,568 is an i32 wrap, not a valuation** (422, pinned): `256 ×
-  33,600,000 = 8,601,600,000` wraps **positive** to 11,665,408 and divides
-  to exactly 45,568, so §45's `out < 0 → 9,999,999` guard never fires. The
-  gap and its ratio were artefacts. **Which of the original's three terms
-  differs, no capture can settle** — `want` and `divisor` are locals (430).
+- **The wrap is fidelity, not the defect** — 422 booked it as one and
+  430's probe overturned both the item and its booking: computing the tail
+  in 64 bits so nothing wraps costs **2,727 frames**, 9510 → 6783, because
+  the original is a 32-bit engine whose own `imul` wraps. 45,568 is a wrong
+  input carried faithfully; the lever is upstream. 429 corrected in place.
 - **A setup-block word scored 0 and is now a refusal** (415), third time
-  that shape has scored. Four open, 67 parked.
-  **Fable backlog: twelve Loop items** (251, 335, 313, 367, 375, 416,
-  417, 419, 420, 421, 424, 428); the pass is due at twenty, this is seven.
+  that shape has scored. Four open, 68 parked.
+  **Fable backlog: thirteen Loop items** (251, 335, 313, 367, 375, 416,
+  417, 419, 420, 421, 424, 428, 431); pass due at twenty, this is seven.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w9711 of 24,000 · GreatLakes w9510 of 24,000

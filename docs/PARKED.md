@@ -32,6 +32,18 @@ two ledger regexes closed in the third pass, 2026-09-17; the fourth pass,
 each now a guard or a clause (`docs/audit/2026-09-19-fable-pass-6.md`,
 DECISIONS 42). 341 closed 2026-09-18 by item 363.
 
+(431) **A payoff probe must change only the frames under test.** Measured
+by item 430, 2026-09-19, on its own first probe. To ask "would the word
+move if our Scholar ranked correctly", 408 forced **every** Scholar offer
+to the original's 5,755,741 — and the word fell to 8985, which is §41 and
+§42's own frame, where the value was already right. The blunt probe
+measured the instrument rather than the simulation, and its number said
+nothing about the question. The rule is the scoped version: change the one
+frame under test and nothing else, or the probe's answer is about the
+probe. Worth a clause beside the capture rules, because a payoff probe is
+now a routine move — it is what stopped a reading being booked on a
+premise that turned out to be false an hour later.
+
 (428) **Reserving a run number does not reserve the append point.**
 Measured 2026-09-19: two lanes ran captures in parallel with run111 and
 run112 properly reserved to each, and their merges still conflicted,
@@ -216,9 +228,24 @@ defect**: §45 documents this same overflow in the arm next door and guards
 it with `out < 0 → 9,999,999`, so a wrap that goes negative becomes the
 ceiling and is caught, while one that goes positive becomes a plausible
 small number that ranks below a Citizen and is not. 422 pins the wrap as
-an assertion on its own frame; this parks the general case, because the
-expression is reached far beyond 9382 and nothing comes back for a
-footnote in another item's "what this has not established".
+an assertion on its own frame; this parked the general case as a defect.
+
+**Corrected in place, 2026-09-19, by 430's second probe — the wrap is
+fidelity and this item was wrong.** Computing the tail in 64 bits so
+nothing wraps costs **2,727 frames**: the word falls 9510 → 6783, because
+the original is a 32-bit engine whose own `imul` wraps and this crate
+tracks it that far *because* it wraps too. So the overflow is not a
+defect; it is a wrong input carried faithfully into a wrong answer, and
+the lever is entirely upstream in `val`, `want` or `divisor`.
+`offer_value`'s doc comment now says so with the number beside it, and
+`LONG_WORD_GREAT_LAKES` pinning 9510 means a well-meant "fix" of the
+overflow **fails the floor** rather than passing quietly.
+
+What survives is narrower and still true: **`out < 0 → 9,999,999` catches
+only half of a wrap's range**, so a positive wrap is invisible where a
+negative one is caught. That is an observability property of 32-bit
+arithmetic the original shares, not a defect in the expression, and where
+it matters is a question nobody has asked yet.
 
 (427) **Twenty-four frames pass before chapter two's first arrow.**
 Observed by item 415, 2026-09-19, and **free to measure from run112, which
