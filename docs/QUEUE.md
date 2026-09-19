@@ -12,19 +12,18 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-18/19, two lanes all day, fifteen landings. **Great Lakes 9182 →
-9451 (+269), golden 617 → 619** — both words moved, repeatedly. Eleven booked
+*2026-09-18/19, two lanes all day, sixteen landings. **Great Lakes 9182 →
+9510 (+328), golden 617 → 619** — both words moved, repeatedly. Eleven booked
 mechanisms were wrong; the frame was right every time.*
 
-- **An arrow is launched by the attack ANIMATION's event track** (389,
-  §9.0) — a **data** coupling, not a renderer one; `ms × 3 / 200`
-  **truncated** is measured, 4/4 against run53 where rounding is 0/4.
-  **9451 is two arrows on one farm**: the first leaves `damage` 0, so the
-  second re-opens the first-wound gate — §9.5 was wrong (ANY building's)
-  and is struck. Six of seven draws; the seventh is a **bounded** launch
-  offset, the pinned-table shape and not a float licence. **396** measures
-  it. The met bit (385) got 9182 → 9415 first, `active_wars` behind
-  `treaties[i] & 1`.
+- **The arrow is the AI track's whole day**: launched by the attack
+  ANIMATION's event track (389), `ms × 3 / 200` truncated measured 4/4;
+  9451 is **two arrows on one farm**, the first leaving `damage` 0 so the
+  second re-opens the first-wound gate (394, §9.5 struck — ANY building's);
+  and 396 **measured** the launch offset from run109's `AMMO` record
+  rather than bounding it — six rows, no float, `sin_component` only,
+  reproducing `sx, sy, ex, ey` and `total_time` exactly on seven frames.
+  Word 9182 → 9415 → 9451 → **9510**. **402** owes the record's widening.
 - **The golden word moves 617 → 624** (391, 392, 395), chapter one's
   frames 615–623 now the original's. The ARMY walks a struck unit off its
   seat; §17's ring is never in the frame (the **listing** gave back three
@@ -33,15 +32,15 @@ mechanisms were wrong; the frame was right every time.*
   reached, its gate reading `leader_flags & 4`. **399.**
 - **The namesake has never fired in a scored capture** (382): zero
   non-exempt attrition outcomes over 24,000 frames — the Temple chapter is
-  the only route. **The held-out map answers 1 tick, 0 orders** (run106), a fit to two trajectories: **the pass's number**. Six open, 50 parked; **Fable backlog: twelve Loop items** (251, 335, 343, 356, 321, 313, 367, 374, 375, 377, 397, 398).
+  the only route. **The held-out map answers 1 tick, 0 orders** (run106), a fit to two trajectories: **the pass's number**. Six open, 52 parked; **Fable backlog: thirteen Loop items** (251, 335, 343, 356, 321, 313, 367, 374, 375, 377, 397, 398, 404).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w9711 of 24,000 · GreatLakes w9451 of 24,000
+Long captures: EastIndies w9711 of 24,000 · GreatLakes w9510 of 24,000
 Golden: w624 of 901 · chapter one pinned · 399 next
-Endpoint 24001: EastIndies 64 off, 5 unlinked · GreatLakes 57 off, 9 unlinked
+Endpoint 24001: EastIndies 64 off, 5 unlinked · GreatLakes 48 off, 11 unlinked
 
-**Opener: 399 on the golden record — who=1's army marching where the
-dump holds it — beside 396, in flight on the AI word's seventh draw.**
+**Opener: 402 widens the `AMMO` record 396 read seven fields of —
+beside 399, in flight on the golden record's army march.**
 
 ## The queue
 
@@ -51,13 +50,13 @@ the AI, lower map first — Great Lakes. Take the first unstarted on either
 track unless a better order is obvious, and say so. Numbers are stable;
 the backlog is `docs/PARKED.md`, and an item returns only when a score names it.
 
-396. **`AMMO=1` over `[9420, 9460)`** (capture lane; the AI headline's
-    frame, and it closes the seventh draw without a `.bh3` reader).
-    `AmmoData::log_data` prints `sx, sy, total_time`, so the launch offset
-    is `(sx − guy.x, sy − guy.y)` **measured** — five rows pin the whole
-    Longbowman. **No dump on disk has AMMO enabled.** §20.3 bounds it from
-    four shots meanwhile (1/29: 0–75.7 along the shot; 1/28: 76.6–114.1).
-    Assert the block count against the window asked for (373).
+402. **Nothing in `rondata::diff` parses the `AMMO` record** (the AI
+    headline's frame, and the widening 396 owes). The record has **25
+    fields**; 396 used 7, and its nine launch rows are constants in
+    `launch.rs`'s test rather than re-read from run109. Widen the whole
+    record and floor it — "when the original dumps a record, diff the
+    whole record" is the rule this item otherwise followed, and run109 is
+    60 blocks over `[9420, 9480)` with 0 differing against run100.
 
 390. **A `LEADERS≥2` window anywhere in (7616, 8174]** (capture lane;
     takes-chain to the met bit): nothing on disk dumps a leader between

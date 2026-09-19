@@ -94,6 +94,19 @@ merged figure is never either branch's** — 394 measured 58/12 alone and
 replaces it must be measured on the merge, which is the commander's tree.
 The pass's.
 
+(404) **A worker can inherit a base that is red for the minutes between
+the commander's merge and its booking commit.** Found by item 396, which
+reported `docs_guard::the_handoff_counts_the_loop_backlog` failing on a
+base it had not written (the handoff said eleven Loop items where PARKED
+held twelve) — correct behaviour on the worker's part, and a real hole in
+the chain: `ccc merge` lands a branch that changes PARKED before the
+commander's booking commit updates the handoff's counts, so any spawn or
+`ccc update` inside that window takes a tree the paperwork guards refuse.
+Candidates: book in the same commit as the merge; have the merge step
+run `guard.sh` and refuse to leave the tree red; or make the counted
+fields generated rather than hand-written. Cheap, and it costs a worker's
+round trip every time it happens.
+
 (397) **Two lanes append to one document's tail and collide on the
 section number.** First realised cost 2026-09-19: items 392 and 394 both
 landed a `docs/COMBAT.md` **§19** — the ring and the first wound — and the
@@ -103,6 +116,15 @@ byte-identical on its branch, renumbered to §20 in **its own commit** so
 the merge shows which side gave way, and moved eleven cross-references
 (including two stale `§9.6` refs from an earlier draft that the sweep
 caught by accident).
+
+**And it is not only sections.** Item 396 found the same hole in
+`docs/RUNS.md`'s run numbers: item 386's call-proxy capture had already
+taken **run108** through `tools/explore/golden_capture.sh`, which leaves
+no stanza in `tools/gamelog/captures.txt`, so `DRY=1 runqueue.sh` — the
+numbering's only collision check — **cannot see that lane at all**. 396
+renamed to run109 before anything cited it. Two shared namespaces, three
+collisions in one day, every one caught by a worker noticing rather than
+by a check.
 
 It resolved cleanly, and it cost a round trip that nothing prevents from
 recurring: both rules- and AI-lane items now write `COMBAT.md`, and the
@@ -662,6 +684,15 @@ non-captain mirror, unimplemented here, whose only reachable caller is
 at all. Neither is diff-backed — a run has reached neither — so they are
 exactly the kind of claim the coverage section must list as reading-only,
 and the kind a blind second reading is briefed with.
+
+(403) **The launch table has one piece missing, and one capture closes
+it.** Item 396 measured every release event `unit_graphics.xml` gives the
+Longbowman — six rows reproducing all nine launch points to the unit
+across three units and two facings — but run17's three Slinger families
+are **measured and unusable**, because run17's `GUY` detail is 1 and
+nothing there names the animation. A **`GUYS=4` re-run of any Slinger
+fight** closes it, and the same shape closes every missile type in the
+game. Cheap, and it generalises further than the item that found it.
 
 ## Measured residues, none near a word
 
