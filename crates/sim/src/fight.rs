@@ -29,6 +29,14 @@ use crate::{Player, Sim};
 /// to stand and walks there.
 pub const SITE_ATTACK_POS_FIGHT: &str = "Unit::find_attack_pos+0xea9 < Unit::fight+0xcb4";
 
+/// **The one-in-five re-search's own draw** — `Unit::fight@005fd4d0`,
+/// `005fde80`, the roll `docs/COMBAT.md` §8.2 step 0 spends *before* it
+/// reads either suppression. The simulation has spent it since item 288
+/// and never named it, so a frame that took it read as the unit-loop's
+/// bare phase mark; item 364's golden record is where that cost a
+/// comparison (`docs/INPUT.md` §11).
+pub const SITE_FIGHT_RESEARCH: &str = "Unit::fight+0x9b0";
+
 /// The same draw from `Group::action_attack@00712490+0x41a`, which calls
 /// the nine-argument form **once**, on the group's leader, and only when
 /// `ObjectData::is_in_range` says the leader cannot already shoot

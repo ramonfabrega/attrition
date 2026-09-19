@@ -1264,3 +1264,37 @@ pub(crate) const GREAT_LAKES_SECOND_SQUAD: i64 = 6994;
 /// at it, and the tail it leaves is empty but for the truncated last
 /// frame.
 pub(crate) const RUN58_QUEUE_TAIL: i64 = 5177;
+
+/// **Chapter one's golden word** — the frame the golden record's draw
+/// stream parts from the original's, on the basis
+/// `crate::diff::golden` states: the setup borrowed from the siblings, the
+/// per-frame stream refused, the script staged at `do_frame`'s entry.
+///
+/// **617 on item 364**, the first pin, and it is two frames past the
+/// second spawn — the chapter's whole staged half is in.
+///
+/// Three numbers on the way there, each a thing the interpreter had to
+/// model:
+///
+/// - **1** with nothing staged at all. The original's silenced Leader AI
+///   spends twelve draws on frame 1 and this crate's spends fifty-four —
+///   eight `MathUtilFuncSet::rand_int` and thirty-six
+///   `Leader::produce_building`. `ai off` is the only line that matters
+///   for the first six hundred frames, and the control makes it a
+///   measurement rather than an observation: run104 is chapter one with
+///   `0 !ai off` deleted, and **its frame 1 is this crate's own, draw for
+///   draw, all fifty-four**.
+/// - **610** with `ai off` modelled and nothing else — `add hoplite who=0
+///   4,40`'s frame, where the original spends three `Guy::init_real+0x52`
+///   draws for the squad's three units and this crate spent none.
+/// - **617** with `add` modelled: `find_nearby_spot` for the spot and
+///   `Objects::init_unit` for the squad, staged at `do_frame`'s entry so
+///   the three figure draws are the frame's first.
+///
+/// What stands at 617 is **one draw**, and it is named:
+/// `Guy::set_anim@005da300+0xf2f`, the variant roll `set_anim` takes when
+/// the animation is `0xc` and a variant is asked for — the attack
+/// animation, on the frame the auto-engaged squads first swing. This
+/// crate does not spend it. `docs/INPUT.md` §11, "What is not
+/// established".
+pub(crate) const GOLDEN_WORD_CHAPTER_ONE: i64 = 617;

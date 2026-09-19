@@ -818,6 +818,24 @@ pub struct Sim {
     /// enough because the original's own pool is written by the same
     /// `push_group` and nothing here holds two at once.
     pub(crate) pushed_group: Option<(Player, Vec<usize>)>,
+    /// Draw marks spent by **staged input** at `Game::do_frame`'s entry,
+    /// before the frame's first phase — the cheat channel's, which
+    /// `rontrace.dll` hands to `ConsoleWin::parse_cmd` there
+    /// (`docs/INPUT.md` §11). [`Sim::tick`] clears [`Sim::phase_marks`] at
+    /// its head, so a staged draw marked before the call would vanish from
+    /// the fold while still moving the stream; these are moved to the head
+    /// of the frame's own marks instead, which is where the original
+    /// spends them. `crate::golden::Script::stage` is the only writer.
+    pub staged_marks: Vec<(String, u32)>,
+    /// The engine's global `GameAccess::ai_off`, which the `ai off` cheat
+    /// toggles (`Game::action_cheat_ai_toggle@005930c0` is the whole of
+    /// it: one flag, flipped, in a single-player game). Three readers in
+    /// the simulation's own territory — `Leader::production_ai`'s head,
+    /// `Leader::diplomacy`'s head, and the computer block of
+    /// `Unit::think@005f6e40:205` — and they are what `docs/INPUT.md` §11
+    /// models. Off by default; only the golden record's interpreter sets
+    /// it.
+    pub ai_off: bool,
     /// Whether [`Sim::tick`] records [`Sim::phase_marks`]. Off by default:
     /// the harness turns it on, the soak pays nothing.
     pub trace_phases: bool,
@@ -1178,6 +1196,8 @@ impl Sim {
                 .collect(),
             tech_tree,
             setup: tech::Setup::STANDARD,
+            staged_marks: Vec::new(),
+            ai_off: false,
             trace_phases: false,
             mesh,
             plan_roads: true,
@@ -2123,7 +2143,7 @@ impl Sim {
     /// the captain before it returns; here they share the captain's
     /// position until [`Sim::come_out`] or a formation moves them. The
     /// search takes no draw, so the stream does not know the difference.
-    pub(crate) fn init_unit(&mut self, who: Player, ty: usize, pos: Pos) -> usize {
+    pub fn init_unit(&mut self, who: Player, ty: usize, pos: Pos) -> usize {
         let n = self.unit_types[ty].combat.uber_size.max(1);
         let mut head = None;
         let mut prev = None;
@@ -2827,6 +2847,66 @@ impl Sim {
         })
     }
 
+    /// `Leader::set_diplo(whom, level)` as the console's three verbs reach
+    /// it — `ally` 2, `peace` 1, `war` 0 (`run_cmd` cases 0x2c–0x2e,
+    /// `docs/INPUT.md` §11). The table this crate keeps is two booleans,
+    /// so only the ends of that scale are modelled: 0 is
+    /// [`Sim::declare_war`], 2 sets the alliance both ways, and 1 clears
+    /// both. SEAM: the original's `diplos` byte carries more than three
+    /// values (met, tribute state) and none of that is here.
+    pub fn set_diplo(&mut self, a: Player, b: Player, level: i32) {
+        let (x, y) = (a as usize, b as usize);
+        if x >= self.at_war.len() || y >= self.at_war.len() || x == y {
+            return;
+        }
+        match level {
+            0 => {
+                self.allied[x][y] = false;
+                self.allied[y][x] = false;
+                self.declare_war(a, b);
+            }
+            2 => {
+                self.at_war[x][y] = false;
+                self.at_war[y][x] = false;
+                self.allied[x][y] = true;
+                self.allied[y][x] = true;
+            }
+            _ => {
+                self.at_war[x][y] = false;
+                self.at_war[y][x] = false;
+                self.allied[x][y] = false;
+                self.allied[y][x] = false;
+            }
+        }
+    }
+
+    /// `Leader::set_age(n)` on one leader, which is all the `age` cheat
+    /// does — the four epochs stay where they were (`docs/INPUT.md` §11).
+    pub fn set_leader_age(&mut self, who: Player, n: i32) -> Vec<tech::Gained> {
+        let frame = self.frame;
+        let w = who as usize;
+        if w >= self.tech.len() {
+            return Vec::new();
+        }
+        self.tech_tree
+            .set_age(&self.setup, &mut self.tech[w], n, frame)
+    }
+
+    /// `Leader::set_epoch(line, level)` — the `military`, `civic`,
+    /// `commerce` and `science` cheats, and the four `library` spends.
+    pub fn set_leader_epoch(&mut self, who: Player, cat: i32, level: i32) -> Vec<tech::Gained> {
+        let frame = self.frame;
+        let w = who as usize;
+        let Some(line) = tech::Line::of(cat) else {
+            return Vec::new();
+        };
+        if w >= self.tech.len() {
+            return Vec::new();
+        }
+        self.tech_tree
+            .set_epoch(&self.setup, &mut self.tech[w], line, level, frame)
+    }
+
     /// Sets two players at war with each other.
     pub fn declare_war(&mut self, a: Player, b: Player) {
         let changed = !self.at_war[a as usize][b as usize];
@@ -3008,8 +3088,13 @@ impl Sim {
     pub fn tick(&mut self) -> Vec<Tick> {
         let frame = self.frame;
         let mut events = Vec::new();
+        // The staged input's marks, taken before the clear and put back at
+        // the head of the frame's own — `do_frame`'s entry, which is where
+        // the cheat channel spends them (`docs/INPUT.md` §11.1).
+        let staged: Vec<(String, u32)> = self.staged_marks.drain(..).collect();
         if self.trace_phases {
             self.phase_marks.clear();
+            self.phase_marks.extend(staged);
         }
         self.mark("income");
 

@@ -53,6 +53,19 @@ impl Line {
     pub const fn index(self) -> usize {
         self as usize
     }
+
+    /// The category the console's four epoch verbs number: `military` 0,
+    /// `civic` 1, `commerce` 2, `science` 3 (`run_cmd` cases 0x38–0x3b,
+    /// `docs/INPUT.md` §11).
+    pub const fn of(cat: i32) -> Option<Line> {
+        match cat {
+            0 => Some(Line::Military),
+            1 => Some(Line::Civic),
+            2 => Some(Line::Commerce),
+            3 => Some(Line::Science),
+            _ => None,
+        }
+    }
 }
 
 /// How many levels a library line has, and how many ages there are.

@@ -223,10 +223,15 @@ correcting: for a command-issued move `orig` is the click, not −1/−1.
   is counted in the report, so the gap is measured rather than assumed.
 - **`Chat` as a cheat line.** In solo a cheat travels the order stream and is
   therefore *reproducible from the recording* — `cheat add NEW tower` is in
-  run7's stream and it is what created object 2007. Replaying it would need
+  run7's stream and it is what created object 2007. ~~Replaying it would need
   `ConsoleWin::run_cmd`, which is not a simulation mechanic. Until then a
   recording of a cheat-staged run cannot be replayed faithfully, which is an
-  argument for capturing future ground-truth runs without cheats.
+  argument for capturing future ground-truth runs without cheats.~~ Answered
+  by §11 (item 364): a listed set of cheats **is** modelled now, and the
+  rules track stages its ground truth with them on purpose
+  (`docs/DECISIONS.md` entry 41 §3). What §11 does not do is read them back
+  out of a `.rcx` — the golden record's cheats come from the script file, and
+  a `Chat` command in a recording is still counted and skipped.
 - **Multiplayer.** `decode_mp`'s seed-keyed XOR is still unexercised: every
   recording on this machine is single-player and plain
   (`docs/COMMANDS.md` §5).
@@ -280,3 +285,201 @@ tower placed at (1720, 620) landed on tile (16, 160), which is the tile
 The window moves between launches (`docs/ORACLE.md`, "Traps that cost a run
 each"), so the lesson is the one already written down — re-probe rather than
 trust a stored anchor — and the probe takes one cheat line.
+
+## 11. The staged channel, interpreted (2026-09-18, item 364)
+
+`docs/DECISIONS.md` entry 41 §3 **reverses §8's last bullet for the rules
+track**: ~~a recording of a cheat-staged run cannot be replayed faithfully,
+which is an argument for capturing future ground-truth runs without
+cheats~~ — a cheat is now a *modelled input* from a small, listed set, and
+this section is the model. The orders still come from the `.rcx` through
+[`crate::input`]; the cheats come from the `rontrace.cmd` script through
+`crate::golden`, and the two never overlap, because **no console command
+issues an order at all** (`docs/ORACLE.md`, "The channel's vocabulary").
+
+**How this was established.** `ConsoleWin::run_cmd@007d6a70`'s cases read in
+the Ghidra export — `ai` 0xc, `ally`/`peace`/`war` 0x2c–0x2e,
+`human`/`computer` 0x31/0x32, `age` and the four epoch verbs and `library`
+0x37–0x3c, `add`/`insert` 0x4d/0x4e — with `ConsoleWin::parse_who@007e3ad0`,
+`ConsoleWin::parse_coord@007e5390`, `ConsoleWin::parse_type@007e4050` and
+`Objects::init_unit@0065e0c0` for the argument grammar and the spawn.
+`tools/gamelog/console.py table` re-derives the 102-entry command table from
+the install. **Diff-backed**: chapter one staged into the harness and walked
+against its own trace for 900 frames (`crates/rondata/src/diff/golden.rs`).
+
+**Confidence.** High for the four verbs chapter one uses, each of which a
+run confirms. Read-only for `tech`, the epoch verbs, `human`/`computer` and
+the building arm of `add` — implemented, unit-tested, and **not** yet
+exercised by a capture. Everything else in the channel is refused by name.
+
+### 11.1 The script
+
+`<sim-frame> <text>`, `#` a comment anywhere on the line, `!` selecting the
+console-only half of `run_cmd`'s two disjoint switches, lines in file order,
+**a frame below its predecessor's clamped up**. `rontrace.dll` hands each
+line to `ConsoleWin::parse_cmd(·, from_chat, no_mouse = 1)` at
+`Game::do_frame`'s entry, before phase 1 — so a staged draw is the frame's
+*first*, which is what `Script::stage` reproduces by holding the marks
+across `Sim::tick`'s own clear. Item 364 measured the difference: chapter
+one's `add hoplite` spends three `Guy::init_real+0x52` draws, and marked the
+ordinary way they were the frame's first three and invisible to the fold.
+
+The two halves are **disjoint** — 56 console-only cases, 45 chat-reachable —
+so a line on the wrong side reaches a case that is not there. The
+interpreter refuses it rather than running it anyway.
+
+### 11.2 `parse_who`: a bare number is not always a player
+
+`parse_who(arg, default)` computes `param_2 = (default < 0) ? 0 : 1`; a
+`who=` prefix sets it to 1 and is stripped; and the digit arm at the tail is
+reached **only when it is 1** — `if (param_2 == 0) goto <return the
+default>` stands immediately above it. So:
+
+| call site | default | `age 3` reads as |
+|---|---|---|
+| `age`'s first token | `-1` | the **level**, for player 0 |
+| `age`'s token after the level | `console->who` | a **player** |
+| `ally`/`peace`/`war`'s target | `console->who` | a **player** |
+| `add`'s `who=` slot | `-1` | not a player at all |
+
+`age who=1 8` and `age 8 1` both set player 1's eighth age; `age 3` sets
+player 0's third. The original also matches the eight player names, the
+eight colour names and `gaia`; the interpreter says the number.
+
+### 11.3 `parse_coord`: a bare number is a **tile**, and the runbook is wrong
+
+`parse_coord@007e5390` has three arms: a leading `c` (or a bare digit under
+`coord_mode == 3`) is a raw internal coordinate; a leading `t` (or a bare
+digit under `coord_mode == 2`) is **`n × 0xc0 + 0x60`**, a tile centred; and
+anything else is `n × 0x300 + 0x180`, a world cell centred.
+
+**This install takes the tile arm**, and it is measured rather than read:
+run101–run105 staged `add hoplite who=0 4,40` and the dump puts the squad's
+head at `(888, 7800)`, which is `(4 × 192 + 96, 40 × 192 + 96)` plus
+`find_nearby_spot`'s own offset. The world arm would have asked for
+`(3456, 31104)` — eighteen tiles away, on the other side of the map.
+
+That **corrects `docs/ORACLE.md`**'s stored `internal = arg × 768 + half a
+footprint` for the staged channel, and it closes the open question
+`docs/journal/2026-09-18-item-363.md` left ("the coordinate argument did not
+calibrate the way the runbook says"): the runbook records the *world* arm and
+the channel reads the tile one.
+
+### 11.4 `ai off` is one flag with three readers
+
+`run_cmd` case 0xc calls `CommandManager::issue_cheat_ai_toggle`, so the
+cheat travels the order stream and `Game::action_cheat_ai_toggle@005930c0`
+does the whole of the work: `ai_off = !ai_off`, once, in a solo game. Its
+readers in the simulation's own territory are three:
+
+- **`Leader::production_ai@006c1960:15`** bails to the switch's `default`
+  arm — the step machine cleared, and return. It does **not** stop
+  `plan_strategy`'s sweep, so `census`, `check_orphaned_buildings` and
+  `compute_sites` keep their draws; that is why the golden record's frame 0
+  is unchanged by the line and its frame 1 is not.
+- **`Unit::think@005f6e40:205`** opens
+  `if ((leader_flags & 4) != 0 || ai_off != 0)`, whose only unconditional
+  statement is `if ((unit_masks & 0x40000) == 0) goto <return>`. The arms
+  inside are a computer leader's alone, so for a human leader with the cheat
+  on the block is exactly one thing: a unit that is not AI-driven loses the
+  whole tail — `think_fish`, `think_merchant`, `think_scout`, `think_carry`,
+  the army join. **Everything above the line is untouched**, which is what
+  run101–run105 measured as "auto-engage survives AI-off".
+- **`Leader::diplomacy@006bc950`**, which this crate does not model.
+
+The cost of the line, measured on the golden record: with the AI on, frame 1
+is 54 draws — eight `MathUtilFuncSet::rand_int` and thirty-six
+`Leader::produce_building` — and with it off, 12. Frames 0 and 1 of run104
+(the control, the same script with `0 !ai off` deleted) are identical to this
+crate's own, draw for draw.
+
+SEAM: the toggle is a *replicated command*, so the original flips the flag
+when the turn pump walks the package; the interpreter flips it at the line's
+own frame. No capture can separate the two — frame 0 is identical either way.
+
+### 11.5 `add`: a squad is three units, and the count is not a count
+
+`run_cmd` case 0x4d/0x4e reads `[#] typename [who=RED] [x,y]`, where the
+leading count is a count only when it parses as one (`String::number`'s 0
+falls back to 1) and is capped at 300. Then, once per count:
+
+- a **unit** type takes `UnitType::find_nearby_spot(x, y, 0, 0xc00, 0,
+  0x55555555, FILTER_NOT_ME, −1, −1, …)` and then
+  `Objects::init_unit(who, type, spot, −1, −1, −1)`;
+- a **building** type takes `Objects::init_build` and **breaks out of the
+  count loop**, so a leading count places one building, not `num`.
+
+`Objects::init_unit` is itself a loop over `UnitTypeData::uber_size`, each
+pass a whole `Unit::init` with its own `Guy::init_real` draw, the units
+threaded `o_down`/`o_up` — which the dump prints as `down`/`up`, and
+run101–run105's three hoplites read `6 → 7 → 8` exactly so. So one `add
+hoplite` line is **three units**, and `docs/ORACLE.md`'s "the leading count
+is not a count" is the same fact seen from outside.
+
+`parse_type` underscores-to-spaces the token and then walks the unit table
+before the building table, asking `String::ignore` and retrying against the
+name with its spaces purged. It is a **prefix** match, not an equality:
+`add hoplite` names the type whose name is `Hoplites`.
+
+SEAM: the original seats the squad's members with `find_nearby_spot` around
+the captain before `init_unit` returns; [`sim::Sim::init_unit`] leaves them
+on the captain's point until a formation or `come_out` moves them. The search
+takes no draw, so the stream does not know the difference — but the
+*positions* do, and the golden dump has the answer for chapter one:
+`(888, 7800)`, `(1032, 7800)`, `(936, 7944)`.
+
+### 11.6 `ally`/`peace`/`war`, and the bare form that does nothing
+
+Cases 0x2c–0x2e are one body. With **no further token** it prints the
+diplomacy table and changes nothing; with `all` it calls
+`Leader::set_diplo(console->who, ·, level)` on every other live leader; with
+a target it calls it once. The level is `ally` 2, `peace` 1, `war` 0.
+
+**Chapter one's `604 war` is the bare form**, so it is a no-op — and the two
+players were already at war from the lobby (`docs/ARMY.md` §16.3: "a Quick
+Battle already starts at war"). The squads engage on the frame they are born
+because of that, not because of the line.
+
+### 11.7 What the golden record's harness must refuse
+
+The golden record's `GAMEINFO` is **byte-identical to run11's** — map 14,
+seed 12345, size 2, every one of the 34 option fields — and its setup
+checksum word is the same `0x3bd39ae9`, because the script's first line runs
+at frame 0's `do_frame` entry, *after* `Game::init`. Two consequences:
+
+- The **setup** is genuinely shared, so `borrow_from_siblings` handing the
+  golden capture run11's checksum trace is right, and it is what seeds the
+  stream entering frame 0. `the_golden_record_s_setup_is_run11_s` checks the
+  borrowed word against the run's own trace rather than assuming it.
+- The **frames** are not shared, and nothing in the borrow can tell:
+  `frame_seeds`/`frame_guys` would hand the staged run fourteen of run12 and
+  run13's per-frame words, which `Built::tick` then *installs*. The caller
+  refuses them by hand. Item 364's first measurement was an artefact of
+  exactly that — a "word" of 7 that was the correction, not the simulation.
+
+No pinned number rests on it: five Great Lakes captures take the same
+fourteen and run53's word is 9182 either way
+(`refusing_the_borrowed_frame_stream_does_not_move_great_lakes_word`); East
+Indies' setup word is `793793043` and it takes none.
+
+### 11.8 What is not established
+
+- **The residue at the word.** Chapter one's golden word is **617** and one
+  draw stands in the way: `Guy::set_anim@005da300+0xf2f`, the variant roll
+  `set_anim` takes when the animation is `0xc` and a variant is asked for —
+  the attack animation, on the frame the auto-engaged squads first swing.
+  This crate does not spend it. The value diff parts one frame later, at
+  618.
+- **Seven verbs are parsed and not applied.** `die`, `damage`, `craft`,
+  `move`, `resource`, `finish`, `hurry` — each is refused by name and
+  counted, never silently dropped. `move` in particular is a *teleport*
+  (`Unit::find_nearby_spot` then `Unit::set_new_location`), not an order.
+- **The building arm of `add` is unexercised.** No chapter places one yet.
+- **`coord_mode` is inferred from behaviour, not read.** `ConsoleWin::init`
+  takes it from a preference whose default the decompile prints as 0, and
+  the tile arm is what the run does. Which preference key, and whether a
+  fresh profile would read differently, is unsettled — so a chapter that
+  needs an exact point should say `c<internal>` and not rely on the mode.
+- **`parse_type`'s match is a prefix here** on the strength of one
+  observation (`hoplite` → `Hoplites`) plus `parse_who`'s shape. The
+  `String::ignore` third argument was not resolved in the decompile.
