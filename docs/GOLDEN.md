@@ -355,10 +355,11 @@ and `deploy`, call `Unit::clear_orders` and then `SpellType::cast_pack@00670be0`
 which is a state poke and not an order, and `anim` reaches
 `Guy::set_anim@005da300` directly.
 
-**That is a correction to `docs/ORACLE.md`**, whose "The channel's
-vocabulary" section says "No console command issues an order at all", and to
-`docs/INPUT.md` §11, which restates it. Neither is amended here — this
-document is not theirs to edit — and the correction is one line each.
+**That was a correction to `docs/ORACLE.md`**, whose "The channel's
+vocabulary" section said "No console command issues an order at all", to the
+same document's "unreachable from the channel by construction", and to
+`docs/INPUT.md` §11, which restated it. All three are amended in place as of
+item 365, and chapter one's own header with them.
 
 **Lines** (`chapter6.cmd`): `!ai off` at 0; `library who=0 6` and
 `library who=1 6` at 600 and 602, the Modern age, where the Fighter and the

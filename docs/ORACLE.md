@@ -1539,8 +1539,10 @@ lets a `x,y` token override it through `parse_coord`, and then calls
 `Unit::find_nearby_spot` followed by `Unit::set_new_location@005f8d20` —
 which is `Object::remove_from_world` and `Object::add_to_world` at the new
 coordinate, with `Guy::set_new_location` for each figure. Nothing touches an
-order list. **No console command issues an order at all**: the chat half is
-a set of state pokes. This closes the open question from run17 ("whether
+order list. ~~**No console command issues an order at all**~~ — **exactly
+one does**: `bird`, table case 82, calls
+`Unit::add_air_patrol_order@005e4350` (2026-09-19, item 365; `docs/GOLDEN.md`
+§13). Otherwise the chat half is a set of state pokes. This closes the open question from run17 ("whether
 `move`'s coordinate arm reads the mouse tile the channel does not supply")
 in the other direction than it was asked — the command ran and did what it
 does, which is not what an order does. Two details from the same case worth
@@ -1553,7 +1555,8 @@ the channel skips), and the destination defaults to the stale
 The consequence for coverage is the one that matters: every
 `Unit::add_*_order`, `Unit::do_*`, `Group::action_*` and
 `CommandPackage::process_*` on the blind list is **unreachable from the
-channel by construction**. Those need the real order stream, which is the
+channel by construction** — ~~every one~~ **every one but
+`Unit::add_air_patrol_order@005e4350`, which case 82 reaches** (item 365). Those need the real order stream, which is the
 UI — run31's three right-clicks are the only thing that has ever entered
 `CommandPackage::process_move_to`. A scenario file stages the world; only a
 click or a hotkey orders it.

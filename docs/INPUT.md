@@ -294,8 +294,11 @@ which is an argument for capturing future ground-truth runs without
 cheats~~ — a cheat is now a *modelled input* from a small, listed set, and
 this section is the model. The orders still come from the `.rcx` through
 [`crate::input`]; the cheats come from the `rontrace.cmd` script through
-`crate::golden`, and the two never overlap, because **no console command
-issues an order at all** (`docs/ORACLE.md`, "The channel's vocabulary").
+`crate::golden`, and the two never overlap, because ~~no console command
+issues an order at all~~ **exactly one console command issues an order —
+`bird`, table case 82, calling `Unit::add_air_patrol_order@005e4350`, and no
+chapter of the record uses it for anything else** (`docs/ORACLE.md`, "The
+channel's vocabulary"; `docs/GOLDEN.md` §13, item 365).
 
 **How this was established.** `ConsoleWin::run_cmd@007d6a70`'s cases read in
 the Ghidra export — `ai` 0xc, `ally`/`peace`/`war` 0x2c–0x2e,
