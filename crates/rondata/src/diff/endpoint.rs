@@ -714,8 +714,18 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // says so at `0x6520fc`, and the original's own 9451 spends it
         // twice. A row that moves the wrong way on a change the oracle
         // requires is the number, not an argument against the change.
-        off: 58,
-        unlinked: 12,
+        //
+        // **Pinned at the 392/394 merge, and by neither branch's numbers.**
+        // 394 measured 43 → 58 and 13 → 12 against its base, and item 392's
+        // `Unit::find_melee_pos` (§19) leaves this row alone on its own
+        // branch; the merged tree prints **off 57, unlinked 10,
+        // build_diverged 10** — one position closer than 394 alone and two
+        // fewer of the roster unlinked. Two independent landings compose,
+        // so the figure is what the merged code prints, and a merge is not
+        // the place to adjudicate a floor (the same rule the 289/290 and
+        // 294/295 merges set above).
+        off: 57,
+        unlinked: 10,
         extra: 0,
         build_unlinked: 0,
         build_diverged: 10,
