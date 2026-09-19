@@ -16,11 +16,11 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 363 gave the rules track its first staged run, its three answers and the
 held-out map's verdict; 362 was booked as the market and was not.*
 
-- **The rules track has a record.** `!ai off`, six `add` squads, 901
-  frames: auto-engage survives AI-off (the control with the line deleted
-  differs on 899 of 901 from frame 2), two launches are one game, a
-  late-age dump parses, run101/103/105 agree at three detail levels —
-  **41 §2 measured**. 341 closes; `viadriver.sh` always (ORACLE).
+- **The rules track has a WORD**: chapter one pins at **617**, value diff
+  at 618. Three numbers on the way, each a thing the interpreter had to
+  model — **1** with nothing staged (the original's frame 1 is 12 draws,
+  ours 54, all Leader AI), **610** with `ai off`, **617** with `add`. What
+  stands is one named draw (379). `docs/INPUT.md` §11; §8 struck through.
 - **Three items, one frame, no word.** 9182 survived 358, 362 and 368;
   each named a mechanism, none was the cause (377). Landed instead:
   `MakeObject.num` (every civilian a batch of one) and `census_territory`'s
@@ -37,11 +37,11 @@ held-out map's verdict; 362 was booked as the market and was not.*
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w9711 of 24,000 · GreatLakes w9182 of 24,000
-Golden: none pinned · 364 → 365
+Golden: w617 of 901 · chapter one pinned · 379 next
 Endpoint 24001: EastIndies 64 off, 5 unlinked · GreatLakes 50 off, 9 unlinked
 
-**Opener: 369 decides which branch 9182 is on — the capture §43 names —
-and 365 writes the script beside it. 364 is in flight.**
+**Opener: 379 on the golden record's own frame — one named `set_anim`
+draw — and 369 beside it, the capture that decides which branch 9182 is on.**
 
 ## The queue
 
@@ -60,20 +60,22 @@ the backlog is `docs/PARKED.md`, and an item returns only when a score names it.
     three items running named one, none was the cause (377); the frame
     and the draw delta held every time.
 
-364. **Replay 363's script in the harness and pin chapter one** (takes
-    363, which landed): an interpreter for the record's cheat set and the
-    command dispatch of `docs/COMMANDS.md` §3 onto the sim's entry points
-    — `add_unit`, `add_building`, `gain_tech`, `set_age`, the diplomacy
-    state — the orders from the `.rcx`, the cheats from the script. Names
-    the golden word; its first pin rewrites `Golden:`, which the guard reads.
-    Read `docs/RUNS.md` run101–run105 first: it leaves four facts 364 needs,
-    including that `age` leaves all four epochs Ancient (a chapter wants `library`).
+379. **The golden record's word is one draw, and it is named**
+    (the rules headline's frame): `Guy::set_anim@005da300+0xf2f`, the
+    variant roll `set_anim` takes when the animation is `0xc` and a
+    variant is asked for — the attack animation, on the frame the
+    auto-engaged squads first swing. This crate does not spend it. An
+    **animation** item, not a combat one. Chapter one is pinned at 617
+    with the value diff parting at 618; `docs/INPUT.md` §11 is the spec.
 
 365. **`docs/GOLDEN.md`, the script itself** (a reading and a design, Opus):
     chapters from `docs/CENSUS.md`'s order family and `docs/COMMANDS.md`
     §3 — every order class, each unit line, an age jump between chapters,
     the Temple chapter for attrition, a war — each chapter naming the
-    records that would falsify it. Written before 364's second chapter.
+    records that would falsify it. **Two constraints from 364**: the bare
+    `war` form is a no-op (it prints the diplomacy table; chapter one's
+    squads engage because a Quick Battle already starts at war), and `age`
+    leaves all four epochs Ancient, so a late-age chapter wants `library`.
 
 370. **Type the ladder's twenty-five extras** (names rung C's pinned
     `extra` floor, 13→25 under 362's batch fix; rung B +13 the same way,

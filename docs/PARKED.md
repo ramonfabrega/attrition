@@ -549,6 +549,12 @@ Carried with it: the original runs a **full census for its human leader**
 so `census_strategy`'s `weaker` test reads the opponent's `attack` as
 nought even once the gate is fixed. That is the part to build first.
 
+(380) **A bare coordinate on the staged channel is a TILE**, `n × 0xc0 +
+0x60` — measured by item 364, not read: `add hoplite who=0 4,40` put the
+squad head at `(888, 7800)`. `docs/ORACLE.md`'s stored `arg × 768 + half a
+footprint` is corrected for the staged channel, and 363's open "the
+coordinate argument did not calibrate the way the runbook says" closes.
+
 ## Measured residues, none near a word
 
 (371) **`market_speculation`'s two passes fire nowhere below the word.**
