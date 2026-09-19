@@ -724,8 +724,29 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // so the figure is what the merged code prints, and a merge is not
         // the place to adjudicate a floor (the same rule the 289/290 and
         // 294/295 merges set above).
+        //
+        // Then **10 → 9 unlinked, `off` and `build_diverged` unmoved** on
+        // 2026-09-19, item 395 — the captain mirror (`docs/COMBAT.md` §21),
+        // which moves the *rules* headline's word 619 → 624 and neither
+        // long capture's. It is the widest behavioural change this row has
+        // taken: every squad member in the game stops searching for a
+        // target and stops running the rest of `Unit::think` —
+        // `think_peasant`, `think_caravan`, `think_fish`, the army joins —
+        // because the original's `Unit::think` returns after the mirror.
+        //
+        // **And the two figures are a lesson in not reconciling by hand.**
+        // On its own branch, whose base read `off 43, unlinked 13,
+        // build_diverged 9`, item 395 measured **43 → 53, 13 → 14 and
+        // 9 → 10** and reported the row as having got worse. On the merged
+        // tree it is one of the roster *linked* and nothing else: 394's
+        // first wound had already carried `off` and `build_diverged` to
+        // 57/10 by itself, and the mirror composes with it rather than
+        // adding to it. Neither branch's number is this row's, which is the
+        // 289/290 and 294/295 rule again, and a worker's figure measured
+        // against a base that has since moved is evidence about that base
+        // and not about this tree.
         off: 57,
-        unlinked: 10,
+        unlinked: 9,
         extra: 0,
         build_unlinked: 0,
         build_diverged: 10,
