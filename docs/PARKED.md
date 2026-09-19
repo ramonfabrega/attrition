@@ -72,6 +72,28 @@ delta**, with any named mechanism marked as the previous item's
 hypothesis rather than as the subject. The queue's own item-title
 convention is the pass's to change.
 
+(398) **The endpoint guard makes a worker choose between a red gate and
+a rule.** `the_handoff_s_endpoint_is_the_pinned_counts` compares
+`ENDPOINTS` against `docs/QUEUE.md`'s `Endpoint 24001:` line, so any item
+that moves the endpoint fails its own gate unless the worker edits the
+queue — which `CLAUDE.md` and the queue's own rules forbid. Both answers
+have now happened in one day: item 362 landed red and named the line for
+the commander (correct, and closed on the merge), and item 395 edited the
+one line (understandable, and it conflicted on the merge). The same shape
+sits behind `the_handoff_s_scoreboard_is_the_floors`.
+
+It is a real coupling, not a nuisance: the guard exists so the handoff
+cannot drift from the floors, and that is worth keeping. The fix is to
+let a worker satisfy it without touching the commander's file —
+candidates: the guard reads `ENDPOINTS` alone and a separate
+commander-only test compares it with the line; an env or marker that
+makes the queue-facing half advisory inside a worktree; or the line moves
+out of `QUEUE.md` into a generated file the handoff quotes. **And the
+merged figure is never either branch's** — 394 measured 58/12 alone and
+57/10 merged; 395 measured 53/14 against a base of 43 — so whatever
+replaces it must be measured on the merge, which is the commander's tree.
+The pass's.
+
 (397) **Two lanes append to one document's tail and collide on the
 section number.** First realised cost 2026-09-19: items 392 and 394 both
 landed a `docs/COMBAT.md` **§19** — the ring and the first wound — and the
