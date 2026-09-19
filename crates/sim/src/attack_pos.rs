@@ -19,9 +19,14 @@
 //! minimum-range asker standing inside its own dead zone. Each is named
 //! where it is skipped.
 
+use crate::collide::{UCELLS_PER_CELL, UNITS_PER_UCELL};
+
+/// Quarter-tiles to a tile — the `>> 2` `find_open_slots` applies before
+/// asking `invalid_loc` (`600f47`, `600f5e`).
+const UCELLS_PER_UTILE: i32 = 4;
 use crate::combat::Obj;
 use crate::movement::{Angle, cos_component, sin_component};
-use crate::orders::{index, snapped};
+use crate::orders::{Order, index, snapped};
 use crate::world::{Pos, tile, vector_dist};
 
 /// The initial budget, `[ebp-0x20]` at `601e20` — a hundred iterations
@@ -106,10 +111,16 @@ impl crate::Sim {
             if p.max_range == 0 {
                 // `role & 0x400` clear is exactly `max_range == 0`
                 // (`UnitType::determine_roles@0061c320:58`-`60`), so a
-                // melee asker stands a quarter-tile off the face. The
-                // `find_melee_pos` arm beyond it needs a **unit** target
-                // that is not moving, so a building never reaches it.
+                // melee asker stands a quarter-tile off the face — and
+                // **only then**, if the target is a unit and is not
+                // moving, the whole call is `find_melee_pos` and a
+                // return (`6017a1`-`6017f4`, §17.6).
                 stand = 0x30;
+                if let Obj::Unit(t) = target
+                    && !self.is_moving(t)
+                {
+                    return self.find_melee_pos(u, t, self.units[u].pos);
+                }
             } else if d < p.min_range * 0xc0 - 6 && !bombard {
                 // SEAM (`6014f1`): the asker is inside its own dead zone
                 // and `project`s the approach point away from the target
@@ -138,9 +149,10 @@ impl crate::Sim {
         }
 
         let Obj::Building(_) = target else {
-            // SEAM: a unit target takes `00601280`'s other half — the
-            // flanking chase and `UnitType::find_nearby_spot` — which is
-            // not modelled. The caller keeps its straight-line approach.
+            // SEAM: a unit target that is *moving*, or a ranged asker's
+            // unit target, takes `00601280`'s other half — the flanking
+            // chase and `UnitType::find_nearby_spot` — which is not
+            // modelled. The caller keeps its straight-line approach.
             return None;
         };
 
@@ -151,6 +163,118 @@ impl crate::Sim {
         }
 
         self.ring_walk(u, target, from, stand, site)
+    }
+
+    /// `UnitData::is_moving@00610af0` — the **head** order's virtual
+    /// `+0x14`, which is `Order::is_move`: true for the seven classes
+    /// derived from `MoveOrder` and false for everything else
+    /// (`vtables.txt`, where the slot COMDAT-folds onto the two return
+    /// constants and `MoveOrder::is_move` is the surviving name).
+    pub(crate) fn is_moving(&self, u: usize) -> bool {
+        self.units[u].orders.front().is_some_and(Order::is_move)
+    }
+
+    /// `Unit::find_melee_pos@006010b0` — where a **melee** asker stands to
+    /// hit a unit that is not moving (`docs/COMBAT.md` §19).
+    ///
+    /// The whole function is [`Self::find_open_slots`] and a minimum: the
+    /// open slot nearest `from` by `vector_dist`, ties to the earlier one
+    /// in ring order (`6011f5`'s `jle` keeps the incumbent). `None` is the
+    /// original's `return 0`, on which `find_attack_pos` writes the
+    /// target's own position into its out-parameters and returns 0 too —
+    /// which is what every caller falls back to anyway.
+    fn find_melee_pos(&mut self, u: usize, t: usize, from: Pos) -> Option<Pos> {
+        let slots = self.find_open_slots(u, t);
+        if slots.is_empty() {
+            // SEAM (`601178`-`6011a3`): the target's `UnitData::full`
+            // (`+0xac`) takes `+5`, capped at `0x1e` — the "nobody can
+            // get at this one" counter. Nothing in this crate keeps
+            // `full`, and nothing here reads it.
+            return None;
+        }
+        let mut best = slots[0];
+        let mut best_d = 99_999_999;
+        for s in slots {
+            let d = vector_dist(s.x - from.x, s.y - from.y);
+            if d < best_d {
+                best_d = d;
+                best = s;
+            }
+        }
+        Some(best)
+    }
+
+    /// `Unit::find_open_slots@00600e30` — the square ring of quarter-tile
+    /// centres around a unit target that nothing occupies.
+    ///
+    /// The ring is axis-aligned and walked once anticlockwise from its
+    /// **south-west** corner `(cx − r, cy + r)`, one direction per side
+    /// out of `orthog_x@00add250` / `orthog_y@00add210` indices 1..4 —
+    /// `(0, −1)`, `(1, 0)`, `(0, 1)`, `(−1, 0)` — a `step` of
+    /// `2 × asker.coll_size + 1` quarter-tiles at a time, the corner
+    /// clamped back onto the band each time a coordinate overshoots.
+    ///
+    /// `r` is `asker.coll_size + target.coll_size` plus **four** when the
+    /// asker `is(HOPLITES)` and **one** when it does not (`600e94`'s
+    /// devirtualised `ObjectData::is(0x84, 0)`, `600eaa`/`600ebc`).
+    /// `coll_size` is the type's `+0x248`, `BLOCK_RADIUS` before its
+    /// `× 48`.
+    ///
+    /// Each candidate is snapped to the quarter-tile centre and tested by
+    /// four predicates in order — the map bounds, `UnitData::invalid_loc`
+    /// (with `param_3` **clear**, unlike §17.4's ring), `find_collision`
+    /// and `find_ordered_collision`. There is **no draw**: the whole
+    /// function is deterministic, which is why a melee chase costs the
+    /// frame nothing.
+    fn find_open_slots(&mut self, u: usize, t: usize) -> Vec<Pos> {
+        /// `orthog_x@00add250[1..=4]` and `orthog_y@00add210[1..=4]`, the
+        /// four sides in the order the walk takes them.
+        const DIRS: [(i32, i32); 4] = [(0, -1), (1, 0), (0, 1), (-1, 0)];
+        let me = Obj::Unit(u);
+        let mine = self.coll_size(u);
+        let step = mine * 2 + 1;
+        let spread = if self.profile(me).hoplites { 4 } else { 1 };
+        let r = mine + self.coll_size(t) + spread;
+        let c = crate::collide::ucell(self.units[t].pos);
+        let (cx, cy) = (c.x, c.y);
+        let (mut x, mut y) = (cx - r, cy + r);
+        let (w, h) = (
+            self.world.width() * UCELLS_PER_CELL,
+            self.world.height() * UCELLS_PER_CELL,
+        );
+        let mut side = 0usize;
+        let mut out = Vec::new();
+        loop {
+            if x >= 0 && y >= 0 && x < w && y < h {
+                let at = Pos::new(
+                    x * UNITS_PER_UCELL + UNITS_PER_UCELL / 2,
+                    y * UNITS_PER_UCELL + UNITS_PER_UCELL / 2,
+                );
+                let tl = Pos::new(x / UCELLS_PER_UTILE, y / UCELLS_PER_UTILE);
+                if self.invalid_loc(u, tl, false, false, false, false, true) == 0
+                    && !self.find_collision(u, at)
+                    && !self.find_ordered_collision(u, at)
+                {
+                    out.push(at);
+                }
+            }
+            x += DIRS[side].0 * step;
+            y += DIRS[side].1 * step;
+            let over_x = (x - cx).abs() > r;
+            if over_x {
+                x = if x > cx { cx + r } else { cx - r };
+            } else if (y - cy).abs() > r {
+                y = if y > cy { cy + r } else { cy - r };
+            } else {
+                continue;
+            }
+            side += 1;
+            if side >= DIRS.len() {
+                return out;
+            }
+            x += DIRS[side].0 * step;
+            y += DIRS[side].1 * step;
+        }
     }
 
     /// §17.2 and §17.4: the ring around a building's footprint.
@@ -479,6 +603,141 @@ mod tests {
             crate::Sim::side_base(5, t, xs, ys, d, 0),
             Pos::new(t.x + xs, t.y + ys)
         );
+    }
+
+    /// **The golden record's own melee chase** (§19): chapter one's
+    /// `0/6`, ordered onto `1/6` at the end of frame 616, asks where to
+    /// stand on 617 and the original's dump answers `(1080, 8280)` —
+    /// `orders_x`/`orders_y` at block 618, with the five-node path stack
+    /// beneath it.
+    ///
+    /// Every number here is the golden dump's: the six positions at block
+    /// 617, and the three `orders_x`/`orders_y` that decide the ring's
+    /// rejections — `0/7` seated on its own point, `1/7` walking to
+    /// `(1320, 7800)` and `1/8` to `(1176, 8088)`, all three from the
+    /// original's own block 617 (`docs/RUNS.md` run101–run105).
+    ///
+    /// **It is the rejections that make the answer, not the distance.**
+    /// `(1080, 8280)` is the *farthest* of the ring's four corners from
+    /// the asker; six nearer candidates beat it on `vector_dist` and every
+    /// one of them is inside two unit cells of an ordered destination.
+    /// Made to fail on purpose by seating `1/7` and `1/8` on their own
+    /// points instead of their ordered ones — the call then answers
+    /// `(1080, 7992)`, two rows up the same column.
+    #[test]
+    fn chapter_one_s_melee_chase_stands_where_the_golden_dump_puts_it() {
+        use crate::combat::Profile;
+        use crate::world::World;
+        let mut sim = crate::Sim::new(crate::tuning::Tuning::RON, World::new(60, 60), 2);
+        sim.at_war[0][1] = true;
+        sim.at_war[1][0] = true;
+        // HOPLITES as the data loads it: `BLOCK_RADIUS 1` (so `+0x248` is
+        // 1 and the ring's step is 3), melee, and in its own lineage.
+        let ty = sim.add_unit_type(crate::UnitType {
+            hits: 120,
+            combat: Profile {
+                attack: 15,
+                uber_size: 1,
+                block_radius: 48,
+                big_radius: 48,
+                combat_role: true,
+                hoplites: true,
+                ..Profile::default()
+            },
+            ..crate::UnitType::default()
+        });
+        let put = |sim: &mut crate::Sim, who: crate::Player, p: Pos| {
+            let index = i16::try_from(sim.units.len()).unwrap();
+            let mut u = crate::Unit::new(who, index, p, 120);
+            u.ty = Some(ty);
+            u.on_map = true;
+            sim.add_unit(u)
+        };
+        // Block 617's `x_internal`/`y_internal`, in the dump's own order.
+        let a6 = put(&mut sim, 0, Pos::new(888, 7800));
+        let a7 = put(&mut sim, 0, Pos::new(1032, 7800));
+        let a8 = put(&mut sim, 0, Pos::new(936, 7944));
+        let b6 = put(&mut sim, 1, Pos::new(1368, 7992));
+        let b7 = put(&mut sim, 1, Pos::new(1491, 7973));
+        let b8 = put(&mut sim, 1, Pos::new(1388, 8131));
+        // And block 617's `orders_x`/`orders_y`.
+        sim.units[a6].orders_pos = Pos::new(888, 7800);
+        sim.units[a7].orders_pos = Pos::new(1032, 7800);
+        sim.units[a8].orders_pos = Pos::new(936, 7944);
+        sim.units[b6].orders_pos = Pos::new(1368, 7992);
+        sim.units[b7].orders_pos = Pos::new(1320, 7800);
+        sim.units[b8].orders_pos = Pos::new(1176, 8088);
+        let from = sim.units[a6].pos;
+        assert_eq!(
+            sim.find_attack_pos(a6, Obj::Unit(b6), from, crate::fight::SITE_ATTACK_POS_FIGHT),
+            Some(Pos::new(1080, 8280)),
+            "the golden dump's own `orders_x`/`orders_y` for `0/6` at block 618"
+        );
+    }
+
+    /// The ring itself, read back as the seventeen quarter-tile centres
+    /// `find_open_slots` walks — the south-west corner first, then north
+    /// up the west side, east along the north, south down the east and
+    /// west along the south, closing on the corner it started from.
+    ///
+    /// Made to fail on purpose by walking the ring the other way round —
+    /// the wrap is not symmetric, and the reversed table answers thirteen
+    /// slots along the south, east and north sides and never the west.
+    #[test]
+    fn the_open_slot_ring_walks_four_sides_and_closes() {
+        use crate::combat::Profile;
+        use crate::world::World;
+        let mut sim = crate::Sim::new(crate::tuning::Tuning::RON, World::new(60, 60), 2);
+        let ty = sim.add_unit_type(crate::UnitType {
+            hits: 120,
+            combat: Profile {
+                uber_size: 1,
+                block_radius: 48,
+                big_radius: 48,
+                hoplites: true,
+                ..Profile::default()
+            },
+            ..crate::UnitType::default()
+        });
+        let put = |sim: &mut crate::Sim, who: crate::Player, p: Pos| {
+            let index = i16::try_from(sim.units.len()).unwrap();
+            let mut u = crate::Unit::new(who, index, p, 120);
+            u.ty = Some(ty);
+            u.on_map = true;
+            sim.add_unit(u)
+        };
+        // The asker stands far away so nothing it carries rejects a slot.
+        let asker = put(&mut sim, 0, Pos::new(20_000, 20_000));
+        let target = put(&mut sim, 1, Pos::new(1368, 7992));
+        sim.units[asker].orders_pos = sim.units[asker].pos;
+        sim.units[target].orders_pos = sim.units[target].pos;
+        let got = sim.find_open_slots(asker, target);
+        let cell = |x: i32, y: i32| Pos::new(x * 0x30 + 0x18, y * 0x30 + 0x18);
+        // `1/6` sits in unit cell (28, 166); `r` is 1 + 1 + 4 and the step
+        // is 2 × 1 + 1.
+        let want: Vec<Pos> = [
+            (22, 172),
+            (22, 169),
+            (22, 166),
+            (22, 163),
+            (22, 160),
+            (25, 160),
+            (28, 160),
+            (31, 160),
+            (34, 160),
+            (34, 163),
+            (34, 166),
+            (34, 169),
+            (34, 172),
+            (31, 172),
+            (28, 172),
+            (25, 172),
+            (22, 172),
+        ]
+        .iter()
+        .map(|&(x, y)| cell(x, y))
+        .collect();
+        assert_eq!(got, want, "the ring, corner to corner and back");
     }
 
     /// `wrap_side` closes the ring both ways — arm 0 only decrements and

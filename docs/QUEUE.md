@@ -12,9 +12,9 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-18/19, two lanes all day, twelve landings. **Great Lakes 9182 →
-9451 (+269), golden 617 → 618** — both words moved. Nine booked mechanisms
-were wrong, the frames right every time.*
+*2026-09-18/19, two lanes all day, thirteen landings. **Great Lakes 9182 →
+9451 (+269), golden 617 → 619** — both words moved, repeatedly. Ten booked
+mechanisms were wrong; the frame was right every time.*
 
 - **An arrow is launched by the attack ANIMATION's event track**, not by
   `Unit::fight` (389, `docs/COMBAT.md` §9.0) — a **data** coupling, not a
@@ -22,14 +22,14 @@ were wrong, the frames right every time.*
   measured not chosen: every product lands at remainder 198/199 of 200, so
   truncation is 4/4 against run53 and rounding 0/4. 9415 → 9451. **394.**
 - **The met bit is set by the fog** (385) closed a chain six items long
-  and moved the word 9182 → 9415: `MAKE[0].val` → `MAKE[0].t` →
-  `use_market`'s `need`, `active_wars` behind `treaties[i] & 1`.
-- **The golden word moves 617 → 618** (391): `Unit::target_opportunity`
-  walks `o_up` to the victim's **captain**, and the ARMY — never the
-  group — walks a struck unit off its seat. 615–617 are the original's;
-  **392** has 618. `0xf6` uncoded since the second reading (356) and
-  `in_range` inverted were one constant at two sites; §18's unproven ~84
-  extent was **refused on measurement**, so keeping the fit out was right.
+  and moved the word 9182 → 9415: `MAKE[0].val` → `MAKE[0].t` → `need`,
+  `active_wars` behind `treaties[i] & 1`.
+- **The golden word moves 617 → 619** (391, 392). The ARMY — never the
+  group — walks a struck unit off its seat; §17's ring is never in the
+  frame. The **listing gave back three things Ghidra lost**: the radius's
+  `+4` is conditional on HOPLITES, `vector_dist` measures from the asker,
+  `orthog_x`/`orthog_y` 1..4 read out of the PE. `find_ordered_collision`
+  rejects the six candidates nearer than the dump's own. **395.**
 - **The namesake has never fired in a scored capture** (382): zero
   non-exempt attrition outcomes over 24,000 frames — the Temple chapter is
   the only route. **The held-out map answers 1 tick, 0 orders** (run106),
@@ -37,11 +37,11 @@ were wrong, the frames right every time.*
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w9711 of 24,000 · GreatLakes w9451 of 24,000
-Golden: w618 of 901 · chapter one pinned · 392 next
+Golden: w619 of 901 · chapter one pinned · 395 next
 Endpoint 24001: EastIndies 64 off, 5 unlinked · GreatLakes 43 off, 13 unlinked
 
-**Opener: 394 on the word's new frame — the first arrow landing at 9451,
-which no document explains — beside 392, in flight on the golden 618.**
+**Opener: 395 on the golden record's frame — the squad handed its
+captain's target — beside 394, in flight on the AI word's 9451.**
 
 ## The queue
 
@@ -66,12 +66,14 @@ the backlog is `docs/PARKED.md`, and an item returns only when a score names it.
     mechanism 385 just landed. Assert the block count against the window
     asked for — run97's truncation is why (373).
 
-392. **§17's ring is what stands at 618** (the rules headline's frame,
-    where 391 just moved the word): one draw, `0/6`'s second
-    `Unit::fight+0x9b0`. The original spends 617 in `docs/COMBAT.md` §17's
-    ring — `find_attack_pos` → (1080,8280) — and walks a five-node chase
-    from 618; ours answers nothing, falls back to the target's own point
-    and loses the move inside the frame.
+395. **`Group::target_opportunity` hands the squad its captain's target**
+    (the rules headline's frame; `docs/GROUPS.md` §13): cooldown 15
+    frames, captains only, and `think_attack`'s tail has **no
+    `add_attack_order` at all**. What stands at 619 is one destination —
+    `Guy::set_anim+0xf2f < Guy::move+0x166`, paid on 621 because `0/6`
+    chases to (1224,7704). Two of 392's six ring rejections hang on
+    `1/7`'s ordered point, and this crate's `1/7` searches and finds `0/6`
+    where the original's squad is handed the captain's `0/7`.
 
 365. **`docs/GOLDEN.md`, the script itself** (a reading and a design, Opus):
     chapters from `docs/CENSUS.md`'s order family and `docs/COMMANDS.md`

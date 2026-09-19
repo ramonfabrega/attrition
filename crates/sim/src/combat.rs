@@ -230,6 +230,12 @@ pub struct Profile {
     pub big_radius: i32,
     /// `role & 0x10000` — a combat unit, for the target ranking and `on_duty`.
     pub combat_role: bool,
+    /// `is(HOPLITES)` — the heavy-infantry lineage, precomputed the way
+    /// [`crate::UnitType::archer`] is. One reader:
+    /// `Unit::find_open_slots@00600e30` spreads its ring by four
+    /// quarter-tiles for a type in this line and by one for every other
+    /// (`600e94`'s devirtualised `ObjectData::is(0x84, 0)`).
+    pub hoplites: bool,
     /// `Type::sum_rules_cost` — what the type costs, summed, for the target
     /// ranking (§12.3).
     pub cost: i32,
