@@ -12,7 +12,7 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-18/19, two lanes all day, eighteen landings. **Great Lakes 9182 →
+*2026-09-18/19, two lanes all day, seventeen landings. **Great Lakes 9182 →
 9510 (+328), golden 617 → 619** — both words moved, repeatedly. Twelve booked
 mechanisms were wrong; the frame was right every time.*
 
