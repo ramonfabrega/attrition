@@ -4052,3 +4052,131 @@ comparison rests on.
 
 `compare_target` and `find_nearby_target` are entered once each in the window
 and `attack_dist` 8 times, so the whole answer is 35 lines.
+
+## The launch point (run109, 2026-09-19) — where an arrow actually starts
+
+Item 396's capture, and the one `docs/COMBAT.md` §20.3 named. **Numbered 109
+because 108 was already taken** by item 386's call-proxy capture above, which
+runs through `tools/explore/golden_capture.sh` and so leaves no stanza in
+`captures.txt` for the next booking to trip over; nothing was overwritten —
+that lane writes under `~/ron-golden/`, this one into the bottle's `Logs`.
+
+**What it is.** `AMMO=5` under `[End Frame]` over `[9420, 9480)` on run100's
+Great Lakes game, everything else run100's detail exactly, so the overlap check
+needs one `--exclude` and no `--drop`. **60 blocks, 9420..9479, no gap; 39 MB;
+about three minutes.** Every check passed: identity against run53 (9,496
+identical, 0 differing), `MAP_STYLE 14`, the window whole, the `AMMO` block
+counts on their predicted boundaries, 183 `sx` lines, and the overlap against
+run100 at **60 blocks, 0 differing**.
+
+**The booking was wrong about the disk, and the grep that found it took a
+minute.** The block is named `AMMO` — string-table index 127, `0x9ec / 20`
+against `Data/internal_strings.xml` — not `AMMODATA`, which is what the earlier
+sweep looked for. Under the right name **run17 already had 173 ammo records**
+and run29 one. run17 is no substitute for this capture — its shooters are
+Slingers and its `GUY` detail is 1, so nothing names the animation — but it
+confirmed §20.3's rotate-by-facing model before this run cost anything: 24
+shots collapsing onto three model-space vectors, each held to ±2.
+
+**The predictions held, including the one that could fail.** The stanza said
+the original's `total_time` on the four launches below the word would be
+**27, 26, 26, 26** against this crate's 27, 27, 26, 27; it is. It said the
+`AMMO` counts over 9420..9451 would step 0, 1, 2, 3, 4 on named boundaries;
+they do. It said `|offset|` would land in [90, 130] on the Slinger transfer —
+**it does not**: the Longbowman's radii are 64..82, below the Slinger's
+96..125, so that hypothesis was wrong in magnitude while right in shape. The
+bands §20.3 derived from the flight times held exactly, which is the part that
+had to.
+
+`docs/COMBAT.md` §22 is the measurement and the table; **the Great Lakes word
+moved 9451 → 9510**.
+
+## run110 — chapter one's group pool, and the emergency that never fired (2026-09-19, item 399)
+
+**What it is.** Chapter one again, on run101's setup exactly — map 14, seed
+12345, `tools/gamelog/golden/chapter1.cmd` — with a **`GROUPS`** window over
+`[610, 630)`: 20 blocks, 2.5 MB, **42 seconds** end to end, `cover=0`. It
+exists for two fields of one record: `GroupData::army` (`+0x8`) and
+`order_num` (`+0x2c`).
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/g6 \
+    --map 14 --end-frame 640 --log-window 610 630 \
+    --detail end:MISC=9,UNITS=9,GROUPS=9,GUYS=9,LEADERS=1 \
+    --detail misc:COMMANDMANAGER=1 \
+    --cmd-file <abs path to>/tools/gamelog/golden/chapter1.cmd
+```
+
+`--cmd-file` must be **absolute**: `golden_capture.sh` does `cd
+tools/explore` before exec'ing the runner, and a relative path resolves
+against that. The first attempt died on it in a second, which is the cheap
+failure.
+
+**The disk was grepped first and came back empty.** Every chapter-one
+capture on disk (`~/ron-golden/{g0..g4,c1,h1,t1,probe1}`, run101–run108)
+runs `UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=2,DEATHS=1` and carries **no
+`GROUPDATA` at all** — g4's block 618 holds ANIMALDATA, ATTACKORDER,
+BUILDDATA, BUILDQUEUE, CITIES, CITY, EXPLORETOORDER, FRAME, GATHERORDER,
+GUY, LEADERDATA, MOVEORDER, OBJECT, PATHDATA, STACK, SUBOBJECT,
+TARGETORDER, UNITDATA, UNITORDER, WALLDATA, WORLD and nothing else. The
+five archives that do carry a pool are other games.
+
+**`ARMY` is not an `[End Frame]` category, and the item's brief was wrong
+about that.** There is no `ARMY` key in `gamelog.ini`;
+`GameLog::dump_armies@0092fc50` has **no caller** in the export; and
+`GameLog::full_dump@00930380`'s per-key list has no armies index —
+`ArmiesData::log_data` is reached only from `dump_all@0092f2d0`, i.e.
+`DUMP_ALL=1`, run25–27's ~70 MB-a-frame shape. So this run took the `GROUPS`
+half, which is cheap, and it settled the question without the `ARMY` half
+being booked at all.
+
+### The `GUYS` trap, which is `ORACLE.md`'s `DEATHS` trap one category along
+
+The first attempt (`~/ron-golden/g5`, same command but `GUYS=2`) came back
+with **zero** `GROUPDATA` records and everything else present. `DEATHS` was
+already off, so the documented trap was not it.
+
+`GroupData::log_data@0045e1d0` sets no type of its own and its lines are
+accepted against whatever the previous dumper left. The previous dumper is
+`dump_units` (`full_dump` index `0xd`; `0xf` WALLS, `0x10` AMMO and `0x11`
+DEATHS are all 0), and the **last** record it emits is a `GUY` nested inside
+the gaia players' `ANIMALDATA`. `GuyData::log_data@005de6c0` opens with
+`set_type(0x14, 0)` and then walks `set_detail(1)`, `(2)`, `(3)`, **`(4)`** —
+and `set_detail` is called whether or not the line is accepted, so it leaves
+`current_detail` at **4**. `check_accept@009309a0` then drops the pool on
+`details[End Frame][GUYS] < current_detail`, which at `GUYS=2` is `2 < 4`.
+
+**So the rule is not "DEATHS off": it is that the category the pool inherits
+must be set at or above that dumper's highest `set_detail`.** run31's and
+run92's `GUYS=9` satisfied it by accident. `GUYS=9` here, and the pool came
+out: **10,240 records**, 512 slots × 20 frames.
+
+### The three checks, all green
+
+- **Same game**: `rngcmp.py ~/ron-golden/g4/…/rontrace.log
+  ~/ron-golden/g6/…/rontrace.log` → **641 frames in common, 0 differing,
+  641 identical**. Logging takes no draws, and this is what says so.
+- **The window landed whole** (parked 373): **20 blocks, 610..629**, no gap,
+  plus block 1 and the `!quit` block at 641 (`FRAMES + 1`, as run92's
+  correction has it).
+- **The pool is in them**: 10,240 `GROUPDATA`, against the `≤ 512` that is
+  the trap firing.
+
+### What it says
+
+Two live groups in the whole game, both who=1, unchanged across every block
+616..629:
+
+| slot | `who` | `num` | `army` | `order_num` | `form` | `form_num` | `stamp` | members |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 64 | 1 | 3 | **0** | **0** | −1 | 0 | 615 | `1/6`, `1/7`, `1/8` |
+| 65 | 1 | 1 | −1 | 2 | 0 | 1 | 0 | `1/0`, the explorer |
+
+The hoplites **are** in who=1's army 0, and the army issues **no order** in
+the window — `order_num` is stepped by every `Group::action_*`. With the
+army's own cadence frames at 508 and 764 (`docs/ARMY.md` §5), that means no
+tick reached it at all, which is what `docs/COMBAT.md` §23 then explains:
+`Armies::emergency` is the city alarm's and a unit taking a hit never
+reaches it. `docs/ARMY.md` §15.8 carries the corrected predicate; the golden
+word moved **624 → 621** and the value diff with it, four blocks of six
+units now exact.

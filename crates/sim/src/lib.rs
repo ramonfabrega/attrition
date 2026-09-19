@@ -74,6 +74,7 @@ pub mod goody;
 pub mod group;
 pub mod grouppath;
 pub mod holdings;
+pub mod launch;
 pub mod market;
 pub mod merchant;
 pub mod mesh;

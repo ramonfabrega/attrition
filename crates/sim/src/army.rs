@@ -3022,6 +3022,78 @@ mod tests {
         );
     }
 
+    /// **The emergency is a city alarm, and a soldier never rings it**
+    /// (§15.8, `docs/COMBAT.md` §23, item 399). Made to fail first in the
+    /// unit direction: before the fix `do_damage` called
+    /// `armies_emergency` on any object of another player, so the unit hit
+    /// below cleared the army's target exactly as the building hit does.
+    #[test]
+    fn only_a_hit_on_a_city_s_building_rings_the_emergency() {
+        // The witness is `normalize`'s recount, not the cleared target: the
+        // tick that follows the clear runs `do_marching` and can find a new
+        // one on the same call, exactly as the golden record's `ns 0 -> 1`
+        // at 618 showed (`docs/COMBAT.md` §21.4).
+        let ticked = |sim: &Sim, slot: usize| sim.armies[1].list[slot].num_standard;
+        // A unit of the AI leader takes a hit: nothing happens to its army.
+        let (mut sim, c) = sim_with_city();
+        let t = soldier_type(&mut sim);
+        let slot = sim.init_army(1, Some(c));
+        let victim = put(&mut sim, 1, t, Pos::new(0x5000, 0x5000));
+        let foe = put(&mut sim, 0, t, Pos::new(0x5040, 0x5000));
+        sim.army_add_unit(1, slot, victim);
+        let mark = Obj::Unit(foe);
+        let _ = mark;
+        sim.armies[1].list[slot].target = Some(mark);
+        assert_eq!(
+            ticked(&sim, slot),
+            0,
+            "the army has not been normalized yet"
+        );
+        sim.do_damage(
+            Obj::Unit(foe),
+            Obj::Unit(victim),
+            Angle(0),
+            false,
+            0x100,
+            false,
+            false,
+            0,
+        );
+        assert_eq!(
+            ticked(&sim, slot),
+            0,
+            "a soldier taking a hit rang the emergency: `do_damage`'s \
+             `local_30` is set only by the city-alarm arms of the building \
+             branch (§15.8)"
+        );
+        // The same leader's own city building takes one: the army drops its
+        // target and ticks.
+        let b = sim.cities[c].building;
+        // The fixture stands the city up around the building without the
+        // back-pointer `Cities::add_to_city` writes; the predicate reads
+        // that field, so set it here rather than assert on the fixture.
+        sim.buildings[b].city = Some(c);
+        sim.buildings[b].combat = Some(crate::combat::Profile::default());
+        sim.buildings[b].hits = 1000;
+        sim.buildings[b].health = 1000;
+        sim.do_damage(
+            Obj::Unit(foe),
+            Obj::Building(b),
+            Angle(0),
+            false,
+            0x100,
+            false,
+            false,
+            0,
+        );
+        assert_eq!(
+            ticked(&sim, slot),
+            1,
+            "a hit on the AI leader's city building did not reach \
+             `Armies::emergency`"
+        );
+    }
+
     #[test]
     fn engagement_points_the_whole_army_at_the_first_fighter_s_target() {
         let (mut sim, c) = sim_with_city();
@@ -3383,6 +3455,9 @@ mod tests {
         let (mut sim, c) = sim_with_city();
         let b = sim.cities[c].building;
         sim.buildings[b].city = Some(c);
+        sim.buildings[b].combat = Some(crate::combat::Profile::default());
+        sim.buildings[b].hits = 1000;
+        sim.buildings[b].health = 1000;
         let s = sim.init_army(1, Some(c));
         assert_eq!(sim.armies[1].list[s].pos.cell(), Cell::new(16, 17));
         assert_eq!(sim.radius_of(c) / 4 + 1, 6);

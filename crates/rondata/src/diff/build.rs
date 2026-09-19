@@ -3512,13 +3512,15 @@ mod tests {
     /// and — the trap — makes 9452 agree eight-for-eight. This test holds
     /// the other half, the values.
     ///
-    /// **What this crate does not yet have** is the second arrow on the
-    /// same frame: `1/28` fires on `CHAR_ATTACK2` and its shot's flight
-    /// time comes out 27 against the original's 26, because the original
-    /// launches from the release node's own world position and this crate
-    /// launches from the unit's (§20.2, the seam). So the totals agree one
-    /// frame late, and that lag is asserted here as it stands — when the
-    /// seam closes, this assertion is what fails and says so.
+    /// ~~**What this crate does not yet have** is the second arrow on the
+    /// same frame~~ — **the seam closed on item 396** and this assertion
+    /// is what failed and said so, which is what it was written for.
+    /// `1/28`'s `CHAR_ATTACK2` shot flew 27 frames here and 26 there
+    /// because the original launches from the release node's own world
+    /// position; run109 measured that offset and `docs/COMBAT.md` §22 is
+    /// the table. **The two step lists are now equal, all eight of them**,
+    /// and that equality is what is asserted below — a stronger claim than
+    /// the lag it replaces, and the one that fails if the table moves.
     #[test]
     fn run100_says_great_lakes_9451_is_two_arrows_on_one_farm() {
         const FIRST: i64 = 9_440;
@@ -3630,29 +3632,39 @@ mod tests {
         // is the damage formula, the `AMMO_PER_ATT`/`UBER_SIZE` pair of
         // divisions and the sixteenths accumulator in one number, and it
         // is the half that does not depend on the launch seam.
-        assert!(
-            our_steps.iter().all(|&(_, d)| d == 13),
-            "this crate's hits on the farm are not thirteen sixteenths \
-             apiece: {our_steps:?}"
+        assert_eq!(
+            our_steps, steps,
+            "this crate's damage steps on the farm are not the original's, \
+             step for step"
         );
-        // **The first two arrows, and the one-frame lag.** The original
-        // lands both on 9451; this crate lands the second on 9452,
-        // because `1/28`'s CHAR_ATTACK2 shot flies 27 frames here and 26
-        // there (§20.2). So block 9452 differs and block 9453 agrees.
+        assert_eq!(
+            our_steps.first().copied(),
+            Some((9_452, 26)),
+            "the first step is two arrows on one frame: {our_steps:?}"
+        );
+        assert!(
+            our_steps[1..].iter().all(|&(_, d)| d == 13),
+            "every later hit is one figure's thirteen sixteenths: \
+             {our_steps:?}"
+        );
+        // **The first two arrows, and they land on the same frame.**
+        // Both of them on 9451, so block 9452 carries `damage 1` and
+        // `damage_frac 10` on both sides — the value the launch seam used
+        // to cost a frame (§22.4).
         let at = |v: &[(i64, i64, i64)], f: i64| {
             v.iter().find(|x| x.0 == f).map(|x| (x.1, x.2)).unwrap()
         };
         assert_eq!(at(&theirs, 9_452), (1, 10), "the original's first wound");
         assert_eq!(
             at(&ours, 9_452),
-            (0, 13),
-            "this crate lands one arrow on 9451, not two — the launch seam"
+            at(&theirs, 9_452),
+            "this crate lands both first arrows on 9451, as the original \
+             does — the launch seam is §22's measured table"
         );
         assert_eq!(
             at(&ours, 9_453),
             at(&theirs, 9_453),
-            "one frame later the totals agree: two arrows, twenty-six \
-             sixteenths, whoever landed them when"
+            "and the block after it still agrees"
         );
         assert_eq!(at(&theirs, 9_453), (1, 10), "and the value is 1 and 10");
     }

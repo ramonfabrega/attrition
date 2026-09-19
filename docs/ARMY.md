@@ -1352,7 +1352,7 @@ of the point's tile.
    reaches it** (corrected 2026-09-19, item 399; ~~"when an object of an AI
    leader takes damage and the damage was not attrition/friendly"~~ was this
    entry's gloss and it is wrong, as was item 395's "the emergency is
-   reached on the golden record's 618", `docs/COMBAT.md` §22).
+   reached on the golden record's 618", `docs/COMBAT.md` §23).
 
    The call at `Object::do_damage@0064a480:952` is
 
@@ -1386,7 +1386,7 @@ of the point's tile.
 
    So the emergency means "**a city of mine is under attack**". `Unit::fight`
    hitting a soldier never reaches it, which is why the golden record's 618
-   ticks no army: run109's group pool has group `64` (`army 0`, the three
+   ticks no army: run110's group pool has group `64` (`army 0`, the three
    hoplites) at **`order_num 0` on every block 616..629**, and `order_num`
    is stepped by every `Group::action_*` (`docs/GROUPS.md` §10). Run24's
    12129 — this entry's original evidence — is a blow on the AI's **capital**,

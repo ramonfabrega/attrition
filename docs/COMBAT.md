@@ -2454,9 +2454,10 @@ not 617.
 the original and cost the golden record's frame 617 outright:
 
 - `0/7` took the order at the end of 616 and struck `1/6` during **617**.
-- That `do_damage` reached `Armies::emergency(1)` → `Army::process` →
-  `Group::action_siege_attack_to`, and the army walked all three of who=1's
-  hoplites off toward `(38646, 13305)`. `1/6` lost its target and its seat.
+- That `do_damage` reached **this crate's** `Armies::emergency(1)` →
+  `Army::process` → `Group::action_siege_attack_to`, and the army walked all
+  three of who=1's hoplites off toward `(38646, 13305)`. `1/6` lost its
+  target and its seat. (The original's `do_damage` does not: §23.)
 - So frame 617 lost **both** of the draws the original spends there:
   `Unit::fight+0x9b0`, `0/6`'s one-in-five re-search on its fresh order
   (§12.4's captain gate, `state.captain == index`), and
@@ -2466,16 +2467,22 @@ the original and cost the golden record's frame 617 outright:
 
 `Armies::emergency` is **not** gated by `ai off`: the cheat's only readers in
 the simulation are `Unit::think@005f6e40:206`, `Leader::production_ai` and
-`Leader::diplomacy` (`grep GameAccess::ai_off`). It fires in the original too
-— one frame later, on 618 — and does not move the squad. ~~Whether this
+`Leader::diplomacy` (`grep GameAccess::ai_off`). ~~It fires in the original too
+— one frame later, on 618 — and does not move the squad.~~ ~~Whether this
 crate's `Army::process` would still walk it there is **not established**~~
-**It does** (item 395, §21.4): once `0/7` strikes on 618 rather than 617 the
+~~**It does** (item 395, §21.4): once `0/7` strikes on 618 rather than 617 the
 call is reached again, and the bypass tick walks all three of who=1's
 hoplites toward `(38664, 13320)` where the dump holds them. The gate is
 right and the tick is not — `Object::do_damage`'s gate at `0064bbfd` wants the victim's
 leader to read `leader_flags & 4 == 0`, which is
 `LeaderData::is_human@006ec170`, so the emergency is the computer leader's
-and who=1 is the computer leader.
+and who=1 is the computer leader.~~ **It does not fire at all** — neither on
+617 nor on 618, and neither in the original nor, now, here. The
+`leader_flags & 4` gate above is the *second* conjunct of the call's `if`;
+the **first** is `local_30`, which only the city-alarm arms of `do_damage`'s
+**building** branch ever set, so a soldier taking a hit never reaches the
+emergency (item 399, §23; `docs/ARMY.md` §15.8). What cost this crate frame
+617 stands: the march was ours alone.
 
 **The word: 617 → 618.** The value diff moves with it, 618 → 619.
 
@@ -2896,22 +2903,37 @@ Both are value diffs against the dump, not readings:
    this crate walks all three of who=1's hoplites toward
    `(38664, 13320)`, and the dump holds `1/6` on `(1368, 7992)` with
    `recharging` counting 32 → 27 and `1/7`/`1/8` on their own chases for
-   the rest of the record. **The emergency's gates are not the answer.**
+   the rest of the record. ~~**The emergency's gates are not the answer.**
    `Object::do_damage`'s gate at `0064bbfd` requires the *victim's* leader to read
    `leader_flags & 4 == 0`, and that bit is `LeaderData::is_human@006ec170`
    — one instruction, `return leader_flags & 4` — so the emergency is the
    **computer** leader's, who=1 is the computer leader, and it fires in the
-   original too. The divergence is inside the tick.
-   *Falsifier:* chapter one re-captured with `ARMY` and `GROUPS` under
+   original too. The divergence is inside the tick.~~
+   **Closed by item 399, §23, and the gates were exactly the answer.** The
+   `leader_flags & 4` test above is real and it passes — but it is the
+   *second* conjunct of the call's `if`. The **first** is `local_30`, set
+   only by the city-alarm arms of `do_damage`'s **building** branch, so a
+   unit taking a hit never reaches `Armies::emergency` at all. The
+   falsifier below was run (`docs/RUNS.md` run110) and answered it: group
+   `64` carries `army 0` and `order_num 0` on every block 616..629 — the
+   army issues no order in the window.
+   ~~*Falsifier:* chapter one re-captured with `ARMY` and `GROUPS` under
    `[End Frame]` over 610–630, read for who=1's army block at 618 — its
    `status`, `num_standard`, `target_o/target_who` and its group's order —
-   which the present capture's categories do not print at all.
-2. **`0/8` plans its chase a frame late, and to the wrong point.** The dump
+   which the present capture's categories do not print at all.~~ (`ARMY` is
+   not an `[End Frame]` category at all: there is no such key in
+   `gamelog.ini`, `GameLog::dump_armies@0092fc50` has no caller, and
+   `ArmiesData::log_data` is reached only from `dump_all`. run110 took the
+   `GROUPS` half, which settled it.)
+2. ~~**`0/8` plans its chase a frame late, and to the wrong point.** The dump
    has `0/8` ordered to `(1224, 8280)` at the end of 618; this crate leaves
    it on its seat through 618 and plans `(1368, 7992)` — the target's own
    point, not a ring slot — at 619. `0/6`, which took its order a frame
    earlier, plans correctly at 617, so the lag is in *when* a freshly
-   mirrored member reaches `do_attack`, not in §19.
+   mirrored member reaches `do_attack`, not in §19.~~ **Closed by item 399
+   with the same change**: `0/8` carries `(1224, 8280)` at block 619 now
+   (§23.2). It was the emergency's march all along — `1/6` losing its seat
+   moved what `0/8`'s chase was aimed at.
 
 ### 21.5 The bit the mirror's own return does not clear
 
@@ -2946,7 +2968,122 @@ observation either. And the mirror has never been seen to *fail* its
 `valid_target` test, so which of the five returns fires is only backed for
 the success path.
 
-## 22. The emergency is a city alarm (item 399, 2026-09-19)
+## 22. Where an arrow starts, measured (item 396, 2026-09-19)
+
+§20.3 left the launch offset open and bounded above, and named the capture
+that would close it. run109 is that capture — `AMMO=5` over `[9420, 9480)` on
+the Great Lakes seed, sixty blocks, `docs/RUNS.md` run109 — and it closes it
+by subtraction rather than by a `.bh3` skeleton reader.
+
+**Two things the booking said were wrong, and the first cost nothing to find.**
+The ammo block is named **`AMMO`**, not `AMMODATA`: `AmmoData::log_data@00679c00`
+hands `Log::begin` the string at `int_str_array + 0x9ec`, the table's stride is
+a 20-byte `String`, and 0x9ec/20 = 127 indexes `Data/internal_strings.xml` —
+where `UNITDATA` 7086, `OBJECT` 142, `BUILDDATA` 287, `GUY` 3940, `LEADERDATA`
+4627, `WALLDATA` 7128 and `ANIMALDATA` 131 all land on their own names, seven
+for seven. Under the right name **two archives already carried ammo records**:
+run17 has 173 and run29 one. And `AMMO=1` would not have answered the question
+either — `log_data` opens level 1 for `cur_time/total_time/who/o/whom/ox` and
+**level 2 for `sx, sy, sz, ex, ey, ez, angle`**, so the brief's setting drops
+the launch point silently.
+
+### 22.1 The table, and every row is measured
+
+run109 prints nine arrows from three Longbowmen at two facings, and run100
+already carried the shooters' guy records at `GUYS=4` — position, angle,
+`cur_anim`, `cur_time`. The offset is `(sx − guy.x, sy − guy.y)`:
+
+| block | shooter | anim | `t` | guy | `s` | offset | `total_time` |
+|---|---|---|---|---|---|---|---|
+| 9426 | `1/29` | `CHAR_ATTACK3` | 10 | 4680, 29928 | 4613, 29951 | −67, +23, +185 | **27** |
+| 9427 | `1/28` | `CHAR_ATTACK2` | 4 | 4776, 30168 | 4708, 30215 | −68, +47, +137 | **26** |
+| 9440 | `1/29` | `CHAR_ATTACK3` | 24 | 4680, 29928 | 4620, 29954 | −60, +26, +184 | **26** |
+| 9445 | `1/28` | `CHAR_ATTACK2` | 22 | 4776, 30168 | 4703, 30204 | −73, +36, +169 | **26** |
+| 9452 | `1/29` | `CHAR_ATTACK1` | 6 | 4680, 29928 | 4609, 29969 | −71, +41, +169 | 26 |
+| 9457 | `1/28` | `CHAR_ATTACK2` | 4 | 4776, 30168 | 4708, 30215 | −68, +47, +137 | 25 |
+| 9463 | `1/27` | `CHAR_ATTACK2` | 4 | 4584, 29784 | 4523, 29840 | −61, +56, +137 | 25 |
+| 9468 | `1/29` | `CHAR_ATTACK1` | 22 | 4680, 29928 | 4609, 29969 | −71, +41, +169 | 25 |
+| 9475 | `1/28` | `CHAR_ATTACK2` | 22 | 4776, 30168 | 4703, 30204 | −73, +36, +169 | 25 |
+
+**The four `total_time`s §20.2 is about come back 27, 26, 26, 26** against this
+crate's 27, **27**, 26, **27** — the two that were a frame long are `1/28`'s,
+exactly as predicted before the run.
+
+**The six starttimes are every one the type has.** `unit_graphics.xml` gives
+`LONGBOWMEN` six `<RELEASEEVENT>`s — 466 and 1533 ms on `CHAR_ATTACK1`, 333 and
+1533 on `CHAR_ATTACK2`, 733 and 1666 on `CHAR_ATTACK3` — which through §9.0's
+measured `ms × 3 / 200` truncation are frames 6, 22, 4, 22, 10, 24. The capture
+caught all six, so the Longbowman's table is complete rather than sampled.
+
+### 22.2 It is a rotation, and the proof is `1/27`
+
+`1/27` fires `CHAR_ATTACK2` at `t 4` from a **different facing** to `1/28`'s —
+`−1449000960` against `−1348206592`, 8.45° apart — and its world offset is
+`(−61, +56)` where `1/28`'s is `(−68, +47)`. Same node, same length (82.8
+against 82.7), different answer. So `GraphicPieces::get_position`'s rotate-by-
+facing is real and the entry is model-space, exactly as §20.3 read it.
+
+The same shape was already on the disk and nobody had looked: run17's 24
+Slinger shots (type 82), rotated back by each shooter's own angle, collapse
+onto **three** model-space vectors — `(+39.4, −118.0)` at `dz 151`,
+`(−42.9, −112.3)` at `dz 177`, `(+68.2, −68.2)` at `dz 178` — each held to ±2,
+which is the integer quantisation of `sx` and `guy.x`. That is the confirmation
+this section would otherwise have had to buy.
+
+### 22.3 The port's table, and why it is not a float
+
+`crates/sim/src/launch.rs`. The entry is stored the way the rest of the crate
+stores a direction — a bearing **relative to the guy's facing** and a radius —
+so the world offset is `movement::sin_component`/`cos_component` and nothing
+else. `docs/DECISIONS.md` entry 16's second shape: the original builds its
+`GraphicPieces::positions` array once at load with floats, and this is the same
+array with the building step replaced by a measurement.
+
+| anim | `t` | bearing | radius | `dz` |
+|---|---|---|---|---|
+| `CHAR_ATTACK1` | 6, 22 | −26,692,241 | 81 | 169 |
+| `CHAR_ATTACK2` | 4 | −136,574,224 | 82 | 137 |
+| `CHAR_ATTACK2` | 22 | −36,624,995 | 80 | 169 |
+| `CHAR_ATTACK3` | 10 | +106,731,108 | 70 | 185 |
+| `CHAR_ATTACK3` | 24 | +59,520,002 | 64 | 184 |
+
+These reproduce **all nine** measured launch points to the unit, across three
+units and two facings — `launch::tests::run109_launch_points_are_reproduced_to_the_unit`
+carries the dump's own columns. The key is `Guy::gpiece`, which is **127** for
+`LONGBOWMEN` (the piece, not the type 177) and is the same key `PieceReleases`
+is built on; a piece with no row launches from the unit's own position, which
+is what every shot did before run109.
+
+`dz` is recorded because the record prints it and nothing reads it: the flight
+time is a plan distance.
+
+### 22.4 What it moved, and what it did not
+
+**Great Lakes' long-capture word: 9451 → 9510.** With the offset live, this
+crate's six launches below 9480 reproduce the original's `sx, sy`, its
+`ex, ey` **and** its `total_time` exactly (9425, 9426, 9439, 9444, 9451, 9456
+and 9462 on the sim's own numbering). The seventh draw at 9451 is `1/28`'s
+second arrow arriving on the frame it always arrived on.
+
+- **Diff-backed**: the nine launch points and their flight times, against
+  run109's own `AMMO` records; and the word, which is
+  `run53_s_24000_frames_put_the_ceiling_where_run33_did`.
+- **Measured but not yet a live diff**: nothing in `rondata::diff` parses the
+  `AMMO` record. The nine rows are pinned as constants in `launch.rs`'s test
+  rather than re-read from the archive each run, so a change to the archive
+  would not be noticed. **The obvious successor is a run109 `AMMO` widening**
+  — the whole record, every slot, every field, the way every other record is
+  compared.
+- **Not established**: every other unit type. The table has one piece in it.
+  The Slinger's three families are measured in run17 and are *not* in the
+  table, because no capture ties them to an animation — run17's `GUY` detail
+  is 1, so it prints no `cur_anim`. A `GUYS=4` re-run of any Slinger fight
+  would close that, and the same shape closes every missile type.
+- **Not established**: whether the bearing/radius pair is what the original
+  stores. It is not — the original stores a model-space `Vector<float>` and
+  a `Transform` — but it is what reproduces the original's integers, and the
+  two cannot be told apart from nine samples.
+## 23. The emergency is a city alarm (item 399, 2026-09-19)
 
 **`Armies::emergency` is not reached by hitting a soldier.** That is the
 whole of this section, it closes §21.4's first residue, and it **corrects
@@ -2982,11 +3119,11 @@ predicate and what this crate implements of it.
 At golden 618 `0/7` strikes `1/6` — a **unit**. `local_30` stays 0, no
 army of who=1 ticks, and nothing marches.
 
-### 22.1 The group pool says it directly (run109)
+### 23.1 The group pool says it directly (run110)
 
 The golden captures print no `GROUPDATA` at all, so this was captured:
 chapter one again, `end:MISC=9,UNITS=9,GROUPS=9,GUYS=9,LEADERS=1` over
-`[610, 630)` (`docs/RUNS.md` run109). Two live groups in the whole game,
+`[610, 630)` (`docs/RUNS.md` run110). Two live groups in the whole game,
 both who=1:
 
 | slot | `who` | `num` | `army` | `order_num` | `form` | `form_num` | members |
@@ -3010,7 +3147,7 @@ Two things fall out and both had been guessed the other way.
 `1/0`'s `form_mod 50` — which had looked like the army's formation, and is
 not — belongs to group 65, whose `army` is −1: the explorer's own group.
 
-### 22.2 The word, and what it bought
+### 23.2 The word, and what it bought
 
 The word **fell 624 → 621**, and the value diff is why it lands anyway.
 Blocks 616, 617, 618 and 619 now carry the dump's own coordinates for all
@@ -3035,7 +3172,7 @@ destination the original never takes — the case `CLAUDE.md`'s "a word that
 moved lands with the value diff beside it" exists for, read in the other
 direction.
 
-### 22.3 What stands at 621, and it is located
+### 23.3 What stands at 621, and it is located
 
 `Guy::set_anim+0xf2f < Guy::move+0x166`, one draw this crate spends at
 frame 621 and the original does not. The residue under it is a **short
@@ -3054,15 +3191,15 @@ leg**, and it is not combat:
   clearing `has_waypoint` (`crates/sim/src/collide.rs`, item 204's store).
 - Which half differs — whether the original re-takes the waypoint there at
   all, or re-takes it and its `detect_unit_collision` finds nobody — is the
-  successor item. *Falsifier:* the same run109 window read for `1/8`'s
+  successor item. *Falsifier:* the same run110 window read for `1/8`'s
   `collide_o`/`collide_who`/`collide_frame` and `tolerance` on blocks 619
-  and 620; run109 has `UNITS=9` and prints all four.
+  and 620; run110 has `UNITS=9` and prints all four.
 
-### 22.4 Confidence
+### 23.4 Confidence
 
-Diff-backed: that no order reaches group 64 in `[616, 630)` (run109's
+Diff-backed: that no order reaches group 64 in `[616, 630)` (run110's
 pool); that the six units' coordinates are the dump's through block 619
-(the harness reproduces §22.2's table); the golden word at 621; and which
+(the harness reproduces §23.2's table); the golden word at 621; and which
 leader carries the human bit (the dump's own `LEADERDATA`). Read-only:
 the alarm's damage threshold and its 300-frame cooldown (`docs/ARMY.md`
 §15.8), neither implemented; and the claim that `local_30` has no third

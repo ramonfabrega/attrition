@@ -3298,8 +3298,7 @@ check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|BEGIN PERSONALITY\|BEGIN MAKEOBJEC
 # block, run97's its 9361), so the compared set is exactly the window.
 check: python3 tools/gamelog/samegame.py gamelog-run97-greatlakes-valuewindow.txt gamelog-run107-greatlakes-wordledger2.txt --exclude LEADERDATA | tee /dev/stderr | awk '/in common/{split($0,a,", "); n=a[2]+0} /^differ:/{d=$2+0} END{print "run97 overlap: common="n" differ="d; exit !(n==30 && d==0)}'
 
-# ============================================================================
-# run109 — chapter one's group pool at the golden word (item 399, 2026-09-19)
+# run110 — chapter one's group pool at the golden word (item 399, 2026-09-19)
 #
 # **Not a runqueue stanza: no `run:` key, on purpose.** Chapter one runs on
 # the golden lane (`viadriver.sh` + `tools/explore/golden_capture.sh`), which
@@ -3385,3 +3384,163 @@ check: python3 tools/gamelog/samegame.py gamelog-run97-greatlakes-valuewindow.tx
 # check: GROUPDATA count > 512 — the pool is 512 slots a frame, so 20 frames
 #        is ~10,240 records; `<= 512` is the DEATHS trap firing
 # ============================================================================
+=======
+run: 109
+tag: greatlakes-ammolaunch
+item: 396
+why: the seventh draw on Great Lakes 9451 is a launch offset, and `AmmoData::log_data` prints the arrow's own `sx, sy, sz` — so `(sx - guy.x, sy - guy.y)` is measured rather than derived and no `.bh3` skeleton reader is needed
+# **THE DISK WAS GREPPED FIRST, and it half-answers the question — which is
+# why this stanza's detail is not the one the item asked for.**
+#
+# Two archives DO carry ammo records: **run17 (173 blocks)** and run29 (1).
+# `docs/QUEUE.md` 396 and `docs/COMBAT.md` §20.3 both say no dump on this
+# disk has `AMMO` enabled; the sweep behind that sentence looked for
+# `AMMODATA`, and the block's name is **`AMMO`**. It is string-table index
+# **127** — `AmmoData::log_data@00679c00` passes `int_str_array + 0x9ec` to
+# `Log::begin`, the table's stride is a 20-byte `String`, and 0x9ec/20 = 127
+# indexes `Data/internal_strings.xml`, where `UNITDATA` 7086, `OBJECT` 142,
+# `BUILDDATA` 287, `GUY` 3940, `LEADERDATA` 4627, `WALLDATA` 7128 and
+# `ANIMALDATA` 131 all land on their own names. Seven for seven, so 127 is
+# `AMMO` and not a guess.
+#
+# **What run17 gives for nothing.** 24 shots from three Slingers (type 82),
+# each with `sx, sy, sz` and, through the enclosing `UNITDATA`, the shooter's
+# guy position. Rotating `(sx-guy.x, sy-guy.y)` back by the guy's own angle
+# (`theta = angle / 2^32 * 2pi`, CCW) collapses all 24 onto **three**
+# model-space vectors:
+#
+#     dz 151   (+39.44, -118.04)   |m| 124.45   18 shots
+#     dz 177   (-42.88, -112.29)   |m| 120.20    4 shots
+#     dz 178   (+68.21,  -68.15)   |m|  96.43    2 shots
+#
+# each held to +-2, which is the integer quantisation of `sx` and `guy.x`.
+# So §20.3's model — `get_position` returns a per-(piece, node, anim,
+# starttime) entry and rotates it by the guy's facing — is **confirmed on
+# the disk before this run**, and what is missing is only the Longbowman's
+# own entries and the animation that picks them: run17's `GUY` detail is 1,
+# so it prints no `cur_anim`.
+#
+# **`AMMO=5`, not the item's `AMMO=1`.** `AmmoData::log_data` opens level 1
+# for `cur_time/total_time/who/o/whom/ox` and **level 2 for `sx, sy, sz, ex,
+# ey, ez, angle`** — at `AMMO=1` the launch point is silently dropped, which
+# is `docs/ORACLE.md`'s "The detail level is the knob" exactly. 5 takes the
+# whole record (`traj`, `v1z`, `dx`, `flags`, `gpiece`, `graph_index`,
+# `splash_area`, `index`, `num_guys`, `accuracy`) because the rule is to diff
+# the whole record, and an ammo block is a few dozen lines with at most four
+# arrows alive.
+frames: 9495
+mapstyle: 14
+# **run100's detail exactly but for `AMMO`**, which is what run91 did to
+# run89 and run107 to run97: the overlap check below then needs exactly one
+# `--exclude` and no `--drop`. run100 already carries `GUYS=4` over
+# 9340..10899, so the guy half of the subtraction — position, angle,
+# `cur_anim`, `cur_time`, `gpiece` — is on the disk for every frame in this
+# window and is NOT what is being bought here.
+end: MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,DEATHS=1,LEADERS=1,AMMO=5
+# **9420..9479, sixty blocks, and the upper end is not the item's 9460.**
+# [9420, 9460) holds the four launches below the word. 9480 also holds the
+# whole of 1/29's next animation cycle — anim 11 across blocks 9446..9475 —
+# and a launch anywhere in it prints from its own block, so the extra twenty
+# blocks are the **CHAR_ATTACK1** rows §20.3 names as the fifth of the five
+# that pin the type. ~10 MB for a whole animation.
+frame_window: 9420 9480
+# No `cfg:`, so map 14 takes the default `-config check.ini` — run53's,
+# run97's and run100's lobby. It is a re-run of run100's game, not a new one.
+cover: cover=0
+# run76/run79/run80/run83/run84/run87/run89/run97/run100/run107's Great Lakes floor.
+settle_min: 14000000
+# run100 measured **485 KB a block** at this detail net of its start dump, so
+# sixty blocks is ~29 MB on a ~14 MB start dump and the ammo adds a few dozen
+# lines a block. run80 reached frame 23,960 of this same game in forty seconds
+# at `cover=0`, so the run-up to 9,420 is under half a minute and the dumping
+# is ~1 minute. 90 polls is thirty minutes against an expected three; the
+# give-up path **truncates rather than stops**, so it is sized high (373).
+poll_max: 90
+#
+# ---- THE PREDICTIONS, written before the capture ran. Block n is the state
+# after n ticks, so sim-frame 9425 is **block 9426**.
+#
+# **The four launches below the word**, with the guy state run100 already
+# holds (so every column but the last two is read, not guessed):
+#
+#   arrow  block  shooter  guy (x, y, z)        guy angle     anim  anim t
+#   A      9426   1/29     4680, 29928, 569     -1408303104   13    10
+#   B      9427   1/28     4776, 30168, 585     -1348206592   12     4
+#   C      9440   1/29     (unmoved)            (unchanged)   13    24
+#   D      9445   1/28     (unmoved)            (unchanged)   12    22
+#
+# Both guys are motionless and hold one angle across the whole window, and
+# each unit has exactly one guy (`guy_num 0`). Anim 13 is `CHAR_ATTACK3` and
+# 12 is `CHAR_ATTACK2` (`GraphicPieces::log_attack_times` indexes 11..14 as
+# attack 1..4). Each unit fires **twice per thirty-frame cycle**, which is
+# `AMMO_PER_ATT 2`, so A and C are two different release events of one anim.
+#
+# **THE HEADLINE PREDICTION — `total_time`, and it is the seventh draw.**
+# run17 settles the lifetime with no ambiguity: an ammo with `total_time T`
+# prints on T-1 consecutive blocks carrying `cur_time` 1..T-1 and lands
+# during the block where `cur_time` would be T. §20.1's farm takes damage on
+# blocks 9452 (twice), 9465 and 9470, so the original's own are
+#
+#   A  total_time 27      B  total_time 26      C  26      D  26
+#
+# against this crate's **27, 27, 26, 27** (§20.2). **B and D are the two rows
+# that can fail**, and they are the draw that is missing on 9451.
+#
+# **The offset.** `(sx - guy.x, sy - guy.y)` for each of the four:
+#
+# - `|offset|` in [90, 130] and `sz - guy.z` in [140, 190] on all four —
+#   run17's three Slinger families are 124.5/151, 120.2/177 and 96.4/178.
+#   Anything outside that says the Longbowman's skeleton is nothing like the
+#   Slinger's and the transfer below is void; the measurement still stands.
+# - A and C are one anim at two `starttime`s and so **may differ**; B and D
+#   likewise. Four entries, not two — and if A and C come back identical,
+#   the entry is keyed on (anim, node) and not on `starttime`, which is a
+#   finding against §20.3's own reading of `AttachPos`.
+# - **The bands that must hold or §20.2 is wrong.** The component along the
+#   shot has to be **[0, 75.7] for 1/29 (A, C)** and **(76.6, 114.1] for
+#   1/28 (B, D)**; those are §20.3's bounds from the four flight times.
+# - **The transfer, stated as the hypothesis it is**: if the Longbowman
+#   inherits the Slinger's node geometry, A and C take ~68 (the dz-178
+#   family) and B and D ~112 (dz 177), both inside their bands, and the
+#   dz-151 family at ~118 — too long for 1/28's ceiling — is `CHAR_ATTACK1`.
+#
+# **The identity fields**, on every AMMO block in the window: `who 1`,
+# `o` 28 or 29, `whom 0`, `ox 2004`, `num_guys 1`.
+#
+# **The block counts**, from A..D's spans [launch, launch+T-2]:
+#
+#   9420..9425  0      9440..9444  3      (asserted below)
+#   9426        1      9445..9451  4
+#   9427..9439  2
+#
+# Above 9451 the count depends on a third pair whose launch blocks are
+# *inferred* from §20.1's 9477 and 9481 damage steps (9452 and 9456 at
+# T=26), so it is printed rather than asserted: 3 on 9452..9455, 4 on
+# 9456..9464, 3 on 9465..9469, 2 on 9470..9476, 1 on 9477..9479.
+#
+# **What is expected to AGREE, and is refusable.** Every non-`AMMO` record
+# in the sixty blocks, byte for byte against run100 — this is run100's game
+# with one category raised, and the overlap check below is the claim.
+# Same game: the trace word for word against run53, this map's own 24k run.
+check: python3 tools/gamelog/rngcmp.py rontrace-run53.log rontrace-run109.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=9480)}'
+# And the map, from the dump's own `GAME INFO`.
+check: LC_ALL=C head -c 400000 "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run109-greatlakes-ammolaunch.txt" | LC_ALL=C grep -a "MAP_STYLE" | tee /dev/stderr | awk '{print; exit !($2==14)}'
+# **The window landed whole** — sixty blocks, 9420..9479, no gap. This is
+# the check parked 373 asks for: a truncated run reads as completely
+# ordinary everywhere else, and only this says so.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run109-greatlakes-ammolaunch.txt" | awk '{v=$3+0; if(v>=9420&&v<9480) n[v]=1} END{c=0; lo=0; hi=0; for(k in n){c++; if(lo==0||k+0<lo)lo=k+0; if(k+0>hi)hi=k+0} print "window blocks: "c" ("lo".."hi")"; exit !(c==60 && lo==9420 && hi==9479)}'
+# **And the record that was raised is actually in them, on the frames it must
+# be.** The counts A..D predict, asserted; the inferred ones above 9451 only
+# printed. A correctly-numbered window whose blocks come back without the
+# record is the failure the detail guard exists for.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|BEGIN AMMO" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run109-greatlakes-ammolaunch.txt" | awk '/BEGIN FRAME/{f=$3+0; next} /BEGIN AMMO/{if(f)n[f]++} END{for(b=9420;b<9480;b++) printf "%d:%d ", b, n[b]; printf "\n"; ok=1; for(b=9420;b<=9425;b++) if(n[b]!=0) ok=0; if(n[9426]!=1) ok=0; for(b=9427;b<=9439;b++) if(n[b]!=2) ok=0; for(b=9440;b<=9444;b++) if(n[b]!=3) ok=0; for(b=9445;b<=9451;b++) if(n[b]!=4) ok=0; exit !ok}'
+# **And the launch point is actually printed** — `sx` is level 2, and at the
+# brief's `AMMO=1` every line below would be missing. This is the check that
+# fails if the detail reading above is wrong.
+check: LC_ALL=C grep -ac "^ *sx " "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run109-greatlakes-ammolaunch.txt" | tee /dev/stderr | awk '{exit !($1>=70)}'
+# **The overlap with run100, and the count is the claim** — sixty blocks,
+# 9420..9479, one `--exclude` for the category that was raised. Both files'
+# highest block is dropped by `samegame.py` (mine the 9496 `!quit` block,
+# run100's its 10899), so the compared set is exactly the window.
+check: python3 tools/gamelog/samegame.py gamelog-run100-greatlakes-valuewindow2.txt gamelog-run109-greatlakes-ammolaunch.txt --exclude AMMO | tee /dev/stderr | awk '/in common/{split($0,a,", "); n=a[2]+0} /^differ:/{d=$2+0} END{print "run100 overlap: common="n" differ="d; exit !(n==60 && d==0)}'
+# =====================================================================
