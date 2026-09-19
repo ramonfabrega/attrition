@@ -12,8 +12,8 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-18/19, two lanes all day, fourteen landings. **Great Lakes 9182 →
-9451 (+269), golden 617 → 619** — both words moved, repeatedly. Ten booked
+*2026-09-18/19, two lanes all day, fifteen landings. **Great Lakes 9182 →
+9451 (+269), golden 617 → 619** — both words moved, repeatedly. Eleven booked
 mechanisms were wrong; the frame was right every time.*
 
 - **An arrow is launched by the attack ANIMATION's event track** (389,
@@ -25,23 +25,23 @@ mechanisms were wrong; the frame was right every time.*
   offset, the pinned-table shape and not a float licence. **396** measures
   it. The met bit (385) got 9182 → 9415 first, `active_wars` behind
   `treaties[i] & 1`.
-- **The golden word moves 617 → 619** (391, 392). The ARMY — never the
-  group — walks a struck unit off its seat; §17's ring is never in the
-  frame. The **listing gave back three things Ghidra lost**: the radius's
-  `+4` is conditional on HOPLITES, `vector_dist` measures from the asker,
-  `orthog_x`/`orthog_y` 1..4 read out of the PE. `find_ordered_collision`
-  rejects the six candidates nearer than the dump's own. **395.**
+- **The golden word moves 617 → 624** (391, 392, 395), chapter one's
+  frames 615–623 now the original's. The ARMY walks a struck unit off its
+  seat; §17's ring is never in the frame (the **listing** gave back three
+  things Ghidra lost); and a non-captain mirrors its captain's ATTACK in
+  `Unit::think`'s first statement. 395 **corrected 391**: the emergency IS
+  reached, its gate reading `leader_flags & 4`. **399.**
 - **The namesake has never fired in a scored capture** (382): zero
   non-exempt attrition outcomes over 24,000 frames — the Temple chapter is
-  the only route. **The held-out map answers 1 tick, 0 orders** (run106), a fit to two trajectories: **the pass's number**. Six open, 47 parked; **Fable backlog: eleven Loop items** (251, 335, 343, 356, 321, 313, 367, 374, 375, 377, 397).
+  the only route. **The held-out map answers 1 tick, 0 orders** (run106), a fit to two trajectories: **the pass's number**. Six open, 50 parked; **Fable backlog: twelve Loop items** (251, 335, 343, 356, 321, 313, 367, 374, 375, 377, 397, 398).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w9711 of 24,000 · GreatLakes w9451 of 24,000
-Golden: w619 of 901 · chapter one pinned · 395 next
-Endpoint 24001: EastIndies 64 off, 5 unlinked · GreatLakes 57 off, 10 unlinked
+Golden: w624 of 901 · chapter one pinned · 399 next
+Endpoint 24001: EastIndies 64 off, 5 unlinked · GreatLakes 57 off, 9 unlinked
 
-**Opener: 395 on the golden record's frame — the squad handed its
-captain's target — beside 394, in flight on the AI word's 9451.**
+**Opener: 399 on the golden record — who=1's army marching where the
+dump holds it — beside 396, in flight on the AI word's seventh draw.**
 
 ## The queue
 
@@ -66,14 +66,14 @@ the backlog is `docs/PARKED.md`, and an item returns only when a score names it.
     mechanism 385 just landed. Assert the block count against the window
     asked for — run97's truncation is why (373).
 
-395. **`Group::target_opportunity` hands the squad its captain's target**
-    (the rules headline's frame; `docs/GROUPS.md` §13): cooldown 15
-    frames, captains only, and `think_attack`'s tail has **no
-    `add_attack_order` at all**. What stands at 619 is one destination —
-    `Guy::set_anim+0xf2f < Guy::move+0x166`, paid on 621 because `0/6`
-    chases to (1224,7704). Two of 392's six ring rejections hang on
-    `1/7`'s ordered point, and this crate's `1/7` searches and finds `0/6`
-    where the original's squad is handed the captain's `0/7`.
+399. **who=1's army marches where the dump holds it still** (the rules
+    headline; `docs/COMBAT.md` §21 and §20.4 carry the coordinates): at
+    618 the army walks to (38664,13320) and the dump does not. 395
+    **corrected 391** — `Object::do_damage`'s gate at `0064bbfd` reads the
+    victim's leader against `LeaderData::is_human@006ec170`, so the
+    emergency IS reached and fires in the original too. The divergence is
+    inside `Army::process` and **nothing on disk answers it**: a
+    chapter-one re-capture with `ARMY`+`GROUPS` over 610–630 is the test.
 
 365. **`docs/GOLDEN.md`, the script itself** (a reading and a design, Opus):
     chapters from `docs/CENSUS.md`'s order family and `docs/COMMANDS.md`
