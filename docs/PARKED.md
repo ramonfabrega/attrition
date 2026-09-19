@@ -32,6 +32,63 @@ two ledger regexes closed in the third pass, 2026-09-17; the fourth pass,
 each now a guard or a clause (`docs/audit/2026-09-19-fable-pass-6.md`,
 DECISIONS 42). 341 closed 2026-09-18 by item 363.
 
+(424) **A test that compares a slot position reads as a finding.** Found
+by item 414, 2026-09-19, in its own first draft. It compared `MAKE[1].val`
+against `MAKE[1].val` across the two sides — and this crate's slot 1 at the
+re-offer is a **Phalanx**, so the comparison was of two different units and
+would have reported a difference that is not one. Keying on the slot's
+**type** rather than its index is what made the assertion true. The rule
+shape, beside 419 and 420: **a dumped record's slot index is not an
+identity**, and any comparison across two sides keys on what the slot holds
+rather than where it sits. Cheap to guard in review, cheaper still as a
+helper that refuses an index-to-index comparison on a pooled record.
+
+(419) **A widening's own dichotomy is a hypothesis, the same as a brief's
+mechanism.** Found by item 414's pre-capture grep, 2026-09-19. Item 408's
+`docs/AI.md` §47.4 framed the open question as a pair — the Citizen's value
+is wrong, or the Citizen should not have been offered — and the disk holds
+a third reading neither names: run107 already covers block 9199, where the
+original's Scholar reads `val 9999999` against this crate's 45568 while the
+**Citizen's value is the original's exactly**, so the Citizen may simply
+outrank a Scholar that was never lifted to the ceiling. `CLAUDE.md` and
+DECISIONS 42 currently warn about a *brief's* named mechanism; this is the
+same failure one step earlier, in the document a widening writes, and it
+was caught only because the next item grepped before it captured. The
+generalisation — **the frame is evidence, the framing around it is not** —
+is the pass's to write, and it belongs beside 416. **Sharpened by item 414,
+whose own prediction then died the same way**: the useful half of a stanza
+is writing down what would **kill each reading** before the run, not the
+reading the author favours. 414's stanza was falsifiable in three
+directions and the block took the one it had ranked first, which is why its
+result is trustworthy rather than lucky.
+
+(420) **A merge artefact in a data file silently disabled the capture
+driver, for an unknown number of days.** One stray `=======` at
+`tools/gamelog/captures.txt:3387`, left by merge `9ae8070`, made
+`runqueue.sh` refuse the **entire file** with `unknown key '======='` — so
+every stanza after run107's was unreachable by the driver, run109's
+included, and a lane looking for a booked capture would have read it as
+never booked. Deleted 2026-09-19 while booking 370; `DRY=1 runqueue.sh` now
+reaches run109. The guard is the cheap half and does not exist: **no
+conflict marker may survive anywhere in the tree**, which is three lines in
+`docs_guard.rs` and would have failed the day the marker landed. Make it
+fail on purpose first, on a fixture rather than on `captures.txt`.
+
+(421) **A permission-shaped refusal that names its own remedy is not the
+one the rule is about.** `CLAUDE.md` says a permission-shaped failure ends
+the turn with a question, and the reason is that the user cannot unblock
+what they are not told about. On run111, 2026-09-19, the first launch
+refused with "Screen Recording is off — screencapture wrote nothing" — a
+message that names the remedy, which is that the TCC grant belongs to
+`RonDriver.app` and the lane is `viadriver.sh`. The worker relaunched
+through it, it ran clean, and **no human was ever needed**; stopping there
+would have cost the capture an hour for nothing. Ruled correct as done. The
+clause the rule wants is the distinction: **a refusal whose remedy is in
+this repo and needs no human is taken and reported; anything that needs a
+human — a consent dialog, a grant to give, a tool at 0% CPU with no
+message — still ends the turn with a question.** A one-clause change, so
+the pass's.
+
 (416) **A DECISIONS entry is owed on "a purchase draws nothing."** Item
 408, 2026-09-19, measured it on the AI headline's own frame: 9382 costs
 eight draws on both sides entry for entry, two same-shaped lists with two
@@ -133,6 +190,46 @@ first — and teach `rondata` to diff the answers. The pass's: it is a
 tracer change, and a wrong proxy stub costs a run.
 
 ## Parked by the sixth Fable pass, 2026-09-19 — a guard's first run
+
+(425) **A name a pinned constant carries for an index has nothing to
+disagree with.** Named by item 408 while settling 423, 2026-09-19, and it
+is the reason that defect survived from run19 to today. Both sides of the
+leader diff generate their key from the **same** `GOODS` array —
+`rows()` at `leader.rs:87` and `theirs()` beside it both `format!` the name
+in — and the dump prints `bucket` as six bare values, so the index is
+positional on both sides and **the label never participates in matching**.
+The pinned literals in `PARTS_ON_RUN19/107/111` then check only that the
+string matches whatever `GOODS` currently says. So `GOODS` and its pins can
+be wrong **together, consistently, forever**: the specifications got it
+right, the decompile export got it right, and 858 tests never looked,
+because a self-consistent label has nothing to disagree with.
+
+The guard is the check nobody wrote, and it is deliberately **wider than
+`GOODS`**: every index-to-name mapping the diff layer pins is compared
+against the type record, `GOODS` being the first instance. If others exist
+it finds them the day it lands; if none do it costs three lines and says
+so. A worker's item, not the pass's — a correctness guard about the port
+rather than loop machinery. Make it fail on purpose first.
+
+(423) **`GOODS` is mislabelled in `diff/leader.rs`.** Found by item 414,
+2026-09-19, while tracing what pays for a Scholar. Index 2 is named "metal"
+and index 2 is what pays this Scholar's 40 **wealth**:
+`sim::economy::Resource` has Wealth 2, Knowledge 3, Metal 4. **No verdict on
+any capture is affected** — the comparisons are index against index, so
+every number that has ever been checked was checked against its own
+counterpart — but the *names* pinned at 2, 3 and 4 in `PARTS_ON_RUN19`,
+`PARTS_ON_RUN107` and `PARTS_ON_RUN111` are the wrong resources, and a
+reader who trusts them will reason about the wrong good. **Corrected in
+place 2026-09-19, before the item ran**: the authority is the type record,
+`rise.pdb`'s own `TypeIndex` — `0 FOOD 1 TIMBER 2 WEALTH 3 KNOWLEDGE
+4 METAL 5 OIL` — which is `sim::economy::Resource` exactly; and the blast
+radius is **six strings in one file, every one at index 2**, not three
+constants across three items. There is no wrong row at 3 or 4, because
+who=1's knowledge and metal never parted on those windows, and the
+seventeen rows at 0, 1 and 5 are already right because those indices agree
+between the two orderings. **No document changes**: `docs/AI.md:227` and
+`docs/ECONOMY.md:861` already say wealth. Parks because it names no score;
+a worker's to take, not the pass's.
 
 (418) **Order coverage is a separate axis, and its unit is a native
 issuer.** Found by item 365, 2026-09-19, while designing the golden

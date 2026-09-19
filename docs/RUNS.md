@@ -4181,6 +4181,50 @@ reaches it. `docs/ARMY.md` §15.8 carries the corrected predicate; the golden
 word moved **624 → 621** and the value diff with it, four blocks of six
 units now exact.
 
+## run111 — the make list at the purchase (2026-09-19, item 414)
+
+**What it is.** `LEADERS=9` under `[End Frame]` over `[9375, 9391)` on
+run100's Great Lakes game, everything else run100's detail exactly — which
+is **run107's `end:` line verbatim**, so the overlap check needs one
+`--exclude` and no `--drop` and run107 is a second sibling to read it
+against. **16 blocks, 9375..9390, no gap; 41.5 MB; about three and a half
+minutes** end to end at `cover=0`.
+
+It exists for one record on one frame: the leader's own `MAKEOBJECT` list
+across `create_units`' re-offer on sim-frame 9379 (block 9381) and
+`make_stuff`'s purchase on 9382 (block 9383). §47 could not name the slot
+either side bought, because a purchase draws nothing and `LEADERS=1` prints
+`who`, `tribe`, `score` and `leader_flags` and no list at all.
+
+**All five checks passed on the first attempt through the driver:** rngcmp
+against run53 **9,406 frames in common, 0 differing**; `MAP_STYLE 14` and
+`(int)seed 12345`; the window whole at 16 blocks 9375..9390 (parked 373's
+check); **352 `MAKEOBJECT`** in the window — 11 slots × 2 leaders × 16
+blocks exactly, which is the detail guard and would be 0 at `LEADERS=1`;
+and `samegame.py --exclude LEADERDATA` against run100 at **16 in common, 0
+differing**.
+
+**The first launch refused, and the tool named its own remedy.** `Screen
+Recording is off — screencapture wrote nothing`: the grant belongs to
+`/Users/rf-studio/bin/RonDriver.app` and not to the Claude Code bundle,
+which macOS never evaluates. `zsh tools/gamelog/viadriver.sh
+tools/gamelog/runqueue.sh - 414` ran clean. No human was ever in the loop,
+which is the distinction between this and a refusal that has to end a turn.
+
+**And the driver could not read `captures.txt` at all before this run.** A
+stray `=======` at line 3387, left by merge `9ae8070` with no `<<<<<<<` or
+`>>>>>>>` beside it and no duplicated stanza, made `runqueue.sh` exit with
+`unknown key '======='` — so **every stanza after run107's was unreachable**,
+run109's included. One line deleted.
+
+**The predictions, and the headline one was wrong.** The stanza predicted
+the original's Scholar would *stay* at `9999999`/`num 5` where this crate's
+collapsed. Both collapse, on the same block: the original to **5,755,741**
+on two slots, this crate to **45,568** on one. The agreement at block 9375
+(two 9,999,999 batches of five, both sides) held as predicted, as did the
+Citizen agreeing outright, the goods agreeing entering the frame, and
+`scholars 5` throughout. `docs/AI.md` §48 is the measurement.
+
 ## run112 — chapter two, the ranged line and the ammunition (2026-09-19, item 415)
 
 The golden record's second chapter (`docs/GOLDEN.md` §6), staged from
