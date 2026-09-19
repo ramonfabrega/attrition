@@ -247,6 +247,16 @@ it finds them the day it lands; if none do it costs three lines and says
 so. A worker's item, not the pass's — a correctness guard about the port
 rather than loop machinery. Make it fail on purpose first.
 
+**Its sibling already exists, which is the argument for building this
+one.** Item 422 wrote `assert!(45_568 < 234_782 && 234_782 < 5_755_741)`
+— three literals agreeing with each other, unable to fail — one commit
+after landing 423, and clippy's `assertions_on_constants` killed it in
+ninety seconds because the gate runs `-D warnings`. That class of
+decorative check has a working guard. **The label class has none**: no
+lint knows that `GOODS[2]` should read "wealth", which is why one sat
+wrong from run19 until someone traced a number to the array that named
+it. Nothing to build for the assertion case; this item is the gap.
+
 **Measured 2026-09-19 by 423's own fail-on-purpose**, which is what tells
 this apart from a load-bearing label: with one row left on the old name,
 every value comparison passed — 33,536 field-frames — while the `parting`
