@@ -318,6 +318,98 @@ fn chapter_one_s_two_squads_are_seated_where_the_dump_says() {
     );
 }
 
+/// **The engagement frame's six range verdicts** — `docs/COMBAT.md`
+/// §12.5, and the one thing the golden record's frame 615 turns on.
+///
+/// Both squads are seated by frame 615 and the six cross-player pairs sit
+/// between 198 and 339 position units apart. The original's answer is
+/// printed in its own dump and is not symmetric-looking: **`1/6` and `0/7`
+/// strike each other from their seats and the other four walk.** `1/6`
+/// carries `in_range 1` and `recharging 32` at dump-617 without having
+/// moved off `(1368, 7992)`; `0/7` the same at dump-619 off `(1032,
+/// 7800)`; `1/7`, `1/8`, `0/6` and `0/8` are all on the march by 619 with
+/// `in_range 0`.
+///
+/// That is `is_in_range@006486b0`'s melee arm asking the attacker `is(0x84,
+/// 0)` and taking `0xf6` rather than `0x66`. With the `0x66` reading —
+/// which is what this crate had, `combat::in_range`'s `hoplites` argument
+/// being hard-wired `false` — the two `true` rows come back `false` and
+/// **nobody in chapter one ever swings**; the four `false` rows are right
+/// either way, which is exactly why only the whole set is an oracle.
+///
+/// The distances are the assertion as much as the verdicts: a reach that
+/// happened to be right for the wrong extent would pass the second column
+/// and fail the first.
+#[test]
+fn chapter_one_s_captains_reach_each_other_and_nobody_else() {
+    let Some(inst) = crate::testenv::install() else {
+        return;
+    };
+    let Some((dump, tracepath)) = golden("g4") else {
+        eprintln!("skipping: no golden capture (see docs/RUNS.md run101–run105)");
+        return;
+    };
+    let trace = crate::trace::Trace::read(std::path::Path::new(&tracepath))
+        .expect("a finalized golden trace")
+        .expect("missing RONT header");
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(&dump);
+    let log = Log::parse(&text);
+    let texts = sibling_texts();
+    let logs = siblings(&texts);
+    let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+    let refs: Vec<&Initial> = inits.iter().collect();
+    if refs.is_empty() {
+        eprintln!("skipping: no sibling dumps");
+        return;
+    }
+    let mut built = stand_up(&loaded, &log, &refs, &trace);
+    let mut script = chapter_one();
+    // Frame 615 stepped: both `add` lines are in, the squads are seated,
+    // and nothing has walked off its seat yet.
+    for _ in 0..616 {
+        script.stage(built.sim.frame, &mut built, &loaded);
+        built.tick();
+    }
+    let find = |b: &Built, who: u8, o: i16| {
+        (0..b.sim.units.len())
+            .find(|&u| b.sim.units[u].owner == who && b.sim.units[u].index == o)
+            .unwrap_or_else(|| panic!("no unit {who}/{o} after chapter one's two `add` lines"))
+    };
+    // (attacker, target, attack_dist, is_in_range). Every pair that
+    // crosses the two squads, in `who`/`o` order.
+    /// (who, o) — the pair the dump names a unit by.
+    type Who = (u8, i16);
+    /// attacker, target, `attack_dist`, `is_in_range`.
+    type Reach = (Who, Who, i32, bool);
+    let want: [Reach; 6] = [
+        ((1, 6), (0, 6), 339, false),
+        ((1, 6), (0, 7), 198, true),
+        ((1, 6), (0, 8), 288, false),
+        ((1, 7), (0, 7), 339, false),
+        ((1, 8), (0, 7), 316, false),
+        ((0, 7), (1, 6), 198, true),
+    ];
+    let mut got = Vec::new();
+    for (a, t, _, _) in want {
+        let (ua, ut) = (find(&built, a.0, a.1), find(&built, t.0, t.1));
+        let (oa, ot) = (sim::combat::Obj::Unit(ua), sim::combat::Obj::Unit(ut));
+        got.push((
+            a,
+            t,
+            built.sim.attack_dist(oa, ot),
+            built.sim.is_in_range(oa, ot),
+        ));
+    }
+    assert_eq!(
+        got,
+        want.to_vec(),
+        "the engagement frame's reach is not the original's: the HOPLITES \
+         line takes 0xf6 where everything else takes 0x66 \
+         (docs/COMBAT.md §13.2)"
+    );
+}
+
 /// **Great Lakes' word does not rest on the borrowed frame stream.** Five
 /// Great Lakes captures share run11/run12/run13's setup word and therefore
 /// take fourteen of their per-frame words (frames 0–3, 94–103), which

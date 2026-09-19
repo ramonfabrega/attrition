@@ -29,6 +29,12 @@ use crate::{Player, Sim};
 /// `ebp` chain shows, from `Unit::fight@005fd4d0+0xcb4`. That is the
 /// chase: a unit whose attack order's target is out of range asks where
 /// to stand and walks there.
+/// `TypeIndex::HOPLITES` — the lineage `ObjectData::is_in_range@006486b0`
+/// tests with `is(0x84, 0)` before it chooses between the two melee
+/// reaches (`docs/COMBAT.md` §13.2). The golden record's `add hoplite`
+/// lands on the type whose tech-tree id is this.
+pub const HOPLITES: crate::tech::TypeId = 0x84;
+
 pub const SITE_ATTACK_POS_FIGHT: &str = "Unit::find_attack_pos+0xea9 < Unit::fight+0xcb4";
 
 /// **The one-in-five re-search's own draw** — `Unit::fight@005fd4d0`,
@@ -263,10 +269,28 @@ impl Sim {
             d,
             self.max_range_of(attacker),
             ap.min_range,
-            false,
+            self.reaches_like_a_hoplite(attacker),
             big,
             false,
         )
+    }
+
+    /// `is_in_range@006486b0`'s melee arm asks the **attacker** `is(0x84,
+    /// 0)` and, for the lineage it names, takes `0xf6` where everything
+    /// else takes `0x66` — a reach of two thirds of a tile rather than a
+    /// half (`docs/COMBAT.md` §13.2). The constant had been in the
+    /// document since the second reading and in [`combat::in_range`]'s
+    /// signature since it was written; nothing ever passed it, so every
+    /// melee unit in this simulation fought at `0x66`.
+    ///
+    /// It is the whole of the golden record's engagement frame
+    /// (`docs/COMBAT.md` §12.5): six range verdicts on frame 615, and the
+    /// `0x66` reading gets all six wrong in the same direction.
+    fn reaches_like_a_hoplite(&self, attacker: Obj) -> bool {
+        match attacker {
+            Obj::Unit(u) => self.unit_line_is(u, HOPLITES),
+            Obj::Building(_) => false,
+        }
     }
 
     /// `ObjectData::valid_target_const` + `Object::valid_target` (§12.1), as
@@ -842,19 +866,38 @@ impl Sim {
             if st.stance == Stance::Defensive {
                 (if r == 0 { 0x120 } else { r * 0xc0 }).max(t.unit_defensive_respond_range * 0xc0)
             } else {
-                let mut d = (r + 1) * 0xc0;
-                if st.stance == Stance::Aggressive {
-                    d += 0x180;
-                }
-                if r == 0 {
-                    d = 0x120
+                // **The AGGRESSIVE bonus is inside the `r != 0` arm**, and
+                // the respond floor has a second, larger rung.
+                // `find_melee_target@005ff9c0`'s tail reads
+                //
+                //     if (r == 0) d = 0x120;
+                //     else { d = (r + 1) * 0xc0; if (stance == 0) d += 0x180; }
+                //     d = max(d, unit_respond_range * 0xc0);
+                //     if (unit_masks & 0x40000) d = max(d, unit_respond_range * 0x180);
+                //
+                // — so a melee type (`r == 0`) gets a flat `0x120` whatever
+                // its stance, where this crate added `0x180` to it, and an
+                // AI-driven unit searches half again as far as a human's.
+                let mut d = if r == 0 {
+                    0x120
+                } else {
+                    (r + 1) * 0xc0
                         + if st.stance == Stance::Aggressive {
                             0x180
                         } else {
                             0
-                        };
+                        }
+                };
+                d = d.max(t.unit_respond_range * 0xc0);
+                // SEAM: the original's word is the **unit's** `0x40000`;
+                // [`Sim::ai_driven`] is this crate's one stand-in for it and
+                // for the leader's `flags & 4` alike (`crate::orders`'
+                // `think`). The golden record has it exactly — who=1's
+                // hoplites carry `unit_masks 262144` and who=0's carry 0.
+                if self.ai_driven(self.units[i].owner) {
+                    d = d.max(t.unit_respond_range * 0x180);
                 }
-                d.max(t.unit_respond_range * 0xc0)
+                d
             }
         } else {
             range

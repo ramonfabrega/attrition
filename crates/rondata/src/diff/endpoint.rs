@@ -655,8 +655,21 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // (`005da38a`, `005d9381`, `005da081`) and the golden record's
         // own 617 is where a diff can see it; DECISIONS 36 asks for the
         // number rather than a trade.
-        off: 66,
-        unlinked: 5,
+        // And **66 → 58 off and 5 → 7 unlinked** on 2026-09-18, item 384 —
+        // the **HOPLITES melee reach** (`docs/COMBAT.md` §13.2, §18) and
+        // `find_melee_target`'s two radius corrections (§12.4). The reach
+        // is a constant the document has carried since the second reading
+        // and the one call site passed `false` for, so until now every
+        // melee unit in the simulation fought at `0x66`; `0xf6` reproduces
+        // all six of the golden record's engagement-frame range verdicts.
+        // **Neither long word moves** — Great Lakes is 9182 and its first
+        // attack roll is at 9416 — so this is again reshuffle 14,800
+        // frames past the word: eight positions closer and two more of the
+        // roster missing, with `build_diverged` and the cities unchanged.
+        // East Indies' endpoint and both ladder rungs are unchanged on the
+        // same commit. DECISIONS 36: the number, not a trade.
+        off: 58,
+        unlinked: 7,
         extra: 0,
         build_unlinked: 0,
         build_diverged: 10,
@@ -1342,15 +1355,16 @@ mod tests {
         //
         // **Which scholar it is, is telemetry.** It was `1/53` from item
         // 338 to item 350, `1/52` from item 352, `1/56` from item 358,
-        // and is **`1/55` since item 362**, whose make-list `num`
+        // was **`1/55` from item 362**, whose make-list `num`
         // (`docs/AI.md` §42) buys the AI its scholars in batches and
-        // re-deals every position 15,000 frames before this block
-        // (DECISIONS 36). Item 342's standing instruction is to
+        // re-deals every position 15,000 frames before this block, and is
+        // **`1/58` since item 384**, whose melee reach re-deals every
+        // engagement in the game (DECISIONS 36). Item 342's standing instruction is to
         // re-measure this rather than diagnose it. The *offset* is the
         // assertion — `1/2020 − 1/2019` exactly, one university away —
         // and a scholar sitting anywhere else would not carry it.
         let delta = (768, 9984);
-        let wrong_one = 55;
+        let wrong_one = 58;
         let (dx, dy) = r
             .off
             .get(&(1, wrong_one))
