@@ -91,6 +91,8 @@ Fable worker or capture.
 | L53 | Correction installation counts include no-op writes. | [Opt-in overwrite audit and paired replay survey](2026-09-10-correction-overwrites.md). | Three intervals: zero changed clocks/seeds; Great Lakes seven actual Gaia reseat changes, East Indies none. | Shared sibling inputs; not corpus-wide redundancy or a policy change. |
 | L54 | Seven actual reseat writes need individual causal checks. | [Single-write interventions through the complete run69 capture](2026-09-10-single-reseat-interventions.md). | Tick 99 leaves a 556-frame orientation difference; at frame 106 only control matches the original heading. All seven branches converge by 3001. | One capture, one-write removals; player score unchanged, no redundancy claim. |
 
+| L55 | A saved graph does not yet establish runnable search resumption; semantic search may help find the missing evidence. | [Real Jev investigation and explicit thread-state probe](2026-09-19-jev-resumption.md). | 171 passages searched for five questions; modeled original prologue advances from FS refusal at instruction 5 to `div_3_table` read at 14, with null memory still unmapped. | Authored thread/argument state, no live replay; Jev misses one half of a compound question in its top five. |
+
 ## Current direction
 
 The runtime factor-isolation experiment is paused at the user's request after
