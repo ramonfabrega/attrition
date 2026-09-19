@@ -1287,7 +1287,8 @@ has attack) is deemed `in_range` without testing, and everything else must be
 with no minimum range and `dist + 0x180 < max_range × 0xc0` halves `dist`;
 inside `min_range`: `dist = min_range×0xc0 + (max_range×0xc0 − dist)`; then
 **`dist += (target.targeted + 8) × 0x30`** — every attacker already on it adds
-a quarter tile; `value = compare_target(o, who, in_range, ai)`; **`score =
+a quarter tile; `value = compare_target(o, who, in_range, ai)` — and
+**`in_range` is a permission to test, not a verdict**, see §12.3 —; **`score =
 value / (dist / 0xc0 + 1)`**; the previous mandatory target halves; the
 `flags` preferences halve the wrong class; a cavalry archer's second-weapon
 search weights by bearing (×4 within 30°, ×2 within 60°, /10 beyond 90°,
@@ -1297,6 +1298,16 @@ candidates with a best in hand the scan stops**. The winner's `targeted`
 goes up by one (cap 100). With `add_order` the attack order is added:
 `QUEUE_FIRST` for a guard or a DEFENSIVE stance, `QUEUE_NEW` otherwise, and
 `mandatory` only for AI-controlled siege on a city.
+
+**Both constants of the score are read off the listing, not the decompiler**
+(item 386). `00649701`–`0064970e` is `movsbl 0x3d(%eax); addl $8; leal
+(%eax,%eax,2); shll $4` — `targeted` at `ObjectData+0x3d`, `+ 8`, `× 3`, `×
+16`, so `(targeted + 8) × 0x30` to the byte. `00649718`–`00649731` is `movl
+$0x2aaaaaab; imull; sarl $5` with the sign fixup, and `⌈2³⁷ / 192⌉ =
+0x2AAAAAAB`, so the divisor is `0xc0` and nothing else. Both were §18's
+suspects and both are exonerated; the answer was in `compare_target`. run108's
+`max_dist = 4608` and its three `attack_dist`s of 288, 198 and 339 are §12.4's
+radius and §13.1's extent measured from the same run.
 
 `Object::check_target(o, who, duty, &dist, guarding, use_poor, cavarch)`:
 `dist = attack_dist`; a unit not on duty in DEFENSIVE with an order, or a
@@ -1330,16 +1341,42 @@ hidden unit `/4`; raid weights (citizens and caravans `+9,000,000`, else
 `/10`; the stealth-ship weights); not raiding: combat-role `+1,000,000`, a
 supply wagon `+4,000,000` for a building attacker, else `+100,000`; land siege
 vs a non-sea, non-siege unit `/10,000`; `v /= (T.full + 1)`. A city at zero
-hits `99,999`; negative `9,999,999`; out of range and not raiding `/5`;
-`v = ceil(v / 100)`, above 100,000 compressed to `100,000 + (v − 100,000) /
+hits `99,999`; negative `9,999,999`; **out of range and not raiding `/5`, on
+this function's own range test** (below); `v = ceil(v / 100)`, above 100,000 compressed to `100,000 + (v − 100,000) /
 5`, floor 15; a detected hidden unit 1; an air target for a non-ANTI_AIR
 attacker 2.
 
+**The `/5` is the function's own range test, and `in_range` is only its
+gate** (item 386, `0064f1ed`):
+
+```
+if (param_3 != 0 && !raiding &&
+    is_in_range(this, o, who, this->x, this->y, this->y, 0, NULL) == 0)
+    v /= 5;
+```
+
+`param_3` is the caller's `in_range` — §12.2's range gate, which for a
+non-guarding unit that is not STAND_GROUND, not entrenched and not an unpacked
+packer is `1` **without any test having been made**. So the argument says *"I
+did not measure; you measure"*, and `compare_target` measures. Reading it the
+other way round — divide when the caller reports out of range — makes every
+candidate of an ordinary aggressive unit score alike, which is exactly the tie
+§18 could not break. `raiding` is the attacker's RAID stance, qualified for a
+raider that is `is(0x40000)` on a `field_0x218 == 1` type; both sit inside the
+RAID arm at the top of the function, so a non-raider reaches this line with
+`raiding` false.
+
+run108 measures the arm firing: three identical undamaged hoplites at 198, 288
+and 339, all three handed `in_range = 1`, come back **10771**, 2155 and 2155,
+and each candidate spends a *second*, nested `attack_dist` — `is_in_range`'s —
+on top of `check_target`'s. That is the only reason the golden record's
+captain does not take the first candidate the cell hands it.
+
 The implementation carries the skeleton of this — cost, the building class
 multipliers, the `attack × 100 / hits_left` preference, `× dmg`, the combat-
-role and supply bonuses, `/(full+1)`, the ceil/compress/floor — over what the
-simulation has, and leaves the raid, spell, stealth and AI branches as
-inputs. See `combat::compare_target`.
+role and supply bonuses, **the `/5`**, `/(full+1)`, the ceil/compress/floor —
+over what the simulation has, and leaves the raid, spell, stealth and AI
+branches as inputs. See `combat::compare_target`.
 
 ### 12.4 Switching and opportunity
 
@@ -1542,14 +1579,16 @@ members, which `Unit::do_attack` uses to stand an unarmed group member off at
    `rondata::balance::tail_names()` must stop emitting the matching names.
    **This also left a live defect** — see §15.
 
-8. **§12.2's two ranking constants have never been diffed.** The `/ 0xc0`
-   divisor and the `dist += (targeted + 8) × 0x30` term come from the first
-   reading and were doubly confirmed by the second — but a *reading* of two
-   constants that appear together in one expression cannot tell a scaled
-   pair from the right one, and nothing in any capture has ever forced them
-   to be right. The golden record's frame 615 is the first observation that
-   contradicts them: it makes three candidates tie and the original picks
-   the nearest. §18 has the arithmetic and the three checks, cheapest first.
+8. ~~**§12.2's two ranking constants have never been diffed.**~~
+   **Settled, 2026-09-18 (item 386), and neither was wrong.** The listing
+   reads `(targeted + 8) × 0x30` instruction for instruction and `÷ 0xc0`
+   out of `0x2aaaaaab`/`sarl $5`; §12.2 carries both derivations. What
+   made frame 615 look like it contradicted them was the assumption that
+   its three candidates score equally, and run108 says they do not —
+   `compare_target`'s own `is_in_range` discounts two of them by five.
+   §12.3 and §18.1 have it, and the constants are now diff-backed as
+   well: the run's `attack_dist`, `max_dist` and per-candidate `value` are
+   all on the record.
 
 ---
 
@@ -2128,9 +2167,11 @@ cross-squad `attack_dist`s are
 the dump has and no others. That is §13.2's HOPLITES arm, and it is what the
 implementation was missing.
 
-**What is *not* settled: which target the captain picks.** The original's
-`1/6` takes `0/7`; the harness takes `0/6`. Under §12.2's formula the three
-candidates tie exactly — `dist + (0 + 8) × 0x30` is 723, 582 and 672, each
+**~~What is *not* settled: which target the captain picks.~~ Settled by
+run108** (item 386; the paragraphs below are kept for the reasoning that was
+wrong, and §18.1 has the answer). The original's
+`1/6` takes `0/7`; the harness took `0/6`. Under §12.2's formula the three
+candidates appear to tie exactly — `dist + (0 + 8) × 0x30` is 723, 582 and 672, each
 `/ 0xc0` is 3, so each scores `value / 4`, and `compare_target` returns the
 same `value` for three identical undamaged hoplites (its `get_damage` is
 called at `find_angle(0, 0)`, so bearing cannot separate them). A tie is
@@ -2141,7 +2182,10 @@ six) and yields `0/8`; the harness's unit-index order yields `0/6`. So one
 step of §12.2 or §13.1 is wrong, and `0/7` is the only answer either can be
 asked to produce.
 
-**What would settle it.** The arithmetic is only satisfied by a larger
+**~~What would settle it.~~ Refused by run108**: its three `attack_dist`
+calls answer 288, 198 and 339, which is §13.1's formula at `block_radius +
+0x18 = 72` exactly, so the extent below is not the original's. The arithmetic
+is only satisfied by a larger
 per-side extent: at `block_radius + 0x18 = 72` the three tie, and at ~84
 (`0x54`) `0/7` alone lands in the `/ 0xc0` bucket below the other two while
 all six range verdicts above still hold — 96 is already too large, because
@@ -2154,22 +2198,82 @@ fit until something independent of this frame agrees with it.
 disassembly rather than the decompile, so the `block_radius + 0x18` on each
 side is the best-evidenced step of the three.
 
-Two candidates are left, and both are **reading-only constants of §12.2**
+~~Two candidates are left~~, and both are **reading-only constants of §12.2**
 that no diff has ever exercised: the `/ 0xc0` divisor, and the
 `(targeted + 8) × 0x30` term. Either one, differently scaled, separates 198
 from 288 without touching a range verdict: a `/ 0x60` divisor, for one,
 gives `0/7` outright. This frame cannot falsify that — `1/6` is the only
 unit in chapter one that ever searches, so there is exactly one observation
 and any number of constants fit it. That is the whole reason it is here and
-not in the code. Three checks, cheapest first: **grep the dump** for a
-frame where a searching unit's `near_o` differs from the target its order
-takes — that is the score overruling distance, and it prices the divisor;
-**read `find_nearby_target@00648da0`'s listing** at the two divisions, since
-both are magic-multiply sequences the decompiler renders from recovered
-constants; and only then a **capture** staging a tie between units of
-different `BLOCK_RADIUS`.
+not in the code. ~~Three checks, cheapest first~~ — all three were run, and
+§18.1 says what each returned; the arithmetic above is sound and its premise,
+that the three `value`s are equal, is what was false.
 
 One thing this rules out. `check_target`'s "a target in another region must
 be `is_in_range`" cannot be what rejects `0/6` and `0/8`: `get_tregion`
 resolves all six tiles to region 0 — cell `(1, 10)` carries `region 0`,
 `region2 1` and no tile of it reads ocean — so the gate never fires here.
+
+### 18.1 The pick, measured (item 386, 2026-09-18)
+
+`docs/RUNS.md` run108 is chapter one re-run with the trace's **call proxies**
+over frames 614–618 and three new sites: `find_nearby_target@00648da0`, whose
+entry and return bracket one search, and `attack_dist@006488f0` and
+`compare_target@0064e5c0` inside it. The whole answer is one bracket:
+
+| candidate | `attack_dist` | `in_range` handed in | `compare_target` |
+| --- | --- | --- | --- |
+| `0/8` | 288 | 1 | 2155 |
+| `0/7` | **198** | 1 | **10771** |
+| `0/6` | 339 | 1 | 2155 |
+
+`max_dist = 4608`, `add_order = 1`, `cavarch = 0`, `flags = 0`, return **7**.
+
+**They do not tie.** The reachable candidate stands a factor of 4.998 above
+the other two, and the factor is §12.3's out-of-range `/5` — which fires on
+**`compare_target`'s own `is_in_range` call**, not on the `in_range` argument
+the search hands it. Each candidate spends a second, nested `attack_dist` on
+top of `check_target`'s, which is that call showing through.
+
+So the constant that decides the frame is `0xf6` — the same HOPLITES reach
+item 384 landed. `0/7` at 198 is inside it and the other two are not. With the
+old `0x66` reading all three would have been out of reach, all three would
+have taken the `/5`, and the tie would have been real; the two findings are one
+constant read at two sites.
+
+**What this crate had** was the predicate inverted — `if !in_range &&
+!is_in_range(…)` — so the discount never fired for an aggressive unit and the
+three tied at 112,506 apiece. `chapter_one_s_captain_picks_the_one_it_can_reach`
+pins both halves: the captain's target after frame 615 is `0/7`, and with
+`in_range = false` (the old arm) the three values are equal again — the tie
+that hands the pick to whichever the cell's `down` chain reached first.
+
+**Four open questions close with it**, all from the same bracket: the candidate
+order *is* the cell's `down` chain; `attack_dist` *is* §13.1 at `block_radius +
+0x18 = 72`, so §18's ~84 extent is refused; `max_dist` *is*
+`unit_respond_range × 0x180`, so §12.4's radius arm is diff-backed; and §12.2's
+range gate does take the "deemed in range without testing" arm for a
+non-guarding aggressive unit.
+
+**What the fix moved, and what it did not.** The golden word is unchanged at
+617 and the value diff at 618, but the frame's anatomy moved a long way toward
+the original's — the dump's own coordinates beside the harness's, reading each
+frame's end:
+
+| | dump 617 | ours, before | ours, after |
+| --- | --- | --- | --- |
+| `1/6` target | `0/7` | `0/6` | **`0/7`** |
+| `1/6` seat | `(1368, 7992)` | walking, `(1341, 7982)` | **`(1368, 7992)`** |
+| `1/6` `recharging` | 32 | 0 — first strike at 621 | **32** |
+| `0/7` order | retaliates at 618 | none, idle through 621 | **ATTACKORDER at 617** |
+
+**What is still wrong, and it is a group question.** At the end of frame 617
+this crate's `1/6` drops its target and takes a `GROUP_ATTACK_TO`, and walks
+off the seat it held; the original's holds `(1368, 7992)` and its `recharging`
+counts 32, 31, 30, 29 without moving for the rest of the record. §12.4's "Hit"
+path says a unit already attacking ignores the hit unless its own target is out
+of range — `0/7` is not — so the group should not be moving it. That is the
+next thing between this frame and the original, and it is
+`Group::target_opportunity`'s neighbourhood (`docs/GROUPS.md` §13, parked 388).
+`0/7`'s own retaliation also strikes one frame early: the dump has `recharging
+32` at dump-619, this crate at the end of 617.

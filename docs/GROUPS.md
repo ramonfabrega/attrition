@@ -1944,6 +1944,18 @@ Still open:
   `docs/COMBAT.md` §18 has the frame.
   *Capture:* already on disk — run101–run105, `UNITS=3` over 615–621.
 
+  **And the group now moves a unit the original leaves seated** (item 386,
+  `docs/COMBAT.md` §18.1). With the captain's pick corrected, this crate's
+  `1/6` strikes `0/7` from its seat on frame 616 exactly as the dump has it
+  — and then, at the end of 617, drops the target and takes a
+  `GROUP_ATTACK_TO`, and walks. The original's holds `(1368, 7992)` for the
+  whole record with `recharging` counting 32, 31, 30, 29. §12.4 of
+  `docs/COMBAT.md` says a unit already attacking ignores a hit unless its
+  **own** target is out of range, and `0/7` is not, so the forward to the
+  group should be a no-op here. That is two symptoms of one gap: the squad's
+  members search where they should be told, and the group orders where it
+  should defer.
+
 - **`get_loc`'s other two arms** (§12.5). The substitutions landed; two
   branches around them did not. `is_on_map` (`+0xbc`) failing sends the
   original through `ObjectData::get_inside`, which re-aims **both** the

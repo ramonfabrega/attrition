@@ -59,6 +59,13 @@ PROXIES = {
     6: (0x288740, "valid_roadcoord",
         ("x", "y", "from.x", "from.y", "p5", "p6", "p7", "p8")),
     7: (0x286300, "calc_road_cost", ("node", "whoA", "whoB", "dir", "p5")),
+    # RON_TARGET_PROBE builds only. `RON_TURN_PROBE` claims 8 and 9 too, and
+    # tracer.c refuses a build that defines both, so an id here is unambiguous
+    # for any log a target-probe run wrote.
+    8: (0x248da0, "find_nearby_target",
+        ("max_dist", "who_out", "add_order", "cavarch", "flags")),
+    9: (0x2488f0, "attack_dist", ("o", "who", "x", "y")),
+    10: (0x24e5c0, "compare_target", ("o", "who", "in_range", "ai")),
 }
 
 

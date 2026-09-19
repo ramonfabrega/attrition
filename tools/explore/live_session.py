@@ -120,6 +120,7 @@ def stage(args):
     window = tuple(getattr(args, 'log_window', None) or DEFAULT_WINDOW)
     detail = list(getattr(args, 'detail', None) or DEFAULT_DETAIL)
     cover = getattr(args, 'cover', None) or 'cover=0'
+    callwin = getattr(args, 'callwin', None)
     cmd_file = getattr(args, 'cmd_file', None)
     minute = getattr(args, 'ffwd_minute', None)
     if not 36 <= end <= 24000 or (fast and end <= 37):
@@ -185,7 +186,10 @@ def stage(args):
             elif source.suffix.lower() != '.log':
                 target.symlink_to(source, target_is_directory=source.is_dir())
         (output / 'Logs').mkdir()
-        (output / 'rontrace.cfg').write_text(f'{cover}\ncallwin=0-{end}\n')
+        # The proxies log every call in the window, so a probe that only needs
+        # a few frames says so rather than paying for the whole run.
+        cw = f'{callwin[0]}-{callwin[1]}' if callwin else f'0-{end}'
+        (output / 'rontrace.cfg').write_text(f'{cover}\ncallwin={cw}\n')
         if fast:
             minute = (end + 899) // 900
         # The channel runs lines in file order and clamps a frame below its
@@ -223,6 +227,8 @@ def main():
     s.add_argument('--detail', action='append', metavar='SECTION:CAT[=N],...',
                    help="setlog.py's spelling, repeatable; default " + ' '.join(DEFAULT_DETAIL))
     s.add_argument('--cover', help="rontrace.cfg's first line; default cover=0")
+    s.add_argument('--callwin', type=int, nargs=2, metavar=('LO', 'HI'),
+                   help='sim-frames the call proxies log over; default 0-END')
     s.add_argument('--cmd-file', type=Path,
                    help='rontrace.cmd lines to stage before the !quit, `<sim-frame> <text>`')
     s.add_argument('--ffwd-minute', type=int,
