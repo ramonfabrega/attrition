@@ -513,6 +513,9 @@ only `receipt.json` said `success: false`. The silent truncation is the
 finding, not the timeout: every check that greps a dump would have passed
 on it. In `docs/ORACLE.md` beside the new knobs. A guard shape: a capture
 asserts its own block count against the window it asked for.
+**Half-closed 2026-09-18 by item 369**: run107's stanza is the first in
+`tools/gamelog/captures.txt` to carry that assertion (30 blocks,
+9170..9199, no gap). Making it every capture's is still open.
 
 (376) **The sibling borrow is measured harmless on every scored path, and
 this is the record of it** (item 364, 2026-09-18, the negative the
@@ -554,6 +557,17 @@ nought even once the gate is fixed. That is the part to build first.
 squad head at `(888, 7800)`. `docs/ORACLE.md`'s stored `arg × 768 + half a
 footprint` is corrected for the staged channel, and 363's open "the
 coordinate argument did not calibrate the way the runbook says" closes.
+
+(383) **run107 opened two families never compared on Great Lakes.**
+Player 1's ten `SITE` slots part as a **re-ordering of the same ten
+sites** — our `SITE[3]` is their `SITE[1]` and so on, with `rank` in the
+residue on every slot — and `tech_frame`/`tech_cat_frame[0..3]` sit at
+nought against 8382/4976/8382/8182/6376. Both are inside
+`run107_s_window_is_the_leader_record_at_the_word`'s 109 fields, so they
+are floored and cannot regress silently; neither is on the word's frame,
+which is why they park rather than queue. The re-ordering is the more
+interesting: the same ten sites in a different order is a comparator or an
+insertion order, not a missing mechanic.
 
 ## Measured residues, none near a word
 

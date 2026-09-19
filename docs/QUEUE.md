@@ -21,12 +21,12 @@ held-out map's verdict; 362 was booked as the market and was not.*
   model — **1** with nothing staged (the original's frame 1 is 12 draws,
   ours 54, all Leader AI), **610** with `ai off`, **617** with `add`. What
   stands is one named draw (379). `docs/INPUT.md` §11; §8 struck through.
-- **Three items, one frame, no word.** 9182 survived 358, 362 and 368;
-  each named a mechanism, none was the cause (377). Landed instead:
-  `MakeObject.num` (every civilian a batch of one) and `census_territory`'s
-  gate — the human IS a leader — dropping three leader residues on
-  disk-resident captures. 368's better product is a **closed family**:
-  31,448 gather orders below the word, zero disagreement, floored by SET.
+- **Four items, one frame, no word** — 9182 survived 358, 362, 368, 369,
+  each naming a mechanism that was not the cause (377). But run107
+  **decided** it: the bucket agrees, both §43 branches refused, and the
+  whole parting is `1/MAKE[0].val` on 9179–9180 — three draws to our one.
+  382 is the named cause. Landed on the way: `MakeObject.num`,
+  `census_territory`'s gate, a closed gather family of 31,448 orders.
 - **The held-out third map answers 1 tick, 0 orders** (run106, map 9
   Himalayas), measured once, never debugged against. The tick is a MINIMUM
   set by one of sixteen units (others 209–501); 35,063 of 44,597
@@ -40,8 +40,8 @@ Long captures: EastIndies w9711 of 24,000 · GreatLakes w9182 of 24,000
 Golden: w617 of 901 · chapter one pinned · 379 next
 Endpoint 24001: EastIndies 64 off, 5 unlinked · GreatLakes 50 off, 9 unlinked
 
-**Opener: 379 on the golden record's own frame — one named `set_anim`
-draw — and 369 beside it, the capture that decides which branch 9182 is on.**
+**Opener: 382 on the AI word's frame — the Mercenaries ceiling run107
+named — and 379 beside it on the golden record's own.**
 
 ## The queue
 
@@ -51,14 +51,14 @@ the AI, lower map first — Great Lakes. Take the first unstarted on either
 track unless a better order is obvious, and say so. Numbers are stable;
 the backlog is `docs/PARKED.md`, and an item returns only when a score names it.
 
-369. **A `LEADERS=9` window over Great Lakes `[9175, 9190]`** (capture
-    lane; the AI headline's frame): `docs/AI.md` §43 names the two
-    branches 9182 can be on and **which the window decides** — 368's
-    parting product. No capture on disk holds the leader's internals at
-    the word; run100 carries the same game 9340→10899, so this is a
-    re-run, not a new game. **Do not book a mechanism from a title** —
-    three items running named one, none was the cause (377); the frame
-    and the draw delta held every time.
+382. **Our Mercenaries is 6,600,000 where the original's is at the
+    9,999,999 ceiling** (the AI headline's frame; run107 is the test that
+    says whether closing it moves the word). Ours is 200 × our own 33,000
+    cat-10 value; 200 × the original's 43,200 is **not** 9,999,999, so the
+    ceiling is reached another way — name it. The whole parting at 9182 is
+    `1/MAKE[0].val` on blocks 9179–9180, two frames wide: the original
+    holds Mercenaries (573) at the ceiling from the rebuild on 9179, we
+    write 6,600,000 on the same rebuild and lose the head to a Scholar.
 
 379. **The golden record's word is one draw, and it is named**
     (the rules headline's frame): `Guy::set_anim@005da300+0xf2f`, the
