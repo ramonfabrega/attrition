@@ -332,6 +332,10 @@ pub const SITES: &[(u32, Option<u32>, &str)] = &[
         Some(0x0071_28aa), // `Group::action_attack+0x41a`
         sim::fight::SITE_ATTACK_POS_GROUP,
     ),
+    // `Unit::fight@005fd4d0+0x9b0` — the one-in-five re-search's roll,
+    // spent before either suppression is read (`docs/COMBAT.md` §8.2
+    // step 0). One caller, so no chain is needed.
+    (0x005f_de80, None, sim::fight::SITE_FIGHT_RESEARCH),
 ];
 
 /// The header's `kind`: `RONT`, little-endian.

@@ -34,6 +34,8 @@ mod city;
 mod corrections;
 mod endpoint;
 mod floors;
+#[cfg(test)]
+mod golden;
 mod harness;
 #[cfg(test)]
 mod leader;

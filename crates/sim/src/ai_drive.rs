@@ -125,6 +125,18 @@ impl Sim {
     /// §2.4).
     fn production_ai(&mut self, who: Player) {
         let w = who as usize;
+        // **`ai off`'s first reader** (`docs/INPUT.md` §11).
+        // `production_ai@006c1960:15` bails to the switch's `default` arm
+        // — `field_0x788 = 0`, the step machine cleared, and return —
+        // when any of three hold, and `*GameAccess::ai_off != 0` is the
+        // middle one. So the cheat does not stop `plan_strategy`'s sweep
+        // (`census`, `check_orphaned_buildings`, `compute_sites` keep
+        // their draws, which is why the golden record's frame 0 is
+        // unchanged by it); it stops everything the sweep arms.
+        if self.ai_off {
+            self.ai[w].step = Step::Idle;
+            return;
+        }
         let unlimited = self.lobby.resources_unlimited();
         self.ai[w].effective_pop = self.queued_units(who) + self.muster[w].control + 1;
         self.ai[w].enter(unlimited);

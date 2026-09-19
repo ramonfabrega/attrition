@@ -1580,6 +1580,33 @@ impl Sim {
         if self.units[u].caravan.is_some() && self.think_caravan(u) {
             return;
         }
+        // **The computer block, and the second place `ai off` is read**
+        // (`docs/INPUT.md` §11). `think@005f6e40:205` opens
+        // `if ((leader_flags & 4) != 0 || ai_off != 0)`, and its only
+        // unconditional statement is the exit below it:
+        // `if ((unit_masks & 0x40000) == 0) goto LAB_005f761a` — the
+        // function's return. The arms inside are the computer leader's
+        // alone (`uVar4 != 0` guards them), so for a human leader with the
+        // cheat on the block is exactly one thing: **a unit that is not
+        // AI-driven loses the whole tail** — `think_fish`,
+        // `think_merchant`, `think_scout`, `think_carry`, the army join.
+        // Everything above this line — the auto-attack arm,
+        // `think_peasant`, `think_caravan` — is untouched, which is what
+        // `docs/RUNS.md` run101–run105 measured as "auto-engage survives
+        // AI-off".
+        //
+        // **Why the predicate is one term here and two there.** This crate
+        // has a single stand-in, `ai_driven(owner)`, for both of the
+        // original's words — `leader_flags & 4` on the leader and
+        // `unit_masks & 0x40000` on the unit. Substituting it for both,
+        // `(x || ai_off) && !x` is `ai_off && !x`, which is what stands.
+        // SEAM: the two are not the same word in the original — a human
+        // who leaves the auto-manage option on has citizens carrying
+        // `0x40000` under a leader that is not computer-controlled — so
+        // when a per-unit bit lands, this reverts to the two-term form.
+        if self.ai_off && !self.ai_driven(self.units[u].owner) {
+            return;
+        }
         // **The tail's own cadence gate** (§2.4 step 5), the second of the
         // two in this function and the one the code was missing: after the
         // human block's `unit_masks & 0x40000` exit, `think@005f6e40`
@@ -5254,6 +5281,7 @@ impl Sim {
             && state.captain == i32::from(self.units[u].index)
             && let Obj::Unit(t) = target
         {
+            self.mark(crate::fight::SITE_FIGHT_RESEARCH);
             let roll = self.rng.roll();
             // `Unit::fight@005fd4d0`, `005fde80`-`005fde99`: the draw is
             // spent first and **then** the two suppressions are read —
