@@ -2475,7 +2475,7 @@ impl Sim {
     /// `ObjectData::get_captain` — the head of `u`'s own squad, up the
     /// `o_up` chain. `Unit::ungroup_move_order` starts there and walks
     /// back down, so ungrouping any figure ungroups the whole squad.
-    fn squad_captain(&self, u: usize) -> usize {
+    pub(crate) fn squad_captain(&self, u: usize) -> usize {
         let mut at = u;
         while !self.units[at].captain {
             match self.units[at].o_up {

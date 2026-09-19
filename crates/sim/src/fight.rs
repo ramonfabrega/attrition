@@ -825,16 +825,39 @@ impl Sim {
     /// `Unit::target_opportunity` (§12.4), reduced to the retaliation: a
     /// combat unit with no target, not holding fire, attacks whoever hit it;
     /// a non-combatant does nothing (it would flee).
+    ///
+    /// **The hit is answered by the victim's captain, never by the figure
+    /// that took it.** `Unit::target_opportunity@005fffc0` opens with a
+    /// `while (true)` whose body ends
+    ///
+    /// ```text
+    ///     if (is_captain(this)) break;           // (ushort)o_up >> 15
+    ///     param_3 = 0;
+    ///     this = objects[who][this->o_up]->get_unit();
+    /// ```
+    ///
+    /// — so every test below it, and the `add_attack_order` at its foot,
+    /// runs on the head of the squad. `docs/COMBAT.md` §18.2 has the frame
+    /// that measures it: the golden record's `1/6` strikes `0/7` on 616 and
+    /// it is **`0/6`**, `0/7`'s captain, that carries the ATTACKORDER at the
+    /// end of that frame, with `0/7` and `0/8` taking theirs a frame later.
+    ///
+    /// SEAM: the loop's other arm, taken **before** the captain walk at each
+    /// level — a group member whose type is *not* combat-role
+    /// (`type +0x2c8 & 0x10000`) forwards to `Group::target_opportunity`
+    /// instead. Every unit in the golden record's two squads is combat-role,
+    /// so no run on disk takes it (`docs/GROUPS.md` §13).
     fn target_opportunity(&mut self, victim: usize, attacker: Obj, _frame: i64) {
-        let me = Obj::Unit(victim);
         let (a, b) = (self.units[victim].owner, self.owner_of(attacker));
         if !self.at_war_with(a, b) && !self.at_war_with(b, a) {
             return;
         }
+        let responder = self.squad_captain(victim);
+        let me = Obj::Unit(responder);
         if !self.valid_target(me, attacker) {
             return;
         }
-        let st = self.units[victim].combat;
+        let st = self.units[responder].combat;
         if st.stance == Stance::HoldFire || self.attack_of(me) == 0 {
             return;
         }
@@ -1492,6 +1515,44 @@ mod tests {
         assert_eq!(
             sim.find_nearby_target(Obj::Unit(me), 0),
             Some(Obj::Unit(foe))
+        );
+    }
+
+    /// **A hit is answered by the victim's captain, never by the figure that
+    /// took it.** `Unit::target_opportunity@005fffc0`'s opening `while`
+    /// breaks on `is_captain` and otherwise re-enters on
+    /// `objects[who][this->o_up]`, so every test past it — and the
+    /// `add_attack_order` at its foot — runs on the head of the squad. The
+    /// golden record measures it (`docs/COMBAT.md` §18.2): `1/6` strikes
+    /// `0/7` on frame 616 and it is `0/6` that carries the ATTACKORDER at
+    /// that frame's end, with `0/7` a frame behind.
+    ///
+    /// Made to fail on purpose: answering on the victim gives
+    /// `(None, Some(foe))`, which is what this crate did until item 391 and
+    /// what put the retaliation a frame early on the golden record's 617.
+    #[test]
+    fn the_hit_is_answered_by_the_victim_s_captain() {
+        let (mut sim, ty) = at_war();
+        let cap = put(&mut sim, 0, ty, Pos::new(0x1000, 0x1000));
+        let sub = put(&mut sim, 0, ty, Pos::new(0x1030, 0x1000));
+        let foe = put(&mut sim, 1, ty, Pos::new(0x1100, 0x1000));
+        sim.units[sub].captain = false;
+        sim.units[sub].o_up = Some(cap);
+        sim.units[cap].o_down = Some(sub);
+        sim.do_damage(
+            Obj::Unit(foe),
+            Obj::Unit(sub),
+            crate::movement::Angle(0),
+            false,
+            1,
+            false,
+            false,
+            10,
+        );
+        assert_eq!(
+            (sim.units[cap].combat.target, sim.units[sub].combat.target),
+            (Some(Obj::Unit(foe)), None),
+            "the captain retaliates and the figure that was hit does not"
         );
     }
 
