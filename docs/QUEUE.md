@@ -38,7 +38,7 @@ mechanisms were wrong; the frame was right every time.*
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w9711 of 24,000 · GreatLakes w9451 of 24,000
 Golden: w619 of 901 · chapter one pinned · 395 next
-Endpoint 24001: EastIndies 64 off, 5 unlinked · GreatLakes 43 off, 13 unlinked
+Endpoint 24001: EastIndies 64 off, 5 unlinked · GreatLakes 53 off, 14 unlinked
 
 **Opener: 395 on the golden record's frame — the squad handed its
 captain's target — beside 394, in flight on the AI word's 9451.**

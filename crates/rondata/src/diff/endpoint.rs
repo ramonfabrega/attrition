@@ -697,11 +697,26 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // and nine more of the roster unlinked, all thirteen of them
         // consecutive (`1/68`–`1/80`). `build_diverged` and the cities are
         // unchanged. DECISIONS 36 asks for the number rather than a trade.
-        off: 43,
-        unlinked: 13,
+        //
+        // Then **43 → 53, 13 → 14 and 9 → 10** on 2026-09-19, item 395 —
+        // the captain mirror (`docs/COMBAT.md` §20), which moves the *rules*
+        // headline's word 619 → 624 and does not move this map's own word at
+        // 9451. It is the widest behavioural change this row has taken:
+        // every squad member in the game stops searching for a target and
+        // stops running the whole of `Unit::think` — `think_peasant`,
+        // `think_caravan`, `think_fish`, the army joins — because the
+        // original's `Unit::think` returns after the mirror. Ten positions
+        // further out, one more of the roster unlinked and one more building
+        // field-row apart, 14,550 frames past a word that does not move, in
+        // a tail that has been free-running since 9451. **This row got
+        // worse and the number is the number**: DECISIONS 36 asks for it
+        // rather than a trade, and the direction is stated here rather than
+        // argued away.
+        off: 53,
+        unlinked: 14,
         extra: 0,
         build_unlinked: 0,
-        build_diverged: 9,
+        build_diverged: 10,
         city_unlinked: 3,
         city_diverged: 0,
     },

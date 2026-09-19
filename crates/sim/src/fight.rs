@@ -1616,6 +1616,110 @@ mod tests {
         );
     }
 
+    /// **A squad member never searches: it mirrors its captain.**
+    /// `Unit::think@005f6e40`'s first statement, above every gate in the
+    /// function (`docs/COMBAT.md` §20) — a non-captain reads its captain's
+    /// **action**, and takes that target if the action is an ATTACK order
+    /// (`get_type() == 10`) on something it can validly attack.
+    ///
+    /// Three arms, each made to fail on purpose:
+    ///
+    /// - the captain holding an ATTACK order hands it down;
+    /// - a captain whose action is a **move** hands nothing down — the
+    ///   `get_type() != 10` return, and the member keeps whatever it had;
+    /// - a member whose `valid_target` fails on the captain's target takes
+    ///   nothing either, which is the only one of the five returns the
+    ///   golden record cannot see.
+    ///
+    /// The captain itself is never mirrored: `captain_mirror` is a no-op on
+    /// it, because `Unit::think` reaches the rest of the function instead.
+    #[test]
+    fn a_squad_member_mirrors_its_captain_s_attack_order() {
+        let (mut sim, ty) = at_war();
+        let cap = put(&mut sim, 0, ty, Pos::new(0x1000, 0x1000));
+        let sub = put(&mut sim, 0, ty, Pos::new(0x1030, 0x1000));
+        let foe = put(&mut sim, 1, ty, Pos::new(0x1100, 0x1000));
+        sim.units[sub].captain = false;
+        sim.units[sub].o_up = Some(cap);
+        sim.units[cap].o_down = Some(sub);
+        // Nothing to mirror while the captain is idle.
+        sim.captain_mirror(sub);
+        assert_eq!(sim.units[sub].combat.target, None);
+        // The captain takes an attack order; the member takes the same one.
+        sim.add_attack_order(
+            cap,
+            Obj::Unit(foe),
+            crate::orders::QueuePos::New,
+            false,
+            false,
+        );
+        sim.captain_mirror(sub);
+        assert_eq!(
+            sim.units[sub].combat.target,
+            Some(Obj::Unit(foe)),
+            "the member is handed the captain's target"
+        );
+        // **A captain walking to its chase point still hands the target
+        // down**: `get_action` skips the leading transit moves, so the
+        // ATTACK order under them is still what is read.
+        sim.add_move_order(
+            cap,
+            Pos::new(0x1080, 0x1000),
+            crate::orders::MoveKind::MoveTo,
+            crate::orders::QueuePos::First,
+            false,
+        );
+        sim.units[sub].combat.target = None;
+        sim.captain_mirror(sub);
+        assert_eq!(
+            sim.units[sub].combat.target,
+            Some(Obj::Unit(foe)),
+            "the action is the attack under the transit move"
+        );
+        // A captain whose **action** is a move hands nothing down — the
+        // `get_type() != 10` return, taken with the target still on the
+        // captain, so it is the order's kind that refuses and not a
+        // missing target.
+        sim.add_move_order(
+            cap,
+            Pos::new(0x1200, 0x1000),
+            crate::orders::MoveKind::MoveTo,
+            crate::orders::QueuePos::First,
+            true,
+        );
+        sim.units[sub].combat.target = None;
+        sim.captain_mirror(sub);
+        assert_eq!(
+            (sim.units[cap].combat.target, sim.units[sub].combat.target),
+            (Some(Obj::Unit(foe)), None),
+            "`get_type() != 10` returns before the target is read"
+        );
+        // And the **member's own** `valid_target` is what is tested: an
+        // ally target passes for nobody, and this is the one of the five
+        // returns the golden record cannot see.
+        let (mut sim, ty) = at_war();
+        let cap = put(&mut sim, 0, ty, Pos::new(0x1000, 0x1000));
+        let sub = put(&mut sim, 0, ty, Pos::new(0x1030, 0x1000));
+        let friend = put(&mut sim, 0, ty, Pos::new(0x1100, 0x1000));
+        sim.units[sub].captain = false;
+        sim.units[sub].o_up = Some(cap);
+        sim.units[cap].o_down = Some(sub);
+        sim.add_attack_order(
+            cap,
+            Obj::Unit(friend),
+            crate::orders::QueuePos::New,
+            false,
+            false,
+        );
+        assert!(!sim.valid_target(Obj::Unit(sub), Obj::Unit(friend)));
+        sim.captain_mirror(sub);
+        assert_eq!(sim.units[sub].combat.target, None);
+        // A captain mirrors nothing — the arm is `!is_captain` only, and
+        // `squad_captain` answers the unit itself for one.
+        sim.captain_mirror(cap);
+        assert_eq!(sim.units[cap].combat.target, Some(Obj::Unit(friend)));
+    }
+
     /// And with the table the size a real lobby gives it — two — asking the
     /// question at all is what took the first fuzzed seed down. Both
     /// accessors are total now (`Sim::is_ally`).

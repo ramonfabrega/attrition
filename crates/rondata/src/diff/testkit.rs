@@ -1343,17 +1343,33 @@ pub(crate) const RUN58_QUEUE_TAIL: i64 = 5177;
 ///   current order is the move from 618 and `do_attack` is not reached
 ///   again until 650.
 ///
-/// What stands at **619** is one draw, `Guy::set_anim+0xf2f <
-/// Guy::move+0x166` — the attack stand the original pays on 619 and this
-/// crate pays on 621. It is the same defect one step on: `0/6` walks to
-/// `(1224, 7704)` where the original walks to `(1080, 8280)`, so its turn
-/// takes a different number of frames and the deferred swing lands two
-/// frames late. The *point* is right — §19's test reproduces
-/// `(1080, 8280)` from the golden dump's own state — and what is wrong is
-/// the state the ring is asked about: the original's `1/7` is ordered to
-/// `(1320, 7800)` and this crate's to `(1176, 7944)`, because who=1's
-/// three each search for their own target where the original's squad is
-/// handed the captain's (`docs/GROUPS.md` §13,
-/// `Group::target_opportunity`). Three of the ring's rejections hang on
-/// that one destination.
-pub(crate) const GOLDEN_WORD_CHAPTER_ONE: i64 = 619;
+/// - **619** was that `1/7` destination, and the mechanism was **not**
+///   `Group::target_opportunity`: that function only ever reaches a
+///   group's *captains*, and `1/6` is the only captain in group 64. What
+///   hands a squad member its captain's target is `Unit::think@005f6e40`'s
+///   **first statement** — a non-captain mirrors the captain's standing
+///   ATTACK order and the think ends there, so a member never searches at
+///   all (item 395, `docs/COMBAT.md` §20). With it, who=1's `1/7` and
+///   `1/8` carry `0/7` from the frame they are born, `1/7` is ordered to
+///   the dump's own `(1320, 7800)`, and `0/6`'s ring then answers
+///   `(1080, 8280)` in the live harness — the word 619 → **624**.
+///
+/// What stands at **624** is `Guy::set_anim+0x97a < Unit::move_step+0x823`,
+/// a walking figure's step, and the value diff moves with it to 625. Two
+/// residues are live on frame 618, both measured against the dump's own
+/// coordinates (`docs/COMBAT.md` §20, "What stands at 624"):
+///
+/// - **who=1's army marches and the original's does not.** `0/7` now
+///   strikes `1/6` during 618, exactly as the dump has it, and that hit
+///   reaches `Armies::emergency(1)` → `Army::process(·, 1)` →
+///   `Group::action_siege_attack_to`: this crate walks all three of who=1's
+///   hoplites toward `(38664, 13320)` from 618, where the dump holds `1/6`
+///   on `(1368, 7992)` and `1/7` on its chase to `(1320, 7800)` for the
+///   rest of the record. The emergency's gates are not the answer — the
+///   victim's leader must be non-human (`leaders[who] & 4 == 0`,
+///   `LeaderData::is_human@006ec170`), and who=1 is the computer leader —
+///   so the divergence is inside the tick.
+/// - **`0/8` plans its chase a frame late.** The dump has it ordered to
+///   `(1224, 8280)` at the end of 618; this crate plans at 619 and to the
+///   target's own `(1368, 7992)`.
+pub(crate) const GOLDEN_WORD_CHAPTER_ONE: i64 = 624;

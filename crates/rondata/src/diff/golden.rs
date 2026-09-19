@@ -594,6 +594,92 @@ fn chapter_one_s_hit_is_answered_by_the_victim_s_captain() {
     );
 }
 
+/// **The squad is handed its captain's target, and the dump's own
+/// coordinates are the check** (item 395, `docs/COMBAT.md` §20).
+///
+/// Two stages of one walk, both against the golden dump:
+///
+/// - **block 616**, the end of frame 615 — the frame who=1's squad is born.
+///   All three carry `type 10 ox 7 whom 0`: the captain `1/6` searched
+///   (`near_o 7 / near_who 0`) and `1/7`/`1/8` read `near_o -1` and hold its
+///   answer on the same frame, because `Unit::think`'s first statement
+///   mirrors the captain and `1/6` is processed first.
+/// - **block 618**, the end of frame 617 — the three ordered destinations
+///   §19's ring is answered from. `1/7` to `(1320, 7800)` is the one that
+///   moved: this crate had it at `(1176, 7944)` because `1/7` searched for
+///   itself and found `0/6`, and two of the six cells the original's ring
+///   rejects hang on that point. `0/6`'s own `(1080, 8280)` is the
+///   consequence and the golden word's frame.
+///
+/// Made to fail on purpose by letting the members search: with the mirror
+/// removed `1/7` takes `0/6` and is ordered to `(1176, 7944)`, `0/6` walks
+/// to `(1224, 7704)`, and the word falls to 619.
+#[test]
+fn chapter_one_s_squad_is_handed_its_captain_s_target() {
+    let Some(inst) = crate::testenv::install() else {
+        return;
+    };
+    let Some((dump, tracepath)) = golden("g4") else {
+        eprintln!("skipping: no golden capture (see docs/RUNS.md run101-run105)");
+        return;
+    };
+    let trace = crate::trace::Trace::read(std::path::Path::new(&tracepath))
+        .expect("a finalized golden trace")
+        .expect("missing RONT header");
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(&dump);
+    let log = Log::parse(&text);
+    let texts = sibling_texts();
+    let logs = siblings(&texts);
+    let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+    let refs: Vec<&Initial> = inits.iter().collect();
+    if refs.is_empty() {
+        eprintln!("skipping: no sibling dumps");
+        return;
+    }
+    let mut built = stand_up(&loaded, &log, &refs, &trace);
+    let mut script = chapter_one();
+    let find = |b: &Built, who: u8, o: i16| {
+        (0..b.sim.units.len())
+            .find(|&u| b.sim.units[u].owner == who && b.sim.units[u].index == o)
+            .unwrap_or_else(|| panic!("no unit {who}/{o} after chapter one's two `add` lines"))
+    };
+    // Through the end of frame 615 — the dump block labelled 616.
+    for _ in 0..616 {
+        script.stage(built.sim.frame, &mut built, &loaded);
+        built.tick();
+    }
+    let hit = sim::combat::Obj::Unit(find(&built, 0, 7));
+    let (c, m1, m2) = (find(&built, 1, 6), find(&built, 1, 7), find(&built, 1, 8));
+    assert!(
+        built.sim.units[c].captain && !built.sim.units[m1].captain && !built.sim.units[m2].captain,
+        "who=1's squad is one captain and two members"
+    );
+    assert_eq!(
+        (
+            built.sim.units[c].combat.target,
+            built.sim.units[m1].combat.target,
+            built.sim.units[m2].combat.target,
+        ),
+        (Some(hit), Some(hit), Some(hit)),
+        "the dump's block 616 has `ox 7 whom 0` on all three of who=1"
+    );
+    // On to the end of frame 617 — block 618, and the ordered points.
+    for _ in 616..618 {
+        script.stage(built.sim.frame, &mut built, &loaded);
+        built.tick();
+    }
+    let at = |u: usize| {
+        let p = built.sim.units[u].orders_pos;
+        (p.x, p.y)
+    };
+    assert_eq!(
+        (at(m1), at(m2), at(find(&built, 0, 6))),
+        ((1320, 7800), (1176, 8088), (1080, 8280)),
+        "block 618's `orders_x, orders_y` for `1/7`, `1/8` and `0/6`"
+    );
+}
+
 /// **Great Lakes' word does not rest on the borrowed frame stream.** Five
 /// Great Lakes captures share run11/run12/run13's setup word and therefore
 /// take fourteen of their per-frame words (frames 0–3, 94–103), which

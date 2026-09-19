@@ -2451,10 +2451,15 @@ the original and cost the golden record's frame 617 outright:
 `Armies::emergency` is **not** gated by `ai off`: the cheat's only readers in
 the simulation are `Unit::think@005f6e40:206`, `Leader::production_ai` and
 `Leader::diplomacy` (`grep GameAccess::ai_off`). It fires in the original too
-— one frame later, on 618 — and does not move the squad. Whether this crate's
-`Army::process` would still walk it there is **not established**: with the
-retaliation on the right unit, no capture on disk reaches the call again
-inside chapter one's 901 frames.
+— one frame later, on 618 — and does not move the squad. ~~Whether this
+crate's `Army::process` would still walk it there is **not established**~~
+**It does** (item 395, §20.4): once `0/7` strikes on 618 rather than 617 the
+call is reached again, and the bypass tick walks all three of who=1's
+hoplites toward `(38664, 13320)` where the dump holds them. The gate is
+right and the tick is not — `Object::do_damage`'s gate at `0064bbfd` wants the victim's
+leader to read `leader_flags & 4 == 0`, which is
+`LeaderData::is_human@006ec170`, so the emergency is the computer leader's
+and who=1 is the computer leader.
 
 **The word: 617 → 618.** The value diff moves with it, 618 → 619.
 
@@ -2470,17 +2475,18 @@ answered `None` for every unit target, fell back to the target's own
 point, lost the move inside the frame that ordered it, and rolled again on
 618, 620 and 621. **The word: 618 → 619.**
 
-**What stands at 619** is `Guy::set_anim+0xf2f < Guy::move+0x166`, the
-deferred swing, which this crate pays on 621. The chase is now planned on
-the right frame and `0/6` walks — but to `(1224, 7704)` where the original
-walks to `(1080, 8280)`, so the turn takes a different number of frames.
-The *mechanism* is right: §19's test reproduces `(1080, 8280)` from the
-dump's own state. What is wrong is the state it is asked about — three of
-the ring's six rejections hang on `1/7`'s ordered destination, and this
-crate's `1/7` is ordered to `(1176, 7944)` because it searched for its own
-target (`0/6`) where the original's squad is handed the captain's
-(`0/7`). That is `docs/GROUPS.md` §13's open `Group::target_opportunity`,
-and it is the next item.
+~~**What stands at 619** is `Guy::set_anim+0xf2f < Guy::move+0x166`, the
+deferred swing, which this crate pays on 621.~~ **Closed by item 395, and
+the mechanism was not `Group::target_opportunity`** — §20. The chase was
+planned on the right frame but to `(1224, 7704)` where the original walks
+to `(1080, 8280)`, because three of §19's six ring rejections hang on
+`1/7`'s ordered destination and this crate's `1/7` searched for its own
+target (`0/6`) where the original's squad carries the captain's (`0/7`).
+What hands it down is **`Unit::think`'s first statement**: a non-captain
+mirrors its captain's standing ATTACK order and the think ends there, so a
+member never searches at all. `Group::target_opportunity` could not have
+been it — its loop only enters a member that is itself a captain, and group
+64 has one. **The word: 619 → 624**, and §20.4 has what stands there.
 
 
 ---
@@ -2576,3 +2582,189 @@ no observation: every melee asker in chapter one is a hoplite. `full`
 (`+0xac`) is written and never read here. And `find_melee_pos` is still
 not reached for a **moving** unit target, which is the rest of §17.6's
 unit-target half.
+
+---
+
+## 20. The captain mirror — how a squad gets its target (item 395, 2026-09-19)
+
+**A squad member never searches for a target. Its whole think is copying
+its captain's.** `Unit::think@005f6e40`'s *first* statement, above the
+citizen mask-clear, above both cadence gates, above the auto-attack and
+everything under it:
+
+```text
+if (!is_captain(this)) {                        // (ushort)o_up >> 15
+    a = get_action(units[who][get_captain()]);
+    if (a == 0) return;
+    if (a->get_type() != 10) return;            // must be an ATTACK order
+    o   = a->target_o;  who2 = a->target_who;   // +0x8 / +0xc
+    if (!valid_target(this, o, who2)) return;
+    add_attack_order(this, o, who2, QUEUE_NEW, a->mandatory, 0);
+    return;
+}
+```
+
+Five tests and a return, and the `return` is the function's — a non-captain
+reaches nothing else in `Unit::think`. `Unit::think` is only called from
+`Unit::do_idle`, so the mirror fires on the frames a member is idle and
+costs nothing on the frames it is walking or swinging.
+
+**It is not gated by anything the auto-attack is gated by**: not the stance,
+not `unit_masks & 0x100`, not `idle == 1 || (o + frame) & 0x1f`, not the
+mod-sixteen gate. It reads the captain's **action** (`UnitData::get_action`,
+the intent under the pathing legs), so a captain already walking to a chase
+point still hands its target down. `valid_target` is tested on the
+**member**. The order is `QUEUE_NEW` carrying the captain's own `mandatory`
+byte, and `add_attack_order`'s `action` argument is 0, so a DEFENSIVE member
+still takes a post.
+
+### 20.1 The frame, and it is measured twice
+
+Both of chapter one's squads are three unit objects threaded `o_up`/`o_down`
+by one `Objects::init_unit` (`docs/INPUT.md` §11), so each has exactly one
+captain — `0/6` and `1/6`, the only two of the six that read `o_up -1`.
+
+**who=1, the frame it is born.** The golden dump's block 616 — the end of
+frame 615, the frame `add hoplite who=1 5,40` runs — already has all three
+carrying `type 10 ox 7 whom 0 new_ord 1`, and `near_o` on the captain
+alone:
+
+| block 616 | `type ox whom` | `near_o/near_who` | `orders_x, orders_y` |
+| --- | --- | --- | --- |
+| `1/6` captain | `10 7 0` | **`7 / 0`** | `1368, 7992` |
+| `1/7` | `10 7 0` | `-1 / -1` | `1512, 7992` |
+| `1/8` | `10 7 0` | `-1 / -1` | `1416, 8136` |
+
+The captain searched (§18.1's bracket is that search); the two members did
+not, and they hold its answer on the same frame because `1/6` is processed
+before them. Three units, one search — and §18's "only the captain
+searches" is now a mechanism rather than an observation.
+
+**who=0, one frame later.** The retaliation reaches the captain only
+(§18.2), and who=0's members are processed *before* `1/6` fights, so they
+mirror on the next frame: `0/6` carries the ATTACKORDER at the end of 616
+and `0/7`/`0/8` at the end of 617. That one-frame stagger is the mirror's
+signature and nothing else in the frame produces it.
+
+### 20.2 Why it is not `Group::target_opportunity`
+
+The item was booked as `Group::target_opportunity` handing the squad its
+captain's target. It cannot: the loop at `007107d0` only enters a member
+that is itself a **captain** (`o_up < 0`, `UnitData::is_captain`'s own
+`(ushort)o_up >> 15`), and group 64's only captain is the asker `1/6`. What
+the function does for this frame is hand the target *back to the asker* —
+and by the arm at `00710964`, not the direct one: `1/6` has no action yet,
+`order_type` is `NONE`, so it runs its own
+`find_melee_target(min(dist + 0xc0, unit_respond_range × 0x240))`, whose
+`add_order` argument is 1 and which is therefore where the captain's own
+ATTACK order comes from. `docs/GROUPS.md` §13 carries the listing.
+
+### 20.3 The same predicate lives in `find_melee_target` too, and is not implemented
+
+`Unit::find_melee_target@005ff9c0`'s head is the mirror again, for callers
+that are not `Unit::think` (`005ff9d8`–`005ffb9a`, read off the listing):
+
+- `is_captain` is tested first; a captain falls through to `on_duty` and
+  the search.
+- a non-captain with `cavarch != 0` (`param_3`) skips straight to the
+  search;
+- otherwise the captain's action must exist and be kind **10**, and
+  `valid_target` must pass on the member; then
+  `(stance != 2 && <two `unit_masks & 0x2000000` / `+0x6c & 0x20000` pairs
+  on the member and the captain>) || is_in_range(member, target)`;
+- and with `add_order` (`param_4`) set it adds the order itself:
+  **`QUEUE_FIRST`** when the member's own `order_type` is `ATTACK_TO` (2),
+  `GROUP_ATTACK_TO` (0x15) or `GUARD` (0xc), **`QUEUE_NEW`** (2) otherwise
+  — the listing's own `pushl $0x0` at `5ffb78` against `pushl $0x2` at
+  `5ffb4f` — carrying the captain's `mandatory` byte;
+- a failure of `valid_target` or the range disjunct falls to `on_duty` and
+  the ordinary search, so the arm is a shortcut rather than a veto.
+
+**Not implemented here**, and deliberately: with the `think` mirror landed
+no non-captain reaches `think_attack` at all, and the one other caller that
+would take this arm is `Group::action_attack`'s per-member
+`find_melee_target` (`docs/GROUPS.md` §10), which runs all over the long
+captures. No diff asks for it and the golden record cannot see it.
+*Falsifier:* a `UNITS` window over an army group given a non-mandatory
+`Group::action_attack` whose members are not captains, read for whether a
+member takes `QUEUE_FIRST` where this crate gives it the outer
+`add_attack_order` alone.
+
+### 20.4 What stands at 624
+
+The word moved 619 → **624**, the value diff 620 → 625, and blocks 616, 617
+and 618 now carry the dump's own coordinates for all six units — including
+the three the last item could not reach:
+
+| block 618 (end of 617) | dump | ours, before 395 | ours, after |
+| --- | --- | --- | --- |
+| `1/7` `orders_x, orders_y` | `1320, 7800` | `1176, 7944` | **`1320, 7800`** |
+| `1/8` `orders_x, orders_y` | `1176, 8088` | `1176, 8088` | `1176, 8088` |
+| `0/6` `orders_x, orders_y` | `1080, 8280` | `1224, 7704` | **`1080, 8280`** |
+| `1/7` position | `1471, 7954` | — | **`1471, 7954`** |
+| `1/8` position | `1360, 8126` | — | **`1360, 8126`** |
+
+§19's ring is answered from the right state now: `1/7`'s ordered point is
+the one two of its six `find_ordered_collision` rejections hang on.
+
+What parts at 624 is `Guy::set_anim+0x97a < Unit::move_step+0x823`, a
+walking figure's step, and **two** residues on frame 618 can produce it.
+Both are value diffs against the dump, not readings:
+
+1. **who=1's army marches where the original's holds.** `0/7` now strikes
+   `1/6` during 618 — the dump's `1/6` reads `damage 3 damage_frame 618` —
+   and that hit reaches `Armies::emergency(1)`, whose bypass tick
+   (`Army::process(·, 1)`) recounts the army, finds `num_standard` 1 for
+   the first time, and issues `Group::action_siege_attack_to`: from 618
+   this crate walks all three of who=1's hoplites toward
+   `(38664, 13320)`, and the dump holds `1/6` on `(1368, 7992)` with
+   `recharging` counting 32 → 27 and `1/7`/`1/8` on their own chases for
+   the rest of the record. **The emergency's gates are not the answer.**
+   `Object::do_damage`'s gate at `0064bbfd` requires the *victim's* leader to read
+   `leader_flags & 4 == 0`, and that bit is `LeaderData::is_human@006ec170`
+   — one instruction, `return leader_flags & 4` — so the emergency is the
+   **computer** leader's, who=1 is the computer leader, and it fires in the
+   original too. The divergence is inside the tick.
+   *Falsifier:* chapter one re-captured with `ARMY` and `GROUPS` under
+   `[End Frame]` over 610–630, read for who=1's army block at 618 — its
+   `status`, `num_standard`, `target_o/target_who` and its group's order —
+   which the present capture's categories do not print at all.
+2. **`0/8` plans its chase a frame late, and to the wrong point.** The dump
+   has `0/8` ordered to `(1224, 8280)` at the end of 618; this crate leaves
+   it on its seat through 618 and plans `(1368, 7992)` — the target's own
+   point, not a ring slot — at 619. `0/6`, which took its order a frame
+   earlier, plans correctly at 617, so the lag is in *when* a freshly
+   mirrored member reaches `do_attack`, not in §19.
+
+### 20.5 The bit the mirror's own return does not clear
+
+`Unit::think`'s **shared** epilogue at `005f761a` is
+`andb $-0x11, 0x8(%ebx)` — it clears `SubObjectData.flags & 0x10`, the
+"could not reach" bit that `think`'s own mod-sixteen cadence gate reads
+(§`docs/ORDERS.md`, "The global cadence gate"). The mirror's arm does not
+reach it: `add_attack_order` at `005f6f71` is followed by the function's
+**own** epilogue at `005f6f76`, and the three early returns above it jump to
+`005f761e`, one instruction *past* the clear. So a non-captain never has the
+bit cleared by thinking, and a unit that has just failed to reach something
+keeps searching every frame until something else clears it.
+
+This crate **never clears it at all** — `cant_reach` has three writers and
+no reader but the gate (`grep cant_reach crates/sim/src/orders.rs`) — so the
+mirror's return is faithful by accident and the captain path is not. Not
+implemented, because the clear moves the cadence of every unit on both long
+captures that has ever failed to reach anything and no diff asks for it.
+*Falsifier:* a `UNITS` window over a unit ordered into ground it cannot
+reach, read for whether its think interval returns to sixteen frames on the
+frame after the failure.
+
+### 20.6 Confidence, and what this has not established
+
+Diff-backed: the mirror's existence and its timing on both squads (§20.1 is
+the golden dump's own blocks 616–618, and the harness reproduces every
+coordinate in §20.4's table); the golden word at 624. Read-only: §20.3's
+`find_melee_target` head, and within §20 itself the `mandatory` byte — every
+observation here has it 0, so nothing distinguishes "the captain's" from
+"always 0". The two `unit_masks & 0x2000000` pairs in §20.3 have no
+observation either. And the mirror has never been seen to *fail* its
+`valid_target` test, so which of the five returns fires is only backed for
+the success path.
