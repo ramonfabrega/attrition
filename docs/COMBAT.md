@@ -3776,9 +3776,21 @@ testb  $0x2, 0xe3a390(%eax)     ; leader_flags, bit 1
 cmovel %edi, %esi               ; if clear, uVar12 = 1
 ```
 
-So it is proper indexing after all, on a stride of **28,396** where the
-type record gives `LeaderData` a size of **28,388** — an eight-byte
-difference worth carrying, and not load-bearing here.
+So it is proper indexing after all, on a stride of **28,396**.
+
+~~where the type record gives `LeaderData` a size of **28,388** — an
+eight-byte difference worth carrying, and not load-bearing here.~~
+**Closed 2026-09-19, item 439, and it was never a discrepancy**: the
+array's element is `Leader`, not `LeaderData`, and the type record gives
+`Leader` **28,396** exactly. `docs/AI.md` already says why — `Leader` is a
+shell over `LeaderData` that Ghidra did not populate, so a `field_0xNNN`
+on a `Leader *` is a `LeaderData` field — and `docs/ANIM.md` already uses
+28,396 as the stride. This section compared `Leader`'s stride against
+`LeaderData`'s size, which are two different types. Nothing shifts:
+`LeaderData` sits at the shell's offset 0, which the listing above
+confirms by reading `leader_flags` at `base + who × 28,396 + 0`, and every
+`leaders.list[who] + 0xNN` in `docs/` is therefore an unshifted
+`LeaderData` offset.
 
 who=1's `leader_flags` low byte is 19, so bit 1 is **set**, the `cmovel`
 does not fire, `uVar12` stays 0, and **`think_attack` passes 0**. who=1's
@@ -3814,7 +3826,11 @@ the bracket.
 
 Visibility (§26.2), the remembered-target arm (§27.1), the seating error
 and the `0x40000` respond arm considered alone (§26), the `idle`/`stance`
-gate (§27.3), and now the choice of branch (§28.2). What remains
+gate (§27.3), the choice of branch (§28.2), and — seventh, item 439 — **an
+offset shift through the leader array**: the eight bytes §28.2 recorded
+were `Leader` against `LeaderData` and not a disagreement at all, so no
+offset any document computes through that array is displaced. What
+remains
 unexplained is narrow and stated as a number: **a melee searcher on the
 zero path behaves as though its radius were `unit_respond_range * 0xc0`
 with `unit_respond_range` 7.**

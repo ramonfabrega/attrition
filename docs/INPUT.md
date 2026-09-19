@@ -382,9 +382,16 @@ readers in the simulation's own territory are three:
   is unchanged by the line and its frame 1 is not.
 - **`Unit::think@005f6e40:205`** opens
   `if ((leader_flags & 4) != 0 || ai_off != 0)`, whose only unconditional
-  statement is `if ((unit_masks & 0x40000) == 0) goto <return>`. The arms
-  inside are a computer leader's alone, so for a human leader with the cheat
-  on the block is exactly one thing: a unit that is not AI-driven loses the
+  statement is `if ((unit_masks & 0x40000) == 0) goto <return>`.
+  ~~The arms inside are a computer leader's alone~~ — **`leader_flags & 4`
+  is not the computer-leader test** (2026-09-19, item 437;
+  `docs/COMBAT.md` §28.1). Measured identically on run112, run105 and the
+  AI-on control run104, so it is a lobby property: **who=0, the human,
+  carries the bit set** (`0x00000007`) and **who=1, the computer, has it
+  clear** (`0x03000013`). What the bit *is* was **not** established. The
+  claims below rest on the old reading and are left standing and flagged
+  rather than dropped; each is owed a re-check. So for a human leader with
+  the cheat on the block is exactly one thing: a unit that is not AI-driven loses the
   whole tail — `think_fish`, `think_merchant`, `think_scout`, `think_carry`,
   the army join. **Everything above the line is untouched**, which is what
   run101–run105 measured as "auto-engage survives AI-off".
