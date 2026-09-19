@@ -5394,9 +5394,19 @@ The loop now takes the capture's own last complete block, as its sibling
 always did. This is parked 373's guard, arriving as a bug rather than as a
 guard.
 
-The endpoint at 24,001 went **66 → 49 off and 5 → 12 unlinked**
-(`DECISIONS` 36): the twelve are `1/69`..`1/80`, a contiguous late-game
-block the original's roster has and this crate's does not.
+The endpoint at 24,001 is **54 off, 4 unlinked, 9 build_diverged**
+(`DECISIONS` 36) — and that is the **merged** figure, not this item's.
+Measured alone against its own base this item read 66 → 49 off and 5 → 12
+unlinked; item 384's melee reach, landing the same day, read 66 → 58 and
+5 → 7 against the other base. Two independent improvements compose and
+the row is what the merged code prints, which is the rule the 289/290
+merge set. `great_lakes_scholars_sit_on_their_universities` changed shape
+with it: the scholar sitting one university away from the original's own
+coordinates carried an index that moved on every upstream item (`1/53`,
+`1/52`, `1/56`, `1/55`, `1/58`), and on the merged tree **nobody carries
+that vector at all** — so the assertion is now the vector over the whole
+roster with no index in it, which stops costing a re-measurement a
+session. It is not a claim the seating is fixed.
 
 ### What is not established
 

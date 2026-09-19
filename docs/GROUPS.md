@@ -1932,6 +1932,18 @@ garrisoned leader. Nor is the `buildings` branch (`list[0]` instead of
 
 Still open:
 
+- **`Group::target_opportunity` is how a squad engages, and the simulation
+  does not have it.** `Unit::think_attack@005f5a80`'s tail, on a find,
+  calls `Group::target_opportunity(group, o, who, …)` — so in a group only
+  the **captain** searches and the members are handed its answer. The
+  golden record prints the witness: `ObjectData::near_o`/`near_who` are
+  written by `find_nearby_target` alone, and over chapter one's 901 frames
+  exactly one unit ever carries them, while its two squadmates hold the
+  same target with `near_o -1`. This crate has all three searching
+  independently and they pick different targets.
+  `docs/COMBAT.md` §18 has the frame.
+  *Capture:* already on disk — run101–run105, `UNITS=3` over 615–621.
+
 - **`get_loc`'s other two arms** (§12.5). The substitutions landed; two
   branches around them did not. `is_on_map` (`+0xbc`) failing sends the
   original through `ObjectData::get_inside`, which re-aims **both** the
