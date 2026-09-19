@@ -378,6 +378,14 @@ pub const SITES: &[(u32, Option<u32>, &str)] = &[
     // separates them at this depth and none is given.
     (0x0067_c8c9, None, sim::fight::SITE_AMMO_SCATTER_X),
     (0x0067_c8fb, None, sim::fight::SITE_AMMO_SCATTER_Y),
+    // `Object::take_damage@00652020` — a building's **first wound**: one
+    // roll at `+0xe1` whenever combat damage reaches an object whose
+    // `damage` is still zero and whose vtable `+0x1c` answers 1, and a
+    // second at `+0x18b` for the flock a siege hit on a fort, temple or
+    // town puts up (`docs/COMBAT.md` §7.2 step 3). Every caller reaches
+    // both through `Object::do_damage`, so no chain separates them.
+    (0x0065_2101, None, sim::fight::SITE_FIRST_WOUND),
+    (0x0065_218b, None, sim::fight::SITE_FIRST_WOUND_FLOCK),
 ];
 
 /// The header's `kind`: `RONT`, little-endian.
