@@ -1114,6 +1114,7 @@ pub fn load_tables(
             // Supply Wagon, which the `Civilian` *category* refuses, and
             // Boadicea, which carries the mask but is `Foot`).
             combat_role: cols[i].is(ai_load::role::MILITARY),
+            hoplites: unit_is(i, HOPLITES),
             cost: c.cost.iter().sum::<i32>() * 10,
             build_class: BuildClass::Other,
         };
@@ -1316,6 +1317,7 @@ pub fn load_tables(
             most_shots: c.most_shots,
             block_radius: 0,
             big_radius: 0,
+            hoplites: false,
             combat_role: false,
             cost: c.cost.iter().sum::<i32>() * 10,
             build_class,
