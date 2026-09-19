@@ -3504,3 +3504,118 @@ guarded by `attack->+0x1c == 0`, and nothing this crate models reaches it.
 *Falsifier:* a capture with an Archer or Slinger squad walking onto a
 target under an `ATTACK` action, read for a target change on an
 `(o + frame) & 0x8000000f == 0` phase.
+
+## 26. Why a cheat-spawned melee captain engages a frame early — a hypothesis (item 434, 2026-09-19)
+
+**This section is a hypothesis, and it is one because fourteen booked
+mechanisms have been wrong in two days while the frame held every time**
+(`docs/DECISIONS.md` 42). What it settles is what the divergence is *not*;
+what it proposes is one constant and one unresolved arm, with the check
+that would decide between them named and unrun.
+
+The frame is chapter two's **616** — the rules headline
+(`docs/GOLDEN.md` §6, item 426). The original issues no attack order there
+at all; this crate gives the hoplite squad one on its birth frame, and
+`Unit::fight`'s one-in-five re-search then spends a twenty-sixth draw
+against the original's twenty-five.
+
+### 26.1 What run112 measures
+
+| fact | value |
+| --- | --- |
+| first `ATTACKORDER`, slingers `0/9`–`0/11` | **621**, their own birth frame |
+| first `ATTACKORDER`, bowmen `0/6`–`0/8` and hoplites `1/6`–`1/8` | **635** |
+| damage on who=1's hoplites through 650 | **none** — so 635 is a search, not retaliation |
+| who=1's nearest unit outside the squad | **198 tiles** |
+| LOS: Hoplites / Slingers / Bowmen | **6 / 8 / 11** |
+| bowmen to the hoplite captain at 616 | **7.25 tiles** (1392 units) — not engaged |
+| nearest who=0 unit at 634 | `0/10` at **6.57**; the target chosen is `0/11` at **6.85** |
+| slingers to their target at 621 | **8.6 tiles** — engaged |
+
+### 26.2 Three mechanisms the reading rules out
+
+- **Visibility.** There is no fog or seen-test anywhere on the search path:
+  `Unit::find_melee_target@005ff9c0`, `Object::find_nearby_target@00648da0`
+  and `Object::valid_target@00648ba0` carry none between them. "who=1
+  cannot see them" is a good story — who=1's only eyes are three Hoplites
+  at LOS 6, 7.25 tiles short — and the decompile does not support it.
+- **The gate's shape.** `Unit::think@005f6e40` reaches the search only when
+  `idle == 1` or `(o + frame) & 0x1f == 0`; otherwise it takes a cheap
+  remembered-target path and skips `think_attack` entirely. That is what
+  this crate has, and the bowmen confirm the grid exactly: `o` 6 gives
+  `(6 + 634) & 0x1f == 0`, and 635 is the dump's label for it.
+- **The army join.** `Unit::think_attack@005f5a80` calls
+  `Unit::add_to_army@005f7740` and falls through to the search regardless,
+  so a join cannot suppress it.
+
+### 26.3 The arithmetic, and the contradiction in it
+
+The radius `find_melee_target` searches, aggressive stance:
+
+```
+r == 0 :  0x120
+r != 0 : (r + 1) * 0xc0 + 0x180
+then   : max(·, unit_respond_range * 0xc0)
+then   : max(·, unit_respond_range * 0x180)   when the searcher's unit_masks
+                                              carries the AI-driven bit
+```
+
+This crate's own numbers, printed rather than derived: **24 tiles** for the
+hoplite captain, 13 for the bowmen, 12 for the slinger. The 24 is the
+AI-driven arm at `unit_respond_range` 12.
+
+- For the hoplites not to reach 7.25 **without** that arm,
+  `unit_respond_range` must lie in `[6.85, 7.25)` — **exactly 7**.
+- **With** it, `unit_respond_range * 0x180 < 1392` forces 3 or less, and
+  then the plain floor cannot reach the 6.85 tiles the original *does*
+  engage at.
+
+Both cannot hold. Two supporting facts sharpen it rather than resolve it:
+`UNIT_RESPOND_RANGE` **is not in `rules.xml` at all**, so this crate's 12
+is a default and happens to equal the neighbouring
+`UNIT_BUILD_RESPOND_RANGE`; and `UnitData +0x68` is `unit_masks` by the
+type record, with the dump printing 262144 on who=1's hoplites and 0 on
+who=0's — so the arm's own word is not misread.
+
+### 26.4 The hypothesis, and why it explains the slingers
+
+`unit_respond_range` is **7**, and the 6.85-tile lower bound belongs to
+`think`'s *cheap* remembered-target arm — whose range test is
+`ObjectData::is_in_range@006486b0` and not `find_melee_target` — rather
+than to the search. If so the lower bound is vacated, a smaller
+`unit_respond_range` becomes admissible too, and the whole divergence is
+one constant this crate defaulted.
+
+**The slingers are invariant under every value the hypothesis ranges
+over**, which is the point. Their own term dominates —
+`(6 + 1) * 0xc0 + 0x180` is 1728, nine tiles, against the 8.6 they engage
+at — and who=0's units carry `unit_masks` 0, so the AI-driven arm never
+applies to them. That is why only the melee squad is wrong, and why a fix
+must not move them: `chapter_two_s_first_attack_orders_are_the_dump_s`
+asserts six of its nine rows still agree, so making the hoplites right by
+making the slingers wrong fails.
+
+### 26.5 What would settle it, cheapest first
+
+1. **Read the remembered-target arm** — whether a unit with no order can
+   have `+0x34`/`+0x36` set, which decides whether the 6.85 datum is the
+   search's at all. No run needed.
+2. **Read `unit_respond_range`'s shipped value out of the PE globals.** It
+   is a number, not an inference, and the recipe exists.
+3. A `UNITS=9` window over run112 `[614, 640)`, which would print each
+   unit's own target fields either side of both frames. No capture on disk
+   carries them.
+
+### 26.6 Coverage
+
+**Diff-backed**: every row of §26.1 — they are run112's own dump and
+trace, and `chapter_two_s_first_attack_orders_are_the_dump_s` holds the
+engagement timeline against it. The three radii in §26.3 are this crate's,
+printed from a probe.
+
+**Reading-only, and owed a blind second reading**: all of §26.2, the
+radius formula in §26.3, and the whole of §26.4. Nothing in §26.4 has been
+run: no value of `unit_respond_range` has been tried against the floors,
+and the one experiment that was tried — 12 to 7 — left 616 unchanged,
+because the AI-driven arm re-raises the radius to 14 tiles. That is
+evidence *for* the contradiction and not for the hypothesis.
