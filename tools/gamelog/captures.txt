@@ -3384,7 +3384,6 @@ check: python3 tools/gamelog/samegame.py gamelog-run97-greatlakes-valuewindow.tx
 # check: GROUPDATA count > 512 — the pool is 512 slots a frame, so 20 frames
 #        is ~10,240 records; `<= 512` is the DEATHS trap firing
 # ============================================================================
-=======
 run: 109
 tag: greatlakes-ammolaunch
 item: 396
@@ -3543,4 +3542,132 @@ check: LC_ALL=C grep -ac "^ *sx " "$HOME/ron-data/AppData/Roaming/Microsoft Game
 # highest block is dropped by `samegame.py` (mine the 9496 `!quit` block,
 # run100's its 10899), so the compared set is exactly the window.
 check: python3 tools/gamelog/samegame.py gamelog-run100-greatlakes-valuewindow2.txt gamelog-run109-greatlakes-ammolaunch.txt --exclude AMMO | tee /dev/stderr | awk '/in common/{split($0,a,", "); n=a[2]+0} /^differ:/{d=$2+0} END{print "run100 overlap: common="n" differ="d; exit !(n==60 && d==0)}'
+# =====================================================================
+
+run: 111
+tag: greatlakes-makeword
+item: 414
+why: Great Lakes 9382 is a make step both sides spend eight identical draws on and a purchase draws nothing, so only the leader's own make list says why the original queues a Scholar at 1/2019 where this crate queues two Citizens at 1/2007 — and `LEADERS=1` prints `who`, `tribe`, `score`, `leader_flags` and no list at all
+# **THE DISK WAS GREPPED FIRST, and it moved the question twice.**
+#
+# **run107 is already a `LEADERS=9` window on this game** — item 369's,
+# blocks [9170, 9199], the same `end:` line as below. It does not reach
+# 9382, so this run is still owed; what it bought for nothing is the
+# *shape* of the answer. `diff::tests::run107_s_window_is_the_leader_
+# record_at_the_word` already pins `MAKE[1].val`, `MAKE[1].num`,
+# `MAKE[2..3].{t,cat,val,num}` and `MAKE[{0,1,2,4,5,8}].city` as standing
+# residue there, and at its block 9199 the original's who=1 list carries
+# the Scholar twice at `t 52 val 9999999 city 1 num 5 cat 4`.
+#
+# That refuted the dichotomy item 408 wrote into `docs/AI.md` §47.4 — "the
+# Citizen's value is wrong" against "the Citizen should not be offered".
+# The Citizen's value is **234,782 on both sides**; a third reading was
+# available all along, that the Citizen outranks a Scholar whose own offer
+# collapsed. §47.6.
+#
+# **And then this crate's own list refuted that too, which is why the
+# prediction below is a frame and not a value.** Over the step cycle:
+#
+#   block 9375, 9376   ours: 1:t52 v9999999 c2 cat4 n5   4: the same
+#   blocks 9377..9380  ours: no t52 slot at all (the list is refilled)
+#   block 9381 on      ours: 4:t52 **v45568 c1 cat4 n1**, and only one
+#
+# So this crate offers the original's own Scholar — 9,999,999, `num 5`,
+# the second city — on 9375, and `create_units` **re-offers it collapsed**
+# on sim-frame 9379, two steps before `make_stuff` runs on 9382. The
+# question is not "which value is right in general". It is **what the
+# original's slot says on blocks 9381-9383**, and this window is sized to
+# straddle exactly that.
+#
+# **`9,999,999` is an overflow, not a ceiling** (§45): the original's own
+# `val < 0 -> 9999999` at `create_units@006c40a0:1567` catches a 32-bit
+# `imul` wrapping in `income x val / 256`. So a slot at 9,999,999 is one
+# whose pre-income value cleared §45's cliff, and "bigger than 45,568" is
+# not what a comparison against it means.
+frames: 9405
+mapstyle: 14
+# **run100's detail exactly but for `LEADERS`** — which is run107's line
+# verbatim, so the overlap check below needs one `--exclude` and no
+# `--drop`, and run107 is a second sibling to read this against.
+end: MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,DEATHS=1,LEADERS=9
+# **9375..9390, sixteen blocks.** The purchase is made during sim-frame
+# 9382, which is block **9383**; the collapse is `create_units` on
+# sim-frame 9379, block 9380. Six blocks each end of that pair (run83's
+# rule), and the whole window lies inside run100's [9340, 10900) so the
+# overlap is total rather than six-deep.
+frame_window: 9375 9391
+# No `cfg:`, so map 14 takes the default `-config check.ini` — run53's,
+# run97's, run100's and run107's lobby. A re-run of run100's game.
+cover: cover=0
+# run76/run79/run80/run83/run84/run87/run89/run97/run100/run107/run109's
+# Great Lakes floor.
+settle_min: 14000000
+# run107 wrote 30 blocks of this detail in ~68 MB, so ~2.3 MB a block and
+# sixteen blocks is ~37 MB on a ~14 MB start dump. run80 reached 23,960 of
+# this game in forty seconds at cover=0, so the run-up is under half a
+# minute. 90 polls is thirty minutes against an expected three; the
+# give-up path **truncates rather than stops**, so it is sized high (373).
+poll_max: 90
+#
+# ---- THE PREDICTIONS, written before the capture ran. Block n is the
+# state after n ticks, so sim-frame 9382 is **block 9383**. All rows are
+# who=1. `city` is the OWNER's own index in the dump and a global one in
+# this crate, so the dump's 0/1 is this crate's 1/2 (`diff/leader.rs`
+# compares them raw and pins the `MAKE[*].city` rows for that reason) —
+# every city number below is the DUMP's.
+#
+# **P1 — the agreement, blocks 9375 and 9376.** Two `MAKEOBJECT` slots
+# with `t 52`, `val 9999999`, `num 5`, `cat 4`, `city 1`. This crate has
+# exactly that. **If it fails**, run107's 9199 rows were a coincidence of
+# that frame, the bracket reasoning in §47.6 was wrong, and the whole
+# reading restarts from the capture rather than from the disk.
+#
+# **P2 — THE HEADLINE, blocks 9381, 9382 and 9383.** This crate has ONE
+# `t 52` slot: `val 45568`, `city 0`, `num 1`. The prediction is that the
+# original still has **two at `val 9999999`, `num 5`, `city 1`** — that
+# its `create_units` pass on sim-frame 9379 does not collapse the offer,
+# and that is why the Scholar outranks the Citizen and is bought.
+#   - **Killed if** the original's Scholar collapses too: then the
+#     ranking is not the story and the purchase is decided below the
+#     list — `can_pay`, the slot loop, or affordability.
+#   - **Killed differently if** the original has no `t 52` slot at all on
+#     9381-9383: the scholar would then be queued from somewhere that is
+#     not the make list, and §47.2's whole frame needs re-reading.
+#
+# **P3 — the stockpile.** `bucket[2]` (wealth) is 40 or more on block
+# 9383, since the Scholar is bought for 40 there (run100's queue slot).
+# This crate's is **14**, having spent ~39 wealth and 100 timber through
+# `use_market` on the same frame. Predict the original's `bucket` does
+# **not** take that move: this is §44's shape, where the goods agreed and
+# the list did not.
+#
+# **P4 — the scholar arm's inputs, not its arithmetic.**
+# `gather_slots[3]` and `filled_gather_slots[3]` (knowledge) agree with
+# this crate across the window. The `CITY` record's own `free`, `busy`
+# and `gatherers` already agree field for field on run100 (§47.2), so a
+# disagreement HERE would move the defect from `create_units`' value to
+# the census feeding it — a different item.
+#
+# **P5 — the counters.** `scholars` is **5** on every block (the sixth is
+# born on 9510), `peasants` agrees, and `script_step` is 29 throughout.
+#
+# **What is expected to AGREE, and is refusable.** Every non-`LEADERDATA`
+# record in the sixteen blocks, byte for byte against run100 — this is
+# run100's game with one category raised.
+# Same game: the trace word for word against run53, this map's own 24k run.
+check: python3 tools/gamelog/rngcmp.py rontrace-run53.log rontrace-run111.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=9390)}'
+# And the map, from the dump's own `GAME INFO`.
+check: LC_ALL=C head -c 400000 "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run111-greatlakes-makeword.txt" | LC_ALL=C grep -a "MAP_STYLE" | tee /dev/stderr | awk '{print; exit !($2==14)}'
+# **The window landed whole** — sixteen blocks, 9375..9390, no gap. Parked
+# 373's check: a truncated run reads as completely ordinary everywhere
+# else, and only this says so.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run111-greatlakes-makeword.txt" | awk '{v=$3+0; if(v>=9375&&v<=9390) n[v]=1} END{c=0; lo=0; hi=0; for(k in n){c++; if(lo==0||k+0<lo)lo=k+0; if(k+0>hi)hi=k+0} print "window blocks: "c" ("lo".."hi")"; exit !(c==16 && lo==9375 && hi==9390)}'
+# **And the record that was raised is actually in them.** Eleven
+# `MAKEOBJECT` per leader per block, two leaders, sixteen blocks = 352.
+# A correctly-numbered window whose blocks come back without the record is
+# the failure the detail guard exists for, and `LEADERS=1` would give 0.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|BEGIN MAKEOBJECT" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run111-greatlakes-makeword.txt" | awk '/BEGIN FRAME/{f=$3+0; next} /BEGIN MAKEOBJECT/{if(f>=9375&&f<=9390)n++} END{print "MAKEOBJECT in window: "n; exit !(n==352)}'
+# **The overlap with run100, and the count is the claim** — sixteen
+# blocks, one `--exclude` for the category that was raised.
+check: python3 tools/gamelog/samegame.py gamelog-run100-greatlakes-valuewindow2.txt gamelog-run111-greatlakes-makeword.txt --exclude LEADERDATA | tee /dev/stderr | awk '/in common/{split($0,a,", "); n=a[2]+0} /^differ:/{d=$2+0} END{print "run100 overlap: common="n" differ="d; exit !(n==16 && d==0)}'
 # =====================================================================

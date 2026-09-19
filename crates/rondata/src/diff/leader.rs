@@ -1135,6 +1135,333 @@ mod tests {
         );
     }
 
+    /// **The make list on the frame the AI headline is bought** — item
+    /// 414, run111, `docs/AI.md` §48.
+    ///
+    /// Item 408 put Great Lakes 9510 — the sixth scholar's birth — on a
+    /// purchase made 128 frames earlier, on 9382, and could not say which
+    /// slot either side bought: a purchase draws nothing and `LEADERS=1`
+    /// prints no list. run111 is `LEADERS=9` over blocks `[9375, 9390]`,
+    /// run100's detail with that one category raised, and it straddles
+    /// both the re-offer on sim-frame 9379 and the purchase on 9382.
+    ///
+    /// **The prediction written into the stanza was wrong, and the
+    /// measurement is better than it.** It said the original's Scholar
+    /// would *stay* at `9999999`/`num 5` where this crate's collapses.
+    /// Both collapse, on the same block:
+    ///
+    /// | block | theirs | ours |
+    /// | --- | --- | --- |
+    /// | 9375, 9376 | `t52 v9999999 c1 n5` ×2 | the same (`c2` = their `c1`) |
+    /// | 9377–9380 | no `t52` slot | no `t52` slot |
+    /// | 9381, 9382 | `t52` **`v5755741`** `c1 n1` **×2** | `t52` **`v45568`** `c0` `n1` **×1** |
+    ///
+    /// So the re-offer is the frame, and the **value** is the parting:
+    /// 5,755,741 clears the Citizen's 234,782 and 45,568 does not. The
+    /// Citizen is not the defect — its `val` is **234,782 on both sides,
+    /// same city, same `num 2`**, which is what refuses the dichotomy
+    /// §47.4 first wrote (§47.6).
+    ///
+    /// **And the purchase is visible in the record.** On block 9383 the
+    /// original's slot 1 alone drops to **57,557** — 5,755,741/100, the
+    /// bought-slot devaluation — while slot 4 holds. That is the original
+    /// naming which of its two Scholar offers it spent.
+    ///
+    /// **The goods agree entering the frame and part through it**, which
+    /// is §44's shape again: `bucket` is `107 127 53 129 80 0` on both
+    /// sides at 9381, and both sell 100 timber on 9382 (timber 127 → 27
+    /// on both). The original spends the proceeds on the 40-wealth
+    /// Scholar and keeps **82**; this crate buys food for two Citizens
+    /// and keeps **14**.
+    #[test]
+    fn run111_s_window_is_the_make_list_at_the_purchase() {
+        const FIRST: i64 = 9375;
+        const LAST: i64 = 9390;
+        /// The block `create_units` re-offers the Scholar on — sim-frame
+        /// 9379's work, and the first block either list carries `t52`
+        /// again after the refill.
+        const REOFFER: i64 = 9381;
+        /// The block after `make_stuff` buys it, sim-frame 9382's.
+        const BOUGHT: i64 = 9383;
+        /// `SCHOLARS`' type index, and `PEASANTS`'.
+        const SCHOLAR: i64 = 52;
+        const CITIZEN: i64 = 50;
+        let Some(path) = dump("gamelog-run111-greatlakes-makeword.txt") else {
+            eprintln!("skipping: no run111 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let Some((ours, _)) = great_lakes(FIRST, LAST) else {
+            return;
+        };
+        let wtext = crate::capture::read(&path);
+        let wlog = Log::parse(&wtext);
+        let mut compared = 0usize;
+        let mut blocks = 0usize;
+        let mut missing: std::collections::BTreeSet<String> = Default::default();
+        let mut residue: std::collections::BTreeMap<(usize, String), (usize, i64, i64, i64)> =
+            Default::default();
+        // The rows the item is about. **Keyed on the slot's type, not on
+        // its index**: the two lists do not hold the same types in the
+        // same slots — this crate's slot 1 at the re-offer is a Phalanx —
+        // so a per-index comparison of `MAKE[1].val` compares a Phalanx
+        // to a Scholar and reads as a finding. The first draft did
+        // exactly that.
+        /// One side's `(val, num)` for every slot holding a type.
+        type Offers = Vec<(i64, i64)>;
+        let offers = |n: i64, ty: i64| -> (Offers, Offers) {
+            let block = wlog.leader_block(n, 1).unwrap();
+            let t = theirs(&block);
+            let pick = |get: &dyn Fn(&str) -> Option<i64>| -> Vec<(i64, i64)> {
+                (0..11)
+                    .filter(|i| get(&format!("MAKE[{i}].t")) == Some(ty))
+                    .filter_map(|i| {
+                        Some((
+                            get(&format!("MAKE[{i}].val"))?,
+                            get(&format!("MAKE[{i}].num"))?,
+                        ))
+                    })
+                    .collect()
+            };
+            let mine = &ours[&(n, 1usize)];
+            let get_mine = |k: &str| mine.iter().find(|(a, _)| a == k).map(|(_, v)| *v);
+            (pick(&get_mine), pick(&|k: &str| t.get(k).copied()))
+        };
+        let mut wealth: Vec<(i64, i64, i64)> = Vec::new();
+        let mut queued: Vec<(&str, i64, i64)> = Vec::new();
+        for n in FIRST..=LAST {
+            for who in 0..2usize {
+                let Some(block) = wlog.leader_block(n, who as i64) else {
+                    continue;
+                };
+                blocks += 1;
+                let t = theirs(&block);
+                for (k, mine) in &ours[&(n, who)] {
+                    let Some(&yours) = t.get(k) else {
+                        missing.insert(k.clone());
+                        continue;
+                    };
+                    compared += 1;
+                    // **Keyed on the index, not the label.** [`GOODS`]
+                    // names slot 2 "metal", and slot 2 is what pays this
+                    // Scholar's 40: run100's queue slot is `good[0] 2,
+                    // cost[0] 40` and this bucket moves 53 → 82 across
+                    // the purchase. `sim::economy::Resource` has Wealth
+                    // at 2 and Metal at 4, so the label is wrong and the
+                    // comparison — index against index — is not.
+                    if who == 1 && (n == REOFFER || n == BOUGHT) && k.starts_with("bucket[2:") {
+                        wealth.push((n, *mine, yours));
+                    }
+                    if who == 1 && n == BOUGHT && (k == "num_queued[0]" || k == "num_queued[2]") {
+                        queued.push((
+                            if k == "num_queued[0]" {
+                                "citizen"
+                            } else {
+                                "scholar"
+                            },
+                            *mine,
+                            yours,
+                        ));
+                    }
+                    if *mine != yours {
+                        let e = residue
+                            .entry((who, k.clone()))
+                            .or_insert((0, *mine, yours, n));
+                        e.0 += 1;
+                    }
+                }
+            }
+        }
+        eprintln!("run111 [{FIRST}, {LAST}]: {blocks} blocks, {compared} field-frames");
+        for ((who, k), (n, o, t, first)) in &residue {
+            eprintln!("  {who}/{k}: {n} frames, ours {o} theirs {t} on {first}");
+        }
+        for n in [FIRST, REOFFER, BOUGHT] {
+            eprintln!(
+                "  block {n}: scholars {:?} citizens {:?}",
+                offers(n, SCHOLAR),
+                offers(n, CITIZEN)
+            );
+        }
+        assert_eq!(blocks, 32, "sixteen blocks, two leaders");
+        assert!(missing.is_empty(), "the record does not carry {missing:?}");
+        // **The agreement the window opens on.** Both sides offer the
+        // Scholar twice at 9,999,999 with `num 5` on the first block, so
+        // what follows is a re-offer parting and not a standing gap.
+        assert_eq!(
+            offers(FIRST, SCHOLAR),
+            (
+                vec![(9_999_999, 5), (9_999_999, 5)],
+                vec![(9_999_999, 5), (9_999_999, 5)]
+            ),
+            "block {FIRST}'s Scholar offers are not two 9,999,999 batches of              five on both sides"
+        );
+        // **THE ROW.** `create_units` re-offers on sim-frame 9379 and the
+        // value is the parting: 5,755,741 clears the Citizen's 234,782
+        // and 45,568 does not. Two slots against one is the same finding
+        // said a second way — the count and the value fall out of the
+        // same arm.
+        assert_eq!(
+            offers(REOFFER, SCHOLAR),
+            (vec![(45_568, 1)], vec![(5_755_741, 1), (5_755_741, 1)]),
+            "block {REOFFER}'s Scholar re-offer is not one 45,568 against              two 5,755,741"
+        );
+        // **And the Citizen is not the defect**, which refuses the
+        // dichotomy `docs/AI.md` §47.4 first wrote: the same value and
+        // the same batch on both sides, on the frame it outranks the
+        // Scholar here and loses to it there.
+        let (mine_c, their_c) = offers(REOFFER, CITIZEN);
+        assert_eq!(
+            (mine_c.first().copied(), their_c.first().copied()),
+            (Some((234_782, 2)), Some((234_782, 2))),
+            "block {REOFFER}'s Citizen offer parts — then this item's              finding is not the Scholar's value"
+        );
+        // **The purchase, named by the record itself.** One of the
+        // original's two Scholar offers is devalued by 100 on the block
+        // after `make_stuff` runs and the other is not — the original
+        // saying which slot it spent. Read off the capture alone.
+        assert_eq!(
+            offers(BOUGHT, SCHOLAR).1,
+            vec![(57_557, 1), (5_755_741, 1)],
+            "block {BOUGHT}: the original's bought Scholar is not              5,755,741/100 beside its untouched twin"
+        );
+        // **And the muster agrees with the queue record**, which is the
+        // second witness: `num_queued` is per type, and on the block
+        // after the purchase this crate holds two Citizens queued and the
+        // original one Scholar (`docs/AI.md` §47.2's two rows, seen from
+        // the leader instead of the building).
+        assert_eq!(
+            queued,
+            vec![("citizen", 2, 0), ("scholar", 0, 1)],
+            "block {BOUGHT}'s `num_queued` is not two Citizens against one              Scholar"
+        );
+        // **The goods agree entering the frame and part through it** —
+        // §44's shape. Both sides sell 100 timber on 9382; the original
+        // spends the proceeds on the 40-wealth Scholar and keeps 82,
+        // this crate buys food for two Citizens and keeps 14.
+        assert_eq!(
+            wealth,
+            vec![(REOFFER, 53, 53), (BOUGHT, 14, 82)],
+            "the wealth either side of the purchase is not 53/53 then 14/82"
+        );
+        let parting: Vec<(usize, &str)> = residue.keys().map(|(w, k)| (*w, k.as_str())).collect();
+        assert_eq!(
+            parting,
+            PARTS_ON_RUN111,
+            "run111's leader residue moved: {} fields",
+            parting.len()
+        );
+    }
+
+    /// The `(player, field)` pairs that part over run111's window — the
+    /// frame the AI headline's scholar is bought on. Filled from the
+    /// first run and then pinned; `docs/AI.md` §48.
+    const PARTS_ON_RUN111: &[(usize, &str)] = &[
+        (0, "SITE[0].reg"),
+        (0, "SITE[1].reg"),
+        (0, "SITE[2].reg"),
+        (0, "SITE[3].reg"),
+        (0, "SITE[4].reg"),
+        (0, "SITE[5].reg"),
+        (0, "SITE[6].reg"),
+        (0, "SITE[7].reg"),
+        (0, "SITE[8].reg"),
+        (0, "SITE[9].reg"),
+        (0, "active_wars"),
+        (0, "active_wars_with"),
+        (0, "ally_mask"),
+        (0, "filled_gather_slots[0:food]"),
+        (0, "filled_gather_slots[1:timber]"),
+        (0, "gatherers"),
+        (0, "min_other_team_terr"),
+        (0, "my_team_terr"),
+        (0, "other_team_terr"),
+        (0, "peasant_high"),
+        (0, "peasants"),
+        (0, "scouts"),
+        (0, "wars"),
+        (1, "MAKE[1].cat"),
+        (1, "MAKE[1].city"),
+        (1, "MAKE[1].t"),
+        (1, "MAKE[1].val"),
+        (1, "MAKE[2].cat"),
+        (1, "MAKE[2].city"),
+        (1, "MAKE[2].num"),
+        (1, "MAKE[2].t"),
+        (1, "MAKE[2].val"),
+        (1, "MAKE[3].cat"),
+        (1, "MAKE[3].city"),
+        (1, "MAKE[3].t"),
+        (1, "MAKE[3].val"),
+        (1, "MAKE[4].city"),
+        (1, "MAKE[4].val"),
+        (1, "MAKE[5].city"),
+        (1, "MAKE[7].val"),
+        (1, "SITE[0].reg"),
+        (1, "SITE[1].dist"),
+        (1, "SITE[1].rank"),
+        (1, "SITE[1].val"),
+        (1, "SITE[1].wx"),
+        (1, "SITE[1].wy"),
+        (1, "SITE[2].dist"),
+        (1, "SITE[2].rank"),
+        (1, "SITE[2].reg"),
+        (1, "SITE[2].val"),
+        (1, "SITE[2].wx"),
+        (1, "SITE[2].wy"),
+        (1, "SITE[3].dist"),
+        (1, "SITE[3].rank"),
+        (1, "SITE[3].val"),
+        (1, "SITE[3].wx"),
+        (1, "SITE[3].wy"),
+        (1, "SITE[4].dist"),
+        (1, "SITE[4].rank"),
+        (1, "SITE[4].val"),
+        (1, "SITE[4].wx"),
+        (1, "SITE[4].wy"),
+        (1, "SITE[5].dist"),
+        (1, "SITE[5].rank"),
+        (1, "SITE[5].val"),
+        (1, "SITE[5].wx"),
+        (1, "SITE[5].wy"),
+        (1, "SITE[6].dist"),
+        (1, "SITE[6].rank"),
+        (1, "SITE[6].val"),
+        (1, "SITE[6].wx"),
+        (1, "SITE[6].wy"),
+        (1, "SITE[7].dist"),
+        (1, "SITE[7].rank"),
+        (1, "SITE[7].val"),
+        (1, "SITE[7].wx"),
+        (1, "SITE[7].wy"),
+        (1, "SITE[8].dist"),
+        (1, "SITE[8].rank"),
+        (1, "SITE[8].val"),
+        (1, "SITE[8].wx"),
+        (1, "SITE[8].wy"),
+        (1, "SITE[9].dist"),
+        (1, "SITE[9].rank"),
+        (1, "SITE[9].val"),
+        (1, "SITE[9].wx"),
+        (1, "SITE[9].wy"),
+        (1, "bucket[0:food]"),
+        (1, "bucket[2:metal]"),
+        (1, "gather_stamp"),
+        (1, "income[2:metal]"),
+        (1, "leftover[1:timber]"),
+        (1, "leftover[2:metal]"),
+        (1, "num_queued[0]"),
+        (1, "num_queued[2]"),
+        (1, "rate[2:metal]"),
+        (1, "resources[2:metal]"),
+        (1, "scholars"),
+        (1, "scouts"),
+        (1, "tech_cat_frame[0]"),
+        (1, "tech_cat_frame[1]"),
+        (1, "tech_cat_frame[2]"),
+        (1, "tech_cat_frame[3]"),
+        (1, "tech_frame"),
+    ];
+
     /// The `(player, field)` pairs that part over run107's window — the
     /// word's own frame. Filled from the first run and then pinned;
     /// `docs/AI.md` §44.

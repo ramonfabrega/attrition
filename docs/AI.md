@@ -4867,6 +4867,11 @@ decompile's, line for line.
 - **`Build::queue_up`'s escrow.** `queue_batch` ignores its `escrow`
   argument, unchanged by this item.
 
+**The batch is not what the ladder's extras are** — item 370 measured them
+and they are ordinary divergence past the word with a citizen-batch
+component, not an overshoot, and the rosters are not nested from `1/48` up
+(`docs/journal/2026-09-19-item-370.md`).
+
 ## 43. What 9182 actually waits on, and the leader every census skipped (2026-09-18)
 
 Item 368, booked as "9182's step-6 purchases". **It is not the step-6
@@ -5524,12 +5529,21 @@ made here on the frame the headline itself stands on.
   is **not** decidable from the draws, because a purchase draws nothing.
   The original's list is not printed: `LEADERS=1` is `who`, `tribe`, `score`,
   `leader_flags`. **A `LEADERS=9` window over `[9375, 9390]` is what would
-  print the other side**, and it is the only thing on the disk that cannot
-  answer this. Until then "the value is wrong" and "the offer should not
-  exist" are not separated.
-- The Scholar this crate does offer names **city 1** (London) where the
-  original's job runs in city 2's University. Whether that is the same defect
-  as the queue item on host choice, or a second one, is unmeasured here.
+  print the other side** (item 414, run111).
+
+  ~~Until then "the value is wrong" and "the offer should not exist" are
+  not separated.~~ **That pair is a false one, and the disk said so before
+  the capture ran — §47.6.** There are three readings, not two.
+- The Scholar this crate does offer names `city` **1**, where the original's
+  job at 9382 runs in the University of its *second* city. ~~Whether that is
+  the same defect as the queue item on host choice, or a second one, is
+  unmeasured here.~~ **The number in that sentence needs a mapping first**:
+  this crate's `MakeObject::city` is an index into its own global city list
+  and the dump's is the owner's own, so `c1` here is the **first** city, not
+  the second — `diff/leader.rs` compares the two raw and pins the
+  `MAKE[*].city` rows as residue for exactly that reason. The two sides do
+  still name different cities; the host-choice question is untouched by this
+  item either way.
 - The window's standing residues — three positions (`1/24`, `1/25`, `1/26`),
   seventeen order stacks, twenty `CITY` fields — were **already parted when
   the window opened** on block 9340, so this item says nothing about them
@@ -5539,6 +5553,41 @@ made here on the frame the headline itself stands on.
   block 9451 and are the one thing besides the queue that moves inside the
   window. `compare`'s own city block names both as unheld by this crate.
 
+### 47.6 The disk already refuses the dichotomy — three readings, not two
+
+Written **before** run111, from `grep` alone, because "grep the disk before
+booking a capture" is the rule and it paid here.
+
+**run107 is already a `LEADERS=9` window on this very game** — item 369's
+capture, `end: MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,DEATHS=1,LEADERS=9`,
+blocks `[9170, 9199]`. It does not reach 9382, so run111 is still owed. But
+it prints the record this question is about, and `diff::tests::run107_s_
+window_is_the_leader_record_at_the_word` already pins the make list as a
+**standing residue**: `MAKE[1].val`, `MAKE[1].num`, `MAKE[2..3].{t, cat,
+val, num}` and `MAKE[{0,1,2,4,5,8}].city` all part over that window.
+
+So the third reading is: **the Citizen is not the defect at all.** A Citizen
+that outranks a Scholar because the *Scholar's* offer is too small looks
+exactly like a Citizen that should not have been offered, and only the
+Scholar's own `val` tells them apart.
+
+**Two cautions this subsection exists to carry, both nearly got wrong:**
+
+- **`9,999,999` is not a ceiling; it is an overflow** (§45). The original's
+  `val < 0 → 9,999,999` catches a 32-bit `imul` that *wrapped* in
+  `income × val / 256`, and the clamp is at
+  `create_units@006c40a0:1567` — `if (iVar8 < 0) { iVar8 = 9999999; }`,
+  immediately before the `MakeList::make_me` call that files the offer. So
+  an offer sitting at 9,999,999 is not "valued at the maximum": it is one
+  whose pre-income value cleared §45's cliff. Comparing it against a small
+  number is comparing a wrap to an arithmetic result, and what a capture can
+  settle is the *inputs*, not which number is bigger.
+- **run107's block 9199 and this crate's 9382 are 183 frames and one
+  completed scholar apart.** Nothing here compares a field across that gap
+  and nothing later should: run107's rows are a **bracket** on the shape of
+  the residue, not a measurement of it at 9382. `docs/QUEUE.md` item 390 is
+  the same mistake on the other track, which is why it is named here.
+
 ### 47.5 Coverage
 
 Diff-backed, both halves: `run100_s_word_frame_is_the_original_s` (172
@@ -5547,3 +5596,104 @@ blocks, the whole `compare`) and `run100_s_scholar_job_runs_to_the_word`
 before landing — the first by moving the raid block, which restores the two
 human-city fields as rows; the second by dropping the clamp, which restores
 `(9510, [(52, 12750)])`. Nothing here rests on a reading.
+
+---
+
+## 48. Great Lakes 9382 is a re-offer, and the Scholar's own value is the parting (2026-09-19)
+
+Item 414, run111 — `LEADERS=9` over blocks `[9375, 9390]`, run100's detail
+with that one category raised, straddling both the re-offer on sim-frame
+9379 and the purchase on 9382. §47 put the AI headline's birth at 9510 on a
+purchase made 128 frames earlier and could not say which slot either side
+bought: a purchase draws nothing and `LEADERS=1` prints no list.
+
+### 48.1 What the block kills
+
+§47.6 left three readings standing. **The block kills two of them and the
+one it leaves is neither of §47.4's original pair.**
+
+- ~~**The Citizen's value is wrong.**~~ **Killed.** On block 9381 the
+  Citizen is `val 234782`, `num 2`, and — through the city mapping — the
+  same city on both sides. Identical.
+- ~~**The Citizen should not have been offered.**~~ **Killed.** The
+  original offers it, on the same block, at the same value, and simply
+  does not buy it.
+- **The Scholar's own re-offer is too small.** **Stands, and is measured.**
+
+The prediction the stanza was written on is **also killed**, and it was
+mine: it said the original's Scholar would *stay* at 9,999,999 with
+`num 5` where this crate's collapsed. Both collapse, on the same block.
+
+| block | theirs | ours |
+| --- | --- | --- |
+| 9375, 9376 | `t52 v9999999 num 5` ×2 | the same |
+| 9377–9380 | no `t52` slot (the list refills) | the same |
+| 9381, 9382 | `t52` **`v5755741`** `num 1` **×2** | `t52` **`v45568`** `num 1` **×1** |
+
+So the frame was right and the mechanism around it was wrong for the
+fifteenth time: **9379's re-offer is the event**, and what parts is the
+number `create_units`' scholar arm puts on it. 5,755,741 clears the
+Citizen's 234,782; 45,568 does not. Two slots against one is the same
+finding said a second way — the count and the value fall out of the same
+arm.
+
+### 48.2 The original names its own purchase
+
+On block 9383 — the block after `make_stuff` runs — **one** of the
+original's two Scholar offers is `57,557` and the other still `5,755,741`.
+57,557 is 5,755,741/100, the bought-slot devaluation, so the record says
+which of the two it spent without any inference from this crate.
+
+The muster is the second witness and it agrees with §47.2's building
+queues seen from the other end: on 9383 `num_queued` is **two Citizens on
+this side and one Scholar on the original's**.
+
+### 48.3 The goods agree entering the frame and part through it
+
+§44's shape exactly. `bucket` is `107 127 53 129 80 0` on **both** sides at
+block 9381, and **both sell 100 timber on 9382** — timber 127 → 27 on both,
+which is the two `Leader::use_market+0x1ed` draws §47.3 found agreeing. What
+differs is what the proceeds buy: the original spends 40 on the Scholar and
+keeps **82**; this crate buys food for two Citizens and keeps **14**.
+
+So the stockpile is not the cause here any more than it was at 9182, and
+this is now twice that a Great Lakes purchase divergence has had agreeing
+goods and a parting list.
+
+### 48.4 What this has *not* established
+
+- **Why 5,755,741 and not 45,568 is not answered.** This item measures the
+  two numbers on the same block; it does not derive either. The successor
+  is `create_units`' scholar arm — `docs/AI.md` §38's gate and §42's batch
+  are the two pieces the arm already has documented, and neither predicts a
+  126× gap. **A ratio is not a lead**: 5,755,741/45,568 is not an integer
+  and nothing here says the gap is one factor rather than several.
+- **`num 5 → num 1` on both sides is unexplained.** Both lists drop the
+  batch to one across the same re-offer, so whatever does that is modelled;
+  what is not is the value that comes with it.
+- **The city still differs and this item did not measure it.** The
+  original's Scholar slots name its city 1 throughout; this crate's name
+  its own city 1, which is the *owner's* city 0 under the mapping §47.4
+  records. The host-choice question is untouched.
+- **`GOODS` in `diff/leader.rs` is mislabelled and the comparison is not.**
+  The array names index 2 "metal", 3 "wealth", 4 "knowledge";
+  `sim::economy::Resource` has Wealth at 2, Knowledge at 3, Metal at 4, and
+  index 2 is what pays this Scholar's 40 (run100's queue slot is `good[0]
+  2, cost[0] 40`, and the bucket moves 53 → 82 across the purchase). Every
+  value compared is index against index, so no verdict on any capture is
+  affected — but every *name* printed or pinned at 2, 3 or 4 is the wrong
+  resource, including rows in `PARTS_ON_RUN19`, `PARTS_ON_RUN107` and
+  `PARTS_ON_RUN111`. Renaming it churns three pinned constants across three
+  items, so it is recorded here and not done under this one.
+
+### 48.5 Coverage
+
+Diff-backed: `diff::tests::run111_s_window_is_the_make_list_at_the_purchase`
+— 32 leader-blocks, 33,536 field-frames, the whole `LeaderData` record; the
+Scholar and Citizen offers keyed **on the slot's type, not its index**
+(the two lists do not hold the same types in the same slots, and the first
+draft of this test compared a Phalanx to a Scholar and read it as a
+finding); the bought-slot devaluation read off the capture alone; the
+wealth either side; and the 104-row residue pinned as `PARTS_ON_RUN111`.
+Made to fail on purpose before landing, on the re-offer row and on the
+muster row. run111's own checks are in `docs/RUNS.md`.
