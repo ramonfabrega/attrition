@@ -12,36 +12,36 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-19, the first tranche after the sixth Fable pass. **Fourteen
-landings, no score moved**; the AI headline's cause is one defect worth
-**72 frames**, and the rules headline's chase has stopped paying.*
+*2026-09-19, the first tranche after the sixth Fable pass. **Fifteen
+landings, no score moved**; the AI headline's term is named and **two
+defects are cancelling on it**, which is the thing to read first.*
 
-- **The "locked pair" was our own probe** (432): 430's expiry cap
-  suppressed the fix it was meant to complete, and its **eight frames were
-  never a measurement**. The original values the Scholar **per city** —
-  5,755,741 and 4,891,136 on one frame — where this crate computes one
-  number for both, and the tie made `make_me` split the copies so step 6
-  bought twice. Two values on 9380, nothing else: **9510 → 9582**. 9518 is
-  struck. 438 reads `create_units`; 440 parks 9582's `use_market` row.
-- **616's bracket has not moved in four items and the space around it has
-  collapsed** (426, 434, 435, 437, 439). The branch is settled — who=1's
-  captain takes the **zero** path, by the listing — and closed nothing; the
-  narrow arm's bracket admits no integer; the eight bytes were a shell
-  against its payload and are **innocent**; `leader_flags & 4` is **not**
-  the computer-leader test, corrected at three sites. §28.4 lists **seven**
-  things known not to be it. So 441 **widens 616 whole** — every record,
-  every slot, the whole cast — rather than fitting an eighth account.
+- **`gfree[KNOWLEDGE]` is the term, and correcting it alone costs 925
+  frames** (438; word 9510 → **8585**, caught by the floor). `num_gatherers`
+  is **two** counts — the `gather_down` chain **plus** `count_inside` for
+  the kinds whose workers sit inside — and our `count_gather_slots` reads
+  the raw chain length, so seated scholars never reduced a University's
+  free slots. The dump says 1 on 2019's `inside_down` and 4 on 2020's: k
+  is 6 and 3, per-city. 442 lands it **with** the chain.
+- **We were agreeing at 9375 by accident** (§51.3): the over-large `gfree`
+  overflowed `val`, §45's guard clamped it to 9,999,999, and the original
+  clamps there too. **Two wrongs producing a right on a frame the diff
+  calls green** — so a green frame is worth less as evidence than it looks.
+- **616's chase is over, not solved** (426, 434, 435, 437, 439): seven
+  things known not to be it, the bracket unmoved in four items. 441 widens
+  it whole rather than fitting an eighth account.
 - Four open, 71 parked.
   **Fable backlog: fifteen Loop items** (251, 335, 313, 367, 375, 416, 417,
-  419, 420, 421, 424, 428, 431, 433, 436); due at twenty, this is fourteen.
+  419, 420, 421, 424, 428, 431, 433, 436); due at twenty, this is fifteen.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w9711 of 24,000 · GreatLakes w9510 of 24,000
 Golden: w626 of 901 · ch2 w616 is lower and is the headline · 441 next
 Endpoint 24001: EastIndies 64 off, 5 unlinked · GreatLakes 51 off, 11 unlinked
 
-**Opener: 441 on the rules lane — widen 616 whole, nine units not one, and
-name the cause before any mechanism; 438 on the AI lane, two targets known.**
+**Opener: 442 on the AI lane — the scholar `val` chain and the
+`count_gather_slots` correction, together or the score drops; 441 on the
+rules lane — widen 616 whole, nine units not one.**
 
 ## The queue
 
@@ -51,14 +51,14 @@ the AI, lower map first — Great Lakes. Take the first unstarted on either
 track unless a better order is obvious, and say so. Numbers are stable;
 the backlog is `docs/PARKED.md`, and an item returns only when a score names it.
 
-438. **Which of `val`, `want`, `divisor` is per-city** (a reading of
-    `create_units@006c40a0`, released by 432's 72 frames): the original's
-    Scholar is **5,755,741** for its city 1 and **4,891,136** for its city
-    0 on one frame, where this crate computes one number for both. **At
-    least one of the three terms is per-city in the original and none is
-    here.** Two target values to hit, and 432's landed reconstruction of
-    block 9381 to check a candidate against — a reading with numbers, not
-    a survey. Reading-only; owed a blind second reading in its coverage.
+442. **The scholar arm's whole `val` chain, with the
+    `count_gather_slots` correction** (the AI headline; both halves
+    measured, not probed): correcting `gfree` alone costs **925 frames**
+    and the valuation alone buys 72, so they land together or the floor
+    fires. Targets **5,755,741** and **4,891,136** on one frame. **`val ∝
+    k` is not it** — post-fix our ratio is 2 against the original's
+    1.1768. 438's `num_gatherers` guard stands as the falsifier, and the
+    multiplier chain's two branch tests are `Leader` fields on both sides.
 
 441. **Widen 616 whole** (the rules headline's own frame, after four items
     failed to move its bracket): every record run112 dumps on 616 — every
