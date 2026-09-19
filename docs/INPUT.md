@@ -421,12 +421,17 @@ before the building table, asking `String::ignore` and retrying against the
 name with its spaces purged. It is a **prefix** match, not an equality:
 `add hoplite` names the type whose name is `Hoplites`.
 
-SEAM: the original seats the squad's members with `find_nearby_spot` around
+~~SEAM: the original seats the squad's members with `find_nearby_spot` around
 the captain before `init_unit` returns; [`sim::Sim::init_unit`] leaves them
-on the captain's point until a formation or `come_out` moves them. The search
-takes no draw, so the stream does not know the difference — but the
-*positions* do, and the golden dump has the answer for chapter one:
-`(888, 7800)`, `(1032, 7800)`, `(936, 7944)`.
+on the captain's point until a formation or `come_out` moves them.~~
+**Closed 2026-09-18, item 379** — `docs/ANIM.md` §6.3. The seating is
+modelled and all six of chapter one's coordinates are pinned:
+`(888, 7800)`, `(1032, 7800)`, `(936, 7944)` for `who=0` and
+`(1368, 7992)`, `(1512, 7992)`, `(1416, 8136)` for `who=1`. The search
+takes no draw, so the stream never knew the difference — but the second
+`add`'s **own** spot did: with the first squad stacked the near ground
+stays free and this crate put `who=1`'s captain at `(1080, 7800)`,
+eighteen tiles from the original's.
 
 ### 11.6 `ally`/`peace`/`war`, and the bare form that does nothing
 
@@ -464,12 +469,19 @@ Indies' setup word is `793793043` and it takes none.
 
 ### 11.8 What is not established
 
-- **The residue at the word.** Chapter one's golden word is **617** and one
+- **The residue at the word.** ~~Chapter one's golden word is **617** and one
   draw stands in the way: `Guy::set_anim@005da300+0xf2f`, the variant roll
   `set_anim` takes when the animation is `0xc` and a variant is asked for —
   the attack animation, on the frame the auto-engaged squads first swing.
-  This crate does not spend it. The value diff parts one frame later, at
-  618.
+  This crate does not spend it.~~ **Read 2026-09-18, item 379**
+  (`docs/ANIM.md` §6.2): the roll is real and now modelled, but it is not
+  the swing's — `Unit::fight` defers it into `GuyData +0x9e` and
+  `Guy::move+0x166` pays it a frame later. The word **did not move**. With
+  the squads seated where the original seats them (§11.5 above) the residue
+  at 617 is no longer the roll at all: it is `Unit::fight+0x9b0` and the
+  roll together, because this crate's squads do not engage on frame 616 the
+  way the original's do. That is the next rules item, and it is a combat
+  one. The value diff parts one frame later, at 618.
 - **Seven verbs are parsed and not applied.** `die`, `damage`, `craft`,
   `move`, `resource`, `finish`, `hurry` — each is refused by name and
   counted, never silently dropped. `move` in particular is a *teleport*

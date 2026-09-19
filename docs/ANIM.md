@@ -509,8 +509,12 @@ unit on open ground reaches, in the order the function tests them:
    anything above 82. A guy arriving from a walk or a work animation draws
    but takes `DEFAULT` regardless. A variant the packet lacks falls back to
    `DEFAULT` (`:546–554`).
-3. **The attack roll** (`:575–587`), category 12 with the third argument:
-   one draw, `p < 30 → ATTACK1`, `p > 70 → ATTACK3`, else `ATTACK2`.
+3. **The attack roll** (`:575–587`, the address `+0xf2f`), category 12 with
+   the third argument: one draw, `p < 30 → ATTACK1`, `p > 70 → ATTACK3`,
+   else `ATTACK2`. **Nothing reaches it from the swing** — an attack asked
+   of a guy still walking or still turning is deferred into `GuyData +0x9e`
+   above these arms and paid by `Guy::move` on a later frame, which is
+   where every attack roll on disk comes from: §6.2.
 4. **The walk** (`:614–706`), category 8. **The slot asked for does not
    enter it**: the arm opens with the *category* — `CHAR_WALK` — as its
    answer, so every walk request is re-resolved from scratch and a
@@ -1337,6 +1341,159 @@ on a type field `+0x1e8`) excludes animals for another reason is unread.
 The sim skips gaia there, which cannot be wrong in effect but is not
 derived. *Capture:* an animal inside a capture radius during a contested
 capture, with `CITIES=5` and `UNITS=3` over the window.
+
+## 6.2 An attack is **deferred**, not played, and that is where the draw is (2026-09-18)
+
+Item 379, from the listing and the golden record's own trace. The whole of
+what `docs/QUEUE.md` called "the variant roll `set_anim` takes when the
+animation is `0xc`": the roll is §4.3's, but **`Unit::fight` never spends
+it**. All thirteen of the golden record's attack rolls, and all 196 of
+run53's, come from `Guy::move` or `Guy::inc_time`.
+
+**The address.** The attack roll is `Guy::set_anim@005da300+0xf2f`
+(`005db22a`'s `Random::get(0, 0xffff)`, `% 100`, `< 30 → CHAR_ATTACK1`,
+`> 70 → CHAR_ATTACK3`, else `CHAR_ATTACK2`) — a different block of the same
+function from the idle roll's `+0x97a`, so a draw here is named by its own
+offset first and by its caller second. Until this item the trace printed a
+bare `5db22f` for it, which is a comparison that cannot fail.
+
+**The deferral** (`005da38a`–`005da3ba`, the head of `LAB_005da36f`). Before
+anything else an attack request is tested:
+
+```text
+if (UnitAnimCat[param_1] == CHAR_ATTACK2 && (guy_flags & 0x40) == 0) {
+    v = param_1;
+    if (des != pos || des_angle != angle) {        // still walking or turning
+        if (param_3) v = 1;
+        guy->+0x9e = v;  return;                   // owe it
+    }
+    if (UnitAnimCat[cur_anim] == CHAR_ATTACK2) {
+        if (param_3) v = 1;
+        guy->+0xa0 = v;  return;                   // queue it behind this one
+    }
+}
+```
+
+The stored byte is **`1` when the request carried its third argument and the
+slot itself otherwise**, which is how the consumption knows whether to roll.
+`guy_flags & 0x40` is `Guy::init_real@005db6b0:228`'s bit — a genuine plane
+(`domain == 2 && !(unit_flags & 0x20)`) — and a plane is the one thing that
+plays its attack where it is asked.
+
+**`Unit::fight` always defers on the swing frame**, because two statements
+above the request it writes the attack angle into **every guy's**
+`des_angle` (`005fed61`'s loop, `+0x64`). So the figure is owed a turn by
+construction and the roll is never `fight`'s.
+
+**What `fight` asks for** (`005fee2d`–`005feec1`). Four arms reach
+`Unit::set_anim`, and **only the last carries the third argument**, so only
+the last can ever roll:
+
+| arm | request | draws |
+|---|---|---|
+| `unit_flags & 0x2000000` — `z`, "Unit rocks left/right when it attacks (attack1 is left, attack2 is right)", the eighteen ship types | `CHAR_ATTACK2` when the direct angle to the target is at or past the angle being attacked on, else `CHAR_ATTACK1`; `param_3 = 0` | never |
+| the **target** is `TypeIndex::PATROLBOAT` (`0x185`) | the same pair, by the target's own domain; `param_3 = 0` | never |
+| `is(IMMORTALS)` (`0xa2`) within `0xc0` | `CHAR_ATTACKSPECIAL`, `param_3 = 0`, and its own per-figure `do_damage` | never |
+| everything else | `CHAR_ATTACK1`, `param_3 = 1` | **on the frame the debt is paid** |
+
+**The three payments.**
+
+- **`Guy::move+0x166`** (`005d9381`), the *settled* arm — body on its
+  destination, angle reached. `+0x9e > 1` replays that slot with no third
+  argument; `+0x9e == 1` asks `set_anim(CHAR_ATTACK1, 0, 1)` and **rolls**.
+  Then `set_all_pivots`, `+0x9e = 0`, `stopped = 1`. It is tested **before**
+  the arrival stand, so a guy that owes an attack never pays §4's idle.
+- **`Guy::move+0xe3`** (`005d92db`), the arm still owed its turn. Same two
+  calls, guarded by the **two turn slots only** (`CHAR_TURN_LEFT/RIGHT`;
+  `CHAR_ATTACKWALK` is *not* in this guard, unlike the walk below it) — and
+  **`+0x9e` is not cleared**. The call re-enters `set_anim`, finds the angle
+  still unsettled, stores the same byte back and returns without drawing, so
+  the debt survives every turning frame until the angle lands. Clearing it
+  here spends the debt on a call that cannot pay it, which is exactly the
+  one draw the golden record is missing at 617.
+- **`Guy::inc_time+0x271`** (`005da081`) and **`+0x357`** (`005da162`), the
+  **queued** attack. `inc_time`'s wrap has two call sites, not one: `+0x271`
+  is the shared tail every looping restart *and* every queued attack goes
+  through (`CHAR_ATTACK2` as the slot it names), and `+0x1ed` (`005d9ffd`)
+  is the `set_anim(CHAR_DEFAULT, 0, 0)` an attack running out takes on its
+  way to the queue — **third argument zero**, so §4.2's variant bands do not
+  apply to it. The in-loop payment is gated on the unit **not** being a hero
+  (`unit_flags2 & 0x20`); `+0x357`, past the loop, takes any guy no longer on
+  an attack and not on `CHAR_WALK`, and names `CHAR_ATTACK1`.
+
+**And any unit-level request off an attack cancels the debt.**
+`Unit::set_anim@00616f40`'s body reads **guy 0's** current slot on every
+pass and writes `0` into that guy's `+0x9e` whenever the category is not
+`CHAR_ATTACK2`. So a squad member that walks on the frame it swings never
+plays its attack: the walk `Unit::move_step` asks for wipes it. On the
+golden record's frame 616 all three of who=1's hoplites swing and two of
+them move; only `1/6`, which stands still, still owes the swing at 617, and
+its payment is the frame's eighth draw.
+
+**Diff-backed**: the site names at golden 617 (`Guy::set_anim+0xf2f <
+Guy::move+0x166`) and the run53 walk, which does not move either word.
+**Not diff-backed**: the `PATROLBOAT` and `IMMORTALS` arms are unmodelled
+(one target type, three elephant types — `k`, "Unit has melee AND ranged
+attacks"), and the `z` arm's comparison is against `fight`'s own attack
+angle, which the **sideways** flag (`g`, `unit_flags & 0x40`, "most ships")
+offsets by a quarter turn either way; this crate models no such offset, so
+the difference is always zero and a ship always rocks the one way. Neither
+arm draws, so the cost of all three is which slot plays.
+
+**No `GUY` record prints `+0x9e` or `+0xa0`**, at any detail level, so a
+capture stood up mid-fight starts both at zero and may miss one deferred
+swing.
+
+## 6.3 The squad is seated around its captain, and the positions are the oracle (2026-09-18)
+
+`Objects::init_unit@0065e0c0` does not leave a squad on one point.
+Every member is born on the requested point and then moved —
+`UnitType::find_nearby_spot` over the ring `[size · 0x30,
+size · 0x60 + 0xc0]`, step `−1` (an eighth of the span), the bias angle the
+unit's own `+0x50` (`0x55555555` at birth), `FILTER_NOT_ME` with the
+member's own `o`/`who` — and then `Unit::set_new_location(spot, 1, 1)`.
+`size` is the type's `+0x248`, `docs/COLLISION.md`'s `coll_size`.
+
+**The search takes no draw**, which is why the stream never knew the
+difference and item 364 could leave it open (`docs/INPUT.md` §11.5's SEAM).
+The *positions* knew, and the golden record prints all six:
+
+| line | captain | second | third |
+|---|---|---|---|
+| `add hoplite who=0 4,40` | `(888, 7800)` | `(1032, 7800)` | `(936, 7944)` |
+| `add hoplite who=1 5,40` | `(1368, 7992)` | `(1512, 7992)` | `(1416, 8136)` |
+
+The **second captain's** is the one that matters, and it is what makes this
+a test rather than a cosmetic fix. The two `add` lines ask for points one
+tile apart. With the first squad stacked on its captain the near ground
+stays free and the second `add`'s own `find_nearby_spot` lands at
+`(1080, 7800)`; with it spread over three points the search is pushed out to
+`(1368, 7992)` — **eighteen tiles** from where a stacked crate puts it, and
+the original's own answer.
+`rondata::diff::golden::chapter_one_s_two_squads_are_seated_where_the_dump_says`
+pins all six.
+
+## 6.4 What §6.2 and §6.3 have not established
+
+- **The first member's own seating.** The original runs the same block for
+  member 0, whose `get_captain` is its own index, and would search a ring
+  around itself with `min = size · 0x30` — which cannot return the point it
+  is standing on. The dump says the captain does not move, so this crate
+  takes the arm for members 1.. only and the first member's outcome is
+  unread. *Falsifiable by*: a `GUYS=2` capture of an `add` whose captain's
+  spot is itself crowded.
+- **The cell precondition.** The move is guarded by
+  `div_3_table[requested >> 4] == div_3_table[captain >> 4]` on each axis —
+  the requested point and the captain's own must share a `0x30` cell. It
+  cannot fail here, because this crate's callers place the captain on the
+  requested point itself; a path that does not would need it.
+- **Whether `+0xa0` is ever reached on either map.** The queue is modelled
+  because not modelling it turns a silent return into a draw, but no capture
+  on disk spends `Guy::set_anim+0xf2f` from `Guy::inc_time+0x357`, and the
+  `+0x271` rolls run53 does spend are all past its word.
+- **`Unit::fight`'s `param_5`.** `do_attack` passes 0 and the animation
+  block runs; `do_group_attack` passes 1 and a group's own field, either of
+  which skips it. This crate models no `fight` call from a group.
 
 ## 7. The animals' herd centre
 
