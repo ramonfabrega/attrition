@@ -3384,7 +3384,6 @@ check: python3 tools/gamelog/samegame.py gamelog-run97-greatlakes-valuewindow.tx
 # check: GROUPDATA count > 512 — the pool is 512 slots a frame, so 20 frames
 #        is ~10,240 records; `<= 512` is the DEATHS trap firing
 # ============================================================================
-=======
 run: 109
 tag: greatlakes-ammolaunch
 item: 396

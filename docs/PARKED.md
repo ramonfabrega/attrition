@@ -32,6 +32,47 @@ two ledger regexes closed in the third pass, 2026-09-17; the fourth pass,
 each now a guard or a clause (`docs/audit/2026-09-19-fable-pass-6.md`,
 DECISIONS 42). 341 closed 2026-09-18 by item 363.
 
+(419) **A widening's own dichotomy is a hypothesis, the same as a brief's
+mechanism.** Found by item 414's pre-capture grep, 2026-09-19. Item 408's
+`docs/AI.md` §47.4 framed the open question as a pair — the Citizen's value
+is wrong, or the Citizen should not have been offered — and the disk holds
+a third reading neither names: run107 already covers block 9199, where the
+original's Scholar reads `val 9999999` against this crate's 45568 while the
+**Citizen's value is the original's exactly**, so the Citizen may simply
+outrank a Scholar that was never lifted to the ceiling. `CLAUDE.md` and
+DECISIONS 42 currently warn about a *brief's* named mechanism; this is the
+same failure one step earlier, in the document a widening writes, and it
+was caught only because the next item grepped before it captured. The
+generalisation — **the frame is evidence, the framing around it is not** —
+is the pass's to write, and it belongs beside 416.
+
+(420) **A merge artefact in a data file silently disabled the capture
+driver, for an unknown number of days.** One stray `=======` at
+`tools/gamelog/captures.txt:3387`, left by merge `9ae8070`, made
+`runqueue.sh` refuse the **entire file** with `unknown key '======='` — so
+every stanza after run107's was unreachable by the driver, run109's
+included, and a lane looking for a booked capture would have read it as
+never booked. Deleted 2026-09-19 while booking 370; `DRY=1 runqueue.sh` now
+reaches run109. The guard is the cheap half and does not exist: **no
+conflict marker may survive anywhere in the tree**, which is three lines in
+`docs_guard.rs` and would have failed the day the marker landed. Make it
+fail on purpose first, on a fixture rather than on `captures.txt`.
+
+(421) **A permission-shaped refusal that names its own remedy is not the
+one the rule is about.** `CLAUDE.md` says a permission-shaped failure ends
+the turn with a question, and the reason is that the user cannot unblock
+what they are not told about. On run111, 2026-09-19, the first launch
+refused with "Screen Recording is off — screencapture wrote nothing" — a
+message that names the remedy, which is that the TCC grant belongs to
+`RonDriver.app` and the lane is `viadriver.sh`. The worker relaunched
+through it, it ran clean, and **no human was ever needed**; stopping there
+would have cost the capture an hour for nothing. Ruled correct as done. The
+clause the rule wants is the distinction: **a refusal whose remedy is in
+this repo and needs no human is taken and reported; anything that needs a
+human — a consent dialog, a grant to give, a tool at 0% CPU with no
+message — still ends the turn with a question.** A one-clause change, so
+the pass's.
+
 (416) **A DECISIONS entry is owed on "a purchase draws nothing."** Item
 408, 2026-09-19, measured it on the AI headline's own frame: 9382 costs
 eight draws on both sides entry for entry, two same-shaped lists with two

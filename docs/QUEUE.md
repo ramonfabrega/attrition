@@ -12,34 +12,34 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-19, the first tranche after the sixth Fable pass. **Two landings,
+*2026-09-19, the first tranche after the sixth Fable pass. **Three landings,
 no score moved**: Great Lakes stands at 9510, golden at 626.*
 
-- **408 widened the AI headline's own frame and the word did not move** —
-  that is the result. 172 blocks of run100 `[9340, 9511]` compared whole,
-  and exactly two keys first part *inside* the window, both on **9382**:
-  `1/2007` Village `queued ours 2 theirs 0`, `1/2019` University `0 / 1`.
-  Asserted, so 9382 is the frame rather than one of 172. `docs/AI.md` §47.
-- **A purchase draws nothing** (§47.3): 9382 costs eight draws a side entry
-  for entry and the stream stayed blind the 128 frames to the word. So a
-  draw-stream word is a **lower bound** on when a decision parted, never an
-  estimate, and `BUILDQUEUE` — from `BUILDS=1`, already on disk — is the
-  oracle for an AI purchase. A DECISIONS entry is owed: parked 416.
-- **The chapters cannot deliver "every order class"**: the channel stages
-  state, so seven of 365's eight add none. `docs/GOLDEN.md` §13 is the
-  order-class-to-issuer table DECISIONS 41 §5 awaited, and order coverage
-  is a separate axis whose unit is a native issuer (418). `bird` (case 82)
-  is the one console command that orders; 365 corrected the four that denied it.
-- **Both lanes alive**, holding 414 and 415. Five open, 59 parked.
-  **Fable backlog: seven Loop items** (251, 335, 313, 367, 375, 416, 417).
+- **414's capture is on the disk, and its question got sharper before it ran.**
+  run111: `LEADERS=9`, 16 blocks 9375..9390 no gap, 352 `MAKEOBJECT`, 0
+  differing against run100 bar `LEADERDATA`, rngcmp 9,406/0 vs run53. The
+  grep that preceded it found run107 already covers 9199, where the
+  original's Scholar reads `val 9999999` against our 45568 and the
+  **Citizen's is exact** — so §47.4's pair is probably false (419).
+- **370: neither branch of 362's disjunction**, no floor moved (rung C 25,
+  rung B 19). The rosters are **not nested** — from `1/48` up every shared
+  id is a different unit — and neither type the fix frees moved. Ordinary
+  divergence past the word, not an overshoot. Earned a cross-rung
+  invariant: run24 and run28 are one simulation, 18 shared ids, floor 15.
+- **`captures.txt` had been broken since merge `9ae8070`**: one stray
+  `=======` made `runqueue.sh` refuse the whole file, so every stanza after
+  run107's was unreachable by the driver. Fixed here; wants a guard (420).
+- **Both lanes alive**: 408 on 414, 365 taking 415 with the screen. Four
+  open, 62 parked. **Fable backlog: ten Loop items** (251, 335, 313, 367,
+  375, 416, 417, 419, 420, 421) — three added today, the pass due at twenty.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w9711 of 24,000 · GreatLakes w9510 of 24,000
 Golden: w626 of 901 · chapter one pinned · 415 next
 Endpoint 24001: EastIndies 64 off, 5 unlinked · GreatLakes 51 off, 11 unlinked
 
-**Opener: 414 on the AI lane — the `LEADERS=9` window over [9375, 9390],
-run111; 415 on the rules lane — chapter two staged and pinned, run112.**
+**Opener: 414's verdict from run111 on the AI lane — one block, the make
+list whole, the prediction written first; 415 on the rules lane, run112.**
 
 ## The queue
 
@@ -73,15 +73,6 @@ the backlog is `docs/PARKED.md`, and an item returns only when a score names it.
     against a bracket, not a frame**. The cheapest capture left on the
     mechanism 385 just landed. Assert the block count against the window
     asked for — run97's truncation is why (373).
-
-370. **Type the ladder's twenty-five extras** (names rung C's pinned
-    `extra` floor, 13→25 under 362's batch fix; rung B +13 the same way,
-    compared/off/unlinked unmoved). All scholars and caravans means the
-    batch overshoots where the word is long past; a mixed bag is sibling
-    divergence on borrowed captures 7,590 and 8,700 frames past the word.
-    **No dump can answer it** — an `extra` is ours and not theirs — so
-    `docs/journal/2026-09-18-item-362.md` names the one line inside
-    `the_east_indies_ladder_is_pinned` that types all twenty-five.
 
 342. **Host choice seats the scholar on the wrong university** — 338's
     residue, re-pinned three times, and now `1/55`. **Re-measure before
