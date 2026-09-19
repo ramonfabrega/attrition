@@ -1402,11 +1402,16 @@ branches as inputs. See `combat::compare_target`.
   the order has flag `0x10` clear) or when the order asks, `find_new_target`;
   a different answer rewrites the target. A DEFENSIVE unit beyond `max(
   unit_defensive_respond_range, max_range) × 0xc0` of its post goes home.
-- **Hit** (`do_damage` step 2 → the victim's captain's `target_opportunity`):
-  ignored unless at war; a group member forwards to the group (which every
-  15 frames at most tells its idle combat captains to `find_melee_target`
-  within `min(dist + 0xc0, unit_respond_range × 0x240)`); forwards to the
-  captain; HOLD_FIRE ignores; a unit already attacking ignores it unless its
+- **Hit** (`do_damage` step 2 → `Unit::target_opportunity` on the victim):
+  ignored unless at war; then a `while (true)` whose body ends
+  `if (is_captain(this)) break; param_3 = 0; this = objects[who][this->o_up]`
+  — so **every test below runs on the head of the victim's squad, never on
+  the figure that was hit** (§18.2 measures it on the golden record). The
+  loop's other arm, tested at each level *before* the captain test, sends a
+  group member whose type is **not** combat-role (`type +0x2c8 & 0x10000`)
+  to `Group::target_opportunity` instead — which every 15 frames at most
+  tells its idle combat captains to `find_melee_target` within
+  `min(dist + 0xc0, unit_respond_range × 0x240)`. HOLD_FIRE ignores; a unit already attacking ignores it unless its
   target is invalid, not mandatory, not combat-role, the attacker is a unit
   in range and its own target is not, and it is not raiding/razing — then
   it drops the order and retaliates; spies bribe, commandos sabotage;
@@ -2267,13 +2272,72 @@ frame's end:
 | `1/6` `recharging` | 32 | 0 — first strike at 621 | **32** |
 | `0/7` order | retaliates at 618 | none, idle through 621 | **ATTACKORDER at 617** |
 
-**What is still wrong, and it is a group question.** At the end of frame 617
-this crate's `1/6` drops its target and takes a `GROUP_ATTACK_TO`, and walks
-off the seat it held; the original's holds `(1368, 7992)` and its `recharging`
-counts 32, 31, 30, 29 without moving for the rest of the record. §12.4's "Hit"
-path says a unit already attacking ignores the hit unless its own target is out
-of range — `0/7` is not — so the group should not be moving it. That is the
-next thing between this frame and the original, and it is
-`Group::target_opportunity`'s neighbourhood (`docs/GROUPS.md` §13, parked 388).
-`0/7`'s own retaliation also strikes one frame early: the dump has `recharging
-32` at dump-619, this crate at the end of 617.
+~~**What is still wrong, and it is a group question.**~~ **It was not a group
+question** — §18.2 has the cause and the frame moved. Kept for the shape of
+the wrong reading: at the end of frame 617 this crate's `1/6` dropped its
+target and took a `GROUP_ATTACK_TO`, and walked off the seat it held, and
+`0/7`'s retaliation struck a frame early. Both were one defect, and it was
+neither the group's nor `Group::target_opportunity`'s.
+
+### 18.2 The hit is the captain's (item 391, 2026-09-18)
+
+**`Unit::target_opportunity@005fffc0` never answers on the figure that was
+hit.** Its opening `while (true)` ends
+
+```text
+    if (is_captain(this)) break;                    // (ushort)o_up >> 15
+    param_3 = 0;
+    this = objects[who][this->o_up]->get_unit();    // ObjectData::get_captain
+```
+
+so the valid-target test, the stance test, the "already attacking" arm and
+the `add_attack_order` at its foot all run on the **head of the victim's
+squad**. `Object::do_damage` passes the victim; the function walks up.
+
+**The golden dump says it outright**, and it is five fields on two frames —
+who=0's `o_up` chain is `0/8 → 0/7 → 0/6`, and `0/6` alone reads `o_up -1`:
+
+| dump block | `0/6` | `0/7` | `0/8` |
+| --- | --- | --- | --- |
+| 617 (end of 616, the frame `1/6` struck `0/7`) | **ATTACKORDER `ox 6 whom 1 uid 12`, `new_ord 1`** | none, `damage 3`, `damage_frame 616` | none |
+| 618 (end of 617) | ATTACKORDER + MOVEORDER, walking | ATTACKORDER, `new_ord 1` | ATTACKORDER, `new_ord 1` |
+| 619 (end of 618) | walking | `in_range 1`, **`recharging 32`** — it struck | ATTACKORDER + MOVEORDER |
+
+The captain takes the order on the frame of the hit; the two members take
+theirs a frame later; and `0/7`'s own retaliation therefore lands on **618**,
+not 617.
+
+**What this crate had** was the retaliation on `victim` itself
+(`fight.rs::target_opportunity`), which is one `squad_captain` call away from
+the original and cost the golden record's frame 617 outright:
+
+- `0/7` took the order at the end of 616 and struck `1/6` during **617**.
+- That `do_damage` reached `Armies::emergency(1)` → `Army::process` →
+  `Group::action_siege_attack_to`, and the army walked all three of who=1's
+  hoplites off toward `(38646, 13305)`. `1/6` lost its target and its seat.
+- So frame 617 lost **both** of the draws the original spends there:
+  `Unit::fight+0x9b0`, `0/6`'s one-in-five re-search on its fresh order
+  (§12.4's captain gate, `state.captain == index`), and
+  `Guy::set_anim+0xf2f < Guy::move+0x166`, `1/6`'s deferred swing from 616
+  paid on the first frame its turn settles (`docs/ANIM.md` §6.2) — which a
+  walking guy never reaches.
+
+`Armies::emergency` is **not** gated by `ai off`: the cheat's only readers in
+the simulation are `Unit::think@005f6e40:206`, `Leader::production_ai` and
+`Leader::diplomacy` (`grep GameAccess::ai_off`). It fires in the original too
+— one frame later, on 618 — and does not move the squad. Whether this crate's
+`Army::process` would still walk it there is **not established**: with the
+retaliation on the right unit, no capture on disk reaches the call again
+inside chapter one's 901 frames.
+
+**The word: 617 → 618.** The value diff moves with it, 618 → 619.
+
+**What stands at 618** is one draw, `0/6`'s second `Unit::fight+0x9b0`. The
+original's `0/6` spends 617 in §17's ring — `find_attack_pos` answers
+`(1080, 8280)`, `add_move_order` takes it, and the chase re-entry plans the
+five-node path the dump prints at block 618 (`(1080,8280) ← (1032,8280) ←
+(792,8040) ← (792,7848) ← (840,7800)`) — so from 618 its current order is the
+move and `do_attack` is not reached again until 650. This crate's
+`find_attack_pos` answers nothing here, falls back to the target's own point,
+loses the move inside the frame that ordered it, and rolls again on 618, 620
+and 621. That is §17's ring, not this section's mechanism.

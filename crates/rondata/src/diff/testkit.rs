@@ -1310,10 +1310,20 @@ pub(crate) const RUN58_QUEUE_TAIL: i64 = 5177;
 ///   `Objects::init_unit` for the squad, staged at `do_frame`'s entry so
 ///   the three figure draws are the frame's first.
 ///
-/// What stands at 617 is **one draw**, and it is named:
-/// `Guy::set_anim@005da300+0xf2f`, the variant roll `set_anim` takes when
-/// the animation is `0xc` and a variant is asked for — the attack
-/// animation, on the frame the auto-engaged squads first swing. This
-/// crate does not spend it. `docs/INPUT.md` §11, "What is not
-/// established".
-pub(crate) const GOLDEN_WORD_CHAPTER_ONE: i64 = 617;
+/// - **617** stood through items 379, 384 and 386, each closing something
+///   real without moving it: what it was short of was **two** draws, the
+///   `Unit::fight+0x9b0` re-search roll and `Guy::set_anim+0xf2f <
+///   Guy::move+0x166`, and both were one cause. `Unit::target_opportunity`
+///   answers a hit on the victim's **captain**, and this crate answered on
+///   the figure that took it — so `0/7` struck a frame early, its hit
+///   reached `Armies::emergency`, and the army walked `1/6` off the seat it
+///   should have been swinging from (item 391, `docs/COMBAT.md` §18.2).
+///
+/// What stands at **618** is one draw, and it is named: a second
+/// `Unit::fight+0x9b0`, `0/6`'s. The original's `0/6` spends 617 planning
+/// a five-node chase to `(1080, 8280)` — `Unit::find_attack_pos`'s ring —
+/// and walks it from 618, so `do_attack` is not its current order again
+/// until 650. This crate's `find_attack_pos` answers nothing, falls back to
+/// the target's own point, loses the move inside the frame that ordered it,
+/// and rolls again. `docs/COMBAT.md` §17 and §18.2.
+pub(crate) const GOLDEN_WORD_CHAPTER_ONE: i64 = 618;

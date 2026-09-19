@@ -526,6 +526,74 @@ fn chapter_one_s_captain_picks_the_one_it_can_reach() {
     );
 }
 
+/// **The hit is the captain's** (item 391, `docs/COMBAT.md` §18.2). `1/6`
+/// strikes `0/7` during frame 616; at that frame's end the golden dump has
+/// the ATTACKORDER on `0/6` — `0/7`'s captain, the head of who=0's `o_up`
+/// chain — reading `ox 6 whom 1 uid 12`, while `0/7` and `0/8` carry no
+/// order at all and take theirs a frame later.
+///
+/// Both halves are asserted, because answering on the victim also passes
+/// "somebody retaliated": the captain has the attacker as its target and
+/// neither of the two members has anything. Until item 391 this crate
+/// answered on `0/7` itself, which struck `1/6` on 617 rather than 618 and
+/// spent the golden word's two missing draws at 617 — `Unit::fight+0x9b0`
+/// and `Guy::set_anim+0xf2f < Guy::move+0x166` — on the wrong frames.
+#[test]
+fn chapter_one_s_hit_is_answered_by_the_victim_s_captain() {
+    let Some(inst) = crate::testenv::install() else {
+        return;
+    };
+    let Some((dump, tracepath)) = golden("g4") else {
+        eprintln!("skipping: no golden capture (see docs/RUNS.md run101-run105)");
+        return;
+    };
+    let trace = crate::trace::Trace::read(std::path::Path::new(&tracepath))
+        .expect("a finalized golden trace")
+        .expect("missing RONT header");
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(&dump);
+    let log = Log::parse(&text);
+    let texts = sibling_texts();
+    let logs = siblings(&texts);
+    let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+    let refs: Vec<&Initial> = inits.iter().collect();
+    if refs.is_empty() {
+        eprintln!("skipping: no sibling dumps");
+        return;
+    }
+    let mut built = stand_up(&loaded, &log, &refs, &trace);
+    let mut script = chapter_one();
+    // Through the end of frame 616 — the dump block labelled 617.
+    for _ in 0..617 {
+        script.stage(built.sim.frame, &mut built, &loaded);
+        built.tick();
+    }
+    let find = |b: &Built, who: u8, o: i16| {
+        (0..b.sim.units.len())
+            .find(|&u| b.sim.units[u].owner == who && b.sim.units[u].index == o)
+            .unwrap_or_else(|| panic!("no unit {who}/{o} after chapter one's two `add` lines"))
+    };
+    let striker = sim::combat::Obj::Unit(find(&built, 1, 6));
+    let (cap, hit, other) = (find(&built, 0, 6), find(&built, 0, 7), find(&built, 0, 8));
+    // The `o_up` chain the dump prints for who=0: `0/6` is `o_up -1`, and
+    // `0/7`/`0/8` hang off it (`docs/COMBAT.md` §18.2).
+    assert!(
+        built.sim.units[cap].captain
+            && !built.sim.units[hit].captain
+            && !built.sim.units[other].captain,
+        "who=0's squad is one captain and two members"
+    );
+    assert_eq!(
+        (
+            built.sim.units[cap].combat.target,
+            built.sim.units[hit].combat.target,
+            built.sim.units[other].combat.target,
+        ),
+        (Some(striker), None, None),
+        "the dump's frame 617 has the ATTACKORDER on `0/6` alone"
+    );
+}
+
 /// **Great Lakes' word does not rest on the borrowed frame stream.** Five
 /// Great Lakes captures share run11/run12/run13's setup word and therefore
 /// take fourteen of their per-frame words (frames 0–3, 94–103), which
