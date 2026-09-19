@@ -3790,57 +3790,17 @@ mod tests {
     /// Every `BEGIN AMMO` block in one frame body, as
     /// `(sx, sy, ex, ey, total_time)`.
     ///
-    /// A local walk rather than a `gamelog::records` arm: run109 is the
-    /// first capture on this disk to carry the record at a detail that
-    /// prints the launch point, and only this test reads it. The record has
-    /// twenty-five fields and this takes five — widening it is its own
-    /// item.
+    /// The walk itself is [`crate::diff::ammo::blocks`], which item 402
+    /// widened to the whole twenty-seven-field record; this is the five
+    /// numbers §22 is about. One parser, because the walk has a trap in it
+    /// — `Objects::dump_ammo` prints a frame's arrows as consecutive
+    /// siblings and a version that reset rather than flushed on the open
+    /// lost six of nine of them silently.
     fn ammo_blocks(body: &str) -> Vec<(i64, i64, i64, i64, i64)> {
-        let mut out = Vec::new();
-        let mut cur: Option<std::collections::BTreeMap<&str, i64>> = None;
-        // **The flush has to come before the open.** `dump_ammo` walks the
-        // pool, so `BEGIN AMMO` blocks are consecutive siblings, and a
-        // version of this that reset `cur` on the open threw away every
-        // arrow but the last of each run — six of the nine, silently, and
-        // the ones it kept were mislabelled by two frames.
-        let flush = |cur: &mut Option<std::collections::BTreeMap<&str, i64>>,
-                     out: &mut Vec<(i64, i64, i64, i64, i64)>| {
-            let Some(done) = cur.take() else { return };
-            let get = |k: &str| done.get(k).copied();
-            if let (Some(sx), Some(sy), Some(ex), Some(ey), Some(tt)) = (
-                get("sx"),
-                get("sy"),
-                get("ex"),
-                get("ey"),
-                get("total_time"),
-            ) {
-                out.push((sx, sy, ex, ey, tt));
-            }
-        };
-        for line in body.lines() {
-            let t = line.trim_end_matches('\r').trim_start();
-            if t == "BEGIN AMMO" {
-                flush(&mut cur, &mut out);
-                cur = Some(std::collections::BTreeMap::new());
-                continue;
-            }
-            if cur.is_none() {
-                continue;
-            }
-            if t.starts_with("BEGIN ") || t.starts_with("END ") {
-                flush(&mut cur, &mut out);
-                continue;
-            }
-            let map = cur.as_mut().unwrap();
-            let mut it = t.split_whitespace();
-            if let (Some(k), Some(v), None) = (it.next(), it.next(), it.next())
-                && let Ok(n) = v.parse::<i64>()
-            {
-                map.entry(k).or_insert(n);
-            }
-        }
-        flush(&mut cur, &mut out);
-        out
+        crate::diff::ammo::blocks(body)
+            .into_iter()
+            .map(|(a, _)| (a.sx, a.sy, a.ex, a.ey, a.total_time))
+            .collect()
     }
 
     #[test]
