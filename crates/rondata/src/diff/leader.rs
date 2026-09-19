@@ -124,6 +124,29 @@ pub(crate) fn rows(loaded: &crate::load::Loaded, built: &Built, who: usize) -> V
             sim::economy::OverCap::Uncapped => 2,
         }),
     );
+    // **The diplomacy pair, whole** — item 382. `diplos[i]` is 0 at war,
+    // 1 at peace, 2 allied, and a leader's own slot reads 2; `treaties[i]`
+    // carries the met bit in its low bit, set on *first contact* by
+    // `Leader::meet@006e1250` and never cleared. This crate's `met` is a
+    // seam that answers "yes" for every live leader from frame 1
+    // (`ai_census.rs`, `seams`), so `treaties` is the seam's own value and
+    // parts on every window until a visibility model exists. It is the
+    // gate `weight_total`'s war term hangs on, so it is compared rather
+    // than left out (`docs/AI.md` §45).
+    for i in 0..built.sim.players.len() {
+        let d = if i == who {
+            2
+        } else if built.sim.at_war[who][i] {
+            0
+        } else if built.sim.allied[who][i] {
+            2
+        } else {
+            1
+        };
+        out.push((format!("diplos[{i}]"), d));
+        let met = i64::from(built.sim.has_met(who as sim::Player, i));
+        out.push((format!("treaties[{i}]"), met));
+    }
     // The AI's own step machine and its biases.
     out.push(("production_step".to_string(), i64::from(a.step.number())));
     out.push(("prod_script_run".to_string(), i64::from(a.script_live)));
@@ -362,6 +385,11 @@ pub(crate) fn theirs(block: &Block<'_>) -> std::collections::BTreeMap<String, i6
     // against a `gather_slots` of `10 12 1 0 0 0`, so the good's own
     // high-water mark is at stride two and the six-in-a-row reading
     // reported five of the six goods as divergences on every frame.
+    for key in ["diplos", "treaties"] {
+        for (i, x) in all(&format!("{key}[scan]")).iter().enumerate().take(8) {
+            out.insert(format!("{key}[{i}]"), *x);
+        }
+    }
     let v = all("gather_slots_high[scan]");
     for (g, name) in GOODS.iter().enumerate() {
         if let Some(x) = v.get(g * 2) {
@@ -657,7 +685,7 @@ mod tests {
             .collect();
         assert!(clash.is_empty(), "UNMODELLED and rows both carry {clash:?}");
         assert_eq!(
-            compared, 167_040,
+            compared, 167_680,
             "160 blocks of the record, every field the mapping carries"
         );
         assert!(
@@ -760,7 +788,7 @@ mod tests {
         }
         assert_eq!(blocks, 172, "86 frames, two leaders");
         assert_eq!(
-            compared, 179_568,
+            compared, 180_256,
             "172 blocks of the record, every field the mapping carries"
         );
 
@@ -954,7 +982,7 @@ mod tests {
         assert_eq!(blocks, 36, "eighteen blocks, two leaders");
         assert!(missing.is_empty(), "the record does not carry {missing:?}");
         assert_eq!(
-            compared, 37_584,
+            compared, 37_728,
             "36 blocks of the record, every field the mapping carries"
         );
         // **The scholar, on the frame `create_units` offers it.** 52 is
@@ -1059,7 +1087,7 @@ mod tests {
         assert_eq!(blocks, 60, "thirty blocks, two leaders");
         assert!(missing.is_empty(), "the record does not carry {missing:?}");
         assert_eq!(
-            compared, 62_640,
+            compared, 62_880,
             "60 blocks of the record, every field the mapping carries"
         );
         // **The head on the frame the sequence parts.** 573 is the
@@ -1219,6 +1247,7 @@ mod tests {
         (1, "tech_cat_frame[2]"),
         (1, "tech_cat_frame[3]"),
         (1, "tech_frame"),
+        (1, "treaties[0]"),
         (1, "wars"),
     ];
 
@@ -1356,6 +1385,7 @@ mod tests {
         (1, "tech_cat_frame[2]"),
         (1, "tech_cat_frame[3]"),
         (1, "tech_frame"),
+        (1, "treaties[0]"),
         (1, "wars"),
     ];
 
@@ -1401,6 +1431,7 @@ mod tests {
         (0, "peasant_high"),
         (0, "peasants"),
         (0, "scouts"),
+        (0, "treaties[1]"),
         (1, "MAKE[0].city"),
         (1, "MAKE[0].escrow"),
         (1, "MAKE[0].t"),
@@ -1525,6 +1556,7 @@ mod tests {
         (0, "peasants"),
         (0, "production_step"),
         (0, "scouts"),
+        (0, "treaties[1]"),
         (1, "MAKE[0].city"),
         (1, "MAKE[1].city"),
         (1, "MAKE[1].escrow"),
