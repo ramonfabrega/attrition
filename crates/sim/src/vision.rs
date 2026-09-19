@@ -565,10 +565,18 @@ impl Sim {
         if old == now && !force {
             return;
         }
-        // The meet loop. `Leader::meet` itself — the diplomatic first
-        // contact — is a seam; what is carried is its flag, which is the
-        // gate on the reveal below.
+        // **The meet loop — `docs/VISION.md` §6.2.** For every other
+        // leader whose ally mask has *newly* appeared in `ever_seen`,
+        // `Leader::meet` fires unless the two have met already, and the
+        // building then lights itself once for any of them.
+        //
+        // Two gates, both the original's: `leader_flags & 1`
+        // (`LEADER_VALID`, a slot in use — not the `& 2` the census loops
+        // carry) and `o != owner`. The `met` flag that drives the reveal
+        // is set **before** the already-met test, so a second sighting
+        // still relights the footprint.
         let mut met = false;
+        let mut greet = Vec::new();
         for w in 0..self.players.len().min(8) {
             let o = w as crate::Player;
             if o == who || self.defeated.get(w).copied().unwrap_or(false) {
@@ -577,7 +585,13 @@ impl Sim {
             let m = self.seen_ally_mask(o);
             if now & m != 0 && old & m == 0 {
                 met = true;
+                if !self.has_met(who, w) {
+                    greet.push(o);
+                }
             }
+        }
+        for o in greet {
+            self.meet(who, o);
         }
         if met {
             self.update_local_seen_build(b);
@@ -714,6 +728,112 @@ mod tests {
         s.tech[0].epoch[crate::tech::Line::Science.index()] = 1;
         assert_eq!(s.build_los(b), 17, "the science term");
         assert_eq!(s.build_sweep(b).map(|w| w.radius), Some(8));
+    }
+
+    /// §6.2: **first contact is a building of one leader entering the
+    /// other's current line of sight**, and nothing else here reaches it.
+    ///
+    /// The met bit is `treaties[other] & 1`, [`Sim::treaty_on`] writes it
+    /// on both sides, and `Wall::check_ever_seen@0063ce70`'s tail is the
+    /// only live caller of `Leader::meet`. So: a player-0 building
+    /// standing in the dark, a player-1 unit that has not looked at it,
+    /// and the bit stays clear however often the building checks — then
+    /// the unit's disc lands on the footprint and the **next** check sets
+    /// it, on both leaders at once.
+    ///
+    /// The order matters and is asserted: the bit follows `ever_seen`
+    /// rather than the fog. A leader whose unit is standing on the
+    /// building's own ground has still not met its owner until the
+    /// building's own eighth-frame check runs.
+    #[test]
+    fn a_building_seen_by_the_enemy_is_first_contact() {
+        let (mut s, b) = fog_build(6, 0, 4);
+        let t = s.add_unit_type(crate::UnitType {
+            hits: 20,
+            moves: 40,
+            los: 16,
+            ..crate::UnitType::default()
+        });
+        // Player 1's scout, three cells east of player 0's building.
+        let at = Pos::new(23 * 0x300 + 0x180, 20 * 0x300 + 0x180);
+        let mut u = crate::Unit::new(1, 0, at, 20);
+        u.ty = Some(t);
+        let u = s.add_unit(u);
+
+        // Nothing has looked at anything yet.
+        s.check_ever_seen(b, false);
+        assert_eq!(
+            s.buildings[b].ever_seen, 0,
+            "nobody's line of sight is on the footprint yet — not even the \
+             owner's, since the building has not lit itself"
+        );
+        assert!(
+            !s.has_met(0, 1) && !s.has_met(1, 0),
+            "nobody has met anybody"
+        );
+        assert_eq!(s.treaties[0][1], 0);
+
+        // The scout looks. The fog now carries player 1's bit over the
+        // footprint — and that alone is **not** contact.
+        assert!(s.update_seen(u, false) > 0, "the scout's disc lands");
+        assert!(
+            !s.has_met(1, 0),
+            "the fog is lit but the building has not checked"
+        );
+
+        // The building checks, and the two leaders have met — both ways,
+        // which is `treaty_on`'s own double write.
+        s.check_ever_seen(b, false);
+        assert_eq!(
+            s.buildings[b].ever_seen, 0b10,
+            "player 1 has looked at it, and only player 1"
+        );
+        assert!(s.has_met(0, 1) && s.has_met(1, 0), "first contact");
+        assert_eq!((s.treaties[0][1], s.treaties[1][0]), (1, 1));
+
+        // And it is never cleared: `Leader::treaty_off` has no caller in a
+        // game. A second check changes nothing.
+        s.check_ever_seen(b, false);
+        assert_eq!((s.treaties[0][1], s.treaties[1][0]), (1, 1));
+    }
+
+    /// §6.2's other half: `meet` fires on the **new** bit only, so a
+    /// leader already met does not meet again — and a building nobody but
+    /// its owner has seen never fires it at all.
+    ///
+    /// Made to fail on purpose by dropping the `old & m == 0` test, which
+    /// makes every later check a fresh contact; the assertion that catches
+    /// it is the census's, not the bit's, so what is checked here is the
+    /// thing a bit cannot show: `ever_seen`'s own monotonicity, and that
+    /// an unstarted building filters the mask down to its owner's allies
+    /// and therefore cannot be the thing that introduces two enemies.
+    #[test]
+    fn an_unstarted_building_cannot_introduce_two_enemies() {
+        let (mut s, b) = fog_build(6, 0, 4);
+        s.buildings[b].started = false;
+        s.buildings[b].active = false;
+        let t = s.add_unit_type(crate::UnitType {
+            hits: 20,
+            moves: 40,
+            los: 16,
+            ..crate::UnitType::default()
+        });
+        let at = Pos::new(23 * 0x300 + 0x180, 20 * 0x300 + 0x180);
+        let mut u = crate::Unit::new(1, 0, at, 20);
+        u.ty = Some(t);
+        let u = s.add_unit(u);
+        assert!(s.update_seen(u, false) > 0);
+        s.check_ever_seen(b, false);
+        assert_eq!(
+            s.buildings[b].ever_seen, 0,
+            "an unstarted building takes the owner's ally mask only, and the \
+             enemy's bit is not in it"
+        );
+        assert!(!s.has_met(1, 0), "a foundation is not a sighting");
+        // Started, the same look lands.
+        s.buildings[b].started = true;
+        s.check_ever_seen(b, false);
+        assert!(s.has_met(1, 0), "a started building is");
     }
 
     /// §2.1's head: an unstarted building sees nothing, and a started but

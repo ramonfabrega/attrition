@@ -75,8 +75,7 @@ const OBJ_MASK_MISSILE: u32 = 0x800_0000;
 /// | --- | --- | --- |
 /// | `village_num` | 0 | `LeaderData::village_num` has no counterpart here. |
 /// | `new_rares` | empty | no rare-resource objects are modelled (step 9). |
-/// | meeting / `treaties & 1` | every other active leader is met | no visibility model, so step 6 cannot run and steps 14–15 would otherwise be dead. |
-/// | `is_seen` | — | step 6 skipped whole; no leader ever *becomes* met here. |
+/// | `is_seen` / step 6 | skipped whole | step 6 is the `ALLY_LOS`/`reveal_map` path, and no capture sets either; **the live path to the met bit is the fog** — `check_ever_seen` → `Leader::meet` (`docs/VISION.md` §6.2), and [`Sim::has_met`] reads the bit it sets. |
 /// | `ScenarioData::ally_mask` | 0 | scenarios are cut from v1. |
 /// | `unit_masks & 1` | clear | the flag that excludes an object from the census is unmodelled. |
 /// | `unit_masks & 0x80000` | clear | "packed/idle" is unmodelled; every merchant counts in `reg_unpack_merch`, no fisherman is idle. |
@@ -100,38 +99,43 @@ impl Sim {
     // Seams
     // ------------------------------------------------------------------
 
-    /// Seam: `treaties[i] & 1`, "I have met leader `i`" — the **whole** gate
-    /// steps 14 and 15 carry, and the one this crate cannot derive.
+    /// `treaties[i] & 1`, "I have met leader `i`" — the **whole** gate steps
+    /// 14 and 15 carry, and until item 385 the one thing this crate had no
+    /// way to derive.
     ///
-    /// The original sets the bit on *first contact* and never clears it:
-    /// `Leader::treaty_on@006e1190` writes both sides' bit 1, its only
-    /// caller is `Leader::meet@006e1250`, and `meet` has exactly two —
-    /// `Wall::check_ever_seen@0063ce70`, off the world's "ever seen by"
-    /// mask, and `Unit::process_attrition@005e11a0`, twice, once in each of
-    /// its peace and war arms. There is **no `human` test anywhere in
-    /// either loop**: `plan_strategy@006b9620:1511,1557` gates on
-    /// `leader_flags & 2`, `i != who` and this bit, and the human's
-    /// `leader_flags` is 7.
+    /// There is **no `human` test anywhere in either loop**:
+    /// `plan_strategy@006b9620:1511,1557` gates on `leader_flags & 2`,
+    /// `i != who` and this bit, and the human's `leader_flags` is 7. The
+    /// original sets the bit on *first contact* and never clears it in a
+    /// game, and the live path to it is the fog:
+    /// [`Sim::check_ever_seen`](crate::Sim::check_ever_seen) →
+    /// [`Sim::meet`] → [`Sim::treaty_on`]. `docs/VISION.md` §6.2.
     ///
-    /// So the human is excluded here as a **stand-in for the missing bit**,
-    /// not because the original excludes it, and the substitution is
-    /// measured rather than assumed (`docs/AI.md` §45). Great Lakes' own
-    /// dumps have player 1's `treaties[0]` at **0** on blocks 6950 and 7514
-    /// and at **1** on 8174 and 9170 — `diplos[0]` is 0, at war, on all
-    /// four, so the diplomacy never moves and only contact does. This
-    /// crate has no fog and its army never takes cross-border attrition in
-    /// that game (0 non-exempt outcomes over run53's 24,000 frames), so
-    /// there is nothing to derive the flip from; answering "yes" from
-    /// frame 1 instead turns `active_wars` on 7,600 frames early and costs
-    /// the long capture's word **9182 → 7182**, measured both ways.
+    /// What this replaced, and why the replacement is the right way round:
+    /// the human was skipped here as a stand-in for the missing bit, which
+    /// on a one-human-one-AI capture is "never met" — 2,000 frames of Great
+    /// Lakes' word closer than answering "yes" from frame 1, which is what
+    /// removing the skip did (9182 → 7182, `docs/AI.md` §45). The dumps say
+    /// what the right answer is: player 1's `treaties[0]` is **0** on blocks
+    /// 6950 and 7514 and **1** on 8174 and 9170, with `diplos[0]` at 0 — at
+    /// war — on all four, so the diplomacy never moves and only contact
+    /// does, once, in (7616, 8174].
     fn met(&self, who: Player, other: usize) -> bool {
         other != who as usize && !self.defeated[other] && self.has_met(who, other)
     }
 
-    /// The seam's own answer, for the record comparison: this crate's
-    /// `treaties[other] & 1`.
+    /// `treaties[other] & 1` — the met bit, and the field the leader-record
+    /// comparison prints. `defeated` is not part of the original's bit; it
+    /// is [`Sim::met`]'s own `leader_flags & 2` folded in here so both
+    /// readers agree.
     pub fn has_met(&self, who: Player, other: usize) -> bool {
-        other == who as usize || (!self.defeated[other] && !self.nation[other].human)
+        other == who as usize
+            || (!self.defeated[other]
+                && self
+                    .treaties
+                    .get(who as usize)
+                    .and_then(|r| r.get(other))
+                    .is_some_and(|t| t & 1 != 0))
     }
 
     // ------------------------------------------------------------------

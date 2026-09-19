@@ -1105,7 +1105,7 @@ mod tests {
         // this line, and the two values are why (`docs/AI.md` §44).
         assert_eq!(
             head,
-            Some((52, 573)),
+            Some((573, 573)),
             "block 9182's head moved — if this crate now offers 573 the \
              item landed; if the original's is no longer 573 the capture \
              is being read wrong"
@@ -1122,7 +1122,7 @@ mod tests {
         // the frame.
         assert_eq!(
             food,
-            Some((27, 73)),
+            Some((73, 73)),
             "block 9183's food moved — 73 on both sides is the purchase \
              gone, which is what this item's successor is for"
         );
@@ -1163,15 +1163,9 @@ mod tests {
         (0, "peasants"),
         (0, "scouts"),
         (0, "wars"),
-        (1, "MAKE[0].cat"),
         (1, "MAKE[0].city"),
-        (1, "MAKE[0].num"),
-        (1, "MAKE[0].t"),
-        (1, "MAKE[0].val"),
-        (1, "MAKE[10].val"),
         (1, "MAKE[1].city"),
         (1, "MAKE[1].num"),
-        (1, "MAKE[1].t"),
         (1, "MAKE[1].val"),
         (1, "MAKE[2].cat"),
         (1, "MAKE[2].city"),
@@ -1183,11 +1177,9 @@ mod tests {
         (1, "MAKE[3].t"),
         (1, "MAKE[3].val"),
         (1, "MAKE[4].city"),
-        (1, "MAKE[4].t"),
         (1, "MAKE[5].city"),
         (1, "MAKE[7].val"),
         (1, "MAKE[8].city"),
-        (1, "MAKE[8].val"),
         (1, "SITE[1].dist"),
         (1, "SITE[1].rank"),
         (1, "SITE[1].val"),
@@ -1233,13 +1225,8 @@ mod tests {
         (1, "SITE[9].val"),
         (1, "SITE[9].wx"),
         (1, "SITE[9].wy"),
-        (1, "active_wars"),
-        (1, "active_wars_with"),
-        (1, "bucket[0:food]"),
         (1, "bucket[1:timber]"),
-        (1, "gather_stamp"),
         (1, "leftover[1:timber]"),
-        (1, "num_queued[0]"),
         (1, "scholars"),
         (1, "scouts"),
         (1, "tech_cat_frame[0]"),
@@ -1247,8 +1234,6 @@ mod tests {
         (1, "tech_cat_frame[2]"),
         (1, "tech_cat_frame[3]"),
         (1, "tech_frame"),
-        (1, "treaties[0]"),
-        (1, "wars"),
     ];
 
     /// The `(player, field)` pairs that part over run19's window. Filled
@@ -1320,20 +1305,13 @@ mod tests {
         (0, "scouts"),
         (0, "wars"),
         (1, "MAKE[0].city"),
-        (1, "MAKE[0].val"),
-        (1, "MAKE[10].val"),
         (1, "MAKE[1].city"),
-        (1, "MAKE[1].val"),
         (1, "MAKE[2].city"),
-        (1, "MAKE[2].val"),
         (1, "MAKE[3].cat"),
         (1, "MAKE[3].city"),
         (1, "MAKE[3].t"),
         (1, "MAKE[3].val"),
-        (1, "MAKE[4].val"),
         (1, "MAKE[8].city"),
-        (1, "MAKE[8].val"),
-        (1, "MAKE[9].val"),
         (1, "SITE[0].reg"),
         (1, "SITE[1].reg"),
         (1, "SITE[2].dist"),
@@ -1376,8 +1354,6 @@ mod tests {
         (1, "SITE[9].val"),
         (1, "SITE[9].wx"),
         (1, "SITE[9].wy"),
-        (1, "active_wars"),
-        (1, "active_wars_with"),
         (1, "gather_stamp"),
         (1, "scouts"),
         (1, "tech_cat_frame[0]"),
@@ -1385,8 +1361,6 @@ mod tests {
         (1, "tech_cat_frame[2]"),
         (1, "tech_cat_frame[3]"),
         (1, "tech_frame"),
-        (1, "treaties[0]"),
-        (1, "wars"),
     ];
 
     /// The `(player, field)` pairs that part over run91's window — the
@@ -1431,7 +1405,6 @@ mod tests {
         (0, "peasant_high"),
         (0, "peasants"),
         (0, "scouts"),
-        (0, "treaties[1]"),
         (1, "MAKE[0].city"),
         (1, "MAKE[0].escrow"),
         (1, "MAKE[0].t"),
@@ -1556,7 +1529,6 @@ mod tests {
         (0, "peasants"),
         (0, "production_step"),
         (0, "scouts"),
-        (0, "treaties[1]"),
         (1, "MAKE[0].city"),
         (1, "MAKE[1].city"),
         (1, "MAKE[1].escrow"),

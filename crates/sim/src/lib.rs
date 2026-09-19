@@ -893,6 +893,12 @@ pub struct Sim {
     pub borders: Vec<territory::PlayerBorders>,
     /// Alliance, as a matrix; `is_ally` needs it both ways.
     pub allied: Vec<Vec<bool>>,
+    /// `LeaderData::treaties` (`+0x94`), `int[8]` — the standing agreements
+    /// between two leaders, of which exactly one bit is modelled here:
+    /// **bit 0, the met bit**, "these two have made contact".
+    /// [`Sim::treaty_on`] is its only writer and [`Sim::has_met`] its only
+    /// reader; `docs/VISION.md` §6.2 and `docs/AI.md` §46.
+    pub treaties: Vec<Vec<i32>>,
     /// Whether each player has been defeated — `leader_flags & 2` clear.
     pub defeated: Vec<bool>,
     /// `LeaderData::lost_city_stamp`: the frame each player last lost a city.
@@ -1234,6 +1240,7 @@ impl Sim {
             nation: vec![city::Nation::default(); players],
             borders: vec![territory::PlayerBorders::plain(&tuning); players],
             allied: vec![vec![false; players]; players],
+            treaties: vec![vec![0; players]; players],
             defeated: vec![false; players],
             lost_city_stamp: vec![None; players],
             city_tally: vec![city::Tally::default(); players],
@@ -1307,6 +1314,10 @@ impl Sim {
             row.push(false);
         }
         self.allied.push(vec![false; who + 1]);
+        for row in &mut self.treaties {
+            row.push(0);
+        }
+        self.treaties.push(vec![0; who + 1]);
         u8::try_from(who).expect("too many players")
     }
 
@@ -1314,6 +1325,50 @@ impl Sim {
     pub fn make_allies(&mut self, a: Player, b: Player) {
         self.allied[a as usize][b as usize] = true;
         self.allied[b as usize][a as usize] = true;
+    }
+
+    /// `Leader::treaty_on@006e1190` — or `param_2` into **both** leaders'
+    /// `treaties` slot for the other. The original takes the bits as an
+    /// argument and every live caller passes 1, the met bit, so that is
+    /// what this takes.
+    ///
+    /// `Leader::treaty_off@006d0370` is its opposite and clears bit 0
+    /// whatever it is passed; its only caller in the whole executable is
+    /// the debug console's `run_cmd`, so **nothing in a game ever clears
+    /// the met bit** and there is no `treaty_off` here.
+    pub fn treaty_on(&mut self, a: Player, b: Player, bits: i32) {
+        let (a, b) = (a as usize, b as usize);
+        if let Some(x) = self.treaties.get_mut(a).and_then(|r| r.get_mut(b)) {
+            *x |= bits;
+        }
+        if let Some(x) = self.treaties.get_mut(b).and_then(|r| r.get_mut(a)) {
+            *x |= bits;
+        }
+    }
+
+    /// `Leader::meet@006e1250` — first contact. `treaty_on(other, 1)`, and
+    /// then `LeaderOut::say_meet` for whichever side the console belongs to,
+    /// which is the message in the corner of the screen and is not modelled.
+    ///
+    /// Its callers are `Wall::check_ever_seen@0063ce70` — the live one, and
+    /// the reason this hangs off the fog (`docs/VISION.md` §6.2) — and
+    /// `Unit::process_attrition@005e11a0`, at **three** sites — its war
+    /// arm, its assassin arm, and the generic one under
+    /// `get_attrition() != 0`, each after every exemption. That path is
+    /// dead in every capture this crate is diffed against — 0 non-exempt
+    /// outcomes over run53's 24,000 frames, measured by item 382 — and is
+    /// not wired here; the seam is stated in `docs/VISION.md` §6.2.
+    ///
+    /// `RON_DEBUG_MEET` prints the frame each contact lands on, which is
+    /// the only thing about this mechanic no capture on this disk pins:
+    /// nothing dumps a leader between 7600 and 8174, so Great Lakes'
+    /// original flip is bracketed to (7616, 8174] and this crate's 7944 is
+    /// checked against the bracket rather than against a frame.
+    pub fn meet(&mut self, a: Player, b: Player) {
+        if std::env::var("RON_DEBUG_MEET").is_ok() {
+            eprintln!("MEET frame {} {a} {b}", self.frame);
+        }
+        self.treaty_on(a, b, 1);
     }
 
     /// Whether `a` has allied `b` — false for an owner outside the player

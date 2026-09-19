@@ -3653,9 +3653,9 @@ mod tests {
         );
         assert_eq!(
             seatings,
-            vec![8272, 8680, 9_087],
-            "below the word Great Lakes seats three scholars, on 8272, 8680 \
-             and 9087"
+            vec![8272, 8680, 9_087, 9_201, 9_322],
+            "below the word Great Lakes seats five scholars, on 8272, 8680, \
+             9087, 9201 and 9322"
         );
         // **Great Lakes 9134, the snap arm's blocked stand** (item 360,
         // `docs/COLLISION.md` §5.4). The frame is **one draw on each
@@ -3738,8 +3738,10 @@ mod tests {
         );
         assert_eq!(
             markets,
-            vec![8582, 8585, 8782, 8982],
-            "below the word Great Lakes takes exactly four market draws"
+            vec![8582, 8585, 8782, 8982, 9_182, 9_382],
+            "below the word Great Lakes takes exactly six market draws — and \
+             9182 is item 385's own: the frame the sequence used to part on \
+             is a `use_market` sell on both sides now"
         );
         assert!(
             first_count >= LONG_WORD_GREAT_LAKES && first_part >= LONG_WORD_GREAT_LAKES,
@@ -4657,11 +4659,11 @@ mod tests {
     /// The residue is **floored, not asserted away**, and the one row
     /// left is 9182's own:
     ///
-    /// - `1/2007` from 9182 — a citizen this crate queues at the city
-    ///   and the original does not. The frame's *count* is the
-    ///   original's since 362 (ten draws either side); what is left is
-    ///   its composition — three `use_market+0x1ed` against this
-    ///   crate's one, and four `make_stuff+0x63d` against none.
+    /// - ~~`1/2007` from 9182~~ — a citizen this crate queued at the city
+    ///   and the original does not. **Gone on item 385**: the head at 9182
+    ///   is the original's Mercenaries once the met bit is set, so the
+    ///   Citizen is never bought and **the window is silent**, 1,320
+    ///   frames with no queue row at all.
     #[test]
     fn run97_s_build_queues_are_the_original_s() {
         const FIRST: i64 = 8_030;
@@ -4785,17 +4787,17 @@ mod tests {
             "run97's own blocks are missing — the wrong file: {blocks} blocks, {compared} \
              building-frames"
         );
-        // The two rows above, and nothing else. A third building parting
-        // is a divergence this test was written to catch.
+        // **Nothing at all, over the whole window** — item 385. The last
+        // row, `1/2007` from 9182, was the Citizen this crate bought when
+        // its make list put a Scholar at the head where the original puts
+        // Mercenaries; with the met bit the head is the original's, the
+        // purchase does not happen, and this window is silent. A building
+        // parting anywhere in [8030, 9349] is now a divergence this test
+        // was written to catch.
         assert_eq!(
             first.keys().copied().collect::<Vec<_>>(),
-            vec![(1, 2007)],
-            "run97's queue residue is not the one 362 left: {first:?}"
-        );
-        assert_eq!(
-            first[&(1, 2007)],
-            9_182,
-            "the queue residue does not open on 9182"
+            Vec::new(),
+            "run97's build queues part from the original's: {first:?}"
         );
         // **The batch itself, in the queue it filled.** 8985's
         // University is the frame two items were spent on: item 358's
@@ -4811,11 +4813,14 @@ mod tests {
              window — the scholar batch is not the original's: {:?}",
             wrong.first()
         );
+        // And the whole window's silence, which is the same statement as
+        // the empty map above and is kept because it prints. Made to fail
+        // on purpose: putting the `human` skip back into `Sim::has_met`
+        // restores `frame 9182: 1/2007 ours [(50, 100)] theirs []` as the
+        // first row.
         assert!(
-            wrong
-                .first()
-                .is_some_and(|w| w.contains("frame 9182: 1/2007 ours [(50, 100)] theirs []")),
-            "9182's city queue is not the one row left: {:?}",
+            wrong.is_empty(),
+            "run97's window is not silent on the build queues: {:?}",
             wrong.first()
         );
     }
@@ -4842,6 +4847,21 @@ mod tests {
     #[test]
     fn run97_s_window_orders_are_the_original_s() {
         const FIRST: i64 = 8_030;
+        /// **run97's last complete block**, and the bound this loop takes
+        /// instead of the word.
+        ///
+        /// The file's final `BEGIN FRAME 9361` is **truncated mid-record**
+        /// — the click-free lane gives up by stopping the process, so the
+        /// last block is whatever had been written — and every unit in it
+        /// has a short order stack. While the word was 9182 that block was
+        /// above it and never read; item 385 moved the word to 9415 and the
+        /// truncation arrived as 47 `Length` rows on 39 units, including
+        /// player 0's, which reads exactly like a simulation that has come
+        /// apart. It is not. The sibling test above
+        /// (`run97_s_build_queues_are_the_original_s`) has carried this
+        /// same bound since it was written; this one took the word and did
+        /// not.
+        const LAST: i64 = 9_349;
         let Some(inst) = install() else { return };
         let (Some(path), Some(r97)) = (
             dump("gamelog-run53-greatlakes-24k-trace.txt"),
@@ -4869,7 +4889,7 @@ mod tests {
         let mut gather_rows = 0usize;
         let mut gather_compared = 0usize;
         let mut rows: Vec<OrderDivergence> = Vec::new();
-        for f in 0..LONG_WORD_GREAT_LAKES {
+        for f in 0..LONG_WORD_GREAT_LAKES.min(LAST + 1) {
             built.tick();
             if f < FIRST {
                 continue;
@@ -4964,13 +4984,14 @@ mod tests {
             "run97's own blocks are missing — the wrong file: {blocks} blocks, \
              {compared} unit-frames, {gather_compared} gather orders"
         );
-        // **The product: not one gatherer disagrees.** 31,448 gather
-        // orders below the word, and every `tx`, `ty`, `wait`,
-        // `goto_build`, `been_there` and `dist_mod` of every one of them
-        // is the original's. Made to fail on purpose — `+ 1` on the
-        // comparison's own `tx` puts a row on all 31,448, one apiece —
-        // so the nought is a measurement and not a branch that never
-        // ran. What it closes is a whole family of explanation for the
+        // **The product: not one gatherer disagrees.** 36,458 gather
+        // orders over the capture's own window — 31,448 of them when the
+        // word was 9182 and item 368 wrote this — and every `tx`, `ty`,
+        // `wait`, `goto_build`, `been_there` and `dist_mod` of every one
+        // of them is the original's. Made to fail on purpose — `+ 1` on
+        // the comparison's own `tx` puts a row on all of them, one
+        // apiece — so the nought is a measurement and not a branch that
+        // never ran. What it closes is a whole family of explanation for the
         // leader's stockpile: no citizen on this map is working a camp
         // the original does not, on any frame below the word.
         assert_eq!(
@@ -4987,8 +5008,10 @@ mod tests {
         // successor), which drags the orders those six hold with it;
         // `1/23` is a standing unit carrying an `Action` order the dump
         // does not and a `Move` angle to match, older than this window.
-        // The **set** is the assertion, because "48,698 rows" cannot say
-        // whether a seventh unit joined them.
+        // The **set** is the assertion, because a row count cannot say
+        // whether a ninth unit joined them — and item 385 is why that
+        // matters: the truncated final block briefly put 39 of them in
+        // here, and only the set said so.
         let mut units: Vec<(i64, i64)> = scoring.iter().map(|d| (d.who, d.o)).collect();
         units.sort_unstable();
         units.dedup();
@@ -5816,6 +5839,10 @@ mod tests {
         let mut above = 0usize;
         let mut unmatched = 0usize;
         let mut walk = 0usize;
+        // The walk-slot rows themselves, not only their count — item 352
+        // closed the band at zero, so anything here is a handful and worth
+        // naming rather than summing.
+        let mut walkw: Vec<String> = Vec::new();
         let mut wrong: Vec<String> = Vec::new();
         let mut posw: Vec<String> = Vec::new();
         let mut body_bad = 0usize;
@@ -5937,6 +5964,12 @@ mod tests {
                         }
                         if walking {
                             walk += 1;
+                            if walkw.len() < 20 {
+                                walkw.push(format!(
+                                    "frame {f}: {}/{} guy {n} {name} ours {o} theirs {t}",
+                                    state.who, state.o
+                                ));
+                            }
                             continue;
                         }
                         if wrong.len() < 20 {
@@ -5956,6 +5989,9 @@ mod tests {
         );
         for w in &wrong {
             eprintln!("  {w}");
+        }
+        for w in &walkw {
+            eprintln!("  WALK {w}");
         }
         eprintln!(
             "run97 bodies: {body_bad} of {body_all} point-and-goal fields below the word wrong ({body_trio} more on the standing trio over {frames_below} frames), on {} unit(s) — {posfirst:?}",
@@ -5993,12 +6029,32 @@ mod tests {
         // no remaining seam for a walking guy's slot to differ in below
         // the word, and a successor that reopens one should say so here
         // rather than raise a ceiling.
+        //
+        // **Item 385 says so.** Moving the word 9182 → 9415 brought 233
+        // frames that had never been compared under it, and two of them
+        // carry a row: `1/35`'s guy 0 on 9338 and 9339, `cur_anim` 8
+        // against 7 — one slot of the walk category, the seam this band
+        // was always about and not a new one. The band over item 352's
+        // own `[8443, 9182)` is still **empty**, which is what the
+        // assertion below says by naming the two rows rather than
+        // counting them: a count would have hidden which frames they are
+        // on, and the frames are the whole point.
         assert_eq!(
-            walk,
-            0,
-            "run97's walk-slot band reopened: {walk} fields over the {} frames \
-             below the word, and item 352 closed it at zero",
+            walkw,
+            vec![
+                "frame 9338: 1/35 guy 0 cur_anim ours 8 theirs 7".to_string(),
+                "frame 9339: 1/35 guy 0 cur_anim ours 8 theirs 7".to_string(),
+            ],
+            "run97's walk-slot band is not the two rows item 385 left it on, \
+             over the {} frames below the word",
             LONG_WORD_GREAT_LAKES - 8_443
+        );
+        assert!(
+            walkw.iter().all(|w| !w.starts_with("frame 91")
+                && !w.starts_with("frame 90")
+                && !w.starts_with("frame 8")),
+            "the walk-slot band reopened *below* 9182, which item 352 closed \
+             at zero: {walkw:?}"
         );
         // **The rest of the record, floored** (item 350). Three families,
         // and only the second is anyone's current item:
@@ -6016,7 +6072,13 @@ mod tests {
         //   `x_internal`/`y_internal` and hold its own path goal on 8442;
         // - **`1/27`/`1/28`/`1/29`/`1/41` from 8579**, and `1/33` from
         //   8584, the late drift on the long walk southwest — what the
-        //   601 below is, together with `1/24`–`1/26`'s goal rows.
+        //   601 below is, together with `1/24`–`1/26`'s goal rows;
+        // - and **`1/35` from 9329** — item 385's own two fields, on
+        //   frames the word had always covered until it moved 9182 →
+        //   9415. Below 9182 the count is still 6. Its neighbour is the
+        //   walk-slot pair on 9338–9339 above: one unit, one late walk,
+        //   and the only thing this item changed about it is that it is
+        //   now compared.
         assert!(
             body_all >= 121_224,
             "run97's own bodies are missing — the wrong file: {body_all} fields"
@@ -6028,9 +6090,9 @@ mod tests {
              frame over {frames_below} frames: {body_trio}"
         );
         assert!(
-            body_bad <= 6,
+            body_bad <= 8,
             "run97's point-and-goal residue grew: {body_bad} of {body_all} \
-             fields below the word, the floor is 6 — {posfirst:?}"
+             fields below the word, the floor is 8 — {posfirst:?}"
         );
     }
 

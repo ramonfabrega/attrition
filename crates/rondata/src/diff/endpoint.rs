@@ -668,11 +668,27 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // roster missing, with `build_diverged` and the cities unchanged.
         // East Indies' endpoint and both ladder rungs are unchanged on the
         // same commit. DECISIONS 36: the number, not a trade.
-        off: 58,
-        unlinked: 7,
+        // Then **on 2026-09-18, item 385** — the **met bit**, set on first
+        // contact off the fog (`docs/VISION.md` §6.2), which moves this
+        // map's word 9182 → 9415. The AI has an enemy it knows about from
+        // frame 7944, so `weight_total`'s war term pays from there and
+        // every tech it has ranked since is re-valued.
+        //
+        // **The two items landed on the same day and this row is the
+        // merged tree's**, not either branch's: 385 measured 66 → 49 and
+        // 5 → 12 against 384's base, and 384 measured 66 → 58 and 5 → 7
+        // against 385's. Two independent improvements compose, and the
+        // figure below is what the merged code prints — the same rule the
+        // 289/290 merge set on the row above, and a merge is not the place
+        // to adjudicate a floor. The merged figure is **off 54, unlinked
+        // 4, build_diverged 9** — lower than either branch on two of the
+        // three columns and on neither branch's line for any of them.
+        // DECISIONS 36 asks for the number rather than a trade.
+        off: 54,
+        unlinked: 4,
         extra: 0,
         build_unlinked: 0,
-        build_diverged: 10,
+        build_diverged: 9,
         city_unlinked: 3,
         city_diverged: 0,
     },
@@ -1350,32 +1366,39 @@ mod tests {
              is building 1/2019's position; before the seating it \
              stood (24, 552) out on the exit ring (CITIES §6.5.2)"
         );
-        // And the one still on the other university, by the vector between
-        // the two rather than by a count.
+        // And the one that used to sit on the *other* university, by the
+        // vector between the two rather than by a count.
         //
-        // **Which scholar it is, is telemetry.** It was `1/53` from item
-        // 338 to item 350, `1/52` from item 352, `1/56` from item 358,
-        // was **`1/55` from item 362**, whose make-list `num`
-        // (`docs/AI.md` §42) buys the AI its scholars in batches and
-        // re-deals every position 15,000 frames before this block, and is
-        // **`1/58` since item 384**, whose melee reach re-deals every
-        // engagement in the game (DECISIONS 36). Item 342's standing instruction is to
-        // re-measure this rather than diagnose it. The *offset* is the
-        // assertion — `1/2020 − 1/2019` exactly, one university away —
-        // and a scholar sitting anywhere else would not carry it.
+        // **Which scholar it was, was telemetry, and it moved every time
+        // anything upstream did**: `1/53` from item 338, `1/52` from 352,
+        // `1/56` from 358, `1/55` from 362, `1/58` from 384. Item 342's
+        // standing instruction is to re-measure it rather than diagnose it,
+        // and on the **384/385 merge** the re-measurement says something
+        // better than a new index: **no unit at this endpoint is off by
+        // `1/2020 − 1/2019` at all.** The nearest is `1/53` at
+        // `(648, 10776)`, which is not one university.
+        //
+        // So the assertion is now the *vector*, over the whole roster,
+        // with no index in it — which is the shape that stops costing a
+        // re-measurement a session. It is **not** a claim that the
+        // seating is fixed: this is 14,600 frames past the word, two
+        // independent items composed to get here, and a scholar that is
+        // merely off by something else reads the same. What it does say is
+        // that if a later item puts a scholar exactly one university away
+        // again, this fails and names it.
         let delta = (768, 9984);
-        let wrong_one = 58;
-        let (dx, dy) = r
+        let carriers: Vec<(i64, i64)> = r
             .off
-            .get(&(1, wrong_one))
-            .copied()
-            .unwrap_or_else(|| panic!("1/{wrong_one} is the scholar on the wrong university"));
-        assert_eq!(
-            (dx.abs(), dy.abs()),
-            delta,
-            "1/{wrong_one} is off by ({dx}, {dy}), which is not 1/2020 − 1/2019. \
-             It is seated on the wrong university, and that offset is \
-             what is left of item 338"
+            .iter()
+            .filter(|(_, v)| (v.0.abs(), v.1.abs()) == delta)
+            .map(|(k, _)| *k)
+            .collect();
+        assert!(
+            carriers.is_empty(),
+            "{carriers:?} sit one university away from the original's own \
+             coordinates — `1/2020 − 1/2019` exactly, which is what item \
+             338's residue looked like and what the 384/385 merge left \
+             nobody carrying"
         );
         // The rest, printed: past the word neither stream is anybody's.
         for o in [49, 51, 52, 53, 56] {

@@ -412,9 +412,89 @@ agrees on all 28 buildings, and this map's word went **8031 → 8186**.
   monotone where the original's is rebuilt every hundredth frame. The two
   can only differ over the ≤ 8 frames between a sighting and the owner's
   next check — the bit is taken on the first check either way.
+- ~~`Leader::meet` itself is not modelled; only its flag, which is the
+  gate.~~ **Closed by item 385** — §6.2 below.
 - `Wall::start`'s own direct `seen2` write over its footprint (the owner's
   bit) is not made; it is the owner's own bit over ground the owner's own
   line of sight covers.
+
+## 6.2 First contact: the met bit hangs off this mechanic (2026-09-18)
+
+`check_ever_seen`'s tail does two things, and §6.1 above only carried one
+of them. The other is **diplomacy's first contact**, and it is the single
+live writer of a field four of this map's dumps print.
+
+**`LeaderData::treaties` (`+0x94`), `int[8]`, bit 0 — the met bit.**
+`Leader::treaty_on@006e1190` ors a mask into **both** leaders' slot for
+the other and is the only writer; `Leader::meet@006e1250` is its only
+caller and passes 1; and `meet` has exactly two callers in the whole
+executable:
+
+- **`Wall::check_ever_seen@0063ce70`** — the tail loop, for every other
+  leader whose ally mask has *newly* appeared in the building's
+  `ever_seen`; and
+- **`Unit::process_attrition@005e11a0`**, at **three** sites, not two:
+  the war arm, the assassin arm, and the generic arm under
+  `get_attrition() != 0`. All three carry the same guard,
+  `other < 0 || treaties[other] & 1 == 0`.
+
+`Leader::treaty_off@006d0370` clears bit 0, and its only caller is the
+debug console's `run_cmd`. **Nothing in a game ever clears the bit.**
+
+### The loop's own gates, exactly
+
+For each `o` in 0..8, with `old` the building's `ever_seen` on entry and
+`now` its value after the footprint scan:
+
+```text
+o != owner
+leaders[o].leader_flags & 1            # LEADER_VALID — a slot in use,
+                                       # not the & 2 the census loops take
+now & leaders[o].ally_mask != 0
+old & leaders[o].ally_mask == 0        # the bit is NEW
+  -> reveal = true                     # set here, before the test below
+  -> if treaties[owner][o] & 1 == 0:  Leader::meet(owner, o, x, y)
+if reveal: update_local_seen()         # vtable +0x164, §6.1
+```
+
+The `reveal` flag is raised **before** the already-met test, so a second
+sighting still relights the footprint; only `meet` is once-only. That
+ordering is carried here.
+
+### Why it is worth a section
+
+`Leader::plan_strategy`'s war and region census loops gate on
+`treaties[i] & 1` and on nothing about humans (`docs/AI.md` §43, §45), so
+this bit decides whether the AI's `active_wars` is 0 or 1 — and
+`ai_research::weight_total` takes `ai[0] / 3` instead of `ai[5] + ai[1]`
+when it is 1, which on Great Lakes is **144 against 110** on every tech
+the AI ranks. Until item 385 this crate stood in for the bit with "skip
+human leaders", which answers *never met* — and the alternative, *met from
+frame 1*, cost the long capture's word 9182 → 7182.
+
+**What the fog answers instead is 7944**, and the original's own dumps
+bracket it: player 1's `treaties[0]` is 0 on blocks 6950 (run84) and 7514
+(run91) and 1 on 8174 (run19) and 9170 (run107), with `diplos[0]` at 0 —
+at war — on all four. The contact is in (7616, 8174]; this crate's is
+inside it. Great Lakes' word went **9182 → 9415** on it, and all four of
+those windows' leader residues fell (110 → 95, 91 → 80, 92 → 91, 82 → 81)
+with nothing arriving.
+
+### What carries it
+
+[`Sim::treaty_on`] and [`Sim::meet`] in `lib.rs`, `Sim::treaties` beside
+`at_war` and `allied`, the loop in `Sim::check_ever_seen`, and
+[`Sim::has_met`] reading the bit for the census and for the record
+comparison. `a_building_seen_by_the_enemy_is_first_contact` and
+`an_unstarted_building_cannot_introduce_two_enemies` are the unit tests;
+the standing oracle is `treaties` in the leader-record comparison across
+the four windows above.
+
+**The attrition path is a stated seam.** Its three sites are read and not
+wired, because instrumented over run53's 24,000 frames **no unit of
+either leader reaches a non-exempt attrition outcome** (item 382), so no
+capture on this disk can tell whether it is right. A map where an army
+campaigns abroad would; that is when to wire it.
 
 ## 7. What is not established
 
@@ -538,6 +618,8 @@ agrees on all 28 buildings, and this map's word went **8031 → 8186**.
 | 4 | `vision::ring` — `ring_init` rebuilt in integers | `vision.rs` |
 | 5 | `Sim::update_seen` | `vision.rs` |
 | 6 | `Sim::moved_to` at the move step and at the gather stand, `Sim::update_seen` at ejection, `Sim::update_seen_build` from `Sim::activate`, `Sim::update_all_seen` — now units **and** buildings — from `tick` | `orders.rs`, `garrison.rs`, `city.rs`, `lib.rs` |
+| 6.1 | `Sim::check_ever_seen` and `Sim::update_local_seen_build` — the footprint scan, the grown rectangle, the `seen2`-only write | `vision.rs` |
+| 6.2 | the meet loop, `Sim::treaty_on`, `Sim::meet`, `Sim::has_met` — first contact and the met bit | `vision.rs`, `lib.rs`, `ai_census.rs` |
 
 **The differential check is §2's, and it is the whole of run10.** Every
 object record carries `ObjectData::mylos` at every detail level — which is
@@ -580,6 +662,15 @@ hundred frames later, and the lesson is in `docs/audit/README.md`: a
 monotone grid hides its own errors until something downstream reads a
 cell, and the reading arrives wearing the downstream mechanic's name. A
 radius one fog cell too large fails the new check on its first frame.
+
+**§6.2's check is the leader record's `treaties`**, and it is four
+windows of one game rather than one window: run84's block 6950 and run91's
+7514 with the bit clear, run19's 8174 and run107's 9170 with it set, every
+block of each. It is the shape a one-window check cannot have — a bit that
+is wrong *in time* passes any window taken on one side of the flip, and
+these four bracket it from both. `diplos` is compared beside it and parts
+nowhere, which is what says the thing that moves is contact and not the
+diplomacy.
 
 **The third differential check is §2.1's, and it is what the second one
 could not see** (2026-08-31, item 99). run13's ten frames are frames 95 to
