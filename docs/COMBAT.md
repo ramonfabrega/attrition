@@ -3579,12 +3579,16 @@ who=0's — so the arm's own word is not misread.
 
 ### 26.4 The hypothesis, and why it explains the slingers
 
-`unit_respond_range` is **7**, and the 6.85-tile lower bound belongs to
+~~`unit_respond_range` is **7**, and the 6.85-tile lower bound belongs to
 `think`'s *cheap* remembered-target arm — whose range test is
 `ObjectData::is_in_range@006486b0` and not `find_melee_target` — rather
 than to the search. If so the lower bound is vacated, a smaller
 `unit_respond_range` becomes admissible too, and the whole divergence is
-one constant this crate defaulted.
+one constant this crate defaulted.~~ **Refuted by §27** (item 435): the
+dump prints `near_o`, and it is −1 on who=1's captain through frame 634.
+No remembered target existed, so the cheap arm cannot have run and the
+lower bound stands. `unit_respond_range` 7 survives; the reason the arm
+does not apply does not.
 
 **The slingers are invariant under every value the hypothesis ranges
 over**, which is the point. Their own term dominates —
@@ -3619,3 +3623,113 @@ run: no value of `unit_respond_range` has been tried against the floors,
 and the one experiment that was tried — 12 to 7 — left 616 unchanged,
 because the AI-driven arm re-raises the radius to 14 tiles. That is
 evidence *for* the contradiction and not for the hypothesis.
+
+## 27. The range `think_attack` passes — a belief, sharpened (item 435, 2026-09-19)
+
+**§26.4's belief is refuted, and this section is its successor belief**, so
+it carries the same label: nothing here has been run against the floors.
+What the read adds is a branch this crate does not have at all, and an
+arithmetic solution that is unique except for one element.
+
+### 27.1 The refutation, from the dump rather than the decompile
+
+`ObjectData +0x34` and `+0x36` are **`near_o` and `near_who`** by the type
+record, and the dump prints them. On who=1's hoplite captain they are
+**−1 from 616 through 634** and become `10` / `0` at **635**, the frame the
+attack order appears.
+
+So no remembered target existed before 635, `think`'s cheap arm cannot have
+run, and **635 is the search's own result**. The 6.85-tile lower bound
+stands, and §26.4's way out is closed.
+
+### 27.2 The branch this crate does not have
+
+`Unit::think_attack@005f5a80` does **not** call the search with −1. It
+computes, at its head,
+
+```
+uVar12 = ~(unit_masks >> bit 18) & 1        # 1 when NOT AI-driven
+if (uVar12 == 0 && (leaders.list[who] & 2) == 0) uVar12 = 1
+iVar7  = -(uVar12 != 0)                     # -1, or 0
+```
+
+and passes `iVar7` to `Unit::find_melee_target@005ff9c0`. Several later
+arms force it back to −1 — a caravan, a military trainer, a type of 0x3d,
+0x3e or 400, and `add_to_army` having run. This crate passes **−1 always**;
+the zero path does not exist in it.
+
+And the zero path is a different function, **cadenced by the frame**:
+
+| when | radius |
+| --- | --- |
+| stance is defensive | `unit_defensive_respond_range * 0xc0`, floored by the unit's own reach |
+| `(o + frame)` on the 1024-frame grid | max(24,576 units — 128 tiles, `(r+1) * 0xc0`) |
+| `(o + frame)` on the 256-frame grid | max(12,288 units — 64 tiles, `(r+1) * 0xc0`) |
+| otherwise | max(`unit_respond_range * 0x180`, `(r+1) * 0xc0`) |
+
+Three radii and two grids, none of them modelled here. A unit that is
+AI-driven under a leader carrying the flag sweeps the map twice on two
+different periods and searches narrowly between.
+
+### 27.3 The gate above it is identical, and that is measured
+
+The dump prints `idle` (`UnitData +0xb0`) and `stance`. **Both captains
+carry `idle 1, stance 0` on their birth frame** — the hoplite at 616, the
+slinger at 621. So both reach the search by the same arm of the same gate,
+this crate included, and the difference between them is only *which range
+they search with*. That closes the last alternative to §27.2 that did not
+need a reading.
+
+### 27.4 The arithmetic has one solution, and one hole
+
+Take `unit_respond_range` = **7** and the −1 branch without its final
+AI-driven arm:
+
+| searcher | own term | radius | the distance in question | verdict |
+| --- | --- | --- | --- | --- |
+| hoplite, reach 0 | 0x120 | 7 tiles | 6.85 in, 7.25 out | both ✓ |
+| slinger, reach 6 | 1728 | 9 tiles | 8.6 in | ✓ |
+| bowmen, reach 10 | 2496 | 13 tiles | engages on its own grid frame | ✓ |
+
+Every measured datum fits, and 7 is the only integer that does. **The
+hole** is the AI-driven arm: it would raise the hoplite to 14 tiles and
+find the bowmen at 616. Its word is not misread — `UnitData +0x68` is
+`unit_masks` by the type record and the dump prints 262144 on who=1's
+hoplites against 0 on who=0's — and the zero path's own narrow arm has the
+same shape, where no integer fits either (3 gives 6 tiles, 4 gives 8).
+
+**So the belief is:** `unit_respond_range` is 7, and for these units the
+AI-driven arm is not reached — most likely because they take the zero path
+of §27.2 under a leader flag this dump does not print, and that path's
+narrow arm is chosen by a grid neither 616 nor 634 sits on.
+
+### 27.5 Why it still explains the slingers
+
+who=0's units carry `unit_masks` 0, so `uVar12` is 1 unconditionally,
+`iVar7` is −1, and they take the −1 branch with their own term dominating
+— nine tiles against the 8.6 they engage at — while the AI-driven arm can
+never apply to them. **The slingers are invariant under every value and
+every branch this section ranges over**, which is why only the melee squad
+is wrong, and `chapter_two_s_first_attack_orders_are_the_dump_s` asserts it
+by requiring six of its nine rows to keep agreeing.
+
+### 27.6 What would settle it
+
+1. **A `LEADERS=9` window over run112.** The branch turns on
+   `leaders.list[who] & 2`, and the dump at `LEADERS=2` does not carry the
+   field. This is the one question here a capture answers and the reading
+   cannot.
+2. **`unit_respond_range`'s shipped value from the PE globals.** It is not
+   in `rules.xml` at all, so the 7 is inferred from a bracket rather than
+   read.
+
+### 27.7 Coverage
+
+**Diff-backed**: §27.1 and §27.3 entirely — `near_o`, `near_who`, `idle`
+and `stance` are run112's own printed fields, and the timeline is held by
+`chapter_two_s_first_attack_orders_are_the_dump_s`.
+
+**Reading-only, and owed a blind second reading**: §27.2's branch and its
+table, §27.4's arithmetic and the belief in it, §27.5's invariance
+argument. No value of `unit_respond_range` and no branch has been run
+against the floors.
