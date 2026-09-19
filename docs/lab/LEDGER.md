@@ -95,6 +95,8 @@ Fable worker or capture.
 
 | L56 | The modeled resumed-search prologue needs a coordinate table before any table entry can be used. | [Original initializer sweep and next registry refusal](2026-09-19-coordinate-table.md). | 75,456 entries across six extents match floor division; explicit table input advances attempted instruction 14 to 22. | Successful allocation modeled; live extent and unit registry not captured, no resumed A* return. |
 
+| L57 | The optional restore collector still used bulk register/flags saves and discarded a validated registry header. | [ABI migration and fresh native version-2 packet](2026-09-19-restore-collector-abi.md). | 256 authored adapter states pass; one authorized capture completes and its restore wrapper matches live delegation in 31 instructions, with retained registry. | One live run; downstream search still refuses FS:[0]. Thread/table acquisition and full resumption remain outstanding. |
+
 ## Current direction
 
 The runtime factor-isolation experiment is paused at the user's request after

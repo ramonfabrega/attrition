@@ -95,8 +95,10 @@ The minimum next acquisition therefore has three obligations:
 - Record thread-state inputs and the live coordinate allocation origin/center
   so its extent can be validated. Compare regenerated table bytes against the
   live table before treating regeneration as faithful to that capture.
-- Migrate and execute-test the optional collector's register-image wrapper
-  before launching it. [The prior migration](2026-09-09-hook-restore-migration.md)
+- ~~Migrate and execute-test the optional collector's register-image wrapper
+  before launching it.~~ Done in the
+  [restore collector ABI experiment](2026-09-19-restore-collector-abi.md), including
+  one successful native capture. [The prior migration](2026-09-09-hook-restore-migration.md)
   explicitly left that wrapper using bulk register/flags saves. This pass does
   not reuse it unchanged or restart the paused runtime isolation experiment.
 

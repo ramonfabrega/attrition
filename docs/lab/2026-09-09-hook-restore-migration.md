@@ -30,6 +30,11 @@ covered by this migration or the post-change reliability sample. Their native
 acquisition path needs its own register-image-preserving conversion; previously
 captured offline replay remains separately testable. No simulation rule changed.
 
+Update, September 19: the restore-specific wrapper now has an
+[tested register-image migration and one successful native capture](2026-09-19-restore-collector-abi.md),
+including x87/SSE preservation and an explicit captured-flags mask. Other optional
+wrappers and general native reliability remain outside that result.
+
 ## Segment diagnostics
 
 The fault recorder now emits INFO 178 with CS, SS, EFLAGS, CONTEXT flags, and a

@@ -21,7 +21,7 @@ static u32 g_base;
 static i32 g_frame=224,g_cover;
 static int graph_failed;
 static u32 calls,fail_at,short_read,graphs,errors,entries,delegates,write_fail,write_short;
-static u32 stack[12],modes[2],output[49];
+static u32 stack[12],modes[2],output[54];
 static void emit(u32 k,u32 tag,u32 a,u32 b,u32 c,u32 d,u32 e) {
     (void)k;(void)b;(void)c;(void)d;(void)e;
     if(tag==163)errors++;
@@ -73,9 +73,11 @@ static void capture(void){
     u32 after[]={7,0,0x50003ffc,0x50003fdc,1,8000,4000,13,0x202};
     restore_enter(before);modes[0]=300;modes[1]=1;restore_delegate(after);
 }
-int main(void){
+int main(int argc,char **argv){
     reset();capture();assert(graphs==1 && entries==1 && delegates==1 && !errors);
     assert(output[2]==224 && output[3]==0x14000 && output[47]==300);
+    assert(output[1]==2 && output[49]==0x8d5 && output[50]==2 && output[53]==0x15000);
+    assert(output[12]==0 && output[34]==0);
     u32 total=calls;
     for(u32 partial=0;partial<2;partial++)for(u32 i=1;i<=total;i++){
         reset();fail_at=i;short_read=partial;capture();assert(errors && !delegates && calls==i);
@@ -86,7 +88,18 @@ int main(void){
     reset();stack[10]=8;capture();assert(errors && !graphs && !delegates);
     reset();capture();capture();assert(entries==1 && delegates==1);
     reset();install_restore_probe();assert(errors==1);
-    u8 stub[20]={0};assert(restore_callback(stub,(void *)0x12345678)==15);
-    assert(stub[0]==0x9c && stub[1]==0x60 && stub[13]==0x61 && stub[14]==0x9d);
+    u8 stub[256]={0};u32 length=restore_callback(stub,(void *)0x12345678);
+    assert(length>15 && length+13<256 && stub[0]==0x50 && stub[1]==0x9f);
+    const u32 bits[]={0,2,4,6,7,11};
+    for(u32 combination=0;combination<64;combination++) {
+        u32 flags=0,in[9]={0},out[9];
+        for(u32 i=0;i<6;i++)if(combination&(1u<<i))flags|=1u<<bits[i];
+        in[8]=0xabcd0000u|((flags&0xd5u)<<8)|((flags>>11)&1u);
+        copy_register_image(out,in);assert(out[3]==4 && out[8]==flags);
+    }
+    if(argc==2) {
+        reset();capture();FILE *file=fopen(argv[1],"wb");assert(file);
+        assert(fwrite(output,1,sizeof output,file)==sizeof output);assert(!fclose(file));
+    }
     printf("restore callbacks: success, %u read refusals, bounds, writes and single-shot checks\n",2*total);
 }
