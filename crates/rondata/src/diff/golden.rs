@@ -248,6 +248,76 @@ fn chapter_one_holds_to_the_golden_word() {
     );
 }
 
+/// **The squad is seated where the original seats it** — six coordinates
+/// the golden dump prints for itself, and the one oracle this crate has
+/// for `Objects::init_unit`'s `find_nearby_spot` ring (`docs/ANIM.md`
+/// §6.3, `docs/INPUT.md` §11.5).
+///
+/// The second captain's is the assertion that matters. `add hoplite
+/// who=0 4,40` and `who=1 5,40` ask for points one tile apart; with the
+/// first squad stacked on its captain the near ground stays free and the
+/// second `add` lands at `(1080, 7800)`, where the original — whose first
+/// squad is spread over three points — is pushed out to `(1368, 7992)`,
+/// eighteen tiles from where a stacked crate puts it. So this fails on
+/// the *first* squad's seating and on the *second* squad's spot alike,
+/// which is why it is one test and not two.
+#[test]
+fn chapter_one_s_two_squads_are_seated_where_the_dump_says() {
+    let Some(inst) = crate::testenv::install() else {
+        return;
+    };
+    let Some((dump, tracepath)) = golden("g4") else {
+        eprintln!("skipping: no golden capture (see docs/RUNS.md run101–run105)");
+        return;
+    };
+    let trace = crate::trace::Trace::read(std::path::Path::new(&tracepath))
+        .expect("a finalized golden trace")
+        .expect("missing RONT header");
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(&dump);
+    let log = Log::parse(&text);
+    let texts = sibling_texts();
+    let logs = siblings(&texts);
+    let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+    let refs: Vec<&Initial> = inits.iter().collect();
+    if refs.is_empty() {
+        eprintln!("skipping: no sibling dumps");
+        return;
+    }
+    let mut built = stand_up(&loaded, &log, &refs, &trace);
+    let mut script = chapter_one();
+    // Far enough for both `add` lines (610 and 615) and no further: the
+    // units walk from 616 on, and this is about where they are *born*.
+    for _ in 0..616 {
+        script.stage(built.sim.frame, &mut built, &loaded);
+        built.tick();
+    }
+    // The dump's own `GUY` blocks for frames 616 and 617, `who`/`o`/`x`/`y`
+    // (`docs/RUNS.md` run101–run105). `o` 6, 7, 8 are the three members of
+    // each `add`, threaded `down`/`up` in that order.
+    let want: [(u8, i16, (i32, i32)); 6] = [
+        (0, 6, (888, 7800)),
+        (0, 7, (1032, 7800)),
+        (0, 8, (936, 7944)),
+        (1, 6, (1368, 7992)),
+        (1, 7, (1512, 7992)),
+        (1, 8, (1416, 8136)),
+    ];
+    let mut got = Vec::new();
+    for (who, o, _) in want {
+        let u = (0..built.sim.units.len())
+            .find(|&u| built.sim.units[u].owner == who && built.sim.units[u].index == o)
+            .unwrap_or_else(|| panic!("no unit {who}/{o} after chapter one's two `add` lines"));
+        let p = built.sim.units[u].pos;
+        got.push((who, o, (p.x, p.y)));
+    }
+    assert_eq!(
+        got,
+        want.to_vec(),
+        "the staged squads are not seated where the golden dump puts them"
+    );
+}
+
 /// **Great Lakes' word does not rest on the borrowed frame stream.** Five
 /// Great Lakes captures share run11/run12/run13's setup word and therefore
 /// take fourteen of their per-frame words (frames 0–3, 94–103), which

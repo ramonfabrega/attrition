@@ -2182,6 +2182,53 @@ impl Sim {
                     self.units[u].combat.captain = i32::from(captain);
                     self.units[u].o_up = Some(p);
                     self.units[p].o_down = Some(u);
+                    // **The squad is seated around its captain**
+                    // (`Objects::init_unit@0065e0c0`, the block ending at
+                    // `Unit::set_new_location(spot, 1, 1)`). Every member
+                    // past the first is born on the captain's point and
+                    // then moved to a free spot near it — the ring
+                    // `[size · 0x30, size · 0x60 + 0xc0]`, step −1 (so an
+                    // eighth of the span), the bias angle the unit's own
+                    // (`UnitData +0x50`, `0x55555555` at birth), and
+                    // `FILTER_NOT_ME` with this unit's own `o`/`who`.
+                    //
+                    // **The search takes no draw**, so the stream never
+                    // knew the difference; the positions did, and they
+                    // are what the golden record pins. `add hoplite
+                    // who=0 4,40` puts the three at `(888, 7800)`,
+                    // `(1032, 7800)`, `(936, 7944)` and `who=1 5,40` at
+                    // `(1368, 7992)`, `(1512, 7992)`, `(1416, 8136)` —
+                    // six coordinates this reproduces exactly, and the
+                    // second captain's is the test that matters: with
+                    // the squad stacked on one point the near spots stay
+                    // free and the second `add` lands 18 tiles from
+                    // where the original puts it (`docs/ANIM.md` §6.3,
+                    // `docs/INPUT.md` §11.5).
+                    //
+                    // The original guards the move with a cell test —
+                    // the requested point and the captain's own must
+                    // share a `0x30` cell — which cannot fail here,
+                    // because this crate's caller places the captain on
+                    // the requested point itself. And it runs the same
+                    // block for **member 0**, whose `get_captain` is its
+                    // own index; the dump says the captain does not
+                    // move, so the arm is taken as members 1.. only and
+                    // the first member's outcome is an open question
+                    // (`docs/ANIM.md` §6.4).
+                    let size = self.coll_size(u);
+                    let centre = self.units[h].pos;
+                    let angle = self.units[u].movement.facing;
+                    if let Some(spot) = self.find_nearby_spot(
+                        u,
+                        centre,
+                        size * 0x30,
+                        size * 0x60 + 0xc0,
+                        -1,
+                        angle,
+                        None,
+                    ) {
+                        self.set_new_location(u, spot, true);
+                    }
                 }
                 (Some(_), None) => unreachable!("a head is set with its own index"),
             }
