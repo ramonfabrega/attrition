@@ -742,6 +742,17 @@ supply; it is its own rule, and it lives with the buildings.
 
 ## Open questions
 
+- **The namesake has never fired in a scored capture.** Measured 2026-09-18
+  by item 382, instrumented at `attrition_for`'s refresh: **zero non-exempt
+  attrition outcomes for either leader across run53's 24,000 frames.** Both
+  long captures are idle-human-versus-AI games whose armies never stand in
+  hostile borders long enough, so every claim in this document below the
+  reading line is still reading-backed rather than diff-backed, and no
+  amount of further long-capture work will change that. The mechanic that
+  names the project is the strongest argument for the golden record's
+  **Temple chapter** (item 365, `docs/DECISIONS.md` entry 41 §1): a staged
+  chapter is the only thing that will ever exercise it.
+
 - ~~**The second entry into `suffer_attrition`.**~~ Closed by the second
   reading: it is the **decoy** path. The `else` of `(unit_flags2 & 2) == 0` in
   `Unit::process` runs a counter at `+0x96` against

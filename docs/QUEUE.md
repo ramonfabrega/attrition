@@ -16,32 +16,32 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 363 gave the rules track its first staged run, its three answers and the
 held-out map's verdict; 362 was booked as the market and was not.*
 
-- **The rules track has a WORD**, and 379 held it at **617** while closing
-  what stood there. The variant roll is modelled and its cause was not
-  animation: the sim seated all three hoplites of a squad on one point, so
-  they walked where the original's 1/6 stands. `Objects::init_unit` seats
-  members around the captain and reproduces all six golden coordinates
-  exactly. Endpoint paid 16 rows (GL 50→66 off, 9→5 unlinked), all
-  post-divergence — GL's first attack roll is 9416, 234 past its word.
-  **Exact seating over the smaller residue**: a residue built on positions
-  known to be wrong is a fit. 384 takes it, and it is combat.
-- **Five items, five wrong mechanisms, no word** (377) — but run107
-  **decided** 9182: the bucket agrees, both §43 branches refused, the
-  parting is `1/MAKE[0].val` on 9179–9180, three draws to our one. 382 is
-  the named cause and is in flight.
-- **The held-out third map answers 1 tick, 0 orders** (run106, map 9;
-  floors 1851 and 1772). A **fit to two trajectories** — what generalised
-  was the derived check, not the trajectory. **The pass's number.**
-- Six open, 43 parked. **Fable backlog: ten Loop items** (251, 335, 343,
-  356, 321, 313, 367, 374, 375, 377).
+- **9182 is named end to end and blocked** (six items, no word). The
+  ceiling is an **overflow, not a saturation**: `income × val` is a 32-bit
+  imul that wraps and `val < 0 → 9,999,999` catches the sign; the parting
+  is `weight_total` 110 v 144, and 26,400,000 × 144/110 = 34,560,000 to
+  the digit. §44's falsifier came back **FALSE** — closing `MAKE[0].val`
+  costs 2,000 frames. The real gate is `treaties[i] & 1`, the MET bit; no
+  `human` test exists in `plan_strategy`. 385, and nothing else, moves it.
+- **The golden word holds at 617**; 379 closed what stood there and it
+  was not animation — a squad's three hoplites were seated on one point,
+  so they walked where the original's 1/6 stands. `Objects::init_unit`
+  reproduces all six golden coordinates, for 16 post-divergence endpoint
+  rows. **Exact seating over the smaller residue.** 384 takes it.
+- **The namesake has never fired in a scored capture**: zero non-exempt
+  attrition outcomes over run53's 24,000 frames (382, now in ATTRITION);
+  the Temple chapter is the only route.
+- **The held-out map answers 1 tick, 0 orders** (run106; floors 1851,
+  1772) — a fit to two trajectories. **The pass's number.** Six open,
+  43 parked; **Fable backlog: ten Loop items** (251, 335, 343, 356, 321, 313, 367, 374, 375, 377).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w9711 of 24,000 · GreatLakes w9182 of 24,000
-Golden: w617 of 901 · chapter one pinned · 379 next
+Golden: w617 of 901 · chapter one pinned · 384 next
 Endpoint 24001: EastIndies 64 off, 5 unlinked · GreatLakes 66 off, 5 unlinked
 
-**Opener: 384 on the golden record's frame — the engagement at 626
-against 616 — beside 382, already in flight on the AI word's.**
+**Opener: 385 is the AI word's only route — the met bit behind
+`check_explore` — beside 384, already in flight on the golden record's.**
 
 ## The queue
 
@@ -51,14 +51,14 @@ the AI, lower map first — Great Lakes. Take the first unstarted on either
 track unless a better order is obvious, and say so. Numbers are stable;
 the backlog is `docs/PARKED.md`, and an item returns only when a score names it.
 
-382. **Our Mercenaries is 6,600,000 where the original's is at the
-    9,999,999 ceiling** (the AI headline's frame; run107 is the test that
-    says whether closing it moves the word). Ours is 200 × our own 33,000
-    cat-10 value; 200 × the original's 43,200 is **not** 9,999,999, so the
-    ceiling is reached another way — name it. The whole parting at 9182 is
-    `1/MAKE[0].val` on blocks 9179–9180, two frames wide: the original
-    holds Mercenaries (573) at the ceiling from the rebuild on 9179, we
-    write 6,600,000 on the same rebuild and lose the head to a Scholar.
+385. **A visibility model: the met bit is what 9182 is blocked behind**
+    (the AI headline's frame; `check_explore` is the seam). 382 named the
+    chain and it is closed end to end — `1/MAKE[0].val` (9179–9180) →
+    `1/MAKE[0].t` (9181 on) → `use_market`'s `need`; the count agrees at
+    9182 (10 each) and the draw at **index 1** parts. `MAKE[0].val` cannot
+    move without `active_wars`, which cannot move without `treaties[i] & 1`
+    (`treaty_on ← meet ← check_ever_seen`, fog). **Check `1/MAKE[10].val`
+    too** — 33,000 against 43,200, the same 110/144: the two close together.
 
 384. **Our squads engage at 626 where the original's swing at 616** (the
     rules headline's frame): seated, 617 reads ours 6 / theirs 8 — the

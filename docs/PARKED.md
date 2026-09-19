@@ -84,6 +84,12 @@ second, so one guard's fix caused another's failure. Neither phrase is
 named in the queue's own "How to maintain this file", which is the only
 place a rewriting session reads.
 
+**Recurred the same day, twice more**: the commander abbreviated
+`Fable backlog: N Loop items` to `Fable: ten Loop` while trimming for the
+first guard, breaking the second — the same mistake it had already made
+two landings earlier, because nothing in the file it was editing said the
+phrase was load-bearing. Eight-plus round trips across one session.
+
 Three candidate fixes, cheapest first: have the guard print the counted
 span's first and last line so the trim is aimed; have it name the literal
 phrases it parses (`Scoreboard:`, `Long captures:`, `Golden:`, `Endpoint`,
