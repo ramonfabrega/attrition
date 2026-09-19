@@ -12,9 +12,9 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-19, the first tranche after the sixth Fable pass. **Thirteen
+*2026-09-19, the first tranche after the sixth Fable pass. **Fourteen
 landings, no score moved**; the AI headline's cause is one defect worth
-**72 frames**, and the rules headline's contradiction has sharpened.*
+**72 frames**, and the rules headline's chase has stopped paying.*
 
 - **The "locked pair" was our own probe** (432): 430's expiry cap
   suppressed the fix it was meant to complete, and its **eight frames were
@@ -22,25 +22,26 @@ landings, no score moved**; the AI headline's cause is one defect worth
   5,755,741 and 4,891,136 on one frame — where this crate computes one
   number for both, and the tie made `make_me` split the copies so step 6
   bought twice. Two values on 9380, nothing else: **9510 → 9582**. 9518 is
-  struck. 438 reads `create_units`; 9582 is one `use_market+0x1ed` short.
-- **616's branch is settled and closed nothing** (437). `leader_flags` was
-  already on the disk — **run113 unspent** — and who=1's captain takes the
-  **zero** path (`imull $0x6eec`, by the listing, not the decompiler). But
-  both frames sit on neither of that path's grids, so both take the narrow
-  arm, whose bracket `[1340, 1392)` **admits no integer**. §28.4 lists six
-  things now known not to be it, and `leader_flags & 4` is **not** the
-  computer-leader test. **Not implemented**: 7 moves 616 the wrong way.
+  struck. 438 reads `create_units`; 440 parks 9582's `use_market` row.
+- **616's bracket has not moved in four items and the space around it has
+  collapsed** (426, 434, 435, 437, 439). The branch is settled — who=1's
+  captain takes the **zero** path, by the listing — and closed nothing; the
+  narrow arm's bracket admits no integer; the eight bytes were a shell
+  against its payload and are **innocent**; `leader_flags & 4` is **not**
+  the computer-leader test, corrected at three sites. §28.4 lists **seven**
+  things known not to be it. So 441 **widens 616 whole** — every record,
+  every slot, the whole cast — rather than fitting an eighth account.
 - Four open, 71 parked.
   **Fable backlog: fifteen Loop items** (251, 335, 313, 367, 375, 416, 417,
-  419, 420, 421, 424, 428, 431, 433, 436); due at twenty, this is thirteen.
+  419, 420, 421, 424, 428, 431, 433, 436); due at twenty, this is fourteen.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w9711 of 24,000 · GreatLakes w9510 of 24,000
-Golden: w626 of 901 · ch2 w616 is lower and is the headline · 439 next
+Golden: w626 of 901 · ch2 w616 is lower and is the headline · 441 next
 Endpoint 24001: EastIndies 64 off, 5 unlinked · GreatLakes 51 off, 11 unlinked
 
-**Opener: 438 on the AI lane — which of the three terms is per-city, two
-targets known; 439 on the rules lane — the eight bytes, 28,396 vs 28,388.**
+**Opener: 441 on the rules lane — widen 616 whole, nine units not one, and
+name the cause before any mechanism; 438 on the AI lane, two targets known.**
 
 ## The queue
 
@@ -59,14 +60,14 @@ the backlog is `docs/PARKED.md`, and an item returns only when a score names it.
     block 9381 to check a candidate against — a reading with numbers, not
     a survey. Reading-only; owed a blind second reading in its coverage.
 
-439. **The eight bytes: `imull $0x6eec` is 28,396, the record says 28,388**
-    (a takes-chain to the rules headline, after 437 settled the branch and
-    closed nothing): the bracket has not moved in three items while the
-    space around it collapsed, which usually means an assumption
-    underneath is wrong, not the arithmetic above it. Settle the stride
-    from the PE bytes, and **name what depends on it first** — every claim
-    derived from that array's element size. **If the eight bytes are
-    innocent, say so and stop**: a seventh §28.4 entry beats an eighth fit.
+441. **Widen 616 whole** (the rules headline's own frame, after four items
+    failed to move its bracket): every record run112 dumps on 616 — every
+    slot, every field — and the whole cast either side, **nine units not
+    one**. Name the cause from the data **before** any mechanism. Two
+    things to hold: the radius may not be the cause at all, since four
+    items assumed the order comes from the search and 435 established only
+    that **635** is one; and §28.4's seven dead entries are the asset — a
+    cause outside all seven is the result. No capture; run113 unspent.
 
 390. **A `LEADERS≥2` window anywhere in (7616, 8174]** (capture lane;
     takes-chain to the met bit): nothing on disk dumps a leader between
