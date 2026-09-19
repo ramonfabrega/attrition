@@ -655,8 +655,19 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // (`005da38a`, `005d9381`, `005da081`) and the golden record's
         // own 617 is where a diff can see it; DECISIONS 36 asks for the
         // number rather than a trade.
-        off: 66,
-        unlinked: 5,
+        // And **66 → 49 off and 5 → 12 unlinked** on 2026-09-18, item
+        // 385 — the **met bit**, set on first contact off the fog
+        // (`docs/VISION.md` §6.2), which moves this map's word 9182 →
+        // 9415. The AI has an enemy it knows about from frame 7944, so
+        // `weight_total`'s war term pays from there and every tech it
+        // has ranked since is re-valued: seventeen positions closer,
+        // against seven more of the roster going missing, 14,600 frames
+        // past the new word. The twelve unlinked are `1/69`..`1/80`, a
+        // contiguous late-game block — units the original's roster has
+        // at 24,001 and this crate's does not. DECISIONS 36 asks for the
+        // number rather than a trade.
+        off: 49,
+        unlinked: 12,
         extra: 0,
         build_unlinked: 0,
         build_diverged: 10,

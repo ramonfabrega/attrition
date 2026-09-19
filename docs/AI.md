@@ -5254,26 +5254,167 @@ row on all four windows).
 
 ### What is not established
 
-- **When the bit flips, and from what.** `Leader::treaty_on@006e1190`
-  sets both sides' bit 1; its only caller is `Leader::meet@006e1250`;
-  `meet`'s only callers are `Wall::check_ever_seen@0063ce70` — off
-  `world+0x15c`, the "ever seen by" mask, i.e. fog — and
-  `Unit::process_attrition@005e11a0`, twice, in each of its peace and war
-  arms after every exemption. **The attrition path never fires in this
-  game**: instrumented over run53's 24,000 frames, no unit of either
-  leader reaches a non-exempt attrition outcome, not once. So the
-  original's flip is the fog path, and closing it wants a visibility
-  model — which `check_explore` is already a seam for (§2.1). That is the
-  successor, and it is a mechanic, not a line.
-- **Whether `active_wars` alone is enough** once the bit is right. The
-  region loop also needs the other leader to hold buildings in the
-  region, and `census_strategy`'s `weaker` test reads the *other*
-  leader's `attack`, which for a human this crate does not census at all
-  (§43).
-- **`1/MAKE[10].val` and the other tech values** stay in run107's residue
-  at 33,000 against 43,200. They are the same 110/144 and they close
-  together or not at all.
+- ~~**When the bit flips, and from what.**~~ **Closed by item 385, §46.**
+  `Leader::treaty_on@006e1190` sets both sides' bit 0; its only caller is
+  `Leader::meet@006e1250`; `meet`'s only callers are
+  `Wall::check_ever_seen@0063ce70` — off `world+0x15c`, the "ever seen by"
+  mask, i.e. fog — and `Unit::process_attrition@005e11a0`, at **three**
+  sites (this entry said two: the generic `get_attrition() != 0` arm was
+  missed). **The attrition path never fires in this game**: instrumented
+  over run53's 24,000 frames, no unit of either leader reaches a
+  non-exempt attrition outcome, not once. So the original's flip is the
+  fog path — and that path was already built here (`docs/VISION.md` §6.1),
+  with `meet` the one thing left out of its tail.
+- ~~**Whether `active_wars` alone is enough** once the bit is right.~~
+  **It is, for this frame** (§46): with the bit set at 7944 the whole
+  `active_wars`/`wars`/`active_wars_with` family leaves run19's and
+  run107's residues and the make list follows. The region loop's building
+  test and `census_strategy`'s `weaker` reading of the *other* leader's
+  `attack` are still seams; they did not have to be right for 9182.
+- ~~**`1/MAKE[10].val` and the other tech values**~~ — **all of them
+  closed together**, as this entry said they would: §46.
 - **`income`'s own `0x40`** is read off this crate and not diffed; the
   record does not print it. If it is wrong the cliff moves, and the two
   measured `val`s either side of it would both be wrong by the same
   factor — which the 55/72 check above does not catch.
+
+## 46. A visibility model: the met bit is set by the fog (2026-09-18)
+
+Item 385, the successor §45 booked. The chain was named end to end and
+one link was missing: `treaties[i] & 1` had no writer here. It has one
+now — `Wall::check_ever_seen`'s own tail, which this crate had already
+built for a different reason and had left the `Leader::meet` call out of.
+**Great Lakes' word moved 9182 → 9415**, the first move on this frame in
+six items.
+
+### The change is nine lines, and it was never an AI change
+
+`docs/VISION.md` §6.2 has the mechanic. In this document's terms:
+
+- `Sim::treaties` is `LeaderData::treaties`, `int[8]` per leader, of which
+  bit 0 is modelled;
+- `Sim::treaty_on` is `Leader::treaty_on@006e1190`, which ors into **both**
+  sides;
+- `Sim::meet` is `Leader::meet@006e1250` less its two `say_meet` calls;
+- and the meet loop at the end of `Sim::check_ever_seen` is the original's
+  four gates in order — `o != owner`, `leader_flags & 1` (`LEADER_VALID`,
+  not the `& 2` §43's census loops take), the ally mask newly in
+  `ever_seen`, and `treaties[owner][o] & 1 == 0` for the call itself.
+
+`Sim::has_met` — §43's `human` skip, which §45 had already folded into one
+seam — now reads the bit. **This crate's first contact on Great Lakes is
+frame 7944**, and the original's is somewhere in (7616, 8174]: four
+windows of the same game bracket it (§45's table), and 7944 is inside the
+bracket. Nothing else in the change is new; the fog, the footprint scan
+and `ever_seen` have been right since item 322.
+
+### What it paid, field by field
+
+The four leader-record windows, every one of them **down**, with nothing
+arriving:
+
+| window | block | residue |
+|---|---|---|
+| run84 | 6950 | 82 → **81** |
+| run91 | 7514 | 92 → **91** |
+| run19 | 8174 | 91 → **80** |
+| run107 | 9170 | 110 → **95** |
+
+Before the flip the only row is `0/treaties[1]`, which this crate had at 1
+and the original at 0 — the seam's own value, and the reason §45 put it in
+the comparison. After it, the whole family:
+`1/active_wars`, `1/active_wars_with`, `1/wars`, `1/treaties[0]`, and
+**every `MAKE[*].val` §43 tabulated** — run19's Coinage, Empire,
+Mercenaries, Temple and slot 3, all six of them, and on run107 the head's
+`cat`, `num`, `t` and `val` together with `MAKE[10].val`, `MAKE[8].val`,
+`MAKE[1].t` and `MAKE[4].t`. The 55/72 that §43 recorded for four techs
+and §44 and §45 for one was one term on one predicate, and all of them
+closed on the same line.
+
+`1/bucket[0:food]`, `1/num_queued[0]` and `1/gather_stamp` left run107
+with them — the purchase that was downstream of the head.
+
+### The value diff, on the frame that moved
+
+9182's own coordinates, from run107's dump:
+
+| | ours before | ours now | theirs |
+|---|---|---|---|
+| `1/MAKE[0].t` at 9182 | 52 (Scholar) | **573** | 573 (Mercenaries) |
+| `1/bucket[0:food]` at 9183 | 27 | **73** | 73 |
+| `1/2007`'s queue at 9182 | `[(50, 100)]` | **empty** | empty |
+
+§44 predicted each of these three from the head alone and each is now the
+original's. The third is `run97_s_build_queues_are_the_original_s`, whose
+residue is now **empty over its whole window** — 1,319 blocks, 37,899
+building-frames, not one queue row. Made to fail on purpose: putting the
+`human` skip back into `Sim::has_met` restores `frame 9182: 1/2007 ours
+[(50, 100)] theirs []` as the first row, exactly.
+
+And 9182 is a `Leader::use_market` sell on **both** sides now: the long
+capture's market list below the word reads `8582, 8585, 8782, 8982, 9182,
+9382`, this crate's and the original's alike.
+
+### Where it stops, and what the window cost
+
+**9415**, and the count-word moved with it (9362 → 9415), so the two part
+on the same frame again. The frame is five draws against two:
+
+```text
+ours    unit 1/29 · unit 1/29 · Guy::set_anim+0x104b · Guy::set_anim+0x104b · Farms::inc_time+0x1ae
+theirs  Guy::set_anim+0x104b · Farms::inc_time+0x1ae
+```
+
+Two of ours are at a site `trace::SITES` does not name, attributed to
+`1/29` — one of the eight units item 368 left in run97's order residue,
+off its position since 8442 (`docs/ARMY.md` §3.4's successor). That is the
+successor's first read.
+
+**Two floors rose, and both are the window's rather than the
+simulation's**, which is the thing to be careful about when a word moves:
+233 frames that had never been compared came under it.
+
+- `run97_s_window_clocks`: the walk-slot band, closed at zero by item 352,
+  now holds **two rows** — `1/35`'s guy 0 on 9338 and 9339, `cur_anim` 8
+  against 7, one slot of the walk category. The band over item 352's own
+  `[8443, 9182)` is still empty, and the assertion names the two rows
+  rather than counting them so that stays visible. The point-and-goal
+  floor went 6 → **8** on the same unit.
+- `ORDER_RESIDUE_RUN97`: 48,698 → **53,622**, and per block it *fell*,
+  42.3 → 40.7. The eight-unit set did not move.
+
+**And one of them was a capture artifact, not a floor at all.**
+`run97_s_window_orders` looped to the word rather than to run97's window,
+and run97's file ends with a **truncated** `BEGIN FRAME 9361` — the
+click-free lane gives up by stopping the process. The moment the word rose
+past 9349 that partial block arrived as 47 `Length` rows on **39** units,
+player 0's among them, which reads exactly like a simulation that has come
+apart. The set assertion is what caught it; a row count would not have.
+The loop now takes the capture's own last complete block, as its sibling
+always did. This is parked 373's guard, arriving as a bug rather than as a
+guard.
+
+The endpoint at 24,001 went **66 → 49 off and 5 → 12 unlinked**
+(`DECISIONS` 36): the twelve are `1/69`..`1/80`, a contiguous late-game
+block the original's roster has and this crate's does not.
+
+### What is not established
+
+- **The attrition path to `meet`**, three sites in
+  `Unit::process_attrition@005e11a0` — the war arm, the assassin arm and
+  the generic `get_attrition() != 0` arm. (§45 said two; the generic one
+  was missed.) Read, not wired, because no unit of either leader reaches a
+  non-exempt attrition outcome in run53's 24,000 frames, so no capture on
+  this disk could tell whether it is right. A map where an army campaigns
+  abroad would.
+- **The exact flip frame.** 7944 is this crate's; the original's is only
+  bracketed to (7616, 8174] because no capture dumps a leader between
+  7600 and 8174. A `LEADERS≥2` window anywhere in that gap would pin it,
+  and it is the cheapest capture left on this mechanic.
+- **The region loop's building test and `census_strategy`'s `weaker`**,
+  which reads the *other* leader's `attack` and for a human reads a census
+  this crate does not run (§43). They did not have to be right for 9182;
+  whether they are right is untested either way.
+- **`income`'s own `0x40`** — §45's, unchanged: read off this crate, not
+  printed by any record.
+

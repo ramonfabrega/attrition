@@ -1239,7 +1239,7 @@ pub(crate) const EAST_INDIES_FIRST_SCHOLAR: i64 = 8_466;
 /// **timber sale** on 8982, which `docs/AI.md` §40 had read as a refusal
 /// because it cost only one draw. One draw is also what a sale that
 /// covers the need looks like. `docs/ECONOMY.md` §12.
-pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 9182;
+pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 9415;
 
 /// The floor `run97_s_window_orders_are_the_original_s` holds — item 368's
 /// widening of Great Lakes' order stacks, the 36,483 `GATHERORDER` records
@@ -1250,7 +1250,15 @@ pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 9182;
 /// (`docs/ARMY.md` §3.4's successor): a unit standing somewhere else holds
 /// the order that took it there. **Measured, not guessed**, and it may
 /// only come down.
-pub(crate) const ORDER_RESIDUE_RUN97: usize = 48_698;
+///
+/// **48,698 → 53,622 on item 385**, and the rise is the window's, not the
+/// simulation's: the word moved 9182 → 9415, so the comparison now runs to
+/// run97's own last complete block (9349) instead of stopping at the word,
+/// 1,319 blocks against 1,152. Per block it **fell**, 42.3 → 40.7, and the
+/// eight-unit set the assertion is really about did not move. A floor that
+/// counts rows over a window the word controls cannot be read as a rate
+/// without the block count beside it; both are printed.
+pub(crate) const ORDER_RESIDUE_RUN97: usize = 53_622;
 
 /// The frame Great Lakes' **second** squad joins the army on — 6994, the
 /// word's own parting from 2026-09-06 to 2026-09-07 and now a landed
