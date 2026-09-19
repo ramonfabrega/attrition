@@ -1955,6 +1955,16 @@ capture-free.
   exactly a hundred, and no capture on disk shows a bucket step that is
   not a multiple of it; a `LEADERS=9` window over Great Lakes 9182, where
   the original spends **three** market draws, is the run that would say.
+  **What three draws can mean, narrowed (item 362).** The outer `while
+  (bucket[g] < need[g])` only repeats when a candidate passed the sell
+  test, and a sale raises **wealth**, never the short good. So a
+  non-wealth shortfall draws once per pass until the sellable set
+  empties — one draw per hundred it can shed — and a wealth shortfall
+  stops as soon as the sale covers it. Three draws on one frame is
+  therefore *three short goods*, or one good with two sales under it, and
+  nothing else. This crate's ledger on 9182 has one short good and
+  nothing sellable, so the frame is a value residue upstream of the
+  market rather than an arithmetic one. `docs/AI.md` §42.
 - **The rotation past the first sale.** 8982 sells once and stops because
   the sale covers the need. A frame where two goods both pass the
   candidate test is not on any capture, so "every qualifying position

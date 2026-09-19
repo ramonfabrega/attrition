@@ -4738,23 +4738,128 @@ and 4, `create_units` having filled them on 8983. The head is bought, and
 the wealth for a second is there: §12's timber sale leaves 92 and the two
 scholars cost 36 and 38.
 
-What stops the second is the **order of `make_stuff`'s own steps**. Step 4
-— the head's expiry walk — runs before step 6's slot loop and clears every
-duplicate to `t = −1`; step 6 then reads `list[slot]` fresh and skips a
-slot whose `t` is negative. So a duplicate of the head can never be bought
-in the same pass, in this crate. In the original it plainly can.
+~~What stops the second is the **order of `make_stuff`'s own steps**.~~
+~~Step 4 — the head's expiry walk — runs before step 6's slot loop and
+clears every duplicate to `t = −1`; step 6 then reads `list[slot]` fresh
+and skips a slot whose `t` is negative. So a duplicate of the head can
+never be bought in the same pass, in this crate. In the original it
+plainly can.~~
 
-Three readings fit and no capture on this disk separates them: the expiry
-is conditional on `unconditional` being false (`expire_all`), and this
-crate's is true where the original's is not; or step 6 reads a copy of the
-list taken before step 4; or the second purchase is not step 6's at all.
-`docs/AI.md` §2.6 is written from the decompile for the first two, and the
-run that would settle it is a `LEADERS=9` window over Great Lakes
-`[8980, 8990]` — the make list slot for slot, either side of the frame.
-Nothing on disk covers it: run19's `LEADERS=9` window is `[8174, 8192]`
-and run84's and run91's are earlier still.
+~~Three readings fit and no capture on this disk separates them: the
+expiry is conditional on `unconditional` being false (`expire_all`), and
+this crate's is true where the original's is not; or step 6 reads a copy
+of the list taken before step 4; or the second purchase is not step 6's
+at all.~~ **All three were wrong, and no capture was needed — §42.** The
+third is nearest: the second purchase is not step 6's, and neither is the
+third. **There is only one purchase**, and the quantity is the make list
+slot's own `num`. The draw stream says so without a dump: 8985 costs
+**three** `make_stuff+0x221` and **zero** `make_stuff+0x63d` on *both*
+sides, and a step-6 purchase always draws at least once (its own slot
+holds the type it just bought). The `LEADERS=9` window over `[8980, 8990]`
+is no longer owed.
 
-It costs no draw (the expiry count already agrees), so it is a **value**
-residue, pinned by
-`diff::tests::run97_s_build_queues_are_the_original_s` rather than
-filtered out of it.
+~~It costs no draw (the expiry count already agrees), so it is a **value**
+residue~~ — and that is exactly what named it. `diff::tests::
+run97_s_build_queues_are_the_original_s` now holds **one** row over
+37,899 building-frames rather than two: `1/2020` is closed.
+
+## 42. The batch a civilian is bought in, and the field that was dropped (2026-09-18)
+
+Item 362. `MakeObject.num` is a **quantity**, and `Leader::make_this`
+hands it to `produce_unit(t, city, num, escrow)`, which queues that many
+at the one building its walk chose. `Leader::can_pay(slot)` is
+`can_pay_cost(…) >= num` for the same reason: the slot is an order for
+`num` of something, not for one.
+
+**Where `num` comes from.** `create_units@006c40a0` keeps it in `TVar24`,
+and *every arm sets it* before falling through to the shared tail at
+`LAB_006c4cfc`. The tail clamps it twice — `local_14 = min(TVar24,
+remaining)` against the population headroom, then against what
+`check_income` says is affordable, but **only when that is non-zero** —
+and passes the result to `MakeList::make_me` as the slot's `num`. The
+arms, by name:
+
+| arm | `TVar24` | line |
+|---|---|---|
+| scholar | `gfree[KNOWLEDGE] − count_queue(university, scholar)` | 1156 |
+| caravan | 3, 2 or 1 by `econ[WEALTH]`'s bits, capped by `get_caravan_limit` | 1080–1100 |
+| citizen | `max(0, min(deficit, room))` — the same number the value squares | 1215–1257 |
+| merchant, scout, spy, the two military-scout arms | `1` | 973, 999, 1025 |
+| land military | `batch_size(control_cost, …)` | 1478–1501 |
+
+This crate had the military arm and the air arm right, because both take
+`&mut num`. **The civilian arms computed the number and threw it away**:
+`Sim::civilian_value` returned `(value, cat, want)` and its scholar,
+caravan and citizen arms each held the count in a local that nothing
+read. So every civilian the AI has ever offered itself went onto the make
+list as a batch of one.
+
+### What it cost, on Great Lakes
+
+The AI's University, `1/2020`, from 8985. The original queues **three**
+scholars on that frame and this crate queued one per production cycle —
+two by 8985 after item 358 gave it the wealth, never three. The frame
+spends three `make_stuff+0x221` draws and **no** `make_stuff+0x63d` on
+both sides, which is the whole proof that it is one purchase: step 6's
+expiry walk starts *at the slot it just bought*, so a step-6 purchase
+cannot cost zero draws. With `num` carried, every one of the window's
+37,899 building-frames agrees on `1/2020`, and the AI's wealth on 9182
+is **38 lower** than it was — one more scholar paid for, at the price
+§41's ladder gives the third.
+
+**What moved.** `first_count` on the long capture **9182 → 9362**, and
+run97's build-queue widening from two residue rows to one: `1/2020` is
+gone, every one of the 37,899 building-frames agrees. `first_part` did
+**not** move: 9182's ten draws are the original's ten in number and not
+in order, and `LONG_WORD_GREAT_LAKES` is the lower of the two.
+
+### What 9182 is now, measured
+
+The frame is no longer a count. Either side spends ten draws:
+
+| | this crate | the original |
+|---|---|---|
+| `Leader::use_market+0x1ed` | 1 | 3 |
+| `Leader::make_stuff+0x221` | 2 | 2 |
+| `Leader::make_stuff+0x63d` | 4 | 0 |
+| `Guy::set_anim+0x97a` | 2 | 2 |
+| `Guy::set_anim+0x104b` | 1 | 3 |
+
+The head expiry now **agrees** — two slots hold the head's type on both
+sides, where before the fix this crate had three. What is left is that
+the original goes round the market twice more and buys nothing in step 6,
+where this crate draws once and buys twice.
+
+**Three market draws mean one of exactly two things**, and this is worth
+writing down because §40 and §12.3 each had only one of them:
+`use_market`'s outer `while (bucket[g] < need[g])` can only repeat for a
+good when a candidate passed the sell test — and **selling raises wealth,
+never the short good** — so a *non-wealth* shortfall keeps drawing until
+the sellable set empties, one draw per hundred it can shed, while a
+*wealth* shortfall stops as soon as the sale covers it. So three draws is
+either **three short goods**, or one good with two sales under it.
+
+This crate's ledger at 9182 admits neither: `need` is `[0, 0, 40, 0, 0,
+0]` against `bucket [73, 84, 35, 111, 71, 0]`, so wealth is the only
+short good, and the rotation's three eligible candidates — food 73,
+timber 84, metal 71 — are all under the hundred `need[g2] ≤ stock − 100`
+asks for. (Knowledge, at 111, is the one stock over it and is excluded by
+name.) So the original's ledger is not this one, and 9182 is still a
+**value** residue rather than a rule: the market's arithmetic is the
+decompile's, line for line.
+
+### What is not established
+
+- **Which value.** No `LEADERS=9` dump on this disk covers 9182 — run97
+  and run100 carry `LEADERS=1`, which is `who`, `tribe`, `score` — so the
+  original's `need` and `bucket` on the frame are not on disk. A
+  `LEADERS=9` window over Great Lakes `[9175, 9190]` would print the make
+  list slot for slot and the six buckets beside it, and is the one run
+  that would name it.
+- **The caravan arm's batch.** 3/2/1 by `econ[WEALTH]` is read from
+  `create_units@006c40a0:1080–1100` and **no capture exercises it**: the
+  frame that moved is the scholar's. The citizen arm's is exercised (this
+  crate queues a citizen at 9182 that the original does not) but is not
+  *confirmed* by it — that row is the residue, not the pin.
+- **`Build::queue_up`'s escrow.** `queue_batch` ignores its `escrow`
+  argument, unchanged by this item.
