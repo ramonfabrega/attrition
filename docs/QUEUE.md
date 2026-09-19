@@ -32,8 +32,8 @@ held-out map's verdict; 362 was booked as the market and was not.*
   gather and move — a **fit to two trajectories**, not a missing mechanic.
   What generalised is the derivation: the gather-target check, from the map
   not the log, is exact for all twenty citizens. **The pass's number.**
-- Seven open, 37 parked. **Fable backlog: seven Loop items** (251, 335,
-  343, 356, 321, 313, 367). The ladder's `extra` 13→25 stays open (370).
+- Seven open, 38 parked. **Fable backlog: eight Loop items** (251, 335,
+  343, 356, 321, 313, 367, 374). The ladder's `extra` 13→25 stays open (370).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w9711 of 24,000 · GreatLakes w9182 of 24,000

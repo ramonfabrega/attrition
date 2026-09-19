@@ -29,6 +29,25 @@ Tooling, guards and the queue's own rules. The Fable pass takes these
 two ledger regexes closed in the third pass, 2026-09-17; the fourth pass,
 2026-09-18, ruled six (`docs/audit/2026-09-18-fable-pass-4.md`).
 
+(374) **The handoff's guards have an undocumented phrase contract, and
+finding it costs four gate-or-test round trips.** Measured 2026-09-18 by
+the commander rewriting the handoff after two landings.
+`the_handoff_is_short` reports only "the handoff is N lines; the bound is
+32" — not which lines it counted, so trimming is guess-and-retry, and it
+took four passes. Worse, `the_handoff_counts_the_loop_backlog` requires
+the literal string `Fable backlog: N Loop items`: abbreviating it to
+`Fable: seven Loop items` while trimming for the FIRST guard broke the
+second, so one guard's fix caused another's failure. Neither phrase is
+named in the queue's own "How to maintain this file", which is the only
+place a rewriting session reads.
+
+Three candidate fixes, cheapest first: have the guard print the counted
+span's first and last line so the trim is aimed; have it name the literal
+phrases it parses (`Scoreboard:`, `Long captures:`, `Golden:`, `Endpoint`,
+`Fable backlog: N Loop items`) in the panic text; or state the contract in
+the queue's maintenance section. This is the loop's own item — tooling and
+the queue's rules — so it is the pass's, never a worker's.
+
 (251) **`memcap.sh` has two doors left and half a fixture**: the refused
 sample that read as zero is closed (exit 125, lab L25) and the mode-644
 door closed 09-07. Left: it takes a **GiB cap as its first argument**; and
