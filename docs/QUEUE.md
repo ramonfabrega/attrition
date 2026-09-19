@@ -12,35 +12,35 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-19, the first tranche after the sixth Fable pass. **Eleven
-landings, no score moved**; both headlines have a measured cause, and the
-AI's is **priced at eight frames** — the stopping-rule number, for the pass.*
+*2026-09-19, the first tranche after the sixth Fable pass. **Twelve
+landings, no score moved**; the AI headline's cause is one defect worth
+**72 frames**, and the rules headline's contradiction has sharpened.*
 
-- **The pair is confirmed, not inferred, and it is worth 8** (430). Forcing
-  9380's offer alone costs 128 frames (9510 → 9382); forcing 9382's expiry
-  too buys **9518**, where 9382 agrees draw for draw. The wrap is fidelity:
-  64-bit costs 2,727 frames. The three `+0x63d` draws are **three separate
-  `expire` calls**. The eight are 432's **toll, not its prize** — every
-  frame past 9510 is a probe artefact until the pair lands.
-- **616 is a branch this crate does not have** (435, a reading — whose own
-  belief the dump refuted first: `near_o/near_who` are −1 through 634 and
-  10/0 at **635**, so 635 *is* the search). `think_attack@005f5a80` passes
-  **−1 or 0** to `find_melee_target` and we pass −1 always. The zero path
-  is not another number but **three radii on two frame grids** — 128 tiles
-  once in 1024 frames, 64 once in 256, narrow between — unmodelled.
-  `unit_respond_range` **7** on the −1 branch is the only integer fitting
-  every datum. 437 captures the leader flag that picks the branch.
+- **The "locked pair" was our own probe** (432, landing): 430's expiry cap
+  suppressed the fix it was meant to complete, and its **eight frames were
+  never a measurement**. The original values the Scholar **per city** —
+  5,755,741 and 4,891,136 on one frame — where this crate computes one
+  number for both, and the tie made `make_me` split the copies so step 6
+  bought twice. Two values on 9380, nothing else: **9510 → 9582**. 9518 is
+  struck. 438 reads `create_units`; 9582 is one `use_market+0x1ed` short.
+- **616's branch is settled and closed nothing** (437). `leader_flags` was
+  already on the disk — **run113 unspent** — and who=1's captain takes the
+  **zero** path (`imull $0x6eec`, by the listing, not the decompiler). But
+  both frames sit on neither of that path's grids, so both take the narrow
+  arm, whose bracket `[1340, 1392)` **admits no integer**. §28.4 lists six
+  things now known not to be it, and `leader_flags & 4` is **not** the
+  computer-leader test. **Not implemented**: 7 moves 616 the wrong way.
 - Four open, 70 parked.
   **Fable backlog: fifteen Loop items** (251, 335, 313, 367, 375, 416, 417,
-  419, 420, 421, 424, 428, 431, 433, 436); due at twenty, this is eleven.
+  419, 420, 421, 424, 428, 431, 433, 436); due at twenty, this is twelve.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w9711 of 24,000 · GreatLakes w9510 of 24,000
-Golden: w626 of 901 · ch2 w616 is lower and is the headline · 437 next
+Golden: w626 of 901 · ch2 w616 is lower and is the headline · 439 next
 Endpoint 24001: EastIndies 64 off, 5 unlinked · GreatLakes 51 off, 11 unlinked
 
-**Opener: 437 on the rules lane — the leader flag at 616 and the branch it
-picks, run113; 432 on the AI lane — 9382, nine draws against eight.**
+**Opener: 439 on the rules lane — the eight bytes, 28,396 against 28,388;
+432 lands the per-city Scholar on the AI lane, then 438 reads for it.**
 
 ## The queue
 
@@ -59,14 +59,14 @@ the backlog is `docs/PARKED.md`, and an item returns only when a score names it.
     list's shape rather than the purchase. Success is **9382 agreeing
     under the probe**, not the word moving — the probe is part of the item.
 
-437. **The leader flag at 616, and the branch it picks** (the rules
-    headline's frame; capture lane, **run113**): `think_attack` ORs a
-    leader flag into `~(unit_masks >> 18) & 1` and passes −1 **or 0** to
-    the search. who=1's hoplites carry 262144, so they take the **zero**
-    path unless the flag sets it — and that path is three radii on two
-    frame grids, none of it modelled. **A `LEADERS=9` window is the one
-    question a capture answers and a reading cannot** (§27.6). Then
-    implement the branch with `unit_respond_range` 7; 616 should move.
+439. **The eight bytes: `imull $0x6eec` is 28,396, the record says 28,388**
+    (a takes-chain to the rules headline, after 437 settled the branch and
+    closed nothing): the bracket has not moved in three items while the
+    space around it collapsed, which usually means an assumption
+    underneath is wrong, not the arithmetic above it. Settle the stride
+    from the PE bytes, and **name what depends on it first** — every claim
+    derived from that array's element size. **If the eight bytes are
+    innocent, say so and stop**: a seventh §28.4 entry beats an eighth fit.
 
 390. **A `LEADERS≥2` window anywhere in (7616, 8174]** (capture lane;
     takes-chain to the met bit): nothing on disk dumps a leader between
