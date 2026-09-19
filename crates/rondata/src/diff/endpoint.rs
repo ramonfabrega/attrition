@@ -698,22 +698,34 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // consecutive (`1/68`–`1/80`). `build_diverged` and the cities are
         // unchanged. DECISIONS 36 asks for the number rather than a trade.
         //
-        // Then **43 → 53, 13 → 14 and 9 → 10** on 2026-09-19, item 395 —
-        // the captain mirror (`docs/COMBAT.md` §20), which moves the *rules*
-        // headline's word 619 → 624 and does not move this map's own word at
-        // 9451. It is the widest behavioural change this row has taken:
-        // every squad member in the game stops searching for a target and
-        // stops running the whole of `Unit::think` — `think_peasant`,
-        // `think_caravan`, `think_fish`, the army joins — because the
-        // original's `Unit::think` returns after the mirror. Ten positions
-        // further out, one more of the roster unlinked and one more building
-        // field-row apart, 14,550 frames past a word that does not move, in
-        // a tail that has been free-running since 9451. **This row got
-        // worse and the number is the number**: DECISIONS 36 asks for it
-        // rather than a trade, and the direction is stated here rather than
-        // argued away.
-        off: 53,
-        unlinked: 14,
+        // Then **43 → 58, 13 → 12, 9 → 10** on 2026-09-19, item 394 — the
+        // **first wound's roll** (`docs/COMBAT.md` §20), one
+        // `Random::get(0, 0xffff)` on the first combat damage to any
+        // building, taken twice on sim-frame 9451 because a Longbowman
+        // figure's thirteen sixteenths leave `damage` at zero. **This map's
+        // word does not move on it** — it goes from five of the original's
+        // seven draws at 9451 to six, and the seventh needs the launch
+        // offset §20.3 bounds — so the whole of this row's movement is a
+        // stream that shifts by one draw from 9451 and then runs 14,550
+        // frames on nobody's numbers. Fifteen positions further out, one
+        // fewer of the roster unlinked, one more building field-row apart.
+        // **This is the direction DECISIONS 36 exists to record rather
+        // than to trade away**: the draw is the original's, the listing
+        // says so at `0x6520fc`, and the original's own 9451 spends it
+        // twice. A row that moves the wrong way on a change the oracle
+        // requires is the number, not an argument against the change.
+        //
+        // **Pinned at the 392/394 merge, and by neither branch's numbers.**
+        // 394 measured 43 → 58 and 13 → 12 against its base, and item 392's
+        // `Unit::find_melee_pos` (§19) leaves this row alone on its own
+        // branch; the merged tree prints **off 57, unlinked 10,
+        // build_diverged 10** — one position closer than 394 alone and two
+        // fewer of the roster unlinked. Two independent landings compose,
+        // so the figure is what the merged code prints, and a merge is not
+        // the place to adjudicate a floor (the same rule the 289/290 and
+        // 294/295 merges set above).
+        off: 57,
+        unlinked: 10,
         extra: 0,
         build_unlinked: 0,
         build_diverged: 10,
@@ -1423,6 +1435,13 @@ mod tests {
         // telemetry — 14,550 frames past the word, on a change whose
         // whole effect upstream is *when an arrow exists* — and it is
         // still not a claim that the seating is right or wrong.
+        //
+        // **Item 394 moved it again, to `1/55` at `(−768, 9984)`** — the
+        // same vector, a different scholar, and the fifth index this line
+        // has carried. Item 342's instruction is re-measure rather than
+        // diagnose, and the re-measurement is all this is: 394's whole
+        // effect upstream is one `Random::get` on sim-frame 9451, so
+        // everything here is that draw's stream 14,550 frames later.
         let delta = (768, 9984);
         let carriers: Vec<(i64, i64)> = r
             .off
@@ -1432,7 +1451,7 @@ mod tests {
             .collect();
         assert_eq!(
             carriers,
-            vec![(1, 58)],
+            vec![(1, 55)],
             "the set of units one university from the original's own \
              coordinates moved — `1/2020 − 1/2019` exactly, which is what \
              item 338's residue looked like, what the 384/385 merge left \

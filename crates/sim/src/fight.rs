@@ -57,6 +57,34 @@ pub const SITE_AMMO_SCATTER_X: &str = "Ammo::init+0xcd9";
 /// `Ammo::init@0067bbf0+0xd0b` — the landing scatter's **y** draw.
 pub const SITE_AMMO_SCATTER_Y: &str = "Ammo::init+0xd0b";
 
+/// `Object::take_damage@00652020+0xe1` — **a building's first wound**
+/// (`docs/COMBAT.md` §7.2 step 3).
+///
+/// One `Random::get(0, 0xffff)` whenever combat damage reaches an object
+/// whose `damage` field is still zero and whose vtable slot `+0x1c`
+/// answers 1 — `Build` and `Wall`, never a `Unit` or an `Animal`, whose
+/// slot is the folded `return 0`. The roll is read `% 100 < 5` and only
+/// then does the fort/temple/town test below it run, so **the draw is
+/// unconditional on the building's kind**: §9.5 had it as a fort,
+/// temple or town's own cost and that was a reading error, corrected
+/// here by item 394's measurement.
+///
+/// `damage` is the whole-hit count, not the sixteenths — so a hit small
+/// enough to move only `damage_frac` leaves the gate open and the **next**
+/// hit draws again. That is exactly what Great Lakes 9451 is: two arrows
+/// landing on the farm `0/2004` in one frame, each worth thirteen
+/// sixteenths, the first leaving `damage` at 0.
+pub const SITE_FIRST_WOUND: &str = "Object::take_damage+0xe1";
+
+/// `Object::take_damage@00652020+0x18b` — the flock's size, the second
+/// draw of a first wound and the only one [`SITE_FIRST_WOUND`] gates.
+///
+/// Taken when the roll above is `% 100 < 5`, the target is a fort,
+/// `TEMPLE` or `TOWN`, the attacker exists (`o >= 0`) and its type is
+/// siege: `Objects::add_flock(x, y, -1, roll % 2 + 3)` puts three or four
+/// birds up over the building. Cosmetic, and it still moves the stream.
+pub const SITE_FIRST_WOUND_FLOCK: &str = "Object::take_damage+0x18b";
+
 /// The same draw from `Group::action_attack@00712490+0x41a`, which calls
 /// the nine-argument form **once**, on the group's leader, and only when
 /// `ObjectData::is_in_range` says the leader cannot already shoot
@@ -791,6 +819,47 @@ impl Sim {
         }
     }
 
+    /// The **first wound**'s draws (§7.2 step 3), spent before the
+    /// accumulate and only on the combat path.
+    ///
+    /// `Object::take_damage@00652020` reaches `+0xe1` when `damage == 0`
+    /// and the object's vtable slot `+0x1c` answers 1 — a `Build` or a
+    /// `Wall`, never a unit — and takes one roll there whatever kind of
+    /// building it is. Only if that roll is `% 100 < 5` does the
+    /// fort/`TEMPLE`/`TOWN` test run, and only then, with a siege
+    /// attacker, the second roll at `+0x18b` that sizes a flock of birds.
+    ///
+    /// The gate reads `damage`, the whole-hit count — a hit that moves
+    /// only `damage_frac` leaves it at zero and the next hit draws again.
+    fn first_wound_draws(&mut self, b: usize, by: Option<Obj>, attrition: bool) {
+        if attrition || self.buildings[b].damage != 0 {
+            return;
+        }
+        self.mark(SITE_FIRST_WOUND);
+        if self.rng.roll() % 100 >= 5 {
+            return;
+        }
+        let Some(ty) = self.buildings[b].ty else {
+            return;
+        };
+        let fortlike = crate::build::is_fort(&self.build_types, ty)
+            || crate::build::is(&self.build_types, ty, crate::build::Ident::Temple)
+            || crate::build::is(&self.build_types, ty, crate::build::Ident::Town);
+        if !fortlike {
+            return;
+        }
+        // `if (param_7 < 0) goto LAB_006522f2` — no attacker, no flock
+        // and no war declaration either.
+        let Some(by) = by else { return };
+        if !self.profile(by).siege {
+            return;
+        }
+        self.mark(SITE_FIRST_WOUND_FLOCK);
+        // `Objects::add_flock(x, y, -1, roll % 2 + 3)` — three or four
+        // birds over the building. Cosmetic; the draw is not.
+        let _ = self.rng.roll();
+    }
+
     /// `Object::take_damage` on a building (§7.2): the under-attack latch, a
     /// site's lost progress and the building-on-site quadrupling, the city
     /// clamp — a city never dies, it sits at zero — and death through
@@ -817,6 +886,7 @@ impl Sim {
             bd.under_attack |= 0x3;
             bd.hit_frame = Some(frame);
         }
+        self.first_wound_draws(b, by, attrition);
         let site = !self.buildings[b].active && self.buildings[b].ty.is_some();
         if site {
             if matches!(by, Some(Obj::Building(_))) {

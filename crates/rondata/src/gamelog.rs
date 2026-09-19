@@ -1723,6 +1723,25 @@ pub struct BuildDump {
     pub o: i64,
     pub who: i64,
     pub pos: Pos,
+    /// **The damage pair**, one block in from `BUILDDATA` under `OBJECT`,
+    /// and unparsed until item 394 — `damage` is the whole hit points
+    /// lost and `damage_frac` the sixteenths under them
+    /// (`docs/COMBAT.md` §7.2 step 4).
+    ///
+    /// The pair is what dates a landing to a frame: Great Lakes' farm
+    /// `0/2004` goes `0/0` → `1/10` in one block because **two** arrows
+    /// land on sim-frame 9451, thirteen sixteenths apiece, and the first
+    /// of them moves only the fraction (§20).
+    ///
+    /// The rest of the `ObjectData` half — `healing`, `hold_frames`,
+    /// `infiltrated`, `visible`, `launch_frames`, `inside_down`,
+    /// `inside_down_who`, `near_o`, `near_who` — is written on every
+    /// `BUILDDATA` record and is still unparsed, deliberately: this
+    /// crate's `Building` models none of them, and `ledger.rs`'s rule is
+    /// that a parsed field is a compared field. That is the next
+    /// widening, and it is a modelling item rather than a parsing one.
+    pub damage: Option<i64>,
+    pub damage_frac: Option<i64>,
     /// `orig_type` — the `TypeIndex` the building was created as. Written at
     /// **`BUILDS=6`** and above, and the only type the dump ever carries.
     pub orig_type: Option<i64>,
@@ -2726,11 +2745,16 @@ fn build_of(b: Block<'_>) -> Option<BuildDump> {
             _ => {}
         }
     }
+    // The `ObjectData` level, one block in from `BUILDDATA` — the same
+    // place `unit_of` reads a unit's, and under `WALLDATA` here.
+    let obj = b.find("OBJECT");
     Some(BuildDump {
         flags,
         o,
         who,
         pos,
+        damage: obj.and_then(|o| o.int("damage")),
+        damage_frac: obj.and_then(|o| o.int("damage_frac")),
         orig_type: b.int("orig_type"),
         max_age: b.int("max_age"),
         build_masks: b.int("build_masks"),
