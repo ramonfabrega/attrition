@@ -16,32 +16,32 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 363 gave the rules track its first staged run, its three answers and the
 held-out map's verdict; 362 was booked as the market and was not.*
 
-- **The rules track has a WORD**: chapter one pins at **617**, value diff
-  at 618. Three numbers on the way, each a thing the interpreter had to
-  model — **1** with nothing staged (the original's frame 1 is 12 draws,
-  ours 54, all Leader AI), **610** with `ai off`, **617** with `add`. What
-  stands is one named draw (379). `docs/INPUT.md` §11; §8 struck through.
-- **Four items, one frame, no word** — 9182 survived 358, 362, 368, 369,
-  each naming a mechanism that was not the cause (377). But run107
-  **decided** it: the bucket agrees, both §43 branches refused, and the
-  whole parting is `1/MAKE[0].val` on 9179–9180 — three draws to our one.
-  382 is the named cause. Landed on the way: `MakeObject.num`,
-  `census_territory`'s gate, a closed gather family of 31,448 orders.
-- **The held-out third map answers 1 tick, 0 orders** (run106, map 9
-  Himalayas), measured once, never debugged against. The tick is a MINIMUM
-  set by one of sixteen units (others 209–501); 35,063 of 44,597
-  disagreements are gather and move — a **fit to two trajectories**. What
-  generalised is the derived check, not the trajectory. **The pass's number.**
-- Six open, 41 parked. **Fable backlog: ten Loop items** (251, 335, 343,
+- **The rules track has a WORD**, and 379 held it at **617** while closing
+  what stood there. The variant roll is modelled and its cause was not
+  animation: the sim seated all three hoplites of a squad on one point, so
+  they walked where the original's 1/6 stands. `Objects::init_unit` seats
+  members around the captain and reproduces all six golden coordinates
+  exactly. Endpoint paid 16 rows (GL 50→66 off, 9→5 unlinked), all
+  post-divergence — GL's first attack roll is 9416, 234 past its word.
+  **Exact seating over the smaller residue**: a residue built on positions
+  known to be wrong is a fit. 384 takes it, and it is combat.
+- **Five items, five wrong mechanisms, no word** (377) — but run107
+  **decided** 9182: the bucket agrees, both §43 branches refused, the
+  parting is `1/MAKE[0].val` on 9179–9180, three draws to our one. 382 is
+  the named cause and is in flight.
+- **The held-out third map answers 1 tick, 0 orders** (run106, map 9;
+  floors 1851 and 1772). A **fit to two trajectories** — what generalised
+  was the derived check, not the trajectory. **The pass's number.**
+- Six open, 43 parked. **Fable backlog: ten Loop items** (251, 335, 343,
   356, 321, 313, 367, 374, 375, 377).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w9711 of 24,000 · GreatLakes w9182 of 24,000
 Golden: w617 of 901 · chapter one pinned · 379 next
-Endpoint 24001: EastIndies 64 off, 5 unlinked · GreatLakes 50 off, 9 unlinked
+Endpoint 24001: EastIndies 64 off, 5 unlinked · GreatLakes 66 off, 5 unlinked
 
-**Opener: 382 on the AI word's frame — the Mercenaries ceiling run107
-named — and 379 beside it on the golden record's own.**
+**Opener: 384 on the golden record's frame — the engagement at 626
+against 616 — beside 382, already in flight on the AI word's.**
 
 ## The queue
 
@@ -60,13 +60,12 @@ the backlog is `docs/PARKED.md`, and an item returns only when a score names it.
     holds Mercenaries (573) at the ceiling from the rebuild on 9179, we
     write 6,600,000 on the same rebuild and lose the head to a Scholar.
 
-379. **The golden record's word is one draw, and it is named**
-    (the rules headline's frame): `Guy::set_anim@005da300+0xf2f`, the
-    variant roll `set_anim` takes when the animation is `0xc` and a
-    variant is asked for — the attack animation, on the frame the
-    auto-engaged squads first swing. This crate does not spend it. An
-    **animation** item, not a combat one. Chapter one is pinned at 617
-    with the value diff parting at 618; `docs/INPUT.md` §11 is the spec.
+384. **Our squads engage at 626 where the original's swing at 616** (the
+    rules headline's frame): seated, 617 reads ours 6 / theirs 8 — the
+    missing `Unit::fight+0x9b0` as well as the variant roll, both
+    downstream of the engagement frame. A **combat** item, not an
+    animation one; 379 closed the animation half and `docs/INPUT.md`
+    §11.5's seating SEAM with it.
 
 365. **`docs/GOLDEN.md`, the script itself** (a reading and a design, Opus):
     chapters from `docs/CENSUS.md`'s order family and `docs/COMMANDS.md`
