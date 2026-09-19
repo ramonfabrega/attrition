@@ -90,9 +90,22 @@ def capture(args, output, style):
     started = time.monotonic()
     try:
         live_session.require_closed()
+        minute = getattr(args, 'ffwd_minute', None)
         live_session.stage(SimpleNamespace(install=args.install, output=output, profile=args.profile,
-                                           end_frame=args.end_frame, fast_forward=args.end_frame>37,
-                                           hide_scene=False))
+                                           end_frame=args.end_frame,
+                                           fast_forward=args.end_frame>37 and minute is None,
+                                           hide_scene=False, ffwd_minute=minute,
+                                           log_window=getattr(args, 'log_window', None),
+                                           detail=getattr(args, 'detail', None),
+                                           cover=getattr(args, 'cover', None),
+                                           cmd_file=getattr(args, 'cmd_file', None)))
+        # The receipt carries what was staged, so a run's window and detail are
+        # read back from the run rather than from the command that asked for it.
+        report['staged'] = {'log_window': getattr(args, 'log_window', None) or list(live_session.DEFAULT_WINDOW),
+                            'detail': getattr(args, 'detail', None) or list(live_session.DEFAULT_DETAIL),
+                            'cover': getattr(args, 'cover', None) or 'cover=0',
+                            'rontrace.cmd': (output/'rontrace.cmd').read_text().splitlines()
+                                            if (output/'rontrace.cmd').is_file() else None}
         staged = True
         set_map(args.profile, style)
         rise = args.profile / 'rise.ini'
@@ -168,19 +181,31 @@ def main():
     ap.add_argument('--seed',type=int,default=12345)
     ap.add_argument('--timeout',type=int,default=180)
     ap.add_argument('--startup-probe',action='store_true',help='observe WinMain Media Foundation calls')
+    ap.add_argument('--map',type=int,action='append',dest='maps',metavar='STYLE',
+                    help='map style, repeatable; default 14 then 18')
+    ap.add_argument('--log-window',type=int,nargs=2,metavar=('START','END'))
+    ap.add_argument('--detail',action='append',metavar='SECTION:CAT[=N],...')
+    ap.add_argument('--cover')
+    ap.add_argument('--cmd-file',type=Path)
+    ap.add_argument('--ffwd-minute',type=int)
     args=ap.parse_args()
+    args.maps=tuple(args.maps or (14,18))
     signal.signal(signal.SIGTERM, interrupted)
     args.install,args.profile,args.output=(p.resolve() for p in (args.install,args.profile,args.output))
     if not 36<=args.end_frame<=24000 or args.timeout<=0 or not 1<=args.seed<=0x7fffffff:
         ap.error('invalid frame, timeout, or seed bound')
     if args.output.is_relative_to(args.install) or args.output.is_relative_to(args.profile):
         ap.error('output must be outside install and profile')
+    if args.cmd_file is not None:
+        args.cmd_file=args.cmd_file.resolve()
+        if not args.cmd_file.is_file():
+            ap.error(f'no such command file: {args.cmd_file}')
     # Cooperative lock: protects runners using this tool, not arbitrary GUI use.
     with capture_lane(args.profile):
         live_session.require_closed()
         args.output.mkdir(parents=True,exist_ok=False)
         reports=[]
-        for style in (14,18):
+        for style in args.maps:
             reports.append(capture(args,args.output/f'map-{style}',style))
             print(json.dumps(reports[-1]),flush=True)
         (args.output/'receipt.json').write_text(json.dumps(reports,indent=2)+'\n')

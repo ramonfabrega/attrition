@@ -56,6 +56,31 @@ class RunnerTest(unittest.TestCase):
         log.write_text('MAP_STYLE 18\n')
         with self.assertRaises(ValueError):runner.verify_game(log,18,36)
 
+    def test_one_map_and_the_staged_knobs_reach_the_receipt(self):
+        # The golden record is one map, a late window and a command file; the
+        # receipt must say what ran, not what the caller typed.
+        output=self.root/'one';output.mkdir()
+        (output/'rontrace.cmd').write_text('0 !ai off\n2000 !quit\n')
+        args=SimpleNamespace(install=self.root,profile=self.root,end_frame=2000,
+                             log_window=[1900,2000],detail=['end:BUILDS=7'],
+                             cover='cover=0',cmd_file=Path('chapter.cmd'),ffwd_minute=2)
+        staged={}
+        with patch.object(runner.live_session,'require_closed'), \
+             patch.object(runner.live_session,'stage',side_effect=lambda a:staged.update(vars(a))), \
+             patch.object(runner,'set_map',side_effect=ValueError('stop here')), \
+             patch.object(runner.live_session,'restore'), \
+             patch.object(runner,'verify_restored',return_value=5):
+            with self.assertRaisesRegex(ValueError,'stop here'):runner.capture(args,output,26)
+        self.assertEqual(staged['log_window'],[1900,2000])
+        self.assertEqual(staged['detail'],['end:BUILDS=7'])
+        self.assertEqual(staged['ffwd_minute'],2)
+        # A caller-supplied ffwd minute must not also trip the blanket one.
+        self.assertFalse(staged['fast_forward'])
+        receipt=json.loads((output/'receipt.json').read_text())
+        self.assertEqual(receipt['map_requested'],26)
+        self.assertEqual(receipt['staged']['log_window'],[1900,2000])
+        self.assertEqual(receipt['staged']['rontrace.cmd'],['0 !ai off','2000 !quit'])
+
     def test_failure_after_stage_still_restores_and_records(self):
         output=self.root/'output';output.mkdir()
         args=SimpleNamespace(install=self.root,profile=self.root,end_frame=36)
