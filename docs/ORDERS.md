@@ -885,15 +885,16 @@ target order decides its transit legs are stale.
    pending.**
 3. **`timer`**: `> 0`: at 1 → `kill_current_order(0); work(); return 0`; else
    `timer--`.
-4. **The action under the move** (`get_action()`): if `ATTACK` and the target
-   alive with the same `uid` — a ranged type with a non-building, non-flank,
-   in-range target and no collision at its own spot → `kill_current_order`
-   (the move has done its job); a melee type every 16 frames may
-   `find_melee_target` a closer in-range unit; a building target in range,
-   valid, no collision → kill the move; a non-mandatory `ATTACK` action every
-   4th frame under `repaths` budget → `find_new_target(0, 1)` (`docs/COMBAT.md`
-   §12.4's "walking to attack" search). A target that is gone and the unit
-   within `0x481` of its point → `repath(); return 0`. A `TRADE_ROUTE` with
+4. **The action under the move** (`get_action()`): if `ATTACK`, the target
+   alive on the same `uid`, and **the attacker's `max_range` non-zero** —
+   `005f7b30:212`, `ObjectTypeData +0x1fc`, the arm's gate (item 405,
+   `docs/COMBAT.md` §24) — a non-building, non-flank, in-range target, no
+   collision at its own spot → `kill_current_order`; every 16 frames
+   `find_melee_target` may take a closer in-range unit; a building target
+   in range, valid, no collision → kill. A non-mandatory `ATTACK` action
+   every 4th frame under `repaths` budget → `find_new_target(0, 1)`
+   (§12.4 there). A target gone and the unit within
+   `0x481` of its point → `repath(); return 0`. A `TRADE_ROUTE` with
    negative endpoints → kill.
 
 **The entrench wait.** `if (retry != 0) { if (--retry == 0) attempts += 3;
@@ -943,8 +944,8 @@ is what a unit does before crossing into a different terrain region at the
 **The collision test is the block's teeth, and it is diff-backed** (item 63).
 It is `detect_unit_collision`'s third call site — the only one that runs
 *before* a step — and it fires **once per leg**, on the frame `dest` goes
-0 → 1. Its kill arm is what makes a worker whose destination is taken stand
-still instead of walking into it; run10's frames 199–201 are the case, and
+0 → 1. Its kill arm is why a worker whose destination is taken
+stands still; run10's frames 199–201 are the case, and
 `docs/COLLISION.md` §5.1 and §8 carry it.
 
 **The speed, and the straight-line check.** `speed = get_speed(pos, 0)`, `×

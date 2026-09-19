@@ -755,7 +755,19 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // one capture, so what it does at 24001 is fourteen thousand
         // frames of divergence downstream of six arrows and is evidence
         // about the run-up, not about the table.
-        off: 48,
+        // And **48 → 51** on 2026-09-19, item 405 — the ATTACK action
+        // under a move is a *ranged* attacker's (`docs/ORDERS.md` §4.4,
+        // `ObjectTypeData +0x1fc max_range`), which moves the golden
+        // record's word **621 → 626**. Three positions further out here,
+        // 23,375 frames past the frame it is measured on and on the other
+        // map: every melee unit in the game that has ever chased a target
+        // into reach now walks the leg it was given instead of dropping
+        // it, so this row is evidence about 24,000 frames of run-up and
+        // not about the predicate. DECISIONS 36 asks for the number
+        // rather than a trade; the value diff the change is booked on is
+        // the golden record's own six units, exact through frame 624
+        // (`testkit::GOLDEN_WORD_CHAPTER_ONE`).
+        off: 51,
         unlinked: 11,
         extra: 0,
         build_unlinked: 0,

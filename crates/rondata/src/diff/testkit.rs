@@ -1408,21 +1408,63 @@ pub(crate) const RUN58_QUEUE_TAIL: i64 = 5177;
 ///   `CLAUDE.md`'s "a word that moved lands with the value diff beside it"
 ///   exists for.
 ///
-/// What stands at **621** is `Guy::set_anim+0xf2f < Guy::move+0x166`, an
-/// extra draw this crate spends and the original does not, and the residue
-/// under it is **located**: `1/8` ends its leg at `(1332, 8121)` on frame
-/// 619 and `1/7` at `(1431, 7915)` on 620, both about **171** short of
-/// their ordered points, where the dump walks both legs to the end —
-/// `1/8` reaching `(1176, 8088)` at block 626. That is the parked-collider
-/// tolerance of `docs/COLLISION.md` §5.1 (`other.big_radius × 3` = `0xc0`)
-/// firing on a waypoint **re-taken** mid-leg after
-/// `resolve_unit_collision` cleared `has_waypoint`
-/// (`crates/sim/src/collide.rs`, item 204's store). The original takes a
-/// waypoint once per leg; which of the two — the re-take or the probe's
-/// answer — differs is the successor item.
+/// What stood at **621** was `Guy::set_anim+0xf2f < Guy::move+0x166`, an
+/// extra draw this crate spent and the original does not, under the two
+/// legs that stop **171** short: `1/8` ending at `(1332, 8121)` on frame
+/// 619 and `1/7` at `(1431, 7915)` on 620, where the dump walks both to
+/// the end.
 ///
-/// - **`0/8` plans its chase a frame late.** The dump has it ordered to
-///   `(1224, 8280)` at the end of 618; **this now matches** — `0/8` carries
-///   `(1224, 8280)` at block 619 — and what parts instead is the same
-///   short leg: it ends at `(972, 7988)` on 620 where the dump walks on.
-pub(crate) const GOLDEN_WORD_CHAPTER_ONE: i64 = 621;
+/// ~~That is the parked-collider tolerance of `docs/COLLISION.md` §5.1
+/// (`other.big_radius × 3` = `0xc0`) firing on a waypoint re-taken
+/// mid-leg after `resolve_unit_collision` cleared `has_waypoint`.~~
+/// **Falsified on the record, item 405.** run110 already printed the
+/// fields: `tolerance` is **0** and `collide`, `collide_o`,
+/// `collide_who`, `collide_frame` are all clear for `1/7` and `1/8` on
+/// every block 616..629 — in the dump *and* in this crate. §5.1's
+/// widening never fired on either side, and nothing about the waypoint
+/// re-take is implicated.
+///
+/// - **621 → 626: the ATTACK action under a move is a RANGED
+///   attacker's** (item 405, `docs/ORDERS.md` §4.4). What ends both legs
+///   short is `do_move`'s action block, which this crate entered for
+///   every type. The original gates the whole of it —
+///   `do_move@005f7b30:212`, `if (*(int *)(*(int *)&this->field_0x18 +
+///   0x1fc) != 0)`; `SubObjectData +0x18 ptype`, `ObjectTypeData +0x1fc
+///   max_range` by the type record, and `ObjectType::backup@0065fac0`
+///   writes `param_1->max_range = this->field_0x1fc` in the engine's own
+///   words. `1/8` stands at `(1332, 8121)` with `attack_dist` **246** to
+///   `0/7` — exactly `0xf6`, the HOPLITES reach of `docs/COMBAT.md`
+///   §13.2, in range by a single unit — so this crate killed the chase
+///   171 short of `(1176, 8088)`; `1/7` did the same a frame later at
+///   240. A melee type never abandons a leg because the target came into
+///   reach.
+///
+///   The **value diff**, blocks 620..625, both legs and the dump's own
+///   coordinates:
+///
+///   | block | dump `1/7` | before 405 | dump `1/8` | before 405 |
+///   | --- | --- | --- | --- | --- |
+///   | 620 | `1431, 7915` | `1431, 7915` | `1304, 8116` | `1332, 8121` |
+///   | 621 | `1411, 7895` | `1431, 7915` | `1276, 8111` | `1320, 8136` |
+///   | 623 | `1371, 7855` | `1416, 7896` | `1220, 8099` | `1320, 8136` |
+///   | 626 | `1320, 7800` | `1416, 7896` | `1176, 8088` | `1320, 8136` |
+///
+///   After it every one of those cells is the dump's, `orders_x/orders_y`
+///   included, and **all six units carry the dump's own coordinates
+///   through frame 624** — `0/6` and `0/8` as well, `0/8` walking to
+///   `(1044, 8076)` where it had stopped at `(972, 7988)`. That closes
+///   the second residue below, which was never `0/8`'s own plan.
+///
+/// What stands at **626** is the arrival frame itself: the original
+/// spends `Guy::set_anim+0xf2f < Guy::move+0x166` there and this crate
+/// does not, and the ordering of `Guy::set_anim+0x104b` beside it
+/// differs. Both hoplites land exactly on their ordered points on 626 and
+/// hold, so the residue is in what an arriving figure rolls, not in where
+/// it arrives. `0/8` is the other live one: the dump snaps its
+/// `orders_x/orders_y` to `(1044, 8076)` at block 625 with `collide_o 8`,
+/// where this crate walks on toward `(1224, 8280)`.
+///
+/// - ~~**`0/8` plans its chase a frame late.**~~ **Closed by 405**: it
+///   was the same short leg, and `0/8` now matches the dump frame for
+///   frame from 619 to 624.
+pub(crate) const GOLDEN_WORD_CHAPTER_ONE: i64 = 626;

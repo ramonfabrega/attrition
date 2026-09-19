@@ -131,7 +131,10 @@ const OVER: &[(&str, &str, usize)] = &[
         "6. The move — `Group::action_move_near@00704990`",
         44_885,
     ),
-    ("ORDERS.md", "4. The move order", 37_601),
+    // Lowered 37_601 -> 37_590 by item 405: §4.4 step 4 gains the ATTACK
+    // arm's `max_range` gate and loses a gloss `docs/COLLISION.md` §5.1
+    // already carries.
+    ("ORDERS.md", "4. The move order", 37_590),
     (
         "ORDERS.md",
         "5. Build, repair, garrison — and what a citizen does next",

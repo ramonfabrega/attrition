@@ -3194,17 +3194,17 @@ leg**, and it is not combat:
   under the `0xc0` the parked-collider arm allows — where the dump walks
   both to the end, `1/8` reaching `(1176, 8088)` at block 626 and `1/7`
   `(1320, 7800)` at 626. `0/8` does the same at `(972, 7988)` on 620.
-- That is `docs/COLLISION.md` §5.1: `do_move`'s waypoint probe widens
-  `tolerance` to `other.big_radius × 3` against a **parked** collider, and
-  the arrival test on the same frame then ends the leg. It runs **once per
-  leg**, on the frame the waypoint is taken — so for it to fire at 619 the
-  waypoint was *re-taken* mid-leg, which is `resolve_unit_collision`
-  clearing `has_waypoint` (`crates/sim/src/collide.rs`, item 204's store).
-- Which half differs — whether the original re-takes the waypoint there at
-  all, or re-takes it and its `detect_unit_collision` finds nobody — is the
-  successor item. *Falsifier:* the same run110 window read for `1/8`'s
-  `collide_o`/`collide_who`/`collide_frame` and `tolerance` on blocks 619
-  and 620; run110 has `UNITS=9` and prints all four.
+- ~~That is `docs/COLLISION.md` §5.1: `do_move`'s waypoint probe widens
+  `tolerance` to `other.big_radius × 3` against a **parked** collider…
+  so for it to fire at 619 the waypoint was *re-taken* mid-leg.~~
+  **Falsified, item 405 — and by the falsifier this section named.**
+  run110's own `UNITS=9` records answer it in one `grep`: `tolerance` is
+  **0** and `collide`, `collide_o`, `collide_who` and `collide_frame` are
+  all clear for `1/7` and `1/8` on every block 616..629, in the dump
+  *and* in this crate. §5.1's widening never fired on either side and the
+  waypoint re-take is not implicated.
+- **What ends both legs is `do_move`'s own ATTACK-action block, and it is
+  a *ranged* attacker's** — see §24 and `docs/ORDERS.md` §4.4.
 
 ### 23.4 Confidence
 
@@ -3217,3 +3217,101 @@ the alarm's damage threshold and its 300-frame cooldown (`docs/ARMY.md`
 writer, which is a read of one function rather than a run — a capture in
 which an AI leader's **unit** is hit and its armies' `target_o` goes to
 `-1` would falsify it.
+
+---
+
+## 24. The chase a melee unit does not drop (item 405, 2026-09-19)
+
+§23.3's residue, settled — and settled the way this project keeps asking
+for: the falsifier that section wrote down cost a `grep` over a capture
+already on disk, and it said the named mechanism was wrong before anything
+was read.
+
+### 24.1 What the record says
+
+run110 prints `tolerance`, `collide`, `collide_o`, `collide_who` and
+`collide_frame` on every `UNITDATA` at `UNITS=9`. For who=1's `1/7` and
+`1/8`, on every block 616..629:
+
+| field | dump | this crate, before 405 |
+| --- | --- | --- |
+| `tolerance` | 0 | 0 |
+| `collide` | 0 | 0 |
+| `collide_o` / `collide_who` | −1 / −1 | clear |
+| `collide_frame` | −1 | never stamped |
+
+No collision is detected for either unit anywhere in the window, on either
+side. `docs/COLLISION.md` §5.1's parked-collider widening cannot have ended
+a leg it never ran on, and `0xc0` never appears in `tolerance`.
+
+### 24.2 What does end them
+
+`do_move`'s action-under-the-move block (`docs/ORDERS.md` §4.4 step 4),
+which this crate entered for every type. The original gates the whole of
+it on the attacker's **raw `max_range` column** —
+`do_move@005f7b30:212`, `*(int *)(*(int *)&this->field_0x18 + 0x1fc)`,
+which is `SubObjectData +0x18 ptype` → `ObjectTypeData +0x1fc max_range`
+by the type record, with `ObjectType::backup@0065fac0` confirming the
+offset in the engine's own assignment. §4.4 carries the full predicate and
+the three conjuncts still unmodelled.
+
+The frame is a coincidence of one unit. A HOPLITES-line attacker reaches
+`0xf6` = 246 (§13.2, item 384), and on frame 619 `1/8` at `(1332, 8121)`
+has `attack_dist` **246** to `0/7` — in range by a single unit. So the
+kill fires, 171 short of `(1176, 8088)`; `1/7` follows at 240 a frame
+later. Without the gate the two legs die there; with it they run to the
+end.
+
+### 24.3 The word, and the value diff beside it
+
+**621 → 626.** The value diff is the golden dump's own coordinates, and it
+now agrees on **all six units through frame 624** — where before 405 three
+of the six parted at 619 or 620:
+
+| block | `1/7` dump = ours | `1/8` dump = ours | before 405, `1/7` / `1/8` |
+| --- | --- | --- | --- |
+| 620 | `1431, 7915` | `1304, 8116` | `1431, 7915` / `1332, 8121` |
+| 621 | `1411, 7895` | `1276, 8111` | `1431, 7915` / `1320, 8136` |
+| 623 | `1371, 7855` | `1220, 8099` | `1416, 7896` / `1320, 8136` |
+| 624 | `1351, 7835` | `1192, 8093` | `1416, 7896` / `1320, 8136` |
+| 626 | `1320, 7800` | `1176, 8088` | `1416, 7896` / `1320, 8136` |
+
+`orders_x/orders_y` hold `(1320, 7800)` and `(1176, 8088)` throughout on
+both sides. **§21.4's second residue closes with it**: `0/8` was never
+planning its chase a frame late in its own right — it was the same short
+leg, and it now matches the dump frame for frame from 619 to 624,
+reaching `(1044, 8076)` where it had stopped at `(972, 7988)`.
+
+The cost is on the other map and 23,375 frames past this one: Great Lakes'
+endpoint at 24001 goes **48 off → 51**, re-pinned in `ENDPOINTS` under
+DECISIONS 36, which asks for the number rather than a trade. Every melee
+unit in a 24,000-frame game now walks a leg it used to drop, so that row
+is evidence about the run-up and not about the predicate.
+
+### 24.4 What stands at 626
+
+The **arrival frame itself**. Both hoplites land exactly on their ordered
+points on 626 and hold; the original spends `Guy::set_anim+0xf2f <
+Guy::move+0x166` there and this crate does not, and `Guy::set_anim+0x104b`
+is ordered differently beside it. So the residue is in what an arriving
+figure rolls, not in where it arrives — §21.4's `0/8` is the other live
+one, whose `orders_x/orders_y` the dump snaps to `(1044, 8076)` at block
+625 with `collide_o 8` while this crate walks on toward `(1224, 8280)`.
+
+### 24.5 Confidence
+
+**Diff-backed**: the gate itself (the golden word 621 → 626 and §24.3's
+table, reproduced by the harness on every commit); that no collision is
+detected for `1/7` or `1/8` in the window (run110's own fields); the
+`0xf6` reach (§13.2, item 384). **Read-only**: the three unmodelled
+conjuncts of the kill and the re-path arm's two guards, all listed in
+`docs/ORDERS.md` §4.4 — each of them only makes the kill rarer, so none
+can be costing a frame in the same direction.
+
+**Not established**: whether `find_melee_target`'s retarget really is
+inside the `max_range` gate, as the decompile has it. It reads oddly — the
+arm is named for melee — but it is also inside the unit-target branch and
+guarded by `attack->+0x1c == 0`, and nothing this crate models reaches it.
+*Falsifier:* a capture with an Archer or Slinger squad walking onto a
+target under an `ATTACK` action, read for a target change on an
+`(o + frame) & 0x8000000f == 0` phase.

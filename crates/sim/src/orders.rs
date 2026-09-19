@@ -1937,13 +1937,40 @@ impl Sim {
 
         // The action under the move: an ATTACK whose target is in range has
         // no further use for the chase; one whose target is gone re-paths.
+        //
+        // **And the whole block is a RANGED attacker's** (item 405). The
+        // original's test at `do_move@005f7b30:212` is
+        // `if (*(int *)(*(int *)&this->field_0x18 + 0x1fc) != 0)` —
+        // `SubObjectData +0x18 ptype`, `ObjectTypeData +0x1fc max_range`
+        // by the type record — and **everything** the ATTACK action does
+        // under a move sits inside it: the unit-target kill, the building
+        // -target kill, and the melee retarget beneath them. A melee type
+        // never abandons its chase because the target came into reach; it
+        // walks the leg it was given and `do_attack` takes over when the
+        // move ends. `docs/ORDERS.md` §4.4 has said "a ranged type" since
+        // the second reading and this crate asked every type.
+        //
+        // It is the golden record's frames 619 and 620. `1/8` stands at
+        // `(1332, 8121)` with `attack_dist` **246** to `0/7` — exactly
+        // `0xf6`, the HOPLITES reach, in range by a single unit — and
+        // this crate killed the move 171 short of the `(1176, 8088)` the
+        // dump walks it to; `1/7` did the same a frame later at 240. The
+        // original's own record says the collision half was never it:
+        // `tolerance` is 0 and `collide_o`/`collide_frame` are clear on
+        // every block 616..629, on both sides (`docs/RUNS.md` run110).
+        //
+        // SEAM: two further conjuncts of the unit-target kill are not
+        // modelled, and both only make it **rarer** — the flank clause
+        // (`angle` window, `flanking`, `max_range` again) and
+        // `Objects::find_collision(my own spot, o, who, 1) == 0`. The
+        // `vector_dist < 0x481` guard on the re-path arm is the third.
         if let Some(a) = self.action_of(u)
             && let Body::Attack(_) = self.units[u].orders[a].body
         {
             let me = Obj::Unit(u);
             match self.units[u].combat.target {
                 Some(t) if self.valid_target(me, t) => {
-                    if self.is_in_range(me, t) {
+                    if self.profile(me).max_range != 0 && self.is_in_range(me, t) {
                         self.kill_current_order(u);
                         return Did::Something;
                     }
