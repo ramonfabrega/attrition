@@ -310,7 +310,7 @@ fn a_queue_section_may_only_shrink() {
 fn the_handoff_is_short() {
     let q = read("QUEUE.md");
     let mut in_section = false;
-    let mut n = 0;
+    let mut counted: Vec<&str> = Vec::new();
     for line in q.lines() {
         if line.starts_with("## ") {
             if in_section {
@@ -320,16 +320,29 @@ fn the_handoff_is_short() {
             continue;
         }
         if in_section {
-            n += 1;
+            counted.push(line);
         }
     }
+    let n = counted.len();
     assert!(
         n > 0,
         "docs/QUEUE.md has no '## Where things stand' section"
     );
+    // The span is named so trimming is not guess-and-retry (parked 374):
+    // every line from the heading to the next `## `, blank lines included.
     assert!(
         n <= HANDOFF_LINES,
-        "the handoff is {n} lines; the bound is {HANDOFF_LINES}. It is rewritten from scratch, not appended to"
+        "the handoff is {n} lines; the bound is {HANDOFF_LINES}. Counted: every line \
+         after `## Where things stand` up to the next `## `, blanks included — \
+         from {:?} to {:?}. It is rewritten from scratch, not appended to; the \
+         literal phrases `Scoreboard:`, `Long captures:`, `Golden:`, `Endpoint ` \
+         and `Fable backlog: N Loop items` are read by other guards and stay",
+        counted.iter().find(|l| !l.trim().is_empty()).unwrap_or(&""),
+        counted
+            .iter()
+            .rev()
+            .find(|l| !l.trim().is_empty())
+            .unwrap_or(&"")
     );
 }
 
@@ -541,6 +554,259 @@ fn every_cited_address_names_its_function() {
                     "docs/{name}:{line}: `{cited}@{addr:08x}` — no function in the export starts there"
                 )),
             }
+        }
+    }
+    assert!(failures.is_empty(), "{}", failures.join("\n"));
+}
+
+/// The documents that a dead-listed address may be cited from, pinned
+/// (parked 321, ruled by the sixth pass 2026-09-19). `docs/EMULATOR.md` §4
+/// lists the functions the executable never reaches — no call, no jump, no
+/// embedded address — so a specification citing one by address cites code
+/// the game does not run, and its claim rests on whatever else backs it. The
+/// rows here are the citations standing on the day the guard landed; each
+/// is owed a reconciliation (the parked file names them), a row is deleted
+/// when its citation goes, and a new one fails.
+const DEAD_CITED: &[(&str, u32)] = &[
+    ("AI.md", 0x006b46b0),
+    ("ARMY.md", 0x006ec170),
+    ("COMBAT.md", 0x00633390),
+    ("COMBAT.md", 0x006ec170),
+    ("GROUPS.md", 0x00683730),
+    ("GROUPS.md", 0x006ec170),
+    ("MOVEMENT.md", 0x00a469f0),
+    ("ORDERS.md", 0x00622ce0),
+    ("ORDERS.md", 0x00683730),
+    ("ORDERS.md", 0x006ec170),
+    ("PATHFINDER.md", 0x00688310),
+    ("RUNS.md", 0x00688310),
+    ("TRANSPORT.md", 0x0065cfd0),
+    ("TRANSPORT.md", 0x006d5230),
+];
+
+/// **A dead-listed function is cited only where pinned.** The dead list is
+/// read from `docs/EMULATOR.md` §4's own `name@00xxxxxx` citations, so the
+/// list and the guard cannot drift apart.
+#[test]
+fn a_dead_listed_address_is_cited_only_where_pinned() {
+    // The enumeration runs from "are dead." to "which is data."; the
+    // sentence after it names the *live* inlined copies, which are not dead.
+    let emu = read("EMULATOR.md");
+    let start = emu
+        .find("are dead.**")
+        .expect("docs/EMULATOR.md §4's `**15 are dead.**` bullet");
+    let end = emu[start..]
+        .find("which is data")
+        .expect("the dead list ends at `which is data`")
+        + start;
+    let mut dead = std::collections::BTreeMap::new();
+    for (_, name, addr) in cites(&emu[start..end]) {
+        dead.insert(addr, name);
+    }
+    assert_eq!(
+        dead.len(),
+        15,
+        "docs/EMULATOR.md §4 enumerates {} dead-listed addresses, not fifteen; the list changed",
+        dead.len()
+    );
+    let mut found = Vec::new();
+    for entry in std::fs::read_dir(docs()).expect("docs/") {
+        let path = entry.expect("entry").path();
+        let Some(name) = path.file_name().and_then(|n| n.to_str()) else {
+            continue;
+        };
+        if !name.ends_with(".md") || matches!(name, "JOURNAL.md" | "EMULATOR.md" | "PARKED.md") {
+            continue;
+        }
+        let text = std::fs::read_to_string(&path).expect("read");
+        for (line, cited, addr) in cites(&text) {
+            if dead.contains_key(&addr) {
+                found.push((name.to_string(), addr, line, cited));
+            }
+        }
+    }
+    let mut new = Vec::new();
+    for (name, addr, line, cited) in &found {
+        if !DEAD_CITED.iter().any(|(n, a)| n == name && a == addr) {
+            new.push(format!(
+                "docs/{name}:{line}: `{cited}@{addr:08x}` is on docs/EMULATOR.md §4's dead list — \
+                 the executable never runs it; say what backs the claim, or pin the row in DEAD_CITED"
+            ));
+        }
+    }
+    let mut gone = Vec::new();
+    for (name, addr) in DEAD_CITED {
+        if !found.iter().any(|(n, a, _, _)| n == name && a == addr) {
+            gone.push(format!(
+                "docs/{name} no longer cites {addr:08x}; delete its DEAD_CITED row to bank it"
+            ));
+        }
+    }
+    assert!(
+        new.is_empty() && gone.is_empty(),
+        "{}\n{}",
+        new.join("\n"),
+        gone.join("\n")
+    );
+}
+
+/// The short hex constants each specification names that no crate carries,
+/// pinned by file (parked 356, ruled by the sixth pass 2026-09-19). A
+/// document is written from the original and the code from the document,
+/// and nothing checked the second step: `docs/COMBAT.md` carried the melee
+/// reach `0xf6` for a month while every melee unit fought at `0x66`, and
+/// `docs/CITIES.md` §3.6 named a cell flag `crates/sim` never wrote. The
+/// count is the day's; a file may only shrink, and a file that grows names
+/// a constant read but not built — build it, spell an offset `+0x..`, or
+/// raise the pin on purpose with the reason beside it.
+const UNBUILT: &[(&str, usize)] = &[
+    ("AI.md", 20),
+    ("ANIM.md", 1),
+    ("ARMY.md", 5),
+    ("CITIES.md", 6),
+    ("COMBAT.md", 2),
+    ("COSTS.md", 1),
+    ("ECONOMY.md", 5),
+    ("GOODY.md", 6),
+    ("GROUPS.md", 3),
+    ("MERCHANT.md", 2),
+    ("ORDERS.md", 9),
+    ("PATHFINDER.md", 2),
+    ("PRODUCTION.md", 4),
+    ("ROADS.md", 1),
+    ("SCOUT.md", 1),
+    ("TECH.md", 7),
+    ("TRANSPORT.md", 2),
+    ("VISION.md", 2),
+];
+
+/// Which documents the constant check reads: the specifications, not the
+/// ledgers, runbooks, format notes or chronicles, whose hex is addresses,
+/// record bytes and stories.
+fn is_specification(name: &str) -> bool {
+    name.ends_with(".md")
+        && !matches!(
+            name,
+            "JOURNAL.md"
+                | "QUEUE.md"
+                | "PARKED.md"
+                | "DECISIONS.md"
+                | "RUNS.md"
+                | "ORACLE.md"
+                | "CENSUS.md"
+                | "EMULATOR.md"
+                | "FORMATS.md"
+                | "DEBUG_VIEWER.md"
+                | "RECGAME.md"
+                | "COMMANDS.md"
+                | "SYNC.md"
+        )
+}
+
+/// Every `0x` constant of two to four hex digits in a line that is not an
+/// address suffix (`@`, `+`, `-` before it) — the shape of a flag, a reach,
+/// a mask or a tuning value, as the specifications write them.
+fn short_constants(text: &str) -> Vec<String> {
+    let mut out = Vec::new();
+    let b = text.as_bytes();
+    for (at, _) in text.match_indices("0x") {
+        let before = if at == 0 { b' ' } else { b[at - 1] };
+        if before.is_ascii_alphanumeric() || matches!(before, b'_' | b'@' | b'+' | b'-') {
+            continue;
+        }
+        let hex: String = text[at + 2..]
+            .chars()
+            .take_while(|c| c.is_ascii_hexdigit())
+            .collect();
+        let after = text[at + 2 + hex.len()..].chars().next().unwrap_or(' ');
+        if (2..=4).contains(&hex.len()) && !(after.is_ascii_alphanumeric() || after == '_') {
+            out.push(hex.to_lowercase());
+        }
+    }
+    out
+}
+
+/// **A constant a specification names is in the code, or pinned as not.**
+#[test]
+fn a_constant_a_document_names_is_built_or_pinned() {
+    let crates = docs().join("..").join("crates");
+    let mut code = String::new();
+    let mut stack = vec![crates];
+    while let Some(dir) = stack.pop() {
+        for entry in std::fs::read_dir(&dir).expect("crates/") {
+            let path = entry.expect("entry").path();
+            if path.is_dir() {
+                stack.push(path);
+            } else if path.extension().is_some_and(|e| e == "rs") {
+                code.push_str(&std::fs::read_to_string(&path).expect("read").to_lowercase());
+                code.push('\n');
+            }
+        }
+    }
+    let built = |hex: &str| {
+        let trimmed = hex.trim_start_matches('0');
+        let forms = [
+            format!("0x{hex}"),
+            format!("0x{hex:0>4}"),
+            format!("0x{trimmed}"),
+        ];
+        forms.iter().any(|f| {
+            f.len() > 2 && {
+                // A whole token: the next byte is not a hex digit or an identifier.
+                code.match_indices(f.as_str()).any(|(i, _)| {
+                    let next = code.as_bytes().get(i + f.len()).copied().unwrap_or(b' ');
+                    !(next.is_ascii_alphanumeric() || next == b'_')
+                })
+            }
+        })
+    };
+    let mut per_file: Vec<(String, Vec<String>)> = Vec::new();
+    for entry in std::fs::read_dir(docs()).expect("docs/") {
+        let path = entry.expect("entry").path();
+        let Some(name) = path.file_name().and_then(|n| n.to_str()) else {
+            continue;
+        };
+        if !is_specification(name) {
+            continue;
+        }
+        let text = std::fs::read_to_string(&path).expect("read");
+        let mut missing: Vec<String> = short_constants(&text)
+            .into_iter()
+            .filter(|h| !built(h))
+            .map(|h| format!("0x{h}"))
+            .collect();
+        missing.sort();
+        missing.dedup();
+        if !missing.is_empty() {
+            per_file.push((name.to_string(), missing));
+        }
+    }
+    per_file.sort();
+    let mut failures = Vec::new();
+    for (name, missing) in &per_file {
+        let pin = UNBUILT
+            .iter()
+            .find(|(n, _)| n == name)
+            .map(|(_, c)| *c)
+            .unwrap_or(0);
+        if missing.len() > pin {
+            failures.push(format!(
+                "docs/{name} names {} constants no crate carries, pinned at {pin}: {}",
+                missing.len(),
+                missing.join(" ")
+            ));
+        } else if missing.len() < pin {
+            failures.push(format!(
+                "docs/{name} is down to {} unbuilt constants from a pin of {pin}; lower the pin in UNBUILT to bank it",
+                missing.len()
+            ));
+        }
+    }
+    for (name, pin) in UNBUILT {
+        if *pin > 0 && !per_file.iter().any(|(n, _)| n == name) {
+            failures.push(format!(
+                "docs/{name} has no unbuilt constants; delete its UNBUILT row"
+            ));
         }
     }
     assert!(failures.is_empty(), "{}", failures.join("\n"));

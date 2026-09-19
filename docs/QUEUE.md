@@ -12,36 +12,36 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-18/19, two lanes all day, **nineteen landings**. Great Lakes **9182
-→ 9510 (+328)**, golden **617 → 626 (+9)**; thirteen booked mechanisms wrong,
-the frame right every time. **The steering pass is due** — Fable, main thread.*
+*2026-09-19, the **sixth Fable steering pass** (`docs/audit/2026-09-19-fable-pass-6.md`,
+DECISIONS 42). No score moved; none was meant to. The tranche before it:
+nineteen landings, nine word-moving, Great Lakes **9182 → 9510**, golden
+**617 → 626**, every worker verified on Opus 5.*
 
-- **The arrow was the AI track's whole day**: the attack ANIMATION's event
-  track launches it (389); 9451 is **two arrows on one farm**, the first
-  leaving `damage` 0 so the second re-opens the first-wound gate (394, §9.5
-  struck); 396 **measured** the launch offset off run109's record. 9182 →
-  9415 → 9451 → **9510**, and **402's widening did not move it** — the record
-  is **27 fields, not 25**, booked from one item's usage, not the function.
-- **The golden word moves 617 → 626.** 624 → 621 was **on purpose**
-  (`Armies::emergency` is the CITY alarm's); then **405 took it to 626** —
-  `do_move`'s whole ATTACK arm is a **ranged** attacker's (`ObjectTypeData
-  +0x1fc`) and this crate asked every type, killing two hoplite chases 171
-  short. §4.4 had said "a ranged type" since the second reading. All six units
-  now carry the dump's coordinates through 624; §21.4's second residue closed
-  with it, and the price (DECISIONS 36) is endpoint 48 → 51 off.
-- **The namesake has never fired in a scored capture** (382): zero non-exempt outcomes over 24,000 frames, the Temple chapter the only route; the held-out map answers **1 tick, 0 orders** (run106).
-- **Nothing is in flight**, both lanes reaped. 405 was recovered by hand — it
-  wrote its files and hit the weekly limit before committing. Five open, 58
-  parked; **Fable backlog: fifteen Loop items** (251, 335, 343, 356, 321,
-  313, 367, 374, 375, 377, 397, 398, 404, 406, 411) plus the marked rows.
+- **The price per word doubled and the price per landing did not**: 57
+  USD a word-moving landing (67 with the commander) against 31 / 39, because
+  **thirteen of nineteen briefs named a mechanism that was not the cause**
+  while the frame was right every time. By track: rules 45, AI **83**. So
+  **a residue item is now booked by its frame and its draw delta**, and a
+  mechanism in the title is the last item's hypothesis (`CLAUDE.md`).
+- **Ten Loop items became guards or clauses**: the `Golden:` line is read
+  against the pin; constants are the worker's, these lines the commander's;
+  the chain is merge, **book**, gate, push, reap; a refused reap is work on
+  the floor; a brief reserves run and section numbers; **a dead-listed cite
+  and an unbuilt constant now fail** unless pinned (412, 413 hold the first
+  run's rows); the unattended lane mutes the game, untested until its run.
+- **Census** cited 862 → 890, entered 7,180, no `*Order` row moved; the
+  held-out map (run106) generalises at **1 tick, 0 orders**, undebugged by rule.
+- **Nothing is in flight.** Five open, 56 parked; **Fable backlog: five
+  Loop items** (251, 335, 313, 367, 375) — 367, the AI's dump, is the next
+  pass's first build.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w9711 of 24,000 · GreatLakes w9510 of 24,000
 Golden: w626 of 901 · chapter one pinned · 408 next
 Endpoint 24001: EastIndies 64 off, 5 unlinked · GreatLakes 51 off, 11 unlinked
 
-**Opener: the fifth Fable steering pass — is the tranche real, has the headline
-moved, what is the finish line — then the marked rows; 408 is the lane after.**
+**Opener: 408 on the AI lane — widen 9510 whole and name the cause before
+any mechanism; 365 or 370 beside it on the rules lane.**
 
 ## The queue
 
@@ -95,6 +95,8 @@ the backlog is `docs/PARKED.md`, and an item returns only when a score names it.
   first and whether it moved; delete finished items — their story is in
   `docs/journal/`. Shorten only what you are touching, never another
   author's item, and never widen a line to beat a count.
+- **A residue item is booked by its frame and its draw delta** (DECISIONS
+  42); a mechanism in its title is the previous item's hypothesis.
 - **A finding parks by default.** `docs/PARKED.md` takes what names no
   score; this file takes only what names a headline's frame, a floor, or
   a takes-chain to one. **Neither headline slot is ever empty**: no item
@@ -102,26 +104,24 @@ the backlog is `docs/PARKED.md`, and an item returns only when a score names it.
   means the next unpinned chapter of the golden record. Loop items —
   tooling, guards, these rules — are the steering pass's, never a worker's.
 - **A worker never books a number and never edits this file or
-  `docs/JOURNAL.md`.** It reports; the commander books and writes the
-  `Scoreboard:` line; the worker's story is `docs/journal/<date>-item-<N>.md`.
-- **A number is measured on the tip** — after the worker's last `ccc
-  update`, or the report says which tree. 301's +381 was attributed to the
-  wrong half against a stale base and would have landed wired.
-- **Merge, gate, push, reap — one chain.** A reap left for "before the
-  next spawn" was forgotten twice in one session.
-- **A floor that moves** moves `FLOORS`, the assert reading it, and the
-  `Scoreboard:` line together; the guard parses the line against the floors.
-  The `Golden:` line is the same shape for the rules track.
+  `docs/JOURNAL.md`.** It reports; the commander books and writes these
+  lines; the story is `docs/journal/<date>-item-<N>.md`. **A pinned
+  constant is the worker's to re-pin; the line is the commander's.** The
+  chain — merge, book, gate, push, reap — is `CLAUDE.md`'s. **A number is
+  measured on the tip**, after the last `ccc update`, or names its tree.
+- **The floors and these lines move together** — `FLOORS`, `LONG_WORD_*`,
+  `GOLDEN_WORD_*`, `ENDPOINTS` with `Scoreboard:`, `Long captures:`,
+  `Golden:`, `Endpoint <frame>:` — and the guards read those phrases and
+  `Fable backlog: N Loop items` literally. The length guard counts every
+  line under "Where things stand" to the next `## `, blanks included.
 - **A capture is a draw-stream trace first, detail on demand** (DECISIONS
   41): whole length at `cover=0`, then a windowed re-run sized to the word;
   after 363, the click-free lane unless it needs the mouse. Overlap the
-  neighbours on purpose: six blocks each end (run83); `samegame.py` exits
-  0 when nothing is in common, so assert the count, not the verdict.
-- **Grep for the derived quantity, the SHAPE and the GATE — not only for
-  coverage of a frame.** A term zero in every dump is either zero-valued or
-  switched off: 117 and 178 were the second.
-- **A check on a never-cleared field asserts a CHANGE, not a value** —
-  `collide_frame` is a permanent stamp (run85). Test both directions first.
+  neighbours: six blocks each end (run83); `samegame.py` exits 0 when
+  nothing is in common, so assert the count, not the verdict.
+- **Grep for the derived quantity, the SHAPE and the GATE**: a term zero in
+  every dump is either zero-valued or switched off (117, 178). **A
+  never-cleared field asserts a CHANGE, not a value** (`collide_frame`, run85).
 - **The gate is `python3 tools/release_gate.py <install> --test-threads 4`**,
   to a file, never piped — a pipe launders the 137. A commander's clear is
   free when every landed branch is merged, gated, pushed and reaped,

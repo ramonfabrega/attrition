@@ -167,7 +167,11 @@ value diff beside it** — the dump's own coordinates on the frame it moved —
 because a draw stream can agree on a wrong destination for a long time,
 and only a value comparison tells the two apart. This is the stopping rule
 for the long middle: the residue chase is productive and unbounded, and
-only the number says whether the whole is converging.
+only the number says whether the whole is converging. **A residue item is
+booked by its frame and its draw delta**; a mechanism its title names is
+the previous item's hypothesis and is written as one, because the frame
+has been right every time the named mechanism was wrong
+(`docs/DECISIONS.md` entry 42).
 
 **Definition of done**, all five:
 
@@ -362,10 +366,19 @@ gate, push and reap are one chain**; a reap left for "before the next
 spawn" is a reap that does not happen. `docs/DECISIONS.md` entry 34.
 
 **The commander's chain is ccc's, and it is one line.** `ccc merge <ref>
---no-ff`, the gate to a file, `ccc push <ref> --base`, `ccc rm <ref>` —
-never a raw `git merge`, never a hand-rolled reap, and **nothing under
-`docs/` is edited while a gate runs**: the handoff is rewritten before the
-gate, not during it. `ccc spawn --json`'s answer is never filtered — the
+--no-ff`, the booking commit, the gate to a file, `ccc push <ref> --base`,
+`ccc rm <ref>` — never a raw `git merge`, never a hand-rolled reap, **no
+spawn and no `ccc update` between the merge and its booking commit** (the
+tree is red in that window), and **nothing under `docs/` is edited while
+a gate runs**: the handoff is rewritten before the gate, not during it.
+**A reap that refuses is a lane with work on the floor**: a killed lane
+looks exactly like one that never started, so a handoff never says a lane
+produced nothing until `git status` in that lane has said so. **A brief
+reserves what two lanes could both take** — the run number, and the
+section number when another lane is in the same document. **A pinned
+constant and its comment are the worker's to re-pin; the queue's lines
+are the commander's to write**, and a worker whose gate is red only on
+those lines has done its half. `ccc spawn --json`'s answer is never filtered — the
 id lore's lineage reads is not the one the commander reads. **The
 commander counts its landings and stops at twenty**, writing the handoff
 and saying the steering pass is due; a free clear between is taken at a

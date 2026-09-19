@@ -3,7 +3,7 @@
 Newest last. Each entry records what was chosen, what it was chosen over, and
 why — so a future session can tell a considered decision from an accident.
 
-## Index — what stands, as of 2026-09-18
+## Index — what stands, as of 2026-09-19
 
 Nobody reads this file whole; a session reads the entry it is pointed at,
 and an entry that has been amended or superseded does not say so at its
@@ -51,8 +51,9 @@ is append-only and amended in place, as it always was.
 - 37 standing — `forbid(unsafe_code)` is the whole tree's
 - 38 extended by 41 — A lab branch lands by merge
 - 39 extended by 40 — The queue holds what names a score
-- 40 standing — The loop governs itself
-- 41 standing — Two tracks: the rules on a golden record, the AI on the long captures
+- 40 extended by 42 — The loop governs itself
+- 41 extended by 42 — Two tracks: the rules on a golden record, the AI on the long captures
+- 42 standing — The frame is the item; the loop's holes become guards
 
 ## 1. Fidelity before divergence
 
@@ -2201,3 +2202,92 @@ rules and the designs, leave the code and the container.* The file's
 it treasures, and the sync-category table, `DataWalk`, and a re-derived AI
 are designs worth owning. Ramon's reading, in the room; the pass that
 rewrites the file decides it.
+
+## 42. The frame is the item; the loop's holes become guards
+
+**Decided 2026-09-19**, the sixth Fable pass, in the main thread
+(`docs/audit/2026-09-19-fable-pass-6.md`). Extends entries 40 and 41;
+overturns nothing.
+
+**What was measured.** Nineteen landings since the fifth pass, two lanes
+all day, every worker verified on Opus 5 from its transcript. Nine moved a
+word — Great Lakes 9,182 → 9,510 and the golden record 617 → 626, one of
+those steps backward on purpose — and **thirteen of the nineteen briefs
+named a mechanism that turned out not to be the cause**, while the frame
+each named was right every time. Workers' list price 517 USD; per
+word-moving landing 57 workers alone and 67 with the commander, against
+31 and 39 at the fourth pass and the stop of 78 that pass set. Split by
+track the picture is not one number: the rules track spent 268 USD over
+ten items for six word moves (45 each); the AI track 249 over nine for
+three (83 each, past the stop). Per landing the price did not move — 27
+against 24. What doubled is the share of landings that moved nothing,
+and every one of those was a brief that sent its worker to build on a
+hypothesis the item before it had already refuted.
+
+**The frame is the item.** Entry 40's width-two stop was written for a
+lane running parked value-diff rows; that lane never ran — the second
+lane became entry 41's rules track, and it is the cheaper of the two. The
+stop is not applied to it. What the doubling on the AI track measures is
+parked 377, three times over: a residue item titled by a mechanism books
+a reading, and the reading has been wrong at every step since the word
+entered combat. So a residue item is booked by its **frame and its draw
+delta** — the two things that have held — and any mechanism the title
+names is written as the previous item's hypothesis, not the subject. The
+headline slot's standing rule already says this for the case of no open
+item; it is now the rule for every residue item. The next pass measures
+the AI track's price per word against 83, and the fraction of briefs
+whose named mechanism survived.
+
+**The loop's holes become guards, with the row pinned.** Six of the
+fifteen Loop items were the same shape — a rule the day broke and a check
+that could have caught it — and each is now a check or a clause:
+
+- the handoff's `Golden:` line is read against the pinned word, the way
+  the other two lines already were (parked 406; it read `w624` over 621
+  for an item);
+- the endpoint and golden guards say **who owns which half** — the
+  constant is the worker's, the queue's line is the commander's (398),
+  and `CLAUDE.md` says the same in the chain;
+- the handoff guard names the span it counted and the literal phrases the
+  other guards read (374);
+- the chain gains `book` between merge and gate, with no spawn or update
+  in the window that leaves the tree red (404), and the rule that a
+  refused reap is a lane with work on the floor, never a lane that did
+  nothing (411 — item 405's whole landing was found that way);
+- a brief reserves the run number and the section number two lanes could
+  both take (397);
+- **a dead-listed function may be cited only where pinned** (321): the
+  list is read from `docs/EMULATOR.md` §4's own enumeration, fourteen
+  document-address pairs stood on the day and are pinned, a new one fails,
+  and each pinned one is owed a reconciliation (parked 412);
+- **a constant a specification names is built or pinned** (356): every
+  `0x` value of two to four digits that no crate carries, seventy-seven
+  across eighteen documents, pinned by file and allowed only to shrink — the
+  shape that would have found `0xf6` a month early (parked 413);
+- the unattended lane mutes the game (343), by the mechanism and restore
+  `set_map` already uses; unexercised until the next click-free run.
+
+Each guard was made to fail first, on an empty baseline and on a wrong
+line, and the failing output is what the pins are.
+
+**The estimate, read against the day.** Entry 41 said two to three months
+for the long captures at the fourth pass's cadence, which was 1,500 Great
+Lakes frames a day through the economy. This day moved 328, through
+combat, and East Indies did not move at all. The census says why: the
+new citations landed in `Unit`, `Leader` and `Group`, and not one in an
+`*Order` class, so the word is now inside the half the documents never
+mapped. The estimate is not revised on one day; the next pass reads the
+Great Lakes rate against 328, and if it holds, the months are the census's
+untouched half and not entry 41's.
+
+**The held-out map is the generalisation number, and it is 1.** run106,
+Himalayas, one tick and zero orders — the AI's scout picks a wrong
+destination on frame 1. It stays undebugged by rule, and the pass records
+it so nobody reads the two scored maps' floors as the sim's.
+
+**Not taken**: the trailer guard (335), `memcap.sh`'s fixture (251), ccc's
+`land` verb (313), the staged-run gate (375), and the AI's dump through
+the tracer's proxy table (367) — the last is the one with a score behind
+it and the first thing the next pass should build, since it is the only
+instrument that would let the AI track diff a decision rather than its
+effects.

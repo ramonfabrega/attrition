@@ -176,4 +176,32 @@ mod tests {
              LONG_WORD_GREAT_LAKES"
         );
     }
+
+    /// **The rules track's headline has the guard the AI track's has** —
+    /// the handoff's `Golden:` line against [`GOLDEN_WORD_CHAPTER_ONE`].
+    /// `docs_guard::the_handoff_carries_the_golden_line` only checks the
+    /// line names *a* word; on 2026-09-19 it read `w624` over a pin of 621
+    /// for a whole item (parked 406, the sixth pass). Same shape as the
+    /// two above. **The constant is the worker's to re-pin; the line is the
+    /// commander's** — a worker that lands with this red has done its half.
+    #[test]
+    fn the_handoff_s_golden_line_is_the_pinned_word() {
+        let path = concat!(env!("CARGO_MANIFEST_DIR"), "/../../docs/QUEUE.md");
+        let q = std::fs::read_to_string(path).expect("docs/QUEUE.md");
+        let line = q.lines().find(|l| l.starts_with("Golden:")).expect(
+            "docs/QUEUE.md has no `Golden:` line in the handoff; write \
+             `Golden: w<frame> of <length> · …`",
+        );
+        let said = line
+            .trim_start_matches("Golden:")
+            .split_whitespace()
+            .find_map(|w| w.strip_prefix('w').and_then(|d| d.parse::<i64>().ok()))
+            .unwrap_or_else(|| panic!("the `Golden:` line names no `w<frame>`: {line:?}"));
+        assert_eq!(
+            said, GOLDEN_WORD_CHAPTER_ONE,
+            "the handoff's `Golden:` line says w{said}; GOLDEN_WORD_CHAPTER_ONE is \
+             {GOLDEN_WORD_CHAPTER_ONE}. The constant and its comment are the \
+             worker's to re-pin; the queue's line is the commander's to write"
+        );
+    }
 }

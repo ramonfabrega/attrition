@@ -27,29 +27,10 @@ here too, except the item cap — a parked item is not an open one.
 Tooling, guards and the queue's own rules. The Fable pass takes these
 (`CLAUDE.md`, "Fan-out rules"); a commander never spawns one. Item 279's
 two ledger regexes closed in the third pass, 2026-09-17; the fourth pass,
-2026-09-18, ruled six (`docs/audit/2026-09-18-fable-pass-4.md`).
-
-(411) **A lane killed mid-item leaves its work on the floor, and nothing
-in the loop looks for it.** Measured 2026-09-19: att-405 wrote seven files
-and a journal — the golden word 621 -> 626, a guard, a re-pinned endpoint —
-then hit the weekly token limit before its first commit. `ccc list` showed
-`ahead 0, unpushed 0` and a `blocked` detail, which reads exactly like a
-lane that never started; the queue's handoff was written saying it
-"produced nothing". **What found the work was the reap refusing**: `ccc rm`
-will not delete a dirty worktree, so the one step that would have destroyed
-it is the step that saved it.
-
-Three shapes, for the pass to choose between. **The commander's chain has
-no "is it dirty" step** — merge/gate/push/reap all assume a lane that
-committed, and a lane that did not is invisible until the reap. **A
-worker's ninety-minute status rule does not fire when the worker is dead**;
-the limit kills every lane at once, so the silence is indistinguishable
-from work. And **mtimes are not the way to check**: the first sweep here
-used `find -newermt` with a local-time cutoff against ccc's UTC `startedAt`
-and so looked five hours past everything 405 wrote — the check is `git
-status` in the lane, which the worktree guard refuses across worktrees, so
-it wants `EnterWorktree` or a ccc verb. A `ccc list` field for "dirty, N
-files" would make the whole class visible at a glance.
+2026-09-18, ruled six (`docs/audit/2026-09-18-fable-pass-4.md`); the sixth,
+2026-09-19, ruled ten — 377, 398, 406, 404, 411, 397, 374, 343, 356, 321 —
+each now a guard or a clause (`docs/audit/2026-09-19-fable-pass-6.md`,
+DECISIONS 42). 341 closed 2026-09-18 by item 363.
 
 (375) **A staged run is indistinguishable from an unstaged one, and the
 borrow of a checksum trace is ungated.** Found by item 364, 2026-09-18,
@@ -72,95 +53,6 @@ make that the only possible behaviour: a golden run declares itself, and
 the borrow refuses per-frame records from a run that did not. Written up
 because the next golden capture will hit it and a silently-passing
 comparison is what it looks like. Not urgent — see (376) for why.
-
-(377) **An item's title names a mechanism, and the mechanism has been
-wrong three times running.** Measured across one day, 2026-09-18, on one
-frame: 358 left Great Lakes 9182 as "the market's three `use_market+0x1ed`
-draws"; 362 took that title and found `use_market` implements the
-decompile line for line, the cause being `MakeObject.num` — every civilian
-a batch of one; 362 then left the frame as "9182's step-6 purchases", and
-368 took THAT title and found the step-6 buys are downstream of
-`use_market`'s own `need` vector. Three bookings, three named mechanisms,
-none of them the cause. What was right every time was the **frame** and
-the **draw stream** — 9182 has held across all three, and in 362's case
-the draw stream itself named the real cause (three `make_stuff+0x221` and
-zero `+0x63d` at 8985, which no step-6 purchase can do).
-
-The cost is not wasted work — each item landed real fixes — but every one
-of those briefs told its worker to build on a reading that was already
-false, and only the standing "re-measure before diagnosing" rule stopped
-it. Candidate: a residue item is booked by its **frame and its draw
-delta**, with any named mechanism marked as the previous item's
-hypothesis rather than as the subject. The queue's own item-title
-convention is the pass's to change.
-
-(398) **The endpoint guard makes a worker choose between a red gate and
-a rule, and nothing says who owns which half.**
-`the_handoff_s_endpoint_is_the_pinned_counts` compares `ENDPOINTS`
-against `docs/QUEUE.md`'s line, so an item that moves the endpoint fails
-its own gate unless the worker edits the commander's file. Three workers
-read it three ways in one day: 362 re-pinned the constants and landed red
-naming the line (right); 395 re-pinned **and** edited the line (one step
-too far — it conflicted on merge); 396 left **both** to the commander
-(one step too few — three tests failed). 396 traced its own inference
-exactly: the brief's stock "you never book a number" reads as the floor
-itself, and the guard's panic says to re-pin "`ENDPOINTS`/`LADDER` **and
-the queue's `Endpoint` line** together", so the two halves look like one
-indivisible act and the act looks like the commander's. **The fix is one
-sentence in both places**: the constants and their comments are the
-worker's, the queue's line is the commander's. Take it with 406. And
-whatever replaces it must be measured on the MERGE — 394 read 58/12
-alone and 57/10 merged, 395 read 53/14 against a base of 43.
-
-(404) **A worker can inherit a base that is red between the commander's
-merge and its booking commit.** Item 396 reported
-`the_handoff_counts_the_loop_backlog` failing on a base it had not
-written — correct behaviour, and a real hole: `ccc merge` lands a branch
-that changes PARKED before the booking commit updates the handoff's
-counts, so any spawn or `ccc update` in that window takes a tree the
-paperwork guards refuse. Candidates: book in the same commit as the
-merge; have the merge step run `guard.sh` and refuse to leave the tree
-red; or generate the counted fields.
-
-(406) **The `Golden:` line can drift silently; the other two cannot.**
-Found by item 399, 2026-09-19, when the handoff read `w624` against
-`GOLDEN_WORD_CHAPTER_ONE = 621`. `the_handoff_carries_the_golden_line`
-only checks the line **names** a `w<frame>`;
-`the_handoff_s_scoreboard_is_the_floors` does not read it at all. So the
-rules track's headline has no guard where the AI track's has two —
-`the_handoff_s_endpoint_is_the_pinned_counts` and the scoreboard's — and
-that asymmetry dates from the fifth pass inventing the line (DECISIONS 41
-§1) rather than from any decision. One assertion closes it, beside the
-two that already do exactly this shape. The pass's, and it should be
-taken with 398: the same fix wants to say **who owns which half**, since
-three workers read that three ways in one day.
-
-(397) **Two lanes number into one shared namespace with no reservation.**
-Three collisions on 2026-09-19, every one caught by a worker noticing
-rather than by a check. `docs/COMBAT.md`: items 392, 394 and 395 wanted
-the same section number, and `ccc merge` and `ccc update` both refused;
-each loser renumbered in its own commit so the merge shows which side
-gave way. `docs/RUNS.md`: item 386's call-proxy capture took **run108**
-through `tools/explore/golden_capture.sh`, which leaves no stanza in
-`captures.txt`, so `DRY=1 runqueue.sh` — the numbering's only collision
-check — **cannot see that lane at all**; 396 and then 399 both had to
-renumber. Candidates: a commander check that two in-flight briefs do not
-name the same document; a reservation in the brief; numbering by anchor
-rather than ordinal; and making `golden_capture.sh` visible to the
-ledger. The frequency only rises — both tracks now work combat.
-
-(374) **The handoff's guards have an undocumented phrase contract.**
-`the_handoff_is_short` reports only "N lines; the bound is 32" — never
-which lines it counted — so trimming is guess-and-retry; it took four
-passes, then two more later the same day. And
-`the_handoff_counts_the_loop_backlog` requires the literal
-`Fable backlog: N Loop items`: abbreviating it while trimming for the
-first guard broke the second, **twice**, because nothing in the file
-being edited says the phrase is load-bearing. Eight-plus round trips in
-one session. Fixes, cheapest first: print the counted span's first and
-last line; name the literal phrases (`Scoreboard:`, `Long captures:`,
-`Golden:`, `Endpoint`, `Fable backlog: N Loop items`) in the panic text;
-or state the contract in the queue's maintenance section.
 
 (251) **`memcap.sh` has two doors left and half a fixture**: the refused
 sample that read as zero is closed (exit 125, lab L25) and the mode-644
@@ -201,57 +93,6 @@ tree gets no window at all (`nodrv_CreateWindow`, dead in 3.8 s, 0 frames),
 so every launch goes through `viadriver.sh` (`docs/ORACLE.md`, "The
 click-free lane needs a window").
 
-(343) **The game plays sound at whoever is near the machine**, and nothing
-turns it off. Ramon's flag the same day. The settings are three tags in
-`PlayerProfile/Player.dat` — `<MUSIC_VOL value="128"/>`, `<SOUND_VOL
-value="192"/>`, `<TAUNT_VOL value="192"/>` — the same file and the same
-regex-substitution mechanism `unattended_capture.py`'s `set_map()` already
-uses for `<MAP_STYLE>`, already covered by `live_session`'s settings backup
-and restore. A few lines in a place the tool already edits, with the
-restore already written, and it makes an unattended run a good neighbour.
-
-(356) **Nothing checks that a documented claim reached the code.**
-**Strongest evidence yet, 2026-09-18 (item 384)**: `docs/COMBAT.md` §13.2
-has carried the HOPLITES `0xf6` melee reach since the second reading, and
-the single call site passed `false`, so **every melee unit in the sim
-fought at `0x66` for a month** while the document said otherwise. A
-listing confirmed it in minutes once anyone looked (`006486b0`,
-`is(0x84, 0)`). Item
-352, 2026-09-18: `BuildType::mask_me@006312a0`'s first statement —
-`cells[…].flags |= 0x4000` on the mark, `&= 0xbfff` on the unmark — had
-been in `docs/CITIES.md` §3.6 **in prose since that mechanic's first
-reading**, and `crates/sim` never wrote the bit. Without it the muster
-ring's score cannot separate two open cells, so the earliest tie won and
-Great Lakes parted 221 frames early. run34's start block confirms the
-original from the other side: thirteen cells carry the bit and each is a
-starting building's.
-
-This is the method's own seam. A document is written from the original and
-the code is implemented from the document, and `docs_guard` checks that a
-cited **address** exists and that a **section** does not grow — never that
-a claim was built. So a correct reading can sit in a specification for
-weeks doing nothing, and the diff only catches it when some frame happens
-to depend on it.
-
-A tractable shape exists and 352 used it by hand: **a hex constant or flag
-named in `docs/` that appears nowhere under `crates/sim/`** is greppable,
-and would have found this one. It will be noisy — a constant can be named
-for context, or built under another spelling — so guard, report or
-author's checklist is the pass's call. The gap is real and cost frames.
-
-(321) **A document that cites a dead-listed function by address cites
-code the game does not run.** `LeaderData::is_human@006ec170` is on
-EMULATOR.md §4's dead list — no call, no jmp, no embedded address — so
-audit V14's `leaders.list[who] & 4` verdict was read from a standalone
-body the executable never executes; the verdict itself survives on
-evidence (run58's dump has the AI carrying `& 4` and the human not), but
-the citation does not. Found by item 320 on 2026-09-17 while in
-EMULATOR.md for another reason. `docs_guard` already checks every
-function address a specification cites against the decompile export's
-index — extending that check to the **dead list** is the guard shape, and
-it would name every other document in this position at once. The steering
-pass's: a guard, and then whatever it finds.
-
 (313) **The landing chain wants one verb.** Merge, gate, push and reap are
 one chain by rule since 09-17; ccc has `merge`, `update` and `clear`, and
 the reap is a separate command a commander typed after the chain twice and
@@ -267,6 +108,35 @@ arguments and answer for `astar_path` and `calc_cost`; add the Leader's
 deciding functions — `compute_sites`, `action_respond`, `create_units`
 first — and teach `rondata` to diff the answers. The pass's: it is a
 tracer change, and a wrong proxy stub costs a run.
+
+## Parked by the sixth Fable pass, 2026-09-19 — a guard's first run
+
+(412) **Fourteen document-address pairs cite a dead-listed function.**
+`docs_guard::a_dead_listed_address_is_cited_only_where_pinned` reads
+`docs/EMULATOR.md` §4's fifteen and pins the citations standing on the day
+in `DEAD_CITED`: `LeaderData::is_human@006ec170` in ARMY, COMBAT, GROUPS
+and ORDERS; `find_wpath_army@00683730` in GROUPS and ORDERS;
+`get_estimate@00688310` in PATHFINDER and RUNS; `locked_transport@006d5230`
+and `find_dock@0065cfd0` in TRANSPORT; `set_domain@00633390` in COMBAT;
+`add_attack_order@00622ce0` in ORDERS; `set_gathered_at@006b46b0` in AI;
+`cos_table@00a469f0` in MOVEMENT. Each cites a standalone body the linker
+kept while the live copy is inlined in a caller, so the claim rests on
+whatever else backs it — run58's dump for `is_human`, a listing for the
+rest — and the reconciliation is to say so at the citation and delete the
+row. Names no score; a worker takes one document at a time, and the row's
+deletion is the landing.
+
+(413) **Seventy-seven constants the specifications name that no crate
+carries.** `docs_guard::a_constant_a_document_names_is_built_or_pinned`
+pins them by file in `UNBUILT` — AI 20, ORDERS 9, TECH 7, CITIES 6, GOODY 6,
+ARMY 5, ECONOMY 5, PRODUCTION 4, GROUPS 3, and one or two in nine more —
+and a file may only shrink. Three kinds, to be told apart one file at a
+time: a field offset written without its `+` (spell it `+0x..` and the
+guard stops reading it); a value named for context the code never needs
+(say so beside it); and a constant read and never built, which is the
+kind that cost a month at `0x66`. The third kind is an item on whichever
+track its frame is on; the other two are a document edit and a lowered
+pin. Names no score until a row does.
 
 ## Parked by the third Fable pass, 2026-09-17 — names no score
 

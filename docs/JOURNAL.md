@@ -20424,3 +20424,42 @@ session: the runbook stays, the 56 run sections moved whole to
 `docs/RUNS.md` with every outside citation repointed. Named and not
 taken: `AI.md` §2, `ORDERS.md` §4. The estimate on record: four to six
 months. `docs/audit/2026-09-18-fable-pass-5.md`.
+
+## 2026-09-19 — the sixth Fable pass: the frame was right nineteen times, and the loop's holes became guards (Fable 5.1, steering)
+
+The scheduled pass, after nineteen landings on two lanes in a day. What
+was measured first: every worker on Opus 5 from its transcript; nine of
+the nineteen moved a word — Great Lakes 9182 → 9510, the golden record
+617 → 626 with one step backward on purpose — and **thirteen of the
+nineteen briefs named a mechanism that was not the cause** while the
+frame each named held every time. Workers 517 USD; per word-moving
+landing 57 alone and 67 with the commander, against 31 and 39 at the
+fourth pass and its stop of 78; per landing 27 against 24, unchanged. By
+track the number splits — rules 45, AI 83 — and the fourth pass's stop
+was written for a parked value-diff lane that never ran, since the
+second lane became the rules track and is the cheaper of the two. What
+doubled is the share of landings that moved nothing, and every one was a
+brief built on a hypothesis the item before had already refuted. So
+**DECISIONS 42**: a residue item is booked by its frame and its draw
+delta, and a mechanism in the title is the previous item's hypothesis.
+
+The rest was the Loop backlog, fifteen items, of which ten were the same
+shape — a rule the day broke and a check that could have caught it — and
+each is now a guard or a clause: the `Golden:` line read against the pin
+(it had read w624 over 621 for an item); the constant is the worker's and
+the queue's line the commander's, in the guards' own panic text; the
+handoff guard names the span it counted; the chain is merge, **book**,
+gate, push, reap, with a refused reap read as work on the floor rather
+than a lane that did nothing, which is how 405's whole landing was found;
+a brief reserves run and section numbers; **a dead-listed function is
+cited only where pinned**, fourteen pairs standing on the day, after the
+parser's first draft read the two live inlined copies the same paragraph
+names as dead; **a constant a specification names is built or pinned**,
+seventy-seven across eighteen documents, the shape that would have found
+`0xf6` a month early; and the unattended lane mutes the game, untested
+until its next run. Each made to fail first. The census re-run: cited
+862 → 890, entered unchanged, no `*Order` row moved — combat was worked
+through `Unit::think`, never an order class. The held-out map: 1 tick, 0
+orders, undebugged by rule. Not taken: 367, the AI's dump — the one Loop
+item with a score behind it, and the next pass's first build. Five Loop
+items remain. `docs/audit/2026-09-19-fable-pass-6.md`.

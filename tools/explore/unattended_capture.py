@@ -38,6 +38,19 @@ def set_map(profile, style):
     path.write_bytes(text.encode('utf-8'))
 
 
+def mute(profile):
+    # The game plays sound at whoever is near the machine (parked 343, the
+    # sixth pass 2026-09-19). Same file, same mechanism and same restore as
+    # set_map: three volume tags, each expected exactly once.
+    path = profile / 'PlayerProfile' / 'Player.dat'
+    text = path.read_bytes().decode('utf-8')
+    for tag in ('MUSIC_VOL', 'SOUND_VOL', 'TAUNT_VOL'):
+        text, n = re.subn(rf'<{tag} value="\d+"/>', f'<{tag} value="0"/>', text)
+        if n != 1:
+            raise ValueError(f'expected one {tag} setting, found {n}')
+    path.write_bytes(text.encode('utf-8'))
+
+
 def verify_game(path, style, end, seed=None):
     # Read back the game's identity, never infer it from requested settings.
     styles = set()
@@ -111,6 +124,7 @@ def capture(args, output, style):
                                             if (output/'rontrace.cmd').is_file() else None}
         staged = True
         set_map(args.profile, style)
+        mute(args.profile)
         rise = args.profile / 'rise.ini'
         rise.write_text(live_session.key(rise.read_text(), 'Seed (0 for random)', args.seed))
         env = os.environ.copy()
