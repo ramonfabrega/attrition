@@ -984,6 +984,16 @@ mod tests {
     /// The `(player, field)` pairs that part over run19's window. Filled
     /// from the first run and then pinned; `docs/AI.md` §38.
     ///
+    /// **Item 362 deleted `1/MAKE[0].num`**, and this window is what
+    /// confirms the fix against a capture rather than against a draw
+    /// count: run19 is a `LEADERS=9` dump of `[8174, 8192]`, eight
+    /// hundred frames before the frame the item was taken on, and the
+    /// make list's `num` for the head slot has disagreed with the
+    /// original's on it since the record was first compared. Carrying
+    /// `create_units`' per-arm batch size through `civilian_value`
+    /// (`docs/AI.md` §42) makes it agree, and the residue falls from 93
+    /// fields to 92. Nothing else in the record moved.
+    ///
     /// **Item 328 deleted two of them**: `0/frame_attacked` and
     /// `0/attacked_by`. `Army::find_target`'s probe writes both on the
     /// human leader it pokes (`docs/ARMY.md` §12, "The probe"), and this
@@ -1015,7 +1025,6 @@ mod tests {
         (0, "scouts"),
         (0, "wars"),
         (1, "MAKE[0].city"),
-        (1, "MAKE[0].num"),
         (1, "MAKE[0].val"),
         (1, "MAKE[10].val"),
         (1, "MAKE[1].city"),

@@ -377,11 +377,23 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // not move: three positions closer, three more of the roster
         // unlinked, and two building field-rows closer. DECISIONS 36 asks
         // for the number rather than a trade.
-        off: 58,
-        unlinked: 14,
+        // And **58 → 64 off, 14 → 5 unlinked, 1 → 0 build_unlinked and
+        // 30 → 32 build_diverged** on 2026-09-18, item 362 — the make
+        // list's **`num`** (`docs/AI.md` §42). `create_units` sets a
+        // batch size per arm and this crate's civilian arms threw it
+        // away, so every scholar, caravan and citizen the AI has ever
+        // offered itself was a batch of one; carrying it changes what
+        // the AI buys from its first University onwards on both maps.
+        // Nine fewer units the dump has and this crate has not, one
+        // fewer unlinkable building — and six more positions out and two
+        // more building field-rows, 14,000 frames past this map's word,
+        // which does not move. DECISIONS 36 asks for the number rather
+        // than a trade.
+        off: 64,
+        unlinked: 5,
         extra: 0,
-        build_unlinked: 1,
-        build_diverged: 30,
+        build_unlinked: 0,
+        build_diverged: 32,
         city_unlinked: 3,
         city_diverged: 0,
     },
@@ -619,8 +631,17 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // that frame instead of being resolved out of the way, so the
         // late-game deal shifts. DECISIONS 36 asks for the number rather
         // than a trade.
-        off: 57,
-        unlinked: 10,
+        // And **57 → 50 off and 10 → 9 unlinked** on 2026-09-18, item
+        // 362 — the make list's **`num`** (`docs/AI.md` §42). This is
+        // the map the item was taken on: the AI's University queues the
+        // batch the original queues from 8985, run97's build-queue
+        // widening falls from two residue rows to one, and seven
+        // positions and one unlinkable unit come off the endpoint
+        // 14,800 frames later. The long capture's `first_count` moves
+        // 9182 → 9362 with it; `first_part` does not, so the headline
+        // word is unchanged.
+        off: 50,
+        unlinked: 9,
         extra: 0,
         build_unlinked: 0,
         build_diverged: 10,
@@ -776,7 +797,14 @@ pub const LADDER: [Endpoint; 2] = [
         // trade (`docs/ECONOMY.md` §12), which also takes two off this
         // rung's `off` above. Four spurious units gone, with `unlinked`
         // and both building counts unmoved.
-        extra: 13,
+        // And **13 → 25 extra** on 2026-09-18, item 362 — the make
+        // list's `num` again (`docs/AI.md` §42). Twelve more units this
+        // crate holds that run28's dump does not, 7,590 frames past East
+        // Indies' own word, which does not move: a batch size the AI had
+        // been capped at one buys more of everything, and this rung is
+        // the furthest-out of the four counters it touches. DECISIONS 36
+        // asks for the number rather than a trade.
+        extra: 25,
         build_unlinked: 10,
         build_diverged: 8,
         city_unlinked: 3,
@@ -847,7 +875,13 @@ pub const LADDER: [Endpoint; 2] = [
         // trade (`docs/ECONOMY.md` §12). One position out on this rung
         // where the C rung above takes two off, 6,778 frames past this
         // rung's word.
-        off: 49,
+        // And **49 → 47 off and 6 → 19 extra** on 2026-09-18, item 362
+        // — the make list's `num` (`docs/AI.md` §42), the same change as
+        // the rung above and the same shape: two positions closer and
+        // thirteen more units this crate holds that run24's dump does
+        // not, 8,700 frames past East Indies' own word, which does not
+        // move. DECISIONS 36 asks for the number rather than a trade.
+        off: 47,
         unlinked: 16,
         // 19 → 33 on 2026-09-07, item 261, the same reshuffle, then 33 →
         // **27** the same day on item 265's byte — this rung took the
@@ -907,7 +941,7 @@ pub const LADDER: [Endpoint; 2] = [
         // unmoved. **Rung B is only reached once rung C passes**: the
         // ladder test panics at its first moved row, so this row surfaced
         // on the second run.
-        extra: 6,
+        extra: 19,
         build_unlinked: 19,
         build_diverged: 0,
         city_unlinked: 4,
@@ -1292,14 +1326,16 @@ mod tests {
         // the two rather than by a count.
         //
         // **Which scholar it is, is telemetry.** It was `1/53` from item
-        // 338 to item 350, `1/52` from item 352, and is `1/56` since item
-        // 358, whose market trade buys the AI two more scholars and
+        // 338 to item 350, `1/52` from item 352, `1/56` from item 358,
+        // and is **`1/55` since item 362**, whose make-list `num`
+        // (`docs/AI.md` §42) buys the AI its scholars in batches and
         // re-deals every position 15,000 frames before this block
-        // (DECISIONS 36, `docs/ECONOMY.md` §12). The *offset* is the
+        // (DECISIONS 36). Item 342's standing instruction is to
+        // re-measure this rather than diagnose it. The *offset* is the
         // assertion — `1/2020 − 1/2019` exactly, one university away —
         // and a scholar sitting anywhere else would not carry it.
         let delta = (768, 9984);
-        let wrong_one = 56;
+        let wrong_one = 55;
         let (dx, dy) = r
             .off
             .get(&(1, wrong_one))
@@ -1313,7 +1349,7 @@ mod tests {
              what is left of item 338"
         );
         // The rest, printed: past the word neither stream is anybody's.
-        for o in [49, 51, 52, 53, 55] {
+        for o in [49, 51, 52, 53, 56] {
             eprintln!(
                 "  scholar 1/{o}: {:?}",
                 r.off.get(&(1, o)).copied().unwrap_or((0, 0))

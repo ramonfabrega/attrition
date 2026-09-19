@@ -714,6 +714,17 @@ impl Sim {
                 }
 
                 // 9. The branch.
+                //
+                // **`num` is the branch's own answer, not a constant**
+                // (item 362). The original's `TVar24` is set by every
+                // arm before `LAB_006c4cfc` and reaches `make_me` as the
+                // slot's `num` through `local_14 = min(TVar24,
+                // remaining)`; `1` is only the arms that want one. This
+                // crate carried the `1` everywhere a civilian was
+                // offered, because `civilian_value` computed the count
+                // and returned three fields that did not include it, and
+                // the AI therefore bought its scholars and its caravans
+                // one at a time forever. `docs/AI.md` §42.
                 let mut num = 1;
                 let cat;
                 let v;
@@ -777,6 +788,7 @@ impl Sim {
                             want_civ,
                             remaining,
                             &mut escrow,
+                            &mut num,
                         ) else {
                             continue;
                         };
@@ -1249,6 +1261,7 @@ impl Sim {
         want_civ: i32,
         remaining: i32,
         escrow: &mut i32,
+        num_out: &mut i32,
     ) -> Option<(i32, i32, i32)> {
         let w = who as usize;
         let (units_now, queued_now) = self.raw_counts(who, f.rec);
@@ -1341,6 +1354,12 @@ impl Sim {
                 return None;
             }
             *escrow = 1;
+            // The caravan arm's own batch — `TVar24` is 3, 2 or 1 by
+            // `econ[WEALTH]`'s bits and then capped by the caravan
+            // limit. **Untested against a capture**: no run on disk has
+            // an AI caravan offer on a frame the trace covers, so this
+            // arm rests on `create_units@006c40a0:1080–1100` alone.
+            *num_out = num;
             return Some((v, 4, want_civ));
         }
         if f.peasant {
@@ -1348,7 +1367,7 @@ impl Sim {
                 return None;
             }
             return self.citizen_value(
-                who, t, f, c, city_o, base, r, slots, gfree, want_civ, escrow,
+                who, t, f, c, city_o, base, r, slots, gfree, want_civ, escrow, num_out,
             );
         }
         if f.scholar {
@@ -1385,6 +1404,14 @@ impl Sim {
             if k <= 0 {
                 return None;
             }
+            // The scholar's batch is the free knowledge slots the
+            // University's own queue has not already claimed
+            // (`create_units@006c40a0:1156`). Great Lakes 8985 is the
+            // frame that pins it: the original queues **three** scholars
+            // there in one `make_this` — three `make_stuff+0x221` draws
+            // and no `+0x63d` on either side — and this crate queued one
+            // per pass until `k` reached `make_me`. `docs/AI.md` §42.
+            *num_out = k;
             let mut v = wm(wm(self.ai[w].infra_mod, k), 10000) / 256;
             let filled = self.ai[w].census.filled_gather_slots[KNOWLEDGE];
             let total = self.ai[w].census.gather_slots[KNOWLEDGE];
@@ -1418,6 +1445,7 @@ impl Sim {
         gfree: &[i32; RESOURCES],
         want_civ: i32,
         escrow: &mut i32,
+        num: &mut i32,
     ) -> Option<(i32, i32, i32)> {
         let w = who as usize;
         let (units_now, queued_now) = self.raw_counts(who, f.rec);
@@ -1451,6 +1479,10 @@ impl Sim {
             }
             *escrow = 1;
             let k = deficit.min(room).max(0);
+            // `TVar24` again (`create_units@006c40a0:1215–1257`): the
+            // gatherers this city is short of, bounded by the room the
+            // caps leave. It is the same number the value squares.
+            *num = k;
             v = wm(wm(wm(k, k), b), 80);
             if k == 0 && !(gatherers == 0 && busy == 0 && free == 0 && q == 0) {
                 return None;
@@ -2571,5 +2603,40 @@ mod tests {
         sim.queue_up(b2, ids.rec).expect("queued");
         assert!(!sim.produce_unit(0, ids.unit, None, 1, 0));
         assert_eq!(sim.buildings[b2].queue.items.len(), 4);
+    }
+
+    /// **A batch goes in whole, in one call, down the city walk** — item
+    /// 362. The military trainer's batch has been pinned since the
+    /// barracks tests above; the *city-chain* walk, which is the one a
+    /// scholar or a citizen takes, had none — and it is the walk the
+    /// make list's `num` reaches. Great Lakes 8985 is what this is
+    /// written for: the original queues **three** scholars there in a
+    /// single `make_this` — three `make_stuff+0x221` draws and no
+    /// `+0x63d` on either side — and until item 362 every civilian
+    /// `make_me` carried a `num` of one, so this crate queued them one
+    /// production cycle apart. `docs/AI.md` §42.
+    ///
+    /// Made to fail by handing `produce_unit` a `num` of 1: the queue
+    /// then holds one entry, which is exactly the shape run97's
+    /// `BUILDDATA` showed for 1,320 frames.
+    #[test]
+    fn produce_unit_queues_the_whole_batch_down_the_city_walk() {
+        let (mut sim, ids) = barracks_sim(false);
+        // Not a military trainer any more, so `produce_unit` takes the
+        // city-chain branch; the building is still the type the unit is
+        // made at, and it is the capital's own.
+        sim.build_types[ids.brec].flags &= !MILITARY_TRAINER;
+        sim.ai[0].mil_trainers.clear();
+        assert!(sim.produce_unit(0, ids.unit, Some(0), 3, 0));
+        assert_eq!(
+            sim.buildings[ids.b].queue.items.len(),
+            3,
+            "the city walk queued {} of a batch of three",
+            sim.buildings[ids.b].queue.items.len()
+        );
+        // A batch of one is still a batch of one: the plumbing the fix
+        // added carries the number, it does not invent one.
+        assert!(sim.produce_unit(0, ids.unit, Some(0), 1, 0));
+        assert_eq!(sim.buildings[ids.b].queue.items.len(), 4);
     }
 }

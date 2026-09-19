@@ -771,7 +771,12 @@ pub(crate) fn debug_leader(built: &Built, frame: i64) {
             .list
             .iter()
             .enumerate()
-            .map(|(k, m)| format!("{k}:t{} v{} c{} cat{}", m.t, m.val, m.city, m.cat))
+            .map(|(k, m)| {
+                format!(
+                    "{k}:t{} v{} c{} cat{} n{} e{}",
+                    m.t, m.val, m.city, m.cat, m.num, m.escrow
+                )
+            })
             .collect();
         eprintln!(
             "  f{frame} L{w} step {} ({:?}) sstep {} mark {} bucket {:?} escrow {:?} \
@@ -4624,16 +4629,22 @@ mod tests {
     /// this crate did not have*, which named `do_sell` in one line
     /// (`docs/ECONOMY.md` §12).
     ///
-    /// The residue is **floored, not asserted away**, and both rows are
-    /// downstream of the same make list:
+    /// **`1/2020` closed, item 362.** The third scholar was never a
+    /// second *purchase*: 8985 costs three `make_stuff+0x221` and
+    /// **zero** `+0x63d` on both sides, so the original's three arrive
+    /// in one `make_this`, and the quantity is the make list's own
+    /// `num`. `create_units` computes it per arm and this crate's
+    /// `civilian_value` threw it away, so every civilian went out as a
+    /// batch of one. `docs/AI.md` §42.
     ///
-    /// - `1/2020` from 8985 — a third scholar this crate does not queue.
-    ///   Its head expiry now draws three times like the original's, so
-    ///   the list has the three offers; what it does not do is *buy*
-    ///   twice, and `make_stuff`'s step 4 clears the duplicate before
-    ///   step 6 could. `docs/AI.md` §41.
+    /// The residue is **floored, not asserted away**, and the one row
+    /// left is 9182's own:
+    ///
     /// - `1/2007` from 9182 — a citizen this crate queues at the city
-    ///   and the original does not, which is 9182's own count parting.
+    ///   and the original does not. The frame's *count* is the
+    ///   original's since 362 (ten draws either side); what is left is
+    ///   its composition — three `use_market+0x1ed` against this
+    ///   crate's one, and four `make_stuff+0x63d` against none.
     #[test]
     fn run97_s_build_queues_are_the_original_s() {
         const FIRST: i64 = 8_030;
@@ -4761,25 +4772,33 @@ mod tests {
         // is a divergence this test was written to catch.
         assert_eq!(
             first.keys().copied().collect::<Vec<_>>(),
-            vec![(1, 2007), (1, 2020)],
-            "run97's queue residue is not the two the word left: {first:?}"
+            vec![(1, 2007)],
+            "run97's queue residue is not the one 362 left: {first:?}"
         );
         assert_eq!(
-            (first[&(1, 2020)], first[&(1, 2007)]),
-            (8_985, 9_182),
-            "the two queue residues do not open where item 358 left them"
+            first[&(1, 2007)],
+            9_182,
+            "the queue residue does not open on 9182"
         );
-        // **The sale itself, in the queue it paid for.** Before item 358
-        // this crate held **one** entry here against the original's
-        // three, because `use_market` took its draw and traded nothing;
-        // with `do_sell` it holds two. Made to fail by taking the sale
-        // back out — the line reads `ours [(52, 400)]`.
+        // **The batch itself, in the queue it filled.** 8985's
+        // University is the frame two items were spent on: item 358's
+        // `do_sell` paid for the second scholar, and item 362's `num`
+        // bought the third in the same `make_this`. The row is gone from
+        // `wrong` entirely now, so the assertion is the whole window's
+        // silence on `1/2020` — made to fail by putting `num` back to
+        // one, which restores `8985: 1/2020 ours [(52, 400), (52, 0)]
+        // theirs [(52, 400), (52, 0), (52, 0)]` as the first row.
+        assert!(
+            !wrong.iter().any(|w| w.contains("1/2020")),
+            "the AI's University parts from the original's somewhere in the \
+             window — the scholar batch is not the original's: {:?}",
+            wrong.first()
+        );
         assert!(
             wrong
                 .first()
-                .is_some_and(|w| w.contains("ours [(52, 400), (52, 0)] theirs")),
-            "8985's University queue is not two deep — the timber sale on 8982 is \
-             what pays for the second scholar: {:?}",
+                .is_some_and(|w| w.contains("frame 9182: 1/2007 ours [(50, 100)] theirs []")),
+            "9182's city queue is not the one row left: {:?}",
             wrong.first()
         );
     }
