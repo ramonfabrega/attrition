@@ -3492,6 +3492,17 @@ mod tests {
                 for (label, who) in attributed_sites(&built) {
                     eprintln!("  f{f} {who}: {label}");
                 }
+                // **And the original's, beside them.** The window used to
+                // print this crate's draws alone, which answers "what did
+                // we spend" and never "what is the delta" — and the delta
+                // is the whole question a one-draw parting asks. Item 432
+                // rebuilt exactly this by hand as a scratch test before
+                // noticing the window was already here; the trace is in
+                // scope, so it costs four lines.
+                let theirs = trace.labels(f);
+                if theirs != built.frame_sites.last().map_or(&[][..], |(_, v)| v) {
+                    eprintln!("  f{f} PARTS: theirs {theirs:?}");
+                }
             }
         }
         assert_eq!(squad_army.len(), 6, "the parting frame was never reached");

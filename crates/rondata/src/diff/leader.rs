@@ -1191,6 +1191,146 @@ mod tests {
     /// on both). The original spends the proceeds on the 40-wealth
     /// Scholar and keeps **82**; this crate buys food for two Citizens
     /// and keeps **14**.
+    /// **The original's whole make list on the re-offer block, rebuilt
+    /// from four offers through this crate's `make_me`** — item 432, and
+    /// the evidence for `docs/AI.md` §50.
+    ///
+    /// §48 measured the Scholar's two numbers on block 9381 and §49 showed
+    /// this crate's own to be a positive wrap. Neither could say what the
+    /// original's *list* was made of, because a `LEADERS=9` record prints
+    /// the slots and never the offers. This test recovers the offers: it
+    /// takes the original's block **9380** record as the starting list,
+    /// replays four `make_me` calls, and asserts the result is the
+    /// original's block **9381** record, slot for slot and field for
+    /// field. **Both ends are the dump's**; nothing is simulated.
+    ///
+    /// | offer | `t` | `val` | `city` | `cat` |
+    /// | --- | --- | --- | --- | --- |
+    /// | Merchant | 61 | 869,565 | 0 | 4 |
+    /// | **Scholar** | 52 | **4,891,136** | **0** | 4 |
+    /// | Citizen | 50 | 234,782 | 1 | 5 |
+    /// | **Scholar** | 52 | **5,755,741** | **1** | 4 |
+    ///
+    /// Three things fall out of its passing, and none of them is on the
+    /// record's face:
+    ///
+    /// - **The original values the Scholar per city, and the two numbers
+    ///   differ on one frame.** Block 9381's slot 2 stands at `t −1,
+    ///   val 4,891,136, city 0, cat 4`: a cleared *ranked* slot. No
+    ///   expiry ran on 9380 (the frame spends no `make_stuff` draw at
+    ///   all), and the only other thing that sets a ranked slot's `t` to
+    ///   −1 is `make_me` clearing a **same-type** entry as it inserts —
+    ///   so slot 2 held a `t52` for city 0, and its `val` is that offer's.
+    /// - **The city-0 offer precedes the city-1 offer.** Swapped, the
+    ///   second `make_me` breaks out on `t == list[k].t` instead of
+    ///   inserting, slot 2 keeps the Merchant, and the record is not
+    ///   reproduced — asserted below rather than argued.
+    /// - **This crate offers no Merchant at all on this frame.** Its own
+    ///   list carries `t133`/`t66` in the two ranks the original gives
+    ///   `t52`/`t61`, which is why `MAKE[1..3]` have been standing
+    ///   residue since run107 (§47.6).
+    ///
+    /// What it is **not**: a claim about *why* the two numbers differ.
+    /// That is `create_units`' scholar arm and it is the successor item;
+    /// this test only pins the two targets it has to hit.
+    ///
+    /// Made to fail on purpose three ways before landing — the two
+    /// Scholar offers swapped (the assertion below), the city-0 value
+    /// moved by one, and the Merchant dropped. Each restores a different
+    /// slot as a difference.
+    #[test]
+    fn run111_s_block_9381_list_is_make_me_s_from_four_offers() {
+        use sim::ai::{MakeList, MakeObject};
+        const BEFORE: i64 = 9380;
+        const AFTER: i64 = 9381;
+        let Some(path) = dump("gamelog-run111-greatlakes-makeword.txt") else {
+            eprintln!("skipping: no run111 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let wtext = crate::capture::read(&path);
+        let wlog = Log::parse(&wtext);
+        let theirs_list = |n: i64| -> Vec<MakeObject> {
+            let block = wlog.leader_block(n, 1).expect("the AI's leader block");
+            let slots = block.make_list();
+            assert_eq!(slots.len(), 11, "block {n} is not a LEADERS=9 record");
+            slots
+                .iter()
+                .map(|m| {
+                    let i = |v: i64| i32::try_from(v).expect("a make-list field fits");
+                    MakeObject {
+                        t: i(m.t),
+                        val: i(m.val),
+                        escrow: i(m.escrow),
+                        city: i(m.city),
+                        up: i(m.up),
+                        o: i(m.o),
+                        num: i(m.num),
+                        cat: i(m.cat),
+                        wx: i(m.wx),
+                        wy: i(m.wy),
+                    }
+                })
+                .collect()
+        };
+        let before = theirs_list(BEFORE);
+        let after = theirs_list(AFTER);
+        // The frame is only interesting because the list changes over it.
+        assert_ne!(before, after, "{BEFORE} and {AFTER} hold the same list");
+
+        /// `(t, val, city, cat, num)` — the five an offer varies here;
+        /// `escrow` is 1 on every live slot of this record and `up`, `wx`
+        /// and `wy` are 0.
+        type Offer = (i32, i32, i32, i32, i32);
+        const MERCHANT: Offer = (61, 869_565, 0, 4, 1);
+        const SCHOLAR_CITY0: Offer = (52, 4_891_136, 0, 4, 1);
+        const CITIZEN: Offer = (50, 234_782, 1, 5, 2);
+        const SCHOLAR_CITY1: Offer = (52, 5_755_741, 1, 4, 1);
+        let replay = |offers: &[Offer]| -> Vec<MakeObject> {
+            let mut l = MakeList::new();
+            l.list.copy_from_slice(&before);
+            for &(t, val, city, cat, num) in offers {
+                l.make_me(t, val, 1, cat, city, 0, num, 0, 0);
+            }
+            l.list.to_vec()
+        };
+
+        let built = replay(&[MERCHANT, SCHOLAR_CITY0, CITIZEN, SCHOLAR_CITY1]);
+        for (k, (ours, theirs)) in built.iter().zip(&after).enumerate() {
+            assert_eq!(ours, theirs, "slot {k} of block {AFTER}");
+        }
+        // The derivation, stated as an assertion: slot 2 is the city-0
+        // Scholar's `val` standing behind a `make_me` clear.
+        assert_eq!(
+            (after[2].t, after[2].val, after[2].city),
+            (-1, SCHOLAR_CITY0.1, SCHOLAR_CITY0.2)
+        );
+        // And the two live Scholar slots are the *city-1* offer, twice —
+        // which is why the original's step 6 dedupes and buys once.
+        for k in [1, 4] {
+            assert_eq!(
+                (after[k].t, after[k].val, after[k].city),
+                (52, 5_755_741, 1)
+            );
+        }
+
+        // The order claim. Offered city-1 first, `make_me` breaks out on
+        // the same type instead of inserting: the city-0 Scholar is never
+        // filed at all, and slot 2 is left holding the Merchant the
+        // city-1 insert shifted down.
+        let swapped = replay(&[MERCHANT, SCHOLAR_CITY1, CITIZEN, SCHOLAR_CITY0]);
+        assert_ne!(
+            swapped, after,
+            "the two Scholar offers are order-free — then nothing here \
+             says the city-0 offer comes first"
+        );
+        assert_eq!(swapped[2].t, MERCHANT.0, "the swap leaves the Merchant");
+        eprintln!(
+            "run111 {BEFORE} → {AFTER}: 11 slots rebuilt from 4 offers; \
+             the Scholar is {} for city 0 and {} for city 1",
+            SCHOLAR_CITY0.1, SCHOLAR_CITY1.1
+        );
+    }
+
     #[test]
     fn run111_s_window_is_the_make_list_at_the_purchase() {
         const FIRST: i64 = 9375;
