@@ -71,7 +71,25 @@ pub(crate) const UNMODELLED: &[(&str, &str)] = &[
 ];
 
 /// Whether a good's index is one the record prints in its per-good block.
-const GOODS: [&str; RESOURCES] = ["food", "timber", "metal", "wealth", "knowledge", "oil"];
+/// The six goods, **in the type record's own order** — `rise.pdb`'s
+/// `TypeIndex` enum: `0 FOOD, 1 TIMBER, 2 WEALTH, 3 KNOWLEDGE, 4 METAL,
+/// 5 OIL`, which is [`sim::economy::Resource`] exactly.
+///
+/// Until item 423 this named index 2 "metal", 3 "wealth" and 4
+/// "knowledge", and index 2 is what pays a Scholar (run100's queue slot is
+/// `good[0] 2, cost[0] 40`). **No compared value was ever affected**: both
+/// sides of the comparison build their keys from this array — [`rows`] for
+/// this crate and [`theirs`] for the dump, which prints six bare values
+/// under one heading — so the index is positional on both sides and the
+/// name never participates in matching.
+///
+/// That is also why it survived from run19: a label generated on both
+/// sides has **nothing to disagree with**. The specifications had it right
+/// (`docs/AI.md` §2 reads "`gather_slots[2]` (wealth)" and
+/// `docs/ECONOMY.md`'s "The wealth slot, and the thirty it pays" is that
+/// index) and the decompile export had it right, and **neither carries
+/// this string**; the whole suite compared it only against itself.
+const GOODS: [&str; RESOURCES] = ["food", "timber", "wealth", "knowledge", "metal", "oil"];
 
 /// This crate's whole leader record, keyed by the dump's own names.
 ///
@@ -963,7 +981,7 @@ mod tests {
                     if who == 1 && n == 8181 && k == "MAKE[1].t" {
                         scholar = Some((*mine, yours));
                     }
-                    if who == 1 && n == 8183 && k == "bucket[2:metal]" {
+                    if who == 1 && n == 8183 && k == "bucket[2:wealth]" {
                         wealth = Some((*mine, yours));
                     }
                     if *mine != yours {
@@ -1444,15 +1462,15 @@ mod tests {
         (1, "SITE[9].wx"),
         (1, "SITE[9].wy"),
         (1, "bucket[0:food]"),
-        (1, "bucket[2:metal]"),
+        (1, "bucket[2:wealth]"),
         (1, "gather_stamp"),
-        (1, "income[2:metal]"),
+        (1, "income[2:wealth]"),
         (1, "leftover[1:timber]"),
-        (1, "leftover[2:metal]"),
+        (1, "leftover[2:wealth]"),
         (1, "num_queued[0]"),
         (1, "num_queued[2]"),
-        (1, "rate[2:metal]"),
-        (1, "resources[2:metal]"),
+        (1, "rate[2:wealth]"),
+        (1, "resources[2:wealth]"),
         (1, "scholars"),
         (1, "scouts"),
         (1, "tech_cat_frame[0]"),
