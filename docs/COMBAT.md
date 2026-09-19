@@ -3037,21 +3037,32 @@ time is a plan distance.
 
 ### 22.4 What it moved, and what it did not
 
-**Great Lakes' long-capture word: 9451 → 9510.** With the offset live, this
-crate's six launches below 9480 reproduce the original's `sx, sy`, its
-`ex, ey` **and** its `total_time` exactly (9425, 9426, 9439, 9444, 9451, 9456
-and 9462 on the sim's own numbering). The seventh draw at 9451 is `1/28`'s
-second arrow arriving on the frame it always arrived on.
+**Great Lakes' long-capture word: 9451 → 9510.** With the offset live, all
+**nine** of this crate's launches inside run109's window reproduce the
+original's `sx, sy`, its `ex, ey` **and** its `total_time` exactly — 9425,
+9426, 9439, 9444, 9451, 9456, 9462, 9467 and 9474 — and the seventh draw at
+9451 is `1/28`'s second arrow arriving on the frame it always arrived on.
 
-- **Diff-backed**: the nine launch points and their flight times, against
-  run109's own `AMMO` records; and the word, which is
-  `run53_s_24000_frames_put_the_ceiling_where_run33_did`.
-- **Measured but not yet a live diff**: nothing in `rondata::diff` parses the
-  `AMMO` record. The nine rows are pinned as constants in `launch.rs`'s test
-  rather than re-read from the archive each run, so a change to the archive
-  would not be noticed. **The obvious successor is a run109 `AMMO` widening**
-  — the whole record, every slot, every field, the way every other record is
-  compared.
+**Three tiers of evidence, and the assertions keep them apart.** Below the
+word this crate launches **sixteen** arrows where it used to launch four, and
+every one of the sixteen frames is the *original's* — that is
+`run53_s_24000_frames_put_the_ceiling_where_run33_did`'s equality against the
+trace's own `Ammo::init` draw sites, not a list of ours. What differs is how
+much of each launch anything on this disk can check: the nine at or below
+9478 have all five numbers from run109; the seven above it are past run109's
+window (`[9420, 9480)`, and an arrow first prints in the block after it
+launches), so the draw sites say the original launched there and nothing says
+from where, to where or for how long. Nothing is ours alone.
+
+- **Diff-backed**: the nine launches' launch point, landing point and flight
+  time, re-read from the archive every run by
+  `run109_says_great_lakes_s_launches_land_where_the_bow_hand_aims`; the
+  sixteen launch frames, against run53's trace; and the word.
+- **Pinned rather than re-read**: `launch.rs`'s own unit test carries the
+  dump's columns as literals, so it cannot notice the archive changing. The
+  diff test above can, and does. **What is still owed is the rest of the
+  record** — `AmmoData::log_data` prints twenty-five fields and this reads
+  five, where the rule is to diff the whole record.
 - **Not established**: every other unit type. The table has one piece in it.
   The Slinger's three families are measured in run17 and are *not* in the
   table, because no capture ties them to an animation — run17's `GUY` detail

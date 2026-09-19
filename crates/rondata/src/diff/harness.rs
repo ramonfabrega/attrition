@@ -3812,13 +3812,57 @@ mod tests {
             "Great Lakes' arrow launches below the word are not the \
              original's own"
         );
+        // **The permanent negative, and it is one frame.** The original's
+        // first `Objects::add_ammo` in all 24,000 frames is 9425; this
+        // crate shot on 9415, the frame `1/29` came into range, until the
+        // launch moved onto the animation's release event (§9.0).
         assert_eq!(
-            ammo,
-            vec![9_425, 9_426, 9_439, 9_444],
-            "below the word Great Lakes launches exactly four arrows, and \
-             the first in the whole game is 9425 — not 9415, which is the \
-             frame `1/29` comes into range and the frame this crate used \
-             to shoot on"
+            ammo.first().copied(),
+            Some(9_425),
+            "Great Lakes' first arrow in the whole game is 9425, not \
+             {:?} — the launch is the attack animation's, not `fight`'s",
+            ammo.first()
+        );
+        // **Three tiers of evidence, and the assertion says which is
+        // which** (item 396). Every frame in `ammo` is the *original's*,
+        // by the equality against the trace above — that is not a list of
+        // ours. What differs is how much of each launch anything on this
+        // disk can check:
+        //
+        // 1. **Values, from run109's own `AMMO` record**: the nine at or
+        //    below 9478. Launch point, landing point and flight time, all
+        //    five numbers, re-read from the archive every run by
+        //    `run109_says_great_lakes_s_launches_land_where_the_bow_hand_aims`.
+        //    run109's window is `[9420, 9480)` and an arrow first prints in
+        //    the block after it launches, so 9478 is the last it reaches.
+        // 2. **Frames only, from run53's trace**: everything above 9478.
+        //    The draw sites say the original launched on those frames and
+        //    nothing on this disk says from where, to where or for how
+        //    long.
+        // 3. **Ours alone**: nothing. The equality above forbids it below
+        //    the word, which is what makes this assertion worth making.
+        //
+        // So the count below is split at run109's window rather than
+        // asserted as one list — a weaker claim about the seven than about
+        // the nine, which is the claim the evidence supports.
+        let (valued, traced): (Vec<i64>, Vec<i64>) = ammo.iter().partition(|f| **f <= 9_478);
+        eprintln!(
+            "  Great Lakes launches below the word: {} valued by run109 \
+             {valued:?}, {} on the trace alone {traced:?}",
+            valued.len(),
+            traced.len()
+        );
+        assert_eq!(
+            valued,
+            vec![
+                9_425, 9_426, 9_439, 9_444, 9_451, 9_456, 9_462, 9_467, 9_474
+            ],
+            "the launches run109 carries values for are not the nine its \
+             window holds"
+        );
+        assert!(
+            traced.iter().all(|f| *f > 9_478),
+            "the partition is at run109's window: {traced:?}"
         );
         assert!(
             first_count >= LONG_WORD_GREAT_LAKES && first_part >= LONG_WORD_GREAT_LAKES,

@@ -745,11 +745,21 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // 289/290 and 294/295 rule again, and a worker's figure measured
         // against a base that has since moved is evidence about that base
         // and not about this tree.
-        off: 57,
-        unlinked: 9,
+        // Then **57 → 48, 9 → 11 and 10 → 9** on 2026-09-19, item 396 —
+        // the measured launch offset (`docs/COMBAT.md` §22), which moves
+        // this map's own word **9451 → 9510**. Nine positions closer and
+        // one building field-row closer, two more of the roster unlinked
+        // in exchange, 14,491 frames past the word it moves. DECISIONS 36
+        // asks for the number rather than a trade, and the shape is worth
+        // stating anyway: the change is a *table*, six rows measured off
+        // one capture, so what it does at 24001 is fourteen thousand
+        // frames of divergence downstream of six arrows and is evidence
+        // about the run-up, not about the table.
+        off: 48,
+        unlinked: 11,
         extra: 0,
         build_unlinked: 0,
-        build_diverged: 10,
+        build_diverged: 9,
         city_unlinked: 3,
         city_diverged: 0,
     },
