@@ -205,6 +205,28 @@ tracer change, and a wrong proxy stub costs a run.
 
 ## Parked by the sixth Fable pass, 2026-09-19 — a guard's first run
 
+(429) **A positive i32 wrap is live wherever `create_units`' tail is
+reached.** Measured by item 422, 2026-09-19, on frame 9382:
+`out = wm(fac, wm(want, val) / divisor) / 256` with `val 42,000,000`,
+`fac 256`, `want 20`, `divisor 25` gives `256 × 33,600,000 =
+8,601,600,000`, which wraps as i32 to **11,665,408 — positive** — and
+divides to exactly 45,568. The original's product stays inside i32
+(`5,755,741 × 256 = 1,473,469,696`) and does not wrap. **The sign is the
+defect**: §45 documents this same overflow in the arm next door and guards
+it with `out < 0 → 9,999,999`, so a wrap that goes negative becomes the
+ceiling and is caught, while one that goes positive becomes a plausible
+small number that ranks below a Citizen and is not. 422 pins the wrap as
+an assertion on its own frame; this parks the general case, because the
+expression is reached far beyond 9382 and nothing comes back for a
+footnote in another item's "what this has not established".
+
+(427) **Twenty-four frames pass before chapter two's first arrow.**
+Observed by item 415, 2026-09-19, and **free to measure from run112, which
+is already on the disk** — no capture, no screen. Parks because it names no
+score: it is a delay this crate and the original may well share, and
+nobody has compared them. Worth an hour the day a combat word lands near
+it, and worth nothing before that.
+
 (425) **A name a pinned constant carries for an index has nothing to
 disagree with.** Named by item 408 while settling 423, 2026-09-19, and it
 is the reason that defect survived from run19 to today. Both sides of the

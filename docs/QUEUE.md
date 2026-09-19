@@ -12,35 +12,35 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-19, the first tranche after the sixth Fable pass. **Five landings,
-no score moved**: Great Lakes stands at 9510, golden at 626.*
+*2026-09-19, the first tranche after the sixth Fable pass. **Six landings**;
+Great Lakes stands at 9510, and the golden record gained a second chapter.*
 
-- **414 bought a cause, not a word.** On 9382 the Citizen is `val 234782`,
-  `num 2`, same city **on both sides** — the original offers it and does
-  not buy it. Both of 408's readings are dead; what stands is the third,
-  found only because the disk was grepped first: **the Scholar's re-offer
-  is too small**. The original's **5,755,741** ×2 against this crate's
-  **45,568** ×1, with the Citizen's 234,782 between them.
-- **The stanza's written prediction died with them** — it said the Scholar
-  would hold at 9,999,999/`num 5`, and both sides collapse on that block.
-  That is what writing it down before the run is for (419).
-- **423 measured a third kind of wrong name.** `GOODS` said "metal" where
-  `TypeIndex` says WEALTH; the run separated the possibilities — 33,536
-  field-frames **unchanged**, the `parting` equality failing in exactly one
-  position. The label is **self-consistent**, generated from one array on
-  both sides, so nothing guarded it against the truth. 425 is that guard.
-- **415 is landing** — run112 captured, resolving a `docs/RUNS.md` append
-  conflict with run111; 408 is on 422. Four open, 65 parked.
-  **Fable backlog: twelve Loop items** (251, 335, 313, 367, 375, 416, 417,
-  419, 420, 421, 424, 428); the pass is due at twenty, this is five.
+- **Chapter two's word is 616 of 901** (415), in its own
+  `GOLDEN_WORD_CHAPTER_TWO`; chapter one's 626 unmoved. **616 is lower, so
+  it is the rules headline** — the AI track's principle is lower *word*,
+  not lower name. The `Golden:` line still leads with 626 because
+  `floors.rs` pins one constant: **417 is blocking now, not theoretical**.
+- **The value diff found what the draw stream did not** (415): "no position
+  disagrees" was written as an assertion and **failed**. `add hoplite
+  who=1 12,40` asks internal 2400; the original seats 2424/2568/2472, ours
+  2284/2428/2332 — uniformly **140 west**, first add exact.
+  `find_nearby_spot` on clear ground; pinned in no direction, 426's suspect.
+- **45,568 is an i32 wrap, not a valuation** (422): `256 × 33,600,000 =
+  8,601,600,000` wraps **positive** to 11,665,408 and divides to exactly
+  45,568, so §45's `out < 0 → 9,999,999` guard never fires. The gap and its
+  non-integer ratio were artefacts. 429 parks the wrap wherever it reaches.
+- **A setup-block word scored 0 and is now a refusal** (415), third time
+  that shape has scored. Four open, 67 parked.
+  **Fable backlog: twelve Loop items** (251, 335, 313, 367, 375, 416,
+  417, 419, 420, 421, 424, 428); the pass is due at twenty, this is six.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w9711 of 24,000 · GreatLakes w9510 of 24,000
-Golden: w626 of 901 · chapter one pinned · 415 next
+Golden: w626 of 901 · ch2 w616 is lower and is the headline · 426 next
 Endpoint 24001: EastIndies 64 off, 5 unlinked · GreatLakes 51 off, 11 unlinked
 
-**Opener: 422 on the AI lane — 5,755,741 against 45,568 on 9382, and no
-factor named; 415 is in flight on the rules lane, holding the screen.**
+**Opener: 426 on the rules lane — chapter two's 616, with the 140 west the
+first thing to rule in or out; 422 on the AI lane, landing the wrap.**
 
 ## The queue
 
@@ -58,14 +58,14 @@ the backlog is `docs/PARKED.md`, and an item returns only when a score names it.
     nothing says the gap is one cause rather than several (§48.4). run111
     is on the disk and covers the block; grep it before booking a capture.
 
-415. **Chapter two staged and pinned** (capture lane, run112): the golden
-    record's second chapter, `tools/gamelog/golden/chapter2.cmd`, from
-    365's `docs/GOLDEN.md` §14 — which assigns run112–run119 by what a
-    failure would teach, chapter five and chapter seven early because each
-    can invalidate work built on it. Pin chapter two's word in its **own**
-    constant: `floors.rs` holds only `GOLDEN_WORD_CHAPTER_ONE`, and the
-    composed `Golden:` line is a guard change parked to the pass (417).
-    Lowest chapter first, ruled — the AI track's rule, one map down.
+426. **Chapter two's frame 616** (the rules headline's own frame, named by
+    415): the extra `Unit::fight+0x9b0` on the hoplites' birth frame.
+    **First thing to rule in or out is the 140 west** — `add hoplite
+    who=1 12,40` asks internal 2400, the original seats 2424/2568/2472 and
+    this crate 2284/2428/2332, uniformly 140 short with the chapter's
+    first add exact. That is `find_nearby_spot` on clear ground, pinned in
+    no direction by 415 and owed an item that re-runs its pins (379). run112
+    is on the disk and covers the frame; grep it before booking a capture.
 
 390. **A `LEADERS≥2` window anywhere in (7616, 8174]** (capture lane;
     takes-chain to the met bit): nothing on disk dumps a leader between
