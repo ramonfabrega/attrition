@@ -32,6 +32,20 @@ two ledger regexes closed in the third pass, 2026-09-17; the fourth pass,
 each now a guard or a clause (`docs/audit/2026-09-19-fable-pass-6.md`,
 DECISIONS 42). 341 closed 2026-09-18 by item 363.
 
+(428) **Reserving a run number does not reserve the append point.**
+Measured 2026-09-19: two lanes ran captures in parallel with run111 and
+run112 properly reserved to each, and their merges still conflicted,
+because both append a section to the **end** of `docs/RUNS.md` and neither
+brief said where. The second merge refused and backed out — nothing lost,
+but a landing stalled on a resolution the commander's brief could have
+prevented. Two shapes to weigh: a brief that reserves the append order the
+way it reserves the number, which costs a clause and fails silently when a
+lane lands out of order; or one section per file under `docs/runs/`, the
+way `docs/journal/` already works, which cannot conflict at all and is the
+pattern this repo has already chosen once for exactly this reason. The
+ledger's own section order would then be a generated index. The pass's,
+because it changes a document's shape and the guards that read it.
+
 (424) **A test that compares a slot position reads as a finding.** Found
 by item 414, 2026-09-19, in its own first draft. It compared `MAKE[1].val`
 against `MAKE[1].val` across the two sides — and this crate's slot 1 at the
@@ -210,6 +224,21 @@ against the type record, `GOODS` being the first instance. If others exist
 it finds them the day it lands; if none do it costs three lines and says
 so. A worker's item, not the pass's — a correctness guard about the port
 rather than loop machinery. Make it fail on purpose first.
+
+**Measured 2026-09-19 by 423's own fail-on-purpose**, which is what tells
+this apart from a load-bearing label: with one row left on the old name,
+every value comparison passed — 33,536 field-frames — while the `parting`
+equality failed in **exactly one position**, `income[2:wealth]` generated
+against `income[2:metal]` pinned. The pin guards the literal against the
+generated name; nothing guards the generated name against the truth.
+
+**The same shape one level up, and 423 found it in its own writing**: its
+`docs/AI.md` §48.4 said "three pinned constants across three items", an
+estimate written into a specification without counting, and the count is
+one pinned constant and one assertion key. A number asserted in prose has
+nothing to disagree with it either — struck in place and pointed at the
+measurement. Whether that generalises to a guard over counted claims in
+`docs/` is the pass's to judge; it is named here so it is not lost.
 
 (423) **`GOODS` is mislabelled in `diff/leader.rs`.** Found by item 414,
 2026-09-19, while tracing what pays for a Scholar. Index 2 is named "metal"

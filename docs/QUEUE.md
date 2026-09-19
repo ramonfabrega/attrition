@@ -12,24 +12,27 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-19, the first tranche after the sixth Fable pass. **Four landings,
+*2026-09-19, the first tranche after the sixth Fable pass. **Five landings,
 no score moved**: Great Lakes stands at 9510, golden at 626.*
 
 - **414 bought a cause, not a word.** On 9382 the Citizen is `val 234782`,
   `num 2`, same city **on both sides** — the original offers it and does
   not buy it. Both of 408's readings are dead; what stands is the third,
-  which existed only because the disk was grepped first: **the Scholar's
-  re-offer is too small**. The two numbers are the original's **5,755,741**
-  ×2 against this crate's **45,568** ×1, and 234,782 sits between them.
+  found only because the disk was grepped first: **the Scholar's re-offer
+  is too small**. The original's **5,755,741** ×2 against this crate's
+  **45,568** ×1, with the Citizen's 234,782 between them.
 - **The stanza's written prediction died with them** — it said the Scholar
-  would hold at 9,999,999/`num 5`; both sides collapse on the same block.
-  That is what writing it down before the run is for. Three free witnesses:
-  the original **names its own purchase** (57,557 = 5,755,741/100 the block
-  after), `num_queued` agrees, and the goods enter the frame identical
-  (`bucket 107 127 53 129 80 0`, both selling 100 timber).
-- **415 is on the screen** with run112; 408 takes 423 then 422. Four open,
-  65 parked. **Fable backlog: eleven Loop items** (251, 335, 313, 367, 375,
-  416, 417, 419, 420, 421, 424) — the pass is due at twenty; this is four.
+  would hold at 9,999,999/`num 5`, and both sides collapse on that block.
+  That is what writing it down before the run is for (419).
+- **423 measured a third kind of wrong name.** `GOODS` said "metal" where
+  `TypeIndex` says WEALTH; the run separated the possibilities — 33,536
+  field-frames **unchanged**, the `parting` equality failing in exactly one
+  position. The label is **self-consistent**, generated from one array on
+  both sides, so nothing guarded it against the truth. 425 is that guard.
+- **415 is landing** — run112 captured, resolving a `docs/RUNS.md` append
+  conflict with run111; 408 is on 422. Four open, 65 parked.
+  **Fable backlog: twelve Loop items** (251, 335, 313, 367, 375, 416, 417,
+  419, 420, 421, 424, 428); the pass is due at twenty, this is five.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w9711 of 24,000 · GreatLakes w9510 of 24,000
@@ -97,9 +100,9 @@ the backlog is `docs/PARKED.md`, and an item returns only when a score names it.
   measured on the tip**, after the last `ccc update`, or names its tree.
 - **The floors and these lines move together** — `FLOORS`, `LONG_WORD_*`,
   `GOLDEN_WORD_*`, `ENDPOINTS` with `Scoreboard:`, `Long captures:`,
-  `Golden:`, `Endpoint <frame>:` — and the guards read those phrases and
-  `Fable backlog: N Loop items` literally. The length guard counts every
-  line under "Where things stand" to the next `## `, blanks included.
+  `Golden:`, `Endpoint <frame>:`, `Fable backlog: N Loop items` — read
+  literally and **never wrapped**, or the count guard matches this line
+  instead (twice, 09-19). The length guard counts every line to the next `## `.
 - **A capture is a draw-stream trace first, detail on demand** (DECISIONS
   41): whole length at `cover=0`, then a windowed re-run sized to the word;
   after 363, the click-free lane unless it needs the mouse. Overlap the
