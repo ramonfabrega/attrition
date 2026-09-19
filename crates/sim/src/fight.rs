@@ -45,6 +45,18 @@ pub const SITE_ATTACK_POS_FIGHT: &str = "Unit::find_attack_pos+0xea9 < Unit::fig
 /// comparison (`docs/INPUT.md` §11).
 pub const SITE_FIGHT_RESEARCH: &str = "Unit::fight+0x9b0";
 
+/// `Ammo::init@0067bbf0+0xcd9` — the landing scatter's **x** draw, the
+/// first of the two a shot spends (`docs/COMBAT.md` §9.1, §9.5).
+///
+/// It is named here because the frame it lands on is the whole of
+/// §9.0: run53's first `Objects::add_ammo` in 24,000 frames is
+/// sim-frame 9425, and this crate spent it on 9415 until the launch
+/// moved to the animation's own event track.
+pub const SITE_AMMO_SCATTER_X: &str = "Ammo::init+0xcd9";
+
+/// `Ammo::init@0067bbf0+0xd0b` — the landing scatter's **y** draw.
+pub const SITE_AMMO_SCATTER_Y: &str = "Ammo::init+0xd0b";
+
 /// The same draw from `Group::action_attack@00712490+0x41a`, which calls
 /// the nine-argument form **once**, on the group's leader, and only when
 /// `ObjectData::is_in_range` says the leader cannot already shoot
@@ -427,6 +439,11 @@ impl Sim {
             if p.fires() {
                 self.do_damage(me, target, angle, false, 0x100, false, false, frame);
             }
+        } else if self.launches_from_anim(i) {
+            // **Deferred** — `docs/COMBAT.md` §9.0. `Unit::fight` sets the
+            // swing and the reload and launches nothing; the arrow is
+            // added by the attack animation's own release event, frames
+            // later, from [`Sim::guy_release_events`].
         } else {
             self.fire_ammo(me, target, angle, frame);
         }
@@ -492,12 +509,55 @@ impl Sim {
         }
     }
 
+    /// Whether this unit's shot is launched by its **animation** rather
+    /// than by `Unit::fight` — `docs/COMBAT.md` §9.0.
+    ///
+    /// True exactly when the install's own `<RELEASEEVENT>` table knows
+    /// the unit's graphic piece. That is the original's own condition read
+    /// the only way this crate can read it: `Unit::fight@005fd4d0` calls
+    /// `Object::fire_ammo` only when the type's `+0x2cc` (its fire-projectile
+    /// graphic) is set or the merchant arm holds, and Great Lakes'
+    /// Longbowmen reach neither — their arrow is a `RELEASEEVENT` on
+    /// `CHAR_ATTACK1`, `2` and `3`. `+0x2cc` has no reading here and no
+    /// capture on this disk spends it (§9.0's SEAM), so a piece the table
+    /// does not name keeps the immediate launch this crate has always
+    /// taken, which is what leaves every sim built from tables alone —
+    /// the unit tests, the soak — meaning what it meant.
+    pub(crate) fn launches_from_anim(&self, u: usize) -> bool {
+        self.units[u]
+            .guys
+            .first()
+            .is_some_and(|g| self.art.releases.contains_key(&g.gpiece))
+    }
+
+    /// The landing scatter's two draws, under the original's own site
+    /// names — `Ammo::init+0xcd9` and `+0xd0b` (§9.1).
+    ///
+    /// [`combat::scatter_point`] is the arithmetic; this is the same thing
+    /// with a mark before each draw, because the two addresses are two
+    /// entries in the compared sequence and a single label would fold
+    /// them into one.
+    fn scatter_landing(&mut self, at: Pos, s: i32) -> Pos {
+        if s - 1 < 1 {
+            return at;
+        }
+        self.mark(SITE_AMMO_SCATTER_X);
+        let dx = self.rng.roll() % s - s / 2;
+        self.mark(SITE_AMMO_SCATTER_Y);
+        let dy = self.rng.roll() % s - s / 2;
+        Pos::new(at.x + dx, at.y + dy)
+    }
+
     /// `Object::fire_ammo` for a unit (§9.1): one `Ammo` per figure, here one.
     ///
     /// A siege type firing at a **unit** fires at the ground under it
     /// (`fight` inserts an `ATTACK_GROUND` order at the target's position,
     /// §8.2 step 1): the shot has no target to home on or to test against,
     /// and finds what it finds where it lands.
+    pub(crate) fn fire_ammo_pub(&mut self, shooter: Obj, target: Obj, angle: Angle, frame: i64) {
+        self.fire_ammo(shooter, target, angle, frame);
+    }
+
     fn fire_ammo(&mut self, shooter: Obj, target: Obj, angle: Angle, frame: i64) {
         let p = self.profile(shooter);
         let launch = self.pos_of(shooter);
@@ -535,7 +595,7 @@ impl Sim {
                 aim.y - crate::movement::cos_component(back, tp.x_size * 0x30),
             );
         }
-        let landing = combat::scatter_point(&mut self.rng, aim, s);
+        let landing = self.scatter_landing(aim, s);
         let clamp = |q: Pos, w: &crate::World| {
             Pos::new(
                 q.x.clamp(0, w.width() * UNITS_PER_CELL - 1),

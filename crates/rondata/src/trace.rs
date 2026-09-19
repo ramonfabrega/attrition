@@ -370,6 +370,14 @@ pub const SITES: &[(u32, Option<u32>, &str)] = &[
     // spent before either suppression is read (`docs/COMBAT.md` §8.2
     // step 0). One caller, so no chain is needed.
     (0x005f_de80, None, sim::fight::SITE_FIGHT_RESEARCH),
+    // `Ammo::init@0067bbf0` — the landing scatter's two draws, the whole
+    // cost of a shot that hits open ground or a building
+    // (`docs/COMBAT.md` §9.1). Both reach here through
+    // `Objects::add_ammo+0x119`, from either launch route — the
+    // animation's release event or `Object::fire_ammo` — so no chain
+    // separates them at this depth and none is given.
+    (0x0067_c8c9, None, sim::fight::SITE_AMMO_SCATTER_X),
+    (0x0067_c8fb, None, sim::fight::SITE_AMMO_SCATTER_Y),
 ];
 
 /// The header's `kind`: `RONT`, little-endian.

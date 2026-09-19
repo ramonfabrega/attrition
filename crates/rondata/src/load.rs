@@ -138,6 +138,13 @@ pub struct Loaded {
     /// behind its leader rather than standing on it (`docs/MOVEMENT.md`,
     /// "The follower's destination").
     pub piece_tracks: crate::artdata::PieceTracks,
+    /// Every unit graphic piece's arrow-release frames, `gpiece → (attack
+    /// slot → frames)`, read from `unit_graphics.xml`'s `<RELEASEEVENT>`
+    /// (`crate::artdata::piece_releases`). Empty when loaded from tables
+    /// alone. **Gameplay data, not art**: it is when the original's own
+    /// simulation brings an arrow into existence, and a unit that does not
+    /// reach one of these frames does not shoot (`docs/COMBAT.md` §9.0).
+    pub piece_releases: crate::artdata::PieceReleases,
     /// `craftrules.xml`'s 55 `CRAFT` records in file order — `TypeIndex`
     /// `0x275..=0x2ab`, the `SpellTypeData` table `Unit::do_cast` and
     /// `SpellTypeData::get_job_time` read (`docs/ORDERS.md` §6.9). Empty
@@ -438,6 +445,7 @@ pub fn load(install: &Install) -> Result<Loaded, crate::Error> {
         .collect();
     loaded.piece_lengths = crate::artdata::piece_lengths(install, &graphs);
     loaded.piece_tracks = crate::artdata::piece_tracks(install, &graphs);
+    loaded.piece_releases = crate::artdata::piece_releases(install, &graphs);
     // The opening scripts — `Leaders::prod_script_path` is `.\ai\scripts\`.
     // A missing file is not an error: a game without scripts is a game whose
     // AI skips to step 2, which is what the original does when
@@ -1598,6 +1606,7 @@ pub fn load_tables(
         gaia_lengths: Default::default(),
         piece_lengths: Default::default(),
         piece_tracks: Default::default(),
+        piece_releases: Default::default(),
         spells,
     }
 }
@@ -2205,6 +2214,7 @@ mod tests {
             gaia_lengths: Default::default(),
             piece_lengths: Default::default(),
             piece_tracks: Default::default(),
+            piece_releases: Default::default(),
             spells: vec![],
         };
         assert_eq!(l.type_index(0), 0);

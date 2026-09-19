@@ -1032,11 +1032,134 @@ reloads in a third of the time.
 
 ## 9. Projectiles — `Object::fire_ammo`, `Ammo::init`, `Ammo::inc_time`, `Ammo::do_damage`
 
+### 9.0 A unit's shot is launched by its **animation**, not by `fight` (item 389, 2026-09-18)
+
+Everything below §9.1 describes what happens once an `Ammo` exists. This
+is about **when** one comes into existence, and for a unit it is not on
+the frame `Unit::fight` runs.
+
+**The chain, from the trace's own ebp record** on run53 sim-frame 9425:
+
+```text
+Ammo::init+0xcd9 < Objects::add_ammo+0x119 < GraphicEvents::execute_game_events+0x40d
+```
+
+`Object::fire_ammo` is not in it. `GraphicEvents::execute_game_events
+@008e48e0` walks the **event list of the guy's current animation slot**
+and, for every event of kind 1, adds one `Ammo` itself. The route in is
+`Objects::inc_time@0065db70`'s own pairing — per object, the vtable's
+`+0xa0` (`Unit::inc_time`, every guy's clock) and then `+0x154`
+(`Unit::execute_events@0060edc0` → `Guy::execute_events@005d99c0`, every
+guy's event list) — so the shot is added in the animation pass, between
+the clock wraps and `Farms::inc_time`, which is exactly where run53 puts
+its two `Ammo::init` draws.
+
+**The gate**, `008e4941`–`008e4989`, per event:
+
+- `event.anim == package.cur_anim` — the list is the slot's;
+- `package.last_time < event.time && event.time <= package.cur_time` — a
+  **crossing**, not an equality, so a clock stepping by two fires it once
+  and a clock that wraps past it does not fire it at all;
+- the target: `whom != −1 && ox != −1`, or the order is `ATTACK_GROUND` /
+  `AIR_ATTACK_GROUND`. `Guy::execute_events` fills those from the
+  **current `UnitOrder`** (`+0xdc`'s arm: the order's `+0x8`, `+0xc`,
+  `+0x10`), not from the guy, and forces `last_time` to `−1` on the frame
+  `cur_time` reads zero;
+- a pivot-restriction test on the piece, which no shipped archer trips.
+
+`Guy::execute_events`' own tail adds one more for the attack category: the
+target must still be active **and carry the same `uid`** the order stored.
+
+**The times are in the install, in plain XML.** `unit_graphics.xml`'s
+`<UNIT>` entries carry the event track directly — Longbowmen's is
+
+```xml
+<RELEASEEVENT starttime="466"  anim="CHAR_ATTACK1" type="ArcherArrowWOtip" node="0"/>
+<RELEASEEVENT starttime="1533" anim="CHAR_ATTACK1" type="ArcherArrowWOtip" node="0"/>
+<RELEASEEVENT starttime="333"  anim="CHAR_ATTACK2" .../>
+<RELEASEEVENT starttime="1533" anim="CHAR_ATTACK2" .../>
+<RELEASEEVENT starttime="733"  anim="CHAR_ATTACK3" .../>
+<RELEASEEVENT starttime="1666" anim="CHAR_ATTACK3" .../>
+```
+
+— two per attack slot, which is `AMMO_PER_ATT` 2 arriving by a different
+road than §9.1's building loop. `starttime` is milliseconds; the event
+list holds a **frame**, at the fifteen-a-second rate §3.1's lengths use:
+
+> `event.time = starttime × 3 / 200`, **truncated**.
+
+**This is a data coupling, not a renderer one.** `CLAUDE.md`'s
+load-bearing rule is that the *sim crate* depends on no graphics,
+windowing or async runtime; it is not that the simulation may never read
+a table whose filename says "graphics". These rows are what the
+original's own simulation consults to decide when an arrow exists — they
+change the random stream and the outcome of a fight — and
+`rondata::artdata` already read this file for §3.1's lengths and the crew
+tracks. `rondata::artdata::piece_releases` resolves them to integer
+frames at load and the sim is handed a table; nothing here needs a pixel.
+
+#### The truncation is measured, not assumed
+
+`game_frames` (§3.1) **rounds**. The event times **truncate**, and the
+two differ on every shot that pins it, because all four of the shipped
+products land at remainder 198 or 199 of 200. Run53's first four
+`Objects::add_ammo` calls in 24,000 frames are Great Lakes' first two
+archers, and the dump gives each guy's animation clock frame by frame:
+
+| shooter | slot | `starttime` | truncated | rounded | fired on |
+|---|---|---|---|---|---|
+| `1/29` | `CHAR_ATTACK3` | 733 | **10** | 11 | **9425** (`cur_time` 9 → 10) |
+| `1/28` | `CHAR_ATTACK2` | 333 | **4** | 5 | **9426** (`cur_time` 3 → 4) |
+| `1/29` | `CHAR_ATTACK3` | 1666 | **24** | 25 | **9439** |
+| `1/28` | `CHAR_ATTACK2` | 1533 | **22** | 23 | **9444** |
+
+Four for four on the truncation, nought for four on the rounding.
+
+#### What it cost, and the negative that pins it
+
+Great Lakes' word moved **9415 → 9451**. 9415 was five draws against two:
+this crate's `1/29` launched on the frame it came into range, spending
+`scatter_point`'s two draws (§9.5) where the original spends none, and
+the shifted stream then cost a bird its idle variant. Every frame from
+9415 to 9450 now agrees draw for draw — both archers' first arrows, both
+their second, and the thirty frames of reload between.
+
+The **negative** is the cheap permanent one:
+`run53_s_first_ammo_is_the_animation_s_own` — the original's first
+`Objects::add_ammo` in 24,000 frames is sim-frame **9425**, so a
+simulation that launches an arrow before it is wrong by that fact alone,
+whatever its draw count says.
+
+#### What this has **not** established
+
+- **`UnitType +0x2cc`**, the type's fire-projectile graphic, is the one
+  other route into `Object::fire_ammo` for a unit: `Unit::fight`
+  @`005fee?` calls it when `+0x2cc != 0` or the merchant arm
+  (`is(0x3e)` outside `unit_masks & 0x80000`) holds. Longbowmen reach
+  neither — their arrow is a `RELEASEEVENT` — and nothing on this disk
+  reaches the field at all. This crate has no reading of it, and so
+  defers exactly when the install's `<RELEASEEVENT>` table knows the
+  piece and launches immediately otherwise. That fallback is a **seam,
+  not a claim**: it is what keeps every sim built from tables alone
+  meaningful.
+- **The launch point.** The original offsets the package's `x/y/z` by the
+  event node's own position (`GraphicPieces::get_position`, a float, and
+  a graphic one) before `add_ammo`; this crate launches from the unit's
+  position. It moves the flight time and nothing else on this capture.
+- **`Guy::execute_events`' `uid` test.** This crate tests that the target
+  is still active; the original also requires the stored `uid`. A target
+  that died and had its slot reused inside one animation would part them.
+- **Melee.** `Unit::fight`'s `do_damage` arm is untouched, and no capture
+  here has a melee unit in a fight: run53's first `Object::do_damage` is
+  9451, and it is an arrow landing.
+
 ### 9.1 Launch — `fire_ammo(o, who)`
 
 A **unit** adds one `Ammo` **per figure** on this `UnitData` (`guy_mark`), at
 the figure's position, `z + 100`, with the unit's facing, `gpiece =
-type.fire_proj`'s graphic, `who/o = A`, `whom/ox = T`. A **building** adds
+type.fire_proj`'s graphic, `who/o = A`, `whom/ox = T` — **but `fire_ammo`
+is not how an archer shoots**, and §9.0 is where a unit's `Ammo` actually
+comes from. A **building** adds
 `type.ammo_per_att` ammo, each at a `Random::get(0, 0xffff) % (x_size × 0x60)`
 by `% (y_size × 0x60)` offset from the building's centre (two draws per
 ammo; none on a zero-width axis), `z + 250`, angle 0, graphic by
@@ -1173,9 +1296,12 @@ down on a sheep passes through it.
 ### 9.5 What a shot costs in random draws
 
 In order: two per shot when a building is the shooter (the launch offset,
-x then y, each only when the footprint axis exceeds one unit); one or two
+x then y, each only when the footprint axis exceeds one unit;
+`Object::fire_ammo`'s own loop, which a unit's animation-launched shot
+does not run — §9.0); one or two
 `% 100` for a shot at an aircraft; two for the landing scatter (when `s >
-1`); at landing, two more for where a no-target shot punctures the ground;
+1`) — `Ammo::init+0xcd9` and `+0xd0b`, named in
+[`trace::SITES`](../crates/rondata/src/trace.rs) since item 389; at landing, two more for where a no-target shot punctures the ground;
 in `take_damage`, one `% 100` on the first wound of a fort, temple or town
 and a second for the flock's size when the attacker is siege; and, outside
 the shot, one per frame from `fight`'s retarget test (§8.2 step 0). Every

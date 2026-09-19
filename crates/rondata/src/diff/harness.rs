@@ -3743,6 +3743,50 @@ mod tests {
              9182 is item 385's own: the frame the sequence used to part on \
              is a `use_market` sell on both sides now"
         );
+        // **The first arrow in the game, on both sides** (item 389,
+        // `docs/COMBAT.md` §9.0). This is the cheap permanent negative:
+        // the original's **first** `Objects::add_ammo` in all 24,000
+        // frames is sim-frame 9425, so a simulation that launches a shot
+        // before it is wrong by that fact alone, whatever its draw count
+        // says. It is what this crate did until the launch moved off
+        // `Unit::fight` — `1/29` shot on 9415, the frame it came into
+        // range, and the word sat there.
+        //
+        // Asserted as the whole schedule rather than the first, because
+        // the release times are a *table* and one frame cannot tell a
+        // right table from a lucky row: 9425 and 9426 are the two
+        // archers' first arrows (`CHAR_ATTACK3` at 733 ms and
+        // `CHAR_ATTACK2` at 333 ms, truncated to frames 10 and 4) and
+        // 9439 and 9444 their second (1666 and 1533 ms, frames 24 and
+        // 22). Past the word both streams are nobody's (item 89(c)).
+        let ammo: Vec<i64> = built
+            .frame_sites
+            .iter()
+            .filter(|(_, s)| s.iter().any(|l| l == sim::fight::SITE_AMMO_SCATTER_X))
+            .map(|(f, _)| *f)
+            .filter(|f| *f < LONG_WORD_GREAT_LAKES)
+            .collect();
+        let theirs_ammo: Vec<i64> = (0..LONG_WORD_GREAT_LAKES)
+            .filter(|f| {
+                trace
+                    .labels(*f)
+                    .iter()
+                    .any(|l| l == sim::fight::SITE_AMMO_SCATTER_X)
+            })
+            .collect();
+        assert_eq!(
+            ammo, theirs_ammo,
+            "Great Lakes' arrow launches below the word are not the \
+             original's own"
+        );
+        assert_eq!(
+            ammo,
+            vec![9_425, 9_426, 9_439, 9_444],
+            "below the word Great Lakes launches exactly four arrows, and \
+             the first in the whole game is 9425 — not 9415, which is the \
+             frame `1/29` comes into range and the frame this crate used \
+             to shoot on"
+        );
         assert!(
             first_count >= LONG_WORD_GREAT_LAKES && first_part >= LONG_WORD_GREAT_LAKES,
             "run53's ceiling fell: word {first_count}, sequence {first_part}; \

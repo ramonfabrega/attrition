@@ -1239,7 +1239,24 @@ pub(crate) const EAST_INDIES_FIRST_SCHOLAR: i64 = 8_466;
 /// **timber sale** on 8982, which `docs/AI.md` §40 had read as a refusal
 /// because it cost only one draw. One draw is also what a sale that
 /// covers the need looks like. `docs/ECONOMY.md` §12.
-pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 9415;
+///
+/// **9451 since item 389**, which took a unit's shot out of `Unit::fight`.
+/// 9415 was five draws against two, and two of ours were
+/// `combat::scatter_point` inside `fire_ammo`: this crate's `1/29`
+/// launched an arrow at the building `0/2004` on the frame it came into
+/// range. The original launches nothing there — its **first**
+/// `Objects::add_ammo` in all 24,000 frames is 9425, and the trace's own
+/// chain says why: `Ammo::init+0xcd9 < Objects::add_ammo+0x119 <
+/// GraphicEvents::execute_game_events+0x40d`. A unit's arrow is added by
+/// its attack **animation's** release event, and the frames are in the
+/// install — `unit_graphics.xml`'s `<RELEASEEVENT starttime=>`, at
+/// `ms × 3 / 200` truncated. `docs/COMBAT.md` §9.0.
+///
+/// The thirty-six frames it bought are a real fight: 9425 and 9426 are
+/// the two archers' first arrows, 9439 and 9444 their second, and every
+/// frame between agrees draw for draw. **9451 is the first one landing** —
+/// two draws at `Object::take_damage+0xe1` this crate does not spend.
+pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 9451;
 
 /// The floor `run97_s_window_orders_are_the_original_s` holds — item 368's
 /// widening of Great Lakes' order stacks, the 36,483 `GATHERORDER` records

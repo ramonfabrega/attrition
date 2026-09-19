@@ -341,6 +341,118 @@ pub fn piece_lengths(install: &Install, graphs: &[String]) -> PieceLengths {
     out
 }
 
+/// `gpiece → (attack slot → the frames its arrows leave on)`.
+///
+/// **This is gameplay data, not art.** `CLAUDE.md`'s load-bearing rule is
+/// that the *sim crate* depends on no graphics, windowing or async
+/// runtime — not that the simulation may never read a table whose
+/// filename says "graphics". `unit_graphics.xml`'s `<RELEASEEVENT>` rows
+/// are what the original's own simulation consults to decide **when an
+/// arrow comes into existence**, and nothing about reading them needs a
+/// pixel: the numbers are resolved here, at load, into integer frame
+/// counts, and the sim is handed a table.
+///
+/// `docs/COMBAT.md` §9.0. A unit does not launch its shot from
+/// `Unit::fight`: `fight` sets the swing and the reload, and the arrow is
+/// added by `GraphicEvents::execute_game_events@008e48e0`, which walks the
+/// guy's current animation's event list and fires every `type 1` event the
+/// clock has just crossed.
+pub type PieceReleases = BTreeMap<i32, BTreeMap<i8, Vec<u32>>>;
+
+/// A `<RELEASEEVENT starttime=>`'s millisecond stamp as the **game frame**
+/// the event list holds it at: `ms × 3 / 200`, truncated.
+///
+/// Fifteen frames a second, the same rate [`game_frames`] converts a
+/// length at — but **truncated where the length rounds**, and the
+/// difference is a whole frame on three of the four shots that pin it.
+/// Measured against run53, whose first four `Objects::add_ammo` calls in
+/// 24,000 frames are Great Lakes' first two archers:
+///
+/// | shooter | slot | `starttime` | truncated | rounded | sim-frame it fired on |
+/// |---|---|---|---|---|---|
+/// | `1/29` | `CHAR_ATTACK3` | 733 | **10** | 11 | 9425 (`cur_time` 9 → 10) |
+/// | `1/28` | `CHAR_ATTACK2` | 333 | **4** | 5 | 9426 (`cur_time` 3 → 4) |
+/// | `1/29` | `CHAR_ATTACK3` | 1666 | **24** | 25 | 9439 |
+/// | `1/28` | `CHAR_ATTACK2` | 1533 | **22** | 23 | 9444 |
+///
+/// Four for four on the truncation and none on the rounding. Every one of
+/// the four `ms × 3` products lands at remainder 198 or 199 of 200, so the
+/// two readings differ on all of them and the capture separates them
+/// cleanly — which is the only reason this is a measurement rather than a
+/// guess. No float: the product is an `i64`-free `u32` multiply and an
+/// integer divide, at the original's own scale.
+pub const fn release_frame(ms: u32) -> u32 {
+    ms * 3 / 200
+}
+
+/// Every player unit piece's [`PieceReleases`] entry, read from the
+/// install.
+///
+/// `graphs` is the same `GRAPH` column [`piece_lengths`] takes and the
+/// name walk is [`piece_tracks`]'s. Only the rows whose `anim` names a
+/// slot this crate knows are kept, and the frames of one slot come back
+/// **sorted and deduplicated** — the file writes them in order already,
+/// but the event walk's `last_time < t <= cur_time` test does not care
+/// and a stable order is what makes the draw sequence reproducible.
+///
+/// A piece with no `<RELEASEEVENT>` at all is absent, which is the answer
+/// for every melee type: `docs/COMBAT.md` §9.0's SEAM — this crate has no
+/// reading of `UnitType +0x2cc`, the one other route into
+/// `Object::fire_ammo` for a unit, and no capture on this disk reaches it.
+pub fn piece_releases(install: &Install, graphs: &[String]) -> PieceReleases {
+    let upath = install.data("unit_graphics.xml");
+    let Ok(utext) = crate::read(&upath) else {
+        return PieceReleases::new();
+    };
+    let Ok(udoc) = crate::parse(&upath, &utext) else {
+        return PieceReleases::new();
+    };
+    let mut by_graph: BTreeMap<&str, Vec<i32>> = BTreeMap::new();
+    for (i, g) in graphs.iter().enumerate() {
+        let ty = 0x32 + i as i32;
+        if ty >= 0x192 {
+            break;
+        }
+        by_graph.entry(g.trim()).or_default().push(ty);
+    }
+    let mut out = PieceReleases::new();
+    for u in udoc.descendants().filter(|n| n.has_tag_name("UNIT")) {
+        let Some(name) = u.attribute("name") else {
+            continue;
+        };
+        let Some(p) = PieceName::parse(name.trim()) else {
+            continue;
+        };
+        let Some(types) = by_graph.get(p.graph) else {
+            continue;
+        };
+        let mut rows: BTreeMap<i8, Vec<u32>> = BTreeMap::new();
+        for e in u.children().filter(|n| n.has_tag_name("RELEASEEVENT")) {
+            let (Some(anim), Some(start)) = (e.attribute("anim"), e.attribute("starttime")) else {
+                continue;
+            };
+            let Some(&(_, slot)) = SLOTS.iter().find(|(s, _)| *s == anim.trim()) else {
+                continue;
+            };
+            let Ok(ms) = start.trim().parse::<u32>() else {
+                continue;
+            };
+            rows.entry(slot).or_default().push(release_frame(ms));
+        }
+        if rows.is_empty() {
+            continue;
+        }
+        for v in rows.values_mut() {
+            v.sort_unstable();
+            v.dedup();
+        }
+        for &ty in types {
+            out.insert(p.piece(ty), rows.clone());
+        }
+    }
+    out
+}
+
 /// `guy_scale`, the executable's own `float` at `00c06244` — `Guy.obj`'s
 /// only exported datum in `rise_z.map`, initialised in `.data` to
 /// **4.8** and written nowhere but three `ConsoleWin::run_cmd` arms.
