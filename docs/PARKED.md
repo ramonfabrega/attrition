@@ -32,6 +32,21 @@ two ledger regexes closed in the third pass, 2026-09-17; the fourth pass,
 each now a guard or a clause (`docs/audit/2026-09-19-fable-pass-6.md`,
 DECISIONS 42). 341 closed 2026-09-18 by item 363.
 
+(436) **An action announced in a turn's closing message is not an action.**
+Observed 2026-09-19 in the 408 lane: it wrote "taking the clear" and then
+ended the turn with the message instead of running `ccc clear`, and picked
+the next brief up with all six landings of context still loaded. It caught
+this itself, inside the next turn, and reported it rather than proceeding
+— which is the only reason the handoff test below was not silently
+invalidated. The shape generalises and this loop is unusually exposed to
+it: `CLAUDE.md` tells every session to background a wait and **end the
+turn**, so turns end constantly, and a turn that ends carries its stated
+intentions away with it. The rule wants one clause: **an action you
+announce in a closing message is performed in that turn or it has not
+happened**. Cheap, and it costs one wrong assumption per occurrence — here
+it would have cost the only deliberate falsification the "document is the
+handoff" claim has ever had.
+
 (433) **A commander's mid-gate message is an interrupt, and neither side
 was treating it as one.** `CLAUDE.md` says nothing under `docs/` is edited
 while a gate runs, and item 408's lane broke it **twice on 2026-09-19** —

@@ -12,35 +12,35 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-19, the first tranche after the sixth Fable pass. **Nine landings,
+*2026-09-19, the first tranche after the sixth Fable pass. **Ten landings,
 no score moved**; both headlines have a measured cause, and the AI's is
 **priced at eight frames** — the stopping-rule number, for the pass.*
 
 - **The pair is confirmed, not inferred, and it is worth 8** (430). Forcing
   9380's offer alone costs 128 frames (9510 → 9382); forcing 9382's expiry
-  too buys **9518**, where 9382 agrees draw for draw. So the valuation and
-  the expiry **fall together or not at all**. The wrap is fidelity: 64-bit
-  costs 2,727 frames. The three `+0x63d` draws are **three separate
-  `expire` calls**, not one long walk.
-- **The eight frames are 432's toll, not its prize**: everything past 9510
-  is invisible today, so landing the pair turns 9518's scholar-birth
-  divergence from a probe artefact into ordinary residue on the real tree.
-- **616 is the original issuing no attack order at all** (426): its first
-  is 621, to the slingers on their own birth frame. Both named mechanisms
-  died by measurement, and the control kills the class — slingers engage at
-  **8.6** tiles, further than the 7.25 at which the hoplites do not. 434
-  reads `Unit::think`'s gate; it must explain the slingers too.
-- Four open, 69 parked.
-  **Fable backlog: fourteen Loop items** (251, 335, 313, 367, 375, 416,
-  417, 419, 420, 421, 424, 428, 431, 433); due at twenty, this is nine.
+  too buys **9518**, where 9382 agrees draw for draw. The wrap is fidelity:
+  64-bit costs 2,727 frames. The three `+0x63d` draws are **three separate
+  `expire` calls**. The eight are 432's **toll, not its prize** — every
+  frame past 9510 is a probe artefact until the pair lands.
+- **616's two accounts are dead and the product is a contradiction** (434,
+  a reading). **No visibility test exists anywhere on the search path**, so
+  fog was wrong; and `unit_respond_range` is absent from `rules.xml` — set
+  to the bracket's one solution, **7**, the oracle does not move, because
+  the AI arm re-raises the radius to 14. **Neither arm alone is the cause**
+  (correcting 426, whose experiment was right and description was not).
+  Without the arm the term must be 7, with it ≤3, and then the floor
+  cannot reach the **6.85** the original engages at. 435 reads the way out.
+- Four open, 70 parked.
+  **Fable backlog: fifteen Loop items** (251, 335, 313, 367, 375, 416, 417,
+  419, 420, 421, 424, 428, 431, 433, 436); due at twenty, this is ten.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w9711 of 24,000 · GreatLakes w9510 of 24,000
-Golden: w626 of 901 · ch2 w616 is lower and is the headline · 434 next
+Golden: w626 of 901 · ch2 w616 is lower and is the headline · 435 next
 Endpoint 24001: EastIndies 64 off, 5 unlinked · GreatLakes 51 off, 11 unlinked
 
-**Opener: 432 on the AI lane — 9382, nine draws against eight, the extra at
-index 6; 434 on the rules lane — the reading of `Unit::think`'s gate.**
+**Opener: 435 on the rules lane — `is_in_range@006486b0`, the remembered-
+target arm; 432 on the AI lane — 9382, nine draws against eight.**
 
 ## The queue
 
@@ -59,14 +59,14 @@ the backlog is `docs/PARKED.md`, and an item returns only when a score names it.
     list's shape rather than the purchase. Success is **9382 agreeing
     under the probe**, not the word moving — the probe is part of the item.
 
-434. **Why this crate orders the hoplite captain on its birth frame** (616,
-    the rules headline, after 426 killed both named mechanisms): a
-    **reading** of `Unit::think@005f6e40`'s auto-attack gate, not a capture
-    — the dump says what the original does, not why ours differs. The
-    hypothesis, written as one: the gate fires on a cheat-spawned captain's
-    first frame; it must **also** explain why the slingers fire the same
-    arm and the original agrees. Oracle landed by 426 —
-    `chapter_two_s_first_attack_orders_are_the_dump_s`, six of nine pinned.
+435. **`is_in_range@006486b0`, `think`'s remembered-target arm** (a
+    reading; the rules headline's frame, 616, after 434 left a
+    contradiction): without `find_melee_target`'s `0x40000` arm
+    `unit_respond_range` must be **exactly 7**, with it **≤3**, and then
+    the plain floor cannot reach the **6.85** tiles the original engages
+    at. 434 believes the 6.85 belongs to the cheap remembered-target arm
+    rather than the search, and wrote it as a belief. No run needed.
+    426's oracle checks it; it must still explain the slingers.
 
 390. **A `LEADERS≥2` window anywhere in (7616, 8174]** (capture lane;
     takes-chain to the met bit): nothing on disk dumps a leader between
