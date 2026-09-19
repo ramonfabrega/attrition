@@ -3298,7 +3298,7 @@ check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|BEGIN PERSONALITY\|BEGIN MAKEOBJEC
 # block, run97's its 9361), so the compared set is exactly the window.
 check: python3 tools/gamelog/samegame.py gamelog-run97-greatlakes-valuewindow.txt gamelog-run107-greatlakes-wordledger2.txt --exclude LEADERDATA | tee /dev/stderr | awk '/in common/{split($0,a,", "); n=a[2]+0} /^differ:/{d=$2+0} END{print "run97 overlap: common="n" differ="d; exit !(n==30 && d==0)}'
 
-run: 108
+run: 109
 tag: greatlakes-ammolaunch
 item: 396
 why: the seventh draw on Great Lakes 9451 is a launch offset, and `AmmoData::log_data` prints the arrow's own `sx, sy, sz` — so `(sx - guy.x, sy - guy.y)` is measured rather than derived and no `.bh3` skeleton reader is needed
@@ -3435,24 +3435,24 @@ poll_max: 90
 # in the sixty blocks, byte for byte against run100 — this is run100's game
 # with one category raised, and the overlap check below is the claim.
 # Same game: the trace word for word against run53, this map's own 24k run.
-check: python3 tools/gamelog/rngcmp.py rontrace-run53.log rontrace-run108.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=9480)}'
+check: python3 tools/gamelog/rngcmp.py rontrace-run53.log rontrace-run109.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=9480)}'
 # And the map, from the dump's own `GAME INFO`.
-check: LC_ALL=C head -c 400000 "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run108-greatlakes-ammolaunch.txt" | LC_ALL=C grep -a "MAP_STYLE" | tee /dev/stderr | awk '{print; exit !($2==14)}'
+check: LC_ALL=C head -c 400000 "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run109-greatlakes-ammolaunch.txt" | LC_ALL=C grep -a "MAP_STYLE" | tee /dev/stderr | awk '{print; exit !($2==14)}'
 # **The window landed whole** — sixty blocks, 9420..9479, no gap. This is
 # the check parked 373 asks for: a truncated run reads as completely
 # ordinary everywhere else, and only this says so.
-check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run108-greatlakes-ammolaunch.txt" | awk '{v=$3+0; if(v>=9420&&v<9480) n[v]=1} END{c=0; lo=0; hi=0; for(k in n){c++; if(lo==0||k+0<lo)lo=k+0; if(k+0>hi)hi=k+0} print "window blocks: "c" ("lo".."hi")"; exit !(c==60 && lo==9420 && hi==9479)}'
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run109-greatlakes-ammolaunch.txt" | awk '{v=$3+0; if(v>=9420&&v<9480) n[v]=1} END{c=0; lo=0; hi=0; for(k in n){c++; if(lo==0||k+0<lo)lo=k+0; if(k+0>hi)hi=k+0} print "window blocks: "c" ("lo".."hi")"; exit !(c==60 && lo==9420 && hi==9479)}'
 # **And the record that was raised is actually in them, on the frames it must
 # be.** The counts A..D predict, asserted; the inferred ones above 9451 only
 # printed. A correctly-numbered window whose blocks come back without the
 # record is the failure the detail guard exists for.
-check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|BEGIN AMMO" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run108-greatlakes-ammolaunch.txt" | awk '/BEGIN FRAME/{f=$3+0; next} /BEGIN AMMO/{if(f)n[f]++} END{for(b=9420;b<9480;b++) printf "%d:%d ", b, n[b]; printf "\n"; ok=1; for(b=9420;b<=9425;b++) if(n[b]!=0) ok=0; if(n[9426]!=1) ok=0; for(b=9427;b<=9439;b++) if(n[b]!=2) ok=0; for(b=9440;b<=9444;b++) if(n[b]!=3) ok=0; for(b=9445;b<=9451;b++) if(n[b]!=4) ok=0; exit !ok}'
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|BEGIN AMMO" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run109-greatlakes-ammolaunch.txt" | awk '/BEGIN FRAME/{f=$3+0; next} /BEGIN AMMO/{if(f)n[f]++} END{for(b=9420;b<9480;b++) printf "%d:%d ", b, n[b]; printf "\n"; ok=1; for(b=9420;b<=9425;b++) if(n[b]!=0) ok=0; if(n[9426]!=1) ok=0; for(b=9427;b<=9439;b++) if(n[b]!=2) ok=0; for(b=9440;b<=9444;b++) if(n[b]!=3) ok=0; for(b=9445;b<=9451;b++) if(n[b]!=4) ok=0; exit !ok}'
 # **And the launch point is actually printed** — `sx` is level 2, and at the
 # brief's `AMMO=1` every line below would be missing. This is the check that
 # fails if the detail reading above is wrong.
-check: LC_ALL=C grep -ac "^ *sx " "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run108-greatlakes-ammolaunch.txt" | tee /dev/stderr | awk '{exit !($1>=70)}'
+check: LC_ALL=C grep -ac "^ *sx " "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run109-greatlakes-ammolaunch.txt" | tee /dev/stderr | awk '{exit !($1>=70)}'
 # **The overlap with run100, and the count is the claim** — sixty blocks,
 # 9420..9479, one `--exclude` for the category that was raised. Both files'
 # highest block is dropped by `samegame.py` (mine the 9496 `!quit` block,
 # run100's its 10899), so the compared set is exactly the window.
-check: python3 tools/gamelog/samegame.py gamelog-run100-greatlakes-valuewindow2.txt gamelog-run108-greatlakes-ammolaunch.txt --exclude AMMO | tee /dev/stderr | awk '/in common/{split($0,a,", "); n=a[2]+0} /^differ:/{d=$2+0} END{print "run100 overlap: common="n" differ="d; exit !(n==60 && d==0)}'
+check: python3 tools/gamelog/samegame.py gamelog-run100-greatlakes-valuewindow2.txt gamelog-run109-greatlakes-ammolaunch.txt --exclude AMMO | tee /dev/stderr | awk '/in common/{split($0,a,", "); n=a[2]+0} /^differ:/{d=$2+0} END{print "run100 overlap: common="n" differ="d; exit !(n==60 && d==0)}'

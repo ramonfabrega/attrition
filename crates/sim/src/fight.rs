@@ -473,7 +473,10 @@ impl Sim {
             // added by the attack animation's own release event, frames
             // later, from [`Sim::guy_release_events`].
         } else {
-            self.fire_ammo(me, target, angle, frame);
+            // Not animation-driven, so no release node: the shot leaves
+            // the unit's own square, which is what §22's table returns for
+            // every piece it has not measured.
+            self.fire_ammo(me, target, angle, frame, from);
         }
         // Reload.
         let unit = &self.units[i];
@@ -582,13 +585,23 @@ impl Sim {
     /// (`fight` inserts an `ATTACK_GROUND` order at the target's position,
     /// §8.2 step 1): the shot has no target to home on or to test against,
     /// and finds what it finds where it lands.
-    pub(crate) fn fire_ammo_pub(&mut self, shooter: Obj, target: Obj, angle: Angle, frame: i64) {
-        self.fire_ammo(shooter, target, angle, frame);
+    ///
+    /// `launch` is where the shot actually leaves from — the release
+    /// node's world position for a unit whose animation fires it (§22),
+    /// and the shooter's own position for everything else.
+    pub(crate) fn fire_ammo_pub(
+        &mut self,
+        shooter: Obj,
+        target: Obj,
+        angle: Angle,
+        frame: i64,
+        launch: Pos,
+    ) {
+        self.fire_ammo(shooter, target, angle, frame, launch);
     }
 
-    fn fire_ammo(&mut self, shooter: Obj, target: Obj, angle: Angle, frame: i64) {
+    fn fire_ammo(&mut self, shooter: Obj, target: Obj, angle: Angle, frame: i64, launch: Pos) {
         let p = self.profile(shooter);
-        let launch = self.pos_of(shooter);
         let tp = self.profile(target);
         let target_pos = self.pos_of(target);
         let ground_fire = p.siege && p.packs && matches!(target, Obj::Unit(_));

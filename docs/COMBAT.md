@@ -2945,3 +2945,119 @@ observation here has it 0, so nothing distinguishes "the captain's" from
 observation either. And the mirror has never been seen to *fail* its
 `valid_target` test, so which of the five returns fires is only backed for
 the success path.
+
+## 22. Where an arrow starts, measured (item 396, 2026-09-19)
+
+§20.3 left the launch offset open and bounded above, and named the capture
+that would close it. run109 is that capture — `AMMO=5` over `[9420, 9480)` on
+the Great Lakes seed, sixty blocks, `docs/RUNS.md` run109 — and it closes it
+by subtraction rather than by a `.bh3` skeleton reader.
+
+**Two things the booking said were wrong, and the first cost nothing to find.**
+The ammo block is named **`AMMO`**, not `AMMODATA`: `AmmoData::log_data@00679c00`
+hands `Log::begin` the string at `int_str_array + 0x9ec`, the table's stride is
+a 20-byte `String`, and 0x9ec/20 = 127 indexes `Data/internal_strings.xml` —
+where `UNITDATA` 7086, `OBJECT` 142, `BUILDDATA` 287, `GUY` 3940, `LEADERDATA`
+4627, `WALLDATA` 7128 and `ANIMALDATA` 131 all land on their own names, seven
+for seven. Under the right name **two archives already carried ammo records**:
+run17 has 173 and run29 one. And `AMMO=1` would not have answered the question
+either — `log_data` opens level 1 for `cur_time/total_time/who/o/whom/ox` and
+**level 2 for `sx, sy, sz, ex, ey, ez, angle`**, so the brief's setting drops
+the launch point silently.
+
+### 22.1 The table, and every row is measured
+
+run109 prints nine arrows from three Longbowmen at two facings, and run100
+already carried the shooters' guy records at `GUYS=4` — position, angle,
+`cur_anim`, `cur_time`. The offset is `(sx − guy.x, sy − guy.y)`:
+
+| block | shooter | anim | `t` | guy | `s` | offset | `total_time` |
+|---|---|---|---|---|---|---|---|
+| 9426 | `1/29` | `CHAR_ATTACK3` | 10 | 4680, 29928 | 4613, 29951 | −67, +23, +185 | **27** |
+| 9427 | `1/28` | `CHAR_ATTACK2` | 4 | 4776, 30168 | 4708, 30215 | −68, +47, +137 | **26** |
+| 9440 | `1/29` | `CHAR_ATTACK3` | 24 | 4680, 29928 | 4620, 29954 | −60, +26, +184 | **26** |
+| 9445 | `1/28` | `CHAR_ATTACK2` | 22 | 4776, 30168 | 4703, 30204 | −73, +36, +169 | **26** |
+| 9452 | `1/29` | `CHAR_ATTACK1` | 6 | 4680, 29928 | 4609, 29969 | −71, +41, +169 | 26 |
+| 9457 | `1/28` | `CHAR_ATTACK2` | 4 | 4776, 30168 | 4708, 30215 | −68, +47, +137 | 25 |
+| 9463 | `1/27` | `CHAR_ATTACK2` | 4 | 4584, 29784 | 4523, 29840 | −61, +56, +137 | 25 |
+| 9468 | `1/29` | `CHAR_ATTACK1` | 22 | 4680, 29928 | 4609, 29969 | −71, +41, +169 | 25 |
+| 9475 | `1/28` | `CHAR_ATTACK2` | 22 | 4776, 30168 | 4703, 30204 | −73, +36, +169 | 25 |
+
+**The four `total_time`s §20.2 is about come back 27, 26, 26, 26** against this
+crate's 27, **27**, 26, **27** — the two that were a frame long are `1/28`'s,
+exactly as predicted before the run.
+
+**The six starttimes are every one the type has.** `unit_graphics.xml` gives
+`LONGBOWMEN` six `<RELEASEEVENT>`s — 466 and 1533 ms on `CHAR_ATTACK1`, 333 and
+1533 on `CHAR_ATTACK2`, 733 and 1666 on `CHAR_ATTACK3` — which through §9.0's
+measured `ms × 3 / 200` truncation are frames 6, 22, 4, 22, 10, 24. The capture
+caught all six, so the Longbowman's table is complete rather than sampled.
+
+### 22.2 It is a rotation, and the proof is `1/27`
+
+`1/27` fires `CHAR_ATTACK2` at `t 4` from a **different facing** to `1/28`'s —
+`−1449000960` against `−1348206592`, 8.45° apart — and its world offset is
+`(−61, +56)` where `1/28`'s is `(−68, +47)`. Same node, same length (82.8
+against 82.7), different answer. So `GraphicPieces::get_position`'s rotate-by-
+facing is real and the entry is model-space, exactly as §20.3 read it.
+
+The same shape was already on the disk and nobody had looked: run17's 24
+Slinger shots (type 82), rotated back by each shooter's own angle, collapse
+onto **three** model-space vectors — `(+39.4, −118.0)` at `dz 151`,
+`(−42.9, −112.3)` at `dz 177`, `(+68.2, −68.2)` at `dz 178` — each held to ±2,
+which is the integer quantisation of `sx` and `guy.x`. That is the confirmation
+this section would otherwise have had to buy.
+
+### 22.3 The port's table, and why it is not a float
+
+`crates/sim/src/launch.rs`. The entry is stored the way the rest of the crate
+stores a direction — a bearing **relative to the guy's facing** and a radius —
+so the world offset is `movement::sin_component`/`cos_component` and nothing
+else. `docs/DECISIONS.md` entry 16's second shape: the original builds its
+`GraphicPieces::positions` array once at load with floats, and this is the same
+array with the building step replaced by a measurement.
+
+| anim | `t` | bearing | radius | `dz` |
+|---|---|---|---|---|
+| `CHAR_ATTACK1` | 6, 22 | −26,692,241 | 81 | 169 |
+| `CHAR_ATTACK2` | 4 | −136,574,224 | 82 | 137 |
+| `CHAR_ATTACK2` | 22 | −36,624,995 | 80 | 169 |
+| `CHAR_ATTACK3` | 10 | +106,731,108 | 70 | 185 |
+| `CHAR_ATTACK3` | 24 | +59,520,002 | 64 | 184 |
+
+These reproduce **all nine** measured launch points to the unit, across three
+units and two facings — `launch::tests::run109_launch_points_are_reproduced_to_the_unit`
+carries the dump's own columns. The key is `Guy::gpiece`, which is **127** for
+`LONGBOWMEN` (the piece, not the type 177) and is the same key `PieceReleases`
+is built on; a piece with no row launches from the unit's own position, which
+is what every shot did before run109.
+
+`dz` is recorded because the record prints it and nothing reads it: the flight
+time is a plan distance.
+
+### 22.4 What it moved, and what it did not
+
+**Great Lakes' long-capture word: 9451 → 9510.** With the offset live, this
+crate's six launches below 9480 reproduce the original's `sx, sy`, its
+`ex, ey` **and** its `total_time` exactly (9425, 9426, 9439, 9444, 9451, 9456
+and 9462 on the sim's own numbering). The seventh draw at 9451 is `1/28`'s
+second arrow arriving on the frame it always arrived on.
+
+- **Diff-backed**: the nine launch points and their flight times, against
+  run109's own `AMMO` records; and the word, which is
+  `run53_s_24000_frames_put_the_ceiling_where_run33_did`.
+- **Measured but not yet a live diff**: nothing in `rondata::diff` parses the
+  `AMMO` record. The nine rows are pinned as constants in `launch.rs`'s test
+  rather than re-read from the archive each run, so a change to the archive
+  would not be noticed. **The obvious successor is a run109 `AMMO` widening**
+  — the whole record, every slot, every field, the way every other record is
+  compared.
+- **Not established**: every other unit type. The table has one piece in it.
+  The Slinger's three families are measured in run17 and are *not* in the
+  table, because no capture ties them to an animation — run17's `GUY` detail
+  is 1, so it prints no `cur_anim`. A `GUYS=4` re-run of any Slinger fight
+  would close that, and the same shape closes every missile type.
+- **Not established**: whether the bearing/radius pair is what the original
+  stores. It is not — the original stores a model-space `Vector<float>` and
+  a `Transform` — but it is what reproduces the original's integers, and the
+  two cannot be told apart from nine samples.

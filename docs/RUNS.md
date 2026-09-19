@@ -4052,3 +4052,41 @@ comparison rests on.
 
 `compare_target` and `find_nearby_target` are entered once each in the window
 and `attack_dist` 8 times, so the whole answer is 35 lines.
+
+## The launch point (run109, 2026-09-19) — where an arrow actually starts
+
+Item 396's capture, and the one `docs/COMBAT.md` §20.3 named. **Numbered 109
+because 108 was already taken** by item 386's call-proxy capture above, which
+runs through `tools/explore/golden_capture.sh` and so leaves no stanza in
+`captures.txt` for the next booking to trip over; nothing was overwritten —
+that lane writes under `~/ron-golden/`, this one into the bottle's `Logs`.
+
+**What it is.** `AMMO=5` under `[End Frame]` over `[9420, 9480)` on run100's
+Great Lakes game, everything else run100's detail exactly, so the overlap check
+needs one `--exclude` and no `--drop`. **60 blocks, 9420..9479, no gap; 39 MB;
+about three minutes.** Every check passed: identity against run53 (9,496
+identical, 0 differing), `MAP_STYLE 14`, the window whole, the `AMMO` block
+counts on their predicted boundaries, 183 `sx` lines, and the overlap against
+run100 at **60 blocks, 0 differing**.
+
+**The booking was wrong about the disk, and the grep that found it took a
+minute.** The block is named `AMMO` — string-table index 127, `0x9ec / 20`
+against `Data/internal_strings.xml` — not `AMMODATA`, which is what the earlier
+sweep looked for. Under the right name **run17 already had 173 ammo records**
+and run29 one. run17 is no substitute for this capture — its shooters are
+Slingers and its `GUY` detail is 1, so nothing names the animation — but it
+confirmed §20.3's rotate-by-facing model before this run cost anything: 24
+shots collapsing onto three model-space vectors, each held to ±2.
+
+**The predictions held, including the one that could fail.** The stanza said
+the original's `total_time` on the four launches below the word would be
+**27, 26, 26, 26** against this crate's 27, 27, 26, 27; it is. It said the
+`AMMO` counts over 9420..9451 would step 0, 1, 2, 3, 4 on named boundaries;
+they do. It said `|offset|` would land in [90, 130] on the Slinger transfer —
+**it does not**: the Longbowman's radii are 64..82, below the Slinger's
+96..125, so that hypothesis was wrong in magnitude while right in shape. The
+bands §20.3 derived from the flight times held exactly, which is the part that
+had to.
+
+`docs/COMBAT.md` §22 is the measurement and the table; **the Great Lakes word
+moved 9451 → 9510**.
