@@ -5815,6 +5815,7 @@ advance past 9510?** Two scratch builds, both reverted, neither committed.
 | 1 | every Scholar offer forced to the original's own 5,755,741 | **8985** |
 | 2 | the tail computed in 64 bits, so nothing wraps | **6783** |
 | 3 | **only 9380's** offer forced to 5,755,741 | **9382** |
+| 4 | 9380's offer **and** 9382's expiry, each scoped to its frame | **9518** |
 
 **All three are worse, and probe 3 answers the question with a second
 cause rather than with a payoff.** Forcing only the frame under test makes
@@ -5838,14 +5839,37 @@ causes to peel but a **pair that has to fall together**. Anyone who fixes
 one of them on its own will see the score drop and reasonably conclude
 they broke something.
 
-**The caveat, stated because the probe cannot separate it.** Forcing the
+**The caveat, stated because probe 3 cannot separate it.** Forcing the
 value changes the make *list*, and the expiry count is a function of the
 list, so the third `+0x63d` may follow from the list's shape rather than
-from the purchase. What is established is that **this crate buying the
-Scholar at 9380 does not advance the word**, and that the nearest
-divergence becomes 9382's draw count.
+from the purchase.
 
-Probe 2 is the one that corrected this section. Removing the wrap
+**Probe 4 prices the pair, and the price is eight frames.** With both
+halves forced — the valuation on 9380 and the expiry capped at the
+original's two draws on 9382 — **frame 9382 agrees draw for draw**, eight
+against eight entry for entry, and the word advances **9510 → 9518**. So
+the pair is confirmed by measurement rather than inferred, and correcting
+both of these causes is worth **eight frames of twenty-four thousand**.
+That number belongs in the first sentence of any successor brief.
+
+**Three separate calls, not one walk.** The first attempt at probe 4's
+expiry half capped the walk inside a single `expire` call and changed
+nothing: the three `+0x63d` draws come from **three separate calls**, the
+slot loop calling `expire` once per bought slot. A fact about the shape of
+the difference rather than about the patch.
+
+**And the train rate at 9518 is not a second finding.** Under probe 4 the
+new parting is this crate birthing the sixth scholar eight frames late —
+128 frames of job against 136 — which looks like an unblocked defect and
+is not. `run97_s_build_queues_are_the_original_s` compares `(type,
+job_counter)` for every live slot of every building over `[8030, 9349]`:
+**1,319 blocks, 37,899 building-frames, zero divergences**, and that
+window holds **three scholar jobs this crate runs today** (9087, 9201,
+9322). The train rate agrees tick for tick wherever both sides actually
+run a job, so 136 against 128 is an artefact of the forced purchase.
+
+Probe 2 is the one that corrected this section; `docs/journal/2026-09-19-item-430.md`
+is the story. Removing the wrap
 costs 2,727 frames, which says the wrap is **load-bearing fidelity**: the
 original is a 32-bit engine, its `imul` wraps, and this crate matches it
 on frames all the way down to 6783. The wrap is not the bug. It is
