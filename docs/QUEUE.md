@@ -29,7 +29,7 @@ no score moved**: Great Lakes stands at 9510, golden at 626.*
   state, so seven of 365's eight add none. `docs/GOLDEN.md` §13 is the
   order-class-to-issuer table DECISIONS 41 §5 awaited, and order coverage
   is a separate axis whose unit is a native issuer (418). `bird` (case 82)
-  is the one console command that orders; 365 corrects the three that deny it.
+  is the one console command that orders; 365 corrected the four that denied it.
 - **Both lanes alive**, holding 414 and 415. Five open, 59 parked; **Fable
   backlog: seven Loop items** (251, 335, 313, 367, 375, 416, 417).
 
