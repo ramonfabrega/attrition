@@ -2469,7 +2469,7 @@ the simulation are `Unit::think@005f6e40:206`, `Leader::production_ai` and
 `Leader::diplomacy` (`grep GameAccess::ai_off`). It fires in the original too
 — one frame later, on 618 — and does not move the squad. ~~Whether this
 crate's `Army::process` would still walk it there is **not established**~~
-**It does** (item 395, §20.4): once `0/7` strikes on 618 rather than 617 the
+**It does** (item 395, §21.4): once `0/7` strikes on 618 rather than 617 the
 call is reached again, and the bypass tick walks all three of who=1's
 hoplites toward `(38664, 13320)` where the dump holds them. The gate is
 right and the tick is not — `Object::do_damage`'s gate at `0064bbfd` wants the victim's
@@ -2493,7 +2493,7 @@ point, lost the move inside the frame that ordered it, and rolled again on
 
 ~~**What stands at 619** is `Guy::set_anim+0xf2f < Guy::move+0x166`, the
 deferred swing, which this crate pays on 621.~~ **Closed by item 395, and
-the mechanism was not `Group::target_opportunity`** — §20. The chase was
+the mechanism was not `Group::target_opportunity`** — §21. The chase was
 planned on the right frame but to `(1224, 7704)` where the original walks
 to `(1080, 8280)`, because three of §19's six ring rejections hang on
 `1/7`'s ordered destination and this crate's `1/7` searched for its own
@@ -2502,7 +2502,7 @@ What hands it down is **`Unit::think`'s first statement**: a non-captain
 mirrors its captain's standing ATTACK order and the think ends there, so a
 member never searches at all. `Group::target_opportunity` could not have
 been it — its loop only enters a member that is itself a captain, and group
-64 has one. **The word: 619 → 624**, and §20.4 has what stands there.
+64 has one. **The word: 619 → 624**, and §21.4 has what stands there.
 
 
 ---
@@ -2762,7 +2762,7 @@ which is an hour of synthesized state (`docs/EMULATOR.md`).
   jump that skips it.
 - **Open, and bounded above**: the launch offset (§20.2, §20.3).
 
-## 20. The captain mirror — how a squad gets its target (item 395, 2026-09-19)
+## 21. The captain mirror — how a squad gets its target (item 395, 2026-09-19)
 
 **A squad member never searches for a target. Its whole think is copying
 its captain's.** `Unit::think@005f6e40`'s *first* statement, above the
@@ -2795,7 +2795,7 @@ point still hands its target down. `valid_target` is tested on the
 byte, and `add_attack_order`'s `action` argument is 0, so a DEFENSIVE member
 still takes a post.
 
-### 20.1 The frame, and it is measured twice
+### 21.1 The frame, and it is measured twice
 
 Both of chapter one's squads are three unit objects threaded `o_up`/`o_down`
 by one `Objects::init_unit` (`docs/INPUT.md` §11), so each has exactly one
@@ -2823,7 +2823,7 @@ mirror on the next frame: `0/6` carries the ATTACKORDER at the end of 616
 and `0/7`/`0/8` at the end of 617. That one-frame stagger is the mirror's
 signature and nothing else in the frame produces it.
 
-### 20.2 Why it is not `Group::target_opportunity`
+### 21.2 Why it is not `Group::target_opportunity`
 
 The item was booked as `Group::target_opportunity` handing the squad its
 captain's target. It cannot: the loop at `007107d0` only enters a member
@@ -2836,7 +2836,7 @@ and by the arm at `00710964`, not the direct one: `1/6` has no action yet,
 `add_order` argument is 1 and which is therefore where the captain's own
 ATTACK order comes from. `docs/GROUPS.md` §13 carries the listing.
 
-### 20.3 The same predicate lives in `find_melee_target` too, and is not implemented
+### 21.3 The same predicate lives in `find_melee_target` too, and is not implemented
 
 `Unit::find_melee_target@005ff9c0`'s head is the mirror again, for callers
 that are not `Unit::think` (`005ff9d8`–`005ffb9a`, read off the listing):
@@ -2867,7 +2867,7 @@ captures. No diff asks for it and the golden record cannot see it.
 member takes `QUEUE_FIRST` where this crate gives it the outer
 `add_attack_order` alone.
 
-### 20.4 What stands at 624
+### 21.4 What stands at 624
 
 The word moved 619 → **624**, the value diff 620 → 625, and blocks 616, 617
 and 618 now carry the dump's own coordinates for all six units — including
@@ -2913,7 +2913,7 @@ Both are value diffs against the dump, not readings:
    earlier, plans correctly at 617, so the lag is in *when* a freshly
    mirrored member reaches `do_attack`, not in §19.
 
-### 20.5 The bit the mirror's own return does not clear
+### 21.5 The bit the mirror's own return does not clear
 
 `Unit::think`'s **shared** epilogue at `005f761a` is
 `andb $-0x11, 0x8(%ebx)` — it clears `SubObjectData.flags & 0x10`, the
@@ -2934,14 +2934,14 @@ captures that has ever failed to reach anything and no diff asks for it.
 reach, read for whether its think interval returns to sixteen frames on the
 frame after the failure.
 
-### 20.6 Confidence, and what this has not established
+### 21.6 Confidence, and what this has not established
 
-Diff-backed: the mirror's existence and its timing on both squads (§20.1 is
+Diff-backed: the mirror's existence and its timing on both squads (§21.1 is
 the golden dump's own blocks 616–618, and the harness reproduces every
-coordinate in §20.4's table); the golden word at 624. Read-only: §20.3's
-`find_melee_target` head, and within §20 itself the `mandatory` byte — every
+coordinate in §21.4's table); the golden word at 624. Read-only: §21.3's
+`find_melee_target` head, and within §21 itself the `mandatory` byte — every
 observation here has it 0, so nothing distinguishes "the captain's" from
-"always 0". The two `unit_masks & 0x2000000` pairs in §20.3 have no
+"always 0". The two `unit_masks & 0x2000000` pairs in §21.3 have no
 observation either. And the mirror has never been seen to *fail* its
 `valid_target` test, so which of the five returns fires is only backed for
 the success path.

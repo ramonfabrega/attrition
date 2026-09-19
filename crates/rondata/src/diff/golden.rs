@@ -595,7 +595,7 @@ fn chapter_one_s_hit_is_answered_by_the_victim_s_captain() {
 }
 
 /// **The squad is handed its captain's target, and the dump's own
-/// coordinates are the check** (item 395, `docs/COMBAT.md` §20).
+/// coordinates are the check** (item 395, `docs/COMBAT.md` §21).
 ///
 /// Two stages of one walk, both against the golden dump:
 ///

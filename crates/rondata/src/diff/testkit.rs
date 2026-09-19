@@ -1349,7 +1349,7 @@ pub(crate) const RUN58_QUEUE_TAIL: i64 = 5177;
 ///   hands a squad member its captain's target is `Unit::think@005f6e40`'s
 ///   **first statement** — a non-captain mirrors the captain's standing
 ///   ATTACK order and the think ends there, so a member never searches at
-///   all (item 395, `docs/COMBAT.md` §20). With it, who=1's `1/7` and
+///   all (item 395, `docs/COMBAT.md` §21). With it, who=1's `1/7` and
 ///   `1/8` carry `0/7` from the frame they are born, `1/7` is ordered to
 ///   the dump's own `(1320, 7800)`, and `0/6`'s ring then answers
 ///   `(1080, 8280)` in the live harness — the word 619 → **624**.
@@ -1357,7 +1357,7 @@ pub(crate) const RUN58_QUEUE_TAIL: i64 = 5177;
 /// What stands at **624** is `Guy::set_anim+0x97a < Unit::move_step+0x823`,
 /// a walking figure's step, and the value diff moves with it to 625. Two
 /// residues are live on frame 618, both measured against the dump's own
-/// coordinates (`docs/COMBAT.md` §20, "What stands at 624"):
+/// coordinates (`docs/COMBAT.md` §21, "What stands at 624"):
 ///
 /// - **who=1's army marches and the original's does not.** `0/7` now
 ///   strikes `1/6` during 618, exactly as the dump has it, and that hit

@@ -1688,7 +1688,7 @@ mod tests {
 
     /// **A squad member never searches: it mirrors its captain.**
     /// `Unit::think@005f6e40`'s first statement, above every gate in the
-    /// function (`docs/COMBAT.md` §20) — a non-captain reads its captain's
+    /// function (`docs/COMBAT.md` §21) — a non-captain reads its captain's
     /// **action**, and takes that target if the action is an ATTACK order
     /// (`get_type() == 10`) on something it can validly attack.
     ///

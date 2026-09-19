@@ -1530,7 +1530,7 @@ impl Sim {
         // **A non-captain's whole think is the captain mirror**, and it is
         // `Unit::think@005f6e40`'s *first* statement — above the citizen
         // mask-clear, above both cadence gates, above everything
-        // (`docs/COMBAT.md` §20). The listing is five tests and a return:
+        // (`docs/COMBAT.md` §21). The listing is five tests and a return:
         //
         //     if (!is_captain(this)) {
         //         a = get_action(units[who][get_captain()]);
@@ -1680,7 +1680,7 @@ impl Sim {
     }
 
     /// `Unit::think@005f6e40`'s opening arm — the **captain mirror**
-    /// (`docs/COMBAT.md` §20). A unit with a captain takes that captain's
+    /// (`docs/COMBAT.md` §21). A unit with a captain takes that captain's
     /// standing ATTACK order and nothing else; the think ends here whether
     /// the mirror fires or not.
     ///
@@ -1694,7 +1694,7 @@ impl Sim {
     /// `mandatory` byte — `add_attack_order`'s `action` argument is 0, so
     /// a DEFENSIVE member still takes a post.
     ///
-    /// **The frame it explains**, twice over (`docs/COMBAT.md` §20): who=1's
+    /// **The frame it explains**, twice over (`docs/COMBAT.md` §21): who=1's
     /// three hoplites all carry `type 10 ox 7 whom 0` at the end of frame
     /// 615, the frame they are born, and only the captain `1/6` carries a
     /// `near_o`; and who=0's `0/7`/`0/8` take their retaliation ATTACKORDER
