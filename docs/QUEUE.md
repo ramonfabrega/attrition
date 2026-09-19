@@ -32,8 +32,8 @@ the frame right every time. **The steering pass is due** — Fable, main thread.
 - **The namesake has never fired in a scored capture** (382): zero non-exempt outcomes over 24,000 frames, the Temple chapter the only route; the held-out map answers **1 tick, 0 orders** (run106).
 - **Nothing is in flight**, both lanes reaped. 405 was recovered by hand — it
   wrote its files and hit the weekly limit before committing. Five open, 58
-  parked; **Fable backlog: fourteen Loop items** (251, 335, 343, 356, 321,
-  313, 367, 374, 375, 377, 397, 398, 404, 406) plus the marked rows.
+  parked; **Fable backlog: fifteen Loop items** (251, 335, 343, 356, 321,
+  313, 367, 374, 375, 377, 397, 398, 404, 406, 411) plus the marked rows.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w9711 of 24,000 · GreatLakes w9510 of 24,000

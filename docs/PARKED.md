@@ -29,6 +29,28 @@ Tooling, guards and the queue's own rules. The Fable pass takes these
 two ledger regexes closed in the third pass, 2026-09-17; the fourth pass,
 2026-09-18, ruled six (`docs/audit/2026-09-18-fable-pass-4.md`).
 
+(411) **A lane killed mid-item leaves its work on the floor, and nothing
+in the loop looks for it.** Measured 2026-09-19: att-405 wrote seven files
+and a journal — the golden word 621 -> 626, a guard, a re-pinned endpoint —
+then hit the weekly token limit before its first commit. `ccc list` showed
+`ahead 0, unpushed 0` and a `blocked` detail, which reads exactly like a
+lane that never started; the queue's handoff was written saying it
+"produced nothing". **What found the work was the reap refusing**: `ccc rm`
+will not delete a dirty worktree, so the one step that would have destroyed
+it is the step that saved it.
+
+Three shapes, for the pass to choose between. **The commander's chain has
+no "is it dirty" step** — merge/gate/push/reap all assume a lane that
+committed, and a lane that did not is invisible until the reap. **A
+worker's ninety-minute status rule does not fire when the worker is dead**;
+the limit kills every lane at once, so the silence is indistinguishable
+from work. And **mtimes are not the way to check**: the first sweep here
+used `find -newermt` with a local-time cutoff against ccc's UTC `startedAt`
+and so looked five hours past everything 405 wrote — the check is `git
+status` in the lane, which the worktree guard refuses across worktrees, so
+it wants `EnterWorktree` or a ccc verb. A `ccc list` field for "dirty, N
+files" would make the whole class visible at a glance.
+
 (375) **A staged run is indistinguishable from an unstaged one, and the
 borrow of a checksum trace is ungated.** Found by item 364, 2026-09-18,
 while measuring its own first golden word as an artefact.
