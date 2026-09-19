@@ -145,7 +145,13 @@ uses for `<MAP_STYLE>`, already covered by `live_session`'s settings backup
 and restore. A few lines in a place the tool already edits, with the
 restore already written, and it makes an unattended run a good neighbour.
 
-(356) **Nothing checks that a documented claim reached the code.** Item
+(356) **Nothing checks that a documented claim reached the code.**
+**Strongest evidence yet, 2026-09-18 (item 384)**: `docs/COMBAT.md` §13.2
+has carried the HOPLITES `0xf6` melee reach since the second reading, and
+the single call site passed `false`, so **every melee unit in the sim
+fought at `0x66` for a month** while the document said otherwise. A
+listing confirmed it in minutes once anyone looked (`006486b0`,
+`is(0x84, 0)`). Item
 352, 2026-09-18: `BuildType::mask_me@006312a0`'s first statement —
 `cells[…].flags |= 0x4000` on the mark, `&= 0xbfff` on the unmark — had
 been in `docs/CITIES.md` §3.6 **in prose since that mechanic's first
@@ -574,6 +580,21 @@ are floored and cannot regress silently; neither is on the word's frame,
 which is why they park rather than queue. The re-ordering is the more
 interesting: the same ten sites in a different order is a comparator or an
 insertion order, not a missing mechanic.
+
+(387) **Target selection should walk the world cell's object chain, and
+ours is units-only.** Found by item 384 while closing 617's range half.
+The crate already maintains the chain; switching the scan to it would
+**drop buildings from target selection**, so it is a bigger item than it
+looks and it would not have moved this frame. Parks on that second clause
+— it names no score today — but it is the shape of a whole family, and
+whoever takes it should expect the building half to come with it.
+
+(388) **The golden record's `1/7` and `1/8` get their target from a group
+path the sim does not have at all.** 384's other parting note: `near_o`
+shows only a squad's captain searches (`1/7`, `1/8` and all of who=0 are
+`-1` for 900 frames) and `Group::target_opportunity` spreads the captain's
+find, which this crate does not model. Documented in `docs/GROUPS.md` §13.
+Not on 617's frame — 386's tie-break is — so it parks until a word names it.
 
 ## Measured residues, none near a word
 

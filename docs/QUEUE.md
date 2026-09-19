@@ -23,22 +23,22 @@ held-out map's verdict; 362 was booked as the market and was not.*
   the digit. §44's falsifier came back **FALSE** — closing `MAKE[0].val`
   costs 2,000 frames. The real gate is `treaties[i] & 1`, the MET bit; no
   `human` test exists in `plan_strategy`. 385, and nothing else, moves it.
-- **The golden word holds at 617**; 379 closed what stood there and it
-  was not animation — a squad's three hoplites were seated on one point,
-  so they walked where the original's 1/6 stands. `Objects::init_unit`
-  reproduces all six golden coordinates, for 16 post-divergence endpoint
-  rows. **Exact seating over the smaller residue.** 384 takes it.
+- **The golden word holds at 617**; the brief's mechanism was wrong —
+  engagement is frame 615 on **both** sides. `is_in_range` was: §13.2 has
+  carried the HOPLITES `0xf6` reach since the second reading and the one
+  call site passed `false`, so every melee unit fought at `0x66` for a
+  month (356). Endpoint 66→58 off, 5→7. Tie-break **documented, not
+  coded** — 386.
 - **The namesake has never fired in a scored capture**: zero non-exempt
-  attrition outcomes over run53's 24,000 frames (382, now in ATTRITION);
-  the Temple chapter is the only route.
+  attrition outcomes over run53's 24,000 frames (382, now in ATTRITION) —
+  the Temple chapter is the only route to it.
 - **The held-out map answers 1 tick, 0 orders** (run106; floors 1851,
-  1772) — a fit to two trajectories. **The pass's number.** Six open,
-  43 parked; **Fable backlog: ten Loop items** (251, 335, 343, 356, 321, 313, 367, 374, 375, 377).
+  1772) — a fit to two trajectories. **The pass's number.** Six open, 45 parked; **Fable backlog: ten Loop items** (251, 335, 343, 356, 321, 313, 367, 374, 375, 377).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w9711 of 24,000 · GreatLakes w9182 of 24,000
-Golden: w617 of 901 · chapter one pinned · 384 next
-Endpoint 24001: EastIndies 64 off, 5 unlinked · GreatLakes 66 off, 5 unlinked
+Golden: w617 of 901 · chapter one pinned · 386 next
+Endpoint 24001: EastIndies 64 off, 5 unlinked · GreatLakes 58 off, 7 unlinked
 
 **Opener: 385 is the AI word's only route — the met bit behind
 `check_explore` — beside 384, already in flight on the golden record's.**
@@ -60,12 +60,14 @@ the backlog is `docs/PARKED.md`, and an item returns only when a score names it.
     (`treaty_on ← meet ← check_ever_seen`, fog). **Check `1/MAKE[10].val`
     too** — 33,000 against 43,200, the same 110/144: the two close together.
 
-384. **Our squads engage at 626 where the original's swing at 616** (the
-    rules headline's frame): seated, 617 reads ours 6 / theirs 8 — the
-    missing `Unit::fight+0x9b0` as well as the variant roll, both
-    downstream of the engagement frame. A **combat** item, not an
-    animation one; 379 closed the animation half and `docs/INPUT.md`
-    §11.5's seating SEAM with it.
+386. **The tie-break that decides 617's target** (the rules headline's
+    frame; `docs/COMBAT.md` §18, open question 8, three checks named
+    cheapest-first). The original's `1/6` attacks `0/7`, but under the
+    documented score formula its three candidates **tie at divisor 4**:
+    chain order gives `0/8`, index order `0/6`. §12.2's `/ 0xc0` and
+    `(targeted + 8) × 0x30` are the suspects. The arithmetic that would
+    fit (per-side extent ~84) is in the document as a falsifier, **not**
+    in the code — keep it there until a run says otherwise.
 
 365. **`docs/GOLDEN.md`, the script itself** (a reading and a design, Opus):
     chapters from `docs/CENSUS.md`'s order family and `docs/COMMANDS.md`
