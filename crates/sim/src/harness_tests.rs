@@ -1569,6 +1569,72 @@ fn a_melee_duel_lands_on_the_attack_frame_and_every_recharge_after() {
     assert_eq!(sim.units[a].combat.target, None);
 }
 
+/// **The ATTACK action under a move is a *ranged* attacker's**
+/// (`docs/ORDERS.md` §4.4, `docs/COMBAT.md` §25, item 405).
+///
+/// `do_move@005f7b30:212` gates the whole action block on
+/// `ptype->max_range != 0` — `SubObjectData +0x18`, `ObjectTypeData
+/// +0x1fc`, both by the type record — so a **melee** type walks the leg it
+/// was given even once its target is inside its reach, and a **ranged**
+/// one drops the chase the moment the shot is on.
+///
+/// This crate asked every type, and the golden record paid five frames for
+/// it: `1/8` at `(1332, 8121)` is `attack_dist` 246 from `0/7`, exactly the
+/// HOPLITES `0xf6`, so its chase died 171 short of the `(1176, 8088)` the
+/// original's dump walks it to.
+///
+/// Made to fail first in the melee direction: with the gate removed the
+/// melee half says "the melee chase was dropped when the target came into
+/// reach".
+#[test]
+fn only_a_ranged_attacker_drops_its_chase_when_the_target_comes_into_reach() {
+    // The pair the duel test uses, a hundred units apart and in melee
+    // reach — with an ATTACK order beneath a **transit** move, which is
+    // the stack `get_action` reads through (`docs/ORDERS.md` §4.3).
+    let chase = |ty: fn() -> UnitType| {
+        let mut sim = arena();
+        let t = sim.add_unit_type(ty());
+        let hop = sim.add_unit_type(hoplite_type());
+        let b = combatant(
+            &mut sim,
+            1,
+            hop,
+            Pos::new(1000, 900),
+            movement::Angle::SOUTH,
+        );
+        let a = combatant(&mut sim, 0, t, Pos::new(1000, 1000), movement::Angle::NORTH);
+        sim.set_stance(b, Stance::HoldFire);
+        sim.add_attack_order(a, Obj::Unit(b), crate::orders::QueuePos::New, false, false);
+        sim.add_move_order(
+            a,
+            Pos::new(1000, 1600),
+            crate::orders::MoveKind::MoveTo,
+            crate::orders::QueuePos::First,
+            false,
+        );
+        assert!(
+            sim.is_in_range(Obj::Unit(a), Obj::Unit(b)),
+            "the premise: the target is already inside the attacker's reach"
+        );
+        assert!(
+            sim.current_order(a)
+                .is_some_and(crate::orders::Order::is_move),
+            "the chase is the order on top"
+        );
+        run(&mut sim, 1);
+        sim.current_order(a)
+            .is_some_and(crate::orders::Order::is_move)
+    };
+    assert!(
+        chase(hoplite_type),
+        "the melee chase was dropped when the target came into reach"
+    );
+    assert!(
+        !chase(archer_type),
+        "the ranged chase outlived the shot it was walking to take"
+    );
+}
+
 #[test]
 fn attacking_from_behind_is_a_flank_and_from_the_side_a_bigger_one() {
     let mut sim = arena();
