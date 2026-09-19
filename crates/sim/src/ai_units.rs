@@ -421,8 +421,20 @@ const fn wm(a: i32, b: i32) -> i32 {
 /// established for `tech_value`'s tail and item 422 measured here. The
 /// guard catches a wrap that lands **negative**; a wrap that lands
 /// positive passes through it as an ordinary number, and
-/// [`the_scholar_offer_on_great_lakes_9379_is_a_positive_wrap`] is that
+/// [`the_scholar_offer_on_great_lakes_9380_is_a_positive_wrap`] is that
 /// case with its five terms measured off the run.
+///
+/// **The wrap is fidelity, not a defect.** The original is a 32-bit
+/// engine and its own `imul` wraps the same way; computing this tail in
+/// 64 bits instead costs **2,727 frames of the Great Lakes word**,
+/// 9510 → 6783, measured in a scratch build (`docs/AI.md` §49.4). Do not
+/// "fix" the overflow.
+///
+/// **And the gate already knows.** `rondata::diff`'s
+/// `LONG_WORD_GREAT_LAKES` pins 9510 as a floor, so widening this to
+/// `i64` does not pass quietly — it **fails the floor**. A reader who
+/// does not believe this comment is stopped in one `cargo test` rather
+/// than an afternoon.
 pub fn offer_value(fac: i32, want: i32, val: i32, divisor: i32) -> i32 {
     if divisor == 0 {
         return 0;
@@ -2317,7 +2329,7 @@ mod tests {
         n
     }
 
-    /// **Great Lakes 9379's Scholar offer is a positive wrap** — item
+    /// **Great Lakes 9380's Scholar offer is a positive wrap** — item
     /// 422, `docs/AI.md` §49.
     ///
     /// `create_units` re-offers the Scholar on this frame and the number
@@ -2353,7 +2365,7 @@ mod tests {
     /// it does not wrap. Which of its three terms differs from this
     /// crate's is **not** established (§49).
     #[test]
-    fn the_scholar_offer_on_great_lakes_9379_is_a_positive_wrap() {
+    fn the_scholar_offer_on_great_lakes_9380_is_a_positive_wrap() {
         const VAL: i32 = 42_000_000;
         const FAC: i32 = 256;
         const WANT: i32 = 20;

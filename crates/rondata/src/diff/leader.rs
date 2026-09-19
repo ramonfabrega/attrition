@@ -1161,7 +1161,7 @@ mod tests {
     /// slot either side bought: a purchase draws nothing and `LEADERS=1`
     /// prints no list. run111 is `LEADERS=9` over blocks `[9375, 9390]`,
     /// run100's detail with that one category raised, and it straddles
-    /// both the re-offer on sim-frame 9379 and the purchase on 9382.
+    /// both the re-offer on sim-frame 9380 and the purchase on 9382.
     ///
     /// **The prediction written into the stanza was wrong, and the
     /// measurement is better than it.** It said the original's Scholar
@@ -1196,7 +1196,7 @@ mod tests {
         const FIRST: i64 = 9375;
         const LAST: i64 = 9390;
         /// The block `create_units` re-offers the Scholar on — sim-frame
-        /// 9379's work, and the first block either list carries `t52`
+        /// 9380's work, and the first block either list carries `t52`
         /// again after the refill.
         const REOFFER: i64 = 9381;
         /// The block after `make_stuff` buys it, sim-frame 9382's.
@@ -1313,7 +1313,7 @@ mod tests {
             ),
             "block {FIRST}'s Scholar offers are not two 9,999,999 batches of              five on both sides"
         );
-        // **THE ROW.** `create_units` re-offers on sim-frame 9379 and the
+        // **THE ROW.** `create_units` re-offers on sim-frame 9380 and the
         // value is the parting: 5,755,741 clears the Citizen's 234,782
         // and 45,568 does not. Two slots against one is the same finding
         // said a second way — the count and the value fall out of the

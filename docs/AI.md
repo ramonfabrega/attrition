@@ -5603,7 +5603,7 @@ human-city fields as rows; the second by dropping the clamp, which restores
 
 Item 414, run111 — `LEADERS=9` over blocks `[9375, 9390]`, run100's detail
 with that one category raised, straddling both the re-offer on sim-frame
-9379 and the purchase on 9382. §47 put the AI headline's birth at 9510 on a
+9380 and the purchase on 9382. §47 put the AI headline's birth at 9510 on a
 purchase made 128 frames earlier and could not say which slot either side
 bought: a purchase draws nothing and `LEADERS=1` prints no list.
 
@@ -5631,7 +5631,7 @@ mine: it said the original's Scholar would *stay* at 9,999,999 with
 | 9381, 9382 | `t52` **`v5755741`** `num 1` **×2** | `t52` **`v45568`** `num 1` **×1** |
 
 So the frame was right and the mechanism around it was wrong for the
-fifteenth time: **9379's re-offer is the event**, and what parts is the
+fifteenth time: **9380's re-offer is the event**, and what parts is the
 number `create_units`' scholar arm puts on it. 5,755,741 clears the
 Citizen's 234,782; 45,568 does not. Two slots against one is the same
 finding said a second way — the count and the value fall out of the same
@@ -5708,7 +5708,7 @@ muster row. run111's own checks are in `docs/RUNS.md`.
 
 ---
 
-## 49. Great Lakes 9379's Scholar offer is a positive wrap (2026-09-19)
+## 49. Great Lakes 9380's Scholar offer is a positive wrap (2026-09-19)
 
 Item 422, and it stopped being a valuation question the moment the
 arithmetic was done. §48 measured two numbers on the same block —
@@ -5736,12 +5736,21 @@ fitted:
 which does not fit an `i32`. It wraps to **11,665,408**, and `/256` is
 45,568 exactly, to the unit.
 
-**And the sign is the sting.** §45's `out < 0 → 9,999,999` catches a wrap
-that lands *negative* — that is the ceiling the section is named for, and
-this crate models it. This wrap lands **positive**, so the guard never
-fires and the overflow leaves a small, plausible number behind instead of
-an obvious one. It is the same defect §45 documents, in the arm next door,
-wearing the one disguise that guard cannot see.
+**And the sign is why it was invisible.** §45's `out < 0 → 9,999,999`
+catches a wrap that lands *negative* — the ceiling that section is named
+for. This wrap lands **positive**, so the guard does not fire and the
+overflow leaves a small, plausible number behind instead of an obvious
+one. That is why nobody looking at 45,568 saw an overflow.
+
+**But the wrap itself is correct, and §49.4 measures how correct.** The
+original's tail is the same 32-bit `imul` and wraps the same way (§45);
+this crate must wrap to match it, and removing the wrap costs **2,727
+frames of the word**. So the arithmetic here is faithful and there is
+nothing to guard: the defect is entirely **upstream**, in whichever of
+`val`, `want` and `divisor` is large enough to push this product over
+`i32::MAX` when the original's is not. An earlier draft of this section
+called the wrap "the same defect §45 documents, in the arm next door" —
+that was wrong, and the probe is what said so.
 
 That number then loses the purchase: 45,568 ranks below the Citizen's
 234,782, which both sides offer at the same value on the same block, and
@@ -5749,7 +5758,7 @@ the original's 5,755,741 ranks above it. 5,755,741 × 256 is 1,473,469,696
 — inside an `i32` with room — so **the original's does not wrap**.
 
 `sim::ai_units::offer_value` is that tail as one function, and
-`the_scholar_offer_on_great_lakes_9379_is_a_positive_wrap` pins every row
+`the_scholar_offer_on_great_lakes_9380_is_a_positive_wrap` pins every row
 above. Made to fail on purpose by widening the tail to `i64`, which
 returns 33,600,000 and says the test is about the wrap rather than about a
 literal.
@@ -5775,20 +5784,89 @@ mechanism would have buried.
   they are locals, not fields — so if it is to be settled it wants a
   **reading** of `create_units@006c40a0`'s want-and-divisor block, which is
   what reading is still for (`CLAUDE.md`).
+
+  **It is expensive, not unfalsifiable, and the difference matters.**
+  `tools/emu/callfn.py` can enter a function under unicorn with chosen
+  arguments and read what it computes, which would settle all three terms
+  outright. `create_units` reads a singleton, so `docs/EMULATOR.md` prices
+  it at an hour of synthesized state rather than a minute — but it is a
+  real falsifier and this claim should not be recorded as though none
+  exists.
 - **`val = 42,000,000` is `k × 6,000,000` with `k = 7`, and that is
   *this crate's* `k`**, measured on this crate's census. Whether the
   original's `k` is 7 on that frame is not known; `k` is the scholar arm's
   own local and the record does not print it either.
-- **The wrap is live wherever the arm is reached, not only at 9382.** A
-  positive wrap in this expression is an ordinary-looking number on any
-  frame whose terms are large enough, and nothing in this crate detects
-  one. That is a defect in its own right rather than a fact about this
-  frame, and it is **booked separately** rather than left as a footnote
-  here.
+- **A positive wrap is invisible wherever the arm is reached, not only at
+  9382.** On any frame whose terms are large enough the expression yields
+  an ordinary-looking number and nothing announces it. That is a property
+  of the original's arithmetic as much as of this crate's — so what is
+  booked separately is the **observability** problem, not a defect in the
+  expression.
 
-### 49.4 Coverage
+### 49.4 What a fix would be worth, measured — and both probes say "not this"
 
-`the_scholar_offer_on_great_lakes_9379_is_a_positive_wrap`
+Before booking a reading of `create_units@006c40a0`, the cheaper question:
+**if this crate's Scholar merely outranked the Citizen, would the word
+advance past 9510?** Two scratch builds, both reverted, neither committed.
+
+| probe | what it did | word |
+| --- | --- | --- |
+| — | the tree as it stands | **9510** |
+| 1 | every Scholar offer forced to the original's own 5,755,741 | **8985** |
+| 2 | the tail computed in 64 bits, so nothing wraps | **6783** |
+| 3 | **only 9380's** offer forced to 5,755,741 | **9382** |
+
+**All three are worse, and probe 3 answers the question with a second
+cause rather than with a payoff.** Forcing only the frame under test makes
+this crate buy the Scholar — and the word then falls to **9382**, the
+purchase frame itself, where it spends **nine draws against the
+original's eight**. The extra is at index 6 and it is
+`Leader::make_stuff+0x63d`, the slot loop's own expiry
+(`SITE_EXPIRE_SLOT`, §41): buying the Scholar here costs this crate a
+third expiry the original does not spend.
+
+So **the ranking is not the last thing holding 9510.** A second difference
+sits behind it on the same frame, in how many slots the loop expires, and
+it is nearer than the want-and-divisor terms are. That makes a reading of
+`create_units@006c40a0` **less** urgent rather than more: it would say
+which term differs, and 9382 would still part on the expiry count.
+
+**And the structural reading is the one to carry away: 9510 is propped up
+by the wrong purchase.** Correcting the valuation alone moves the word
+*down* by 128 frames, so the valuation and the expiry are not a queue of
+causes to peel but a **pair that has to fall together**. Anyone who fixes
+one of them on its own will see the score drop and reasonably conclude
+they broke something.
+
+**The caveat, stated because the probe cannot separate it.** Forcing the
+value changes the make *list*, and the expiry count is a function of the
+list, so the third `+0x63d` may follow from the list's shape rather than
+from the purchase. What is established is that **this crate buying the
+Scholar at 9380 does not advance the word**, and that the nearest
+divergence becomes 9382's draw count.
+
+Probe 2 is the one that corrected this section. Removing the wrap
+costs 2,727 frames, which says the wrap is **load-bearing fidelity**: the
+original is a 32-bit engine, its `imul` wraps, and this crate matches it
+on frames all the way down to 6783. The wrap is not the bug. It is
+carrying a wrong input faithfully into a wrong answer.
+
+Probe 1 is a fact about the instrument rather than about the simulation —
+forcing *every* Scholar offer to one constant breaks 8985, §41 and §42's
+own frame, where the value is already right, so what it measured was its
+own bluntness. Recorded so the next person does not repeat it: **a payoff
+probe must change only the frames under test.** A probe wide enough to
+touch a frame that already agrees reports that frame's breakage as its
+result, and the number looks exactly like a finding.
+
+So the payoff question is **not answered** by either, and the honest
+reading is that neither of the two obvious levers is the shape of the fix.
+What the probes do establish is where a fix cannot be: not in the wrap,
+and not in the offer's final value.
+
+### 49.5 Coverage
+
+`the_scholar_offer_on_great_lakes_9380_is_a_positive_wrap`
 (`crates/sim/src/ai_units.rs`) — the five terms, the 64-bit product, the
 wrap, the sign, and §45's guard still firing on a negative wrap, which is
 what says the finding is about the sign. This crate's five terms are
