@@ -12,28 +12,28 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-18, two lanes side by side, and the two-track shape held. **No
-word moved**; five floors did. 363 gave the rules track its first staged
-run and all three answers; 362 was booked as the market and was not —
-every civilian the AI ever offered itself was a batch of one.*
+*2026-09-18, two lanes side by side. **No word moved**; five floors did.
+363 gave the rules track its first staged run, its three answers and the
+held-out map's verdict; 362 was booked as the market and was not.*
 
-- **The rules track has a record.** `!ai off` at frame 0, six `add`
-  squads, 901 frames: auto-engage survives AI-off (the control with the
-  line deleted differs on 899 of 901 from frame 2), two launches are one
-  game (901 in common, 0 differing), a late-age dump parses. run101/103/105
-  agree on all 901 frames at three detail levels — **41 §2 measured**.
-  Parked 341 closes; every launch goes through `viadriver.sh` (ORACLE).
-- **362 was not the market.** `use_market` implements the decompile line
-  for line; `MakeObject.num` is what 9182 was waiting on, and the draw
-  stream named it — 8985 costs three `make_stuff+0x221` and **zero**
-  `+0x63d` on both sides, which no step-6 purchase can do. That
-  falsifies all three of §41's readings and retires its `LEADERS=9` window.
-  Endpoint: nine units we had none for now exist, `extra` still 0 both maps.
-- **One number stays open in the worker's words**: the ladder's `extra`
-  13→25 on rung C, compared/off/unlinked identical; no dump can type
-  them — they are ours and not theirs (370).
-- Six items open, 34 parked. **Fable backlog: seven Loop items** (251,
-  335, 343, 356, 321, 313, 367); 367 is the AI proxy table.
+- **The rules track has a record.** `!ai off`, six `add` squads, 901
+  frames: auto-engage survives AI-off (the control with the line deleted
+  differs on 899 of 901 from frame 2), two launches are one game, a
+  late-age dump parses; run101/103/105 agree on all 901 at three detail
+  levels — **41 §2 measured**. 341 closes, `viadriver.sh` always (ORACLE).
+- **362 was not the market.** `use_market` is line for line; the cause was
+  `MakeObject.num`, and the **draw stream** named it — 8985 costs three
+  `make_stuff+0x221` and zero `+0x63d` both sides, which no step-6 buy can
+  do. Retires all three of §41's readings and its window.
+- **The held-out third map answers 1 tick, 0 orders** (run106, map 9
+  Himalayas — both scored maps are water), measured once and never
+  debugged against. The tick is a MINIMUM set by one of sixteen units at
+  frame 2 (others 209–501); 35,063 of 44,597 order disagreements are
+  gather and move — a **fit to two trajectories**, not a missing mechanic.
+  What generalised is the derivation: the gather-target check, from the map
+  not the log, is exact for all twenty citizens. **The pass's number.**
+- Seven open, 37 parked. **Fable backlog: seven Loop items** (251, 335,
+  343, 356, 321, 313, 367). The ladder's `extra` 13→25 stays open (370).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w9711 of 24,000 · GreatLakes w9182 of 24,000

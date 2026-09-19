@@ -436,6 +436,22 @@ make either number unreadable.
 
 ## Measured residues, none near a word
 
+(372) **The held-out map's 1 is comparable in kind, not in provenance.**
+run106 ran on the click-free lane's lobby, not run33/run39's `-config
+check.ini`, and its window opens at frame 1 rather than matching the score
+runs' shape. Strict comparability wants a run33-shaped capture on map 9 —
+a second capture and a second decision, which is why 363 left it. Park,
+not bury: the 1 is the generalisation number and the first pass that
+reads it should know exactly how it was taken.
+
+(373) **The click-free lane's give-up truncates rather than stops.**
+`--timeout` defaults to 180 s and the first held-out attempt returned 593
+of 1,900 blocks in a **62 MB file that reads as completely ordinary** —
+only `receipt.json` said `success: false`. The silent truncation is the
+finding, not the timeout: every check that greps a dump would have passed
+on it. In `docs/ORACLE.md` beside the new knobs. A guard shape: a capture
+asserts its own block count against the window it asked for.
+
 (371) **`market_speculation`'s two passes fire nowhere below the word.**
 Read whole by item 362, both arms' predicates recorded in
 `docs/journal/2026-09-18-item-362.md`. It was read because 362 was booked
