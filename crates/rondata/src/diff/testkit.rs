@@ -1371,22 +1371,58 @@ pub(crate) const RUN58_QUEUE_TAIL: i64 = 5177;
 ///   the dump's own `(1320, 7800)`, and `0/6`'s ring then answers
 ///   `(1080, 8280)` in the live harness — the word 619 → **624**.
 ///
-/// What stands at **624** is `Guy::set_anim+0x97a < Unit::move_step+0x823`,
-/// a walking figure's step, and the value diff moves with it to 625. Two
-/// residues are live on frame 618, both measured against the dump's own
-/// coordinates (`docs/COMBAT.md` §21, "What stands at 624"):
+/// What stood at **624** was `Guy::set_anim+0x97a < Unit::move_step+0x823`,
+/// a walking figure's step, and the value diff moved with it to 625. Two
+/// residues were live on frame 618, both measured against the dump's own
+/// coordinates (`docs/COMBAT.md` §21, "What stands at 624").
 ///
-/// - **who=1's army marches and the original's does not.** `0/7` now
-///   strikes `1/6` during 618, exactly as the dump has it, and that hit
-///   reaches `Armies::emergency(1)` → `Army::process(·, 1)` →
-///   `Group::action_siege_attack_to`: this crate walks all three of who=1's
-///   hoplites toward `(38664, 13320)` from 618, where the dump holds `1/6`
-///   on `(1368, 7992)` and `1/7` on its chase to `(1320, 7800)` for the
-///   rest of the record. The emergency's gates are not the answer — the
-///   victim's leader must be non-human (`leaders[who] & 4 == 0`,
-///   `LeaderData::is_human@006ec170`), and who=1 is the computer leader —
-///   so the divergence is inside the tick.
+/// - **624 → 621, and this is a word paid for a destination** (item 399,
+///   `docs/ARMY.md` §15.8, `docs/COMBAT.md` §22). The first of those two
+///   residues is closed: `Armies::emergency` is the **city alarm's**, and
+///   `Object::do_damage`'s `local_30` — the flag its call reads — has
+///   exactly two writers between its `= 0` at `0064a8dc` and the test at
+///   `0064bbf3`, both inside the **building** branch's city-alarm arms,
+///   beside `S_CITY_BEING_ATTACKED` and `S_YOUR_CAPITAL_ATTACKED`. A unit
+///   taking a hit never reaches it, so who=1's army does not tick at 618
+///   and does not march. Measured on the original's own group pool
+///   (`docs/RUNS.md` run109): group `64` carries `army 0` and
+///   **`order_num 0` on every block 616..629** — the army issues no order
+///   in the window at all.
+///
+///   The **value diff is why this lands with the word down.** Blocks 616,
+///   617, 618 and 619 now carry the dump's own coordinates for all six
+///   units, where before three of the six were on a 200-tile march from
+///   618 and further wrong every frame:
+///
+///   | block 619 | dump | before 399 | after |
+///   | --- | --- | --- | --- |
+///   | `1/6` pos | `1368, 7992` | `1379, 7970` | **`1368, 7992`** |
+///   | `1/6` `orders_x, orders_y` | `1368, 7992` | `38664, 13320` | **`1368, 7992`** |
+///   | `1/7` pos | `1451, 7935` | `1471, 7954` | **`1451, 7935`** |
+///   | `1/7` `orders_x, orders_y` | `1320, 7800` | `38760, 13224` | **`1320, 7800`** |
+///   | `1/8` pos | `1332, 8121` | `1360, 8126` | **`1332, 8121`** |
+///   | `1/8` `orders_x, orders_y` | `1176, 8088` | `38568, 13416` | **`1176, 8088`** |
+///
+///   The three frames the march was buying were a draw stream agreeing on
+///   a destination the original never takes, which is the case
+///   `CLAUDE.md`'s "a word that moved lands with the value diff beside it"
+///   exists for.
+///
+/// What stands at **621** is `Guy::set_anim+0xf2f < Guy::move+0x166`, an
+/// extra draw this crate spends and the original does not, and the residue
+/// under it is **located**: `1/8` ends its leg at `(1332, 8121)` on frame
+/// 619 and `1/7` at `(1431, 7915)` on 620, both about **171** short of
+/// their ordered points, where the dump walks both legs to the end —
+/// `1/8` reaching `(1176, 8088)` at block 626. That is the parked-collider
+/// tolerance of `docs/COLLISION.md` §5.1 (`other.big_radius × 3` = `0xc0`)
+/// firing on a waypoint **re-taken** mid-leg after
+/// `resolve_unit_collision` cleared `has_waypoint`
+/// (`crates/sim/src/collide.rs`, item 204's store). The original takes a
+/// waypoint once per leg; which of the two — the re-take or the probe's
+/// answer — differs is the successor item.
+///
 /// - **`0/8` plans its chase a frame late.** The dump has it ordered to
-///   `(1224, 8280)` at the end of 618; this crate plans at 619 and to the
-///   target's own `(1368, 7992)`.
-pub(crate) const GOLDEN_WORD_CHAPTER_ONE: i64 = 624;
+///   `(1224, 8280)` at the end of 618; **this now matches** — `0/8` carries
+///   `(1224, 8280)` at block 619 — and what parts instead is the same
+///   short leg: it ends at `(972, 7988)` on 620 where the dump walks on.
+pub(crate) const GOLDEN_WORD_CHAPTER_ONE: i64 = 621;

@@ -759,11 +759,26 @@ impl Sim {
         // Step 7: take.
         let taken = self.take_damage(target, dealt, attacker, frame);
         let killed = matches!(taken, Taken::Died { .. });
-        // `Armies::emergency`: an AI leader's object hit by another
-        // player's (`docs/ARMY.md` §15.8).
+        // **`Armies::emergency` is the CITY alarm's, and a unit never
+        // reaches it** (`docs/ARMY.md` §15.8, item 399). The call at
+        // `do_damage@0064a480:951` is
+        // `if (local_30 != 0 && (leaders[param_2].leader_flags & 4) == 0)`,
+        // and `local_30` has exactly **two** writers between its `= 0` at
+        // `0064a8dc` and the test — both inside the city-alarm arms of the
+        // **building** branch, beside `S_CITY_BEING_ATTACKED` and
+        // `S_YOUR_CAPITAL_ATTACKED`. So the emergency is "a city of mine is
+        // under attack", not "something of mine was hit": the target must be
+        // a building that belongs to a city (`BuildData +0x72 >= 0`).
+        //
+        // What is *not* modelled here, and both only make it rarer: the
+        // alarm's own damage threshold (`local_34`) and its 300-frame
+        // cooldown on `CityData +0x14 attack_stamp`. §15.8 carries them.
+        if let Obj::Building(b) = target
+            && !quiet
+            && self.buildings[b].city.is_some()
         {
             let tw = self.owner_of(target);
-            if !quiet && self.owner_of(attacker) != tw && (tw as usize) < self.armies.len() {
+            if self.owner_of(attacker) != tw && (tw as usize) < self.armies.len() {
                 self.armies_emergency(tw);
             }
         }
