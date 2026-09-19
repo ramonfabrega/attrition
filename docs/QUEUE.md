@@ -12,36 +12,33 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-19, the first tranche after the sixth Fable pass. **Seven landings,
-no score moved**; the day bought two cause chains and a second chapter.*
+*2026-09-19, the first tranche after the sixth Fable pass. **Eight landings,
+no score moved**; both headlines now have a measured cause and a dead list.*
 
-- **616 is the rules headline** (415) — chapter two's word, in its own
-  `GOLDEN_WORD_CHAPTER_TWO`, below chapter one's unmoved 626. The AI
-  track's principle is lower *word*, not lower name. The `Golden:` line
-  leads with 626 because `floors.rs` pins one constant and parses one
-  `w<frame>`: **417 is blocking now, not theoretical.**
-- **The value diff found what the draw stream did not** (415): "no position
-  disagrees" was written as an assertion and **failed**. `add hoplite
-  who=1 12,40` asks internal 2400; the original seats 2424/2568/2472, ours
-  2284/2428/2332 — uniformly **140 west**, first add exact.
-  `find_nearby_spot` on clear ground; pinned in no direction, 426's suspect.
-- **The wrap is fidelity, not the defect** — 422 booked it as one and
-  430's probe overturned both the item and its booking: computing the tail
-  in 64 bits so nothing wraps costs **2,727 frames**, 9510 → 6783, because
-  the original is a 32-bit engine whose own `imul` wraps. 45,568 is a wrong
-  input carried faithfully; the lever is upstream. 429 corrected in place.
-- **A setup-block word scored 0 and is now a refusal** (415), third time
-  that shape has scored. Four open, 68 parked.
-  **Fable backlog: thirteen Loop items** (251, 335, 313, 367, 375, 416,
-  417, 419, 420, 421, 424, 428, 431); pass due at twenty, this is seven.
+- **616 is the original issuing no attack order at all** (426): its first
+  is 621, to the slingers on their own birth frame. This crate matches two
+  of three squads and orders the hoplite squad on its birth frame, which
+  spends the 26th draw. **Both named mechanisms are dead by measurement** —
+  the 140 west, and `find_melee_target`'s `0x40000` arm. The control:
+  slingers engage at **8.6** tiles, further than the 7.25 at which the
+  hoplites do not, so no distance threshold orders the two. 434 reads why.
+- **9510 is propped up by the wrong purchase** (430): correcting the
+  valuation alone moves the word **down**, 9510 → 9382, where nine draws
+  meet the original's eight. The valuation and the expiry are a **pair that
+  must fall together**; the wrap itself is fidelity (64-bit costs 2,727
+  frames). Probe 4 tests the pair rather than inferring it; 432 is
+  unbooked until it reports.
+- Four open, 69 parked.
+  **Fable backlog: fourteen Loop items** (251, 335, 313, 367, 375, 416,
+  417, 419, 420, 421, 424, 428, 431, 433); due at twenty, this is eight.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w9711 of 24,000 · GreatLakes w9510 of 24,000
-Golden: w626 of 901 · ch2 w616 is lower and is the headline · 426 next
+Golden: w626 of 901 · ch2 w616 is lower and is the headline · 434 next
 Endpoint 24001: EastIndies 64 off, 5 unlinked · GreatLakes 51 off, 11 unlinked
 
-**Opener: 430 on the AI lane — does the ranking alone hold 9510; 426 on the
-rules lane — chapter two's 616, the 140 west first to rule in or out.**
+**Opener: 434 on the rules lane — read `Unit::think@005f6e40`'s auto-attack
+gate against 426's landed oracle; 430's probe 4 decides the AI lane.**
 
 ## The queue
 
@@ -60,14 +57,14 @@ the backlog is `docs/PARKED.md`, and an item returns only when a score names it.
     cause sits behind it, and that is the item. Revert; report the number,
     not the patch. No capture settles the terms (locals); `callfn.py` can.
 
-426. **Chapter two's frame 616** (the rules headline's own frame, named by
-    415): the extra `Unit::fight+0x9b0` on the hoplites' birth frame.
-    **First thing to rule in or out is the 140 west** — `add hoplite
-    who=1 12,40` asks internal 2400, the original seats 2424/2568/2472 and
-    this crate 2284/2428/2332, uniformly 140 short with the chapter's
-    first add exact. That is `find_nearby_spot` on clear ground, pinned in
-    no direction by 415 and owed an item that re-runs its pins (379). run112
-    is on the disk and covers the frame; grep it before booking a capture.
+434. **Why this crate orders the hoplite captain on its birth frame** (616,
+    the rules headline, after 426 killed both named mechanisms): a
+    **reading** of `Unit::think@005f6e40`'s auto-attack gate, not a capture
+    — the dump says what the original does, not why ours differs. The
+    hypothesis, written as one: the gate fires on a cheat-spawned captain's
+    first frame; it must **also** explain why the slingers fire the same
+    arm and the original agrees. Oracle landed by 426 —
+    `chapter_two_s_first_attack_orders_are_the_dump_s`, six of nine pinned.
 
 390. **A `LEADERS≥2` window anywhere in (7616, 8174]** (capture lane;
     takes-chain to the met bit): nothing on disk dumps a leader between

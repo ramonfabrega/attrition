@@ -32,6 +32,21 @@ two ledger regexes closed in the third pass, 2026-09-17; the fourth pass,
 each now a guard or a clause (`docs/audit/2026-09-19-fable-pass-6.md`,
 DECISIONS 42). 341 closed 2026-09-18 by item 363.
 
+(433) **A commander's mid-gate message is an interrupt, and neither side
+was treating it as one.** `CLAUDE.md` says nothing under `docs/` is edited
+while a gate runs, and item 408's lane broke it **twice on 2026-09-19** —
+both times because a message from the commander arrived mid-gate carrying
+asks, and the worker folded them in immediately rather than queueing them.
+The worker's recovery was right: discard that run's verdict and re-gate
+over the frozen tree. But the rule as written puts the whole duty on the
+person being interrupted, and the cause is on the other side — **a message
+that arrives mid-gate does not say that it may wait**. Both halves want
+stating: a worker holds write-ups until the gate exits, and a commander
+who sends asks during a gate says explicitly that they are to be applied
+after it. The second half is the one that was missing, and the commander
+here wrote the messages that caused both breaches. Cheap, and it is the
+only rule in the loop that two people have to keep at once.
+
 (431) **A payoff probe must change only the frames under test.** Measured
 by item 430, 2026-09-19, on its own first probe. To ask "would the word
 move if our Scholar ranked correctly", 408 forced **every** Scholar offer
