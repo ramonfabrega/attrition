@@ -5682,9 +5682,17 @@ goods and a parting list.
   2, cost[0] 40`, and the bucket moves 53 → 82 across the purchase). Every
   value compared is index against index, so no verdict on any capture is
   affected — but every *name* printed or pinned at 2, 3 or 4 is the wrong
-  resource, including rows in `PARTS_ON_RUN19`, `PARTS_ON_RUN107` and
+  resource. ~~including rows in `PARTS_ON_RUN19`, `PARTS_ON_RUN107` and
   `PARTS_ON_RUN111`. Renaming it churns three pinned constants across three
-  items, so it is recorded here and not done under this one.
+  items, so it is recorded here and not done under this one.~~ **Done
+  under item 423, and this estimate was wrong on both counts.** Only
+  **index 2** was ever mislabelled in a pin — there is no `[3:wealth]` or
+  `[4:knowledge]` row anywhere — and the only pinned constant carrying one
+  is `PARTS_ON_RUN111`. The change is seven lines with no number among
+  them, and the label turned out to be neither load-bearing nor
+  decorative but **self-consistent**: both sides of every comparison
+  generate the key from the same array, so it had nothing to disagree
+  with. `docs/journal/2026-09-19-item-423.md`.
 
 ### 48.5 Coverage
 
