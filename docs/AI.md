@@ -5705,3 +5705,93 @@ finding); the bought-slot devaluation read off the capture alone; the
 wealth either side; and the 104-row residue pinned as `PARTS_ON_RUN111`.
 Made to fail on purpose before landing, on the re-offer row and on the
 muster row. run111's own checks are in `docs/RUNS.md`.
+
+---
+
+## 49. Great Lakes 9379's Scholar offer is a positive wrap (2026-09-19)
+
+Item 422, and it stopped being a valuation question the moment the
+arithmetic was done. §48 measured two numbers on the same block —
+**5,755,741** offered by the original and **45,568** by this crate — and
+booked the successor by those two numbers and the frame, with no factor
+named. There is no factor. **45,568 is the remainder of a 32-bit
+overflow.**
+
+### 49.1 What is measured
+
+`create_units`' closing tail is `out = wm(fac, wm(want, val) / divisor) /
+256`, with the original's own `out < 0 → 9,999,999` after it (§45). On the
+re-offer frame this crate's five terms are, measured off the run and not
+fitted:
+
+| term | value |
+| --- | --- |
+| `val` | 42,000,000 |
+| `fac` | 256 |
+| `want` | 20 |
+| `divisor` | 25 — `want` + 0 queued + 5 standing |
+| `out` | **45,568** |
+
+`20 × 42,000,000 / 25` is 33,600,000. `256 ×` that is **8,601,600,000**,
+which does not fit an `i32`. It wraps to **11,665,408**, and `/256` is
+45,568 exactly, to the unit.
+
+**And the sign is the sting.** §45's `out < 0 → 9,999,999` catches a wrap
+that lands *negative* — that is the ceiling the section is named for, and
+this crate models it. This wrap lands **positive**, so the guard never
+fires and the overflow leaves a small, plausible number behind instead of
+an obvious one. It is the same defect §45 documents, in the arm next door,
+wearing the one disguise that guard cannot see.
+
+That number then loses the purchase: 45,568 ranks below the Citizen's
+234,782, which both sides offer at the same value on the same block, and
+the original's 5,755,741 ranks above it. 5,755,741 × 256 is 1,473,469,696
+— inside an `i32` with room — so **the original's does not wrap**.
+
+`sim::ai_units::offer_value` is that tail as one function, and
+`the_scholar_offer_on_great_lakes_9379_is_a_positive_wrap` pins every row
+above. Made to fail on purpose by widening the tail to `i64`, which
+returns 33,600,000 and says the test is about the wrap rather than about a
+literal.
+
+### 49.2 The ratio and the gap were artefacts
+
+§48.4 recorded that 5,755,741/45,568 is not an integer and that nothing
+said the gap was one factor rather than several, and declined to name one.
+**Both observations were artefacts of the wrap**: a remainder has no
+arithmetic relationship to the value it came from, so the ratio was never
+going to factor and the "126× gap" was never a gap. Recorded because the
+discipline is what let the measurement arrive — the case where a number is
+not merely unexplained but *meaningless* is exactly the one a named
+mechanism would have buried.
+
+### 49.3 What this has *not* established
+
+- **Which of the original's three terms differs is not established, and
+  this document does not guess.** `want · val / divisor = 5,755,741` with
+  `divisor = want + 5` yields no integer `want` for `val` of either
+  6,000,000 or 42,000,000, so at least one more term differs and the
+  record does not carry `want` or `divisor`. **No capture can answer it** —
+  they are locals, not fields — so if it is to be settled it wants a
+  **reading** of `create_units@006c40a0`'s want-and-divisor block, which is
+  what reading is still for (`CLAUDE.md`).
+- **`val = 42,000,000` is `k × 6,000,000` with `k = 7`, and that is
+  *this crate's* `k`**, measured on this crate's census. Whether the
+  original's `k` is 7 on that frame is not known; `k` is the scholar arm's
+  own local and the record does not print it either.
+- **The wrap is live wherever the arm is reached, not only at 9382.** A
+  positive wrap in this expression is an ordinary-looking number on any
+  frame whose terms are large enough, and nothing in this crate detects
+  one. That is a defect in its own right rather than a fact about this
+  frame, and it is **booked separately** rather than left as a footnote
+  here.
+
+### 49.4 Coverage
+
+`the_scholar_offer_on_great_lakes_9379_is_a_positive_wrap`
+(`crates/sim/src/ai_units.rs`) — the five terms, the 64-bit product, the
+wrap, the sign, and §45's guard still firing on a negative wrap, which is
+what says the finding is about the sign. This crate's five terms are
+instrument-measured; the original's 5,755,741 is read off run111 block
+9381 and is diff-backed by
+`diff::tests::run111_s_window_is_the_make_list_at_the_purchase`.
