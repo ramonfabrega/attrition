@@ -141,8 +141,8 @@ ocean is 65) and are stored `% 0x3f` in the 63-entry arrays.
    `Dock::close`, `docs/TRANSPORT.md` §5.2–§5.3; those two only call
    `check_transport`).
 4. **Territory.** `my_team_terr = get_team_terr()`; over every other
-   computer leader not allied both ways (`diplos[i] != 2` on either side):
-   `other_team_terr = max`, `min_other_team_terr = min` (0 means unset).
+   ~~computer~~ leader (`&2`, §43) not allied both ways (`diplos[i] != 2`
+   on either side): `other_team_terr = max`, `min_other_team_terr = min`.
 5. `filled_gather_slots[0..5] = 0`; `ally_mask = 1 << who`, or'd with
    `ScenarioData::ally_mask[who]` in a scenario/CtW game.
 6. **Meeting** (only with `ALLY_LOS` or `reveal_map`): for every other
@@ -4813,7 +4813,7 @@ gone, every one of the 37,899 building-frames agrees. `first_part` did
 **not** move: 9182's ten draws are the original's ten in number and not
 in order, and `LONG_WORD_GREAT_LAKES` is the lower of the two.
 
-### What 9182 is now, measured
+### What 9182 is now, measured — ~~and what it waits on~~ *(§43: not the step-6 purchases; they are downstream of `use_market`'s `need`)*
 
 The frame is no longer a count. Either side spends ten draws:
 
@@ -4850,12 +4850,15 @@ decompile's, line for line.
 
 ### What is not established
 
-- **Which value.** No `LEADERS=9` dump on this disk covers 9182 — run97
+- ~~**Which value.** No `LEADERS=9` dump on this disk covers 9182 — run97
   and run100 carry `LEADERS=1`, which is `who`, `tribe`, `score` — so the
-  original's `need` and `bucket` on the frame are not on disk. A
-  `LEADERS=9` window over Great Lakes `[9175, 9190]` would print the make
-  list slot for slot and the six buckets beside it, and is the one run
-  that would name it.
+  original's `need` and `bucket` on the frame are not on disk.~~ Still
+  true of 9182 itself, and **§43 names the value anyway**: `need` is the
+  make list's first `epoch[Commerce]` slots' cost, and run19's own
+  `LEADERS=9` window — on disk since August — holds six `1/MAKE[*].val`
+  rows in its residue. A `LEADERS=9` window over Great Lakes
+  `[9175, 9190]` would still print the frame's own list and buckets, and
+  §43 says what each answer would decide.
 - **The caravan arm's batch.** 3/2/1 by `econ[WEALTH]` is read from
   `create_units@006c40a0:1080–1100` and **no capture exercises it**: the
   frame that moved is the scholar's. The citizen arm's is exercised (this
@@ -4863,3 +4866,173 @@ decompile's, line for line.
   *confirmed* by it — that row is the residue, not the pin.
 - **`Build::queue_up`'s escrow.** `queue_batch` ignores its `escrow`
   argument, unchanged by this item.
+
+## 43. What 9182 actually waits on, and the leader every census skipped (2026-09-18)
+
+Item 368, booked as "9182's step-6 purchases". **It is not the step-6
+purchases**, and this is the third item on this frame whose named
+mechanism was innocent (§40 the market's draws, §42 `MakeObject.num`,
+now this). The step-6 buys are *downstream*: what parts first, at index 1
+of ten, is `use_market`'s own draw count, and the market's arithmetic is
+the decompile's — re-read line for line this item, and so is
+`MakeList::make_me@006c9be0`, which had never been checked against the
+export.
+
+### The frame, re-measured
+
+Unchanged from §42: ten draws either side, `word 9362 / sequence 9182`.
+Entering 9182, with the make list named rather than numbered:
+
+| slot | type | val | city | cat | num | cost |
+|---|---|---|---|---|---|---|
+| 0 | Scholar | 9,999,999 | 2 | 4 | 5 | `[0,0,40,0,0,0]` |
+| 1 | *(deduped)* | 6,000,000 | 1 | 4 | 5 | — |
+| 2 | Phalanx | 335,616 | −1 | 7 | 1 | `[65,0,0,0,45,0]` |
+| 3 | Citizen | 234,782 | 2 | 5 | 1 | `[46,0,0,0,0,0]` |
+
+`bucket` is `[73, 84, 35, 111, 71, 0]`. `epoch[Commerce]` is 2, so
+`need` is slots 0 and 1 — and slot 1 is a `t −1`, so `need` is the
+Scholar's `[0, 0, 40, 0, 0, 0]` and **wealth is the only short good**.
+One pass, one draw, nothing sellable (food 73, timber 84, metal 71, all
+under the hundred the sell test asks). The original spends **three**.
+
+Everything after that follows from the same vector. `can_pay(head)`
+fails (5 scholars at 40 wealth against 35), so the head is not bought and
+the reserve `local_18` is 5; the step loop's gate examines **only the
+goods the head costs**, so a Phalanx and a Citizen that cost no wealth
+are never examined at all and are bought on `can_pay` alone — four
+`make_stuff+0x63d` draws, two slots apiece. The original's zero means its
+`can_pay` refused both, and with these costs that is one number: **food
+under 46**.
+
+So 9182 is one question — *what is the original's `need` and `bucket`* —
+and both branches of it are ruled by the same vector:
+
+- **three short goods** wants a `need` non-zero in three goods, which the
+  Scholar's cost alone cannot be; or
+- **one good with two sales under it** wants two stocks at a hundred or
+  more, which this crate has in none.
+
+### Slot 1 is a dedupe, and `make_me` is the decompile's
+
+Slot 1 carries `val 6,000,000`, `city 1`, `cat 4` under a `t −1`: a
+Scholar at the *other* city, outranked by the one at city 2 and zapped
+where it stood. `make_me@006c9be0`'s head branch writes the new best over
+slot 0 **without shifting the old head down** and then clears `t` on any
+of slots 1–3 holding the same type; the runner-up branch shifts 3←2←1,
+clears over `k..=3`, then writes. Read whole against the export this
+item: the shift bound (`3 − k` iterations from slot 3), the dedupe bound
+(`< 0x79`, so slots `k..=3`), the "same type already ranks higher" break,
+and the category slot's own `list[cat].val < val` all agree. Nothing in
+the make list's *structure* is wrong.
+
+### The widening: run97's order stacks, and what they close
+
+`docs/RUNS.md` run97 writes a `STACK<TYPE>` per unit with every live
+order and its own fields, **36,483 `GATHERORDER` records among them**,
+and nothing had ever compared one on this map — run97 had had its clocks
+read (§ANIM 5), its positions and leading goal (item 350) and its build
+queues (item 358). `run97_s_window_orders_are_the_original_s` now reads
+them: **59,747 unit-frames and 31,448 gather orders below the word, and
+not one gatherer disagrees** — every `tx`, `ty`, `wait`, `goto_build`,
+`been_there` and `dist_mod` is the original's. Made to fail on purpose
+(`+ 1` on the comparison's own `tx` puts a row on all 31,448, one
+apiece), so the nought is a measurement.
+
+That closes a family rather than a field: **no citizen on this map is
+working a camp the original does not**, on any frame below the word, so
+"a gatherer carrying a different good" is no longer available as the
+explanation for a stockpile gap. The whole scoring residue is 48,698 rows
+on **eight** units — `1/27`, `1/28`, `1/29`, `1/40`, `1/41`, `1/42` (the
+probe's six, off position from 8442, `docs/ARMY.md` §3.4's successor),
+`1/23` (a standing unit carrying an `Action` order the dump does not,
+older than the window) and two rows on `1/33`. The *set* is asserted, not
+only the count, because a number cannot say whether a ninth unit joined.
+
+### The cause, named against a capture already on disk
+
+§42 said the original's ledger at 9182 "is not on disk" and booked a
+capture. That is true of 9182 — and it is **not** true of the machinery
+that builds the vector. run19 is a `LEADERS=9` window over `[8174, 8192]`
+and `run19_s_window_is_the_leader_record_at_the_scholar` has been
+comparing the whole record for weeks. Its residue holds six
+`1/MAKE[*].val` rows:
+
+| type | cat | ours | run19 |
+|---|---|---|---|
+| Coinage | 2 → slot 4 | 3,510,000 | 2,700,000 |
+| Empire | 1 → slot 9 | 2,100,000 | 1,800,000 |
+| Mercenaries | 0 → slot 10 | 165,000 | 216,000 |
+| Temple | — → slot 8 | 82,500 | 63,000 |
+| *(slot 3)* | | 288,750 | 281,250 |
+
+The types agree, the `num` agrees since §42 — the **values** do not, and
+some are high while one is low, which no single factor on `base` can do.
+`ai_research::weight_total` is where they part, and it reads five census
+facts. Four of the five are in the same residue, at nought:
+
+```
+1/active_wars       ours 0 theirs 1
+1/active_wars_with  ours 0 theirs 1
+1/wars              ours 0 theirs 1
+1/other_team_terr   ours 0 theirs 266
+1/min_other_team_terr ours 0 theirs 266
+```
+
+`weight_total` adds `ai[5]` (twice over, under `min_other`) when the
+leader is behind on territory, and takes `ai[0]/3` instead of
+`ai[5] + ai[1]` when it is at war. Both terms are per-tech, which is
+exactly why the five values are wrong by five different ratios.
+
+**Why they are nought.** Three of this crate's census loops skip human
+leaders — `census_territory`, `census_wars` and `census_strategy` all
+carry `self.nation[i].human { continue }`, and §2.3 step 4 reads "every
+other **computer** leader". The export says otherwise:
+`plan_strategy@006b9620:159-166` gates the territory loop on
+`leader_flags & 2`, `i != who` and `i >= 0` and **nothing else**, and
+`:1511` and `:1557` gate the war and region loops the same way plus
+`treaties[i] & 1`. Bit 1 is set for *every* leader any capture prints —
+the human's `leader_flags 7` in run97's own header among them. On a
+one-human-one-AI game, which is every capture this crate is diffed
+against, the human is the only other leader there is, so all five facts
+read nought.
+
+`other_team_terr 266` is `0/my_team_terr 266`, the human's own.
+
+### What this item changed, and what it did not
+
+**`census_territory` counts the human now.** `1/other_team_terr` and
+`1/min_other_team_terr` leave run19's residue — **92 fields to 90** —
+and **nothing else in the record moves**, including all six
+`1/MAKE[*].val`: for these four techs `ai[5]` or the territory predicate
+does not pay. **The word did not move**, and that is the honest reading
+of a one-third fix to a five-fact cause.
+
+**The other two loops park rather than land.** Putting the human back
+into `census_wars` and `census_strategy` makes all five facts agree — and
+takes run19's residue from 90 fields to **147**, because `active_wars != 0`
+reaches the danger word and the region-strategy words as well as
+`weight_total`, and the make list then parts on `t`, `cat`, `city` and
+`val` across almost every slot (`1/MAKE[3].t` ours 566 theirs −1, and so
+on down). The facts are right and the consequences are not yet, which
+means something downstream of `active_wars` is wrong in a way that the
+nought was hiding. That is a successor with a number on it, not a
+one-line change.
+
+### What is not established
+
+- **9182's own ledger**, still. The chain above says the make list's
+  values are measurably wrong a thousand frames below the word and that
+  they are what `use_market` reads, but it does not show the vector at
+  9182. The `LEADERS=9` window over `[9175, 9190]` remains the one run
+  that would print it, and it is now worth more than when §42 booked it:
+  it would say which of the two branches above the frame is on.
+- **Which of `weight_total`'s terms pays for which tech.** The four
+  ratios (13/10, 7/6, 55/72, 55/42) are recorded here rather than solved;
+  solving them wants the per-type `ai[]` weight vectors beside them.
+- **Whether the human's own census must run.** The original's player 0
+  carries a full census in every dump (`0/gatherers 5`, `0/peasants 5`)
+  and this crate's is empty, so `census_strategy`'s `weaker` test — which
+  reads the *other* leader's `attack` — cannot be right for a human
+  opponent even with the gate fixed. That is part of the parked successor.
+- **`Build::queue_up`'s escrow**, unchanged by this item.
