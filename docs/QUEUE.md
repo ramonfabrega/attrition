@@ -30,8 +30,8 @@ no score moved**: Great Lakes stands at 9510, golden at 626.*
   order-class-to-issuer table DECISIONS 41 §5 awaited, and order coverage
   is a separate axis whose unit is a native issuer (418). `bird` (case 82)
   is the one console command that orders; 365 corrected the four that denied it.
-- **Both lanes alive**, holding 414 and 415. Five open, 59 parked; **Fable
-  backlog: seven Loop items** (251, 335, 313, 367, 375, 416, 417).
+- **Both lanes alive**, holding 414 and 415. Five open, 59 parked.
+  **Fable backlog: seven Loop items** (251, 335, 313, 367, 375, 416, 417).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w9711 of 24,000 · GreatLakes w9510 of 24,000
