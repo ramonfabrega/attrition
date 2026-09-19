@@ -5008,7 +5008,12 @@ and **nothing else in the record moves**, including all six
 does not pay. **The word did not move**, and that is the honest reading
 of a one-third fix to a five-fact cause.
 
-**The other two loops park rather than land.** Putting the human back
+**The other two loops park rather than land.** *(§45, item 382: and the
+reason is in the clause above — `treaties[i] & 1` is **not** always set.
+The original's player 1 has it at 0 on blocks 6950 and 7514 and at 1 on
+8174 and 9170, so putting the human back without a met bit turns
+`active_wars` on 7,600 frames early. The word measures the cost: 9182 →
+7182.)* Putting the human back
 into `census_wars` and `census_strategy` makes all five facts agree — and
 takes run19's residue from 90 fields to **147**, because `active_wars != 0`
 reaches the danger word and the region-strategy words as well as
@@ -5140,7 +5145,14 @@ had ever been compared here:
 
 ### What is not established
 
-- **Why this crate's Mercenaries value is 6,600,000.** The measured
+- ~~**Why this crate's Mercenaries value is 6,600,000.**~~ **Closed by
+  item 382, §45**: the ceiling is the tail's `income × val` wrapping 32
+  bits and the `< 0 → 9,999,999` guard catching the sign, and what keeps
+  this crate under the cliff is `weight_total` answering 110 where the
+  original answers 144 — the `active_wars` term, whose real gate is the
+  met bit and not the `human` skip. The falsifier below was run: removing
+  the skip does **not** move the word, it costs 2,000 frames of it. The
+  measured
   facts are the two numbers and that this crate's cat-10 slot was
   **33,000** against the original's **43,200** before the rebuild —
   55/72, the same ratio §43 recorded for Mercenaries at run19 a thousand
@@ -5158,3 +5170,110 @@ had ever been compared here:
   and now has a 30-block value diff waiting for it.
 - **`1/gather_stamp`**, ours 9183 against 8752/9095, and
   `1/leftover[1:timber]`, both unchanged in kind from earlier windows.
+
+## 45. The ceiling is an overflow, and the gate is the met bit (2026-09-18)
+
+Item 382, the successor §44 booked. Its question was arithmetic: this
+crate writes **6,600,000** into `1/MAKE[0].val` on blocks 9179–9180 where
+the original writes **9,999,999**, and `200 × 43,200` is 8,640,000, so the
+ceiling is not the ranked multiply saturating. Both halves of the
+question are now measured, and the second one is not where §44 looked.
+
+### The route: `income × val` wraps, and the guard catches the sign
+
+`tech_value`'s tail is `val = check_income(…) × val / 256`, then the
+original's own `val < 0 → 9,999,999` (§2.14, `docs/audit/2026-08-25-ai.md`
+note 4: the product is a 32-bit `imul` and **wraps**). So the ceiling is
+an **overflow**, not a saturation, and `income` decides where the cliff
+is. On block 9178, read off this crate's own `check_income`, `income` is
+`0x40` — a quarter — which puts the threshold at `val > 33,554,431`:
+
+| | pre-income `val` | `× 0x40` | after |
+|---|---|---|---|
+| the original | 34,560,000 | 2,211,840,000 → **−2,083,127,296** | **9,999,999** |
+| this crate | 26,400,000 | 1,689,600,000 | **6,600,000** |
+
+`the_tech_ceiling_is_the_income_multiply_wrapping_not_a_saturation`
+(`crates/sim/src/ai_research.rs`) pins both rows and the cliff either
+side, and [`ai_research::income_scaled`] is that tail as one function so
+the claim has something to assert against. Made to fail on purpose.
+
+### The ×200 is real, is upstream, and is on both sides
+
+Instrumented over the whole game, this crate's Mercenaries offer is
+`33,000` from block 8578 to 8978 and `26,400,000` on 9178 — 200×, exactly
+as §44 recorded. It is two factors, and neither is the parting: `base ×=
+10` when knowledge is comfortably in hand, and the cat-0 arm's `val ×= 20`
+when `muster.cap × 5 / 6 < effective_pop`, which is `41 < 42` on 9178 and
+first true there. The original takes both too — its own slot 10 goes
+43,200 → over the cliff on the same frame.
+
+### The parting is `weight_total`, 110 against 144
+
+Mercenaries' weights are `ai = [152, 16, 4, 0, 10, 0, 0, 0, 44, 0, 0]`.
+Every other fact on the frame is shared (`pop 2`, `infra_mod 256`,
+`cities 2`, `my_team_terr 568 > other 266` so the territory term pays
+nothing either way), and the war term is the whole difference: at peace
+`ai[5] + ai[1] = 16`, at war `ai[0] / 3 = 50`. That is **110 against
+144** — 55/72, the ratio §43 recorded for four techs and §44 for this one
+— and 26,400,000 × 144 / 110 is 34,560,000 exactly. One term decides
+whether the offer clears the cliff.
+
+### And the gate is not `human`; it is `treaties[i] & 1`
+
+`weight_total` reads `active_wars`, which this crate leaves at nought
+because `census_wars` and `census_strategy` skip human leaders. §43 read
+that skip as a mistake, and removing it is **worse**: the long capture's
+word goes **9182 → 7182**, measured with both loops and with the region
+loop alone.
+
+The dumps say why. Player 1's diplomacy over four Great Lakes windows:
+
+| block | `diplos[0]` | `treaties[0]` | `wars` | `active_wars` |
+|---|---|---|---|---|
+| 6950 (run84) | 0 | **0** | 0 | 0 |
+| 7514 (run91) | 0 | **0** | 0 | 0 |
+| 8174 (run19) | 0 | **1** | 1 | 1 |
+| 9170 (run107) | 0 | **1** | 1 | 1 |
+
+`diplos[0]` is 0 — at war — on all four. **The diplomacy never moves.**
+What moves is `treaties[0]`'s low bit, the met bit, somewhere in
+(7616, 8174], and `plan_strategy@006b9620:1511,1557` gates both loops on
+it and on `leader_flags & 2` and `i != who` and **nothing else** — no
+`human` test exists in the original at all. So the human skip is a
+stand-in for a bit this crate never sets, and on a one-human-one-AI
+capture "never met the human" is 2,000 frames closer than "met everyone
+from frame 1". It is folded into [`Sim::met`] now, where the seam
+belongs, rather than repeated in two loops as a rule about humans.
+
+**`diplos` and `treaties` are in the record comparison from this item**
+— `1/treaties[0]` parts on run19 and run107, `0/treaties[1]` on run84 and
+run91, and `diplos` parts nowhere, which is the table above as four
+standing assertions. Made to fail on purpose (`met` to self only puts a
+row on all four windows).
+
+### What is not established
+
+- **When the bit flips, and from what.** `Leader::treaty_on@006e1190`
+  sets both sides' bit 1; its only caller is `Leader::meet@006e1250`;
+  `meet`'s only callers are `Wall::check_ever_seen@0063ce70` — off
+  `world+0x15c`, the "ever seen by" mask, i.e. fog — and
+  `Unit::process_attrition@005e11a0`, twice, in each of its peace and war
+  arms after every exemption. **The attrition path never fires in this
+  game**: instrumented over run53's 24,000 frames, no unit of either
+  leader reaches a non-exempt attrition outcome, not once. So the
+  original's flip is the fog path, and closing it wants a visibility
+  model — which `check_explore` is already a seam for (§2.1). That is the
+  successor, and it is a mechanic, not a line.
+- **Whether `active_wars` alone is enough** once the bit is right. The
+  region loop also needs the other leader to hold buildings in the
+  region, and `census_strategy`'s `weaker` test reads the *other*
+  leader's `attack`, which for a human this crate does not census at all
+  (§43).
+- **`1/MAKE[10].val` and the other tech values** stay in run107's residue
+  at 33,000 against 43,200. They are the same 110/144 and they close
+  together or not at all.
+- **`income`'s own `0x40`** is read off this crate and not diffed; the
+  record does not print it. If it is wrong the cliff moves, and the two
+  measured `val`s either side of it would both be wrong by the same
+  factor — which the 55/72 check above does not catch.

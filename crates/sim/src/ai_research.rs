@@ -126,6 +126,21 @@ pub(crate) fn weight_total(ai: &[i32; AI_WEIGHTS], f: &WeightFacts) -> i32 {
     war.wrapping_add(sea).wrapping_add(w)
 }
 
+/// The value's last step, and the **only** route a technology's offer takes
+/// to the `9,999,999` ceiling: `income × val` in 32 bits, then `>> 8`, then
+/// the original's own `val < 0 → 9,999,999` guard.
+///
+/// The multiply **wraps** (`imul`, `docs/audit/2026-08-25-ai.md` note 4), so
+/// the ceiling is an *overflow* rather than a saturation — the guard catches
+/// the wrapped sign. With `income` at its `0x40` commonest value the
+/// threshold is `val > 33,554,431`, and Great Lakes' block 9179 sits either
+/// side of it: the original's Mercenaries offer is `34,560,000` and clamps,
+/// this crate's is `26,400,000` and does not (`docs/AI.md` §45).
+pub(crate) fn income_scaled(income: i32, val: i32) -> i32 {
+    let v = shr8(mul(income, val));
+    if v < 0 { 9_999_999 } else { v }
+}
+
 /// `f1` and `f2`, the two recency factors: `min(cap, dt × ai_speed / div +
 /// add + 1)`, written by the original as `dt/div + add < cap ? … + 1 : cap`.
 ///
@@ -706,10 +721,7 @@ impl Sim {
             val /= 2;
         }
         let income = self.check_income(who, t, 0x400, None, no_wonder, -1, 1, 0);
-        val = shr8(mul(income, val));
-        if val < 0 {
-            val = 9_999_999;
-        }
+        val = income_scaled(income, val);
         Some((val, slot))
     }
 
@@ -832,6 +844,53 @@ mod tests {
     use crate::{Cell, Player, Pos, Tuning, World};
 
     const TILE: i32 = UNITS_PER_TILE;
+
+    /// **The only route a tech offer takes to the ceiling** — item 382,
+    /// `docs/AI.md` §45. Great Lakes' block 9179 measured on both sides:
+    /// Mercenaries' weights are `[152, 16, 4, 0, 10, 0, 0, 0, 44, 0, 0]`,
+    /// so [`weight_total`] answers **110** at peace (`ai[5] + ai[1]`) and
+    /// **144** at war (`ai[0] / 3`), and every other factor on the frame is
+    /// shared. The pre-income values that come out of those two are what
+    /// the dump shows either side of the overflow.
+    #[test]
+    fn the_tech_ceiling_is_the_income_multiply_wrapping_not_a_saturation() {
+        // `income` on the frame, read off this crate's own `check_income`.
+        const INCOME: i32 = 0x40;
+        // The war weight and the peace weight, from the same `base`.
+        const AT_WAR: i32 = 34_560_000;
+        const AT_PEACE: i32 = 26_400_000;
+
+        // The original's offer wraps 32 bits and the guard catches the sign.
+        assert!(mul(INCOME, AT_WAR) < 0, "the product must overflow");
+        assert_eq!(income_scaled(INCOME, AT_WAR), 9_999_999);
+        // This crate's does not, and comes out a quarter of itself.
+        assert!(mul(INCOME, AT_PEACE) > 0);
+        assert_eq!(income_scaled(INCOME, AT_PEACE), 6_600_000);
+
+        // The threshold, exactly: `2^31 / 0x40`.
+        assert_eq!(income_scaled(INCOME, 33_554_431), 8_388_607);
+        assert_eq!(income_scaled(INCOME, 33_554_432), 9_999_999);
+
+        // And the two weights are the whole of the parting: 55/72.
+        let ai = [152, 16, 4, 0, 10, 0, 0, 0, 44, 0, 0];
+        let peace = WeightFacts {
+            team_style: 0,
+            cities: 2,
+            full_cities: 0,
+            my_team_terr: 568,
+            other_team_terr: 266,
+            min_other_team_terr: 266,
+            active_wars: 0,
+            sea_map: 1,
+        };
+        let war = WeightFacts {
+            active_wars: 1,
+            ..peace
+        };
+        assert_eq!(weight_total(&ai, &peace), 110);
+        assert_eq!(weight_total(&ai, &war), 144);
+        assert_eq!(i64::from(AT_PEACE) * 144, i64::from(AT_WAR) * 110);
+    }
 
     fn tile_pos(tx: i32, ty: i32) -> Pos {
         Pos::new(tx * TILE + TILE / 2, ty * TILE + TILE / 2)

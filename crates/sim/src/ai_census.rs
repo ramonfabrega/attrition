@@ -100,11 +100,38 @@ impl Sim {
     // Seams
     // ------------------------------------------------------------------
 
-    /// Seam: `treaties[i] & 1`, "I have met leader `i`". No visibility model
-    /// means step 6 never sets it, so it answers `true` for every other
-    /// active leader — otherwise steps 14 and 15 could never count anything.
+    /// Seam: `treaties[i] & 1`, "I have met leader `i`" — the **whole** gate
+    /// steps 14 and 15 carry, and the one this crate cannot derive.
+    ///
+    /// The original sets the bit on *first contact* and never clears it:
+    /// `Leader::treaty_on@006e1190` writes both sides' bit 1, its only
+    /// caller is `Leader::meet@006e1250`, and `meet` has exactly two —
+    /// `Wall::check_ever_seen@0063ce70`, off the world's "ever seen by"
+    /// mask, and `Unit::process_attrition@005e11a0`, twice, once in each of
+    /// its peace and war arms. There is **no `human` test anywhere in
+    /// either loop**: `plan_strategy@006b9620:1511,1557` gates on
+    /// `leader_flags & 2`, `i != who` and this bit, and the human's
+    /// `leader_flags` is 7.
+    ///
+    /// So the human is excluded here as a **stand-in for the missing bit**,
+    /// not because the original excludes it, and the substitution is
+    /// measured rather than assumed (`docs/AI.md` §45). Great Lakes' own
+    /// dumps have player 1's `treaties[0]` at **0** on blocks 6950 and 7514
+    /// and at **1** on 8174 and 9170 — `diplos[0]` is 0, at war, on all
+    /// four, so the diplomacy never moves and only contact does. This
+    /// crate has no fog and its army never takes cross-border attrition in
+    /// that game (0 non-exempt outcomes over run53's 24,000 frames), so
+    /// there is nothing to derive the flip from; answering "yes" from
+    /// frame 1 instead turns `active_wars` on 7,600 frames early and costs
+    /// the long capture's word **9182 → 7182**, measured both ways.
     fn met(&self, who: Player, other: usize) -> bool {
-        other != who as usize && !self.defeated[other]
+        other != who as usize && !self.defeated[other] && self.has_met(who, other)
+    }
+
+    /// The seam's own answer, for the record comparison: this crate's
+    /// `treaties[other] & 1`.
+    pub fn has_met(&self, who: Player, other: usize) -> bool {
+        other == who as usize || (!self.defeated[other] && !self.nation[other].human)
     }
 
     // ------------------------------------------------------------------
@@ -902,7 +929,7 @@ impl Sim {
         let mut wars = 0;
         let mut allies = 0;
         for i in 0..self.players.len() {
-            if i == w || self.nation[i].human || !self.met(who, i) {
+            if i == w || !self.met(who, i) {
                 continue;
             }
             if self.diplo_war(w, i) || self.diplo_war(i, w) {
@@ -963,7 +990,7 @@ impl Sim {
             let my_attack = self.ai[w].census.attack;
             let home = self.ai[w].census.home_reg;
             for i in 0..players {
-                if i == w || self.nation[i].human || self.defeated[i] || !self.met(who, i) {
+                if i == w || self.defeated[i] || !self.met(who, i) {
                     continue;
                 }
                 let theirs = self.reg_city_buildings(i as Player, r as u16);
