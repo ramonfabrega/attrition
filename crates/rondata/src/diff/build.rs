@@ -3669,6 +3669,180 @@ mod tests {
         assert_eq!(at(&theirs, 9_453), (1, 10), "and the value is 1 and 10");
     }
 
+    /// **run109 says where Great Lakes' arrows start, and where they come
+    /// down** (item 396, `docs/COMBAT.md` §22).
+    ///
+    /// `AmmoData::log_data` prints the arrow's own `sx, sy` — the release
+    /// node's world position, which is the guy's plus a per-(piece, anim,
+    /// starttime) vector turned by the guy's facing — and `ex, ey` and
+    /// `total_time` beside it. run109 raised `AMMO=5` over `[9420, 9480)`
+    /// on run100's game, so **nine** arrows are on the disk with all five
+    /// numbers, and this test is the value diff against them: not the
+    /// launch *frames*, which
+    /// [`super::super::harness::tests::run53_s_24000_frames_put_the_ceiling_where_run33_did`]
+    /// takes from the trace, but where each one leaves from, where it is
+    /// aimed and how long it flies.
+    ///
+    /// It is read out of the archive each run rather than pinned as
+    /// constants, which is what `crates/sim/src/launch.rs`'s own unit test
+    /// is not: that one carries the dump's columns as literals and so
+    /// cannot notice the archive changing. This can.
+    ///
+    /// The window bounds what it can say. An arrow launched on sim-frame
+    /// `L` first prints in block `L + 1`, so run109 reaches launches up to
+    /// 9478 and no further; the seven launches this crate makes between
+    /// 9479 and the word have no record on this disk at all.
+    #[test]
+    fn run109_says_great_lakes_s_launches_land_where_the_bow_hand_aims() {
+        const LAST: i64 = 9_480;
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(r109)) = (
+            dump("gamelog-run53-greatlakes-24k-trace.txt"),
+            dump("gamelog-run109-greatlakes-ammolaunch.txt"),
+        ) else {
+            eprintln!("skipping: no run53/run109 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        // ---- the original's own record. Every `BEGIN AMMO` block in the
+        // window, reduced to its first appearance: the block an arrow is
+        // first printed in is the one after the frame it launched on.
+        let mut ix = crate::capture::indexed::IndexedCapture::open(&r109).unwrap();
+        let mut theirs: Vec<(i64, i64, i64, i64, i64, i64)> = Vec::new();
+        let mut seen: Vec<(i64, i64, i64, i64, i64)> = Vec::new();
+        for f in 9_420..LAST {
+            let Some(at) = ix.frames().iter().position(|x| x.number == f) else {
+                continue;
+            };
+            let body = ix.read_frame(at).unwrap();
+            for a in ammo_blocks(&body) {
+                if !seen.contains(&a) {
+                    seen.push(a);
+                    theirs.push((f - 1, a.0, a.1, a.2, a.3, a.4));
+                }
+            }
+        }
+        eprintln!("  run109: {} arrows, {theirs:?}", theirs.len());
+        assert_eq!(
+            theirs.len(),
+            9,
+            "run109's window holds nine arrows; it holds {}",
+            theirs.len()
+        );
+
+        // ---- this crate, over the same frames.
+        let loaded = crate::load::load(&inst).unwrap();
+        let texts = sibling_texts();
+        let text = crate::capture::read(&path);
+        let log = Log::parse(&text);
+        let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
+        let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+        let refs: Vec<&Initial> = inits.iter().collect();
+        let mut init = log.initial().unwrap();
+        borrow_from_siblings(&mut init, &refs);
+        if let Some(t) = trace("rontrace-run53.log") {
+            borrow_pasture(&mut init, &t);
+        }
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        // `built.tick()` at 0-based `f` leaves the state the dump numbers
+        // `f + 1`, so a projectile that appears in it launched on `f`.
+        let mut ours: Vec<(i64, i64, i64, i64, i64, i64)> = Vec::new();
+        let mut known: Vec<(i32, i32, i32, i32, i32)> = Vec::new();
+        for f in 0..LAST {
+            built.tick();
+            for p in &built.sim.projectiles {
+                let k = (
+                    p.launch.x,
+                    p.launch.y,
+                    p.landing.x,
+                    p.landing.y,
+                    p.total_time,
+                );
+                if !known.contains(&k) {
+                    known.push(k);
+                    ours.push((
+                        f,
+                        i64::from(k.0),
+                        i64::from(k.1),
+                        i64::from(k.2),
+                        i64::from(k.3),
+                        i64::from(k.4),
+                    ));
+                }
+            }
+        }
+        // Only the ones run109 can speak to: its window ends at block 9479.
+        let ours: Vec<_> = ours.into_iter().filter(|r| r.0 <= 9_478).collect();
+        eprintln!("  ours:   {} arrows, {ours:?}", ours.len());
+
+        // **Launch frame, launch point, landing point and flight time, all
+        // nine, all five numbers.** The launch point is §22's table; the
+        // landing point is the aim taken from *that* point rather than from
+        // the unit's own square; the flight time is the two together
+        // through §9.1's truncating divide.
+        assert_eq!(
+            ours, theirs,
+            "Great Lakes' arrows do not leave, aim or fly as the original's \
+             do — left is this crate, right is run109's own AMMO record, \
+             each row (launch frame, sx, sy, ex, ey, total_time)"
+        );
+    }
+
+    /// Every `BEGIN AMMO` block in one frame body, as
+    /// `(sx, sy, ex, ey, total_time)`.
+    ///
+    /// A local walk rather than a `gamelog::records` arm: run109 is the
+    /// first capture on this disk to carry the record at a detail that
+    /// prints the launch point, and only this test reads it. The record has
+    /// twenty-five fields and this takes five — widening it is its own
+    /// item.
+    fn ammo_blocks(body: &str) -> Vec<(i64, i64, i64, i64, i64)> {
+        let mut out = Vec::new();
+        let mut cur: Option<std::collections::BTreeMap<&str, i64>> = None;
+        // **The flush has to come before the open.** `dump_ammo` walks the
+        // pool, so `BEGIN AMMO` blocks are consecutive siblings, and a
+        // version of this that reset `cur` on the open threw away every
+        // arrow but the last of each run — six of the nine, silently, and
+        // the ones it kept were mislabelled by two frames.
+        let flush = |cur: &mut Option<std::collections::BTreeMap<&str, i64>>,
+                     out: &mut Vec<(i64, i64, i64, i64, i64)>| {
+            let Some(done) = cur.take() else { return };
+            let get = |k: &str| done.get(k).copied();
+            if let (Some(sx), Some(sy), Some(ex), Some(ey), Some(tt)) = (
+                get("sx"),
+                get("sy"),
+                get("ex"),
+                get("ey"),
+                get("total_time"),
+            ) {
+                out.push((sx, sy, ex, ey, tt));
+            }
+        };
+        for line in body.lines() {
+            let t = line.trim_end_matches('\r').trim_start();
+            if t == "BEGIN AMMO" {
+                flush(&mut cur, &mut out);
+                cur = Some(std::collections::BTreeMap::new());
+                continue;
+            }
+            if cur.is_none() {
+                continue;
+            }
+            if t.starts_with("BEGIN ") || t.starts_with("END ") {
+                flush(&mut cur, &mut out);
+                continue;
+            }
+            let map = cur.as_mut().unwrap();
+            let mut it = t.split_whitespace();
+            if let (Some(k), Some(v), None) = (it.next(), it.next(), it.next())
+                && let Ok(n) = v.parse::<i64>()
+            {
+                map.entry(k).or_insert(n);
+            }
+        }
+        flush(&mut cur, &mut out);
+        out
+    }
+
     #[test]
     fn run76_and_run79_date_the_tobacco_rare_on_the_tower_s_clock() {
         let Some(inst) = install() else { return };

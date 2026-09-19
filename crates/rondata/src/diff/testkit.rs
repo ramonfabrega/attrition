@@ -1254,9 +1254,26 @@ pub(crate) const EAST_INDIES_FIRST_SCHOLAR: i64 = 8_466;
 ///
 /// The thirty-six frames it bought are a real fight: 9425 and 9426 are
 /// the two archers' first arrows, 9439 and 9444 their second, and every
-/// frame between agrees draw for draw. **9451 is the first one landing** —
-/// two draws at `Object::take_damage+0xe1` this crate does not spend.
-pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 9451;
+/// frame between agrees draw for draw. ~~**9451 is the first one landing**
+/// — two draws at `Object::take_damage+0xe1` this crate does not spend.~~
+///
+/// **9451 → 9510 on item 396**, and the two draws were a *launch point*.
+/// The original adds the release node's own world position to the guy's
+/// before `Objects::add_ammo`, so `1/28`'s `CHAR_ATTACK2` shot flew 27
+/// frames here against 26 there and its arrow arrived a frame after the
+/// draw it owed. run109 (`AMMO=5` over `[9420, 9480)`) prints the arrow's
+/// own `sx, sy`, so the offset is measured rather than derived:
+/// `docs/COMBAT.md` §22, and `crates/sim/src/launch.rs` is the table.
+///
+/// The fifty-nine frames it bought are the rest of that fight — **sixteen
+/// launches below the word against four**, of which the first nine have
+/// their launch point, landing point and flight time checked against
+/// run109's own record
+/// (`run109_says_great_lakes_s_launches_land_where_the_bow_hand_aims`);
+/// the last seven are past run109's window, so the trace's draw sites are
+/// all that speaks to them. **9510 parts on `Guy::init_real+0x52`**, a
+/// unit coming into existence, which is not this mechanic at all.
+pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 9_510;
 
 /// The floor `run97_s_window_orders_are_the_original_s` holds — item 368's
 /// widening of Great Lakes' order stacks, the 36,483 `GATHERORDER` records
