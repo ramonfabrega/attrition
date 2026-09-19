@@ -3837,3 +3837,75 @@ start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,
 run104 is run103 with the `0 !ai off` line stripped from the command file.
 `viadriver.sh` is not optional: a launch from inside a session's own process
 tree gets no window and dies in 3.8 s.
+
+## run106 — the held-out third map, measured once (2026-09-18, item 363)
+
+**Map 9, Himalayas.** Every scored capture since 08-24 has been Great Lakes or
+East Indies, and every rule in the simulation was fitted against one of the
+two. A third map nobody has debugged against is the only thing that says
+whether those rules generalise or were tuned. `docs/DECISIONS.md` entry 41's
+"the held-out third map's word, measured and never debugged against" did not
+name one; this is the choice and the reasoning, so that a later pass can
+disagree with the choice rather than re-derive it: **9 is the map least like
+both**. 14 is land around lakes, 18 is islands — two water maps — and the
+Himalayas is the terrain neither tests.
+
+**One capture, one measurement, and this section is the whole of what was done
+with it.** No item has been opened against it, nothing has been read into it,
+and the number below was produced by a single invocation.
+
+Seed 12345, 1,900 blocks over `[1, 1901]`, the `[Start Game]` set and the
+frontier's `[End Frame]` detail, no cheats but the fast-forward, on the
+click-free lane's own lobby. `MAP_STYLE 9` and the seed read back from the
+dump's own `GAME INFO`; 189 MB; 522 s launch-to-exit; five settings files
+restored.
+
+```
+cargo run -p rondata -- <install> --gamelog <run106> --trace <run106 trace> --diff
+
+  1899 frames stepped, 28860 unit-frames compared
+  ticks before divergence:        1
+  ticks before an order diverges: 0
+```
+
+**Against floors of `EastIndies 1851/1850` and `GreatLakes 1772/1772`, the
+held-out map is 1 and 0.** That is the number, and it should be read as the
+generalisation gap rather than as a bug: nothing here was ever fitted to this
+map, which is the entire point of holding it out.
+
+What makes it informative rather than merely bad is what still holds:
+
+- **The one check that derives rather than compares passes.** *"Every starting
+  citizen's derived GATHER target matches the one the original issued — 10
+  citizens, derived from §9.3 without reading the log"*: `0/1→2001 0/2→2001
+  0/3→2002 0/4→2003 0/5→2004` and the same five for player 1. The opening
+  economic assignment is computed from the map, not remembered from two maps,
+  and on a third map it is exact for all ten.
+- **Units track individually for hundreds of frames.** `0/2@501 0/1@461
+  0/3@237 1/1@344 1/8@323 1/7@209`; the ticks figure is the *minimum* over
+  sixteen units, and one unit at 2 is what sets it.
+- **The earliest breaker is player 1's unit 0**, the AI's scout: a move
+  destination `x` of 42,744 against the log's 39,672 **at frame 1**, and a
+  `mylos` of 6 against 4 from frame 202 that persists for 1,698 frames. One
+  unit, one wrong destination on the first frame, and the map's whole
+  trajectory follows it.
+- The 44,597 order disagreements are dominated by `gather` (23,472) and `move`
+  (11,591) — the two families the existing maps' items have spent eight months
+  on, which is the shape of a fit rather than of a missing mechanic.
+
+**What this number is not.** It is on the click-free lane's own lobby
+(`-automation +skipIntro`, the profile's match rules) rather than the scored
+captures' `-config check.ini`, and its window opens at frame 1 rather than
+matching run33/run39's shape. So it is comparable to 1,851 and 1,772 **in kind
+and not in provenance**, and a later pass that wants them on one axis owes a
+run33-shaped capture on map 9. Nine `unlinked` units from frames 1214, 1603
+and 1838 are the AI's trained units, which the harness does not produce; 2,137
+of the 28,860 unit-frames are theirs.
+
+**A trap the lane shares with `captures.txt`'s `poll_max`, and it cost this
+capture once.** `unattended_capture.py --timeout` defaults to **180 s**, and
+the give-up is a **truncation, not a stop**: the first attempt came back with
+593 of 1,900 blocks in a 62 MB file that looks entirely ordinary. The receipt
+is what caught it — `success: false`, `TimeoutExpired`, and the settings
+restored and byte-verified anyway — so read `receipt.json` before the dump.
+Size the timeout from the *dumping*: this capture ran 3.6 blocks a second.
