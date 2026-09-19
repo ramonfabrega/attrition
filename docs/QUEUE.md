@@ -12,33 +12,35 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-19, the first tranche after the sixth Fable pass. **Eight landings,
-no score moved**; both headlines now have a measured cause and a dead list.*
+*2026-09-19, the first tranche after the sixth Fable pass. **Nine landings,
+no score moved**; both headlines have a measured cause, and the AI's is
+**priced at eight frames** — the stopping-rule number, for the pass.*
 
+- **The pair is confirmed, not inferred, and it is worth 8** (430). Forcing
+  9380's offer alone costs 128 frames (9510 → 9382); forcing 9382's expiry
+  too buys **9518**, where 9382 agrees draw for draw. So the valuation and
+  the expiry **fall together or not at all**. The wrap is fidelity: 64-bit
+  costs 2,727 frames. The three `+0x63d` draws are **three separate
+  `expire` calls**, not one long walk.
+- **The eight frames are 432's toll, not its prize**: everything past 9510
+  is invisible today, so landing the pair turns 9518's scholar-birth
+  divergence from a probe artefact into ordinary residue on the real tree.
 - **616 is the original issuing no attack order at all** (426): its first
-  is 621, to the slingers on their own birth frame. This crate matches two
-  of three squads and orders the hoplite squad on its birth frame, which
-  spends the 26th draw. **Both named mechanisms are dead by measurement** —
-  the 140 west, and `find_melee_target`'s `0x40000` arm. The control:
-  slingers engage at **8.6** tiles, further than the 7.25 at which the
-  hoplites do not, so no distance threshold orders the two. 434 reads why.
-- **9510 is propped up by the wrong purchase** (430): correcting the
-  valuation alone moves the word **down**, 9510 → 9382, where nine draws
-  meet the original's eight. The valuation and the expiry are a **pair that
-  must fall together**; the wrap itself is fidelity (64-bit costs 2,727
-  frames). Probe 4 tests the pair rather than inferring it; 432 is
-  unbooked until it reports.
+  is 621, to the slingers on their own birth frame. Both named mechanisms
+  died by measurement, and the control kills the class — slingers engage at
+  **8.6** tiles, further than the 7.25 at which the hoplites do not. 434
+  reads `Unit::think`'s gate; it must explain the slingers too.
 - Four open, 69 parked.
   **Fable backlog: fourteen Loop items** (251, 335, 313, 367, 375, 416,
-  417, 419, 420, 421, 424, 428, 431, 433); due at twenty, this is eight.
+  417, 419, 420, 421, 424, 428, 431, 433); due at twenty, this is nine.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w9711 of 24,000 · GreatLakes w9510 of 24,000
 Golden: w626 of 901 · ch2 w616 is lower and is the headline · 434 next
 Endpoint 24001: EastIndies 64 off, 5 unlinked · GreatLakes 51 off, 11 unlinked
 
-**Opener: 434 on the rules lane — read `Unit::think@005f6e40`'s auto-attack
-gate against 426's landed oracle; 430's probe 4 decides the AI lane.**
+**Opener: 432 on the AI lane — 9382, nine draws against eight, the extra at
+index 6; 434 on the rules lane — the reading of `Unit::think`'s gate.**
 
 ## The queue
 
@@ -48,14 +50,14 @@ the AI, lower map first — Great Lakes. Take the first unstarted on either
 track unless a better order is obvious, and say so. Numbers are stable;
 the backlog is `docs/PARKED.md`, and an item returns only when a score names it.
 
-430. **Does the ranking alone hold 9510?** (the AI headline's frame, after
-    422 pinned its cause): force the Scholar to outrank the Citizen in a
-    **scratch** build — not a fix, not a change to the wrap — and measure
-    how far the capture then agrees. Word advances: 9382 was the last
-    thing holding it, and a reading of `create_units@006c40a0`'s
-    want-and-divisor block is the critical path. Word holds: a second
-    cause sits behind it, and that is the item. Revert; report the number,
-    not the patch. No capture settles the terms (locals); `callfn.py` can.
+432. **9382, nine draws against eight, the extra at index 6** (the AI
+    headline's frame, unblocked by 430): worth **eight frames and the
+    instrument past 9510** — everything behind the blockage is a probe
+    artefact until this lands. `make_stuff+0x63d` is the **hypothesis**,
+    not the title, and **the caveat leads**: the expiry count is a
+    function of the make list, so the third call may follow from the
+    list's shape rather than the purchase. Success is **9382 agreeing
+    under the probe**, not the word moving — the probe is part of the item.
 
 434. **Why this crate orders the hoplite captain on its birth frame** (616,
     the rules headline, after 426 killed both named mechanisms): a
