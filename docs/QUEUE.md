@@ -12,36 +12,36 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-18, two lanes side by side. **No word moved**; five floors did.
-363 gave the rules track its first staged run, its three answers and the
-held-out map's verdict; 362 was booked as the market and was not.*
+*2026-09-18, two lanes all day, eight landings. **Great Lakes moves
+9182 → 9415, +233** — the first word to move since the pass. Six booked
+mechanisms were wrong and the frames right every time; three real bugs
+fell out anyway.*
 
-- **9182 is named end to end and blocked** (six items, no word). The
-  ceiling is an **overflow, not a saturation**: `income × val` is a 32-bit
-  imul that wraps and `val < 0 → 9,999,999` catches the sign; the parting
-  is `weight_total` 110 v 144, and 26,400,000 × 144/110 = 34,560,000 to
-  the digit. §44's falsifier came back **FALSE** — closing `MAKE[0].val`
-  costs 2,000 frames. The real gate is `treaties[i] & 1`, the MET bit; no
-  `human` test exists in `plan_strategy`. 385, and nothing else, moves it.
-- **The golden word holds at 617**; the brief's mechanism was wrong —
-  engagement is frame 615 on **both** sides. `is_in_range` was: §13.2 has
-  carried the HOPLITES `0xf6` reach since the second reading and the one
-  call site passed `false`, so every melee unit fought at `0x66` for a
-  month (356). Endpoint 66→58 off, 5→7. Tie-break **documented, not
-  coded** — 386.
-- **The namesake has never fired in a scored capture**: zero non-exempt
-  attrition outcomes over run53's 24,000 frames (382, now in ATTRITION) —
-  the Temple chapter is the only route to it.
-- **The held-out map answers 1 tick, 0 orders** (run106; floors 1851,
-  1772) — a fit to two trajectories. **The pass's number.** Six open, 45 parked; **Fable backlog: ten Loop items** (251, 335, 343, 356, 321, 313, 367, 374, 375, 377).
+- **The met bit is set by the fog** (385, `docs/VISION.md` §6.2),
+  closing a chain six items long: `1/MAKE[0].val` → `MAKE[0].t` →
+  `use_market`'s `need`, `active_wars` behind `treaties[i] & 1`, and no
+  `human` test in `plan_strategy`. Leader residues all fell and nothing
+  arrived (run19 91→80, run107 110→95). **389 takes 9415**, 390 the flip.
+- **The golden word holds at 617** through 379 and 384, whose find is the
+  day's worst bug: §13.2 has carried the HOPLITES `0xf6` reach since the
+  second reading and the one call site passed `false` — every melee unit
+  fought at `0x66` for a month (356). Tie-break documented, not coded: 386.
+- **run97's dump ends in a truncated `BEGIN FRAME 9361`** — 47 Length rows
+  arriving as the word passed 9349, reading like a collapsed sim. 368's
+  **unit-SET** assertion caught it; a row count would have re-pinned it.
+- **The namesake has never fired in a scored capture** (382): zero
+  non-exempt attrition outcomes over run53's 24,000 frames — the Temple
+  chapter is the only route. **The held-out map answers 1 tick, 0 orders**
+  (run106; floors 1851, 1772), a fit to two trajectories: **the pass's
+  number**. Six open, 45 parked; **Fable backlog: ten Loop items** (251, 335, 343, 356, 321, 313, 367, 374, 375, 377).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w9711 of 24,000 · GreatLakes w9182 of 24,000
+Long captures: EastIndies w9711 of 24,000 · GreatLakes w9415 of 24,000
 Golden: w617 of 901 · chapter one pinned · 386 next
-Endpoint 24001: EastIndies 64 off, 5 unlinked · GreatLakes 58 off, 7 unlinked
+Endpoint 24001: EastIndies 64 off, 5 unlinked · GreatLakes 54 off, 4 unlinked
 
-**Opener: 385 is the AI word's only route — the met bit behind
-`check_explore` — beside 384, already in flight on the golden record's.**
+**Opener: 389 on the word's new frame — `1/29`'s five draws at 9415 —
+beside 386, already in flight on the golden record's tie-break.**
 
 ## The queue
 
@@ -51,14 +51,19 @@ the AI, lower map first — Great Lakes. Take the first unstarted on either
 track unless a better order is obvious, and say so. Numbers are stable;
 the backlog is `docs/PARKED.md`, and an item returns only when a score names it.
 
-385. **A visibility model: the met bit is what 9182 is blocked behind**
-    (the AI headline's frame; `check_explore` is the seam). 382 named the
-    chain and it is closed end to end — `1/MAKE[0].val` (9179–9180) →
-    `1/MAKE[0].t` (9181 on) → `use_market`'s `need`; the count agrees at
-    9182 (10 each) and the draw at **index 1** parts. `MAKE[0].val` cannot
-    move without `active_wars`, which cannot move without `treaties[i] & 1`
-    (`treaty_on ← meet ← check_ever_seen`, fog). **Check `1/MAKE[10].val`
-    too** — 33,000 against 43,200, the same 110/144: the two close together.
+389. **9415 is `1/29`'s** (the AI headline's frame, and the word just
+    moved here from 9182): five draws against two, two of them at a site
+    `trace::SITES` does not name, attributed to `1/29` — one of 368's
+    eight off-position units from 8442 (`docs/ARMY.md` §3.4's successor).
+    **Re-measure before diagnosing**: six mechanisms named in two days,
+    none the cause, the frame right every time (377).
+
+390. **A `LEADERS≥2` window anywhere in (7616, 8174]** (capture lane;
+    takes-chain to the met bit): nothing on disk dumps a leader between
+    7600 and 8174, so this crate's CONTACT flip frame **7944 is checked
+    against a bracket, not a frame**. The cheapest capture left on the
+    mechanism 385 just landed. Assert the block count against the window
+    asked for — run97's truncation is why (373).
 
 386. **The tie-break that decides 617's target** (the rules headline's
     frame; `docs/COMBAT.md` §18, open question 8, three checks named
