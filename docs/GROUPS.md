@@ -1932,27 +1932,29 @@ garrisoned leader. Nor is the `buildings` branch (`list[0]` instead of
 
 Still open:
 
-- **`Group::target_opportunity` is how a squad engages, and the simulation
-  does not have it.** `Unit::think_attack@005f5a80`'s tail, on a find,
-  calls `Group::target_opportunity(group, o, who, …)` — so in a group only
-  the **captain** searches and the members are handed its answer. The
-  golden record prints the witness: `ObjectData::near_o`/`near_who` are
-  written by `find_nearby_target` alone, and over chapter one's 901 frames
-  exactly one unit ever carries them, while its two squadmates hold the
-  same target with `near_o -1`. This crate has all three searching
-  independently and they pick different targets.
-  `docs/COMBAT.md` §18 has the frame.
-  *Capture:* already on disk — run101–run105, `UNITS=3` over 615–621.
+- ~~**`Group::target_opportunity` is how a squad engages, and the simulation
+  does not have it.**~~ **It is not** (item 395, 2026-09-19,
+  `docs/COMBAT.md` §21). `Unit::think_attack@005f5a80`'s tail does call
+  `Group::target_opportunity(group, o, who, …)` on a unit find — but that
+  function's loop only enters a member which is **itself a captain**
+  (`o_up < 0`), and a squad's members are not, so it never reaches them.
+  What hands a member its captain's target is `Unit::think@005f6e40`'s
+  **first statement**, above every gate in the function: a non-captain
+  reads its captain's action, and if that action is an ATTACK order on a
+  target it can validly attack it takes
+  `add_attack_order(target, QUEUE_NEW, captain's mandatory, 0)` and the
+  think ends. That is what the golden record's witness is really saying —
+  `ObjectData::near_o`/`near_who` are written by `find_nearby_target`
+  alone, and over chapter one's 901 frames only the two **captains** ever
+  carry them. Implemented as `Sim::captain_mirror`; the golden word moved
+  **619 → 624** with it.
 
-  **It now holds the golden word** (item 392, 2026-09-19). With
-  `Unit::find_melee_pos` landed (`docs/COMBAT.md` §19) the word is 619,
-  and what stands there is `0/6` chasing to `(1224, 7704)` where the
-  original chases to `(1080, 8280)`. The point is right for the state it
-  is given; the state is wrong, and it is one destination: the original's
-  `1/7` is ordered to `(1320, 7800)` and this crate's to `(1176, 7944)`,
-  because this crate's `1/7` searched and found `0/6` where the original's
-  squad carries the captain's `0/7`. Two of the six cells the original's
-  ring rejects hang on that one point.
+  What `Group::target_opportunity` does on that frame is hand the target
+  back to the **asker**, which is how a grouped captain gets its own order
+  — see the listing below. It stays unimplemented, and so does
+  `Unit::find_melee_target@005ff9c0`'s own copy of the mirror
+  (`docs/COMBAT.md` §21.3), whose only reachable caller here is §10's
+  per-member `find_melee_target`.
 
   **And what the tail actually is, from the listing** (`005f5da6`
   onwards), because the entry above understated it: `think_attack` calls
@@ -1984,9 +1986,20 @@ Still open:
   `Group::action_siege_attack_to`, and what reached the emergency was a hit
   this crate had `0/7` deliver a frame early. `Unit::target_opportunity`
   answers on the victim's **captain**, not on the figure that was hit, so
-  the order belonged to `0/6` and `0/7` had none until the end of 617. With
-  that corrected, nothing in chapter one's 901 frames reaches the emergency
-  again, and the golden word moved 617 → 618. Neither
+  the order belonged to `0/6` and `0/7` had none until the end of 617.
+  ~~With that corrected, nothing in chapter one's 901 frames reaches the
+  emergency again~~ — **it is reached again, on 618** (item 395,
+  `docs/COMBAT.md` §21.4): once `0/7` retaliates on the frame the dump has
+  it retaliating, the hit reaches `Armies::emergency(1)` and this crate's
+  bypass tick still walks all three of who=1's hoplites, toward
+  `(38664, 13320)`. The **gate is not the defect** — `Object::do_damage`'s
+  test at `0064bbfd` wants the victim's leader to read `leader_flags & 4 ==
+  0`, which is `LeaderData::is_human@006ec170` (`return leader_flags & 4`),
+  so the emergency is the *computer* leader's and fires in the original too
+  (`docs/ARMY.md` §15's "non-human" reading is right, and this names the
+  bit's own function). What diverges is inside `Army::process`, and it is
+  what stands at the golden word's 624. The golden word moved 617 → 618 on
+  391 regardless. Neither
   `Group::target_opportunity` nor a "the group should defer" rule was
   involved — the group branch of `Unit::target_opportunity` is guarded by
   `type +0x2c8 & 0x10000 == 0`, and every hoplite is combat-role, so a

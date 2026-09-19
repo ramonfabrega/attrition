@@ -1527,6 +1527,29 @@ impl Sim {
     /// `Unit::think` (§2.4): the auto-attack on the first idle frame and
     /// every 32 after, phased by `o`; a worker's `think_peasant(0)`.
     fn think(&mut self, u: usize, frame: i64) {
+        // **A non-captain's whole think is the captain mirror**, and it is
+        // `Unit::think@005f6e40`'s *first* statement — above the citizen
+        // mask-clear, above both cadence gates, above everything
+        // (`docs/COMBAT.md` §21). The listing is five tests and a return:
+        //
+        //     if (!is_captain(this)) {
+        //         a = get_action(units[who][get_captain()]);
+        //         if (a == 0 || a->get_type() != 10) return;   // ATTACK
+        //         if (!valid_target(this, a->o, a->who)) return;
+        //         add_attack_order(this, a->o, a->who, QUEUE_NEW,
+        //                          a->mandatory, 0);
+        //         return;
+        //     }
+        //
+        // — so a squad member never searches, never picks a target of its
+        // own, and never reaches `think_attack` at all: it copies whatever
+        // its captain is attacking. That is what the golden record's
+        // `near_o` witnesses (`docs/COMBAT.md` §18): over 901 frames only
+        // `1/6` and `0/6`, the two captains, ever carry one.
+        if !self.units[u].captain {
+            self.captain_mirror(u);
+            return;
+        }
         // `think:82` — a **citizen** (`TypeIndex` 0x32 or 0x33) drops its
         // carrying walk here, and the leader takes `0x80000`. In the
         // original this sits after the auto-attack arm and before the
@@ -1654,6 +1677,49 @@ impl Sim {
             return;
         }
         self.think_join_army(u);
+    }
+
+    /// `Unit::think@005f6e40`'s opening arm — the **captain mirror**
+    /// (`docs/COMBAT.md` §21). A unit with a captain takes that captain's
+    /// standing ATTACK order and nothing else; the think ends here whether
+    /// the mirror fires or not.
+    ///
+    /// Four things it is not. It is not gated by the stance, by
+    /// `unit_masks & 0x100`, or by either cadence — an idle member mirrors
+    /// on the first frame it is idle. It reads the captain's **action**
+    /// (`UnitData::get_action`, the intent under the pathing legs), so a
+    /// captain walking to a chase point still hands its target down. It
+    /// tests `Object::valid_target` on the **member**, not on the captain.
+    /// And the order it adds is `QUEUE_NEW` with the captain's own
+    /// `mandatory` byte — `add_attack_order`'s `action` argument is 0, so
+    /// a DEFENSIVE member still takes a post.
+    ///
+    /// **The frame it explains**, twice over (`docs/COMBAT.md` §21): who=1's
+    /// three hoplites all carry `type 10 ox 7 whom 0` at the end of frame
+    /// 615, the frame they are born, and only the captain `1/6` carries a
+    /// `near_o`; and who=0's `0/7`/`0/8` take their retaliation ATTACKORDER
+    /// on **617**, one frame after the captain `0/6` took it at 616, because
+    /// the captain's order is written after they have already been processed.
+    pub(crate) fn captain_mirror(&mut self, u: usize) {
+        let cap = self.squad_captain(u);
+        if cap == u {
+            return;
+        }
+        // `get_action`'s order must be an ATTACK — `get_type() == 10`.
+        let Some(i) = self.action_of(cap) else {
+            return;
+        };
+        if !matches!(self.units[cap].orders[i].body, Body::Attack(_)) {
+            return;
+        }
+        let Some(t) = self.units[cap].combat.target else {
+            return;
+        };
+        if !self.valid_target(Obj::Unit(u), t) {
+            return;
+        }
+        let mandatory = self.units[cap].combat.mandatory;
+        self.add_attack_order(u, t, QueuePos::New, mandatory, false);
     }
 
     /// `Unit::think_peasant(forced)` (§5.9): the idle gate, the colonist

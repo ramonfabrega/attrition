@@ -1350,7 +1350,12 @@ of the point's tile.
    the third write is `+0x34`.
 8. **`emergency(who)@006f3250`** (from `Object::do_damage@0064a480:952`,
    when an object of an AI leader takes damage and the damage was not
-   attrition/friendly — `local_30`): for the in-use, non-human leader
+   attrition/friendly — `local_30`; the caller's other gate is
+   `leaders[victim_who].leader_flags & 4 == 0`, and that bit is
+   `LeaderData::is_human@006ec170`, whose whole body is
+   `return leader_flags & 4` — so "non-human" here means the **computer**
+   leader, and item 395 confirmed it fires on the golden record's 618,
+   `docs/COMBAT.md` §21.4): for the in-use, non-human leader
    with `leader_flags2 & 0xa == 0`, **every valid army** has `target =
    (−1, −1)` and `Army::process(army, 1)` at once — the whole tick, cadence
    bypassed. Run24: 12129, the first hoplite's first blow.
