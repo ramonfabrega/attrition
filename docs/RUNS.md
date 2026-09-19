@@ -3700,3 +3700,140 @@ It would confirm a negative the decompile already settles exhaustively, and the
 brief's instruction was to stop and say so rather than work around it. **117 is
 not a scripted-setup item either**, because `run_scenario` clears the same bit.
 It is a multiplayer item, or nothing.
+
+## run101–run105 — the golden record's first staged run (2026-09-18, item 363)
+
+The rules track's first capture (`docs/DECISIONS.md` entry 41 §1): one staged
+game on map 14 at seed 12345, the Leader AI silenced at frame 0, a late age, two
+armies and a war, driven entirely from `tools/gamelog/golden/chapter1.cmd` and
+launched click-free. **Five launches of one script**, outside the `Logs` archive
+because §2 says regenerate rather than store — the tree is `~/ron-golden/`, the
+runbook is `docs/ORACLE.md`, "The click-free lane needs a window", and every one
+is reproducible from the commands below in about half a minute of wall clock.
+
+| run | dir | window | detail | what it is |
+|---|---|---|---|---|
+| 101 | `g1` | `[880, 900)` | end + `LEADERS=2` | the digest: the whole 901-frame trace |
+| 102 | `g2` | `[880, 900)` | the same | the second launch, for the identity check |
+| 103 | `g3` | `[605, 900)` | the same | the detail on demand: the fight, whole |
+| 104 | `c1` | `[605, 900)` | the same | **the control**: chapter one *without* `!ai off` |
+| 105 | `g4` | `[605, 900)` | + the `[Start Game]` set | the parse subject for `rondata` |
+
+All five: `success: true`, exit 0, 901 frames, closing dump at 901, `MAP_STYLE 14`
+and seed 12345 read back from the dump's own `GAME INFO`, five settings files
+restored and byte-verified. Launch-to-exit ran 24 s for a digest and 145–172 s
+for a detailed window.
+
+**Every command ran.** `cmdsran.py`'s question, answered from the trace: eight
+`INFO cmd` records, every one returning 1 — `!ai off` at 0, `!ffwd 1` at 37,
+`age who=0 8` at 600, `age who=1 8` at 602, `war` at 604, `add hoplite who=0
+4,40` at 610, `who=1 5,40` at 615, `!quit` at 900. A `!` line logs half 0 and a
+cheat line half 1, which is `run_cmd@007d6a70`'s two switches showing through.
+
+### Auto-engage survives AI-off, and the control is what makes it a measurement
+
+The reading said it would: in `Unit::think@005f6e40` the `think_attack` and
+`add_attack_order` arms all sit **above** the line that reads `GameAccess::ai_off`
+(`if ((leader_flags & 4) != 0 || ai_off != 0)`), so nothing about auto-engage is
+downstream of the gate. The run says it does, and the value diff is the dump's
+own, either side of the frame it moved:
+
+```
+frame 615   who 0  (888,7800) (1032,7800) (936,7944)   orders_x = x, whom -1, no ATTACKORDER
+frame 616   who 0  unchanged
+            who 1  (1368,7992) (1512,7992) (1416,8136) BEGIN ATTACKORDER, whom 0
+frame 620   who 0  (840,7800) (1032,7800) (972,7988)   ATTACKORDER
+            who 1  (1368,7992) (1431,7915) (1304,8116) ATTACKORDER
+```
+
+Three squads are born at 615 and engage on the frame they appear; by 620 all
+six, **both owners**, carry an attack order and their coordinates have moved
+toward each other. No order was ever issued by anyone — the channel has no order
+verb, and `ai off` is the chapter's first line. By frame 800 two `DEATH_OBJS`,
+by 899 three, and the roster is down from 58 to 55.
+
+**What would have falsified it**: zero `ATTACKORDER` blocks on any frame after
+615. What would have made it vacuous is `ai off` not taking, so run104 runs the
+identical script with that one line deleted: **899 of 901 frames differ, first at
+frame 2**, 2 identical. The line changes the simulation from the second frame,
+which is what `issue_cheat_ai_toggle` travelling in the order stream looks like
+(`Game::action_cheat_ai_toggle@005930c0`,
+`CommandPackage::process_cheat_ai_toggle@00944d20`). Note that `ai off` does not
+clear a leader's own computer bit — who=1 still carries `leader_flags` bit 2 at
+frame 899 — so the two are independent, exactly as the `||` reads.
+
+### Two launches are one game, and so is a re-run at three times the detail
+
+`rngcmp.py` over the per-frame `game_random` word, the whole length:
+
+```
+run101 vs run102   901 frames in common, 0 differing, 901 identical
+run101 vs run103   901 frames in common, 0 differing, 901 identical
+run101 vs run105   901 frames in common, 0 differing, 901 identical
+```
+
+`samegame.py` over run101 and run102's dumps: **21 blocks in common, 0
+differing** — frame 1 and 880..899; each file's 22nd block is its `!quit` block,
+which the tool drops as the highest. The count is the claim, not the verdict:
+`samegame.py` exits 0 when nothing is in common at all, so the number is what
+says the comparison happened.
+
+**What would have falsified it**: any differing frame, or a common count below
+21 — and the count had to be re-derived rather than copied, because run99's
+overlap was 9 where run100's was 10 for the same reason.
+
+**run101 against run103 and run105 is `docs/DECISIONS.md` entry 41 §2 measured
+rather than assumed.** run103 dumps 295 frames where run101 dumps 20, and run105
+adds the whole `[Start Game]` set on top — 46 MB and 14 MB against run101's 2.5
+— and all three are the same game frame for frame. The logging detail is not in
+the simulation, which is what "regenerate rather than store" rests on: a window
+can be moved and re-taken at any detail without asking whether the run it
+describes is still the same run.
+
+### A late-age dump parses, and the first thing it says is the divergence
+
+`age who=0 8` lands `ages_get() 7` in `LEADERDATA` at detail 2 — the eighth and
+last age, zero-indexed — with `epochs_get() 0`, so **`age` moves the age alone
+and leaves all four epochs Ancient**; `library` is the lever that moves both, and
+a chapter that wants a genuinely late-age leader wants it.
+
+`cargo run -p rondata -- <install> --gamelog <run105> --diff 20` reads the whole
+thing: 52 units, 13 buildings, 4 leaders, 2 cities out of the start block, 24
+structural checks green, 296 frames, 3,600 world cells and 57,600 tile masks out
+of `WORLD`, then 20 frames stepped and **252 unit-frames compared** with every
+order list and path stack read. Nothing failed to parse.
+
+Two things it reports that item 364 needs and neither is a parse failure:
+
+- **A cheat-spawned unit is `unlinked`.** `unit 0/6`, `0/7`, `0/8` from frame
+  611 and `1/6`, `1/7`, `1/8` from 616 — six units the harness has no unit for,
+  because they appeared without a production order. That is what a staged spawn
+  is, and the golden record's interpreter (item 364) is what gives them one.
+- **The first order disagreement is the auto-engage itself**: `who 1 o 6, 7, 8:
+  first order disagreement at frame 616 — Kind { ours: 7, theirs: 10 }`. Kind 10
+  is the attack order the original gave them on the frame they were born; ours
+  is 7. The chapter found its own first divergence without being asked to.
+
+One structural check fails, and its premise rather than its subject is what is
+wrong: *"every starting citizen's derived GATHER target matches the one the
+original issued — no unit in the first logged frame holds a gather order, is the
+dump below `UNITS=3`?"* The dump is at `UNITS=3`; the first logged frame is 605,
+not 0. The check assumes a capture that opens on the citizens leaving the
+capital, which a windowed golden record never does. It needs to know it is
+looking at one — 364's, with the floors.
+
+### Regenerating any of them
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/g1 \
+    --map 14 --end-frame 900 --log-window 880 900 \
+    --detail end:UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=2,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 \
+    --cmd-file tools/gamelog/golden/chapter1.cmd
+```
+
+run103/run105 differ only in `--log-window 605 900` and, for run105, a `--detail
+start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1`.
+run104 is run103 with the `0 !ai off` line stripped from the command file.
+`viadriver.sh` is not optional: a launch from inside a session's own process
+tree gets no window and dies in 3.8 s.
