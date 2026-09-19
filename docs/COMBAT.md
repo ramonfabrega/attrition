@@ -3082,9 +3082,13 @@ from where, to where or for how long. Nothing is ours alone.
   sixteen launch frames, against run53's trace; and the word.
 - **Pinned rather than re-read**: `launch.rs`'s own unit test carries the
   dump's columns as literals, so it cannot notice the archive changing. The
-  diff test above can, and does. **What is still owed is the rest of the
+  diff test above can, and does. ~~**What is still owed is the rest of the
   record** — `AmmoData::log_data` prints twenty-five fields and this reads
-  five, where the rule is to diff the whole record.
+  five, where the rule is to diff the whole record.~~ **Paid by item 402,
+  §24** — and the field count is twenty-**seven**, not twenty-five: fifteen
+  are now compared by value on all 183 blocks, ten are pinned as the
+  original's, and `Node::dz` — recorded here and read by nothing — is
+  checked against run100's guy record in §24.2.
 - **Not established**: every other unit type. The table has one piece in it.
   The Slinger's three families are measured in run17 and are *not* in the
   table, because no capture ties them to an animation — run17's `GUY` detail
@@ -3217,3 +3221,188 @@ the alarm's damage threshold and its 300-frame cooldown (`docs/ARMY.md`
 writer, which is a read of one function rather than a run — a capture in
 which an AI leader's **unit** is hit and its armies' `target_o` goes to
 `-1` would falsify it.
+
+## 24. The `AMMO` record, whole (item 402, 2026-09-19)
+
+§22 read five numbers out of run109 and left twenty-two unread. This is the
+rest, on the same capture and with no new one: `AmmoData::log_data@00679c00`
+prints **twenty-seven** fields, item 396 compared five of them at each
+arrow's first block, and `rondata::diff::ammo` now compares the whole record
+on **all 183 blocks** of the window.
+
+`CLAUDE.md` says why this comes before the next residue row: *when the
+original dumps a record, diff the whole record*. What the widening actually
+bought is below — and the honest headline is that it bought no ticks. The
+Great Lakes word did not move, because the fourteen fields this crate holds
+were already the original's on every one of the 183 blocks. **A widening
+that passes first time is the outcome the rule is for**: the five numbers
+§22 checked are now fifteen, and nine first-blocks are now 183 blocks.
+
+**The count of fields is twenty-seven, not the twenty-five §22.4 and the
+queue both said.** `log_data`'s own unwind indices run `0x00`..`0x1a`, and
+every block on the disk carries twenty-seven `key value` lines. Nothing
+turned on the number; it is recorded because two documents had it wrong and
+the re-count cost a `grep`.
+
+### 24.1 The five levels
+
+`log_data` opens a detail level (`Log`'s vtable `+0x28`) before each group,
+and the whole record is gated on `this->flags & 3` — an ammo with neither
+low bit prints nothing at any level.
+
+| level | fields |
+|---|---|
+| 1 | `cur_time`, `total_time`, `who`, `o`, `whom`, `ox` |
+| 2 | `sx`, `sy`, `sz`, `ex`, `ey`, `ez`, `angle` |
+| 3 | `traj`, `v1z`, `dx`, `start_roll_angle`, `bank_dx`, `bank_dy`, and a nested `SplineData` block when `ammo_path` is set |
+| 4 | `flags`, `rolling`, `gpiece`, `graph_index`, `splash_area`, `index`, `num_guys` |
+| 5 | `accuracy` |
+
+`who`/`o` is the **shooter** and `whom`/`ox` the **target**, the same
+`(player, object)` pair every other record here is keyed by; run109's nine
+arrows are `1/29`, `1/28` and `1/27` shooting `0/2004`, the farm §20 and §22
+are about.
+
+### 24.2 Fifteen of the twenty-seven are compared by value
+
+`run109_says_every_ammo_field_this_crate_models_is_the_original_s` builds
+the sim from run53's initial state, runs it to 9479, and compares
+**fourteen** columns on every block: `who`, `o`, `whom`, `ox`, `sx`, `sy`,
+`ex`, `ey`, `angle`, `cur_time`, `total_time`, `splash_area`, `num_guys`,
+`accuracy`. All 183 agree, field for field.
+
+The fifteenth is `sz`, and it takes a second capture.
+`run100_and_run109_agree_on_where_the_bow_hand_is_off_the_ground` reads the
+shooter's guy record out of **run100** at each launch block — `GUYS=4`, so
+position including `z`, `cur_anim`, `cur_time` and `gpiece` — and asserts
+`guy.z + launch::node(gpiece, cur_anim, cur_time).dz == sz`. That is the
+only thing that reads `Node::dz`, which §22 recorded and nothing consumed,
+and it exercises the table's key as well as its value: the lookup item 396
+actually got wrong — the unit type 177 in place of the piece 127 — returns
+`None` here and the test names it. Three shooters at three heights (538,
+569, 585) and all six of the Longbowman's release events.
+
+**What the widening adds beyond the extra columns is the arrow's lifetime.**
+§22 compared nine first blocks; this compares every frame of every flight.
+`cur_time` runs 1 to `total_time − 1` and the record then stops, because
+`Ammo::inc_time@0067d380` lands and frees the shot on the frame its clock
+would reach `total_time` — a0 launches on 9425 with `total_time` 27, prints
+9426..9451, and lands on 9452 as the first half of the farm's
+twenty-six-sixteenth step that §20's test asserts from the other end.
+`crates/sim`'s `process_projectiles` is the same predicate and the counts
+match, 183 against 183.
+
+### 24.3 Ten are the engine's, and they are pinned rather than left silent
+
+`run109_s_ammo_record_pins_the_thirteen_fields_nothing_here_models` asserts
+the original's own values for every field `sim::combat::Projectile` has no
+room for, so a residue row says so when the archive changes instead of going
+uncompared. Eight are constant across all 183 blocks:
+
+| field | value | what it is |
+|---|---|---|
+| `ez` | 548 | the ground under the farm — the one target in the window |
+| `traj` | 1 | and so no block carries a nested `SplineData` |
+| `start_roll_angle` | 0 | the roll/bank triple, for a model that spins in flight |
+| `bank_dx`, `bank_dy` | 0.0 | ditto |
+| `flags` | 2 | `log_data`'s own gate is `flags & 3`; these carry bit 1 |
+| `rolling` | 0 | |
+| `gpiece` | 60157 | the **ammo's** graphic piece, against the Longbowman's own 127 |
+
+and two vary — `index` and `graph_index`, which §24.4 is about. `sz`, `v1z`
+and `dx` are in the same test because the struct has no room for them
+either, but all three are tied back to this crate's integers (§24.2, §24.5)
+and are not residue.
+
+### 24.4 The pool: `index`, `graph_index`, and the order a frame prints in
+
+`Objects::add_ammo@00658b10` scans its pool from slot 0 and **breaks at the
+first whose `flags & 3` is clear** — the lowest free slot, growing the array
+only when every slot is taken — then calls `Ammo::init@0067bbf0` with that
+slot as one argument and `objects+0x1f8` as the next, incrementing
+`+0x1f8` after. So the two indices are different animals: `index` is a
+**reused slot** and `graph_index` a **monotone count of every ammo the game
+has created**. `GameLog::dump_ammo@0092fe40` then walks the same pool
+`0..count` and skips the slots whose `flags & 3` is clear, which is why a
+frame's blocks ascend in `index` *with gaps* rather than running 0, 1, 2.
+
+Every part of that is measured, not taken on the reading. Replaying "take
+the lowest slot no live arrow holds" over the nine launches gives 0, 1, 2,
+3, 4, **0, 1, 2, 3** — four reuses, all four right. `graph_index` runs 0..8,
+which says these are the first nine arrows of the game and agrees with the
+trace's own `Ammo::init` draw count. No frame's blocks descend, and 9463
+carries five at once.
+
+**This crate does none of it, and that is a named residue with a
+consequence.** `Sim::projectiles` is a `Vec` that `process_projectiles`
+`swap_remove`s from, so after the first landing its order is neither launch
+order nor slot order: at 9453 it holds a4, a3, a2 where the original's pool
+reads a2, a3, a4. Nothing in run109's window turns on it — no two arrows
+land on the same frame after 9451, and landing is what draws — but a frame
+where two do would spend the original's `Random::get` draws in the other
+order. A slot pool in `crates/sim` is the successor, and it is a mechanism
+rather than a widening.
+
+### 24.5 The two floats, and both halves confirmed
+
+`Ammo::init` ends with the trajectory:
+
+```text
+v1z = ((ez - sz) - GRAV_Z * 0.5 * T * T) / T
+dx  = sqrtf(dx*dx + dy*dy) / T
+```
+
+with `GRAV_Z = -10.4875`, set as a literal in
+`GraphicPieces::init@008ffcc0`. (The decompiler drops `sqrtf`'s result into
+a discarded temporary — the FPU-stack artefact `tools/ghidra/README.md`
+warns about — so `field_0x58 = fVar22 / local_28` with `fVar22` still the
+*sum of squares* is that artefact, not the engine dividing an area.)
+
+Neither is a number this crate can hold: no float in the simulation, and a
+ballistic `z` is one of the few places the original genuinely needs one. So
+the assertion is the honest weaker one — that the original's printed floats
+*are* those formulae over the integers this crate does reproduce — computed
+in integers at a millionth, to within a float32 ulp at their own magnitude.
+Fitting `GRAV_Z` from the nine arrows alone gives −10.487500 ± 1e-6 across
+three different flight times, which is the constant the decompile names.
+
+It earns its place twice. It is the only check on `total_time` that does not
+go through the launch point, and it is what says the flight is a **plan**
+distance: `dx × T` is `hypot(ex − sx, ey − sy)` and not the 3-D length,
+which for a0 would be 2722 against 2714.
+
+### 24.6 Coverage
+
+- **Diff-backed** (all nine arrows, all 183 blocks, re-read from the archive
+  every run): `who`, `o`, `whom`, `ox`, `sx`, `sy`, `ex`, `ey`, `angle`,
+  `cur_time`, `total_time`, `splash_area`, `num_guys`, `accuracy` against
+  this crate's own state; `sz` against run100's guy record and §22's table;
+  `v1z` and `dx` derived from this crate's endpoints and flight time.
+- **Pinned, not modelled**: `ez`, `traj`, `start_roll_angle`, `bank_dx`,
+  `bank_dy`, `flags`, `rolling`, `gpiece`, `index`, `graph_index`. The last
+  two have a read-confirmed rule and a reproduced replay; the other eight
+  are constants of this window and nothing more.
+- **Read-only, no run behind it**: the nested `SplineData` branch of the
+  walk. All 183 blocks print `traj 1` and carry none, so the parser's
+  by-indentation nesting is written from `log_data` and exercised by a
+  hand-built body (`the_walk_survives_a_sibling_and_a_nested_spline`),
+  labelled synthetic in its own doc comment. A capture with a
+  spline-following ammo — a catapult stone, anything whose `ammo_path` is
+  set — is what would make it evidence.
+- **Not established**: whether `flags` bit 1 means anything beyond "print
+  me", what `rolling` and `start_roll_angle` drive, and whether
+  `graph_index` is ever reused — nine allocations from a cold pool cannot
+  see a wrap.
+- **Not established**: every other ammo type. This is one piece firing one
+  arrow at one building, and `traj 1` is the only trajectory the window
+  contains.
+
+**The parser has teeth, and they were tested by being made to fail.**
+Reverting the flush-before-open that item 396 landed fails all six of
+run109's tests; reverting the by-indentation nesting fails the synthetic
+one; a one-off perturbation of `angle` prints the first parting row and its
+neighbours; and dropping a block per frame trips the count assertion with
+"the arrows' *lifetimes* differ, not their numbers" before any value is
+compared. **Assert a count before you assert a value** is the whole of what
+kept item 396 honest, and it is asserted here at two levels: the number of
+blocks, and the number of fields in each.
