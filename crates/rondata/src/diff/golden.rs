@@ -976,3 +976,136 @@ fn refusing_the_borrowed_frame_stream_does_not_move_great_lakes_word() {
          the pinned number rests on another capture's per-frame data"
     );
 }
+
+/// **Chapter two's three squads, and the one that engages a frame nobody
+/// asked it to** — item 426, the frame the rules headline stands on.
+///
+/// The dump's own answer, read off run112: the original issues **no**
+/// attack order at 616 at all. Its first is at **621**, to the slingers
+/// `0/9`–`0/11` on their own birth frame, targeting `ox 8 whom 1`; the
+/// bowmen `0/6`–`0/8` and the hoplites `1/6`–`1/8` both take theirs at
+/// **635**. This crate matches two of those three exactly and gives the
+/// hoplite squad an attack order on its birth frame, 616 — which is the
+/// whole of the golden word: the spurious order puts the captain into
+/// `do_attack`, and `Unit::fight`'s one-in-five re-search spends the
+/// twenty-sixth draw against the original's twenty-five.
+///
+/// **Two named mechanisms were ruled out by measurement rather than by
+/// argument**, which is the item's product as much as the frame is:
+///
+/// - **The 140-unit seating error is not the cause.** Seated on the
+///   dump's own cells — `(2424, 7800)`, `(2568, 7800)`, `(2472, 7944)` —
+///   the squad still takes the order at 616.
+/// - **`find_melee_target`'s `0x40000` arm is not the cause.** who=1's
+///   hoplites do carry `unit_masks 262144` where who=0's carry 0, so the
+///   arm fires; disabling it leaves 616 unchanged, because the plain
+///   `unit_respond_range * 0xc0` floor already reaches 12 tiles and the
+///   bowmen are 1392 units away, 7.25.
+///
+/// That arithmetic also **exonerates the radius as such**: the original
+/// floors a melee searcher the same way (`find_melee_target@005ff9c0`,
+/// the `unit_respond_range * 0xc0` line below both arms), so had its
+/// hoplite captain searched on its birth frame it would have found the
+/// bowmen too. It did not search. The remaining suspect is `think`'s own
+/// auto-attack gate — `attack != 0 && (idle == 1 || (o + frame) & 0x1f ==
+/// 0)` — firing on a cheat-spawned captain's first frame where the
+/// original's does not, and that is a reading of `Unit::think@005f6e40`
+/// rather than anything another capture can answer. It is written here as
+/// a hypothesis, not a finding (`docs/DECISIONS.md` 42).
+///
+/// The slingers are the control that makes it a measurement: they engage
+/// on **their** birth frame in both, at 8.6 tiles, further than the 7.25
+/// the hoplites do not engage at. So it is not a distance threshold.
+#[test]
+fn chapter_two_s_first_attack_orders_are_the_dump_s() {
+    let Some(inst) = crate::testenv::install() else {
+        return;
+    };
+    let Some((dump, tracepath)) = golden("ch2") else {
+        eprintln!("skipping: no golden capture ch2 (see docs/RUNS.md run112)");
+        return;
+    };
+    let trace = crate::trace::Trace::read(std::path::Path::new(&tracepath))
+        .expect("a finalized golden trace")
+        .expect("missing RONT header");
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(&dump);
+    let log = Log::parse(&text);
+    let texts = sibling_texts();
+    let logs = siblings(&texts);
+    let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+    let refs: Vec<&Initial> = inits.iter().collect();
+    if refs.is_empty() {
+        eprintln!("skipping: no sibling dumps");
+        return;
+    }
+    let mut built = stand_up(&loaded, &log, &refs, &trace);
+    let mut script = chapter(2);
+    // `(who, o)` → the first frame this crate has an attack order on it.
+    let mut first: std::collections::BTreeMap<(u8, i16), i64> = std::collections::BTreeMap::new();
+    for _ in 0..640 {
+        let f = built.sim.frame;
+        script.stage(f, &mut built, &loaded);
+        for u in 0..built.sim.units.len() {
+            let un = &built.sim.units[u];
+            if !un.alive() || un.owner > 1 || !(6..=11).contains(&un.index) {
+                continue;
+            }
+            if un
+                .orders
+                .iter()
+                .any(|o| matches!(o.body, sim::orders::Body::Attack(_)))
+            {
+                first.entry((un.owner, un.index)).or_insert(f);
+            }
+        }
+        built.tick();
+    }
+    // The dump's own first-`ATTACKORDER` frame per unit, read from run112.
+    let theirs: [((u8, i16), i64); 9] = [
+        ((0, 6), 635),
+        ((0, 7), 635),
+        ((0, 8), 635),
+        ((0, 9), 621),
+        ((0, 10), 621),
+        ((0, 11), 621),
+        ((1, 6), 635),
+        ((1, 7), 635),
+        ((1, 8), 635),
+    ];
+    // Ours. **Pinned in no direction** — the hoplite rows are the residue
+    // at the word, and the two squads that agree are what say the other
+    // three are a finding rather than noise.
+    let ours: [((u8, i16), i64); 9] = [
+        ((0, 6), 635),
+        ((0, 7), 635),
+        ((0, 8), 635),
+        ((0, 9), 621),
+        ((0, 10), 621),
+        ((0, 11), 621),
+        ((1, 6), 616),
+        ((1, 7), 616),
+        ((1, 8), 616),
+    ];
+    let got: Vec<((u8, i16), i64)> = first.into_iter().collect();
+    assert_eq!(
+        got,
+        ours.to_vec(),
+        "chapter two's engagement timeline moved. The dump's own is \
+         {theirs:?}; re-pin `ours` and say so in docs/GOLDEN.md §6"
+    );
+    // **Six of the nine already agree with the original**, and that is the
+    // assertion that keeps the other three honest: a change that made the
+    // hoplites right by making the slingers wrong would fail here.
+    let agree = got.iter().zip(theirs).filter(|(a, b)| a.1 == b.1).count();
+    assert_eq!(
+        agree, 6,
+        "the two squads this crate gets right are no longer right; the \
+         hoplites' 616 is only a finding while they are"
+    );
+    // The original issues nothing at all on the frame the word parts.
+    assert!(
+        !theirs.iter().any(|(_, f)| *f == 616),
+        "the dump's own timeline now has an attack order at 616"
+    );
+}

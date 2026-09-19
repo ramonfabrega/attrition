@@ -269,6 +269,34 @@ production path — and it gives 616 a cause to test rather than a mechanism
 to guess: ours stand 6.5 tiles from the bowmen where the original's stand
 7.25.
 
+**What stands at 616, after item 426 widened it.** The original issues
+**no** attack order on that frame at all: its first is at **621**, to the
+slingers on their own birth frame targeting `ox 8 whom 1`, and the bowmen
+and the hoplites both take theirs at **635**. This crate matches two of
+those three squads exactly and gives the hoplite squad an order on its
+birth frame, 616 — which is the whole of the word, because the spurious
+order puts the captain into `do_attack` and `Unit::fight`'s one-in-five
+re-search spends the twenty-sixth draw.
+
+**Two named mechanisms were ruled out by measurement**, and that is the
+item's product as much as the frame is. The 140-unit seating above is
+**not** the cause: seated on the dump's own cells the squad still engages
+at 616. `find_melee_target`'s `0x40000` arm is **not** the cause either —
+who=1's hoplites do carry `unit_masks 262144` where who=0's carry 0, so it
+fires, but disabling it changes nothing, because the plain
+`unit_respond_range` floor already reaches twelve tiles and the bowmen are
+7.25 away. That arithmetic exonerates the radius as such: the original
+floors a melee searcher the same way, so had its captain searched it would
+have found them too. **It did not search.** And the slingers are the
+control that makes this a measurement rather than a story — they engage on
+their birth frame at **8.6** tiles, further than the 7.25 the hoplites do
+not engage at, so no distance threshold can separate the two.
+
+The remaining suspect is `think`'s own auto-attack gate firing on a
+cheat-spawned captain's first frame, and it is a reading rather than
+anything another capture can answer. It is written down as a hypothesis
+(`docs/DECISIONS.md` 42).
+
 **Two things the chapter cost that were not in the design.** The first take
 omitted `--detail start:` and reported a golden word of **0** that was the
 setup's number rather than the simulation's; `walk_chapter` now refuses a
