@@ -4224,3 +4224,110 @@ on two slots, this crate to **45,568** on one. The agreement at block 9375
 (two 9,999,999 batches of five, both sides) held as predicted, as did the
 Citizen agreeing outright, the goods agreeing entering the frame, and
 `scholars 5` throughout. `docs/AI.md` §48 is the measurement.
+
+## run112 — chapter two, the ranged line and the ammunition (2026-09-19, item 415)
+
+The golden record's second chapter (`docs/GOLDEN.md` §6), staged from
+`tools/gamelog/golden/chapter2.cmd`: `!ai off` at 0, the Gunpowder age for
+both players by `library` at 600 and 602, then a Bowmen squad at tile (4,40),
+a Hoplite squad at (12,40) eight tiles away, and a Slinger squad at (4,43).
+Chapter one's squads are born in contact and never shoot; this is the chapter
+that makes the shooting half of `Unit::fight@005fd4d0` run first.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch2 \
+    --map 14 --end-frame 900 --log-window 605 900 \
+    --detail end:UNITS=3,GUYS=2,AMMO=5,DEATHS=1,LEADERS=2 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 \
+    --cmd-file tools/gamelog/golden/chapter2.cmd
+```
+
+`success: true`, exit 0, 901 frames, `MAP_STYLE 14` and seed 12345 read back,
+five settings files restored, 144 s launch to exit, 34.7 MB of dump and 10 MB
+of trace.
+
+### The predictions, written into the `.cmd` file before the run
+
+A golden chapter takes no `captures.txt` stanza — run101–run105 have none,
+because this lane is `viadriver.sh golden_capture.sh` and not `runqueue.sh` —
+so the stanza's `check:` lines live in the chapter file's header. All four
+held, and they were checked before anything was read for interest:
+
+| check | predicted | observed |
+| --- | --- | --- |
+| every staged line runs | eight `INFO cmd`, each returning 1 | eight, each 1 — the six staged plus `37 !ffwd 1` and `900 !quit` |
+| the window is the window asked for | 605..899, no gap, plus the `!quit` block | **296 blocks**, 605..899 contiguous, 901 the quit block |
+| the spawns | three figures per `add`, at 611, 616, 621 | 52 → 55 → 58 → 61 units on exactly those frames |
+| the chapter's own falsifier | `AMMO` blocks after 610 | **373 blocks over 186 frames**, first at 645 |
+
+The falsifier is the row that matters: *no* `AMMO` block would have said the
+ranged arm was never entered and the bowmen had closed to contact like
+hoplites. `AMMO` is off in every capture on this disk but run17 (173 blocks),
+run109 (183) and run29 (1) — which is the grep that was run before the
+capture was staged, and which also established that nothing new had to be
+written to read the record: `crate::diff::ammo` already parses all
+twenty-seven fields from item 402's widening of run109.
+
+The other two falsifiers `docs/GOLDEN.md` §6 names did not fire either. No
+`ATTACKORDER` on the Bowmen at 611, before the hoplites exist. And the first
+arrows are the Bowmen `0/6` and `0/7` on `1/8` at 4.95 and 4.04 tiles —
+inside a ten-tile reach, not beyond it.
+
+### The run was taken twice, and the first take is why the guard exists
+
+The first attempt gave `--detail end:` and `--detail misc:` and **no
+`--detail start:`**, copying run101/run103's line rather than run105's. The
+capture succeeded — 901 frames, every command run, the same 373 `AMMO`
+blocks — and its `[Start Game]` block held **0 `LEADERDATA` and 0 `UNITDATA`
+where run105 holds 4 and 52**. `borrow_from_siblings` lends a capture the map
+it could not print for itself, so the harness stood *something* up, walked it,
+and reported a golden word of **0**: 80 draws at frame 0 against the trace's
+120, which is the setup's number and not the simulation's. It looks exactly
+like a real word. The same shape as `crate::diff::endpoint`'s run28 note
+(12 units of 71 in a region-less world) and as item 364's borrowed frame
+stream.
+
+`crate::diff::golden`'s `walk_chapter` now refuses a capture whose start
+block carries no leaders and no units, and the refusal prints run105's
+`start:` line as the remedy. Every chapter file's recipe carries that line
+now; chapter one's says it is not optional.
+
+A second, unintended benefit: the two launches are one game. Both takes give
+873 identical numbers between them — the same eight commands, the same 296
+blocks, the same 373 `AMMO` records over the same 186 frames beginning at
+645, the same unit counts on the same frames — which is `docs/DECISIONS.md`
+41 §2's "regenerate rather than store" measured again on a second script.
+
+### What the walk says: the word is 616
+
+`rngcmp.py` against g4: 901 frames in common, identical to **616** and
+differing from 617 — which is chapter two's script diverging from chapter
+one's at its first differing spawn, exactly where it should.
+
+Staged into the harness, all six lines run, nine units, nothing carried and
+not acted on. **The draw stream parts at 616** — ours 26 draws, theirs 25 —
+and the extra one is `Unit::fight+0x9b0`, the one-in-five re-search of
+`docs/COMBAT.md` §8.2 step 0, spent on the frame the hoplite squad appears.
+The sequence parts on the same frame and the value word at 617.
+
+**The value diff beside it, and it is not what the draw stream alone
+suggested.** The dump holds all six combatants stock still on their birth
+cells at 615–618 and the first arrow is not until 645, so nothing *moves*
+across the parting. But the second `add` does not land where the original
+lands it: `add hoplite who=1 12,40` asks for tile 12, internal 2400, the
+original seats the squad at `(2424, 7800)`, `(2568, 7800)`, `(2472, 7944)`
+— a clean `+24` on the captain — and this crate seats it at `(2284, …)`,
+`(2428, …)`, `(2332, …)`, **uniformly 140 units west**. The Bowmen, the
+chapter's first `add`, are exact.
+
+That is `find_nearby_spot`'s ring on **clear ground**, which chapter one
+could not test: chapter one's second `add` asks for a point one tile from
+the first squad, so item 379 fitted the ring where the near ground was
+already taken. Here the nearest other unit is seven tiles away and the
+asked-for spot is empty. It is pinned rather than fixed — the function is on
+every production path and item 379 said a change to it belongs in an item
+that re-runs those pins — and it gives 616 a cause to test rather than a
+mechanism to guess: ours stand 1252 units from the bowmen where the
+original's stand 1392, 6.5 tiles against 7.25, so a re-search predicate
+keyed on range is the first thing to look at.

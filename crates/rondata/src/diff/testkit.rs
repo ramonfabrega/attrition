@@ -1468,3 +1468,11 @@ pub(crate) const RUN58_QUEUE_TAIL: i64 = 5177;
 ///   was the same short leg, and `0/8` now matches the dump frame for
 ///   frame from 619 to 624.
 pub(crate) const GOLDEN_WORD_CHAPTER_ONE: i64 = 626;
+
+/// **Chapter two's golden word** — the ranged line, run112, item 415.
+/// `docs/GOLDEN.md` §6.
+///
+/// Its own constant rather than a composition with chapter one's: the
+/// handoff carries one `Golden:` line and how it reads with two chapters
+/// pinned is the steering pass's (parked 417).
+pub(crate) const GOLDEN_WORD_CHAPTER_TWO: i64 = 616;

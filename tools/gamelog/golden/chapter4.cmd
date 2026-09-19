@@ -13,6 +13,13 @@
 #                 --detail end:WORLD=6,BUILDS=7,CITIES=5,MISC=1
 #   the bleed     --log-window 595 1500 \
 #                 --detail end:UNITS=3,GUYS=2,DEATHS=1,LEADERS=2
+# and BOTH also want the `[Start Game]` set, which is not optional:
+#   --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1
+# Without it the dump's start block holds no leaders and no units, the
+# harness stands up nothing, and the walk reports a word that is the
+# setup's rather than the simulation's — run112's first attempt
+# (docs/RUNS.md run112). `chapter_two_holds_to_the_golden_word`'s guard
+# refuses such a capture by name now.
 # both with `--map 14 --end-frame 1500 --cmd-file <this file>` through
 # `tools/gamelog/viadriver.sh`. WORLD is ~3600 cells a frame; do not window
 # it wide.
