@@ -29,6 +29,65 @@ Tooling, guards and the queue's own rules. The Fable pass takes these
 two ledger regexes closed in the third pass, 2026-09-17; the fourth pass,
 2026-09-18, ruled six (`docs/audit/2026-09-18-fable-pass-4.md`).
 
+(375) **A staged run is indistinguishable from an unstaged one, and the
+borrow of a checksum trace is ungated.** Found by item 364, 2026-09-18,
+while measuring its own first golden word as an artefact.
+`borrow_from_siblings` gates `frame_seeds`/`frame_guys` on
+`init.checksums.last().seed`, but borrows the **setup checksum trace
+itself** ungated (`if init.checksums.is_empty()`), which makes that gate
+compare a borrowed word with itself. Harmless where the donors are the
+same game (run6/7/9); not harmless for the golden record, whose GAMEINFO
+is **byte-identical to run11's** — map 14, seed 12345, size 2, the same 34
+option fields — and whose setup word is the same `1003723497`, because the
+script's first line runs at frame 0's `do_frame` entry, *after*
+`Game::init`. **No gate on the map, the lobby or the setup word can tell a
+staged run from an unstaged one; only the caller knows.**
+
+364's runner does the right thing by hand — keeps the borrowed setup trace
+after asserting its last word equals the trace's frame-0 entry word
+(`0x3bd39ae9`), and refuses the per-frame records. The guard shape is to
+make that the only possible behaviour: a golden run declares itself, and
+the borrow refuses per-frame records from a run that did not. Written up
+because the next golden capture will hit it and a silently-passing
+comparison is what it looks like. Not urgent — see (376) for why.
+
+(376) **The sibling borrow is measured harmless on every scored path, and
+this is the record of it** (item 364, 2026-09-18, the negative the
+commander asked for before pinning). Five Great Lakes captures — run33,
+run53, run89, run97, run100 — take 14 `frame_seeds` and 14 `frame_guys`
+from run12/run13 at frames 0–3 and 94–103. East Indies takes **nothing**:
+setup word `793793043` never matches the donors' `1003723497`. run53 walked
+all 24,000 frames both ways gives **word parts at 9362, sequence at 9182,
+identical with the borrow and without**; run33's floor is unmoved between
+the two columns. The installs are no-ops — our sim already produces the
+original's word at each of those fourteen frames, all at frame ≤ 103 and
+9,079 below the word. Structurally, `Built::tick` pushes the frame's
+labels into `frame_sites` **before** installing anything, so an installed
+frame's draw comparison is still the sim's own work; the install can only
+re-anchor the next frame. **No pinned floor or word rests on installed
+sibling frame data.**
+
+(377) **An item's title names a mechanism, and the mechanism has been
+wrong three times running.** Measured across one day, 2026-09-18, on one
+frame: 358 left Great Lakes 9182 as "the market's three `use_market+0x1ed`
+draws"; 362 took that title and found `use_market` implements the
+decompile line for line, the cause being `MakeObject.num` — every civilian
+a batch of one; 362 then left the frame as "9182's step-6 purchases", and
+368 took THAT title and found the step-6 buys are downstream of
+`use_market`'s own `need` vector. Three bookings, three named mechanisms,
+none of them the cause. What was right every time was the **frame** and
+the **draw stream** — 9182 has held across all three, and in 362's case
+the draw stream itself named the real cause (three `make_stuff+0x221` and
+zero `+0x63d` at 8985, which no step-6 purchase can do).
+
+The cost is not wasted work — each item landed real fixes — but every one
+of those briefs told its worker to build on a reading that was already
+false, and only the standing "re-measure before diagnosing" rule stopped
+it. Candidate: a residue item is booked by its **frame and its draw
+delta**, with any named mechanism marked as the previous item's
+hypothesis rather than as the subject. The queue's own item-title
+convention is the pass's to change.
+
 (374) **The handoff's guards have an undocumented phrase contract, and
 finding it costs four gate-or-test round trips.** Measured 2026-09-18 by
 the commander rewriting the handoff after two landings.
