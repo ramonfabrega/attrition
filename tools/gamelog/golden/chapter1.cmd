@@ -26,6 +26,9 @@
 604 war
 
 # `add hoplite` places three squads, not one; the leading count is not a count.
-# On map 14 at seed 12345 these land ~2.5 tiles apart, near player 0's capital.
+# On map 14 at seed 12345 these land ~2.5 tiles apart. NOT near player 0's
+# capital, which the first draft of this line said: `4,40` is read by the
+# TILE arm of `parse_coord`, so it is world cell (1,10) — unowned BASELAND,
+# thirty cells from Napata at cell (4,40). docs/GOLDEN.md §4 and §5.
 610 add hoplite who=0 4,40
 615 add hoplite who=1 5,40
