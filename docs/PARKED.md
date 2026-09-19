@@ -648,6 +648,21 @@ at the end of 616 the ATTACKORDER is on `0/6` alone, `0/7`/`0/8` a frame
 later. Parks because 392's ring is what stands on the word's frame; this
 is one frame below it and will likely fall out of the same model.
 
+(400) **`0/8` plans its chase at 619 to the target's own point** where
+the dump has (1224,8280) at 618 — item 395's second successor, dump
+coordinates in `docs/COMBAT.md` §20.4. Below the golden word (624) rather
+than on it, so it parks; likely to fall out of 399's `Army::process`
+model, and worth re-measuring before it is taken.
+
+(401) **Two reading-only residues from 395**, `docs/COMBAT.md` §20.3 and
+§20.5: `find_melee_target@005ff9c0` carries its **own copy** of the
+non-captain mirror, unimplemented here, whose only reachable caller is
+`docs/GROUPS.md` §10's per-member call; and `think`'s shared epilogue at
+`5f761a` clears the "could not reach" bit, which this crate never clears
+at all. Neither is diff-backed — a run has reached neither — so they are
+exactly the kind of claim the coverage section must list as reading-only,
+and the kind a blind second reading is briefed with.
+
 ## Measured residues, none near a word
 
 (371) **`market_speculation`'s two passes fire nowhere below the word.**
