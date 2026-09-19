@@ -56,7 +56,12 @@ arithmetic was always certain and the convention it rested on — that a unit's
 rear. Medium for three virtual calls whose argument the decompiler dropped
 (noted inline).
 Medium for target selection (§12), read by a second reader and adjudicated.
-Everything open is listed at the end.
+**Per-section coverage** — which claims a diff against the original's own
+dump now backs and which still rest on a reading — is stated where the
+measurement was made: §16 for the formula's numbers, §18 for the engagement
+frame, and §19.4 for delivery's first wound and the launch point. A reading
+§19 has *contradicted* is struck where it stood (§9.5) rather than quietly
+replaced. Everything open is listed at the end.
 
 A blind second reading (`docs/audit/2026-08-20-combat.md`, two readers — one
 over the damage pipeline, one over the cadence and projectiles) doubly
@@ -815,11 +820,20 @@ passed on).
    takes at least a sixteenth.
 3. Combat only (`attrition == 0`): the owner's last-attacked frame (AI, on
    low difficulty); on the **first** damage to a building (`damage == 0`)
-   a roll of `Random::get(0, 0xffff) % 100 < 5` is taken, and if the building
-   is a fort (`BuildTypeData::is_fort`), `TEMPLE` or `TOWN` and the attacker
-   is siege a second draw sizes a flock of birds — cosmetic, but both
-   **consume game random** *(second reading corrected the type test)*; a missile fired by a non-`NUCLEARMISSILE` at someone not yet at war
-   declares war.
+   a roll of `Random::get(0, 0xffff) % 100 < 5` is taken at
+   **`+0xe1`**, and if the building is a fort (`BuildTypeData::is_fort`),
+   `TEMPLE` (`0x1b5`) or `TOWN` (`0x19f`) **and** the attacker exists
+   (`o >= 0`) and is siege, a second draw at **`+0x18b`** sizes a flock of
+   `roll % 2 + 3` birds — cosmetic, but both **consume game random**
+   *(second reading corrected the type test; item 394 measured the frame
+   and added the addresses)*; a missile fired by a non-`NUCLEARMISSILE` at
+   someone not yet at war declares war.
+   **"A building" is the vtable's**: slot `+0x1c` answers 1 on `Build` and
+   `Wall` and 0 on `Object`, `Unit` and `Animal` — a unit's first wound
+   draws nothing. And **the gate reads `damage`, not `damage_frac`**: a hit
+   worth less than a whole point moves only the fraction, leaves `damage`
+   at zero, and the *next* hit draws again. §19 is the frame where that
+   matters.
 4. **Accumulate**: `t = T.damage_frac + frac; whole += t / 16 (sign-fixed);
    T.damage_frac = t % 16 (sign-fixed); T.damage += whole`.
 5. A building under construction (not `WallData::is_active`), hit by
@@ -1142,10 +1156,10 @@ whatever its draw count says.
   piece and launches immediately otherwise. That fallback is a **seam,
   not a claim**: it is what keeps every sim built from tables alone
   meaningful.
-- **The launch point.** The original offsets the package's `x/y/z` by the
-  event node's own position (`GraphicPieces::get_position`, a float, and
-  a graphic one) before `add_ammo`; this crate launches from the unit's
-  position. It moves the flight time and nothing else on this capture.
+- ~~**The launch point.**~~ Open still, but no longer vague: **§19** names
+  the table it comes from, measures what it has to be worth on four shots,
+  and names the capture that closes it. It is the only thing between this
+  crate and Great Lakes 9451.
 - **`Guy::execute_events`' `uid` test.** This crate tests that the target
   is still active; the original also requires the stored `uid`. A target
   that died and had its slot reused inside one animation would part them.
@@ -1302,8 +1316,10 @@ does not run — §9.0); one or two
 `% 100` for a shot at an aircraft; two for the landing scatter (when `s >
 1`) — `Ammo::init+0xcd9` and `+0xd0b`, named in
 [`trace::SITES`](../crates/rondata/src/trace.rs) since item 389; at landing, two more for where a no-target shot punctures the ground;
-in `take_damage`, one `% 100` on the first wound of a fort, temple or town
-and a second for the flock's size when the attacker is siege; and, outside
+in `take_damage`, ~~one `% 100` on the first wound of a fort, temple or
+town~~ — **wrong; §19 measured it**: the `% 100` is *any* building's first
+wound, the fort test gates only the flock, and one frame can spend it
+twice; and, outside
 the shot, one per frame from `fight`'s retarget test (§8.2 step 0). Every
 one is `Random::get(game_random, 0, 0xffff)` and the order above is the
 order they are taken, so a sim that reproduces the sequence reproduces the
@@ -2467,3 +2483,166 @@ move and `do_attack` is not reached again until 650. This crate's
 `find_attack_pos` answers nothing here, falls back to the target's own point,
 loses the move inside the frame that ordered it, and rolls again on 618, 620
 and 621. That is §17's ring, not this section's mechanism.
+
+---
+
+## 19. The first wound, and where an arrow starts (item 394, 2026-09-19)
+
+Great Lakes 9451 is the frame the long capture's word sat on after item 389,
+and it is the first hit point lost in the whole 24,000-frame game. The
+original spends **seven** draws there and this crate spent five; the two
+missing were both `Object::take_damage@00652020+0xe1`, back to back, with the
+identical chain `< Object::do_damage+0x159e < Ammo::do_damage+0xc11`. Nothing
+in this document explained a site drawing twice in one call chain — §9.5 said
+the draw belonged to a fort, a temple or a town, and `0/2004` is a Farm.
+
+### 19.1 It is two arrows, and the fraction is why the gate re-opens
+
+The value diff answers it without a hypothesis. `track.py BUILDDATA
+damage,damage_frac --where who=0,o=2004 --changes` over run100:
+
+```text
+block 9340   damage 0   damage_frac 0
+block 9452   damage 1   damage_frac 10      +26 sixteenths
+block 9465   damage 2   damage_frac 7       +13
+block 9470   damage 3   damage_frac 4       +13
+block 9477   damage 4   damage_frac 1       +13
+block 9481   damage 4   damage_frac 14      +13
+```
+
+Every step is **thirteen sixteenths** and the first is **twenty-six**, which
+is two of them. So two arrows land on sim-frame 9451, and thirteen is one
+Longbowman figure's share: `ATTACK 15` against a Farm gives `get_damage` 5,
+and §7.1 step 5 divides it by `AMMO_PER_ATT 2` and `UBER_SIZE 3` —
+`5 × 0x100 / 2 / 3 = 213`, `213 >> 4 = 13`, `whole 0`, `frac 13`.
+
+**`whole 0` is the finding.** §7.2 step 4 accumulates `damage_frac + frac`
+and carries only at sixteen, so the first arrow leaves `damage` at **0** and
+`damage_frac` at 13. Step 3's gate is `damage == 0` — the whole-hit count, not
+the fraction — so the second arrow, in the same frame, finds it still open and
+draws again. The first draw returns `60391 % 100 = 91` (no flock, and no fort
+test reached); the second returns `24102 % 100 = 2`, which passes, and then
+the fort/`TEMPLE`/`TOWN` test fails on a Farm, so no second draw at `+0x18b`.
+Both are `Random::get(game_random, 0, 0xffff)` and the trace's own seeds chain
+one to the next with nothing between.
+
+So the predicate §9.5 carried was wrong in the way readings usually are —
+the *order of the tests*, not the arithmetic. The roll is any building's, and
+`"a building"` is the vtable's: slot `+0x1c` is a folded `return 1` on
+`Build` and `Wall` and a folded `return 0` on `Object`, `Unit` and `Animal`
+(the map's COMDAT folding gives both thunks other classes' names —
+`Buffer::is_pending_load` and `Window::get_button` — and the six-byte bodies
+settle it).
+
+**Implemented** as `Sim::first_wound_draws` (`crates/sim/src/fight.rs`), under
+the site names `Object::take_damage+0xe1` and `+0x18b`, both now in
+`trace::SITES`. 9451 is **six** of the original's seven draws with it.
+
+**The negative is a trap, and it was run.** Adding `damage_frac == 0` to the
+gate halves the first wounds from two to one — and makes 9452 agree with the
+original **eight draws for eight**, where the correct gate spends nine.
+Past-the-word counts rise with it (9,722 → 9,764 frames draw for draw). That
+is `docs/QUEUE.md` item 89(c) in miniature: both streams are nobody's past
+the word, so a frame that starts agreeing there is not evidence. What *is*
+evidence is the original's own 9451, which spends the site twice, and only a
+gate that ignores the fraction can. Asserted in
+`run53_s_24000_frames_put_the_ceiling_where_run33_did`.
+
+### 19.2 The seventh draw is the second arrow, and it is a frame late
+
+The launches below the word are the original's own, `[9425, 9426, 9439,
+9444]`, and this crate takes all four on the right frames (item 389). The
+landings are not:
+
+| launch | shooter | anim | this crate's `total_time` | lands | the original |
+|---|---|---|---|---|---|
+| 9425 | `1/29` | `CHAR_ATTACK3` | 27 | 9451 | 9451 |
+| 9426 | `1/28` | `CHAR_ATTACK2` | 27 | 9452 | **9451** |
+| 9439 | `1/29` | `CHAR_ATTACK3` | 26 | 9464 | 9464 |
+| 9444 | `1/28` | `CHAR_ATTACK2` | 27 | 9470 | **9469** |
+
+`1/29` is right twice and `1/28` wrong twice. Everything that feeds
+`total_time` has been checked against the capture and agrees: both units stand
+on the original's own coordinates (`4680, 29928` and `4776, 30168`, the dump's
+own, and each unit has one figure at the unit's position); the scatter draws
+are the original's values (`38791 % 192 − 96 = −89` and so on, four for four);
+and the aim — the building's centre pulled `x_size × 0x30` back along
+`find_angle(T − launch)` — reproduces the landing points that make `1/29`'s
+two flights come out right. The arithmetic is the listing's, read at
+`0067d0a3`: `dx = ex − sx`, `dy = ey − sy`, `cvtdq2ps`, `sqrtf`, `divss` by
+`(float)(PROJ_SPEED × unit_move_speed)`, `cvttsd2si`. There is no rounding
+freedom in it.
+
+What is left is `sx, sy` — the ammo's own launch point, `AmmoData +0xc/+0x10`.
+`GraphicEvents::execute_game_events@008e48e0+0x40d` adds
+`GraphicPieces::get_position`'s vector to the **guy's** `x/y/z` immediately
+before `Objects::add_ammo`, and that vector is per **(piece, node, anim,
+starttime)**. `1/28` fires on `CHAR_ATTACK2` and `1/29` on `CHAR_ATTACK3`, so
+they get different ones — which is exactly the shape of a defect that is right
+for one archer and wrong for the other.
+
+**Two arms of the same function were ruled out rather than assumed.** The
+`CHAR_ATTACK2` arm of `Ammo::init` that shifts the *landing* point (`project`
+along the unit's facing by `(t/end − 0.3) × 6 × 192`, then `±0x30` at ninety
+degrees) is gated on `unit_flags & 0x400000`, and `unitrules.xml` gives
+Longbowmen `<FLAGS>lmjiy</FLAGS>` — no `w`, so the arm cannot run, and the two
+scatter draws the capture shows confirm it (that flag also zeroes `s`).
+
+### 19.3 What the offset has to be, and what would close it
+
+Bounds, from the four shots, as a reduction in the shooter-to-landing distance
+(`d = PROJ_SPEED 100 × unit_move_speed 1`, so a frame is 100 position units):
+
+| shooter | this crate's distances | the floor each must take | the offset's component along the shot |
+|---|---|---|---|
+| `1/29` | 2785.3, 2675.7 | 27, 26 | **0 … 75.7** |
+| `1/28` | 2776.6, 2714.1 | 26, 26 | **76.6 … 114.1** |
+
+No single scalar fits both, and no integer divisor fits either — which is the
+arithmetic statement that the difference is per-animation and lives in the
+launch point rather than in the formula.
+
+**This does not license a float.** `GraphicPieces::get_position` reads
+`GraphicPieces::positions`, an `Array<AttachPos>` of `{ushort time; char anim;
+char node; Vector<float> pos; Vector<float> vel}` indexed by `pos_start`/
+`pos_num` per graphic piece, and `GraphicPieces::init_position@00901820`
+**fills that array at load** by running the model's own animation at
+`starttime × 0x43` and reading the node out. The original is therefore already
+the second of `docs/DECISIONS.md` entry 16's two shapes — a table built once
+before the first frame — and the port's answer is the same table, pinned. The
+blocker is not the float rule; it is that building the table needs a `.bh3`
+skeleton reader and a bone transform, which is phase 4 work and does not exist
+here. `get_position` then rotates the entry by the guy's angle and scales by
+`guy_scale`, so the pinned entry is a model-space triple and the rotation is
+`movement`'s own integer sine table.
+
+**The capture that closes it without any of that** is one line of
+`gamelog.ini`: `AMMO=1` under `[End Frame]`, over `[9420, 9460)` on the Great
+Lakes seed. `AmmoData::log_data@00679c00` writes the record the PDB names —
+`sx, sy, sz, ex, ey, ez, cur_time, total_time, angle, gpiece, who, o, whom,
+ox, num_guys` — so one capture gives the launch point directly, the offset is
+`(sx − guy.x, sy − guy.y)` **measured** rather than derived, and five rows
+(the Longbowman's two `CHAR_ATTACK1`, two `CHAR_ATTACK2` and one
+`CHAR_ATTACK3` release events) pin the whole type. No dump on this disk has
+`AMMO` enabled — run53, run97 and run100 all write zero `AMMODATA` blocks —
+so this is a booking, not a grep. `tools/emu/callfn.py` is the other route and
+is the more expensive one: `get_position` reads the `GraphicPieces` singleton,
+which is an hour of synthesized state (`docs/EMULATOR.md`).
+
+### 19.4 What is diff-backed here, and what is not
+
+- **Diff-backed** (`run100_says_great_lakes_9451_is_two_arrows_on_one_farm`,
+  and `run53_s_24000_frames_put_the_ceiling_where_run33_did` for the stream):
+  that the first-wound roll is taken on a Farm — so on any building; that one
+  frame can take it twice; that the gate is `damage` and not `damage_frac`;
+  that the per-figure hit is thirteen sixteenths, which is §6's formula, §7.1
+  step 5's two divisions and §7.2 step 4's accumulator end to end; and that
+  the farm's damage record then tracks the original's, one landing behind.
+- **Reading only**: the `+0x18b` flock draw and its `% 2 + 3` — no capture on
+  this disk reaches a siege attacker's first wound on a fort, temple or town,
+  and `Objects::add_flock` has never executed in any traced game. The
+  `TEMPLE`/`TOWN` type constants (`0x1b5`, `0x19f`) are the listing's
+  immediates and are certain; what is untested is the whole arm firing.
+- **Reading only**: the war declaration below the flock, and the `param_7 < 0`
+  jump that skips it.
+- **Open, and bounded above**: the launch offset (§19.2, §19.3).

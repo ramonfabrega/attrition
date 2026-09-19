@@ -3484,6 +3484,179 @@ mod tests {
     /// `job_counter` are compared on **every** capture now
     /// (`crate::diff::compare`), so this test is the dated statement and
     /// the harness is the guard.
+    /// **Great Lakes 9451 is two arrows landing on one farm** (item 394,
+    /// 2026-09-19, `docs/COMBAT.md` §7.2 step 3 and §9.6).
+    ///
+    /// The headline frame, and the mechanism is the fraction. `0/2004` is
+    /// a Farm, 400 hit points, and the first hit point lost in the whole
+    /// game is lost here. run100's own record says how:
+    ///
+    /// ```text
+    /// block 9452   damage 0 -> 1   damage_frac 0 -> 10
+    /// block 9465   damage 1 -> 2   damage_frac 10 -> 7
+    /// block 9470   damage 2 -> 3   damage_frac 7 -> 4
+    /// ```
+    ///
+    /// Every later step is **thirteen sixteenths** — one Longbowman
+    /// figure's share of a damage of 5 (`5 × 0x100 / AMMO_PER_ATT 2 /
+    /// UBER_SIZE 3 = 213`, `213 >> 4 = 13`). The first step is **twenty-six**,
+    /// which is two of them, so two arrows land on sim-frame 9451. That
+    /// is what makes `Object::take_damage+0xe1` draw **twice** on one
+    /// frame: the gate is `damage == 0`, the whole-hit count, and the
+    /// first arrow moves only `damage_frac` — `0 + 13` carries nothing —
+    /// so the second arrow finds the gate still open.
+    ///
+    /// The negative for the gate itself lives beside the stream, in
+    /// `run53_s_24000_frames_put_the_ceiling_where_run33_did`: adding
+    /// `damage_frac == 0` to it halves the first wounds from two to one,
+    /// and — the trap — makes 9452 agree eight-for-eight. This test holds
+    /// the other half, the values.
+    ///
+    /// **What this crate does not yet have** is the second arrow on the
+    /// same frame: `1/28` fires on `CHAR_ATTACK2` and its shot's flight
+    /// time comes out 27 against the original's 26, because the original
+    /// launches from the release node's own world position and this crate
+    /// launches from the unit's (§9.6, the seam). So the totals agree one
+    /// frame late, and that lag is asserted here as it stands — when the
+    /// seam closes, this assertion is what fails and says so.
+    #[test]
+    fn run100_says_great_lakes_9451_is_two_arrows_on_one_farm() {
+        const FIRST: i64 = 9_440;
+        const LAST: i64 = 9_500;
+        const FARM: (i64, i64) = (0, 2004);
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(r100)) = (
+            dump("gamelog-run53-greatlakes-24k-trace.txt"),
+            dump("gamelog-run100-greatlakes-valuewindow2.txt"),
+        ) else {
+            eprintln!("skipping: no run53/run100 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        // The original's own record of the farm, block by block.
+        let mut ix = crate::capture::indexed::IndexedCapture::open(&r100).unwrap();
+        let mut theirs: Vec<(i64, i64, i64)> = Vec::new();
+        for f in FIRST..=LAST {
+            let Some(at) = ix.frames().iter().position(|x| x.number == f) else {
+                continue;
+            };
+            let body = ix.read_frame(at).unwrap();
+            let parsed = Log::parse(&body);
+            let Some(block) = parsed
+                .frames()
+                .into_iter()
+                .find(|(n, _)| *n == f)
+                .map(|(_, b)| b)
+            else {
+                continue;
+            };
+            let (_, builds, _) = crate::gamelog::records(block, false);
+            let Some(b) = builds.iter().find(|b| (b.who, b.o) == FARM) else {
+                continue;
+            };
+            theirs.push((
+                f,
+                b.damage.expect("BUILDDATA carries damage"),
+                b.damage_frac.expect("BUILDDATA carries damage_frac"),
+            ));
+        }
+        assert!(
+            theirs.len() >= 50,
+            "run100 does not cover [{FIRST}, {LAST}]: {} blocks",
+            theirs.len()
+        );
+        // In sixteenths, and the per-block steps.
+        let sixteenths = |d: i64, f: i64| d * 16 + f;
+        let steps: Vec<(i64, i64)> = theirs
+            .windows(2)
+            .filter_map(|w| {
+                let d = sixteenths(w[1].1, w[1].2) - sixteenths(w[0].1, w[0].2);
+                (d != 0).then_some((w[1].0, d))
+            })
+            .collect();
+        eprintln!("  run100 {FARM:?}: {} steps, {steps:?}", steps.len());
+        assert_eq!(
+            steps.first().copied(),
+            Some((9_452, 26)),
+            "the first hit point in the game is lost in block 9452, and it \
+             is twenty-six sixteenths — two arrows on sim-frame 9451"
+        );
+        assert!(
+            steps[1..].iter().all(|&(_, d)| d == 13),
+            "every later step is one figure's thirteen sixteenths: {steps:?}"
+        );
+        // This crate, over the same frames. `built.tick()` leaves the state
+        // the dump numbers `f + 1`, the convention every window test here
+        // uses.
+        let loaded = crate::load::load(&inst).unwrap();
+        let texts = sibling_texts();
+        let text = crate::capture::read(&path);
+        let log = Log::parse(&text);
+        let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
+        let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+        let refs: Vec<&Initial> = inits.iter().collect();
+        let mut init = log.initial().unwrap();
+        borrow_from_siblings(&mut init, &refs);
+        if let Some(t) = trace("rontrace-run53.log") {
+            borrow_pasture(&mut init, &t);
+        }
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        let mut ours: Vec<(i64, i64, i64)> = Vec::new();
+        for f in 0..LAST {
+            built.tick();
+            if f + 1 < FIRST {
+                continue;
+            }
+            let b = built
+                .sim
+                .buildings
+                .iter()
+                .position(|b| i64::from(b.owner) == FARM.0 && i64::from(b.index) == FARM.1)
+                .expect("this crate has the farm");
+            let bd = &built.sim.buildings[b];
+            ours.push((f + 1, i64::from(bd.damage), i64::from(bd.damage_frac)));
+        }
+        let our_steps: Vec<(i64, i64)> = ours
+            .windows(2)
+            .filter_map(|w| {
+                let d = sixteenths(w[1].1, w[1].2) - sixteenths(w[0].1, w[0].2);
+                (d != 0).then_some((w[1].0, d))
+            })
+            .collect();
+        eprintln!(
+            "  ours   {FARM:?}: {} steps, {our_steps:?}",
+            our_steps.len()
+        );
+        // **Every hit this crate lands is the original's thirteen.** That
+        // is the damage formula, the `AMMO_PER_ATT`/`UBER_SIZE` pair of
+        // divisions and the sixteenths accumulator in one number, and it
+        // is the half that does not depend on the launch seam.
+        assert!(
+            our_steps.iter().all(|&(_, d)| d == 13),
+            "this crate's hits on the farm are not thirteen sixteenths \
+             apiece: {our_steps:?}"
+        );
+        // **The first two arrows, and the one-frame lag.** The original
+        // lands both on 9451; this crate lands the second on 9452,
+        // because `1/28`'s CHAR_ATTACK2 shot flies 27 frames here and 26
+        // there (§9.6). So block 9452 differs and block 9453 agrees.
+        let at = |v: &[(i64, i64, i64)], f: i64| {
+            v.iter().find(|x| x.0 == f).map(|x| (x.1, x.2)).unwrap()
+        };
+        assert_eq!(at(&theirs, 9_452), (1, 10), "the original's first wound");
+        assert_eq!(
+            at(&ours, 9_452),
+            (0, 13),
+            "this crate lands one arrow on 9451, not two — the launch seam"
+        );
+        assert_eq!(
+            at(&ours, 9_453),
+            at(&theirs, 9_453),
+            "one frame later the totals agree: two arrows, twenty-six \
+             sixteenths, whoever landed them when"
+        );
+        assert_eq!(at(&theirs, 9_453), (1, 10), "and the value is 1 and 10");
+    }
+
     #[test]
     fn run76_and_run79_date_the_tobacco_rare_on_the_tower_s_clock() {
         let Some(inst) = install() else { return };

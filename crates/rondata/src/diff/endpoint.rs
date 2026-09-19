@@ -697,11 +697,28 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // and nine more of the roster unlinked, all thirteen of them
         // consecutive (`1/68`–`1/80`). `build_diverged` and the cities are
         // unchanged. DECISIONS 36 asks for the number rather than a trade.
-        off: 43,
-        unlinked: 13,
+        //
+        // Then **43 → 58, 13 → 12, 9 → 10** on 2026-09-19, item 394 — the
+        // **first wound's roll** (`docs/COMBAT.md` §19), one
+        // `Random::get(0, 0xffff)` on the first combat damage to any
+        // building, taken twice on sim-frame 9451 because a Longbowman
+        // figure's thirteen sixteenths leave `damage` at zero. **This map's
+        // word does not move on it** — it goes from five of the original's
+        // seven draws at 9451 to six, and the seventh needs the launch
+        // offset §19.3 bounds — so the whole of this row's movement is a
+        // stream that shifts by one draw from 9451 and then runs 14,550
+        // frames on nobody's numbers. Fifteen positions further out, one
+        // fewer of the roster unlinked, one more building field-row apart.
+        // **This is the direction DECISIONS 36 exists to record rather
+        // than to trade away**: the draw is the original's, the listing
+        // says so at `0x6520fc`, and the original's own 9451 spends it
+        // twice. A row that moves the wrong way on a change the oracle
+        // requires is the number, not an argument against the change.
+        off: 58,
+        unlinked: 12,
         extra: 0,
         build_unlinked: 0,
-        build_diverged: 9,
+        build_diverged: 10,
         city_unlinked: 3,
         city_diverged: 0,
     },
@@ -1408,6 +1425,13 @@ mod tests {
         // telemetry — 14,550 frames past the word, on a change whose
         // whole effect upstream is *when an arrow exists* — and it is
         // still not a claim that the seating is right or wrong.
+        //
+        // **Item 394 moved it again, to `1/55` at `(−768, 9984)`** — the
+        // same vector, a different scholar, and the fifth index this line
+        // has carried. Item 342's instruction is re-measure rather than
+        // diagnose, and the re-measurement is all this is: 394's whole
+        // effect upstream is one `Random::get` on sim-frame 9451, so
+        // everything here is that draw's stream 14,550 frames later.
         let delta = (768, 9984);
         let carriers: Vec<(i64, i64)> = r
             .off
@@ -1417,7 +1441,7 @@ mod tests {
             .collect();
         assert_eq!(
             carriers,
-            vec![(1, 58)],
+            vec![(1, 55)],
             "the set of units one university from the original's own \
              coordinates moved — `1/2020 − 1/2019` exactly, which is what \
              item 338's residue looked like, what the 384/385 merge left \

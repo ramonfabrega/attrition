@@ -3590,6 +3590,39 @@ mod tests {
             ],
             "7930 opens with find_target's coin and two candidate scores"
         );
+        // **Great Lakes 9451 is two arrows on one farm** (item 394,
+        // `docs/COMBAT.md` §19). The original spends
+        // `Object::take_damage+0xe1` **twice** on this one frame, back to
+        // back, with the identical chain — which can only happen if the
+        // first-wound gate reads `damage` and ignores `damage_frac`, because
+        // a Longbowman figure's hit is thirteen sixteenths and the first of
+        // the two necessarily moved the fraction and nothing else.
+        //
+        // This crate lands the second arrow on 9452 rather than 9451 (§19.2,
+        // the launch seam), so the count is taken over the three frames
+        // rather than the one: **two first wounds**, whenever they land.
+        // Adding `damage_frac == 0` to the gate makes it one — and makes
+        // 9452 agree eight-for-eight with the original, which is exactly the
+        // trap item 89(c) names: a frame past the word looking better on a
+        // stream that is nobody's.
+        let wound = sim::fight::SITE_FIRST_WOUND;
+        assert_eq!(
+            trace.labels(9451).iter().filter(|l| *l == wound).count(),
+            2,
+            "the original spends the first-wound roll twice on 9451"
+        );
+        let ours_wounds: usize = built
+            .frame_sites
+            .iter()
+            .filter(|(f, _)| (9451..=9453).contains(f))
+            .map(|(_, s)| s.iter().filter(|l| *l == wound).count())
+            .sum();
+        assert_eq!(
+            ours_wounds, 2,
+            "two arrows worth thirteen sixteenths apiece both find the \
+             first-wound gate open, because it reads `damage` and the first \
+             of them leaves `damage` at zero"
+        );
         // **Great Lakes 8272, the game's first scholar** (item 338,
         // `docs/CITIES.md` §6.5.2). The frame is 38 draws on both sides —
         // the count never parted here — and the only entry that moved was
