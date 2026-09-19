@@ -2098,10 +2098,11 @@ the budget's `100` / `4` / `+11`. Its three least-confident claims — a
 flanking block at `602800`-`602a1a` — are all outside the ring.
 
 **Reading-only still**, and nothing here has executed in any traced game:
-- `Unit::find_melee_pos@006010b0` and the whole **unit-target** half of
-  `00601280` — the flanking chase and the `find_nearby_spot` fallback.
-  `crates/sim` answers `None` for a unit target and keeps its
-  straight-line approach.
+- ~~`Unit::find_melee_pos@006010b0` and~~ the rest of the **unit-target**
+  half of `00601280` — the flanking chase and the `find_nearby_spot`
+  fallback, which a *moving* unit target or a ranged asker takes;
+  `crates/sim` answers `None` for those. `find_melee_pos` itself is
+  diff-backed, §19.
 - The far arm of §17.3, which is unreachable for a building.
 - The `project`-away arm of a minimum-range asker inside its own dead
   zone: nothing modelled has a minimum range, so the stand-off is taken
@@ -2127,7 +2128,6 @@ Not established:
   therefore not the end of the frame's work. The retry roll itself, its
   two tails and their unequal gates are `docs/PATHFINDER.md` §21. Great
   Lakes' word parts at **8201**.
-
 
 ---
 
@@ -2332,12 +2332,121 @@ inside chapter one's 901 frames.
 
 **The word: 617 → 618.** The value diff moves with it, 618 → 619.
 
-**What stands at 618** is one draw, `0/6`'s second `Unit::fight+0x9b0`. The
-original's `0/6` spends 617 in §17's ring — `find_attack_pos` answers
-`(1080, 8280)`, `add_move_order` takes it, and the chase re-entry plans the
+~~**What stands at 618** is one draw, `0/6`'s second `Unit::fight+0x9b0`.~~
+**Closed by item 392, and it was not §17's ring.** The original's `0/6`
+spends 617 in `Unit::find_melee_pos` — §19, the arm a melee asker with a
+seated unit target takes *instead* of the ring — which answers `(1080,
+8280)`; `add_move_order` takes it and the chase re-entry plans the
 five-node path the dump prints at block 618 (`(1080,8280) ← (1032,8280) ←
-(792,8040) ← (792,7848) ← (840,7800)`) — so from 618 its current order is the
-move and `do_attack` is not reached again until 650. This crate's
-`find_attack_pos` answers nothing here, falls back to the target's own point,
-loses the move inside the frame that ordered it, and rolls again on 618, 620
-and 621. That is §17's ring, not this section's mechanism.
+(792,8040) ← (792,7848) ← (840,7800)`), so from 618 its current order is
+the move and `do_attack` is not reached again until 650. This crate
+answered `None` for every unit target, fell back to the target's own
+point, lost the move inside the frame that ordered it, and rolled again on
+618, 620 and 621. **The word: 618 → 619.**
+
+**What stands at 619** is `Guy::set_anim+0xf2f < Guy::move+0x166`, the
+deferred swing, which this crate pays on 621. The chase is now planned on
+the right frame and `0/6` walks — but to `(1224, 7704)` where the original
+walks to `(1080, 8280)`, so the turn takes a different number of frames.
+The *mechanism* is right: §19's test reproduces `(1080, 8280)` from the
+dump's own state. What is wrong is the state it is asked about — three of
+the ring's six rejections hang on `1/7`'s ordered destination, and this
+crate's `1/7` is ordered to `(1176, 7944)` because it searched for its own
+target (`0/6`) where the original's squad is handed the captain's
+(`0/7`). That is `docs/GROUPS.md` §13's open `Group::target_opportunity`,
+and it is the next item.
+
+
+---
+
+## 19. `Unit::find_melee_pos` — the arm that never sees the ring (item 392, 2026-09-19)
+
+**A melee asker with a unit target never walks §17.2's ring.** §17.3's
+second arm says so and the listing is plain: with `max_range == 0` the
+stand-off is `0x30`, and then, if the target `is_unit` (`vtable +0x18`)
+**and** is not moving (`vtable +0xd8`, `UnitData::is_moving`, the head
+order's own `Order::is_move`), `6017eb` calls
+`Unit::find_melee_pos@006010b0` and `6017f4` returns its answer. The whole
+call is that function; nothing below it runs.
+
+`find_melee_pos(this, o, who, p3, &x, &y, from.x, from.y, p8)` — `ret
+0x20`, and the call site fills `from` with **the asker's own position**
+(`6017c8`-`6017db`, `this->+0x10`/`+0x14` unencrypted). It is two steps:
+
+1. `Unit::find_open_slots@00600e30` fills a `SimpleArray<CoordData>`.
+2. The slot with the smallest `vector_dist(slot − from)` wins, ties to the
+   **earlier** in ring order (`6011f5`'s `cmp bestd, d` / `jle` keeps the
+   incumbent; `bestd` starts at `99999999` in the `param_1` slot).
+
+An **empty** array is `return 0` — and then `find_attack_pos` writes the
+target's own position into its out-parameters, bumps the *target's*
+`UnitData::full` (`+0xac`) by 5 capped at `0x1e`, and returns 0 as well,
+so every caller falls back to the target's point. `full` is not modelled
+and nothing in this crate reads it.
+
+**`find_open_slots` is an axis-aligned square ring, and it costs no draw.**
+That is why a melee chase is invisible in the draw stream and only the
+*dump* can measure it.
+
+- The centre is the target's quarter-tile, `div_3_table[pos >> 4]` each
+  way — the cell `× 0x30 + 0x18` grid §17.4 also snaps to.
+- The radius `r` is `asker.+0x248 + target.+0x248` plus **4**, or plus
+  **1** when the asker's `ObjectData::is(0x84, 0)` is false (`600eaa`,
+  `600ebc`; `600e94` devirtualises `is` to the type's own vtable `+0x60`
+  because `Unit::vftable +0xb8` *is* `ObjectData::is`). `0x84` is
+  `HOPLITES`, the heavy-infantry root, so the line stands a full tile
+  further out than everything else. `+0x248` is `BLOCK_RADIUS` before its
+  `× 48` — `Sim::coll_size`.
+- The step is `2 × asker.+0x248 + 1` quarter-tiles.
+- The walk starts at the **south-west** corner `(cx − r, cy + r)` and
+  takes `orthog_x@00add250` / `orthog_y@00add210` **indices 1..4** —
+  `(0, −1)`, `(1, 0)`, `(0, 1)`, `(−1, 0)` — north, east, south, west. A
+  coordinate that overshoots the band is clamped to `cx ± r` (or `cy ±
+  r`), the index advances, and **one step in the new direction is applied
+  before the next test** (`601030`-`601067`). The walk ends when the index
+  passes 4, so the starting corner is tested **twice** — first and last.
+- Each candidate is tested by four predicates in order: the map bounds
+  (`0 ≤ q < world.w × 16`), `UnitData::invalid_loc(tx, ty, 0, 0, 0, 0, 1,
+  ty)`, `Objects::find_collision` and `Objects::find_ordered_collision`,
+  the last two with the asker's own `o`/`who` so it does not block itself.
+  The `param_3` here is **0** where §17.4's ring passes 1, which is what
+  puts the tile's `0x4000` bit inside `invalid_loc` rather than beside it.
+
+**Chapter one's own numbers, and they are the whole confirmation.** `0/6`
+is ordered onto `1/6` at the end of 616 and asks on 617. `1/6` sits at
+`(1368, 7992)`, quarter-tile `(28, 166)`; both hoplites carry
+`BLOCK_RADIUS 1`, so `r = 6` and the step is 3, and the ring's seventeen
+candidates run `(22, 172)` → `(22, 160)` → `(34, 160)` → `(34, 172)` →
+`(22, 172)`. The dump's answer is the **first** one, `(1080, 8280)` —
+which is the *farthest* corner from the asker at `(888, 7800)`. Six
+nearer candidates beat it on `vector_dist`, and the original rejects
+every one of them on `find_ordered_collision` against three
+`orders_x`/`orders_y` the same block prints:
+
+| ordered destination | quarter-tile | rejects |
+| --- | --- | --- |
+| `0/7` seated, `(1032, 7800)` | `(21, 162)` | `(22, 160)`, `(22, 163)` |
+| `1/7` walking to `(1320, 7800)` | `(27, 162)` | `(25, 160)`, `(28, 160)` |
+| `1/8` walking to `(1176, 8088)` | `(24, 168)` | `(22, 166)`, `(22, 169)` |
+
+Two unit cells each way, which is the two `coll_size`s summed. That is an
+exact account of the frame: the six that would have won, and nothing else,
+are the six an ordered destination covers.
+`chapter_one_s_melee_chase_stands_where_the_golden_dump_puts_it` builds
+those six units at the dump's own positions and ordered points and gets
+`(1080, 8280)`; seat `1/7` and `1/8` on themselves instead and it answers
+`(1080, 7992)`.
+
+**What this is backed by.** The ring's geometry, the `+4` spread, the
+step, the walk order and the `vector_dist` minimum are all pinned by that
+one coordinate — no other radius, spread or start corner puts `(1080,
+8280)` first — and by a second, independent one: this crate's `1/8`, which
+targets `0/7` as the original's does, now answers the original's own
+`(1176, 8088)` in the live harness where it used to answer the target's
+point. The `orthog` tables are read straight out of the PE.
+
+**What it has not established.** The `+1` arm (a non-`HOPLITES` asker) has
+no observation: every melee asker in chapter one is a hoplite. `full`
+(`+0xac`) is written and never read here. And `find_melee_pos` is still
+not reached for a **moving** unit target, which is the rest of §17.6's
+unit-target half.

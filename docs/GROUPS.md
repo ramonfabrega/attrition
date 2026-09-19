@@ -1944,6 +1944,38 @@ Still open:
   `docs/COMBAT.md` §18 has the frame.
   *Capture:* already on disk — run101–run105, `UNITS=3` over 615–621.
 
+  **It now holds the golden word** (item 392, 2026-09-19). With
+  `Unit::find_melee_pos` landed (`docs/COMBAT.md` §19) the word is 619,
+  and what stands there is `0/6` chasing to `(1224, 7704)` where the
+  original chases to `(1080, 8280)`. The point is right for the state it
+  is given; the state is wrong, and it is one destination: the original's
+  `1/7` is ordered to `(1320, 7800)` and this crate's to `(1176, 7944)`,
+  because this crate's `1/7` searched and found `0/6` where the original's
+  squad carries the captain's `0/7`. Two of the six cells the original's
+  ring rejects hang on that one point.
+
+  **And what the tail actually is, from the listing** (`005f5da6`
+  onwards), because the entry above understated it: `think_attack` calls
+  `find_melee_target(this, max_dist, &who, 0, 1, 0)` and then, **only if
+  the find is a unit**, `if (this->group >= 0 && GroupData::member(group,
+  o, who, 1)) Group::target_opportunity(group, found_o, found_who, o, 1)`
+  — and returns 1. There is **no `add_attack_order` in this function at
+  all**. An *ungrouped* unit that finds a unit target here therefore takes
+  no order from `think_attack`; a building find falls through to the city
+  block below instead. This crate calls `add_attack_order` directly, which
+  is a second divergence in the same arm.
+
+  `Group::target_opportunity@007107d0` itself: a **15-frame cooldown** on
+  the group (`+0x38`, `frame − last > 0xe`), then over the member list
+  (`+0x8cc`, count `+0xc`) every member that is alive, on the map, a
+  **captain** (`o_up < 0`) and combat-role (`type +0x2c8 & 0x10000`) takes
+  `Unit::target_opportunity(member, o, who, 1)` — except that a member
+  whose action order is absent or not "moving" (`vtable +0x10`) and whose
+  `order_type` is `NONE`, `ATTACK_TO` or `GROUP_ATTACK_TO` runs its **own**
+  `find_melee_target` at `min(dist + 0xc0, unit_respond_range × 0x240)`
+  instead. `param_4 == 0` and the member being the asker's own captain is
+  a third arm, `Unit::target_opportunity` without the action test.
+
   ~~**And the group now moves a unit the original leaves seated**~~
   **(item 386) — it was not the group** (item 391, `docs/COMBAT.md` §18.2).
   This crate's `1/6` did drop its target at the end of 617 and take a

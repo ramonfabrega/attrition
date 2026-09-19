@@ -1319,11 +1319,24 @@ pub(crate) const RUN58_QUEUE_TAIL: i64 = 5177;
 ///   reached `Armies::emergency`, and the army walked `1/6` off the seat it
 ///   should have been swinging from (item 391, `docs/COMBAT.md` §18.2).
 ///
-/// What stands at **618** is one draw, and it is named: a second
-/// `Unit::fight+0x9b0`, `0/6`'s. The original's `0/6` spends 617 planning
-/// a five-node chase to `(1080, 8280)` — `Unit::find_attack_pos`'s ring —
-/// and walks it from 618, so `do_attack` is not its current order again
-/// until 650. This crate's `find_attack_pos` answers nothing, falls back to
-/// the target's own point, loses the move inside the frame that ordered it,
-/// and rolls again. `docs/COMBAT.md` §17 and §18.2.
-pub(crate) const GOLDEN_WORD_CHAPTER_ONE: i64 = 618;
+/// - **618** was that second `Unit::fight+0x9b0`, `0/6`'s, and it was not
+///   §17's ring at all: a melee asker with a **unit** target never reaches
+///   the ring, it takes `Unit::find_melee_pos@006010b0` and returns
+///   (item 392, `docs/COMBAT.md` §19). With the chase planned, `0/6`'s
+///   current order is the move from 618 and `do_attack` is not reached
+///   again until 650.
+///
+/// What stands at **619** is one draw, `Guy::set_anim+0xf2f <
+/// Guy::move+0x166` — the attack stand the original pays on 619 and this
+/// crate pays on 621. It is the same defect one step on: `0/6` walks to
+/// `(1224, 7704)` where the original walks to `(1080, 8280)`, so its turn
+/// takes a different number of frames and the deferred swing lands two
+/// frames late. The *point* is right — §19's test reproduces
+/// `(1080, 8280)` from the golden dump's own state — and what is wrong is
+/// the state the ring is asked about: the original's `1/7` is ordered to
+/// `(1320, 7800)` and this crate's to `(1176, 7944)`, because who=1's
+/// three each search for their own target where the original's squad is
+/// handed the captain's (`docs/GROUPS.md` §13,
+/// `Group::target_opportunity`). Three of the ring's rejections hang on
+/// that one destination.
+pub(crate) const GOLDEN_WORD_CHAPTER_ONE: i64 = 619;
