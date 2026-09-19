@@ -611,6 +611,98 @@ fn named_build(loaded: &Loaded, name: &str) -> Option<usize> {
 mod tests {
     use super::*;
 
+    /// **What each chapter of the golden record asks for and the interpreter
+    /// will not do**, one row per file under `tools/gamelog/golden/`
+    /// (`docs/GOLDEN.md`). A word lands here when [`parse`] refuses it outright
+    /// or when it parses into the bare diplomacy form, which prints the table
+    /// and changes nothing (`docs/INPUT.md` §11.6) — the two ways a staged line
+    /// can be carried and not acted on.
+    ///
+    /// The point of pinning it is that a new chapter cannot quietly spend a
+    /// capture on a verb the harness drops: adding one either leaves this table
+    /// alone or states the debt in the same commit.
+    const CHAPTER_DEBT: &[(&str, &[&str])] = &[
+        // The bare `war`: chapter one's squads engage because a Quick Battle
+        // already starts at war, not because of the line (item 364).
+        ("chapter1.cmd", &["war"]),
+        ("chapter2.cmd", &[]),
+        ("chapter3.cmd", &[]),
+        ("chapter4.cmd", &[]),
+        ("chapter5.cmd", &[]),
+        // `bird` is the one console command that issues an order
+        // (`docs/GOLDEN.md` §10); the interpreter does not model it.
+        ("chapter6.cmd", &["bird"]),
+        ("chapter7.cmd", &[]),
+        ("chapter8.cmd", &[]),
+    ];
+
+    /// The chapter directory as the tree has it, sorted.
+    fn chapters() -> Vec<(String, Script)> {
+        let dir = std::path::Path::new(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/../../tools/gamelog/golden"
+        ))
+        .to_path_buf();
+        let mut out: Vec<(String, Script)> = std::fs::read_dir(&dir)
+            .expect("tools/gamelog/golden/")
+            .map(|e| e.expect("entry").path())
+            .filter(|p| p.extension().is_some_and(|e| e == "cmd"))
+            .map(|p| {
+                let name = p.file_name().unwrap().to_str().unwrap().to_string();
+                (name, Script::read(&p).expect("a readable chapter"))
+            })
+            .collect();
+        out.sort_by(|a, b| a.0.cmp(&b.0));
+        out
+    }
+
+    /// **Every chapter is stageable, and what it asks for and does not get
+    /// is written down.** `docs/GOLDEN.md` §3: a chapter names its cheat
+    /// lines, the records the capture must dump, and what would falsify it
+    /// — and this is the half of that a test can hold. A line on the wrong
+    /// half of `run_cmd`'s two disjoint switches reaches a case that is not
+    /// there, so the halves are checked too.
+    #[test]
+    fn every_chapter_stages_what_it_says_it_stages() {
+        let chapters = chapters();
+        assert_eq!(
+            chapters.len(),
+            CHAPTER_DEBT.len(),
+            "tools/gamelog/golden/ holds {} chapter(s) and CHAPTER_DEBT names {}; \
+             a new chapter states its debt in the same commit",
+            chapters.len(),
+            CHAPTER_DEBT.len()
+        );
+        for ((name, script), (pinned_name, pinned)) in chapters.iter().zip(CHAPTER_DEBT) {
+            assert_eq!(name, pinned_name, "CHAPTER_DEBT is out of order");
+            assert!(!script.is_empty(), "{name} stages nothing");
+            let mut debt: Vec<String> = Vec::new();
+            for line in script.lines() {
+                let word = command_word(&line.text);
+                let console_only =
+                    matches!(word.as_str(), "ai" | "quit" | "go" | "break" | "restart");
+                assert_eq!(
+                    line.console, console_only,
+                    "{name}: `{}` is on the wrong half of run_cmd's two switches",
+                    line.text
+                );
+                match parse(&line.text) {
+                    Cheat::Unmapped(w) => debt.push(w),
+                    Cheat::Diplo { target: None, .. } => debt.push(word),
+                    _ => {}
+                }
+            }
+            debt.sort();
+            debt.dedup();
+            assert_eq!(
+                debt,
+                pinned.iter().map(|s| s.to_string()).collect::<Vec<_>>(),
+                "{name}: the verbs the interpreter will not act on moved; \
+                 re-pin CHAPTER_DEBT and say so in docs/GOLDEN.md"
+            );
+        }
+    }
+
     /// The script format, including the two rules a reader gets wrong:
     /// `#` is a comment *anywhere* on the line, and a frame below its
     /// predecessor's is clamped up rather than reordered
