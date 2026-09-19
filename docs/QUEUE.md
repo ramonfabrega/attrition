@@ -12,18 +12,19 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-18/19, two lanes all day, thirteen landings. **Great Lakes 9182 →
+*2026-09-18/19, two lanes all day, fourteen landings. **Great Lakes 9182 →
 9451 (+269), golden 617 → 619** — both words moved, repeatedly. Ten booked
 mechanisms were wrong; the frame was right every time.*
 
-- **An arrow is launched by the attack ANIMATION's event track**, not by
-  `Unit::fight` (389, `docs/COMBAT.md` §9.0) — a **data** coupling, not a
-  renderer one, and the document says so. `ms × 3 / 200` **truncated**,
-  measured not chosen: every product lands at remainder 198/199 of 200, so
-  truncation is 4/4 against run53 and rounding 0/4. 9415 → 9451. **394.**
-- **The met bit is set by the fog** (385) closed a chain six items long
-  and moved the word 9182 → 9415: `MAKE[0].val` → `MAKE[0].t` → `need`,
-  `active_wars` behind `treaties[i] & 1`.
+- **An arrow is launched by the attack ANIMATION's event track** (389,
+  §9.0) — a **data** coupling, not a renderer one; `ms × 3 / 200`
+  **truncated** is measured, 4/4 against run53 where rounding is 0/4.
+  **9451 is two arrows on one farm**: the first leaves `damage` 0, so the
+  second re-opens the first-wound gate — §9.5 was wrong (ANY building's)
+  and is struck. Six of seven draws; the seventh is a **bounded** launch
+  offset, the pinned-table shape and not a float licence. **396** measures
+  it. The met bit (385) got 9182 → 9415 first, `active_wars` behind
+  `treaties[i] & 1`.
 - **The golden word moves 617 → 619** (391, 392). The ARMY — never the
   group — walks a struck unit off its seat; §17's ring is never in the
   frame. The **listing gave back three things Ghidra lost**: the radius's
@@ -32,13 +33,12 @@ mechanisms were wrong; the frame was right every time.*
   rejects the six candidates nearer than the dump's own. **395.**
 - **The namesake has never fired in a scored capture** (382): zero
   non-exempt attrition outcomes over 24,000 frames — the Temple chapter is
-  the only route. **The held-out map answers 1 tick, 0 orders** (run106),
-  a fit to two trajectories: **the pass's number**. Six open, 46 parked; **Fable backlog: ten Loop items** (251, 335, 343, 356, 321, 313, 367, 374, 375, 377).
+  the only route. **The held-out map answers 1 tick, 0 orders** (run106), a fit to two trajectories: **the pass's number**. Six open, 46 parked; **Fable backlog: ten Loop items** (251, 335, 343, 356, 321, 313, 367, 374, 375, 377).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w9711 of 24,000 · GreatLakes w9451 of 24,000
 Golden: w619 of 901 · chapter one pinned · 395 next
-Endpoint 24001: EastIndies 64 off, 5 unlinked · GreatLakes 43 off, 13 unlinked
+Endpoint 24001: EastIndies 64 off, 5 unlinked · GreatLakes 57 off, 10 unlinked
 
 **Opener: 395 on the golden record's frame — the squad handed its
 captain's target — beside 394, in flight on the AI word's 9451.**
@@ -51,13 +51,13 @@ the AI, lower map first — Great Lakes. Take the first unstarted on either
 track unless a better order is obvious, and say so. Numbers are stable;
 the backlog is `docs/PARKED.md`, and an item returns only when a score names it.
 
-394. **9451 is the first arrow landing** (the AI headline's frame, where
-    389 just moved the word): five draws against seven, the original
-    spending two at `Object::take_damage@00652020+0xe1`. **The document
-    does not explain this frame** — `docs/COMBAT.md` §9.5's reading (a
-    fort/temple/town's first wound, a siege attacker's flock) covers
-    neither `0/2004` nor `1/29`. run100's `BUILDDATA 0/2004` is `damage 0`
-    through 9451 and `damage 1` at 9452: the game's first hit point lost.
+396. **`AMMO=1` over `[9420, 9460)`** (capture lane; the AI headline's
+    frame, and it closes the seventh draw without a `.bh3` reader).
+    `AmmoData::log_data` prints `sx, sy, total_time`, so the launch offset
+    is `(sx − guy.x, sy − guy.y)` **measured** — five rows pin the whole
+    Longbowman. **No dump on disk has AMMO enabled.** §20.3 bounds it from
+    four shots meanwhile (1/29: 0–75.7 along the shot; 1/28: 76.6–114.1).
+    Assert the block count against the window asked for (373).
 
 390. **A `LEADERS≥2` window anywhere in (7616, 8174]** (capture lane;
     takes-chain to the met bit): nothing on disk dumps a leader between
