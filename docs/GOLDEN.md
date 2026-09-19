@@ -108,6 +108,14 @@ chapter rather than a scene:
 2. **Its cheat lines**, with their frames, in `tools/gamelog/golden/`.
 3. **The records the capture must dump** — the `gamelog.ini` keys under
    `[End Frame]`, at the detail levels the record needs, and the window.
+   **The `[Start Game]` set is not one of a chapter's choices**: every
+   capture the harness walks needs run105's
+   `start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1`,
+   because that block is what the simulation is stood up from. Without it
+   the dump still parses, `borrow_from_siblings` still lends it a map, the
+   walk still runs — and the word it reports is the setup's rather than the
+   simulation's. run112's first take was that, and `walk_chapter` refuses
+   such a capture by name now.
 4. **What would falsify it.** A chapter that cannot fail is not a chapter. A
    staged scene always produces *a* dump; the question is whether the dump
    can disagree with the reading that staged it.
@@ -234,6 +242,41 @@ above ten, which would say the `RANGE` field is not the reach the fight
 tests. Or an `ATTACKORDER` on the Bowmen at frame 611, before the hoplites
 exist, which would say auto-engage is not choosing its target the way
 chapter one's melee squads do.
+
+**Run, 2026-09-19, run112 (item 415). None of the three fired, and the
+word is 616.** `docs/RUNS.md` run112 has the whole receipt; the four
+predictions written into the file's header before the run all held — eight
+`INFO cmd` records each returning 1, 296 window blocks over 605..899 with
+no gap, nine units born three at a time at 611, 616 and 621, and **373
+`AMMO` blocks over 186 frames** beginning at 645. The first arrows are the
+Bowmen `0/6` and `0/7` on `1/8` at 4.95 and 4.04 tiles, inside reach; no
+`ATTACKORDER` on the Bowmen at 611.
+
+The draw stream parts at **616**, ours 26 draws against the original's 25,
+the extra one `Unit::fight+0x9b0` — the one-in-five re-search — on the
+frame the hoplite squad appears. `GOLDEN_WORD_CHAPTER_TWO` pins it.
+
+**And the value diff found what the draw stream did not.** Nothing moves
+across the parting — the dump holds all six combatants on their birth cells
+at 615–618 — but `add hoplite who=1 12,40` asks for internal 2400 and the
+original seats the squad at 2424, 2568, 2472 where this crate seats it at
+2284, 2428, 2332: **uniformly 140 units west**, with the chapter's first
+`add` exact. That is `find_nearby_spot`'s ring on **clear ground**, which
+chapter one cannot test, because its second `add` asks for a point one tile
+from the first squad and item 379 fitted the ring where the near ground was
+already taken. It is pinned, not fixed — the function is on every
+production path — and it gives 616 a cause to test rather than a mechanism
+to guess: ours stand 6.5 tiles from the bowmen where the original's stand
+7.25.
+
+**Two things the chapter cost that were not in the design.** The first take
+omitted `--detail start:` and reported a golden word of **0** that was the
+setup's number rather than the simulation's; `walk_chapter` now refuses a
+capture whose start block carries no leaders and no units, and §3 below says
+the set is not optional. And a relative `--cmd-file` could not work at all,
+because `golden_capture.sh` cds into `tools/explore` before exec'ing the
+runner — fixed in the script rather than in the recipe, so the recipe stays
+the one a reader would type.
 
 ## 7. Chapter three — the mounted and siege lines
 
@@ -501,7 +544,7 @@ Reserved for this design: **run112–run119**.
 
 | run | chapter | window | why this order |
 |---|---|---|---|
-| 112 | two, the ranged line | `[605, 900)` | the cheapest chapter that adds a record the tree has never dumped (`AMMO`) |
+| 112 | two, the ranged line | `[605, 900)` | **run 2026-09-19, word 616**; the cheapest chapter that adds a record the tree has never dumped (`AMMO`) |
 | 113 | five, the water | `[605, 900)` | the likeliest to fail, 24 s to find out, and it gates any work on a Dock |
 | 114 | four, the border | `[295, 345)` | the namesake; `WORLD=6` narrow |
 | 115 | four, the bleed | `[595, 1500)` | the same script, a second window |

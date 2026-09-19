@@ -12,6 +12,7 @@
 #       --cmd-file tools/gamelog/golden/chapter8.cmd \
 #       --log-window 605 1200 \
 #       --detail end:UNITS=3,GUYS=2,AMMO=5,DEATHS=1,LEADERS=5 \
+#       --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
 #       --detail misc:COMMANDMANAGER=1
 # through `tools/gamelog/viadriver.sh`, which is what gives Wine a window.
 # LEADERS=5 rather than 2: the diplomacy row is what this chapter reads.

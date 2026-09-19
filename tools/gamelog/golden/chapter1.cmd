@@ -4,7 +4,12 @@
 # in chapters, driven from this file for the spawns and the cheats. Staged with
 #   tools/explore/golden_capture.sh OUT --map 14 --end-frame 900 \
 #       --cmd-file tools/gamelog/golden/chapter1.cmd \
-#       --log-window LO HI --detail end:...
+#       --log-window LO HI --detail end:... \
+#       --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1
+# The `start:` set is NOT optional: without it the dump's start block holds
+# no leaders and no units and the harness has nothing to stand up (run112's
+# first attempt, docs/RUNS.md). g4/run105 is the take that carries it, and
+# it is the one `crate::diff::golden` reads.
 # through `tools/gamelog/viadriver.sh`, which is what gives Wine a window.
 #
 # The channel's rules this file obeys (docs/ORACLE.md, "The cheat channel"):

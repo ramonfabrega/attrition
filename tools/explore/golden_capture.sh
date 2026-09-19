@@ -22,5 +22,25 @@ OUT=$1; shift
 echo "install: $INSTALL"
 echo "profile: $PROFILE"
 echo "output:  $OUT"
+# **A relative `--cmd-file` is resolved against the repo root, not against
+# `tools/explore`.** This script cds into the runner's directory before
+# exec'ing it, so the recipe every golden run is written with —
+# `--cmd-file tools/gamelog/golden/chapterN.cmd`, as `docs/RUNS.md`
+# run101-run105 has it — reached `tools/explore/tools/gamelog/...` and the
+# runner refused before the game was launched (run112's first attempt).
+# Rewriting it here keeps the recipe the one a reader would type.
+args=()
+for a in "$@"; do
+  case "$prev" in
+    --cmd-file)
+      case "$a" in
+        /*) ;;
+        *) [ -f "$W/$a" ] && a="$W/$a" ;;
+      esac
+      ;;
+  esac
+  args+=("$a")
+  prev=$a
+done
 cd "$W/tools/explore"
-exec python3 unattended_capture.py "$INSTALL" "$OUT" "$PROFILE" "$@"
+exec python3 unattended_capture.py "$INSTALL" "$OUT" "$PROFILE" "${args[@]}"

@@ -17,6 +17,7 @@
 #       --cmd-file tools/gamelog/golden/chapter7.cmd \
 #       --log-window 605 1200 \
 #       --detail end:UNITS=3,GUYS=2,BUILDS=7,CITIES=5,GOODS=3,LEADERS=2 \
+#       --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
 #       --detail misc:COMMANDMANAGER=1
 # through `tools/gamelog/viadriver.sh`, which is what gives Wine a window.
 #

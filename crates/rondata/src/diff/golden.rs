@@ -68,13 +68,153 @@ fn siblings(texts: &[String]) -> Vec<Log<'_>> {
     texts.iter().map(|t| Log::parse(t)).collect()
 }
 
-/// The script chapter one is staged from, read from the tree.
-fn chapter_one() -> Script {
-    let path = concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/../../tools/gamelog/golden/chapter1.cmd"
+/// A chapter's script, read from the tree by number.
+fn chapter(n: u32) -> Script {
+    let path = format!(
+        "{}/../../tools/gamelog/golden/chapter{n}.cmd",
+        env!("CARGO_MANIFEST_DIR")
     );
-    Script::read(std::path::Path::new(path)).expect("tools/gamelog/golden/chapter1.cmd")
+    Script::read(std::path::Path::new(&path))
+        .unwrap_or_else(|e| panic!("tools/gamelog/golden/chapter{n}.cmd: {e}"))
+}
+
+/// What one chapter's walk measured: the three frames a chapter is scored
+/// on, and the staging that produced them.
+///
+/// **The word is the draw stream's count**, `sequence` the first frame the
+/// labels part in order, and `value` `game_random`'s own word at a frame's
+/// entry — reported together because a draw stream can agree on a wrong
+/// destination for a long time and only a value comparison tells the two
+/// apart (`CLAUDE.md`, the working agreement).
+struct Walk {
+    word: i64,
+    sequence: i64,
+    value: Option<i64>,
+}
+
+/// **Stage a chapter into the harness and walk it against its own trace.**
+///
+/// One body for every chapter: chapter one had it inline, and chapter two
+/// (item 415) is the reason it is a function. `run` is the directory under
+/// `$RON_GOLDEN_DIR`, `n` the chapter number, and `staged` the number of
+/// lines the `.cmd` file itself carries — asserted, because the capture
+/// adds `!ffwd` and `!quit` of its own and a miscount there is a script
+/// nobody staged.
+fn walk_chapter(run: &str, n: u32, staged: usize, length: i64) -> Option<Walk> {
+    let inst = crate::testenv::install()?;
+    let Some((dump, tracepath)) = golden(run) else {
+        eprintln!("skipping: no golden capture {run} (see docs/RUNS.md)");
+        return None;
+    };
+    let trace = crate::trace::Trace::read(std::path::Path::new(&tracepath))
+        .expect("a finalized golden trace")
+        .expect("missing RONT header");
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(&dump);
+    let log = Log::parse(&text);
+    let texts = sibling_texts();
+    let logs = siblings(&texts);
+    let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+    let refs: Vec<&Initial> = inits.iter().collect();
+    if refs.is_empty() {
+        eprintln!("skipping: no sibling dumps");
+        return None;
+    }
+    // **A chapter captured without its `[Start Game]` set is not a
+    // measurement** (item 415). `borrow_from_siblings` lends a capture the
+    // map it could not print, so a dump whose start block is only the
+    // world's seventeen scalars still stands *something* up — a simulation
+    // with no leaders and no units, which walks and scores and reports a
+    // word of 0 that looks exactly like a real one. run112's first attempt
+    // was that: `end:` and `misc:` given, `start:` forgotten, 0 LEADERDATA
+    // and 0 UNITDATA where run105 has 4 and 52, and the harness spent 80
+    // draws at frame 0 against the trace's 120. The same shape as the
+    // endpoint module's run28 note, and as item 364's borrowed frame
+    // stream: a number that is the setup's, not the simulation's.
+    let own = log.initial().expect("a start block");
+    assert!(
+        !own.leaders.is_empty() && !own.units.is_empty(),
+        "golden capture {run} has {} leader(s) and {} unit(s) in its \
+         `[Start Game]` block: the capture was taken without a `--detail \
+         start:…` line and there is nothing to stand up. Re-take it with \
+         run105's set — `--detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,\
+         UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1`",
+        own.leaders.len(),
+        own.units.len()
+    );
+    let mut built = stand_up(&loaded, &log, &refs, &trace);
+    built.sim.trace_phases = true;
+    let mut script = chapter(n);
+    assert_eq!(
+        script.lines().len(),
+        staged,
+        "chapter {n} is {staged} staged lines (tools/gamelog/golden/chapter{n}.cmd)"
+    );
+    let last = trace.frames.last().map_or(0, |(f, _)| *f);
+    assert!(
+        last >= length,
+        "the golden trace is {last} frames; chapter {n} is {}",
+        length + 1
+    );
+    let mut applied = crate::golden::Applied::default();
+    let mut words: Vec<(i64, u32)> = Vec::new();
+    for _ in 0..last {
+        words.push((built.sim.frame, built.sim.rng.seed));
+        let did = script.stage(built.sim.frame, &mut built, &loaded);
+        applied.merge(&did);
+        built.tick();
+    }
+    eprintln!(
+        "chapter {n} staged: {} line(s) ran, {} unit(s), {} building(s); \
+         {} carried and not acted on",
+        applied.ran,
+        applied.units,
+        applied.buildings,
+        applied.skipped_total()
+    );
+    for ((word, why), k) in &applied.skipped {
+        eprintln!("  {k:5} {word}: {why}");
+    }
+    let word = built
+        .frame_sites
+        .iter()
+        .find(|(f, ours)| ours.len() != trace.labels(*f).len())
+        .map(|(f, _)| *f)
+        .unwrap_or(last);
+    let sequence = built
+        .frame_sites
+        .iter()
+        .find(|(f, ours)| *ours != trace.labels(*f))
+        .map(|(f, _)| *f)
+        .unwrap_or(last);
+    let value = trace
+        .frames
+        .iter()
+        .find(|(f, theirs)| {
+            words
+                .iter()
+                .find(|(k, _)| k == f)
+                .is_some_and(|(_, ours)| ours != theirs)
+        })
+        .map(|(f, _)| *f);
+    eprintln!(
+        "golden chapter {n}: word parts at {word}, sequence at {sequence}, values at {value:?}"
+    );
+    for f in [word, sequence] {
+        let Some((_, ours)) = built.frame_sites.iter().find(|(k, _)| *k == f) else {
+            continue;
+        };
+        let theirs = trace.labels(f);
+        eprintln!("  frame {f}: ours {} theirs {}", ours.len(), theirs.len());
+        if let Some((_, shown)) = first_parting(ours, &theirs) {
+            eprintln!("{shown}");
+        }
+    }
+    Some(Walk {
+        word,
+        sequence,
+        value,
+    })
 }
 
 /// **The setup is shared, and this is what says so.** The golden capture
@@ -131,19 +271,109 @@ fn the_golden_record_s_setup_is_run11_s() {
     );
 }
 
-/// **Chapter one, pinned.** The script staged into the harness and the whole
-/// 900 frames walked against the golden run's own trace: the frame the draw
-/// stream parts is the golden word, and the handoff's `Golden:` line states
-/// it.
+/// **Chapter one, pinned.** The script staged into the harness and the
+/// whole 900 frames walked against the golden run's own trace: the frame
+/// the draw stream parts is the golden word, and the handoff's `Golden:`
+/// line states it.
 ///
-/// `GOLDEN_WORD_CHAPTER_ONE` carries the history.
+/// `GOLDEN_WORD_CHAPTER_ONE` carries the history. Six staged lines in the
+/// file; the `rontrace.cmd` the capture writes is eight, because
+/// `golden_capture.sh` adds `37 !ffwd 1` and `900 !quit` of its own, which
+/// change nothing the simulation models (`docs/RUNS.md` run101–run105).
 #[test]
 fn chapter_one_holds_to_the_golden_word() {
+    let Some(w) = walk_chapter("g4", 1, 6, 900) else {
+        return;
+    };
+    assert!(
+        w.word >= GOLDEN_WORD_CHAPTER_ONE,
+        "chapter one's golden word fell to {} from {GOLDEN_WORD_CHAPTER_ONE}",
+        w.word
+    );
+    assert_eq!(
+        w.word, GOLDEN_WORD_CHAPTER_ONE,
+        "chapter one's golden word moved; re-pin it here and on the \
+         handoff's `Golden:` line together"
+    );
+}
+
+/// **Chapter two, pinned** — the ranged line and the ammunition
+/// (`docs/GOLDEN.md` §6, item 415, run112).
+///
+/// **Its own constant, and not a composition.** `docs/DECISIONS.md` 41 §1
+/// gives the rules track one `Golden:` line, and how that line reads once
+/// a second chapter pins is the steering pass's (parked 417): until then
+/// the handoff carries chapter one's word and every further chapter pins
+/// here beside it. The commander's ruling is lowest-chapter-first, which
+/// matches the AI track's lower-map-first rule.
+///
+/// **What the capture established before this walk ever ran**, each of
+/// them a prediction written into `chapter2.cmd`'s header first so that
+/// the run could fail (`docs/RUNS.md`, run112): eight `INFO cmd` records
+/// every one returning 1; 296 window blocks, 605..899 with no gap and the
+/// `!quit` block at 901; nine units born three at a time at 611, 616 and
+/// 621; and **373 `AMMO` blocks over 186 frames**, which is the falsifier
+/// the chapter exists for — no arrow at all would have said the ranged arm
+/// was never entered.
+///
+/// `GOLDEN_WORD_CHAPTER_TWO` carries what stands at the word.
+#[test]
+fn chapter_two_holds_to_the_golden_word() {
+    let Some(w) = walk_chapter("ch2", 2, 6, 900) else {
+        return;
+    };
+    assert!(
+        w.word >= GOLDEN_WORD_CHAPTER_TWO,
+        "chapter two's golden word fell to {} from {GOLDEN_WORD_CHAPTER_TWO}",
+        w.word
+    );
+    assert_eq!(
+        w.word, GOLDEN_WORD_CHAPTER_TWO,
+        "chapter two's golden word moved; re-pin it here and say so in \
+         docs/GOLDEN.md §6"
+    );
+    // The value diff beside the draw stream, printed rather than pinned
+    // until it is the thing an item is taken on.
+    eprintln!("chapter two: sequence {}, values {:?}", w.sequence, w.value);
+}
+
+/// **The value diff beside chapter two's word, and it is not what the
+/// draw stream alone suggested** (`CLAUDE.md`: a word that moved lands
+/// with the value diff beside it — because a draw stream can agree on a
+/// wrong destination for a long time, and here it disagreed on a right
+/// one).
+///
+/// The dump holds all six combatants stock still on their birth cells at
+/// 615, 616, 617 and 618; the first arrow is not until 645. So nothing
+/// *moves* across the frame the streams part. But the second `add` does
+/// not land where the original lands it: **`add hoplite who=1 12,40` asks
+/// for tile 12, internal 2400, the original seats the squad at 2424,
+/// 2568, 2472 — a clean `+24` on the captain — and this crate seats it at
+/// 2284, 2428, 2332, uniformly 140 units west.** The bowmen, the first
+/// `add` of the chapter, are exact.
+///
+/// That is `Objects::init_unit`'s `find_nearby_spot` ring on **clear
+/// ground**, which chapter one could not test: chapter one's second `add`
+/// asks for a point one tile from the first squad, so item 379 fitted the
+/// ring where the near ground was already taken (`docs/ANIM.md` §6.3,
+/// `docs/INPUT.md` §11.5). Here the nearest other unit is seven tiles
+/// away, the asked-for spot is empty, and the original simply takes it
+/// while this crate walks. It is pinned rather than fixed: the function
+/// is on every production path and item 379 said so — a change to it
+/// belongs in an item that re-runs those pins.
+///
+/// It also gives the word at 616 a cause to test rather than a mechanism
+/// to guess. Ours are 1252 units from the bowmen where the original's are
+/// 1392 — 6.5 tiles against 7.25 — so a re-search predicate keyed on
+/// range is the first thing the successor should look at, and the frame
+/// is 616 either way (`docs/DECISIONS.md` 42: the frame is the item).
+#[test]
+fn chapter_two_s_squads_stand_where_the_dump_stands_them() {
     let Some(inst) = crate::testenv::install() else {
         return;
     };
-    let Some((dump, tracepath)) = golden("g4") else {
-        eprintln!("skipping: no golden capture (see docs/RUNS.md run101–run105)");
+    let Some((dump, tracepath)) = golden("ch2") else {
+        eprintln!("skipping: no golden capture ch2 (see docs/RUNS.md run112)");
         return;
     };
     let trace = crate::trace::Trace::read(std::path::Path::new(&tracepath))
@@ -161,90 +391,76 @@ fn chapter_one_holds_to_the_golden_word() {
         return;
     }
     let mut built = stand_up(&loaded, &log, &refs, &trace);
-    built.sim.trace_phases = true;
-    let mut script = chapter_one();
-    // Six in the file; the staged `rontrace.cmd` is eight, because
-    // `golden_capture.sh` adds `37 !ffwd 1` and `900 !quit` — the capture's
-    // own staging, which changes nothing the simulation models
-    // (`docs/RUNS.md` run101–run105's receipt).
-    assert_eq!(
-        script.lines().len(),
-        6,
-        "chapter one is six staged lines (tools/gamelog/golden/chapter1.cmd)"
-    );
-    let last = trace.frames.last().map_or(0, |(n, _)| *n);
-    assert!(
-        last >= 900,
-        "the golden trace is {last} frames; chapter one is 901"
-    );
-    let mut applied = crate::golden::Applied::default();
-    // `game_random`'s word at each frame's entry, ours — the value diff's
-    // side of the comparison, taken as the walk runs.
-    let mut words: Vec<(i64, u32)> = Vec::new();
-    for _ in 0..last {
-        words.push((built.sim.frame, built.sim.rng.seed));
-        let did = script.stage(built.sim.frame, &mut built, &loaded);
-        applied.merge(&did);
+    let mut script = chapter(2);
+    // Past all three `add` lines (610, 615, 620) and one frame further, so
+    // the slingers exist and the question is where everyone is seated.
+    for _ in 0..622 {
+        script.stage(built.sim.frame, &mut built, &loaded);
         built.tick();
     }
-    eprintln!(
-        "chapter one staged: {} line(s) ran, {} unit(s), {} building(s); \
-         {} carried and not acted on",
-        applied.ran,
-        applied.units,
-        applied.buildings,
-        applied.skipped_total()
-    );
-    for ((word, why), n) in &applied.skipped {
-        eprintln!("  {n:5} {word}: {why}");
+    // The dump's own coordinates, frames 616–618, unchanged across them:
+    // bowmen 0/6–0/8, hoplites 1/6–1/8.
+    let dump: [(u8, i16, (i32, i32)); 6] = [
+        (0, 6, (888, 7800)),
+        (0, 7, (1032, 7800)),
+        (0, 8, (936, 7944)),
+        (1, 6, (2424, 7800)),
+        (1, 7, (2568, 7800)),
+        (1, 8, (2472, 7944)),
+    ];
+    // What this crate seats them at. **Pinned in no direction** — this is
+    // a residue at the word, and DECISIONS 36's rule for those is that the
+    // measured number is written down rather than asserted to improve.
+    let ours: [(u8, i16, (i32, i32)); 6] = [
+        (0, 6, (888, 7800)),
+        (0, 7, (1032, 7800)),
+        (0, 8, (936, 7944)),
+        (1, 6, (2284, 7800)),
+        (1, 7, (2428, 7800)),
+        (1, 8, (2332, 7944)),
+    ];
+    let mut got = Vec::new();
+    for (who, o, _) in dump {
+        let u = (0..built.sim.units.len())
+            .find(|&u| built.sim.units[u].owner == who && built.sim.units[u].index == o)
+            .unwrap_or_else(|| panic!("no unit {who}/{o} after chapter two's `add` lines"));
+        let p = built.sim.units[u].pos;
+        got.push((who, o, (p.x, p.y)));
     }
-
-    let word = built
-        .frame_sites
-        .iter()
-        .find(|(f, ours)| ours.len() != trace.labels(*f).len())
-        .map(|(f, _)| *f)
-        .unwrap_or(last);
-    let sequence = built
-        .frame_sites
-        .iter()
-        .find(|(f, ours)| *ours != trace.labels(*f))
-        .map(|(f, _)| *f)
-        .unwrap_or(last);
-    // **The value diff beside the draw stream**, which is the whole reason
-    // the word is not reported alone: `game_random`'s word at each frame's
-    // entry, ours against the trace's own.
-    let value = trace
-        .frames
-        .iter()
-        .find(|(f, theirs)| {
-            words
-                .iter()
-                .find(|(n, _)| n == f)
-                .is_some_and(|(_, ours)| ours != theirs)
-        })
-        .map(|(f, _)| *f);
-    eprintln!(
-        "golden chapter one: word parts at {word}, sequence at {sequence}, values at {value:?}"
-    );
-    for f in [word, sequence] {
-        let Some((_, ours)) = built.frame_sites.iter().find(|(n, _)| *n == f) else {
-            continue;
-        };
-        let theirs = trace.labels(f);
-        eprintln!("  frame {f}: ours {} theirs {}", ours.len(), theirs.len());
-        if let Some((_, shown)) = first_parting(ours, &theirs) {
-            eprintln!("{shown}");
-        }
-    }
-    assert!(
-        word >= GOLDEN_WORD_CHAPTER_ONE,
-        "chapter one's golden word fell to {word} from {GOLDEN_WORD_CHAPTER_ONE}"
-    );
     assert_eq!(
-        word, GOLDEN_WORD_CHAPTER_ONE,
-        "chapter one's golden word moved; re-pin it here and on the \
-         handoff's `Golden:` line together"
+        got,
+        ours.to_vec(),
+        "chapter two's seating moved. The dump's own answer is {dump:?}; \
+         re-pin `ours` here and say so in docs/GOLDEN.md §6"
+    );
+    // **The first `add` is exact**, and that is what makes the second one a
+    // finding rather than noise: the same ring, the same frame, one squad
+    // right and one 140 units west.
+    assert_eq!(
+        &got[..3],
+        &dump[..3],
+        "the bowmen no longer land where the dump lands them, so the \
+         hoplites' 140 is no longer a clear-ground result"
+    );
+    // The residue itself, stated as the number it is: uniform in x, zero
+    // in y, on all three figures.
+    for i in 3..6 {
+        assert_eq!(
+            (dump[i].2.0 - got[i].2.0, dump[i].2.1 - got[i].2.1),
+            (140, 0),
+            "unit {}/{} is not 140 units west of the dump's own cell",
+            dump[i].0,
+            dump[i].1
+        );
+    }
+    // Anti-vacuity: the gap the chapter is built on. 2424 − 1032 is 1392
+    // units, 7.25 tiles, inside the Bowmen's ten and outside the Hoplites'
+    // zero — which is the whole premise of the chapter.
+    assert_eq!(
+        dump[3].2.0 - dump[1].2.0,
+        1392,
+        "the two squads are not 7.25 tiles apart; chapter two's premise is \
+         a ranged squad outside a melee squad's reach"
     );
 }
 
@@ -285,7 +501,7 @@ fn chapter_one_s_two_squads_are_seated_where_the_dump_says() {
         return;
     }
     let mut built = stand_up(&loaded, &log, &refs, &trace);
-    let mut script = chapter_one();
+    let mut script = chapter(1);
     // Far enough for both `add` lines (610 and 615) and no further: the
     // units walk from 616 on, and this is about where they are *born*.
     for _ in 0..616 {
@@ -364,7 +580,7 @@ fn chapter_one_s_captains_reach_each_other_and_nobody_else() {
         return;
     }
     let mut built = stand_up(&loaded, &log, &refs, &trace);
-    let mut script = chapter_one();
+    let mut script = chapter(1);
     // Frame 615 stepped: both `add` lines are in, the squads are seated,
     // and nothing has walked off its seat yet.
     for _ in 0..616 {
@@ -462,7 +678,7 @@ fn chapter_one_s_captain_picks_the_one_it_can_reach() {
         return;
     }
     let mut built = stand_up(&loaded, &log, &refs, &trace);
-    let mut script = chapter_one();
+    let mut script = chapter(1);
     for _ in 0..616 {
         script.stage(built.sim.frame, &mut built, &loaded);
         built.tick();
@@ -562,7 +778,7 @@ fn chapter_one_s_hit_is_answered_by_the_victim_s_captain() {
         return;
     }
     let mut built = stand_up(&loaded, &log, &refs, &trace);
-    let mut script = chapter_one();
+    let mut script = chapter(1);
     // Through the end of frame 616 — the dump block labelled 617.
     for _ in 0..617 {
         script.stage(built.sim.frame, &mut built, &loaded);
@@ -638,7 +854,7 @@ fn chapter_one_s_squad_is_handed_its_captain_s_target() {
         return;
     }
     let mut built = stand_up(&loaded, &log, &refs, &trace);
-    let mut script = chapter_one();
+    let mut script = chapter(1);
     let find = |b: &Built, who: u8, o: i16| {
         (0..b.sim.units.len())
             .find(|&u| b.sim.units[u].owner == who && b.sim.units[u].index == o)
