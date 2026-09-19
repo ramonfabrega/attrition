@@ -72,6 +72,25 @@ delta**, with any named mechanism marked as the previous item's
 hypothesis rather than as the subject. The queue's own item-title
 convention is the pass's to change.
 
+(397) **Two lanes append to one document's tail and collide on the
+section number.** First realised cost 2026-09-19: items 392 and 394 both
+landed a `docs/COMBAT.md` **§19** — the ring and the first wound — and the
+merge refused. `ccc update` refused twice for the same reason, so the
+worker merged by hand, verified the other side's §19 and §18.2 were
+byte-identical on its branch, renumbered to §20 in **its own commit** so
+the merge shows which side gave way, and moved eleven cross-references
+(including two stale `§9.6` refs from an earlier draft that the sweep
+caught by accident).
+
+It resolved cleanly, and it cost a round trip that nothing prevents from
+recurring: both rules- and AI-lane items now write `COMBAT.md`, and the
+queue's "two workers in one file" rule is stated for PARKED cross-item
+constraints rather than for documents. Candidates: a commander check that
+two in-flight briefs do not name the same document; a section-number
+reservation in the brief; or numbering by anchor rather than ordinal.
+The pass's, and cheap — but the frequency will only rise, because both
+tracks are now working combat.
+
 (374) **The handoff's guards have an undocumented phrase contract, and
 finding it costs four gate-or-test round trips.** Measured 2026-09-18 by
 the commander rewriting the handoff after two landings.

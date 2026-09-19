@@ -33,7 +33,7 @@ mechanisms were wrong; the frame was right every time.*
   rejects the six candidates nearer than the dump's own. **395.**
 - **The namesake has never fired in a scored capture** (382): zero
   non-exempt attrition outcomes over 24,000 frames — the Temple chapter is
-  the only route. **The held-out map answers 1 tick, 0 orders** (run106), a fit to two trajectories: **the pass's number**. Six open, 46 parked; **Fable backlog: ten Loop items** (251, 335, 343, 356, 321, 313, 367, 374, 375, 377).
+  the only route. **The held-out map answers 1 tick, 0 orders** (run106), a fit to two trajectories: **the pass's number**. Six open, 47 parked; **Fable backlog: eleven Loop items** (251, 335, 343, 356, 321, 313, 367, 374, 375, 377, 397).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w9711 of 24,000 · GreatLakes w9451 of 24,000
