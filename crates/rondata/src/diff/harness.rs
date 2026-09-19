@@ -5907,6 +5907,337 @@ mod tests {
         assert!(wrong.is_empty(), "run94's clocks parted: {wrong:?}");
     }
 
+    /// **run100's whole frame record, across the AI headline's own
+    /// frame** — Great Lakes `[9340, 9511]`, item 408.
+    ///
+    /// **Nothing had ever widened 9510.** run97's window stops at 9349
+    /// and run109's is `[9420, 9480)`, so the frame the long capture
+    /// scores on had no compared record behind it at all: every widening
+    /// on this map ran out below it. run100 is the capture that covers
+    /// it — `[9340, 10899]` of the same seeded game, at run97's detail —
+    /// and this walks [`compare`] over its blocks from the first to the
+    /// word's own: every unit's position and order stack, every
+    /// building's identity and queue slot, every field of every `CITY`.
+    ///
+    /// **What the word is.** 9510's two extra draws are
+    /// `Guy::init_real+0x52` and `Guy::set_anim+0x97a <
+    /// Unit::go_inside+0x280` — a birth and a seating, the signature
+    /// `docs/CITIES.md` §6.5.2 gave the map's *first* scholar on 8272.
+    /// This is its **sixth**, `1/51`, and the word block says so with
+    /// nothing else beside it: of 172 blocks the only object either side
+    /// holds alone is that one, on that one frame.
+    ///
+    /// **What the cause is, and it is 128 frames earlier.** The only
+    /// record that newly parts anywhere inside the window is the
+    /// production queue, on **9382**, and it parts on two buildings at
+    /// once: the original queues one Scholar at University `1/2019` and
+    /// this crate queues two Citizens at Village `1/2007`. The
+    /// original's job then runs `job_counter` +100 a frame from 100 to
+    /// 12750 and completes into the birth
+    /// ([`run100_s_scholar_job_runs_to_the_word`]).
+    ///
+    /// **And the draw stream cannot see it.** 9382 costs eight draws on
+    /// both sides, entry for entry — two `Leader::use_market+0x1ed`, two
+    /// `Leader::make_stuff+0x221`, two `+0x63d`, the farm animal and the
+    /// farm clock. `+0x221` counts the make list's slots holding the
+    /// head's type and `+0x63d` the slot loop's expiries (§41, §42);
+    /// **a purchase itself draws nothing**. So the two sides buy
+    /// different things out of identically-shaped lists and no count
+    /// says so. That is the case for widening the record rather than the
+    /// frame, made on the frame the headline stands on.
+    ///
+    /// Every other residue in the window was already standing when it
+    /// opened — three positions, seventeen order stacks and twenty city
+    /// fields, all first parting on the window's own first block — so
+    /// they are pinned as sets rather than counted, and the sets may
+    /// only shrink.
+    #[test]
+    fn run100_s_word_frame_is_the_original_s() {
+        /// run100's first complete block.
+        const FIRST: i64 = 9_340;
+        /// The human city's raid, which this crate does not hold at all:
+        /// `CityData::raid_stamp` is `Leader::raid`'s and `0x2` is
+        /// `no_heal`, both named as unheld in [`compare`]'s own city
+        /// block. They are the one thing besides the queue that opens
+        /// inside the window, and they are who=0's.
+        const RAID: i64 = 9_451;
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(r100)) = (
+            dump("gamelog-run53-greatlakes-24k-trace.txt"),
+            dump("gamelog-run100-greatlakes-valuewindow2.txt"),
+        ) else {
+            eprintln!("skipping: no run53/run100 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let mut ix = crate::capture::indexed::IndexedCapture::open(&r100).unwrap();
+        let loaded = crate::load::load(&inst).unwrap();
+        let texts = sibling_texts();
+        let text = crate::capture::read(&path);
+        let log = Log::parse(&text);
+        let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
+        let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+        let refs: Vec<&Initial> = inits.iter().collect();
+        let mut init = log.initial().unwrap();
+        borrow_from_siblings(&mut init, &refs);
+        if let Some(t) = trace("rontrace-run53.log") {
+            borrow_pasture(&mut init, &t);
+        }
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        let players = built.sim.players.len();
+        use std::collections::BTreeMap;
+        let mut blocks = 0usize;
+        let mut totals = [0usize; 8];
+        // The block each key **first** parts on, which is the number
+        // this item is about: a residue standing before the window
+        // opened is not the word's, and one that opens inside it is.
+        let mut units: BTreeMap<(i64, i64), i64> = BTreeMap::new();
+        let mut queues: BTreeMap<(i64, i64), (i64, String)> = BTreeMap::new();
+        let mut cities: BTreeMap<(i64, i64, String), i64> = BTreeMap::new();
+        let mut orders: BTreeMap<(i64, i64), i64> = BTreeMap::new();
+        type Roster = Vec<(i64, i64)>;
+        let mut word: Option<(Roster, Roster)> = None;
+        for f in 0..=LONG_WORD_GREAT_LAKES {
+            built.tick();
+            if f + 1 < FIRST {
+                continue;
+            }
+            let Some(at) = ix.frames().iter().position(|x| x.number == f + 1) else {
+                continue;
+            };
+            let frame = ix.frame_state(at).unwrap();
+            let r = compare(&built, &frame, players);
+            blocks += 1;
+            for (t, c) in totals.iter_mut().zip([
+                r.diverged.len(),
+                r.unlinked_units.len(),
+                r.extra_units.len(),
+                r.build_diverged.len(),
+                r.queue_diverged.len(),
+                r.city_diverged.len(),
+                r.order_diverged.len(),
+                r.gather_diverged.len(),
+            ]) {
+                *t += c;
+            }
+            for d in &r.diverged {
+                units.entry((d.who, d.o)).or_insert(f);
+            }
+            for d in &r.queue_diverged {
+                queues.entry((d.who, d.o)).or_insert_with(|| {
+                    (
+                        f,
+                        format!("{} ours {} theirs {}", d.field, d.ours, d.theirs),
+                    )
+                });
+            }
+            for d in &r.city_diverged {
+                cities.entry((d.who, d.o, d.field.clone())).or_insert(f);
+            }
+            for d in &r.order_diverged {
+                orders.entry((d.who, d.o)).or_insert(f);
+            }
+            if f == LONG_WORD_GREAT_LAKES {
+                word = Some((r.unlinked_units.clone(), r.extra_units.clone()));
+            }
+        }
+        eprintln!(
+            "run100 word window: {blocks} blocks [{FIRST}, {}] — pos {} unlinked {} \
+             extra {} build {} queue {} city {} order {} gather {}",
+            LONG_WORD_GREAT_LAKES + 1,
+            totals[0],
+            totals[1],
+            totals[2],
+            totals[3],
+            totals[4],
+            totals[5],
+            totals[6],
+            totals[7],
+        );
+        eprintln!("  units  {units:?}");
+        eprintln!("  queues {queues:?}");
+        eprintln!("  orders {orders:?}");
+        eprintln!("  cities {cities:?}");
+        eprintln!("  word block {}: {word:?}", LONG_WORD_GREAT_LAKES + 1);
+        assert!(
+            blocks >= 172,
+            "run100's own blocks are missing — the wrong file: {blocks}"
+        );
+        // **The word's own record, whole.** Of every unit either side
+        // holds on the frame the headline stands on, exactly one is
+        // unmatched, and it is the sixth scholar. `extra` is the mirror
+        // — this crate holding a unit the original does not — and it is
+        // empty, so the frame is not a swap.
+        assert_eq!(
+            word,
+            Some((vec![(1, 51)], Vec::new())),
+            "the word block is not one missing scholar and nothing else"
+        );
+        // **The cause, as the record states it.** Two buildings, one
+        // frame, and the frame is 128 before the birth.
+        let q: Vec<(i64, i64, i64, &str)> = queues
+            .iter()
+            .map(|(&(w, o), (f, s))| (w, o, *f, s.as_str()))
+            .collect();
+        assert_eq!(
+            q,
+            vec![
+                (1, 2_007, 9_382, "queued ours 2 theirs 0"),
+                (1, 2_019, 9_382, "queued ours 0 theirs 1"),
+            ],
+            "run100's queues do not part the way item 408 measured them"
+        );
+        // **Nothing else opens inside the window.** Every other
+        // divergence was already standing on the window's first block —
+        // which is what makes 9382 the frame rather than one of a
+        // hundred and seventy-two.
+        let inside: Vec<String> = units
+            .iter()
+            .filter(|(_, f)| **f > FIRST - 1)
+            .map(|(k, f)| format!("unit {k:?} f{f}"))
+            .chain(
+                orders
+                    .iter()
+                    .filter(|(_, f)| **f > FIRST - 1)
+                    .map(|(k, f)| format!("order {k:?} f{f}")),
+            )
+            .chain(
+                cities
+                    .iter()
+                    .filter(|((w, o, _), f)| **f > FIRST - 1 && (*w, *o, **f) != (0, 2_000, RAID))
+                    .map(|(k, f)| format!("city {k:?} f{f}")),
+            )
+            .collect();
+        assert!(
+            inside.is_empty(),
+            "a record other than the queue parts inside run100's window: {inside:?}"
+        );
+        // **The standing residues, as sets.** Counts over a window the
+        // word controls rise when the word does (`ORDER_RESIDUE_RUN97`'s
+        // own lesson), so what is pinned is *which* keys, not how many
+        // rows they made. Each may only shrink.
+        assert_eq!(
+            units.keys().copied().collect::<Vec<_>>(),
+            vec![(1, 24), (1, 25), (1, 26)],
+            "the window's standing position residue is not the three it was"
+        );
+        assert_eq!(
+            orders.len(),
+            17,
+            "the window's standing order residue is not seventeen units: {orders:?}"
+        );
+        assert_eq!(
+            cities.len(),
+            20,
+            "the window's standing city residue is not twenty fields: {cities:?}"
+        );
+        assert!(
+            cities.keys().all(|(w, o, _)| (*w, *o) != (1, 2_019)),
+            "the University's own city record parts: {cities:?}"
+        );
+    }
+
+    /// **The scholar job run100 prints, frame for frame** — the other
+    /// half of item 408, and the half that says the birth at 9510 is the
+    /// job queued at 9382 rather than a coincidence.
+    ///
+    /// `BUILDQUEUE` writes `queued` and each live slot's `type`,
+    /// `job_counter` and three `(good, cost)` pairs. University `1/2019`
+    /// holds one live slot from block 9383 to block 9510 — type **52**,
+    /// `SCHOLARS`, 40 **wealth** (`good[0] 2`) — and its counter runs
+    /// +100 a frame from 100 to 12700 and then **12750**, a clamped last
+    /// step rather than a thirteenth hundred. Block 9511 has `queued 0`
+    /// and the unit `1/51` standing in the record.
+    ///
+    /// Read off the original alone, so it stands whatever this crate
+    /// does. It is the falsifier for any later claim that 9510's birth
+    /// is something other than that queue emptying.
+    #[test]
+    fn run100_s_scholar_job_runs_to_the_word() {
+        /// The frame the job is queued on; block `QUEUED + 1` is the
+        /// first that carries it.
+        const QUEUED: i64 = 9_382;
+        /// `SCHOLARS`' type index, the `guy` every seated scholar in the
+        /// window carries.
+        const SCHOLAR: i64 = 52;
+        let Some(r100) = dump("gamelog-run100-greatlakes-valuewindow2.txt") else {
+            eprintln!("skipping: no run100 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let mut ix = crate::capture::indexed::IndexedCapture::open(&r100).unwrap();
+        let mut seen: Vec<(i64, Vec<(i64, i64)>)> = Vec::new();
+        let mut born: Option<i64> = None;
+        for n in QUEUED..=LONG_WORD_GREAT_LAKES + 1 {
+            let Some(at) = ix.frames().iter().position(|x| x.number == n) else {
+                continue;
+            };
+            let frame = ix.frame_state(at).unwrap();
+            let Some(b) = frame.builds.iter().find(|b| (b.who, b.o) == (1, 2_019)) else {
+                continue;
+            };
+            let live = usize::try_from(b.queued.unwrap_or(0)).unwrap_or(0);
+            seen.push((
+                n,
+                b.queue
+                    .iter()
+                    .take(live)
+                    .map(|q| (q.ty, q.job_counter))
+                    .collect(),
+            ));
+            if born.is_none() && frame.units.iter().any(|u| (u.who, u.o) == (1, 51)) {
+                born = Some(n);
+            }
+        }
+        assert_eq!(
+            seen.len(),
+            (LONG_WORD_GREAT_LAKES + 2 - QUEUED) as usize,
+            "run100 does not cover [{QUEUED}, {}]: {} blocks",
+            LONG_WORD_GREAT_LAKES + 1,
+            seen.len()
+        );
+        // The block the job is not yet on, and the block it is gone from.
+        assert_eq!(seen.first().map(|s| s.1.as_slice()), Some(&[][..]));
+        assert_eq!(seen.last().map(|s| s.1.as_slice()), Some(&[][..]));
+        let wrong: Vec<&(i64, Vec<(i64, i64)>)> = seen
+            .iter()
+            .filter(|(n, q)| {
+                let want = if *n <= QUEUED || *n > LONG_WORD_GREAT_LAKES {
+                    Vec::new()
+                } else {
+                    vec![(SCHOLAR, (100 * (n - QUEUED)).min(12_750))]
+                };
+                *q != want
+            })
+            .collect();
+        assert!(
+            wrong.is_empty(),
+            "1/2019's scholar job is not +100 a frame to a clamped 12750: {wrong:?}"
+        );
+        // The price the ramp put on the sixth scholar, off the queue
+        // slot's own `(good, cost)` pair: 40 **wealth**, where the four
+        // already seated at `1/2020` were bought at 38.
+        let at = ix
+            .frames()
+            .iter()
+            .position(|x| x.number == LONG_WORD_GREAT_LAKES)
+            .unwrap();
+        let frame = ix.frame_state(at).unwrap();
+        let b = frame
+            .builds
+            .iter()
+            .find(|b| (b.who, b.o) == (1, 2_019))
+            .unwrap();
+        assert_eq!(
+            (b.queue[0].good, b.queue[0].cost),
+            ([2, -1, -1], [40, 0, 0]),
+            "the sixth scholar's price is not 40 wealth"
+        );
+        assert_eq!(
+            born,
+            Some(LONG_WORD_GREAT_LAKES + 1),
+            "1/51 is not standing in the block after the word"
+        );
+    }
+
     /// **run97's animation clocks, frame for frame** — Great Lakes'
     /// `[8030, 9349]`, 1,320 consecutive frames of `GUYS` detail across
     /// the map's word (item 346).

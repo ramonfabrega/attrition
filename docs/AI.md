@@ -5428,3 +5428,122 @@ session. It is not a claim the seating is fixed.
 - **`income`'s own `0x40`** — §45's, unchanged: read off this crate, not
   printed by any record.
 
+
+---
+
+## 47. What the AI buys at Great Lakes 9382, and the birth it costs 128 frames later (2026-09-19)
+
+Item 408, and the first widening of the AI headline's own frame. **9510 had
+never been compared.** run97's value window stops at 9349, run109's is
+`[9420, 9480)`; the frame the long capture scores on had no compared record
+behind it at all. run100 — `[9340, 10899]` of the same seeded Great Lakes
+game, at run97's detail — is the capture that covers it, and
+`diff::tests::run100_s_word_frame_is_the_original_s` now walks the whole
+`compare` over its blocks from the first to the word's own.
+
+### 47.1 The word is the sixth scholar
+
+9510's two extra draws are `Guy::init_real+0x52` and `Guy::set_anim+0x97a <
+Unit::go_inside+0x280` — the birth-and-seating signature `docs/CITIES.md`
+§6.5.2 gave the map's **first** scholar on 8272. This is its **sixth**:
+`1/51`, `guy` 52, standing in block 9511 on University `1/2019` at
+`(40416, 25248)`, beside `1/44`. The five below the word seat on 8272, 8680,
+9087, 9201 and 9322; four of them are on the *other* University, `1/2020`.
+
+The word block says it with nothing beside it. Over 172 blocks the only
+object either side holds alone is that one, on that one frame —
+`unlinked [(1, 51)]`, `extra []` — so the frame is a missing unit and not a
+swap, and no other record on it parts at all.
+
+### 47.2 The cause is 9382, and it is a purchase
+
+The only record that **newly** parts anywhere inside the window is the
+production queue, and it parts on one frame, on two buildings at once:
+
+| block 9383 | ours | theirs |
+| --- | --- | --- |
+| `1/2007` (Village) `queued` | **2** | 0 |
+| `1/2019` (University) `queued` | 0 | **1** |
+
+The original queues one Scholar at the University; this crate queues two
+Citizens at the Village. Both are in the same city — Norwich, `1/2007`'s own
+— and the dump's `CITY` record for it agrees with this crate field for field
+on `free 0`, `busy 15`, `gatherers 15`, so the census is not what differs.
+
+The original's job then runs to the birth, and `run100_s_scholar_job_runs_to
+_the_word` reads it off the original alone: `1/2019` holds one live slot from
+block 9383 to block 9510 — type 52 at **40 wealth** (`good[0] 2`, where the
+four already seated at `1/2020` were bought at 38) — `job_counter` +100 a
+frame from 100 to 12700 and then a **clamped 12750** rather than a
+thirteenth hundred, and block 9511 is `queued 0` with `1/51` standing.
+
+### 47.3 A purchase draws nothing, and the stream stayed blind for 128 frames
+
+**This is a result in its own right, and it is the reusable half of the
+item.** State it on its own terms: an AI purchase is invisible to the draw
+stream, so the score can sit still on a decision that has already gone
+wrong and keep sitting still for as long as the job it bought takes to
+finish.
+
+9382 costs **eight draws on both sides, entry for entry**: two
+`Leader::use_market+0x1ed`, two `Leader::make_stuff+0x221`, two `+0x63d`,
+`Animal::think_farm_animal+0x142` and `Farms::inc_time+0x1ae`. §41 and §42
+say what the two make-stuff sites count — `+0x221` once per make-list slot
+holding the *head's* type, `+0x63d` once per slot the loop expires. Neither
+counts a purchase, and `Leader::make_this` → `produce_unit` → `queue_up`
+spends no draw of its own.
+
+So on 9382 two make lists **of the same shape** — same head type, same
+number of slots repeating it, same number of expiries — were walked to two
+different answers, and nothing in the draw stream said so. The word did not
+notice for **128 frames**, and when it finally did, what it noticed was a
+`Guy::init_real` in the animation layer: a birth, four subsystems away from
+the decision that caused it. Every frame in between agreed draw for draw.
+
+Two consequences worth carrying past this item:
+
+- **A draw-stream word is a lower bound on when a decision parted, not an
+  estimate of it.** The distance here is the length of a train job, and it
+  scales with whatever was bought.
+- **The queue record is the oracle for an AI purchase**, because it is the
+  only place a drawless decision leaves a mark on the same frame it is
+  made. `BUILDQUEUE` is written from `BUILDS=1`, so it is on nearly every
+  capture already taken — this frame's evidence had been on the disk since
+  run100 was captured and went unread because nothing compared it.
+
+That is the case for widening the record rather than the frame, and it is
+made here on the frame the headline itself stands on.
+
+### 47.4 What this has *not* established
+
+- **Which slot each side bought is not on this disk.** The list this
+  crate's `make_stuff` reads on 9382 offers `2:t50(Citizen) c2 v234782 n2`
+  and `5:` the same, against `4:t52(Scholar) c1 v45568`, under a head
+  `0:t572(Mercenaries)` it cannot pay for at 80 metal of 100. Two citizens
+  land in the queue; whether that is one slot's `num` (§42) or two slots
+  is **not** decidable from the draws, because a purchase draws nothing.
+  The original's list is not printed: `LEADERS=1` is `who`, `tribe`, `score`,
+  `leader_flags`. **A `LEADERS=9` window over `[9375, 9390]` is what would
+  print the other side**, and it is the only thing on the disk that cannot
+  answer this. Until then "the value is wrong" and "the offer should not
+  exist" are not separated.
+- The Scholar this crate does offer names **city 1** (London) where the
+  original's job runs in city 2's University. Whether that is the same defect
+  as the queue item on host choice, or a second one, is unmeasured here.
+- The window's standing residues — three positions (`1/24`, `1/25`, `1/26`),
+  seventeen order stacks, twenty `CITY` fields — were **already parted when
+  the window opened** on block 9340, so this item says nothing about them
+  beyond pinning the sets. Fourteen of the twenty city fields are who=0's,
+  the human's, read as zero here.
+- `CityData::raid_stamp` and `city_flags 0x2` on the human's `0/2000` open at
+  block 9451 and are the one thing besides the queue that moves inside the
+  window. `compare`'s own city block names both as unheld by this crate.
+
+### 47.5 Coverage
+
+Diff-backed, both halves: `run100_s_word_frame_is_the_original_s` (172
+blocks, the whole `compare`) and `run100_s_scholar_job_runs_to_the_word`
+(the original's queue alone, 130 blocks). Each was made to fail on purpose
+before landing — the first by moving the raid block, which restores the two
+human-city fields as rows; the second by dropping the clamp, which restores
+`(9510, [(52, 12750)])`. Nothing here rests on a reading.
