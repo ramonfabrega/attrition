@@ -28,7 +28,9 @@ class SessionTest(unittest.TestCase):
         self.original = {
             'rise.ini': b'InitialDump=1\r\n',
             'rise2.ini': b'LogStartFrame=4\r\nLogEndFrame=8\r\n',
-            'gamelog.ini': b'[Logging Options]\nDUMP_ALL=1\nLogFile=old\nDumpFileName=old\n[End Frame]\nUNITS=0\n',
+            'gamelog.ini': (b'[Logging Options]\nDUMP_ALL=1\nLogFile=old\nDumpFileName=old\n'
+                            b'[End Frame]\nUNITS=0\nBUILDS=9\nLEADERS=9\n'
+                            b'[Start Game]\nWORLD=6\n[Misc Logging]\nCOMMANDMANAGER=0\n'),
         }
         for name, data in self.original.items():
             (self.profile / name).write_bytes(data)
@@ -97,6 +99,74 @@ class SessionTest(unittest.TestCase):
             module.stage(self.args)
         self.assertFalse(self.output.exists())
         self.assertEqual((self.profile / 'rise.ini').read_bytes(), self.original['rise.ini'])
+
+    def test_caller_supplies_the_window_and_the_detail(self):
+        self.args.log_window = [9000, 9300]
+        self.args.detail = ['end:BUILDS=7', 'start:WORLD=6']
+        self.args.end_frame = 9400
+        self.args.ffwd_minute = 10
+        module.stage(self.args)
+        rise2 = (self.profile / 'rise2.ini').read_text()
+        self.assertIn('LogStartFrame=9000', rise2)
+        self.assertIn('LogEndFrame=9300', rise2)
+        log = (self.profile / 'gamelog.ini').read_text()
+        # Asked for, and everything else in the same section flattened to 0.
+        self.assertIn('BUILDS=7', log)
+        self.assertIn('WORLD=6', log)
+        self.assertIn('LEADERS=0', log)
+        self.assertIn('UNITS=0', log)
+        self.assertIn('COMMANDMANAGER=0', log)
+        self.assertEqual((self.output / 'rontrace.cmd').read_text(),
+                         '37 !ffwd 10\n9400 !quit\n')
+        module.restore(self.output)
+        self.assert_restored()
+
+    def test_a_category_the_ini_does_not_have_is_refused(self):
+        # The failure this catches is a window that dumps nothing: a mistyped
+        # category writes no key, and the run comes back with empty blocks.
+        self.args.detail = ['end:UNIT=3']
+        with self.assertRaisesRegex(ValueError, 'no such categories'):
+            module.stage(self.args)
+        self.assertFalse(self.output.exists())
+        self.assert_restored()
+        self.args.detail = ['fin:UNITS=3']
+        with self.assertRaisesRegex(ValueError, 'unknown detail section'):
+            module.stage(self.args)
+        self.assert_restored()
+
+    def test_the_command_file_is_staged_in_frame_order_around_the_ffwd(self):
+        script = self.root / 'chapter.cmd'
+        script.write_text('# a comment\n0 !ai off\n\n1200 age who=0 5\n1300 war\n')
+        self.args.cmd_file = script
+        self.args.end_frame = 2000
+        self.args.ffwd_minute = 2
+        module.stage(self.args)
+        self.assertEqual((self.output / 'rontrace.cmd').read_text(),
+                         '0 !ai off\n37 !ffwd 2\n1200 age who=0 5\n1300 war\n2000 !quit\n')
+        module.restore(self.output)
+        self.assert_restored()
+
+    def test_a_window_or_a_command_past_the_quit_frame_is_refused(self):
+        for attribute, value, pattern in [
+                ('log_window', [18, 500], 'log window'),
+                ('log_window', [500, 18], 'log window'),
+                ('ffwd_minute', 0, 'ffwd-minute'),
+        ]:
+            setattr(self.args, attribute, value)
+            with self.assertRaisesRegex(ValueError, pattern):
+                module.stage(self.args)
+            self.assertFalse(self.output.exists())
+            delattr(self.args, attribute)
+        script = self.root / 'bad.cmd'
+        self.args.cmd_file = script
+        for text, pattern in [('90 war\n', 'past the !quit frame'),
+                              ('20 war\n10 peace\n', 'below the previous'),
+                              ('war\n', 'want `<sim-frame> <text>`')]:
+            script.write_text(text)
+            with self.assertRaisesRegex(ValueError, pattern):
+                module.stage(self.args)
+            self.assertFalse(self.output.exists())
+        self.assert_restored()
 
     def test_output_cannot_live_inside_install(self):
         self.args.output = self.install / 'nested'

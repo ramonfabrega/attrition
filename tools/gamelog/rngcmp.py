@@ -1,6 +1,18 @@
-"""rngcmp.py A B — first sim-frame at which the game_random word (FRAME record) differs."""
-import struct, sys
-L = "/Users/rf-studio/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/"
+"""rngcmp.py A B — first sim-frame at which the game_random word (FRAME record) differs.
+
+Names are taken relative to the archive directory (`RON_GAMELOG_DIR`, or the
+bottle's `Logs`); an absolute path is used as given, which is what lets a
+staged capture outside the archive — the golden record's own output tree — be
+compared without being filed first.
+
+**Nothing in common is not agreement.** Two traces with no frame number in
+common once read as "0 differing"; the common count is printed and an empty
+intersection exits non-zero.
+"""
+import os, struct, sys
+L = os.environ.get("RON_GAMELOG_DIR",
+                   os.path.expanduser("~/ron-data/AppData/Roaming/Microsoft Games/"
+                                      "Rise of Nations/Logs")) + "/"
 def words(p):
     d = {}
     with open(p, "rb") as f:
@@ -13,9 +25,16 @@ def words(p):
             if k == 2:
                 d[a] = b
     return d
-a = words(L + sys.argv[1]); b = words(L + sys.argv[2])
+def path(name):
+    return name if os.path.isabs(name) else L + name
+
+
+a = words(path(sys.argv[1])); b = words(path(sys.argv[2]))
 print(len(a), len(b))
-diff = sorted(k for k in a if k in b and a[k] != b[k])
+common = sorted(set(a) & set(b))
+print("frames in common:", len(common))
+diff = sorted(k for k in common if a[k] != b[k])
 print("differing frames:", len(diff), "first:", diff[:8])
-same = sum(1 for k in a if k in b and a[k] == b[k])
+same = sum(1 for k in common if a[k] == b[k])
 print("identical frames:", same)
+sys.exit(1 if not common or diff else 0)

@@ -2152,6 +2152,10 @@ now sources.
   way: `BIGHUGE_INIT`, `INIT_GRAPHICS (pass -1)`, `D3D11GL::INIT_DISPLAY_
   QUICK`, both later passes, `Types::load_sound_tables`,
   `Game::init_common_data`.
+- **A launch needs a GUI session, whatever the renderer says.** From a
+  process with none, `winemac.drv` refuses the window and the run dies in
+  3.8 s at `a2c457` with a `nodrv_CreateWindow` line that reads exactly like
+  a DXVK failure: "The click-free lane needs a window", below.
 - **The traced executable runs too — with `cover=0`.** The
   `7BF21139` page fault predicted here as possibly downstream of the DirectX
   failure is **not**: it survives the renderer being fixed, reproduces at the
@@ -2750,3 +2754,56 @@ entered by run53, run54 and run906, 152 never** — run906 alone enters
 511, and adds one function the two CrossOver runs never reached.
 `report.py … blind docs/ <logs>` is the command, and it accepts as many
 logs as there are.
+
+## The click-free lane needs a window, and it is not DXVK (2026-09-18, item 363)
+
+`tools/explore/unattended_capture.py` needs no TCC grant and no human at the
+menu, which is what makes it the golden record's lane (`docs/DECISIONS.md`
+entry 41 §5). It does need a **GUI session**, and a launch from inside Claude
+Code's own process tree does not have one.
+
+**The failure reads like a renderer failure and is not one.** Launched
+directly, the run dies in **3.8 s with exit 5, zero frames**, a `rontrace.log`
+whose only interesting record is `INFO 176 0xa2c457` — the teardown-fault
+address the lab's autostart note already names — and, buried a hundred lines
+under MoltenVK's banner in `wine.log`:
+
+```
+wine: Unhandled page fault on read access to 00000000 at address 00A2C457
+err:winediag:nodrv_CreateWindow Application tried to create a window, but no
+                                driver could be loaded.
+err:winediag:nodrv_CreateWindow L"The graphics driver is missing. Check your build!"
+```
+
+MoltenVK enumerates the M4 Max and creates its `VkInstance` **before** this, so
+every DXVK-shaped diagnostic looks healthy: the tempting reading is a broken
+prefix or a bad d3d11 override, and both are wrong. `winemac.drv` is what
+refuses, because the process has no window server connection; `a2c457` is the
+game dereferencing the window it never got.
+
+**The fix is the one the clicked lane already uses.** `viadriver.sh` launches
+through LaunchServices, which makes `RonDriver.app` the responsible process and
+gives the run a real GUI session — and `tools/explore/golden_capture.sh` is the
+shim that hands that launcher a Python runner:
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh \
+    ~/ron-golden/<name> --map 14 --end-frame 900 \
+    --cmd-file tools/gamelog/golden/chapter1.cmd \
+    --log-window 605 900 --detail end:UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=2,DEATHS=1
+```
+
+So the click-free lane's independence is from **TCC and the cursor**, not from
+the desktop: it still cannot run on a box with no login session, and a lane
+that launches it any other way gets a fault that will be misread as DXVK.
+
+**The window, the detail and the command file are the caller's** since this
+item (parked 341 closes here). `live_session.stage` took none of them: it
+hardwired `LogStartFrame 18` / `LogEndFrame 36` and forced every `gamelog.ini`
+category to 0 but `[End Frame] UNITS=3` and `[Misc Logging] COMMANDMANAGER=1`.
+`--log-window`, `--detail` (setlog.py's `SECTION:CAT[=N],...`, repeatable),
+`--cover`, `--cmd-file` and `--ffwd-minute` now reach it, each staged value is
+echoed into the run's `receipt.json` so a capture is read back from the run
+rather than from the command that asked for it, and a category the ini does not
+have is **refused** — the failure that guard catches is a correctly-numbered
+window whose blocks come back empty because `end:UNIT=3` was a typo.

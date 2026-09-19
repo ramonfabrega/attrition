@@ -17,6 +17,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent / 'viewer'))
 SUITES = (
     'test_autostart_receipt',
     'test_compare_unattended',
+    'test_live_session',
+    'test_rngcmp',
     'test_unattended_capture',
     'test_release_gate',
     'test_memcap',
