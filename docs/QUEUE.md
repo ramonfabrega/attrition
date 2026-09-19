@@ -12,36 +12,36 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-18, two lanes all day, eleven landings. **Great Lakes 9182 →
-9415 (+233), golden 617 → 618** — both words moved. Eight booked
-mechanisms were wrong, the frames right every time.*
+*2026-09-18/19, two lanes all day, twelve landings. **Great Lakes 9182 →
+9451 (+269), golden 617 → 618** — both words moved. Nine booked mechanisms
+were wrong, the frames right every time.*
 
-- **The met bit is set by the fog** (385, `docs/VISION.md` §6.2), closing
-  a chain six items long: `1/MAKE[0].val` → `MAKE[0].t` → `use_market`'s
-  `need`, `active_wars` behind `treaties[i] & 1`, no `human` test at all.
-  Leader residues fell, nothing arrived. **389 has 9415**; 390 the flip.
-- **The golden word moves 617 → 618** (391), after 379, 384 and 386 each
-  closed something at 617 without moving it. Cause was neither suspect
-  again: `Unit::target_opportunity`'s `while` walks `o_up` to the victim's
-  **captain**, and the ARMY — never the group — walks a struck unit off
-  its seat. `0xf6` uncoded since the second reading (356) and `in_range`
-  inverted were **one constant at two sites**; §18's unproven ~84 extent
-  was **refused on measurement**, so keeping the fit out was right. 392.
-- **run97's dump ends in a truncated `BEGIN FRAME 9361`** — 47 Length rows
-  reading like a collapsed sim; 368's **unit-SET** assertion caught what a
-  row count would have re-pinned silently (373).
+- **An arrow is launched by the attack ANIMATION's event track**, not by
+  `Unit::fight` (389, `docs/COMBAT.md` §9.0) — a **data** coupling, not a
+  renderer one, and the document says so. `ms × 3 / 200` **truncated**,
+  measured not chosen: every product lands at remainder 198/199 of 200, so
+  truncation is 4/4 against run53 and rounding 0/4. 9415 → 9451. **394.**
+- **The met bit is set by the fog** (385) closed a chain six items long
+  and moved the word 9182 → 9415: `MAKE[0].val` → `MAKE[0].t` →
+  `use_market`'s `need`, `active_wars` behind `treaties[i] & 1`.
+- **The golden word moves 617 → 618** (391): `Unit::target_opportunity`
+  walks `o_up` to the victim's **captain**, and the ARMY — never the
+  group — walks a struck unit off its seat. 615–617 are the original's;
+  **392** has 618. `0xf6` uncoded since the second reading (356) and
+  `in_range` inverted were one constant at two sites; §18's unproven ~84
+  extent was **refused on measurement**, so keeping the fit out was right.
 - **The namesake has never fired in a scored capture** (382): zero
   non-exempt attrition outcomes over 24,000 frames — the Temple chapter is
   the only route. **The held-out map answers 1 tick, 0 orders** (run106),
   a fit to two trajectories: **the pass's number**. Six open, 46 parked; **Fable backlog: ten Loop items** (251, 335, 343, 356, 321, 313, 367, 374, 375, 377).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w9711 of 24,000 · GreatLakes w9415 of 24,000
+Long captures: EastIndies w9711 of 24,000 · GreatLakes w9451 of 24,000
 Golden: w618 of 901 · chapter one pinned · 392 next
-Endpoint 24001: EastIndies 64 off, 5 unlinked · GreatLakes 54 off, 4 unlinked
+Endpoint 24001: EastIndies 64 off, 5 unlinked · GreatLakes 43 off, 13 unlinked
 
-**Opener: 389 on the word's new frame — `1/29`'s five draws at 9415 —
-beside 386, already in flight on the golden record's tie-break.**
+**Opener: 394 on the word's new frame — the first arrow landing at 9451,
+which no document explains — beside 392, in flight on the golden 618.**
 
 ## The queue
 
@@ -51,12 +51,13 @@ the AI, lower map first — Great Lakes. Take the first unstarted on either
 track unless a better order is obvious, and say so. Numbers are stable;
 the backlog is `docs/PARKED.md`, and an item returns only when a score names it.
 
-389. **9415 is `1/29`'s** (the AI headline's frame, and the word just
-    moved here from 9182): five draws against two, two of them at a site
-    `trace::SITES` does not name, attributed to `1/29` — one of 368's
-    eight off-position units from 8442 (`docs/ARMY.md` §3.4's successor).
-    **Re-measure before diagnosing**: six mechanisms named in two days,
-    none the cause, the frame right every time (377).
+394. **9451 is the first arrow landing** (the AI headline's frame, where
+    389 just moved the word): five draws against seven, the original
+    spending two at `Object::take_damage@00652020+0xe1`. **The document
+    does not explain this frame** — `docs/COMBAT.md` §9.5's reading (a
+    fort/temple/town's first wound, a siege attacker's flock) covers
+    neither `0/2004` nor `1/29`. run100's `BUILDDATA 0/2004` is `damage 0`
+    through 9451 and `damage 1` at 9452: the game's first hit point lost.
 
 390. **A `LEADERS≥2` window anywhere in (7616, 8174]** (capture lane;
     takes-chain to the met bit): nothing on disk dumps a leader between

@@ -1420,11 +1420,7 @@ impl Sim {
             };
             // `Guy::execute_events@005d99c0:30` — the package's `last_time`
             // is the guy's, forced to `-1` while the clock reads zero.
-            let last = if guy.cur_time == 0 {
-                -1
-            } else {
-                guy.last_time
-            };
+            let last = if guy.cur_time == 0 { -1 } else { guy.last_time };
             let cur = i64::from(guy.cur_time);
             for t in times {
                 let t = i64::from(t);
