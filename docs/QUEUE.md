@@ -12,35 +12,36 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-19, the first tranche after the sixth Fable pass. **Six landings**;
-Great Lakes stands at 9510, and the golden record gained a second chapter.*
+*2026-09-19, the first tranche after the sixth Fable pass. **Seven landings,
+no score moved**; the day bought two cause chains and a second chapter.*
 
-- **Chapter two's word is 616 of 901** (415), in its own
-  `GOLDEN_WORD_CHAPTER_TWO`; chapter one's 626 unmoved. **616 is lower, so
-  it is the rules headline** — the AI track's principle is lower *word*,
-  not lower name. The `Golden:` line still leads with 626 because
-  `floors.rs` pins one constant: **417 is blocking now, not theoretical**.
+- **616 is the rules headline** (415) — chapter two's word, in its own
+  `GOLDEN_WORD_CHAPTER_TWO`, below chapter one's unmoved 626. The AI
+  track's principle is lower *word*, not lower name. The `Golden:` line
+  leads with 626 because `floors.rs` pins one constant and parses one
+  `w<frame>`: **417 is blocking now, not theoretical.**
 - **The value diff found what the draw stream did not** (415): "no position
   disagrees" was written as an assertion and **failed**. `add hoplite
   who=1 12,40` asks internal 2400; the original seats 2424/2568/2472, ours
   2284/2428/2332 — uniformly **140 west**, first add exact.
   `find_nearby_spot` on clear ground; pinned in no direction, 426's suspect.
-- **45,568 is an i32 wrap, not a valuation** (422): `256 × 33,600,000 =
-  8,601,600,000` wraps **positive** to 11,665,408 and divides to exactly
-  45,568, so §45's `out < 0 → 9,999,999` guard never fires. The gap and its
-  non-integer ratio were artefacts. 429 parks the wrap wherever it reaches.
+- **The wrap is fidelity, not the defect** — 422 booked it as one and
+  430's probe overturned both the item and its booking: computing the tail
+  in 64 bits so nothing wraps costs **2,727 frames**, 9510 → 6783, because
+  the original is a 32-bit engine whose own `imul` wraps. 45,568 is a wrong
+  input carried faithfully; the lever is upstream. 429 corrected in place.
 - **A setup-block word scored 0 and is now a refusal** (415), third time
-  that shape has scored. Four open, 67 parked.
-  **Fable backlog: twelve Loop items** (251, 335, 313, 367, 375, 416,
-  417, 419, 420, 421, 424, 428); the pass is due at twenty, this is six.
+  that shape has scored. Four open, 68 parked.
+  **Fable backlog: thirteen Loop items** (251, 335, 313, 367, 375, 416,
+  417, 419, 420, 421, 424, 428, 431); pass due at twenty, this is seven.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w9711 of 24,000 · GreatLakes w9510 of 24,000
 Golden: w626 of 901 · ch2 w616 is lower and is the headline · 426 next
 Endpoint 24001: EastIndies 64 off, 5 unlinked · GreatLakes 51 off, 11 unlinked
 
-**Opener: 426 on the rules lane — chapter two's 616, with the 140 west the
-first thing to rule in or out; 422 on the AI lane, landing the wrap.**
+**Opener: 430 on the AI lane — does the ranking alone hold 9510; 426 on the
+rules lane — chapter two's 616, the 140 west first to rule in or out.**
 
 ## The queue
 
@@ -50,13 +51,14 @@ the AI, lower map first — Great Lakes. Take the first unstarted on either
 track unless a better order is obvious, and say so. Numbers are stable;
 the backlog is `docs/PARKED.md`, and an item returns only when a score names it.
 
-422. **5,755,741 against 45,568 on frame 9382** (the AI headline's own
-    cause, named by 414): `create_units`' scholar arm, same block, same two
-    numbers, and 234,782 — the Citizen both sides offer — sits between
-    them, so the original buys the Scholar where this crate buys the
-    Citizen. **Name no factor**: 5,755,741 / 45,568 is not an integer and
-    nothing says the gap is one cause rather than several (§48.4). run111
-    is on the disk and covers the block; grep it before booking a capture.
+430. **Does the ranking alone hold 9510?** (the AI headline's frame, after
+    422 pinned its cause): force the Scholar to outrank the Citizen in a
+    **scratch** build — not a fix, not a change to the wrap — and measure
+    how far the capture then agrees. Word advances: 9382 was the last
+    thing holding it, and a reading of `create_units@006c40a0`'s
+    want-and-divisor block is the critical path. Word holds: a second
+    cause sits behind it, and that is the item. Revert; report the number,
+    not the patch. No capture settles the terms (locals); `callfn.py` can.
 
 426. **Chapter two's frame 616** (the rules headline's own frame, named by
     415): the extra `Unit::fight+0x9b0` on the hoplites' birth frame.
