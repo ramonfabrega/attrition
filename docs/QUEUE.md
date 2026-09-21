@@ -20,18 +20,19 @@ the programme behind it closed. Both lanes widened before they read.*
   correction plus an `else if` that should be a third independent `if`
   (listing, 006c52ec), and the scholar arm now returns **5,755,741** and
   **4,891,136** — both of the original's offers to the unit. The 2:1
-  ratio was the inputs; 1.1768 was the wrap. The Merchant is the last
-  residue on 9380.
+  ratio was the inputs; 1.1768 was the wrap.
 - **The rules producer is named and the radius is closed** (443, word
   unmoved at 616): both sides run `think`'s step-3 search, and 616 and
   635 scan the **same cell**, so no radius separates them. 441's `near_o`
   argument was void — this crate has no such field. 447 takes §30.5's two
   survivors.
+- **The met bit's bracket is a block, and it is ours** (390, run115):
+  the original flips on **7945** — this crate's own — on both leaders at
+  once, `diplos` static across 130 blocks. 385's 558-frame bracket was
+  the last thing standing between "right in kind" and "right".
 - **A word is pinned with its widening** (DECISIONS 43): `WIDENINGS`
   names the test or the item; East Indies' 9711 and chapter one's 626
-  have none on file (444, 445, parked).
-- **The AI's dump paid for itself in one item** (367, run114, §52): the
-  offers 442 matched to the unit came off it. Four open, 67 parked.
+  have none on file (444, 445, parked). Three open, 68 parked.
   **Fable backlog: seven Loop items** (251, 335, 313, 375, 428, 446, 449).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
@@ -40,7 +41,7 @@ Golden: w616 of 901 (ch2) · ch1 w626 · 447 next
 Endpoint 24001: EastIndies 64 off, 10 unlinked · GreatLakes 55 off, 8 unlinked
 
 **Opener: 448 on the AI lane and 447 on the rules — the moved word owes
-its widening, and 390's capture is still out.**
+its widening, and the capture lane is free.**
 
 ## The queue
 
@@ -67,13 +68,6 @@ the backlog is `docs/PARKED.md`, and an item returns only when a score names it.
     type-record arm (`UnitTypeData +0x9a` bit 6) — each with a written
     falsifier; book neither before a reading kills one. The unspent
     capture is `+0x9a` per unit over [614, 640). run113 unspent.
-
-390. **A `LEADERS≥2` window anywhere in (7616, 8174]** (capture lane;
-    takes-chain to the met bit): nothing on disk dumps a leader between
-    7600 and 8174, so this crate's CONTACT flip frame **7944 is checked
-    against a bracket, not a frame**. The cheapest capture left on the
-    mechanism 385 just landed. Assert the block count against the window
-    asked for — run97's truncation is why (373).
 
 342. **Host choice seats the scholar on the wrong university** — 338's
     residue, re-pinned three times, and now `1/55`. **Re-measure before

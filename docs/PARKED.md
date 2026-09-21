@@ -793,6 +793,23 @@ wants a different shooter rather than a different frame.
 
 ## Measured residues, none near a word
 
+(451) **The original runs its war census for the HUMAN leader, and this
+crate leaves it at zero forever.** Opened by run115's window (item 390,
+2026-09-21) and not that item's: `0/wars`, `0/active_wars` and
+`0/active_wars_with` agree at nought for 121 blocks and part on **8001**,
+where the original writes the human `wars 1`, `active_wars 1`,
+`active_wars_with 2` beside a single `production_step` tick that falls
+back to 0 on 8002 — 56 blocks after first contact. **First direct
+evidence on this disk** that the census runs for a human at all, which is
+what `docs/AI.md` §45 argued from the decompile
+(`plan_strategy@006b9620:1511,1557` gates on `leader_flags & 2`, `i !=
+who` and the met bit, and on nothing about humans) and what §43's `human`
+skip contradicts. Parks because it names no score *yet*: the AI reads its
+own `active_wars`, not the human's, so what this would move is the human
+leader's own production, and whether that lands on any word's frame is
+unmeasured. The three fields are already pinned in `PARTS_ON_RUN115`, so
+a successor has standing rows to move rather than a hypothesis.
+
 (450) **The Merchant offer on Great Lakes 9380 is the original's and not
 ours.** Item 442 matched both Scholar offers to the unit and the Citizen
 exactly (`docs/AI.md` §53, `§52.2`'s table), leaving one row unaccounted:

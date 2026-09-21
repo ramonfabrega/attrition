@@ -5242,8 +5242,11 @@ The dumps say why. Player 1's diplomacy over four Great Lakes windows:
 | 9170 (run107) | 0 | **1** | 1 | 1 |
 
 `diplos[0]` is 0 — at war — on all four. **The diplomacy never moves.**
-What moves is `treaties[0]`'s low bit, the met bit, somewhere in
-(7616, 8174], and `plan_strategy@006b9620:1511,1557` gates both loops on
+What moves is `treaties[0]`'s low bit, the met bit, on **block 7945** —
+item 390 captured a fifth window, run115's `[7880, 8010)`, and closed
+(7616, 8174] to that one block, which is this crate's own
+(`docs/VISION.md` §6.3). `plan_strategy@006b9620:1511,1557` gates both
+loops on
 it and on `leader_flags & 2` and `i != who` and **nothing else** — no
 `human` test exists in the original at all. So the human skip is a
 stand-in for a bit this crate never sets, and on a one-human-one-AI
@@ -5422,10 +5425,16 @@ session. It is not a claim the seating is fixed.
   non-exempt attrition outcome in run53's 24,000 frames, so no capture on
   this disk could tell whether it is right. A map where an army campaigns
   abroad would.
-- **The exact flip frame.** 7944 is this crate's; the original's is only
+- ~~**The exact flip frame.** 7944 is this crate's; the original's is only
   bracketed to (7616, 8174] because no capture dumps a leader between
   7600 and 8174. A `LEADERS≥2` window anywhere in that gap would pin it,
-  and it is the cheapest capture left on this mechanic.
+  and it is the cheapest capture left on this mechanic.~~ **Closed by
+  item 390, `docs/VISION.md` §6.3**: run115 is that window and the
+  original's block is **7945**, this crate's own, flipping on both
+  leaders at once with `diplos` static across all 130 blocks. The record
+  needs **`LEADERS≥3`**, not `≥2` — `LeaderData::log_data@006e5110:213`
+  raises the detail to 3 immediately before the `diplos`/`treaties` loop,
+  and that sentence is what decides whether a capture is owed.
 - **The region loop's building test and `census_strategy`'s `weaker`**,
   which reads the *other* leader's `attack` and for a human reads a census
   this crate does not run (§43). They did not have to be right for 9182;
