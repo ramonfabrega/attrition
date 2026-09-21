@@ -32,12 +32,12 @@ landings that moved neither. Every one of the five widened before it read.*
   static across 130 blocks.
 - **Both words are widened and pinned** (442/448, 447): `WIDENINGS`
   names a test for each. East Indies' 9711 and chapter one's 626 still
-  owe theirs (444, 445, parked). Two open, 73 parked.
-  **Fable backlog: nine Loop items** (251, 335, 313, 375, 428, 446, 449, 452, 453).
+  owe theirs (444, 445, parked). Two open, 76 parked.
+  **Fable backlog: ten Loop items** (251, 335, 313, 375, 428, 446, 449, 452, 453, 461).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w9711 of 24,000 · GreatLakes w10161 of 24,000
-Golden: w624 of 901 (ch2) · ch1 w626 · 457 next
+Golden: w624 of 901 (ch2) · ch1 w626 · 462 next
 Endpoint 24001: EastIndies 64 off, 10 unlinked · GreatLakes 53 off, 8 unlinked
 
 **Opener: 456 on the AI lane and 457 on the rules — both on a moved
@@ -60,14 +60,14 @@ the backlog is `docs/PARKED.md`, and an item returns only when a score names it.
     `collide_o`/`collide_who` two instructions on. **run116** reserved,
     the ask and its falsifier in `docs/AI.md` §54.4.
 
-457. **`ObjectData::visible` (+0x40), the other half of `is_seen`** (the
-    rules headline's frame; 447 moved the word to 624 and named this at
-    `docs/COMBAT.md` §31.7): the original's `1/6` accepts `0/10` at 635
-    because the slinger set its own bit at 631 **by attacking**
-    (`set_attacking@005ff5b0`, `visible |= 1 << victim_who`); this crate
-    has no such field. Its writers, its clear-on-`work` rule, and a gate
-    on the attacker's type vtable **+0x10c** that `vtables.txt` names for
-    no `*Type` vtable — settle that from the listing. run113 unspent.
+462. **622's three destinations, ours one seat and theirs three points**
+    (the rules headline's frame; 447 widened [620, 628), 457 left the word
+    at 624): we plan all three slingers to `(2424, 7800)` — `1/6`'s own
+    seat — against `(1608, 8184)`, `(1560, 7848)`, `(1704, 8424)`, ten
+    path slots to six, and 624's extra draw is that destination. **A named
+    candidate**: parked 460, `Profile::x_size` 0 where the original's is
+    `CIRCLE_RADIUS`, so `find_attack_pos` reads a unit target's extent as
+    `(0, 0)` here and `(0x60, 0x60)` there. Falsifier written.
 
 342. **Host choice seats the scholar on the wrong university** — 338's
     residue, re-pinned three times, and now `1/55`. **Re-measure before
