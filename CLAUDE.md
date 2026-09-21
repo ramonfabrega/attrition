@@ -140,7 +140,7 @@ subagent inherits this file and the memory index, and nothing else
 | `docs/<MECHANIC>.md` | the specification: rules, fields, formulas, coverage | amended in place; its section numbers are an API the code cites; the story goes to the journal; size guarded | no |
 | `docs/DECISIONS.md` | decisions and their rationale | append; amend in place, never delete | no |
 | `docs/audit/` | the second readings' verdicts, and the method's record | one file per audit | no |
-| `docs/RUNS.md` | the oracle's ledger, one section per capture | a capture appends its section; `docs/ORACLE.md` keeps the runbook | no |
+| `docs/RUNS.md` | the oracle's ledger, one section per capture | a capture appends its section and git merges the file by union; `docs/ORACLE.md` keeps the runbook | no |
 | memory (`~/.claude/projects/…/memory/`) | machine and account facts only | per user, outside git | **the index is** — keep its hooks free of findings |
 
 Read `docs/QUEUE.md` first — its opening section is the handoff and its last
@@ -261,6 +261,10 @@ rules follow:
   failed on its first run. **And every unit on the frame, not the ones the
   brief names**: a call chain names a function, never a cast, and the whole
   cast either side of a frame answers "who changed" without a hypothesis.
+  **A row is a field, never a unit** — a key that collapses a record's
+  fields hides all but the first for the rest of the run — and the blocks a
+  residue count gates on the position are read again at the parting,
+  because the frame a position parts is the frame a word is read on.
   Twice in a day the named mechanism was wrong and the widening said so in
   twenty minutes.
 - **A word is pinned with its widening.** The first item on a new word
@@ -273,6 +277,9 @@ rules follow:
   writes what would kill each reading before the run. **A payoff probe
   changes only the frames under test** — one wide enough to touch a
   frame that already agrees reports that frame's breakage as its result.
+  **A probe of a decision the original makes mid-frame runs inside the
+  decision**, never at the frame boundary: the two are different
+  measurements, and the cheap one has named the wrong mechanism.
   **A dumped record's slot index is not an identity**; compare on what
   the slot holds.
 - **A finding that can become an assertion must become one before its audit
@@ -289,6 +296,9 @@ rules follow:
 - **Grep the dump before booking a reading.** An open question whose
   answer is a field the original already prints costs a `grep` and has
   more than once cost a reading instead.
+- **Grep this crate for a field before reading the original's writers of
+  it.** A comparison against a field this crate does not carry is a
+  comparison against nothing, and one once carried five items.
 - **And grep the disk before booking a capture.** Widen every dumped
   record the mechanic touches first; book the capture only for what no
   record already on disk can answer. The same rule one level up, and it
@@ -357,7 +367,9 @@ decompiler is wrong, the rewrites of this file and the queue, and **the
 loop's own items** — tooling, guards, the queue's rules — which live in
 `docs/PARKED.md`'s Loop section and are never spawned to a worker. It
 writes the next opener. Never Sonnet; the model is said in user-visible text each
-time. A commander may land a **one-clause safety fix in this file itself**
+time. **A commit's trailer names the model the worker's own system prompt
+names** — never one the brief dictates, and never the harness's attribution
+reminder alone, which has been wrong. A commander may land a **one-clause safety fix in this file itself**
 when its evidence is measured and its source named, filing a `FABLE:` row
 the same day; everything else in this file waits for the pass.
 
@@ -496,7 +508,9 @@ and makes the eventual diff mechanical rather than a translation exercise.
   sources, and `focus.sh` the single window query; see `docs/ORACLE.md`,
   "Off CrossOver", for why each is needed and `docs/DECISIONS.md` 32 for why
   it is not a licence. `cliclick` drives it; System Events clicks do not
-  reach it.
+  reach it. The launch line holds a **lane lock** keyed on the game's own
+  pid: a second launch into a running game refuses and names the holder,
+  and the lock releases itself when the game exits.
 - **A function of the executable can be called outside the game.**
   `tools/emu/callfn.py` maps it under unicorn (`uv run`, dependency declared
   in the script) and enters a function with chosen arguments; a sweep is a

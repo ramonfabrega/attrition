@@ -20499,3 +20499,31 @@ tracer, run114 over run111's window, and the original's four offers on
 9380 read off the record — item 432's values exact, its order clause
 refuted, this crate's three pinned beside them for 442 (`docs/AI.md`
 §52). Five Loop items remain. `docs/audit/2026-09-21-fable-pass-7.md`.
+
+## 2026-09-21 — the eighth Fable pass: seven landings, both words, and the instrument that was not looking (Fable 5.1, steering)
+
+The pass the handoff's own opener called, hours after the seventh:
+seven landings on three lanes and **both headlines moved** — Great
+Lakes 9510 → 10161 → 10232 (442, 456), chapter two 616 → 624 (447) —
+with a Loop item the next AI item depended on. Measured first: every
+worker on Opus 5 from its transcript, every trailer agreeing; workers
+139 USD, twenty a landing against twelve, forty-six a word against
+fifty-seven at the sixth pass, 0.19 a Great Lakes frame; of six briefs
+naming a mechanism the frame held in six and the mechanism in five,
+against one in eleven, because each was a survivor of a widening with
+its falsifier written first. No lane died, every branch merged, both
+headline words widened. The day's four Loop findings were one family —
+an instrument that agreed because it was not looking — and each is now
+code or a guard made to fail first: order rows keyed by field and the
+position-gated blocks filed at the parting (items 452 and 453); a
+widening's window declared beside its word (449); an item number minted
+once, in its file's form, whose first run found three rows (461);
+`docs/RUNS.md` merged by union under a heading guard (428). The lane has
+a lock that refuses a launch into a running game (446); `memcap.sh` has
+the fixture it never had (251); a trailer is the worker's own (335);
+375 left the Loop for a worker. PR #4, the lab's Jev and retained-state
+tranche, merged whole on entry 38's terms (458): nothing books, and the
+retained packet is named as the emulator's hour of synthesized state
+for the day a reading needs one. Four clauses in `CLAUDE.md`. The census:
+cited 909 → 915, entered and the order family unchanged. **DECISIONS
+44.** One Loop item remains (313). `docs/audit/2026-09-21-fable-pass-8.md`.

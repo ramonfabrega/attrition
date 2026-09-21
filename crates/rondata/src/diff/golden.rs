@@ -1337,11 +1337,13 @@ fn chapter_two_s_hoplite_captain_refused_a_cell_three_searches_reached() {
 #[test]
 fn chapter_two_s_word_frame_is_widened_whole() {
     /// The first frame compared: run112's window opens at 605 and the
-    /// slinger squad is born at 621, so this is inside both.
-    const FIRST: i64 = 620;
+    /// slinger squad is born at 621, so this is inside both. Declared in
+    /// [`WIDENING_CHAPTER_TWO`] beside the `WIDENINGS` row, so the floors
+    /// guard reads the word against the same window this walks.
+    const FIRST: i64 = WIDENING_CHAPTER_TWO.0;
     /// One past the last. 624 is the word; three frames either side is
     /// enough to say the parting opens *there* and not before.
-    const LAST: i64 = 628;
+    const LAST: i64 = WIDENING_CHAPTER_TWO.1;
     let Some(inst) = crate::testenv::install() else {
         return;
     };

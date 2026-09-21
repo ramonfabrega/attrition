@@ -230,6 +230,14 @@ mod tests {
     /// owed one must be an item the queue books or the parked file holds.
     /// Made to fail first on a misspelt test name and on an item number
     /// nothing carries.
+    ///
+    /// **And the word sits inside the test's own window** (parked 449,
+    /// the eighth pass): a named test declares the block window it walks
+    /// and the word must be strictly inside it, because a widening whose
+    /// window the word has walked out of passes by saying nothing — which
+    /// is how run100's 9382 test read as Great Lakes' widening for 651
+    /// frames. Made to fail first with chapter two's window moved to
+    /// `(630, 640)` over a word of 624.
     #[test]
     fn the_widening_behind_each_pinned_word_exists() {
         let root = concat!(env!("CARGO_MANIFEST_DIR"), "/src/diff");
@@ -243,13 +251,24 @@ mod tests {
         let docs = concat!(env!("CARGO_MANIFEST_DIR"), "/../../docs");
         let queue = std::fs::read_to_string(format!("{docs}/QUEUE.md")).expect("QUEUE.md");
         let parked = std::fs::read_to_string(format!("{docs}/PARKED.md")).expect("PARKED.md");
-        for (name, word, test, item) in WIDENINGS {
+        for (name, word, test, item, window) in WIDENINGS {
             match test {
-                Some(t) => assert!(
-                    source.contains(&format!("fn {t}(")),
-                    "{name} = {word} names widening test `{t}`, and no `fn {t}(` exists \
-                     under crates/rondata/src/diff/"
-                ),
+                Some(t) => {
+                    assert!(
+                        source.contains(&format!("fn {t}(")),
+                        "{name} = {word} names widening test `{t}`, and no `fn {t}(` exists \
+                         under crates/rondata/src/diff/"
+                    );
+                    let (lo, hi) = window.unwrap_or_else(|| {
+                        panic!("{name} = {word} names widening test `{t}` and no window; declare the block window the test walks")
+                    });
+                    assert!(
+                        lo < *word && *word < hi,
+                        "{name} = {word} is not inside its widening's window [{lo}, {hi}) — \
+                         `{t}` widens a frame the word has left. Move the window with the \
+                         word (item 456's lesson) rather than leaving the row reading as pinned"
+                    );
+                }
                 None => assert!(
                     queue.contains(&format!("\n{item}. "))
                         || parked.contains(&format!("({item}) **")),

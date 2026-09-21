@@ -2921,7 +2921,7 @@ mod tests {
         // a unit that drifts there is the word's consequence rather than a
         // row of its own (run57's rule).
         let excused = |who: i64, o: i64, what: &str| {
-            matches!((who, o), (1, 23) | (1, 24) | (1, 25) | (1, 26)) || what == "group id"
+            matches!((who, o), (1, 23) | (1, 24) | (1, 25) | (1, 26)) || what == "order:group.id"
         };
         let mut wrong: Vec<(i64, i64, i64, String, String)> = Vec::new();
         let mut above = 0usize;
@@ -3278,10 +3278,14 @@ mod tests {
         // value diff beside the reveal: with the capital lighting itself
         // into the AI's fog the scout walks the original's western track
         // for all 292 blocks, coordinate for coordinate.
+        // `rows` names every order field on its own (`order:move.facing`,
+        // `path[1].to`, …); `first("order")` is the earliest of any of them.
         let first = |what: &str| -> Option<i64> {
             wrong
                 .iter()
-                .filter(|(_, who, o, w, _)| (*who, *o) == (1, 0) && w == what)
+                .filter(|(_, who, o, w, _)| {
+                    (*who, *o) == (1, 0) && (w == what || w.starts_with(&format!("{what}:")))
+                })
                 .map(|(f, _, _, _, _)| *f)
                 .min()
         };
@@ -3312,7 +3316,17 @@ mod tests {
     /// Every disagreement one frame's comparison holds, as
     /// `(who, o, what, row)` — the whole record rather than the field a
     /// mechanic happens to care about (`CLAUDE.md`, "Prefer a diff to a
-    /// reading").
+    /// reading"), **and every field under its own name**: an order row is
+    /// `order:coll` or `path[2].to` ([`OrderMismatch::label`]), never the
+    /// bare word `order`, because a reader that keys on `(who, o, what)`
+    /// would otherwise file every order field after the first as "this
+    /// unit's order already parted" — which hid `coll_x`/`coll_y` on the
+    /// AI word's own frame behind a group-id residue (parked 452, item
+    /// 448). The three position-gated blocks are here twice: counted
+    /// under their field on the frames the position agrees, and as
+    /// `<field>@parted` on the frames it does not (parked 453), so a
+    /// widening read at the word sees `half_step@parted` beside `pos`
+    /// rather than nothing.
     fn rows(fr: &FrameResult) -> Vec<(i64, i64, String, String)> {
         let mut out: Vec<(i64, i64, String, String)> = Vec::new();
         for d in &fr.diverged {
@@ -3324,21 +3338,48 @@ mod tests {
             ));
         }
         for d in &fr.order_diverged {
-            let what = if matches!(d.what, OrderMismatch::Group { field: "id", .. }) {
-                "group id"
-            } else {
-                "order"
-            };
-            out.push((d.who, d.o, what.into(), format!("{:?}", d.what)));
+            out.push((d.who, d.o, d.what.label(), format!("{:?}", d.what)));
         }
         for d in &fr.angle_diverged {
-            out.push((d.who, d.o, "angle".into(), format!("{d:?}")));
+            out.push((d.who, d.o, format!("angle:{:?}", d.which), format!("{d:?}")));
+        }
+        for d in &fr.angle_parted {
+            out.push((
+                d.who,
+                d.o,
+                format!("angle:{:?}@parted", d.which),
+                format!("{d:?}"),
+            ));
         }
         for d in &fr.collide_diverged {
             out.push((
                 d.who,
                 d.o,
                 d.field.into(),
+                format!("{} v {}", d.ours, d.theirs),
+            ));
+        }
+        for d in &fr.collide_parted {
+            out.push((
+                d.who,
+                d.o,
+                format!("{}@parted", d.field),
+                format!("{} v {}", d.ours, d.theirs),
+            ));
+        }
+        for d in &fr.search_diverged {
+            out.push((
+                d.who,
+                d.o,
+                "start_dist".into(),
+                format!("{} v {}", d.ours, d.theirs),
+            ));
+        }
+        for d in &fr.search_parted {
+            out.push((
+                d.who,
+                d.o,
+                "start_dist@parted".into(),
                 format!("{} v {}", d.ours, d.theirs),
             ));
         }

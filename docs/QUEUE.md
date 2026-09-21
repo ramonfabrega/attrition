@@ -12,36 +12,34 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-21, seven landings on three lanes. **Both headlines moved** —
-the AI word 9510 → 10161 → 10232 and the golden record 616 → 624 — after
-sixteen landings that moved neither. Every one widened before it read.*
+*2026-09-21, the eighth Fable pass, after seven landings on three lanes:
+**both headlines moved** — Great Lakes 9510 → 10232, chapter two 616 →
+624 — and the pass built the guards the day's own findings named.*
 
-- **The AI headline moved twice, 9510 → 10232** (442 +651, 456 +71): the
-  scholar arm's third `if` read as an `else if` (listing, 006c52ec), then
-  the group-mate soft arm reading `UnitData +0x104` as zero — **the field
-  exists** (`Unit::search`, PATHFINDER §18), and a seam comment saying
-  otherwise outlived it a fortnight, widening the arm by every unit busy
-  re-planning.
-- **The rules headline moved, 616 → 624** (447, after 443 closed the
-  radius): `valid_target`'s fifth test is **fog on the target**
-  (`is_seen`), which this crate did not have — and `add_unit` skipped
-  `add_to_world`'s `update_seen`, so a unit born on the map lit nothing
-  until it crossed a half-cell. Great Lakes' endpoint 55 → 53 with it;
-  East Indies and every other score unmoved.
-- **The met bit's bracket is a block** (390, run115): the original flips
-  on **7945**, this crate's own, on both leaders at once.
-- **Both words are widened and pinned** (448, 447, re-pinned by 456 with
-  the move): East Indies' 9711 and chapter one's 626 still owe theirs
-  (444, 445, parked). Two open, 76 parked.
-  **Fable backlog: ten Loop items** (251, 335, 313, 375, 428, 446, 449, 452, 453, 461).
+- **The AI word is 10232** (442 +651, 456 +71), widened and pinned;
+  10233's residue is formation pathing on four units (463).
+- **The rules word is 624** (447), widened and pinned; 622's three
+  destinations are the residue (462), and parked 460 is a named
+  candidate with its falsifier written.
+- **The instrument was not looking, four ways, and now is**: order rows
+  keyed by field and the position-gated blocks read at the parting;
+  a widening's window declared beside its word; an item number minted
+  once, in its file's form — its first run found three; `docs/RUNS.md`
+  merged by union under a guard. The lane has a lock; `memcap.sh` has
+  its fixture; a trailer is the worker's own. DECISIONS 44.
+- **PR #4 is merged whole** on DECISIONS 38's terms; nothing from it
+  books. East Indies' 9711 and chapter one's 626 still owe widenings
+  (444, 445, parked). Three open, 68 parked.
+  **Fable backlog: 1 Loop item** (313).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w9711 of 24,000 · GreatLakes w10232 of 24,000
 Golden: w624 of 901 (ch2) · ch1 w626 · 462 next
 Endpoint 24001: EastIndies 64 off, 10 unlinked · GreatLakes 48 off, 13 unlinked
 
-**Opener: the eighth Fable pass, then 463 and 462 — steer first because
-452 blinds 463: `rows()` collapses order rows, and 463 IS order rows.**
+**Opener: 463 on the AI lane — re-measure 10233 with `rows()` keyed by
+field and the parted blocks before naming anything — and 462 beside it
+on the rules lane, with 460's `x_size` as its first falsifier.**
 
 ## The queue
 

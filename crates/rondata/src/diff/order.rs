@@ -169,6 +169,37 @@ impl OrderMismatch {
         }
     }
 
+    /// The row's **field name**, for a widening keyed by field — `order:coll`,
+    /// `order:move.dest_x`, `path[2].to` — rather than the variant's name
+    /// or, worse, the bare word `order`.
+    ///
+    /// **Why a key is a field and never a unit** (parked 452, item 448):
+    /// a widening that keys its rows on `(who, o, "order")` files every
+    /// order field after the first as "this unit's order already parted",
+    /// and `1/38` carried a `GROUPORDER` `id` residue from block 9340 that
+    /// swallowed `coll_x`/`coll_y` on the AI word's own frame — the two
+    /// fields that said what the collision sweep decided. Item 448 keyed
+    /// by field inside its own test; this is that label made the only
+    /// one, so `unit::rows` and every reader of it see every field.
+    pub fn label(&self) -> String {
+        match self {
+            Self::Length { .. } => "order:length".into(),
+            Self::Kind { .. } => "order:kind".into(),
+            Self::Unspellable { .. } => "order:unspellable".into(),
+            Self::Header { .. } => "order:header".into(),
+            Self::Group { field, .. } => format!("order:group.{field}"),
+            Self::Action { .. } => "order:action".into(),
+            Self::Target { .. } => "order:target".into(),
+            Self::Flags { .. } => "order:flags".into(),
+            Self::Gather { field, .. } => format!("order:gather.{field}"),
+            Self::Coll { .. } => "order:coll".into(),
+            Self::Move { field, .. } => format!("order:move.{field}"),
+            Self::PathLength { .. } => "path:length".into(),
+            Self::PathTo { slot, .. } => format!("path[{slot}].to"),
+            Self::PathField { slot, field, .. } => format!("path[{slot}].{field}"),
+        }
+    }
+
     /// The variant's name, for a tally.
     pub const fn name(&self) -> &'static str {
         match self {

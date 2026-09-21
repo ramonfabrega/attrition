@@ -77,6 +77,20 @@ pub struct FrameResult {
     /// and then stands for the rest of that unit's life.
     pub search_compared: usize,
     pub search_diverged: Vec<SearchDivergence>,
+    /// **The three gated blocks on the unit-frames whose position parted**
+    /// — the collision block, `start_dist` and the two angles, compared
+    /// exactly as above but filed here instead of counted (parked 453,
+    /// item 448). The gate on the position is right for a residue count:
+    /// a unit standing somewhere else collides with different things as a
+    /// consequence. It is blind on exactly the frame a position parts,
+    /// which is the frame a word is read on — `half_step` is dumped on
+    /// every block of every capture and was unreadable at 10161 for this
+    /// reason alone. Nothing here scores; a widening reads it beside
+    /// [`diverged`](Self::diverged) so the value diff at the parting is
+    /// on the record.
+    pub collide_parted: Vec<CollideDivergence>,
+    pub search_parted: Vec<SearchDivergence>,
+    pub angle_parted: Vec<AngleDivergence>,
     /// Gather-record fields compared this frame, and the ones that
     /// disagreed. `BUILDS=7` is what writes the mining list; below it only
     /// `gather_down` is compared, and on a capture with no `BUILDDATA` at

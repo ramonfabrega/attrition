@@ -2142,7 +2142,14 @@ Two free translators can answer that call. Neither stock one does:
 `C:\users\crossover` symlink every CrossOver-era ini path needs (x32 `d3d11`, `dxgi`, `d3d10core` into
 the prefix's `syswow64`; nothing enters this repo), and
 `tools/gamelog/winelaunch.sh` is the single launch line every capture script
-now sources.
+now sources. Since the eighth Fable pass (2026-09-21, parked 446) that line
+also holds **the lane lock**: `ron_wine` writes the launched game's pid to
+`$RON_WINEPREFIX/.lane.lock` and refuses, with exit 75 and the holder's
+name, to launch while that pid is alive — the one case the human protocol
+(astra asks, Ramon relays, the commander holds) could not cover. The lock
+releases itself when the game exits; `RON_LANE_FORCE=1` overrides it for a
+human who knows the other game is theirs to kill; a launch that does not go
+through `ron_wine` is not covered.
 
 ### What runs, established by running it
 

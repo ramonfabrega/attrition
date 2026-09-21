@@ -1570,8 +1570,43 @@ pub(crate) const GOLDEN_WORD_CHAPTER_TWO: i64 = 624;
 /// diff/`, and a `None` must name an item that is open in `docs/QUEUE.md`
 /// or parked in `docs/PARKED.md`. The last column is the item — the one
 /// that landed the widening, or the one that owes it.
-pub(crate) const WIDENINGS: &[(&str, i64, Option<&str>, u32)] = &[
-    ("LONG_WORD_EAST_INDIES", LONG_WORD_EAST_INDIES, None, 444),
+/// The block window `run100_s_word_block_is_every_record_the_dump_carries`
+/// walks — run100's first complete block to fourteen past the word. The
+/// test reads its bounds from here and the guard reads the word against
+/// them, so the two cannot disagree: a window the word has walked out of
+/// fails `the_widening_behind_each_pinned_word_exists` rather than passing
+/// by saying nothing (parked 449).
+pub(crate) const WIDENING_GREAT_LAKES: (i64, i64) = (9_340, 10_246);
+/// `chapter_two_s_word_frame_is_widened_whole`'s window, on the same
+/// terms: run112's window opens at 605, the slinger squad is born at 621,
+/// and one past the last frame compared.
+pub(crate) const WIDENING_CHAPTER_TWO: (i64, i64) = (620, 628);
+
+/// One pinned word's row: `(constant, word, widening test, item, window)`.
+pub(crate) type Widening = (
+    &'static str,
+    i64,
+    Option<&'static str>,
+    u32,
+    Option<(i64, i64)>,
+);
+
+/// **A named test carries
+/// the block window it walks**, and the guard requires the word to sit
+/// strictly inside it — `the_widening_behind_each_pinned_word_exists`
+/// checked only that the test *existed* until the eighth pass, so a row
+/// could go stale by success: run100's word-frame test widened 9382, item
+/// 442 moved the word 651 frames past it, and the row kept reading as
+/// pinned (parked 449). The window is a shared constant the test itself
+/// reads, which is what keeps the declaration from going stale the same way.
+pub(crate) const WIDENINGS: &[Widening] = &[
+    (
+        "LONG_WORD_EAST_INDIES",
+        LONG_WORD_EAST_INDIES,
+        None,
+        444,
+        None,
+    ),
     // Item 448 paid the widening 442 owed: `run100_s_word_block_is_every_
     // record_the_dump_carries` compares every field of every record run100
     // carries on the word's own block, both directions and ungated by the
@@ -1590,12 +1625,14 @@ pub(crate) const WIDENINGS: &[(&str, i64, Option<&str>, u32)] = &[
         LONG_WORD_GREAT_LAKES,
         Some("run100_s_word_block_is_every_record_the_dump_carries"),
         456,
+        Some(WIDENING_GREAT_LAKES),
     ),
     (
         "GOLDEN_WORD_CHAPTER_ONE",
         GOLDEN_WORD_CHAPTER_ONE,
         None,
         445,
+        None,
     ),
     // Item 447 moved this word 616 → 624 and wrote its widening in the
     // same landing rather than leaving the row owing one — the lesson
@@ -1607,5 +1644,6 @@ pub(crate) const WIDENINGS: &[(&str, i64, Option<&str>, u32)] = &[
         GOLDEN_WORD_CHAPTER_TWO,
         Some("chapter_two_s_word_frame_is_widened_whole"),
         447,
+        Some(WIDENING_CHAPTER_TWO),
     ),
 ];

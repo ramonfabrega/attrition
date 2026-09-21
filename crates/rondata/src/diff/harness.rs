@@ -120,12 +120,19 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
         // (`docs/COLLISION.md` §8). `UnitData::log_data` writes all five at
         // every detail level, so this is checked on every capture — and
         // the whole record is compared, not the field the mechanic happens
-        // to care about. Only on unit-frames whose *positions* agree: a
-        // unit that has walked somewhere else collides with different
-        // things as a consequence, and counting that would measure the
-        // position gap twice.
-        if ours == theirs && built.sim.units[link.unit].on_map {
+        // to care about. **Counted** only on unit-frames whose *positions*
+        // agree: a unit that has walked somewhere else collides with
+        // different things as a consequence, and counting that would
+        // measure the position gap twice. On the frames the position
+        // parts the same comparison is **filed** in `collide_parted`
+        // instead (parked 453): a gate that stops looking on the frame a
+        // position parts is blind on exactly the word's frame.
+        let on_map = built.sim.units[link.unit].on_map;
+        let agree = ours == theirs;
+        if on_map {
             let un = &built.sim.units[link.unit];
+            let mut compared = 0usize;
+            let mut parts: Vec<CollideDivergence> = Vec::new();
             for (field, mine, logged) in [
                 ("collide", i64::from(un.collide), u.collide),
                 ("collide_o", i64::from(un.collide_o), u.collide_o),
@@ -147,9 +154,9 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
                 ),
             ] {
                 let Some(theirs) = logged else { continue };
-                r.collide_compared += 1;
+                compared += 1;
                 if theirs != mine {
-                    r.collide_diverged.push(CollideDivergence {
+                    parts.push(CollideDivergence {
                         frame: frame.n,
                         who: u.who,
                         o: u.o,
@@ -166,9 +173,9 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
                 && theirs >= 0
                 && un.collide_frame > 0
             {
-                r.collide_compared += 1;
+                compared += 1;
                 if theirs != un.collide_frame {
-                    r.collide_diverged.push(CollideDivergence {
+                    parts.push(CollideDivergence {
                         frame: frame.n,
                         who: u.who,
                         o: u.o,
@@ -177,6 +184,12 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
                         theirs,
                     });
                 }
+            }
+            if agree {
+                r.collide_compared += compared;
+                r.collide_diverged.extend(parts);
+            } else {
+                r.collide_parted.extend(parts);
             }
         }
         // **`UnitData::start_dist` (`+0x130`)** — the dumped witness that
@@ -190,38 +203,44 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
         // *not* have is the interesting half: it says the original gave up
         // on a search here and this crate did not.
         //
-        // Gated on the positions agreeing for the same reason the
-        // collision block is: a unit that has walked somewhere else
-        // suspends on different searches as a consequence, and counting
-        // that would measure the position gap twice.
-        if ours == theirs
-            && built.sim.units[link.unit].on_map
-            && let Some(theirs_dist) = u.start_dist
-        {
-            r.search_compared += 1;
+        // Counted on the positions agreeing for the same reason the
+        // collision block is, and filed in `search_parted` otherwise.
+        if on_map && let Some(theirs_dist) = u.start_dist {
             let ours_dist = i64::from(built.sim.units[link.unit].start_dist);
+            if agree {
+                r.search_compared += 1;
+            }
             if ours_dist != theirs_dist {
-                r.search_diverged.push(SearchDivergence {
+                let d = SearchDivergence {
                     frame: frame.n,
                     who: u.who,
                     o: u.o,
                     ours: ours_dist,
                     theirs: theirs_dist,
-                });
+                };
+                if agree {
+                    r.search_diverged.push(d);
+                } else {
+                    r.search_parted.push(d);
+                }
             }
         }
-        // The two angles, each against its own field — **on the unit-frames
-        // where the two sides still agree on the position**. A unit that has
-        // walked somewhere else is facing somewhere else as a consequence,
-        // and counting that would measure the position gap twice over; what
-        // is wanted here is the turn model on its own. A garrisoned unit is
-        // skipped for the same reason `mylos` is: nothing turns it.
-        if ours == theirs && built.sim.units[link.unit].on_map {
+        // The two angles, each against its own field — **counted on the
+        // unit-frames where the two sides still agree on the position**. A
+        // unit that has walked somewhere else is facing somewhere else as a
+        // consequence, and counting that would measure the position gap
+        // twice over; what is wanted here is the turn model on its own. On
+        // the frames the position parts they are filed in `angle_parted`.
+        // A garrisoned unit is skipped for the same reason `mylos` is:
+        // nothing turns it.
+        if on_map {
             let m = built.sim.units[link.unit].movement;
+            let mut compared = 0usize;
+            let mut parts: Vec<AngleDivergence> = Vec::new();
             let mut angle = |which: Which, ours: i32, theirs: i64| {
-                r.angle_compared += 1;
+                compared += 1;
                 if i64::from(ours) != theirs {
-                    r.angle_diverged.push(AngleDivergence {
+                    parts.push(AngleDivergence {
                         frame: frame.n,
                         who: u.who,
                         o: u.o,
@@ -236,6 +255,12 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
             }
             if let Some(theirs) = u.guys.first().and_then(|g| g.angle) {
                 angle(Which::Facing, m.facing.0, theirs);
+            }
+            if agree {
+                r.angle_compared += compared;
+                r.angle_diverged.extend(parts);
+            } else {
+                r.angle_parted.extend(parts);
             }
         }
         if orders_logged {
@@ -6459,25 +6484,6 @@ mod tests {
     /// and it swallowed the `coll_x`/`coll_y` pair on the word's own
     /// frame — the one field of the record that says in so many words
     /// what the original refused.
-    fn order_label(m: &OrderMismatch) -> String {
-        match m {
-            OrderMismatch::Length { .. } => "order:length".into(),
-            OrderMismatch::Kind { .. } => "order:kind".into(),
-            OrderMismatch::Unspellable { .. } => "order:unspellable".into(),
-            OrderMismatch::Header { .. } => "order:header".into(),
-            OrderMismatch::Group { field, .. } => format!("order:group.{field}"),
-            OrderMismatch::Action { .. } => "order:action".into(),
-            OrderMismatch::Target { .. } => "order:target".into(),
-            OrderMismatch::Flags { .. } => "order:flags".into(),
-            OrderMismatch::Gather { field, .. } => format!("order:gather.{field}"),
-            OrderMismatch::Coll { .. } => "order:coll".into(),
-            OrderMismatch::Move { field, .. } => format!("order:move.{field}"),
-            OrderMismatch::PathLength { .. } => "path:length".into(),
-            OrderMismatch::PathTo { slot, .. } => format!("path[{slot}].to"),
-            OrderMismatch::PathField { slot, field, .. } => format!("path[{slot}].{field}"),
-        }
-    }
-
     /// **The widening [`LONG_WORD_GREAT_LAKES`] owes — every record run100
     /// carries on the AI headline's own frame, every field, both
     /// directions** (item 448, `docs/AI.md` §54).
@@ -6539,15 +6545,18 @@ mod tests {
     /// `g.des_angle[0]` and `heading`, and nothing of 10162's.
     #[test]
     fn run100_s_word_block_is_every_record_the_dump_carries() {
-        /// run100's first complete block.
-        const FIRST: i64 = 9_340;
+        /// run100's first complete block — [`WIDENING_GREAT_LAKES`], the
+        /// window the `WIDENINGS` row declares, so the guard and this test
+        /// read one number.
+        const FIRST: i64 = WIDENING_GREAT_LAKES.0;
         /// Fourteen blocks past the word — far enough to carry the
         /// re-convergence the last one had on 10165, and inside run100's
         /// own window. **Moved with the word on item 456** (10175 →
         /// 10246): a widening whose window stops short of the word it is
         /// the widening of passes by saying nothing, which is parked
-        /// 449's failure one step along.
-        const TAIL: i64 = 10_246;
+        /// 449's failure one step along — and since the eighth pass the
+        /// floors guard fails on it too.
+        const TAIL: i64 = WIDENING_GREAT_LAKES.1;
         const {
             assert!(
                 FIRST < LONG_WORD_GREAT_LAKES && LONG_WORD_GREAT_LAKES < TAIL,
@@ -6626,7 +6635,7 @@ mod tests {
                     );
                 }
                 for d in &r.order_diverged {
-                    note(d.who, d.o, order_label(&d.what), format!("{:?}", d.what));
+                    note(d.who, d.o, d.what.label(), format!("{:?}", d.what));
                 }
                 for d in &r.angle_diverged {
                     note(

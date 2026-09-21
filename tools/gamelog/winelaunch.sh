@@ -29,8 +29,33 @@
 RON_WINE_BIN=${RON_WINE_BIN:-/Applications/Wine Stable.app/Contents/Resources/wine/bin/wine}
 RON_WINEPREFIX=${RON_WINEPREFIX:-$HOME/wine-ron}
 
+# **The lane lock** (parked 446, the eighth pass, 2026-09-21). The prefix,
+# the window and `Logs/` are singletons, and until now nothing stopped one
+# launch landing inside another's game — the one case the human protocol
+# (astra asks, Ramon relays, the commander holds) does not cover. So
+# `ron_wine` refuses to launch while the last game it launched is alive.
+# The lock is one file, `$RON_WINEPREFIX/.lane.lock`: the launched wine's
+# pid on the first line, the holder and the time on the second. It is stale
+# the moment that pid is dead — the game's own exit releases it and nothing
+# has to remember to — and a stale lock is taken over silently. A live one
+# refuses with exit 75 and names the holder. `RON_LANE_HOLDER` names this
+# launch in the file (default: the sourcing script); `RON_LANE_FORCE=1`
+# ignores a live lock, for the human who knows the other game is theirs to
+# kill. A launch that does not go through this function is not covered,
+# which is the same limit the protocol had.
+RON_LANE_LOCK=${RON_LANE_LOCK:-$RON_WINEPREFIX/.lane.lock}
+
 ron_wine () {
   local log=$1; shift
+  if [[ -r "$RON_LANE_LOCK" && -z "${RON_LANE_FORCE:-}" ]]; then
+    local held_pid held_by
+    held_pid=$(sed -n 1p "$RON_LANE_LOCK")
+    held_by=$(sed -n 2p "$RON_LANE_LOCK")
+    if [[ "$held_pid" == <-> ]] && kill -0 "$held_pid" 2>/dev/null; then
+      print -u2 "ron_wine: the lane is held by $held_by (pid $held_pid, $RON_LANE_LOCK); refusing to launch a second game. RON_LANE_FORCE=1 overrides."
+      return 75
+    fi
+  fi
   export WINEPREFIX="$RON_WINEPREFIX"
   export WINEDLLOVERRIDES="mscoree,mshtml=d;d3d11,dxgi,d3d10core=n"
   export WINEDEBUG=${WINEDEBUG:--all}
@@ -38,4 +63,6 @@ ron_wine () {
   export DXVK_LOG_PATH=${DXVK_LOG_PATH:-none}
   nohup "$RON_WINE_BIN" "$@" > "$log" 2>&1 &
   RON_WINE_PID=$!
+  print -r -- "$RON_WINE_PID" > "$RON_LANE_LOCK"
+  print -r -- "${RON_LANE_HOLDER:-${ZSH_ARGZERO:-$0}} since $(date '+%Y-%m-%dT%H:%M:%S%z')" >> "$RON_LANE_LOCK"
 }

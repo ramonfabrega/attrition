@@ -421,6 +421,144 @@ fn the_handoff_counts_the_loop_backlog() {
     );
 }
 
+/// **An item number is minted once, and in its file's form** (parked 461,
+/// the eighth pass). Item 457 parked two real findings as `308.` and
+/// `309.` — both numbers already taken, one by a landed item with a journal
+/// entry, one by a live parked entry three hundred lines up the same file
+/// — and nothing fired: `tools/queueledger.py` asks whether a number was
+/// ever booked, not whether it is booked twice, and the counting guards
+/// key on the parked file's `(N) **` form, which a queue-form `N. **`
+/// entry is invisible to. So this collects every open item across the
+/// queue (`N. **`, paragraph-initial), the parked file (`(N) **`,
+/// line-initial) and the journal directory (`<date>-item-N.md`), and
+/// fails on a number that is live twice, on a landed number standing as a
+/// live entry, and on an entry written in the other file's form.
+///
+/// **Its first run found three**: `306.` and `307.` standing in the
+/// parked file's older backlog in the queue's form, and `(423)` live in
+/// the parked file a week after item 423 landed with a journal entry.
+#[test]
+fn an_item_number_is_minted_once_and_in_its_file_s_form() {
+    use std::collections::BTreeMap;
+    let queue = read("QUEUE.md");
+    let parked = read("PARKED.md");
+    let mut where_live: BTreeMap<u32, Vec<String>> = BTreeMap::new();
+    let mut wrong_form: Vec<String> = Vec::new();
+    for (n, _) in open_items(&queue) {
+        where_live
+            .entry(n)
+            .or_default()
+            .push("docs/QUEUE.md".into());
+    }
+    for (i, l) in queue.lines().enumerate() {
+        if let Some(rest) = l.strip_prefix('(')
+            && let Some((n, _)) = rest.split_once(") **")
+            && n.parse::<u32>().is_ok()
+        {
+            wrong_form.push(format!(
+                "docs/QUEUE.md:{}: `({n}) **` is the parked file's form; the queue books `{n}. **`",
+                i + 1
+            ));
+        }
+    }
+    for (i, l) in parked.lines().enumerate() {
+        if let Some(rest) = l.strip_prefix('(')
+            && let Some((n, _)) = rest.split_once(") **")
+            && let Ok(n) = n.parse::<u32>()
+        {
+            where_live
+                .entry(n)
+                .or_default()
+                .push(format!("docs/PARKED.md:{}", i + 1));
+        }
+        if let Some((n, rest)) = l.split_once(". ")
+            && rest.starts_with("**")
+            && n.parse::<u32>().is_ok()
+        {
+            wrong_form.push(format!(
+                "docs/PARKED.md:{}: `{n}. **` is the queue's form; the parked file holds `({n}) **`",
+                i + 1
+            ));
+        }
+    }
+    let mut landed: BTreeMap<u32, String> = BTreeMap::new();
+    for entry in std::fs::read_dir(docs().join("journal")).expect("docs/journal") {
+        let name = entry
+            .expect("entry")
+            .file_name()
+            .to_string_lossy()
+            .into_owned();
+        if let Some(stem) = name.strip_suffix(".md")
+            && let Some((_, n)) = stem.rsplit_once("-item-")
+            && let Ok(n) = n.parse::<u32>()
+        {
+            landed.insert(n, format!("docs/journal/{name}"));
+        }
+    }
+    let twice: Vec<String> = where_live
+        .iter()
+        .filter(|(_, at)| at.len() > 1)
+        .map(|(n, at)| format!("{n} is live at {}", at.join(" and ")))
+        .collect();
+    let landed_and_live: Vec<String> = where_live
+        .iter()
+        .filter_map(|(n, at)| {
+            landed.get(n).map(|j| {
+                format!(
+                    "{n} landed ({j}) and still stands live at {}",
+                    at.join(", ")
+                )
+            })
+        })
+        .collect();
+    assert!(
+        twice.is_empty() && landed_and_live.is_empty() && wrong_form.is_empty(),
+        "an item number is minted once, by the commander, in its file's form.\n\
+         live twice: {twice:#?}\nlanded and still live: {landed_and_live:#?}\n\
+         wrong form: {wrong_form:#?}\n\
+         A worker never mints a number (CLAUDE.md); a landed item's parked entry is \
+         closed — `(N) closed <date> by item N: …` — or deleted; the next free number is \
+         one past the highest anywhere"
+    );
+}
+
+/// **No `docs/RUNS.md` section heading stands twice** (parked 428, the
+/// eighth pass). Two lanes appending a capture each conflicted at the
+/// file's end on 2026-09-19 with their run numbers properly reserved,
+/// because the append *point* is the same line for both. `.gitattributes`
+/// now merges the file with the `union` driver, which keeps both appended
+/// sections instead of refusing — and whose one failure mode, a hunk
+/// applied twice, is a heading that appears twice. This is the check
+/// behind that driver; a duplicated heading is a merge to redo by hand.
+#[test]
+fn no_runs_section_heading_stands_twice() {
+    let runs = read("RUNS.md");
+    let mut seen: std::collections::BTreeMap<&str, Vec<usize>> = Default::default();
+    for (i, l) in runs.lines().enumerate() {
+        if l.starts_with("## ") {
+            seen.entry(l).or_default().push(i + 1);
+        }
+    }
+    let twice: Vec<String> = seen
+        .iter()
+        .filter(|(_, at)| at.len() > 1)
+        .map(|(h, at)| format!("{h:?} at lines {at:?}"))
+        .collect();
+    assert!(
+        twice.is_empty(),
+        "docs/RUNS.md carries a section heading twice — the union merge applied a hunk \
+         on both sides, or a section was pasted twice: {twice:#?}"
+    );
+    let attrs = std::fs::read_to_string(docs().join("../.gitattributes")).unwrap_or_default();
+    assert!(
+        attrs
+            .lines()
+            .any(|l| l.split_whitespace().collect::<Vec<_>>() == ["docs/RUNS.md", "merge=union"]),
+        ".gitattributes no longer merges docs/RUNS.md with the union driver; two lanes' \
+         captures will conflict at the append point again (parked 428)"
+    );
+}
+
 #[test]
 fn claude_md_carries_no_findings() {
     let text = std::fs::read_to_string(docs().join("../CLAUDE.md")).expect("CLAUDE.md");

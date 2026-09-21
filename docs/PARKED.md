@@ -33,107 +33,37 @@ each now a guard or a clause (`docs/audit/2026-09-19-fable-pass-6.md`,
 DECISIONS 42); the seventh, 2026-09-21, ruled nine — 416, 417, 419, 420,
 421, 424, 431, 433, 436 — two guards, six clauses and a DECISIONS
 paragraph — and **built 367**, the AI's dump, the same day: run114 and
-`docs/AI.md` §52 (`docs/audit/2026-09-21-fable-pass-7.md`, DECISIONS 43).
+`docs/AI.md` §52 (`docs/audit/2026-09-21-fable-pass-7.md`, DECISIONS 43);
+the eighth, the same evening, ruled eight — 251, 335, 428, 446, 449, 452,
+453, 461 — code, five guards, a lock, a fixture and a clause, each made to
+fail first, and merged PR #4 whole (458); 375 left for the ordinary list
+(`docs/audit/2026-09-21-fable-pass-8.md`, DECISIONS 44).
 341 closed 2026-09-18 by item 363.
 
-(461) **Nothing stops a worker minting an item number, and the guards
-cannot see a parked entry written in the wrong form.** Item 457, 2026-09-21,
-parked two real findings as `308.` and `309.` — **both numbers already
-taken**: 308 is a landed item with a journal entry from 2026-09-17, and
-309 is a live parked item three hundred lines up the same file. Neither
-guard fired, for two separate reasons worth fixing together. The numbers
-did not collide *visibly* because `queueledger.py` asks whether a number
-was ever booked, not whether it is booked **twice**; and the entries were
-invisible to the counting guards because they used the queue's `N. **`
-form instead of the parked file's `(N) **`, which is the shape every
-count and the Loop-backlog check keys on. Renumbered to 459 and 460 at
-book time and converted. **The rule is already written** — `CLAUDE.md`
-and the queue both say a worker never books a number — so this is not a
-rules gap but an unguarded one, and it is the third instance today of the
-same family as (449), (452) and (453): the instrument agreed because it
-was not looking. Cheapest shape: one guard that collects every `(N) **`
-and `N. **` across the queue, the parked file and `docs/journal/`, and
-fails on a number that appears twice or in the wrong form for its file.
-
-(452) **An order row keyed on `(who, o)` hides every field after the
-first, on every map's widening.** Measured by item 448, 2026-09-21, and
-it cost the most direct statement in the record: `1/38` has carried a
-GROUPORDER `id` residue since block 9340, and that residue **swallowed
-`coll_x`/`coll_y` on the AI word's own frame** — the two fields that say
-what the collision sweep decided. 448 keyed by field inside its own test
-and moved on, so the defect is still live in `unit.rs`'s `rows()` helper,
-which run87's and run94's widenings both use. Every widening on every
-other map has this blind spot today, and a widening is the one instrument
-this loop trusts over a reading.
-
-(453) **`compare` gates the collision block on the two positions already
-agreeing — blind on exactly the frame a position parts.** Item 448,
-2026-09-21. The collision block, the angles, `mylos` and `start_dist` are
-only compared when the positions match, which is right for a residue
-count and wrong at a word: `half_step` is dumped on every block of every
-capture and was unreadable at 10161 for this reason alone. Sibling of
 (452) and of the same family as (449): an instrument that quietly stops
 looking at the moment the thing it measures happens. Both are guard
 shapes, not mechanics, which is why they are here and not in the queue.
 
-(449) **A widening pin, and a vacuity guard, can go stale by success.**
-Measured twice on 2026-09-21 by item 442, which moved Great Lakes 9510 →
-10161. `the_widening_behind_each_pinned_word_exists` checks that a named
-widening test **exists**, never that it widens the word's *current*
-frame — so when the word moved 651 frames past run100's window the row
-kept passing and kept reading as pinned, which is the exact failure
-DECISIONS 43 was written against. Repointed to `None, 448` by hand at
-book time; the guard shape would be to compare the named test's frame
-with the word it is pinned beside, which needs the frame to be declared
-rather than buried in the test body. 442 reports the same class twice
-more from the other side: a test keyed on the headline reports the
-headline's *motion* as its own failure (both run100 tests did), and the
-ladder's shared-extras floor fell 15 → 10 because the AI stopped buying
-spurious units — a floor that only ratchets one way cannot tell a win
-from a regression. One family, three instances, and the pass should rule
-the family rather than the three.
+(281) it read `ps rss`, which over-counted the mapping 280 removed — ~1.3 GB
+of 260's 8,816 was run58's clean text — and a 2 s poll under-reports a
+sawtooth. Still wants the fixture with teeth: past the cap, dead in N
+seconds, exit 137.
 
-(446) **The capture lane has no interlock but a conversation.** Raised by
-Ramon, 2026-09-21: `astra`, a Codex session on this machine, borrows the
-lane in ~30-second bursts and asks each time whether it is free. Today's
-answer was `ps` plus the Logs directory's mtime, and the fence was two
-`SendMessage`s to the lanes in flight — which worked only because astra
-asked. The prefix, the window and the Logs directory are singletons, and
-nothing stops one of ours launching the game into a running capture; a
-capture that collides is also the kind of loss a branch check cannot see,
-because the damage is a log file, not a commit. **Explicitly not a
-priority** — the bursts are rare and always announced, and that is the
-user's own framing. Sharpened the same day: **the lane is this project's
-by default**, astra asks before taking it and notifies on release, so a
-booked capture never waits and never asks. That lowers a lock's value
-again — what it would buy is not coordination but a guard against the one
-case the protocol does not cover, a capture launched into a capture.
-**The interim protocol is the human**: astra asks Ramon, Ramon relays
-here, and the commander holds the next capture or grants a slot. So the
-pass is not choosing between a lock and nothing — it is choosing what
-replaces a person standing in the loop, and "nothing, keep relaying" is
-a legitimate verdict as long as that cost is named rather than assumed. Parked for the pass to weigh shape against cost. Two
-candidates: a lock file taken and released by `tools/gamelog/winelaunch.sh`
-— the single line every capture script already sources, so there is exactly
-one place to write it — carrying holder and start time and going stale
-after N minutes; or nothing at all, on the grounds that two agents and a
-question is cheaper than a mechanism nobody outside this repo honours. The
-pass should decide it **together with (428)**: both are "two lanes, one
-singleton, no interlock", and one answer may serve both.
+(341) closed 2026-09-18 by item 363: `live_session.stage()`'s window and
+categories are caller-supplied, the golden record's first run used them, and
+`docs/RUNS.md` run101–run105 is the evidence. The lane's real constraint was
+never the cursor — it is that a launch from inside Claude Code's own process
+tree gets no window at all (`nodrv_CreateWindow`, dead in 3.8 s, 0 frames),
+so every launch goes through `viadriver.sh` (`docs/ORACLE.md`, "The
+click-free lane needs a window").
 
-(428) **Reserving a run number does not reserve the append point.**
-Measured 2026-09-19: two lanes ran captures in parallel with run111 and
-run112 properly reserved to each, and their merges still conflicted,
-because both append a section to the **end** of `docs/RUNS.md` and neither
-brief said where. The second merge refused and backed out — nothing lost,
-but a landing stalled on a resolution the commander's brief could have
-prevented. Two shapes to weigh: a brief that reserves the append order the
-way it reserves the number, which costs a clause and fails silently when a
-lane lands out of order; or one section per file under `docs/runs/`, the
-way `docs/journal/` already works, which cannot conflict at all and is the
-pattern this repo has already chosen once for exactly this reason. The
-ledger's own section order would then be a generated index. The pass's,
-because it changes a document's shape and the guards that read it.
+(313) **The landing chain wants one verb.** Merge, gate, push and reap are
+one chain by rule since 09-17; ccc has `merge`, `update` and `clear`, and
+the reap is a separate command a commander typed after the chain twice and
+forgot twice. Filed with ccc as `land <ref>` or `merge --reap`; until it
+exists, the chain is one shell line in the commander's brief.
+
+## Parked by the eighth Fable pass, 2026-09-21 — a guard a worker can take
 
 (375) **A staged run is indistinguishable from an unstaged one, and the
 borrow of a checksum trace is ungated.** Found by item 364, 2026-09-18,
@@ -156,51 +86,6 @@ make that the only possible behaviour: a golden run declares itself, and
 the borrow refuses per-frame records from a run that did not. Written up
 because the next golden capture will hit it and a silently-passing
 comparison is what it looks like. Not urgent — see (376) for why.
-
-(251) **`memcap.sh` has two doors left and half a fixture**: the refused
-sample that read as zero is closed (exit 125, lab L25) and the mode-644
-door closed 09-07. Left: it takes a **GiB cap as its first argument**; and
-(281) it read `ps rss`, which over-counted the mapping 280 removed — ~1.3 GB
-of 260's 8,816 was run58's clean text — and a 2 s poll under-reports a
-sawtooth. Still wants the fixture with teeth: past the cap, dead in N
-seconds, exit 137.
-
-(335) **The commit trailer names the model the commander expected, not
-the one that ran.** This repo reads the `Co-Authored-By` trailer to answer
-"who wrote this tranche", while `CLAUDE.md`'s fan-out rules say to verify
-the model **from the transcript, never from the spawn parameter**. Both of
-the trailer's feeders are the forbidden source:
-
-- **The commander dictates it in the brief** — eight of twelve transcript
-  hits are worker prompts reading `Commit on loop-NNN with the trailer
-  "…Claude Opus 5…"` (loops 219, 227, 228, 234, 235, 236, 7448,
-  att-capture), written before the worker has made one request.
-- **The harness's attribution reminder is not the session's model** —
-  measured 2026-09-17, it said `Claude Fable 5.1` on a `claude-opus-5`
-  session, and the day's first commit went out wrong.
-
-**No realised wrong trailer is known here**: loop-329 ran `claude-opus-5`
-over 201 requests and its `4fb593b` says Opus. Latent, and it bites the
-first time a commander is wrong about what it spawned. Two smaller shapes
-ride along: **one model, two strings** (356 commits `Claude Opus 5 (1M
-context)` against 123 `Claude Opus 5`) and **149 of 772 commits untrailered**,
-46 of them merges. A guard can compare a commit's trailer against what
-served the session that wrote it — the first-request source `lore spawns`
-already trusts. Guard, hook, or "a brief never dictates it": the pass's.
-
-(341) closed 2026-09-18 by item 363: `live_session.stage()`'s window and
-categories are caller-supplied, the golden record's first run used them, and
-`docs/RUNS.md` run101–run105 is the evidence. The lane's real constraint was
-never the cursor — it is that a launch from inside Claude Code's own process
-tree gets no window at all (`nodrv_CreateWindow`, dead in 3.8 s, 0 frames),
-so every launch goes through `viadriver.sh` (`docs/ORACLE.md`, "The
-click-free lane needs a window").
-
-(313) **The landing chain wants one verb.** Merge, gate, push and reap are
-one chain by rule since 09-17; ccc has `merge`, `update` and `clear`, and
-the reap is a separate command a commander typed after the chain twice and
-forgot twice. Filed with ccc as `land <ref>` or `merge --reap`; until it
-exists, the chain is one shell line in the commander's brief.
 
 ## Parked by the seventh Fable pass, 2026-09-21 — two words without a widening
 
@@ -318,7 +203,9 @@ nothing to disagree with it either — struck in place and pointed at the
 measurement. Whether that generalises to a guard over counted claims in
 `docs/` is the pass's to judge; it is named here so it is not lost.
 
-(423) **`GOODS` is mislabelled in `diff/leader.rs`.** Found by item 414,
+(423) closed 2026-09-19 by its own landing (`docs/journal/2026-09-19-item-423.md`);
+the entry stood live a week after, and the eighth pass's number guard is
+what found it. **`GOODS` is mislabelled in `diff/leader.rs`.** Found by item 414,
 2026-09-19, while tracing what pays for a Scholar. Index 2 is named "metal"
 and index 2 is what pays this Scholar's 40 **wealth**:
 `sim::economy::Resource` has Wealth 2, Knowledge 3, Metal 4. **No verdict on
@@ -622,23 +509,6 @@ constraint: no live worker is in `crates/sim`'s animation code.
 
 ## Steering candidates, booked 2026-09-07 with Ramon
 
-(458) **PR #4 is a checkpoint the next pass will read** — booked by
-Ramon 2026-09-21, and explicitly **not a reason to steer early and not a
-gate on anything**: astra keeps working either way, the PR blocks
-nothing, and no action is asked of this loop before the pass happens on
-its own schedule. "Lab findings: Jev
-retrieval and bounded memory capture", branch `codex/jev-lab` into
-`main`, **54 files, +4,961/−34**, open, last touched 2026-09-21. It is
-the second harness's work, the same shape as the exploration merged
-whole on 2026-09-17 (`docs/DECISIONS.md` entry 38), so the precedent and
-its terms are on file: the lab keeps its own claim ledger
-(`docs/lab/LEDGER.md`), the guards do not scan it, and its products earn
-their place as opt-in tools rather than as sim code. The pass decides
-whether to take it, take part of it, or leave it; the questions the
-precedent says to ask are **which claims are diff-backed**, what it
-would oblige the guards to cover, and whether anything in it belongs in
-the sim rather than beside it. No worker touches this.
-
 Neither of the two below is a mechanic and neither moves a word, which is why both park
 rather than take a slot under a cap that stood at 18 of 18 the day they
 were booked. Ruled by the second Fable pass the same day
@@ -934,17 +804,17 @@ first bad 1658 (SYNC §4.2); (124) the loop flag is per animation file;
 (39) a 2D viewer over `Sim`; (41) `scenario.py`; a `find_target` block;
 run7's orders; a mounted attacker; `calc_gather` non-flat;
 `Leader::diplomacy`; (77) ANIM §3.2; (58) ROADS §7.4.
-306. **The `city` column is one high on every make row that carries one** —
-    ours 1/2 against theirs 0/1, on all 86 blocks of **both** windows, so an
-    off-by-one in whatever city index `make_me` is passed. Unrelated to any
-    value, which is what makes it separable from 305. AI §36.
+(306) **The `city` column is one high on every make row that carries one** —
+ours 1/2 against theirs 0/1, on all 86 blocks of **both** windows, so an
+off-by-one in whatever city index `make_me` is passed. Unrelated to any
+value, which is what makes it separable from 305. AI §36.
 
-307. **`age_p`'s zero-age arm is unexercised** — no type in the shipped tree
-    reaches "a predecessor of age 0 leaves the walk looking" on either
-    window, so that half of 302's fix rests on the PE listing and not on a
-    diff. It is a reading-only claim in a document otherwise diff-backed,
-    which is exactly what the coverage sections exist to flag. AI §36.4,
-    §36.6. Falsified by a capture where a zero-age predecessor exists.
+(307) **`age_p`'s zero-age arm is unexercised** — no type in the shipped tree
+reaches "a predecessor of age 0 leaves the walk looking" on either
+window, so that half of 302's fix rests on the PE listing and not on a
+diff. It is a reading-only claim in a document otherwise diff-backed,
+which is exactly what the coverage sections exist to flag. AI §36.4,
+§36.6. Falsified by a capture where a zero-age predecessor exists.
 
 (459) **The building half of `ObjectData::visible` is read and not built** —
 `Build::do_attack@006228f0:147` sets `visible |= 1 << target_who` after

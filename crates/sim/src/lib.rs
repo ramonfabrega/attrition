@@ -3901,6 +3901,8 @@ mod cities_tests;
 #[cfg(test)]
 mod docs_guard;
 #[cfg(test)]
+mod memcap_guard;
+#[cfg(test)]
 mod no_float;
 
 // Generated games, each played twice: determinism on paths no hand-written

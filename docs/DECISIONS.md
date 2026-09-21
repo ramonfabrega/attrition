@@ -54,7 +54,8 @@ is append-only and amended in place, as it always was.
 - 40 extended by 42 — The loop governs itself
 - 41 extended by 42 — Two tracks: the rules on a golden record, the AI on the long captures
 - 42 extended by 43 — The frame is the item; the loop's holes become guards
-- 43 standing — A word is pinned with its widening, and a landing is committed before it is gated
+- 43 extended by 44 — A word is pinned with its widening, and a landing is committed before it is gated
+- 44 standing — The instrument that agrees because it is not looking: four guards, and the lab merged beside the sim
 
 ## 1. Fidelity before divergence
 
@@ -2394,3 +2395,94 @@ whether the dump exists.
 landing against 12 and per word against 57; whether any word was pinned
 without its widening (the guard says); whether a lane died with work on
 its branch rather than on its floor; and the AI's dump.
+
+## 44. The instrument that agrees because it is not looking: four guards, and the lab merged beside the sim
+
+**Decided 2026-09-21**, the eighth Fable pass, in the main thread
+(`docs/audit/2026-09-21-fable-pass-8.md`). Extends entries 42 and 43;
+takes the lab's second tranche on entry 38's terms; overturns nothing.
+
+**What was measured.** Seven landings on three lanes since the seventh
+pass the same morning, every worker verified on Opus 5 from its
+transcript. **Both headlines moved**: Great Lakes 9,510 → 10,161 →
+10,232 (442, 456) and chapter two 616 → 624 (447); East Indies and
+chapter one unmoved. Workers' list price 139 USD — twenty a landing
+against twelve, forty-six a word-moving landing against fifty-seven at
+the sixth pass, 0.19 USD a Great Lakes frame against 0.18–0.23 at the
+fourth. Of six briefs that named a mechanism, the frame held in six and
+**the mechanism survived in five** — against one in eleven at the
+seventh pass — because each was written as a survivor of a widening with
+its falsifier beside it, not as a reading's conclusion. No lane died;
+every branch was merged; both headline words carry their widening.
+
+**Why the day's findings are one family.** Four Loop items were booked
+on 2026-09-21 and each is an instrument that agreed because it was not
+looking: a widening keyed on `(who, o)` hid every order field after the
+first behind a group-id residue, on the AI word's own frame (452); the
+collision block was compared only when the positions agreed, so it was
+unreadable on exactly the frame a position parts (453); the widening
+guard checked that a named test *existed* and not what it widened, so a
+row went stale by success for 651 frames (449); and a worker minted two
+taken item numbers in the wrong file's form and no guard could see either
+(461). Entry 42's rule stands — a loop's holes become guards — and each
+is now a check made to fail first.
+
+**The decisions.**
+
+1. **A row is a field, never a unit, and the gated blocks are read at the
+   parting.** `OrderMismatch::label` is the one name for an order row
+   and `unit::rows` uses it; `compare` files the collision block,
+   `start_dist` and the angles on the unit-frames whose position parted
+   in `collide_parted`, `search_parted` and `angle_parted` — counted
+   nowhere, so no residue floor moves, and readable everywhere, so a
+   widening at a word sees `half_step@parted` beside `pos`.
+2. **A widening declares its window beside the word.** `WIDENINGS` rows
+   carry the block window the named test walks, the test reads its
+   bounds from the same constant, and the floors guard requires the word
+   strictly inside. A window the word walks out of fails rather than
+   passing by saying nothing.
+3. **An item number is minted once, in its file's form.**
+   `docs_guard::an_item_number_is_minted_once_and_in_its_file_s_form`
+   reads the queue's `N. **`, the parked file's `(N) **` and the journal
+   directory, and fails on a number live twice, on a landed number still
+   standing live, and on the other file's form. Its first run found
+   three: two parked rows in the queue's form, and 423 live a week after
+   it landed. A landed item's parked entry is closed or deleted.
+4. **`docs/RUNS.md` merges by union** (`.gitattributes`), so two lanes'
+   captures no longer conflict at the append point, and
+   `docs_guard::no_runs_section_heading_stands_twice` catches the
+   driver's one failure mode. Two lanes editing one section is not
+   covered; the brief's section reservation is.
+5. **The lane has a lock.** `ron_wine` refuses to launch while the game it
+   last launched is alive, names the holder, and releases itself on the
+   game's exit; `RON_LANE_FORCE=1` overrides. It closes the one case the
+   human protocol (446) could not — a capture launched into a capture —
+   and replaces nothing else.
+6. **`memcap.sh` has its fixture** (`sim::memcap_guard`): a process past
+   the cap dies with 137 in two seconds, and a status under the cap comes
+   through. The guard had never fired on purpose in seventeen days.
+7. **A trailer is the worker's own**, read from its own system prompt,
+   never dictated by a brief and never the harness's reminder alone — a
+   clause in `CLAUDE.md`, and a pass-time check against lore's
+   first-request model, which this tranche passes throughout.
+8. **The lab's second tranche is merged whole** (PR #4, `codex/jev-lab`)
+   on entry 38's terms: its own ledger, unscanned by the guards, its
+   products opt-in tools beside the sim. Nothing in it names a score and
+   nothing books. What it holds for this loop is the retained memory
+   packet — the "hour of synthesized state" `docs/EMULATOR.md` prices a
+   singleton-reading function at, read offline — and the day a reading
+   needs one names it.
+
+**Not taken**: ccc's `land` verb (313), which is not this repo's to
+build; 375 leaves the Loop for the ordinary parked list as a worker's
+guard. **The estimate** is not revised: three combat points — 328, 0,
+722 — average 350 Great Lakes frames a day, forty days to that map's
+close, and East Indies has not moved since the sixth pass. Entry 41's
+months stand.
+
+**The measure for the next pass**: both words, and whether East Indies
+moved; whether 463 was re-measured with the field-keyed rows and the
+parted blocks before anything was named; the price per landing against
+20 and per word against 46; whether the number guard or the lane lock
+fired in anger; and whether the mechanism-survival rate held above a
+half.
