@@ -105,6 +105,8 @@ Fable worker or capture.
 
 | L61 | Measure broader acquisition cost before replacing repeated per-field captures. | [Bounded memory inventory](2026-09-21-memory-inventory.md). | C/Python metadata agreement, 28 failed/short queries, caps, deadlines and file controls pass; optional imports verified; release gate passes. | Live: 873 ranges, 795.676 MiB broad candidate; known-root allocations plus image 36.566 MiB. No payload snapshot or full replay; small selection tested offline, next is a capped streaming-copy prototype. |
 
+| L62 | A broad candidate fits 1 GiB, but needs bounded acquisition before offline replay can consume it. | [Streaming memory payload](2026-09-21-memory-payload.md). | Actual C producer/Python consumer agree; transfer, mapping, anchor, deadline and cap failures refuse; three DLL build variants, sanitizers and the release gate pass. | Offline only; no payload capture, timing/coherence result or full replay yet. |
+
 ## Current direction
 
 The runtime factor-isolation experiment is paused at the user's request after

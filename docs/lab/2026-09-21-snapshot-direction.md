@@ -15,7 +15,8 @@ allocations plus main-image data cover 36.566 MiB; the world target remains
 unknown. A 128 MiB allocation-selection policy is tested offline as a comparison.
 Because that can repeat the missing-dependency capture cycle, the next prototype
 is a streamed broad candidate copy capped at 1 GiB, with a separate time limit
-and explicit exclusions. Payload capture remains unimplemented.
+and explicit exclusions. The [writer and validator](2026-09-21-memory-payload.md)
+are implemented and tested offline; live payload acquisition remains pending.
 
 ## Comparison
 

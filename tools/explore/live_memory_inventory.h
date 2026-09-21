@@ -4,23 +4,10 @@
 IMPORT(u32, VirtualQueryEx, (HANDLE, const void *, void *, u32));
 IMPORT(void, GetSystemInfo, (void *));
 IMPORT(u32, GetTickCount, (void));
-#define INVENTORY_MAX 8192u
-#define INVENTORY_MS 2000u
-#define INVENTORY_MAGIC 0x31494d52u
-typedef struct {
-    u32 base,allocation,allocation_protect,size,state,protect,type;
-} InventoryRange;
-typedef struct {
-    u32 magic,version,frame,unit,begin,end,page,record_bytes;
-    u32 count,status,elapsed,cursor,main_base,observer,max_records,max_ms;
-    RestoreProbe prefix;
-    InventoryRange ranges[INVENTORY_MAX];
-} MemoryInventory;
-_Static_assert(sizeof(InventoryRange)==28,"inventory range wire size");
-_Static_assert(__builtin_offsetof(MemoryInventory,ranges)==280,"inventory header wire size");
+#include "memory_inventory_format.h"
 static MemoryInventory memory_inventory;
 
-static void capture_memory_inventory(u32 observer_address) {
+static int capture_memory_inventory(u32 observer_address) {
     MemoryInventory *m=&memory_inventory;
     u32 system[9]={0},started=GetTickCount();
     m->magic=INVENTORY_MAGIC;m->version=1;m->frame=restore_probe.frame;m->unit=restore_probe.unit;
@@ -54,7 +41,8 @@ static void capture_memory_inventory(u32 observer_address) {
     u32 size=(u32)((u8 *)m->ranges-(u8 *)m)+m->count*sizeof(InventoryRange),written=0;
     i32 ok=file!=INVALID_HANDLE && WriteFile(file,m,size,&written,0);
     if (file!=INVALID_HANDLE)CloseHandle(file);
-    if (!ok || written!=size) {emit(K_INFO,166,6,m->cursor,m->count,written,size);return;}
+    if (!ok || written!=size) {emit(K_INFO,166,6,m->cursor,m->count,written,size);return 0;}
     if (m->status) emit(K_INFO,166,m->status,m->cursor,m->count,m->elapsed,0);
     else emit(K_INFO,165,0,m->unit,size,m->count,m->elapsed);
+    return !m->status;
 }

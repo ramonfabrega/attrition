@@ -2,18 +2,16 @@
  * remain in the capture directory. Bounds are experimental caps, not game maxima.
  * The observer is ordinary C without an SEH frame; rd_fs reads this thread.
  */
-#define RESTORE_TABLE_MAX (4096u*192u)
-typedef struct {
-    u32 magic,version,frame,unit,prefix_bytes,table_bytes,teb,origin,center;
-    u32 tib[7];
-    RestoreProbe prefix;
-    u8 fxsave[512];
-    u8 unit_data[0x158]; /* Unit/UnitData extent in the matched PDB. */
-    u8 table[RESTORE_TABLE_MAX];
-} RestoreContext;
+#include "restore_context_format.h"
 static RestoreContext restore_context;
+#if defined(RON_MEMORY_PAYLOAD) && !defined(RON_MEMORY_INVENTORY)
+#error RON_MEMORY_PAYLOAD requires RON_MEMORY_INVENTORY
+#endif
 #ifdef RON_MEMORY_INVENTORY
 #include "live_memory_inventory.h"
+#endif
+#ifdef RON_MEMORY_PAYLOAD
+#include "live_memory_payload.h"
 #endif
 
 static int capture_restore_context(const u32 *regs) {
@@ -58,7 +56,12 @@ static int capture_restore_context(const u32 *regs) {
     if(!ok || written!=size) {emit(K_INFO,163,23,written,size,0,0);return 0;}
     emit(K_INFO,164,0,c->unit,size,c->table_bytes,c->teb);
 #ifdef RON_MEMORY_INVENTORY
-    capture_memory_inventory((u32)&memory_inventory);
+    int inventory_ok=capture_memory_inventory((u32)&memory_inventory);
+#ifdef RON_MEMORY_PAYLOAD
+    if (inventory_ok) capture_memory_payload();
+#else
+    (void)inventory_ok;
+#endif
 #endif
     return 1;
 }

@@ -151,8 +151,9 @@ packet. The inventory has measured extents only: copy time, coherence and actual
 replay sufficiency remain unknown. A cap overrun must refuse rather than silently
 shrink the packet, and excluded mapped/DLL/executable regions remain explicit.
 
-Before another capture, the collector needs offline tests for cap arithmetic,
-chunk boundaries, exact reads/writes, partial-file failure and time exhaustion.
+The [streaming collector](2026-09-21-memory-payload.md) now has offline tests for
+cap arithmetic, chunk boundaries, exact reads/writes, partial-file failure and
+time exhaustion. Live acquisition remains pending.
 Native result/output capture and repeated anchor checks remain necessary to
 judge replay usefulness and detect drift. This is the next lab experiment, not
 a main-loop adoption request or a claim of atomic acquisition. The user was told
