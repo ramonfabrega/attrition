@@ -1,4 +1,4 @@
-# A bounded streaming memory payload, before its first live run
+# A bounded streaming memory payload, validated on one live run
 
 L61 measured 795.676 MiB of broad candidate data. Selecting only the known-root
 allocations reduced that to 36.566 MiB but left unknown dependencies. This
@@ -105,9 +105,8 @@ uv run --offline --with unicorn==2.1.4 python -m unittest discover \
 uv run --offline tools/explore/memory_payload.py /path/to/game /path/to/capture
 ```
 
-Live acquisition is pending. First compare lifecycle/settings restoration,
-payload completion, elapsed time and scenario/search projections with L61.
-Then advance bounded offline replay, measuring actual reads and writes. Native
+The first live acquisition and comparison with L61 are recorded below.
+The next step is bounded offline replay, measuring actual reads and writes. Native
 return/output agreement is still required before calling a full search faithful;
 neither the broad packet nor unchanged scenario projections establish that.
 No fidelity score has moved. All original-derived payloads stay outside git.
@@ -116,3 +115,34 @@ The repository release gate passed with two test workers at
 `/tmp/memory-payload-gate`: 332 rondata, 855 sim, 13 fixed and three doc tests;
 all 782 fixtures present, clippy/format/data survey/paperwork clean. Peak memory
 was 8,553 MiB. The final validation note receives the paperwork guard separately.
+
+## First live result
+
+The user granted one fresh capture slot. The fixed-seed map-14 scenario reached
+closing frame 1401 and exited zero. Total elapsed time was 31.14 seconds
+(8.62 build, 22.37 launch to exit); all five settings files were restored, and
+the user was immediately told the lane was free. No second capture was used.
+
+At frame 224, the inventory contained 875 ranges. The payload selected 166
+ranges and copied **834,981,888 bytes (796.301 MiB)**. The file is 835,008,756
+bytes including framing and inventory. Footer and final receipt both report
+**1,617 ms**, below the 5,000 ms limit. All 77,156 anchor bytes match. The world
+pointer slot holds `0xc097e8`. This is one measured run, not a throughput guarantee.
+
+The complete payload validator passes, including its embedded inventory,
+completion ordering, image binding, anchor checks and stream hashes. The
+scenario/search projections match the inventory-only run exactly. The existing
+narrow replay remains pinned at its 91-instruction missing-world refusal, as
+expected when it is not given the new bytes.
+
+The payload SHA-256 is
+`d0b4ce6ca20fcf2c1e17f6d385d48150cf84660c706ae944c3b372897824756f`.
+The retained capture is
+`/Users/rf-studio/ron-data/lab-captures/2026-09-21-memory-payload`; its manifest
+hashes 27 files, including the settings backups. Validation from the retained
+copy produces exactly the same report. All original-derived bytes remain
+outside git.
+
+The [first offline use](2026-09-21-payload-frontier.md) resolved nine additional
+data boundaries from this packet and stopped at a CRT allocator call. That is
+a useful change in the research boundary, not a full-search fidelity result.

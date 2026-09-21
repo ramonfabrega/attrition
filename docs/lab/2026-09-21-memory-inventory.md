@@ -153,7 +153,8 @@ shrink the packet, and excluded mapped/DLL/executable regions remain explicit.
 
 The [streaming collector](2026-09-21-memory-payload.md) now has offline tests for
 cap arithmetic, chunk boundaries, exact reads/writes, partial-file failure and
-time exhaustion. Live acquisition remains pending.
+time exhaustion. Its [first live acquisition](2026-09-21-memory-payload.md)
+succeeded: 796.301 MiB in 1,617 ms; the lane has been released.
 Native result/output capture and repeated anchor checks remain necessary to
 judge replay usefulness and detect drift. This is the next lab experiment, not
 a main-loop adoption request or a claim of atomic acquisition. The user was told

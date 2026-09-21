@@ -16,7 +16,9 @@ unknown. A 128 MiB allocation-selection policy is tested offline as a comparison
 Because that can repeat the missing-dependency capture cycle, the next prototype
 is a streamed broad candidate copy capped at 1 GiB, with a separate time limit
 and explicit exclusions. The [writer and validator](2026-09-21-memory-payload.md)
-are implemented and tested offline; live payload acquisition remains pending.
+are implemented and validated on one live run: 796.301 MiB in 1,617 ms.
+The next boundary is an imported allocator service, as recorded in the
+[payload replay exploration](2026-09-21-payload-frontier.md).
 
 ## Comparison
 
