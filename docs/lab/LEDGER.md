@@ -6,9 +6,10 @@ is evidence for an item's falsifier, not an additional completion score.
 Reports below preserve detailed experiments and limitations; this ledger is
 the entry point. Original-game artifacts stay outside Git.
 
-**Current focus:** surface the Jev and retained-state replay findings for
-Fable's review; start with [the review handoff](JEV-REVIEW.md). The lab is not
-holding the capture lane. Ask through Ramon before any new live run; the
+**Current focus:** independent allocator replay research on
+`codex/replay-allocator-lab`, while draft PR #4 remains stable for Fable's review;
+start with [the review handoff](JEV-REVIEW.md) for that earlier tranche. The lab
+is not holding the capture lane. Ask through Ramon before any new live run; the
 cooperative runner lock does not protect against arbitrary profile/Wine scripts.
 No new capture or main-loop adoption is requested by this handoff.
 
@@ -109,11 +110,15 @@ No new capture or main-loop adoption is requested by this handoff.
 
 | L63 | Determine whether a broad packet removes the repeated per-field capture dependency. | [Payload-to-allocator frontier](2026-09-21-payload-frontier.md). | Nine data boundaries closed with 36,256 added bytes; fresh processes reach the same 382-instruction CRT malloc refusal. | Exploratory source retained outside git; extended state not imported, no native output comparison or allocator substitution. |
 
+| L64 | Can a bounded allocation-success model advance the retained replay without more capture? | [Modeled allocator](2026-09-21-modeled-allocator.md). | 72 allocations, 128,717 instructions, 153,952 added captured bytes; repeated and extended-state-perturbed runs agree at a 96-byte memset refusal. | Modeled allocator only; no A* return, no full-state/native fidelity claim; no new live run. |
+
 ## Current direction
 
 The September 19–21 tranche has a validated broad payload and an exploratory
-replay stopping at CRT allocation. Allocator behavior, extended-state handling
-beyond the tested prefix and native output equivalence remain research work.
+replay stopping at CRT allocation. The independent follow-up supplies a strict
+malloc-success model and reaches an unmodeled memset call. Native allocator
+behavior, extended-state handling beyond that prefix and native output
+equivalence remain research work.
 Fable decides whether any method merits a pilot, adoption, further evidence or
 parking; review does not imply approval to merge the whole lab branch.
 
