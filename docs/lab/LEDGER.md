@@ -97,6 +97,8 @@ Fable worker or capture.
 
 | L57 | The optional restore collector still used bulk register/flags saves and discarded a validated registry header. | [ABI migration and fresh native version-2 packet](2026-09-19-restore-collector-abi.md). | 256 authored adapter states pass; one authorized capture completes and its restore wrapper matches live delegation in 31 instructions, with retained registry. | One live run; downstream search still refuses FS:[0]. Thread/table acquisition and full resumption remain outstanding. |
 
+| L58 | Live thread/table inputs are still missing from the suspended-search packet. | [Bounded delegation context sidecar](2026-09-19-restore-context.md). | Offline refusal checks pass; one September-21 capture yields 19,200 table entries matching regeneration and a 256-reset wrapper replay. | One live sidecar; FXSAVE retained but not loaded, no emulated resumed search result. |
+
 ## Current direction
 
 The runtime factor-isolation experiment is paused at the user's request after

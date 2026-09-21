@@ -67,6 +67,7 @@ def exercise(code, seed):
             ret,pointer=struct.unpack('<2I',uc.mem_read(esp,8))
             assert (esp+4)%16==0, 'unaligned callback call site'
             image=struct.unpack('<9I',uc.mem_read(pointer,36))
+            assert (image[3]-560)&~15 == uc.reg_read(x.UC_X86_REG_ESI), 'wrong context FXSAVE address'
             order=(x.UC_X86_REG_EDI,x.UC_X86_REG_ESI,x.UC_X86_REG_EBP,x.UC_X86_REG_ESP,
                    x.UC_X86_REG_EBX,x.UC_X86_REG_EDX,x.UC_X86_REG_ECX,x.UC_X86_REG_EAX)
             expected=tuple(regs[r]-(4 if r==x.UC_X86_REG_ESP else 0) for r in order)

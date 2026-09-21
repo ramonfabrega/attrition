@@ -17,6 +17,7 @@ static int restore_read(u32 address, void *out, u32 size) {
     }
     return 1;
 }
+#include "live_restore_context.h"
 static void __cdecl restore_enter(u32 *regs) {
     if (restore_claimed || g_frame<0 || g_frame>1400) return;
     restore_claimed=1;
@@ -57,6 +58,7 @@ static void __cdecl restore_delegate(u32 *regs) {
     if(file!=INVALID_HANDLE)CloseHandle(file);
     emit(K_INFO,162,ok && written==sizeof restore_probe?0:1,restore_probe.unit,
          written,sizeof restore_probe,restore_probe.after_modes[0]);
+    if(ok && written==sizeof restore_probe) capture_restore_context(regs);
     flush();
 }
 static u32 restore_callback(u8 *s,void *fn) {

@@ -133,7 +133,10 @@ owned-install artifacts stay outside git. Temporary acquisition directory:
 
 ## Remaining offline work before another capture slot
 
-The collector still needs a bounded, versioned thread/coordinate input packet:
+The bounded, versioned thread/coordinate input packet is now implemented and
+[validated offline and in one live capture](2026-09-19-restore-context.md);
+full downstream replay remains open.
+The required inputs are:
 the relevant thread state, live table origin/center, extent checks and a live
 table comparison against regeneration. Preserving SIMD state across the observer
 is not the same as recording it for replay. The existing graph likewise does not
