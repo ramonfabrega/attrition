@@ -12,6 +12,9 @@ typedef struct {
     u8 table[RESTORE_TABLE_MAX];
 } RestoreContext;
 static RestoreContext restore_context;
+#ifdef RON_MEMORY_INVENTORY
+#include "live_memory_inventory.h"
+#endif
 
 static int capture_restore_context(const u32 *regs) {
     RestoreContext *c=&restore_context;
@@ -54,5 +57,8 @@ static int capture_restore_context(const u32 *regs) {
     if(file!=INVALID_HANDLE)CloseHandle(file);
     if(!ok || written!=size) {emit(K_INFO,163,23,written,size,0,0);return 0;}
     emit(K_INFO,164,0,c->unit,size,c->table_bytes,c->teb);
+#ifdef RON_MEMORY_INVENTORY
+    capture_memory_inventory((u32)&memory_inventory);
+#endif
     return 1;
 }

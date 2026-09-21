@@ -9,8 +9,8 @@ settle whether a complete search is cheaply replayable.
 
 The next question should be acquisition cost: can we retain enough state once to
 resolve multiple future reads offline? The proposal is a bounded inventory first,
-with a conservative byte budget and explicit omissions. No snapshotter or new
-capture is implemented by this note.
+with a conservative byte budget and explicit omissions. The [metadata-only inventory collector](2026-09-21-memory-inventory.md) is now
+implemented and tested offline; payload capture remains a proposal.
 
 ## Comparison
 
