@@ -12,36 +12,36 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-21, three lanes at once. **The AI headline moved 651 frames** —
-the first motion in seventeen landings — and the rules word held while
-the programme behind it closed. Both lanes widened before they read.*
+*2026-09-21, five landings on three lanes. **Both headlines moved** —
+the AI word 9510 → 10161 and the golden record 616 → 624 — after sixteen
+landings that moved neither. Every one of the five widened before it read.*
 
 - **The AI headline moved, 9510 → 10161** (442, +651): 438's free-slot
   correction plus an `else if` that should be a third independent `if`
   (listing, 006c52ec), and the scholar arm now returns **5,755,741** and
   **4,891,136** — both of the original's offers to the unit. The 2:1
   ratio was the inputs; 1.1768 was the wrap.
-- **The rules producer is named and the radius is closed** (443, word
-  unmoved at 616): both sides run `think`'s step-3 search, and 616 and
-  635 scan the **same cell**, so no radius separates them. 441's `near_o`
-  argument was void — this crate has no such field. 447 takes §30.5's two
-  survivors.
+- **The rules headline moved, 616 → 624** (447, after 443 closed the
+  radius): `valid_target`'s fifth test is **fog on the target**
+  (`is_seen`), which this crate did not have — and `add_unit` skipped
+  `add_to_world`'s `update_seen`, so a unit born on the map lit nothing
+  until it crossed a half-cell. Great Lakes' endpoint 55 → 53 with it;
+  East Indies and every other score unmoved.
 - **The met bit's bracket is a block, and it is ours** (390, run115):
-  the original flips on **7945** — this crate's own — on both leaders at
-  once, `diplos` static across 130 blocks. 385's 558-frame bracket was
-  the last thing standing between "right in kind" and "right".
-- **A word is pinned with its widening** (DECISIONS 43): `WIDENINGS`
-  names the test or the item; East Indies' 9711 and chapter one's 626
-  have none on file (444, 445, parked). Three open, 68 parked.
-  **Fable backlog: seven Loop items** (251, 335, 313, 375, 428, 446, 449).
+  the original flips on **7945**, on both leaders at once, `diplos`
+  static across 130 blocks.
+- **Both words are widened and pinned** (442/448, 447): `WIDENINGS`
+  names a test for each. East Indies' 9711 and chapter one's 626 still
+  owe theirs (444, 445, parked). Two open, 72 parked.
+  **Fable backlog: nine Loop items** (251, 335, 313, 375, 428, 446, 449, 452, 453).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w9711 of 24,000 · GreatLakes w10161 of 24,000
-Golden: w616 of 901 (ch2) · ch1 w626 · 447 next
-Endpoint 24001: EastIndies 64 off, 10 unlinked · GreatLakes 55 off, 8 unlinked
+Golden: w624 of 901 (ch2) · ch1 w626 · 457 next
+Endpoint 24001: EastIndies 64 off, 10 unlinked · GreatLakes 53 off, 8 unlinked
 
-**Opener: 448 on the AI lane and 447 on the rules — the moved word owes
-its widening, and the capture lane is free.**
+**Opener: 456 on the AI lane and 457 on the rules — both on a moved
+word's own widened frame, and run116 is reserved for 456.**
 
 ## The queue
 
@@ -51,23 +51,23 @@ the AI, lower map first — Great Lakes. Take the first unstarted on either
 track unless a better order is obvious, and say so. Numbers are stable;
 the backlog is `docs/PARKED.md`, and an item returns only when a score names it.
 
-448. **Great Lakes 10161 widened whole** (the AI headline; the word owes
-    its widening, DECISIONS 43): 442 moved it 651 frames past run100's
-    window, so `WIDENINGS` now says *owed* and names this item. Compare
-    **every** dumped record on 10161, both directions, before any
-    mechanism — the frame has been right every time a named mechanism was
-    wrong (DECISIONS 42). The draw stream may be blind to the cause: a
-    purchase draws nothing (§41, §42), which is why 9382 needed the
-    record. No capture booked; grep the disk first.
+456. **Which arm of the collision sweep refused `1/38`'s step on block
+    10162** (the AI headline's frame; 448 widened it whole): one unit of
+    104 parts, on an **agreed** waypoint — `collide_guy` ours −1 theirs 0,
+    `half_step` 1 against 0, the original stopping dead and re-converging
+    by 10165. Both sweeps ran and disagreed on one point; which arm
+    decided it no dump can say, because the snap arm clears
+    `collide_o`/`collide_who` two instructions on. **run116** reserved,
+    the ask and its falsifier in `docs/AI.md` §54.4.
 
-447. **616's target-acceptance predicate, ours accepting and theirs
-    refusing** (the rules headline's frame; 443 named the producer and
-    closed the radius): both sides search on 616 and scan the same cell,
-    so the item is which bowman the predicate refuses. **Two survivors,
-    §30.5** — `valid_target@00648ba0`, and `poor_target@0064a270`'s
-    type-record arm (`UnitTypeData +0x9a` bit 6) — each with a written
-    falsifier; book neither before a reading kills one. The unspent
-    capture is `+0x9a` per unit over [614, 640). run113 unspent.
+457. **`ObjectData::visible` (+0x40), the other half of `is_seen`** (the
+    rules headline's frame; 447 moved the word to 624 and named this at
+    `docs/COMBAT.md` §31.7): the original's `1/6` accepts `0/10` at 635
+    because the slinger set its own bit at 631 **by attacking**
+    (`set_attacking@005ff5b0`, `visible |= 1 << victim_who`); this crate
+    has no such field. Its writers, its clear-on-`work` rule, and a gate
+    on the attacker's type vtable **+0x10c** that `vtables.txt` names for
+    no `*Type` vtable — settle that from the listing. run113 unspent.
 
 342. **Host choice seats the scholar on the wrong university** — 338's
     residue, re-pinned three times, and now `1/55`. **Re-measure before

@@ -36,6 +36,27 @@ paragraph — and **built 367**, the AI's dump, the same day: run114 and
 `docs/AI.md` §52 (`docs/audit/2026-09-21-fable-pass-7.md`, DECISIONS 43).
 341 closed 2026-09-18 by item 363.
 
+(452) **An order row keyed on `(who, o)` hides every field after the
+first, on every map's widening.** Measured by item 448, 2026-09-21, and
+it cost the most direct statement in the record: `1/38` has carried a
+GROUPORDER `id` residue since block 9340, and that residue **swallowed
+`coll_x`/`coll_y` on the AI word's own frame** — the two fields that say
+what the collision sweep decided. 448 keyed by field inside its own test
+and moved on, so the defect is still live in `unit.rs`'s `rows()` helper,
+which run87's and run94's widenings both use. Every widening on every
+other map has this blind spot today, and a widening is the one instrument
+this loop trusts over a reading.
+
+(453) **`compare` gates the collision block on the two positions already
+agreeing — blind on exactly the frame a position parts.** Item 448,
+2026-09-21. The collision block, the angles, `mylos` and `start_dist` are
+only compared when the positions match, which is right for a residue
+count and wrong at a word: `half_step` is dumped on every block of every
+capture and was unreadable at 10161 for this reason alone. Sibling of
+(452) and of the same family as (449): an instrument that quietly stops
+looking at the moment the thing it measures happens. Both are guard
+shapes, not mechanics, which is why they are here and not in the queue.
+
 (449) **A widening pin, and a vacuity guard, can go stale by success.**
 Measured twice on 2026-09-21 by item 442, which moved Great Lakes 9510 →
 10161. `the_widening_behind_each_pinned_word_exists` checks that a named
@@ -801,6 +822,28 @@ one Longbowman shooting one farm on one trajectory, and each of the three
 wants a different shooter rather than a different frame.
 
 ## Measured residues, none near a word
+
+(454) **Five residue families never compared on Great Lakes, measured by
+448's widening.** 2026-09-21, from 837 blocks and 1,975,563 record rows:
+`form` **48 rows** (ours −1, theirs 9 on every unit outside a group — the
+largest and the cheapest to read), `dest_angle` 22, `orders_x`/`orders_y`
+36 (18–24 units off, one pair 984), `g.angle[0]` 10 (ours 1,431,655,765,
+a third of a turn, against 0), `stance` 6 (item 190's, unchanged). All
+are **older than the word**: of 298 keys parting over the window, 161
+stood on the window's first block and all 49 that opened below the word
+belong to a family already standing. So none of them names a score, and
+a successor takes one only when a word's frame reaches it.
+
+(455) **Two dumped records that nothing in `rondata::diff` compares at
+all.** Item 448, 2026-09-21. `LEADERDATA`'s `score` and `leader_flags` —
+four blocks a frame, on **every** capture ever taken — and the per-frame
+`WORLD` census (`forest_size`, `mountain_size`, `rock_size`,
+`total_metal`, `total_oil`, `goodies`, `land_resources`,
+`sea_resources`), which the parser does not even read. The rule this
+fails is `CLAUDE.md`'s own: when the original dumps a record, diff the
+whole record. Nine tenths of a dumped record once went uncompared for a
+month and the first widening failed on its first run; these are the next
+two.
 
 (451) **The original runs its war census for the HUMAN leader, and this
 crate leaves it at zero forever.** Opened by run115's window (item 390,
