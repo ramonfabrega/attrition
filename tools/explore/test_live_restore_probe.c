@@ -22,9 +22,9 @@ static i32 g_frame=224,g_cover;
 static int graph_failed;
 static u32 calls,fail_at,short_read,graphs,errors,entries,delegates,write_fail,write_short;
 static u32 stack[12],modes[2],output[54];
-static u8 context_output[984];
+static u8 context_output[1328];
 static u32 contexts,prefix_reads,context_write_fail,context_write_short,context_create_fail;
-static u32 bad_tib,bad_extent;
+static u32 bad_tib,bad_extent,bad_unit;
 static u32 rd_fs(u32 off){assert(off==0 || off==0x18);return off?0x16000:0xffffffffu;}
 static void emit(u32 k,u32 tag,u32 a,u32 b,u32 c,u32 d,u32 e) {
     (void)k;(void)b;(void)c;(void)d;(void)e;
@@ -62,6 +62,11 @@ static i32 ReadProcessMemory(HANDLE h,const void *pointer,void *out,u32 n,u32 *c
         if(bad_tib)tib[bad_tib-1]^=0x100000;memcpy(out,tib,n);
     }
     else if(a==0x50003da0){assert(n==512);memset(out,0x5a,n);}
+    else if(a==0x14000){
+        assert(n==0x158);memset(out,0,n);((u8 *)out)[9]=(u8)bad_unit;
+        ((u8 *)out)[10]=1;
+        u32 coords[]={4000^0x63637,8000^0x63637};memcpy((u8 *)out+16,coords,8);
+    }
     else if(a==0x2000000){
         assert(n==192);for(int i=0;i<48;i++){int v=i-24;v=v<0?(v-2)/3:v/3;memcpy((u8 *)out+4*i,&v,4);}
     }
@@ -85,7 +90,7 @@ static i32 ReadProcessMemory(HANDLE h,const void *pointer,void *out,u32 n,u32 *c
 static void reset(void){
     calls=fail_at=short_read=graphs=errors=entries=delegates=write_fail=write_short=0;
     graph_failed=restore_claimed=restore_pending=0;
-    contexts=prefix_reads=context_write_fail=context_write_short=context_create_fail=bad_tib=bad_extent=0;
+    contexts=prefix_reads=context_write_fail=context_write_short=context_create_fail=bad_tib=bad_extent=bad_unit=0;
     memset(&restore_probe,0,sizeof restore_probe);
     u32 s[]={0x140b8,4000,8000,0,1,0,8,9,0x12345678,0x140b8,0,1};
     memcpy(stack,s,sizeof s);modes[0]=125;modes[1]=0;
@@ -108,6 +113,7 @@ int main(int argc,char **argv){
     reset();context_write_short=1;capture();assert(errors && delegates && !contexts);
     reset();context_create_fail=1;capture();assert(errors && delegates && !contexts);
     for(u32 field=1;field<=7;field+=6){reset();bad_tib=field;capture();assert(errors && !contexts);}
+    reset();bad_unit=1;capture();assert(errors && !contexts);
     reset();bad_extent=1;capture();assert(errors && !contexts);
     reset();bad_extent=786432;capture();assert(errors && !contexts);
     reset();graph_failed=1;capture();assert(graphs==1 && !entries && !delegates);

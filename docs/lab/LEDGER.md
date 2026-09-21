@@ -101,6 +101,8 @@ Fable worker or capture.
 
 | L59 | Captured thread/table inputs have not yet been consumed in resumed-search replay. | [Native A* entry agreement and unit-header refusal](2026-09-21-resume-frontier.md). | 50-instruction entry matches all four native arguments; 64 resets and fresh engine agree; instruction 73 refuses unit +9. | Prefix only; no FXSAVE import or full A* return, no new capture. |
 
+| L60 | A byte-at-a-time expansion would keep requiring adjacent unit fields. | [Version-2 complete unit context](2026-09-21-unit-context.md). | Live 344-byte record and graph overlap validate; replay advances from instruction 73 to 91, refusing the world pointer; scenario projections agree. | One v2 capture; no full A* return, pointer targets not implicitly captured. |
+
 ## Current direction
 
 The runtime factor-isolation experiment is paused at the user's request after

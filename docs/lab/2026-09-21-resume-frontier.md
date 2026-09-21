@@ -60,7 +60,8 @@ A* listing reads unit `+0xa`, `+0x6c` and `+0x18`; a coherent bounded header
 capture is preferable to another single-byte addition. The existing saved graph
 starts at unit `+0x104` and remains a structural snapshot, not all search state.
 
-Prepare that acquisition contract offline; request a new slot before launching.
+The [complete-unit acquisition contract](2026-09-21-unit-context.md) is now
+implemented and tested offline; a new slot is still required before launching.
 No conclusion here requires reclaiming Fable's capture lane now. Complete A*
 resumption, extended-state import and any deeper world/terrain dependencies
 remain open.

@@ -21,7 +21,9 @@ class FrontierTests(unittest.TestCase):
 
     def test_live_entry_and_next_refusal(self):
         r=run(self.image,self.context,self.graph,self.expected)
-        self.assertEqual((r['prefix_instructions'],r['frontier_attempted_instructions']),(50,73))
+        self.assertEqual((r['prefix_instructions'],r['frontier_attempted_instructions']),
+                         (50,73 if self.context['version']==1 else 91))
+        if self.context['version']==2:self.assertEqual(r['missing_address'],'0xc06188')
         self.assertFalse(r['full_resumption_returned'])
 
     def test_each_missing_output_and_thread(self):

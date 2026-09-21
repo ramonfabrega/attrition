@@ -11,11 +11,12 @@ restored. No FXSAVE import or complete search-return fidelity claim is made.
 import argparse
 import json
 import struct
+import re
 from pathlib import Path
-from unicorn import x86_const as x
+from unicorn import UC_HOOK_MEM_INVALID, x86_const as x
 from bounded_call import Region
 from replay_capsule import image_bytes, require
-from restore_context import decode_context, validate as validate_context
+from restore_context import decode_context, check_unit_graph, validate as validate_context
 from restore_prefix import layout, pack
 from search_census import records
 from search_graph import validate as validate_graph
@@ -37,12 +38,18 @@ def regions_for(image,c,graph_raw,inside=False):
                 Region('center',0xcae5fc,pack(c['center'])),
                 Region('registry',0xc0aeb4+p['stack'][2]*28,pack(*p['registry'])),
                 Region('registry_unit',p['registry'][3]+p['stack'][3]*4,pack(p['unit']))]
+    if c['unit_data'] is not None:
+        check_unit_graph(c,graph_raw)
+        regions=[r for r in regions if r.name!='coordinates']
+        regions.append(Region('unit_data',c['unit'],c['unit_data'],writable=True))
+        items=[item for item in items if item[:2]!=(1,0)]
     regions += [Region(f'graph_{k}_{o}_{a:x}',a,d,writable=True) for k,o,a,d in items]
     # These seven words are outputs, not zero-valued captured inputs. A read
     # before the original writes each byte still fails the scratch guard.
     regions += [Region(f'output_{a:x}',a,bytes(4),writable=True,scratch=True) for a in OUTPUTS]
     if inside:
-        regions.append(Region('astar_code',ASTAR,image_bytes(image,ASTAR,0x100),executable=True))
+        regions.extend([Region('astar_code',ASTAR,image_bytes(image,ASTAR,0x100),executable=True),
+                        Region('astar_unit_mask',0xe85eb4,bytes(4),writable=True,scratch=True)])
     return regions
 
 
@@ -101,11 +108,20 @@ def run(image,c,graph_raw,expected,repeats=64):
         except ValueError:refusals.append(name)
         else:raise ValueError('missing dependency accepted: '+name)
     inside=make_runner(image,c,graph_raw,inside=True)
+    faults=[]
+    inside.uc.hook_add(UC_HOOK_MEM_INVALID,lambda u,k,a,n,v,d: faults.append((k,a,n)) or False)
     try:inside.run(ENTRY,regs)
     except ValueError as error:
         pc=inside.uc.reg_read(x.UC_X86_REG_EIP)
-        require(pc==0x6837c8 and str(error)==f"undeclared access {c['prefix']['unit']+9:08x}+1",
-                f'unexpected frontier {pc:x}: {error}')
+        refusal=str(error)
+        missing=re.fullmatch(r'undeclared access ([0-9a-f]+)\+(\d+)',refusal)
+        if c['version']==1:
+            require(pc==0x6837c8 and refusal==f"undeclared access {c['prefix']['unit']+9:08x}+1",
+                    f'unexpected frontier {pc:x}: {error}')
+        require(missing is not None or (len(faults)==1 and 'UNMAPPED' in refusal),
+                'failure is not a missing-input boundary: '+refusal)
+        address,size=(int(missing[1],16),int(missing[2])) if missing else faults[0][1:]
+        in_unit=c['unit']<=address<c['unit']+0x158
     else:raise ValueError('absent unit header accepted')
     return {'frame':c['frame'],'owner':c['prefix']['stack'][2],'id':c['prefix']['stack'][3],
             'native_astar_arguments_match':True,'astar_arguments':list(observed),
@@ -113,7 +129,10 @@ def run(image,c,graph_raw,expected,repeats=64):
             'fresh_matches':True,'extended_state_perturbation_matches':True,
             'missing_input_refusals':refusals,'working_output_words':len(OUTPUTS),
             'frontier_pc':hex(pc),'frontier_attempted_instructions':inside.instructions,
-            'missing_region':'current unit header','missing_offset':9,'missing_bytes':1,
+            'context_version':c['version'],'missing_address':hex(address),
+            'missing_region':'current unit body' if in_unit else 'undeclared memory',
+            'missing_offset':address-c['unit'] if in_unit else None,'missing_bytes':size,
+            'refusal':refusal,
             'full_resumption_returned':False,'fxsave_imported':False}
 
 
