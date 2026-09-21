@@ -6388,17 +6388,14 @@ mod tests {
         // the headline advancing as this test failing. What opens on the
         // word is asserted below instead, by name.
         let opens = |f: &i64| *f > FIRST - 1 && *f < LONG_WORD_GREAT_LAKES;
-        // **`0/5`'s order row is the *previous* word's own**, and it is
-        // named here for the same reason the raid stamp is: item 463
-        // moved the headline from 10232 to 10233, so a row that was "on
-        // the word" and therefore excluded is now one frame below it, and
-        // a filter that did not name it would report the headline
-        // advancing as this test failing — `ORDER_RESIDUE_RUN97`'s lesson
-        // for the second time in this function. What it says is the word
-        // 10233's own value diff: the human's citizen takes an order on
-        // the frame it is hit where the original answers a frame later
-        // with a `FLEE_TO`.
-        const HUMAN_FLEE: (i64, i64, i64) = (0, 5, LONG_WORD_GREAT_LAKES - 1);
+        // ~~**`0/5`'s order row is the *previous* word's own**~~ — item
+        // 464 closed it. The citizen's order row stood one frame below
+        // the headline because this crate gave it an `ATTACKORDER` on
+        // the frame it was hit; `Unit::think`'s step 3 now carries the
+        // military bit that keeps a citizen out of `think_attack`, and
+        // `Unit::target_opportunity`'s flee arm answers the hit the way
+        // the original does (`docs/COMBAT.md` §34). What is left of the
+        // citizen is one row **on** the word, asserted by name below.
         let inside: Vec<String> = units
             .iter()
             .filter(|(_, f)| opens(f))
@@ -6406,7 +6403,7 @@ mod tests {
             .chain(
                 orders
                     .iter()
-                    .filter(|((w, o), f)| opens(f) && (*w, *o, **f) != HUMAN_FLEE)
+                    .filter(|(_, f)| opens(f))
                     .map(|(k, f)| format!("order {k:?} f{f}")),
             )
             .chain(
@@ -6427,17 +6424,18 @@ mod tests {
         // 10232, where the record says something bigger: a **three-unit
         // squad** — `1/27`, `1/28`, `1/29` — parts together.~~
         //
-        // **Item 463 closed the squad**, which was never three units'
-        // pathing: six of the AI's raiders dropped an `ATTACKORDER` on a
-        // target that had just died, two to eight frames before the
-        // original's reload let them. What opens on 10233 is **two**
-        // positions — the human's citizen `0/5`, which is the word, and
-        // `1/28`, one frame ahead of the original on the walk its own
-        // dropped order freed — and **no** order row at all. The set is
-        // kept keyed on the headline deliberately; what it asserts is
-        // that the word's own frame is a *small, named* set and not a
-        // reshuffle, and `run100_s_word_block_is_every_record_the_dump_
-        // carries` holds the value diff beside it.
+        // ~~**Item 463 closed the squad**~~ … ~~what opens on 10233 is
+        // **two** positions~~ — **item 464 closed the citizen's half**.
+        // `0/5` no longer parts on position at all: it flees to the
+        // original's own `(792, 31800)` on the original's own frame.
+        // What opens on 10233 is **one** position, `1/28`, one frame
+        // ahead of the original on the walk its dropped order freed —
+        // and that frame is not a generic order-death delay but the
+        // group move's own leader handoff (`docs/COMBAT.md` §34.4).
+        // The set is kept keyed on the headline deliberately; what it
+        // asserts is that the word's own frame is a *small, named* set
+        // and not a reshuffle, and `run100_s_word_block_is_every_record_
+        // the_dump_carries` holds the value diff beside it.
         let on_word: Vec<(i64, i64)> = units
             .iter()
             .filter(|(_, f)| **f == LONG_WORD_GREAT_LAKES)
@@ -6445,9 +6443,16 @@ mod tests {
             .collect();
         assert_eq!(
             on_word,
-            vec![(0, 5), (1, 28)],
-            "the word's own frame is not the citizen and its one follower: {units:?}"
+            vec![(1, 28)],
+            "the word's own frame is not the one follower it is: {units:?}"
         );
+        // **And one order row, which is the residue item 464 left.** The
+        // citizen's flight is the original's; the `GATHERORDER` under it
+        // is not. `Unit::think` falls through to `think_peasant` on the
+        // frame the flee arm fires, and this crate's `find_gather_spot`
+        // hands the idle citizen a job the original's does not — so the
+        // list is two orders deep where the dump carries one, and
+        // `0/2001`'s `gather_down` chain carries `0/5` with it.
         let order_on_word: Vec<(i64, i64)> = orders
             .iter()
             .filter(|(_, f)| **f == LONG_WORD_GREAT_LAKES)
@@ -6455,8 +6460,8 @@ mod tests {
             .collect();
         assert_eq!(
             order_on_word,
-            Vec::new(),
-            "the word's own frame carries an order row: {orders:?}"
+            vec![(0, 5)],
+            "the word's own order row is not the citizen's gather residue: {orders:?}"
         );
         // **The standing residues, as sets.** Counts over a window the
         // word controls rise when the word does (`ORDER_RESIDUE_RUN97`'s
@@ -6476,13 +6481,17 @@ mod tests {
         // a residue count that swallows the word reports the headline's
         // motion as its own failure — `ORDER_RESIDUE_RUN97`'s lesson, and
         // it cost this line a red gate on item 456.
+        //
+        // **18 → 17 on item 464**, and the unit that left is `0/5`: its
+        // order row used to open one frame *below* the word and now
+        // opens **on** it, as the gather residue asserted above.
         assert_eq!(
             orders
                 .values()
                 .filter(|f| **f < LONG_WORD_GREAT_LAKES)
                 .count(),
-            18,
-            "the window's standing order residue is not eighteen units: {orders:?}"
+            17,
+            "the window's standing order residue is not seventeen units: {orders:?}"
         );
         assert_eq!(
             cities.len(),
@@ -6574,6 +6583,18 @@ mod tests {
     /// The word's own block is 10234 now and it is two units: the human's
     /// citizen `0/5`, which is the word, and `1/28`, one block ahead of
     /// the original on the walk its dropped order freed.
+    ///
+    /// **Item 464 closed the citizen and widened the record again.**
+    /// `0/5`'s twenty-two rows are three: its flight is the original's,
+    /// destination and bearing and frame (`docs/COMBAT.md` §34), and
+    /// what is left of it is the `GATHERORDER` this crate's
+    /// `think_peasant` hands the idle citizen under the flight, with
+    /// `0/2001`'s `gather_down` chain carrying it. The widening itself
+    /// grew by 54,000 comparisons and **lost a false row**: `myhits` is
+    /// the record's *maximum* and `damage` the accumulator beside it, so
+    /// comparing this crate's current health against `myhits` reported
+    /// every wound as a divergence — `hits_left` and `myhits` are both
+    /// rows now and both agree on all 909 blocks.
     #[test]
     fn run100_s_word_block_is_every_record_the_dump_carries() {
         /// run100's first complete block — [`WIDENING_GREAT_LAKES`], the
@@ -6799,7 +6820,25 @@ mod tests {
                     ),
                     ("idle".into(), i64::from(un.idle), them.idle),
                     ("stance".into(), i64::from(un.stance), them.stance),
-                    ("myhits".into(), i64::from(un.health), them.myhits),
+                    // **`myhits` is the max, not what is left.** The
+                    // record carries the pair `myhits`/`damage` —
+                    // `ObjectData::myhits` is the whole hit points the
+                    // type has after tech and `damage` what has been
+                    // taken off them (`crate::diff::army`'s loader has
+                    // read it that way since it existed) — and this row
+                    // compared this crate's *current* health against the
+                    // **maximum**, so it agreed only while the unit was
+                    // untouched and reported every wound as a
+                    // divergence. Item 464 found it on the word's own
+                    // block: `0/5 myhits: ours 38 theirs 40`, where the
+                    // dump's own `damage` is 2 and the two sides agree.
+                    // Both halves are compared now.
+                    (
+                        "hits_left".into(),
+                        i64::from(un.health),
+                        them.myhits.map(|h| h - them.damage.unwrap_or(0)),
+                    ),
+                    ("myhits".into(), i64::from(un.max_health), them.myhits),
                     ("myspeed".into(), i64::from(un.movement.speed), them.myspeed),
                     ("form".into(), i64::from(un.form), them.form),
                     ("form_mod".into(), i64::from(un.form_width), them.form_mod),
@@ -6998,28 +7037,9 @@ mod tests {
         assert_eq!(
             on_word,
             vec![
-                "0/5 dest_angle: ours 165478400 theirs -1334771712",
-                "0/5 g.angle[0]: ours 165478400 theirs -473038848",
-                "0/5 g.avg_speed[0]: ours 6 theirs 0",
-                "0/5 g.cur_anim[0]: ours 8 theirs 0",
-                "0/5 g.cur_time[0]: ours 1 theirs 2",
-                "0/5 g.des_angle[0]: ours 165478400 theirs -473038848",
-                "0/5 g.des_x[0]: ours 2238 theirs 2232",
-                "0/5 g.des_y[0]: ours 31197 theirs 31224",
-                "0/5 g.end_time[0]: ours 15 theirs 33",
-                "0/5 g.last_speed[0]: ours 27 theirs 0",
-                "0/5 g.last_time[0]: ours 0 theirs 1",
-                "0/5 g.stopped[0]: ours 0 theirs 1",
-                "0/5 g.x[0]: ours 2238 theirs 2232",
-                "0/5 g.y[0]: ours 31197 theirs 31224",
-                "0/5 heading: ours 165478400 theirs -473038848",
-                "0/5 idle: ours 0 theirs 2",
-                "0/5 myhits: ours 38 theirs 40",
-                "0/5 order:kind: Kind { ours: 1, theirs: 4 }",
-                "0/5 orders_x: ours 2280 theirs 792",
-                "0/5 orders_y: ours 31032 theirs 31800",
-                "0/5 path:length: PathLength { ours: 1, theirs: 0 }",
-                "0/5 pos: ours (2238,31197) theirs (2232,31224)",
+                "0/5 order:length: Length { ours: 2, theirs: 1 }",
+                "0/5 orders.len: ours 2 theirs 1",
+                "0/2001 gather:gather_down[-1]: ours 5 theirs 2",
                 "1/28 g.angle[0]: ours 1260584960 theirs -1348206592",
                 "1/28 g.avg_speed[0]: ours 6 theirs 0",
                 "1/28 g.cur_anim[0]: ours 7 theirs 0",
@@ -7036,14 +7056,14 @@ mod tests {
                 "1/28 pos: ours (4801,30176) theirs (4776,30168)",
                 "1/28 tolerance: ours 384 theirs 0",
             ],
-            "the word's own block is not the thirty-seven rows it was"
+            "the word's own block is not the eighteen rows it was"
         );
         // **Anti-vacuity, in the block's own counts.** A capture without
         // `UNITS=3`, `BUILDS=7`, `CITIES=5` or `GUYS=4` would agree
         // everywhere by saying nothing, and this is the only assertion
         // that can tell the two apart.
         assert!(
-            blocks >= 836 && compared >= 1_900_000,
+            blocks >= 836 && compared >= 2_250_000,
             "run100's own blocks are missing — the wrong file: {blocks} blocks, {compared} rows"
         );
         let (units, builds, cities, leaders, pos, order, collide, city, build, queue, gather) =

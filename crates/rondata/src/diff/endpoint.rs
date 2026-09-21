@@ -848,8 +848,21 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // another: 463 read `off` 51 where the merged tree reads 45, and
         // both read `build_diverged` 9 where it is 10. Measured on the
         // merge commit and on nothing else.
-        off: 45,
-        unlinked: 9,
+        // And **45 → 48 off, 9 → 10 unlinked** on 2026-09-21, item 464 —
+        // `Unit::think`'s step 3 taking the military bit as well as the
+        // attack column, and `Unit::target_opportunity`'s flee arm
+        // (`docs/COMBAT.md` §34). Both go the wrong way, and both are
+        // 13,768 frames past a word that did **not** move: past the word
+        // the draw stream is unaligned, so every later random answer is a
+        // coin flip and this row is evidence about the run-up rather than
+        // about either predicate. The value diff the change is booked on
+        // is the word's own block, where `0/5`'s twenty-two rows go to
+        // **three** and its flight lands on the original's own
+        // `(792, 31800)`
+        // (`run100_s_word_block_is_every_record_the_dump_carries`).
+        // DECISIONS 36 asks for the number rather than a trade.
+        off: 48,
+        unlinked: 10,
         extra: 0,
         build_unlinked: 0,
         build_diverged: 10,
