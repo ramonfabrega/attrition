@@ -40,6 +40,20 @@ fail first, and merged PR #4 whole (458); 375 left for the ordinary list
 (`docs/audit/2026-09-21-fable-pass-8.md`, DECISIONS 44).
 341 closed 2026-09-18 by item 363.
 
+(467) **An amend of the booking commit rewrites the base under a live
+lane.** 2026-09-21, the ninth chain: 463's booking commit failed
+`the_queue_caps_items_not_lines`, was fixed and `--amend`ed 7326776 →
+61a2d1e; lane att-462 had already merged 7326776 and had to abort and
+redo its merge against the new tip. It caught this itself by re-reading
+`worktree-replan-pdb` before committing, which is luck, not a guard —
+nothing would have failed had it not looked, and the merge's second
+parent would have been a commit that no longer exists on the base.
+`CLAUDE.md`'s chain bans a spawn or a `ccc update` between the merge and
+its booking commit but says nothing about the booking commit *moving*
+afterwards. Either the gate runs before the booking commit is visible to
+a lane, or a booking commit is never amended once a second lane is live
+— a fresh commit instead. The steering pass's to rule.
+
 (452) and of the same family as (449): an instrument that quietly stops
 looking at the moment the thing it measures happens. Both are guard
 shapes, not mechanics, which is why they are here and not in the queue.
@@ -826,16 +840,13 @@ stub here. VISION §9.1, §9.8. Names no score: no capture on disk has a
 building shooting through fog. *Would settle it:* `BUILDS=7 UNITS=3`
 over the frames a tower fires, and the `BUILDDATA` `visible` byte.
 
-(460) **`Profile::x_size` is 0 for every unit type here**, where the
-original's `ObjectTypeData::x_size` is the XML's `CIRCLE_RADIUS`
-(`UnitType::init@0061ab50:655`-`662`). Item 457 carried the real value
-as `Profile::circle_radius` rather than move `x_size`, because several
-unit paths read a *target's* `x_size`. **This is a named candidate for
-parked 400**: `find_attack_pos` takes the target's extent as
-`(x_size * 0x60, y_size * 0x60)` (`attack_pos.rs:293`), `(0, 0)` here
-and `(0x60, 0x60)` there for a unit target, and chapter two's standing
-624 is a chase destination. *Falsifier:* set it and re-run
-`chapter_two_s_word_frame_is_widened_whole` over `[620, 628)` — if the
-three slingers' 622 destinations do not move toward `(1608, 8184)`,
-`(1560, 7848)` and `(1704, 8424)`, the reading is wrong. VISION §9.8.
+(460) closed 2026-09-21 by item 462: **falsified by its own
+falsifier**, run exactly as written, and not one row moved — no
+unit-target path in this crate reads `Profile::x_size` at all
+(`docs/VISION.md` §9.8). The 622 destinations were
+`find_nearby_target` walking the unit index where COMBAT §12.2
+and §18.1 say it walks the cell's own `down` chain, plus the unit
+half of `find_attack_pos` (COMBAT §32.2). The candidate was
+cheap, precise and wrong, which is what a written falsifier is
+for: it cost one run rather than an item.
 

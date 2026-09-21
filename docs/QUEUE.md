@@ -12,34 +12,36 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-21, the ninth chain. **The AI headline moved again**, 10232 →
-10233 — and 456's named mechanism was wrong for the fourth time running,
-which is now the rule rather than the surprise.*
+*2026-09-21, the ninth chain, two lanes. **Both headlines moved** — Great
+Lakes 10232 → 10233 and chapter two 624 → 637 — and on both lanes the
+mechanism the previous item named was wrong.*
 
-- **The AI word is 10233** (463). A dead target outlives its order by the
-  attacker's reload: `Unit::do_attack` never tests aliveness for a type
-  that has `attack`, and `Unit::fight`'s recharging arm returns before its
-  `valid_target`. Six AI raiders keep a dead building's ATTACKORDER; this
-  crate dropped all six at once. Held by three assertions, not by the word
-  — one made to fail both ways, one over the raid's whole tail, and
-  `recharging` now a compared field of the widening's `UNITDATA` rows.
-- **Not formation pathing.** 463's title was 456's hypothesis and the
-  frame was the booking; DECISIONS 42 paid again.
-- **The rules word is 624** (447/457), widened and pinned. Item 462 is in
-  flight on 622's three destinations with parked 460's `x_size` as its
-  first falsifier.
-- East Indies' 9711 and chapter one's 626 still owe widenings (444, 445,
-  parked). Four open, 68 parked. **Fable backlog: 1 Loop item** (313).
+- **The AI word is 10233** (463): a dead target outlives its order by the
+  attacker's reload — `Unit::do_attack` never tests aliveness for a type
+  with `attack`, and `Unit::fight`'s recharging arm returns before its
+  `valid_target`, so six AI raiders keep a dead building's ATTACKORDER
+  where this crate dropped all six at once. Three assertions hold it, not
+  the word. **Not formation pathing**: 456's hypothesis, DECISIONS 42.
+- **The rules word is 637** (462), +13, [620, 628) closed whole. Parked
+  460 was **falsified by its own falsifier**: nothing reads
+  `Profile::x_size`. The causes: `Built::unit_ids` resolved only through
+  the start dump's link table, so the dumped ATTACKORDER target went
+  uncompared for the whole chapter; then `find_nearby_target` walking the
+  unit index where it walks the cell's own `down` chain, and the unit
+  half of `find_attack_pos`.
+- **Neither lane's endpoint counts survived the merge**: 463 alone read
+  51 off, 462 alone 48, the merged tree 45. Re-measured there, never
+  hand-merged; 467 parks the amend hazard it exposed. Four open, 68
+  parked. **Fable backlog: 2 Loop items** (313, 467).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w9711 of 24,000 · GreatLakes w10233 of 24,000
-Golden: w624 of 901 (ch2) · ch1 w626 · 462 in flight
-Endpoint 24001: EastIndies 64 off, 10 unlinked · GreatLakes 51 off, 8 unlinked
+Golden: w626 of 901 (ch1) · ch2 w637 · 466 next
+Endpoint 24001: EastIndies 64 off, 10 unlinked · GreatLakes 45 off, 9 unlinked
 
-**Opener: 464 on the AI lane — `0/5` on block 10234, the human citizen
-hit on 10233 that the original answers a block later with a FLEE_TO —
-and 465 beside it, `1/28`'s one-frame plan lag, whose falsifier is
-already on disk in run100 blocks 10233-10235.**
+**Opener: 464 on the AI lane — `0/5` on block 10234, the citizen the
+original flees a block late — and 466 on the rules lane, 635's six
+`Target` rows, where the cell chain is explicitly NOT the cause.**
 
 ## The queue
 
@@ -66,14 +68,13 @@ the backlog is `docs/PARKED.md`, and an item returns only when a score names it.
     `1/27` does the same on 10240. `docs/ORDERS.md`; **its falsifier is
     already on disk** — run100 blocks 10233-10235, no capture to book.
 
-462. **622's three destinations, ours one seat and theirs three points**
-    (the rules headline's frame; 447 widened [620, 628), 457 left the word
-    at 624): we plan all three slingers to `(2424, 7800)` — `1/6`'s own
-    seat — against `(1608, 8184)`, `(1560, 7848)`, `(1704, 8424)`, ten
-    path slots to six, and 624's extra draw is that destination. **A named
-    candidate**: parked 460, `Profile::x_size` 0 where the original's is
-    `CIRCLE_RADIUS`, so `find_attack_pos` reads a unit target's extent as
-    `(0, 0)` here and `(0x60, 0x60)` there. Falsifier written.
+466. **635's six `Target` rows in the new window** (the rules headline's
+    frame; 462 moved the word to 637 and widened [633, 641)): the bowmen
+    take `1/6` where the dump takes `1/8`, and all three hoplites take
+    `0/7` where the dump takes `0/11`. Same shape as 621's parting, and
+    **the cell's `down` chain is explicitly not the cause here** — 462
+    fixed that and these six survive it. Booked by the frame and the six
+    rows, not by a mechanism. `docs/COMBAT.md` §32 is the specification.
 
 342. **Host choice seats the scholar on the wrong university** — 338's
     residue, re-pinned three times, and now `1/55`. **Re-measure before
