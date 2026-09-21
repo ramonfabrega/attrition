@@ -6551,26 +6551,22 @@ ran and reached different verdicts on the same point — not which arm of
 
 ### 54.4 What this has *not* established
 
-- **Which unit the original's probe finds at `(42774, 22584)`, and why
-  this crate's does not refuse it.** This is the successor item and the
-  widening deliberately does not name it: `collide_o` and `collide_who` are
-  cleared by the snap arm two instructions after the probe returns, so the
-  dumped record **cannot** name the collider, and every account of *which*
-  arm fired is a reading until a capture prints one. Four units stand
-  within half a tile on that block — `1/31` (`size 60`, `(42862, 22687)`),
-  `1/32` (`size 40`), `1/37` (`size 50`) and `1/33` — and `1/38` shares
-  `group 64` with all of them, which puts §4.3's group-mate soft arm and
-  the corner rule (`docs/COLLISION.md` §4.2, §4.3) among the candidates and
-  proves neither. **No gamelog category can answer it** — the fields that
-  would name the collider are cleared inside the same function — so the
-  instrument is the trace's **call proxies**, the way run108 read a
-  search's answer and run114 the leader's offers: a `RON_COLLIDE_PROBE`
-  tracer-def bracketing `Unit::detect_unit_collision@00617060` with
-  `--callwin 10158 10163` over this same seeded game, everything else
-  run100's detail. Its falsifier is written before it runs: the bracket
-  must show **one** call on 10161 returning 1, and the site inside it must
-  name a `who/o` — an empty bracket says the refusal is not this
-  function's at all.
+- ~~**Which unit the original's probe finds at `(42774, 22584)`, and why
+  this crate's does not refuse it.**~~ **Taken as item 456, and the
+  capture is run116** — `docs/COLLISION.md` §9, and the falsifier this
+  bullet wrote held on the first pass: one bracket on 10161, returning 1,
+  with a `who/o` named inside it. The collider is **`1/31`**, the hit cell
+  **`(892, 471)`** off §4.2's fast-path edge sweep, and `will_be_corner 5`
+  against `is_corner 0` — the corner rule was asked and refused to let the
+  two slip past. Six of the eight steps already agreed, including the
+  probe's own cell and the 3×3 walk's order; the parting is §4.3's
+  group-mate soft arm and **one clause of it**, `UnitData +0x104`, which
+  the PDB calls `openlist`: `1/31` holds a suspended 48-grid search on
+  that very frame, so the original's arm declines. `Unit::search` **is**
+  that field and has been since `docs/PATHFINDER.md` §18 — the seam
+  comment that said the crate did not keep one outlived it by a
+  fortnight. Great Lakes' word **10161 → 10232**, and the fifteen rows of
+  §54.2 go to nought.
 - **Whether this crate reaches the snap arm here at all.** Its step was
   accepted, so nothing says whether its `move_step` took the snap branch
   and passed the probe, or took the partial branch and never asked.

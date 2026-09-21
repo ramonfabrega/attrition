@@ -4447,3 +4447,59 @@ The window also carries two more `LEADERDATA` records a block — leader
 slots **8 and 9**, zero throughout — which is why the record count is four
 a block rather than two, and why the `treaties[scan]` tooth above expects
 4,160 rather than 2,080.
+
+## run116 — the collision sweep, read from inside (2026-09-21, item 456)
+
+**What it is.** run100's own game and detail — `MISC,UNITS=3,BUILDS=7,
+CITIES=5,GUYS=4,DEATHS=1,LEADERS=1` — over `[10155, 10170)`, fifteen
+blocks, with the tracer built `TRACER_DEFS=-DRON_COLLIDE_PROBE` and
+`callwin=10158-10163`. The **first capture with the collide probe**
+(`docs/COLLISION.md` §9): five proxies over
+`Unit::detect_unit_collision@00617060`,
+`CollCheck::collide_here@00682540`,
+`UnitData::will_be_corner@00609fa0`, `UnitData::is_here@0060a0c0` and
+`UnitData::is_corner@0060a040`, plus an INFO 15 identity record that
+names each `UnitData *` in `(who, o)`. Through `viadriver.sh
+runqueue.sh`, about three minutes; the plain tracer rebuilt into the
+install afterwards.
+
+**Half of it was already on the disk, and the stanza says so.** run100
+covers `[9340, 10899)` of this very game at this exact detail, so the
+word's whole *state* was on disk and item 448 had read it whole. What
+no `gamelog.ini` line can put there is the **inside of the sweep**:
+`collide_o` and `collide_who` are cleared by §5.4's snap arm two
+instructions after the probe returns. That, and only that, is what this
+run adds.
+
+**Six checks, all green first time.**
+
+| check | result |
+| --- | --- |
+| `rngcmp.py` vs `rontrace-run53.log` | **0 differing**, 10,186 identical |
+| `MAP_STYLE` from the dump's `GAME INFO` | 14 |
+| the window, block for block | **15 blocks, 10155..10169, no gap** |
+| `samegame.py` vs run100, no `--exclude` | **15 in common (10155..10169), 0 differing** |
+| proxied sites from the log's own `PROXIED` records | **13** (the eight base plus five) |
+| the stanza's falsifier | **one `detect_unit_collision` on `1/38` on 10161, returning 1** |
+
+The fourth is the perturbation check in its strongest available form —
+the window lies *inside* run100's at the same detail, so nothing was
+raised and the whole record is comparable rather than six blocks at
+each end.
+
+**What it says.** `1/38`'s refused step is §4.2's fast-path edge sweep
+finding `(892, 471)`, `1/31` covering it, the exemption ladder
+declining, and `will_be_corner 5` against `is_corner 0` — hard.
+`docs/COLLISION.md` §9.2 has the eight rows beside this crate's, and
+six of the eight already agreed.
+
+**And a second record answered the question the first one raised.**
+`PathFinder::astar_path@00683770` is one of the eight *base* proxies, so
+it is in every log: on 10161 two searches return **−1** and resume on
+10162. Their `stack` argument is `UnitData +0xb8`, so subtracting the
+offset and reading the INFO 15 table names them — `1/31` and `1/32`.
+That is `+0x104`, `openlist`, and it is the clause that refused the
+step. The capture booked for one question answered it from a proxy
+nobody added for it.
+
+**What it moved.** Great Lakes' long word **10,161 → 10,232**.

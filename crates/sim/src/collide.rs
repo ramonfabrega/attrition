@@ -46,9 +46,16 @@ pub struct Candidate {
     pub is_here: bool,
     /// §4.3's exemption ladder said this is a nudge, not a collision.
     pub soft: bool,
-    /// `UnitData::is_corner` on the hit cell, `0` when no figure of
-    /// this unit puts the cell on a diagonal corner of its block.
-    pub is_corner: i32,
+    /// `UnitData::is_corner` on the hit cell — `Some(0)` when no figure
+    /// of this unit puts the cell on a diagonal corner of its block, and
+    /// **`None` when it was never asked**, because an earlier gate
+    /// answered first.
+    ///
+    /// The two are not the same fact and the distinction is the one
+    /// `docs/COLLISION.md` §9 turns on: `is_corner` is reached only when
+    /// `will_be_corner` was non-zero *and* every soft arm declined, so
+    /// its absence says as much as its answer.
+    pub is_corner: Option<i32>,
 }
 
 /// What one sweep of one proposed point decided, step by step
@@ -73,6 +80,81 @@ pub struct SweepVerdict {
     /// The hard collision, `(who, o)` — the pair the original would write
     /// into `collide_who`/`collide_o` and the snap arm would then clear.
     pub hard: Option<(i32, i32)>,
+}
+
+/// What [`Sim::sweep_watch`] collects: every sweep one named unit ran on
+/// one named frame, recorded where the original's own bracket sits.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub struct SweepWatch {
+    /// The sim-frame to record on.
+    pub frame: i64,
+    /// The asking unit, `(who, o)`.
+    pub unit: (i32, i32),
+    /// Each proposed point and what the sweep made of it, in order.
+    pub seen: Vec<(Pos, SweepVerdict)>,
+}
+
+impl SweepWatch {
+    /// Watch one unit on one frame.
+    pub fn new(frame: i64, who: i32, o: i32) -> SweepWatch {
+        SweepWatch {
+            frame,
+            unit: (who, o),
+            seen: Vec::new(),
+        }
+    }
+
+    /// Each recorded sweep as `"(x,y) <verdict>"` — the line the run116
+    /// comparison diffs against the trace's own bracket.
+    pub fn rendered(&self) -> Vec<String> {
+        self.seen
+            .iter()
+            .map(|(at, v)| format!("({},{}) {v}", at.x, at.y))
+            .collect()
+    }
+}
+
+impl std::fmt::Display for Candidate {
+    /// `who/o=is_here[,soft][,corner N]` — the shape
+    /// `RON_COLLIDE_PROBE`'s own `is_here`/`is_corner` pair prints, so a
+    /// candidate walk can be compared as text against the trace's.
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}/{}={}", self.who, self.o, i32::from(self.is_here))?;
+        if self.soft {
+            write!(f, ",soft")?;
+        }
+        if let Some(n) = self.is_corner {
+            write!(f, ",corner {n}")?;
+        }
+        Ok(())
+    }
+}
+
+impl std::fmt::Display for SweepVerdict {
+    /// One sweep as one line, in the order the original's own bracket
+    /// prints it: the proposed cell, the probe's hit, `will_be_corner`,
+    /// the candidate walk, and the verdict. It is what the run116
+    /// comparison diffs — a rendered line against a rendered line — so
+    /// every field of the verdict is read by the thing that checks it
+    /// rather than by a ledger row saying nothing does.
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if !self.gated {
+            return write!(f, "ungated");
+        }
+        write!(f, "at ({},{})", self.at_cell.x, self.at_cell.y)?;
+        match self.hit {
+            None => return write!(f, " clear"),
+            Some(c) => write!(f, " hit ({},{}) will {}", c.x, c.y, self.will_be_corner)?,
+        }
+        for c in &self.candidates {
+            write!(f, " {c}")?;
+        }
+        match self.hard {
+            Some((who, o)) => write!(f, " hard {who}/{o}"),
+            None if self.soft => write!(f, " soft"),
+            None => write!(f, " pass"),
+        }
+    }
 }
 
 /// The one draw the whole mechanic spends: the stagger a unit gives itself
@@ -697,6 +779,22 @@ impl Sim {
     /// `collide_o`/`collide_who`, ageing `collide`, clearing the wait flag
     /// — happens here too, because every path out passes through it.
     pub(crate) fn detect_unit_collision(&mut self, u: usize, at: Pos) -> Option<usize> {
+        // The recorder, and it is read-only: `sweep_verdict` walks the
+        // same scan this call is about to walk and changes nothing.
+        let watching = self.sweep_watch.as_ref().is_some_and(|w| {
+            w.frame == self.frame
+                && w.unit
+                    == (
+                        i32::from(self.units[u].owner),
+                        i32::from(self.units[u].index),
+                    )
+        });
+        if watching {
+            let v = self.sweep_verdict(u, at);
+            if let Some(w) = self.sweep_watch.as_mut() {
+                w.seen.push((at, v));
+            }
+        }
         if self.detect_gates(u) {
             let c = ucell(at);
             if c != ucell(self.units[u].pos)
@@ -770,7 +868,7 @@ impl Sim {
                     o: i32::from(self.units[o].index),
                     is_here: here,
                     soft: false,
-                    is_corner: 0,
+                    is_corner: None,
                 };
                 if !here {
                     rec(c);
@@ -783,7 +881,7 @@ impl Sim {
                     continue;
                 }
                 let theirs = self.guy_corner(o, cell);
-                c.is_corner = theirs;
+                c.is_corner = Some(theirs);
                 rec(c);
                 if will == 0 || (will - theirs).abs() != 4 {
                     return (Some(o), soft, will);
@@ -806,7 +904,9 @@ impl Sim {
     pub fn sweep_verdict(&self, u: usize, at: Pos) -> SweepVerdict {
         let at_cell = ucell(at);
         let gated = self.detect_gates(u) && at_cell != ucell(self.units[u].pos);
-        let hit = gated.then(|| self.collide_here(u, at_cell, false)).flatten();
+        let hit = gated
+            .then(|| self.collide_here(u, at_cell, false))
+            .flatten();
         let mut candidates = Vec::new();
         let (hard, soft, will) = match hit {
             None => (None, false, 0),

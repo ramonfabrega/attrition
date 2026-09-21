@@ -1942,7 +1942,215 @@ clears the collider it names — so §4.2's two sweeps and §4.3's soft table
 are candidates and nothing more; `docs/AI.md` §54.4 names the call-proxy
 capture that would separate them.
 
-## 9. What is not established
+## 9. run116 — the sweep read from inside, and the word is one clause (2026-09-21)
+
+§8.9's last paragraph left Great Lakes' word at 10161 with its arm
+unnamed, and named the capture that would settle it. `docs/AI.md` §54.4
+wrote the falsifier before the run. This is that capture, and the
+falsifier held on its first pass.
+
+**Why no dump could answer it.** `detect_unit_collision` writes
+`collide_o`/`collide_who` and §5.4's snap arm clears them **two
+instructions after the probe returns**, so the record on disk says a
+refusal happened and nothing whatever about which arm made it. That is
+not a detail level that was not raised; it is a field that does not
+survive the frame. The instrument had to be the trace's call proxies.
+
+### 9.1 The instrument: `RON_COLLIDE_PROBE`
+
+Five sites, ids 8–12, and each is there for a reason the one before it
+could not cover:
+
+| site | what it gives |
+| --- | --- |
+| `Unit::detect_unit_collision@00617060` | the **bracket** — everything nested in it is one unit's probe of one point — and the refusal itself, as the return |
+| `CollCheck::collide_here@00682540` | §4.2's probe. Its first two arguments are the **asker's own `o`/`who`**, which is the only place in the sweep a record says who is asking |
+| `UnitData::will_be_corner@00609fa0` | called once, immediately after a successful probe, so **its presence is `collide_here != 0`** — and its first two arguments are the **hit cell as values**, which `collide_here` carries only behind out pointers |
+| `UnitData::is_here@0060a0c0` | one call per candidate the 3×3 walk reaches, `this` the candidate: the census of *who was looked at*, and the answer is who covers the hit cell |
+| `UnitData::is_corner@0060a040` | the blocker's half of the corner rule, reached **only** when `will_be_corner` was non-zero and every soft arm declined — so its absence is as informative as its presence |
+
+Three of the five are `__thiscall` on a `UnitData *` and their arguments
+name no object at all, so the build adds one record of its own: **INFO
+15**, `(UnitData *, o, who)`, read off `+0xa` (a short) and `+0x9` (a
+byte) — the pair `will_be_corner@00609fa0` itself indexes
+`units[who][o]` with, so the offsets are the function's own and not a
+guess. It is what lets a log full of heap addresses be put beside a dump
+keyed on `(who, o)`; `Trace::unit_of` and `report.py … calls` both read
+it, and `report.py` prints `this=1/38` rather than `this=0x320f35c`.
+
+Argument counts are each function's own `ret <imm>` divided by four,
+read off the image: `0x1c`, `0x20`, `0x10`, `8`, `0xc`.
+
+**The proxies perturbed nothing**, which is the one thing a probe build
+owes (`docs/AI.md` §52.1): `rngcmp.py` against run53 is 0 differing and
+10,186 identical, and `samegame.py` against run100 — whose window this
+one lies inside, at the same detail, so no `--exclude` — is 15 blocks in
+common and 0 differing.
+
+### 9.2 The word, step by step, both sides
+
+`1/38` proposes `(42774, 22584)` on sim-frame 10161, from unit cell
+`(890, 470)` onto `(891, 470)`. One bracket, `quick 0`, and it returns
+**1**.
+
+| step | the original (run116) | this crate |
+| --- | --- | --- |
+| proposed cell | `(891, 470)` | `(891, 470)` |
+| `collide_here(o 38, who 1)` | 1 | hit |
+| the hit cell | **`(892, 471)`** | **`(892, 471)`** |
+| `will_be_corner` | **5** (SE) | **5** |
+| the 3×3 walk, in order | `1/39`, `1/32`, `1/31` | `1/39`, `1/32`, `1/31`, … |
+| `is_here` | 0, 0, **1** | false, false, **true** |
+| §4.3's exemption ladder | **declined** | **soft** |
+| `is_corner` | **0** — asked | not asked |
+| verdict | `|5 − 0| ≠ 4` → **hard**, step refused | soft, `half_step`, step taken |
+
+**Six of the eight rows agree**, including the two the widening could
+not see: the probe's own cell and the walk's order. `1/38` steps one
+cell east with `dy 0`, so §4.2's **fast path** is what ran — the column
+`x = 892`, its two parity rows `y = 469` then `471`, the first occupied
+one winning — and both sides walked it and stopped on the same cell.
+The corner rule agrees too, on the half that was asked.
+
+**So the whole word is §4.3's soft table, and one clause of it.**
+
+A note on how nearly this was mis-attributed. Read at the *start* of
+frame 10161 this crate's probe answers `(892, 469)` and not `(892,
+471)`, because `1/33` — which steps earlier in the same frame — vacates
+unit cell `(893, 469)` during it and `move_unit`'s clear pass takes the
+column `x = 892` with it. A sweep compared at a frame boundary and a
+sweep compared where the original's bracket actually sits are different
+measurements, and the first one says "the occupancy index". **The probe
+must be read inside the frame, at the asking unit's own step.**
+
+### 9.3 The clause, and how the other three were eliminated
+
+§4.3's group arm is four clauses and the collision was hard, so exactly
+one of them declined:
+
+- **the group** — both carry `group 64`, and `≠ −1`. The dump prints it.
+- **`local_24 == 0`, my action is not `ATTACK`.** `1/38`'s order is a
+  `GROUPATTACKTOORDER`, and the dump prints its `flags 5`.
+  `UnitData::get_action@00608450` walks the order list and returns the
+  first order that is not moving **or** carries `flags & 4` — 5 is
+  `1 | 4` — so the action *is* that order, `action_type` is **21** and
+  not `ATTACK`'s 10. The clause passes. (This crate reads 21 too.)
+- **the order-kind test.** `1/31`'s order is an `ATTACKTOORDER`, type
+  **2**, which is one of §4.3's gated seven and needs the collider's
+  *action* type ≠ 10. Its order carries `flags 5` as well, so its action
+  is that same order and `local_28` is **2**. The clause passes.
+- **`+0x104 == 0`.** Everything else having passed, this is the one that
+  declined — and `+0x104` is **`openlist`**, `Tree<PathNode *, int> *`
+  in the PDB's own `UnitData`: the head of a **suspended 48-grid
+  search**.
+
+**And the trace says so directly, on the same frame.**
+`PathFinder::astar_path@00683770` is one of the eight base proxies, so
+every build records it. On sim-frame 10161 two searches return **−1** —
+the suspend — and both resume and answer 1 on 10162. Their `stack`
+argument is a `Stack<PathData> *`, which is `UnitData +0xb8`; subtract
+the offset and the INFO 15 table names the units: **`1/31` and
+`1/32`**. `1/31` is the blocker.
+
+Three independent witnesses, and they are three different instruments:
+
+- the **trace**, `astar_path(1/31's stack) = −1` on 10161;
+- the **dump**, `1/31 start_dist 1872` on block 10162 — §18.6's "one
+  dumped witness that a search suspended", and this crate writes the
+  same 1872;
+- **this crate's own state**, `Unit::search.is_some()` on 1/31 at the
+  moment `1/38` probes it.
+
+So the field was never missing. `Unit::search` **is** `+0x104..0x148`
+and has been since `docs/PATHFINDER.md` §18; the *seam comment* in
+`Sim::same_group_soft` outlived the field by a fortnight, and reading
+the clause as zero widened the arm by exactly the units that are busy
+re-planning — which, in a squad walking into each other, is most of
+them.
+
+### 9.4 The fix, and what it moved
+
+One clause: the arm declines when the **collider** holds a suspended
+search. It is the collider's alone — a suspended search of the asker's
+is not in the predicate.
+
+| | base | now |
+| --- | --- | --- |
+| Great Lakes long word (run53) | 10,161 | **10,232** |
+| East Indies long word (run54) | 9,711 | 9,711 |
+| the word's own block, 10162 | 15 rows on `1/38` | **0** |
+| run53's endpoint at 24001, `off` | 53 | **48** |
+| — `unlinked` | 8 | **13** |
+
+The new word is `Unit::do_move+0xe84` here against
+`Guy::set_anim+0x97a < Guy::inc_time+0x1ed` there, 99 draws against 95,
+parting at draw 92. **Its value diff is 53 rows on four units** on block
+10233: the human's `0/5 orders.len: ours 1 theirs 0` — an order the
+original drops and this crate still holds — and a three-unit squad,
+`1/27`, `1/28` and `1/29`, whose positions, headings, tolerances and
+path stacks part together, ours carrying a 44-entry plan where the
+original carries one hop. That is a formation-pathing question and not
+this document's.
+
+The endpoint's five extra unlinked units are 13,769 frames past the
+word, on a clause that fires wherever a squad walks into itself while
+one of its members is re-planning; `docs/DECISIONS.md` 36 asks for the
+number rather than a trade, and it is on the row.
+
+### 9.5 What this has *not* established
+
+- **The other three clauses are still readings.** This capture exercised
+  them — they all passed — but a clause that passes is not a clause that
+  was tested. A capture in which a group-mate's action *is* `ATTACK`, or
+  whose order is one of the gated seven with an attacking action, is
+  what would put teeth in the other three.
+- **`is_here`'s own arguments are not read.** They are pointers to the
+  hit cell, so the record names the candidate and its answer and not the
+  point; the point comes from `will_be_corner` beside it. A candidate
+  examined on a frame where `will_be_corner` was not called would
+  therefore have no cell on the record.
+- **`0x12` (`CHANGE_FORM`) is still an order this crate does not have**,
+  so the gated set is six of the seven here.
+- **Whether the arm is now *right*, or only right here.** One clause
+  moved one word. Nothing in this capture says the remaining seam list
+  in `soft_collision` — the `TRADE_ROUTE`/`0xf` and `0xc` arms, which
+  need action indices this crate does not carry — is empty of the same
+  kind of defect; no capture has entered either.
+- **The window is six frames.** `callwin=10158-10163` is what the
+  brief booked, so the sweep is read forwards on six frames of one game
+  and nowhere else.
+
+### 9.6 Coverage
+
+Diff-backed. `run116_s_sweep_is_the_original_s` puts this crate's
+[`Sim::sweep_verdict`] beside run116's own record for the word's
+bracket — the proposed cell, the hit cell, `will_be_corner`, the
+candidate walk in order with each `is_here`, and the blocker's
+`is_corner` — and asserts the refusal itself. It reads the trace's site
+table rather than assuming the ids, so a log some other probe build
+wrote cannot pass it.
+
+`Sim::sweep_verdict` is not a second implementation: it calls the same
+`Sim::scan_colliders` `detect_unit_collision` calls, with a recording
+sink where the simulation passes an empty one. A diagnostic that drifts
+from the code it diagnoses is worse than none.
+
+`Candidate::is_corner` is an `Option` for the same reason the site is
+proxied at all: **`Some(0)` and `None` are different facts** — asked and
+answered nought, against never asked because an earlier gate answered
+first — and §9.5's first bullet is about exactly that distinction.
+
+Made to fail on purpose before landing: restoring the seam — dropping
+the `search.is_some()` clause — turns the word's row from
+`1/31=1,corner 0 hard 1/31` into `1/31=1,soft … soft` with nine more
+candidates walked, and the word from 10,232 back to 10,161. Both were
+run.
+
+Nothing in §9.2 rests on a reading. §9.3's elimination of the other
+three clauses rests on `get_action@00608450` read against the dump's own
+`flags 5`, and the clause that did decline is diff-backed three ways.
+
+## 10. What is not established
 
 - **The snap arm's `invalid_loc` refusal** (§5.4). The same `if` has a
   *free* sub-arm, and its tile refusal at `005fb443` does **not** behave
