@@ -390,7 +390,15 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // which does not move. DECISIONS 36 asks for the number rather
         // than a trade.
         off: 64,
-        unlinked: 5,
+        // And **5 → 10 unlinked** on 2026-09-21, item 442 — the scholar
+        // arm's `val` chain (`docs/AI.md` §53). This map's word does not
+        // move on it; Great Lakes' moves 9510 → 10161. The AI's Scholar
+        // valuation is per city everywhere, so East Indies' 24,000th frame
+        // drifts too, 14,000 frames past its own word, and its two ladder
+        // rungs shed **eight** and **seven** spurious units — the Citizens
+        // this crate used to buy instead of Scholars. DECISIONS 36 asks for
+        // the number rather than a trade; the number is on the headline.
+        unlinked: 10,
         extra: 0,
         build_unlinked: 0,
         build_diverged: 32,
@@ -767,11 +775,18 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // rather than a trade; the value diff the change is booked on is
         // the golden record's own six units, exact through frame 624
         // (`testkit::GOLDEN_WORD_CHAPTER_ONE`).
-        off: 51,
-        unlinked: 11,
+        // And **51 → 55 off, 11 → 8 unlinked, 9 → 10 build_diverged** on
+        // 2026-09-21, item 442 — the scholar arm's `val` chain
+        // (`docs/AI.md` §53), which moves this map's own word **9510 →
+        // 10161**, its largest single step since item 385. Three units
+        // linked that did not and four stand further out, 13,840 frames
+        // past the word. The AI now buys the scholars the original buys
+        // and the endpoint has ten more of the game in it.
+        off: 55,
+        unlinked: 8,
         extra: 0,
         build_unlinked: 0,
-        build_diverged: 9,
+        build_diverged: 10,
         city_unlinked: 3,
         city_diverged: 0,
     },
@@ -948,7 +963,11 @@ pub const LADDER: [Endpoint; 2] = [
         // which is what 7,590 frames past the word buys. `extra` is still 0
         // on both endpoint captures, which is the counter an overshoot
         // would move.
-        extra: 25,
+        // And **25 → 17 extra** on 2026-09-21, item 442 — the scholar
+        // arm's `val` chain (`docs/AI.md` §53). Eight spurious units gone
+        // from this rung and nothing else moved: the AI stops buying
+        // Citizens where the original buys a Scholar, on both maps.
+        extra: 17,
         build_unlinked: 10,
         build_diverged: 8,
         city_unlinked: 3,
@@ -1025,7 +1044,11 @@ pub const LADDER: [Endpoint; 2] = [
         // thirteen more units this crate holds that run24's dump does
         // not, 8,700 frames past East Indies' own word, which does not
         // move. DECISIONS 36 asks for the number rather than a trade.
-        off: 47,
+        // And **47 → 49 off, 19 → 12 extra** on 2026-09-21, item 442 —
+        // the scholar arm's `val` chain (`docs/AI.md` §53). Seven spurious
+        // units gone, two positions out, 8,000 frames past this rung's
+        // word.
+        off: 49,
         unlinked: 16,
         // 19 → 33 on 2026-09-07, item 261, the same reshuffle, then 33 →
         // **27** the same day on item 265's byte — this rung took the
@@ -1097,7 +1120,7 @@ pub const LADDER: [Endpoint; 2] = [
         // later**, and the block 1/56–1/72 is type-identical on the two
         // rungs — which the ladder test now asserts, since it is the one
         // thing about `extra` that does not churn with every AI landing.
-        extra: 19,
+        extra: 12,
         build_unlinked: 19,
         build_diverged: 0,
         city_unlinked: 4,
@@ -1554,6 +1577,17 @@ mod tests {
         // diagnose, and the re-measurement is all this is: 394's whole
         // effect upstream is one `Random::get` on sim-frame 9451, so
         // everything here is that draw's stream 14,550 frames later.
+        //
+        // **Item 442 emptied it again**, and this time the carrier is not
+        // merely displaced: the scholar arm's `val` chain (`docs/AI.md`
+        // §53) changes *which* scholars exist and when, so the whole
+        // roster past 9510 is a different set of units. Nothing here says
+        // the seating improved — 14,550 frames past a word that itself
+        // moved 9510 → 10161, this is telemetry, and the set being empty
+        // is the same kind of fact as the set being `1/55`. It stays
+        // pinned to empty for the reason it was pinned to a name: the next
+        // item that puts a scholar exactly one university out fails here
+        // and is told so.
         let delta = (768, 9984);
         let carriers: Vec<(i64, i64)> = r
             .off
@@ -1563,7 +1597,7 @@ mod tests {
             .collect();
         assert_eq!(
             carriers,
-            vec![(1, 55)],
+            Vec::new(),
             "the set of units one university from the original's own \
              coordinates moved — `1/2020 − 1/2019` exactly, which is what \
              item 338's residue looked like, what the 384/385 merge left \
@@ -1611,10 +1645,20 @@ mod tests {
                     .map(|(_, _, other)| ((*w, *o), name.as_str(), other.as_str()))
             })
             .collect();
+        // **Fifteen → ten on item 442**, and the floor is falling for the
+        // right reason: the scholar arm's `val` chain (`docs/AI.md` §53)
+        // took eight spurious units off rung C and seven off rung B, so
+        // there are fewer shared `extra` numbers left to cross-check.
+        // This guard dies by success — as the AI stops buying units the
+        // original does not, the overlap it needs goes to zero — and when
+        // it does, `the_ladder_s_borrowed_setup_is_the_endpoint_s` is what
+        // still says the two rungs are one game, at frame 6,000 under the
+        // word where the roster is not AI-dependent. Lowered with the
+        // number rather than deleted, so the next fall is visible too.
         assert!(
-            shared.len() >= 15,
+            shared.len() >= 10,
             "only {} object numbers are `extra` on both rungs; the check is \
-             vacuous below fifteen and the two rungs may have stopped being \
+             vacuous below ten and the two rungs may have stopped being \
              one simulation",
             shared.len()
         );

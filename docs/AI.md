@@ -6024,10 +6024,14 @@ arm computes per-city.
 - **The missing Merchant is observed, not explained.** `create_units`'
   caravan-and-merchant arm has a civilian-ceiling `continue` that would
   drop the offer; nothing here measures whether that is what drops it.
-- **The new parting is 9582 and it is one draw.** This crate spends one
+- ~~**The new parting is 9582 and it is one draw.** This crate spends one
   `Leader::use_market+0x1ed` where the original spends two — the market's
   sell rotation, the same site the two sides agree on at 9382. 9581 and
-  9583 agree whole. It is not reachable until the valuation is real.
+  9583 agree whole. It is not reachable until the valuation is real.~~
+  **Closed by §53**: the valuation is real, and 9582 is a market sell on
+  both sides. Great Lakes now takes nine market draws below the word
+  against six, and `run53_s_24000_frames_put_the_ceiling_where_run33_did`
+  compares the list against the original's own before the literal.
 - **Nothing here says the tie is rare.** A positive wrap flattens whatever
   it swallows (§49.3), so two cities whose true values differ can collide
   on one wrapped remainder anywhere the arm is reached — the tie and the
@@ -6271,3 +6275,159 @@ three offers on the same frame off the stamped recorder. Made to fail
 first by the reconstruction's own order, which is how §52.3 was found.
 The replay in §50.3 now runs in the measured order and still reproduces
 block 9381.
+
+## 53. The scholar arm pays both of the original's offers (2026-09-21)
+
+Item 442, the successor §51 booked and could not land alone. **The term is
+`val`, and it was wrong twice over.** Correcting `count_gather_slots` gives
+`k` the original's own 6 and 3; reading the arm's third multiply as the
+independent `if` the listing has gives the chain its missing ×5. Neither
+alone reaches either target — the first clamps both cities to 9,999,999 and
+costs 925 frames, the second leaves them tied — and together they hand the
+tail **180,000,000** and **90,000,000**, which come out of `offer_value` as
+**5,755,741** and **4,891,136**: run114's two numbers, to the unit, on the
+frame it printed them.
+
+**Great Lakes' word goes 9510 → 10161**, the first past ten thousand, and
+the sixth scholar §47 named is born on 9510 on both sides.
+
+### 53.1 The third `if` is not an `else if`
+
+§51.4 said the multiplier chain "reads as this crate's". It did not. The
+decompile prints three sequential `if`s whose first and third test the same
+pair of `Leader` fields, which reads like a decompiler artefact and is not
+one — the listing over `006c528c..006c52f5` settles it in ten lines:
+
+```
+006c528c  eax = [ebx+0x7a4]                    ; infra_mod
+006c5292  ecx = [ebx+0x8b0]                    ; total
+006c5298  imul eax, edi                        ; × k
+006c529b  imul eax, eax, 0x2710                ; × 10000
+006c52ab  sar esi, 8                           ; /256, toward zero
+006c52ae  cmp [ebx+0x8c8], ecx  ; jge 6c52c0   ; filled < total   → ×60
+006c52d6  cmp ecx, eax          ; jge 6c52e6   ; filled < 2·total/3 → ×10, escrow
+006c52e6  cmp ecx, [ebx+0x8b0]  ; jge 6c4cfc   ; filled < total   → ×5
+006c52f2  lea esi, [esi+4*esi]
+006c52f5  jmp 6c4cfc
+```
+
+The third `jge` at `006c52ec` skips **only** its own
+`lea esi,[esi+4*esi]`, and both arms land on `LAB_006c4cfc`. So a city
+below two thirds takes all three multiplies — **×3000, not ×600** — and
+`escrow` belongs to the middle arm alone.
+
+This is the predicate class `docs/audit/README.md` keeps naming: not which
+multiplier, but **which step it belongs to**. The arithmetic was doubly
+confirmed and the control flow was never read.
+
+### 53.2 The value diff on 9380, both directions
+
+The item's own falsifier, off run114's `RON_LEADER_PROBE` trace (§52) and
+this crate's `Leader::unit_offers` recorder on the same frame:
+
+| `t` | the original's `val` | its `city` | this crate's `val` | our `city` |
+| --- | --- | --- | --- | --- |
+| 52 Scholar | 4,891,136 | 0 | **4,891,136** | 1 |
+| 61 Merchant | 869,565 | 0 | — | — |
+| 50 Citizen | 234,782 | 1 | 234,782 | 2 |
+| 52 Scholar | 5,755,741 | 1 | **5,755,741** | 2 |
+
+**And this confirms the city shift rather than assuming it.** §52.2 read
+the one-apart index as this crate's `cities` index against the leader's own
+numbering and had nothing but the index to say so. Two independent values
+now agree across the shift — our city 1 carries the number the original
+attributes to its city 0, our city 2 its city 1 — which an index comparison
+could never have said.
+
+**The Merchant is the residue.** It is observed and unexplained, exactly as
+§50.4 left it: `create_units`' caravan-and-merchant arm has a
+civilian-ceiling `continue` that would drop the offer, and nothing here
+measures whether that is what drops it.
+
+### 53.3 What the pair paid
+
+Every record that moved, and every one moved **down** with nothing
+arriving:
+
+| instrument | before | after |
+| --- | --- | --- |
+| Great Lakes' word | 9510 | **10161** |
+| run111's leader residue | 104 fields | **93** |
+| run107's leader residue | 95 fields | **90** |
+| run111 block 9381's Scholar offers | one 45,568 vs two 5,755,741 | **two against two** |
+| run111 block 9383's `num_queued` | 2 Citizens vs 1 Scholar | **1 Scholar vs 1 Scholar** |
+| run111's wealth through 9382 | 14 vs 82 | **82 vs 82** |
+| run100's queue record, whole window | two buildings parting | **nothing** |
+| Great Lakes' scholar seatings below the word | 5 | **10**, each on the original's own frame |
+| East Indies ladder C / B spurious units | 25 / 19 | **17 / 12** |
+
+§50.4's third open question closes with them: 9582, the parting that
+section's probe was one `Leader::use_market+0x1ed` short of, is a market
+sell on both sides now, and three more of the 200-frame rotations came
+under the word with it.
+
+The eleven leader fields that closed on run111 are the make list's
+`MAKE[1]` and `MAKE[2]` heads and the purchase downstream of them —
+`num_queued[0]`, `num_queued[2]` and `bucket[0:food]`, the two Citizens
+this crate used to buy instead of the Scholar. §50's tie, §47's missing
+birth and §48's goods parting all close on the same line.
+
+**The endpoints moved in both directions and are re-pinned as counts, not
+as a trade** (DECISIONS 36): Great Lakes 51 → 55 off, 11 → 8 unlinked,
+9 → 10 build_diverged; East Indies 5 → 10 unlinked, 14,000 frames past its
+own word, which does not move.
+
+### 53.4 What this has *not* established
+
+- **Why this crate offers no Merchant on 9380.** Unchanged from §50.4 and
+  now the only residue left on the frame. It is the next thing this frame
+  can be asked.
+- **Whether `filled` and `total` are right.** Both branch tests passed at
+  `filled = 0, total = 14` on this frame, and all three arms fire. A frame
+  where a city sits between two thirds and full would separate the ×60
+  from the ×5 and no capture on disk has one — so the *ordering* of the
+  three is read from the listing and the *ceiling* between them is not
+  diffed.
+- **The `.max(0)` clamp on the free count is still this crate's.** The
+  original adds `gather_max − num_gatherers` raw (`00737dc0`, the
+  `param_2 != 0` arm), so a building over its own slot count lowers the
+  city's total. Unchanged from §51.4, untested either way, and left in
+  place because nothing on disk reaches it — a deliberate divergence, not
+  an oversight.
+- **The Korean Scholar (`0x35`) is still a seam**, exactly as §51.4 states
+  it. No run on disk has one.
+- **10161 is not an AI parting.** It is seven draws against eight at
+  `Guy::set_anim+0x97a`, reached from `Guy::inc_time+0x271` here and
+  `Unit::move_step+0x4e2` there, with the record agreeing from the other
+  side — one unit's position, `1/38`, and nothing in the queue, city or
+  order records moving with it. An animation clocked off the wrong caller.
+
+### 53.5 Coverage
+
+Diff-backed, and the pair is asserted from both ends:
+
+- `diff::leader::tests::run114_s_offers_are_the_original_s_own` — the
+  value diff above, now with the two Scholar values asserted **against the
+  original's own list** rather than as literals, so the row says "ours are
+  theirs" and not "ours are these numbers". Made to fail on purpose by the
+  `else if`, which clamps both to 9,999,999.
+- `diff::leader::tests::run111_s_window_is_the_make_list_at_the_purchase`
+  — block 9381's two offers, block 9383's queue, the wealth through the
+  purchase, and the 93-field residue.
+- `diff::harness::tests::run100_s_word_frame_is_the_original_s` — the
+  sixth scholar's block is clean, the queue record parts nowhere, and the
+  word's own frame is one unit's position. Keyed on the new
+  `GREAT_LAKES_SIXTH_SCHOLAR` rather than on the headline, because a test
+  written about an event reports a moving headline as its own failure.
+- `run53_s_24000_frames_put_the_ceiling_where_run33_did` — ten seatings,
+  and the comparison against the original's own seating list **passed
+  unchanged**; only the literal beside it moved.
+- `run111_s_universities_hold_the_scholars_this_crate_counts` — §51's
+  falsifier, standing and still green, which is what it was landed for.
+
+Reading-backed, and owed a blind second reading: the three-`if` control
+flow of `006c528c..006c52f5` (the listing is quoted above, so a reader can
+check it without Ghidra), and everything §51.5 already lists as
+reading-only. The 9510 → 10161 pair is measured on
+`run53_s_24000_frames_put_the_ceiling_where_run33_did` and **pinned** —
+`LONG_WORD_GREAT_LAKES` is 10161 in the tree.

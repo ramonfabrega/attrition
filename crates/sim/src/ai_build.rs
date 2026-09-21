@@ -1768,13 +1768,41 @@ mod tests {
             value(&mut sim, 0, c, t.granary).is_none(),
             "no farms, no granary"
         );
+        // **A filled slot is a real gatherer since item 442.** This used
+        // to push a bare `0` onto `gatherers` and lean on
+        // `City::count_gather_slots` reading the chain's raw length; the
+        // original subtracts `BuildData::num_gatherers`, which asks each
+        // chain member whether it is actually gathering here
+        // (`docs/AI.md` §53, §51.1). So the farms get citizens with
+        // gather orders, which is what the arithmetic below was always
+        // describing.
+        let citizen = sim.add_unit_type(crate::UnitType {
+            worker: crate::orders::Worker::Citizen,
+            hits: 40,
+            ..crate::UnitType::default()
+        });
         for i in 0..3 {
             let b = sim
                 .place_building(0, t.farm, tile_pos(48 + i * 5, 40))
                 .expect("a farm places");
             finish(&mut sim, b);
             sim.buildings[b].gather_max = Some(1);
-            sim.buildings[b].gatherers.push(0);
+            let index = i16::try_from(sim.units.len()).unwrap();
+            let mut u = crate::Unit::new(0, index, tile_pos(48 + i * 5, 40), 40);
+            u.ty = Some(citizen);
+            u.orders.push_back(crate::orders::Order {
+                flags: crate::orders::flag::ACTION,
+                body: crate::orders::Body::Gather(crate::orders::GatherOrder {
+                    building: b,
+                    tile: None,
+                    wait: 0,
+                    goto_build: false,
+                    dist_mod: 0,
+                    been_there: true,
+                }),
+            });
+            let u = sim.add_unit(u);
+            sim.buildings[b].gatherers.push(u);
         }
         assert_eq!(sim.cities[c].members.len(), 3);
         let g = value(&mut sim, 0, c, t.granary).expect("three filled slots want a granary");

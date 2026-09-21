@@ -443,6 +443,49 @@ pub fn offer_value(fac: i32, want: i32, val: i32, divisor: i32) -> i32 {
     if out < 0 { 9_999_999 } else { out }
 }
 
+/// `create_units`' **scholar arm**, from `k` to the `val` the tail is
+/// handed — the listing over `006c528c..006c52f5`, as one function so the
+/// claim has something to assert against.
+///
+/// ```text
+/// 006c528c  eax = leader+0x7a4                  ; infra_mod
+/// 006c5292  ecx = leader+0x8b0                  ; total
+/// 006c5298  eax *= k
+/// 006c529b  eax *= 0x2710                       ; 10000
+/// 006c52ab  esi = (eax + (eax>>31 & 0xff)) >> 8  ; /256, toward zero
+/// 006c52ae  cmp [leader+0x8c8], ecx ; jge  →  esi *= 60   (filled < total)
+/// 006c52d6  cmp ecx, (total*2)/3    ; jge  →  esi *= 10, escrow = 1
+/// 006c52e6  cmp ecx, [leader+0x8b0] ; jge  →  esi *= 5    (filled < total)
+/// 006c52f5  jmp LAB_006c4cfc
+/// ```
+///
+/// **The three tests are independent `if`s, and the first and third are
+/// the same test.** The third's `jge` at `006c52ec` skips only its own
+/// `lea esi,[esi+4*esi]`, and both arms land on `LAB_006c4cfc` — so a
+/// city below two thirds takes **all three** multiplies, ×3000 rather
+/// than ×600. Reading the third as an `else if` was half of the defect
+/// `docs/AI.md` §51 measured and §53 closed; the decompiler prints it
+/// correctly and it reads like a compiler artefact, which is why the
+/// listing is quoted here rather than cited.
+///
+/// The `escrow` the middle arm sets is the caller's; this returns only
+/// the value. Every multiply wraps — see [`offer_value`], and
+/// [`the_scholar_arm_pays_great_lakes_9380_s_two_offers`] for the two
+/// numbers it has to hit.
+pub fn scholar_value(infra_mod: i32, k: i32, filled: i32, total: i32) -> i32 {
+    let mut v = wm(wm(infra_mod, k), 10000) / 256;
+    if filled < total {
+        v = wm(v, 60);
+    }
+    if filled < total * 2 / 3 {
+        v = wm(v, 10);
+    }
+    if filled < total {
+        v = wm(v, 5);
+    }
+    v
+}
+
 /// The war multiplier the air and land-military branches put on a base `b`
 /// (`create_units` 1385–1422). `attacked_here` is the land branch's extra:
 /// a city-trained type in a city under attack takes `b·4` rather than `b·2`.
@@ -1453,18 +1496,17 @@ impl Sim {
             // and no `+0x63d` on either side — and this crate queued one
             // per pass until `k` reached `make_me`. `docs/AI.md` §42.
             *num_out = k;
-            let mut v = wm(wm(self.ai[w].infra_mod, k), 10000) / 256;
             let filled = self.ai[w].census.filled_gather_slots[KNOWLEDGE];
             let total = self.ai[w].census.gather_slots[KNOWLEDGE];
-            if filled < total {
-                v = wm(v, 60);
-            }
+            // The multiplier chain is [`scholar_value`], which quotes the
+            // listing: **three independent `if`s**, the first and third
+            // the same `+0x8c8 < +0x8b0` test, so a city below two thirds
+            // takes ×60 ×10 ×5. `escrow` is the middle arm's and stays
+            // here. `docs/AI.md` §53.
             if filled < total * 2 / 3 {
                 *escrow = 1;
-                v = wm(v, 10);
-            } else if filled < total {
-                v = wm(v, 5);
             }
+            let v = scholar_value(self.ai[w].infra_mod, k, filled, total);
             return Some((v, 4, want_civ));
         }
         None
@@ -2376,8 +2418,19 @@ mod tests {
     ///
     /// The original's own offer on that frame is **5,755,741**, and
     /// `5,755,741 × 256` is 1,473,469,696 — inside an `i32` with room, so
-    /// it does not wrap. Which of its three terms differs from this
-    /// crate's is **not** established (§49).
+    /// it does not wrap. ~~Which of its three terms differs from this
+    /// crate's is **not** established (§49).~~ **Closed by §53**: the term
+    /// is `val`, and it was wrong twice over — `k` was 7 where the
+    /// original's is 6 and 3 (§51's `count_gather_slots`), and the arm's
+    /// third multiply was read as an `else if` where the listing has an
+    /// independent `if`. With both corrected the arm hands the tail
+    /// 180,000,000 and 90,000,000, and the tail returns the original's own
+    /// two numbers exactly: [`the_scholar_arm_pays_great_lakes_9380_s_two_offers`].
+    ///
+    /// **`VAL = 42,000,000` below is therefore historical**, the value the
+    /// arm produced before item 442. It is kept because the *wrap* it
+    /// demonstrates is unchanged and load-bearing — the corrected chain
+    /// wraps too, twice, and lands on the right answer.
     #[test]
     fn the_scholar_offer_on_great_lakes_9380_is_a_positive_wrap() {
         const VAL: i32 = 42_000_000;
@@ -2424,6 +2477,99 @@ mod tests {
         assert!(
             wm(FAC, THEIRS) > 0 && i64::from(wm(FAC, THEIRS)) == i64::from(FAC) * i64::from(THEIRS)
         );
+    }
+
+    /// **The scholar arm pays Great Lakes 9380's two offers, to the
+    /// unit** — item 442, `docs/AI.md` §53. This is the item's whole
+    /// claim as one assertion, and it is not a fit: both numbers were
+    /// read off run114's `RON_LEADER_PROBE` trace (§52.2) before the
+    /// arithmetic was done, and both fall out of the same two corrections.
+    ///
+    /// | | city 0 | city 1 |
+    /// | --- | --- | --- |
+    /// | seated scholars (run111's `inside_down`) | 4 | 1 |
+    /// | `k = gfree[KNOWLEDGE] − count_queue` | **3** | **6** |
+    /// | `scholar_value` | 90,000,000 | 180,000,000 |
+    /// | `offer_value` | **4,891,136** | **5,755,741** |
+    /// | the original's own offer (run114) | **4,891,136** | **5,755,741** |
+    ///
+    /// **Two corrections, and neither alone reaches either number.**
+    /// `count_gather_slots` through [`crate::Sim::num_gatherers`] turns
+    /// `k = 7` into 3 and 6 (§51); the third multiply as an independent
+    /// `if` turns ×600 into ×3000 (§53.1). With only the first, the chain
+    /// hands the tail 18,000,000 and 36,000,000, and **both clamp to
+    /// 9,999,999** — which is the 925-frame loss item 438 measured and
+    /// declined to land. With only the second, `k` is 7 for both cities
+    /// and the two offers are equal, which is the tie §50 found buying the
+    /// Scholar twice. The rows below assert each of those three worlds, so
+    /// the test says *why* the pair is a pair.
+    ///
+    /// **Both corrected values still wrap.** 6's chain wraps negative at
+    /// `want × val` and back positive at `× fac`; 3's wraps once. The
+    /// ratio 5,755,741 / 4,891,136 = 1.1768 that §51.2 recorded as
+    /// evidence against `val ∝ k` was an artefact of exactly that — the
+    /// inputs *are* 2:1, and §49.2's lesson held: a number downstream of a
+    /// wrap has no arithmetic relationship to its inputs.
+    #[test]
+    fn the_scholar_arm_pays_great_lakes_9380_s_two_offers() {
+        // The frame's shared terms, measured off the run (§49.1) and
+        // unchanged by this item: `infra_mod` 256, and the tail's
+        // `fac`/`want`/`divisor`.
+        const INFRA: i32 = 256;
+        const FAC: i32 = 256;
+        const WANT: i32 = 20;
+        const DIVISOR: i32 = 25;
+        // The arm's two branch tests are `Leader` fields, so they are
+        // leader-global: both cities take all three multiplies on this
+        // frame. `filled < total * 2 / 3` is the strictest of them.
+        const FILLED: i32 = 0;
+        const TOTAL: i32 = 14;
+        const { assert!(FILLED < TOTAL * 2 / 3 && FILLED < TOTAL) };
+        // City 0: four scholars seated in its University, so `k` is 3.
+        assert_eq!(scholar_value(INFRA, 3, FILLED, TOTAL), 90_000_000);
+        assert_eq!(
+            offer_value(FAC, WANT, scholar_value(INFRA, 3, FILLED, TOTAL), DIVISOR),
+            4_891_136,
+            "the original's city-0 Scholar, off run114's own trace"
+        );
+        // City 1: one seated, so `k` is 6.
+        assert_eq!(scholar_value(INFRA, 6, FILLED, TOTAL), 180_000_000);
+        assert_eq!(
+            offer_value(FAC, WANT, scholar_value(INFRA, 6, FILLED, TOTAL), DIVISOR),
+            5_755_741,
+            "the original's city-1 Scholar, off run114's own trace"
+        );
+        // **The wrap is still there, and it is why the ratio was a red
+        // herring.** The inputs are exactly 2:1; the outputs are 1.1768:1.
+        assert_eq!(
+            scholar_value(INFRA, 6, FILLED, TOTAL),
+            2 * scholar_value(INFRA, 3, FILLED, TOTAL)
+        );
+        assert!(i64::from(WANT) * 180_000_000_i64 > i64::from(i32::MAX));
+        // **Half a fix reaches neither number.** `k = 7` for both cities
+        // is the tree before §51's correction; with the third multiply in
+        // place it clamps, and without it the two cities tie.
+        assert_eq!(
+            offer_value(FAC, WANT, scholar_value(INFRA, 7, FILLED, TOTAL), DIVISOR),
+            9_999_999,
+            "the uncorrected `k`, with the arm right — §45's ceiling"
+        );
+        // The `else if` reading, which is `scholar_value` without its
+        // third multiply: both corrected `k`s clamp, which is item 438's
+        // 36,000,000 / 18,000,000 and its 925 lost frames.
+        let without_third = |k: i32| wm(wm(wm(wm(INFRA, k), 10000) / 256, 60), 10);
+        assert_eq!(without_third(6), 36_000_000);
+        assert_eq!(without_third(3), 18_000_000);
+        for k in [3, 6] {
+            assert_eq!(
+                offer_value(FAC, WANT, without_third(k), DIVISOR),
+                9_999_999,
+                "the `else if` reading clamps for both cities — the 925 frames"
+            );
+        }
+        // And with neither correction, the tie §50 measured: one number
+        // for two cities, below the Citizen's 234,782.
+        assert_eq!(offer_value(FAC, WANT, without_third(7), DIVISOR), 45_568);
     }
 
     #[test]

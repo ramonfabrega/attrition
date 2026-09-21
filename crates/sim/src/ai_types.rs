@@ -190,7 +190,17 @@ impl Sim {
             };
             let max = bd.gather_max.unwrap_or(0);
             slots[g] += max;
-            open[g] += (max - bd.gatherers.len() as i32).max(0);
+            // `param_2[g] += gather_max − BuildData::num_gatherers(0, 0)`
+            // (`00737dc0`, the `param_2 != 0` arm). **`num_gatherers` is two
+            // counts, not one**: the `gather_down` chain *plus* `count_inside`
+            // for the two kinds whose workers sit inside — the University
+            // (`0x1a4`, scholars) and the Oil Platform (`0x1a6`, citizens),
+            // and not the Oil Well (`0x1a5`). Reading the chain's raw length
+            // here is the defect item 438 measured (`docs/AI.md` §51.1): a
+            // University's seated scholars never reduced its free slots, and
+            // Great Lakes 9380 answered `k = 7` for both of the AI's cities
+            // where the original answers 6 and 3. `docs/AI.md` §53.
+            open[g] += (max - self.num_gatherers(b, false, false)).max(0);
             if g != 3 {
                 total += max;
             }
