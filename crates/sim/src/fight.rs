@@ -1087,7 +1087,16 @@ impl Sim {
         for u in &mut self.units {
             if u.combat.target == Some(dead) {
                 u.combat.target = None;
-                u.combat.mandatory = false;
+                // **The order's `mandatory` is not the target's, and it
+                // outlives it** (item 463). `Unit::do_attack@005f1b80`
+                // reads `mandatory` off the *order* — `TargetOrder
+                // +0x1c` — and run100's block 10233 still prints
+                // `ox 2004 whom 0 uid 4 mandatory 1` on `1/27`'s
+                // `ATTACKORDER` two blocks after the building `0/2004`
+                // left the dump. Clearing it here sent a HOLD_FIRE
+                // raider into [`crate::Sim::do_attack`]'s stance arm,
+                // which returns, so the order it should have dropped on
+                // its own reload's last frame stood for ever.
             }
         }
         for b in &mut self.buildings {
@@ -1856,6 +1865,71 @@ mod tests {
             (sim.units[cap].combat.target, sim.units[sub].combat.target),
             (Some(Obj::Unit(foe)), None),
             "the captain retaliates and the figure that was hit does not"
+        );
+    }
+
+    /// **A dead target outlives its order by the reload** —
+    /// `docs/ORDERS.md` §7.12, and the arm is `Unit::fight@005fd4d0:102`
+    /// returning before `:196`'s `Object::valid_target`.
+    /// `Unit::do_attack@005f1b80` asks nothing about the target for a
+    /// unit whose type has `attack` (both of its aliveness tests sit
+    /// under `ptype->attack == 0`), so a recharging attacker whose target
+    /// has just died keeps the order, and drops it on the frame the
+    /// reload reaches nought — never before.
+    ///
+    /// Made to fail on purpose, both ways: with the validity test back in
+    /// front of the reload gate the order dies on the **first** frame;
+    /// with [`Sim::forget`] clearing `mandatory` again — which is the
+    /// order's own field, `TargetOrder +0x1c`, and not the dead object's
+    /// — a HOLD_FIRE attacker returns at `do_attack`'s stance arm and the
+    /// order never dies at all.
+    ///
+    /// run100's own measurement is the six raiders of Great Lakes blocks
+    /// 10231–10239, each dropping on its own `recharging` clock: `1/42`
+    /// on 10231, `1/28` on 10233, `1/27` on 10239.
+    #[test]
+    fn a_recharging_attacker_keeps_a_dead_target_s_order_until_the_reload_ends() {
+        let (mut sim, ty) = at_war();
+        let me = put(&mut sim, 0, ty, Pos::new(0x1000, 0x1000));
+        let foe = put(&mut sim, 1, ty, Pos::new(0x1100, 0x1000));
+        // HOLD_FIRE and mandatory, which is run100's raiders exactly: the
+        // stance arm is what the cleared `mandatory` used to reach.
+        sim.units[me].combat.stance = Stance::HoldFire;
+        sim.add_attack_order(
+            me,
+            Obj::Unit(foe),
+            crate::orders::QueuePos::First,
+            true,
+            false,
+        );
+        sim.units[me].combat.recharging = 3;
+        sim.units[foe].health = 0;
+        sim.forget(Obj::Unit(foe));
+        assert_eq!(
+            sim.units[me].combat.target, None,
+            "the dead target is dropped"
+        );
+        assert!(
+            sim.units[me].combat.mandatory,
+            "the order's own `mandatory` outlives the object it named"
+        );
+        // `Unit::process` counts the reload down before `work`.
+        for f in 0..2 {
+            sim.units[me].combat.recharging -= 1;
+            sim.work(me, f);
+            assert_eq!(
+                sim.units[me].orders.len(),
+                1,
+                "frame {f}: the order died while `recharging` was {}",
+                sim.units[me].combat.recharging
+            );
+        }
+        sim.units[me].combat.recharging -= 1;
+        sim.work(me, 2);
+        assert!(
+            sim.units[me].orders.is_empty(),
+            "the order outlived the reload: {:?}",
+            sim.units[me].orders
         );
     }
 

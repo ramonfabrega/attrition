@@ -807,6 +807,19 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // own block, where item 448's fifteen rows go to **nought**
         // (`run100_s_word_block_is_every_record_the_dump_carries`).
         // DECISIONS 36 asks for the number rather than a trade.
+        // And **48 → 51 off, 13 → 8 unlinked, 10 → 9 build_diverged** on
+        // 2026-09-21, item 463 — `Unit::do_attack`'s validity test moving
+        // behind `Unit::fight`'s reload gate, so a raider keeps the order
+        // on a target that has just died for exactly as long as its
+        // `recharging` runs (`docs/COMBAT.md` §7.12 is another lane's;
+        // `docs/ORDERS.md` §7.3 carries it). It moves this map's word
+        // **10232 → 10233**. Five roster slots that had no counterpart
+        // now have one and three positions are further off, 13,768 frames
+        // past the word — evidence about the run-up, not about the
+        // predicate, which the word's own block is: six raiders' order
+        // lists go to nought there
+        // (`run100_s_word_block_is_every_record_the_dump_carries`).
+        // DECISIONS 36 asks for the number rather than a trade.
         // And **13 → 9 unlinked and 10 → 9 build_diverged** on 2026-09-21,
         // item 462 — `find_nearby_target` walking the world cell's own
         // `down` chain instead of the unit index (`docs/COMBAT.md` §32.1)
@@ -820,11 +833,26 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // first-partings to **nought, on every record in both directions**
         // (`chapter_two_s_word_frame_is_widened_whole`, now at `[633,
         // 641)`). DECISIONS 36 asks for the number rather than a trade.
-        off: 48,
+        // **Re-pinned at the 462/463 merge, 2026-09-21**, and by neither
+        // worker's numbers. Both rows above were measured on a branch that
+        // did not carry the other — 463's 51/8/9 without the cell chain
+        // and the chase ring, 462's 48/9/9 without the reload gate — and
+        // the merged tree agrees with neither. The figure is what the
+        // merged code prints, the way the 289/290 and 294/295 merges
+        // settled it: a merge is not the place to adjudicate a floor.
+        // Against the common base of 48 off, 13 unlinked, 10
+        // build_diverged, the two compose to **45 off, 9 unlinked, 10
+        // build_diverged** — three positions closer and four more of the
+        // roster linked, with the building field-rows back where the base
+        // had them. Each worker over-claimed one count and under-claimed
+        // another: 463 read `off` 51 where the merged tree reads 45, and
+        // both read `build_diverged` 9 where it is 10. Measured on the
+        // merge commit and on nothing else.
+        off: 45,
         unlinked: 9,
         extra: 0,
         build_unlinked: 0,
-        build_diverged: 9,
+        build_diverged: 10,
         city_unlinked: 3,
         city_diverged: 0,
     },

@@ -6567,6 +6567,27 @@ ran and reached different verdicts on the same point — not which arm of
   comment that said the crate did not keep one outlived it by a
   fortnight. Great Lakes' word **10161 → 10232**, and the fifteen rows of
   §54.2 go to nought.
+- ~~**The new word 10232 is formation pathing**: a three-unit squad
+  carrying a 44-entry path plan against the original's one hop.~~ **It was
+  not, and the frame was a block late.** Taken as item 463: the squad's
+  *order lists* part on **10232**, a block before their positions do, and
+  it is six raiders and not three — `1/27`, `1/28`, `1/29`, `1/40`,
+  `1/41`, `1/42` — each holding one order where the original holds two.
+  The human's building `0/2004` dies on block 10231 and the original's
+  raiders keep their `ATTACKORDER` on it for the length of their reload;
+  this crate dropped all six at once, and the three whose freed group move
+  had somewhere to go walked. `docs/ORDERS.md` §7.12 has the arm and the
+  per-unit drop frames. Great Lakes' word **10232 → 10233**, and the
+  fifty-three rows of the old word's block go to two — both on the human's
+  citizen `0/5`, which is the new word.
+
+  The lesson is 456's own, one level along. 456 read its value diff at the
+  word's block and named the mechanism from the *largest* row set there;
+  the order row that says what happened was one block earlier and two
+  lines long. **`firsts` is a first-parting map, so the block a record
+  parts on is the answer and the row count is not** — and a widening that
+  omits a dumped field (`recharging`, here) cannot be read as saying the
+  record agrees.
 - **Whether this crate reaches the snap arm here at all.** Its step was
   accepted, so nothing says whether its `move_step` took the snap branch
   and passed the probe, or took the partial branch and never asked.
@@ -6591,7 +6612,12 @@ above asserted as a written-out set with the dump's own numbers in them,
 the block's record census as a floor (104 units, 29 builds, 3 cities, 4
 leaders; 327 collision rows, 966 gather rows), and 1.9 M rows over 836
 blocks so a capture without `GUYS=4` or `BUILDS=7` cannot pass by saying
-nothing. Keying the order rows by unit drops `order:coll`; restoring
+nothing. **Item 463 added `recharging` to the record** — dumped on every
+block, compared by nothing until then — and a second assertion beside the
+word's own: the six raiders' order lists, over the whole tail of the raid
+rather than on one block, so a rule that drops them together fails on
+three of the four the window reaches and one that never drops them fails
+on the other three. Keying the order rows by unit drops `order:coll`; restoring
 `compare`'s position gate drops `half_step` and `collide_guy` together.
 `RON_DEBUG_ROWS=<lo>-<hi>` prints every key that parts inside those blocks
 with its value diff.

@@ -12,34 +12,34 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-21, the eighth Fable pass, after seven landings on three lanes:
-**both headlines moved** — Great Lakes 9510 → 10232, chapter two 616 →
-624 — and the pass built the guards the day's own findings named.*
+*2026-09-21, the ninth chain. **The AI headline moved again**, 10232 →
+10233 — and 456's named mechanism was wrong for the fourth time running,
+which is now the rule rather than the surprise.*
 
-- **The AI word is 10232** (442 +651, 456 +71), widened and pinned;
-  10233's residue is formation pathing on four units (463).
-- **The rules word is 624** (447), widened and pinned; 622's three
-  destinations are the residue (462), and parked 460 is a named
-  candidate with its falsifier written.
-- **The instrument was not looking, four ways, and now is**: order rows
-  keyed by field and the position-gated blocks read at the parting;
-  a widening's window declared beside its word; an item number minted
-  once, in its file's form — its first run found three; `docs/RUNS.md`
-  merged by union under a guard. The lane has a lock; `memcap.sh` has
-  its fixture; a trailer is the worker's own. DECISIONS 44.
-- **PR #4 is merged whole** on DECISIONS 38's terms; nothing from it
-  books. East Indies' 9711 and chapter one's 626 still owe widenings
-  (444, 445, parked). Three open, 68 parked.
-  **Fable backlog: 1 Loop item** (313).
+- **The AI word is 10233** (463). A dead target outlives its order by the
+  attacker's reload: `Unit::do_attack` never tests aliveness for a type
+  that has `attack`, and `Unit::fight`'s recharging arm returns before its
+  `valid_target`. Six AI raiders keep a dead building's ATTACKORDER; this
+  crate dropped all six at once. Held by three assertions, not by the word
+  — one made to fail both ways, one over the raid's whole tail, and
+  `recharging` now a compared field of the widening's `UNITDATA` rows.
+- **Not formation pathing.** 463's title was 456's hypothesis and the
+  frame was the booking; DECISIONS 42 paid again.
+- **The rules word is 624** (447/457), widened and pinned. Item 462 is in
+  flight on 622's three destinations with parked 460's `x_size` as its
+  first falsifier.
+- East Indies' 9711 and chapter one's 626 still owe widenings (444, 445,
+  parked). Four open, 68 parked. **Fable backlog: 1 Loop item** (313).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w9711 of 24,000 · GreatLakes w10232 of 24,000
-Golden: w624 of 901 (ch2) · ch1 w626 · 462 next
-Endpoint 24001: EastIndies 64 off, 10 unlinked · GreatLakes 48 off, 13 unlinked
+Long captures: EastIndies w9711 of 24,000 · GreatLakes w10233 of 24,000
+Golden: w624 of 901 (ch2) · ch1 w626 · 462 in flight
+Endpoint 24001: EastIndies 64 off, 10 unlinked · GreatLakes 51 off, 8 unlinked
 
-**Opener: 463 on the AI lane — re-measure 10233 with `rows()` keyed by
-field and the parted blocks before naming anything — and 462 beside it
-on the rules lane, with 460's `x_size` as its first falsifier.**
+**Opener: 464 on the AI lane — `0/5` on block 10234, the human citizen
+hit on 10233 that the original answers a block later with a FLEE_TO —
+and 465 beside it, `1/28`'s one-frame plan lag, whose falsifier is
+already on disk in run100 blocks 10233-10235.**
 
 ## The queue
 
@@ -49,14 +49,22 @@ the AI, lower map first — Great Lakes. Take the first unstarted on either
 track unless a better order is obvious, and say so. Numbers are stable;
 the backlog is `docs/PARKED.md`, and an item returns only when a score names it.
 
-463. **10233's formation pathing, 53 rows on four units** (the AI
-    headline's frame; 456 moved the word to 10232 and read its far side):
-    `0/5 orders.len` ours 1 theirs 0 — the human's, an order the original
-    drops — and the squad `1/27`–`1/29` parting on positions, headings,
-    tolerances and path stacks together, **ours a 44-entry plan against
-    the original's one hop**. Draw stream 99 against 95, parting at draw
-    92. Not collision: 456's sweep is pinned line-for-line against
-    run116. No capture booked; grep the disk first.
+464. **`0/5` on block 10234, 23 rows and both the frame's spare draws**
+    (the AI headline's frame; 463 moved the word to 10233): the human's
+    citizen is hit on 10233 — `damage_frame 10233`, `damage_o 27
+    damage_who 1` — and **ours answers same-frame with a MOVE_TO where the
+    original answers a block later with a FLEE_TO**. `order:kind` 1/4,
+    `orders_x/y` (2280,31032)/(792,31800), `idle` 0/2, `path:length` 1/0,
+    guy clock whole. Draws 6/4, parting at index 1. `docs/COMBAT.md`.
+    Not a mechanism yet: re-measure first.
+
+465. **`1/28`'s one-frame plan lag on 10234, 14 rows** — 463's fix
+    exposed it and it is a lag, not a destination: the original spends the
+    frame after the order dies doing nothing (`dest 0`, `tolerance 0`,
+    one-entry stack, unmoved) and plans on the next; ours plans and steps
+    at once. `path:length` 43 against 1, `tolerance` 384 against 0.
+    `1/27` does the same on 10240. `docs/ORDERS.md`; **its falsifier is
+    already on disk** — run100 blocks 10233-10235, no capture to book.
 
 462. **622's three destinations, ours one seat and theirs three points**
     (the rules headline's frame; 447 widened [620, 628), 457 left the word
