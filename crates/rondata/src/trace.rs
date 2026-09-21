@@ -430,6 +430,38 @@ pub mod call_site {
     /// `Leader::make_this@006c94f0(slot)` — the purchase; the answer is
     /// whether it bought.
     pub const LEADER_MAKE_THIS: u32 = 10;
+    /// **`RON_COLLIDE_PROBE` builds only** (`docs/COLLISION.md` §9, item
+    /// 456): ids 8–12 are the collision sweep read from inside, and they
+    /// share 8–10 with the leader and target probes — a log says which
+    /// build wrote it by its `PROXIED` records ([`Trace::site_va`]).
+    ///
+    /// `Unit::detect_unit_collision@00617060(x, y, quick, boats, p5,
+    /// nocoll, top_only)` — the **bracket**: everything nested inside it
+    /// belongs to one unit's probe of one point, and its answer is
+    /// whether the step was refused. `this` is the asking unit, named in
+    /// `(who, o)` by [`Trace::unit_of`].
+    pub const DETECT_UNIT_COLLISION: u32 = 8;
+    /// `CollCheck::collide_here@00682540(o, who, ucx, ucy, coll_size,
+    /// &hit_x, &hit_y, nocoll)` — §4.2's probe. The first two arguments
+    /// are the **asker's** own pair; the hit cell rides
+    /// [`WILL_BE_CORNER`], because here it is behind out pointers.
+    pub const COLLIDE_HERE: u32 = 9;
+    /// `UnitData::will_be_corner@00609fa0(hit_x, hit_y, ucx, ucy)` —
+    /// called once, immediately after a successful probe, so its presence
+    /// **is** `collide_here != 0` and `args[0..2]` is the hit cell as
+    /// values. The answer is the asking unit's half of §4.3's corner rule.
+    pub const WILL_BE_CORNER: u32 = 10;
+    /// `UnitData::is_here@0060a0c0(&hit_x, &hit_y)` — one call per
+    /// candidate the 3×3 world-cell walk reaches, `this` the candidate:
+    /// the census of who was looked at, and the answer is who covers the
+    /// hit cell. Both arguments are pointers, so [`Trace::unit_of`] is
+    /// what makes the record readable.
+    pub const IS_HERE: u32 = 11;
+    /// `UnitData::is_corner@0060a040(hit_x, hit_y, self)` — the blocker's
+    /// half of the corner rule, reached only when [`WILL_BE_CORNER`] was
+    /// non-zero **and** every soft arm declined. Its absence is therefore
+    /// as informative as its presence.
+    pub const IS_CORNER: u32 = 12;
     /// `PathFinder::astar_caravan_road@00685990(stack, whoA, whoB, p4, p5,
     /// caravan, p7)` — one road plan, bracketed by its entry and return
     /// (`docs/ROADS.md` §5).
@@ -610,9 +642,30 @@ pub struct Trace {
     /// the tracer writes the id; a log older than that carries `0` for
     /// every site, and [`Trace::site_va`] then answers nothing.
     pub proxied: Vec<(u32, u32)>,
+    /// `RON_COLLIDE_PROBE`'s identity records (INFO 15): `(UnitData *,
+    /// o, who)`, one per proxied call whose `this` is a unit.
+    ///
+    /// The collision proxies are `__thiscall` on a pointer and the dump
+    /// beside them is keyed on `(who, o)`, so without this a record of
+    /// which unit refused a step is a heap address and nothing more. The
+    /// pair is read off `+0xa` (a short) and `+0x9` (a byte), which is
+    /// what `UnitData::will_be_corner@00609fa0` itself indexes
+    /// `units[who][o]` with.
+    pub unit_ids: Vec<(u32, i32, i32)>,
 }
 
 impl Trace {
+    /// The `(who, o)` behind a `this` pointer, from the collide probe's
+    /// own identity records. `None` for a log no such build wrote, and
+    /// for a `this` that is not a unit — `CollCheck::collide_here`'s is a
+    /// stack slot.
+    pub fn unit_of(&self, this: u32) -> Option<(i32, i32)> {
+        self.unit_ids
+            .iter()
+            .find(|(p, _, _)| *p == this)
+            .map(|&(_, o, who)| (who, o))
+    }
+
     /// The address a site id patched in this run, when the log says —
     /// how a test tells a `RON_LEADER_PROBE` log's site 9 from a
     /// `RON_TARGET_PROBE` log's.
@@ -657,6 +710,7 @@ impl Trace {
             calls: Vec::new(),
             hits: Vec::new(),
             proxied: Vec::new(),
+            unit_ids: Vec::new(),
         };
         // CALL and RET nest, so one stack pairs them: a RET belongs to the
         // innermost open CALL of the same site. A window that opens mid
@@ -675,6 +729,12 @@ impl Trace {
             } else if r[0] == 5 && r[1] == 12 {
                 // `a` is an RVA, not a VA: fold it to the export's base.
                 t.proxied.push((r[5], r[2].wrapping_add(IMAGE_BASE)));
+            } else if r[0] == 5 && r[1] == 15 {
+                // INFO 15: `o` is a signed short in a u32 slot.
+                let o = i32::from(r[4] as u16 as i16);
+                if !t.unit_ids.iter().any(|&(p, _, _)| p == r[3]) {
+                    t.unit_ids.push((r[3], o, r[5] as i32));
+                }
             } else if r[0] == 2 {
                 t.frames.push((i64::from(r[1] as i32), r[2]));
             } else if r[0] == 7 {
