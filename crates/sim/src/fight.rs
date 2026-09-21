@@ -1148,17 +1148,108 @@ impl Sim {
             return;
         }
         let st = self.units[responder].combat;
-        if st.stance == Stance::HoldFire || self.attack_of(me) == 0 {
+        if st.stance == Stance::HoldFire {
+            return;
+        }
+        // `UnitData::is_fleeing@0046efa0` — `order_type() == FLEE_TO`
+        // (`docs/ORDERS.md` §1.3). A unit already running does not answer
+        // the hit again, and the test sits **above** everything below it
+        // (`6002cf`).
+        let front = self.units[responder].orders.front().copied();
+        if front.is_some_and(|o| o.index() == crate::orders::index::FLEE_TO) {
             return;
         }
         if st.target.is_some() {
             return;
         }
-        let p = self.profile(me);
-        if p.has(mask::CIVILIAN) && self.max_range_of(me) == 0 {
+        // **The flee arm** (`docs/COMBAT.md` §34), and it is reached only
+        // with `local_c == 0` — the front order is not one of the seven
+        // move kinds (`6002a0`'s `is_move(order_type())`).
+        if !front.is_some_and(|o| crate::orders::index::is_move_family(o.index()))
+            && self.flee_from(responder, attacker)
+        {
+            return;
+        }
+        // `LAB_00600877`'s own gate — `type->attack != 0`, the base column.
+        // The `obj_masks & CIVILIAN && max_range == 0` test that used to
+        // stand here was this crate's **stand-in for the flee arm above**
+        // and has no counterpart in the original's tail; with the arm in,
+        // it would swallow the retaliation of an armed civilian that is
+        // neither a worker nor idle.
+        if self.profile(me).attack == 0 {
             return;
         }
         self.retarget(me, Some(attacker), false);
+    }
+
+    /// `Unit::target_opportunity`'s **flee arm** — `6006f0`..`60085b`, the
+    /// answer a non-combatant gives to being hit (`docs/COMBAT.md` §34).
+    ///
+    /// Returns whether it fired; the caller's retaliation is the `else`.
+    ///
+    /// The gate, in the listing's own order:
+    ///
+    /// ```text
+    ///   ((has_objmask(CIVILIAN) && type->max_range == 0)
+    ///        || type->attack == 0 || local_8)
+    ///   && (is_worker(this) || is_idle(this))
+    ///   && ((type->unit_flags & 4) == 0
+    ///        || (!is_packing() && (unit_masks & 0x80000)))
+    ///   && (!is_hero() || (unit_masks & 0xa000) == 0)
+    /// ```
+    ///
+    /// then the radius — `0x600` for anything that is neither a hero nor
+    /// a supply unit, and for those `0x180` when the attacker is a unit
+    /// that answers vslot `+0x130` and `0x300` otherwise — and
+    ///
+    /// ```text
+    ///   find_nearby_spot(type, x, y, &ox, &oy, radius, -1, 0,
+    ///                    find_angle(x - ax, y - ay), FILTER_NOT_ME, o, who, …)
+    ///   add_move_order(this, ox, oy, FLEE_TO, 0, QUEUE_FIRST, 0, …)
+    /// ```
+    ///
+    /// **The bearing's arguments are the listing's, not the decompiler's**
+    /// — Ghidra prints `find_angle(unaff_EDI, unaff_ESI)`. `6007e8`..
+    /// `6007f2` builds `ecx = this->x − attacker->x` and
+    /// `edx = this->y − attacker->y` and calls `0x92d130` fastcall, so the
+    /// sweep's base bearing is **directly away from whoever hit it**.
+    ///
+    /// `find_nearby_spot` leaves its out-pair at the input point when it
+    /// finds nothing (`docs/ORDERS.md` §10), so a failed sweep still
+    /// issues a `FLEE_TO` — to where the unit already stands.
+    ///
+    /// SEAMS, each a clause this crate cannot yet ask and no capture on
+    /// disk reaches: the packing latch `local_8` (a packer mid-pack, set
+    /// at `600130`); the `unit_flags & 4` packer arm; and the hero and
+    /// supply radii, which need `is_hero`/`is_supply` and the attacker's
+    /// vslot `+0x130`.
+    fn flee_from(&mut self, u: usize, attacker: Obj) -> bool {
+        let me = Obj::Unit(u);
+        let p = self.profile(me);
+        let civilian = p.has(mask::CIVILIAN) && self.max_range_of(me) == 0;
+        if !civilian && p.attack != 0 {
+            return false;
+        }
+        if self.worker_of(u) == crate::orders::Worker::None && !self.units[u].orders.is_empty() {
+            return false;
+        }
+        if p.packs {
+            return false;
+        }
+        let here = self.units[u].pos;
+        let from = self.pos_of(attacker);
+        let angle = find_angle(here.x - from.x, here.y - from.y);
+        let spot = self
+            .find_nearby_spot(u, here, 0x600, -1, 0, angle, None)
+            .unwrap_or(here);
+        self.add_move_order(
+            u,
+            spot,
+            crate::orders::MoveKind::FleeTo,
+            crate::orders::QueuePos::First,
+            false,
+        );
+        true
     }
 
     // ------------------------------------------------------------------
@@ -1865,6 +1956,177 @@ mod tests {
             (sim.units[cap].combat.target, sim.units[sub].combat.target),
             (Some(Obj::Unit(foe)), None),
             "the captain retaliates and the figure that was hit does not"
+        );
+    }
+
+    /// **A hit civilian runs away from whoever hit it** —
+    /// `Unit::target_opportunity`'s flee arm, `docs/COMBAT.md` §34. The
+    /// sweep's base bearing is `find_angle(me − attacker)` and its ring
+    /// is `0x600`, so the spot is on the far side of the victim from the
+    /// attacker, and the order goes in at `QUEUE_FIRST` as a `FLEE_TO`.
+    ///
+    /// **Made to fail on purpose**, both ways that matter. With the arm
+    /// removed the citizen **retaliates** — the `obj_masks & CIVILIAN`
+    /// return that used to stand in its place is gone with it, so the
+    /// failure is an `AttackOrder` rather than nothing, which is the
+    /// shape run100's `0/5` had until item 464. And with the bearing
+    /// taken from the attacker's side (`attacker − me`) the spot lands
+    /// *past* the attacker at `(17928, 16392)`, which the `x` assertion
+    /// below refuses. `QUEUE_FIRST` is the listing's (`60084a` pushes
+    /// `FLEE_TO` and `600856` calls `add_move_order`), not a diff's.
+    ///
+    /// run100's own measurement is Great Lakes 10233: the human's citizen
+    /// `0/5` at `(2232, 31224)` is struck by `1/27` at `(4584, 29784)`
+    /// and the dump's block 10234 carries `FLEETOORDER x 792 y 31800` —
+    /// 1,551 units away, on the `0x600` ring, and this crate now lands on
+    /// that pair exactly.
+    #[test]
+    fn a_hit_citizen_flees_away_from_whoever_hit_it() {
+        let (mut sim, soldier) = at_war();
+        let citizen = sim.add_unit_type(crate::UnitType {
+            hits: 40,
+            // The gate's own pair: `obj_masks & CIVILIAN` with no range,
+            // and an `attack` column that is **not** zero — a citizen's
+            // is 40, which is why the attack half of the disjunction is
+            // not what carries this.
+            combat: Profile {
+                attack: 40,
+                max_range: 0,
+                uber_size: 1,
+                obj_masks: mask::CIVILIAN,
+                ..Profile::default()
+            },
+            worker: crate::orders::Worker::Citizen,
+            ..crate::UnitType::default()
+        });
+        let me = put(&mut sim, 0, citizen, Pos::new(0x4000, 0x4000));
+        let foe = put(&mut sim, 1, soldier, Pos::new(0x4600, 0x4000));
+        sim.do_damage(
+            Obj::Unit(foe),
+            Obj::Unit(me),
+            crate::movement::Angle(0),
+            false,
+            1,
+            false,
+            false,
+            10,
+        );
+        let front = sim.units[me].orders.front().copied().expect("an order");
+        let crate::orders::Body::Move(m) = front.body else {
+            panic!("the hit citizen did not flee: {front:?}");
+        };
+        assert_eq!(m.kind, crate::orders::MoveKind::FleeTo);
+        assert!(
+            m.dest.x < 0x4000,
+            "the flight is away from the attacker, not past it: {:?}",
+            m.dest
+        );
+        assert_eq!(
+            sim.units[me].combat.target, None,
+            "a fleeing civilian takes no target"
+        );
+        // And it does not answer a second hit while it runs —
+        // `UnitData::is_fleeing@0046efa0`, the test at `6002cf`.
+        let before = sim.units[me].orders.len();
+        sim.do_damage(
+            Obj::Unit(foe),
+            Obj::Unit(me),
+            crate::movement::Angle(0),
+            false,
+            1,
+            false,
+            false,
+            10,
+        );
+        assert_eq!(
+            sim.units[me].orders.len(),
+            before,
+            "a unit already fleeing answers the hit again"
+        );
+    }
+
+    /// **`Unit::think`'s step 3 needs the military bit as well as the
+    /// attack column** — `think@005f6e40:150`'s second arm is
+    /// `type->attack != 0 && (type->role & 0x10000) != 0`, and until item
+    /// 464 this crate's target search read only the first half. A
+    /// citizen's `attack` is 40, so every idle citizen in run100 ran
+    /// `find_melee_target` and one of them — the human's `0/5` on Great
+    /// Lakes 10233 — took an `ATTACKORDER` where the original was still
+    /// standing still.
+    ///
+    /// [`Sim::think_attack_join_army`] has carried the same pair since
+    /// item 350 (`docs/ARMY.md` §4.2's own test says so in as many
+    /// words); this is the other half of the arm it gates.
+    ///
+    /// **Made to fail on purpose**: with `combat_role` dropped from the
+    /// gate the citizen below takes the same order the soldier does.
+    #[test]
+    fn an_armed_citizen_does_not_take_an_attack_order_on_its_idle_frame() {
+        let armed_citizen = |military: bool| {
+            let (mut sim, _) = at_war();
+            let ty = sim.add_unit_type(crate::UnitType {
+                hits: 40,
+                combat: Profile {
+                    attack: 40,
+                    max_range: 0,
+                    uber_size: 1,
+                    obj_masks: mask::CIVILIAN,
+                    combat_role: military,
+                    ..Profile::default()
+                },
+                worker: crate::orders::Worker::Citizen,
+                ..crate::UnitType::default()
+            });
+            let foe_ty = sim.add_unit_type(crate::UnitType {
+                hits: 100,
+                combat: Profile {
+                    attack: 15,
+                    uber_size: 1,
+                    ..Profile::default()
+                },
+                ..crate::UnitType::default()
+            });
+            let me = put(&mut sim, 0, ty, Pos::new(0x4000, 0x4000));
+            put(&mut sim, 1, foe_ty, Pos::new(0x4060, 0x4000));
+            sim.tick();
+            sim.units[me].combat.target
+        };
+        assert_eq!(
+            armed_citizen(false),
+            None,
+            "a type with an attack column and no `role & 0x10000` entered \
+             `think_attack`"
+        );
+        assert!(
+            armed_citizen(true).is_some(),
+            "the same type with the military bit must still search"
+        );
+    }
+
+    /// The flee arm's `else`: a **combat** unit still retaliates, which
+    /// is the row item 464's restructure could have swallowed. Its gate
+    /// is `is_worker || is_idle`, and a soldier standing idle passes the
+    /// second half — so what keeps it out of the flight is the first
+    /// clause, `(CIVILIAN && max_range == 0) || attack == 0`.
+    #[test]
+    fn a_hit_soldier_retaliates_where_a_citizen_flees() {
+        let (mut sim, ty) = at_war();
+        let me = put(&mut sim, 0, ty, Pos::new(0x4000, 0x4000));
+        let foe = put(&mut sim, 1, ty, Pos::new(0x4100, 0x4000));
+        sim.do_damage(
+            Obj::Unit(foe),
+            Obj::Unit(me),
+            crate::movement::Angle(0),
+            false,
+            1,
+            false,
+            false,
+            10,
+        );
+        assert_eq!(
+            sim.units[me].combat.target,
+            Some(Obj::Unit(foe)),
+            "an idle soldier answers the hit with an attack, not a flight"
         );
     }
 
