@@ -36,6 +36,25 @@ paragraph — and **built 367**, the AI's dump, the same day: run114 and
 `docs/AI.md` §52 (`docs/audit/2026-09-21-fable-pass-7.md`, DECISIONS 43).
 341 closed 2026-09-18 by item 363.
 
+(446) **The capture lane has no interlock but a conversation.** Raised by
+Ramon, 2026-09-21: `astra`, a Codex session on this machine, borrows the
+lane in ~30-second bursts and asks each time whether it is free. Today's
+answer was `ps` plus the Logs directory's mtime, and the fence was two
+`SendMessage`s to the lanes in flight — which worked only because astra
+asked. The prefix, the window and the Logs directory are singletons, and
+nothing stops one of ours launching the game into a running capture; a
+capture that collides is also the kind of loss a branch check cannot see,
+because the damage is a log file, not a commit. **Explicitly not a
+priority** — the bursts are rare and always announced, and that is the
+user's own framing. Parked for the pass to weigh shape against cost. Two
+candidates: a lock file taken and released by `tools/gamelog/winelaunch.sh`
+— the single line every capture script already sources, so there is exactly
+one place to write it — carrying holder and start time and going stale
+after N minutes; or nothing at all, on the grounds that two agents and a
+question is cheaper than a mechanism nobody outside this repo honours. The
+pass should decide it **together with (428)**: both are "two lanes, one
+singleton, no interlock", and one answer may serve both.
+
 (428) **Reserving a run number does not reserve the append point.**
 Measured 2026-09-19: two lanes ran captures in parallel with run111 and
 run112 properly reserved to each, and their merges still conflicted,

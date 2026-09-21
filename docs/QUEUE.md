@@ -33,7 +33,7 @@ widened its word; the AI lane widened first and converged.*
   original's offers on 9380 read off a `RON_LEADER_PROBE` trace, 432's
   four values confirmed, ours pinned beside them for 442.
 - Four open, 64 parked.
-  **Fable backlog: five Loop items** (251, 335, 313, 375, 428).
+  **Fable backlog: six Loop items** (251, 335, 313, 375, 428, 446).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w9711 of 24,000 · GreatLakes w9510 of 24,000
