@@ -3671,3 +3671,40 @@ check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|BEGIN MAKEOBJECT" "$HOME/ron-data/
 # blocks, one `--exclude` for the category that was raised.
 check: python3 tools/gamelog/samegame.py gamelog-run100-greatlakes-valuewindow2.txt gamelog-run111-greatlakes-makeword.txt --exclude LEADERDATA | tee /dev/stderr | awk '/in common/{split($0,a,", "); n=a[2]+0} /^differ:/{d=$2+0} END{print "run100 overlap: common="n" differ="d; exit !(n==16 && d==0)}'
 # =====================================================================
+
+run: 114
+tag: greatlakes-offers
+item: 367
+why: the AI's own dump — run111's window again with the call proxies on `Leader::create_units`, `MakeList::make_me` and `Leader::make_this`, so the original's offers on 9380 are read forwards off the record instead of replayed backwards from the make list (item 432)
+# **The first capture with `RON_LEADER_PROBE`** (DECISIONS 41 §6, parked 367,
+# built by the seventh Fable pass). The tracer in the install is built with
+# `TRACER_DEFS=-DRON_LEADER_PROBE zsh tools/trace/build.sh <install>` before
+# this runs, and rebuilt plain after; with no `callwin` nothing is patched,
+# so the probe build is the plain one everywhere but this window.
+#
+# run111's lobby, detail and window exactly, so `samegame.py` against run111
+# — `LEADERDATA` included this time — says the proxies did not perturb the
+# game, and `rngcmp.py` against run53 says it is still run53's game.
+#
+# **The falsifier, written before the run.** Item 432 recovered the
+# original's four offers on 9380 by replaying block 9380's list into block
+# 9381's: Merchant (t 61) val 869,565 city 0; Scholar (52) 4,891,136 city 0;
+# Citizen (50) 234,782 city 1; Scholar (52) 5,755,741 city 1, in that order.
+# The proxy prints them directly. Four `make_me` calls nested in one
+# `create_units` bracket on the re-offer frame, with those `val`s, confirms
+# the reconstruction; anything else says 432 read the list wrong and this
+# record is the one that says how.
+frames: 9405
+mapstyle: 14
+end: MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,DEATHS=1,LEADERS=9
+frame_window: 9375 9391
+cover: cover=0
+cover: callwin=9376-9386
+settle_min: 14000000
+poll_max: 90
+check: python3 tools/gamelog/rngcmp.py rontrace-run53.log rontrace-run114.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=9390)}'
+check: LC_ALL=C head -c 400000 "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run114-greatlakes-offers.txt" | LC_ALL=C grep -a "MAP_STYLE" | tee /dev/stderr | awk '{print; exit !($2==14)}'
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run114-greatlakes-offers.txt" | awk '{v=$3+0; if(v>=9375&&v<=9390) n[v]=1} END{c=0; lo=0; hi=0; for(k in n){c++; if(lo==0||k+0<lo)lo=k+0; if(k+0>hi)hi=k+0} print "window blocks: "c" ("lo".."hi")"; exit !(c==16 && lo==9375 && hi==9390)}'
+check: python3 tools/gamelog/samegame.py gamelog-run111-greatlakes-makeword.txt gamelog-run114-greatlakes-offers.txt | tee /dev/stderr | awk '/in common/{split($0,a,", "); n=a[2]+0} /^differ:/{d=$2+0} END{print "run111 overlap: common="n" differ="d; exit !(n==16 && d==0)}'
+check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run114.log" summary | tee /dev/stderr | awk '/INFO proxied/{n++} END{print "proxied sites: "n; exit !(n==11)}'
+check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run114.log" calls 9380 | tee /dev/stderr | awk '/make_me/{n++; if($0 ~ /val=869565|val=4891136|val=234782|val=5755741/) v++} END{print "make_me on 9380: "n", predicted vals: "v; exit !(n==4 && v==4)}'

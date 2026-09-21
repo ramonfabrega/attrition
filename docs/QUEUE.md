@@ -29,9 +29,11 @@ widened its word; the AI lane widened first and converged.*
 - **A word is pinned with its widening** (DECISIONS 43): `WIDENINGS`
   names the test or the item; East Indies' 9711 and chapter one's 626
   have none on file (444, 445, parked).
-- Four open, 65 parked.
-  **Fable backlog: six Loop items** (251, 335, 313, 367, 375, 428); 367,
-  the AI's dump, is the pass's own next build, once the screen is free.
+- **The AI has its dump** (367, built; run114, `docs/AI.md` §52): the
+  original's offers on 9380 read off a `RON_LEADER_PROBE` trace, 432's
+  four values confirmed, ours pinned beside them for 442.
+- Four open, 64 parked.
+  **Fable backlog: five Loop items** (251, 335, 313, 375, 428).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w9711 of 24,000 · GreatLakes w9510 of 24,000
@@ -39,8 +41,7 @@ Golden: w616 of 901 (ch2) · ch1 w626 · 443 next
 Endpoint 24001: EastIndies 64 off, 5 unlinked · GreatLakes 51 off, 11 unlinked
 
 **Opener: 442 on the AI lane and 443 on the rules lane — both frames
-widened whole, both with a falsifier standing. The pass's own build is
-367, the AI's dump, when the screen is free.**
+widened whole, a falsifier standing, and 442's offers on record (run114).**
 
 ## The queue
 
@@ -56,8 +57,8 @@ the backlog is `docs/PARKED.md`, and an item returns only when a score names it.
     and the valuation alone buys 72, so they land together or the floor
     fires. Targets **5,755,741** and **4,891,136** on one frame. **`val ∝
     k` is not it** — post-fix our ratio is 2 against the original's
-    1.1768. 438's `num_gatherers` guard stands as the falsifier, and the
-    multiplier chain's two branch tests are `Leader` fields on both sides.
+    1.1768. 438's `num_gatherers` guard is the falsifier; the branch tests
+    are `Leader` fields; run114 prints the original's offers (§52).
 
 443. **616's order list, ours 1 and theirs 0** (the rules headline's frame;
     441 widened it whole): the whole divergence is who=1's `1/6`, `1/7`,

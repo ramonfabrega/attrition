@@ -598,6 +598,110 @@ mod tests {
         Some((kept, built))
     }
 
+    /// **The AI's own dump, read forwards** (DECISIONS 41 §6, parked 367,
+    /// built by the seventh pass; `docs/AI.md` §52). run114 is run111's
+    /// window with `RON_LEADER_PROBE`: `Leader::create_units` brackets a
+    /// frame's unit offers and `MakeList::make_me` is each offer with its
+    /// value, city and category — the record the original never prints.
+    /// Item 432 recovered the four offers of Great Lakes 9380 by replaying
+    /// block 9380's list into block 9381's; here they are read off the
+    /// proxy, so the reconstruction is the **prediction**. This crate's
+    /// offers on the same frame are the residue, pinned in no direction —
+    /// `OURS_ON_9380` is what item 438 measured: the Scholar at 45,568 in
+    /// both cities and no Merchant at all.
+    #[test]
+    fn run114_s_offers_are_the_original_s_own() {
+        use crate::trace::call_site::{LEADER_CREATE_UNITS, LEADER_MAKE_ME, LEADER_MAKE_THIS};
+        let Some(tr) = crate::diff::testkit::trace("rontrace-run114.log") else {
+            eprintln!("skipping: no rontrace-run114.log (set RON_GAMELOG_DIR)");
+            return;
+        };
+        assert_eq!(
+            tr.site_va(LEADER_MAKE_ME),
+            Some(0x006c_9be0),
+            "site 9 is MakeList::make_me in a RON_LEADER_PROBE log; the log says {:?}",
+            tr.proxied
+        );
+        assert_eq!(tr.site_va(LEADER_CREATE_UNITS), Some(0x006c_40a0));
+        assert_eq!(tr.site_va(LEADER_MAKE_THIS), Some(0x006c_94f0));
+        // `(t, val, city, cat)` of every offer nested in a `create_units`
+        // bracket, by frame. `args` is a0..a3 then a4..a6: t, val, escrow,
+        // cat, city, up, p7 — `num` is the eighth and the record drops it.
+        let mut theirs: std::collections::BTreeMap<i64, Vec<(i32, i32, i32, i32)>> =
+            Default::default();
+        for c in tr
+            .calls
+            .iter()
+            .filter(|c| c.site == LEADER_MAKE_ME && c.depth >= 1)
+        {
+            theirs
+                .entry(c.frame)
+                .or_default()
+                .push((c.args[0], c.args[1], c.args[4], c.args[3]));
+        }
+        assert_eq!(
+            theirs.keys().copied().collect::<Vec<_>>(),
+            vec![9380],
+            "the window's unit offers are on the re-offer frame alone: {theirs:?}"
+        );
+        // Item 432's reconstruction, in the order the proxy printed on its
+        // first run: the four values held exactly, and the city-0 pair came
+        // **Scholar then Merchant**, the reverse of what 432 wrote — and
+        // both orders replay to block 9381 (`run111_s_block_9381_list_is_
+        // make_me_s_from_four_offers`), so the order clause was the one
+        // thing the reconstruction had no evidence for.
+        const MEASURED: [(i32, i32, i32, i32); 4] = [
+            (52, 4_891_136, 0, 4),
+            (61, 869_565, 0, 4),
+            (50, 234_782, 1, 5),
+            (52, 5_755_741, 1, 4),
+        ];
+        assert_eq!(
+            theirs[&9380],
+            MEASURED.to_vec(),
+            "the original's unit offers on 9380, off the proxy: (t, val, city, cat)"
+        );
+        // The purchase: `make_this` once in the window, on the make frame.
+        let bought: Vec<(i64, i32, i32)> = tr
+            .calls
+            .iter()
+            .filter(|c| c.site == LEADER_MAKE_THIS)
+            .map(|c| (c.frame, c.args[0], c.ret))
+            .collect();
+        assert_eq!(
+            bought.len(),
+            1,
+            "one purchase in the window, on 9382 (frame, slot, answer): {bought:?}"
+        );
+        assert_eq!(bought[0].0, 9382, "the purchase frame: {bought:?}");
+        // Ours, the same frame, off the recorder `create_units` fills.
+        // Block n is the state after n − 1 ticks, so 9380's offers stand
+        // after the 9381st tick; the recorder's own stamp says so.
+        let Some((_, built)) = great_lakes(9381, 9381) else {
+            return;
+        };
+        assert_eq!(
+            built.sim.ai[1].unit_offers_frame, 9380,
+            "the recorder's frame"
+        );
+        let ours: Vec<(i32, i32, i32, i32)> = built.sim.ai[1]
+            .unit_offers
+            .iter()
+            .map(|m| (m.t, m.val, m.city, m.cat))
+            .collect();
+        // `city` here is this crate's index into `cities`, where the
+        // original's is the leader's own numbering — one apart on this
+        // game, and run111's comparison keys on the slot's type for the
+        // same reason.
+        const OURS_ON_9380: [(i32, i32, i32, i32); 3] =
+            [(52, 45_568, 1, 4), (50, 234_782, 2, 5), (52, 45_568, 2, 4)];
+        assert_eq!(
+            ours,
+            OURS_ON_9380.to_vec(),
+            "this crate's unit offers on 9380 — the residue against MEASURED, pinned in no direction"
+        );
+    }
+
     /// **`active` is the muster's cardinality, and that is what item 303
     /// established.** It reads like a census counter — it is
     /// `LeaderData+0x93c`, the sweep zeroes it and counts into it
@@ -1355,7 +1459,12 @@ mod tests {
     /// - **The city-0 offer precedes the city-1 offer.** Swapped, the
     ///   second `make_me` breaks out on `t == list[k].t` instead of
     ///   inserting, slot 2 keeps the Merchant, and the record is not
-    ///   reproduced — asserted below rather than argued.
+    ///   reproduced — asserted below rather than argued. **The order
+    ///   inside city 0 is not settled by the record**: this test first
+    ///   replayed Merchant then Scholar, run114's proxy printed Scholar
+    ///   then Merchant, and both replay to block 9381
+    ///   (`run114_s_offers_are_the_original_s_own`); the replay below is
+    ///   in the measured order.
     /// - **This crate offers no Merchant at all on this frame.** Its own
     ///   list carries `t133`/`t66` in the two ranks the original gives
     ///   `t52`/`t61`, which is why `MAKE[1..3]` have been standing
@@ -1425,7 +1534,7 @@ mod tests {
             l.list.to_vec()
         };
 
-        let built = replay(&[MERCHANT, SCHOLAR_CITY0, CITIZEN, SCHOLAR_CITY1]);
+        let built = replay(&[SCHOLAR_CITY0, MERCHANT, CITIZEN, SCHOLAR_CITY1]);
         for (k, (ours, theirs)) in built.iter().zip(&after).enumerate() {
             assert_eq!(ours, theirs, "slot {k} of block {AFTER}");
         }

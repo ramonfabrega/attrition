@@ -2372,10 +2372,13 @@ one.
    record that marks the frame a drawless decision was made on. Measured
    by 408 on the AI headline's own frame.
 
-**Not taken**: the AI's dump through the tracer's proxy table (367), for
-the third pass, and it is the first thing this pass says to build — the AI
-lane's whole tranche was spent recovering `create_units`' inputs by probe
-and grep, which is what the dump would print; the RUNS.md append point
+**Not taken**: ~~the AI's dump through the tracer's proxy table (367), for
+the third pass, and it is the first thing this pass says to build~~ —
+**built the same day, once the screen was free**: `RON_LEADER_PROBE`,
+run114, `docs/AI.md` §52; the four offers item 432 reconstructed are on
+the record with their values exact and their order corrected — the AI
+lane's whole tranche had been spent recovering `create_units`' inputs by
+probe and grep, which is what the dump now prints; the RUNS.md append point
 (428); the trailer guard (335); `memcap.sh`'s fixture (251); ccc's `land`
 verb (313); the staged-run gate (375).
 

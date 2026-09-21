@@ -181,7 +181,7 @@ enum {
     I_CMD = 9, /* a cheat line ran: a = frame, b = line index, c = from_chat, d = parse_cmd's return */
     I_CMD_NOCONSOLE = 10, /* a line was due but MiscAccess::console_win is null: a = frame, b = index */
     I_CMDS = 11, /* attach: a = lines parsed from rontrace.cmd */
-    I_PROXIED = 12, /* a call site is proxied: a = rva, b = stub, c = nargs */
+    I_PROXIED = 12, /* a call site is proxied: a = rva, b = stub, c = nargs, d = site id */
     I_COVER = 13, /* the coverage stubs are built: a = region, b = stubs, c = table entries excluded */
     I_DROPPED = 14, /* records lost to a full buffer since the last flush: a = count */
 };
@@ -237,6 +237,9 @@ typedef struct {
 
 #if defined(RON_TARGET_PROBE) && defined(RON_TURN_PROBE)
 #error "RON_TARGET_PROBE and RON_TURN_PROBE both claim call-site ids 8 and 9"
+#endif
+#if defined(RON_LEADER_PROBE) && (defined(RON_TARGET_PROBE) || defined(RON_TURN_PROBE))
+#error "RON_LEADER_PROBE claims call-site ids 8, 9 and 10 too"
 #endif
 
 static const CallSite CALLS[] = {
@@ -306,6 +309,27 @@ static const CallSite CALLS[] = {
      * the other half. `ret 0x10`.
      * push ebp; mov ebp,esp; sub esp,0x2c */
     {0x24e5c0, 6, 4, 0, {0x55, 0x8b, 0xec, 0x83, 0xec, 0x2c, 0, 0, 0, 0}},
+#endif
+#ifdef RON_LEADER_PROBE
+    /* The AI's own decisions (DECISIONS 41 §6, parked 367; the seventh
+     * pass built it). The original logs a Leader's *state* and never its
+     * reasoning: `LEADERS=9` prints the ranked make list after the fact,
+     * and no category prints an offer, so item 432 recovered the four
+     * offers of Great Lakes 9380 by replaying the list backwards. These
+     * three sites print them forwards.
+     *
+     * Leader::create_units@006c40a0(void) — the bracket: a `make_me`
+     * nested in it is a unit offer and not `create_buildings`'. `ret`.
+     * push ebp; mov ebp,esp; sub esp,0xbc — nine bytes, no rel. */
+    {0x2c40a0, 9, 0, 0, {0x55, 0x8b, 0xec, 0x81, 0xec, 0xbc, 0x00, 0x00, 0x00, 0}},
+    /* MakeList::make_me@006c9be0(t, val, escrow, cat, city, up, p7, num,
+     * wx, wy) — the offer itself: ten dwords, `ret 0x28`; the first eight
+     * ride the records (`p7` is stored nowhere by the callee) and the two
+     * coordinates do not. push ebp; mov ebp,esp; push ebx; mov ebx,ecx */
+    {0x2c9be0, 6, 10, 0, {0x55, 0x8b, 0xec, 0x53, 0x8b, 0xd9, 0, 0, 0, 0}},
+    /* Leader::make_this@006c94f0(slot) — the purchase, `ret 4`; the
+     * answer is whether it bought. push ebp; mov ebp,esp; and esp,-8 */
+    {0x2c94f0, 6, 1, 0, {0x55, 0x8b, 0xec, 0x83, 0xe4, 0xf8, 0, 0, 0, 0}},
 #endif
 #ifdef RON_TURN_PROBE
     /* GuyData::turn_speed(int), ret 4; opt-in field replay experiment. */
@@ -944,7 +968,7 @@ static void install_calls(void) {
         t[0] = 0xE9;
         *(u32 *)(t + 1) = (u32)stub - ((u32)t + 5);
         for (u32 j = 5; j < h->len; j++) t[j] = 0xCC; /* never executed */
-        emit(K_INFO, I_PROXIED, h->rva, (u32)stub, h->nargs, 0, 0);
+        emit(K_INFO, I_PROXIED, h->rva, (u32)stub, h->nargs, i, 0);
     }
     FlushInstructionCache(g_proc, (void *)(g_base + TEXT_RVA), TEXT_SIZE);
 }

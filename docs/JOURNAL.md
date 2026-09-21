@@ -20494,4 +20494,8 @@ census: cited 890 → 909, entered and the order family unchanged. Not
 taken, for the third pass: the AI's dump, which is what the whole AI
 tranche was reconstructing by probe. Nine Loop items closed, six remain;
 `att-365` reaped after its floor matched the salvage byte for byte.
-`docs/audit/2026-09-21-fable-pass-7.md`.
+Then, the screen back, the pass built 367 itself: a `RON_LEADER_PROBE`
+tracer, run114 over run111's window, and the original's four offers on
+9380 read off the record — item 432's values exact, its order clause
+refuted, this crate's three pinned beside them for 442 (`docs/AI.md`
+§52). Five Loop items remain. `docs/audit/2026-09-21-fable-pass-7.md`.

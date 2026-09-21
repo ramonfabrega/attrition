@@ -4340,3 +4340,34 @@ that re-runs those pins — and it gives 616 a cause to test rather than a
 mechanism to guess: ours stand 1252 units from the bowmen where the
 original's stand 1392, 6.5 tiles against 7.25, so a re-search predicate
 keyed on range is the first thing to look at.
+
+## run114 — the AI's own dump, the offers read forwards (2026-09-21, the seventh pass)
+
+**What it is.** run111's window again — `LEADERS=9` under `[End Frame]`
+over `[9375, 9391)` on run100's Great Lakes game, run111's detail exactly —
+with the tracer built `TRACER_DEFS=-DRON_LEADER_PROBE` and
+`callwin=9376-9386`, so `Leader::create_units`, `MakeList::make_me` and
+`Leader::make_this` are proxied over the make frames (`docs/AI.md` §52).
+The first capture with the leader probe, and the item parked as 367 since
+the fifth pass. 16 blocks, 9375..9390; through `viadriver.sh runqueue.sh`,
+about four minutes; the plain tracer rebuilt into the install afterwards.
+
+**Six checks, five passing and the sixth mine.** rngcmp against run53
+**9,406 frames identical, 0 differing**; `MAP_STYLE 14`; the window whole
+at 16 blocks; `samegame.py` against run111 **with `LEADERDATA` included**
+at 16 in common and 0 differing — the proxies perturb nothing; and the
+stanza's own falsifier, **four `make_me` on 9380 carrying exactly the four
+values item 432 reconstructed** (869,565 · 4,891,136 · 234,782 ·
+5,755,741). The check that failed counted proxied sites and expected 3;
+the log says 11, because the eight base sites are always installed. The
+stanza now says 11.
+
+**The prediction that died was the order.** The stanza wrote Merchant
+then Scholar for city 0, as item 432 had; the proxy prints Scholar then
+Merchant. Both replay to block 9381 (`docs/AI.md` §52.3), so the record
+never held the order and the reconstruction's clause was unsupported.
+
+**And what nobody asked for.** The window holds the AI's other offers —
+two building offers on 9378, two `cat 7` on 9379, eleven on 9381 — and
+the purchase `make_this(slot 1)` on 9382 answering 0. All on the disk,
+compared to nothing yet.

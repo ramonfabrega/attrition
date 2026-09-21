@@ -121,6 +121,18 @@ address but not a wrong arity.
 A proxied entry carries no coverage stub, so a proxied function has **no
 HIT record**; `report.py blind` counts a `CALL` record as its entry instead.
 
+**Probe builds claim ids 8 and up**, and three of them claim the same
+ones: `RON_TARGET_PROBE` (the target triple, item 386), `RON_TURN_PROBE`
+(the turn experiment) and `RON_LEADER_PROBE` (the AI's own offers —
+`Leader::create_units@006c40a0` as the bracket, `MakeList::make_me@006c9be0`
+as the offer, `Leader::make_this@006c94f0` as the purchase; `docs/AI.md`
+§52, run114). `tracer.c` refuses a build that defines two of them, and
+since the seventh pass the `PROXIED` INFO record carries the site's id
+beside the RVA it patched, so `report.py` and `rondata::trace` name a
+log's sites from the log itself (`site_table`, `Trace::site_va`) rather
+than from whichever table the reader happens to carry. A log older than
+that has `0` in the id slot and falls back to the id table.
+
 ## Staging a scenario from a file: `rontrace.cmd`
 
 The third instrument (`docs/ORACLE.md`, "The cheat channel"). One entry per

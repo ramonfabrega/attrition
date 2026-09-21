@@ -6177,3 +6177,97 @@ Everything else here is **reading-only** and owed a blind second reading:
 exactness of `TypeData::is`, `BuildData::count_queue` at `+0x190`, and the
 missing clamp. The 9510/8585 pair is instrument-measured and not pinned —
 8585 exists only under a change that is not in the tree.
+
+## 52. The AI's dump: the offers, read forwards (2026-09-21, the seventh pass)
+
+DECISIONS 41 §6 said the AI would get its own dump, because the original
+logs a Leader's *state* and never its reasoning — `LEADERS=9` prints the
+ranked make list after the fact, and no category prints what was offered
+to it. The seventh Fable pass built it, as parked 367 said: three call
+proxies in a `RON_LEADER_PROBE` build of the tracer (`tools/trace/README.md`,
+"The call proxies"), and run114 is the first capture through them —
+run111's window exactly, with `callwin=9376-9386`.
+
+### 52.1 The instrument
+
+- `Leader::create_units@006c40a0` is the **bracket**: a `make_me` nested in
+  it is a unit offer and not `create_buildings`' or an upgrade's.
+- `MakeList::make_me@006c9be0` is the **offer**: `(t, val, escrow, cat,
+  city, up, p7)` ride the record; `num`, the eighth argument, does not
+  (the return record's last slot carries an out-byte), so `num` is still
+  the make list's to give.
+- `Leader::make_this@006c94f0` is the **purchase**, with its slot and its
+  answer.
+
+`rondata::trace::Trace::proxied` reads the run's own `PROXIED` records —
+the tracer now writes each site's id beside the address it patched — so a
+test says which build wrote the log rather than assuming; `tools/trace/
+report.py … calls` names the sites the same way. The proxies did not
+perturb the game: `samegame.py` against run111 with `LEADERDATA` included
+is 16 blocks in common and 0 differing, and `rngcmp.py` against run53 is
+9,406 frames identical.
+
+### 52.2 What the record says on 9380
+
+Four `make_me` inside one `create_units`, on the re-offer frame and no
+other frame of the window, in this order:
+
+| `t` | `val` | `city` | `cat` |
+| --- | --- | --- | --- |
+| 52 Scholar | **4,891,136** | 0 | 4 |
+| 61 Merchant | 869,565 | 0 | 4 |
+| 50 Citizen | 234,782 | 1 | 5 |
+| 52 Scholar | **5,755,741** | 1 | 4 |
+
+Every value is what §50.3 reconstructed by replaying block 9380's list into
+block 9381's — the reconstruction was the stanza's written prediction and
+it held. `escrow` is 1 and `up` 0 on all four; `p7` is 9,999,999 on all
+four, the seventh argument `make_me` stores nowhere.
+
+This crate's offers on the same frame, off the recorder `create_units`
+now fills (`Leader::unit_offers`, stamped with its frame): Scholar
+**45,568** city 1, Citizen 234,782 city 2, Scholar **45,568** city 2 — the
+two numbers §49 and §51 measured, no Merchant, and the city index one
+apart because it is this crate's index into `cities` and not the leader's
+own numbering. That is item 442's residue, pinned in no direction.
+
+The purchase is one `make_this` on 9382, `slot 1`, answering 0.
+
+The window also holds what no item asked for: two building offers on
+9378 (`t552` at 126,000 and `t573` at the 9,999,999 ceiling, both `cat`
+8/10, city −1), two `cat 7` offers on 9379 (`t66` 167,424, `t133`
+335,616), and eleven on 9381 (`t427`, `t428`, `t437` at −6,777,217,
+`t438` at 100,000 and 75,000 in the two cities, `t526`–`t528` at 0) —
+the AI's other steps, printed for the first time and compared to nothing
+yet.
+
+### 52.3 What it corrected
+
+§50.3 (item 432) said the city-0 Merchant had to precede the city-0
+Scholar for the replay to reproduce block 9381. The proxy prints the
+Scholar first, and **both orders replay to block 9381** — the Scholar
+outranks the Merchant either way, so the list cannot tell. The order
+clause was the one thing the reconstruction had no evidence for, and it
+is struck in `run111_s_block_9381_list_is_make_me_s_from_four_offers`'s
+own note. Nothing else moved.
+
+### 52.4 What this has *not* established
+
+- What `make_this`'s answer means: it returned 0 on the frame the Scholar
+  was bought. Whether that is "bought" or "nothing left to buy" is a
+  reading of `Leader::make_this@006c94f0`, not taken.
+- What `p7` is for. `create_units` passes the 9,999,999 ceiling and the
+  building arm passes 0 or 4; the callee stores neither.
+- Whether the building and upgrade offers on 9378, 9379 and 9381 are this
+  crate's. They are on the record and nothing compares them; a `compare`
+  over `create_buildings`' recorder is the item that would.
+
+### 52.5 Coverage
+
+Diff-backed: `diff::tests::run114_s_offers_are_the_original_s_own` — the
+three sites resolved by address from the log's own records, the four
+offers on 9380 and no other frame, the purchase on 9382, and this crate's
+three offers on the same frame off the stamped recorder. Made to fail
+first by the reconstruction's own order, which is how §52.3 was found.
+The replay in §50.3 now runs in the measured order and still reproduces
+block 9381.

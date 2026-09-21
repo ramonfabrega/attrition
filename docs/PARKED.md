@@ -32,8 +32,9 @@ two ledger regexes closed in the third pass, 2026-09-17; the fourth pass,
 each now a guard or a clause (`docs/audit/2026-09-19-fable-pass-6.md`,
 DECISIONS 42); the seventh, 2026-09-21, ruled nine — 416, 417, 419, 420,
 421, 424, 431, 433, 436 — two guards, six clauses and a DECISIONS
-paragraph (`docs/audit/2026-09-21-fable-pass-7.md`, DECISIONS 43). 341
-closed 2026-09-18 by item 363.
+paragraph — and **built 367**, the AI's dump, the same day: run114 and
+`docs/AI.md` §52 (`docs/audit/2026-09-21-fable-pass-7.md`, DECISIONS 43).
+341 closed 2026-09-18 by item 363.
 
 (428) **Reserving a run number does not reserve the append point.**
 Measured 2026-09-19: two lanes ran captures in parallel with run111 and
@@ -115,16 +116,6 @@ one chain by rule since 09-17; ccc has `merge`, `update` and `clear`, and
 the reap is a separate command a commander typed after the chain twice and
 forgot twice. Filed with ccc as `land <ref>` or `merge --reap`; until it
 exists, the chain is one shell line in the commander's brief.
-
-(367) **The AI gets its dump** (DECISIONS 41 §6). The original logs state
-and never reasoning — a re-derived AI needs no reasoning logged to stay in
-sync — so no category prints a Leader's site scores or target choice, and
-the AI track diffs effects only. The tracer's proxy table (`tools/trace/
-tracer.c` `CALLS`, `report.py` `PROXIES`) already records a call's
-arguments and answer for `astar_path` and `calc_cost`; add the Leader's
-deciding functions — `compute_sites`, `action_respond`, `create_units`
-first — and teach `rondata` to diff the answers. The pass's: it is a
-tracer change, and a wrong proxy stub costs a run.
 
 ## Parked by the seventh Fable pass, 2026-09-21 — two words without a widening
 

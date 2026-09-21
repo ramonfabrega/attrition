@@ -532,6 +532,8 @@ impl Sim {
     /// offered to the make list.
     pub fn create_units(&mut self, who: Player) {
         let w = who as usize;
+        self.ai[w].unit_offers.clear();
+        self.ai[w].unit_offers_frame = self.frame;
         let d = self.ai_difficulty();
         let pop_cap = self.muster[w].cap;
         let army_target = (pop_cap - 40).max(pop_cap / 2);
@@ -944,6 +946,18 @@ impl Sim {
                 if self.ai[w].wonder_mod != 0 {
                     out /= 2;
                 }
+                self.ai[w].unit_offers.push(crate::ai::MakeObject {
+                    t: t as i32,
+                    val: out,
+                    escrow,
+                    city: c as i32,
+                    up: 0,
+                    o: -1,
+                    num,
+                    cat,
+                    wx: 0,
+                    wy: 0,
+                });
                 self.ai[w]
                     .make_list
                     .make_me(t as i32, out, escrow, cat, c as i32, 0, num, 0, 0);

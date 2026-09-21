@@ -636,6 +636,16 @@ pub struct Leader {
     pub script_step: i32,
     pub pers: Personality,
     pub make_list: MakeList,
+    /// The unit offers `create_units` made this frame, in the order it
+    /// made them — what the original's `MakeList::make_me` is handed
+    /// inside its `create_units` bracket, so a `RON_LEADER_PROBE` trace
+    /// can be put beside it offer for offer. Cleared at the top of
+    /// `create_units`; not a state the make list reads.
+    pub unit_offers: Vec<MakeObject>,
+    /// The sim-frame `unit_offers` was recorded on — `create_units` is one
+    /// step of the leader's cycle and does not run every frame, so a
+    /// reader says which frame's offers it is looking at.
+    pub unit_offers_frame: i64,
     /// `econ[6]`: bit 1 rate under 30, 2 under `lo`, 4 under `hi`, 8
     /// comfortable — `docs/AI.md` §2.5.
     pub econ: [i32; RESOURCES],
@@ -721,6 +731,8 @@ impl Leader {
                 alliance_ai: 0,
             },
             make_list: MakeList::new(),
+            unit_offers: Vec::new(),
+            unit_offers_frame: -1,
             econ: [0; RESOURCES],
             worst_good: 0,
             best_good: 0,

@@ -417,6 +417,19 @@ pub mod call_site {
     /// landed. Called by every moving unit, so only the nested ones are a
     /// bird's.
     pub const SET_NEW_LOCATION: u32 = 4;
+    /// **`RON_LEADER_PROBE` builds only** (DECISIONS 41 §6, built by the
+    /// seventh pass): ids 8–10 are the AI's own decisions, and the same
+    /// ids are the target probe's in a `RON_TARGET_PROBE` build — a log
+    /// says which by its `PROXIED` records ([`Trace::proxied`]).
+    /// `Leader::create_units@006c40a0(void)`, the bracket: a `make_me`
+    /// nested in it is a unit offer.
+    pub const LEADER_CREATE_UNITS: u32 = 8;
+    /// `MakeList::make_me@006c9be0(t, val, escrow, cat, city, up, p7,
+    /// num, wx, wy)` — the offer itself; the first eight ride the record.
+    pub const LEADER_MAKE_ME: u32 = 9;
+    /// `Leader::make_this@006c94f0(slot)` — the purchase; the answer is
+    /// whether it bought.
+    pub const LEADER_MAKE_THIS: u32 = 10;
     /// `PathFinder::astar_caravan_road@00685990(stack, whoA, whoB, p4, p5,
     /// caravan, p7)` — one road plan, bracketed by its entry and return
     /// (`docs/ROADS.md` §5).
@@ -592,9 +605,29 @@ pub struct Trace {
     /// (`tools/trace/README.md`), and what makes "no run has ever entered
     /// this function" an assertion rather than a reading.
     pub hits: Vec<(u32, i64)>,
+    /// Every `PROXIED` record: the site id and the **virtual address** it
+    /// patched, folded to the export's numbering. Since the seventh pass
+    /// the tracer writes the id; a log older than that carries `0` for
+    /// every site, and [`Trace::site_va`] then answers nothing.
+    pub proxied: Vec<(u32, u32)>,
 }
 
 impl Trace {
+    /// The address a site id patched in this run, when the log says —
+    /// how a test tells a `RON_LEADER_PROBE` log's site 9 from a
+    /// `RON_TARGET_PROBE` log's.
+    pub fn site_va(&self, site: u32) -> Option<u32> {
+        let named = self.proxied.len() == 1 || self.proxied.iter().any(|(i, _)| *i != 0);
+        named
+            .then(|| {
+                self.proxied
+                    .iter()
+                    .find(|(i, _)| *i == site)
+                    .map(|(_, va)| *va)
+            })
+            .flatten()
+    }
+
     /// Permissive diagnostic parser; use `parse_finalized` or `read` for evidence.
     /// `None` if the header is not a trace.
     pub fn parse(bytes: &[u8]) -> Option<Trace> {
@@ -623,6 +656,7 @@ impl Trace {
             frames: Vec::new(),
             calls: Vec::new(),
             hits: Vec::new(),
+            proxied: Vec::new(),
         };
         // CALL and RET nest, so one stack pairs them: a RET belongs to the
         // innermost open CALL of the same site. A window that opens mid
@@ -638,6 +672,9 @@ impl Trace {
             let frame = i64::from(r[7] as i32);
             if r[0] == 0 {
                 t.hits.push((norm(r[1]), frame));
+            } else if r[0] == 5 && r[1] == 12 {
+                // `a` is an RVA, not a VA: fold it to the export's base.
+                t.proxied.push((r[5], r[2].wrapping_add(IMAGE_BASE)));
             } else if r[0] == 2 {
                 t.frames.push((i64::from(r[1] as i32), r[2]));
             } else if r[0] == 7 {

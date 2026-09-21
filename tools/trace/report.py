@@ -68,6 +68,33 @@ PROXIES = {
     10: (0x24e5c0, "compare_target", ("o", "who", "in_range", "ai")),
 }
 
+# Every site any probe build knows, by the RVA it patches. Since the seventh
+# pass a PROXIED record carries its site id in `d`, so a log names its own
+# sites and the id table above is only the fallback for older logs.
+# RON_LEADER_PROBE's three (ids 8-10 in that build): the AI's own offers.
+BY_RVA = {rva: (name, names) for rva, name, names in PROXIES.values()}
+BY_RVA.update({
+    0x2c40a0: ("create_units", ()),
+    # `num` is the eighth argument and the RET record carries `out` in its
+    # slot, so it does not ride; the make list's `num` (LEADERS=9) is where
+    # it is read.
+    0x2c9be0: ("make_me", ("t", "val", "escrow", "cat", "city", "up", "p7")),
+    0x2c94f0: ("make_this", ("slot",)),
+})
+
+
+def site_table(recs):
+    """id -> (rva, name, arg names), from the log's own PROXIED records when
+    they carry ids (any nonzero `d`, or a single site), else the id table."""
+    proxied = [(r[5], r[2]) for r in recs if r[0] == 5 and r[1] == 12]
+    if proxied and (len(proxied) == 1 or any(i for i, _ in proxied)):
+        table = dict(PROXIES)
+        for i, rva in proxied:
+            name, names = BY_RVA.get(rva, (f"site{i}", ()))
+            table[i] = (rva, name, names)
+        return table
+    return PROXIES
+
 
 class Index:
     def __init__(self, path):
@@ -260,6 +287,7 @@ def main():
         # innermost open CALL. A trace killed mid-search leaves CALLs open;
         # they print with `= ?` rather than being dropped.
         stack = []
+        sites = site_table(recs)
         for r in recs:
             if r[0] not in (7, 8):
                 continue
@@ -267,8 +295,8 @@ def main():
             if want is not None and f not in want:
                 continue
             site = r[1]
-            name = PROXIES.get(site, (0, f"site{site}", ()))[1]
-            names = PROXIES.get(site, (0, "", ()))[2]
+            name = sites.get(site, (0, f"site{site}", ()))[1]
+            names = sites.get(site, (0, "", ()))[2]
             if r[0] == 7:
                 stack.append((f, site, r[2], list(r[3:7])))
                 continue
@@ -295,7 +323,7 @@ def main():
             out = "" if r[6] == 0xFFFFFFFF else f"  out {r[6]}"
             print(f"f{cf:<5} {'  ' * depth}{name}  {'  '.join(parts)} = {s32(r[2])}{out}")
         for cf, csite, this, a03 in stack:
-            name = PROXIES.get(csite, (0, f"site{csite}", ()))[1]
+            name = sites.get(csite, (0, f"site{csite}", ()))[1]
             print(f"f{cf:<5} {name}  this={this:#x} {a03} = ?")
         return
 
@@ -340,9 +368,10 @@ def main():
                 if kind in kinds:
                     entered.add(rva + BASE)
             # nor do the proxied ones — a CALL record is their entry
+            sites = site_table(rs)
             for r in rs:
-                if r[0] == 7 and r[1] in PROXIES:
-                    entered.add(PROXIES[r[1]][0] + BASE)
+                if r[0] == 7 and r[1] in sites:
+                    entered.add(sites[r[1]][0] + BASE)
         cited = defaultdict(set)
         pat = re.compile(r"([A-Za-z_][A-Za-z0-9_:~<>]*)@(00[0-9a-f]{6})")
         for root, _, files in os.walk(docs):
