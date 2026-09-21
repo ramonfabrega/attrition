@@ -12,36 +12,35 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-21, the ninth chain, two lanes. **Both headlines moved** — Great
-Lakes 10232 → 10233 and chapter two 624 → 637 — and on both lanes the
-mechanism the previous item named was wrong.*
+*2026-09-21, the tenth chain. **Neither headline moved** — Great Lakes
+holds at 10233, chapter two at 637; both items closed rows short of it.*
 
-- **The AI word is 10233** (463): a dead target outlives its order by the
-  attacker's reload — `Unit::do_attack` never tests aliveness for a type
-  with `attack`, and `Unit::fight`'s recharging arm returns before its
-  `valid_target`, so six AI raiders keep a dead building's ATTACKORDER
-  where this crate dropped all six at once. Three assertions hold it, not
-  the word. **Not formation pathing**: 456's hypothesis, DECISIONS 42.
-- **The rules word is 637** (462), +13, [620, 628) closed whole. Parked
-  460 was **falsified by its own falsifier**: nothing reads
-  `Profile::x_size`. The causes: `Built::unit_ids` resolved only through
-  the start dump's link table, so the dumped ATTACKORDER target went
-  uncompared for the whole chapter; then `find_nearby_target` walking the
-  unit index where it walks the cell's own `down` chain, and the unit
-  half of `find_attack_pos`.
-- **Neither lane's endpoint counts survived the merge**: 463 alone read
-  51 off, 462 alone 48, the merged tree 45. Re-measured there, never
-  hand-merged. Four open, 70 parked. **Fable backlog: 1 Loop items**
-  (313); the ninth pass ruled 467, 468, 469 as clauses (DECISIONS 45).
+- **The AI word is 10233** (464): `0/5`'s 22 rows → 3, its FLEE_TO on
+  the dump's `(792,31800)`, draws 6/4 → 5/4. Two predicates:
+  `Unit::think@005f6e40:150`'s step-3 gate wants `role & 0x10000`
+  beside the attack column — a Citizen's attack is 40, so every idle
+  citizen ran `find_melee_target` — and `target_opportunity`'s flee
+  arm, which §12.4 described and nothing built. COMBAT §34.
+- **The widening read health against the ceiling**: `myhits` is the
+  maximum with `damage` beside it, so every wound printed as a
+  divergence. `hits_left` and `myhits` are both rows now, +54k
+  comparisons, all 909 blocks agreeing; [9340,10247] 444 → 655 keys.
+  Endpoint 45/9 → **48/10**, re-pinned past the word (DECISIONS 36):
+  every new row at 10234+, nothing below it moved.
+- **The rules word is 637** (466, in flight): §33.1's decaying
+  `targeted` penalty closes three of 635's six. §33.2 — the `ai` arm
+  **dividing** where a human's multiplies — is **established, not
+  landed**: it reds the `visible` *shape* row, because `1/8`'s strike
+  rests on a wrong two-slot assignment. **470 carries both.** Three
+  open, 71 parked. **Fable backlog: 1 Loop items** (313).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w9711 of 24,000 · GreatLakes w10233 of 24,000
 Golden: w626 of 901 (ch1) · ch2 w637 · 466 next
-Endpoint 24001: EastIndies 64 off, 10 unlinked · GreatLakes 45 off, 9 unlinked
+Endpoint 24001: EastIndies 64 off, 10 unlinked · GreatLakes 48 off, 10 unlinked
 
-**Opener: 464 and 466, each on its own lane, and the loop resumes at
-2 of 20 — the ninth pass ruled that a reap is followed by the next spawn
-in the same turn and that lanes are independent (DECISIONS 45).**
+**Opener: 465 on the AI track, spawned with 464's reap; 470 on the rules
+track the moment 466 merges. The loop stands at 3 of 20.**
 
 ## The queue
 
@@ -51,22 +50,14 @@ the AI, lower map first — Great Lakes. Take the first unstarted on either
 track unless a better order is obvious, and say so. Numbers are stable;
 the backlog is `docs/PARKED.md`, and an item returns only when a score names it.
 
-464. **`0/5` on block 10234, 23 rows and both the frame's spare draws**
-    (the AI headline's frame; 463 moved the word to 10233): the human's
-    citizen is hit on 10233 — `damage_frame 10233`, `damage_o 27
-    damage_who 1` — and **ours answers same-frame with a MOVE_TO where the
-    original answers a block later with a FLEE_TO**. `order:kind` 1/4,
-    `orders_x/y` (2280,31032)/(792,31800), `idle` 0/2, `path:length` 1/0,
-    guy clock whole. Draws 6/4, parting at index 1. `docs/COMBAT.md`.
-    Not a mechanism yet: re-measure first.
-
-465. **`1/28`'s one-frame plan lag on 10234, 14 rows** — 463's fix
-    exposed it and it is a lag, not a destination: the original spends the
-    frame after the order dies doing nothing (`dest 0`, `tolerance 0`,
-    one-entry stack, unmoved) and plans on the next; ours plans and steps
-    at once. `path:length` 43 against 1, `tolerance` 384 against 0.
-    `1/27` does the same on 10240. `docs/ORDERS.md`; **its falsifier is
-    already on disk** — run100 blocks 10233-10235, no capture to book.
+465. **`1/28`'s remaining draw on 10234 at `Unit::do_move+0xe84`, one
+    frame early** — the AI headline's frame, the last draw 464 left
+    (5/4). Hypothesis is **464's, not this item's**: the original's
+    `1/28` flips its `GROUP_MOVE`'s `oxx` 40 → 28 between 10233 and
+    10234 — it becomes its group's leader on the frame it stands
+    still, and `do_group_move` plans for the leader alone. **Not** the
+    plan lag this item carried, nor 463's order-death delay; both are
+    struck. COMBAT §34.4. Falsifier on disk: run100 10233-10235.
 
 466. **635's six `Target` rows in the new window** (the rules headline's
     frame; 462 moved the word to 637 and widened [633, 641)): the bowmen
