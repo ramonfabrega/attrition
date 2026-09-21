@@ -53,7 +53,8 @@ is append-only and amended in place, as it always was.
 - 39 extended by 40 — The queue holds what names a score
 - 40 extended by 42 — The loop governs itself
 - 41 extended by 42 — Two tracks: the rules on a golden record, the AI on the long captures
-- 42 standing — The frame is the item; the loop's holes become guards
+- 42 extended by 43 — The frame is the item; the loop's holes become guards
+- 43 standing — A word is pinned with its widening, and a landing is committed before it is gated
 
 ## 1. Fidelity before divergence
 
@@ -2291,3 +2292,102 @@ the tracer's proxy table (367) — the last is the one with a score behind
 it and the first thing the next pass should build, since it is the only
 instrument that would let the AI track diff a decision rather than its
 effects.
+
+## 43. A word is pinned with its widening, and a landing is committed before it is gated
+
+**Decided 2026-09-21**, the seventh Fable pass, in the main thread
+(`docs/audit/2026-09-21-fable-pass-7.md`). Extends entry 42; overturns
+nothing.
+
+**What was measured.** Sixteen landings on two lanes since the sixth
+pass, both workers verified on Opus 5 from their transcripts. **No word
+moved**: Great Lakes 9,510, East Indies 9,711, chapter one 626; chapter
+two was pinned new at 616. Workers' list price 195 USD, twelve a landing
+against twenty-seven at the sixth pass; the per-word price is undefined.
+Of the eleven residue items booked with a hypothesis, the frame held in
+all eleven and the hypothesis in one (438). And two days of the tranche
+were a lost notification: item 441 finished, started its gate, and the
+harness never woke the lane; the work sat uncommitted on a cleared
+worktree with its branch showing nothing ahead of base, until the
+commander read the tree by hand.
+
+**Why nothing moved, and it is two different stories.** The AI lane
+widened its frame first (408: 172 blocks, every record), and every item
+after it was a measurement — a `LEADERS=9` window, a scoped probe, a grep
+of a dump already on disk — that killed a reading with data. Six items
+later it holds a defect confirmed against the original's own `inside_down`
+chains and a coupling measured at −925 frames (438). That is the loop
+working. The rules lane pinned a word (415), read a value diff **six
+frames past it**, called the 140 units a seating error, and four items
+read decompile on that premise (426, 434, 435, 437, 439) before the
+whole-cast widening at the word's own frame (441) showed the seating exact
+and the divergence one order. The rule that would have stopped it was
+already in `CLAUDE.md` — widen every record on the frame before naming a
+cause — and entry 42's convention was followed to the letter: every brief
+named its frame and wrote its mechanism as the previous item's hypothesis.
+The convention made the items short and honest, and three findings were
+withdrawn inside the tranche instead of a pass later. It did not order the
+widening ahead of the readings, because nothing checked whether a word's
+widening existed, and a value diff at the wrong frame looks exactly like
+one.
+
+**The decisions.**
+
+1. **A word is pinned with its widening.** `rondata::diff::testkit::
+   WIDENINGS` names, for every pinned word constant, the test that
+   compared every dumped record on the word's own frame — or the open item
+   that owes it — and `floors::the_widening_behind_each_pinned_word_exists`
+   checks the test is a `fn` in the diff crate or the item is booked or
+   parked. Two words have none on file today: East Indies' 9,711 (parked
+   444) and chapter one's 626 (parked 445), both parked because neither is
+   a headline. **The widening is the first item on a new word**, before
+   any item that names a mechanism, and an item that pins a word delivers
+   it or names the item that will.
+2. **A worker commits before it gates.** The gate's verdict is a second
+   commit or an amend; a lane that dies mid-gate then has its work on its
+   branch, where `git log <base>..<branch>` — the check `CLAUDE.md`
+   already names — can see it. Entry 34's "committed" in the definition
+   of done keeps its meaning; the order is fixed.
+3. **The `Golden:` line composes lowest chapter first** (parked 417,
+   `docs/GOLDEN.md` §1's own recommendation and the AI track's lower-map
+   rule one level across): the first `w<frame>` is the lowest pinned
+   chapter's word and every pinned chapter's word is on the line; the
+   guard reads both constants.
+4. **No conflict marker survives in the tree** (420):
+   `docs_guard::no_conflict_marker_survives_in_the_tree`, made to fail on
+   a fixture line in `captures.txt` — the file a stray `=======` once
+   disabled whole for the capture driver.
+5. **Six clauses, each a rule the tranche paid for once**, in `CLAUDE.md`:
+   a payoff probe changes only the frames under test (431); a widening's
+   own framing is a hypothesis, and a stanza writes what would kill each
+   reading (419); a dumped record's slot index is not an identity (424); a
+   message a commander sends during a gate says it is to be applied after
+   it (433); an action announced in a closing message is performed in that
+   turn or has not happened (436); a refusal whose remedy is in this repo
+   and needs no human is taken and reported (421).
+6. **A purchase draws nothing** (416): the draw-stream word is a **lower
+   bound** on when a decision parted, never an estimate — 9382's purchase
+   stayed invisible for 128 frames — and `BUILDQUEUE`, written from
+   `BUILDS=1`, is the oracle for an AI purchase, because it is the only
+   record that marks the frame a drawless decision was made on. Measured
+   by 408 on the AI headline's own frame.
+
+**Not taken**: the AI's dump through the tracer's proxy table (367), for
+the third pass, and it is the first thing this pass says to build — the AI
+lane's whole tranche was spent recovering `create_units`' inputs by probe
+and grep, which is what the dump would print; the RUNS.md append point
+(428); the trailer guard (335); `memcap.sh`'s fixture (251); ccc's `land`
+verb (313); the staged-run gate (375).
+
+**The estimate, read against the tranche.** Entry 41's months were
+written at 1,500 Great Lakes frames a day; the sixth pass measured 328;
+this tranche measured 0, with +72 in hand behind one unknown term. Two
+combat points are not a rate and the estimate is not revised. The next
+pass reads three: whether 442 landed its 72 or more and what stands at
+9,582; whether 443 named the producer with the widening on file; and
+whether the dump exists.
+
+**The measure for the next pass**: the words, both tracks; the price per
+landing against 12 and per word against 57; whether any word was pinned
+without its widening (the guard says); whether a lane died with work on
+its branch rather than on its floor; and the AI's dump.

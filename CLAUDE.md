@@ -204,7 +204,10 @@ these are what a revoked macOS permission or a consent dialog look like,
 and a Claude Code update resets the permissions. They are not diagnosed
 into a fact about the hardware and worked around — the user cannot unblock
 what they are not told about, and an hour of good side work is not worth
-the hour of the work that was asked for.
+the hour of the work that was asked for. A refusal whose remedy is in
+this repo and needs no human — a lane to relaunch through, a grant that
+belongs to another bundle — is taken and reported; the rule is for what
+needs a human.
 
 In practice the natural boundary is the end of a mechanic. Finish it, commit
 it, say where things stand and what you would do next — then it is a good
@@ -260,6 +263,18 @@ rules follow:
   cast either side of a frame answers "who changed" without a hypothesis.
   Twice in a day the named mechanism was wrong and the widening said so in
   twenty minutes.
+- **A word is pinned with its widening.** The first item on a new word
+  compares every dumped record on the word's own frame, both directions,
+  and the pin names that test (`rondata::diff::testkit::WIDENINGS`) or
+  the item that owes it; no item that names a mechanism runs on a word
+  whose widening is not on file. A value diff read a few frames past the
+  word is not the widening, and one once stood in three documents for
+  four items. **A widening's own framing is a hypothesis** too: a stanza
+  writes what would kill each reading before the run. **A payoff probe
+  changes only the frames under test** — one wide enough to touch a
+  frame that already agrees reports that frame's breakage as its result.
+  **A dumped record's slot index is not an identity**; compare on what
+  the slot holds.
 - **A finding that can become an assertion must become one before its audit
   is closed.** A second reading's budget is best spent on *what to assert*,
   not on more prose; the twenty-minute widening has out-produced the
@@ -351,7 +366,14 @@ Before reporting, a worker states its tip SHA and that `git log
 <base>..<branch>` is non-empty — or, for a capture or a reading, where the
 product is — and then sends its commander a one-line done message: a
 report that only sits in the worker's own transcript has told nobody, and
-a session's state is not a signal. A worker that has not landed **ninety
+a session's state is not a signal. **A worker commits before it gates**
+— the gate's verdict is a second commit or an amend — so a lane that dies
+mid-gate has its work on its branch and not on its floor; a gate's
+notification was lost once and the work sat two days. **A message that
+arrives during a gate says it is to be applied after it**, and the worker
+holds its write-ups until the gate exits. **An action announced in a
+closing message is performed in that turn or it has not happened.** A
+worker that has not landed **ninety
 minutes** after its spawn sends a one-line status instead — the item, the
 step it is on, whether a gate is running — because two lanes on one box
 stretch every lane's wall clock, and wall clock is the one signal a

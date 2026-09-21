@@ -30,49 +30,10 @@ two ledger regexes closed in the third pass, 2026-09-17; the fourth pass,
 2026-09-18, ruled six (`docs/audit/2026-09-18-fable-pass-4.md`); the sixth,
 2026-09-19, ruled ten — 377, 398, 406, 404, 411, 397, 374, 343, 356, 321 —
 each now a guard or a clause (`docs/audit/2026-09-19-fable-pass-6.md`,
-DECISIONS 42). 341 closed 2026-09-18 by item 363.
-
-(436) **An action announced in a turn's closing message is not an action.**
-Observed 2026-09-19 in the 408 lane: it wrote "taking the clear" and then
-ended the turn with the message instead of running `ccc clear`, and picked
-the next brief up with all six landings of context still loaded. It caught
-this itself, inside the next turn, and reported it rather than proceeding
-— which is the only reason the handoff test below was not silently
-invalidated. The shape generalises and this loop is unusually exposed to
-it: `CLAUDE.md` tells every session to background a wait and **end the
-turn**, so turns end constantly, and a turn that ends carries its stated
-intentions away with it. The rule wants one clause: **an action you
-announce in a closing message is performed in that turn or it has not
-happened**. Cheap, and it costs one wrong assumption per occurrence — here
-it would have cost the only deliberate falsification the "document is the
-handoff" claim has ever had.
-
-(433) **A commander's mid-gate message is an interrupt, and neither side
-was treating it as one.** `CLAUDE.md` says nothing under `docs/` is edited
-while a gate runs, and item 408's lane broke it **twice on 2026-09-19** —
-both times because a message from the commander arrived mid-gate carrying
-asks, and the worker folded them in immediately rather than queueing them.
-The worker's recovery was right: discard that run's verdict and re-gate
-over the frozen tree. But the rule as written puts the whole duty on the
-person being interrupted, and the cause is on the other side — **a message
-that arrives mid-gate does not say that it may wait**. Both halves want
-stating: a worker holds write-ups until the gate exits, and a commander
-who sends asks during a gate says explicitly that they are to be applied
-after it. The second half is the one that was missing, and the commander
-here wrote the messages that caused both breaches. Cheap, and it is the
-only rule in the loop that two people have to keep at once.
-
-(431) **A payoff probe must change only the frames under test.** Measured
-by item 430, 2026-09-19, on its own first probe. To ask "would the word
-move if our Scholar ranked correctly", 408 forced **every** Scholar offer
-to the original's 5,755,741 — and the word fell to 8985, which is §41 and
-§42's own frame, where the value was already right. The blunt probe
-measured the instrument rather than the simulation, and its number said
-nothing about the question. The rule is the scoped version: change the one
-frame under test and nothing else, or the probe's answer is about the
-probe. Worth a clause beside the capture rules, because a payoff probe is
-now a routine move — it is what stopped a reading being booked on a
-premise that turned out to be false an hour later.
+DECISIONS 42); the seventh, 2026-09-21, ruled nine — 416, 417, 419, 420,
+421, 424, 431, 433, 436 — two guards, six clauses and a DECISIONS
+paragraph (`docs/audit/2026-09-21-fable-pass-7.md`, DECISIONS 43). 341
+closed 2026-09-18 by item 363.
 
 (428) **Reserving a run number does not reserve the append point.**
 Measured 2026-09-19: two lanes ran captures in parallel with run111 and
@@ -87,86 +48,6 @@ way `docs/journal/` already works, which cannot conflict at all and is the
 pattern this repo has already chosen once for exactly this reason. The
 ledger's own section order would then be a generated index. The pass's,
 because it changes a document's shape and the guards that read it.
-
-(424) **A test that compares a slot position reads as a finding.** Found
-by item 414, 2026-09-19, in its own first draft. It compared `MAKE[1].val`
-against `MAKE[1].val` across the two sides — and this crate's slot 1 at the
-re-offer is a **Phalanx**, so the comparison was of two different units and
-would have reported a difference that is not one. Keying on the slot's
-**type** rather than its index is what made the assertion true. The rule
-shape, beside 419 and 420: **a dumped record's slot index is not an
-identity**, and any comparison across two sides keys on what the slot holds
-rather than where it sits. Cheap to guard in review, cheaper still as a
-helper that refuses an index-to-index comparison on a pooled record.
-
-(419) **A widening's own dichotomy is a hypothesis, the same as a brief's
-mechanism.** Found by item 414's pre-capture grep, 2026-09-19. Item 408's
-`docs/AI.md` §47.4 framed the open question as a pair — the Citizen's value
-is wrong, or the Citizen should not have been offered — and the disk holds
-a third reading neither names: run107 already covers block 9199, where the
-original's Scholar reads `val 9999999` against this crate's 45568 while the
-**Citizen's value is the original's exactly**, so the Citizen may simply
-outrank a Scholar that was never lifted to the ceiling. `CLAUDE.md` and
-DECISIONS 42 currently warn about a *brief's* named mechanism; this is the
-same failure one step earlier, in the document a widening writes, and it
-was caught only because the next item grepped before it captured. The
-generalisation — **the frame is evidence, the framing around it is not** —
-is the pass's to write, and it belongs beside 416. **Sharpened by item 414,
-whose own prediction then died the same way**: the useful half of a stanza
-is writing down what would **kill each reading** before the run, not the
-reading the author favours. 414's stanza was falsifiable in three
-directions and the block took the one it had ranked first, which is why its
-result is trustworthy rather than lucky.
-
-(420) **A merge artefact in a data file silently disabled the capture
-driver, for an unknown number of days.** One stray `=======` at
-`tools/gamelog/captures.txt:3387`, left by merge `9ae8070`, made
-`runqueue.sh` refuse the **entire file** with `unknown key '======='` — so
-every stanza after run107's was unreachable by the driver, run109's
-included, and a lane looking for a booked capture would have read it as
-never booked. Deleted 2026-09-19 while booking 370; `DRY=1 runqueue.sh` now
-reaches run109. The guard is the cheap half and does not exist: **no
-conflict marker may survive anywhere in the tree**, which is three lines in
-`docs_guard.rs` and would have failed the day the marker landed. Make it
-fail on purpose first, on a fixture rather than on `captures.txt`.
-
-(421) **A permission-shaped refusal that names its own remedy is not the
-one the rule is about.** `CLAUDE.md` says a permission-shaped failure ends
-the turn with a question, and the reason is that the user cannot unblock
-what they are not told about. On run111, 2026-09-19, the first launch
-refused with "Screen Recording is off — screencapture wrote nothing" — a
-message that names the remedy, which is that the TCC grant belongs to
-`RonDriver.app` and the lane is `viadriver.sh`. The worker relaunched
-through it, it ran clean, and **no human was ever needed**; stopping there
-would have cost the capture an hour for nothing. Ruled correct as done. The
-clause the rule wants is the distinction: **a refusal whose remedy is in
-this repo and needs no human is taken and reported; anything that needs a
-human — a consent dialog, a grant to give, a tool at 0% CPU with no
-message — still ends the turn with a question.** A one-clause change, so
-the pass's.
-
-(416) **A DECISIONS entry is owed on "a purchase draws nothing."** Item
-408, 2026-09-19, measured it on the AI headline's own frame: 9382 costs
-eight draws on both sides entry for entry, two same-shaped lists with two
-different answers, and the draw stream stayed blind for the 128 frames to
-the word at 9510. Two consequences the entry should carry, both stated in
-`docs/AI.md` §47.3: a **draw-stream word is a lower bound** on when a
-decision parted, never an estimate; and `BUILDQUEUE` is the oracle for an
-AI purchase, because it is the only record that marks the frame a drawless
-decision was made on — and it is written from `BUILDS=1`, so the evidence
-was already on the disk. This is the case for the record over the frame,
-made on the headline's own frame. The measurement is the worker's and is
-landed; the entry is the pass's to write.
-
-(417) **The `Golden:` line cannot compose over chapters, and the guard is
-why.** Ruled 2026-09-19 that the composed word takes the **lowest chapter
-first**, matching the AI track's lower-map-first rule and DECISIONS 41's
-two-headline shape (`docs/GOLDEN.md` §1 recommends it and books nothing).
-It cannot be written yet: `floors.rs` pins `GOLDEN_WORD_CHAPTER_ONE` and
-nothing else, and `docs_guard.rs` parses a single `w<frame>`, so a second
-pinned chapter needs a second constant and a guard that reads more than
-one. Until then a second chapter pins its word in its own constant and the
-handoff's line stays chapter one's. A guard change, so the pass's.
 
 (375) **A staged run is indistinguishable from an unstaged one, and the
 borrow of a checksum trace is ungated.** Found by item 364, 2026-09-18,
@@ -244,6 +125,25 @@ arguments and answer for `astar_path` and `calc_cost`; add the Leader's
 deciding functions — `compute_sites`, `action_respond`, `create_units`
 first — and teach `rondata` to diff the answers. The pass's: it is a
 tracer change, and a wrong proxy stub costs a run.
+
+## Parked by the seventh Fable pass, 2026-09-21 — two words without a widening
+
+(444) **East Indies' word has no widening on file.** `LONG_WORD_EAST_INDIES`
+is 9,711, and the last capture on that map compared whole (run90) sits at a
+word two thousand frames lower; `rondata::diff::testkit::WIDENINGS` says so
+and the guard behind it reads this row. Parks rather than queues because the
+map is not the headline — lower map first, DECISIONS 41 — and it is the
+first item the AI track takes the day East Indies becomes the lower word:
+every record the long capture's game dumps around 9,711, both directions,
+before any mechanism.
+
+(445) **Chapter one's word has no widening on file.** `GOLDEN_WORD_CHAPTER_ONE`
+is 626 and none of the tests behind it is a whole-cast `compare` over the
+word's own frame — they pin the seating, the reach, the hit and the
+hand-off; `WIDENINGS` says so. Parks because chapter two's 616 is the lower
+chapter and the rules headline; it is the first rules item the day the
+chapter two word closes, and it is one probe over
+`crate::diff::harness::compare`, the shape 441 used.
 
 ## Parked by the sixth Fable pass, 2026-09-19 — a guard's first run
 

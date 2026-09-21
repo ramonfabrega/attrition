@@ -453,6 +453,77 @@ fn claude_md_carries_no_findings() {
     );
 }
 
+/// **No conflict marker survives anywhere in the tree** (parked 420, the
+/// seventh pass). One stray `=======` at `tools/gamelog/captures.txt:3387`,
+/// left by merge `9ae8070` with neither `<<<<<<<` nor `>>>>>>>` beside it,
+/// made `runqueue.sh` refuse the whole file with `unknown key '======='`
+/// for an unknown number of days — every stanza after run107's was
+/// unreachable by the capture driver, and a lane looking for a booked
+/// capture would have read it as never booked (item 414 deleted it). Text
+/// files under `docs/`, `tools/`, `crates/` and the root, by extension;
+/// made to fail first on a fixture line in `tools/gamelog/captures.txt`.
+#[test]
+fn no_conflict_marker_survives_in_the_tree() {
+    const TEXT: &[&str] = &[
+        "md", "rs", "py", "sh", "txt", "toml", "cmd", "ini", "c", "h", "json", "yml", "yaml",
+    ];
+    fn walk(dir: &std::path::Path, out: &mut Vec<PathBuf>) {
+        for entry in std::fs::read_dir(dir).unwrap_or_else(|e| panic!("{}: {e}", dir.display())) {
+            let path = entry.expect("entry").path();
+            let name = path.file_name().and_then(|n| n.to_str()).unwrap_or("");
+            if path.is_dir() {
+                if !matches!(name, "target" | ".git" | "node_modules" | "__pycache__") {
+                    walk(&path, out);
+                }
+            } else if path
+                .extension()
+                .and_then(|e| e.to_str())
+                .is_some_and(|e| TEXT.contains(&e))
+            {
+                out.push(path);
+            }
+        }
+    }
+    let root = docs().join("..");
+    let mut files = Vec::new();
+    for top in ["docs", "tools", "crates"] {
+        walk(&root.join(top), &mut files);
+    }
+    for entry in std::fs::read_dir(&root).expect("repo root") {
+        let path = entry.expect("entry").path();
+        if path.is_file()
+            && path
+                .extension()
+                .and_then(|e| e.to_str())
+                .is_some_and(|e| TEXT.contains(&e))
+        {
+            files.push(path);
+        }
+    }
+    let mut bad = Vec::new();
+    for path in &files {
+        let bytes = std::fs::read(path).unwrap_or_else(|e| panic!("{}: {e}", path.display()));
+        let text = String::from_utf8_lossy(&bytes);
+        for (i, l) in text.lines().enumerate() {
+            if l.starts_with("<<<<<<< ")
+                || l == "======="
+                || l.starts_with(">>>>>>> ")
+                || l == "|||||||"
+            {
+                bad.push(format!(
+                    "{}:{}: {l}",
+                    path.strip_prefix(&root).unwrap_or(path).display(),
+                    i + 1
+                ));
+            }
+        }
+    }
+    assert!(
+        bad.is_empty(),
+        "conflict markers survive in the tree; a driver that reads the file refuses it whole: {bad:#?}"
+    );
+}
+
 /// `Class<T,U>::method` → `Class::method`: the export prints template
 /// arguments, the documents cite without them.
 fn strip_templates(name: &str) -> String {

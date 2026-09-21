@@ -12,35 +12,35 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-21, the tranche after the sixth Fable pass, closed by a stale
-commander and two cleared lanes. **Sixteen landings, no score moved.**
-The steering pass is due, and 441 is why.*
+*2026-09-21, the seventh Fable pass. **Sixteen landings, no score moved**,
+and the pass says why: the rules lane read four mechanisms before it
+widened its word; the AI lane widened first and converged.*
 
-- **`gfree[KNOWLEDGE]` is the term, and correcting it alone costs 925
-  frames** (438; word 9510 → **8585**, caught by the floor). `num_gatherers`
-  is **two** counts — the `gather_down` chain **plus** `count_inside` — and
-  our `count_gather_slots` reads the raw chain, so seated scholars never
-  reduced a University's free slots. k is 6 and 3, per-city; 442 lands it.
-- **We were agreeing at 9375 by accident** (§51.3): the over-large `gfree`
-  overflowed `val`, §45's guard clamped it to 9,999,999, and so does the
-  original. A green frame is worth less as evidence than it looks.
-- **616 widened whole, and a shipped finding withdrawn** (441): the whole
-  divergence of chapter two is who=1's three hoplites from 616; who=0's
-  nine never differ in any field. 415's "seating error, 140 west" was five
-  frames of our own marching read at 622, and it sat in three documents
-  for four items. The cause is **one order**; 443 asks which producer.
-- Four open, 71 parked.
-  **Fable backlog: fifteen Loop items** (251, 335, 313, 367, 375, 416, 417,
-  419, 420, 421, 424, 428, 431, 433, 436); due at twenty, this is fifteen.
+- **The AI headline has a measured defect and a coupled term behind it**
+  (438): `count_gather_slots` reads the raw chain, so seated scholars
+  never reduce a University's free slots; correcting it alone costs 925
+  frames, and the valuation alone buys 72 under a probe (432). 442 lands
+  both, against **5,755,741** and **4,891,136** on one frame.
+- **The rules headline is one order** (441): who=1's hoplites hold an
+  attack order at 616 the original's never hold through 634, and `near_o`
+  stays −1 on both sides — not the search. 443 asks which producer.
+- **Two days went to a lost gate notification**: 441 sat finished and
+  uncommitted on a cleared lane. A worker now commits before it gates.
+- **A word is pinned with its widening** (DECISIONS 43): `WIDENINGS`
+  names the test or the item; East Indies' 9711 and chapter one's 626
+  have none on file (444, 445, parked).
+- Four open, 65 parked.
+  **Fable backlog: six Loop items** (251, 335, 313, 367, 375, 428); 367,
+  the AI's dump, is the pass's own next build, once the screen is free.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w9711 of 24,000 · GreatLakes w9510 of 24,000
-Golden: w626 of 901 · ch2 w616 is lower and is the headline · 443 next
+Golden: w616 of 901 (ch2) · ch1 w626 · 443 next
 Endpoint 24001: EastIndies 64 off, 5 unlinked · GreatLakes 51 off, 11 unlinked
 
-**Opener: the seventh Fable pass — sixteen landings and no score, and a
-four-item chase that rested on a mechanism nobody bracketed. Then 442 on
-the AI lane, 443 on the rules lane.**
+**Opener: 442 on the AI lane and 443 on the rules lane — both frames
+widened whole, both with a falsifier standing. The pass's own build is
+367, the AI's dump, when the screen is free.**
 
 ## The queue
 

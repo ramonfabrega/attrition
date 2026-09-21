@@ -178,30 +178,86 @@ mod tests {
     }
 
     /// **The rules track's headline has the guard the AI track's has** —
-    /// the handoff's `Golden:` line against [`GOLDEN_WORD_CHAPTER_ONE`].
+    /// the handoff's `Golden:` line against the pinned chapters.
     /// `docs_guard::the_handoff_carries_the_golden_line` only checks the
     /// line names *a* word; on 2026-09-19 it read `w624` over a pin of 621
     /// for a whole item (parked 406, the sixth pass). Same shape as the
     /// two above. **The constant is the worker's to re-pin; the line is the
     /// commander's** — a worker that lands with this red has done its half.
+    ///
+    /// With two chapters pinned the line **composes lowest chapter first**
+    /// (parked 417, ruled by the seventh pass; `docs/GOLDEN.md` §1's own
+    /// recommendation and the AI track's lower-map rule one level across):
+    /// the first `w<frame>` is the lowest pinned word, and every pinned
+    /// chapter's word appears on the line.
     #[test]
     fn the_handoff_s_golden_line_is_the_pinned_word() {
         let path = concat!(env!("CARGO_MANIFEST_DIR"), "/../../docs/QUEUE.md");
         let q = std::fs::read_to_string(path).expect("docs/QUEUE.md");
         let line = q.lines().find(|l| l.starts_with("Golden:")).expect(
             "docs/QUEUE.md has no `Golden:` line in the handoff; write \
-             `Golden: w<frame> of <length> · …`",
+             `Golden: w<frame> of <length> (chN) · …`",
         );
-        let said = line
+        let words: Vec<i64> = line
             .trim_start_matches("Golden:")
             .split_whitespace()
-            .find_map(|w| w.strip_prefix('w').and_then(|d| d.parse::<i64>().ok()))
+            .filter_map(|w| w.strip_prefix('w').and_then(|d| d.parse::<i64>().ok()))
+            .collect();
+        let chapters = [GOLDEN_WORD_CHAPTER_ONE, GOLDEN_WORD_CHAPTER_TWO];
+        let lowest = *chapters.iter().min().unwrap();
+        let said = *words
+            .first()
             .unwrap_or_else(|| panic!("the `Golden:` line names no `w<frame>`: {line:?}"));
         assert_eq!(
-            said, GOLDEN_WORD_CHAPTER_ONE,
-            "the handoff's `Golden:` line says w{said}; GOLDEN_WORD_CHAPTER_ONE is \
-             {GOLDEN_WORD_CHAPTER_ONE}. The constant and its comment are the \
+            said, lowest,
+            "the handoff's `Golden:` line leads with w{said}; the lowest pinned chapter \
+             is {lowest} (chapters {chapters:?}). The constant and its comment are the \
              worker's to re-pin; the queue's line is the commander's to write"
         );
+        for c in chapters {
+            assert!(
+                words.contains(&c),
+                "the `Golden:` line names no w{c}; every pinned chapter's word is on it: \
+                 {line:?}"
+            );
+        }
+    }
+
+    /// **A word is pinned with its widening** (`docs/DECISIONS.md` 43):
+    /// [`WIDENINGS`] names, for every pinned word, the test that compared
+    /// every dumped record on the word's own frame — or the open item that
+    /// owes it. A named test must exist as a `fn` under `src/diff/`; an
+    /// owed one must be an item the queue books or the parked file holds.
+    /// Made to fail first on a misspelt test name and on an item number
+    /// nothing carries.
+    #[test]
+    fn the_widening_behind_each_pinned_word_exists() {
+        let root = concat!(env!("CARGO_MANIFEST_DIR"), "/src/diff");
+        let mut source = String::new();
+        for entry in std::fs::read_dir(root).expect("src/diff") {
+            let path = entry.expect("entry").path();
+            if path.extension().is_some_and(|e| e == "rs") {
+                source.push_str(&std::fs::read_to_string(&path).expect("read"));
+            }
+        }
+        let docs = concat!(env!("CARGO_MANIFEST_DIR"), "/../../docs");
+        let queue = std::fs::read_to_string(format!("{docs}/QUEUE.md")).expect("QUEUE.md");
+        let parked = std::fs::read_to_string(format!("{docs}/PARKED.md")).expect("PARKED.md");
+        for (name, word, test, item) in WIDENINGS {
+            match test {
+                Some(t) => assert!(
+                    source.contains(&format!("fn {t}(")),
+                    "{name} = {word} names widening test `{t}`, and no `fn {t}(` exists \
+                     under crates/rondata/src/diff/"
+                ),
+                None => assert!(
+                    queue.contains(&format!("\n{item}. "))
+                        || parked.contains(&format!("({item}) **")),
+                    "{name} = {word} has no widening on file and names item {item}, which \
+                     neither docs/QUEUE.md books (`{item}. `) nor docs/PARKED.md holds \
+                     (`({item}) **`). Widen the word's frame whole, or book it"
+                ),
+            }
+        }
     }
 }

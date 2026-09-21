@@ -20463,3 +20463,35 @@ through `Unit::think`, never an order class. The held-out map: 1 tick, 0
 orders, undebugged by rule. Not taken: 367, the AI's dump — the one Loop
 item with a score behind it, and the next pass's first build. Five Loop
 items remain. `docs/audit/2026-09-19-fable-pass-6.md`.
+
+## 2026-09-21 — the seventh Fable pass: sixteen landings, no word, and the widening that came last (Fable 5.1, steering)
+
+The pass the handoff called for: sixteen landings on two lanes since the
+sixth pass and no score moved, on a tree the user had cleared by hand.
+Measured first: both workers on Opus 5 from their transcripts; Great
+Lakes 9510, East Indies 9711, chapter one 626, all where the sixth pass
+left them, and chapter two pinned new at 616; workers 195 USD, twelve a
+landing against twenty-seven, and no word to divide by. The frame named
+held in every one of the eleven residue items and the hypothesis in one.
+Two days of the tranche were a lost gate notification — item 441
+finished, gated, and was never woken; its work sat on a cleared lane's
+floor, the branch clean, until the commander read the tree by hand. The
+two tracks told two stories. The AI lane widened its frame first and
+every item after was a measurement; six items later it holds a defect
+confirmed against the original's own chains, a coupling priced at −925
+frames, and 442 with two numbers to hit on one frame. The rules lane
+pinned 616, read a value diff six frames past it, called the 140 units a
+seating error, and four readings ran on that premise before the
+whole-cast widening at 616 showed the seating exact and the divergence
+one order. The sixth pass's convention was followed to the letter and
+made the items honest — three findings withdrawn inside the tranche —
+but nothing ordered the widening ahead of the readings, because nothing
+checked whether a word's widening existed. **DECISIONS 43**: a word is
+pinned with its widening (`WIDENINGS`, a guard, two owed and parked); a
+worker commits before it gates; the `Golden:` line composes lowest
+chapter first; no conflict marker survives in the tree; six clauses. The
+census: cited 890 → 909, entered and the order family unchanged. Not
+taken, for the third pass: the AI's dump, which is what the whole AI
+tranche was reconstructing by probe. Nine Loop items closed, six remain;
+`att-365` reaped after its floor matched the salvage byte for byte.
+`docs/audit/2026-09-21-fable-pass-7.md`.
