@@ -1291,6 +1291,23 @@ impl Sim {
     /// `Unit::work` (§2.3): the liveness test on the action's target, the
     /// idle reset, then one `do_job` on the front order.
     pub(crate) fn work(&mut self, u: usize, frame: i64) {
+        // **`ObjectData::visible`'s clock**, and it is the first thing
+        // `Unit::work@0060d180:63` does — above every gate below, so a
+        // unit that returns early still keeps it
+        // (`docs/VISION.md` §7).
+        //
+        // One frame in 32, phased by `o`, a unit that is **not** carrying
+        // the attack latch forgets everyone it has made itself visible to.
+        // The latch is dropped on any frame the front order is not
+        // `ATTACK`, and the test above reads it *before* that drop — so
+        // the frame a unit stops attacking still counts as attacking, and
+        // the visibility outlives the order by up to 32 frames.
+        if self.units[u].phase(frame).rem_euclid(32) == 0 && !self.units[u].attacking {
+            self.units[u].visible = 0;
+        }
+        if self.order_type(u) != index::ATTACK {
+            self.units[u].attacking = false;
+        }
         // The recharging-melee gate: a recharging melee unit steps only an
         // order carrying the action bit, and never an ATTACK through here
         // (ATTACK's own entry gate is `fight`'s).

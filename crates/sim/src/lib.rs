@@ -361,6 +361,26 @@ pub struct Unit {
     /// journey has its deposit counted within eight frames rather than at
     /// the next 512-frame refresh.
     pub idle_latch: bool,
+    /// **`ObjectData::visible` (`+0x40`)** — the byte of players this
+    /// object has made itself visible to *by attacking them*, one bit per
+    /// `who`. `docs/VISION.md` §7.
+    ///
+    /// It is the fallback arm of `UnitData::is_seen`: a unit standing in a
+    /// player's fog is still a legal target for that player while its bit
+    /// is set, which is how a shooter that nobody can see still gets shot
+    /// back at. [`Sim::set_attacking`] is the only writer here;
+    /// [`Sim::work`] clears it.
+    pub visible: u8,
+    /// **`SubObjectData::flags & 0x80`** — "attacked this frame, or is
+    /// still on an `ATTACK` order".
+    ///
+    /// `Unit::set_attacking@005ff5b0` raises it on every strike and
+    /// `Unit::work@0060d180` drops it on any frame the front order is not
+    /// `ATTACK`. Its only job is to hold [`Unit::visible`] against the
+    /// 32-frame clear at the head of [`Sim::work`], which is why the bit
+    /// survives about a third of a second past the last arrow and the
+    /// visibility survives up to 32 frames past that.
+    pub attacking: bool,
 }
 
 /// What a unit needs in order to move.
@@ -721,6 +741,10 @@ impl Unit {
             good_obj: -1,
             gather_here: false,
             idle_latch: false,
+            // `Object::init@00647750:25` zeroes `visible` and
+            // `launch_frames` together as one short.
+            visible: 0,
+            attacking: false,
         }
     }
 

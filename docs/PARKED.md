@@ -927,3 +927,26 @@ run7's orders; a mounted attacker; `calc_gather` non-flat;
     which is exactly what the coverage sections exist to flag. AI §36.4,
     §36.6. Falsified by a capture where a zero-age predecessor exists.
 
+308. **The building half of `ObjectData::visible` is read and not built** —
+    `Build::do_attack@006228f0:147` sets `visible |= 1 << target_who` after
+    `fire_ammo` and clears it on the same 32-frame slot a unit uses, and
+    `Build::do_missile_launch@00622670:70` writes `0xff`. So a tower that
+    shoots you becomes visible to you and a silo that fires becomes visible
+    to everyone, and `Wall::update_local_seen`'s third mask term is still a
+    stub here. VISION §9.1, §9.8. Names no score: no capture on disk has a
+    building shooting through fog. *Would settle it:* `BUILDS=7 UNITS=3`
+    over the frames a tower fires, and the `BUILDDATA` `visible` byte.
+
+309. **`Profile::x_size` is 0 for every unit type here**, where the
+    original's `ObjectTypeData::x_size` is the XML's `CIRCLE_RADIUS`
+    (`UnitType::init@0061ab50:655`-`662`). Item 457 carried the real value
+    as `Profile::circle_radius` rather than move `x_size`, because several
+    unit paths read a *target's* `x_size`. **This is a named candidate for
+    parked 400**: `find_attack_pos` takes the target's extent as
+    `(x_size * 0x60, y_size * 0x60)` (`attack_pos.rs:293`), `(0, 0)` here
+    and `(0x60, 0x60)` there for a unit target, and chapter two's standing
+    624 is a chase destination. *Falsifier:* set it and re-run
+    `chapter_two_s_word_frame_is_widened_whole` over `[620, 628)` — if the
+    three slingers' 622 destinations do not move toward `(1608, 8184)`,
+    `(1560, 7848)` and `(1704, 8424)`, the reading is wrong. VISION §9.8.
+

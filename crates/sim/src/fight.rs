@@ -407,12 +407,17 @@ impl Sim {
     /// `reveal_map == 3`, and the two leader flags (`0x800`, and a
     /// `num_units[0x141]` count) this crate does not carry.
     ///
-    /// SEAM, and it is a *refusing* one: `ObjectData::visible` (`+0x40`) is
-    /// not modelled here, so the fallback answers 0 where the original
-    /// might answer 1 — a target a player has laid eyes on but cannot
-    /// currently see. `docs/VISION.md` §6 has why nothing sets it. On the
-    /// frame this was written for the field is **0 on every candidate**
-    /// (`docs/COMBAT.md` §31.3), so the seam does not touch it.
+    /// The fallback under the fog test is `ObjectData::visible`, and since
+    /// item 457 it is modelled: [`Sim::set_attacking`] sets the target's
+    /// own bit for the player it shoots at, so **a unit that attacks you
+    /// stays a legal target of yours through the fog** until it goes back
+    /// to work. `docs/VISION.md` §7.
+    ///
+    /// SEAM: `WorldData::is_seen`'s **third** arm — `leader_flags &
+    /// 0x2000` and the cell's `WData::who` being an ally, which returns 1
+    /// over friendly ground whatever the fog says — is not carried, and
+    /// nor are the two always-true leader arms above it (`0x800`, and a
+    /// `num_units` count). All three can only *refuse* further here.
     ///
     /// SEAM: `is_seen`'s stealth arm above the fog test — `unit_masks`
     /// `0x800`/`0x1000`, `unit_masks2 0x8000`, the type's
@@ -426,14 +431,73 @@ impl Sim {
         if who >= 8 {
             return true;
         }
-        let p = self.pos_of(target);
+        if self.world_sees(self.pos_of(target), who) {
+            return true;
+        }
+        // `return (visible >> who) & 1` — the fallback, and the whole of
+        // item 457.
+        self.visible_of(target) & Self::who_bit(who) != 0
+    }
+
+    /// `WorldData::is_seen@006b55c0` at one object's position: does `who`'s
+    /// alliance currently light the half-cell it stands on?
+    ///
+    /// Off the grid keeps [`crate::world::World::seen`]'s "no answer"
+    /// reading, which is what its other callers take — the original has no
+    /// bounds test here at all and would read past the plane.
+    pub(crate) fn world_sees(&self, p: Pos, who: crate::Player) -> bool {
         let fog = crate::vision::UNITS_PER_FOG;
         let Some(bits) = self.world.seen(p.x / fog, p.y / fog) else {
-            // Off the grid keeps [`crate::world::World::seen`]'s "no
-            // answer" reading, which is what its other callers take.
             return true;
         };
         bits & self.seen_ally_mask(who) != 0
+    }
+
+    /// `1 << (who & 0x1f)`, **truncated to the byte `ObjectData::visible`
+    /// is**. Gaia (`who == 8`) therefore sets no bit at all, which is the
+    /// original's own arithmetic and not a guard bolted on here.
+    pub(crate) const fn who_bit(who: crate::Player) -> u8 {
+        (1u32 << (who & 31)) as u8
+    }
+
+    /// `ObjectData::visible` for any object. A building's is modelled for
+    /// the units' sake only: nothing sets it yet (`docs/VISION.md` §7).
+    pub(crate) fn visible_of(&self, o: Obj) -> u8 {
+        match o {
+            Obj::Unit(u) => self.units[u].visible,
+            Obj::Building(_) => 0,
+        }
+    }
+
+    /// **`Unit::set_attacking@005ff5b0`** — the write that makes an
+    /// attacker visible to the player it is attacking (`docs/VISION.md`
+    /// §7).
+    ///
+    /// Called from the tail of [`Sim::fight`], between the swing animation
+    /// and the damage, which is where the original has it. Two things
+    /// happen and only the second is conditional:
+    ///
+    /// - `flags |= 0x80` unconditionally — the latch [`Sim::work`] reads;
+    /// - if the victim's player cannot already see this unit's half-cell,
+    ///   the bit goes in **and the unit lights its own disc into that
+    ///   player's fog** (`vtable[0x164]`,
+    ///   [`Sim::update_local_seen_unit`]); if it can, the bit goes in and
+    ///   nothing is lit, because there is nothing to reveal.
+    ///
+    /// SEAM: the two leader tables the function's first two lines write —
+    /// the per-pair "has attacked" record at `00e3a424` and the victim's
+    /// own counter-array — are not modelled; nothing here reads either.
+    pub(crate) fn set_attacking(&mut self, i: usize, who: crate::Player) {
+        self.units[i].attacking = true;
+        let bit = Self::who_bit(who);
+        if self.units[i].visible & bit != 0 {
+            return;
+        }
+        let reveal = !self.world_sees(self.units[i].pos, who);
+        self.units[i].visible |= bit;
+        if reveal {
+            self.update_local_seen_unit(i);
+        }
     }
 
     // ------------------------------------------------------------------
@@ -517,6 +581,10 @@ impl Sim {
         let angle = find_angle(to.x - from.x, to.y - from.y);
         self.units[i].movement.set_heading(angle);
         self.swing_anim(i, angle);
+        // `Unit::fight@005fd4d0`'s `LAB_005feec6`, immediately after
+        // `set_anim` and before the damage: the strike makes this unit
+        // visible to whoever it just hit (`docs/VISION.md` §7).
+        self.set_attacking(i, self.owner_of(target));
         if self.max_range_of(me) == 0 {
             // Melee lands now, once per figure of this `UnitData` — one here.
             if p.fires() {

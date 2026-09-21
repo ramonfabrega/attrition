@@ -90,6 +90,32 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
                 });
             }
         }
+        // **`ObjectData::visible`** beside them (`docs/VISION.md` §7): the
+        // byte of players this unit has made itself visible to by
+        // attacking them, which is `UnitData::is_seen`'s fallback arm and
+        // therefore decides who may legally target it through fog. Printed
+        // inside the `OBJECT` block at every detail level, so this runs on
+        // every capture that carries a unit record.
+        //
+        // A garrisoned unit is skipped for the reason `mylos` is: neither
+        // `set_attacking` nor `work`'s clear runs for one, so the field
+        // holds whatever it held when the unit was last on the map and the
+        // two sides' histories of that are not comparable.
+        if let Some(theirs_vis) = u.visible
+            && built.sim.units[link.unit].on_map
+        {
+            r.visible_compared += 1;
+            let ours_vis = built.sim.units[link.unit].visible;
+            if i64::from(ours_vis) != theirs_vis {
+                r.visible_diverged.push(VisibleDivergence {
+                    frame: frame.n,
+                    who: u.who,
+                    o: u.o,
+                    ours: ours_vis,
+                    theirs: theirs_vis,
+                });
+            }
+        }
         // **The collision block**, field for field
         // (`docs/COLLISION.md` §8). `UnitData::log_data` writes all five at
         // every detail level, so this is checked on every capture — and
