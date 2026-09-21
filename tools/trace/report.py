@@ -41,7 +41,7 @@ KINDS = {0: "HIT", 1: "get()", 2: "FRAME", 3: "get(a,b)", 4: "rand_real", 5: "IN
          7: "CALL", 8: "RET"}
 INFO = {1: "attach", 2: "hook-mismatch", 3: "hooked", 4: "no-funcs", 5: "protect-fail",
         6: "armed", 7: "detach", 8: "declined", 9: "cmd", 10: "cmd-noconsole", 11: "cmds",
-        12: "proxied", 13: "cover", 14: "dropped"}
+        12: "proxied", 13: "cover", 14: "dropped", 15: "unitid"}
 RVA_GAME_RANDOM = 0xA37A8C  # VA 0xE37A8C
 # the trampolined functions (tracer.c HOOKS): rva -> the record kind they emit
 HOOKS = {0x191ef0: 2, 0x639cf0: 1, 0x639d70: 3, 0x5e18b0: 4, 0x639d30: 6}
@@ -81,6 +81,31 @@ BY_RVA.update({
     0x2c9be0: ("make_me", ("t", "val", "escrow", "cat", "city", "up", "p7")),
     0x2c94f0: ("make_this", ("slot",)),
 })
+# RON_COLLIDE_PROBE's five (ids 8-12 in that build): the collision sweep read
+# from inside, `docs/COLLISION.md` 9. `will_be_corner`'s first two arguments
+# are the hit cell, which `collide_here` carries only behind out pointers.
+BY_RVA.update({
+    0x217060: ("detect_unit_collision",
+               ("x", "y", "quick", "boats", "p5", "nocoll", "top_only")),
+    0x282540: ("collide_here",
+               ("o", "who", "ucx", "ucy", "coll_size", "hit_x*", "hit_y*", "nocoll")),
+    0x209fa0: ("will_be_corner", ("hit_x", "hit_y", "ucx", "ucy")),
+    0x20a0c0: ("is_here", ("hit_x*", "hit_y*")),
+    0x20a040: ("is_corner", ("hit_x", "hit_y", "self")),
+})
+
+
+def unit_names(recs):
+    """UnitData* -> "who/o", from RON_COLLIDE_PROBE's INFO 15 records. The
+    collision proxies are `__thiscall` on a pointer and the dump beside them
+    is keyed on the pair, so without this the two cannot be put side by
+    side."""
+    names = {}
+    for r in recs:
+        if r[0] == 5 and r[1] == 15:
+            o = r[4] - 0x10000 if r[4] >= 0x8000 else r[4]
+            names[r[3]] = f"{r[5]}/{o}"
+    return names
 
 
 def site_table(recs):
@@ -288,6 +313,7 @@ def main():
         # they print with `= ?` rather than being dropped.
         stack = []
         sites = site_table(recs)
+        units = unit_names(recs)
         for r in recs:
             if r[0] not in (7, 8):
                 continue
@@ -309,7 +335,7 @@ def main():
                 continue
             depth = len(stack)
             args = (a03 + list(r[3:6]) + [0])[:max(len(names), 1)]
-            parts = [f"this={this:#x}"]
+            parts = [f"this={units[this]}" if this in units else f"this={this:#x}"]
             for n, v in zip(names, args):
                 parts.append(f"{n}={s32(v)}")
             if name == "valid_roadcoord":

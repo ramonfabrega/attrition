@@ -184,6 +184,7 @@ enum {
     I_PROXIED = 12, /* a call site is proxied: a = rva, b = stub, c = nargs, d = site id */
     I_COVER = 13, /* the coverage stubs are built: a = region, b = stubs, c = table entries excluded */
     I_DROPPED = 14, /* records lost to a full buffer since the last flush: a = count */
+    I_UNITID = 15, /* RON_COLLIDE_PROBE: a = site, b = UnitData*, c = o, d = who */
 };
 
 typedef struct {
@@ -240,6 +241,10 @@ typedef struct {
 #endif
 #if defined(RON_LEADER_PROBE) && (defined(RON_TARGET_PROBE) || defined(RON_TURN_PROBE))
 #error "RON_LEADER_PROBE claims call-site ids 8, 9 and 10 too"
+#endif
+#if defined(RON_COLLIDE_PROBE) && \
+    (defined(RON_TARGET_PROBE) || defined(RON_TURN_PROBE) || defined(RON_LEADER_PROBE))
+#error "RON_COLLIDE_PROBE claims call-site ids 8 through 12 too"
 #endif
 
 static const CallSite CALLS[] = {
@@ -330,6 +335,50 @@ static const CallSite CALLS[] = {
     /* Leader::make_this@006c94f0(slot) — the purchase, `ret 4`; the
      * answer is whether it bought. push ebp; mov ebp,esp; and esp,-8 */
     {0x2c94f0, 6, 1, 0, {0x55, 0x8b, 0xec, 0x83, 0xe4, 0xf8, 0, 0, 0, 0}},
+#endif
+#ifdef RON_COLLIDE_PROBE
+    /* The collision sweep, read from inside (`docs/COLLISION.md` 9, item
+     * 456). The refusal is dumped nowhere: `detect_unit_collision` writes
+     * `collide_o`/`collide_who` and 5.4's snap arm clears them two
+     * instructions after the probe returns, so no gamelog category at any
+     * detail level can name the unit that refused a step. These five print
+     * the sweep forwards - who asked, which cell the probe stopped on,
+     * which units the 3x3 walk examined, and what the corner rule made of
+     * each. Every argument count below is the function's own `ret <imm>`
+     * divided by four, read off the image.
+     *
+     * Unit::detect_unit_collision@00617060(x, y, quick, boats, p5, nocoll,
+     * top_only) - the **bracket**: everything below it belongs to one
+     * unit's probe of one point. `ret 0x1c`, and `this` is the asking
+     * unit. push ebp; mov ebp,esp; sub esp,0x40 */
+    {0x217060, 6, 7, 0, {0x55, 0x8b, 0xec, 0x83, 0xec, 0x40, 0, 0, 0, 0}},
+    /* CollCheck::collide_here@00682540(o, who, ucx, ucy, coll_size,
+     * &hit_x, &hit_y, nocoll) - 4.2's probe, and the only record that says
+     * in o/who terms **who is asking**: the first two arguments are the
+     * caller's own pair. The answer is whether a cell was found; the cell
+     * itself rides the next call, not this one, because the two out
+     * pointers carry it. `ret 0x20`. push ebp; mov ebp,esp; sub esp,0x2c */
+    {0x282540, 6, 8, 0, {0x55, 0x8b, 0xec, 0x83, 0xec, 0x2c, 0, 0, 0, 0}},
+    /* UnitData::will_be_corner@00609fa0(hit_x, hit_y, ucx, ucy) - called
+     * once, immediately after a successful probe, so its presence **is**
+     * `collide_here != 0` and its first two arguments are **the hit cell
+     * as values**. Its answer is the asking unit's half of 4.3's corner
+     * rule. `ret 0x10`. push ebp; mov ebp,esp; movzx eax,[ecx+9] */
+    {0x209fa0, 7, 4, 0, {0x55, 0x8b, 0xec, 0x0f, 0xb6, 0x41, 0x09, 0, 0, 0}},
+    /* UnitData::is_here@0060a0c0(&hit_x, &hit_y) - one call per candidate
+     * the 3x3 world-cell walk reaches, `this` the candidate: the census of
+     * **who was looked at**, and its answer is who covers the hit cell.
+     * The two arguments are pointers to the cell, so the identity record
+     * below is what makes the call readable. `ret 8`.
+     * push ebp; mov ebp,esp; mov eax,[ecx+0x10] */
+    {0x20a0c0, 6, 2, 0, {0x55, 0x8b, 0xec, 0x8b, 0x41, 0x10, 0, 0, 0, 0}},
+    /* UnitData::is_corner@0060a040(hit_x, hit_y, self) - the other half of
+     * the corner rule, `this` the **blocker**, and it is reached only when
+     * `will_be_corner` was non-zero and every soft arm declined. So a call
+     * here says the scan got to the last gate, and its absence beside a
+     * `will_be_corner 0` says the collision was hard without one. `ret
+     * 0xc`. push ebp; mov ebp,esp; sub esp,8 */
+    {0x20a040, 6, 3, 0, {0x55, 0x8b, 0xec, 0x83, 0xec, 0x08, 0, 0, 0, 0}},
 #endif
 #ifdef RON_TURN_PROBE
     /* GuyData::turn_speed(int), ret 4; opt-in field replay experiment. */
@@ -813,9 +862,31 @@ static u32 build_stub(u8 *s, const HookSite *h) {
 #include "../explore/live_restore_probe.h"
 #endif
 
+#ifdef RON_COLLIDE_PROBE
+/*
+ * Name the object behind a `this`. Three of the collision sites are
+ * `__thiscall` on a `UnitData *` whose own pair is `+0xa` (o, a short) and
+ * `+0x9` (who, a byte) - the two `will_be_corner@00609fa0` itself indexes
+ * `units[who][o]` with, so they are the record's own definition of the
+ * fields and not a guess. One INFO record per call turns a log full of
+ * heap addresses into one that reads in o/who, which is what the dump
+ * beside it is keyed on.
+ */
+static void collide_name(u32 site, u32 self) {
+    if (self < 0x10000u) return;
+    emit(K_INFO, I_UNITID, site, self, (u32) * (u16 *)(self + 0xa), (u32) * (u8 *)(self + 9), 0);
+}
+#endif
+
 static void __cdecl on_call(u32 site, u32 self, u32 a0, u32 a1, u32 a2, u32 a3) {
     if (g_frame < g_cw_lo || g_frame > g_cw_hi) return;
     emit(K_CALL, site, self, a0, a1, a2, a3);
+#ifdef RON_COLLIDE_PROBE
+    /* 8 detect_unit_collision (the asker), 11 is_here and 12 is_corner
+     * (the candidates). 9 and 10 are the asker again and carry no new
+     * pointer. */
+    if (site == 8 || site == 11 || site == 12) collide_name(site, self);
+#endif
 #ifdef RON_TURN_PROBE
     if (site == 8) probe_turn(self);
 #endif

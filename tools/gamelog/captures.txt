@@ -3811,3 +3811,129 @@ check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|treaties\[scan\]" "$HOME/ron-data/
 # exits 0 when nothing is in common, which is the vacuous pass run83
 # caught. 130 blocks, one `--exclude` for the category that was raised.
 check: python3 tools/gamelog/samegame.py gamelog-run94-greatlakes-scoutrepath.txt gamelog-run115-greatlakes-firstcontact.txt --exclude LEADERDATA | tee /dev/stderr | awk '/in common/{r=$0; sub(/.*in common /,"",r); split($0,a,", "); n=a[2]+0} /^differ:/{d=$2+0} END{print "run94 overlap: common="n" "r" differ="d; exit !(n==130 && d==0 && r=="(7880..8009)")}'
+
+run: 116
+tag: greatlakes-collider
+item: 456
+why: Great Lakes' word 10161 is a step the original's collision probe refused and this crate's took (`docs/AI.md` §54), and **no gamelog category can name the collider at any detail level** — `collide_o` and `collide_who` are written by `detect_unit_collision` and cleared by §5.4's snap arm two instructions after it returns, so the record on disk says a refusal happened and nothing about which arm made it
+# **THE DISK WAS GREPPED FIRST, and half this capture was already on it.**
+# run100 is `[9340, 10899)` of this very game at this exact detail, so the
+# word's whole *state* — 104 units, 29 builds, 3 cities, 4 leader blocks,
+# every collision field — is on disk and item 448 read it whole. What is
+# not on disk, and cannot be put there by any `gamelog.ini` line, is the
+# **inside of the sweep**. That is the only thing this run adds.
+#
+# **The first capture with `RON_COLLIDE_PROBE`** (`docs/COLLISION.md` §9).
+# The tracer in the install is built with `TRACER_DEFS=-DRON_COLLIDE_PROBE
+# zsh tools/trace/build.sh <install>` before this runs and rebuilt plain
+# afterwards; with no `callwin` nothing is patched, so the probe build is
+# the plain instrument everywhere but this window. Five sites, ids 8..12:
+# `Unit::detect_unit_collision@00617060` is the **bracket**,
+# `CollCheck::collide_here@00682540` §4.2's probe (its first two arguments
+# are the asker's own `o`/`who`), `UnitData::will_be_corner@00609fa0` the
+# **hit cell as values** — `collide_here` carries it only behind out
+# pointers — and `UnitData::is_here@0060a0c0` and
+# `UnitData::is_corner@0060a040` the 3x3 walk's candidates, each named in
+# `who/o` by the build's own INFO 15 identity record.
+#
+# run100's detail exactly and a window **inside** run100's, so `samegame.py`
+# needs no `--exclude` at all and the overlap is total rather than six
+# deep; `rngcmp.py` against run53 says it is still run53's game. Between
+# them they are §52.1's perturbation check, which is the one thing a proxy
+# build owes.
+frames: 10185
+mapstyle: 14
+end: MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,DEATHS=1,LEADERS=1
+# **10155..10169, fifteen blocks.** The word is sim-frame 10161, which is
+# block 10162; §54.2's table reads 10161, 10162 and 10163, and the
+# positions re-converge on 10165. Six blocks each end of that triple
+# (run83's rule).
+frame_window: 10155 10170
+# No `cfg:`, so map 14 takes the default `-config check.ini` — run53's,
+# run97's and run100's lobby. A re-run of run100's game.
+cover: cover=0
+cover: callwin=10158-10163
+# run76/run79/run80/run83/run84/run87/run89/run97/run100/run107/run109/run111/run114's
+# Great Lakes floor.
+settle_min: 14000000
+# run100 measured ~485 KB a block at this detail net of its start dump, so
+# fifteen blocks is ~7 MB on a ~14 MB start dump. run80 reached 23,960 of
+# this game in forty seconds at `cover=0`, so the run-up is under a minute.
+# 90 polls is thirty minutes against an expected four; the give-up path
+# **truncates rather than stops**, so it is sized high (item 373).
+poll_max: 90
+#
+# ---- THE PREDICTIONS, written before the capture ran. The trace counts
+# **sim-frames**; the dump's block n is the state after n ticks, so the
+# refused step is trace frame **10161** and dump block **10162**.
+#
+# **P1 — THE FALSIFIER, and it is the brief's.** On sim-frame 10161 there
+# is **one** `detect_unit_collision` bracket whose `this` is `1/38`,
+# carrying the proposed point `(42774, 22584)` — the pair the original's
+# own `MoveOrder::coll_x/coll_y` holds on block 10162 — with `quick 0`,
+# and it **returns 1**. Inside it, at least one site names a `who/o`.
+#   - **Killed if the bracket is empty on 10161**: the refusal is then not
+#     this function's at all, and §54.4's whole framing goes with it — the
+#     candidates become `move_step`'s own arms, §9's `invalid_loc` refusal
+#     and the snap arm's free sub-arm, none of which asks a unit anything.
+#     That is the answer to report, not a cue to reach for the next
+#     hypothesis.
+#   - **Killed differently if the bracket returns 0**: the original's probe
+#     then agreed with this crate's, the step was refused *downstream* of
+#     it, and the divergence is in `move_step` rather than in the sweep.
+#   - **Killed differently again if there is more than one** bracket on
+#     `1/38` that frame: `move_step` probes twice (`quick 0` for the step,
+#     `quick 1` for the path top) and which one refused is then the
+#     question, not which arm.
+#
+# **P2 — the probe found a cell.** One `collide_here` inside that bracket
+# with `o 38`, `who 1`, returning non-zero, and exactly one
+# `will_be_corner` after it — the call is made only on a successful probe,
+# so its **presence is the probe's answer** and its first two arguments are
+# the hit cell. `1/38` steps from unit cell `(890, 470)` to `(891, 470)`,
+# one cell east with `dy 0`, so §4.2's **fast path** applies and not the
+# disc: the sweep is the column `x = ucx + coll_size` for the two parity
+# rows. A hit cell off that column says the edge sweep is not what ran,
+# and §4.2's `nocoll` reading is wrong at this call site.
+#
+# **P3 — the collider is one of four.** §54.4 names `1/31`, `1/32`, `1/37`
+# and `1/33` as standing within half a tile on that block. Predict every
+# `is_here` inside the bracket names a unit from that set, and that the one
+# answering non-zero is among them.
+#   - **Killed if** a unit from outside the four is named: the half-tile
+#     census was measured off the dump's positions and would have missed
+#     the blocker, which is a fact about how the candidate set was read.
+#
+# **P4 — the corner rule is reached, or it is not, and both are answers.**
+# `1/38` shares `group 64` with all four candidates, so §4.3's group-mate
+# soft arm is live and a soft verdict returns 0. Since the original
+# returned 1, either the soft arm declined for the unit that blocked — and
+# then `is_corner` is called and its answer differs from `will_be_corner`'s
+# by something other than 4 — or `will_be_corner` answered 0 and the
+# collision was hard without the corner rule ever being asked. **The
+# absence of an `is_corner` call is therefore as informative as its
+# presence**, and this crate's `Sim::same_group_soft` and `Sim::guy_corner`
+# are what each outcome indicts.
+#
+# **What is expected to AGREE, and it is refusable.** Every record in all
+# fifteen blocks, byte for byte against run100 — this is run100's game with
+# nothing raised at all, only proxies installed over six frames — and
+# run53's draw stream frame for frame. A proxy that perturbs shows here
+# first (§52.1).
+# Same game: the trace word for word against run53, this map's own 24k run.
+check: python3 tools/gamelog/rngcmp.py rontrace-run53.log rontrace-run116.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=10170)}'
+# And the map, from the dump's own `GAME INFO`.
+check: LC_ALL=C head -c 400000 "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run116-greatlakes-collider.txt" | LC_ALL=C grep -a "MAP_STYLE" | tee /dev/stderr | awk '{print; exit !($2==14)}'
+# **The window landed whole** — fifteen blocks, 10155..10169, no gap. item
+# 373's check: a truncated run reads as completely ordinary everywhere else.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run116-greatlakes-collider.txt" | awk '{v=$3+0; if(v>=10155&&v<=10169) n[v]=1} END{c=0; lo=0; hi=0; for(k in n){c++; if(lo==0||k+0<lo)lo=k+0; if(k+0>hi)hi=k+0} print "window blocks: "c" ("lo".."hi")"; exit !(c==15 && lo==10155 && hi==10169)}'
+# **The overlap with run100, and the count is the claim** — `samegame.py`
+# exits 0 when nothing is in common, which is the vacuous pass run83
+# caught. Fifteen blocks, no `--exclude`: nothing was raised.
+check: python3 tools/gamelog/samegame.py gamelog-run100-greatlakes-valuewindow2.txt gamelog-run116-greatlakes-collider.txt | tee /dev/stderr | awk '/in common/{r=$0; sub(/.*in common /,"",r); split($0,a,", "); n=a[2]+0} /^differ:/{d=$2+0} END{print "run100 overlap: common="n" "r" differ="d; exit !(n==15 && d==0 && r=="(10155..10169)")}'
+# **The build that wrote the log**, from its own PROXIED records: the eight
+# base sites are always installed, so a `RON_COLLIDE_PROBE` build is 13.
+check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run116.log" summary | tee /dev/stderr | awk '/INFO proxied/{n++} END{print "proxied sites: "n; exit !(n==13)}'
+# **P1, as a tooth.** One `detect_unit_collision` on `1/38` on sim-frame
+# 10161, returning 1.
+check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run116.log" calls 10161 | tee /dev/stderr | awk '/detect_unit_collision/{if($0 ~ /this=1\/38/){n++; if($0 ~ /= 1$/) h++}} END{print "1/38 brackets on 10161: "n", refusing: "h; exit !(n>=1 && h==1)}'
