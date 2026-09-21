@@ -6,11 +6,11 @@ is evidence for an item's falsifier, not an additional completion score.
 Reports below preserve detailed experiments and limitations; this ledger is
 the entry point. Original-game artifacts stay outside Git.
 
-**Current focus:** isolate pre-menu startup failures after the fixed ten-pair
-cohort; retain failures and verify observed state for every successful run. The lab owns the live lane until an explicit handoff.
-Do not overlap manual Wine/profile operations. The cooperative runner lock
-does not protect against arbitrary scripts. This is not a request to start a
-Fable worker or capture.
+**Current focus:** surface the Jev and retained-state replay findings for
+Fable's review; start with [the review handoff](JEV-REVIEW.md). The lab is not
+holding the capture lane. Ask through Ramon before any new live run; the
+cooperative runner lock does not protect against arbitrary profile/Wine scripts.
+No new capture or main-loop adoption is requested by this handoff.
 
 | ID | Claim | Evidence | Adoption effect / cost | Status |
 | --- | --- | --- | --- | --- |
@@ -103,13 +103,19 @@ Fable worker or capture.
 
 | L60 | A byte-at-a-time expansion would keep requiring adjacent unit fields. | [Version-2 complete unit context](2026-09-21-unit-context.md). | Live 344-byte record and graph overlap validate; replay advances from instruction 73 to 91, refusing the world pointer; scenario projections agree. | One v2 capture; no full A* return, pointer targets not implicitly captured. |
 
-| L61 | Measure broader acquisition cost before replacing repeated per-field captures. | [Bounded memory inventory](2026-09-21-memory-inventory.md). | C/Python metadata agreement, 28 failed/short queries, caps, deadlines and file controls pass; optional imports verified; release gate passes. | Live: 873 ranges, 795.676 MiB broad candidate; known-root allocations plus image 36.566 MiB. No payload snapshot or full replay; small selection tested offline, next is a capped streaming-copy prototype. |
+| L61 | Measure broader acquisition cost before replacing repeated per-field captures. | [Bounded memory inventory](2026-09-21-memory-inventory.md). | C/Python metadata agreement, 28 failed/short queries, caps, deadlines and file controls pass; optional imports verified; release gate passes. | Live: 873 ranges, 795.676 MiB broad candidate; known-root allocations plus image 36.566 MiB. Small selection tested offline; subsequent payload acquisition is L62. No full replay claim. |
 
 | L62 | A broad candidate fits 1 GiB, but needs bounded acquisition before offline replay can consume it. | [Streaming memory payload](2026-09-21-memory-payload.md). | Actual C producer/Python consumer agree; transfer, mapping, anchor, deadline and cap failures refuse; three DLL build variants, sanitizers and the release gate pass. | Live: 796.301 MiB in 1,617 ms; 77,156 anchor bytes agree, projections unchanged. Non-atomic; no full replay yet. |
 
 | L63 | Determine whether a broad packet removes the repeated per-field capture dependency. | [Payload-to-allocator frontier](2026-09-21-payload-frontier.md). | Nine data boundaries closed with 36,256 added bytes; fresh processes reach the same 382-instruction CRT malloc refusal. | Exploratory source retained outside git; extended state not imported, no native output comparison or allocator substitution. |
 
 ## Current direction
+
+The September 19–21 tranche has a validated broad payload and an exploratory
+replay stopping at CRT allocation. Allocator behavior, extended-state handling
+beyond the tested prefix and native output equivalence remain research work.
+Fable decides whether any method merits a pilot, adoption, further evidence or
+parking; review does not imply approval to merge the whole lab branch.
 
 The runtime factor-isolation experiment is paused at the user's request after
 a product cybersecurity restriction; no four-way results exist. Its draft
