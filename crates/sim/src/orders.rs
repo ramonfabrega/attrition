@@ -5326,28 +5326,21 @@ impl Sim {
             return;
         };
         let me = Obj::Unit(u);
-        let Some(target) = self.units[u].combat.target else {
-            self.kill_current_order(u);
-            return;
-        };
+        // **`do_attack`'s own gate is the type's `attack`, and it is the
+        // only aliveness test the function has** (item 463).
+        // `Unit::do_attack@005f1b80` tests the target object's `flags & 1`
+        // in exactly two places — the strafe arm and the grouped arm —
+        // and *both* sit under `*(int *)(ptype + 0x1e8) == 0`, which the
+        // type record names `attack`. A unit whose type can attack falls
+        // through both to `LAB_005f2224`'s unconditional `fight(...)`
+        // without ever asking whether its target still exists. So the
+        // validity kill below is `fight`'s, not this function's, and it
+        // sits where `fight` puts it: **behind the reload gate**.
         if self.attack_of(me) == 0 {
             self.kill_current_order(u);
             return;
         }
         let state = self.units[u].combat;
-        // `Unit::do_attack@005f1b80` reads **no** order flag — grep it —
-        // so the `flags & 0x10` half this test used to carry was nobody's
-        // reading and, since nothing wrote the bit, a clause that could
-        // not fire. Item 329 gave the bit its real writer
-        // ([`flag::FIGHT_REENTRY`]) and its real readers, both in `fight`.
-        if !self.valid_target(me, target) {
-            // `find_new_target`: the idle search with the order dropped.
-            self.kill_current_order(u);
-            if let Some(t) = self.find_melee_target(u, -1) {
-                self.add_attack_order(u, t, QueuePos::First, false, false);
-            }
-            return;
-        }
         // **A mandatory order ignores the stance.** `Unit::do_attack@
         // 005f1b80:225`-`244`: the order's `+0x1c` (mandatory) jumps
         // straight to `LAB_005f2224`, which is the unconditional
@@ -5378,11 +5371,39 @@ impl Sim {
         // The reload gate: a recharging unit returns at once unless this is
         // the first frame of a fresh order, which turns and then returns.
         if state.recharging != 0 {
-            if a.new_ord {
+            if a.new_ord
+                && let Some(target) = self.units[u].combat.target
+            {
                 let (from, to) = (self.units[u].pos, self.pos_of(target));
                 self.units[u]
                     .movement
                     .set_heading(find_angle(to.x - from.x, to.y - from.y));
+            }
+            return;
+        }
+        // **`fight`'s own target test, and it is downstream of the gate
+        // above** — `Unit::fight@005fd4d0:196`'s `Object::valid_target`,
+        // which the recharging arm at `:102` returns before reaching.
+        // `Unit::do_attack@005f1b80` reads **no** order flag — grep it —
+        // so the `flags & 0x10` half this test used to carry was nobody's
+        // reading and, since nothing wrote the bit, a clause that could
+        // not fire. Item 329 gave the bit its real writer
+        // ([`flag::FIGHT_REENTRY`]) and its real readers, both in `fight`.
+        //
+        // SEAM: `fight`'s head does reach the validity question while
+        // recharging, through `local_1c` — the re-entry latch, which
+        // needs `UnitType +0x2b8 & 1` *and* an invalid target — and that
+        // row of §7.11's table is unmodelled. It only ever makes the kill
+        // **earlier**, and no capture on disk has a unit in it.
+        let Some(target) = self.units[u].combat.target else {
+            self.kill_current_order(u);
+            return;
+        };
+        if !self.valid_target(me, target) {
+            // `find_new_target`: the idle search with the order dropped.
+            self.kill_current_order(u);
+            if let Some(t) = self.find_melee_target(u, -1) {
+                self.add_attack_order(u, t, QueuePos::First, false, false);
             }
             return;
         }

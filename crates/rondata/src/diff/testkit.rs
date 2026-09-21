@@ -1311,12 +1311,33 @@ pub(crate) const EAST_INDIES_FIRST_SCHOLAR: i64 = 8_466;
 /// `docs/PATHFINDER.md` §18; the seam comment that said otherwise
 /// outlived it by a fortnight.
 ///
-/// **10232 parts on `Unit::do_move+0xe84`**, 99 draws against 95 with
-/// the original at `Guy::set_anim+0x97a < Guy::inc_time+0x1ed`, and its
-/// value diff is on the *human* side: block 10233 is `0/5 orders.len:
-/// ours 1 theirs 0` and nothing else, the original dropping an order
-/// this crate still holds.
-pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 10_232;
+/// ~~**10232 parts on `Unit::do_move+0xe84`**, 99 draws against 95~~ —
+/// item 456's reading of the block, and the squad's walk was the
+/// *consequence*. The order list parts a block earlier: on **10232**
+/// six of the AI's raiders hold one order where the original holds two
+/// (item 463), and the three that then walk are the three whose freed
+/// group move had somewhere to go.
+///
+/// **10232 → 10233 on item 463**, and the arm is
+/// `Unit::do_attack@005f1b80`'s own gate. The human's building `0/2004`
+/// dies on block 10231 and the original's raiders keep their
+/// `ATTACKORDER` on it — `ox 2004 whom 0 uid 4 mandatory 1` — for
+/// exactly as long as their reload runs: `1/42` drops it on 10231,
+/// `1/28` on 10233, `1/27` on 10239, each on the block its
+/// `recharging` reaches nought. Both of `do_attack`'s aliveness tests
+/// sit under `ObjectTypeData +0x1e8 attack == 0`, so a unit that can
+/// attack never asks; the question is `Unit::fight@005fd4d0:196`'s,
+/// and `:102`'s recharging arm returns before it.
+/// [`sim::Sim::do_attack`] asked it first, and killed six orders two to
+/// eight blocks early.
+///
+/// **10233 parts on `Unit::fight+0x9b0`**, six draws against four, and
+/// the extra pair is the *human* citizen `0/5`: it takes a unit target
+/// and spends §8.2's one-in-five re-search on the frame it is hit,
+/// where the original answers a block later with a `FLEE_TO`. Its value
+/// diff is block 10234 — `0/5`'s whole row set, and `1/28` one block
+/// ahead of the original on the walk its dropped order freed.
+pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 10_233;
 
 /// The floor `run97_s_window_orders_are_the_original_s` holds — item 368's
 /// widening of Great Lakes' order stacks, the 36,483 `GATHERORDER` records
@@ -1576,7 +1597,7 @@ pub(crate) const GOLDEN_WORD_CHAPTER_TWO: i64 = 624;
 /// them, so the two cannot disagree: a window the word has walked out of
 /// fails `the_widening_behind_each_pinned_word_exists` rather than passing
 /// by saying nothing (parked 449).
-pub(crate) const WIDENING_GREAT_LAKES: (i64, i64) = (9_340, 10_246);
+pub(crate) const WIDENING_GREAT_LAKES: (i64, i64) = (9_340, 10_247);
 /// `chapter_two_s_word_frame_is_widened_whole`'s window, on the same
 /// terms: run112's window opens at 605, the slinger squad is born at 621,
 /// and one past the last frame compared.
@@ -1620,11 +1641,19 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // the guard checks that a named test exists, not that it widens the
     // current word, so that stale name passed and read as pinned
     // (parked 449).
+    //
+    // Item 463 moved it to **10233** and widened the record itself: the
+    // `UNITDATA` line the whole item turned on — `recharging`, the reload
+    // clock — was not in the comparison at all, so a squad that kept a
+    // dead target's order for the length of its reload read as a pathing
+    // divergence for two items. It agrees on every AI unit of all 908
+    // blocks now, which is what says the kill's *timing* is the
+    // original's and not a coincidence.
     (
         "LONG_WORD_GREAT_LAKES",
         LONG_WORD_GREAT_LAKES,
         Some("run100_s_word_block_is_every_record_the_dump_carries"),
-        456,
+        463,
         Some(WIDENING_GREAT_LAKES),
     ),
     (

@@ -1672,6 +1672,13 @@ pub struct UnitDump {
     pub collide_o: Option<i64>,
     pub collide_who: Option<i64>,
     pub collide_guy: Option<i64>,
+    /// `UnitData::recharging` (`+0xae`) — the reload clock, and the gate
+    /// `Unit::fight@005fd4d0:102` returns on before it ever asks whether
+    /// the target is still a target. The whole record is compared on the
+    /// AI headline's own block and this field was not in it until item
+    /// 463, which is how a squad that keeps a dead target's order for the
+    /// length of its reload read as a pathing divergence.
+    pub recharging: Option<i64>,
     /// `UnitData::safe` — the cooldown a failed 48-grid search buys.
     pub safe: Option<i64>,
     /// **`UnitData::start_dist` (`+0x130`) — the one dumped witness that a
@@ -2716,6 +2723,7 @@ fn unit_of(b: Block<'_>) -> Option<UnitDump> {
         collide_o: b.int("collide_o"),
         collide_who: b.int("collide_who"),
         collide_guy: b.int("collide_guy"),
+        recharging: b.int("recharging"),
         safe: b.int("safe"),
         start_dist: b.int("start_dist"),
         uid: obj.and_then(|o| o.int("uid")),

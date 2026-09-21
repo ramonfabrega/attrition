@@ -6388,6 +6388,17 @@ mod tests {
         // the headline advancing as this test failing. What opens on the
         // word is asserted below instead, by name.
         let opens = |f: &i64| *f > FIRST - 1 && *f < LONG_WORD_GREAT_LAKES;
+        // **`0/5`'s order row is the *previous* word's own**, and it is
+        // named here for the same reason the raid stamp is: item 463
+        // moved the headline from 10232 to 10233, so a row that was "on
+        // the word" and therefore excluded is now one frame below it, and
+        // a filter that did not name it would report the headline
+        // advancing as this test failing — `ORDER_RESIDUE_RUN97`'s lesson
+        // for the second time in this function. What it says is the word
+        // 10233's own value diff: the human's citizen takes an order on
+        // the frame it is hit where the original answers a frame later
+        // with a `FLEE_TO`.
+        const HUMAN_FLEE: (i64, i64, i64) = (0, 5, LONG_WORD_GREAT_LAKES - 1);
         let inside: Vec<String> = units
             .iter()
             .filter(|(_, f)| opens(f))
@@ -6395,7 +6406,7 @@ mod tests {
             .chain(
                 orders
                     .iter()
-                    .filter(|(_, f)| opens(f))
+                    .filter(|((w, o), f)| opens(f) && (*w, *o, **f) != HUMAN_FLEE)
                     .map(|(k, f)| format!("order {k:?} f{f}")),
             )
             .chain(
@@ -6412,12 +6423,19 @@ mod tests {
         // ~~**And what opens on the word is one unit's position.** The
         // draw stream parts at `Guy::set_anim+0x97a` on 10161; the record
         // says the same event from the other side — `1/38` standing
-        // somewhere else.~~ **Item 456 closed 10161** and the word is
+        // somewhere else.~~ ~~**Item 456 closed 10161** and the word is
         // 10232, where the record says something bigger: a **three-unit
-        // squad** — `1/27`, `1/28`, `1/29` — parts together, and one
-        // order row opens with them, the human's `0/5`. The row is kept
-        // keyed on the headline deliberately; what it asserts is that
-        // the word's own frame is a *small, named* set and not a
+        // squad** — `1/27`, `1/28`, `1/29` — parts together.~~
+        //
+        // **Item 463 closed the squad**, which was never three units'
+        // pathing: six of the AI's raiders dropped an `ATTACKORDER` on a
+        // target that had just died, two to eight frames before the
+        // original's reload let them. What opens on 10233 is **two**
+        // positions — the human's citizen `0/5`, which is the word, and
+        // `1/28`, one frame ahead of the original on the walk its own
+        // dropped order freed — and **no** order row at all. The set is
+        // kept keyed on the headline deliberately; what it asserts is
+        // that the word's own frame is a *small, named* set and not a
         // reshuffle, and `run100_s_word_block_is_every_record_the_dump_
         // carries` holds the value diff beside it.
         let on_word: Vec<(i64, i64)> = units
@@ -6427,8 +6445,8 @@ mod tests {
             .collect();
         assert_eq!(
             on_word,
-            vec![(1, 27), (1, 28), (1, 29)],
-            "the word's own frame is not the three-unit squad: {units:?}"
+            vec![(0, 5), (1, 28)],
+            "the word's own frame is not the citizen and its one follower: {units:?}"
         );
         let order_on_word: Vec<(i64, i64)> = orders
             .iter()
@@ -6437,8 +6455,8 @@ mod tests {
             .collect();
         assert_eq!(
             order_on_word,
-            vec![(0, 5)],
-            "the word's own frame is not one order row: {orders:?}"
+            Vec::new(),
+            "the word's own frame carries an order row: {orders:?}"
         );
         // **The standing residues, as sets.** Counts over a window the
         // word controls rise when the word does (`ORDER_RESIDUE_RUN97`'s
@@ -6463,8 +6481,8 @@ mod tests {
                 .values()
                 .filter(|f| **f < LONG_WORD_GREAT_LAKES)
                 .count(),
-            17,
-            "the window's standing order residue is not seventeen units: {orders:?}"
+            18,
+            "the window's standing order residue is not eighteen units: {orders:?}"
         );
         assert_eq!(
             cities.len(),
@@ -6543,6 +6561,19 @@ mod tests {
     /// [`LONG_WORD_GREAT_LAKES`], so a word that moves fails it by
     /// construction: block 10163's own three rows are `g.angle[0]`,
     /// `g.des_angle[0]` and `heading`, and nothing of 10162's.
+    ///
+    /// **The record grew on item 463, and the field it grew by is the one
+    /// the item turned on.** `recharging` — `UnitData +0xae`, the reload
+    /// clock — was dumped on every block and compared on none, so the
+    /// squad that reads above as a pathing divergence (three units, 44
+    /// path entries against one) could not be seen for what it was: six
+    /// raiders dropping an `ATTACKORDER` on a building that had just
+    /// died, each two to eight frames before the original's reload let
+    /// it. With the field in, it agrees on every AI unit of all 909
+    /// blocks, which is what makes the kill's *timing* a measurement.
+    /// The word's own block is 10234 now and it is two units: the human's
+    /// citizen `0/5`, which is the word, and `1/28`, one block ahead of
+    /// the original on the walk its dropped order freed.
     #[test]
     fn run100_s_word_block_is_every_record_the_dump_carries() {
         /// run100's first complete block — [`WIDENING_GREAT_LAKES`], the
@@ -6552,10 +6583,10 @@ mod tests {
         /// Fourteen blocks past the word — far enough to carry the
         /// re-convergence the last one had on 10165, and inside run100's
         /// own window. **Moved with the word on item 456** (10175 →
-        /// 10246): a widening whose window stops short of the word it is
-        /// the widening of passes by saying nothing, which is parked
-        /// 449's failure one step along — and since the eighth pass the
-        /// floors guard fails on it too.
+        /// 10246) **and again on 463** (→ 10247): a widening whose window
+        /// stops short of the word it is the widening of passes by saying
+        /// nothing, which is parked 449's failure one step along — and
+        /// since the eighth pass the floors guard fails on it too.
         const TAIL: i64 = WIDENING_GREAT_LAKES.1;
         const {
             assert!(
@@ -6618,6 +6649,12 @@ mod tests {
             };
             let frame = ix.frame_state(at).unwrap();
             blocks += 1;
+            // `RON_DEBUG_UNIT=<who>/<o>@<lo>-<hi>` on **this** loop too.
+            // The rows below say which field parted; they never say what
+            // this crate's own path stack and order list held while it
+            // did, and on the word's frame that is the whole question
+            // (item 463).
+            debug_watch(&built, n);
             let r = compare(&built, &frame, players);
             {
                 let mut note = |who: i64, o: i64, what: String, row: String| {
@@ -6781,6 +6818,11 @@ mod tests {
                         ("collide_who", i64::from(un.collide_who), them.collide_who),
                         ("collide_guy", i64::from(un.collide_guy), them.collide_guy),
                         ("safe", i64::from(un.safe), them.safe),
+                        (
+                            "recharging",
+                            i64::from(un.combat.recharging),
+                            them.recharging,
+                        ),
                         ("start_dist", i64::from(un.start_dist), them.start_dist),
                         ("mylos", i64::from(built.sim.unit_los(u)), them.mylos),
                         (
@@ -6915,40 +6957,77 @@ mod tests {
             on_10162.is_empty(),
             "block 10162 parts again — item 448's fifteen rows of `1/38`,              which item 456 closed: {on_10162:?}"
         );
+        // **And the six raiders, which item 463 closed.** The block the
+        // word stood on before this one parted on six `orders.len` rows —
+        // `1/42` on 10231 and `1/27`, `1/28`, `1/29`, `1/40`, `1/41` on
+        // 10232, each holding one order where the original holds two —
+        // and the three that then walked on 10233 were the consequence.
+        // The six are asserted on their **order lists**, over the whole
+        // tail of the raid rather than on one block, so the closure
+        // cannot come undone quietly as the headline walks away from it.
+        // Each drops its order on the block its own `recharging` reaches
+        // nought — 10231 for `1/42`, 10233 for `1/28`, 10239 for `1/27`,
+        // and past this window for `1/29` — so a rule that dropped them
+        // together fails here on three of the four, and one that never
+        // dropped them fails on the other three.
+        //
+        // **Made to fail on purpose**, both ways: with the validity test
+        // back in front of the reload gate the set is six `orders.len`
+        // rows and six `order:length`, on 10231 and 10232; with
+        // [`sim::Sim::forget`] clearing the order's `mandatory` again it
+        // is `1/28`'s pair on 10233 and `1/27`'s on 10239, the orders
+        // that then never die at all.
+        const RAIDERS: [i64; 6] = [27, 28, 29, 40, 41, 42];
+        let raiders: Vec<String> = firsts
+            .iter()
+            .filter(|((w, o, what), (f, _))| {
+                *w == 1
+                    && RAIDERS.contains(o)
+                    && (what == "orders.len" || what == "order:length")
+                    && (10_200..=TAIL).contains(f)
+            })
+            .map(|((w, o, what), (f, row))| format!("{f} {w}/{o} {what}: {row}"))
+            .collect();
+        assert!(
+            raiders.is_empty(),
+            "the AI's raiders' order lists part again inside the raid's tail \
+             — item 463's six dropped `ATTACKORDER`s: {raiders:?}"
+        );
         // The rows are the claim, not their number: a set written out is
         // what a later item diffs its own answer against.
         assert_eq!(
             on_word,
             vec![
-                "0/5 order:length: Length { ours: 1, theirs: 0 }",
-                "0/5 orders.len: ours 1 theirs 0",
-                "1/27 g.angle[0]: ours 1592590336 theirs -1449000960",
-                "1/27 g.avg_speed[0]: ours 6 theirs 0",
-                "1/27 g.cur_anim[0]: ours 7 theirs 12",
-                "1/27 g.cur_time[0]: ours 1 theirs 24",
-                "1/27 g.des_angle[0]: ours 1592590336 theirs -1449000960",
-                "1/27 g.des_x[0]: ours 4602 theirs 4584",
-                "1/27 g.des_y[0]: ours 29802 theirs 29784",
-                "1/27 g.end_time[0]: ours 13 theirs 30",
-                "1/27 g.last_speed[0]: ours 27 theirs 0",
-                "1/27 g.last_time[0]: ours 0 theirs 23",
-                "1/27 g.stopped[0]: ours 0 theirs 1",
-                "1/27 g.x[0]: ours 4602 theirs 4584",
-                "1/27 g.y[0]: ours 29802 theirs 29784",
-                "1/27 heading: ours 1592590336 theirs -1449000960",
-                "1/27 path:length: PathLength { ours: 44, theirs: 1 }",
-                "1/27 pos: ours (4602,29802) theirs (4584,29784)",
-                "1/27 tolerance: ours 384 theirs 0",
+                "0/5 dest_angle: ours 165478400 theirs -1334771712",
+                "0/5 g.angle[0]: ours 165478400 theirs -473038848",
+                "0/5 g.avg_speed[0]: ours 6 theirs 0",
+                "0/5 g.cur_anim[0]: ours 8 theirs 0",
+                "0/5 g.cur_time[0]: ours 1 theirs 2",
+                "0/5 g.des_angle[0]: ours 165478400 theirs -473038848",
+                "0/5 g.des_x[0]: ours 2238 theirs 2232",
+                "0/5 g.des_y[0]: ours 31197 theirs 31224",
+                "0/5 g.end_time[0]: ours 15 theirs 33",
+                "0/5 g.last_speed[0]: ours 27 theirs 0",
+                "0/5 g.last_time[0]: ours 0 theirs 1",
+                "0/5 g.stopped[0]: ours 0 theirs 1",
+                "0/5 g.x[0]: ours 2238 theirs 2232",
+                "0/5 g.y[0]: ours 31197 theirs 31224",
+                "0/5 heading: ours 165478400 theirs -473038848",
+                "0/5 idle: ours 0 theirs 2",
+                "0/5 myhits: ours 38 theirs 40",
+                "0/5 order:kind: Kind { ours: 1, theirs: 4 }",
+                "0/5 orders_x: ours 2280 theirs 792",
+                "0/5 orders_y: ours 31032 theirs 31800",
+                "0/5 path:length: PathLength { ours: 1, theirs: 0 }",
+                "0/5 pos: ours (2238,31197) theirs (2232,31224)",
                 "1/28 g.angle[0]: ours 1260584960 theirs -1348206592",
                 "1/28 g.avg_speed[0]: ours 6 theirs 0",
                 "1/28 g.cur_anim[0]: ours 7 theirs 0",
-                "1/28 g.cur_time[0]: ours 1 theirs 0",
                 "1/28 g.des_angle[0]: ours 1260584960 theirs -1348206592",
                 "1/28 g.des_x[0]: ours 4801 theirs 4776",
                 "1/28 g.des_y[0]: ours 30176 theirs 30168",
                 "1/28 g.end_time[0]: ours 13 theirs 31",
                 "1/28 g.last_speed[0]: ours 26 theirs 0",
-                "1/28 g.last_time[0]: ours 0 theirs -1",
                 "1/28 g.stopped[0]: ours 0 theirs 1",
                 "1/28 g.x[0]: ours 4801 theirs 4776",
                 "1/28 g.y[0]: ours 30176 theirs 30168",
@@ -6956,25 +7035,8 @@ mod tests {
                 "1/28 path:length: PathLength { ours: 43, theirs: 1 }",
                 "1/28 pos: ours (4801,30176) theirs (4776,30168)",
                 "1/28 tolerance: ours 384 theirs 0",
-                "1/29 g.angle[0]: ours 1494614016 theirs -1408303104",
-                "1/29 g.avg_speed[0]: ours 6 theirs 0",
-                "1/29 g.cur_anim[0]: ours 7 theirs 13",
-                "1/29 g.cur_time[0]: ours 1 theirs 7",
-                "1/29 g.des_angle[0]: ours 1494614016 theirs -1408303104",
-                "1/29 g.des_x[0]: ours 4701 theirs 4680",
-                "1/29 g.des_y[0]: ours 29944 theirs 29928",
-                "1/29 g.end_time[0]: ours 13 theirs 30",
-                "1/29 g.last_speed[0]: ours 27 theirs 0",
-                "1/29 g.last_time[0]: ours 0 theirs 6",
-                "1/29 g.stopped[0]: ours 0 theirs 1",
-                "1/29 g.x[0]: ours 4701 theirs 4680",
-                "1/29 g.y[0]: ours 29944 theirs 29928",
-                "1/29 heading: ours 1494614016 theirs -1408303104",
-                "1/29 path:length: PathLength { ours: 44, theirs: 1 }",
-                "1/29 pos: ours (4701,29944) theirs (4680,29928)",
-                "1/29 tolerance: ours 384 theirs 0",
             ],
-            "the word's own block is not the fifty-three rows it was"
+            "the word's own block is not the thirty-seven rows it was"
         );
         // **Anti-vacuity, in the block's own counts.** A capture without
         // `UNITS=3`, `BUILDS=7`, `CITIES=5` or `GUYS=4` would agree
