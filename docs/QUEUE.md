@@ -12,15 +12,16 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-21, five landings on three lanes. **Both headlines moved** —
-the AI word 9510 → 10161 and the golden record 616 → 624 — after sixteen
-landings that moved neither. Every one of the five widened before it read.*
+*2026-09-21, seven landings on three lanes. **Both headlines moved** —
+the AI word 9510 → 10161 → 10232 and the golden record 616 → 624 — after
+sixteen landings that moved neither. Every one widened before it read.*
 
-- **The AI headline moved, 9510 → 10161** (442, +651): 438's free-slot
-  correction plus an `else if` that should be a third independent `if`
-  (listing, 006c52ec), and the scholar arm now returns **5,755,741** and
-  **4,891,136** — both of the original's offers to the unit. The 2:1
-  ratio was the inputs; 1.1768 was the wrap.
+- **The AI headline moved twice, 9510 → 10232** (442 +651, 456 +71): the
+  scholar arm's third `if` read as an `else if` (listing, 006c52ec), then
+  the group-mate soft arm reading `UnitData +0x104` as zero — **the field
+  exists** (`Unit::search`, PATHFINDER §18), and a seam comment saying
+  otherwise outlived it a fortnight, widening the arm by every unit busy
+  re-planning.
 - **The rules headline moved, 616 → 624** (447, after 443 closed the
   radius): `valid_target`'s fifth test is **fog on the target**
   (`is_seen`), which this crate did not have — and `add_unit` skipped
@@ -28,20 +29,19 @@ landings that moved neither. Every one of the five widened before it read.*
   until it crossed a half-cell. Great Lakes' endpoint 55 → 53 with it;
   East Indies and every other score unmoved.
 - **The met bit's bracket is a block, and it is ours** (390, run115):
-  the original flips on **7945**, on both leaders at once, `diplos`
-  static across 130 blocks.
-- **Both words are widened and pinned** (442/448, 447): `WIDENINGS`
-  names a test for each. East Indies' 9711 and chapter one's 626 still
-  owe theirs (444, 445, parked). Two open, 76 parked.
+  the original flips on **7945**, on both leaders at once.
+- **Both words are widened and pinned** (448, 447, re-pinned by 456 with
+  the move): East Indies' 9711 and chapter one's 626 still owe theirs
+  (444, 445, parked). Two open, 76 parked.
   **Fable backlog: ten Loop items** (251, 335, 313, 375, 428, 446, 449, 452, 453, 461).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w9711 of 24,000 · GreatLakes w10161 of 24,000
+Long captures: EastIndies w9711 of 24,000 · GreatLakes w10232 of 24,000
 Golden: w624 of 901 (ch2) · ch1 w626 · 462 next
-Endpoint 24001: EastIndies 64 off, 10 unlinked · GreatLakes 53 off, 8 unlinked
+Endpoint 24001: EastIndies 64 off, 10 unlinked · GreatLakes 48 off, 13 unlinked
 
-**Opener: 456 on the AI lane and 457 on the rules — both on a moved
-word's own widened frame, and run116 is reserved for 456.**
+**Opener: 463 on the AI lane and 462 on the rules — both on a moved
+word's own frame, a named candidate each, and no capture owed.**
 
 ## The queue
 
@@ -51,14 +51,14 @@ the AI, lower map first — Great Lakes. Take the first unstarted on either
 track unless a better order is obvious, and say so. Numbers are stable;
 the backlog is `docs/PARKED.md`, and an item returns only when a score names it.
 
-456. **Which arm of the collision sweep refused `1/38`'s step on block
-    10162** (the AI headline's frame; 448 widened it whole): one unit of
-    104 parts, on an **agreed** waypoint — `collide_guy` ours −1 theirs 0,
-    `half_step` 1 against 0, the original stopping dead and re-converging
-    by 10165. Both sweeps ran and disagreed on one point; which arm
-    decided it no dump can say, because the snap arm clears
-    `collide_o`/`collide_who` two instructions on. **run116** reserved,
-    the ask and its falsifier in `docs/AI.md` §54.4.
+463. **10233's formation pathing, 53 rows on four units** (the AI
+    headline's frame; 456 moved the word to 10232 and read its far side):
+    `0/5 orders.len` ours 1 theirs 0 — the human's, an order the original
+    drops — and the squad `1/27`–`1/29` parting on positions, headings,
+    tolerances and path stacks together, **ours a 44-entry plan against
+    the original's one hop**. Draw stream 99 against 95, parting at draw
+    92. Not collision: 456's sweep is pinned line-for-line against
+    run116. No capture booked; grep the disk first.
 
 462. **622's three destinations, ours one seat and theirs three points**
     (the rules headline's frame; 447 widened [620, 628), 457 left the word
