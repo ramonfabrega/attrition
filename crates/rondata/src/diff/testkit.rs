@@ -1559,10 +1559,15 @@ pub(crate) const WIDENINGS: &[(&str, i64, Option<&str>, u32)] = &[
         None,
         445,
     ),
+    // Item 447 moved this word 616 → 624 and wrote its widening in the
+    // same landing rather than leaving the row owing one — the lesson
+    // parked 449 drew on Great Lakes the same day, applied at the move
+    // instead of after it. The name that stood here was item 441's, and it
+    // widens **616**, a frame this word has left.
     (
         "GOLDEN_WORD_CHAPTER_TWO",
         GOLDEN_WORD_CHAPTER_TWO,
-        Some("chapter_two_s_squads_stand_where_the_dump_stands_them"),
-        441,
+        Some("chapter_two_s_word_frame_is_widened_whole"),
+        447,
     ),
 ];
