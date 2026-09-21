@@ -3708,3 +3708,106 @@ check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*" "$HOME/ron-data/AppData/Roaming/Mi
 check: python3 tools/gamelog/samegame.py gamelog-run111-greatlakes-makeword.txt gamelog-run114-greatlakes-offers.txt | tee /dev/stderr | awk '/in common/{split($0,a,", "); n=a[2]+0} /^differ:/{d=$2+0} END{print "run111 overlap: common="n" differ="d; exit !(n==16 && d==0)}'
 check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run114.log" summary | tee /dev/stderr | awk '/INFO proxied/{n++} END{print "proxied sites: "n; exit !(n==11)}'
 check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run114.log" calls 9380 | tee /dev/stderr | awk '/make_me/{n++; if($0 ~ /val=869565|val=4891136|val=234782|val=5755741/) v++} END{print "make_me on 9380: "n", predicted vals: "v; exit !(n==4 && v==4)}'
+
+run: 115
+tag: greatlakes-firstcontact
+item: 390
+why: this crate's met bit flips on Great Lakes frame 7944 and the original's is only bracketed to (7616, 8174] — four windows of the same game, none of them inside the gap — so 7944 is checked against a bracket, which cannot tell "right" from "right in kind, wrong in time"
+# **THE DISK WAS GREPPED FIRST, and the grep moved a claim.** `docs/AI.md`
+# §45 and `docs/VISION.md` §6.2 both call the four bracketing windows
+# `LEADERS>=2`. They are not: `LeaderData::log_data@006e5110` raises the
+# detail to **3** at line 213, immediately before the eight-iteration
+# `diplos`/`treaties` loop, so the pair needs `LEADERS>=3` and every one of
+# the four windows is in fact `LEADERS=9` (run19 is a `DUMP_ALL`).
+#
+# That matters here because **run94 already covers [7754, 8045)** — the
+# whole of the interesting part of the gap — and its per-frame blocks look
+# at first grep as though they carry `treaties`. They do not. run94 is
+# `LEADERS=1`: its 1,172 `LEADERDATA` records hold **32** `treaties[scan]`
+# lines, all of them in the four start-dump records (the `start:` detail is
+# run10's `LEADERS=9`), and its 1,168 per-frame records hold none. Every
+# Great Lakes stanza with per-frame `LEADERS>=3` is run80 [23960, 24000),
+# run84 [6950, 7030), run91 [7514, 7600), run107 [9170, 9200), run111 and
+# run114 [9375, 9391) — §45's gap, confirmed against `captures.txt` rather
+# than against the documents.
+#
+# **The window is run94's, narrowed, and the detail is run94's but for
+# `LEADERS`** — which is what run91 did to run89 — so the overlap below
+# needs exactly one `--exclude` and no `--drop`, and it is the *whole*
+# window rather than six blocks each end: every block of this capture has a
+# run94 block to be byte-compared against.
+frames: 8025
+mapstyle: 14
+end: MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,DEATHS=1,LEADERS=9
+# 130 blocks centred on this crate's own flip: 7944 with 64 blocks below it
+# and 65 above. A block first showing the bit is 7944 or 7945 (the End
+# Frame dump lags a frame), so both candidates sit deep inside. If the bit
+# is already 1 on 7880 the bracket closes to (7616, 7880]; if it is still 0
+# on 8009 it closes to (8009, 8174]. Either is a finding and neither is
+# this capture failing.
+frame_window: 7880 8010
+cover: cover=0
+# run76/run79/run80/run83/run84/run87/run89/run94's Great Lakes floor: the
+# start dump is 10.9 MB and the log does not grow until 7880.
+settle_min: 14000000
+# Sized from run91's own measurement, not an estimate: run91 wrote 86
+# blocks for 170,485,873 bytes at this map and this detail — ~1.85 MB a
+# block after the 10.9 MB start dump — so 130 blocks is ~240 MB above the
+# start and ~251 MB whole. run84 wrote 80 `LEADERS=9` blocks in about seven
+# minutes of dumping, so this is ~11 minutes of dumping on a fifty-second
+# run-up. 120 polls is forty minutes and the give-up path truncates rather
+# than stops.
+poll_max: 120
+#
+# ---- THE PREDICTIONS, written before the capture ran. Every figure is
+# this crate's, on the dump's own block numbering.
+#
+# **P1 — the item.** Player 1's `treaties[0]` is **0** on blocks 7880
+# through 7943 and **1** from 7944 or 7945 to the end of the window, and
+# player 0's `treaties[1]` moves on the same block: `Leader::treaty_on`
+# ors into *both* sides, so a flip on one side alone would refuse
+# `docs/VISION.md` §6.2's reading of that function, not just the frame.
+#   - **Killed if** the bit is 1 on block 7880 — the original met earlier
+#     than the fog model here does, and the bracket closes downward.
+#   - **Killed if** the bit is 0 on block 8009 — later, and it closes
+#     upward. Item 385's move (9182 -> 9415) stands either way; what falls
+#     is "the flip frame is right", which nothing has ever tested.
+#   - **Killed differently if** it flips and flips back: nothing in a game
+#     clears bit 0 (`Leader::treaty_off@006d0370`'s only caller is the
+#     debug console's `run_cmd`), so a fall would refuse that claim.
+#
+# **P2 — `diplos` does not move.** 0 on every cross slot of both leaders on
+# every one of the 130 blocks, 2 on each leader's own slot. §45's four
+# windows all read `diplos[0] 0` — at war from the start — so a change
+# anywhere here says the diplomacy is not static and §45's whole reading of
+# `weight_total`'s war term is looking at the wrong field.
+#
+# **P3 — the other seven slots stay 0.** Only two leaders are live
+# (`leader_flags & 1`), so `treaties[2..8]` and `diplos[2..8]` are 0
+# throughout on both. A non-zero there is an eighth-slot ghost and would
+# refuse `Sim::check_ever_seen`'s `leader_flags & 1` gate.
+#
+# **What is expected to AGREE, and it is refusable.** Every non-`LEADERDATA`
+# record in all 130 blocks, byte for byte against run94 — this is run94's
+# game with one category raised, and if it is not, the flip frame this
+# capture reads is a different game's.
+#
+# Same game: the trace word for word against run53, this map's own 24k run.
+check: python3 tools/gamelog/rngcmp.py rontrace-run53.log rontrace-run115.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=8020)}'
+# And the map, from the dump's own `GAME INFO`.
+check: LC_ALL=C head -c 400000 "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run115-greatlakes-firstcontact.txt" | LC_ALL=C grep -a "MAP_STYLE" | tee /dev/stderr | awk '{print; exit !($2==14)}'
+# **The window landed whole** — 130 blocks, 7880..8009, no gap. run97's
+# truncation (item 373) is why: the give-up path stops the process, and a
+# capture that quietly stops short reads as a clean answer everywhere else.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run115-greatlakes-firstcontact.txt" | awk '{v=$3+0; if(v>=7880&&v<=8009) n[v]=1} END{c=0; lo=0; hi=0; for(k in n){c++; if(lo==0||k+0<lo)lo=k+0; if(k+0>hi)hi=k+0} print "window blocks: "c" ("lo".."hi")"; exit !(c==130 && lo==7880 && hi==8009)}'
+# **And the record that was raised is actually in them.** Eight
+# `treaties[scan]` per leader, four leaders a block, 130 blocks = 4,160.
+# `LEADERS=1` gives **0** — that is run94, measured — so this line is the
+# whole difference between this capture and the one already on disk, and a
+# correctly-numbered window that came back without it is the failure the
+# detail guard exists for.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|treaties\[scan\]" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run115-greatlakes-firstcontact.txt" | awk '/BEGIN FRAME/{f=$3+0; next} /treaties/{if(f>=7880&&f<=8009)n++} END{print "treaties[scan] in window: "n; exit !(n==4160)}'
+# **The overlap with run94, and the count is the claim** — `samegame.py`
+# exits 0 when nothing is in common, which is the vacuous pass run83
+# caught. 130 blocks, one `--exclude` for the category that was raised.
+check: python3 tools/gamelog/samegame.py gamelog-run94-greatlakes-scoutrepath.txt gamelog-run115-greatlakes-firstcontact.txt --exclude LEADERDATA | tee /dev/stderr | awk '/in common/{r=$0; sub(/.*in common /,"",r); split($0,a,", "); n=a[2]+0} /^differ:/{d=$2+0} END{print "run94 overlap: common="n" "r" differ="d; exit !(n==130 && d==0 && r=="(7880..8009)")}'

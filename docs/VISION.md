@@ -496,6 +496,81 @@ either leader reaches a non-exempt attrition outcome** (item 382), so no
 capture on this disk can tell whether it is right. A map where an army
 campaigns abroad would; that is when to wire it.
 
+## 6.3 The contact frame itself — 7945, on both sides (2026-09-21)
+
+Item 390, the capture §6.2 named as owed. §6.2 gave the met bit a writer
+and Great Lakes' word moved 9182 → 9415 on it, but the *frame* had never
+been checked: this crate's first contact is sim-frame 7944 — block **7945**
+in the dump's own numbering, which lags the sim by one — and the original's
+was bracketed only to **(7616, 8174]**, 558 frames wide, by four windows of
+the same game with none of them inside the gap.
+
+**run115 closes it to a block, and the block is the same one.** 130 blocks
+of `LEADERS=9` over `[7880, 8010)` — run94's window narrowed, at run94's
+detail but for that one category — and the comparison reads the flip off
+the record rather than off a grep:
+
+| | first block carrying the bit |
+|---|---|
+| this crate, `1/treaties[0]` | **7945** |
+| the original, `1/treaties[0]` | **7945** |
+| the original, `0/treaties[1]` — the mirror | **7945** |
+
+So `Leader::treaty_on@006e1190` ors into both leaders' slots on the same
+frame, as §6.2 read it, and the fog path reaches it on the original's own
+block. Nothing else moves: `diplos` is 2 on each leader's own slot and 0 on
+the cross slot on all 130 blocks of both leaders, so the diplomacy is not
+renegotiated anywhere near contact — the two are at war from before the
+window and only *contact* happens inside it. The bit does not fall again
+through block 8009, which is what `Leader::treaty_off@006d0370` having no
+in-game caller predicts.
+
+The four slots above 1 stay 0 on every block of both leaders, and the dump
+carries two more `LEADERDATA` records — leader slots 8 and 9 — that are
+zero throughout, which is `Sim::check_ever_seen`'s `leader_flags & 1` gate
+having nothing to do there.
+
+### What carries it
+
+`run115_s_window_is_the_met_bit_s_own_frame` (`crates/rondata/src/diff/
+leader.rs`): 260 blocks, 272,480 field-frames, the flip triple pinned at
+`(7945, 7945, 7945)`, `diplos` asserted not to move, and the 89-field
+residue pinned by name as `PARTS_ON_RUN115`. Made to fail on purpose —
+commenting out the `Sim::meet` call in `Sim::check_ever_seen`'s tail, which
+is item 385's whole change, reads `(None, 7945, 7945)`.
+
+`docs/RUNS.md`, run115, is the capture and its five checks.
+
+### What it opened, and it is not this mechanic's
+
+`0/wars`, `0/active_wars` and `0/active_wars_with` agree at nought for 121
+blocks and then part on **8001**, where the original writes the *human*
+leader a war census — `wars 1`, `active_wars 1`, `active_wars_with 2` —
+beside a single `production_step` tick that falls back to 0 on 8002. That
+is 56 blocks after first contact, and it is the first direct evidence that
+the original runs its census for a human leader at all. This crate leaves
+the human's census at zero forever. It belongs to `docs/AI.md` §43's
+`human` skip, not here.
+
+### What is not established
+
+- **Whether the two sides agree on contact for the same *reason*.** The
+  block matches and the mirror matches; the capture does not print which
+  building's `ever_seen` newly acquired which ally mask, so a different
+  sighting that happens to land on the same frame is not excluded. The
+  `DUMP_ALL` window that would settle it costs ~61 MB a frame and has not
+  been booked.
+- **Contact on any other map.** 7945 is Great Lakes' and one game's. East
+  Indies has no `LEADERS≥3` window near its own contact, and no capture on
+  this disk dates it.
+- **The attrition path to `meet`**, unchanged from §6.2: three sites in
+  `Unit::process_attrition@005e11a0`, read and not wired, because no unit
+  of either leader reaches a non-exempt attrition outcome in run53's 24,000
+  frames.
+- **`treaties`' other bits.** Only bit 0 is modelled and only bit 0 is
+  compared; the record's values are 0 or 1 on every block of this window,
+  so nothing here says what the higher bits would carry.
+
 ## 7. What is not established
 
 - **`unit_masks & 1`.** Term 12 clamps `mylos` to 1 and the projection
