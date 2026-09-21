@@ -1150,6 +1150,236 @@ mod tests {
     /// list is: the original's head is `t 573 cat 10` and the Scholar
     /// sits under it at slot 1, where this crate has promoted the
     /// Scholar over it.
+    /// **The met bit's own frame, at last** (item 390, `docs/VISION.md`
+    /// §6.3). Item 385 gave `treaties[i] & 1` a writer — the fog — and
+    /// Great Lakes' word moved 9182 -> 9415 on it, but the *frame* was
+    /// never checked: this crate's first contact is 7944 and the
+    /// original's was bracketed only to (7616, 8174] by four windows of
+    /// the same game, none of them inside the gap. run115 is 130 blocks
+    /// of `LEADERS=9` across [7880, 8010) — run94's window narrowed, at
+    /// run94's detail but for that one category — and it turns the
+    /// bracket into a block.
+    ///
+    /// The record is compared whole, both leaders, every field the
+    /// mapping carries; the flip is read off the comparison so the dump
+    /// is on both sides of it.
+    #[test]
+    fn run115_s_window_is_the_met_bit_s_own_frame() {
+        const FIRST: i64 = 7880;
+        const LAST: i64 = 8009;
+        let Some(path) = dump("gamelog-run115-greatlakes-firstcontact.txt") else {
+            eprintln!("skipping: no run115 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let Some((ours, _)) = great_lakes(FIRST, LAST) else {
+            return;
+        };
+        let wtext = crate::capture::read(&path);
+        let wlog = Log::parse(&wtext);
+        let mut compared = 0usize;
+        let mut blocks = 0usize;
+        let mut missing: std::collections::BTreeSet<String> = Default::default();
+        let mut residue: std::collections::BTreeMap<(usize, String), (usize, i64, i64, i64)> =
+            Default::default();
+        // The two flips, read off the comparison: the first block on
+        // which each side carries the bit. `Leader::treaty_on` ors into
+        // both leaders' slots, so the mirror is checked too — a flip on
+        // one side alone would refuse `docs/VISION.md` §6.2's reading of
+        // that function rather than its frame.
+        let mut ours_flip: Option<i64> = None;
+        let mut theirs_flip: Option<i64> = None;
+        let mut theirs_mirror: Option<i64> = None;
+        // P2: the diplomacy never moves. Every cross slot of the
+        // original's, on every block.
+        let mut diplos_moved: Vec<(i64, usize, String, i64)> = Vec::new();
+        for n in FIRST..=LAST {
+            for who in 0..2usize {
+                let Some(block) = wlog.leader_block(n, who as i64) else {
+                    continue;
+                };
+                blocks += 1;
+                let t = theirs(&block);
+                active_is_the_muster_summed(&t, n, who);
+                for (k, mine) in &ours[&(n, who)] {
+                    let Some(&yours) = t.get(k) else {
+                        missing.insert(k.clone());
+                        continue;
+                    };
+                    compared += 1;
+                    if who == 1 && k == "treaties[0]" {
+                        if *mine != 0 && ours_flip.is_none() {
+                            ours_flip = Some(n);
+                        }
+                        if yours != 0 && theirs_flip.is_none() {
+                            theirs_flip = Some(n);
+                        }
+                    }
+                    if who == 0 && k == "treaties[1]" && yours != 0 && theirs_mirror.is_none() {
+                        theirs_mirror = Some(n);
+                    }
+                    if k.starts_with("diplos[") {
+                        let own = *k == format!("diplos[{who}]");
+                        let want = if own { 2 } else { 0 };
+                        if yours != want {
+                            diplos_moved.push((n, who, k.clone(), yours));
+                        }
+                    }
+                    if *mine != yours {
+                        let e = residue
+                            .entry((who, k.clone()))
+                            .or_insert((0, *mine, yours, n));
+                        e.0 += 1;
+                    }
+                }
+            }
+        }
+        eprintln!("run115 [{FIRST}, {LAST}]: {blocks} blocks, {compared} field-frames");
+        eprintln!("  flip: ours {ours_flip:?} theirs {theirs_flip:?} mirror {theirs_mirror:?}");
+        for ((who, k), (n, o, t, first)) in &residue {
+            eprintln!("  {who}/{k}: {n} frames, ours {o} theirs {t} on {first}");
+        }
+        eprintln!("  diplos moved: {} rows", diplos_moved.len());
+        assert_eq!(blocks, 260, "130 blocks, two leaders");
+        assert!(missing.is_empty(), "the record does not carry {missing:?}");
+        assert_eq!(
+            compared, 272_480,
+            "130 blocks of the record, every field the mapping carries"
+        );
+        // **The item, in one line.** The original's met bit arrives on
+        // block 7945 and so does this crate's — the same block, on both
+        // leaders at once. Until this capture 7944 was checked against a
+        // bracket 558 frames wide, which cannot tell "right" from "right
+        // in kind, wrong in time"; it is a block now. Made to fail on
+        // purpose: commenting out the `Sim::meet` call in
+        // `Sim::check_ever_seen`'s tail — item 385's whole change — reads
+        // `(None, Some(7945), Some(7945))`, so the left-hand side of this
+        // pair is measuring this crate and not the capture.
+        assert_eq!(
+            (ours_flip, theirs_flip, theirs_mirror),
+            (Some(7945), Some(7945), Some(7945)),
+            "the met bit's frame moved — the fog model (docs/VISION.md \
+             §6.2) put first contact on the original's own block, and \
+             this is the only thing that checks it"
+        );
+        // **P2 as an assertion.** `diplos` does not move on any of the
+        // 130 blocks: 2 on each leader's own slot, 0 on the cross slot —
+        // at war from before the window and never renegotiated. If this
+        // fires, `docs/AI.md` §45's whole reading of `weight_total`'s war
+        // term is watching the wrong field.
+        assert!(diplos_moved.is_empty(), "diplos moved: {diplos_moved:?}");
+        let parting: Vec<(usize, &str)> = residue.keys().map(|(w, k)| (*w, k.as_str())).collect();
+        assert_eq!(
+            parting,
+            PARTS_ON_RUN115,
+            "run115's leader residue moved: {} fields",
+            parting.len()
+        );
+    }
+
+    /// The `(player, field)` pairs that part over run115's window — the
+    /// met bit's own frame. Filled from the first run and then pinned;
+    /// `docs/VISION.md` §6.3.
+    ///
+    /// **`0/wars`, `0/active_wars` and `0/active_wars_with` are the new
+    /// ones**, and they are the window's own find rather than the item's:
+    /// they agree at nought for 121 blocks and then part on **8001**,
+    /// where the original writes the *human* leader a war census — `wars
+    /// 1`, `active_wars 1`, `active_wars_with 2` — beside a single
+    /// `production_step` tick, 56 blocks after first contact. This crate
+    /// leaves the human's census at zero forever (`docs/AI.md` §43's
+    /// `human` skip). A successor's, not this item's.
+    const PARTS_ON_RUN115: &[(usize, &str)] = &[
+        (0, "SITE[0].reg"),
+        (0, "SITE[1].reg"),
+        (0, "SITE[2].reg"),
+        (0, "SITE[3].reg"),
+        (0, "SITE[4].reg"),
+        (0, "SITE[5].reg"),
+        (0, "SITE[6].reg"),
+        (0, "SITE[7].reg"),
+        (0, "SITE[8].reg"),
+        (0, "SITE[9].reg"),
+        (0, "active_wars"),
+        (0, "active_wars_with"),
+        (0, "ally_mask"),
+        (0, "filled_gather_slots[0:food]"),
+        (0, "filled_gather_slots[1:timber]"),
+        (0, "gatherers"),
+        (0, "min_other_team_terr"),
+        (0, "my_team_terr"),
+        (0, "other_team_terr"),
+        (0, "peasant_high"),
+        (0, "peasants"),
+        (0, "production_step"),
+        (0, "scouts"),
+        (0, "wars"),
+        (1, "MAKE[1].city"),
+        (1, "MAKE[1].val"),
+        (1, "MAKE[2].cat"),
+        (1, "MAKE[2].city"),
+        (1, "MAKE[2].t"),
+        (1, "MAKE[2].val"),
+        (1, "MAKE[3].cat"),
+        (1, "MAKE[3].city"),
+        (1, "MAKE[3].t"),
+        (1, "MAKE[3].val"),
+        (1, "MAKE[4].city"),
+        (1, "MAKE[4].val"),
+        (1, "MAKE[8].city"),
+        (1, "SITE[0].rank"),
+        (1, "SITE[0].reg"),
+        (1, "SITE[1].rank"),
+        (1, "SITE[1].reg"),
+        (1, "SITE[1].wx"),
+        (1, "SITE[1].wy"),
+        (1, "SITE[2].dist"),
+        (1, "SITE[2].rank"),
+        (1, "SITE[2].val"),
+        (1, "SITE[2].wx"),
+        (1, "SITE[2].wy"),
+        (1, "SITE[3].dist"),
+        (1, "SITE[3].rank"),
+        (1, "SITE[3].val"),
+        (1, "SITE[3].wx"),
+        (1, "SITE[3].wy"),
+        (1, "SITE[4].dist"),
+        (1, "SITE[4].rank"),
+        (1, "SITE[4].val"),
+        (1, "SITE[4].wx"),
+        (1, "SITE[4].wy"),
+        (1, "SITE[5].dist"),
+        (1, "SITE[5].rank"),
+        (1, "SITE[5].val"),
+        (1, "SITE[5].wx"),
+        (1, "SITE[5].wy"),
+        (1, "SITE[6].dist"),
+        (1, "SITE[6].rank"),
+        (1, "SITE[6].val"),
+        (1, "SITE[6].wx"),
+        (1, "SITE[6].wy"),
+        (1, "SITE[7].dist"),
+        (1, "SITE[7].rank"),
+        (1, "SITE[7].val"),
+        (1, "SITE[7].wx"),
+        (1, "SITE[7].wy"),
+        (1, "SITE[8].dist"),
+        (1, "SITE[8].rank"),
+        (1, "SITE[8].val"),
+        (1, "SITE[8].wx"),
+        (1, "SITE[8].wy"),
+        (1, "SITE[9].dist"),
+        (1, "SITE[9].rank"),
+        (1, "SITE[9].val"),
+        (1, "SITE[9].wx"),
+        (1, "SITE[9].wy"),
+        (1, "scouts"),
+        (1, "tech_cat_frame[0]"),
+        (1, "tech_cat_frame[1]"),
+        (1, "tech_cat_frame[2]"),
+        (1, "tech_cat_frame[3]"),
+        (1, "tech_frame"),
+    ];
+
     #[test]
     fn run107_s_window_is_the_leader_record_at_the_word() {
         const FIRST: i64 = 9170;

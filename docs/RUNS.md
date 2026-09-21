@@ -4371,3 +4371,79 @@ never held the order and the reconstruction's clause was unsupported.
 two building offers on 9378, two `cat 7` on 9379, eleven on 9381 — and
 the purchase `make_this(slot 1)` on 9382 answering 0. All on the disk,
 compared to nothing yet.
+
+## run115 — the met bit's own frame, and the bracket closes on it (2026-09-21, item 390)
+
+**What it is.** run53's game, a `LEADERS=9` window over `[7880, 8010)` at
+**run94's detail exactly but for that one category**, `!quit` at 8025,
+`cover=0`, 254,494,537 bytes, **eleven minutes** launch to archive
+(13:04:54 to 13:15:34). `docs/VISION.md` §6.3 is what it decided.
+
+**Why it was owed, and the grep moved a claim on the way.**
+`docs/VISION.md` §6.2 and `docs/AI.md` §45 both describe the four windows
+that bracket first contact as `LEADERS≥2`. They are not:
+`LeaderData::log_data@006e5110` raises the detail to **3** at line 213,
+immediately before the eight-iteration `diplos`/`treaties` loop, so the
+pair needs `LEADERS≥3` — and all four of those windows are in fact
+`LEADERS=9` (run19 is a `DUMP_ALL`). The sentence is harmless to their
+conclusions and is exactly the sentence that decides whether a capture is
+owed, so it was worth getting right before booking one.
+
+**And the disk was grepped, twice.** run94 covers **`[7754, 8045)`** — the
+whole interesting part of the gap — and at first grep appears to carry
+`treaties`. It does not. run94 is `LEADERS=1`: of its 1,172 `LEADERDATA`
+records, **32** hold a `treaties[scan]` line and all 32 are in the four
+**start-dump** records, whose `start:` detail is run10's `LEADERS=9`. Its
+1,168 per-frame records hold none. Every Great Lakes stanza with per-frame
+`LEADERS≥3` is run80 `[23960, 24000)`, run84 `[6950, 7030)`, run91
+`[7514, 7600)`, run107 `[9170, 9200)` and run111/run114 `[9375, 9391)` —
+§45's gap, confirmed against `captures.txt` rather than against the
+documents.
+
+That same reading is what made run94 the right overlap partner: same game,
+same detail but for the one raised category, so the check below compares
+**all 130 blocks** rather than six at each end.
+
+| check | result |
+|---|---|
+| `rngcmp.py` vs `rontrace-run53.log` | **0 differing**, 8,026 identical |
+| `MAP_STYLE` from the dump's `GAME INFO` | 14, seed 12345 |
+| the window, block for block | **130 blocks, 7880..8009, no gap** |
+| the raised category is in them | **4,160** `treaties[scan]` (8 × 4 leaders × 130); `LEADERS=1` gives 0 |
+| `samegame.py --exclude LEADERDATA` vs run94 | **130 in common (7880..8009), 0 differing** |
+
+All five first time. The fourth is the detail guard in its sharpest form
+here: it is the *whole* difference between this capture and the one
+already on disk, so a correctly-numbered window that came back without it
+would have been run94 again at four times the price.
+
+**What it says.** The original's met bit arrives on block **7945** and so
+does this crate's — the same block, and on both leaders at once
+(`1/treaties[0]` and `0/treaties[1]` alike), which is
+`Leader::treaty_on@006e1190` oring into both slots as `docs/VISION.md`
+§6.2 read it. The bracket was **(7616, 8174]**, 558 frames wide; it is a
+block. `diplos` does not move on any of the 130 blocks of either leader —
+2 on each leader's own slot, 0 on the cross slot — so the two are at war
+from before the window and only *contact* happens inside it, and the bit
+does not fall again through 8009.
+
+**The comparison is `run115_s_window_is_the_met_bit_s_own_frame`**: 260
+blocks, 272,480 field-frames, the flip triple pinned at `(7945, 7945,
+7945)`, `diplos` asserted not to move, and 89 fields of residue pinned by
+name. Made to fail on purpose by commenting out the `Sim::meet` call in
+`Sim::check_ever_seen`'s tail — item 385's whole change — which reads
+`(None, 7945, 7945)`.
+
+**What it also opened.** `0/wars`, `0/active_wars` and
+`0/active_wars_with` agree at nought for 121 blocks and part on **8001**,
+where the original writes the **human** leader a war census — `wars 1`,
+`active_wars 1`, `active_wars_with 2` — beside a single `production_step`
+tick that falls back to 0 on 8002. Fifty-six blocks after first contact,
+and the first direct evidence on this disk that the original runs its
+census for a human at all; this crate leaves the human's census at zero
+forever. `docs/AI.md` §43's `human` skip is what that belongs to.
+
+The window also carries two more `LEADERDATA` records a block — leader
+slots **8 and 9**, zero throughout — which is why the record count is four
+a block rather than two, and why the `treaties[scan]` tooth above expects
+4,160 rather than 2,080.
