@@ -21,27 +21,27 @@ widened its word; the AI lane widened first and converged.*
   never reduce a University's free slots; correcting it alone costs 925
   frames, and the valuation alone buys 72 under a probe (432). 442 lands
   both, against **5,755,741** and **4,891,136** on one frame.
-- **The rules headline is one order** (441): who=1's hoplites hold an
-  attack order at 616 the original's never hold through 634, and `near_o`
-  stays −1 on both sides — not the search. 443 asks which producer.
-- **Two days went to a lost gate notification**: 441 sat finished and
-  uncommitted on a cleared lane. A worker now commits before it gates.
+- **The rules producer is named and the radius is closed** (443, word
+  unmoved at 616): both sides run `think`'s step-3 search, and 616 and
+  635 scan the **same cell**, so no radius separates them. 441's `near_o`
+  argument was void — this crate has no such field. 447 takes §30.5's two
+  survivors.
 - **A word is pinned with its widening** (DECISIONS 43): `WIDENINGS`
   names the test or the item; East Indies' 9711 and chapter one's 626
   have none on file (444, 445, parked).
 - **The AI has its dump** (367, built; run114, `docs/AI.md` §52): the
   original's offers on 9380 read off a `RON_LEADER_PROBE` trace, 432's
   four values confirmed, ours pinned beside them for 442.
-- Four open, 64 parked.
+- Four open, 65 parked.
   **Fable backlog: six Loop items** (251, 335, 313, 375, 428, 446).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w9711 of 24,000 · GreatLakes w9510 of 24,000
-Golden: w616 of 901 (ch2) · ch1 w626 · 443 next
+Golden: w616 of 901 (ch2) · ch1 w626 · 447 next
 Endpoint 24001: EastIndies 64 off, 5 unlinked · GreatLakes 51 off, 11 unlinked
 
-**Opener: 442 on the AI lane and 443 on the rules lane — both frames
-widened whole, a falsifier standing, and 442's offers on record (run114).**
+**Opener: 447 on the rules lane, and whatever 442 and 390 leave — three
+lanes ran at once, and 443 closed a programme without moving its word.**
 
 ## The queue
 
@@ -60,14 +60,14 @@ the backlog is `docs/PARKED.md`, and an item returns only when a score names it.
     1.1768. 438's `num_gatherers` guard is the falsifier; the branch tests
     are `Leader` fields; run114 prints the original's offers (§52).
 
-443. **616's order list, ours 1 and theirs 0** (the rules headline's frame;
-    441 widened it whole): the whole divergence is who=1's `1/6`, `1/7`,
-    `1/8` — one order at 616, two at 617, a path at 618, then the march —
-    and the original's hoplites hold none through 634. The item is
-    **which producer of an attack order runs on a cheat-spawned captain's
-    birth frame**. `near_o` stays −1 on **both** sides at 616, so it is not
-    435's path at 635; §28.4's seven dead entries plus the withdrawn
-    seating are the asset. No capture; run113 unspent.
+447. **616's target-acceptance predicate, ours accepting and theirs
+    refusing** (the rules headline's frame; 443 named the producer and
+    closed the radius): both sides search on 616 and scan the same cell,
+    so the item is which bowman the predicate refuses. **Two survivors,
+    §30.5** — `valid_target@00648ba0`, and `poor_target@0064a270`'s
+    type-record arm (`UnitTypeData +0x9a` bit 6) — each with a written
+    falsifier; book neither before a reading kills one. The unspent
+    capture is `+0x9a` per unit over [614, 640). run113 unspent.
 
 390. **A `LEADERS≥2` window anywhere in (7616, 8174]** (capture lane;
     takes-chain to the met bit): nothing on disk dumps a leader between
