@@ -807,11 +807,24 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // own block, where item 448's fifteen rows go to **nought**
         // (`run100_s_word_block_is_every_record_the_dump_carries`).
         // DECISIONS 36 asks for the number rather than a trade.
-        off: 48,
-        unlinked: 13,
+        // And **48 → 51 off, 13 → 8 unlinked, 10 → 9 build_diverged** on
+        // 2026-09-21, item 463 — `Unit::do_attack`'s validity test moving
+        // behind `Unit::fight`'s reload gate, so a raider keeps the order
+        // on a target that has just died for exactly as long as its
+        // `recharging` runs (`docs/COMBAT.md` §7.12 is another lane's;
+        // `docs/ORDERS.md` §7.3 carries it). It moves this map's word
+        // **10232 → 10233**. Five roster slots that had no counterpart
+        // now have one and three positions are further off, 13,768 frames
+        // past the word — evidence about the run-up, not about the
+        // predicate, which the word's own block is: six raiders' order
+        // lists go to nought there
+        // (`run100_s_word_block_is_every_record_the_dump_carries`).
+        // DECISIONS 36 asks for the number rather than a trade.
+        off: 51,
+        unlinked: 8,
         extra: 0,
         build_unlinked: 0,
-        build_diverged: 10,
+        build_diverged: 9,
         city_unlinked: 3,
         city_diverged: 0,
     },

@@ -2852,13 +2852,96 @@ fifteen frames later. Great Lakes' long word 8201 → 8272
 (`docs/journal/2026-09-17-item-336.md`).
 
 **What this does not establish.** The two widening arms of the gate are read,
-not diffed: nothing on disk has a **recharging** unit enter `fight`, so neither
-`bVar7` nor the cavalry-archer arm has been observed acting, and `crates/sim`
-models the `recharging == 0` row alone — a recharging cavalry archer does not
-snap here where the original's would. Nor is it established what the snap is
-*for*: the 48-grid searches downstream (§7.10's chase, `find_upath`) all start
-from a cell, which is the obvious reading, but no run has been made to fail by
-starting one off-centre.
+not diffed: ~~nothing on disk has a **recharging** unit enter `fight`~~ —
+run100's blocks 10231–10239 have six, and §7.12 is what they say — but neither
+`bVar7` nor the cavalry-archer arm has been observed *acting*, because all six
+take the fourth row, and `crates/sim` models the `recharging == 0` row alone —
+a recharging cavalry archer does not snap here where the original's would. Nor
+is it established what the snap is *for*: the 48-grid searches downstream
+(§7.10's chase, `find_upath`) all start from a cell, which is the obvious
+reading, but no run has been made to fail by starting one off-centre.
+
+### 7.12 A dead target outlives its order by the reload (item 463, 2026-09-21)
+
+**`Unit::do_attack` never asks whether the target still exists** — not for a
+unit that can attack. The function tests the target object's `flags & 1` in
+exactly two places, and both sit inside blocks gated on
+`*(int *)(ptype + 0x1e8) == 0`, which the type record names **`attack`**:
+
+```
+do_attack@005f1b80
+  iVar4 = order->get_target()                 ; +0x50, the TargetOrder
+  if (this->is(...))                          ; the strafe/air arm
+      if (objects[whom][ox]->flags & 1) { … }  else goto LAB_005f2149
+  if (ptype->attack == 0) {                   ; +0x1e8
+      if (this->is(0x140, 0)) { valid_target → find_attack_pos → add_move_order
+                                else goto LAB_005f2149 }
+  }
+  if (ptype->attack == 0 && this->group >= 0) {
+      … if (objects[whom][ox]->flags & 1) { the group-range walk }
+      goto LAB_005f2149                        ; kill_current_order
+  }
+  if (order->mandatory) goto LAB_005f2224      ; the unconditional fight()
+  …
+LAB_005f2224:
+  fight(this, order->ox, order->whom, order->mandatory, 0, 0)
+```
+
+So an archer with a live `attack` falls through both blocks to `fight`, and
+the question is `fight`'s: `Object::valid_target` at `005fd4d0:196`. **The
+recharging arm of §7.11's table returns at `:102`, before it.** A unit whose
+target has just died therefore keeps the order, the order's `ox`/`whom`/`uid`
+and its `mandatory 1`, and stands, for exactly as long as its reload runs.
+
+When the reload does end, the invalid target walks `fight`'s own arm: no
+substitute object (`vfunc +0xe4` returns the same `ox`), `next_action_type()`
+is neither `NONE` nor `ATTACK_TO` nor `GROUP_ATTACK_TO`, and the branch ends
+at `LAB_005fe0e5` — `kill_current_order(this, 0); return 0`.
+
+**Two things this crate had the wrong way round.** `Sim::do_attack` asked
+`valid_target` *before* the reload gate; and `Sim::forget` cleared the
+attacker's `mandatory` along with its target, which is a property of the
+**order** (`TargetOrder +0x1c`) and not of the object that died — with it
+cleared, a HOLD_FIRE raider then returned at the stance arm and never dropped
+the order at all.
+
+**The value diff.** run100, Great Lakes. The human's building `0/2004` (uid 4,
+400 hits, `damage 395`) is in the dump on block 10230 and gone on 10231. Six
+of the AI's raiders hold a `GROUP_MOVE` home over an `ATTACKORDER` on it, and
+every one keeps `ox 2004 whom 0 uid 4 mandatory 1 in_range 1` until its own
+`recharging` reaches nought:
+
+| unit | `recharging` on 10230 | order dropped | `orders_x/y` before → after |
+|---|---|---|---|
+| `1/42` | 25 | **10231** (its turn came after the building died) | `2568, 31320` → the group move's |
+| `1/28` | 3 | **10233** | `4776, 30168` → `39048, 21288` |
+| `1/27` | 9 | **10239** | `4584, 29784` → `39000, 21192` |
+| `1/29` | 26 | past run100's window | — |
+
+`1/40` and `1/41` are the other two, on 47- and 12-entry go-home stacks they
+do not walk while the order stands. This crate dropped all six on 10231–10232,
+and the three whose freed group move had somewhere to go then walked: 44, 43
+and 44 `find_wpath` entries at `tolerance 384` against the original's single
+`flags 1` goal. Great Lakes' long word **10232 → 10233**.
+
+**And `recharging` was in no comparison until this item.** It is dumped on
+every `UNITDATA` block and `rondata::diff` read none of it, which is why two
+items read this as formation pathing; with the field in, it agrees on every AI
+unit of all 909 blocks of the widening's window, and that agreement is what
+makes the per-unit drop frame above a measurement rather than a coincidence.
+
+**What this does not establish.** The order's own `mandatory` is still read
+off `Unit::combat` here rather than off the `AttackOrder`, which is right only
+while nothing else writes it; `AttackOrder` carries no `mandatory` field.
+`fight`'s invalid-target arm is modelled as `kill_current_order` plus
+`find_melee_target`, and the three predicates that route *to* it — the
+substitute-object vfunc `+0xe4`, `next_action_type`'s three-way test, and the
+`local_28` "walk to where it stood" branch under a mandatory order — are read,
+not diffed: on this frame all three take the path that reaches the kill, and
+no capture has one take another. And the frame **after** the kill is a
+divergence of its own: the original spends it doing nothing and plans its
+route on the next, where this crate plans and steps at once (`1/28` on block
+10234, `1/27` on 10240).
 
 ## The other combat orders (§7.3 – §7.9)
 
