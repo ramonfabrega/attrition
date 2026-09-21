@@ -25,17 +25,30 @@ def pack(*v): return struct.pack('<'+'I'*len(v),*v)
 
 
 def decode(raw):
-    require(len(raw)==196,'invalid restore prefix size')
+    require(len(raw) in (196,216),'invalid restore prefix size')
     w=words(raw)
-    require(w[:2]==(0x31545352,1),'unsupported restore prefix')
+    require(w[0]==0x31545352 and (w[1],len(raw)) in ((1,196),(2,216)),
+            'unsupported restore prefix')
     before,stack,deps,after,out,modes=w[4:13],w[13:17],w[17:26],w[26:35],w[35:47],w[47:49]
+    flags_mask=0xffffffff if w[1]==1 else w[49]
+    registry=None if w[1]==1 else w[50:54]
+    if w[1]==2:
+        require(flags_mask==0x8d5 and not ((before[8]|after[8]) & ~flags_mask),
+                'invalid observed flags')
+        require(stack[3]<registry[0]<=registry[1]<=32768 and registry[3]>=0x10000
+                and registry[3]+4*(stack[3]+1)<=2**32 and w[3]>=0x10000,
+                'invalid captured registry')
+        # Bit 1 is architectural, not a captured control flag. Unobserved flags
+        # are not silently promoted into evidence by the emulator's defaults.
+        before=(*before[:8],before[8]|2)
     require(stack[2]<8 and stack[3]<512,'owner/id outside capture bound')
     require(after[3]+32==before[3] and out[8:]==stack,'unexpected wrapper stack layout')
     require(out[0]==stack[1] and out[3:6]==(*stack[2:],0),'wrong delegated identity/anti')
     require(out[1:3]==tuple(v^0x63637 for v in deps[5:7]),'wrong delegated coordinates')
     require(out[6:8]==(before[1],before[2]),'saved register stack mismatch')
     require(modes[1]==1,'restore did not enable saving')
-    return {'frame':w[2],'unit':w[3],'before':before,'stack':stack,'deps':deps,
+    return {'version':w[1],'packet_bytes':len(raw),'flags_mask':flags_mask,'registry':registry,
+            'frame':w[2],'unit':w[3],'before':before,'stack':stack,'deps':deps,
             'after':after,'out':out,'modes':modes}
 
 
@@ -55,7 +68,8 @@ def layout(image,capture):
 
 def verify(result,regions,c):
     regs,state,_=result;state=dict(state)
-    require(regs==c['after'],'live delegation registers differ')
+    require(regs[:8]==c['after'][:8] and (regs[8]^c['after'][8]) & c['flags_mask']==0,
+            'live delegation registers differ')
     require(state['scratch']+state['arguments']==pack(*c['out']),'live delegation stack differs')
     for r in regions:
         if r.executable or r.scratch: continue
@@ -85,6 +99,7 @@ def execute(image,c,repeats=256):
         except ValueError:corrupt.append(name)
         else:raise ValueError('corrupt output accepted')
     return {'frame':c['frame'],'owner':c['stack'][2],'id':c['stack'][3],
+            'packet_version':c['version'],'observed_flags_mask':hex(c['flags_mask']),
             'repaths':c['deps'][4],'limit':c['modes'][0],'saving':c['modes'][1],
             'following_native_astar_result':c.get('native_astar_result'),
             'current_coordinates':list(c['out'][1:3]),'semantic_bytes':36,'argument_bytes':16,
@@ -98,10 +113,10 @@ def check(directory):
     c=decode((directory/'restore-prefix.bin').read_bytes())
     rows=list(records(directory/'rontrace.log'));scan(iter(rows))
     require(not any(r[:2] in ((5,151),(5,163)) for r in rows),'restore/graph capture failure')
-    require([r[2:7] for r in rows if r[:2]==(5,160)]==[(1,ENTRY,STOP,0x682f30,0)],'missing hook setup')
+    require([r[2:7] for r in rows if r[:2]==(5,160)]==[(c['version'],ENTRY,STOP,0x682f30,0)],'missing hook setup')
     require([r[2:] for r in rows if r[:2]==(5,161)]==[(c['unit'],*c['stack'][2:],c['stack'][1],c['deps'][4],c['frame'])],
             'missing/mismatched restore entry')
-    require([r[2:] for r in rows if r[:2]==(5,162)]==[(0,c['unit'],196,196,c['modes'][0],c['frame'])],
+    require([r[2:] for r in rows if r[:2]==(5,162)]==[(0,c['unit'],c['packet_bytes'],c['packet_bytes'],c['modes'][0],c['frame'])],
             'missing/mismatched restore delegation')
     raw=(directory/'search-graph.bin').read_bytes();graph,_,_=validate(raw);h=words(raw[:32])
     require(h[2:4]==(c['frame'],c['unit']),'graph belongs to another invocation')

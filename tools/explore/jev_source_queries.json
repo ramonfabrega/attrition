@@ -1,0 +1,8 @@
+{
+  "missing": "Where is a successful release run rejected because no fixture requests were observed?",
+  "trace": "Where are duplicate, missing, or inconsistent finalized simulation frame records rejected?",
+  "activity": "Where are clock and random-seed changes excluded from the gameplay activity digest but included in replay equality?",
+  "floats": "Where is simulation source checked for forbidden floating point outside test code?",
+  "identity": "Where does cached observation reuse validate file length and modification time without a content hash?",
+  "scoreboard": "Where are the queue handoff scoreboard numbers checked against pinned replay floors?"
+}

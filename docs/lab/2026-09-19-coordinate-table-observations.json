@@ -1,0 +1,88 @@
+{
+  "schema": 1,
+  "source_sha256": "30478a44b577cb11ebcbbbf53d3e93ba02fd2aacf3bdefa6552c9b6449625079",
+  "runs": [
+    {
+      "size": 1,
+      "allocation_bytes": 192,
+      "entries_checked": 48,
+      "index_first": -24,
+      "index_last": 23,
+      "instructions": 437,
+      "table_sha256": "46daecda218cf586e843b3cdc326cfb7674080c6a3fb8862b7a7b7e7cd1cf5b4",
+      "all_bytes_written": true,
+      "allocator": "explicit successful-allocation boundary"
+    },
+    {
+      "size": 2,
+      "allocation_bytes": 384,
+      "entries_checked": 96,
+      "index_first": -48,
+      "index_last": 47,
+      "instructions": 845,
+      "table_sha256": "b0f6c0caca2cdbaaec7b6623b644d31dc637c72ed1e73b008627d7748da65dfe",
+      "all_bytes_written": true,
+      "allocator": "explicit successful-allocation boundary"
+    },
+    {
+      "size": 17,
+      "allocation_bytes": 3264,
+      "entries_checked": 816,
+      "index_first": -408,
+      "index_last": 407,
+      "instructions": 6965,
+      "table_sha256": "4b9726ca7f0ad5a668d5e8deabfc968c9a11f6683d277e6d2b051d7b53a3696b",
+      "all_bytes_written": true,
+      "allocator": "explicit successful-allocation boundary"
+    },
+    {
+      "size": 128,
+      "allocation_bytes": 24576,
+      "entries_checked": 6144,
+      "index_first": -3072,
+      "index_last": 3071,
+      "instructions": 52253,
+      "table_sha256": "fd89f5f0fb418da63d3a1ddf4a4c0211421e0d3281b403d3361e8a89049d37b2",
+      "all_bytes_written": true,
+      "allocator": "explicit successful-allocation boundary"
+    },
+    {
+      "size": 400,
+      "allocation_bytes": 76800,
+      "entries_checked": 19200,
+      "index_first": -9600,
+      "index_last": 9599,
+      "instructions": 163229,
+      "table_sha256": "d607b048424b576fa2fbeb9f98629192638473a293c746e6384c3d8851992573",
+      "all_bytes_written": true,
+      "allocator": "explicit successful-allocation boundary"
+    },
+    {
+      "size": 1024,
+      "allocation_bytes": 196608,
+      "entries_checked": 49152,
+      "index_first": -24576,
+      "index_last": 24575,
+      "instructions": 417821,
+      "table_sha256": "97b9badd409d200a5a2738fb2a11b1c51c56b5e336895874fac524ddefcaa554",
+      "all_bytes_written": true,
+      "allocator": "explicit successful-allocation boundary"
+    }
+  ],
+  "search_frontier": {
+    "modeled_thread": true,
+    "table_supplied": true,
+    "fault_pc": "0x682f77",
+    "faults": [
+      {
+        "kind": 19,
+        "address": "0xc0aec0",
+        "size": 4
+      }
+    ],
+    "attempted_instructions": 22,
+    "mapped_bytes": 225280,
+    "refusal": "bounded execution failed: Invalid memory read (UC_ERR_READ_UNMAPPED)",
+    "null_page_mapped": false
+  }
+}

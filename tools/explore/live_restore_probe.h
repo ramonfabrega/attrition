@@ -1,9 +1,11 @@
 /* First native restore entry and the wrapper's delegation boundary.
  * No return replacement, search-state writes, or allocator adapter. */
+#include "register_image_stub.h"
 typedef struct {
     u32 magic, version, frame, unit;
     u32 before_regs[9], before_stack[4], dependencies[9];
     u32 after_regs[9], after_stack[12], after_modes[2];
+    u32 flags_mask, registry[4];
 } RestoreProbe;
 static RestoreProbe restore_probe;
 static int restore_claimed, restore_pending;
@@ -15,11 +17,13 @@ static int restore_read(u32 address, void *out, u32 size) {
     }
     return 1;
 }
+#include "live_restore_context.h"
 static void __cdecl restore_enter(u32 *regs) {
     if (restore_claimed || g_frame<0 || g_frame>1400) return;
     restore_claimed=1;
-    restore_probe.magic=0x31545352;restore_probe.version=1;restore_probe.frame=(u32)g_frame;
-    memcpy(restore_probe.before_regs,regs,36);restore_probe.before_regs[3]+=4;
+    restore_probe.magic=0x31545352;restore_probe.version=2;restore_probe.frame=(u32)g_frame;
+    restore_probe.flags_mask=0x8d5;
+    copy_register_image(restore_probe.before_regs,regs);
     u32 *args=restore_probe.before_stack, *d=restore_probe.dependencies;
     if (!restore_read(restore_probe.before_regs[3],args,16)) return;
     u32 owner=args[2],id=args[3];
@@ -29,7 +33,7 @@ static void __cdecl restore_enter(u32 *regs) {
         !restore_read(d[1]+0x14+owner*0x1c,d+2,4) ||
         !restore_read(d[2]+id*4,d+3,4) || !restore_read(d[3]+0x10,d+5,8) ||
         !restore_read(0xe85ec0,d+7,8)) return;
-    u32 registry[4],unit;
+    u32 *registry=restore_probe.registry,unit;
     if (!restore_read(0xc0aeb4+owner*0x1c,registry,16)) return;
     if (id>=registry[0] || registry[0]>registry[1] || registry[1]>32768 || !registry[3]) {
         emit(K_INFO,163,3,id,registry[0],registry[1],0);return;
@@ -44,7 +48,7 @@ static void __cdecl restore_enter(u32 *regs) {
 static void __cdecl restore_delegate(u32 *regs) {
     if (!restore_pending) return;
     restore_pending=0;
-    memcpy(restore_probe.after_regs,regs,36);restore_probe.after_regs[3]+=4;
+    copy_register_image(restore_probe.after_regs,regs);
     if (!restore_read(restore_probe.after_regs[3],restore_probe.after_stack,48) ||
         !restore_read(0xe85ec0,restore_probe.after_modes,8)) return;
     char path[320];path_join(path,"restore-prefix.bin");
@@ -54,12 +58,11 @@ static void __cdecl restore_delegate(u32 *regs) {
     if(file!=INVALID_HANDLE)CloseHandle(file);
     emit(K_INFO,162,ok && written==sizeof restore_probe?0:1,restore_probe.unit,
          written,sizeof restore_probe,restore_probe.after_modes[0]);
+    if(ok && written==sizeof restore_probe) capture_restore_context(regs);
     flush();
 }
 static u32 restore_callback(u8 *s,void *fn) {
-    s[0]=0x9c;s[1]=0x60;s[2]=0x54;s[3]=0xb8;*(u32 *)(s+4)=(u32)fn;
-    s[8]=0xff;s[9]=0xd0;s[10]=0x83;s[11]=0xc4;s[12]=4;s[13]=0x61;s[14]=0x9d;
-    return 15;
+    return build_register_image_stub(s,(u32)fn);
 }
 static void restore_jump(u8 *p,u32 target,u8 opcode) {
     p[0]=opcode;*(u32 *)(p+1)=target-((u32)p+5);
@@ -75,9 +78,9 @@ static void install_restore_probe(void) {
     if(!stub){emit(K_INFO,163,7,0,0,0,0);return;}
     u32 n=restore_callback(stub,(void *)restore_enter);
     memcpy(stub+n,a,sizeof entry);n+=sizeof entry;restore_jump(stub+n,(u32)a+sizeof entry,0xe9);
-    n=64+restore_callback(stub+64,(void *)restore_delegate);
+    n=256+restore_callback(stub+256,(void *)restore_delegate);
     restore_jump(stub+n,0x682f30,0xe8);n+=5;restore_jump(stub+n,0x688faa,0xe9);
-    restore_jump(a,(u32)stub,0xe9);restore_jump(b,(u32)stub+64,0xe9);
+    restore_jump(a,(u32)stub,0xe9);restore_jump(b,(u32)stub+256,0xe9);
     FlushInstructionCache(g_proc,stub,4096);FlushInstructionCache(g_proc,a,0x6a);
-    emit(K_INFO,160,1,0x688f40,0x688fa5,0x682f30,0);
+    emit(K_INFO,160,2,0x688f40,0x688fa5,0x682f30,0);
 }

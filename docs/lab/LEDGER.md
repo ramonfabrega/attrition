@@ -6,11 +6,11 @@ is evidence for an item's falsifier, not an additional completion score.
 Reports below preserve detailed experiments and limitations; this ledger is
 the entry point. Original-game artifacts stay outside Git.
 
-**Current focus:** isolate pre-menu startup failures after the fixed ten-pair
-cohort; retain failures and verify observed state for every successful run. The lab owns the live lane until an explicit handoff.
-Do not overlap manual Wine/profile operations. The cooperative runner lock
-does not protect against arbitrary scripts. This is not a request to start a
-Fable worker or capture.
+**Current focus:** surface the Jev and retained-state replay findings for
+Fable's review; start with [the review handoff](JEV-REVIEW.md). The lab is not
+holding the capture lane. Ask through Ramon before any new live run; the
+cooperative runner lock does not protect against arbitrary profile/Wine scripts.
+No new capture or main-loop adoption is requested by this handoff.
 
 | ID | Claim | Evidence | Adoption effect / cost | Status |
 | --- | --- | --- | --- | --- |
@@ -91,7 +91,31 @@ Fable worker or capture.
 | L53 | Correction installation counts include no-op writes. | [Opt-in overwrite audit and paired replay survey](2026-09-10-correction-overwrites.md). | Three intervals: zero changed clocks/seeds; Great Lakes seven actual Gaia reseat changes, East Indies none. | Shared sibling inputs; not corpus-wide redundancy or a policy change. |
 | L54 | Seven actual reseat writes need individual causal checks. | [Single-write interventions through the complete run69 capture](2026-09-10-single-reseat-interventions.md). | Tick 99 leaves a 556-frame orientation difference; at frame 106 only control matches the original heading. All seven branches converge by 3001. | One capture, one-write removals; player score unchanged, no redundancy claim. |
 
+| L55 | A saved graph does not yet establish runnable search resumption; semantic search may help find the missing evidence. | [Real Jev investigation and explicit thread-state probe](2026-09-19-jev-resumption.md). | 171 passages searched for five questions; modeled original prologue advances from FS refusal at instruction 5 to `div_3_table` read at 14, with null memory still unmapped. | Authored thread/argument state, no live replay; Jev misses one half of a compound question in its top five. |
+
+| L56 | The modeled resumed-search prologue needs a coordinate table before any table entry can be used. | [Original initializer sweep and next registry refusal](2026-09-19-coordinate-table.md). | 75,456 entries across six extents match floor division; explicit table input advances attempted instruction 14 to 22. | Successful allocation modeled; live extent and unit registry not captured, no resumed A* return. |
+
+| L57 | The optional restore collector still used bulk register/flags saves and discarded a validated registry header. | [ABI migration and fresh native version-2 packet](2026-09-19-restore-collector-abi.md). | 256 authored adapter states pass; one authorized capture completes and its restore wrapper matches live delegation in 31 instructions, with retained registry. | One live run; downstream search still refuses FS:[0]. Thread/table acquisition and full resumption remain outstanding. |
+
+| L58 | Live thread/table inputs are still missing from the suspended-search packet. | [Bounded delegation context sidecar](2026-09-19-restore-context.md). | Offline refusal checks pass; one September-21 capture yields 19,200 table entries matching regeneration and a 256-reset wrapper replay. | One live sidecar; FXSAVE retained but not loaded, no emulated resumed search result. |
+
+| L59 | Captured thread/table inputs have not yet been consumed in resumed-search replay. | [Native A* entry agreement and unit-header refusal](2026-09-21-resume-frontier.md). | 50-instruction entry matches all four native arguments; 64 resets and fresh engine agree; instruction 73 refuses unit +9. | Prefix only; no FXSAVE import or full A* return, no new capture. |
+
+| L60 | A byte-at-a-time expansion would keep requiring adjacent unit fields. | [Version-2 complete unit context](2026-09-21-unit-context.md). | Live 344-byte record and graph overlap validate; replay advances from instruction 73 to 91, refusing the world pointer; scenario projections agree. | One v2 capture; no full A* return, pointer targets not implicitly captured. |
+
+| L61 | Measure broader acquisition cost before replacing repeated per-field captures. | [Bounded memory inventory](2026-09-21-memory-inventory.md). | C/Python metadata agreement, 28 failed/short queries, caps, deadlines and file controls pass; optional imports verified; release gate passes. | Live: 873 ranges, 795.676 MiB broad candidate; known-root allocations plus image 36.566 MiB. Small selection tested offline; subsequent payload acquisition is L62. No full replay claim. |
+
+| L62 | A broad candidate fits 1 GiB, but needs bounded acquisition before offline replay can consume it. | [Streaming memory payload](2026-09-21-memory-payload.md). | Actual C producer/Python consumer agree; transfer, mapping, anchor, deadline and cap failures refuse; three DLL build variants, sanitizers and the release gate pass. | Live: 796.301 MiB in 1,617 ms; 77,156 anchor bytes agree, projections unchanged. Non-atomic; no full replay yet. |
+
+| L63 | Determine whether a broad packet removes the repeated per-field capture dependency. | [Payload-to-allocator frontier](2026-09-21-payload-frontier.md). | Nine data boundaries closed with 36,256 added bytes; fresh processes reach the same 382-instruction CRT malloc refusal. | Exploratory source retained outside git; extended state not imported, no native output comparison or allocator substitution. |
+
 ## Current direction
+
+The September 19–21 tranche has a validated broad payload and an exploratory
+replay stopping at CRT allocation. Allocator behavior, extended-state handling
+beyond the tested prefix and native output equivalence remain research work.
+Fable decides whether any method merits a pilot, adoption, further evidence or
+parking; review does not imply approval to merge the whole lab branch.
 
 The runtime factor-isolation experiment is paused at the user's request after
 a product cybersecurity restriction; no four-way results exist. Its draft

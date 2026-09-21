@@ -19,3 +19,7 @@ Sleep@4
 ReadProcessMemory@20
 
 ExitProcess@4
+
+VirtualQueryEx@16
+GetSystemInfo@4
+GetTickCount@0

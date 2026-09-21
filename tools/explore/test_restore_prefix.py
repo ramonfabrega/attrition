@@ -3,22 +3,41 @@ import unittest
 import tempfile
 from pathlib import Path
 from test_search_graph import fixture as graph_fixture, encode as encode_graph
-from restore_prefix import decode, pack, check, ENTRY, STOP
+from restore_prefix import decode, pack, check, verify, ENTRY, STOP
 
 
-def fixture():
+def fixture(version=1):
     before=(7,8,9,0x50004000,10,11,12,13,0x202)
     args=(0x12345678,0x140b8,0,1)
     deps=(0x11000,0x12000,0x13000,0x14000,2,4000^0x63637,8000^0x63637,125,0)
     after=(7,0,0x50003ffc,0x50003fe0,1,8000,4000,13,0x202)
     out=(args[1],4000,8000,0,1,0,before[1],before[2],*args)
-    return pack(0x31545352,1,230,0x14000,*before,*args,*deps,*after,*out,75,1)
+    if version==2:
+        before=(*before[:8],before[8]&0x8d5)
+        after=(*after[:8],after[8]&0x8d5)
+    return pack(0x31545352,version,230,0x14000,*before,*args,*deps,*after,*out,75,1,
+                *((0x8d5,2,2,0,0x15000) if version==2 else ()))
 
 
 class RestoreTests(unittest.TestCase):
     def test_complete(self):
         c=decode(fixture());self.assertEqual(c['modes'],(75,1))
         self.assertEqual(c['out'][1:3],(4000,8000))
+
+    def test_v2_registry_and_partial_flags(self):
+        c=decode(fixture(2));self.assertEqual(c['registry'],(2,2,0,0x15000))
+        self.assertEqual(c['flags_mask'],0x8d5)
+        state=(('scratch',pack(*c['out'][:8])),('arguments',pack(*c['stack'])))
+        regs=(*c['after'][:8],c['after'][8]|0x200202)
+        verify((regs,state,()),[],c)  # unobserved control bits are not evidence
+        with self.assertRaisesRegex(ValueError,'registers'):
+            verify(((*regs[:8],regs[8]^1),state,()),[],c)
+        with self.assertRaisesRegex(ValueError,'registers'):
+            verify(((regs[0]^1,*regs[1:]),state,()),[],c)
+        for index,value in ((49,0xffffffff),(50,1),(51,1),(53,0),(53,0xfffffffc),
+                            (12,0x202),(34,0x202)):
+            raw=bytearray(fixture(2));struct.pack_into('<I',raw,index*4,value)
+            with self.subTest(index=index), self.assertRaises(ValueError):decode(bytes(raw))
 
     def test_corrupt_handoff_fields(self):
         # Header, stack identity, saved register, coordinates, saving and ESP.
@@ -41,6 +60,13 @@ class RestoreTests(unittest.TestCase):
             header=pack(0x544e4f52,2,0x400000,0,0,0,0,0)
             def write(rs):(p/'rontrace.log').write_bytes(header+b''.join(pack(*r) for r in rs))
             write(rows);self.assertEqual(check(p)[0]['native_astar_result'],1)
+            # Both the hook receipt and packet length must migrate together.
+            (p/'restore-prefix.bin').write_bytes(fixture(2))
+            with self.assertRaises(ValueError):check(p)
+            rows2=[tuple([*r[:2],2,*r[3:]]) if r[:2]==(5,160) else
+                   (*r[:4],216,216,*r[6:]) if r[:2]==(5,162) else r for r in rows]
+            write(rows2);self.assertEqual(check(p)[0]['version'],2)
+            (p/'restore-prefix.bin').write_bytes(fixture())
             for i in range(len(rows)):
                 write(rows[:i]+rows[i+1:])
                 with self.subTest(i=i), self.assertRaises(ValueError):check(p)
