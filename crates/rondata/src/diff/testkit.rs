@@ -1528,6 +1528,15 @@ pub(crate) const GOLDEN_WORD_CHAPTER_ONE: i64 = 626;
 /// beside the move is `chapter_two_s_word_frame_is_widened_whole`: the
 /// draw stream holds to 624 and the *values* part at **622**, on the
 /// slinger squad's chase destination alone.
+///
+/// **Held at 624 on 2026-09-21, item 457** — `ObjectData::visible` and its
+/// 32-frame clear landed (`docs/VISION.md` §9) and the word did not move.
+/// What it moved is the sub-score: `chapter_two_s_first_attack_orders_are_
+/// the_dump_s` went from six of nine rows to **nine of nine**, the dump's
+/// own timeline. 624's extra draw is on the original's side and is
+/// `Guy::set_anim+0x97a < Unit::move_step+0x823` — the chase *destination*
+/// of §31.6's 622 residue, which is upstream of anything that field
+/// reaches.
 pub(crate) const GOLDEN_WORD_CHAPTER_TWO: i64 = 624;
 
 /// **Every pinned word names the test that widened its frame whole, or

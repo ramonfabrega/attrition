@@ -1085,6 +1085,7 @@ pub fn load_tables(
             uber_size: c.uber_size,
             crew_size: c.crew_size,
             target_size: c.target_size,
+            circle_radius: c.circle_radius,
             guy_radius: 0,
             domain: c.domain,
             siege: c.siege,
@@ -1299,6 +1300,7 @@ pub fn load_tables(
             uber_size: 0,
             crew_size: 0,
             target_size: 0,
+            circle_radius: 0,
             guy_radius: 0,
             // `BuildType::set_domain`: `BUILD_FLAGS b` is a sea building.
             domain: build_domain(c.flags),
@@ -1907,6 +1909,11 @@ struct UnitCols {
     uber_size: i32,
     crew_size: i32,
     target_size: i32,
+    /// `CIRCLE_RADIUS` — `ObjectTypeData::x_size` for a unit type, the
+    /// ring index of `Unit::update_local_seen`'s reveal
+    /// (`docs/VISION.md` §7). `UnitType::init@0061ab50:655`-`662` clamps
+    /// it to 10 and writes `+0x234` and `+0x238` with the same value.
+    circle_radius: i32,
     block_radius: i32,
     x_spacing: i32,
     y_spacing: i32,
@@ -2004,6 +2011,11 @@ impl UnitCols {
             // carries the column.
             crew_size: int(l, "CREW_SIZE").unwrap_or(-1),
             target_size: int(l, "TARGET_SIZE").unwrap_or(0) * UNIT_BLOCK_RADIUS,
+            // The original's default is `-1`, which would index
+            // `circle_radius` out of its own array; every one of
+            // `unitrules.xml`'s records carries the column, and a fixture
+            // that does not gets the single centre point instead.
+            circle_radius: int(l, "CIRCLE_RADIUS").unwrap_or(0).clamp(0, 10),
             block_radius: int(l, "BLOCK_RADIUS").unwrap_or(0) * UNIT_BLOCK_RADIUS,
             x_spacing: int(l, "X_SPACING").unwrap_or(0) * UNIT_FORMATION_SPACING,
             y_spacing: int(l, "Y_SPACING").unwrap_or(0) * UNIT_FORMATION_SPACING,

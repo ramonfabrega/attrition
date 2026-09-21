@@ -1070,25 +1070,30 @@ fn chapter_two_s_first_attack_orders_are_the_dump_s() {
         ((1, 7), 635),
         ((1, 8), 635),
     ];
-    // Ours. **Pinned in no direction**, and now **six rows rather than
-    // nine**: item 447 put `is_seen` into `valid_target`
-    // (`docs/COMBAT.md` §31), which retired the hoplites' spurious 616 —
-    // and did not replace it with the dump's 635, because the other half
-    // of `UnitData::is_seen`, `ObjectData::visible`, is not modelled here.
-    // The original's `1/6` accepts `0/10` at 635 on that fallback: the
-    // slinger set its own `visible` bit for player 1 at **631** by
-    // attacking a hoplite (`Unit::set_attacking@005ff5b0`,
-    // `docs/VISION.md` §6), and player 1's line of sight never reaches
-    // that cell. So the row moved from *wrong and early* to *absent*,
-    // which is what the word measures as 616 → 624 and what §31.7 books
-    // as the next item.
-    let ours: [((u8, i16), i64); 6] = [
+    // Ours. **Pinned in no direction**, and since item 457 it is the
+    // dump's own nine, frame for frame.
+    //
+    // The history is the point. Item 415 had the hoplites ordering at
+    // **616**, nineteen frames early and on the wrong mechanism. Item 447
+    // put `is_seen` into `valid_target` (`docs/COMBAT.md` §31) and the
+    // spurious 616 went away without the dump's 635 arriving, because the
+    // other half of `UnitData::is_seen` — `ObjectData::visible` — was not
+    // modelled: three rows moved from *wrong and early* to *absent*.
+    // Item 457 modelled it (`docs/VISION.md` §7), and the original's
+    // `1/6` now accepts `0/10` at 635 here for the reason it does there —
+    // the slinger set its own `visible` bit for player 1 at **631** by
+    // attacking a hoplite (`Unit::set_attacking@005ff5b0`), and player 1's
+    // line of sight never reaches that cell.
+    let ours: [((u8, i16), i64); 9] = [
         ((0, 6), 635),
         ((0, 7), 635),
         ((0, 8), 635),
         ((0, 9), 621),
         ((0, 10), 621),
         ((0, 11), 621),
+        ((1, 6), 635),
+        ((1, 7), 635),
+        ((1, 8), 635),
     ];
     let got: Vec<((u8, i16), i64)> = first.into_iter().collect();
     assert_eq!(
@@ -1097,17 +1102,19 @@ fn chapter_two_s_first_attack_orders_are_the_dump_s() {
         "chapter two's engagement timeline moved. The dump's own is \
          {theirs:?}; re-pin `ours` and say so in docs/GOLDEN.md §6"
     );
-    // **Six of the nine agree with the original exactly**, and that is the
-    // assertion that keeps the missing three honest: a change that made
-    // the hoplites right by making the slingers wrong would fail here.
+    // **All nine agree with the original exactly.** The count is asserted
+    // separately from the list because it is the row that reads at a
+    // glance, and because a regression that swapped one squad's rightness
+    // for another's would still pass a length check.
     let agree = theirs
         .iter()
         .filter(|(k, f)| got.iter().any(|(g, n)| g == k && n == f))
         .count();
     assert_eq!(
-        agree, 6,
-        "the two squads this crate gets right are no longer right; the \
-         hoplites' missing 635 is only a finding while they are"
+        agree,
+        theirs.len(),
+        "chapter two's engagement timeline no longer matches the dump on \
+         every one of its nine figures"
     );
     // The original issues nothing at all on the frame the word parts.
     assert!(
@@ -1420,6 +1427,9 @@ fn chapter_two_s_word_frame_is_widened_whole() {
         for d in &r.packed_diverged {
             note(format!("packed {}/{}", d.who, d.o));
         }
+        for d in &r.visible_diverged {
+            note(format!("visible {}/{}", d.who, d.o));
+        }
     }
     assert_eq!(
         blocks,
@@ -1465,5 +1475,173 @@ fn chapter_two_s_word_frame_is_widened_whole() {
         measured.to_vec(),
         "chapter two's word frame no longer widens the way item 447 \
          measured it; re-pin this map and say so in docs/COMBAT.md §31.6"
+    );
+}
+
+/// **`ObjectData::visible`'s arrivals against run112's own** — item 457's
+/// oracle, and the strongest check this mechanic can have
+/// (`docs/VISION.md` §7).
+///
+/// The field is printed inside the `OBJECT` block at every detail level,
+/// so no capture was needed for it: the dump has been carrying the answer
+/// since 2026-09-19. Over the chapter it records nine arrivals and five
+/// clears, and what this asserts is their **shape** — which unit gains
+/// which player's bit, and that it gains it at all — with the frames
+/// pinned in no direction beside them.
+///
+/// The frames cannot be asserted equal and the reason is not this
+/// mechanic. `Unit::set_attacking` fires from the tail of `Unit::fight`,
+/// so `visible`'s arrival frame is the frame of the unit's *first strike*
+/// — and chapter two's engagement timing is still a residue of its own
+/// (`docs/COMBAT.md` §31.6). A bit that arrives two frames early here
+/// arrives two frames early because the arrow did. Separating the two is
+/// the whole point of pinning the shape exactly and the frames loosely:
+/// a regression in the **rule** — the wrong bit, the wrong unit, a bit
+/// that never comes — fails on the shape, whatever the engagement does.
+///
+/// The clears are read the same way and for the same reason: the dump
+/// drops `0/6`'s byte at 827 and this crate does not, because this
+/// crate's bowman is still carrying an `ATTACK` order there and the
+/// original's is not. `Unit::work`'s 32-frame slot is exact on both sides
+/// — `1/7` clears here at **794**, which is its own `f ≡ 26 (mod 32)` —
+/// and what differs is the latch's input.
+#[test]
+fn chapter_two_s_visible_byte_is_the_dump_s_on_every_unit_frame() {
+    let Some(inst) = crate::testenv::install() else {
+        return;
+    };
+    let Some((dump, tracepath)) = golden("ch2") else {
+        eprintln!("skipping: no golden capture ch2 (see docs/RUNS.md run112)");
+        return;
+    };
+    let trace = crate::trace::Trace::read(std::path::Path::new(&tracepath))
+        .expect("a finalized golden trace")
+        .expect("missing RONT header");
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(&dump);
+    let log = Log::parse(&text);
+    let texts = sibling_texts();
+    let logs = siblings(&texts);
+    let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+    let refs: Vec<&Initial> = inits.iter().collect();
+    if refs.is_empty() {
+        eprintln!("skipping: no sibling dumps");
+        return;
+    }
+    let mut ix = crate::capture::indexed::IndexedCapture::open(&dump).unwrap();
+    let mut built = stand_up(&loaded, &log, &refs, &trace);
+    let mut script = chapter(2);
+    /// One past the last frame read — the chapter's last logged block.
+    const LAST: i64 = 899;
+    // `(who, o)` → the first frame the unit's `visible` is non-zero, and
+    // the byte it holds there. One entry per side.
+    let mut theirs: std::collections::BTreeMap<(i64, i64), (i64, u8)> =
+        std::collections::BTreeMap::new();
+    let mut ours: std::collections::BTreeMap<(i64, i64), (i64, u8)> =
+        std::collections::BTreeMap::new();
+    let mut read = 0usize;
+    for f in 0..LAST - 1 {
+        script.stage(built.sim.frame, &mut built, &loaded);
+        built.tick();
+        // The dump's frame label is the sim frame plus one throughout this
+        // chapter (`docs/COMBAT.md` §30.1).
+        let n = f + 1;
+        let Some(at) = ix.frames().iter().position(|x| x.number == n) else {
+            continue;
+        };
+        let frame = ix.frame_state(at).unwrap();
+        for u in &frame.units {
+            if !(0..2).contains(&u.who) {
+                continue;
+            }
+            let Some(v) = u.visible else { continue };
+            read += 1;
+            if v != 0 {
+                theirs.entry((u.who, u.o)).or_insert((n, v as u8));
+            }
+            // Ours is read on the same unit-frames the dump carries, so
+            // that a unit the dump has stopped printing — a dead one —
+            // cannot contribute to one side and not the other.
+            let Some(mine) = i16::try_from(u.o)
+                .ok()
+                .and_then(|o| built.sim.unit_by_o(u.who as sim::Player, o))
+            else {
+                continue;
+            };
+            let mv = built.sim.units[mine].visible;
+            if mv != 0 {
+                ours.entry((u.who, u.o)).or_insert((n, mv));
+            }
+        }
+    }
+    // **Anti-vacuity.** The dump has to have been read at all, and it has
+    // to have carried the arrivals — a window in which every value is zero
+    // would pass on a crate that never wrote the field.
+    assert!(
+        read > 1_000,
+        "only {read} unit-frames carried `visible`; run112's dump no \
+         longer prints the OBJECT block"
+    );
+    // **The dump's own nine**, as a guard on the oracle rather than on
+    // this crate: if run112 stops saying this, every row below is void.
+    let dumped: Vec<((i64, i64), (i64, u8))> = theirs.iter().map(|(k, v)| (*k, *v)).collect();
+    assert_eq!(
+        dumped,
+        vec![
+            ((0, 6), (636, 2)),
+            ((0, 7), (636, 2)),
+            ((0, 8), (636, 2)),
+            ((0, 9), (646, 2)),
+            ((0, 10), (631, 2)),
+            ((0, 11), (640, 2)),
+            ((1, 6), (672, 1)),
+            ((1, 7), (698, 1)),
+            ((1, 8), (665, 1)),
+        ],
+        "run112's own `visible` arrivals have changed"
+    );
+    // **The shape, asserted exactly**: the same nine units gain a bit, and
+    // each gains the same one — player 1's on the bowmen and slingers,
+    // player 0's on the hoplites. This is the mechanic's own claim and
+    // nothing about the engagement's timing can excuse a failure here.
+    let shape: Vec<((i64, i64), u8)> = ours.iter().map(|(k, v)| (*k, v.1)).collect();
+    let want: Vec<((i64, i64), u8)> = theirs.iter().map(|(k, v)| (*k, v.1)).collect();
+    assert_eq!(
+        shape, want,
+        "`visible` no longer arrives on the same units, or no longer \
+         carries the same players' bits"
+    );
+    // **The frames, pinned in no direction** and printed beside the
+    // dump's. Every one of the nine is within fourteen frames of the
+    // original's, and every gap is the strike's and not the field's.
+    let mine: Vec<((i64, i64), (i64, u8))> = ours.iter().map(|(k, v)| (*k, *v)).collect();
+    assert_eq!(
+        mine,
+        vec![
+            ((0, 6), (636, 2)),
+            ((0, 7), (636, 2)),
+            ((0, 8), (636, 2)),
+            ((0, 9), (646, 2)),
+            ((0, 10), (629, 2)),
+            ((0, 11), (633, 2)),
+            ((1, 6), (677, 1)),
+            ((1, 7), (694, 1)),
+            ((1, 8), (679, 1)),
+        ],
+        "chapter two's `visible` arrivals moved; re-pin them and say so \
+         in docs/VISION.md §7"
+    );
+    // **Four of the nine land on the dump's own frame** — the three
+    // bowmen and the slinger captain — and that is the row that keeps the
+    // other five honest: a change that bought the hoplites' frames by
+    // losing the bowmen's would fail here.
+    let exact = mine
+        .iter()
+        .filter(|(k, v)| theirs.get(k).is_some_and(|t| t.0 == v.0))
+        .count();
+    assert_eq!(
+        exact, 4,
+        "the four arrivals this crate puts on the dump's own frame are no \
+         longer four"
     );
 }

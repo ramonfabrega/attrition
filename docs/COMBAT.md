@@ -4398,13 +4398,19 @@ which no run on disk executes.
   would explain now agrees. The capture §30.5 named — `UnitTypeData
   +0x9a` per unit over `[614, 640)` — remains unbooked and unspent, and
   it is the only way to settle that arm on its own terms.
-- **`ObjectData::visible` is not modelled**, and it is now a scored item
-  rather than a note in `docs/VISION.md` §6: `Unit::set_attacking`'s
-  `visible |= 1 << victim_who` is what would give this crate's `1/6` the
-  635 order the dump has, and the write has an unidentified gate on the
-  attacker's type vtable `+0x10c` that `vtables.txt` does not name for any
-  `*Type` vtable in the export. `Unit::update_local_seen@0060e410`, the
-  reveal the bit drives, is not modelled either.
+- ~~**`ObjectData::visible` is not modelled**~~ — **answered 2026-09-21 by
+  item 457, `docs/VISION.md` §9.** `Unit::set_attacking`'s `visible |= 1 <<
+  victim_who`, its 32-frame clear and `Unit::update_local_seen` are all
+  modelled now, and this crate's `1/6` takes the 635 order the dump has:
+  `chapter_two_s_first_attack_orders_are_the_dump_s` went from six of nine
+  rows to **nine of nine**. Two corrections to the sentence struck above.
+  The `+0x10c` gate is **`ObjectTypeData::is_siege`** — settled from the
+  PDB type record and `ObjectData::is_dock@004711e0`'s thunk, VISION §9.2 —
+  and it gates one of `Unit::fight`'s two call sites, not the write. And
+  the writer list of two was short by three: `Build::do_attack` and
+  `Build::do_missile_launch` write the field too, so §31.3's "no building
+  path reaches it" is withdrawn (VISION §9.1). **The word did not move**:
+  624 stands on the residue below.
 - **The two always-true leader arms of `WorldData::is_seen`** — `0x800`
   and the `num_units` count — are not carried, and no capture on disk
   exercises them.

@@ -43,6 +43,21 @@ pub struct FrameResult {
     pub packed_compared: usize,
     /// Every unit-frame whose packed bit disagreed: `(frame, who, o, ours)`.
     pub packed_diverged: Vec<PackedDivergence>,
+    /// **`ObjectData::visible` (`+0x40`)** — the byte of players this
+    /// object has made itself visible to by attacking them
+    /// (`docs/VISION.md` §7). Written inside the `OBJECT` block at every
+    /// detail level, so it is compared on every capture that prints a unit
+    /// record at all.
+    ///
+    /// Compared **both ways and ungated on the position**, unlike the
+    /// collision and angle blocks. Those are gated because a unit standing
+    /// somewhere else collides with different things *as a consequence*,
+    /// and counting that would measure the position gap twice. This one is
+    /// not a consequence of standing anywhere: it is a record of who the
+    /// unit has shot at, and a crate that shoots the wrong people has a
+    /// defect worth naming wherever the unit happens to be.
+    pub visible_compared: usize,
+    pub visible_diverged: Vec<VisibleDivergence>,
     /// Angle comparisons made this frame — `UnitData::angle` for every unit
     /// record, and guy 0's `angle` for every record that carries a guy
     /// (`GUYS` at 1 or above). Two per unit-frame where both are present.

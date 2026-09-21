@@ -205,8 +205,23 @@ pub struct Profile {
     /// The type's age, for the combat table's age bonus.
     pub age: i32,
     /// A building type's footprint, in tiles.
+    ///
+    /// SEAM: this is `ObjectTypeData::x_size` (`+0x234`) for a **building**
+    /// only. A *unit* type's `+0x234` is the XML's `CIRCLE_RADIUS`
+    /// (`UnitType::init@0061ab50:655`-`662`, `min(col, 10)` written to
+    /// `+0x234` and `+0x238` together), which this crate carries in
+    /// [`Profile::circle_radius`] instead so that the several unit paths
+    /// reading a *target's* `x_size` keep the 0 they have always read.
+    /// `docs/VISION.md` §7 names what that is worth checking against.
     pub x_size: i32,
     pub y_size: i32,
+    /// **`ObjectTypeData::x_size` for a unit type** — the XML's
+    /// `CIRCLE_RADIUS`, clamped to 10.
+    ///
+    /// `Unit::update_local_seen@0060e410` is the one consumer this crate
+    /// has: it is the ring index of the disc a unit lights into the fog of
+    /// everyone it has attacked (`docs/VISION.md` §7).
+    pub circle_radius: i32,
     /// `+0x228 x_spacing` and `+0x22c y_spacing`: how far apart two of this
     /// type stand in a formation, across and back, in position units.
     /// `UnitType::init@0061ab50:646`–`654` stores each as the `X_SPACING` /

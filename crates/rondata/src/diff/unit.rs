@@ -86,6 +86,17 @@ pub struct PackedDivergence {
     pub ours: bool,
 }
 
+/// One unit-frame where `ObjectData::visible` (`+0x40`) disagreed —
+/// `docs/VISION.md` §7.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct VisibleDivergence {
+    pub frame: i64,
+    pub who: i64,
+    pub o: i64,
+    pub ours: u8,
+    pub theirs: i64,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1811,13 +1822,14 @@ mod tests {
         let sum = |g: fn(&FrameResult) -> usize| report.frames.iter().map(g).sum::<usize>();
         eprintln!(
             "run79: {} unit fields, {} order/path, {} angle, {} collide, {} los, \
-             {} packed, {} gather, {} build, {} queue, {} city",
+             {} packed, {} visible, {} gather, {} build, {} queue, {} city",
             sum(|f| f.compared),
             sum(|f| f.order_compared),
             sum(|f| f.angle_compared),
             sum(|f| f.collide_compared),
             sum(|f| f.los_compared),
             sum(|f| f.packed_compared),
+            sum(|f| f.visible_compared),
             sum(|f| f.gather_compared),
             sum(|f| f.build_compared),
             sum(|f| f.queue_compared),
@@ -1878,6 +1890,9 @@ mod tests {
             }
             for d in &fr.packed_diverged {
                 note(d.who, d.o, "packed", format!("{d:?}"));
+            }
+            for d in &fr.visible_diverged {
+                note(d.who, d.o, "visible", format!("{} v {}", d.ours, d.theirs));
             }
             for d in &fr.gather_diverged {
                 note(d.who, d.o, "gather", format!("{d:?}"));
@@ -2109,13 +2124,14 @@ mod tests {
         let sum = |g: fn(&FrameResult) -> usize| report.frames.iter().map(g).sum::<usize>();
         eprintln!(
             "run87: {} unit fields, {} order/path, {} angle, {} collide, {} los, \
-             {} packed, {} gather, {} build, {} queue",
+             {} packed, {} visible, {} gather, {} build, {} queue",
             sum(|f| f.compared),
             sum(|f| f.order_compared),
             sum(|f| f.angle_compared),
             sum(|f| f.collide_compared),
             sum(|f| f.los_compared),
             sum(|f| f.packed_compared),
+            sum(|f| f.visible_compared),
             sum(|f| f.gather_compared),
             sum(|f| f.build_compared),
             sum(|f| f.queue_compared),
@@ -2156,6 +2172,9 @@ mod tests {
             }
             for d in &fr.packed_diverged {
                 note(d.who, d.o, "packed", format!("{d:?}"));
+            }
+            for d in &fr.visible_diverged {
+                note(d.who, d.o, "visible", format!("{} v {}", d.ours, d.theirs));
             }
             for d in &fr.gather_diverged {
                 note(d.who, d.o, "gather", format!("{d:?}"));
@@ -2840,13 +2859,14 @@ mod tests {
         let sum = |g: fn(&FrameResult) -> usize| report.frames.iter().map(g).sum::<usize>();
         eprintln!(
             "run89: {} unit fields, {} order/path, {} angle, {} collide, {} los, \
-             {} packed, {} gather, {} build, {} queue, {} city",
+             {} packed, {} visible, {} gather, {} build, {} queue, {} city",
             sum(|f| f.compared),
             sum(|f| f.order_compared),
             sum(|f| f.angle_compared),
             sum(|f| f.collide_compared),
             sum(|f| f.los_compared),
             sum(|f| f.packed_compared),
+            sum(|f| f.visible_compared),
             sum(|f| f.gather_compared),
             sum(|f| f.build_compared),
             sum(|f| f.queue_compared),
@@ -3327,6 +3347,14 @@ mod tests {
         }
         for d in &fr.packed_diverged {
             out.push((d.who, d.o, "packed".into(), format!("{d:?}")));
+        }
+        for d in &fr.visible_diverged {
+            out.push((
+                d.who,
+                d.o,
+                "visible".into(),
+                format!("{} v {}", d.ours, d.theirs),
+            ));
         }
         for d in &fr.gather_diverged {
             out.push((d.who, d.o, "gather".into(), format!("{d:?}")));

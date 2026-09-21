@@ -598,6 +598,57 @@ impl Sim {
         }
     }
 
+    /// **`Unit::update_local_seen@0060e410`** — the unit writes itself into
+    /// the fog of everyone it has attacked (`docs/VISION.md` §7).
+    ///
+    /// The disc is `circle_radius[type->x_size]` points of the
+    /// `circle_x`/`circle_y` spiral around the unit's own **half-cell**,
+    /// and the mask is `ObjectData::visible` itself — so the write lands
+    /// in the victim's plane and not the owner's, which is exactly the
+    /// shape `docs/VISION.md` §7's Great Lakes elimination could not
+    /// account for.
+    ///
+    /// Unlike the building's second reveal this is
+    /// `World::set_seen2(…, param_4 = 0)`: **both** planes, the current
+    /// line of sight as well as the permanent one
+    /// ([`World::set_seen`](crate::world::World::set_seen)). A shooter in
+    /// the dark is not merely remembered, it is *lit* — which is what lets
+    /// the return fire find it on the next frame rather than only
+    /// through the `visible` fallback.
+    ///
+    /// The gate is `visible != 0`, so a unit that has never attacked
+    /// anyone writes nothing. Returns how many half-cells changed, which
+    /// nothing but the tests reads.
+    ///
+    /// SEAM: the original's third and fourth writes — `World +0x168` and
+    /// the cell's `WData +0x14` — have no reader here, the same two
+    /// [`World::set_seen`](crate::world::World::set_seen) already skips.
+    pub(crate) fn update_local_seen_unit(&mut self, u: usize) -> usize {
+        if !self.world.has_fog() {
+            return 0;
+        }
+        let mask = self.units[u].visible;
+        if mask == 0 {
+            return 0;
+        }
+        let r = self.units[u]
+            .ty
+            .map_or(0, |t| self.unit_types[t].combat.circle_radius);
+        let c = crate::ai_place::circle();
+        let n = c.radius[r.clamp(0, 0x40) as usize];
+        let (fx, fy) = (
+            self.units[u].pos.x.div_euclid(UNITS_PER_FOG),
+            self.units[u].pos.y.div_euclid(UNITS_PER_FOG),
+        );
+        let mut lit = 0;
+        for i in 0..n {
+            if self.world.set_seen(fx + c.x[i], fy + c.y[i], mask) {
+                lit += 1;
+            }
+        }
+        lit
+    }
+
     /// `Wall::update_local_seen@0063ed50` — the building writes itself into
     /// the fog of everyone who has seen it.
     ///

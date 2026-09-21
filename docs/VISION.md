@@ -323,18 +323,17 @@ so a farm finished mid-game revealed nothing at all. What that cost is in
 §8.
 
 `Unit::update_local_seen@0060e410` is the unit's half of §6.1's second
-reveal — and since item 447 the `visible` byte itself is a **scored**
-omission rather than a note here: it is the fallback arm of
-`UnitData::is_seen`, and `docs/COMBAT.md` §31.3 has the frames of run112
-where the original's target acceptance turns on it. An object with
-`ObjectData::visible != 0` lights
+reveal. An object with `ObjectData::visible != 0` lights
 `circle_radius[type->x_size]` points around its own half-cell into `seen2`
-and `seen` with the `visible` byte as the **mask**. It is not modelled;
-nothing in this simulation sets `visible`, and `visible`'s writers in the
-original are `Unit::set_attacking@005ff5b0` and `Unit::do_cast@005ebfe0`
-(`field_0x40 |= 1 << who`, and `Unit::work@0060d180` clears it) — so it is
-the rule that **a unit which attacks you becomes visible to you**, and no
-building path reaches it.
+and `seen` with the `visible` byte as the **mask** — the rule that **a
+unit which attacks you becomes visible to you**. ~~It is not modelled;
+nothing in this simulation sets `visible`~~, and ~~`visible`'s writers in
+the original are `Unit::set_attacking@005ff5b0` and
+`Unit::do_cast@005ebfe0` … and no building path reaches it~~ — both
+**answered 2026-09-21 by item 457, §9**, which models the field and its
+clear, and which found five writers rather than two: `Build::do_attack`
+and `Build::do_missile_launch` reach it, so a **tower that shoots you
+becomes visible to you** as well (§9.1).
 
 ## 6.1 The second reveal: a building the enemy has laid eyes on
 
@@ -588,8 +587,10 @@ the human's census at zero forever. It belongs to `docs/AI.md` §43's
   unset in the simulation, and the plane it gates is not modelled.
 - **`update_los` terms 6–11.** Read, tabulated in §2, not implemented; no
   run reaches one. Each would have to reach 2 to move a fog cell.
-- **`Unit::update_local_seen`**, and with it `ObjectData::visible` and
-  `type->x_size` as a radius. Not modelled.
+- ~~**`Unit::update_local_seen`**, and with it `ObjectData::visible` and
+  `type->x_size` as a radius. Not modelled.~~ **Answered 2026-09-21 by item
+  457, §9** — all three, with the radius settled as the XML's
+  `CIRCLE_RADIUS` (`UnitType::init@0061ab50:655`-`662`).
 - **The two per-cell planes** `World +0x168` and `WData +0x14`. Written by
   `set_seen`, read by nothing here. `WData +0x14` is the `WORLD` dump's
   `was_seen`, so a future widening of that record would need it.
@@ -804,3 +805,245 @@ Ten frames behind, it arrives at 101 where the original arrived at 95 and
 spends its `think_scout` ring draws a frame later. That is
 `docs/MOVEMENT.md`'s stopped-unit instant turn, and the queue books it
 there.
+
+## 9. `ObjectData::visible` — a unit that attacks you becomes visible to you (item 457, 2026-09-21)
+
+`ObjectData::visible` (`+0x40`, a `char`; `types.txt`) is the byte of
+players an object has made itself visible to **by attacking them**. It is
+the fallback arm of `UnitData::is_seen@00607a60`, so it decides who may
+legally target a unit standing in their own fog — `docs/COMBAT.md` §31.1
+has the chain from `Object::valid_target` down to that test, and §31.7
+booked this as the half it left unmodelled.
+
+§6's note has said since 2026-08-31 that nothing here sets it. It does now.
+
+### 9.1 The writers, grepped rather than believed
+
+`CLAUDE.md`'s standing rule is to grep the writers of every field you call
+frozen, and §31.7's list of two was short by three. Searching the whole
+decompile for writes to `+0x40` on an `Object` lineage — the decompiler
+prints it as `field_0x40`, never as `visible`, which is why a search by
+name finds nothing — gives **five**:
+
+| writer | what it does |
+|---|---|
+| `Unit::set_attacking@005ff5b0` | `visible \|= 1 << victim_who`, from `Unit::fight`'s tail |
+| `Unit::do_cast@005ebfe0:544` | the same three lines, for an offensive spell |
+| `Unit::work@0060d180:63` | **the clear** — §9.3 |
+| `Build::do_attack@006228f0:147` | `visible \|= 1 << target_who` after `Object::fire_ammo`, with its own clear at `:47` |
+| `Build::do_missile_launch@00622670:70` | `visible = 0xff` — a missile silo is visible to **everybody** the frame it fires |
+| `Object::init@00647750:25` | `visible` and `launch_frames` zeroed together as one short, at birth |
+
+So **§6's "no building path reaches it" is withdrawn**: a tower that shoots you
+becomes visible to you on exactly the rule a unit does, and a silo that
+launches becomes visible to the whole map. Neither is modelled here — this
+section is the unit half — and `Wall::update_local_seen`'s mask
+(`ever_seen | visible | (1 << owner)`, §6.1) therefore still carries a
+stubbed term.
+
+### 9.2 `set_attacking`, exactly
+
+```
+set_attacking(this, who):                    # who = the victim's player
+    attacked_table[this->who][who] |= 1      # 00e3a424, per-pair
+    leaders[who].field_0x94[leaders[this->who].team] |= 1
+    this->flags |= 0x80                      # SubObjectData::flags
+    if (visible & (1 << who)) == 0:
+        if !WorldData::is_seen(pos / 0x180, who):
+            visible |= 1 << who
+            this->vtable[0x164]()            # Unit::update_local_seen
+        else:
+            visible |= 1 << who
+```
+
+Both arms set the bit; only the first lights anything. The reveal is
+`Unit::update_local_seen@0060e410` — `circle_radius[type->x_size]` points
+of the `circle_x`/`circle_y` spiral around the unit's own half-cell,
+written with `visible` **as the mask**, through
+`World::set_seen2(…, param_4 = 0)`, which is **both** planes: `seen2` and
+the current line of sight. That is unlike the building's second reveal
+(§6.1), which is `seen2` only.
+
+`Unit::fight@005fd4d0` has **two** call sites. The one at `005fe4f7` is
+gated on the target's type vtable `+0x18` and on the attacker's
+`ptype->vtable[0x10c]`; the main strike path at `LAB_005feec6`, reached
+after `set_anim`, is ungated and is the one that runs here.
+
+**`+0x10c` is `ObjectTypeData::is_siege`**, and §31.7's reading of it as a
+gate *on the write* was wrong — it gates one call site. Settled three ways,
+none of them the decompiler's guess: the PDB type record for
+`ObjectTypeData` lists `is_siege` at `vftable offset = 268` between
+`is_dock` (264) and `is_tank` (272); `ObjectData::is_dock@004711e0` is a
+one-line thunk whose body is `ptype->vtable[0x108]()`, which pins the
+origin; and `ObjectData::is_siege@0046ef90`'s body is `ptype->
+vtable[0x10c]()`. `UnitTypeData::is_siege@00470460` is `unit_flags &
+0x20000`. Chapter two has no siege, so only the ungated site fires here.
+
+`do_cast`'s own `+0x10c` call is at `005ecd31`, four hundred lines above
+the `visible` write and in an unrelated general/pack branch; nothing gates
+the cast's write but the spell type's `+0x1c8 & 0xe`, a different-player
+test, and `target->vtable[0x48]` — `is_seen` on the target.
+
+### 9.3 The clear, and it is a 32-frame slot with a latch
+
+`Unit::work@0060d180`, above every gate in the function — a unit that
+returns early still runs it:
+
+```
+if ((frame + o) & 0x8000001f) == 0:      # (frame + o) % 32 == 0
+    if (flags & 0x80) == 0:
+        visible = 0
+    unit_masks &= ~4
+if order != ATTACK:
+    flags &= 0x7f
+```
+
+So the latch is read **before** it is dropped: the frame a unit stops
+attacking still counts as attacking, and the visibility outlives the last
+arrow by up to 32 frames. `Build::do_attack:47` is the same pair for a
+building, with `flags &= 0x7f` unconditional.
+
+**This is diff-backed, five for five.** run112 prints `visible` and
+`flags` on every unit record, and the five clears it carries each land on
+the first frame `(f + o) ≡ 1 (mod 32)` — the dump's label is the sim frame
+plus one — after `flags & 0x80` drops:
+
+| unit | `0x80` drops | `visible` clears | its slot |
+|---|---|---|---|
+| `0/6` | 819 | **827** | `f ≡ 27 (mod 32)`: 795, 827 |
+| `0/7` | 848 | **858** | `f ≡ 26`: 826, 858 |
+| `0/8` | 848 | **857** | `f ≡ 25`: 825, 857 |
+| `0/9` | 846 | **856** | `f ≡ 24`: 824, 856 |
+| `0/10` | 830 | **855** | `f ≡ 23`: 823, 855 |
+
+`1/7` is the control: its latch drops at 764 and comes back at 792, its
+slot is 794, and the byte never clears. `0/11` dies at 729 with the latch
+up and never clears either.
+
+### 9.4 `WorldData::is_seen` has a fourth arm, and §31.2 omitted it
+
+```
+is_seen(fx, fy, who):
+    if who > 7 or reveal_map == 3:                        return 1
+    L = leaders[who]
+    if (L.leader_flags & 0x800) or L.num_units[0x141]:    return 1
+    if (L.leader_flags & 0x2000) and wdata[cell].who >= 0
+            and L.is_ally(wdata[cell].who):               return 1
+    return seen[fy * fog_xs + fx] & L.ally_mask
+```
+
+The third arm — **a player with `leader_flags & 0x2000` sees everything
+standing on ground it or an ally owns** — is not in §31.2's transcription
+and is not carried here. Like the two above it, it can only ever *refuse*
+further, so the seam is one-directional. No capture on disk raises any of
+the three.
+
+### 9.5 What it moved
+
+| counter | before | after |
+|---|---|---|
+| `chapter_two_s_first_attack_orders_are_the_dump_s` | **six** of nine rows | **nine of nine, the dump's own** |
+| `GOLDEN_WORD_CHAPTER_TWO` | 624 | 624 — **unmoved** |
+| chapter two, first value disagreement | 625 | 625 |
+| `LONG_WORD_GREAT_LAKES`, `LONG_WORD_EAST_INDIES`, `GOLDEN_WORD_CHAPTER_ONE` | — | unmoved |
+| both endpoints and both ladder rungs | — | unmoved |
+
+The sub-score the item was booked on closed and the headline did not move,
+and the two facts belong side by side. `1/6`–`1/8` now take their attack
+orders at **635**, the frame the dump has, for the reason the dump has it:
+`0/10` set its own bit for player 1 at 631 by shooting a hoplite, and
+player 1's line of sight never reaches that cell. What stands at 624 is a
+single extra draw on the original's side — `Guy::set_anim+0x97a <
+Unit::move_step+0x823`, a unit stepping where this crate's does not — which
+is the chase-*destination* residue `docs/COMBAT.md` §31.6 measured at 622
+and named parked 400's shape. It is upstream of anything this field can
+reach.
+
+### 9.6 The value diff beside it
+
+`chapter_two_s_visible_byte_is_the_dump_s_on_every_unit_frame` reads
+run112's own byte on every unit-frame of the chapter, both directions. The
+**shape is exact** — the same nine units gain a bit, each the right
+player's — and the frames are pinned in no direction beside the dump's:
+
+| unit | dump | ours |
+|---|---|---|
+| `0/6`, `0/7`, `0/8` | 636 | **636** |
+| `0/9` | 646 | **646** |
+| `0/10` | 631 | 629 |
+| `0/11` | 640 | 633 |
+| `1/6` | 672 | 677 |
+| `1/7` | 698 | 694 |
+| `1/8` | 665 | 679 |
+
+Four of nine land on the dump's own frame. The five that do not are the
+*strike's* timing and not the field's: `set_attacking` fires from
+`Unit::fight`'s tail, so a bit that arrives two frames early arrives two
+frames early because the arrow did. Pinning the shape exactly and the
+frames loosely is what keeps the two separable — a regression in the rule
+fails on the shape whatever the engagement does.
+
+Past 683 the clears diverge for the same kind of reason and it is worth
+naming: the dump drops `0/6`'s byte at 827 and this crate does not, because
+this crate's bowman is still carrying an `ATTACK` order there. The slot
+arithmetic is exact on both sides — `1/7` clears here at 794, its own
+`f ≡ 26 (mod 32)` — and the input to the latch is what differs.
+
+### 9.7 What checks it
+
+| § | what | where |
+|---|---|---|
+| 9.2 | `Sim::set_attacking`, from `Sim::fight`'s tail | `fight.rs` |
+| 9.2 | `Sim::update_local_seen_unit` — the disc, `visible` as the mask, both planes | `vision.rs` |
+| 9.2, 9.4 | `Sim::world_sees` and `Sim::target_is_seen`'s fallback | `fight.rs` |
+| 9.3 | the 32-frame clear and the latch, at the head of `Sim::work` | `orders.rs` |
+| 9.1 | `Unit::visible`, `Unit::attacking`, `Profile::circle_radius` | `lib.rs`, `combat.rs`, `load.rs` |
+
+`ObjectData::visible` is now part of `crate::diff::harness::compare`, so it
+is checked on **every** capture the crate walks rather than on the one the
+mechanic was written for — `visible_compared`, beside `mylos` and the
+packed bit. That is 37,138 further unit-frames on run79, run87 and run89
+with no disagreement; those windows carry no non-zero byte on either side,
+so what they check there is that this crate does not invent one.
+
+### 9.8 Coverage
+
+**Diff-backed**: §9.3's whole table and §9.6's, each a test
+(`chapter_two_s_visible_byte_is_the_dump_s_on_every_unit_frame`,
+`chapter_two_s_first_attack_orders_are_the_dump_s`), and §9.5's rows, each
+a pinned counter.
+
+**Listing- and export-backed**: §9.1's writer table, §9.2's transcription
+and its `+0x10c` identification (the PDB type record, the `is_dock` thunk,
+and `ObjectData::is_siege`'s own body), §9.4's `WorldData::is_seen`.
+
+**Reading-only, and owed a blind second reading**: the two building writers
+of §9.1, `do_cast`'s arm, and §9.4's three always-true arms. No run on disk
+executes any of them.
+
+**What this has not established.**
+
+- **The building half is read and not built.** `Build::do_attack` and
+  `Build::do_missile_launch` write `visible`, and nothing here does;
+  `Wall::update_local_seen`'s third mask term is still a stub (§6.1). *A
+  capture would settle it:* a tower firing through fog, `BUILDS=7` with
+  `UNITS=3`, and the `BUILDDATA` `visible` byte over the frames it shoots.
+- **`Unit::do_cast`'s write is not modelled**, and no capture on disk casts
+  an offensive spell.
+- **`Profile::x_size` is 0 for a unit type here** where the original's
+  `ObjectTypeData::x_size` is the XML's `CIRCLE_RADIUS`
+  (`UnitType::init@0061ab50:655`-`662`, `min(col, 10)` into `+0x234` and
+  `+0x238`). This section carries the real value as
+  `Profile::circle_radius` and leaves `x_size` alone, because several unit
+  paths read a *target's* `x_size` and would move under it. **One of them
+  is a named hypothesis for chapter two's own residue**: `find_attack_pos`
+  takes the target's extent as `(x_size * 0x60, y_size * 0x60)`
+  (`attack_pos.rs:293`), which is `(0, 0)` here and `(0x60, 0x60)` there
+  for every unit target, and §9.5's standing 624 is a chase destination.
+  *Falsifier:* set it and re-run `chapter_two_s_word_frame_is_widened_
+  whole` over `[620, 628)` — if the three slingers' 622 destinations do not
+  move toward `(1608, 8184)`, `(1560, 7848)` and `(1704, 8424)`, the
+  reading is wrong. Not run here; it is parked 400's item and running it
+  inside this one would have confounded the measurement above.
+- **§9.6's five late and early arrivals are measured and not diagnosed.**
+  They are the engagement's timing, and the frames are in the table.
