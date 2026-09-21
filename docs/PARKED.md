@@ -63,7 +63,16 @@ nothing stops one of ours launching the game into a running capture; a
 capture that collides is also the kind of loss a branch check cannot see,
 because the damage is a log file, not a commit. **Explicitly not a
 priority** — the bursts are rare and always announced, and that is the
-user's own framing. Parked for the pass to weigh shape against cost. Two
+user's own framing. Sharpened the same day: **the lane is this project's
+by default**, astra asks before taking it and notifies on release, so a
+booked capture never waits and never asks. That lowers a lock's value
+again — what it would buy is not coordination but a guard against the one
+case the protocol does not cover, a capture launched into a capture.
+**The interim protocol is the human**: astra asks Ramon, Ramon relays
+here, and the commander holds the next capture or grants a slot. So the
+pass is not choosing between a lock and nothing — it is choosing what
+replaces a person standing in the loop, and "nothing, keep relaying" is
+a legitimate verdict as long as that cost is named rather than assumed. Parked for the pass to weigh shape against cost. Two
 candidates: a lock file taken and released by `tools/gamelog/winelaunch.sh`
 — the single line every capture script already sources, so there is exactly
 one place to write it — carrying holder and start time and going stale
