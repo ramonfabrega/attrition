@@ -1271,9 +1271,34 @@ pub(crate) const EAST_INDIES_FIRST_SCHOLAR: i64 = 8_466;
 /// run109's own record
 /// (`run109_says_great_lakes_s_launches_land_where_the_bow_hand_aims`);
 /// the last seven are past run109's window, so the trace's draw sites are
-/// all that speaks to them. **9510 parts on `Guy::init_real+0x52`**, a
-/// unit coming into existence, which is not this mechanic at all.
-pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 9_510;
+/// all that speaks to them. ~~**9510 parts on `Guy::init_real+0x52`**, a
+/// unit coming into existence, which is not this mechanic at all.~~
+///
+/// **9510 → 10161 on item 442**, and the unit coming into existence was
+/// the sixth scholar after all — §47's own reading, closed six items
+/// later. The AI's Scholar offer on 9380 is now the original's own
+/// number in **both** of its cities, 4,891,136 and 5,755,741 off run114's
+/// `RON_LEADER_PROBE` trace (`docs/AI.md` §52.2, §53), and it takes two
+/// corrections that had to land together:
+///
+/// - `City::count_gather_slots` subtracts `BuildData::num_gatherers`,
+///   which counts a University's **seated** scholars as well as the
+///   `gather_down` chain, so `k` is 6 and 3 rather than 7 and 7 (§51);
+/// - and the arm's third multiply is an **independent `if`**, not an
+///   `else if` — the listing over `006c528c..006c52f5` — so a city below
+///   two thirds takes ×60 ×10 ×5 (§53.1).
+///
+/// Either alone is worse than neither: the first clamps both cities to
+/// §45's 9,999,999 and costs **925 frames** (item 438 measured it and
+/// declined to land it), the second leaves the two cities tied on one
+/// number and §50's duplicate purchase standing. Six hundred and
+/// fifty-one frames, and the first Great Lakes word past ten thousand.
+///
+/// **10161 parts on `Guy::set_anim+0x97a`**, seven draws against eight —
+/// this crate reaches it from `Guy::inc_time+0x271` where the original
+/// reaches it from `Unit::move_step+0x4e2`. An animation clocked off the
+/// wrong caller, which is not the AI at all.
+pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 10_161;
 
 /// The floor `run97_s_window_orders_are_the_original_s` holds — item 368's
 /// widening of Great Lakes' order stacks, the 36,483 `GATHERORDER` records
@@ -1304,6 +1329,24 @@ pub(crate) const ORDER_RESIDUE_RUN97: usize = 53_622;
 /// `great_lakes_6994_issues_the_second_squad_s_walk_to_the_army` (this
 /// crate's answer to it). `docs/ARMY.md` §4.3 and §16.7.
 pub(crate) const GREAT_LAKES_SECOND_SQUAD: i64 = 6994;
+
+/// **Great Lakes' sixth scholar** — the frame the AI's University `1/2019`
+/// finishes the job it queued on 9382, and the frame that *was* the Great
+/// Lakes word from item 396 to item 442.
+///
+/// It is pinned as an event rather than read off
+/// [`LONG_WORD_GREAT_LAKES`] because the word has now moved past it, and
+/// the two run100 tests written about it — the job's own counter and the
+/// word block's unit set — are about **this birth**, not about wherever
+/// the headline stands. `GREAT_LAKES_SECOND_SQUAD` is the same shape one
+/// mechanic over, and it is the shape `ORDER_RESIDUE_RUN97`'s own lesson
+/// argues for: a test keyed on a moving headline reports the headline's
+/// motion as its own failure.
+///
+/// **This crate births it here too, since item 442** (`docs/AI.md` §53),
+/// which is what closes item 408's window: the job is queued on 9382 on
+/// both sides now, and `run53`'s seating list has 9510 sixth of ten.
+pub(crate) const GREAT_LAKES_SIXTH_SCHOLAR: i64 = 9_510;
 
 /// The frame the AI's library takes its **Coinage** job on, and the
 /// frame run58's `QUEUE` record used to part on: twenty-four rows of

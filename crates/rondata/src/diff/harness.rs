@@ -3682,6 +3682,15 @@ mod tests {
         // assertion, not the mechanic, is what failed. The trace's own
         // seatings below the word are the right right-hand side, and the
         // literal stays beside it so a reader sees real frames.
+        //
+        // **Five → ten on item 442**, and the shape is why the list is
+        // written this way: the comparison against the original's own
+        // seatings **passed unchanged**, and only the literal moved. The
+        // sixth scholar is 9510 — the frame that was the word for six
+        // items (§47) — and four more follow it below the new one. Every
+        // one of them is on the original's own frame, which is a stronger
+        // statement than the count: the scholar arm now buys when the
+        // original buys, not merely as often. `docs/AI.md` §53.
         let theirs_seatings: Vec<i64> = (0..LONG_WORD_GREAT_LAKES)
             .filter(|f| {
                 trace
@@ -3697,9 +3706,11 @@ mod tests {
         );
         assert_eq!(
             seatings,
-            vec![8272, 8680, 9_087, 9_201, 9_322],
-            "below the word Great Lakes seats five scholars, on 8272, 8680, \
-             9087, 9201 and 9322"
+            vec![
+                8272, 8680, 9_087, 9_201, 9_322, 9_510, 9_717, 9_861, 10_012, 10_140
+            ],
+            "below the word Great Lakes seats ten scholars, on 8272, 8680, \
+             9087, 9201, 9322, 9510, 9717, 9861, 10012 and 10140"
         );
         // **Great Lakes 9134, the snap arm's blocked stand** (item 360,
         // `docs/COLLISION.md` §5.4). The frame is **one draw on each
@@ -3780,12 +3791,19 @@ mod tests {
             "Great Lakes' market draws below the word are not the \
              original's own"
         );
+        // **Six → nine on item 442.** The comparison above passed
+        // unchanged; only the literal moved, because the word went
+        // 9510 → 10161 and three more of the 200-frame rotations came
+        // under it. **9582 among them closes `docs/AI.md` §50.4's third
+        // open question** — it was the parting that probe's 9582 left, one
+        // `Leader::use_market+0x1ed` short, and it is a market sell on
+        // both sides now.
         assert_eq!(
             markets,
-            vec![8582, 8585, 8782, 8982, 9_182, 9_382],
-            "below the word Great Lakes takes exactly six market draws — and \
-             9182 is item 385's own: the frame the sequence used to part on \
-             is a `use_market` sell on both sides now"
+            vec![8582, 8585, 8782, 8982, 9_182, 9_382, 9_582, 9_782, 9_982],
+            "below the word Great Lakes takes exactly nine market draws — \
+             and 9182 is item 385's own: the frame the sequence used to \
+             part on is a `use_market` sell on both sides now"
         );
         // **The first arrow in the game, on both sides** (item 389,
         // `docs/COMBAT.md` §9.0). This is the cheap permanent negative:
@@ -6047,7 +6065,7 @@ mod tests {
             for d in &r.order_diverged {
                 orders.entry((d.who, d.o)).or_insert(f);
             }
-            if f == LONG_WORD_GREAT_LAKES {
+            if f == GREAT_LAKES_SIXTH_SCHOLAR {
                 word = Some((r.unlinked_units.clone(), r.extra_units.clone()));
             }
         }
@@ -6073,48 +6091,63 @@ mod tests {
             blocks >= 172,
             "run100's own blocks are missing — the wrong file: {blocks}"
         );
-        // **The word's own record, whole.** Of every unit either side
+        // ~~**The word's own record, whole.** Of every unit either side
         // holds on the frame the headline stands on, exactly one is
-        // unmatched, and it is the sixth scholar. `extra` is the mirror
-        // — this crate holding a unit the original does not — and it is
-        // empty, so the frame is not a swap.
+        // unmatched, and it is the sixth scholar.~~ **Closed by item 442**
+        // (`docs/AI.md` §53): the sixth scholar is born here on both
+        // sides, so the block is `([], [])` — nothing missing and nothing
+        // extra. The row is kept, and kept keyed on
+        // `GREAT_LAKES_SIXTH_SCHOLAR` rather than on the headline, because
+        // it is the assertion that says the birth *stayed* closed as the
+        // word moves on past it.
         assert_eq!(
             word,
-            Some((vec![(1, 51)], Vec::new())),
-            "the word block is not one missing scholar and nothing else"
+            Some((Vec::new(), Vec::new())),
+            "block {GREAT_LAKES_SIXTH_SCHOLAR} is not clean — the sixth \
+             scholar has come unstuck"
         );
-        // **The cause, as the record states it.** Two buildings, one
-        // frame, and the frame is 128 before the birth.
+        // ~~**The cause, as the record states it.** Two buildings, one
+        // frame, and the frame is 128 before the birth.~~ **Also closed**:
+        // the two Citizens at `1/2007` are gone and the University's job
+        // is this crate's too, so the queue record parts nowhere in the
+        // window. Item 408 measured the parting; this is its absence,
+        // asserted so it cannot come back quietly.
         let q: Vec<(i64, i64, i64, &str)> = queues
             .iter()
             .map(|(&(w, o), (f, s))| (w, o, *f, s.as_str()))
             .collect();
         assert_eq!(
             q,
-            vec![
-                (1, 2_007, 9_382, "queued ours 2 theirs 0"),
-                (1, 2_019, 9_382, "queued ours 0 theirs 1"),
-            ],
-            "run100's queues do not part the way item 408 measured them"
+            Vec::new(),
+            "run100's queues part somewhere in the window — item 408's \
+             parting is back"
         );
         // **Nothing else opens inside the window.** Every other
         // divergence was already standing on the window's first block —
         // which is what makes 9382 the frame rather than one of a
         // hundred and seventy-two.
+        //
+        // **The word's own frame is excluded since item 442**, and that
+        // is not a loosening: the window runs to the headline, so once
+        // the headline moved past this birth the *word's* parting fell
+        // inside it, and a filter that swallowed it would have reported
+        // the headline advancing as this test failing. What opens on the
+        // word is asserted below instead, by name.
+        let opens = |f: &i64| *f > FIRST - 1 && *f < LONG_WORD_GREAT_LAKES;
         let inside: Vec<String> = units
             .iter()
-            .filter(|(_, f)| **f > FIRST - 1)
+            .filter(|(_, f)| opens(f))
             .map(|(k, f)| format!("unit {k:?} f{f}"))
             .chain(
                 orders
                     .iter()
-                    .filter(|(_, f)| **f > FIRST - 1)
+                    .filter(|(_, f)| opens(f))
                     .map(|(k, f)| format!("order {k:?} f{f}")),
             )
             .chain(
                 cities
                     .iter()
-                    .filter(|((w, o, _), f)| **f > FIRST - 1 && (*w, *o, **f) != (0, 2_000, RAID))
+                    .filter(|((w, o, _), f)| opens(f) && (*w, *o, **f) != (0, 2_000, RAID))
                     .map(|(k, f)| format!("city {k:?} f{f}")),
             )
             .collect();
@@ -6122,12 +6155,31 @@ mod tests {
             inside.is_empty(),
             "a record other than the queue parts inside run100's window: {inside:?}"
         );
+        // **And what opens on the word is one unit's position.** The
+        // draw stream parts at `Guy::set_anim+0x97a` on 10161; the record
+        // says the same event from the other side — `1/38` standing
+        // somewhere else — and nothing in the queue, city or order
+        // records moves with it. Two instruments, one frame.
+        let on_word: Vec<(i64, i64)> = units
+            .iter()
+            .filter(|(_, f)| **f == LONG_WORD_GREAT_LAKES)
+            .map(|(k, _)| *k)
+            .collect();
+        assert_eq!(
+            on_word,
+            vec![(1, 38)],
+            "the word's own frame is not one unit's position: {units:?}"
+        );
         // **The standing residues, as sets.** Counts over a window the
         // word controls rise when the word does (`ORDER_RESIDUE_RUN97`'s
         // own lesson), so what is pinned is *which* keys, not how many
         // rows they made. Each may only shrink.
         assert_eq!(
-            units.keys().copied().collect::<Vec<_>>(),
+            units
+                .iter()
+                .filter(|(_, f)| **f < LONG_WORD_GREAT_LAKES)
+                .map(|(k, _)| *k)
+                .collect::<Vec<_>>(),
             vec![(1, 24), (1, 25), (1, 26)],
             "the window's standing position residue is not the three it was"
         );
@@ -6162,6 +6214,13 @@ mod tests {
     /// Read off the original alone, so it stands whatever this crate
     /// does. It is the falsifier for any later claim that 9510's birth
     /// is something other than that queue emptying.
+    ///
+    /// **Keyed on [`GREAT_LAKES_SIXTH_SCHOLAR`] rather than on the
+    /// headline since item 442**, which moved the word to 10161 and put a
+    /// *second* scholar job (counter 2100 at block 10162) inside the old
+    /// window. The test is about this birth; reading the window's end off
+    /// a moving word made it report the headline's motion as a failure of
+    /// the original's own record.
     #[test]
     fn run100_s_scholar_job_runs_to_the_word() {
         /// The frame the job is queued on; block `QUEUED + 1` is the
@@ -6177,7 +6236,7 @@ mod tests {
         let mut ix = crate::capture::indexed::IndexedCapture::open(&r100).unwrap();
         let mut seen: Vec<(i64, Vec<(i64, i64)>)> = Vec::new();
         let mut born: Option<i64> = None;
-        for n in QUEUED..=LONG_WORD_GREAT_LAKES + 1 {
+        for n in QUEUED..=GREAT_LAKES_SIXTH_SCHOLAR + 1 {
             let Some(at) = ix.frames().iter().position(|x| x.number == n) else {
                 continue;
             };
@@ -6200,9 +6259,9 @@ mod tests {
         }
         assert_eq!(
             seen.len(),
-            (LONG_WORD_GREAT_LAKES + 2 - QUEUED) as usize,
+            (GREAT_LAKES_SIXTH_SCHOLAR + 2 - QUEUED) as usize,
             "run100 does not cover [{QUEUED}, {}]: {} blocks",
-            LONG_WORD_GREAT_LAKES + 1,
+            GREAT_LAKES_SIXTH_SCHOLAR + 1,
             seen.len()
         );
         // The block the job is not yet on, and the block it is gone from.
@@ -6211,7 +6270,7 @@ mod tests {
         let wrong: Vec<&(i64, Vec<(i64, i64)>)> = seen
             .iter()
             .filter(|(n, q)| {
-                let want = if *n <= QUEUED || *n > LONG_WORD_GREAT_LAKES {
+                let want = if *n <= QUEUED || *n > GREAT_LAKES_SIXTH_SCHOLAR {
                     Vec::new()
                 } else {
                     vec![(SCHOLAR, (100 * (n - QUEUED)).min(12_750))]
@@ -6229,7 +6288,7 @@ mod tests {
         let at = ix
             .frames()
             .iter()
-            .position(|x| x.number == LONG_WORD_GREAT_LAKES)
+            .position(|x| x.number == GREAT_LAKES_SIXTH_SCHOLAR)
             .unwrap();
         let frame = ix.frame_state(at).unwrap();
         let b = frame
@@ -6244,7 +6303,7 @@ mod tests {
         );
         assert_eq!(
             born,
-            Some(LONG_WORD_GREAT_LAKES + 1),
+            Some(GREAT_LAKES_SIXTH_SCHOLAR + 1),
             "1/51 is not standing in the block after the word"
         );
     }

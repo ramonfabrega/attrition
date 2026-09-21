@@ -692,13 +692,48 @@ mod tests {
         // `city` here is this crate's index into `cities`, where the
         // original's is the leader's own numbering — one apart on this
         // game, and run111's comparison keys on the slot's type for the
-        // same reason.
-        const OURS_ON_9380: [(i32, i32, i32, i32); 3] =
-            [(52, 45_568, 1, 4), (50, 234_782, 2, 5), (52, 45_568, 2, 4)];
+        // same reason. **Item 442 confirmed the offset by value rather
+        // than by assumption**: our city 1 now carries 4,891,136, which
+        // is the number the original attributes to *its* city 0, and our
+        // city 2 carries its city 1's 5,755,741. Two independent values
+        // agreeing across the shift is what an index comparison alone
+        // could never have said.
+        //
+        // **Both Scholars are the original's own, to the unit** (§53):
+        // `k` is 6 and 3 through the corrected `count_gather_slots`, and
+        // the arm's third `if` is independent, so `filled < total * 2 / 3`
+        // takes ×60 ×10 ×5. The residue left on this frame is the
+        // **Merchant**, which this crate still does not offer — observed
+        // since §50.1, explained nowhere, and pinned in no direction.
+        const OURS_ON_9380: [(i32, i32, i32, i32); 3] = [
+            (52, 4_891_136, 1, 4),
+            (50, 234_782, 2, 5),
+            (52, 5_755_741, 2, 4),
+        ];
         assert_eq!(
             ours,
             OURS_ON_9380.to_vec(),
-            "this crate's unit offers on 9380 — the residue against MEASURED, pinned in no direction"
+            "this crate's unit offers on 9380 — both Scholars are MEASURED's own values; \
+             the Merchant is the residue"
+        );
+        // The values, not merely the count: every Scholar this crate
+        // offers on the frame is one the original offered, and the pairing
+        // is the city shift above. Made to fail on purpose by reading the
+        // third multiply as an `else if`, which returns 36,000,000 and
+        // 18,000,000 into the tail and clamps both to 9,999,999.
+        let their_scholars: Vec<i32> = MEASURED
+            .iter()
+            .filter(|(t, ..)| *t == 52)
+            .map(|(_, v, ..)| *v)
+            .collect();
+        let our_scholars: Vec<i32> = ours
+            .iter()
+            .filter(|(t, ..)| *t == 52)
+            .map(|(_, v, ..)| *v)
+            .collect();
+        assert_eq!(
+            our_scholars, their_scholars,
+            "the two Scholar values agree with the original's, in the original's own order"
         );
     }
 
@@ -1693,15 +1728,24 @@ mod tests {
             ),
             "block {FIRST}'s Scholar offers are not two 9,999,999 batches of              five on both sides"
         );
-        // **THE ROW.** `create_units` re-offers on sim-frame 9380 and the
-        // value is the parting: 5,755,741 clears the Citizen's 234,782
-        // and 45,568 does not. Two slots against one is the same finding
-        // said a second way — the count and the value fall out of the
-        // same arm.
+        // ~~**THE ROW.** `create_units` re-offers on sim-frame 9380 and
+        // the value is the parting: 5,755,741 clears the Citizen's
+        // 234,782 and 45,568 does not. Two slots against one is the same
+        // finding said a second way — the count and the value fall out of
+        // the same arm.~~ **Closed by item 442** (`docs/AI.md` §53): the
+        // arm now computes per city, `k` is 6 and 3 rather than 7 and 7,
+        // and its third multiply is the independent `if` the listing has.
+        // **The row agrees, both slots**, and it is the value diff the
+        // item is booked on rather than a draw agreement — the stream had
+        // agreed on 9375 for months while both sides clamped different
+        // inputs to the same ceiling (§51.3).
         assert_eq!(
             offers(REOFFER, SCHOLAR),
-            (vec![(45_568, 1)], vec![(5_755_741, 1), (5_755_741, 1)]),
-            "block {REOFFER}'s Scholar re-offer is not one 45,568 against              two 5,755,741"
+            (
+                vec![(5_755_741, 1), (5_755_741, 1)],
+                vec![(5_755_741, 1), (5_755_741, 1)]
+            ),
+            "block {REOFFER}'s Scholar re-offer is not two 5,755,741 on              both sides"
         );
         // **And the Citizen is not the defect**, which refuses the
         // dichotomy `docs/AI.md` §47.4 first wrote: the same value and
@@ -1724,22 +1768,30 @@ mod tests {
         );
         // **And the muster agrees with the queue record**, which is the
         // second witness: `num_queued` is per type, and on the block
-        // after the purchase this crate holds two Citizens queued and the
-        // original one Scholar (`docs/AI.md` §47.2's two rows, seen from
-        // the leader instead of the building).
+        // after the purchase ~~this crate holds two Citizens queued and
+        // the original one Scholar (`docs/AI.md` §47.2's two rows, seen
+        // from the leader instead of the building)~~ **both sides hold
+        // one Scholar and no Citizen** — item 442, `docs/AI.md` §53. The
+        // purchase §47.2 named is this crate's now, and the two Citizens
+        // it bought instead are gone.
         assert_eq!(
             queued,
-            vec![("citizen", 2, 0), ("scholar", 0, 1)],
-            "block {BOUGHT}'s `num_queued` is not two Citizens against one              Scholar"
+            vec![("citizen", 0, 0), ("scholar", 1, 1)],
+            "block {BOUGHT}'s `num_queued` is not one Scholar on both sides              and no Citizen"
         );
-        // **The goods agree entering the frame and part through it** —
+        // ~~**The goods agree entering the frame and part through it** —
         // §44's shape. Both sides sell 100 timber on 9382; the original
-        // spends the proceeds on the 40-wealth Scholar and keeps 82,
-        // this crate buys food for two Citizens and keeps 14.
+        // spends the proceeds on the 40-wealth Scholar and keeps 82, this
+        // crate buys food for two Citizens and keeps 14.~~ **Closed by
+        // item 442**: this crate buys the Scholar too, so the wealth
+        // agrees through the frame as well as into it — 53/53 then 82/82.
+        // The row stays because a purchase that spends the *right* amount
+        // is what says the right thing was bought, and it is cheap to
+        // keep checking. `docs/AI.md` §53.
         assert_eq!(
             wealth,
-            vec![(REOFFER, 53, 53), (BOUGHT, 14, 82)],
-            "the wealth either side of the purchase is not 53/53 then 14/82"
+            vec![(REOFFER, 53, 53), (BOUGHT, 82, 82)],
+            "the wealth either side of the purchase is not 53/53 then 82/82"
         );
         let parting: Vec<(usize, &str)> = residue.keys().map(|(w, k)| (*w, k.as_str())).collect();
         assert_eq!(
@@ -1753,6 +1805,15 @@ mod tests {
     /// The `(player, field)` pairs that part over run111's window — the
     /// frame the AI headline's scholar is bought on. Filled from the
     /// first run and then pinned; `docs/AI.md` §48.
+    ///
+    /// **104 → 93 on item 442** (`docs/AI.md` §53), and every one of the
+    /// eleven went **down** with nothing arriving: the make list's
+    /// `MAKE[1]` and `MAKE[2]` heads (`cat`, `t`, `val`, `num`),
+    /// `MAKE[4].val`, and the purchase downstream of them —
+    /// `num_queued[0]`, `num_queued[2]` and `bucket[0:food]`, the two
+    /// Citizens this crate used to buy instead of the Scholar. The
+    /// `MAKE[*].city` rows that remain are the index shift §52.2 names,
+    /// not a valuation.
     const PARTS_ON_RUN111: &[(usize, &str)] = &[
         (0, "SITE[0].reg"),
         (0, "SITE[1].reg"),
@@ -1777,21 +1838,13 @@ mod tests {
         (0, "peasants"),
         (0, "scouts"),
         (0, "wars"),
-        (1, "MAKE[1].cat"),
         (1, "MAKE[1].city"),
-        (1, "MAKE[1].t"),
-        (1, "MAKE[1].val"),
-        (1, "MAKE[2].cat"),
         (1, "MAKE[2].city"),
-        (1, "MAKE[2].num"),
-        (1, "MAKE[2].t"),
-        (1, "MAKE[2].val"),
         (1, "MAKE[3].cat"),
         (1, "MAKE[3].city"),
         (1, "MAKE[3].t"),
         (1, "MAKE[3].val"),
         (1, "MAKE[4].city"),
-        (1, "MAKE[4].val"),
         (1, "MAKE[5].city"),
         (1, "MAKE[7].val"),
         (1, "SITE[0].reg"),
@@ -1841,14 +1894,11 @@ mod tests {
         (1, "SITE[9].val"),
         (1, "SITE[9].wx"),
         (1, "SITE[9].wy"),
-        (1, "bucket[0:food]"),
         (1, "bucket[2:wealth]"),
         (1, "gather_stamp"),
         (1, "income[2:wealth]"),
         (1, "leftover[1:timber]"),
         (1, "leftover[2:wealth]"),
-        (1, "num_queued[0]"),
-        (1, "num_queued[2]"),
         (1, "rate[2:wealth]"),
         (1, "resources[2:wealth]"),
         (1, "scholars"),
@@ -1863,6 +1913,12 @@ mod tests {
     /// The `(player, field)` pairs that part over run107's window — the
     /// word's own frame. Filled from the first run and then pinned;
     /// `docs/AI.md` §44.
+    ///
+    /// **95 → 90 on item 442** (`docs/AI.md` §53), all five down and
+    /// nothing arriving: `MAKE[1].num` and the whole `MAKE[2]` head —
+    /// `cat`, `t`, `val`, `num`. This window is 200 frames *before* the
+    /// re-offer, so the scholar arm's correction reaches the list here
+    /// too; the `MAKE[*].city` rows that remain are §52.2's index shift.
     const PARTS_ON_RUN107: &[(usize, &str)] = &[
         (0, "SITE[0].reg"),
         (0, "SITE[1].reg"),
@@ -1890,13 +1946,8 @@ mod tests {
         (0, "wars"),
         (1, "MAKE[0].city"),
         (1, "MAKE[1].city"),
-        (1, "MAKE[1].num"),
         (1, "MAKE[1].val"),
-        (1, "MAKE[2].cat"),
         (1, "MAKE[2].city"),
-        (1, "MAKE[2].num"),
-        (1, "MAKE[2].t"),
-        (1, "MAKE[2].val"),
         (1, "MAKE[3].cat"),
         (1, "MAKE[3].city"),
         (1, "MAKE[3].t"),
