@@ -3644,6 +3644,15 @@ stands, and §26.4's way out is closed.
 
 ### 27.2 The branch this crate does not have
 
+**Corrected 2026-09-21, item 443 (§30.3), from the listing.** The branch
+is real and §28.2's reading of which arm this captain takes stands, but
+`iVar7` is **−1 at the call on every path**: the AI-driven arm runs
+`add_to_army` and then `orl $-1, %esi` regardless. So `uVar12` selects
+`add_to_army`, not a radius, and the zero path's table below — its two
+grids and its 128- and 64-tile sweeps — is unreachable from
+`think_attack`. Read the table as a description of `find_melee_target`'s
+`param_1 == 0` block, which that caller never enters.
+
 `Unit::think_attack@005f5a80` does **not** call the search with −1. It
 computes, at its head,
 
@@ -3698,10 +3707,14 @@ find the bowmen at 616. Its word is not misread — `UnitData +0x68` is
 hoplites against 0 on who=0's — and the zero path's own narrow arm has the
 same shape, where no integer fits either (3 gives 6 tiles, 4 gives 8).
 
-**So the belief is:** `unit_respond_range` is 7, and for these units the
+~~**So the belief is:** `unit_respond_range` is 7, and for these units the
 AI-driven arm is not reached — most likely because they take the zero path
 of §27.2 under a leader flag this dump does not print, and that path's
-narrow arm is chosen by a grid neither 616 nor 634 sits on.
+narrow arm is chosen by a grid neither 616 nor 634 sits on.~~ **Refuted by
+§30.4**: 616 and 635 scan the *same object-grid cell*, so no value of
+`unit_respond_range` and no choice of arm can separate them. The bracket
+this subsection reads out of two distances was never a bracket on the
+radius.
 
 ### 27.5 Why it still explains the slingers
 
@@ -3793,9 +3806,13 @@ confirms by reading `leader_flags` at `base + who × 28,396 + 0`, and every
 `LeaderData` offset.
 
 who=1's `leader_flags` low byte is 19, so bit 1 is **set**, the `cmovel`
-does not fire, `uVar12` stays 0, and **`think_attack` passes 0**. who=1's
-hoplite captain takes the **zero path** of §27.2. That is settled, by the
-dump and the listing together, with no capture.
+does not fire, and `uVar12` stays 0. ~~and **`think_attack` passes 0**.
+who=1's hoplite captain takes the **zero path** of §27.2.~~ **Corrected
+2026-09-21, item 443 (§30.3)**: what `uVar12 == 0` selects is
+`Unit::add_to_army@005f7740`, not the range — `005f5d86`–`005f5da6` calls
+it and then sets the range to −1 anyway, so **`think_attack` passes −1**,
+on this path and on every other. The branch is settled, by the dump and
+the listing together, with no capture; its consequence was misread.
 
 ### 28.3 And the arithmetic still does not close
 
@@ -3814,9 +3831,13 @@ frame. So:
 | `* 0x180` (both paths' wide arms) | [3.49, 3.62) | **none** |
 | `* 0xc0` (the −1 path's plain floor) | [6.98, 7.25) | **7** |
 
-**The multiplier that fits is the one neither path applies to this unit.**
-Resolving the branch made the contradiction sharper rather than closing
-it, and this section stops here rather than proposing a third account: the
+~~**The multiplier that fits is the one neither path applies to this
+unit.**~~ **Dissolved 2026-09-21, item 443 (§30.3–§30.4).** The arm that
+applies is the −1 branch's, because from this caller that is the only
+branch there is; and the table is beside the point either way, because
+§30.4 shows 616 and 635 scan the same object-grid cell and therefore that
+no radius can separate them. Resolving the branch made the contradiction
+sharper rather than closing it, and this section stops here rather than proposing a third account: the
 two that have been proposed — visibility (§26.2) and the remembered-target
 arm (§26.4) — were each refuted by evidence fetched after they were
 written, and a third built on the same footing would be worth less than
@@ -3831,11 +3852,19 @@ marching, not a ring) and the `0x40000` respond arm considered alone
 and — seventh, item 439 — **an
 offset shift through the leader array**: the eight bytes §28.2 recorded
 were `Leader` against `LeaderData` and not a disagreement at all, so no
-offset any document computes through that array is displaced. What
+offset any document computes through that array is displaced. ~~What
 remains
 unexplained is narrow and stated as a number: **a melee searcher on the
 zero path behaves as though its radius were `unit_respond_range * 0xc0`
-with `unit_respond_range` 7.**
+with `unit_respond_range` 7.**~~ **Superseded 2026-09-21, item 443.** Two
+more entries join the list and between them they retire the programme:
+**eighth**, the zero path — `think_attack` passes −1 on every path
+(§30.3), so nothing reaches `find_melee_target`'s `param_1 == 0` block
+from it; and **ninth, the radius itself** — the bowmen at 616 and the
+slinger `0/10` at 635 sit in the *same* object-grid cell relative to a
+searcher that never moves, so no radius can accept one and refuse the
+other (§30.4). What remains is a target-acceptance predicate, and §30.5
+names the two readings that survive.
 
 ### 28.5 Coverage
 
@@ -3901,17 +3930,26 @@ That is the cause, and it is narrower than any of the seven accounts
 §28.4 lists: those all asked *why the search found something*, and the
 widening does not establish that a search ran at all. Item 435 established
 that **635** is a search, from `near_o` turning from −1 to 10 on that
-frame. On 616 `near_o` stays −1 on both sides — so whatever gives this
-crate its order at 616, it is **not** the path that writes `near_o`.
+frame. ~~On 616 `near_o` stays −1 on both sides — so whatever gives this
+crate its order at 616, it is **not** the path that writes `near_o`.~~
+**Withdrawn 2026-09-21, item 443 (§30.2): this crate models no `near_o`
+at all**, so there were never two sides to that comparison — and read on
+the original's side alone the field says the opposite, that 616 is its
+search too.
 
 ### 29.4 What this leaves
 
-The question is no longer "what radius reaches 7.25 tiles". It is **which
-producer of an attack order runs on a cheat-spawned captain's birth frame
-and does not write `near_o`**. `docs/COMBAT.md` §26–§28's radius
-arithmetic is not wrong, but it was answering a question the widening says
-may never have been the right one — and the bracket it produced rests on
-616 being a search, which §29.3 now doubts.
+~~The question is no longer "what radius reaches 7.25 tiles". It is
+**which producer of an attack order runs on a cheat-spawned captain's
+birth frame and does not write `near_o`**.~~ **Answered and corrected
+2026-09-21, item 443 (§30.1–§30.2).** The producer *is* the search, on
+both sides: a `#[track_caller]` probe names `orders.rs:1588` for the
+captain and the mirror for its two members, and the original's `near_o` —
+written above the range test, so the search's footprint rather than the
+order's — proves its captain never produced an order at 616 rather than
+producing and dropping one. §26–§28's radius arithmetic is not wrong and
+was not misdirected; it is simply **not the discriminator**, which §30.4
+settles by measurement.
 
 `chapter_two_s_first_attack_orders_are_the_dump_s` remains the oracle and
 is unchanged: the timeline is what it was, and six of nine rows still
@@ -3922,3 +3960,237 @@ agree.
 **Diff-backed**: all of §29.1, §29.2 and §29.3 — they are
 `crate::diff::harness::compare` run over run112's own records, and both
 halves of §29.2 are asserted by a test. §29.4 is an inference from them.
+
+## 30. The producer, named — and why no radius can be the answer (item 443, 2026-09-21)
+
+§29 widened 616 and named the divergence as **one order on one frame**,
+then asked which producer of an attack order runs on a cheat-spawned
+captain's birth frame. This section answers that on both sides, and the
+answer costs §26–§28's radius programme its subject: the two frames the
+bracket was built from scan the **same object-grid cell**, so no value of
+any radius can separate them.
+
+Nothing here moved the word. `GOLDEN_WORD_CHAPTER_TWO` is 616 of 901,
+sequence 616, first value disagreement 617 — the same three numbers §29
+left.
+
+### 30.1 This crate's producer, measured
+
+A `#[track_caller]` probe on `Simulation::add_attack_order`, run over
+chapter two's own walk, prints the whole of it:
+
+| sim frame | unit | caller |
+| --- | --- | --- |
+| 615 | `1/6` | `orders.rs:1588` — `think`'s step-3 search |
+| 615 | `1/7`, `1/8` | `orders.rs:1722` — `captain_mirror` |
+| 620 | `0/9` | `orders.rs:1588` — the same search |
+| 620 | `0/10`, `0/11` | `orders.rs:1722` — the same mirror |
+
+(Sim frame 615 is the dump's frame **616**; the dump's label is the sim
+frame plus one throughout this chapter.) Four things follow, and the
+fourth is the one that matters:
+
+- The order is the **captain's search**, not a mirror, not an order-queue
+  artefact, and not a birth-time default.
+- The two members mirror it **on the captain's own frame**, because the
+  captain has the lower `o` and is visited first. The original does the
+  same at 621, where all three slingers take theirs together — so the
+  mirror's timing is *right*, and only the captain's frame is wrong.
+- The slinger squad's rows are byte-identical in producer and frame to the
+  original's. The same code is right five frames later.
+- **So the producer is `find_melee_target`'s caller after all**, which is
+  what §26–§28 assumed and what §29.4 retired.
+
+### 30.2 §29.3's `near_o` argument is void, and the field says the opposite
+
+~~On 616 `near_o` stays −1 on both sides — so whatever gives this crate
+its order at 616, it is **not** the path that writes `near_o`.~~
+**Withdrawn here.** This crate models no `near_o` at all: there is no such
+field on `sim::Unit`, no writer anywhere under `crates/sim`, and
+`crate::gamelog` leaves the whole `ObjectData` half — `near_o`,
+`near_who`, `healing`, `visible` and the rest — unparsed on purpose
+(`ledger.rs`'s rule is that a parsed field is a compared field). The
+widening never compared it. "−1 on both sides" is the original's −1 set
+beside nothing, and it carried an inference it could not support. That is
+the same failure as §26.2, §27.1 and §29.2, one level up: this time the
+*absence* of a number was explained rather than a number.
+
+What the field does say, read from the original:
+`Object::find_nearby_target@00648da0` writes `ObjectData::near_o` /
+`near_who` (`+0x34` / `+0x36`) for **every** candidate that clears
+`Object::valid_target@00648ba0` and `Object::check_target@00649e00` and is
+nearer than the best so far — the write sits **above** the
+`if ((param_1 < 1) || (dist <= param_1))` arm that decides whether the
+candidate may be attacked, so it is not conditioned on the range at all.
+The pair is reset to −1 when the circle is empty, and again after the loop
+when the nearest acceptable candidate is beyond **`0xf00`** (3,840 units,
+20 tiles).
+
+So `near_o` is the search's **footprint**, and it is one-directional:
+
+> an attack order out of `find_nearby_target` implies a `near_o` write,
+> because choosing a target requires a candidate to have cleared the same
+> two predicates that set it.
+
+`1/6`'s `near_o` is −1 at 616 and the nearest enemy is 7.25 tiles, far
+inside the 20-tile reset. **The original therefore never produced an
+order at 616 — it did not produce one and drop it.** That is the item's
+question, answered on `ObjectData +0x34`, frame 616, value −1. The dump
+also shows the field behaving as described rather than as a target
+record: at 635 `1/6` carries `near_o 10` while the order it takes is on
+`0/11`, so nearest and chosen are genuinely two different things.
+
+### 30.3 `think_attack` passes −1 on every path — the zero path is unreachable
+
+~~`Unit::think_attack@005f5a80` does **not** call the search with −1 …
+and the zero path is a different function, cadenced by the frame … Three
+radii and two grids, none of them modelled here.~~ (§27.2) and
+~~who=1's hoplite captain takes the **zero path** of §27.2~~ (§28.2) are
+both **withdrawn here**. The branch §28.2 settled is real; what it selects
+is not the range.
+
+`005f5d86`–`005f5da6`, from the listing rather than the decompiler:
+
+```
+5f5d86:  testl  %esi, %esi          ; esi = the range so far
+5f5d88:  js     0x5f5d97            ; already negative: skip both
+5f5d8a:  movl   %ebx, %ecx
+5f5d8c:  calll  0x5f7740            ; Unit::add_to_army
+5f5d91:  movl   %eax, -0x10(%ebp)
+5f5d94:  orl    $-1, %esi           ; ... and then esi = -1 regardless
+5f5d97:  testl  %edi, %edi
+5f5d99:  movl   $0xffffffff, %eax
+5f5d9e:  cmovnel %eax, %esi
+5f5da1:  jmp    0x5f5da6
+5f5da3:  movl   -0x4(%ebp), %esi    ; the early-out: esi = -(uVar12 != 0)
+5f5da6:  ...                        ; -> find_melee_target(this, esi, ...)
+```
+
+Three ways in and every one arrives with **−1**. The AI-driven branch
+(`esi >= 0`) calls `add_to_army` and then `orl $-1` unconditionally; the
+other branch is already −1; and the early-out at `5f5da3` loads
+`-(uVar12 != 0)`, which is −1 exactly when that path is taken
+(`5f5c04`: `negl %esi; sbbl %esi, %esi`). The only later write is the
+`cmovnel` at `5f5dba`, which substitutes a fixed 11,520-unit range when
+`game->semaphore[1] & 2` — a game-global, not a per-unit or per-frame
+term.
+
+Two consequences:
+
+- **`uVar12` selects `add_to_army`, not a radius.** §28.2's finding — that
+  who=1's hoplite captain has `uVar12 == 0` — stands, and is exactly why
+  that captain joins an army; it says nothing about how far it searches.
+- **`find_melee_target`'s `param_1 == 0` block is dead code for every
+  `think_attack` call**, so §27.2's 1024- and 256-frame grids and their
+  128- and 64-tile sweeps never run from this caller, and §28.3's
+  "the multiplier that fits is the one neither path applies to this unit"
+  dissolves: the applicable arm is the −1 branch's, whose floors are
+  `unit_respond_range * 0xc0` and — because `unit_masks & 0x40000` is set
+  on these hoplites — `unit_respond_range * 0x180`.
+
+And the arm the −1 branch computes has **no frame-dependent term** in it:
+stance, reach, `unit_respond_range`, `unit_masks`. The hoplite captain's
+search radius at 616 and at 635 is the same number.
+
+### 30.4 The search is quantised in cells, and both frames scan the same one
+
+`find_nearby_target` does not test a distance to decide where to look. It
+walks the world's **object grid**: from the searcher's own cell it takes
+`circle_x[i]` / `circle_y[i]` for `i` under
+`circle_radius[min(0x20, (range + 0x2ff) / 0x300 + bonuses)]`, and only
+objects threaded on those cells are ever passed to `valid_target`. A cell
+is `div_3_table[pos >> 8]` — floor division by **768**, four tiles
+(`docs/ATTRITION.md`, the units table, where `init_coord_lookup_array` is
+what makes `div_3_table[i] == i / 3`).
+
+Run112's own coordinates, in cells:
+
+| frame | searcher | its cell | what it is looking at | that cell | `near_o` |
+| --- | --- | --- | --- | --- | --- |
+| 616 | `1/6` hoplite | `(3, 10)` | bowmen `0/6`–`0/8` | `(1, 10)` | **−1** |
+| 621 | `0/9` slinger | `(1, 10)` | `1/6` | `(3, 10)` | **6** |
+| 635 | `1/6` hoplite | `(3, 10)` | slinger `0/10` | `(1, 10)` | **10** |
+| 635 | `0/6` bowman | `(1, 10)` | `1/6` | `(3, 10)` | **6** |
+
+`1/6` stands on `(2424, 7800)` at all three frames and never moves; the
+bowmen stand on their seats at both 616 and 635. **One cell pair,
+`(1, 10)` ↔ `(3, 10)`, is traversed successfully by three searches and
+refused by a fourth — and the fourth is the word.**
+
+Since §30.3 makes the radius frame-independent, the cell set `1/6` scans
+at 616 is the cell set it scans at 635, and at 635 that set demonstrably
+contains `(1, 10)`. **So the bowmen were scanned at 616 and refused.** No
+value of `unit_respond_range`, and no choice among the arms, can produce
+that: a radius large enough for 635 is large enough for 616, and one small
+enough to miss 616 misses 635 too. The same statement in the old units:
+missing `(1, 10)` needs `(range + 0x2ff) / 0x300 <= 1`, so
+`range <= 768`, so `unit_respond_range <= 2` on the `* 0x180` floor — and
+then 635 cannot happen.
+
+**That closes §26–§28's radius programme by measurement**, which is the
+thing four items could not do by argument. `chapter_two_s_hoplite_captain_refused_a_cell_three_searches_reached`
+asserts all four rows and both seats, so the closure is a test rather than
+a paragraph.
+
+### 30.5 What is left, and what would kill each reading
+
+The search ran at 616 and refused every bowman. The gate is not in doubt:
+the dump prints `idle 1` on each captain's birth frame, and the slinger
+captain's own frame is on **neither** of `think`'s grids —
+`(9 + 620) & 0x1f == 21` and `& 0xf == 5` — so its birth-frame search can
+only have come through the `idle == 1` arm, which means `check_idle` runs
+before `think` and the hoplite captain reached `think_attack` at 616 by
+the same arm. Every other gate in `think` is frame-independent for that
+unit and was passable at 635, where it searched.
+
+So what remains is a **target-acceptance predicate**, and the distance is
+not available to it: `check_target` has no distance test on this path
+(its only one is `unit_guard_respond_range`, behind an activity of `0xc`
+these units do not have), and the loop's distance test sits below the
+`near_o` write. Two readings survive, and neither is booked:
+
+1. **`Object::valid_target@00648ba0`** refuses a Bowman to an AI-driven
+   melee unit and does not refuse a Slinger. *Killed by*: a reading that
+   shows `valid_target` carries no term that can separate two enemy
+   military units of the same player at the same instant.
+2. **`Object::check_target@00649e00`'s tail** — `(target is a unit) &&
+   world cell byte `+0xf` `!= -1` && !poor_target(...)`. *Killed by*:
+   `Object::poor_target@0064a270` needing the target to be **moving**
+   (`is_move` on its order) on its main arm, which the bowmen are not —
+   that arm is already dead, so only its type-record arm (`UnitTypeData
+   +0x9a`, bit 6) and the cell byte survive — and the cell byte is read
+   from the *same cell* in both rows of the table above, which kills it
+   too.
+
+Written out, that leaves `valid_target` and `poor_target`'s type-record
+arm, and this section stops there rather than choosing: §26.2, §26.4,
+§27.1 and §29.2 were each a mechanism named one fetch too early, and the
+pattern is the reason `docs/DECISIONS.md` 42 exists.
+
+**What a capture would ask, if one is ever booked for this.** Not a new
+window — the fields are already printed at `UNITS=3`. It would need the
+*target's* side of the predicate, which no level prints: a run with
+`UNITS` raised high enough to carry `UnitTypeData +0x9a` per unit, over
+`[614, 640)`, so that a Bowman and a Slinger can be compared on the one
+byte `poor_target`'s surviving arm reads. Nothing on disk answers it. No
+capture was taken for this item.
+
+### 30.6 Coverage
+
+**Diff-backed**: the whole of §30.1 (a probe over this crate's own
+chapter-two walk), and every number in §30.2's and §30.4's tables — they
+are run112's own printed `x_internal`, `y_internal`, `near_o` and `idle`,
+and `chapter_two_s_hoplite_captain_refused_a_cell_three_searches_reached`
+holds them. §30.5's `idle`/grid argument is arithmetic over dumped
+fields.
+
+**Listing-backed, which is stronger than the decompile**: §30.3's claim
+that `think_attack` passes −1 on every path.
+
+**Reading-only, and owed a blind second reading**: §30.2's rule for when
+`near_o` is written, §30.4's description of the circle walk and the
+`0x300` cell step, and the two survivors in §30.5.
+
+**What this has not established**: why the bowmen are refused. It
+narrows the question from "what radius" to "which predicate", and names
+the two that survive, and that is all.
