@@ -12,15 +12,16 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-21, the seventh Fable pass. **Sixteen landings, no score moved**,
-and the pass says why: the rules lane read four mechanisms before it
-widened its word; the AI lane widened first and converged.*
+*2026-09-21, three lanes at once. **The AI headline moved 651 frames** —
+the first motion in seventeen landings — and the rules word held while
+the programme behind it closed. Both lanes widened before they read.*
 
-- **The AI headline has a measured defect and a coupled term behind it**
-  (438): `count_gather_slots` reads the raw chain, so seated scholars
-  never reduce a University's free slots; correcting it alone costs 925
-  frames, and the valuation alone buys 72 under a probe (432). 442 lands
-  both, against **5,755,741** and **4,891,136** on one frame.
+- **The AI headline moved, 9510 → 10161** (442, +651): 438's free-slot
+  correction plus an `else if` that should be a third independent `if`
+  (listing, 006c52ec), and the scholar arm now returns **5,755,741** and
+  **4,891,136** — both of the original's offers to the unit. The 2:1
+  ratio was the inputs; 1.1768 was the wrap. The Merchant is the last
+  residue on 9380.
 - **The rules producer is named and the radius is closed** (443, word
   unmoved at 616): both sides run `think`'s step-3 search, and 616 and
   635 scan the **same cell**, so no radius separates them. 441's `near_o`
@@ -29,19 +30,17 @@ widened its word; the AI lane widened first and converged.*
 - **A word is pinned with its widening** (DECISIONS 43): `WIDENINGS`
   names the test or the item; East Indies' 9711 and chapter one's 626
   have none on file (444, 445, parked).
-- **The AI has its dump** (367, built; run114, `docs/AI.md` §52): the
-  original's offers on 9380 read off a `RON_LEADER_PROBE` trace, 432's
-  four values confirmed, ours pinned beside them for 442.
-- Four open, 65 parked.
-  **Fable backlog: six Loop items** (251, 335, 313, 375, 428, 446).
+- **The AI's dump paid for itself in one item** (367, run114, §52): the
+  offers 442 matched to the unit came off it. Four open, 66 parked.
+  **Fable backlog: seven Loop items** (251, 335, 313, 375, 428, 446, 449).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w9711 of 24,000 · GreatLakes w9510 of 24,000
+Long captures: EastIndies w9711 of 24,000 · GreatLakes w10161 of 24,000
 Golden: w616 of 901 (ch2) · ch1 w626 · 447 next
-Endpoint 24001: EastIndies 64 off, 5 unlinked · GreatLakes 51 off, 11 unlinked
+Endpoint 24001: EastIndies 64 off, 10 unlinked · GreatLakes 55 off, 8 unlinked
 
-**Opener: 447 on the rules lane, and whatever 442 and 390 leave — three
-lanes ran at once, and 443 closed a programme without moving its word.**
+**Opener: 448 on the AI lane and 447 on the rules — the moved word owes
+its widening, and 390's capture is still out.**
 
 ## The queue
 
@@ -51,14 +50,14 @@ the AI, lower map first — Great Lakes. Take the first unstarted on either
 track unless a better order is obvious, and say so. Numbers are stable;
 the backlog is `docs/PARKED.md`, and an item returns only when a score names it.
 
-442. **The scholar arm's whole `val` chain, with the
-    `count_gather_slots` correction** (the AI headline; both halves
-    measured, not probed): correcting `gfree` alone costs **925 frames**
-    and the valuation alone buys 72, so they land together or the floor
-    fires. Targets **5,755,741** and **4,891,136** on one frame. **`val ∝
-    k` is not it** — post-fix our ratio is 2 against the original's
-    1.1768. 438's `num_gatherers` guard is the falsifier; the branch tests
-    are `Leader` fields; run114 prints the original's offers (§52).
+448. **Great Lakes 10161 widened whole** (the AI headline; the word owes
+    its widening, DECISIONS 43): 442 moved it 651 frames past run100's
+    window, so `WIDENINGS` now says *owed* and names this item. Compare
+    **every** dumped record on 10161, both directions, before any
+    mechanism — the frame has been right every time a named mechanism was
+    wrong (DECISIONS 42). The draw stream may be blind to the cause: a
+    purchase draws nothing (§41, §42), which is why 9382 needed the
+    record. No capture booked; grep the disk first.
 
 447. **616's target-acceptance predicate, ours accepting and theirs
     refusing** (the rules headline's frame; 443 named the producer and

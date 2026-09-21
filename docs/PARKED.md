@@ -36,6 +36,23 @@ paragraph — and **built 367**, the AI's dump, the same day: run114 and
 `docs/AI.md` §52 (`docs/audit/2026-09-21-fable-pass-7.md`, DECISIONS 43).
 341 closed 2026-09-18 by item 363.
 
+(449) **A widening pin, and a vacuity guard, can go stale by success.**
+Measured twice on 2026-09-21 by item 442, which moved Great Lakes 9510 →
+10161. `the_widening_behind_each_pinned_word_exists` checks that a named
+widening test **exists**, never that it widens the word's *current*
+frame — so when the word moved 651 frames past run100's window the row
+kept passing and kept reading as pinned, which is the exact failure
+DECISIONS 43 was written against. Repointed to `None, 448` by hand at
+book time; the guard shape would be to compare the named test's frame
+with the word it is pinned beside, which needs the frame to be declared
+rather than buried in the test body. 442 reports the same class twice
+more from the other side: a test keyed on the headline reports the
+headline's *motion* as its own failure (both run100 tests did), and the
+ladder's shared-extras floor fell 15 → 10 because the AI stopped buying
+spurious units — a floor that only ratchets one way cannot tell a win
+from a regression. One family, three instances, and the pass should rule
+the family rather than the three.
+
 (446) **The capture lane has no interlock but a conversation.** Raised by
 Ramon, 2026-09-21: `astra`, a Codex session on this machine, borrows the
 lane in ~30-second bursts and asks each time whether it is free. Today's

@@ -1535,12 +1535,14 @@ pub(crate) const GOLDEN_WORD_CHAPTER_TWO: i64 = 616;
 /// that landed the widening, or the one that owes it.
 pub(crate) const WIDENINGS: &[(&str, i64, Option<&str>, u32)] = &[
     ("LONG_WORD_EAST_INDIES", LONG_WORD_EAST_INDIES, None, 444),
-    (
-        "LONG_WORD_GREAT_LAKES",
-        LONG_WORD_GREAT_LAKES,
-        Some("run100_s_word_frame_is_the_original_s"),
-        408,
-    ),
+    // Item 442 moved this word 9510 → 10161, and the widening went stale by
+    // succeeding: `run100_s_word_frame_is_the_original_s` compares every
+    // record on **9382**, inside run100's window, and the word now stands
+    // 651 frames past it. The row therefore says *owed* again rather than
+    // naming a test that widens a frame this word has left — the guard
+    // checks that a named test exists, not that it widens the current word,
+    // so a stale name would pass and read as pinned (parked 449).
+    ("LONG_WORD_GREAT_LAKES", LONG_WORD_GREAT_LAKES, None, 448),
     (
         "GOLDEN_WORD_CHAPTER_ONE",
         GOLDEN_WORD_CHAPTER_ONE,
