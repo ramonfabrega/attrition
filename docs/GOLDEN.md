@@ -252,9 +252,18 @@ no gap, nine units born three at a time at 611, 616 and 621, and **373
 Bowmen `0/6` and `0/7` on `1/8` at 4.95 and 4.04 tiles, inside reach; no
 `ATTACKORDER` on the Bowmen at 611.
 
-The draw stream parts at **616**, ours 26 draws against the original's 25,
-the extra one `Unit::fight+0x9b0` — the one-in-five re-search — on the
-frame the hoplite squad appears. `GOLDEN_WORD_CHAPTER_TWO` pins it.
+~~The draw stream parts at **616**, ours 26 draws against the original's
+25, the extra one `Unit::fight+0x9b0` — the one-in-five re-search — on the
+frame the hoplite squad appears.~~ **624 since item 447, 2026-09-21**
+(`docs/COMBAT.md` §31): the spurious 616 order was a target the original
+could not see, and `UnitData::is_seen` is the fifth test of
+`ObjectData::valid_target_const` that this crate had no term for. The
+stream now parts at **624**, ours 25 draws against the original's 26 —
+the missing one a `Unit::move_step+0x823` on the slinger squad — and the
+first value disagreement is 625. `GOLDEN_WORD_CHAPTER_TWO` pins it, and
+`chapter_two_s_word_frame_is_widened_whole` is its widening: the values
+part two frames earlier, at **622**, on where the slingers plan their
+chase.
 
 ~~**And the value diff found what the draw stream did not.** … 140 units
 west … `find_nearby_spot`'s ring on clear ground …~~ **Withdrawn
@@ -276,10 +285,14 @@ everything after it downstream.
 **no** attack order on that frame at all: its first is at **621**, to the
 slingers on their own birth frame targeting `ox 8 whom 1`, and the bowmen
 and the hoplites both take theirs at **635**. This crate matches two of
-those three squads exactly and gives the hoplite squad an order on its
-birth frame, 616 — which is the whole of the word, because the spurious
-order puts the captain into `do_attack` and `Unit::fight`'s one-in-five
-re-search spends the twenty-sixth draw.
+those three squads exactly and ~~gives the hoplite squad an order on its
+birth frame, 616~~ — which was the whole of the word, because the spurious
+order put the captain into `do_attack` and `Unit::fight`'s one-in-five
+re-search spent the twenty-sixth draw. **Item 447 retired that order**
+and did not replace it with the dump's 635: the original's `1/6` accepts
+its target on `ObjectData::visible`, which this crate does not model, so
+the hoplite squad now takes no order at all in the chapter
+(`docs/COMBAT.md` §31.5, §31.7).
 
 **Two named mechanisms were ruled out by measurement**, and that is the
 item's product as much as the frame is. The 140-unit seating above is

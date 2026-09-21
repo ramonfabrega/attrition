@@ -416,10 +416,15 @@ fn chapter_two_s_squads_stand_where_the_dump_stands_them() {
         "chapter two's squads are not seated where the golden dump seats \
          them at 617"
     );
-    // **And the drift is arithmetic.** Five more frames and who=1's squad
-    // stands 140 units west on all three figures, at 28 a frame, while the
-    // dump holds the original's still: item 415's number, with the
-    // mechanism it actually has.
+    // ~~**And the drift is arithmetic.** Five more frames and who=1's
+    // squad stands 140 units west on all three figures, at 28 a frame,
+    // while the dump holds the original's still: item 415's number, with
+    // the mechanism it actually has.~~ **Closed by item 447**
+    // (`docs/COMBAT.md` §31): the chase that walked them was an attack
+    // order the original never issued, and `is_seen` in `valid_target`
+    // retires it. So the assertion inverts — who=1's squad **does not
+    // move**, which is the dump's own behaviour through 634, and the 140
+    // is a number this crate can no longer produce.
     for _ in 0..5 {
         script.stage(built.sim.frame, &mut built, &loaded);
         built.tick();
@@ -430,10 +435,11 @@ fn chapter_two_s_squads_stand_where_the_dump_stands_them() {
             .expect("the squad is still alive");
         let p = built.sim.units[u].pos;
         assert_eq!(
-            (seat.0 - p.x, seat.1 - p.y),
-            (28 * 5, 0),
-            "unit {who}/{o} has not walked five frames' worth west of its \
-             seat; the 140 of item 415 is 5 x 28 and nothing else"
+            (p.x, p.y),
+            *seat,
+            "unit {who}/{o} has walked off its seat by 622; the original's \
+             hoplites hold no order at all through 634 and neither should \
+             these (docs/COMBAT.md §31)"
         );
     }
     // Anti-vacuity: the gap the chapter is built on. 2424 − 1032 is 1392
@@ -1064,19 +1070,25 @@ fn chapter_two_s_first_attack_orders_are_the_dump_s() {
         ((1, 7), 635),
         ((1, 8), 635),
     ];
-    // Ours. **Pinned in no direction** — the hoplite rows are the residue
-    // at the word, and the two squads that agree are what say the other
-    // three are a finding rather than noise.
-    let ours: [((u8, i16), i64); 9] = [
+    // Ours. **Pinned in no direction**, and now **six rows rather than
+    // nine**: item 447 put `is_seen` into `valid_target`
+    // (`docs/COMBAT.md` §31), which retired the hoplites' spurious 616 —
+    // and did not replace it with the dump's 635, because the other half
+    // of `UnitData::is_seen`, `ObjectData::visible`, is not modelled here.
+    // The original's `1/6` accepts `0/10` at 635 on that fallback: the
+    // slinger set its own `visible` bit for player 1 at **631** by
+    // attacking a hoplite (`Unit::set_attacking@005ff5b0`,
+    // `docs/VISION.md` §6), and player 1's line of sight never reaches
+    // that cell. So the row moved from *wrong and early* to *absent*,
+    // which is what the word measures as 616 → 624 and what §31.7 books
+    // as the next item.
+    let ours: [((u8, i16), i64); 6] = [
         ((0, 6), 635),
         ((0, 7), 635),
         ((0, 8), 635),
         ((0, 9), 621),
         ((0, 10), 621),
         ((0, 11), 621),
-        ((1, 6), 616),
-        ((1, 7), 616),
-        ((1, 8), 616),
     ];
     let got: Vec<((u8, i16), i64)> = first.into_iter().collect();
     assert_eq!(
@@ -1085,14 +1097,17 @@ fn chapter_two_s_first_attack_orders_are_the_dump_s() {
         "chapter two's engagement timeline moved. The dump's own is \
          {theirs:?}; re-pin `ours` and say so in docs/GOLDEN.md §6"
     );
-    // **Six of the nine already agree with the original**, and that is the
-    // assertion that keeps the other three honest: a change that made the
-    // hoplites right by making the slingers wrong would fail here.
-    let agree = got.iter().zip(theirs).filter(|(a, b)| a.1 == b.1).count();
+    // **Six of the nine agree with the original exactly**, and that is the
+    // assertion that keeps the missing three honest: a change that made
+    // the hoplites right by making the slingers wrong would fail here.
+    let agree = theirs
+        .iter()
+        .filter(|(k, f)| got.iter().any(|(g, n)| g == k && n == f))
+        .count();
     assert_eq!(
         agree, 6,
         "the two squads this crate gets right are no longer right; the \
-         hoplites' 616 is only a finding while they are"
+         hoplites' missing 635 is only a finding while they are"
     );
     // The original issues nothing at all on the frame the word parts.
     assert!(
@@ -1293,5 +1308,162 @@ fn chapter_two_s_hoplite_captain_refused_a_cell_three_searches_reached() {
         (1, 1, 4),
         "the idle counters that put these three rows on `Unit::think`'s \
          search arm have moved"
+    );
+}
+
+/// **624's widening, both directions** — every record run112's dump carries
+/// over `[620, 628)`, compared whole against this crate's own walk, on the
+/// frame chapter two's word now stands (`docs/COMBAT.md` §31.6).
+///
+/// A word is pinned with its widening (`docs/DECISIONS.md` 43), and 616's
+/// went stale by succeeding: item 441 widened **616**, item 447 moved the
+/// word past it, and `chapter_two_s_squads_stand_where_the_dump_stands_them`
+/// widens a frame the word has left. This is its replacement, written with
+/// the move rather than booked after it — the same lesson parked 449 drew
+/// on Great Lakes the same day.
+///
+/// What it asserts is the **shape** of the residue rather than a tally that
+/// drifts on every landing: through 623 the two sides agree on every unit
+/// the dump prints, and at 624 exactly one unit parts. Both directions are
+/// counted, so neither a unit this crate has lost nor one it has invented
+/// can hide (`FrameResult::extra_units`).
+#[test]
+fn chapter_two_s_word_frame_is_widened_whole() {
+    /// The first frame compared: run112's window opens at 605 and the
+    /// slinger squad is born at 621, so this is inside both.
+    const FIRST: i64 = 620;
+    /// One past the last. 624 is the word; three frames either side is
+    /// enough to say the parting opens *there* and not before.
+    const LAST: i64 = 628;
+    let Some(inst) = crate::testenv::install() else {
+        return;
+    };
+    let Some((dump, tracepath)) = golden("ch2") else {
+        eprintln!("skipping: no golden capture ch2 (see docs/RUNS.md run112)");
+        return;
+    };
+    let trace = crate::trace::Trace::read(std::path::Path::new(&tracepath))
+        .expect("a finalized golden trace")
+        .expect("missing RONT header");
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(&dump);
+    let log = Log::parse(&text);
+    let texts = sibling_texts();
+    let logs = siblings(&texts);
+    let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+    let refs: Vec<&Initial> = inits.iter().collect();
+    if refs.is_empty() {
+        eprintln!("skipping: no sibling dumps");
+        return;
+    }
+    let mut ix = crate::capture::indexed::IndexedCapture::open(&dump).unwrap();
+    let mut built = stand_up(&loaded, &log, &refs, &trace);
+    let players = built.sim.players.len();
+    let mut script = chapter(2);
+    // Every key that parted, against the **first** frame it parted on —
+    // a residue standing before the window opened is not this word's.
+    let mut first: std::collections::BTreeMap<String, i64> = std::collections::BTreeMap::new();
+    let mut blocks = 0usize;
+    for f in 0..LAST - 1 {
+        script.stage(built.sim.frame, &mut built, &loaded);
+        built.tick();
+        // The dump's frame label is the sim frame plus one throughout this
+        // chapter (`docs/COMBAT.md` §30.1), so the block this tick produced
+        // is `f + 1`.
+        let n = f + 1;
+        if n < FIRST {
+            continue;
+        }
+        let Some(at) = ix.frames().iter().position(|x| x.number == n) else {
+            continue;
+        };
+        let frame = ix.frame_state(at).unwrap();
+        let r = compare(&built, &frame, players);
+        blocks += 1;
+        let mut note = |k: String| {
+            first.entry(k).or_insert(n);
+        };
+        for d in &r.diverged {
+            eprintln!(
+                "  {n} pos {}/{} ours {:?} theirs {:?}",
+                d.who, d.o, d.ours, d.theirs
+            );
+            note(format!("pos {}/{}", d.who, d.o));
+        }
+        for d in &r.order_diverged {
+            eprintln!("  {n} order {}/{} {:?}", d.who, d.o, d);
+        }
+        for d in &r.angle_diverged {
+            eprintln!("  {n} angle {}/{} {:?}", d.who, d.o, d);
+        }
+        for (who, o) in &r.unlinked_units {
+            note(format!("unlinked {who}/{o}"));
+        }
+        for (who, o) in &r.extra_units {
+            note(format!("extra {who}/{o}"));
+        }
+        for d in &r.order_diverged {
+            note(format!("order {}/{}", d.who, d.o));
+        }
+        for d in &r.los_diverged {
+            note(format!("los {}/{}", d.who, d.o));
+        }
+        for d in &r.angle_diverged {
+            note(format!("angle {}/{}", d.who, d.o));
+        }
+        for d in &r.collide_diverged {
+            note(format!("collide {}/{}", d.who, d.o));
+        }
+        for d in &r.search_diverged {
+            note(format!("search {}/{}", d.who, d.o));
+        }
+        for d in &r.packed_diverged {
+            note(format!("packed {}/{}", d.who, d.o));
+        }
+    }
+    assert_eq!(
+        blocks,
+        (LAST - FIRST) as usize,
+        "run112's dump no longer carries every frame of [{FIRST}, {LAST})"
+    );
+    // **Anti-vacuity**: the window has to hold the cast the chapter is
+    // about, or an empty comparison reads as agreement.
+    let ninth = built
+        .sim
+        .units
+        .iter()
+        .filter(|u| u.owner < 2 && u.index >= 6)
+        .count();
+    assert_eq!(
+        ninth, 9,
+        "the window does not hold chapter two's nine staged figures"
+    );
+    // **The map the widening exists to pin**, and its shape is the finding:
+    // the draw stream holds to 624 and the *values* part at **622**, two
+    // frames earlier, on the slinger squad alone. Nothing on the hoplites,
+    // nothing on the bowmen, nothing unlinked or extra in either
+    // direction, and no `los`, `packed`, `collide` or `search` row at all.
+    //
+    // `0/9`'s **position** is not in the map: the captain stands where the
+    // dump stands it and only its order parts, which is what says the
+    // residue is a *destination* and not a step. Ours plans the whole
+    // squad's move to `(2424, 7800)` — `1/6`'s own seat — where the
+    // original plans `(1608, 8184)`, `(1560, 7848)` and `(1704, 8424)`,
+    // three spread points, and walks six path slots to this crate's ten.
+    // That is parked 400's shape one squad over.
+    let measured = [
+        ("angle 0/9", 622),
+        ("order 0/10", 622),
+        ("order 0/11", 622),
+        ("order 0/9", 622),
+        ("pos 0/10", 622),
+        ("pos 0/11", 622),
+    ];
+    let got: Vec<(&str, i64)> = first.iter().map(|(k, &n)| (k.as_str(), n)).collect();
+    assert_eq!(
+        got,
+        measured.to_vec(),
+        "chapter two's word frame no longer widens the way item 447 \
+         measured it; re-pin this map and say so in docs/COMBAT.md §31.6"
     );
 }

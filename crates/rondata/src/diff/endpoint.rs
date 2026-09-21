@@ -782,7 +782,20 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // linked that did not and four stand further out, 13,840 frames
         // past the word. The AI now buys the scholars the original buys
         // and the endpoint has ten more of the game in it.
-        off: 55,
+        // And **55 → 53 off** on 2026-09-21, item 447 — `is_seen` in
+        // `valid_target`, and `Object::add_to_world`'s missing
+        // `update_seen(0)` at a unit's birth (`docs/COMBAT.md` §31), which
+        // moves the golden record's chapter two **616 → 624**. Two
+        // positions closer and nothing else in the row moves, 13,840
+        // frames past this map's word. Both halves touch every unit on
+        // every map — a target out of sight is refused wherever it stands,
+        // and a unit born on the map now lights its own disc — so this row
+        // is evidence about 24,000 frames of run-up and not about the
+        // predicate; the value diff the change is booked on is chapter
+        // two's own widening at 622–624
+        // (`chapter_two_s_word_frame_is_widened_whole`). DECISIONS 36 asks
+        // for the number rather than a trade.
+        off: 53,
         unlinked: 8,
         extra: 0,
         build_unlinked: 0,

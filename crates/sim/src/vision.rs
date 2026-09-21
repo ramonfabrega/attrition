@@ -754,13 +754,9 @@ mod tests {
             los: 16,
             ..crate::UnitType::default()
         });
-        // Player 1's scout, three cells east of player 0's building.
-        let at = Pos::new(23 * 0x300 + 0x180, 20 * 0x300 + 0x180);
-        let mut u = crate::Unit::new(1, 0, at, 20);
-        u.ty = Some(t);
-        let u = s.add_unit(u);
-
-        // Nothing has looked at anything yet.
+        // Nothing has looked at anything yet — asserted **before** the
+        // scout exists, because a unit born on the map lights its own disc
+        // (`Object::add_to_world`, item 447).
         s.check_ever_seen(b, false);
         assert_eq!(
             s.buildings[b].ever_seen, 0,
@@ -773,9 +769,18 @@ mod tests {
         );
         assert_eq!(s.treaties[0][1], 0);
 
-        // The scout looks. The fog now carries player 1's bit over the
-        // footprint — and that alone is **not** contact.
-        assert!(s.update_seen(u, false) > 0, "the scout's disc lands");
+        // Player 1's scout, three cells east of player 0's building. Its
+        // disc lands as it is born, and the fog now carries player 1's bit
+        // over the footprint — which alone is **not** contact.
+        let at = Pos::new(23 * 0x300 + 0x180, 20 * 0x300 + 0x180);
+        let mut u = crate::Unit::new(1, 0, at, 20);
+        u.ty = Some(t);
+        let u = s.add_unit(u);
+        assert_eq!(
+            s.update_seen(u, false),
+            0,
+            "the scout's disc landed at its birth, so nothing is new"
+        );
         assert!(
             !s.has_met(1, 0),
             "the fog is lit but the building has not checked"
@@ -821,8 +826,11 @@ mod tests {
         let at = Pos::new(23 * 0x300 + 0x180, 20 * 0x300 + 0x180);
         let mut u = crate::Unit::new(1, 0, at, 20);
         u.ty = Some(t);
+        // The disc lands at birth (item 447), so the look has happened by
+        // the time the building checks.
         let u = s.add_unit(u);
-        assert!(s.update_seen(u, false) > 0);
+        assert!(seen(&s, 1) > 0, "the scout's disc is on the grid");
+        assert_eq!(s.update_seen(u, false), 0, "and nothing is new");
         s.check_ever_seen(b, false);
         assert_eq!(
             s.buildings[b].ever_seen, 0,
@@ -995,14 +1003,25 @@ mod tests {
     /// §5: the disc is written into `seen2`, and `update_seen` answers with
     /// the count of cells newly revealed — the original's `reveal_fog`
     /// calls. A second pass from the same spot reveals nothing.
+    ///
+    /// **And the first pass is the unit's birth.** `Object::add_to_world`
+    /// reaches `update_seen(0)` and [`Sim::add_unit`] makes that call since
+    /// item 447, so `fog_sim` hands back a grid with the disc already on
+    /// it; before then a unit born on the map lit nothing at all until it
+    /// crossed a half-cell (`docs/COMBAT.md` §31.4). That is asserted here
+    /// rather than worked around: the count is the same disc either way,
+    /// and the difference is whose call made it.
     #[test]
     fn the_disc_lands_in_the_fog_and_only_new_cells_count() {
         let (mut s, u) = fog_sim(4, 0);
-        assert_eq!(seen(&s, 0), 0, "an all-dark grid");
-        let first = s.update_seen(u, false);
-        assert_eq!(first, circle().radius[2], "the whole disc of radius two");
-        assert_eq!(seen(&s, 0), first);
+        let born = seen(&s, 0);
+        assert_eq!(
+            born,
+            circle().radius[2],
+            "the whole disc of radius two, lit at the unit's birth"
+        );
         assert_eq!(s.update_seen(u, false), 0, "nothing new the second time");
+        assert_eq!(seen(&s, 0), born);
     }
 
     /// §6: the trigger is a **half-cell** crossing, not any movement. A
@@ -1042,11 +1061,18 @@ mod tests {
             (100, false),
             (133, true),
         ] {
-            let (mut s, _u) = fog_sim(4, 0);
+            let (mut s, u) = fog_sim(4, 0);
+            // The birth disc is already on the grid (item 447), so what is
+            // measured is the **delta**: the unit is teleported to ground
+            // nobody has looked at — assigning `pos` reaches no reveal of
+            // its own — and only the resync can light it.
+            let base = seen(&s, 0);
+            assert!(base > 0, "the birth disc");
+            s.units[u].pos = Pos::new(6 * 0x300 + 0x180, 6 * 0x300 + 0x180);
             s.frame = frame;
             s.tick();
             assert_eq!(
-                seen(&s, 0) > 0,
+                seen(&s, 0) > base,
                 reveals,
                 "frame {frame}: the resync {}",
                 if reveals { "should run" } else { "should not" }

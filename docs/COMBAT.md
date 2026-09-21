@@ -4172,8 +4172,12 @@ window — the fields are already printed at `UNITS=3`. It would need the
 *target's* side of the predicate, which no level prints: a run with
 `UNITS` raised high enough to carry `UnitTypeData +0x9a` per unit, over
 `[614, 640)`, so that a Bowman and a Slinger can be compared on the one
-byte `poor_target`'s surviving arm reads. Nothing on disk answers it. No
-capture was taken for this item.
+byte `poor_target`'s surviving arm reads. ~~Nothing on disk answers it.~~
+No capture was taken for this item. **Nothing on disk answers *that arm*;
+something on disk answered the question** — §31.3:
+`ObjectData::visible` (`+0x40`) is the *other* survivor's own input and
+the dump has printed it at `UNITS=3` all along. The `+0x9a` capture stays
+unbooked and run113 unspent.
 
 ### 30.6 Coverage
 
@@ -4191,6 +4195,219 @@ that `think_attack` passes −1 on every path.
 `near_o` is written, §30.4's description of the circle walk and the
 `0x300` cell step, and the two survivors in §30.5.
 
-**What this has not established**: why the bowmen are refused. It
+~~**What this has not established**: why the bowmen are refused. It
 narrows the question from "what radius" to "which predicate", and names
-the two that survive, and that is all.
+the two that survive, and that is all.~~ **Answered by §31**: the
+predicate is survivor 1, and it is `UnitData::is_seen@00607a60` reached
+through `ObjectData::valid_target_const`'s fifth test. Survivor 2 is not
+killed, only no longer needed — §31.7.
+
+## 31. The predicate is `is_seen`, and a unit born on the map lit no fog (item 447, 2026-09-21)
+
+§30 narrowed 616 from "what radius" to "which predicate" and left two
+survivors, neither booked. This section answers it on the first:
+**`ObjectData::valid_target_const@006472c0`'s fifth test is a visibility
+test**, this crate had no term for it, and putting one in moves chapter
+two's word **616 → 624**.
+
+`GOLDEN_WORD_CHAPTER_TWO` is 624 of 901, sequence 624, first value
+disagreement 625 — and the value diff beside it is §31.6, which is the
+part worth reading: the draw stream holds to 624 and the *positions* part
+at **622**.
+
+### 31.1 The chain, read down to the test
+
+`Object::valid_target@00648ba0` opens with a virtual call and returns 0
+on it before anything else:
+
+```
+iVar2 = (**(code **)(*(int *)this + 0x138))(param_1,param_2);
+if (iVar2 == 0) return 0;
+```
+
+`+0x138` on `Unit::vftable` is **`ObjectData::valid_target_const`**
+(`tools/ghidra/decomp/vtables.txt`; the rest of `Object::valid_target`
+is the *capture* ladder — `check_capture_eligible`, `Build::check_capture`
+— and a unit target falls straight through it to `return 1`).
+
+`valid_target_const` is five tests before it ever asks what class the
+candidate is:
+
+1. `param_1 < 0 || param_2 < 0 || 7 < param_2` — the gaia bound this
+   crate already had.
+2. `param_2 == this->who`.
+3. `!LeaderData::is_enemy(leaders[this->who], param_2)`.
+4. the candidate's `flags & 1` — alive.
+5. **`target->vtable[0x48](this->who, 0)`**, which is
+   `UnitData::is_seen@00607a60`. Zero → `return 0`.
+
+Everything §26–§30 argued about — domain, `unit_masks`, the air ladder,
+the two `0x218` arms — sits *below* test 5. `Sim::valid_target` had tests
+1–4 and the ladder, and its own doc comment said "no fog".
+
+### 31.2 `is_seen`, and the half this crate can answer
+
+```
+is_seen(who, 0):
+    if (unit_masks & 0x800) == 0 && (type->unit_masks & 0x4000) == 0
+            && (unit_masks2 & 0x8000) == 0:
+        if (type->unit_masks & 0x40000) == 0 or get_order() != 0:
+            goto fog
+    if (unit_masks & 0x1000) == 0 && !is_detected(this, who):
+        return 0                            # the stealth arm
+fog:
+    if who != this->who and game.reveal_map != 3:
+        if !WorldData::is_seen(pos / 0x180, who):
+            return (visible >> who) & 1
+    return 1
+```
+
+and `WorldData::is_seen@006b55c0` is `seen[fy * fog_xs + fx] &
+leader->ally_mask`, with three always-true arms above it: `who > 7`,
+`reveal_map == 3`, and two leader flags (`0x800`, and a `num_units` count)
+this crate does not carry.
+
+The fog grid is `div_3_table[pos >> 7]` — `pos / 0x180`, half a world cell,
+**the same plane `docs/VISION.md` §5 already builds**. So the whole of
+test 5's fog half was already answerable here; nothing asked it.
+
+`Sim::target_is_seen` is that half, called from `Sim::valid_target` at the
+original's own position. Two seams, both **refusing**: the stealth arm is
+not carried, and `ObjectData::visible` is not modelled, so the fallback
+answers 0 where the original may answer 1.
+
+### 31.3 What `visible` is, and why the seam does not touch 616
+
+`ObjectData +0x40` is `visible` (`types.txt`), and run112 prints it on
+every unit record at `UNITS=3` — so the fallback's own input is on disk
+and no capture was needed to read it. Its writers are
+`Unit::set_attacking@005ff5b0` and `Unit::do_cast@005ebfe0`, cleared by
+`Unit::work` (`docs/VISION.md` §6); `set_attacking(this, victim_who)` does
+`this->visible |= 1 << victim_who`. **A unit that attacks you becomes
+visible to you**, through fog, until it goes back to work.
+
+run112's own values, over the window §30 was fought on:
+
+| unit | born | gains player 1's bit | at what distance from `1/6` |
+| --- | --- | --- | --- |
+| `0/6`, `0/7`, `0/8` bowmen | 611 | **636** | 7.9, 7.1, 7.7 tiles |
+| `0/10` slinger | 621 | **631** | 6.56 tiles |
+| `0/11` slinger | 621 | 640 | 5.71 tiles |
+| `0/9` slinger captain | 621 | 646 | 7.71 tiles |
+| `1/6`–`1/8` hoplites | 616 | never in the chapter | — |
+
+The three bowmen carry `visible 0` at **616** and at **635**. So on the
+item's own frame the fallback is 0 whatever the fog says, the hoplite's
+search is left with `WorldData::is_seen` alone, and the hoplite's line of
+sight is 6 tiles against a gap of 7.25 to the nearest bowman. **That is
+the refusal.** The bit arrives at 636 not because anyone saw the bowmen
+but because the bowmen started shooting.
+
+It also explains the row the table above makes look like vision and is
+not: `0/6` accepts `1/6` at 635 while `1/6` carries `visible 0` — a
+bowman's own 11 tiles of sight reach 8, so it never needs the fallback.
+Nearest and chosen and *seen* are three different things, which is the
+same warning §30.2 drew about `near_o`.
+
+### 31.4 `Object::add_to_world` does three things and this crate did two
+
+The gate alone moves the word 616 → **621** and stops, because at 621 the
+*slinger* captain's search is refused too — player 0's fog does not cover
+the hoplites' cell either. It does not because **nothing ever lit it**:
+`Sim::add_unit` did `add_to_world`'s two collision indices and not its
+third job, `update_seen(0)`. `Sim::come_out_place` has made that call
+since garrisoning landed (`docs/VISION.md` §6, the ejection row); a unit
+*born* on the map made none, so its owner's line of sight did not exist
+until it first crossed a half-cell or the hundredth-frame resync came
+round.
+
+Nothing read the plane closely enough to notice. With both halves in,
+the word is **624**.
+
+### 31.5 What it moved
+
+| counter | before | after |
+| --- | --- | --- |
+| `GOLDEN_WORD_CHAPTER_TWO` | 616 | **624** |
+| chapter two, first value disagreement | 617 | 625 |
+| Great Lakes endpoint, `off` at 24001 | 55 | **53** |
+| `LONG_WORD_GREAT_LAKES`, `LONG_WORD_EAST_INDIES`, `GOLDEN_WORD_CHAPTER_ONE` | — | unmoved |
+| East Indies endpoint and both ladder rungs | — | unmoved |
+
+Both halves touch every unit on every map — a target out of sight is
+refused wherever it stands, and a unit born on the map now lights its own
+disc — so the endpoint row is evidence about 24,000 frames of run-up and
+not about the predicate (DECISIONS 36).
+
+And one row moved the other way, which is the honest half:
+`chapter_two_s_first_attack_orders_are_the_dump_s` had this crate's
+hoplites taking an attack order at **616** where the dump has **635**;
+they now take none at all. The original's `1/6` accepts `0/10` at 635 on
+the `visible` fallback — the slinger set its own bit at 631 by attacking a
+hoplite — and player 1's sight never reaches that cell. The row moved from
+*wrong and early* to *absent*; §31.7 books it.
+
+### 31.6 624's widening, and the residue two frames in front of it
+
+`chapter_two_s_word_frame_is_widened_whole` compares every record run112
+carries over `[620, 628)`, both directions. The whole map of first
+partings:
+
+| key | first frame |
+| --- | --- |
+| `order 0/9`, `angle 0/9` | 622 |
+| `order 0/10`, `pos 0/10` | 622 |
+| `order 0/11`, `pos 0/11` | 622 |
+
+Nothing on the hoplites, nothing on the bowmen, nothing unlinked or extra
+in either direction, and no `los`, `packed`, `collide` or `search` row at
+all. **The draw stream agrees for two frames after the values stop
+agreeing**, which is the thing a widening exists to catch and the reason
+`CLAUDE.md` asks for a value diff beside every word that moves.
+
+`0/9`'s *position* is not in the map — the captain stands where the dump
+stands it and only its order parts — so the residue is a **destination**
+and not a step. At 622 this crate plans all three slingers' move to
+`(2424, 7800)`, which is `1/6`'s own seat, where the original plans
+`(1608, 8184)`, `(1560, 7848)` and `(1704, 8424)`: three spread points,
+six path slots to this crate's ten. That is parked 400's shape — a chase
+planned to the target's own point rather than to `Unit::find_attack_pos`'s
+ring (§17) — one squad over.
+
+### 31.7 Coverage
+
+**Diff-backed**: §31.5's whole table (the pinned words and endpoint rows,
+each a test), §31.6's map
+(`chapter_two_s_word_frame_is_widened_whole`), and §31.3's table, which is
+run112's own printed `visible` beside its own printed coordinates.
+
+**Listing- and export-backed**: §31.1's call chain (`vtables.txt` for the
+`+0x138` and `+0x48` slots, `types.txt` for `visible` at `+0x40`) and
+§31.2's transcription of `is_seen` and `WorldData::is_seen`.
+
+**Reading-only, and owed a blind second reading**: §31.2's stealth arm,
+which no run on disk executes.
+
+**What this has not established.**
+
+- **§30.5's survivor 2 is not killed — it is no longer needed.**
+  `find_nearby_target` calls `check_target` with `param_6 = 1`, so
+  `Object::poor_target@0064a270` is reached, and its type-record arm
+  (`UnitTypeData +0x9a`, bit 6) is not excluded by anything here. What
+  changed is that it can no longer move chapter two's word: the frame it
+  would explain now agrees. The capture §30.5 named — `UnitTypeData
+  +0x9a` per unit over `[614, 640)` — remains unbooked and unspent, and
+  it is the only way to settle that arm on its own terms.
+- **`ObjectData::visible` is not modelled**, and it is now a scored item
+  rather than a note in `docs/VISION.md` §6: `Unit::set_attacking`'s
+  `visible |= 1 << victim_who` is what would give this crate's `1/6` the
+  635 order the dump has, and the write has an unidentified gate on the
+  attacker's type vtable `+0x10c` that `vtables.txt` does not name for any
+  `*Type` vtable in the export. `Unit::update_local_seen@0060e410`, the
+  reveal the bit drives, is not modelled either.
+- **The two always-true leader arms of `WorldData::is_seen`** — `0x800`
+  and the `num_units` count — are not carried, and no capture on disk
+  exercises them.
+- **The residue at 622 is measured and not diagnosed.** §31.6 names its
+  frame and its value delta; the mechanism is a hypothesis pointing at
+  parked 400.

@@ -1518,7 +1518,17 @@ pub(crate) const GOLDEN_WORD_CHAPTER_ONE: i64 = 626;
 /// Its own constant rather than a composition with chapter one's: the
 /// handoff carries one `Golden:` line and how it reads with two chapters
 /// pinned is the steering pass's (parked 417).
-pub(crate) const GOLDEN_WORD_CHAPTER_TWO: i64 = 616;
+///
+/// **616 → 624 on 2026-09-21, item 447** — `UnitData::is_seen` is the
+/// fifth test of `ObjectData::valid_target_const` and this crate had no
+/// term for it, so its hoplite captain accepted three bowmen the original
+/// refused on its birth frame; and `Object::add_to_world`'s third job,
+/// `update_seen(0)`, was missing from [`sim::Sim::add_unit`], so a unit
+/// born on the map lit no fog at all. `docs/COMBAT.md` §31. The value diff
+/// beside the move is `chapter_two_s_word_frame_is_widened_whole`: the
+/// draw stream holds to 624 and the *values* part at **622**, on the
+/// slinger squad's chase destination alone.
+pub(crate) const GOLDEN_WORD_CHAPTER_TWO: i64 = 624;
 
 /// **Every pinned word names the test that widened its frame whole, or
 /// the open item that will** (`docs/DECISIONS.md` 43). A word is the frame
@@ -1557,10 +1567,15 @@ pub(crate) const WIDENINGS: &[(&str, i64, Option<&str>, u32)] = &[
         None,
         445,
     ),
+    // Item 447 moved this word 616 → 624 and wrote its widening in the
+    // same landing rather than leaving the row owing one — the lesson
+    // parked 449 drew on Great Lakes the same day, applied at the move
+    // instead of after it. The name that stood here was item 441's, and it
+    // widens **616**, a frame this word has left.
     (
         "GOLDEN_WORD_CHAPTER_TWO",
         GOLDEN_WORD_CHAPTER_TWO,
-        Some("chapter_two_s_squads_stand_where_the_dump_stands_them"),
-        441,
+        Some("chapter_two_s_word_frame_is_widened_whole"),
+        447,
     ),
 ];
