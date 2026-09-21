@@ -103,7 +103,7 @@ Fable worker or capture.
 
 | L60 | A byte-at-a-time expansion would keep requiring adjacent unit fields. | [Version-2 complete unit context](2026-09-21-unit-context.md). | Live 344-byte record and graph overlap validate; replay advances from instruction 73 to 91, refusing the world pointer; scenario projections agree. | One v2 capture; no full A* return, pointer targets not implicitly captured. |
 
-| L61 | Broader snapshot cost is unmeasured; per-field captures require repeated handoffs. | [Bounded memory inventory](2026-09-21-memory-inventory.md). | C/Python metadata agreement, 28 failed/short queries, caps, deadlines and file controls pass; optional imports verified; release gate passes. | Metadata only; live inventory and candidate-size measurement pending. |
+| L61 | Measure broader acquisition cost before replacing repeated per-field captures. | [Bounded memory inventory](2026-09-21-memory-inventory.md). | C/Python metadata agreement, 28 failed/short queries, caps, deadlines and file controls pass; optional imports verified; release gate passes. | Live: 873 ranges, 795.676 MiB broad candidate; known-root allocations plus image 36.566 MiB. No payload snapshot or full replay; small selection tested offline, next is a capped streaming-copy prototype. |
 
 ## Current direction
 

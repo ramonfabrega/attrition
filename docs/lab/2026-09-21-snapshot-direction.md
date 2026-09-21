@@ -10,7 +10,12 @@ settle whether a complete search is cheaply replayable.
 The next question should be acquisition cost: can we retain enough state once to
 resolve multiple future reads offline? The proposal is a bounded inventory first,
 with a conservative byte budget and explicit omissions. The [metadata-only inventory collector](2026-09-21-memory-inventory.md) is now
-implemented and tested offline; payload capture remains a proposal.
+validated live: 873 ranges and a 795.676 MiB broad candidate set. Known-root
+allocations plus main-image data cover 36.566 MiB; the world target remains
+unknown. A 128 MiB allocation-selection policy is tested offline as a comparison.
+Because that can repeat the missing-dependency capture cycle, the next prototype
+is a streamed broad candidate copy capped at 1 GiB, with a separate time limit
+and explicit exclusions. Payload capture remains unimplemented.
 
 ## Comparison
 
