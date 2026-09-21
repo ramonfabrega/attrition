@@ -1535,14 +1535,22 @@ pub(crate) const GOLDEN_WORD_CHAPTER_TWO: i64 = 616;
 /// that landed the widening, or the one that owes it.
 pub(crate) const WIDENINGS: &[(&str, i64, Option<&str>, u32)] = &[
     ("LONG_WORD_EAST_INDIES", LONG_WORD_EAST_INDIES, None, 444),
-    // Item 442 moved this word 9510 → 10161, and the widening went stale by
-    // succeeding: `run100_s_word_frame_is_the_original_s` compares every
-    // record on **9382**, inside run100's window, and the word now stands
-    // 651 frames past it. The row therefore says *owed* again rather than
-    // naming a test that widens a frame this word has left — the guard
-    // checks that a named test exists, not that it widens the current word,
-    // so a stale name would pass and read as pinned (parked 449).
-    ("LONG_WORD_GREAT_LAKES", LONG_WORD_GREAT_LAKES, None, 448),
+    // Item 448 paid the widening 442 owed: `run100_s_word_block_is_every_
+    // record_the_dump_carries` compares every field of every record run100
+    // carries on **10162**, the word's own block, both directions and
+    // ungated by the position — fifteen rows, all of them `1/38`
+    // (`docs/AI.md` §54). The row it replaced named
+    // `run100_s_word_frame_is_the_original_s`, which widens **9382** and
+    // went stale by succeeding when the word moved 651 frames past it;
+    // the guard checks that a named test exists, not that it widens the
+    // current word, so that stale name passed and read as pinned
+    // (parked 449).
+    (
+        "LONG_WORD_GREAT_LAKES",
+        LONG_WORD_GREAT_LAKES,
+        Some("run100_s_word_block_is_every_record_the_dump_carries"),
+        448,
+    ),
     (
         "GOLDEN_WORD_CHAPTER_ONE",
         GOLDEN_WORD_CHAPTER_ONE,

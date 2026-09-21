@@ -6199,6 +6199,490 @@ mod tests {
         );
     }
 
+    /// One order disagreement's **field**, not merely "order"
+    /// (`docs/AI.md` §54.2). An order row keyed on the unit alone reports
+    /// the first field to part and hides every other for the rest of the
+    /// run: `1/38` carries a `GROUPORDER` `id` residue from block 9340,
+    /// and it swallowed the `coll_x`/`coll_y` pair on the word's own
+    /// frame — the one field of the record that says in so many words
+    /// what the original refused.
+    fn order_label(m: &OrderMismatch) -> String {
+        match m {
+            OrderMismatch::Length { .. } => "order:length".into(),
+            OrderMismatch::Kind { .. } => "order:kind".into(),
+            OrderMismatch::Unspellable { .. } => "order:unspellable".into(),
+            OrderMismatch::Header { .. } => "order:header".into(),
+            OrderMismatch::Group { field, .. } => format!("order:group.{field}"),
+            OrderMismatch::Action { .. } => "order:action".into(),
+            OrderMismatch::Target { .. } => "order:target".into(),
+            OrderMismatch::Flags { .. } => "order:flags".into(),
+            OrderMismatch::Gather { field, .. } => format!("order:gather.{field}"),
+            OrderMismatch::Coll { .. } => "order:coll".into(),
+            OrderMismatch::Move { field, .. } => format!("order:move.{field}"),
+            OrderMismatch::PathLength { .. } => "path:length".into(),
+            OrderMismatch::PathTo { slot, .. } => format!("path[{slot}].to"),
+            OrderMismatch::PathField { slot, field, .. } => format!("path[{slot}].{field}"),
+        }
+    }
+
+    /// **The widening [`LONG_WORD_GREAT_LAKES`] owes — every record run100
+    /// carries on the AI headline's own frame, every field, both
+    /// directions** (item 448, `docs/AI.md` §54).
+    ///
+    /// [`Self::run100_s_word_frame_is_the_original_s`] is the sibling and
+    /// it is not this: it runs [`compare`] and reads four of its
+    /// categories, keyed by unit. This walks the same 836 blocks and
+    /// compares **every** field either side holds — the `compare`
+    /// categories keyed by *field* rather than by unit, plus the twenty
+    /// rows of the `UNITDATA` and `GUY` records that no test on this map
+    /// had ever read: `dest_angle`, `form`, `form_mod`, `myspeed`,
+    /// `myhits`, `stance`, `orders_x/y`, `tolerance`, `path_recursion`,
+    /// `idle`, the guy clock whole, and the collision block **ungated by
+    /// the position**, which is where the word's own answer turned out to
+    /// be.
+    ///
+    /// **The gating is the point.** `compare` takes the collision block,
+    /// the angles, `mylos` and `start_dist` only on unit-frames whose
+    /// positions already agree — right, for a residue count, and blind on
+    /// exactly the frame a position parts. `half_step` is a dumped field
+    /// (`unit_masks & 0x100000`) and it is one of the two that name the
+    /// word.
+    ///
+    /// **The word block is `1/38` and nothing else** — fifteen rows, one
+    /// unit, and the other 103 units, 29 buildings and 3 cities of the
+    /// block agree field for field. What the fifteen say, in the dump's
+    /// own coordinates:
+    ///
+    /// | field | ours | theirs |
+    /// | --- | --- | --- |
+    /// | `pos` | `(42774, 22584)` | `(42754, 22582)` |
+    /// | `order:coll` | `None` | `(42774, 22584)` |
+    /// | `collide_guy` | `-1` | `0` |
+    /// | `half_step` | `1` | `0` |
+    /// | `g.cur_anim` | `8` | `0` |
+    /// | `g.cur_time` / `g.end_time` | `4` / `15` | `1` / `33` |
+    /// | `g.last_time` | `3` | `0` |
+    /// | `g.last_speed` / `g.avg_speed` | `20` / `18` | `0` / `13` |
+    /// | `g.stopped` | `0` | `1` |
+    ///
+    /// The original **refused the point this crate stepped onto**:
+    /// `coll_x`/`coll_y` hold `(42774, 22584)` from block 10162 onward,
+    /// `collide_guy` is stamped 0 and never cleared, `collide_o` and
+    /// `collide_who` are back at −1, the waypoint is consumed without a
+    /// step (`length` 2 → 1, `dest` 1 → 0) and the idle is rolled. That is
+    /// `docs/COLLISION.md` §5.4's snap arm, field for field, and the draw
+    /// stream says the same thing from the other side:
+    /// [`sim::anim::SITE_SNAP_BLOCKED`] is `Guy::set_anim+0x97a <
+    /// Unit::move_step+0x4e2`, which is where the original's eighth draw
+    /// is spent.
+    ///
+    /// **Made to fail on purpose before landing**, both ways that matter:
+    /// keying the order rows by unit again drops `order:coll` from the
+    /// set — which is how that row was found at all — and restoring
+    /// `compare`'s position gate on the collision block drops
+    /// `half_step` and `collide_guy` together. The set is keyed on
+    /// [`LONG_WORD_GREAT_LAKES`], so a word that moves fails it by
+    /// construction: block 10163's own three rows are `g.angle[0]`,
+    /// `g.des_angle[0]` and `heading`, and nothing of 10162's.
+    #[test]
+    fn run100_s_word_block_is_every_record_the_dump_carries() {
+        /// run100's first complete block.
+        const FIRST: i64 = 9_340;
+        /// Fourteen blocks past the word — far enough to carry the
+        /// re-convergence on 10165, and inside run100's own window.
+        const TAIL: i64 = 10_175;
+        const {
+            assert!(
+                FIRST < LONG_WORD_GREAT_LAKES && LONG_WORD_GREAT_LAKES < TAIL,
+                "the window must straddle the word it is the widening of"
+            )
+        };
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(r100)) = (
+            dump("gamelog-run53-greatlakes-24k-trace.txt"),
+            dump("gamelog-run100-greatlakes-valuewindow2.txt"),
+        ) else {
+            eprintln!("skipping: no run53/run100 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let mut ix = crate::capture::indexed::IndexedCapture::open(&r100).unwrap();
+        let loaded = crate::load::load(&inst).unwrap();
+        let texts = sibling_texts();
+        let text = crate::capture::read(&path);
+        let log = Log::parse(&text);
+        let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
+        let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+        let refs: Vec<&Initial> = inits.iter().collect();
+        let mut init = log.initial().unwrap();
+        borrow_from_siblings(&mut init, &refs);
+        if let Some(t) = trace("rontrace-run53.log") {
+            borrow_pasture(&mut init, &t);
+        }
+        // **The clocks are this crate's own prediction here.** run53's
+        // per-frame detail is `MISC`, so it carries no `frame_guys`, and
+        // the siblings are another map's: nothing installs the original's
+        // animation state at any frame of this window. Asserted rather
+        // than assumed, because an installed clock would make every guy
+        // row below vacuous.
+        assert!(
+            !init
+                .frame_guys
+                .iter()
+                .any(|(f, _)| (FIRST..=TAIL).contains(f)),
+            "a sibling installs the original's guy clocks inside the \
+             window, so the guy rows would compare the dump with itself"
+        );
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        let players = built.sim.players.len();
+        use std::collections::BTreeMap;
+        // The block each `(who, o, field)` **first** parts on, with the
+        // value diff beside it.
+        let mut firsts: BTreeMap<(i64, i64, String), (i64, String)> = BTreeMap::new();
+        let mut blocks = 0usize;
+        let mut compared = 0usize;
+        let mut word_census = None;
+        for f in 0..=TAIL {
+            built.tick();
+            let n = f + 1;
+            if n < FIRST {
+                continue;
+            }
+            let Some(at) = ix.frames().iter().position(|x| x.number == n) else {
+                continue;
+            };
+            let frame = ix.frame_state(at).unwrap();
+            blocks += 1;
+            let r = compare(&built, &frame, players);
+            {
+                let mut note = |who: i64, o: i64, what: String, row: String| {
+                    firsts.entry((who, o, what)).or_insert((n, row));
+                };
+                for d in &r.diverged {
+                    note(
+                        d.who,
+                        d.o,
+                        "pos".into(),
+                        format!(
+                            "ours ({},{}) theirs ({},{})",
+                            d.ours.x, d.ours.y, d.theirs.x, d.theirs.y
+                        ),
+                    );
+                }
+                for d in &r.order_diverged {
+                    note(d.who, d.o, order_label(&d.what), format!("{:?}", d.what));
+                }
+                for d in &r.angle_diverged {
+                    note(
+                        d.who,
+                        d.o,
+                        format!("angle:{:?}", d.which),
+                        format!("ours {} theirs {}", d.ours, d.theirs),
+                    );
+                }
+                for d in &r.collide_diverged {
+                    note(
+                        d.who,
+                        d.o,
+                        d.field.into(),
+                        format!("ours {} theirs {}", d.ours, d.theirs),
+                    );
+                }
+                for d in &r.los_diverged {
+                    note(
+                        d.who,
+                        d.o,
+                        "mylos".into(),
+                        format!("ours {} theirs {}", d.ours, d.theirs),
+                    );
+                }
+                for d in &r.packed_diverged {
+                    note(d.who, d.o, "packed".into(), format!("ours {}", d.ours));
+                }
+                for d in &r.search_diverged {
+                    note(
+                        d.who,
+                        d.o,
+                        "start_dist".into(),
+                        format!("ours {} theirs {}", d.ours, d.theirs),
+                    );
+                }
+                for d in &r.gather_diverged {
+                    note(
+                        d.who,
+                        d.o,
+                        format!("gather:{}[{}]", d.field, d.at),
+                        format!("ours {} theirs {}", d.ours, d.theirs),
+                    );
+                }
+                for d in &r.build_diverged {
+                    note(
+                        d.who,
+                        d.o,
+                        format!("build:{}", d.field),
+                        format!("ours {} theirs {}", d.ours, d.theirs),
+                    );
+                }
+                for d in &r.queue_diverged {
+                    note(
+                        d.who,
+                        d.o,
+                        format!("queue:{}", d.field),
+                        format!("ours {} theirs {}", d.ours, d.theirs),
+                    );
+                }
+                for d in &r.city_diverged {
+                    note(
+                        d.who,
+                        d.o,
+                        format!("city:{}", d.field),
+                        format!("ours {} theirs {}", d.ours, d.theirs),
+                    );
+                }
+                for &(who, o) in &r.unlinked_units {
+                    note(who, o, "unlinked".into(), "the dump holds it alone".into());
+                }
+                for &(who, o) in &r.extra_units {
+                    note(who, o, "extra".into(), "this crate holds it alone".into());
+                }
+            }
+            // **The other direction on the buildings**, which `compare`
+            // does not do: it counts the dump's buildings it cannot link
+            // (`build_unlinked`) and never asks whether this crate holds
+            // one the block does not name.
+            for b in built.sim.buildings.iter().filter(|b| b.alive) {
+                let (w, o) = (i64::from(b.owner), i64::from(b.index));
+                if !(0..players as i64).contains(&w) {
+                    continue;
+                }
+                if !frame.builds.iter().any(|x| x.who == w && x.o == o) {
+                    firsts
+                        .entry((w, o, "build:extra".into()))
+                        .or_insert((n, "this crate holds it alone".into()));
+                }
+            }
+            // **And the record's own rows, ungated.** Everything the
+            // `UNITDATA` and `GUY` blocks print that `compare` either
+            // does not read at all or reads only where the positions
+            // already agree.
+            for them in &frame.units {
+                if !(0..players as i64).contains(&them.who) {
+                    continue;
+                }
+                let (Ok(who), Ok(o)) = (u8::try_from(them.who), i16::try_from(them.o)) else {
+                    continue;
+                };
+                let Some(u) = built.sim.unit_by_o(who, o) else {
+                    continue;
+                };
+                let un = &built.sim.units[u];
+                let mut rows: Vec<(String, i64, Option<i64>)> = vec![
+                    (
+                        "heading".into(),
+                        i64::from(un.movement.heading.0),
+                        them.angle,
+                    ),
+                    (
+                        "dest_angle".into(),
+                        i64::from(un.movement.des_angle.0),
+                        them.dest_angle,
+                    ),
+                    ("orders_x".into(), i64::from(un.orders_pos.x), them.orders_x),
+                    ("orders_y".into(), i64::from(un.orders_pos.y), them.orders_y),
+                    ("tolerance".into(), i64::from(un.tolerance), them.tolerance),
+                    (
+                        "path_recursion".into(),
+                        i64::from(un.path_recursion),
+                        them.path_recursion,
+                    ),
+                    ("idle".into(), i64::from(un.idle), them.idle),
+                    ("stance".into(), i64::from(un.stance), them.stance),
+                    ("myhits".into(), i64::from(un.health), them.myhits),
+                    ("myspeed".into(), i64::from(un.movement.speed), them.myspeed),
+                    ("form".into(), i64::from(un.form), them.form),
+                    ("form_mod".into(), i64::from(un.form_width), them.form_mod),
+                    (
+                        "orders.len".into(),
+                        un.orders.len() as i64,
+                        Some(them.orders.len() as i64),
+                    ),
+                ];
+                // The collision block and the two masks, **ungated by the
+                // position** — the whole point of this test.
+                if un.on_map {
+                    for r in [
+                        ("collide", i64::from(un.collide), them.collide),
+                        ("collide_o", i64::from(un.collide_o), them.collide_o),
+                        ("collide_who", i64::from(un.collide_who), them.collide_who),
+                        ("collide_guy", i64::from(un.collide_guy), them.collide_guy),
+                        ("safe", i64::from(un.safe), them.safe),
+                        ("start_dist", i64::from(un.start_dist), them.start_dist),
+                        ("mylos", i64::from(built.sim.unit_los(u)), them.mylos),
+                        (
+                            "half_step",
+                            i64::from(un.half_step),
+                            them.unit_masks.map(|m| i64::from(m & 0x10_0000 != 0)),
+                        ),
+                        (
+                            "packed",
+                            i64::from(un.combat.packed),
+                            them.unit_masks.map(|m| i64::from(m & 0x8_0000 != 0)),
+                        ),
+                    ] {
+                        rows.push((r.0.into(), r.1, r.2));
+                    }
+                }
+                // The guy record whole, run67's `GUYS=4` block — the
+                // animation clock, the destination pair and the two
+                // speeds, which are what the word turned out to be.
+                rows.push((
+                    "guys.len".into(),
+                    un.guys.len() as i64,
+                    Some(them.guys.len() as i64),
+                ));
+                for (k, g) in them.guys.iter().enumerate() {
+                    let Some(og) = un.guys.get(k).copied() else {
+                        continue;
+                    };
+                    let (body, facing, des, des_angle) = match og.follow {
+                        Some(b) => (b.body, b.facing, b.des, b.des_angle),
+                        None if k == 0 => (
+                            un.movement.body,
+                            un.movement.facing,
+                            un.pos,
+                            un.movement.heading,
+                        ),
+                        None => (
+                            un.movement.body,
+                            un.movement.facing,
+                            un.pos,
+                            un.movement.facing,
+                        ),
+                    };
+                    let track = og.follow.map_or((0, 0), |b| b.track);
+                    for (name, ours, theirs) in [
+                        ("g.x", i64::from(body.pos.x), g.pos.map(|p| p.x)),
+                        ("g.y", i64::from(body.pos.y), g.pos.map(|p| p.y)),
+                        ("g.angle", i64::from(facing.0), g.angle),
+                        ("g.des_x", i64::from(des.x), g.des.map(|p| p.x)),
+                        ("g.des_y", i64::from(des.y), g.des.map(|p| p.y)),
+                        ("g.des_angle", i64::from(des_angle.0), g.des_angle),
+                        ("g.cur_anim", i64::from(og.anim), g.cur_anim),
+                        ("g.cur_time", i64::from(og.cur_time), g.cur_time),
+                        ("g.end_time", i64::from(og.end_time), g.end_time),
+                        ("g.last_time", i64::from(og.last_time), g.last_time),
+                        ("g.gpiece", i64::from(og.gpiece), g.gpiece),
+                        ("g.stopped", i64::from(og.stopped), g.stopped),
+                        ("g.track_dx", i64::from(track.0), g.track.map(|t| t.0)),
+                        ("g.track_dy", i64::from(track.1), g.track.map(|t| t.1)),
+                        ("g.last_speed", i64::from(body.last_speed), g.last_speed),
+                        ("g.avg_speed", i64::from(body.avg_speed), g.avg_speed),
+                    ] {
+                        rows.push((format!("{name}[{k}]"), ours, theirs));
+                    }
+                }
+                for (name, ours, theirs) in rows {
+                    let Some(theirs) = theirs else { continue };
+                    compared += 1;
+                    if ours != theirs {
+                        firsts
+                            .entry((them.who, them.o, name))
+                            .or_insert((n, format!("ours {ours} theirs {theirs}")));
+                    }
+                }
+            }
+            if n == LONG_WORD_GREAT_LAKES + 1 {
+                word_census = Some((
+                    frame.units.len(),
+                    frame.builds.len(),
+                    frame.cities.len(),
+                    frame.leaders.len(),
+                    r.compared,
+                    r.order_compared,
+                    r.collide_compared,
+                    r.city_compared,
+                    r.build_compared,
+                    r.queue_compared,
+                    r.gather_compared,
+                ));
+            }
+        }
+        let word = LONG_WORD_GREAT_LAKES + 1;
+        eprintln!(
+            "run100 word widening: {blocks} blocks [{FIRST}, {TAIL}], {compared} record rows, \
+             {} keys parted",
+            firsts.len()
+        );
+        eprintln!("  census on {word}: {word_census:?}");
+        // **The word's own block, whole.** Every key that first parts on
+        // it, with the dump's own numbers beside this crate's.
+        let on_word: Vec<String> = firsts
+            .iter()
+            .filter(|(_, (f, _))| *f == word)
+            .map(|((w, o, what), (_, row))| format!("{w}/{o} {what}: {row}"))
+            .collect();
+        for r in &on_word {
+            eprintln!("  word {r}");
+        }
+        // The rows are the claim, not their number: a set written out is
+        // what a later item diffs its own answer against.
+        assert_eq!(
+            on_word,
+            vec![
+                "1/38 collide_guy: ours -1 theirs 0",
+                "1/38 g.avg_speed[0]: ours 18 theirs 13",
+                "1/38 g.cur_anim[0]: ours 8 theirs 0",
+                "1/38 g.cur_time[0]: ours 4 theirs 1",
+                "1/38 g.des_x[0]: ours 42774 theirs 42754",
+                "1/38 g.des_y[0]: ours 22584 theirs 22582",
+                "1/38 g.end_time[0]: ours 15 theirs 33",
+                "1/38 g.last_speed[0]: ours 20 theirs 0",
+                "1/38 g.last_time[0]: ours 3 theirs 0",
+                "1/38 g.stopped[0]: ours 0 theirs 1",
+                "1/38 g.x[0]: ours 42774 theirs 42754",
+                "1/38 g.y[0]: ours 22584 theirs 22582",
+                "1/38 half_step: ours 1 theirs 0",
+                "1/38 order:coll: Coll { ours: None, theirs: (42774, 22584) }",
+                "1/38 pos: ours (42774,22584) theirs (42754,22582)",
+            ],
+            "the word's own block is not the fifteen rows of `1/38` it was"
+        );
+        // `RON_DEBUG_ROWS=<lo>-<hi>` prints every key that first parts
+        // inside those blocks, the value diff beside it — item 312's
+        // instrument, on the widest row set this crate has (§54.3's
+        // residue families were read off it).
+        if let Some((lo, hi)) = site_window_named("RON_DEBUG_ROWS") {
+            for ((w, o, what), (f, row)) in &firsts {
+                if (lo..=hi).contains(f) {
+                    eprintln!("  f{f} {w}/{o} {what}: {row}");
+                }
+            }
+        }
+        // **Anti-vacuity, in the block's own counts.** A capture without
+        // `UNITS=3`, `BUILDS=7`, `CITIES=5` or `GUYS=4` would agree
+        // everywhere by saying nothing, and this is the only assertion
+        // that can tell the two apart.
+        assert!(
+            blocks >= 836 && compared >= 1_900_000,
+            "run100's own blocks are missing — the wrong file: {blocks} blocks, {compared} rows"
+        );
+        let (units, builds, cities, leaders, pos, order, collide, city, build, queue, gather) =
+            word_census.expect("the word's own block is inside run100's window");
+        // Measured on the block itself, and a floor rather than an
+        // equality: a record that grows is not a failure, one that
+        // vanishes is. `leaders` is 4 because `LEADERS=1` still writes
+        // one block a slot — the record whose `score` and `leader_flags`
+        // nothing here compares (§54.4).
+        assert!(
+            (units, builds, cities, leaders) >= (104, 29, 3, 4)
+                && [pos, order, collide, city, build, queue, gather]
+                    >= [60, 60, 300, 130, 80, 50, 900],
+            "the word's block does not carry every record this widening claims to \
+             compare: {units} units, {builds} builds, {cities} cities, {leaders} leaders; \
+             {pos} pos, {order} order, {collide} collide, {city} city, {build} build, \
+             {queue} queue, {gather} gather rows"
+        );
+    }
+
     /// **The scholar job run100 prints, frame for frame** — the other
     /// half of item 408, and the half that says the birth at 9510 is the
     /// job queued at 9382 rather than a coincidence.

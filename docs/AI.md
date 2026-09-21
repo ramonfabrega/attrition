@@ -6431,3 +6431,168 @@ check it without Ghidra), and everything §51.5 already lists as
 reading-only. The 9510 → 10161 pair is measured on
 `run53_s_24000_frames_put_the_ceiling_where_run33_did` and **pinned** —
 `LONG_WORD_GREAT_LAKES` is 10161 in the tree.
+
+---
+
+## 54. Great Lakes 10161 is a refused step, and the record names the point (2026-09-21)
+
+Item 448, the widening `LONG_WORD_GREAT_LAKES` owed since item 442 moved it
+9510 → 10161 (`docs/DECISIONS.md` 43). **No capture was booked**: run100 is
+`[9340, 10899]` of this very game at `UNITS=3, BUILDS=7, CITIES=5, GUYS=4,
+DEATHS=1, LEADERS=1`, so the word's own block was already on the disk and
+had never been read whole.
+
+### 54.1 What the widening compares, and what was not compared before
+
+`run100_s_word_block_is_every_record_the_dump_carries` walks **837 blocks,
+`[9340, 10175]`** — run100's first complete block to fourteen past the word
+— and compares **1,975,563 record rows**. Two things it does that
+`run100_s_word_frame_is_the_original_s` beside it does not:
+
+- **Every `compare` category, keyed by *field* rather than by unit.** An
+  order row keyed on `(who, o)` reports the first field to part and hides
+  every other for the rest of the run. `1/38` has carried a `GROUPORDER`
+  `id` residue since block 9340, and it swallowed `coll_x`/`coll_y` on the
+  word's own frame — the one field of the record that says in so many
+  words what the original refused. Re-keying by unit is one of this test's
+  deliberate failures, and the row vanishes.
+- **The `UNITDATA` and `GUY` rows nothing on this map had read**, and the
+  collision block **ungated by the position**: `dest_angle`, `form`,
+  `form_mod`, `myspeed`, `myhits`, `stance`, `orders_x/y`, `tolerance`,
+  `path_recursion`, `idle`, `orders.len`, the guy clock whole, and
+  `collide*`, `safe`, `start_dist`, `mylos`, `packed`, `half_step`.
+  `compare` takes the last group only where the two positions already
+  agree — right for a residue count, blind on exactly the frame a position
+  parts. `half_step` is `unit_masks & 0x100000`, it is dumped on every
+  block, and it is one of the two rows that name the word.
+
+### 54.2 The word's own block: fifteen rows, one unit
+
+Block 10162 is sim-frame 10161. Of 104 units, 29 buildings, 3 cities and 4
+leader blocks, **one unit parts and nothing else does** — no unlinked unit,
+no extra unit, no building this crate holds that the block does not name,
+and not a row of the city, queue, gather or build records.
+
+| field | ours | theirs |
+| --- | --- | --- |
+| `pos` | `(42774, 22584)` | `(42754, 22582)` |
+| `order:coll` | — | `(42774, 22584)` |
+| `collide_guy` | `-1` | `0` |
+| `half_step` | `1` | `0` |
+| `g.cur_anim` | `8` | `0` |
+| `g.cur_time` / `g.end_time` | `4` / `15` | `1` / `33` |
+| `g.last_time` | `3` | `0` |
+| `g.last_speed` / `g.avg_speed` | `20` / `18` | `0` / `13` |
+| `g.stopped` | `0` | `1` |
+| `g.x` / `g.y`, `g.des_x` / `g.des_y` | `42774, 22584` | `42754, 22582` |
+
+**The original refused the point this crate stepped onto.** `1/38` is a
+`group 64` member (`myhits 120`, `myspeed 25`, `size 30`) walking an
+`ATTACK_TO` leg toward `(44712, 22536)`. Its record either side of the
+word, read off the dump alone:
+
+| block | `x, y` | `dest` | `dest_x, dest_y` | `coll_x, coll_y` | `length` | `last_speed` | `cur_anim` |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 10161 | `42754, 22582` | 1 | `42763, 22583` | `0, 0` | 2 | 15 | 8 |
+| **10162** | `42754, 22582` | **0** | `42774, 22584` | **`42774, 22584`** | **1** | **0** | **0** |
+| 10163 | `42786, 22586` | 1 | `42798, 22587` | `42774, 22584` | 2 | 32 | 7 |
+
+That is `docs/COLLISION.md` §5.4's **snap arm**, field for field: the probe
+writes `coll_x`/`coll_y` and stamps `collide_guy 0` (sticky — it is still 0
+a thousand blocks later), `collide_o` and `collide_who` go back to −1 two
+instructions later, `collide` and `collide_frame` are not touched at all,
+the waypoint is consumed without a step (`dest` 1 → 0, `length` 2 → 1) and
+`set_anim(CHAR_DEFAULT)` rolls the idle. The draw stream says the same
+thing from the other side: the original's eighth draw is
+`sim::anim::SITE_SNAP_BLOCKED`, `Guy::set_anim+0x97a < Unit::move_step+0x4e2`,
+and this crate's seventh is `Guy::inc_time+0x271` — its walk animation
+ticking on. **Two instruments, one frame, and it is the same signature item
+360 landed for Great Lakes 9134.**
+
+**And the two sides agree on where the unit was going.** Every waypoint
+matches frame for frame through the window; on the word both hold
+`(42774, 22584)`. So the parting is not a different destination or a
+different path — it is the **probe's verdict on an agreed point**. The
+positions re-converge on block 10165, four blocks later.
+
+### 54.3 What else the window holds, and it is all older than the word
+
+298 keys part over the 837 blocks: **161 already standing** on the window's
+first block, **49 opening below the word**, **15 on it**, 73 after. Every
+one of the 49 belongs to a family that was already standing — a newly
+trained unit arriving with the same residue its predecessors carry — and
+five of those families had never been compared on this map at all:
+
+| family | rows | shape |
+| --- | --- | --- |
+| `form` | 48 | ours `-1`, theirs `9` on every unit outside a group |
+| `dest_angle` | 22 | a whole-turn value apart, on units under way |
+| `orders_x` / `orders_y` | 36 | 18–24 units off, one pair 984 |
+| `g.angle[0]` | 10 | ours `1431655765` (a third of a turn), theirs `0` |
+| `stance` | 6 | item 190's, unchanged |
+
+**The collision block, ungated, agrees almost everywhere**: over 837 blocks
+it produced **six rows on three units** — `1/31`'s `half_step` on 9407,
+`1/15`'s `collide_o/who/guy` on 10170, and the word's own two. So
+`half_step: ours 1 theirs 0` is *not* on its own the mechanism: this crate
+sets the soft flag where the original does not, 754 frames earlier, with no
+consequence at all. What the word's block establishes is that both sweeps
+ran and reached different verdicts on the same point — not which arm of
+`detect_unit_collision` decided it.
+
+### 54.4 What this has *not* established
+
+- **Which unit the original's probe finds at `(42774, 22584)`, and why
+  this crate's does not refuse it.** This is the successor item and the
+  widening deliberately does not name it: `collide_o` and `collide_who` are
+  cleared by the snap arm two instructions after the probe returns, so the
+  dumped record **cannot** name the collider, and every account of *which*
+  arm fired is a reading until a capture prints one. Four units stand
+  within half a tile on that block — `1/31` (`size 60`, `(42862, 22687)`),
+  `1/32` (`size 40`), `1/37` (`size 50`) and `1/33` — and `1/38` shares
+  `group 64` with all of them, which puts §4.3's group-mate soft arm and
+  the corner rule (`docs/COLLISION.md` §4.2, §4.3) among the candidates and
+  proves neither. **No gamelog category can answer it** — the fields that
+  would name the collider are cleared inside the same function — so the
+  instrument is the trace's **call proxies**, the way run108 read a
+  search's answer and run114 the leader's offers: a `RON_COLLIDE_PROBE`
+  tracer-def bracketing `Unit::detect_unit_collision@00617060` with
+  `--callwin 10158 10163` over this same seeded game, everything else
+  run100's detail. Its falsifier is written before it runs: the bracket
+  must show **one** call on 10161 returning 1, and the site inside it must
+  name a `who/o` — an empty bracket says the refusal is not this
+  function's at all.
+- **Whether this crate reaches the snap arm here at all.** Its step was
+  accepted, so nothing says whether its `move_step` took the snap branch
+  and passed the probe, or took the partial branch and never asked.
+  `sim::anim::SITE_SNAP_BLOCKED`'s own draw would say, and it is absent on
+  this frame by construction.
+- **`LEADERDATA`'s `score` and `leader_flags` are dumped four times a
+  block and compared by nothing** — here or anywhere in `rondata::diff`.
+  Neither is modelled, so this widening states the gap rather than closing
+  it.
+- **The per-frame `WORLD` census is not even parsed** — `forest_size`,
+  `mountain_size`, `rock_size`, `total_metal`, `total_oil`, `goodies`,
+  `land_resources`, `sea_resources`, on every block of every capture.
+- **The five residue families in §54.3 are measured, not diagnosed.**
+  `form 9` on every ungrouped unit is the largest and the cheapest to
+  read; none of them moves a score, so none is booked here.
+
+### 54.5 Coverage
+
+Diff-backed, and made to fail on purpose before landing:
+`run100_s_word_block_is_every_record_the_dump_carries` — the fifteen rows
+above asserted as a written-out set with the dump's own numbers in them,
+the block's record census as a floor (104 units, 29 builds, 3 cities, 4
+leaders; 327 collision rows, 966 gather rows), and 1.9 M rows over 836
+blocks so a capture without `GUYS=4` or `BUILDS=7` cannot pass by saying
+nothing. Keying the order rows by unit drops `order:coll`; restoring
+`compare`'s position gate drops `half_step` and `collide_guy` together.
+`RON_DEBUG_ROWS=<lo>-<hi>` prints every key that parts inside those blocks
+with its value diff.
+
+Nothing in this section rests on a reading. The *attribution* of the
+original's behaviour to `docs/COLLISION.md` §5.4 is the record's own —
+seven fields of the snap arm's nine-instruction block, each dumped — and
+the mechanism behind the probe's verdict is left open above rather than
+guessed at.
