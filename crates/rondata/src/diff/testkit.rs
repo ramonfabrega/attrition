@@ -1555,7 +1555,7 @@ pub(crate) const GOLDEN_WORD_CHAPTER_ONE: i64 = 626;
 /// `Guy::set_anim+0x97a < Unit::move_step+0x823` — the chase *destination*
 /// of §31.6's 622 residue, which is upstream of anything that field
 /// reaches.
-pub(crate) const GOLDEN_WORD_CHAPTER_TWO: i64 = 624;
+pub(crate) const GOLDEN_WORD_CHAPTER_TWO: i64 = 637;
 
 /// **Every pinned word names the test that widened its frame whole, or
 /// the open item that will** (`docs/DECISIONS.md` 43). A word is the frame
@@ -1578,9 +1578,11 @@ pub(crate) const GOLDEN_WORD_CHAPTER_TWO: i64 = 624;
 /// by saying nothing (parked 449).
 pub(crate) const WIDENING_GREAT_LAKES: (i64, i64) = (9_340, 10_246);
 /// `chapter_two_s_word_frame_is_widened_whole`'s window, on the same
-/// terms: run112's window opens at 605, the slinger squad is born at 621,
-/// and one past the last frame compared.
-pub(crate) const WIDENING_CHAPTER_TWO: (i64, i64) = (620, 628);
+/// terms: run112's window opens at 605 and one past the last frame
+/// compared. It straddled the word at 624 until item 462 moved the word
+/// to 637 and moved the window with it, which is parked 449's lesson
+/// applied at the move rather than after it.
+pub(crate) const WIDENING_CHAPTER_TWO: (i64, i64) = (633, 641);
 
 /// One pinned word's row: `(constant, word, widening test, item, window)`.
 pub(crate) type Widening = (

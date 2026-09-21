@@ -95,6 +95,8 @@ impl crate::Sim {
         // order is an ATTACK (`60142c`). It gates the `find_nearby_spot`
         // fallback at the very end, which is not modelled here.
         let range = self.max_range_of(me);
+        // `local_2c`, set only by the far arm.
+        let far: bool;
 
         // **The first return**: already in range from `from`.
         if self.units[u].on_map && !bombard && self.is_in_range_at(me, from, target) {
@@ -141,19 +143,19 @@ impl crate::Sim {
                 // Neither arm: the stand-off is the measured distance.
                 stand = d;
             }
+            far = false;
         } else {
-            // The far arm. It needs a **unit** target, and a unit target
-            // never reaches the ring, so this only feeds the half of the
-            // function that is not modelled.
-            return None;
+            // **The far arm** (`6015e0`-`6015fc`): a unit target further
+            // than `(range + 8)` tiles. `local_2c` is set, and it is what
+            // makes the spot below unconditional — a chase this far out
+            // takes whatever the sweep offers without asking whether it
+            // would be in range there.
+            stand = (range + 2) * 0xc0;
+            far = true;
         }
 
         let Obj::Building(_) = target else {
-            // SEAM: a unit target that is *moving*, or a ranged asker's
-            // unit target, takes `00601280`'s other half — the flanking
-            // chase and `UnitType::find_nearby_spot` — which is not
-            // modelled. The caller keeps its straight-line approach.
-            return None;
+            return self.chase_spot(u, target, from, stand, far);
         };
 
         // `local_34 == 0xc` (`601616`): an asker whose activity is a
@@ -163,6 +165,70 @@ impl crate::Sim {
         }
 
         self.ring_walk(u, target, from, stand, site)
+    }
+
+    /// **The unit half of `Unit::find_attack_pos@00601280`** — where a
+    /// chaser stands to shoot a *unit*, which is a sweep around the
+    /// target rather than a walk round a footprint (`docs/COMBAT.md`
+    /// §32).
+    ///
+    /// `00601280` splits on the target's `is_build` (`+0x1c`) at `601604`.
+    /// The building side is [`Self::ring_walk`]; this is the other, and
+    /// until item 462 it was a `return None` that left every chaser
+    /// walking at the target's own seat.
+    ///
+    /// Three steps and nothing else:
+    ///
+    /// 1. **The sweep's radius**, `60256a`-`602595`: `spot = target.
+    ///    big_radius + my.big_radius + stand`. Over `0x240` it becomes a
+    ///    *band* — `min = spot − 0xc0`, `max = spot`, `step = 0x60`, so
+    ///    three rings — and at or under it a single ring at `spot` with
+    ///    the defaults (`max = 0`, `step = 0`).
+    /// 2. **The bearing**, `local_24`: `find_angle` of the approach
+    ///    vector, so the sweep's first candidate is the point on the
+    ///    target's own side of the asker. [`Sim::find_nearby_spot`] walks
+    ///    `0, ±1, ±2, … ±7` sixteenths from it.
+    /// 3. **The acceptance**, `6025dd`-`602620`: a spot the sweep found is
+    ///    taken outright when the far arm asked (`local_2c`) or when the
+    ///    flanking projection supplied the centre (`local_40`); otherwise
+    ///    only if the asker would be **in range from it**. Anything else
+    ///    falls through to the caller's fallback, which is the target's
+    ///    own position.
+    ///
+    /// **Measured against run112 before it was written**: the three
+    /// slingers' 622 destinations — `(1608, 8184)`, `(1560, 7848)` and
+    /// `(1704, 8424)` — are all on the inner ring of a `stand` of 1008,
+    /// at bearings `0`, `+1` and `−1` sixteenths from this angle
+    /// (`docs/COMBAT.md` §32.2).
+    ///
+    /// **SEAM — the flanking branch** (`602870`-`602a9c`, `local_40`).
+    /// When the target carries a **move** order the original first asks
+    /// whether its back is turned: within 60° of running away it may
+    /// return the asker's own position outright, and otherwise
+    /// `flanking()` projects a point ahead of the target and sweeps from
+    /// *there*. Neither is modelled; a moving target takes the centre a
+    /// standing one would. Chapter two's target stands still, so the
+    /// branch is unexercised by everything on disk, and
+    /// `docs/COMBAT.md` §32.4 names the capture that would reach it.
+    fn chase_spot(
+        &mut self,
+        u: usize,
+        target: Obj,
+        from: Pos,
+        stand: i32,
+        far: bool,
+    ) -> Option<Pos> {
+        let me = Obj::Unit(u);
+        let t = self.pos_of(target);
+        let spot = self.profile(target).big_radius + self.profile(me).big_radius + stand;
+        let (min, max, step) = if spot > 0x240 {
+            (spot - 0xc0, spot, 0x60)
+        } else {
+            (spot, 0, 0)
+        };
+        let angle = crate::movement::find_angle(from.x - t.x, from.y - t.y);
+        let p = self.find_nearby_spot(u, t, min, max, step, angle, None)?;
+        (far || self.is_in_range_at(me, p, target)).then_some(p)
     }
 
     /// `UnitData::is_moving@00610af0` — the **head** order's virtual
@@ -672,6 +738,98 @@ mod tests {
             sim.find_attack_pos(a6, Obj::Unit(b6), from, crate::fight::SITE_ATTACK_POS_FIGHT),
             Some(Pos::new(1080, 8280)),
             "the golden dump's own `orders_x`/`orders_y` for `0/6` at block 618"
+        );
+    }
+
+    /// **The golden record's own *ranged* chase** (§32.2): chapter two's
+    /// slinger `0/9`, ordered onto the hoplite `1/8` at the end of frame
+    /// 621, asks where to stand and run112's dump answers
+    /// `(1608, 8184)` — `orders_x`/`orders_y` at block 622, with a
+    /// six-node path stack beneath it.
+    ///
+    /// Every number is the dump's: `0/9` at `(888, 8376)` and `1/8` at
+    /// `(2472, 7944)` are block 622's `x_internal`/`y_internal`, and the
+    /// answer is that block's `MOVEORDER x`/`y`. The target carries no
+    /// order at all there (`STACK<TYPE> length 0`), which is what keeps
+    /// the call off §32.4's unmodelled flanking branch.
+    ///
+    /// The whole chain is pinned by one point: `stand` is 1008, the band
+    /// is `[912, 1104]` by `0x60`, the bearing is `find_angle(from −
+    /// target)` and the first candidate of the **inner** ring is the
+    /// answer.
+    ///
+    /// Made to fail on purpose by sweeping from `spot` instead of
+    /// `spot − 0xc0` — one ring out on the same bearing, and the call
+    /// then answers `(1416, 8232)`.
+    #[test]
+    fn chapter_two_s_ranged_chase_stands_where_the_golden_dump_puts_it() {
+        use crate::combat::Profile;
+        use crate::world::World;
+        let mut sim = crate::Sim::new(crate::tuning::Tuning::RON, World::new(60, 60), 2);
+        sim.at_war[0][1] = true;
+        sim.at_war[1][0] = true;
+        let mut kind = |max_range: i32, hits: i32| {
+            sim.add_unit_type(crate::UnitType {
+                hits,
+                combat: Profile {
+                    attack: 15,
+                    max_range,
+                    uber_size: 1,
+                    block_radius: 48,
+                    big_radius: 48,
+                    combat_role: true,
+                    ..Profile::default()
+                },
+                ..crate::UnitType::default()
+            })
+        };
+        let slinger = kind(6, 85);
+        let hoplite = kind(0, 120);
+        let put = |sim: &mut crate::Sim, who: crate::Player, ty: usize, p: Pos, hits: i32| {
+            let index = i16::try_from(sim.units.len()).unwrap();
+            let mut u = crate::Unit::new(who, index, p, hits);
+            u.ty = Some(ty);
+            u.on_map = true;
+            let h = sim.add_unit(u);
+            sim.units[h].orders_pos = p;
+            h
+        };
+        let a9 = put(&mut sim, 0, slinger, Pos::new(888, 8376), 85);
+        let b8 = put(&mut sim, 1, hoplite, Pos::new(2472, 7944), 120);
+        // The stand-off the band is built on, stated so a change to §17.3
+        // fails here rather than silently moving the ring.
+        assert_eq!(
+            sim.attack_dist(Obj::Unit(a9), Obj::Unit(b8)),
+            1468,
+            "block 622's own geometry"
+        );
+        let from = sim.units[a9].pos;
+        assert_eq!(
+            sim.find_attack_pos(a9, Obj::Unit(b8), from, crate::fight::SITE_ATTACK_POS_FIGHT),
+            Some(Pos::new(1608, 8184)),
+            "run112's own `orders_x`/`orders_y` for `0/9` at block 622"
+        );
+        // **The far arm takes the same road and a wider stand-off.** Past
+        // `(range + 8) × 0xc0` the answer is unconditional — no `is_in_
+        // range` test — so a chaser this far out still gets a ring point
+        // and not the target's seat, which is what the whole of §32.2
+        // exists to stop.
+        let far = put(&mut sim, 0, slinger, Pos::new(888, 16_000), 85);
+        let p = sim
+            .find_attack_pos(
+                far,
+                Obj::Unit(b8),
+                sim.units[far].pos,
+                crate::fight::SITE_ATTACK_POS_FIGHT,
+            )
+            .expect("the far arm sweeps rather than falling through");
+        assert_ne!(
+            p, sim.units[b8].pos,
+            "a chaser must never be sent to the target's own seat"
+        );
+        assert!(
+            !sim.is_in_range_at(Obj::Unit(far), p, Obj::Unit(b8)),
+            "the far arm's spot is accepted without the range test (`local_2c`)"
         );
     }
 

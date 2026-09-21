@@ -807,11 +807,24 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // own block, where item 448's fifteen rows go to **nought**
         // (`run100_s_word_block_is_every_record_the_dump_carries`).
         // DECISIONS 36 asks for the number rather than a trade.
+        // And **13 → 9 unlinked and 10 → 9 build_diverged** on 2026-09-21,
+        // item 462 — `find_nearby_target` walking the world cell's own
+        // `down` chain instead of the unit index (`docs/COMBAT.md` §32.1)
+        // and the unit half of `find_attack_pos` (§32.2), which move
+        // chapter two's word **624 → 637**. `off` does not move at all:
+        // four more of the roster have a counterpart at 24001 and one more
+        // building field-row agrees, and not one position changed. Both
+        // halves touch every chaser on every map, so this row is evidence
+        // about 24,000 frames of run-up; the value diff the change is
+        // booked on is chapter two's own `[620, 628)`, which goes from six
+        // first-partings to **nought, on every record in both directions**
+        // (`chapter_two_s_word_frame_is_widened_whole`, now at `[633,
+        // 641)`). DECISIONS 36 asks for the number rather than a trade.
         off: 48,
-        unlinked: 13,
+        unlinked: 9,
         extra: 0,
         build_unlinked: 0,
-        build_diverged: 10,
+        build_diverged: 9,
         city_unlinked: 3,
         city_diverged: 0,
     },

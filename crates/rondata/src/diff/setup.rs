@@ -1448,10 +1448,26 @@ impl Built {
 
     /// `(whom, ox)` for a simulation unit handle.
     pub(crate) fn unit_ids(&self, handle: usize) -> Option<(i64, i64)> {
+        // **The fallback is the whole of the check for a unit born since
+        // `BEGIN GAME`** (item 462). [`Built::units`] is the link table the
+        // *start* dump built, so a unit trained or staged later is not in
+        // it — and [`crate::diff::harness::compare`] knows that, which is
+        // why it links such a unit ad hoc by `(owner, index)` before
+        // comparing it. Nothing did the same for a unit named as a
+        // **target**, so [`crate::diff::order::OrderMismatch::Target`]
+        // answered `None` and went silently uncompared for every target
+        // that was not on the board at the start: chapter two's whole
+        // cast. `compare`'s own ad-hoc link is `who == owner && o ==
+        // index`, so reading the pair off the simulation is the same
+        // identity, and this can only add rows.
         self.units
             .iter()
             .find(|l| l.unit == handle)
             .map(|l| (l.who, l.o))
+            .or_else(|| {
+                let u = self.sim.units.get(handle)?;
+                u.alive().then(|| (i64::from(u.owner), i64::from(u.index)))
+            })
     }
 
     /// What a simulation order targets, in the log's ids — `TargetOrder`'s

@@ -1318,22 +1318,21 @@ fn chapter_two_s_hoplite_captain_refused_a_cell_three_searches_reached() {
     );
 }
 
-/// **624's widening, both directions** — every record run112's dump carries
-/// over `[620, 628)`, compared whole against this crate's own walk, on the
-/// frame chapter two's word now stands (`docs/COMBAT.md` §31.6).
+/// **637's widening, both directions** — every record run112's dump carries
+/// over `[633, 641)`, compared whole against this crate's own walk, on the
+/// frame chapter two's word now stands (`docs/COMBAT.md` §32.3).
 ///
-/// A word is pinned with its widening (`docs/DECISIONS.md` 43), and 616's
-/// went stale by succeeding: item 441 widened **616**, item 447 moved the
-/// word past it, and `chapter_two_s_squads_stand_where_the_dump_stands_them`
-/// widens a frame the word has left. This is its replacement, written with
-/// the move rather than booked after it — the same lesson parked 449 drew
-/// on Great Lakes the same day.
+/// A word is pinned with its widening (`docs/DECISIONS.md` 43), and the
+/// window moves with the word rather than being left naming a frame the
+/// word has walked out of — parked 449's lesson, applied at the move. This
+/// walked `[620, 628)` while the word stood at 624; item 462 closed that
+/// window whole — **zero rows, both directions, on every record** — and
+/// the word went to 637, so the window came with it.
 ///
 /// What it asserts is the **shape** of the residue rather than a tally that
-/// drifts on every landing: through 623 the two sides agree on every unit
-/// the dump prints, and at 624 exactly one unit parts. Both directions are
-/// counted, so neither a unit this crate has lost nor one it has invented
-/// can hide (`FrameResult::extra_units`).
+/// drifts on every landing. Both directions are counted, so neither a unit
+/// this crate has lost nor one it has invented can hide
+/// (`FrameResult::extra_units`).
 #[test]
 fn chapter_two_s_word_frame_is_widened_whole() {
     /// The first frame compared: run112's window opens at 605 and the
@@ -1450,33 +1449,48 @@ fn chapter_two_s_word_frame_is_widened_whole() {
         ninth, 9,
         "the window does not hold chapter two's nine staged figures"
     );
-    // **The map the widening exists to pin**, and its shape is the finding:
-    // the draw stream holds to 624 and the *values* part at **622**, two
-    // frames earlier, on the slinger squad alone. Nothing on the hoplites,
-    // nothing on the bowmen, nothing unlinked or extra in either
-    // direction, and no `los`, `packed`, `collide` or `search` row at all.
+    // **The map the widening exists to pin**, and its shape is the
+    // finding: the *values* part at **635**, two frames before the draw
+    // stream does, and the two earliest rows on that frame are both
+    // `Target` — six units on both sides choosing a different one of
+    // three identical, near-equidistant figures. `docs/COMBAT.md` §32.3.
     //
-    // `0/9`'s **position** is not in the map: the captain stands where the
-    // dump stands it and only its order parts, which is what says the
-    // residue is a *destination* and not a step. Ours plans the whole
-    // squad's move to `(2424, 7800)` — `1/6`'s own seat — where the
-    // original plans `(1608, 8184)`, `(1560, 7848)` and `(1704, 8424)`,
-    // three spread points, and walks six path slots to this crate's ten.
-    // That is parked 400's shape one squad over.
+    // That is the same residue item 462 closed one squad over and two
+    // frames earlier, and it is *not* closed by the cell chain alone:
+    // `0/6`, `0/7` and `0/8` take `1/6` where the dump takes `1/8`, and
+    // all three hoplites take `0/7` where the dump takes `0/11`. Every
+    // later row on 636 is downstream of those — a chase planned at a
+    // different target's ring walks a different way.
+    //
+    // `order 0/5` / `pos 0/5` at 639-640 are a **citizen** far from the
+    // engagement and were in no earlier window; they are named here so a
+    // regression in them cannot hide behind the engagement, and they are
+    // nobody's item yet (`docs/COMBAT.md` §32.5).
     let measured = [
-        ("angle 0/9", 622),
-        ("order 0/10", 622),
-        ("order 0/11", 622),
-        ("order 0/9", 622),
-        ("pos 0/10", 622),
-        ("pos 0/11", 622),
+        ("angle 0/6", 636),
+        ("angle 0/7", 636),
+        ("angle 0/8", 636),
+        ("order 0/11", 636),
+        ("order 0/5", 639),
+        ("order 0/6", 635),
+        ("order 0/7", 635),
+        ("order 0/8", 635),
+        ("order 1/6", 635),
+        ("order 1/7", 635),
+        ("order 1/8", 635),
+        ("pos 0/11", 636),
+        ("pos 0/5", 640),
+        ("pos 1/6", 636),
+        ("pos 1/7", 636),
+        ("pos 1/8", 636),
+        ("visible 0/11", 637),
     ];
     let got: Vec<(&str, i64)> = first.iter().map(|(k, &n)| (k.as_str(), n)).collect();
     assert_eq!(
         got,
         measured.to_vec(),
-        "chapter two's word frame no longer widens the way item 447 \
-         measured it; re-pin this map and say so in docs/COMBAT.md §31.6"
+        "chapter two's word frame no longer widens the way item 462 \
+         measured it; re-pin this map and say so in docs/COMBAT.md §32.3"
     );
 }
 
@@ -1624,8 +1638,8 @@ fn chapter_two_s_visible_byte_is_the_dump_s_on_every_unit_frame() {
             ((0, 7), (636, 2)),
             ((0, 8), (636, 2)),
             ((0, 9), (646, 2)),
-            ((0, 10), (629, 2)),
-            ((0, 11), (633, 2)),
+            ((0, 10), (631, 2)),
+            ((0, 11), (637, 2)),
             ((1, 6), (677, 1)),
             ((1, 7), (694, 1)),
             ((1, 8), (679, 1)),
@@ -1633,17 +1647,24 @@ fn chapter_two_s_visible_byte_is_the_dump_s_on_every_unit_frame() {
         "chapter two's `visible` arrivals moved; re-pin them and say so \
          in docs/VISION.md §7"
     );
-    // **Four of the nine land on the dump's own frame** — the three
-    // bowmen and the slinger captain — and that is the row that keeps the
-    // other five honest: a change that bought the hoplites' frames by
-    // losing the bowmen's would fail here.
+    // **Five of the nine land on the dump's own frame** — the three
+    // bowmen, the slinger captain and, since item 462, `0/10` — and that
+    // is the row that keeps the other four honest: a change that bought
+    // the hoplites' frames by losing the bowmen's would fail here.
+    //
+    // `0/10` came over on item 462 (629 → **631**, the dump's own) and
+    // `0/11` came three frames closer (633 → 637 against 640) on the
+    // same change, which is the engagement's timing and not this field's:
+    // the slingers' chase now walks to `find_attack_pos`' ring rather than
+    // to the target's seat, so the frame of the first strike moves and
+    // `visible` moves with it (`docs/COMBAT.md` §32.2).
     let exact = mine
         .iter()
         .filter(|(k, v)| theirs.get(k).is_some_and(|t| t.0 == v.0))
         .count();
     assert_eq!(
-        exact, 4,
-        "the four arrivals this crate puts on the dump's own frame are no \
-         longer four"
+        exact, 5,
+        "the five arrivals this crate puts on the dump's own frame are no \
+         longer five"
     );
 }
