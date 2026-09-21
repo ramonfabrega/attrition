@@ -31,7 +31,7 @@ the programme behind it closed. Both lanes widened before they read.*
   names the test or the item; East Indies' 9711 and chapter one's 626
   have none on file (444, 445, parked).
 - **The AI's dump paid for itself in one item** (367, run114, §52): the
-  offers 442 matched to the unit came off it. Four open, 66 parked.
+  offers 442 matched to the unit came off it. Four open, 67 parked.
   **Fable backlog: seven Loop items** (251, 335, 313, 375, 428, 446, 449).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850

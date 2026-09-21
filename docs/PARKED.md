@@ -793,6 +793,17 @@ wants a different shooter rather than a different frame.
 
 ## Measured residues, none near a word
 
+(450) **The Merchant offer on Great Lakes 9380 is the original's and not
+ours.** Item 442 matched both Scholar offers to the unit and the Citizen
+exactly (`docs/AI.md` §53, `§52.2`'s table), leaving one row unaccounted:
+the original offers `t61` Merchant at 869,565 in city 0 and this crate
+offers nothing there. Parks rather than books because 442 moved the word
+to **10161**, 781 frames past this frame — so the row names no score. It
+becomes an item again only if the widening of the new word (448) reaches
+back to a Merchant, or if a later word lands near 9380 again. The value
+diff is on file and the city index is now confirmed by value rather than
+assumed, so re-measuring it costs one run of 442's own test.
+
 (371) **`market_speculation`'s two passes fire nowhere below the word.**
 Read whole by item 362, both arms' predicates recorded in
 `docs/journal/2026-09-18-item-362.md`. It was read because 362 was booked
