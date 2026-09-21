@@ -31,17 +31,17 @@ mechanism the previous item named was wrong.*
   half of `find_attack_pos`.
 - **Neither lane's endpoint counts survived the merge**: 463 alone read
   51 off, 462 alone 48, the merged tree 45. Re-measured there, never
-  hand-merged; 467 parks the amend hazard. Four open, 70 parked.
-  **Fable backlog: 4 Loop items** (313, 467, 468, 469).
+  hand-merged. Four open, 70 parked. **Fable backlog: 1 Loop items**
+  (313); the ninth pass ruled 467, 468, 469 as clauses (DECISIONS 45).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w9711 of 24,000 · GreatLakes w10233 of 24,000
 Golden: w626 of 901 (ch1) · ch2 w637 · 466 next
 Endpoint 24001: EastIndies 64 off, 10 unlinked · GreatLakes 45 off, 9 unlinked
 
-**Opener: the ninth steering pass is due — not on the count (2 of 20)
-but because the loop broke: the chain has no link past reap (468) and
-lanes were run as a pair (469). Then 464 and 466, each on its own lane.**
+**Opener: 464 and 466, each on its own lane, and the loop resumes at
+2 of 20 — the ninth pass ruled that a reap is followed by the next spawn
+in the same turn and that lanes are independent (DECISIONS 45).**
 
 ## The queue
 

@@ -37,48 +37,11 @@ paragraph — and **built 367**, the AI's dump, the same day: run114 and
 the eighth, the same evening, ruled eight — 251, 335, 428, 446, 449, 452,
 453, 461 — code, five guards, a lock, a fixture and a clause, each made to
 fail first, and merged PR #4 whole (458); 375 left for the ordinary list
-(`docs/audit/2026-09-21-fable-pass-8.md`, DECISIONS 44).
+(`docs/audit/2026-09-21-fable-pass-8.md`, DECISIONS 44); the ninth,
+the same evening, ruled three — 467, 468, 469 — three clauses in the
+commander's chain, after the loop stopped at its own reap
+(`docs/audit/2026-09-21-fable-pass-9.md`, DECISIONS 45).
 341 closed 2026-09-18 by item 363.
-
-(468) **The commander's chain terminates at reap and never says to spawn
-again.** 2026-09-21, the ninth chain: `CLAUDE.md` says "merge, gate,
-push and reap are one chain" and "the commander counts its landings and
-stops at twenty". Between those two there is no clause that refills a
-free lane, so a literal reading of the chain ENDS at `ccc rm` — which is
-what this commander did, after two landings, with both headlines moved,
-a green gate, an empty lane roster and the next opener already written
-in the queue. It then asked the user whether to continue, which is not a
-thing the rules ask for and cost a human round-trip. "Keep going while
-the path is clear" is in the working agreement but reads as being about
-a mechanic's interior, not about the loop's own continuation. The chain
-needs an explicit last link — reap, then spawn the next item on that
-lane — or the twenty-landing count has nothing to count.
-
-(469) **Nothing says lanes are independent, and the rules read as
-pairing.** Same session: the commander spawned 463 and 462 together,
-then held 463's finished chain to batch it with 462's. `CLAUDE.md`'s
-only description of a second lane is "a second lane may run a parked
-value-diff row *beside* the word's frame, never instead of it" — which
-describes what a second lane may WORK on, and reads as a pair moving
-together. A lane is independent: it lands, it is reaped, and its
-replacement is spawned without reference to any other lane's state. The
-only real coupling is a merge conflict on a shared pin, which is
-resolved at merge time and says nothing about when to spawn. Worth one
-clause, because the misreading cost a lane's worth of idle time.
-
-(467) **An amend of the booking commit rewrites the base under a live
-lane.** 2026-09-21, the ninth chain: 463's booking commit failed
-`the_queue_caps_items_not_lines`, was fixed and `--amend`ed 7326776 →
-61a2d1e; lane att-462 had already merged 7326776 and had to abort and
-redo its merge against the new tip. It caught this itself by re-reading
-`worktree-replan-pdb` before committing, which is luck, not a guard —
-nothing would have failed had it not looked, and the merge's second
-parent would have been a commit that no longer exists on the base.
-`CLAUDE.md`'s chain bans a spawn or a `ccc update` between the merge and
-its booking commit but says nothing about the booking commit *moving*
-afterwards. Either the gate runs before the booking commit is visible to
-a lane, or a booking commit is never amended once a second lane is live
-— a fresh commit instead. The steering pass's to rule.
 
 (452) and of the same family as (449): an instrument that quietly stops
 looking at the moment the thing it measures happens. Both are guard

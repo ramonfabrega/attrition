@@ -3,7 +3,7 @@
 Newest last. Each entry records what was chosen, what it was chosen over, and
 why — so a future session can tell a considered decision from an accident.
 
-## Index — what stands, as of 2026-09-19
+## Index — what stands, as of 2026-09-21
 
 Nobody reads this file whole; a session reads the entry it is pointed at,
 and an entry that has been amended or superseded does not say so at its
@@ -45,17 +45,18 @@ is append-only and amended in place, as it always was.
 - 31 standing — Where a mechanic's answer is a number, proxy it
 - 32 standing — The oracle runs on free Wine
 - 33 extended by 34 — Two lanes for the two starved counters
-- 34 extended by 39 and 40 — The commander loop
+- 34 extended by 39, 40 and 45 — The commander loop
 - 35 standing — The paperwork is bounded by items, and a deletion is a claim
 - 36 standing — The endpoint is telemetry until the word reaches it
 - 37 standing — `forbid(unsafe_code)` is the whole tree's
 - 38 extended by 41 — A lab branch lands by merge
 - 39 extended by 40 — The queue holds what names a score
-- 40 extended by 42 — The loop governs itself
+- 40 extended by 42 and 45 — The loop governs itself
 - 41 extended by 42 — Two tracks: the rules on a golden record, the AI on the long captures
 - 42 extended by 43 — The frame is the item; the loop's holes become guards
 - 43 extended by 44 — A word is pinned with its widening, and a landing is committed before it is gated
 - 44 standing — The instrument that agrees because it is not looking: four guards, and the lab merged beside the sim
+- 45 standing — The chain's last link is the spawn, and lanes are throughput, not a pair
 
 ## 1. Fidelity before divergence
 
@@ -2486,3 +2487,52 @@ parted blocks before anything was named; the price per landing against
 20 and per word against 46; whether the number guard or the lane lock
 fired in anger; and whether the mechanism-survival rate held above a
 half.
+
+## 45. The chain's last link is the spawn, and lanes are throughput, not a pair
+
+**Decided 2026-09-21**, the ninth Fable pass, in the main thread with
+Ramon (`docs/audit/2026-09-21-fable-pass-9.md`). Extends entries 34 and
+40; overturns nothing.
+
+**Why a pass after two landings.** Not the count. The eighth pass ended,
+the thread was cleared, and a fresh Opus commander read the opener,
+spawned 462 and 463 together, landed both — both headlines moved, the
+gate green — reaped both, and then **ended its turn asking whether to
+continue**. The rules were followed to the letter, which is the point:
+entry 40's chain is "merge, gate, push and reap are one chain" and "the
+commander stops at twenty", and nothing between those two clauses says
+what happens after a reap. The twenty-landing count had nothing that
+counted past two. The user's question — did we break something, or was
+it that nobody said "continue" — has one answer: "continue" would have
+restarted it, and the chain would have stopped again at the next reap.
+The rule was the defect.
+
+**The chain's last link is the spawn** (parked 468). After `ccc rm` the
+same turn refills the lane with the queue's first unstarted item on that
+track, and a turn does not end with a lane empty while the queue is not.
+The commander never asks whether to continue; the queue's opener is the
+standing answer, and the stop at twenty is the only other exit.
+
+**Lanes are independent** (parked 469). The commander read "a second
+lane may run a parked row beside the word's frame" as two lanes moving
+together, held 463's finished chain to batch it with 462's, and then
+treated the empty roster as a natural end. Two lanes are concurrency:
+each lands, is chained and is refilled on its own clock, and the
+couplings that exist — the merge, and the run number and section number
+a brief reserves — are handled at merge time and in the brief, never by
+waiting. The width-two clause says what the second lane may work on, not
+when it is spawned; it now says so.
+
+**A booking commit is never amended under a live lane** (parked 467).
+463's booking commit failed a queue guard and was amended; lane 462 had
+already merged the earlier commit and caught the moved base only by
+re-reading it before its own commit. A red gate on a booking commit is a
+second commit. This is the same shape as entry 43's "a landing is
+committed before it is gated": the tree that a lane sees is never
+rewritten under it.
+
+**The measure for the next pass**: whether the loop ran from a fresh
+commander to twenty landings with no human turn between; whether any
+lane sat empty while the queue held an unstarted item on its track,
+which `lore agents` and the landing times answer; and whether a booking
+commit was amended.

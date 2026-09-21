@@ -396,7 +396,7 @@ book and to write on the scoreboard line. **A number a worker reports is
 measured on the tree after its last `ccc update`**, or the report says
 which tree it was measured on — an attribution taken against a moving
 base is unreliable in both directions. On the commander's side, **merge,
-gate, push and reap are one chain**; a reap left for "before the next
+gate, push, reap and the next spawn are one chain**; a reap left for "before the next
 spawn" is a reap that does not happen. `docs/DECISIONS.md` entry 34.
 
 **The commander's chain is ccc's, and it is one line.** `ccc merge <ref>
@@ -413,12 +413,24 @@ section number when another lane is in the same document. **A pinned
 constant and its comment are the worker's to re-pin; the queue's lines
 are the commander's to write**, and a worker whose gate is red only on
 those lines has done its half. `ccc spawn --json`'s answer is never filtered — the
-id lore's lineage reads is not the one the commander reads. **The
-commander counts its landings and stops at twenty**, writing the handoff
-and saying the steering pass is due; a free clear between is taken at a
-seam in the chain (`ccc clear <own ref> --then continue`), never in the
-middle of one. A second lane may run a parked value-diff row *beside* the
-word's frame, never instead of it. `docs/DECISIONS.md` entry 40.
+id lore's lineage reads is not the one the commander reads. **A booking
+commit is never amended once another lane is live**: a lane merges the
+base it sees, and a rewritten base leaves that merge parented on a commit
+that no longer exists; a red gate on the booking commit is a second
+commit. **The chain's last link is the spawn.** A reap frees a lane, and
+the same turn refills it with the queue's first unstarted item on that
+track; the turn does not end with a lane empty and the queue not, and it
+never asks whether to continue — the queue's opener is the answer.
+**Lanes are independent.** Two lanes are throughput, not a pair: each
+lands, is chained and is refilled without reference to the other's
+state, and the only coupling between them is the merge and what the
+brief reserves. **The commander counts its landings and stops at
+twenty**, writing the handoff and saying the steering pass is due; a
+free clear between is taken at a seam in the chain (`ccc clear <own ref>
+--then continue`), never in the middle of one. A second lane may run a
+parked value-diff row *beside* the word's frame, never instead of it — a
+rule about what it works on, never about when it is spawned.
+`docs/DECISIONS.md` entries 40 and 45.
 
 An Opus adjudication is acceptable under the marker discipline — append each
 verdict as it is settled, and mark what cannot be settled `FABLE:` rather
