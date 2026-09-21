@@ -3791,17 +3791,23 @@ mod tests {
             "Great Lakes' market draws below the word are not the \
              original's own"
         );
-        // **Six → nine on item 442.** The comparison above passed
-        // unchanged; only the literal moved, because the word went
-        // 9510 → 10161 and three more of the 200-frame rotations came
-        // under it. **9582 among them closes `docs/AI.md` §50.4's third
+        // **Six → nine on item 442**, and **nine → ten on item 456**. The
+        // comparison above passed unchanged both times; only the literal
+        // moved, because the word went 9510 → 10161 → 10232 and one more
+        // of the 200-frame rotations came under it each time. That is
+        // `ORDER_RESIDUE_RUN97`'s lesson in its cheapest form — a list
+        // bounded by the headline grows when the headline does — and the
+        // assertion above it, which compares the two *streams*, is the
+        // one with the teeth. **9582 closes `docs/AI.md` §50.4's third
         // open question** — it was the parting that probe's 9582 left, one
         // `Leader::use_market+0x1ed` short, and it is a market sell on
         // both sides now.
         assert_eq!(
             markets,
-            vec![8582, 8585, 8782, 8982, 9_182, 9_382, 9_582, 9_782, 9_982],
-            "below the word Great Lakes takes exactly nine market draws — \
+            vec![
+                8582, 8585, 8782, 8982, 9_182, 9_382, 9_582, 9_782, 9_982, 10_182
+            ],
+            "below the word Great Lakes takes exactly ten market draws — \
              and 9182 is item 385's own: the frame the sequence used to \
              part on is a `use_market` sell on both sides now"
         );
@@ -6950,8 +6956,17 @@ mod tests {
         // vanishes is. `leaders` is 4 because `LEADERS=1` still writes
         // one block a slot — the record whose `score` and `leader_flags`
         // nothing here compares (§54.4).
+        //
+        // **`builds` 29 → 28 on item 456**, and it is not a record that
+        // vanished from the capture: the *word* moved 10162 → 10233, and
+        // the original's own dump carries 29 building records on the
+        // first block and 28 on the second — one building fewer standing
+        // seventy-one frames later. Counted in run100 directly before
+        // re-pinning, because "a record that vanishes is a failure" and
+        // "the floor was measured on a different block" look identical
+        // from inside this assertion.
         assert!(
-            (units, builds, cities, leaders) >= (104, 29, 3, 4)
+            (units, builds, cities, leaders) >= (104, 28, 3, 4)
                 && [pos, order, collide, city, build, queue, gather]
                     >= [60, 60, 300, 130, 80, 50, 900],
             "the word's block does not carry every record this widening claims to \
