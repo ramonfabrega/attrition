@@ -335,8 +335,8 @@ impl Sim {
 
     /// `ObjectData::valid_target_const` + `Object::valid_target` (§12.1), as
     /// far as the simulation's state reaches: not mine, at war, active, on the
-    /// map; the air ladder reduced to "air targets need a ranged attacker
-    /// and the two AIR/ANTI_AIR rules"; no fog, no capture.
+    /// map, **and seen**; the air ladder reduced to "air targets need a
+    /// ranged attacker and the two AIR/ANTI_AIR rules"; no capture.
     pub fn valid_target(&self, attacker: Obj, target: Obj) -> bool {
         if attacker == target {
             return false;
@@ -360,6 +360,16 @@ impl Sim {
         if !self.active(target) {
             return false;
         }
+        // **`ObjectData::valid_target_const@006472c0`'s fifth test, and the
+        // one this crate had no term for**: the candidate must be *seen*.
+        // The call is `target->vtable[0x48](this->who, 0)` —
+        // `UnitData::is_seen@00607a60` — and it sits above every domain and
+        // mask test below, so a candidate the searcher's player cannot see
+        // is refused before its class is ever asked about
+        // (`docs/COMBAT.md` §31).
+        if !self.target_is_seen(attacker, target) {
+            return false;
+        }
         let ap = self.profile(attacker);
         let tp = self.profile(target);
         if matches!(tp.domain, Domain::Air) {
@@ -379,6 +389,51 @@ impl Sim {
             return false;
         }
         true
+    }
+
+    /// `UnitData::is_seen@00607a60` with `param_2 == 0`, on the plane this
+    /// simulation keeps — the fog half of it.
+    ///
+    /// ```text
+    ///     if (who != owner && reveal_map != 3) {
+    ///         if (!World::is_seen(pos / 0x180, who))
+    ///             return (visible >> who) & 1;
+    ///     }
+    ///     return 1;
+    /// ```
+    ///
+    /// and `WorldData::is_seen@006b55c0` is `seen[fy * fog_xs + fx] &
+    /// ally_mask`, with three always-true arms above it: `who > 7`,
+    /// `reveal_map == 3`, and the two leader flags (`0x800`, and a
+    /// `num_units[0x141]` count) this crate does not carry.
+    ///
+    /// SEAM, and it is a *refusing* one: `ObjectData::visible` (`+0x40`) is
+    /// not modelled here, so the fallback answers 0 where the original
+    /// might answer 1 — a target a player has laid eyes on but cannot
+    /// currently see. `docs/VISION.md` §6 has why nothing sets it. On the
+    /// frame this was written for the field is **0 on every candidate**
+    /// (`docs/COMBAT.md` §31.3), so the seam does not touch it.
+    ///
+    /// SEAM: `is_seen`'s stealth arm above the fog test — `unit_masks`
+    /// `0x800`/`0x1000`, `unit_masks2 0x8000`, the type's
+    /// `0x4000`/`0x40000` and `is_detected` — is not carried. It can only
+    /// *refuse* further.
+    pub(crate) fn target_is_seen(&self, attacker: Obj, target: Obj) -> bool {
+        if !self.world.has_fog() {
+            return true;
+        }
+        let who = self.owner_of(attacker);
+        if who >= 8 {
+            return true;
+        }
+        let p = self.pos_of(target);
+        let fog = crate::vision::UNITS_PER_FOG;
+        let Some(bits) = self.world.seen(p.x / fog, p.y / fog) else {
+            // Off the grid keeps [`crate::world::World::seen`]'s "no
+            // answer" reading, which is what its other callers take.
+            return true;
+        };
+        bits & self.seen_ally_mask(who) != 0
     }
 
     // ------------------------------------------------------------------

@@ -323,7 +323,11 @@ so a farm finished mid-game revealed nothing at all. What that cost is in
 §8.
 
 `Unit::update_local_seen@0060e410` is the unit's half of §6.1's second
-reveal: an object with `ObjectData::visible != 0` lights
+reveal — and since item 447 the `visible` byte itself is a **scored**
+omission rather than a note here: it is the fallback arm of
+`UnitData::is_seen`, and `docs/COMBAT.md` §31.3 has the frames of run112
+where the original's target acceptance turns on it. An object with
+`ObjectData::visible != 0` lights
 `circle_radius[type->x_size]` points around its own half-cell into `seen2`
 and `seen` with the `visible` byte as the **mask**. It is not modelled;
 nothing in this simulation sets `visible`, and `visible`'s writers in the

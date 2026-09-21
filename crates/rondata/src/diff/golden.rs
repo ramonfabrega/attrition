@@ -416,10 +416,15 @@ fn chapter_two_s_squads_stand_where_the_dump_stands_them() {
         "chapter two's squads are not seated where the golden dump seats \
          them at 617"
     );
-    // **And the drift is arithmetic.** Five more frames and who=1's squad
-    // stands 140 units west on all three figures, at 28 a frame, while the
-    // dump holds the original's still: item 415's number, with the
-    // mechanism it actually has.
+    // ~~**And the drift is arithmetic.** Five more frames and who=1's
+    // squad stands 140 units west on all three figures, at 28 a frame,
+    // while the dump holds the original's still: item 415's number, with
+    // the mechanism it actually has.~~ **Closed by item 447**
+    // (`docs/COMBAT.md` §31): the chase that walked them was an attack
+    // order the original never issued, and `is_seen` in `valid_target`
+    // retires it. So the assertion inverts — who=1's squad **does not
+    // move**, which is the dump's own behaviour through 634, and the 140
+    // is a number this crate can no longer produce.
     for _ in 0..5 {
         script.stage(built.sim.frame, &mut built, &loaded);
         built.tick();
@@ -430,10 +435,11 @@ fn chapter_two_s_squads_stand_where_the_dump_stands_them() {
             .expect("the squad is still alive");
         let p = built.sim.units[u].pos;
         assert_eq!(
-            (seat.0 - p.x, seat.1 - p.y),
-            (28 * 5, 0),
-            "unit {who}/{o} has not walked five frames' worth west of its \
-             seat; the 140 of item 415 is 5 x 28 and nothing else"
+            (p.x, p.y),
+            *seat,
+            "unit {who}/{o} has walked off its seat by 622; the original's \
+             hoplites hold no order at all through 634 and neither should \
+             these (docs/COMBAT.md §31)"
         );
     }
     // Anti-vacuity: the gap the chapter is built on. 2424 − 1032 is 1392
@@ -1064,19 +1070,25 @@ fn chapter_two_s_first_attack_orders_are_the_dump_s() {
         ((1, 7), 635),
         ((1, 8), 635),
     ];
-    // Ours. **Pinned in no direction** — the hoplite rows are the residue
-    // at the word, and the two squads that agree are what say the other
-    // three are a finding rather than noise.
-    let ours: [((u8, i16), i64); 9] = [
+    // Ours. **Pinned in no direction**, and now **six rows rather than
+    // nine**: item 447 put `is_seen` into `valid_target`
+    // (`docs/COMBAT.md` §31), which retired the hoplites' spurious 616 —
+    // and did not replace it with the dump's 635, because the other half
+    // of `UnitData::is_seen`, `ObjectData::visible`, is not modelled here.
+    // The original's `1/6` accepts `0/10` at 635 on that fallback: the
+    // slinger set its own `visible` bit for player 1 at **631** by
+    // attacking a hoplite (`Unit::set_attacking@005ff5b0`,
+    // `docs/VISION.md` §6), and player 1's line of sight never reaches
+    // that cell. So the row moved from *wrong and early* to *absent*,
+    // which is what the word measures as 616 → 624 and what §31.7 books
+    // as the next item.
+    let ours: [((u8, i16), i64); 6] = [
         ((0, 6), 635),
         ((0, 7), 635),
         ((0, 8), 635),
         ((0, 9), 621),
         ((0, 10), 621),
         ((0, 11), 621),
-        ((1, 6), 616),
-        ((1, 7), 616),
-        ((1, 8), 616),
     ];
     let got: Vec<((u8, i16), i64)> = first.into_iter().collect();
     assert_eq!(
@@ -1085,14 +1097,17 @@ fn chapter_two_s_first_attack_orders_are_the_dump_s() {
         "chapter two's engagement timeline moved. The dump's own is \
          {theirs:?}; re-pin `ours` and say so in docs/GOLDEN.md §6"
     );
-    // **Six of the nine already agree with the original**, and that is the
-    // assertion that keeps the other three honest: a change that made the
-    // hoplites right by making the slingers wrong would fail here.
-    let agree = got.iter().zip(theirs).filter(|(a, b)| a.1 == b.1).count();
+    // **Six of the nine agree with the original exactly**, and that is the
+    // assertion that keeps the missing three honest: a change that made
+    // the hoplites right by making the slingers wrong would fail here.
+    let agree = theirs
+        .iter()
+        .filter(|(k, f)| got.iter().any(|(g, n)| g == k && n == f))
+        .count();
     assert_eq!(
         agree, 6,
         "the two squads this crate gets right are no longer right; the \
-         hoplites' 616 is only a finding while they are"
+         hoplites' missing 635 is only a finding while they are"
     );
     // The original issues nothing at all on the frame the word parts.
     assert!(
