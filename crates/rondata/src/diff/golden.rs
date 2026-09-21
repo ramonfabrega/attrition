@@ -337,36 +337,26 @@ fn chapter_two_holds_to_the_golden_word() {
     eprintln!("chapter two: sequence {}, values {:?}", w.sequence, w.value);
 }
 
-/// **The value diff beside chapter two's word, and it is not what the
-/// draw stream alone suggested** (`CLAUDE.md`: a word that moved lands
-/// with the value diff beside it — because a draw stream can agree on a
-/// wrong destination for a long time, and here it disagreed on a right
-/// one).
+/// **Chapter two's squads are seated exactly where the dump seats them,
+/// and the 140 units item 415 called a seating error are five frames of
+/// marching** (item 441's widening).
 ///
-/// The dump holds all six combatants stock still on their birth cells at
-/// 615, 616, 617 and 618; the first arrow is not until 645. So nothing
-/// *moves* across the frame the streams part. But the second `add` does
-/// not land where the original lands it: **`add hoplite who=1 12,40` asks
-/// for tile 12, internal 2400, the original seats the squad at 2424,
-/// 2568, 2472 — a clean `+24` on the captain — and this crate seats it at
-/// 2284, 2428, 2332, uniformly 140 units west.** The bowmen, the first
-/// `add` of the chapter, are exact.
+/// 415 walked to 622, found who=1's squad 140 units west of the dump's own
+/// cells on all three figures, and read it as `Objects::init_unit`'s
+/// `find_nearby_spot` ring going wrong on clear ground. It is not.
+/// Widening every record the dump carries over 612–640 shows **no
+/// divergence of any kind before 616**, the seating exact at 616 and 617,
+/// and the positions parting only from 618 — after which this crate's
+/// squad walks west at 28 units a frame while the original's never moves
+/// at all. `622 − 617` is five frames and `5 × 28` is 140. The number was
+/// right; the mechanism was invented.
 ///
-/// That is `Objects::init_unit`'s `find_nearby_spot` ring on **clear
-/// ground**, which chapter one could not test: chapter one's second `add`
-/// asks for a point one tile from the first squad, so item 379 fitted the
-/// ring where the near ground was already taken (`docs/ANIM.md` §6.3,
-/// `docs/INPUT.md` §11.5). Here the nearest other unit is seven tiles
-/// away, the asked-for spot is empty, and the original simply takes it
-/// while this crate walks. It is pinned rather than fixed: the function
-/// is on every production path and item 379 said so — a change to it
-/// belongs in an item that re-runs those pins.
-///
-/// It also gives the word at 616 a cause to test rather than a mechanism
-/// to guess. Ours are 1252 units from the bowmen where the original's are
-/// 1392 — 6.5 tiles against 7.25 — so a re-search predicate keyed on
-/// range is the first thing the successor should look at, and the frame
-/// is 616 either way (`docs/DECISIONS.md` 42: the frame is the item).
+/// What is wrong is upstream and is one order: at 616 this crate gives the
+/// captain an `ATTACK`, at 617 pushes a `MOVE_TO` in front of it — the
+/// chase — and at 618 a path appears and the squad sets off. The
+/// original's hoplites hold **no order at all** through 634. So this test
+/// asserts the two halves separately: the seating is the dump's, and the
+/// drift is arithmetic.
 #[test]
 fn chapter_two_s_squads_stand_where_the_dump_stands_them() {
     let Some(inst) = crate::testenv::install() else {
@@ -392,9 +382,10 @@ fn chapter_two_s_squads_stand_where_the_dump_stands_them() {
     }
     let mut built = stand_up(&loaded, &log, &refs, &trace);
     let mut script = chapter(2);
-    // Past all three `add` lines (610, 615, 620) and one frame further, so
-    // the slingers exist and the question is where everyone is seated.
-    for _ in 0..622 {
+    // **617, not 622.** Both `add` lines that matter have run and nothing
+    // has moved yet on either side; 622 is five frames of this crate's own
+    // marching later, which is what item 415 mistook for a seating error.
+    for _ in 0..617 {
         script.stage(built.sim.frame, &mut built, &loaded);
         built.tick();
     }
@@ -408,17 +399,6 @@ fn chapter_two_s_squads_stand_where_the_dump_stands_them() {
         (1, 7, (2568, 7800)),
         (1, 8, (2472, 7944)),
     ];
-    // What this crate seats them at. **Pinned in no direction** — this is
-    // a residue at the word, and DECISIONS 36's rule for those is that the
-    // measured number is written down rather than asserted to improve.
-    let ours: [(u8, i16, (i32, i32)); 6] = [
-        (0, 6, (888, 7800)),
-        (0, 7, (1032, 7800)),
-        (0, 8, (936, 7944)),
-        (1, 6, (2284, 7800)),
-        (1, 7, (2428, 7800)),
-        (1, 8, (2332, 7944)),
-    ];
     let mut got = Vec::new();
     for (who, o, _) in dump {
         let u = (0..built.sim.units.len())
@@ -427,30 +407,33 @@ fn chapter_two_s_squads_stand_where_the_dump_stands_them() {
         let p = built.sim.units[u].pos;
         got.push((who, o, (p.x, p.y)));
     }
+    // **All six are the dump's own cells at 617.** `add`'s ring is right
+    // for both squads; item 415's contrary finding was five frames of
+    // marching read at 622.
     assert_eq!(
         got,
-        ours.to_vec(),
-        "chapter two's seating moved. The dump's own answer is {dump:?}; \
-         re-pin `ours` here and say so in docs/GOLDEN.md §6"
+        dump.to_vec(),
+        "chapter two's squads are not seated where the golden dump seats \
+         them at 617"
     );
-    // **The first `add` is exact**, and that is what makes the second one a
-    // finding rather than noise: the same ring, the same frame, one squad
-    // right and one 140 units west.
-    assert_eq!(
-        &got[..3],
-        &dump[..3],
-        "the bowmen no longer land where the dump lands them, so the \
-         hoplites' 140 is no longer a clear-ground result"
-    );
-    // The residue itself, stated as the number it is: uniform in x, zero
-    // in y, on all three figures.
-    for i in 3..6 {
+    // **And the drift is arithmetic.** Five more frames and who=1's squad
+    // stands 140 units west on all three figures, at 28 a frame, while the
+    // dump holds the original's still: item 415's number, with the
+    // mechanism it actually has.
+    for _ in 0..5 {
+        script.stage(built.sim.frame, &mut built, &loaded);
+        built.tick();
+    }
+    for (who, o, seat) in dump.iter().skip(3) {
+        let u = (0..built.sim.units.len())
+            .find(|&u| built.sim.units[u].owner == *who && built.sim.units[u].index == *o)
+            .expect("the squad is still alive");
+        let p = built.sim.units[u].pos;
         assert_eq!(
-            (dump[i].2.0 - got[i].2.0, dump[i].2.1 - got[i].2.1),
-            (140, 0),
-            "unit {}/{} is not 140 units west of the dump's own cell",
-            dump[i].0,
-            dump[i].1
+            (seat.0 - p.x, seat.1 - p.y),
+            (28 * 5, 0),
+            "unit {who}/{o} has not walked five frames' worth west of its \
+             seat; the 140 of item 415 is 5 x 28 and nothing else"
         );
     }
     // Anti-vacuity: the gap the chapter is built on. 2424 − 1032 is 1392

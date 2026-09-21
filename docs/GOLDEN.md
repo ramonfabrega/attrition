@@ -256,18 +256,21 @@ The draw stream parts at **616**, ours 26 draws against the original's 25,
 the extra one `Unit::fight+0x9b0` — the one-in-five re-search — on the
 frame the hoplite squad appears. `GOLDEN_WORD_CHAPTER_TWO` pins it.
 
-**And the value diff found what the draw stream did not.** Nothing moves
-across the parting — the dump holds all six combatants on their birth cells
-at 615–618 — but `add hoplite who=1 12,40` asks for internal 2400 and the
-original seats the squad at 2424, 2568, 2472 where this crate seats it at
-2284, 2428, 2332: **uniformly 140 units west**, with the chapter's first
-`add` exact. That is `find_nearby_spot`'s ring on **clear ground**, which
-chapter one cannot test, because its second `add` asks for a point one tile
-from the first squad and item 379 fitted the ring where the near ground was
-already taken. It is pinned, not fixed — the function is on every
-production path — and it gives 616 a cause to test rather than a mechanism
-to guess: ours stand 6.5 tiles from the bowmen where the original's stand
-7.25.
+~~**And the value diff found what the draw stream did not.** … 140 units
+west … `find_nearby_spot`'s ring on clear ground …~~ **Withdrawn
+2026-09-19, item 441** (`docs/COMBAT.md` §29.2). Widening every record
+over 612–640 shows the seating **exact** at 616 and 617 and the positions
+parting only from 618, after which this crate's squad walks west at 28
+units a frame while the original's never moves: `622 − 617` is five frames
+and `5 × 28` is 140. The number was a real measurement read at the wrong
+frame, and the ring was never involved.
+
+**What the widening puts in its place is narrower.** who=0's nine units
+never diverge at all, in any field, on any frame; nothing else in the dump
+does either. The entire divergence is who=1's three hoplites, beginning
+exactly at 616, where this crate holds one order and the original holds
+none — then two at 617, a path at 618, and the march. One order, and
+everything after it downstream.
 
 **What stands at 616, after item 426 widened it.** The original issues
 **no** attack order on that frame at all: its first is at **621**, to the

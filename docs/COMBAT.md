@@ -3825,8 +3825,10 @@ the bracket.
 ### 28.4 What is now known not to be the answer
 
 Visibility (§26.2), the remembered-target arm (§27.1), the seating error
-and the `0x40000` respond arm considered alone (§26), the `idle`/`stance`
-gate (§27.3), the choice of branch (§28.2), and — seventh, item 439 — **an
+(§26 — and **withdrawn outright** by §29.2: it was five frames of
+marching, not a ring) and the `0x40000` respond arm considered alone
+(§26), the `idle`/`stance` gate (§27.3), the choice of branch (§28.2),
+and — seventh, item 439 — **an
 offset shift through the leader array**: the eight bytes §28.2 recorded
 were `Leader` against `LeaderData` and not a disagreement at all, so no
 offset any document computes through that array is displaced. What
@@ -3845,3 +3847,78 @@ coordinates.
 
 **Reading-only, owed a blind second reading**: §28.3's identification of
 which arm each path applies, inherited from §27.2.
+
+## 29. 616 widened whole, and what four items had assumed (item 441, 2026-09-19)
+
+Four items chased a radius and the bracket did not move. `CLAUDE.md`'s
+answer to that is to widen every dumped record on the frame and name the
+cause before any mechanism. Run112's frames 612–640 compared whole —
+every unit of both real players, every field the record carries, both
+directions — and the result is one row wide and one row deep.
+
+### 29.1 What the widening says
+
+| frame | divergences | what |
+| --- | --- | --- |
+| 612–615 | **0** | nothing at all, either direction |
+| 616 | 3 | who=1's `1/6`, `1/7`, `1/8`: order list **ours 1, theirs 0** |
+| 617 | 3 | the same three: **ours 2, theirs 0** |
+| 618 | 9 | the three positions part, and a **path** appears: `PathLength` ours 1, theirs 0 |
+| 619–640 | 9 a frame | the same three, walking |
+
+**who=0's nine units never diverge at all**, at any frame, in any field.
+Neither does any other record. The whole of chapter two's divergence is
+three units of one squad, and it begins exactly at the word.
+
+### 29.2 The seating finding of item 415 is withdrawn
+
+415 walked to 622, found who=1's squad 140 units west of the dump's own
+cells on all three figures, and read it as `find_nearby_spot`'s ring going
+wrong on clear ground — a finding this document carried in §26 and
+`docs/GOLDEN.md` §6.
+
+It is wrong. The seating is **exact** at 616 and 617; the positions part
+only from 618; and from there this crate's squad walks west at **28 units
+a frame** while the original's never moves. `622 − 617` is five frames and
+`5 × 28` is 140. The measurement was right and the mechanism was invented,
+which is the same failure mode as §26.2's visibility and §27.1's
+remembered-target arm — a number that fits, explained before it was
+bracketed. `chapter_two_s_squads_stand_where_the_dump_stands_them` now
+asserts both halves separately: the seating is the dump's, and the drift
+is arithmetic.
+
+### 29.3 The cause, named from the data
+
+At **616** this crate gives the captain an `ATTACK`; at **617** it pushes
+a `MOVE_TO` in front of it — the chase; at **618** a path appears and the
+squad sets off. The original's hoplites hold **no order at all** through
+634, and therefore never move, never path, and never spend the
+twenty-sixth draw.
+
+So the whole of the divergence is one order, and everything after it —
+the second order, the path, the march, the 140, the draw — is downstream.
+That is the cause, and it is narrower than any of the seven accounts
+§28.4 lists: those all asked *why the search found something*, and the
+widening does not establish that a search ran at all. Item 435 established
+that **635** is a search, from `near_o` turning from −1 to 10 on that
+frame. On 616 `near_o` stays −1 on both sides — so whatever gives this
+crate its order at 616, it is **not** the path that writes `near_o`.
+
+### 29.4 What this leaves
+
+The question is no longer "what radius reaches 7.25 tiles". It is **which
+producer of an attack order runs on a cheat-spawned captain's birth frame
+and does not write `near_o`**. `docs/COMBAT.md` §26–§28's radius
+arithmetic is not wrong, but it was answering a question the widening says
+may never have been the right one — and the bracket it produced rests on
+616 being a search, which §29.3 now doubts.
+
+`chapter_two_s_first_attack_orders_are_the_dump_s` remains the oracle and
+is unchanged: the timeline is what it was, and six of nine rows still
+agree.
+
+### 29.5 Coverage
+
+**Diff-backed**: all of §29.1, §29.2 and §29.3 — they are
+`crate::diff::harness::compare` run over run112's own records, and both
+halves of §29.2 are asserted by a test. §29.4 is an inference from them.

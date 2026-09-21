@@ -12,36 +12,35 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-19, the first tranche after the sixth Fable pass. **Fifteen
-landings, no score moved**; the AI headline's term is named and **two
-defects are cancelling on it**, which is the thing to read first.*
+*2026-09-21, the tranche after the sixth Fable pass, closed by a stale
+commander and two cleared lanes. **Sixteen landings, no score moved.**
+The steering pass is due, and 441 is why.*
 
 - **`gfree[KNOWLEDGE]` is the term, and correcting it alone costs 925
   frames** (438; word 9510 → **8585**, caught by the floor). `num_gatherers`
-  is **two** counts — the `gather_down` chain **plus** `count_inside` for
-  the kinds whose workers sit inside — and our `count_gather_slots` reads
-  the raw chain length, so seated scholars never reduced a University's
-  free slots. The dump says 1 on 2019's `inside_down` and 4 on 2020's: k
-  is 6 and 3, per-city. 442 lands it **with** the chain.
+  is **two** counts — the `gather_down` chain **plus** `count_inside` — and
+  our `count_gather_slots` reads the raw chain, so seated scholars never
+  reduced a University's free slots. k is 6 and 3, per-city; 442 lands it.
 - **We were agreeing at 9375 by accident** (§51.3): the over-large `gfree`
-  overflowed `val`, §45's guard clamped it to 9,999,999, and the original
-  clamps there too. **Two wrongs producing a right on a frame the diff
-  calls green** — so a green frame is worth less as evidence than it looks.
-- **616's chase is over, not solved** (426, 434, 435, 437, 439): seven
-  things known not to be it, the bracket unmoved in four items. 441 widens
-  it whole rather than fitting an eighth account.
+  overflowed `val`, §45's guard clamped it to 9,999,999, and so does the
+  original. A green frame is worth less as evidence than it looks.
+- **616 widened whole, and a shipped finding withdrawn** (441): the whole
+  divergence of chapter two is who=1's three hoplites from 616; who=0's
+  nine never differ in any field. 415's "seating error, 140 west" was five
+  frames of our own marching read at 622, and it sat in three documents
+  for four items. The cause is **one order**; 443 asks which producer.
 - Four open, 71 parked.
   **Fable backlog: fifteen Loop items** (251, 335, 313, 367, 375, 416, 417,
   419, 420, 421, 424, 428, 431, 433, 436); due at twenty, this is fifteen.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w9711 of 24,000 · GreatLakes w9510 of 24,000
-Golden: w626 of 901 · ch2 w616 is lower and is the headline · 441 next
+Golden: w626 of 901 · ch2 w616 is lower and is the headline · 443 next
 Endpoint 24001: EastIndies 64 off, 5 unlinked · GreatLakes 51 off, 11 unlinked
 
-**Opener: 442 on the AI lane — the scholar `val` chain and the
-`count_gather_slots` correction, together or the score drops; 441 on the
-rules lane — widen 616 whole, nine units not one.**
+**Opener: the seventh Fable pass — sixteen landings and no score, and a
+four-item chase that rested on a mechanism nobody bracketed. Then 442 on
+the AI lane, 443 on the rules lane.**
 
 ## The queue
 
@@ -60,14 +59,14 @@ the backlog is `docs/PARKED.md`, and an item returns only when a score names it.
     1.1768. 438's `num_gatherers` guard stands as the falsifier, and the
     multiplier chain's two branch tests are `Leader` fields on both sides.
 
-441. **Widen 616 whole** (the rules headline's own frame, after four items
-    failed to move its bracket): every record run112 dumps on 616 — every
-    slot, every field — and the whole cast either side, **nine units not
-    one**. Name the cause from the data **before** any mechanism. Two
-    things to hold: the radius may not be the cause at all, since four
-    items assumed the order comes from the search and 435 established only
-    that **635** is one; and §28.4's seven dead entries are the asset — a
-    cause outside all seven is the result. No capture; run113 unspent.
+443. **616's order list, ours 1 and theirs 0** (the rules headline's frame;
+    441 widened it whole): the whole divergence is who=1's `1/6`, `1/7`,
+    `1/8` — one order at 616, two at 617, a path at 618, then the march —
+    and the original's hoplites hold none through 634. The item is
+    **which producer of an attack order runs on a cheat-spawned captain's
+    birth frame**. `near_o` stays −1 on **both** sides at 616, so it is not
+    435's path at 635; §28.4's seven dead entries plus the withdrawn
+    seating are the asset. No capture; run113 unspent.
 
 390. **A `LEADERS≥2` window anywhere in (7616, 8174]** (capture lane;
     takes-chain to the met bit): nothing on disk dumps a leader between
