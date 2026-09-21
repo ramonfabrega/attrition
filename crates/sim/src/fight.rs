@@ -512,10 +512,6 @@ impl Sim {
         self.add_attack_order(unit, target, crate::orders::QueuePos::New, true, true);
     }
 
-    pub(crate) fn bump_targeted_pub(&mut self, o: Obj, by: i32) {
-        self.bump_targeted(o, by);
-    }
-
     pub(crate) fn fight_pub(&mut self, i: usize, target: Obj, frame: i64) {
         self.fight(i, target, frame);
     }
@@ -525,7 +521,6 @@ impl Sim {
         let b = &mut self.buildings[building];
         b.target = Some(target);
         b.ordered = true;
-        self.bump_targeted(target, 1);
     }
 
     pub fn set_stance(&mut self, unit: usize, stance: Stance) {
@@ -559,9 +554,6 @@ impl Sim {
             // front of whatever it was doing.
             self.add_attack_order(i, t, crate::orders::QueuePos::First, mandatory, false);
             return;
-        }
-        if let Some(t) = target {
-            self.bump_targeted(t, 1);
         }
         let u = &mut self.units[i];
         u.combat.target = target;
@@ -1256,6 +1248,9 @@ impl Sim {
         let minr = ap.min_range * 0xc0;
         let maxr = self.max_range_of(attacker) * 0xc0;
         let centre = at.cell();
+        // `local_40`, read once before the rings and handed to every
+        // `compare_target` below ([`Sim::target_search_ai`]).
+        let ai = self.target_search_ai(attacker);
 
         // The buildings, which this crate does not thread onto the world
         // cell's object chain (`Sim::cell_chain`). The original's chain
@@ -1336,7 +1331,7 @@ impl Sim {
                             Obj::Building(b) => self.buildings[b].targeted,
                         };
                         dist += (targeted + 8) * 0x30;
-                        let value = self.compare_target(attacker, o, in_range);
+                        let value = self.compare_target(attacker, o, in_range, ai);
                         let mut score = value / (dist / 0xc0 + 1);
                         if score == 0 && value != 0 {
                             score = 1;
@@ -1354,12 +1349,67 @@ impl Sim {
                 }
             }
         }
+        // **The bump is here and nowhere else.** `00649ba6`, on the way
+        // out with a winner: `if (target->targeted < 100) target->targeted++`.
+        // Every other write to `ObjectData +0x3d` in the executable is
+        // `Object::init`'s zero or the `/4` decay in `Unit::process` /
+        // `Wall::process` — `add_attack_order` does not touch it, so a
+        // squad handed its captain's target through the mirror adds
+        // nothing, and a unit that drops a target subtracts nothing.
+        // This crate bumped on the *order* instead, which counted a
+        // three-figure squad three times and never let the count fall.
+        // `docs/COMBAT.md` §33.
+        if let Some((_, o)) = best {
+            self.bump_targeted(o, 1);
+        }
         best.map(|(_, o)| o)
     }
 
+    /// **`find_nearby_target`'s `ai` argument**, computed where the
+    /// original computes it (`00648e6e`-`00648e8d`):
+    ///
+    /// ```text
+    ///     ai = (leaders[who].flags & 4) == 0        // not human-controlled
+    ///          && LeaderData::get_diff(leaders[who]) == 0
+    ///          && (game.semaphore[1] & 2) == 0;
+    /// ```
+    ///
+    /// It is a property of the **searcher's leader**, not of the unit's
+    /// `unit_masks 0x40000`, and it is passed straight down to
+    /// [`Sim::compare_target`], where it inverts the damage weight.
+    /// `get_diff` answers the lobby's own `DIFFICULTY` outside a
+    /// multiplayer game (`LeaderData::get_diff@006ec000`), which is what
+    /// [`Sim::ai_difficulty`] carries.
+    ///
+    /// SEAM: the multiplayer semaphore `game.semaphore[1] & 2` has no
+    /// model here. It can only *clear* the flag, so this errs toward the
+    /// AI arm on a setting no capture uses.
+    ///
+    /// `docs/COMBAT.md` §33.2.
+    pub fn target_search_ai(&self, attacker: Obj) -> bool {
+        self.ai_driven(self.owner_of(attacker)) && self.ai_difficulty() == 0
+    }
+
     /// `Object::compare_target(o, who, in_range, ai)` (§12.3), the skeleton the
-    /// simulation can evaluate, for a human owner.
-    pub fn compare_target(&self, attacker: Obj, target: Obj, in_range: bool) -> i32 {
+    /// simulation can evaluate.
+    ///
+    /// `ai` is [`Sim::target_search_ai`]'s answer for the searcher — the
+    /// fourth argument, not a property of the target. The arm it owns here
+    /// is the damage weight: a human's ranking **multiplies** by the
+    /// damage it would deal, a computer leader's **divides** by it, and a
+    /// candidate it cannot hurt at all scores nothing
+    /// (`0064ef4b`-`0064ef5f`). So the two rankings do not merely differ in
+    /// scale, they differ in *sign*: where a human is drawn to what it
+    /// kills fastest, the AI is drawn to what it kills slowest, and cost
+    /// and fragility carry the pick instead. Modelling it as the human arm
+    /// for both was worth two of chapter two's six `Target` rows
+    /// (`docs/COMBAT.md` §33.2).
+    ///
+    /// SEAM: `ai`'s **other** arms — the building class multipliers (§12.3's
+    /// `×10`, a city `100`, a defensive building `×40`, a silo `×15`) — are
+    /// still unmodelled, and are gated on a building target. No capture on
+    /// disk has a building in a target search.
+    pub fn compare_target(&self, attacker: Obj, target: Obj, in_range: bool, ai: bool) -> i32 {
         let ap = self.profile(attacker);
         let tp = self.profile(target);
         let is_build = matches!(target, Obj::Building(_));
@@ -1428,7 +1478,15 @@ impl Sim {
                 &self.mods[self.owner_of(attacker) as usize],
             )
         };
-        v *= i64::from(dmg);
+        if ai {
+            // `if (dmg == 0) return 0; v /= dmg;`
+            if dmg == 0 {
+                return 0;
+            }
+            v /= i64::from(dmg);
+        } else {
+            v *= i64::from(dmg);
+        }
         if is_build {
             // Armed buildings: a human owner gets ×5; siege adds 100,000.
             let armed = t_attack != 0 && !(aa && !matches!(ap.domain, Domain::Air));
@@ -1544,11 +1602,7 @@ impl Sim {
         };
         if needs && !bd.ordered {
             let radius = (p.x_size.max(p.y_size) + 2 * self.max_range_of(me)) * 0x60;
-            let found = self.find_nearby_target(me, radius);
-            if let Some(t) = found {
-                self.bump_targeted(t, 1);
-            }
-            self.buildings[b].target = found;
+            self.buildings[b].target = self.find_nearby_target(me, radius);
         } else if needs {
             self.buildings[b].target = None;
             self.buildings[b].ordered = false;

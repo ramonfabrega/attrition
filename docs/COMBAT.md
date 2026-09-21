@@ -4604,3 +4604,269 @@ walk's `+0x2c`/`+0x2e` link at `0064937f`, and `00601280`'s split at
 **Reading-only, and owed a blind second reading**: every bullet of §32.4.
 No run on disk executes the flanking branch, the mandatory fallback, the
 mandatory-target halving or the bearing weights.
+
+## 33. The tie is broken by a decaying counter and an inverted weight (item 466, 2026-09-21)
+
+§32.3 measured chapter two's *values* parting at **635**, two frames
+before the draw stream, on six `Target` rows: the three bowmen took `1/6`
+where the dump took `1/8`, and the three hoplites took `0/7` where the
+dump took `0/11`. §32.4 wrote the residue down and said the cell chain was
+"now the wrong hypothesis to reach for twice".
+
+It was two hypotheses, one per squad, and neither is the chain. All six
+rows are closed; the values part at **636** and the parting is now the
+chase *destination* rather than who is being chased.
+
+### 33.1 `ObjectData::targeted` is a decaying penalty, not a reference count
+
+§12.2's ranking shapes the distance before the divide:
+
+```
+dist += (targeted + 8) * 0x30
+```
+
+`targeted` is `ObjectData +0x3d`, a `char`. **Four functions in the whole
+executable write it**, and the list is the finding:
+
+| writer | what it does |
+| --- | --- |
+| `Object::init@00647750` | `= 0` |
+| `Object::find_nearby_target@00648da0`, `00649ba6` | `if (t < 100) t++` on the **winner it returns** |
+| `Unit::process@00610bc0`, `006114e6` | `t = t / 4`, every sixteenth frame |
+| `Wall::process@00640450` | the same `/4` |
+
+Nothing decrements it when an attacker dies, drops its target or is given
+another, and `add_attack_order` never touches it at all. So it is not a
+count of current attackers: it is a **crowding penalty that decays**, and
+the decay is its whole bookkeeping. The slot is the one the attrition
+refresh is nested inside, under `inside_up < 0`:
+
+```
+if ((frame + o) % 16 == 0) {
+    targeted = targeted / 4;          // signed, toward zero
+    process_cloak();
+    if ((frame + o) % 32 == 0) { … process_attrition(); … }
+}
+```
+
+This crate bumped in `add_attack_order` — so a three-figure squad handed
+one target through §21's captain mirror counted **three** — and never
+decayed. Chapter two's arithmetic is where that bites. The slinger squad
+took `1/8` at 622; by 634 this crate had `1/8.targeted = 3` and the
+original had `0`, its captain's single bump having been quartered at
+frame 632 (`o = 8`, so `632 + 8 ≡ 0 (mod 16)`). The bowman captain `0/6`
+at `(888, 7800)` then scores its three candidates, in the cell chain's own
+order (`1/8`, `1/7`, `1/6` — §32.1):
+
+| candidate | `attack_dist` | halved | `+ (targeted + 8) × 0x30` | `/ 0xc0` | score |
+| --- | --- | --- | --- | --- | --- |
+| `1/8` | 1440 | 720 | this crate 1248 (`t = 3`) | 6 | 23005 |
+| `1/8` | 1440 | 720 | the original 1104 (`t = 0`) | **5** | **26839** |
+| `1/7` | 1536 | — | 1920 | 10 | 14639 |
+| `1/6` | 1392 | 696 | 1080 | **5** | **26839** |
+
+With the stale `+3` the bowmen take `1/6`; without it `1/6` and `1/8` tie
+exactly and the chain hands the tie to its head, `1/8` — the dump's
+`ATTACKORDER ox 8 whom 1 uid 14` on all three bowmen at 635. **The same
+tie §32.1 found one squad over**, broken by a different stale number.
+
+The halving above is §12.2's `dist /= 2` arm, and it is what puts `1/6`
+and `1/8` in one bucket while `1/7` is two away: `maxr` is 1920 here, so
+`1392 + 0x180` and `1440 + 0x180` clear it and `1536 + 0x180` does not.
+
+### 33.2 `compare_target`'s fourth argument inverts the damage weight
+
+`Object::compare_target(o, who, in_range, ai)` at `0064ef4b`:
+
+```
+dmg = get_damage(this, o, who, find_angle(0, 0), 0, 0, NULL);
+if (ai == 0) v = v * dmg;
+else { if (dmg == 0) return 0; v = v / dmg; }
+```
+
+So the two rankings differ in **sign**, not in scale. A human's search is
+drawn to what it kills fastest; a computer leader's is drawn to what it
+kills *slowest*, and cost and fragility carry the pick instead. §12.3 and
+§18 both recorded the arm and left it unmodelled — "the crate's own
+numbers differ while the factor of five does not" — and run108's proxy had
+already printed `ai=1` on chapter one's hoplite captain. It is a property
+of the **searcher's leader**, computed once before the rings
+(`00648e6e`-`00648e8d`):
+
+```
+ai = (leaders[who].flags & 4) == 0            // not human-controlled
+     && LeaderData::get_diff(leaders[who]) == 0
+     && (game.semaphore[1] & 2) == 0;
+```
+
+`get_diff@006ec000` answers the lobby's own `DIFFICULTY` outside a
+multiplayer game, and run112's `GAMEINFO` carries `DIFFICULTY 0`. who=0 is
+human and who=1 is not, so chapter two runs **both** arms in one frame —
+which is exactly why one mechanism could not explain all six rows.
+
+**The reading that would kill this, run before it landed.** A ranking
+that divides rather than multiplies compresses its spread, and the
+symptom of a collapsed spread is every member of a squad converging on
+one answer — which is what this crate's three hoplites do downstream
+(§33.4). So the dump was asked directly: do who=1's three hoplites hold
+*three* targets or one? They hold **one**, `ox 11 whom 0`, on **every
+frame from 635 to 700**, while their `MOVEORDER` destinations stay three
+and distinct throughout — `(1416, 8328)`, `(1128, 8424)`, `(1368, 8472)`
+at 636, still diverging at 665. Convergence on a single target is the
+original's own behaviour; the spread lives in the melee slot, a different
+function, and the dump separates the two for us. Had the dump's hoplites
+held three targets, this reading would be dead whatever the six rows did.
+
+The second falsifier is the target's *identity* rather than its
+multiplicity: the dump picks `0/11`, a **slinger**. Multiplying by damage
+puts a bowman 26% ahead at these distances, on every candidate and in
+every scan order; only the divide arm puts the two slingers in front.
+That is a value comparison and not a draw comparison.
+
+Its hoplite captain `1/6` at `(2424, 7800)` scores six candidates in the
+chain's order `0/9, 0/11, 0/10, 0/8, 0/7, 0/6`:
+
+| candidate | `attack_dist` | `/ 0xc0` bucket | `v × dmg` (this crate) | `v / dmg` (the original) |
+| --- | --- | --- | --- | --- |
+| `0/9` slinger | 1507 | 9 | 3061 | 208 |
+| `0/11` slinger | 1125 | 7 | 4955 | **257** |
+| `0/10` slinger | 1083 | 7 | 4955 | **257** |
+| `0/8` bowman | 1344 | 9 | 5630 | 211 |
+| `0/7` bowman | 1248 | 8 | **6256** | 234 |
+| `0/6` bowman | 1392 | 9 | 5630 | 211 |
+
+A bowman is the fatter target on either weighting — `4 × cost × attack ×
+100 / hits_left` is 61,714 against a slinger's 37,647 — and multiplying by
+damage keeps it in front. Dividing does not: the two slingers tie at 257,
+the chain reaches `0/11` first, and that is the dump's `ox 11 whom 0` on
+all three hoplites. The dump's `near_o 10` is consistent with both, because
+`near_o` is the nearest *acceptable* candidate and `0/10` is nearest on
+every reading (§30).
+
+### 33.3 What the widening ruled out, so nobody runs it twice
+
+Each of these was a hypothesis the 635 frame invited, and each was killed
+by reading the dump rather than by argument:
+
+- **The fog / `is_seen` plane.** The obvious story — who=1 sees the two
+  slingers and not the bowmen — is **false**. `0/10` fires at 630 and
+  gains `visible 2`; `Unit::update_local_seen@0060e410` then writes its
+  own disc into who=1's `seen` plane with mask `visible`, and the disc is
+  `circle_radius[CIRCLE_RADIUS]` = the full 3×3 (the slinger's
+  `CIRCLE_RADIUS` is 1 and `vector_dist(1, 1) = 1`). That lights fog cells
+  `(2, 20)` and `(2, 21)` — the bowmen's and `0/9`'s — five frames before
+  the search. Both sides' fog agrees here; the separation is arithmetic.
+- **`tregion`.** `Object::check_target@00649e00` makes a target in another
+  terrain region prove `is_in_range`. All nine figures stand in region
+  **0** (tiles `(4, 40)`…`(12, 41)`), so the arm never fires.
+- **The previous mandatory target's halving** (`00649793`,
+  `local_68`/`local_6c`). It is the *current order's* target and only
+  when that order is mandatory; both captains carry no order at all at
+  634, and it can only ever halve **one** candidate.
+- **`UnitData::full`.** §12.3's `v /= (full + 1)` is a no-op: the dump
+  prints `full 0` on all nine.
+- **A search radius.** `find_melee_target(-1)` gives an AI-driven melee
+  unit `unit_respond_range × 0x180` = 4608 (run108's proxy printed
+  `max_dist=4608`), and no radius can separate the bowmen at 1248-1392
+  from `0/9` at 1507 while keeping `0/10` at 1083 — §30's argument, in
+  distances rather than cells.
+
+### 33.4 What it cost: a floor that falls, landed red
+
+`chapter_two_s_word_frame_is_widened_whole` walks `[633, 641)` and its map
+is now:
+
+| key | first frame |
+| --- | --- |
+| `order 0/11`, `pos 0/11` | 636 |
+| `order 1/6`, `order 1/7`, `order 1/8` | 636 |
+| `pos 1/6`, `pos 1/7`, `pos 1/8` | 636 |
+| `visible 0/11` | 637 |
+| `order 0/5` | 639 |
+| `pos 0/5` | 640 |
+
+Every `Target` row is gone and 635 is clean. The word itself **held at
+637**: the draw stream was already agreeing past the values, which is the
+case the working agreement's "a draw stream can agree on a wrong
+destination for a long time" names.
+
+**The two causes split cleanly by squad**, and the split was measured
+rather than argued — each was disabled in turn and the same two tests run:
+
+| landed | 635's `Target` rows | `chapter_two_s_visible_byte` |
+| --- | --- | --- |
+| §33.1 alone | bowmen closed, `order 1/6`-`1/8` still 635 | **green** |
+| §33.2 alone | hoplites closed, `order 0/6`-`0/8` still 635 | **red** |
+| both | none — 635 clean | red |
+
+So §33.1 is free and §33.2 carries the whole cost, which is this:
+
+> ```text
+> assertion `left == right` failed: `visible` no longer arrives on the
+> same units, or no longer carries the same players' bits
+>   left:  [((0,6),2), ((0,7),2), ((0,8),2), ((0,9),2), ((0,10),2),
+>           ((0,11),2), ((1,6),1), ((1,7),1)]
+>   right: [((0,6),2), … , ((1,7),1), ((1,8),1)]
+> ```
+
+It is the **shape** assertion — the one whose own comment says it is the
+mechanic's own claim and that nothing about the engagement's timing can
+excuse a failure there. It fails first, so the nine pinned frames and the
+`exact == 5` row below it are not reached. **The test is landed red and
+not re-pinned**: a pinned constant moves when a word moves, and this is a
+floor falling.
+
+What it means is that `1/8` strikes nothing in the chapter's 899 frames.
+The cause is `find_open_slots` and it was **already broken before this
+item** — the change deepens it rather than creating it. Given the dump's
+own target, all three hoplites plan the *same* melee slot, `(1512, 8040)`
+on every one; before §33.2 they planned **two** between three,
+`(1320, 7800)` twice and `(1320, 7944)` once, and `1/8`'s distinct slot is
+the only reason it ever struck. The dump gives three throughout (§33.2).
+
+§19's `find_open_slots` rejects a slot another unit is ordered to through
+`find_ordered_collision`, and that predicate walks the object chain of the
+cells around the **slot**: the three hoplites' bodies stand 1,200 units
+east of it, so none of them is on those chains and none sees the others'
+orders. Two then queue behind the first.
+
+**The successor is `find_ordered_collision`'s reach, not this field**: a
+chaser must see the slots its squadmates have already been ordered to.
+Whether the original reaches them through a second chain, through the
+`pushed_group` arm this crate has, or because a melee squad's members are
+ordered from somewhere that already holds the list, is not established
+here.
+
+### 33.5 Coverage
+
+**Diff-backed**: §33.1's and §33.2's tables (the distances and buckets are
+this crate's own; the picks are `chapter_two_s_word_frame_is_widened_
+whole`'s `Target` rows, which are the dump's `ATTACKORDER ox`/`whom`, and
+that test is now empty on 635), §33.3's five eliminations (every one is a
+field the dump prints or a number this crate computes on the frame),
+§33.4's map, its split table and the red it names.
+
+**Listing- and export-backed**: the four writers of `+0x3d` and the
+`(frame + o) % 16` slot at `006114e6`; `compare_target`'s `ai` split at
+`0064ef4b`; the `ai` gate at `00648e6e`; `LeaderData::get_diff@006ec000`;
+`Unit::update_local_seen@0060e410` and `circle_init@006817f0`;
+`Object::check_target@00649e00`'s region arm.
+
+**Reading-only, and owed a blind second reading**:
+
+- **`ai`'s other arms are still unmodelled.** §12.3's building-class
+  multipliers (`×10`, a city `100`, a defensive building `×40`, a silo
+  `×15`) are all gated on a building target, and no capture on disk has a
+  building in a target search.
+- **The `ai` gate's third term** — `game.semaphore[1] & 2` — has no model
+  here. It can only *clear* the flag, so this errs toward the AI arm on a
+  setting no capture uses, and `get_diff`'s own multiplayer branches
+  (`multi_diff`, the three semaphore reads) are not carried either.
+- **`find_nearby_target`'s `flags` are adjusted on the AI arm too**
+  (`00648e85`: `local_30 = 0` unless `param_5 != 1`). This crate computes
+  its `anything` bits from the searcher's stance instead, and does not
+  take that step. Nothing on disk passes `flags = 1`.
+- **`Wall::process`'s decay is not modelled**, so a *building*'s
+  `targeted` now grows without bound. It never had a decay here either;
+  what changed is that the bump moved to the search, so a building's count
+  is no longer inflated by its own `add_attack_order` as well.
