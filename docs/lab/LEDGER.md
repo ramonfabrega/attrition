@@ -99,6 +99,8 @@ Fable worker or capture.
 
 | L58 | Live thread/table inputs are still missing from the suspended-search packet. | [Bounded delegation context sidecar](2026-09-19-restore-context.md). | Offline refusal checks pass; one September-21 capture yields 19,200 table entries matching regeneration and a 256-reset wrapper replay. | One live sidecar; FXSAVE retained but not loaded, no emulated resumed search result. |
 
+| L59 | Captured thread/table inputs have not yet been consumed in resumed-search replay. | [Native A* entry agreement and unit-header refusal](2026-09-21-resume-frontier.md). | 50-instruction entry matches all four native arguments; 64 resets and fresh engine agree; instruction 73 refuses unit +9. | Prefix only; no FXSAVE import or full A* return, no new capture. |
+
 ## Current direction
 
 The runtime factor-isolation experiment is paused at the user's request after

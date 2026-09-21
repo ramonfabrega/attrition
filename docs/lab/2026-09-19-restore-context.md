@@ -78,8 +78,8 @@ Artifacts, settings backup, reports and hash manifest are retained at
 Copied files were hash checked and context validation rerun from that directory.
 Acquisition scratch is `/tmp/lab-context-20260921/map-14`.
 
-Next: use the captured thread/table inputs in bounded offline replay and measure
-the next missing dependency. FXSAVE import remains unimplemented; no complete
+The captured inputs now reach [A* entry in bounded offline replay](2026-09-21-resume-frontier.md);
+the next missing input is the current unit header. FXSAVE import remains unimplemented; no complete
 search return is claimed. Request a new slot if further acquisition is needed.
 The separately paused runtime-isolation experiment stays paused.
 
