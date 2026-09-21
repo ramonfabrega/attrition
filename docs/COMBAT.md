@@ -4613,9 +4613,16 @@ where the dump took `1/8`, and the three hoplites took `0/7` where the
 dump took `0/11`. §32.4 wrote the residue down and said the cell chain was
 "now the wrong hypothesis to reach for twice".
 
-It was two hypotheses, one per squad, and neither is the chain. All six
-rows are closed; the values part at **636** and the parting is now the
-chase *destination* rather than who is being chased.
+It was two hypotheses, one per squad, and neither is the chain.
+
+**Three of the six are closed and three are not**, and the split is not
+an accident of effort: the two causes are independent arithmetic, each
+owning one squad, and only one of them can be landed today. §33.1 landed
+and closed the bowmen's three. §33.2 is established against the dump to
+the same standard and is **deliberately not landed**, because the
+correct ranking exposes a defect in `find_open_slots` that would turn a
+pinned assertion red — §33.4 has the reasoning and item 470 carries
+both. The values still part at **635**, on the hoplites' three rows.
 
 ### 33.1 `ObjectData::targeted` is a decaying penalty, not a reference count
 
@@ -4674,7 +4681,18 @@ The halving above is §12.2's `dist /= 2` arm, and it is what puts `1/6`
 and `1/8` in one bucket while `1/7` is two away: `maxr` is 1920 here, so
 `1392 + 0x180` and `1440 + 0x180` clear it and `1536 + 0x180` does not.
 
-### 33.2 `compare_target`'s fourth argument inverts the damage weight
+### 33.2 `compare_target`'s fourth argument inverts the damage weight — established, not landed
+
+**Status.** Everything in this subsection is established against run112's
+own dump and was implemented, measured and then *withdrawn* from the
+tree; the code carries the human arm still, and
+[`Sim::compare_target`]'s doc comment says so. It is not a doubt about
+the finding. It is that landing it alone turns
+`chapter_two_s_visible_byte_is_the_dump_s_on_every_unit_frame` red for a
+reason that has nothing to do with the ranking — §33.4 — and a red tree
+costs the next lane its oracle for three rows that do not move the word.
+Item 470 lands it together with the defect it uncovers.
+
 
 `Object::compare_target(o, who, in_range, ai)` at `0064ef4b`:
 
@@ -4771,24 +4789,24 @@ by reading the dump rather than by argument:
   from `0/9` at 1507 while keeping `0/10` at 1083 — §30's argument, in
   distances rather than cells.
 
-### 33.4 What it cost: a floor that falls, landed red
+### 33.4 Why §33.2 is not in the tree, and what its absence hides
 
 `chapter_two_s_word_frame_is_widened_whole` walks `[633, 641)` and its map
-is now:
+with §33.1 alone is:
 
 | key | first frame |
 | --- | --- |
+| `order 1/6`, `order 1/7`, `order 1/8` | **635** |
 | `order 0/11`, `pos 0/11` | 636 |
-| `order 1/6`, `order 1/7`, `order 1/8` | 636 |
 | `pos 1/6`, `pos 1/7`, `pos 1/8` | 636 |
 | `visible 0/11` | 637 |
 | `order 0/5` | 639 |
 | `pos 0/5` | 640 |
 
-Every `Target` row is gone and 635 is clean. The word itself **held at
-637**: the draw stream was already agreeing past the values, which is the
-case the working agreement's "a draw stream can agree on a wrong
-destination for a long time" names.
+The bowmen's three `Target` rows are gone, and so are the three `angle`
+rows that followed them on 636. The word itself **held at 637** — and
+holds at 637 under §33.2 as well, which is the fact that decides the rest
+of this subsection: neither half moves the headline.
 
 **The two causes split cleanly by squad**, and the split was measured
 rather than argued — each was disabled in turn and the same two tests run:
@@ -4799,7 +4817,7 @@ rather than argued — each was disabled in turn and the same two tests run:
 | §33.2 alone | hoplites closed, `order 0/6`-`0/8` still 635 | **red** |
 | both | none — 635 clean | red |
 
-So §33.1 is free and §33.2 carries the whole cost, which is this:
+§33.1 is free. §33.2 carries the whole cost, and the cost is this:
 
 > ```text
 > assertion `left == right` failed: `visible` no longer arrives on the
@@ -4812,39 +4830,61 @@ So §33.1 is free and §33.2 carries the whole cost, which is this:
 It is the **shape** assertion — the one whose own comment says it is the
 mechanic's own claim and that nothing about the engagement's timing can
 excuse a failure there. It fails first, so the nine pinned frames and the
-`exact == 5` row below it are not reached. **The test is landed red and
-not re-pinned**: a pinned constant moves when a word moves, and this is a
-floor falling.
+`exact == 5` row below it are never reached.
 
-What it means is that `1/8` strikes nothing in the chapter's 899 frames.
-The cause is `find_open_slots` and it was **already broken before this
-item** — the change deepens it rather than creating it. Given the dump's
-own target, all three hoplites plan the *same* melee slot, `(1512, 8040)`
-on every one; before §33.2 they planned **two** between three,
-`(1320, 7800)` twice and `(1320, 7944)` once, and `1/8`'s distinct slot is
-the only reason it ever struck. The dump gives three throughout (§33.2).
+**And the shape row passes today by accident.** That is the finding this
+subsection exists to record, and it outlives either half:
 
-§19's `find_open_slots` rejects a slot another unit is ordered to through
-`find_ordered_collision`, and that predicate walks the object chain of the
-cells around the **slot**: the three hoplites' bodies stand 1,200 units
-east of it, so none of them is on those chains and none sees the others'
-orders. Two then queue behind the first.
+- With §33.2, `1/8` strikes nothing in the chapter's 899 frames, so its
+  `visible` bit never arrives and the row goes red.
+- Without §33.2, `1/8` *does* strike — but only because it is chasing the
+  wrong target, and only because that wrong target happens to hand it a
+  slot of its own. Given the dump's own target all three hoplites plan
+  the **same** melee slot, `(1512, 8040)` on every one. Given the wrong
+  one they plan **two** between three, `(1320, 7800)` twice and
+  `(1320, 7944)` once, and `1/8`'s distinct slot is the entire reason the
+  assertion is green.
 
-**The successor is `find_ordered_collision`'s reach, not this field**: a
-chaser must see the slots its squadmates have already been ordered to.
-Whether the original reaches them through a second chain, through the
-`pushed_group` arm this crate has, or because a melee squad's members are
-ordered from somewhere that already holds the list, is not established
-here.
+So the green is resting on a wrong two-slot assignment. `find_open_slots`
+was already collapsing two chasers of three before this item; the correct
+ranking makes it three of three and merely *reveals* that. A pinned
+assertion that passes for the wrong reason is worse than one that fails,
+because nothing in the tree says so — this paragraph is the only record
+that it does.
+
+The mechanism is §19's: `find_open_slots` rejects a slot another unit is
+ordered to through `find_ordered_collision`, and that predicate walks the
+object chain of the cells around the **slot**. The three hoplites' bodies
+stand 1,200 units east of it, so none of them is on those chains and none
+sees the others' orders. Two then queue behind the first.
+
+**Item 470 is the successor and carries §33.2 with it.** The slot fix and
+the ranking land together, green: that is the landing that closes the
+hoplites' three rows, moves the parting to 636 and puts the `ai` argument
+into [`Sim::compare_target`]'s signature. Neither is landable alone —
+the ranking without the slot fix is the red above, and the slot fix
+without the ranking is a correct chase toward a target the dump does not
+pick. Whether `find_ordered_collision` should reach them through a second
+chain, through the `pushed_group` arm this crate has, or because a melee
+squad's members are ordered from somewhere that already holds the list,
+is not established here.
 
 ### 33.5 Coverage
 
-**Diff-backed**: §33.1's and §33.2's tables (the distances and buckets are
-this crate's own; the picks are `chapter_two_s_word_frame_is_widened_
-whole`'s `Target` rows, which are the dump's `ATTACKORDER ox`/`whom`, and
-that test is now empty on 635), §33.3's five eliminations (every one is a
-field the dump prints or a number this crate computes on the frame),
-§33.4's map, its split table and the red it names.
+**Diff-backed**: §33.1's table and the three bowman rows it closes (the
+distances and buckets are this crate's own; the picks are
+`chapter_two_s_word_frame_is_widened_whole`'s `Target` rows, which are
+the dump's `ATTACKORDER ox`/`whom`); §33.2's two falsifiers, both read
+straight off run112 — the three hoplites' single target over 635→700 and
+their three distinct destinations, and the dump's pick being a slinger;
+§33.3's five eliminations (every one is a field the dump prints or a
+number this crate computes on the frame); §33.4's map, its split table,
+and the two-slot assignment the green rests on.
+
+**Established and measured, but not in the tree**: §33.2's table. It was
+implemented and run — that is where its numbers come from — and then
+withdrawn, so no test checks it today and a later edit could silently
+contradict it. Item 470 is what puts it back under an oracle.
 
 **Listing- and export-backed**: the four writers of `+0x3d` and the
 `(frame + o) % 16` slot at `006114e6`; `compare_target`'s `ai` split at

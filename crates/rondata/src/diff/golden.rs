@@ -699,20 +699,14 @@ fn chapter_one_s_captain_picks_the_one_it_can_reach() {
     );
     // The three values the pick rests on, in the trace's own candidate
     // order. `in_range` is the search's permission-to-test, `true` for
-    // every candidate of a non-guarding AGGRESSIVE unit; `ai` is the
-    // searcher's leader's, and run108's proxy printed it **1** on this
-    // very captain — `1/6` is who=1's, and the capture's `DIFFICULTY` is
-    // 0 (`docs/COMBAT.md` §33.2), so this reads it rather than assuming
-    // the human arm the way this test did until item 466.
-    let ai = built.sim.target_search_ai(captain);
-    assert!(ai, "run108's proxy printed `ai=1` for this captain");
+    // every candidate of a non-guarding AGGRESSIVE unit. The **fourth**
+    // argument, `ai`, is still missing from this crate's signature and
+    // run108's proxy printed it `1` on this very captain — so the shape
+    // below is the human arm's, which is why every assertion here is
+    // relative (`docs/COMBAT.md` §33.2; item 470 carries the fix).
     let v: Vec<i32> = [(0, 8), (0, 7), (0, 6)]
         .into_iter()
-        .map(|(w, o)| {
-            built
-                .sim
-                .compare_target(captain, find(&built, w, o), true, ai)
-        })
+        .map(|(w, o)| built.sim.compare_target(captain, find(&built, w, o), true))
         .collect();
     assert_eq!(
         v[0], v[2],
@@ -732,11 +726,7 @@ fn chapter_one_s_captain_picks_the_one_it_can_reach() {
     // original's.
     let flat: Vec<i32> = [(0, 8), (0, 7), (0, 6)]
         .into_iter()
-        .map(|(w, o)| {
-            built
-                .sim
-                .compare_target(captain, find(&built, w, o), false, ai)
-        })
+        .map(|(w, o)| built.sim.compare_target(captain, find(&built, w, o), false))
         .collect();
     assert!(
         flat[0] == flat[1] && flat[1] == flat[2],
@@ -1467,22 +1457,27 @@ fn chapter_two_s_word_frame_is_widened_whole() {
     // finding. Item 462 measured the *values* parting at **635** on six
     // `Target` rows — every one of them a tie among near-equidistant
     // identical figures that this crate's ranking broke the wrong way.
-    // Item 466 closed all six and the values now part at **636**, on the
-    // chase *destination* rather than on who is being chased.
     //
-    // The two causes were separate and each is its own arithmetic
-    // (`docs/COMBAT.md` §33): `ObjectData::targeted` is a decaying
-    // crowding penalty quartered every sixteenth frame, which this crate
-    // bumped per order and never decayed, so a stale `+3` pushed `1/8`
-    // out of the bowmen's tie; and `compare_target`'s fourth argument
+    // Item 466 found the six to be **two** faults, one per squad, and
+    // landed one of them (`docs/COMBAT.md` §33). What landed is §33.1:
+    // `ObjectData::targeted` is a decaying crowding penalty quartered
+    // every sixteenth frame, which this crate bumped per order — three
+    // times for a squad handed one target through the mirror — and never
+    // decayed, so a stale `+3` pushed `1/8` out of the bowmen's exact
+    // tie. The bowmen's three rows are gone; `order 0/6`, `0/7` and `0/8`
+    // no longer appear at all, and nor do the `angle` rows that followed
+    // them on 636.
+    //
+    // **The hoplites' three remain at 635 on purpose.** Their cause is
+    // established and not landed: `compare_target`'s fourth argument
     // **divides** by the damage it would deal for a computer leader where
-    // a human's multiplies, which is why who=1's hoplites rank three
-    // slingers above three fatter bowmen and this crate did not.
-    //
-    // What is left on 636 is `find_attack_pos` (§32.2): the three
-    // hoplites plan one shared destination where the dump gives three,
-    // and `0/11` holds its `ATTACK` where the dump has pushed a `MOVE`
-    // in front of it. The chase, not the target.
+    // a human's multiplies, so who=1's hoplites rank two slingers above
+    // three fatter bowmen and this crate does not. Landing it closes
+    // these three rows and simultaneously fails
+    // `chapter_two_s_visible_byte_is_the_dump_s_on_every_unit_frame`,
+    // because the correct target exposes `find_open_slots`' own defect —
+    // three chasers planning one melee slot. The two land together as
+    // item 470 (`docs/COMBAT.md` §33.2, §33.4).
     //
     // `order 0/5` / `pos 0/5` at 639-640 are a **citizen** far from the
     // engagement and were in no earlier window; they are named here so a
@@ -1491,9 +1486,9 @@ fn chapter_two_s_word_frame_is_widened_whole() {
     let measured = [
         ("order 0/11", 636),
         ("order 0/5", 639),
-        ("order 1/6", 636),
-        ("order 1/7", 636),
-        ("order 1/8", 636),
+        ("order 1/6", 635),
+        ("order 1/7", 635),
+        ("order 1/8", 635),
         ("pos 0/11", 636),
         ("pos 0/5", 640),
         ("pos 1/6", 636),
