@@ -28,8 +28,8 @@ sixteen landings that moved neither. Every one widened before it read.*
   `add_to_world`'s `update_seen`, so a unit born on the map lit nothing
   until it crossed a half-cell. Great Lakes' endpoint 55 → 53 with it;
   East Indies and every other score unmoved.
-- **The met bit's bracket is a block, and it is ours** (390, run115):
-  the original flips on **7945**, on both leaders at once.
+- **The met bit's bracket is a block** (390, run115): the original flips
+  on **7945**, this crate's own, on both leaders at once.
 - **Both words are widened and pinned** (448, 447, re-pinned by 456 with
   the move): East Indies' 9711 and chapter one's 626 still owe theirs
   (444, 445, parked). Two open, 76 parked.
@@ -40,8 +40,8 @@ Long captures: EastIndies w9711 of 24,000 · GreatLakes w10232 of 24,000
 Golden: w624 of 901 (ch2) · ch1 w626 · 462 next
 Endpoint 24001: EastIndies 64 off, 10 unlinked · GreatLakes 48 off, 13 unlinked
 
-**Opener: 463 on the AI lane and 462 on the rules — both on a moved
-word's own frame, a named candidate each, and no capture owed.**
+**Opener: the eighth Fable pass, then 463 and 462 — steer first because
+452 blinds 463: `rows()` collapses order rows, and 463 IS order rows.**
 
 ## The queue
 
