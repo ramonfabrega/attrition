@@ -989,12 +989,20 @@ fn refusing_the_borrowed_frame_stream_does_not_move_great_lakes_word() {
 /// floors a melee searcher the same way (`find_melee_target@005ff9c0`,
 /// the `unit_respond_range * 0xc0` line below both arms), so had its
 /// hoplite captain searched on its birth frame it would have found the
-/// bowmen too. It did not search. The remaining suspect is `think`'s own
-/// auto-attack gate — `attack != 0 && (idle == 1 || (o + frame) & 0x1f ==
-/// 0)` — firing on a cheat-spawned captain's first frame where the
-/// original's does not, and that is a reading of `Unit::think@005f6e40`
-/// rather than anything another capture can answer. It is written here as
-/// a hypothesis, not a finding (`docs/DECISIONS.md` 42).
+/// bowmen too.
+///
+/// **Corrected by item 443** (`docs/COMBAT.md` §30), which is why this
+/// comment no longer says it did not search. It did: `near_o` is written
+/// above the range test, so `near_o = -1` at 616 says the search found
+/// nothing acceptable rather than that none ran, and the bowmen it
+/// refused at 616 sit in the *same* object-grid cell as the slinger the
+/// same captain accepts at 635 from a seat it never leaves. `think`'s
+/// auto-attack gate is ruled out with them: the slinger captain's birth
+/// frame is on neither of that gate's grids, so its own search came
+/// through the `idle == 1` arm and the hoplite's reached `think_attack`
+/// by the same arm. What is left is a target-acceptance predicate, and
+/// `chapter_two_s_hoplite_captain_refused_a_cell_three_searches_reached`
+/// is the measurement that says so.
 ///
 /// The slingers are the control that makes it a measurement: they engage
 /// on **their** birth frame in both, at 8.6 tiles, further than the 7.25
@@ -1090,5 +1098,200 @@ fn chapter_two_s_first_attack_orders_are_the_dump_s() {
     assert!(
         !theirs.iter().any(|(_, f)| *f == 616),
         "the dump's own timeline now has an attack order at 616"
+    );
+}
+
+/// One frame's `UNITDATA` records, read out of the raw dump text by hand.
+///
+/// **Deliberately not through [`crate::gamelog::Log`].** `near_o` and
+/// `near_who` are the `ObjectData` half the parser leaves unparsed on
+/// purpose — `ledger.rs`'s rule is that a parsed field is a *compared*
+/// field, and this crate's `Unit` models neither, so parsing them would
+/// buy a comparison against nothing (`docs/COMBAT.md` §30.1). This reader
+/// takes the four figures §30 argues on and nothing else.
+///
+/// First-wins on each key, because `BEGIN GUY` repeats `who`/`o` inside
+/// the record and the `SUBOBJECT`'s pair is the unit's own.
+fn ch2_dump_units(text: &str, frame: i64) -> std::collections::BTreeMap<(i64, i64), [i64; 4]> {
+    let head = format!("BEGIN FRAME {frame}");
+    let mut out = std::collections::BTreeMap::new();
+    let mut inside = false;
+    let mut cur: Option<std::collections::BTreeMap<&str, i64>> = None;
+    let flush = |cur: &mut Option<std::collections::BTreeMap<&str, i64>>,
+                 out: &mut std::collections::BTreeMap<(i64, i64), [i64; 4]>| {
+        if let Some(r) = cur.take() {
+            let g = |k: &str| r.get(k).copied().unwrap_or(i64::MIN);
+            out.insert(
+                (g("who"), g("o")),
+                [g("x_internal"), g("y_internal"), g("near_o"), g("idle")],
+            );
+        }
+    };
+    for line in text.lines() {
+        let s = line.trim();
+        if s.starts_with("BEGIN FRAME") {
+            if inside {
+                break;
+            }
+            inside = s == head;
+            continue;
+        }
+        if !inside {
+            continue;
+        }
+        if s == "BEGIN UNITDATA" {
+            flush(&mut cur, &mut out);
+            cur = Some(std::collections::BTreeMap::new());
+            continue;
+        }
+        if s.starts_with("BEGIN ") {
+            continue;
+        }
+        let Some(r) = cur.as_mut() else { continue };
+        if let Some((k, v)) = s.rsplit_once(' ')
+            && let Ok(n) = v.parse::<i64>()
+        {
+            r.entry(k).or_insert(n);
+        }
+    }
+    flush(&mut cur, &mut out);
+    out
+}
+
+/// **The object grid's cell**, `div_3_table[v >> 8]` — floor division by
+/// 768, four tiles (`docs/ATTRITION.md`, the units table; `docs/COMBAT.md`
+/// §30.3). `Object::find_nearby_target@00648da0` walks *cells*, not
+/// distances, so this is the quantum the search is actually coarse in.
+fn cell(v: i64) -> i64 {
+    v.div_euclid(768)
+}
+
+/// **No radius explains 616, and the dump says so in four numbers**
+/// (item 443, `docs/COMBAT.md` §30).
+///
+/// `Object::find_nearby_target@00648da0` scans the object grid by **cell**
+/// — `circle_x`/`circle_y` offsets from the searcher's own cell, bounded
+/// by `circle_radius[min(0x20, (range + 0x2ff) / 0x300 + bonuses)]` — and
+/// it writes `ObjectData::near_o`/`near_who` (+0x34/+0x36) for *every*
+/// candidate that clears `valid_target` and `check_target` and is nearer
+/// than the best so far, **above and independent of** the range test that
+/// decides the order. So `near_o` is the search's footprint: an attack
+/// order out of that function implies a `near_o` write, and `near_o = -1`
+/// after it means nothing in the scanned cells was acceptable.
+///
+/// And `Unit::think_attack@005f5a80` passes **-1** on every path into
+/// `find_melee_target` — listing-backed, `005f5d86`-`005f5da6`: the
+/// AI-driven branch calls `add_to_army` and then `orl $-1, %esi` anyway —
+/// so the range is computed from the unit's own stance, reach,
+/// `unit_respond_range` and `unit_masks`, every one of them
+/// frame-independent, and the `param_1 == 0` grid table is unreachable.
+/// **The hoplite captain therefore scanned the same cells at 616 and at
+/// 635.**
+///
+/// The four numbers this asserts:
+///
+/// | frame | searcher, cell | the cell in question | `near_o` |
+/// | --- | --- | --- | --- |
+/// | 616 | `1/6` at `(3, 10)` | bowmen `0/6`-`0/8`, `(1, 10)` | **-1** |
+/// | 621 | `0/9` at `(1, 10)` | `1/6`, `(3, 10)` | **6** |
+/// | 635 | `1/6` at `(3, 10)` | slinger `0/10`, `(1, 10)` | **10** |
+/// | 635 | `0/6` at `(1, 10)` | `1/6`, `(3, 10)` | **6** |
+///
+/// One cell pair, `(1, 10)` <-> `(3, 10)`, traversed by three searches and
+/// refused by a fourth — and the fourth is the word. Whatever separates
+/// them, it cannot be how far the search reached, because the reach is the
+/// same object-grid cell in all four rows. That closes the radius
+/// programme of `docs/COMBAT.md` §26-§28 by measurement rather than by
+/// argument, and it is why §30 does not propose a successor constant.
+#[test]
+fn chapter_two_s_hoplite_captain_refused_a_cell_three_searches_reached() {
+    let Some((dump, _)) = golden("ch2") else {
+        eprintln!("skipping: no golden capture ch2 (see docs/RUNS.md run112)");
+        return;
+    };
+    let text = crate::capture::read(&dump);
+    let at = |f: i64| ch2_dump_units(&text, f);
+    let (f616, f621, f635) = (at(616), at(621), at(635));
+    assert!(
+        !f616.is_empty() && !f621.is_empty() && !f635.is_empty(),
+        "run112's dump no longer carries frames 616, 621 and 635"
+    );
+    // **The searcher never moves.** `1/6` stands on its seat through both
+    // of its own searches, so its cell is one number in both rows.
+    for f in [&f616, &f621, &f635] {
+        let h = f[&(1, 6)];
+        assert_eq!(
+            (h[0], h[1]),
+            (2424, 7800),
+            "the hoplite captain has left its seat; §30's cell argument \
+             assumes it stands still from 616 to 635"
+        );
+    }
+    let hoplite = (cell(2424), cell(7800));
+    assert_eq!(hoplite, (3, 10), "the hoplite captain's object-grid cell");
+    // 616: every bowman sits in one cell, and the captain's `near_o` is -1
+    // — the search accepted nothing from it.
+    for o in 6..=8 {
+        let b = f616[&(0, o)];
+        assert_eq!(
+            (cell(b[0]), cell(b[1])),
+            (1, 10),
+            "bowman 0/{o} is no longer in the cell §30 argues on"
+        );
+    }
+    assert_eq!(
+        f616[&(1, 6)][2],
+        -1,
+        "the hoplite captain's near_o at 616 is no longer -1; §30's \
+         'the search accepted nothing' rests on it"
+    );
+    // 635: the slinger it *does* accept sits in the same cell the bowmen
+    // sat in, and the bowmen are still there.
+    let s = f635[&(0, 10)];
+    assert_eq!(
+        (cell(s[0]), cell(s[1])),
+        (1, 10),
+        "slinger 0/10 is not in the bowmen's cell at 635; §30's argument \
+         is that one cell was reached and refused, then reached and taken"
+    );
+    assert_eq!(
+        f635[&(1, 6)][2],
+        10,
+        "the hoplite captain's near_o at 635 is no longer 0/10"
+    );
+    let b7 = f635[&(0, 7)];
+    assert_eq!(
+        (cell(b7[0]), cell(b7[1])),
+        (1, 10),
+        "the bowmen have left the cell between 616 and 635, so the two \
+         frames are no longer comparable"
+    );
+    // The two searches that cross the same pair the other way, which is
+    // what makes this a measurement and not one unit's oddity.
+    assert_eq!(
+        (
+            f621[&(0, 9)][2],
+            (cell(f621[&(0, 9)][0]), cell(f621[&(0, 9)][1]))
+        ),
+        (6, (1, 10)),
+        "the slinger captain's birth-frame search no longer finds 1/6 \
+         from the bowmen's cell"
+    );
+    assert_eq!(
+        (
+            f635[&(0, 6)][2],
+            (cell(f635[&(0, 6)][0]), cell(f635[&(0, 6)][1]))
+        ),
+        (6, (1, 10)),
+        "the bowman captain no longer finds 1/6 from its own cell at 635"
+    );
+    // **Anti-vacuity.** Both searchers are on the arm that searches: the
+    // dump's `idle` is 1 on a birth-frame search and >1 on the grid one,
+    // so neither row is a unit that simply never thought.
+    assert_eq!(
+        (f616[&(1, 6)][3], f621[&(0, 9)][3], f635[&(1, 6)][3]),
+        (1, 1, 4),
+        "the idle counters that put these three rows on `Unit::think`'s \
+         search arm have moved"
     );
 }

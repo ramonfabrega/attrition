@@ -290,14 +290,25 @@ fires, but disabling it changes nothing, because the plain
 `unit_respond_range` floor already reaches twelve tiles and the bowmen are
 7.25 away. That arithmetic exonerates the radius as such: the original
 floors a melee searcher the same way, so had its captain searched it would
-have found them too. **It did not search.** And the slingers are the
+have found them too. ~~**It did not search.**~~ **Corrected 2026-09-21,
+item 443** (`docs/COMBAT.md` §30): it did search, and refused what it
+found. `near_o` is written above the range test, so it is the search's
+footprint and not the order's; and the bowmen at 616 sit in the *same*
+object-grid cell as the slinger the same captain accepts at 635, from a
+seat it never leaves — so no radius can separate the two frames, and what
+is left is a target-acceptance predicate. And the slingers are the
 control that makes this a measurement rather than a story — they engage on
 their birth frame at **8.6** tiles, further than the 7.25 the hoplites do
 not engage at, so no distance threshold can separate the two.
 
-The remaining suspect is `think`'s own auto-attack gate firing on a
-cheat-spawned captain's first frame, and it is a reading rather than
-anything another capture can answer. It is written down as a hypothesis
+~~The remaining suspect is `think`'s own auto-attack gate firing on a
+cheat-spawned captain's first frame~~ — **ruled out 2026-09-21, item 443**
+(`docs/COMBAT.md` §30.5): the slinger captain's own birth frame is on
+neither of `think`'s grids, so its birth-frame search can only have come
+through the `idle == 1` arm, and the hoplite captain reaches
+`think_attack` at 616 by the same arm. The suspects that survive are
+`Object::valid_target@00648ba0` and `Object::poor_target@0064a270`'s
+type-record arm, and both are written down as hypotheses
 (`docs/DECISIONS.md` 42).
 
 **Two things the chapter cost that were not in the design.** The first take
