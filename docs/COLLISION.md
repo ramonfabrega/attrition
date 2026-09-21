@@ -1932,6 +1932,16 @@ left it: the original spends three `Leader::use_market+0x1ed` and two
 than urgent — but the margin is now thin enough that a successor to 9182
 may well want `[9350, …)`.
 
+**And the arm has a second capture now** (item 448, `docs/AI.md` §54):
+Great Lakes' word at **10161** is the same block on `1/38`, off run100 —
+`coll_x/coll_y (42774, 22584)`, `collide_guy 0` sticky, `collide_o` and
+`collide_who` back at −1, `dest` 1 → 0, `length` 2 → 1, no step, and the
+idle rolled at `Unit::move_step+0x4e2`. This crate takes the step instead.
+Which unit the probe finds there is **not** on the disk — the snap arm
+clears the collider it names — so §4.2's two sweeps and §4.3's soft table
+are candidates and nothing more; `docs/AI.md` §54.4 names the call-proxy
+capture that would separate them.
+
 ## 9. What is not established
 
 - **The snap arm's `invalid_loc` refusal** (§5.4). The same `if` has a
