@@ -1598,7 +1598,25 @@ impl Sim {
         // whose **head** joins an army before its target search ever runs
         // (`docs/ARMY.md` §4.2): that is how the AI's first soldier gets
         // into one, and this crate had only the search.
-        if self.attack_of(me) != 0 && (unit.idle == 1 || phase & 0x1f == 0) {
+        //
+        // **The military bit belongs to the whole arm, not only to the
+        // join** (`docs/COMBAT.md` §33). `think@005f6e40:150` reads
+        //
+        //     (is(0x3e, 1) && (merchant arm || (!packing && think_attack())))
+        //     || (type->attack != 0 && (type->role & 0x10000) != 0 && think_attack())
+        //
+        // — so a type with an attack column and no `role & 0x10000` never
+        // enters `think_attack` at all. [`Sim::think_attack_join_army`]
+        // has carried that pair since item 350 and the search beside it
+        // carried only the attack, so **a citizen** — `attack 40`,
+        // `obj_masks & CIVILIAN`, no military bit — took an attack order
+        // on its first idle frame. The base column is the original's
+        // (`+0x1e8`), not the runtime stat.
+        //
+        // SEAM: the merchant arm (`is(0x3e, 1)`), which no capture on
+        // disk reaches; `docs/MERCHANT.md` owns it.
+        let p = self.profile(me);
+        if p.attack != 0 && p.combat_role && (unit.idle == 1 || phase & 0x1f == 0) {
             self.think_attack_join_army(u);
             let unit = &self.units[u];
             if unit.combat.stance != combat::Stance::HoldFire

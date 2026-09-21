@@ -4910,3 +4910,176 @@ contradict it. Item 470 is what puts it back under an oracle.
   `targeted` now grows without bound. It never had a decay here either;
   what changed is that the bump moved to the search, so a building's count
   is no longer inflated by its own `add_attack_order` as well.
+
+---
+
+## 34. What a citizen does when it is hit (item 464, 2026-09-21)
+
+Great Lakes' long word is 10233 and the human's citizen `0/5` is the half
+of it this item is about: the original's runs away, and this crate's took
+an attack order of its own on the frame before. Two predicates, both read
+off the listing and both measured against run100's block 10234.
+
+### 34.1 `Unit::think`'s step 3 needs the military bit
+
+`think@005f6e40:150` — the gate above `think_attack`, transcribed as a
+condition rather than as code:
+
+```
+if ( ( is(0x3e, 1)
+       && ( ((unit_masks & 0x80000) && think_merchant())
+            || (!is_packing_or_unpacking() && think_attack()) ) )
+     || ( type->attack != 0                 /* +0x1e8 */
+          && (type->role & 0x10000) != 0    /* +0x2c8, MILITARY */
+          && think_attack() ) )
+    goto LAB_005f761a;                      /* the think ends here */
+```
+
+So a type with an `attack` column and **no** `role & 0x10000` never enters
+`think_attack` at all. A Citizen's `attack` is **40** — it is an armed
+civilian, not an unarmed one — so the column alone lets every idle citizen
+in the game run `find_melee_target` once a frame on its first idle frame
+and once every 32 after.
+
+[`Sim::think_attack_join_army`] has carried the pair since item 350
+(`docs/ARMY.md` §4.2: "without it this crate conscripted run53's
+woodcutters on frame 307"). The **search** beside it carried only the
+attack, so the gate was half-applied for four months. `crates/sim`'s
+`orders::Sim::think` now reads `p.attack != 0 && p.combat_role`, off the
+type's base column rather than the runtime stat, which is what `+0x1e8`
+is.
+
+The merchant arm (`is(0x3e, 1)`) is a stated seam; no capture on disk
+reaches it, and `docs/MERCHANT.md` owns it.
+
+### 34.2 `Unit::target_opportunity`'s flee arm
+
+The last thing the function does before `LAB_00600877`'s retaliation, and
+it is reached when the front order is **not** one of the seven move kinds
+(`is_move(order_type())` is `local_c`) and `is_fleeing` is false. The
+gate, `6006f0`–`600731`:
+
+```
+   ( (has_objmask(CIVILIAN) && type->max_range == 0)      /* 0x4, +0x1fc */
+     || type->attack == 0                                  /* +0x1e8 */
+     || local_8 )                                          /* the packing latch */
+&& ( is_worker(this) || is_idle(this) )                     /* orderlist empty */
+&& ( (type->unit_flags & 4) == 0                            /* +0x2b8 */
+     || (!is_packing() && (unit_masks & 0x80000)) )
+&& ( !is_hero() || (unit_masks & 0xa000) == 0 )
+```
+
+then the ring — `0x600` for anything that is neither a hero nor a supply
+unit; for those, `0x180` when the attacker answers vslot `+0x20` false and
+vslot `+0x130` true, and `0x300` otherwise — and
+
+```
+find_nearby_spot(type, x, y, &ox, &oy, ring, -1, 0,
+                 find_angle(x - ax, y - ay), FILTER_NOT_ME, o, who, …)
+add_move_order(this, ox, oy, FLEE_TO, 0, QUEUE_FIRST, 0, …)
+```
+
+**The bearing's arguments are the listing's, not the decompiler's.** Ghidra
+prints `find_angle(unaff_EDI, unaff_ESI)` — it lost both. `6007cb`–`6007f2`
+builds `ecx = this->x − attacker->x` and `edx = this->y − attacker->y` and
+calls `0x92d130` fastcall, so the sweep's base bearing points **directly
+away from whoever landed the hit**. `find_nearby_spot` leaves its out-pair
+at the input point when it finds nothing (`docs/ORDERS.md` §10), so a
+failed sweep still issues a `FLEE_TO` — to where the unit already stands.
+
+`Unit::do_attack`'s reading of `Object::valid_target` is not involved; the
+flee is the **victim's** answer, taken on the captain of the victim's squad
+like every other arm of this function (§18.2).
+
+**What this replaced.** `Sim::target_opportunity` carried
+`obj_masks & CIVILIAN && max_range == 0 → return` with the comment "a
+non-combatant does nothing (it would flee)". That test has no counterpart
+in the original's tail — `LAB_00600877`'s own gate is `type->attack != 0`
+and nothing more — so it is gone, and the flight is what stands where it
+stood.
+
+### 34.3 The measurement
+
+run100, Great Lakes, block 10234. The human's citizen `0/5` is at
+`(2232, 31224)` with an empty order list; `1/27`, at `(4584, 29784)`, has
+an arrow in the air, and the block records `damage 2 damage_frame 10233
+damage_o 27 damage_who 1`. The original's answer, in its own coordinates:
+
+| field | dump, block 10234 | this crate, after 464 |
+|---|---|---|
+| order kind | `4` (`FLEE_TO`) | `4` |
+| `orders_x/y` | `792, 31800` | `792, 31800` |
+| `dest_angle` | `-1334771712` | `-1334771712` |
+| `pos` | `(2232, 31224)` | `(2232, 31224)` |
+| `g.cur_anim` / `g.stopped` | `0` / `1` | `0` / `1` |
+| `idle` | `2` | `2` |
+
+`(792, 31800)` is 1,551 units from the citizen — on the `0x600` ring, 1,536
+plus the quarter-tile snap — and on the far side of it from `1/27`. The
+citizen's twenty-two rows on the word's own block are **three**, and the
+draw stream's delta on 10233 goes **6/4 → 5/4**.
+
+### 34.4 What the frame still carries, and its mechanism
+
+The word did **not** move. 10233 has two residues and only one was the
+citizen's; the other is `1/28`'s `Unit::do_move+0xe84`, spent a frame
+early — this crate plans and steps the group move its dropped
+`ATTACKORDER` freed on 10233, where the original plans on 10234
+(`docs/ORDERS.md` §7.12's closing paragraph named it).
+
+**It is not a generic order-death delay.** Between blocks 10233 and 10234
+the original's `1/28` changes exactly three things: the unit's
+`flags & 0x80` clears, the guy's animation clock ticks, and its
+`GROUP_MOVE`'s **`oxx` goes 40 → 28**. It stops following `1/40` and
+becomes its own group's leader on the frame it does nothing — and
+`do_group_move` runs `do_move` for the leader alone (`docs/GROUPS.md`
+§8.3), which is why the plan is on the next frame and not on this one.
+This crate's `1/28` holds a plain `MOVE_TO` there, not a `GROUP_MOVE` at
+all, so it has no handoff to wait for. That is the next item on this
+frame, and its falsifier is the `oxx` pair above.
+
+The citizen leaves one residue of its own, also on 10234: with the attack
+order gone, `Unit::think` falls through to `think_peasant`, and this
+crate's `find_gather_spot` hands the idle citizen a job the original's
+does not — so the order list is `[FLEE_TO, GATHER]` where the dump carries
+one order, and `0/2001`'s `gather_down` chain carries `0/5` with it. The
+original's citizen is idle for two frames and takes no job in the fifteen
+blocks run100 carries after the flight.
+
+**And the widening lost a false row.** `myhits` is the record's *maximum*
+— `ObjectData::myhits`, the type's hit points after tech — with `damage`
+the accumulator beside it (§4.3, and `crate::diff::army`'s loader has read
+the pair that way since it existed). `run100_s_word_block_is_every_record_
+the_dump_carries` compared this crate's *current* health against `myhits`,
+so it agreed only while a unit was untouched and printed every wound as a
+divergence; `0/5 myhits: ours 38 theirs 40` was one such, with the dump's
+own `damage 2` making the two sides equal. `hits_left` and `myhits` are
+both rows now — 54,000 more comparisons — and both agree on all 909
+blocks.
+
+### 34.5 Coverage
+
+**Diff-backed**: §34.1's gate (the word block's `0/5` takes no attack
+order, and `an_armed_citizen_does_not_take_an_attack_order_on_its_idle_
+frame` is the rule against a built type); §34.2's bearing, ring, kind and
+queue position (§34.3's table, every row of it, in
+`run100_s_word_block_is_every_record_the_dump_carries`); §34.4's `myhits`
+pair (the same test, over 909 blocks).
+
+**Listing-backed**: `think@005f6e40:150`'s disjunction; the flee gate at
+`6006f0`–`600731`; `find_angle`'s two arguments at `6007cb`–`6007f2`;
+`find_nearby_spot`'s argument list at `6007f7`–`60082d`; `add_move_order`'s
+`FLEE_TO`/`QUEUE_FIRST` at `60084a`–`600856`; and `1/28`'s `oxx` handoff,
+which is read off the dump rather than the code.
+
+**Not established.** The packing latch `local_8` and the `unit_flags & 4`
+packer arm are unmodelled, and so are the hero and supply rings — the
+latter need `is_hero`/`is_supply` and the attacker's vslot `+0x130`, and
+no capture on disk has either unit taking a hit. The group arm at the head
+of `target_opportunity` — a grouped, non-combat-role victim forwarding to
+`Group::target_opportunity` — is still the seam `docs/GROUPS.md` §13
+names. And `0/5`'s gather residue above is named, not explained: whether
+the original's human citizen is kept from the job by the leader flag
+`Unit::think@005f6e40` tests at `5f7179`, by its own idle threshold, or by a
+`find_gather_spot` that simply finds nothing, is the next question and is
+not answered here.

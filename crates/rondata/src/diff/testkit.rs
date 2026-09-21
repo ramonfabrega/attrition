@@ -1331,12 +1331,29 @@ pub(crate) const EAST_INDIES_FIRST_SCHOLAR: i64 = 8_466;
 /// [`sim::Sim::do_attack`] asked it first, and killed six orders two to
 /// eight blocks early.
 ///
-/// **10233 parts on `Unit::fight+0x9b0`**, six draws against four, and
-/// the extra pair is the *human* citizen `0/5`: it takes a unit target
-/// and spends §8.2's one-in-five re-search on the frame it is hit,
-/// where the original answers a block later with a `FLEE_TO`. Its value
-/// diff is block 10234 — `0/5`'s whole row set, and `1/28` one block
-/// ahead of the original on the walk its dropped order freed.
+/// ~~**10233 parts on `Unit::fight+0x9b0`**, six draws against four, and
+/// the extra pair is the *human* citizen `0/5`~~ — item 464 closed the
+/// citizen's pair and the word **held at 10233**, because the frame
+/// carries two residues and only one of them was `0/5`'s.
+///
+/// **Held at 10233 on 2026-09-21, item 464.** `Unit::think`'s step 3 now
+/// takes the military bit as well as the attack column, so a citizen —
+/// `attack 40`, no `role & 0x10000` — never enters `think_attack`; and
+/// `Unit::target_opportunity`'s **flee arm** is modelled, so the hit
+/// citizen runs the way the original's does (`docs/COMBAT.md` §34). The
+/// frame's draws go **6/4 → 5/4**, and the value diff beside it is block
+/// 10234, where `0/5`'s twenty-two rows go to **three**: its `FLEE_TO`
+/// lands on the original's own `(792, 31800)`, on the original's own
+/// frame, with its heading, its guy clock and its position all agreeing.
+///
+/// The one draw left is `1/28`'s `Unit::do_move+0xe84`, one frame early
+/// — and item 464 named its mechanism, which is not a generic
+/// order-death delay: between blocks 10233 and 10234 the original's
+/// `1/28` changes exactly three things, and one of them is its
+/// `GROUP_MOVE`'s `oxx` **40 → 28**. It becomes its group's own leader on
+/// the frame it does nothing and plans on the next, which is
+/// `do_group_move` running `do_move` for the leader alone
+/// (`docs/COMBAT.md` §34.4).
 pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 10_233;
 
 /// The floor `run97_s_window_orders_are_the_original_s` holds — item 368's
@@ -1651,11 +1668,18 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // divergence for two items. It agrees on every AI unit of all 908
     // blocks now, which is what says the kill's *timing* is the
     // original's and not a coincidence.
+    //
+    // Item 464 held the word and widened it again: `myhits` is the
+    // record's **maximum** and `damage` the accumulator beside it, and
+    // this comparison read the first as "hits left" — so it agreed only
+    // for an untouched unit and printed every wound as a divergence.
+    // `hits_left` and `myhits` are both rows now, 54,000 more
+    // comparisons, and both agree on all 909 blocks.
     (
         "LONG_WORD_GREAT_LAKES",
         LONG_WORD_GREAT_LAKES,
         Some("run100_s_word_block_is_every_record_the_dump_carries"),
-        463,
+        464,
         Some(WIDENING_GREAT_LAKES),
     ),
     (
