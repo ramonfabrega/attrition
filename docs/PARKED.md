@@ -603,7 +603,24 @@ constraint: no live worker is in `crates/sim`'s animation code.
 
 ## Steering candidates, booked 2026-09-07 with Ramon
 
-Neither is a mechanic and neither moves a word, which is why both park
+(458) **PR #4 is a checkpoint the next pass will read** — booked by
+Ramon 2026-09-21, and explicitly **not a reason to steer early and not a
+gate on anything**: astra keeps working either way, the PR blocks
+nothing, and no action is asked of this loop before the pass happens on
+its own schedule. "Lab findings: Jev
+retrieval and bounded memory capture", branch `codex/jev-lab` into
+`main`, **54 files, +4,961/−34**, open, last touched 2026-09-21. It is
+the second harness's work, the same shape as the exploration merged
+whole on 2026-09-17 (`docs/DECISIONS.md` entry 38), so the precedent and
+its terms are on file: the lab keeps its own claim ledger
+(`docs/lab/LEDGER.md`), the guards do not scan it, and its products earn
+their place as opt-in tools rather than as sim code. The pass decides
+whether to take it, take part of it, or leave it; the questions the
+precedent says to ask are **which claims are diff-backed**, what it
+would oblige the guards to cover, and whether anything in it belongs in
+the sim rather than beside it. No worker touches this.
+
+Neither of the two below is a mechanic and neither moves a word, which is why both park
 rather than take a slot under a cap that stood at 18 of 18 the day they
 were booked. Ruled by the second Fable pass the same day
 (`docs/audit/2026-09-07-fable-pass-2.md`): 293 closed there, 292 stays,

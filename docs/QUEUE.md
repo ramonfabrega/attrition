@@ -32,7 +32,7 @@ landings that moved neither. Every one of the five widened before it read.*
   static across 130 blocks.
 - **Both words are widened and pinned** (442/448, 447): `WIDENINGS`
   names a test for each. East Indies' 9711 and chapter one's 626 still
-  owe theirs (444, 445, parked). Two open, 72 parked.
+  owe theirs (444, 445, parked). Two open, 73 parked.
   **Fable backlog: nine Loop items** (251, 335, 313, 375, 428, 446, 449, 452, 453).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
