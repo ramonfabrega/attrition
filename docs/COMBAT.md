@@ -4374,6 +4374,16 @@ six path slots to this crate's ten. That is parked 400's shape — a chase
 planned to the target's own point rather than to `Unit::find_attack_pos`'s
 ring (§17) — one squad over.
 
+**Closed 2026-09-21 by item 462 (§32), and the map above was two
+divergences short of the truth.** The table is the map the *harness* could
+see: `OrderMismatch::Target` was dead for any target not on the board at
+`BEGIN GAME`, which in this chapter is every unit, so the row that said
+these three slingers chase the wrong **figure** — `1/6` where the dump has
+`1/8` — never printed. With it live the window's first parting is 621 and
+not 622. §32.1 is the cause of the target and §32.2 of the destination;
+the whole of `[620, 628)` now agrees, on every record in both directions,
+and the window has moved with the word to `[633, 641)`.
+
 ### 31.7 Coverage
 
 **Diff-backed**: §31.5's whole table (the pinned words and endpoint rows,
@@ -4414,6 +4424,183 @@ which no run on disk executes.
 - **The two always-true leader arms of `WorldData::is_seen`** — `0x800`
   and the `num_units` count — are not carried, and no capture on disk
   exercises them.
-- **The residue at 622 is measured and not diagnosed.** §31.6 names its
-  frame and its value delta; the mechanism is a hypothesis pointing at
-  parked 400.
+- ~~**The residue at 622 is measured and not diagnosed.**~~ **Diagnosed
+  and closed 2026-09-21 by item 462, §32.** The mechanism was not parked
+  400's `find_attack_pos` alone and it was not parked 460's `x_size` at
+  all (falsified, `docs/VISION.md` §9.8): it was two faults, a candidate
+  **order** and a missing **half**, and the frame was right while both
+  named mechanisms were wrong.
+
+## 32. The candidate order is the cell's own chain, and the chase has a ring (item 462, 2026-09-21)
+
+Chapter two's golden word **624 → 637**, and the widening the word carried
+— every record run112 prints over `[620, 628)`, both directions — went
+from six first-partings to **nought**. Two faults, one upstream of the
+other, and the item's first product is neither: it is the reason nobody
+had seen the first one.
+
+### 32.1 `find_nearby_target` walked the unit index, not the cell chain
+
+§12.2 has said since it was written that the scan takes "on each cell
+every object on it (the cell's `down/down_who` chain, all players)", and
+§18.1 measured that order against run108's own bracket: the chain in
+chapter one's cell is `1/8, 1/7, 1/6, 0/8, 0/7, 0/6`, confirmed against
+the dump's printed `up`/`down`/`up_who`/`down_who` on all six. The
+implementation walked **`(0..units.len()).chain(buildings)`** instead.
+
+The two orders agree whenever nothing on a cell ties, which is why this
+survived six items on this very chapter. Chapter two's slinger squad is
+the case that does not tie. From `0/9` at `(888, 8376)` the three
+identical hoplites score
+
+| candidate | `attack_dist` | `+ (targeted + 8) × 0x30` | `/ 0xc0` | bucket |
+| --- | --- | --- | --- | --- |
+| `1/6` `(2424, 7800)` | 1459 | 1843 | 9 | `value / 10` |
+| `1/8` `(2472, 7944)` | 1468 | 1852 | 9 | `value / 10` |
+| `1/7` `(2568, 7800)` | 1596 | 1980 | 10 | `value / 11` |
+
+`1/6` and `1/8` **tie exactly** — nine units apart on a metric that
+divides by 192 — and `1/7` does not. The keep test is strictly greater on
+both sides (`00649a6e`, `if (local_70 < iVar8)`), so the tie goes to
+whichever is reached first: the unit index reaches `1/6`, and the chain,
+which `Object::add_to_world` pushes on the head, reaches `1/8`. The dump's
+`ATTACKORDER` on all three slingers reads `ox 8 whom 1 uid 14`.
+
+[`Sim::cell_chain`] is the walk; the scan takes it and appends the cell's
+buildings after it. **Stated seam**: a building is an object on the
+original's chain too and this crate has never threaded one, so a cell
+holding a building and a unit that tie can still be scanned in the wrong
+order. The appended order is the one the index-ordered scan already had
+between the two classes, so nothing but the units among themselves moved.
+
+### 32.2 The unit half of `find_attack_pos`, which was a `return None`
+
+`00601280` splits on the target's `is_build` at `601604`. §17 is the
+building side. The other side was not modelled at all, and its callers
+fell back to the target's own position — so this crate sent a chaser to
+stand *inside* the figure it was shooting at.
+
+Three steps:
+
+1. **The radius**, `60256a`-`602595`. `spot = target.big_radius +
+   my.big_radius + stand`, where `stand` is §17.3's stand-off. Over
+   `0x240` the sweep is a **band** — `min = spot − 0xc0`, `max = spot`,
+   `step = 0x60`, three rings — and at or under it a single ring at `spot`
+   on `find_nearby_spot`'s own defaults.
+2. **The bearing**, `local_24`: `find_angle` of the approach vector, so
+   the sweep's first candidate is the point on the asker's own side of the
+   target. [`Sim::find_nearby_spot`] walks `0, ±1, ±2, … ±7` sixteenths
+   from it.
+3. **The acceptance**, `6025dd`-`602620`: a spot the sweep found is taken
+   outright when the far arm asked (`local_2c`) or when the flanking
+   projection supplied the centre (`local_40`), and otherwise only if the
+   asker would be **in range standing on it**. Anything else falls through
+   to the caller's fallback.
+
+The **far arm** came with it: a unit target beyond `(range + 8) × 0xc0`
+sets `local_2c` and `stand = (range + 2) × 0xc0`, and was a `return None`
+before.
+
+**The arithmetic was checked against the dump before the code was
+written**, which is what made this a measurement rather than a try. For a
+slinger (`max_range` 6, `big_radius` 48) against a hoplite (`big_radius`
+48) at `attack_dist` 1468:
+
+```
+stand = max(0xc0, 6·0xc0 − 0x60 + (48 − 0x30) − 48) = 1008
+spot  = 48 + 48 + 1008 = 1104  >  0x240
+rings = 912, 1008, 1104
+```
+
+and on ring **912**, at bearings `0`, `+1` and `−1` sixteenths from
+`find_angle(from − target)`, the snapped points are `(1608, 8184)`,
+`(1560, 7848)` and `(1704, 8424)` — the dump's three destinations, to the
+unit. The implementation then produced exactly those, with the positions
+to match.
+
+### 32.3 637's widening, and the residue in front of it
+
+`chapter_two_s_word_frame_is_widened_whole` now walks `[633, 641)` — the
+window moved with the word rather than being left naming a frame the word
+has walked out of, which is parked 449's lesson applied at the move. The
+map of first partings:
+
+| key | first frame |
+| --- | --- |
+| `order 0/6`, `order 0/7`, `order 0/8` | 635 |
+| `order 1/6`, `order 1/7`, `order 1/8` | 635 |
+| `angle 0/6`, `angle 0/7`, `angle 0/8` | 636 |
+| `order 0/11`, `pos 0/11` | 636 |
+| `pos 1/6`, `pos 1/7`, `pos 1/8` | 636 |
+| `visible 0/11` | 637 |
+| `order 0/5` | 639 |
+| `pos 0/5` | 640 |
+
+**The values part at 635, two frames before the draw stream**, and every
+one of the six earliest rows is a `Target`: the bowmen `0/6`, `0/7`, `0/8`
+take `1/6` where the dump takes `1/8`, and all three hoplites take `0/7`
+where the dump takes `0/11`. That is §32.1's shape again — a tie among
+near-equidistant identical figures — and the cell chain **did not** settle
+it here. Everything on 636 is downstream: a chase planned at a different
+figure walks a different way, and `visible 0/11` at 637 arrives when its
+first arrow does.
+
+`order 0/5` and `pos 0/5` at 639-640 are a **citizen** far from the
+engagement, in no earlier window, and nobody's item yet. They are in the
+pinned map so a regression in them cannot hide behind the engagement.
+
+### 32.4 What this has not established
+
+- **The flanking branch is read and not built** (`602870`-`602a9c`). When
+  the target carries a **move** order the original first asks whether its
+  back is turned: within 60° of running away (`(target.heading − bearing)
+  + 0x80000000 <u 0x2aaaaaaa`) it may return the asker's own position
+  outright once inside `(range + 4) × 0xc0`, and otherwise `flanking()`
+  projects a point ahead of the target and sweeps from *there*, with
+  `local_40` making the result unconditional. Neither is modelled; a
+  moving target takes the centre a standing one would. Chapter two's
+  target stands still (`STACK<TYPE> length 0` on `1/8` at 622), so nothing
+  on disk reaches the branch. *A capture would settle it:* `UNITS=3` over
+  a chase of a **fleeing** unit, and the chaser's `MOVEORDER x/y`.
+- **The mandatory fallback is not modelled** (`601604`-`601700` and the
+  function's tail): when the current order's `mandatory` byte is set and
+  the target is further than `max(0x600, (max_range + 4) × 0xc0)`, the
+  original does *not* fall back to the target's seat — it sweeps
+  `[x_size × 0xc0, x_size × 0x300]` around it and, failing that, snaps to
+  a `0x300` grid and calls `WorldData::restrict`. Nothing on disk carries
+  a mandatory attack order at that range.
+- **`find_nearby_spot`'s `tregion` argument is dropped.** `00601280`
+  passes `local_3c` — the approach point's terrain region, computed only
+  when the asker's order is an ATTACK and the two leaders differ — and
+  [`Sim::find_nearby_spot`] has no such parameter. It can only refuse
+  further, so the seam is one-directional.
+- **§32.3's 635 target residue is measured and not diagnosed.** The frame
+  and the six rows are in the table; what separates `1/8` from `1/6` for a
+  bowman, and `0/11` from `0/7` for a hoplite, is not established, and the
+  cell chain is now the wrong hypothesis to reach for twice.
+- **The scan order is not the whole of §12.2 either.** The score this
+  crate computes is missing the previous **mandatory** target's halving
+  (`00649793`, `TargetOrder +0x8/+0xc` when the current order is mandatory)
+  and the cavalry archer's bearing weights (`param_4`, ×4 / ×2 / ÷10 /
+  skip). Neither can fire on anything on disk — no capture has a mandatory
+  attack order alive during a re-search, and none has a cavalry archer —
+  but both are in the ranking and neither is in the code.
+
+### 32.5 Coverage
+
+**Diff-backed**: §32.1's table (the two candidates' `attack_dist` are the
+crate's own and the pick is `chapter_two_s_word_frame_is_widened_whole`'s
+`Target` row, which is the dump's `ATTACKORDER ox`), §32.2's arithmetic
+and its three destinations (the same test, now empty over `[620, 628)`),
+§32.3's whole map (that test), and the three counters item 462 moved —
+chapter two's word, Great Lakes' endpoint, and
+`chapter_two_s_visible_byte_is_the_dump_s_on_every_unit_frame`'s
+exact-match count 4 → 5.
+
+**Listing- and export-backed**: the keep test at `00649a6e`, the chain
+walk's `+0x2c`/`+0x2e` link at `0064937f`, and `00601280`'s split at
+`601604` with the radius and acceptance line numbers above.
+
+**Reading-only, and owed a blind second reading**: every bullet of §32.4.
+No run on disk executes the flanking branch, the mandatory fallback, the
+mandatory-target halving or the bearing weights.

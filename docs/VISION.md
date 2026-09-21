@@ -1035,15 +1035,24 @@ executes any of them.
   (`UnitType::init@0061ab50:655`-`662`, `min(col, 10)` into `+0x234` and
   `+0x238`). This section carries the real value as
   `Profile::circle_radius` and leaves `x_size` alone, because several unit
-  paths read a *target's* `x_size` and would move under it. **One of them
-  is a named hypothesis for chapter two's own residue**: `find_attack_pos`
-  takes the target's extent as `(x_size * 0x60, y_size * 0x60)`
-  (`attack_pos.rs:293`), which is `(0, 0)` here and `(0x60, 0x60)` there
-  for every unit target, and §9.5's standing 624 is a chase destination.
-  *Falsifier:* set it and re-run `chapter_two_s_word_frame_is_widened_
-  whole` over `[620, 628)` — if the three slingers' 622 destinations do not
-  move toward `(1608, 8184)`, `(1560, 7848)` and `(1704, 8424)`, the
-  reading is wrong. Not run here; it is parked 400's item and running it
-  inside this one would have confounded the measurement above.
+  paths read a *target's* `x_size` and would move under it. ~~**One of
+  them is a named hypothesis for chapter two's own residue**~~ —
+  **falsified 2026-09-21 by item 462, and the reading was wrong about
+  which crate it described.** The falsifier the row wrote was run exactly
+  as written: `x_size` and `y_size` set to `circle_radius` for every unit
+  type, `chapter_two_s_word_frame_is_widened_whole` re-run over
+  `[620, 628)`. **Not one row moved** — the divergence list came back
+  byte-identical to the baseline — and the reason is structural rather
+  than numerical. `attack_pos.rs:293` sits inside `ring_walk`, which this
+  crate reaches only past `let Obj::Building(_) = target else { … }`, and
+  `combat::extent` takes its `x_size` arm only when `building` is true.
+  **No unit-target path in this crate reads `Profile::x_size` at all**, so
+  the field could not have been the residue: the row described the
+  original's `00601280` correctly and this crate's `find_attack_pos`
+  incorrectly. What the residue actually was is `docs/COMBAT.md` §32 —
+  the cell chain and the unit half of `find_attack_pos` — and the three
+  destinations the row named are now this crate's own, exactly. The
+  divergence the row could not see is that `x_size` is *still* 0 for a
+  unit type, and it stays that way until something reads it.
 - **§9.6's five late and early arrivals are measured and not diagnosed.**
   They are the engagement's timing, and the frames are in the table.

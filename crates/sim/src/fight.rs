@@ -1257,12 +1257,16 @@ impl Sim {
         let maxr = self.max_range_of(attacker) * 0xc0;
         let centre = at.cell();
 
-        // Every object, bucketed by cell, so the rings can be walked in the
-        // original's order: ring by ring, `dx` then `dy` ascending, and the
-        // objects on a cell in index order.
-        let candidates: Vec<Obj> = (0..self.units.len())
-            .map(Obj::Unit)
-            .chain((0..self.buildings.len()).map(Obj::Building))
+        // The buildings, which this crate does not thread onto the world
+        // cell's object chain (`Sim::cell_chain`). The original's chain
+        // holds every object; here a cell's units come off the chain and
+        // its buildings are appended after them, which is the order the
+        // index-ordered scan below this comment already had between the
+        // two classes and so changes nothing but the units among
+        // themselves. **Stated seam**: a cell holding both a building and
+        // a unit that tie can still be scanned in the wrong order.
+        let buildings: Vec<Obj> = (0..self.buildings.len())
+            .map(Obj::Building)
             .filter(|&o| o != attacker && self.active(o))
             .collect();
         let mut best: Option<(i32, Obj)> = None;
@@ -1277,10 +1281,28 @@ impl Sim {
                     if !self.world.contains(cell) {
                         continue;
                     }
-                    for &o in &candidates {
-                        if self.pos_of(o).cell() != cell {
-                            continue;
-                        }
+                    // **The cell's own `down` chain, head first** — the
+                    // order `Object::find_nearby_target@00648da0` walks
+                    // (`docs/COMBAT.md` §12.2, and §18.1's measurement of
+                    // it). Until item 462 this walked the unit **index**,
+                    // which agrees with the chain only when nothing on the
+                    // cell ties; chapter two's slinger squad is three
+                    // identical hoplites on one cell, two of which tie
+                    // exactly, and index order hands the tie to the
+                    // oldest where the chain hands it to the newest.
+                    let here: Vec<Obj> = self
+                        .cell_chain(cell)
+                        .into_iter()
+                        .map(Obj::Unit)
+                        .filter(|&o| o != attacker && self.active(o))
+                        .chain(
+                            buildings
+                                .iter()
+                                .copied()
+                                .filter(|&o| self.pos_of(o).cell() == cell),
+                        )
+                        .collect();
+                    for o in here {
                         if !self.valid_target(attacker, o) {
                             continue;
                         }
@@ -2058,5 +2080,90 @@ mod tests {
         let foe = put(&mut sim, 1, ty, landing);
         assert_eq!(sim.check_hit(&ammo), Some(Obj::Unit(foe)));
         assert!(sim.units[sheep].is_gaia());
+    }
+    /// **The tie goes to the cell's chain head, not to the lowest object
+    /// number** (§12.2, §32.1) — chapter two's own geometry, which is the
+    /// case that separates the two orders.
+    ///
+    /// `0/9` at `(888, 8376)` looks at three identical hoplites on one
+    /// world cell. Two of them tie exactly: `attack_dist` 1459 and 1468,
+    /// nine units apart on a score that divides by `0xc0`, so both land
+    /// in the same bucket and `compare_target` returns the same value for
+    /// two undamaged figures of one type. The keep test is strictly
+    /// greater on both sides, so the winner is whichever the scan reached
+    /// first — and `Object::add_to_world` pushes on the **head**, so the
+    /// chain reaches the newest. run112's `ATTACKORDER` on all three
+    /// slingers reads `ox 8 whom 1`.
+    ///
+    /// Made to fail on purpose by scanning `(0..units.len())` instead of
+    /// [`crate::Sim::cell_chain`] — the pick is then `1/6`, which is the
+    /// answer this crate gave for six items.
+    #[test]
+    fn a_tied_target_goes_to_the_cell_chain_s_head() {
+        use crate::combat::Profile;
+        use crate::world::World;
+        let mut sim = crate::Sim::new(crate::tuning::Tuning::RON, World::new(60, 60), 2);
+        sim.at_war[0][1] = true;
+        sim.at_war[1][0] = true;
+        let mut kind = |max_range: i32| {
+            sim.add_unit_type(crate::UnitType {
+                hits: 120,
+                combat: Profile {
+                    attack: 15,
+                    max_range,
+                    uber_size: 1,
+                    block_radius: 48,
+                    big_radius: 48,
+                    combat_role: true,
+                    ..Profile::default()
+                },
+                ..crate::UnitType::default()
+            })
+        };
+        let slinger = kind(6);
+        let hoplite = kind(0);
+        let put = |sim: &mut crate::Sim, who: crate::Player, ty: usize, p: Pos| {
+            let index = i16::try_from(sim.units.len()).unwrap();
+            let mut u = crate::Unit::new(who, index, p, 120);
+            u.ty = Some(ty);
+            u.on_map = true;
+            let h = sim.add_unit(u);
+            sim.units[h].orders_pos = p;
+            h
+        };
+        let a9 = put(&mut sim, 0, slinger, Pos::new(888, 8376));
+        // Block 622's three, in the dump's own order — so the chain, which
+        // is newest first, is `1/8, 1/7, 1/6`.
+        let b6 = put(&mut sim, 1, hoplite, Pos::new(2424, 7800));
+        let b7 = put(&mut sim, 1, hoplite, Pos::new(2568, 7800));
+        let b8 = put(&mut sim, 1, hoplite, Pos::new(2472, 7944));
+        // **Anti-vacuity, and it is the whole point of the fixture.** The
+        // three must sit on one cell — otherwise the ring order decides
+        // and the chain never gets asked — and two of them must tie.
+        let cell = sim.units[b6].pos.cell();
+        assert_eq!(
+            (sim.units[b7].pos.cell(), sim.units[b8].pos.cell()),
+            (cell, cell),
+            "the three hoplites are not on one world cell"
+        );
+        assert_eq!(
+            sim.cell_chain(cell),
+            vec![b8, b7, b6],
+            "`chain_add` no longer pushes on the head"
+        );
+        let me = Obj::Unit(a9);
+        let bucket =
+            |sim: &crate::Sim, t: usize| (sim.attack_dist(me, Obj::Unit(t)) + 8 * 0x30) / 0xc0;
+        assert_eq!(
+            (bucket(&sim, b6), bucket(&sim, b8), bucket(&sim, b7)),
+            (9, 9, 10),
+            "`1/6` and `1/8` no longer tie, or `1/7` no longer fails to"
+        );
+        assert_eq!(
+            sim.find_nearby_target(me, 4608),
+            Some(Obj::Unit(b8)),
+            "the tie went to the lowest object number instead of the \
+             cell chain's head"
+        );
     }
 }

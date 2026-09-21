@@ -439,6 +439,31 @@ impl Sim {
         self.chain_heads[s] = Some(u);
     }
 
+    /// The world cell's object chain, head first — the order
+    /// `Object::find_nearby_target` walks and the order the dump's
+    /// `up`/`down`/`up_who`/`down_who` print
+    /// (`docs/COMBAT.md` §12.2, §18.1).
+    ///
+    /// [`Self::chain_add`] pushes on the head, so the chain is newest
+    /// first: chapter one's cell reads `1/8, 1/7, 1/6, 0/8, 0/7, 0/6`
+    /// there and here alike. **Units only** — a building is an object on
+    /// the original's chain too, and this crate has never threaded one,
+    /// so a caller that wants both appends the buildings itself. That
+    /// seam is stated where it is taken.
+    pub(crate) fn cell_chain(&self, c: crate::Cell) -> Vec<usize> {
+        if c.x < 0 || c.y < 0 || c.x >= self.world.width() || c.y >= self.world.height() {
+            return Vec::new();
+        }
+        let s = (c.y as usize) * (self.world.width() as usize) + (c.x as usize);
+        let mut out = Vec::new();
+        let mut next = self.chain_heads[s];
+        while let Some(u) = next {
+            out.push(u);
+            next = self.units[u].down;
+        }
+        out
+    }
+
     /// `Object::remove_from_world`'s chain half.
     pub(crate) fn chain_remove(&mut self, u: usize) {
         let (up, down) = (self.units[u].up, self.units[u].down);
