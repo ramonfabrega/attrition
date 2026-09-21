@@ -1294,11 +1294,29 @@ pub(crate) const EAST_INDIES_FIRST_SCHOLAR: i64 = 8_466;
 /// number and §50's duplicate purchase standing. Six hundred and
 /// fifty-one frames, and the first Great Lakes word past ten thousand.
 ///
-/// **10161 parts on `Guy::set_anim+0x97a`**, seven draws against eight —
+/// ~~**10161 parts on `Guy::set_anim+0x97a`**, seven draws against eight —
 /// this crate reaches it from `Guy::inc_time+0x271` where the original
 /// reaches it from `Unit::move_step+0x4e2`. An animation clocked off the
-/// wrong caller, which is not the AI at all.
-pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 10_161;
+/// wrong caller, which is not the AI at all.~~ Item 448's widening read
+/// the block whole and the animation was **downstream**: the original
+/// refused a step this crate took, and §5.4's snap arm rolled the idle.
+///
+/// **10161 → 10232 on item 456**, and the arm is named by run116, the
+/// first `RON_COLLIDE_PROBE` capture (`docs/COLLISION.md` §9). §4.3's
+/// group-mate soft arm declines when the *collider* holds a suspended
+/// 48-grid search — `UnitData +0x104`, which the PDB calls `openlist` —
+/// and `1/31` suspends one on that very frame, which the trace's own
+/// `astar_path` proxy prints as a −1 return on `1/31`'s path stack.
+/// [`crate::Unit::search`] **is** that field and has been since
+/// `docs/PATHFINDER.md` §18; the seam comment that said otherwise
+/// outlived it by a fortnight.
+///
+/// **10232 parts on `Unit::do_move+0xe84`**, 99 draws against 95 with
+/// the original at `Guy::set_anim+0x97a < Guy::inc_time+0x1ed`, and its
+/// value diff is on the *human* side: block 10233 is `0/5 orders.len:
+/// ours 1 theirs 0` and nothing else, the original dropping an order
+/// this crate still holds.
+pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 10_232;
 
 /// The floor `run97_s_window_orders_are_the_original_s` holds — item 368's
 /// widening of Great Lakes' order stacks, the 36,483 `GATHERORDER` records
@@ -1556,9 +1574,12 @@ pub(crate) const WIDENINGS: &[(&str, i64, Option<&str>, u32)] = &[
     ("LONG_WORD_EAST_INDIES", LONG_WORD_EAST_INDIES, None, 444),
     // Item 448 paid the widening 442 owed: `run100_s_word_block_is_every_
     // record_the_dump_carries` compares every field of every record run100
-    // carries on **10162**, the word's own block, both directions and
-    // ungated by the position — fifteen rows, all of them `1/38`
-    // (`docs/AI.md` §54). The row it replaced named
+    // carries on the word's own block, both directions and ungated by the
+    // position — on **10162** it was fifteen rows, all of them `1/38`
+    // (`docs/AI.md` §54). Item 456 closed those fifteen and moved the word
+    // to **10232**; the same test's window was widened to straddle the new
+    // word rather than left naming a block this word has left, which is
+    // parked 449's lesson applied at the move. The row it replaced named
     // `run100_s_word_frame_is_the_original_s`, which widens **9382** and
     // went stale by succeeding when the word moved 651 frames past it;
     // the guard checks that a named test exists, not that it widens the
@@ -1568,7 +1589,7 @@ pub(crate) const WIDENINGS: &[(&str, i64, Option<&str>, u32)] = &[
         "LONG_WORD_GREAT_LAKES",
         LONG_WORD_GREAT_LAKES,
         Some("run100_s_word_block_is_every_record_the_dump_carries"),
-        448,
+        456,
     ),
     (
         "GOLDEN_WORD_CHAPTER_ONE",

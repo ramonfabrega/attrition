@@ -3817,17 +3817,23 @@ mod tests {
             "Great Lakes' market draws below the word are not the \
              original's own"
         );
-        // **Six → nine on item 442.** The comparison above passed
-        // unchanged; only the literal moved, because the word went
-        // 9510 → 10161 and three more of the 200-frame rotations came
-        // under it. **9582 among them closes `docs/AI.md` §50.4's third
+        // **Six → nine on item 442**, and **nine → ten on item 456**. The
+        // comparison above passed unchanged both times; only the literal
+        // moved, because the word went 9510 → 10161 → 10232 and one more
+        // of the 200-frame rotations came under it each time. That is
+        // `ORDER_RESIDUE_RUN97`'s lesson in its cheapest form — a list
+        // bounded by the headline grows when the headline does — and the
+        // assertion above it, which compares the two *streams*, is the
+        // one with the teeth. **9582 closes `docs/AI.md` §50.4's third
         // open question** — it was the parting that probe's 9582 left, one
         // `Leader::use_market+0x1ed` short, and it is a market sell on
         // both sides now.
         assert_eq!(
             markets,
-            vec![8582, 8585, 8782, 8982, 9_182, 9_382, 9_582, 9_782, 9_982],
-            "below the word Great Lakes takes exactly nine market draws — \
+            vec![
+                8582, 8585, 8782, 8982, 9_182, 9_382, 9_582, 9_782, 9_982, 10_182
+            ],
+            "below the word Great Lakes takes exactly ten market draws — \
              and 9182 is item 385's own: the frame the sequence used to \
              part on is a `use_market` sell on both sides now"
         );
@@ -4672,6 +4678,198 @@ mod tests {
         assert_eq!(
             ys, MUSTER_GOAL_Y,
             "the army's nine do not hold run97 block 8443's own path goals"
+        );
+    }
+
+    /// **The sweep, read from inside, against the original's own**
+    /// (item 456, `docs/COLLISION.md` §9). run116 is the first
+    /// `RON_COLLIDE_PROBE` capture: five proxies over
+    /// `Unit::detect_unit_collision` and the four functions inside it,
+    /// so the four steps of a sweep are on the record where no gamelog
+    /// category can put them — §5.4's snap arm clears `collide_o` and
+    /// `collide_who` two instructions after the probe returns.
+    ///
+    /// The comparison is a **rendered line against a rendered line**,
+    /// and it is taken where the original's bracket sits rather than at
+    /// a frame boundary: [`sim::Sim::sweep_watch`] is what makes that
+    /// possible, and §9.2's note on `1/33` is what makes it necessary —
+    /// read one instruction too early this crate's probe answers
+    /// `(892, 469)` and the item names the occupancy index instead of
+    /// the soft table.
+    ///
+    /// **Made to fail on purpose before landing** by restoring the seam
+    /// this item closed: with `same_group_soft`'s `search.is_some()`
+    /// clause dropped, the line reads `soft` where it now reads
+    /// `hard 1/31`, and the word falls back to 10161.
+    #[test]
+    fn run116_s_sweep_is_the_original_s() {
+        use crate::trace::call_site::{
+            COLLIDE_HERE, DETECT_UNIT_COLLISION, IS_CORNER, IS_HERE, WILL_BE_CORNER,
+        };
+        /// The sim-frame the word stood on when this landed. Pinned as an
+        /// **event** and not off [`LONG_WORD_GREAT_LAKES`]: the bracket
+        /// this reads is run116's, on this frame, and a test keyed to a
+        /// moving headline reports the headline's motion as its own
+        /// failure (`ORDER_RESIDUE_RUN97`'s lesson).
+        const WORD: i64 = 10_161;
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(tr)) = (
+            dump("gamelog-run53-greatlakes-24k-trace.txt"),
+            trace("rontrace-run116.log"),
+        ) else {
+            eprintln!("skipping: no run53/run116 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        // The log names its own sites, so a different probe build's log
+        // — whose ids 8..10 are the leader's or the target's — cannot
+        // pass this by answering about something else.
+        assert_eq!(
+            tr.site_va(DETECT_UNIT_COLLISION),
+            Some(0x0061_7060),
+            "site 8 is not Unit::detect_unit_collision; the log says {:?}",
+            tr.proxied
+        );
+        assert_eq!(tr.site_va(COLLIDE_HERE), Some(0x0068_2540));
+        assert_eq!(tr.site_va(WILL_BE_CORNER), Some(0x0060_9fa0));
+        assert_eq!(tr.site_va(IS_HERE), Some(0x0060_a0c0));
+        assert_eq!(tr.site_va(IS_CORNER), Some(0x0060_a040));
+
+        // **The original's bracket.** One `detect_unit_collision` on
+        // `1/38` on the word, `quick 0`, proposing the point its own
+        // `MoveOrder::coll_x/coll_y` carries on block 10162 — and
+        // refusing it.
+        let brackets: Vec<&crate::trace::Call> = tr
+            .calls
+            .iter()
+            .filter(|c| {
+                c.site == DETECT_UNIT_COLLISION
+                    && c.frame == WORD
+                    && tr.unit_of(c.this) == Some((1, 38))
+            })
+            .collect();
+        assert_eq!(
+            brackets.len(),
+            1,
+            "the word is not one bracket on 1/38: {brackets:?}"
+        );
+        let b = brackets[0];
+        assert_eq!(
+            (b.args[0], b.args[1], b.args[2], b.ret),
+            (42_774, 22_584, 0, 1),
+            "the bracket is not the refused step (x, y, quick, ret)"
+        );
+        // **The bracket's own subtree, and nothing else on the frame.**
+        // `Trace::calls` is in **return** order, so a callee precedes the
+        // caller it was nested in: the children of this bracket are the
+        // run of records immediately before it whose `depth` is greater
+        // than its own, and an earlier sibling's subtree is fenced off by
+        // that sibling's own record. Filtering the frame instead picks up
+        // every unit's walk — 28 `is_here` records here against the
+        // three that belong to `1/38` — which is a comparison that
+        // answers about the cast and not about the word.
+        let at = tr
+            .calls
+            .iter()
+            .position(|c| std::ptr::eq(c, b))
+            .expect("the bracket is in the log");
+        let start = tr.calls[..at]
+            .iter()
+            .rposition(|c| c.depth <= b.depth)
+            .map_or(0, |i| i + 1);
+        let subtree = &tr.calls[start..at];
+        let inner = |site: u32| -> Vec<&crate::trace::Call> {
+            subtree.iter().filter(|c| c.site == site).collect()
+        };
+        let probe = inner(COLLIDE_HERE);
+        assert_eq!(probe.len(), 1, "1/38 probes once on the word: {probe:?}");
+        assert_eq!(
+            (
+                probe[0].args[2],
+                probe[0].args[3],
+                probe[0].args[4],
+                probe[0].ret
+            ),
+            (891, 470, 1, 1),
+            "the probe's cell, coll_size and answer"
+        );
+        assert_eq!(
+            (probe[0].args[0], probe[0].args[1]),
+            (38, 1),
+            "the probe inside 1/38's bracket is asked by 1/38"
+        );
+        let corner = inner(WILL_BE_CORNER);
+        assert_eq!(corner.len(), 1, "will_be_corner is called once");
+        assert_eq!(
+            tr.unit_of(corner[0].this),
+            Some((1, 38)),
+            "will_be_corner is the asker's own half"
+        );
+        assert_eq!(
+            (corner[0].args[0], corner[0].args[1], corner[0].ret),
+            (892, 471, 5),
+            "the hit cell and 1/38's half of the corner rule"
+        );
+        // The 3x3 walk, named in who/o by the build's own identity
+        // records, and the blocker's half of the corner rule.
+        let walk: Vec<String> = inner(IS_HERE)
+            .into_iter()
+            .filter_map(|c| {
+                tr.unit_of(c.this)
+                    .map(|(w, o)| format!("{w}/{o}={}", c.ret))
+            })
+            .collect();
+        assert_eq!(
+            walk,
+            vec!["1/39=0", "1/32=0", "1/31=1"],
+            "the original's candidate walk on the word"
+        );
+        let blocker: Vec<String> = inner(IS_CORNER)
+            .into_iter()
+            .filter_map(|c| {
+                tr.unit_of(c.this)
+                    .map(|(w, o)| format!("{w}/{o} ({},{}) = {}", c.args[0], c.args[1], c.ret))
+            })
+            .collect();
+        assert_eq!(
+            blocker,
+            vec!["1/31 (892,471) = 0"],
+            "the blocker's own corner code — and `|5 - 0| != 4` is the \
+             refusal"
+        );
+
+        // **And this crate's, recorded where that bracket sits.**
+        let loaded = crate::load::load(&inst).unwrap();
+        let texts = sibling_texts();
+        let text = crate::capture::read(&path);
+        let log = Log::parse(&text);
+        let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
+        let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+        let refs: Vec<&Initial> = inits.iter().collect();
+        let mut init = log.initial().unwrap();
+        borrow_from_siblings(&mut init, &refs);
+        if let Some(t) = trace("rontrace-run53.log") {
+            borrow_pasture(&mut init, &t);
+        }
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        for _ in 0..WORD {
+            built.tick();
+        }
+        built.sim.sweep_watch = Some(sim::collide::SweepWatch::new(WORD, 1, 38));
+        built.tick();
+        let ours = built
+            .sim
+            .sweep_watch
+            .take()
+            .expect("the recorder")
+            .rendered();
+        assert_eq!(
+            ours,
+            vec![
+                "(42774,22584) at (891,470) hit (892,471) will 5 1/39=0 1/32=0 \
+                 1/31=1,corner 0 hard 1/31"
+                    .replace("                 ", "")
+            ],
+            "this crate's sweep on the word is not the original's"
         );
     }
 
@@ -6112,7 +6310,12 @@ mod tests {
         eprintln!("  queues {queues:?}");
         eprintln!("  orders {orders:?}");
         eprintln!("  cities {cities:?}");
-        eprintln!("  word block {}: {word:?}", LONG_WORD_GREAT_LAKES + 1);
+        // **The label is `GREAT_LAKES_SIXTH_SCHOLAR`'s, because that is
+        // the block `word` is taken on.** It read `LONG_WORD_GREAT_LAKES
+        // + 1` until item 456 and so named a block the row was not
+        // measured at — harmless to the assertion and misleading to
+        // anyone reading the output, which is what a diagnostic is for.
+        eprintln!("  scholar block {GREAT_LAKES_SIXTH_SCHOLAR}: {word:?}");
         assert!(
             blocks >= 172,
             "run100's own blocks are missing — the wrong file: {blocks}"
@@ -6181,11 +6384,17 @@ mod tests {
             inside.is_empty(),
             "a record other than the queue parts inside run100's window: {inside:?}"
         );
-        // **And what opens on the word is one unit's position.** The
+        // ~~**And what opens on the word is one unit's position.** The
         // draw stream parts at `Guy::set_anim+0x97a` on 10161; the record
         // says the same event from the other side — `1/38` standing
-        // somewhere else — and nothing in the queue, city or order
-        // records moves with it. Two instruments, one frame.
+        // somewhere else.~~ **Item 456 closed 10161** and the word is
+        // 10232, where the record says something bigger: a **three-unit
+        // squad** — `1/27`, `1/28`, `1/29` — parts together, and one
+        // order row opens with them, the human's `0/5`. The row is kept
+        // keyed on the headline deliberately; what it asserts is that
+        // the word's own frame is a *small, named* set and not a
+        // reshuffle, and `run100_s_word_block_is_every_record_the_dump_
+        // carries` holds the value diff beside it.
         let on_word: Vec<(i64, i64)> = units
             .iter()
             .filter(|(_, f)| **f == LONG_WORD_GREAT_LAKES)
@@ -6193,8 +6402,18 @@ mod tests {
             .collect();
         assert_eq!(
             on_word,
-            vec![(1, 38)],
-            "the word's own frame is not one unit's position: {units:?}"
+            vec![(1, 27), (1, 28), (1, 29)],
+            "the word's own frame is not the three-unit squad: {units:?}"
+        );
+        let order_on_word: Vec<(i64, i64)> = orders
+            .iter()
+            .filter(|(_, f)| **f == LONG_WORD_GREAT_LAKES)
+            .map(|(k, _)| *k)
+            .collect();
+        assert_eq!(
+            order_on_word,
+            vec![(0, 5)],
+            "the word's own frame is not one order row: {orders:?}"
         );
         // **The standing residues, as sets.** Counts over a window the
         // word controls rise when the word does (`ORDER_RESIDUE_RUN97`'s
@@ -6209,8 +6428,16 @@ mod tests {
             vec![(1, 24), (1, 25), (1, 26)],
             "the window's standing position residue is not the three it was"
         );
+        // **Counted below the word**, not over the whole map: the word's
+        // own row joined this set when the headline moved past 10232, and
+        // a residue count that swallows the word reports the headline's
+        // motion as its own failure — `ORDER_RESIDUE_RUN97`'s lesson, and
+        // it cost this line a red gate on item 456.
         assert_eq!(
-            orders.len(),
+            orders
+                .values()
+                .filter(|f| **f < LONG_WORD_GREAT_LAKES)
+                .count(),
             17,
             "the window's standing order residue is not seventeen units: {orders:?}"
         );
@@ -6315,8 +6542,12 @@ mod tests {
         /// run100's first complete block.
         const FIRST: i64 = 9_340;
         /// Fourteen blocks past the word — far enough to carry the
-        /// re-convergence on 10165, and inside run100's own window.
-        const TAIL: i64 = 10_175;
+        /// re-convergence the last one had on 10165, and inside run100's
+        /// own window. **Moved with the word on item 456** (10175 →
+        /// 10246): a widening whose window stops short of the word it is
+        /// the widening of passes by saying nothing, which is parked
+        /// 449's failure one step along.
+        const TAIL: i64 = 10_246;
         const {
             assert!(
                 FIRST < LONG_WORD_GREAT_LAKES && LONG_WORD_GREAT_LAKES < TAIL,
@@ -6649,29 +6880,6 @@ mod tests {
         for r in &on_word {
             eprintln!("  word {r}");
         }
-        // The rows are the claim, not their number: a set written out is
-        // what a later item diffs its own answer against.
-        assert_eq!(
-            on_word,
-            vec![
-                "1/38 collide_guy: ours -1 theirs 0",
-                "1/38 g.avg_speed[0]: ours 18 theirs 13",
-                "1/38 g.cur_anim[0]: ours 8 theirs 0",
-                "1/38 g.cur_time[0]: ours 4 theirs 1",
-                "1/38 g.des_x[0]: ours 42774 theirs 42754",
-                "1/38 g.des_y[0]: ours 22584 theirs 22582",
-                "1/38 g.end_time[0]: ours 15 theirs 33",
-                "1/38 g.last_speed[0]: ours 20 theirs 0",
-                "1/38 g.last_time[0]: ours 3 theirs 0",
-                "1/38 g.stopped[0]: ours 0 theirs 1",
-                "1/38 g.x[0]: ours 42774 theirs 42754",
-                "1/38 g.y[0]: ours 22584 theirs 22582",
-                "1/38 half_step: ours 1 theirs 0",
-                "1/38 order:coll: Coll { ours: None, theirs: (42774, 22584) }",
-                "1/38 pos: ours (42774,22584) theirs (42754,22582)",
-            ],
-            "the word's own block is not the fifteen rows of `1/38` it was"
-        );
         // `RON_DEBUG_ROWS=<lo>-<hi>` prints every key that first parts
         // inside those blocks, the value diff beside it — item 312's
         // instrument, on the widest row set this crate has (§54.3's
@@ -6683,6 +6891,82 @@ mod tests {
                 }
             }
         }
+        // **10162's fifteen rows are gone, all of them** — item 456
+        // (`docs/COLLISION.md` §9), and that is the value diff the word's
+        // move is booked on. The block the last word stood on is
+        // asserted **clean**, separately from the current word's, so the
+        // closure cannot come undone quietly as the headline walks away
+        // from it.
+        let on_10162: Vec<&String> = firsts
+            .iter()
+            .filter(|(_, (f, _))| *f == 10_162)
+            .map(|((_, _, _), (_, row))| row)
+            .collect();
+        assert!(
+            on_10162.is_empty(),
+            "block 10162 parts again — item 448's fifteen rows of `1/38`,              which item 456 closed: {on_10162:?}"
+        );
+        // The rows are the claim, not their number: a set written out is
+        // what a later item diffs its own answer against.
+        assert_eq!(
+            on_word,
+            vec![
+                "0/5 order:length: Length { ours: 1, theirs: 0 }",
+                "0/5 orders.len: ours 1 theirs 0",
+                "1/27 g.angle[0]: ours 1592590336 theirs -1449000960",
+                "1/27 g.avg_speed[0]: ours 6 theirs 0",
+                "1/27 g.cur_anim[0]: ours 7 theirs 12",
+                "1/27 g.cur_time[0]: ours 1 theirs 24",
+                "1/27 g.des_angle[0]: ours 1592590336 theirs -1449000960",
+                "1/27 g.des_x[0]: ours 4602 theirs 4584",
+                "1/27 g.des_y[0]: ours 29802 theirs 29784",
+                "1/27 g.end_time[0]: ours 13 theirs 30",
+                "1/27 g.last_speed[0]: ours 27 theirs 0",
+                "1/27 g.last_time[0]: ours 0 theirs 23",
+                "1/27 g.stopped[0]: ours 0 theirs 1",
+                "1/27 g.x[0]: ours 4602 theirs 4584",
+                "1/27 g.y[0]: ours 29802 theirs 29784",
+                "1/27 heading: ours 1592590336 theirs -1449000960",
+                "1/27 path:length: PathLength { ours: 44, theirs: 1 }",
+                "1/27 pos: ours (4602,29802) theirs (4584,29784)",
+                "1/27 tolerance: ours 384 theirs 0",
+                "1/28 g.angle[0]: ours 1260584960 theirs -1348206592",
+                "1/28 g.avg_speed[0]: ours 6 theirs 0",
+                "1/28 g.cur_anim[0]: ours 7 theirs 0",
+                "1/28 g.cur_time[0]: ours 1 theirs 0",
+                "1/28 g.des_angle[0]: ours 1260584960 theirs -1348206592",
+                "1/28 g.des_x[0]: ours 4801 theirs 4776",
+                "1/28 g.des_y[0]: ours 30176 theirs 30168",
+                "1/28 g.end_time[0]: ours 13 theirs 31",
+                "1/28 g.last_speed[0]: ours 26 theirs 0",
+                "1/28 g.last_time[0]: ours 0 theirs -1",
+                "1/28 g.stopped[0]: ours 0 theirs 1",
+                "1/28 g.x[0]: ours 4801 theirs 4776",
+                "1/28 g.y[0]: ours 30176 theirs 30168",
+                "1/28 heading: ours 1260584960 theirs -1348206592",
+                "1/28 path:length: PathLength { ours: 43, theirs: 1 }",
+                "1/28 pos: ours (4801,30176) theirs (4776,30168)",
+                "1/28 tolerance: ours 384 theirs 0",
+                "1/29 g.angle[0]: ours 1494614016 theirs -1408303104",
+                "1/29 g.avg_speed[0]: ours 6 theirs 0",
+                "1/29 g.cur_anim[0]: ours 7 theirs 13",
+                "1/29 g.cur_time[0]: ours 1 theirs 7",
+                "1/29 g.des_angle[0]: ours 1494614016 theirs -1408303104",
+                "1/29 g.des_x[0]: ours 4701 theirs 4680",
+                "1/29 g.des_y[0]: ours 29944 theirs 29928",
+                "1/29 g.end_time[0]: ours 13 theirs 30",
+                "1/29 g.last_speed[0]: ours 27 theirs 0",
+                "1/29 g.last_time[0]: ours 0 theirs 6",
+                "1/29 g.stopped[0]: ours 0 theirs 1",
+                "1/29 g.x[0]: ours 4701 theirs 4680",
+                "1/29 g.y[0]: ours 29944 theirs 29928",
+                "1/29 heading: ours 1494614016 theirs -1408303104",
+                "1/29 path:length: PathLength { ours: 44, theirs: 1 }",
+                "1/29 pos: ours (4701,29944) theirs (4680,29928)",
+                "1/29 tolerance: ours 384 theirs 0",
+            ],
+            "the word's own block is not the fifty-three rows it was"
+        );
         // **Anti-vacuity, in the block's own counts.** A capture without
         // `UNITS=3`, `BUILDS=7`, `CITIES=5` or `GUYS=4` would agree
         // everywhere by saying nothing, and this is the only assertion
@@ -6698,8 +6982,17 @@ mod tests {
         // vanishes is. `leaders` is 4 because `LEADERS=1` still writes
         // one block a slot — the record whose `score` and `leader_flags`
         // nothing here compares (§54.4).
+        //
+        // **`builds` 29 → 28 on item 456**, and it is not a record that
+        // vanished from the capture: the *word* moved 10162 → 10233, and
+        // the original's own dump carries 29 building records on the
+        // first block and 28 on the second — one building fewer standing
+        // seventy-one frames later. Counted in run100 directly before
+        // re-pinning, because "a record that vanishes is a failure" and
+        // "the floor was measured on a different block" look identical
+        // from inside this assertion.
         assert!(
-            (units, builds, cities, leaders) >= (104, 29, 3, 4)
+            (units, builds, cities, leaders) >= (104, 28, 3, 4)
                 && [pos, order, collide, city, build, queue, gather]
                     >= [60, 60, 300, 130, 80, 50, 900],
             "the word's block does not carry every record this widening claims to \

@@ -795,8 +795,20 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // two's own widening at 622–624
         // (`chapter_two_s_word_frame_is_widened_whole`). DECISIONS 36 asks
         // for the number rather than a trade.
-        off: 53,
-        unlinked: 8,
+        // And **53 → 48 off and 8 → 13 unlinked** on 2026-09-21, item 456
+        // — §4.3's group-mate soft arm declining for a collider that holds
+        // a suspended search (`docs/COLLISION.md` §9), which moves this
+        // map's own word **10161 → 10232**. Five positions closer and five
+        // more of the roster without a counterpart, 13,769 frames past the
+        // word. The clause fires wherever a squad walks into itself while
+        // one of its members is re-planning, so like item 447's this row is
+        // evidence about 24,000 frames of run-up and not about the
+        // predicate; the value diff the change is booked on is the word's
+        // own block, where item 448's fifteen rows go to **nought**
+        // (`run100_s_word_block_is_every_record_the_dump_carries`).
+        // DECISIONS 36 asks for the number rather than a trade.
+        off: 48,
+        unlinked: 13,
         extra: 0,
         build_unlinked: 0,
         build_diverged: 10,

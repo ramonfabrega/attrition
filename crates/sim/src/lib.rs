@@ -987,6 +987,19 @@ pub struct Sim {
     /// The collision occupancy index — `CollBlock`, flattened
     /// (`docs/COLLISION.md` §2).
     pub coll: collide::CollGrid,
+    /// **The run116 comparison's recorder** (`docs/COLLISION.md` §9.6),
+    /// and `None` in every run but a test's.
+    ///
+    /// A sweep's four steps are only comparable **where the original's
+    /// own bracket sits** — mid-frame, after the units that step earlier
+    /// have moved the occupancy index under it. Read at a frame boundary
+    /// instead, this crate's probe on Great Lakes 10161 answers a
+    /// different cell and names a different mechanism (§9.2), so the
+    /// comparison cannot be a replay-then-ask. This is the shape
+    /// [`ai::Leader::unit_offers`] takes for `docs/AI.md` §52's offers:
+    /// the simulation fills a recorder as it runs and the test reads it
+    /// afterwards.
+    pub sweep_watch: Option<collide::SweepWatch>,
     /// `WData::down` per world cell: the head of the object chain (§3).
     pub chain_heads: Vec<Option<usize>>,
     /// `GameDaemon::repaths[who]`: how many 48-grid recoveries this player
@@ -1282,6 +1295,7 @@ impl Sim {
             ai: vec![ai::Leader::new(); players],
             ai_speed: 1,
             coll: collide::CollGrid::new(world.width(), world.height()),
+            sweep_watch: None,
             chain_heads: vec![None; (world.width() * world.height()) as usize],
             repaths: vec![0; players.max(10)],
             tuning,
