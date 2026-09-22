@@ -1813,6 +1813,25 @@ pub(crate) const GOLDEN_WORD_CHAPTER_ONE: i64 = 626;
 /// because an arrow at a land unit carries `Ammo` flag `4` and **rolls
 /// on** when it finds nothing rather than puncturing the ground. One draw
 /// gained, two lost, and twelve frames. `docs/COMBAT.md` §42.
+///
+/// **What stands at 695**, measured rather than named — a successor reads
+/// its delta here rather than asking a lane that has been reaped. Ours
+/// spends **21 draws against the original's 20**, parting at draw **2**:
+/// `Guy::set_anim+0x97a < Guy::inc_time+0x1ed` where the original has
+/// `< Guy::inc_time+0x271`. The whole delta is one extra `+0x1ed` in the
+/// attack-end column — 3 against 2, with the 12 plain wraps, the one
+/// attack roll and the five `Farms::inc_time` identical — and
+/// `game_random`'s own word agrees entering 695 and parts entering 696,
+/// so the extra draw is spent inside the frame.
+///
+/// **And every value on 695 agrees except item 495's own three standing
+/// rows** — `damage 1/7` 0 against 19, `damage_frac 1/7` 0 against 5,
+/// `damage_frame 1/7` 0 against 685, unchanged since 686. Nothing else
+/// parts on the frame; `damage 1/6` at 680 is a single block and not a
+/// standing row, so (490) is not live here either, and the first *new*
+/// value rows are on 696. This is a draw-stream parting rather than a
+/// value one, which is a different item shape. No mechanism is named
+/// here, by design.
 pub(crate) const GOLDEN_WORD_CHAPTER_TWO: i64 = 695;
 
 /// **Every pinned word names the test that widened its frame whole, or
