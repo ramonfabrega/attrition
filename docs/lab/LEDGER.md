@@ -124,13 +124,18 @@ No new capture or main-loop adoption is requested by this handoff.
 
 | L70 | Does the predicted limit-95 suspension survive a native intervention? | [Native counterfactual agreement](2026-09-22-native-limit-agreement.md). | One authorized run: return −1, all 344 unit bytes and 160 path bytes agree exactly; repeat/control restoration and inactive-slot negative assertion pass. | One altered call; post-call saved-tree contents and native limit 96 remain unverified. Lane released; no main score change. |
 
+| L71 | How much saved-tree state lies outside the native unit/path witness? | [Post-tree definedness gap](2026-09-22-saved-tree-observation-gap.md). | Limit 95 changes all five old tree headers and 35 old tree nodes; guarded traversal refuses two uninitialized bytes after 191 records; repeat/control restore. | Model-only inventory, no complete post-graph closure or native tree comparison. PR #5 frozen; further work on a new lab branch. |
+
 ## Current direction
 
 The September 19–22 tranche now has an unchanged native unit/path witness
 (L67) and an explicitly altered limit-95 witness (L70). Both agree with the
 bounded model on their measured outputs. Request retargeting does not retarget
 the saved search; continuation-budget changes provide the useful counterfactual.
-This slice is ready for Fable's review. The next adoption test should answer one
+This slice is packaged in draft PR #5 for Fable's review. Offline follow-up L71
+finds that post-tree observation needs explicit byte definedness before another
+capture: new node bytes +22/+23 are not initialized in the model. The next
+adoption test should answer one
 real divergence question selected by steering, with a named call/field and
 falsifier. Saved-tree contents, native limit 96 and general runtime fidelity
 remain open. The capture lane is released; no further slot is booked.
