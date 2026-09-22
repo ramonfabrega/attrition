@@ -1524,12 +1524,19 @@ pub(crate) const EAST_INDIES_FIRST_SCHOLAR: i64 = 8_466;
 /// original **two**, parting at index 0: the extra is ours and it is in
 /// front — `Guy::set_anim+0x97a < Unit::move_step+0x823`, the blocked
 /// stand, where the original's frame is `Guy::set_anim+0x104b` and
-/// `Farms::inc_time+0x1ae` alone. Block 10818 is eight rows of that one
-/// raider and nothing else in the block: `collide` 1 against 0 with the
-/// pair beside it set where the original clears it (`collide_o` 0,
-/// `collide_who` 8, against −1 and −1), and the stand that follows —
-/// `g.cur_anim` 0 against 8, `g.cur_time`/`g.end_time` 1/31 against
-/// 12/13, `g.last_time` 0 against 11, `g.stopped` 1 against 0.
+/// `Farms::inc_time+0x1ae` alone.
+///
+/// **The block's own rows are not restated here**, and that is
+/// deliberate: block 10818's eight rows of `1/28` are *asserted* in
+/// [`crate::diff::harness`]'s
+/// `run100_s_word_block_is_every_record_the_dump_carries`, so a copy in
+/// this comment would be prose nothing checks and the two would drift
+/// the first time the word moved. The draw delta above is the half that
+/// lives nowhere else — it is computed by
+/// `run53_s_24000_frames_put_the_ceiling_where_run33_did` and printed,
+/// never pinned as text. **The rule this comment now follows: the word's
+/// *delta* here, the word's *block* in the widening, and each says
+/// which.**
 pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 10_817;
 
 /// The floor `run97_s_window_orders_are_the_original_s` holds — item 368's
