@@ -111,6 +111,23 @@ successor is exempt, or is paid from a separate allowance. Whoever
 takes it should check how many other sections sit at their pin — §4 was
 not chosen for being unusual.
 
+## Parked by item 479, 2026-09-21 — wider than the word it came from
+
+(482) **`Unit::think@005f6e40:104-134` has a second `near_o` reader, and
+it fires thirty-one frames in thirty-two.** An idle captain takes
+`add_attack_order(near_o, QUEUE_NEW)` when it is in range and **skips
+the search entirely**; this crate searches on the phase frames and does
+nothing on the others. `docs/COMBAT.md` §37.5.
+
+**Not the current word** — `think` is reached from `do_idle` alone (one
+caller, grepped) and `0/9` had a MOVE at its head — which is why it
+parks rather than queues. But it changes what **every idle captain in
+every capture** does, so it is the widest unlanded thing on file and
+should be the first row a wave picks up when a captain's idle behaviour
+is next in question. Whoever takes it should expect it to move more than
+one word, and should measure before and after on both maps rather than
+on the frame that sends them.
+
 ## Parked by the eighth Fable pass, 2026-09-21 — a guard a worker can take
 
 (375) **A staged run is indistinguishable from an unstaged one, and the

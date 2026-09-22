@@ -12,36 +12,36 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-21, the tenth chain. Chapter two **637 → 645** (472); the AI
-word holds at 10234 and 475 has named what holds it.*
+*2026-09-21, the tenth chain. Chapter two **645 → 680** (479), and
+every record run112 carries over [606, 671) is at nought.*
 
-- **The AI word is a road search this crate never runs** (475, ORDERS
-  §18.2). At f10234 the two sides agree on draws 0-3 and part at draw
-  4: the original's is the first of 198 at `calc_road_cost+0x46 <
-  astar_caravan_road+0x52b < find_road+0x3a8`, ours is `set_anim`. One
-  road search over 10234 (198) + 10235 (73), then nothing for 2,300
-  frames. **478 is the headline item**; 476 and 477 are its frame's
-  value rows. A *missing* behaviour, not a divergent one.
-- **475's own first reading was wrong and it retracted it**: `FLOORS[1]
-  .word = 1850` is the *score* run's word, and `unwrap_or(last)` makes
-  it mean "never parted inside it". Great Lakes' draw word is 10234 and
-  the stream is aligned. The trap is written into §18.2. What was false
-  is one clause of §17.5 — the owner of the draws, not the count.
-- **The attribution audit came back clean**: 464, 465 and 471 all
-  *cited* it, none rested on it, and 465 steered away from it
-  explicitly. Nothing pinned depends on it (§18.4).
-- **A chase ends on a clock** (472, COMBAT §36): `Unit::work:440` on
-  `(o+frame) % 16 == 0`. `visible` exact 5 → **8 of 9**, re-pinned
-  upward; widening map over `[606, 641)` 13 → **0**. 473 landed free.
-  Four open, 67 parked. **Fable backlog: 2 Loop items** (313, 480).
+- **`ObjectData::near_o`/`near_who` was a field this crate did not
+  carry at all** (479, COMBAT §37) — `find_nearby_target`'s
+  *footprint*, not its answer: the nearest `check_target`-passing
+  candidate, written above the max_dist gate and the scoring.
+  `do_move`'s captain arm reads it every frame on the **plain** reach
+  where the kill above it uses reach less 0x90; `change_target` then
+  writes it down `o_down` in place.
+- **472's hypothesis confirmed, not replaced** — the `in_range 1 /
+  ever_in_range 0` fingerprint held on the first grep, and the
+  whole-cast widening added three legs: only `0/9`'s `o_down` chain
+  retargets, the bowmen with the same `near_o 6/1` do not, and the
+  switch carries `new_ord 0`, ruling out every order-creating path.
+  **The first confirmed hypothesis after ten dead ones.**
+- **`visible` is 9 of 9**, re-pinned upward again: chapter two's whole
+  engagement, both squads both directions, now opens fire on run112's
+  own frames. Endpoints unchanged. **The dump prints two `up`/`down`
+  pairs under one name** — `+0x2a/+0x2c` is the cell's occupancy
+  chain, the pair after `play` is the squad; §36.6 now says so.
+  Five open, 68 parked. **Fable backlog: 2 Loop items** (313, 480).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w9711 of 24,000 · GreatLakes w10234 of 24,000
-Golden: w626 of 901 (ch1) · ch2 w645 · 479 next
+Golden: w626 of 901 (ch1) · ch2 w680 · 481 next
 Endpoint 24001: EastIndies 64 off, 10 unlinked · GreatLakes 44 off, 11 unlinked
 
-**Opener: 479 is live; 478 takes the freed lane with run117 approved.
-The loop stands at 10 of 20.**
+**Opener: 478 is live with run117 approved; 481 takes the freed lane.
+The loop stands at 12 of 20.**
 
 ## The queue
 
@@ -68,14 +68,14 @@ the backlog is `docs/PARKED.md`, and an item returns only when a score names it.
     with `g.x[0]` and `g.des_x[0]` the same — one world unit in x,
     said three times. ORDERS §18.3.
 
-479. **`0/9`'s three rows on block 645** (the rules headline's own
-    frame). `pos` ours (942,8098) theirs (912,8096); `order` Length
-    2/1, Kind 1/10, PathLength 3/0; `0/10` and `0/11` both take
-    Target (1,8) where the dump takes (1,6). 472's reading — **its
-    hypothesis, not this item's** — is `do_move`'s captain arm
-    (`o_up < 0`) taking an incumbent from `near_o`/`near_who` into
-    `change_target`. COMBAT §36.6 has the `in_range 1 /
-    ever_in_range 0` fingerprint. Re-measure first.
+481. **All three hoplites hold `0/11` where we hold `0/10`, on
+    block 671** — the rules headline's own frame after 479 moved the
+    word to 680 and re-pinned the window to [606, 684). `pos 1/6`
+    ours (1623,8037) theirs (1608,8040); `order 1/6`, `1/7`, `1/8`
+    Target (0,10)/(0,11); `1/7` Move x 1512/1128, y 8328/8424,
+    PathLength 0/5; `672 angle 1/6` Heading -1320157184/-1605566464.
+    479 reads it as **§33's shape mirrored onto who=1** — that is its
+    hypothesis, not this item's. Re-measure first.
 
 342. **Host choice seats the scholar on the wrong university** — 338's
     residue, re-pinned three times, and now `1/55`. **Re-measure before
