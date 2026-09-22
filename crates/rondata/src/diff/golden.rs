@@ -1337,9 +1337,9 @@ fn chapter_two_s_hoplite_captain_refused_a_cell_three_searches_reached() {
     );
 }
 
-/// **637's widening, both directions** — every record run112's dump carries
-/// over `[633, 641)`, compared whole against this crate's own walk, on the
-/// frame chapter two's word now stands (`docs/COMBAT.md` §32.3).
+/// **680's widening, both directions** — every record run112's dump carries
+/// over `[606, 684)`, compared whole against this crate's own walk, on the
+/// frame chapter two's word now stands (`docs/COMBAT.md` §37.6).
 ///
 /// A word is pinned with its widening (`docs/DECISIONS.md` 43), and the
 /// window moves with the word rather than being left naming a frame the
@@ -1365,7 +1365,7 @@ fn chapter_two_s_word_frame_is_widened_whole() {
     /// [`WIDENING_CHAPTER_TWO`] beside the `WIDENINGS` row, so the floors
     /// guard reads the word against the same window this walks.
     const FIRST: i64 = WIDENING_CHAPTER_TWO.0;
-    /// One past the last. 637 is the word; four frames past it is enough
+    /// One past the last. 680 is the word; four frames past it is enough
     /// to say the parting opens *there* and not later.
     const LAST: i64 = WIDENING_CHAPTER_TWO.1;
     let Some(inst) = crate::testenv::install() else {
@@ -1529,12 +1529,33 @@ fn chapter_two_s_word_frame_is_widened_whole() {
     // engagement; they are named here so a regression in them cannot hide
     // behind the engagement, and they are nobody's item yet
     // (`docs/COMBAT.md` §32.5).
+    //
+    // **Item 479 closed all five of 472's rows and the map moved 645 →
+    // 671**, sixty-five frames of run112 — every record the dump carries,
+    // both directions, from its own first block to 670 — going to nought.
+    // `do_move`'s captain retarget and `Unit::change_target` under it
+    // (`docs/COMBAT.md` §37): `0/9` retargets to `1/6` on 645 as the dump
+    // does, so `pos 0/9` no longer walks on, `order 0/10` and `order
+    // 0/11` take the new target down the `o_down` chain on the same
+    // block, and `visible 0/9` arrives on 646 rather than 648.
+    //
+    // **What stands at 671 is who=1's side of the same tie.** All three
+    // hoplites hold `0/11` where this crate holds `0/10` — the two
+    // slingers are near-equidistant identical figures and the ranking
+    // breaks the tie the other way, which is the shape §33 named twice
+    // and closed twice on who=0's squads. `pos 1/6` and `pos 1/7` and
+    // `1/7`'s whole move order follow from it: a hoplite walking to a
+    // different slinger walks somewhere else. The draw stream holds nine
+    // frames past this, to **680**, and 680's own extra draw is
+    // `Guy::set_anim+0x97a < Unit::move_step+0x823` against a bird's
+    // `think_bird` — the chase destination again.
     let measured = [
-        ("order 0/10", 645),
-        ("order 0/11", 645),
-        ("order 0/9", 645),
-        ("pos 0/9", 645),
-        ("visible 0/9", 646),
+        ("angle 1/6", 672),
+        ("order 1/6", 671),
+        ("order 1/7", 671),
+        ("order 1/8", 671),
+        ("pos 1/6", 671),
+        ("pos 1/7", 671),
     ];
     let got: Vec<(&str, i64)> = first.iter().map(|(k, &n)| (k.as_str(), n)).collect();
     assert_eq!(
@@ -1688,7 +1709,7 @@ fn chapter_two_s_visible_byte_is_the_dump_s_on_every_unit_frame() {
             ((0, 6), (636, 2)),
             ((0, 7), (636, 2)),
             ((0, 8), (636, 2)),
-            ((0, 9), (648, 2)),
+            ((0, 9), (646, 2)),
             ((0, 10), (631, 2)),
             ((0, 11), (640, 2)),
             ((1, 6), (672, 1)),
@@ -1707,27 +1728,30 @@ fn chapter_two_s_visible_byte_is_the_dump_s_on_every_unit_frame() {
     // the three are closer to the dump's frame and `1/7` is twenty
     // frames under it. Pinned in no direction, as the doc comment says.
     //
-    // **Eight of the nine land on the dump's own frame**, and the ninth
-    // is the frame the word now stands on. It was five until item 472,
-    // and the three that came over are the three hoplites — 669/678/675
-    // against 672/698/665 — which had been the engagement's own residue
-    // for four items (§31.6, §35.4).
+    // **All nine land on the dump's own frame.** It was five until item
+    // 472, which brought the three hoplites over — 669/678/675 against
+    // 672/698/665, the engagement's own residue for four items (§31.6,
+    // §35.4) — and eight until item 479, whose ninth is `0/9`'s own: 648
+    // → **646**, the dump's. `0/9` is the slinger captain that retargets
+    // to `1/6` on block 645 under `do_move`'s captain arm, and it strikes
+    // a frame later because `change_target` leaves the attack to the next
+    // frame rather than dispatching it (`docs/COMBAT.md` §37.2). Before
+    // that it kept walking to `1/8` and struck two frames late.
     //
-    // They came over because `Unit::check_target_path` landed and the
-    // slingers' chases now die on the original's own frames, so `0/11`
-    // is still walking when who=1 chooses, `find_attack_pos` takes its
-    // sweep rather than the melee ring, and the three hoplites strike
-    // where and when the dump strikes (`docs/COMBAT.md` §36).
-    //
-    // The row keeps the others honest in both directions: a change that
-    // bought one squad's frames by losing another's fails here.
+    // **`visible`'s arrival frame is the frame of a unit's first strike**
+    // — `Unit::set_attacking` fires from the tail of `Unit::fight` — so
+    // nine of nine says chapter two's whole engagement, both squads and
+    // both directions, now opens fire on the original's own frames. That
+    // is the strongest thing this capture can say and it is why the
+    // count is pinned exactly: a change that bought one squad's frames by
+    // losing another's fails here, in both directions.
     let exact = mine
         .iter()
         .filter(|(k, v)| theirs.get(k).is_some_and(|t| t.0 == v.0))
         .count();
     assert_eq!(
-        exact, 8,
-        "the eight arrivals this crate puts on the dump's own frame are \
-         no longer eight"
+        exact, 9,
+        "the nine arrivals this crate puts on the dump's own frame are \
+         no longer nine"
     );
 }

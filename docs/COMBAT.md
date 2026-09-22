@@ -5473,3 +5473,309 @@ same block without either of them deciding anything.
 
 `ever_in_range` staying **0** at 645 is what identifies the path: only
 `Unit::fight` writes it, and `fight` runs a frame later here.
+
+**Confirmed and landed by item 479** (§37). The fingerprint held on the
+first grep — `0/9` prints `in_range 1` with `ever_in_range 0` on 645 and
+nothing else on the map does — and the `o_up` reading above is exactly
+right: `0/9` carries `o_up -1`, `0/10` `9` and `0/11` `10`, so the
+`o_down` chain is `9 → 10 → 11` and stops, which is why the bowmen
+`0/6`-`0/8` keep `1/8` through the same block. One correction to the
+last sentence: the walk is the **squad's**, not the file's. The dump
+prints a second, unrelated `up`/`down` pair in the `OBJECT` block —
+`ObjectData +0x2a`/`+0x2c`, the world cell's own occupancy chain, which
+`Object::add_to_world@0064d8c0` threads and whose loop check is the
+error string `UNIT LINKED LIST LOOPS <ADD>`. On 644 that pair reads
+`9 → 11 → 10 → 8 → 7 → 6`, all six of who=0's soldiers, because all six
+stand in cell `(1, 10)`; `o_up`/`o_down` are printed further down the
+same record, after `play`, and they are the squad. Reading the first
+pair for the second says the walk reaches the bowmen, and it does not.
+
+## 37. A captain retargets to its cached incumbent (item 479, 2026-09-21)
+
+§36.6 named `do_move@005f7b30`'s captain arm as its successor and did
+not take it. It is taken here and it is the mechanism: a ranged captain
+walking to a target it cannot yet reach asks, **every frame**, whether
+the incumbent its last search left in `ObjectData::near_o` is one it
+can — on the *plain* reach where the kill above it uses the reach less
+`0x90` — and `Unit::change_target@005e36c0` then writes that answer down
+the whole `o_down` chain **in place**.
+
+The word moves **645 → 680**, the widening's map over `[606, 684)` goes
+from five first-partings at 645 to six at **671**, and every record
+run112 carries over the sixty-five frames `[606, 671)` — both
+directions, every field, every unit — goes to **nought**.
+`chapter_two_s_visible_byte_is_the_dump_s_on_every_unit_frame` goes
+**8 of 9 → 9 of 9**: every one of chapter two's nine first strikes now
+lands on the original's own frame.
+
+### 37.1 `near_o` is the search's footprint, and this crate had no term for it
+
+`ObjectData::near_o`/`near_who` (`+0x34`/`+0x36` by the type record) are
+written by `Object::find_nearby_target@00648da0` and by nothing else in
+the executable. `00649527`-`0064953f`, inside the ring walk:
+
+```
+local_4c = 9999999;                               // 00648e0e
+...
+if (check_target(this, o, who, …, &dist, …)) {     // 00649332
+    if (dist < local_4c && (this->is_unit() || cand->is_unit())) {
+        local_4c = dist;  near_o = o;  near_who = who;
+    }
+    if (max_dist < 1 || dist <= max_dist) { … the scoring … }
+}
+...
+if (0xf00 < local_4c) { near_o = -1; near_who = -1; }   // 006498de
+```
+
+Three things follow, and all three are the difference between a
+footprint and an answer:
+
+- it is the **nearest** candidate, not the chosen one — the score
+  (`compare_target` divided by the shaped distance) is computed below
+  it and never read here;
+- it is written **above the `max_dist` gate**, so a candidate too far
+  to be ordered against still leaves its mark;
+- it is **cleared** to `-1` when the nearest thing the rings saw is
+  beyond `0xf00` — and cleared on an empty ring table too, so a search
+  that finds nothing overwrites a good incumbent rather than leaving it
+  standing.
+
+`check_target`'s out-distance is `attack_dist` from the searcher's own
+position (`00649e1c`, the first thing the function does). The metric is
+therefore the same one §36.1's table is in.
+
+**The field survives untouched between searches, and that is the point.**
+run112's `0/9` carries `near_o 6, near_who 1` from block 638 to 652
+without a single change: it recorded `1/6` on its birth-frame search at
+621 (`chapter_two_s_hoplite_captain_refused_a_cell_three_searches_
+reached` asserts that row) and never searched again in the window. So
+the incumbent the arm below reads on 644 was chosen twenty-three frames
+earlier.
+
+[`sim::Unit::near`] is the field, written at `find_nearby_target`'s own
+site. **SEAM**: the original's is an `ObjectData` member and a building
+carries one too; this crate holds it on a unit only, which nothing
+either side models reads.
+
+### 37.2 The arm, `005f803f`-`005f8216`
+
+Inside `do_move`'s `ptype->max_range != 0` gate and inside its "the
+target is not a wallbuild" arm (`piVar2->vt[0x1c]` is
+`SubObjectData::is_wallbuild`, offset 28 by the field list), **after**
+the in-range kill has failed:
+
+```
+if (attack->mandatory == 0 && is_captain(this)) {         // o_up < 0
+    melee = -1;
+    if ((o + frame) % 16 == 0)
+        melee = find_melee_target(this, -1, &t_who, 0, 0, mode);
+    if (near_o >= 0 && near_who >= 0) {
+        c_o = near_o;  c_who = near_who;
+        if (melee >= 0 && is_in_range(this, melee, t_who, …, 0))
+            { c_o = melee;  c_who = t_who; }
+        if (cand->flags & 1
+            && is_in_range(this, c_o, c_who, …, 0)
+            && poor_target(this, c_o, c_who) == 0
+            && cand->is_unit()
+            && military(cand)) {
+            attack->in_range = 1;                          // 005f820a
+            change_target(this, attack->ox, attack->whom, c_o, c_who);
+            return 0;
+        }
+    }
+}
+```
+
+**The two range tests are the same function with a different sixth
+argument, and that is the whole of why both can decide on one frame.**
+The kill above passes `attack->mandatory == 0`, so it asks the reach
+less `0x90` (§35.3); this asks the plain reach. A ranged captain can
+therefore be out of range for the purpose of ending its chase and in
+range for the purpose of switching targets, on the same frame, against
+the same distance.
+
+`military(cand)` is the arm's own disqualifier and it is a two-sided
+thing:
+
+```
+uVar17 = 0;
+if (cand->is_unit()) {
+    if ((this->unit_masks2 & 4) == 0)  uVar17 = ~(cand_role >> 16) & 1;
+    else if ((cand_role & 0x10000) && !(cand_unit_flags & 0x2000)) uVar17 = 1;
+}
+```
+
+`cand_role` is `UnitTypeData +0x2c8 role`, and `*(ushort *)(t + 0x2ca)
+& 1` is `role & 0x10000` read as the upper halfword — the **military**
+bit this crate already carries as `Profile::combat_role`. So for an
+attacker without `unit_masks2 & 4` the retarget wants a military
+candidate, and for one with it the sense inverts. run112's slingers
+print `unit_masks2 0`, so the first arm is the one measured.
+
+**Why 644 and not 638.** `near_o` has been `1/6` the whole time and the
+arm runs every frame; what changes is the plain-reach test as `0/9`
+walks from `(791, 8088)` to `(912, 8096)`. Nothing in the arm is phased
+— the sixteen-frame phase gates only the `find_melee_target` probe, and
+`(9 + 644) % 16 = 13`, so on this frame the candidate is `near_o` alone.
+
+**SEAM**: the `find_melee_target` probe is not implemented. Its own
+sixth argument (`1` when the target is not a wallbuild and the type's
+`vt+0x10c` answers zero, `2` otherwise) has no counterpart in this
+crate's two-argument helper, and the call re-enters
+`find_nearby_target` — which bumps `targeted` and rewrites `near`, so
+wiring it is a behavioural change of its own rather than an addition.
+No frame of any capture on disk reaches it.
+
+### 37.3 `poor_target` refuses a futile chase, and the conjunct that decides is the speed
+
+`Object::poor_target@0064a270`, three conjuncts and a floor:
+
+1. the candidate's head order is in the move family (`is_move@0046f050`
+   — `1, 2, 3, 4, 0x12, 0x13, 0x15`): it is walking;
+2. `get_speed(me, my pos, 0) < get_speed(cand, its pos, 0)` — it is
+   **faster than me**;
+3. it is facing away from me: `cand.angle − find_angle(to cand) +
+   0x80000000` inside the window **and** `flanking` answering `2` — the
+   one caller in the executable that reads the 1/2 split §36.3 says
+   nothing reads;
+
+then `attack_dist > 0xc0`, or `> max_range * 0xc0` for the lineage
+`role & 0x400` names.
+
+For run112 the answer is `0` and **the second conjunct is what says
+so**: `0/9` prints `myspeed 28` against `1/6`'s `25`. A slinger does
+not think chasing a hoplite is futile, so the floor — one tile, against
+the 1296 between their snapped quarter-tile centres — is never reached.
+That ordering is why the function is worth having exactly rather than
+stubbed: stubbed `true` it kills §37.2 outright, stubbed `false` it
+accepts every chase the original refuses.
+
+**SEAM**, both above conjunct 1: a candidate whose first `Guy` carries
+`guy_flags & 0x40` takes a different arm entirely
+(`has_objmask(0x80000000)` and then the reach floor), and this crate
+has no such guy flag; `role & 0x400` is unloaded, this crate's
+`combat::role` word being its own synthesis, so the floor is always the
+tile.
+
+### 37.4 `change_target` is one decision written down the squad in place
+
+`Unit::change_target@005e36c0` is a walk of `o_down`, and it is the
+whole of why three slingers retarget on one block:
+
+```
+loop {
+    order = update_action(this);
+    if (order && (t = order->update_target_order())
+        && t->o == old_o && t->who == old_who) {
+        t->o = new_o;  t->who = new_who;
+        t->uid = objects[new_who][new_o]->uid;
+        while (head->is_targeted() == 0) kill_current_order(this, 0);
+    }
+    if (this->o_down < 0) break;
+    next = objects[this->who][this->o_down];
+    if ((next->flags & 1) == 0) return;
+    this = next;
+}
+```
+
+`vt+0x3c` is `UnitOrder::update_target_order` (offset 60) and `vt+0x20`
+is `UnitOrder::is_targeted` (offset 32), both by the field list. So the
+target is rewritten **in the order that holds it**, conditional on that
+order still holding the old one, and then the head is popped until it is
+the targeted order — which drops the chase the retarget has just made
+pointless.
+
+**The in-place rewrite is measurable, and it is what rules out every
+order-creating path.** On block 645 `0/10` and `0/11` take `1/6` while
+keeping `in_range 1`, `ever_in_range 1` and `new_ord 0` — the flags they
+were already carrying against `1/8` — and their positions, `orders_x/y`
+and every other field are unchanged. A fresh `add_attack_order` through
+the captain mirror (§21) would have reset all three flags. `0/9` itself
+shows the other half: `in_range` goes `0 → 1` because `005f820a` writes
+it, and `ever_in_range` stays `0` because only `Unit::fight+0xba9`
+writes that and `fight` runs a frame later — which is also why `0/9`'s
+`visible` byte arrives on 646 and not 645.
+
+**SEAM**: the head-popping test is `is_targeted`, true for every class
+deriving `TargetOrder`; this crate asks for an `ATTACK` body instead.
+They agree wherever the action is an attack, which is every frame of
+every capture that reaches this.
+
+### 37.5 `Unit::think`'s own `near_o` arm, which is not implemented
+
+`near_o` has a second reader and it is a bigger one.
+`Unit::think@005f6e40:104`-`134`, above the step-3 cadence gate: on the
+frames where `(o + frame) % 32 != 0` — thirty-one in thirty-two — a
+captain whose `idle` is not 1, whose `near_o` is valid, and whose order
+count is under 5 takes `add_attack_order(near_o, QUEUE_NEW)` if it is
+`is_in_range` of it, **instead of running the search at all**. So the
+field is a cache that lets the engine skip `find_nearby_target` almost
+always, and this crate runs the search on the phase frames and nothing
+on the others.
+
+It is not this word. `Unit::think` is reached from `Unit::do_idle` and
+from nowhere else in the executable — one caller, grepped — so a unit
+with a `MOVE` at the head of its list never enters it, and `0/9` on 644
+has one. The dump says the same thing independently: `think`'s arm
+creates an order, and a created order prints `in_range 0`.
+
+Parked as a successor. It needs `idle`, the order count and the
+`% 32` phase, all of which this crate has, and it will change what every
+idle captain in every capture does.
+
+### 37.6 What moved
+
+Word **645 → 680**, sequence 680, values 681. 680's own extra draw is
+`Guy::set_anim+0x97a < Unit::move_step+0x823` against the original's
+`Animal::think_bird+0x82` — the chase destination again, which is
+§31.6's residue and not this mechanic's.
+
+The widening window is `[606, 684)` and its map is six rows, `angle
+1/6` at 672 and `order`/`pos` on `1/6`, `1/7` and `1/8` at **671**. All
+five of §36.6's rows are gone and so is every record in between: sixty-
+five frames of run112 from its own first block, every field of every
+dumped record, both directions, at nought.
+
+What stands at 671 is **who=1's side of a tie this crate has broken the
+other way twice before**. All three hoplites hold `0/11` where this
+crate holds `0/10`; the two slingers are near-equidistant identical
+figures, and `pos 1/6`, `pos 1/7` and the whole of `1/7`'s move order
+follow from a hoplite walking to a different one. §33 named that shape
+and closed it on who=0's two squads; this is its mirror.
+
+`visible`'s exact count is **9 of 9**, from 8. The one that came over
+is `0/9`'s own, 648 → 646, and because `visible`'s arrival frame is the
+frame of a unit's first strike, nine of nine says chapter two's whole
+engagement — both squads, both directions — now opens fire on the
+original's own frames.
+
+`rondata`'s endpoints do not move and neither ladder rung moves.
+
+### 37.7 Coverage
+
+**Diff-backed**, by `chapter_two_s_word_frame_is_widened_whole` over
+`[606, 684)` and `chapter_two_s_visible_byte_is_the_dump_s_on_every_
+unit_frame`:
+
+- that a ranged captain retargets to its cached incumbent on the frame
+  the plain reach admits it — `0/9` on 645, `order 0/9`'s `Length`,
+  `Kind` and `PathLength` and `pos 0/9` all the dump's;
+- that the switch propagates down `o_down` in place on the same block —
+  `order 0/10` and `order 0/11`'s `Target`, with their flags unchanged;
+- that the strike follows a frame later — `visible 0/9` at 646;
+- that `near_o`'s value on 621 is `1/6`, by the older cell test.
+
+**Reading-only**, and each names the capture that would falsify it:
+
+- `near_o`'s own rule — the `0xf00` clear, the write above the
+  `max_dist` gate, the either-side `is_unit` conjunct. Nothing here
+  measures them; the falsifier is cheap and is a **diff row of its own**,
+  because the dump prints `near_o`/`near_who` on every unit-frame of
+  every capture and no comparison has ever read them. Parked.
+- `poor_target`'s conjuncts 1 and 3 and its floor. Conjunct 2 decides
+  every frame on disk, so 1 and 3 are never the answer here; a capture
+  with a faster target walking away would reach them.
+- `is_targeted` as the head-popping test, and `unit_masks2 & 4`'s
+  inverted arm. No capture reaches either.
+- the `find_melee_target` probe and its mode argument: unimplemented,
+  not merely unverified.

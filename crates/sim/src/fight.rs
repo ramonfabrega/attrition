@@ -352,6 +352,61 @@ impl Sim {
         }
     }
 
+    /// `Object::poor_target@0064a270` — "chasing this one is futile", the
+    /// refusal that stands between a captain's cached incumbent and a
+    /// retarget (`docs/COMBAT.md` §37.3).
+    ///
+    /// Three conjuncts, and all three have to hold for the answer to be
+    /// *yes*:
+    ///
+    /// 1. the candidate's head order **is a move** — it is walking;
+    /// 2. `get_speed(me) < get_speed(candidate)` — it is **faster than
+    ///    me**, each speed taken at its own owner's position, which is
+    ///    what [`Sim::get_speed`](crate::Sim::get_speed) already answers;
+    /// 3. it is facing **away** from me — `candidate.heading − bearing(me
+    ///    → candidate) + 0x80000000` inside the window, and
+    ///    [`combat::flanking`] answering **2** rather than 1, so this is
+    ///    the one caller in the executable that reads the 1/2 split;
+    ///
+    /// and then a distance floor: further than a tile, or than my own
+    /// reach for the lineage `role & 0x400` names.
+    ///
+    /// It is `0` for run112's slinger captain and the conjunct that says
+    /// so is the **second**: `0/9` prints `myspeed 28` against `1/6`'s
+    /// `25`, so a slinger never thinks chasing a hoplite is futile and
+    /// the distance floor — one tile, against the 1311 between them — is
+    /// never reached. That ordering is why this is worth having exactly
+    /// rather than stubbed: stubbed `true` it kills §37.2 outright, and
+    /// stubbed `false` it would accept every chase the original refuses.
+    ///
+    /// SEAM, and both are above conjunct 1: the candidate's first `Guy`
+    /// carrying `guy_flags & 0x40` takes a **different** arm entirely
+    /// (`has_objmask(0x80000000)`, then the reach floor), and this crate
+    /// has no such guy flag, so the `== 0` arm is always taken.
+    /// `role & 0x400` is likewise unloaded — this crate's
+    /// [`combat::role`] word is its own synthesis and not the original's
+    /// — so the floor is always the tile.
+    pub(crate) fn poor_target(&self, me: Obj, cand: Obj) -> bool {
+        let (Obj::Unit(u), Obj::Unit(c)) = (me, cand) else {
+            return false;
+        };
+        if !crate::orders::index::is_move_family(self.order_type(c)) {
+            return false;
+        }
+        if self.get_speed(u) >= self.get_speed(c) {
+            return false;
+        }
+        let (mp, cp) = (self.units[u].pos, self.units[c].pos);
+        let bearing = crate::movement::find_angle(cp.x - mp.x, cp.y - mp.y);
+        let e = (self.units[c].movement.heading.0 as u32)
+            .wrapping_sub(bearing.0 as u32)
+            .wrapping_add(0x8000_0000);
+        if e < 0x2aaa_aaaa || combat::flanking(e) <= 1 {
+            return false;
+        }
+        self.attack_dist(me, cand) > 0xc0
+    }
+
     /// `ObjectData::valid_target_const` + `Object::valid_target` (§12.1), as
     /// far as the simulation's state reaches: not mine, at war, active, on the
     /// map, **and seen**; the air ladder reduced to "air targets need a
@@ -1378,6 +1433,16 @@ impl Sim {
             .filter(|&o| o != attacker && self.active(o))
             .collect();
         let mut best: Option<(i32, Obj)> = None;
+        // **`ObjectData::near_o`/`near_who`, and it is not `best`**
+        // (`docs/COMBAT.md` §37.1). `00649527`-`0064953f` keeps the
+        // nearest candidate by `check_target`'s own out-distance —
+        // `attack_dist` from the searcher's own position — in a local
+        // seeded at `9999999`, writes the pair every time that local
+        // falls, and does it **above** the `max_dist` gate and above the
+        // whole of the scoring. On the way out (`006498de`, and again
+        // when the ring table is empty) it clears both to `-1` unless the
+        // nearest one it saw is inside `0xf00`.
+        let mut near: Option<(i32, Obj)> = None;
         let mut unit_candidates = 0;
         'rings: for r in 0..=rings {
             for dx in -r..=r {
@@ -1415,10 +1480,18 @@ impl Sim {
                             continue;
                         }
                         let mut dist = self.attack_dist(attacker, o);
+                        let is_unit = matches!(o, Obj::Unit(_));
+                        // `00649527`'s conjunct: one of the two ends has
+                        // to be a unit, so a building's search of another
+                        // building records no incumbent.
+                        if (matches!(attacker, Obj::Unit(_)) || is_unit)
+                            && near.is_none_or(|(d, _)| dist < d)
+                        {
+                            near = Some((dist, o));
+                        }
                         if max_dist > 0 && dist > max_dist {
                             continue;
                         }
-                        let is_unit = matches!(o, Obj::Unit(_));
                         // The range gate: a unit takes anything, a building
                         // needs the target in range or worth waiting for.
                         let in_range = if anything
@@ -1474,6 +1547,15 @@ impl Sim {
         // `docs/COMBAT.md` §33.
         if let Some((_, o)) = best {
             self.bump_targeted(o, 1);
+        }
+        // `006498de`: the pair survives only if the nearest candidate the
+        // rings saw is inside `0xf00`, and is cleared otherwise — so an
+        // empty search *overwrites* a good incumbent rather than leaving
+        // it standing. SEAM: this crate holds the pair on a unit only;
+        // the original's is an `ObjectData` field and a building carries
+        // one too, read by nothing either crate models.
+        if let Obj::Unit(me) = attacker {
+            self.units[me].near = near.filter(|&(d, _)| d <= 0xf00).map(|(_, o)| o);
         }
         best.map(|(_, o)| o)
     }

@@ -283,6 +283,20 @@ pub struct Unit {
     /// `Group::add` pulls in behind its captain with `keep_captain = 1`.
     /// A three-figure squad is a captain, its `o_down`, and that one's.
     pub o_down: Option<usize>,
+    /// `ObjectData::near_o`/`near_who` (+0x34/+0x36) — the **nearest**
+    /// candidate the last search saw, which is not the one it chose
+    /// (`docs/COMBAT.md` §37.1).
+    ///
+    /// `Object::find_nearby_target@00648da0` writes it for every candidate
+    /// that clears `check_target` and is nearer than the best so far,
+    /// **above and independent of** the `max_dist` gate and of the score,
+    /// and clears it to `-1` when the nearest one it saw is beyond
+    /// `0xf00`. So it is the search's footprint rather than its answer, it
+    /// survives untouched between searches, and two arms read it as a
+    /// cached incumbent: `do_move`'s captain retarget (§37.2, which this
+    /// crate has) and `Unit::think`'s 31-in-32 fast path (§37.5, which it
+    /// does not).
+    pub near: Option<combat::Obj>,
     /// `unit_masks & 0x800000`: may auto-transport (`docs/TRANSPORT.md`
     /// §3). Granted at birth under the leader's level and by
     /// `check_transport`; the player's toggle writes it too.
@@ -738,6 +752,7 @@ impl Unit {
             captain: true,
             o_up: None,
             o_down: None,
+            near: None,
             auto_transport: false,
             never_transport: false,
             guy_flag_0x20: false,
