@@ -4061,13 +4061,21 @@ mod tests {
             "Great Lakes' scholar seatings below the word are not the \
              original's own"
         );
+        //
+        // **Ten → eleven on item 497**, and the shape held a second
+        // time: the comparison against the original's own seatings
+        // passed unchanged and only the literal moved. The eleventh is
+        // **10306**, which the word walked past when the scholar teach
+        // slot's tie-break came right (`docs/ANIM.md` §4.12) — a
+        // seating this crate was already spending on the original's own
+        // frame, 279 frames below the word rather than above it.
         assert_eq!(
             seatings,
             vec![
-                8272, 8680, 9_087, 9_201, 9_322, 9_510, 9_717, 9_861, 10_012, 10_140
+                8272, 8680, 9_087, 9_201, 9_322, 9_510, 9_717, 9_861, 10_012, 10_140, 10_306
             ],
-            "below the word Great Lakes seats ten scholars, on 8272, 8680, \
-             9087, 9201, 9322, 9510, 9717, 9861, 10012 and 10140"
+            "below the word Great Lakes seats eleven scholars, on 8272, 8680, \
+             9087, 9201, 9322, 9510, 9717, 9861, 10012, 10140 and 10306"
         );
         // **Great Lakes 9134, the snap arm's blocked stand** (item 360,
         // `docs/COLLISION.md` §5.4). The frame is **one draw on each
@@ -6824,6 +6832,29 @@ mod tests {
         /// `RAID`'s reason — the exemption has to name the row, so the
         /// day the row closes this fails.
         const RAIDER_COLLIDES: i64 = 10_242;
+        /// **`1/35` twelve world units short**, item 497's first
+        /// exposure: the word moved 10303 → 10582 and this window runs
+        /// to the word, so 279 blocks nothing had ever compared came
+        /// under the line in one landing. The raider's `half_step` parts
+        /// on 10353 and its position a block later, 12 west and 12 north
+        /// of the dump's — the same shape `RAIDER_X` is, one raider
+        /// over. Named rather than widening `opens`, for `RAID`'s
+        /// reason. **It is not 497's**: 497 moved the word past it and
+        /// the row was already standing.
+        const RAIDER_SHORT: i64 = 10_353;
+        /// **The human city's `free`**, the second row item 497's move
+        /// exposed: `CityData::free` parts on 10400, ours 0 against the
+        /// dump's 1, on the same `0/2000` whose `raid_stamp` `RAID`
+        /// already names. Also not 497's, and also pre-existing.
+        const CITY_FREE: i64 = 10_400;
+        /// **The word's own queue row** (item 497). `run100_s_word_
+        /// block_is_every_record_the_dump_carries` holds the value diff
+        /// — `1/2018 queue:queued: ours 1 theirs 0`, the AI's building
+        /// holding a unit in its queue the original's does not — and
+        /// the word's own frame is excluded from `opens` for item 442's
+        /// reason, so the queue set is asserted against this one row by
+        /// name rather than against nothing.
+        const WORD_QUEUE: i64 = LONG_WORD_GREAT_LAKES;
         let Some(inst) = install() else { return };
         let (Some(path), Some(r100)) = (
             dump("gamelog-run53-greatlakes-24k-trace.txt"),
@@ -6951,8 +6982,14 @@ mod tests {
         // is this crate's too, so the queue record parts nowhere in the
         // window. Item 408 measured the parting; this is its absence,
         // asserted so it cannot come back quietly.
+        //
+        // **Item 497 put one back, and it is the word's own.** The queue
+        // record parts nowhere *inside* the window still; what it carries
+        // is `1/2018`'s row on `WORD_QUEUE` itself, which is the headline
+        // and is asserted by name below rather than swallowed here.
         let q: Vec<(i64, i64, i64, &str)> = queues
             .iter()
+            .filter(|(_, (f, _))| *f != WORD_QUEUE)
             .map(|(&(w, o), (f, s))| (w, o, *f, s.as_str()))
             .collect();
         assert_eq!(
@@ -6960,6 +6997,17 @@ mod tests {
             Vec::new(),
             "run100's queues part somewhere in the window — item 408's \
              parting is back"
+        );
+        let on_word_queue: Vec<(i64, i64, i64, &str)> = queues
+            .iter()
+            .filter(|(_, (f, _))| *f == WORD_QUEUE)
+            .map(|(&(w, o), (f, s))| (w, o, *f, s.as_str()))
+            .collect();
+        assert_eq!(
+            on_word_queue,
+            vec![(1, 2_018, WORD_QUEUE, "queued ours 1 theirs 0")],
+            "the word's own frame is not item 497's one queue row of \
+             `1/2018`: {queues:?}"
         );
         // **Nothing else opens inside the window.** Every other
         // divergence was already standing on the window's first block —
@@ -6987,6 +7035,7 @@ mod tests {
                 opens(f)
                     && (**k, **f) != ((1, 28), RAIDER_X)
                     && (**k, **f) != ((1, 27), RAIDER_COLLIDES)
+                    && (**k, **f) != ((1, 35), RAIDER_SHORT)
             })
             .map(|(k, f)| format!("unit {k:?} f{f}"))
             .chain(
@@ -6998,7 +7047,11 @@ mod tests {
             .chain(
                 cities
                     .iter()
-                    .filter(|((w, o, _), f)| opens(f) && (*w, *o, **f) != (0, 2_000, RAID))
+                    .filter(|((w, o, _), f)| {
+                        opens(f)
+                            && (*w, *o, **f) != (0, 2_000, RAID)
+                            && (*w, *o, **f) != (0, 2_000, CITY_FREE)
+                    })
                     .map(|(k, f)| format!("city {k:?} f{f}")),
             )
             .collect();
@@ -7081,8 +7134,8 @@ mod tests {
                 .filter(|(_, f)| **f < LONG_WORD_GREAT_LAKES)
                 .map(|(k, _)| *k)
                 .collect::<Vec<_>>(),
-            vec![(1, 24), (1, 25), (1, 26), (1, 27), (1, 28)],
-            "the window's standing position residue is not the five it is"
+            vec![(1, 24), (1, 25), (1, 26), (1, 27), (1, 28), (1, 35)],
+            "the window's standing position residue is not the six it is"
         );
         // **Counted below the word**, not over the whole map: the word's
         // own row joined this set when the headline moved past 10232, and
@@ -7117,10 +7170,16 @@ mod tests {
             17,
             "the window's standing order residue is not seventeen units: {orders:?}"
         );
+        // **Twenty → twenty-one on item 497**, and the extra field is
+        // the window's, not the simulation's: the word moved 279 frames
+        // and `0/2000`'s `free` parts on 10400, which no run had ever
+        // compared because every earlier word stopped short of it
+        // (`CITY_FREE`). The set is pinned by count here and by name in
+        // the `opens` filter above, so a *new* city field fails both.
         assert_eq!(
             cities.len(),
-            20,
-            "the window's standing city residue is not twenty fields: {cities:?}"
+            21,
+            "the window's standing city residue is not twenty-one fields: {cities:?}"
         );
         assert!(
             cities.keys().all(|(w, o, _)| (*w, *o) != (1, 2_019)),
@@ -7991,20 +8050,35 @@ mod tests {
         // the reason the frame the original spends in `do_idle` this
         // crate spent walking away (`docs/ORDERS.md` §21).
         //
-        // **The new word is 10303 and its block is `1/51`'s animation
-        // clock** — two rows, `g.cur_time` 30 against 0 and
-        // `g.last_time` 29 against −1, the original a wrap ahead. The
-        // draw stream says the same from its side: ours spends three
-        // draws and the original four, and the extra at index 3 is
+        // ~~**The new word is 10303 and its block is `1/51`'s animation
+        // clock**~~ — **item 497 closed both rows, and the pair thirty
+        // blocks under them that nobody had named.** The clock was never
+        // the cause: `1/51` is a **scholar** seated in a university, and
+        // on 10274 both sides wrapped a 118-frame slot together and
+        // re-rolled. The original took `0x1d`, this crate `0x20`, and
+        // thirty frames later the original's 30-frame teach slot ran
+        // out where this crate's 118-frame one had ninety left to run —
+        // which is the whole of 10304's two rows and of the draw the
+        // word was. `set_anim:332`'s `param_2 == 0x20` walk examines
+        // **every** member of the host's `inside_down` chain, the guy
+        // asking included, and its `guys[0].cur_anim` is still the slot
+        // it is leaving; this crate read the walk as "some *other*
+        // scholar" and so never fired it on a chain with one student
+        // (`docs/ANIM.md` §4.12).
+        //
+        // **The new word is 10582 and its block is one row**, and it is
+        // not an animation at all: `1/2018 queue:queued: ours 1 theirs
+        // 0` — a building of the AI's holding a unit in its queue that
+        // the original's does not. The draw stream says the same from
+        // its side and says it louder: on 10583 ours spends **eight**
+        // draws against the original's **three**, parting at index 0,
+        // ours `Leader::create_units+0x642` against theirs
         // `Guy::set_anim+0x97a < Guy::inc_time+0x271`.
         assert_eq!(
             on_word,
-            vec![
-                "1/51 g.cur_time[0]: ours 30 theirs 0",
-                "1/51 g.last_time[0]: ours 29 theirs -1",
-            ],
-            "the word's own block ({word}) is not item 494's two \
-             rows of `1/51`"
+            vec!["1/2018 queue:queued: ours 1 theirs 0"],
+            "the word's own block ({word}) is not item 497's one row of \
+             `1/2018`"
         );
         // **And 10295, the block the word just left** — item 489's six
         // rows of `0/5`, closed by item 494 and pinned empty here for
@@ -8014,7 +8088,14 @@ mod tests {
         // `dest_angle` and `g.des_angle` the arrival turn writes — are
         // pinned with it, because they are the same citizen one block
         // earlier and closed by the same number.
-        for b in [10_294_i64, 10_295] {
+        //
+        // **10274 and 10304 join them** (item 497), and the pair is the
+        // same shape one mechanic over: 10304 is the block the word just
+        // left, 10274 the block thirty under it where the cause actually
+        // is. `1/51`'s teach slot is the original's on both, so a
+        // tie-break that stopped including the requester would fail here
+        // on the cause rather than on the symptom.
+        for b in [10_274_i64, 10_294, 10_295, 10_304] {
             let on: Vec<String> = firsts
                 .iter()
                 .filter(|(_, (f, _))| *f == b)
@@ -8023,7 +8104,7 @@ mod tests {
             assert_eq!(
                 on,
                 Vec::<String>::new(),
-                "block {b} parts — item 489's `0/5` is back"
+                "block {b} parts — item 489's `0/5` or item 497's `1/51` is back"
             );
         }
         // **And 10278, the block the word left before that** — item

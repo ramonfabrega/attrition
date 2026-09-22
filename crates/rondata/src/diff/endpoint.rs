@@ -399,7 +399,18 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // position and four building field-rows closer against one more
         // of the roster unlinked and one building unlinked. DECISIONS 36
         // asks for the number rather than a trade.
-        off: 63,
+        // And **63 → 59 off, 11 → 12 unlinked and 28 → 30
+        // build_diverged** on 2026-09-22, item 497 — the scholar teach
+        // slot's tie-break (`docs/ANIM.md` §4.12). This map's own word
+        // does **not** move (9711 either side) and nothing about the
+        // change is East Indies'; a scholar's fourth student slot is
+        // 118 frames long and its first 30, so a chain that entered the
+        // wrong one held its figure three wraps' worth of draws out of
+        // the stream, on every map with a university. Four positions
+        // closer against one more of the roster unlinked and two more
+        // building field-rows, 14,290 frames past this map's word.
+        // DECISIONS 36 asks for the number rather than a trade.
+        off: 59,
         // And **5 → 10 unlinked** on 2026-09-21, item 442 — the scholar
         // arm's `val` chain (`docs/AI.md` §53). This map's word does not
         // move on it; Great Lakes' moves 9510 → 10161. The AI's Scholar
@@ -408,10 +419,10 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // rungs shed **eight** and **seven** spurious units — the Citizens
         // this crate used to buy instead of Scholars. DECISIONS 36 asks for
         // the number rather than a trade; the number is on the headline.
-        unlinked: 11,
+        unlinked: 12,
         extra: 0,
         build_unlinked: 1,
-        build_diverged: 28,
+        build_diverged: 30,
         city_unlinked: 3,
         city_diverged: 0,
     },
@@ -956,11 +967,20 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // consequences of
         // (`run100_s_word_block_is_every_record_the_dump_carries`).
         // DECISIONS 36 asks for the number rather than a trade.
-        off: 49,
-        unlinked: 8,
+        // And **49 → 55 off, 8 → 5 unlinked and 9 → 10
+        // build_diverged** on 2026-09-22, item 497 — the scholar teach
+        // slot's tie-break (`docs/ANIM.md` §4.12), which is this map's
+        // own headline: the word moves **10303 → 10582**, the largest
+        // move of the chain. Three fewer of the roster unlinked against
+        // six positions further out and one more building field-row,
+        // 13,419 frames past the word, where the stream is nobody's.
+        // DECISIONS 36 asks for the number rather than a trade; the
+        // number is on the headline, and the headline is what moved.
+        off: 55,
+        unlinked: 5,
         extra: 0,
         build_unlinked: 0,
-        build_diverged: 9,
+        build_diverged: 10,
         city_unlinked: 3,
         city_diverged: 0,
     },
@@ -1232,7 +1252,11 @@ pub const LADDER: [Endpoint; 2] = [
         // same row as rung C's above. One position closer and one
         // spurious unit gone, 8,000 frames past this rung's word, which
         // does not move.
-        off: 48,
+        // And **48 → 45 off, 11 → 6 extra** on 2026-09-22, item 497 —
+        // the scholar teach slot's tie-break (`docs/ANIM.md` §4.12).
+        // The rung sheds five spurious units and three positions come
+        // in; East Indies' own word does not move.
+        off: 45,
         unlinked: 16,
         // 19 → 33 on 2026-09-07, item 261, the same reshuffle, then 33 →
         // **27** the same day on item 265's byte — this rung took the
@@ -1304,7 +1328,7 @@ pub const LADDER: [Endpoint; 2] = [
         // later**, and the block 1/56–1/72 is type-identical on the two
         // rungs — which the ladder test now asserts, since it is the one
         // thing about `extra` that does not churn with every AI landing.
-        extra: 11,
+        extra: 6,
         build_unlinked: 19,
         build_diverged: 0,
         city_unlinked: 4,

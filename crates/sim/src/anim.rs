@@ -1275,8 +1275,21 @@ impl Sim {
     }
 
     /// The not-the-head arm: `variant + 0x1d`, and the one tie-break the
-    /// listing carries — a slot 0x20 that another scholar in the same
-    /// chain is already playing falls back to 0x1d.
+    /// listing carries — a slot 0x20 that a scholar in the same chain is
+    /// already playing falls back to 0x1d. **The requester counts.**
+    ///
+    /// `set_anim:332`'s walk starts at the host's own `inside_down` and
+    /// steps down `inside_down` to the tail, so the objects it examines
+    /// are every member of the chain — and the guy asking is one of them,
+    /// because the arm is only reached when it is *not* the head. Its
+    /// `guys[0].cur_anim` is still the slot it is leaving when the walk
+    /// reads it, `set_anim` writing the new one a hundred lines later, so
+    /// **a student re-rolling variant 3 while already on `0x20` always
+    /// bounces to `0x1d`** and the fourth student slot can only ever be
+    /// entered from one of the other three. This crate read the walk as
+    /// "some *other* scholar", which is the one reading under which the
+    /// tie-break never fires on a chain with a single student
+    /// (`docs/ANIM.md` §4.12).
     fn scholar_student_slot(&self, u: usize, variant: i8) -> i8 {
         let slot = variant + 0x1d;
         if slot != 0x20 {
@@ -1284,8 +1297,7 @@ impl Sim {
         }
         let taken = self.units[u].inside.is_some_and(|b| {
             self.buildings[b].garrison.iter().any(|&c| {
-                c != u
-                    && self.worker_of(c) == crate::orders::Worker::Scholar
+                self.worker_of(c) == crate::orders::Worker::Scholar
                     && self.units[c].guys.first().is_some_and(|g| g.anim == 0x20)
             })
         });
@@ -1901,6 +1913,7 @@ impl Unit {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::UnitType;
     use crate::combat::Rng;
     use crate::tuning::Tuning;
     use crate::world::World;
@@ -2447,5 +2460,96 @@ mod tests {
             herd_centre(22, 34, 22, 34),
             Pos::new(22 * 768 + 384, 34 * 768 + 384)
         );
+    }
+
+    /// A university and a chain of scholars in it, entry order.
+    /// `garrison[0]` is the head — the one `ObjectData::get_inside`'s
+    /// host names in its own `inside_down` — and everything under it is
+    /// a student.
+    fn university(anims: &[i8]) -> (Sim, usize, Vec<usize>) {
+        let mut s = Sim::new(Tuning::RON, World::new(16, 16), 2);
+        let scholar = s.add_unit_type(UnitType {
+            hits: 40,
+            worker: crate::orders::Worker::Scholar,
+            ..UnitType::default()
+        });
+        let uni = s.add_building(0, Pos::new(3000, 3000), 1);
+        let mut us = Vec::new();
+        for (i, &anim) in anims.iter().enumerate() {
+            let o = i16::try_from(i).unwrap() + 1;
+            let mut u = Unit::new(0, o, Pos::new(3000, 3000), 40);
+            u.ty = Some(scholar);
+            u.on_map = false;
+            u.inside = Some(uni);
+            u.guys = vec![Guy {
+                cur_time: 0,
+                end_time: 30,
+                last_time: -1,
+                anim,
+                gpiece: -1,
+                stopped: true,
+                pending_attack: 0,
+                queued_attack: 0,
+                follow: None,
+            }];
+            let u = s.add_unit(u);
+            s.buildings[uni].garrison.push(u);
+            us.push(u);
+        }
+        (s, uni, us)
+    }
+
+    /// **The `0x20` tie-break counts the guy asking** — `Guy::set_anim
+    /// @005da300:332`, and `docs/ANIM.md` §4.12.
+    ///
+    /// The walk starts at the host's own `inside_down` and steps down the
+    /// chain to its tail, so every member is examined and the requester is
+    /// one of them; its `guys[0].cur_anim` is still the slot it is
+    /// *leaving*, because `set_anim` writes the new one a hundred lines
+    /// later. Two consequences, and both are asserted here:
+    ///
+    /// - a student **already on `0x20`** that re-rolls variant 3 can never
+    ///   land on `0x20` again — it takes `0x1d` every time, which is the
+    ///   whole of Great Lakes 10274 and so of the word at 10303;
+    /// - a student on any **other** slot still takes `0x20`, unless some
+    ///   *other* member of its chain is on it. The self-clause widens the
+    ///   rule; it does not replace it.
+    ///
+    /// The three variants under 3 never reach the walk at all, and the
+    /// head takes the `+0x19` set whatever anyone else is playing.
+    ///
+    /// **Made to fail on purpose** with `c != u` back in the predicate:
+    /// the first assertion reads 0x20 where the dump reads 0x1d, which is
+    /// run100's `1/51` on 10274 exactly.
+    #[test]
+    fn the_scholar_s_0x20_tie_break_counts_the_guy_asking() {
+        // Head on a teach slot, one student already on 0x20 — run100's
+        // chain A, `1/44` over `1/51`.
+        let (s, _, us) = university(&[0x19, 0x20]);
+        assert_eq!(
+            s.scholar_slot(us[1], 3),
+            0x1d,
+            "a student re-rolling variant 3 off 0x20 must bounce to 0x1d"
+        );
+        // The other three variants are not the walk's business.
+        for v in 0..3 {
+            assert_eq!(s.scholar_slot(us[1], v), v + 0x1d, "variant {v}");
+        }
+        // And the head is the `+0x19` set whatever the chain is playing.
+        assert_eq!(s.scholar_slot(us[0], 3), 3 + 0x19);
+
+        // A student on another slot, alone in taking it: 0x20 stands.
+        let (s, _, us) = university(&[0x19, 0x1d]);
+        assert_eq!(
+            s.scholar_slot(us[1], 3),
+            0x20,
+            "the tie-break fired on a chain with nobody on 0x20"
+        );
+
+        // …and a *third* member already on it takes it away again, which
+        // is the reading this crate had and it was never wrong, only
+        // narrow.
+        let (s, _, us) = university(&[0x19, 0x1d, 0x20]);
+        assert_eq!(s.scholar_slot(us[1], 3), 0x1d);
     }
 }
