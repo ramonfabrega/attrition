@@ -4201,3 +4201,109 @@ check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*" "$HOME/ron-data/AppData/Roaming/Mi
 check: python3 tools/gamelog/samegame.py gamelog-run100-greatlakes-valuewindow2.txt gamelog-run120-greatlakes-capwriter.txt | tee /dev/stderr | awk '/in common/{r=$0; sub(/.*in common /,"",r); split($0,a,", "); n=a[2]+0} /^differ:/{d=$2+0} END{print "run100 overlap: common="n" "r" differ="d; exit !(n==11 && d==0 && r=="(10236..10246)")}'
 # **The coverage window landed**: every frame 10236..10244 has a set.
 check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run120.log" coverage | awk '/^== frame/{f=$3+0; sub(":","",f); if(f>=10236&&f<=10244&&$4+0>100) n[f]=1} END{c=0; for(k in n)c++; print "coverage frames: "c; exit !(c==9)}'
+
+run: 123
+tag: greatlakes-marketword
+item: 520
+why: Great Lakes' long word is 11185, a market frame — ours spends three `Leader::use_market+0x1ed` sell draws at the rotation's `Make2` where the original spends two — and no dump on disk reaches it: run100 ends on block 10899 at `LEADERS=1`, which prints no goods, and the map's last `LEADERS=9` window is run117's [10375, 10620)
+# **THE DISK WAS GREPPED FIRST.** Every Great Lakes dump in `Logs\` and
+# under `~/ron-data/lab-captures`: run100 [9340, 10899) is the highest
+# block at any detail, run117 [10375, 10619) the highest at `LEADERS=9`,
+# run80 [23960, 24000) the next, and the lab's twelve map-14 captures all
+# stop at 1401. run118 is chapter two's, not this map's. Nothing between
+# 10900 and 23959 carries a block, and nothing past 10619 carries a goods
+# bucket or a make list.
+#
+# **The frame, from this crate's side** (`RON_DEBUG_SITES=11180-11186`,
+# `RON_DEBUG_LEADER` on the run53 test). The trace's frame `f` writes block
+# `f + 1`, so the word's own tick enters on block **11185** and leaves on
+# **11186**. Player 1 on block 11185: `bucket 13 1 11 353 44 0`, commerce
+# epoch 2, make list headed `MAKE[0]` Siege Factory (t430, 60 timber, 60
+# metal) and `MAKE[1]` Cataphract (t227, 65 wealth, 75 metal). `use_market`
+# needs the first `max(1, commerce)` slots' costs — `0 60 65 0 135 0` —
+# so wealth, timber and metal are all short, nothing clears the sell test,
+# and each of the three spends one sell draw and stops. The original
+# spends two, then its `make_stuff+0x221` pair, one index early.
+#
+# **The readings, each with what kills it**, all on block 11185, player 1,
+# the dump's own keys:
+#
+# - **R1 — the purse.** The original's `bucket[2:wealth]` covers its own
+#   `need[wealth]` (65 if its list is ours), so wealth is not short and
+#   only timber and metal draw. Parked (514)'s 32 of wealth income is the
+#   standing candidate for why. **Killed if** the two `bucket[2:wealth]`
+#   agree on 11185, or the original's is under its own need.
+# - **R2 — the list.** The original's `MAKE[0]`/`MAKE[1]` differ in `t`
+#   or in `val > 0`, so one good's need falls under its stock. **Killed
+#   if** `MAKE[0..1].t` and the sign of their `val` agree on 11185.
+# - **R3 — the commerce level.** The original's commerce epoch is 1, so
+#   `need` is the head alone, `0 60 0 0 60 0`, and wealth is not short.
+#   It is printed as the unlabelled `epoch_get(scan)` lines nothing here
+#   parses. **Killed if** the original's commerce epoch is 2.
+# - **R4 — the stock.** The original holds 60+ timber or 135+ metal.
+#   **Killed if** `bucket[1]` and `bucket[4]` are under the need on both.
+# - **R5 — a sale.** One of the original's passes sells and the sale
+#   covers the good, so it draws once where this crate draws twice.
+#   **Killed if** no bucket steps by a hundred between 11185 and 11186.
+# - **R6 — none.** The gate, a good's availability, or the prices, which
+#   no category prints.
+#
+# **Backwards too**: a market frame spends what the purse has been doing
+# for hundreds of frames. The window opens on **10760**, before the 10782
+# rotation, so with run117 [10375, 10619] the rotations at 10582, 10782,
+# 10982 and 11182 are all in a leader record — the only span without one
+# is 10620..10759, which holds no rotation.
+#
+# **What is expected to AGREE, and it is refusable**: every record but
+# `LEADERDATA` in the 140 blocks shared with run100 (10760..10899), byte
+# for byte, and run53's draw stream frame for frame.
+frames: 11470
+mapstyle: 14
+# **run100's detail exactly but for `LEADERS`**, which is run107's line
+# and for run107's reason: the goods, the income and the make list are
+# the subject, and `LEADERS=1` stops after `score`. The overlap check
+# then needs exactly one `--exclude`.
+end: MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,DEATHS=1,LEADERS=9
+frame_window: 10760 11460
+# **Per-frame coverage over the rotation that parts**, `Setup` on 11176
+# through `Make2` on 11185 and a few past — run120's shape, which settled
+# 518 when the readings could not. No `cfg:`: run53's lobby.
+cover: cover=1
+cover: window=11176-11190
+settle_min: 14000000
+# **Sized from run107, the same detail**: ~1.9 MB a block net of the
+# start dump at 9,170, so call it 2.1 MB at 11,000 — 700 blocks is ~1.5
+# GB, 1.5% of the 101 GiB free. run117 dumped `LEADERS=9` at ~28 MB a
+# minute and run100 its detail at ~22, so ~60 minutes of dumping behind
+# run120's four-minute `cover=1` run-up. 330 polls is 110 minutes; the
+# give-up path truncates rather than stops, so it is sized high.
+poll_max: 330
+# ==== TAKEN 2026-09-22, **WHOLE** ====
+#
+# 1,375,741,619 bytes, **700 blocks 10760..11459**, no gap; 17 MB of
+# trace. About 45 minutes launch to archive, all six checks green: 11,471
+# frames identical to run53, `MAP_STYLE 14`, 140 blocks shared with
+# run100 and 0 differing, `MAKEOBJECT` ×22 on each probed block, and a
+# coverage set on all 15 window frames. Sized at 2.1 MB a block, came in
+# at 1.95.
+#
+# **The readings, decided on block 11185**: R1 dead (the original's
+# wealth is 6, lower than this crate's 11, and its own list needs none),
+# R3 dead (commerce 2 on both), R4 dead (timber and metal under 60 on
+# both), R5 dead (no bucket steps by 100 on 11186). **R2 is the frame**:
+# the original's `MAKE[1]` is `t -1` (an emptied Merchant slot) and this
+# crate's is a Cataphract costing 65 wealth. `docs/ECONOMY.md` §14.
+# Same game: the trace word for word against run53, this map's own 24k run.
+check: python3 tools/gamelog/rngcmp.py rontrace-run53.log rontrace-run123.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=11460)}'
+# And the map, from the dump's own `GAME INFO`.
+check: LC_ALL=C head -c 400000 "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run123-greatlakes-marketword.txt" | LC_ALL=C grep -a "MAP_STYLE" | tee /dev/stderr | awk '{print; exit !($2==14)}'
+# **The window landed whole** — 700 blocks, 10760..11459, no gap.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run123-greatlakes-marketword.txt" | awk '{v=$3+0; if(v>=10760&&v<11460) n[v]=1} END{c=0; lo=0; hi=0; for(k in n){c++; if(lo==0||k+0<lo)lo=k+0; if(k+0>hi)hi=k+0} print "window blocks: "c" ("lo".."hi")"; exit !(c==700 && lo==10760 && hi==11459)}'
+# **The overlap with run100, and the count is the claim** — `samegame.py`
+# exits 0 when nothing is in common. 140 blocks, `--exclude LEADERDATA`
+# for the one category raised.
+check: python3 tools/gamelog/samegame.py gamelog-run100-greatlakes-valuewindow2.txt gamelog-run123-greatlakes-marketword.txt --exclude LEADERDATA | tee /dev/stderr | awk '/in common/{r=$0; sub(/.*in common /,"",r); split($0,a,", "); n=a[2]+0} /^differ:/{d=$2+0} END{print "run100 overlap: common="n" "r" differ="d; exit !(n==140 && d==0 && r=="(10760..10899)")}'
+# **The raised category is in the word's block**: its make list.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|BEGIN MAKEOBJECT" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run123-greatlakes-marketword.txt" | awk '/BEGIN FRAME/{f=$3+0} /MAKEOBJECT/{if(f)n[f]++} END{printf "MAKEOBJECT on 10760=%d 11185=%d 11459=%d\n", n[10760], n[11185], n[11459]; exit !(n[10760]>0 && n[11185]>0 && n[11459]>0)}'
+# **The coverage window landed**: every frame 11176..11190 has a set.
+check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run123.log" coverage | awk '/^== frame/{f=$3+0; sub(":","",f); if(f>=11176&&f<=11190&&$4+0>100) n[f]=1} END{c=0; for(k in n)c++; print "coverage frames: "c; exit !(c==15)}'
