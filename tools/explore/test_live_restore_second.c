@@ -103,6 +103,14 @@ static void reset(void) {
 }
 static void enter_delegate(void){restore_enter(before);restore_delegate(after);if(restore_post_pending)emit(7,0,0,0x140b8,48,0,0);}
 static void finish(u32 result){if(restore_post_pending)emit(8,0,result==8?1:result,0,0,0,0);u32 regs[]={0,0,0,0x50003ff4,0,0,0,result,0x202};restore_returned(regs);}
+static void diagnostic(u32 reason,u32 read_ok,u32 limit,u32 saving) {
+ assert(event_count>=4);
+ u32 *r=events[event_count-4],*m=events[event_count-3];
+ assert(r[1]==193 && r[2]==1 && r[3]==0x14000 && r[4]==0x50003ff8 && r[5]==restore_probe.after_regs[3] && r[6]==8);
+ assert(m[1]==194 && m[2]==1 && m[3]==reason && m[4]==read_ok && m[5]==limit && m[6]==saving);
+ assert(events[event_count-2][1]==182 && events[event_count-2][2]==reason);
+ assert(events[event_count-1][1]==192 && post_sizes[1]==0);
+}
 static void first(void){enter_delegate();assert(mode_word==95);finish(0xffffffffu);assert(mode_word==300 && restore_sequence.stage==2);}
 int main(int argc,char **argv) {
  reset();first();u32 saved_first=post_sizes[0],first_reads=reads;
@@ -148,6 +156,10 @@ int main(int argc,char **argv) {
  reset();graph_fail=1;enter_delegate();assert(restore_sequence.stage==5 && mode_word==300);
  reset();enter_delegate();finish(8);assert(restore_sequence.stage==5 && mode_word==300);
  reset();enter_delegate();restore_enter(before);finish(0xffffffffu);assert(restore_sequence.stage==5 && mode_word==300);
- reset();first();g_frame=225;enter_delegate();mode_word=299;finish(8);assert(restore_sequence.stage==5 && mode_word==299);
+ reset();first();g_frame=225;enter_delegate();mode_word=299;finish(8);assert(restore_sequence.stage==5 && mode_word==299);diagnostic(8,1,299,1);
+ reset();first();g_frame=225;enter_delegate();save_word=0;finish(8);diagnostic(8,1,300,0);
+ reset();first();g_frame=225;enter_delegate();fail_read=reads+1;finish(8);diagnostic(7,0,0,0);
+ reset();first();g_frame=225;enter_delegate();g_frame=226;finish(8);diagnostic(9,1,300,1);
+ reset();first();g_frame=225;enter_delegate();restore_probe.after_regs[3]-=4;finish(8);diagnostic(11,1,300,1);
  puts("second restore: selection, isolation, first restoration and second no-intervention controls pass");
 }

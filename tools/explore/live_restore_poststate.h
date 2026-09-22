@@ -37,14 +37,19 @@ static void __cdecl restore_returned(u32 *regs) {
 #endif
     u32 fail=1,written=0,size=0,capacity,length,pointer;
     u8 check[0x158];
+    copy_register_image(restore_poststate.registers,regs);
+#ifdef RON_RESTORE_SECOND
+    u32 observed_modes[2]={0,0},modes_read=0;
+#endif
     restore_poststate.magic=0x31505352;restore_poststate.version=1;
 #ifdef RON_RESTORE_LIMIT95
     if(with_limit)restore_poststate.version=2;
-    if(!limit_ok)goto failed;
+    fail=6;if(!limit_ok)goto failed;
 #ifdef RON_RESTORE_SECOND
     if(!with_limit) {
-        u32 modes[2];
-        if(!restore_read(0xe85ec0,modes,8) || modes[0]!=300 || modes[1]!=1)goto failed;
+        modes_read=restore_read(0xe85ec0,observed_modes,8);
+        fail=7;if(!modes_read)goto failed;
+        fail=8;if(observed_modes[0]!=300 || observed_modes[1]!=1)goto failed;
     }
 #endif
 #endif
@@ -52,10 +57,9 @@ static void __cdecl restore_returned(u32 *regs) {
     restore_poststate.prefix_bytes=sizeof restore_probe;restore_poststate.flags_mask=0x8d5;
     restore_poststate.boundary=0x688faa;
     memcpy(&restore_poststate.prefix,&restore_probe,sizeof restore_probe);
-    copy_register_image(restore_poststate.registers,regs);
-    if ((u32)g_frame!=restore_probe.frame ||
-        restore_probe.after_regs[3]>0xffffffffu-24u ||
-        restore_poststate.registers[3]!=restore_probe.after_regs[3]+24u) goto failed;
+    fail=9;if((u32)g_frame!=restore_probe.frame)goto failed;
+    fail=10;if(restore_probe.after_regs[3]>0xffffffffu-24u)goto failed;
+    fail=11;if(restore_poststate.registers[3]!=restore_probe.after_regs[3]+24u)goto failed;
     fail=2;
     if (!restore_read(restore_probe.unit,restore_poststate.unit_data,sizeof check)) goto failed;
     if (restore_poststate.unit_data[9]!=restore_probe.before_stack[2] ||
@@ -104,5 +108,14 @@ static void __cdecl restore_returned(u32 *regs) {
 #endif
     return;
 failed:
+#ifdef RON_RESTORE_SECOND
+    /* Failure-only observations; never manufacture a successful post packet.
+     * INFO 193: index, unit, actual ESP, delegation ESP, outer return.
+     * INFO 194: index, reason, mode read succeeded, limit, saving.
+     * The trace frame is the actual callback frame in both records. */
+    emit(K_INFO,193,restore_packet_index,restore_probe.unit,
+         restore_poststate.registers[3],restore_probe.after_regs[3],restore_poststate.registers[7]);
+    emit(K_INFO,194,restore_packet_index,fail,modes_read,observed_modes[0],observed_modes[1]);
+#endif
     emit(K_INFO,182,fail,restore_probe.unit,written,size,0);restore_sequence_fail(9);flush();
 }

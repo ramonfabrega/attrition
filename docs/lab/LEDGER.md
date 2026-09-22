@@ -142,6 +142,8 @@ No new capture or main-loop adoption is requested by this handoff.
 
 | L79 | Can we observe the actual next restore boundary? | [Two-packet collector](2026-09-22-second-restore-collector.md). | Opt-in selector, isolated second files and strict packet projection pass authored integration/failure tests; Windows build prepared. | Preparation only. No native second-call result, atomic snapshot or intervening-world fidelity claim. Await fresh capture slot after gate. |
 
+| L80 | Does the naturally scheduled second call yield a usable native output? | [Second-return refusal](2026-09-22-second-restore-refusal.md). | Both inputs captured at frames 224/225; first limit restored; second observer refuses, so paired validation rejects. Failure-only diagnostics now distinguish the hidden checks. | No second post-state or native/replay comparison. Lane released; diagnostic retry requires a fresh slot. |
+
 ## Current direction
 
 The September 19–22 tranche now has an unchanged native unit/path witness
@@ -161,8 +163,9 @@ absent-container view and traces the two words to retained suspension writes.
 L78 tests recycler reuse per acquisition, catching the history-reset failure in
 an authored control and observing fresh writes on all eight measured acquisitions.
 L79 implements and tests the bounded natural second-call collector and packet
-projection. The next lab step is one authorized capture, followed by an isolated
-second-call replay against its own inputs;
+projection. L80 captures both inputs but the second return observer refuses;
+its precise cause remains unknown. The next lab step is a freshly authorized
+diagnostic capture, then second-call replay only if both output packets validate;
 the next adoption test should answer one
 real divergence question selected by steering, with a named call/field and
 falsifier. Saved-tree required fields now have one native witness; native limit 96,

@@ -56,6 +56,10 @@ class SecondTests(unittest.TestCase):
   for bad in (self.rows+self.rows,[(5,192,0,1,0,0,0,224)]+self.rows,
               [(5,167,0,0,0,0,0,224)]+self.rows):
    with self.assertRaises(ValueError):intervals(bad)
+ def test_failure_diagnostics_alone_refuse(self):
+  for tag in (193,194):
+   with self.assertRaisesRegex(ValueError,'collector failure'):
+    intervals(self.rows+[(5,tag,1,0,0,0,0,225)])
  def test_packet_contents_must_match_markers(self):
   with tempfile.TemporaryDirectory() as temp:
    p=Path(temp);self.fixture(p)

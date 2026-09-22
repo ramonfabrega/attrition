@@ -22,7 +22,7 @@ COMMON=('capsule-image.json','rontrace.dll','riseofnations_trace.exe')
 
 
 def intervals(rows):
-    require(not any(r[0]==5 and r[1] in (151,163,166,168,182,185,187,192) for r in rows),
+    require(not any(r[0]==5 and r[1] in (151,163,166,168,182,185,187,192,193,194) for r in rows),
             'collector failure in paired trace')
     spans=[];active=None
     for i,r in enumerate(rows):
