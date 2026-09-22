@@ -12,35 +12,36 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-21, the tenth chain. **Neither headline moved** — Great Lakes
-holds at 10233, chapter two at 637; both items closed rows short of it.*
+*2026-09-21, the tenth chain. **Neither headline moved**; both items
+closed rows short of the word.*
 
 - **The AI word is 10233** (464): `0/5`'s 22 rows → 3, its FLEE_TO on
-  the dump's `(792,31800)`, draws 6/4 → 5/4. Two predicates:
-  `Unit::think@005f6e40:150`'s step-3 gate wants `role & 0x10000`
-  beside the attack column — a Citizen's attack is 40, so every idle
-  citizen ran `find_melee_target` — and `target_opportunity`'s flee
-  arm, which §12.4 described and nothing built. COMBAT §34.
-- **The widening read health against the ceiling**: `myhits` is the
-  maximum with `damage` beside it, so every wound printed as a
-  divergence. `hits_left` and `myhits` are both rows now, +54k
-  comparisons, all 909 blocks agreeing; [9340,10247] 444 → 655 keys.
-  Endpoint 45/9 → **48/10**, re-pinned past the word (DECISIONS 36):
-  every new row at 10234+, nothing below it moved.
-- **The rules word is 637** (466, in flight): §33.1's decaying
-  `targeted` penalty closes three of 635's six. §33.2 — the `ai` arm
+  the dump's `(792,31800)`, draws 6/4 → 5/4. `Unit::think`'s step-3
+  gate wants `role & 0x10000` beside the attack column, so idle
+  citizens ran `find_melee_target`; plus the flee arm §12.4 described
+  and nothing built. COMBAT §34.
+- **The run100 widening read health against the ceiling** — `myhits`
+  is the maximum, so every wound printed as a divergence; both are rows
+  now, 444 → 655 keys. Endpoint 45/9 → **48/10** past the word (DEC 36).
+- **The rules word is 637** (466): §33.1's decaying `targeted` penalty
+  closes three of 635's six, parting still 635. §33.2 — the `ai` arm
   **dividing** where a human's multiplies — is **established, not
   landed**: it reds the `visible` *shape* row, because `1/8`'s strike
-  rests on a wrong two-slot assignment. **470 carries both.** Three
-  open, 71 parked. **Fable backlog: 1 Loop items** (313).
+  rests on a wrong two-slot assignment. **§33.4: that green is
+  unearned.** 470 carries both.
+- **A widening named "whole" walked ten of fourteen vectors**:
+  `gather_`, `build_`, `queue_` and `city_diverged` went unnoted. All
+  four walk now, map unchanged — which is how we know they were empty,
+  not ignored. Chapter two still has **no health row** (§33.6). Three
+  open, 68 parked. **Fable backlog: 1 Loop items** (313).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w9711 of 24,000 · GreatLakes w10233 of 24,000
-Golden: w626 of 901 (ch1) · ch2 w637 · 466 next
+Golden: w626 of 901 (ch1) · ch2 w637 · 470 next
 Endpoint 24001: EastIndies 64 off, 10 unlinked · GreatLakes 48 off, 10 unlinked
 
-**Opener: 465 on the AI track, spawned with 464's reap; 470 on the rules
-track the moment 466 merges. The loop stands at 3 of 20.**
+**Opener: 465 and 470 are both live, one lane each. The loop stands at
+5 of 20, and no headline moved on either of the last two items.**
 
 ## The queue
 
@@ -59,13 +60,14 @@ the backlog is `docs/PARKED.md`, and an item returns only when a score names it.
     plan lag this item carried, nor 463's order-death delay; both are
     struck. COMBAT §34.4. Falsifier on disk: run100 10233-10235.
 
-466. **635's six `Target` rows in the new window** (the rules headline's
-    frame; 462 moved the word to 637 and widened [633, 641)): the bowmen
-    take `1/6` where the dump takes `1/8`, and all three hoplites take
-    `0/7` where the dump takes `0/11`. Same shape as 621's parting, and
-    **the cell's `down` chain is explicitly not the cause here** — 462
-    fixed that and these six survive it. Booked by the frame and the six
-    rows, not by a mechanism. `docs/COMBAT.md` §32 is the specification.
+470. **`find_ordered_collision`'s reach: three chasers, one slot**, and
+    it carries 466's withdrawn `ai` hunk with it (the rules headline's
+    frame). `find_open_slots@00600e30` walks the object chain of the
+    cells around the **slot**; chapter two's hoplites stand 1,200 east
+    of the ring, so none sees the others' orders. Landing both closes
+    635's last three `Target` rows and moves the parting 635 → 636.
+    Neither half lands alone — COMBAT §33.2, §33.4. **Read
+    `find_ordered_collision`'s callers before assuming a second chain.**
 
 342. **Host choice seats the scholar on the wrong university** — 338's
     residue, re-pinned three times, and now `1/55`. **Re-measure before
