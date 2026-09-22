@@ -730,6 +730,28 @@ from a cold pool cannot say whether `graph_index` wraps. Every row here is
 one Longbowman shooting one farm on one trajectory, and each of the three
 wants a different shooter rather than a different frame.
 
+## Parked by item 470, 2026-09-21 — measured, implemented, not landed
+
+(473) **`is_in_range`'s sixth argument: `attack->mandatory == 0`, +0x90
+before the range test.** The executable's only non-zero one. This crate's
+`combat::in_range` has carried the parameter since it was written and
+nothing has ever passed it `true` — the `0xf6` shape again, a declared
+input no caller supplies.
+
+**Implemented by 470, measured both ways, and deliberately not landed.**
+It is right about `0/11` (639, the dump's own frame) and one frame *late*
+about `0/10`, and the three `Target` rows §33.2 had just closed come back
+with it. Net negative today; §35.3 carries the table so nobody runs the
+experiment twice.
+
+It also **refutes §25.5's inference**, which is struck: rarer is a
+direction, and this kill fires too early. That is the standing value of
+the row even while the code stays out.
+
+*Would settle it:* what state, not geometry, separates the two kills —
+the same question §35.2 asks of `0/10` at 630, which is item 472. If 472
+answers it, this may land for free; if it does not, this stays parked.
+
 ## Measured residues, none near a word
 
 (454) **Five residue families never compared on Great Lakes, measured by
