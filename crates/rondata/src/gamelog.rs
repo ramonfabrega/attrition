@@ -1745,6 +1745,18 @@ pub struct UnitDump {
     /// every capture on disk; kept so the record is compared whole.
     pub infiltrated: Option<i64>,
     pub visible: Option<i64>,
+    /// `ObjectData::hold_frames` (`+0x32`) — how long a slot is held past
+    /// the death of the figure in it (`docs/COMBAT.md` §11, §42.3),
+    /// printed on the `OBJECT` level at every detail and read by nothing
+    /// until item 491.
+    ///
+    /// Its three writers are all on a **dead** object (`Object::die`,
+    /// `Ammo::inc_time`'s bump of the *shooter*, `DeathObj::inc_time`), so
+    /// what the comparison asserts is that it is **zero on every living
+    /// unit-frame** — and that is the check §9.2's backwards sentence
+    /// never had. `coverage`'s pin had carried it since the guard was
+    /// built.
+    pub hold_frames: Option<i64>,
     /// The collision block, written at every detail level
     /// (`docs/COLLISION.md`): the counter, the frame of the last one, and
     /// what was in the way.
@@ -2577,6 +2589,53 @@ pub struct Frame {
     /// written at, so this is populated on every capture that dumps
     /// anything per frame — which nothing compared until item 154.
     pub cities: Vec<CityDump>,
+    /// The frame's `DEATH_OBJS` list — one record per death object still
+    /// playing its animation (`docs/COMBAT.md` §42.1).
+    ///
+    /// A whole record family nobody had opened: item 485 read a
+    /// `first_frame` out of the raw text by hand, and `coverage`'s pin
+    /// carried all six of its keys as unread until item 491.
+    pub deaths: Vec<DeathDump>,
+}
+
+/// One `DEATH_OBJS` record — `DeathObjData::log_data@008d55e0`, written at
+/// `DEATHS=1` and above (`docs/COMBAT.md` §42.1).
+///
+/// The six keys detail 1 prints, in the order the logger writes them.
+/// `cur_anim` is the whole of the record for this crate: it is
+/// `dtype * 2 + 0xd + roll % 2`, so it carries both the death class
+/// `do_damage` decided and the parity of the draw `Unit::close+0xcb6`
+/// spent — which is how `dtype 2` stopped being a reading.
+///
+/// `gpiece` is the unit's own death piece (`DeathObj::init`'s
+/// `vtable[0x178]`), which this crate loads no art for; it is parsed and
+/// not compared (§42.5).
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct DeathDump {
+    pub valid: Option<i64>,
+    pub first_frame: Option<i64>,
+    pub cur_anim: Option<i64>,
+    pub who: Option<i64>,
+    pub o: Option<i64>,
+    pub gpiece: Option<i64>,
+}
+
+/// One `DEATH_OBJS` block's six keys.
+pub(crate) fn death_of(d: Block<'_>) -> DeathDump {
+    DeathDump {
+        valid: d.int("valid"),
+        first_frame: d.int("first_frame"),
+        cur_anim: d.int("cur_anim"),
+        who: d.int("who"),
+        o: d.int("o"),
+        gpiece: d.int("gpiece"),
+    }
+}
+
+/// Every `DEATH_OBJS` record of a frame block, in the order the original
+/// walks its list.
+pub(crate) fn deaths_of(b: Block<'_>) -> Vec<DeathDump> {
+    b.kids("DEATH_OBJS").map(death_of).collect()
 }
 
 fn pos_of(b: Block<'_>) -> Pos {
@@ -2816,6 +2875,7 @@ fn unit_of(b: Block<'_>) -> Option<UnitDump> {
         mylos: obj.and_then(|o| o.int("mylos")),
         infiltrated: obj.and_then(|o| o.int("infiltrated")),
         visible: obj.and_then(|o| o.int("visible")),
+        hold_frames: obj.and_then(|o| o.int("hold_frames")),
         collide: b.int("collide"),
         collide_frame: b.int("collide_frame"),
         collide_o: b.int("collide_o"),
@@ -3485,6 +3545,11 @@ impl<'a> Log<'a> {
             builds,
             leaders,
             cities,
+            deaths: kids
+                .tail(start)
+                .filter(|c| c.name() == "DEATH_OBJS")
+                .map(death_of)
+                .collect(),
         })
     }
 
@@ -3510,6 +3575,7 @@ impl<'a> Log<'a> {
                     builds,
                     leaders,
                     cities,
+                    deaths: deaths_of(b),
                 });
                 remaining -= 1;
             }
@@ -3616,6 +3682,7 @@ mod tests {
                     builds,
                     leaders,
                     cities,
+                    deaths: deaths_of(b),
                 }
             })
             .collect();

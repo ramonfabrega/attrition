@@ -99,6 +99,18 @@ pub struct FrameResult {
     /// rather than of state, and the *when* is `damage_frame`'s own row.
     pub firing_compared: usize,
     pub firing_diverged: Vec<FiringDivergence>,
+    /// **The death-object list** — `DEATH_OBJS`, both directions, every
+    /// field of every record (`docs/COMBAT.md` §42.1).
+    ///
+    /// A whole record family that no reader in this crate had opened:
+    /// `coverage`'s pin carried all six of its keys as unread, item 485
+    /// read a `first_frame` out of the raw text by hand, and the field
+    /// that pays — `cur_anim` — was quoted in three documents as a
+    /// reading. It is `dtype * 2 + 0xd + roll % 2`, so comparing it
+    /// compares the death class *and* the parity of the draw the word at
+    /// 683 was waiting on.
+    pub death_compared: usize,
+    pub death_diverged: Vec<DeathDivergence>,
     /// Angle comparisons made this frame — `UnitData::angle` for every unit
     /// record, and guy 0's `angle` for every record that carries a guy
     /// (`GUYS` at 1 or above). Two per unit-frame where both are present.

@@ -150,6 +150,16 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
                 ("myhits", i64::from(un.max_health), u.myhits),
                 ("damage", i64::from(un.max_health - un.health), u.damage),
                 ("damage_frac", i64::from(un.damage_frac), u.damage_frac),
+                // **`hold_frames`**, the fourth `ObjectData` field on the
+                // same block and the last one `coverage`'s pin carried
+                // as unread (item 491, §42.3). Every writer is on a dead
+                // object, so what this asserts is that the dump shows a
+                // **living** unit a zero — and that is the check §9.2's
+                // sentence about the bump never had. It is here rather
+                // than in the firing record because it is written by
+                // `Object::die` and read by the slot walk, not by the
+                // shot.
+                ("hold_frames", i64::from(un.hold_frames), u.hold_frames),
             ] {
                 let Some(theirs) = logged else { continue };
                 r.hits_compared += 1;
@@ -399,6 +409,88 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
             let o = i64::from(un.index);
             if !frame.units.iter().any(|u| u.who == who && u.o == o) {
                 r.extra_units.push((who, o));
+            }
+        }
+    }
+    // **The death-object list, both directions and field for field**
+    // (`docs/COMBAT.md` §42.1). `DEATH_OBJS` is written at `DEATHS=1` and
+    // above, which is every capture this crate diffs, and no reader had
+    // ever opened one: item 485 read a `first_frame` out of the raw text
+    // by hand and `cur_anim 17` stood in three documents as a reading.
+    //
+    // Linked on `(who, o)` and never on the list index — a dumped
+    // record's slot index is not an identity, and the original's list is
+    // an `ObjectArray` whose slots are recycled. A record on one side and
+    // not the other is a row of its own (`missing`/`extra`) rather than a
+    // silent skip, which is the same rule `extra_units` above follows.
+    //
+    // `gpiece` is parsed and **not** compared: it is the dead unit's own
+    // death piece, `DeathObj::init`'s `vtable[0x178](param_7, packed)`,
+    // and this crate loads no art for it (§42.5).
+    {
+        let ours: Vec<&sim::combat::Death> = built.sim.deaths.iter().collect();
+        for d in &frame.deaths {
+            let (Some(who), Some(o)) = (d.who, d.o) else {
+                continue;
+            };
+            if !(0..players as i64).contains(&who) {
+                continue;
+            }
+            let Some(mine) = ours
+                .iter()
+                .find(|m| i64::from(m.who) == who && i64::from(m.o) == o)
+            else {
+                r.death_compared += 1;
+                r.death_diverged.push(DeathDivergence {
+                    frame: frame.n,
+                    who,
+                    o,
+                    field: "missing",
+                    ours: 0,
+                    theirs: 1,
+                });
+                continue;
+            };
+            for (field, m, logged) in [
+                ("valid", 1, d.valid),
+                ("first_frame", mine.first_frame, d.first_frame),
+                ("cur_anim", i64::from(mine.cur_anim), d.cur_anim),
+            ] {
+                let Some(theirs) = logged else { continue };
+                r.death_compared += 1;
+                if theirs != m {
+                    r.death_diverged.push(DeathDivergence {
+                        frame: frame.n,
+                        who,
+                        o,
+                        field,
+                        ours: m,
+                        theirs,
+                    });
+                }
+            }
+        }
+        if !frame.units.is_empty() {
+            for m in &ours {
+                let (who, o) = (i64::from(m.who), i64::from(m.o));
+                if !(0..players as i64).contains(&who) {
+                    continue;
+                }
+                if !frame
+                    .deaths
+                    .iter()
+                    .any(|d| d.who == Some(who) && d.o == Some(o))
+                {
+                    r.death_compared += 1;
+                    r.death_diverged.push(DeathDivergence {
+                        frame: frame.n,
+                        who,
+                        o,
+                        field: "extra",
+                        ours: 1,
+                        theirs: 0,
+                    });
+                }
             }
         }
     }
@@ -7334,6 +7426,21 @@ mod tests {
                         format!("ours {} theirs {}", d.ours, d.theirs),
                     );
                 }
+                // **The death-object list** (item 491, `docs/COMBAT.md`
+                // §42.1) — a reader added to the harness is added to its
+                // driver in the same landing, which is what keeps
+                // `hold_frames` and `DEATH_OBJS` off `ledger`'s
+                // single-capture half. Great Lakes' window carries no
+                // death, so what this asserts here is that this crate
+                // invents none either: an `extra` row would fire.
+                for d in &r.death_diverged {
+                    note(
+                        d.who,
+                        d.o,
+                        format!("death:{}", d.field),
+                        format!("ours {} theirs {}", d.ours, d.theirs),
+                    );
+                }
             }
             // **The other direction on the buildings**, which `compare`
             // does not do: it counts the dump's buildings it cannot link
@@ -7348,6 +7455,37 @@ mod tests {
                     firsts
                         .entry((w, o, "build:extra".into()))
                         .or_insert((n, "this crate holds it alone".into()));
+                }
+            }
+            // **The death list, read directly** (item 491). `compare`
+            // walks it above; this is the driver's own reading, for the
+            // reason the hit-point pair has both — and on Great Lakes it
+            // is an *emptiness* claim in two directions, because run100's
+            // window holds no death at all. A record on either side here
+            // is a finding whichever instrument sees it first.
+            for d in &frame.deaths {
+                let (Some(who), Some(o)) = (d.who, d.o) else {
+                    continue;
+                };
+                let ours = built
+                    .sim
+                    .deaths
+                    .iter()
+                    .find(|m| i64::from(m.who) == who && i64::from(m.o) == o);
+                let row = match ours {
+                    None => "the dump holds it alone".to_string(),
+                    Some(m) => format!(
+                        "ours first_frame {} cur_anim {} theirs {:?} {:?}",
+                        m.first_frame, m.cur_anim, d.first_frame, d.cur_anim
+                    ),
+                };
+                if ours.is_none_or(|m| {
+                    d.first_frame.is_some_and(|f| f != m.first_frame)
+                        || d.cur_anim.is_some_and(|a| a != i64::from(m.cur_anim))
+                }) {
+                    firsts
+                        .entry((who, o, "death:direct".into()))
+                        .or_insert((n, row));
                 }
             }
             // **And the record's own rows, ungated.** Everything the
@@ -7415,6 +7553,17 @@ mod tests {
                         "damage_frac".into(),
                         i64::from(un.damage_frac),
                         them.damage_frac,
+                    ),
+                    // **`hold_frames`** (item 491, §42.3): the slot hold,
+                    // on the same block, and zero on every living unit of
+                    // both windows because every writer of it is on a
+                    // dead object. `compare` carries it too; this is the
+                    // driver's own reading, for the reason the hit-point
+                    // pair above has both.
+                    (
+                        "hold_frames".into(),
+                        i64::from(un.hold_frames),
+                        them.hold_frames,
                     ),
                     // **The overkill window** (item 485): the frame of
                     // the first hit inside it and the captain and owner

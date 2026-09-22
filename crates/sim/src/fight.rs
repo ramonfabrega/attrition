@@ -78,6 +78,33 @@ pub const SITE_PUNCTURE_X: &str = "Ammo::do_damage+0xc59";
 /// addresses and a single label folds them into one.
 pub const SITE_PUNCTURE_Y: &str = "Ammo::do_damage+0xc7e";
 
+/// `Unit::close@0060ee50+0xcb6` — **the death animation's own draw**
+/// (`docs/COMBAT.md` §42.1).
+///
+/// One `Random::get(0, 0xffff)`, read `% 2`, on every unit death whose
+/// `dtype` is non-zero: `cur_anim = dtype * 2 + 0xd + roll % 2`, the
+/// index the `DEATH_OBJS` record then prints for the life of the death
+/// object. The listing is `call Random::get; and $0x80000001; lea
+/// 0xd(,%ebx,2); add %eax`, with `%ebx` the `(signed char)dtype`
+/// argument — so the anim and the draw are one expression.
+pub const SITE_DEATH_ANIM: &str = "Unit::close+0xcb6";
+
+/// `Unit::close@0060ee50+0xce6` — the **ammo-graphic** death's second
+/// draw, taken only when `dtype == 4`.
+///
+/// `dtype` 4 is `do_damage`'s override for an ammo whose graphic piece
+/// carries flag `0x10` (§7.1 step 6), and it replaces the anim outright:
+/// `cur_anim = roll % 2 + 0x11`, then [`SITE_DEATH_ANIM_FACING`] picks
+/// the facing. No capture on disk reaches it — every death in run112 is
+/// `dtype` 2 — so the two sites are named from the listing and spent from
+/// the reading.
+pub const SITE_DEATH_ANIM_ALT: &str = "Unit::close+0xce6";
+
+/// `Unit::close@0060ee50+0xd0a` — the third draw of a `dtype == 4` death:
+/// `facing = 0xe - roll % 4`, where every other death takes the attack's
+/// own angle.
+pub const SITE_DEATH_ANIM_FACING: &str = "Unit::close+0xd0a";
+
 /// `Object::take_damage@00652020+0xe1` — **a building's first wound**
 /// (`docs/COMBAT.md` §7.2 step 3).
 ///
@@ -896,6 +923,14 @@ impl Sim {
             angle,
             splash_area: p.splash_area,
             num_guys: 1,
+            // `Ammo::init`'s flag `4` (§42.2): not a ground shot — the
+            // `ATTACK_GROUND`/`AIR_ATTACK_GROUND` test is `ground_fire`
+            // here — and the target a land-domain unit. The third term,
+            // "the piece is not lofted", is the ammo flag `8` this crate
+            // loads no art for; a siege shot is a ground shot and so
+            // never reaches the question.
+            rolling: !ground_fire && land_unit,
+            missed: false,
             air: matches!(tp.domain, Domain::Air),
         });
     }
@@ -967,8 +1002,20 @@ impl Sim {
             ap.ammo_per_att,
             ap.uber_size,
         );
+        // Step 6: `dtype`, which is the death animation's gate (§42.1).
+        // `get_damage` leaves 2, or 3 for an EXPLOSIVE/BOMBARD attacker;
+        // `do_damage` then overrides it to **4** for an ammo whose graphic
+        // piece carries flag `0x10`, and to **1** for a Build-proper
+        // target. The `0x10` arm is not reachable here: this crate loads
+        // no ammo flags (§42.5), and every shot in every capture on disk
+        // is an ordinary one.
+        let dtype = if tt.build_proper {
+            1
+        } else {
+            combat::death_type(ap.obj_masks, !matches!(attacker, Obj::Unit(_)))
+        };
         // Step 7: take.
-        let taken = self.take_damage(target, dealt, attacker, frame);
+        let taken = self.take_damage_typed(target, dealt, attacker, frame, dtype);
         let killed = matches!(taken, Taken::Died { .. });
         // **`Armies::emergency` is the CITY alarm's, and a unit never
         // reaches it** (`docs/ARMY.md` §15.8, item 399). The call at
@@ -1032,7 +1079,26 @@ impl Sim {
     }
 
     /// `Object::take_damage` (§7.2) on a unit figure or a building.
-    fn take_damage(&mut self, target: Obj, hit: Sixteenths, _by: Obj, _frame: i64) -> Taken {
+    #[cfg(test)]
+    fn take_damage(&mut self, target: Obj, hit: Sixteenths, by: Obj, frame: i64) -> Taken {
+        // Every caller outside `do_damage` is a test or the attrition
+        // path, and `Object::die`'s `dtype` there is 0 — the argument
+        // `Sim::attrition_tick` and the scripting paths pass, and the one
+        // value `Unit::close`'s arm refuses (§42.1).
+        self.take_damage_typed(target, hit, by, frame, 0)
+    }
+
+    /// [`Self::take_damage`] with `Object::take_damage`'s own `dtype`
+    /// argument, which it forwards to `T.die(dtype, gpiece, angle)` and
+    /// which is the whole of the death draw's gate (§42.1).
+    fn take_damage_typed(
+        &mut self,
+        target: Obj,
+        hit: Sixteenths,
+        _by: Obj,
+        _frame: i64,
+        dtype: i32,
+    ) -> Taken {
         match target {
             Obj::Unit(i) => {
                 // **The threshold is the figure's share of the squad, not
@@ -1065,6 +1131,11 @@ impl Sim {
                 u.health -= lost;
                 if matches!(taken, Taken::Died { .. }) {
                     u.health = u.health.min(0);
+                    // `Object::die` is `close()` — the draw arm below —
+                    // and **then** the slot hold, which is not gated on
+                    // the draw arm's `dtype` at all (§42.3).
+                    self.close_unit(i, dtype, _frame);
+                    self.hold_dead_slot(i);
                     self.close_supply(i);
                     self.forget(Obj::Unit(i));
                 }
@@ -1183,6 +1254,110 @@ impl Sim {
             bd.eject_pending = true;
         }
         taken
+    }
+
+    /// **`Unit::close@0060ee50`'s death-animation arm** (`docs/COMBAT.md`
+    /// §42.1) — one `Random::get(0, 0xffff)` per death, and the
+    /// `DEATH_OBJS` record the dump then prints.
+    ///
+    /// The listing's gate, in its own order (`0060fa4c`-`0060fa8f`): the
+    /// slot answers `SubObjectData::is_active` and `UnitData::is_on_map`,
+    /// and `unit_masks & 1` — the decoy bit — is clear. Above it the
+    /// function's own `local_1c`, which is set only on the arm that
+    /// unblocks four tiles for a **Merchant**, a Dutch Merchant or a Fur
+    /// Trapper (type index `0x3d`, `0x3e`, `400`); those three take no
+    /// death draw. And above everything, `dtype != 0`: the argument
+    /// `Object::die` was called with, which combat always fills and the
+    /// disband and scripting paths leave at zero.
+    ///
+    /// **`is_active` is the slot's allocation flag, not its health.** The
+    /// object is still allocated and still on the map while `close` runs
+    /// — it is `Object::close`, at the foot of this function, that takes
+    /// it off — so the gate this crate applies is `on_map` and the decoy
+    /// bit, and never [`crate::Unit::alive`], which the caller has
+    /// already cleared.
+    fn close_unit(&mut self, i: usize, dtype: i32, frame: i64) {
+        if dtype == 0 {
+            return;
+        }
+        let u = &self.units[i];
+        if !u.on_map || u.decoy {
+            return;
+        }
+        if self.profile(Obj::Unit(i)).is(combat::role::MERCHANT) {
+            return;
+        }
+        self.mark(SITE_DEATH_ANIM);
+        let roll = self.rng.roll() % 2;
+        let mut cur_anim = combat::death_anim(dtype, roll);
+        if dtype == 4 {
+            // The ammo-graphic death **replaces** the anim the first draw
+            // chose with one from a second, and rolls its own facing
+            // where every other death takes the attack's angle. The first
+            // draw is still spent, and its value discarded. Unreachable
+            // from any capture on disk (this crate loads no ammo flags),
+            // and spent here so the stream is right the day one is.
+            self.mark(SITE_DEATH_ANIM_ALT);
+            let alt = self.rng.roll() % 2;
+            cur_anim = combat::death_anim(4, alt);
+            self.mark(SITE_DEATH_ANIM_FACING);
+            let _ = self.rng.roll();
+        }
+        let u = &self.units[i];
+        self.deaths.push(combat::Death {
+            who: i32::from(u.owner),
+            o: i32::from(u.index),
+            first_frame: frame,
+            cur_anim,
+        });
+    }
+
+    /// **`Object::die@00647080`'s tail** — `hold_frames = max(hold_frames,
+    /// 1, for every live ammo this object fired: nuke_effect[0x108] + 1 +
+    /// total_time − cur_time)` (§11, §42.3). The slot is held until the
+    /// dead archer's last arrow has landed.
+    ///
+    /// The ammo is matched on its **shooter**: `+0x3c`/`+0x40`, which
+    /// `Ammo::init` fills from the firing object, and the same pair
+    /// `Ammo::inc_time` reads for its own per-frame bump. `nuke_effect`'s
+    /// term is an effect-table entry this crate does not load and is
+    /// taken as zero (§42.5); no capture on disk has a nuke.
+    fn hold_dead_slot(&mut self, i: usize) {
+        let mut hold = self.units[i].hold_frames.max(1);
+        for p in &self.projectiles {
+            if p.shooter == Obj::Unit(i) {
+                hold = hold.max(p.total_time - p.cur_time + 1);
+            }
+        }
+        self.units[i].hold_frames = hold;
+    }
+
+    /// **`DeathObj::inc_time@008d5240`'s first statement**, and
+    /// `Ammo::inc_time@0067d380`'s: every frame, a death object bumps its
+    /// own object's `hold_frames`, and so does every shot in flight whose
+    /// shooter is no longer active (§42.3).
+    ///
+    /// Both are on dead slots only, which is why the dump prints
+    /// `hold_frames 0` on every living unit of every capture — the row
+    /// `crate::diff::compare` now carries.
+    pub(crate) fn hold_frames_tick(&mut self) {
+        for k in 0..self.deaths.len() {
+            let (who, o) = (self.deaths[k].who, self.deaths[k].o);
+            if let Some(u) = i16::try_from(o)
+                .ok()
+                .and_then(|o| self.unit_by_o(who as crate::Player, o))
+            {
+                self.units[u].hold_frames += 1;
+            }
+        }
+        for k in 0..self.projectiles.len() {
+            let Obj::Unit(s) = self.projectiles[k].shooter else {
+                continue;
+            };
+            if !self.active(Obj::Unit(s)) {
+                self.units[s].hold_frames += 1;
+            }
+        }
     }
 
     /// A dead object is dropped from every target slot and from ammo in
@@ -1850,6 +2025,10 @@ impl Sim {
                 angle,
                 splash_area: p.splash_area,
                 num_guys: 0,
+                // A building has no order, so `Ammo::init`'s `local_38`
+                // is zero and the flag turns on the target alone.
+                rolling: land_unit,
+                missed: false,
                 air: matches!(tp.domain, Domain::Air),
             });
         }
@@ -1860,7 +2039,26 @@ impl Sim {
     // Ammo
     // ------------------------------------------------------------------
 
-    /// `Ammo::inc_time` for every live projectile (§9.2, §9.3).
+    /// `Ammo::inc_time` for every live projectile (§9.2, §9.3), and the
+    /// **rolling** arm at its foot (§42.2).
+    ///
+    /// `inc_time@0067d380` breaks its own loop at `cur_time >=
+    /// total_time` and then, for a shot with flag `4`, tries
+    /// `hit_target` and `check_hit(GROUND)` **once**: if neither names an
+    /// object it sets flag `8` and the shot travels on along its line —
+    /// up to `3 × total_time` — until the terrain rises to meet its
+    /// parabola, and only then does `do_damage` run. So a rolling shot
+    /// whose target died in flight spends **no draws on the frame it was
+    /// due**, where a non-rolling one punctures the ground with two.
+    ///
+    /// **The terrain test is not modelled** and cannot be in integers as
+    /// this crate stands: the arc is `v1z × t + sz + GRAV_Z × t² / 2` in
+    /// singles and `TerrainOut::find_data_z@00866560` is a bilinear
+    /// interpolation over a float height surface this crate does not
+    /// carry. So a rolled shot here flies to its `3 × total_time` cap and
+    /// is dropped, where the original's comes down a frame or two later
+    /// and damages whatever `check_hit` finds at the new point. Neither
+    /// spends a draw; §42.5 carries the value and the successor 491 parked owes it.
     pub(crate) fn process_projectiles(&mut self, frame: i64) {
         let mut i = 0;
         while i < self.projectiles.len() {
@@ -1870,9 +2068,57 @@ impl Sim {
                 i += 1;
                 continue;
             }
+            if p.rolling {
+                if !p.missed {
+                    // `hit_target` forgets the target on a miss, in
+                    // `inc_time` exactly as in `do_damage`: run112's
+                    // `0/8` arrow prints `whom -1 ox -1` on the block
+                    // after it rolled, with `flags 14` beside it.
+                    let hit = self.hit_target(&p);
+                    if !hit {
+                        self.projectiles[i].target = None;
+                        if self.check_hit(&p).is_none() {
+                            self.projectiles[i].missed = true;
+                        }
+                    }
+                }
+                if self.projectiles[i].missed {
+                    // `if ((uint)(total_time * 3) < cur_time) close()` —
+                    // and `close` is not `do_damage`, so a shot that
+                    // never meets the ground damages nothing.
+                    if p.cur_time > p.total_time * 3 {
+                        self.projectiles.swap_remove(i);
+                        continue;
+                    }
+                    // The terrain test would go here; without it the
+                    // shot stays up.
+                    i += 1;
+                    continue;
+                }
+            }
             self.projectiles.swap_remove(i);
             self.land(p, frame);
         }
+    }
+
+    /// `Ammo::hit_target@00678f90` (§9.4): the shot's own target, still
+    /// active and still inside its `target_size` (or its footprint, for a
+    /// building), at the landing point.
+    fn hit_target(&self, p: &combat::Projectile) -> bool {
+        p.target
+            .filter(|&t| self.active(t))
+            .is_some_and(|t| match t {
+                Obj::Unit(u) => combat::hits_unit(
+                    p.landing,
+                    self.units[u].pos,
+                    self.profile(t).target_size,
+                    p.accuracy,
+                ),
+                Obj::Building(b) => {
+                    let tp = self.profile(t);
+                    combat::hits_building(p.landing, self.buildings[b].pos, tp.x_size, tp.y_size)
+                }
+            })
     }
 
     /// `Ammo::do_damage` (§9.3): the hit test at the landing point, then
@@ -1880,20 +2126,7 @@ impl Sim {
     /// there instead — and the splash around it.
     fn land(&mut self, p: combat::Projectile, frame: i64) {
         let mut target = p.target.filter(|&t| self.active(t));
-        // `hit_target`.
-        let hit = target.is_some_and(|t| match t {
-            Obj::Unit(u) => combat::hits_unit(
-                p.landing,
-                self.units[u].pos,
-                self.profile(t).target_size,
-                p.accuracy,
-            ),
-            Obj::Building(b) => {
-                let tp = self.profile(t);
-                combat::hits_building(p.landing, self.buildings[b].pos, tp.x_size, tp.y_size)
-            }
-        });
-        if !hit {
+        if !self.hit_target(&p) {
             target = self.check_hit(&p);
         }
         if p.splash_area == 0 {
@@ -2633,6 +2866,8 @@ mod tests {
             angle: crate::movement::Angle(0),
             splash_area: 0,
             num_guys: 1,
+            rolling: false,
+            missed: false,
             air: false,
         };
         assert_eq!(sim.check_hit(&ammo), None);

@@ -404,6 +404,18 @@ pub const SITES: &[(u32, Option<u32>, &str)] = &[
     // 10237 however the simulation behaved.
     (0x0067_8cb9, None, sim::fight::SITE_PUNCTURE_X),
     (0x0067_8cde, None, sim::fight::SITE_PUNCTURE_Y),
+    // `Unit::close@0060ee50` — the death animation's own draw, and the
+    // two more a `dtype == 4` death takes (`docs/COMBAT.md` §42.1). The
+    // three calls are the only `Random::get`s in the function and they
+    // are consecutive, so no chain is needed; the listing is
+    // `60fb01`/`60fb31`/`60fb55` and a trace site is the **return**
+    // address. Chapter two's word stood at 683 on this one draw: the
+    // original's `1/8` dies there and takes it, and this crate's died
+    // there from item 485 and took nothing, so the streams parted at
+    // draw 0 with the original's site reading as a bare `60fb06`.
+    (0x0060_fb06, None, sim::fight::SITE_DEATH_ANIM),
+    (0x0060_fb36, None, sim::fight::SITE_DEATH_ANIM_ALT),
+    (0x0060_fb5a, None, sim::fight::SITE_DEATH_ANIM_FACING),
 ];
 
 /// The header's `kind`: `RONT`, little-endian.

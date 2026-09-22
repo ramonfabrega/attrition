@@ -135,6 +135,33 @@ pub struct FiringDivergence {
     pub theirs: i64,
 }
 
+/// One field of one **death object** the two sides disagree on —
+/// `DEATH_OBJS`, `docs/COMBAT.md` §42.1.
+///
+/// The record family nobody had opened: run112 prints 625 of them and the
+/// two headline windows print them on every block past a death, and
+/// nothing in this crate read one until item 491. `cur_anim` is the field
+/// that pays — `dtype * 2 + 0xd + roll % 2`, so it carries the death
+/// class `Object::do_damage` decided *and* the parity of the draw
+/// `Unit::close+0xcb6` spent, which is what turns `dtype 2` from a
+/// reading into a measurement.
+///
+/// Keyed on `(who, o)` and not on the slot index, because a slot index is
+/// not an identity (`CLAUDE.md`); `missing`/`extra` carry the two
+/// directions, with `field` naming which one when a record is linked.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct DeathDivergence {
+    pub frame: i64,
+    pub who: i64,
+    pub o: i64,
+    /// The field, named as `DeathObjData::log_data` writes it — or
+    /// `"missing"` for a record the dump carries and this crate does not,
+    /// `"extra"` for the other way round.
+    pub field: &'static str,
+    pub ours: i64,
+    pub theirs: i64,
+}
+
 /// One unit-frame where `ObjectData::visible` (`+0x40`) disagreed —
 /// `docs/VISION.md` §7.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

@@ -50,11 +50,18 @@ const OWN_PARSER: &[(&str, &str)] = &[("GAME/FRAME/AMMO", "diff::ammo::blocks")]
 const UNREAD: &[(&str, &str)] = &[
     // Pinned 2026-09-22, the tenth pass, over 87 frames: chapter two's
     // whole window and Great Lakes 10275–10279. Twenty paths, 239 keys.
-    // Three rows are whole families nobody has opened: `DEATH_OBJS` (item
-    // 485 read its `first_frame` off the raw text and no parser carries
-    // it), the frame-level `GUY` list (only the three animation-clock
-    // keys are read, by `anim_lengths`; its `x y type who` are not), and
+    // Three rows were whole families nobody had opened: `DEATH_OBJS`,
+    // the frame-level `GUY` list (only the three animation-clock keys
+    // are read, by `anim_lengths`; its `x y type who` are not), and
     // `WORLD`'s per-frame resource totals.
+    //
+    // **Item 491 took two of the three rows its own item named**, over
+    // 99 frames on the widened window: `DEATH_OBJS` whole — all six keys
+    // parsed, five of them compared, `gpiece` alone left because this
+    // crate loads no death piece — and `hold_frames` off both `UNITDATA`
+    // `OBJECT` paths, which is now a `hits_diverged` row. Nineteen paths
+    // and 232 keys stand. `WALLDATA/OBJECT` keeps its `hold_frames`: it
+    // is a building's, and `BuildDump` parses none of that half.
     ("GAME/FRAME/ANIMALDATA", "aid ox whom"),
     (
         "GAME/FRAME/ANIMALDATA/UNITDATA",
@@ -66,7 +73,7 @@ const UNREAD: &[(&str, &str)] = &[
     ),
     (
         "GAME/FRAME/ANIMALDATA/UNITDATA/OBJECT",
-        "healing hold_frames inside_down inside_down_who launch_frames near_o near_who",
+        "healing inside_down inside_down_who launch_frames near_o near_who",
     ),
     (
         "GAME/FRAME/ANIMALDATA/UNITDATA/STACK<TYPE>",
@@ -85,10 +92,6 @@ const UNREAD: &[(&str, &str)] = &[
     (
         "GAME/FRAME/CITIES/CITY",
         "London Napata Norwich flags increment length size",
-    ),
-    (
-        "GAME/FRAME/DEATH_OBJS",
-        "cur_anim first_frame gpiece o valid who",
     ),
     (
         "GAME/FRAME/GUY",
@@ -112,7 +115,7 @@ const UNREAD: &[(&str, &str)] = &[
     ),
     (
         "GAME/FRAME/UNITDATA/OBJECT",
-        "healing hold_frames inside_down inside_down_who launch_frames near_o near_who",
+        "healing inside_down inside_down_who launch_frames near_o near_who",
     ),
     ("GAME/FRAME/UNITDATA/STACK<TYPE>", "increment length size"),
     (

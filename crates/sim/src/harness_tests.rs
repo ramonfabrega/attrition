@@ -1761,28 +1761,46 @@ fn a_shot_flies_for_its_distance_and_lands_where_the_rng_put_it() {
     }
     sim.tick();
     control.tick();
-    assert_eq!(sim.projectiles.len(), 0);
     // Whether it hit is whether the landing point was within target_size.
     let d = vector_dist(p.landing.x - 1000, p.landing.y - 1000);
     let hit = hits_on(&sim, b);
     if d <= 48 {
+        assert_eq!(sim.projectiles.len(), 0);
         assert_eq!(hit.len(), 1);
         assert_eq!(hit[0].frame, i64::from(p.total_time) - 1);
         // 60 → (65) / 10 − 3 = 3.
         assert_eq!(hit[0].damage, 3);
     } else {
+        // **A miss on a land unit does not puncture; it rolls on**
+        // (`docs/COMBAT.md` §42.2). The shot carries `Ammo`'s flag 4, so
+        // `inc_time` sets flag 8 and keeps it up to `3 × total_time`
+        // rather than handing it to `do_damage` — which is what run112's
+        // `0/8` arrow does on frame 683, and the two draws the old arm
+        // spent there are the two the golden word was waiting on.
         assert!(hit.is_empty(), "a miss lands on nothing here");
+        assert_eq!(sim.projectiles.len(), 1, "a rolling miss stays up");
+        assert!(sim.projectiles[0].missed);
+        assert!(sim.projectiles[0].target.is_none(), "hit_target forgets it");
     }
-    // Two RNG draws were taken for the scatter — and two more for where a
-    // miss punctured the ground, none else beyond the frames' own.
+    // Two RNG draws were taken for the scatter, and **none** for a miss —
+    // where the puncture pair used to be.
     let mut r = control.rng;
     r.roll();
     r.roll();
-    if d > 48 {
-        r.roll();
-        r.roll();
-    }
     assert_eq!(sim.rng, r);
+    if d > 48 {
+        // `if ((uint)(total_time * 3) < cur_time) close()` — and `close`
+        // is not `do_damage`, so a shot that never meets the ground
+        // damages nothing at all.
+        for _ in 0..=2 * p.total_time {
+            sim.tick();
+        }
+        assert!(
+            sim.projectiles.iter().all(|q| !q.missed),
+            "a rolled shot is dropped past 3 × total_time"
+        );
+        assert!(hits_on(&sim, b).is_empty());
+    }
 }
 
 #[test]
