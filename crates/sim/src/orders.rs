@@ -2160,58 +2160,73 @@ impl Sim {
             let me = Obj::Unit(u);
             match self.units[u].combat.target {
                 Some(t) if self.valid_target(me, t) => {
-                    // **`is_in_range`'s sixth argument**, and this is the
-                    // executable's only caller that sets it: a
-                    // non-`mandatory` chase is dropped `0x90` inside the
-                    // attacker's reach rather than at its edge
-                    // (`docs/COMBAT.md` §35.3).
-                    let margin = !self.units[u].combat.mandatory;
-                    let at = self.units[u].pos;
-                    if self.profile(me).max_range != 0
-                        && self.is_in_range_at_margin(me, at, t, margin)
-                    {
-                        self.kill_current_order(u);
-                        return Did::Something;
-                    }
-                    // **The captain's retarget**, `005f803f`-`005f8216`
-                    // (`docs/COMBAT.md` §37.2). It sits inside the same
-                    // `max_range != 0` gate as the kill above and runs
-                    // only when the kill did *not* fire — so a ranged
-                    // captain walking to a target it cannot yet reach
-                    // asks, every frame, whether the incumbent its last
-                    // search left in [`crate::Unit::near`] is one it can.
-                    //
-                    // The two range tests are the same function with a
-                    // different sixth argument, and that is the whole of
-                    // why both can be true on one frame: the kill uses
-                    // the reach less `0x90`, this uses the plain reach.
-                    //
-                    // `mandatory` gates it — an ordered attack is never
-                    // retargeted under the player — and so does
-                    // `is_captain`: a squad member's target comes down
-                    // the chain from here and it decides nothing itself.
-                    if !self.units[u].combat.mandatory
-                        && self.units[u].captain
-                        && let Some(c) = self.units[u].near
-                        && c != t
-                        && self.active(c)
-                        && self.is_in_range(me, c)
-                        && !self.poor_target(me, c)
-                        && matches!(c, Obj::Unit(_))
-                        && self.profile(c).combat_role
-                    {
-                        // `005f820a`, and it is the fingerprint the item
-                        // was found by: `in_range` is written **here**,
-                        // on the deciding unit alone and a frame before
-                        // `Unit::fight` writes `ever_in_range`. run112's
-                        // `0/9` prints `in_range 1` with `ever 0` on
-                        // block 645 and nothing else in the executable
-                        // can produce that pair.
-                        if let Body::Attack(x) = &mut self.units[u].orders[a].body {
-                            x.in_range = true;
+                    // **The gate is a block, not a conjunct** (item 481).
+                    // `do_move@005f7b30:207` opens
+                    // `if (ptype->max_range != 0) { … }` and the brace
+                    // closes past the captain retarget below, so *both*
+                    // arms are a ranged attacker's. Writing it as a
+                    // conjunct of the kill alone let a melee captain
+                    // retarget: run112's hoplite captain `1/6` carries
+                    // `near_o 10` from block 621 to the end of the
+                    // window and this crate switched its whole squad off
+                    // `0/11` at 671, where the dump has all three
+                    // hoplites on `0/11` for every block of the capture.
+                    // `docs/COMBAT.md` §38.
+                    if self.profile(me).max_range != 0 {
+                        // **`is_in_range`'s sixth argument**, and this is
+                        // the executable's only caller that sets it: a
+                        // non-`mandatory` chase is dropped `0x90` inside
+                        // the attacker's reach rather than at its edge
+                        // (`docs/COMBAT.md` §35.3).
+                        let margin = !self.units[u].combat.mandatory;
+                        let at = self.units[u].pos;
+                        if self.is_in_range_at_margin(me, at, t, margin) {
+                            self.kill_current_order(u);
+                            return Did::Something;
                         }
-                        self.change_target(u, t, c);
-                        return Did::Something;
+                        // **The captain's retarget**, `005f803f`-`005f8216`
+                        // (`docs/COMBAT.md` §37.2). It runs only when the
+                        // kill did *not* fire — so a ranged captain
+                        // walking to a target it cannot yet reach asks,
+                        // every frame, whether the incumbent its last
+                        // search left in [`crate::Unit::near`] is one it
+                        // can.
+                        //
+                        // The two range tests are the same function with
+                        // a different sixth argument, and that is the
+                        // whole of why both can be true on one frame: the
+                        // kill uses the reach less `0x90`, this uses the
+                        // plain reach.
+                        //
+                        // `mandatory` gates it — an ordered attack is
+                        // never retargeted under the player — and so does
+                        // `is_captain`: a squad member's target comes
+                        // down the chain from here and it decides nothing
+                        // itself.
+                        if !self.units[u].combat.mandatory
+                            && self.units[u].captain
+                            && let Some(c) = self.units[u].near
+                            && c != t
+                            && self.active(c)
+                            && self.is_in_range(me, c)
+                            && !self.poor_target(me, c)
+                            && matches!(c, Obj::Unit(_))
+                            && self.profile(c).combat_role
+                        {
+                            // `005f820a`, and it is the fingerprint the
+                            // item was found by: `in_range` is written
+                            // **here**, on the deciding unit alone and a
+                            // frame before `Unit::fight` writes
+                            // `ever_in_range`. run112's `0/9` prints
+                            // `in_range 1` with `ever 0` on block 645 and
+                            // nothing else in the executable can produce
+                            // that pair.
+                            if let Body::Attack(x) = &mut self.units[u].orders[a].body {
+                                x.in_range = true;
+                            }
+                            self.change_target(u, t, c);
+                            return Did::Something;
+                        }
                     }
                 }
                 _ => {
