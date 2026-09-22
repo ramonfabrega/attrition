@@ -12,36 +12,35 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-22, the tenth chain. Great Lakes **10234 → 10237**, chapter
-two **645 → 683**, and `[606, 684)` is at nought — 78 frames.*
+*2026-09-22, the tenth chain. Great Lakes **10233 → 10244** — the
+sequence and count words have met — and chapter two **637 → 683**.*
 
-- **The defect was a brace** (481, COMBAT §38): `do_move:207` is
-  `if (ptype->max_range != 0) {` and it closes **past** the captain
-  retarget at `005f803f`. §37.2 said so in prose; the Rust wrote the
-  gate as a conjunct of the in-range kill alone, so a **melee**
-  captain reached the retarget and switched the hoplite squad off
-  `0/11`. Nesting removes exactly six rows — which is the proof.
-- **479's framing for 671 was falsified by a field already on disk**:
-  all three hoplites hold `ox 11 whom 0 uid 18` on every block with
-  `new_ord 1`, so the original never ranks them and never rewrites.
-  The suspect was our own code from the first grep.
-- **`crate::diff::compare` carries no hit-point row at all** — no
-  `myhits`, `damage` or `hits_left` — where the run100 widening has
-  had both since §34.4 and the dump prints them at every detail
-  level. 684's death is visible; the wounds that caused it are not.
-  **That is 484, and it gates 485.** Seventh instrument defect.
-- **A ceiling hid three rows**, as 470's floor hid `0/10` at 630:
-  `extra 1/8` at 684 (a death), `order 1/4`/`pos 1/4` at 685/686,
-  all pre-existing on a reverted re-measure.
-  Seven open, 69 parked. **Fable backlog: 2 Loop items** (313, 480).
+- **The AI word was blocked on a name, and naming it moved 10237 →
+  10244** (483, COMBAT §39): `Ammo::do_damage+0xc59` was absent from
+  `trace::SITES`. No simulation line changed, and attribution
+  elsewhere is **measured** — a 24,000-frame label dump either side
+  diffs to 52 lines, all on the three frames `do_damage` draws on.
+- **Its guard failed for real on its first run.**
+  `every_site_s_address_is_the_function_its_label_names` resolves
+  each row in the decompile index; `SITE_FIRST_WOUND_FLOCK` held
+  `0x0065218b` where its label says `0x006521ab` — two digits
+  transposed onto a non-instruction boundary, unmatchable, standing
+  since item **394**. Eighth instrument defect.
+- **The dump and the draw stream named the same unit unprompted**:
+  10245's eleven rows are all `1/27`, and the word's extra draw is
+  ours `set_anim < move_step`, the blocked stand. That is 487.
+- **The defect was a brace** (481): `do_move:207`'s `max_range` gate
+  closes past the captain retarget, so a melee captain reached it.
+  `[606, 684)` at nought, 78 frames.
+  Eight open, 69 parked. **Fable backlog: 2 Loop items** (313, 480).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w9711 of 24,000 · GreatLakes w10237 of 24,000
+Long captures: EastIndies w9711 of 24,000 · GreatLakes w10244 of 24,000
 Golden: w626 of 901 (ch1) · ch2 w683 · 484 next
 Endpoint 24001: EastIndies 63 off, 11 unlinked · GreatLakes 51 off, 7 unlinked
 
-**Opener: 483 is live; 484 takes the freed lane and gates 485. The
-loop stands at 16 of 20.**
+**Opener: 484 is live and gates 485; 487 takes the freed lane. The
+loop stands at 18 of 20 — the steering pass is two landings away.**
 
 ## The queue
 
@@ -51,14 +50,14 @@ the AI, lower map first — Great Lakes. Take the first unstarted on either
 track unless a better order is obvious, and say so. Numbers are stable;
 the backlog is `docs/PARKED.md`, and an item returns only when a score names it.
 
-483. **`Ammo::do_damage@00678060+0xc59` is unnamed in
-    `trace::SITES`** — the AI headline's own blocker. Great Lakes'
-    count word is 10244 and its sequence word 10237; 10237 and 10242
-    spend the **same** draws on both sides and part on a label, ours
-    an unattributed `projectiles` phase. **Until the site is named
-    the sequence cannot pass 10237 however the simulation behaves.**
-    A `SITES` entry plus a `SITE_*` const in `sim::fight`. Reported by
-    478, not taken. COMBAT §39 reserved.
+487. **10245's eleven rows, all `1/27`** (the AI headline's own
+    frame). `collide` 2/1, `collide_o` 29/-1, `collide_who` 1/-1,
+    `g.stopped[0]` 1/0, `path:length` 49/43; the word's extra draw is
+    ours `set_anim+0x97a < move_step+0x823`, the blocked stand,
+    against theirs `Guy::inc_time+0x271`. 483's reading — **its
+    hypothesis, not this item's** — is that `1/29` drops its move on
+    10241 (`order:kind` 10/1) and stands 28 units short in `x`.
+    Re-measure first. COMBAT §39.2.1.
 
 476. **f10234's three value rows**: `0/5 order:length` 2/1,
     `0/5 orders.len` 2/1, `0/2001 gather:gather_down[-1]` 5/2. The
