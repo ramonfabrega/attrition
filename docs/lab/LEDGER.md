@@ -157,6 +157,8 @@ profile/Wine scripts remain outside that lock's protection.
 
 | L86 | Does the intervening native A* call account for the four shared-state words? | [Native shared-search boundaries](2026-09-22-shared-search-boundary.md). | Eight bounded snapshots locate changes before, inside and after that call; its exit differs from the next entry. Full header records and executable falsifiers retained. | One native boundary witness, not writer-instruction or whole-world attribution. Lane released; no score movement. |
 
+| L87 | Do selected delegation prefixes account for the shared-header gap? | [Selected prefix boundaries](2026-09-22-shared-prefix-window.md). | Both retained native windows preserve all 504 selected unit/header bytes; wrapper prefixes reproduce in 31 instructions. | Net boundary equality only; transient writes and fresh caller setup remain open. No capture or score movement. |
+
 ## Current direction
 
 The September 19–22 tranche now has an unchanged native unit/path witness
@@ -189,7 +191,9 @@ L85 localizes the remaining internal trace gap to active-tree cleanup and
 recycler availability; diagnostic entry substitutions match the stream but do
 not reconstruct shared-state ownership. L86 measures changes outside the
 intervening A* call as well as inside it; the missing boundary extends beyond
-A*. Surrounding setup/teardown is the next candidate. Whole-world advancement remains unproved;
+A*. L87 narrows the second gap to before selected delegation: both selected
+callee prefixes preserve all unit/header bytes. Fresh caller setup and the
+intervening-return-to-delegation interval remain candidates. Whole-world advancement remains unproved;
 the next adoption test should answer one
 real divergence question selected by steering, with a named call/field and
 falsifier. Saved-tree required fields now have one native witness; native limit 96,

@@ -108,3 +108,8 @@ Reports, exact source, capture command, controls and validation are archived at
 The next useful boundary is the setup/teardown surrounding A*. The captured
 intervening call is real evidence, but treating it as the entire missing work
 would discard changes the new observer directly measures.
+
+Follow-up [L87](2026-09-22-shared-prefix-window.md) compares the retained
+delegation payloads: both selected callee prefixes preserve all unit/header
+bytes through A* entry. This narrows the second gap to before delegation; it
+does not settle fresh-search setup or identify the writers.
