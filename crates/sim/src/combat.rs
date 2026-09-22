@@ -14,6 +14,7 @@
 
 use crate::attrition::Domain;
 use crate::movement::Angle;
+use crate::single::Single;
 use crate::tuning::Tuning;
 use crate::world::{Pos, vector_dist};
 
@@ -377,6 +378,59 @@ pub struct Projectile {
     /// `Ammo::inc_time`, and it is what stops `hit_target`/`check_hit`
     /// being tried a second time.
     pub missed: bool,
+    /// `AmmoData::sz` and `ez` — the height the shot leaves from and the
+    /// one it is aimed to come down at (`docs/COMBAT.md` §46.1). Only a
+    /// rolled shot reads them, through [`arc_z`].
+    pub sz: i32,
+    pub ez: i32,
+    /// `AmmoData::v1z` (`+0x54`), the arc's vertical speed, which
+    /// `Ammo::init` fixes once from `sz`, `ez` and the flight time
+    /// ([`arc_v1z`]).
+    pub v1z: Single,
+    /// The shot's slot in the ammo pool — `AmmoData::index`, the lowest
+    /// free one when it was fired (`Objects::add_ammo@00658b10`), which is
+    /// the order `Objects::inc_time@0065db70` steps the pool in
+    /// (`docs/COMBAT.md` §46.4). [`crate::Sim::add_ammo`] assigns it.
+    pub slot: u32,
+}
+
+/// `GRAV_Z` at `0xcab378`: `0xc127cccd`, −10.4875 — written once, by
+/// `GraphicPieces::init@008ffcc0`, before the first frame, and read by
+/// `Ammo::init` and `Ammo::inc_time` alone (§46.1).
+pub const GRAV_Z: Single = Single::from_bits(0xc127_cccd);
+/// The `0.5` at `0xb694c0` that both multiply `GRAV_Z` by first.
+const HALF: Single = Single::from_bits(0x3f00_0000);
+
+/// `Ammo::init@0067bbf0`, `0x67cf2a`–`0x67cf7d`: `v1z = ((float)(ez − sz) − GRAV_Z × 0.5
+/// × T × T) / T`, each step an SSE single in the listing's order — the
+/// integer difference converted, the gravity term multiplied left to
+/// right, one subtract, one divide.
+pub fn arc_v1z(sz: i32, ez: i32, total_time: i32) -> Single {
+    let t = Single::from_i32(total_time);
+    let g = GRAV_Z.mulss(HALF).mulss(t).mulss(t);
+    Single::from_i32(ez - sz).subss(g).divss(t)
+}
+
+/// `Ammo::inc_time@0067d380`'s rolling arm, `0x67d922`–`0x67d996`: the
+/// shot's height at `cur_time`, `(v1z × t + (float)sz) + GRAV_Z × 0.5 ×
+/// t × t`.
+pub fn arc_z(v1z: Single, sz: i32, cur_time: i32) -> Single {
+    let t = Single::from_i32(cur_time);
+    let g = GRAV_Z.mulss(HALF).mulss(t).mulss(t);
+    v1z.mulss(t).addss(Single::from_i32(sz)).addss(g)
+}
+
+/// The same arm's point on the line past the landing: `frac = t / T`, and
+/// each axis `(int)((float)(e − s) × frac + (float)s)`, truncated.
+pub fn arc_point(launch: Pos, landing: Pos, cur_time: i32, total_time: i32) -> Pos {
+    let frac = Single::from_i32(cur_time).divss(Single::from_i32(total_time));
+    let axis = |s: i32, e: i32| {
+        Single::from_i32(e - s)
+            .mulss(frac)
+            .addss(Single::from_i32(s))
+            .to_i32()
+    };
+    Pos::new(axis(launch.x, landing.x), axis(launch.y, landing.y))
 }
 
 /// **One death object** — the `DEATH_OBJS` record `Unit::close` makes for

@@ -210,6 +210,56 @@ impl Single {
         let exact = q * u128::from(m2) == num;
         round(sign, q, e1 - e2 - 64, !exact)
     }
+
+    /// The single a six-decimal print names, and whether it is the only one
+    /// — how the height grid enters this arithmetic (`docs/COMBAT.md`
+    /// §46.2).
+    ///
+    /// `SimpleArray<float>::log_data` prints each of `master_land_heights`
+    /// with `%f`, and this crate keeps the grid in those millionths. The
+    /// answer is the single nearest `millionths / 10^6`, and the flag says
+    /// whether **no other** single prints as the same six decimals. From 16
+    /// up a single's spacing is wider than a millionth and the flag is
+    /// always set; below it two to four singles can share a print, and the
+    /// nearest is then a choice rather than a recovery — at most a few ulp,
+    /// under 2e-6 of a world unit, off the original's.
+    pub fn from_millionths(millionths: i64) -> (Single, bool) {
+        let neg = millionths < 0;
+        let d = u128::from(millionths.unsigned_abs());
+        let num = d << 64;
+        let q = num / 1_000_000;
+        let s = round(neg, q, -64, q * 1_000_000 != num);
+        let alike = |c: Single| c.prints_as_millionths(neg, d);
+        let unique = !alike(Single(s.0.wrapping_add(1))) && !alike(Single(s.0.wrapping_sub(1)));
+        (s, unique)
+    }
+
+    /// Whether this value lies within half a millionth of `± d / 10^6`, so
+    /// that a correctly rounded six-decimal print could show it as `d`. A
+    /// tie counts, which can only ever mark a print ambiguous.
+    fn prints_as_millionths(self, neg: bool, d: u128) -> bool {
+        if (self.0 >> 23) & 0xff == 0xff {
+            return false;
+        }
+        let (m, e) = self.parts();
+        if m == 0 {
+            return d == 0;
+        }
+        if self.negative() != neg && d != 0 {
+            return false;
+        }
+        // |m × 2^e × 2·10^6 − 2d| ≤ 1, both sides scaled by 2^-e when e < 0.
+        let m2 = u128::from(m) * 2_000_000;
+        if e >= 0 {
+            e < 64 && (m2 << e).abs_diff(2 * d) <= 1
+        } else if -e > 80 {
+            // Under 2^-56: a print of zero.
+            d == 0
+        } else {
+            let scale = 1u128 << (-e);
+            m2.abs_diff(2 * d * scale) <= scale
+        }
+    }
 }
 
 /// Rounds `mag × 2^exp` to a single, to nearest with ties to even, given
@@ -356,5 +406,52 @@ mod tests {
                 assert_eq!(x.eq_value(y), host(x) == host(y), "{a:#010x} == {b:#010x}");
             }
         }
+    }
+
+    /// [`Single::from_millionths`] names the printed single wherever the
+    /// print is unique, says so exactly when it is, and is never more than
+    /// a few ulp off where it is not. The print is the host's own `{:.6}`,
+    /// which is correctly rounded, as `%f` is.
+    #[test]
+    fn a_six_decimal_print_names_its_single_where_it_can() {
+        let mut unique_seen = 0;
+        let mut shared_seen = 0;
+        for b in samples() {
+            let x = host(Single(b));
+            if !(1.0..=1.0e6).contains(&x.abs()) {
+                continue;
+            }
+            let printed = format!("{x:.6}");
+            let (neg, digits) = match printed.strip_prefix('-') {
+                Some(r) => (true, r),
+                None => (false, printed.as_str()),
+            };
+            let (w, f) = digits.split_once('.').unwrap();
+            let mag = w.parse::<i64>().unwrap() * 1_000_000 + f.parse::<i64>().unwrap();
+            let (got, unique) = Single::from_millionths(if neg { -mag } else { mag });
+            if x.abs() >= 16.0 {
+                assert!(unique, "{x} is the only single that prints as {printed}");
+            }
+            // Every single within reach that prints alike, by the host.
+            let alike: Vec<u32> = (b.saturating_sub(24)..=b.saturating_add(24))
+                .filter(|&c| format!("{:.6}", host(Single(c))) == printed)
+                .collect();
+            assert_eq!(unique, alike.len() == 1, "{printed}: {alike:x?}");
+            if unique {
+                unique_seen += 1;
+                assert_eq!(got.0, b, "{printed} names {x}");
+            } else {
+                shared_seen += 1;
+                assert!(
+                    alike.contains(&got.0),
+                    "{printed}: {:#x} not in {alike:x?}",
+                    got.0
+                );
+            }
+        }
+        assert!(
+            unique_seen > 150 && shared_seen > 20,
+            "{unique_seen} / {shared_seen}"
+        );
     }
 }

@@ -1452,9 +1452,14 @@ impl Sim {
                         guy.anim,
                         start,
                     );
+                    // And it leaves from the node's height over the
+                    // figure's own ground, `Guy::update_z`'s
+                    // `find_data_z` (`docs/COMBAT.md` §46.1).
+                    let dz = crate::launch::node(guy.gpiece, guy.anim, start).map_or(0, |n| n.dz);
+                    let sz = self.ground_z(self.units[u].pos) + dz;
                     let to = self.pos_of(target);
                     let angle = crate::movement::find_angle(to.x - from.x, to.y - from.y);
-                    self.fire_ammo_pub(crate::combat::Obj::Unit(u), target, angle, frame, from);
+                    self.fire_ammo_pub(crate::combat::Obj::Unit(u), target, angle, frame, from, sz);
                 }
             }
         }

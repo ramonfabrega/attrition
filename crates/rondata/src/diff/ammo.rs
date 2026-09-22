@@ -254,7 +254,7 @@ pub(crate) fn blocks(body: &str) -> Vec<(Ammo, usize)> {
 }
 
 #[cfg(test)]
-mod tests {
+pub(crate) mod tests {
     use super::*;
     use crate::diff::testkit::{first_parting, sibling_texts, trace};
     use crate::diff::{borrow_from_siblings, borrow_pasture, build_sim};
@@ -593,6 +593,40 @@ mod tests {
         }
     }
 
+    /// A single as `%f` prints it, in the millionths [`Ammo`] keeps. The
+    /// host's `{:.6}` is correctly rounded, as the original's printf is;
+    /// this is test code, where `no_float.rs` does not reach and an oracle
+    /// in the host's arithmetic is the point.
+    pub(crate) fn printed(s: sim::single::Single) -> i64 {
+        micro(&format!("{:.6}", f32::from_bits(s.bits()))).expect("six decimals")
+    }
+
+    /// **`v1z` to the last printed digit** (`docs/COMBAT.md` §46.1).
+    ///
+    /// The test below holds the printed `v1z` to its formula within three
+    /// ulp, because until item 495 this crate had no single-precision
+    /// arithmetic to hold it to more. [`sim::combat::arc_v1z`] is that
+    /// arithmetic — `Ammo::init`'s own four SSE steps in
+    /// [`sim::single::Single`] — and on every one of run109's 183 records
+    /// its single prints as exactly the six decimals the original printed.
+    #[test]
+    fn run109_s_v1z_is_arc_v1z_to_the_last_digit() {
+        let Some(all) = run109() else {
+            eprintln!("skipping: no run109 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let wrong: Vec<_> = all
+            .iter()
+            .filter(|(_, a, _)| {
+                let v = sim::combat::arc_v1z(a.sz as i32, a.ez as i32, a.total_time as i32);
+                printed(v) != a.v1z
+            })
+            .map(|(f, a, _)| (*f, a.sz, a.ez, a.total_time, a.v1z))
+            .collect();
+        assert!(wrong.is_empty(), "v1z is not arc_v1z's single: {wrong:?}");
+        assert_eq!(all.len(), 183);
+    }
+
     /// `GraphicPieces::init@008ffcc0+0x??` sets `GRAV_Z = -10.4875`, and
     /// this is it scaled by a million, the same way [`Ammo::v1z`] is.
     const GRAV_Z: i64 = -10_487_500;
@@ -611,10 +645,10 @@ mod tests {
     /// `field_0x58 = fVar22 / local_28` with `fVar22` still the *sum of
     /// squares* is that artefact, not the engine squaring a distance.)
     ///
-    /// Neither is a number this crate can hold: `CLAUDE.md`'s first hard
-    /// constraint is no float in the simulation, and a ballistic `z` is one
-    /// of the few places the original genuinely needs one. So the assertion
-    /// here is the honest weaker one — that the original's own printed
+    /// Until item 495 neither was a number this crate could hold — no float
+    /// in the simulation — so the assertion here is the weaker one; `v1z`
+    /// is now held exactly by [`run109_s_v1z_is_arc_v1z_to_the_last_digit`]
+    /// and this stays for `dx`. The weaker one — that the original's own printed
     /// floats *are* those formulae over the integers this crate does
     /// reproduce — computed in integers at a millionth, to within a float32
     /// ulp at their own magnitude.
@@ -693,15 +727,14 @@ mod tests {
     /// right; `graph_index` runs 0..8 from the game's very first arrow on
     /// 9425; and no frame's blocks descend.
     ///
-    /// **This crate does none of it**, and that is the residue this test
-    /// exists to state precisely. `crates/sim`'s `Sim::projectiles` is a
-    /// `Vec` that `process_projectiles` `swap_remove`s from, so after the
-    /// first landing its order is neither launch order nor slot order — at
-    /// 9453 it holds a4, a3, a2 where the original's pool reads a2, a3, a4.
-    /// Nothing in run109's window turns on it, because no two arrows land
-    /// on the same frame after 9451 and the landing is what draws; a frame
-    /// where two do would spend the original's `Random::get` draws in the
-    /// other order.
+    /// **Item 495 made this crate do it** ([`sim::Sim::add_ammo`],
+    /// `docs/COMBAT.md` §46.4). Until then `Sim::projectiles` was a `Vec`
+    /// that `process_projectiles` `swap_remove`d from, so after the first
+    /// landing its order was neither launch order nor slot order — and the
+    /// frame this predicted arrived in chapter two: `0/7` and `0/8` both due
+    /// on 683, stepped in the wrong order, and the wrong one rolled. What
+    /// the crate still does not do is hold a **spent** arrow's slot for its
+    /// 200 frames (§46.7).
     #[test]
     fn run109_s_ammo_index_is_the_lowest_free_slot_in_the_pool() {
         let Some(all) = run109() else {

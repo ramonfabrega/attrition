@@ -1204,6 +1204,41 @@ pub(crate) fn start_of_game(
     all_builds
 }
 
+/// **The ground guard** (`docs/COMBAT.md` §46.3): every replay the
+/// harness runs answers, when it is dropped, for how many of its height
+/// reads touched a corner this crate cannot pin to the original's own
+/// single — a six-decimal print a neighbouring single shares, or a corner
+/// a terraform rewrote in millionths ([`sim::Sim::ground_inexact`]).
+///
+/// The count is held against [`super::testkit::GROUND_INEXACT`], keyed on
+/// the test the replay runs in (libtest names the thread after it), and is
+/// zero for any test the table does not name. So the day a rolled shot or
+/// a launch height lands on such a corner, the window it happens in fails
+/// by name rather than drifting by an ulp nobody measured. A replay that
+/// is already unwinding is left alone: its own failure is the report.
+#[cfg(test)]
+impl Drop for Built {
+    fn drop(&mut self) {
+        if std::thread::panicking() {
+            return;
+        }
+        let name = std::thread::current()
+            .name()
+            .unwrap_or_default()
+            .to_string();
+        let pin = super::testkit::GROUND_INEXACT
+            .iter()
+            .find(|(t, _)| name.ends_with(t))
+            .map_or(0, |&(_, n)| n);
+        assert!(
+            self.sim.ground_inexact <= pin,
+            "{name}: {} height read(s) touched a corner that is not known to be \
+             the original's single, against a pin of {pin} — see docs/COMBAT.md §46.3",
+            self.sim.ground_inexact
+        );
+    }
+}
+
 impl Built {
     /// The frame the sim just stepped, folded by phase — the harness's
     /// answer to `tools/trace/report.py … sites`, which folds the

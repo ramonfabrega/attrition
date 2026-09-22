@@ -971,6 +971,12 @@ pub struct Sim {
     pub phase_marks: Vec<(String, u32)>,
     /// Ammo in flight.
     pub projectiles: Vec<combat::Projectile>,
+    /// How many [`Sim::ground_z`] reads have touched a height corner that
+    /// is not known to be the original's own single — one whose six-decimal
+    /// print a neighbouring single shares, or one a terraform rewrote in
+    /// millionths (`docs/COMBAT.md` §46.3). Every window the harness replays
+    /// pins it, so the day a read lands on one is a failing test by name.
+    pub ground_inexact: u32,
     /// **The death objects**, the `DEATH_OBJS` list the dump prints at the
     /// frame level (`docs/COMBAT.md` §42.1). One is made by `Unit::close`
     /// for every unit death whose `dtype` is non-zero, and it carries the
@@ -1353,6 +1359,7 @@ impl Sim {
             spells: Vec::new(),
             rng: combat::Rng::new(0),
             projectiles: Vec::new(),
+            ground_inexact: 0,
             deaths: Vec::new(),
             market: market::Market::default(),
             gaia: gaia::Gaia::default(),
