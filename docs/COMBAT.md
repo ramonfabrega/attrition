@@ -8286,3 +8286,142 @@ pair.
 
 **Reading-only**: the whole-squad arm, the group test and the lead's
 `is_move`/`is_air` gate.
+
+## 48. A bump from another enemy ends the chase, and chapter one is widened (item 445, 2026-09-22)
+
+Golden chapter one's word stood at **626** from item 405 on, and no
+widening was on file. On 626 the original spent `Guy::set_anim+0xf2f <
+Guy::move+0x166` and this crate did not. The booked hypothesis was an
+arriving hoplite's roll. This item widens the word's frame whole and
+moves the word **626 → 774**.
+
+### 48.1 The widening
+
+`rondata::diff::golden::chapter_one_s_word_frame_is_widened_whole`,
+window `testkit::WIDENING_CHAPTER_ONE`. It is `compare` plus every row of
+the `UNITDATA` and `GUY` records that `compare` does not read or reads
+only where the positions agree: `near_o`/`near_who` read raw off the
+block, `orders_x/y`, `dest_angle`, `tolerance`, `idle`, `stance`, `form`,
+`group`, the collision block ungated, and the figure's whole clock.
+
+**Two captures, one game.** run105 (`g4`) prints `GUYS=2`, which stops a
+`GUY` block after `ox`, so its clock fields are absent. run110 (`g6`) is the
+same script at `GUYS=9` over `[610, 630)` (`docs/RUNS.md` run110) and
+supplies them. On every block both files print, their shared `GUY` keys are
+asserted equal. The `theirs` side was printed once, raw, before any quiet
+row was believed (§48.2's table is that print).
+
+Before the fix, the window `[605, 630)` held 87 keys. **Nothing parted on
+626 that had not already parted on 625.**
+
+### 48.2 The frame: `0/8` on tick 624
+
+Attributing the draws per unit (`RON_GOLDEN_SITES=620-627`): the two
+arriving hoplites `1/7` and `1/8` spend their `Guy::move+0x166` rolls on
+**627**, on both sides. The extra 626 roll is `0/8`'s, and it is the
+attack animation (`cur_anim 13` on block 627). `0/8` had already parted on
+block 625, the state after tick 624:
+
+| block 625, `0/8` | dump | this crate before |
+|---|---|---|
+| pos | `1044, 8076` | `1032, 8088` |
+| `orders_x, orders_y` | `1044, 8076` (its own cell) | `1224, 8280` |
+| order list | `ATTACK` on `1/6` | `MOVE_TO`, `ATTACK` |
+| path stack | empty | four entries, three `SIDESTEP` |
+| `collide`, `collide_o`, `collide_who`, `collide_guy` | `0, 8, 1, 0` | `1, 8, 1, 0` |
+| `collide_frame` | `-1` | 624 |
+
+On tick 624 both sides spend `Guy::set_anim+0x97a < Unit::move_step+0x823`:
+a hard collision with `1/8`, and the blocked step's idle roll
+(`docs/COLLISION.md` §5). After that the original writes the collider's
+name and nothing else. It does not count, does not stamp `collide_frame`,
+does not sidestep or repath. It drops the move and keeps the attack. On
+tick 625 it swings (`recharging 32`, `in_range 1`), and on 626 it rolls the
+attack animation.
+
+### 48.3 The mechanism: `resolve_unit_collision`'s enemy ladder
+
+`Unit::resolve_unit_collision@005f9d30`, lines 96–254, which
+`docs/COLLISION.md` §6 lists as step 3 and which no capture had reached
+before this one. After step 0 (the animal) and step 1 (a suicide attacker,
+type `+0x2b4 & 0x2000`, not modelled), the function calls `update_action`
+on every path (`:96`), then branches on `collide_who` against the owner
+byte (`:98`):
+
+- **Same player** → step 2's flat-farm test (`LAB_005fa057`).
+- **Another player, and the action is not an attack** (vslot `+0x18`,
+  `is_attack`) → the same test. This crate had gated step 2 on the
+  collider being the same player's. An attack is never a gather, so the
+  collider's owner is not part of step 2's predicate at all.
+- **Another player, and the action is an attack** → the ladder:
+  - **A** (`:162-174`): the collider is the attack's own target
+    (`update_target_order` `ox`/`whom` against `collide_o`/`collide_who`).
+    For a group order (vslot `+0x2c`), set `collide = 1` and return.
+    Otherwise set `collide_o = collide_who = -1`, `kill_current_order`,
+    return.
+  - **B** (`:176-187`): `get_target_order`'s `target_exists` (slot `+4`:
+    `ox`, `whom` non-negative, the object `flags & 1`, `uid` matching) and
+    `ObjectData::is_in_range@00648d70(ox, whom)` from where the unit
+    stands → `kill_current_order`, return. **The listing was read** at
+    `005f9eb2`–`005f9ed3`. It pushes `0`, a junk `ecx`, `+0xc` and `+8` of
+    `get_target_order`'s answer, and the wrapper passes `this`'s own
+    position and a zero sixth argument, so the margin arm (§35.3) is off.
+    The decompile's argument list is right here.
+  - **C** (`:189-252`): when the attack is not `mandatory` (`+0x1c`), the
+    current order is not a group's, and the collider's player is an enemy.
+    A follower whose captain's action is an attack with a target in range
+    repaths, kills, and queues that target `QUEUE_FIRST`. A captain calls
+    `find_new_target(0, 1)` while `LeaderData +0x9f4 < 10`. Otherwise,
+    unless type virtual `+0x10c` answers, it repaths, kills, and queues the
+    collider. **Not modelled**: `+0x9f4` and `+0x10c` are unnamed, and a
+    unit that would take this arm falls through to step 4 as before.
+  - Anything the ladder does not return from falls through to step 4
+    (`:255`), never to step 2.
+
+`0/8`'s attack names `1/6`, the collider is `1/8`, and `1/6` is in reach
+(HOPLITES `0xf6`, §13.2), so arm B fires. This is the other half of item
+405's `do_move` gate (`docs/ORDERS.md` §4.4). A melee type never abandons
+a leg because its target came into reach, but the first bump from any
+enemy ends it.
+
+`Sim::resolve_unit_collision` (`crates/sim/src/collide.rs`) now takes
+`update_action` at the top, arms A and B, and step 2 without the
+same-player gate.
+
+### 48.4 What it moved
+
+- **Golden chapter one 626 → 774.** On block 625 `0/8` is the dump's,
+  field for field, and every row of §48.2's table closes, along with its
+  626–627 clock, `recharging`, `visible` and `damage 1/6` on 626.
+- The widening's window moved with the word, `[605, 630)` → `[605, 779)`,
+  and its map is 88 keys. The families are written beside the pin in the
+  test. Everything under 765 is older than 616 or spends no draw.
+- **What stands at 774** is `Guy::set_anim+0x97a`, a blocked step's idle
+  roll the original spends and this crate does not. The first record
+  parting under it is **765**: `1/7` and `1/8` take the far walk to about
+  (38.6k, 13.4k). That is the march destination item 399's table in
+  `GOLDEN_WORD_CHAPTER_ONE`'s comment records who=1's army buying early. The
+  original's order is `ATTACK_TO` with `stance 1` and this crate's is
+  `GROUP_ATTACK_TO` with `stance 0`. Their captain `1/6` is dead by 764.
+  No mechanism named.
+
+### 48.5 Coverage
+
+- **Diff-backed**: arm B, by run105/run110's `0/8` on block 625 and
+  onward. The item made it fail by construction: the widening's first run,
+  without the arm, is §48.2's table.
+- **Reading only**: arm A (unit test
+  `a_bump_from_the_target_itself_drops_the_chase_and_forgets_the_collider`),
+  the group arm's `collide = 1`, and step 2's foreign-collider reach. No
+  capture on disk is known to reach any of them.
+- **Not modelled**: arm C, and step 1.
+
+### 48.6 What is not established
+
+- Whether `update_action`'s `orders_x/y` and `dest_angle` writes at `:96`
+  move anything on the long captures. It now runs on every resolve that
+  reaches it, as in the original.
+- Arm C's two unnamed predicates, `LeaderData +0x9f4` and type vslot
+  `+0x10c`.
+- The five `dest_angle` rows under the word (618–652). They spend no draw
+  in the window and are not examined.

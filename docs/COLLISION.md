@@ -769,7 +769,11 @@ In order, with the first that fires winning:
 3. **The enemy ladder** (other player's unit, my order is a target order on
    *it*, or it is in range, or it is attacking something I can reach):
    `kill_current_order`, or `repath` + `add_attack_order(QUEUE_FIRST)`, or
-   `find_new_target`. Never reached by any capture so far.
+   `find_new_target`. ~~Never reached by any capture so far.~~ **Reached
+   by golden chapter one's `0/8` on tick 624** (item 445). The ladder's
+   three arms, and the two this crate models, are `docs/COMBAT.md` §48.3.
+   Step 2 is reached for a foreign collider too, whenever the action is
+   not an attack.
 4. **The sidestep.** Only when *the other unit's* current order is one of
    `MOVE_TO, ATTACK_TO, EXPLORE_TO, FLEE_TO, CHANGE_FORM, GROUP_MOVE,
    GROUP_ATTACK_TO`, my domain is 0, and the path top's `flags & 2` is

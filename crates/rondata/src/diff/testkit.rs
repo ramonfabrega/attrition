@@ -1803,19 +1803,71 @@ pub(crate) const RUN58_QUEUE_TAIL: i64 = 5177;
 ///   `(1044, 8076)` where it had stopped at `(972, 7988)`. That closes
 ///   the second residue below, which was never `0/8`'s own plan.
 ///
-/// What stands at **626** is the arrival frame itself: the original
+/// ~~What stands at **626** is the arrival frame itself: the original
 /// spends `Guy::set_anim+0xf2f < Guy::move+0x166` there and this crate
 /// does not, and the ordering of `Guy::set_anim+0x104b` beside it
 /// differs. Both hoplites land exactly on their ordered points on 626 and
 /// hold, so the residue is in what an arriving figure rolls, not in where
-/// it arrives. `0/8` is the other live one: the dump snaps its
+/// it arrives.~~ **Falsified by the widening, item 445**: the arriving
+/// hoplites spend their rolls on 627 on both sides. The extra 626 roll is
+/// `0/8`'s attack animation, and `0/8` had already parted on block 625.
+/// `0/8` is the other live one: the dump snaps its
 /// `orders_x/orders_y` to `(1044, 8076)` at block 625 with `collide_o 8`,
 /// where this crate walks on toward `(1224, 8280)`.
 ///
 /// - ~~**`0/8` plans its chase a frame late.**~~ **Closed by 405**: it
 ///   was the same short leg, and `0/8` now matches the dump frame for
 ///   frame from 619 to 624.
-pub(crate) const GOLDEN_WORD_CHAPTER_ONE: i64 = 626;
+///
+/// - **626 → 774: a bump from another enemy ends the chase when the
+///   target is already in reach** (item 445, `docs/COMBAT.md` §48). On
+///   tick 624 `0/8`, walking under its attack on `1/6`, hard-collides
+///   with `1/8`. Both sides spend the blocked step's idle roll. Then
+///   `Unit::resolve_unit_collision@005f9d30`'s **enemy ladder** (§6 step
+///   3, arm B, `:176-187`) finds `1/6` in range and kills the move. This
+///   crate had no step 3 at all: it sidestepped, counted `collide 1` and
+///   walked on, so the original's `0/8` swung on 625 and rolled its attack
+///   animation on 626 while this crate's walked south.
+///
+///   The **value diff**, block 625, `0/8`, the dump's own record:
+///
+///   | field | dump | before 445 | after |
+///   | --- | --- | --- | --- |
+///   | pos | `1044, 8076` | `1032, 8088` | **`1044, 8076`** |
+///   | `orders_x, orders_y` | `1044, 8076` | `1224, 8280` | **`1044, 8076`** |
+///   | orders | `ATTACK` | `MOVE_TO, ATTACK` | **`ATTACK`** |
+///   | path | none | four entries | **none** |
+///   | `collide`, `collide_o`, `collide_who` | `0, 8, 1` | `1, 8, 1` | **`0, 8, 1`** |
+///
+///   and on 626–627 its clock, `recharging 32`, `visible 2` and
+///   `damage 1/6` follow. All close; the block is in
+///   `chapter_one_s_word_frame_is_widened_whole`'s map.
+///
+/// What stands at **774** is `Guy::set_anim+0x97a`, a blocked step's idle
+/// roll the original spends and this crate does not. The widening's first
+/// record parting under it is **765**: `1/7` and `1/8` take the far walk
+/// to about (38.6k, 13.4k), the destination item 399's table below shows.
+/// The original's order is `ATTACK_TO` with `stance 1`, this crate's
+/// `GROUP_ATTACK_TO` with `stance 0`. No mechanism named.
+pub(crate) const GOLDEN_WORD_CHAPTER_ONE: i64 = 774;
+
+/// **The block window chapter one's word is widened over** —
+/// `chapter_one_s_word_frame_is_widened_whole`, item 445, `[first, last)`.
+///
+/// The floor is run105's own first block, 605, which is the only floor
+/// that cannot hide a row (chapter two's 470 lesson). The ceiling is
+/// run110's last block plus one: run110 (`~/ron-golden/g6`) is the same
+/// game at `GUYS=9` over `[610, 630)`, and it is the only chapter-one
+/// capture that prints a figure's animation clock. The word is spent in
+/// that clock, and run105 at `GUYS=2` stops a `GUY` block after `ox`.
+/// It was `[605, 630)` while the word stood at 626: the ceiling was where
+/// the clock stops, three blocks past the word's own block of 627.
+///
+/// **The ceiling followed the word to 779 in the same landing**, when the
+/// ladder moved it 626 → 774. It is four frames past the word, as chapter
+/// two's has been. The clock rows still cover `[610, 630)` only; above
+/// that the `GUY` block is run105's `GUYS=2` fields.
+pub(crate) const WIDENING_CHAPTER_ONE: (i64, i64) = (605, 779);
 
 /// **Chapter two's golden word** — the ranged line, run112, item 415.
 /// `docs/GOLDEN.md` §6.
@@ -2206,12 +2258,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         520,
         Some(WIDENING_GREAT_LAKES_MARKET),
     ),
+    // Item 445 paid the widening chapter one had never had: the word
+    // stood at 626 from item 405 on, and every test behind it pinned one
+    // mechanism (the seating, the reach, the hit, the hand-off), not the
+    // cast. `docs/COMBAT.md` §48.
     (
         "GOLDEN_WORD_CHAPTER_ONE",
         GOLDEN_WORD_CHAPTER_ONE,
-        None,
+        Some("chapter_one_s_word_frame_is_widened_whole"),
         445,
-        None,
+        Some(WIDENING_CHAPTER_ONE),
     ),
     // Item 447 moved this word 616 → 624 and wrote its widening in the
     // same landing rather than leaving the row owing one — the lesson
