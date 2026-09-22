@@ -923,11 +923,29 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // entirely
         // (`run100_s_word_block_is_every_record_the_dump_carries`).
         // DECISIONS 36 asks for the number rather than a trade.
-        off: 42,
-        unlinked: 7,
+        // And **42 → 50 off, 7 → 8 unlinked, 9 → 8 build_diverged** on
+        // 2026-09-22, item 489 — §4.3's group arm reading `army_of`
+        // where the original reads `UnitData +0x80`, so a **pushed**
+        // group's members were hard to each other
+        // (`docs/COLLISION.md` §11), which moves this map's own word
+        // **10277 → 10294** on both the count and the sequence. Eight
+        // positions out, one more of the roster unlinked and one
+        // building field-row closer, 13,707 frames past the word and so
+        // on the far side of an unaligned draw stream — and the eight
+        // are not scattered: `1/24`, `1/25` and `1/26` are 24 out on
+        // both axes and the raiders `1/40`, `1/41`, `1/42` some 6,400
+        // south, a squad that has walked a different route rather than a
+        // roster that has come apart. The value diff the change is
+        // booked on is block 10278, where item 487's **seventeen** rows
+        // of `1/40` and `1/41` go to **none** — both take the
+        // original's own step and both raise the soft one-shot
+        // (`run100_s_word_block_is_every_record_the_dump_carries`).
+        // DECISIONS 36 asks for the number rather than a trade.
+        off: 50,
+        unlinked: 8,
         extra: 0,
         build_unlinked: 0,
-        build_diverged: 9,
+        build_diverged: 8,
         city_unlinked: 3,
         city_diverged: 0,
     },

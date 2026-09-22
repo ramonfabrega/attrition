@@ -973,8 +973,10 @@ impl Sim {
     /// this crate does not carry, and no capture has entered either
     /// (`docs/COLLISION.md` §9). ~~And the group arm needs
     /// `UnitData::group`, which it does not keep~~ — it keeps one now
-    /// (`docs/GROUPS.md` §1: an army's members are its group), and
-    /// [`Self::same_group_soft`] is that arm.
+    /// (~~`docs/GROUPS.md` §1: an army's members are its group~~ — an
+    /// army's *or a pushed slot's*, which is [`Sim::group_of`] and was
+    /// item 489's whole finding), and [`Self::same_group_soft`] is that
+    /// arm.
     fn soft_collision(&self, u: usize, o: usize, extra: i32) -> bool {
         let moving = |v: usize| self.current_order(v).is_some_and(Order::is_move);
         let acting = |v: usize| self.action_of(v).map(|a| self.units[v].orders[a].index());
@@ -1026,14 +1028,36 @@ impl Sim {
     ///
     /// SEAM: `0x12`, `CHANGE_FORM`, is an order this crate does not have,
     /// so the gated set is six of the seven here.
+    ///
+    /// ~~An army's members are its group~~ — **they are one of its two
+    /// seats**, and reading only that one was Great Lakes' word 10277
+    /// (item 489, `docs/COLLISION.md` §11). The original's test is one
+    /// `short`, `+0x80` against `+0x80` and against −1
+    /// (`detect_unit_collision@00617060:307`), which is the
+    /// `Groups::list` slot; a group here sits either in an army or in a
+    /// [`crate::group::Pushed`] pool slot, and `push_group` takes its
+    /// members **out** of the army when it installs one. So from item
+    /// 465 — which gave the AI's raiders a real `GROUP_MOVE` in the pool
+    /// — every member of a pushed group was hard to every other, and a
+    /// squad walking home stood on itself. [`Sim::group_of`] is the
+    /// resolver that item built and [`Sim::find_ordered_collision`] has
+    /// used since item 470; this was the site that was never moved over
+    /// to it, for a fortnight.
     fn same_group_soft(&self, u: usize, o: usize) -> bool {
         if self.units[u].owner != self.units[o].owner {
             return false;
         }
-        let (Some(a), Some(b)) = (self.army_of(u), self.army_of(o)) else {
+        // **The seat, not the army slot.** `+0x80` names a
+        // `Groups::list` slot and a group has exactly one seat here —
+        // an army's, or a [`crate::group::Pushed`] slot — so equality
+        // of the pair *is* equality of the back-pointer. Reading
+        // `army_of` instead answered `None` for every member of a
+        // pushed group, which since item 465 is the whole of Great
+        // Lakes' raid.
+        let (Some(a), Some(b)) = (self.group_of(u), self.group_of(o)) else {
             return false;
         };
-        if a != b {
+        if (a.army, a.pushed) != (b.army, b.pushed) {
             return false;
         }
         if self.units[o].search.is_some() {
@@ -2502,6 +2526,53 @@ mod tests {
         assert!(
             sim.detect_unit_collision(x, into).is_some(),
             "an attacker gets no exemption"
+        );
+    }
+
+    /// §4.3's group arm again, from the **other seat**: two members of a
+    /// **pushed** group pass through each other too
+    /// (`docs/COLLISION.md` §11).
+    ///
+    /// The original's test is `this->+0x80 == other->+0x80 != -1`
+    /// (`detect_unit_collision@00617060:307`) — one `short`, the
+    /// `Groups::list` slot, and it knows nothing about armies. A group
+    /// here has one of two seats: an army's, or a
+    /// [`crate::group::Pushed`] slot, and the sibling above only ever
+    /// exercised the first. [`Sim::same_group_soft`] read
+    /// [`Sim::army_of`] for a fortnight after item 465 gave this crate a
+    /// real pool, so every member of a pushed group was **hard** to
+    /// every other — which on Great Lakes is the whole raid, and was the
+    /// headline's word at 10277.
+    ///
+    /// **Made to fail on purpose**: with `group_of` put back to
+    /// `army_of`, the second assertion below collides, and Great Lakes'
+    /// word returns from 10294 to 10277 with block 10278's seventeen
+    /// rows of `1/40` and `1/41` back on it.
+    #[test]
+    fn two_members_of_a_pushed_group_pass_through_each_other() {
+        let a = Pos::new(30 * 0x30 + 0x18, 30 * 0x30 + 0x18);
+        let b = Pos::new(28 * 0x30 + 0x18, 30 * 0x30 + 0x18);
+        let (mut sim, x, y) = pair(a, b);
+        let into = Pos::new(28 * 0x30 + 0x18, 30 * 0x30 + 0x18);
+        assert!(
+            sim.detect_unit_collision(x, into).is_some(),
+            "two strangers block"
+        );
+        // The same two out of every army and into a pool slot, which is
+        // where `do_group_move`'s probe leaves the AI's raiders.
+        let mut g = crate::group::Group::stack(0);
+        g.list = vec![x, y];
+        assert!(sim.push_group(&mut g, false), "a pair takes a slot");
+        assert_eq!(g.army, None, "and it is not an army's group");
+        assert_eq!(g.pushed, Some(0), "it is the pool's");
+        assert!(
+            sim.detect_unit_collision(x, into).is_none(),
+            "sharing a pushed group makes it a nudge, not a collision"
+        );
+        assert!(
+            sim.units[x].half_step,
+            "and a soft collision raises the one-shot the next step is \
+             halved by"
         );
     }
 
