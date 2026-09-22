@@ -93,9 +93,10 @@ The size above is the graph schema's equivalent byte extent, not a captured
 native post-graph or the JSON file size. A native comparison must retain explicit
 pointer correspondences and definedness; neither is an arbitrary byte mask.
 
-The next lab step is a graph comparison contract with negative controls for
-wrong topology, keys, payloads and undefined required fields. Prepare that
-before requesting a bounded post-tree native capture. No slot is booked.
+Follow-up [L73](2026-09-22-graph-correspondence.md) establishes the graph
+comparison contract, including negative controls for wrong topology, keys,
+payloads and undefined required fields. Native post-tree collection still needs
+preparation before requesting a bounded capture. No slot is booked.
 
 Evidence stays outside git under
 `/Users/rf-studio/ron-data/lab-experiments/2026-09-22-defined-search-graph`.

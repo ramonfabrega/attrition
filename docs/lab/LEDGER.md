@@ -128,6 +128,8 @@ No new capture or main-loop adoption is requested by this handoff.
 
 | L72 | Can model post-tree structure be observed without inventing undefined bytes? | [Defined-byte graph observer](2026-09-22-defined-search-graph.md). | Structural walk completes: 539 records / 392 nodes / 123 PathNodes; 102 explicit undefined tail bytes. Repeat, read-only observation and control restoration pass; native unit/path agreement retained. | Model-only structural closure, not native post-tree or full-record byte equivalence. No new capture. |
 
+| L73 | Can saved graphs be compared without treating addresses or unknown bytes as values? | [Explicit graph correspondence](2026-09-22-graph-correspondence.md). | All 539 records pair across allocator relocation; 246 typed pointers normalize; required fields agree, one unused-capacity byte still fails strict agreement. | Model-to-model contract only; 102 undefined bytes retained, no native post-tree witness or new capture. |
+
 ## Current direction
 
 The September 19–22 tranche now has an unchanged native unit/path witness
@@ -137,7 +139,8 @@ the saved search; continuation-budget changes provide the useful counterfactual.
 This slice is packaged in draft PR #5 for Fable's review. Offline follow-up L71
 identified uninitialized node bytes +22/+23. L72 now observes the complete modeled
 structure with 102 explicit undefined bytes, preserving the byte guards. The
-next lab step is a graph comparison contract before native post-tree capture;
+L73 comparison contract now passes controlled relocation and rejects payload
+mutations. The next lab step is a bounded native post-tree collector and adapter;
 the next adoption test should answer one
 real divergence question selected by steering, with a named call/field and
 falsifier. Saved-tree contents, native limit 96 and general runtime fidelity

@@ -44,13 +44,14 @@ def main():
     ap.add_argument('install',type=Path);ap.add_argument('directory',type=Path)
     ap.add_argument('--borrow',action='append',default=[],type=parse_borrow)
     ap.add_argument('--require-closure',action='store_true')
+    ap.add_argument('--arena',type=lambda value:int(value,0),help='captured-free modeled arena for relocation controls')
     args=ap.parse_args()
     native=decode_post((args.directory/'restore-poststate.bin').read_bytes(),
                        (args.directory/'restore-prefix.bin').read_bytes())
     check_receipt(list(records(args.directory/'rontrace.log')),native)
     require(native.get('intervention') is not None,'explicit native intervention witness required')
     result=explore(args.install,args.directory,services='malloc+memset+memcpy+free',
-                   borrowed=args.borrow,mutable_arguments=True,observe_path=True,
+                   borrowed=args.borrow,arena=args.arena,mutable_arguments=True,observe_path=True,
                    on_prepared=lambda r,c,b:experiment(r,c,b,native))
     print(json.dumps(result,indent=2))
     if args.require_closure:
