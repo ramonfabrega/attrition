@@ -1381,6 +1381,11 @@ fn chapter_two_s_hoplite_captain_refused_a_cell_three_searches_reached() {
 /// (`FrameResult::extra_units`).
 #[test]
 fn chapter_two_s_word_frame_is_widened_whole() {
+    /// run112's one missing block inside its own window: 605..899, then
+    /// the `!quit` block at 901.
+    const RUN112_NO_BLOCK: i64 = 900;
+    /// run118's last block (`docs/RUNS.md` run118): its clocks stop here.
+    const RUN118_LAST_BLOCK: i64 = 846;
     /// The first frame compared: **run112's own first block**, which is
     /// the only floor that cannot hide a row. It stood at 633 until item
     /// 470, three frames under the word — and 633 was above a live
@@ -1672,9 +1677,14 @@ fn chapter_two_s_word_frame_is_widened_whole() {
             }
         }
     }
+    // run112 has **no block 900**: its window is 605..899 and the
+    // `!quit` block is 901 (`docs/RUNS.md` run112). Since item 523 the
+    // window runs to the capture's end, so that one absence is the
+    // dump's own shape and not a truncation.
+    let absent = usize::from((FIRST..LAST).contains(&RUN112_NO_BLOCK));
     assert_eq!(
         blocks,
-        (LAST - FIRST) as usize,
+        (LAST - FIRST) as usize - absent,
         "run112's dump no longer carries every frame of [{FIRST}, {LAST})"
     );
     // **Anti-vacuity for the borrowed clock** (item 510), and it is the
@@ -1688,11 +1698,15 @@ fn chapter_two_s_word_frame_is_widened_whole() {
     // count of guy records actually taken from it is pinned. Nine staged
     // figures, ten pre-existing ones and one guy each, over 123 blocks.
     if clocks.is_some() {
+        // run118 is truncated at 846, and since item 523 the window runs
+        // past it to run112's end: the clock rows cover `[FIRST, 847)` and
+        // the frames above are compared on run112's own `GUYS=2` fields.
+        let clocked = LAST.min(RUN118_LAST_BLOCK + 1);
         assert_eq!(
             clock_blocks,
-            (LAST - FIRST) as usize,
-            "run118 no longer carries every block of [{FIRST}, {LAST}); it is \
-             truncated at 846 and the window must stay under it"
+            (clocked - FIRST) as usize,
+            "run118 no longer carries every block of [{FIRST}, {clocked}); it is \
+             truncated at {RUN118_LAST_BLOCK}"
         );
         assert!(
             clock_rows >= 2000,
@@ -1718,9 +1732,16 @@ fn chapter_two_s_word_frame_is_widened_whole() {
     // hoplite the original's bowmen had been shooting since 696, which
     // this crate now targets too. Every one of the 420 comparisons
     // agrees.
+    //
+    // **Item 523 ran the window to run112's end and it holds four**:
+    // `1/7`, the last hoplite, dies on 816 and is carried from 817. Each
+    // record is on every block from its first to the end, less the one
+    // block run112 does not have.
+    let carried =
+        |from: i64| (LAST - from) as usize - usize::from((from..LAST).contains(&RUN112_NO_BLOCK));
     assert_eq!(
         deaths,
-        3 * ((LAST - 684) + (LAST - 730) + (LAST - 744)) as usize,
+        3 * (carried(684) + carried(730) + carried(744) + carried(817)),
         "the death-object comparison's own width moved; 1/8 dies on 683          and the dump carries its record on every block from 684 to the          end of run112"
     );
     // **Anti-vacuity**: the window has to hold the cast the chapter is
@@ -1934,13 +1955,19 @@ fn chapter_two_s_word_frame_is_widened_whole() {
     // `g.gpiece` rows at 606 (parked, `docs/ANIM.md`), and the two rows
     // past the word: `0/10`'s clock at 764 and `1/7` — the original's
     // last hoplite — taking a long walk at 765 that this crate's does not.
+    //
+    // **Item 523 ran the window to run112's end and the map fell from
+    // twenty rows to eleven** (`docs/COMBAT.md` §47). The nine rows past
+    // 762 were one mechanism: `1/7` was never promoted when its captain
+    // `1/6` died on 743, so on 762 it skipped the one-in-five roll the
+    // original's captain spends. With the promotion, the lead's
+    // `avg_speed` and the hit's launch-to-landing bearing, **nothing
+    // parts on any frame from 606 to the end of the capture** except the
+    // two standing residues: `damage 1/6` at 680 and the ten `g.gpiece`
+    // rows at 606. Both are older than this window's word and neither
+    // spends a draw.
     let measured = [
         ("damage 1/6", 680),
-        ("g.angle[0] 1/7", 765),
-        ("g.avg_speed[0] 1/7", 765),
-        ("g.cur_anim[0] 0/10", 764),
-        ("g.des_angle[0] 1/7", 765),
-        ("g.des_x[0] 1/7", 765),
         ("g.gpiece[0] 0/1", 606),
         ("g.gpiece[0] 0/2", 606),
         ("g.gpiece[0] 0/3", 606),
@@ -1951,17 +1978,13 @@ fn chapter_two_s_word_frame_is_widened_whole() {
         ("g.gpiece[0] 1/3", 606),
         ("g.gpiece[0] 1/4", 606),
         ("g.gpiece[0] 1/5", 606),
-        ("g.last_speed[0] 1/7", 765),
-        ("g.x[0] 1/7", 765),
-        ("order 1/7", 765),
-        ("pos 1/7", 765),
     ];
     let got: Vec<(&str, i64)> = first.iter().map(|(k, &n)| (k.as_str(), n)).collect();
     assert_eq!(
         got,
         measured.to_vec(),
-        "chapter two's word frame no longer widens the way item 495 \
-         measured it; re-pin this map and say so in docs/COMBAT.md §46"
+        "chapter two's word frame no longer widens the way item 523 \
+         measured it; re-pin this map and say so in docs/COMBAT.md §47"
     );
 }
 
@@ -2105,7 +2128,15 @@ fn chapter_two_s_near_o_is_the_dump_s_on_every_unit_frame() {
 /// dump's own `near_o`/`near_who`, animals included — 4668 of 4668 over
 /// `[606, 684)` on the landing that gave this crate the field, and the
 /// same on the window item 481 widened.
-const NEAR_PARTED: &[((i64, i64), i64)] = &[];
+///
+/// **Item 523 ran the window to run112's end, and two rows part on 847**,
+/// both past every draw the chapter spends differently (none). On sim
+/// frame 846 the bowmen `0/7` and `0/8` drop their attack on the dead
+/// `1/7`. The original's `near_o 7 near_who 1` stands through the drop and
+/// after it; this crate's pair goes to `-1`. The search throttle is not
+/// the reason (`waiting` stays 0 on both sides), and no mechanism is named
+/// here. Parked for the commander to book by its frame.
+const NEAR_PARTED: &[((i64, i64), i64)] = &[((0, 7), 847), ((0, 8), 847)];
 /// `(unit-frames read, live pairs among them, unit-frames agreeing)` for
 /// the row above. All three are pinned because an empty disagreement
 /// list is worthless without them: a reader that stopped parsing would
@@ -2136,7 +2167,11 @@ const NEAR_PARTED: &[((i64, i64), i64)] = &[];
 /// 766 with the word 725 → 762 — still total, across two more deaths and
 /// the bowmen's retarget onto `1/6`, which this crate now makes as the
 /// original does.
-const NEAR_TALLY: (usize, usize, usize) = (9530, 409, 9530);
+///
+/// **And by item 523**, 9530/409/9530 → 17219/859/17113, on the ceiling's
+/// move 766 → 901 with the word 762 → 900: the whole of run112. The 106
+/// that disagree are [`NEAR_PARTED`]'s two bowmen from 847 to the end.
+const NEAR_TALLY: (usize, usize, usize) = (17219, 859, 17113);
 
 /// One frame's `near_o`/`near_who` per unit, read out of the raw dump
 /// text — [`ch2_dump_units`]'s sibling, for the pair that reader takes
@@ -2348,22 +2383,16 @@ fn chapter_two_s_hit_points_are_the_dump_s_on_every_unit_frame() {
     // crate's went idle for a frame each time a target died, and the
     // frames they gain back are the ones that reach `0/10`.
     //
-    // **Item 495 took `(0, 9)` back out, and past the word.** The dump
-    // first wounds `0/9` on block 792, thirty frames past chapter two's
-    // word at 762, where the two games have already parted; this crate's
-    // surviving hoplite takes a different walk from 765 (`docs/COMBAT.md`
-    // §46.7) and does not reach it. Everything under the word agrees.
-    assert_eq!(
-        ours,
-        vec![(0, 10), (0, 11), (1, 6), (1, 7), (1, 8)],
-        "the set this crate wounds has moved"
-    );
+    // ~~**Item 495 took `(0, 9)` back out, and past the word.**~~ The dump
+    // first wounds `0/9` on block 792, and **item 523 put it back**:
+    // with `1/7` promoted to captain on 743 it spends the one-in-five
+    // roll, walks the original's walk from 765, and reaches `0/9` as the
+    // dump's does (`docs/COMBAT.md` §47). The sets are identical again,
+    // and the assertion is written that way.
+    assert_eq!(ours, theirs, "the set this crate wounds has moved");
     assert!(
-        theirs
-            .iter()
-            .filter(|w| !ours.contains(w))
-            .all(|w| *w == (0, 9)),
-        "a unit the dump wounds and this crate does not, other than 0/9"
+        theirs.iter().all(|w| ours.contains(w)),
+        "a unit the dump wounds and this crate does not"
     );
     // **What parts, printed and pinned by its field.** `damage` and
     // `damage_frac` part on the engagement and the reason is §7.3's

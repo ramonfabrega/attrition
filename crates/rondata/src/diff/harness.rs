@@ -241,7 +241,29 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
                     u.damage_who.filter(|_| live),
                 ),
             ];
-            for (field, mine, logged) in rows {
+            // **The squad chain, `o_up` and `o_down`** (item 523,
+            // `docs/COMBAT.md` §47). Printed at the same indent on every
+            // unit of every block, and compared nowhere until this row:
+            // `o_up` was parsed for the stand-up alone (`diff::army`), and
+            // that one read kept it off both `coverage`'s pin and the
+            // ledger's uncompared list. `UnitData::is_captain` is `o_up <
+            // 0`, and it gates `Unit::fight`'s one-in-five roll. When
+            // run112's `1/6` died on 743 the original handed its squad to
+            // `1/7`, and this crate did not. The draw that went missing
+            // was nineteen frames later, on 762, and the record it read
+            // had parted on 744 with nothing looking at it.
+            //
+            // A link is compared as the dump prints it, the linked
+            // figure's own `o` or −1, and a dead slot is still a link:
+            // `Unit::close` re-appends the dead figure at its chain's
+            // tail, so a live captain's `o_down` can name a figure the
+            // dump no longer carries.
+            let link_o = |l: Option<usize>| l.map_or(-1, |x| i64::from(built.sim.units[x].index));
+            let chain: [(&'static str, i64, Option<i64>); 2] = [
+                ("o_up", link_o(un.o_up), u.o_up),
+                ("o_down", link_o(un.o_down), u.o_down),
+            ];
+            for (field, mine, logged) in rows.into_iter().chain(chain) {
                 let Some(theirs) = logged else { continue };
                 r.firing_compared += 1;
                 if theirs != mine {

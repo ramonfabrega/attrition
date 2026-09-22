@@ -1733,6 +1733,10 @@ pub struct UnitDump {
     /// one itself — `is_captain`, which `find_leader` and `get_num_cap`
     /// both open on.
     pub o_up: Option<i64>,
+    /// `UnitData::o_down`: the next figure down the squad chain, −1 at its
+    /// tail. A dead figure's slot stays in the chain, re-appended at the
+    /// tail by `Unit::close` (`docs/COMBAT.md` §47.2).
+    pub o_down: Option<i64>,
     /// `UnitData::inside_up`: the building this unit is garrisoned in.
     pub inside_up: Option<i64>,
     /// **The hit-point record**, all three of it, written inside the
@@ -2884,6 +2888,7 @@ fn unit_of(b: Block<'_>) -> Option<UnitDump> {
         unit_masks2: b.int("unit_masks2"),
         myspeed: b.int("myspeed"),
         o_up: b.int("o_up"),
+        o_down: b.int("o_down"),
         inside_up: b.int("inside_up"),
         myhits: obj.and_then(|o| o.int("myhits")),
         damage: obj.and_then(|o| o.int("damage")),

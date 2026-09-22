@@ -3767,6 +3767,7 @@ impl Sim {
         unit.health -= lost;
         let killed = !unit.alive();
         if killed {
+            self.relink_squad(i);
             self.close_supply(i);
         }
         Some(Tick {

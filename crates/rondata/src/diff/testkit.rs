@@ -1994,7 +1994,20 @@ pub(crate) const GOLDEN_WORD_CHAPTER_ONE: i64 = 626;
 /// `Unit::fight+0x9b0` first, 8 draws against 9, and nothing parts on
 /// 762 or 763; the widening's block is its window's (see
 /// [`WIDENING_CHAPTER_TWO`]).
-pub(crate) const GOLDEN_WORD_CHAPTER_TWO: i64 = 762;
+///
+/// **Item 523 moved the word 762 → 900**, the constant's delta **+138**,
+/// and 900 is run112's trace end: no draw parts on any frame of chapter
+/// two, and no word does (`docs/COMBAT.md` §47). Three links, each read
+/// off the frame the last one left. On 743 the original's `1/6` died and
+/// `Unit::close` handed its squad to `1/7`, which this crate never
+/// promoted, so on 762 `1/7` failed `is_captain` and skipped the
+/// one-in-five roll. On 771 `0/9`'s shot struck `1/7` at the target's
+/// current bearing where the original strikes at the shot's own `ex − sx,
+/// ey − sy`. And the shot's landing led `1/7` by its unit speed where the
+/// original leads by its first figure's `avg_speed`. The last two were
+/// register pairs the decompiler dropped. The widening's block for this
+/// move is the whole capture (see [`WIDENING_CHAPTER_TWO`]).
+pub(crate) const GOLDEN_WORD_CHAPTER_TWO: i64 = 900;
 
 /// **How many height reads each replay may make on a corner this crate
 /// cannot pin to the original's single**, by test name — `docs/COMBAT.md`
@@ -2064,7 +2077,15 @@ pub(crate) const WIDENING_GREAT_LAKES: (i64, i64) = (9_340, 10_847);
 /// block for the move. Its map fell from thirty-nine rows to twenty; the
 /// first past the word are `0/10`'s clock on 764 and `1/7`'s walk on 765,
 /// and run118's clock still covers the whole window.
-pub(crate) const WIDENING_CHAPTER_TWO: (i64, i64) = (606, 766);
+///
+/// **And to 901 on item 523, the end of run112**, with the word 762 → 900.
+/// A word at the capture's end has nothing above it to straddle, so the
+/// window is the whole capture from its first block: run112 carries
+/// 605..899 and its `!quit` block at 901, and the test knows block 900 is
+/// the one it lacks. run118's clocks stop at 846 and cover the window up
+/// to there. The map fell from twenty rows to eleven, the two residues
+/// standing since 606 and 680.
+pub(crate) const WIDENING_CHAPTER_TWO: (i64, i64) = (606, 901);
 
 /// One pinned word's row: `(constant, word, widening test, item, window)`.
 pub(crate) type Widening = (
@@ -2242,11 +2263,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // `Some(ours)` against `None` on every one. The clock now comes from
     // run118, the same game at `GUYS=4`, keyed and asserted block by
     // block. Eleven rows became thirty-nine. `docs/COMBAT.md` §45.
+    //
+    // **Item 523 widened the record a fourth time** (`o_up`, `o_down`)
+    // and the window to the whole of run112, because the word reached the
+    // capture's end: 762 → 900. Twenty rows became eleven, the two
+    // standing residues. `docs/COMBAT.md` §47.
     (
         "GOLDEN_WORD_CHAPTER_TWO",
         GOLDEN_WORD_CHAPTER_TWO,
         Some("chapter_two_s_word_frame_is_widened_whole"),
-        495,
+        523,
         Some(WIDENING_CHAPTER_TWO),
     ),
 ];
