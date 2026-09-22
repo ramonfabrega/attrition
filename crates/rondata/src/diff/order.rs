@@ -337,10 +337,32 @@ pub(crate) fn compare_orders(
             );
         }
         let mine = built.target_ids(link.unit, ours);
-        let logged = theirs.whom.zip(theirs.ox);
-        if let (Some(a), Some(b)) = (mine, logged)
-            && a != b
-        {
+        let logged = theirs
+            .whom
+            .zip(theirs.ox)
+            .filter(|&(who, o)| who >= 0 && o >= 0);
+        // **A target this crate cannot name is a divergence on an attack
+        // order and a silence everywhere else** (item 496). `target_ids`
+        // answers `None` for two different reasons and until now both
+        // were skipped: for a `Move`, `Cast`, `Trade` or `Think` order,
+        // and for a building the simulation made itself, it means *this
+        // crate does not model a target here* — noise if it were
+        // reported. For an **attack** order it means the opposite: the
+        // order is the wrapper and the target lives in `combat::State`
+        // (`docs/ORDERS.md` §13), so `None` is this crate saying the
+        // unit is attacking nothing while the dump names what it is
+        // attacking. That is a state disagreement, and it was quiet.
+        //
+        // It was quiet over chapter two's whole second fight.
+        // `Sim::forget` drops a dead object from every attacker's target
+        // slot; the original does not — run112's three bowmen carry
+        // `ox 8 whom 1` on their `ATTACKORDER` from the frame `1/8` dies
+        // (683) to the frame their reload opens (695), and this crate
+        // carried nothing there. Twelve frames, three units, thirty-six
+        // unit-frames of divergence that the comparison read as
+        // agreement. `docs/COMBAT.md` §43.
+        let attack = matches!(ours.body, sim::orders::Body::Attack(_));
+        if logged.is_some() && mine != logged && (mine.is_some() || attack) {
             at(
                 slot,
                 OrderMismatch::Target {

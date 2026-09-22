@@ -1840,6 +1840,27 @@ pub(crate) const GOLDEN_WORD_CHAPTER_ONE: i64 = 626;
 /// value rows are on 696. This is a draw-stream parting rather than a
 /// value one, which is a different item shape. No mechanism is named
 /// here, by design.
+///
+/// **Item 496 named it and did not move it**, so the delta above still
+/// stands and the cause is now known rather than open. The extra draw is
+/// `0/6`'s: this crate's three bowmen end an attack animation together on
+/// 695 and the original ends two, because the original's `0/6` **does not
+/// step its clock** — `Guy::inc_time`'s zero arm under `unit_masks2 &
+/// 0x10`, which `docs/ANIM.md` §5 has stated since the mechanic was
+/// written and [`sim::Sim::guy_inc_time`] has never implemented. run118
+/// measured the step itself (`last_time 29` against `cur_time 29` where
+/// every other block has `last = cur − 1`) and run112's own `OBJECT`
+/// block carries `unit_masks2 16` on `0/6` at that block.
+///
+/// What is needed to move it is **not** the zero arm on its own: the
+/// bit's writer is `Unit::fight`'s "still ordered, reload open, not
+/// firing" arm, and reaching it needs the frame the original has and this
+/// crate does not — an attack order that keeps its **dead** target from
+/// 683 to 695, a captain that searches for the replacement and spends the
+/// frame doing it, and two followers that strike on it the same frame.
+/// Removing [`sim::Sim::forget`]'s clear alone leaves the word here and
+/// turns `near_o 0/7`/`0/8` and `chapter_two_s_hit_points` red. The three
+/// land together. `docs/COMBAT.md` §43.
 pub(crate) const GOLDEN_WORD_CHAPTER_TWO: i64 = 695;
 
 /// **Every pinned word names the test that widened its frame whole, or
@@ -2037,6 +2058,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // since the day the capture was taken: `flags 6` on every arrow at a
     // land unit, `flags 14` and `whom -1 ox -1` on the one that missed.
     // `docs/DECISIONS.md` 42 for the fifth time in this chain.
+    //
+    // **Item 496 widened the record rather than the window again**, and
+    // the map's first parting went 686 → **684**: the three `order` rows
+    // move 696 → 684 because `compare_orders` reported a target only when
+    // *both* sides named one, so this crate's attack order carrying
+    // nothing against the dump's `ox 8 whom 1` read as agreement for the
+    // twelve frames between `1/8`'s death and the bowmen's next reload.
+    // The same shape item 462 fixed one level down in `unit_ids`.
+    // `docs/COMBAT.md` §43.
     (
         "GOLDEN_WORD_CHAPTER_TWO",
         GOLDEN_WORD_CHAPTER_TWO,
