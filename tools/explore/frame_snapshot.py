@@ -77,6 +77,16 @@ def check_receipts(rows,report):
     require(not any(x[0]==5 and x[1] in (2,5,14) for x in rows),'trace health failure')
     require(any(x[0]==2 and x[1]==report['trace_frame'] for x in rows[:index]),'missing preceding trace frame')
     require(any(x[0]==2 and x[1]>report['trace_frame'] for x in rows[index+1:]),'no subsequent frame; capture continuation unproved')
+    after=[(i,x) for i,x in enumerate(rows) if x[:2]==(5,182)]
+    require(len(after)==1 and after[0][0]>index,'missing/duplicate logger return check')
+    ai,a=after[0]
+    require(a[2:4]==(report['frame'],report['anchor_count']) and a[6]==0 and a[7]==report['trace_frame'],'logger return check failed')
+    require(any(x[:3]==(5,3,0x192586) for x in rows[:index]),'logger return hook not installed')
+    changed=[x for x in rows[index+1:ai] if x[:2]==(5,184)]
+    require(len(changed)==a[4] and sum(x[6] for x in changed)==a[5],'logger drift accounting differs')
+    require(len({x[3] for x in changed})==len(changed) and all(x[2]==report['frame'] and x[3]<report['anchor_count'] and 0<x[6]<=x[5] and x[7]==report['trace_frame'] for x in changed),'invalid logger drift records')
+    report['logger_return_roots_unchanged']=not changed
+    report['logger_changed_anchors']=[dict(index=x[3],address=x[4],bytes=x[5],changed_bytes=x[6]) for x in changed]
     return r[5]
 
 

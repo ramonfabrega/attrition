@@ -176,3 +176,20 @@ market investigation. Reaching that frame costs minutes rather than the earlier
 it does not by itself establish the initial value of a terraformed corner.
 The capture must acquire the shared nonblocking profile lock and verify that
 no original is already running before staging. No live attempt has run yet.
+
+The boundary audit found `NetDaemon::process_all` calls inside the dump path,
+including `GameLog::dump_units`; logger purity is therefore an unproved
+assumption. A second opt-in hook at the normal `Game::do_frame` continuation
+checks the same roots after `end_frame` returns. Changed anchors are counted
+and named in trace receipts, not silently treated as decoder defects. These
+checks still do not prove that every child object was stable throughout logging.
+Authored controls prove both an unchanged return and a changed-root receipt.
+The intended snapshot is logger frame 11,186, after trace tick 11,185. The
+retained run123 market dump now contains that frame (75,976 lines in the slice),
+so the live logging window can be narrow rather than spanning back to run100.
+
+The release gate completed successfully (1,278 tests plus clippy, formatting,
+install survey and fixture/paperwork checks). It started at `1c120b4`; the later
+logger-return changes affect only the opt-in native collector and its reader,
+and receive the focused tests separately. Default COFF objects before/after
+that addition are byte-identical after normalizing their build timestamps.

@@ -41,10 +41,14 @@ class SnapshotTests(unittest.TestCase):
 
     def test_receipts_require_hook_and_continuation(self):
         r=self.parse()
-        rows=[(5,3,0x5329d0,0,0,0,0,0),(2,23,0,0,0,0,0,23),
-              (5,180,24,1,0x3000,0,3,23),(2,24,0,0,0,0,0,24)]
+        rows=[(5,3,0x5329d0,0,0,0,0,0),(5,3,0x192586,0,0,0,0,0),
+              (2,23,0,0,0,0,0,23),(5,180,24,1,0x3000,0,3,23),
+              (5,182,24,3,0,0,0,23),(2,24,0,0,0,0,0,24)]
         self.assertEqual(check_receipts(rows,r),0)
-        for bad in (rows[1:],rows[:-1],rows+rows[2:3],rows[:2]+rows[3:],rows+[(5,181,1,0,0,0,0,0)]):
+        self.assertTrue(r['logger_return_roots_unchanged'])
+        drift=rows[:4]+[(5,184,24,2,0x401000,16,1,23),(5,182,24,3,1,1,0,23)]+rows[5:]
+        check_receipts(drift,r);self.assertFalse(r['logger_return_roots_unchanged'])
+        for bad in (rows[1:],rows[:-1],rows+rows[3:4],rows[:3]+rows[4:],rows+[(5,181,1,0,0,0,0,0)]):
             with self.assertRaises(ValueError):check_receipts(bad,r)
 
 if __name__=='__main__':unittest.main()
