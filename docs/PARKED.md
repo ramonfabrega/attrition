@@ -22,6 +22,19 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Parked by item 445, 2026-09-22 — chapter one's widening floor
+
+(531) **Arm C of `resolve_unit_collision`'s enemy ladder**
+(`005f9d30:189-252`) is unread: `LeaderData +0x9f4` and type vslot
+`+0x10c` need names from the type records. Reading only; no capture
+known to reach it. `docs/COMBAT.md` §48 has arms A and B.
+
+(532) **Chapter one's standing floor rows**, none spending a draw in
+`WIDENING_CHAPTER_ONE`: `0/2000`'s city record empty at 605, `form` −1
+against 0 on every unit, followers' `orders_x/y` at birth seeded from
+the captain, three citizens' idle `end_time` 33 against 56, and five
+`dest_angle`s. Pinned by the widening; promote a row when a word lands on it.
+
 ## Parked by item 523, 2026-09-22 — chapter two closed, and what it left
 
 (524) **`near_o` on `0/7` and `0/8` parts from 847**, pinned in

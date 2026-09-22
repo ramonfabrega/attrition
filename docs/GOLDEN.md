@@ -53,8 +53,9 @@ map, the same seed, the same 34 option fields — which is what keeps the setup
 genuinely shared and `borrow_from_siblings` legitimate (`docs/INPUT.md` §11.7),
 and diverges only in what its own script stages.
 
-**The word.** Chapter one's is pinned at 626 of 901 and the handoff's
-`Golden:` line carries it. What the line should say once a second chapter
+**The word.** ~~Chapter one's is pinned at 626 of 901~~ Chapter one's is
+pinned at 774 of 901 (item 445), chapter two's at 900, its trace's end
+(item 523), and the handoff's `Golden:` line carries both. What the line should say once a second chapter
 pins is **the commander's to rule and not this document's to book**; the
 design's recommendation is the AI track's own rule one level across —
 the **lowest** chapter's word first, because that is where the next cause

@@ -37,11 +37,11 @@ chapter two **683 → 725** — both headline words moved.*
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w9711 of 24,000 · GreatLakes w11185 of 24,000
-Golden: w626 of 901 (ch1) · ch2 w900 · 445 next
+Golden: w774 of 901 (ch1) · ch2 w900 · 530 next
 Endpoint 24001: EastIndies 62 off, 10 unlinked · GreatLakes 57 off, 4 unlinked
 
-**Opener: an Opus 5.5 commander is live; 445 in flight on att-445, 327
-next on the AI track. Workers spawn with `claude-opus-5-5[1m]`.**
+**Opener: an Opus 5.5 commander is live; 327 in flight on att-327, 530
+next on the rules track. Workers spawn with `claude-opus-5-5[1m]`.**
 
 ## The queue
 
@@ -59,14 +59,13 @@ the backlog is `docs/PARKED.md`, and an item returns only when a score names it.
     writer, so the merchant arm is dead. Owed: that writer, the offer's
     value, the re-offer's emptied slot. ECONOMY §14.4; (450) is 9380's.
 
-445. **Chapter one's word, 626, has no widening on file** (promoted from
-    parked: chapter two closed at 900, its trace's end, on item 523, so
-    chapter one is the rules headline). None of the tests behind
-    `GOLDEN_WORD_CHAPTER_ONE` is a whole-cast `compare` over 626's own
-    frame; `WIDENINGS` says so. The item is that widening, both
-    directions, every record — one probe over
-    `crate::diff::harness::compare`, the shape 441 used — then the frame.
-    No mechanism.
+530. **Golden chapter one's word is 774: a blocked step the original
+    takes** (445 moved the word 626 → 774 and put its widening on file,
+    `WIDENING_CHAPTER_ONE` (605, 779)). The draw: `Guy::set_anim+0x97a`,
+    the original's and not ours. Under it, on 765, `1/7` and `1/8` take
+    the army's far march to (38.6k, 13.4k) as `ATTACK_TO`, stance 1,
+    where ours gives `GROUP_ATTACK_TO`, stance 0 — who=1's early march
+    (399). The rules headline. No mechanism.
 
 ## How to maintain this file
 
