@@ -1435,6 +1435,26 @@ fn chapter_two_s_word_frame_is_widened_whole() {
         for d in &r.visible_diverged {
             note(format!("visible {}/{}", d.who, d.o));
         }
+        // **The four `FrameResult` carries that this walk ignored until
+        // item 466.** They are empty over this window — chapter two
+        // stages nine soldiers and no building — but "widened whole"
+        // has to mean every vector the comparison produces, not the ten
+        // the mechanic happened to care about, or the claim decays into
+        // the shape `CLAUDE.md` warns about: an instrument that agrees
+        // because it is not looking. Adding them changed no row, which
+        // is the only way to find that out.
+        for d in &r.gather_diverged {
+            note(format!("gather {}/{}", d.who, d.o));
+        }
+        for d in &r.build_diverged {
+            note(format!("build {}/{}", d.who, d.o));
+        }
+        for d in &r.queue_diverged {
+            note(format!("queue {}/{}", d.who, d.o));
+        }
+        for d in &r.city_diverged {
+            note(format!("city {}/{}", d.who, d.o));
+        }
     }
     assert_eq!(
         blocks,
