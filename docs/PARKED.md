@@ -342,6 +342,12 @@ of building it — and the open question of whether the rule above should
 be in `CLAUDE.md` at all, given it was derived twice in one day by two
 different lanes without being written anywhere.
 
+## Loop, filed 2026-09-22 — the chain's own defects
+
+The same section, split on 2026-09-22 when it passed the 16 KB ceiling
+the guard sets. Everything in the heading above applies: these are the
+steering pass's, never a worker's, and a commander never spawns one.
+
 (509) **Filing to this section is the commander's default, and it was
 not.** Ramon, 2026-09-22, after having to ask twice: *"it should be your
 DEFAULT to tag to fable. idk why i have to ask you every time"*. Both
@@ -394,6 +400,28 @@ Also worth the pass's attention: **the commander's three messages
 reached the lanes out of order relative to its own intent**, and each
 lane acted on what it had. If a reversal is ever legitimate, it needs to
 be one message that supersedes, not a sequence.
+
+**IT HAPPENED AGAIN THE SAME DAY, and that makes it a pattern rather
+than a slip.** Hours later Ramon said he was updating Claude Code and
+*"lets stop sending new lanes until we can check out 5.5"*. The
+commander told the live lane att-515 to **bank, commit whatever it had
+unfinished, and launch nothing** — mid-item, half an hour in. Ramon:
+*"this NEVER means you 'stop' the out worker man. same bs you did last
+time where i said astra wanted the capture lane. i just meant we do not
+send out NEW agents. not stop halfway through"*.
+
+**The invariant the commander keeps failing to hold: a instruction about
+what to START is not an instruction about what to STOP.** Both times the
+words were about *new* work — a lane wanted, new lanes paused — and both
+times the commander reached into work already running. Both times the
+reversal cost a round trip and churn in a worker's context.
+
+That it recurred *after* being written up here, in the same session, is
+the finding. Prose in a parked file did not stop it; the commander had
+read and written this very entry hours earlier. **The pass should treat
+this as evidence about what a written rule can and cannot fix**, which
+bears directly on (503), (513) and (517) — all three of which propose
+prose or guards for defects of judgement rather than of code.
 
 **And the intervention was unnecessary at the mechanism level, not just
 at the etiquette level.** Ramon, afterwards: *"astra actually uses the
