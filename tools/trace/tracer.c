@@ -61,6 +61,9 @@
  * records of eight u32s; see `report.py` for the reader.
  */
 
+#if defined(RON_RESTORE_POSTGRAPH) && !defined(RON_RESTORE_POSTSTATE)
+#error RON_RESTORE_POSTGRAPH requires RON_RESTORE_POSTSTATE
+#endif
 #if defined(RON_RESTORE_LIMIT95) && !defined(RON_RESTORE_POSTSTATE)
 #error RON_RESTORE_LIMIT95 requires RON_RESTORE_POSTSTATE
 #endif
