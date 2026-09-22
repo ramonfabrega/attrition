@@ -996,11 +996,6 @@ Mathematics 82,500 against 63,000, all `research_techs`' arithmetic. A
 value diff on disk, no capture needed; parked because the window that
 prints them is not a scoring one. Item 323.
 
-(327) **The Merchant is still not offered at slot 3** (`t 61`, `val
-869,565`) — `civilian_value`'s merchant arm reads `known_rares`, which is
-still a summed-region seam. Item 323, and a sibling of 291's unlinked
-caravans.
-
 (333) **`1/28`'s path stack is 41 where run19 says 42** — an off-by-one
 already present at 8186 and belonging to `find_wpath`'s plan near the
 goal, found by item 329 and deliberately not closed by it. The chase and

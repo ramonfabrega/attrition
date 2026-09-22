@@ -40,8 +40,8 @@ Long captures: EastIndies w9711 of 24,000 · GreatLakes w11185 of 24,000
 Golden: w626 of 901 (ch1) · ch2 w900 · 445 next
 Endpoint 24001: EastIndies 62 off, 10 unlinked · GreatLakes 57 off, 4 unlinked
 
-**Opener: an Opus 5.5 commander is live; 520 in flight on att-520, 445
-next on the rules track. Workers spawn with `claude-opus-5-5[1m]`.**
+**Opener: an Opus 5.5 commander is live; 445 in flight on att-445, 327
+next on the AI track. Workers spawn with `claude-opus-5-5[1m]`.**
 
 ## The queue
 
@@ -51,13 +51,13 @@ the AI, lower map first — Great Lakes. Take the first unstarted on either
 track unless a better order is obvious, and say so. Numbers are stable;
 the backlog is `docs/PARKED.md`, and an item returns only when a score names it.
 
-520. **Great Lakes' word 11185 has no widening: no dump reaches it**
-    (518 moved the word 10834 → 11185; run100 ends on block 10899). The
-    draw delta: ours nine against eight, `Leader::use_market+0x1ed`
-    against `Leader::make_stuff+0x221` at index 2 — a market frame. The
-    item is the capture first: run100's detail over a window sized to
-    the word, overlapping run100, then the widening of 11185 both
-    directions. Re-point `WIDENINGS`' row to the test. No mechanism.
+327. **The Merchant offer — promoted from parked, the AI headline** (520
+    widened 11185 on run123). Ours nine draws against eight at index 2,
+    `use_market+0x1ed` against `make_stuff+0x221`: the original's
+    `MAKE[1]` is an emptied Merchant slot (`t −1`) where ours holds a
+    Cataphract, so wealth enters our need. `reg_known_rares` has no
+    writer, so the merchant arm is dead. Owed: that writer, the offer's
+    value, the re-offer's emptied slot. ECONOMY §14.4; (450) is 9380's.
 
 445. **Chapter one's word, 626, has no widening on file** (promoted from
     parked: chapter two closed at 900, its trace's end, on item 523, so
