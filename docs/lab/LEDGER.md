@@ -134,6 +134,8 @@ No new capture or main-loop adoption is requested by this handoff.
 
 | L75 | Does the modeled saved graph survive a paired native post-return comparison? | [Native post-graph agreement](2026-09-22-native-postgraph-agreement.md). | One authorized capture: all required fields across 539 records agree under 246 typed pointer relocations; exact unit/path agreement retained. | 102 model-unknown bytes and four unused-capacity differences remain explicit; strict byte agreement fails. Lane released; no main score change. |
 
+| L76 | Can validated suspended state support another modeled invocation? | [Continuation boundary](2026-09-22-continuation-boundary.md). | Immediate 95→300 and 95→95 chains complete with all 640 path bytes matching the single-call control; repeats and guard controls pass. | Frozen-world model only; two unit words differ, completed-state graph observation refuses, and native frame 225 has an intervening call. PR #6 frozen; no capture. |
+
 ## Current direction
 
 The September 19–22 tranche now has an unchanged native unit/path witness
@@ -146,7 +148,10 @@ structure with 102 explicit undefined bytes, preserving the byte guards. The
 L73 comparison contract now passes controlled relocation and rejects payload
 mutations. L74 prepared the native collector; L75 now confirms required saved-graph
 fields against one native limit-95 call, retaining unknowns and stale-capacity
-differences. The next lab step is a steering-selected pilot question;
+differences. That checkpoint is frozen in draft PR #6. L76 continues independently
+with immediate modeled re-entry; it reproduces the path but exposes two unit-word
+differences and the completed-state observation gap. The next lab step is a
+completed-state contract before selecting a native second-call falsifier;
 the next adoption test should answer one
 real divergence question selected by steering, with a named call/field and
 falsifier. Saved-tree required fields now have one native witness; native limit 96,
