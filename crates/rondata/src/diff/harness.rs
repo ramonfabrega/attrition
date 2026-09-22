@@ -6233,6 +6233,16 @@ mod tests {
     fn run100_s_word_frame_is_the_original_s() {
         /// run100's first complete block.
         const FIRST: i64 = 9_340;
+        /// **The human citizen's gather residue** (item 464,
+        /// `docs/COMBAT.md` §34.4): with its attack order gone `0/5`
+        /// takes the original's `FLEE_TO` and then a `GATHERORDER` the
+        /// original's citizen does not, so the list is two deep where the
+        /// dump carries one. It opened **on** the word until item 465
+        /// moved the headline one frame past it; naming it here rather
+        /// than widening `opens` is the same choice `RAID` is, and for
+        /// the same reason — the exemption has to name the row, so that
+        /// the day the row closes this fails.
+        const CITIZEN_GATHER: i64 = 10_233;
         /// The human city's raid, which this crate does not hold at all:
         /// `CityData::raid_stamp` is `Leader::raid`'s and `0x2` is
         /// `no_heal`, both named as unheld in [`compare`]'s own city
@@ -6403,7 +6413,7 @@ mod tests {
             .chain(
                 orders
                     .iter()
-                    .filter(|(_, f)| opens(f))
+                    .filter(|(k, f)| opens(f) && (**k, **f) != ((0, 5), CITIZEN_GATHER))
                     .map(|(k, f)| format!("order {k:?} f{f}")),
             )
             .chain(
@@ -6417,23 +6427,21 @@ mod tests {
             inside.is_empty(),
             "a record other than the queue parts inside run100's window: {inside:?}"
         );
-        // ~~**And what opens on the word is one unit's position.** The
-        // draw stream parts at `Guy::set_anim+0x97a` on 10161; the record
-        // says the same event from the other side — `1/38` standing
-        // somewhere else.~~ ~~**Item 456 closed 10161** and the word is
-        // 10232, where the record says something bigger: a **three-unit
-        // squad** — `1/27`, `1/28`, `1/29` — parts together.~~
+        // ~~**And what opens on the word is one unit's position.**~~
+        // ~~**Item 456 closed 10161**~~ … ~~a **three-unit squad**~~ …
+        // ~~**Item 463 closed the squad**~~ … ~~**item 464 closed the
+        // citizen's half** … what opens on 10233 is **one** position,
+        // `1/28`, one frame ahead of the original on the walk its dropped
+        // order freed~~ — **item 465 closed that frame**, and the key is
+        // `1/28` again for a different reason one block along.
         //
-        // ~~**Item 463 closed the squad**~~ … ~~what opens on 10233 is
-        // **two** positions~~ — **item 464 closed the citizen's half**.
-        // `0/5` no longer parts on position at all: it flees to the
-        // original's own `(792, 31800)` on the original's own frame.
-        // What opens on 10233 is **one** position, `1/28`, one frame
-        // ahead of the original on the walk its dropped order freed —
-        // and that frame is not a generic order-death delay but the
-        // group move's own leader handoff (`docs/COMBAT.md` §34.4).
-        // The set is kept keyed on the headline deliberately; what it
-        // asserts is that the word's own frame is a *small, named* set
+        // The two sides now plan on the same frame. What parts on 10234
+        // is where the plan **goes**: the original spends 204 draws there
+        // (`PathFinder::calc_road_cost+0x46`) and this crate six, and the
+        // 43-node route they each come back with is 240 apart in `x`,
+        // because the formation slot underneath it is (`docs/ORDERS.md`
+        // §16). The set is kept keyed on the headline deliberately; what
+        // it asserts is that the word's own frame is a *small, named* set
         // and not a reshuffle, and `run100_s_word_block_is_every_record_
         // the_dump_carries` holds the value diff beside it.
         let on_word: Vec<(i64, i64)> = units
@@ -6444,15 +6452,16 @@ mod tests {
         assert_eq!(
             on_word,
             vec![(1, 28)],
-            "the word's own frame is not the one follower it is: {units:?}"
+            "the word's own frame is not the one route it is: {units:?}"
         );
-        // **And one order row, which is the residue item 464 left.** The
-        // citizen's flight is the original's; the `GATHERORDER` under it
-        // is not. `Unit::think` falls through to `think_peasant` on the
-        // frame the flee arm fires, and this crate's `find_gather_spot`
-        // hands the idle citizen a job the original's does not — so the
-        // list is two orders deep where the dump carries one, and
-        // `0/2001`'s `gather_down` chain carries `0/5` with it.
+        // ~~**And one order row, which is the residue item 464 left.**~~
+        // The citizen's `GATHERORDER` residue is still there and still
+        // `0/5`'s — `Unit::think` falls through to `think_peasant` on the
+        // frame the flee arm fires and this crate's `find_gather_spot`
+        // hands the idle citizen a job the original's does not — but it
+        // opens on **10233** and the word is 10234, so it counts below
+        // the line now rather than on it. The set the word carries is
+        // empty on this record too.
         let order_on_word: Vec<(i64, i64)> = orders
             .iter()
             .filter(|(_, f)| **f == LONG_WORD_GREAT_LAKES)
@@ -6460,8 +6469,8 @@ mod tests {
             .collect();
         assert_eq!(
             order_on_word,
-            vec![(0, 5)],
-            "the word's own order row is not the citizen's gather residue: {orders:?}"
+            Vec::<(i64, i64)>::new(),
+            "the word's own order row is not the empty set it is: {orders:?}"
         );
         // **The standing residues, as sets.** Counts over a window the
         // word controls rise when the word does (`ORDER_RESIDUE_RUN97`'s
@@ -6485,13 +6494,21 @@ mod tests {
         // **18 → 17 on item 464**, and the unit that left is `0/5`: its
         // order row used to open one frame *below* the word and now
         // opens **on** it, as the gather residue asserted above.
+        //
+        // **17 → 18 on item 465**, and it is `0/5` coming back over the
+        // line without moving: the word went 10233 → 10234 and the
+        // citizen's gather residue, which opens on 10233, is below it
+        // again. Nothing about that residue changed — this is the
+        // headline's motion counted as the set's, which is exactly what
+        // `ORDER_RESIDUE_RUN97`'s lesson warns of and why the keys are
+        // printed in the message.
         assert_eq!(
             orders
                 .values()
                 .filter(|f| **f < LONG_WORD_GREAT_LAKES)
                 .count(),
-            17,
-            "the window's standing order residue is not seventeen units: {orders:?}"
+            18,
+            "the window's standing order residue is not eighteen units: {orders:?}"
         );
         assert_eq!(
             cities.len(),
@@ -6601,13 +6618,14 @@ mod tests {
         /// window the `WIDENINGS` row declares, so the guard and this test
         /// read one number.
         const FIRST: i64 = WIDENING_GREAT_LAKES.0;
-        /// Fourteen blocks past the word — far enough to carry the
+        /// Thirteen blocks past the word — far enough to carry the
         /// re-convergence the last one had on 10165, and inside run100's
         /// own window. **Moved with the word on item 456** (10175 →
         /// 10246) **and again on 463** (→ 10247): a widening whose window
         /// stops short of the word it is the widening of passes by saying
         /// nothing, which is parked 449's failure one step along — and
-        /// since the eighth pass the floors guard fails on it too.
+        /// since the eighth pass the floors guard fails on it too. Item
+        /// 465 moved the word inside it and left the tail alone.
         const TAIL: i64 = WIDENING_GREAT_LAKES.1;
         const {
             assert!(
@@ -7034,29 +7052,97 @@ mod tests {
         );
         // The rows are the claim, not their number: a set written out is
         // what a later item diffs its own answer against.
+        //
+        // **Item 465 took `1/28`'s fifteen off it**, which is the whole
+        // of the headline's move: the probe's six raiders hold the
+        // `GROUP_MOVE` the dump gives them now, so `1/28` spends the
+        // frame in `do_group_move`'s follower arm being re-seated and
+        // plans on the original's own frame (`docs/ORDERS.md` §16). What
+        // is left is item 464's three, and they are the citizen's.
+        //
+        // The word moved with them, so this set is the block **past** the
+        // new word as well as the value diff of the old one: on 10235
+        // `1/28` reopens on the route itself — `path:length ours 44
+        // theirs 43`, `pos ours (4799,30180) theirs (4800,30175)` — 240
+        // out in `x` because the formation slot is.
         assert_eq!(
             on_word,
+            vec![
+                "1/28 g.angle[0]: ours 1372520448 theirs 1252851712",
+                "1/28 g.des_angle[0]: ours 1372520448 theirs 1252851712",
+                "1/28 g.des_x[0]: ours 4799 theirs 4800",
+                "1/28 g.des_y[0]: ours 30180 theirs 30175",
+                "1/28 g.last_speed[0]: ours 26 theirs 25",
+                "1/28 g.x[0]: ours 4799 theirs 4800",
+                "1/28 g.y[0]: ours 30180 theirs 30175",
+                "1/28 heading: ours 1372520448 theirs 1252851712",
+                "1/28 order:move.dest_x: Move { field: \"dest_x\", ours: 5496, theirs: 6024 }",
+                "1/28 path:length: PathLength { ours: 44, theirs: 43 }",
+                "1/28 path[10].to: PathTo { slot: 10, ours: (30840, 25128), theirs: (30600, 25128) }",
+                "1/28 path[11].to: PathTo { slot: 11, ours: (30072, 25128), theirs: (29832, 25128) }",
+                "1/28 path[12].to: PathTo { slot: 12, ours: (29304, 25128), theirs: (29064, 25128) }",
+                "1/28 path[13].to: PathTo { slot: 13, ours: (28536, 25128), theirs: (28296, 25128) }",
+                "1/28 path[14].to: PathTo { slot: 14, ours: (27768, 25128), theirs: (27528, 25128) }",
+                "1/28 path[15].to: PathTo { slot: 15, ours: (27000, 25128), theirs: (26760, 25128) }",
+                "1/28 path[16].to: PathTo { slot: 16, ours: (26232, 25128), theirs: (25992, 24360) }",
+                "1/28 path[17].to: PathTo { slot: 17, ours: (25464, 24360), theirs: (25224, 24360) }",
+                "1/28 path[18].to: PathTo { slot: 18, ours: (24696, 24360), theirs: (24456, 24360) }",
+                "1/28 path[19].to: PathTo { slot: 19, ours: (23928, 24360), theirs: (23688, 24360) }",
+                "1/28 path[1].to: PathTo { slot: 1, ours: (37752, 21288), theirs: (37512, 21288) }",
+                "1/28 path[20].to: PathTo { slot: 20, ours: (23160, 24360), theirs: (22920, 25128) }",
+                "1/28 path[21].to: PathTo { slot: 21, ours: (22392, 25128), theirs: (22152, 25896) }",
+                "1/28 path[22].to: PathTo { slot: 22, ours: (21624, 25896), theirs: (21384, 26664) }",
+                "1/28 path[23].to: PathTo { slot: 23, ours: (20856, 26664), theirs: (20616, 26664) }",
+                "1/28 path[24].to: PathTo { slot: 24, ours: (20088, 26664), theirs: (19848, 25896) }",
+                "1/28 path[25].to: PathTo { slot: 25, ours: (19320, 25896), theirs: (19080, 25896) }",
+                "1/28 path[26].to: PathTo { slot: 26, ours: (18552, 25896), theirs: (18312, 25896) }",
+                "1/28 path[27].to: PathTo { slot: 27, ours: (17784, 25896), theirs: (17544, 26664) }",
+                "1/28 path[28].to: PathTo { slot: 28, ours: (17016, 26664), theirs: (16776, 27432) }",
+                "1/28 path[29].to: PathTo { slot: 29, ours: (16248, 27432), theirs: (16008, 27432) }",
+                "1/28 path[2].to: PathTo { slot: 2, ours: (36984, 21288), theirs: (36744, 21288) }",
+                "1/28 path[30].to: PathTo { slot: 30, ours: (15480, 27432), theirs: (15240, 27432) }",
+                "1/28 path[31].to: PathTo { slot: 31, ours: (14712, 27432), theirs: (14472, 26664) }",
+                "1/28 path[32].to: PathTo { slot: 32, ours: (13944, 26664), theirs: (13704, 25896) }",
+                "1/28 path[33].to: PathTo { slot: 33, ours: (13176, 25896), theirs: (12936, 26664) }",
+                "1/28 path[34].to: PathTo { slot: 34, ours: (12408, 26664), theirs: (12168, 27432) }",
+                "1/28 path[35].to: PathTo { slot: 35, ours: (11640, 27432), theirs: (11400, 27432) }",
+                "1/28 path[36].to: PathTo { slot: 36, ours: (10872, 27432), theirs: (10632, 27432) }",
+                "1/28 path[37].to: PathTo { slot: 37, ours: (10104, 27432), theirs: (9864, 27432) }",
+                "1/28 path[38].to: PathTo { slot: 38, ours: (9336, 27432), theirs: (9096, 28200) }",
+                "1/28 path[39].to: PathTo { slot: 39, ours: (8568, 28200), theirs: (8328, 28968) }",
+                "1/28 path[3].to: PathTo { slot: 3, ours: (36216, 22056), theirs: (35976, 22056) }",
+                "1/28 path[40].to: PathTo { slot: 40, ours: (7800, 28968), theirs: (7560, 29736) }",
+                "1/28 path[41].to: PathTo { slot: 41, ours: (7032, 29736), theirs: (6792, 30504) }",
+                "1/28 path[42].to: PathTo { slot: 42, ours: (6264, 30504), theirs: (6024, 30504) }",
+                "1/28 path[4].to: PathTo { slot: 4, ours: (35448, 22056), theirs: (35208, 22824) }",
+                "1/28 path[5].to: PathTo { slot: 5, ours: (34680, 22824), theirs: (34440, 23592) }",
+                "1/28 path[6].to: PathTo { slot: 6, ours: (33912, 23592), theirs: (33672, 24360) }",
+                "1/28 path[7].to: PathTo { slot: 7, ours: (33144, 24360), theirs: (32904, 25128) }",
+                "1/28 path[8].to: PathTo { slot: 8, ours: (32376, 25128), theirs: (32136, 25128) }",
+                "1/28 path[9].to: PathTo { slot: 9, ours: (31608, 25128), theirs: (31368, 25128) }",
+                "1/28 pos: ours (4799,30180) theirs (4800,30175)",
+            ],
+            "the word's own block is not the route it is"
+        );
+        // **And the block the word just left, pinned as its own set.**
+        // 10234 is where `1/28`'s fifteen rows stood until item 465 and
+        // where item 464's three still do; asserting it here is the same
+        // discipline as 10162 above, so the closure the headline's move
+        // is booked on cannot come undone quietly behind it.
+        let on_10234: Vec<String> = firsts
+            .iter()
+            .filter(|(_, (f, _))| *f == 10_234)
+            .map(|((w, o, what), (_, row))| format!("{w}/{o} {what}: {row}"))
+            .collect();
+        assert_eq!(
+            on_10234,
             vec![
                 "0/5 order:length: Length { ours: 2, theirs: 1 }",
                 "0/5 orders.len: ours 2 theirs 1",
                 "0/2001 gather:gather_down[-1]: ours 5 theirs 2",
-                "1/28 g.angle[0]: ours 1260584960 theirs -1348206592",
-                "1/28 g.avg_speed[0]: ours 6 theirs 0",
-                "1/28 g.cur_anim[0]: ours 7 theirs 0",
-                "1/28 g.des_angle[0]: ours 1260584960 theirs -1348206592",
-                "1/28 g.des_x[0]: ours 4801 theirs 4776",
-                "1/28 g.des_y[0]: ours 30176 theirs 30168",
-                "1/28 g.end_time[0]: ours 13 theirs 31",
-                "1/28 g.last_speed[0]: ours 26 theirs 0",
-                "1/28 g.stopped[0]: ours 0 theirs 1",
-                "1/28 g.x[0]: ours 4801 theirs 4776",
-                "1/28 g.y[0]: ours 30176 theirs 30168",
-                "1/28 heading: ours 1260584960 theirs -1348206592",
-                "1/28 path:length: PathLength { ours: 43, theirs: 1 }",
-                "1/28 pos: ours (4801,30176) theirs (4776,30168)",
-                "1/28 tolerance: ours 384 theirs 0",
             ],
-            "the word's own block is not the eighteen rows it was"
+            "block 10234 is not item 464's three rows — `1/28`'s fifteen \
+             are back, or the citizen's have moved"
         );
         // **Anti-vacuity, in the block's own counts.** A capture without
         // `UNITS=3`, `BUILDS=7`, `CITIES=5` or `GUYS=4` would agree

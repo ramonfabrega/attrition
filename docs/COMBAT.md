@@ -5030,13 +5030,26 @@ early — this crate plans and steps the group move its dropped
 **It is not a generic order-death delay.** Between blocks 10233 and 10234
 the original's `1/28` changes exactly three things: the unit's
 `flags & 0x80` clears, the guy's animation clock ticks, and its
-`GROUP_MOVE`'s **`oxx` goes 40 → 28**. It stops following `1/40` and
+`GROUP_MOVE`'s **`oxx` goes 40 → 28**. ~~It stops following `1/40` and
 becomes its own group's leader on the frame it does nothing — and
 `do_group_move` runs `do_move` for the leader alone (`docs/GROUPS.md`
-§8.3), which is why the plan is on the next frame and not on this one.
+§8.3), which is why the plan is on the next frame and not on this one.~~
 This crate's `1/28` holds a plain `MOVE_TO` there, not a `GROUP_MOVE` at
 all, so it has no handoff to wait for. That is the next item on this
 frame, and its falsifier is the `oxx` pair above.
+
+**Struck, and the falsifier named above is what struck it** (item 465,
+`docs/ORDERS.md` §16). `oxx 40 → 28` is not `1/28` promoting itself: it
+is the whole of group 65 on that block — `1/27`, `1/28`, `1/29`, `1/40`,
+`1/41` and `1/42` every one — so it is `Group::refresh_group_order`
+re-seating the block, and its **early return** is what costs the frame.
+`do_group_move`'s follower arm does plan and step for a follower whose
+leader is usable, which `1/27` proves on 10239 by doing exactly that.
+The reading above came from one unit's value diff; the whole cast on the
+same two blocks dissolved it, which is now the third time on this frame
+(`docs/DECISIONS.md` 42). The cause was upstream of the symptom and it
+was this crate's own: an invented `g.army.is_some()` line in
+`Group::action_move_near` that the original's gate does not have.
 
 The citizen leaves one residue of its own, also on 10234: with the attack
 order gone, `Unit::think` falls through to `think_peasant`, and this
@@ -5069,8 +5082,9 @@ pair (the same test, over 909 blocks).
 **Listing-backed**: `think@005f6e40:150`'s disjunction; the flee gate at
 `6006f0`–`600731`; `find_angle`'s two arguments at `6007cb`–`6007f2`;
 `find_nearby_spot`'s argument list at `6007f7`–`60082d`; `add_move_order`'s
-`FLEE_TO`/`QUEUE_FIRST` at `60084a`–`600856`; and `1/28`'s `oxx` handoff,
-which is read off the dump rather than the code.
+`FLEE_TO`/`QUEUE_FIRST` at `60084a`–`600856`. ~~and `1/28`'s `oxx` handoff,
+which is read off the dump rather than the code~~ — struck by item 465;
+the `oxx` pair is group-wide and its reading is `docs/ORDERS.md` §16's.
 
 **Not established.** The packing latch `local_8` and the `unit_flags & 4`
 packer arm are unmodelled, and so are the hero and supply rings — the

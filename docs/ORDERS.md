@@ -4350,3 +4350,190 @@ of birds an invalid slot near an ocean cell adds, and `cavarch_fight`. The
 speed pair above is read and not modelled, and the group cap's gate is
 unreached by any capture on disk — a claim only a run whose grouped unit
 has no action would falsify.
+
+## 16. The probe's group, and the frame a re-seat costs (item 465, 2026-09-21)
+
+Great Lakes' long word was 10233 and the half of it item 464 left was
+`1/28`'s `Unit::do_move+0xe84`, spent a frame early. §7.12's closing
+paragraph named the frame; 464 named a mechanism for it. The mechanism
+was wrong and the frame was right, for the third time on this frame.
+
+### 16.1 The widening, and what `oxx 40 → 28` actually is
+
+464 read `1/28`'s own record across blocks 10233 and 10234, found three
+fields changed and named one of them: the `GROUP_MOVE`'s `oxx`, 40 → 28.
+"It becomes its group's leader on the frame it stands still, and
+`do_group_move` plans for the leader alone."
+
+Reading the **whole cast** on the same two blocks says otherwise. Every
+member of group 65 changes `oxx` on 10234, not just `1/28`:
+
+| block | `1/27` | `1/28` | `1/29` | `1/40` | `1/41` | `1/42` |
+|---|---|---|---|---|---|---|
+| 10233 | 40 | 40 | 40 | 40 | 40 | 40 |
+| 10234 | 28 | 28 | 28 | 28 | 28 | 28 |
+
+So it is not `1/28` promoting itself. It is the group's order being
+**re-seated** on every member at once — `Group::refresh_group_order`,
+whose last third is `modify_group_order` per member (§6.8 of
+`docs/GROUPS.md`). And the second half of 464's reading fails on the same
+data: `1/27`'s own order dies during frame 10238 and it plans and steps
+on **10239**, with no dead frame at all, while `oxx` names `1/28` and not
+`1/27`. A follower plans. The leader-alone rule would have predicted a
+dead frame there too.
+
+Three hypotheses have now been written for this one frame — 456's
+formation pathing, 463's order-death delay, 464's leadership promotion —
+and each was read off one unit's value diff and each was wrong. The
+frame was right every time. `docs/DECISIONS.md` 42.
+
+### 16.2 What the frame really is, from `do_group_move`
+
+`Unit::do_group_move@005e79a0` splits on `order->oxx == this->o` (`5e79fe`).
+The leader arm calls `do_move` — which is where the `+0xe84` grid roll is
+spent. The **follower** arm asks whether the leader is still usable, in
+four tests at `5e7cb4`–`5e7e7a`: alive, on the map, in my group, and
+holding a move order carrying **my** group order's id (or a
+`CHANGE_FORM`). Failing any of them sets `local_28`, and then:
+
+```
+LAB_005e7ee2:
+  if (this->group >= 0 && vector_dist(dest - me) > 0x5ff) {
+      Group::refresh_group_order(group, order->id, this->o, this->who);
+      return;                      /* ← the frame, spent */
+  }
+  ungroup_move_order(this, order->id, 0);
+  return;
+```
+
+On frame 10233 `1/28`'s leader is `1/40`, whose front order is still the
+`ATTACKORDER` on the dead building (§7.12) — not a move, not a
+`CHANGE_FORM`. So `1/28` re-seats the block onto itself and **returns
+without moving**. On 10234 it is the leader, takes `do_move`, and plans.
+On 10239 `1/27`'s leader is `1/28`, which is alive and holding the same
+group move, so `1/27` goes down the follow path and steps the same frame.
+Every row of the table above and every plan frame in the window follows
+from those two arms and nothing else.
+
+### 16.3 The defect was ours: an invented gate
+
+None of that ran here, because this crate's `1/28` held a plain
+`MOVE_TO`. `Group::action_move_near`'s §6.6 step 6 decides which, and the
+original's gate is at `705f00`–`705f61`:
+
+```
+if ((kind == MOVE_TO || kind == ATTACK_TO) && !is_modern_infantry(u)) {
+    if ( ((type->role & 0x10) && !(u->unit_masks & 0x40000))   /* 0x10 type, not AI-driven */
+         || group->num < 2                                      /* +0xc */
+         || (u->unit_masks & 4)                                 /* in danger */
+         || type->+0x218 == 1                                   /* sea */
+         || form == 9 )
+        goto plain;
+    add_group_move_order(…)
+}
+```
+
+There is **no army test in it**. This crate carried one —
+`g.army.is_some()` — with a comment calling it "this crate's own line
+rather than the original's", and it is the whole of the defect: an
+invented predicate, not a misread one. Great Lakes' probe
+(`docs/ARMY.md` §12) pushes six raiders **out of** army 1 on frame 8186,
+so at the moment their go-home move is issued the group has no army, and
+all six got plain moves.
+
+The frame is not a guess. The dump's own `GroupMoveOrder` carries
+`id 8192502`, and `add_group_move_order`'s id is
+`(group.id + frame × 10) × 100 + group.order_num` (§8.3): 8192502 is
+**group 65, frame 8186, order_num 2** — this crate's own frame for the
+same call, to the frame.
+
+### 16.4 The pool, and the bit that was standing in for it
+
+Two things had to be carried.
+
+**A pushed group has to survive.** `Groups::push_group` installs a stack
+group into a pool slot and every member's `UnitData +0x80` points at it;
+the dump carries the probe's six on `group 65` for two thousand blocks
+after the army that bore them is closed. This crate had a single slot and
+no record for it, and the scout's `go_to` overwrote it **eleven times**
+between 8186 and the word. `Sim::pushed` is a `Vec` of slots now, each
+with the same `GroupState` an army's group carries, recycled the way
+`Groups::get_open_slot` recycles — a slot whose members are all dead is
+taken before a new one is appended. `Sim::group_of` asks the army first
+and the pool second; the two are exclusive, because `push_group` takes
+its members out of both.
+
+**And `unit_masks & 4` is what the original exempts a `go_to` group by.**
+Dropping the army line alone collapses the word to **6994** — the second
+squad's walk to the army, which is a `Unit::go_to`. The reason the
+original's is a plain move is the bit:
+`Unit::go_to_unit@005f78c0` sets `unit_masks |= 4` over the **whole
+squad** — the loop at `5f78ec` starts at the captain and walks `o_down`
+— one line above the distance test, so even a squad too close to walk is
+marked. `Unit::work@0060d180` drops it again on the unit's own 32-frame
+tick (`0060d19d`, inside the same `(frame + o) & 31 == 0` that clears
+`ObjectData::visible`), which is why the same six raiders are unmarked by
+8186 and marked again by 10233 — the dump's `unit_masks 266254` has bit
+`4` set.
+
+`crates/sim`'s [`Unit::in_danger`] is that bit, written by `go_to_unit`
+and cleared by `Sim::work`'s tick.
+
+### 16.5 What it moved
+
+**Great Lakes' long word 10233 → 10234.** The value diff is block 10234,
+where `1/28`'s **fifteen** rows go to none:
+
+| field | this crate, before | dump | this crate, after |
+|---|---|---|---|
+| `pos` | `(4801, 30176)` | `(4776, 30168)` | `(4776, 30168)` |
+| `path:length` | 43 | 1 | 1 |
+| `tolerance` | 384 | 0 | 0 |
+| `g.cur_anim` / `g.stopped` | 7 / 0 | 0 / 1 | 0 / 1 |
+| `heading` | 1260584960 | −1348206592 | −1348206592 |
+
+The word's own block is now item 464's three `0/5`/`0/2001` rows alone,
+and the widening's window goes **655 → 440** parted keys.
+
+Three floors moved with it, each re-pinned with the item's number:
+`ORDER_RESIDUE_RUN97` **53,622 → 81,534**, every row of which is a field
+that was never compared before (`Kind` 6,978 → 0, and the move's `angle`,
+`x`, `y`, `off_x`, `off_y` and the group's `group_angle` visible for the
+first time); and Great Lakes' endpoint **off 48 → 49, unlinked 10 → 9,
+build_diverged 10 → 8**, 13,767 frames past the word.
+
+**What 10234 is.** The record agrees on it and the draw stream does not:
+the original spends **204** draws there, `PathFinder::calc_road_cost+0x46`
+over and over, and this crate spends six for a 43-node route of its own.
+`1/28` reopens one block later, on 10235, where the two routes are 240
+apart in `x` — `order:move.off_x ours 120 theirs 648` — which is the
+formation **slot table**, `Form::compute`'s own seam and the successor
+this item leaves.
+
+### 16.6 Coverage
+
+**Diff-backed**: §16.1's table (run100, blocks 10233 and 10234, all six
+members); §16.2's plan frames for `1/28`, `1/27` and `1/29`, and the
+absence of a dead frame for the latter two; §16.3's frame 8186, twice
+over — the id arithmetic and this crate's own call; §16.4's pool, through
+the fifteen rows §16.5 closes, and the bit, through Great Lakes' word
+holding at 6994 rather than collapsing to it. All of it in
+`run100_s_word_block_is_every_record_the_dump_carries` and
+`run53_s_24000_frames_put_the_ceiling_where_run33_did`.
+
+**Listing-backed**: the gate at `705f00`–`705f61`; `do_group_move`'s
+follower tests at `5e7cb4`–`5e7e7a` and `LAB_005e7ee2`; `go_to_unit`'s
+squad loop at `5f78ec`; `Unit::work`'s clear at `0060d19d`.
+
+**Not established.** `Unit::set_in_danger`'s other two writers —
+`Object::take_damage@00652020` on a unit that is hit, and `Unit::work`'s
+own call on an attacker and its target — are **not** carried, so a group
+ordered within 32 frames of a fight marches in formation here where the
+original's would not; nothing else in the engine reads the bit, and no
+capture on disk separates the two. The pool's slot **numbers** are not
+the dump's (this crate's armies do not sit in the same pool, so `group`
+is still uncompared). `Group::refresh_group_order`'s trigger is modelled
+from the four follower tests and its effect from §6.8; the
+`CHANGE_FORM` arm of those tests is unmodelled. And the probe group's
+`group_angle` is `0` where the dump's is `890830848`, which is the same
+slot-table seam §16.5 names.

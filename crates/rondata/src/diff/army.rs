@@ -1944,6 +1944,7 @@ mod tests {
             let group = |g: &crate::gamelog::GroupDump| sim::group::Group {
                 who: g.who as sim::Player,
                 army: Some(g.army.max(0) as usize),
+                pushed: None,
                 list: members(g),
             };
             let bytes: Vec<i8> = members(army0)

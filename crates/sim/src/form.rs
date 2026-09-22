@@ -992,6 +992,7 @@ mod tests {
         Group {
             who: 1,
             army: None,
+            pushed: None,
             list: list.to_vec(),
         }
     }

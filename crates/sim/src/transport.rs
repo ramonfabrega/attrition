@@ -659,7 +659,7 @@ impl Sim {
         };
         let mut g = crate::group::Group::stack(who);
         self.group_add(&mut g, u);
-        if !self.push_group(&g, true) {
+        if !self.push_group(&mut g, true) {
             return false;
         }
         let to = Pos::new(cell.x * 0x300 + 0x180, cell.y * 0x300 + 0x180);
