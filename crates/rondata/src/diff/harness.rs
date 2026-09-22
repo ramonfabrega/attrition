@@ -116,6 +116,55 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
                 });
             }
         }
+        // **The hit-point record, whole** (`docs/COMBAT.md` §40) —
+        // `ObjectData::myhits`, `damage` and `damage_frac`, printed
+        // inside the `OBJECT` block at every detail level and compared
+        // on none of them until item 484. Chapter two's widening could
+        // see that the original's hoplite `1/8` was gone on block 684
+        // and not that it had been wounded on 656, 657, 660 and 682 to
+        // get there (§38.4), because a `compare` with no hit-point row
+        // reads a death as an absence.
+        //
+        // `myhits` is the **squad's** hits and `damage` this **figure's**
+        // share of what has been taken off them (§7.3: `update_hits`
+        // writes one number onto every figure and `take_damage` divides
+        // it on the way in). This crate keeps the complement — `health`
+        // is the squad-sized number with this figure's damage already
+        // subtracted — so `damage` is `max_health − health` here and the
+        // two representations line up field for field.
+        //
+        // **`hits_left` is deliberately not a fourth row.** It is
+        // `myhits − damage` on both sides, so it parts exactly when one
+        // of the two above does and would print every disagreement
+        // twice; `run100_s_word_block_is_every_record_the_dump_carries`
+        // reads it that way because it has no `damage` row of its own.
+        //
+        // Ungated on the position, like `visible` and unlike the
+        // collision block: what a unit has taken is not a consequence of
+        // where it is standing. Ungated on `on_map` too — a garrisoned
+        // unit is healed by its building on both sides, so the pair
+        // stays comparable where `mylos` and `visible` do not.
+        {
+            let un = &built.sim.units[link.unit];
+            for (field, mine, logged) in [
+                ("myhits", i64::from(un.max_health), u.myhits),
+                ("damage", i64::from(un.max_health - un.health), u.damage),
+                ("damage_frac", i64::from(un.damage_frac), u.damage_frac),
+            ] {
+                let Some(theirs) = logged else { continue };
+                r.hits_compared += 1;
+                if theirs != mine {
+                    r.hits_diverged.push(HitsDivergence {
+                        frame: frame.n,
+                        who: u.who,
+                        o: u.o,
+                        field,
+                        ours: mine,
+                        theirs,
+                    });
+                }
+            }
+        }
         // **The collision block**, field for field
         // (`docs/COLLISION.md` §8). `UnitData::log_data` writes all five at
         // every detail level, so this is checked on every capture — and
@@ -1452,6 +1501,44 @@ mod tests {
         for (&(who, o), &frame) in &parted {
             eprintln!("  {who}/{o} parts at {frame}");
         }
+
+        // **The hit-point record, whole** — `ObjectData::myhits`,
+        // `damage` and `damage_frac` on every linked unit-frame of the
+        // capture, compared on none of them until item 484
+        // (`docs/COMBAT.md` §40). East Indies' side of the row: 4,000
+        // frames of the map the headline leads on, and the widest
+        // single window this comparison runs in.
+        //
+        // **Not one of run57's 484,779 unit records carries a wound** —
+        // neither player fights inside the capture — so what this pins
+        // is the *maximum* and the two accumulators at rest: this
+        // crate's squad-sized `myhits` is the original's on every
+        // linked unit-frame, and neither side invents damage nobody
+        // dealt. The live half of the row is chapter two's
+        // (`chapter_two_s_hit_points_are_the_dump_s_on_every_unit_frame`,
+        // 580 wounded unit-frames), and a capture of a fight on this
+        // map would be the one thing that widens it further.
+        let hits: usize = report.frames.iter().map(|f| f.hits_compared).sum();
+        let hits_bad: Vec<HitsDivergence> = report
+            .frames
+            .iter()
+            .flat_map(|f| f.hits_diverged.iter().copied())
+            .filter(|d| parted.get(&(d.who, d.o)).is_none_or(|&f| d.frame < f))
+            .collect();
+        eprintln!(
+            "run57 hit points: {hits} field-frames compared, {} wrong",
+            hits_bad.len()
+        );
+        assert!(
+            hits_bad.is_empty(),
+            "the hit-point record agrees on every comparable field-frame \
+             of {hits}: {hits_bad:?}"
+        );
+        assert!(
+            hits >= 205_302,
+            "three fields on every linked unit-frame, and the count only \
+             grows: {hits}"
+        );
 
         // **Every building of both players, on every frame up to the word,
         // at the original's own point.** The two residues this test was
@@ -7183,6 +7270,21 @@ mod tests {
                 for &(who, o) in &r.extra_units {
                     note(who, o, "extra".into(), "this crate holds it alone".into());
                 }
+                // **The hit-point record from `compare` itself** (item
+                // 484). The direct rows below have carried `hits_left`
+                // and `myhits` since item 464, but they are this test's
+                // own reading; this is the comparator's, and it is the
+                // one every other capture now runs. Both agree on all
+                // 909 blocks, so the overlap costs nothing and a future
+                // parting is reported by whichever sees it first.
+                for d in &r.hits_diverged {
+                    note(
+                        d.who,
+                        d.o,
+                        format!("hits:{}", d.field),
+                        format!("ours {} theirs {}", d.ours, d.theirs),
+                    );
+                }
             }
             // **The other direction on the buildings**, which `compare`
             // does not do: it counts the dump's buildings it cannot link
@@ -7254,6 +7356,17 @@ mod tests {
                         them.myhits.map(|h| h - them.damage.unwrap_or(0)),
                     ),
                     ("myhits".into(), i64::from(un.max_health), them.myhits),
+                    // **The sixteenths under them** (item 484): the
+                    // third field of the `OBJECT` block's hit-point
+                    // record, parsed for a building since item 394 and
+                    // for a unit only now. It is what decides *which
+                    // frame* the next whole point of `damage` lands on
+                    // (`docs/COMBAT.md` §7.2 step 4).
+                    (
+                        "damage_frac".into(),
+                        i64::from(un.damage_frac),
+                        them.damage_frac,
+                    ),
                     ("myspeed".into(), i64::from(un.movement.speed), them.myspeed),
                     ("form".into(), i64::from(un.form), them.form),
                     ("form_mod".into(), i64::from(un.form_width), them.form_mod),

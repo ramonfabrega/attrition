@@ -1834,9 +1834,11 @@ pub(crate) const WIDENING_GREAT_LAKES: (i64, i64) = (9_340, 10_290);
 /// at 684 and stood with the fix reverted, so the ceiling was hiding them
 /// exactly the way the floor once hid `0/10`'s. `extra 1/8` is the first,
 /// and it is a **death**: the original's hoplite `1/8` dies on 683 and
-/// this crate's does not. [`crate::diff::compare`] carries no hit-point
-/// row, so this walk sees the absence and not its cause; the successor
-/// owes that row.
+/// this crate's does not. Item 484 gave [`crate::diff::compare`] the
+/// hit-point row that walk was missing, and the cause is now on the map:
+/// `1/8` runs one hit behind the dump from **656**, twenty-seven blocks
+/// under the word and well inside this window, which nothing had ever
+/// compared (`docs/COMBAT.md` §40).
 pub(crate) const WIDENING_CHAPTER_TWO: (i64, i64) = (606, 687);
 
 /// One pinned word's row: `(constant, word, widening test, item, window)`.
@@ -1930,11 +1932,21 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // ceiling's move is what surfaced `1/8`'s death on 683 — four frames
     // past the word is enough to say where the parting opens and not
     // enough to see what the next one is.
+    //
+    // **Item 484 widened the record rather than the window**, and the
+    // map went from three rows to eight with the earliest at **656** —
+    // twenty-seven blocks *under* the word. `compare` carried no
+    // hit-point row at all, so `myhits`, `damage` and `damage_frac`
+    // went uncompared on every capture ever taken and this window was
+    // reporting agreement it had never measured for the third distinct
+    // reason: the floor (470), the ceiling (481), and now a field
+    // missing from the comparison, which no widening of the window
+    // could have found. `docs/COMBAT.md` §40.
     (
         "GOLDEN_WORD_CHAPTER_TWO",
         GOLDEN_WORD_CHAPTER_TWO,
         Some("chapter_two_s_word_frame_is_widened_whole"),
-        481,
+        484,
         Some(WIDENING_CHAPTER_TWO),
     ),
 ];

@@ -1651,10 +1651,21 @@ pub struct UnitDump {
     pub o_up: Option<i64>,
     /// `UnitData::inside_up`: the building this unit is garrisoned in.
     pub inside_up: Option<i64>,
-    /// `ObjectData::myhits` and `ObjectData::damage` — whole hit points the
-    /// type carries and points taken off them.
+    /// **The hit-point record**, all three of it, written inside the
+    /// `OBJECT` block at every detail level — `ObjectData::myhits`, the
+    /// **squad's** whole hit points (`docs/COMBAT.md` §7.3: `update_hits`
+    /// writes one number onto every figure and `take_damage` divides it on
+    /// the way in); `ObjectData::damage`, the whole points this **figure**
+    /// has taken; and `ObjectData::damage_frac`, the sixteenths under them
+    /// (§7.2 step 4).
+    ///
+    /// `damage_frac` was parsed on `BUILDDATA` from item 394 and not here
+    /// until item 484, which is the pair one record over: a field the dump
+    /// prints on every block of every capture, and the one that decides
+    /// *which frame* the next whole point lands on.
     pub myhits: Option<i64>,
     pub damage: Option<i64>,
+    pub damage_frac: Option<i64>,
     /// `ObjectData::mylos` — the line of sight `Unit::update_los` last
     /// computed for this object, in tiles (`docs/VISION.md` §2). On the
     /// `OBJECT` level, beside `myhits`.
@@ -2686,8 +2697,10 @@ fn unit_of(b: Block<'_>) -> Option<UnitDump> {
             avg_speed: g.int("avg_speed"),
         })
         .collect();
-    // `myhits` and `damage` sit on the `OBJECT` level, one in from
-    // `UNITDATA`'s own fields and one out from `SUBOBJECT`'s.
+    // `myhits`, `damage` and `damage_frac` sit on the `OBJECT` level, one
+    // in from `UNITDATA`'s own fields and one out from `SUBOBJECT`'s —
+    // `the_unit_s_hit_points_are_the_object_block_s` pins that against a
+    // decoy on either side, which is item 478's lesson one record over.
     let obj = b.find("OBJECT");
     Some(UnitDump {
         flags,
@@ -2715,6 +2728,7 @@ fn unit_of(b: Block<'_>) -> Option<UnitDump> {
         inside_up: b.int("inside_up"),
         myhits: obj.and_then(|o| o.int("myhits")),
         damage: obj.and_then(|o| o.int("damage")),
+        damage_frac: obj.and_then(|o| o.int("damage_frac")),
         mylos: obj.and_then(|o| o.int("mylos")),
         infiltrated: obj.and_then(|o| o.int("infiltrated")),
         visible: obj.and_then(|o| o.int("visible")),
@@ -4001,6 +4015,76 @@ BEGIN GAME
             "build_masks came off `BUILDDATA` rather than `WALLDATA`"
         );
         assert_eq!(init.builds[0].build_masks.unwrap() & 0x100, 0x100);
+    }
+
+    /// **A unit's hit points are the `OBJECT` block's, at `OBJECT`'s own
+    /// indent** (item 484).
+    ///
+    /// `myhits`, `damage` and `damage_frac` are written between the
+    /// `SUBOBJECT` that closes above them and the `UNITDATA` fields that
+    /// resume below, so there are two ways to read them off the wrong
+    /// block and both read as silence: `SUBOBJECT`'s indent finds
+    /// nothing, and `UNITDATA`'s finds nothing here and something else on
+    /// a record that happens to write a like-named field. That is how
+    /// `WallData::build_masks` was `None` on every capture ever taken
+    /// (item 478) — a field the dump prints on every block, never parsed
+    /// and therefore never compared.
+    ///
+    /// **Made to fail on purpose**: the fixture puts a decoy `damage`,
+    /// `myhits` and `damage_frac` at `UNITDATA`'s own indent *and* inside
+    /// `SUBOBJECT`, so a reader that goes out one level reads `7/700/70`
+    /// and one that goes in reads `9/900/90`. Both redden on the value
+    /// rather than on `None`, which a capture without a decoy could not
+    /// do.
+    #[test]
+    fn the_unit_s_hit_points_are_the_object_block_s() {
+        const TEXT: &str = "\
+BEGIN GAME
+ BEGIN WORLD
+  seed 1
+ BEGIN UNITDATA
+  BEGIN OBJECT
+   BEGIN SUBOBJECT
+    flags 65
+    o 3
+    who 1
+    x_internal 2424
+    y_internal 7800
+    z_internal 0
+    damage 9
+    myhits 900
+    damage_frac 90
+   damage 34
+   uid 18
+   myhits 120
+   damage_frac 8
+   mylos 4
+  damage 7
+  myhits 700
+  damage_frac 70
+  stance 1
+  BEGIN GUY
+   type 69
+   x 2424
+   y 7800
+ BEGIN FRAME 1
+";
+        let log = Log::parse(TEXT);
+        let init = log.initial().expect("the sample has a start block");
+        assert_eq!(init.units.len(), 1);
+        let u = &init.units[0];
+        assert_eq!(
+            (u.myhits, u.damage, u.damage_frac),
+            (Some(120), Some(34), Some(8)),
+            "a unit's hit points came off `UNITDATA` (7/700/70) or \
+             `SUBOBJECT` (9/900/90) rather than `OBJECT`"
+        );
+        // The neighbours on the same block, so a reader that finds the
+        // right block by accident on this fixture alone cannot pass.
+        assert_eq!((u.uid, u.mylos), (Some(18), Some(4)));
+        // And `UNITDATA`'s own field is still `UNITDATA`'s: the decoys
+        // above it do not move the outer read.
+        assert_eq!(u.stance, Some(1));
     }
 
     #[test]

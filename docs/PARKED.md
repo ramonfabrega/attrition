@@ -86,6 +86,31 @@ tree gets no window at all (`nodrv_CreateWindow`, dead in 3.8 s, 0 frames),
 so every launch goes through `viadriver.sh` (`docs/ORACLE.md`, "The
 click-free lane needs a window").
 
+(488) **A window can be wrong in a way no widening of it can find.**
+One window — chapter two's — has now been wrong in all three possible
+ways in a single chain: its **floor** sat above a live row (470,
+`order 0/10` at 630), its **ceiling** below three more (481, `extra
+1/8` at 684), and a **field was missing from the comparator
+altogether** (484, `damage_frac` never parsed on a unit, `myhits` and
+`damage` never in `compare` at all). The first two are found by moving
+the window. **The third cannot be**, however wide it goes, and it was
+the one hiding the most: it took the chapter's earliest parting from
+684 down to 656.
+
+Twice in one chain a field was quiet everywhere because the parser
+never read it — `build_masks` off the wrong block (478) and
+`damage_frac` off the wrong record (484), both since item 394. So
+"quiet" is not evidence of agreement, and the widening rule as
+written ("when the original dumps a record, diff the whole record")
+is not self-enforcing: nothing checks that `compare`'s field list is
+the dump's field list.
+
+Worth a guard rather than a rule: enumerate the fields a dumped
+record carries and fail when the comparator reads fewer, the way
+`build_masks_is_the_wall_s_field` pins an indent against a decoy.
+Whoever takes it should count how many other records are short —
+neither of these two was found by looking.
+
 (313) **The landing chain wants one verb.** Merge, gate, push and reap are
 one chain by rule since 09-17; ccc has `merge`, `update` and `clear`, and
 the reap is a separate command a commander typed after the chain twice and
