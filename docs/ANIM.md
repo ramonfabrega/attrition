@@ -997,13 +997,18 @@ dump and not inferred from one arithmetic coincidence.
 
 **What this does not establish.**
 
-- **The `+0x1d` set's tie-break.** `param_2 == 0x20` walks the host's chain
+- ~~**The `+0x1d` set's tie-break.** `param_2 == 0x20` walks the host's chain
   looking for a scholar already playing slot `0x20` and takes `0x1d`
   instead; the decompiler's aliasing does not settle whether the walk
   starts at the head or at the head's successor, and this crate tests
   "any other scholar in the chain". It fires only for variant 3 on a
   non-head scholar. The falsifier is a `GUYS` window over a university
-  holding **two or more** scholars: run98's holds one.
+  holding **two or more** scholars: run98's holds one.~~
+  **Settled by §4.12** (item 497, 2026-09-22): the walk starts at the
+  host's own `inside_down` and so examines **every** member including the
+  guy asking, "any other scholar" was the wrong half of the reading, and
+  run100's two chains are the falsifier the bullet asked for. Great Lakes
+  **10303 → 10582**.
 - **The chain's head, for a scholar inside a *unit*.** `inside_up` points
   at a boat as readily as at a building (`docs/TRANSPORT.md` §6); this
   crate keeps a boat's passengers as a filter rather than in entry order,
@@ -1015,6 +1020,170 @@ dump and not inferred from one arithmetic coincidence.
   figures it grows (§3.5) but the existing ones keep their bit, so a
   scholar upgraded into something else would still take the offset in the
   original and not here. Nothing upgrades a scholar in any capture.
+
+## 4.12 The `0x20` tie-break counts the guy asking (item 497, 2026-09-22)
+
+§4.11 left one line of `Guy::set_anim@005da300` unsettled and named the
+capture that would settle it. run100 is that capture, it has been on disk
+since the day it was taken, and the answer was thirty blocks under a word
+nobody had looked there for.
+
+### 4.12.1 What the walk actually visits
+
+The arm, at `set_anim:332`, in the decompiler's own registers — `iVar15`
+is an object index times four and `pGVar22` the `objects[who]` base, so
+the pair together is one object and the loop rewrites both:
+
+```c
+sVar2 = host->inside_down;                          // +0x28
+if (sVar2 != guy->o && (param_2 = v + 0x1d, param_2 == 0x20)) {
+  while (sVar2 != -1) {
+    cur  = objects[who][o];                         // the pair, this round
+    o    = cur->inside_down;                        // +0x28 — the next member
+    who  = cur->inside_down_who;                    // +0x3e
+    if (objects[who][o]->vtbl[0x18]()                       // it is a unit
+        && objects[who][o]->type->+4 in {0x34, 0x35}        // it is a scholar
+        && units[who][o]->guys[0].cur_anim == 0x20) {       // +0xf4 → [0] → +0x9c
+      param_2 = 0x1d; break;
+    }
+    sVar2 = objects[who][o]->inside_down;
+  }
+}
+```
+
+The pair entering the loop is the **host** — the building, not the first
+scholar — so the first object examined is `host->inside_down`, the chain's
+head, and each round afterwards examines the member below the last. The
+walk therefore visits every member of the chain from the head to the tail,
+and the guy that asked is one of them: the arm is only reached when
+`host->inside_down != guy->o`, which is exactly the statement that it is
+somewhere below the head.
+
+**And its `cur_anim` is still the slot it is leaving.** `set_anim` writes
+the new slot a hundred lines further down, past the packet check; the walk
+reads `guys[0].cur_anim` off the live record. So the rule the arm actually
+states is:
+
+> A student re-rolling variant 3 **while already on `0x20`** always takes
+> `0x1d`. The fourth student slot can only ever be entered from one of the
+> other three.
+
+This crate read the walk as "some *other* scholar in the chain", which is
+the one reading under which it never fires on a chain with a single
+student — and on run100 that is the only kind of chain that matters.
+
+### 4.12.2 run100's two chains are the falsifier §4.11 asked for
+
+§4.11 named the falsifier as "a `GUYS` window over a university holding
+two or more scholars". run100 holds **ten** seated scholars in two chains,
+and it has printed all ten on every block of the widening's window —
+10,304 `GUY` records — since the capture was taken:
+
+| host | chain, in `inside_down` order | slots on block 10273 |
+| --- | --- | --- |
+| `1/2019` | `1/44` → `1/51` → `1/56` | 25, **32**, 29 |
+| `1/2020` | `1/45` → `1/48` → `1/49` → `1/50` → `1/52` → `1/53` → `1/55` | 25, 31, 30, 30, 31, 29, 29 |
+
+The heads take the `+0x19` set and everything under them the `+0x1d` set,
+which is §4.11 confirmed on ten figures rather than the one run98 has.
+What is new is `1/51`: it is the **only** member of its chain on `0x20`,
+and on block **10274** its 118-frame slot runs out, `Guy::inc_time` wraps
+it, and the original comes back with **29**, `cur_time 0`, `end_time 30`.
+
+Under "some other scholar" there is nobody to find and the answer is
+`0x20`. Under "every member" the walk finds the requester itself, still
+showing `0x20`, and takes `0x1d`. The dump says `0x1d`. One clause.
+
+The variant is not in question either, and that is what makes the block a
+proof rather than an arithmetic coincidence. The draw streams are in
+lockstep at 10274 — the word was 279 frames further on — so both sides
+rolled the **same** number and this crate's arithmetic turned it into
+`3 + 0x1d = 0x20`. The original had the same 3 and produced 29. Variant 0
+would also produce 29, but variant 0 is not what the shared stream rolled.
+
+### 4.12.3 Why it was worth 279 frames
+
+`1/51`'s two clocks were all the booking named: on the word's own block,
+**10304**, `g.cur_time` ours 30 against 0 and `g.last_time` ours 29
+against −1. Both are consequences, and the sign is the tell — `cur_time 0,
+last_time −1` is `set_anim`'s own write on a wrap, so the original wrapped
+on 10304 and this crate did not. It could not: on `1/51`'s own piece the
+second teach set's fourth slot is **118** frames and its first is **30**
+— the dump's own `end_time`s, not a table this crate supplies — so from
+the shared start at 10274 the original's clock ran out at 10274 + 30 =
+10304 exactly while this crate's had ninety left to run.
+
+That is also the whole of the draw delta the item was booked as. The
+original spends four draws on 10303 and this crate three; the extra at
+index 3 is `Guy::set_anim+0x97a < Guy::inc_time+0x271`, which is the wrap
+calling the roll. Neither the clock nor `inc_time` was ever wrong.
+
+**What one clause moved** (measured on run53 and run100 at the same tip):
+
+| | before | after |
+| --- | --- | --- |
+| Great Lakes long word, sequence / count | 10303 / 10304 | **10582** / **10583** |
+| run100 widening over `[9340, 10316]` | 352 | **253** |
+| blocks 10274 and 10304, keys parted | 2 / 2 | **0** / **0** |
+| Great Lakes endpoint `off` / `unlinked` / `build_diverged` | 49 / 8 / 9 | **55** / **5** / **10** |
+| East Indies endpoint `off` / `unlinked` / `build_diverged` | 63 / 11 / 28 | **59** / **12** / **30** |
+| East Indies ladder B `off` / `extra` | 48 / 11 | **45** / **6** |
+| scholar seatings below Great Lakes' word | 10 | **11** |
+| market draws below Great Lakes' word | 10 | **11** |
+
+East Indies' own word does not move (9711 either side) and neither does
+the golden record's; the endpoints move on both maps because a chain that
+entered the wrong teach slot held its figure three wraps' worth of draws
+out of the stream, and every map with a university has one. Those numbers
+are 13,400 frames past their words, where the stream is nobody's
+(`docs/DECISIONS.md` 36).
+
+### 4.12.4 How it was established, and what it has not
+
+**Diff-backed**, and the assertions are where the claim lives:
+
+- `rondata::diff`'s `run100_s_word_block_is_every_record_the_dump_carries`
+  pins blocks **10274** and **10304** empty, beside item 494's 10294 and
+  10295. 10274 is the cause and 10304 the symptom, and pinning both is
+  deliberate: a tie-break that stopped counting the requester would fail
+  on the cause, not thirty blocks downstream of it.
+- `sim::anim::tests::the_scholar_s_0x20_tie_break_counts_the_guy_asking`
+  asserts the four variants on a student already on `0x20`, the same
+  student on another slot (where `0x20` still stands), a third member
+  taking it away again, and the head's `+0x19` set. **Made to fail on
+  purpose** with `c != u` back in the predicate: the first assertion reads
+  **32** where the dump reads **29**, which is run100's `1/51` on 10274 to
+  the digit.
+- The same widening carries every other `GUY` field of all ten scholars
+  across 1,257 blocks, so a chain that took the right slot for the wrong
+  reason would part somewhere in `cur_time`, `end_time` or `gpiece`.
+
+**This was a reading-only claim that a run has now closed** — §4.11 said
+so itself, in the sentence that named the falsifier — and the run that
+closed it needed no capture: run100 had printed the evidence on every
+block since it was taken.
+
+**What is not established:**
+
+- **The chain's head, for a scholar inside a *unit*.** Unchanged from
+  §4.11: `inside_up` points at a boat as readily as at a building, this
+  crate keeps a boat's passengers as a filter rather than in entry order,
+  and no capture has a scholar aboard anything. What this item did change
+  is that the tie-break now fires there too, on the same "every member"
+  rule; before, `scholar_student_slot` read `units[u].inside`, which is
+  `None` for a passenger, and so could not fire at all.
+- **Whether the break's *position* in the chain matters.** The original
+  stops at the first member it finds on `0x20` and this crate asks
+  `any()`. The two differ only if a later member could change the answer,
+  and the answer is a single `0x1d`, so they cannot — but the loop's order
+  is asserted nowhere and a future arm that returned the member rather
+  than the slot would need it.
+- **`guy_flags & 4` is still unobserved on this disk.** All ten seated
+  scholars carry **144** on all 10,304 of the window's records — `0x80`,
+  the scholar bit, plus `0x10` — so this window adds no sighting of 0x4
+  to §9's list. `unit_masks2` is **0** on `1/51` throughout, which rules
+  out `inc_time`'s zero-step arm here from the dump's side as well as
+  from the sign of the draw.
 
 ## 5. `Guy::inc_time@005d9e10` — the step and the wrap
 
@@ -1654,7 +1823,11 @@ two passes.
   showing the bit — either the dumped `guy_flags` is not the whole `ushort`
   at `+0x9a`, or something clears it before the frame ends. And 265/266
   carry `8`/`40` **without 0x10**, which every other type has; whatever
-  0x10 is, the siege pieces lack it.
+  0x10 is, the siege pieces lack it. **Item 497 adds run100's scholars and
+  no sighting**: the ten seated figures of Great Lakes' two university
+  chains carry `guy_flags 144` — `0x80` plus `0x10` — on every block of
+  `[9340, 10595]`, so 0x4 remains unobserved in every capture on disk
+  (§4.12.4).
 - ~~**`Guy::move:52` tests `des_x == x` without the formation offset** while
   `set_anim:163` tests `des_x == x − off_x`.~~ **Settled 2026-09-01 by a
   grep, not a capture**: `GuyData::off_x`/`off_y` (`+0x92`/`+0x94`) are
