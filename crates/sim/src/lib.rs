@@ -869,13 +869,6 @@ pub struct Sim {
     /// are recycled the way `Groups::get_open_slot` recycles them, so the
     /// pool stays as small as the live groups.
     pub(crate) pushed: Vec<group::Pushed>,
-    /// The slot the **last** [`Sim::push_group`] filled.
-    /// [`Sim::find_ordered_collision`]'s second pass — the one that
-    /// catches a **group member** ordered next to a candidate from
-    /// anywhere on the map — reads this one rather than the asker's own
-    /// (`docs/COLLISION.md` §9, `docs/COMBAT.md` §17.4), which is where
-    /// it stood when the pool was a single slot.
-    pub(crate) pushed_last: Option<usize>,
     /// Draw marks spent by **staged input** at `Game::do_frame`'s entry,
     /// before the frame's first phase — the cheat channel's, which
     /// `rontrace.dll` hands to `ConsoleWin::parse_cmd` there
@@ -1262,7 +1255,6 @@ impl Sim {
         mesh.seed(&world);
         Sim {
             pushed: Vec::new(),
-            pushed_last: None,
             transport: vec![transport::LeaderTransport::default(); players],
             docks: vec![transport::Docks::default(); players],
             caravans: vec![caravan::Caravans::default(); players],

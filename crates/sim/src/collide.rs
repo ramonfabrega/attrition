@@ -1187,7 +1187,11 @@ impl Sim {
     /// six units pile onto one spot and one that spreads them — six
     /// members asking within one frame, each of them already a hundred
     /// tiles from the candidate and so invisible to the 3 × 3 chain walk.
-    /// [`Sim::pushed_group`] is the pool slot this crate lacked.
+    /// [`Sim::group_of`] is the resolver this crate lacked; until item
+    /// 470 the pass read the **last slot pushed** instead, which is where
+    /// it stood when the pool was a single slot, and chapter two's three
+    /// hoplites were handed one slot between them while it looked at
+    /// somebody else's members (`docs/COMBAT.md` §35.1).
     ///
     /// `65b4d4`-`65b58c`: the group is the asker's `+0x80`, it must belong
     /// to the asker's own player, the asker must be **in** its member
@@ -1198,11 +1202,18 @@ impl Sim {
         if self.chain_hit(u, at, |s, o| ucell(s.units[o].orders_pos)) {
             return true;
         }
-        let Some(slot) = self.pushed_last.and_then(|i| self.pushed.get(i)) else {
+        // **The asker's own group, not the last one pushed** (`65b4d4`:
+        // the group is `unit +0x80`). The single-slot pool had no way to
+        // ask, and item 465's [`Sim::group_of`] is the resolver that
+        // makes it answerable; item 470 is where it was measured, because
+        // chapter two's three hoplites are a group of three and were
+        // being handed one slot between them while this pass looked at
+        // somebody else's members. `docs/COMBAT.md` §35.1.
+        let Some(g) = self.group_of(u) else {
             return false;
         };
-        let (who, members) = (slot.who, &slot.list);
-        if who != self.units[u].owner || !members.contains(&u) {
+        let members = &g.list;
+        if g.who != self.units[u].owner || !members.contains(&u) {
             return false;
         }
         let mine = self.coll_size(u);

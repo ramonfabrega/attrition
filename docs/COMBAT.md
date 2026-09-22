@@ -3494,8 +3494,11 @@ table, reproduced by the harness on every commit); that no collision is
 detected for `1/7` or `1/8` in the window (run110's own fields); the
 `0xf6` reach (§13.2, item 384). **Read-only**: the three unmodelled
 conjuncts of the kill and the re-path arm's two guards, all listed in
-`docs/ORDERS.md` §4.4 — each of them only makes the kill rarer, so none
-can be costing a frame in the same direction.
+`docs/ORDERS.md` §4.4 — ~~each of them only makes the kill rarer, so
+none can be costing a frame in the same direction.~~ **The inference was
+wrong** (item 470, §35.3): rarer is a *direction*, and chapter two's
+kill fires too **early**, not too late. The `mandatory` conjunct is
+worth three frames on `0/11` there, measured both ways.
 
 **Not established**: whether `find_melee_target`'s retarget really is
 inside the `max_range` gate, as the decompile has it. It reads oddly — the
@@ -4683,15 +4686,15 @@ and `1/8` in one bucket while `1/7` is two away: `maxr` is 1920 here, so
 
 ### 33.2 `compare_target`'s fourth argument inverts the damage weight — established, not landed
 
-**Status.** Everything in this subsection is established against run112's
-own dump and was implemented, measured and then *withdrawn* from the
-tree; the code carries the human arm still, and
-[`Sim::compare_target`]'s doc comment says so. It is not a doubt about
-the finding. It is that landing it alone turns
-`chapter_two_s_visible_byte_is_the_dump_s_on_every_unit_frame` red for a
-reason that has nothing to do with the ranking — §33.4 — and a red tree
-costs the next lane its oracle for three rows that do not move the word.
-Item 470 lands it together with the defect it uncovers.
+**Status — landed on item 470** (2026-09-21). Everything in this
+subsection was established against run112's own dump on item 466,
+implemented, measured and then *withdrawn*; it went back in whole on 470,
+where [`Sim::compare_target`] gained the fourth argument and
+[`Sim::search_ai`] the gate that computes it. 635's three `Target` rows
+are closed and the values now part at **636**. It cost
+`chapter_two_s_visible_byte_is_the_dump_s_on_every_unit_frame`, which is
+red on purpose; §33.4 and §35 have why, and §35 has the reason that
+subsection's *predicted* fix was the wrong one.
 
 
 `Object::compare_target(o, who, in_range, ai)` at `0064ef4b`:
@@ -4824,22 +4827,25 @@ one. So the green rests on a wrong two-slot assignment.
 `find_open_slots` was already collapsing two chasers of three before this
 item; the correct ranking reveals that rather than causing it. A pinned
 assertion that passes for the wrong reason is worse than one that fails,
-because nothing in the tree says so — this paragraph is the only record
-that it does.
+because nothing in the tree says so — this paragraph was the only record
+that it did.
 
-The mechanism is §19's: `find_open_slots` rejects a slot another unit is
-ordered to through `find_ordered_collision`, and that predicate walks the
-object chain of the cells around the **slot**. The three hoplites stand
-1,200 units east of it, so none is on those chains and none sees the
-others' orders.
+**Both counts re-measured on item 470's tree, after 465's group pool
+landed under it**: without §33.2, `(1320, 7800)` twice and
+`(1320, 7944)` once out of **twelve** open slots — two slots between
+three chasers, unchanged from 466's figure; with §33.2, `(1512, 8040)`
+on all three out of **ten**. 470 then closed the collapse itself
+(§35.1), so the green rests on three slots and not on two.
 
-**Item 470 carries §33.2 with it.** Neither is landable alone — the
-ranking without the slot fix is the red above, the slot fix without the
-ranking is a correct chase toward a target the dump does not pick.
-Whether `find_ordered_collision` should reach a squadmate's slot through
-a second chain, through the `pushed_group` arm this crate has, or because
-a melee squad is ordered from somewhere that already holds the list, is
-not established here.
+~~The mechanism is §19's `find_ordered_collision` **chain** reach, which
+cannot see a squadmate 1,200 units away.~~ Half right, and §35.1 has the
+measured half. The chain cannot see them — and the crate's *group* pass,
+which was written for exactly that case, was reading the **last slot
+pushed** rather than the asker's own group, so it saw nobody's members.
+Reading the asker's group (`65b4d4`) hands the three hoplites three
+slots and `1/8` strikes. The **destinations** are still wrong, and for a
+different reason: the original's `0/11` is *moving* when the hoplites
+ask, so `find_melee_pos` is never called there at all.
 
 ### 33.6 Re-measured against 464, which landed alongside
 
@@ -4850,14 +4856,11 @@ nothing else; `chapter_two_s_visible_byte_…` green; §33.4's slot counts
 unchanged — **two** slots between three chasers without §33.2, **one**
 with it.
 
-Neither of 464's changes could reach this window, and the reasons are
-stated rather than assumed. Its health fix is in the **other** harness —
-run100's block widening keys rows by name, where chapter two's walks
-`FrameResult`, which carries no health row at all — and every unit in
-`[633, 641)` is undamaged in the dump, `damage 0` on all nine for all
-nine blocks. Its `role & 0x10000` gate does not touch the hoplites, which
-carry the military bit; `order 0/5` and `pos 0/5` still part at 639
-and 640.
+Neither of 464's changes could reach this window, and the reasons were
+stated rather than assumed: its health fix is in the **other** harness
+(chapter two's walk carries no health row, and all nine units are
+`damage 0` for all nine blocks), and its `role & 0x10000` gate does not
+touch units carrying the military bit.
 
 **That chapter two's `compare` carries no health row is a real gap**,
 just not a live one here, and not this item's to close.
@@ -4881,10 +4884,10 @@ their three distinct destinations, and the dump's pick being a slinger;
 number this crate computes on the frame); §33.4's map, its split table,
 and the two-slot assignment the green rests on.
 
-**Established and measured, but not in the tree**: §33.2's table. It was
-implemented and run — that is where its numbers come from — and then
-withdrawn, so no test checks it today and a later edit could silently
-contradict it. Item 470 is what puts it back under an oracle.
+**Diff-backed since item 470**: §33.2's table. The ranking is in the
+tree and `chapter_two_s_word_frame_is_widened_whole` checks its product
+on every commit — the hoplites' three `Target` rows are gone from 635 and
+`order 1/6`, `1/7` and `1/8` stand at 636.
 
 **Listing- and export-backed**: the four writers of `+0x3d` and the
 `(frame + o) % 16` slot at `006114e6`; `compare_target`'s `ai` split at
@@ -5097,3 +5100,205 @@ the original's human citizen is kept from the job by the leader flag
 `Unit::think@005f6e40` tests at `5f7179`, by its own idle threshold, or by a
 `find_gather_spot` that simply finds nothing, is the next question and is
 not answered here.
+
+---
+
+
+## 35. The group pass was reading somebody else's group (item 470, 2026-09-21)
+
+Three things landed and the score moved on two of them. §33.2's `ai` arm
+is in the tree: 635's three `Target` rows are closed and the values part
+at **636**. `find_ordered_collision`'s group pass reads the **asker's
+own** group: the three hoplites take three slots instead of one and
+`1/8` strikes for the first time, which puts
+`chapter_two_s_visible_byte_is_the_dump_s_on_every_unit_frame` back on an
+honest footing (§33.4). And the widening window's floor came down to
+run112's first block, which put a row on the map that nothing had ever
+reported. Word **637**, unmoved (sequence 637, `game_random` 638).
+
+**The item was booked on a mechanism and the mechanism was half wrong**,
+which is the fifth time on these frames (`docs/DECISIONS.md` 42). The
+half that was right was the function; the half that was wrong was the
+line inside it, and the destinations it produces are still not the
+original's for a reason that has nothing to do with either.
+
+### 35.1 One slot, three chasers — and it was not the chain walk
+
+A probe inside `Unit::find_attack_pos`'s melee arm, printing each asker's
+answer, its group, and its squadmates' `orders_x`/`orders_y` at the
+moment it asks:
+
+```
+f=635 melee 1/6 target=(0,11) group=3 -> (1512, 8040)  open=10
+         mates orders_pos=[(6, 2424, 7800), (7, 2568, 7800), (8, 2472, 7944)]
+f=635 melee 1/7 target=(0,11) group=3 -> (1512, 8040)  open=10
+         mates orders_pos=[(6, 1512, 8040), (7, 2568, 7800), (8, 2472, 7944)]
+f=635 melee 1/8 target=(0,11) group=3 -> (1512, 8040)  open=10
+         mates orders_pos=[(6, 1512, 8040), (7, 1512, 8040), (8, 2472, 7944)]
+```
+
+§33.4's reading was that the three are invisible to each other because
+`find_ordered_collision` walks the object chains of the cells around the
+**slot** and they stand 1,200 units east of it. True of the chain walk —
+and beside the point, because the second pass exists for exactly this
+case (§17.4) and the middle line above shows it had the answer in its
+hand: when `1/7` asks, `1/6`'s `orders_pos` is **already** the slot
+`1/7` goes on to take.
+
+It was looking in the wrong place. `65b4d4`-`65b58c` takes the group off
+the asker's `unit +0x80`; this crate took the **last slot `push_group`
+filled**, which is where the reader stood when the pool was one slot and
+which item 465's own comment on `Sim::pushed_last` said in as many
+words. With a pool and [`Sim::group_of`] to resolve it, the asker's own
+group is answerable, and then:
+
+```
+f=635 melee 1/6 -> (1512, 8040)  open=10
+f=635 melee 1/7 -> (1512, 8328)  open=9
+f=635 melee 1/8 -> (1512, 8472)  open=8
+```
+
+Ten, nine, eight: each taken slot is gone for the next asker. `1/8`
+reaches its target, strikes, and gains player 0's `visible` bit at 675
+where it had never gained one at all. `Sim::pushed_last` has no reader
+left and is gone with the fix.
+
+**The destinations are still not the dump's** — `(1416, 8328)`,
+`(1128, 8424)`, `(1368, 8472)` — and the reason is upstream of this
+function and of the slot ring:
+
+```
+f=635 do_move/attack u=0/11 t=(1,8) max_range=6 attack_dist=1130
+      reach=1158  ->  kill_current_order
+```
+
+§17.3's arm calls `Unit::find_melee_pos@006010b0` only when the unit
+target is **not moving** (§19), and run112's `0/11` carries a
+`MOVEORDER` on every block from 622 to 638 — it is walking to
+`(1704, 8424)` the whole time the hoplites choose. The original never
+enters this function here; its askers take `find_attack_pos`'s sweep,
+which is why their three points sit at three different Chebyshev radii
+from the target (`(+4, 0)`, `(−2, +2)`, `(+3, +3)` quarter-tiles) rather
+than down one side of a square ring. **No square ring can produce that
+set**, and the dump's own coordinates said so before any probe ran.
+
+So the chain is four links long — the chase dies three frames early →
+the target is not moving → the melee arm is entered at all → the slots
+are shared — and item 470 fixed the fourth. The first is §35.3's.
+
+### 35.2 The window's floor was above a live row
+
+`chapter_two_s_word_frame_is_widened_whole` walked `[633, 641)` — "the
+word, and three frames either side". Widening it to run112's **own first
+block** puts a divergence on the map that no run had ever reported:
+
+| row | frame | whose |
+| --- | --- | --- |
+| `order 0/10`, `pos 0/10` | **630** | nobody's — pre-existing |
+| `order 0/11`, `pos 0/11` | 636 | §35.3's |
+| `order 1/6`, `1/7`, `1/8` | 635 → **636** | closed by §33.2 |
+
+`0/10` is the other slinger on the same chase. This crate drops its move
+on the first frame it reads in range; the original drops it **one frame
+later**, at the same `attack_dist` of 1108 against the same reach of
+1158 — both sides are at `(1206, 8207)` when this crate kills and at
+`(1227, 8186)` when the original does, and the two snap to one
+quarter-tile, so the distance is identical on the frame each side
+decides. The difference is state, not geometry, and it is not settled
+here.
+
+The row was measured **both ways**, with §33.2's ranking and with it
+disabled, and stands identically. It is recorded because a floor chosen
+to sit just under the word is the same shape as §33.4's unearned green:
+an instrument that agrees because it is not looking. The floor is now
+the dump's first block and the map is pinned whole.
+
+### 35.3 `is_in_range`'s sixth argument — measured, and not landed
+
+`do_move@005f7b30:216` is the **only** call to `ObjectData::is_in_range`
+in the executable that passes a non-zero sixth argument. Every other one
+— across `Unit::fight`, `Unit::think`, `Group::action_attack`,
+`Object::find_nearby_target`, `Object::compare_target`,
+`Build::do_attack` and a dozen more — passes `0`. What it carries is
+`attack->+0x1c == 0`, which the type record names
+`AttackOrder::mandatory`, and what it does at `006486b0` is add `+0x90`
+to the measured distance before the max-range test. So a
+**non-mandatory** chase is dropped three quarters of a tile inside the
+attacker's reach rather than at its edge. `docs/ORDERS.md` §4.4 has
+carried the conjunct as unmodelled since the second reading;
+[`combat::in_range`] has carried the parameter, misnamed `melee_bonus`,
+since it was written, and **nothing has ever passed it `true`** — the
+same shape as the `0xf6` reach item 384 found.
+
+It was implemented and measured, and it is **not in the tree**:
+
+| | `0/10` parts | `0/11` parts | the hoplites' rows |
+| --- | --- | --- | --- |
+| without the margin | 630 (one frame early) | 636 (three early) | 636 |
+| with the margin | 631 (one frame **late**) | 639 (the dump's own) | back at **635** |
+
+It is right about `0/11`, the unit this item is about, and it moves
+`0/10` from one frame early to one frame late — and because `0/10` then
+stands where the original does not, who=1's ranking at 635 changes and
+the three rows §33.2 had just closed come back.
+`chapter_two_s_first_attack_orders_are_the_dump_s` goes red with them.
+
+So the conjunct is real, its effect is measured in both directions, and
+landing it alone is a net loss on this map. What it needs is whatever
+stops `0/10` at 631, which §35.2 leaves open. The measurement is written
+down so nobody runs it twice, and so the next reader of `melee_bonus`
+knows the name is wrong twice over: it is not a bonus, and it never
+reaches a melee attacker, whose arm returns before the test.
+
+**And it refutes an inference, not just a gap.** §25.5 said the
+unmodelled conjuncts "only make the kill rarer, so none can be costing a
+frame in the same direction". Rarer is a *direction*. Chapter two's kill
+fires too **early**, and the conjunct is worth three frames on `0/11`.
+
+### 35.4 What the `visible` row now says
+
+The shape row is green because all nine units gain a bit, `1/8`
+included. Its **frames** row — pinned in no direction, by its own doc
+comment — moved on the three hoplites:
+
+| | ours before | ours after | run112 |
+| --- | --- | --- | --- |
+| `1/6` | 677 | **669** | 672 |
+| `1/7` | 694 | **678** | 698 |
+| `1/8` | never | **675** | 665 |
+
+Two of the three are closer to the dump and `1/7` is twenty frames
+under it, which is the engagement's own residue and not this field's
+(§31.6). `exact == 5` is untouched: the five arrivals this crate puts on
+the dump's own frame are the three bowmen, `0/10` and `0/11`, and none
+of them moved.
+
+### 35.5 Coverage
+
+**Diff-backed**: §33.2's ranking and the three rows it closes; the
+three-slots-from-three-askers count and the ten/nine/eight open counts
+(a probe inside `find_attack_pos`, re-measured after 465 landed
+underneath); §33.4's two-slot figure, re-measured the same way; the
+widened map including `order 0/10` / `pos 0/10` at 630, measured with
+§33.2 both enabled and disabled; `1/8`'s first strike and its `visible`
+bit at 675; that run112's `0/11` carries a `MOVEORDER` on every block
+622 to 638 and `0/10` on every block 622 to 630 (the dump's own
+records); `0/11`'s `attack_dist` of 1130 against a reach of 1158 on the
+frame this crate kills its chase; §35.3's table, both rows.
+
+**Listing- and export-backed**: `compare_target`'s `ai` split at
+`0064ef4b` and the gate that computes it at `00648e6e`;
+`find_ordered_collision`'s group pass at `0065b440` taking the asker's
+own `unit +0x80`; `is_in_range@006486b0`'s sixth argument and the single
+call site that sets it, `do_move@005f7b30`; `AttackOrder::mandatory` at
+`+0x1c` from the type record; `find_melee_pos@006010b0`'s `is_moving`
+guard (§19).
+
+**Not established**: what stops `0/10` at 631 rather than 630 — the
+`find_collision` conjunct beside the margin is false at both positions
+(the two snap to one quarter-tile and `0/11` is three unit cells away at
+each), and the `(o + frame)` retarget that does fire on that frame ends
+in `change_target`, not a kill. Whether the original's askers here take
+`find_attack_pos`'s sweep's **flanking** branch — `0/11` is moving,
+which is precisely that branch's gate (§32's seam) — is unmeasured, and
+it is the next thing to ask about their three destinations.

@@ -878,9 +878,9 @@ target order decides its transit legs are stale.
    0` → `dest = 0; clear_partial_path; flags |= 1; collide = 0; return 0` (the
    blocker has gone — re-plan next frame); otherwise `collide++` and
    `dest = 0` **every frame** (the increment is outside the
-   `& 0x80000003` test, which guards only `repaths[who]++` — this row read
-   "every 4 frames" until run90 dumped `collide` counting 1 → 9 one a
-   block, `docs/COLLISION.md` §8.8), then `PathFinder::find_upath_restore`
+   `& 0x80000003` test, which guards only `repaths[who]++`; run90's
+   `collide` counts 1 → 9 one a block, `docs/COLLISION.md` §8.8), then
+   `PathFinder::find_upath_restore`
    resumes the A\* with limit `300 / repaths²`. **No step while a search is
    pending.**
 3. **`timer`**: `> 0`: at 1 → `kill_current_order(0); work(); return 0`; else
@@ -888,8 +888,9 @@ target order decides its transit legs are stale.
 4. **The action under the move** (`get_action()`): if `ATTACK`, the target
    alive on the same `uid`, and **the attacker's `max_range` non-zero** —
    `005f7b30:212`, `ObjectTypeData +0x1fc`, the arm's gate (item 405,
-   `docs/COMBAT.md` §25) — a non-building, non-flank, in-range target, no
-   collision at its own spot → `kill_current_order`; every 16 frames
+   `docs/COMBAT.md` §25) — a non-building, non-flank, in-range target
+   (**less `+0x90` unless mandatory**, §35.3), no collision at its own
+   spot → `kill_current_order`; every 16 frames
    `find_melee_target` may take a closer in-range unit; a building target
    in range, valid, no collision → kill. A non-mandatory `ATTACK` action
    every 4th frame under `repaths` budget → `find_new_target(0, 1)`

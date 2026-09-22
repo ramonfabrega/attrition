@@ -420,7 +420,6 @@ impl Sim {
             list: g.list.clone(),
             state: GroupState::default(),
         };
-        self.pushed_last = Some(slot);
         g.army = None;
         g.pushed = Some(slot);
         true

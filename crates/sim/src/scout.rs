@@ -255,6 +255,25 @@ impl Sim {
         self.nation.get(who as usize).is_some_and(|n| !n.human)
     }
 
+    /// `Object::find_nearby_target@00648e6e`'s `local_40` — the flag
+    /// [`Sim::compare_target`] takes as its fourth argument and which
+    /// inverts the damage weight (`docs/COMBAT.md` §33.2):
+    ///
+    /// ```text
+    /// (leaders[who].flags & 4) == 0 && get_diff(leaders[who]) == 0
+    ///     && (game.semaphore[1] & 2) == 0
+    /// ```
+    ///
+    /// The first term is [`Sim::ai_driven`] and the second
+    /// [`Sim::ai_difficulty`], which `LeaderData::get_diff@006ec000`
+    /// answers off the lobby outside a multiplayer game. **The third is a
+    /// seam**: `game.semaphore[1] & 2` can only ever *clear* the flag, so
+    /// this errs toward the AI arm on a setting no capture uses, and
+    /// `get_diff`'s own multiplayer branches are not carried either.
+    pub fn search_ai(&self, who: Player) -> bool {
+        self.ai_driven(who) && self.ai_difficulty() == 0
+    }
+
     // ------------------------------------------------------------------
     // §7 — the fog read that is this mechanic's own
     // ------------------------------------------------------------------

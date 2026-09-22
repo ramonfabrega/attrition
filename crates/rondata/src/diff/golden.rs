@@ -699,14 +699,25 @@ fn chapter_one_s_captain_picks_the_one_it_can_reach() {
     );
     // The three values the pick rests on, in the trace's own candidate
     // order. `in_range` is the search's permission-to-test, `true` for
-    // every candidate of a non-guarding AGGRESSIVE unit. The **fourth**
-    // argument, `ai`, is still missing from this crate's signature and
-    // run108's proxy printed it `1` on this very captain — so the shape
-    // below is the human arm's, which is why every assertion here is
-    // relative (`docs/COMBAT.md` §33.2; item 470 carries the fix).
+    // every candidate of a non-guarding AGGRESSIVE unit.
+    //
+    // **The fourth argument is this crate's own answer, checked against
+    // the trace's** — run108 printed `ai=1` on this very captain, and
+    // since item 470 [`sim::Sim::search_ai`] computes it. That equality is
+    // the one place on disk where the predicate at `00648e6e` is measured
+    // rather than read (`docs/COMBAT.md` §33.2).
+    let ai = built.sim.search_ai(1);
+    assert!(
+        ai,
+        "run108's proxy printed `ai=1` on who=1's captain; `search_ai`          disagrees, so the gate at `00648e6e` is modelled wrong"
+    );
     let v: Vec<i32> = [(0, 8), (0, 7), (0, 6)]
         .into_iter()
-        .map(|(w, o)| built.sim.compare_target(captain, find(&built, w, o), true))
+        .map(|(w, o)| {
+            built
+                .sim
+                .compare_target(captain, find(&built, w, o), true, ai)
+        })
         .collect();
     assert_eq!(
         v[0], v[2],
@@ -726,7 +737,11 @@ fn chapter_one_s_captain_picks_the_one_it_can_reach() {
     // original's.
     let flat: Vec<i32> = [(0, 8), (0, 7), (0, 6)]
         .into_iter()
-        .map(|(w, o)| built.sim.compare_target(captain, find(&built, w, o), false))
+        .map(|(w, o)| {
+            built
+                .sim
+                .compare_target(captain, find(&built, w, o), false, ai)
+        })
         .collect();
     assert!(
         flat[0] == flat[1] && flat[1] == flat[2],
@@ -1339,13 +1354,19 @@ fn chapter_two_s_hoplite_captain_refused_a_cell_three_searches_reached() {
 /// (`FrameResult::extra_units`).
 #[test]
 fn chapter_two_s_word_frame_is_widened_whole() {
-    /// The first frame compared: run112's window opens at 605 and the
-    /// slinger squad is born at 621, so this is inside both. Declared in
+    /// The first frame compared: **run112's own first block**, which is
+    /// the only floor that cannot hide a row. It stood at 633 until item
+    /// 470, three frames under the word — and 633 was above a live
+    /// divergence: `order 0/10` and `pos 0/10` part at **630**, on a
+    /// chase this crate drops one frame before the original does, and no
+    /// run had ever said so. A floor chosen to sit "just under the word"
+    /// is the same shape as §33.4's unearned green: an instrument that
+    /// agrees because it is not looking. Declared in
     /// [`WIDENING_CHAPTER_TWO`] beside the `WIDENINGS` row, so the floors
     /// guard reads the word against the same window this walks.
     const FIRST: i64 = WIDENING_CHAPTER_TWO.0;
-    /// One past the last. 624 is the word; three frames either side is
-    /// enough to say the parting opens *there* and not before.
+    /// One past the last. 637 is the word; four frames past it is enough
+    /// to say the parting opens *there* and not later.
     const LAST: i64 = WIDENING_CHAPTER_TWO.1;
     let Some(inst) = crate::testenv::install() else {
         return;
@@ -1488,27 +1509,34 @@ fn chapter_two_s_word_frame_is_widened_whole() {
     // no longer appear at all, and nor do the `angle` rows that followed
     // them on 636.
     //
-    // **The hoplites' three remain at 635 on purpose.** Their cause is
-    // established and not landed: `compare_target`'s fourth argument
-    // **divides** by the damage it would deal for a computer leader where
-    // a human's multiplies, so who=1's hoplites rank two slingers above
-    // three fatter bowmen and this crate does not. Landing it closes
-    // these three rows and simultaneously fails
+    // **The hoplites' three closed on item 470**, which landed §33.2:
+    // `compare_target`'s fourth argument **divides** by the damage it
+    // would deal for a computer leader where a human's multiplies, so
+    // who=1's hoplites rank two slingers above three fatter bowmen and
+    // this crate now does too. `order 1/6`, `1/7` and `1/8` move 635 →
+    // **636** and the values no longer part at 635 at all. The cost is
     // `chapter_two_s_visible_byte_is_the_dump_s_on_every_unit_frame`,
-    // because the correct target exposes `find_open_slots`' own defect —
-    // three chasers planning one melee slot. The two land together as
-    // item 470 (`docs/COMBAT.md` §33.2, §33.4).
+    // which is **red on purpose** — `docs/COMBAT.md` §33.4 and §35.
+    //
+    // **`order 0/10` / `pos 0/10` at 630 are what the old floor hid.**
+    // They are not item 470's: they stand identically with §33.2 disabled
+    // (measured both ways on this window), and they are the first row on
+    // the map now that it starts at run112's own first block. This crate
+    // drops `0/10`'s chase on the frame it first reads in range; the
+    // original drops it one frame later (`docs/COMBAT.md` §35.2).
     //
     // `order 0/5` / `pos 0/5` at 639-640 are a **citizen** far from the
-    // engagement and were in no earlier window; they are named here so a
-    // regression in them cannot hide behind the engagement, and they are
-    // nobody's item yet (`docs/COMBAT.md` §32.5).
+    // engagement; they are named here so a regression in them cannot hide
+    // behind the engagement, and they are nobody's item yet
+    // (`docs/COMBAT.md` §32.5).
     let measured = [
+        ("order 0/10", 630),
         ("order 0/11", 636),
         ("order 0/5", 639),
-        ("order 1/6", 635),
-        ("order 1/7", 635),
-        ("order 1/8", 635),
+        ("order 1/6", 636),
+        ("order 1/7", 636),
+        ("order 1/8", 636),
+        ("pos 0/10", 630),
         ("pos 0/11", 636),
         ("pos 0/5", 640),
         ("pos 1/6", 636),
@@ -1520,8 +1548,8 @@ fn chapter_two_s_word_frame_is_widened_whole() {
     assert_eq!(
         got,
         measured.to_vec(),
-        "chapter two's word frame no longer widens the way item 462 \
-         measured it; re-pin this map and say so in docs/COMBAT.md §32.3"
+        "chapter two's word frame no longer widens the way item 470 \
+         measured it; re-pin this map and say so in docs/COMBAT.md §35"
     );
 }
 
@@ -1671,13 +1699,22 @@ fn chapter_two_s_visible_byte_is_the_dump_s_on_every_unit_frame() {
             ((0, 9), (646, 2)),
             ((0, 10), (631, 2)),
             ((0, 11), (637, 2)),
-            ((1, 6), (677, 1)),
-            ((1, 7), (694, 1)),
-            ((1, 8), (679, 1)),
+            ((1, 6), (669, 1)),
+            ((1, 7), (678, 1)),
+            ((1, 8), (675, 1)),
         ],
         "chapter two's `visible` arrivals moved; re-pin them and say so \
          in docs/VISION.md §7"
     );
+    // **The three hoplites moved on item 470**, 677/694/679 →
+    // 669/678/675 against the dump's 672/698/665, and they moved because
+    // all three now chase a slot of their **own**:
+    // `find_ordered_collision`'s group pass reads the asker's group and
+    // not the last one pushed (`docs/COMBAT.md` §35.1). Before that,
+    // `1/8` never struck at all and the shape row above was red; two of
+    // the three are closer to the dump's frame and `1/7` is twenty
+    // frames under it. Pinned in no direction, as the doc comment says.
+    //
     // **Five of the nine land on the dump's own frame** — the three
     // bowmen, the slinger captain and, since item 462, `0/10` — and that
     // is the row that keeps the other four honest: a change that bought
