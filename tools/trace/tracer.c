@@ -93,6 +93,10 @@
 #error RON_HIDE_SCENE requires RON_TURN_PROBE for the render-call witness
 #endif
 
+#if defined(RON_STATE_FRAME) && defined(RON_RESTORE_PROBE)
+#error Frame snapshots and restore probes use separate capture lanes
+#endif
+
 typedef unsigned char u8;
 typedef unsigned short u16;
 typedef unsigned int u32;
@@ -195,6 +199,10 @@ typedef struct {
 } HookSite;
 
 static const HookSite HOOKS[] = {
+#ifdef RON_STATE_FRAME
+    /* GameLog::end_frame: mov ecx,[game_log.log_start_frame]. */
+    {0x5329d0, 6, 9, {0x8b,0x0d,0xd4,0x13,0xeb,0x00}},
+#endif
     /* Game::do_frame@00591ef0: push ebp; mov ebp,esp; push -1; push 0xa83e41 */
     {0x191ef0, 10, K_FRAME, {0x55, 0x8b, 0xec, 0x6a, 0xff, 0x68, 0x41, 0x3e, 0xa8, 0x00}},
     /* Random::get@00a39cf0: push ebp; mov ebp,esp; push ecx; imul eax,[ecx],0x19660d */
@@ -843,8 +851,19 @@ static void __cdecl on_hook(u32 kind, u32 ecx, u32 ebp, u32 caller, u32 arg0) {
 }
 
 #include "hook_stub.h"
+#ifdef RON_STATE_FRAME
+#include "../explore/register_image_stub.h"
+#include "../explore/live_frame_snapshot.h"
+#include "../explore/frame_snapshot_stub.h"
+#endif
 
 static u32 build_stub(u8 *s, const HookSite *h) {
+#ifdef RON_STATE_FRAME
+    if (h->kind == 9) {
+        return build_frame_snapshot_stub(s,(u32)s,g_base+h->rva,
+            (u32)(void *)frame_snapshot_enter,(const u8 *)(g_base+h->rva),h->len);
+    }
+#endif
     return build_hook_stub(s, (u32)s, g_base+h->rva, h->kind, (u32)(void *)on_hook,
                            (const u8 *)(g_base+h->rva), h->len);
 }
