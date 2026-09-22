@@ -65,6 +65,32 @@ impl Rng {
     }
 }
 
+/// The bits of `UnitData::unit_masks2` (`+0x6c`) this crate writes —
+/// [`crate::Unit::unit_masks2`].
+pub mod umask2 {
+    /// **`0x10` — "still ordered to attack, reload open, and not firing
+    /// this frame"** (`docs/COMBAT.md` §43.2).
+    ///
+    /// `Unit::fight@005fd4d0` sets it on two arms and both read the same
+    /// pair above them, `order_type() == ATTACK && recharging == 0`: the
+    /// tail of the invalid-target branch at `LAB_005fdb9e`, after
+    /// `find_new_target` has killed the order and the search has put a new
+    /// one in front; and `LAB_005fe502`, where `find_attack_pos` returned
+    /// nothing or the defend point is out of
+    /// `unit_defensive_respond_range`. `Unit::process@00610bc0` clears it
+    /// (`& 0xffffffef`) immediately after `process_healing` under
+    /// `inside_up < 0`, on every frame and outside the sixteen-frame
+    /// cadence the `targeted` decay sits in — so it is a **one-frame**
+    /// mark, written inside the frame's order step and read by phase 7's
+    /// `Objects::inc_time`.
+    ///
+    /// What reads it is [`crate::Sim::guy_inc_time`]: a figure whose unit
+    /// carries the bit steps its animation clock by **zero**
+    /// (`docs/ANIM.md` §5). It is the third value of a step that looks
+    /// like it has two.
+    pub const NOT_FIRING: u32 = 0x10;
+}
+
 /// The `obj_masks` bits by the names the shipped `balance.xml` gives them
 /// (§3). Bit `n` is letter `'A' + n`.
 pub mod mask {

@@ -1360,24 +1360,31 @@ impl Sim {
         }
     }
 
-    /// A dead object is dropped from every target slot and from ammo in
-    /// flight — what `close` does through `hold_frames` and `valid_target`.
+    /// A dead object is dropped from ammo in flight and from a building's
+    /// target slot — what `close` does through `hold_frames` and
+    /// `valid_target`.
+    ///
+    /// **A unit's attack target is not dropped here, and that is the
+    /// original's own behaviour** (item 502, `docs/COMBAT.md` §43.3).
+    /// `Unit::do_attack@005f1b80` reads the target off the *order* — an
+    /// `AttackOrder` **is** a `TargetOrder` — and nothing in the
+    /// executable walks the object list clearing it when something dies.
+    /// The order keeps `ox`/`whom`/`uid` where they are and
+    /// `Object::valid_target` finds out at the next use, which is behind
+    /// `Unit::fight`'s reload gate. run112's three bowmen carry the dead
+    /// `1/8` on their `ATTACKORDER` from the block after it dies (684) to
+    /// the block their reload opens (696), twelve frames — and that hold
+    /// is what puts all three into `fight` on **one** frame, which is
+    /// chapter two's word at 695.
+    ///
+    /// The same shape as item 463 one field along: `mandatory` outlives
+    /// its target too. `Unit::do_attack@005f1b80` reads it off
+    /// `TargetOrder +0x1c`, and run100's block 10233 still prints
+    /// `ox 2004 whom 0 uid 4 mandatory 1` on `1/27` two blocks after the
+    /// building `0/2004` left the dump. Clearing that sent a HOLD_FIRE
+    /// raider into [`crate::Sim::do_attack`]'s stance arm, which returns,
+    /// so the order it should have dropped stood for ever.
     pub(crate) fn forget(&mut self, dead: Obj) {
-        for u in &mut self.units {
-            if u.combat.target == Some(dead) {
-                u.combat.target = None;
-                // **The order's `mandatory` is not the target's, and it
-                // outlives it** (item 463). `Unit::do_attack@005f1b80`
-                // reads `mandatory` off the *order* — `TargetOrder
-                // +0x1c` — and run100's block 10233 still prints
-                // `ox 2004 whom 0 uid 4 mandatory 1` on `1/27`'s
-                // `ATTACKORDER` two blocks after the building `0/2004`
-                // left the dump. Clearing it here sent a HOLD_FIRE
-                // raider into [`crate::Sim::do_attack`]'s stance arm,
-                // which returns, so the order it should have dropped on
-                // its own reload's last frame stood for ever.
-            }
-        }
         for b in &mut self.buildings {
             if b.target == Some(dead) {
                 b.target = None;
@@ -2607,6 +2614,13 @@ mod tests {
     /// — a HOLD_FIRE attacker returns at `do_attack`'s stance arm and the
     /// order never dies at all.
     ///
+    /// **And the target itself outlives the object too** (item 502,
+    /// `docs/COMBAT.md` §43.3): `Sim::forget` no longer clears it, which
+    /// is what run112's three bowmen say — their `ATTACKORDER` carries the
+    /// dead `1/8` for twelve blocks. So the first assertion below is the
+    /// opposite of what it was, and the reload's twelve frames are now
+    /// twelve frames of a **named** dead target rather than of nothing.
+    ///
     /// run100's own measurement is the six raiders of Great Lakes blocks
     /// 10231–10239, each dropping on its own `recharging` clock: `1/42`
     /// on 10231, `1/28` on 10233, `1/27` on 10239.
@@ -2629,8 +2643,9 @@ mod tests {
         sim.units[foe].health = 0;
         sim.forget(Obj::Unit(foe));
         assert_eq!(
-            sim.units[me].combat.target, None,
-            "the dead target is dropped"
+            sim.units[me].combat.target,
+            Some(Obj::Unit(foe)),
+            "the dead target is kept until the next use asks about it"
         );
         assert!(
             sim.units[me].combat.mandatory,
@@ -2654,6 +2669,14 @@ mod tests {
             "the order outlived the reload: {:?}",
             sim.units[me].orders
         );
+        // **No freeze mark**, and the reason is the condition rather than
+        // the arm (§44.1). This unit reached `Unit::fight`'s
+        // invalid-target branch, but it is HOLD_FIRE, so the search
+        // returns nothing, so no attack order goes back in front — and
+        // `unit_masks2 |= 0x10` is downstream of `order_type() == ATTACK`
+        // *after* the search. A unit that finds nothing has nothing to be
+        // "still ordered" under.
+        assert_eq!(sim.units[me].unit_masks2, 0);
     }
 
     /// **A move whose action's target has died is only re-pathed when

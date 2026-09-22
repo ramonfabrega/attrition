@@ -1852,16 +1852,42 @@ pub(crate) const GOLDEN_WORD_CHAPTER_ONE: i64 = 626;
 /// every other block has `last = cur − 1`) and run112's own `OBJECT`
 /// block carries `unit_masks2 16` on `0/6` at that block.
 ///
-/// What is needed to move it is **not** the zero arm on its own: the
-/// bit's writer is `Unit::fight`'s "still ordered, reload open, not
-/// firing" arm, and reaching it needs the frame the original has and this
-/// crate does not — an attack order that keeps its **dead** target from
-/// 683 to 695, a captain that searches for the replacement and spends the
-/// frame doing it, and two followers that strike on it the same frame.
-/// Removing [`sim::Sim::forget`]'s clear alone leaves the word here and
-/// turns `near_o 0/7`/`0/8` and `chapter_two_s_hit_points` red. The three
-/// land together. `docs/COMBAT.md` §43.
-pub(crate) const GOLDEN_WORD_CHAPTER_TWO: i64 = 695;
+/// **Item 502 landed the arm whole and the word moved 695 → 725**, thirty
+/// frames, on four changes that only score together: [`sim::Sim::forget`]
+/// stops clearing a unit's attack target, so the order keeps its dead
+/// `1/8` from 684 to 695 as the dump does; `do_attack` gained
+/// `Unit::fight`'s **follower inherit**, the block between the cell-centre
+/// snap and `:196`'s `valid_target` where a non-captain takes its
+/// captain's action target in place, which is how `0/7` and `0/8` strike
+/// on the frame `0/6` spends searching; the invalid-target arm sets
+/// [`sim::combat::umask2::NOT_FIRING`]; and
+/// [`sim::Sim::guy_inc_time`] steps by **zero** while the unit carries it.
+/// The first alone leaves the word here, as item 496 measured.
+///
+/// **What stands at 725.** Ours spends **7** draws against the original's
+/// **9**, parting at draw **1**: `0/7` and `0/8` each end an attack
+/// animation (`Guy::set_anim+0x97a < Guy::inc_time+0x1ed`) and the
+/// original spends a second draw after each of them —
+/// `Guy::set_anim+0xf2f < Guy::inc_time+0x271`, [`sim::anim::SITE_ATTACK_WRAP`],
+/// the **queued attack** `Guy::inc_time`'s attack-end arm plays when
+/// `queued_attack` is non-zero. So the delta is two, one per figure, and
+/// it is `docs/ANIM.md` §6.2's deferred attack rather than anything in
+/// §43: run118's block 696 already prints `hold_attack 1` on both of
+/// them. `game_random`'s own word agrees entering 725 and parts entering
+/// **726**, so both draws are spent inside the frame.
+///
+/// **The value diff beside the move**, on the widening's own window: the
+/// map falls from thirteen rows to ten. All three `recharging` rows
+/// (`0/6` at 697, `0/7` and `0/8` at 696) close; `order 0/6`, `0/7` and
+/// `0/8` move **684 → 696**, twelve blocks of real agreement recovered;
+/// and `chapter_two_s_hit_points`'s two sides now name the **same**
+/// wounded set — this crate reaches `0/10`, which the dump wounds and it
+/// did not. What survives at 696 is the parked arrow's: this crate's
+/// `1/7` is unwounded (`damage 1/7` ours 0 theirs 19 from 686), so §33's
+/// damage weight sends all three bowmen to `1/7` where the dump sends
+/// them to `1/6`, and the `angle` rows follow the target.
+/// `docs/COMBAT.md` §43.
+pub(crate) const GOLDEN_WORD_CHAPTER_TWO: i64 = 725;
 
 /// **Every pinned word names the test that widened its frame whole, or
 /// the open item that will** (`docs/DECISIONS.md` 43). A word is the frame
@@ -1906,7 +1932,12 @@ pub(crate) const WIDENING_GREAT_LAKES: (i64, i64) = (9_340, 10_595);
 /// `1/8` runs one hit behind the dump from **656**, twenty-seven blocks
 /// under the word and well inside this window, which nothing had ever
 /// compared (`docs/COMBAT.md` §40).
-pub(crate) const WIDENING_CHAPTER_TWO: (i64, i64) = (606, 699);
+///
+/// **The ceiling followed the word to 729 on item 502** — the word moved
+/// 695 → 725 and the window came with it on the same frame, which is the
+/// rule rather than a courtesy. Four frames past the word, as every
+/// ceiling here has been.
+pub(crate) const WIDENING_CHAPTER_TWO: (i64, i64) = (606, 729);
 
 /// One pinned word's row: `(constant, word, widening test, item, window)`.
 pub(crate) type Widening = (

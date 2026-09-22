@@ -1470,6 +1470,39 @@ impl Built {
             })
     }
 
+    /// `(whom, ox)` for a unit handle **whether or not it is still alive**
+    /// — the pair a `TargetOrder` holds, which is a slot number and not a
+    /// liveness claim (item 502, `docs/COMBAT.md` §43.3).
+    ///
+    /// [`Self::unit_ids`] gates its fallback on `alive()`, which is right
+    /// wherever the question is "which unit of the dump is this" — a dead
+    /// figure is in no `UNITDATA` block to be compared against. It is
+    /// wrong for an order's target: the original leaves `ox`/`whom`/`uid`
+    /// where they are when the object dies and lets
+    /// `Object::valid_target` find out at the next use, so the dump keeps
+    /// naming a dead `1/8` for twelve blocks after its death. Answering
+    /// `None` there is the **third** appearance of §43.3.1's hole in this
+    /// one function — item 462's was a target not on the board at the
+    /// start, item 496's an attack order with no target at all, and this
+    /// one an attack order whose target is dead — and it is the one that
+    /// would have hidden this landing: with `forget`'s clear removed the
+    /// crate carries exactly what the dump carries, and `unit_ids` still
+    /// read it back as nothing.
+    ///
+    /// This crate never recycles a unit slot (`Unit::hold_frames`), so
+    /// `(owner, index)` is stable past the death and cannot collide with
+    /// a later unit's pair.
+    pub(crate) fn unit_ids_dead_or_alive(&self, handle: usize) -> Option<(i64, i64)> {
+        self.units
+            .iter()
+            .find(|l| l.unit == handle)
+            .map(|l| (l.who, l.o))
+            .or_else(|| {
+                let u = self.sim.units.get(handle)?;
+                Some((i64::from(u.owner), i64::from(u.index)))
+            })
+    }
+
     /// What a simulation order targets, in the log's ids — `TargetOrder`'s
     /// `whom` and `ox`.
     ///
@@ -1487,7 +1520,7 @@ impl Built {
             }
             Body::Gather(g) => self.build_ids(g.building),
             Body::Attack(_) => match self.sim.units[unit].combat.target? {
-                sim::combat::Obj::Unit(u) => self.unit_ids(u),
+                sim::combat::Obj::Unit(u) => self.unit_ids_dead_or_alive(u),
                 sim::combat::Obj::Building(b) => self.build_ids(b),
             },
             // A `TradeOrder`'s `(o, who)` at `+0x8` name a **city**, not

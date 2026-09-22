@@ -1549,13 +1549,18 @@ fn chapter_two_s_word_frame_is_widened_whole() {
         "run112's dump no longer carries every frame of [{FIRST}, {LAST})"
     );
     // **Anti-vacuity for the death list**, which is the one row here
-    // whose agreement is a *silence*: three fields on fifteen blocks,
-    // 684 through 698, for the one death run112's window carries. A
+    // whose agreement is a *silence*: three fields on every block from
+    // 684 to the ceiling, for the one death run112's window carries. A
     // reader that stopped parsing `DEATH_OBJS` would print no
     // divergence and neither would one that matched nothing, so the
-    // count is pinned beside the map (parked 449's shape).
+    // count is pinned beside the map (parked 449's shape). It was
+    // fifteen blocks while the ceiling stood at 699; item 502 moved the
+    // word to 725 and the ceiling to 729, so it is forty-five — and
+    // that the count is still exactly `3 × (LAST − 684)` is itself the
+    // check that the window gained no **second** death.
     assert_eq!(
-        deaths, 45,
+        deaths,
+        3 * (LAST - 684) as usize,
         "the death-object comparison's own width moved; 1/8 dies on 683          and the dump carries its record on every block from 684 to the          end of run112"
     );
     // **Anti-vacuity**: the window has to hold the cast the chapter is
@@ -1698,20 +1703,42 @@ fn chapter_two_s_word_frame_is_widened_whole() {
     // three bowmen hold the dead `1/8` from 683 until their reload opens
     // on 695. Thirty-six unit-frames, under the word, quiet.
     // `docs/COMBAT.md` §43.
+    //
+    // **Item 502 landed §43.2's arm whole and the word moved 695 → 725**,
+    // which moved this window's ceiling to 729 with it. The three
+    // `order` rows go **back** to 696 — the twelve frames item 496 opened
+    // are agreement now, because this crate holds the dead `1/8` where
+    // the original does — and all three `recharging` rows close, because
+    // `0/7` and `0/8` strike on 695 through `Unit::fight`'s follower
+    // inherit and `0/6` does not strike at all.
+    //
+    // `unit_masks2` joined `compare` in the same landing and reports
+    // **nothing on this window**: the bit the dump carries on `0/6` at
+    // block 696 is this crate's too. The chapter-wide check is
+    // `chapter_two_s_frozen_frames_are_the_dump_s_on_every_unit_frame`,
+    // which is where that row's anti-vacuity lives — this window holds
+    // one of the seven unit-frames run112 ever marks.
+    //
+    // **`damage_frac 1/6` at 712 is the raised ceiling's**, not this
+    // landing's — the same shape as `extra 1/8` at 684 on item 481 and
+    // `1/8`'s wounds at 656 on item 484, and the third time this window
+    // has grown a row by being allowed to look further. It is downstream
+    // of the parked arrow: this crate's `1/7` is unwounded, so §33's
+    // damage weight sends all three bowmen to `1/7` where the dump sends
+    // them to `1/6`, and from 712 the two sides are wounding different
+    // hoplites. `docs/COMBAT.md` §42.5 is what it waits on.
     let measured = [
         ("angle 0/6", 697),
         ("angle 0/7", 696),
         ("angle 0/8", 696),
         ("damage 1/6", 680),
         ("damage 1/7", 686),
+        ("damage_frac 1/6", 712),
         ("damage_frac 1/7", 686),
         ("damage_frame 1/7", 686),
-        ("order 0/6", 684),
-        ("order 0/7", 684),
-        ("order 0/8", 684),
-        ("recharging 0/6", 697),
-        ("recharging 0/7", 696),
-        ("recharging 0/8", 696),
+        ("order 0/6", 696),
+        ("order 0/7", 696),
+        ("order 0/8", 696),
     ];
     let got: Vec<(&str, i64)> = first.iter().map(|(k, &n)| (k.as_str(), n)).collect();
     assert_eq!(
@@ -1877,7 +1904,18 @@ const NEAR_PARTED: &[((i64, i64), i64)] = &[];
 /// ceiling's move 687 → 699 with the word 683 → 695 (§42.4): twelve more
 /// blocks, thirty-six more live pairs, and the agreement still total
 /// across the death of `1/8` and the three bowmen's retarget after it.
-const NEAR_TALLY: (usize, usize, usize) = (5568, 206, 5568);
+///
+/// **And by item 502**, 5568/206 → 7368/296, on the ceiling's move 699 →
+/// 729 with the word 695 → 725. The agreement is still **total**, and
+/// that is a result rather than bookkeeping: item 496 measured
+/// [`sim::Sim::forget`]'s clear removed *alone* and it turned `near_o
+/// 0/7` and `0/8` red at 696, because this crate's invalid-target arm
+/// searched on every member of the squad where the original searches
+/// only on the captain. With §43.2's arm landed whole the followers
+/// never reach the search at all — they take their captain's target in
+/// place at `Unit::fight`'s head — so the footprint stays `-1` on both
+/// of them, which is exactly what the dump says.
+const NEAR_TALLY: (usize, usize, usize) = (7368, 296, 7368);
 
 /// One frame's `near_o`/`near_who` per unit, read out of the raw dump
 /// text — [`ch2_dump_units`]'s sibling, for the pair that reader takes
@@ -2081,12 +2119,16 @@ fn chapter_two_s_hit_points_are_the_dump_s_on_every_unit_frame() {
     // Item 485 added `(0, 9)`: with the figure's share as the death
     // threshold (§7.2 step 8) the hoplite squad loses `1/8` on the
     // original's own block and its survivors then reach a second
-    // slinger, which the dump also wounds. The one the dump wounds and
-    // this crate still does not is `(0, 10)`.
+    // slinger, which the dump also wounds. `(0, 10)` was the one the
+    // dump wounded and this crate did not — and **item 502 closed it**,
+    // so the two sets are now identical and the assertion is written
+    // that way rather than against a copy of the list. §43.2's arm is
+    // what reaches it: the original's hoplites fight on where this
+    // crate's went idle for a frame each time a target died, and the
+    // frames they gain back are the ones that reach `0/10`.
     assert_eq!(
-        ours,
-        vec![(0, 9), (0, 11), (1, 6), (1, 7), (1, 8)],
-        "the set this crate wounds has moved"
+        ours, theirs,
+        "the set this crate wounds is no longer the set run112 wounds"
     );
     // **What parts, printed and pinned by its field.** `damage` and
     // `damage_frac` part on the engagement and the reason is §7.3's
@@ -2102,6 +2144,191 @@ fn chapter_two_s_hit_points_are_the_dump_s_on_every_unit_frame() {
     assert!(
         !fields.contains("myhits"),
         "`myhits` is in the parting set and the assertion above missed it"
+    );
+}
+
+/// **The frozen frames of the whole chapter** — `unit_masks2 & 0x10` on
+/// every unit-frame of run112's 898 blocks, both directions (item 502,
+/// `docs/COMBAT.md` §43.2).
+///
+/// The widening window above holds **one** of the seven unit-frames the
+/// capture ever marks, so its silence on the row [`crate::diff::compare`]
+/// gained in the same landing is not much of a check. This is: the mark
+/// is a one-frame state written inside `Unit::fight`'s invalid-target arm
+/// and cleared at the head of the next frame's `Unit::process`, so every
+/// unit-frame that carries it is a frame on which a unit's target went
+/// invalid with its reload open — and every figure of that unit stood its
+/// animation clock still.
+///
+/// What is pinned is the **exact list**, by block and unit, on both
+/// sides. run112 carries seven unit-frames over six blocks, all of them
+/// in the second fight, and this crate reproduces **five**:
+///
+/// ```text
+///   696  0/6     ours    the chapter-two word's own frame
+///   736  1/6     ours
+///   745  0/9     —
+///   756  0/7     ours
+///   756  0/8     ours
+///   757  0/6     ours
+///   762  1/7     —
+/// ```
+///
+/// The two it misses are **past the word**, which stands at 725: from
+/// there the draw stream has already parted and nothing downstream is
+/// owed. Four of the five it does reproduce are past the word too, so
+/// they are a bonus rather than the measurement — the measurement is
+/// 696, which is the frame §43.2's arm was landed for. Both lists are
+/// pinned rather than only the difference, because a shrinking list on
+/// either side is an instrument that stopped looking.
+///
+/// **Measured by making it fail** (`CLAUDE.md`, "the checks with
+/// teeth"): with §43.2's arm off this crate's list is **empty**, all
+/// seven rows are reported, and the widening's own map gains
+/// `unit_masks2 0/6` at 696.
+#[test]
+fn chapter_two_s_frozen_frames_are_the_dump_s_on_every_unit_frame() {
+    let Some(inst) = crate::testenv::install() else {
+        return;
+    };
+    let Some((dump, tracepath)) = golden("ch2") else {
+        eprintln!("skipping: no golden capture ch2 (see docs/RUNS.md run112)");
+        return;
+    };
+    let trace = crate::trace::Trace::read(std::path::Path::new(&tracepath))
+        .expect("a finalized golden trace")
+        .expect("missing RONT header");
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(&dump);
+    let log = Log::parse(&text);
+    let texts = sibling_texts();
+    let logs = siblings(&texts);
+    let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+    let refs: Vec<&Initial> = inits.iter().collect();
+    if refs.is_empty() {
+        eprintln!("skipping: no sibling dumps");
+        return;
+    }
+    let mut ix = crate::capture::indexed::IndexedCapture::open(&dump).unwrap();
+    let mut built = stand_up(&loaded, &log, &refs, &trace);
+    let players = built.sim.players.len();
+    let mut script = chapter(2);
+    /// One past the last frame read — the chapter's last logged block.
+    const LAST: i64 = 899;
+    let mut compared = 0usize;
+    let mut theirs: Vec<(i64, i64, i64)> = Vec::new();
+    let mut ours: Vec<(i64, i64, i64)> = Vec::new();
+    let mut parted: Vec<String> = Vec::new();
+    for f in 0..LAST - 1 {
+        script.stage(built.sim.frame, &mut built, &loaded);
+        built.tick();
+        // The dump's frame label is the sim frame plus one throughout this
+        // chapter (`docs/COMBAT.md` §30.1).
+        let n = f + 1;
+        let Some(at) = ix.frames().iter().position(|x| x.number == n) else {
+            continue;
+        };
+        let frame = ix.frame_state(at).unwrap();
+        let r = compare(&built, &frame, players);
+        for d in &r.firing_diverged {
+            if d.field == "unit_masks2" {
+                parted.push(format!(
+                    "{n} {}/{} ours {} theirs {}",
+                    d.who, d.o, d.ours, d.theirs
+                ));
+            }
+        }
+        for u in &frame.units {
+            if !(0..players as i64).contains(&u.who) {
+                continue;
+            }
+            let Some(bit) = u.unit_masks2 else { continue };
+            compared += 1;
+            if bit & i64::from(sim::combat::umask2::NOT_FIRING) != 0 {
+                theirs.push((n, u.who, u.o));
+            }
+            let Some(mine) = i16::try_from(u.o)
+                .ok()
+                .and_then(|o| built.sim.unit_by_o(u.who as sim::Player, o))
+            else {
+                continue;
+            };
+            if built.sim.units[mine].unit_masks2 & sim::combat::umask2::NOT_FIRING != 0 {
+                ours.push((n, u.who, u.o));
+            }
+        }
+    }
+    // **Anti-vacuity**: the dump has to have been read at all, and it has
+    // to have carried marks. An empty list on both sides is what a reader
+    // that stopped parsing looks like, and what a crate that never writes
+    // the bit looks like.
+    assert!(
+        compared > 5_000,
+        "only {compared} unit-frames carried `unit_masks2`; run112's dump          no longer prints it in the UNITDATA block"
+    );
+    eprintln!(
+        "ch2 frozen frames: {compared} unit-frames, {} marked",
+        theirs.len()
+    );
+    assert_eq!(
+        theirs,
+        vec![
+            (696, 0, 6),
+            (736, 1, 6),
+            (745, 0, 9),
+            (756, 0, 7),
+            (756, 0, 8),
+            (757, 0, 6),
+            (762, 1, 7),
+        ],
+        "run112's own frozen frames have moved"
+    );
+    assert_eq!(
+        ours,
+        vec![
+            (696, 0, 6),
+            (736, 1, 6),
+            (756, 0, 7),
+            (756, 0, 8),
+            (757, 0, 6),
+        ],
+        "this crate's frozen frames have moved; the one that matters is \
+         696, chapter two's own word"
+    );
+    // The two the dump has and this crate does not, by name and with the
+    // reason: both are past the word, where the draw stream has already
+    // parted. Pinned so that a landing which closes them has to say so.
+    let missing: Vec<(i64, i64, i64)> = theirs
+        .iter()
+        .filter(|r| !ours.contains(r))
+        .copied()
+        .collect();
+    assert_eq!(
+        missing,
+        vec![(745, 0, 9), (762, 1, 7)],
+        "the frozen frames this crate misses have moved"
+    );
+    assert!(
+        missing.iter().all(|&(n, ..)| n > GOLDEN_WORD_CHAPTER_TWO),
+        "a frozen frame is missed at or under the word ({GOLDEN_WORD_CHAPTER_TWO}), \
+         which is a divergence the word itself should be reporting"
+    );
+    // Every block the two sides *both* mark agrees field for field, which
+    // is the row `compare` gained in the same landing.
+    let past: Vec<String> = parted
+        .iter()
+        .filter(|r| {
+            r.split_whitespace()
+                .next()
+                .and_then(|n| n.parse::<i64>().ok())
+                .is_some_and(|n| n <= GOLDEN_WORD_CHAPTER_TWO)
+        })
+        .cloned()
+        .collect();
+    assert_eq!(
+        past,
+        Vec::<String>::new(),
+        "`unit_masks2` parts at or under chapter two's word"
     );
 }
 

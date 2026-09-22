@@ -260,6 +260,16 @@ pub struct Unit {
     pub cant_reach: bool,
     /// `unit_masks & 1`: a decoy; not counted as a gatherer.
     pub decoy: bool,
+    /// **`UnitData::unit_masks2` (`+0x6c`)** — carried as the word the dump
+    /// prints, and one bit of it is written: [`combat::umask2::NOT_FIRING`]
+    /// (`docs/COMBAT.md` §43.2, `docs/ANIM.md` §5).
+    ///
+    /// Every dump on this disk carries this word as `0`, `4`, `0x10` or
+    /// `0x40000` and nothing else, so the one bit is the whole of the
+    /// field on both headline windows — which is why
+    /// [`crate::Sim::guy_inc_time`]'s zero step could be implemented
+    /// without modelling the rest of the word.
+    pub unit_masks2: u32,
     /// **`ObjectData::hold_frames`** (`+0x32`) — how many more frames this
     /// slot is held after the figure inside it is gone (`docs/COMBAT.md`
     /// §11, §42.3).
@@ -763,6 +773,7 @@ impl Unit {
             carry: 0,
             cant_reach: false,
             decoy: false,
+            unit_masks2: 0,
             avoid: None,
             guys: Vec::new(),
             captain: true,
@@ -3617,6 +3628,18 @@ impl Sim {
         // `process_healing` runs for every unit, inside or out; the
         // garrison branch is the only heal this mechanic owns.
         self.garrison_heal(i, frame);
+        // **The frozen frame's mark is cleared here** —
+        // `Unit::process@00610bc0`'s `unit_masks2 & 0xffffffef`,
+        // immediately after `process_healing` and under the same
+        // `inside_up < 0` guard the `targeted` decay sits in, but
+        // **outside** its sixteen-frame cadence. That is what makes
+        // [`combat::umask2::NOT_FIRING`] a one-frame mark: the clear runs
+        // before this unit's own order step, `Unit::fight` may set it
+        // again inside that step, and phase 7's `Objects::inc_time` reads
+        // it at the end of the frame. `docs/COMBAT.md` §43.2.
+        if self.units[i].inside.is_none() && self.units[i].inside_unit.is_none() {
+            self.units[i].unit_masks2 &= !combat::umask2::NOT_FIRING;
+        }
         if !self.units[i].on_map {
             return;
         }

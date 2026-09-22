@@ -5714,6 +5714,56 @@ impl Sim {
         // needs `UnitType +0x2b8 & 1` *and* an invalid target — and that
         // row of §7.11's table is unmodelled. It only ever makes the kill
         // **earlier**, and no capture on disk has a unit in it.
+        // **The follower takes its captain's target here, before the
+        // validity test — and that is how two of three bowmen strike on
+        // the frame the third spends searching** (item 502,
+        // `docs/COMBAT.md` §43.2).
+        //
+        // `Unit::fight@005fd4d0`, the block between the cell-centre snap
+        // and `:196`'s `Object::valid_target`. It runs for a unit that is
+        // **not** a captain (`vtable+0xe8`, `o_up >> 15`) whose
+        // `collide_frame` is older than the frame before this one, reads
+        // the captain's **action** through `UnitData::get_captain`
+        // (`+0xe4`, which recurses to the head of the chain) and
+        // `get_action`, and takes its `(ox, whom, uid)` when all of:
+        //
+        // - the captain's action is an ATTACK;
+        // - its target is not the one this unit already names;
+        // - `Object::valid_target` passes **on this unit**;
+        // - the unit's combat stance is below `STAND_GROUND`, or the
+        //   captain's target is already in range.
+        //
+        // It writes the pair into the **existing** order rather than
+        // adding one, and the dump says so: run112's `0/7` and `0/8`
+        // carry `ox 6 whom 1 uid 12` at block 696 with `new_ord 0` and
+        // `ever_in_range 1` — the same order object, retargeted — where
+        // their captain `0/6` carries the same target with `new_ord 1`
+        // and `ever_in_range 0`, which is what a fresh `add_attack_order`
+        // leaves. Those two fields are the value diff that tells the two
+        // mechanisms apart, and they were on disk before this landing.
+        //
+        // This is a **second** captain mirror, and it is not
+        // [`Self::captain_mirror`]: that one is `Unit::think`'s opening
+        // arm (§21), runs only on an idle unit and adds a `QUEUE_NEW`
+        // order. This one runs on the attack step of a unit that already
+        // has an order, and it is why a squad does not lose a frame each
+        // time its captain retargets.
+        if !self.units[u].captain && self.units[u].collide_frame < frame - 1 {
+            let cap = self.squad_captain(u);
+            if cap != u
+                && let Some(k) = self.action_of(cap)
+                && matches!(self.units[cap].orders[k].body, Body::Attack(_))
+                && let Some(t) = self.units[cap].combat.target
+                && Some(t) != self.units[u].combat.target
+                && self.valid_target(me, t)
+                && (matches!(
+                    state.stance,
+                    combat::Stance::Aggressive | combat::Stance::Defensive
+                ) || self.is_in_range(me, t))
+            {
+                self.units[u].combat.target = Some(t);
+            }
+        }
         let Some(target) = self.units[u].combat.target else {
             self.kill_current_order(u);
             return;
@@ -5723,6 +5773,44 @@ impl Sim {
             self.kill_current_order(u);
             if let Some(t) = self.find_melee_target(u, -1) {
                 self.add_attack_order(u, t, QueuePos::First, false, false);
+            }
+            // **The frozen frame's mark** (item 502, `docs/COMBAT.md`
+            // §43.2). `Unit::fight@005fd4d0`'s invalid-target branch ends
+            // at `LAB_005fdb9e`, and its tail is
+            //
+            //     find_new_target(this, NULL, 0)
+            //     leaders[who].searches += 1
+            //     if (order_type() != ATTACK)                 return 0
+            //     if (recharging != 0 && !reentry_latch)       return 0
+            //     unit_masks2 |= 0x10
+            //
+            // — so a unit whose target went invalid does **not** strike
+            // this frame, and it carries [`combat::umask2::NOT_FIRING`]
+            // out of the order step, which stops its figures' animation
+            // clocks in phase 7 (`docs/ANIM.md` §5). `recharging` is
+            // zero here by the reload gate above, so the only condition
+            // left is that the search put an attack order back in front:
+            // a unit that finds nothing has no order to be "still
+            // ordered" under and takes no mark.
+            //
+            // run112's chapter-two word is this arm: `0/6` retargets to
+            // `1/6`, freezes, and spends **no** attack-end wrap on 695
+            // where this crate spent one — 21 draws against 20.
+            //
+            // SEAM: the **search budget** above it. `LAB_005fdb9e`'s
+            // first arm is `waiting < 5 && leaders[who].searches > 10`,
+            // which sets the same bit, adds 2 to `UnitData::waiting` and
+            // returns *without* searching; `Leader::process@006b88b0`
+            // zeroes the counter at the head of each leader's frame and
+            // `Unit::resolve_unit_collision` reads the same `< 10`. It
+            // is not modelled, and run112 says it did not fire here:
+            // `0/6`'s `waiting` is 0 on block 696, where the throttle
+            // would have left 2.
+            if matches!(
+                self.current_order(u).map(|o| &o.body),
+                Some(Body::Attack(_))
+            ) {
+                self.units[u].unit_masks2 |= combat::umask2::NOT_FIRING;
             }
             return;
         }

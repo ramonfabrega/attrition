@@ -1565,8 +1565,35 @@ fn a_melee_duel_lands_on_the_attack_frame_and_every_recharge_after() {
     let last = hits_on(&sim, b).last().copied().unwrap();
     assert_eq!(last.frame, 180);
     assert!(last.killed);
-    // The killer's order is dropped with the target.
+    // **The killer keeps the dead target, and drops it on the frame its
+    // own reload reaches nought** (item 502, `docs/COMBAT.md` §43.3).
+    // `Sim::forget` does not walk the object list clearing target slots;
+    // the original leaves `ox`/`whom`/`uid` where they are and lets
+    // `Object::valid_target` find out at the next use, which is behind
+    // `Unit::fight`'s reload gate. The strike that killed `b` set the
+    // reload to 20, so the order stands for those twenty frames and dies
+    // on the twentieth — the same fact
+    // `fight::tests::a_recharging_attacker_keeps_a_dead_target_s_order_
+    // until_the_reload_ends` pins from the other end.
+    assert_eq!(
+        sim.units[a].combat.target,
+        Some(Obj::Unit(b)),
+        "the killer dropped its target on the frame the target died"
+    );
+    run(&mut sim, 19);
+    assert_eq!(
+        sim.units[a].combat.target,
+        Some(Obj::Unit(b)),
+        "the order died before the reload did"
+    );
+    run(&mut sim, 1);
     assert_eq!(sim.units[a].combat.target, None);
+    assert!(sim.units[a].orders.is_empty());
+    // Nothing to retarget onto in a two-unit arena, so no attack order
+    // goes back in front — and with no order there is no "still ordered
+    // to attack", which is the condition `Unit::fight`'s freeze mark
+    // carries (`combat::umask2::NOT_FIRING`, §44.1).
+    assert_eq!(sim.units[a].unit_masks2, 0);
 }
 
 /// **The ATTACK action under a move is a *ranged* attacker's**

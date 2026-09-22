@@ -7112,12 +7112,19 @@ And the bit itself is in the **`OBJECT` block at every detail level**, so
 run112 has printed it since the day it was taken. It is non-zero on
 exactly **six unit-frames of the whole capture** — `0/6` at 696, `1/6` at
 736, `0/9` at 745, `0/7` and `0/8` at 756, `0/6` at 757, `1/7` at 762 —
-and the first of them is this item's frame.
+and the first of them is this item's frame. (Seven unit-frames over
+**six** blocks: `0/7` and `0/8` share 756.)
 
 ### 43.2 What sets it: the frame a unit finds its target gone
 
-`Unit::fight@005fd4d0`'s only writer is `LAB_005fe502`, past the strike
-block, reached from two arms and reading the same pair at both:
+~~`Unit::fight@005fd4d0`'s only writer is `LAB_005fe502`~~ — **wrong, and
+corrected by item 502 (§44.1): `Unit::fight` writes the bit at three
+sites, and `LAB_005fe502` is not the one this frame takes.** The other two
+are in the **invalid-target** branch, which is where a unit whose target
+died actually goes, and one of them is `LAB_005fdb9e`'s tail. All three
+read the same pair above them, so the *meaning* below is unchanged and
+only the site is: `LAB_005fe502`, past the strike block, reached from two
+arms —
 
 ```text
   find_new_target(this, NULL, 0)
@@ -7154,12 +7161,33 @@ then `0/7` and `0/8` strike (`recharging` → 30) while `0/6` does not
 (`recharging` stays 0, `unit_masks2` gains `0x10`, and its `GUY`
 `whom`/`ox` stay on the dead `1/8` a frame longer).
 
-**What separates them is the search.** The three bowmen are one squad on
+The `ATTACKORDER`'s own `new_ord`/`ever_in_range` on block 696 say which
+of the two routes each took, and they were on disk before anyone asked:
+`0/6` carries `new_ord 1 in_range 0 ever_in_range 0` — a **fresh** order,
+which is what `add_attack_order` leaves — and `0/7` and `0/8` carry
+`new_ord 0 in_range 1 ever_in_range 1` on the same target, which is the
+**same order object** with its `(ox, whom, uid)` overwritten. §44.2.
+
+~~**What separates them is the search.** The three bowmen are one squad on
 the `o_down` chain, `0/6` at its head (`o_up −1`); at block 696 `0/6`
 carries `near_o 6 near_who 1` — §30's search, run this frame and won —
 and `0/7` and `0/8` carry `−1`. The captain searched and spent its frame
 doing it; the followers took the target down the chain and fired on it.
-That reading is **not** diff-backed and §43.5 says what would falsify it.
+That reading is **not** diff-backed and §43.5 says what would falsify it.~~
+
+**Half right, and the half that was wrong was the evidence** (item 502,
+§44.2). The captain does search and the followers do not — but `near_o 6
+near_who 1` is **not** this frame's search. `0/6` has carried that pair
+since block **635**, sixty-one blocks earlier, and neither `find_new_target`
+nor anything else rewrote it on 695; the pair is a search *footprint* that
+is only ever written when a nearer candidate is seen (§37.1), so "unchanged"
+and "not searched" look identical in it. What the field actually says is the
+weaker thing: captains search and followers never do.
+
+What separates them is in `Unit::fight`'s own head, and it is **not** the
+search at all: a **follower takes its captain's target in place, before the
+validity test is ever reached**. §44.2 has the block and the two dumped
+fields that tell it apart from a fresh order.
 
 ### 43.3 The comparison could not see the target at all
 
@@ -7246,29 +7274,46 @@ shape reached for a third time.
 
 ### 43.5 What is not established
 
-- **That the captain's search is what costs it the frame.** §43.2's
-  `near_o` split is one frame of one capture. What would falsify it is a
-  capture in which a *follower* is the one that searches — a squad whose
-  captain is dead or out of range when the target goes — and no window on
-  disk has one. The predicate at `LAB_005fe502` is read, not measured:
-  the two arms above it turn on `find_attack_pos` returning zero and on a
-  defend point beyond `unit_defensive_respond_range`, and neither is
-  exercised here.
-- **Which arm of `Unit::fight` the followers take to strike in the same
+- ~~**That the captain's search is what costs it the frame.**~~ **Closed
+  by item 502, and the answer was a different mechanism** (§44.2). The
+  captain does spend the frame, but not because the search is expensive:
+  the invalid-target branch never strikes, whether it searches or not.
+  The followers escape it because they never enter it. What the `near_o`
+  split does *not* establish is in §43.2's strike-through.
+- ~~**Which arm of `Unit::fight` the followers take to strike in the same
   frame they are retargeted.** The re-entry latch (§7.10,
-  [`flag::FIGHT_REENTRY`]) is the candidate and it is unread here.
+  [`flag::FIGHT_REENTRY`]) is the candidate and it is unread here.~~
+  **Neither arm: the follower inherit at `fight`'s head** (§44.2). The
+  latch was the wrong candidate — it needs `unit_flags2 & 1`
+  (`is(MACHINEGUN)`/`is(FLAMETHROWER)`), which a bowman does not have,
+  and the dump agrees: with the latch live these three would have run
+  `find_new_target` on every one of the twelve recharging frames and
+  carried `unit_masks2 0x10` on each, where the dump has them quiet.
+- **The search budget above `LAB_005fdb9e`**, which item 502 read and did
+  not model. `waiting < 5 && leaders[who].searches > 10` sets the same
+  bit, adds 2 to `UnitData::waiting` and returns *without* searching;
+  `Leader::process@006b88b0` zeroes the counter at the head of each
+  leader's frame, so it is a per-leader per-frame throttle, and
+  `Unit::resolve_unit_collision@005f9d30` reads the same `< 10`. run112
+  says it did not fire on 695 — `0/6`'s `waiting` is 0 on block 696,
+  where the throttle would have left 2 — so nothing on disk exercises it.
+  A capture with a dozen simultaneous retargets under one leader would.
 - **`guy_flags 48`** on every bowman-frame of run118 — `0x10 | 0x20`,
   where `docs/ANIM.md` §9 has `0x20` as a bit with no writer found and
   reads it as collapsing the idle roll, which is a draw. run44's table
   (`docs/RUNS.md`) has the same split by type. `0/8` carries **16** on
   block 697 alone, so the bit is written and cleared inside this window,
   and nothing here reads it.
-- **`unit_masks2` as a compared field.** It is parsed and printed at
-  every detail level and `crate::diff::compare` does not read it; a row
-  on it belongs with the implementation, because until the bit has a
-  writer here the comparison can only be red on the six frames §43.1
-  names.
-- **run118 is a partial capture.** It timed out at 180 s having written
+- ~~**`unit_masks2` as a compared field.**~~ **Landed with the
+  implementation** (item 502): `crate::diff::compare`'s firing record
+  carries it, and `chapter_two_s_frozen_frames_are_the_dump_s_on_every_
+  unit_frame` pins both sides' lists over the whole chapter. **Only the
+  `0x10` bit is compared**, and §44.4 has the histogram that decides it —
+  across every dump on this disk the word takes four values and the other
+  two have no writer here, one of them on the *other* headline's own
+  capture.
+- **run118 is a partial capture**, and run119 is the same line with
+  `--timeout` raised (`docs/RUNS.md`). It timed out at 180 s having written
   243 of the window's 296 blocks — `GUYS=4` costs about four times
   `GUYS=2` per block — so it covers 605–846 and stops mid-record.
   Everything above is inside it; nothing here reads past 700.
@@ -7312,3 +7357,287 @@ state named rather than counted as covered.
 Also reading-only: §43.2's captain-searches split (§43.5's first
 bullet), the arm the followers take to strike in the frame they are
 retargeted, and the two predicates above `LAB_005fe502`.
+
+## 44. §43.2's arm, landed whole (item 502, 2026-09-22)
+
+§43 measured the cause of chapter two's word at **695** and implemented
+none of it, deliberately: removing [`sim::Sim::forget`]'s clear on its own
+left the word where it was and turned two green pins red. This is the
+landing of all four pieces together, and the word moved **695 → 725**.
+
+The four, in the order the frame runs them:
+
+1. `Sim::forget` stops clearing a unit's attack target (§43.3). The order
+   holds the dead `1/8` from 684 to 695 as the dump does, so all three
+   bowmen enter `fight` on **one** frame instead of going idle twelve
+   frames early.
+2. `do_attack` gained `Unit::fight`'s **follower inherit** (§44.2), which
+   is what lets `0/7` and `0/8` strike on the frame `0/6` spends
+   searching.
+3. The invalid-target arm sets `unit_masks2 & 0x10` (§44.1).
+4. `Sim::guy_inc_time` steps by **zero** while the unit carries it —
+   `docs/ANIM.md` §5's third step value, stated since the mechanic was
+   written and never implemented.
+
+### 44.1 The bit has three writers, and the one this frame takes is not §43.2's
+
+`unit_masks2` is `UnitData +0x6c` by the type record, and
+`Unit::fight@005fd4d0` sets `0x10` at three sites rather than one. Two of
+them are inside the **invalid-target** branch — the branch a unit whose
+target has died actually takes, which `LAB_005fe502`'s is not:
+
+```text
+LAB_005fdb9e:                                  ; valid_target failed, param_5 == 0
+  if (param_4 == 0) {
+      if (waiting < 5 && leaders[who].searches > 10) {
+          unit_masks2 |= 0x10                  ; (A) the search throttle
+          waiting += 2
+          return 0                             ; …and no search at all
+      }
+      find_new_target(this, NULL, 0)           ; kill the order, search, re-order
+  }
+  leaders[who].searches += 1
+  if (order_type() != ATTACK)               return 0
+  if (recharging != 0 && !reentry_latch)    return 0
+  unit_masks2 |= 0x10                          ; (B) the one 695 takes
+  return 0
+```
+
+`(B)` and `LAB_005fe502` read the same pair — *still ordered to attack,
+reload open* — so §43.2's reading of what the bit **means** stands whole;
+only the site was wrong. What `(B)` adds is the condition §43.2 could not
+state: the mark is set **only if the search put an attack order back in
+front**. A unit that finds nothing has no order to be "still ordered"
+under and takes no mark, which is why the bit is as rare as §43.1 found
+it.
+
+**The dump tells `(A)` from `(B)` in one field.** The throttle adds 2 to
+`UnitData::waiting` and run112's `0/6` carries `waiting 0` on block 696,
+so 695 is `(B)`. `(A)` is unmodelled and §43.5 says what would exercise
+it.
+
+### 44.2 The follower does not search because it never gets there
+
+Between `fight`'s cell-centre snap (§7.11) and `:196`'s
+`Object::valid_target` sits a block that runs for a unit that is **not** a
+captain:
+
+```text
+  if (!is_captain(this) && param_5 == 0 && collide_frame < frame - 1) {
+      cap = get_captain()                      ; vtable +0xe4, recurses to the head
+      act = get_action(units[who][cap])
+      if (act && act->type == ATTACK) {
+          (o, whom, uid) = act->target
+          if ((o, whom) != my order's target
+              && valid_target(this, o, whom)           ; tested on ME, not the captain
+              && (get_combat_stance() < STAND_GROUND || is_in_range(this, o, whom)))
+          {
+              my order's (ox, whom, uid) = (o, whom, uid)   ; in place
+          }
+      }
+  }
+```
+
+On 695 `0/6` is processed first (units walk in `o` order), finds `1/8`
+invalid, searches, retargets to `1/6` and freezes. `0/7` and `0/8` then
+read their captain's **already updated** action, adopt `1/6`, pass
+`valid_target`, and fall through to the strike. Nobody searches twice and
+nobody loses a frame.
+
+**Two dumped fields tell this apart from a fresh order**, and they cost a
+grep: an `add_attack_order` leaves `new_ord 1` and `ever_in_range 0`,
+while this writes into the existing `TargetOrder` and touches neither. On
+block 696 `0/6` carries `new_ord 1 in_range 0 ever_in_range 0` and `0/7`
+and `0/8` carry `new_ord 0 in_range 1 ever_in_range 1` — on the same
+target, `ox 6 whom 1 uid 12`. That is the falsifier §43.5 asked a capture
+for, sitting in run112 since it was taken.
+
+It is a **second** captain mirror and it is not §21's: that one is
+`Unit::think`'s opening arm, runs only on an idle unit and adds a
+`QUEUE_NEW` order. This one runs on the attack step of a unit that
+already has one.
+
+### 44.2.1 A field whose write condition makes it silent cannot date an event
+
+State this one as a rule too, because it is how §43.2 came to cite the
+wrong evidence for a mechanism it had otherwise measured.
+
+> **Before a field is used to say that something happened *this frame*,
+> its write condition has to be checked — not its value.** A field that
+> is written only when it *changes*, or only when a better candidate is
+> found, or only on the branch that succeeds, reads identically whether
+> the event happened this frame or has not happened for sixty. Its value
+> is evidence about the last write, and nothing about when.
+
+`near_o`/`near_who` is exactly that shape. `Object::find_nearby_target`
+writes the pair only when a candidate closer than every previous one
+clears `check_target`, and clears it to `-1` only when the nearest thing
+it saw is past `0xf00`; a search that re-finds the same winner writes the
+same values, and a search that finds nothing nearer writes nothing at
+all. So `0/6` carrying `near_o 6 near_who 1` at block 696 is consistent
+with "searched this frame and won" and with "has not searched since block
+**635**", which is what the dump actually says — sixty-one blocks earlier,
+and `--changes` on `tools/gamelog/track.py` says so in one line.
+
+It is the sibling of `CLAUDE.md`'s "grep the writers of every field you
+call frozen": grep the **history** of every field you call fresh. The two
+failures are the same one from either end, and this one is the more
+dangerous, because a stale value looks like a measurement and a frozen
+one looks like a bug.
+
+### 44.3 What it moved
+
+The word is **725**. Ours spends **7** draws against the original's **9**,
+parting at draw **1**, and the whole difference is two
+`Guy::set_anim+0xf2f < Guy::inc_time+0x271`. **That is the measurement;
+what follows is a hypothesis** (`docs/DECISIONS.md` 42).
+
+The measured part, from run118's clocks and this crate's own marks:
+
+- **An attack-end wrap costs the original two draws here and this crate
+  one.** Three of them fall in three consecutive frames and all three
+  behave the same: `0/7` (`cur_anim 12 → 11`) and `0/8` (`11 → 12`) wrap
+  on **725**, `0/6` (`12 → 11`) on **726**, each spending
+  `+0x97a < inc_time+0x1ed` — the `set_anim(CHAR_DEFAULT, 0, 0)` — **and**
+  `+0xf2f < inc_time+0x271`. This crate spends the first of each pair and
+  not the second. It is not one figure's oddity: 725 is two of them and
+  726 is the third, and 726's whole label list is otherwise identical.
+- **The same wrap on 695 cost the original one draw, not two.** `0/7`
+  and `0/8` wrapped there too and the frame carries two `+0x1ed` and no
+  `+0x271` at all — run118's block 696 has both of them at `cur_anim 0`
+  (the idle) with `hold_attack 1`, where block 726 has `0/7` already on
+  an attack slot. So whatever the second draw is, it is not spent on
+  every attack-end wrap, and the dump's own field says which frames have
+  it.
+- **Both sides strike on 725**: `recharging` goes 1 → 30 on both, and
+  no `recharging` row appears anywhere on the widening window.
+
+The hypothesis is `Guy::inc_time`'s **queued attack**, the second call at
+the shared `+0x271`:
+
+```text
+  set_anim(this, CHAR_DEFAULT, 0, 0)                 ; +0x1ed
+  if (!is_hero(unit) && queued_attack != 0) {
+      slot = queued_attack; queued_attack = 0
+      if (slot < 2) { slot = CHAR_ATTACK2; roll = 1 }
+      else          {                      roll = 0 }
+      set_anim(this, slot, 0, roll)                  ; +0x271
+  }
+```
+
+and the thing to re-derive before acting on it is the **roll**, because
+the slots the dump lands on do not sit easily with the branch as written:
+`0/8` goes to 12, which is the `slot < 2` arm, but `0/7` and `0/6` go to
+**11**, which is the `slot >= 2` arm — and that arm passes `roll = 0`,
+yet both of them spend the draw. Either `set_anim`'s attack-variation
+roll at `+0xf2f` is not gated on that argument, or the slot is decided
+somewhere this reading has not looked. [`sim::Sim::guy_inc_time`] marks
+[`sim::anim::SITE_ATTACK_WRAP`] only on the `slot < 2` arm and hard-codes
+`ATTACK2` there, so whichever it is, that is where it is wrong. The
+successor is booked by the frame and the delta, not by this paragraph.
+
+**§42.5's parked arrow is the leading hypothesis for what sits under it,
+and it is a hypothesis.** From 696 this crate's three bowmen are on `1/7`
+and the dump's are on `1/6` — our `1/7` was never wounded by the rolling
+shot on 685, so §33's damage weight ranks the two hoplites the other way
+— and every row at 720-728 below is downstream of that one target. What
+makes it a hypothesis rather than the cause is that the *draw* is spent
+in `Guy::inc_time`, and no run has shown the target choice reaching that
+branch. 725 is therefore booked on its **own** frame and delta, not
+parked under the arrow: this chain's record on "the obvious cause" is
+eight wrong out of eight, and each of those eight also had a mechanism
+that looked downstream of something already known.
+
+The value diff, on the widening window (now `[606, 729)`, the ceiling
+having followed the word):
+
+| row | before | after |
+|---|---|---|
+| `recharging 0/6` 697, `0/7` 696, `0/8` 696 | three rows | **closed** |
+| `order 0/6`, `0/7`, `0/8` | 684 | **696** (twelve blocks recovered) |
+| `damage_frame 1/6` 728, `order 1/0` 722, `pos 1/0` 723 | — | **closed** |
+| `unit_masks2 0/6` 696 | — | **closed** |
+| `damage_frac 1/6` 712 | hidden by the old ceiling | stands |
+
+The last row is the raised ceiling's and not the fix's, measured the way
+item 481's was: with the arm switched off and the window at 729 it stands
+identically. The same run is this landing's anti-vacuity for the new
+`unit_masks2` row — with the arm off, `unit_masks2 0/6` at 696 is reported
+and this crate's frozen-frame list is empty.
+
+`chapter_two_s_hit_points_are_the_dump_s_on_every_unit_frame` now names
+the **same** wounded set on both sides: `0/10` was the one the dump wounds
+and this crate did not, and the frames the bowmen stop losing are what
+reach it. `NEAR_TALLY` goes 5568/206 → 7368/296 with the agreement still
+**total** — which is the direct refutation of the fear §43.3 recorded,
+that the arm would part `near_o` on `0/7` and `0/8`: it does not, because
+with the inherit landed the followers never run a search to write a
+footprint with.
+
+### 44.4 The instrument, twice more
+
+Neither piece above is visible without a comparator fix, and both are
+§43.3.1's rule again.
+
+**A `TargetOrder`'s `(ox, whom)` is a slot number, not a liveness claim.**
+`Built::unit_ids` gates its ad-hoc fallback on `alive()`, which is right
+wherever the question is "which unit of the dump is this" — a dead figure
+is in no `UNITDATA` block. It is wrong for an order's target, and with
+`forget`'s clear removed this crate carried exactly what the dump carried
+and the comparison still read `None`. `unit_ids_dead_or_alive` is the
+target's reader; the three `order` rows move 684 → 696 on it alone. That
+is the **third** appearance of the same hole in one function — item 462's
+was a target not on the board at the start, item 496's an attack order
+with no target, this one an attack order whose target is dead.
+
+**`unit_masks2` was parsed and never compared**, which is the kind
+`crate::diff::coverage` cannot catch: the pin records what the *parser*
+asks for, and the parser has asked for this field all along. Only the
+`0x10` bit is compared, and the reason is measured rather than assumed —
+across every dump on this disk the word takes four values: `0` (5.5 M
+unit-frames), `0x40000` (731, run16 and run16b, `process_supply`'s display
+flag), `4` (688, the East Indies captures **including run99's own value
+window**) and `0x10` (148). Comparing the whole word would pin a defect
+this landing is not fixing, on the other headline's own capture. On both
+headline windows the mask is the whole field: run112 carries `0x10` on
+seven unit-frames and zero everywhere else, run100 zero throughout.
+
+### 44.5 Coverage
+
+**Diff-backed**: the whole of §44.3's table, both directions, on
+`chapter_two_s_word_frame_is_widened_whole`'s `[606, 729)`; the word
+itself; the seven frozen unit-frames of the whole chapter, both
+directions, on `chapter_two_s_frozen_frames_are_the_dump_s_on_every_unit_
+frame` — five of the seven reproduced, and the two that are not are past
+the word, which the test asserts rather than assumes.
+
+**Dump-backed**: §44.2's `new_ord`/`ever_in_range` split at block 696;
+§44.1's `waiting 0` ruling out the throttle; §44.3's run118 clocks at
+blocks 696 and 726; §44.4's histogram of `unit_masks2` over every capture
+on disk.
+
+**Listing-backed**: `LAB_005fdb9e`'s two writers and the search budget
+above them; `UnitData::get_captain@00610ab0`'s recursion; the inherit
+block's four conditions; `Leader::process@006b88b0`'s zeroing of the
+budget. `unit_masks2` is `UnitData +0x6c` and `waiting` is `+0xad` from
+the type record, not from the surrounding code — which is how §43.2's
+`near_o 6 near_who 1` was caught: `+0xa2` is `cavarch_o`, and the dump's
+`near_o` is `ObjectData +0x34`, a different field with a different writer.
+
+**A guard, now earned rather than proposed.** §43.3.1's hole has now
+appeared **three** times in `compare_orders` — item 462's `unit_ids` on a
+target not on the board at `BEGIN GAME`, item 496's `target_ids` on an
+attack order with no target, and this item's `unit_ids` on an attack
+order whose target is dead. Three instances of one shape, each found by
+widening and none by a reading, each hiding a live divergence for weeks,
+is past a rule and into a check: `crate::diff::coverage` catches a key the
+**parser** never asks for, and nothing catches a key the parser reads and
+the comparison then drops for want of a value on this side. The grep is
+`if let (Some(a), Some(b)) = (mine, theirs)` and its cousins — `zip`,
+`and_then`, a `?` in a helper that feeds a comparison. Named here so the
+count is on the record.
+
+**Reading-only**: the search throttle (§43.5), unmodelled and unexercised;
+`Unit::fight`'s `param_5 != 0` sub-call path, which writes
+`cavarch_o`/`cavarch_who`/`cavarch_uid` instead of searching and which no
+run on disk enters.
