@@ -7,11 +7,20 @@ static u32 graph_storage[GRAPH_BYTES/4], graph_used, graph_records;
 static u32 graph_nodes[GRAPH_NODES], graph_payloads[GRAPH_PAYLOADS];
 static u32 graph_node_count, graph_payload_count;
 static int graph_failed;
+static u32 graph_failure_tag=151;
+#ifdef RON_RESTORE_POSTGRAPH
+IMPORT(u32, GetTickCount, (void));
+static int graph_timed;
+static u32 graph_started;
+#endif
 static int graph_fail(u32 reason, u32 value) {
-    emit(K_INFO, 151, reason, value, graph_records, graph_used, 0);
+    emit(K_INFO, graph_failure_tag, reason, value, graph_records, graph_used, 0);
     graph_failed = 1; return 0;
 }
 static int graph_read(u32 address, void *out, u32 size) {
+#ifdef RON_RESTORE_POSTGRAPH
+    if (graph_timed && GetTickCount()-graph_started>=2000u) return graph_fail(11,address);
+#endif
     u32 copied = 0;
     if (address < 0x10000u || address > 0xffffffffu-size ||
         !ReadProcessMemory(g_proc, (void *)address, out, size, &copied) || copied != size)
@@ -19,7 +28,7 @@ static int graph_read(u32 address, void *out, u32 size) {
     return 1;
 }
 static u32 *graph_record(u32 kind, u32 owner, u32 address, u32 size) {
-    if (!size || (size&3) || size > GRAPH_BYTES-16 || graph_used > GRAPH_BYTES-16-size) {
+    if (graph_records>=4096u || !size || (size&3) || size > GRAPH_BYTES-16 || graph_used > GRAPH_BYTES-16-size) {
         graph_fail(2, size); return 0;
     }
     u32 *p = graph_storage+graph_used/4;
@@ -62,27 +71,31 @@ static int graph_tree(u32 owner, u32 address) {
     if (active != h[2]) return graph_fail(8,owner);
     return 1;
 }
-static void capture_search_graph(u32 unit) {
+static int collect_search_graph(u32 unit) {
     graph_used=32; graph_records=graph_node_count=graph_payload_count=0; graph_failed=0;
     u32 *u=graph_record(1,0,unit+0x104,0x48);
-    if (!u) return;
-    for (u32 i=0;i<5;i++) if (!u[i] || !graph_tree(i,u[i])) return;
+    if (!u) return 0;
+    for (u32 i=0;i<5;i++) if (!u[i] || !graph_tree(i,u[i])) return 0;
     /* PathNode parent closure; fixed capacity bounds even cyclic payload links.
      * The offline validator rejects cycles and ownership inconsistencies. */
     for (u32 i=0;i<graph_payload_count;i++) {
         u32 *p=graph_record(4,0,graph_payloads[i],36);
-        if (!p || (p[8] && !graph_payload(p[8]))) return;
+        if (!p || (p[8] && !graph_payload(p[8]))) return 0;
     }
     const u32 pools[]={0xc8d810,0xc8d950,0xc8d860,0xc8d880,0xc8d9a0,0xc8d9b0,0xc8da70};
     for (u32 i=0;i<7;i++) {
         u32 *p=graph_record(6,i,pools[i],16);
-        if (!p) return;
-        if (p[1]>4096 || p[2]>p[1] || (p[1] && !p[0])) { graph_fail(9,i); return; }
-        if (p[1] && !graph_record(7,i,p[0],p[1]*4)) return;
+        if (!p) return 0;
+        if (p[1]>4096 || p[2]>p[1] || (p[1] && !p[0])) { graph_fail(9,i); return 0; }
+        if (p[1] && !graph_record(7,i,p[0],p[1]*4)) return 0;
     }
     graph_storage[0]=0x31475352; graph_storage[1]=1; graph_storage[2]=(u32)g_frame;
     graph_storage[3]=unit; graph_storage[4]=graph_records; graph_storage[5]=graph_used;
     graph_storage[6]=graph_node_count; graph_storage[7]=graph_payload_count;
+    return 1;
+}
+static void capture_search_graph(u32 unit) {
+    if (!collect_search_graph(unit)) return;
     char path[320]; path_join(path,"search-graph.bin");
     HANDLE file=CreateFileA(path,GENERIC_WRITE,FILE_SHARE_READ,0,1,FILE_ATTRIBUTE_NORMAL,0);
     u32 written=0;

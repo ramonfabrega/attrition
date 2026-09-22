@@ -130,6 +130,8 @@ No new capture or main-loop adoption is requested by this handoff.
 
 | L73 | Can saved graphs be compared without treating addresses or unknown bytes as values? | [Explicit graph correspondence](2026-09-22-graph-correspondence.md). | All 539 records pair across allocator relocation; 246 typed pointers normalize; required fields agree, one unused-capacity byte still fails strict agreement. | Model-to-model contract only; 102 undefined bytes retained, no native post-tree witness or new capture. |
 
+| L74 | Prepare a native post-tree falsifier for the model graph. | [Paired post-graph collector and adapter](2026-09-22-native-postgraph-preparation.md). | Authored C/Python packets, failure controls, sanitizers, synthetic 539-record adapter comparison and five isolated DLL variants pass. | Offline preparation only; no native post-tree evidence or capture slot yet. |
+
 ## Current direction
 
 The September 19–22 tranche now has an unchanged native unit/path witness
@@ -140,7 +142,8 @@ This slice is packaged in draft PR #5 for Fable's review. Offline follow-up L71
 identified uninitialized node bytes +22/+23. L72 now observes the complete modeled
 structure with 102 explicit undefined bytes, preserving the byte guards. The
 L73 comparison contract now passes controlled relocation and rejects payload
-mutations. The next lab step is a bounded native post-tree collector and adapter;
+mutations. L74 prepares the bounded native post-tree collector and adapter;
+the next lab step is one freshly authorized limit-95 post-graph capture;
 the next adoption test should answer one
 real divergence question selected by steering, with a named call/field and
 falsifier. Saved-tree contents, native limit 96 and general runtime fidelity

@@ -15,6 +15,9 @@ static int restore_post_pending;
 #ifdef RON_RESTORE_LIMIT95
 #include "live_restore_limit.h"
 #endif
+#ifdef RON_RESTORE_POSTGRAPH
+#include "live_restore_postgraph.h"
+#endif
 static void __cdecl restore_returned(u32 *regs) {
     if (!restore_post_pending) return;
     restore_post_pending=0;
@@ -68,7 +71,11 @@ static void __cdecl restore_returned(u32 *regs) {
     CloseHandle(file);
     if(!ok || written!=size)goto failed;
     emit(K_INFO,181,0,restore_probe.unit,size,capacity,restore_poststate.registers[7]);
-    flush();return;
+    flush();
+#ifdef RON_RESTORE_POSTGRAPH
+    capture_restore_postgraph(size);
+#endif
+    return;
 failed:
     emit(K_INFO,182,fail,restore_probe.unit,written,size,0);flush();
 }
