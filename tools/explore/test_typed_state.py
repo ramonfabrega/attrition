@@ -79,6 +79,12 @@ class TypedStateTests(unittest.TestCase):
         text='S_GDATA32 [size = 24] `root`\n type = 0x1001 (Toy), addr = 0002:48\nS_GDATA32 [size = 24] `unknown`\n type = 0x1001 (Toy), addr = 0000:0\n'
         rows=globals_from_dump(text,PE(image()));self.assertEqual(rows[0]['address'],0x402030)
         self.assertIsNone(rows[1]['address']);self.assertEqual(rows[1]['status'],'unresolved_symbol_address')
+    def test_embedded_symbol_quotes_and_unparsed_declarations(self):
+        text="S_GDATA32 [size = 64] ``helper'::`2'::storage`\n type = 0x0023 (unsigned __int64), addr = 0000:0000\n"
+        rows=globals_from_dump(text,PE(image()))
+        self.assertEqual(rows[0]['name'],"`helper'::`2'::storage")
+        with self.assertRaisesRegex(ValueError,'unparsed'):
+            globals_from_dump(text+"S_GDATA32 [size = 24] `lost`\n invalid descriptor\n",PE(image()))
     def test_array_extent_is_explicit_and_refuses_ambiguous_or_invalid_fields(self):
         rows=[dict(path='x::<base:1000>.length',status='value',value=3),
               dict(path='x.size',status='value',value=4),

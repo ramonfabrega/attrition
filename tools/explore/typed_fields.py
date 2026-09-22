@@ -18,9 +18,10 @@ NON_STORAGE={'LF_ONEMETHOD','LF_METHOD','LF_NESTTYPE','LF_ENUMERATE'}
 
 
 def globals_from_dump(text,pe):
-    pattern=r'S_GDATA32 \[size = \d+\] `([^`]+)`\n\s+type = (0x[0-9A-Fa-f]+).*?, addr = ([0-9]+):([0-9]+)'
-    result=[]
-    for name,typ,section,offset in re.findall(pattern,text):
+    pattern=r'S_GDATA32 \[size = \d+\] `(.+)`\n\s+type = (0x[0-9A-Fa-f]+).*?, addr = ([0-9]+):([0-9]+)'
+    result=[];matches=re.findall(pattern,text)
+    require(len(matches)==len(re.findall(r'\bS_GDATA32 \[',text)),'unparsed global symbol declaration')
+    for name,typ,section,offset in matches:
         i=int(section)-1;offset=int(offset)
         valid=0<=i<len(pe.sections) and offset<pe.sections[i]['virtual_size']
         result.append(dict(name=name,type_index=int(typ,16),

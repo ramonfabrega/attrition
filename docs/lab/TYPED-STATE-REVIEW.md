@@ -88,7 +88,7 @@ Its payload SHA-256 remains
 The decoded height bytes hash to
 `d21edfd45d0a42cf81e9d52aae319087c0a514087ca0980ef55c40c10382ae62`.
 
-Ten authored tests exercise malformed RTTI chains, secondary vptrs, ambiguous
+Eleven authored tests exercise malformed RTTI chains, secondary vptrs, ambiguous
 forward types, missing bytes, extent/budget failures, unresolved global symbols,
 fixed arrays, signed bitfields, exact NaN bits and overlap accounting. These
 are decoder controls, not agreement with the original logger.
@@ -112,9 +112,27 @@ are decoder controls, not agreement with the original logger.
 No new capture has been taken. The next native experiment must first earn its
 boundary and framing tests; existing mid-frame bytes cannot answer step 2.
 
-The final focused run passes 31 tests with the owned executable supplied, with
+The final focused run passes 32 tests with the owned executable supplied, with
 no skips. The final census plus six-root decode takes 4.86 seconds, preserving
 all census counts and the exact height hash. It reports 36 unresolved virtual
 base entries across the six roots (3 World, 20 Leaders, 3 Units, 3 Groups,
 7 Terrain); RNG has none. `reachable_state_complete` remains false even for a
 root whose inline fields decode, since pointer reachability is a separate claim.
+
+
+A source-count audit caught two globals with embedded backticks that the first
+regex skipped. The corrected reader accounts for all 1,835 S_GDATA32 records;
+ten retain explicit unresolved addresses. An unparsed declaration now fails,
+and an authored malformed declaration proves that failure. Selected-root
+results and height bytes remain unchanged. The PDB-only follow-up also finds
+that all 36 virtual-base entries above name classes containing only static
+members/methods (33 MiscAccess, three GameAccess). They remain conservatively
+unresolved in this checkpoint; a subsequent decoder can distinguish that case
+without guessing a runtime base address.
+
+The full release gate passes on this fresh-main tree: 1,278 tests, 885 fixture
+requests with none missing, clippy, formatting, install survey and paperwork.
+The parser correction also passes the final 32-test focused run. No main source,
+queue, scoreboard or capture configuration changed. Exact source, bound PDB
+exports, decoded results, tests and the gate are retained outside Git at
+`/Users/rf-studio/ron-data/lab-experiments/2026-09-22-typed-state-oracle`.
