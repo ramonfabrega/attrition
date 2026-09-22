@@ -3799,6 +3799,52 @@ mod tests {
              first-wound gate open, because it reads `damage` and the first \
              of them leaves `damage` at zero"
         );
+        // **The three frames a shot hits nothing** (item 483,
+        // `docs/COMBAT.md` §39). `Ammo::do_damage`'s puncture pair is the
+        // only draw in the whole 24,000-frame game that neither side had a
+        // name for: the original's read `678cb9`/`678cde` and this crate's
+        // the tick's bare `projectiles` phase mark, so the *sequence* word
+        // could not pass 10237 however the simulation behaved while the
+        // *count* word had already reached 10244.
+        //
+        // Both sides take it on exactly these three frames and nowhere
+        // else, which is what makes the pair a pin rather than a label:
+        // the two frames below the word are asserted whole, and the third
+        // is past it and only counted.
+        let punct = [
+            sim::fight::SITE_PUNCTURE_X.to_string(),
+            sim::fight::SITE_PUNCTURE_Y.to_string(),
+        ];
+        let theirs_punct: Vec<i64> = (0..=24_000)
+            .filter(|f| trace.labels(*f).iter().any(|l| punct.contains(l)))
+            .collect();
+        assert_eq!(
+            theirs_punct,
+            vec![10_237, 10_242, 10_249],
+            "the original punctures ground on three frames of 24,000"
+        );
+        let ours_punct: Vec<i64> = built
+            .frame_sites
+            .iter()
+            .filter(|(_, s)| s.iter().any(|l| punct.contains(l)))
+            .map(|(f, _)| *f)
+            .collect();
+        assert_eq!(ours_punct, theirs_punct, "and this crate on the same three");
+        for f in [10_237, 10_242] {
+            let ours = built
+                .frame_sites
+                .iter()
+                .find(|(g, _)| *g == f)
+                .map(|(_, s)| s.clone())
+                .unwrap_or_default();
+            assert_eq!(
+                ours.iter().rev().take(2).rev().cloned().collect::<Vec<_>>(),
+                punct.to_vec(),
+                "{f} ends on the puncture pair"
+            );
+            assert_eq!(ours, trace.labels(f), "{f}, draw for draw");
+        }
+
         // **Great Lakes 8272, the game's first scholar** (item 338,
         // `docs/CITIES.md` §6.5.2). The frame is 38 draws on both sides —
         // the count never parted here — and the only entry that moved was
@@ -6609,6 +6655,28 @@ mod tests {
         /// rather than widening `opens`, for `RAID`'s reason — the
         /// exemption names the row, so the day the row closes this fails.
         const RAIDER_X: i64 = 10_234;
+        /// **`1/29` stops where the original walks on**, and **`1/27`
+        /// then walks into it** — the two rows item 483's word move
+        /// pulled below the line, at 10241 and 10242.
+        ///
+        /// Neither is new behaviour and neither is 483's: the item named
+        /// two draw sites and changed no simulation line at all. What
+        /// changed is the *window*, which runs to the headline — so when
+        /// the sequence word rose 10237 → 10244 to meet the count word,
+        /// seven blocks nobody had ever compared came into scope and
+        /// these two were in them. `ORDER_RESIDUE_RUN97`'s lesson, in the
+        /// direction that adds rows rather than the one that adds counts.
+        ///
+        /// `run100_s_word_block_is_every_record_the_dump_carries` holds
+        /// the value diff: `1/29` drops its move order on 10240 —
+        /// `order:kind` ours 10 theirs 1, `path:length` ours 0 theirs 43
+        /// — and stands still, 28 world units short in `x` by 10242;
+        /// `1/27` is then the one that collides with it, which is the
+        /// word's own block and the extra `Unit::move_step+0x823` draw
+        /// on 10244. Named here rather than widening `opens`, for
+        /// `RAID`'s reason.
+        const RAIDER_STOPS: i64 = 10_241;
+        const RAIDER_COLLIDES: i64 = 10_242;
         let Some(inst) = install() else { return };
         let (Some(path), Some(r100)) = (
             dump("gamelog-run53-greatlakes-24k-trace.txt"),
@@ -6768,7 +6836,12 @@ mod tests {
         // citizen is one row **on** the word, asserted by name below.
         let inside: Vec<String> = units
             .iter()
-            .filter(|(k, f)| opens(f) && (**k, **f) != ((1, 28), RAIDER_X))
+            .filter(|(k, f)| {
+                opens(f)
+                    && (**k, **f) != ((1, 28), RAIDER_X)
+                    && (**k, **f) != ((1, 29), RAIDER_STOPS)
+                    && (**k, **f) != ((1, 27), RAIDER_COLLIDES)
+            })
             .map(|(k, f)| format!("unit {k:?} f{f}"))
             .chain(
                 orders
@@ -6850,8 +6923,8 @@ mod tests {
                 .filter(|(_, f)| **f < LONG_WORD_GREAT_LAKES)
                 .map(|(k, _)| *k)
                 .collect::<Vec<_>>(),
-            vec![(1, 24), (1, 25), (1, 26), (1, 28)],
-            "the window's standing position residue is not the four it is"
+            vec![(1, 24), (1, 25), (1, 26), (1, 27), (1, 28), (1, 29)],
+            "the window's standing position residue is not the six it is"
         );
         // **Counted below the word**, not over the whole map: the word's
         // own row joined this set when the headline moved past 10232, and
@@ -7493,15 +7566,63 @@ mod tests {
         // crate read it and got no bearing at all
         // (`docs/ORDERS.md` §17). What is left is `1/28` one unit east
         // in `x`, said three times: the unit and its guy's two copies.
-        // **Item 478 moved the word past this block**, so what the word's
-        // own block holds is now **nothing**: the three rows below moved
-        // to their own pin, and a key that first parts on 10238 is a new
-        // one. An empty expectation is the weaker half of this pair, which
-        // is why the block it left is asserted too.
+        // ~~**Item 478 moved the word past this block**, so what the
+        // word's own block holds is now **nothing**~~ — **item 483 moved
+        // it again, 10237 → 10244, and this is the value diff beside that
+        // move.** The item named two draw sites and changed no simulation
+        // line, so none of these eleven rows is new behaviour; what is new
+        // is that the window reaches them, and this is where they are
+        // written down.
+        //
+        // They are **one** unit and they say one thing. `1/27` is
+        // colliding in this crate and not in the original — `collide` 2
+        // against 1, `collide_o` 29 against -1, `collide_who` 1 against
+        // -1 — so it is stopped (`g.stopped` 1 against 0) on an
+        // animation that has just begun (`cur_time` 1, `end_time` 31)
+        // where the original's is three frames into a walk cycle. That
+        // **is** the word's own draw: 10244 spends four draws against
+        // three and the extra one is
+        // `Guy::set_anim+0x97a < Unit::move_step+0x823`, the blocked
+        // stand. The draw stream and the dump name the same unit and the
+        // same mechanism, which is the strongest form this pin takes.
+        //
+        // And the cause is upstream and cheap: the thing `1/27` collides
+        // with is `1/29`, which drops its move order on 10240
+        // (`order:kind` ours 10 theirs 1, `path:length` ours 0 theirs 43)
+        // and stands where the original's walks on. That is the
+        // successor, by frame and row.
         assert_eq!(
             on_word,
+            vec![
+                "1/27 collide: ours 2 theirs 1",
+                "1/27 collide_o: ours 29 theirs -1",
+                "1/27 collide_who: ours 1 theirs -1",
+                "1/27 g.cur_anim[0]: ours 0 theirs 7",
+                "1/27 g.cur_time[0]: ours 1 theirs 3",
+                "1/27 g.end_time[0]: ours 31 theirs 13",
+                "1/27 g.last_time[0]: ours 0 theirs 2",
+                "1/27 g.stopped[0]: ours 1 theirs 0",
+                "1/27 order:coll: Coll { ours: Some((4701, 29818)), theirs: (4637, 29827) }",
+                "1/27 order:move.dest: Move { field: \"dest\", ours: 0, theirs: 1 }",
+                "1/27 path:length: PathLength { ours: 49, theirs: 43 }",
+            ],
+            "the word's own block ({word}) is not item 483's eleven rows \
+             of `1/27`"
+        );
+        // **And 10238, the block the word just left**, which was the
+        // word's own until this item and was pinned empty there. It is
+        // still empty, and it is pinned here for 10162's, 10234's and
+        // 10235's reason: the headline walks away from a block and
+        // nothing then watches it.
+        let on_10238: Vec<String> = firsts
+            .iter()
+            .filter(|(_, (f, _))| *f == 10_238)
+            .map(|((w, o, what), (_, row))| format!("{w}/{o} {what}: {row}"))
+            .collect();
+        assert_eq!(
+            on_10238,
             Vec::<String>::new(),
-            "the word's own block ({word}) parts — a new key at the new word"
+            "block 10238 parts — it was empty when the word left it"
         );
         // **And 10235, the block the word just left**, where item 477's
         // three rows stand: `1/28` one world unit east in `x`, said by the
