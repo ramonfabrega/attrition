@@ -61,6 +61,12 @@
  * records of eight u32s; see `report.py` for the reader.
  */
 
+#if defined(RON_RESTORE_SECOND) && (!defined(RON_RESTORE_LIMIT95) || !defined(RON_RESTORE_POSTSTATE))
+#error RON_RESTORE_SECOND requires the witnessed first limit-95 call
+#endif
+#if defined(RON_RESTORE_SECOND) && defined(RON_RESTORE_POSTGRAPH)
+#error second-call mode retains unit/path outputs; suspended-only postgraph is incompatible
+#endif
 #if defined(RON_RESTORE_POSTGRAPH) && !defined(RON_RESTORE_POSTSTATE)
 #error RON_RESTORE_POSTGRAPH requires RON_RESTORE_POSTSTATE
 #endif
