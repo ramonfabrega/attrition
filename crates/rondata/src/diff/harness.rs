@@ -1663,7 +1663,8 @@ pub(crate) fn debug_unit(built: &Built, u: &sim::Unit, frame: i64) {
         })
         .collect();
     eprintln!(
-        "  f{frame} {who}/{o} TY {:?} PACKS {:?} army {:?} gspeed {:?} at ({}, {}) in {:?} on {} ang {} hdg {} path {:?} orders {:?} {}",
+        "  f{frame} {who}/{o} TY {:?} PACKS {:?} army {:?} gspeed {:?} at ({}, {}) in {:?} on {} ang {} hdg {} \
+         danger {} stance {}/{:?} path {:?} orders {:?} {}",
         u.ty,
         u.ty.map(|t| built.sim.unit_types[t].combat.packs),
         built
@@ -1687,6 +1688,11 @@ pub(crate) fn debug_unit(built: &Built, u: &sim::Unit, frame: i64) {
         u.on_map,
         u.movement.facing.0,
         u.movement.heading.0,
+        // `unit_masks & 4` and `UnitData::stance`, which this crate keeps
+        // in two places: the worker byte and the combat stance (item 530).
+        u8::from(u.in_danger),
+        u.stance,
+        u.combat.stance,
         u.path,
         u.orders,
         clocks.join(" ")

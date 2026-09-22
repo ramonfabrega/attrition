@@ -697,7 +697,16 @@ impl Sim {
         // Facing: toward the target.
         let (from, to) = (self.units[i].pos, self.pos_of(target));
         let angle = find_angle(to.x - from.x, to.y - from.y);
-        self.units[i].movement.set_heading(angle);
+        // `Unit::fight@005fd4d0:724`: `Unit::set_angle(angle, …, 0)` when
+        // the angle is new, and that is the setter with the turn-around
+        // test in it — a group's leader swinging round past 90° toggles
+        // the group's `facing` (`docs/GROUPS.md` §6.3). This crate wrote
+        // the heading bare until item 530, so who=1's army group kept
+        // `facing 0` where run110 flips it on 616, and every layout the
+        // army asked for afterwards was mirrored (`docs/COMBAT.md` §49).
+        if angle != self.units[i].movement.heading {
+            self.unit_set_angle(i, angle);
+        }
         self.swing_anim(i, angle);
         // `Unit::fight@005fd4d0`'s `LAB_005feec6`, immediately after
         // `set_anim` and before the damage: the strike makes this unit
@@ -1188,6 +1197,12 @@ impl Sim {
         _frame: i64,
         dtype: i32,
     ) -> Taken {
+        // `Object::take_damage@00652020:306-311`, ahead of the accumulate:
+        // a unit hit by anything but attrition (`param_5 == 0`) marks its
+        // whole squad in danger. Attrition never comes through here.
+        if let Obj::Unit(i) = target {
+            self.set_in_danger(i);
+        }
         match target {
             Obj::Unit(i) => {
                 // **The threshold is the figure's share of the squad, not
@@ -1418,6 +1433,35 @@ impl Sim {
                 self.units[n].combat.captain = c;
                 at = self.units[n].o_down;
             }
+        }
+    }
+
+    /// **`Unit::set_in_danger(this, 0)@005fcfb0`** — the squad's
+    /// in-danger mark (`docs/COMBAT.md` §49).
+    ///
+    /// It climbs `o_up` to the captain without asking whether a figure is
+    /// alive, then walks `o_down`. Each figure it reaches gets
+    /// `unit_masks |= 4` ([`crate::Unit::in_danger`]) and
+    /// `guy_flags |= 0x20` on every guy ([`crate::Unit::guy_flag_0x20`]).
+    /// The walk stops at the first figure whose slot is not active
+    /// (`flags & 1`). The captain it starts from is marked unasked.
+    pub(crate) fn set_in_danger(&mut self, u: usize) {
+        let mut at = u;
+        // Bounded by the list, as `relink_squad`'s walks are: a cycle
+        // would hang the original, and here it stops.
+        for _ in 0..self.units.len() {
+            let Some(up) = self.units[at].o_up else { break };
+            at = up;
+        }
+        let mut cur = Some(at);
+        for step in 0..self.units.len() {
+            let Some(n) = cur else { break };
+            if step > 0 && !self.units[n].alive() {
+                break;
+            }
+            self.units[n].in_danger = true;
+            self.units[n].guy_flag_0x20 = true;
+            cur = self.units[n].o_down;
         }
     }
 

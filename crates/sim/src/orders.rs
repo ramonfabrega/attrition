@@ -1387,6 +1387,21 @@ impl Sim {
         // and it sits above the dispatch, so a chase it ends is answered by
         // the order underneath in the *same* frame (`docs/COMBAT.md` §36).
         self.check_target_path_review(u, frame);
+        // `Unit::work@0060d180:283-313`, after the review and before the
+        // dispatch: an action that is an `ATTACK` with a target marks the
+        // attacker's squad in danger, and the target's when it is a unit.
+        // It runs ahead of the target's `uid` test, so a stale target is
+        // marked too (`docs/COMBAT.md` §49).
+        if self
+            .action_of(u)
+            .is_some_and(|a| self.units[u].orders[a].index() == index::ATTACK)
+            && let Some(t) = self.units[u].combat.target
+        {
+            self.set_in_danger(u);
+            if let Obj::Unit(v) = t {
+                self.set_in_danger(v);
+            }
+        }
         match self.current_order(u).map(|o| o.body) {
             None => self.do_idle(u, frame),
             Some(Body::Move(m)) => {

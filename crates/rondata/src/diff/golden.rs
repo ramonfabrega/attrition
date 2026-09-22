@@ -998,6 +998,7 @@ fn chapter_one_s_word_frame_is_widened_whole() {
     let mut clock_blocks = 0usize;
     let mut clock_rows = 0usize;
     let mut near_read = 0usize;
+    let mut group_blocks = 0usize;
     for f in 0..LAST - 1 {
         script.stage(built.sim.frame, &mut built, &loaded);
         built.tick();
@@ -1167,6 +1168,52 @@ fn chapter_one_s_word_frame_is_widened_whole() {
         if clock.is_some() {
             clock_blocks += 1;
         }
+        // **The army's group record**, which run110 alone prints
+        // (`GROUPS=9`, item 399) and which no row read until item 530. The
+        // pool slot is not an identity (`CLAUDE.md`): the group is matched
+        // on what the slot holds, a live group of this player's army.
+        let pool_text = clocks.as_mut().and_then(|c| {
+            let at = c.frames().iter().position(|x| x.number == n)?;
+            c.read_frame(at).ok()
+        });
+        if let Some(text) = pool_text.as_deref() {
+            let plog = Log::parse(text);
+            for (_, b) in plog.frames() {
+                for g in crate::gamelog::groups(b) {
+                    let (Ok(who), Ok(slot)) = (usize::try_from(g.who), usize::try_from(g.army))
+                    else {
+                        continue;
+                    };
+                    if g.num == 0 || g.buildings != 0 || who >= players {
+                        continue;
+                    }
+                    let Some(a) = built.sim.armies.get(who).and_then(|a| a.list.get(slot)) else {
+                        continue;
+                    };
+                    group_blocks += 1;
+                    let st = &a.group;
+                    for (name, ours, theirs) in [
+                        ("facing", i64::from(st.facing), g.facing),
+                        ("order_num", i64::from(st.order_num), g.order_num),
+                        ("form", i64::from(st.form), g.form),
+                        ("speed", i64::from(st.speed), g.speed),
+                        ("new_speed", i64::from(st.new_speed), g.new_speed),
+                    ] {
+                        rows += 1;
+                        if std::env::var("RON_TMP_GROUP").is_ok() {
+                            eprintln!("  grp {n} {name} ours {ours} theirs {theirs}");
+                        }
+                        if ours != theirs {
+                            note(
+                                format!("group:{name} {who}/army{slot}"),
+                                n,
+                                format!("ours {ours} theirs {theirs}"),
+                            );
+                        }
+                    }
+                }
+            }
+        }
         // **The record's own rows, ungated by the position**: everything
         // the `UNITDATA` and `GUY` blocks print that `compare` either does
         // not read or reads only where the positions agree.
@@ -1215,6 +1262,13 @@ fn chapter_one_s_word_frame_is_widened_whole() {
                 ),
                 ("idle".into(), i64::from(un.idle), them.idle),
                 ("stance".into(), i64::from(un.stance), them.stance),
+                // `unit_masks & 4`, the in-danger latch §6.6 step 6 of
+                // `docs/GROUPS.md` exempts a group move by (item 530).
+                (
+                    "in_danger".into(),
+                    i64::from(un.in_danger) * 4,
+                    them.unit_masks.map(|m| m & 4),
+                ),
                 ("myspeed".into(), i64::from(un.movement.speed), them.myspeed),
                 ("group".into(), built.sim.pool_group_of(u), them.group),
                 ("form".into(), i64::from(un.form), them.form),
@@ -1298,6 +1352,14 @@ fn chapter_one_s_word_frame_is_widened_whole() {
                     ("g.end_time", i64::from(og.end_time), g.end_time),
                     ("g.last_time", i64::from(og.last_time), g.last_time),
                     ("g.gpiece", i64::from(og.gpiece), g.gpiece),
+                    // `guy_flags & 0x20`, which `Unit::set_in_danger`
+                    // raises beside the unit's bit; run110 alone prints it
+                    // (item 530).
+                    (
+                        "g.flags&0x20",
+                        i64::from(un.guy_flag_0x20) * 0x20,
+                        g.guy_flags.map(|f| f & 0x20),
+                    ),
                     ("g.stopped", i64::from(og.stopped), g.stopped),
                     ("g.hold_attack", i64::from(og.pending_attack), g.hold_attack),
                     (
@@ -1361,6 +1423,14 @@ fn chapter_one_s_word_frame_is_widened_whole() {
         assert!(
             clock_rows >= 350,
             "only {clock_rows} guy records came from run110; the clock rows compare nothing"
+        );
+    }
+    if clocks.is_some() {
+        // Item 530: who=1's army group on each of run110's blocks from its
+        // muster at 615: fourteen.
+        assert!(
+            group_blocks >= 14,
+            "only {group_blocks} army groups came from run110's pool; the group rows compare nothing"
         );
     }
     // 2993 when it was written: every unit of both players on every block.
