@@ -202,6 +202,8 @@ static const HookSite HOOKS[] = {
 #ifdef RON_STATE_FRAME
     /* GameLog::end_frame: mov ecx,[game_log.log_start_frame]. */
     {0x5329d0, 6, 9, {0x8b,0x0d,0xd4,0x13,0xeb,0x00}},
+    /* Normal do_frame continuation after end_frame: cmp byte [ebx+0x8a0],0. */
+    {0x192586, 7, 10, {0x80,0xbb,0xa0,0x08,0x00,0x00,0x00}},
 #endif
     /* Game::do_frame@00591ef0: push ebp; mov ebp,esp; push -1; push 0xa83e41 */
     {0x191ef0, 10, K_FRAME, {0x55, 0x8b, 0xec, 0x6a, 0xff, 0x68, 0x41, 0x3e, 0xa8, 0x00}},
@@ -859,9 +861,9 @@ static void __cdecl on_hook(u32 kind, u32 ecx, u32 ebp, u32 caller, u32 arg0) {
 
 static u32 build_stub(u8 *s, const HookSite *h) {
 #ifdef RON_STATE_FRAME
-    if (h->kind == 9) {
+    if (h->kind == 9 || h->kind == 10) {
         return build_frame_snapshot_stub(s,(u32)s,g_base+h->rva,
-            (u32)(void *)frame_snapshot_enter,(const u8 *)(g_base+h->rva),h->len);
+            (u32)(void *)(h->kind==9?frame_snapshot_enter:frame_snapshot_after),(const u8 *)(g_base+h->rva),h->len);
     }
 #endif
     return build_hook_stub(s, (u32)s, g_base+h->rva, h->kind, (u32)(void *)on_hook,

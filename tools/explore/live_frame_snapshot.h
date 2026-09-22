@@ -17,7 +17,7 @@ IMPORT(u32, GetTickCount, (void));
 static u32 fs_header[32],fs_ranges[FS_MAX][7],fs_roots[][2]=SNAP_ROOTS;
 static u32 fs_anchor[16][3],fs_anchor_count,fs_anchor_bytes;
 static u8 fs_expected[FS_ANCHOR_CAP],fs_buffer[FS_CHUNK];
-static u32 fs_started,fs_status,fs_claimed,fs_copied;
+static u32 fs_started,fs_status,fs_claimed,fs_copied,fs_pending;
 static int fs_time(void){if(GetTickCount()-fs_started>=FS_MS){fs_status=8;return 0;}return 1;}
 static int fs_read(u32 address,void *out,u32 n){
     u32 got=0;
@@ -125,7 +125,7 @@ static void fs_capture(u32 game,u32 frame,u32 logger,u32 observer,u32 low,u32 hi
 finish:
     if(file!=INVALID_HANDLE && !CloseHandle(file) && !fs_status)fs_status=11;
     if(fs_status)emit(K_INFO,181,fs_status,frame,fs_copied,GetTickCount()-start,0);
-    else emit(K_INFO,180,frame,h[16],fs_copied,GetTickCount()-fs_started,h[18]);
+    else {fs_pending=1;emit(K_INFO,180,frame,h[16],fs_copied,GetTickCount()-fs_started,h[18]);}
 }
 static void __cdecl frame_snapshot_enter(u32 *regs){
     (void)regs; /* Optimized end_frame consumes the global logger, not ECX. */
@@ -137,4 +137,17 @@ static void __cdecl frame_snapshot_enter(u32 *regs){
     if(frame!=RON_STATE_FRAME)return;
     fs_claimed=1;
     fs_capture(game,frame,SNAP_LOGGER,(u32)(void *)frame_snapshot_enter,rd_fs(8),rd_fs(4));
+}
+
+/* Hooked immediately after the normal do_frame call returns from end_frame.
+ * A changed root is evidence against treating the entire logger as pure. */
+static void __cdecl frame_snapshot_after(u32 *regs){
+    (void)regs;if(!fs_pending)return;fs_pending=0;fs_started=GetTickCount();fs_status=0;
+    u32 checked=0,changed=0,total=0;
+    for(u32 i=0;i<fs_anchor_count;i++){
+        u32 *a=fs_anchor[i],n=0;if(!fs_read(a[0],fs_buffer,a[1]))break;
+        for(u32 j=0;j<a[1];j++)if(fs_buffer[j]!=fs_expected[a[2]+j])n++;
+        checked++;if(n){changed++;total+=n;emit(K_INFO,184,fs_header[3],i,a[0],a[1],n);}
+    }
+    emit(K_INFO,182,fs_header[3],checked,changed,total,fs_status);
 }
