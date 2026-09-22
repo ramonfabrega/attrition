@@ -136,6 +136,38 @@ successor is exempt, or is paid from a separate allowance. Whoever
 takes it should check how many other sections sit at their pin — §4 was
 not chosen for being unusual.
 
+## Parked by item 485, 2026-09-22 — 683's two sides, and two callers
+
+(490) **`(384, ATTACK3, 16)`'s release node** — the one launch-point
+row the chapter-two widening still carries: `damage 1/6` at **680**
+against the dump's 679. **Unmeasurable on the disk we have**: the
+arrow lands inside its own launch frame, so no `AMMO` block is ever
+written for it. Needs a capture with `AMMO` on a slinger volley at
+longer range — the first genuine capture question in twenty landings.
+
+(491) **`Unit::close@0060ee50`'s death draw, and what `dtype` owes.**
+683's draw 0 on the *original's* side: `anim = dtype*2 + 0xd + roll %
+2`, and `DEATH_OBJS`' `cur_anim 17` forces `dtype 2` with `roll % 2
+== 0`, so the dump confirms the outcome and not merely the site. This
+crate takes no draw there. §7.1 step 6 gives `dtype` only 4 and 1.
+
+(492) **What the original does with an arrow whose target died in
+flight** — 683's draw 0 on *our* side, and §9.2's `hold_frames`.
+Both last arrows land on 683 on both sides; the first kills `1/8`,
+and the second finds its target dead: the original **holds** it where
+this crate lands it on nothing. The dump's `1/7` takes `19+5` on
+**685**, two arrows' worth, two frames late — which is where the held
+arrow went. `hold_frames` is one of the two fields the ledger still
+counts uncompared on `UnitDump`, and this is the reason to compare it.
+
+(493) **The attrition caller's threshold.** `Sim::attrition_tick`
+still kills on the squad-sized `health <= 0` — the same defect item
+485 fixed in `Sim::take_damage`, one caller over, on
+`Object::take_damage`'s `attrition != 0` arm. `docs/ATTRITION.md`'s,
+not COMBAT's. **No capture on disk has an attrition death**, so
+nothing scores it today; it parks until one does, or until the
+namesake mechanic is worked deliberately.
+
 ## Parked by item 481, 2026-09-22 — surfaced by a ceiling, nobody's item
 
 (486) **`order 1/4` at 685 and `pos 1/4` at 686, a citizen forty

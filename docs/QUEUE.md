@@ -12,36 +12,36 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-22, the tenth chain closes at twenty landings. Great Lakes
-**10233 → 10277**, chapter two **637 → 683**. **The steering pass is
-due.***
+*2026-09-22, the chain closed at twenty-one landings: Great Lakes
+**10233 → 10277**, chapter two **637 → 683**. **The steering pass is due.***
 
-- **The ungroup is a promotion** (487, ORDERS §20):
-  `ungroup_move_order`'s GROUP_MOVE arm builds a *new* plain
-  `MoveOrder`, removes the old node and calls `LinkListBase::add`,
-  which **prepends**; this crate rewrote in place. And `do_move`'s
-  dead-target arm re-paths only within **0x480** of the order's own
-  dest; this crate re-pathed at any distance, so the promoted move
-  died on the frame it was promoted. Word 10244 → **10277**, both
-  numbers; draw-for-draw frames 10,509 → 10,651; endpoint 51/7 → 42/7.
-- **483's reading was 180° out and the widening killed it first.**
-  `orders_front_first` is the log's list **reversed**, so kind 10 /
-  kind 1 was *us still holding the attack*, not `1/29` dropping its
-  move — and `1/29` never moves at all, sitting at (4680,29928) with
-  an empty path on every block. Fourth reversed mechanism this chain.
-- **Nine instrument defects, eleven named mechanisms, nine of them
-  wrong.** Every defect was found by widening; several stood since
-  item 394. 488 parks the sharpest — one window wrong three ways, and
-  the third (a field absent from `compare`) unreachable by any
-  widening. Seven open, 70 parked. **Fable backlog: 3 Loop items** (313, 480, 488).
+- **Nobody had ever read an `AMMO` record** (485): run112 carries
+  **373**, and chapter2.cmd's own command line asks for `AMMO=5`.
+  They date and place every arrow. Tenth instrument defect, and a
+  whole record type rather than a field. `recharging` and the
+  overkill window were compared nowhere either; `recharging` parts
+  **nowhere** over 81 blocks × 21 units, killing the cadence and
+  the `% 16` phase in one run.
+- **`combat::share` was written, documented, and had no caller.**
+  `Sim::take_damage` passed the squad-sized `myhits`, so `1/8`
+  reached `damage` 51 with `killed: false`. Widening 8 → **5**.
+- **An impact frame that agrees is not an arrow that flew right**:
+  launch *frames* were the original's arrow for arrow, launch
+  *points* 80–125 units out — and 80 units crosses a frame at
+  `proj_speed` 100, so two of nine impacts landed on the dump's
+  own frame while the ladder was wrong.
+- **Ten instrument defects, twelve named mechanisms, nine wrong.**
+  490 is the first real capture question in twenty-one landings.
+  Ten open, 74 parked. **Fable backlog: 3 Loop items** (313, 480, 488).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w9711 of 24,000 · GreatLakes w10277 of 24,000
 Golden: w626 of 901 (ch1) · ch2 w683 · 484 next
 Endpoint 24001: EastIndies 63 off, 11 unlinked · GreatLakes 42 off, 7 unlinked
 
-**Opener: the steering pass is due — twenty landings. 485 is still
-live; do not refill its lane. Bank, `/clear`, switch to Fable.**
+**Opener: the steering pass is due and nothing is in flight — every
+branch merged, gated, pushed and reaped, both headlines measured.
+Bank, `/clear`, switch the main thread to Fable.**
 
 ## The queue
 
@@ -67,15 +67,6 @@ the backlog is `docs/PARKED.md`, and an item returns only when a score names it.
 477. **f10235's `1/28 pos`**, ours (4801,30175) theirs (4800,30175),
     with `g.x[0]` and `g.des_x[0]` the same — one world unit in x,
     said three times. ORDERS §18.3.
-
-485. **`1/8`'s wound ladder from block 656** (the rules headline's
-    own frame, under the word at 683). `damage` ours 0 theirs 8 at
-    656, 8/17 at 657, 17/25 at 660, 25/34 at 682, then `extra 1/8` —
-    the death — at 684. **We are one arrival late, not arithmetically
-    wrong.** 484's reading, its hypothesis not this item's:
-    `Object::take_damage` divides the squad's `myhits` by `uber_size`
-    on the way in (§7.3) where `Sim::take_damage` uses `u.health`
-    outright. COMBAT §40.6. 484 has landed; this is unblocked.
 
 342. **Host choice seats the scholar on the wrong university** — 338's
     residue, re-pinned three times, and now `1/55`. **Re-measure before
