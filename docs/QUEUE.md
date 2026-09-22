@@ -33,14 +33,14 @@ chapter two **683 → 725** — both headline words moved.*
   than argument. 495 is the first hard-constraint item.
 - **Disk at 99%, 15 GiB free**; `ccc spawn` refuses under 10. **Stops
   the loop, not slows it.** Coverage pin 239 → 232 keys.
-- **Fable backlog: 7 Loop items** (313, 503, 507, 508, 509, 513, 517).
+- **Fable backlog: 10 Loop items** (313, 503, 507, 508, 509, 513, 517, 526, 527, 528).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w9711 of 24,000 · GreatLakes w11185 of 24,000
-Golden: w626 of 901 (ch1) · ch2 w762 · 523 next
+Golden: w626 of 901 (ch1) · ch2 w900 · 445 next
 Endpoint 24001: EastIndies 62 off, 10 unlinked · GreatLakes 57 off, 4 unlinked
 
-**Opener: an Opus 5.5 commander is live; 520 in flight on att-520, 523
+**Opener: an Opus 5.5 commander is live; 520 in flight on att-520, 445
 next on the rules track. Workers spawn with `claude-opus-5-5[1m]`.**
 
 ## The queue
@@ -59,13 +59,14 @@ the backlog is `docs/PARKED.md`, and an item returns only when a score names it.
     the word, overlapping run100, then the widening of 11185 both
     directions. Re-point `WIDENINGS`' row to the test. No mechanism.
 
-523. **Golden chapter two's word is 762: the original spends an extra
-    `Unit::fight+0x9b0` first** (495 moved the word 725 → 762 and put
-    its widening on file, ceiling 766, twenty rows pinned). Ours 8
-    draws against 9; nothing parts on 762 or 763. Values first part on
-    764 (`g.cur_anim 0/10`, 13 against 12) and 765 (`1/7` takes a
-    kind-2 order with a 53-node path where ours stays kind 1). The
-    rules headline. No mechanism.
+445. **Chapter one's word, 626, has no widening on file** (promoted from
+    parked: chapter two closed at 900, its trace's end, on item 523, so
+    chapter one is the rules headline). None of the tests behind
+    `GOLDEN_WORD_CHAPTER_ONE` is a whole-cast `compare` over 626's own
+    frame; `WIDENINGS` says so. The item is that widening, both
+    directions, every record — one probe over
+    `crate::diff::harness::compare`, the shape 441 used — then the frame.
+    No mechanism.
 
 ## How to maintain this file
 

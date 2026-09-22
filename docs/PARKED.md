@@ -22,6 +22,19 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Parked by item 523, 2026-09-22 — chapter two closed, and what it left
+
+(524) **`near_o` on `0/7` and `0/8` parts from 847**, pinned in
+`NEAR_PARTED`. On 846 the bowmen drop their attack on the dead `1/7`; the
+original keeps `near_o 7 near_who 1` and this crate clears to −1. Not the
+search throttle (`waiting` is 0). It spends no draw through 900, the
+trace's end, so it names no score. No mechanism named.
+
+(525) **run112's `AMMO` records are compared against nothing this crate
+simulates.** `diff::ammo` does it field for field for run109; run112 has
+no such comparison, and 495's arc was checked on its three rolled shots
+by hand. An instrument; promote it when a golden word parts on a shot.
+
 ## Parked by item 495, 2026-09-22 — past the word, and the remedy for a guard
 
 (521) **A spent arrow holds its pool slot for 200 frames; this crate drops
@@ -536,6 +549,28 @@ the reap is a separate command a commander typed after the chain twice and
 forgot twice. Filed with ccc as `land <ref>` or `merge --reap`; until it
 exists, the chain is one shell line in the commander's brief.
 
+(526) **Sweep every `find_angle`/`sinx`/`cosx` call site `docs/` cites
+against the listing.** Filed by item 523. Three of three checked on
+2026-09-22 had been misread: `compare_target`'s `find_angle(0, 0)` (495),
+a landed shot's `find_angle(num_guys, index)` and the lead's speed (523).
+All three were register-passed pairs the decompiler dropped; the trap is
+now in `tools/ghidra/README.md`. The sweep is mechanical and bounded, and
+every uncorrected site is a claim two sections may be carrying as fact.
+
+(527) **Coverage and the ledger count a stand-up read as coverage.**
+Filed by item 523: `o_up` was read only at stand-up and parted silently on
+744, while the coverage pin called it compared. A per-frame "compared"
+check would have caught it. The same family as the five instrument
+defects of the last tranche: scope reported, not measured.
+
+(528) **How a chapter that closes is represented.** Chapter two's word is
+now its trace's end, 900; 523 made the widening's window `[606, 901)` with
+block 900 declared absent, which is what keeps the floors guard's
+"strictly inside the window" true. Whether the handoff says "ch2 closed"
+rather than a word, and whether a closed chapter's pin should be a
+different kind of assertion, is the steering pass's call (DECISIONS 41's
+finish line names "the golden record in lockstep for every chapter").
+
 ## Parked by the tenth Fable pass, 2026-09-22 — names no score
 
 (476) **f10234's three value rows**: `0/5 order:length` 2/1, `0/5
@@ -648,14 +683,6 @@ map is not the headline — lower map first, DECISIONS 41 — and it is the
 first item the AI track takes the day East Indies becomes the lower word:
 every record the long capture's game dumps around 9,711, both directions,
 before any mechanism.
-
-(445) **Chapter one's word has no widening on file.** `GOLDEN_WORD_CHAPTER_ONE`
-is 626 and none of the tests behind it is a whole-cast `compare` over the
-word's own frame — they pin the seating, the reach, the hit and the
-hand-off; `WIDENINGS` says so. Parks because chapter two's 616 is the lower
-chapter and the rules headline; it is the first rules item the day the
-chapter two word closes, and it is one probe over
-`crate::diff::harness::compare`, the shape 441 used.
 
 ## Parked by the sixth Fable pass, 2026-09-19 — a guard's first run
 
