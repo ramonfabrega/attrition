@@ -2132,6 +2132,61 @@ mod tests {
         );
     }
 
+    /// **A figure of a squad falls at its share of the squad's hit
+    /// points, not at the whole of them** — `Object::take_damage`'s step
+    /// 8 (`docs/COMBAT.md` §7.2, §7.3, §41.4).
+    ///
+    /// `update_hits` writes one number, the squad's, onto every figure;
+    /// the divide is on the way in. So a squad of three with `HITS` 120
+    /// is three figures of 40, and the dump's `myhits` is 120 on each of
+    /// them with `damage` counting that figure's own share of what has
+    /// been taken. This crate kept the squad-sized maximum (item 484's
+    /// row pins it on 245,679 field-frames) and used it as the
+    /// **threshold** too, so a figure absorbed three figures' worth:
+    /// run112's hoplite `1/8` reached `damage` 51 still standing where
+    /// the original's died on block 683 at its fortieth point, and
+    /// `extra 1/8` was that.
+    ///
+    /// **Made to fail on purpose** by passing `u.health` again, which is
+    /// what stood here: the figure survives the third hit and the
+    /// assertion below reddens on `alive`.
+    ///
+    /// `combat::share`'s captain remainder is the second half and is not
+    /// reachable from here — it needs the squad down to one figure — so
+    /// the arithmetic is tested directly in `combat`'s own tests and the
+    /// call site is what this pins.
+    #[test]
+    fn a_figure_falls_at_its_share_of_the_squad_s_hits() {
+        let (mut sim, _) = at_war();
+        let ty = sim.add_unit_type(crate::UnitType {
+            hits: 120,
+            combat: Profile {
+                attack: 15,
+                max_range: 4,
+                uber_size: 3,
+                ..Profile::default()
+            },
+            ..crate::UnitType::default()
+        });
+        let foe = put(&mut sim, 1, ty, Pos::new(0x1100, 0x1000));
+        let me = put(&mut sim, 0, ty, Pos::new(0x1000, 0x1000));
+        sim.units[me].squad_size = 3;
+        sim.units[me].combat.captain = i32::from(sim.units[me].index);
+        // Three fifteen-point hits: 15, 30, 45 against a share of 40.
+        let hit = combat::Sixteenths { whole: 15, frac: 0 };
+        for expected in [false, false, true] {
+            let died = matches!(
+                sim.take_damage(Obj::Unit(me), hit, Obj::Unit(foe), 10),
+                Taken::Died { .. }
+            );
+            assert_eq!(died, expected, "share is 120 / 3 = 40");
+        }
+        assert!(!sim.units[me].alive(), "a dead figure is not alive");
+        // And the squad-sized maximum is untouched, because item 484's
+        // row compares it against the dump's `myhits`.
+        assert_eq!(sim.units[me].max_health, 120);
+    }
+
     /// **A hit civilian runs away from whoever hit it** —
     /// `Unit::target_opportunity`'s flee arm, `docs/COMBAT.md` §34. The
     /// sweep's base bearing is `find_angle(me − attacker)` and its ring

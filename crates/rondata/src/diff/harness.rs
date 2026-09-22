@@ -191,11 +191,7 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
             let un = &built.sim.units[link.unit];
             let live = u.damage_frame.is_some_and(|f| f != 0) && un.combat.damage_frame != 0;
             let rows: [(&'static str, i64, Option<i64>); 4] = [
-                (
-                    "recharging",
-                    i64::from(un.combat.recharging),
-                    u.recharging,
-                ),
+                ("recharging", i64::from(un.combat.recharging), u.recharging),
                 ("damage_frame", un.combat.damage_frame, u.damage_frame),
                 (
                     "damage_o",
@@ -7424,6 +7420,37 @@ mod tests {
                         "damage_frac".into(),
                         i64::from(un.damage_frac),
                         them.damage_frac,
+                    ),
+                    // **The overkill window** (item 485): the frame of
+                    // the first hit inside it and the captain and owner
+                    // who struck (§7.1 step 2, §41.1). Written at
+                    // `UNITDATA`'s own indent on every unit of every
+                    // block and compared nowhere until chapter two's
+                    // `1/8` turned out to be wounded a frame later than
+                    // the dump wounds it. `damage_frame` is the sim
+                    // frame in the same numbering `tick` passes, so it
+                    // compares directly; the pair beside it is read only
+                    // where **both** sides hold a live window, because a
+                    // never-hit unit is `-1`/`0` in the original and
+                    // `0`/`0` here and that is a difference of encoding.
+                    (
+                        "damage_frame".into(),
+                        un.combat.damage_frame,
+                        them.damage_frame,
+                    ),
+                    (
+                        "damage_o".into(),
+                        i64::from(un.combat.damage_o),
+                        them.damage_o.filter(|_| {
+                            un.combat.damage_frame != 0 && them.damage_frame.is_some_and(|f| f != 0)
+                        }),
+                    ),
+                    (
+                        "damage_who".into(),
+                        i64::from(un.combat.damage_who),
+                        them.damage_who.filter(|_| {
+                            un.combat.damage_frame != 0 && them.damage_frame.is_some_and(|f| f != 0)
+                        }),
                     ),
                     ("myspeed".into(), i64::from(un.movement.speed), them.myspeed),
                     ("form".into(), i64::from(un.form), them.form),

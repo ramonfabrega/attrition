@@ -229,7 +229,13 @@ mod tests {
     /// and the hit-point record went into [`crate::diff::compare`], so
     /// `myhits` and `damage` are named by more than one window now.
     /// Lowered to what the tree prints for item 478's reason.
-    const SINGLE_CAPTURE: usize = 40;
+    /// **39 on 2026-09-22, item 485.** `UnitDump` gained the overkill
+    /// window — `damage_frame`, `damage_o`, `damage_who` — and all three
+    /// went into [`crate::diff::compare`] *and* run100's own word-block
+    /// walk in the same landing, so a record family that arrived with
+    /// three new fields cost the ledger nothing and gave back one.
+    /// Lowered again for item 478's reason.
+    const SINGLE_CAPTURE: usize = 39;
 
     #[test]
     fn the_widening_ledger_counts_what_nothing_compares() {
