@@ -22,6 +22,21 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Parked by item 495, 2026-09-22 — past the word, and the remedy for a guard
+
+(521) **A spent arrow holds its pool slot for 200 frames; this crate drops
+it.** `Ammo::do_damage@00678060`'s puncture arm leaves a sticking shot as
+`flags 1` with `cur_time` reset, and `inc_time` keeps it in its slot for
+200 frames. run112 has 239 such records, the first on 780, past chapter
+two's word (762). It names no score today; promote it when a word reaches
+780 or a slot index is found to part on it.
+
+(522) **run122: `master_land_heights` as raw bits.** An in-process read of
+`TerrainData+0x464` at frame 0 settles all 2,058 of Great Lakes' ambiguous
+height corners (`docs/COMBAT.md` §46.7). It is the remedy for the day
+`Sim::ground_inexact` (`GROUND_INEXACT`) goes nonzero on any replayed
+window; until then it buys nothing. The run number stays reserved.
+
 ## Parked by item 515, 2026-09-22 — a field the dump does not print
 
 (519) **`march` (+0x4b) is owed, and no capture on disk can settle it.**

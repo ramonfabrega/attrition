@@ -655,6 +655,15 @@ one-in-five retarget roll draw from the same stream in a fixed order, so the
 stream is part of what "plays like the original" means. It is `combat::Rng`,
 and the document lists the draws in order (`docs/COMBAT.md` §9.5).
 
+**Amendment to 19, 2026-09-22 (item 495).** The second mid-frame float
+the port reproduces is a rolled shot's arc and the ground under it:
+`Ammo::inc_time`'s rolling arm and `TerrainOut::find_data_z`, scalar SSE
+throughout. They are reproduced in `sim::single::Single`, the aircraft
+bank's software single, operation for operation. `GRAV_Z` is a pinned
+bit pattern (`0xc127cccd`), because its one writer runs before the first
+frame. Entry 19's argument holds unchanged: every operation is correctly
+rounded, so the original is deterministic here and the port is exact.
+
 
 ## 20. The AI's scripts are data, and the interpreter is ours
 
@@ -1327,6 +1336,20 @@ three is near any search yet measured. Should a divergence ever land on one,
 the sim already carries a software float (`combat::F32`, an integer
 mantissa) and the upgrade is local to one module — which is the reason not
 to pay for it now.
+
+**Amendment to 31, same day.** The height grid stays in the millionths
+the dump prints, and a single is recovered from each corner as the one
+single whose six-decimal print it is. Where two to four share a print
+(2,058 of Great Lakes' 58,081 corners, every one under 16 in magnitude)
+the nearest is taken, a load-time choice at most a few ulp off. That is
+not arithmetic in a frame. A terraformed corner is no longer known to be
+the original's single, for the reason 31 already gives. Every read of
+either kind is counted (`Sim::ground_inexact`) and held to a per-test
+pin of zero, so the day a read lands on one fails a test by name. The
+upgrade 31 anticipated, carrying the grid as singles and the terraform
+in `Single`, stays local to `crate::terrain` and is owed when that
+count first moves.
+
 
 ## 32. The oracle runs on free Wine, and a runner is a dependency like any other
 

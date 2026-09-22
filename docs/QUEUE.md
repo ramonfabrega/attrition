@@ -37,11 +37,11 @@ chapter two **683 → 725** — both headline words moved.*
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w9711 of 24,000 · GreatLakes w11185 of 24,000
-Golden: w626 of 901 (ch1) · ch2 w725 · 495 next
+Golden: w626 of 901 (ch1) · ch2 w762 · 523 next
 Endpoint 24001: EastIndies 62 off, 10 unlinked · GreatLakes 57 off, 4 unlinked
 
-**Opener: an Opus 5.5 commander is live; 495 in flight on att-495, 520
-next on the AI track. Workers spawn with `claude-opus-5-5[1m]`.**
+**Opener: an Opus 5.5 commander is live; 520 in flight on att-520, 523
+next on the rules track. Workers spawn with `claude-opus-5-5[1m]`.**
 
 ## The queue
 
@@ -59,14 +59,13 @@ the backlog is `docs/PARKED.md`, and an item returns only when a score names it.
     the word, overlapping run100, then the widening of 11185 both
     directions. Re-point `WIDENINGS`' row to the test. No mechanism.
 
-495. **The rolled arrow's landing — promoted from parked, and the
-    rules headline** (725's own cause, measured by 510). Frame 686:
-    `damage 1/7` ours 0 theirs 19. The arrow spends **no draw**, but
-    the wound it fails to deliver decides which unit the bowmen
-    target, and 510 forced that facing alone and moved the word
-    **725 → 743**. **A hard-constraint item**: the landing needs a
-    float parabola against `TerrainOut::find_data_z@00866560`'s
-    bilinear surface, so the integer scales come first. COMBAT §42.2.
+523. **Golden chapter two's word is 762: the original spends an extra
+    `Unit::fight+0x9b0` first** (495 moved the word 725 → 762 and put
+    its widening on file, ceiling 766, twenty rows pinned). Ours 8
+    draws against 9; nothing parts on 762 or 763. Values first part on
+    764 (`g.cur_anim 0/10`, 13 against 12) and 765 (`1/7` takes a
+    kind-2 order with a 53-node path where ours stays kind 1). The
+    rules headline. No mechanism.
 
 ## How to maintain this file
 
