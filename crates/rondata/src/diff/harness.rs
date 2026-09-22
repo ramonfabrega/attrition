@@ -3712,6 +3712,52 @@ mod tests {
              first-wound gate open, because it reads `damage` and the first \
              of them leaves `damage` at zero"
         );
+        // **The three frames a shot hits nothing** (item 483,
+        // `docs/COMBAT.md` §39). `Ammo::do_damage`'s puncture pair is the
+        // only draw in the whole 24,000-frame game that neither side had a
+        // name for: the original's read `678cb9`/`678cde` and this crate's
+        // the tick's bare `projectiles` phase mark, so the *sequence* word
+        // could not pass 10237 however the simulation behaved while the
+        // *count* word had already reached 10244.
+        //
+        // Both sides take it on exactly these three frames and nowhere
+        // else, which is what makes the pair a pin rather than a label:
+        // the two frames below the word are asserted whole, and the third
+        // is past it and only counted.
+        let punct = [
+            sim::fight::SITE_PUNCTURE_X.to_string(),
+            sim::fight::SITE_PUNCTURE_Y.to_string(),
+        ];
+        let theirs_punct: Vec<i64> = (0..=24_000)
+            .filter(|f| trace.labels(*f).iter().any(|l| punct.contains(l)))
+            .collect();
+        assert_eq!(
+            theirs_punct,
+            vec![10_237, 10_242, 10_249],
+            "the original punctures ground on three frames of 24,000"
+        );
+        let ours_punct: Vec<i64> = built
+            .frame_sites
+            .iter()
+            .filter(|(_, s)| s.iter().any(|l| punct.contains(l)))
+            .map(|(f, _)| *f)
+            .collect();
+        assert_eq!(ours_punct, theirs_punct, "and this crate on the same three");
+        for f in [10_237, 10_242] {
+            let ours = built
+                .frame_sites
+                .iter()
+                .find(|(g, _)| *g == f)
+                .map(|(_, s)| s.clone())
+                .unwrap_or_default();
+            assert_eq!(
+                ours.iter().rev().take(2).rev().cloned().collect::<Vec<_>>(),
+                punct.to_vec(),
+                "{f} ends on the puncture pair"
+            );
+            assert_eq!(ours, trace.labels(f), "{f}, draw for draw");
+        }
+
         // **Great Lakes 8272, the game's first scholar** (item 338,
         // `docs/CITIES.md` §6.5.2). The frame is 38 draws on both sides —
         // the count never parted here — and the only entry that moved was
