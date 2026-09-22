@@ -209,7 +209,7 @@ impl Sim {
         let who = self.units[u].owner;
         let mut g = crate::group::Group::stack(who);
         self.group_add(&mut g, u);
-        if !self.push_group(&g, true) {
+        if !self.push_group(&mut g, true) {
             return;
         }
         let half = UNITS_PER_CELL / 2;

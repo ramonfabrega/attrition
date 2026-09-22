@@ -1198,10 +1198,11 @@ impl Sim {
         if self.chain_hit(u, at, |s, o| ucell(s.units[o].orders_pos)) {
             return true;
         }
-        let Some((who, members)) = self.pushed_group.as_ref() else {
+        let Some(slot) = self.pushed_last.and_then(|i| self.pushed.get(i)) else {
             return false;
         };
-        if *who != self.units[u].owner || !members.contains(&u) {
+        let (who, members) = (slot.who, &slot.list);
+        if who != self.units[u].owner || !members.contains(&u) {
             return false;
         }
         let mine = self.coll_size(u);

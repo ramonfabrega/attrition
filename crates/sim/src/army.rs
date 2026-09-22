@@ -508,6 +508,14 @@ impl Sim {
     /// because [`Sim::go_to`]'s group has no army and this crate's own
     /// gate refuses one for that reason already.
     fn go_to_unit(&mut self, u: usize, target: usize) {
+        // The mark is **unconditional** and it is the whole squad's: the
+        // loop at `5f78ec` starts at this unit's captain and walks
+        // `o_down`, setting `unit_masks |= 4` on each, and it runs above
+        // the distance test — so a squad already close enough not to walk
+        // is marked all the same. [`sim::Unit::in_danger`].
+        for f in self.squad_of(self.captain_of(u)) {
+            self.units[f].in_danger = true;
+        }
         let to = self.units[target].pos;
         let d = vector_dist(to.x - self.units[u].pos.x, to.y - self.units[u].pos.y);
         if d > 0x480 {
@@ -530,7 +538,7 @@ impl Sim {
         };
         let mut g = crate::group::Group::stack(self.units[u].owner);
         self.group_add(&mut g, u);
-        if !self.push_group(&g, true) {
+        if !self.push_group(&mut g, true) {
             return;
         }
         self.group_action_move_to(&g, spot, QueuePos::New, false, Angle(0), kind, false);
@@ -2001,13 +2009,14 @@ impl Sim {
         let mut g = crate::group::Group {
             who,
             army: None,
+            pushed: None,
             list: Vec::new(),
         };
         self.group_add(&mut g, first);
         self.group_add(&mut g, last);
         // `Groups::push_group(who, who, &g, 1)` — forced, so a group of
         // one still takes a slot.
-        if !self.push_group(&g, true) {
+        if !self.push_group(&mut g, true) {
             return;
         }
         let target = Obj::Building(self.cities[c].building);
@@ -3206,6 +3215,54 @@ mod tests {
             sim.current_order(a).is_none(),
             "`Army::close` is `Group::action_halt(g, 0)` per group"
         );
+    }
+
+    /// **`go_to_unit` marks the whole squad, and `Unit::work` unmarks it
+    /// 32 frames later** — `unit_masks & 4`, the bit §6.6 step 6 of
+    /// `docs/GROUPS.md` exempts a `GroupMoveOrder` by and the one this
+    /// crate's invented army gate was standing in for (item 465,
+    /// `docs/ORDERS.md` §16).
+    ///
+    /// Two halves, and the second is the one with teeth: a latch that is
+    /// set and never cleared would keep every marching squad on plain
+    /// moves for the rest of the game and look exactly like the gate that
+    /// was there before. The clear is `0060d19d`'s, inside the same
+    /// `(frame + o) & 31 == 0` that drops [`crate::Unit::visible`].
+    #[test]
+    fn go_to_unit_marks_the_squad_and_the_32_frame_tick_clears_it() {
+        let (mut sim, _) = sim_with_city();
+        let t = soldier_type(&mut sim);
+        let cap = put(&mut sim, 1, t, Pos::new(0x1000, 0x1000));
+        let sub = put(&mut sim, 1, t, Pos::new(0x1050, 0x1000));
+        let far = put(&mut sim, 1, t, Pos::new(0x9000, 0x9000));
+        // One squad of two: the follower keys on the captain's index.
+        let c = sim.units[cap].index as i32;
+        sim.units[cap].combat.captain = c;
+        sim.units[sub].combat.captain = c;
+        sim.units[cap].captain = true;
+        sim.units[sub].captain = false;
+        sim.go_to_unit(sub, far);
+        assert_eq!(
+            (
+                sim.units[cap].in_danger,
+                sim.units[sub].in_danger,
+                sim.units[far].in_danger
+            ),
+            (true, true, false),
+            "the mark walks the captain's own chain and stops there"
+        );
+        // The captain's own tick, and only it.
+        let o = i64::from(sim.units[cap].index);
+        let ticks = |f: i64| (f + o).rem_euclid(32) == 0;
+        while !ticks(sim.frame) {
+            sim.tick();
+            assert!(
+                sim.units[cap].in_danger,
+                "the latch survives every frame but its own"
+            );
+        }
+        sim.tick();
+        assert!(!sim.units[cap].in_danger, "and `Unit::work` drops it on it");
     }
 
     #[test]

@@ -1346,15 +1346,39 @@ pub(crate) const EAST_INDIES_FIRST_SCHOLAR: i64 = 8_466;
 /// lands on the original's own `(792, 31800)`, on the original's own
 /// frame, with its heading, its guy clock and its position all agreeing.
 ///
-/// The one draw left is `1/28`'s `Unit::do_move+0xe84`, one frame early
-/// — and item 464 named its mechanism, which is not a generic
-/// order-death delay: between blocks 10233 and 10234 the original's
-/// `1/28` changes exactly three things, and one of them is its
-/// `GROUP_MOVE`'s `oxx` **40 → 28**. It becomes its group's own leader on
-/// the frame it does nothing and plans on the next, which is
-/// `do_group_move` running `do_move` for the leader alone
-/// (`docs/COMBAT.md` §34.4).
-pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 10_233;
+/// ~~The one draw left is `1/28`'s `Unit::do_move+0xe84`, one frame early
+/// — and item 464 named its mechanism … It becomes its group's own leader
+/// on the frame it does nothing and plans on the next, which is
+/// `do_group_move` running `do_move` for the leader alone.~~ Item 465
+/// widened the frame and the mechanism dissolved: `oxx 40 → 28` is the
+/// whole of **group 65** on that block — `1/27`, `1/28`, `1/29`, `1/40`,
+/// `1/41` and `1/42` every one — so it is not `1/28` promoting itself but
+/// `Group::refresh_group_order` re-seating the block, and its early
+/// return is what costs the frame (`docs/ORDERS.md` §16).
+///
+/// **10233 → 10234 on 2026-09-21, item 465.** `Group::action_move_near`
+/// carried an invented `g.army.is_some()` line that the original's gate
+/// at `705f00`–`705f61` does not have, so the probe's six raiders —
+/// pushed out of army 1 on frame 8186, `group 65` in the dump for the
+/// next two thousand blocks — held plain `MOVE_TO`s and never entered
+/// `do_group_move` at all. With the pushed group given a pool slot and a
+/// record, and `unit_masks & 4` carried in its place (which is what the
+/// original really exempts a `go_to` group by), `1/28` spends 10233 in
+/// the follower arm's re-seat and plans on 10234 like the original's.
+///
+/// **The value diff**: block 10234's `1/28` rows go **fifteen to none** —
+/// `pos ours (4801,30176) theirs (4776,30168)` and `path:length ours 43
+/// theirs 1` among them — and the word's own block is now item 464's
+/// three `0/5`/`0/2001` rows alone. Across the widening's window the
+/// parted keys go **655 → 440**.
+///
+/// **What 10234 is**: a frame whose whole dumped record agrees and whose
+/// draw stream does not — the original spends **204** draws there,
+/// `PathFinder::calc_road_cost+0x46` over and over, and this crate spends
+/// six for the same 43-node route. `1/28`'s own rows reopen one block
+/// later, on 10235, where the route is 240 out in `x` because the
+/// formation slot is (`order:move.off_x ours 120 theirs 648`).
+pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 10_234;
 
 /// The floor `run97_s_window_orders_are_the_original_s` holds — item 368's
 /// widening of Great Lakes' order stacks, the 36,483 `GATHERORDER` records
@@ -1363,8 +1387,7 @@ pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 10_233;
 /// A floor rather than a zero, because the window opens 412 frames before
 /// the word and this crate's army is off its position from 8442 already
 /// (`docs/ARMY.md` §3.4's successor): a unit standing somewhere else holds
-/// the order that took it there. **Measured, not guessed**, and it may
-/// only come down.
+/// the order that took it there. **Measured, not guessed.**
 ///
 /// **48,698 → 53,622 on item 385**, and the rise is the window's, not the
 /// simulation's: the word moved 9182 → 9415, so the comparison now runs to
@@ -1373,7 +1396,25 @@ pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 10_233;
 /// eight-unit set the assertion is really about did not move. A floor that
 /// counts rows over a window the word controls cannot be read as a rate
 /// without the block count beside it; both are printed.
-pub(crate) const ORDER_RESIDUE_RUN97: usize = 53_622;
+/// **53,622 → 81,534 on 2026-09-21, item 465**, and every row of the
+/// rise is a field that was **never compared before**. The comparator
+/// stops at the order's kind: while this crate held a `MOVE_TO` where the
+/// original holds a `GROUP_MOVE`, the six raiders' 6,978 order-slots
+/// scored one `Kind` row apiece and nothing underneath. With the kind
+/// right, `Kind` goes **6,978 → 0** and the move's own fields come into
+/// view for the first time — `group_angle` 6,978, `angle` +6,978, `x`
+/// 5,815, `off_x` 5,815, `y` 4,652, `off_y` 4,652 — while every family
+/// that was already scoring is unchanged to the row (`Action` 1,319,
+/// `PathField` 2,410, `PathLength` 1,165, `PathTo` 40,435). Four times
+/// 6,978 is the whole of the +27,912.
+///
+/// So the number went up and the simulation did not get worse: this is
+/// `run100_s_word_block_is_every_record_the_dump_carries`' own lesson one
+/// record over — a widening's first run fails, because what it uncovers
+/// was never being checked. What it uncovered is the successor: this
+/// crate's formation **slot offsets** are not the original's (`off_x`
+/// 120 against 648 on `1/28`), so every member's destination is 240 out.
+pub(crate) const ORDER_RESIDUE_RUN97: usize = 81_534;
 
 /// The frame Great Lakes' **second** squad joins the army on — 6994, the
 /// word's own parting from 2026-09-06 to 2026-09-07 and now a landed

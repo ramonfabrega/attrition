@@ -371,6 +371,23 @@ pub struct Unit {
     /// back at. [`Sim::set_attacking`] is the only writer here;
     /// [`Sim::work`] clears it.
     pub visible: u8,
+    /// **`UnitData::unit_masks & 4`** — the "in danger" latch
+    /// `Unit::set_in_danger@005fcfb0` raises and `Unit::work@0060d180`
+    /// drops on the unit's own 32-frame tick (`0060d19d`, above every
+    /// gate — the same tick that clears [`Unit::visible`]).
+    ///
+    /// Its one reader here is `Group::action_move_near`'s §6.6 step 6:
+    /// a member carrying it takes a **plain** move where the rest of the
+    /// group takes a `GroupMoveOrder`. `Unit::go_to_unit@005f78c0` sets
+    /// it over the whole squad it is about to walk, one line before the
+    /// walk, which is why no `go_to` group has ever marched in formation.
+    ///
+    /// SEAM: the other two writers. `Object::take_damage@00652020` marks
+    /// a unit that is hit, and `Unit::work` marks an attacker and its
+    /// target; neither is carried, so a group ordered within 32 frames of
+    /// a fight marches in formation here where the original's would not.
+    /// Nothing else in the engine reads the bit.
+    pub in_danger: bool,
     /// **`SubObjectData::flags & 0x80`** — "attacked this frame, or is
     /// still on an `ATTACK` order".
     ///
@@ -744,6 +761,7 @@ impl Unit {
             // `Object::init@00647750:25` zeroes `visible` and
             // `launch_frames` together as one short.
             visible: 0,
+            in_danger: false,
             attacking: false,
         }
     }
@@ -834,15 +852,25 @@ pub struct Sim {
     /// The game's random stream, `game_random`. Combat draws from it for
     /// projectile scatter and the one-in-five retarget roll.
     pub rng: combat::Rng,
-    /// `UnitData +0x80` → `Groups::list[gid]`, the group pool this crate
-    /// does not have. [`Sim::push_group`] records the members of the group
-    /// it installed, and [`Sim::find_ordered_collision`]'s second pass —
-    /// the one that catches a **group member** ordered next to a candidate
-    /// from anywhere on the map — is the only reader
-    /// (`docs/COLLISION.md` §9, `docs/COMBAT.md` §17.4). One slot is
-    /// enough because the original's own pool is written by the same
-    /// `push_group` and nothing here holds two at once.
-    pub(crate) pushed_group: Option<(Player, Vec<usize>)>,
+    /// `UnitData +0x80` → `Groups::list[gid]`, the group pool — the
+    /// slots [`Sim::push_group`] installs a stack group into, each with
+    /// the [`group::GroupState`] record an army's group also carries.
+    ///
+    /// **One slot until item 465**, which is what kept Great Lakes' probe
+    /// from ever running `do_group_move`: the six raiders it pushes out
+    /// of the army on frame 8186 are `group 65` in the dump for the next
+    /// two thousand frames, and here the scout's next `go_to` overwrote
+    /// them eleven times before the word (`docs/ORDERS.md` §16). Slots
+    /// are recycled the way `Groups::get_open_slot` recycles them, so the
+    /// pool stays as small as the live groups.
+    pub(crate) pushed: Vec<group::Pushed>,
+    /// The slot the **last** [`Sim::push_group`] filled.
+    /// [`Sim::find_ordered_collision`]'s second pass — the one that
+    /// catches a **group member** ordered next to a candidate from
+    /// anywhere on the map — reads this one rather than the asker's own
+    /// (`docs/COLLISION.md` §9, `docs/COMBAT.md` §17.4), which is where
+    /// it stood when the pool was a single slot.
+    pub(crate) pushed_last: Option<usize>,
     /// Draw marks spent by **staged input** at `Game::do_frame`'s entry,
     /// before the frame's first phase — the cheat channel's, which
     /// `rontrace.dll` hands to `ConsoleWin::parse_cmd` there
@@ -1228,7 +1256,8 @@ impl Sim {
         let mut mesh = mesh::RoadMesh::default();
         mesh.seed(&world);
         Sim {
-            pushed_group: None,
+            pushed: Vec::new(),
+            pushed_last: None,
             transport: vec![transport::LeaderTransport::default(); players],
             docks: vec![transport::Docks::default(); players],
             caravans: vec![caravan::Caravans::default(); players],

@@ -1302,8 +1302,15 @@ impl Sim {
         // `ATTACK`, and the test above reads it *before* that drop — so
         // the frame a unit stops attacking still counts as attacking, and
         // the visibility outlives the order by up to 32 frames.
-        if self.units[u].phase(frame).rem_euclid(32) == 0 && !self.units[u].attacking {
-            self.units[u].visible = 0;
+        if self.units[u].phase(frame).rem_euclid(32) == 0 {
+            if !self.units[u].attacking {
+                self.units[u].visible = 0;
+            }
+            // And the in-danger latch beside it, on the same tick and
+            // with no latch of its own (`0060d19d`): `unit_masks &= ~4`
+            // sits inside the same `if` as the `visible` clear, one line
+            // below it. [`sim::Unit::in_danger`].
+            self.units[u].in_danger = false;
         }
         if self.order_type(u) != index::ATTACK {
             self.units[u].attacking = false;
