@@ -144,6 +144,8 @@ No new capture or main-loop adoption is requested by this handoff.
 
 | L80 | Does the naturally scheduled second call yield a usable native output? | [Second-return refusal](2026-09-22-second-restore-refusal.md). | Both inputs captured at frames 224/225; first limit restored; second observer refuses, so paired validation rejects. Failure-only diagnostics now distinguish the hidden checks. | No second post-state or native/replay comparison. Lane released; diagnostic retry requires a fresh slot. |
 
+| L81 | Why did the second return observer refuse? | [Native return modes](2026-09-22-native-return-modes.md). | Diagnostics observe saving 1→0 with outer return 8; version-3 output modes replace the preservation assumption. A fresh pair validates; second-call replay matches outer return 8, modes 300/0, all 640 path bytes and the full unit apart from explicit path relocation. | One captured continuation boundary; broad snapshots are not atomic and intervening world fidelity is not claimed. |
+
 ## Current direction
 
 The September 19–22 tranche now has an unchanged native unit/path witness
@@ -164,8 +166,10 @@ L78 tests recycler reuse per acquisition, catching the history-reset failure in
 an authored control and observing fresh writes on all eight measured acquisitions.
 L79 implements and tests the bounded natural second-call collector and packet
 projection. L80 captures both inputs but the second return observer refuses;
-its precise cause remains unknown. The next lab step is a freshly authorized
-diagnostic capture, then second-call replay only if both output packets validate;
+L81 identifies the saving transition, records it explicitly and validates a
+fresh native output pair. Its isolated second-call replay matches the measured
+unit/path/mode boundary; the next lab question is how to reconstruct the
+intervening inputs rather than reimport them;
 the next adoption test should answer one
 real divergence question selected by steering, with a named call/field and
 falsifier. Saved-tree required fields now have one native witness; native limit 96,
@@ -185,7 +189,8 @@ Steering may adopt individual concerns against its current tip and release gate.
 The branch is not a whole-merge proposal. Some historical commits mix lab tools
 and shared-file changes; their hashes above are navigation aids, not promises
 that every commit is already an isolated cherry-pick. Future shared-file changes
-are separate commits with rationale. Ask through Ramon for the live lane.
+are separate commits with rationale. Use the shared nonblocking lane lock for bounded captures, per Ramon’s L81
+authorization; ask when coordination needs intervention.
 
 The one-time cutover moves only this branch's newly added reports/artifacts to
 `docs/lab/`, preserves its appended narrative in [HISTORY.md](HISTORY.md), and

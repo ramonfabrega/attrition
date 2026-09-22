@@ -80,6 +80,25 @@ class PoststateTests(unittest.TestCase):
         # Explicit relocation alone remains accepted; no other offset is masked.
         require_agreement({**good,'unit_changed_byte_offsets':[184,185,186,187]})
 
+    def test_return_modes_are_observed_bound_and_compared(self):
+        raw=bytearray(packet());struct.pack_into('<I',raw,4,3);raw+=struct.pack('<2I',300,0)
+        c=decode_post(raw,fixture(2));self.assertEqual(c['return_modes'],[300,0])
+        rows=[(5,167,0,0,0,0,0,230),(7,0,0,0,0,0,0,230),(8,0,1,0,0,0,0,230),
+              (5,195,0x14000,300,0,668,8,230),(5,181,0,0x14000,668,2,8,230)]
+        check_receipt(rows,c)
+        for bad in (rows[:3]+rows[4:],rows[:3]+rows[3:4]*2+rows[4:],
+                    rows[:3]+[(5,195,0x14000,300,1,668,8,230)]+rows[4:],
+                    [rows[3]]+rows[:3]+rows[4:],rows[:3]+rows[4:]+rows[3:4],
+                    rows[:1]+rows[3:4]+rows[1:3]+rows[4:]):
+            with self.assertRaises(ValueError):check_receipt(bad,c)
+        for bad in (raw[:-1],raw[:-8],raw+b'x'):
+            with self.assertRaises(ValueError):decode_post(bad,fixture(2))
+        r=replay(c)
+        with self.assertRaises(ValueError):require_agreement(compare(c,r,'bound'))
+        r['last']['return_modes']=[300,0];require_agreement(compare(c,r,'bound'))
+        r['last']['return_modes']=[300,1]
+        with self.assertRaises(ValueError):require_agreement(compare(c,r,'bound'))
+
     def test_empty_and_capacity_difference(self):
         raw=bytearray(packet()[:628]);struct.pack_into('<I',raw,20,0);struct.pack_into('<3I',raw,284+0xb8,0,0,0)
         c=decode_post(raw,fixture(2));r=replay(c)

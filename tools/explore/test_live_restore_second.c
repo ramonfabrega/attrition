@@ -28,7 +28,7 @@ static u32 mode_word=300,save_word=1,payload_status,payload_copied;
 static struct {u32 count,bytes,frame,unit;} payload_header;
 #define RESTORE_LIMIT_WORD mode_word
 static u32 owner,id=1,unit_pointer=0x14000,reads,fail_read,context_fail,graph_fail;
-static u32 file_fail,write_fail,write_short,return_corrupt,context_mode_corrupt;
+static u32 file_fail,write_fail,write_short,return_corrupt,context_mode_corrupt,write_calls,fail_write_at,short_write_at;
 static u32 events[512][8],event_count,post_sizes[2],prefix_sizes[2];
 static u8 post_data[2][720],prefix_data[2][216],unit[344],slots[32];
 static char last_path[128];
@@ -51,7 +51,7 @@ static int WriteFile(HANDLE h,const void *data,u32 n,u32 *w,void *unused) {
  (void)unused;u32 v=(u32)(uintptr_t)h,index=(v-1)/2;
  if(v%2){assert(n==216);memcpy(prefix_data[index],data,n);prefix_sizes[index]=n;}
  else {assert(post_sizes[index]+n<=720);memcpy(post_data[index]+post_sizes[index],data,n);post_sizes[index]+=n;}
- *w=n-(write_short?1:0);return !write_fail;
+ write_calls++;*w=n-((write_short || write_calls==short_write_at)?1:0);return !write_fail && write_calls!=fail_write_at;
 }
 static void CloseHandle(HANDLE h){(void)h;}
 static void *VirtualAlloc(void *p,u32 a,u32 b,u32 c){(void)p;(void)a;(void)b;(void)c;return 0;}
@@ -98,6 +98,7 @@ static void reset(void) {
  owner=0;id=1;unit_pointer=0x14000;mode_word=300;save_word=1;g_frame=224;
  reads=fail_read=context_fail=graph_fail=graph_failed=payload_status=0;
  file_fail=write_fail=write_short=return_corrupt=context_mode_corrupt=event_count=0;
+ write_calls=fail_write_at=short_write_at=0;
  unit[10]=1;u32 path[]={0x20000,2,1};memcpy(unit+0xb8,path,sizeof path);
  for(u32 i=0;i<5;i++){u32 p=0x30000+32*i;memcpy(unit+0x104+4*i,&p,4);}
 }
@@ -118,9 +119,9 @@ int main(int argc,char **argv) {
  restore_delegate(after);emit(7,0,0,0x160b8,48,0,0);emit(8,0,1,0,0,0,0);finish(8);
  assert(restore_sequence.stage==2 && !restore_post_pending);owner=0;
  g_frame=225;enter_delegate();assert(mode_word==300 && restore_sequence.stage==3 && restore_packet_index==1);
- memset(unit+0x104,0,20);finish(8);assert(restore_sequence.stage==4 && mode_word==300);
- assert(post_sizes[0]==saved_first && post_sizes[0]==692 && post_sizes[1]==660);
- assert(((u32 *)post_data[0])[1]==2 && ((u32 *)post_data[1])[1]==1);
+ memset(unit+0x104,0,20);save_word=0;finish(8);assert(restore_sequence.stage==4 && mode_word==300);
+ assert(post_sizes[0]==saved_first && post_sizes[0]==692 && post_sizes[1]==668);
+ assert(((u32 *)post_data[0])[1]==2 && ((u32 *)post_data[1])[1]==3);
  assert(prefix_sizes[0]==216 && prefix_sizes[1]==216);
  u32 count=event_count;restore_enter(before);restore_delegate(after);finish(8);assert(event_count==count);
  if(argc>=2){FILE *f=fopen(argv[1],"wb");assert(f);fwrite(post_data[0],1,post_sizes[0],f);fwrite(post_data[1],1,post_sizes[1],f);fclose(f);}
@@ -156,10 +157,18 @@ int main(int argc,char **argv) {
  reset();graph_fail=1;enter_delegate();assert(restore_sequence.stage==5 && mode_word==300);
  reset();enter_delegate();finish(8);assert(restore_sequence.stage==5 && mode_word==300);
  reset();enter_delegate();restore_enter(before);finish(0xffffffffu);assert(restore_sequence.stage==5 && mode_word==300);
- reset();first();g_frame=225;enter_delegate();mode_word=299;finish(8);assert(restore_sequence.stage==5 && mode_word==299);diagnostic(8,1,299,1);
- reset();first();g_frame=225;enter_delegate();save_word=0;finish(8);diagnostic(8,1,300,0);
+ reset();first();g_frame=225;enter_delegate();mode_word=299;finish(8);assert(restore_sequence.stage==4 && mode_word==299);
+ assert(*(u32 *)(post_data[1]+660)==299 && *(u32 *)(post_data[1]+664)==1);
+ reset();first();g_frame=225;enter_delegate();save_word=0;finish(8);assert(restore_sequence.stage==4 && save_word==0);
+ assert(*(u32 *)(post_data[1]+660)==300 && *(u32 *)(post_data[1]+664)==0);
  reset();first();g_frame=225;enter_delegate();fail_read=reads+1;finish(8);diagnostic(7,0,0,0);
  reset();first();g_frame=225;enter_delegate();g_frame=226;finish(8);diagnostic(9,1,300,1);
  reset();first();g_frame=225;enter_delegate();restore_probe.after_regs[3]-=4;finish(8);diagnostic(11,1,300,1);
+ for(u32 short_write=0;short_write<2;short_write++) {
+  reset();first();g_frame=225;enter_delegate();write_calls=0;
+  if(short_write)short_write_at=2;else fail_write_at=2;
+  finish(8);assert(restore_sequence.stage==5);
+  for(u32 i=0;i<event_count;i++)assert(events[i][1]!=195);
+ }
  puts("second restore: selection, isolation, first restoration and second no-intervention controls pass");
 }

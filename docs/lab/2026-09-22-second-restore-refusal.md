@@ -69,7 +69,11 @@ ten omitted dependencies and four corrupted outputs. This checks the prefix
 only, ending before the larger callee; it does not bypass paired-payload
 validation or establish the second return values.
 
-The next useful live run is the same bounded scenario with these diagnostics,
+Update: [L81](2026-09-22-native-return-modes.md) identifies the refusal as the
+observed saving transition 1 to 0 and obtains a fresh valid output pair. The
+failed capture described here remains refused.
+
+The next useful live run at this checkpoint was the same bounded scenario with these diagnostics,
 on a fresh lane grant. The current slot has been released. Only after two valid
 post packets exist should the packet projection/replay comparison proceed.
 The report and offline assessment are archived under

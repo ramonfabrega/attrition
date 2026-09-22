@@ -24,12 +24,12 @@ FIXED, UNIT, CAP = 628, 344, 4096
 def decode_post(raw, prefix_raw):
     require(len(raw) >= FIXED, 'truncated post-state')
     magic,version,frame,unit,prefix_bytes,path_bytes,mask,boundary=struct.unpack_from('<8I',raw)
-    require(version in (1,2) and (magic,prefix_bytes,mask,boundary)==(0x31505352,216,0x8d5,0x688faa),
+    require(version in (1,2,3) and (magic,prefix_bytes,mask,boundary)==(0x31505352,216,0x8d5,0x688faa),
             'unsupported post-state')
     require(raw[32:248]==prefix_raw,'post-state belongs to another prefix')
     p=decode(prefix_raw)
     require(p['version']==2 and (frame,unit)==(p['frame'],p['unit']), 'post-state event differs')
-    packet_bytes=len(raw);intervention=None
+    packet_bytes=len(raw);intervention=None;return_modes=None
     if version==2:
         require(len(raw)>=FIXED+32,'truncated intervention provenance')
         words=struct.unpack_from('<8I',raw,len(raw)-32)
@@ -37,6 +37,10 @@ def decode_post(raw, prefix_raw):
         require(tuple(p['modes'])==(300,1),'intervention prefix modes differ')
         intervention=dict(field='limit',address='0xe85ec0',before=300,after=95,saving=1)
         raw=raw[:-32]
+    if version==3:
+        require(len(raw)>=FIXED+8,'truncated return modes')
+        return_modes=list(struct.unpack_from('<2I',raw,len(raw)-8))
+        raw=raw[:-8]
     registers=struct.unpack_from('<9I',raw,248)
     require(registers[3]==p['after'][3]+24 and not registers[8]&~mask,'post-return register boundary differs')
     unit_data=raw[284:FIXED]
@@ -48,7 +52,7 @@ def decode_post(raw, prefix_raw):
     require(not capacity or (pointer>=0x10000 and pointer+path_bytes<2**32),'invalid post-state path address')
     return dict(frame=frame,unit=unit,registers=list(registers),unit_bytes=unit_data.hex(),
                 path_address=hex(pointer),capacity=capacity,length=length,path_slot_bytes=raw[FIXED:].hex(),
-                path_sha256=hashlib.sha256(raw[FIXED:]).hexdigest(),packet_bytes=packet_bytes,intervention=intervention)
+                path_sha256=hashlib.sha256(raw[FIXED:]).hexdigest(),packet_bytes=packet_bytes,intervention=intervention,return_modes=return_modes)
 
 
 def check_receipt(rows,c):
@@ -58,6 +62,13 @@ def check_receipt(rows,c):
     pre=[i for i,r in enumerate(rows) if r[:2]==(5,167)]
     post=next(i for i,r in enumerate(rows) if r[:2]==(5,181))
     require(len(pre)==1 and pre[0]<post, 'post-state not after one pre-payload receipt')
+    modes=[(i,r) for i,r in enumerate(rows) if r[:2]==(5,195)]
+    if c.get('return_modes') is not None:
+        expected_modes=(5,195,c['unit'],*c['return_modes'],c['packet_bytes'],c['registers'][7],c['frame'])
+        require(len(modes)==1 and modes[0][1]==expected_modes and pre[0]<modes[0][0]<post,
+                'return mode receipt missing or mismatched')
+    else:
+        require(not modes,'return mode receipt on legacy packet')
     mutations=[(i,r) for i,r in enumerate(rows) if r[:2] in ((5,183),(5,184))]
     if c.get('intervention') is None:
         require(not mutations,'intervention receipts on an unchanged control')
@@ -77,6 +88,9 @@ def check_receipt(rows,c):
         if r[:2]==(8,0):
             depth-=1;require(depth>=0,'unmatched A* return before post-state')
     require(calls>0 and depth==0,'post-state precedes native A* return')
+    if modes:
+        require(not any(r[:2] in ((7,0),(8,0)) for r in rows[modes[0][0]+1:post]),
+                'return modes precede native A* return')
 
 
 def compare(c, replay, payload_sha256):
@@ -95,7 +109,8 @@ def compare(c, replay, payload_sha256):
     changed=[i for i in range(UNIT) if a[i]!=b[i]]
     # Keep every differing slot, including inactive slots and absent slots.
     slots=[i for i in range(max(c['capacity'],o['capacity'])) if x[i*16:(i+1)*16]!=y[i*16:(i+1)*16]]
-    return dict(outer_return_equal=c['registers'][7]==last['eax'],
+    return dict(return_modes_equal=None if c.get('return_modes') is None else c['return_modes']==last.get('return_modes'),
+                outer_return_equal=c['registers'][7]==last['eax'],
                 native_length=c['length'],replay_length=o['length'],native_capacity=c['capacity'],replay_capacity=o['capacity'],
                 unit_changed_byte_offsets=changed,
                 unit_changes_outside_path_pointer=[i for i in changed if not 0xb8<=i<0xbc],
@@ -106,7 +121,8 @@ def compare(c, replay, payload_sha256):
 
 
 def require_agreement(result):
-    """Assert only the measured outer return and complete unit/path boundary."""
+    """Assert the measured outer return, observed modes and complete unit/path boundary."""
+    require(result.get('return_modes_equal') is not False,'native return modes differ')
     require(result['outer_return_equal'], 'native outer return differs')
     require(result['native_length']==result['replay_length'] and
             result['native_capacity']==result['replay_capacity'], 'native path header differs')

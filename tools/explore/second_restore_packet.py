@@ -15,7 +15,7 @@ from search_census import records
 from restore_prefix import decode
 from restore_poststate import decode_post,check_receipt
 
-PACKET_TAGS={150,151,161,162,163,164,165,166,167,168,181,182,183,184,185,186,187}
+PACKET_TAGS={150,151,161,162,163,164,165,166,167,168,181,182,183,184,185,186,187,195}
 FILES=('search-graph.bin','restore-prefix.bin','restore-context.bin',
        'memory-inventory.bin','memory-payload.bin','restore-poststate.bin')
 COMMON=('capsule-image.json','rontrace.dll','riseofnations_trace.exe')
@@ -63,6 +63,7 @@ def validate_pair(directory,rows):
         require(post['registers'][7]==e[4],'post return differs from packet end')
         require((post['intervention'] is not None)==(index==0),'intervention on wrong packet')
         require(tuple(p['modes'])==(300,1),'delegation modes differ')
+        if index==1:require(post['return_modes'] is not None,'second packet lacks return mode observation')
         if index==0:
             unit=bytes.fromhex(post['unit_bytes'])
             require(all(struct.unpack_from('<5I',unit,0x104)),'first post-state has absent roots')

@@ -36,6 +36,7 @@ class SecondTests(unittest.TestCase):
    p=Path(temp);self.fixture(p);a,b=validate_pair(p,self.rows)
    self.assertIsNotNone(a['intervention']);self.assertIsNone(b['intervention'])
    self.assertEqual((a['frame'],b['frame']),(224,225))
+   self.assertEqual(b['return_modes'],[300,0])
  def test_projection_keeps_every_native_call_and_startup_record(self):
   rows=[(5,160,2,0x688f40,0x688fa5,0x682f30,0,0),*self.rows]
   for i in (0,1):

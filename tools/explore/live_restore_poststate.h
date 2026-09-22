@@ -49,7 +49,8 @@ static void __cdecl restore_returned(u32 *regs) {
     if(!with_limit) {
         modes_read=restore_read(0xe85ec0,observed_modes,8);
         fail=7;if(!modes_read)goto failed;
-        fail=8;if(observed_modes[0]!=300 || observed_modes[1]!=1)goto failed;
+        /* Modes are callee outputs: native completion can clear saving. */
+        restore_poststate.version=3;
     }
 #endif
 #endif
@@ -90,8 +91,21 @@ static void __cdecl restore_returned(u32 *regs) {
     size+=sizeof restore_limit;
     }
 #endif
+#ifdef RON_RESTORE_SECOND
+    if(!with_limit) {
+        u32 modes_written=0;
+        if(ok && written==size) {
+            ok=WriteFile(file,observed_modes,sizeof observed_modes,&modes_written,0);
+            written+=modes_written;
+        } else ok=0;
+        size+=sizeof observed_modes;
+    }
+#endif
     CloseHandle(file);
     if(!ok || written!=size)goto failed;
+#ifdef RON_RESTORE_SECOND
+    if(!with_limit)emit(K_INFO,195,restore_probe.unit,observed_modes[0],observed_modes[1],size,restore_poststate.registers[7]);
+#endif
     emit(K_INFO,181,0,restore_probe.unit,size,capacity,restore_poststate.registers[7]);
     flush();
 #ifdef RON_RESTORE_SECOND

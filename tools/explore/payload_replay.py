@@ -328,6 +328,8 @@ def explore(install, directory, *, services='none', budget=1000000, rounds=128,
         last['final_fingerprint'] = expected_state
         if observe_path and last['returned']:
             last['unit_path_observation'] = observe_unit_path(runner, context['unit'])
+            runner.access(runner.uc, UC_MEM_READ, 0xe85ec0, 8, 0, None)
+            last['return_modes'] = list(struct.unpack('<2I', runner.uc.mem_read(0xe85ec0, 8)))
         stack = runner.uc.reg_read(x.UC_X86_REG_ESP)
         last['stack_words'] = []
         for address in range(stack, stack+16, 4):
