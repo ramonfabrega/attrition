@@ -1288,7 +1288,7 @@ impl Sim {
             return;
         }
         self.mark(SITE_DEATH_ANIM);
-        let roll = i32::try_from(self.rng.roll() % 2).unwrap_or(0);
+        let roll = self.rng.roll() % 2;
         let mut cur_anim = combat::death_anim(dtype, roll);
         if dtype == 4 {
             // The ammo-graphic death **replaces** the anim the first draw
@@ -1298,7 +1298,7 @@ impl Sim {
             // from any capture on disk (this crate loads no ammo flags),
             // and spent here so the stream is right the day one is.
             self.mark(SITE_DEATH_ANIM_ALT);
-            let alt = i32::try_from(self.rng.roll() % 2).unwrap_or(0);
+            let alt = self.rng.roll() % 2;
             cur_anim = combat::death_anim(4, alt);
             self.mark(SITE_DEATH_ANIM_FACING);
             let _ = self.rng.roll();
