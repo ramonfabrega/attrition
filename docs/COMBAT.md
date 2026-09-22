@@ -5204,8 +5204,10 @@ later**, at the same `attack_dist` of 1108 against the same reach of
 1158 — both sides are at `(1206, 8207)` when this crate kills and at
 `(1227, 8186)` when the original does, and the two snap to one
 quarter-tile, so the distance is identical on the frame each side
-decides. The difference is state, not geometry, and it is not settled
-here.
+decides. ~~The difference is state, not geometry, and it is not settled
+here.~~ **Settled by item 472, §36**: the state is a sixteen-frame
+phase, and the mechanism is `Unit::check_target_path` rather than
+anything in `do_move`. The row is gone and the word is 645.
 
 The row was measured **both ways**, with §33.2's ranking and with it
 disabled, and stands identically. It is recorded because a floor chosen
@@ -5230,7 +5232,8 @@ carried the conjunct as unmodelled since the second reading;
 since it was written, and **nothing has ever passed it `true`** — the
 same shape as the `0xf6` reach item 384 found.
 
-It was implemented and measured, and it is **not in the tree**:
+It was implemented and measured, and it was **not in the tree** until
+item 472 landed it beside §36's review:
 
 | | `0/10` parts | `0/11` parts | the hoplites' rows |
 | --- | --- | --- | --- |
@@ -5245,7 +5248,9 @@ the three rows §33.2 had just closed come back.
 
 So the conjunct is real, its effect is measured in both directions, and
 landing it alone is a net loss on this map. What it needs is whatever
-stops `0/10` at 631, which §35.2 leaves open. The measurement is written
+stops `0/10` at 631, which §35.2 leaves open — **`Unit::work`'s
+sixteen-frame review, §36**. With the two together the map is empty and
+the word is 645. The measurement is written
 down so nobody runs it twice, and so the next reader of `melee_bonus`
 knows the name is wrong twice over: it is not a bonus, and it never
 reaches a melee attacker, whose arm returns before the test.
@@ -5294,11 +5299,177 @@ call site that sets it, `do_move@005f7b30`; `AttackOrder::mandatory` at
 `+0x1c` from the type record; `find_melee_pos@006010b0`'s `is_moving`
 guard (§19).
 
-**Not established**: what stops `0/10` at 631 rather than 630 — the
-`find_collision` conjunct beside the margin is false at both positions
-(the two snap to one quarter-tile and `0/11` is three unit cells away at
-each), and the `(o + frame)` retarget that does fire on that frame ends
-in `change_target`, not a kill. Whether the original's askers here take
-`find_attack_pos`'s sweep's **flanking** branch — `0/11` is moving,
-which is precisely that branch's gate (§32's seam) — is unmeasured, and
-it is the next thing to ask about their three destinations.
+~~**Not established**: what stops `0/10` at 631 rather than 630~~ —
+**answered by §36**: `Unit::work`'s sixteen-frame review. The rest of
+this paragraph stood and is kept because its two negative findings
+still hold: the `find_collision` conjunct beside the margin is false at
+both of `0/10`'s positions (the two snap to one quarter-tile and `0/11`
+is three unit cells away at each), and the `(o + frame)` retarget that
+does fire ends in `change_target` rather than a kill — which is exactly
+what the word at 645 now turns on (§36.6). The three hoplites'
+destinations came right without anyone measuring
+`find_attack_pos`'s flanking branch: they were link four of §35.1's
+chain and fixing link one fixed them (§36.5).
+
+## 36. A chase ends on a clock, not on a radius (item 472, 2026-09-21)
+
+§35.2 left `order 0/10` / `pos 0/10` at block **630** with a reading
+rather than a mechanism: "the difference is state, not geometry, and it
+is not settled here". It is settled here, and the state is a
+**sixteen-frame phase**. `Unit::work@0060d180:440` reviews a walking
+unit's chase one frame in sixteen, phased by `o`, and
+`Unit::check_target_path@005e22d0` ends it when the target is in reach.
+Ours ended it on the first frame it read in range; the original does not
+look on that frame.
+
+With `is_in_range`'s sixth argument beside it (§35.3, now landed), the
+word moves **637 → 645**, the value parting 636 → 646, and the whole of
+`[606, 645)` — every record run112 carries, both directions — goes to
+**nought**. `visible`'s exact count goes 5 → **8** of nine (§36.5).
+
+### 36.1 The geometry was bit-identical on the two frames
+
+`attack_dist` snaps both sides to the quarter-tile, and run112's `1/8`
+stands still from block 621 to 635. So `0/10`'s own dump rows read:
+
+| block | `0/10` at | snapped | `attack_dist` to `1/8` | the original |
+| --- | --- | --- | --- | --- |
+| 629 | `(1206, 8207)` | `(1200, 8160)` | **1108** | walks on |
+| 630 | `(1227, 8186)` | `(1200, 8160)` | **1108** | kills the move |
+
+The two positions snap to one cell, the target has not moved, and the
+reach is 1158 on both. **No threshold can produce that pair** — and the
+pair is the whole proof that the answer is a clock. `0/11` seals it from
+the other side: the original kills its chase at `attack_dist` **979**
+and declines at **1082**, so a single radius would have to be at once
+under 1082 and over 1108.
+
+The frame numbers say what the radius cannot. A kill's tick is the sim
+frame that *produces* the next block, so `0/10`'s is 630 and `1/8`'s (at
+block 665) is 664: **`(o + frame) % 16 == 0`** on 640 and 672, and on
+`1/7`'s 704. Every tick the original declined fails it.
+
+### 36.2 `Unit::work@0060d180:440` — the review, and where it sits
+
+For a head order of the move family, before the dispatch:
+
+```
+if ((ptype +0x2b8 & 4) == 0 || (unit_masks & 0x80000) != 0)
+  if ((frame + o) & 0xf == 0
+      && (a = update_action()) != 0 && a->vt+0x20() != 0 && a->type != 9)
+    if (a->type == 0xc)  { every 64th: repath; }
+    else if (head->type != 0x12 && (head->vt+0x2c() == 0 || head->vt+0x94() is me))
+      if (check_target_path(a->vt+0x3c()))  goto 0060d710;   // re-read the head
+```
+
+`0060d710` re-reads the head with `update_order` and dispatches on the
+**new** type, so a chase this ends is answered by `do_attack` — and
+therefore by `Unit::fight` — **on the same frame**. `do_move`'s own
+in-range kill (§35.3) returns instead, and the attack waits a frame.
+That difference is printed in the dump and is how the two are told
+apart without a probe: `AttackOrder::ever_in_range` (`+0x1f`) has
+exactly one writer in the executable, `Unit::fight+0xba9`.
+
+| unit | block the move dies | `in_range`/`ever_in_range` | so the killer is |
+| --- | --- | --- | --- |
+| `0/10` | 631 | **same block** | `check_target_path` |
+| `1/8` | 665 | same block | `check_target_path` |
+| `1/7` | 698 | same block | `check_target_path` |
+| `0/11` | 639 | next block | `do_move`'s in-range kill |
+| `0/9` | 645 | `in_range` 1, `ever` **0**, `ox` 8 → 6 | `do_move`'s captain `change_target` (§36.6) |
+| `1/6` | 648, 671 | unchanged | arrival (`pos == dest`) |
+
+Those are **all seven** of run112's `[ATTACK, MOVE] → [ATTACK]`
+transitions, and the phase agrees with the split: 640, 672 and 704 are
+the three that are `0 (mod 16)` and they are exactly the three rows the
+flags date to the same block.
+
+### 36.3 `check_target_path`'s first arm
+
+`005e2434`-`005e24d4`, for an action of type 10 on a seen, active unit:
+
+1. **The flank triple**, `do_move@005f7b30`'s own at `005f7fbe`, with one difference that
+   matters: `e = target.angle − find_angle(t.x − my.x, t.y − my.y) +
+   0x80000000`. The reference is the **bearing to the target**, not the
+   attacker's own heading. `e < 0x2aaaaaaa` is tested inline and jumps
+   past the call, so the predicate a caller means is `0x2aaaaaaa <= e &&
+   flanking(e) != 0`, which is `|signed difference| <= 120°`: the target
+   is facing away from me. A flanked target that `is_moving` is **chased
+   rather than shot at**, and the review returns 0.
+2. `is_in_range(o, who, …, 0)` — the five-argument overload at
+   `00648d70`, which forwards the attacker's own position and passes the
+   sixth argument **zero**. So the review uses the plain radius where
+   `do_move`'s kill uses the radius less `0x90`, and there is no
+   `max_range != 0` gate: a melee attacker is reviewed too, which is
+   why `1/7` and `1/8` are on the list above.
+3. `Unit::repath` — pop the transit legs — and return 1.
+
+`flanking@0092cfe0` is three instructions and is in
+[`combat::flanking`]; its 1/2 answer is read by nothing.
+
+### 36.4 What is not established
+
+- **Everything past the range test.** The original falls through to
+  `find_attack_pos`, `add_move_order`, `find_new_target` and
+  `Group::action_attack` when the target is **inactive**, or when the
+  flank triple holds. No capture on file reaches either arm — run112's
+  four reviews all have a stationary target — so this crate returns
+  false there and the arms are unmodelled.
+- **The two guards above the review**: `ptype +0x2b8 & 4` with
+  `unit_masks & 0x80000` (the packable lineage, which takes an
+  `add_cast_order` branch instead) and the `GUARD` arm (`action type ==
+  0xc`, a `repath` on its own sixty-four-frame phase). Neither is
+  reached by any capture.
+- **The group conjunct** `head->vt+0x2c() == 0 || head->vt+0x94()` names
+  me. This crate asks `m.group.is_none()`, which is the same answer for
+  every capture on file: all four reviews fire on a plain `MOVE_TO`.
+- The `find_collision` conjunct of `do_move`'s own kill (§35.3's SEAM)
+  is still unmodelled; §35's reading that it is false at both of
+  `0/10`'s positions stands and nothing here tested it again.
+
+### 36.5 What moved
+
+Word **637 → 645**, sequence 645, values **646**. The widening window is
+now `[606, 649)` and its map is five rows, all at 645-646 and all
+`0/9`'s (§36.6); `order 0/10` at 630, `order 0/11` at 636, the three
+hoplites' rows at 636 and the citizen `0/5`'s at 639/640 are **gone**.
+
+`visible`'s exact count is **8 of 9**, from 5. The three that came over
+are the three hoplites — 669/678/675 → 672/698/665, the dump's own —
+and they came over because §35.1's chain was four links long and this
+is its first: `0/11` is still walking when who=1 chooses at 635, so
+`find_attack_pos` takes its sweep rather than the melee ring, the three
+destinations are the dump's, and the strikes land on the dump's frames.
+Item 470 fixed the fourth link and predicted this; it is measured here.
+
+`rondata`'s endpoints do not move — 49/9/0/0/8/3/0 on Great Lakes,
+unchanged, and neither ladder rung moves.
+
+### 36.6 The new word, 645: the captain's `change_target`
+
+The value diff on the frame the word moved, the dump's own coordinates:
+
+```
+645 pos   0/9   ours (942, 8098)      theirs (912, 8096)
+645 order 0/9   Length ours 2 theirs 1 · Kind ours 1 theirs 10 · PathLength 3/0
+645 order 0/10  Target ours (1,8) theirs (1,6)
+645 order 0/11  Target ours (1,8) theirs (1,6)
+646 visible 0/9 (ours 648, the dump 646)
+```
+
+This is the third of §36.2's mechanisms and the one not implemented:
+`do_move@005f7b30`'s arm at `005f803f`, which runs only for a **captain** (`o_up < 0`
+— run112's `0/9` has `o_up -1`, `0/10` and `0/11` have 9 and 10). It
+takes an incumbent from `ObjectData::near_o`/`near_who` (`+0x34`/`+0x36`
+by the type record — `0/9` carries `near_o 6, near_who 1` from block
+643), asks `find_melee_target` as well on `(o + frame) % 16 == 0`,
+takes the better of the two by `is_in_range`, refuses a
+`Object::poor_target`, writes `AttackOrder::in_range = 1` at `005f820a`
+and calls `Unit::change_target@005e36c0`. That function rewrites the
+target in place and then **kills head orders until one answers
+`vt+0x20`**, which drops the move — and it walks `o_down` to the whole
+file, which is why `0/10` and `0/11`'s targets move to `(1, 6)` on the
+same block without either of them deciding anything.
+
+`ever_in_range` staying **0** at 645 is what identifies the path: only
+`Unit::fight` writes it, and `fight` runs a frame later here.

@@ -294,17 +294,25 @@ impl Sim {
     /// `Group::action_attack` uses to ask whether a member's current move
     /// order would carry it into range (`docs/GROUPS.md` §10).
     ///
-    /// **SEAM — `006486b0`'s sixth argument** ([`combat::in_range`]'s
-    /// `melee_bonus`, which nothing passes). Every call site in the
-    /// executable passes it `0` but one: `do_move@005f7b30:216`, the kill
-    /// that ends a chase because the target came into reach, which passes
-    /// `attack->mandatory == 0` and thereby shrinks the max-range test by
-    /// `0x90`. Item 470 implemented it and measured it in both
-    /// directions; it is right about chapter two's `0/11` and one frame
-    /// late about `0/10`, and it is not in the tree — `docs/COMBAT.md`
-    /// §35.3 has the table and `docs/ORDERS.md` §4.4 the predicate it
-    /// belongs to.
+    /// This overload passes `006486b0`'s sixth argument **zero**, which
+    /// every call site in the executable but one does; the one is
+    /// [`Self::is_in_range_at_margin`]'s. Item 470 measured the margin
+    /// and did not land it, because on its own it moved `0/10` from one
+    /// frame early to one frame late; item 472 landed it beside
+    /// `Unit::check_target_path`, which is what actually ends `0/10`'s
+    /// chase (`docs/COMBAT.md` §36).
     pub fn is_in_range_at(&self, attacker: Obj, at: Pos, target: Obj) -> bool {
+        self.is_in_range_at_margin(attacker, at, target, false)
+    }
+
+    /// The same with `006486b0`'s **sixth argument** — the `0x90` the test
+    /// adds to the measured distance before the max-range bound
+    /// (`docs/COMBAT.md` §35.3). `do_move@005f7b30:216` is the only call
+    /// site in the executable that passes it non-zero, and what it passes
+    /// is `attack->mandatory == 0`: an ordered attack is dropped at the
+    /// edge of reach, an opportunistic one three quarters of a tile
+    /// inside it.
+    pub fn is_in_range_at_margin(&self, attacker: Obj, at: Pos, target: Obj, margin: bool) -> bool {
         if !self.active(target) {
             return false;
         }
@@ -322,7 +330,7 @@ impl Sim {
             ap.min_range,
             self.reaches_like_a_hoplite(attacker),
             big,
-            false,
+            margin,
         )
     }
 
