@@ -76,3 +76,8 @@ Exact source, results and validation logs are archived outside Git at
 The full release gate passes: 1,203 tests, 782 fixture requests with none
 missing, clippy, formatting, install survey and paperwork checks. The final
 document-only validation note is followed by the fast guard and whitespace check.
+
+Follow-up [L88](2026-09-22-shared-owner-gap.md) resolves the second
+delegation's previous global owner as registered unit 0/59, distinct from the
+intervening A* caller 0/22. Broader path-request boundaries are now the next
+target; the owner change does not attribute the shared-header writes.

@@ -159,6 +159,8 @@ profile/Wine scripts remain outside that lock's protection.
 
 | L87 | Do selected delegation prefixes account for the shared-header gap? | [Selected prefix boundaries](2026-09-22-shared-prefix-window.md). | Both retained native windows preserve all 504 selected unit/header bytes; wrapper prefixes reproduce in 31 instructions. | Net boundary equality only; transient writes and fresh caller setup remain open. No capture or score movement. |
 
+| L88 | Does the A* census account for the previous pathing owner? | [Owner gap](2026-09-22-shared-owner-gap.md). | After intervening id 22, the next delegation retains registered owner 0/id 59, absent from the selected A* triple. | Owner transition only, not shared-header writer attribution. Broader request boundaries are the next target; no capture or score movement. |
+
 ## Current direction
 
 The September 19–22 tranche now has an unchanged native unit/path witness
@@ -193,7 +195,10 @@ not reconstruct shared-state ownership. L86 measures changes outside the
 intervening A* call as well as inside it; the missing boundary extends beyond
 A*. L87 narrows the second gap to before selected delegation: both selected
 callee prefixes preserve all unit/header bytes. Fresh caller setup and the
-intervening-return-to-delegation interval remain candidates. Whole-world advancement remains unproved;
+intervening-return-to-delegation interval remain candidates. L88 finds a
+registered previous owner (0/59) absent from the A* triple; the next observer
+should bracket outer path requests, including returns that never reach A*.
+Whole-world advancement remains unproved;
 the next adoption test should answer one
 real divergence question selected by steering, with a named call/field and
 falsifier. Saved-tree required fields now have one native witness; native limit 96,
