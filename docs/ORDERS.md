@@ -5136,9 +5136,17 @@ taken here.~~
 > on exactly 10237, 10242 and 10249 of the 24,000 frames and nowhere
 > else. All three agree draw for draw now and no other frame's
 > attribution moved. `docs/COMBAT.md` §39 has the listing, the numbers
-> and the guard that came out of it; what stands at 10244 is a real
+> and the guard that came out of it; ~~what stands at 10244 is a real
 > disagreement, four draws against three parting on
-> `Unit::move_step+0x823`'s blocked stand.
+> `Unit::move_step+0x823`'s blocked stand.~~
+>
+> **Item 487 closed 10244 and both words moved together to 10277**
+> (§20). The blocked stand was `1/27` walking into a `1/29` this crate
+> held still; the two mechanisms are `Unit::ungroup_move_order`'s
+> re-head and `do_move`'s `vector_dist < 0x481` gate on the dead-target
+> re-path. **`docs/COMBAT.md` §39.2.1's successor paragraph reads the
+> `order:kind` row backwards** and is corrected in §20.1, not there —
+> that document was another lane's when this landed.
 
 ### 19.4 The capture that was not taken, and the field that was never parsed
 
@@ -5174,3 +5182,214 @@ a decoy at the outer one so the old reading cannot pass by accident.
 twice in the same direction on the same record. The first time the field
 was parsed and uncompared; this time it was neither, and nothing said so
 except a ledger row nobody had read.
+
+## 20. The ungroup is a promotion, and a dead target's walk survives distance (item 487, 2026-09-22)
+
+§19's tail left Great Lakes' word at **10244**, four draws against three,
+parting on `Guy::set_anim+0x97a < Unit::move_step+0x823` — the blocked
+stand. `docs/COMBAT.md` §39.2.1 read the block beside it and found the
+draw stream and the dump naming the same unit unprompted: `1/27` is
+colliding in this crate (`collide_o 29`) and not in the original, and the
+thing it collides with is `1/29`.
+
+That much survives. **The mechanism 483 named for `1/29` does not**, and
+the widening killed it before a line was written.
+
+### 20.1 What the widening said, against what 483 read
+
+483 wrote: "`1/29` drops its move order on block 10241 — `order:kind`
+ours 10 theirs 1, `path:length` ours 0 theirs 43 — and stands 28 units
+short in `x` of where `1/27` is about to be."
+
+Read the row the other way and it says the opposite. Kind **10** is
+`ATTACK` and kind **1** is `MOVE_TO`
+(`sim::orders::index`), and `UnitDump::orders_front_first` is the log's
+list reversed — the **last** block logged is the current order. So the
+row is *this crate still holding an `ATTACK`* where the original is
+already on the plain move underneath it. And this crate's `1/29` does not
+"stand 28 units short": it **never takes a step at all**. Eleven blocks
+of `RON_DEBUG_UNIT=1/29@10237-10248` put it at `(4680, 29928)` on every
+one of them, orders `[Attack, Move]`, path empty, while the original's
+walks 28 in `x` and 8 in `y` a frame from 10242.
+
+The raw records say it in four lines. run100's own `UNITDATA` for `1/29`,
+the order stack as the log writes it:
+
+```
+block 10240   length 2   [ GroupMoveOrder(19) … , ATTACKORDER(10) ]
+              path length 1, to (38954, 21030)
+block 10241   length 2   [ ATTACKORDER(10) , MOVEORDER(1) x 38952 y 21048 ]
+              path length 43, orig_x/y (39133,21131) → (38952,21048)
+block 10242   x_internal 4708  y_internal 29936      (it is walking)
+```
+
+Two orders on both blocks, the same two, and the **order between them has
+swapped**: the group move has become a plain move *and moved in front of
+the attack*. That is the whole finding, and the rest of this section is
+its two halves.
+
+### 20.2 `Unit::ungroup_move_order@005fd140` re-heads the order it makes
+
+The `GROUP_MOVE` arm (`005fd2e2`-`005fd3a6`) does not rewrite the order in
+place. It builds a new one and puts it at the front:
+
+```c
+pMVar7 = OrdersMemManager::get_obj(MOVE_TO);   // a fresh plain MoveOrder
+MoveOrder::operator=(pMVar7, group_order);     // copy the move's fields
+if (!leader) pMVar7->flags &= ~PATHED;         // the low bit
+pMVar7->dest   = 0;
+pMVar7->orig_x = pMVar7->x;
+pMVar7->orig_y = pMVar7->y;
+LinkListBase<UnitOrder *, …>::remove_current(&this->orders);
+OrdersMemManager::give_obj(the old node);
+LinkListBase<UnitOrder *, …>::add(&this->orders, pMVar7);
+if (!leader) kill_current_path(this);
+```
+
+and `LinkListBase<UnitOrder_*,unsigned_char,RecycledOrderNode>::add@0046d5a0`
+**prepends** — `this->head_node = new` on both arms, with `current_node`
+following it. So the conversion is also a **promotion**: whatever was
+current before the ungroup is now one place back. The `ATTACK_TO` arm
+(`get_type() == 0x15`) does the same thing through the same two calls.
+
+In place and at the head are the same thing for a unit whose group move
+is already its head order — which is every unit in every capture on disk
+until run100's `1/29`. That one carries an `ATTACK` above its group move,
+on the human farm `0/2004` that died on sim-frame 10230 (§19.2), and
+`do_attack`'s reload gate returns before `fight`'s validity kill for as
+long as `recharging` is non-zero — 20 at block 10236, still 8 at 10248.
+So the order that should have been displaced stays current, and the move
+underneath it is never dispatched.
+
+`Sim::ungroup_one` removes the converted order and pushes it to the front
+now, which is `add`'s prepend in a `VecDeque`;
+`an_ungroup_puts_the_plain_move_at_the_head_of_the_list` pins it and was
+made to fail by restoring the in-place rewrite.
+
+**SEAM**: `orig_x`/`orig_y` (`MoveOrder +0x44`/`+0x48`), which the same arm
+sets to the order's own `x`/`y`, are neither held by this crate nor
+compared by `crate::diff::order` — `1/29`'s go `(39133, 21131)` →
+`(38952, 21048)` across the ungroup and nothing on either side reads them.
+
+### 20.3 `do_move`'s dead-target re-path is gated on the distance left
+
+With the move promoted, `Unit::work` dispatches it — and this crate then
+killed it on the same frame. `do_move`'s `action->type == 10` block falls
+out of its valid-target arm when the object is gone (a negative `o`/`who`,
+`flags & 1` down, or a `uid` that no longer matches), and what the
+original does there is **not** an unconditional re-path:
+
+```
+5f8221: eax = this->y ^ 0x63637 ; eax -= [edi+0x8]   ; |dy| to the move's y
+5f822f: eax = this->x ^ 0x63637 ; eax -= [edi+0x4]   ; |dx| to the move's x
+5f8247: call vector_dist
+5f824c: cmp  eax, 0x480
+5f8251: jg   0x5f82c1                                 ; → the planner
+5f8256: test $0x10, 0x2b4(ptype)                      ; unit_flags, a sea transport
+5f825d: jne  0x5f82c1                                 ; → the planner
+5f8261: call Unit::repath
+```
+
+`edi` is the `MoveOrder` the function opened with — `5f7b4b`'s vfunc
+`+0x40` on the order argument, stashed at `[ebp-0x18]` — and `+0x4`/`+0x8`
+are `x`/`y` by the type record (`MoveOrder`, size `0x5c`). So the
+octagonal distance from the unit to **where it was walking** decides it:
+within `0x480` the walk is pointless and `repath` pops the transit legs;
+beyond it the unit keeps the order and falls through to the planner, dead
+target and all. `unit_flags & 0x10` is `uflags::TRANSPORT`, the second
+exemption.
+
+This crate re-pathed at any distance. `1/29`'s move is to `(38952, 21048)`
+from `(4680, 29928)` — some 28,000 units out, sixty times the gate — so
+the original plans the 43-node route home on 10240 and this crate popped
+the order and stood still. `a_dead_target_s_move_is_repathed_only_within_
+0x480_of_its_destination` pins both arms and both were made to fail on
+purpose.
+
+### 20.4 What it moved
+
+| | before | after |
+|---|---|---|
+| Great Lakes long word, **count** | 10244 | **10277** |
+| Great Lakes long word, **sequence** | 10244 | **10277** |
+| run53 frames on the original's count, of 24,000 | 11,922 | **12,059** |
+| run53 frames draw for draw | 10,509 | **10,651** |
+| Great Lakes endpoint `off` / `unlinked` | 51 / 7 | **42** / 7 |
+| run100 widening, keys parted | 297 over `[9340, 10247]` | **313** over `[9340, 10290]` |
+
+That last row is not a like-for-like: the window's ceiling moved with
+the word, so 43 blocks nobody had compared came into scope, and item
+484's hit-point row landed on the base underneath this one and added
+56,956 comparisons to every block. It is here because the widening's
+own bounds are part of what this item changed, not as a score.
+
+The two words moved **together**, which is what §19.3's separation was
+about: since item 483 named `Ammo::do_damage`'s puncture pair there has
+been one number, and it is still one.
+
+**The value diff beside the move.** The block the word left — 10245 —
+held item 483's eleven rows of `1/27` and now holds **none**; it is
+pinned empty in
+`run100_s_word_block_is_every_record_the_dump_carries` beside 10162,
+10234, 10235 and 10238. `1/29` leaves the window's standing position
+residue entirely (six keys to five) and has no row anywhere in
+`[9340, 10290]`. `1/27` keeps a position row at 10242 — one world unit,
+opened before the word — and nothing else until 10289.
+
+**The new word is the same shape one raider over.** 10277 spends **seven**
+draws against six and parts at index 4, ours
+`Guy::set_anim+0x97a < Unit::move_step+0x823` against the original's
+`Guy::inc_time+0x271` wrap; block 10278 names `1/40`, colliding with
+`1/41` (`collide_o 41`, `collide_who 1`) and stopped on an animation one
+frame old where the original's is ten frames into a walk. Seventeen rows,
+sixteen of them `1/40`'s and one `1/41`'s.
+
+The seventeenth is the successor's first thread and is **a row, not yet a
+mechanism**: the original sets `unit_masks & 0x100000` — the soft-collision
+one-shot of `docs/COLLISION.md` §4.3 — on **both** `1/40` and `1/41` on
+this block, and this crate sets it on neither. Which way the arrow runs
+between that bit and `1/40`'s hard `collide_o 41` is what the successor
+has to establish; naming it here would be this item's hypothesis written
+as a finding, which is `docs/DECISIONS.md` 42 and the reason 483's
+successor did not survive its own widening.
+
+### 20.5 Coverage
+
+**Diff-backed**: §20.4's rows, from
+`run100_s_word_block_is_every_record_the_dump_carries` over
+`[9340, 10290]` (952 blocks, 2,429,026 record rows) and
+`run100_s_word_frame_is_the_original_s` over the same window. The word
+itself is `run53_s_24000_frames_put_the_ceiling_where_run33_did` and the
+endpoint `great_lakes_endpoint_is_pinned`; all four were red before the
+change and are the numbers above after it.
+
+**Listing-backed**: §20.2's `add`/`remove_current` pair, read from the
+decompile export (`Unit::ungroup_move_order@005fd140`,
+`LinkListBase<UnitOrder_*,unsigned_char,RecycledOrderNode>::add@0046d5a0`),
+and §20.3's gate, read from `riseofnations.exe` with `llvm-objdump` at
+`0x5f8218`–`0x5f8253`. `MoveOrder +0x4`/`+0x8` are the type record's, not
+the surrounding code's.
+
+**Unit-tested, each made to fail on purpose**:
+`an_ungroup_puts_the_plain_move_at_the_head_of_the_list` (restore the
+in-place rewrite → `[10, 1]` instead of `[1, 10]`) and
+`a_dead_target_s_move_is_repathed_only_within_0x480_of_its_destination`
+(the gate forced true kills the far move; forced false keeps the near
+one).
+
+**What this does not establish.**
+
+- **Where the ungroup was called from.** `Sim::ungroup_one` is reached
+  through `ungroup_move_order`'s captain-and-subordinates walk, so
+  `1/29`'s conversion is some squad-mate's decision; which of
+  `do_group_move`'s six ungroup sites fired on 10240 is not measured
+  here, and nothing in §20 depends on it.
+- **`vector_dist`'s second exemption.** `unit_flags & 0x10` is modelled
+  from the type's own column, but no capture on disk has a sea transport
+  reach this arm, so that half is reading alone.
+- **`orig_x`/`orig_y`**, §20.2's seam: written by the original on every
+  ungroup, held by neither side of the comparison.
+- **The arms above the re-path.** The unit-target kill's flank clause and
+  its `Objects::find_collision` conjunct are still unmodelled
+  (`crates/sim/src/orders.rs`, `do_move`'s own note); this item touched
+  neither.

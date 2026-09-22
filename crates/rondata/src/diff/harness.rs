@@ -6713,28 +6713,36 @@ mod tests {
         /// rather than widening `opens`, for `RAID`'s reason — the
         /// exemption names the row, so the day the row closes this fails.
         const RAIDER_X: i64 = 10_234;
-        /// **`1/29` stops where the original walks on**, and **`1/27`
+        /// ~~**`1/29` stops where the original walks on**, and **`1/27`
         /// then walks into it** — the two rows item 483's word move
-        /// pulled below the line, at 10241 and 10242.
+        /// pulled below the line, at 10241 and 10242.~~
         ///
-        /// Neither is new behaviour and neither is 483's: the item named
-        /// two draw sites and changed no simulation line at all. What
-        /// changed is the *window*, which runs to the headline — so when
-        /// the sequence word rose 10237 → 10244 to meet the count word,
-        /// seven blocks nobody had ever compared came into scope and
-        /// these two were in them. `ORDER_RESIDUE_RUN97`'s lesson, in the
-        /// direction that adds rows rather than the one that adds counts.
+        /// **Item 487 closed `1/29`'s row and `RAIDER_STOPS` with it**,
+        /// so only `1/27`'s collision is exempted here now. The 483 row
+        /// this replaces read "`1/29` drops its move order", which the
+        /// widening falsified: `order:kind ours 10 theirs 1` is *this
+        /// crate* holding an `ATTACK` where the original already holds
+        /// the plain `MOVE_TO` it ungrouped into, and this crate's
+        /// `1/29` never took a step in the whole window. What was
+        /// missing was `Unit::ungroup_move_order`'s **re-head** and
+        /// `do_move`'s `vector_dist < 0x481` gate on the dead-target
+        /// re-path (`docs/ORDERS.md` §20); with both, `1/29` walks the
+        /// original's own 43-node route home from 10242 and leaves the
+        /// window's residue set entirely.
         ///
-        /// `run100_s_word_block_is_every_record_the_dump_carries` holds
-        /// the value diff: `1/29` drops its move order on 10240 —
-        /// `order:kind` ours 10 theirs 1, `path:length` ours 0 theirs 43
-        /// — and stands still, 28 world units short in `x` by 10242;
-        /// `1/27` is then the one that collides with it, which is the
-        /// word's own block and the extra `Unit::move_step+0x823` draw
-        /// on 10244. Named here rather than widening `opens`, for
-        /// `RAID`'s reason.
-        const RAIDER_STOPS: i64 = 10_241;
+        /// `1/27`'s own row stays and is still 10242's: it opens two
+        /// blocks before the word did and is a position, not a
+        /// collision. Named here rather than widening `opens`, for
+        /// `RAID`'s reason — the exemption has to name the row, so the
+        /// day the row closes this fails.
         const RAIDER_COLLIDES: i64 = 10_242;
+        /// **`1/40` collides with `1/41` where the original does not** —
+        /// the word's own row since item 487, and the same shape `1/27`'s
+        /// was one raider over: the extra
+        /// `Guy::set_anim+0x97a < Unit::move_step+0x823` at index 4 of
+        /// 10277's seven draws. It is asserted by name below rather than
+        /// exempted here, because it opens **on** the word.
+        const RAIDER_40: (i64, i64) = (1, 40);
         let Some(inst) = install() else { return };
         let (Some(path), Some(r100)) = (
             dump("gamelog-run53-greatlakes-24k-trace.txt"),
@@ -6897,7 +6905,6 @@ mod tests {
             .filter(|(k, f)| {
                 opens(f)
                     && (**k, **f) != ((1, 28), RAIDER_X)
-                    && (**k, **f) != ((1, 29), RAIDER_STOPS)
                     && (**k, **f) != ((1, 27), RAIDER_COLLIDES)
             })
             .map(|(k, f)| format!("unit {k:?} f{f}"))
@@ -6944,14 +6951,24 @@ mod tests {
             .filter(|(_, f)| **f == LONG_WORD_GREAT_LAKES)
             .map(|(k, _)| *k)
             .collect();
-        // **Item 478 moved the word past `1/28`'s block**, so the word's
-        // own frame carries no position row at all now; `1/28`'s is
+        // ~~**Item 478 moved the word past `1/28`'s block**, so the word's
+        // own frame carries no position row at all now~~; `1/28`'s is
         // exempted by name as `RAIDER_X` above and counted below the
         // line with the standing residue.
+        //
+        // **Item 487 moved the word to 10277 and it carries one**, and
+        // it is the word: `1/40` is 4 west and 25 north of the
+        // original's on the block the headline stands on, because it has
+        // collided with `1/41` and stopped where the original half-steps
+        // past. The set is one key and it is named, which is what this
+        // assertion is for — a word's own frame is a small, named set
+        // and not a reshuffle, and
+        // `run100_s_word_block_is_every_record_the_dump_carries` holds
+        // the seventeen rows beside it.
         assert_eq!(
             on_word,
-            Vec::<(i64, i64)>::new(),
-            "the word's own frame carries a position row: {units:?}"
+            vec![RAIDER_40],
+            "the word's own frame is not `1/40` alone: {units:?}"
         );
         // ~~**And one order row, which is the residue item 464 left.**~~
         // The citizen's `GATHERORDER` residue is still there and still
@@ -6981,8 +6998,8 @@ mod tests {
                 .filter(|(_, f)| **f < LONG_WORD_GREAT_LAKES)
                 .map(|(k, _)| *k)
                 .collect::<Vec<_>>(),
-            vec![(1, 24), (1, 25), (1, 26), (1, 27), (1, 28), (1, 29)],
-            "the window's standing position residue is not the six it is"
+            vec![(1, 24), (1, 25), (1, 26), (1, 27), (1, 28)],
+            "the window's standing position residue is not the five it is"
         );
         // **Counted below the word**, not over the whole map: the word's
         // own row joined this set when the headline moved past 10232, and
@@ -7625,47 +7642,83 @@ mod tests {
         // (`docs/ORDERS.md` §17). What is left is `1/28` one unit east
         // in `x`, said three times: the unit and its guy's two copies.
         // ~~**Item 478 moved the word past this block**, so what the
-        // word's own block holds is now **nothing**~~ — **item 483 moved
+        // word's own block holds is now **nothing**~~ — ~~**item 483 moved
         // it again, 10237 → 10244, and this is the value diff beside that
-        // move.** The item named two draw sites and changed no simulation
-        // line, so none of these eleven rows is new behaviour; what is new
-        // is that the window reaches them, and this is where they are
-        // written down.
+        // move.**~~ **Item 487 moved it 10244 → 10277**, and 10245's
+        // eleven rows of `1/27` are closed; they are pinned as the empty
+        // set below, beside 10234, 10235 and 10238.
         //
-        // They are **one** unit and they say one thing. `1/27` is
-        // colliding in this crate and not in the original — `collide` 2
-        // against 1, `collide_o` 29 against -1, `collide_who` 1 against
-        // -1 — so it is stopped (`g.stopped` 1 against 0) on an
-        // animation that has just begun (`cur_time` 1, `end_time` 31)
-        // where the original's is three frames into a walk cycle. That
-        // **is** the word's own draw: 10244 spends four draws against
-        // three and the extra one is
-        // `Guy::set_anim+0x97a < Unit::move_step+0x823`, the blocked
-        // stand. The draw stream and the dump name the same unit and the
-        // same mechanism, which is the strongest form this pin takes.
+        // **The widening is what killed the successor 483 named.** 483
+        // read `f10241 1/29 order:kind ours 10 theirs 1` as "`1/29` drops
+        // its move order"; it is the other way round — ours still holds
+        // the `ATTACK` where the original already holds the plain
+        // `MOVE_TO` its ungroup made — and this crate's `1/29` never took
+        // a step in the whole window while the original's walked 28 world
+        // units a frame from 10242. `docs/ORDERS.md` §20 has the two
+        // mechanisms; `docs/DECISIONS.md` 42 is why the frame survived
+        // the mechanism.
         //
-        // And the cause is upstream and cheap: the thing `1/27` collides
-        // with is `1/29`, which drops its move order on 10240
-        // (`order:kind` ours 10 theirs 1, `path:length` ours 0 theirs 43)
-        // and stands where the original's walks on. That is the
-        // successor, by frame and row.
+        // **What the new word holds is the same shape, one raider over.**
+        // `1/40` is colliding in this crate and not in the original —
+        // `collide` 1 against 0, `collide_o` 41, `collide_who` 1 — so it
+        // is stopped (`g.stopped` 1 against 0) on an animation that has
+        // just begun (`cur_time` 1, `end_time` 33) where the original's
+        // is ten frames into a walk. That **is** the word's own draw:
+        // 10277 spends seven draws against six and the extra one is
+        // `Guy::set_anim+0x97a < Unit::move_step+0x823` at index 4, the
+        // blocked stand. The draw stream and the dump name the same unit
+        // and the same mechanism again.
+        //
+        // The two `half_step` rows are the successor's first thread, and
+        // they are a **row and not yet a mechanism**: the original sets
+        // `unit_masks & 0x100000` on **both** `1/40` and `1/41` on this
+        // block and this crate sets it on neither. That bit is the
+        // one-shot `detect_unit_collision`'s scan raises when it calls a
+        // collision *soft* (`docs/COLLISION.md` §4.3), and it is the
+        // only other field of the block either side disagrees on — but
+        // which way the arrow runs between it and `1/40`'s hard
+        // `collide_o 41` is exactly what the successor has to establish,
+        // and naming it here would be the previous item's hypothesis
+        // written as a finding (`docs/DECISIONS.md` 42).
         assert_eq!(
             on_word,
             vec![
-                "1/27 collide: ours 2 theirs 1",
-                "1/27 collide_o: ours 29 theirs -1",
-                "1/27 collide_who: ours 1 theirs -1",
-                "1/27 g.cur_anim[0]: ours 0 theirs 7",
-                "1/27 g.cur_time[0]: ours 1 theirs 3",
-                "1/27 g.end_time[0]: ours 31 theirs 13",
-                "1/27 g.last_time[0]: ours 0 theirs 2",
-                "1/27 g.stopped[0]: ours 1 theirs 0",
-                "1/27 order:coll: Coll { ours: Some((4701, 29818)), theirs: (4637, 29827) }",
-                "1/27 order:move.dest: Move { field: \"dest\", ours: 0, theirs: 1 }",
-                "1/27 path:length: PathLength { ours: 49, theirs: 43 }",
+                "1/40 collide: ours 1 theirs 0",
+                "1/40 collide_o: ours 41 theirs -1",
+                "1/40 collide_who: ours 1 theirs -1",
+                "1/40 g.avg_speed[0]: ours 16 theirs 22",
+                "1/40 g.cur_anim[0]: ours 0 theirs 8",
+                "1/40 g.cur_time[0]: ours 1 theirs 10",
+                "1/40 g.des_x[0]: ours 2448 theirs 2444",
+                "1/40 g.des_y[0]: ours 31268 theirs 31293",
+                "1/40 g.end_time[0]: ours 33 theirs 15",
+                "1/40 g.last_speed[0]: ours 0 theirs 25",
+                "1/40 g.last_time[0]: ours 0 theirs 9",
+                "1/40 g.stopped[0]: ours 1 theirs 0",
+                "1/40 g.x[0]: ours 2448 theirs 2444",
+                "1/40 g.y[0]: ours 31268 theirs 31293",
+                "1/40 half_step: ours 0 theirs 1",
+                "1/40 pos: ours (2448,31268) theirs (2444,31293)",
+                "1/41 half_step: ours 0 theirs 1",
             ],
-            "the word's own block ({word}) is not item 483's eleven rows \
-             of `1/27`"
+            "the word's own block ({word}) is not item 487's seventeen \
+             rows of `1/40` and `1/41`"
+        );
+        // **And 10245, the block the word just left** — item 483's eleven
+        // rows of `1/27`, every one of them closed by item 487 and pinned
+        // empty here for 10162's, 10234's, 10235's and 10238's reason:
+        // the headline walks away from a block and nothing then watches
+        // it. `1/27` collides with nothing now because `1/29` is not
+        // there to collide with.
+        let on_10245: Vec<String> = firsts
+            .iter()
+            .filter(|(_, (f, _))| *f == 10_245)
+            .map(|((w, o, what), (_, row))| format!("{w}/{o} {what}: {row}"))
+            .collect();
+        assert_eq!(
+            on_10245,
+            Vec::<String>::new(),
+            "block 10245 parts — item 483's eleven rows of `1/27` are back"
         );
         // **And 10238, the block the word just left**, which was the
         // word's own until this item and was pinned empty there. It is
