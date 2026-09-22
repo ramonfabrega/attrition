@@ -128,3 +128,7 @@ Peak process-tree memory is 8,219 MiB. The final validation-note edit is followe
 by the fast guard and whitespace check. The three-line shared tracer prerequisite
 guard is committed separately: it prevents a post-graph flag from silently doing
 nothing when post-state observation is absent. It changes no default behavior.
+
+Subsequent result: [L75](2026-09-22-native-postgraph-agreement.md) records
+the authorized capture and native required-field agreement. The preparation-only
+status above describes the evidence at this earlier landing.

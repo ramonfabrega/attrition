@@ -132,6 +132,8 @@ No new capture or main-loop adoption is requested by this handoff.
 
 | L74 | Prepare a native post-tree falsifier for the model graph. | [Paired post-graph collector and adapter](2026-09-22-native-postgraph-preparation.md). | Authored C/Python packets, failure controls, sanitizers, synthetic 539-record adapter comparison and five isolated DLL variants pass. | Offline preparation only; no native post-tree evidence or capture slot yet. |
 
+| L75 | Does the modeled saved graph survive a paired native post-return comparison? | [Native post-graph agreement](2026-09-22-native-postgraph-agreement.md). | One authorized capture: all required fields across 539 records agree under 246 typed pointer relocations; exact unit/path agreement retained. | 102 model-unknown bytes and four unused-capacity differences remain explicit; strict byte agreement fails. Lane released; no main score change. |
+
 ## Current direction
 
 The September 19–22 tranche now has an unchanged native unit/path witness
@@ -142,12 +144,13 @@ This slice is packaged in draft PR #5 for Fable's review. Offline follow-up L71
 identified uninitialized node bytes +22/+23. L72 now observes the complete modeled
 structure with 102 explicit undefined bytes, preserving the byte guards. The
 L73 comparison contract now passes controlled relocation and rejects payload
-mutations. L74 prepares the bounded native post-tree collector and adapter;
-the next lab step is one freshly authorized limit-95 post-graph capture;
+mutations. L74 prepared the native collector; L75 now confirms required saved-graph
+fields against one native limit-95 call, retaining unknowns and stale-capacity
+differences. The next lab step is a steering-selected pilot question;
 the next adoption test should answer one
 real divergence question selected by steering, with a named call/field and
-falsifier. Saved-tree contents, native limit 96 and general runtime fidelity
-remain open. The capture lane is released; no further slot is booked.
+falsifier. Saved-tree required fields now have one native witness; native limit 96,
+full-byte equivalence and general runtime fidelity remain open. The capture lane is released; no further slot is booked.
 Fable decides whether any method merits a pilot, adoption, further evidence or
 parking; review does not imply approval to merge the whole lab branch.
 
