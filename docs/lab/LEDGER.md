@@ -109,13 +109,18 @@ No new capture or main-loop adoption is requested by this handoff.
 
 | L63 | Determine whether a broad packet removes the repeated per-field capture dependency. | [Payload-to-allocator frontier](2026-09-21-payload-frontier.md). | Nine data boundaries closed with 36,256 added bytes; fresh processes reach the same 382-instruction CRT malloc refusal. | Exploratory source retained outside git; extended state not imported, no native output comparison or allocator substitution. |
 
+| L89 | Can retained memory become a PDB-driven state oracle? | [Typed-state working review](TYPED-STATE-REVIEW.md). | 1,855 RTTI/PDB joins; selected global roots and one plain-struct pointer decode; 58,081 exact terrain singles retained. | Candidate liveness, virtual bases, logger parity, excess coverage and live-item comparison remain open. No capture or score movement. |
+
 ## Current direction
 
-The September 19–21 tranche has a validated broad payload and an exploratory
-replay stopping at CRT allocation. Allocator behavior, extended-state handling
-beyond the tested prefix and native output equivalence remain research work.
-Fable decides whether any method merits a pilot, adoption, further evidence or
-parking; review does not imply approval to merge the whole lab branch.
+The typed-state charter starts fresh from main `5c8e6d4`, on
+`codex/typed-state-oracle`. The continuation line parks at L87 (`3ff12db`),
+with its handoff retained on `codex/continuation-lab`; L88's additional owner
+gap is archived at `c205210`. A* replay remains available for counterfactuals.
+The new [working review](TYPED-STATE-REVIEW.md) carries the four-step charter,
+measured results and explicit unresolved coverage. The next native target is
+an aligned logger-boundary snapshot, after acquisition controls; no lane is held.
+Fable chooses adoption, pilot or parking. This is score-neutral lab work.
 
 The runtime factor-isolation experiment is paused at the user's request after
 a product cybersecurity restriction; no four-way results exist. Its draft
@@ -129,7 +134,7 @@ Steering may adopt individual concerns against its current tip and release gate.
 The branch is not a whole-merge proposal. Some historical commits mix lab tools
 and shared-file changes; their hashes above are navigation aids, not promises
 that every commit is already an isolated cherry-pick. Future shared-file changes
-are separate commits with rationale. Ask through Ramon for the live lane.
+are separate commits with rationale. Captures use the shared nonblocking lane lock; ask Ramon when coordination needs intervention.
 
 The one-time cutover moves only this branch's newly added reports/artifacts to
 `docs/lab/`, preserves its appended narrative in [HISTORY.md](HISTORY.md), and
