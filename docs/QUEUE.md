@@ -31,9 +31,8 @@ Great Lakes **10277**, chapter two **683**, both inside their first fight.*
   landing. The count is the next pass's measure.
 - **Struck text no longer counts** against a section's ceiling (480): a
   correction is not an addition. Four pins fell; `AI.md` §15 left the table.
-- **683's two sides were parked by the worker who found them** while the
-  rules slot stood empty; they are item **491**. 476 and 342 named no
-  score and are parked. **Fable backlog: 2 Loop items** (313, 503).
+- **491 landed both of 683's sides**; 476 and 342 stay parked.
+  **Fable backlog: 5 Loop items** (313, 503, 507, 508, 509).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w9711 of 24,000 · GreatLakes w10582 of 24,000

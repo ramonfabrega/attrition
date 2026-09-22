@@ -172,6 +172,72 @@ tree gets no window at all (`nodrv_CreateWindow`, dead in 3.8 s, 0 frames),
 so every launch goes through `viadriver.sh` (`docs/ORACLE.md`, "The
 click-free lane needs a window").
 
+(509) **Filing to this section is the commander's default, and it was
+not.** Ramon, 2026-09-22, after having to ask twice: *"it should be your
+DEFAULT to tag to fable. idk why i have to ask you every time"*. Both
+(507) and (508) were filed **only because he asked** — the commander had
+seen its own misread and the three disk-already-had-it cases, narrated
+both in chat, and filed neither. A finding that lives in a transcript
+has told nobody; that is the same rule `CLAUDE.md` already applies to a
+worker's report, and the commander is not exempt from it.
+
+**What the pass should decide**: whether `CLAUDE.md`'s fan-out rules get
+a clause making this explicit — *anything the commander would raise at
+the steering pass is written to `docs/PARKED.md`'s Loop section in the
+turn it is noticed, not mentioned in chat and not carried in context* —
+and whether the handoff's `Fable backlog: N Loop items` line is enough
+of a forcing function on its own. It was not today: the count sat at 2
+through five landings while three fileable findings went unwritten.
+
+The failure is **not** that the items were wrong. It is that a
+process-level finding was treated as commentary while a mechanic-level
+finding is treated as paperwork, and only the second has a guard behind
+it.
+
+(507) **A question about a resource is not a request for it, and the
+commander acted on the wrong one.** 2026-09-22, mid-chain: Ramon asked
+*"lmk when capture is avail as astra would like to use it (1-3min max)"*.
+The commander read that as a request to clear the lane and, without
+being asked, messaged **both** live lanes — telling att-506 to kill its
+running capture if it had more than three minutes left, and att-502 not
+to launch. Ramon's correction, in three messages: *"you dont have to
+cancel the agents.. im asking when tis free"*, *"not to stop"*, *"ffs"*.
+
+**What it cost.** att-506's run117 was ~30 seconds from finishing and a
+re-take is ~12 minutes; it survived only because both messages arrived
+together and it acted on neither. att-502 killed a queued wrapper, then
+relaunched on the reversal, then killed run119 35 seconds in when the
+*genuine* hold arrived — three reversals in about four minutes, from
+three contradictory messages the commander sent in the wrong order.
+Nothing was permanently lost (settings restored, aborted output dir
+deleted), which is luck rather than design.
+
+**The rule this wants.** A user's question is answered before it is
+acted on; the answer to "when is X free" is a time, not an intervention.
+An outward action taken on an inferred request is the same failure class
+as a mechanism inferred from a draw site — and this file records eight
+instances of the latter on the same day. **Whatever the pass writes,
+it should not be a clause about capture lanes**: the lane is the
+instance, the inference is the defect.
+
+Also worth the pass's attention: **the commander's three messages
+reached the lanes out of order relative to its own intent**, and each
+lane acted on what it had. If a reversal is ever legitimate, it needs to
+be one message that supersedes, not a sequence.
+
+**And the intervention was unnecessary at the mechanism level, not just
+at the etiquette level.** Ramon, afterwards: *"astra actually uses the
+same tool to bring it up so it knows if lane is taken, so we might not
+need to manually ask maybe"*. The lane lock (parked 446, eighth pass)
+already arbitrates every launcher that goes through `winelaunch.sh`,
+Astra's included — a second launch into a running game refuses and names
+the holder, and the lock frees itself on a dead one. So the correct
+answer to the whole episode was **to read the lock and report a time**,
+which is what was asked for, and to let the lock do the arbitration it
+was built for. The pass should check whether anything else in this
+repo's operating rules re-implements by hand a thing a guard or a lock
+already does.
+
 (503) **A guard aimed at agreement, not at silence.** `coverage` pins
 keys the parser never asks for; **nothing pins a key the parser reads and
 the comparison then drops.** Item 496 found `compare_orders` reporting an
@@ -183,6 +249,46 @@ grep is mechanical**: `if let (Some(a), Some(b))`, `zip`, a `?` in a helper
 feeding a comparison. Every guard this repo has is aimed at an instrument
 that says nothing; this would be the first aimed at one that says *yes*.
 Raised by item 496, 2026-09-22; `docs/COMBAT.md` §43.3.1 states the rule.
+
+(508) **Three times in one day the disk already held the answer a
+booked capture or a named mechanism was going to buy.** The
+"grep the disk first" ordering is earning more than its one line in
+`CLAUDE.md` suggests, and the pass should decide whether it is promoted,
+sharpened, or made a guard. The three, 2026-09-22:
+
+- **item 497** — `docs/ANIM.md` §4.11 had written its ambiguity down
+  *and named its falsifier*: a `GUYS` window over a university holding
+  two or more scholars. run100 holds **ten**, in two chains, and had
+  printed all ten on every block since the day it was taken. No capture
+  needed booking; the reading-only claim was closable from disk.
+- **item 502** — §43.5 wanted a capture for its falsifier. It turned out
+  to be **two fields of run112** (`new_ord`, `ever_in_range`), already
+  on disk, distinguishing an `add_attack_order` from an in-place
+  retarget. run119 was booked, killed at 35 seconds, and on the lane's
+  own worker's assessment *"may not be worth much any more"* — all it
+  would still buy is run118's missing blocks 847–900, which nothing
+  open reads.
+- **item 506** — the converse, and the control case: the disk **was**
+  grepped first, the widening **was** run first (1,257 blocks, 3.4M
+  rows), every existing `LEADERS>=2` window on map 14 missed 10582 by
+  1,400 frames on one side and 13,000 on the other, and run117 was
+  therefore **owed**. It paid: the cause is at 10576, a Setup step that
+  spends no draw.
+
+**So the rule is not "do not capture"** — 506 shows a booked capture
+earning itself on evidence. It is that the grep comes first and the
+booking cites what the disk could not answer. Two of three captures
+booked today failed that test; the one that passed it found the item.
+
+**A second pattern the pass may want beside it**: the mechanism named in
+a brief has now been wrong **eight** times in one chain (487, 494, 497,
+502 and others), twice named by the commander from the draw's callee,
+and once — 502 — cited from a field (`near_o`) that *cannot* answer the
+question it was cited for, since it is a search footprint written only
+when a nearer candidate is seen. `docs/DECISIONS.md` 42 covers the
+frame-versus-mechanism half; it does not cover **citing a field whose
+write condition makes it silent on the question**. That may be the
+sharper rule.
 
 (313) **The landing chain wants one verb.** Merge, gate, push and reap are
 one chain by rule since 09-17; ccc has `merge`, `update` and `clear`, and
