@@ -730,6 +730,46 @@ from a cold pool cannot say whether `graph_index` wraps. Every row here is
 one Longbowman shooting one farm on one trajectory, and each of the three
 wants a different shooter rather than a different frame.
 
+## Parked by item 466, 2026-09-21 — the successor it named
+
+(470) **`find_ordered_collision`'s reach: three chasers, one slot — and it
+carries item 466's `ai` hunk with it.** Reserved by the commander;
+`docs/COMBAT.md` §33.2 and §33.4.
+
+`Unit::find_open_slots@00600e30` rejects a slot another unit is already
+ordered to by calling `find_ordered_collision`, and that predicate walks
+the object chain of the cells around the **slot**. Chapter two's three
+hoplites stand 1,200 units east of the ring they are planning on, so none
+of them is on those chains, none sees the others' orders, and they take
+the same point. The dump gives three distinct destinations throughout —
+`(1416, 8328)`, `(1128, 8424)`, `(1368, 8472)` at 636, still diverging at
+665 — while holding **one** target, `ox 11 whom 0`, on every frame from
+635 to 700.
+
+**It names a score, and it is the headline's own frame.** Landing it with
+§33.2's `ai` arm closes chapter two's last three 635 `Target` rows and
+moves the value parting 635 → 636. Neither half is landable alone: the
+ranking without the slot fix turns
+`chapter_two_s_visible_byte_is_the_dump_s_on_every_unit_frame` red
+(`1/8` strikes nothing in 899 frames), and the slot fix without the
+ranking is a correct chase toward a target the dump does not pick. Item
+466 measured both halves separately and withdrew the ranking for exactly
+this reason.
+
+**What it also repairs is a green that is not earned.** Today `1/8`
+strikes only because it chases the wrong target and that wrong target
+happens to hand it a slot of its own — two slots between three chasers
+rather than one. The shape assertion has therefore been passing for the
+wrong reason, and `docs/COMBAT.md` §33.4 is the only record of it.
+`find_open_slots` was collapsing two chasers of three before item 466; the
+correct ranking makes it three of three and merely reveals it.
+
+*Would settle the mechanism:* whether the original reaches a squadmate's
+ordered slot through a second chain, through the `pushed_group` arm this
+crate already has, or because a melee squad's members are ordered from
+somewhere that already holds the list, is **not** established — read
+`find_ordered_collision`'s callers before assuming the first.
+
 ## Measured residues, none near a word
 
 (454) **Five residue families never compared on Great Lakes, measured by

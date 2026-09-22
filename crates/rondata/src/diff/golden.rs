@@ -699,7 +699,11 @@ fn chapter_one_s_captain_picks_the_one_it_can_reach() {
     );
     // The three values the pick rests on, in the trace's own candidate
     // order. `in_range` is the search's permission-to-test, `true` for
-    // every candidate of a non-guarding AGGRESSIVE unit.
+    // every candidate of a non-guarding AGGRESSIVE unit. The **fourth**
+    // argument, `ai`, is still missing from this crate's signature and
+    // run108's proxy printed it `1` on this very captain — so the shape
+    // below is the human arm's, which is why every assertion here is
+    // relative (`docs/COMBAT.md` §33.2; item 470 carries the fix).
     let v: Vec<i32> = [(0, 8), (0, 7), (0, 6)]
         .into_iter()
         .map(|(w, o)| built.sim.compare_target(captain, find(&built, w, o), true))
@@ -1431,6 +1435,26 @@ fn chapter_two_s_word_frame_is_widened_whole() {
         for d in &r.visible_diverged {
             note(format!("visible {}/{}", d.who, d.o));
         }
+        // **The four `FrameResult` carries that this walk ignored until
+        // item 466.** They are empty over this window — chapter two
+        // stages nine soldiers and no building — but "widened whole"
+        // has to mean every vector the comparison produces, not the ten
+        // the mechanic happened to care about, or the claim decays into
+        // the shape `CLAUDE.md` warns about: an instrument that agrees
+        // because it is not looking. Adding them changed no row, which
+        // is the only way to find that out.
+        for d in &r.gather_diverged {
+            note(format!("gather {}/{}", d.who, d.o));
+        }
+        for d in &r.build_diverged {
+            note(format!("build {}/{}", d.who, d.o));
+        }
+        for d in &r.queue_diverged {
+            note(format!("queue {}/{}", d.who, d.o));
+        }
+        for d in &r.city_diverged {
+            note(format!("city {}/{}", d.who, d.o));
+        }
     }
     assert_eq!(
         blocks,
@@ -1450,31 +1474,38 @@ fn chapter_two_s_word_frame_is_widened_whole() {
         "the window does not hold chapter two's nine staged figures"
     );
     // **The map the widening exists to pin**, and its shape is the
-    // finding: the *values* part at **635**, two frames before the draw
-    // stream does, and the two earliest rows on that frame are both
-    // `Target` — six units on both sides choosing a different one of
-    // three identical, near-equidistant figures. `docs/COMBAT.md` §32.3.
+    // finding. Item 462 measured the *values* parting at **635** on six
+    // `Target` rows — every one of them a tie among near-equidistant
+    // identical figures that this crate's ranking broke the wrong way.
     //
-    // That is the same residue item 462 closed one squad over and two
-    // frames earlier, and it is *not* closed by the cell chain alone:
-    // `0/6`, `0/7` and `0/8` take `1/6` where the dump takes `1/8`, and
-    // all three hoplites take `0/7` where the dump takes `0/11`. Every
-    // later row on 636 is downstream of those — a chase planned at a
-    // different target's ring walks a different way.
+    // Item 466 found the six to be **two** faults, one per squad, and
+    // landed one of them (`docs/COMBAT.md` §33). What landed is §33.1:
+    // `ObjectData::targeted` is a decaying crowding penalty quartered
+    // every sixteenth frame, which this crate bumped per order — three
+    // times for a squad handed one target through the mirror — and never
+    // decayed, so a stale `+3` pushed `1/8` out of the bowmen's exact
+    // tie. The bowmen's three rows are gone; `order 0/6`, `0/7` and `0/8`
+    // no longer appear at all, and nor do the `angle` rows that followed
+    // them on 636.
+    //
+    // **The hoplites' three remain at 635 on purpose.** Their cause is
+    // established and not landed: `compare_target`'s fourth argument
+    // **divides** by the damage it would deal for a computer leader where
+    // a human's multiplies, so who=1's hoplites rank two slingers above
+    // three fatter bowmen and this crate does not. Landing it closes
+    // these three rows and simultaneously fails
+    // `chapter_two_s_visible_byte_is_the_dump_s_on_every_unit_frame`,
+    // because the correct target exposes `find_open_slots`' own defect —
+    // three chasers planning one melee slot. The two land together as
+    // item 470 (`docs/COMBAT.md` §33.2, §33.4).
     //
     // `order 0/5` / `pos 0/5` at 639-640 are a **citizen** far from the
     // engagement and were in no earlier window; they are named here so a
     // regression in them cannot hide behind the engagement, and they are
     // nobody's item yet (`docs/COMBAT.md` §32.5).
     let measured = [
-        ("angle 0/6", 636),
-        ("angle 0/7", 636),
-        ("angle 0/8", 636),
         ("order 0/11", 636),
         ("order 0/5", 639),
-        ("order 0/6", 635),
-        ("order 0/7", 635),
-        ("order 0/8", 635),
         ("order 1/6", 635),
         ("order 1/7", 635),
         ("order 1/8", 635),
