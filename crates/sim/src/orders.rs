@@ -1370,6 +1370,10 @@ impl Sim {
         // plan, or is ended when the order under it is no longer one
         // (`crate::caravan` §6).
         self.caravan_work(u);
+        // `Unit::work@0060d180:440` — **the chase's sixteen-frame review**,
+        // and it sits above the dispatch, so a chase it ends is answered by
+        // the order underneath in the *same* frame (`docs/COMBAT.md` §36).
+        self.check_target_path_review(u, frame);
         match self.current_order(u).map(|o| o.body) {
             None => self.do_idle(u, frame),
             Some(Body::Move(m)) => {
@@ -1421,6 +1425,94 @@ impl Sim {
             return;
         }
         self.find_goody_box(u);
+    }
+
+    /// `Unit::work@0060d180:440`'s gate on [`Self::check_target_path`] —
+    /// **one frame in sixteen, phased by `o`** (`docs/COMBAT.md` §36).
+    ///
+    /// It runs for a head order of the **move family** only, and only when
+    /// the order underneath it is an action the review knows how to ask
+    /// about. `Unit::work` re-reads the head afterwards
+    /// (`0060d710: update_order`), which is what this crate's dispatch
+    /// `match` does anyway by reading `current_order` after the call — so a
+    /// chase ended here is answered by `do_attack` on the same frame, and
+    /// that is exactly what separates it from `do_move`'s own kill
+    /// (§36.2).
+    ///
+    /// SEAM — the two guards above it that no capture has reached:
+    /// `ptype +0x2b8 & 4` with `unit_masks & 0x80000` (the packable
+    /// lineage, which takes an `add_cast_order` branch instead), and the
+    /// `GUARD` arm (`action type == 0xc`), which re-paths on its own
+    /// sixty-four-frame phase.
+    ///
+    /// SEAM — the head-order conjunct `head->vt+0x2c() == 0 ||
+    /// head->vt+0x94()` names *me*: a group move's head is reviewed only
+    /// by the member the order belongs to. This crate asks only
+    /// `group.is_none()`, which is the same answer for every capture on
+    /// file — all four of run112's reviews fire on a plain `MOVE_TO`.
+    fn check_target_path_review(&mut self, u: usize, frame: i64) {
+        let Some(Body::Move(m)) = self.current_order(u).map(|o| o.body) else {
+            return;
+        };
+        if m.group.is_some() || self.units[u].phase(frame).rem_euclid(16) != 0 {
+            return;
+        }
+        // `action->vt+0x20() != 0` is "this order can be an action", which
+        // [`Self::action_of`] has already answered; `!= 9` excludes
+        // `AWAIT_BOARD`, which this crate never puts under a move.
+        let Some(a) = self.action_of(u) else { return };
+        if !matches!(self.units[u].orders[a].body, Body::Attack(_)) {
+            return;
+        }
+        self.check_target_path(u);
+    }
+
+    /// `Unit::check_target_path@005e22d0`'s first arm: **the chase that has
+    /// arrived**. The target is in reach on the plain radius — no
+    /// `mandatory` margin, unlike `do_move`'s own kill (§35.3) — so the
+    /// transit legs are dropped and the attack underneath takes over.
+    ///
+    /// The flank triple ahead of the range test is `do_move@005f7fbe`'s,
+    /// with one difference that matters: the angle it compares the
+    /// target's facing against is the **bearing from the attacker to the
+    /// target** (`find_angle(t.x − my.x, t.y − my.y)`) rather than the
+    /// attacker's own heading. A target facing within 120° of that bearing
+    /// is running away from me, and a running target that is *moving* is
+    /// chased rather than shot at.
+    ///
+    /// Returns whether the review changed the order list.
+    ///
+    /// SEAM: everything past the range test. The original falls through to
+    /// `find_attack_pos`, `add_move_order`, `find_new_target` and
+    /// `Group::action_attack` when the target is **inactive**, or when the
+    /// flank triple holds (a flanked, moving target). Neither is reached
+    /// by any capture on file — run112's four reviews all have a
+    /// stationary target — and the arms are `docs/COMBAT.md` §36.4.
+    fn check_target_path(&mut self, u: usize) -> bool {
+        let me = Obj::Unit(u);
+        let Some(t) = self.units[u].combat.target else {
+            return false;
+        };
+        if !self.target_is_seen(me, t) || !self.active(t) {
+            return false;
+        }
+        let Obj::Unit(tu) = t else { return false };
+        // `5e2434`-`5e24b3`: the target's facing against the bearing to it.
+        let (tp, mp) = (self.pos_of(t), self.units[u].pos);
+        let bearing = crate::movement::find_angle(tp.x - mp.x, tp.y - mp.y);
+        let e = (self.units[tu].movement.heading.0 as u32)
+            .wrapping_sub(bearing.0 as u32)
+            .wrapping_add(0x8000_0000);
+        // `5e2493`: the negative half of the window is tested inline and
+        // jumps past the call, so `flanking` alone is not the predicate.
+        if e >= 0x2aaa_aaaa && combat::flanking(e) != 0 && self.is_moving(tu) {
+            return false;
+        }
+        if !self.is_in_range(me, t) {
+            return false;
+        }
+        self.repath(u);
+        true
     }
 
     /// `Unit::repath`: pop the leading transit legs so the target order
@@ -2015,7 +2107,16 @@ impl Sim {
             let me = Obj::Unit(u);
             match self.units[u].combat.target {
                 Some(t) if self.valid_target(me, t) => {
-                    if self.profile(me).max_range != 0 && self.is_in_range(me, t) {
+                    // **`is_in_range`'s sixth argument**, and this is the
+                    // executable's only caller that sets it: a
+                    // non-`mandatory` chase is dropped `0x90` inside the
+                    // attacker's reach rather than at its edge
+                    // (`docs/COMBAT.md` §35.3).
+                    let margin = !self.units[u].combat.mandatory;
+                    let at = self.units[u].pos;
+                    if self.profile(me).max_range != 0
+                        && self.is_in_range_at_margin(me, at, t, margin)
+                    {
                         self.kill_current_order(u);
                         return Did::Something;
                     }

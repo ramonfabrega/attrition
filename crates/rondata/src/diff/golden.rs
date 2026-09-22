@@ -1530,26 +1530,18 @@ fn chapter_two_s_word_frame_is_widened_whole() {
     // behind the engagement, and they are nobody's item yet
     // (`docs/COMBAT.md` §32.5).
     let measured = [
-        ("order 0/10", 630),
-        ("order 0/11", 636),
-        ("order 0/5", 639),
-        ("order 1/6", 636),
-        ("order 1/7", 636),
-        ("order 1/8", 636),
-        ("pos 0/10", 630),
-        ("pos 0/11", 636),
-        ("pos 0/5", 640),
-        ("pos 1/6", 636),
-        ("pos 1/7", 636),
-        ("pos 1/8", 636),
-        ("visible 0/11", 637),
+        ("order 0/10", 645),
+        ("order 0/11", 645),
+        ("order 0/9", 645),
+        ("pos 0/9", 645),
+        ("visible 0/9", 646),
     ];
     let got: Vec<(&str, i64)> = first.iter().map(|(k, &n)| (k.as_str(), n)).collect();
     assert_eq!(
         got,
         measured.to_vec(),
-        "chapter two's word frame no longer widens the way item 470 \
-         measured it; re-pin this map and say so in docs/COMBAT.md §35"
+        "chapter two's word frame no longer widens the way item 472 \
+         measured it; re-pin this map and say so in docs/COMBAT.md §36"
     );
 }
 
@@ -1696,12 +1688,12 @@ fn chapter_two_s_visible_byte_is_the_dump_s_on_every_unit_frame() {
             ((0, 6), (636, 2)),
             ((0, 7), (636, 2)),
             ((0, 8), (636, 2)),
-            ((0, 9), (646, 2)),
+            ((0, 9), (648, 2)),
             ((0, 10), (631, 2)),
-            ((0, 11), (637, 2)),
-            ((1, 6), (669, 1)),
-            ((1, 7), (678, 1)),
-            ((1, 8), (675, 1)),
+            ((0, 11), (640, 2)),
+            ((1, 6), (672, 1)),
+            ((1, 7), (698, 1)),
+            ((1, 8), (665, 1)),
         ],
         "chapter two's `visible` arrivals moved; re-pin them and say so \
          in docs/VISION.md §7"
@@ -1715,24 +1707,27 @@ fn chapter_two_s_visible_byte_is_the_dump_s_on_every_unit_frame() {
     // the three are closer to the dump's frame and `1/7` is twenty
     // frames under it. Pinned in no direction, as the doc comment says.
     //
-    // **Five of the nine land on the dump's own frame** — the three
-    // bowmen, the slinger captain and, since item 462, `0/10` — and that
-    // is the row that keeps the other four honest: a change that bought
-    // the hoplites' frames by losing the bowmen's would fail here.
+    // **Eight of the nine land on the dump's own frame**, and the ninth
+    // is the frame the word now stands on. It was five until item 472,
+    // and the three that came over are the three hoplites — 669/678/675
+    // against 672/698/665 — which had been the engagement's own residue
+    // for four items (§31.6, §35.4).
     //
-    // `0/10` came over on item 462 (629 → **631**, the dump's own) and
-    // `0/11` came three frames closer (633 → 637 against 640) on the
-    // same change, which is the engagement's timing and not this field's:
-    // the slingers' chase now walks to `find_attack_pos`' ring rather than
-    // to the target's seat, so the frame of the first strike moves and
-    // `visible` moves with it (`docs/COMBAT.md` §32.2).
+    // They came over because `Unit::check_target_path` landed and the
+    // slingers' chases now die on the original's own frames, so `0/11`
+    // is still walking when who=1 chooses, `find_attack_pos` takes its
+    // sweep rather than the melee ring, and the three hoplites strike
+    // where and when the dump strikes (`docs/COMBAT.md` §36).
+    //
+    // The row keeps the others honest in both directions: a change that
+    // bought one squad's frames by losing another's fails here.
     let exact = mine
         .iter()
         .filter(|(k, v)| theirs.get(k).is_some_and(|t| t.0 == v.0))
         .count();
     assert_eq!(
-        exact, 5,
-        "the five arrivals this crate puts on the dump's own frame are no \
-         longer five"
+        exact, 8,
+        "the eight arrivals this crate puts on the dump's own frame are \
+         no longer eight"
     );
 }
