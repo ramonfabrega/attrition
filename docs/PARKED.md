@@ -22,6 +22,27 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Parked by item 497, 2026-09-22 — brought under the line by the word itself
+
+Item 497 moved Great Lakes 10303 → **10582**, and the widening's window
+runs *to* the word — so 279 blocks nobody had ever compared came into
+scope in one landing. Two counts went **up** as a result and **neither is
+497's**: they were standing there the whole time, under a line that had
+not reached them.
+
+(504) **`1/35`'s standing position residue, from block 10353.** The
+`run100_s_word_frame_is_the_original_s` position residue goes 5 units → 6.
+
+(505) **`0/2000`'s `free`, from block 10400.** The same test's standing
+city residue goes 20 fields → 21.
+
+**Both are named in the test** — `RAIDER_SHORT` and `CITY_FREE` — rather
+than swallowed into a count, so the day either closes, the pin fails and
+says so. They park because neither names the headline's frame: 10583 is a
+production frame and these are a raider's position and a city's field,
+250 and 180 blocks under it. **A number that rises when a word moves is
+not a regression**; promote either only when a takes-chain names it.
+
 ## Parked by item 496, 2026-09-22 — a piece that cannot score alone
 
 (501) **`Sim::forget` drops a dead object from every attacker's target
