@@ -136,3 +136,43 @@ The parser correction also passes the final 32-test focused run. No main source,
 queue, scoreboard or capture configuration changed. Exact source, bound PDB
 exports, decoded results, tests and the gate are retained outside Git at
 `/Users/rf-studio/ron-data/lab-experiments/2026-09-22-typed-state-oracle`.
+
+## End-frame acquisition under test
+
+The opt-in `RON_STATE_FRAME` collector now has a separate stream identity and
+an external plan generated from the matched PDB. It selects one logger frame,
+records the tracer frame separately, and copies the same readable private/main
+image ranges as the earlier payload policy. It excludes its own image and the
+calling thread's active stack. Limits remain 8,192 inventory records / two
+seconds, then one GiB / five seconds for copying. Deadlines are checked between
+API calls; they cannot preempt a blocked OS call.
+
+`GameLog::end_frame` is the boundary, before its `full_dump`. The owned listing
+shows that the optimized function consumes the global logger, not an incoming
+ECX object: the normal call in `Game::do_frame` follows camera-counter work
+without loading ECX with a logger. The collector therefore uses the PDB global
+and validates the logger window. Its hook checks the displaced instruction;
+the register-image adapter preserves x87/SSE state as well as integer state.
+No body of the original is transcribed into the collector.
+
+Before inventory, the collector retains the game pointer/frame and six inline
+roots as anchors. It checks their overlaps in copied chunks, rereads them after
+copying, and rechecks selected range metadata. It does not follow every child
+pointer for anchor checks, suspend other threads, prove allocator liveness, or
+rule out changes that occur and revert between observations. Decoder acceptance
+also requires a success receipt, hook installation and a subsequent trace frame;
+a footer alone cannot establish successful close and continuation.
+
+Eight new offline tests execute the actual C writer against authored API
+fixtures and the emitted hook against 256 register/extended-state combinations.
+Short reads/writes, mapping changes, anchor drift, timeout, create/close failure,
+wrong logger window, corrupt identities, truncation and missing receipts refuse.
+The collector compiles against the owned PDB plan. Live validation is still owed.
+
+The intended first live target is Great Lakes near frame 11,185, with a logger
+window and existing-game overlap, so one run can serve parity, terrain and the
+market investigation. Reaching that frame costs minutes rather than the earlier
+30-second startup probe. A late height grid supplies exact *current* singles;
+it does not by itself establish the initial value of a terraformed corner.
+The capture must acquire the shared nonblocking profile lock and verify that
+no original is already running before staging. No live attempt has run yet.
