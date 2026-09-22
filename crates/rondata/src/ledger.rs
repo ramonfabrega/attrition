@@ -225,7 +225,11 @@ mod tests {
     /// while the other half sat exactly on its own tolerance. Lowered to
     /// what the tree prints, so the next field that comes to rest on one
     /// capture fails this.
-    const SINGLE_CAPTURE: usize = 41;
+    /// **40 on 2026-09-22, item 484.** `UnitDump` gained `damage_frac`
+    /// and the hit-point record went into [`crate::diff::compare`], so
+    /// `myhits` and `damage` are named by more than one window now.
+    /// Lowered to what the tree prints for item 478's reason.
+    const SINGLE_CAPTURE: usize = 40;
 
     #[test]
     fn the_widening_ledger_counts_what_nothing_compares() {

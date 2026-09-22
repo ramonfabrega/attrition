@@ -1460,6 +1460,20 @@ fn chapter_two_s_word_frame_is_widened_whole() {
         for d in &r.visible_diverged {
             note(format!("visible {}/{}", d.who, d.o));
         }
+        // **The hit-point record** (item 484), keyed on the **field**
+        // rather than the unit: a key that collapses a record's fields
+        // hides all but the first for the rest of the run, which is
+        // parked 452's lesson and `CLAUDE.md`'s "a row is a field, never
+        // a unit". The value diff goes beside it, because a walk that
+        // can see a death and not the wounds that made it is what this
+        // row exists to fix (`docs/COMBAT.md` §38.4).
+        for d in &r.hits_diverged {
+            eprintln!(
+                "  {n} {} {}/{} ours {} theirs {}",
+                d.field, d.who, d.o, d.ours, d.theirs
+            );
+            note(format!("{} {}/{}", d.field, d.who, d.o));
+        }
         // **The four `FrameResult` carries that this walk ignored until
         // item 466.** They are empty over this window — chapter two
         // stages nine soldiers and no building — but "widened whole"
@@ -1574,13 +1588,43 @@ fn chapter_two_s_word_frame_is_widened_whole() {
     // had both since §34.4. So this walk can see that `1/8` is *gone*
     // and not that it was wounded differently; the successor item owes
     // that row before it names a mechanism.
-    let measured = [("extra 1/8", 684), ("order 1/4", 685), ("pos 1/4", 686)];
+    //
+    // **Item 484 put the hit-point record in `compare` and the map grew
+    // from three rows to eight — the earliest of them 656, twenty-seven
+    // blocks *under* the word.** `myhits`, `damage` and `damage_frac`
+    // are printed inside the `OBJECT` block on every block of every
+    // capture and were compared on none, so this walk was reporting
+    // agreement over `[606, 684)` that it had never measured: the floor
+    // hid `0/10` until item 470 moved it, the ceiling hid `1/8`'s death
+    // until item 481 raised it, and a **field** hid the wounds that made
+    // that death until item 484 added it. Three ways for the same
+    // instrument to agree because it is not looking.
+    //
+    // None of the five new rows is this landing's doing — it writes no
+    // simulation code — and all five are the same fact from two ends:
+    // `Object::take_damage` divides the squad's `myhits` by `uber_size`
+    // on the way in (`docs/COMBAT.md` §7.3) and this crate does not, so
+    // its hoplite figures absorb a squad's worth apiece and `1/8` never
+    // reaches the 40 that kills the original's. `damage 1/8` runs one
+    // hit behind from 656 and `extra 1/8` at 684 is its consequence.
+    // `docs/COMBAT.md` §40 is the record; naming the mechanism is item
+    // 485's.
+    let measured = [
+        ("damage 1/6", 657),
+        ("damage 1/7", 686),
+        ("damage 1/8", 656),
+        ("damage_frac 1/7", 686),
+        ("damage_frac 1/8", 656),
+        ("extra 1/8", 684),
+        ("order 1/4", 685),
+        ("pos 1/4", 686),
+    ];
     let got: Vec<(&str, i64)> = first.iter().map(|(k, &n)| (k.as_str(), n)).collect();
     assert_eq!(
         got,
         measured.to_vec(),
-        "chapter two's word frame no longer widens the way item 481 \
-         measured it; re-pin this map and say so in docs/COMBAT.md §38"
+        "chapter two's word frame no longer widens the way item 484 \
+         measured it; re-pin this map and say so in docs/COMBAT.md §40"
     );
 }
 
@@ -1784,6 +1828,179 @@ fn ch2_dump_near(text: &str, frame: i64) -> std::collections::BTreeMap<(i64, i64
     }
     flush(&mut cur, &mut out);
     out
+}
+
+/// **The hit-point record against run112's own, on every unit-frame of
+/// the whole chapter** — item 484, and the anti-vacuity half of the row
+/// [`crate::diff::compare`] gained there (`docs/COMBAT.md` §40).
+///
+/// The widening above walks seventy-eight blocks around the word. This
+/// walks all 898 and asserts two things the widening cannot:
+///
+/// - that the comparison **read live values** — a crate that never wrote
+///   `damage` would pass a window in which every value on both sides is
+///   zero, which is the whole of chapter two before block 631. The
+///   dump's own wounded unit-frames are counted separately from the
+///   unit-frames read, because only the first says the row is looking at
+///   anything;
+/// - that `myhits` and `damage_frac`, the two halves nothing else pins,
+///   are the dump's — `myhits` on **every** unit-frame of the chapter,
+///   which is what says this crate's squad-sized maximum is the
+///   original's for all nine staged figures and the three citizens
+///   beside them.
+///
+/// **`damage` is not asserted equal**, and the reason is the successor
+/// item's: `Object::take_damage` divides the squad's `myhits` by
+/// `uber_size` on the way in (`docs/COMBAT.md` §7.3) and this crate does
+/// not, so its hoplite figures absorb three times what the original's do
+/// and `1/8` does not die on 683. The row here is what makes that
+/// visible; naming it is item 485's and pinning it here in either
+/// direction would pin the defect. What *is* pinned is the shape — which
+/// units the dump ever wounds, and that this crate wounds the same ones.
+#[test]
+fn chapter_two_s_hit_points_are_the_dump_s_on_every_unit_frame() {
+    let Some(inst) = crate::testenv::install() else {
+        return;
+    };
+    let Some((dump, tracepath)) = golden("ch2") else {
+        eprintln!("skipping: no golden capture ch2 (see docs/RUNS.md run112)");
+        return;
+    };
+    let trace = crate::trace::Trace::read(std::path::Path::new(&tracepath))
+        .expect("a finalized golden trace")
+        .expect("missing RONT header");
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(&dump);
+    let log = Log::parse(&text);
+    let texts = sibling_texts();
+    let logs = siblings(&texts);
+    let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+    let refs: Vec<&Initial> = inits.iter().collect();
+    if refs.is_empty() {
+        eprintln!("skipping: no sibling dumps");
+        return;
+    }
+    let mut ix = crate::capture::indexed::IndexedCapture::open(&dump).unwrap();
+    let mut built = stand_up(&loaded, &log, &refs, &trace);
+    let players = built.sim.players.len();
+    let mut script = chapter(2);
+    /// One past the last frame read — the chapter's last logged block,
+    /// as [`chapter_two_s_visible_byte_is_the_dump_s_on_every_unit_frame`]
+    /// reads it.
+    const LAST: i64 = 899;
+    let mut compared = 0usize;
+    // Unit-frames on which the **dump** carries a non-zero `damage` or
+    // `damage_frac`: the live values, without which the row proves
+    // nothing.
+    let mut live = 0usize;
+    // `(who, o)` → the first block the dump ever wounds it on, and ours.
+    let mut wounded_theirs: std::collections::BTreeMap<(i64, i64), i64> =
+        std::collections::BTreeMap::new();
+    let mut wounded_ours: std::collections::BTreeMap<(i64, i64), i64> =
+        std::collections::BTreeMap::new();
+    // Every field that ever parted, against the first block it parted on.
+    let mut first: std::collections::BTreeMap<(&'static str, i64, i64), (i64, String)> =
+        std::collections::BTreeMap::new();
+    for f in 0..LAST - 1 {
+        script.stage(built.sim.frame, &mut built, &loaded);
+        built.tick();
+        // The dump's frame label is the sim frame plus one throughout this
+        // chapter (`docs/COMBAT.md` §30.1).
+        let n = f + 1;
+        let Some(at) = ix.frames().iter().position(|x| x.number == n) else {
+            continue;
+        };
+        let frame = ix.frame_state(at).unwrap();
+        let r = compare(&built, &frame, players);
+        compared += r.hits_compared;
+        for d in &r.hits_diverged {
+            first
+                .entry((d.field, d.who, d.o))
+                .or_insert((n, format!("ours {} theirs {}", d.ours, d.theirs)));
+        }
+        for u in &frame.units {
+            if !(0..players as i64).contains(&u.who) {
+                continue;
+            }
+            if u.damage.is_some_and(|d| d != 0) || u.damage_frac.is_some_and(|d| d != 0) {
+                live += 1;
+                wounded_theirs.entry((u.who, u.o)).or_insert(n);
+            }
+            let Some(mine) = i16::try_from(u.o)
+                .ok()
+                .and_then(|o| built.sim.unit_by_o(u.who as sim::Player, o))
+            else {
+                continue;
+            };
+            let un = &built.sim.units[mine];
+            if un.health < un.max_health || un.damage_frac != 0 {
+                wounded_ours.entry((u.who, u.o)).or_insert(n);
+            }
+        }
+    }
+    // **Anti-vacuity, both halves.** The dump has to have been read at
+    // all, and it has to have carried wounds: a window in which every
+    // value is zero on both sides passes on a crate that never writes
+    // the field, which is exactly what `compare` was before this row.
+    assert!(
+        compared > 1_000,
+        "only {compared} hit-point comparisons were made; run112's dump \
+         no longer prints `myhits`/`damage`/`damage_frac` in the OBJECT \
+         block"
+    );
+    eprintln!("ch2: {compared} hit-point comparisons, {live} of them live");
+    assert!(
+        live > 100,
+        "only {live} of run112's unit-frames carry a wound; this row \
+         would agree on a crate that never took damage at all"
+    );
+    // **`myhits` is the dump's on every unit-frame of the chapter**, and
+    // so is `damage_frac`'s own agreement where the two sides agree on
+    // the damage — the maximum is a baked constant and a wrong one is
+    // wrong whatever the engagement does.
+    let myhits: Vec<String> = first
+        .iter()
+        .filter(|((field, ..), _)| *field == "myhits")
+        .map(|((f, who, o), (n, v))| format!("{f} {who}/{o} first at {n} \u{2014} {v}"))
+        .collect();
+    assert_eq!(
+        myhits,
+        Vec::<String>::new(),
+        "a unit's `myhits` parts from run112's: this crate's squad-sized \
+         maximum is no longer the original's"
+    );
+    // **The shape: the same units are wounded on both sides.** The
+    // *frames* are not pinned, for the reason
+    // `chapter_two_s_visible_byte_is_the_dump_s_on_every_unit_frame`
+    // does not pin its own — a wound arrives when the arrow does — and
+    // the *amounts* are not pinned because §7.3's divide is item 485's.
+    let theirs: Vec<(i64, i64)> = wounded_theirs.keys().copied().collect();
+    let ours: Vec<(i64, i64)> = wounded_ours.keys().copied().collect();
+    assert_eq!(
+        theirs,
+        vec![(0, 9), (0, 10), (0, 11), (1, 6), (1, 7), (1, 8)],
+        "run112's own wounded set has changed"
+    );
+    assert_eq!(
+        ours,
+        vec![(0, 11), (1, 6), (1, 7), (1, 8)],
+        "the set this crate wounds has moved"
+    );
+    // **What parts, printed and pinned by its field.** `damage` and
+    // `damage_frac` part on the engagement and the reason is §7.3's
+    // divide — item 485's, not this row's.
+    let rows: Vec<(&str, i64, i64, i64, &str)> = first
+        .iter()
+        .map(|((field, who, o), (n, v))| (*field, *who, *o, *n, v.as_str()))
+        .collect();
+    for r in rows.iter().take(24) {
+        eprintln!("  {} {}/{} first at {} — {}", r.0, r.1, r.2, r.3, r.4);
+    }
+    let fields: std::collections::BTreeSet<&str> = rows.iter().map(|r| r.0).collect();
+    assert!(
+        !fields.contains("myhits"),
+        "`myhits` is in the parting set and the assertion above missed it"
+    );
 }
 
 /// **`ObjectData::visible`'s arrivals against run112's own** — item 457's

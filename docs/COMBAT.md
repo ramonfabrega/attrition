@@ -5944,14 +5944,16 @@ reaches it: `damage` 0 → **8** (656) → **17** (657) → **25** (660) →
 `docs/ATTRITION.md`'s figure table puts at **40**. The hit on 683 takes
 it over and the record vanishes before the accumulator is printed again.
 
-**`compare` carries no hit-point row at all.** No `myhits`, no `damage`,
-no `hits_left` — where `run100_s_word_block_is_every_record_the_dump_
-carries` has had both since §34.4, and where the same dump prints the
-pair at every detail level. So this walk can see that `1/8` is *gone*
+~~**`compare` carries no hit-point row at all.** No `myhits`, no
+`damage`, no `hits_left` — so this walk can see that `1/8` is *gone*
 and not that it was wounded on different frames, and the successor item
-owes that row before it names a mechanism: the widening this word is
-pinned with is whole on the ten vectors `FrameResult` carries and is not
-whole on the record.
+owes that row before it names a mechanism.~~ **Closed by item 484**,
+§40: the record is three fields, `damage_frac` was never parsed on a
+unit at all, and with them in the map over this window goes from three
+first-partings to **eight** — the earliest at **656**, twenty-seven
+blocks under the word. `1/8` is one hit behind the dump from its first
+wound on, and 684's `extra` is the end of that lag rather than a fact
+of its own.
 
 `order 1/4` / `pos 1/4` are a **citizen** — guy type 50, `myhits 40`, a
 GATHER on `uid 3` forty thousand units from the engagement — and they
@@ -5996,3 +5998,201 @@ unit_frame`:
   482) has no `max_range` gate on it, and it is thirty-one frames in
   thirty-two — so "a hoplite never changes target under a move" is what
   is measured here, not "a hoplite never changes target".
+
+---
+
+## 40. The hit-point record, and five rows nobody was looking at (item 484, 2026-09-22)
+
+§39 is item 483's; this is §40 by the brief's own instruction.
+
+`crate::diff::compare` carried **no hit-point row at all** — no
+`myhits`, no `damage`, no `hits_left` — where the dump prints the
+record inside the `OBJECT` block at *every* detail level and
+`run100_s_word_block_is_every_record_the_dump_carries` has read two
+thirds of it since §34.4. So chapter two's widening could see that the
+original's hoplite `1/8` was **gone** on block 684 and not that it had
+been wounded on 656, 657, 660 and 682 to get there (§38.4).
+
+The row is in. Chapter two's map goes from **three first-partings to
+eight**, and the earliest is **656 — twenty-seven blocks under the
+word.** No word moves and no already-scoring family changes.
+
+### 40.1 The record is three fields, and one of them was never parsed
+
+```
+ BEGIN UNITDATA
+  BEGIN OBJECT
+   BEGIN SUBOBJECT
+    flags 65
+    o 8
+    who 1
+    x_internal …
+   damage 34            <- OBJECT's indent
+   uid 18
+   myhits 120
+   hold_frames 0
+   infiltrated 0
+   damage_frac 8
+   mylos 4
+  collide_frame -1      <- UNITDATA's own
+```
+
+`myhits` and `damage` have been parsed off `OBJECT` since item 394.
+**`damage_frac` had not**, on a unit — it was read for a building from
+the same item and never for a figure, which is the shape item 478 found
+one record over: a field the dump prints on every block of every
+capture, not merely uncompared but unparsed, and therefore invisible to
+every widening ever run.
+
+`the_unit_s_hit_points_are_the_object_block_s` pins the indent with a
+decoy on **both** sides — `7/700/70` at `UNITDATA`'s indent and
+`9/900/90` inside `SUBOBJECT` — so a reader that walks out one level or
+in one level reddens on the *value* rather than on `None`. Made to fail
+on purpose both ways before landing.
+
+### 40.2 What each field means, and why `hits_left` is not a fourth row
+
+| dump | what it is | this crate |
+| --- | --- | --- |
+| `myhits` | the **squad's** whole hit points (§7.3) | `Unit::max_health` |
+| `damage` | whole points this **figure** has taken | `max_health − health` |
+| `damage_frac` | the sixteenths under them (§7.2 step 4) | `Unit::damage_frac` |
+
+`update_hits` writes one number — the squad's — onto every figure, and
+`take_damage` divides it on the way in; each figure of a squad is its
+own `UnitData` in the owner's list (`docs/ATTRITION.md`, "the figure is
+the thing that bleeds"). This crate keeps the **complement**: `health`
+is that same squad-sized number with this figure's damage already
+subtracted. So the three line up field for field, and `hits_left` —
+what `run100_s_word_block_is_every_record_the_dump_carries` calls its
+row — is `myhits − damage` on both sides. It would part exactly when
+one of the two above does and print every disagreement twice, so
+`compare` does not carry it. The widening keeps its own because it has
+no `damage` row.
+
+The row is **ungated on the position**, for `ObjectData::visible`'s
+reason (§ `docs/VISION.md` §7): what a unit has taken is not a
+consequence of where it is standing. It is ungated on `on_map` too,
+unlike `visible` and `mylos` — a garrisoned unit is healed by its
+building on both sides, so the record stays comparable where those two
+do not.
+
+### 40.3 What it reads, on both maps
+
+| capture | map | field-frames compared | wrong | wounded unit-frames in the dump |
+| --- | --- | --- | --- | --- |
+| run57 (4,000 frames) | East Indies | **205,302** | 0 | **0** |
+| run79 (341 blocks) | Great Lakes | **40,377** | 0 | **0** |
+| run100 (909 blocks) | Great Lakes | +`damage_frac` on every block | 0 | — |
+| ch2/run112 (whole chapter) | Great Lakes | **16,362** | 9 keys | **580** |
+
+**Not one unit record of run57's 484,779, nor of run79's 27,194,
+carries a wound**: neither capture contains a fight. What those two pin
+is the maximum and the two accumulators at rest — this crate's
+squad-sized `myhits` is the original's on every linked unit-frame of
+4,000 frames of the headline map, and neither side invents damage
+nobody dealt.
+
+**The live values are all in the golden chapter-two engagement**, and
+`chapter_two_s_hit_points_are_the_dump_s_on_every_unit_frame` is where
+the anti-vacuity lives: 16,362 comparisons, **580** of them on a
+unit-frame the dump wounds, over six units. A window in which every
+value is zero on both sides passes on a crate that never writes the
+field — which is exactly what `compare` was before this — so the
+wounded count is asserted separately from the count read.
+
+### 40.4 `myhits` is the original's everywhere; `damage` is not
+
+`myhits` parts on **nothing**, on any capture, at any frame: all 21 of
+chapter two's units, the six staged squads and the citizens beside
+them, carry this crate's own squad-sized maximum. Corrupting it by one
+reddens the assertion on all 21 at their birth blocks, which is what
+says the row is reading and not agreeing by silence.
+
+The nine keys that do part are all `damage`/`damage_frac`, and they are
+one fact:
+
+```
+  damage      1/8  first at 656 — ours  0 theirs  8
+  damage_frac 1/8  first at 656 — ours  0 theirs 10
+  damage      1/6  first at 657 — ours  0 theirs  2
+  damage      1/7  first at 686 — ours  0 theirs 19
+  damage_frac 1/7  first at 686 — ours  0 theirs  5
+  damage_frac 1/6  first at 712 — ours  0 theirs 10
+  damage      0/11 first at 697 — ours 12 theirs  8
+  damage      0/10 first at 737 — ours  0 theirs  4
+  damage      0/9  first at 792 — ours  0 theirs  4
+```
+
+And inside the word's own window the trajectory is visible frame by
+frame — this crate one hit behind from 656 on:
+
+```
+  656 damage 1/8 ours  0 theirs  8      656 damage_frac 1/8 ours  0 theirs 10
+  657 damage 1/8 ours  8 theirs 17      657 damage_frac 1/8 ours 10 theirs  4
+  660 damage 1/8 ours 17 theirs 25      660 damage_frac 1/8 ours  4 theirs 14
+  682 damage 1/8 ours 25 theirs 34      682 damage_frac 1/8 ours 14 theirs  8
+  684 extra 1/8  — the original's hoplite died on 683; ours has not
+```
+
+**Every value this crate holds is the dump's own previous one.** Not a
+different arithmetic: the same ladder, one arrival late, from the very
+first wound. `extra 1/8` at 684 is the end of that lag and not a
+separate fact.
+
+### 40.5 The instrument agreed because it was not looking, for the third time on one window
+
+`chapter_two_s_word_frame_is_widened_whole` has now been wrong in all
+three of the ways a widening can be:
+
+- its **floor** sat just under the word and hid `order 0/10` at 630
+  (item 470);
+- its **ceiling** sat four frames over the word and hid `extra 1/8` at
+  684 (item 481);
+- and a **field** was missing from the comparator, which hid five rows
+  from 656 — twenty-seven blocks *below* the word the window was
+  built around (this item).
+
+The first two are about the window; the third is not, and no widening
+of the window could have found it. That is the argument for
+`crate::ledger`'s count and for `CLAUDE.md`'s "when the original dumps
+a record, diff the whole record": the window can be perfect and the
+comparison still blind.
+
+### 40.6 Coverage
+
+**Diff-backed**:
+
+- that the unit's hit-point record is written at `OBJECT`'s indent and
+  nowhere else — `the_unit_s_hit_points_are_the_object_block_s`, with a
+  decoy on either side;
+- that this crate's `max_health` is the dump's `myhits` on **every**
+  linked unit-frame of run57 (205,302 field-frames, East Indies),
+  run79 (40,377, Great Lakes) and the whole of chapter two (16,362,
+  580 of them live);
+- that the three fields agree at rest on both maps: not one of the
+  245,679 field-frames of run57 and run79 is wrong;
+- that the nine keys that part in chapter two part on `damage` and
+  `damage_frac` alone, from block 656.
+
+**Reading-only**:
+
+- that `damage_frac` is sixteenths on a *unit* as it is on a building.
+  The pair moves as sixteenths in run112's own record (`1/8`: 8/10,
+  17/4, 25/14, 34/8 — each step a whole point plus a carry) and the
+  representation is the same one `docs/COMBAT.md` §7.2 step 4 reads for
+  `BuildData`, but no capture separates a unit's carry rule from a
+  building's. A capture of attrition on a squad would.
+
+**What this does not establish** — deliberately, because it is item
+485's:
+
+- **why** this crate's `1/8` runs one hit behind and does not die on
+  683. `Object::take_damage` divides the squad's `myhits` by
+  `uber_size` on the way in (§7.3) and `Sim::take_damage` uses
+  `u.health` as the threshold outright, so a hoplite figure here
+  absorbs a squad's worth; that is a *hypothesis* the frame does not
+  yet carry, and the frame is 656.
+- whether `damage` is ever *reset* on a figure's death — the question
+  §7.3's `total_damage` sum implies and no capture on disk answers,
+  because no squad on disk loses a figure and survives.
