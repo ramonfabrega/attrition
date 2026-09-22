@@ -158,11 +158,34 @@ fn walk_chapter(run: &str, n: u32, staged: usize, length: i64) -> Option<Walk> {
     );
     let mut applied = crate::golden::Applied::default();
     let mut words: Vec<(i64, u32)> = Vec::new();
+    // **Which unit spent the draw**, on a window this run names —
+    // `RON_GOLDEN_SITES=<lo>-<hi>`, the golden walk's copy of the window
+    // [`crate::diff::harness`] has carried for Great Lakes since item
+    // 204. A one-draw parting asks "who", `Built::tick` drops the marks'
+    // unit attribution when it folds them into `frame_sites`, and item
+    // 496 rebuilt this by hand as a scratch test before noticing the
+    // Great Lakes walk already had it — which is the second time that
+    // has happened (item 432 was the first), so it graduates here.
+    // The original's own labels go beside ours on a frame they part,
+    // because the delta is the question and one side alone never
+    // answers it.
+    let sites = crate::diff::harness::site_window_named("RON_GOLDEN_SITES");
     for _ in 0..last {
         words.push((built.sim.frame, built.sim.rng.seed));
         let did = script.stage(built.sim.frame, &mut built, &loaded);
         applied.merge(&did);
+        let f = built.sim.frame;
         built.tick();
+        if sites.is_some_and(|(lo, hi)| (lo..=hi).contains(&f)) {
+            for (label, who) in crate::diff::harness::attributed_sites(&built) {
+                eprintln!("  f{f} {who}: {label}");
+            }
+            let theirs = trace.labels(f);
+            let ours = built.frame_sites.last().map_or(&[][..], |(_, v)| v);
+            if theirs != ours {
+                eprintln!("  f{f} PARTS: ours {} theirs {theirs:?}", ours.len());
+            }
+        }
     }
     eprintln!(
         "chapter {n} staged: {} line(s) ran, {} unit(s), {} building(s); \
@@ -1664,6 +1687,17 @@ fn chapter_two_s_word_frame_is_widened_whole() {
     // the nine rows at 696-698 are theirs, because a wounded `1/7`
     // outranks `1/6` on §33's damage weight and the original's three
     // bowmen retarget where ours do not. That landing is the successor 491 parked, and it is **not** a residue: §42.5 says what it needs.
+    //
+    // **Item 496 moved the three `order` rows 696 → 684**, and it moved
+    // no code in the simulation: the comparison could not see them.
+    // `crate::diff::order::compare_orders` reported a target only when
+    // **both** sides named one, so this crate's attack order carrying
+    // *nothing* against the dump's `ox 8 whom 1` read as agreement.
+    // `Sim::forget` drops a dead object from every attacker's target
+    // slot on the frame it dies; the original does not, and run112's
+    // three bowmen hold the dead `1/8` from 683 until their reload opens
+    // on 695. Thirty-six unit-frames, under the word, quiet.
+    // `docs/COMBAT.md` §43.
     let measured = [
         ("angle 0/6", 697),
         ("angle 0/7", 696),
@@ -1672,9 +1706,9 @@ fn chapter_two_s_word_frame_is_widened_whole() {
         ("damage 1/7", 686),
         ("damage_frac 1/7", 686),
         ("damage_frame 1/7", 686),
-        ("order 0/6", 696),
-        ("order 0/7", 696),
-        ("order 0/8", 696),
+        ("order 0/6", 684),
+        ("order 0/7", 684),
+        ("order 0/8", 684),
         ("recharging 0/6", 697),
         ("recharging 0/7", 696),
         ("recharging 0/8", 696),

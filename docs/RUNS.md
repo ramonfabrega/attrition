@@ -4503,3 +4503,57 @@ step. The capture booked for one question answered it from a proxy
 nobody added for it.
 
 **What it moved.** Great Lakes' long word **10,161 → 10,232**.
+
+## run118 — chapter two's guy clocks, at `GUYS=4` (2026-09-22, item 496)
+
+**What it is.** run112's capture again — same lobby, same seed, same
+`chapter2.cmd`, same window — with one field of the detail line changed:
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch2g4 \
+    --map 14 --end-frame 900 --log-window 605 900 \
+    --detail end:UNITS=3,GUYS=4,AMMO=5,DEATHS=1,LEADERS=2 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 \
+    --cmd-file tools/gamelog/golden/chapter2.cmd
+```
+
+**Why, and the grep that came first.** `GuyData::log_data@005de6c0`
+announces four detail levels; `cur_time`, `end_time`, `last_time`,
+`cur_anim`, `variation`, `hold_attack`, `queued_attack` and `guy_flags`
+are all past the third, so at run112's `GUYS=2` a `GUY` block stops
+after `ox` and the animation clock is not in the file. Item 496's whole
+question is whether one bowman's clock stepped on frame 695. No capture
+on this disk carries chapter two's guys at `GUYS=4` — run44 and run53
+do, on other games with no bowmen — so the question could not be
+answered from what was there.
+
+**`success: false`, and the reason is the detail.** The runner's launch
+timeout is 180 s and `GUYS=4` costs about four times `GUYS=2` a block:
+**243 blocks of the window's 296**, 605..846, contiguous, 64 MB, and the
+file stops mid-record inside 847. Everything item 496 reads is inside
+it and nothing it reads is past 700, so the run answered what it was
+booked for; a session that needs the rest of the window must raise the
+timeout rather than re-run this line.
+
+**What it says.** Block 696 — the state after frame 695, chapter two's
+word:
+
+```
+  0/6  cur_anim 12  cur_time 29  end_time 30  last_time 29    ← last == cur
+  0/7  cur_anim 0   cur_time 0   end_time 31  last_time -1  hold_attack 1
+  0/8  cur_anim 0   cur_time 0   end_time 31  last_time -1  hold_attack 1
+```
+
+`last_time` is `cur_time` before this frame's step, so their difference
+is the step the original took. Every other block of the window has
+`last = cur − 1` on all three bowmen. On 695 `0/6` did not step, which is
+`Guy::inc_time`'s zero arm under `unit_masks2 & 0x10` — and run112's own
+`OBJECT` block, which prints that field at every detail level, carries
+`unit_masks2 16` on `0/6` at exactly that block. `docs/COMBAT.md` §43.
+
+**And it is the first capture that can price the level.** 45 MB at
+`GUYS=2` against 64 MB for four fifths of the window at `GUYS=4` — about
+2.4× the bytes a block, and enough slower to miss the timeout. A golden
+chapter kept at `GUYS=4` for the whole window is a decision, not a free
+upgrade.
