@@ -61,6 +61,11 @@ Its chain matches native return 8, modes 300/0, path length 8/capacity 40, all
 relocation. The frozen control retains exactly the extra +0x88 discrepancy.
 Both chains repeat exactly, and the prepared baseline restores.
 
+L84 subsequently [tested whether collide affects this callee](2026-09-22-collide-passthrough.md):
+it does not read or write the field in nine repeated interventions. The
+correction closes a carried-through unit-record difference, not a pathfinding
+computation difference; that distinction limits the causal interpretation here.
+
 Each chained second call executes 33,494 emulated instructions; L81's
 independent second-snapshot replay executes 34,845. Thus the checked output
 agreement does not establish identical internal execution. The first input's

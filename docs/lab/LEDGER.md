@@ -151,6 +151,8 @@ profile/Wine scripts remain outside that lock's protection.
 
 | L83 | Can the validated chain replay without broad capture reads or dependency discovery? | [Compact chain fixture](2026-09-22-compact-chain.md). | A 597,820-byte local fixture reproduces the complete experiment in 14.86 s; blocked capture reads and missing-dependency controls pass. | Derived local cache, not a new native witness. Original executable remains required; no score movement. |
 
+| L84 | Does the caller collide correction affect the second callee computation? | [Collide passthrough](2026-09-22-collide-passthrough.md). | Nine repeated values yield zero field accesses, identical instruction sequences and unchanged path/other unit bytes; executable falsifiers enforce the result. | Qualifies L82: carried-through record correction, not pathfinding causality. No capture or score movement. |
+
 ## Current direction
 
 The September 19–22 tranche now has an unchanged native unit/path witness
@@ -177,6 +179,8 @@ unit/path/mode boundary. L82 computes the observed collide transition with
 the original caller instruction and reproduces that boundary from a preserved
 first-input model. L83 packages that validated experiment as a compact local
 fixture, preserving permissions, undefined bytes and complete fingerprints.
+L84 distinguishes a carried-through collide correction from a consumed
+pathfinding input: nine interventions show no accesses or computational change.
 Whole-world advancement remains unproved;
 the next adoption test should answer one
 real divergence question selected by steering, with a named call/field and
