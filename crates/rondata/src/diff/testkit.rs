@@ -1634,7 +1634,17 @@ pub(crate) const GOLDEN_WORD_CHAPTER_ONE: i64 = 626;
 /// `Guy::set_anim+0x97a < Unit::move_step+0x823` — the chase *destination*
 /// of §31.6's 622 residue, which is upstream of anything that field
 /// reaches.
-pub(crate) const GOLDEN_WORD_CHAPTER_TWO: i64 = 637;
+/// **637 → 645 on 2026-09-21, item 472** — `Unit::work@0060d180:440`'s
+/// sixteen-frame review of a walking unit's chase, `(o + frame) % 16`,
+/// and `Unit::check_target_path` under it; landed together with
+/// `is_in_range`'s `mandatory` margin, which §35.3 had measured and not
+/// landed. The two are a pair: the margin stops `do_move` killing the
+/// chase early, the review kills it on the original's own frame.
+/// `docs/COMBAT.md` §36. The value diff beside the move is
+/// `chapter_two_s_word_frame_is_widened_whole`, whose map over
+/// `[606, 641)` goes from **thirteen first-partings to nought** — the
+/// draw stream and the values both part at `0/9` now, 645 and 646.
+pub(crate) const GOLDEN_WORD_CHAPTER_TWO: i64 = 645;
 
 /// **Every pinned word names the test that widened its frame whole, or
 /// the open item that will** (`docs/DECISIONS.md` 43). A word is the frame
@@ -1666,8 +1676,10 @@ pub(crate) const WIDENING_GREAT_LAKES: (i64, i64) = (9_340, 10_247);
 /// few frames under the word. At 633 it was three frames above a live
 /// divergence — `order 0/10` and `pos 0/10` part at 630 and had never
 /// been reported — so a window sized to the word was reporting agreement
-/// it had not measured (`docs/COMBAT.md` §35.2).
-pub(crate) const WIDENING_CHAPTER_TWO: (i64, i64) = (606, 641);
+/// it had not measured (`docs/COMBAT.md` §35.2). That row is closed and
+/// the ceiling followed the word to 645 on item 472; the floor has not
+/// moved and will not, because it is the only one that cannot hide a row.
+pub(crate) const WIDENING_CHAPTER_TWO: (i64, i64) = (606, 649);
 
 /// One pinned word's row: `(constant, word, widening test, item, window)`.
 pub(crate) type Widening = (

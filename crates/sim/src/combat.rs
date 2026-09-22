@@ -408,6 +408,34 @@ pub const fn in_range(
     d + if melee_bonus { 0x90 } else { 0 } <= max_range * 0xc0 + 6
 }
 
+/// `flanking@0092cfe0` — how far round the target's back the attacker
+/// stands, from the **bias** its two callers hand it:
+/// `e = target.angle − reference + 0x80000000`, unsigned.
+///
+/// Zero is "not flanking at all", and it is the only answer the callers
+/// look at. Both of them (`do_move@005f7fbe` and
+/// `check_target_path@005e2493`) test the window's negative half inline —
+/// `e < 0x2aaaaaaa` jumps straight past the call — so the predicate a
+/// caller means is `0x2aaaaaaa <= e && flanking(e) != 0`, which is
+/// `|signed angle difference| <= 120°`. What differs between them is the
+/// `reference`: `do_move` uses the **attacker's own heading**,
+/// `check_target_path` the **bearing from the attacker to the target**.
+///
+/// The 1/2 split is `e − 0x60000000 > 0x40000000` and nothing in the
+/// executable reads it; it is kept because the function is three
+/// instructions and a `bool` would be a guess about what the engine meant
+/// (`docs/COMBAT.md` §36.3).
+pub const fn flanking(e: u32) -> i32 {
+    if e > 0xd555_5555 {
+        return 0;
+    }
+    if e.wrapping_sub(0x6000_0000) > 0x4000_0000 {
+        2
+    } else {
+        1
+    }
+}
+
 /// The side of the square of cells a splash searches (§9.3): the spiral
 /// table `move_x/move_y` walked to `radius[k]`, `k = splash_area / 4 + 1`
 /// capped at 10, which visits the `(2k+1)²` cells within Chebyshev distance
