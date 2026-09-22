@@ -36,12 +36,12 @@ chapter two **683 → 725** — both headline words moved.*
 - **Fable backlog: 7 Loop items** (313, 503, 507, 508, 509, 513, 517).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w9711 of 24,000 · GreatLakes w10834 of 24,000
+Long captures: EastIndies w9711 of 24,000 · GreatLakes w11185 of 24,000
 Golden: w626 of 901 (ch1) · ch2 w725 · 495 next
-Endpoint 24001: EastIndies 63 off, 10 unlinked · GreatLakes 42 off, 5 unlinked
+Endpoint 24001: EastIndies 62 off, 10 unlinked · GreatLakes 57 off, 4 unlinked
 
-**Opener: nothing in flight, both lanes reaped, tree pushed. A fresh Opus
-commander takes 518 on the AI track and 495 on the rules track.**
+**Opener: an Opus 5.5 commander is live; 495 in flight on att-495, 520
+next on the AI track. Workers spawn with `claude-opus-5-5[1m]`.**
 
 ## The queue
 
@@ -51,14 +51,13 @@ the AI, lower map first — Great Lakes. Take the first unstarted on either
 track unless a better order is obvious, and say so. Numbers are stable;
 the backlog is `docs/PARKED.md`, and an item returns only when a score names it.
 
-518. **`1/28`'s position first parts on block 10242, one world unit**
-    (the AI headline's frame; 515 moved the word to 10834). The frame
-    the original's group cap returns to 25 and this crate's stays at
-    its leader's 26 — **no member with a 25 can report**, because
-    `1/40` holds an ATTACK at its order stack's head where the dump
-    has the `GROUP_MOVE` it is dumped with (`type 19` through 10245),
-    so it never enters `do_group_move`. An **order-stack** item, not a
-    cap one; `1/27` follows a block later. GROUPS §18. No mechanism.
+520. **Great Lakes' word 11185 has no widening: no dump reaches it**
+    (518 moved the word 10834 → 11185; run100 ends on block 10899). The
+    draw delta: ours nine against eight, `Leader::use_market+0x1ed`
+    against `Leader::make_stuff+0x221` at index 2 — a market frame. The
+    item is the capture first: run100's detail over a window sized to
+    the word, overlapping run100, then the widening of 11185 both
+    directions. Re-point `WIDENINGS`' row to the test. No mechanism.
 
 495. **The rolled arrow's landing — promoted from parked, and the
     rules headline** (725's own cause, measured by 510). Frame 686:

@@ -2125,7 +2125,7 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     //
     // **Item 518 moved it 10834 → 11185, past every dump on disk**:
     // run100 ends on block 10899, so no test can widen 11185 whole, and
-    // the row names the item that owes it until the capture is booked.
+    // the row names the item that owes it — 520, booked for the capture.
     // `run100_s_word_block_is_every_record_the_dump_carries` still walks
     // [`WIDENING_GREAT_LAKES`], and 10242, 10243 and 10835 are pinned
     // empty there — the value diff beside this move.
@@ -2133,7 +2133,7 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         "LONG_WORD_GREAT_LAKES",
         LONG_WORD_GREAT_LAKES,
         None,
-        518,
+        520,
         None,
     ),
     (
