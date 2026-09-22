@@ -32,12 +32,12 @@ Great Lakes **10277**, chapter two **683**, both inside their first fight.*
 - **Struck text no longer counts** against a section's ceiling (480): a
   correction is not an addition. Four pins fell; `AI.md` §15 left the table.
 - **491 landed both of 683's sides**; 476 and 342 stay parked.
-  **Fable backlog: 5 Loop items** (313, 503, 507, 508, 509).
+  **Fable backlog: 6 Loop items** (313, 503, 507, 508, 509, 513).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w9711 of 24,000 · GreatLakes w10582 of 24,000
+Long captures: EastIndies w9711 of 24,000 · GreatLakes w10817 of 24,000
 Golden: w626 of 901 (ch1) · ch2 w725 · 510 next
-Endpoint 24001: EastIndies 59 off, 12 unlinked · GreatLakes 55 off, 5 unlinked
+Endpoint 24001: EastIndies 64 off, 10 unlinked · GreatLakes 53 off, 3 unlinked
 
 **Opener: 502 and 506 in flight. Five landings; Great Lakes 10277 → 10582
 in four, ch2 695 and its comparator. Merge, book, gate, push, reap, spawn.**
@@ -50,14 +50,14 @@ the AI, lower map first — Great Lakes. Take the first unstarted on either
 track unless a better order is obvious, and say so. Numbers are stable;
 the backlog is `docs/PARKED.md`, and an item returns only when a score names it.
 
-506. **10583's one row, and a market frame under it** (the AI
-    headline's own frame; 497 moved the word to 10582). Ours spends
-    **eight** draws against the original's **three**, parting at index
-    0 — ours `Leader::create_units+0x642`, theirs `Guy::set_anim+0x97a
-    < Guy::inc_time+0x271`; the row is `1/2018 queue:queued` 1 v 0.
-    **10582 is the AI's 200-frame market rotation** (…10182, 10382,
-    10582): theirs `Leader::use_market+0x1ed`, ours
-    `Leader::make_stuff+0x221`. A production frame. No mechanism.
+515. **10817's eight rows, all one raider `1/28`** (the AI headline's
+    own frame; 506 moved the word 10582 → 10817). A collision **this
+    crate takes and the original does not** — `collide` 1 v 0,
+    `collide_who` 8 v −1 — with the stand behind it (`g.cur_anim` 0 v
+    8, `g.stopped` 1 v 0) and the clock triple under that. The draw
+    stream parts on the same frame and says the same thing: ours
+    **three** draws against **two**, the extra `Guy::set_anim+0x97a <
+    Unit::move_step+0x823`. COLLISION §11's family. No mechanism.
 
 510. **725's attack-end wrap costs the original two draws and this
     crate one** (the rules headline's own frame; 502 moved the word

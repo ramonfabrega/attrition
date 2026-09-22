@@ -22,6 +22,29 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Parked by item 506, 2026-09-22 — a standing gap and two the ceiling found
+
+(514) **`1/income[2:wealth]` 960 against 992, on all 245 blocks of
+run117** — `resources[2:wealth]` and `rate[2:wealth]` (60 v 62) say it
+twice more. **It names no frame**, which is why it parks rather than
+taking the headline: run107's thirty blocks at 9170–9199 carry no income
+row at all, so the 32 opens somewhere inside `(9199, 10375]` and nothing
+on disk covers it. The AI's two unmodelled caravans are **a candidate,
+not a measurement** — 176 is not 32, and the gap is not there at 9199.
+A `MISC,LEADERS=2` run over that span is thin enough to take whole and
+would date it to the frame; grep the disk first.
+
+(511) **`1/2018 queue[0].cost[0]` on 10782.** Both sides now queue Horse
+Archers at the Stable; this crate charges 60 timber / 40 wealth where the
+original charges 57 / 38. A **price**, not a ledger.
+
+(512) **`1/28 order:coll` on 10618.**
+
+Both came under the comparison when the widening's ceiling followed the
+word 10595 → 10830, and both are named in the test rather than swallowed
+into a count. **A number that rises when a word moves is not a
+regression** — same rule as (504)/(505).
+
 ## Parked by item 497, 2026-09-22 — brought under the line by the word itself
 
 Item 497 moved Great Lakes 10303 → **10582**, and the widening's window
@@ -76,9 +99,20 @@ assumed to hold for run100**, which does not enable that category. The
 whole of 494's nine-frame word rests on the assumption, and **one
 `gamelog.ini` line on a Great Lakes capture settles it outright** — this
 is the cheapest open question on file and the second genuine capture
-question in twenty-odd landings (the first is (490)). Promote it the
-moment a Great Lakes capture is booked for any reason: it costs one
-category, not a run.
+question in twenty-odd landings (the first is (490)). ~~Promote it the
+moment a Great Lakes capture is booked for any reason.~~
+
+**Closed 2026-09-22 by item 506, off the disk and for two greps — no
+capture was needed at all.**
+`gamelog-run34-greatlakes-dumpall-start.txt` is this same game (map 14,
+seed 12345, `GAME INFO` identical to run53's and run100's) and prints
+`peasants_wait 2` on all eight leader-option records; and
+`report.py rontrace-run53.log functions` puts
+`CommandPackage::process_leader_options` at frame −1 and never finds
+`set_auto_peasant_level` among the 6,937 functions the 24,000-frame
+trace enters — so nothing rewrites it mid-game. `docs/ORDERS.md` §21 is
+struck and points at both. **The fourth time in one day** that the disk
+already held an answer something had booked a capture for; see (508).
 
 (500) **The gate's `(idle − 2) % 5` retry above the threshold is
 unexercised.** 494's citizen re-tasks on its first pass of 12, so nothing
@@ -171,6 +205,49 @@ never the cursor — it is that a launch from inside Claude Code's own process
 tree gets no window at all (`nodrv_CreateWindow`, dead in 3.8 s, 0 frames),
 so every launch goes through `viadriver.sh` (`docs/ORACLE.md`, "The
 click-free lane needs a window").
+
+(513) **A moved word's pin records its value and not its story, and
+nothing fails when it does not.** 2026-09-22: `LONG_WORD_GREAT_LAKES`
+reads **10817** while its own doc-comment's narrative stops at **10303**.
+Items 497 and 506 each moved the word and each changed the constant and
+a window — four lines, two of them the value — and neither added the
+entry. **Both briefs asked for it in those words**, after item 491 had to
+land a second commit for exactly this.
+
+**Why it keeps happening:** the guards check the constant's *value*
+against the queue's `Long captures:` line, so a stale comment is invisible
+to every check this repo has. The rule lives only in a brief, and
+`CLAUDE.md` says a rule that could be a guard and is only prose will be
+broken within the week. It was broken twice in one afternoon.
+
+**What the pass should weigh:** a guard that fails when a word constant's
+value changes in a commit that does not also add a line to its comment is
+cheap and mechanical (the same shape as `a_constant_a_document_names_is_
+built_or_pinned`). Against that: the comment is prose and a guard on
+prose can be satisfied trivially. The alternative is that the commander
+reads the pin at every merge, which is what caught it this time — but
+that is a habit, not a check, and it caught it two words late.
+
+**Narrower than it first looked, and the correction is the finding.**
+The commander's first reading of this was that the story had not been
+written at all. It had: item 506 pinned the new word's eight rows *and*
+its draw delta in `run100_s_word_block_is_every_record_the_dump_carries`,
+in `harness.rs`, with a paragraph of prose around them. What is missing
+is only the entry in the **word constant's own comment** — so the defect
+is not a lost measurement but a **split one**: the value lives in
+`testkit.rs`, the story in `harness.rs`, and a session reading the pin to
+learn what the word is gets the number without the reason.
+
+So the pass's question is sharper than "add a guard": **which of the two
+places is meant to carry the story, and should the other point at it?**
+A guard that merely demands a comment line would be satisfied by
+duplicating prose, which is worse than the split. 491's round trip
+happened because its delta was in neither place; today's is in one of two.
+
+**Note also how it was caught** — the commander read the pin at the merge
+and found the narrative two words stale. That is a habit rather than a
+check, and it produced a wrong first diagnosis before a `git show`
+corrected it.
 
 (509) **Filing to this section is the commander's default, and it was
 not.** Ramon, 2026-09-22, after having to ask twice: *"it should be your
