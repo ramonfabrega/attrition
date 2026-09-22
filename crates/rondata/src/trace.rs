@@ -385,7 +385,25 @@ pub const SITES: &[(u32, Option<u32>, &str)] = &[
     // town puts up (`docs/COMBAT.md` §7.2 step 3). Every caller reaches
     // both through `Object::do_damage`, so no chain separates them.
     (0x0065_2101, None, sim::fight::SITE_FIRST_WOUND),
-    (0x0065_218b, None, sim::fight::SITE_FIRST_WOUND_FLOCK),
+    // `+0x18b` is `0x0065_21ab`, and this row read `0x0065_218b` until
+    // item 483 — two digits transposed, on an address that is not even an
+    // instruction boundary (`65218a` is a three-byte `mov`), so the row
+    // could never match a draw and the flock's would have printed as a
+    // bare `6521ab`. `every_site_s_address_is_the_function_its_label_
+    // names` found it on its first run; no capture on disk takes the draw,
+    // so no comparison moved (`docs/COMBAT.md` §39.3).
+    (0x0065_21ab, None, sim::fight::SITE_FIRST_WOUND_FLOCK),
+    // `Ammo::do_damage@00678060` — the puncture point of a shot that hit
+    // nothing, `+0xc59` for x and `+0xc7e` for y (`docs/COMBAT.md` §39).
+    // The function has exactly two `Random::get` calls and these are
+    // both, so no chain is needed. Great Lakes spends them on 10237,
+    // 10242 and 10249 and nowhere else in 24,000 frames, and this crate
+    // spends its own on the same three; until they were named the
+    // original's read as a bare `678cb9`/`678cde` against this crate's
+    // `projectiles` phase mark, and the sequence word could not pass
+    // 10237 however the simulation behaved.
+    (0x0067_8cb9, None, sim::fight::SITE_PUNCTURE_X),
+    (0x0067_8cde, None, sim::fight::SITE_PUNCTURE_Y),
 ];
 
 /// The header's `kind`: `RONT`, little-endian.
@@ -1211,6 +1229,99 @@ mod tests {
         assert_eq!(t.hits, vec![(0x005f_6010, 0)]);
         assert_eq!(t.first_entry(0x005f_6010), Some(0));
         assert_eq!(t.first_entry(0x005f_6446), None, "a draw site is not a hit");
+    }
+
+    /// **Every row of [`SITES`] says its own address**, checked against
+    /// the decompile export's `INDEX.tsv` — the whole table, in a
+    /// millisecond, every commit.
+    ///
+    /// The table's rows are the one place in this crate where a *number*
+    /// carries a *name*, and a wrong pairing is the one error the
+    /// differential check cannot report: a label put on the wrong address
+    /// makes a frame read as agreeing, or as parting somewhere else, and
+    /// nothing else in the suite looks at the pairing at all. Item 483
+    /// added two rows and moved Great Lakes' sequence word seven frames
+    /// **without changing one line of simulation**, which is exactly the
+    /// shape a wrong row would also have. So the row is checked rather
+    /// than trusted: the address is resolved to its containing function in
+    /// the export, and the label's own `Name+0xoff` must be that function
+    /// and that offset.
+    ///
+    /// A chain-qualified row is checked at both ends — its `via` against
+    /// the label's last link — which is what catches a `via` copied from
+    /// the neighbouring entry. Two labels name a link without an offset
+    /// (`< do_cast`, `< do_trade`, where the intermediate frame is the
+    /// disambiguator and not the caller); for those the name is checked
+    /// and the offset is not.
+    ///
+    /// Made to fail four ways before it landed: one digit off each of the
+    /// two new sites, `SITE_PUNCTURE_X`'s address swapped onto
+    /// `SITE_FIRST_WOUND`'s row, and `SITE_TURN_NEAR`'s `via` replaced by
+    /// its neighbour's. **And it failed for real on its first run**, on
+    /// `SITE_FIRST_WOUND_FLOCK` — §39.3.
+    ///
+    /// Skips loudly without the export, the way
+    /// `sim`'s `every_cited_address_names_its_function` does — the export
+    /// never enters this repo.
+    #[test]
+    fn every_site_s_address_is_the_function_its_label_names() {
+        let home = std::env::var("HOME").unwrap_or_default();
+        let index_path = format!("{home}/ghidra-projects/decomp/INDEX.tsv");
+        let Ok(index) = std::fs::read_to_string(&index_path) else {
+            eprintln!("skipping: no {index_path} (the Ghidra export is not on this machine)");
+            return;
+        };
+        // `addr -> name`, ordered, so the containing function of a site is
+        // the last entry at or below it.
+        let funcs: std::collections::BTreeMap<u32, String> = index
+            .lines()
+            .filter_map(|l| {
+                let mut it = l.split('\t');
+                let addr = u32::from_str_radix(it.next()?, 16).ok()?;
+                Some((addr, it.next()?.to_string()))
+            })
+            .collect();
+        assert!(funcs.len() > 40_000, "the export's index is 48k functions");
+
+        // One link of a label: `Name+0xoff`, or a bare name.
+        let check = |what: &str, addr: u32, link: &str| -> Option<String> {
+            let (name, off) = match link.split_once("+0x") {
+                Some((n, o)) => (n, u32::from_str_radix(o, 16).ok()),
+                None => (link, None),
+            };
+            let (&at, real) = funcs.range(..=addr).next_back()?;
+            // The export strips template arguments the way `docs_guard`
+            // does; a label never carries them.
+            let real = real.split('<').next().unwrap_or(real);
+            if !real.ends_with(name) {
+                return Some(format!(
+                    "{what} {addr:#010x} is inside `{real}@{at:08x}`, and the label says `{name}`"
+                ));
+            }
+            match off {
+                Some(o) if addr - at != o => Some(format!(
+                    "{what} {addr:#010x} is `{real}+{:#x}` and the label says `+{o:#x}`",
+                    addr - at
+                )),
+                _ => None,
+            }
+        };
+
+        let mut failures = Vec::new();
+        for (site, via, label) in SITES {
+            let links: Vec<&str> = label.split(" < ").collect();
+            if let Some(f) = check(label, *site, links[0]) {
+                failures.push(f);
+            }
+            // The `via` is the frame the chain walk matches on, and the
+            // label's last link is how a reader spells it.
+            if let (Some(v), Some(last)) = (via, links.last().filter(|_| links.len() > 1))
+                && let Some(f) = check(label, *v, last)
+            {
+                failures.push(format!("{f} (the chain's `via`)"));
+            }
+        }
+        assert!(failures.is_empty(), "{}", failures.join("\n"));
     }
 
     /// A run that loaded somewhere other than `0x400000` folds back, so a

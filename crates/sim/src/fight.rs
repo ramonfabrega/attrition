@@ -57,6 +57,27 @@ pub const SITE_AMMO_SCATTER_X: &str = "Ammo::init+0xcd9";
 /// `Ammo::init@0067bbf0+0xd0b` — the landing scatter's **y** draw.
 pub const SITE_AMMO_SCATTER_Y: &str = "Ammo::init+0xd0b";
 
+/// `Ammo::do_damage@00678060+0xc59` — **where a shot that hit nothing
+/// punctures the ground**, the x draw of the pair (`docs/COMBAT.md` §39).
+///
+/// The arm is `do_damage`'s own: after `hit_target` and `check_hit` have
+/// both failed to name an object, the landing point is jittered by
+/// `Random::get(0, 0xffff) % 41 - 20` on each axis, `WorldData::restrict`
+/// pulls it back inside the world, and `AmmoOut::puncture_ground` leaves
+/// the decal there. Cosmetic, and it still moves the stream: this crate
+/// has spent both draws since the ammo list existed and named neither, so
+/// the frame read as the tick's bare `projectiles` phase mark against the
+/// original's raw `678cb9` — a comparison that cannot fail and cannot
+/// pass.
+pub const SITE_PUNCTURE_X: &str = "Ammo::do_damage+0xc59";
+
+/// `Ammo::do_damage@00678060+0xc7e` — the puncture point's **y** draw.
+///
+/// A second entry rather than one label for the pair, for
+/// [`SITE_AMMO_SCATTER_X`]'s reason: the original spends two draws at two
+/// addresses and a single label folds them into one.
+pub const SITE_PUNCTURE_Y: &str = "Ammo::do_damage+0xc7e";
+
 /// `Object::take_damage@00652020+0xe1` — **a building's first wound**
 /// (`docs/COMBAT.md` §7.2 step 3).
 ///
@@ -1860,8 +1881,12 @@ impl Sim {
         }
         if p.splash_area == 0 {
             let Some(t) = target else {
-                // A shot into the ground: two draws for where it punctures.
+                // A shot into the ground: two draws for where it punctures
+                // (§39). Marked per draw, because the original spends them
+                // at two addresses.
+                self.mark(SITE_PUNCTURE_X);
                 let _ = self.rng.roll();
+                self.mark(SITE_PUNCTURE_Y);
                 let _ = self.rng.roll();
                 return;
             };

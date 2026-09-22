@@ -1437,17 +1437,28 @@ pub(crate) const EAST_INDIES_FIRST_SCHOLAR: i64 = 8_466;
 /// draws against 204 and 10235 spends 78 against 78, node for node
 /// (`docs/ROADS.md` §1.2, `docs/ORDERS.md` §19).
 ///
-/// **The two numbers this pin is the floor of have separated.** The
-/// *count* word is **10244**; the *sequence* word is **10237**, and what
-/// parts there is not a simulation disagreement at all — both sides
-/// spend seven draws and the fifth is one the original's trace names
-/// `678cb9` and [`trace::SITES`](crate::trace::SITES) does not,
-/// `Ammo::do_damage@00678060+0xc59`, against this crate's unattributed
-/// `projectiles` phase label. 10242 is the same shape. Naming that site
-/// belongs with `docs/COMBAT.md`, not here; until it is named the
-/// sequence cannot go past 10237 however the simulation behaves, so the
-/// floor is the lower of the two and this is what it is.
-pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 10_237;
+/// ~~**The two numbers this pin is the floor of have separated.** The
+/// *count* word is **10244**; the *sequence* word is **10237**~~ — and
+/// **they have met again at 10244 on item 483**, which changed no
+/// simulation behaviour at all. What parted at 10237 was a *label*: both
+/// sides spent seven draws and the sixth and seventh are
+/// `Ammo::do_damage@00678060`'s puncture pair, which
+/// [`trace::SITES`](crate::trace::SITES) did not carry — so the
+/// original's read `678cb9`/`678cde` against this crate's unattributed
+/// `projectiles` phase mark. 10242 and 10249 were the same shape, and
+/// those three frames are the only ones in 24,000 where either side
+/// takes the draw. With `sim::fight::SITE_PUNCTURE_X`/`_Y` named and
+/// both addresses in the table, all three agree draw for draw, the
+/// sequence word rises to the count's 10244, and the whole
+/// 24,000-frame label dump is unchanged on every other frame
+/// (`docs/COMBAT.md` §39).
+///
+/// So this is again **one** number, and the next thing on it is a
+/// simulation disagreement: 10244 spends four draws against three and
+/// parts at index 1, ours `Guy::set_anim+0x97a < Unit::move_step+0x823`
+/// — the blocked stand — against the original's `Guy::inc_time+0x271`
+/// wrap.
+pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 10_244;
 
 /// The floor `run97_s_window_orders_are_the_original_s` holds — item 368's
 /// widening of Great Lakes' order stacks, the 36,483 `GATHERORDER` records

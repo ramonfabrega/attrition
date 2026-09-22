@@ -5126,9 +5126,19 @@ sides and part on a *label*: the original's trace names the draw
 `678cb9` — `Ammo::do_damage@00678060+0xc59` — and
 `rondata::trace::SITES` does not carry that address, so this crate's
 unattributed `projectiles` phase label stands against a raw hex string.
-Until that site is named the sequence cannot pass 10237 however the
+~~Until that site is named the sequence cannot pass 10237 however the
 simulation behaves. Naming it belongs with `docs/COMBAT.md` and is not
-taken here.
+taken here.~~
+
+> **Item 483 named it, and the two words met again at 10244** — no
+> simulation line changed. The pair is `Ammo::do_damage+0xc59`/`+0xc7e`,
+> the puncture point of a shot that hit nothing, and both sides take it
+> on exactly 10237, 10242 and 10249 of the 24,000 frames and nowhere
+> else. All three agree draw for draw now and no other frame's
+> attribution moved. `docs/COMBAT.md` §39 has the listing, the numbers
+> and the guard that came out of it; what stands at 10244 is a real
+> disagreement, four draws against three parting on
+> `Unit::move_step+0x823`'s blocked stand.
 
 ### 19.4 The capture that was not taken, and the field that was never parsed
 

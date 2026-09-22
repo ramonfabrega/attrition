@@ -5996,3 +5996,256 @@ unit_frame`:
   482) has no `max_range` gate on it, and it is thirty-one frames in
   thirty-two — so "a hoplite never changes target under a move" is what
   is measured here, not "a hoplite never changes target".
+
+## 39. The word was a label: naming `Ammo::do_damage`'s puncture pair (item 483, 2026-09-22)
+
+Great Lakes' long word had **separated into two numbers** and item 478's
+§19.3 (`docs/ORDERS.md`) named why: the *count* word had reached 10244
+while the *sequence* word stood at 10237, where both sides spend seven
+draws and part on the sixth. What parted was not a simulation
+disagreement at all. The original's trace names that draw `678cb9`;
+`rondata::trace::SITES` did not carry the address, so it printed as a raw
+hex string against this crate's unattributed `projectiles` phase mark —
+a comparison that could neither pass nor fail. **Until the site was named
+the sequence could not pass 10237 however the simulation behaved.**
+
+It is named now, the two words have met again at **10244**, and no line
+of simulation changed to do it.
+
+### 39.1 The site, from the executable's own bytes
+
+`Ammo::do_damage@00678060` has **exactly two** `Random::get` calls, and
+they are a pair. The arm they sit in is the miss: after `Ammo::hit_target`
+and `Ammo::check_hit` have both failed to name an object, the shot lands
+on open ground and the decal's position is jittered.
+
+```
+678ca7: mov  0xc06184, %ecx          ; GameAccess::game_random
+678cad: push $0xffff
+678cb2: push $0x0
+678cb4: call 0xa39d70                ; Random::get  -> returns to +0xc59
+678cb9: cltd
+678cba: mov  $0x29, %esi
+678cbf: idiv %esi
+678cc1: mov  0x18(%ebx), %eax        ; the ammo's x
+678cca: sub  $0x14, %edx
+678cd2: add  %edx, %eax              ; x + n % 41 - 20
+678cd9: call 0xa39d70                ; Random::get  -> returns to +0xc7e
+678cde: cltd
+678cdf: idiv %esi
+678ce1: mov  0x1c(%ebx), %eax        ; the ammo's y
+678cea: sub  $0x14, %edx
+678ced: add  %edx, %eax              ; y + n % 41 - 20
+678cfa: call 0x6b53a0                ; WorldData::restrict
+678d0a: call 0x9072e0                ; GraphicPieces::verify_ammo_flags(.., 1)
+                                     ;   then AmmoOut::puncture_ground
+```
+
+So the two sites are **`0x0067_8cb9`** (`+0xc59`, x) and
+**`0x0067_8cde`** (`+0xc7e`, y), each the return address of a call to
+`game_random` — the sync generator, which is also why the trace printed
+them at all. Both are `% 41 - 20`, a ±20-world-unit jitter, and the
+result is consumed by `puncture_ground`: **cosmetic, and it still moves
+the stream.**
+
+This crate has spent both draws since the ammo list existed —
+`Sim::land`'s `let Some(t) = target else { … }` arm, two bare
+`rng.roll()`s under a comment that said what they were — and named
+neither. `sim::fight::SITE_PUNCTURE_X` and `SITE_PUNCTURE_Y` are the
+labels now, marked per draw for `SITE_AMMO_SCATTER_X`'s reason: two
+addresses are two entries in the compared sequence and one label folds
+them into one.
+
+### 39.2 What it moved, and what it did not
+
+| | before | after |
+|---|---|---|
+| Great Lakes long word, **sequence** | 10237 | **10244** |
+| Great Lakes long word, **count** | 10244 | 10244 (unchanged) |
+| run53 frames draw for draw, of 24,000 | 10,506 | **10,509** |
+| run53 frames on the original's count | 11,922 | 11,922 (unchanged) |
+
+The three frames are the whole of the +3, and they are the whole of the
+change. **The original takes this draw on exactly three frames of
+run53's 24,000 — 10237, 10242 and 10249 — and this crate on the same
+three and no others**, which is what makes the pair a pin and not just a
+name. All three now agree draw for draw, whole:
+
+```
+frame 10237: ours 7 theirs 7   (…, calc_market ×3, two inc_time wraps, puncture x, y)
+frame 10242: ours 8 theirs 8   (…, six set_anim rolls, puncture x, y)
+frame 10249: ours 6 theirs 6   (…, four set_anim rolls, puncture x, y)
+```
+
+**No draw attribution changed on any other frame**, and that is measured
+rather than argued: the whole 24,000-frame label dump was taken either
+side of the change (`RON_DEBUG_SITES=0-24000`) and the diff is 52 lines,
+every one of them on 10237, 10242, 10249 or the summary line. Before the
+change the bare label `projectiles` occurred on those three frames and
+nowhere else in the game; after it, nowhere at all. On the original's
+side, `Ammo::do_damage` draws on those three frames in every Great Lakes
+trace on disk (run53, run80, run100, run18a), on sixteen frames of run16
+and one of run24, and in none of the other ninety-odd traces — and
+neither run16 nor run24 is read for labels by any test.
+
+The word is again **one** number, and what stands at 10244 *is* a
+simulation disagreement: four draws against three, parting at index 1,
+ours `Guy::set_anim+0x97a < Unit::move_step+0x823` — the blocked stand —
+against the original's `Guy::inc_time+0x271` wrap.
+
+### 39.2.1 The value diff beside the move
+
+A draw stream can agree on a wrong destination for a long time, so the
+move is booked with the dump's own coordinates on the frame it moved.
+The window `run100_s_word_frame_is_the_original_s` and
+`…_block_is_every_record_the_dump_carries` walk runs to the headline, so
+raising the word by seven opened **seven blocks nobody had ever
+compared** — and this is what is in them. None of it is new behaviour;
+483 changed no simulation line. `ORDER_RESIDUE_RUN97`'s lesson, in the
+direction that adds rows rather than counts.
+
+**The word's own block (10245, the state after frame 10244) is eleven
+rows and they are all one unit:**
+
+```
+1/27 collide:            ours 2    theirs 1
+1/27 collide_o:          ours 29   theirs -1
+1/27 collide_who:        ours 1    theirs -1
+1/27 g.stopped[0]:       ours 1    theirs 0
+1/27 g.cur_anim[0]:      ours 0    theirs 7
+1/27 g.cur_time[0]:      ours 1    theirs 3
+1/27 g.end_time[0]:      ours 31   theirs 13
+1/27 g.last_time[0]:     ours 0    theirs 2
+1/27 order:coll:         ours Some((4701, 29818))  theirs (4637, 29827)
+1/27 order:move.dest:    ours 0    theirs 1
+1/27 path:length:        ours 49   theirs 43
+```
+
+**The dump and the draw stream name the same unit and the same
+mechanism.** `1/27` is colliding in this crate and not in the original —
+`collide_o 29` is the unit it has run into — so it is stopped on an
+animation that has just begun where the original's is three frames into
+a walk. That *is* the extra draw: `Unit::move_step+0x823` is the blocked
+stand. Nothing had to be hypothesised to join them; the two instruments
+met on their own.
+
+**And the cause is upstream, two frames and one unit over.** The thing
+`1/27` collides with is `1/29`, which on block 10241 drops its move
+order where the original keeps walking:
+
+```
+f10241  1/29 order:kind:    ours 10  theirs 1
+f10241  1/29 path:length:   ours 0   theirs 43
+f10242  1/29 g.stopped[0]:  ours 1   theirs 0
+f10242  1/29 pos:           ours (4680,29928)  theirs (4708,29936)
+```
+
+Twenty-eight world units short in `x` and standing still, two frames
+before `1/27` walks into the space it should have left. That is the
+successor item, named by its frame and its rows and **not** by a
+mechanism — `order:kind` 10 against 1 is where to start reading and not
+a claim about why.
+
+Both rows are pinned rather than waved at: `RAIDER_STOPS` and
+`RAIDER_COLLIDES` name them in the window test the way `RAIDER_X` and
+`RAID` name theirs, so the day either closes, that test fails. The
+standing position residue over the window goes four keys to six —
+`(1,24), (1,25), (1,26), (1,28)` plus `(1,27)` and `(1,29)` — and the
+block the word left (10238) is pinned empty, which is what it was when
+the word stood on it.
+
+### 39.3 The guard this item is really for, and what it found
+
+A label change moves the score without changing behaviour, which is
+exactly the shape a **wrong** label would also have. `SITES` is the one
+place in `rondata` where a number carries a name, and a wrong pairing is
+the one error the differential check cannot report: it makes a frame read
+as agreeing, or as parting somewhere else, and nothing else in the suite
+looks at the pairing at all.
+
+So the row is now checked rather than trusted.
+`rondata::trace::tests::every_site_s_address_is_the_function_its_label_names`
+resolves **every** row's address to its containing function in the
+decompile export's `INDEX.tsv` and requires the label's own
+`Name+0xoff` to be that function and that offset; a chain-qualified row
+is checked at both ends, its `via` against the label's last link. The
+whole table, in a millisecond, every commit. It skips loudly on a machine
+without the export, the way `sim`'s
+`every_cited_address_names_its_function` does.
+
+It was made to fail four ways before it landed — one digit off each of
+the two new sites, `SITE_PUNCTURE_X`'s address moved onto
+`SITE_FIRST_WOUND`'s row, and `SITE_TURN_NEAR`'s `via` replaced by its
+neighbour's — **and it failed for real on its first run**, on a row
+nobody had reason to doubt:
+
+> `Object::take_damage+0x18b 0x0065218b is Object::take_damage+0x16b and
+> the label says +0x18b`
+
+`SITE_FIRST_WOUND_FLOCK` is the siege-hit flock's `% 2 + 3`
+(`docs/COMBAT.md` §7.2 step 3), and its label is right: the
+`Random::get` at `6521a6` returns to **`0x0065_21ab`**. The table held
+`0x0065_218b` — two digits transposed, onto an address that is not even
+an instruction boundary (`65218a` is a three-byte `mov 0x18(%eax),%ecx`),
+so the row could never have matched a draw and the flock's would have
+printed as a bare `6521ab`. Corrected here. **No comparison moved**: a
+scan of all 102 traces on disk finds site `0x6521ab` in none of
+them, so the flock has never been drawn in a captured game. The row was
+dead and it is now right, which is the cheapest kind of correction and
+the kind only a guard finds.
+
+### 39.4 Coverage
+
+**Diff-backed**:
+`run53_s_24000_frames_put_the_ceiling_where_run33_did` now pins the three
+puncture frames — that the original takes the pair on exactly
+`[10237, 10242, 10249]` of 24,000 frames, that this crate takes it on the
+same three, that each of those frames ends on the pair in that order, and
+that 10237 and 10242 (both below the word) agree draw for draw. Made to
+fail on purpose by dropping the `SITE_PUNCTURE_X` mark, which parts
+10237 at the pair's first entry.
+
+**Dump-backed**: §39.2.1's rows, from
+`run100_s_word_block_is_every_record_the_dump_carries` with
+`RON_DEBUG_ROWS=10236-10246`. The word's own block is pinned as the
+eleven rows above and the block it left as empty; the window test names
+the two newly-exposed position rows by frame. All three re-pins **failed
+for real** before they were written — they are what the gate reported
+when the word moved, not assertions written to a tree that already
+passed.
+
+**Listing-backed**: §39.1's disassembly, read from `riseofnations.exe`
+with `llvm-objdump` at `0x678c60`–`0x678d10`, and the same for
+`0x652170`–`0x6521c0` in §39.3. The containing functions are the
+decompile export's (`00678060 Ammo::do_damage`, `00652020
+Object::take_damage`), and `every_site_s_address_is_the_function_its_
+label_names` re-derives the pairing from that index on every commit
+rather than trusting this paragraph.
+
+**What this does not establish, and the one predicate it found.** The
+draw arm's *gate* is not quite this crate's, and the difference is
+one clause that no capture on disk reaches. The original takes the two
+draws when
+
+```
+target_slot < 0 || target_owner < 0 || (target == shooter)
+```
+
+— so a shot that lands on **its own shooter** punctures the ground and
+spends both draws. `Sim::land` returns without drawing there
+(`if t == p.shooter { return; }`). The clause is very likely dead in
+practice: `Ammo::check_hit`'s `find_unit` is filtered by the shooter's
+own owner, and this crate's `check_hit` excludes the shooter outright,
+so the pair can only carry the shooter if a unit fired at itself. It is
+left alone deliberately — this item changed no behaviour, and mixing a
+behavioural change into a label-only measurement would have destroyed
+the one thing the measurement proves. **It is a parked row, with its
+falsifier named**: a capture in which a unit's shot lands on itself, or a
+synthesized `callfn` entry into `do_damage` with `0x48/0x4c` equal to
+`0x3c/0x40`, would turn the two draws into a visible count delta. No
+capture on disk has one.
+
+Nor does this section establish anything about the *arithmetic* the two
+draws feed: this crate discards both rolls, because `puncture_ground`
+leaves a decal and nothing the simulation reads. Only the draws' count,
+order and sites are modelled, and only those are pinned.
