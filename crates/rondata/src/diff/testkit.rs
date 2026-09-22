@@ -1620,7 +1620,13 @@ pub(crate) const WIDENING_GREAT_LAKES: (i64, i64) = (9_340, 10_247);
 /// compared. It straddled the word at 624 until item 462 moved the word
 /// to 637 and moved the window with it, which is parked 449's lesson
 /// applied at the move rather than after it.
-pub(crate) const WIDENING_CHAPTER_TWO: (i64, i64) = (633, 641);
+///
+/// **The floor is run112's own first block since item 470**, and not a
+/// few frames under the word. At 633 it was three frames above a live
+/// divergence — `order 0/10` and `pos 0/10` part at 630 and had never
+/// been reported — so a window sized to the word was reporting agreement
+/// it had not measured (`docs/COMBAT.md` §35.2).
+pub(crate) const WIDENING_CHAPTER_TWO: (i64, i64) = (606, 641);
 
 /// One pinned word's row: `(constant, word, widening test, item, window)`.
 pub(crate) type Widening = (

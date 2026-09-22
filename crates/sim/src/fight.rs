@@ -293,6 +293,17 @@ impl Sim {
     /// attacker's own — the eight-argument overload, which
     /// `Group::action_attack` uses to ask whether a member's current move
     /// order would carry it into range (`docs/GROUPS.md` §10).
+    ///
+    /// **SEAM — `006486b0`'s sixth argument** ([`combat::in_range`]'s
+    /// `melee_bonus`, which nothing passes). Every call site in the
+    /// executable passes it `0` but one: `do_move@005f7b30:216`, the kill
+    /// that ends a chase because the target came into reach, which passes
+    /// `attack->mandatory == 0` and thereby shrinks the max-range test by
+    /// `0x90`. Item 470 implemented it and measured it in both
+    /// directions; it is right about chapter two's `0/11` and one frame
+    /// late about `0/10`, and it is not in the tree — `docs/COMBAT.md`
+    /// §35.3 has the table and `docs/ORDERS.md` §4.4 the predicate it
+    /// belongs to.
     pub fn is_in_range_at(&self, attacker: Obj, at: Pos, target: Obj) -> bool {
         if !self.active(target) {
             return false;
@@ -1339,6 +1350,12 @@ impl Sim {
         let minr = ap.min_range * 0xc0;
         let maxr = self.max_range_of(attacker) * 0xc0;
         let centre = at.cell();
+        // **`local_40`, computed once before the rings** (`00648e6e`), off
+        // the *searcher's* own leader and not the candidate's. It is
+        // `compare_target`'s fourth argument and nothing else here reads
+        // it; `00648e85`'s companion adjustment of the `flags` word on the
+        // same arm is a seam (`docs/COMBAT.md` §33.5).
+        let ai = self.search_ai(self.owner_of(attacker));
 
         // The buildings, which this crate does not thread onto the world
         // cell's object chain (`Sim::cell_chain`). The original's chain
@@ -1419,7 +1436,7 @@ impl Sim {
                             Obj::Building(b) => self.buildings[b].targeted,
                         };
                         dist += (targeted + 8) * 0x30;
-                        let value = self.compare_target(attacker, o, in_range);
+                        let value = self.compare_target(attacker, o, in_range, ai);
                         let mut score = value / (dist / 0xc0 + 1);
                         if score == 0 && value != 0 {
                             score = 1;
@@ -1454,15 +1471,21 @@ impl Sim {
     }
 
     /// `Object::compare_target(o, who, in_range, ai)` (§12.3), the skeleton the
-    /// simulation can evaluate, for a human owner.
+    /// simulation can evaluate.
     ///
-    /// **`ai` is not a parameter here, and that is a known gap rather than
-    /// an oversight** — `docs/COMBAT.md` §33.2. `0064ef4b` **divides** by
-    /// the damage a human's arm multiplies by, so the two rankings differ
-    /// in sign; item 466 established it against the dump and could not
-    /// land it, because the correct ranking exposes `find_open_slots`'
-    /// own defect. It lands with item 470.
-    pub fn compare_target(&self, attacker: Obj, target: Obj, in_range: bool) -> i32 {
+    /// **`ai` is the searcher's leader, and it inverts the damage weight**
+    /// — `docs/COMBAT.md` §33.2. `0064ef4b` reads
+    /// `if (ai == 0) v = v * dmg; else { if (dmg == 0) return 0; v = v /
+    /// dmg; }`, so a human's search is drawn to what it kills fastest and
+    /// a computer leader's to what it kills *slowest*, cost and fragility
+    /// carrying the pick instead. It is computed once per search by
+    /// [`Sim::search_ai`] and not per candidate, exactly as
+    /// `00648e6e`-`00648e8d` computes `local_40` before the rings.
+    ///
+    /// `ai`'s other arms — the building-class multipliers at `0064e6a5`,
+    /// `0064e9e2` and `0064e7bb` — are still unmodelled, and no capture on
+    /// disk puts a building in a target search (§33.5).
+    pub fn compare_target(&self, attacker: Obj, target: Obj, in_range: bool, ai: bool) -> i32 {
         let ap = self.profile(attacker);
         let tp = self.profile(target);
         let is_build = matches!(target, Obj::Building(_));
@@ -1531,7 +1554,17 @@ impl Sim {
                 &self.mods[self.owner_of(attacker) as usize],
             )
         };
-        v *= i64::from(dmg);
+        // **`0064ef4b`, both arms.** A human multiplies; a computer
+        // leader on the lobby's own difficulty divides, and a candidate it
+        // cannot hurt at all scores zero rather than dividing by nothing.
+        if ai {
+            if dmg == 0 {
+                return 0;
+            }
+            v /= i64::from(dmg);
+        } else {
+            v *= i64::from(dmg);
+        }
         if is_build {
             // Armed buildings: a human owner gets ×5; siege adds 100,000.
             let armed = t_attack != 0 && !(aa && !matches!(ap.domain, Domain::Air));
