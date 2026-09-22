@@ -927,6 +927,625 @@ fn chapter_one_s_squad_is_handed_its_captain_s_target() {
     );
 }
 
+/// **Chapter one's word frame, widened whole** (item 445,
+/// `docs/COMBAT.md` §48): every record run105 dumps over
+/// [`WIDENING_CHAPTER_ONE`], every unit of both real players, every field
+/// this crate carries, both directions. The figure's animation clock comes
+/// from run110.
+///
+/// The word stood at 626 from item 405 with no widening on file. The
+/// tests above it each pin one mechanism: the seating, the reach, the
+/// captain's pick, the hit, the hand-off. None of them compares the cast.
+/// This is `compare` plus the record's own rows, ungated by the position,
+/// which is the shape Great Lakes'
+/// `run100_s_word_block_is_every_record_the_dump_carries` has and
+/// chapter two's widening lacked until items 484, 510 and 523 added to it
+/// one at a time.
+///
+/// **Two captures, one game.** run105 (`g4`) is the scored capture and
+/// prints `GUYS=2`, which stops a `GUY` block after `ox`. run110 (`g6`) is
+/// the same lobby, seed and script at `GUYS=9` over `[610, 630)`, and
+/// `rngcmp.py` has its trace identical to run105's for all 641 frames
+/// (`docs/RUNS.md` run110). Every key both files print on a `GUY` block is
+/// asserted equal before a key only run110 prints is read from it, as
+/// chapter two does with run118.
+#[test]
+fn chapter_one_s_word_frame_is_widened_whole() {
+    /// run110's window (`docs/RUNS.md` run110): its clocks cover these
+    /// blocks and nothing else.
+    const RUN110: (i64, i64) = (610, 630);
+    const FIRST: i64 = WIDENING_CHAPTER_ONE.0;
+    const LAST: i64 = WIDENING_CHAPTER_ONE.1;
+    let Some(inst) = crate::testenv::install() else {
+        return;
+    };
+    let Some((dump, tracepath)) = golden("g4") else {
+        eprintln!("skipping: no golden capture g4 (see docs/RUNS.md run105)");
+        return;
+    };
+    let trace = crate::trace::Trace::read(std::path::Path::new(&tracepath))
+        .expect("a finalized golden trace")
+        .expect("missing RONT header");
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(&dump);
+    let log = Log::parse(&text);
+    let texts = sibling_texts();
+    let logs = siblings(&texts);
+    let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+    let refs: Vec<&Initial> = inits.iter().collect();
+    if refs.is_empty() {
+        eprintln!("skipping: no sibling dumps");
+        return;
+    }
+    let mut ix = crate::capture::indexed::IndexedCapture::open(&dump).unwrap();
+    let mut clocks =
+        golden("g6").and_then(|(d, _)| crate::capture::indexed::IndexedCapture::open(&d).ok());
+    if clocks.is_none() {
+        eprintln!("no g6 capture: the GUY clock rows are unchecked (docs/RUNS.md run110)");
+    }
+    let mut built = stand_up(&loaded, &log, &refs, &trace);
+    let players = built.sim.players.len();
+    let mut script = chapter(1);
+    use std::collections::BTreeMap;
+    // Every key that parted, against the **first** block it parted on and
+    // the value diff there.
+    let mut first: BTreeMap<String, (i64, String)> = BTreeMap::new();
+    let mut note = |k: String, n: i64, row: String| {
+        first.entry(k).or_insert((n, row));
+    };
+    let mut blocks = 0usize;
+    let mut rows = 0usize;
+    let mut clock_blocks = 0usize;
+    let mut clock_rows = 0usize;
+    let mut near_read = 0usize;
+    for f in 0..LAST - 1 {
+        script.stage(built.sim.frame, &mut built, &loaded);
+        built.tick();
+        // The dump's label is the sim frame plus one, as in chapter two:
+        // the tick that spends the word's draws, frame 626, writes block
+        // 627.
+        let n = f + 1;
+        if n < FIRST {
+            continue;
+        }
+        let Some(at) = ix.frames().iter().position(|x| x.number == n) else {
+            continue;
+        };
+        let frame = ix.frame_state(at).unwrap();
+        let raw = ix.read_frame(at).unwrap();
+        blocks += 1;
+        // `RON_DEBUG_UNIT=<who>/<o>@<lo>-<hi>`: what this crate's own
+        // record held on the block, which the rows below never say.
+        crate::diff::harness::debug_watch(&built, n);
+        let r = compare(&built, &frame, players);
+        for d in &r.diverged {
+            note(
+                format!("pos {}/{}", d.who, d.o),
+                n,
+                format!("ours {:?} theirs {:?}", d.ours, d.theirs),
+            );
+        }
+        for d in &r.order_diverged {
+            note(
+                format!("order:{} {}/{}", d.what.label(), d.who, d.o),
+                n,
+                format!("{:?}", d.what),
+            );
+        }
+        for (tag, list) in [("angle", &r.angle_diverged), ("angle~", &r.angle_parted)] {
+            for d in list {
+                note(
+                    format!("{tag}:{:?} {}/{}", d.which, d.who, d.o),
+                    n,
+                    format!("ours {} theirs {}", d.ours, d.theirs),
+                );
+            }
+        }
+        for (tag, list) in [("", &r.collide_diverged), ("~", &r.collide_parted)] {
+            for d in list {
+                note(
+                    format!("{}{tag} {}/{}", d.field, d.who, d.o),
+                    n,
+                    format!("ours {} theirs {}", d.ours, d.theirs),
+                );
+            }
+        }
+        for (tag, list) in [("", &r.search_diverged), ("~", &r.search_parted)] {
+            for d in list {
+                note(
+                    format!("start_dist{tag} {}/{}", d.who, d.o),
+                    n,
+                    format!("ours {} theirs {}", d.ours, d.theirs),
+                );
+            }
+        }
+        for d in &r.los_diverged {
+            note(
+                format!("mylos {}/{}", d.who, d.o),
+                n,
+                format!("ours {} theirs {}", d.ours, d.theirs),
+            );
+        }
+        for d in &r.packed_diverged {
+            note(
+                format!("packed {}/{}", d.who, d.o),
+                n,
+                format!("ours {}", d.ours),
+            );
+        }
+        for d in &r.visible_diverged {
+            note(
+                format!("visible {}/{}", d.who, d.o),
+                n,
+                format!("ours {} theirs {}", d.ours, d.theirs),
+            );
+        }
+        for d in &r.hits_diverged {
+            note(
+                format!("{} {}/{}", d.field, d.who, d.o),
+                n,
+                format!("ours {} theirs {}", d.ours, d.theirs),
+            );
+        }
+        for d in &r.firing_diverged {
+            note(
+                format!("{} {}/{}", d.field, d.who, d.o),
+                n,
+                format!("ours {} theirs {}", d.ours, d.theirs),
+            );
+        }
+        for d in &r.death_diverged {
+            note(
+                format!("death:{} {}/{}", d.field, d.who, d.o),
+                n,
+                format!("ours {} theirs {}", d.ours, d.theirs),
+            );
+        }
+        for d in &r.gather_diverged {
+            note(
+                format!("gather:{}[{}] {}/{}", d.field, d.at, d.who, d.o),
+                n,
+                format!("ours {} theirs {}", d.ours, d.theirs),
+            );
+        }
+        for d in &r.build_diverged {
+            note(
+                format!("build:{} {}/{}", d.field, d.who, d.o),
+                n,
+                format!("ours {} theirs {}", d.ours, d.theirs),
+            );
+        }
+        for d in &r.queue_diverged {
+            note(
+                format!("queue:{} {}/{}", d.field, d.who, d.o),
+                n,
+                format!("ours {} theirs {}", d.ours, d.theirs),
+            );
+        }
+        for d in &r.city_diverged {
+            note(
+                format!("city:{} {}/{}", d.field, d.who, d.o),
+                n,
+                format!("ours {} theirs {}", d.ours, d.theirs),
+            );
+        }
+        for &(who, o) in &r.unlinked_units {
+            note(
+                format!("unlinked {who}/{o}"),
+                n,
+                "the dump holds it alone".into(),
+            );
+        }
+        for &(who, o) in &r.extra_units {
+            note(
+                format!("extra {who}/{o}"),
+                n,
+                "this crate holds it alone".into(),
+            );
+        }
+        // The other direction on the buildings, which `compare` does not
+        // take.
+        for b in built.sim.buildings.iter().filter(|b| b.alive) {
+            let (w, o) = (i64::from(b.owner), i64::from(b.index));
+            if (0..players as i64).contains(&w)
+                && !frame.builds.iter().any(|x| x.who == w && x.o == o)
+            {
+                note(
+                    format!("build:extra {w}/{o}"),
+                    n,
+                    "this crate holds it alone".into(),
+                );
+            }
+        }
+        // `near_o`/`near_who`, which no parser carries: read off the
+        // block's own text, as chapter two's near test does.
+        let near = raw_near(&raw);
+        let clock = clocks.as_mut().and_then(|c| {
+            let at = c.frames().iter().position(|x| x.number == n)?;
+            c.frame_state(at).ok()
+        });
+        if clock.is_some() {
+            clock_blocks += 1;
+        }
+        // **The record's own rows, ungated by the position**: everything
+        // the `UNITDATA` and `GUY` blocks print that `compare` either does
+        // not read or reads only where the positions agree.
+        for them in &frame.units {
+            if !(0..players as i64).contains(&them.who) {
+                continue;
+            }
+            let (Ok(who), Ok(o)) = (u8::try_from(them.who), i16::try_from(them.o)) else {
+                continue;
+            };
+            let Some(u) = built.sim.unit_by_o(who, o) else {
+                continue;
+            };
+            let un = &built.sim.units[u];
+            let near_ours = match un.near {
+                Some(sim::combat::Obj::Unit(x)) => (
+                    i64::from(built.sim.units[x].owner),
+                    i64::from(built.sim.units[x].index),
+                ),
+                _ => (-1, -1),
+            };
+            let near_theirs = near.get(&(them.who, them.o)).copied();
+            if near_theirs.is_some() {
+                near_read += 1;
+            }
+            let mut own: Vec<(String, i64, Option<i64>)> = vec![
+                ("near_o".into(), near_ours.1, near_theirs.map(|p| p.0)),
+                ("near_who".into(), near_ours.0, near_theirs.map(|p| p.1)),
+                (
+                    "heading".into(),
+                    i64::from(un.movement.heading.0),
+                    them.angle,
+                ),
+                (
+                    "dest_angle".into(),
+                    i64::from(un.movement.des_angle.0),
+                    them.dest_angle,
+                ),
+                ("orders_x".into(), i64::from(un.orders_pos.x), them.orders_x),
+                ("orders_y".into(), i64::from(un.orders_pos.y), them.orders_y),
+                ("tolerance".into(), i64::from(un.tolerance), them.tolerance),
+                (
+                    "path_recursion".into(),
+                    i64::from(un.path_recursion),
+                    them.path_recursion,
+                ),
+                ("idle".into(), i64::from(un.idle), them.idle),
+                ("stance".into(), i64::from(un.stance), them.stance),
+                ("myspeed".into(), i64::from(un.movement.speed), them.myspeed),
+                ("group".into(), built.sim.pool_group_of(u), them.group),
+                ("form".into(), i64::from(un.form), them.form),
+                ("form_mod".into(), i64::from(un.form_width), them.form_mod),
+                (
+                    "orders.len".into(),
+                    un.orders.len() as i64,
+                    Some(them.orders.len() as i64),
+                ),
+                (
+                    "guys.len".into(),
+                    un.guys.len() as i64,
+                    Some(them.guys.len() as i64),
+                ),
+            ];
+            if un.on_map {
+                for (k, ours, theirs) in [
+                    ("collide", i64::from(un.collide), them.collide),
+                    ("collide_o", i64::from(un.collide_o), them.collide_o),
+                    ("collide_who", i64::from(un.collide_who), them.collide_who),
+                    ("collide_guy", i64::from(un.collide_guy), them.collide_guy),
+                    ("safe", i64::from(un.safe), them.safe),
+                    ("start_dist", i64::from(un.start_dist), them.start_dist),
+                    (
+                        "half_step",
+                        i64::from(un.half_step),
+                        them.unit_masks.map(|m| i64::from(m & 0x10_0000 != 0)),
+                    ),
+                ] {
+                    own.push((format!("{k}!"), ours, theirs));
+                }
+            }
+            // The same unit in the clock capture, by `(who, o)`: the two
+            // files are one game, so the slot is the same unit.
+            let g6 = clock
+                .as_ref()
+                .and_then(|c| c.units.iter().find(|x| x.who == them.who && x.o == them.o));
+            for (k, g) in them.guys.iter().enumerate() {
+                let Some(og) = un.guys.get(k).copied() else {
+                    continue;
+                };
+                let g = match g6.and_then(|x| x.guys.get(k)) {
+                    Some(c) => {
+                        // Every key run105 prints on a `GUY` block at
+                        // `GUYS=2`; `des` is not one of them.
+                        assert_eq!(
+                            (g.pos, g.angle, g.des.or(c.des)),
+                            (c.pos, c.angle, c.des),
+                            "block {n}, {who}/{o} guy {k}: run110 is not run105's game"
+                        );
+                        clock_rows += 1;
+                        c
+                    }
+                    None => g,
+                };
+                let (body, facing, des, des_angle) = match og.follow {
+                    Some(b) => (b.body, b.facing, b.des, b.des_angle),
+                    None if k == 0 => (
+                        un.movement.body,
+                        un.movement.facing,
+                        un.pos,
+                        un.movement.heading,
+                    ),
+                    None => (
+                        un.movement.body,
+                        un.movement.facing,
+                        un.pos,
+                        un.movement.facing,
+                    ),
+                };
+                let track = og.follow.map_or((0, 0), |b| b.track);
+                for (name, ours, theirs) in [
+                    ("g.x", i64::from(body.pos.x), g.pos.map(|p| p.x)),
+                    ("g.y", i64::from(body.pos.y), g.pos.map(|p| p.y)),
+                    ("g.angle", i64::from(facing.0), g.angle),
+                    ("g.des_x", i64::from(des.x), g.des.map(|p| p.x)),
+                    ("g.des_y", i64::from(des.y), g.des.map(|p| p.y)),
+                    ("g.des_angle", i64::from(des_angle.0), g.des_angle),
+                    ("g.cur_anim", i64::from(og.anim), g.cur_anim),
+                    ("g.cur_time", i64::from(og.cur_time), g.cur_time),
+                    ("g.end_time", i64::from(og.end_time), g.end_time),
+                    ("g.last_time", i64::from(og.last_time), g.last_time),
+                    ("g.gpiece", i64::from(og.gpiece), g.gpiece),
+                    ("g.stopped", i64::from(og.stopped), g.stopped),
+                    ("g.hold_attack", i64::from(og.pending_attack), g.hold_attack),
+                    (
+                        "g.queued_attack",
+                        i64::from(og.queued_attack),
+                        g.queued_attack,
+                    ),
+                    ("g.track_dx", i64::from(track.0), g.track.map(|t| t.0)),
+                    ("g.track_dy", i64::from(track.1), g.track.map(|t| t.1)),
+                    ("g.last_speed", i64::from(body.last_speed), g.last_speed),
+                    ("g.avg_speed", i64::from(body.avg_speed), g.avg_speed),
+                ] {
+                    own.push((format!("{name}[{k}]"), ours, theirs));
+                }
+            }
+            for (name, ours, theirs) in own {
+                let Some(theirs) = theirs else { continue };
+                rows += 1;
+                if ours != theirs {
+                    note(
+                        format!("{name} {who}/{o}"),
+                        n,
+                        format!("ours {ours} theirs {theirs}"),
+                    );
+                }
+            }
+        }
+    }
+    let on: Vec<String> = first
+        .iter()
+        .map(|(k, (n, row))| format!("{n} {k}: {row}"))
+        .collect();
+    eprintln!(
+        "ch1 widening: {blocks} blocks [{FIRST}, {LAST}), {rows} record rows, \
+         {clock_rows} clock rows over {clock_blocks} blocks, {near_read} near pairs, \
+         {} keys parted",
+        first.len()
+    );
+    for r in &on {
+        eprintln!("  {r}");
+    }
+    // **Anti-vacuity.** Every block of the window is in run105, run110
+    // covers its own window whole, and the near pairs and clock rows were
+    // actually read: each is a row whose agreement would otherwise be a
+    // silence.
+    assert_eq!(
+        blocks,
+        (LAST - FIRST) as usize,
+        "run105 no longer carries every block of [{FIRST}, {LAST})"
+    );
+    if clocks.is_some() {
+        assert_eq!(
+            clock_blocks,
+            (RUN110.1 - RUN110.0) as usize,
+            "run110 no longer carries every block of [{}, {})",
+            RUN110.0,
+            RUN110.1
+        );
+        // 379 when it was written: sixteen to nineteen living figures on
+        // each of run110's twenty blocks.
+        assert!(
+            clock_rows >= 350,
+            "only {clock_rows} guy records came from run110; the clock rows compare nothing"
+        );
+    }
+    // 2993 when it was written: every unit of both players on every block.
+    assert!(
+        near_read >= 2_500,
+        "only {near_read} unit-frames carried a near pair; the raw read found nothing"
+    );
+    let staged = built
+        .sim
+        .units
+        .iter()
+        .filter(|u| u.owner < 2 && u.index >= 6)
+        .count();
+    assert_eq!(
+        staged, 6,
+        "the window does not hold chapter one's six hoplites"
+    );
+    // **The map, and its shape is the finding** (item 445). Before the
+    // enemy ladder landed, the window `[605, 630)` held 87 keys and the
+    // earliest row on the word's own frame was `0/8` on **625**, a block
+    // under the word: position, order list, path, `collide`, the clock,
+    // `recharging`, `visible`, and `damage 1/6` on 626 downstream of it.
+    // All of those close with §6 step 3's arm B (`docs/COMBAT.md` §48),
+    // and the word went 626 → 774. The window moved with it.
+    //
+    // What stands, by family:
+    //
+    // - **605, the floor**: the city record of `0/2000`, which this crate
+    //   holds empty (`busy`, `filled`, `land`, `space`, `ter`, and
+    //   `1/2000`'s by one), `form` on the ten pre-existing units, and four
+    //   `dest_angle`s. All older than the chapter's first staged line.
+    // - **610, `g.gpiece`** on the ten pre-existing units: one age bracket
+    //   under the dump's, chapter two's same ten (`docs/ANIM.md`).
+    // - **611 and 616, the births**: `form` −1 against 0 on all six
+    //   hoplites, and `orders_x/orders_y` on `0/7` and `0/8` — this crate
+    //   seeds a follower's with its captain's point, the dump with its
+    //   own. Neither spends a draw.
+    // - **617–623, `g.end_time`** on three citizens: 33 against 56, an
+    //   idle length, beside the `gpiece` bracket.
+    // - **618–652, `dest_angle`** on five hoplites, `0/8`'s on 627 among
+    //   them. No position or clock parts beside any of them, and no draw
+    //   reads them inside this window. Not examined.
+    // - **765, the next frame**: `1/7` and `1/8` take a far walk to about
+    //   (38.6k, 13.4k). The original's is `ATTACK_TO` (2) with `stance 1`
+    //   and this crate's `GROUP_ATTACK_TO` (21) with `stance 0`. Their
+    //   captain `1/6` is dead by 764 and `1/7` leads pool group 64. `1/8`'s
+    //   position parts there. The word on 774 is a blocked step the
+    //   original takes and this crate does not (`Guy::set_anim+0x97a`,
+    //   unattributed on the original's side), and `1/7`'s rows on 774–775
+    //   sit beside it.
+    let got: Vec<(&str, i64)> = first.iter().map(|(k, (n, _))| (k.as_str(), *n)).collect();
+    let measured = [
+        ("angle~:Facing 1/7", 775),
+        ("angle~:Facing 1/8", 765),
+        ("angle~:Heading 1/7", 775),
+        ("angle~:Heading 1/8", 765),
+        ("city:busy 0/2000", 605),
+        ("city:filled 0/2000", 605),
+        ("city:filled 1/2000", 605),
+        ("city:gatherers 0/2000", 605),
+        ("city:land 0/2000", 605),
+        ("city:land 1/2000", 605),
+        ("city:peasant_dist 0/2000", 605),
+        ("city:space[0] 0/2000", 605),
+        ("city:space[1] 0/2000", 605),
+        ("city:space[2] 0/2000", 605),
+        ("city:ter[0] 0/2000", 605),
+        ("city:ter[1] 0/2000", 605),
+        ("city:ter[3] 0/2000", 605),
+        ("city:ter[4] 0/2000", 605),
+        ("dest_angle 0/1", 605),
+        ("dest_angle 0/2", 605),
+        ("dest_angle 0/6", 652),
+        ("dest_angle 0/7", 620),
+        ("dest_angle 0/8", 627),
+        ("dest_angle 1/1", 605),
+        ("dest_angle 1/2", 605),
+        ("dest_angle 1/6", 618),
+        ("dest_angle 1/7", 628),
+        ("dest_angle 1/8", 628),
+        ("form 0/0", 605),
+        ("form 0/1", 605),
+        ("form 0/2", 605),
+        ("form 0/3", 605),
+        ("form 0/4", 605),
+        ("form 0/5", 605),
+        ("form 0/6", 611),
+        ("form 0/7", 611),
+        ("form 0/8", 611),
+        ("form 1/1", 605),
+        ("form 1/2", 605),
+        ("form 1/3", 605),
+        ("form 1/4", 605),
+        ("form 1/5", 605),
+        ("form 1/6", 616),
+        ("form 1/7", 616),
+        ("form 1/8", 616),
+        ("g.angle[0] 1/7", 775),
+        ("g.angle[0] 1/8", 765),
+        ("g.end_time[0] 0/1", 617),
+        ("g.end_time[0] 0/2", 623),
+        ("g.end_time[0] 1/2", 619),
+        ("g.gpiece[0] 0/1", 610),
+        ("g.gpiece[0] 0/2", 610),
+        ("g.gpiece[0] 0/3", 610),
+        ("g.gpiece[0] 0/4", 610),
+        ("g.gpiece[0] 0/5", 610),
+        ("g.gpiece[0] 1/1", 610),
+        ("g.gpiece[0] 1/2", 610),
+        ("g.gpiece[0] 1/3", 610),
+        ("g.gpiece[0] 1/4", 610),
+        ("g.gpiece[0] 1/5", 610),
+        ("g.x[0] 1/7", 775),
+        ("g.x[0] 1/8", 765),
+        ("g.y[0] 1/7", 775),
+        ("g.y[0] 1/8", 765),
+        ("heading 1/7", 775),
+        ("heading 1/8", 765),
+        ("near_o 1/7", 774),
+        ("near_who 1/7", 774),
+        ("order:order:kind 1/7", 765),
+        ("order:order:kind 1/8", 765),
+        ("order:order:length 1/7", 774),
+        ("order:path:length 1/8", 765),
+        ("order:path[0].to 1/8", 765),
+        ("order:path[1].to 1/8", 765),
+        ("order:path[1].tolerance 1/8", 765),
+        ("orders.len 1/7", 774),
+        ("orders_x 0/7", 611),
+        ("orders_x 0/8", 611),
+        ("orders_x 1/7", 774),
+        ("orders_x 1/8", 765),
+        ("orders_y 0/8", 611),
+        ("orders_y 1/7", 774),
+        ("orders_y 1/8", 765),
+        ("pos 1/7", 775),
+        ("pos 1/8", 765),
+        ("stance 1/7", 765),
+        ("stance 1/8", 765),
+        ("tolerance 1/8", 765),
+    ];
+    assert_eq!(
+        got,
+        measured.to_vec(),
+        "chapter one's word frame no longer widens the way item 445 \
+         measured it; re-pin this map and say so in docs/COMBAT.md §48"
+    );
+}
+
+/// `near_o`/`near_who` for every `UNITDATA` of one block's raw text, keyed
+/// on `(who, o)`. No parser carries the pair (`ch2_dump_near` reads it the
+/// same way from a whole file).
+fn raw_near(block: &str) -> std::collections::BTreeMap<(i64, i64), (i64, i64)> {
+    let mut out = std::collections::BTreeMap::new();
+    let mut cur: Option<std::collections::BTreeMap<&str, i64>> = None;
+    let flush = |cur: &mut Option<std::collections::BTreeMap<&str, i64>>,
+                 out: &mut std::collections::BTreeMap<(i64, i64), (i64, i64)>| {
+        if let Some(r) = cur.take()
+            && let (Some(&who), Some(&o), Some(&no), Some(&nw)) =
+                (r.get("who"), r.get("o"), r.get("near_o"), r.get("near_who"))
+        {
+            out.insert((who, o), (no, nw));
+        }
+    };
+    for line in block.lines() {
+        let s = line.trim();
+        if s == "BEGIN UNITDATA" {
+            flush(&mut cur, &mut out);
+            cur = Some(std::collections::BTreeMap::new());
+            continue;
+        }
+        if s.starts_with("BEGIN ") {
+            continue;
+        }
+        let Some(r) = cur.as_mut() else { continue };
+        if let Some((k, v)) = s.rsplit_once(' ')
+            && let Ok(n) = v.parse::<i64>()
+        {
+            r.entry(k).or_insert(n);
+        }
+    }
+    flush(&mut cur, &mut out);
+    out
+}
+
 /// **Great Lakes' word does not rest on the borrowed frame stream.** Five
 /// Great Lakes captures share run11/run12/run13's setup word and therefore
 /// take fourteen of their per-frame words (frames 0–3, 94–103), which

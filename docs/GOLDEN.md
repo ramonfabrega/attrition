@@ -184,7 +184,11 @@ double as an attrition chapter.
 
 **Landed** (item 364). `tools/gamelog/golden/chapter1.cmd`, six staged lines,
 901 frames, captured five times as run101–run105 and walked in
-`crate::diff::golden`. **The word is 626 of 901.**
+`crate::diff::golden`. **The word is 774 of 901** (item 445; it stood at
+626 from item 405). Its widening is
+`chapter_one_s_word_frame_is_widened_whole`, over `[605, 779)`, with the
+figure's clock borrowed from run110 (`GUYS=9`, `[610, 630)`), because
+run105 is a `GUYS=2` capture and prints no clock (`docs/COMBAT.md` §48.1).
 
 ```
 0    !ai off

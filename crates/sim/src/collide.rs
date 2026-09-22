@@ -1336,6 +1336,61 @@ impl Sim {
 
         let who = self.units[u].owner;
         let other = self.collider_of(u);
+        // `005f9d30:96`: `update_action` runs on every path past step 0
+        // (step 1, the suicide attacker, is not modelled), and its
+        // `orders_x/y` and `dest_angle` writes are the original's own.
+        let action = self.update_action(u);
+        let attacking =
+            action.is_some_and(|a| matches!(self.units[u].orders[a].body, Body::Attack(_)));
+
+        // Step 3: **the enemy ladder** (`docs/COMBAT.md` §48). Taken when
+        // the collider is another player's (`005f9d30:98`, `collide_who`
+        // against the owner byte) and my action is an attack (vslot
+        // `+0x18`, `is_attack`). Two of its three arms:
+        //
+        // - **A** (`:162-174`): the collider *is* my attack's target. A
+        //   group order sets `collide = 1` and stops; anything else forgets
+        //   the collider and kills the current order.
+        // - **B** (`:176-187`): my attack's target exists and is in range
+        //   from where I stand (the listing at `005f9eb2` pushes the
+        //   `get_target_order`'s `ox`/`whom` and a zero, so the margin arm
+        //   is off). The current order is killed, so the move under the
+        //   attack is dropped where the unit stands and the attack fights
+        //   next frame. `collide_o`/`collide_who` keep the collider.
+        //
+        // The third arm (`:189-252`) re-targets a follower onto its
+        // captain's target, or a captain onto the collider, behind
+        // `LeaderData +0x9f4` and a type virtual at `+0x10c`. It is not
+        // modelled, and a unit that would take it falls through to the
+        // sidestep as it did before.
+        if i16::from(self.units[u].collide_who) != i16::from(who) && attacking {
+            let target = self.units[u].combat.target;
+            if let Some(Obj::Unit(t)) = target
+                && self.units[t].index == self.units[u].collide_o
+                && i16::from(self.units[t].owner) == i16::from(self.units[u].collide_who)
+            {
+                // vslot `+0x2c`, `is_group`, on the current order.
+                // SEAM: `GroupPatrolOrder` and `GroupAttackOrder` are group
+                // classes this crate has no order for.
+                if matches!(
+                    self.order_type(u),
+                    index::GROUP_MOVE | index::GROUP_ATTACK_TO
+                ) {
+                    self.units[u].collide = 1;
+                    return;
+                }
+                self.units[u].collide_o = -1;
+                self.units[u].collide_who = -1;
+                self.kill_current_order(u);
+                return;
+            }
+            if let Some(t) = target
+                && self.is_in_range(Obj::Unit(u), t)
+            {
+                self.kill_current_order(u);
+                return;
+            }
+        }
 
         // Step 2: standing inside my own **flat** gather target's footprint.
         //
@@ -1346,8 +1401,13 @@ impl Sim {
         // the field it works abandons the walk and re-picks a cell, while
         // one bumped on its way to a woodcutter's camp — whose footprint
         // it may also be standing on — falls through to the repath.
-        if other.is_some_and(|o| self.units[o].owner == who)
-            && let Some(a) = self.action_of(u)
+        //
+        // **Not only against my own player's units** (item 445). The
+        // original reaches this test for a foreign collider too, whenever
+        // my action is not an attack (`005f9d30:158-160`, `is_attack == 0
+        // → LAB_005fa057`). An attack is never a gather, so the collider's
+        // owner is not part of the predicate at all.
+        if let Some(a) = action
             && let Body::Gather(g) = self.units[u].orders[a].body
             && self
                 .buildings
@@ -1601,6 +1661,7 @@ impl Sim {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::orders::QueuePos;
     use crate::world::{Cell, Terrain, World};
     use crate::{Sim, Tuning, Unit, UnitType};
 
@@ -2454,6 +2515,92 @@ mod tests {
         sim.resolve_unit_collision(x);
         assert!(!staggered(&sim), "already waiting: {:?}", sim.phase_marks);
         assert_eq!(sim.current_move(x).expect("still a move").pause, 0);
+    }
+
+    /// §6 step 3, **the enemy ladder**, arm B (item 445): a unit walking
+    /// under an attack whose target is already in reach, bumped by a
+    /// *different* enemy, drops the walk where it stands. The attack stays
+    /// and so does the collider's name, and nothing is incremented: no
+    /// `collide`, no `collide_frame`, no sidestep, no repath. That is
+    /// golden chapter one's `0/8` on block 625 field for field
+    /// (`docs/COMBAT.md` §48), and without the arm this crate sidestepped
+    /// and walked on.
+    ///
+    /// With the target out of reach the arm does not fire and the unit
+    /// falls through to steps 4–6, as the third, unmodelled arm leaves it.
+    #[test]
+    fn a_bump_from_another_enemy_drops_the_chase_when_the_target_is_in_reach() {
+        let here = Pos::new(20 * 0x30 + 0x18, 20 * 0x30 + 0x18);
+        let arrange = |target_at: Pos| {
+            let (mut sim, x, t) = pair(here, target_at);
+            sim.units[t].owner = 1;
+            // The collider: a third unit, the target's player's, standing
+            // east of `x`.
+            let mut c = Unit::new(1, 7, Pos::new(here.x + 0x30, here.y), 40);
+            c.ty = sim.units[t].ty;
+            let c = sim.add_unit(c);
+            sim.add_attack_order(x, Obj::Unit(t), QueuePos::New, false, false);
+            sim.add_move_order(
+                x,
+                Pos::new(35 * 0x30 + 0x18, 20 * 0x30 + 0x18),
+                crate::orders::MoveKind::MoveTo,
+                QueuePos::First,
+                false,
+            );
+            sim.units[x].collide_o = sim.units[c].index;
+            sim.units[x].collide_who = 1;
+            (sim, x)
+        };
+
+        // In reach: the move goes, the attack and the collider's name stay.
+        let (mut sim, x) = arrange(Pos::new(here.x, here.y + 0x30));
+        assert_eq!(sim.units[x].orders.len(), 2);
+        sim.resolve_unit_collision(x);
+        assert_eq!(sim.units[x].orders.len(), 1, "the chase is dropped");
+        assert!(matches!(sim.units[x].orders[0].body, Body::Attack(_)));
+        assert_eq!(
+            (sim.units[x].collide_o, sim.units[x].collide_who),
+            (7, 1),
+            "arm B keeps the collider's name"
+        );
+        assert_eq!(
+            (sim.units[x].collide, sim.units[x].collide_frame),
+            (0, 0),
+            "nothing is counted"
+        );
+        assert_eq!(sim.units[x].orders_pos, sim.units[x].pos);
+
+        // Out of reach: the ladder passes it on to step 5, which counts
+        // the collision (the collider holds no move, so no sidestep).
+        let (mut sim, x) = arrange(Pos::new(here.x, here.y + 10 * 0x30));
+        sim.resolve_unit_collision(x);
+        assert_eq!(sim.units[x].orders.len(), 2, "the chase goes on");
+        assert_eq!(sim.units[x].collide, 1, "and step 5 counts it");
+    }
+
+    /// Arm A of the same ladder: the collider **is** the target. A plain
+    /// order forgets the collider and drops the walk; a group order is
+    /// left alone with `collide = 1` (`005f9d30:162-174`). Reading only:
+    /// no capture on disk reaches it.
+    #[test]
+    fn a_bump_from_the_target_itself_drops_the_chase_and_forgets_the_collider() {
+        let here = Pos::new(20 * 0x30 + 0x18, 20 * 0x30 + 0x18);
+        let (mut sim, x, t) = pair(here, Pos::new(here.x + 5 * 0x30, here.y));
+        sim.units[t].owner = 1;
+        sim.add_attack_order(x, Obj::Unit(t), QueuePos::New, false, false);
+        sim.add_move_order(
+            x,
+            Pos::new(35 * 0x30 + 0x18, 20 * 0x30 + 0x18),
+            crate::orders::MoveKind::MoveTo,
+            QueuePos::First,
+            false,
+        );
+        sim.units[x].collide_o = sim.units[t].index;
+        sim.units[x].collide_who = 1;
+        sim.resolve_unit_collision(x);
+        assert_eq!(sim.units[x].orders.len(), 1);
+        assert!(matches!(sim.units[x].orders[0].body, Body::Attack(_)));
+        assert_eq!((sim.units[x].collide_o, sim.units[x].collide_who), (-1, -1));
     }
 
     /// The throttle of §6 step 6 is a **rate**, not a lifetime count:
