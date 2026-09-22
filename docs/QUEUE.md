@@ -12,36 +12,36 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-22, the tenth chain. Great Lakes **10233 → 10244**, chapter
-two **637 → 683** — and chapter two's earliest parting is **656**.*
+*2026-09-22, the tenth chain closes at twenty landings. Great Lakes
+**10233 → 10277**, chapter two **637 → 683**. **The steering pass is
+due.***
 
-- **A correction I owe (484).** I booked `[606, 684)` as "at nought,
-  78 frames". It was clean only because the field was not compared.
-  `crate::diff::compare` carried **no hit-point row at all**, and
-  `damage_frac` was never parsed on a unit — read for a building
-  since item 394, for a figure never. The map goes three → **eight**
-  first-partings and the earliest is **656**, 27 blocks under the
-  word. 478's shape one record over, twice in one chain.
-- **Every value we hold is the dump's own previous one** — the same
-  ladder, one arrival late, from the first wound: `1/8`'s `damage`
-  0/8 at 656, 8/17 at 657, 17/25 at 660, 25/34 at 682. **`extra 1/8`
-  at 684 is the end of that lag, not a fact of its own**, so 485's
-  frame is 656. Word 683 and `visible` 9 of 9 both hold.
-- **The AI word is 10244**, sequence and count together after 483
-  named `Ammo::do_damage+0xc59`; its guard caught a site address
-  transposed since item 394. 487 is live on 10245's `1/27` rows.
-- **Nine instrument defects this chain**, all found by widening. 488
-  parks the sharpest: one window wrong three ways, the third — a
-  field absent from the comparator — unreachable by any widening.
-  Seven open, 70 parked. **Fable backlog: 3 Loop items** (313, 480, 488).
+- **The ungroup is a promotion** (487, ORDERS §20):
+  `ungroup_move_order`'s GROUP_MOVE arm builds a *new* plain
+  `MoveOrder`, removes the old node and calls `LinkListBase::add`,
+  which **prepends**; this crate rewrote in place. And `do_move`'s
+  dead-target arm re-paths only within **0x480** of the order's own
+  dest; this crate re-pathed at any distance, so the promoted move
+  died on the frame it was promoted. Word 10244 → **10277**, both
+  numbers; draw-for-draw frames 10,509 → 10,651; endpoint 51/7 → 42/7.
+- **483's reading was 180° out and the widening killed it first.**
+  `orders_front_first` is the log's list **reversed**, so kind 10 /
+  kind 1 was *us still holding the attack*, not `1/29` dropping its
+  move — and `1/29` never moves at all, sitting at (4680,29928) with
+  an empty path on every block. Fourth reversed mechanism this chain.
+- **Nine instrument defects, eleven named mechanisms, nine of them
+  wrong.** Every defect was found by widening; several stood since
+  item 394. 488 parks the sharpest — one window wrong three ways, and
+  the third (a field absent from `compare`) unreachable by any
+  widening. Seven open, 70 parked. **Fable backlog: 3 Loop items** (313, 480, 488).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w9711 of 24,000 · GreatLakes w10244 of 24,000
+Long captures: EastIndies w9711 of 24,000 · GreatLakes w10277 of 24,000
 Golden: w626 of 901 (ch1) · ch2 w683 · 484 next
-Endpoint 24001: EastIndies 63 off, 11 unlinked · GreatLakes 51 off, 7 unlinked
+Endpoint 24001: EastIndies 63 off, 11 unlinked · GreatLakes 42 off, 7 unlinked
 
-**Opener: 487 is live; 485 takes the freed lane. The loop stands at
-19 of 20 — the next landing is the steering pass's.**
+**Opener: the steering pass is due — twenty landings. 485 is still
+live; do not refill its lane. Bank, `/clear`, switch to Fable.**
 
 ## The queue
 
@@ -51,14 +51,14 @@ the AI, lower map first — Great Lakes. Take the first unstarted on either
 track unless a better order is obvious, and say so. Numbers are stable;
 the backlog is `docs/PARKED.md`, and an item returns only when a score names it.
 
-487. **10245's eleven rows, all `1/27`** (the AI headline's own
-    frame). `collide` 2/1, `collide_o` 29/-1, `collide_who` 1/-1,
-    `g.stopped[0]` 1/0, `path:length` 49/43; the word's extra draw is
-    ours `set_anim+0x97a < move_step+0x823`, the blocked stand,
-    against theirs `Guy::inc_time+0x271`. 483's reading — **its
-    hypothesis, not this item's** — is that `1/29` drops its move on
-    10241 (`order:kind` 10/1) and stands 28 units short in `x`.
-    Re-measure first. COMBAT §39.2.1.
+489. **10278's seventeen rows, `1/40` colliding with `1/41`** (the
+    AI headline's own frame; 487 moved the word to 10277). Ours
+    stopped on a 1-frame-old anim where the original is ten frames
+    into a walk; `collide_o 41`, `collide_who 1`. The seventeenth row
+    is `1/41 half_step` — **the original sets `unit_masks &
+    0x100000` on both `1/40` and `1/41` and this crate on neither**.
+    487 wrote that as a row, not a mechanism, and the item is booked
+    on the frame and the draw delta. `docs/ORDERS.md` §20.
 
 476. **f10234's three value rows**: `0/5 order:length` 2/1,
     `0/5 orders.len` 2/1, `0/2001 gather:gather_down[-1]` 5/2. The
