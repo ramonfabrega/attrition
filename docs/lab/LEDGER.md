@@ -6,12 +6,13 @@ is evidence for an item's falsifier, not an additional completion score.
 Reports below preserve detailed experiments and limitations; this ledger is
 the entry point. Original-game artifacts stay outside Git.
 
-**Current focus:** independent allocator replay research on
-`codex/replay-allocator-lab`, while draft PR #4 remains stable for Fable's review;
-start with [the review handoff](JEV-REVIEW.md) for that earlier tranche. The lab
-is not holding the capture lane. Ask through Ramon before any new live run; the
-cooperative runner lock does not protect against arbitrary profile/Wine scripts.
-No new capture or main-loop adoption is requested by this handoff.
+**Current focus:** independent continuation replay research on
+`codex/continuation-lab`; draft PR #6 remains frozen for Fable's review.
+Start with [the review handoff](JEV-REVIEW.md) for the earlier Jev tranche.
+The lab holds no capture lane. Per Ramon's latest authorization, bounded runs
+may attempt the shared nonblocking lock without a separate request; never
+bypass a held lock, and ask when coordination needs intervention. Arbitrary
+profile/Wine scripts remain outside that lock's protection.
 
 | ID | Claim | Evidence | Adoption effect / cost | Status |
 | --- | --- | --- | --- | --- |
@@ -148,6 +149,8 @@ No new capture or main-loop adoption is requested by this handoff.
 
 | L82 | Which observed input change explains the frozen-chain output gap? | [Caller continuation gap](2026-09-22-caller-continuation-gap.md). | Frozen chaining isolates unit +0x88; the PDB names its 16-bit collide field. The original caller instruction computes its increment and closes the measured second-output gap; both chains repeat and baseline restores. | Cross-input ablation, not reconstructed world advancement. No capture or main score movement. |
 
+| L83 | Can the validated chain replay without broad capture reads or dependency discovery? | [Compact chain fixture](2026-09-22-compact-chain.md). | A 597,820-byte local fixture reproduces the complete experiment in 14.86 s; blocked capture reads and missing-dependency controls pass. | Derived local cache, not a new native witness. Original executable remains required; no score movement. |
+
 ## Current direction
 
 The September 19–22 tranche now has an unchanged native unit/path witness
@@ -172,8 +175,9 @@ L81 identifies the saving transition, records it explicitly and validates a
 fresh native output pair. Its isolated second-call replay matches the measured
 unit/path/mode boundary. L82 computes the observed collide transition with
 the original caller instruction and reproduces that boundary from a preserved
-first-input model. Whole-world advancement remains unproved; a compact reusable
-chain fixture is the next tooling candidate;
+first-input model. L83 packages that validated experiment as a compact local
+fixture, preserving permissions, undefined bytes and complete fingerprints.
+Whole-world advancement remains unproved;
 the next adoption test should answer one
 real divergence question selected by steering, with a named call/field and
 falsifier. Saved-tree required fields now have one native witness; native limit 96,
