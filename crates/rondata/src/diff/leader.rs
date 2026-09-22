@@ -348,6 +348,14 @@ pub(crate) fn rows(loaded: &crate::load::Loaded, built: &Built, who: usize) -> V
             out.push((format!("SITE[{i}].{k}"), v));
         }
     }
+    // **The four epochs** (item 520): `epoch_get(scan)` prints
+    // `LeaderData::epoch_get` once per line in `tech::Line`'s order, and
+    // nothing read it until the commerce level was one of 11185's four
+    // readings — `use_market` sums the first `max(1, epoch[Commerce])`
+    // make slots (`docs/ECONOMY.md` §14).
+    for (i, e) in built.sim.tech[who].epoch.iter().enumerate().take(4) {
+        out.push((format!("epoch[{i}]"), i64::from(*e)));
+    }
     out
 }
 
@@ -407,6 +415,9 @@ pub(crate) fn theirs(block: &Block<'_>) -> std::collections::BTreeMap<String, i6
         for (i, x) in all(&format!("{key}[scan]")).iter().enumerate().take(8) {
             out.insert(format!("{key}[{i}]"), *x);
         }
+    }
+    for (i, x) in all("epoch_get(scan)").iter().enumerate().take(4) {
+        out.insert(format!("epoch[{i}]"), *x);
     }
     let v = all("gather_slots_high[scan]");
     for (g, name) in GOODS.iter().enumerate() {
@@ -842,7 +853,7 @@ mod tests {
             .collect();
         assert!(clash.is_empty(), "UNMODELLED and rows both carry {clash:?}");
         assert_eq!(
-            compared, 167_680,
+            compared, 168_320,
             "160 blocks of the record, every field the mapping carries"
         );
         assert!(
@@ -945,7 +956,7 @@ mod tests {
         }
         assert_eq!(blocks, 172, "86 frames, two leaders");
         assert_eq!(
-            compared, 180_256,
+            compared, 180_944,
             "172 blocks of the record, every field the mapping carries"
         );
 
@@ -1139,7 +1150,7 @@ mod tests {
         assert_eq!(blocks, 36, "eighteen blocks, two leaders");
         assert!(missing.is_empty(), "the record does not carry {missing:?}");
         assert_eq!(
-            compared, 37_728,
+            compared, 37_872,
             "36 blocks of the record, every field the mapping carries"
         );
         // **The scholar, on the frame `create_units` offers it.** 52 is
@@ -1277,7 +1288,7 @@ mod tests {
         assert_eq!(blocks, 260, "130 blocks, two leaders");
         assert!(missing.is_empty(), "the record does not carry {missing:?}");
         assert_eq!(
-            compared, 272_480,
+            compared, 273_520,
             "130 blocks of the record, every field the mapping carries"
         );
         // **The item, in one line.** The original's met bit arrives on
@@ -1474,7 +1485,7 @@ mod tests {
         assert_eq!(blocks, 60, "thirty blocks, two leaders");
         assert!(missing.is_empty(), "the record does not carry {missing:?}");
         assert_eq!(
-            compared, 62_880,
+            compared, 63_120,
             "60 blocks of the record, every field the mapping carries"
         );
         // **The head on the frame the sequence parts.** 573 is the
@@ -2894,7 +2905,7 @@ mod tests {
         assert!(missing.is_empty(), "the record does not carry {missing:?}");
         assert_eq!(blocks, 490, "245 blocks, two leaders");
         assert_eq!(
-            compared, 513_520,
+            compared, 515_480,
             "490 blocks of the record, every field the mapping carries"
         );
         // **The frame the item is**, read off the comparison so the dump

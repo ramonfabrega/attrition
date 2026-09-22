@@ -105,9 +105,23 @@ const UNREAD: &[(&str, &str)] = &[
         "GAME/FRAME/GUY",
         "(int)off_x (int)off_y (int)variation *((dword*) angle avg_speed cur_time des_angle des_node_flags des_turret_angles[0] des_turret_angles[1] des_turret_angles[2] des_turret_angles[3] des_x des_y guy_flags guy_num hold_attack last_angle last_speed last_time last_x last_y last_z node_flags o ox queued_attack stopped track_dx track_dy turret_angles[0] turret_angles[1] turret_angles[2] turret_angles[3] type who whom x y z",
     ),
+    // **Item 520 re-keyed the Great Lakes window onto run123 and put the
+    // leader reader in the driver.** run123 is `LEADERS=9`, the whole
+    // `LeaderData::log_data` record, where run100 was `LEADERS=1`, and
+    // `diff::leader::theirs`, which the run117 and run123 widenings
+    // compare through, was never driven here. So fifteen keys leave this
+    // row as read (`bucket`, `income`, `epoch_get(scan)` and the rest of
+    // the goods block), and the level-9 tail's unread keys join it. They
+    // are owed by no item: nothing measured turns on them yet. The one
+    // that will is `known_rares`, the Merchant offer's gate
+    // (`docs/ECONOMY.md` §14.4), and it leaves this row with that item.
     (
         "GAME/FRAME/LEADERDATA",
-        "ages_get() base_rate[scan] bonus bonus_cap[NUM_COMMON] bonus_cap[scan] bucket discovered_get() econ[scan] epoch_get(scan) epochs_get() escrow[scan] escrow_rate[scan] filled_gather_slots[scan] gather_slots[scan] gather_slots_high[scan] income leftover over_cap rate resource_cap resources support tributes[scan]",
+        "(int) agendas[scan] ages_get() ages_queued aggression[scan] air_queued air_units ally_stamp[scan] anti_att att attack_stamp[scan] attrition_stamp attrition_stamp2 attrition_stamp3 average_damage_rate average_death_rate average_hit_rate average_kill_rate barracks_garr barracks_queued barracks_units base_rate[scan] best_armor best_attack best_move best_pop bit_values bits blacken bonus bonus_cap[NUM_COMMON] broke_alliance[scan] buildings_lost buildings_razed capital_stamp[scan] chat_status[scan] cities_captured cities_lost city_mark city_mine city_name combat_queued combat_units counteroffer[scan] ctw_hero_retreat_stamp ctw_hero_stamp damage_current_frame damage_fifteen_seconds deaths_current_frame deaths_fifteen_seconds defeat_stamp defeat_type defensive discovered_get() dock_mark dock_queued dock_units dow[scan] epochs_get() epochs_queued explored factory_queued factory_units flags flock_stamp fort_mark frame_battle gift_stamp[scan] good_deeds[scan] got_diplo_message gov_hero_frame handicap hero_mark high_buildings[scan] hire_stamp[scan] hire_who[scan] hits_current_frame hits_fifteen_seconds increment invaders[scan] kills_current_frame kills_fifteen_seconds known_rares last_spoke[scan] last_taunt[scan] length list[scan] lost_capital_modifier lost_capital_stamp lost_capital_timer lost_city_stamp made_peace[scan] misery missiles_used multi_diff nuke_stamp nukes_in_flight nukes_launched nukes_used num_bonus_cards[scan] num_buildings[scan] num_ctw_rate_bonuses[scan] oil_well_mark peasants_garr pop_cap pop_issues popwin_stamp popwin_timer raid_stamp[scan] rares_collected[scan] reg_active[scan] reg_allies[scan] reg_attack[scan] reg_attacked[scan] reg_buildings[scan][scan2] reg_cities[scan] reg_combat[scan] reg_defense[scan] reg_free_peasants[scan] reg_gather_slots[scan] reg_gatherers[scan] reg_known_rares[scan] reg_land[scan] reg_naval[scan] reg_neutrals[scan] reg_peasants[scan] reg_pop[scan] reg_terr[scan] reg_transports[scan] reg_unpack_merch[scan] reg_wars[scan] reg_xport_peasants[scan] repair_stamp retargets scholar_militia scout_garr senates_built size special_mark stable_garr stable_queued stable_units strategy[scan] strong[scan] supply_mark support support_stamp taunt_frame[scan] team_color territory_high tribute_demanded[scan] tribute_stamp[scan] tributes[scan] units_killed units_lost victory_type village_mine weak[scan] wonder_mark wonderwin_stamp wonderwin_timer",
+    ),
+    (
+        "GAME/FRAME/LEADERDATA/DIPLOMACY",
+        "agree any_offer attacks[scan] offers[scan] treaty",
     ),
     (
         "GAME/FRAME/UNITDATA",
@@ -223,6 +237,11 @@ fn drive(text: &str, out: &mut Paths) {
             let _ = crate::gamelog::groups(frame);
             let _ = crate::gamelog::last_group(frame);
             let _ = crate::gamelog::farms_of(frame);
+            // The leader widening's reader (item 520): run117's and
+            // run123's tests compare the whole record through it.
+            for l in frame.kids("LEADERDATA") {
+                let _ = crate::diff::leader::theirs(&l);
+            }
         }
     }
     let r = reads::stop();
@@ -322,9 +341,9 @@ fn the_recorder_tells_one_object_block_from_another() {
 #[test]
 fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch2 = golden_dump("ch2");
-    let r100 = crate::testenv::dump("gamelog-run100-greatlakes-valuewindow2.txt");
-    if ch2.is_none() && r100.is_none() {
-        eprintln!("skipping: neither the ch2 golden capture nor run100 is on disk");
+    let r123 = crate::testenv::dump("gamelog-run123-greatlakes-marketword.txt");
+    if ch2.is_none() && r123.is_none() {
+        eprintln!("skipping: neither the ch2 golden capture nor run123 is on disk");
         return;
     }
     let mut paths = Paths::new();
@@ -337,15 +356,14 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
             &mut paths,
         );
     }
-    // **The last Great Lakes word run100 reaches** (item 518). The word
-    // moved 10834 → 11185, past run100's last block (10899), and a window
-    // keyed on the headline would then drive no run100 frame at all and
-    // report every key only run100 prints as stale. So the window stays
-    // on the last word the capture carries until a capture reaches the
-    // new one — the same debt the `WIDENINGS` row names.
-    const RUN100_WORD: i64 = 10_834;
-    let gl = LONG_WORD_GREAT_LAKES.min(RUN100_WORD);
-    if let Some(p) = &r100 {
+    // **The Great Lakes word's own blocks, on run123** (item 520). Item
+    // 518 moved the word past run100's last block and left this window on
+    // 10834, the last word run100 reached, until a capture reached the new
+    // one. run123 does: run100's detail with `LEADERS=9`, over
+    // `WIDENING_GREAT_LAKES_MARKET`, so every path run100 printed is
+    // here too, and the leader record whole beside it.
+    let gl = LONG_WORD_GREAT_LAKES;
+    if let Some(p) = &r123 {
         frames += drive_capture(p, gl - 2, gl + 2, &mut paths);
     }
     assert!(frames > 0, "no frame of either window was found");

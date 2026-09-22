@@ -2098,7 +2098,8 @@ ledger's. And `1/28 order:coll` on 10618.
 
 **Diff-backed**: the frame, the good, the quantity and the price, by
 `diff::leader::tests::run117_s_window_is_the_leader_record_across_two_rotations`
-— 490 blocks of the whole `LEADERDATA` record, 513,520 field-frames, with
+— 490 blocks of the whole `LEADERDATA` record, 513,520 field-frames
+(515,480 since item 520 added the four epochs, §14.5), with
 10576's buy asserted as the four-number pair either side and the residue
 pinned field by field. The word itself by
 `diff::harness::tests::run53_s_24000_frames_put_the_ceiling_where_run33_did`.
@@ -2237,4 +2238,12 @@ and 1,472,800 leader rows. The word's inputs, slot 1 on 11182, and the
 set of keys that first part on 11185 and 11186 are pinned. **Trace-backed**:
 §14.3's functions, from run123's per-frame coverage. **Reading-only**:
 nothing. §14.4 is unread and says so.
+
+**The epochs are a row of the record now.** `epoch_get(scan)` is read
+by `diff::leader::theirs` as `epoch[0..3]`, and this crate's
+`tech[who].epoch` is the other side, so every leader widening compares
+it. It agrees on every block of all seven windows: run19, run84, run91,
+run107, run115, run117 and run123. The coverage driver runs that reader
+too, and its Great Lakes window is run123's word ±2 now, not run100's
+10834 (`diff::coverage::UNREAD`).
 

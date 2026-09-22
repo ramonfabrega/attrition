@@ -7973,18 +7973,8 @@ mod tests {
                 let Some(block) = flog.leader_block(n, who as i64) else {
                     continue;
                 };
-                let mut t = crate::diff::leader::theirs(&block);
-                let mut mine = crate::diff::leader::rows(&loaded, &built, who);
-                // **`epoch_get(scan)`, the four lines nothing parsed**:
-                // `LeaderData::epoch_get` per line in `tech::Line`'s order
-                // (`docs/GOODY.md`'s `0 1 0 1` read as index 3 on run42).
-                for (i, v) in block.all("epoch_get(scan)").iter().enumerate().take(4) {
-                    t.insert(format!("epoch[{i}]"), v.trim().parse().unwrap_or(i64::MIN));
-                    mine.push((
-                        format!("epoch[{i}]"),
-                        i64::from(built.sim.tech[who].epoch[i]),
-                    ));
-                }
+                let t = crate::diff::leader::theirs(&block);
+                let mine = crate::diff::leader::rows(&loaded, &built, who);
                 let row = kept.entry((n, who)).or_default();
                 for (k, v) in &mine {
                     let Some(&y) = t.get(k) else {
