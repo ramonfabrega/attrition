@@ -61,6 +61,9 @@
  * records of eight u32s; see `report.py` for the reader.
  */
 
+#if defined(RON_RESTORE_POSTSTATE) && !defined(RON_RESTORE_PROBE)
+#error RON_RESTORE_POSTSTATE requires RON_RESTORE_PROBE
+#endif
 #if defined(RON_RESTORE_PROBE) && !defined(RON_SEARCH_GRAPH)
 #error RON_RESTORE_PROBE requires structural graph capture
 #endif

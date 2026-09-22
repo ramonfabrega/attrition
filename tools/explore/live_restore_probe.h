@@ -18,6 +18,12 @@ static int restore_read(u32 address, void *out, u32 size) {
     return 1;
 }
 #include "live_restore_context.h"
+#ifdef RON_RESTORE_POSTSTATE
+#ifndef RON_MEMORY_PAYLOAD
+#error RON_RESTORE_POSTSTATE requires RON_MEMORY_PAYLOAD
+#endif
+#include "live_restore_poststate.h"
+#endif
 static void __cdecl restore_enter(u32 *regs) {
     if (restore_claimed || g_frame<0 || g_frame>1400) return;
     restore_claimed=1;
@@ -58,7 +64,14 @@ static void __cdecl restore_delegate(u32 *regs) {
     if(file!=INVALID_HANDLE)CloseHandle(file);
     emit(K_INFO,162,ok && written==sizeof restore_probe?0:1,restore_probe.unit,
          written,sizeof restore_probe,restore_probe.after_modes[0]);
-    if(ok && written==sizeof restore_probe) capture_restore_context(regs);
+    if(ok && written==sizeof restore_probe) {
+        int context_ok=capture_restore_context(regs);
+#ifdef RON_RESTORE_POSTSTATE
+        restore_post_pending=context_ok;
+#else
+        (void)context_ok;
+#endif
+    }
     flush();
 }
 static u32 restore_callback(u8 *s,void *fn) {
@@ -79,7 +92,11 @@ static void install_restore_probe(void) {
     u32 n=restore_callback(stub,(void *)restore_enter);
     memcpy(stub+n,a,sizeof entry);n+=sizeof entry;restore_jump(stub+n,(u32)a+sizeof entry,0xe9);
     n=256+restore_callback(stub+256,(void *)restore_delegate);
-    restore_jump(stub+n,0x682f30,0xe8);n+=5;restore_jump(stub+n,0x688faa,0xe9);
+    restore_jump(stub+n,0x682f30,0xe8);n+=5;
+#ifdef RON_RESTORE_POSTSTATE
+    n+=restore_callback(stub+n,(void *)restore_returned);
+#endif
+    restore_jump(stub+n,0x688faa,0xe9);
     restore_jump(a,(u32)stub,0xe9);restore_jump(b,(u32)stub+256,0xe9);
     FlushInstructionCache(g_proc,stub,4096);FlushInstructionCache(g_proc,a,0x6a);
     emit(K_INFO,160,2,0x688f40,0x688fa5,0x682f30,0);

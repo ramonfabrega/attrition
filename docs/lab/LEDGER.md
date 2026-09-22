@@ -114,12 +114,16 @@ No new capture or main-loop adoption is requested by this handoff.
 
 | L65 | Can explicit memory services and object lifetimes close the retained call? | [Complete modeled resumption](2026-09-21-modeled-resumption.md). | 197,650 instructions; outer return 8; internal A* return 1 matches native; eight resets and two fresh controls agree on their stated observations. | All 640 path-slot bytes retained; no native post-path comparison or FXSAVE import; no live capture or main score change. |
 
+| L66 | The completed replay needs a paired native post-return witness. | [Optional native post-state observer and comparator](2026-09-21-native-poststate.md). | Authored C/Python agreement, negative comparisons, sanitizers and three DLL variants pass; observer retains the entire unit and path capacity. | Prepared offline only; no live native post-state or fidelity result yet. |
+
 ## Current direction
 
 The September 19–21 tranche has a validated broad payload and a complete
 modeled pathfinding call. Explicit memory-service and lifetime models close the
 runtime dependencies; the internal A* return agrees with the native trace.
-The next falsifier is a paired native post-return unit/path observation.
+The next falsifier is a paired native post-return unit/path observation; its
+optional collector and comparator are prepared offline (L66), awaiting a fresh
+capture slot.
 Full native output equivalence and general runtime behavior remain open.
 Fable decides whether any method merits a pilot, adoption, further evidence or
 parking; review does not imply approval to merge the whole lab branch.
