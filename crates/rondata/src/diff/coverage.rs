@@ -70,10 +70,21 @@ const UNREAD: &[(&str, &str)] = &[
     // (`docs/COMBAT.md` §45). Nineteen paths and 228 keys stand.
     // `GAME/FRAME/GUY` keeps both: that is the frame-level list, whose
     // only reader is `anim_lengths`, and no comparison opens it.
+    //
+    // **Item 523 took `o_down` off both `UNITDATA` paths**, beside `o_up`
+    // (`docs/COMBAT.md` §47). And it is the lesson of this module's own
+    // blind side: `o_up` was never on this pin, because `diff::army`
+    // reads it once at stand-up to seed the captain flag, and that one
+    // read made the key look covered. Nothing compared it per frame, so
+    // run112's `1/7` became captain on 743 and this crate's did not, and
+    // nothing said so until the missing draw on 762. A stand-up read is
+    // not a comparison. The module header already says this guard stops
+    // at "parsed", and here that gap cost nineteen frames. Two keys
+    // leave the pin; no path does.
     ("GAME/FRAME/ANIMALDATA", "aid ox whom"),
     (
         "GAME/FRAME/ANIMALDATA/UNITDATA",
-        "air_alt attrition cavarch_o cavarch_uid cavarch_who full gather_down good_obj guy_mark healing hero increment inside_up_who length los_x los_y mana_burn myarmor num_queued o_down play queue_time rare size special spell_time supply trench_angle waiting",
+        "air_alt attrition cavarch_o cavarch_uid cavarch_who full gather_down good_obj guy_mark healing hero increment inside_up_who length los_x los_y mana_burn myarmor num_queued play queue_time rare size special spell_time supply trench_angle waiting",
     ),
     (
         "GAME/FRAME/ANIMALDATA/UNITDATA/GUY",
@@ -111,7 +122,7 @@ const UNREAD: &[(&str, &str)] = &[
     ),
     (
         "GAME/FRAME/UNITDATA",
-        "air_alt attrition cavarch_o cavarch_uid cavarch_who full gather_down good_obj guy_mark healing hero increment inside_up_who length los_x los_y mana_burn myarmor num_queued o_down play queue_time rare size special spell_time supply trench_angle waiting",
+        "air_alt attrition cavarch_o cavarch_uid cavarch_who full gather_down good_obj guy_mark healing hero increment inside_up_who length los_x los_y mana_burn myarmor num_queued play queue_time rare size special spell_time supply trench_angle waiting",
     ),
     (
         "GAME/FRAME/UNITDATA/GUY",

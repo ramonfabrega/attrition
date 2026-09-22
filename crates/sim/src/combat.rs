@@ -1085,6 +1085,33 @@ pub const fn share(hits: i32, uber: i32, captain_alone: bool) -> i32 {
     }
 }
 
+impl Projectile {
+    /// **The bearing a landed shot hits at**: `find_angle(ex − sx, ey −
+    /// sy)`, its own landing point less its launch. `docs/COMBAT.md` §47.3.
+    ///
+    /// `Ammo::do_damage@00678060` passes it to `Object::do_damage` on
+    /// both arms, and the listing is what says so: the no-splash arm loads
+    /// `ecx = ex − sx` and `edx = ey − sy` at `00678c2e`-`00678c37` and
+    /// calls `find_angle@0092d130` fastcall. The splash arm does the same
+    /// at `006786a5`-`006786cd`, once for every object it then walks. The
+    /// decompiler dropped the register pair and printed the two stack
+    /// pushes behind it, `num_guys` (`+0x44`) and `index` (`+0x34`), as
+    /// `find_angle`'s arguments. This crate took the target's position at
+    /// landing instead, and a target that walked while the shot flew was
+    /// struck on the wrong flank sector: run112's `1/7`, on 770, at level
+    /// 1 where the original's level is 2.
+    ///
+    /// `landing` is `ex`/`ey`, which a rolled shot rewrites when it comes
+    /// down (§46.1), so the bearing is taken after the roll as the
+    /// original takes it.
+    pub fn bearing(&self) -> crate::movement::Angle {
+        crate::movement::find_angle(
+            self.landing.x - self.launch.x,
+            self.landing.y - self.launch.y,
+        )
+    }
+}
+
 /// What `Object::take_damage` did.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Taken {

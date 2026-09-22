@@ -265,6 +265,15 @@ first value disagreement is 625. `GOLDEN_WORD_CHAPTER_TWO` pins it, and
 part two frames earlier, at **622**, on where the slingers plan their
 chase.
 
+**900 since item 523, 2026-09-22, the end of the trace.** The word
+walked 624 → 762 over items 447 to 495 (`docs/COMBAT.md` §31–§46). Item 523
+closed the rest: the captain a dying head hands its squad to, the bearing a
+shot strikes at, and the lead it is aimed with (§47). No draw parts on any
+frame of chapter two and no word does. The widening covers the whole
+capture, and what it still carries are two value residues that spend no
+draw (`damage 1/6` at 680 and ten `g.gpiece` rows at 606), plus `near_o` on
+two bowmen from 847.
+
 ~~**And the value diff found what the draw stream did not.** … 140 units
 west … `find_nearby_spot`'s ring on clear ground …~~ **Withdrawn
 2026-09-19, item 441** (`docs/COMBAT.md` §29.2). Widening every record

@@ -112,6 +112,20 @@ still: a data dump after a retype, a fresh vtable walk, an address sweep.
   `+0x4b3c` appearing as `field_0x4b7c` is the check. Before calling a
   field "a second array the dump does not print", subtract the derived
   class's size difference and look again.
+- **A fastcall's register arguments are dropped, and the stack pushes
+  behind them are printed in their place.** `find_angle@0092d130`,
+  `sinx@0092d100` and `cosx@0092d0c0` take their pair in `ecx`/`edx`. The
+  decompiler does not track those across the call, so it prints whatever
+  it last saw. That has been a constant (`find_angle(0, 0)` in
+  `Object::compare_target`), `unaff_EDI`/`unaff_ESI`, a stale
+  `pCVar31`/`pCVar32` (the lead in `Ammo::init`), and, worst of all, two
+  locals that look plausible: `Ammo::do_damage` printed `find_angle(num_guys,
+  index)` and then passed the same two on as `do_damage`'s arguments. Each
+  one stood in `docs/COMBAT.md` as fact until a divergence led back to it
+  (items 495 and 523). For any call to one of these three, read the
+  listing: the two instructions before the `call` that load `ecx` and
+  `edx` are the arguments. `grep -n 0x92d130` on an `llvm-objdump` of the
+  function finds every site in seconds.
 - **`run.sh` must be run with `zsh` or as an executable, and `status` is
   read-only in zsh.** The script once did `status=$?` and died with
   "read-only variable" on every run; it is `rc` now.

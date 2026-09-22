@@ -1247,9 +1247,10 @@ at least a frame after launch, which with `cur_time` counted up before the
 test means the same frame. Then **the lead** *(second reading; missed by the
 first)*: a unit target whose order is a move (or an air order) has the
 landing point pushed `sinx(·) × total_time` in x and `− cosx(·) × total_time`
-in y — the decompiler dropped the operands; the natural reading, taken here,
-is the target's heading and per-frame speed, so the shot is aimed where the
-target will be. Not for ground shots, bombers or lofted pieces.
+in y — ~~the decompiler dropped the operands; the natural reading, taken here,
+is the target's heading and per-frame speed~~ they are its `angle` and its
+first figure's `avg_speed` (§47.4), so the shot is aimed where the target will
+be. Not for ground shots, bombers or lofted pieces.
 `splash_area = A.type.splash_area`; `flags |= 2` (live); `cur_time = 0`;
 `num_guys = A.guy_mark` (unit) or 0.
 
@@ -1278,8 +1279,8 @@ target, or the target is the shooter itself: a landing point is picked
 `±20` around `(ex, ey)` with two more `Random::get` draws and the ground is
 punctured (cosmetic); return. **A rolling shot reaches this arm only after
 its roll** (§42.2). Else if the target is active: `Object::
-do_damage(A, ox, whom, find_angle(launch → target), num_guys, index,
-0x100, 0, 0)`.
+do_damage(A, ox, whom, ~~find_angle(launch → target)~~ find_angle(ex − sx,
+ey − sy), num_guys, index, 0x100, 0, 0)` (§47.3).
 
 **Splash**: (nuke and missile-shield branches aside) `hit_target()` /
 `check_hit()` as above — then, for every object on every cell of the
@@ -8093,3 +8094,195 @@ One lesson for the next reader. Grep the crate for the *type*, not only
 for the name the brief used. This item first wrote a software single
 from scratch over `crates/sim/src/single.rs`, which already had every
 operation, and caught it only on the module list.
+
+## 47. The captain the roll reads, and the shot's own bearing (item 523, 2026-09-22)
+
+Chapter two's word stood at **762**. There this crate spent 8 draws
+against the original's 9, and the one it missed was a `Unit::fight+0x9b0`.
+Nothing parted on 762 or 763, and no mechanism was named. This item
+moves the word **762 → 900**, which is the end of run112's trace. No draw
+parts on any frame of chapter two and no word parts (`values` is `None`).
+It took three things, and the widening found each one on the frame the
+last had left.
+
+### 47.1 The draw's site, and every input to its branch
+
+`Unit::fight@005fd4d0+0x9b0` is `0x5fde80`, the return from
+`Random::get@00a39d70` at `0x5fde7b`. From the listing, the branch that
+reaches it is `fight`'s captain arm:
+
+```text
+if order.mandatory == 0 && param_4 == 0 && recharging == 0     ; +0x1c, arg, +0xae
+  && is_captain()                                               ; o_up < 0
+  && (cavarch || !order.is_group() || order.group_leader == me) ; vtable +0x2c, +0x94
+  && target.is_unit()                                           ; vtable +0x18
+    roll = Random::get(0, 0xffff)                               ; the draw
+```
+
+The draw is unconditional once the branch is entered. The two
+suppressions (`roll % 5 == 0`, the order's `flags & 0x10`) are read after
+it. Against the dump, input by input:
+
+| input | printed? | on 762 |
+|---|---|---|
+| `mandatory` | `ATTACKORDER mandatory` | 0 on both |
+| `param_4` | a call argument, always 0 from `Unit::do_attack` | n/a |
+| `recharging` | `UNITDATA recharging` | compared since item 485 |
+| `is_captain` | `UNITDATA o_up` | **printed, and compared nowhere** |
+| the group test | not printed | `1/7`'s order is a fresh `add_attack_order`, not a group order |
+| `target.is_unit` | `ox`/`whom` | `0/10`, a unit |
+
+Vtable slot `+0x18` is `Buffer::is_pending_load` after COMDAT folding: a
+`return 1` that answers "is a unit". This crate's gate read
+`combat.captain == index`, a cached copy of the captain. For run112's
+`1/7` on 762 it held **6**, the index of `1/6`, which died on 743.
+
+### 47.2 A dying figure is relinked, and a dying head hands its squad down
+
+`Unit::close@0060ee50`, from the listing `0060f28e`–`0060f758` (the
+decompiler prints two of these shorts as floats). It sits above the death
+draw's `dtype` gate and under nothing but the slot's `flags & 1`, so it runs
+on every death:
+
+```text
+if o_up >= 0:    above.o_down = this.o_down            ; and edi = 0
+if o_down >= 0:  below.o_up   = this.o_up              ; a head's −1
+                 if below.flags & 1: goto append
+if edi != 0:     the whole-squad arm                   ; nobody left to lead
+append:  tail = walk o_down from this.o_down, else this
+         tail != this:  tail.o_down = this ; this.o_up = tail
+         tail == this:  above.o_down = this            ; undoes the first line
+         this.o_down = −1
+```
+
+The dead figure goes to the tail of its chain, where
+`Unit::repair_damage@0060de10` looks for a slot to regrow a figure into
+(`find_free(…, o_down)`, and its "negative o_down" error string). So a
+dying tail changes nothing its captain can see, and a dying **head**
+promotes the figure below it. run112 prints both:
+
+- `0/11` dies on 729, and `0/10` still carries `o_down 11` on every block
+  after.
+- `1/6` dies on 743, and block 744 has `1/7` with `o_up -1 o_down 8`, a
+  chain of 7 → 8 → 6.
+
+[`sim::Sim::relink_squad`] is that relink, called from both death paths
+(`take_damage`'s and attrition's). This crate keeps the captain in two
+caches, [`sim::Unit::captain`] and [`sim::combat::State::captain`], and
+the original reads both live (`UnitData::is_captain@0046ceb0` is `o_up <
+0`, and `UnitData::get_captain@00610ab0` walks `o_up`). So a promotion
+re-points both down the whole chain, dead slots included.
+
+**Diff-backed.** `o_up` and `o_down` are compared per frame now (§47.5).
+Across the whole of run112's window every figure's links agree. With the
+relink skipped, the row parts on block 744, `o_up 1/7` ours 6 theirs −1,
+which was made to fail once before landing. On 762 `1/7` spends the roll.
+
+### 47.3 A landed shot strikes at its own bearing
+
+With the draw closed, the next parting was `damage 1/7` on 771: ours 22 +
+15/16, theirs 24 + 10/16. That is one shot from `0/9`, fired on 766, due
+on 770, with the same `damage_o` on both sides. Everything else agreed.
+The original's hit was 85/16 and this crate's 58/16. That is flank level
+2 against 1, and the bearing is what differed.
+
+~~§9.3: `Object::do_damage(A, ox, whom, find_angle(launch → target), …)`.~~
+`Ammo::do_damage@00678060`'s no-splash arm loads `ecx = ex − sx`, `edx =
+ey − sy` at `00678c2e`–`00678c37` and calls `find_angle@0092d130`
+fastcall. The splash arm does the same at `006786a5`–`006786cd`, once for
+every object it walks (its midpoint is the cell centre, not the bearing).
+The decompiler dropped the pair and printed the two pushes behind it,
+`num_guys` (`+0x44`) and `index` (`+0x34`), as `find_angle`'s arguments.
+This crate took the target's position at landing. `1/7` walked about a
+hundred units while the shot flew, so the flank sector moved.
+[`sim::combat::Projectile::bearing`] is the fix, on both arms.
+
+### 47.4 The lead is the first figure's `avg_speed`
+
+The bearing alone did not close 771, because this crate's shot also came
+down elsewhere. Ours was (1772, 8386) and the dump's `ex ey` was (1717,
+8421), from the same launch and the same scatter draws.
+~~§9.1: the lead is "the target's heading and per-frame speed".~~
+`Ammo::init@0067bbf0` at `0067ceb4`–`0067cec7` loads `ecx = T.angle`
+(`UnitData +0x50`) and `edx = guys.list[0]->avg_speed` (`UnitData +0xf4`,
+then `GuyData +0x84`), and calls `cosx@0092d0c0` and `sinx@0092d100` on that
+pair. `1/7` had just set off, so its figure's average stood at **9**
+(run118, block 766: 5, 9, 12 over three frames) where the unit walked 24.
+The lead is `sinx(angle, 9) × 5`, and it puts the landing on the dump's.
+
+`tools/ghidra/README.md` now has this trap in its list. It is the third
+dropped register pair in two items (495's `find_angle(0, 0)` was the first).
+
+### 47.5 The instrument: a stand-up read is not a comparison
+
+`o_up` had been parsed since the army reader was written, for one
+purpose: seeding [`sim::Unit::captain`] at stand-up (`diff::army`). That
+one read kept it off `coverage`'s unread pin, and the ledger counts any
+appearance as "named". No per-frame comparison ever read it. `1/7`'s
+promotion parted on 744, nineteen frames before the draw it cost, and
+nothing looked. `o_up` and `o_down` are rows beside the firing record now
+(`rondata::diff::harness`), keyed by field, with a dead slot compared as
+the `o` the dump prints.
+
+The second gap is of the same kind. run112's 373 `AMMO` records feed the
+`v1z` and rolled-landing tests, and none of them is compared against this
+crate's own shots. `diff::ammo`'s whole-record comparison runs on run109
+alone. The shot's `ex ey` parted on 767 and was found only by printing it.
+Parked for the commander.
+
+### 47.6 What moved
+
+| | before | after |
+|---|---|---|
+| golden chapter two, **word** / sequence | 762 | **900** (the trace's end) |
+| values | 763 | none |
+| the widening's window | `[606, 766)` | `[606, 901)`, the whole capture |
+| widening rows | 20 | **11** (the two standing residues) |
+| deaths in the window | 3 | 4 (`1/7` on 816) |
+| wounded sets | ours lacks `0/9` | identical |
+| `near_o` unit-frames / live / agreeing | 9530 / 409 / 9530 | 17219 / 859 / 17113 |
+
+**The value diff on the frames it moved.** On 744 `1/7` carries `o_up -1
+o_down 8` on both sides. On 762 its order is `ox 10 whom 0 new_ord 1` and
+it spends the roll. On 771 `damage 1/7` is 24 + 10/16 on both sides, and on
+816 both `1/7`s die, carried from 817 as the dump's fourth `DEATH_OBJS`.
+
+What stands is older than this window's words and spends no draw:
+`damage 1/6` at 680 (§41.3) and the ten `g.gpiece` rows at 606 (parked,
+`docs/ANIM.md`). One new value row appears past the last draw either
+side differs on. On 846 the bowmen `0/7` and `0/8` drop their attack on
+the dead `1/7`. The original's `near_o 7 near_who 1` stands through the
+drop, and this crate's goes to −1 (`NEAR_PARTED`, from 847). `waiting` is
+0 on both sides, so it is not the search throttle, and no mechanism is
+named. Parked.
+
+### 47.7 What is not established
+
+- **The lead's gate.** The original leads a target whose order `is_move`
+  or `is_air`. This crate still asks `movement.dest.is_some()`, which is
+  not the same predicate. Every lead on run112 agrees under it.
+- **The splash arm's bearing** follows the same listing and is not
+  reached by any capture on disk.
+- **The whole-squad arm** of the relink (a dying head with nobody live
+  below) is taken from the listing's branch and does nothing in this
+  crate beyond leaving the links. What else that arm does (the counters
+  at `+0x2f0`, the heroes) is not read here.
+- **A dead slot's `captain` flag.** A dead head's successor slot, when it
+  is dead too, gets `o_up −1` in the original and keeps `captain = false`
+  here. No live reader asks.
+- **The group test** in §47.1 is read, not diffed. No order on run112 is
+  a group order when the roll is reached.
+
+### 47.8 Coverage
+
+**Diff-backed**: the relink and promotion (`o_up`/`o_down` on every
+unit-frame of run112's window, and the 744 row made to fail), the roll on
+762, the bearing and the lead (`damage 1/7` on 771 and every hit after,
+the fourth death on 816), and the word 762 → 900 with its widening.
+
+**Listing-backed**: §47.1's branch, §47.2's relink, both
+`find_angle(ex − sx, ey − sy)` sites, and the lead's `angle`/`avg_speed`
+pair.
+
+**Reading-only**: the whole-squad arm, the group test and the lead's
+`is_move`/`is_air` gate.

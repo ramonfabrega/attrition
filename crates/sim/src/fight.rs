@@ -963,16 +963,32 @@ impl Sim {
         }
         .max(1);
         // The lead: a unit target that is moving has the landing point pushed
-        // along its heading by its speed for the time of flight (§9.1).
+        // along its facing for the time of flight (§9.1, §47.4). The
+        // magnitude is its **first figure's `avg_speed`**, not the unit's
+        // per-frame speed. `Ammo::init@0067bbf0` loads `ecx = T.angle`
+        // (`UnitData +0x50`) and `edx = guys.list[0]->avg_speed`
+        // (`+0xf4`, then `GuyData +0x84`) at `0067ceb4`-`0067cec7`, and
+        // calls `cosx` and `sinx` fastcall on that pair. The decompiler
+        // dropped both operands, and §9.1 had filled them in with "the
+        // natural reading". A target that has just set off is still
+        // ramping its average: run112's `1/7` on 766 walks 24 a frame at
+        // `avg_speed` 9, and a lead of 24 put `0/9`'s shot 55 units past
+        // where the original's lands.
         if !ground_fire
             && let Obj::Unit(t) = target
             && self.units[t].movement.dest.is_some()
         {
-            let m = self.units[t].movement;
+            let u = &self.units[t];
+            let facing = u.movement.facing;
+            let avg = u
+                .guys
+                .first()
+                .and_then(|g| g.follow)
+                .map_or(u.movement.body.avg_speed, |f| f.body.avg_speed);
             landing = clamp(
                 Pos::new(
-                    landing.x + crate::movement::sin_component(m.facing, m.speed) * total_time,
-                    landing.y - crate::movement::cos_component(m.facing, m.speed) * total_time,
+                    landing.x + crate::movement::sin_component(facing, avg) * total_time,
+                    landing.y - crate::movement::cos_component(facing, avg) * total_time,
                 ),
                 &self.world,
             );
@@ -1207,6 +1223,7 @@ impl Sim {
                     // `Object::die` is `close()` — the draw arm below —
                     // and **then** the slot hold, which is not gated on
                     // the draw arm's `dtype` at all (§42.3).
+                    self.relink_squad(i);
                     self.close_unit(i, dtype, _frame);
                     self.hold_dead_slot(i);
                     self.close_supply(i);
@@ -1327,6 +1344,81 @@ impl Sim {
             bd.eject_pending = true;
         }
         taken
+    }
+
+    /// **`Unit::close@0060ee50`'s squad relink** (`docs/COMBAT.md` §47.2),
+    /// from the listing, `0060f28e`-`0060f758`. It sits above the death
+    /// draw's `dtype` gate and under nothing but the slot's `flags & 1`, so
+    /// it runs on every death.
+    ///
+    /// The dying figure is taken out of its chain and put back **at the
+    /// tail**, where `Unit::repair_damage@0060de10` finds its slot to regrow
+    /// a figure into:
+    ///
+    /// ```text
+    /// if o_up >= 0:  above.o_down = this.o_down ; edi = 0
+    /// if o_down >= 0:
+    ///     below.o_up = this.o_up                 ; a dying head's -1
+    ///     if below.flags & 1:  goto append
+    /// if edi != 0:   the whole-squad arm         ; nothing left to lead
+    /// append:
+    ///     tail = walk o_down from this.o_down, or this if it has none
+    ///     if tail != this:  tail.o_down = this ; this.o_down = -1 ; this.o_up = tail
+    ///     else:             above.o_down = this ; this.o_down = -1 ; this.o_up = above
+    /// ```
+    ///
+    /// So a dying tail leaves its captain's `o_down` where it was, and a
+    /// dying **head** hands the squad to the figure below it, whose `o_up`
+    /// is now the head's own −1: `UnitData::is_captain` is `o_up < 0`, and
+    /// the new head is a captain from this frame. run112 prints both. After
+    /// `0/11` dies on 729, `0/10` still carries `o_down 11`. After `1/6` dies
+    /// on 743, `1/7` carries `o_up -1` and `o_down 8`, a chain of 7 → 8 → 6.
+    ///
+    /// This crate caches the captain in two places, [`crate::Unit::captain`]
+    /// and [`combat::State::captain`], which the original reads live
+    /// (`UnitData::get_captain@00610ab0` walks `o_up`). Both are re-pointed
+    /// down the whole chain here, dead slots included, because a dead slot's
+    /// `get_captain` walks to the new head as well.
+    pub(crate) fn relink_squad(&mut self, i: usize) {
+        let (up, down) = (self.units[i].o_up, self.units[i].o_down);
+        let head = up.is_none();
+        if let Some(a) = up {
+            self.units[a].o_down = down;
+        }
+        let mut append = !head;
+        if let Some(b) = down {
+            self.units[b].o_up = up;
+            append |= self.units[b].alive();
+        }
+        if !append {
+            return;
+        }
+        let mut tail = i;
+        let mut at = down;
+        // Bounded by the list: a cycle would hang the original, and here it
+        // stops rather than spins.
+        for _ in 0..self.units.len() {
+            let Some(n) = at else { break };
+            tail = n;
+            at = self.units[n].o_down;
+        }
+        if tail != i {
+            self.units[tail].o_down = Some(i);
+            self.units[i].o_up = Some(tail);
+        } else if let Some(a) = up {
+            self.units[a].o_down = Some(i);
+        }
+        self.units[i].o_down = None;
+        if head && let Some(b) = down {
+            self.units[b].captain = true;
+            let c = i32::from(self.units[b].index);
+            let mut at = Some(b);
+            for _ in 0..self.units.len() {
+                let Some(n) = at else { break };
+                self.units[n].combat.captain = c;
+                at = self.units[n].o_down;
+            }
+        }
     }
 
     /// **`Unit::close@0060ee50`'s death-animation arm** (`docs/COMBAT.md`
@@ -2259,10 +2351,7 @@ impl Sim {
             if t == p.shooter {
                 return;
             }
-            let angle = {
-                let to = self.pos_of(t);
-                find_angle(to.x - p.launch.x, to.y - p.launch.y)
-            };
+            let angle = p.bearing();
             self.do_damage(p.shooter, t, angle, true, 0x100, false, false, frame);
             return;
         }
@@ -2319,7 +2408,7 @@ impl Sim {
                 }
             };
             let splash = target != Some(o);
-            let angle = find_angle(pos.x - p.landing.x, pos.y - p.landing.y);
+            let angle = p.bearing();
             self.do_damage(p.shooter, o, angle, true, count, splash, false, frame);
         }
     }
@@ -3205,6 +3294,187 @@ mod tests {
         assert_eq!(
             sim.ground_inexact, 0,
             "a grid of whole numbers is every corner's own single"
+        );
+    }
+
+    /// A three-figure chain, `a → b → c`, on player 0.
+    fn chain3(sim: &mut Sim, ty: usize) -> [usize; 3] {
+        let a = put(sim, 0, ty, Pos::new(0x1000, 0x1000));
+        let b = put(sim, 0, ty, Pos::new(0x1030, 0x1000));
+        let c = put(sim, 0, ty, Pos::new(0x1060, 0x1000));
+        for (f, up, down) in [
+            (a, None, Some(b)),
+            (b, Some(a), Some(c)),
+            (c, Some(b), None),
+        ] {
+            sim.units[f].captain = up.is_none();
+            sim.units[f].o_up = up;
+            sim.units[f].o_down = down;
+            sim.units[f].combat.captain = i32::from(sim.units[a].index);
+        }
+        [a, b, c]
+    }
+
+    fn links(sim: &Sim, f: usize) -> (Option<usize>, Option<usize>) {
+        (sim.units[f].o_up, sim.units[f].o_down)
+    }
+
+    /// **A dying head hands the squad down, and goes to the tail**
+    /// (`docs/COMBAT.md` §47.2, `Unit::close@0060ee50`'s relink). run112's
+    /// `1/6` dies on 743 and the dump's next block carries `1/7` with
+    /// `o_up -1 o_down 8`, a chain of 7 → 8 → 6. The new head is a captain
+    /// from that frame (`UnitData::is_captain` is `o_up < 0`), and every
+    /// figure's captain now reads it, the dead slot's included, because
+    /// `get_captain` walks `o_up`.
+    ///
+    /// Made to fail on purpose: with the relink skipped, the golden
+    /// widening's `o_up` row parts on block 744 (`1/7` ours 6, theirs −1)
+    /// and chapter two's word falls back to 762.
+    #[test]
+    fn a_dead_captain_hands_the_squad_to_the_figure_below() {
+        let (mut sim, ty) = at_war();
+        let [a, b, c] = chain3(&mut sim, ty);
+        sim.units[a].health = 0;
+        sim.relink_squad(a);
+        assert!(sim.units[b].captain, "the figure below is the captain now");
+        assert_eq!(links(&sim, b), (None, Some(c)));
+        assert_eq!(links(&sim, c), (Some(b), Some(a)));
+        assert_eq!(links(&sim, a), (Some(c), None), "the dead head is the tail");
+        let bi = i32::from(sim.units[b].index);
+        for f in [a, b, c] {
+            assert_eq!(sim.units[f].combat.captain, bi);
+        }
+        assert_eq!(sim.squad_captain(c), b);
+    }
+
+    /// **A dying tail changes nothing its captain can see.** The unlink
+    /// sets `above.o_down = −1` and the append puts it straight back:
+    /// run112's `0/10` still carries `o_down 11` on every block after
+    /// `0/11` dies on 729. And a dying middle figure is moved behind the
+    /// one below it, so the chain the living walk is unbroken.
+    #[test]
+    fn a_dead_tail_stays_linked_and_a_dead_middle_goes_behind() {
+        let (mut sim, ty) = at_war();
+        let [a, b, c] = chain3(&mut sim, ty);
+        sim.units[c].health = 0;
+        sim.relink_squad(c);
+        assert_eq!(links(&sim, b), (Some(a), Some(c)));
+        assert_eq!(links(&sim, c), (Some(b), None));
+        assert!(sim.units[a].captain && !sim.units[b].captain);
+
+        let (mut sim, ty) = at_war();
+        let [a, b, c] = chain3(&mut sim, ty);
+        sim.units[b].health = 0;
+        sim.relink_squad(b);
+        assert_eq!(links(&sim, a), (None, Some(c)));
+        assert_eq!(links(&sim, c), (Some(a), Some(b)));
+        assert_eq!(links(&sim, b), (Some(c), None));
+        assert!(sim.units[a].captain, "a middle death moves no captaincy");
+    }
+
+    /// The relink is on the death path itself: a head killed by damage
+    /// leaves its squad led by the next figure, with nothing called by
+    /// hand. A dead head over a dead figure is the whole-squad arm and
+    /// promotes nobody.
+    #[test]
+    fn a_captain_killed_by_damage_is_succeeded() {
+        let (mut sim, ty) = at_war();
+        let [a, b, c] = chain3(&mut sim, ty);
+        let foe = put(&mut sim, 1, ty, Pos::new(0x1100, 0x1000));
+        sim.units[a].health = 1;
+        let hit = combat::Sixteenths { whole: 50, frac: 0 };
+        let taken = sim.take_damage(Obj::Unit(a), hit, Obj::Unit(foe), 10);
+        assert!(matches!(taken, Taken::Died { .. }));
+        assert!(sim.units[b].captain);
+        assert_eq!(sim.squad_captain(c), b);
+
+        let (mut sim, ty) = at_war();
+        let [a, b, c] = chain3(&mut sim, ty);
+        for f in [c, b] {
+            sim.units[f].health = 0;
+            sim.relink_squad(f);
+        }
+        sim.units[a].health = 0;
+        let before = sim.units.iter().map(|u| u.captain).collect::<Vec<_>>();
+        sim.relink_squad(a);
+        let after = sim.units.iter().map(|u| u.captain).collect::<Vec<_>>();
+        assert_eq!(
+            before, after,
+            "nobody alive below the head, nobody promoted"
+        );
+    }
+
+    /// **The lead is the target's first figure's `avg_speed`, along its
+    /// facing** (`docs/COMBAT.md` §47.4, `Ammo::init@0067bbf0`,
+    /// `0067ceb4`-`0067cec7`), and not the unit's per-frame speed. Two
+    /// copies of one sim fire the same shot, the draws identical, and
+    /// differ only in the target figure's average. The landings differ by
+    /// exactly `sinx`/`cosx` of that average times the flight time,
+    /// whatever the unit's `speed` says.
+    #[test]
+    fn the_lead_is_the_first_figure_s_average_speed() {
+        let (mut sim, ty) = at_war();
+        let me = put(&mut sim, 0, ty, Pos::new(0x1000, 0x1000));
+        let foe = put(&mut sim, 1, ty, Pos::new(0x1300, 0x1000));
+        let facing = crate::movement::Angle(723_976_192);
+        {
+            let m = &mut sim.units[foe].movement;
+            m.dest = Some(Pos::new(0x1800, 0x1000));
+            m.facing = facing;
+            m.speed = 24;
+        }
+        let fire = |avg: i32| {
+            let mut s = sim.clone();
+            s.units[foe].movement.body.avg_speed = avg;
+            s.fire_ammo(
+                Obj::Unit(me),
+                Obj::Unit(foe),
+                Angle(0),
+                0,
+                Pos::new(0x1000, 0x1000),
+                0,
+            );
+            let p = *s.projectiles.last().expect("a shot");
+            (p.landing, p.total_time)
+        };
+        let (still, t) = fire(0);
+        let (moving, t2) = fire(9);
+        assert_eq!(t, t2, "the flight time is taken before the lead");
+        assert_eq!(
+            (moving.x - still.x, moving.y - still.y),
+            (
+                crate::movement::sin_component(facing, 9) * t,
+                -crate::movement::cos_component(facing, 9) * t
+            ),
+        );
+    }
+
+    /// **A landed shot strikes at its own launch-to-landing bearing**
+    /// (`docs/COMBAT.md` §47.3): `find_angle(ex − sx, ey − sy)`, whatever
+    /// the target did while the shot flew. run112's `0/9` shot `1/7` on
+    /// 766, `1/7` walked on, and the original struck at the shot's bearing
+    /// on flank level 2 where the target's current position gives 1.
+    #[test]
+    fn a_shot_strikes_at_its_own_bearing() {
+        let (mut sim, ty) = at_war();
+        let me = put(&mut sim, 0, ty, Pos::new(0x1000, 0x1000));
+        let foe = put(&mut sim, 1, ty, Pos::new(0x1300, 0x1000));
+        sim.fire_ammo(
+            Obj::Unit(me),
+            Obj::Unit(foe),
+            Angle(0),
+            0,
+            Pos::new(0x1000, 0x1000),
+            0,
+        );
+        let mut p = *sim.projectiles.last().expect("a shot");
+        p.launch = Pos::new(964, 8180);
+        p.landing = Pos::new(1717, 8421);
+        assert_eq!(p.bearing(), crate::movement::find_angle(753, 241));
+        assert_eq!(
+            combat::flank_level(crate::movement::Angle(724_631_552), p.bearing()),
+            Some(2),
+            "run112's own numbers: 1/7's facing on 770 and 0/9's shot"
         );
     }
 }
