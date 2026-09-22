@@ -96,7 +96,12 @@ def check_receipt(rows,c):
 def compare(c, replay, payload_sha256):
     require(replay.get('payload_sha256')==payload_sha256,'replay belongs to another payload')
     require(replay.get('native_intervention')==c.get('intervention'),'native/replay intervention provenance differs')
-    last=replay['last']; require(last.get('returned') is True,'replay did not return')
+    return compare_boundary(c,replay['last'])
+
+
+def compare_boundary(c,last):
+    """Compare outputs only; the caller must state input provenance separately."""
+    require(last.get('returned') is True,'replay did not return')
     o=last['unit_path_observation']
     require(int(o['unit_address'],16)==c['unit'],'replay unit differs')
     a,b=bytes.fromhex(c['unit_bytes']),bytes.fromhex(o['unit_bytes'])

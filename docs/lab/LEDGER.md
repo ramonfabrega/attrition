@@ -146,6 +146,8 @@ No new capture or main-loop adoption is requested by this handoff.
 
 | L81 | Why did the second return observer refuse? | [Native return modes](2026-09-22-native-return-modes.md). | Diagnostics observe saving 1→0 with outer return 8; version-3 output modes replace the preservation assumption. A fresh pair validates; second-call replay matches outer return 8, modes 300/0, all 640 path bytes and the full unit apart from explicit path relocation. | One captured continuation boundary; broad snapshots are not atomic and intervening world fidelity is not claimed. |
 
+| L82 | Which observed input change explains the frozen-chain output gap? | [Caller continuation gap](2026-09-22-caller-continuation-gap.md). | Frozen chaining isolates unit +0x88; the PDB names its 16-bit collide field. The original caller instruction computes its increment and closes the measured second-output gap; both chains repeat and baseline restores. | Cross-input ablation, not reconstructed world advancement. No capture or main score movement. |
+
 ## Current direction
 
 The September 19–22 tranche now has an unchanged native unit/path witness
@@ -168,8 +170,10 @@ L79 implements and tests the bounded natural second-call collector and packet
 projection. L80 captures both inputs but the second return observer refuses;
 L81 identifies the saving transition, records it explicitly and validates a
 fresh native output pair. Its isolated second-call replay matches the measured
-unit/path/mode boundary; the next lab question is how to reconstruct the
-intervening inputs rather than reimport them;
+unit/path/mode boundary. L82 computes the observed collide transition with
+the original caller instruction and reproduces that boundary from a preserved
+first-input model. Whole-world advancement remains unproved; a compact reusable
+chain fixture is the next tooling candidate;
 the next adoption test should answer one
 real divergence question selected by steering, with a named call/field and
 falsifier. Saved-tree required fields now have one native witness; native limit 96,
