@@ -12,36 +12,35 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-21, the tenth chain. **The AI word moved 10233 → 10234**
-(465) and **chapter two's unearned green was earned** (470).*
+*2026-09-21, the tenth chain. The AI word holds at 10234 and its cause
+now has a cheaper oracle 2,000 frames earlier (471, ORDERS §17.6).*
 
-- **The rules word is 637** (470), parting **635 → 636**, 635's three
-  `Target` rows to nought. `find_ordered_collision`'s group pass read
-  `pushed_last` — the last slot `push_group` filled — where `65b4d4`
-  takes the group off the asker's own `unit +0x80`; 465's own doc
-  comment said so. Open count 10 → 9 → 8, `pushed_last` has no reader
-  left and is gone. **465 is why this item closed.**
-- **§33.4's unearned green is now earned, not re-pinned.** `1/8`
-  strikes for the first time in 899 frames (`visible` 675 v the dump's
-  665); the two-slots-of-twelve figure held exactly and §33.4 carries
-  both counts. `exact` still 5. A disclosure, closed.
-- **The widening floor sat above a live row**: `[633, 641)` hid
-  `order 0/10`/`pos 0/10` at **630**, pre-existing, reported by
-  nothing. Floor is run112's first block (606) and the map is pinned
-  whole — so the earliest known divergence is now 630, revealed and
-  not caused. That is 472. Fourth instrument defect today.
-- **The AI word is 10234** (465): the invented `g.army.is_some()` gate
-  in `action_move_near`; the original exempts a `go_to` group by
-  `unit_masks & 4`, and without the bit the word is 6994. 471 is live
-  on 10235. Three open, 68 parked. **Fable backlog: 1 Loop items** (313).
+- **A second oracle for the AI word, at 8186** (475, ORDERS §17.6 —
+  read it before hunting the word). `great_lakes_8186_…` doubled its
+  width 47→94 v 94, and its 22 parted rows all share the original's
+  `x`, sit one or two whole cells south in `y` over three re-converging
+  stretches, and carry the original's own tolerance and flags. That is
+  a **cost** tie-break, not a different call — the same
+  `calc_road_cost` the word stands on. Three falsifiers stated.
+- **The cause was 895 blocks upstream of the item's frame** (471):
+  group 65 parts on `order:move.x/y` at **9340**, not 10235. `off_x`
+  is `x mod 0x300`, the destination said twice. `action_move_near`
+  asked `get_loc_to` (→ `get_final_loc`, where the leader *ends up*).
+  `1/28`'s rows 60 → 3, 42 path nodes exact; word unmoved (204 draws
+  v six). `ORDER_RESIDUE_RUN97` 81,534 → **28,222**, units 8 → 3.
+- **Fifth instrument defect: a probe that hid what it exercised.**
+  ARMY §12 queued the walk home to the leader's own position, so the
+  delta read zero and no bearing was taken. Sole exerciser degenerate
+  ⇒ path untested, however many frames agree. Three open, 69 parked.
+  **Fable backlog: 1 Loop items** (313).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w9711 of 24,000 · GreatLakes w10234 of 24,000
 Golden: w626 of 901 (ch1) · ch2 w637 · 472 next
-Endpoint 24001: EastIndies 64 off, 10 unlinked · GreatLakes 49 off, 9 unlinked
+Endpoint 24001: EastIndies 64 off, 10 unlinked · GreatLakes 44 off, 11 unlinked
 
-**Opener: 471 is live; 472 takes the freed lane. The loop stands at 7
-of 20; chapter two's parting is 636 and its earliest row is now 630.**
+**Opener: 472 is live; 475 takes the freed lane. The loop stands at 8
+of 20, and the AI word's cause is now cheaper to reach than the word.**
 
 ## The queue
 
@@ -51,14 +50,14 @@ the AI, lower map first — Great Lakes. Take the first unstarted on either
 track unless a better order is obvious, and say so. Numbers are stable;
 the backlog is `docs/PARKED.md`, and an item returns only when a score names it.
 
-471. **`1/28`'s `order:move.off_x` 120 against 648 on block 10235**
-    (the AI headline's frame; 465 moved the word to 10234). 10234's
-    whole dumped record now agrees and `1/28` reopens one block later,
-    the two routes 240 apart in `x`. 465's reading: `Form::compute`'s
-    slot table, **not** the pathfinder's draw count — the original
-    spends 204 draws at `PathFinder::calc_road_cost+0x46` for a
-    43-node route where this crate spends six for a route of its own.
-    That is its hypothesis, not this item's. `docs/ORDERS.md` §16.
+475. **The 22 `PROBE_PLAN_PARTED` rows at block 8186** — the AI
+    headline's cause by the cheaper oracle 471 opened (ORDERS §17.6),
+    not the word's own frame. Each shares the original's `x` and sits
+    one or two whole cells south in `y` across three re-converging
+    stretches, each stamped with the original's own tolerance and
+    flags — read as a `calc_road_cost` cost tie-break, which is what
+    holds the word at 10234 (204 draws against six). **§17.6's three
+    falsifiers first**; a mechanism is not named here.
 
 472. **`order 0/10` / `pos 0/10` on block 630** — the rules
     headline's earliest divergence, uncovered when 470 dropped the
