@@ -2058,7 +2058,7 @@ impl Sim {
     /// carry. So a rolled shot here flies to its `3 × total_time` cap and
     /// is dropped, where the original's comes down a frame or two later
     /// and damages whatever `check_hit` finds at the new point. Neither
-    /// spends a draw; §42.5 and item (493) carry the value.
+    /// spends a draw; §42.5 carries the value and the successor 491 parked owes it.
     pub(crate) fn process_projectiles(&mut self, frame: i64) {
         let mut i = 0;
         while i < self.projectiles.len() {

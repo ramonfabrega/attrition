@@ -664,8 +664,11 @@ tmask  = T.type.obj_masks
     not packed: `armor += 1`.
 11. `dtype`: `3` if `amask` has **EXPLOSIVE**, `3` if it has **BOMBARD**; if A
     is a building, `3` when `BuildData::get_shot() == 4` (the `REDOUBT`),
-    else `2`. (`dtype` is cosmetic downstream — it picks the death
-    animation's facing — and is carried but not modelled.)
+    else `2`. ~~(`dtype` is cosmetic downstream — it picks the death
+    animation's facing — and is carried but not modelled.)~~ **It is
+    modelled from item 491 and it is not cosmetic**: `Unit::close` spends a
+    draw on it, and three when it is 4 (§42.1). The default is 2, written
+    at the head of the function.
 12. **Wellington**: A is a unit, A's owner has a Wellington, A is under him
     (`has_general(0, WELLINGTON) ≥ 0`), and T's type is made `where ==
     FACTORY` (`T.type.where ≥ 0 && objecttypes[where].is(FACTORY)`): `base +=
@@ -789,7 +792,12 @@ Returns at once if `count < 1` or if A is a decoy. Then:
 6. Bookkeeping: which owner is attacking which (`attacked` bits both ways),
    the under-attack messages and the city alarms — all interface or AI. And
    `dtype`: `4` if the ammo's graphic piece has flag `0x10`; `1` if T is
-   Build-proper.
+   Build-proper. **Both are overrides of §6 step 11's value, and the death
+   draw is what reads them** (§42.1). The `0x10` test is
+   `GraphicPieces::verify_ammo_flags(ammo[index].gpiece, 0x10)` and runs
+   only when the ammo index is `>= 0`; the Build-proper test is the
+   target's vtable `+0x20`, and it runs after it, so a `0x10` piece hitting
+   a building is 1.
 7. `died = T.take_damage(whole, frac, dtype, ammo, 0, angle, A.o, A.who,
    splash)` — §7.2.
 8. If `died` and T is a building: buildings-destroyed stat, the type's
@@ -1247,14 +1255,17 @@ target will be. Not for ground shots, bombers or lofted pieces.
 
 ### 9.2 Flight — `Ammo::inc_time` (every frame, all ammo, after the objects)
 
-`cur_time += 1`; a target that is no longer active has its `hold_frames`
-bumped. A live ammo with `cur_time < total_time` returns (a rolling one
+`cur_time += 1`; ~~a target that is no longer active has its `hold_frames`
+bumped~~ — **the shooter's slot, not the target's: §42.3.**
+A live ammo with `cur_time <
+total_time` returns (a rolling one
 recomputes its graphic position in floats — cosmetic). At `cur_time >=
 total_time`: a **rolling** shot (flag 4) that has not yet missed (flag 8)
 does `hit_target`, then `check_hit(GROUND)`, and if neither found anything
 sets flag 8 and keeps going along its line, up to `3 × total_time`, until the
-terrain is above it (float terrain heights; cosmetic to the outcome except
-that a rolling miss can land on something further along — open question 5);
+terrain is above it (float terrain heights; ~~cosmetic to the outcome except
+that a rolling miss can land on something further along — open question 5~~
+— **not cosmetic; §42.2 is the frame it cost**);
 then `graphic_finish` and, unless cosmetic (flag 0x10), `Ammo::do_damage`.
 
 ### 9.3 Impact — `Ammo::do_damage`
@@ -1265,7 +1276,8 @@ If the target is no longer active it is forgotten (`whom = ox = −1`). Then:
 `check_hit(domain of the original target, or GROUND)`. If there is now no
 target, or the target is the shooter itself: a landing point is picked
 `±20` around `(ex, ey)` with two more `Random::get` draws and the ground is
-punctured (cosmetic); return. Else if the target is active: `Object::
+punctured (cosmetic); return. **A rolling shot reaches this arm only after
+its roll** (§42.2). Else if the target is active: `Object::
 do_damage(A, ox, whom, find_angle(launch → target), num_guys, index,
 0x100, 0, 0)`.
 
@@ -1315,11 +1327,13 @@ x then y, each only when the footprint axis exceeds one unit;
 does not run — §9.0); one or two
 `% 100` for a shot at an aircraft; two for the landing scatter (when `s >
 1`) — `Ammo::init+0xcd9` and `+0xd0b`, named in
-[`trace::SITES`](../crates/rondata/src/trace.rs) since item 389; at landing, two more for where a no-target shot punctures the ground;
+[`trace::SITES`](../crates/rondata/src/trace.rs) since item 389; at landing, two more for where a no-target shot punctures the ground — **not a rolling
+one on the frame it was due** (§42.2);
 in `take_damage`, ~~one `% 100` on the first wound of a fort, temple or
 town~~ — **wrong; §20 measured it**: the `% 100` is *any* building's first
 wound, the fort test gates only the flock, and one frame can spend it
-twice; and, outside
+twice; **one for the death animation of any unit the hit kills** (§42.1),
+and two more when its `dtype` is 4; and, outside
 the shot, one per frame from `fight`'s retarget test (§8.2 step 0). Every
 one is `Random::get(game_random, 0, 0xffff)` and the order above is the
 order they are taken, so a sim that reproduces the sequence reproduces the
@@ -1347,11 +1361,14 @@ mechanic reads it, and that roll is gated on a display flag). So `get(0,
 
 `take_damage` calls the object's `die` virtual — `Unit::die` → `Object::die`.
 `Object::die(dtype, gpiece, angle)`: `close()` (the object's removal:
-unregistering from the world, the supply list, the army, the group), then,
+unregistering from the world, the supply list, the army, the group — **and
+one `Random::get` for the death animation, §42.1**), then,
 for a type with range, `hold_frames = max(1, for every live ammo this
 object fired: total_time − cur_time + nuke_effect[0x108] + 1)` — **the slot
 is held until its last shot has landed**, so that a dead archer's arrow
-still hits. A `UnitData` in the chain dies alone; `Unit::die_uber` (the
+still hits. The ammo is matched on its **shooter** (`Ammo +0x3c`/`+0x40`),
+which is the same pair `Ammo::inc_time`'s per-frame bump reads and the
+correction §9.2 carries. A `UnitData` in the chain dies alone; `Unit::die_uber` (the
 whole squad) is a separate call from the scripting and disband paths, not
 from combat. Death of a non-captain figure does nothing to the others
 except through `curr_uber_size` (§7.3); death of the captain is handled by
@@ -6705,13 +6722,15 @@ the parting have a name:
   successor. Both of the window's last arrows land on 683 in both
   simulations; the first kills `1/8`; the second finds its target dead,
   and where the original holds it, this crate lands it on nothing and
-  punctures the ground. §9.2's own sentence is the mechanism — "a target
-  that is no longer active has its `hold_frames` bumped" — and the dump
-  says where the two arrows went: `1/7` takes `19+5` in one step on
-  frame **685**, two arrows' worth, two frames after they would have
-  landed. `hold_frames` is printed on every unit record and is one of
-  the two fields `crate::ledger` still counts as uncompared on
-  `UnitDump`.
+  punctures the ground. ~~§9.2's own sentence is the mechanism — "a
+  target that is no longer active has its `hold_frames` bumped"~~ —
+  **wrong twice over, and item 491 measured both**: that bump is the
+  *shooter*'s slot (§42.3), and what the original does is
+  `Ammo::inc_time`'s flag-4 roll (§42.2). The frame and the draw delta
+  were right; the mechanism was not, which is `docs/DECISIONS.md` 42
+  again. The dump's own `1/7` takes `19+5` in one step on frame **685**,
+  which is where the rolled arrow comes down, and that stays open as the
+  successor 491 parked (§42.5).
 
 ### 41.6 Coverage
 
@@ -6754,8 +6773,281 @@ body; `cur_anim 17` is the dump agreeing with the reading, which is why
 **What this does not establish**:
 
 - `(384, ATTACK3, 16)`'s node, which is `damage 1/6` at 680 (§41.3).
-- `dtype`, which is the `Unit::close` draw's gate (§41.5).
-- what the original does with an arrow whose target dies in flight
+- ~~`dtype`, which is the `Unit::close` draw's gate (§41.5).~~ **Closed by
+  item 491**: §42.1 derives it and the `DEATH_OBJS` row backs it.
+- ~~what the original does with an arrow whose target dies in flight
   (§9.2's `hold_frames` bump), which is our puncture pair at 683 and
-  `1/7`'s `19+5` at 685.
+  `1/7`'s `19+5` at 685.~~ **Closed by item 491, and the named mechanism
+  was wrong**: the bump is the *shooter*'s and the arrow **rolls on**
+  (§42.2). `1/7`'s `19+5` stays open as the roll's *landing* — the
+  successor 491 parked, §42.5.
 - the attrition caller's threshold (§41.4).
+
+---
+
+## 42. The death draw, and the arrow that rolls on (item 491, 2026-09-22)
+
+§41.5 handed this item one frame and two hypotheses, and the frame was
+right both times. Chapter two's word stood at **683** with this crate
+spending seven draws against the original's six and the streams parting
+at **draw 0**:
+
+```
+  ≠  0  ours Ammo::do_damage+0xc59   theirs 60fb06
+  ≠  1  ours Ammo::do_damage+0xc7e   theirs Farms::inc_time+0x1ae
+     2  ours Farms::inc_time+0x1ae   theirs Farms::inc_time+0x1ae
+```
+
+Two arrows land on 683 and the sides differ about both of them. Theirs
+takes a draw this crate had never taken — the death animation's, and
+§41.5 named its site correctly. Ours spends two the original does not,
+and §41.5's mechanism for that — §9.2's `hold_frames` bump — is not the
+mechanism and is not even about the right object. One draw gained, two
+lost, and the word moves **683 → 695**.
+
+### 42.1 `Unit::close@0060ee50+0xcb6` — one draw per death
+
+`Object::take_damage` step 10 ends `T.die(dtype, gpiece, angle)` — the
+virtual at `+0x158` — and `Object::die@00647080` is `close()` (the
+virtual at `+0x150`, `Unit::close` for a unit) and then the slot hold of
+§11. Near the foot of `close`, before `Object::close` runs:
+
+```
+  60fa68  call *0x8(%eax)          ; SubObjectData::is_active  → else skip
+  60fa77  call *0xbc(%eax)         ; UnitData::is_on_map       → else skip
+  60fa85  testb $0x1, 0x68(%ebx)   ; unit_masks & 1, the decoy → else skip
+  …
+  60fb01  call Random::get         ; (game_random, 0, 0xffff)
+  60fb06  and   $0x80000001, %eax  ; % 2, sign-fixed
+  60fb12  lea   0xd(,%ebx,2), %ebx ; %ebx is the (signed char) dtype
+  60fb19  add   %eax, %ebx         ; cur_anim = dtype*2 + 0xd + roll % 2
+  60fb1b  cmpb  $0x4, 0x8(%ebp)    ; dtype == 4?
+  60fb31  call Random::get         ;   cur_anim = roll % 2 + 0x11
+  60fb55  call Random::get         ;   facing   = 0xe - roll % 4
+```
+
+Above all of it, `dtype != 0` and the function's own `local_1c`, which is
+set only on the arm that unblocks four tiles for a **Merchant**, a Dutch
+Merchant or a Fur Trapper (type index `0x3d`, `0x3e`, `400` —
+`TypeIndex`'s `MERCHANT`, `MERCHANTDUTCH`, `FURTRAPPER`); those three
+take no death draw. `is_active` here is the slot's allocation flag, not
+its health: the object is still allocated and still on the map while
+`close` runs, and it is `Object::close` at the foot of the function that
+takes it off.
+
+So **one draw on an ordinary death and three on a `dtype == 4` one**, and
+the anim the first chose is discarded in the second case.
+
+**`dtype` is derived, not assumed.** §41.5 had `cur_anim 17` agreeing
+with a reading; two instruments make it a derivation.
+
+- The formula's only unknowns are `dtype` and the parity. run112's trace
+  carries the seed *before* the draw at `0060fb06` on frame 683:
+  `0xadfe4aea`. Stepping the LCG (§10) gives `0x19660d × seed +
+  0x3c6ef35f`, and `((seed & 0xffff) × 0xffff) >> 16` = **64832**, which
+  is even.
+- run112's `DEATH_OBJS` carries `cur_anim 17` for `1/8`. With the parity
+  known, `2 × dtype + 0xd = 17` and `dtype = 2` — no other value fits,
+  because 17 is odd only through the roll and the roll is even.
+
+And 2 is what the reading gives independently: `get_damage` writes 2 at
+its head (§6 step 11) and the only writers after it are EXPLOSIVE
+(`obj_masks & 0x800000`) and BOMBARD (`& 0x2`), each 3, and a **building**
+attacker, which overwrites to 3 for a `REDOUBT` shot and 2 otherwise.
+`do_damage` then overrides to 4 for an ammo whose graphic piece carries
+flag `0x10` and to 1 for a Build-proper target (§7.1 step 6). An arrow
+from an archer at a hoplite is none of those.
+
+**The other three deaths of the capture say the same.** run112 prints
+625 `DEATH_OBJS` records over four deaths — `1/8` from 683, `0/11` from
+729, `1/6` from 743, `1/7` from 816 — and every one carries `cur_anim
+17`. Four even rolls in a row is a one-in-sixteen coincidence and it is
+not one: it is four deaths at `dtype 2`, and the trace settles the first.
+
+### 42.2 The puncture was never the mechanism: `Ammo`'s flag 4
+
+§41.5 proposed §9.2's sentence — "a target that is no longer active has
+its `hold_frames` bumped" — as what the original does with an arrow whose
+target dies in flight. It is not, and §42.3 says why. What the original
+actually does is in `Ammo::inc_time@0067d380`'s tail, and run112 had been
+printing it since the day the capture was taken.
+
+The two arrows `0/7` and `0/8` fire on 677 with `total_time 7`; both
+carry `flags 6`. The block after the impact frame:
+
+```
+  block 683   AMMO o 7  cur_time 6/7  whom 1 ox 8  flags 6
+  block 683   AMMO o 8  cur_time 6/7  whom 1 ox 8  flags 6
+  block 684   AMMO o 8  cur_time 7/7  whom -1 ox -1  flags 14      ← still there
+  block 685   AMMO o 8  cur_time 8/7  whom -1 ox -1  flags 14
+  block 686   —                                                    ← gone
+```
+
+`0/7`'s arrow is gone on 684: it hit, and killed `1/8`. `0/8`'s is
+**still in the list**, its target forgotten and flag `8` set, and it flies
+two more frames. The arm:
+
+```
+if (flags & 4) {
+    if (!(flags & 8) && !hit_target() && !check_hit(GROUND)) flags |= 8;
+    if (flags & 8) {
+        if (total_time * 3 < cur_time) { close(); return; }   // no do_damage
+        …advance along the line at t = cur_time / total_time…
+        if (!WorldData::is_valid(x, y)) { close(); return; }  // no do_damage
+        if (terrain_z < arrow_z) return;                      // still flying
+        pos = (x, y, z); total_time = cur_time;               // landed
+    }
+}
+graphic_finish();
+if (!(flags & 0x10)) do_damage();
+```
+
+**Flag 4 is set in `Ammo::init@0067bbf0+0x96f`** when three things hold:
+the shooter's order is not `ATTACK_GROUND`/`AIR_ATTACK_GROUND` (the
+function's `local_38`, which is the ground-order pointer and is null for
+a building shooter), the target is a unit whose type's domain
+(`+0x218`) is **land**, and the piece is not lofted (`ammo_flags & 8`,
+the same flag that makes `traj` 2 and sends the shot down a spline).
+Every arrow of run112's window is `flags 6` — live and rolling — and the
+three that ever miss are `flags 14`.
+
+So the original spends **nothing** on the frame a rolling arrow finds its
+target gone; this crate spent §39's puncture pair. That pair is real and
+its site is right — it is what a *non*-rolling shot, or a rolled one that
+has come down, spends — and Great Lakes' three puncture frames (10237,
+10242, 10249, §39.2) are untouched by this landing, because their target
+is a farm and a building target never sets flag 4.
+
+### 42.3 `hold_frames` is the shooter's, and it is zero on every living unit
+
+`Ammo::inc_time` opens its loop with
+
+```
+if (this->field_0x3c >= 0 && this->field_0x40 >= 0 &&
+    (objects[field_0x3c][field_0x40]->flags & 1) == 0)
+    *(short *)(that + 0x32) += 1;
+```
+
+and `Ammo::init` fills `+0x3c`/`+0x40` from the **shooter**, not from
+`+0x48`/`+0x4c`, which is the target. `Object::die`'s own scan matches on
+the same pair (§11). So all three writers of `hold_frames` — `die`'s
+initial `max`, `inc_time`'s bump, and `DeathObj::inc_time`'s — are on a
+**dead** object, and the field's whole job is to keep a dead archer's
+slot alive until its last arrow lands. It has nothing to say about a
+target.
+
+That is now a row rather than a reading. `hold_frames` is printed in the
+`OBJECT` block at every detail level and `coverage`'s pin had carried it
+as unread since the guard was built; `crate::diff::compare` reads it as a
+fourth `hits_diverged` field, and what it asserts is that **every living
+unit-frame of both headline windows is zero** — which is what a dump
+whose only writers are on dead slots must say, and which nothing had
+checked. It was made to fail on purpose by starting a unit at 3.
+
+### 42.4 What moved
+
+| | before | after |
+|---|---|---|
+| golden chapter two, **word** | 683 | **695** |
+| golden chapter two, **sequence** | 683 | **695** |
+| golden chapter two, **values** | 684 | 696 |
+| the widening's window | `[606, 687)` | `[606, 699)` |
+| `near_o` unit-frames read / live / agreeing | 4848 / 170 / 4848 | 5568 / 206 / 5568 |
+
+Twelve frames, and the new word is an animation wrap: ours has a third
+`Guy::set_anim+0x97a < Guy::inc_time+0x1ed` — the attack's own end —
+where the original's third is a plain `+0x271` wrap.
+
+The widened map over `[606, 699)` is thirteen rows and they are two
+facts. `order 1/4`, the far-off citizen, is **gone**, and nothing new
+stands under 686.
+
+```
+  gone   order 1/4        685
+  stands damage 1/6       680   §41.3's unmeasured release node
+  stands damage 1/7       686   ours 0     theirs 19
+  stands damage_frac 1/7  686   ours 0     theirs 5
+  stands damage_frame 1/7 686   ours 0     theirs 685
+  new    order 0/6        696   ours target (1,7)  theirs (1,6)
+  new    order 0/7        696   ours target (1,7)  theirs (1,6)
+  new    order 0/8        696   ours target (1,7)  theirs (1,6)
+  new    angle 0/7        696 · angle 0/8 696 · angle 0/6 697
+  new    recharging 0/7   696 · recharging 0/8 696 · recharging 0/6 697
+```
+
+The twelve are **one arrow**. The original's rolled `0/8` shot comes down
+two frames late and `check_hit` finds `1/7` within two tiles, for
+`19+5/16` on frame 685 — a **flank** hit, which is what makes it worth
+more than double an ordinary arrow: the ladder on `1/8` is `8+10/16` a
+shot, and both reduce to `get_damage`'s own arithmetic with `base` 320
+and `armor` 6 (`(320+5)/10 − 6 = 26`) against `base` 640 doubled by §6
+step 19's side sector (`(640+5)/10 − 6 = 58`), scaled by §7.1 step 5's
+`dmg × 0x100 / uber_size 3`. A wounded `1/7` then outranks `1/6` on §33's
+damage weight, and the original's three bowmen retarget on 696 where ours
+do not — which is the nine rows above. That landing is the successor 491 parked, and it is **not** a residue: §42.5 says what it needs.
+
+### 42.5 What is not established
+
+- **Where a rolled shot comes down.** The arc is
+  `v1z × t + sz + GRAV_Z × t² / 2` in IEEE singles, `v1z` itself a float
+  the `AMMO` record prints (`18.134823` for `0/8`'s), and
+  `TerrainOut::find_data_z@00866560` is a bilinear interpolation over a
+  float height surface this crate does not carry — the corner grid
+  `crate::terrain` models is the integer `master_land_heights`, a
+  different quantity. So a rolled shot here flies to its `3 × total_time`
+  cap and is dropped where the original's lands and damages. Neither
+  spends a draw, so the word does not see it; `damage 1/7` at 686 does.
+- **The lofted piece.** `Ammo`'s flag 4 also requires `ammo_flags & 8`
+  clear, and this crate loads no ammo flags; every shot is treated as
+  non-lofted. A siege shot is a ground shot and so never reaches the
+  question, which is why no capture on disk can tell.
+- **`get_shot`**, so a `REDOUBT`'s shot gives `dtype` 2 here and 3 in the
+  original. It changes a death animation index; no capture has one.
+- **`DEATH_OBJS`' `gpiece`**, the dead unit's own death piece
+  (`DeathObj::init`'s `vtable[0x178](param_7, packed)`). Parsed and not
+  compared — this crate loads no art for it.
+- **The cull.** `DeathObj::inc_time` clears the object when its animation
+  packet ends, and this crate never does. No capture on disk reaches a
+  cull: run112's four deaths are all still in the list on its last block,
+  216 frames after the first, so the grow-only list is exact on every
+  window that exists.
+- **`nuke_effect[0x108]`** in §11's hold, taken as zero.
+
+### 42.6 Coverage
+
+**Diff-backed**:
+
+- that the death draw is taken where and when the original takes it —
+  chapter two's word goes 683 → 695 and the streams agree draw for draw
+  over twelve more frames, with `0060fb06` now named rather than read as
+  a bare address;
+- that `dtype` is 2 for an arrow on a foot unit, and that the roll was
+  even: the whole `DEATH_OBJS` record agrees on every block of the
+  window, `cur_anim 17` included — 45 field-comparisons over fifteen
+  blocks, pinned so an instrument that stops looking fails;
+- that `hold_frames` is zero on every living unit-frame of both headline
+  windows (§42.3);
+- that a rolling shot spends no draw on the frame its target is gone —
+  the two draws this crate spent are gone from 683 and Great Lakes'
+  three puncture frames are unmoved;
+- that the launch points, the wound ladder, `recharging`, the overkill
+  window, `near_o` and `visible` are all untouched by it (§41.6's list,
+  re-measured on the wider window).
+
+**Listing-backed**: the three draw sites and the gate above them,
+`0060fa4c`-`0060fb70`, read from `llvm-objdump` where the decompiler's
+`fVar19 = (float)(param_1 * 2 + 0xd + uVar10)` prints an integer
+expression through a float local.
+
+**Dump-backed** (measured from run112's records rather than from a diff
+that re-runs): §42.2's five `AMMO` blocks and the three `flags 14`
+records of the whole capture; the four `cur_anim 17` deaths.
+
+**Reading-only**:
+
+- the `MERCHANT`/`MERCHANTDUTCH`/`FURTRAPPER` exclusion, which no capture
+  reaches;
+- the `dtype == 4` pair of draws, likewise;
+- §42.2's flag-4 predicate beyond "a land unit target that is not a
+  ground shot" — the lofted term is unmodelled and the ground-order term
+  is exercised only by siege, which no capture on disk fires here.

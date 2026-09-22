@@ -1663,7 +1663,7 @@ fn chapter_two_s_word_frame_is_widened_whole() {
     // 1/7`, `damage_frac 1/7` and `damage_frame 1/7` stand at 686 — and
     // the nine rows at 696-698 are theirs, because a wounded `1/7`
     // outranks `1/6` on §33's damage weight and the original's three
-    // bowmen retarget where ours do not. Item (493) is that landing.
+    // bowmen retarget where ours do not. That landing is the successor 491 parked, and it is **not** a residue: §42.5 says what it needs.
     let measured = [
         ("angle 0/6", 697),
         ("angle 0/7", 696),

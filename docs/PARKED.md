@@ -135,6 +135,35 @@ not COMBAT's. **No capture on disk has an attrition death**, so
 nothing scores it today; it parks until one does, or until the
 namesake mechanic is worked deliberately.
 
+## Parked by item 491, 2026-09-22 — a rolled arrow's landing
+
+**The number is the commander's to mint**; the frame and the delta are
+here so the booking is a copy rather than a re-derivation.
+
+**Where a rolled arrow comes down, and the nine rows behind it.**
+Frame **686**: `damage 1/7` ours 0 theirs **19**, `damage_frac 1/7` ours
+0 theirs 5, `damage_frame 1/7` ours 0 theirs **685**. run112's `0/8`
+fires at 677 at `1/8`; `0/7`'s arrow kills `1/8` on 683; `0/8`'s finds
+its target gone, rolls on (`docs/COMBAT.md` §42.2), and comes down two
+frames later where `check_hit` finds `1/7` — a flank hit for `19+5/16`.
+This crate rolls the arrow and drops it at the `3 × total_time` cap.
+Nine more rows follow at **696-698** — `order 0/6`/`0/7`/`0/8` (ours
+target `(1,7)`, theirs `(1,6)`), three `angle` and three `recharging` —
+because a wounded `1/7` outranks `1/6` on §33's damage weight and the
+original's bowmen retarget.
+
+**Why this parks rather than queues, and the clause matters:** it is a
+**hard-constraint** problem, not a residue. The landing needs
+`v1z × t + sz + GRAV_Z × t² / 2` in IEEE singles — `v1z` is a float the
+`AMMO` record itself prints — compared against
+`TerrainOut::find_data_z@00866560`, a bilinear interpolation over a
+float height surface this crate does not carry (a different quantity
+from the integer corner grid `crate::terrain` models). `CLAUDE.md`'s
+no-float rule means whoever takes it establishes the original's own
+integer scales *first*, the way `combat::flight_time` did for the one
+`sqrtf`; it is not an afternoon's residue chase, and it moves no draw —
+the rolled arrow spends none on either side.
+
 ## Parked by item 481, 2026-09-22 — surfaced by a ceiling, nobody's item
 
 (486) **`order 1/4` at 685 and `pos 1/4` at 686, a citizen forty
