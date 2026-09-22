@@ -1470,12 +1470,23 @@ pub(crate) const EAST_INDIES_FIRST_SCHOLAR: i64 = 8_466;
 /// unconditionally. With both, `1/29` takes the original's own 43-node
 /// walk home on 10240 and `1/27` walks past.
 ///
-/// The word's shape is unchanged one raider over: **10277 spends seven
-/// draws against six** and parts at index 4, ours
-/// `Guy::set_anim+0x97a < Unit::move_step+0x823` — the blocked stand
-/// again — against the original's `Guy::inc_time+0x271` wrap, and
-/// block 10278 says it is `1/40` colliding with `1/41`
-/// (`collide_o 41`) where the original's does not.
+/// ~~The word's shape is unchanged one raider over: **10277 spends seven
+/// draws against six**~~ — **item 489 closed 10277 too, and the whole
+/// blocked-stand family with it**. `1/40`'s hard collision with `1/41`
+/// and the two `half_step` rows beside it were one arm declining:
+/// [`sim::Sim::same_group_soft`] asked `army_of` where
+/// `detect_unit_collision@00617060:307` asks `UnitData +0x80`, a
+/// `Groups::list` slot, and a **pushed** group's members are in no army
+/// at all — every raider of this probe since item 465 put them in the
+/// pool (`docs/COLLISION.md` §11).
+///
+/// **10294 is a different mechanism.** Ours spends **one** draw and the
+/// original **two**, parting at index 0: the extra is
+/// `Guy::set_anim+0x97a < Unit::do_idle+0x7d`, and block 10295 names the
+/// unit unprompted — six rows, all the human's citizen `0/5`, whose
+/// `orders_x`/`orders_y` are `(4056, 28776)` here against `(792, 31800)`
+/// there and whose `idle` the original raises and this crate does not.
+/// It is not a collision and not the AI's.
 pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 10_294;
 
 /// The floor `run97_s_window_orders_are_the_original_s` holds — item 368's
@@ -1905,11 +1916,21 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // `1/29` never moves in this crate at all. The frame was right and
     // the mechanism was not, which is `docs/DECISIONS.md` 42 for the
     // fourth time in this chain.
+    //
+    // Item 489 moved it 10277 → **10294** and the ceiling 10290 →
+    // 10307. Here the frame was right and the row 487 declined to call a
+    // mechanism *was* the mechanism: the soft one-shot on both raiders
+    // and `1/40`'s hard `collide_o 41` are the same arm, seen from the
+    // two sides. What the widening added this time was the **position
+    // gate** — `1/41 pos` parts on 10279, so its `half_step` row on
+    // 10278 is read on a unit still standing where the original's does,
+    // which is the only reason it could be trusted at all
+    // (`docs/COLLISION.md` §8.4, §11.1).
     (
         "LONG_WORD_GREAT_LAKES",
         LONG_WORD_GREAT_LAKES,
         Some("run100_s_word_block_is_every_record_the_dump_carries"),
-        487,
+        489,
         Some(WIDENING_GREAT_LAKES),
     ),
     (

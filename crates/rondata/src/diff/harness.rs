@@ -6732,13 +6732,6 @@ mod tests {
         /// `RAID`'s reason — the exemption has to name the row, so the
         /// day the row closes this fails.
         const RAIDER_COLLIDES: i64 = 10_242;
-        /// **`1/40` collides with `1/41` where the original does not** —
-        /// the word's own row since item 487, and the same shape `1/27`'s
-        /// was one raider over: the extra
-        /// `Guy::set_anim+0x97a < Unit::move_step+0x823` at index 4 of
-        /// 10277's seven draws. It is asserted by name below rather than
-        /// exempted here, because it opens **on** the word.
-        const RAIDER_40: (i64, i64) = (1, 40);
         let Some(inst) = install() else { return };
         let (Some(path), Some(r100)) = (
             dump("gamelog-run53-greatlakes-24k-trace.txt"),
@@ -6952,19 +6945,21 @@ mod tests {
         // exempted by name as `RAIDER_X` above and counted below the
         // line with the standing residue.
         //
-        // **Item 487 moved the word to 10277 and it carries one**, and
-        // it is the word: `1/40` is 4 west and 25 north of the
-        // original's on the block the headline stands on, because it has
-        // collided with `1/41` and stopped where the original half-steps
-        // past. The set is one key and it is named, which is what this
-        // assertion is for — a word's own frame is a small, named set
-        // and not a reshuffle, and
-        // `run100_s_word_block_is_every_record_the_dump_carries` holds
-        // the seventeen rows beside it.
+        // ~~**Item 487 moved the word to 10277 and it carries one**~~ —
+        // ~~`1/40` is 4 west and 25 north of the original's~~ — **item
+        // 489 closed it**: the collision with `1/41` was §4.3's group
+        // arm declining because [`sim::Sim::same_group_soft`] read
+        // `army_of` where the original reads `UnitData +0x80`, and a
+        // **pushed** group's members are in no army at all
+        // (`docs/COLLISION.md` §11). The word is 10294 now and it
+        // carries **no position row**: its block is the human's citizen
+        // `0/5`, six rows and none of them a `pos`, which is the value
+        // diff `run100_s_word_block_is_every_record_the_dump_carries`
+        // holds beside this.
         assert_eq!(
             on_word,
-            vec![RAIDER_40],
-            "the word's own frame is not `1/40` alone: {units:?}"
+            Vec::<(i64, i64)>::new(),
+            "the word's own frame is not the empty set it is: {units:?}"
         );
         // ~~**And one order row, which is the residue item 464 left.**~~
         // The citizen's `GATHERORDER` residue is still there and still
