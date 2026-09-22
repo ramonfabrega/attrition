@@ -12,36 +12,36 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-21, the tenth chain. **Neither headline moved**; both items
-closed rows short of the word.*
+*2026-09-21, the tenth chain. **The AI word moved, 10233 → 10234**
+(465); the rules word holds at 637.*
 
-- **The AI word is 10233** (464): `0/5`'s 22 rows → 3, its FLEE_TO on
-  the dump's `(792,31800)`, draws 6/4 → 5/4. `Unit::think`'s step-3
-  gate wants `role & 0x10000` beside the attack column, so idle
-  citizens ran `find_melee_target`; plus the flee arm §12.4 described
-  and nothing built. COMBAT §34.
-- **The run100 widening read health against the ceiling** — `myhits`
-  is the maximum, so every wound printed as a divergence; both are rows
-  now, 444 → 655 keys. Endpoint 45/9 → **48/10** past the word (DEC 36).
-- **The rules word is 637** (466): §33.1's decaying `targeted` penalty
-  closes three of 635's six, parting still 635. §33.2 — the `ai` arm
-  **dividing** where a human's multiplies — is **established, not
-  landed**: it reds the `visible` *shape* row, because `1/8`'s strike
-  rests on a wrong two-slot assignment. **§33.4: that green is
-  unearned.** 470 carries both.
-- **A widening named "whole" walked ten of fourteen vectors**:
-  `gather_`, `build_`, `queue_` and `city_diverged` went unnoted. All
-  four walk now, map unchanged — which is how we know they were empty,
-  not ignored. Chapter two still has **no health row** (§33.6). Three
-  open, 68 parked. **Fable backlog: 1 Loop items** (313).
+- **The AI word is 10234** (465): `1/28`'s fifteen rows on 10234 go to
+  none — `pos` equal, `path:length` 43/1 → 1/1, `tolerance` 384/0 →
+  0/0 — leaving 464's three, pinned as their own set so the closure
+  cannot come undone behind the headline. Window 655 → 440 keys.
+- **The defect was ours, not a misreading of theirs**: `action_move_near`
+  carried an invented `g.army.is_some()` line the original's gate
+  (`705f00-705f61`) has not, so six raiders pushed out of the army got
+  plain `MOVE_TO`s and never entered `do_group_move`. It exempts a
+  `go_to` group by `unit_masks & 4`; without it the word is 6994.
+- **Three hypotheses, one frame, all wrong, frame right each time** —
+  456's pathing, 463's order-death delay, 464's leader promotion.
+  `oxx 40 → 28` is the whole of group 65. Read the cast (DEC 42).
+- **The rules word is 637** (466): §33.1 closed three of 635's six;
+  §33.2's `ai` divide arm is **established, not landed** — it reds the
+  `visible` shape row because `1/8`'s strike rests on a wrong two-slot
+  assignment (**§33.4: that green is unearned**). 470 carries both and
+  is live. `ORDER_RESIDUE_RUN97` 53,622 → 81,534, all of it fields
+  never compared before. Three open, 68 parked. **Fable backlog: 1
+  Loop items** (313).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w9711 of 24,000 · GreatLakes w10233 of 24,000
+Long captures: EastIndies w9711 of 24,000 · GreatLakes w10234 of 24,000
 Golden: w626 of 901 (ch1) · ch2 w637 · 470 next
-Endpoint 24001: EastIndies 64 off, 10 unlinked · GreatLakes 48 off, 10 unlinked
+Endpoint 24001: EastIndies 64 off, 10 unlinked · GreatLakes 49 off, 9 unlinked
 
-**Opener: 465 and 470 are both live, one lane each. The loop stands at
-5 of 20, and no headline moved on either of the last two items.**
+**Opener: 470 is live; 471 takes the freed lane. The loop stands at 6
+of 20 and the AI word moved on the last item.**
 
 ## The queue
 
@@ -51,14 +51,14 @@ the AI, lower map first — Great Lakes. Take the first unstarted on either
 track unless a better order is obvious, and say so. Numbers are stable;
 the backlog is `docs/PARKED.md`, and an item returns only when a score names it.
 
-465. **`1/28`'s remaining draw on 10234 at `Unit::do_move+0xe84`, one
-    frame early** — the AI headline's frame, the last draw 464 left
-    (5/4). Hypothesis is **464's, not this item's**: the original's
-    `1/28` flips its `GROUP_MOVE`'s `oxx` 40 → 28 between 10233 and
-    10234 — it becomes its group's leader on the frame it stands
-    still, and `do_group_move` plans for the leader alone. **Not** the
-    plan lag this item carried, nor 463's order-death delay; both are
-    struck. COMBAT §34.4. Falsifier on disk: run100 10233-10235.
+471. **`1/28`'s `order:move.off_x` 120 against 648 on block 10235**
+    (the AI headline's frame; 465 moved the word to 10234). 10234's
+    whole dumped record now agrees and `1/28` reopens one block later,
+    the two routes 240 apart in `x`. 465's reading: `Form::compute`'s
+    slot table, **not** the pathfinder's draw count — the original
+    spends 204 draws at `PathFinder::calc_road_cost+0x46` for a
+    43-node route where this crate spends six for a route of its own.
+    That is its hypothesis, not this item's. `docs/ORDERS.md` §16.
 
 470. **`find_ordered_collision`'s reach: three chasers, one slot**, and
     it carries 466's withdrawn `ai` hunk with it (the rules headline's
