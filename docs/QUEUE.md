@@ -12,35 +12,36 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-21, the tenth chain. The AI word holds at 10234 and its cause
-now has a cheaper oracle 2,000 frames earlier (471, ORDERS §17.6).*
+*2026-09-21, the tenth chain. **Chapter two 637 → 645**, values 636 →
+646, and the widening's whole old map is gone (472).*
 
-- **A second oracle for the AI word, at 8186** (475, ORDERS §17.6 —
-  read it before hunting the word). `great_lakes_8186_…` doubled its
-  width 47→94 v 94, and its 22 parted rows all share the original's
-  `x`, sit one or two whole cells south in `y` over three re-converging
-  stretches, and carry the original's own tolerance and flags. That is
-  a **cost** tie-break, not a different call — the same
-  `calc_road_cost` the word stands on. Three falsifiers stated.
-- **The cause was 895 blocks upstream of the item's frame** (471):
-  group 65 parts on `order:move.x/y` at **9340**, not 10235. `off_x`
-  is `x mod 0x300`, the destination said twice. `action_move_near`
-  asked `get_loc_to` (→ `get_final_loc`, where the leader *ends up*).
-  `1/28`'s rows 60 → 3, 42 path nodes exact; word unmoved (204 draws
-  v six). `ORDER_RESIDUE_RUN97` 81,534 → **28,222**, units 8 → 3.
-- **Fifth instrument defect: a probe that hid what it exercised.**
-  ARMY §12 queued the walk home to the leader's own position, so the
-  delta read zero and no bearing was taken. Sole exerciser degenerate
-  ⇒ path untested, however many frames agree. Three open, 69 parked.
-  **Fable backlog: 1 Loop items** (313).
+- **A chase ends on a clock, not a radius** (472, COMBAT §36).
+  `Unit::work@0060d180:440` reviews a walking unit's chase on
+  `(o + frame) % 16 == 0`, **above** the dispatch, and
+  `check_target_path` ends it when the target is in reach; this crate
+  ended it on the first frame it read in range. The dump *proves* no
+  radius can do it: `0/10` is at `attack_dist` 1108 on 629 and 1108 on
+  630 — declined then killed on bit-identical inputs — while `0/11`
+  is killed at 979 and declined at 1082.
+- **Parked 473 landed for free with it**: the sixth argument is right
+  about `0/11` (979+144 ≤ 1158) and was late about `0/10` only
+  because the clock did not exist. A pair; neither works alone.
+- **`visible`'s exact count re-pinned *upward*, 5 → 8 of 9** — four of
+  the five moved onto run112's own frame. Nothing weakened; the test
+  is stricter than 470 left it, and 470's earned green holds. Widening
+  map over `[606, 641)`: 13 first-partings → **0**.
+- **The AI word is 10234**, and 475 has found its own parting: a road
+  search the original runs on 10234 (198 draws, `calc_road_cost <
+  astar_caravan_road < find_road`) and this crate never runs.
+  Three open, 67 parked. **Fable backlog: 1 Loop items** (313).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w9711 of 24,000 · GreatLakes w10234 of 24,000
-Golden: w626 of 901 (ch1) · ch2 w637 · 472 next
+Golden: w626 of 901 (ch1) · ch2 w645 · 479 next
 Endpoint 24001: EastIndies 64 off, 10 unlinked · GreatLakes 44 off, 11 unlinked
 
-**Opener: 472 is live; 475 takes the freed lane. The loop stands at 8
-of 20, and the AI word's cause is now cheaper to reach than the word.**
+**Opener: 475 is live; 479 takes the freed lane. The loop stands at 9
+of 20 and chapter two moved eight frames.**
 
 ## The queue
 
@@ -59,14 +60,14 @@ the backlog is `docs/PARKED.md`, and an item returns only when a score names it.
     holds the word at 10234 (204 draws against six). **§17.6's three
     falsifiers first**; a mechanism is not named here.
 
-472. **`order 0/10` / `pos 0/10` on block 630** — the rules
-    headline's earliest divergence, uncovered when 470 dropped the
-    widening floor to run112's first block. Pre-existing and reported
-    by nothing until now. This crate drops `0/10`'s move on the first
-    frame it reads in range; the original drops it one frame later at
-    the same `attack_dist` 1108 against the same reach 1158, both
-    sides snapping to one quarter-tile. **The difference is state, not
-    geometry** (COMBAT §35.2) — and that is a reading, not a mechanism.
+479. **`0/9`'s three rows on block 645** (the rules headline's own
+    frame). `pos` ours (942,8098) theirs (912,8096); `order` Length
+    2/1, Kind 1/10, PathLength 3/0; `0/10` and `0/11` both take
+    Target (1,8) where the dump takes (1,6). 472's reading — **its
+    hypothesis, not this item's** — is `do_move`'s captain arm
+    (`o_up < 0`) taking an incumbent from `near_o`/`near_who` into
+    `change_target`. COMBAT §36.6 has the `in_range 1 /
+    ever_in_range 0` fingerprint. Re-measure first.
 
 342. **Host choice seats the scholar on the wrong university** — 338's
     residue, re-pinned three times, and now `1/55`. **Re-measure before
