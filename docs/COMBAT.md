@@ -5885,8 +5885,68 @@ neither run16 nor run24 is read for labels by any test.
 The word is again **one** number, and what stands at 10244 *is* a
 simulation disagreement: four draws against three, parting at index 1,
 ours `Guy::set_anim+0x97a < Unit::move_step+0x823` — the blocked stand —
-against the original's `Guy::inc_time+0x271` wrap. That is the successor,
-and it is named by its frame and its draw delta, not by a mechanism.
+against the original's `Guy::inc_time+0x271` wrap.
+
+### 39.2.1 The value diff beside the move
+
+A draw stream can agree on a wrong destination for a long time, so the
+move is booked with the dump's own coordinates on the frame it moved.
+The window `run100_s_word_frame_is_the_original_s` and
+`…_block_is_every_record_the_dump_carries` walk runs to the headline, so
+raising the word by seven opened **seven blocks nobody had ever
+compared** — and this is what is in them. None of it is new behaviour;
+483 changed no simulation line. `ORDER_RESIDUE_RUN97`'s lesson, in the
+direction that adds rows rather than counts.
+
+**The word's own block (10245, the state after frame 10244) is eleven
+rows and they are all one unit:**
+
+```
+1/27 collide:            ours 2    theirs 1
+1/27 collide_o:          ours 29   theirs -1
+1/27 collide_who:        ours 1    theirs -1
+1/27 g.stopped[0]:       ours 1    theirs 0
+1/27 g.cur_anim[0]:      ours 0    theirs 7
+1/27 g.cur_time[0]:      ours 1    theirs 3
+1/27 g.end_time[0]:      ours 31   theirs 13
+1/27 g.last_time[0]:     ours 0    theirs 2
+1/27 order:coll:         ours Some((4701, 29818))  theirs (4637, 29827)
+1/27 order:move.dest:    ours 0    theirs 1
+1/27 path:length:        ours 49   theirs 43
+```
+
+**The dump and the draw stream name the same unit and the same
+mechanism.** `1/27` is colliding in this crate and not in the original —
+`collide_o 29` is the unit it has run into — so it is stopped on an
+animation that has just begun where the original's is three frames into
+a walk. That *is* the extra draw: `Unit::move_step+0x823` is the blocked
+stand. Nothing had to be hypothesised to join them; the two instruments
+met on their own.
+
+**And the cause is upstream, two frames and one unit over.** The thing
+`1/27` collides with is `1/29`, which on block 10241 drops its move
+order where the original keeps walking:
+
+```
+f10241  1/29 order:kind:    ours 10  theirs 1
+f10241  1/29 path:length:   ours 0   theirs 43
+f10242  1/29 g.stopped[0]:  ours 1   theirs 0
+f10242  1/29 pos:           ours (4680,29928)  theirs (4708,29936)
+```
+
+Twenty-eight world units short in `x` and standing still, two frames
+before `1/27` walks into the space it should have left. That is the
+successor item, named by its frame and its rows and **not** by a
+mechanism — `order:kind` 10 against 1 is where to start reading and not
+a claim about why.
+
+Both rows are pinned rather than waved at: `RAIDER_STOPS` and
+`RAIDER_COLLIDES` name them in the window test the way `RAIDER_X` and
+`RAID` name theirs, so the day either closes, that test fails. The
+standing position residue over the window goes four keys to six —
+`(1,24), (1,25), (1,26), (1,28)` plus `(1,27)` and `(1,29)` — and the
+block the word left (10238) is pinned empty, which is what it was when
+the word stood on it.
 
 ### 39.3 The guard this item is really for, and what it found
 
@@ -5938,6 +5998,15 @@ same three, that each of those frames ends on the pair in that order, and
 that 10237 and 10242 (both below the word) agree draw for draw. Made to
 fail on purpose by dropping the `SITE_PUNCTURE_X` mark, which parts
 10237 at the pair's first entry.
+
+**Dump-backed**: §39.2.1's rows, from
+`run100_s_word_block_is_every_record_the_dump_carries` with
+`RON_DEBUG_ROWS=10236-10246`. The word's own block is pinned as the
+eleven rows above and the block it left as empty; the window test names
+the two newly-exposed position rows by frame. All three re-pins **failed
+for real** before they were written — they are what the gate reported
+when the word moved, not assertions written to a tree that already
+passed.
 
 **Listing-backed**: §39.1's disassembly, read from `riseofnations.exe`
 with `llvm-objdump` at `0x678c60`–`0x678d10`, and the same for
