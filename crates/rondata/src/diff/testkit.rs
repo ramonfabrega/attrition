@@ -1887,6 +1887,32 @@ pub(crate) const GOLDEN_WORD_CHAPTER_ONE: i64 = 626;
 /// damage weight sends all three bowmen to `1/7` where the dump sends
 /// them to `1/6`, and the `angle` rows follow the target.
 /// `docs/COMBAT.md` §43.
+///
+/// **Item 510 measured what the two draws are and did not move the
+/// word**, because what they are is the parked arrow (`docs/COMBAT.md`
+/// §45). The delta stands at **7 against 9, parting at draw 1**. What
+/// changed is that it now has a value diff beside it: the widening had
+/// never opened a `GUY` record — `compare` builds none — and run112 is a
+/// `GUYS=2` capture that prints no animation clock at all, so the record
+/// the word is spent in was invisible twice over for eleven items. With
+/// the clock borrowed from run118 the word's own block says it plainly:
+/// at 726 the original's `0/7` and `0/8` come out of the attack-end wrap
+/// on `cur_anim 11` and `12` with `hold_attack 0`, and this crate's come
+/// out on the idle with `hold_attack 1`.
+///
+/// The mechanism, measured in both directions. `Guy::set_anim@005da300`
+/// defers an attack to `hold_attack` while the figure's `des_angle`
+/// differs from its `angle` and **only then** queues it to
+/// `queued_attack` when an attack is already playing; only the queued one
+/// is paid inside `Guy::inc_time`'s loop, and only that payment rolls.
+/// The original's bowmen target `1/6`, which has stood at (1608, 8040)
+/// since before 690, so their facing on 725 is the one their last swing
+/// on 695 set and the attack is queued. This crate's target `1/7`, which
+/// **walked** from (1800, 8472) to (1656, 8472) between 690 and 700, so
+/// its attack angle on 725 is not the one 695 set and the attack is
+/// held. Forcing the facing settled on 725–727 alone moves the word to
+/// **743**, where the next parting is a death draw (`Unit::close+0xcb6`)
+/// — also the arrow's. `docs/COMBAT.md` §42.5 is what both wait on.
 pub(crate) const GOLDEN_WORD_CHAPTER_TWO: i64 = 725;
 
 /// **Every pinned word names the test that widened its frame whole, or
@@ -2098,6 +2124,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // twelve frames between `1/8`'s death and the bowmen's next reload.
     // The same shape item 462 fixed one level down in `unit_ids`.
     // `docs/COMBAT.md` §43.
+    //
+    // **Item 510 widened the record a third time, and it was the biggest
+    // hole yet**: the walk had never built a `GUY` row at all, and
+    // `compare` builds none either, so the *animation clock* — the record
+    // chapter two's word has been spent in since 695 — was compared
+    // nowhere. Worse, run112 is a `GUYS=2` capture and prints none of it,
+    // so a walk that had built the rows would still have compared
+    // `Some(ours)` against `None` on every one. The clock now comes from
+    // run118, the same game at `GUYS=4`, keyed and asserted block by
+    // block. Eleven rows became thirty-nine. `docs/COMBAT.md` §45.
     (
         "GOLDEN_WORD_CHAPTER_TWO",
         GOLDEN_WORD_CHAPTER_TWO,

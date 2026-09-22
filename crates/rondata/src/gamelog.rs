@@ -1459,6 +1459,20 @@ pub struct Guy {
     pub stopped: Option<i64>,
     /// `GuyData::guy_num`: the member's index in its unit.
     pub guy_num: Option<i64>,
+    /// `GuyData::hold_attack` (`+0x9e`) — **the attack this figure owes
+    /// because it was still walking or still turning when the swing asked
+    /// for it**, which `Guy::move` pays on a later frame
+    /// (`docs/ANIM.md` §6.2).
+    ///
+    /// Parsed by item 510, which is the frame it decides: an attack that
+    /// lands here costs the wrap **one** draw, and one that lands in
+    /// [`Guy::queued_attack`] costs it **two**.
+    pub hold_attack: Option<i64>,
+    /// `GuyData::queued_attack` (`+0xa0`) — the attack asked for while an
+    /// attack was **already playing**, which `Guy::inc_time` pays inside
+    /// its own wrap loop at the shared `+0x271`. Same encoding: `1` when
+    /// the request carried its third argument, the slot itself otherwise.
+    pub queued_attack: Option<i64>,
     /// `GuyData::des_x` / `des_y` (`+0x5c` / `+0x60`) — **where this
     /// figure is told to be**, which for a tracked crew figure is its
     /// leader's point rotated by its track offset and rewritten several
@@ -2814,6 +2828,8 @@ fn unit_of(b: Block<'_>) -> Option<UnitDump> {
             guy_flags: g.int("guy_flags"),
             stopped: g.int("stopped"),
             guy_num: g.int("guy_num"),
+            hold_attack: g.int("hold_attack"),
+            queued_attack: g.int("queued_attack"),
             // `des_x`/`des_y` carry no `z`, so the third slot is the
             // figure's own — a `Pos` here is a point, not a placement.
             des: match (g.int("des_x"), g.int("des_y")) {

@@ -7525,7 +7525,7 @@ the shared `+0x271`:
   }
 ```
 
-and the thing to re-derive before acting on it is the **roll**, because
+~~and the thing to re-derive before acting on it is the **roll**, because
 the slots the dump lands on do not sit easily with the branch as written:
 `0/8` goes to 12, which is the `slot < 2` arm, but `0/7` and `0/6` go to
 **11**, which is the `slot >= 2` arm — and that arm passes `roll = 0`,
@@ -7533,11 +7533,21 @@ yet both of them spend the draw. Either `set_anim`'s attack-variation
 roll at `+0xf2f` is not gated on that argument, or the slot is decided
 somewhere this reading has not looked. [`sim::Sim::guy_inc_time`] marks
 [`sim::anim::SITE_ATTACK_WRAP`] only on the `slot < 2` arm and hard-codes
-`ATTACK2` there, so whichever it is, that is where it is wrong. The
+`ATTACK2` there, so whichever it is, that is where it is wrong.~~ **Item
+510 settled it: the branch is right, and both figures come off the
+`slot < 2` arm.** `slot < 2` rewrites the slot to `CHAR_ATTACK2` *and*
+sets `roll`, and the roll then picks `ATTACK1`/`ATTACK2`/`ATTACK3`; 11
+and 12 are two outcomes of one branch, not evidence of two. What decides
+the draw is not the slot but whether the swing was **queued** rather than
+**held**, which is the facing — `docs/COMBAT.md` §45. The
 successor is booked by the frame and the delta, not by this paragraph.
 
 **§42.5's parked arrow is the leading hypothesis for what sits under it,
-and it is a hypothesis.** From 696 this crate's three bowmen are on `1/7`
+and it is a hypothesis.** *(Item 510 made it a measurement — §45.2 — by
+reading the clock out of run118 and by moving the word to 743 with the
+facing forced settled and nothing else changed. The paragraph below
+stands as written because its reasoning was right; only its status
+changed.)* From 696 this crate's three bowmen are on `1/7`
 and the dump's are on `1/6` — our `1/7` was never wounded by the rolling
 shot on 685, so §33's damage weight ranks the two hoplites the other way
 — and every row at 720-728 below is downstream of that one target. What
@@ -7641,3 +7651,201 @@ count is on the record.
 `Unit::fight`'s `param_5 != 0` sub-call path, which writes
 `cavarch_o`/`cavarch_who`/`cavarch_uid` instead of searching and which no
 run on disk enters.
+
+## 45. The word is the swing's facing, and the record it is spent in was never compared (item 510, 2026-09-22)
+
+Chapter two's word stands at **725**: 7 draws against the original's 9,
+parting at draw 1, the delta two `Guy::set_anim+0xf2f <
+Guy::inc_time+0x271`. This item did not move it. What it did is make the
+word's own frame *readable* — the widening had never opened a `GUY`
+record — and then measure, in both directions, that the two draws are
+§42.5's parked arrow wearing a third mechanism.
+
+### 45.1 Held or queued: the two ways an attack survives an animation
+
+`Guy::set_anim@005da300`'s attack block, from the listing, is two tests in
+a fixed order:
+
+```text
+if (UnitAnimCat[param_1] == CHAR_ATTACK2 && !(guy_flags & 0x40)) {   ; an attack, not a plane
+    v = param_3 ? 1 : param_1
+    if (des_x != x - off_x || des_y != y - off_y || des_angle != angle) {
+        hold_attack (+0x9e) = v ; return          ; (A) still walking or still turning
+    }
+    if (UnitAnimCat[cur_anim] == CHAR_ATTACK2) {
+        queued_attack (+0xa0) = v ; return        ; (B) an attack is already playing
+    }
+}
+```
+
+**The deferral is tested first and the queue second**, which is what
+decides the draw. `(A)` is paid on a later frame by `Guy::move`'s own
+arms; `(B)` is paid inside `Guy::inc_time`'s wrap loop, immediately after
+the `set_anim(CHAR_DEFAULT, 0, 0)` at `+0x1ed`:
+
+```text
+    slot = queued_attack ; queued_attack = 0
+    if (slot < 2) { slot = CHAR_ATTACK2 ; roll = 1 }
+    else          {                       roll = 0 }
+    set_anim(this, slot, 0, roll)                      ; +0x271
+```
+
+and `roll` is `Guy::set_anim`'s third argument, so only `(B)` with a
+stored `1` reaches the attack-variation draw at `+0xf2f`. So an
+attack-end wrap costs **one** draw when the swing was held and **two**
+when it was queued, and the branch that decides is the **facing**.
+
+[`sim::Sim::guy_set_anim`] and [`sim::Sim::guy_inc_time`] already
+implement both arms in this order, and the listing above is the check:
+§44.3 flagged the in-loop arm as suspect because `0/7` and `0/6` come out
+of the wrap on slot **11**, which is not `CHAR_ATTACK2`. That reading was
+wrong, and the correction is worth stating because it is the shape this
+chain keeps hitting: **11 is the roll's outcome, not the stored slot.**
+`slot < 2` rewrites the slot to `CHAR_ATTACK2` *and* sets `roll`, and the
+roll then picks `ATTACK1`/`ATTACK2`/`ATTACK3` at 30/40/30 (§6). `0/7`'s
+11 and `0/8`'s 12 are two draws off one branch, not evidence of two.
+
+### 45.2 Why the original queues on 725 and this crate holds
+
+Both sides swing on 725 — `recharging` goes 1 → 30 on `0/7` and `0/8` in
+the dump and here — and both figures are mid-attack when the swing asks,
+so the only question is `des_angle != angle`. `Unit::fight` writes the
+guy's `des_angle` to the attack angle two statements before it asks, so
+the test is really *was this unit already facing its target*.
+
+| | the original | this crate |
+|---|---|---|
+| target from 696 | `1/6` | `1/7` |
+| target's position 690 → 726 | (1608, 8040), never moves | (1800, 8472) → (1656, 8472) by 700 |
+| attack angle on 695 | 1344339968 | 1607204864 |
+| attack angle on 725 | 1344339968 | **1632043008** |
+| the swing lands in | `queued_attack` | `hold_attack` |
+| the wrap spends | `+0x1ed` **and** `+0xf2f` | `+0x1ed` |
+
+The original's bowmen last swung on 695 at a hoplite that has not moved
+since, so the angle their facing was turned to then is still the angle
+`Unit::fight` computes now, and the attack is queued. This crate's swing
+on 695 aimed at `1/7` where it stood *on that frame*; `1/7` finished
+walking five frames later, and the recharge is 30 frames, so the next
+swing computes a different angle from a facing that is thirty frames
+stale. The attack is held, the wrap pays once, and the figure comes out
+of it on the idle.
+
+**Measured in both directions, so it is not an argument.** Forcing the
+facing settled on 725–727 alone — nothing else changed, no target moved,
+no damage touched — takes the word from 725 to **743**, where the next
+parting is a death draw (`Unit::close+0xcb6`, §42.1) the original spends
+and this crate does not. That is the arrow again from the other end: the
+hoplite the original has killed by 743 is the one it has been shooting
+since 686.
+
+So 725 is **not** an independent residue. §42.5's rolled arrow is its
+cause through three links, each of them now a measurement rather than a
+reading: the arrow wounds `1/7` on 685 and this crate cannot land it
+(§42.5); §33's damage weight therefore sends all three bowmen to `1/7`
+where the dump sends them to `1/6` (`order 0/6`, `0/7`, `0/8` at 696);
+and `1/7` walks where `1/6` stands, so the swing is held where the
+original's is queued.
+
+### 45.3 The record the word is spent in was compared nowhere
+
+This is the finding with teeth, and it is the third instrument defect on
+this window in four items.
+
+**`crate::diff::compare` builds no `GUY` row at all**, and
+`chapter_two_s_word_frame_is_widened_whole` built none of its own. The
+one walk in this crate that compares a figure's animation clock is Great
+Lakes' `run100_s_word_block_is_every_record_the_dump_carries`, which has
+had the rows since item 400. Chapter two's word has been an *animation*
+draw since 695 — eleven items — on a window that could not see
+`cur_anim`, `cur_time`, `end_time`, `last_time`, `des_angle`, `gpiece` or
+`stopped`.
+
+**And the comparator capture is blind on all of them.**
+`GuyData::log_data@005de6c0` announces four detail levels and stops a
+`GUY` block after `ox` at the second; run112 was taken at `GUYS=2`
+(`docs/RUNS.md` run112), so those keys **are not in the file**. A walk
+that had built the rows would have compared `Some(ours)` against `None`
+on every block and reported agreement. That is `CLAUDE.md`'s "a quiet
+field is checked against the reader before it is called agreeing" with
+the roles reversed — here the reader was willing and the *dump* was
+silent — and it is a second way for a comparison to agree because it is
+not looking.
+
+The fix is a second capture. run118 is the same lobby, the same seed and
+the same `chapter2.cmd` at `GUYS=4`, truncated at block 846, which
+contains the whole of the widening's `[606, 729)`. The walk opens it
+beside run112 and, for every guy of every unit of every block, asserts
+that **every key both files print** — the figure's position and its angle
+— is equal before reading a key only run118 has. A capture from a
+different game cannot arrive quietly, and the count of records actually
+taken from it (2694) is pinned so a reader that stopped finding blocks
+fails rather than printing nothing.
+
+`hold_attack` and `queued_attack` are new to the parser in this landing
+and are deleted from `crate::diff::coverage`'s `UNREAD` pin on both
+`UNITDATA/GUY` paths.
+
+### 45.4 What the widening now says
+
+Eleven rows became **thirty-nine**, and the twenty-eight new ones are
+three families.
+
+- **The word's own delta, as values.** `g.cur_anim`, `g.end_time`,
+  `g.stopped` and `g.hold_attack` on `0/7` and `0/8` at **726** and on
+  `0/6` at **727**: the original comes out of the attack-end wrap on
+  `cur_anim 11`/`12`, `end_time 30`, `stopped 1`, `hold_attack 0`; this
+  crate on `cur_anim 0`, `end_time 31`, `stopped 0`, `hold_attack 1`.
+  Before this landing the word had a draw-stream parting and no value
+  diff at all.
+- **`g.des_angle` beside each `g.angle`**, on the same three figures and
+  the same three blocks as the unit-level `angle` rows. It is §45.2's
+  own field, one level down.
+- **`g.gpiece` on ten pre-existing units at 606**, the window's floor —
+  `0/1`–`0/5` and `1/1`–`1/5`, five types across both players. This
+  crate's piece is **exactly [`sim::anim::PIECES_PER_AGE`] (0x840) below
+  the dump's** on every one of them, which is one age bracket:
+  `Sim::unit_gpiece`'s `(0..=bracket).rev()` walk settles an age lower
+  than `GraphicPieces::get_unit_gpiece@0090c030` does for this game. It
+  costs no draw on this window — `cur_anim`, `cur_time` and `end_time`
+  agree on all ten for all 123 blocks, so the two pieces share their
+  lengths here — and chapter two's nine staged figures are unaffected
+  (`0/6`'s `gpiece 472` is the dump's). It is `docs/ANIM.md`'s and is
+  named here only so it cannot hide again.
+
+### 45.5 What is not established
+
+- **Which of `bracket` or `piece_lengths` is wrong** in §45.4's third
+  family. The difference is one age on ten units of two players, so it is
+  the walk's input rather than a per-type accident, but this item read no
+  further: it spends no draw on either headline window.
+- **Whether `(A)`'s `des != pos` half ever fires here.** Every figure of
+  this window is standing (`g.x`/`g.y` agree with `g.des_x`/`g.des_y`
+  throughout), so the deferral in §45.1 is only ever taken on the angle.
+  A walking unit's swing is untested by this capture.
+- **`guy_flags & 4`'s step of two** (§43.5) stays unobserved: run118's
+  bowmen are all `guy_flags 48`.
+
+### 45.6 Coverage
+
+**Diff-backed**: the whole of §45.4's map, both directions, on
+`chapter_two_s_word_frame_is_widened_whole`'s `[606, 729)` — every field
+of every `GUY` record of every unit on every block, the clock borrowed
+from run118 under a same-game assert. The word itself and its 7-against-9
+delta.
+
+**Dump-backed**: §45.2's table — run118's blocks 694–697 and 724–727 for
+the clocks and the `hold_attack`/`queued_attack` pair, run112's own
+`UNITDATA` for the hoplites' positions from 690 to 726.
+
+**Probe-backed**: §45.2's 725 → **743**, from a scratch run of the golden
+chapter with the facing forced settled on 725–727 and nothing else
+changed. It is the reason this item parks rather than queues a successor
+of its own.
+
+**Listing-backed**: §45.1's two orderings, both read from
+`Guy::set_anim@005da300` and `Guy::inc_time@005d9e10` rather than from
+the decompiler's control flow alone.
+
+**Reading-only**: nothing new. §44.3's queued-attack paragraph was a
+hypothesis and is struck there.
