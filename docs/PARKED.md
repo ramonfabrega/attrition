@@ -22,6 +22,24 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Parked by item 489's landing, 2026-09-22 — its takes-chain target closed
+
+(477) **f10235's `1/28 pos`**, ours (4801,30175) theirs (4800,30175), with
+`g.x[0]` and `g.des_x[0]` the same — one world unit in x, said three times.
+`docs/ORDERS.md` §18.3. It stood in the queue on one clause: that `1/28` is
+the word's own squad and the row is **a takes-chain candidate to 10278's
+collision**. Item 489 closed 10278 — `1/40` and `1/41` carry no row of any
+kind in `[10270, 10307]` — so the chain has nothing left to reach, and the
+new word (10294) is the **human's** citizen `0/5`, not the AI's squad.
+
+The rows themselves are unchanged and still pinned, by value, in
+`run100_s_word_block_is_every_record_the_dump_carries` ("block 10235 is not
+item 477's three rows") — parking loses no measurement. It returns when
+something names it: a takes-chain to a live word, or a floor that moves
+with it. **Do not re-attach it to 10294 on the strength of proximity** —
+that is the hypothesis-as-finding trap of `docs/DECISIONS.md` 42, and the
+two units are on opposite sides of the match.
+
 ## Parked 2026-09-21, item 471's successor
 
 (474) **A recycled group slot keeps its `order_num`, and this crate's

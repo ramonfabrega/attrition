@@ -442,6 +442,12 @@ hard-turn arm never touches the bit, so a unit that soft-collided while
 turning still owes itself a half step afterwards. Modelled since 2026-09-06
 (item 219): it is what makes a marching squad's captain step
 `26, 13, 26, 26, 13` where the same walk unimpeded steps 26 flat.
+**Confirmed against the original's own dump on 2026-09-22** (item 489,
+`docs/COLLISION.md` §11.1), which is the first evidence for it that is not
+a reading: run100 sets the bit on `1/41` on blocks 10278, 10281 and 10283
+and on no two consecutive ones, and the unit's `y_internal` advances 12 on
+each of the three frames after against 25 on every other frame of the
+window.
 
 **The trig uses the facing after this frame's turn**, `new`, not the heading
 `want`. A unit that cannot complete its turn this frame walks along where it

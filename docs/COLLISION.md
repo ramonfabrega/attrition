@@ -391,7 +391,9 @@ A soft collision at the end of the scan sets `unit_masks & 0x100000`
 found, and it is set only on the full call — the `nocoll` and quick forms
 return before the loop. The step it pays for is the *next* frame's:
 `move_step` decides the halving before it probes, so the flag a frame sets
-is spent by the frame after.
+is spent by the frame after. **All of which §11.1 now reads off the
+original's own dump** rather than off this paragraph: the bit, the "never
+two blocks running", and the halved step on the frame after each one.
 
 Anything else is **hard**, unless the corner rule lets the two slip past:
 
@@ -2115,7 +2117,10 @@ number rather than a trade, and it is on the row.
   moved one word. Nothing in this capture says the remaining seam list
   in `soft_collision` — the `TRADE_ROUTE`/`0xf` and `0xc` arms, which
   need action indices this crate does not carry — is empty of the same
-  kind of defect; no capture has entered either.
+  kind of defect; no capture has entered either. **It was not**: the arm
+  was reading `army_of` where the original reads `UnitData +0x80`, so
+  every member of a *pushed* group was hard to every other, and that was
+  the next word but one (§11).
 - **The window is six frames.** `callwin=10158-10163` is what the
   brief booked, so the sweep is read forwards on six frames of one game
   and nowhere else.
@@ -2341,3 +2346,193 @@ three clauses rests on `get_action@00608450` read against the dump's own
   `block_radius == 0` arm, and no shipped type any capture trains has a
   zero `block_radius` — a Citizen's is 1. *Capture:* a scenario that
   trains one of the ten `BLOCK_RADIUS 0` types beside a crowded trainer.
+
+## 11. The soft arm asks the army where the original asks the group (item 489, 2026-09-22)
+
+`docs/ORDERS.md` §20 left Great Lakes' word at **10277** — seven draws
+against six, parting at index 4 on `Guy::set_anim+0x97a <
+Unit::move_step+0x823`, the blocked stand — and block 10278 holding
+**seventeen** rows, sixteen of them `1/40`'s and one `1/41`'s. `1/40`
+collides with `1/41` here (`collide_o 41`, `collide_who 1`) and stands on
+an animation one frame old where the original's is ten frames into a walk.
+
+The seventeenth row was written as a row and not a mechanism: the original
+sets `unit_masks & 0x100000` — §4.3's soft one-shot, compared as
+`half_step` — on **both** units on this block, and this crate on neither.
+It turned out to be the *same event read from the other side*. A frame
+that raises the soft flag is a frame on which nothing hard-collided, so
+the two rows were never independent, and neither was `1/41`'s.
+
+### 11.1 What the block actually says, re-measured
+
+`run100_s_word_block_is_every_record_the_dump_carries` over
+`[9340, 10290]`, every record of every unit, both directions: **313 keys
+parted**, seventeen of them first parting on 10278 and none of the other
+102 units, 28 buildings or 3 cities disagreeing on any field.
+
+**Both `half_step` rows are readable at the parting**, which §8.4's
+position gate is the reason to check: `1/41 pos` first parts on **10279**,
+so on 10278 `1/41` stands exactly where the original's does and its
+`half_step` row is a clean measurement rather than a field read off a unit
+already somewhere else. `1/40 pos` first parts *on* 10278 — it agreed on
+10277 — so its own row is the frame the position parts, which is the frame
+a word is read on.
+
+**And the dump says the one-shot is a half step, which this document had
+only from `docs/MOVEMENT.md`.** `unit_masks` over `[10265, 10290]`, from
+`tools/gamelog/track.py`:
+
+| unit | blocks with `0x100000` | `collide` / `collide_o` on all of them |
+| --- | --- | --- |
+| `1/40` | 10278 | `0` / `−1` |
+| `1/41` | 10278, 10281, 10283 | `0` / `−1` |
+
+The baseline is `331784` and the flagged blocks are `1380360`, a
+difference of exactly `0x100000`; it is never set on two consecutive
+blocks. The step **after** each one is halved — `1/41`'s `y_internal`
+goes 31254 → 31266 on 10279, 31316 → 31328 on 10282 and 31353 → 31365 on
+10284, twelve against the twenty-five it takes on every other frame of the
+window, and `1/40`'s 31293 → 31305 the same. So the original never
+hard-collides in this window at all: it raises the flag and walks on.
+
+### 11.2 The sweep, read from inside the frame
+
+§9.1's instrument answers what no dump can, because
+`detect_unit_collision` writes `collide_o`/`collide_who` and §5.4's snap
+arm clears them two instructions later. [`Sim::sweep_watch`] records
+[`Sim::sweep_verdict`] **where the original's own bracket sits** — at the
+asking unit's own step, not at the frame boundary, which §9.2's note is
+about. On sim-frame 10278, before the change:
+
+| | `1/40` | `1/41` |
+| --- | --- | --- |
+| stands at | `(2448, 31268)`, cell `(51, 651)` | `(2342, 31229)`, cell `(48, 650)` |
+| proposes | `(2444, 31293)`, cell `(50, 651)` | `(2344, 31254)`, cell `(48, 651)` |
+| `collide_here` | hit `(49, 650)` | **clear** |
+| `will_be_corner` | 1 (NW) | — |
+| the 3×3 walk | `1/41` = 1 | — |
+| §4.3's ladder | **declined** | — |
+| `is_corner` | 0 — asked | — |
+| verdict | `\|1 − 0\| ≠ 4` → **hard**, step refused | nothing |
+
+**The two rows are one cause and the arrow runs from `1/40` to `1/41`.**
+`1/41` finds nothing to be soft about only because `1/40` stood: with
+`1/40` refusing its step it stays in cell `(51, 651)`, whose block is
+`(50..52, 650..652)`, and `1/41`'s own probe — §4.2's fast path, `dx 0`
+`dy 1`, so the leading row `y = 652` at `x = 47` then `49` — sweeps cells
+`1/40` no longer covers. With the change, the same instrument puts `1/40`
+at `(2444, 31293)` = cell `(50, 651)`, `1/41`'s probe hits `(49, 652)`,
+`will_be_corner` 5, and the walk names `1/40`, soft. Both raise the flag,
+which is the block.
+
+### 11.3 The predicate is the group slot, and this crate asked the army
+
+`detect_unit_collision@00617060:307` opens §4.3's group arm with
+
+```c
+if ((((*(short *)&this->field_0x80 == *(short *)(iVar7 + 0x80)) &&
+     (*(short *)&this->field_0x80 != -1)) && (local_24 == 0)) &&
+   (*(int *)(iVar7 + 0x104) == 0)) {
+```
+
+— one `short` at `+0x80`, compared for equality and against −1. It is the
+`Groups::list` slot the unit's back-pointer names (`docs/GROUPS.md` §1),
+and it knows nothing whatever about armies.
+
+The dump prints it. `1/27`, `1/28`, `1/29`, `1/40`, `1/41` and `1/42` are
+**`group 65` on every one of the 951 blocks** of `[9340, 10290]`,
+unchanging. `Sim::same_group_soft` asked `Sim::army_of`, which answers
+`None` for all six on 10278 — because a group has **two seats** here, an
+army's and a `group::Pushed` pool slot, and `Groups::push_group` takes its
+members out of the army when it installs one (§3.2). Item 465 gave this
+probe's six raiders a real `GROUP_MOVE` in a pushed slot, and from that
+day every member of a pushed group was hard to every other member.
+
+[`Sim::group_of`] — "the original's `unit +0x80` read straight into the
+pool" — is the resolver item 465 built and item 470 measured, and
+`Objects::find_ordered_collision`'s second pass has used it since. The
+soft arm is the site that was never moved over to it. The change is one
+predicate: the **seat pair** rather than the army slot, which is what one
+`+0x80` means.
+
+### 11.4 What it moved
+
+| | before | after |
+| --- | --- | --- |
+| Great Lakes long word, **count** | 10277 | **10294** |
+| Great Lakes long word, **sequence** | 10277 | **10294** |
+| block 10278, keys parted | 17 | **0** |
+| run100 widening over `[9340, 10290]`, keys parted | 313 | **251** |
+| Great Lakes endpoint `off` / `unlinked` / `build_diverged` | 42 / 7 / 9 | **50** / **8** / **8** |
+
+**The value diff beside the move.** Block 10278 is empty, and pinned so in
+`run100_s_word_block_is_every_record_the_dump_carries` beside 10162,
+10234, 10235, 10238 and 10245. `1/40` and `1/41` have **no row of any
+kind** anywhere in `[10270, 10307]` now — position, guy clock, order or
+collision — where before they had twenty-nine between them.
+
+The widening's own window moved with the word, 10290 → 10307, which is
+parked 449's lesson applied at the move; over the wider window the count
+is 320, and the rise is seventeen blocks nobody had compared, not the
+simulation. The like-for-like number is the 313 → 251 above.
+
+**The endpoint is a trade and DECISIONS 36 asks for the number.** Eight
+positions out and one more of the roster unlinked at frame 24,001, 13,707
+frames past a word that moved 17 — so on the far side of an unaligned
+draw stream, where every later random answer is a coin flip. The eight are
+not a roster coming apart: `1/24`, `1/25` and `1/26` are 24 out on both
+axes and `1/40`, `1/41`, `1/42` some 6,400 south, a squad that walked a
+different route.
+
+**The new word, 10294**, is not a collision and not the AI's. Ours spends
+**one** draw and the original **two**, parting at index 0: the extra is
+`Guy::set_anim+0x97a < Unit::do_idle+0x7d`. Block 10295 names the unit
+without being asked — six rows, all of them the human's citizen `0/5`:
+`orders_x`/`orders_y` ours `(4056, 28776)` against `(792, 31800)`,
+`idle` ours 0 theirs 1, and the facing and the stand that follow from it.
+
+### 11.5 Coverage
+
+**Diff-backed**: every row of §11.4, from
+`run100_s_word_block_is_every_record_the_dump_carries` over
+`[9340, 10307]` (969 blocks, 2,533,186 record rows) and
+`run100_s_word_frame_is_the_original_s`, whose word-frame set is now the
+**empty** one. The word itself is
+`run53_s_24000_frames_put_the_ceiling_where_run33_did` and the endpoint
+`great_lakes_endpoint_is_pinned`; all four were red before the change and
+are the numbers above after it.
+
+**Dump-backed**: §11.1's `unit_masks` table and the halved steps beside
+it, read straight out of run100. This is the first behavioural
+confirmation that `0x100000` is a *half step* rather than merely a flag —
+§4.3 had it from `docs/MOVEMENT.md`'s reading alone.
+
+**Listing-backed**: §11.3's predicate, read from the decompile export at
+`detect_unit_collision@00617060:307`. The field is a `short` there, which
+is what makes it a slot id and not a pointer.
+
+**Unit-tested, made to fail on purpose**:
+`two_members_of_a_pushed_group_pass_through_each_other` — with `group_of`
+put back to `army_of` the second assertion collides, and the word returns
+from 10294 to 10277 with block 10278's seventeen rows back on it. Both
+were run.
+
+**What this does not establish.**
+
+- **`1/41`'s 10281 and 10283 flags are not measured as such.** They agree
+  because `half_step` agrees on every block of the window after the
+  change, but nothing here reads the sweep at those two frames; only
+  10278's was read from inside.
+- **The seat pair stands in for a slot id.** A group has one seat by
+  construction — `push_group` unseats it from every other — so equality of
+  `(army, pushed)` is equality of `+0x80` *here*. Nothing compares this
+  crate's seat against the dump's `group` number directly, and `group` is
+  a `UNITDATA` field no comparator reads.
+- **The other three clauses of the arm are still where §9.5 left them.**
+  This capture exercised `+0x104 == 0` and the order-kind test and both
+  passed; a clause that passes is not a clause that was tested.
+- **Why `1/40` steps before `1/41`.** The order the two are walked in is
+  what makes `1/41`'s row a consequence rather than a cause, and it is
+  read off this crate's own recorder. No trace covers frame 10278, so the
+  original's own ordering on this frame is inferred from the outcome
+  agreeing, not observed.

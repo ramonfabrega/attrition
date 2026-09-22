@@ -5347,11 +5347,24 @@ sixteen of them `1/40`'s and one `1/41`'s.
 The seventeenth is the successor's first thread and is **a row, not yet a
 mechanism**: the original sets `unit_masks & 0x100000` — the soft-collision
 one-shot of `docs/COLLISION.md` §4.3 — on **both** `1/40` and `1/41` on
-this block, and this crate sets it on neither. Which way the arrow runs
+this block, and this crate sets it on neither. ~~Which way the arrow runs
 between that bit and `1/40`'s hard `collide_o 41` is what the successor
-has to establish; naming it here would be this item's hypothesis written
-as a finding, which is `docs/DECISIONS.md` 42 and the reason 483's
-successor did not survive its own widening.
+has to establish~~ — **item 489 established it, and the two are not two
+things**: the flag is what §4.3's scan raises when it calls a collision
+*soft*, so a block that raises it on both units is a block on which
+neither hard-collides, and all seventeen rows are one arm declining.
+`Sim::same_group_soft` asked `army_of` where the original asks
+`UnitData +0x80`, and a **pushed** group's members are in no army —
+which, since item 465, is every raider of this probe. `1/41`'s own row
+came free with `1/40`'s: with `1/40` standing it was out of `1/41`'s
+sweep entirely. `docs/COLLISION.md` §11; the word went 10277 →
+**10294**, and 10278's seventeen rows to none.
+
+For the method, this is the fourth item in the chain where the frame
+survived and the mechanism did not — except that here the frame survived
+and the mechanism, written deliberately as a row, turned out to be the
+answer. `docs/DECISIONS.md` 42 is about which of the two a title may
+assert, not about which one is usually right.
 
 ### 20.5 Coverage
 

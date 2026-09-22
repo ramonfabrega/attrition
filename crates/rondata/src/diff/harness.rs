@@ -6824,13 +6824,6 @@ mod tests {
         /// `RAID`'s reason — the exemption has to name the row, so the
         /// day the row closes this fails.
         const RAIDER_COLLIDES: i64 = 10_242;
-        /// **`1/40` collides with `1/41` where the original does not** —
-        /// the word's own row since item 487, and the same shape `1/27`'s
-        /// was one raider over: the extra
-        /// `Guy::set_anim+0x97a < Unit::move_step+0x823` at index 4 of
-        /// 10277's seven draws. It is asserted by name below rather than
-        /// exempted here, because it opens **on** the word.
-        const RAIDER_40: (i64, i64) = (1, 40);
         let Some(inst) = install() else { return };
         let (Some(path), Some(r100)) = (
             dump("gamelog-run53-greatlakes-24k-trace.txt"),
@@ -7044,19 +7037,21 @@ mod tests {
         // exempted by name as `RAIDER_X` above and counted below the
         // line with the standing residue.
         //
-        // **Item 487 moved the word to 10277 and it carries one**, and
-        // it is the word: `1/40` is 4 west and 25 north of the
-        // original's on the block the headline stands on, because it has
-        // collided with `1/41` and stopped where the original half-steps
-        // past. The set is one key and it is named, which is what this
-        // assertion is for — a word's own frame is a small, named set
-        // and not a reshuffle, and
-        // `run100_s_word_block_is_every_record_the_dump_carries` holds
-        // the seventeen rows beside it.
+        // ~~**Item 487 moved the word to 10277 and it carries one**~~ —
+        // ~~`1/40` is 4 west and 25 north of the original's~~ — **item
+        // 489 closed it**: the collision with `1/41` was §4.3's group
+        // arm declining because [`sim::Sim::same_group_soft`] read
+        // `army_of` where the original reads `UnitData +0x80`, and a
+        // **pushed** group's members are in no army at all
+        // (`docs/COLLISION.md` §11). The word is 10294 now and it
+        // carries **no position row**: its block is the human's citizen
+        // `0/5`, six rows and none of them a `pos`, which is the value
+        // diff `run100_s_word_block_is_every_record_the_dump_carries`
+        // holds beside this.
         assert_eq!(
             on_word,
-            vec![RAIDER_40],
-            "the word's own frame is not `1/40` alone: {units:?}"
+            Vec::<(i64, i64)>::new(),
+            "the word's own frame is not the empty set it is: {units:?}"
         );
         // ~~**And one order row, which is the residue item 464 left.**~~
         // The citizen's `GATHERORDER` residue is still there and still
@@ -7777,51 +7772,53 @@ mod tests {
         // mechanisms; `docs/DECISIONS.md` 42 is why the frame survived
         // the mechanism.
         //
-        // **What the new word holds is the same shape, one raider over.**
-        // `1/40` is colliding in this crate and not in the original —
-        // `collide` 1 against 0, `collide_o` 41, `collide_who` 1 — so it
-        // is stopped (`g.stopped` 1 against 0) on an animation that has
-        // just begun (`cur_time` 1, `end_time` 33) where the original's
-        // is ten frames into a walk. That **is** the word's own draw:
-        // 10277 spends seven draws against six and the extra one is
-        // `Guy::set_anim+0x97a < Unit::move_step+0x823` at index 4, the
-        // blocked stand. The draw stream and the dump name the same unit
-        // and the same mechanism again.
+        // ~~**What the new word holds is the same shape, one raider
+        // over.**~~ **Item 489 closed all seventeen**, and the two
+        // `half_step` rows were not the successor's first thread but
+        // the *same event* read from the other side: `unit_masks &
+        // 0x100000` is what §4.3's scan raises when it calls a
+        // collision **soft**, so a frame that sets it on both units is
+        // a frame on which neither hard-collides. This crate's `1/40`
+        // hard-collided with `1/41` because [`sim::Sim::same_group_soft`]
+        // asked `army_of` where the original asks `UnitData +0x80`, and
+        // a **pushed** group's members are in no army at all — which is
+        // every raider of this probe since item 465 put them there.
+        // `1/41`'s row came free with it: with `1/40` standing, it was
+        // out of `1/41`'s own sweep, so `1/41` found nothing to be soft
+        // about either (`docs/COLLISION.md` §11).
         //
-        // The two `half_step` rows are the successor's first thread, and
-        // they are a **row and not yet a mechanism**: the original sets
-        // `unit_masks & 0x100000` on **both** `1/40` and `1/41` on this
-        // block and this crate sets it on neither. That bit is the
-        // one-shot `detect_unit_collision`'s scan raises when it calls a
-        // collision *soft* (`docs/COLLISION.md` §4.3), and it is the
-        // only other field of the block either side disagrees on — but
-        // which way the arrow runs between it and `1/40`'s hard
-        // `collide_o 41` is exactly what the successor has to establish,
-        // and naming it here would be the previous item's hypothesis
-        // written as a finding (`docs/DECISIONS.md` 42).
+        // **The new word is 10294 and its block is the human's
+        // citizen** — `0/5`, six rows, an `orders_x`/`orders_y` pair
+        // three thousand units apart and the `idle` and the stand that
+        // follow from it. It is not a collision and not the AI's.
         assert_eq!(
             on_word,
             vec![
-                "1/40 collide: ours 1 theirs 0",
-                "1/40 collide_o: ours 41 theirs -1",
-                "1/40 collide_who: ours 1 theirs -1",
-                "1/40 g.avg_speed[0]: ours 16 theirs 22",
-                "1/40 g.cur_anim[0]: ours 0 theirs 8",
-                "1/40 g.cur_time[0]: ours 1 theirs 10",
-                "1/40 g.des_x[0]: ours 2448 theirs 2444",
-                "1/40 g.des_y[0]: ours 31268 theirs 31293",
-                "1/40 g.end_time[0]: ours 33 theirs 15",
-                "1/40 g.last_speed[0]: ours 0 theirs 25",
-                "1/40 g.last_time[0]: ours 0 theirs 9",
-                "1/40 g.stopped[0]: ours 1 theirs 0",
-                "1/40 g.x[0]: ours 2448 theirs 2444",
-                "1/40 g.y[0]: ours 31268 theirs 31293",
-                "1/40 half_step: ours 0 theirs 1",
-                "1/40 pos: ours (2448,31268) theirs (2444,31293)",
-                "1/41 half_step: ours 0 theirs 1",
+                "0/5 angle:Facing: ours -1320157184 theirs -1334771712",
+                "0/5 g.angle[0]: ours -1320157184 theirs -1334771712",
+                "0/5 g.stopped[0]: ours 1 theirs 0",
+                "0/5 idle: ours 0 theirs 1",
+                "0/5 orders_x: ours 4056 theirs 792",
+                "0/5 orders_y: ours 28776 theirs 31800",
             ],
-            "the word's own block ({word}) is not item 487's seventeen \
-             rows of `1/40` and `1/41`"
+            "the word's own block ({word}) is not item 489's six \
+             rows of `0/5`"
+        );
+        // **And 10278, the block the word just left** — item 487's
+        // seventeen rows of `1/40` and `1/41`, every one of them closed
+        // by item 489 and pinned empty here for 10162's, 10234's,
+        // 10235's, 10238's and 10245's reason: the headline walks away
+        // from a block and nothing then watches it.
+        let on_10278: Vec<String> = firsts
+            .iter()
+            .filter(|(_, (f, _))| *f == 10_278)
+            .map(|((w, o, what), (_, row))| format!("{w}/{o} {what}: {row}"))
+            .collect();
+        assert_eq!(
+            on_10278,
+            Vec::<String>::new(),
+            "block 10278 parts — item 487's seventeen rows of `1/40` \
+             and `1/41` are back"
         );
         // **And 10245, the block the word just left** — item 483's eleven
         // rows of `1/27`, every one of them closed by item 487 and pinned
