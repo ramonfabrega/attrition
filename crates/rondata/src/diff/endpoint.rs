@@ -861,11 +861,21 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // `(792, 31800)`
         // (`run100_s_word_block_is_every_record_the_dump_carries`).
         // DECISIONS 36 asks for the number rather than a trade.
-        off: 48,
-        unlinked: 10,
+        // Then **48 → 49 off, 10 → 9 unlinked, 10 → 8 build_diverged** on
+        // 2026-09-21, item 465 — the pushed group's pool slot and the
+        // `unit_masks & 4` exemption that replaces this crate's invented
+        // army gate (`docs/ORDERS.md` §16), which moves this map's own
+        // word **10233 → 10234**. Two counts closer and one out, 13,767
+        // frames past the word and so on the far side of an unaligned
+        // draw stream; the value diff the change is booked on is block
+        // 10234, where `1/28`'s **fifteen** rows go to none and the
+        // block is item 464's three alone. DECISIONS 36 asks for the
+        // number rather than a trade.
+        off: 49,
+        unlinked: 9,
         extra: 0,
         build_unlinked: 0,
-        build_diverged: 10,
+        build_diverged: 8,
         city_unlinked: 3,
         city_diverged: 0,
     },

@@ -168,8 +168,12 @@ impl Default for GroupState {
     fn default() -> GroupState {
         GroupState {
             form: -1,
+            // `Group::clear`'s own initialiser, and [`Sim::group_o`]
+            // reads it as "this group has never moved" (§6.3): either
+            // coordinate negative and `get_loc` hands back the leader's
+            // position rather than the record's point.
             order_num: 0,
-            o: Pos::new(0, 0),
+            o: Pos::new(-1, -1),
             o_angle: Angle(0),
             o_dist: 0,
             facing: false,
@@ -182,14 +186,41 @@ impl Default for GroupState {
     }
 }
 
-/// One `Group` as an action sees it: the members, the owner, and whether
-/// an army owns it (`GroupData::army`, the switch §6.5 turns on).
+/// An installed stack group — one slot of the original's `Groups` pool
+/// (§3), which until item 465 this crate had exactly one of and kept no
+/// record for.
+///
+/// The pool matters because a **pushed group outlives the army** its
+/// members came from: Great Lakes' probe (`docs/ARMY.md` §12) pushes six
+/// raiders out of army 1 on frame 8186 and the dump carries them on
+/// `group 65` for the next two thousand frames, holding the
+/// `GroupMoveOrder` that group issued. With the group gone the moment the
+/// next `push_group` ran, `do_group_move` could not run on them at all
+/// (`docs/ORDERS.md` §16).
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct Pushed {
+    /// `GroupData::who`.
+    pub who: Player,
+    /// `GroupData::list`, in join order.
+    pub list: Vec<usize>,
+    /// The record half, the same one an army carries.
+    pub state: GroupState,
+}
+
+/// One `Group` as an action sees it: the members, the owner, and which
+/// seat holds its record — an army's (`GroupData::army`, the switch §6.5
+/// turns on) or a pool slot's.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Group {
     pub who: Player,
     /// `GroupData::army`, `None` for a group on the stack or a player's
     /// selection. The simulation only ever builds the first and the third.
     pub army: Option<usize>,
+    /// The [`Pushed`] slot this group was installed in, if any. A group
+    /// has at most one seat: `push_group` takes its members out of the
+    /// army and out of any other slot, which is the original's
+    /// `UnitData +0x80` pointing at one place.
+    pub pushed: Option<usize>,
     /// `GroupData::list`, in join order.
     pub list: Vec<usize>,
 }
@@ -200,6 +231,7 @@ impl Group {
         Group {
             who,
             army: None,
+            pushed: None,
             list: Vec::new(),
         }
     }
@@ -269,7 +301,40 @@ impl Sim {
         Group {
             who,
             army: Some(slot),
+            pushed: None,
             list: self.armies[who as usize].list[slot].units.clone(),
+        }
+    }
+
+    /// One installed [`Pushed`] slot as a [`Group`].
+    pub(crate) fn pushed_group_at(&self, slot: usize) -> Option<Group> {
+        let x = self.pushed.get(slot)?;
+        Some(Group {
+            who: x.who,
+            army: None,
+            pushed: Some(slot),
+            list: x.list.clone(),
+        })
+    }
+
+    /// The record half of a seated group — the army's, or the pool
+    /// slot's. `None` is a group with no seat at all: a stack group that
+    /// was never pushed, or a player's selection, which is the original's
+    /// `UnitData::group == -1`.
+    pub(crate) fn gstate(&self, g: &Group) -> Option<&GroupState> {
+        match (g.army, g.pushed) {
+            (Some(s), _) => Some(&self.armies[g.who as usize].list[s].group),
+            (None, Some(i)) => self.pushed.get(i).map(|x| &x.state),
+            (None, None) => None,
+        }
+    }
+
+    /// [`Self::gstate`], to write.
+    pub(crate) fn gstate_mut(&mut self, g: &Group) -> Option<&mut GroupState> {
+        match (g.army, g.pushed) {
+            (Some(s), _) => Some(&mut self.armies[g.who as usize].list[s].group),
+            (None, Some(i)) => self.pushed.get_mut(i).map(|x| &mut x.state),
+            (None, None) => None,
         }
     }
 
@@ -328,14 +393,36 @@ impl Sim {
     /// **not** installed and every member is left group-less; and an
     /// installed group **takes its members out of the group they were
     /// in** (§3.3). Returns whether the group took a slot.
-    pub fn push_group(&mut self, g: &Group, force: bool) -> bool {
+    pub fn push_group(&mut self, g: &mut Group, force: bool) -> bool {
         if !(force || g.num() >= 2) {
             return false;
         }
         self.unseat_group(g);
-        // The pool slot every member's `+0x80` then points at. Only
-        // `find_ordered_collision`'s group pass reads it.
-        self.pushed_group = Some((g.who, g.list.clone()));
+        // The pool slot every member's `+0x80` then points at.
+        // `Groups::get_open_slot` recycles, so a slot whose members are
+        // all gone is taken before a new one is appended — without that
+        // the pool would grow without bound over a long game, and the
+        // original's is 64 entries.
+        let slot = self
+            .pushed
+            .iter()
+            .position(|x| x.list.iter().all(|&u| !self.units[u].alive()))
+            .unwrap_or_else(|| {
+                self.pushed.push(crate::group::Pushed {
+                    who: g.who,
+                    list: Vec::new(),
+                    state: GroupState::default(),
+                });
+                self.pushed.len() - 1
+            });
+        self.pushed[slot] = crate::group::Pushed {
+            who: g.who,
+            list: g.list.clone(),
+            state: GroupState::default(),
+        };
+        self.pushed_last = Some(slot);
+        g.army = None;
+        g.pushed = Some(slot);
         true
     }
 
@@ -359,9 +446,6 @@ impl Sim {
     /// (`docs/ARMY.md` §3.4).
     fn unseat_group(&mut self, g: &Group) {
         let w = g.who as usize;
-        if self.armies[w].list.iter().all(|a| a.units.is_empty()) {
-            return;
-        }
         // `Group::kill`'s own walk: up to the captain, then down `o_down`.
         let mut leaving: Vec<usize> = Vec::new();
         for &m in &g.list {
@@ -373,6 +457,15 @@ impl Sim {
                     leaving.push(f);
                 }
             }
+        }
+        // A pool slot is a group too, and `(*old->vtbl+0x10)` is asked of
+        // whichever one holds the member — so a unit pushed twice leaves
+        // the first slot rather than sitting in two groups at once.
+        for slot in &mut self.pushed {
+            slot.list.retain(|u| !leaving.contains(u));
+        }
+        if self.armies[w].list.iter().all(|a| a.units.is_empty()) {
+            return;
         }
         let mut touched: Vec<usize> = Vec::new();
         for slot in 0..self.armies[w].list.len() {
@@ -620,9 +713,7 @@ impl Sim {
     /// to read, and the original's `(-1, -1)` initialiser is what a
     /// never-moved group holds.
     fn group_o(&self, g: &Group) -> Pos {
-        g.army.map_or(Pos::new(-1, -1), |s| {
-            self.armies[g.who as usize].list[s].group.o
-        })
+        self.gstate(g).map_or(Pos::new(-1, -1), |st| st.o)
     }
 
     // ------------------------------------------------------------------
@@ -696,8 +787,8 @@ impl Sim {
         // member is examined, and only for a unit group. No member's
         // `+0xaa` is touched — and `get_form` reads those bytes, so a halt
         // does not cost the group the formation its members still carry.
-        if let Some(s) = g.army {
-            self.armies[g.who as usize].list[s].group.form = -1;
+        if let Some(st) = self.gstate_mut(g) {
+            st.form = -1;
         }
         for &u in &g.list {
             if !self.group_member_orderable(u) || self.ignored(u, mask) {
@@ -1010,17 +1101,25 @@ impl Sim {
             // plain move. The exemptions are modern infantry, a
             // `role & 0x10` type that is not AI-driven (a scout on land, a
             // bark at sea), a group of fewer than two, `unit_masks & 4`
-            // (`Unit::set_in_danger` — a seam here), a sea type, and
-            // form 9.
+            // ([`sim::Unit::in_danger`], carried since item 465 because
+            // it is what the army line below was standing in for), a sea
+            // type, and form 9.
             //
-            // A group with **no army** is exempt too, and that is this
-            // crate's own line rather than the original's: group
-            // membership here is the army's (`docs/GROUPS.md` §1), so a
-            // player's selection has no persistent group — which is
-            // exactly the `this->group == -1` `do_group_move` ungroups on
-            // its first line. So a human's group move stays N independent
-            // moves (`docs/ORDERS.md` §8.4) and an army's does not.
-            let grouped = g.army.is_some()
+            // A group with **no seat** is exempt too, and that is this
+            // crate's own line rather than the original's: a `Group` here
+            // is a value a caller builds, where the original's is always
+            // a pool slot, so the stand-in for `this->group == -1` —
+            // which `do_group_move` ungroups on its first line — is "the
+            // record has somewhere to live". A player's selection is
+            // still N independent moves (`docs/ORDERS.md` §8.4); an
+            // army's group and a **pushed** one are not.
+            //
+            // ~~`g.army.is_some()`~~ until item 465, which cost Great
+            // Lakes' probe its `GroupMoveOrder` for four months: the six
+            // raiders it pushes out of the army on 8186 are `group 65` in
+            // the dump and held no group at all here (`docs/ORDERS.md`
+            // §16).
+            let grouped = self.gstate(g).is_some()
                 && matches!(kind, MoveKind::MoveTo | MoveKind::AttackTo)
                 && !self.is_modern_infantry(u)
                 && !(self.units[u]
@@ -1028,6 +1127,7 @@ impl Sim {
                     .is_some_and(|t| self.unit_types[t].cols.is(crate::ai_load::role::SCOUT))
                     && !self.ai_driven(g.who))
                 && g.num() >= 2
+                && !self.units[u].in_danger
                 && self.group_domain(u) != Domain::Sea
                 && form != 9;
             if let (true, Some(leader)) = (grouped, self.group_find_leader(g)) {
@@ -1094,6 +1194,7 @@ impl Sim {
         let mut sub = Group {
             who: g.who,
             army: g.army,
+            pushed: g.pushed,
             list: Vec::new(),
         };
         for &u in &g.list {
@@ -1305,21 +1406,26 @@ impl Sim {
     }
 
     fn group_o_angle(&self, g: &Group) -> Angle {
-        g.army.map_or(Angle(0), |s| {
-            self.armies[g.who as usize].list[s].group.o_angle
-        })
+        self.gstate(g).map_or(Angle(0), |st| st.o_angle)
     }
 
-    /// The group's own id (`GroupData +0x4`). This crate has no group
-    /// pool, so an army group's slot stands in for it — it is unique per
-    /// owner, which is all [`group_move_id`] needs of it.
+    /// The group's own id (`GroupData +0x4`). The seat stands in for the
+    /// pool index the original keeps: an army group's is its army slot and
+    /// a [`Pushed`] group's is `64 +` its slot, which is all
+    /// [`group_move_id`] needs of it — distinct per owner, and stable for
+    /// as long as the group lives. The numbers are **not** the dump's own
+    /// (Great Lakes' probe is `group 65` there and this crate's armies do
+    /// not sit in the same pool), so nothing compares them.
     fn group_id(&self, g: &Group) -> i32 {
-        g.army.map_or(-1, |s| s as i32)
+        match (g.army, g.pushed) {
+            (Some(s), _) => s as i32,
+            (None, Some(i)) => 64 + i as i32,
+            (None, None) => -1,
+        }
     }
 
     fn group_order_num(&self, g: &Group) -> i32 {
-        g.army
-            .map_or(0, |s| self.armies[g.who as usize].list[s].group.order_num)
+        self.gstate(g).map_or(0, |st| st.order_num)
     }
 
     /// `Group::update_positions@00713810(o, who)` — the slot table
@@ -1335,21 +1441,24 @@ impl Sim {
     /// frame of a turn — which is exactly where a follower would otherwise
     /// be walking into its leader.
     pub(crate) fn group_update_positions(&mut self, g: &Group, leader: usize) {
-        let Some(s) = g.army else { return };
+        let Some(off) = self.gstate(g).map(|st| st.off.clone()) else {
+            return;
+        };
         let p = self.units[leader].pos;
         let theta = match self.current_move(leader) {
             Some(m) if m.has_waypoint => find_angle(m.waypoint.x - p.x, m.waypoint.y - p.y),
             _ => self.units[leader].movement.heading,
         };
-        let off = self.armies[g.who as usize].list[s].group.off.clone();
-        self.armies[g.who as usize].list[s].group.curr = Sim::form_update_positions(&off, theta);
+        let curr = Sim::form_update_positions(&off, theta);
+        if let Some(st) = self.gstate_mut(g) {
+            st.curr = curr;
+        }
     }
 
     /// A follower's target point this frame: the leader's **current**
     /// position plus slot `i`'s rotated offset.
     pub(crate) fn group_slot_point(&self, g: &Group, leader: usize, i: usize) -> Option<Pos> {
-        let s = g.army?;
-        let off = *self.armies[g.who as usize].list[s].group.curr.get(i)?;
+        let off = *self.gstate(g)?.curr.get(i)?;
         let p = self.units[leader].pos;
         Some(Pos::new(p.x + off.x, p.y + off.y))
     }
@@ -1372,8 +1481,8 @@ impl Sim {
     }
 
     fn bump_order_num(&mut self, g: &Group) {
-        if let Some(s) = g.army {
-            self.armies[g.who as usize].list[s].group.order_num += 1;
+        if let Some(st) = self.gstate_mut(g) {
+            st.order_num += 1;
         }
     }
 
@@ -1381,12 +1490,11 @@ impl Sim {
     /// (`70535a`), the origin and its angle only for `QUEUE_NEW` and
     /// `QUEUE_LAST` (§6.3) — so `charge`'s `QUEUE_FIRST` leaves them.
     fn record_move(&mut self, g: &Group, to: Pos, angle: Angle, form: i32, queue: QueuePos) {
-        let Some(s) = g.army else { return };
-        let a = &mut self.armies[g.who as usize].list[s];
-        a.group.form = form;
+        let Some(st) = self.gstate_mut(g) else { return };
+        st.form = form;
         if queue != QueuePos::First {
-            a.group.o = to;
-            a.group.o_angle = angle;
+            st.o = to;
+            st.o_angle = angle;
         }
     }
 
@@ -1404,14 +1512,19 @@ impl Sim {
     ///
     /// Returns whether the group had a slot for `member`.
     pub fn group_refresh_order(&mut self, g: &Group, member: usize) -> bool {
-        let (Some(s), Some(i)) = (g.army, g.list.iter().position(|&u| u == member)) else {
+        let Some(i) = g.list.iter().position(|&u| u == member) else {
             return false;
         };
-        self.armies[g.who as usize].list[s].group.reorigin(i);
+        let Some(st) = self.gstate_mut(g) else {
+            return false;
+        };
+        st.reorigin(i);
+        let off = st.off.clone();
         let theta = self.units[member].movement.heading;
-        let off = self.armies[g.who as usize].list[s].group.off.clone();
         let curr = Sim::form_update_positions(&off, theta);
-        self.armies[g.who as usize].list[s].group.curr = curr;
+        if let Some(st) = self.gstate_mut(g) {
+            st.curr = curr;
+        }
         true
     }
 
@@ -1447,18 +1560,23 @@ impl Sim {
 
     /// `GroupData::facing` — the mirror flag the layout reads.
     fn group_facing(&self, g: &Group) -> bool {
-        g.army
-            .is_some_and(|s| self.armies[g.who as usize].list[s].group.facing)
+        self.gstate(g).is_some_and(|st| st.facing)
     }
 
-    /// The group this unit belongs to, if any — `Object::get_army` and the
-    /// army's one group (`docs/ARMY.md` §3.2). The original reads
-    /// `unit +0x80` straight into the pool; without a pool the army is the
-    /// only thing that holds a group, so this is the same question asked of
-    /// the army list.
+    /// The group this unit belongs to, if any — the original's
+    /// `unit +0x80` read straight into the pool.
+    ///
+    /// Two seats hold a group here: an army's (`docs/ARMY.md` §3.2) and a
+    /// [`Pushed`] slot. They are exclusive by construction — `push_group`
+    /// takes its members out of the army and out of every other slot — so
+    /// the order they are asked in only decides which answer a bug would
+    /// give, not which one is right.
     pub(crate) fn group_of(&self, u: usize) -> Option<Group> {
-        let s = self.army_of(u)?;
-        Some(self.army_group(self.units[u].owner, s))
+        if let Some(s) = self.army_of(u) {
+            return Some(self.army_group(self.units[u].owner, s));
+        }
+        let at = self.pushed.iter().position(|x| x.list.contains(&u))?;
+        self.pushed_group_at(at)
     }
 
     /// Is this unit the leader of its own group?
@@ -1516,10 +1634,9 @@ impl Sim {
         }
         let Some(g) = self.group_of(u) else { return };
         if self.is_group_leader(u, &g)
-            && let Some(s) = g.army
+            && let Some(st) = self.gstate_mut(&g)
         {
-            let f = &mut self.armies[g.who as usize].list[s].group.facing;
-            *f = !*f;
+            st.facing = !st.facing;
         }
     }
 
@@ -1545,17 +1662,17 @@ impl Sim {
         let f = order_facing != turned;
         let Some(g) = self.group_of(u) else { return };
         if self.is_group_leader(u, &g)
-            && let Some(s) = g.army
+            && let Some(st) = self.gstate_mut(&g)
         {
-            self.armies[g.who as usize].list[s].group.facing = f;
+            st.facing = f;
         }
     }
 
     /// `GroupData::angles` — carried in because `Form::compute` does not
     /// clear it and Column and Mob never write it (`form::Form::new`).
     fn group_angles(&self, g: &Group) -> Vec<i8> {
-        g.army
-            .map(|s| self.armies[g.who as usize].list[s].group.angles.clone())
+        self.gstate(g)
+            .map(|st| st.angles.clone())
             .unwrap_or_default()
     }
 
@@ -1569,7 +1686,9 @@ impl Sim {
     /// heading so the record has a value the moment the move is issued,
     /// which is what run29's window compares against.
     fn record_form(&mut self, g: &Group, f: &crate::form::Form, to: Pos) {
-        let Some(s) = g.army else { return };
+        if self.gstate(g).is_none() {
+            return;
+        }
         // The group's table is quantised from the `Form`'s **before**
         // `compute_form`'s tail negates either (§6.3): the tail negates two
         // tables that have already been written, and `quantise` is a floor
@@ -1586,13 +1705,15 @@ impl Sim {
         let theta = f.o.map_or(Angle(0), |u| self.units[u].movement.heading);
         let curr = Sim::form_update_positions(&off, theta);
         let (o_angle, o_dist) = Sim::form_leader_offset(f, to);
-        let a = &mut self.armies[g.who as usize].list[s];
-        a.group.form_num = g.num();
-        a.group.off = off;
-        a.group.curr = curr;
-        a.group.angles = f.angles.clone();
-        a.group.o_angle = o_angle;
-        a.group.o_dist = o_dist;
+        let num = g.num();
+        let angles = f.angles.clone();
+        let Some(st) = self.gstate_mut(g) else { return };
+        st.form_num = num;
+        st.off = off;
+        st.curr = curr;
+        st.angles = angles;
+        st.o_angle = o_angle;
+        st.o_dist = o_dist;
     }
 
     /// `WorldData::restrict` on a destination (§6.1).
@@ -1691,6 +1812,7 @@ mod tests {
         Group {
             who,
             army: None,
+            pushed: None,
             list: list.to_vec(),
         }
     }
@@ -1962,14 +2084,122 @@ mod tests {
         let mut s = sim();
         let t = fighter(&mut s);
         let a = spawn(&mut s, 1, t, Pos::new(0x1000, 0x1000));
-        let one = group_of(1, &[a]);
+        let mut one = group_of(1, &[a]);
         assert!(
-            !s.push_group(&one, false),
+            !s.push_group(&mut one, false),
             "a group of fewer than two takes no slot without force"
         );
-        assert!(s.push_group(&one, true), "Army::add_unit forces it");
+        assert!(s.push_group(&mut one, true), "Army::add_unit forces it");
+        assert_eq!(one.pushed, Some(0), "and the forced push names its slot");
         let b = spawn(&mut s, 1, t, Pos::new(0x1100, 0x1000));
-        assert!(s.push_group(&group_of(1, &[a, b]), false));
+        assert!(s.push_group(&mut group_of(1, &[a, b]), false));
+    }
+
+    /// **A pushed group is still a group the next frame** — the pool
+    /// slot item 465 gave `push_group`, and the reason Great Lakes'
+    /// probe can march in formation at all.
+    ///
+    /// The probe (`docs/ARMY.md` §12) pushes six of the army's raiders
+    /// out of army 1 on frame 8186 and the dump carries them on
+    /// `group 65` for the next two thousand blocks. With one slot and no
+    /// record the scout's next `go_to` overwrote them — eleven times
+    /// before the word — so `do_group_move` could not run on them and
+    /// the whole follower arm was dead code on the only capture that
+    /// reaches it (`docs/ORDERS.md` §16).
+    ///
+    /// **Made to fail on purpose**: with `pushed` back to one slot the
+    /// second push takes the first group's seat and `group_of` answers
+    /// `None` for `a` and `b`.
+    #[test]
+    fn a_pushed_group_outlives_the_next_push() {
+        let mut s = sim();
+        let t = fighter(&mut s);
+        let a = spawn(&mut s, 1, t, Pos::new(0x1000, 0x1000));
+        let b = spawn(&mut s, 1, t, Pos::new(0x1100, 0x1000));
+        let c = spawn(&mut s, 1, t, Pos::new(0x4000, 0x4000));
+        let mut first = group_of(1, &[a, b]);
+        assert!(s.push_group(&mut first, true));
+        let mut second = group_of(1, &[c]);
+        assert!(s.push_group(&mut second, true));
+        assert_eq!(
+            (first.pushed, second.pushed),
+            (Some(0), Some(1)),
+            "two live groups take two slots"
+        );
+        assert_eq!(
+            s.group_of(a).map(|g| g.list),
+            Some(vec![a, b]),
+            "the first group is still the first group's"
+        );
+        assert_eq!(
+            s.group_of(c).map(|g| g.list),
+            Some(vec![c]),
+            "and the second is its own"
+        );
+        // `Groups::get_open_slot`: a slot whose members are all gone is
+        // taken before a third is appended.
+        s.units[c].health = 0;
+        let d = spawn(&mut s, 1, t, Pos::new(0x5000, 0x5000));
+        let mut third = group_of(1, &[d]);
+        assert!(s.push_group(&mut third, true));
+        assert_eq!(third.pushed, Some(1), "the dead group's slot is recycled");
+        assert_eq!(s.pushed.len(), 2, "and the pool does not grow");
+    }
+
+    /// **A seated group's move is a `GroupMoveOrder`, and an in-danger
+    /// member's is not** — §6.6 step 6's gate as the original states it
+    /// (`705f00`-`705f61`), which has no army test in it at all.
+    ///
+    /// This crate carried one — `g.army.is_some()` — for four months,
+    /// and it was standing in for the wrong thing: what the original
+    /// exempts a `Unit::go_to` group by is `unit_masks & 4`, which
+    /// `go_to_unit@005f78c0` sets over the whole squad one line above
+    /// the walk. Both halves are asserted here, because dropping the
+    /// army test without carrying the bit collapses Great Lakes' word to
+    /// **6994** — the second squad's own walk to the army, which is a
+    /// `go_to` (`docs/ORDERS.md` §16).
+    #[test]
+    fn a_pushed_group_marches_unless_its_member_is_in_danger() {
+        let mut s = sim();
+        let t = fighter(&mut s);
+        let a = spawn(&mut s, 1, t, Pos::new(0x1000, 0x1000));
+        let b = spawn(&mut s, 1, t, Pos::new(0x1100, 0x1000));
+        let mut g = group_of(1, &[a, b]);
+        assert!(s.push_group(&mut g, true));
+        s.group_action_move_to(
+            &g,
+            Pos::new(0x8000, 0x8000),
+            QueuePos::New,
+            false,
+            Angle(0),
+            MoveKind::MoveTo,
+            false,
+        );
+        let grouped = |s: &Sim, u: usize| match s.current_order(u).expect("a move").body {
+            Body::Move(m) => m.group.is_some(),
+            _ => unreachable!("a move is a move"),
+        };
+        assert!(
+            grouped(&s, a) && grouped(&s, b),
+            "a seated group of two on a MOVE_TO marches in formation"
+        );
+        // And the same group with one member marked: only that member
+        // falls back to a plain move.
+        s.units[a].in_danger = true;
+        s.group_action_move_to(
+            &g,
+            Pos::new(0x2000, 0x8000),
+            QueuePos::New,
+            false,
+            Angle(0),
+            MoveKind::MoveTo,
+            false,
+        );
+        assert_eq!(
+            (grouped(&s, a), grouped(&s, b)),
+            (false, true),
+            "`unit_masks & 4` is a per-member exemption, not the group's"
+        );
     }
 
     /// **A pushed group takes its members out of the army** — §3.2's
@@ -1999,7 +2229,7 @@ mod tests {
             "the army's one group holds both"
         );
         // `push_group(force = 1)`, the probe's own call.
-        assert!(s.push_group(&group_of(1, &[a]), true));
+        assert!(s.push_group(&mut group_of(1, &[a]), true));
         assert_eq!(
             s.armies[1].list[slot].units,
             vec![b],
@@ -2016,7 +2246,7 @@ mod tests {
         );
         // A group the army never held leaves it alone.
         let c = spawn(&mut s, 1, t, Pos::new(0x1200, 0x1000));
-        assert!(s.push_group(&group_of(1, &[c]), true));
+        assert!(s.push_group(&mut group_of(1, &[c]), true));
         assert_eq!(
             s.armies[1].list[slot].units,
             vec![b],
