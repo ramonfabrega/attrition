@@ -40,8 +40,8 @@ Long captures: EastIndies w9711 of 24,000 · GreatLakes w10277 of 24,000
 Golden: w626 of 901 (ch1) · ch2 w683 · 491 next
 Endpoint 24001: EastIndies 63 off, 11 unlinked · GreatLakes 42 off, 7 unlinked
 
-**Opener: nothing is in flight. A fresh Opus commander spawns 489 on the
-AI track and 491 on the rules track, and runs the chain to twenty.**
+**Opener: 489 (att-489) and 491 (att-491) are in flight, Opus 5 both. The
+commander merges, books, gates, pushes, reaps and refills, chain to twenty.**
 
 ## The queue
 
