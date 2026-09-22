@@ -86,6 +86,30 @@ pub struct PackedDivergence {
     pub ours: bool,
 }
 
+/// One field of a unit's **hit-point record** the two sides disagree on —
+/// `docs/COMBAT.md` §40.
+///
+/// The three are written inside the `OBJECT` block at every detail level,
+/// so this is compared on every capture that carries a unit record at all,
+/// and [`crate::diff::compare`] carried none of them until item 484: a
+/// walk could see that a unit was *gone* and not that it had been wounded
+/// on the way there.
+///
+/// It is its own row rather than one more `field` of
+/// [`CollideDivergence`] for the reason [`SearchDivergence`] is: the
+/// collision block says what is in the way, and this says what has been
+/// taken off.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct HitsDivergence {
+    pub frame: i64,
+    pub who: i64,
+    pub o: i64,
+    /// The field, named as `ObjectData::log_data` writes it.
+    pub field: &'static str,
+    pub ours: i64,
+    pub theirs: i64,
+}
+
 /// One unit-frame where `ObjectData::visible` (`+0x40`) disagreed —
 /// `docs/VISION.md` §7.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -1822,7 +1846,7 @@ mod tests {
         let sum = |g: fn(&FrameResult) -> usize| report.frames.iter().map(g).sum::<usize>();
         eprintln!(
             "run79: {} unit fields, {} order/path, {} angle, {} collide, {} los, \
-             {} packed, {} visible, {} gather, {} build, {} queue, {} city",
+             {} packed, {} visible, {} hits, {} gather, {} build, {} queue, {} city",
             sum(|f| f.compared),
             sum(|f| f.order_compared),
             sum(|f| f.angle_compared),
@@ -1830,6 +1854,7 @@ mod tests {
             sum(|f| f.los_compared),
             sum(|f| f.packed_compared),
             sum(|f| f.visible_compared),
+            sum(|f| f.hits_compared),
             sum(|f| f.gather_compared),
             sum(|f| f.build_compared),
             sum(|f| f.queue_compared),
@@ -1894,6 +1919,9 @@ mod tests {
             for d in &fr.visible_diverged {
                 note(d.who, d.o, "visible", format!("{} v {}", d.ours, d.theirs));
             }
+            for d in &fr.hits_diverged {
+                note(d.who, d.o, d.field, format!("{} v {}", d.ours, d.theirs));
+            }
             for d in &fr.gather_diverged {
                 note(d.who, d.o, "gather", format!("{d:?}"));
             }
@@ -1919,6 +1947,7 @@ mod tests {
             sum(|f| f.compared) >= 13_000
                 && sum(|f| f.order_compared) >= 13_000
                 && sum(|f| f.collide_compared) >= 60_000
+                && sum(|f| f.hits_compared) >= 40_377
                 && sum(|f| f.build_compared) >= 17_000,
             "run79's own rows are missing — the wrong file"
         );
@@ -2124,7 +2153,7 @@ mod tests {
         let sum = |g: fn(&FrameResult) -> usize| report.frames.iter().map(g).sum::<usize>();
         eprintln!(
             "run87: {} unit fields, {} order/path, {} angle, {} collide, {} los, \
-             {} packed, {} visible, {} gather, {} build, {} queue",
+             {} packed, {} visible, {} hits, {} gather, {} build, {} queue",
             sum(|f| f.compared),
             sum(|f| f.order_compared),
             sum(|f| f.angle_compared),
@@ -2132,6 +2161,7 @@ mod tests {
             sum(|f| f.los_compared),
             sum(|f| f.packed_compared),
             sum(|f| f.visible_compared),
+            sum(|f| f.hits_compared),
             sum(|f| f.gather_compared),
             sum(|f| f.build_compared),
             sum(|f| f.queue_compared),
@@ -2175,6 +2205,9 @@ mod tests {
             }
             for d in &fr.visible_diverged {
                 note(d.who, d.o, "visible", format!("{} v {}", d.ours, d.theirs));
+            }
+            for d in &fr.hits_diverged {
+                note(d.who, d.o, d.field, format!("{} v {}", d.ours, d.theirs));
             }
             for d in &fr.gather_diverged {
                 note(d.who, d.o, "gather", format!("{d:?}"));
@@ -2859,7 +2892,7 @@ mod tests {
         let sum = |g: fn(&FrameResult) -> usize| report.frames.iter().map(g).sum::<usize>();
         eprintln!(
             "run89: {} unit fields, {} order/path, {} angle, {} collide, {} los, \
-             {} packed, {} visible, {} gather, {} build, {} queue, {} city",
+             {} packed, {} visible, {} hits, {} gather, {} build, {} queue, {} city",
             sum(|f| f.compared),
             sum(|f| f.order_compared),
             sum(|f| f.angle_compared),
@@ -2867,6 +2900,7 @@ mod tests {
             sum(|f| f.los_compared),
             sum(|f| f.packed_compared),
             sum(|f| f.visible_compared),
+            sum(|f| f.hits_compared),
             sum(|f| f.gather_compared),
             sum(|f| f.build_compared),
             sum(|f| f.queue_compared),
@@ -3394,6 +3428,14 @@ mod tests {
                 d.who,
                 d.o,
                 "visible".into(),
+                format!("{} v {}", d.ours, d.theirs),
+            ));
+        }
+        for d in &fr.hits_diverged {
+            out.push((
+                d.who,
+                d.o,
+                d.field.into(),
                 format!("{} v {}", d.ours, d.theirs),
             ));
         }

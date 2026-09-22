@@ -58,6 +58,26 @@ pub struct FrameResult {
     /// defect worth naming wherever the unit happens to be.
     pub visible_compared: usize,
     pub visible_diverged: Vec<VisibleDivergence>,
+    /// **The hit-point record, whole** — `ObjectData::myhits`, `damage`
+    /// and `damage_frac`, on every unit-frame the dump carries them for,
+    /// which is every one at every detail level (`docs/COMBAT.md` §40).
+    ///
+    /// Nothing here was compared until item 484. The dump has printed the
+    /// three on every block of every capture since the reader existed and
+    /// `run100_s_word_block_is_every_record_the_dump_carries` has carried
+    /// two of them since item 464 — but the golden-record comparator had
+    /// no hit-point row at all, so chapter two's widening could see that
+    /// the original's hoplite `1/8` was **gone** on block 684 and not
+    /// that it had been wounded on 656, 657, 660 and 682 to get there
+    /// (`docs/COMBAT.md` §38.4).
+    ///
+    /// Compared **both ways and ungated on the position**, for
+    /// [`visible_compared`](Self::visible_compared)' reason: what a unit
+    /// has taken is not a consequence of where it is standing, and a
+    /// crate that takes the wrong damage has a defect worth naming
+    /// wherever the unit happens to be.
+    pub hits_compared: usize,
+    pub hits_diverged: Vec<HitsDivergence>,
     /// Angle comparisons made this frame — `UnitData::angle` for every unit
     /// record, and guy 0's `angle` for every record that carries a guy
     /// (`GUYS` at 1 or above). Two per unit-frame where both are present.
