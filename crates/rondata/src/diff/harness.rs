@@ -4220,13 +4220,17 @@ mod tests {
         // frames earlier (`docs/ECONOMY.md` §13), and 10782's rotation
         // came under the word with it. The comparison above — the two
         // *streams*, entry for entry — passed unchanged again.
+        //
+        // **Thirteen → fourteen on item 518**, the literal following the
+        // headline once more: the word went 10834 → 11185 and **10982**'s
+        // rotation came under it. The streams above agree through it.
         assert_eq!(
             markets,
             vec![
                 8582, 8585, 8782, 8982, 9_182, 9_382, 9_582, 9_782, 9_982, 10_182, 10_382, 10_582,
-                10_782
+                10_782, 10_982
             ],
-            "below the word Great Lakes takes exactly thirteen market \
+            "below the word Great Lakes takes exactly fourteen market \
              draws — and 10582 is item 506's own: the frame the sequence \
              used to part on is a `use_market` sell on both sides now"
         );

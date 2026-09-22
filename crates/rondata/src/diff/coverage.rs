@@ -337,13 +337,16 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
             &mut paths,
         );
     }
+    // **The last Great Lakes word run100 reaches** (item 518). The word
+    // moved 10834 → 11185, past run100's last block (10899), and a window
+    // keyed on the headline would then drive no run100 frame at all and
+    // report every key only run100 prints as stale. So the window stays
+    // on the last word the capture carries until a capture reaches the
+    // new one — the same debt the `WIDENINGS` row names.
+    const RUN100_WORD: i64 = 10_834;
+    let gl = LONG_WORD_GREAT_LAKES.min(RUN100_WORD);
     if let Some(p) = &r100 {
-        frames += drive_capture(
-            p,
-            LONG_WORD_GREAT_LAKES - 2,
-            LONG_WORD_GREAT_LAKES + 2,
-            &mut paths,
-        );
+        frames += drive_capture(p, gl - 2, gl + 2, &mut paths);
     }
     assert!(frames > 0, "no frame of either window was found");
     let _ = GOLDEN_WORD_CHAPTER_TWO;
