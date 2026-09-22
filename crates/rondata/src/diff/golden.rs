@@ -1699,13 +1699,22 @@ fn chapter_two_s_visible_byte_is_the_dump_s_on_every_unit_frame() {
             ((0, 9), (646, 2)),
             ((0, 10), (631, 2)),
             ((0, 11), (637, 2)),
-            ((1, 6), (677, 1)),
-            ((1, 7), (694, 1)),
-            ((1, 8), (679, 1)),
+            ((1, 6), (669, 1)),
+            ((1, 7), (678, 1)),
+            ((1, 8), (675, 1)),
         ],
         "chapter two's `visible` arrivals moved; re-pin them and say so \
          in docs/VISION.md §7"
     );
+    // **The three hoplites moved on item 470**, 677/694/679 →
+    // 669/678/675 against the dump's 672/698/665, and they moved because
+    // all three now chase a slot of their **own**:
+    // `find_ordered_collision`'s group pass reads the asker's group and
+    // not the last one pushed (`docs/COMBAT.md` §35.1). Before that,
+    // `1/8` never struck at all and the shape row above was red; two of
+    // the three are closer to the dump's frame and `1/7` is twenty
+    // frames under it. Pinned in no direction, as the doc comment says.
+    //
     // **Five of the nine land on the dump's own frame** — the three
     // bowmen, the slinger captain and, since item 462, `0/10` — and that
     // is the row that keeps the other four honest: a change that bought
