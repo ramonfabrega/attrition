@@ -24,11 +24,19 @@ FIXED, UNIT, CAP = 628, 344, 4096
 def decode_post(raw, prefix_raw):
     require(len(raw) >= FIXED, 'truncated post-state')
     magic,version,frame,unit,prefix_bytes,path_bytes,mask,boundary=struct.unpack_from('<8I',raw)
-    require((magic,version,prefix_bytes,mask,boundary)==(0x31505352,1,216,0x8d5,0x688faa),
+    require(version in (1,2) and (magic,prefix_bytes,mask,boundary)==(0x31505352,216,0x8d5,0x688faa),
             'unsupported post-state')
     require(raw[32:248]==prefix_raw,'post-state belongs to another prefix')
     p=decode(prefix_raw)
     require(p['version']==2 and (frame,unit)==(p['frame'],p['unit']), 'post-state event differs')
+    packet_bytes=len(raw);intervention=None
+    if version==2:
+        require(len(raw)>=FIXED+32,'truncated intervention provenance')
+        words=struct.unpack_from('<8I',raw,len(raw)-32)
+        require(words==(1,0xe85ec0,300,95,1,95,300,3),'invalid limit intervention provenance')
+        require(tuple(p['modes'])==(300,1),'intervention prefix modes differ')
+        intervention=dict(field='limit',address='0xe85ec0',before=300,after=95,saving=1)
+        raw=raw[:-32]
     registers=struct.unpack_from('<9I',raw,248)
     require(registers[3]==p['after'][3]+24 and not registers[8]&~mask,'post-return register boundary differs')
     unit_data=raw[284:FIXED]
@@ -40,16 +48,27 @@ def decode_post(raw, prefix_raw):
     require(not capacity or (pointer>=0x10000 and pointer+path_bytes<2**32),'invalid post-state path address')
     return dict(frame=frame,unit=unit,registers=list(registers),unit_bytes=unit_data.hex(),
                 path_address=hex(pointer),capacity=capacity,length=length,path_slot_bytes=raw[FIXED:].hex(),
-                path_sha256=hashlib.sha256(raw[FIXED:]).hexdigest(),packet_bytes=len(raw))
+                path_sha256=hashlib.sha256(raw[FIXED:]).hexdigest(),packet_bytes=packet_bytes,intervention=intervention)
 
 
 def check_receipt(rows,c):
     expected=(0,c['unit'],c['packet_bytes'],c['capacity'],c['registers'][7],c['frame'])
     require([r[2:] for r in rows if r[:2]==(5,181)]==[expected], 'post-state receipt missing or mismatched')
-    require(not any(r[:2] in ((5,163),(5,182)) for r in rows), 'post-state collector failure')
+    require(not any(r[:2] in ((5,163),(5,168),(5,182),(5,185)) for r in rows), 'post-state collector failure')
     pre=[i for i,r in enumerate(rows) if r[:2]==(5,167)]
     post=next(i for i,r in enumerate(rows) if r[:2]==(5,181))
     require(len(pre)==1 and pre[0]<post, 'post-state not after one pre-payload receipt')
+    mutations=[(i,r) for i,r in enumerate(rows) if r[:2] in ((5,183),(5,184))]
+    if c.get('intervention') is None:
+        require(not mutations,'intervention receipts on an unchanged control')
+    else:
+        expected_mutations=[(5,183,c['unit'],0xe85ec0,300,95,1,c['frame']),
+                            (5,184,c['unit'],0xe85ec0,95,300,1,c['frame'])]
+        require([r for _,r in mutations]==expected_mutations,'intervention receipts differ')
+        apply,restore=[i for i,_ in mutations]
+        calls_at=[i for i,r in enumerate(rows) if r[:2] in ((7,0),(8,0)) and pre[0]<i<post]
+        require(calls_at and pre[0]<apply<min(calls_at)<=max(calls_at)<restore<post,
+                'intervention is not around the native call')
     depth=0; calls=0
     for r in rows[pre[0]+1:post]:
         if r[:2] in ((7,0),(8,0)):
@@ -62,6 +81,7 @@ def check_receipt(rows,c):
 
 def compare(c, replay, payload_sha256):
     require(replay.get('payload_sha256')==payload_sha256,'replay belongs to another payload')
+    require(replay.get('native_intervention')==c.get('intervention'),'native/replay intervention provenance differs')
     last=replay['last']; require(last.get('returned') is True,'replay did not return')
     o=last['unit_path_observation']
     require(int(o['unit_address'],16)==c['unit'],'replay unit differs')

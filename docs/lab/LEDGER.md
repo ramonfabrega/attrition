@@ -120,13 +120,16 @@ No new capture or main-loop adoption is requested by this handoff.
 
 | L68 | Can the validated packet support useful input experiments? | [Request versus continuation-budget interventions](2026-09-21-path-interventions.md). | 35 repeated trials / 30 distinct settings; all controls restored. Request edits leave the saved route unchanged; limit 95 suspends and 96 completes in the model. | Altered inputs not native-confirmed. Candidate: explicit native limit-95 witness; no capture booked or main score moved. |
 
+| L69 | Prepare a native falsifier for the modeled limit-95 suspension. | [Explicit native limit intervention](2026-09-22-native-limit-preparation.md). | 77 focused tests, restoration failure controls, four DLL variants and the release gate pass; offline workflow reproduces the prior prediction. | Preparation only; no live altered-input witness or main score change. Capture requires a fresh slot. |
+
 ## Current direction
 
 The September 19–21 tranche has a native-confirmed unit/path baseline and
 controlled offline interventions. Retargeting the request record does not
 retarget its saved search; changing the continuation budget does change the
 outcome. The next candidate is an explicitly recorded native limit-95 test
-against the modeled 95/96 suspension/completion witness. No slot is booked.
+against the modeled 95/96 suspension/completion witness. L69 prepares its explicit
+intervention and replay comparison. No slot is booked.
 Other mutated state and general runtime behavior remain open.
 Fable decides whether any method merits a pilot, adoption, further evidence or
 parking; review does not imply approval to merge the whole lab branch.

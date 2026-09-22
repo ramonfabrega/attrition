@@ -1,5 +1,5 @@
 /* First native restore entry and the wrapper's delegation boundary.
- * No return replacement, search-state writes, or allocator adapter. */
+ * Optional RON_RESTORE_LIMIT95 changes one budget word; no return or allocator substitution. */
 #include "register_image_stub.h"
 typedef struct {
     u32 magic, version, frame, unit;
@@ -68,6 +68,9 @@ static void __cdecl restore_delegate(u32 *regs) {
         int context_ok=capture_restore_context(regs);
 #ifdef RON_RESTORE_POSTSTATE
         restore_post_pending=context_ok;
+#ifdef RON_RESTORE_LIMIT95
+        restore_post_pending=context_ok && restore_limit_apply();
+#endif
 #else
         (void)context_ok;
 #endif

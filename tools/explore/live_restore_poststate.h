@@ -1,4 +1,4 @@
-/* Opt-in post-return observation. Own bounded storage; no game-state writes.
+/* Opt-in post-return observation. Own bounded storage. Limit intervention requires its own opt-in.
  * Included after RestoreProbe, restore_read and the register-image adapter.
  * INFO 181 success; INFO 182 failure. Neither implies pre-payload success. */
 #define RESTORE_PATH_CAP 4096u
@@ -12,12 +12,23 @@ static struct {
 _Static_assert(sizeof restore_poststate==RESTORE_POST_FIXED+RESTORE_PATH_CAP*16u,
                "post-state packet layout differs");
 static int restore_post_pending;
+#ifdef RON_RESTORE_LIMIT95
+#include "live_restore_limit.h"
+#endif
 static void __cdecl restore_returned(u32 *regs) {
     if (!restore_post_pending) return;
     restore_post_pending=0;
+#ifdef RON_RESTORE_LIMIT95
+    /* Runs before every observer failure path; never depend on file success. */
+    int limit_ok=restore_limit_finish();
+#endif
     u32 fail=1,written=0,size=0,capacity,length,pointer;
     u8 check[0x158];
     restore_poststate.magic=0x31505352;restore_poststate.version=1;
+#ifdef RON_RESTORE_LIMIT95
+    restore_poststate.version=2;
+    if(!limit_ok)goto failed;
+#endif
     restore_poststate.frame=restore_probe.frame;restore_poststate.unit=restore_probe.unit;
     restore_poststate.prefix_bytes=sizeof restore_probe;restore_poststate.flags_mask=0x8d5;
     restore_poststate.boundary=0x688faa;
@@ -46,6 +57,14 @@ static void __cdecl restore_returned(u32 *regs) {
     size=RESTORE_POST_FIXED+restore_poststate.path_bytes;
     if(file==INVALID_HANDLE)goto failed;
     i32 ok=WriteFile(file,&restore_poststate,size,&written,0);
+#ifdef RON_RESTORE_LIMIT95
+    u32 trailer_written=0;
+    if(ok && written==size) {
+        ok=WriteFile(file,&restore_limit,sizeof restore_limit,&trailer_written,0);
+        written+=trailer_written;
+    } else ok=0;
+    size+=sizeof restore_limit;
+#endif
     CloseHandle(file);
     if(!ok || written!=size)goto failed;
     emit(K_INFO,181,0,restore_probe.unit,size,capacity,restore_poststate.registers[7]);

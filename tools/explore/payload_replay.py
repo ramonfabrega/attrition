@@ -177,6 +177,10 @@ def native_return(directory):
     for row in records(directory/'rontrace.log'):
         if row[:2] == (5, 167):
             armed = True
+        elif armed and row[:2] == (5, 183):
+            # This replay uses the unchanged pre-payload. Its A* return is not
+            # a same-input native comparison after an explicit intervention.
+            return None
         elif armed and row[:2] == (7, 0):
             depth += 1
         elif armed and row[:2] == (8, 0):
@@ -306,7 +310,7 @@ def explore(install, directory, *, services='none', budget=1000000, rounds=128,
                     break
                 regions.extend(added)
         last.update(astar_returns=list(astar), native_astar_return=expected,
-                    astar_return_matches_native=(astar == [expected]) if astar else None,
+                    astar_return_matches_native=(astar == [expected]) if astar and expected is not None else None,
                     allocations=getattr(runner, 'allocations', []), fills=getattr(runner, 'fills', []),
                     copies=getattr(runner, 'copies', []), frees=getattr(runner, 'frees', []),
                     writes_count=len(runner.writes),
