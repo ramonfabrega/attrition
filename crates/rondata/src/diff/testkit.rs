@@ -1550,7 +1550,10 @@ pub(crate) const EAST_INDIES_FIRST_SCHOLAR: i64 = 8_466;
 /// draws and the original **eight**, parting at index **2**: ours
 /// `Leader::use_market+0x1ed` against the original's
 /// `Leader::make_stuff+0x221`. No dump on disk reaches it — run100 ends
-/// on block 10899 — so its widening is owed ([`WIDENINGS`]).
+/// on block 10899 — so its widening was owed ([`WIDENINGS`]). Item 520
+/// paid it with run123, and the word **did not move**: the delta above is
+/// still the word's, and the block — 11185, where slot 1 of the make list
+/// parts — is `run123_s_word_frame_is_widened_whole`'s.
 ///
 /// **The block's own rows are not restated here**, and that is
 /// deliberate: block 10818's eight rows of `1/28` are *asserted* in
@@ -2087,6 +2090,13 @@ pub(crate) const WIDENING_GREAT_LAKES: (i64, i64) = (9_340, 10_847);
 /// standing since 606 and 680.
 pub(crate) const WIDENING_CHAPTER_TWO: (i64, i64) = (606, 901);
 
+/// `run123_s_word_frame_is_widened_whole`'s window: run123's own first
+/// and last blocks (item 520). The capture was sized to the word, 11185,
+/// with 425 blocks under it — back past the 10782 and 10982 rotations —
+/// and 274 over it, and the floor is the capture's first block for the
+/// reason [`WIDENING_CHAPTER_TWO`]'s is: it is the only floor that cannot
+/// hide a row.
+pub(crate) const WIDENING_GREAT_LAKES_MARKET: (i64, i64) = (10_760, 11_459);
 /// One pinned word's row: `(constant, word, widening test, item, window)`.
 pub(crate) type Widening = (
     &'static str,
@@ -2181,12 +2191,20 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // `run100_s_word_block_is_every_record_the_dump_carries` still walks
     // [`WIDENING_GREAT_LAKES`], and 10242, 10243 and 10835 are pinned
     // empty there — the value diff beside this move.
+    //
+    // **Item 520 paid it**: run123 is the same game at `LEADERS=9` over
+    // [`WIDENING_GREAT_LAKES_MARKET`], and the test compares every unit
+    // record and the whole leader record on every block of it. The
+    // readings the stanza named died three of four on the word's own
+    // block — the purse, the commerce level, the stock — and the one left
+    // is slot 1 of the make list: an emptied Merchant slot in the
+    // original, a Cataphract here (`docs/ECONOMY.md` §14).
     (
         "LONG_WORD_GREAT_LAKES",
         LONG_WORD_GREAT_LAKES,
-        None,
+        Some("run123_s_word_frame_is_widened_whole"),
         520,
-        None,
+        Some(WIDENING_GREAT_LAKES_MARKET),
     ),
     (
         "GOLDEN_WORD_CHAPTER_ONE",

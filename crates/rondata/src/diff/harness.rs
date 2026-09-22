@@ -1129,6 +1129,424 @@ pub(crate) fn debug_leader(built: &Built, frame: i64) {
     }
 }
 
+/// **Every record the dump carries on one block, both directions** — the
+/// row walk `run100_s_word_block_is_every_record_the_dump_carries` has
+/// grown since item 448, lifted out whole on item 520 so a second
+/// capture's widening is the same instrument and not a copy of it that
+/// drifts. It notes the block each `(who, o, field)` **first** parts on,
+/// with the value diff beside it, into `firsts`, and answers `compare`'s
+/// own result and the number of direct rows it compared.
+#[cfg(test)]
+pub(crate) fn widen_block(
+    built: &Built,
+    frame: &Frame,
+    players: usize,
+    n: i64,
+    firsts: &mut std::collections::BTreeMap<(i64, i64, String), (i64, String)>,
+) -> (FrameResult, usize) {
+    let r = compare(built, frame, players);
+    let mut compared = 0usize;
+    {
+        let mut note = |who: i64, o: i64, what: String, row: String| {
+            firsts.entry((who, o, what)).or_insert((n, row));
+        };
+        for d in &r.diverged {
+            note(
+                d.who,
+                d.o,
+                "pos".into(),
+                format!(
+                    "ours ({},{}) theirs ({},{})",
+                    d.ours.x, d.ours.y, d.theirs.x, d.theirs.y
+                ),
+            );
+        }
+        for d in &r.order_diverged {
+            note(d.who, d.o, d.what.label(), format!("{:?}", d.what));
+        }
+        for d in &r.angle_diverged {
+            note(
+                d.who,
+                d.o,
+                format!("angle:{:?}", d.which),
+                format!("ours {} theirs {}", d.ours, d.theirs),
+            );
+        }
+        for d in &r.collide_diverged {
+            note(
+                d.who,
+                d.o,
+                d.field.into(),
+                format!("ours {} theirs {}", d.ours, d.theirs),
+            );
+        }
+        for d in &r.los_diverged {
+            note(
+                d.who,
+                d.o,
+                "mylos".into(),
+                format!("ours {} theirs {}", d.ours, d.theirs),
+            );
+        }
+        for d in &r.packed_diverged {
+            note(d.who, d.o, "packed".into(), format!("ours {}", d.ours));
+        }
+        for d in &r.search_diverged {
+            note(
+                d.who,
+                d.o,
+                "start_dist".into(),
+                format!("ours {} theirs {}", d.ours, d.theirs),
+            );
+        }
+        for d in &r.gather_diverged {
+            note(
+                d.who,
+                d.o,
+                format!("gather:{}[{}]", d.field, d.at),
+                format!("ours {} theirs {}", d.ours, d.theirs),
+            );
+        }
+        for d in &r.build_diverged {
+            note(
+                d.who,
+                d.o,
+                format!("build:{}", d.field),
+                format!("ours {} theirs {}", d.ours, d.theirs),
+            );
+        }
+        for d in &r.queue_diverged {
+            note(
+                d.who,
+                d.o,
+                format!("queue:{}", d.field),
+                format!("ours {} theirs {}", d.ours, d.theirs),
+            );
+        }
+        for d in &r.city_diverged {
+            note(
+                d.who,
+                d.o,
+                format!("city:{}", d.field),
+                format!("ours {} theirs {}", d.ours, d.theirs),
+            );
+        }
+        for &(who, o) in &r.unlinked_units {
+            note(who, o, "unlinked".into(), "the dump holds it alone".into());
+        }
+        for &(who, o) in &r.extra_units {
+            note(who, o, "extra".into(), "this crate holds it alone".into());
+        }
+        // **The hit-point record from `compare` itself** (item
+        // 484). The direct rows below have carried `hits_left`
+        // and `myhits` since item 464, but they are this test's
+        // own reading; this is the comparator's, and it is the
+        // one every other capture now runs. Both agree on all
+        // 909 blocks, so the overlap costs nothing and a future
+        // parting is reported by whichever sees it first.
+        for d in &r.hits_diverged {
+            note(
+                d.who,
+                d.o,
+                format!("hits:{}", d.field),
+                format!("ours {} theirs {}", d.ours, d.theirs),
+            );
+        }
+        // **The death-object list** (item 491, `docs/COMBAT.md`
+        // §42.1) — a reader added to the harness is added to its
+        // driver in the same landing, which is what keeps
+        // `hold_frames` and `DEATH_OBJS` off `ledger`'s
+        // single-capture half. Great Lakes' window carries no
+        // death, so what this asserts here is that this crate
+        // invents none either: an `extra` row would fire.
+        for d in &r.death_diverged {
+            note(
+                d.who,
+                d.o,
+                format!("death:{}", d.field),
+                format!("ours {} theirs {}", d.ours, d.theirs),
+            );
+        }
+    }
+    // **The other direction on the buildings**, which `compare`
+    // does not do: it counts the dump's buildings it cannot link
+    // (`build_unlinked`) and never asks whether this crate holds
+    // one the block does not name.
+    for b in built.sim.buildings.iter().filter(|b| b.alive) {
+        let (w, o) = (i64::from(b.owner), i64::from(b.index));
+        if !(0..players as i64).contains(&w) {
+            continue;
+        }
+        if !frame.builds.iter().any(|x| x.who == w && x.o == o) {
+            firsts
+                .entry((w, o, "build:extra".into()))
+                .or_insert((n, "this crate holds it alone".into()));
+        }
+    }
+    // **The death list, read directly** (item 491). `compare`
+    // walks it above; this is the driver's own reading, for the
+    // reason the hit-point pair has both — and on Great Lakes it
+    // is an *emptiness* claim in two directions, because run100's
+    // window holds no death at all. A record on either side here
+    // is a finding whichever instrument sees it first.
+    for d in &frame.deaths {
+        let (Some(who), Some(o)) = (d.who, d.o) else {
+            continue;
+        };
+        let ours = built
+            .sim
+            .deaths
+            .iter()
+            .find(|m| i64::from(m.who) == who && i64::from(m.o) == o);
+        let row = match ours {
+            None => "the dump holds it alone".to_string(),
+            Some(m) => format!(
+                "ours first_frame {} cur_anim {} theirs {:?} {:?}",
+                m.first_frame, m.cur_anim, d.first_frame, d.cur_anim
+            ),
+        };
+        if ours.is_none_or(|m| {
+            d.first_frame.is_some_and(|f| f != m.first_frame)
+                || d.cur_anim.is_some_and(|a| a != i64::from(m.cur_anim))
+        }) {
+            firsts
+                .entry((who, o, "death:direct".into()))
+                .or_insert((n, row));
+        }
+    }
+    // **And the record's own rows, ungated.** Everything the
+    // `UNITDATA` and `GUY` blocks print that `compare` either
+    // does not read at all or reads only where the positions
+    // already agree.
+    for them in &frame.units {
+        if !(0..players as i64).contains(&them.who) {
+            continue;
+        }
+        let (Ok(who), Ok(o)) = (u8::try_from(them.who), i16::try_from(them.o)) else {
+            continue;
+        };
+        let Some(u) = built.sim.unit_by_o(who, o) else {
+            continue;
+        };
+        let un = &built.sim.units[u];
+        let mut rows: Vec<(String, i64, Option<i64>)> = vec![
+            (
+                "heading".into(),
+                i64::from(un.movement.heading.0),
+                them.angle,
+            ),
+            (
+                "dest_angle".into(),
+                i64::from(un.movement.des_angle.0),
+                them.dest_angle,
+            ),
+            ("orders_x".into(), i64::from(un.orders_pos.x), them.orders_x),
+            ("orders_y".into(), i64::from(un.orders_pos.y), them.orders_y),
+            ("tolerance".into(), i64::from(un.tolerance), them.tolerance),
+            (
+                "path_recursion".into(),
+                i64::from(un.path_recursion),
+                them.path_recursion,
+            ),
+            ("idle".into(), i64::from(un.idle), them.idle),
+            ("stance".into(), i64::from(un.stance), them.stance),
+            // **`myhits` is the max, not what is left.** The
+            // record carries the pair `myhits`/`damage` —
+            // `ObjectData::myhits` is the whole hit points the
+            // type has after tech and `damage` what has been
+            // taken off them (`crate::diff::army`'s loader has
+            // read it that way since it existed) — and this row
+            // compared this crate's *current* health against the
+            // **maximum**, so it agreed only while the unit was
+            // untouched and reported every wound as a
+            // divergence. Item 464 found it on the word's own
+            // block: `0/5 myhits: ours 38 theirs 40`, where the
+            // dump's own `damage` is 2 and the two sides agree.
+            // Both halves are compared now.
+            (
+                "hits_left".into(),
+                i64::from(un.health),
+                them.myhits.map(|h| h - them.damage.unwrap_or(0)),
+            ),
+            ("myhits".into(), i64::from(un.max_health), them.myhits),
+            // **The sixteenths under them** (item 484): the
+            // third field of the `OBJECT` block's hit-point
+            // record, parsed for a building since item 394 and
+            // for a unit only now. It is what decides *which
+            // frame* the next whole point of `damage` lands on
+            // (`docs/COMBAT.md` §7.2 step 4).
+            (
+                "damage_frac".into(),
+                i64::from(un.damage_frac),
+                them.damage_frac,
+            ),
+            // **`hold_frames`** (item 491, §42.3): the slot hold,
+            // on the same block, and zero on every living unit of
+            // both windows because every writer of it is on a
+            // dead object. `compare` carries it too; this is the
+            // driver's own reading, for the reason the hit-point
+            // pair above has both.
+            (
+                "hold_frames".into(),
+                i64::from(un.hold_frames),
+                them.hold_frames,
+            ),
+            // **The overkill window** (item 485): the frame of
+            // the first hit inside it and the captain and owner
+            // who struck (§7.1 step 2, §41.1). Written at
+            // `UNITDATA`'s own indent on every unit of every
+            // block and compared nowhere until chapter two's
+            // `1/8` turned out to be wounded a frame later than
+            // the dump wounds it. `damage_frame` is the sim
+            // frame in the same numbering `tick` passes, so it
+            // compares directly; the pair beside it is read only
+            // where **both** sides hold a live window, because a
+            // never-hit unit is `-1`/`0` in the original and
+            // `0`/`0` here and that is a difference of encoding.
+            (
+                "damage_frame".into(),
+                un.combat.damage_frame,
+                them.damage_frame,
+            ),
+            (
+                "damage_o".into(),
+                i64::from(un.combat.damage_o),
+                them.damage_o.filter(|_| {
+                    un.combat.damage_frame != 0 && them.damage_frame.is_some_and(|f| f != 0)
+                }),
+            ),
+            (
+                "damage_who".into(),
+                i64::from(un.combat.damage_who),
+                them.damage_who.filter(|_| {
+                    un.combat.damage_frame != 0 && them.damage_frame.is_some_and(|f| f != 0)
+                }),
+            ),
+            ("myspeed".into(), i64::from(un.movement.speed), them.myspeed),
+            // **The pool slot** (item 518): `UnitData +0x80`, the
+            // group every member points at, `who·64 + s`. It is
+            // what `Groups::process` selects on once a frame, so a
+            // group numbered wrong has its cap reset on the wrong
+            // frames (`docs/GROUPS.md` §19). Printed on every
+            // `UNITDATA` and compared nowhere until this row.
+            ("group".into(), built.sim.pool_group_of(u), them.group),
+            ("form".into(), i64::from(un.form), them.form),
+            ("form_mod".into(), i64::from(un.form_width), them.form_mod),
+            (
+                "orders.len".into(),
+                un.orders.len() as i64,
+                Some(them.orders.len() as i64),
+            ),
+        ];
+        // The collision block and the two masks, **ungated by the
+        // position** — the whole point of this test.
+        if un.on_map {
+            for r in [
+                ("collide", i64::from(un.collide), them.collide),
+                ("collide_o", i64::from(un.collide_o), them.collide_o),
+                ("collide_who", i64::from(un.collide_who), them.collide_who),
+                ("collide_guy", i64::from(un.collide_guy), them.collide_guy),
+                ("safe", i64::from(un.safe), them.safe),
+                (
+                    "recharging",
+                    i64::from(un.combat.recharging),
+                    them.recharging,
+                ),
+                ("start_dist", i64::from(un.start_dist), them.start_dist),
+                ("mylos", i64::from(built.sim.unit_los(u)), them.mylos),
+                (
+                    "half_step",
+                    i64::from(un.half_step),
+                    them.unit_masks.map(|m| i64::from(m & 0x10_0000 != 0)),
+                ),
+                (
+                    "packed",
+                    i64::from(un.combat.packed),
+                    them.unit_masks.map(|m| i64::from(m & 0x8_0000 != 0)),
+                ),
+            ] {
+                rows.push((r.0.into(), r.1, r.2));
+            }
+        }
+        // The guy record whole, run67's `GUYS=4` block — the
+        // animation clock, the destination pair and the two
+        // speeds, which are what the word turned out to be.
+        rows.push((
+            "guys.len".into(),
+            un.guys.len() as i64,
+            Some(them.guys.len() as i64),
+        ));
+        for (k, g) in them.guys.iter().enumerate() {
+            let Some(og) = un.guys.get(k).copied() else {
+                continue;
+            };
+            let (body, facing, des, des_angle) = match og.follow {
+                Some(b) => (b.body, b.facing, b.des, b.des_angle),
+                None if k == 0 => (
+                    un.movement.body,
+                    un.movement.facing,
+                    un.pos,
+                    un.movement.heading,
+                ),
+                None => (
+                    un.movement.body,
+                    un.movement.facing,
+                    un.pos,
+                    un.movement.facing,
+                ),
+            };
+            let track = og.follow.map_or((0, 0), |b| b.track);
+            for (name, ours, theirs) in [
+                ("g.x", i64::from(body.pos.x), g.pos.map(|p| p.x)),
+                ("g.y", i64::from(body.pos.y), g.pos.map(|p| p.y)),
+                ("g.angle", i64::from(facing.0), g.angle),
+                ("g.des_x", i64::from(des.x), g.des.map(|p| p.x)),
+                ("g.des_y", i64::from(des.y), g.des.map(|p| p.y)),
+                ("g.des_angle", i64::from(des_angle.0), g.des_angle),
+                ("g.cur_anim", i64::from(og.anim), g.cur_anim),
+                ("g.cur_time", i64::from(og.cur_time), g.cur_time),
+                ("g.end_time", i64::from(og.end_time), g.end_time),
+                ("g.last_time", i64::from(og.last_time), g.last_time),
+                ("g.gpiece", i64::from(og.gpiece), g.gpiece),
+                ("g.stopped", i64::from(og.stopped), g.stopped),
+                // **The attack a figure owes** (item 510): held
+                // while the body is still walking or still
+                // turning, queued while an attack is already
+                // playing, and only the queued one is paid inside
+                // `Guy::inc_time`'s wrap loop with a roll. They
+                // are new to the parser in that landing, and the
+                // rule that earned them applies to this record as
+                // much as to chapter two's — a record widened on
+                // one window and not the next is the shape
+                // `crate::ledger` exists to count.
+                // `docs/COMBAT.md` §45.
+                ("g.hold_attack", i64::from(og.pending_attack), g.hold_attack),
+                (
+                    "g.queued_attack",
+                    i64::from(og.queued_attack),
+                    g.queued_attack,
+                ),
+                ("g.track_dx", i64::from(track.0), g.track.map(|t| t.0)),
+                ("g.track_dy", i64::from(track.1), g.track.map(|t| t.1)),
+                ("g.last_speed", i64::from(body.last_speed), g.last_speed),
+                ("g.avg_speed", i64::from(body.avg_speed), g.avg_speed),
+            ] {
+                rows.push((format!("{name}[{k}]"), ours, theirs));
+            }
+        }
+        for (name, ours, theirs) in rows {
+            let Some(theirs) = theirs else { continue };
+            compared += 1;
+            if ours != theirs {
+                firsts
+                    .entry((them.who, them.o, name))
+                    .or_insert((n, format!("ours {ours} theirs {theirs}")));
+            }
+        }
+    }
+    (r, compared)
+}
+
 /// `RON_DEBUG_BUILDS=<lo>-<hi>` — every building's construction clock and
 /// queue over a window, on any capture [`run_traced`] or a hand-rolled loop
 /// drives. The dump's `BUILDDATA` prints `orig_type`, `job_counter`,
@@ -7507,6 +7925,226 @@ mod tests {
         );
     }
 
+    /// **run123 — Great Lakes' word 11185, widened whole, both directions**
+    /// (item 520). run123 is run100's game at run100's detail with
+    /// `LEADERS=9`, over `[10760, 11459]`: 140 blocks shared with run100
+    /// and 560 past it, the only dump that reaches the word. Every record
+    /// [`widen_block`] reads on every unit, and the **leader record**
+    /// whole — [`crate::diff::leader::rows`] against
+    /// [`crate::diff::leader::theirs`], plus the four `epoch_get(scan)`
+    /// lines nothing parsed, which are `use_market`'s commerce level — for
+    /// both players on every block. Each key's first parting block is
+    /// kept, with the value diff beside it.
+    ///
+    /// The word's frame enters on block **11185** and leaves on **11186**
+    /// (the trace's frame `f` writes block `f + 1`), so both are the
+    /// word's blocks; the window opens 425 blocks under it because a
+    /// market frame spends what the purse has been doing since the last
+    /// rotation, and the one before.
+    #[test]
+    fn run123_s_word_frame_is_widened_whole() {
+        const FIRST: i64 = WIDENING_GREAT_LAKES_MARKET.0;
+        const TAIL: i64 = WIDENING_GREAT_LAKES_MARKET.1;
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(r123)) = (
+            dump("gamelog-run53-greatlakes-24k-trace.txt"),
+            dump("gamelog-run123-greatlakes-marketword.txt"),
+        ) else {
+            eprintln!("skipping: no run53/run123 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let mut ix = crate::capture::indexed::IndexedCapture::open(&r123).unwrap();
+        let loaded = crate::load::load(&inst).unwrap();
+        let texts = sibling_texts();
+        let text = crate::capture::read(&path);
+        let log = Log::parse(&text);
+        let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
+        let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+        let refs: Vec<&Initial> = inits.iter().collect();
+        let mut init = log.initial().unwrap();
+        borrow_from_siblings(&mut init, &refs);
+        if let Some(t) = trace("rontrace-run53.log") {
+            borrow_pasture(&mut init, &t);
+        }
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        let players = built.sim.players.len();
+        use std::collections::{BTreeMap, BTreeSet};
+        let mut firsts: BTreeMap<(i64, i64, String), (i64, String)> = BTreeMap::new();
+        let mut missing: BTreeSet<String> = BTreeSet::new();
+        let (mut blocks, mut compared, mut leader_rows) = (0usize, 0usize, 0usize);
+        // `(block, who) -> (key -> (ours, theirs))`, kept for the walk and
+        // the word's own printout.
+        let mut kept: BTreeMap<(i64, usize), BTreeMap<String, (i64, i64)>> = BTreeMap::new();
+        for f in 0..=TAIL {
+            built.tick();
+            let n = f + 1;
+            if n < FIRST {
+                continue;
+            }
+            let Some(at) = ix.frames().iter().position(|x| x.number == n) else {
+                continue;
+            };
+            let frame = ix.frame_state(at).unwrap();
+            blocks += 1;
+            debug_watch(&built, n);
+            let (_, rows) = widen_block(&built, &frame, players, n, &mut firsts);
+            compared += rows;
+            let raw = ix.read_frame(at).unwrap();
+            let flog = Log::parse(&raw);
+            for who in 0..2usize {
+                let Some(block) = flog.leader_block(n, who as i64) else {
+                    continue;
+                };
+                let t = crate::diff::leader::theirs(&block);
+                let mine = crate::diff::leader::rows(&loaded, &built, who);
+                let row = kept.entry((n, who)).or_default();
+                for (k, v) in &mine {
+                    let Some(&y) = t.get(k) else {
+                        missing.insert(k.clone());
+                        continue;
+                    };
+                    leader_rows += 1;
+                    row.insert(k.clone(), (*v, y));
+                    if *v != y {
+                        firsts
+                            .entry((who as i64, -1, format!("leader:{k}")))
+                            .or_insert((n, format!("ours {v} theirs {y}")));
+                    }
+                }
+            }
+        }
+        eprintln!(
+            "run123 widening: {blocks} blocks [{FIRST}, {TAIL}], {compared} record rows, \
+             {leader_rows} leader rows, {} keys parted",
+            firsts.len()
+        );
+        // **Both sides printed once on the word's blocks** before any
+        // quiet row is trusted (`docs/COMBAT.md` §44.2.1): the purse, the
+        // make list's head, the commerce level.
+        for n in [LONG_WORD_GREAT_LAKES, LONG_WORD_GREAT_LAKES + 1] {
+            let Some(r) = kept.get(&(n, 1)) else { continue };
+            let pick = |pre: &str| -> String {
+                r.iter()
+                    .filter(|(k, _)| k.starts_with(pre))
+                    .map(|(k, (o, t))| format!("{k} {o}/{t}"))
+                    .collect::<Vec<_>>()
+                    .join(" ")
+            };
+            eprintln!("  block {n} who 1 ours/theirs: {}", pick("bucket"));
+            eprintln!("    {}", pick("epoch"));
+            eprintln!("    {}", pick("MAKE[0]"));
+            eprintln!("    {}", pick("MAKE[1]"));
+            eprintln!("    {}", pick("income"));
+        }
+        let mut by_block: BTreeMap<i64, Vec<String>> = BTreeMap::new();
+        for ((w, o, what), (f, row)) in &firsts {
+            by_block
+                .entry(*f)
+                .or_default()
+                .push(format!("{w}/{o} {what}: {row}"));
+        }
+        for (f, rows) in &by_block {
+            let near = (LONG_WORD_GREAT_LAKES - 3..=LONG_WORD_GREAT_LAKES + 3).contains(f);
+            let window =
+                site_window_named("RON_DEBUG_ROWS").is_some_and(|(lo, hi)| (lo..=hi).contains(f));
+            if near || window || *f == FIRST {
+                for r in rows {
+                    eprintln!("  f{f} {r}");
+                }
+            } else {
+                eprintln!("  f{f}: {} keys", rows.len());
+            }
+        }
+        // `RON_LEADER_WALK=<key>,…` — the key's `ours/theirs` at every
+        // block it changes on either side, player 1.
+        if let Ok(w) = std::env::var("RON_LEADER_WALK") {
+            for k in w.split(',') {
+                let mut prev = None;
+                let mut ticks = Vec::new();
+                for ((n, who), r) in &kept {
+                    if *who != 1 {
+                        continue;
+                    }
+                    let Some(&p) = r.get(k) else { continue };
+                    if prev != Some(p) {
+                        ticks.push(format!("{n}:{}/{}", p.0, p.1));
+                        prev = Some(p);
+                    }
+                }
+                eprintln!("  walk {k}: {}", ticks.join(" "));
+            }
+        }
+        assert!(missing.is_empty(), "the record does not carry {missing:?}");
+        assert_eq!(
+            blocks,
+            (TAIL - FIRST + 1) as usize,
+            "run123's window is whole"
+        );
+        let pair = |n: i64, k: &str| -> (i64, i64) {
+            *kept[&(n, 1)]
+                .get(k)
+                .unwrap_or_else(|| panic!("{k} on block {n}"))
+        };
+        // **The word's block, the four readings the stanza named**
+        // (`tools/gamelog/captures.txt`, run123), each with the value diff
+        // beside it. `use_market` needs the costs of the first
+        // `max(1, epoch[Commerce])` slots with `t > 0`: the commerce level
+        // agrees (R3 dead), the purse is *lower* in the original (R1 dead:
+        // its wealth is short of no need at all), and the stock is under
+        // the head's 60 timber and 60 metal on both sides (R4 dead). What
+        // parts is **slot 1**: a Cataphract here, costing 65 wealth, and
+        // an emptied slot (`t −1`) in the original — so this crate's
+        // wealth is short and spends the third sell draw (R2).
+        assert_eq!(
+            (
+                pair(LONG_WORD_GREAT_LAKES, "epoch[2]"),
+                pair(LONG_WORD_GREAT_LAKES, "bucket[2:wealth]"),
+                pair(LONG_WORD_GREAT_LAKES, "bucket[1:timber]"),
+                pair(LONG_WORD_GREAT_LAKES, "bucket[4:metal]"),
+                pair(LONG_WORD_GREAT_LAKES, "MAKE[0].t"),
+                pair(LONG_WORD_GREAT_LAKES, "MAKE[1].t"),
+            ),
+            ((2, 2), (11, 6), (1, 6), (44, 47), (430, 430), (227, -1)),
+            "the word's inputs moved — 11185's `use_market` need is the \
+             head and slot 1, and slot 1 is what parts"
+        );
+        // **And what the emptied slot was**: the original's rotation
+        // enters `Make` on 11182 holding a **Merchant** (`t 61`, cat 4,
+        // val 909,090) in slot 1 where this crate holds the Cataphract.
+        // The Merchant is `docs/AI.md` §38.5's standing offer, the one
+        // `civilian_value`'s merchant arm never makes here, because
+        // `known_rares` has no writer in this crate.
+        assert_eq!(
+            (pair(11_182, "MAKE[1].t"), pair(11_182, "MAKE[1].cat")),
+            ((227, 61), (6, 4)),
+            "slot 1 entering the rotation's `Make` is the Merchant in the \
+             original and the Cataphract here"
+        );
+        // Every key that first parts on the word's two blocks, the dump's
+        // numbers beside this crate's. The rows are the claim.
+        let on_word: Vec<String> = firsts
+            .iter()
+            .filter(|(_, (f, _))| *f == LONG_WORD_GREAT_LAKES || *f == LONG_WORD_GREAT_LAKES + 1)
+            .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
+            .collect();
+        assert_eq!(
+            on_word,
+            [
+                "11185 1/-1 leader:MAKE[2].escrow",
+                "11186 1/1 dest_angle",
+                "11186 1/1 order:move.angle",
+                "11186 1/1 order:move.off_x",
+                "11186 1/1 order:move.off_y",
+                "11186 1/1 order:move.x",
+                "11186 1/1 order:move.y",
+                "11186 1/1 orders_x",
+                "11186 1/1 orders_y",
+                "11186 1/22 order:gather.wait",
+            ],
+            "the word's blocks part on a different set"
+        );
+    }
+
     #[test]
     fn run100_s_word_block_is_every_record_the_dump_carries() {
         /// run100's first complete block — [`WIDENING_GREAT_LAKES`], the
@@ -7622,405 +8260,8 @@ mod tests {
                     regen_ours.entry(i64::from(b.index)).or_default().push(n);
                 }
             }
-            let r = compare(&built, &frame, players);
-            {
-                let mut note = |who: i64, o: i64, what: String, row: String| {
-                    firsts.entry((who, o, what)).or_insert((n, row));
-                };
-                for d in &r.diverged {
-                    note(
-                        d.who,
-                        d.o,
-                        "pos".into(),
-                        format!(
-                            "ours ({},{}) theirs ({},{})",
-                            d.ours.x, d.ours.y, d.theirs.x, d.theirs.y
-                        ),
-                    );
-                }
-                for d in &r.order_diverged {
-                    note(d.who, d.o, d.what.label(), format!("{:?}", d.what));
-                }
-                for d in &r.angle_diverged {
-                    note(
-                        d.who,
-                        d.o,
-                        format!("angle:{:?}", d.which),
-                        format!("ours {} theirs {}", d.ours, d.theirs),
-                    );
-                }
-                for d in &r.collide_diverged {
-                    note(
-                        d.who,
-                        d.o,
-                        d.field.into(),
-                        format!("ours {} theirs {}", d.ours, d.theirs),
-                    );
-                }
-                for d in &r.los_diverged {
-                    note(
-                        d.who,
-                        d.o,
-                        "mylos".into(),
-                        format!("ours {} theirs {}", d.ours, d.theirs),
-                    );
-                }
-                for d in &r.packed_diverged {
-                    note(d.who, d.o, "packed".into(), format!("ours {}", d.ours));
-                }
-                for d in &r.search_diverged {
-                    note(
-                        d.who,
-                        d.o,
-                        "start_dist".into(),
-                        format!("ours {} theirs {}", d.ours, d.theirs),
-                    );
-                }
-                for d in &r.gather_diverged {
-                    note(
-                        d.who,
-                        d.o,
-                        format!("gather:{}[{}]", d.field, d.at),
-                        format!("ours {} theirs {}", d.ours, d.theirs),
-                    );
-                }
-                for d in &r.build_diverged {
-                    note(
-                        d.who,
-                        d.o,
-                        format!("build:{}", d.field),
-                        format!("ours {} theirs {}", d.ours, d.theirs),
-                    );
-                }
-                for d in &r.queue_diverged {
-                    note(
-                        d.who,
-                        d.o,
-                        format!("queue:{}", d.field),
-                        format!("ours {} theirs {}", d.ours, d.theirs),
-                    );
-                }
-                for d in &r.city_diverged {
-                    note(
-                        d.who,
-                        d.o,
-                        format!("city:{}", d.field),
-                        format!("ours {} theirs {}", d.ours, d.theirs),
-                    );
-                }
-                for &(who, o) in &r.unlinked_units {
-                    note(who, o, "unlinked".into(), "the dump holds it alone".into());
-                }
-                for &(who, o) in &r.extra_units {
-                    note(who, o, "extra".into(), "this crate holds it alone".into());
-                }
-                // **The hit-point record from `compare` itself** (item
-                // 484). The direct rows below have carried `hits_left`
-                // and `myhits` since item 464, but they are this test's
-                // own reading; this is the comparator's, and it is the
-                // one every other capture now runs. Both agree on all
-                // 909 blocks, so the overlap costs nothing and a future
-                // parting is reported by whichever sees it first.
-                for d in &r.hits_diverged {
-                    note(
-                        d.who,
-                        d.o,
-                        format!("hits:{}", d.field),
-                        format!("ours {} theirs {}", d.ours, d.theirs),
-                    );
-                }
-                // **The death-object list** (item 491, `docs/COMBAT.md`
-                // §42.1) — a reader added to the harness is added to its
-                // driver in the same landing, which is what keeps
-                // `hold_frames` and `DEATH_OBJS` off `ledger`'s
-                // single-capture half. Great Lakes' window carries no
-                // death, so what this asserts here is that this crate
-                // invents none either: an `extra` row would fire.
-                for d in &r.death_diverged {
-                    note(
-                        d.who,
-                        d.o,
-                        format!("death:{}", d.field),
-                        format!("ours {} theirs {}", d.ours, d.theirs),
-                    );
-                }
-            }
-            // **The other direction on the buildings**, which `compare`
-            // does not do: it counts the dump's buildings it cannot link
-            // (`build_unlinked`) and never asks whether this crate holds
-            // one the block does not name.
-            for b in built.sim.buildings.iter().filter(|b| b.alive) {
-                let (w, o) = (i64::from(b.owner), i64::from(b.index));
-                if !(0..players as i64).contains(&w) {
-                    continue;
-                }
-                if !frame.builds.iter().any(|x| x.who == w && x.o == o) {
-                    firsts
-                        .entry((w, o, "build:extra".into()))
-                        .or_insert((n, "this crate holds it alone".into()));
-                }
-            }
-            // **The death list, read directly** (item 491). `compare`
-            // walks it above; this is the driver's own reading, for the
-            // reason the hit-point pair has both — and on Great Lakes it
-            // is an *emptiness* claim in two directions, because run100's
-            // window holds no death at all. A record on either side here
-            // is a finding whichever instrument sees it first.
-            for d in &frame.deaths {
-                let (Some(who), Some(o)) = (d.who, d.o) else {
-                    continue;
-                };
-                let ours = built
-                    .sim
-                    .deaths
-                    .iter()
-                    .find(|m| i64::from(m.who) == who && i64::from(m.o) == o);
-                let row = match ours {
-                    None => "the dump holds it alone".to_string(),
-                    Some(m) => format!(
-                        "ours first_frame {} cur_anim {} theirs {:?} {:?}",
-                        m.first_frame, m.cur_anim, d.first_frame, d.cur_anim
-                    ),
-                };
-                if ours.is_none_or(|m| {
-                    d.first_frame.is_some_and(|f| f != m.first_frame)
-                        || d.cur_anim.is_some_and(|a| a != i64::from(m.cur_anim))
-                }) {
-                    firsts
-                        .entry((who, o, "death:direct".into()))
-                        .or_insert((n, row));
-                }
-            }
-            // **And the record's own rows, ungated.** Everything the
-            // `UNITDATA` and `GUY` blocks print that `compare` either
-            // does not read at all or reads only where the positions
-            // already agree.
-            for them in &frame.units {
-                if !(0..players as i64).contains(&them.who) {
-                    continue;
-                }
-                let (Ok(who), Ok(o)) = (u8::try_from(them.who), i16::try_from(them.o)) else {
-                    continue;
-                };
-                let Some(u) = built.sim.unit_by_o(who, o) else {
-                    continue;
-                };
-                let un = &built.sim.units[u];
-                let mut rows: Vec<(String, i64, Option<i64>)> = vec![
-                    (
-                        "heading".into(),
-                        i64::from(un.movement.heading.0),
-                        them.angle,
-                    ),
-                    (
-                        "dest_angle".into(),
-                        i64::from(un.movement.des_angle.0),
-                        them.dest_angle,
-                    ),
-                    ("orders_x".into(), i64::from(un.orders_pos.x), them.orders_x),
-                    ("orders_y".into(), i64::from(un.orders_pos.y), them.orders_y),
-                    ("tolerance".into(), i64::from(un.tolerance), them.tolerance),
-                    (
-                        "path_recursion".into(),
-                        i64::from(un.path_recursion),
-                        them.path_recursion,
-                    ),
-                    ("idle".into(), i64::from(un.idle), them.idle),
-                    ("stance".into(), i64::from(un.stance), them.stance),
-                    // **`myhits` is the max, not what is left.** The
-                    // record carries the pair `myhits`/`damage` —
-                    // `ObjectData::myhits` is the whole hit points the
-                    // type has after tech and `damage` what has been
-                    // taken off them (`crate::diff::army`'s loader has
-                    // read it that way since it existed) — and this row
-                    // compared this crate's *current* health against the
-                    // **maximum**, so it agreed only while the unit was
-                    // untouched and reported every wound as a
-                    // divergence. Item 464 found it on the word's own
-                    // block: `0/5 myhits: ours 38 theirs 40`, where the
-                    // dump's own `damage` is 2 and the two sides agree.
-                    // Both halves are compared now.
-                    (
-                        "hits_left".into(),
-                        i64::from(un.health),
-                        them.myhits.map(|h| h - them.damage.unwrap_or(0)),
-                    ),
-                    ("myhits".into(), i64::from(un.max_health), them.myhits),
-                    // **The sixteenths under them** (item 484): the
-                    // third field of the `OBJECT` block's hit-point
-                    // record, parsed for a building since item 394 and
-                    // for a unit only now. It is what decides *which
-                    // frame* the next whole point of `damage` lands on
-                    // (`docs/COMBAT.md` §7.2 step 4).
-                    (
-                        "damage_frac".into(),
-                        i64::from(un.damage_frac),
-                        them.damage_frac,
-                    ),
-                    // **`hold_frames`** (item 491, §42.3): the slot hold,
-                    // on the same block, and zero on every living unit of
-                    // both windows because every writer of it is on a
-                    // dead object. `compare` carries it too; this is the
-                    // driver's own reading, for the reason the hit-point
-                    // pair above has both.
-                    (
-                        "hold_frames".into(),
-                        i64::from(un.hold_frames),
-                        them.hold_frames,
-                    ),
-                    // **The overkill window** (item 485): the frame of
-                    // the first hit inside it and the captain and owner
-                    // who struck (§7.1 step 2, §41.1). Written at
-                    // `UNITDATA`'s own indent on every unit of every
-                    // block and compared nowhere until chapter two's
-                    // `1/8` turned out to be wounded a frame later than
-                    // the dump wounds it. `damage_frame` is the sim
-                    // frame in the same numbering `tick` passes, so it
-                    // compares directly; the pair beside it is read only
-                    // where **both** sides hold a live window, because a
-                    // never-hit unit is `-1`/`0` in the original and
-                    // `0`/`0` here and that is a difference of encoding.
-                    (
-                        "damage_frame".into(),
-                        un.combat.damage_frame,
-                        them.damage_frame,
-                    ),
-                    (
-                        "damage_o".into(),
-                        i64::from(un.combat.damage_o),
-                        them.damage_o.filter(|_| {
-                            un.combat.damage_frame != 0 && them.damage_frame.is_some_and(|f| f != 0)
-                        }),
-                    ),
-                    (
-                        "damage_who".into(),
-                        i64::from(un.combat.damage_who),
-                        them.damage_who.filter(|_| {
-                            un.combat.damage_frame != 0 && them.damage_frame.is_some_and(|f| f != 0)
-                        }),
-                    ),
-                    ("myspeed".into(), i64::from(un.movement.speed), them.myspeed),
-                    // **The pool slot** (item 518): `UnitData +0x80`, the
-                    // group every member points at, `who·64 + s`. It is
-                    // what `Groups::process` selects on once a frame, so a
-                    // group numbered wrong has its cap reset on the wrong
-                    // frames (`docs/GROUPS.md` §19). Printed on every
-                    // `UNITDATA` and compared nowhere until this row.
-                    ("group".into(), built.sim.pool_group_of(u), them.group),
-                    ("form".into(), i64::from(un.form), them.form),
-                    ("form_mod".into(), i64::from(un.form_width), them.form_mod),
-                    (
-                        "orders.len".into(),
-                        un.orders.len() as i64,
-                        Some(them.orders.len() as i64),
-                    ),
-                ];
-                // The collision block and the two masks, **ungated by the
-                // position** — the whole point of this test.
-                if un.on_map {
-                    for r in [
-                        ("collide", i64::from(un.collide), them.collide),
-                        ("collide_o", i64::from(un.collide_o), them.collide_o),
-                        ("collide_who", i64::from(un.collide_who), them.collide_who),
-                        ("collide_guy", i64::from(un.collide_guy), them.collide_guy),
-                        ("safe", i64::from(un.safe), them.safe),
-                        (
-                            "recharging",
-                            i64::from(un.combat.recharging),
-                            them.recharging,
-                        ),
-                        ("start_dist", i64::from(un.start_dist), them.start_dist),
-                        ("mylos", i64::from(built.sim.unit_los(u)), them.mylos),
-                        (
-                            "half_step",
-                            i64::from(un.half_step),
-                            them.unit_masks.map(|m| i64::from(m & 0x10_0000 != 0)),
-                        ),
-                        (
-                            "packed",
-                            i64::from(un.combat.packed),
-                            them.unit_masks.map(|m| i64::from(m & 0x8_0000 != 0)),
-                        ),
-                    ] {
-                        rows.push((r.0.into(), r.1, r.2));
-                    }
-                }
-                // The guy record whole, run67's `GUYS=4` block — the
-                // animation clock, the destination pair and the two
-                // speeds, which are what the word turned out to be.
-                rows.push((
-                    "guys.len".into(),
-                    un.guys.len() as i64,
-                    Some(them.guys.len() as i64),
-                ));
-                for (k, g) in them.guys.iter().enumerate() {
-                    let Some(og) = un.guys.get(k).copied() else {
-                        continue;
-                    };
-                    let (body, facing, des, des_angle) = match og.follow {
-                        Some(b) => (b.body, b.facing, b.des, b.des_angle),
-                        None if k == 0 => (
-                            un.movement.body,
-                            un.movement.facing,
-                            un.pos,
-                            un.movement.heading,
-                        ),
-                        None => (
-                            un.movement.body,
-                            un.movement.facing,
-                            un.pos,
-                            un.movement.facing,
-                        ),
-                    };
-                    let track = og.follow.map_or((0, 0), |b| b.track);
-                    for (name, ours, theirs) in [
-                        ("g.x", i64::from(body.pos.x), g.pos.map(|p| p.x)),
-                        ("g.y", i64::from(body.pos.y), g.pos.map(|p| p.y)),
-                        ("g.angle", i64::from(facing.0), g.angle),
-                        ("g.des_x", i64::from(des.x), g.des.map(|p| p.x)),
-                        ("g.des_y", i64::from(des.y), g.des.map(|p| p.y)),
-                        ("g.des_angle", i64::from(des_angle.0), g.des_angle),
-                        ("g.cur_anim", i64::from(og.anim), g.cur_anim),
-                        ("g.cur_time", i64::from(og.cur_time), g.cur_time),
-                        ("g.end_time", i64::from(og.end_time), g.end_time),
-                        ("g.last_time", i64::from(og.last_time), g.last_time),
-                        ("g.gpiece", i64::from(og.gpiece), g.gpiece),
-                        ("g.stopped", i64::from(og.stopped), g.stopped),
-                        // **The attack a figure owes** (item 510): held
-                        // while the body is still walking or still
-                        // turning, queued while an attack is already
-                        // playing, and only the queued one is paid inside
-                        // `Guy::inc_time`'s wrap loop with a roll. They
-                        // are new to the parser in that landing, and the
-                        // rule that earned them applies to this record as
-                        // much as to chapter two's — a record widened on
-                        // one window and not the next is the shape
-                        // `crate::ledger` exists to count.
-                        // `docs/COMBAT.md` §45.
-                        ("g.hold_attack", i64::from(og.pending_attack), g.hold_attack),
-                        (
-                            "g.queued_attack",
-                            i64::from(og.queued_attack),
-                            g.queued_attack,
-                        ),
-                        ("g.track_dx", i64::from(track.0), g.track.map(|t| t.0)),
-                        ("g.track_dy", i64::from(track.1), g.track.map(|t| t.1)),
-                        ("g.last_speed", i64::from(body.last_speed), g.last_speed),
-                        ("g.avg_speed", i64::from(body.avg_speed), g.avg_speed),
-                    ] {
-                        rows.push((format!("{name}[{k}]"), ours, theirs));
-                    }
-                }
-                for (name, ours, theirs) in rows {
-                    let Some(theirs) = theirs else { continue };
-                    compared += 1;
-                    if ours != theirs {
-                        firsts
-                            .entry((them.who, them.o, name))
-                            .or_insert((n, format!("ours {ours} theirs {theirs}")));
-                    }
-                }
-            }
+            let (r, rows) = widen_block(&built, &frame, players, n, &mut firsts);
+            compared += rows;
             if n == LAST_WORD_BLOCK {
                 word_census = Some((
                     frame.units.len(),

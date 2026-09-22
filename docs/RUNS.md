@@ -4699,3 +4699,39 @@ disk had a coverage window above 5,800 on this map.
 — one pool slot per player a frame, slot `f mod 64`, and 10241's is
 `group 65`. The stanza's R1–R4 died and R5's family was right.
 `docs/GROUPS.md` §19; the Great Lakes word moved 10834 → **11185**.
+
+## run123 — Great Lakes' market word, and the list slot under it (2026-09-22, item 520)
+
+**What it is.** run100's Great Lakes game at run100's detail with
+`LEADERS` raised to **9**: `MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,
+DEATHS=1,LEADERS=9` over `[10760, 11460)`, plus `rontrace.cfg` `cover=1`
+and `window=11176-11190`, the production rotation that parts. `!quit`
+at 11470. **1,375,741,619 bytes of dump and 17 MB of trace, about 45
+minutes** from launch at 17:26 to archive at 18:11. It was launched
+through `viadriver.sh` with no human at the menu, and the dump ran at
+~15 blocks, or ~28 MB, a minute: 1.95 MB a block net of the start dump,
+close to the 2.1 sized.
+
+**Why it was owed.** Great Lakes' word moved to 11185 on item 518, and
+the highest block any dump reached was run100's 10899, at `LEADERS=1`,
+which prints no goods. The map's last goods bucket or make list was
+run117's block 10619. The lab's twelve map-14 captures all stop at 1401.
+
+**Every check passed:**
+
+| check | result |
+|---|---|
+| `rngcmp.py` vs `rontrace-run53.log` | **0 differing**, 11,471 identical |
+| `MAP_STYLE` from the dump's `GAME INFO` | 14 |
+| the window, block for block | **700 blocks, 10760..11459, no gap** |
+| overlap with run100, `--exclude LEADERDATA` | **140 in common (10760..10899), 0 differ** |
+| the raised category is there | `MAKEOBJECT` ×22 on 10760, 11185 and 11459 |
+| the coverage window | a set on all 15 frames 11176..11190 |
+
+**What it settled.** The market frame's input is slot 1 of the AI's make
+list. It is an emptied Merchant slot in the original and a Cataphract
+here, so this crate's `use_market` counts wealth as short and spends a
+third sell draw. The purse, the commerce level and the stock, the other
+three readings the stanza named, all died on the word's own block.
+`docs/ECONOMY.md` §14; `run123_s_word_frame_is_widened_whole`.
+

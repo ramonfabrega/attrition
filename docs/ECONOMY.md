@@ -2098,7 +2098,8 @@ ledger's. And `1/28 order:coll` on 10618.
 
 **Diff-backed**: the frame, the good, the quantity and the price, by
 `diff::leader::tests::run117_s_window_is_the_leader_record_across_two_rotations`
-— 490 blocks of the whole `LEADERDATA` record, 513,520 field-frames, with
+— 490 blocks of the whole `LEADERDATA` record, 513,520 field-frames
+(515,480 since item 520 added the four epochs, §14.5), with
 10576's buy asserted as the four-number pair either side and the residue
 pinned field by field. The word itself by
 `diff::harness::tests::run53_s_24000_frames_put_the_ceiling_where_run33_did`.
@@ -2131,3 +2132,118 @@ pinned field by field. The word itself by
 - **The `2000 >> tier` divisor's form.** The original divides by a 64-bit
   `1 << tier`; the tier cannot exceed 2, so the shift and the division are
   the same arithmetic here. Read, not measured.
+
+## 14. Great Lakes 11185 — the market reads a make-list slot the original has emptied (2026-09-22, item 520)
+
+Item 518 moved Great Lakes' word to **11185**, past every dump on disk,
+and booked it by its frame and its draw delta alone: ours nine draws,
+the original eight, parting at index 2 — `Leader::use_market+0x1ed`
+against `Leader::make_stuff+0x221`. No mechanism was named. This section
+is the widening, and it names the input that parts.
+
+### 14.1 The frame, from both sides
+
+run123 is run53's game at run100's detail with `LEADERS=9`, over
+`[10760, 11459]` (`docs/RUNS.md`). The word's tick is the production
+rotation's `Make2` step: it enters on block **11185** and leaves on
+**11186**. §12.3's `use_market` needs the summed costs of the first
+`max(1, epoch[Commerce])` make-list slots whose `val` and `t` are both
+positive, then spends one sell draw per short good when nothing can be
+sold. Player 1 on block 11185, ours / theirs:
+
+| | ours | theirs |
+| --- | --- | --- |
+| `epoch_get(scan)`, commerce | 2 | 2 |
+| `bucket` food, timber, wealth, metal | 13, 1, **11**, 44 | 24, 6, **6**, 47 |
+| `MAKE[0]` | Siege Factory (t430) | Siege Factory (t430) |
+| `MAKE[1]` | **Cataphract (t227)**, 65 wealth, 75 metal | **`t −1`**, cat 4, val 909,090 |
+
+So this crate's need is `0 60 65 0 135 0`, and wealth, timber and metal
+are all short: three draws. The original's slot 1 is skipped (`t ≤ 0`),
+its need is the head alone, `0 60 0 0 60 0`, and only timber and metal
+are short: two. Everything else is the same arithmetic on both sides.
+
+### 14.2 What was predicted, and what killed it
+
+The stanza (`tools/gamelog/captures.txt`, run123) named four readings
+before the run, each with what would kill it. The block decides them:
+
+- **R1, the purse** (parked 514's 32 of wealth income): **dead.** The
+  original's wealth is *lower*, 6 against 11, and with its own list it
+  needs none. The income gap is on every block, 960 against 992, and it
+  does not decide this frame.
+- **R3, the commerce level**: **dead.** 2 on both sides, from the four
+  `epoch_get(scan)` lines, which nothing in the harness had parsed.
+- **R4, the stock**: **dead.** Timber and metal are under the head's 60
+  on both sides.
+- **R2, the list**: **alive, and it is the frame.** Slot 1 parts.
+
+R5 (a sale covering the good) is also dead: no bucket steps by a hundred
+between 11185 and 11186.
+
+### 14.3 What the emptied slot was
+
+The original enters the rotation's `Make` on block 11182 holding a
+**Merchant** (`t 61`, cat 4, escrow 1, val 909,090) in slot 1, where this
+crate holds the Cataphract. On 11184, after `Units2`'s `create_units`
+re-offers a Merchant at 227,272 in slot 0, the old slot reads `t −1` at
+its old value. `Buildings2` then puts the Siege Factory at the head, and
+the emptied slot is in slot 1 when `Make2` sums the need. Coverage over
+11176..11190 has `Leader::create_units`, `MakeList::make_me` and
+`TypeData::is_merchant` on 11183, and `MakeList::make_me` on 11184.
+
+The Merchant is `docs/AI.md` §38.5's standing residue: the original has
+offered one since at least dump-block 8181, and this crate never does. The
+merchant arm of `civilian_value` (`crates/sim/src/ai_units.rs`) returns
+`None` unless `known_rares` less the Merchants queued and alive is
+positive. This crate sums that total from `census.reg_known_rares`,
+which the census zeroes every sweep and **nothing writes**, so the arm
+is dead code. On run123's own block 10760 the original already holds
+Merchants at `MAKE[3]` and `MAKE[4]` (val 227,272) and this crate a
+Phalanx and a Mine.
+
+**So 11185 is a consequence of the Merchant offer, not of (514).** The
+Merchant slot has been in the original's list at every rotation since
+8181. What this frame adds is the one arrangement where the slot's
+*emptying* moves `use_market`'s need.
+
+### 14.4 What is not established
+
+- **The writer of `known_rares`** (`LeaderData +0x6d4`) and of its
+  per-region array `reg_known_rares` (`+0x4d4`). The export has
+  `Leader::plan_strategy@006b9620` writing `+0x4d4` (around lines
+  285–355) and `Leader::calc_gather@006ceee0` reading it. Neither is read
+  here.
+- **The Merchant's value.** The original's offers are 869,565 (8181),
+  909,090 and 227,272 — 1,000,000 divided by 1.15, 1.1 and 4.4 — and this
+  crate's arm, if it fired, would answer a flat 1,000,000.
+  `create_units@006c40a0` near line 1044 gates the arm on `+0x6d4` minus
+  two per-type `ushort` counts and on `+0x9e0 < +0x7e4 − 1`. The division
+  is somewhere downstream of that and is not read.
+- **Why the old slot reads `t −1` on 11184.** That is `create_units`' or
+  `make_me`'s handling of an offer whose type is already in the list. It
+  was not read.
+- **`1/2016 queue[0].cost` 65/45 against 61/42 on 11183**: the Hoplites
+  the rotation buys cost this crate six percent more. That is §13.4's
+  `get_cost` row (10782, 60/40 against 57/38) again. It moves the food
+  and metal buckets and not this frame's draws.
+
+### 14.5 Coverage
+
+**Diff-backed**: every claim in §14.1 and §14.3's list contents, by
+`diff::harness::tests::run123_s_word_frame_is_widened_whole`, which
+compares every unit record `diff::harness::widen_block` reads and the whole leader
+record (plus `epoch_get(scan)`) on all 700 blocks, 2,222,681 unit rows
+and 1,472,800 leader rows. The word's inputs, slot 1 on 11182, and the
+set of keys that first part on 11185 and 11186 are pinned. **Trace-backed**:
+§14.3's functions, from run123's per-frame coverage. **Reading-only**:
+nothing. §14.4 is unread and says so.
+
+**The epochs are a row of the record now.** `epoch_get(scan)` is read
+by `diff::leader::theirs` as `epoch[0..3]`, and this crate's
+`tech[who].epoch` is the other side, so every leader widening compares
+it. It agrees on every block of all seven windows: run19, run84, run91,
+run107, run115, run117 and run123. The coverage driver runs that reader
+too, and its Great Lakes window is run123's word ±2 now, not run100's
+10834 (`diff::coverage::UNREAD`).
+
