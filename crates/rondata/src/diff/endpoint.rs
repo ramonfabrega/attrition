@@ -871,11 +871,26 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // 10234, where `1/28`'s **fifteen** rows go to none and the
         // block is item 464's three alone. DECISIONS 36 asks for the
         // number rather than a trade.
-        off: 49,
-        unlinked: 9,
+        // And **49 → 44 off, 9 → 11 unlinked, 8 → 9 build_diverged** on
+        // 2026-09-21, item 471 — the group location a `QUEUE_LAST` move
+        // is laid out from (`docs/ORDERS.md` §17). Five positions closer,
+        // two more of the roster unlinked and one more building field-row
+        // out, 13,767 frames past a word that did **not** move — so the
+        // same caveat the 464 row carries applies here and more so: past
+        // the word the draw stream is unaligned and every later random
+        // answer is a coin flip. The value diff the change is booked on is
+        // the word's own block 10235, where `1/28`'s **sixty** rows go to
+        // three and its whole 43-node route becomes the original's, node
+        // for node
+        // (`run100_s_word_block_is_every_record_the_dump_carries`), with
+        // run97's order residue 81,534 → 28,222 and five of its eight
+        // units gone beside it. DECISIONS 36 asks for the number rather
+        // than a trade.
+        off: 44,
+        unlinked: 11,
         extra: 0,
         build_unlinked: 0,
-        build_diverged: 8,
+        build_diverged: 9,
         city_unlinked: 3,
         city_diverged: 0,
     },

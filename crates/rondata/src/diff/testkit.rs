@@ -1375,9 +1375,37 @@ pub(crate) const EAST_INDIES_FIRST_SCHOLAR: i64 = 8_466;
 /// **What 10234 is**: a frame whose whole dumped record agrees and whose
 /// draw stream does not — the original spends **204** draws there,
 /// `PathFinder::calc_road_cost+0x46` over and over, and this crate spends
-/// six for the same 43-node route. `1/28`'s own rows reopen one block
+/// six for the same 43-node route. ~~`1/28`'s own rows reopen one block
 /// later, on 10235, where the route is 240 out in `x` because the
-/// formation slot is (`order:move.off_x ours 120 theirs 648`).
+/// formation slot is (`order:move.off_x ours 120 theirs 648`).~~
+///
+/// **Held at 10234 on 2026-09-21, item 471**, and 10235 is closed:
+/// `off_x` is `x mod 0x300`, the destination said twice, so that row was
+/// never a slot of its own, and the six slots were the right table turned
+/// by the wrong angle. §12's probe queues its walk home at `QUEUE_LAST`,
+/// the one queue position `Group::action_move_near` asks
+/// `GroupData::get_loc_to` for — where the leader **ends up**, through
+/// `UnitData::get_final_loc` — and this crate asked `get_loc`, found the
+/// destination under the leader's own feet and took no bearing at all.
+/// The bearing is `find_angle` from the **farm** the probe has queued an
+/// attack on, `0/2004` at `(2112, 31296)` in run19's own block 8187, and
+/// it reproduces the dump's `group_angle 890830848` to the bit
+/// (`docs/ORDERS.md` §17).
+///
+/// **The value diff**: block 10235's `1/28` rows go **sixty to three** —
+/// the whole 43-node route is the original's, `path[1..42]` every one,
+/// with `path:length` 44 → 43, `order:move.dest_x` 5496 → 6024 and
+/// `heading` 1372520448 → 1252851712. What is left is `pos ours
+/// (4801,30175) theirs (4800,30175)`, one unit in `x`, said three times.
+/// Across the widening's window the parted keys go **440 → 322**.
+///
+/// **What still holds the word** is the same thing as before this item and
+/// it is not the route: 204 draws against six, all of them
+/// `calc_road_cost`. The same cost function is what
+/// `PROBE_PLAN_PARTED`'s twenty-two entries are — a `y` one or two cells
+/// south over three stretches that re-converge, on a route whose start,
+/// end and every `x` agree — so one residue now stands in two places and
+/// closing it is the next item on this frame.
 pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 10_234;
 
 /// The floor `run97_s_window_orders_are_the_original_s` holds — item 368's
@@ -1411,10 +1439,30 @@ pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 10_234;
 /// So the number went up and the simulation did not get worse: this is
 /// `run100_s_word_block_is_every_record_the_dump_carries`' own lesson one
 /// record over — a widening's first run fails, because what it uncovers
-/// was never being checked. What it uncovered is the successor: this
+/// was never being checked. ~~What it uncovered is the successor: this
 /// crate's formation **slot offsets** are not the original's (`off_x`
-/// 120 against 648 on `1/28`), so every member's destination is 240 out.
-pub(crate) const ORDER_RESIDUE_RUN97: usize = 81_534;
+/// 120 against 648 on `1/28`), so every member's destination is 240
+/// out.~~ The offsets were the original's all along — `off_x` is
+/// `x mod 0x300`, the destination said twice, so that row was the `x`
+/// above it and not a slot of its own (`docs/ORDERS.md` §17.1).
+///
+/// **81,534 → 28,222 on 2026-09-21, item 471**, and the whole of the fall
+/// is the +27,912 above coming back out plus the five members' path rows
+/// with it. The six slots were the right table rotated by the wrong
+/// angle: §12's probe queues its walk home at `QUEUE_LAST`, which is the
+/// one queue position `action_move_near` asks `GroupData::get_loc_to` for
+/// (`00704990:361`–`364`), and that answers where the leader **ends up**
+/// — the farm at the other end of Great Lakes — where this crate asked
+/// where it stands, found the destination under its own feet and took no
+/// bearing at all. `find_angle` from the farm is the dump's
+/// `group_angle 890830848` to the bit.
+///
+/// The residue's **set** fell with it, eight units to three: `1/27`,
+/// `1/28`, `1/29`, `1/41` and `1/42` leave it entirely. `1/40` stays
+/// because the group's one plan is made from *its* slot, and what is left
+/// of it is the pathfinder's tie-break — same start, same end, same `x`,
+/// a `y` one or two cells south over three stretches that re-converge.
+pub(crate) const ORDER_RESIDUE_RUN97: usize = 28_222;
 
 /// The frame Great Lakes' **second** squad joins the army on — 6994, the
 /// word's own parting from 2026-09-06 to 2026-09-07 and now a landed
