@@ -12,36 +12,36 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-22, the tenth chain. Both words moved: Great Lakes **10234 →
-10237** (478), chapter two **645 → 680** (479).*
+*2026-09-22, the tenth chain. Great Lakes **10234 → 10237**, chapter
+two **645 → 683**, and `[606, 684)` is at nought — 78 frames.*
 
-- **`BuildDump::build_masks` was never parsed on any capture ever
-  taken** (478): read off BUILDDATA where the record writes it at
-  **WALLDATA's** indent, so `None` everywhere while `crate::ledger`
-  called it uncompared for weeks and **four items chased the frame it
-  explains**. Now compared on every linked building-frame (+63k on
-  run57, none wrong), indent guarded against a decoy. Sixth
-  instrument defect, and the largest.
-- **The word was a road replan, not a caravan** (478, ROADS §1.2):
-  Farm `0/2004` dies on 10230, `remove_from_city` calls
-  `City::regen_roads`, and **two** buildings replan on their own
-  `(frame+o)%16` slots — `0/2006` on 10234, `0/2005` on 10235. We had
-  only `Build::activate`'s call. One line. Draws 6/204 → 204/204.
-- **run117 was not needed and not taken.** 475's "not on this disk"
-  was wrong — run53 *was* `cover=1`, 6,936 functions. Thirteen
-  seconds. §18.5 struck.
-- **The sequence word is blocked on a name, not a behaviour**: 10237
-  parts on a *label*, `Ammo::do_damage+0xc59`, absent from
-  `trace::SITES`; naming it reaches the count word, 10244 — that is 483.
-  Six open, 68 parked. **Fable backlog: 2 Loop items** (313, 480).
+- **The defect was a brace** (481, COMBAT §38): `do_move:207` is
+  `if (ptype->max_range != 0) {` and it closes **past** the captain
+  retarget at `005f803f`. §37.2 said so in prose; the Rust wrote the
+  gate as a conjunct of the in-range kill alone, so a **melee**
+  captain reached the retarget and switched the hoplite squad off
+  `0/11`. Nesting removes exactly six rows — which is the proof.
+- **479's framing for 671 was falsified by a field already on disk**:
+  all three hoplites hold `ox 11 whom 0 uid 18` on every block with
+  `new_ord 1`, so the original never ranks them and never rewrites.
+  The suspect was our own code from the first grep.
+- **`crate::diff::compare` carries no hit-point row at all** — no
+  `myhits`, `damage` or `hits_left` — where the run100 widening has
+  had both since §34.4 and the dump prints them at every detail
+  level. 684's death is visible; the wounds that caused it are not.
+  **That is 484, and it gates 485.** Seventh instrument defect.
+- **A ceiling hid three rows**, as 470's floor hid `0/10` at 630:
+  `extra 1/8` at 684 (a death), `order 1/4`/`pos 1/4` at 685/686,
+  all pre-existing on a reverted re-measure.
+  Seven open, 69 parked. **Fable backlog: 2 Loop items** (313, 480).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w9711 of 24,000 · GreatLakes w10237 of 24,000
-Golden: w626 of 901 (ch1) · ch2 w680 · 481 next
+Golden: w626 of 901 (ch1) · ch2 w683 · 484 next
 Endpoint 24001: EastIndies 63 off, 11 unlinked · GreatLakes 51 off, 7 unlinked
 
-**Opener: 481 is live; 483 takes the freed lane. run117 is released,
-unused. The loop stands at 14 of 20.**
+**Opener: 483 is live; 484 takes the freed lane and gates 485. The
+loop stands at 16 of 20.**
 
 ## The queue
 
@@ -68,14 +68,21 @@ the backlog is `docs/PARKED.md`, and an item returns only when a score names it.
     with `g.x[0]` and `g.des_x[0]` the same — one world unit in x,
     said three times. ORDERS §18.3.
 
-481. **All three hoplites hold `0/11` where we hold `0/10`, on
-    block 671** — the rules headline's own frame after 479 moved the
-    word to 680 and re-pinned the window to [606, 684). `pos 1/6`
-    ours (1623,8037) theirs (1608,8040); `order 1/6`, `1/7`, `1/8`
-    Target (0,10)/(0,11); `1/7` Move x 1512/1128, y 8328/8424,
-    PathLength 0/5; `672 angle 1/6` Heading -1320157184/-1605566464.
-    479 reads it as **§33's shape mirrored onto who=1** — that is its
-    hypothesis, not this item's. Re-measure first.
+484. **`crate::diff::compare` has no hit-point row** — add
+    `myhits`, `damage` and `hits_left`, the pair the dump prints at
+    every detail level and that `run100_s_word_block_…` has carried
+    since §34.4. It touches `FrameResult`/`compare` and therefore
+    **every capture's diff**, so measure before and after on both
+    maps and expect counts to move. **Gates 485**, which cannot name
+    a mechanism without it. Reported by 481, not taken.
+
+485. **`extra 1/8` at 684 — a death** (the rules headline's next
+    frame; 481 moved the word to 683). `DEATH_OBJS` on 684,
+    `first_frame 683`; `1/8`'s `damage` runs 0 → 8 (656) → 17 (657)
+    → 25 (660) → 34 (682) against a figure's 40-hit share of
+    `myhits 120`, and the hit on 683 takes it over. **Do not start
+    before 484 lands** — without the hit-point row the diff can see
+    the death and not the wounds.
 
 342. **Host choice seats the scholar on the wrong university** — 338's
     residue, re-pinned three times, and now `1/55`. **Re-measure before

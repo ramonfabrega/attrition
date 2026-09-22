@@ -111,6 +111,19 @@ successor is exempt, or is paid from a separate allowance. Whoever
 takes it should check how many other sections sit at their pin — §4 was
 not chosen for being unusual.
 
+## Parked by item 481, 2026-09-22 — surfaced by a ceiling, nobody's item
+
+(486) **`order 1/4` at 685 and `pos 1/4` at 686, a citizen forty
+thousand units from the engagement.** Guy type 50, `myhits 40`, GATHER
+on uid 3. Surfaced when 481 lifted `chapter_two_s_word_frame_is_widened_whole`'s
+**ceiling** to 687 — the same shape as item 470's floor hiding `0/10`
+at 630 — and re-measured with 481's change reverted and the window
+left wide: they stand, so they are pre-existing and nobody's.
+
+Same family as `order 0/5` (`docs/COMBAT.md` §32.5). Parks because it
+names no headline frame and no floor; promote it if a chapter-two word
+ever reaches 685, or if the §32.5 family turns out to be one cause.
+
 ## Parked by item 479, 2026-09-21 — wider than the word it came from
 
 (482) **`Unit::think@005f6e40:104-134` has a second `near_o` reader, and
