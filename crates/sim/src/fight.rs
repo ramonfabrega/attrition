@@ -2614,6 +2614,13 @@ mod tests {
     /// — a HOLD_FIRE attacker returns at `do_attack`'s stance arm and the
     /// order never dies at all.
     ///
+    /// **And the target itself outlives the object too** (item 502,
+    /// `docs/COMBAT.md` §43.3): `Sim::forget` no longer clears it, which
+    /// is what run112's three bowmen say — their `ATTACKORDER` carries the
+    /// dead `1/8` for twelve blocks. So the first assertion below is the
+    /// opposite of what it was, and the reload's twelve frames are now
+    /// twelve frames of a **named** dead target rather than of nothing.
+    ///
     /// run100's own measurement is the six raiders of Great Lakes blocks
     /// 10231–10239, each dropping on its own `recharging` clock: `1/42`
     /// on 10231, `1/28` on 10233, `1/27` on 10239.
@@ -2636,8 +2643,9 @@ mod tests {
         sim.units[foe].health = 0;
         sim.forget(Obj::Unit(foe));
         assert_eq!(
-            sim.units[me].combat.target, None,
-            "the dead target is dropped"
+            sim.units[me].combat.target,
+            Some(Obj::Unit(foe)),
+            "the dead target is kept until the next use asks about it"
         );
         assert!(
             sim.units[me].combat.mandatory,
@@ -2661,6 +2669,14 @@ mod tests {
             "the order outlived the reload: {:?}",
             sim.units[me].orders
         );
+        // **No freeze mark**, and the reason is the condition rather than
+        // the arm (§44.1). This unit reached `Unit::fight`'s
+        // invalid-target branch, but it is HOLD_FIRE, so the search
+        // returns nothing, so no attack order goes back in front — and
+        // `unit_masks2 |= 0x10` is downstream of `order_type() == ATTACK`
+        // *after* the search. A unit that finds nothing has nothing to be
+        // "still ordered" under.
+        assert_eq!(sim.units[me].unit_masks2, 0);
     }
 
     /// **A move whose action's target has died is only re-pathed when

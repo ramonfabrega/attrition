@@ -7457,6 +7457,34 @@ It is a **second** captain mirror and it is not §21's: that one is
 `QUEUE_NEW` order. This one runs on the attack step of a unit that
 already has one.
 
+### 44.2.1 A field whose write condition makes it silent cannot date an event
+
+State this one as a rule too, because it is how §43.2 came to cite the
+wrong evidence for a mechanism it had otherwise measured.
+
+> **Before a field is used to say that something happened *this frame*,
+> its write condition has to be checked — not its value.** A field that
+> is written only when it *changes*, or only when a better candidate is
+> found, or only on the branch that succeeds, reads identically whether
+> the event happened this frame or has not happened for sixty. Its value
+> is evidence about the last write, and nothing about when.
+
+`near_o`/`near_who` is exactly that shape. `Object::find_nearby_target`
+writes the pair only when a candidate closer than every previous one
+clears `check_target`, and clears it to `-1` only when the nearest thing
+it saw is past `0xf00`; a search that re-finds the same winner writes the
+same values, and a search that finds nothing nearer writes nothing at
+all. So `0/6` carrying `near_o 6 near_who 1` at block 696 is consistent
+with "searched this frame and won" and with "has not searched since block
+**635**", which is what the dump actually says — sixty-one blocks earlier,
+and `--changes` on `tools/gamelog/track.py` says so in one line.
+
+It is the sibling of `CLAUDE.md`'s "grep the writers of every field you
+call frozen": grep the **history** of every field you call fresh. The two
+failures are the same one from either end, and this one is the more
+dangerous, because a stale value looks like a measurement and a frozen
+one looks like a bug.
+
 ### 44.3 What it moved
 
 The word is **725**. Ours spends **7** draws against the original's **9**,
@@ -7508,11 +7536,17 @@ somewhere this reading has not looked. [`sim::Sim::guy_inc_time`] marks
 `ATTACK2` there, so whichever it is, that is where it is wrong. The
 successor is booked by the frame and the delta, not by this paragraph.
 
-**What sits under all of it is §42.5's parked arrow.** From 696 this
-crate's three bowmen are on `1/7` and the dump's are on `1/6` — our `1/7`
-was never wounded by the rolling shot on 685, so §33's damage weight
-ranks the two hoplites the other way — and every row at 720-728 below is
-downstream of that one target.
+**§42.5's parked arrow is the leading hypothesis for what sits under it,
+and it is a hypothesis.** From 696 this crate's three bowmen are on `1/7`
+and the dump's are on `1/6` — our `1/7` was never wounded by the rolling
+shot on 685, so §33's damage weight ranks the two hoplites the other way
+— and every row at 720-728 below is downstream of that one target. What
+makes it a hypothesis rather than the cause is that the *draw* is spent
+in `Guy::inc_time`, and no run has shown the target choice reaching that
+branch. 725 is therefore booked on its **own** frame and delta, not
+parked under the arrow: this chain's record on "the obvious cause" is
+eight wrong out of eight, and each of those eight also had a mechanism
+that looked downstream of something already known.
 
 The value diff, on the widening window (now `[606, 729)`, the ceiling
 having followed the word):
@@ -7589,6 +7623,19 @@ budget. `unit_masks2` is `UnitData +0x6c` and `waiting` is `+0xad` from
 the type record, not from the surrounding code — which is how §43.2's
 `near_o 6 near_who 1` was caught: `+0xa2` is `cavarch_o`, and the dump's
 `near_o` is `ObjectData +0x34`, a different field with a different writer.
+
+**A guard, now earned rather than proposed.** §43.3.1's hole has now
+appeared **three** times in `compare_orders` — item 462's `unit_ids` on a
+target not on the board at `BEGIN GAME`, item 496's `target_ids` on an
+attack order with no target, and this item's `unit_ids` on an attack
+order whose target is dead. Three instances of one shape, each found by
+widening and none by a reading, each hiding a live divergence for weeks,
+is past a rule and into a check: `crate::diff::coverage` catches a key the
+**parser** never asks for, and nothing catches a key the parser reads and
+the comparison then drops for want of a value on this side. The grep is
+`if let (Some(a), Some(b)) = (mine, theirs)` and its cousins — `zip`,
+`and_then`, a `?` in a helper that feeds a comparison. Named here so the
+count is on the record.
 
 **Reading-only**: the search throttle (§43.5), unmodelled and unexercised;
 `Unit::fight`'s `param_5 != 0` sub-call path, which writes

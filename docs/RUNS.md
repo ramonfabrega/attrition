@@ -4567,3 +4567,49 @@ is the step the original took. Every other block of the window has
 2.4× the bytes a block, and enough slower to miss the timeout. A golden
 chapter kept at `GUYS=4` for the whole window is a decision, not a free
 upgrade.
+
+## run119 — booked, and **not taken** (2026-09-22, item 502)
+
+**What it would have been.** run118's line with `--timeout` raised from
+its 180 s default, to land chapter two's whole 296-block window at
+`GUYS=4` instead of the 243 blocks run118 got:
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch2g4full \
+    --map 14 --end-frame 900 --log-window 605 900 --timeout 600 \
+    --detail end:UNITS=3,GUYS=4,AMMO=5,DEATHS=1,LEADERS=2 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 \
+    --cmd-file tools/gamelog/golden/chapter2.cmd
+```
+
+It is recorded because the number was reserved and spent, and because a
+capture not taken is only a result if the reason is on file. The line
+above is tested — it launched, built, reached the lobby and was stopped
+by hand 35 seconds in with `settings_restored: true` — so a session that
+does want the 847–900 blocks can run it as written.
+
+**Why it was dropped.** Item 502 was booked with this capture as part of
+it, to settle §43.5's first open question: whether the captain's search
+is what costs it the frame, which needs a window in which a *follower*
+does the searching. Three things retired it before it was taken, and all
+three came off the disk:
+
+- The question was the wrong one. The followers do not search and do not
+  lose a frame for a reason that has nothing to do with what a search
+  costs: they take their captain's target **in place** at `Unit::fight`'s
+  head, before the validity test (`docs/COMBAT.md` §44.2).
+- Its falsifier was already in run112. An `add_attack_order` leaves
+  `new_ord 1 ever_in_range 0` and an in-place retarget touches neither,
+  and block 696 carries both cases side by side.
+- The new word at **725** is inside run118's 605–846, so the landing's
+  own successor is readable in the capture that exists.
+
+What run119 would still buy is blocks 847–900 at `GUYS=4` and nothing
+else; no open item reads them. Booked and dropped, rather than deferred
+in silence.
+
+**`--timeout` is the flag**, for the next session that needs it:
+`unattended_capture.py --timeout <seconds>`, default 180, and it bounds
+the *game*, not the build. run118 wrote 243 blocks in 180 s, so the whole
+window wants about 600.
