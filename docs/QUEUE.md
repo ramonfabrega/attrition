@@ -37,11 +37,11 @@ Great Lakes **10277**, chapter two **683**, both inside their first fight.*
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w9711 of 24,000 · GreatLakes w10294 of 24,000
-Golden: w626 of 901 (ch1) · ch2 w683 · 491 next
+Golden: w626 of 901 (ch1) · ch2 w695 · 496 next
 Endpoint 24001: EastIndies 63 off, 11 unlinked · GreatLakes 50 off, 8 unlinked
 
-**Opener: 491 in flight, 489 landed (w10294, successor 494). One of twenty.
-The commander merges, books, gates, pushes, reaps and refills each lane.**
+**Opener: 494 and 496 in flight. 489 and 491 landed — w10294 and ch2 w695,
+both words in one chain. Two of twenty; merge, book, gate, push, reap, spawn.**
 
 ## The queue
 
@@ -60,14 +60,14 @@ the backlog is `docs/PARKED.md`, and an item returns only when a score names it.
     collision and not the AI's — it wants a document of its own. 489
     named the frame and the delta and no mechanism. COLLISION §11.
 
-491. **683's two draws: `1/8`'s death, and the arrow that lands on
-    nothing** (the rules headline's own frame). Theirs is
-    `Unit::close@0060ee50`'s death-animation `Random::get` — `DEATH_OBJS`'
-    `cur_anim 17` says `dtype 2`, `roll % 2 == 0` — and this crate takes
-    none; ours is §39's puncture from an arrow whose target died in
-    flight, which the original **holds**: the dump's `1/7` takes `19+5`
-    on 685. Item 485 named both halves and parked them as (491) and
-    (492); `hold_frames` and `DEATH_OBJS` are pinned unread. COMBAT §41.
+496. **695's one extra draw, with every value on the frame agreeing**
+    (the rules headline's own frame; 491 moved the word 683 → 695).
+    Ours spends **21** against the original's **20**, parting at draw
+    2: `Guy::set_anim+0x97a < Guy::inc_time+0x1ed` against `+0x271`,
+    and the surplus is one attack-end, 3 against 2. `game_random`
+    agrees entering 695 and parts entering 696, so the draw is spent
+    inside the frame. The only values standing on 695 are 495's three;
+    first new rows are 696, also 495's. No mechanism. COMBAT §42.
 
 ## How to maintain this file
 

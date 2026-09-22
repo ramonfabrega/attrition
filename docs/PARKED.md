@@ -155,10 +155,7 @@ namesake mechanic is worked deliberately.
 
 ## Parked by item 491, 2026-09-22 — a rolled arrow's landing
 
-**The number is the commander's to mint**; the frame and the delta are
-here so the booking is a copy rather than a re-derivation.
-
-**Where a rolled arrow comes down, and the nine rows behind it.**
+(495) **Where a rolled arrow comes down, and the nine rows behind it.**
 Frame **686**: `damage 1/7` ours 0 theirs **19**, `damage_frac 1/7` ours
 0 theirs 5, `damage_frame 1/7` ours 0 theirs **685**. run112's `0/8`
 fires at 677 at `1/8`; `0/7`'s arrow kills `1/8` on 683; `0/8`'s finds
