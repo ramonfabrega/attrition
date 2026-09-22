@@ -1611,9 +1611,11 @@ unit_masks &= ~0x400
 AI: SCOUT §11.1's tail; find_repair_spot()
 ```
 
-With the default option the gate passes at `idle == 2` — the third idle frame
-— then every fifth increment (80 frames, phased by `o`). `think_peasant(1)`
-from a `THINK` order has no gate. An AI-controlled citizen (`unit_masks &
+~~With the default option the gate passes at `idle == 2` — the third idle
+frame — then every fifth increment (80 frames, phased by `o`).~~ **`T` is
+the table's answer, not its index** (494, §21): option 2 selects **12**;
+`else 2` is the out-of-range arm. `think_peasant(1)` from a `THINK` order
+has no gate. An AI-controlled citizen (`unit_masks &
 0x40000`) uses `T = 1` and an unlimited gather range; both landed
 2026-08-30, `docs/SYNC.md` §3.16. The colonist line landed
 2026-09-01, word 3978 (`docs/TRANSPORT.md` §7, SYNC §3.23).
@@ -3792,7 +3794,7 @@ harness needs without a recorded-game parser.
 | `americans_marine_entrench`, `aircraft_heal_rate`, `memnon_regen_rate`, `decoy_time` | `Unit::process`'s upkeep | §2.2 |
 | `starting_goods[6]`, `starting_resources.list[].lo/hi`, `ctw_starting_res_x` | §9.4 | |
 | `AMERICANS_STARTING_FARMS`, `KOREAN_CITIZENS`, `SPANISH_EXTRA_SCOUT`, `GREEK_START_SCHOLARS`, `GREEK_UNIVERSITY_EARLY`, `KOREAN_TEMPLE_UPGRADES`, `EGYPTIAN_GRANARY_EARLY`, `FRENCH_LUMBERMILL_EARLY`, `IROQUOIS_SENATE` | §9.2–§9.3 | |
-| `LeaderOptions +0x8` `peasants_wait` | the idle-citizen delay option (1–5 → 7, 12, 17, 32, 62; default 2) | §5.9 |
+| `LeaderOptions +0x8` `peasants_wait` | the idle-citizen delay **option index** (1–5 → 7, 12, 17, 32, 62; out of range → 2). `init` writes the index **2**, so the wait is **12** | §5.9, §21 |
 | `LeaderOptions +0x4` `peasants`, `+0xc` `buildings`, `+0x1c` the mask | the stance options, all 0 at `init` bar the mask's bits 1 and 3 | §5.10 |
 | `MTN_TINY_SIZE` | the miner's `dist_mod` cap | §6.4 |
 
@@ -4103,8 +4105,9 @@ need; **`gather_from`, the `GATHERPOINT` list and `BUILDQUEUE` need
 1. **The rotation and the cadence.** Select a citizen, shift-click two moves,
    ctrl-click a third: `length 3`, the `type` sequence newest-first shows
    `QUEUE_FIRST`'s rotation; the frame `length` drops shows one order per
-   frame, the next the frame after; `idle`'s 0, 1, 2, +1/16 on a unit left
-   alone.
+   frame, the next the frame after; ~~`idle`'s 0, 1, 2, +1/16 on a unit
+   left alone~~ — **answered by run100's `0/5`, §21.2: 0, 1, 2 and then
+   every sixteenth phased by `o`, across a 150-frame wait.**
 2. **Orders at frame 0.** `[Start Game] UNITS=3`: units `1..5` each with one
    `GATHER` on `2001, 2001, 2002, 2003, 2004`, the scout with none; and the
    `resource` console echo at frame 0 against §9.4 for the seed; `ai off`
@@ -4114,8 +4117,11 @@ need; **`gather_from`, the `GATHERPOINT` list and `BUILDQUEUE` need
    tolerance-384 chain, whether the first step points at the next cell
    centre); two seeds for a move between 2 and 8 cells should switch between
    cell-centre and tile-centre waypoints.
-4. **Arrival facing.** One move, no others: `angle` on arrival equals the
-   order's `angle`; with a second order queued, it does not.
+4. ~~**Arrival facing.** One move, no others: `angle` on arrival equals
+   the order's `angle`; with a second order queued, it does not.~~
+   **Answered by run100's `0/5` on 10294, §21.1** — both halves, on one
+   unit: the second order was this crate's and the original's arrival
+   faced its order's angle.
 5. **The stream lag.** `cheat select` + right-click at a known frame; the
    first frame with `dest 1` is the applied frame and the step is on it.
 6. **The swarm ring.** A citizen to a site from behind an obstacle: `orders_x/
@@ -5406,3 +5412,168 @@ one).
   its `Objects::find_collision` conjunct are still unmodelled
   (`crates/sim/src/orders.rs`, `do_move`'s own note); this item touched
   neither.
+
+---
+
+## 21. The human's idle wait is the option's *index*, not the option (item 494, 2026-09-22)
+
+§20 left Great Lakes' word at **10294** — one draw against the original's
+two, parting at index 0, the extra `Guy::set_anim+0x97a <
+Unit::do_idle+0x7d` — and block 10295 holding six rows, every one of them
+the human's citizen `0/5`. Item 489 booked the frame and the draw delta
+and deliberately named no mechanism (`docs/DECISIONS.md` 42). It was right
+to: `Unit::do_idle` is not the mechanism, is not wrong here, and needed no
+reading. **Nothing this crate does on frame 10294 is a defect. The defect
+is that the citizen was put back to work on frame 10234, and it is one
+number.**
+
+`Unit::think_peasant@005f5760:16` gates a human's job search on the
+player's idle-citizen option, and the option is an **index into five
+waits** rather than a wait:
+
+```
+switch (leader_options->list[who] +0x8) {        // LeaderOptionData::peasants_wait
+  case 1: T = 7;   case 2: T = 0xc;   case 3: T = 0x11;
+  case 4: T = 0x20; case 5: T = 0x3e; default: T = 2;
+}
+```
+
+`Unit::think_caravan@005f5650:10` repeats those six lines verbatim.
+`LeaderOptions::init@006f1d40` writes `peasants_wait = 2` for all ten
+slots, and every capture on disk that prints the record prints
+`peasants_wait 2` — so **the wait every human in every run measured has
+had is twelve frames**, and this crate used the index, 2. The two numbers
+are the same digit in different roles, which is why §5.9's own pseudocode
+has carried the table correctly since it was written while the sentence
+under it, and the implementation that followed the sentence, had the
+wrong one.
+
+### 21.1 The chain from 10234 to 10294
+
+`0/5` is attacked by the AI's raider `1/27` on 10233 (`damage_frame
+10233`, `damage_who 1`, `damage_o 27`), its gather order ends, and it goes
+idle. On **10234** `check_idle` steps `idle` 1 → 2 and `Unit::think` falls
+through to `think_peasant`, and there the two sides part:
+
+| | the original | this crate, before 494 |
+| --- | --- | --- |
+| gate at `idle == 2` | `2 < 12`, return | `2 >= 2`, search |
+| order list after 10234 | `[FleeTo (792, 31800)]` | `[FleeTo (792, 31800), Gather(building 2)]` |
+
+Sixty blocks of the flight then agree field for field — the flight's
+destination, bearing and frame are the original's (`docs/COMBAT.md` §34)
+— because `orders_x/y` and `dest_angle` follow the **leading transit
+move**, which is the flight on both sides. The extra order is invisible
+to every field but `orders.len`, and that is the row the widening had been
+printing on 10234 since item 464 and nobody had followed.
+
+On **10294** the flight arrives, and the queued order collects its
+interest twice:
+
+- `move_step@005faf30:329` faces the unit along the finished order's own
+  angle — `if (orderlist.length == 1) set_angle(order->angle)`, §4.5's
+  arm, already modelled here as `Sim::arrive`. With two orders the gate
+  is false, so this crate kept the bearing of its last step
+  (`-1320157184`) where the original took the order's (`-1334771712`).
+  That is block 10294's four rows: `heading`, `dest_angle`,
+  `angle:Heading` and `g.des_angle[0]`. **The arm was right; it was
+  never reached.**
+- `update_action` then finds a second order where the original finds
+  none, so this crate never goes idle at all. That is block 10295's six:
+  `orders_x`/`orders_y` `(4056, 28776)` against `(792, 31800)`, `idle` 0
+  against 1, and the facing and the stand behind them — and it is the
+  frame the original spends in `do_idle` and this crate spends walking
+  away, which is the draw the word was.
+
+### 21.2 What the dump says the original does instead
+
+Nothing, for a hundred and fifty frames, and then **exactly what this
+crate did**. run100's `0/5`, block by block:
+
+| block | `idle` | `orders_x/y` | `gather_down` |
+| --- | --- | --- | --- |
+| 10294 | 0 | (792, 31800) | −1 |
+| 10295 | 1 | (792, 31800) | −1 |
+| 10296 | 2 | (792, 31800) | −1 |
+| 10300, 10316, 10332, … 10428 | 3 … 11 | (792, 31800) | −1 |
+| **10444** | **12** | (792, 31800) | **2** |
+| 10445 | 0 | **(4056, 28776)** | 2 |
+
+The destination and the building are the ones this crate chose on 10295.
+The original is not making a different decision; it is making the same one
+when its own counter says it may.
+
+The cadence is `Unit::check_idle@006032c0`, which this crate already had:
+`idle` steps on consecutive frames while it is `<= 1`, and thereafter only
+when `((short) o + game->frame) & 0x8000000f == 0` — a signed modulo 16
+phased by the unit's own slot. For `o == 5` that is `frame ≡ 11 (mod 16)`,
+and the dump's block number is `frame + 1`: 10300, 10316, … 10444, which
+is the table above to the frame.
+
+### 21.3 What it moved
+
+| | before | after |
+| --- | --- | --- |
+| Great Lakes long word, count and sequence | 10294 | **10303** |
+| blocks 10234 / 10294 / 10295, keys parted | 3 / 4 / 6 | **0 / 0 / 0** |
+| run100 widening over `[9340, 10307]` | 320 | **288** |
+| `run100_s_word_frame_is_the_original_s` standing order residue | 18 units | **17** |
+| Great Lakes endpoint `off` / `unlinked` / `build_diverged` | 50 / 8 / 8 | **49** / **8** / **9** |
+
+East Indies' word is unchanged at 9711 and the golden record's at
+626/683; the human's idle wait does not reach either. run53's
+printed-not-pinned pair moved the other way — 12,059 frames on the
+original's count → 11,954, draw-for-draw 10,555 → 10,539 — and both are
+13,700 frames past the parting, where the stream is nobody's
+(`docs/DECISIONS.md` 36's reasoning, applied to the numbers that are
+printed rather than pinned).
+
+The successor is a frame and a draw delta and no mechanism: **10303**
+spends three draws here against the original's four, parting at index 3,
+and the extra is `Guy::set_anim+0x97a < Guy::inc_time+0x271`. Block 10304
+names the unit unprompted — two rows, both `1/51`'s animation clock,
+`g.cur_time` 30 against 0 and `g.last_time` 29 against −1.
+
+### 21.4 How it was established, and what it has not
+
+**Diff-backed**, and these are the claims with teeth:
+
+- The wait is 12 and the re-task is the same job:
+  `run100_s_citizen_waits_twelve_idle_frames_for_the_same_job` compares
+  `idle`, `orders_x` and `orders_y` block for block over `[10291,
+  10450]` — the whole wait, its counter and its end — and made to fail
+  on purpose with the wait back at 2 it parts on 10295.
+- The three blocks the chain wrote on are pinned empty in
+  `run100_s_word_block_is_every_record_the_dump_carries`, 10234 beside
+  10294 and 10295, so the cause cannot come back quietly behind the
+  headline.
+- The table itself is `stance::tests::peasants_wait_is_an_index_into_
+  five_waits`, which asserts the five arms, both out-of-range ends, and
+  that the **default option is arm 2 and not the default arm**.
+
+**Reading alone:**
+
+- **`think_caravan`'s half.** The same six lines, moved to the same
+  helper because the listings are the same, and no capture on disk has a
+  human caravan. Nothing here is measured.
+- **That `peasants_wait` is 2 because nothing ever writes it.**
+  `CommandPackage::process_leader_options@009441d0` and
+  `ScenarioFuncSet::set_auto_peasant_level@009ff620` are the only
+  writers and no capture issues either, so the value read out of run12's
+  `LEADEROPTION` record is taken to hold for run100, which does not dump
+  the category. A capture that enables it on Great Lakes would settle it
+  outright; the cost is one `gamelog.ini` line.
+
+**What is not established:**
+
+- **Which of the five waits a player actually sees**, and where the
+  option lives in the UI. `OptionsWinGame::do_save@0082c520` writes it
+  and `Options::describe@00724460` names the arms; neither was read.
+- **Whether the gate's `(idle − 2) % 5` tail is right above 12.** The
+  citizen here re-tasks on its *first* pass of the threshold, so the
+  window measured never exercises a retry. The expression is §5.9's and
+  unchanged by this item.
+- **The other half of block 10234.** `0/2001 gather:gather_down ours 5
+  theirs 2` closed with the order rows, but this item did not read the
+  camp's chain: it is the consequence of a `GATHERORDER` that is no
+  longer issued, not a separate claim.

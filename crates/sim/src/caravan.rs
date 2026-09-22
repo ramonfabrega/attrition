@@ -138,19 +138,22 @@ impl Sim {
 
     /// The idle gate, the home city, and the order. `true` ends the think.
     ///
-    /// The threshold is **1** for an AI-driven unit and otherwise the
-    /// owner's difficulty option — 2 by default — and after it the unit
-    /// tries again every fifth frame: `idle == threshold || (idle − 2) % 5
-    /// == 0`.
+    /// The threshold is **1** for an AI-driven unit and otherwise
+    /// [`crate::stance::LeaderOptions::idle_wait`] — 12 under the default
+    /// option — and after it the unit tries again every fifth frame:
+    /// `idle == threshold || (idle − 2) % 5 == 0`.
     pub(crate) fn think_caravan(&mut self, u: usize) -> bool {
         let idle = self.units[u].idle;
         let threshold = if self.ai_driven(self.units[u].owner) {
             1
         } else {
-            // SEAM: `LeaderOptions +0x8`'s five arms (7, 12, 17, 32, 62) are
-            // the human's idle-caravan setting; the default is 2 and no
-            // capture has a human caravan at all.
-            2
+            // `LeaderOptions +0x8`'s five arms (7, 12, 17, 32, 62) —
+            // the same table `think_peasant` selects from, and
+            // `think_caravan@005f5650:10` repeats those six lines
+            // verbatim. No capture has a human caravan, so nothing here
+            // is diff-backed; it is kept in step with its twin because
+            // the two listings are (item 494).
+            self.leader_options(self.units[u].owner).idle_wait()
         };
         if idle < threshold {
             return false;

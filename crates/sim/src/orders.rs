@@ -1921,10 +1921,19 @@ impl Sim {
     /// owner's idle-citizen option says: `think_peasant@005f5760:16` reads
     /// the option's switch only when `unit_masks & 0x40000` is clear, and
     /// takes 1 when it is set. So a computer player's new citizen finds a
-    /// job on the *first* frame it is idle, and a human's on the second.
-    /// That one frame is what run33's trained citizen spends: it comes out
-    /// at 99, is first visited at 100, and its walk — and the collision
-    /// that ends it at 122 — hangs off that frame (`docs/SYNC.md` §3.16).
+    /// job on the *first* frame it is idle. That one frame is what run33's
+    /// trained citizen spends: it comes out at 99, is first visited at 100,
+    /// and its walk — and the collision that ends it at 122 — hangs off that
+    /// frame (`docs/SYNC.md` §3.16).
+    ///
+    /// **A human's is [`crate::stance::LeaderOptions::idle_wait`], and it is
+    /// 12** — the option's switch, not the option itself (item 494,
+    /// `docs/ORDERS.md` §21). Reading `peasants_wait` as the wait put the
+    /// human's citizen back to work ten frames early, which is Great Lakes'
+    /// word at 10294: `0/5` takes its flight to `(792, 31800)` with a
+    /// `GATHERORDER` queued under it, so it never has the single order
+    /// [`Self::arrive`] needs to face the order's angle, and the frame the
+    /// original spends in `do_idle` it spends walking away.
     pub(crate) fn think_peasant(&mut self, u: usize, forced: bool) -> bool {
         let unit = &self.units[u];
         let ai = self.ai_driven(unit.owner);
@@ -1932,7 +1941,7 @@ impl Sim {
             let t = if ai {
                 1
             } else {
-                i32::from(unit.idle_threshold)
+                i32::from(self.leader_options(unit.owner).idle_wait())
             };
             let idle = i32::from(unit.idle);
             if idle < t {

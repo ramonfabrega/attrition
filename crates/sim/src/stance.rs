@@ -53,9 +53,8 @@ pub struct LeaderOptions {
     /// pushes onto every citizen the player already owns. It is a **human's**
     /// worker stance; an AI never reads it.
     pub peasants: i32,
-    /// `+0x8` — the idle-citizen threshold, which [`crate::Unit`] carries as
-    /// `idle_threshold`. Kept here so the record is whole; the unit field is
-    /// still what `think_peasant` compares against.
+    /// `+0x8` — the idle-citizen **option index**, not the threshold itself:
+    /// [`LeaderOptions::idle_wait`] is the table it selects a row of.
     pub peasants_wait: i32,
     /// `+0xc` — the combat stance every new **combat** unit takes. Named for
     /// buildings and used for units; the name is the PDB's, not a reading of
@@ -85,6 +84,33 @@ impl LeaderOptions {
     /// Bit `n` of the option bitmask's first byte.
     const fn bit(self, n: u32) -> bool {
         self.flags & (1 << n) != 0
+    }
+
+    /// `peasants_wait`'s **switch**, not its value: the number of idle
+    /// frames a *human's* worker or caravan waits before it looks for work
+    /// again (`docs/ORDERS.md` §21.1).
+    ///
+    /// `think_peasant@005f5760:16` and `think_caravan@005f5650:10` are the
+    /// same six lines twice over — `switch (leader_options->list[who] +0x8)`
+    /// with arms `1 → 7`, `2 → 0xc`, `3 → 0x11`, `4 → 0x20`, `5 → 0x3e` and
+    /// **`default → 2`** — so the option is an index into five waits and 2
+    /// is what an *out-of-range* index falls back to.
+    ///
+    /// The distinction is the whole of item 494. `LeaderOptions::init`'s own
+    /// default for the field is **2**, which selects `0xc`: every capture on
+    /// disk prints `peasants_wait 2`, so the wait every human in every run
+    /// has actually had is **12** frames, and this crate read the index as
+    /// the wait and used 2.
+    #[must_use]
+    pub const fn idle_wait(self) -> u8 {
+        match self.peasants_wait {
+            1 => 7,
+            2 => 12,
+            3 => 17,
+            4 => 32,
+            5 => 62,
+            _ => 2,
+        }
     }
 }
 
@@ -303,6 +329,38 @@ impl crate::Sim {
 mod tests {
     use super::*;
     use crate::ai_load::{role, uflags2};
+
+    /// `peasants_wait` is an **index**, and the default index is not the
+    /// default arm (item 494).
+    ///
+    /// The table is `think_peasant@005f5760:16` and
+    /// `think_caravan@005f5650:10`, which carry it twice verbatim. What
+    /// the row below is worth asserting for is the one line a reader
+    /// gets wrong: `LeaderOptions::init` writes `peasants_wait = 2` and
+    /// every capture on disk prints `peasants_wait 2`, so the wait every
+    /// human in every run measured has had is **12** — while the
+    /// switch's `default:` arm, which is what an out-of-range index
+    /// falls to and what this crate used to return for all of them, is
+    /// **2**. The two numbers are the same digit in different roles.
+    #[test]
+    fn peasants_wait_is_an_index_into_five_waits() {
+        let wait = |n: i32| {
+            LeaderOptions {
+                peasants_wait: n,
+                ..LeaderOptions::default()
+            }
+            .idle_wait()
+        };
+        assert_eq!(
+            (wait(1), wait(2), wait(3), wait(4), wait(5)),
+            (7, 12, 17, 32, 62),
+            "the five arms of `LeaderOptions +0x8`'s switch"
+        );
+        // Out of range, both ends, is the `default:` arm.
+        assert_eq!((wait(0), wait(6), wait(-1)), (2, 2, 2));
+        // And the default option is arm 2, not the default arm.
+        assert_eq!(LeaderOptions::default().idle_wait(), 12);
+    }
 
     /// `UnitTypeData::get_stance_type@0061d350`, arm by arm.
     ///

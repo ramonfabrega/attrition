@@ -227,9 +227,6 @@ pub struct Unit {
     pub orders_pos: Pos,
     /// `UnitData::idle` (§2.4).
     pub idle: u8,
-    /// The per-player idle-citizen option, as the threshold `think_peasant`
-    /// compares `idle` against; 2 by default.
-    pub idle_threshold: u8,
     /// `UnitData::stance`, the worker stance: 1 is the normal citizen (builds
     /// and gathers), 0 gathers only, 2 builds only.
     pub stance: u8,
@@ -760,7 +757,6 @@ impl Unit {
             path_recursion: 0,
             orders_pos: pos,
             idle: 0,
-            idle_threshold: 2,
             stance: 1,
             spell_time: 0,
             was_builder: false,
