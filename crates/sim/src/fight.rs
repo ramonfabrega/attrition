@@ -954,6 +954,7 @@ impl Sim {
             {
                 u.combat.damage_frame = frame;
                 u.combat.damage_o = at.captain;
+                u.combat.damage_who = i32::try_from(owner).unwrap_or(-1);
             }
             let _ = &mut dmg;
         }
@@ -1034,12 +1035,28 @@ impl Sim {
     fn take_damage(&mut self, target: Obj, hit: Sixteenths, _by: Obj, _frame: i64) -> Taken {
         match target {
             Obj::Unit(i) => {
+                // **The threshold is the figure's share of the squad, not
+                // the squad's own number** (§7.2 step 8, §7.3, §41.4).
+                // `myhits` is written onto every figure of a squad and
+                // `take_damage` divides it on the way in, so a hoplite of
+                // `UBER_SIZE` 3 and `HITS` 120 falls at 40; this crate
+                // passed the whole 120 and its figures absorbed a squad's
+                // worth apiece. run112's `1/8` reached `damage` 51 on
+                // block 685 still standing where the original's died on
+                // 683 at its fortieth point, and `extra 1/8` was that.
+                //
+                // `health` stays the **complement** of the dump's
+                // `damage` against the squad-sized `myhits`, which is what
+                // item 484's row pinned on 245,679 field-frames; the
+                // accumulated whole points therefore go into `take` as
+                // `max_health - health` and the share beside them.
                 let u = &self.units[i];
-                // `health` is what is left of the figure's share; the share
-                // itself is `health + damage taken`, which is what the
-                // threshold compares against.
-                let share = u.health;
-                let (taken, _, frac) = combat::take(0, u.damage_frac, share, hit);
+                let uber = self.profile(target).uber_size;
+                let alone = u.combat.captain == i32::from(u.index) && u.squad_size == 1;
+                let share = combat::share(u.max_health, uber, alone);
+                let u = &self.units[i];
+                let (taken, _, frac) =
+                    combat::take(u.max_health - u.health, u.damage_frac, share, hit);
                 let lost = match taken {
                     Taken::Alive { lost } | Taken::Died { lost, .. } => lost,
                 };

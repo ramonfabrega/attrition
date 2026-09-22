@@ -165,6 +165,64 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
                 }
             }
         }
+        // **The firing record, whole** (`docs/COMBAT.md` §41) —
+        // `UnitData::recharging` and the overkill window beside it,
+        // written at `UNITDATA`'s own indent on every unit of every block
+        // of every capture and compared on none of them until item 485.
+        //
+        // Item 484's hit-point row could see that this crate's hoplite
+        // `1/8` ran one arrival behind the dump's from its first wound
+        // (§40.4) and had to infer the frame of each hit from the
+        // accumulator that moved. The dump dates its hits itself:
+        // `damage_frame` is the sim frame `Object::do_damage` step 2
+        // stamped, in the same numbering this crate's `tick` passes, and
+        // `recharging` is the reload clock `Unit::fight` sets on the
+        // frame it swings. Between them they say *when a shot was fired*
+        // and *when it landed*, which is the whole of what a one-frame
+        // lag is about.
+        //
+        // `damage_o`/`damage_who` are compared only where **both** sides
+        // hold a live window. The original's never-hit encoding is
+        // `damage_o -1, damage_who 0` and this crate's is `0, 0`, so an
+        // untouched unit would part on the representation; and on the
+        // frames where one side has a record and the other does not, the
+        // fact is `damage_frame`'s to report, not theirs twice over.
+        {
+            let un = &built.sim.units[link.unit];
+            let live = u.damage_frame.is_some_and(|f| f != 0) && un.combat.damage_frame != 0;
+            let rows: [(&'static str, i64, Option<i64>); 4] = [
+                (
+                    "recharging",
+                    i64::from(un.combat.recharging),
+                    u.recharging,
+                ),
+                ("damage_frame", un.combat.damage_frame, u.damage_frame),
+                (
+                    "damage_o",
+                    i64::from(un.combat.damage_o),
+                    u.damage_o.filter(|_| live),
+                ),
+                (
+                    "damage_who",
+                    i64::from(un.combat.damage_who),
+                    u.damage_who.filter(|_| live),
+                ),
+            ];
+            for (field, mine, logged) in rows {
+                let Some(theirs) = logged else { continue };
+                r.firing_compared += 1;
+                if theirs != mine {
+                    r.firing_diverged.push(FiringDivergence {
+                        frame: frame.n,
+                        who: u.who,
+                        o: u.o,
+                        field,
+                        ours: mine,
+                        theirs,
+                    });
+                }
+            }
+        }
         // **The collision block**, field for field
         // (`docs/COLLISION.md` §8). `UnitData::log_data` writes all five at
         // every detail level, so this is checked on every capture — and

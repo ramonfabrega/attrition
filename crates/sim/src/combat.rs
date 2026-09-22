@@ -308,6 +308,11 @@ pub struct State {
     /// current window and the captain index of whoever struck it.
     pub damage_frame: i64,
     pub damage_o: i32,
+    /// `ObjectData::damage_who` — the **owner** of whoever struck, which
+    /// `do_damage` step 2 writes beside `damage_o` and the dump prints
+    /// beside it. This crate kept only the captain until item 485 put the
+    /// record in `rondata::diff::compare` (`docs/COMBAT.md` §41).
+    pub damage_who: i32,
     /// `ObjectData::targeted`: how many attackers have picked this object.
     pub targeted: i32,
     /// The captain's unit index — its own for a lone figure or the captain.

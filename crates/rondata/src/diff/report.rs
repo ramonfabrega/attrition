@@ -78,6 +78,27 @@ pub struct FrameResult {
     /// wherever the unit happens to be.
     pub hits_compared: usize,
     pub hits_diverged: Vec<HitsDivergence>,
+    /// **The firing record** — `UnitData::recharging`, the reload clock,
+    /// and the overkill window `damage_frame`/`damage_o`/`damage_who`
+    /// beside it, on every unit-frame the dump carries them for, which is
+    /// every one at every detail level (`docs/COMBAT.md` §41).
+    ///
+    /// Nothing here was compared until item 485. Item 484 put the
+    /// hit-point accumulator in (`hits_diverged`) and could then see that
+    /// this crate's hoplite `1/8` ran one arrival behind the dump's from
+    /// its first wound — but not *when* the shot that wounded it was
+    /// fired, nor on which frame the hit landed, because both are in
+    /// fields no comparison read. The dump dates its own hits: item 484's
+    /// ladder had to infer the frame from the accumulator that moved.
+    ///
+    /// Compared **both ways and ungated on the position**, for
+    /// [`hits_compared`](Self::hits_compared)' reason. `damage_o` and
+    /// `damage_who` are compared only where **both** sides hold a live
+    /// window (`damage_frame != 0`): a never-hit unit is `-1`/`0` in the
+    /// original and `0`/`0` here, which is a difference of encoding
+    /// rather than of state, and the *when* is `damage_frame`'s own row.
+    pub firing_compared: usize,
+    pub firing_diverged: Vec<FiringDivergence>,
     /// Angle comparisons made this frame — `UnitData::angle` for every unit
     /// record, and guy 0's `angle` for every record that carries a guy
     /// (`GUYS` at 1 or above). Two per unit-frame where both are present.

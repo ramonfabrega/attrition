@@ -115,6 +115,82 @@ const MEASURED: &[(i32, i8, u32, Node)] = &[
             dz: 184,
         },
     ),
+    // **run112's own nine arrows** (`docs/COMBAT.md` §41.3, item 485).
+    // Chapter two's `--detail end:` carries `AMMO=5`, so the golden
+    // capture has printed `AmmoData::log_data`'s `sx, sy, sz` on every
+    // block since it was taken and nothing had read them: the two pieces
+    // the chapter stages had no row here, so every shot in the
+    // engagement left the shooter's own square while the original's left
+    // the bow hand eighty-odd units ahead of it. That shortens the flight
+    // by one frame on four of the nine and put the whole wound ladder one
+    // arrival behind the dump from block 656 (§40.4).
+    //
+    // Piece **472** is the bowmen's and **384** the slingers'. Each row
+    // is solved from every arrow the capture carries for its key — three
+    // for `(472, ATTACK1, 12)`, two each for `(472, ATTACK2, 9)` and
+    // `(384, ATTACK2, 22)`, one each for the other two — at two or three
+    // different facings, which is what makes it a rotation rather than a
+    // stored world vector.
+    //
+    // **Two of the nine are reproduced to a unit rather than exactly**,
+    // unlike run109's (§22.1): the planar `(bearing, radius)` model
+    // cannot hit all three of `(472, ATTACK1, 12)`'s rows at once, and
+    // `(472, ATTACK2, 9)` is two units out on one of its two. §41.3 says
+    // what that leaves open. Nothing integral depends on it — the flight
+    // time is `dist / proj_speed` truncated, and a unit of distance moves
+    // it only across a boundary — and the consequence the fix is measured
+    // on is the impact *frame*, which is now the dump's on eight of the
+    // nine.
+    (
+        472,
+        crate::anim::ATTACK2,
+        9,
+        Node {
+            bearing: -17_683_648,
+            radius: 86,
+            dz: 164,
+        },
+    ),
+    (
+        472,
+        crate::anim::ATTACK1,
+        12,
+        Node {
+            bearing: -37_883_648,
+            radius: 89,
+            dz: 163,
+        },
+    ),
+    (
+        472,
+        crate::anim::ATTACK3,
+        15,
+        Node {
+            bearing: 81_516_352,
+            radius: 67,
+            dz: 164,
+        },
+    ),
+    (
+        384,
+        crate::anim::ATTACK2,
+        22,
+        Node {
+            bearing: 216_316_352,
+            radius: 125,
+            dz: 151,
+        },
+    ),
+    (
+        384,
+        crate::anim::ATTACK1,
+        21,
+        Node {
+            bearing: 532_316_352,
+            radius: 97,
+            dz: 178,
+        },
+    ),
 ];
 
 /// The node a piece releases from, or `None` when nothing has measured it.
