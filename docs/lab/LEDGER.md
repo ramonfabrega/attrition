@@ -126,6 +126,8 @@ No new capture or main-loop adoption is requested by this handoff.
 
 | L71 | How much saved-tree state lies outside the native unit/path witness? | [Post-tree definedness gap](2026-09-22-saved-tree-observation-gap.md). | Limit 95 changes all five old tree headers and 35 old tree nodes; guarded traversal refuses two uninitialized bytes after 191 records; repeat/control restore. | Model-only inventory, no complete post-graph closure or native tree comparison. PR #5 frozen; further work on a new lab branch. |
 
+| L72 | Can model post-tree structure be observed without inventing undefined bytes? | [Defined-byte graph observer](2026-09-22-defined-search-graph.md). | Structural walk completes: 539 records / 392 nodes / 123 PathNodes; 102 explicit undefined tail bytes. Repeat, read-only observation and control restoration pass; native unit/path agreement retained. | Model-only structural closure, not native post-tree or full-record byte equivalence. No new capture. |
+
 ## Current direction
 
 The September 19–22 tranche now has an unchanged native unit/path witness
@@ -133,9 +135,10 @@ The September 19–22 tranche now has an unchanged native unit/path witness
 bounded model on their measured outputs. Request retargeting does not retarget
 the saved search; continuation-budget changes provide the useful counterfactual.
 This slice is packaged in draft PR #5 for Fable's review. Offline follow-up L71
-finds that post-tree observation needs explicit byte definedness before another
-capture: new node bytes +22/+23 are not initialized in the model. The next
-adoption test should answer one
+identified uninitialized node bytes +22/+23. L72 now observes the complete modeled
+structure with 102 explicit undefined bytes, preserving the byte guards. The
+next lab step is a graph comparison contract before native post-tree capture;
+the next adoption test should answer one
 real divergence question selected by steering, with a named call/field and
 falsifier. Saved-tree contents, native limit 96 and general runtime fidelity
 remain open. The capture lane is released; no further slot is booked.

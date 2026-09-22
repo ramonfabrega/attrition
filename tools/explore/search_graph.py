@@ -14,7 +14,7 @@ POOLS = (0xc8d810,0xc8d950,0xc8d860,0xc8d880,0xc8d9a0,0xc8d9b0,0xc8da70)
 
 
 def words(data):
-    return struct.unpack('<'+'I'*(len(data)//4), data)
+    return struct.unpack('<'+'I'*(len(data)//4), bytes(data))
 
 
 def parse(raw):
@@ -38,6 +38,16 @@ def parse(raw):
 
 def validate(raw):
     h, items = parse(raw)
+    return validate_items(h,items)
+
+
+def validate_items(h,items,*,partial=False):
+    """Internal structural checks; callers separately enforce extent/framing.
+
+    Partial model records retain undefined bytes. Only the explicitly sized
+    node fields and occupied recycler entries are consumed in that mode.
+    Native binary validation always uses complete records.
+    """
     groups = {(k,o): [(a,d) for kind,owner,a,d in items if (kind,owner)==(k,o)]
               for k,o,_,_ in items}
     require(set(groups) <= {(1,0),(4,0)} | {(k,i) for k in (2,3,5) for i in range(5)} |
@@ -60,7 +70,7 @@ def validate(raw):
         while pending:
             pointer, parent = pending.pop()
             require(pointer in nodes and pointer not in visited, 'missing/cyclic/shared tree node')
-            visited.add(pointer); n = words(nodes[pointer])
+            visited.add(pointer); n = words(nodes[pointer][:20] if partial else nodes[pointer])
             require(n[2] == parent, 'tree parent mismatch')
             if i in (0,4) or nodes[pointer][21] == 0:
                 live[pointer] = n
@@ -98,9 +108,9 @@ def validate(raw):
         else:
             require((7,i) not in groups, 'unexpected empty pool array'); d=b''
         if i==6:
-            require(not set(owned).intersection(words(d)[:p[2]]), 'owned PathNode is already recycled')
+            require(not set(owned).intersection((words(d[:p[2]*4]) if partial else words(d)[:p[2]])), 'owned PathNode is already recycled')
         pool_data.append((p,d))
-    report = {'frame':h[2], 'records':h[4], 'serialized_bytes':len(raw),
+    report = {'frame':h[2], 'records':h[4], 'serialized_bytes':h[5],
               'declared_bytes':sum(len(d) for _,_,_,d in items),
               'tree_nodes':h[6], 'logical_lengths':[t[2] for t in trees],
               'physical_lengths':[len(groups.get((3,i),[])) for i in range(5)],

@@ -98,3 +98,7 @@ and three doc tests; all 782 fixture requests present; lint, formatting, install
 survey and paperwork checks passed. Peak process-tree memory was 8,262 MiB.
 The final validation note and corrected historical ledger label were followed
 by the fast paperwork guard. No production source changed.
+
+Follow-up: [L72](2026-09-22-defined-search-graph.md) completes a structural
+observation with explicit undefined bytes. Whole-record byte equivalence and
+native post-tree comparison remain unestablished.
