@@ -31,8 +31,36 @@ taking the headline: run107's thirty blocks at 9170–9199 carry no income
 row at all, so the 32 opens somewhere inside `(9199, 10375]` and nothing
 on disk covers it. The AI's two unmodelled caravans are **a candidate,
 not a measurement** — 176 is not 32, and the gap is not there at 9199.
-A `MISC,LEADERS=2` run over that span is thin enough to take whole and
-would date it to the frame; grep the disk first.
+**The disk has been grepped and it cannot answer this one — the capture
+is owed.** The argument is what run117 does *not* show: `LEADERDATA`
+carries every per-good input income is built from — `gather_slots`,
+`filled_gather_slots`, `base_rate`, `econ`, `bonus`, `support`,
+`over_cap`, `resource_cap` — and across 490 blocks **none of them
+parts**. Only `resources`, `income` and `rate` for wealth do, and `rate`
+is `income/16`. So the missing term is summed into wealth from **outside
+the goods block**, and no number of blocks of this record can name it.
+Nor can the disk date it: run107 ends at 9199, the next `LEADERS≥2`
+window on this map is run80 at 23960, and run100's `CITIES=5`/`BUILDS=7`
+show nothing changing in `(9340, 10375]` — the caravan rows are already
+standing at the window's first block and never move, so the 32 did not
+arrive with a building, a city or a caravan.
+
+**Booked as run121**: `MISC,LEADERS=2` over `[0, 10400)`. run60 did 5,400
+blocks at that detail in under five minutes and 67 MB, so ~10 minutes and
+~135 MB here. It converts an unbounded search into a lookup, because
+whatever frame it names, run97 and run100 already cover in full detail —
+and it is reusable, being the whole economy trajectory of the headline
+game, which nothing on this disk has. **Take it behind the headline, not
+ahead of it** (item 506's own judgement, and right: 10817 names its frame
+and this does not).
+
+**Disk caution, 2026-09-22: `/System/Volumes/Data` is at 99%, 15 GiB
+free of 926** (re-measured by the commander; item 506 read 98% / 18 GB
+minutes earlier, so it is *moving*). 135 MB is nothing on its own; a
+queue of captures is not, and `ccc spawn` refuses below a 10 GB floor —
+which is four run121s away. **Somebody should look at this before the
+next wave**, and it is the kind of thing that stops the loop dead rather
+than slowing it.
 
 (511) **`1/2018 queue[0].cost[0]` on 10782.** Both sides now queue Horse
 Archers at the Stable; this crate charges 60 timber / 40 wealth where the
@@ -248,6 +276,35 @@ happened because its delta was in neither place; today's is in one of two.
 and found the narrative two words stale. That is a habit rather than a
 check, and it produced a wrong first diagnosis before a `git show`
 corrected it.
+
+**The answer arrived before the pass, and it is a rule rather than a
+guard.** Item 506 proposed a guard — *the constant's doc comment must
+contain its own value's decimal form* — and then **withdrew it an hour
+later, having tried it**. Writing the entry showed why: block 10818's
+eight rows are already **asserted** in
+`run100_s_word_block_is_every_record_the_dump_carries`, so copying them
+into the comment is prose nothing checks, and the two drift the first
+time the word moves. It deleted the copy. A guard demanding a comment
+line is satisfied by exactly that duplication; a guard demanding the
+value's digits is weaker than it looks.
+
+**The rule it landed instead, and the division is the point:**
+
+> **The word's delta in the constant, the word's block in the widening,
+> and each says which.**
+
+The delta is the half that lives nowhere else —
+`run53_s_24000_frames_put_the_ceiling_where_run33_did` computes and
+prints it but no test pins it as text — while the block has a test behind
+it. `LONG_WORD_GREAT_LAKES` now carries 10582 and 10817 in that form,
+with 10303 and 10582 struck and pointed at `docs/ANIM.md` §4.12 and
+`docs/ECONOMY.md` §13 (`792b6b1`).
+
+So what the pass inherits is **not** "write this guard" but a worked
+example of a guard that was proposed, built and rejected on the evidence
+of building it — and the open question of whether the rule above should
+be in `CLAUDE.md` at all, given it was derived twice in one day by two
+different lanes without being written anywhere.
 
 (509) **Filing to this section is the commander's default, and it was
 not.** Ramon, 2026-09-22, after having to ask twice: *"it should be your
