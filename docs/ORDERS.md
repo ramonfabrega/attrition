@@ -876,27 +876,24 @@ target order decides its transit legs are stale.
    unit (`avoid_x/y = pos`, resets the gather fields, kills the move); else
    every other frame from 4 on, `detect_unit_collision(coll_x, coll_y, …) ==
    0` → `dest = 0; clear_partial_path; flags |= 1; collide = 0; return 0` (the
-   blocker has gone — re-plan next frame); otherwise `collide++` and
-   `dest = 0` **every frame** (the increment is outside the
-   `& 0x80000003` test, which guards only `repaths[who]++`; run90's
-   `collide` counts 1 → 9 one a block, `docs/COLLISION.md` §8.8), then
-   `PathFinder::find_upath_restore`
-   resumes the A\* with limit `300 / repaths²`. **No step while a search is
-   pending.**
+   blocker has gone — re-plan next frame); otherwise `collide++` and `dest =
+   0` **every frame** (the increment is outside the `& 0x80000003` test, which
+   guards only `repaths[who]++`; run90's `collide` counts 1 → 9 one a block,
+   `docs/COLLISION.md` §8.8), then `PathFinder::find_upath_restore` resumes
+   the A\* with limit `300 / repaths²`. **No step while a search is pending.**
 3. **`timer`**: `> 0`: at 1 → `kill_current_order(0); work(); return 0`; else
    `timer--`.
 4. **The action under the move** (`get_action()`): if `ATTACK`, the target
    alive on the same `uid`, and **the attacker's `max_range` non-zero** —
    `005f7b30:212`, `ObjectTypeData +0x1fc`, the arm's gate (item 405,
-   `docs/COMBAT.md` §25) — a non-building, non-flank, in-range target
-   (**less `+0x90` unless mandatory**, §35.3), no collision at its own
-   spot → `kill_current_order`; every 16 frames
-   `find_melee_target` may take a closer in-range unit; a building target
-   in range, valid, no collision → kill. A non-mandatory `ATTACK` action
-   every 4th frame under `repaths` budget → `find_new_target(0, 1)`
-   (§12.4 there). A target gone and the unit within
-   `0x481` of its point → `repath(); return 0`. A `TRADE_ROUTE` with
-   negative endpoints → kill.
+   `docs/COMBAT.md` §25) — a non-building, non-flank, in-range target (**less
+   `+0x90` unless mandatory**, ~~§35.3~~ §36), no collision at its own spot →
+   `kill_current_order`; every 16 frames `find_melee_target` may take a closer
+   in-range unit; a building target in range, valid, no collision → kill. A
+   non-mandatory `ATTACK` action every 4th frame under `repaths` budget →
+   `find_new_target(0, 1)` (§12.4 there). A target gone and the unit within
+   `0x481` of its point → `repath(); return 0`. A `TRADE_ROUTE` with negative
+   endpoints → kill.
 
 **The entrench wait.** `if (retry != 0) { if (--retry == 0) attempts += 3;
 return 0; }`; the 128-frame modern-infantry check (§4.1); `if (attempts != 0)
