@@ -112,13 +112,15 @@ No new capture or main-loop adoption is requested by this handoff.
 
 | L64 | Can a bounded allocation-success model advance the retained replay without more capture? | [Modeled allocator](2026-09-21-modeled-allocator.md). | 72 allocations, 128,717 instructions, 153,952 added captured bytes; repeated and extended-state-perturbed runs agree at a 96-byte memset refusal. | Modeled allocator only; no A* return, no full-state/native fidelity claim; no new live run. |
 
+| L65 | Can explicit memory services and object lifetimes close the retained call? | [Complete modeled resumption](2026-09-21-modeled-resumption.md). | 197,650 instructions; outer return 8; internal A* return 1 matches native; eight resets and two fresh controls agree on their stated observations. | All 640 path-slot bytes retained; no native post-path comparison or FXSAVE import; no live capture or main score change. |
+
 ## Current direction
 
-The September 19–21 tranche has a validated broad payload and an exploratory
-replay stopping at CRT allocation. The independent follow-up supplies a strict
-malloc-success model and reaches an unmodeled memset call. Native allocator
-behavior, extended-state handling beyond that prefix and native output
-equivalence remain research work.
+The September 19–21 tranche has a validated broad payload and a complete
+modeled pathfinding call. Explicit memory-service and lifetime models close the
+runtime dependencies; the internal A* return agrees with the native trace.
+The next falsifier is a paired native post-return unit/path observation.
+Full native output equivalence and general runtime behavior remain open.
 Fable decides whether any method merits a pilot, adoption, further evidence or
 parking; review does not imply approval to merge the whole lab branch.
 
