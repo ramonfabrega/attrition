@@ -1759,7 +1759,24 @@ pub(crate) const GOLDEN_WORD_CHAPTER_ONE: i64 = 626;
 /// window `[606, 649)` went from **five first-partings to nought** — every
 /// record run112 carries, both directions, on every frame under the new
 /// word.
-pub(crate) const GOLDEN_WORD_CHAPTER_TWO: i64 = 680;
+///
+/// **680 → 683 on 2026-09-22, item 481** — and the mechanism is the
+/// previous item's own nesting. `do_move@005f7b30:207` opens
+/// `if (ptype->max_range != 0) { … }` and the brace closes **past** the
+/// captain retarget at `005f803f`, so both the in-range kill and the
+/// retarget are a ranged attacker's; 479 wrote the gate as a conjunct of
+/// the kill alone and a **melee** captain reached the retarget. run112's
+/// hoplite captain `1/6` carries `near_o 10` for the whole window, so this
+/// crate switched all three hoplites off `0/11` down the `o_down` chain on
+/// 671, where the dump has `ox 11 whom 0 uid 18` on every block of the
+/// capture and never retargets them at all. `docs/COMBAT.md` §38. The
+/// value diff beside the move is the same widening, whose map over
+/// `[606, 684)` went from **six first-partings to nought**; the three rows
+/// that stand now are past the old window's ceiling and stood with the fix
+/// reverted — `extra 1/8` at 684 (the original's hoplite dies on 683 and
+/// this crate's does not), and a citizen's `order 1/4`/`pos 1/4` at
+/// 685/686.
+pub(crate) const GOLDEN_WORD_CHAPTER_TWO: i64 = 683;
 
 /// **Every pinned word names the test that widened its frame whole, or
 /// the open item that will** (`docs/DECISIONS.md` 43). A word is the frame
@@ -1794,8 +1811,15 @@ pub(crate) const WIDENING_GREAT_LAKES: (i64, i64) = (9_340, 10_247);
 /// it had not measured (`docs/COMBAT.md` §35.2). That row is closed and
 /// the ceiling followed the word to 645 on item 472; the floor has not
 /// moved and will not, because it is the only one that cannot hide a row.
-/// The ceiling followed the word to 680 on item 479.
-pub(crate) const WIDENING_CHAPTER_TWO: (i64, i64) = (606, 684);
+/// The ceiling followed the word to 680 on item 479, and to **683** on
+/// item 481 — whose three surviving rows all sit *above* the old ceiling
+/// at 684 and stood with the fix reverted, so the ceiling was hiding them
+/// exactly the way the floor once hid `0/10`'s. `extra 1/8` is the first,
+/// and it is a **death**: the original's hoplite `1/8` dies on 683 and
+/// this crate's does not. [`crate::diff::compare`] carries no hit-point
+/// row, so this walk sees the absence and not its cause; the successor
+/// owes that row.
+pub(crate) const WIDENING_CHAPTER_TWO: (i64, i64) = (606, 687);
 
 /// One pinned word's row: `(constant, word, widening test, item, window)`.
 pub(crate) type Widening = (
@@ -1873,12 +1897,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // same landing, the third chapter-two move in a row to do so: the
     // window's ceiling is four frames past 680 and its floor is still
     // run112's own first block, which is the only floor that cannot hide
-    // a row.
+    // a row. Item 481 moved it 680 → **683** on the same terms, and the
+    // ceiling's move is what surfaced `1/8`'s death on 683 — four frames
+    // past the word is enough to say where the parting opens and not
+    // enough to see what the next one is.
     (
         "GOLDEN_WORD_CHAPTER_TWO",
         GOLDEN_WORD_CHAPTER_TWO,
         Some("chapter_two_s_word_frame_is_widened_whole"),
-        479,
+        481,
         Some(WIDENING_CHAPTER_TWO),
     ),
 ];

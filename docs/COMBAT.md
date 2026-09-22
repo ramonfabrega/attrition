@@ -5559,10 +5559,13 @@ either side models reads.
 
 ### 37.2 The arm, `005f803f`-`005f8216`
 
-Inside `do_move`'s `ptype->max_range != 0` gate and inside its "the
-target is not a wallbuild" arm (`piVar2->vt[0x1c]` is
-`SubObjectData::is_wallbuild`, offset 28 by the field list), **after**
-the in-range kill has failed:
+Inside `do_move`'s `ptype->max_range != 0` gate — a **block**, whose
+brace closes past this whole arm, so the retarget is a ranged
+attacker's exactly as the kill above it is (§38.2; this landing lost the
+nesting in translation and item 481 restored it) —
+and inside its "the target is not a wallbuild" arm (`piVar2->vt[0x1c]`
+is `SubObjectData::is_wallbuild`, offset 28 by the field list),
+**after** the in-range kill has failed:
 
 ```
 if (attack->mandatory == 0 && is_captain(this)) {         // o_up < 0
@@ -5736,12 +5739,20 @@ five of §36.6's rows are gone and so is every record in between: sixty-
 five frames of run112 from its own first block, every field of every
 dumped record, both directions, at nought.
 
-What stands at 671 is **who=1's side of a tie this crate has broken the
+~~What stands at 671 is **who=1's side of a tie this crate has broken the
 other way twice before**. All three hoplites hold `0/11` where this
 crate holds `0/10`; the two slingers are near-equidistant identical
 figures, and `pos 1/6`, `pos 1/7` and the whole of `1/7`'s move order
 follow from a hoplite walking to a different one. §33 named that shape
-and closed it on who=0's two squads; this is its mirror.
+and closed it on who=0's two squads; this is its mirror.~~ — **falsified
+by item 481, §38.** It was not a tie and it was not who=1 choosing
+anything: the dump has all three hoplites on `ox 11 whom 0 uid 18` for
+**every block of the capture**, with `new_ord 1` throughout, so the
+original never ranks those two slingers against each other at 671 and
+never rewrites the target. The six rows are this landing's own — §37.2's
+`max_range != 0` gate is a *block* in the executable and was written
+here as a conjunct of the in-range kill alone, so a **melee** captain
+reached the retarget. §38.
 
 `visible`'s exact count is **9 of 9**, from 8. The one that came over
 is `0/9`'s own, 648 → 646, and because `visible`'s arrival frame is the
@@ -5790,6 +5801,201 @@ unit_frame`:
   inverted arm. No capture reaches either.
 - the `find_melee_target` probe and its mode argument: unimplemented,
   not merely unverified.
+
+## 38. The ranged gate is a block, not a conjunct (item 481, 2026-09-22)
+
+§37.6 booked 671 as "who=1's side of a tie this crate has broken the
+other way twice before" — §33's shape mirrored, a target-selection tie
+among two near-equidistant identical slingers. **The dump falsifies that
+before any code is read**, and what the six rows actually are is §37's
+own landing firing on units it was never meant to reach: `do_move`'s
+`ptype->max_range != 0` is a **block** in the executable whose brace
+closes past the captain retarget, and §37.2 was implemented with it as a
+conjunct of the in-range kill above. A melee captain therefore reached
+the retarget, and run112's hoplite captain switched its whole squad off
+a target the original never changes.
+
+The word moves **680 → 683**, and every record run112 carries over
+`[606, 684)` — both directions, every field, every unit, seventy-eight
+frames from the capture's own first block — goes to **nought**.
+`chapter_two_s_visible_byte_is_the_dump_s_on_every_unit_frame` holds at
+**9 of 9**.
+
+### 38.1 The dump had already answered it, in a field it prints every block
+
+`docs/COMBAT.md` §37.6 read the six rows as a choice. A choice leaves
+marks, and none of them are there:
+
+| block | `1/6` | `1/7` | `1/8` |
+| --- | --- | --- | --- |
+| 655 | `ox 11 whom 0 uid 18` | same | same |
+| 670 | same | same | same |
+| **671** | same | same | same |
+| 683 | same | same | *(dies)* |
+
+All three hoplites hold **`0/11`** on every block of the capture, on the
+same `uid 18`, and `new_ord` is **1** on `1/6` and `1/7` from birth to
+671 — the flag a freshly created order carries (§37.4). So the original
+neither ranks the two slingers against each other at 671 nor rewrites a
+target in place: whatever happens on that frame, who=1 does not choose.
+That leaves one side that can have moved, and the row says which — this
+crate held `0/10` where the dump holds `0/11`, on **all three** figures
+of one squad at once, which is `Unit::change_target`'s own signature
+(§37.4) and nothing else's.
+
+`1/6`'s `near_o` is the rest of it: **`10`, from block 621 to the end of
+the window**, unchanged, because §37.1's field is the *nearest*
+`check_target`-passing candidate and `0/10` is nearer than the `0/11` the
+squad is walking to. So the incumbent this crate acted on was right, the
+arm it acted through was right, and the only thing wrong was that a
+hoplite may not run it.
+
+**The cost of the framing was twenty minutes, and the cheap check was a
+`grep` of a field already on disk.** `docs/DECISIONS.md` 42's rule held
+again: the frame was right and the named mechanism was wrong.
+
+### 38.2 `do_move@005f7b30:207` — where the brace closes
+
+```
+if ((piVar2[2] & 1) != 0 && (short)piVar2[0xc] == target->uid) {
+  if (*(int *)(*(int *)&this->field_0x18 + 0x1fc) != 0) {         // 207  max_range
+    if ((*(code **)(*piVar2 + 0x1c))() == 0) {                    //      not a wallbuild
+      … the flank triple, is_in_range(margin), find_collision …   //      the in-range kill
+      if (attack->mandatory == 0) {
+        if (is_captain(this)) { … near_o … change_target … }      // 005f803f
+      }
+    }
+    else { … the building-target kill … }
+  }
+  …
+}
+```
+
+`ObjectTypeData +0x1fc` is `max_range` by the type record, and the brace
+opened on line 207 closes **after** the captain arm — the same nesting
+item 405 established for the unit-target kill and the building-target
+kill (§35.3, `docs/ORDERS.md` §4.4). Everything the ATTACK action does
+under a MOVE is a ranged attacker's. A melee type walks the leg it was
+given and `do_attack` takes over when the move ends; it never abandons a
+chase because something came into reach, and it never retargets.
+
+**A hoplite's `max_range` is 0, and the measurement is the proof rather
+than the table.** Nesting the retarget inside the gate removes exactly
+the six rows at 671/672 and nothing else — so the three units the rows
+name are on the zero side of the test, both directions, with no reading
+of `ObjectTypeData` required. (§36.3 said the same thing from the other
+end: `check_target_path`'s review has *no* `max_range` gate, "which is
+why `1/7` and `1/8` are on the list".)
+
+This is the second time the arithmetic was right and a **predicate** was
+wrong (`docs/audit/README.md`'s recurring lesson), and the first time
+the predicate was lost in *translation* rather than in reading: §37.2
+states the gate correctly in prose and even names it — "Inside
+`do_move`'s `ptype->max_range != 0` gate" — while the Rust wrote it as
+`self.profile(me).max_range != 0 && self.is_in_range_at_margin(…)`, a
+conjunct of one arm. A gate stated as prose and implemented as a
+conjunct is the shape to look for; the fix is one `if` block.
+
+### 38.3 What moved
+
+Word **680 → 683**, sequence 683, values 684. 683's own extra draw is on
+the original's side, `Farms::inc_time+0x1ae` against an unnamed
+`60fb06` — outside the engagement entirely.
+
+The value diff on the frame the word moved, the dump's own coordinates —
+the six rows that are **gone**:
+
+```
+671 pos   1/6   ours (1623, 8037)  theirs (1608, 8040)
+671 pos   1/7   ours (2088, 8280)  theirs (2091, 8312)
+671 order 1/6   Target ours (0,10) theirs (0,11)
+671 order 1/7   Target ours (0,10) theirs (0,11) · Move x 1512/1128 · y 8328/8424 · PathLength 0/5
+671 order 1/8   Target ours (0,10) theirs (0,11)
+672 angle 1/6   Heading ours -1320157184 theirs -1605566464
+```
+
+The widening window is `[606, 687)` and its map is **three** rows, all of
+them above the old window's ceiling at 684:
+
+```
+684 extra 1/8            the original's hoplite died on 683; ours has not
+685 order 1/4            a citizen's move, ours (1512,8328) theirs (1128,8424)
+686 pos   1/4            ours (41016, 17016) theirs (41033, 17034)
+```
+
+**All three stood with this landing reverted**, measured on the same
+widened window, so the ceiling was hiding them and the fix did not open
+them. That is the floor's lesson from item 470 arriving at the other end
+of the window: a ceiling sized to the word reports agreement it has not
+measured, for exactly as long as the word stands still.
+
+`chapter_two_s_visible_byte_is_the_dump_s_on_every_unit_frame` holds at
+**9 of 9** — §37's own `0/9` retarget at 645 is a slinger's and is
+untouched, which is the check that says this change narrowed the arm to
+the types the original runs it on rather than switching it off.
+`rondata`'s endpoints do not move and neither ladder rung moves.
+
+### 38.4 What stands at 684, and what this widening cannot see
+
+`extra 1/8` is a **death**. The dump's `DEATH_OBJS` on block 684 carries
+`who 1 o 8 first_frame 683 cur_anim 17`, and `1/8`'s own accumulator
+reaches it: `damage` 0 → **8** (656) → **17** (657) → **25** (660) →
+**34** (682), against a figure's share of `myhits 120`, which
+`docs/ATTRITION.md`'s figure table puts at **40**. The hit on 683 takes
+it over and the record vanishes before the accumulator is printed again.
+
+**`compare` carries no hit-point row at all.** No `myhits`, no `damage`,
+no `hits_left` — where `run100_s_word_block_is_every_record_the_dump_
+carries` has had both since §34.4, and where the same dump prints the
+pair at every detail level. So this walk can see that `1/8` is *gone*
+and not that it was wounded on different frames, and the successor item
+owes that row before it names a mechanism: the widening this word is
+pinned with is whole on the ten vectors `FrameResult` carries and is not
+whole on the record.
+
+`order 1/4` / `pos 1/4` are a **citizen** — guy type 50, `myhits 40`, a
+GATHER on `uid 3` forty thousand units from the engagement — and they
+are the same family as `order 0/5` at 639 (§32.5) and `0/5`'s flight
+residue (§34.4): an economy divergence named here so a regression in it
+cannot hide behind the engagement, and nobody's item yet.
+
+### 38.5 Coverage
+
+**Diff-backed**, by `chapter_two_s_word_frame_is_widened_whole` over
+`[606, 687)` and `chapter_two_s_visible_byte_is_the_dump_s_on_every_
+unit_frame`:
+
+- that a **melee** captain does not retarget under a move — the six rows
+  at 671/672 are gone, and `1/6`'s `near_o 10` is still compared right
+  through the window by `chapter_two_s_near_o_is_the_dump_s_on_every_
+  unit_frame`, so the incumbent is still read and still not acted on;
+- that a **ranged** captain still does — `visible 0/9` at 646 and
+  §37.7's rows all hold, which is the same change measured from the
+  other side;
+- that the three hoplites keep `0/11` for the whole window, on the
+  dump's own `uid`;
+- `near_o`/`near_who` on every unit of every block of the **widened**
+  window — `chapter_two_s_near_o_is_the_dump_s_on_every_unit_frame`
+  re-pinned upward with the ceiling, 4668/161 → **4848** unit-frames,
+  **170** of them live, **4848 agreeing** and no unit parting. A tally
+  that grows with the window is the only direction this row may move
+  (§37.7).
+
+**Reading-only**, and each names the capture that would falsify it:
+
+- that the gate's block also encloses the **building**-target arm and the
+  flank triple. run112's chase is against a unit on every frame, so no
+  row separates them; a capture of a ranged unit ordered onto a building
+  it is walking to would reach it.
+- everything §37.7 already lists as reading-only is unchanged by this
+  landing: `near_o`'s `0xf00` clear, `poor_target`'s conjuncts 1 and 3,
+  `is_targeted` as the head-popping test, `unit_masks2 & 4`'s inverted
+  arm, and the `find_melee_target` probe.
+- **What this does not establish**: whether a melee captain has *another*
+  retarget path of its own. `Unit::think`'s `near_o` arm (§37.5, parked
+  482) has no `max_range` gate on it, and it is thirty-one frames in
+  thirty-two — so "a hoplite never changes target under a move" is what
+  is measured here, not "a hoplite never changes target".
 
 ## 39. The word was a label: naming `Ammo::do_damage`'s puncture pair (item 483, 2026-09-22)
 

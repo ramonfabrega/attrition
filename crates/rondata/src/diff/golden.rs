@@ -1543,30 +1543,44 @@ fn chapter_two_s_word_frame_is_widened_whole() {
     // 0/11` take the new target down the `o_down` chain on the same
     // block, and `visible 0/9` arrives on 646 rather than 648.
     //
-    // **What stands at 671 is who=1's side of the same tie.** All three
-    // hoplites hold `0/11` where this crate holds `0/10` — the two
-    // slingers are near-equidistant identical figures and the ranking
-    // breaks the tie the other way, which is the shape §33 named twice
-    // and closed twice on who=0's squads. `pos 1/6` and `pos 1/7` and
-    // `1/7`'s whole move order follow from it: a hoplite walking to a
-    // different slinger walks somewhere else. The draw stream holds nine
-    // frames past this, to **680**, and 680's own extra draw is
-    // `Guy::set_anim+0x97a < Unit::move_step+0x823` against a bird's
-    // `think_bird` — the chase destination again.
-    let measured = [
-        ("angle 1/6", 672),
-        ("order 1/6", 671),
-        ("order 1/7", 671),
-        ("order 1/8", 671),
-        ("pos 1/6", 671),
-        ("pos 1/7", 671),
-    ];
+    // **Item 481 closed all six of 671's rows and they were not a tie.**
+    // `do_move@005f7b30:207`'s `ptype->max_range != 0` opens a *block*
+    // whose brace closes past the captain retarget, and item 479 wrote
+    // the gate as a conjunct of the in-range kill alone — so a **melee**
+    // captain reached the retarget. run112's hoplite captain `1/6`
+    // carries `near_o 10` from block 621 to the end of the window, and
+    // on 671 the plain reach admits `0/10`, so this crate switched all
+    // three hoplites off `0/11` down the `o_down` chain. The dump has
+    // `1/6`, `1/7` and `1/8` on `ox 11 whom 0 uid 18` on **every block
+    // of the capture** and never retargets them at all; 479's reading
+    // that this was §33's tie mirrored onto who=1 is falsified by the
+    // dump's own field. `docs/COMBAT.md` §38.
+    //
+    // **What stands now is 684, and it is a death.** The original's
+    // `1/8` dies on 683 — `DEATH_OBJS` with `first_frame 683`, at its
+    // 40-hit share of `myhits 120` (`docs/ATTRITION.md`'s figure table)
+    // after `damage` 0 → 8 → 17 → 25 → 34 on 656/657/660/682 — and this
+    // crate's is still alive, so `extra 1/8` is the row. `order 1/4` at
+    // 685 and `pos 1/4` at 686 are a **citizen** forty thousand units
+    // from the engagement, the same family as `order 0/5` (§32.5), and
+    // all three stood identically with 481's change reverted and this
+    // window: they were hidden by the old ceiling at 684, not opened by
+    // the fix.
+    //
+    // **The window's ceiling is what hid the death, and `compare` is
+    // what hides its cause**: [`crate::diff::compare`] carries no hit
+    // -point row at all — no `myhits`, no `damage`, no `hits_left` —
+    // where `run100_s_word_block_is_every_record_the_dump_carries` has
+    // had both since §34.4. So this walk can see that `1/8` is *gone*
+    // and not that it was wounded differently; the successor item owes
+    // that row before it names a mechanism.
+    let measured = [("extra 1/8", 684), ("order 1/4", 685), ("pos 1/4", 686)];
     let got: Vec<(&str, i64)> = first.iter().map(|(k, &n)| (k.as_str(), n)).collect();
     assert_eq!(
         got,
         measured.to_vec(),
-        "chapter two's word frame no longer widens the way item 472 \
-         measured it; re-pin this map and say so in docs/COMBAT.md §36"
+        "chapter two's word frame no longer widens the way item 481 \
+         measured it; re-pin this map and say so in docs/COMBAT.md §38"
     );
 }
 
@@ -1596,8 +1610,8 @@ fn chapter_two_s_word_frame_is_widened_whole() {
 /// not. Pinning the disagreements by name rather than counting them is
 /// what keeps a later landing from trading one unit's footprint for
 /// another's; pinning `live` beside `read` is what keeps the empty list
-/// from being an instrument that stopped looking, because 4507 of the
-/// 4668 unit-frames are animals and idle citizens whose pair is `-1` on
+/// from being an instrument that stopped looking, because 4678 of the
+/// 4848 unit-frames are animals and idle citizens whose pair is `-1` on
 /// both sides.
 ///
 /// **What it catches, measured by making it fail** (`CLAUDE.md`, "the
@@ -1706,15 +1720,23 @@ fn chapter_two_s_near_o_is_the_dump_s_on_every_unit_frame() {
 
 /// The units whose `near` pair parts from run112's, and the first block
 /// each parts on — item 479's measurement, pinned by name. It is
-/// **empty**: `4668` of `4668` unit-frames over `[606, 684)` carry the
-/// dump's own `near_o`/`near_who`, animals included, on the landing that
-/// gave this crate the field.
+/// **empty**: `4848` of `4848` unit-frames over `[606, 687)` carry the
+/// dump's own `near_o`/`near_who`, animals included — 4668 of 4668 over
+/// `[606, 684)` on the landing that gave this crate the field, and the
+/// same on the window item 481 widened.
 const NEAR_PARTED: &[((i64, i64), i64)] = &[];
 /// `(unit-frames read, live pairs among them, unit-frames agreeing)` for
 /// the row above. All three are pinned because an empty disagreement
 /// list is worthless without them: a reader that stopped parsing would
 /// print no partings, and so would one that only ever saw `-1`.
-const NEAR_TALLY: (usize, usize, usize) = (4668, 161, 4668);
+///
+/// **Re-pinned upward by item 481**, 4668/161 → 4848/170, because the
+/// widening window's ceiling followed the word 680 → 683 and this test
+/// walks the same window. The agreement is still total, and it is the
+/// row that says a melee captain still *reads* its incumbent (§38.5) —
+/// `1/6` carries `near_o 10` on every block of the window and no longer
+/// acts on it.
+const NEAR_TALLY: (usize, usize, usize) = (4848, 170, 4848);
 
 /// One frame's `near_o`/`near_who` per unit, read out of the raw dump
 /// text — [`ch2_dump_units`]'s sibling, for the pair that reader takes
