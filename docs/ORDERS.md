@@ -876,27 +876,24 @@ target order decides its transit legs are stale.
    unit (`avoid_x/y = pos`, resets the gather fields, kills the move); else
    every other frame from 4 on, `detect_unit_collision(coll_x, coll_y, …) ==
    0` → `dest = 0; clear_partial_path; flags |= 1; collide = 0; return 0` (the
-   blocker has gone — re-plan next frame); otherwise `collide++` and
-   `dest = 0` **every frame** (the increment is outside the
-   `& 0x80000003` test, which guards only `repaths[who]++`; run90's
-   `collide` counts 1 → 9 one a block, `docs/COLLISION.md` §8.8), then
-   `PathFinder::find_upath_restore`
-   resumes the A\* with limit `300 / repaths²`. **No step while a search is
-   pending.**
+   blocker has gone — re-plan next frame); otherwise `collide++` and `dest =
+   0` **every frame** (the increment is outside the `& 0x80000003` test, which
+   guards only `repaths[who]++`; run90's `collide` counts 1 → 9 one a block,
+   `docs/COLLISION.md` §8.8), then `PathFinder::find_upath_restore` resumes
+   the A\* with limit `300 / repaths²`. **No step while a search is pending.**
 3. **`timer`**: `> 0`: at 1 → `kill_current_order(0); work(); return 0`; else
    `timer--`.
 4. **The action under the move** (`get_action()`): if `ATTACK`, the target
    alive on the same `uid`, and **the attacker's `max_range` non-zero** —
    `005f7b30:212`, `ObjectTypeData +0x1fc`, the arm's gate (item 405,
-   `docs/COMBAT.md` §25) — a non-building, non-flank, in-range target
-   (**less `+0x90` unless mandatory**, §35.3), no collision at its own
-   spot → `kill_current_order`; every 16 frames
-   `find_melee_target` may take a closer in-range unit; a building target
-   in range, valid, no collision → kill. A non-mandatory `ATTACK` action
-   every 4th frame under `repaths` budget → `find_new_target(0, 1)`
-   (§12.4 there). A target gone and the unit within
-   `0x481` of its point → `repath(); return 0`. A `TRADE_ROUTE` with
-   negative endpoints → kill.
+   `docs/COMBAT.md` §25) — a non-building, non-flank, in-range target (**less
+   `+0x90` unless mandatory**, ~~§35.3~~ §36), no collision at its own spot →
+   `kill_current_order`; every 16 frames `find_melee_target` may take a closer
+   in-range unit; a building target in range, valid, no collision → kill. A
+   non-mandatory `ATTACK` action every 4th frame under `repaths` budget →
+   `find_new_target(0, 1)` (§12.4 there). A target gone and the unit within
+   `0x481` of its point → `repath(); return 0`. A `TRADE_ROUTE` with negative
+   endpoints → kill.
 
 **The entrench wait.** `if (retry != 0) { if (--retry == 0) attempts += 3;
 return 0; }`; the 128-frame modern-infantry check (§4.1); `if (attempts != 0)
@@ -4504,8 +4501,12 @@ first time); and Great Lakes' endpoint **off 48 → 49, unlinked 10 → 9,
 build_diverged 10 → 8**, 13,767 frames past the word.
 
 **What 10234 is.** The record agrees on it and the draw stream does not:
-the original spends **204** draws there, `PathFinder::calc_road_cost+0x46`
-over and over, and this crate spends six for a 43-node route of its own.
+the original spends **204** draws there, ~~`PathFinder::calc_road_cost+0x46`
+over and over, and this crate spends six for a 43-node route of its own.~~
+**Struck in part by item 475**: the count is right and the owner is not.
+198 of the 204 are a *road* search — `astar_caravan_road < find_road`, by
+their own `ebp` chain — and `1/28`'s whole route costs the original one
+draw. §18.
 ~~`1/28` reopens one block later, on 10235, where the two routes are 240
 apart in `x` — `order:move.off_x ours 120 theirs 648` — which is the
 formation **slot table**, `Form::compute`'s own seam and the successor
@@ -4716,7 +4717,15 @@ crate did not, and it is asserted separately.
 **The word did not move: Great Lakes holds at 10234.** What parts there is
 the draw stream and not the record — the original spends **204** draws at
 `PathFinder::calc_road_cost+0x46` where this crate spends **6** — and that
-was already true before this item (§16.5 names it). The value diff beside
+was already true before this item (§16.5 names it).
+
+**Item 475 struck the clause under this one, not this one.** The 204 is a
+true measurement on an aligned stream — Great Lakes' draw word *is* 10234
+— but 198 of the 204 belong to a **road** search (`astar_caravan_road <
+find_road`, on every one of them), so they are not `1/28`'s route's and
+never were; its whole route costs the original one draw. §18.
+
+The value diff beside
 the word is 10235, and it is most of the block:
 
 | field | this crate, before | dump | this crate, after |
@@ -4733,10 +4742,19 @@ for node. What is left is `1/28` one unit east in `x` — `pos ours (4801,
 30175) theirs (4800, 30175)` — and its two guy rows saying the same thing.
 Across the widening's window the parted keys go **440 → 322**.
 
-### 17.6 A second oracle for the word, 2,000 frames earlier
+### 17.6 A second oracle for the word, 2,000 frames earlier ~~(read this first)~~
 
-**Whoever is hunting Great Lakes' long word should read this section
-before anything else in it.** The word has stood at 10234 since item 465
+> **Struck by item 475: this section's first falsifier fired.** Its claim
+> — that the word and `PROBE_PLAN_PARTED` are one residue standing in two
+> places — is false. `calc_road_cost` belongs to the road search, it is
+> not called on the frame the twenty-two waypoints are planned on, and it
+> could not reach a unit path if it were. **Read §18 instead.** What
+> survives here is the description of the twenty-two, which is accurate
+> and still unexplained, and the second and third falsifiers, which
+> remain the right tests for whoever takes them.
+
+**Whoever is hunting Great Lakes' long word should read §18 first.** The
+word has stood at 10234 since item 465
 and what holds it is not a record at all: the whole dumped record agrees
 and the **draw stream** does not, 204 draws at
 `PathFinder::calc_road_cost+0x46` against six. A draw count is an
@@ -4763,20 +4781,24 @@ pinned as rows in `rondata::diff::harness`'s `PROBE_PLAN_PARTED`, and the
 A leg planned to the wrong cell but stamped right, that re-joins the
 original's line three times without being steered back, is a **cost**
 answer: the two routes are tying and the tie is being broken differently.
-That is `calc_road_cost` and it is what the word's 204 draws are.
+~~That is `calc_road_cost` and it is what the word's 204 draws are.~~ **It
+is not `calc_road_cost`** — that function is the road search's and block
+8186 never enters it (§18.1). The reading that a tie is being broken
+survives; the function it named does not.
 
-**So the hypothesis is that these are one residue, not two** — and the
-same item closes both. It is worth running against the 22 rather than
+~~**So the hypothesis is that these are one residue, not two** — and the
+same item closes both.~~ **They are two** (§18). It is worth running against the 22 rather than
 against the word, because the rows are twenty-two integers on a single
 frame at 8186, they name *which* cells the two sides disagree about, and
 they cost a third of a second to measure against a 169-second widening.
 
 **What would falsify it**, stated so nobody has to guess:
 
-- a change that moves the word's 204-against-6 draw count and leaves
+- ~~a change that moves the word's 204-against-6 draw count and leaves
   `PROBE_PLAN_PARTED` at twenty-two, or empties `PROBE_PLAN_PARTED` and
   leaves the draw count where it is, says they are two residues and this
-  section is wrong;
+  section is wrong;~~ **this one fired, and needed no change at all** —
+  the call chain settled it (§18.1);
 - a parted entry that differs in `x`, or by a `y` that is not a whole
   number of cells, says the 22 are not a tie-break at all and belong to
   whatever chooses the *direction* of a leg;
@@ -4797,6 +4819,9 @@ one-in-2³² coincidence is not what makes 42 path nodes land together;
 and `1/40`'s heading, its block 8187 for the order as written
 (`group_angle 890830848`, `oxx 40`, `orig (39133, 21131)`, `id 8192502` =
 group 65, frame 8186, order_num 2), and `0/2004`'s position.
+
+**Falsified**: §17.6's identification of the word's draws with
+`PROBE_PLAN_PARTED`'s twenty-two — item 475, §18.
 
 **Listing-backed**: the `QUEUE_LAST` branch at `00704990:361`–`364`;
 `get_loc_to@0070c5d0`'s `get_final_loc` call and its `0x181` window;
@@ -4820,3 +4845,173 @@ dump. And `order_num` is still `1` here where the dump's is `2`: `copy_group
 carrying a count from an earlier push that this crate's fresh slot does not.
 It changes the order's `id` and nothing else that any comparison reads; it
 is the successor this item leaves.
+
+## 18. The word is a road search this crate never runs (item 475, 2026-09-21)
+
+Item 475 was booked on §17.6's reading: that Great Lakes' long word and
+`PROBE_PLAN_PARTED`'s twenty-two entries were **one** residue standing in
+two places, a tie inside `PathFinder::calc_road_cost@00686300` broken one
+way by the original and another by this crate. §17.6 stated three
+falsifiers before the item ran. **The first one fires**, so the reading is
+struck and this section replaces it.
+
+It fired without a single line of simulation changing, on three
+measurements that between them cost under a minute.
+
+### 18.1 The three measurements
+
+**One. `calc_road_cost` has exactly one caller in the executable.**
+`PathFinder::astar_caravan_road@00685990` — and that has exactly one of
+its own, `PathFinder::find_road@00688a40`, reached from
+`Caravan::process@0073e000`, `Caravan::build_road@0073db10` and
+`BuildType::place_roads@0063c580` and from nothing else. **No unit path
+can enter it.** `find_upath`, `find_wpath` and `astar_path` price their
+nodes elsewhere entirely.
+
+**Two. The word's own draws say the same, by their own `ebp` chain.**
+run53 and run100 agree to the draw on frame 10234:
+
+```
+198  calc_road_cost+0x46 < astar_caravan_road+0x52b < find_road+0x3a8
+  3  Surf::inc_time+0x4b
+  2  Army::find_target+0x7df
+  2  Guy::set_anim+0x97a < Guy::inc_time+0x271
+  1  Guy::set_anim+0x97a < Unit::set_anim+0x56 < Animal::do_idle+0x19
+  1  Unit::do_move+0xe84 < Unit::do_group_move+0x148 < Unit::do_job+0xf3
+```
+
+`1/28`'s whole route costs the original **one** draw, the last line. The
+198 are a road search — one search, spanning 10234 (198 nodes) and 10235
+(73), and then nothing at that site for 2,300 frames.
+
+**Three. The frame the probe's route is planned on spends none of them.**
+Block 8186 is where `Group::action_move_near@00704990` plans the group's
+one world path, and it prices **zero** road nodes. Its draws are
+`find_attack_pos` ×48, `find_target` ×4, `Surf`, `set_anim`, `Farms`. The
+nearest road searches are 8127 (before) and 8235 (after).
+
+So the twenty-two parted waypoints cannot be `calc_road_cost`'s tie-break:
+the function is not called on the frame that plans them, and could not
+reach a unit path if it were. **They are two residues.** §17.6 is struck.
+
+### 18.2 What the word actually is, and the trap under it
+
+The reading was wrong about the **owner** of the draws. It was right about
+the number, and about the stream being aligned — and the correction is
+worth stating flatly, because the first reader of this section got it
+backwards and lost an hour to it.
+
+**Great Lakes' draw word is 10234.**
+`run53_s_24000_frames_put_the_ceiling_where_run33_did` prints it:
+
+```
+run53: word parts at 10234, sequence at 10234 of 24000
+  frame 10234: ours 6 theirs 204 — at 4,
+    ours   Guy::set_anim+0x97a < Guy::inc_time+0x271
+    theirs PathFinder::calc_road_cost+0x46
+```
+
+Count **and** sequence agree on every one of the 10,234 frames below it.
+The two sides share the frame's first four draws and part on the fifth,
+which is the road search's first node. This is not a count taken below a
+parting; it is the parting.
+
+> **The trap.** `rondata::diff::FLOORS[1].word` is `1850` for Great Lakes
+> and that is **not** this number. `FLOORS` is the *scored* captures'
+> scoreboard, those runs are 1,850 frames long, and `first_count` is
+> computed with `unwrap_or(last)` — so `1850` there means "never parted
+> inside the capture", not "parted at 1850". The long captures' words are
+> pinned separately, by `the_handoff_s_long_capture_words_are_the_long_
+> tests_floors` against the handoff's `Long captures:` line. Read the
+> wrong row and 10234 looks like it sits 8,384 frames inside an unaligned
+> stream, which would make every draw comparison there meaningless. It
+> does not and they are not.
+
+So, in one sentence a later reader cannot miss: **the word is held by a
+road search the original runs on 10234 and this crate does not run at
+all.** That is a *missing* behaviour rather than a divergent one, which is
+a different and usually cheaper kind of hunt than the tie-break §17.6
+proposed — and it has a precedent of the same shape. Item 334 closed East
+Indies' word at 8193 where the direction was reversed: **this** crate ran
+a `place_roads` search of 200 nodes the original did not, and the cause
+was a gate (`WallData::is_active@00472350`) rather than anything inside
+the cost function. It is named here as a shape, not as a mechanism: which
+of `find_road`'s three callers runs here, and why this crate runs none, is
+item 478's to establish and nothing in this section says.
+
+### 18.3 The successors
+
+Three items come out of the word's two blocks. They are named by **frame
+and row only**. Eight hypotheses have now died on this map with their
+frames intact, and this item is the one that proved why.
+
+- **478 — the headline.** f10234: `calc_road_cost` draws **ours 0, theirs
+  198**; first parting draw index **4**; call chain `astar_caravan_road <
+  find_road`. This is the word's own parting, so the AI headline sits on
+  it.
+- **476.** f10234, from the value diff: `0/5 order:length` ours 2 theirs
+  1; `0/5 orders.len` ours 2 theirs 1; `0/2001 gather:gather_down[-1]`
+  ours 5 theirs 2.
+- **477.** f10235: `1/28 pos` ours `(4801, 30175)` theirs `(4800,
+  30175)`, with `g.x[0]` and `g.des_x[0]` saying the same — one world unit
+  in `x`.
+
+### 18.4 The audit: what the false attribution actually cost
+
+The commander asked for one bounded pass: of the items that cited "204
+draws against six … for `1/28`'s 43-node route", which **changed code on
+the strength of it** and which merely **cited** it. The answer is clean —
+**none changed code, and it selected exactly one item, which is this
+one.**
+
+| item | what it cited | verdict |
+|---|---|---|
+| 464 | "on 10234 the original spends 204 draws to this crate's 5", inside a *beside the word* accounting paragraph explaining why counts rose past the word | **cited**. Its change is `Unit::think`'s military bit and `target_opportunity`'s flee arm (`docs/COMBAT.md` §34); nothing in it reads a draw count. |
+| 465 | the attribution in full, and §16.5 carries it | **cited, and steered away from**. Its own words: the next item should be "not the pathfinder's draw count, which is a much larger and older hole". Its change is the pushed group's pool slot and the `unit_masks & 4` gate. |
+| 471 | the same, and built §17.6's reading on it | **cited**. Its change rests on `group_angle 890830848` reproducing to the bit through `find_angle` from the farm — a value diff, not a draw count. What the attribution produced was the *selection* of item 475. |
+| 475 | was booked on it | **chosen by it**, and falsified it. No simulation code changed. |
+
+Nothing pinned rests on it either: `LONG_WORD_GREAT_LAKES` is
+`first_count` as run53 measures it, which is independent of whose draws
+they are.
+
+So the cost of the false attribution was one item's brief, and that item
+is the one that closed it. The lesson is narrower than "a false frame
+steered the loop" and worth keeping for that reason: **a draw count names
+a site, and a site names a call chain — read the chain before naming the
+caller.** `report.py … sites` prints it beside every fold and it was
+there, unread, from the day the number was first written down.
+
+### 18.5 Coverage
+
+**Diff-backed**:
+`great_lakes_s_word_draws_are_a_road_search_and_8186_spends_none` — the
+road-search schedule between 8186 and 10247 as a list of frames, 8186's
+absence from it, the chain on every one of the word's 198 draws, and the
+parting draw's index. Made to fail on purpose both ways before it landed
+(a frame that does price road nodes in place of 8186; one bit off the
+`astar_caravan_road` return address). Read from run53's trace alone, in
+half a second.
+
+**Dump-backed**: the word's value rows, from
+`run100_s_word_block_is_every_record_the_dump_carries` with
+`RON_DEBUG_ROWS=10230-10240` — §18.3's 476 and 477.
+
+**Trace-backed, outside this test**: `run53: word parts at 10234, sequence
+at 10234 of 24000` and its `ours 6 theirs 204 — at 4` line, from
+`run53_s_24000_frames_put_the_ceiling_where_run33_did`; run100's trace
+agreeing with run53's to the draw on 10234.
+
+**Listing-backed**: the call graph in §18.1, read from the decompile
+export's own callers of `calc_road_cost`, `astar_caravan_road` and
+`find_road`.
+
+**What this does not establish.** It says nothing about what *does* break
+the twenty-two waypoints' ties — only that `calc_road_cost` does not, and
+`PROBE_PLAN_PARTED` keeps them pinned as rows meanwhile. It says nothing
+about which of `find_road`'s three callers runs on 10234, nor why this
+crate runs none: no capture on disk carries a proxied call there, and the
+trace's `cover` was off for run53, so the caller is not on this disk.
+§17.6's second and third falsifiers were not reached — the first one
+settled it, and they remain the right tests for whoever takes the
+twenty-two.

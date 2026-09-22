@@ -5458,10 +5458,20 @@ mod tests {
     /// sits 768 or 1536 south of its `y` — one or two cells — over three
     /// stretches that each re-converge within a dozen waypoints. Same start,
     /// same end, same `x` progression: a tie-break in the cost function and
-    /// not a different route. It is the same residue the long word stands
+    /// not a different route. ~~It is the same residue the long word stands
     /// on, where the original spends 204 draws at
     /// `PathFinder::calc_road_cost+0x46` and this crate spends six
-    /// (`docs/ORDERS.md` §17.5), and closing that is what would empty this.
+    /// (`docs/ORDERS.md` §17.5), and closing that is what would empty this.~~
+    ///
+    /// **Item 475 falsified that.** `calc_road_cost` is the road search's
+    /// — one caller in the executable, `astar_caravan_road` under
+    /// `find_road` — and [`PROBE_PLAN_FRAME`] prices no road node at all,
+    /// so the word's draws and these twenty-two are two residues
+    /// (`docs/ORDERS.md` §18, and
+    /// [`great_lakes_s_word_draws_are_a_road_search_and_8186_spends_none`]).
+    /// A tie is still the shape these have; **which** cost function breaks
+    /// it is open, and nothing on this disk names it. §17.6's second and
+    /// third falsifiers are the tests for whoever takes them.
     const PROBE_PLAN_PARTED: &[(i64, i64, &[usize])] = &[(
         1,
         40,
@@ -5653,6 +5663,142 @@ mod tests {
             checked += 1;
         }
         assert_eq!(checked, 6, "the probe's six");
+    }
+
+    /// `PathFinder::calc_road_cost@00686300+0x46` — the road search's
+    /// per-node jitter, and [`sim::roads::SITE_COST`]'s own address in
+    /// [`trace::SITES`](crate::trace::SITES).
+    const ROAD_COST: u32 = 0x0068_6346;
+    /// `PathFinder::astar_caravan_road@00685990+0x52b` — the only caller
+    /// of [`ROAD_COST`]'s function anywhere in the executable.
+    const ROAD_COST_UP: u32 = 0x0068_5ebb;
+    /// `PathFinder::find_road@00688a40+0x3a8` — and the only caller of
+    /// *that*, reached from `Caravan::process@0073e000`,
+    /// `Caravan::build_road@0073db10` and `BuildType::place_roads@0063c580`
+    /// and from nothing else.
+    const ROAD_COST_UP2: u32 = 0x0068_8de8;
+
+    /// **The word's excess draws are a road search, and the frame the
+    /// probe's route is planned on spends none of them** — item 475,
+    /// `docs/ORDERS.md` §18.
+    ///
+    /// `docs/ORDERS.md` §17.6 read Great Lakes' long word and
+    /// [`PROBE_PLAN_PARTED`]'s twenty-two entries as one residue standing
+    /// in two places: a tie inside `calc_road_cost` broken one way by the
+    /// original and another by this crate. This test is that reading's
+    /// falsifier, and it fires — so what it pins is the **negative**, in
+    /// the two places the reading needed a positive:
+    ///
+    /// - **8186 spends no road-cost draw at all.** It is the frame
+    ///   `Group::action_move_near` plans the probe's one world path on
+    ///   ([`PROBE_PLAN_FRAME`]), so a cost function that is never called
+    ///   there cannot be what breaks that path's ties. The nearest road
+    ///   searches are 49 frames after it and 59 before.
+    /// - **10234's are the road search, by their own `ebp` chain**, every
+    ///   one of the 198: `calc_road_cost+0x46 < astar_caravan_road+0x52b
+    ///   < find_road+0x3a8`. `find_road` is reached only from
+    ///   `Caravan::process`, `Caravan::build_road` and
+    ///   `BuildType::place_roads`; no unit path can enter it.
+    ///
+    /// And the word's own parting draw is that search's first, at index
+    /// **4** of the frame — the two streams agree on the four draws
+    /// before it, which is what
+    /// `run53_s_24000_frames_put_the_ceiling_where_run33_did` reports as
+    /// `ours 6 theirs 204 — at 4`. So the word is held by a road search
+    /// the original runs and this crate does not run at all: a *missing*
+    /// behaviour rather than a divergent one.
+    ///
+    /// **The frame list is the assertion, not the counts**, for the same
+    /// reason [`PROBE_PLAN_PARTED`] pins rows rather than a number — a
+    /// change that moves the original's road schedule, or a trace read
+    /// off the wrong capture, fails here whichever way it moves, and
+    /// 8186's absence from the list is the claim.
+    ///
+    /// **Made to fail first**, both halves. `road(8_235)` in place of
+    /// `road(PROBE_PLAN_FRAME)` — a frame that really does price road
+    /// nodes — reddens the emptiness assertion; one bit off
+    /// [`ROAD_COST_UP`] makes all 198 of the word's draws strays and
+    /// reddens the chain. Each was run, seen red, and put back.
+    #[test]
+    fn great_lakes_s_word_draws_are_a_road_search_and_8186_spends_none() {
+        let Some(trace) = trace("rontrace-run53.log") else {
+            eprintln!("skipping: no run53 trace (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let last = trace.frames.last().map_or(0, |(n, _)| *n);
+        assert!(
+            last >= 23_000,
+            "run53's traced length is {last}, wanted 23,000+ — the wrong file"
+        );
+        let road = |f: i64| -> Vec<crate::trace::Draw> {
+            trace
+                .frame_draws(f)
+                .into_iter()
+                .filter(|d| d.site == ROAD_COST)
+                .collect()
+        };
+        // **Every frame in the word's neighbourhood that prices a road
+        // node**, and 8186 is not one of them. The window opens on the
+        // probe's own planning frame and closes past the word's second
+        // half.
+        let tail = LONG_WORD_GREAT_LAKES + 13;
+        let schedule: Vec<(i64, usize)> = (PROBE_PLAN_FRAME..=tail)
+            .map(|f| (f, road(f).len()))
+            .filter(|(_, n)| *n > 0)
+            .collect();
+        eprintln!("  run53 road searches in [{PROBE_PLAN_FRAME}, {tail}]: {schedule:?}");
+        assert_eq!(
+            schedule,
+            vec![
+                (8_235, 196),
+                (8_236, 217),
+                (8_241, 308),
+                (8_541, 127),
+                (8_543, 228),
+                (10_234, 198),
+                (10_235, 73),
+            ],
+            "run53's road searches between the probe's plan and the word are not the seven they are"
+        );
+        assert!(
+            road(PROBE_PLAN_FRAME).is_empty(),
+            "{PROBE_PLAN_FRAME} — the frame the probe's world path is planned on — spends a \
+             road-cost draw, so `calc_road_cost` could be what breaks that path's ties after \
+             all (`docs/ORDERS.md` §18)"
+        );
+        // **The chain, on every one of the word's own 198.** A count says
+        // the function ran; the `ebp` chain says which search ran it, and
+        // that is the whole of the falsification.
+        let word = road(LONG_WORD_GREAT_LAKES);
+        assert_eq!(word.len(), 198, "the word's road-cost draws");
+        // Folded before it is asserted: 198 copies of one chain is a
+        // failure nobody reads, and the claim is about which chains
+        // appear rather than how many draws each took.
+        let mut strays: Vec<String> = word
+            .iter()
+            .filter(|d| !d.up.contains(&ROAD_COST_UP) || !d.up.contains(&ROAD_COST_UP2))
+            .map(|d| format!("{:x} < {:x}", d.up[0], d.up[1]))
+            .collect();
+        strays.sort_unstable();
+        strays.dedup();
+        assert_eq!(
+            strays,
+            Vec::<String>::new(),
+            "a road-cost draw on the word reached `calc_road_cost` from somewhere other than \
+             `astar_caravan_road+0x52b < find_road+0x3a8`"
+        );
+        // **And it is the word's own parting draw**: index 4 of the
+        // frame, the first the two streams do not share.
+        let all = trace.frame_draws(LONG_WORD_GREAT_LAKES);
+        let first_road = all.iter().position(|d| d.site == ROAD_COST);
+        assert_eq!(
+            first_road,
+            Some(4),
+            "the first road-cost draw on the word is not the fifth draw of the frame: {:?}",
+            all.iter()
+                .map(|d| format!("{:x}", d.site))
+                .collect::<Vec<_>>()
+        );
     }
 
     /// **run54 — East Indies at thirteen times the scored length, read at
@@ -6498,12 +6644,16 @@ mod tests {
         // order freed~~ — **item 465 closed that frame**, and the key is
         // `1/28` again for a different reason one block along.
         //
-        // The two sides now plan on the same frame. What parts on 10234
+        // The two sides now plan on the same frame. ~~What parts on 10234
         // is where the plan **goes**: the original spends 204 draws there
         // (`PathFinder::calc_road_cost+0x46`) and this crate six, and the
         // 43-node route they each come back with is 240 apart in `x`,
         // because the formation slot underneath it is (`docs/ORDERS.md`
-        // §16). The set is kept keyed on the headline deliberately; what
+        // §16).~~ **Item 471 closed the route and item 475 named the
+        // draws**: all 42 nodes agree, and the 204 are a *road* search
+        // (`astar_caravan_road < find_road`) the original runs on 10234
+        // and this crate does not run at all — nothing of `1/28`'s
+        // (`docs/ORDERS.md` §18). The set is kept keyed on the headline deliberately; what
         // it asserts is that the word's own frame is a *small, named* set
         // and not a reshuffle, and `run100_s_word_block_is_every_record_
         // the_dump_carries` holds the value diff beside it.
