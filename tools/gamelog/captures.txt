@@ -3937,3 +3937,140 @@ check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft G
 # **P1, as a tooth.** One `detect_unit_collision` on `1/38` on sim-frame
 # 10161, returning 1.
 check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run116.log" calls 10161 | tee /dev/stderr | awk '/detect_unit_collision/{if($0 ~ /this=1\/38/){n++; if($0 ~ /= 1$/) h++}} END{print "1/38 brackets on 10161: "n", refusing: "h; exit !(n>=1 && h==1)}'
+
+run: 117
+tag: greatlakes-makeword2
+item: 506
+why: Great Lakes' sequence parts at 10582 on a market frame — the original spends `Leader::use_market+0x1ed` where this crate spends `Leader::make_stuff+0x221` — and the count parts at 10583 on five `Leader::create_units+0x642` this crate spends alone; the block's one value row is `1/2018 queue:queued` 1 against 0, a Horse Archer this crate buys and the original refuses, and no dump anywhere carries the AI's ledger or its make list within 1,400 frames of it
+# **THE DISK WAS GREPPED FIRST, twice, and it says the capture is owed.**
+# Every `LEADERS>=2` window on map 14: run84 **[6950, 7030)**, run91
+# **[7514, 7600)**, run19 **[8174, 8192)**, run107 **[9170, 9200)** and
+# run80 **[23960, 24000)**. The two captures that cover 10582 — run97
+# ([8030, 9350)) and run100 ([9340, 10900)) — are both `LEADERS=1`, which
+# stops after `score`, so neither `bucket` nor `MAKEOBJECT` is on this disk
+# between 9199 and 23959 and the word is inside that gap. run100's whole
+# record was widened first (`run100_s_word_block_is_every_record_the_dump_
+# carries`, 1,257 blocks, 3.4M rows): the word's block holds **one** row and
+# it is the queue slot, so the cause is in a record run100 does not print.
+#
+# **And run107 already narrowed it.** Its thirty blocks say the AI's
+# `bucket` agrees at 9182 — the only standing goods row in the whole window
+# is `1/leftover[1:timber]`, ours 5824 against 6084 — so whatever parts by
+# 10582 opened inside `(9199, 10582]`.
+#
+# **It is a re-run, not a new game.** run53 is this map's own 24,000-frame
+# trace and run97/run100/run107 are drop-in siblings of it; this stanza is
+# run53's detail with `LEADERS` raised from nothing to 9, which is what
+# makes the overlap check below one `--exclude` and no `--drop`.
+frames: 10640
+mapstyle: 14
+# **run53's own detail, plus `LEADERS=9`.** run53's `[End Frame]` is bare
+# `MISC`, so a `samegame.py --exclude LEADERDATA` against it is a same-game
+# check over every block of the window rather than over a handful, and the
+# per-block cost is the `LEADERDATA` block alone — measured at **1.33 MB**
+# on run107's own block 9182, against the 1.9 MB that capture paid at
+# run97's detail.
+end: MISC,LEADERS=9
+start: MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1
+# **The window straddles two market rotations, which is the point.** The
+# AI's production rotation runs every 200 frames — 10182, 10382, 10582 —
+# and the draw streams agree entry for entry on **10381, 10382, 10383** and
+# part on **10582**. A window that held only the parting could not say
+# whether the ledger was already off two hundred frames earlier; this one
+# reads both rotations and the 200 quiet blocks between them. 245 blocks at
+# ~1.35 MB is ~330 MB, and run79's 340 dumped blocks took three minutes.
+frame_window: 10375 10620
+# No `cfg:`, so map 14 takes the default `-config check.ini` — run53's,
+# run97's, run100's and run107's lobby.
+cover: cover=0
+# The log does not grow at all before 10375, so this must sit above the
+# start dump's own size (~11 MB at run53's `start:`) and well under the
+# ~330 MB the window is expected to cost.
+settle_min: 30000000
+# Thirty minutes against an expected five; the give-up path **truncates
+# rather than stops**, so it is sized high on purpose (parked 373).
+poll_max: 90
+#
+# ---- THE PREDICTIONS, written before the capture ran. Every figure is
+# this crate's own, on the dump's block numbering (block n is the state
+# after n ticks, so sim-frame 10582 is **block 10583**), player 1 unless
+# it says otherwise.
+#
+#   block 10381  bucket  60 44 107 242 33 0
+#   block 10382  bucket  60 44 107 242 33 0     the rotation's Make frame
+#   block 10383  bucket  60 44 107 243 33 0     nothing bought
+#   block 10579  bucket  94 87 124 269 100 0
+#   block 10581  bucket  94 87 125 270 100 0
+#   block 10582  bucket  94 87 125 270 100 0    the word's own Make frame
+#   block 10583  bucket  **95 27 85** 270 100 0  −60 timber, −40 wealth
+#   block 10584  bucket  95 28 85 270 100 0
+#   block 10586  bucket  95 28 34 270 39 0
+#
+#   block 10582 MAKE, ours: 0 Horse Archer(187) val 9999999 city 1 cat 6
+#     num 3 escrow 1 | 1 Cataphract(227) 9999999 city 1 cat 6 num 2 | 2
+#     Light Horse(209) 9999999 city 1 cat 6 num 2 | 3 Scholar(52) 6585365
+#     city 2 cat 4 num 2 escrow 0 | 4 Scholar(52), the same | 5 t −1 | 6
+#     Horse Archer(187) 9999999 city 1 cat 6 num 3 | 7 Phalanx(133) 335616
+#     | 8 Mathematics(551) 5040000 | 9 Feudalism(566) 1000 | 10 Standing
+#     Army(573) 127.
+#   `MAKE[*].city` is a **known standing residue** — run107's window has
+#   ours 1 and 2 where the original writes 0 and 1 on 26 of 30 blocks — so
+#   a city column one lower throughout is the old row and not this one.
+#
+# **What is expected to PART, and every branch is an answer.**
+#
+# The frame is one purchase. This crate's `Leader::can_pay` answers
+# `num 3 <= affordable`, and `TypeData::can_pay_cost` takes the **maximum**
+# over the goods a price charges, not the minimum (`docs/COSTS.md`): the
+# Horse Archer costs 60 timber and 40 wealth, so ours is
+# `max(87/60, 125/40) = 3` and the head is bought. The original refuses it
+# — no second pass, no `create_units` on 10583 — and sells on the market
+# instead, one `use_market+0x1ed` draw where this crate spends none. Three
+# ways that can be true, and the block decides between them:
+#
+# - **(a) `bucket[2:wealth]` under 120 on block 10582**, where this crate
+#   holds 125. Then `affordable` is at most 2 and the head is refused; and
+#   under **90** it explains the sell draw in the same number, because
+#   `use_market`'s shortfall vector is the first `epoch[Commerce] = 2`
+#   slots' cost — `0 60 90 0 60 0` — and wealth is the one good that can
+#   never be bought with wealth, so a wealth shortfall always draws.
+# - **(b) `bucket[1:timber]` under 60**, where this crate holds 87. Then
+#   `affordable` returns 0 at the early exit and the sell is timber's.
+# - **(c) the make list differs** — a different head, a different `num`, or
+#   a different slot 1 — in which case `need` and the pay test are both
+#   computed off other numbers and (a) and (b) are answering the wrong
+#   question. run107 found `MAKE[3]` holding a Citizen where this crate
+#   holds a Phalanx 1,400 frames earlier, so this is not a remote branch.
+#
+# **Killed if the bucket and the make list both agree on block 10582.**
+# Then nothing about the leader's state is wrong and the refusal is in the
+# *price*: `type_price` charging this crate less than the original charges
+# itself, which the queue entry's own `cost[]`/`good[]` pair on the block
+# the original does buy would then name.
+#
+# **What is expected to AGREE, and it is refusable.** `income` on both
+# leaders across all 245 blocks — run107's thirty had no `income` row —
+# and the draw stream frame for frame against run53 below 10582.
+#
+# **And one cheap re-measurement rides along.** `1/leftover[1:timber]` is
+# ours 5824 against 6084 on all thirty of run107's blocks, a standing 260.
+# If income agrees the gap is a phase and stays 260 here; if it has grown
+# by 10375 the accumulator is drifting and that is a second finding, on a
+# field no test had read before item 369.
+#
+# Same game: the trace word for word against run53, this map's own 24k run.
+check: python3 tools/gamelog/rngcmp.py rontrace-run53.log rontrace-run117.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=10620)}'
+# And the map, from the dump's own `GAME INFO`.
+check: LC_ALL=C head -c 400000 "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run117-greatlakes-makeword2.txt" | LC_ALL=C grep -a "MAP_STYLE" | tee /dev/stderr | awk '{print; exit !($2==14)}'
+# **The window landed whole** — 245 blocks, 10375..10619, no gap. item
+# 373's check: a truncated run reads as completely ordinary everywhere else.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run117-greatlakes-makeword2.txt" | awk '{v=$3+0; if(v>=10375&&v<=10619) n[v]=1} END{c=0; lo=0; hi=0; for(k in n){c++; if(lo==0||k+0<lo)lo=k+0; if(k+0>hi)hi=k+0} print "window blocks: "c" ("lo".."hi")"; exit !(c==245 && lo==10375 && hi==10619)}'
+# **The overlap with run53, and the count is the claim** — `samegame.py`
+# exits 0 when nothing is in common, which is the vacuous pass run83
+# caught. run53's `[End Frame]` is bare `MISC`, so one `--exclude` and no
+# `--drop`: everything both runs record in common, block for block.
+check: python3 tools/gamelog/samegame.py gamelog-run53-greatlakes-24k-trace.txt gamelog-run117-greatlakes-makeword2.txt --exclude LEADERDATA | tee /dev/stderr | awk '/in common/{r=$0; sub(/.*in common /,"",r); split($0,a,", "); n=a[2]+0} /^differ:/{d=$2+0} END{print "run53 overlap: common="n" "r" differ="d; exit !(n==245 && d==0)}'
+# **The raised category is in the blocks** — `MAKEOBJECT` and `PERSONALITY`
+# are `LEADERS=9`'s own, and a run that silently fell back to `LEADERS=1`
+# would pass every check above.
+check: python3 tools/gamelog/frame.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run117-greatlakes-makeword2.txt" 10583 /tmp/ron-runs/f117.txt >/dev/null && LC_ALL=C grep -ac "BEGIN MAKEOBJECT" /tmp/ron-runs/f117.txt | tee /dev/stderr | awk '{exit !($1>=22)}'

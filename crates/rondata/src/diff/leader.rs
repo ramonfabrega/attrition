@@ -2691,4 +2691,75 @@ mod tests {
         }
         eprintln!("food ladder who 1: {}", ticks.join(" "));
     }
+
+    /// **run117's window — the leader record across two market
+    /// rotations** (item 506).
+    #[test]
+    fn run117_s_window_is_the_leader_record_across_two_rotations() {
+        const FIRST: i64 = 10_375;
+        const LAST: i64 = 10_619;
+        let Some(path) = dump("gamelog-run117-greatlakes-makeword2.txt") else {
+            eprintln!("skipping: no run117 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let Some((ours, _)) = great_lakes(FIRST, LAST) else {
+            return;
+        };
+        let wtext = crate::capture::read(&path);
+        let wlog = Log::parse(&wtext);
+        let mut compared = 0usize;
+        let mut blocks = 0usize;
+        let mut missing: std::collections::BTreeSet<String> = Default::default();
+        let mut residue: std::collections::BTreeMap<(usize, String), (usize, i64, i64, i64)> =
+            Default::default();
+        for n in FIRST..=LAST {
+            for who in 0..2usize {
+                let Some(block) = wlog.leader_block(n, who as i64) else {
+                    continue;
+                };
+                blocks += 1;
+                let t = theirs(&block);
+                for (k, mine) in &ours[&(n, who)] {
+                    let Some(&yours) = t.get(k) else {
+                        missing.insert(k.clone());
+                        continue;
+                    };
+                    compared += 1;
+                    if *mine != yours {
+                        let e = residue
+                            .entry((who, k.clone()))
+                            .or_insert((0, *mine, yours, n));
+                        e.0 += 1;
+                    }
+                }
+            }
+        }
+        eprintln!("run117 [{FIRST}, {LAST}]: {blocks} blocks, {compared} field-frames");
+        for ((who, k), (n, o, t, first)) in &residue {
+            eprintln!("  {who}/{k}: {n} frames, ours {o} theirs {t} on {first}");
+        }
+        if let Ok(w) = std::env::var("RON_LEADER_WALK") {
+            for k in w.split(',') {
+                let mut prev = (i64::MIN, i64::MIN);
+                let mut ticks = Vec::new();
+                for n in FIRST..=LAST {
+                    let Some(block) = wlog.leader_block(n, 1) else {
+                        continue;
+                    };
+                    let t = theirs(&block);
+                    let Some(&yours) = t.get(k) else { continue };
+                    let mine = ours[&(n, 1)]
+                        .iter()
+                        .find(|(a, _)| a == k)
+                        .map_or(i64::MIN, |(_, v)| *v);
+                    if (mine, yours) != prev {
+                        ticks.push(format!("{n}:{mine}/{yours}"));
+                        prev = (mine, yours);
+                    }
+                }
+                eprintln!("  walk {k}: {}", ticks.join(" "));
+            }
+        }
+        assert!(missing.is_empty(), "the record does not carry {missing:?}");
+    }
 }
