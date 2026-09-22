@@ -85,17 +85,30 @@ def compare(c, replay, payload_sha256):
                 full_native_state_compared=False)
 
 
+def require_agreement(result):
+    """Assert only the measured outer return and complete unit/path boundary."""
+    require(result['outer_return_equal'], 'native outer return differs')
+    require(result['native_length']==result['replay_length'] and
+            result['native_capacity']==result['replay_capacity'], 'native path header differs')
+    require(not result['unit_changes_outside_path_pointer'], 'native unit differs outside path pointer')
+    require(result['active_path_equal'] and result['all_path_slots_equal'], 'native path slots differ')
+
+
 def main():
     ap=argparse.ArgumentParser(description=__doc__)
     ap.add_argument('install',type=Path);ap.add_argument('directory',type=Path)
     ap.add_argument('--replay',type=Path)
+    ap.add_argument('--require-agreement',action='store_true',
+                    help='fail unless outer return and every unit/path byte agree, except the explicit path pointer')
     args=ap.parse_args()
+    if args.require_agreement and args.replay is None: ap.error('--require-agreement needs --replay')
     payload=validate_payload(args.install,args.directory)
     c=decode_post((args.directory/'restore-poststate.bin').read_bytes(),(args.directory/'restore-prefix.bin').read_bytes())
     check_receipt(list(records(args.directory/'rontrace.log')),c)
     result=dict(payload_sha256=payload['sha256'],native_poststate=c)
     if args.replay: result['comparison']=compare(c,json.loads(args.replay.read_text()),payload['sha256'])
     print(json.dumps(result,indent=2))
+    if args.require_agreement: require_agreement(result['comparison'])
 
 
 if __name__=='__main__':main()

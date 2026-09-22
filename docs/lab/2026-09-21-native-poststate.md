@@ -3,7 +3,8 @@
 L65 completes one modeled pathfinding call and matches its internal A* return.
 The next question is whether its **resulting path and unit record** agree with
 the native call. This follow-up adds an optional observer and an offline
-comparator; no live result exists yet. It starts from lab commit `4d16f5c`.
+comparator. Its subsequent live result is recorded in
+[L67](2026-09-21-native-path-agreement.md). It starts from lab commit `4d16f5c`.
 
 ## Capture boundary and contract
 
@@ -93,4 +94,5 @@ the new sidecar in the external capture manifest, bind the image hashes, then
 validate the packet before replay. Newly allocated addresses may differ:
 rediscover and verify logical borrowed objects from this packet instead of
 copying L65's absolute pointer arguments. Preserve every mismatch as evidence.
-No capture has been launched for this preparation; Fable's lane is untouched.
+No capture was launched during this preparation. The subsequently authorized
+run and lane release are recorded in [L67](2026-09-21-native-path-agreement.md).

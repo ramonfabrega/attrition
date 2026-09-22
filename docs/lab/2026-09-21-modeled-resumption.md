@@ -5,6 +5,8 @@ original `PathFinder::find_upath` return boundary. This advances L64's
 allocator experiment without a live capture, TypeSafe request, simulation
 change or main-loop score change. Draft PR #4 remains on its existing branch.
 The experiment starts from `0320233`.
+The subsequent paired native output check is [L67](2026-09-21-native-path-agreement.md);
+it closes the unit/path comparison on a new pre/post packet.
 
 ## What returned, and what agrees
 

@@ -3,7 +3,7 @@ import subprocess
 import tempfile
 import unittest
 from pathlib import Path
-from restore_poststate import decode_post, check_receipt, compare
+from restore_poststate import decode_post, check_receipt, compare, require_agreement
 from test_restore_prefix import fixture
 
 ROOT=Path(__file__).resolve().parent
@@ -69,6 +69,16 @@ class PoststateTests(unittest.TestCase):
         with self.assertRaises(ValueError):compare(c,r,'different payload')
         r['last']['returned']=False
         with self.assertRaises(ValueError):compare(c,r,'bound')
+
+    def test_agreement_assertion_rejects_each_measured_disagreement(self):
+        c=decode_post(packet(),fixture(2));r=replay(c);good=compare(c,r,'bound')
+        require_agreement(good)
+        for key,value in (('outer_return_equal',False),('native_length',0),('native_capacity',1),
+                          ('unit_changes_outside_path_pointer',[55]),('active_path_equal',False),
+                          ('all_path_slots_equal',False)):
+            with self.subTest(key=key),self.assertRaises(ValueError):require_agreement({**good,key:value})
+        # Explicit relocation alone remains accepted; no other offset is masked.
+        require_agreement({**good,'unit_changed_byte_offsets':[184,185,186,187]})
 
     def test_empty_and_capacity_difference(self):
         raw=bytearray(packet()[:628]);struct.pack_into('<I',raw,20,0);struct.pack_into('<3I',raw,284+0xb8,0,0,0)
