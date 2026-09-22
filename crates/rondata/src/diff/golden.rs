@@ -1417,6 +1417,27 @@ fn chapter_two_s_word_frame_is_widened_whole() {
         return;
     }
     let mut ix = crate::capture::indexed::IndexedCapture::open(&dump).unwrap();
+    // **The clock capture** (item 510). run112 was taken at `GUYS=2`, and
+    // `GuyData::log_data@005de6c0` stops a `GUY` block after `ox` at that
+    // level: `cur_anim`, `cur_time`, `end_time`, `last_time`,
+    // `des_angle`, `hold_attack` and `queued_attack` are **not in the
+    // file**. run118 is the same lobby, the same seed and the same
+    // `chapter2.cmd` at `GUYS=4` (`docs/RUNS.md` run118), truncated at
+    // block 846 — which contains the whole of this window.
+    //
+    // It is opened as a *second* source rather than as the comparator,
+    // because the draw stream this chapter is scored on is run112's
+    // trace. [`clock_agrees`] below is what makes borrowing one capture's
+    // field into another's walk honest: every key both files print is
+    // asserted equal on every compared block, so a clock from a different
+    // game cannot arrive quietly.
+    let mut clocks =
+        golden("ch2g4").and_then(|(d, _)| crate::capture::indexed::IndexedCapture::open(&d).ok());
+    if clocks.is_none() {
+        eprintln!("no ch2g4 capture: the GUY clock rows are unchecked (docs/RUNS.md run118)");
+    }
+    let mut clock_rows = 0usize;
+    let mut clock_blocks = 0usize;
     let mut built = stand_up(&loaded, &log, &refs, &trace);
     let players = built.sim.players.len();
     let mut script = chapter(2);
@@ -1542,12 +1563,144 @@ fn chapter_two_s_word_frame_is_widened_whole() {
         for d in &r.city_diverged {
             note(format!("city {}/{}", d.who, d.o));
         }
+        // **The `GUY` record whole** (item 510), which this walk had
+        // never opened. `compare` carries no guy row at all — the one
+        // window that compares a figure's animation clock is Great
+        // Lakes' `run100_s_word_block_is_every_record_the_dump_carries`,
+        // and chapter two's word has been an *animation* draw since 695.
+        // Eleven items ran on a window that could not see the clock the
+        // draw is spent on.
+        //
+        // `hold_attack` and `queued_attack` are new to the parser in this
+        // landing and are the two that decide the item: an attack the
+        // swing frame defers lands in the first and costs the wrap one
+        // draw; one asked for while an attack is already playing lands in
+        // the second and costs it two (`docs/COMBAT.md` §45).
+        let clock = clocks.as_mut().and_then(|c| {
+            let at = c.frames().iter().position(|x| x.number == n)?;
+            c.frame_state(at).ok()
+        });
+        if clock.is_some() {
+            clock_blocks += 1;
+        }
+        for them in &frame.units {
+            if !(0..players as i64).contains(&them.who) {
+                continue;
+            }
+            let (Ok(who), Ok(o)) = (u8::try_from(them.who), i16::try_from(them.o)) else {
+                continue;
+            };
+            let Some(u) = built.sim.unit_by_o(who, o) else {
+                continue;
+            };
+            // The same unit in the clock capture, by `(who, o)` — the
+            // two files are the same game, so the slot is the same unit.
+            let g4 = clock
+                .as_ref()
+                .and_then(|c| c.units.iter().find(|x| x.who == them.who && x.o == them.o));
+            let un = &built.sim.units[u];
+            for (k, g) in them.guys.iter().enumerate() {
+                let Some(og) = un.guys.get(k).copied() else {
+                    continue;
+                };
+                // **The clock's own record, and the check that it is this
+                // game's.** Every key run112 prints on a `GUY` block is
+                // asserted equal in run118 before a key run112 does *not*
+                // print is read from it.
+                let g = match g4.and_then(|x| x.guys.get(k)) {
+                    Some(c) => {
+                        assert_eq!(
+                            (g.pos, g.angle),
+                            (c.pos, c.angle),
+                            "block {n}, {who}/{o} guy {k}: run118 is not run112's game"
+                        );
+                        clock_rows += 1;
+                        c
+                    }
+                    None => g,
+                };
+                let (body, facing, des, des_angle) = match og.follow {
+                    Some(b) => (b.body, b.facing, b.des, b.des_angle),
+                    None if k == 0 => (
+                        un.movement.body,
+                        un.movement.facing,
+                        un.pos,
+                        un.movement.heading,
+                    ),
+                    None => (
+                        un.movement.body,
+                        un.movement.facing,
+                        un.pos,
+                        un.movement.facing,
+                    ),
+                };
+                let track = og.follow.map_or((0, 0), |b| b.track);
+                for (name, ours, theirs) in [
+                    ("g.x", i64::from(body.pos.x), g.pos.map(|p| p.x)),
+                    ("g.y", i64::from(body.pos.y), g.pos.map(|p| p.y)),
+                    ("g.angle", i64::from(facing.0), g.angle),
+                    ("g.des_x", i64::from(des.x), g.des.map(|p| p.x)),
+                    ("g.des_y", i64::from(des.y), g.des.map(|p| p.y)),
+                    ("g.des_angle", i64::from(des_angle.0), g.des_angle),
+                    ("g.cur_anim", i64::from(og.anim), g.cur_anim),
+                    ("g.cur_time", i64::from(og.cur_time), g.cur_time),
+                    ("g.end_time", i64::from(og.end_time), g.end_time),
+                    ("g.last_time", i64::from(og.last_time), g.last_time),
+                    ("g.gpiece", i64::from(og.gpiece), g.gpiece),
+                    ("g.stopped", i64::from(og.stopped), g.stopped),
+                    ("g.hold_attack", i64::from(og.pending_attack), g.hold_attack),
+                    (
+                        "g.queued_attack",
+                        i64::from(og.queued_attack),
+                        g.queued_attack,
+                    ),
+                    ("g.track_dx", i64::from(track.0), g.track.map(|t| t.0)),
+                    ("g.track_dy", i64::from(track.1), g.track.map(|t| t.1)),
+                    ("g.last_speed", i64::from(body.last_speed), g.last_speed),
+                    ("g.avg_speed", i64::from(body.avg_speed), g.avg_speed),
+                ] {
+                    let Some(theirs) = theirs else { continue };
+                    if ours != theirs {
+                        let key = format!("{name}[{k}] {who}/{o}");
+                        let before = first.len();
+                        first.entry(key.clone()).or_insert(n);
+                        if first.len() != before {
+                            eprintln!("  {n} {key}: ours {ours} theirs {theirs}");
+                        }
+                    }
+                }
+            }
+        }
     }
     assert_eq!(
         blocks,
         (LAST - FIRST) as usize,
         "run112's dump no longer carries every frame of [{FIRST}, {LAST})"
     );
+    // **Anti-vacuity for the borrowed clock** (item 510), and it is the
+    // one row here whose agreement would otherwise be a silence twice
+    // over: run112 prints no `cur_anim`, `cur_time`, `end_time`,
+    // `last_time`, `des_angle`, `gpiece`, `hold_attack` or
+    // `queued_attack` on a per-frame `GUY` block at all, so before this
+    // landing every one of those rows compared `Some(ours)` against
+    // `None` and was skipped. A reader that stopped finding run118's
+    // blocks would do exactly the same thing and print nothing, so the
+    // count of guy records actually taken from it is pinned. Nine staged
+    // figures, ten pre-existing ones and one guy each, over 123 blocks.
+    if clocks.is_some() {
+        assert_eq!(
+            clock_blocks,
+            (LAST - FIRST) as usize,
+            "run118 no longer carries every block of [{FIRST}, {LAST}); it is \
+             truncated at 846 and the window must stay under it"
+        );
+        assert!(
+            clock_rows >= 2000,
+            "only {clock_rows} guy records came from run118; the clock rows \
+             are comparing nothing"
+        );
+        eprintln!("ch2 clock: {clock_rows} guy records read from run118");
+    }
     // **Anti-vacuity for the death list**, which is the one row here
     // whose agreement is a *silence*: three fields on every block from
     // 684 to the ceiling, for the one death run112's window carries. A
@@ -1727,6 +1880,44 @@ fn chapter_two_s_word_frame_is_widened_whole() {
     // damage weight sends all three bowmen to `1/7` where the dump sends
     // them to `1/6`, and from 712 the two sides are wounding different
     // hoplites. `docs/COMBAT.md` §42.5 is what it waits on.
+    //
+    // **Item 510 opened the `GUY` record and the map went from eleven
+    // rows to thirty-nine.** `compare` carries no guy row at all and this
+    // walk built none, so for eleven items the window could not see the
+    // animation clock — which is the record chapter two's word has been
+    // spent in since 695. Twenty-eight of the new rows were invisible
+    // twice over: run112 was taken at `GUYS=2` and prints **no**
+    // `cur_anim`, `cur_time`, `end_time`, `last_time`, `des_angle`,
+    // `gpiece`, `hold_attack` or `queued_attack` on a per-frame `GUY`
+    // block, so even a walk that had built the rows would have compared
+    // `Some(ours)` against `None` and skipped every one. The clock is
+    // borrowed from run118, asserted to be the same game key by key
+    // above. `docs/COMBAT.md` §45.
+    //
+    // The three families, and none of them is this landing's doing:
+    //
+    // - **`g.cur_anim` / `g.end_time` / `g.stopped` / `g.hold_attack` on
+    //   `0/7` and `0/8` at 726 and `0/6` at 727** are the word's own
+    //   delta, seen as values for the first time. The original's figure
+    //   comes out of its attack-end wrap on an **attack** slot
+    //   (`cur_anim 11`, `12`) and this crate's on the idle (`0`), with
+    //   `hold_attack 1` where the dump has 0: the swing that asked while
+    //   the attack was still playing lands in `queued_attack` for the
+    //   original and in `hold_attack` here, and only the first is paid
+    //   inside `Guy::inc_time`'s own loop with a roll. That is the two
+    //   `Guy::set_anim+0xf2f < Guy::inc_time+0x271` the word is.
+    // - **`g.des_angle` beside each `g.angle`**: the same parting as the
+    //   unit-level `angle` rows, one level down, and the reason for the
+    //   four above — `Unit::fight` writes the guy's `des_angle` to the
+    //   attack angle and `Guy::set_anim` defers the attack while it
+    //   differs from the figure's own `angle` (§45.1).
+    // - **`g.gpiece` on ten pre-existing units at 606**, the window's
+    //   floor, on both players and five types: this crate's piece is
+    //   exactly [`sim::anim::PIECES_PER_AGE`] below the dump's on every
+    //   one of them — one age bracket. The animation clock agrees on all
+    //   ten for the whole window, so the two pieces share their lengths
+    //   here and it spends no draw; it is named so it cannot hide, and it
+    //   is `docs/ANIM.md`'s.
     let measured = [
         ("angle 0/6", 697),
         ("angle 0/7", 696),
@@ -1736,6 +1927,34 @@ fn chapter_two_s_word_frame_is_widened_whole() {
         ("damage_frac 1/6", 712),
         ("damage_frac 1/7", 686),
         ("damage_frame 1/7", 686),
+        ("g.angle[0] 0/6", 697),
+        ("g.angle[0] 0/7", 696),
+        ("g.angle[0] 0/8", 696),
+        ("g.cur_anim[0] 0/6", 727),
+        ("g.cur_anim[0] 0/7", 726),
+        ("g.cur_anim[0] 0/8", 726),
+        ("g.des_angle[0] 0/6", 697),
+        ("g.des_angle[0] 0/7", 696),
+        ("g.des_angle[0] 0/8", 696),
+        ("g.end_time[0] 0/6", 727),
+        ("g.end_time[0] 0/7", 726),
+        ("g.end_time[0] 0/8", 726),
+        ("g.gpiece[0] 0/1", 606),
+        ("g.gpiece[0] 0/2", 606),
+        ("g.gpiece[0] 0/3", 606),
+        ("g.gpiece[0] 0/4", 606),
+        ("g.gpiece[0] 0/5", 606),
+        ("g.gpiece[0] 1/1", 606),
+        ("g.gpiece[0] 1/2", 606),
+        ("g.gpiece[0] 1/3", 606),
+        ("g.gpiece[0] 1/4", 606),
+        ("g.gpiece[0] 1/5", 606),
+        ("g.hold_attack[0] 0/6", 727),
+        ("g.hold_attack[0] 0/7", 726),
+        ("g.hold_attack[0] 0/8", 726),
+        ("g.stopped[0] 0/6", 727),
+        ("g.stopped[0] 0/7", 726),
+        ("g.stopped[0] 0/8", 726),
         ("order 0/6", 696),
         ("order 0/7", 696),
         ("order 0/8", 696),
@@ -1744,8 +1963,8 @@ fn chapter_two_s_word_frame_is_widened_whole() {
     assert_eq!(
         got,
         measured.to_vec(),
-        "chapter two's word frame no longer widens the way item 484 \
-         measured it; re-pin this map and say so in docs/COMBAT.md §40"
+        "chapter two's word frame no longer widens the way item 510 \
+         measured it; re-pin this map and say so in docs/COMBAT.md §45"
     );
 }
 

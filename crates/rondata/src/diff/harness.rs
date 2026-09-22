@@ -7922,6 +7922,23 @@ mod tests {
                         ("g.last_time", i64::from(og.last_time), g.last_time),
                         ("g.gpiece", i64::from(og.gpiece), g.gpiece),
                         ("g.stopped", i64::from(og.stopped), g.stopped),
+                        // **The attack a figure owes** (item 510): held
+                        // while the body is still walking or still
+                        // turning, queued while an attack is already
+                        // playing, and only the queued one is paid inside
+                        // `Guy::inc_time`'s wrap loop with a roll. They
+                        // are new to the parser in that landing, and the
+                        // rule that earned them applies to this record as
+                        // much as to chapter two's — a record widened on
+                        // one window and not the next is the shape
+                        // `crate::ledger` exists to count.
+                        // `docs/COMBAT.md` §45.
+                        ("g.hold_attack", i64::from(og.pending_attack), g.hold_attack),
+                        (
+                            "g.queued_attack",
+                            i64::from(og.queued_attack),
+                            g.queued_attack,
+                        ),
                         ("g.track_dx", i64::from(track.0), g.track.map(|t| t.0)),
                         ("g.track_dy", i64::from(track.1), g.track.map(|t| t.1)),
                         ("g.last_speed", i64::from(body.last_speed), g.last_speed),

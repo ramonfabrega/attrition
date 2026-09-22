@@ -62,6 +62,14 @@ const UNREAD: &[(&str, &str)] = &[
     // `OBJECT` paths, which is now a `hits_diverged` row. Nineteen paths
     // and 232 keys stand. `WALLDATA/OBJECT` keeps its `hold_frames`: it
     // is a building's, and `BuildDump` parses none of that half.
+    //
+    // **Item 510 took `hold_attack` and `queued_attack` off both
+    // `UNITDATA/GUY` paths** — the pair that decides whether an attack
+    // asked for mid-animation is paid next frame or inside
+    // `Guy::inc_time`'s own wrap loop, which is chapter two's word
+    // (`docs/COMBAT.md` §45). Nineteen paths and 228 keys stand.
+    // `GAME/FRAME/GUY` keeps both: that is the frame-level list, whose
+    // only reader is `anim_lengths`, and no comparison opens it.
     ("GAME/FRAME/ANIMALDATA", "aid ox whom"),
     (
         "GAME/FRAME/ANIMALDATA/UNITDATA",
@@ -69,7 +77,7 @@ const UNREAD: &[(&str, &str)] = &[
     ),
     (
         "GAME/FRAME/ANIMALDATA/UNITDATA/GUY",
-        "(int)off_x (int)off_y (int)variation *((dword*) des_node_flags des_turret_angles[0] des_turret_angles[1] des_turret_angles[2] des_turret_angles[3] hold_attack last_angle node_flags o ox queued_attack turret_angles[0] turret_angles[1] turret_angles[2] turret_angles[3] who whom",
+        "(int)off_x (int)off_y (int)variation *((dword*) des_node_flags des_turret_angles[0] des_turret_angles[1] des_turret_angles[2] des_turret_angles[3] last_angle node_flags o ox turret_angles[0] turret_angles[1] turret_angles[2] turret_angles[3] who whom",
     ),
     (
         "GAME/FRAME/ANIMALDATA/UNITDATA/OBJECT",
@@ -107,7 +115,7 @@ const UNREAD: &[(&str, &str)] = &[
     ),
     (
         "GAME/FRAME/UNITDATA/GUY",
-        "(int)off_x (int)off_y (int)variation *((dword*) des_node_flags des_turret_angles[0] des_turret_angles[1] des_turret_angles[2] des_turret_angles[3] hold_attack last_angle node_flags o ox queued_attack turret_angles[0] turret_angles[1] turret_angles[2] turret_angles[3] who whom",
+        "(int)off_x (int)off_y (int)variation *((dword*) des_node_flags des_turret_angles[0] des_turret_angles[1] des_turret_angles[2] des_turret_angles[3] last_angle node_flags o ox turret_angles[0] turret_angles[1] turret_angles[2] turret_angles[3] who whom",
     ),
     (
         "GAME/FRAME/UNITDATA/OBJECT",
