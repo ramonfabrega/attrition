@@ -2351,6 +2351,76 @@ mod tests {
         );
     }
 
+    /// **A move whose action's target has died is only re-pathed when
+    /// the walk is nearly over** (item 487, `docs/ORDERS.md` §20).
+    ///
+    /// `do_move@005f7b30`'s `action->type == 10` block falls out of the
+    /// valid-target arm when the object is gone, and what it does then is
+    /// `005f8221`-`005f825d`:
+    ///
+    /// ```text
+    /// vector_dist(|x − move.x|, |y − move.y|)   ; the order's own dest
+    /// cmp eax, 0x480 / jg   → the planner
+    /// test $0x10, 0x2b4(ptype) / jne → the planner   ; a sea transport
+    /// call Unit::repath
+    /// ```
+    ///
+    /// `MoveOrder +0x4`/`+0x8` are `x`/`y` by the type record, so the
+    /// distance is to where the unit was walking. Inside `0x480` the walk
+    /// is pointless and the transit legs are popped; beyond it the unit
+    /// keeps the order and plans, dead target and all. This crate popped
+    /// them at any distance, which is what stood run100's `1/29` still
+    /// 28,000 units from home for the length of its reload.
+    ///
+    /// Both arms are asserted, and the gate was made to fail on purpose
+    /// by taking the distance test out again — which kills the far move
+    /// on its first frame.
+    #[test]
+    fn a_dead_target_s_move_is_repathed_only_within_0x480_of_its_destination() {
+        for (name, dest, survives) in [
+            ("near", Pos::new(0x1000 + 0x400, 0x1000), false),
+            ("far", Pos::new(0x1000 + 0x4000, 0x1000), true),
+        ] {
+            let (mut sim, ty) = at_war();
+            let me = put(&mut sim, 0, ty, Pos::new(0x1000, 0x1000));
+            let foe = put(&mut sim, 1, ty, dest);
+            // The attack is the **action** under the move, which is the
+            // only shape the block reads.
+            sim.add_attack_order(
+                me,
+                Obj::Unit(foe),
+                crate::orders::QueuePos::First,
+                true,
+                true,
+            );
+            sim.add_move_order(
+                me,
+                dest,
+                crate::orders::MoveKind::MoveTo,
+                crate::orders::QueuePos::First,
+                false,
+            );
+            assert_eq!(
+                sim.units[me].orders.len(),
+                2,
+                "{name}: the move and its action"
+            );
+            sim.units[foe].health = 0;
+            sim.forget(Obj::Unit(foe));
+            sim.work(me, 0);
+            assert_eq!(
+                sim.units[me]
+                    .orders
+                    .iter()
+                    .any(crate::orders::Order::is_move),
+                survives,
+                "{name}: the move at {dest:?} should {} have survived: {:?}",
+                if survives { "" } else { "not" },
+                sim.units[me].orders
+            );
+        }
+    }
+
     /// **A squad member never searches: it mirrors its captain.**
     /// `Unit::think@005f6e40`'s first statement, above every gate in the
     /// function (`docs/COMBAT.md` §21) — a non-captain reads its captain's

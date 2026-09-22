@@ -1453,12 +1453,30 @@ pub(crate) const EAST_INDIES_FIRST_SCHOLAR: i64 = 8_466;
 /// 24,000-frame label dump is unchanged on every other frame
 /// (`docs/COMBAT.md` §39).
 ///
-/// So this is again **one** number, and the next thing on it is a
+/// So this is again **one** number, and ~~the next thing on it is a
 /// simulation disagreement: 10244 spends four draws against three and
 /// parts at index 1, ours `Guy::set_anim+0x97a < Unit::move_step+0x823`
 /// — the blocked stand — against the original's `Guy::inc_time+0x271`
-/// wrap.
-pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 10_244;
+/// wrap.~~
+///
+/// **Item 487 closed 10244 and the two numbers moved together to
+/// 10277** (`docs/ORDERS.md` §20). The blocked stand was `1/27` walking
+/// into `1/29`, and `1/29` was standing because this crate held it
+/// there: `Unit::ungroup_move_order@005fd140` **re-heads** the plain
+/// move it makes (`remove_current` then `LinkListBase::add`, which
+/// prepends) where this crate rewrote the order where it stood, and
+/// `do_move@005f7b30`'s dead-target re-path is gated on
+/// `vector_dist(unit − move.dest) <= 0x480` where this crate re-pathed
+/// unconditionally. With both, `1/29` takes the original's own 43-node
+/// walk home on 10240 and `1/27` walks past.
+///
+/// The word's shape is unchanged one raider over: **10277 spends seven
+/// draws against six** and parts at index 4, ours
+/// `Guy::set_anim+0x97a < Unit::move_step+0x823` — the blocked stand
+/// again — against the original's `Guy::inc_time+0x271` wrap, and
+/// block 10278 says it is `1/40` colliding with `1/41`
+/// (`collide_o 41`) where the original's does not.
+pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 10_277;
 
 /// The floor `run97_s_window_orders_are_the_original_s` holds — item 368's
 /// widening of Great Lakes' order stacks, the 36,483 `GATHERORDER` records
@@ -1792,12 +1810,12 @@ pub(crate) const GOLDEN_WORD_CHAPTER_TWO: i64 = 683;
 /// or parked in `docs/PARKED.md`. The last column is the item — the one
 /// that landed the widening, or the one that owes it.
 /// The block window `run100_s_word_block_is_every_record_the_dump_carries`
-/// walks — run100's first complete block to fourteen past the word. The
+/// walks — run100's first complete block to thirteen past the word. The
 /// test reads its bounds from here and the guard reads the word against
 /// them, so the two cannot disagree: a window the word has walked out of
 /// fails `the_widening_behind_each_pinned_word_exists` rather than passing
 /// by saying nothing (parked 449).
-pub(crate) const WIDENING_GREAT_LAKES: (i64, i64) = (9_340, 10_247);
+pub(crate) const WIDENING_GREAT_LAKES: (i64, i64) = (9_340, 10_290);
 /// `chapter_two_s_word_frame_is_widened_whole`'s window, on the same
 /// terms: run112's window opens at 605 and one past the last frame
 /// compared. It straddled the word at 624 until item 462 moved the word
@@ -1876,11 +1894,22 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // for an untouched unit and printed every wound as a divergence.
     // `hits_left` and `myhits` are both rows now, 54,000 more
     // comparisons, and both agree on all 909 blocks.
+    //
+    // Item 487 moved the word 10244 → **10277** and moved the window's
+    // ceiling with it, 10247 → 10290, in the same landing — parked 449's
+    // lesson applied at the move. The widening is what killed item 483's
+    // reading before a line of it was implemented: 483 wrote "`1/29`
+    // drops its move order on 10241" and the record says the opposite —
+    // `order:kind ours 10 theirs 1` is **this crate** still holding an
+    // `ATTACK` where the original is already walking, and the dump's own
+    // `1/29` never moves in this crate at all. The frame was right and
+    // the mechanism was not, which is `docs/DECISIONS.md` 42 for the
+    // fourth time in this chain.
     (
         "LONG_WORD_GREAT_LAKES",
         LONG_WORD_GREAT_LAKES,
         Some("run100_s_word_block_is_every_record_the_dump_carries"),
-        464,
+        487,
         Some(WIDENING_GREAT_LAKES),
     ),
     (
