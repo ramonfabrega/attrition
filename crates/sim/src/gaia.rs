@@ -635,7 +635,11 @@ mod tests {
         s.units[a].movement.speed = 1;
         s.units[a].orders.clear();
         s.add_move_order(a, far, MoveKind::MoveTo, QueuePos::New, false);
-        assert_eq!(s.get_speed(a, 0), 1, "air: neither the 3/2 nor the floor of 3");
+        assert_eq!(
+            s.get_speed(a, 0),
+            1,
+            "air: neither the 3/2 nor the floor of 3"
+        );
         s.units[a].kind.domain = crate::attrition::Domain::Land;
         assert_eq!(s.get_speed(a, 0), 3, "and on the ground, the floor");
     }

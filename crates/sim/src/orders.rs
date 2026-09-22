@@ -2676,10 +2676,19 @@ impl Sim {
             if !self.still_group_move(u, gm.id) {
                 return;
             }
-            // SEAM: the group's `speed`/`new_speed` pair and the `march`
-            // flag `has_general` sets. `UnitData::get_speed`'s group cap is
-            // already a stated seam here ([`Sim::get_speed`]), so the pair
-            // has no reader and is not carried.
+            // **The leader publishes the pass** (`5e7a9a`, which is
+            // `Group::leader_report_speed@007137f0` inlined): its own
+            // **uncapped** speed becomes the accumulator and what the
+            // accumulator held becomes the cap every member without an
+            // action order walks at this frame (`docs/GROUPS.md` §18).
+            // It runs only on a frame the leader's own step succeeded,
+            // and after it, which is why a group's cap is one pass stale.
+            //
+            // SEAM: the `march` arm under it —
+            // `LeaderData & 0x8000 && has_general(0x8000, -1) >= 0` — and
+            // no capture has a general, so `march` is only ever cleared.
+            let mine = self.get_speed(u, 1);
+            self.group_leader_report_speed(g, mine);
             self.group_update_positions(g, u);
             return;
         }
@@ -2847,6 +2856,18 @@ impl Sim {
             // formation is capped by the group like any plain mover.
             self.get_speed(u, 0) / 2
         } else {
+            // **And a follower in formation reports** (`5e8336`, which is
+            // `Group::report_speed@00713bb0` inlined): its own
+            // `UnitData::speed` — layer two, not `get_speed`, so neither
+            // the ground it stands on nor the order it carries enters the
+            // group's cap — drives the pair down and never up. This is
+            // what puts a slow squad's speed on a fast leader, and a
+            // follower that stops reporting lets the cap drift back to
+            // the leader's own over the next two frames.
+            if !self.gstate(g).is_some_and(|st| st.march) {
+                let own = self.units[u].movement.speed;
+                self.group_report_speed(g, own);
+            }
             // `5e8355`: flag **1**. A follower keeping formation is
             // allowed its own speed and a third on top, uncapped — the
             // catch-up, and the reason the cap never stops the block
@@ -2992,6 +3013,11 @@ impl Sim {
     /// group plan, and every one carrying `id` that is **not** an
     /// attack-move is killed. A `GROUP_ATTACK_TO` survives both arms.
     pub(crate) fn kill_group_move(&mut self, g: &crate::group::Group, id: i64) {
+        // `007123f9`: `normalize(this)` before anything else, which is
+        // where the group's speed goes back to its leader's
+        // (`docs/GROUPS.md` §18) after a march's own reports have walked
+        // it up to the leader's uncapped speed.
+        self.group_set_speed(g);
         for i in 0..g.list.len() {
             let u = g.list[i];
             if !(self.units[u].alive() && self.units[u].on_map) {

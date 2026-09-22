@@ -1520,11 +1520,29 @@ pub(crate) const EAST_INDIES_FIRST_SCHOLAR: i64 = 8_466;
 /// its step machine disarms where this crate ran a second pass
 /// (`docs/ECONOMY.md` §13).
 ///
-/// **10817 is `1/28`'s collision.** Ours spends **three** draws and the
-/// original **two**, parting at index 0: the extra is ours and it is in
-/// front — `Guy::set_anim+0x97a < Unit::move_step+0x823`, the blocked
-/// stand, where the original's frame is `Guy::set_anim+0x104b` and
-/// `Farms::inc_time+0x1ae` alone.
+/// ~~**10817 is `1/28`'s collision.**~~ **Item 515 closed it, and the
+/// collision was a consequence of a position 370 units out.** This
+/// crate's `1/28` stood 370 east and 242 north of the original's — about
+/// fifteen frames of its own walk — and so collided with a gaia animal
+/// that sits in the same place on both sides and never moves. The block
+/// could not say so, because `1/28 pos` first parted **583 blocks
+/// earlier**, on 10235, which was parked 477. Both sides start that walk
+/// from the same point with the same facing and the same `last_speed`;
+/// the step parts at once, ours `(25, 7)` against theirs `(24, 7)`, and
+/// the original's own sine table gives `(25, 7)` for a distance of 26 and
+/// `(24, 7)` for 25 — so the trig agrees to the bit and only the distance
+/// does not. `1/28`'s `myspeed` is 26 and it walks at 25, its group's
+/// (`docs/GROUPS.md` §18).
+///
+/// **10834 is the same raider, and the residue is one frame of the
+/// cap.** Ours spends **three** draws and the original **two**, parting
+/// at index **1**: the extra is ours — `Guy::set_anim+0x97a <
+/// Unit::move_step+0x823`, the blocked stand — against the original's
+/// `Farms::inc_time+0x1ae`. The position under it first parts on 10242,
+/// **one** world unit, on the frame the original's cap goes back to its
+/// leader's 25 and this crate's stays at the 26 its own leader reported:
+/// §18's residue, and it chains to `1/40`'s order stack rather than to
+/// the cap.
 ///
 /// **The block's own rows are not restated here**, and that is
 /// deliberate: block 10818's eight rows of `1/28` are *asserted* in
@@ -1537,7 +1555,7 @@ pub(crate) const EAST_INDIES_FIRST_SCHOLAR: i64 = 8_466;
 /// never pinned as text. **The rule this comment now follows: the word's
 /// *delta* here, the word's *block* in the widening, and each says
 /// which.**
-pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 10_817;
+pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 10_834;
 
 /// The floor `run97_s_window_orders_are_the_original_s` holds — item 368's
 /// widening of Great Lakes' order stacks, the 36,483 `GATHERORDER` records
@@ -1950,7 +1968,7 @@ pub(crate) const GOLDEN_WORD_CHAPTER_TWO: i64 = 725;
 /// them, so the two cannot disagree: a window the word has walked out of
 /// fails `the_widening_behind_each_pinned_word_exists` rather than passing
 /// by saying nothing (parked 449).
-pub(crate) const WIDENING_GREAT_LAKES: (i64, i64) = (9_340, 10_830);
+pub(crate) const WIDENING_GREAT_LAKES: (i64, i64) = (9_340, 10_847);
 /// `chapter_two_s_word_frame_is_widened_whole`'s window, on the same
 /// terms: run112's window opens at 605 and one past the last frame
 /// compared. It straddled the word at 624 until item 462 moved the word

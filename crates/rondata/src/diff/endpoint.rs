@@ -423,7 +423,18 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // frames past this map's word. DECISIONS 36 asks for the number
         // rather than a trade; the number is on the headline, and the
         // headline is Great Lakes'.
-        off: 64,
+        // And **64 → 63 off and 2 → 1 build_unlinked against 27 → 30
+        // build_diverged** on 2026-09-22, item 515 — the group speed cap
+        // (`docs/GROUPS.md` §18). This map's own word does **not** move
+        // (9711 either side) and nothing about the change is East
+        // Indies': every map marches formations, so a member that now
+        // walks at its group's pace rather than its own arrives
+        // elsewhere on every map. One position and one building back
+        // against three building field-rows, 14,290 frames past this
+        // map's word. DECISIONS 36 asks for the number rather than a
+        // trade; the number is on the headline, and the headline is
+        // Great Lakes'.
+        off: 63,
         // And **5 → 10 unlinked** on 2026-09-21, item 442 — the scholar
         // arm's `val` chain (`docs/AI.md` §53). This map's word does not
         // move on it; Great Lakes' moves 9510 → 10161. The AI's Scholar
@@ -434,8 +445,8 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // the number rather than a trade; the number is on the headline.
         unlinked: 10,
         extra: 0,
-        build_unlinked: 2,
-        build_diverged: 27,
+        build_unlinked: 1,
+        build_diverged: 30,
         city_unlinked: 3,
         city_diverged: 0,
     },
@@ -997,11 +1008,21 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // rare here and is what an AI that now spends its wealth the way
         // the original does looks like 13,184 frames past the word.
         // DECISIONS 36 asks for the number rather than a trade.
-        off: 53,
-        unlinked: 3,
+        // And **53 → 42 off, 3 → 5 unlinked and 9 → 10
+        // build_diverged** on 2026-09-22, item 515 — the group speed
+        // cap (`docs/GROUPS.md` §18), which is this map's own headline:
+        // the word moves **10817 → 10834**. Eleven of the roster back on
+        // the original's point 13,167 frames past the word against two
+        // more unlinked and one more building field-row, and it is the
+        // largest fall in `off` this counter has taken: a group whose
+        // fast members now walk at the group's pace keeps its block
+        // together for the rest of the game. DECISIONS 36 asks for the
+        // number rather than a trade.
+        off: 42,
+        unlinked: 5,
         extra: 0,
         build_unlinked: 0,
-        build_diverged: 9,
+        build_diverged: 10,
         city_unlinked: 3,
         city_diverged: 0,
     },
@@ -1191,7 +1212,10 @@ pub const LADDER: [Endpoint; 2] = [
         // (`docs/ECONOMY.md` §13): one more Cataphract this crate
         // trains and the original does not, 5,690 frames past this
         // map's word. DECISIONS 36 asks for the number, not a trade.
-        extra: 14,
+        // **14 → 13 on item 515**, the group speed cap
+        // (`docs/GROUPS.md` §18): one fewer Cataphract, the same unit
+        // 506 added, 5,690 frames past this map's word.
+        extra: 13,
         build_unlinked: 10,
         build_diverged: 8,
         city_unlinked: 3,
@@ -1283,7 +1307,12 @@ pub const LADDER: [Endpoint; 2] = [
         // in; East Indies' own word does not move.
         // **45 → 48 on item 506**, `market_speculation`'s two passes
         // (`docs/ECONOMY.md` §13), 6,778 frames past this map's word.
-        off: 48,
+        // And **48 → 49 off, 14 → 9 extra** on 2026-09-22, item 515 —
+        // the group speed cap (`docs/GROUPS.md` §18). Five spurious
+        // units gone from this rung against one position out, 6,778
+        // frames past this rung's word; the C rung above sheds one.
+        // DECISIONS 36 asks for the number rather than a trade.
+        off: 49,
         unlinked: 16,
         // 19 → 33 on 2026-09-07, item 261, the same reshuffle, then 33 →
         // **27** the same day on item 265's byte — this rung took the
@@ -1358,7 +1387,7 @@ pub const LADDER: [Endpoint; 2] = [
         // **6 → 14 on item 506**, and the eight are the Longbowmen,
         // Hoplites and Citizens an AI with a live market can pay for
         // and this rung's original does not train.
-        extra: 14,
+        extra: 9,
         build_unlinked: 19,
         build_diverged: 0,
         city_unlinked: 4,

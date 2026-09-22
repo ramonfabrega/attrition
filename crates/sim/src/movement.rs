@@ -1400,6 +1400,97 @@ mod tests {
         assert_eq!(s.get_speed(a, 0), SPEED_FLOOR, "4 / 2 is under the floor");
     }
 
+    /// **`get_speed`'s third argument selects exactly one thing, the
+    /// group cap** (`docs/GROUPS.md` §18), and the cap has a second gate
+    /// the flag does not reach: a unit with an **action** order is
+    /// exempt, which is how Great Lakes' `1/29` walks at 29 in a group
+    /// whose other two raiders walk at 25.
+    ///
+    /// Made to fail on purpose three ways: drop the `flag == 0` test and
+    /// the second row is 25; drop the `action == index::NONE` test and
+    /// the fourth is 25; take the cap before the order scale instead of
+    /// after and the fourth is 28.
+    #[test]
+    fn the_group_cap_is_flag_zero_s_and_an_action_order_is_exempt() {
+        use crate::orders::{AttackOrder, Body, Order};
+        use crate::{Sim, Tuning, Unit, UnitType, World};
+
+        use crate::combat::mask;
+
+        let mut s = Sim::new(Tuning::RON, World::new(60, 60), 2);
+        // Two types, so `find_leader`'s answer is `type_cat`'s and not
+        // the list's order: mounted outranks foot, and the mounted one
+        // is the slow one.
+        let armed = |m: u32| {
+            let mut t = UnitType {
+                hits: 1,
+                moves: 26,
+                ..UnitType::default()
+            };
+            t.combat.attack = 15;
+            t.combat.obj_masks = m;
+            t
+        };
+        let foot = s.add_unit_type(armed(mask::FOOT));
+        let horse = s.add_unit_type(armed(mask::MOUNTED));
+        fn make(s: &mut Sim, ty: usize, o: i16, p: Pos, speed: i32) -> usize {
+            let mut u = Unit::new(1, o, p, 1);
+            u.ty = Some(ty);
+            u.on_map = true;
+            let h = s.add_unit(u);
+            s.units[h].movement.speed = speed;
+            h
+        }
+        // Great Lakes' group 65 in miniature: a 26 and a 25.
+        let fast = make(&mut s, foot, 0, Pos::new(0x1000, 0x1000), 26);
+        let slow = make(&mut s, horse, 1, Pos::new(0x1100, 0x1000), 25);
+        let mut g = crate::group::Group {
+            who: 1,
+            army: None,
+            pushed: None,
+            list: vec![fast, slow],
+        };
+        assert!(s.push_group(&mut g, true));
+        s.group_normalize(&mut g);
+
+        assert_eq!(
+            s.group_find_leader(&g),
+            Some(slow),
+            "the mounted type leads on `type_cat`, whatever the list order"
+        );
+        assert_eq!(
+            s.group_speed_of(fast),
+            25,
+            "the group's cap is its leader's, and the leader is the slow one"
+        );
+        assert_eq!(s.get_speed(fast, 0), 25, "flag 0 is capped");
+        assert_eq!(s.get_speed(fast, 1), 26, "flag 1 is not");
+
+        // An action order exempts it — `get_action` answering non-null is
+        // `local_8 != 0`, and the same value carries the order's own
+        // scale, so the answer is `26 * 9 / 8` and not 26.
+        s.units[fast].orders.push_back(Order {
+            flags: 0,
+            body: Body::Attack(AttackOrder {
+                defensive: false,
+                def: None,
+                in_range: false,
+                ever_in_range: false,
+                new_ord: true,
+            }),
+        });
+        assert_eq!(
+            s.get_speed(fast, 0),
+            29,
+            "an action order skips the cap and takes the ATTACK 9/8"
+        );
+
+        // And a unit with no group is not capped by anything.
+        let lone = make(&mut s, foot, 2, Pos::new(0x2000, 0x1000), 26);
+        assert_eq!(s.group_speed_of(lone), 0, "no seat, no cap");
+        assert_eq!(s.get_speed(lone, 0), 26);
+    }
+
     #[test]
     fn the_body_lands_on_the_unit_and_records_the_euclidean_step() {
         // The unit stepped 25 east; the body is written straight onto it, and
