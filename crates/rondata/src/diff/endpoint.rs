@@ -410,7 +410,20 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // closer against one more of the roster unlinked and two more
         // building field-rows, 14,290 frames past this map's word.
         // DECISIONS 36 asks for the number rather than a trade.
-        off: 59,
+        // And **59 → 64 off, 12 → 10 unlinked, 1 → 2 build_unlinked
+        // and 30 → 27 build_diverged** on 2026-09-22, item 506 —
+        // `market_speculation`'s buy and sell passes
+        // (`docs/ECONOMY.md` §13). This map's own word does **not**
+        // move (9711 either side) and nothing about the change is East
+        // Indies': the AI speculates on every map with a market and
+        // Coinage, so a leader that now buys and sells off its
+        // shortfall enters every later rotation holding a different
+        // purse. Two of the roster linked back and three building
+        // field-rows closer against five positions further out, 14,290
+        // frames past this map's word. DECISIONS 36 asks for the number
+        // rather than a trade; the number is on the headline, and the
+        // headline is Great Lakes'.
+        off: 64,
         // And **5 → 10 unlinked** on 2026-09-21, item 442 — the scholar
         // arm's `val` chain (`docs/AI.md` §53). This map's word does not
         // move on it; Great Lakes' moves 9510 → 10161. The AI's Scholar
@@ -419,10 +432,10 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // rungs shed **eight** and **seven** spurious units — the Citizens
         // this crate used to buy instead of Scholars. DECISIONS 36 asks for
         // the number rather than a trade; the number is on the headline.
-        unlinked: 12,
+        unlinked: 10,
         extra: 0,
-        build_unlinked: 1,
-        build_diverged: 30,
+        build_unlinked: 2,
+        build_diverged: 27,
         city_unlinked: 3,
         city_diverged: 0,
     },
@@ -976,11 +989,19 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // 13,419 frames past the word, where the stream is nobody's.
         // DECISIONS 36 asks for the number rather than a trade; the
         // number is on the headline, and the headline is what moved.
-        off: 55,
-        unlinked: 5,
+        // And **55 → 53 off, 5 → 3 unlinked and 10 → 9
+        // build_diverged** on 2026-09-22, item 506 —
+        // `market_speculation`'s buy and sell passes
+        // (`docs/ECONOMY.md` §13), which is this map's own headline:
+        // the word moves **10582 → 10817**. Every count fell, which is
+        // rare here and is what an AI that now spends its wealth the way
+        // the original does looks like 13,184 frames past the word.
+        // DECISIONS 36 asks for the number rather than a trade.
+        off: 53,
+        unlinked: 3,
         extra: 0,
         build_unlinked: 0,
-        build_diverged: 10,
+        build_diverged: 9,
         city_unlinked: 3,
         city_diverged: 0,
     },
@@ -1166,7 +1187,11 @@ pub const LADDER: [Endpoint; 2] = [
         // arm's `val` chain (`docs/AI.md` §53). Eight spurious units gone
         // from this rung and nothing else moved: the AI stops buying
         // Citizens where the original buys a Scholar, on both maps.
-        extra: 13,
+        // **13 → 14 on item 506**, `market_speculation`'s two passes
+        // (`docs/ECONOMY.md` §13): one more Cataphract this crate
+        // trains and the original does not, 5,690 frames past this
+        // map's word. DECISIONS 36 asks for the number, not a trade.
+        extra: 14,
         build_unlinked: 10,
         build_diverged: 8,
         city_unlinked: 3,
@@ -1256,7 +1281,9 @@ pub const LADDER: [Endpoint; 2] = [
         // the scholar teach slot's tie-break (`docs/ANIM.md` §4.12).
         // The rung sheds five spurious units and three positions come
         // in; East Indies' own word does not move.
-        off: 45,
+        // **45 → 48 on item 506**, `market_speculation`'s two passes
+        // (`docs/ECONOMY.md` §13), 6,778 frames past this map's word.
+        off: 48,
         unlinked: 16,
         // 19 → 33 on 2026-09-07, item 261, the same reshuffle, then 33 →
         // **27** the same day on item 265's byte — this rung took the
@@ -1328,7 +1355,10 @@ pub const LADDER: [Endpoint; 2] = [
         // later**, and the block 1/56–1/72 is type-identical on the two
         // rungs — which the ladder test now asserts, since it is the one
         // thing about `extra` that does not churn with every AI landing.
-        extra: 6,
+        // **6 → 14 on item 506**, and the eight are the Longbowmen,
+        // Hoplites and Citizens an AI with a live market can pay for
+        // and this rung's original does not train.
+        extra: 14,
         build_unlinked: 19,
         build_diverged: 0,
         city_unlinked: 4,

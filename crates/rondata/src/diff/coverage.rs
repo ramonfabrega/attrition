@@ -106,10 +106,6 @@ const UNREAD: &[(&str, &str)] = &[
         "air_alt attrition cavarch_o cavarch_uid cavarch_who full gather_down good_obj guy_mark healing hero increment inside_up_who length los_x los_y mana_burn myarmor num_queued o_down play queue_time rare size special spell_time supply trench_angle waiting",
     ),
     (
-        "GAME/FRAME/UNITDATA/GROUPATTACKTOORDER/GroupMoveOrder/GROUPORDER/UNITORDER",
-        "flags",
-    ),
-    (
         "GAME/FRAME/UNITDATA/GUY",
         "(int)off_x (int)off_y (int)variation *((dword*) des_node_flags des_turret_angles[0] des_turret_angles[1] des_turret_angles[2] des_turret_angles[3] hold_attack last_angle node_flags o ox queued_attack turret_angles[0] turret_angles[1] turret_angles[2] turret_angles[3] who whom",
     ),

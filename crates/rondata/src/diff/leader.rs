@@ -2692,6 +2692,137 @@ mod tests {
         eprintln!("food ladder who 1: {}", ticks.join(" "));
     }
 
+    /// The `(player, field)` pairs that part over run117's window — the
+    /// 245 blocks across the market rotations at 10382 and 10582
+    /// (`docs/ECONOMY.md` §13).
+    ///
+    /// **`1/income[2:wealth]` is the one to read**, and it is the
+    /// successor: 960 here against the original's 992 on every block,
+    /// with `resources[2:wealth]` and `rate[2:wealth]` saying the same
+    /// thing twice. run107's thirty blocks at 9170–9199 carry **no**
+    /// income row at all, so the 32 opens inside `(9199, 10375]` and
+    /// nothing on this disk covers it. Four wealth of that gap is what
+    /// this item's frame turns on.
+    ///
+    /// **`1/bucket[0:food]` is what is left of the word**, six blocks
+    /// wide: with a purse of 124 against the original's 128 the buy
+    /// pass cannot reach the food at 128 and takes the timber at 94
+    /// instead, so 10577–10582 hold `94` here against `194`. The pass
+    /// itself fires on the original's own frame — that is the item.
+    ///
+    /// The rest was standing before the window opened: `SITE[*]`'s
+    /// ranking (run107's own), the human census this crate leaves at
+    /// nought, `MAKE[*].city`'s ours-plus-one, and the Merchant at
+    /// `MAKE[3]`/`MAKE[4]` that `civilian_value` does not offer
+    /// (`docs/AI.md` §38.5).
+    const PARTS_ON_RUN117: &[(usize, &str)] = &[
+        (0, "SITE[0].reg"),
+        (0, "SITE[1].reg"),
+        (0, "SITE[2].reg"),
+        (0, "SITE[3].reg"),
+        (0, "SITE[4].reg"),
+        (0, "SITE[5].reg"),
+        (0, "SITE[6].reg"),
+        (0, "SITE[7].reg"),
+        (0, "SITE[8].reg"),
+        (0, "SITE[9].reg"),
+        (0, "active_wars"),
+        (0, "active_wars_with"),
+        (0, "ally_mask"),
+        (0, "attacked"),
+        (0, "filled_gather_slots[0:food]"),
+        (0, "filled_gather_slots[1:timber]"),
+        (0, "frame_attacked"),
+        (0, "free_peasants"),
+        (0, "gatherers"),
+        (0, "min_other_team_terr"),
+        (0, "my_team_terr"),
+        (0, "other_team_terr"),
+        (0, "peasant_high"),
+        (0, "peasants"),
+        (0, "production_step"),
+        (0, "scouts"),
+        (0, "treaties[1]"),
+        (0, "wars"),
+        (1, "MAKE[0].city"),
+        (1, "MAKE[1].city"),
+        (1, "MAKE[2].val"),
+        (1, "MAKE[3].cat"),
+        (1, "MAKE[3].city"),
+        (1, "MAKE[3].t"),
+        (1, "MAKE[3].val"),
+        (1, "MAKE[4].city"),
+        (1, "MAKE[4].escrow"),
+        (1, "MAKE[4].t"),
+        (1, "MAKE[4].val"),
+        (1, "MAKE[6].city"),
+        (1, "MAKE[8].city"),
+        (1, "MAKE[9].val"),
+        (1, "SITE[0].reg"),
+        (1, "SITE[1].dist"),
+        (1, "SITE[1].rank"),
+        (1, "SITE[1].reg"),
+        (1, "SITE[1].val"),
+        (1, "SITE[1].wx"),
+        (1, "SITE[2].dist"),
+        (1, "SITE[2].rank"),
+        (1, "SITE[2].val"),
+        (1, "SITE[2].wx"),
+        (1, "SITE[3].dist"),
+        (1, "SITE[3].rank"),
+        (1, "SITE[3].val"),
+        (1, "SITE[3].wx"),
+        (1, "SITE[3].wy"),
+        (1, "SITE[4].dist"),
+        (1, "SITE[4].rank"),
+        (1, "SITE[4].val"),
+        (1, "SITE[4].wx"),
+        (1, "SITE[4].wy"),
+        (1, "SITE[5].dist"),
+        (1, "SITE[5].rank"),
+        (1, "SITE[5].val"),
+        (1, "SITE[5].wx"),
+        (1, "SITE[5].wy"),
+        (1, "SITE[6].dist"),
+        (1, "SITE[6].rank"),
+        (1, "SITE[6].val"),
+        (1, "SITE[6].wx"),
+        (1, "SITE[6].wy"),
+        (1, "SITE[7].dist"),
+        (1, "SITE[7].rank"),
+        (1, "SITE[7].val"),
+        (1, "SITE[7].wx"),
+        (1, "SITE[7].wy"),
+        (1, "SITE[8].dist"),
+        (1, "SITE[8].rank"),
+        (1, "SITE[8].val"),
+        (1, "SITE[8].wx"),
+        (1, "SITE[8].wy"),
+        (1, "SITE[9].dist"),
+        (1, "SITE[9].rank"),
+        (1, "SITE[9].val"),
+        (1, "SITE[9].wx"),
+        (1, "SITE[9].wy"),
+        (1, "bucket[0:food]"),
+        (1, "bucket[1:timber]"),
+        (1, "bucket[2:wealth]"),
+        (1, "income[2:wealth]"),
+        (1, "leftover[1:timber]"),
+        (1, "leftover[2:wealth]"),
+        (1, "peasants"),
+        (1, "rate[2:wealth]"),
+        (1, "resources[2:wealth]"),
+        (1, "scholars"),
+        (1, "scouts"),
+        (1, "tech_cat_frame[0]"),
+        (1, "tech_cat_frame[1]"),
+        (1, "tech_cat_frame[2]"),
+        (1, "tech_cat_frame[3]"),
+        (1, "tech_frame"),
+        (1, "treaties[0]"),
+        (1, "worst_good"),
+    ];
+
     /// **run117's window — the leader record across two market
     /// rotations** (item 506).
     #[test]
@@ -2761,5 +2892,47 @@ mod tests {
             }
         }
         assert!(missing.is_empty(), "the record does not carry {missing:?}");
+        assert_eq!(blocks, 490, "245 blocks, two leaders");
+        assert_eq!(
+            compared, 513_520,
+            "490 blocks of the record, every field the mapping carries"
+        );
+        // **The frame the item is**, read off the comparison so the dump
+        // is on both sides of it: the original's food across the buy, and
+        // the wealth income that decides which good the buy reaches.
+        let row = |who: usize, n: i64, k: &str| -> (i64, i64) {
+            let block = wlog.leader_block(n, who as i64).expect("the block");
+            let t = theirs(&block);
+            let mine = ours[&(n, who)]
+                .iter()
+                .find(|(a, _)| a == k)
+                .map_or(i64::MIN, |(_, v)| *v);
+            (mine, *t.get(k).expect("the key"))
+        };
+        // Block 10577 is the state after sim-frame 10576, the rotation's
+        // `Setup`: the original has bought a hundred food and emptied its
+        // purse, and both halves are in this one pair.
+        assert_eq!(
+            (
+                row(1, 10_576, "bucket[0:food]"),
+                row(1, 10_577, "bucket[0:food]"),
+                row(1, 10_576, "bucket[2:wealth]"),
+                row(1, 10_577, "bucket[2:wealth]"),
+            ),
+            ((93, 93), (94, 194), (124, 128), (30, 0)),
+            "run117's buy frame moved — the original buys a hundred food              for 128 on sim-frame 10576 and this crate buys timber at 94              with the four wealth it is short"
+        );
+        assert_eq!(
+            row(1, 10_582, "income[2:wealth]"),
+            (960, 992),
+            "the wealth income residue moved — 32 is the successor              (`docs/ECONOMY.md` §13.4)"
+        );
+        let parting: Vec<(usize, &str)> = residue.keys().map(|(w, k)| (*w, k.as_str())).collect();
+        assert_eq!(
+            parting,
+            PARTS_ON_RUN117,
+            "run117's leader residue moved: {} fields",
+            parting.len()
+        );
     }
 }

@@ -1495,7 +1495,7 @@ pub(crate) const EAST_INDIES_FIRST_SCHOLAR: i64 = 8_466;
 /// `Guy::set_anim+0x97a < Guy::inc_time+0x271`, and block 10304 is two
 /// rows of the same unit — `g.cur_time` 30 against 0 and `g.last_time` 29
 /// against −1, the original one wrap ahead of this crate.
-pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 10_582;
+pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 10_817;
 
 /// The floor `run97_s_window_orders_are_the_original_s` holds — item 368's
 /// widening of Great Lakes' order stacks, the 36,483 `GATHERORDER` records
@@ -1882,7 +1882,7 @@ pub(crate) const GOLDEN_WORD_CHAPTER_TWO: i64 = 695;
 /// them, so the two cannot disagree: a window the word has walked out of
 /// fails `the_widening_behind_each_pinned_word_exists` rather than passing
 /// by saying nothing (parked 449).
-pub(crate) const WIDENING_GREAT_LAKES: (i64, i64) = (9_340, 10_595);
+pub(crate) const WIDENING_GREAT_LAKES: (i64, i64) = (9_340, 10_830);
 /// `chapter_two_s_word_frame_is_widened_whole`'s window, on the same
 /// terms: run112's window opens at 605 and one past the last frame
 /// compared. It straddled the word at 624 until item 462 moved the word

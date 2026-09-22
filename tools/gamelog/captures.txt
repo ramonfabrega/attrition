@@ -4065,12 +4065,48 @@ check: LC_ALL=C head -c 400000 "$HOME/ron-data/AppData/Roaming/Microsoft Games/R
 # **The window landed whole** — 245 blocks, 10375..10619, no gap. item
 # 373's check: a truncated run reads as completely ordinary everywhere else.
 check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run117-greatlakes-makeword2.txt" | awk '{v=$3+0; if(v>=10375&&v<=10619) n[v]=1} END{c=0; lo=0; hi=0; for(k in n){c++; if(lo==0||k+0<lo)lo=k+0; if(k+0>hi)hi=k+0} print "window blocks: "c" ("lo".."hi")"; exit !(c==245 && lo==10375 && hi==10619)}'
-# **The overlap with run53, and the count is the claim** — `samegame.py`
-# exits 0 when nothing is in common, which is the vacuous pass run83
-# caught. run53's `[End Frame]` is bare `MISC`, so one `--exclude` and no
-# `--drop`: everything both runs record in common, block for block.
-check: python3 tools/gamelog/samegame.py gamelog-run53-greatlakes-24k-trace.txt gamelog-run117-greatlakes-makeword2.txt --exclude LEADERDATA | tee /dev/stderr | awk '/in common/{r=$0; sub(/.*in common /,"",r); split($0,a,", "); n=a[2]+0} /^differ:/{d=$2+0} END{print "run53 overlap: common="n" "r" differ="d; exit !(n==245 && d==0)}'
+# ~~**The overlap with run53, and the count is the claim**~~ — **this
+# check was written on a false premise and could not pass; it ran and
+# said so, and it is replaced rather than deleted.** `samegame.py`
+# digests a block's **indented** lines, and run53's bare `MISC` writes
+# none at all: the file holds **one** frame block in 24,000, so the
+# comparison answered `frames: 1 and 245, 0 in common`. A `MISC`-only
+# sibling cannot be overlap-checked against anything. `rngcmp.py` above
+# is the same-game evidence and it is the stronger instrument — the draw
+# stream word for word over 10,641 frames, 0 differing — so what is
+# checked here instead is that the window's own blocks are **whole**:
+# **988** `LEADERDATA` records — four on each of the 245 blocks, plus the
+# eight the `[Start Game]` dump writes — so a truncated window fails here
+# even though every other check above would still pass.
+check: LC_ALL=C grep -ac "BEGIN LEADERDATA" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run117-greatlakes-makeword2.txt" | tee /dev/stderr | awk '{print "LEADERDATA records: "$1; exit !($1==988)}'
 # **The raised category is in the blocks** — `MAKEOBJECT` and `PERSONALITY`
 # are `LEADERS=9`'s own, and a run that silently fell back to `LEADERS=1`
 # would pass every check above.
 check: python3 tools/gamelog/frame.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run117-greatlakes-makeword2.txt" 10583 /tmp/ron-runs/f117.txt >/dev/null && LC_ALL=C grep -ac "BEGIN MAKEOBJECT" /tmp/ron-runs/f117.txt | tee /dev/stderr | awk '{exit !($1>=22)}'
+# ---- THE VERDICT, written after the run (item 506).
+#
+# **Branch (c), and it was not at the word.** The predictions above
+# guessed the parting would be `bucket` or the make list **on block
+# 10582**; both are, but downstream of a frame nothing had named.
+# `Leader::market_speculation` — the rotation's `Setup` step, five
+# frames earlier, and it spends **no draw at all** — buys a hundred food
+# for **128** wealth on sim-frame 10576: block 10575 `93 86 128 269 100
+# 0` to block 10577 `194 86 0 269 100 0`. This crate's had the buy and
+# sell passes as a declared seam and bought nothing, so every one of the
+# three branches was true at once on 10582 and none of them was the
+# cause.
+#
+# The two predicted branches, scored honestly: **(a) is right in
+# direction and wrong in size** — the original's wealth at block 10582 is
+# **0**, not "under 120"; **(b) is refused** — timber is 87 on both
+# sides; **(c) is right and is a consequence**, the whole list differing
+# because the purse does.
+#
+# **What the window bought beyond the word.** With the passes in, this
+# crate buys on the original's own frame and still buys the wrong good —
+# timber at 94, because its purse is 124 against 128 and food costs 128
+# on both sides. `1/income[2:wealth]` is 960 here against 992 on all 245
+# blocks, and run107's thirty at 9170-9199 carry no income row, so the
+# 32 opens inside (9199, 10375] and is the successor.
+#
+# Great Lakes' long word **10582 -> 10817**. `docs/ECONOMY.md` §13.
