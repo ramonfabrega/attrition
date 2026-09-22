@@ -4536,6 +4536,16 @@ it and nothing it reads is past 700, so the run answered what it was
 booked for; a session that needs the rest of the window must raise the
 timeout rather than re-run this line.
 
+**And the 53 missing blocks are a truncation, not an absence.** The file
+ends because the game was killed, so **nothing past 846 may be read as
+evidence of anything** — not a record that stops appearing, not a unit
+that stops being printed, not a death that never arrives. This repo has
+paid for that shape three times (`crate::diff::endpoint`'s run28 note,
+item 364's borrowed frame stream, run112's own first take, each of which
+produced a number that looked exactly like a real one), and a partial
+capture whose partiality is not written down is the cheapest way to buy
+it a fourth. Every claim above is inside 605–846 and none reads past 700.
+
 **What it says.** Block 696 — the state after frame 695, chapter two's
 word:
 
