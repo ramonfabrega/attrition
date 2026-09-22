@@ -12,36 +12,36 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-21, the tenth chain. Chapter two **645 → 680** (479), and
-every record run112 carries over [606, 671) is at nought.*
+*2026-09-22, the tenth chain. Both words moved: Great Lakes **10234 →
+10237** (478), chapter two **645 → 680** (479).*
 
-- **`ObjectData::near_o`/`near_who` was a field this crate did not
-  carry at all** (479, COMBAT §37) — `find_nearby_target`'s
-  *footprint*, not its answer: the nearest `check_target`-passing
-  candidate, written above the max_dist gate and the scoring.
-  `do_move`'s captain arm reads it every frame on the **plain** reach
-  where the kill above it uses reach less 0x90; `change_target` then
-  writes it down `o_down` in place.
-- **472's hypothesis confirmed, not replaced** — the `in_range 1 /
-  ever_in_range 0` fingerprint held on the first grep, and the
-  whole-cast widening added three legs: only `0/9`'s `o_down` chain
-  retargets, the bowmen with the same `near_o 6/1` do not, and the
-  switch carries `new_ord 0`, ruling out every order-creating path.
-  **The first confirmed hypothesis after ten dead ones.**
-- **`visible` is 9 of 9**, re-pinned upward again: chapter two's whole
-  engagement, both squads both directions, now opens fire on run112's
-  own frames. Endpoints unchanged. **The dump prints two `up`/`down`
-  pairs under one name** — `+0x2a/+0x2c` is the cell's occupancy
-  chain, the pair after `play` is the squad; §36.6 now says so.
-  Five open, 68 parked. **Fable backlog: 2 Loop items** (313, 480).
+- **`BuildDump::build_masks` was never parsed on any capture ever
+  taken** (478): read off BUILDDATA where the record writes it at
+  **WALLDATA's** indent, so `None` everywhere while `crate::ledger`
+  called it uncompared for weeks and **four items chased the frame it
+  explains**. Now compared on every linked building-frame (+63k on
+  run57, none wrong), indent guarded against a decoy. Sixth
+  instrument defect, and the largest.
+- **The word was a road replan, not a caravan** (478, ROADS §1.2):
+  Farm `0/2004` dies on 10230, `remove_from_city` calls
+  `City::regen_roads`, and **two** buildings replan on their own
+  `(frame+o)%16` slots — `0/2006` on 10234, `0/2005` on 10235. We had
+  only `Build::activate`'s call. One line. Draws 6/204 → 204/204.
+- **run117 was not needed and not taken.** 475's "not on this disk"
+  was wrong — run53 *was* `cover=1`, 6,936 functions. Thirteen
+  seconds. §18.5 struck.
+- **The sequence word is blocked on a name, not a behaviour**: 10237
+  parts on a *label*, `Ammo::do_damage+0xc59`, absent from
+  `trace::SITES`; naming it reaches the count word, 10244 — that is 483.
+  Six open, 68 parked. **Fable backlog: 2 Loop items** (313, 480).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w9711 of 24,000 · GreatLakes w10234 of 24,000
+Long captures: EastIndies w9711 of 24,000 · GreatLakes w10237 of 24,000
 Golden: w626 of 901 (ch1) · ch2 w680 · 481 next
-Endpoint 24001: EastIndies 64 off, 10 unlinked · GreatLakes 44 off, 11 unlinked
+Endpoint 24001: EastIndies 63 off, 11 unlinked · GreatLakes 51 off, 7 unlinked
 
-**Opener: 478 is live with run117 approved; 481 takes the freed lane.
-The loop stands at 12 of 20.**
+**Opener: 481 is live; 483 takes the freed lane. run117 is released,
+unused. The loop stands at 14 of 20.**
 
 ## The queue
 
@@ -51,14 +51,14 @@ the AI, lower map first — Great Lakes. Take the first unstarted on either
 track unless a better order is obvious, and say so. Numbers are stable;
 the backlog is `docs/PARKED.md`, and an item returns only when a score names it.
 
-478. **`calc_road_cost` draws ours 0 theirs 198 on f10234** — the AI
-    headline's own parting, first parting draw index 4, call chain
-    `astar_caravan_road < find_road`. The original runs a road search
-    here and this crate runs none. **Which of `find_road`'s three
-    callers** (`Caravan::process`, `Caravan::build_road`,
-    `BuildType::place_roads`) is **not on disk** — run53's `cover` was
-    off and nothing proxies a call. **run117 is reserved and the
-    capture is approved.** ORDERS §18. No mechanism named.
+483. **`Ammo::do_damage@00678060+0xc59` is unnamed in
+    `trace::SITES`** — the AI headline's own blocker. Great Lakes'
+    count word is 10244 and its sequence word 10237; 10237 and 10242
+    spend the **same** draws on both sides and part on a label, ours
+    an unattributed `projectiles` phase. **Until the site is named
+    the sequence cannot pass 10237 however the simulation behaves.**
+    A `SITES` entry plus a `SITE_*` const in `sim::fight`. Reported by
+    478, not taken. COMBAT §39 reserved.
 
 476. **f10234's three value rows**: `0/5 order:length` 2/1,
     `0/5 orders.len` 2/1, `0/2001 gather:gather_down[-1]` 5/2. The
