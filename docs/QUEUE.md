@@ -36,12 +36,12 @@ Great Lakes **10277**, chapter two **683**, both inside their first fight.*
   score and are parked. **Fable backlog: 1 Loop item** (313).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w9711 of 24,000 · GreatLakes w10277 of 24,000
+Long captures: EastIndies w9711 of 24,000 · GreatLakes w10294 of 24,000
 Golden: w626 of 901 (ch1) · ch2 w683 · 491 next
-Endpoint 24001: EastIndies 63 off, 11 unlinked · GreatLakes 42 off, 7 unlinked
+Endpoint 24001: EastIndies 63 off, 11 unlinked · GreatLakes 50 off, 8 unlinked
 
-**Opener: 489 (att-489) and 491 (att-491) are in flight, Opus 5 both. The
-commander merges, books, gates, pushes, reaps and refills, chain to twenty.**
+**Opener: 491 in flight, 489 landed (w10294, successor 494). One of twenty.
+The commander merges, books, gates, pushes, reaps and refills each lane.**
 
 ## The queue
 
@@ -51,14 +51,14 @@ the AI, lower map first — Great Lakes. Take the first unstarted on either
 track unless a better order is obvious, and say so. Numbers are stable;
 the backlog is `docs/PARKED.md`, and an item returns only when a score names it.
 
-489. **10278's seventeen rows, `1/40` colliding with `1/41`** (the
-    AI headline's own frame; 487 moved the word to 10277). Ours
-    stopped on a 1-frame-old anim where the original is ten frames
-    into a walk; `collide_o 41`, `collide_who 1`. The seventeenth row
-    is `1/41 half_step` — **the original sets `unit_masks &
-    0x100000` on both `1/40` and `1/41` and this crate on neither**.
-    487 wrote that as a row, not a mechanism, and the item is booked
-    on the frame and the draw delta. `docs/ORDERS.md` §20.
+494. **10295's six rows, every one the human's citizen `0/5`** (the
+    AI headline's own frame; 489 moved the word to 10294). Ours
+    spends **one** draw against the original's **two**, parting at
+    index 0; the extra is `Guy::set_anim+0x97a < Unit::do_idle+0x7d`.
+    `orders_x`/`orders_y` ours (4056,28776) theirs (792,31800), `idle`
+    ours 0 theirs 1, and the facing and the stand behind them. Not a
+    collision and not the AI's — it wants a document of its own. 489
+    named the frame and the delta and no mechanism. COLLISION §11.
 
 491. **683's two draws: `1/8`'s death, and the arrow that lands on
     nothing** (the rules headline's own frame). Theirs is
@@ -68,12 +68,6 @@ the backlog is `docs/PARKED.md`, and an item returns only when a score names it.
     flight, which the original **holds**: the dump's `1/7` takes `19+5`
     on 685. Item 485 named both halves and parked them as (491) and
     (492); `hold_frames` and `DEATH_OBJS` are pinned unread. COMBAT §41.
-
-477. **f10235's `1/28 pos`**, ours (4801,30175) theirs (4800,30175),
-    with `g.x[0]` and `g.des_x[0]` the same — one world unit in x,
-    said three times. ORDERS §18.3. Stays because `1/28` is the word's
-    own squad: a takes-chain candidate to 10278's collision, written as
-    one, not a cause. A second lane's item, beside 489 and never instead.
 
 ## How to maintain this file
 
