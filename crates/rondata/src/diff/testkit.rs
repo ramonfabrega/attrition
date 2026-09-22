@@ -1490,11 +1490,46 @@ pub(crate) const EAST_INDIES_FIRST_SCHOLAR: i64 = 8_466;
 /// and this crate used 2 (`docs/ORDERS.md` §21). Nothing in `do_idle`
 /// was wrong; the citizen simply should not have been idle-tasked at all.
 ///
-/// **10303 is `1/51`'s animation clock.** Ours spends **three** draws and
-/// the original **four**, parting at index 3: the extra is
-/// `Guy::set_anim+0x97a < Guy::inc_time+0x271`, and block 10304 is two
-/// rows of the same unit — `g.cur_time` 30 against 0 and `g.last_time` 29
-/// against −1, the original one wrap ahead of this crate.
+/// ~~**10303 is `1/51`'s animation clock.**~~ **Item 497 closed it, and
+/// the clock was never the mechanism.** Ours spent three draws against
+/// the original's four, the extra `Guy::set_anim+0x97a <
+/// Guy::inc_time+0x271`, and block 10304 held two rows of the same unit
+/// — `g.cur_time` 30 against 0, `g.last_time` 29 against −1. `1/51` is a
+/// **scholar** seated in a university: on 10274, thirty blocks under the
+/// word, both sides wrapped a slot together and re-rolled, the original
+/// took `0x1d` and this crate `0x20`, and thirty frames later the
+/// original's 30-frame teach slot ran out where this crate's 118-frame
+/// one had ninety left. `set_anim:332`'s `param_2 == 0x20` walk examines
+/// **every** member of the host's chain, the guy asking included
+/// (`docs/ANIM.md` §4.12).
+///
+/// ~~**10582 is a production frame, and the market says so twice.**~~
+/// **Item 506 closed it, and the cause spends no draw at all.** The
+/// sequence parted at index 0 with the counts equal — ours
+/// `[make_stuff+0x221 ×2, make_stuff+0x63d]` against theirs
+/// `[use_market+0x1ed, make_stuff+0x221 ×2]` — the count parted one
+/// frame later at eight against three on five
+/// `Leader::create_units+0x642`, and block 10583 held one row,
+/// `1/2018 queue:queued` 1 against 0. All three are **one purchase five
+/// frames earlier**: `Leader::market_speculation@006c8110`, the
+/// rotation's `Setup` step, buys a hundred food for **128** wealth on
+/// sim-frame 10576 (run117, block 10575 `93 86 128 269 100 0` → block
+/// 10577 `194 86 0 269 100 0`) and this crate's buy and sell passes were
+/// a declared seam. With no wealth the original's `can_pay` refuses the
+/// head this crate bought, its `use_market` spends the sell draw, and
+/// its step machine disarms where this crate ran a second pass
+/// (`docs/ECONOMY.md` §13).
+///
+/// **10817 is `1/28`'s collision.** Ours spends **three** draws and the
+/// original **two**, parting at index 0: the extra is ours and it is in
+/// front — `Guy::set_anim+0x97a < Unit::move_step+0x823`, the blocked
+/// stand, where the original's frame is `Guy::set_anim+0x104b` and
+/// `Farms::inc_time+0x1ae` alone. Block 10818 is eight rows of that one
+/// raider and nothing else in the block: `collide` 1 against 0 with the
+/// pair beside it set where the original clears it (`collide_o` 0,
+/// `collide_who` 8, against −1 and −1), and the stand that follows —
+/// `g.cur_anim` 0 against 8, `g.cur_time`/`g.end_time` 1/31 against
+/// 12/13, `g.last_time` 0 against 11, `g.stopped` 1 against 0.
 pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 10_817;
 
 /// The floor `run97_s_window_orders_are_the_original_s` holds — item 368's
