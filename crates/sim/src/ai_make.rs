@@ -707,18 +707,44 @@ impl Sim {
         true
     }
 
-    /// `market_speculation`: `production_ai_setup`'s last act.
+    /// `market_speculation@006c8110`: `production_ai_setup`'s last act, and
+    /// the only place the AI trades **off** a shortfall — three passes over
+    /// the six goods behind one gate.
     ///
-    /// The escrow clamp and the tier are the whole of what survives without
-    /// prices; the sell and buy passes are the same SEAM as [`Sim::use_market`]
-    /// and the original takes no draw in either, so nothing is lost from the
-    /// sync stream here.
+    /// 1. **The tier**, and the escrow clamp beside it: an escrow over 4000
+    ///    is pulled back to 2000, and the smallest stockpile decides how
+    ///    hungry the leader is — `2` when any available good is under 100,
+    ///    `1` when one is under 200 and none under 100, `0` otherwise. The
+    ///    tier is taken over **every** available good, wealth and knowledge
+    ///    included.
+    /// 2. **The sell pass**, over the four tradeable goods: sell a hundred
+    ///    when the unescrowed pile clears `2000 >> tier` **and** the sell
+    ///    price clears `75 / (tier + 1)`. A hungry leader will part with a
+    ///    smaller pile and accept a worse price.
+    /// 3. **The buy pass**, over the same four, and it does *not* read the
+    ///    tier. A hundred is bought when the buy price is within the
+    ///    unescrowed wealth, the stock is under 2000, the price is under
+    ///    201, and a ladder that gets stricter as the pile grows: at 500 or
+    ///    more the price must be under 26, at 200 under 51, at 100 under
+    ///    101. Each purchase spends wealth and the next good re-reads it,
+    ///    so a leader can clear its purse on the first good it wants.
+    ///
+    /// **No draw in any of it**, which is why the buy pass could be missing
+    /// for two hundred items without the draw stream saying so — and why
+    /// Great Lakes' word sat five frames downstream of it. ~~The sell and
+    /// buy passes are the same SEAM as [`Sim::use_market`]~~ — both were
+    /// written when [`Sim::calc_market_prices`] did not exist, and the
+    /// comment outlived it by a month: on run117's block 10577 the original
+    /// buys a hundred food for **128** wealth and this crate buys nothing,
+    /// so it enters the rotation's `make_stuff` five frames later holding
+    /// `94 87 125` where the original holds `194 87 0`
+    /// (`docs/ECONOMY.md` §13).
     pub fn market_speculation(&mut self, who: Player) {
         let w = who as usize;
         if self.lobby.resources_unlimited() || !self.market_gate(who) {
             return;
         }
-        let mut tier = 0;
+        let mut tier = 0i32;
         for g in 0..RESOURCES {
             if !self.good_avail(who, g) {
                 continue;
@@ -733,10 +759,49 @@ impl Sim {
                 tier = 1;
             }
         }
-        // SEAM: the sell pass (`bucket − escrow >= 2000 >> tier` and sell
-        // price `>= 75 / (tier + 1)`) and the buy pass (§2.15) both need
-        // `calc_market_prices`.
-        let _ = tier;
+        let wealth = Resource::Wealth as usize;
+        let knowledge = Resource::Knowledge as usize;
+        // The sell pass. `2000 / (1 << tier)` in the original, which is the
+        // shift for every tier it can produce.
+        for g in 0..RESOURCES {
+            if !self.good_avail(who, g) || g == wealth || g == knowledge {
+                continue;
+            }
+            if self.ledgers[w].bucket[g] - self.ledgers[w].escrow[g] < 2000 >> tier {
+                continue;
+            }
+            let (_, sell) = self.calc_market_prices(who, g);
+            if sell < 75 / (tier + 1) {
+                continue;
+            }
+            // The inner gate is the outer one again (the embargo arm aside,
+            // which is zero here), exactly as in [`Sim::use_market`].
+            if self.market_gate(who) {
+                self.do_sell(who, g);
+            }
+        }
+        // The buy pass, which reads no tier at all. The purse and the stock
+        // are re-read per good because the good before may have spent them.
+        for g in 0..RESOURCES {
+            if !self.good_avail(who, g) || g == wealth || g == knowledge {
+                continue;
+            }
+            let (buy, _) = self.calc_market_prices(who, g);
+            let purse = self.ledgers[w].bucket[wealth] - self.ledgers[w].escrow[wealth];
+            let stock = self.ledgers[w].bucket[g];
+            if buy > purse || stock >= 2000 || buy >= 201 {
+                continue;
+            }
+            if (stock >= 500 && buy >= 26)
+                || (stock >= 200 && buy >= 51)
+                || (stock >= 100 && buy >= 101)
+            {
+                continue;
+            }
+            if self.market_gate(who) {
+                self.do_buy(who, g);
+            }
+        }
     }
 
     // ------------------------------------------------------------------
@@ -1389,6 +1454,169 @@ mod tests {
         });
         let b = s.init_build(1, market, tile_pos(32, 32), false);
         s.activate(b, false, true);
+    }
+
+    /// **run117's own frame, as a unit test** — `market_speculation`'s buy
+    /// pass takes the **first** good in index order whose price its purse
+    /// can reach, and four wealth decide which one that is.
+    ///
+    /// Great Lakes sim-frame 10576, measured both ways (`docs/ECONOMY.md`
+    /// §13). The original enters the rotation's `Setup` holding
+    /// `93 86 128 269 100 0` and buys a hundred **food** for **128**,
+    /// leaving nothing; this crate entered it holding `94 86 124 …` —
+    /// four wealth short on an income row that has been wrong since
+    /// before the window — and food's price is 128 on both sides, so its
+    /// purse cannot reach it and the pass falls through to **timber** at
+    /// 94. Five frames later the AI's `make_stuff` is spending a purse
+    /// the original does not have, and that was Great Lakes' word.
+    ///
+    /// The prices are the frame's own: food `(buy 128, sell 83)` and
+    /// timber `(94, 58)`, which is `price 45 flux 38` and `price 36
+    /// flux 22` through [`Sim::calc_market_prices`].
+    ///
+    /// **Made to fail on purpose** with the purse test written `<`
+    /// instead of `<=`: 128 against a purse of exactly 128 is the
+    /// boundary the original sits on, and a strict comparison buys the
+    /// timber on both halves below.
+    #[test]
+    fn market_speculation_buys_the_first_good_its_purse_can_reach() {
+        let buy_at = |purse: i32| -> [i32; RESOURCES] {
+            let mut f = fx();
+            let s = &mut f.sim;
+            give_a_market(s);
+            s.tech[1].epoch[Line::Commerce.index()] = BUY_SELL_COMMERCE_LEVEL;
+            // Oil is not available before the Industrial age, which is what
+            // run117's own record says and what keeps a stock of nought out
+            // of the tier.
+            s.holdings[1].available[Resource::Oil as usize] = false;
+            for (g, (price, flux)) in [(45, 38), (36, 22), (50, 15), (50, 15), (50, 15), (50, 15)]
+                .into_iter()
+                .enumerate()
+            {
+                s.market.price[g] = price;
+                s.market.flux[g] = flux;
+            }
+            s.ledgers[1].bucket = [94, 86, purse, 269, 100, 0];
+            // The frame's own prices, asserted rather than assumed: a
+            // change in `calc_market_prices` must not quietly turn this
+            // test into a statement about some other pair of numbers.
+            assert_eq!(s.calc_market_prices(1, 0), (128, 83), "food's price");
+            assert_eq!(s.calc_market_prices(1, 1), (94, 58), "timber's price");
+            s.market_speculation(1);
+            s.ledgers[1].bucket
+        };
+        // The original's purse: food is reachable at exactly its price, so
+        // food is what it buys and the purse is emptied.
+        assert_eq!(
+            buy_at(128),
+            [194, 86, 0, 269, 100, 0],
+            "a purse of 128 buys the food at 128 and nothing after it"
+        );
+        // This crate's purse on the same frame. One wealth less and the
+        // whole rotation turns: timber instead of food, and 30 left over.
+        assert_eq!(
+            buy_at(127),
+            [94, 186, 33, 269, 100, 0],
+            "a purse of 127 cannot reach the food and buys the timber"
+        );
+    }
+
+    /// The buy pass's **ladder**, which is the half that has no tier in it:
+    /// a stock of 500 or more wants a price under 26, 200 wants under 51,
+    /// 100 wants under 101, and anything under 100 wants only under 201.
+    /// A stock of 2000 buys nothing at any price.
+    ///
+    /// Walked on one good with the purse held wide open, so the only thing
+    /// deciding each row is the pair `(stock, buy)`.
+    #[test]
+    fn the_buy_pass_ladder_gets_stricter_as_the_pile_grows() {
+        let bought = |stock: i32, price: i32, flux: i32| -> bool {
+            let mut f = fx();
+            let s = &mut f.sim;
+            give_a_market(s);
+            s.tech[1].epoch[Line::Commerce.index()] = BUY_SELL_COMMERCE_LEVEL;
+            s.holdings[1].available[Resource::Oil as usize] = false;
+            // Every other good is priced out of reach, so the row is timber's.
+            for g in 0..RESOURCES {
+                s.market.price[g] = 1_000;
+                s.market.flux[g] = 0;
+            }
+            s.market.price[1] = price;
+            s.market.flux[1] = flux;
+            s.ledgers[1].bucket = [2_000, stock, 100_000, 2_000, 2_000, 0];
+            let before = s.ledgers[1].bucket[1];
+            s.market_speculation(1);
+            s.ledgers[1].bucket[1] == before + 100
+        };
+        // `buy = 2 * price + flux`, so `(12, 1)` is 25 and `(12, 2)` is 26.
+        assert!(bought(500, 12, 1), "500 at 25 is under the rung");
+        assert!(!bought(500, 12, 2), "500 at 26 is not");
+        assert!(bought(200, 25, 0), "200 at 50 is under the rung");
+        assert!(!bought(200, 25, 1), "200 at 51 is not");
+        assert!(bought(100, 50, 0), "100 at 100 is under the rung");
+        assert!(!bought(100, 50, 1), "100 at 101 is not");
+        assert!(bought(99, 100, 0), "99 at 200 is under the last rung");
+        assert!(!bought(99, 100, 1), "99 at 201 is not");
+        // And the ceiling on the pile itself, whatever the price.
+        assert!(!bought(2_000, 1, 0), "a stock of 2000 buys nothing");
+        assert!(bought(1_999, 12, 1), "1999 does, at a price 500 allows");
+    }
+
+    /// The **sell** pass, and both of its tier-scaled thresholds: a pile of
+    /// `2000 >> tier` over the escrow, at a sell price of `75 / (tier + 1)`
+    /// or better. A hungrier leader parts with a smaller pile and takes a
+    /// worse price — which is the whole of what the tier does here.
+    #[test]
+    fn the_sell_pass_scales_both_of_its_thresholds_by_the_tier() {
+        // `hungry` sets the tier by the smallest stock: 2 under 100, 1 under
+        // 200, 0 otherwise. Timber is the good under test in every row.
+        let sold = |tier: i32, stock: i32, price: i32, flux: i32| -> bool {
+            let mut f = fx();
+            let s = &mut f.sim;
+            give_a_market(s);
+            s.tech[1].epoch[Line::Commerce.index()] = BUY_SELL_COMMERCE_LEVEL;
+            s.holdings[1].available[Resource::Oil as usize] = false;
+            // Nothing else is sellable (a pile under 250) and nothing is
+            // buyable (a price out of reach), so the row is timber's alone.
+            for g in 0..RESOURCES {
+                s.market.price[g] = 100_000;
+                s.market.flux[g] = 0;
+            }
+            s.market.price[1] = price;
+            s.market.flux[1] = flux;
+            let floor = match tier {
+                2 => 99,
+                1 => 199,
+                _ => 249,
+            };
+            // **Wealth counts towards the tier too** — the first pass
+            // reads every available good, wealth and knowledge included,
+            // and a purse of nought would make every row tier 2. So the
+            // purse is held at the tier's floor and **escrowed away**:
+            // the buy pass spends `bucket − escrow` where the tier reads
+            // `bucket`, so this sets the tier without letting the third
+            // pass buy back what the second sold. (It would: a pile of
+            // 500 sold down to 400 leaves the 26-rung behind and the
+            // 51-rung in front of a price of 50.) The clamp only fires
+            // over 4000, so these floors stand.
+            s.ledgers[1].bucket = [floor, stock, floor, floor, floor, 0];
+            s.ledgers[1].escrow[Resource::Wealth as usize] = floor;
+            let before = s.ledgers[1].bucket[1];
+            s.market_speculation(1);
+            s.ledgers[1].bucket[1] == before - 100
+        };
+        // `sell = price + flux`. Tier 0: 2000 of the pile at a price of 75.
+        assert!(sold(0, 2_000, 75, 0), "tier 0: 2000 at 75");
+        assert!(!sold(0, 1_999, 75, 0), "tier 0: 1999 is short of the pile");
+        assert!(!sold(0, 2_000, 74, 0), "tier 0: 74 is short of the price");
+        // Tier 1: half the pile, and `75 / 2 = 37`.
+        assert!(sold(1, 1_000, 37, 0), "tier 1: 1000 at 37");
+        assert!(!sold(1, 999, 37, 0), "tier 1: 999 is short of the pile");
+        assert!(!sold(1, 1_000, 36, 0), "tier 1: 36 is short of the price");
+        // Tier 2: a quarter, and `75 / 3 = 25`.
+        assert!(sold(2, 500, 25, 0), "tier 2: 500 at 25");
+        assert!(!sold(2, 499, 25, 0), "tier 2: 499 is short of the pile");
+        assert!(!sold(2, 500, 24, 0), "tier 2: 24 is short of the price");
     }
 
     /// `market_speculation` clamps a runaway escrow — and only behind the

@@ -1970,3 +1970,164 @@ capture-free.
   candidate test is not on any capture, so "every qualifying position
   sells" rests on the decompile alone.
 
+
+## 13. `market_speculation` — the trade with no draw in it (2026-09-22)
+
+`Leader::market_speculation@006c8110` is `production_ai_setup`'s last act
+and the only place the AI trades **off** a shortfall rather than to cover
+one. §12's `use_market` runs inside `make_stuff` and is what a short good
+provokes; this runs one step earlier in the production rotation, reads no
+make list at all, and buys or sells on the **stockpile alone**.
+
+Its sell and buy passes were a declared seam in `crates/sim/src/ai_make.rs`
+from the day the function was written — both need `calc_market_prices`,
+which did not exist then. §12 built it on 2026-09-18 and the comment
+outlived it by four days.
+
+**Nothing in the function spends a draw.** That is why it could be missing
+for two hundred items without the draw stream saying so, and why Great
+Lakes' word sat five frames downstream of it.
+
+### 13.1 Three passes behind one gate
+
+The gate is §12's exactly — `has_tribe_bonus(4)` or `has_preq(BUY_SELL)`,
+a live market, no nuclear embargo — plus `starting_resources != 8`.
+
+1. **The tier**, and the escrow clamp beside it. An escrow over 4000 is
+   pulled back to 2000; the smallest stockpile decides how hungry the
+   leader is — **2** when any available good is under 100, **1** when one
+   is under 200 and none under 100, **0** otherwise. Read over *every*
+   available good, wealth and knowledge included.
+2. **The sell pass**, over the four tradeable goods in index order (not
+   wealth, not knowledge): sell a hundred when the unescrowed pile clears
+   `2000 >> tier` **and** the sell price clears `75 / (tier + 1)`. A
+   hungry leader parts with a smaller pile and takes a worse price.
+3. **The buy pass**, over the same four, and it reads **no tier**. Buy a
+   hundred when the buy price is within the unescrowed *wealth*, the stock
+   is under 2000, the price is under 201, and a ladder that tightens as
+   the pile grows: at 500 or more the price must be under 26, at 200 under
+   51, at 100 under 101. Each purchase spends wealth and the next good
+   re-reads the purse, so a leader can empty it on the first good it wants
+   and buy nothing else.
+
+Both passes call `do_sell`/`do_buy` once per qualifying good — the
+original's `do { … } while (i < 1)` runs the body exactly once, the same
+shape §12.3 reads in `use_market`.
+
+### 13.2 What the capture says, and it is a single frame
+
+run117 is run53's own game at `LEADERS=9` over `[10375, 10620)` — 245
+blocks straddling the AI's market rotations at 10382 and 10582
+(`docs/RUNS.md`). On sim-frame **10576**, the rotation's `Setup` step, the
+original's player 1 does this:
+
+| block | food | timber | wealth |
+| --- | --- | --- | --- |
+| 10576 | 93 | 86 | **128** |
+| 10577 | **194** | 86 | **0** |
+
+A hundred food for a hundred and twenty-eight wealth, on a frame that
+spends no draw. This crate bought nothing there and so entered the
+rotation's `make_stuff` five frames later holding `94 87 125` against the
+original's `194 87 0` — which was Great Lakes' word, in full:
+
+- with no wealth the original's `Leader::can_pay` refuses the head (three
+  Horse Archers at 60 timber and 40 wealth each) where this crate's
+  `affordable` answers 3 off a purse of 125, so this crate **bought** one;
+- its `use_market` then finds wealth short of the shortfall vector
+  `0 60 90 0 60 0` and spends the sell branch's draw — which is the
+  `Leader::use_market+0x1ed` at index 0 that the sequence parted on;
+- and its step machine **disarms** at `Make` where this crate, having
+  bought its head, ran a second pass — which is the five
+  `Leader::create_units+0x642` draws the *count* parted on one frame later.
+
+One missing purchase, five frames early, and three different-looking
+partings downstream of it.
+
+### 13.3 The price was never wrong — the purse was
+
+With the passes in, this crate buys on the original's own frame and still
+buys the **wrong good**: timber at 94 rather than food at 128. Probed
+inside the pass on 10576, this crate's own prices are
+
+```
+food (buy 128, sell 83)   timber (94, 58)   wealth (113, 68)
+knowledge (126, 81)       metal (107, 62)   oil (121, 76)     tier 2
+```
+
+— and **128 is what the original paid, to the unit**. The buy pass walks
+goods in index order, so food is asked first on both sides; the original's
+purse is 128 and reaches it at exactly its price, and this crate's is
+**124** and does not. Four wealth choose the good.
+
+That four is not this mechanic's. `1/income[2:wealth]` is **960** here
+against the original's **992** on all 245 blocks of run117, with
+`resources[2:wealth]` and `rate[2:wealth]` (`income / 16`, 60 against 62)
+saying it twice more. §13.4.
+
+### 13.4 What it moved, and what it left
+
+| | before | after |
+| --- | --- | --- |
+| Great Lakes long word, sequence / count | 10582 / 10583 | **10817** / **10817** |
+| Great Lakes market draws below the word | 11 | **13** |
+| block 10583, keys parted | 1 | **0** |
+| Great Lakes endpoint `off` / `unlinked` / `build_diverged` | 55 / 5 / 10 | **53** / **3** / **9** |
+| East Indies endpoint `off` / `unlinked` / `build_diverged` | 59 / 12 / 30 | **64** / **10** / **27** |
+| East Indies ladder B `off` / `extra` | 45 / 6 | **48** / **14** |
+| East Indies ladder C `extra` | 13 | **14** |
+
+East Indies' word holds at 9711 and the golden record's at 626/695. Every
+map with a market and Coinage speculates, so East Indies' 24,000th frame
+moves too, 14,290 frames past its own word where the stream is nobody's
+(`docs/DECISIONS.md` 36 asks for the number rather than a trade).
+
+**The new word is 10817** and its block is `1/28` alone — eight rows, a
+collision this crate takes and the original does not (`collide` 1 against
+0, `collide_who` 8 against −1) with the stand that follows it. The draw
+stream parts on the same frame, three draws against two, the extra
+`Guy::set_anim+0x97a < Unit::move_step+0x823`.
+
+**Two rows came under the line with the word and neither is this item's.**
+`1/2018 queue[0].cost[0]` on **10782**: both sides queue Horse Archers at
+the Stable now and this crate charges 60 timber / 40 wealth where the
+original charges **57** / **38**, which is `get_cost`'s and not the
+ledger's. And `1/28 order:coll` on 10618.
+
+### 13.5 Coverage
+
+**Diff-backed**: the frame, the good, the quantity and the price, by
+`diff::leader::tests::run117_s_window_is_the_leader_record_across_two_rotations`
+— 490 blocks of the whole `LEADERDATA` record, 513,520 field-frames, with
+10576's buy asserted as the four-number pair either side and the residue
+pinned field by field. The word itself by
+`diff::harness::tests::run53_s_24000_frames_put_the_ceiling_where_run33_did`.
+
+**Pinned capture-free**, each made to fail on purpose before landing:
+
+- `sim::ai_make::tests::market_speculation_buys_the_first_good_its_purse_can_reach`
+  — run117's own numbers, both halves: a purse of 128 buys the food and
+  empties itself, a purse of 127 cannot reach it and buys the timber.
+  Fails with the purse test written `<` instead of `<=`.
+- `…::the_buy_pass_ladder_gets_stricter_as_the_pile_grows` — all four
+  rungs at their boundaries, and the 2000 ceiling.
+- `…::the_sell_pass_scales_both_of_its_thresholds_by_the_tier` — the pile
+  and the price at each of the three tiers, on both sides of each.
+
+**Not established:**
+
+- **Where the 32 of wealth income comes from.** run107's thirty blocks at
+  9170–9199 carry no `income` row at all, so the gap opens inside
+  `(9199, 10375]` and no capture covers it. The AI holds two caravans this
+  crate does not model (`vans.length` 0 against 1 and `trade_val` 0 against
+  176 on both its cities, standing since run89) — which is a candidate and
+  not a measurement, because 176 is not 32 and the gap is not there at
+  9199. The falsifier is a `LEADERS=2` window over that span: it is thin
+  enough to run whole, and it would date the divergence to the frame.
+- **Whether the sell pass ever fires in a real game.** Nothing on disk
+  shows it: every pile in run117's window is under 300 and the loosest
+  threshold is 500. The passes are asserted from the decompile and from
+  the unit tests above, and only the *buy* pass is diff-backed.
+- **The `2000 >> tier` divisor's form.** The original divides by a 64-bit
+  `1 << tier`; the tier cannot exceed 2, so the shift and the division are
+  the same arithmetic here. Read, not measured.

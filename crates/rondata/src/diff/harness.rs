@@ -4203,14 +4203,24 @@ mod tests {
         // +0x1ed` there and this crate `Leader::make_stuff+0x221`, so
         // the sequence parts on a market frame and the count parts one
         // frame later on `Leader::create_units+0x642`.
+        //
+        // **Eleven → thirteen on item 506**, and this one is not only the
+        // literal following the headline: **10582 itself** is now a
+        // `use_market` sell on both sides, which is the frame the
+        // sequence used to part on. The AI enters it with no wealth
+        // because `market_speculation` spent the purse on food five
+        // frames earlier (`docs/ECONOMY.md` §13), and 10782's rotation
+        // came under the word with it. The comparison above — the two
+        // *streams*, entry for entry — passed unchanged again.
         assert_eq!(
             markets,
             vec![
-                8582, 8585, 8782, 8982, 9_182, 9_382, 9_582, 9_782, 9_982, 10_182, 10_382
+                8582, 8585, 8782, 8982, 9_182, 9_382, 9_582, 9_782, 9_982, 10_182, 10_382, 10_582,
+                10_782
             ],
-            "below the word Great Lakes takes exactly eleven market draws \
-             — and 9182 is item 385's own: the frame the sequence used to \
-             part on is a `use_market` sell on both sides now"
+            "below the word Great Lakes takes exactly thirteen market \
+             draws — and 10582 is item 506's own: the frame the sequence \
+             used to part on is a `use_market` sell on both sides now"
         );
         // **The first arrow in the game, on both sides** (item 389,
         // `docs/COMBAT.md` §9.0). This is the cheap permanent negative:
@@ -6883,14 +6893,18 @@ mod tests {
         /// dump's 1, on the same `0/2000` whose `raid_stamp` `RAID`
         /// already names. Also not 497's, and also pre-existing.
         const CITY_FREE: i64 = 10_400;
-        /// **The word's own queue row** (item 497). `run100_s_word_
-        /// block_is_every_record_the_dump_carries` holds the value diff
-        /// — `1/2018 queue:queued: ours 1 theirs 0`, the AI's building
-        /// holding a unit in its queue the original's does not — and
-        /// the word's own frame is excluded from `opens` for item 442's
-        /// reason, so the queue set is asserted against this one row by
-        /// name rather than against nothing.
-        const WORD_QUEUE: i64 = LONG_WORD_GREAT_LAKES;
+        /// ~~**The word's own queue row** (item 497)~~ — **item 506
+        /// closed it and exposed the row under it.** The Stable's queue
+        /// is the original's on 10583 now; what parts is the **price**,
+        /// two hundred frames on and inside the window the word's move
+        /// opened. On **10782** both sides queue Horse Archers at
+        /// `1/2018` and this crate charges `cost[0] 60`/`cost[1] 40`
+        /// where the original charges **57**/**38** — a discount of
+        /// about a twentieth, on the queue entry rather than on the
+        /// stockpile, so it is `get_cost`'s and not the ledger's.
+        /// Named here rather than widened away, for `RAID`'s reason:
+        /// the day the row closes this fails.
+        const STABLE_PRICE: i64 = 10_782;
         let Some(inst) = install() else { return };
         let (Some(path), Some(r100)) = (
             dump("gamelog-run53-greatlakes-24k-trace.txt"),
@@ -7019,13 +7033,15 @@ mod tests {
         // window. Item 408 measured the parting; this is its absence,
         // asserted so it cannot come back quietly.
         //
-        // **Item 497 put one back, and it is the word's own.** The queue
-        // record parts nowhere *inside* the window still; what it carries
-        // is `1/2018`'s row on `WORD_QUEUE` itself, which is the headline
-        // and is asserted by name below rather than swallowed here.
+        // ~~**Item 497 put one back, and it is the word's own.**~~
+        // **Item 506 took it off the word and left the row two hundred
+        // frames under it**: the queue record parts nowhere inside the
+        // window but on `STABLE_PRICE`, which is `1/2018`'s price and
+        // not its contents, and the word's own frame carries no queue
+        // row at all.
         let q: Vec<(i64, i64, i64, &str)> = queues
             .iter()
-            .filter(|(_, (f, _))| *f != WORD_QUEUE)
+            .filter(|(_, (f, _))| *f != STABLE_PRICE)
             .map(|(&(w, o), (f, s))| (w, o, *f, s.as_str()))
             .collect();
         assert_eq!(
@@ -7034,16 +7050,16 @@ mod tests {
             "run100's queues part somewhere in the window — item 408's \
              parting is back"
         );
-        let on_word_queue: Vec<(i64, i64, i64, &str)> = queues
+        let on_stable: Vec<(i64, i64, i64, &str)> = queues
             .iter()
-            .filter(|(_, (f, _))| *f == WORD_QUEUE)
+            .filter(|(_, (f, _))| *f == STABLE_PRICE)
             .map(|(&(w, o), (f, s))| (w, o, *f, s.as_str()))
             .collect();
         assert_eq!(
-            on_word_queue,
-            vec![(1, 2_018, WORD_QUEUE, "queued ours 1 theirs 0")],
-            "the word's own frame is not item 497's one queue row of \
-             `1/2018`: {queues:?}"
+            on_stable,
+            vec![(1, 2_018, STABLE_PRICE, "queue[0].cost[0] ours 60 theirs 57")],
+            "the Stable's queue row is not item 506's price residue: \
+             {queues:?}"
         );
         // **Nothing else opens inside the window.** Every other
         // divergence was already standing on the window's first block —
@@ -8102,19 +8118,42 @@ mod tests {
         // scholar" and so never fired it on a chain with one student
         // (`docs/ANIM.md` §4.12).
         //
-        // **The new word is 10582 and its block is one row**, and it is
-        // not an animation at all: `1/2018 queue:queued: ours 1 theirs
-        // 0` — a building of the AI's holding a unit in its queue that
-        // the original's does not. The draw stream says the same from
-        // its side and says it louder: on 10583 ours spends **eight**
-        // draws against the original's **three**, parting at index 0,
-        // ours `Leader::create_units+0x642` against theirs
-        // `Guy::set_anim+0x97a < Guy::inc_time+0x271`.
+        // ~~**The new word is 10582 and its block is one row**~~ —
+        // **item 506 closed it, and the cause was five frames under the
+        // word on a step that spends no draw at all.** `1/2018
+        // queue:queued` was a Horse Archer this crate could pay for and
+        // the original could not: on sim-frame **10576**, the
+        // rotation's `Setup`, the original's `market_speculation` buys a
+        // hundred food for **128** wealth and this crate bought nothing,
+        // so it entered `make_stuff` on 10582 holding `94 87 125` where
+        // the original holds `194 87 0` (run117; `docs/ECONOMY.md` §13).
+        // With no wealth the original's `can_pay` refuses the head, its
+        // `use_market` finds wealth short of the shortfall vector and
+        // spends the sell draw the sequence parted on, and its step
+        // machine disarms where this crate ran a second pass.
+        //
+        // **The new word is 10817 and its block is `1/28`**, eight rows
+        // of one raider and nothing else in the block: a collision this
+        // crate takes and the original does not (`collide` 1 against 0,
+        // `collide_who` 8 against −1) with the stand that follows it
+        // (`g.cur_anim` 0 against 8, `g.stopped` 1 against 0). The draw
+        // stream parts on the same frame and says the same thing —
+        // ours three draws against two, the extra
+        // `Guy::set_anim+0x97a < Unit::move_step+0x823`.
         assert_eq!(
             on_word,
-            vec!["1/2018 queue:queued: ours 1 theirs 0"],
-            "the word's own block ({word}) is not item 497's one row of \
-             `1/2018`"
+            vec![
+                "1/28 collide: ours 1 theirs 0",
+                "1/28 collide_o: ours 0 theirs -1",
+                "1/28 collide_who: ours 8 theirs -1",
+                "1/28 g.cur_anim[0]: ours 0 theirs 8",
+                "1/28 g.cur_time[0]: ours 1 theirs 12",
+                "1/28 g.end_time[0]: ours 31 theirs 13",
+                "1/28 g.last_time[0]: ours 0 theirs 11",
+                "1/28 g.stopped[0]: ours 1 theirs 0",
+            ],
+            "the word's own block ({word}) is not item 506's eight rows \
+             of `1/28`"
         );
         // **And 10295, the block the word just left** — item 489's six
         // rows of `0/5`, closed by item 494 and pinned empty here for
@@ -8131,7 +8170,11 @@ mod tests {
         // is. `1/51`'s teach slot is the original's on both, so a
         // tie-break that stopped including the requester would fail here
         // on the cause rather than on the symptom.
-        for b in [10_274_i64, 10_294, 10_295, 10_304] {
+        // **10583 joins them** (item 506) — the block the word just
+        // left, and the value diff for its move: the AI's Stable holds
+        // the same queue as the original's now, because the leader
+        // reaches the frame with the original's own purse.
+        for b in [10_274_i64, 10_294, 10_295, 10_304, 10_583] {
             let on: Vec<String> = firsts
                 .iter()
                 .filter(|(_, (f, _))| *f == b)
@@ -8140,7 +8183,8 @@ mod tests {
             assert_eq!(
                 on,
                 Vec::<String>::new(),
-                "block {b} parts — item 489's `0/5` or item 497's `1/51` is back"
+                "block {b} parts — item 489's `0/5`, item 497's `1/51` or item \
+                 506's `1/2018` is back"
             );
         }
         // **And 10278, the block the word left before that** — item

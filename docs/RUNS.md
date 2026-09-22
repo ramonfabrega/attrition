@@ -4613,3 +4613,64 @@ in silence.
 `unattended_capture.py --timeout <seconds>`, default 180, and it bounds
 the *game*, not the build. run118 wrote 243 blocks in 180 s, so the whole
 window wants about 600.
+## run117 — the AI's ledger across two market rotations (2026-09-22, item 506)
+
+**What it is.** run53's game and run53's `[End Frame]` detail — bare
+`MISC` — with `LEADERS` raised from nothing to **9** over `[10375,
+10620)`: 245 blocks, `!quit` at 10640, `cover=0`, 366,030,105 bytes,
+**thirteen minutes** launch to archive. `docs/ECONOMY.md` §13 is what it
+decided.
+
+**Why it was owed, and the disk was grepped twice first.** Great Lakes'
+draw sequence parted at **10582** on a market frame and nothing anywhere
+on this disk carried the AI's goods or its make list within 1,400 frames
+of it: the map's `LEADERS≥2` windows are run84 `[6950, 7030)`, run91
+`[7514, 7600)`, run19 `[8174, 8192)`, run107 `[9170, 9200)` and run80
+`[23960, 24000)` — a gap of 14,700 frames with the word inside it. The
+two captures that cover 10582, run97 and run100, are both `LEADERS=1`.
+And the widening ran **before** the booking, not after:
+`run100_s_word_block_is_every_record_the_dump_carries` over 1,257 blocks
+and 3.4M rows put **one** row on the word's block and nothing at all
+between 10401 and the word, which is what said the cause had to be in a
+record run100 does not print.
+
+| check | result |
+|---|---|
+| `rngcmp.py` vs `rontrace-run53.log` | **0 differing**, 10,641 identical |
+| `MAP_STYLE` from the dump's `GAME INFO` | 14, seed 12345 |
+| the window, block for block | **245 blocks, 10375..10619, no gap** |
+| `LEADERDATA` records whole | **988** — 4 × 245 plus the start dump's 8 |
+| the raised category is in them | `MAKEOBJECT` ×22 on block 10583 |
+
+**The window straddles two rotations on purpose.** The AI's production
+rotation runs every 200 frames and the draw streams agreed entry for
+entry on 10381/10382/10383 and parted on 10582, so a window holding only
+the parting could not have said whether the ledger was already off two
+hundred frames earlier. It was: `bucket[2:wealth]` is 107 here against
+110 at block 10375, and everything else agrees to the unit.
+
+**What it says, and it is one frame nobody had named.** On sim-frame
+**10576** — the rotation's `Setup` step, which spends **no draw at all**
+— the original's `Leader::market_speculation` buys a hundred food for
+**128** wealth: block 10575 `93 86 128 269 100 0` to block 10577
+`194 86 0 269 100 0`. This crate's sell and buy passes were a declared
+seam, so it bought nothing and entered `make_stuff` five frames later
+with a purse the original does not have. The word, the sequence and the
+count were all downstream of that. **10582 → 10817.**
+
+**The stanza's three predictions were all true on the word's block and
+none of them was the cause**, which is the entry worth keeping: (a) the
+wealth is short — it is **0**, not "under 120"; (b) the timber is short —
+refused, 87 on both; (c) the make list differs — it does, because the
+purse does. A frame that agrees with every branch of a hypothesis is a
+frame whose cause is upstream of all of them.
+
+**And one check was written on a false premise.** The stanza asked
+`samegame.py` for the overlap against run53 with `--exclude LEADERDATA`,
+on the belief that run53 is a per-frame sibling. It is not: `samegame.py`
+digests a block's **indented** lines and run53's bare `MISC` writes none,
+so the file holds **one** frame block in 24,000 and the comparison
+answered `frames: 1 and 245, 0 in common`. The check has been replaced in
+`captures.txt` with a record count that can fail — a `MISC`-only capture
+cannot be overlap-checked against anything, and `rngcmp`'s 10,641 frames
+at 0 differing is the stronger same-game instrument anyway.

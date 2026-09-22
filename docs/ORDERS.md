@@ -5550,19 +5550,33 @@ names the unit unprompted — two rows, both `1/51`'s animation clock,
 - The table itself is `stance::tests::peasants_wait_is_an_index_into_
   five_waits`, which asserts the five arms, both out-of-range ends, and
   that the **default option is arm 2 and not the default arm**.
+- **That the option is 2 in run100's own game** — run34's start dump and
+  run53's function coverage, above.
 
 **Reading alone:**
 
 - **`think_caravan`'s half.** The same six lines, moved to the same
   helper because the listings are the same, and no capture on disk has a
   human caravan. Nothing here is measured.
-- **That `peasants_wait` is 2 because nothing ever writes it.**
+- ~~**That `peasants_wait` is 2 because nothing ever writes it.**
   `CommandPackage::process_leader_options@009441d0` and
   `ScenarioFuncSet::set_auto_peasant_level@009ff620` are the only
   writers and no capture issues either, so the value read out of run12's
   `LEADEROPTION` record is taken to hold for run100, which does not dump
   the category. A capture that enables it on Great Lakes would settle it
-  outright; the cost is one `gamelog.ini` line.
+  outright; the cost is one `gamelog.ini` line.~~ **Settled off the disk
+  on 2026-09-22, item 506, and no capture was needed.** Two greps:
+  `gamelog-run34-greatlakes-dumpall-start.txt` is **this game** — map 14,
+  seed 12345, `GAME INFO` identical to run53's and run100's field for
+  field — and its start dump prints `peasants_wait 2` on all **eight**
+  leader-option records, player 0's included; and
+  `report.py rontrace-run53.log functions` puts
+  `CommandPackage::process_leader_options` at frame **−1**, the setup
+  path, with `ScenarioFuncSet::set_auto_peasant_level` absent from all
+  6,937 functions the 24,000-frame trace ever enters. So the value is
+  measured on this map at frame 0 and the only writer that runs at all
+  runs before frame 0 and never again. Stronger than the capture the
+  question asked for, because the coverage list is the *whole* game.
 
 **What is not established:**
 
