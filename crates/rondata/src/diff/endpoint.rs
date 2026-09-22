@@ -909,7 +909,21 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // and 78 draws node for node
         // (`run100_s_word_block_is_every_record_the_dump_carries`).
         // DECISIONS 36 asks for the number rather than a trade.
-        off: 51,
+        // And **51 → 42 off, 7 unlinked unchanged** on 2026-09-22, item
+        // 487 — `Unit::ungroup_move_order`'s re-head and `do_move`'s
+        // `vector_dist < 0x481` gate on the dead-target re-path
+        // (`docs/ORDERS.md` §20), which moves this map's own word
+        // **10244 → 10277** on both the count and the sequence. Nine
+        // positions closer, nothing else moved, 13,724 frames past the
+        // word and so on the far side of an unaligned draw stream. The
+        // value diff the change is booked on is block 10245, where item
+        // 483's eleven rows of `1/27` go to **none** — `1/29` walks home
+        // from 10242 the way the original's does, so nothing stands in
+        // `1/27`'s way — and `1/29` leaves the window's residue set
+        // entirely
+        // (`run100_s_word_block_is_every_record_the_dump_carries`).
+        // DECISIONS 36 asks for the number rather than a trade.
+        off: 42,
         unlinked: 7,
         extra: 0,
         build_unlinked: 0,

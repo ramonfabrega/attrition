@@ -2152,8 +2152,9 @@ impl Sim {
         // SEAM: two further conjuncts of the unit-target kill are not
         // modelled, and both only make it **rarer** — the flank clause
         // (`angle` window, `flanking`, `max_range` again) and
-        // `Objects::find_collision(my own spot, o, who, 1) == 0`. The
-        // `vector_dist < 0x481` guard on the re-path arm is the third.
+        // `Objects::find_collision(my own spot, o, who, 1) == 0`.
+        // ~~The `vector_dist < 0x481` guard on the re-path arm is the
+        // third.~~ **Item 487 landed it**, below.
         if let Some(a) = self.action_of(u)
             && let Body::Attack(_) = self.units[u].orders[a].body
         {
@@ -2229,9 +2230,52 @@ impl Sim {
                         }
                     }
                 }
+                // **The dead target's arm, and it is a *near* one**
+                // (item 487, `docs/ORDERS.md` §20). The original reaches
+                // here when the action's target is gone — a negative
+                // `o`/`who`, an object whose `flags & 1` is down, or a
+                // slot whose `uid` no longer matches — and it does **not**
+                // re-path unconditionally. `do_move@005f7b30`,
+                // `005f8221`-`005f825d`:
+                //
+                // ```
+                // 5f8221: eax = this->y ^ 0x63637; eax -= [edi+0x8]
+                // 5f822f: eax = this->x ^ 0x63637; eax -= [edi+0x4]
+                // 5f8247: call vector_dist            ; (|dx|, |dy|)
+                // 5f824c: cmp  eax, 0x480
+                // 5f8251: jg   0x5f82c1                ; → the planner
+                // 5f8256: test $0x10, 0x2b4(ptype)     ; a sea transport
+                // 5f825d: jne  0x5f82c1                ; → the planner
+                // 5f8261: call Unit::repath
+                // ```
+                //
+                // `edi` is the `MoveOrder` the function opened with
+                // (`5f7b4b`'s vfunc `+0x40`, stashed at `[ebp-0x18]`), and
+                // `+0x4`/`+0x8` are `x`/`y` by the type record — the
+                // order's own destination. So the octagonal distance from
+                // the unit to **where it was walking** decides it: within
+                // `0x480` the walk is pointless and the transit legs are
+                // popped; beyond it the unit keeps the order and falls
+                // through to the planner, dead target and all.
+                //
+                // run100's `1/29` is the case and it is 28,000 units out:
+                // an AI raider whose farm died on sim-frame 10230, whose
+                // reload keeps `do_attack` from ever reaching `fight`'s
+                // own validity kill, and whose move home the original
+                // plans on 10240 — 43 nodes — while this crate popped it
+                // and left the unit standing in `1/27`'s way.
                 _ => {
-                    self.repath(u);
-                    return Did::Nothing;
+                    let d = crate::world::vector_dist(
+                        (self.units[u].pos.x - mo.dest.x).abs(),
+                        (self.units[u].pos.y - mo.dest.y).abs(),
+                    );
+                    let transport = self.units[u].ty.is_some_and(|t| {
+                        self.unit_types[t].cols.unit_flags & crate::ai_load::uflags::TRANSPORT != 0
+                    });
+                    if d <= 0x480 && !transport {
+                        self.repath(u);
+                        return Did::Nothing;
+                    }
                 }
             }
         }
@@ -2881,6 +2925,35 @@ impl Sim {
             m.group = None;
             m.has_waypoint = false;
         }
+        // **The plain move is a *new* order at the head of the list, not
+        // the old one rewritten where it stood** (item 487,
+        // `docs/ORDERS.md` §20). `005fd2e2`-`005fd3a6`:
+        // `OrdersMemManager::get_obj(MOVE_TO)`, `MoveOrder::operator=` off
+        // the group order, then `remove_current` on the list, `give_obj`
+        // on the node just removed, and
+        // `LinkListBase<UnitOrder *, …>::add@0046d5a0` — which **prepends**
+        // (`head_node = new`) and leaves the cursor on it. So the
+        // conversion also *promotes*: whatever was current before the
+        // ungroup is now one place back.
+        //
+        // In place and at the head are the same thing for a unit whose
+        // group move is already the head order, which is every unit any
+        // capture on disk had reached until run100's `1/29`. That one has
+        // an `ATTACK` above its group move — on a farm that died on
+        // sim-frame 10230, kept alive by `do_attack`'s reload gate — so
+        // the two readings come apart: the original walks home from
+        // block 10241 and this crate stood still.
+        //
+        // SEAM: `orig_x`/`orig_y` (`MoveOrder +0x44`/`+0x48`), which the
+        // same arm sets to the order's own `x`/`y`, are neither held here
+        // nor compared by `crate::diff::order` — `1/29`'s go
+        // `(39133, 21131)` → `(38952, 21048)` across the ungroup and
+        // nothing on either side reads them.
+        let order = self.units[u]
+            .orders
+            .remove(i)
+            .expect("the order just matched");
+        self.units[u].orders.push_front(order);
         if !leader {
             self.kill_current_path(u);
         }

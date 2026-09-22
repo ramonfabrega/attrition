@@ -2737,6 +2737,77 @@ mod tests {
         );
     }
 
+    /// **The plain move an ungroup makes is put at the *head* of the
+    /// order list, not left where the group order stood** (item 487,
+    /// `docs/ORDERS.md` §20).
+    ///
+    /// `Unit::ungroup_move_order@005fd140`'s `GROUP_MOVE` arm ends with
+    /// `remove_current` on the order list and then
+    /// `LinkListBase<UnitOrder *, …>::add@0046d5a0`, which **prepends** —
+    /// `head_node = new` — so the conversion is also a promotion. The two
+    /// readings are the same thing for a unit whose group move is already
+    /// the head order, which is every unit any capture on disk reached
+    /// until run100's `1/29`: an AI raider carrying an `ATTACK` above its
+    /// group move, on a farm that died ten frames earlier.
+    ///
+    /// Made to fail on purpose by restoring the in-place rewrite, which
+    /// leaves the attack in front and the move buried under it.
+    #[test]
+    fn an_ungroup_puts_the_plain_move_at_the_head_of_the_list() {
+        let mut s = sim();
+        let t = fighter(&mut s);
+        let cap = spawn(&mut s, 1, t, Pos::new(0x1000, 0x1000));
+        let sub = spawn(&mut s, 1, t, Pos::new(0x1030, 0x1000));
+        let prey = spawn(&mut s, 0, t, Pos::new(0x1400, 0x1000));
+        s.units[sub].captain = false;
+        s.units[sub].o_up = Some(cap);
+        s.units[cap].o_down = Some(sub);
+        let slot = s.init_army(1, None);
+        for u in [cap, sub] {
+            s.army_add_unit(1, slot, u);
+        }
+        let g = s.army_group(1, slot);
+        s.group_action_move_to(
+            &g,
+            Pos::new(0x4000, 0x4000),
+            QueuePos::New,
+            true,
+            Angle(0),
+            MoveKind::MoveTo,
+            true,
+        );
+        let id = s
+            .current_move(sub)
+            .expect("a move")
+            .group
+            .expect("a group order")
+            .id;
+        // The attack goes in front of the group move, which is the shape
+        // run100's `1/29` is in on block 10240.
+        s.add_attack_order(sub, Obj::Unit(prey), QueuePos::First, false, true);
+        assert!(
+            matches!(
+                s.current_order(sub).map(|o| o.body),
+                Some(crate::orders::Body::Attack(_))
+            ),
+            "the attack is the head order before the ungroup"
+        );
+        s.ungroup_move_order(sub, id);
+        assert_eq!(
+            s.units[sub]
+                .orders
+                .iter()
+                .map(crate::orders::Order::index)
+                .collect::<Vec<_>>(),
+            vec![crate::orders::index::MOVE_TO, crate::orders::index::ATTACK],
+            "the ungrouped move is the head order and the attack is under it"
+        );
+        assert!(
+            s.current_move(sub).expect("a move").group.is_none(),
+            "and it is a plain move"
+        );
+    }
+
     /// `do_group_move`'s window is a **third** of a turn, not the quarter
     /// `reversing` uses (`5e8167`).
     #[test]
