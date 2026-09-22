@@ -33,11 +33,11 @@ Great Lakes **10277**, chapter two **683**, both inside their first fight.*
   correction is not an addition. Four pins fell; `AI.md` §15 left the table.
 - **683's two sides were parked by the worker who found them** while the
   rules slot stood empty; they are item **491**. 476 and 342 named no
-  score and are parked. **Fable backlog: 1 Loop item** (313).
+  score and are parked. **Fable backlog: 2 Loop items** (313, 503).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w9711 of 24,000 · GreatLakes w10303 of 24,000
-Golden: w626 of 901 (ch1) · ch2 w695 · 496 next
+Golden: w626 of 901 (ch1) · ch2 w695 · 502 next
 Endpoint 24001: EastIndies 63 off, 11 unlinked · GreatLakes 49 off, 8 unlinked
 
 **Opener: 496 and 497 in flight. Three landings, both words moved, Great
@@ -60,14 +60,14 @@ the backlog is `docs/PARKED.md`, and an item returns only when a score names it.
     the delta and **no mechanism** — the clock is where the rows are,
     not a cause. `docs/ORDERS.md` §21.
 
-496. **695's one extra draw, with every value on the frame agreeing**
-    (the rules headline's own frame; 491 moved the word 683 → 695).
-    Ours spends **21** against the original's **20**, parting at draw
-    2: `Guy::set_anim+0x97a < Guy::inc_time+0x1ed` against `+0x271`,
-    and the surplus is one attack-end, 3 against 2. `game_random`
-    agrees entering 695 and parts entering 696, so the draw is spent
-    inside the frame. The only values standing on 695 are 495's three;
-    first new rows are 696, also 495's. No mechanism. COMBAT §42.
+502. **§43.2's arm, landed whole** (the rules headline's own frame;
+    496 measured 695's cause and did not implement it, so the word
+    stands at 695). Four pieces that only score together: the target
+    the original **keeps** after it dies, the captain that spends its
+    frame searching, the two followers that strike on the same frame,
+    and `Guy::inc_time`'s `unit_masks2 & 0x10` zero step. COMBAT
+    §43.2, open questions §43.5. **Wants a `GUYS=4` capture with the
+    launch timeout raised** — run118 stops at 846 (see run119).
 
 ## How to maintain this file
 

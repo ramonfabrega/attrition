@@ -22,6 +22,20 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Parked by item 496, 2026-09-22 — a piece that cannot score alone
+
+(501) **`Sim::forget` drops a dead object from every attacker's target
+slot on the frame it dies; the original keeps it.** Frame **684**, `order
+0/6`/`0/7`/`0/8`, ours `None` theirs `(1,8)`, standing to 695. Invisible
+until 496 widened `compare_orders`, and then thirty-six unit-frames of it,
+under the word, quiet.
+
+**Why this parks rather than queues:** measured, it moves no word alone —
+the word stays 695 and two green pins go red. It is the smallest and least
+informative of `docs/COMBAT.md` §43.2's four pieces, and the arm only
+scores whole. It is therefore **inside item 502**, not a rival to it; do
+not run it on its own on the strength of being true.
+
 ## Parked by item 494, 2026-09-22 — the wait table's unlit halves
 
 Item 494 read `LeaderOptions +0x8` as an **index into five waits**
@@ -136,6 +150,18 @@ never the cursor — it is that a launch from inside Claude Code's own process
 tree gets no window at all (`nodrv_CreateWindow`, dead in 3.8 s, 0 frames),
 so every launch goes through `viadriver.sh` (`docs/ORACLE.md`, "The
 click-free lane needs a window").
+
+(503) **A guard aimed at agreement, not at silence.** `coverage` pins
+keys the parser never asks for; **nothing pins a key the parser reads and
+the comparison then drops.** Item 496 found `compare_orders` reporting an
+order's target only when *both* sides named one, so this crate's empty
+order read as agreeing with the dump's `ox 8 whom 1` — thirty-six
+unit-frames, under the word, green. Item 462 fixed the same hole one level
+down in `unit_ids`. **Two instances in one function is a rule, and the
+grep is mechanical**: `if let (Some(a), Some(b))`, `zip`, a `?` in a helper
+feeding a comparison. Every guard this repo has is aimed at an instrument
+that says nothing; this would be the first aimed at one that says *yes*.
+Raised by item 496, 2026-09-22; `docs/COMBAT.md` §43.3.1 states the rule.
 
 (313) **The landing chain wants one verb.** Merge, gate, push and reap are
 one chain by rule since 09-17; ccc has `merge`, `update` and `clear`, and
