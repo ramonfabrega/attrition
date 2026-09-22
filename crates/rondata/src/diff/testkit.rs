@@ -1794,7 +1794,15 @@ pub(crate) const GOLDEN_WORD_CHAPTER_ONE: i64 = 626;
 /// reverted — `extra 1/8` at 684 (the original's hoplite dies on 683 and
 /// this crate's does not), and a citizen's `order 1/4`/`pos 1/4` at
 /// 685/686.
-pub(crate) const GOLDEN_WORD_CHAPTER_TWO: i64 = 683;
+/// **683 → 695 on 2026-09-22, item 491**, and it took both sides of one
+/// parting. The original's draw at 683 was `Unit::close@0060ee50+0xcb6`,
+/// the death animation's own roll, which this crate's `close` had never
+/// taken; ours were §39's puncture pair, spent by the *second* of the two
+/// arrows that land on 683 — and the original does not spend them,
+/// because an arrow at a land unit carries `Ammo` flag `4` and **rolls
+/// on** when it finds nothing rather than puncturing the ground. One draw
+/// gained, two lost, and twelve frames. `docs/COMBAT.md` §42.
+pub(crate) const GOLDEN_WORD_CHAPTER_TWO: i64 = 695;
 
 /// **Every pinned word names the test that widened its frame whole, or
 /// the open item that will** (`docs/DECISIONS.md` 43). A word is the frame
@@ -1839,7 +1847,7 @@ pub(crate) const WIDENING_GREAT_LAKES: (i64, i64) = (9_340, 10_290);
 /// `1/8` runs one hit behind the dump from **656**, twenty-seven blocks
 /// under the word and well inside this window, which nothing had ever
 /// compared (`docs/COMBAT.md` §40).
-pub(crate) const WIDENING_CHAPTER_TWO: (i64, i64) = (606, 687);
+pub(crate) const WIDENING_CHAPTER_TWO: (i64, i64) = (606, 699);
 
 /// One pinned word's row: `(constant, word, widening test, item, window)`.
 pub(crate) type Widening = (
@@ -1954,11 +1962,25 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // nine flights by a frame. §7.3's divide is real and it is 684's fact,
     // not 656's. The map goes from eight rows to **five**.
     // `docs/COMBAT.md` §41.
+    //
+    // **Item 491 moved it 683 → 695** and moved the ceiling with it, 687
+    // → 699, the sixth chapter-two move in a row to widen the new word in
+    // the same landing. Both halves of 683's parting were real and both
+    // were 485's hypotheses: the death draw `Unit::close` takes was
+    // named right, and the puncture's mechanism was named wrong. §9.2's
+    // "a target that is no longer active has its `hold_frames` bumped" is
+    // the **shooter**'s slot, not the target's (`Object::die@00647080`
+    // matches on the ammo's `+0x3c`/`+0x40`, which `Ammo::init` fills
+    // from the shooter), and it has nothing to do with the puncture. What
+    // does is `Ammo::inc_time`'s flag-4 arm, and run112 had printed it
+    // since the day the capture was taken: `flags 6` on every arrow at a
+    // land unit, `flags 14` and `whom -1 ox -1` on the one that missed.
+    // `docs/DECISIONS.md` 42 for the fifth time in this chain.
     (
         "GOLDEN_WORD_CHAPTER_TWO",
         GOLDEN_WORD_CHAPTER_TWO,
         Some("chapter_two_s_word_frame_is_widened_whole"),
-        485,
+        491,
         Some(WIDENING_CHAPTER_TWO),
     ),
 ];

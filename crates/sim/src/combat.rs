@@ -340,6 +340,34 @@ pub struct Projectile {
     pub num_guys: i32,
     /// The ammo's domain class — air or not.
     pub air: bool,
+    /// `Ammo` flag **4**, `Ammo::init@0067bbf0+0x96f`: the shot **rolls
+    /// on** when it finds nothing where it lands, instead of puncturing
+    /// the ground there (`docs/COMBAT.md` §42.2). Set when the shooter's
+    /// order is not `ATTACK_GROUND`/`AIR_ATTACK_GROUND`, the target is a
+    /// unit of land domain, and the piece is not lofted.
+    pub rolling: bool,
+    /// `Ammo` flag **8**: a rolling shot that has already found nothing
+    /// and is travelling on past its landing point. Set once, by
+    /// `Ammo::inc_time`, and it is what stops `hit_target`/`check_hit`
+    /// being tried a second time.
+    pub missed: bool,
+}
+
+/// **One death object** — the `DEATH_OBJS` record `Unit::close` makes for
+/// a unit that dies with a non-zero `dtype` (`docs/COMBAT.md` §42.1).
+///
+/// The dump prints six keys at detail 1 and this carries five of them:
+/// `valid` is 1 for every record it prints at all, `first_frame` the sim
+/// frame of the death, `cur_anim` the animation the draw chose, and
+/// `who`/`o` the dead figure. `gpiece` is the sixth — the unit's own death
+/// piece, `DeathObj::init`'s `vtable[0x178](param_7, packed)` — and this
+/// crate loads no piece for it, so it is parsed and not compared (§42.5).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Death {
+    pub who: i32,
+    pub o: i32,
+    pub first_frame: i64,
+    pub cur_anim: i32,
 }
 
 /// One delivery of damage, for tests and logs.
@@ -1060,6 +1088,43 @@ pub const fn scatter(t: &Tuning, acc: i32, land_unit: bool, missile: bool, exact
         s *= 2;
     }
     s
+}
+
+/// **`dtype`** — the death class `ObjectData::get_damage` writes through its
+/// out-parameter (§6 step 11) before `Object::do_damage` overrides it
+/// (§7.1 step 6). It decides the death animation `Unit::close` rolls
+/// (`docs/COMBAT.md` §42.1), and nothing else this crate models.
+///
+/// `get_damage` opens at 2 and the only writers are three: **EXPLOSIVE**
+/// (`obj_masks & 0x800000`) and **BOMBARD** (`& 0x2`) each make it 3, and
+/// a **building** attacker overwrites whatever those left — 3 when
+/// `BuildData::get_shot() == 4` (the `REDOUBT`), 2 otherwise. So an
+/// ordinary arrow from an ordinary archer is 2, which run112's four
+/// `DEATH_OBJS` records confirm from the other end: `cur_anim 17` is
+/// `2 * dtype + 0xd + roll % 2` with an even roll, and the trace's own
+/// seed at `0060fb06` on frame 683 makes that roll 64832.
+///
+/// **`get_shot` is not modelled**, so a `REDOUBT`'s shot is 2 here and 3
+/// in the original; it changes a death animation index and no capture on
+/// disk has one.
+pub const fn death_type(amask: u32, attacker_is_building: bool) -> i32 {
+    if attacker_is_building {
+        return 2;
+    }
+    if amask & (mask::EXPLOSIVE | mask::BOMBARD) != 0 {
+        return 3;
+    }
+    2
+}
+
+/// The death animation `Unit::close` picks for a `dtype` (§42.1):
+/// `dtype * 2 + 0xd + roll % 2`, or `roll % 2 + 0x11` when `dtype == 4`.
+pub const fn death_anim(dtype: i32, roll: i32) -> i32 {
+    if dtype == 4 {
+        roll % 2 + 0x11
+    } else {
+        dtype * 2 + 0xd + roll % 2
+    }
 }
 
 /// Applies the scatter to a landing point, taking the original's two draws

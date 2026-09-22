@@ -263,6 +263,25 @@ pub struct Unit {
     pub cant_reach: bool,
     /// `unit_masks & 1`: a decoy; not counted as a gatherer.
     pub decoy: bool,
+    /// **`ObjectData::hold_frames`** (`+0x32`) — how many more frames this
+    /// slot is held after the figure inside it is gone (`docs/COMBAT.md`
+    /// §11, §42.3).
+    ///
+    /// Three writers, all of them on a **dead** object: `Object::die` sets
+    /// it to `max(1, …)` over the object's own ammo still in flight, so
+    /// that a dead archer's arrow still lands; `Ammo::inc_time` bumps it
+    /// once a frame for every in-flight shot whose **shooter** is no
+    /// longer active; and `DeathObj::inc_time` bumps it once a frame while
+    /// the death animation plays. Nothing writes it on a living unit,
+    /// which is exactly what the dump says — 0 on every unit-frame of
+    /// both headline windows — and why §9.2's "a target that is no longer
+    /// active has its `hold_frames` bumped" was the wrong way round: the
+    /// ammo matches on `+0x3c`/`+0x40`, the pair `Ammo::init` fills from
+    /// the shooter.
+    ///
+    /// It holds nothing here: this crate never recycles a unit slot, so
+    /// the field is carried to be **compared** rather than acted on.
+    pub hold_frames: i32,
     /// `UnitData::avoid_x/avoid_y`: the point `find_path` recorded as
     /// unreachable, which `valid_wcoord` refuses. Cleared before each step
     /// (`docs/ORDERS.md` §4.5).
@@ -711,6 +730,7 @@ impl Unit {
             index,
             pos,
             health,
+            hold_frames: 0,
             search: None,
             // `Unit::init@00612100:567` zeroes the stamp beside the five
             // container pointers: a unit's search state starts empty.
@@ -939,6 +959,18 @@ pub struct Sim {
     pub phase_marks: Vec<(String, u32)>,
     /// Ammo in flight.
     pub projectiles: Vec<combat::Projectile>,
+    /// **The death objects**, the `DEATH_OBJS` list the dump prints at the
+    /// frame level (`docs/COMBAT.md` §42.1). One is made by `Unit::close`
+    /// for every unit death whose `dtype` is non-zero, and it carries the
+    /// animation index the draw at `Unit::close+0xcb6` chose.
+    ///
+    /// **Nothing culls them here.** The original's `DeathObj::inc_time`
+    /// runs the animation packet and clears the object when it ends; that
+    /// needs the death graphic piece's own packet, which this crate does
+    /// not load. No capture on disk reaches a cull — run112's four deaths
+    /// are all still in the list on its last block, 216 frames after the
+    /// first — so the list is grow-only and §42.5 records the gap.
+    pub deaths: Vec<combat::Death>,
     /// One per player: the nation, wonder and patriot layer of the damage
     /// formula, as inputs.
     pub mods: Vec<combat::Modifiers>,
@@ -1308,6 +1340,7 @@ impl Sim {
             spells: Vec::new(),
             rng: combat::Rng::new(0),
             projectiles: Vec::new(),
+            deaths: Vec::new(),
             market: market::Market::default(),
             gaia: gaia::Gaia::default(),
             art: anim::Art::default(),
@@ -3531,6 +3564,12 @@ impl Sim {
         // `Wall::inc_time`.
         self.guys_inc_time();
         self.mark("projectiles");
+        // `DeathObj::inc_time`'s and `Ammo::inc_time`'s own per-frame
+        // bump of a **dead** slot's `hold_frames` (`docs/COMBAT.md`
+        // §42.3). It is folded into one pass here rather than split
+        // across the death list and the ammo walk, because nothing reads
+        // the field within a frame and no capture can see the order.
+        self.hold_frames_tick();
         self.process_projectiles(frame);
         self.mark("farms");
         self.farms_inc_time();

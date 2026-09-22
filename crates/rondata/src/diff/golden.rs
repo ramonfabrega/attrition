@@ -1401,6 +1401,7 @@ fn chapter_two_s_word_frame_is_widened_whole() {
     // a residue standing before the window opened is not this word's.
     let mut first: std::collections::BTreeMap<String, i64> = std::collections::BTreeMap::new();
     let mut blocks = 0usize;
+    let mut deaths = 0usize;
     for f in 0..LAST - 1 {
         script.stage(built.sim.frame, &mut built, &loaded);
         built.tick();
@@ -1486,6 +1487,18 @@ fn chapter_two_s_word_frame_is_widened_whole() {
             );
             note(format!("{} {}/{}", d.field, d.who, d.o));
         }
+        // **The death-object list** (item 491, §42.1) — `DEATH_OBJS`,
+        // both directions, keyed on the field. run112's window carries
+        // exactly one: `1/8`, `first_frame 683`, `cur_anim 17`, on every
+        // block from 684 to the end of the capture.
+        deaths += r.death_compared;
+        for d in &r.death_diverged {
+            eprintln!(
+                "  {n} death:{} {}/{} ours {} theirs {}",
+                d.field, d.who, d.o, d.ours, d.theirs
+            );
+            note(format!("death:{} {}/{}", d.field, d.who, d.o));
+        }
         // **The four `FrameResult` carries that this walk ignored until
         // item 466.** They are empty over this window — chapter two
         // stages nine soldiers and no building — but "widened whole"
@@ -1511,6 +1524,16 @@ fn chapter_two_s_word_frame_is_widened_whole() {
         blocks,
         (LAST - FIRST) as usize,
         "run112's dump no longer carries every frame of [{FIRST}, {LAST})"
+    );
+    // **Anti-vacuity for the death list**, which is the one row here
+    // whose agreement is a *silence*: three fields on fifteen blocks,
+    // 684 through 698, for the one death run112's window carries. A
+    // reader that stopped parsing `DEATH_OBJS` would print no
+    // divergence and neither would one that matched nothing, so the
+    // count is pinned beside the map (parked 449's shape).
+    assert_eq!(
+        deaths, 45,
+        "the death-object comparison's own width moved; 1/8 dies on 683          and the dump carries its record on every block from 684 to the          end of run112"
     );
     // **Anti-vacuity**: the window has to hold the cast the chapter is
     // about, or an empty comparison reads as agreement.
@@ -1621,12 +1644,40 @@ fn chapter_two_s_word_frame_is_widened_whole() {
     // hit behind from 656 and `extra 1/8` at 684 is its consequence.
     // `docs/COMBAT.md` §40 is the record; naming the mechanism is item
     // 485's.
+    //
+    // **Item 491 moved the word 683 → 695 and the ceiling with it**, and
+    // the map is now thirteen rows that are really two. `order 1/4` — the
+    // far-off citizen — is gone, and nothing replaced it under 686.
+    //
+    // The first is `damage 1/6` at 680, which is §41.3's unmeasured
+    // release node, untouched by this landing and still the only row this
+    // capture cannot settle.
+    //
+    // The other twelve are **one arrow**. run112's `0/8` fires at 677 at
+    // `1/8`; `0/7`'s arrow kills `1/8` on 683; `0/8`'s finds its target
+    // dead, and because it carries `Ammo` flag 4 it does not puncture —
+    // it rolls on (§42.2) and comes down two frames later where
+    // `check_hit` finds **`1/7`**, for `19+5` on 685. This crate rolls it
+    // on too, and cannot land it: the arc is a float parabola and
+    // `TerrainOut::find_data_z` a float surface (§42.5). So `damage
+    // 1/7`, `damage_frac 1/7` and `damage_frame 1/7` stand at 686 — and
+    // the nine rows at 696-698 are theirs, because a wounded `1/7`
+    // outranks `1/6` on §33's damage weight and the original's three
+    // bowmen retarget where ours do not. Item (493) is that landing.
     let measured = [
+        ("angle 0/6", 697),
+        ("angle 0/7", 696),
+        ("angle 0/8", 696),
         ("damage 1/6", 680),
         ("damage 1/7", 686),
         ("damage_frac 1/7", 686),
         ("damage_frame 1/7", 686),
-        ("order 1/4", 685),
+        ("order 0/6", 696),
+        ("order 0/7", 696),
+        ("order 0/8", 696),
+        ("recharging 0/6", 697),
+        ("recharging 0/7", 696),
+        ("recharging 0/8", 696),
     ];
     let got: Vec<(&str, i64)> = first.iter().map(|(k, &n)| (k.as_str(), n)).collect();
     assert_eq!(
@@ -1788,8 +1839,11 @@ const NEAR_PARTED: &[((i64, i64), i64)] = &[];
 /// walks the same window. The agreement is still total, and it is the
 /// row that says a melee captain still *reads* its incumbent (§38.5) —
 /// `1/6` carries `near_o 10` on every block of the window and no longer
-/// acts on it.
-const NEAR_TALLY: (usize, usize, usize) = (4848, 170, 4848);
+/// acts on it. **And again by item 491**, 4848/170 → 5568/206, on the
+/// ceiling's move 687 → 699 with the word 683 → 695 (§42.4): twelve more
+/// blocks, thirty-six more live pairs, and the agreement still total
+/// across the death of `1/8` and the three bowmen's retarget after it.
+const NEAR_TALLY: (usize, usize, usize) = (5568, 206, 5568);
 
 /// One frame's `near_o`/`near_who` per unit, read out of the raw dump
 /// text — [`ch2_dump_units`]'s sibling, for the pair that reader takes

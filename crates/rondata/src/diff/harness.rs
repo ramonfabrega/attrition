@@ -150,6 +150,16 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
                 ("myhits", i64::from(un.max_health), u.myhits),
                 ("damage", i64::from(un.max_health - un.health), u.damage),
                 ("damage_frac", i64::from(un.damage_frac), u.damage_frac),
+                // **`hold_frames`**, the fourth `ObjectData` field on the
+                // same block and the last one `coverage`'s pin carried
+                // as unread (item 491, §42.3). Every writer is on a dead
+                // object, so what this asserts is that the dump shows a
+                // **living** unit a zero — and that is the check §9.2's
+                // sentence about the bump never had. It is here rather
+                // than in the firing record because it is written by
+                // `Object::die` and read by the slot walk, not by the
+                // shot.
+                ("hold_frames", i64::from(un.hold_frames), u.hold_frames),
             ] {
                 let Some(theirs) = logged else { continue };
                 r.hits_compared += 1;
@@ -399,6 +409,88 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
             let o = i64::from(un.index);
             if !frame.units.iter().any(|u| u.who == who && u.o == o) {
                 r.extra_units.push((who, o));
+            }
+        }
+    }
+    // **The death-object list, both directions and field for field**
+    // (`docs/COMBAT.md` §42.1). `DEATH_OBJS` is written at `DEATHS=1` and
+    // above, which is every capture this crate diffs, and no reader had
+    // ever opened one: item 485 read a `first_frame` out of the raw text
+    // by hand and `cur_anim 17` stood in three documents as a reading.
+    //
+    // Linked on `(who, o)` and never on the list index — a dumped
+    // record's slot index is not an identity, and the original's list is
+    // an `ObjectArray` whose slots are recycled. A record on one side and
+    // not the other is a row of its own (`missing`/`extra`) rather than a
+    // silent skip, which is the same rule `extra_units` above follows.
+    //
+    // `gpiece` is parsed and **not** compared: it is the dead unit's own
+    // death piece, `DeathObj::init`'s `vtable[0x178](param_7, packed)`,
+    // and this crate loads no art for it (§42.5).
+    {
+        let ours: Vec<&sim::combat::Death> = built.sim.deaths.iter().collect();
+        for d in &frame.deaths {
+            let (Some(who), Some(o)) = (d.who, d.o) else {
+                continue;
+            };
+            if !(0..players as i64).contains(&who) {
+                continue;
+            }
+            let Some(mine) = ours
+                .iter()
+                .find(|m| i64::from(m.who) == who && i64::from(m.o) == o)
+            else {
+                r.death_compared += 1;
+                r.death_diverged.push(DeathDivergence {
+                    frame: frame.n,
+                    who,
+                    o,
+                    field: "missing",
+                    ours: 0,
+                    theirs: 1,
+                });
+                continue;
+            };
+            for (field, m, logged) in [
+                ("valid", 1, d.valid),
+                ("first_frame", mine.first_frame, d.first_frame),
+                ("cur_anim", i64::from(mine.cur_anim), d.cur_anim),
+            ] {
+                let Some(theirs) = logged else { continue };
+                r.death_compared += 1;
+                if theirs != m {
+                    r.death_diverged.push(DeathDivergence {
+                        frame: frame.n,
+                        who,
+                        o,
+                        field,
+                        ours: m,
+                        theirs,
+                    });
+                }
+            }
+        }
+        if !frame.units.is_empty() {
+            for m in &ours {
+                let (who, o) = (i64::from(m.who), i64::from(m.o));
+                if !(0..players as i64).contains(&who) {
+                    continue;
+                }
+                if !frame
+                    .deaths
+                    .iter()
+                    .any(|d| d.who == Some(who) && d.o == Some(o))
+                {
+                    r.death_compared += 1;
+                    r.death_diverged.push(DeathDivergence {
+                        frame: frame.n,
+                        who,
+                        o,
+                        field: "extra",
+                        ours: 1,
+                        theirs: 0,
+                    });
+                }
             }
         }
     }
