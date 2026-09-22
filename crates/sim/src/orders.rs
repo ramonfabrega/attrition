@@ -1467,6 +1467,59 @@ impl Sim {
         self.check_target_path(u);
     }
 
+    /// `Unit::change_target@005e36c0` — one decision, written down the
+    /// **whole squad** in place (`docs/COMBAT.md` §37.4).
+    ///
+    /// The function is a walk of `o_down` from the unit it is called on,
+    /// and at each link it does two things: rewrite the action order's
+    /// target from `old` to `new` *if it still holds `old`*, and then pop
+    /// head orders until the head is the targeted one — which is what
+    /// drops the chase the retarget has just made pointless. The walk
+    /// stops at `o_down < 0` or at the first link whose `flags & 1` is
+    /// clear.
+    ///
+    /// **The rewrite is in place, and that is measurable.** run112's
+    /// `0/10` and `0/11` take `1/6` on block 645 with `in_range 1`,
+    /// `ever_in_range 1` and `new_ord 0` — the flags they were already
+    /// carrying against `1/8`. A fresh `add_attack_order` through the
+    /// captain mirror would have reset all three, so the dump
+    /// distinguishes this from every order-creating path, and it is what
+    /// rules out `Unit::think`'s own `near_o` arm (§37.5) as the
+    /// mechanism even before one notices that `think` is reached from
+    /// `do_idle` alone.
+    ///
+    /// SEAM: the head-popping test is `UnitOrder::is_targeted` (`vt+0x20`
+    /// by the type record — every class deriving `TargetOrder` answers
+    /// it), and this crate asks for [`Body::Attack`] instead. They agree
+    /// wherever the action is an attack, which is every capture on file
+    /// that reaches this at all; a `GATHER` or a `BUILD_AT` under a move
+    /// would part.
+    fn change_target(&mut self, u: usize, old: Obj, new: Obj) {
+        let mut v = u;
+        loop {
+            if let Some(a) = self.update_action(v)
+                && matches!(self.units[v].orders[a].body, Body::Attack(_))
+                && self.units[v].combat.target == Some(old)
+            {
+                self.units[v].combat.target = Some(new);
+                while self.units[v]
+                    .orders
+                    .front()
+                    .is_some_and(|o| !matches!(o.body, Body::Attack(_)))
+                {
+                    self.kill_current_order(v);
+                }
+            }
+            let Some(next) = self.units[v].o_down else {
+                return;
+            };
+            if !self.active(Obj::Unit(next)) {
+                return;
+            }
+            v = next;
+        }
+    }
+
     /// `Unit::check_target_path@005e22d0`'s first arm: **the chase that has
     /// arrived**. The target is in reach on the plain radius — no
     /// `mandatory` margin, unlike `do_move`'s own kill (§35.3) — so the
@@ -2118,6 +2171,46 @@ impl Sim {
                         && self.is_in_range_at_margin(me, at, t, margin)
                     {
                         self.kill_current_order(u);
+                        return Did::Something;
+                    }
+                    // **The captain's retarget**, `005f803f`-`005f8216`
+                    // (`docs/COMBAT.md` §37.2). It sits inside the same
+                    // `max_range != 0` gate as the kill above and runs
+                    // only when the kill did *not* fire — so a ranged
+                    // captain walking to a target it cannot yet reach
+                    // asks, every frame, whether the incumbent its last
+                    // search left in [`crate::Unit::near`] is one it can.
+                    //
+                    // The two range tests are the same function with a
+                    // different sixth argument, and that is the whole of
+                    // why both can be true on one frame: the kill uses
+                    // the reach less `0x90`, this uses the plain reach.
+                    //
+                    // `mandatory` gates it — an ordered attack is never
+                    // retargeted under the player — and so does
+                    // `is_captain`: a squad member's target comes down
+                    // the chain from here and it decides nothing itself.
+                    if !self.units[u].combat.mandatory
+                        && self.units[u].captain
+                        && let Some(c) = self.units[u].near
+                        && c != t
+                        && self.active(c)
+                        && self.is_in_range(me, c)
+                        && !self.poor_target(me, c)
+                        && matches!(c, Obj::Unit(_))
+                        && self.profile(c).combat_role
+                    {
+                        // `005f820a`, and it is the fingerprint the item
+                        // was found by: `in_range` is written **here**,
+                        // on the deciding unit alone and a frame before
+                        // `Unit::fight` writes `ever_in_range`. run112's
+                        // `0/9` prints `in_range 1` with `ever 0` on
+                        // block 645 and nothing else in the executable
+                        // can produce that pair.
+                        if let Body::Attack(x) = &mut self.units[u].orders[a].body {
+                            x.in_range = true;
+                        }
+                        self.change_target(u, t, c);
                         return Did::Something;
                     }
                 }

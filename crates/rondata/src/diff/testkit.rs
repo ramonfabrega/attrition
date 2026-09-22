@@ -1711,7 +1711,22 @@ pub(crate) const GOLDEN_WORD_CHAPTER_ONE: i64 = 626;
 /// `chapter_two_s_word_frame_is_widened_whole`, whose map over
 /// `[606, 641)` goes from **thirteen first-partings to nought** — the
 /// draw stream and the values both part at `0/9` now, 645 and 646.
-pub(crate) const GOLDEN_WORD_CHAPTER_TWO: i64 = 645;
+///
+/// **645 → 680 on 2026-09-21, item 479** — `do_move@005f7b30`'s captain
+/// retarget (`005f803f`-`005f8216`) and `Unit::change_target@005e36c0`
+/// under it. A ranged captain walking to a target it cannot reach asks
+/// every frame whether the incumbent its last search left in
+/// `ObjectData::near_o` is one it *can*, on the **plain** reach where the
+/// kill above it uses the reach less `0x90`; and `change_target` then
+/// writes that answer down the whole `o_down` chain **in place**, which is
+/// why run112's three slingers retarget on one block with two of them
+/// deciding nothing. `near_o` was a field this crate did not carry at all.
+/// `docs/COMBAT.md` §37. The value diff beside the move is
+/// `chapter_two_s_word_frame_is_widened_whole`, whose map over the old
+/// window `[606, 649)` went from **five first-partings to nought** — every
+/// record run112 carries, both directions, on every frame under the new
+/// word.
+pub(crate) const GOLDEN_WORD_CHAPTER_TWO: i64 = 680;
 
 /// **Every pinned word names the test that widened its frame whole, or
 /// the open item that will** (`docs/DECISIONS.md` 43). A word is the frame
@@ -1746,7 +1761,8 @@ pub(crate) const WIDENING_GREAT_LAKES: (i64, i64) = (9_340, 10_247);
 /// it had not measured (`docs/COMBAT.md` §35.2). That row is closed and
 /// the ceiling followed the word to 645 on item 472; the floor has not
 /// moved and will not, because it is the only one that cannot hide a row.
-pub(crate) const WIDENING_CHAPTER_TWO: (i64, i64) = (606, 649);
+/// The ceiling followed the word to 680 on item 479.
+pub(crate) const WIDENING_CHAPTER_TWO: (i64, i64) = (606, 684);
 
 /// One pinned word's row: `(constant, word, widening test, item, window)`.
 pub(crate) type Widening = (
@@ -1820,11 +1836,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // parked 449 drew on Great Lakes the same day, applied at the move
     // instead of after it. The name that stood here was item 441's, and it
     // widens **616**, a frame this word has left.
+    // Item 479 moved it 645 → **680** and widened the new word in the
+    // same landing, the third chapter-two move in a row to do so: the
+    // window's ceiling is four frames past 680 and its floor is still
+    // run112's own first block, which is the only floor that cannot hide
+    // a row.
     (
         "GOLDEN_WORD_CHAPTER_TWO",
         GOLDEN_WORD_CHAPTER_TWO,
         Some("chapter_two_s_word_frame_is_widened_whole"),
-        447,
+        479,
         Some(WIDENING_CHAPTER_TWO),
     ),
 ];

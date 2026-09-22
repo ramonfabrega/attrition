@@ -1144,12 +1144,16 @@ fn chapter_two_s_first_attack_orders_are_the_dump_s() {
 
 /// One frame's `UNITDATA` records, read out of the raw dump text by hand.
 ///
-/// **Deliberately not through [`crate::gamelog::Log`].** `near_o` and
+/// **Deliberately not through [`crate::gamelog::Log`].** ~~`near_o` and
 /// `near_who` are the `ObjectData` half the parser leaves unparsed on
-/// purpose — `ledger.rs`'s rule is that a parsed field is a *compared*
-/// field, and this crate's `Unit` models neither, so parsing them would
-/// buy a comparison against nothing (`docs/COMBAT.md` §30.1). This reader
-/// takes the four figures §30 argues on and nothing else.
+/// purpose — a parsed field is a *compared* field, and this crate's
+/// `Unit` models neither, so parsing them would buy a comparison against
+/// nothing.~~ **Closed by item 479**: [`sim::Unit::near`] is the field
+/// now, and
+/// [`chapter_two_s_near_o_is_the_dump_s_on_every_unit_frame`] is the
+/// comparison the note said could not exist. This reader still takes the
+/// four figures §30 argues on and nothing else; the pair has a reader of
+/// its own in [`ch2_dump_near`].
 ///
 /// First-wins on each key, because `BEGIN GUY` repeats `who`/`o` inside
 /// the record and the `SUBOBJECT`'s pair is the unit's own.
@@ -1337,9 +1341,9 @@ fn chapter_two_s_hoplite_captain_refused_a_cell_three_searches_reached() {
     );
 }
 
-/// **637's widening, both directions** — every record run112's dump carries
-/// over `[633, 641)`, compared whole against this crate's own walk, on the
-/// frame chapter two's word now stands (`docs/COMBAT.md` §32.3).
+/// **680's widening, both directions** — every record run112's dump carries
+/// over `[606, 684)`, compared whole against this crate's own walk, on the
+/// frame chapter two's word now stands (`docs/COMBAT.md` §37.6).
 ///
 /// A word is pinned with its widening (`docs/DECISIONS.md` 43), and the
 /// window moves with the word rather than being left naming a frame the
@@ -1365,7 +1369,7 @@ fn chapter_two_s_word_frame_is_widened_whole() {
     /// [`WIDENING_CHAPTER_TWO`] beside the `WIDENINGS` row, so the floors
     /// guard reads the word against the same window this walks.
     const FIRST: i64 = WIDENING_CHAPTER_TWO.0;
-    /// One past the last. 637 is the word; four frames past it is enough
+    /// One past the last. 680 is the word; four frames past it is enough
     /// to say the parting opens *there* and not later.
     const LAST: i64 = WIDENING_CHAPTER_TWO.1;
     let Some(inst) = crate::testenv::install() else {
@@ -1529,12 +1533,33 @@ fn chapter_two_s_word_frame_is_widened_whole() {
     // engagement; they are named here so a regression in them cannot hide
     // behind the engagement, and they are nobody's item yet
     // (`docs/COMBAT.md` §32.5).
+    //
+    // **Item 479 closed all five of 472's rows and the map moved 645 →
+    // 671**, sixty-five frames of run112 — every record the dump carries,
+    // both directions, from its own first block to 670 — going to nought.
+    // `do_move`'s captain retarget and `Unit::change_target` under it
+    // (`docs/COMBAT.md` §37): `0/9` retargets to `1/6` on 645 as the dump
+    // does, so `pos 0/9` no longer walks on, `order 0/10` and `order
+    // 0/11` take the new target down the `o_down` chain on the same
+    // block, and `visible 0/9` arrives on 646 rather than 648.
+    //
+    // **What stands at 671 is who=1's side of the same tie.** All three
+    // hoplites hold `0/11` where this crate holds `0/10` — the two
+    // slingers are near-equidistant identical figures and the ranking
+    // breaks the tie the other way, which is the shape §33 named twice
+    // and closed twice on who=0's squads. `pos 1/6` and `pos 1/7` and
+    // `1/7`'s whole move order follow from it: a hoplite walking to a
+    // different slinger walks somewhere else. The draw stream holds nine
+    // frames past this, to **680**, and 680's own extra draw is
+    // `Guy::set_anim+0x97a < Unit::move_step+0x823` against a bird's
+    // `think_bird` — the chase destination again.
     let measured = [
-        ("order 0/10", 645),
-        ("order 0/11", 645),
-        ("order 0/9", 645),
-        ("pos 0/9", 645),
-        ("visible 0/9", 646),
+        ("angle 1/6", 672),
+        ("order 1/6", 671),
+        ("order 1/7", 671),
+        ("order 1/8", 671),
+        ("pos 1/6", 671),
+        ("pos 1/7", 671),
     ];
     let got: Vec<(&str, i64)> = first.iter().map(|(k, &n)| (k.as_str(), n)).collect();
     assert_eq!(
@@ -1543,6 +1568,200 @@ fn chapter_two_s_word_frame_is_widened_whole() {
         "chapter two's word frame no longer widens the way item 472 \
          measured it; re-pin this map and say so in docs/COMBAT.md §36"
     );
+}
+
+/// **`ObjectData::near_o`/`near_who` against run112's own**, on every
+/// unit of every block of the widening window (`docs/COMBAT.md` §37.1).
+///
+/// The pair is the search's **footprint** rather than its answer — the
+/// nearest candidate `Object::find_nearby_target@00648da0` saw that
+/// cleared `check_target`, written above the `max_dist` gate and above
+/// the scoring, cleared to `-1` when the nearest one is past `0xf00`. It
+/// is printed in the `OBJECT` block at every detail level, so the dump
+/// has carried it since 2026-09-19, and **nothing ever compared it**:
+/// [`ch2_dump_units`] says in so many words that parsing it "would buy a
+/// comparison against nothing" because this crate modelled neither field.
+/// Item 479 gave it one ([`sim::Unit::near`]), which turns that note into
+/// a row.
+///
+/// It is the only check §37.1's rule has. The arm that reads the field
+/// (§37.2) is diff-backed through `order 0/9` on 645, but *which*
+/// candidate the field holds, and when it is cleared, are otherwise a
+/// reading — and a wrong incumbent is invisible to every other row until
+/// the frame it is acted on.
+///
+/// What is pinned is the **tally and its shape**: how many unit-frames
+/// the dump carries a pair for, how many of those carry a *live* pair,
+/// how many this crate agrees with, and the exact list of those it does
+/// not. Pinning the disagreements by name rather than counting them is
+/// what keeps a later landing from trading one unit's footprint for
+/// another's; pinning `live` beside `read` is what keeps the empty list
+/// from being an instrument that stopped looking, because 4507 of the
+/// 4668 unit-frames are animals and idle citizens whose pair is `-1` on
+/// both sides.
+///
+/// **What it catches, measured by making it fail** (`CLAUDE.md`, "the
+/// checks with teeth"): deleting the write turns the 161 live frames
+/// into three parted units — `0/9` from 621, `0/6` and `1/6` from 635,
+/// which are exactly chapter two's three searching captains.
+///
+/// **What it does not catch, measured the same way and stated because
+/// the green would otherwise read as more than it is**: taking the
+/// *last* qualifying candidate rather than the nearest, and removing the
+/// `0xf00` clear, both leave it green. run112 runs so few searches
+/// inside the window — three, all of them before 636 — that neither
+/// rule is exercised. So this row backs the field's **value** on every
+/// frame it is read on; §37.1's write rule stays a reading until a
+/// capture with a crowded, far search reaches it.
+#[test]
+fn chapter_two_s_near_o_is_the_dump_s_on_every_unit_frame() {
+    const FIRST: i64 = WIDENING_CHAPTER_TWO.0;
+    const LAST: i64 = WIDENING_CHAPTER_TWO.1;
+    let Some(inst) = crate::testenv::install() else {
+        return;
+    };
+    let Some((dump, tracepath)) = golden("ch2") else {
+        eprintln!("skipping: no golden capture ch2 (see docs/RUNS.md run112)");
+        return;
+    };
+    let trace = crate::trace::Trace::read(std::path::Path::new(&tracepath))
+        .expect("a finalized golden trace")
+        .expect("missing RONT header");
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(&dump);
+    let log = Log::parse(&text);
+    let texts = sibling_texts();
+    let logs = siblings(&texts);
+    let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+    let refs: Vec<&Initial> = inits.iter().collect();
+    if refs.is_empty() {
+        eprintln!("skipping: no sibling dumps");
+        return;
+    }
+    let mut built = stand_up(&loaded, &log, &refs, &trace);
+    let mut script = chapter(2);
+    let mut read = 0usize;
+    let mut agree = 0usize;
+    let mut live = 0usize;
+    let mut parted: std::collections::BTreeMap<(i64, i64), i64> = std::collections::BTreeMap::new();
+    for f in 0..LAST - 1 {
+        script.stage(built.sim.frame, &mut built, &loaded);
+        built.tick();
+        let n = f + 1;
+        if n < FIRST {
+            continue;
+        }
+        for ((who, o), pair) in ch2_dump_near(&text, n) {
+            let Some(mine) = i16::try_from(o)
+                .ok()
+                .and_then(|x| built.sim.unit_by_o(who as sim::Player, x))
+            else {
+                continue;
+            };
+            read += 1;
+            let ours = match built.sim.units[mine].near {
+                Some(sim::combat::Obj::Unit(u)) => (
+                    i64::from(built.sim.units[u].owner),
+                    i64::from(built.sim.units[u].index),
+                ),
+                // A building incumbent and "none" are both `(-1, -1)` to
+                // this comparison: the original prints one pair for both
+                // classes and this crate carries a unit's only, so a
+                // building would read as a parting here and be one.
+                _ => (-1, -1),
+            };
+            let theirs = (pair.1, pair.0);
+            if theirs != (-1, -1) {
+                live += 1;
+            }
+            if ours == theirs {
+                agree += 1;
+            } else {
+                parted.entry((who, o)).or_insert(n);
+            }
+        }
+    }
+    // **Anti-vacuity**: the dump has to have been read, and the window has
+    // to hold the nine.
+    assert!(
+        read > 2_000,
+        "only {read} unit-frames carried a near pair; run112's dump no \
+         longer prints the OBJECT block over [{FIRST}, {LAST})"
+    );
+    eprintln!("near: {agree} of {read} agree, {live} live; parted {parted:?}");
+    let got: Vec<((i64, i64), i64)> = parted.iter().map(|(k, &n)| (*k, n)).collect();
+    assert_eq!(
+        got,
+        NEAR_PARTED.to_vec(),
+        "chapter two's `near_o` footprint no longer parts where item 479 \
+         measured it; re-pin this and say so in docs/COMBAT.md §37.1"
+    );
+    assert_eq!(
+        (read, live, agree),
+        NEAR_TALLY,
+        "the near comparison's own width moved; a tally that shrinks is \
+         an instrument that stopped looking"
+    );
+}
+
+/// The units whose `near` pair parts from run112's, and the first block
+/// each parts on — item 479's measurement, pinned by name. It is
+/// **empty**: `4668` of `4668` unit-frames over `[606, 684)` carry the
+/// dump's own `near_o`/`near_who`, animals included, on the landing that
+/// gave this crate the field.
+const NEAR_PARTED: &[((i64, i64), i64)] = &[];
+/// `(unit-frames read, live pairs among them, unit-frames agreeing)` for
+/// the row above. All three are pinned because an empty disagreement
+/// list is worthless without them: a reader that stopped parsing would
+/// print no partings, and so would one that only ever saw `-1`.
+const NEAR_TALLY: (usize, usize, usize) = (4668, 161, 4668);
+
+/// One frame's `near_o`/`near_who` per unit, read out of the raw dump
+/// text — [`ch2_dump_units`]'s sibling, for the pair that reader takes
+/// only `near_o` of.
+fn ch2_dump_near(text: &str, frame: i64) -> std::collections::BTreeMap<(i64, i64), (i64, i64)> {
+    let head = format!("BEGIN FRAME {frame}");
+    let mut out = std::collections::BTreeMap::new();
+    let mut inside = false;
+    let mut cur: Option<std::collections::BTreeMap<&str, i64>> = None;
+    let flush = |cur: &mut Option<std::collections::BTreeMap<&str, i64>>,
+                 out: &mut std::collections::BTreeMap<(i64, i64), (i64, i64)>| {
+        if let Some(r) = cur.take() {
+            let g = |k: &str| r.get(k).copied().unwrap_or(i64::MIN);
+            if g("near_o") != i64::MIN {
+                out.insert((g("who"), g("o")), (g("near_o"), g("near_who")));
+            }
+        }
+    };
+    for line in text.lines() {
+        let s = line.trim();
+        if s.starts_with("BEGIN FRAME") {
+            if inside {
+                break;
+            }
+            inside = s == head;
+            continue;
+        }
+        if !inside {
+            continue;
+        }
+        if s == "BEGIN UNITDATA" {
+            flush(&mut cur, &mut out);
+            cur = Some(std::collections::BTreeMap::new());
+            continue;
+        }
+        if s.starts_with("BEGIN ") {
+            continue;
+        }
+        let Some(r) = cur.as_mut() else { continue };
+        if let Some((k, v)) = s.rsplit_once(' ')
+            && let Ok(n) = v.parse::<i64>()
+        {
+            r.entry(k).or_insert(n);
+        }
+    }
+    flush(&mut cur, &mut out);
+    out
 }
 
 /// **`ObjectData::visible`'s arrivals against run112's own** — item 457's
@@ -1688,7 +1907,7 @@ fn chapter_two_s_visible_byte_is_the_dump_s_on_every_unit_frame() {
             ((0, 6), (636, 2)),
             ((0, 7), (636, 2)),
             ((0, 8), (636, 2)),
-            ((0, 9), (648, 2)),
+            ((0, 9), (646, 2)),
             ((0, 10), (631, 2)),
             ((0, 11), (640, 2)),
             ((1, 6), (672, 1)),
@@ -1707,27 +1926,30 @@ fn chapter_two_s_visible_byte_is_the_dump_s_on_every_unit_frame() {
     // the three are closer to the dump's frame and `1/7` is twenty
     // frames under it. Pinned in no direction, as the doc comment says.
     //
-    // **Eight of the nine land on the dump's own frame**, and the ninth
-    // is the frame the word now stands on. It was five until item 472,
-    // and the three that came over are the three hoplites — 669/678/675
-    // against 672/698/665 — which had been the engagement's own residue
-    // for four items (§31.6, §35.4).
+    // **All nine land on the dump's own frame.** It was five until item
+    // 472, which brought the three hoplites over — 669/678/675 against
+    // 672/698/665, the engagement's own residue for four items (§31.6,
+    // §35.4) — and eight until item 479, whose ninth is `0/9`'s own: 648
+    // → **646**, the dump's. `0/9` is the slinger captain that retargets
+    // to `1/6` on block 645 under `do_move`'s captain arm, and it strikes
+    // a frame later because `change_target` leaves the attack to the next
+    // frame rather than dispatching it (`docs/COMBAT.md` §37.2). Before
+    // that it kept walking to `1/8` and struck two frames late.
     //
-    // They came over because `Unit::check_target_path` landed and the
-    // slingers' chases now die on the original's own frames, so `0/11`
-    // is still walking when who=1 chooses, `find_attack_pos` takes its
-    // sweep rather than the melee ring, and the three hoplites strike
-    // where and when the dump strikes (`docs/COMBAT.md` §36).
-    //
-    // The row keeps the others honest in both directions: a change that
-    // bought one squad's frames by losing another's fails here.
+    // **`visible`'s arrival frame is the frame of a unit's first strike**
+    // — `Unit::set_attacking` fires from the tail of `Unit::fight` — so
+    // nine of nine says chapter two's whole engagement, both squads and
+    // both directions, now opens fire on the original's own frames. That
+    // is the strongest thing this capture can say and it is why the
+    // count is pinned exactly: a change that bought one squad's frames by
+    // losing another's fails here, in both directions.
     let exact = mine
         .iter()
         .filter(|(k, v)| theirs.get(k).is_some_and(|t| t.0 == v.0))
         .count();
     assert_eq!(
-        exact, 8,
-        "the eight arrivals this crate puts on the dump's own frame are \
-         no longer eight"
+        exact, 9,
+        "the nine arrivals this crate puts on the dump's own frame are \
+         no longer nine"
     );
 }
