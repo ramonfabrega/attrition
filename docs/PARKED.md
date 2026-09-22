@@ -22,6 +22,22 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Parked by item 510, 2026-09-22 — ten units an age too young
+
+(516) **`g.gpiece` on ten pre-existing units at block 606** — `0/1..0/5`
+and `1/1..1/5`, five types, both players. This crate's piece is exactly
+`PIECES_PER_AGE` (**0x840**) below the dump's on every one: **one age
+bracket**, not a scatter. `Sim::unit_gpiece`'s `(0..=bracket).rev()` walk
+settles an age lower than `get_unit_gpiece@0090c030` does for this game.
+
+**Costs no draw here** — `cur_anim`, `cur_time` and `end_time` agree on
+all ten for all 123 blocks, and chapter two's nine staged figures are
+unaffected. It is `docs/ANIM.md`'s, which was fenced to another lane, so
+510 **pinned the rows in the widening's map and wrote nothing in ANIM**;
+the write-up is owed. Parks because it names no frame and moves no draw
+— but a uniform, exact 0x840 on ten units of five types across both
+players is a single wrong decision, not residue, and it should be cheap.
+
 ## Parked by item 506, 2026-09-22 — a standing gap and two the ceiling found
 
 (514) **`1/income[2:wealth]` 960 against 992, on all 245 blocks of
@@ -233,6 +249,26 @@ never the cursor — it is that a launch from inside Claude Code's own process
 tree gets no window at all (`nodrv_CreateWindow`, dead in 3.8 s, 0 frames),
 so every launch goes through `viadriver.sh` (`docs/ORACLE.md`, "The
 click-free lane needs a window").
+
+(517) **The ledger's own module list is not self-maintaining, and it
+blinded the rules track entirely.** `ledger::DIFF` had never included
+`diff/golden.rs` — the **whole** of the golden captures' walk — so every
+field the chapter-one and chapter-two checks compare counted as
+**uncompared**, and every field they were second reader of counted as
+**single-capture**. Found by item 510 only because the gate went red on
+it; fixed in that landing (counts land back on their pins, 14/38, `Guy`
+falling 3 uncompared → 1).
+
+**Why the pass wants it.** This is the *fourth* instrument defect of the
+same family in two days — (503)'s comparator that reads an empty side as
+agreement, `coverage`'s keys nobody parses, run118's truncation readable
+as emptiness, and now a coverage ledger with a module missing from its
+own list. Every one of them **reports health it has not measured**. The
+shared shape is that the instrument's *scope* is hand-maintained and
+nothing checks the scope itself. A guard that enumerates `diff/*.rs` and
+fails on a file absent from `DIFF` is trivial; the question for the pass
+is whether that specific fix, or a general "every instrument declares
+what it does not cover", is the right level.
 
 (513) **A moved word's pin records its value and not its story, and
 nothing fails when it does not.** 2026-09-22: `LONG_WORD_GREAT_LAKES`
@@ -470,29 +506,13 @@ namesake mechanic is worked deliberately.
 
 ## Parked by item 491, 2026-09-22 — a rolled arrow's landing
 
-(495) **Where a rolled arrow comes down, and the nine rows behind it.**
-Frame **686**: `damage 1/7` ours 0 theirs **19**, `damage_frac 1/7` ours
-0 theirs 5, `damage_frame 1/7` ours 0 theirs **685**. run112's `0/8`
-fires at 677 at `1/8`; `0/7`'s arrow kills `1/8` on 683; `0/8`'s finds
-its target gone, rolls on (`docs/COMBAT.md` §42.2), and comes down two
-frames later where `check_hit` finds `1/7` — a flank hit for `19+5/16`.
-This crate rolls the arrow and drops it at the `3 × total_time` cap.
-Nine more rows follow at **696-698** — `order 0/6`/`0/7`/`0/8` (ours
-target `(1,7)`, theirs `(1,6)`), three `angle` and three `recharging` —
-because a wounded `1/7` outranks `1/6` on §33's damage weight and the
-original's bowmen retarget.
-
-**Why this parks rather than queues, and the clause matters:** it is a
-**hard-constraint** problem, not a residue. The landing needs
-`v1z × t + sz + GRAV_Z × t² / 2` in IEEE singles — `v1z` is a float the
-`AMMO` record itself prints — compared against
-`TerrainOut::find_data_z@00866560`, a bilinear interpolation over a
-float height surface this crate does not carry (a different quantity
-from the integer corner grid `crate::terrain` models). `CLAUDE.md`'s
-no-float rule means whoever takes it establishes the original's own
-integer scales *first*, the way `combat::flight_time` did for the one
-`sqrtf`; it is not an afternoon's residue chase, and it moves no draw —
-the rolled arrow spends none on either side.
+**Promoted to the queue 2026-09-22 as item 495**, by item 510, which
+measured the takes-chain this entry was missing. The arrow spends no
+draw, but the wound it fails to deliver decides which unit the original's
+bowmen target, and that choice is what the rules headline's word is spent
+on: 510 forced the facing on 725-727 alone, changed nothing else, and the
+word went **725 to 743**. The frame, the rows and the float constraint
+are `docs/COMBAT.md` §41.3 and §42.2; the queue carries the booking.
 
 ## Parked by item 481, 2026-09-22 — surfaced by a ceiling, nobody's item
 

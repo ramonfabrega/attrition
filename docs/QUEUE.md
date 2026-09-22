@@ -32,11 +32,11 @@ Great Lakes **10277**, chapter two **683**, both inside their first fight.*
 - **Struck text no longer counts** against a section's ceiling (480): a
   correction is not an addition. Four pins fell; `AI.md` §15 left the table.
 - **491 landed both of 683's sides**; 476 and 342 stay parked.
-  **Fable backlog: 6 Loop items** (313, 503, 507, 508, 509, 513).
+  **Fable backlog: 7 Loop items** (313, 503, 507, 508, 509, 513, 517).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w9711 of 24,000 · GreatLakes w10817 of 24,000
-Golden: w626 of 901 (ch1) · ch2 w725 · 510 next
+Golden: w626 of 901 (ch1) · ch2 w725 · 495 next
 Endpoint 24001: EastIndies 64 off, 10 unlinked · GreatLakes 53 off, 3 unlinked
 
 **Opener: 502 and 506 in flight. Five landings; Great Lakes 10277 → 10582
@@ -59,14 +59,14 @@ the backlog is `docs/PARKED.md`, and an item returns only when a score names it.
     **three** draws against **two**, the extra `Guy::set_anim+0x97a <
     Unit::move_step+0x823`. COLLISION §11's family. No mechanism.
 
-510. **725's attack-end wrap costs the original two draws and this
-    crate one** (the rules headline's own frame; 502 moved the word
-    695 → 725). Ours 7 draws against 9, parting at draw 1; the delta
-    is two `Guy::set_anim+0xf2f < Guy::inc_time+0x271`. Three wraps in
-    two frames (`0/7`, `0/8` on 725, `0/6` on 726); the **same** wrap
-    on 695 cost one, with `hold_attack 1` in the dump. Start:
-    `Sim::guy_inc_time` marks `SITE_ATTACK_WRAP` on the `slot < 2` arm
-    only and hard-codes ATTACK2. COMBAT §44.3. No mechanism.
+495. **The rolled arrow's landing — promoted from parked, and the
+    rules headline** (725's own cause, measured by 510). Frame 686:
+    `damage 1/7` ours 0 theirs 19. The arrow spends **no draw**, but
+    the wound it fails to deliver decides which unit the bowmen
+    target, and 510 forced that facing alone and moved the word
+    **725 → 743**. **A hard-constraint item**: the landing needs a
+    float parabola against `TerrainOut::find_data_z@00866560`'s
+    bilinear surface, so the integer scales come first. COMBAT §42.2.
 
 ## How to maintain this file
 
