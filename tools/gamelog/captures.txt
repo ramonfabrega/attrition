@@ -4110,3 +4110,94 @@ check: python3 tools/gamelog/frame.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 # 32 opens inside (9199, 10375] and is the successor.
 #
 # Great Lakes' long word **10582 -> 10817**. `docs/ECONOMY.md` §13.
+
+run: 120
+tag: greatlakes-capwriter
+item: 518
+why: Great Lakes' `1/28` walks 26 on ticks 10236–10240 and 25 from tick 10241 in the original — its group's cap goes back to the slow squad's 25 across the ungroup on tick 10240 — while this crate's cap stays at 26 for good; no member of group 65 can report on either side (the slow squad holds an `ATTACK` at its head throughout, in the dump too), so something that is not `do_group_move` writes `GroupData::speed`, and no gamelog category prints a group record or names a caller
+# **THE DISK WAS GREPPED FIRST.** run100 carries this game at this detail
+# over [9340, 10899) and settles the *state* — every raider's order stack,
+# position and `group` field, 10230..10249 — but it carries no group
+# record at all (`GroupData::log_data` is not in any category run100
+# raised), and no trace on disk has a coverage window above 5,800 on this
+# map: run100's own `rontrace-run100.log` is `cover=0` with no window. The
+# question is *which function ran*, and only per-frame coverage answers it.
+#
+# **What the dump already killed, before this run.** 515's booking said
+# the original's `1/40` holds its `GROUP_MOVE` at the head where this crate
+# holds an `ATTACK`. It does not: `OrderList::log_data` writes newest
+# first and the **last** block is the current order (`docs/ORDERS.md`
+# §11.1), and `1/40`, `1/41` and `1/42` all print `type 19` then `type 10`
+# on every block 10236..10249 — an `ATTACK` at the head on both sides, and
+# `compare_orders` parts nothing on them. So no member can report in the
+# original either; the cap is written by something else.
+#
+# **The frames.** The trace's frame `f` is the tick that writes block
+# `f + 1` (the blocked stand `Unit::move_step+0x823` is `1/27`'s, on trace
+# frame 10240, and its dump rows are on block 10241). `1/28`'s dump step is
+# 26 on blocks 10237..10241 and 25 from 10242, so the write lands after
+# `1/28`'s step on frame **10240** or before it on frame **10241**. Frames
+# 10236..10239 are the steady march, the contrast set; 10242..10244 the
+# steady walk after.
+#
+# **The readings, each with what kills it.** Every writer of
+# `GroupData +0x40` in the export: `Group::normalize@00711540`'s tail,
+# `Group::compute_speed@00707f80` (from `Group::add`), `Group::kill`,
+# `Group::clear`, `copy_group`, and the two reporters inlined in
+# `do_group_move`. `Group::normalize` is reached from `equals_group`,
+# `kill_group_move`, `refresh_group_order`, `is_moving_to`,
+# `kill_next_order`, `kill_group_order`, `is_attacking_*`,
+# `distribute_attack`, `sort`, `get_num*`, and outside the class from
+# `Object::find_nearby_target:499`, `Army::normalize`, `Unit::do_build`.
+#
+# - **R1 — a push by player 1.** `Groups::push_group` compares the group
+#   it is handed with the player's **last pushed slot** through
+#   `Group::equals_group`, which normalizes both, and a push whose group
+#   equals that slot writes no field the dump prints. Predict
+#   `Groups::push_group` **and** `Group::equals_group` on frame 10240 or
+#   10241. **Killed if** neither is entered on either frame.
+# - **R2 — a target search by a member.** `find_nearby_target` with
+#   `add_order` and a winner normalizes the searcher's group before
+#   `GroupData::member`. Predict `Object::find_nearby_target`,
+#   `Group::normalize` and `GroupData::member` together on 10240 or
+#   10241. **Killed if** `find_nearby_target` is absent from both.
+# - **R3 — `Unit::repath` → `Group::kill_group_move`.** Already killed by
+#   the dump: `kill_group_move` kills every member's head order carrying
+#   the group's id, and `1/40`'s `ATTACK` and `GROUP_MOVE` both survive.
+#   Predict `Group::kill_group_move` **absent** on 10240 and 10241. A
+#   presence reopens the dump's reading, not this one.
+# - **R4 — a membership change** (`Group::kill`, `Group::add`,
+#   `Group::sort`, `Form::categorize`). No `group` field changes on any
+#   unit 10231..10249 in run100, so predict **absent**; a presence names a
+#   kill-and-re-add that leaves the slot as it was.
+# - **R5 — none of the above.** If no normalizing function and no
+#   membership function is entered on 10240 or 10241 **beyond what the
+#   steady frames 10236..10239 also enter**, then no writer ran and the 25
+#   is not the cap: `get_speed`'s other arms, or `move_step`, are what
+#   the next item reads, and GROUPS §18's attribution of the step to the
+#   cap is wrong on this frame.
+#
+# **What is expected to AGREE, and it is refusable.** Every record in the
+# window, byte for byte against run100 — this is run100's game with
+# nothing raised, only coverage stubs, and a stub that perturbs shows here
+# first — and run53's draw stream frame for frame.
+frames: 10250
+mapstyle: 14
+end: MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,DEATHS=1,LEADERS=1
+frame_window: 10236 10247
+cover: cover=1
+cover: window=10236-10244
+settle_min: 14000000
+poll_max: 90
+# Same game: the trace word for word against run53, this map's own 24k run.
+check: python3 tools/gamelog/rngcmp.py rontrace-run53.log rontrace-run120.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=10245)}'
+# And the map, from the dump's own `GAME INFO`.
+check: LC_ALL=C head -c 400000 "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run120-greatlakes-capwriter.txt" | LC_ALL=C grep -a "MAP_STYLE" | tee /dev/stderr | awk '{print; exit !($2==14)}'
+# **The window landed whole** — eleven blocks, 10236..10246, no gap.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run120-greatlakes-capwriter.txt" | awk '{v=$3+0; if(v>=10236&&v<=10246) n[v]=1} END{c=0; lo=0; hi=0; for(k in n){c++; if(lo==0||k+0<lo)lo=k+0; if(k+0>hi)hi=k+0} print "window blocks: "c" ("lo".."hi")"; exit !(c==11 && lo==10236 && hi==10246)}'
+# **The overlap with run100, and the count is the claim** — `samegame.py`
+# exits 0 when nothing is in common, which is the vacuous pass run83
+# caught. Eleven blocks, no `--exclude`: nothing was raised.
+check: python3 tools/gamelog/samegame.py gamelog-run100-greatlakes-valuewindow2.txt gamelog-run120-greatlakes-capwriter.txt | tee /dev/stderr | awk '/in common/{r=$0; sub(/.*in common /,"",r); split($0,a,", "); n=a[2]+0} /^differ:/{d=$2+0} END{print "run100 overlap: common="n" "r" differ="d; exit !(n==11 && d==0 && r=="(10236..10246)")}'
+# **The coverage window landed**: every frame 10236..10244 has a set.
+check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run120.log" coverage | awk '/^== frame/{f=$3+0; sub(":","",f); if(f>=10236&&f<=10244&&$4+0>100) n[f]=1} END{c=0; for(k in n)c++; print "coverage frames: "c; exit !(c==9)}'

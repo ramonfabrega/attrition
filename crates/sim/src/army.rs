@@ -282,6 +282,7 @@ impl Sim {
         a.status = 0;
         a.human_frame = 0;
         a.units.clear();
+        a.group.pool = None;
     }
 
     // ---- membership and the counts (§3) ----
@@ -376,6 +377,19 @@ impl Sim {
         // same for a squad born together and not guaranteed to be.
         let mut chain = self.squad_of(cap);
         chain.sort_by_key(|&f| (f != cap, f));
+        // **An army with no live group pushes one** (`006f9f40`: no group,
+        // or `list[0]`'s id −1 — which `Group::kill` leaves on a group it
+        // empties): `push_group(who, the squad, 1)`, so the army's group
+        // takes a pool slot like any other (`docs/GROUPS.md` §19).
+        let w = who as usize;
+        let live = self.armies[w].list[slot]
+            .units
+            .iter()
+            .any(|&m| self.units[m].alive());
+        if self.armies[w].list[slot].group.pool.is_none() || !live {
+            let s = self.pool_slot_for(who, &chain);
+            self.armies[w].list[slot].group.pool = Some(s);
+        }
         for f in chain {
             let captain = self.is_captain(f);
             let a = &mut self.armies[who as usize].list[slot];

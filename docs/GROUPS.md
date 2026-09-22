@@ -73,8 +73,9 @@ GroupData (types.txt, 0x9cc — every field below is the PDB's own name)
                              0 until it is allocated again (run29's slot 28)
   +0x34  role        int     OR of the members' type roles (find_role)
   +0x38  think_frame int
-  +0x3c  new_speed   int     \ the group's march speed, reset every frame by
-  +0x40  speed       int     / Groups::process to the leader's own
+  +0x3c  new_speed   int     \ the group's march speed, reset by Groups::process
+  +0x40  speed       int     / to the leader's own once every 64 frames — one
+                             slot per player a frame, not every slot (§19)
   +0x44  form_num    int     the member count Form::compute_dests laid out
   +0x48  facing      uchar   the formation's mirror flag (§6.3), and a running
                              one rather than a setting. Four writers, and three
@@ -2541,7 +2542,7 @@ either side): every map marches formations, so a member that now walks at
 its group's pace arrives elsewhere everywhere. `docs/DECISIONS.md` 36
 asks for the number rather than a trade.
 
-**The residue is one frame of the cap and it is not the cap's.** `1/28`'s
+~~**The residue is one frame of the cap and it is not the cap's.** `1/28`'s
 position now first parts on block **10242**, one world unit, on the frame
 the original's cap returns to 25 and this crate's stays at the 26 its own
 leader reported. In the original a member with a 25 reports on that
@@ -2549,7 +2550,11 @@ frame; here none can, because `1/40` holds an `ATTACK` at the head of its
 order stack where the original holds the `GROUP_MOVE` (dumped `type 19`
 through 10245), so it never enters `do_group_move` and never reports at
 all. That is an order-stack divergence of the raid, not of §18, and it is
-what the next item on this frame should name.
+what the next item on this frame should name.~~ **The frame was right and
+the reading was not** (item 518, §19): the original's `1/40` holds its
+`ATTACK` at the head too — the log writes the list newest first — and no
+member reports on either side. The cap is §18's after all, and its third
+writer is `Groups::process@006fa210`, which this section did not count.
 
 ### 18.4 Coverage
 
@@ -2585,6 +2590,9 @@ forced march.
 
 **Not established**: which of `Group::add`, `Group::kill` or
 `Group::normalize` primes a given group in the original, and when.
+(Item 518: whichever does, `Groups::process` re-primes every group once
+every 64 frames on its slot's own frame — §19 — so an unprimed group runs
+uncapped for at most that long.)
 `crates/sim` models the `normalize` tail alone — at
 `Sim::group_normalize` and at the two sites that open with it,
 `Group::kill_group_move` and `Group::refresh_group_order` — and the
@@ -2593,3 +2601,155 @@ modelled at all. On Great Lakes the probe's own closing normalize
 (`Army::find_target`) is what primes group 65, and the first seven frames
 of its march are exact; on a group primed by some other chain the first
 two frames could run uncapped.
+
+## 19. The pool resets one slot a frame — `Groups::process`, the cap's third writer (item 518, 2026-09-22)
+
+§18 counted two writers of `GroupData::speed`: the membership sites that
+recompute it from the leader (`compute_speed` and the `normalize` tail),
+and the two reporters inlined in `do_group_move`. There is a third, and it
+is the one that runs whatever the group is doing: `Groups::process@006fa210`,
+the last act of `GameDaemon::process_all@00732700` — so after
+`calc_markets` and before `Armies::process_all` and the unit loop.
+
+Once a frame, for each in-use player, it takes **one** pool slot —
+`player·64 + proc_group` — runs `normalize`'s prune and `find_role`, and
+then writes `speed = new_speed = UnitData::speed(find_leader)`, or 0 for a
+slot with no leader (§3.3 had this; §18 did not use it). `proc_group`
+starts at 0 (`Groups::Groups`, `Groups::clear@00713f20`) and steps once a
+call, wrapping at 64, and the function runs unconditionally every frame,
+so on frame `f` the slot is `f mod 64`. **Every group's cap goes back to
+its leader's own speed once every 64 frames**, on a frame fixed by its
+slot number and by nothing it does.
+
+### 19.1 What was booked, and what killed it
+
+515 left `1/28`'s position one world unit out on block **10242** and booked
+it as an order-stack item: `1/40` "holds an `ATTACK` at the head where the
+original holds the `GROUP_MOVE` it is dumped with". **The dump says
+otherwise, and the widening had already said so.** `OrderList::log_data`
+writes newest first and the last block is the current order
+(`docs/ORDERS.md` §11.1); `1/40`, `1/41` and `1/42` print `type 19` then
+`type 10` on every block 10236..10249 — an `ATTACK` at the head in the
+original too — and `compare_orders` parts nothing on them. Both sides were
+printed once on 10242 before the quiet row was trusted.
+
+So no member of group 65 can report on either side after the ungroup:
+`1/27`'s blocked step ungroups the fast squad on frame 10240 in both
+simulations (`Unit::move_step+0x823`, the blocked stand, is the trace's own
+draw on that frame), and the slow squad is fighting. Yet the original's
+`1/28` steps **26** on blocks 10237..10241 and **25** from 10242 — solved
+from the dump's own position deltas — while this crate's cap read
+`(26, 26)` on every block 10236..10246. Something that is not
+`do_group_move` writes the cap between `1/28`'s step on frame 10240 and its
+step on frame 10241.
+
+Every writer of `+0x40` in the export was a reading, and five were named
+before the run, each with what would kill it (`tools/gamelog/captures.txt`,
+run120): R1 a push by player 1 (`push_group` → `equals_group` normalizes the
+player's last slot), R2 a member's target search (`find_nearby_target:499`),
+R3 `repath` → `kill_group_move`, R4 a membership change, R5 none of these.
+`near_o` could not decide R2: it is written only on a nearer candidate, so
+its silence dates nothing (`docs/COMBAT.md` §44.2.1).
+
+**run120** is run100's game again with per-frame function coverage over
+frames 10236..10244 and nothing raised: 11 blocks, 0 differing from run100,
+10,251 frames of draw stream identical to run53. On frames 10240 and 10241
+**none** of `Group::normalize`, `Groups::push_group`, `Group::equals_group`,
+`Group::kill`, `Group::add` or `Group::kill_group_move` is entered —
+R1, R3 and R4 dead — and `Groups::process`, `Group::find_role` and
+`GroupData::count` are entered on **every** frame of the window.
+`GroupData::find_leader` is entered on 10238–10241 and 10243: the frames
+whose slot holds a live group. 10241 mod 64 is 1, and player 1's slot 1 is
+`group 65`.
+
+It also accounts for the rest of §18.2's schedule: the raid's first two
+frames at 25 and then five at 26 are the leader's reports walking the cap
+up from the value the probe's normalize left, and the drop on 10241 is the
+slot's reset, with no member able to report it back down or up.
+
+### 19.2 The numbering, which the cursor makes load-bearing
+
+A reset on the wrong frame is as wrong as none, so the slot a group sits in
+now matters, and until this item nothing here numbered one. `crates/sim`
+now carries it as `GroupState::pool`, for an army's group and a pushed one
+alike, and allocates it as `Groups::push_group@0070f9e0` and
+`Groups::get_open_slot@006fa460` do (§3.1, §3.2):
+
+- a group **equal** to the seat `last_group[who]` names — same members,
+  same order — reuses that slot;
+- otherwise the lowest of `0..46` whose seat is empty and is not
+  `last_group[who]`;
+- `last_group` starts at each player's slot 0 (`Groups::clear` writes
+  `who·64`), so a player's first push lands in slot 1;
+- an army takes a slot the way `Army::add_unit@006f9f40` does, by pushing
+  its first squad when it has no live group.
+
+"Empty" is what `get_num` answers after the `normalize` it opens with: a
+unit that has joined an army since it was pushed points elsewhere —
+`Unit::set_group@00605220` writes `+0x80` and leaves the old list alone —
+and the prune drops it.
+
+**The dump checks it.** `UNITDATA` prints `group` on every unit of every
+block and nothing compared it; it is a row of
+`run100_s_word_block_is_every_record_the_dump_carries` now, and over all
+1,509 blocks it parts on **no** unit: army 64, raid 65, scout 67, everyone
+else −1. The run up to the window agrees in shape too: run97 has the raid
+entering 65 on block 8187 and the scout moving 66 → 67 on 8529, which is
+what the allocator gives from this crate's own push sequence.
+
+### 19.3 What it moved
+
+| | before | after |
+| --- | --- | --- |
+| Great Lakes long word | 10834 | **11185** |
+| run100 widening over `[9340, 10847]`, keys parted | 285 | **245** |
+| blocks 10242, 10243, 10835 | 3, 9 and 6 rows | **empty**, pinned |
+| run100 standing position residue | six units | **four** — `1/27`, `1/28` leave |
+| Great Lakes endpoint `off` / `unlinked` | 42 / 5 | **57** / **4** |
+| East Indies endpoint `off` | 63 | **62** |
+| East Indies ladder C `extra`; B `off` / `extra` | 13; 49 / 9 | **15**; **47** / **15** |
+
+The widening's fall is like for like: the same window, 4,462,984 rows
+against 4,369,314 — the new `group` row is the difference — and 40 keys
+fewer. The endpoint rows are 12,816 frames past the new word and every
+army on both maps now has its cap reset on its slot's frame, so they are
+evidence about the run-up and not about the reset; `docs/DECISIONS.md` 36
+asks for the numbers.
+
+**The new word, 11185, is a market frame**: ours nine draws against eight,
+parting at index 2, `Leader::use_market+0x1ed` against
+`Leader::make_stuff+0x221`. No dump on disk reaches it — run100 ends on
+block 10899 — so its widening is owed.
+
+### 19.4 Coverage
+
+**Trace-backed**: that `Groups::process` runs on every frame and that no
+other writer of the cap runs on 10240 or 10241 (run120's per-frame sets).
+**Diff-backed**: the numbering (the `group` row, 1,509 blocks), and the
+reset's frame, through `1/28`'s and `1/27`'s positions closing on 10242
+and 10243. **Guards**, each made to fail on purpose:
+`group::groups_process_resets_one_pool_slot_a_frame_on_the_frame_mod_64`
+(cursor one frame late) and
+`group::a_push_takes_the_lowest_empty_slot_that_is_not_the_last` (no
+`last_group` exclusion; no equality reuse).
+
+**Reading-only**: `equals_group`'s own `normalize` of the last slot on
+every push (§3.2) — R1's mechanism, real in the listing, not modelled, and
+reached on no frame of run120's window; the prune's `priority` arm, which
+only a hotkey group sets.
+
+**Not established**:
+
+- The early-game numbering. run69 and run71 have the scout moving
+  65 → 64 → 66 → 65 on pushes that are equal to the last slot by this
+  reading, so something else moves `last_group` in between; and the
+  second squad's `go_to` on 6994 is 66 in run79 and 65 here. A one-unit
+  or one-type group's reset cannot change its cap, and both are back in
+  the army's 64 a block later, so nothing measured depends on either;
+  the window's own numbering is exact.
+- `get_open_slot`'s two fallbacks (46 live groups at once; no capture
+  comes close).
+- An army's group is pruned here by `Army::normalize`, not by the pass.
+
+**SEAM**: `find_role` is not recomputed, because nothing here reads
+`GroupData::role`.

@@ -4674,3 +4674,28 @@ answered `frames: 1 and 245, 0 in common`. The check has been replaced in
 `captures.txt` with a record count that can fail — a `MISC`-only capture
 cannot be overlap-checked against anything, and `rngcmp`'s 10,641 frames
 at 0 differing is the stronger same-game instrument anyway.
+
+## run120 — the cap's writer, by per-frame coverage (2026-09-22, item 518)
+
+**What it is.** run100's Great Lakes game again at run100's own detail
+(`MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,DEATHS=1,LEADERS=1`) over the frame
+window `[10236, 10247)`, with `rontrace.cfg` `cover=1` and `window=10236-10244`
+— per-frame function sets, nothing raised. `!quit` at 10250. **About four
+minutes, 16 MB of dump and 17 MB of trace**, launched through
+`viadriver.sh` with no human at the menu.
+
+**Every check passed**: the draw stream against run53, 10,251 frames and 0
+differing; `MAP_STYLE 14`; eleven blocks 10236..10246; the overlap with
+run100, 11 blocks and 0 differing; a coverage set on all nine window frames.
+
+**Why it was owed.** Great Lakes' `1/28` walks 26 until the raid's ungroup
+on frame 10240 and 25 from 10241, and no member of group 65 can report on
+either side. No category prints a group record or a caller, and no trace on
+disk had a coverage window above 5,800 on this map.
+
+**What it settled.** On frames 10240 and 10241 no `Group::normalize`,
+`push_group`, `equals_group`, `Group::kill`, `Group::add` or
+`kill_group_move` runs, and `Groups::process@006fa210` runs on every frame
+— one pool slot per player a frame, slot `f mod 64`, and 10241's is
+`group 65`. The stanza's R1–R4 died and R5's family was right.
+`docs/GROUPS.md` §19; the Great Lakes word moved 10834 → **11185**.
