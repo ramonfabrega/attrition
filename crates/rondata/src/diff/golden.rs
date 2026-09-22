@@ -1549,13 +1549,18 @@ fn chapter_two_s_word_frame_is_widened_whole() {
         "run112's dump no longer carries every frame of [{FIRST}, {LAST})"
     );
     // **Anti-vacuity for the death list**, which is the one row here
-    // whose agreement is a *silence*: three fields on fifteen blocks,
-    // 684 through 698, for the one death run112's window carries. A
+    // whose agreement is a *silence*: three fields on every block from
+    // 684 to the ceiling, for the one death run112's window carries. A
     // reader that stopped parsing `DEATH_OBJS` would print no
     // divergence and neither would one that matched nothing, so the
-    // count is pinned beside the map (parked 449's shape).
+    // count is pinned beside the map (parked 449's shape). It was
+    // fifteen blocks while the ceiling stood at 699; item 502 moved the
+    // word to 725 and the ceiling to 729, so it is forty-five — and
+    // that the count is still exactly `3 × (LAST − 684)` is itself the
+    // check that the window gained no **second** death.
     assert_eq!(
-        deaths, 45,
+        deaths,
+        3 * (LAST - 684) as usize,
         "the death-object comparison's own width moved; 1/8 dies on 683          and the dump carries its record on every block from 684 to the          end of run112"
     );
     // **Anti-vacuity**: the window has to hold the cast the chapter is
@@ -1698,20 +1703,42 @@ fn chapter_two_s_word_frame_is_widened_whole() {
     // three bowmen hold the dead `1/8` from 683 until their reload opens
     // on 695. Thirty-six unit-frames, under the word, quiet.
     // `docs/COMBAT.md` §43.
+    //
+    // **Item 502 landed §43.2's arm whole and the word moved 695 → 725**,
+    // which moved this window's ceiling to 729 with it. The three
+    // `order` rows go **back** to 696 — the twelve frames item 496 opened
+    // are agreement now, because this crate holds the dead `1/8` where
+    // the original does — and all three `recharging` rows close, because
+    // `0/7` and `0/8` strike on 695 through `Unit::fight`'s follower
+    // inherit and `0/6` does not strike at all.
+    //
+    // `unit_masks2` joined `compare` in the same landing and reports
+    // **nothing on this window**: the bit the dump carries on `0/6` at
+    // block 696 is this crate's too. The chapter-wide check is
+    // `chapter_two_s_frozen_frames_are_the_dump_s_on_every_unit_frame`,
+    // which is where that row's anti-vacuity lives — this window holds
+    // one of the seven unit-frames run112 ever marks.
+    //
+    // **`damage_frac 1/6` at 712 is the raised ceiling's**, not this
+    // landing's — the same shape as `extra 1/8` at 684 on item 481 and
+    // `1/8`'s wounds at 656 on item 484, and the third time this window
+    // has grown a row by being allowed to look further. It is downstream
+    // of the parked arrow: this crate's `1/7` is unwounded, so §33's
+    // damage weight sends all three bowmen to `1/7` where the dump sends
+    // them to `1/6`, and from 712 the two sides are wounding different
+    // hoplites. `docs/COMBAT.md` §42.5 is what it waits on.
     let measured = [
         ("angle 0/6", 697),
         ("angle 0/7", 696),
         ("angle 0/8", 696),
         ("damage 1/6", 680),
         ("damage 1/7", 686),
+        ("damage_frac 1/6", 712),
         ("damage_frac 1/7", 686),
         ("damage_frame 1/7", 686),
-        ("order 0/6", 684),
-        ("order 0/7", 684),
-        ("order 0/8", 684),
-        ("recharging 0/6", 697),
-        ("recharging 0/7", 696),
-        ("recharging 0/8", 696),
+        ("order 0/6", 696),
+        ("order 0/7", 696),
+        ("order 0/8", 696),
     ];
     let got: Vec<(&str, i64)> = first.iter().map(|(k, &n)| (k.as_str(), n)).collect();
     assert_eq!(
@@ -1877,7 +1904,18 @@ const NEAR_PARTED: &[((i64, i64), i64)] = &[];
 /// ceiling's move 687 → 699 with the word 683 → 695 (§42.4): twelve more
 /// blocks, thirty-six more live pairs, and the agreement still total
 /// across the death of `1/8` and the three bowmen's retarget after it.
-const NEAR_TALLY: (usize, usize, usize) = (5568, 206, 5568);
+///
+/// **And by item 502**, 5568/206 → 7368/296, on the ceiling's move 699 →
+/// 729 with the word 695 → 725. The agreement is still **total**, and
+/// that is a result rather than bookkeeping: item 496 measured
+/// [`sim::Sim::forget`]'s clear removed *alone* and it turned `near_o
+/// 0/7` and `0/8` red at 696, because this crate's invalid-target arm
+/// searched on every member of the squad where the original searches
+/// only on the captain. With §43.2's arm landed whole the followers
+/// never reach the search at all — they take their captain's target in
+/// place at `Unit::fight`'s head — so the footprint stays `-1` on both
+/// of them, which is exactly what the dump says.
+const NEAR_TALLY: (usize, usize, usize) = (7368, 296, 7368);
 
 /// One frame's `near_o`/`near_who` per unit, read out of the raw dump
 /// text — [`ch2_dump_units`]'s sibling, for the pair that reader takes
@@ -2081,12 +2119,16 @@ fn chapter_two_s_hit_points_are_the_dump_s_on_every_unit_frame() {
     // Item 485 added `(0, 9)`: with the figure's share as the death
     // threshold (§7.2 step 8) the hoplite squad loses `1/8` on the
     // original's own block and its survivors then reach a second
-    // slinger, which the dump also wounds. The one the dump wounds and
-    // this crate still does not is `(0, 10)`.
+    // slinger, which the dump also wounds. `(0, 10)` was the one the
+    // dump wounded and this crate did not — and **item 502 closed it**,
+    // so the two sets are now identical and the assertion is written
+    // that way rather than against a copy of the list. §43.2's arm is
+    // what reaches it: the original's hoplites fight on where this
+    // crate's went idle for a frame each time a target died, and the
+    // frames they gain back are the ones that reach `0/10`.
     assert_eq!(
-        ours,
-        vec![(0, 9), (0, 11), (1, 6), (1, 7), (1, 8)],
-        "the set this crate wounds has moved"
+        ours, theirs,
+        "the set this crate wounds is no longer the set run112 wounds"
     );
     // **What parts, printed and pinned by its field.** `damage` and
     // `damage_frac` part on the engagement and the reason is §7.3's

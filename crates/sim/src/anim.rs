@@ -1461,9 +1461,36 @@ impl Sim {
             mine.cur_time = lead.cur_time;
             return;
         }
-        // `ATTACK2` under `guy_flags & 4` steps by two; no unit here fights
-        // through its animation.
-        let step = 1u32;
+        // **The step has three values, not two** (§5, item 502).
+        // `Guy::inc_time@005d9e10` opens with
+        //
+        //     step = 1
+        //     if (guy_flags & 4 && cat[cur_anim] == CHAR_ATTACK2) step = 2
+        //     if (unit->unit_masks2 & 0x10)                       step = 0
+        //
+        // and the zero arm is the one that matters here. A unit whose
+        // order step ended in `Unit::fight`'s "still ordered to attack,
+        // reload open, not firing this frame" carries
+        // [`crate::combat::umask2::NOT_FIRING`] into phase 7, and every
+        // figure of it stands its clock still for the frame: no step, so
+        // no wrap, so no draw. `docs/COMBAT.md` §43.
+        //
+        // run118 prints the step itself. At `GUYS=4` a `GUY` block
+        // carries `last_time`, which is `cur_time` before the step, so
+        // their difference **is** the step the original took. Block 696 —
+        // the state after chapter two's word — has `0/6` at
+        // `cur_time 29 end_time 30 last_time 29`, where every other block
+        // of the window has `last = cur − 1` on all three bowmen.
+        //
+        // SEAM: the `guy_flags & 4` arm's step of two. The bit is
+        // unobserved on this disk — run44's six values are 16/48/8/56/40/24
+        // and run118's bowmen are all 48 — so nothing here has ever needed
+        // it (§43.5).
+        let step = if self.units[u].unit_masks2 & crate::combat::umask2::NOT_FIRING != 0 {
+            0u32
+        } else {
+            1u32
+        };
         {
             let guy = &mut self.units[u].guys[g];
             guy.last_time = i32::try_from(guy.cur_time).unwrap_or(i32::MAX);

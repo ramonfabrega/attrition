@@ -1360,24 +1360,31 @@ impl Sim {
         }
     }
 
-    /// A dead object is dropped from every target slot and from ammo in
-    /// flight — what `close` does through `hold_frames` and `valid_target`.
+    /// A dead object is dropped from ammo in flight and from a building's
+    /// target slot — what `close` does through `hold_frames` and
+    /// `valid_target`.
+    ///
+    /// **A unit's attack target is not dropped here, and that is the
+    /// original's own behaviour** (item 502, `docs/COMBAT.md` §43.3).
+    /// `Unit::do_attack@005f1b80` reads the target off the *order* — an
+    /// `AttackOrder` **is** a `TargetOrder` — and nothing in the
+    /// executable walks the object list clearing it when something dies.
+    /// The order keeps `ox`/`whom`/`uid` where they are and
+    /// `Object::valid_target` finds out at the next use, which is behind
+    /// `Unit::fight`'s reload gate. run112's three bowmen carry the dead
+    /// `1/8` on their `ATTACKORDER` from the block after it dies (684) to
+    /// the block their reload opens (696), twelve frames — and that hold
+    /// is what puts all three into `fight` on **one** frame, which is
+    /// chapter two's word at 695.
+    ///
+    /// The same shape as item 463 one field along: `mandatory` outlives
+    /// its target too. `Unit::do_attack@005f1b80` reads it off
+    /// `TargetOrder +0x1c`, and run100's block 10233 still prints
+    /// `ox 2004 whom 0 uid 4 mandatory 1` on `1/27` two blocks after the
+    /// building `0/2004` left the dump. Clearing that sent a HOLD_FIRE
+    /// raider into [`crate::Sim::do_attack`]'s stance arm, which returns,
+    /// so the order it should have dropped stood for ever.
     pub(crate) fn forget(&mut self, dead: Obj) {
-        for u in &mut self.units {
-            if u.combat.target == Some(dead) {
-                u.combat.target = None;
-                // **The order's `mandatory` is not the target's, and it
-                // outlives it** (item 463). `Unit::do_attack@005f1b80`
-                // reads `mandatory` off the *order* — `TargetOrder
-                // +0x1c` — and run100's block 10233 still prints
-                // `ox 2004 whom 0 uid 4 mandatory 1` on `1/27`'s
-                // `ATTACKORDER` two blocks after the building `0/2004`
-                // left the dump. Clearing it here sent a HOLD_FIRE
-                // raider into [`crate::Sim::do_attack`]'s stance arm,
-                // which returns, so the order it should have dropped on
-                // its own reload's last frame stood for ever.
-            }
-        }
         for b in &mut self.buildings {
             if b.target == Some(dead) {
                 b.target = None;

@@ -200,8 +200,35 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
         {
             let un = &built.sim.units[link.unit];
             let live = u.damage_frame.is_some_and(|f| f != 0) && un.combat.damage_frame != 0;
-            let rows: [(&'static str, i64, Option<i64>); 4] = [
+            let rows: [(&'static str, i64, Option<i64>); 5] = [
                 ("recharging", i64::from(un.combat.recharging), u.recharging),
+                // **`unit_masks2 & 0x10`** — the frozen frame's mark
+                // (item 502, `docs/COMBAT.md` §43.2). The word is printed
+                // inside `UNITDATA` at every detail level and was parsed
+                // and compared nowhere; it is what says a unit reached
+                // `Unit::fight`'s "still ordered, reload open, not firing
+                // this frame" arm on the frame the dump was taken.
+                //
+                // **Only the bit is compared, and the reason is measured
+                // rather than assumed.** Across every dump on this disk
+                // the word takes four values — `0` (5.5 M unit-frames),
+                // `0x40000` (731, run16 and run16b, `process_supply`'s
+                // display flag), `4` (688, the East Indies captures
+                // including run99's own value window) and `0x10` (148).
+                // Neither of the other two bits has a writer here, so
+                // comparing the whole word would pin a defect this
+                // landing is not fixing on the **other** headline's
+                // capture. On both headline windows the mask is the whole
+                // field: run112 carries `0x10` on seven unit-frames and
+                // zero everywhere else, and run100 carries zero
+                // throughout (item 497). Widening this to the word is
+                // what `0x40000` and `4` owe.
+                (
+                    "unit_masks2",
+                    i64::from(un.unit_masks2 & sim::combat::umask2::NOT_FIRING),
+                    u.unit_masks2
+                        .map(|m| m & i64::from(sim::combat::umask2::NOT_FIRING)),
+                ),
                 ("damage_frame", un.combat.damage_frame, u.damage_frame),
                 (
                     "damage_o",
