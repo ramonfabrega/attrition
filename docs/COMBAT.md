@@ -7459,21 +7459,60 @@ already has one.
 
 ### 44.3 What it moved
 
-The word is **725**, and the draw delta there is `docs/ANIM.md` §6.2's,
-not §43's: ours spends **7** draws against the original's **9**, parting
-at draw **1**, and the whole difference is two
-`Guy::set_anim+0xf2f < Guy::inc_time+0x271` — the **queued attack** — one
-for `0/7` and one for `0/8`. Both sides strike on 725 (`recharging` 1 → 30
-on both) and both wrap; the original's swing lands in `queued_attack` and
-plays `CHAR_ATTACK2` out of the wrap, ours lands in `hold_attack` and does
-not. The two cases are side by side in run118: block 696 has `0/7` at
-`cur_anim 0 hold_attack 1` with one `+0x1ed` spent, and block 726 has it
-at `cur_anim 11` with both draws spent. **The cause is still §42.5's
-parked arrow**: from 696 this crate's three bowmen are on `1/7` and the
-dump's are on `1/6` — our `1/7` was never wounded by the rolling shot on
-685, so §33's damage weight ranks the two hoplites the other way — and a
-different target is a different `des_angle`, which is what sends the swing
-down the other branch of §6.2's split.
+The word is **725**. Ours spends **7** draws against the original's **9**,
+parting at draw **1**, and the whole difference is two
+`Guy::set_anim+0xf2f < Guy::inc_time+0x271`. **That is the measurement;
+what follows is a hypothesis** (`docs/DECISIONS.md` 42).
+
+The measured part, from run118's clocks and this crate's own marks:
+
+- **An attack-end wrap costs the original two draws here and this crate
+  one.** Three of them fall in three consecutive frames and all three
+  behave the same: `0/7` (`cur_anim 12 → 11`) and `0/8` (`11 → 12`) wrap
+  on **725**, `0/6` (`12 → 11`) on **726**, each spending
+  `+0x97a < inc_time+0x1ed` — the `set_anim(CHAR_DEFAULT, 0, 0)` — **and**
+  `+0xf2f < inc_time+0x271`. This crate spends the first of each pair and
+  not the second. It is not one figure's oddity: 725 is two of them and
+  726 is the third, and 726's whole label list is otherwise identical.
+- **The same wrap on 695 cost the original one draw, not two.** `0/7`
+  and `0/8` wrapped there too and the frame carries two `+0x1ed` and no
+  `+0x271` at all — run118's block 696 has both of them at `cur_anim 0`
+  (the idle) with `hold_attack 1`, where block 726 has `0/7` already on
+  an attack slot. So whatever the second draw is, it is not spent on
+  every attack-end wrap, and the dump's own field says which frames have
+  it.
+- **Both sides strike on 725**: `recharging` goes 1 → 30 on both, and
+  no `recharging` row appears anywhere on the widening window.
+
+The hypothesis is `Guy::inc_time`'s **queued attack**, the second call at
+the shared `+0x271`:
+
+```text
+  set_anim(this, CHAR_DEFAULT, 0, 0)                 ; +0x1ed
+  if (!is_hero(unit) && queued_attack != 0) {
+      slot = queued_attack; queued_attack = 0
+      if (slot < 2) { slot = CHAR_ATTACK2; roll = 1 }
+      else          {                      roll = 0 }
+      set_anim(this, slot, 0, roll)                  ; +0x271
+  }
+```
+
+and the thing to re-derive before acting on it is the **roll**, because
+the slots the dump lands on do not sit easily with the branch as written:
+`0/8` goes to 12, which is the `slot < 2` arm, but `0/7` and `0/6` go to
+**11**, which is the `slot >= 2` arm — and that arm passes `roll = 0`,
+yet both of them spend the draw. Either `set_anim`'s attack-variation
+roll at `+0xf2f` is not gated on that argument, or the slot is decided
+somewhere this reading has not looked. [`sim::Sim::guy_inc_time`] marks
+[`sim::anim::SITE_ATTACK_WRAP`] only on the `slot < 2` arm and hard-codes
+`ATTACK2` there, so whichever it is, that is where it is wrong. The
+successor is booked by the frame and the delta, not by this paragraph.
+
+**What sits under all of it is §42.5's parked arrow.** From 696 this
+crate's three bowmen are on `1/7` and the dump's are on `1/6` — our `1/7`
+was never wounded by the rolling shot on 685, so §33's damage weight
+ranks the two hoplites the other way — and every row at 720-728 below is
+downstream of that one target.
 
 The value diff, on the widening window (now `[606, 729)`, the ceiling
 having followed the word):
