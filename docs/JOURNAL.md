@@ -20527,3 +20527,42 @@ retained packet is named as the emulator's hour of synthesized state
 for the day a reading needs one. Four clauses in `CLAUDE.md`. The census:
 cited 909 → 915, entered and the order family unchanged. **DECISIONS
 44.** One Loop item remains (313). `docs/audit/2026-09-21-fable-pass-8.md`.
+
+## 2026-09-21 — the ninth Fable pass: the loop stopped at its own reap (Fable 5.1, steering)
+
+An ad hoc pass, two landings after the eighth: a fresh Opus commander
+spawned 462 and 463, landed both — both headlines moved, Great Lakes
+10,232 → 10,233 and chapter two 624 → 637 — reaped both, and ended its
+turn asking whether to continue. The rules were followed to the letter,
+which was the point: nothing between "reap" and "stop at twenty" said
+what a commander does after a reap. Three clauses in the commander's
+chain and no guard: the chain's last link is the spawn; lanes are
+independent, refilled on their own clocks; a booking commit is never
+amended under a live lane (463's was, and 462 caught the moved base by
+re-reading it). **DECISIONS 45.** The measure it left: the landing
+times. `docs/audit/2026-09-21-fable-pass-9.md`.
+
+## 2026-09-22 — the tenth Fable pass: fourteen landings, both words, and the field nobody read (Fable 5.1, steering)
+
+Called by the opener at the chain's stop: fourteen landings on two lanes
+since the ninth pass, every worker on Opus 5 from its transcript, the
+loop run unattended from a fresh commander to its count — the ninth
+pass's clauses held. **Both headlines moved**: Great Lakes 10,233 →
+10,277 (465, 478, 483, 487), chapter two 637 → 683 (472, 479, 481).
+Measured first: workers 369 USD, 26 a landing against 20, 53 a word
+against 46, and **4 USD a frame against 0.19** — both words inside
+their first fight; twelve briefs named a mechanism, three survived, and
+five journals price a wrong one at twenty minutes because the widening
+ran first, so the number is reported and retired. Ten of the fourteen
+landings turned on an instrument defect, six of them one shape: a field
+the original prints on every frame that nothing read. That is a guard
+now — `rondata::diff::coverage`, a read recorder keyed on the block and
+a pin of the dump's own keys against the reader's, **20 paths and 239
+keys unread** on the two headline windows, three record families never
+opened (488). Struck text stopped counting against a section's ceiling
+(480): four pins fell and `AI.md` §15 left the table. 683's two sides,
+parked by the worker who found them while the rules slot stood empty,
+are item 491; 476 and 342 park for naming no score. Two clauses in
+`CLAUDE.md`. The census: cited 915 → 922, entered and the order family
+unchanged. **DECISIONS 46.** One Loop item remains (313).
+`docs/audit/2026-09-22-fable-pass-10.md`.

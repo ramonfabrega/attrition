@@ -50,6 +50,8 @@ mod ammo;
 #[cfg(test)]
 mod army;
 #[cfg(test)]
+mod coverage;
+#[cfg(test)]
 pub(crate) mod testkit;
 #[cfg(test)]
 mod world;

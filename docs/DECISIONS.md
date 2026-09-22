@@ -57,6 +57,7 @@ is append-only and amended in place, as it always was.
 - 43 extended by 44 — A word is pinned with its widening, and a landing is committed before it is gated
 - 44 standing — The instrument that agrees because it is not looking: four guards, and the lab merged beside the sim
 - 45 standing — The chain's last link is the spawn, and lanes are throughput, not a pair
+- 46 standing — A printed field is read or pinned, and struck text is not live text
 
 ## 1. Fidelity before divergence
 
@@ -2536,3 +2537,82 @@ commander to twenty landings with no human turn between; whether any
 lane sat empty while the queue held an unstarted item on its track,
 which `lore agents` and the landing times answer; and whether a booking
 commit was amended.
+
+## 46. A printed field is read or pinned, and struck text is not live text
+
+**Decided 2026-09-22**, the tenth Fable pass, in the main thread
+(`docs/audit/2026-09-22-fable-pass-10.md`). Extends entries 42 and 44;
+overturns nothing.
+
+**What was measured.** Fourteen landings on two lanes since the ninth
+pass, every worker verified on Opus 5 from its transcript, the chain run
+from a fresh commander to its stop with no human turn — the ninth pass's
+three clauses did what they were written for. **Both headlines moved**:
+Great Lakes 10,233 → 10,277 (465, 478, 483, 487) and chapter two 637 → 683
+(472, 479, 481). Workers' list price 369 USD, 26 a landing against 20,
+53 a word-moving landing against 46 — and **4 USD a frame against 0.19**,
+because both words are inside their first fight, where every frame
+draws. Of twelve briefs that named a mechanism the frame held in twelve
+and the mechanism in three; five journals price a wrong one at twenty
+minutes, because the widening ran first. That number is retired as a
+thing to steer on: it measures the previous worker's guess, and entry
+42 made the guess cheap on purpose.
+
+**What the tranche was made of.** Ten of the fourteen landings turned on
+an instrument that agreed because it was not looking (entry 44's
+family), and six of the ten were one shape: **a field the original
+prints on every frame that nothing in this crate reads** — `damage_frac`
+on a figure, `build_masks` on the right block, `near_o`, `recharging`,
+`damage_frame`, and a whole `AMMO` family in a capture three days old.
+Each was quiet everywhere, because a field that is not read cannot
+part, and no widening of a window can find it. `CLAUDE.md`'s "diff the
+whole record" was a rule with nothing checking it.
+
+**The decisions.**
+
+1. **Every key the dump prints is read, or pinned as unread** (parked
+   488). `gamelog::reads` records, in test builds only, every key a
+   parse asks a block for — keyed on the block and not its name, so the
+   `OBJECT` under `UNITDATA` and the one under `WALLDATA` are two rows,
+   which is 484's defect exactly. `rondata::diff::coverage` drives the
+   harness's frame decode and every per-frame reader over the two
+   headline windows, reads the printed side off the text by the indent
+   rule (the arena's both-candidates rule would hold the reader to keys
+   it never printed there), and pins the difference path by path. The
+   pin is exact both ways: a key that arrives unread fails until it is
+   read or pinned with its item; a key that is read fails until its row
+   shrinks. First run: **20 paths, 239 keys**, three families never
+   opened — `DEATH_OBJS`, the frame-level `GUY` list past its clock
+   keys, the per-frame `WORLD` totals. A family with a parser of its own
+   is named (`AMMO`) and left to it. The count is the fourth pass's
+   measure from here on: it is the number of blind spots on the frames
+   the loop stands on.
+2. **Struck text is not live text** (parked 480). The section ceiling
+   counts bytes outside `~~…~~` spans; a `~~~` fence is not a marker; a
+   span is credited to the section it opens in and never past its end.
+   A correction is not an addition, and a section at its pin gains
+   exactly the room it strikes. Four pins fell on the first run and
+   `AI.md` §15 — 27,421 bytes, 21,771 struck — left the table.
+3. **The rules slot is the commander's to fill from the parked file at
+   the merge.** Item 485 found the two sides of 683 and parked them,
+   which a worker must; the commander's `Golden:` line then named a
+   landed item as next. Booked as item 491, folding 492. A finding that
+   names the headline's frame is never left parked over a merge.
+4. **476 and 342 park** — value rows forty-three blocks under the word,
+   and a residue with no frame — and 477 stays as the one value row on
+   the word's own squad, written as a takes-chain candidate.
+5. **Two clauses in `CLAUDE.md`**: a quiet field is checked against the
+   reader before it is called agreeing; a `git checkout <file>` is never
+   chained onto an edit that can fail.
+
+**Not taken**: `combat::share`, written and documented and never called
+until 485 — a function rather than a field, and nothing cheap catches
+it; ccc's `land` verb (313). **The estimate**: not revised, and the
+sentence under it changes — 328, 0, 722, 44 frames a day is not a rate
+but two regimes, inside a fight and between them, and what ends the
+expensive one is the instruments, not the mechanisms.
+
+**The measure for the next pass**: the pin's count against 239 and how
+many rows landings deleted; whether 491 moved 683; whether Great Lakes
+left its fight and the frame price with it; whether any lane sat empty;
+the price per landing against 26.

@@ -299,6 +299,12 @@ rules follow:
 - **Grep this crate for a field before reading the original's writers of
   it.** A comparison against a field this crate does not carry is a
   comparison against nothing, and one once carried five items.
+- **A quiet field is checked against the reader before it is called
+  agreeing.** A key the dump prints that nothing parses cannot part, and
+  quiet is what a blind instrument looks like; `rondata::diff::coverage`
+  pins every such key on the headline windows, a reader added to the
+  harness is added to its driver, and a key a landing reads leaves the
+  pin in the same landing.
 - **And grep the disk before booking a capture.** Widen every dumped
   record the mechanic touches first; book the capture only for what no
   record already on disk can answer. The same rule one level up, and it
@@ -487,7 +493,9 @@ and makes the eventual diff mechanical rather than a translation exercise.
 - **A multi-line Rust patch from Bash rides the python-heredoc pattern**
   (`python3 - <<'PYEOF'` with `old="""…"""`/`new="""…"""`), chained with
   its test run in the same call — edit and verify in one turn, and safer
-  than `sed` across lines.
+  than `sed` across lines. **Never chain a `git checkout <file>` onto an
+  edit that can fail**: the checkout runs when the edit does not, and it
+  reverts the work already there.
 - Toolchain is pinned in `rust-toolchain.toml` so the Solana toolchain on this
   machine can never leak in.
 - Format recon notes live in `docs/FORMATS.md`; decisions and their rationale

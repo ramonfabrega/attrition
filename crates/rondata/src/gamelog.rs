@@ -235,6 +235,13 @@ impl<'a> Block<'a> {
         }
     }
 
+    /// The key the read recorder files this block under: its arena and
+    /// its node, which is what tells one `OBJECT` block from another.
+    #[cfg(test)]
+    pub(crate) fn read_key(&self) -> (usize, u32) {
+        (self.log as *const Log<'_> as usize, self.node)
+    }
+
     /// The text after `BEGIN `, e.g. `UNITDATA`, `FRAME 100`, `GAME INFO`.
     pub fn name(&self) -> &'a str {
         let n = self.node();
@@ -247,7 +254,16 @@ impl<'a> Block<'a> {
     }
 
     /// `(key, value)` in file order. The value may be empty and keys repeat.
+    ///
+    /// Iterating the fields directly reads every key, and the read
+    /// recorder ([`reads`]) notes it as `*`.
     pub fn fields(&self) -> Fields<'a> {
+        #[cfg(test)]
+        reads::note(self.log, self.node, "*");
+        self.fields_raw()
+    }
+
+    fn fields_raw(&self) -> Fields<'a> {
         self.ensure();
         let n = self.node();
         Fields {
@@ -270,7 +286,9 @@ impl<'a> Block<'a> {
 
     /// The first value under `key`.
     pub fn get(&self, key: &str) -> Option<&'a str> {
-        self.fields().find(|(k, _)| *k == key).map(|(_, v)| v)
+        #[cfg(test)]
+        reads::note(self.log, self.node, key);
+        self.fields_raw().find(|(k, _)| *k == key).map(|(_, v)| v)
     }
 
     /// The first value under `key`, parsed as an integer.
@@ -280,7 +298,9 @@ impl<'a> Block<'a> {
 
     /// Every value under `key`, in order — the array-constant shape.
     pub fn all(&self, key: &str) -> Vec<&'a str> {
-        self.fields()
+        #[cfg(test)]
+        reads::note(self.log, self.node, key);
+        self.fields_raw()
             .filter(|(k, _)| *k == key)
             .map(|(_, v)| v)
             .collect()
@@ -308,6 +328,56 @@ impl<'a> Block<'a> {
             }
         }
         None
+    }
+}
+
+/// **The read recorder** — which keys of which blocks a parse actually
+/// asked for, so `crate::diff::coverage` can hold the dump's own field
+/// list against the parser's (parked 488, the tenth pass). Ten instrument
+/// defects in twenty-one landings were fields the original printed on
+/// every frame and nothing read — `damage_frac` off the wrong record,
+/// `build_masks` off the wrong block, a whole `AMMO` family for the life
+/// of a capture — and each looked like agreement, because a field that is
+/// not read cannot part. Test-only: the hooks in [`Block::get`],
+/// [`Block::all`] and [`Block::fields`] compile to nothing outside
+/// `cfg(test)`, and cost one thread-local look when the recorder is off.
+///
+/// A read is keyed on the arena and the node, never on a name: the same
+/// `OBJECT` block sits under `UNITDATA` and under `WALLDATA`, and 484's
+/// defect was exactly a key read on one of them and not the other. The
+/// walk that turns nodes into paths is the guard's, after the parse.
+#[cfg(test)]
+pub(crate) mod reads {
+    use std::cell::RefCell;
+    use std::collections::{BTreeMap, BTreeSet};
+
+    /// `(arena address, node) → keys asked for`; `*` is a whole-fields
+    /// iteration, which reads every key the block has.
+    pub(crate) type Reads = BTreeMap<(usize, u32), BTreeSet<String>>;
+
+    thread_local! {
+        static ON: RefCell<Option<Reads>> = const { RefCell::new(None) };
+    }
+
+    /// Starts recording on this thread; a recording already open is
+    /// dropped.
+    pub(crate) fn start() {
+        ON.with(|r| *r.borrow_mut() = Some(Reads::new()));
+    }
+
+    /// Stops recording and hands back everything noted since [`start`].
+    pub(crate) fn stop() -> Reads {
+        ON.with(|r| r.borrow_mut().take().unwrap_or_default())
+    }
+
+    pub(crate) fn note(log: &super::Log<'_>, node: u32, key: &str) {
+        ON.with(|r| {
+            if let Some(m) = r.borrow_mut().as_mut() {
+                m.entry((log as *const super::Log<'_> as usize, node))
+                    .or_default()
+                    .insert(key.to_string());
+            }
+        });
     }
 }
 
@@ -3098,7 +3168,7 @@ fn unit_blocks(kids: Children<'_>) -> impl Iterator<Item = Block<'_>> {
     )
 }
 
-fn observation_rows(b: Block<'_>, collect_bodies: bool) -> Vec<FrameUnit> {
+pub(crate) fn observation_rows(b: Block<'_>, collect_bodies: bool) -> Vec<FrameUnit> {
     let body = b.kid("FULL DUMP").unwrap_or(b);
     unit_blocks(body.children())
         .filter(|u| {

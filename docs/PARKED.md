@@ -66,7 +66,12 @@ fail first, and merged PR #4 whole (458); 375 left for the ordinary list
 (`docs/audit/2026-09-21-fable-pass-8.md`, DECISIONS 44); the ninth,
 the same evening, ruled three — 467, 468, 469 — three clauses in the
 commander's chain, after the loop stopped at its own reap
-(`docs/audit/2026-09-21-fable-pass-9.md`, DECISIONS 45).
+(`docs/audit/2026-09-21-fable-pass-9.md`, DECISIONS 45); the tenth,
+2026-09-22, ruled two — 480 and 488 — both guards, each made to fail
+first: struck text no longer counts against a section's ceiling, and
+`rondata::diff::coverage` pins every key the dump prints that nothing
+reads, 239 on twenty paths on its first run
+(`docs/audit/2026-09-22-fable-pass-10.md`, DECISIONS 46).
 341 closed 2026-09-18 by item 363.
 
 (452) and of the same family as (449): an instrument that quietly stops
@@ -86,57 +91,34 @@ tree gets no window at all (`nodrv_CreateWindow`, dead in 3.8 s, 0 frames),
 so every launch goes through `viadriver.sh` (`docs/ORACLE.md`, "The
 click-free lane needs a window").
 
-(488) **A window can be wrong in a way no widening of it can find.**
-One window — chapter two's — has now been wrong in all three possible
-ways in a single chain: its **floor** sat above a live row (470,
-`order 0/10` at 630), its **ceiling** below three more (481, `extra
-1/8` at 684), and a **field was missing from the comparator
-altogether** (484, `damage_frac` never parsed on a unit, `myhits` and
-`damage` never in `compare` at all). The first two are found by moving
-the window. **The third cannot be**, however wide it goes, and it was
-the one hiding the most: it took the chapter's earliest parting from
-684 down to 656.
-
-Twice in one chain a field was quiet everywhere because the parser
-never read it — `build_masks` off the wrong block (478) and
-`damage_frac` off the wrong record (484), both since item 394. So
-"quiet" is not evidence of agreement, and the widening rule as
-written ("when the original dumps a record, diff the whole record")
-is not self-enforcing: nothing checks that `compare`'s field list is
-the dump's field list.
-
-Worth a guard rather than a rule: enumerate the fields a dumped
-record carries and fail when the comparator reads fewer, the way
-`build_masks_is_the_wall_s_field` pins an indent against a decoy.
-Whoever takes it should count how many other records are short —
-neither of these two was found by looking.
-
 (313) **The landing chain wants one verb.** Merge, gate, push and reap are
 one chain by rule since 09-17; ccc has `merge`, `update` and `clear`, and
 the reap is a separate command a commander typed after the chain twice and
 forgot twice. Filed with ccc as `land <ref>` or `merge --reap`; until it
 exists, the chain is one shell line in the commander's brief.
 
-(480) **A section at its pin makes a one-clause strike cost a reflow.**
-Item 475 owed `docs/ORDERS.md` §4.4 a 158-byte strike-through — the
-smallest honest amendment there is, `~~§35.3~~ §36` — and
-`a_section_over_the_ceiling_may_not_grow` refused it because `## 4. The
-move order` was over the ceiling and sitting exactly at its pin. It was
-paid for by reflowing an unrelated numbered list to 78 columns: a
-content no-op, a noisy diff, and §4 now has **zero headroom**, so the
-next clause anyone adds has to split the section or move its story to
-the journal.
+## Parked by the tenth Fable pass, 2026-09-22 — names no score
 
-The guard is right that sections must not grow and wrong that a
-*correction* should be rationed like an addition. An amend-in-place
-strike is how this repo keeps a wrong claim from being read as a live
-one, and making it the most expensive edit in the file is backwards.
-Worth a rule: a strike-through that points an obsolete claim at its
-successor is exempt, or is paid from a separate allowance. Whoever
-takes it should check how many other sections sit at their pin — §4 was
-not chosen for being unusual.
+(476) **f10234's three value rows**: `0/5 order:length` 2/1, `0/5
+orders.len` 2/1, `0/2001 gather:gather_down[-1]` 5/2. Booked on the
+word's frame when the word was 10234 (`docs/ORDERS.md` §18.3); the word
+is 10277 now, the rows are a citizen's flee and a gather field
+forty-three blocks under it, and no draw on the word's frame names
+them. Returns when a takes-chain to the word does.
+
+(342) **Host choice seats the scholar on the wrong university** — 338's
+residue, re-pinned three times, and last `1/55`. Names no frame and no
+floor; it stood in the queue through four passes on the strength of
+being true. **Re-measure before diagnosing**: the vector `(768, 9984)`
+is the claim, never the count. Returns with East Indies (444), whose
+word it sits under.
 
 ## Parked by item 485, 2026-09-22 — 683's two sides, and two callers
+
+(491) and (492), the two sides of 683 itself, were **promoted to the
+queue by the tenth pass** as item 491 — a finding on the headline's
+frame books, and the rules slot had stood empty behind a `Golden:` line
+that named a landed item.
 
 (490) **`(384, ATTACK3, 16)`'s release node** — the one launch-point
 row the chapter-two widening still carries: `damage 1/6` at **680**
@@ -144,21 +126,6 @@ against the dump's 679. **Unmeasurable on the disk we have**: the
 arrow lands inside its own launch frame, so no `AMMO` block is ever
 written for it. Needs a capture with `AMMO` on a slinger volley at
 longer range — the first genuine capture question in twenty landings.
-
-(491) **`Unit::close@0060ee50`'s death draw, and what `dtype` owes.**
-683's draw 0 on the *original's* side: `anim = dtype*2 + 0xd + roll %
-2`, and `DEATH_OBJS`' `cur_anim 17` forces `dtype 2` with `roll % 2
-== 0`, so the dump confirms the outcome and not merely the site. This
-crate takes no draw there. §7.1 step 6 gives `dtype` only 4 and 1.
-
-(492) **What the original does with an arrow whose target died in
-flight** — 683's draw 0 on *our* side, and §9.2's `hold_frames`.
-Both last arrows land on 683 on both sides; the first kills `1/8`,
-and the second finds its target dead: the original **holds** it where
-this crate lands it on nothing. The dump's `1/7` takes `19+5` on
-**685**, two arrows' worth, two frames late — which is where the held
-arrow went. `hold_frames` is one of the two fields the ledger still
-counts uncompared on `UnitDump`, and this is the reason to compare it.
 
 (493) **The attrition caller's threshold.** `Sim::attrition_tick`
 still kills on the squad-sized `health <= 0` — the same defect item

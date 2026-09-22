@@ -114,27 +114,29 @@ const SECTION_CEILING: usize = 16_000;
 /// A section that wants to grow past its pin splits — a `## ` heading is
 /// the split, and it costs nothing a reader needs.
 const OVER: &[(&str, &str, usize)] = &[
-    ("AI.md", "2. The production AI — read", 71_928),
-    (
-        "AI.md",
-        "15. The behavioural run — run18, 2026-08-25",
-        27_421,
-    ),
+    // 71_928 -> 71_076 by the tenth pass, struck text no longer counted;
+    // `AI.md` §15 left this table the same day — 27,421 bytes of which
+    // 21,771 were struck, so it is 5,650 live bytes and under the ceiling.
+    ("AI.md", "2. The production AI — read", 71_076),
     ("CITIES.md", "3. Construction", 16_280),
+    // The three rows below were lowered by the tenth pass (2026-09-22)
+    // when struck text stopped counting (parked 480): a section's pin is
+    // its live bytes now, so each fell by what it had already struck.
     (
         "DATALAYER.md",
         "2. The loader — the tables into the sim's types",
-        20_298,
+        20_155,
     ),
     (
         "GROUPS.md",
         "6. The move — `Group::action_move_near@00704990`",
-        44_885,
+        44_686,
     ),
     // Lowered 37_601 -> 37_590 by item 405: §4.4 step 4 gains the ATTACK
     // arm's `max_range` gate and loses a gloss `docs/COLLISION.md` §5.1
-    // already carries.
-    ("ORDERS.md", "4. The move order", 37_590),
+    // already carries; 37_590 -> 37_584 by the tenth pass, the strike
+    // item 475 paid for with a reflow.
+    ("ORDERS.md", "4. The move order", 37_584),
     (
         "ORDERS.md",
         "5. Build, repair, garrison — and what a citizen does next",
@@ -153,7 +155,67 @@ fn sections(text: &str) -> Vec<(String, usize)> {
         }
         out.last_mut().expect("preamble").1 += line.len() + 1;
     }
+    // **Struck text is not live text** (parked 480, the tenth pass). The
+    // ceiling measures what a reader has to read as a claim, and a
+    // `~~…~~` span is the opposite of one: it is how this repo keeps a
+    // wrong claim from being read as a live one, and the smallest honest
+    // amendment there is. Item 475 owed §4.4 a 158-byte strike and paid
+    // for it by reflowing an unrelated list, because the guard rationed a
+    // correction like an addition. So a struck span's bytes are not
+    // counted, its markers are, and a section at its pin gains exactly
+    // the room it strikes.
+    // A span is credited to the section its opening marker falls in;
+    // `bounds[k]` is where section `k + 1` begins.
+    let mut bounds: Vec<usize> = Vec::new();
+    let mut pos = 0usize;
+    for line in text.lines() {
+        if line.starts_with("## ") {
+            bounds.push(pos);
+        }
+        pos += line.len() + 1;
+    }
+    // A `~~~` is a code fence, not a marker; a span never crosses a
+    // heading — an unpaired marker would otherwise strike the rest of
+    // the file — so a span is credited up to its section's end at most.
+    let bytes = text.as_bytes();
+    let fence =
+        |i: usize| (i > 0 && bytes[i - 1] == b'~') || bytes.get(i + 2).is_some_and(|&c| c == b'~');
+    let mut open: Option<usize> = None;
+    for (i, _) in text.match_indices("~~") {
+        if fence(i) {
+            continue;
+        }
+        match open.take() {
+            None => open = Some(i + 2),
+            Some(start) => {
+                let sec = bounds.partition_point(|&b| b <= start);
+                let end = bounds.get(sec).map_or(i, |&next| i.min(next));
+                out[sec].1 -= end.saturating_sub(start);
+            }
+        }
+    }
     out
+}
+
+/// The strike rule above, made to fail first: a section at its pin that
+/// strikes a claim comes in *under* the pin, and a strike in one section
+/// is never credited to another.
+#[test]
+fn struck_text_is_not_counted_against_a_section() {
+    let live = "## A\n\nthe claim stands here\n\n## B\n\nanother\n";
+    let struck = "## A\n\n~~the claim stands here~~ **struck**\n\n## B\n\nanother\n";
+    let a = sections(live);
+    let b = sections(struck);
+    assert_eq!(a[1].0, "A");
+    assert_eq!(
+        b[1].1,
+        a[1].1 + 4 + " **struck**".len() - "the claim stands here".len()
+    );
+    assert_eq!(b[2].1, a[2].1, "section B is untouched by A's strike");
+    let multi = "## A\n\n~~one\nline two~~\n\n## B\n\n~~x~~\n";
+    let m = sections(multi);
+    assert_eq!(m[1].1, "## A\n\n~~\n\n".len() + "~~".len());
+    assert_eq!(m[2].1, "## B\n\n~~~~\n".len());
 }
 
 #[test]
