@@ -7202,6 +7202,37 @@ searches only on the captain, and `chapter_two_s_hit_points` gains
 `(0, 10)`. The three landing together is the successor, and it is a
 mechanic rather than a residue: §43.5.
 
+### 43.3.1 The rule, because the next comparator will have the same hole
+
+State it as a rule about comparators rather than as this item's fix.
+
+> **A comparison written as "compare when both sides carry it" reads an
+> empty side as agreement.** Where one side can legitimately carry
+> nothing, `None` has to be split into *this crate does not model the
+> field here* — which must stay quiet — and *this crate says there is
+> nothing there* — which is a divergence and must be reported. A
+> comparator that cannot tell the two apart is silent on exactly the
+> disagreements that matter most, because a field this crate has stopped
+> writing is a bigger fault than one it writes wrongly.
+
+It is a rule and not an anecdote because it has now happened twice in
+the same function, one level apart. Item 462: `unit_ids` answered `None`
+for a unit that was not on the board at `BEGIN GAME`, so
+`OrderMismatch::Target` went uncompared for *every* target born in play
+— chapter two's whole cast. Item 496: `target_ids` answers `None` for an
+attack order whose unit is attacking nothing, and the same `if let
+(Some(a), Some(b))` swallowed it. Both were found by widening a record,
+neither by a reading, and between them they hid the golden record's
+order targets for a month.
+
+The shape to grep for is `if let (Some(a), Some(b)) = (mine, theirs)` and
+its cousins — `zip`, `and_then`, a `?` in a helper that feeds a
+comparison. `crate::diff::coverage` catches a key the **parser** never
+asks for; nothing catches a key the parser reads and the comparison then
+drops on the floor for want of a value on this side. This is the second
+kind, and it is the more expensive one, because the first shows up as a
+key with no reader and the second shows up as green.
+
 ### 43.4 The golden walk's own site window
 
 `walk_chapter` now reads `RON_GOLDEN_SITES=<lo>-<hi>` and prints each
@@ -7241,3 +7272,43 @@ shape reached for a third time.
   243 of the window's 296 blocks — `GUYS=4` costs about four times
   `GUYS=2` per block — so it covers 605–846 and stops mid-record.
   Everything above is inside it; nothing here reads past 700.
+
+### 43.6 Coverage
+
+**Diff-backed**: the three `order` rows at 684, both directions, on the
+widening window — this crate's attack order names no target from the
+block after `1/8` dies while the dump names `1/8`, and the map's first
+parting moves 686 → 684 with the comparator's fix and nothing else.
+That the fix changes no behaviour is itself the measurement: the release
+gate is green on every other test on both maps.
+
+**Dump-backed** (measured from records rather than from a diff that
+re-runs): §43.1's three `GUY` blocks of run118 and the `last = cur`
+step; the six unit-frames of run112 that carry `unit_masks2 & 0x10`;
+§43.2's `ATTACKORDER` table, block by block, and the `near_o` split
+between the captain and its two followers.
+
+**Listing-backed**: `Guy::inc_time@005d9e10`'s three-valued step and the
+`unit_masks2 & 0x10` read at its head; `Unit::fight@005fd4d0`'s
+`LAB_005fe502` and the `order_type() == ATTACK && recharging == 0` pair
+above it; `Unit::process@00610bc0`'s clear under `inside_up < 0`.
+`field_0xae` is named `recharging` from `UnitData`'s type record rather
+than from the surrounding code.
+
+**Reading-only, and one of them has been in that state for
+seventeen days.** §5 of `docs/ANIM.md` has stated the zero step since the
+mechanic was written and `sim::Sim::guy_inc_time` has never implemented
+it. `the_frozen_frame_s_figures_do_not_step_their_clocks` is green and
+asserts the **original's** rule against the corpus — its own note says
+`rondata::diff` compares no clock on a frame a unit is in melee, so no
+diff could fail on the gap. So the claim was corpus-backed on the
+original and reading-only against this crate at the same time, and it is
+the second half that decides whether a divergence can be seen: the word
+sat at 695 through four items while three separate artefacts — the
+document, the assertion and the dump's own field — already carried the
+answer. Named here because `docs/audit/README.md` wants claims in that
+state named rather than counted as covered.
+
+Also reading-only: §43.2's captain-searches split (§43.5's first
+bullet), the arm the followers take to strike in the frame they are
+retargeted, and the two predicates above `LAB_005fe502`.

@@ -1040,6 +1040,39 @@ else:
     cur_anim = guys[0].cur_anim; cur_time = guys[0].cur_time            # the mirror
 ```
 
+**Neither of the two step modifiers is implemented** — `Sim::guy_inc_time`
+has `let step = 1u32;` — and that is not a detail (item 496, 2026-09-22).
+`unit_masks2` is not a field of any struct in `crates/sim` at all, so the
+zero arm is unrepresentable rather than merely unwritten, and it is the
+whole of the golden record's **chapter-two word at 695**: this crate's
+three bowmen end an attack animation together and the original ends two,
+because the original's `0/6` does not step its clock. run118 — chapter two
+re-taken at `GUYS=4` — prints the step itself on that block, `last_time 29`
+against `cur_time 29` where every other block of the window has
+`last = cur − 1`, and run112's `OBJECT` block carries `unit_masks2 16` on
+the same unit on the same block. `docs/COMBAT.md` §43.
+
+**The state that claim was in is itself the finding**, and §9.1 already
+said so without anyone reading it that way: "the test is green because it
+asserts the original's rule, not this crate's behaviour". For seventeen
+days the document was right, the assertion was green, the dump carried the
+field — and *nothing was looking at the difference*, because
+`rondata::diff` compares no animation clock on a frame a unit is in melee.
+A rule can be **corpus-backed on the original** and **reading-only against
+this crate** at the same time, and it is the second half that decides
+whether a divergence can be seen. That is a coverage fact rather than an
+implementation backlog, and `docs/audit/README.md` wants claims in that
+state named rather than counted as covered.
+
+**Where the bit has and has not been seen.** Six unit-frames of run112
+carry it, the first of them chapter two's word; run17 has 35 and run44
+26, all stepping zero. On **Great Lakes it is zero across run100's whole
+window** — measured on `1/51` by the lane on item 497, which ruled the arm
+out of 10304 from the dump's side independently of any argument about
+which side the extra draw fell on. So the freeze is a fight-frame
+phenomenon of the golden record's captures and nothing on the AI headline
+has reached it yet.
+
 Three things follow.
 
 - **A category-0 animation running out always draws**, looping or not: both
