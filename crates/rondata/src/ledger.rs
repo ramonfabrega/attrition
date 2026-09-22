@@ -181,7 +181,16 @@ mod tests {
     /// now (`FrameResult::search_compared`, `docs/PATHFINDER.md` §19). It
     /// had been parsed since item 301 and read only off the original's own
     /// dump, which is exactly the shape this half exists to catch.
-    const UNCOMPARED: usize = 18;
+    /// **14 on 2026-09-21**, item 478: `BuildDump::build_masks`. It was
+    /// the sharpest instance this ledger has produced — the field is
+    /// written at every detail level, the reader has carried it since the
+    /// `BUILDDATA` block existed, and it was not merely uncompared but
+    /// **unparsed**, because `build_of` took it off `BUILDDATA` where the
+    /// record writes it at `WALLDATA`'s indent. Its `0x100` is the road
+    /// replan flag, and it held Great Lakes' word at 10234 for four items
+    /// while sitting in every block of every capture on the disk
+    /// (`docs/ROADS.md` §1.2).
+    const UNCOMPARED: usize = 14;
 
     /// Fields exactly one test function names — the per-capture half.
     /// **41 on 2026-09-04**, down from 51 when run68's window widened
@@ -210,7 +219,13 @@ mod tests {
     /// cannot be carried by a slot number — run16's `1/9` reads
     /// `start_dist` 768 under `uid 17` and 0 under `uid 25`. It stays
     /// single-capture until a window test has a reason to link on it.
-    const SINGLE_CAPTURE: usize = 46;
+    /// **41 on 2026-09-21**, item 478 — and this half did **not** move on
+    /// that item. It had been 41 since some earlier landing and the
+    /// ceiling stayed at 46, which the "it fell" guard could not see
+    /// while the other half sat exactly on its own tolerance. Lowered to
+    /// what the tree prints, so the next field that comes to rest on one
+    /// capture fails this.
+    const SINGLE_CAPTURE: usize = 41;
 
     #[test]
     fn the_widening_ledger_counts_what_nothing_compares() {

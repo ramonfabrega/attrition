@@ -389,7 +389,17 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // more building field-rows, 14,000 frames past this map's word,
         // which does not move. DECISIONS 36 asks for the number rather
         // than a trade.
-        off: 64,
+        // And **64 → 63 off, 10 → 11 unlinked, 0 → 1 build_unlinked and
+        // 32 → 28 build_diverged** on 2026-09-21, item 478 —
+        // `City::regen_roads`' second writer (`docs/ROADS.md` §1.2). This
+        // map's own word does **not** move (9711 either side); the change
+        // is to when a city replans its roads after a building of it
+        // dies, which every map reaches, and the roads it then lays are
+        // what the roster 14,290 frames later is standing on. One
+        // position and four building field-rows closer against one more
+        // of the roster unlinked and one building unlinked. DECISIONS 36
+        // asks for the number rather than a trade.
+        off: 63,
         // And **5 → 10 unlinked** on 2026-09-21, item 442 — the scholar
         // arm's `val` chain (`docs/AI.md` §53). This map's word does not
         // move on it; Great Lakes' moves 9510 → 10161. The AI's Scholar
@@ -398,10 +408,10 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // rungs shed **eight** and **seven** spurious units — the Citizens
         // this crate used to buy instead of Scholars. DECISIONS 36 asks for
         // the number rather than a trade; the number is on the headline.
-        unlinked: 10,
+        unlinked: 11,
         extra: 0,
-        build_unlinked: 0,
-        build_diverged: 32,
+        build_unlinked: 1,
+        build_diverged: 28,
         city_unlinked: 3,
         city_diverged: 0,
     },
@@ -886,8 +896,21 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // run97's order residue 81,534 → 28,222 and five of its eight
         // units gone beside it. DECISIONS 36 asks for the number rather
         // than a trade.
-        off: 44,
-        unlinked: 11,
+        // And **44 → 51 off, 11 → 7 unlinked** on 2026-09-21, item 478 —
+        // `City::regen_roads`' second writer, `Build::remove_from_city`
+        // (`docs/ROADS.md` §1.2), which moves this map's own word
+        // **10234 → 10237** and its count word to 10244. Seven positions
+        // out and four more of the roster linked, 13,764 frames past the
+        // word and so on the far side of an unaligned draw stream. The
+        // value diff the change is booked on is blocks 10231–10241,
+        // where the replan flag's whole schedule — six buildings flagged
+        // by a farm's death and each replanning on `12_240 - o` — is
+        // this crate's now, and 10234 and 10235 spend the original's 204
+        // and 78 draws node for node
+        // (`run100_s_word_block_is_every_record_the_dump_carries`).
+        // DECISIONS 36 asks for the number rather than a trade.
+        off: 51,
+        unlinked: 7,
         extra: 0,
         build_unlinked: 0,
         build_diverged: 9,
@@ -969,7 +992,12 @@ pub const LADDER: [Endpoint; 2] = [
         // — the market's trade (`docs/ECONOMY.md` §12). Two positions
         // closer and four spurious units gone, 5,690 frames past this
         // rung's word; `unlinked` and both building counts are unmoved.
-        off: 41,
+        // Then **41 → 42 off and 17 → 13 extra** on 2026-09-21, item 478
+        // — `City::regen_roads`' second writer (`docs/ROADS.md` §1.2).
+        // One position out and four spurious units gone, 5,690 frames
+        // past this rung's word, which does not move; `unlinked` and
+        // both building counts are unmoved.
+        off: 42,
         unlinked: 17,
         // 20 → 21 on 2026-09-07, item 267's repaint: one spurious unit
         // back, 7,872 frames past the word, and nothing else on this rung
@@ -1071,7 +1099,7 @@ pub const LADDER: [Endpoint; 2] = [
         // arm's `val` chain (`docs/AI.md` §53). Eight spurious units gone
         // from this rung and nothing else moved: the AI stops buying
         // Citizens where the original buys a Scholar, on both maps.
-        extra: 17,
+        extra: 13,
         build_unlinked: 10,
         build_diverged: 8,
         city_unlinked: 3,
@@ -1152,7 +1180,12 @@ pub const LADDER: [Endpoint; 2] = [
         // the scholar arm's `val` chain (`docs/AI.md` §53). Seven spurious
         // units gone, two positions out, 8,000 frames past this rung's
         // word.
-        off: 49,
+        // And **49 → 48 off, 12 → 11 extra** on 2026-09-21, item 478 —
+        // `City::regen_roads`' second writer (`docs/ROADS.md` §1.2), the
+        // same row as rung C's above. One position closer and one
+        // spurious unit gone, 8,000 frames past this rung's word, which
+        // does not move.
+        off: 48,
         unlinked: 16,
         // 19 → 33 on 2026-09-07, item 261, the same reshuffle, then 33 →
         // **27** the same day on item 265's byte — this rung took the
@@ -1224,7 +1257,7 @@ pub const LADDER: [Endpoint; 2] = [
         // later**, and the block 1/56–1/72 is type-identical on the two
         // rungs — which the ladder test now asserts, since it is the one
         // thing about `extra` that does not churn with every AI landing.
-        extra: 12,
+        extra: 11,
         build_unlinked: 19,
         build_diverged: 0,
         city_unlinked: 4,
@@ -1759,10 +1792,18 @@ mod tests {
         // still says the two rungs are one game, at frame 6,000 under the
         // word where the roster is not AI-dependent. Lowered with the
         // number rather than deleted, so the next fall is visible too.
+        //
+        // **Ten → six on item 478**, `City::regen_roads`' second writer
+        // (`docs/ROADS.md` §1.2). The change is not about what the AI
+        // buys at all — it is when a city replans its roads after one of
+        // its buildings dies — but the roads it lays move both rungs'
+        // rosters 9,000 frames later, and four of the shared numbers go
+        // with them. The six that remain still agree on type, which is
+        // the thing this guard is for.
         assert!(
-            shared.len() >= 10,
+            shared.len() >= 6,
             "only {} object numbers are `extra` on both rungs; the check is \
-             vacuous below ten and the two rungs may have stopped being \
+             vacuous below six and the two rungs may have stopped being \
              one simulation",
             shared.len()
         );

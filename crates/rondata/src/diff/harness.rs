@@ -388,6 +388,29 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
                 });
             }
         }
+        // **And `build_masks & 0x100`, the replan flag** (item 478). The
+        // field is written at every detail level, `gamelog.rs` has parsed
+        // it since the reader existed, and **nothing in the diff ever
+        // compared it** — which is how Great Lakes' word came to sit for
+        // four items on a road search whose whole cause was one bit the
+        // dump prints on every building of every frame. Only the one bit
+        // is compared: the rest of the word is the under-attack latch and
+        // the activation mark, which move for reasons of their own.
+        if let Some(mask) = b.build_masks {
+            let theirs = i64::from(mask & 0x100 != 0);
+            let mine = i64::from(ours.regen_roads);
+            r.build_compared += 1;
+            if mine != theirs {
+                r.build_diverged.push(BuildDivergence {
+                    frame: frame.n,
+                    who: b.who,
+                    o: b.o,
+                    field: "regen_roads",
+                    ours: mine,
+                    theirs,
+                });
+            }
+        }
         // **The production queue, whole.** `BuildQueue::log_data` writes
         // it for every building on every frame from `BUILDS=1`, and until
         // this it was compared in one test against one capture — so a
@@ -896,15 +919,17 @@ pub(crate) fn debug_builds(built: &Built, frame: i64) {
             })
             .collect();
         eprintln!(
-            "  f{frame} B {}/{} ty{ty} ({},{}) act{} jc{}/{} hits{} help{} gl{} q[{}]",
+            "  f{frame} B {}/{} ty{ty} ({},{}) act{} regen{} jc{}/{} hits{} dmg{} help{} gl{} q[{}]",
             b.owner,
             b.index,
             b.pos.x,
             b.pos.y,
             u8::from(b.active),
+            u8::from(b.regen_roads),
             b.job_counter,
             b.constr_time,
             b.construct_hits,
+            b.damage,
             b.helpers,
             b.gather_from.len(),
             q.join(" ")
@@ -1470,8 +1495,10 @@ mod tests {
             parted.len() <= 1,
             "one unit ever leaves the original's point in 4,000 frames: {parted:?}"
         );
+        // **197,932 → 263,095 on item 478** — the replan flag, one more
+        // field on every linked building-frame (`docs/ROADS.md` §1.2).
         assert_eq!(
-            builds, 197_932,
+            builds, 263_095,
             "the site and the clock on every linked building-frame"
         );
         assert!(
@@ -5665,6 +5692,18 @@ mod tests {
         assert_eq!(checked, 6, "the probe's six");
     }
 
+    /// **The frame `0/2006`'s road replan searches on** — Great Lakes'
+    /// word until item 478, and a fact about run53's trace rather than
+    /// about this crate, so it is pinned as its own number and not as
+    /// [`LONG_WORD_GREAT_LAKES`], which has now moved past it.
+    ///
+    /// `(10_234 + 2_006) % 16 == 0` is the whole of why it is this
+    /// frame: the human's six buildings are flagged together when
+    /// `0/2004` falls on 10230, and each replans on the frame its own
+    /// object number picks out — `12_240 - o` for every one of them
+    /// (`docs/ROADS.md` §1.2).
+    const GREAT_LAKES_REGEN_SEARCH: i64 = 10_234;
+
     /// `PathFinder::calc_road_cost@00686300+0x46` — the road search's
     /// per-node jitter, and [`sim::roads::SITE_COST`]'s own address in
     /// [`trace::SITES`](crate::trace::SITES).
@@ -5703,10 +5742,27 @@ mod tests {
     /// And the word's own parting draw is that search's first, at index
     /// **4** of the frame — the two streams agree on the four draws
     /// before it, which is what
-    /// `run53_s_24000_frames_put_the_ceiling_where_run33_did` reports as
-    /// `ours 6 theirs 204 — at 4`. So the word is held by a road search
-    /// the original runs and this crate does not run at all: a *missing*
+    /// `run53_s_24000_frames_put_the_ceiling_where_run33_did` reported as
+    /// `ours 6 theirs 204 — at 4`. So the word was held by a road search
+    /// the original runs and this crate did not run at all: a *missing*
     /// behaviour rather than a divergent one.
+    ///
+    /// **Item 478 closed it, and the third caller is the one that runs**
+    /// (`docs/ROADS.md` §1.2, `docs/ORDERS.md` §19). `BuildType::
+    /// place_roads` it is, from `Build::process`'s deferred
+    /// `build_masks & 0x100` arm — and the two frames are **two
+    /// buildings**, not one search carried over: `0/2006` on 10234 and
+    /// `0/2005` on 10235, each on the frame `(frame + o) % 16 == 0`
+    /// picks out. What flagged them is a death four frames earlier —
+    /// the human's farm `0/2004` falls on 10230 and
+    /// `Build::remove_from_city` calls `City::regen_roads` on what is
+    /// left of the city. This crate had only `Build::activate`'s call
+    /// to that function, so no building was ever flagged and no search
+    /// ever ran; with the second writer in, both frames spend the
+    /// original's draws — 204 and 78 — node for node.
+    ///
+    /// The frames here stay pinned as [`GREAT_LAKES_REGEN_SEARCH`]
+    /// rather than as the word, which has moved past them.
     ///
     /// **The frame list is the assertion, not the counts**, for the same
     /// reason [`PROBE_PLAN_PARTED`] pins rows rather than a number — a
@@ -5741,7 +5797,7 @@ mod tests {
         // node**, and 8186 is not one of them. The window opens on the
         // probe's own planning frame and closes past the word's second
         // half.
-        let tail = LONG_WORD_GREAT_LAKES + 13;
+        let tail = GREAT_LAKES_REGEN_SEARCH + 13;
         let schedule: Vec<(i64, usize)> = (PROBE_PLAN_FRAME..=tail)
             .map(|f| (f, road(f).len()))
             .filter(|(_, n)| *n > 0)
@@ -5769,8 +5825,8 @@ mod tests {
         // **The chain, on every one of the word's own 198.** A count says
         // the function ran; the `ebp` chain says which search ran it, and
         // that is the whole of the falsification.
-        let word = road(LONG_WORD_GREAT_LAKES);
-        assert_eq!(word.len(), 198, "the word's road-cost draws");
+        let word = road(GREAT_LAKES_REGEN_SEARCH);
+        assert_eq!(word.len(), 198, "the replan search's road-cost draws");
         // Folded before it is asserted: 198 copies of one chain is a
         // failure nobody reads, and the claim is about which chains
         // appear rather than how many draws each took.
@@ -5789,7 +5845,7 @@ mod tests {
         );
         // **And it is the word's own parting draw**: index 4 of the
         // frame, the first the two streams do not share.
-        let all = trace.frame_draws(LONG_WORD_GREAT_LAKES);
+        let all = trace.frame_draws(GREAT_LAKES_REGEN_SEARCH);
         let first_road = all.iter().position(|d| d.site == ROAD_COST);
         assert_eq!(
             first_road,
@@ -6458,6 +6514,14 @@ mod tests {
         /// block. They are the one thing besides the queue that opens
         /// inside the window, and they are who=0's.
         const RAID: i64 = 9_451;
+        /// **`1/28` one world unit east**, item 477's row and the block
+        /// the word stood on until item 478 moved it past. The raider's
+        /// `x` is 4801 against the dump's 4800 and its `y` agrees, so
+        /// this is the same residue `run100_s_word_block_is_every_record_
+        /// the_dump_carries` pins by value on block 10235; named here
+        /// rather than widening `opens`, for `RAID`'s reason — the
+        /// exemption names the row, so the day the row closes this fails.
+        const RAIDER_X: i64 = 10_234;
         let Some(inst) = install() else { return };
         let (Some(path), Some(r100)) = (
             dump("gamelog-run53-greatlakes-24k-trace.txt"),
@@ -6617,7 +6681,7 @@ mod tests {
         // citizen is one row **on** the word, asserted by name below.
         let inside: Vec<String> = units
             .iter()
-            .filter(|(_, f)| opens(f))
+            .filter(|(k, f)| opens(f) && (**k, **f) != ((1, 28), RAIDER_X))
             .map(|(k, f)| format!("unit {k:?} f{f}"))
             .chain(
                 orders
@@ -6662,10 +6726,14 @@ mod tests {
             .filter(|(_, f)| **f == LONG_WORD_GREAT_LAKES)
             .map(|(k, _)| *k)
             .collect();
+        // **Item 478 moved the word past `1/28`'s block**, so the word's
+        // own frame carries no position row at all now; `1/28`'s is
+        // exempted by name as `RAIDER_X` above and counted below the
+        // line with the standing residue.
         assert_eq!(
             on_word,
-            vec![(1, 28)],
-            "the word's own frame is not the one route it is: {units:?}"
+            Vec::<(i64, i64)>::new(),
+            "the word's own frame carries a position row: {units:?}"
         );
         // ~~**And one order row, which is the residue item 464 left.**~~
         // The citizen's `GATHERORDER` residue is still there and still
@@ -6695,8 +6763,8 @@ mod tests {
                 .filter(|(_, f)| **f < LONG_WORD_GREAT_LAKES)
                 .map(|(k, _)| *k)
                 .collect::<Vec<_>>(),
-            vec![(1, 24), (1, 25), (1, 26)],
-            "the window's standing position residue is not the three it was"
+            vec![(1, 24), (1, 25), (1, 26), (1, 28)],
+            "the window's standing position residue is not the four it is"
         );
         // **Counted below the word**, not over the whole map: the word's
         // own row joined this set when the headline moved past 10232, and
@@ -6840,6 +6908,11 @@ mod tests {
         /// since the eighth pass the floors guard fails on it too. Item
         /// 465 moved the word inside it and left the tail alone.
         const TAIL: i64 = WIDENING_GREAT_LAKES.1;
+        /// The blocks the replan schedule is read over — three before the
+        /// death that opens it and one past `0/2000`'s replan, the last
+        /// of the six.
+        const REGEN_LO: i64 = 10_228;
+        const REGEN_HI: i64 = 10_242;
         const {
             assert!(
                 FIRST < LONG_WORD_GREAT_LAKES && LONG_WORD_GREAT_LAKES < TAIL,
@@ -6890,6 +6963,12 @@ mod tests {
         let mut blocks = 0usize;
         let mut compared = 0usize;
         let mut word_census = None;
+        // **The replan flag's own trajectory** (item 478): for every one
+        // of the human's buildings, the block its `build_masks & 0x100`
+        // goes up and the block it goes down, from the dump and from this
+        // crate, over the window the death at 10230 opens.
+        let mut regen_dump: BTreeMap<i64, Vec<i64>> = BTreeMap::new();
+        let mut regen_ours: BTreeMap<i64, Vec<i64>> = BTreeMap::new();
         for f in 0..=TAIL {
             built.tick();
             let n = f + 1;
@@ -6907,6 +6986,21 @@ mod tests {
             // did, and on the word's frame that is the whole question
             // (item 463).
             debug_watch(&built, n);
+            if (REGEN_LO..=REGEN_HI).contains(&n) {
+                for b in frame.builds.iter().filter(|b| b.who == 0) {
+                    if b.build_masks.is_some_and(|m| m & 0x100 != 0) {
+                        regen_dump.entry(b.o).or_default().push(n);
+                    }
+                }
+                for b in built
+                    .sim
+                    .buildings
+                    .iter()
+                    .filter(|b| b.alive && b.owner == 0 && b.regen_roads)
+                {
+                    regen_ours.entry(i64::from(b.index)).or_default().push(n);
+                }
+            }
             let r = compare(&built, &frame, players);
             {
                 let mut note = |who: i64, o: i64, what: String, row: String| {
@@ -7286,14 +7380,34 @@ mod tests {
         // crate read it and got no bearing at all
         // (`docs/ORDERS.md` §17). What is left is `1/28` one unit east
         // in `x`, said three times: the unit and its guy's two copies.
+        // **Item 478 moved the word past this block**, so what the word's
+        // own block holds is now **nothing**: the three rows below moved
+        // to their own pin, and a key that first parts on 10238 is a new
+        // one. An empty expectation is the weaker half of this pair, which
+        // is why the block it left is asserted too.
         assert_eq!(
             on_word,
+            Vec::<String>::new(),
+            "the word's own block ({word}) parts — a new key at the new word"
+        );
+        // **And 10235, the block the word just left**, where item 477's
+        // three rows stand: `1/28` one world unit east in `x`, said by the
+        // unit and by its guy's two copies. Pinned here for the same
+        // reason 10162 and 10234 are — the headline walks away from a
+        // block and nothing then watches it.
+        let on_10235: Vec<String> = firsts
+            .iter()
+            .filter(|(_, (f, _))| *f == 10_235)
+            .map(|((w, o, what), (_, row))| format!("{w}/{o} {what}: {row}"))
+            .collect();
+        assert_eq!(
+            on_10235,
             vec![
                 "1/28 g.des_x[0]: ours 4801 theirs 4800",
                 "1/28 g.x[0]: ours 4801 theirs 4800",
                 "1/28 pos: ours (4801,30175) theirs (4800,30175)",
             ],
-            "the word's own block is not the route it is"
+            "block 10235 is not item 477's three rows"
         );
         // **And the block the word just left, pinned as its own set.**
         // 10234 is where `1/28`'s fifteen rows stood until item 465 and
@@ -7314,6 +7428,49 @@ mod tests {
             ],
             "block 10234 is not item 464's three rows — `1/28`'s fifteen \
              are back, or the citizen's have moved"
+        );
+        // **The replan schedule, both sides and both directions** (item
+        // 478, `docs/ROADS.md` §1.2). The human's farm `0/2004` falls on
+        // sim-frame 10230; `Build::remove_from_city` calls
+        // `City::regen_roads` on what is left of the city, so all six of
+        // the survivors carry `build_masks & 0x100` from block **10231**
+        // — and the **last** block that still carries it is the frame
+        // `(frame + o) % 16 == 0` names, which for every one of them is
+        // `12_240 - o`: the flag is cleared *during* that frame, and
+        // block `n` is the state at its start. That arithmetic is the
+        // assertion: a rule that
+        // flagged the city on the wrong frame moves the first number, a
+        // rule that fired the replans together collapses the six spans
+        // onto one block, and a rule that never flagged anything — which
+        // is what this crate had until this item, `Build::activate`
+        // being its only caller of `City::regen_roads` — empties
+        // `regen_ours` while `regen_dump` still holds all six.
+        //
+        // The two blocks that matter are `0/2006`'s last (10234) and
+        // `0/2005`'s (10235): those are the two road searches
+        // `great_lakes_s_word_draws_are_a_road_search_and_8186_spends_none`
+        // counts at 198 and 73 nodes, and they are what held the word.
+        let span = |m: &BTreeMap<i64, Vec<i64>>| -> Vec<(i64, i64, i64)> {
+            let mut v: Vec<(i64, i64, i64)> = m
+                .iter()
+                .map(|(o, bs)| (*o, bs[0], bs[bs.len() - 1]))
+                .collect();
+            v.sort_unstable();
+            v
+        };
+        let expected: Vec<(i64, i64, i64)> = [2_000, 2_001, 2_002, 2_003, 2_005, 2_006]
+            .into_iter()
+            .map(|o| (o, 10_231, 12_240 - o))
+            .collect();
+        assert_eq!(
+            span(&regen_dump),
+            expected,
+            "run100's own replan flags are not the six the farm's death sets"
+        );
+        assert_eq!(
+            span(&regen_ours),
+            expected,
+            "this crate's replan flags are not the dump's —              `City::regen_roads`' second writer (`Build::remove_from_city`)"
         );
         // **Anti-vacuity, in the block's own counts.** A capture without
         // `UNITS=3`, `BUILDS=7`, `CITIES=5` or `GUYS=4` would agree
@@ -9388,8 +9545,10 @@ mod tests {
     /// 178,326 until item 261 widened the building row from the site
     /// alone to the site **and the construction clock** — `constr_time`
     /// always, `job_counter` while both sides still call the site
-    /// unfinished.
-    const RUN58_BUILD_FIELDS: usize = 270_173;
+    /// unfinished. **270,173 → 359,336 on item 478**, which added the
+    /// replan flag `build_masks & 0x100` (`docs/ROADS.md` §1.2); nothing
+    /// here is wrong on it, so the flag's life agrees on this map too.
+    const RUN58_BUILD_FIELDS: usize = 359_336;
     const RUN58_COLL_FIELDS: usize = 449_279;
     /// Unit-frames carrying `unit_masks` and `mylos` — one apiece per
     /// linked unit-frame, which is every one, so the floor only grows.

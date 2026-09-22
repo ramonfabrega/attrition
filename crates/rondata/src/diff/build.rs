@@ -508,8 +508,13 @@ mod tests {
         for &(who, o, frame, field, ours, theirs) in &first {
             eprintln!("  {who}/{o} from f{frame}: {field} ours {ours} theirs {theirs}");
         }
+        // **140,491 → 186,804 on item 478**, and the rise is one field:
+        // `build_masks & 0x100`, the replan flag, which the reader had
+        // been taking off the wrong block and nothing had ever compared
+        // (`docs/ROADS.md` §1.2). `bad` stays empty, so the flag's whole
+        // life agrees here as well as on Great Lakes.
         assert_eq!(
-            seen, 140_491,
+            seen, 186_804,
             "the site and the clock on every linked building-frame"
         );
         // **Every building of both players stands on the original's own

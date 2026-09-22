@@ -562,13 +562,27 @@ impl Sim {
         }
     }
 
-    /// `Build::remove_from_city`.
+    /// `Build::remove_from_city@00622030`.
+    ///
+    /// The whole body sits under one gate — `(flags & 0x20) == 0 && city >=
+    /// 0`, a city centre and an unattached building do nothing — and both
+    /// callers here already hold it, so it is the caller's.
+    ///
+    /// **`City::regen_roads` is called from here too** (`crate::roads` §1),
+    /// and it is the writer Great Lakes 10230 reaches: the building is
+    /// unlinked from the `city_down` chain *first*, so what gets flagged is
+    /// the city's **remaining** buildings, and each of them then replans on
+    /// its own `(frame + o) % 16` slot over the sixteen frames that follow.
+    /// The original clears `city` after the call rather than before; the
+    /// order is immaterial because the flag goes on the survivors either
+    /// way, and taking it first is what keeps the borrow local here.
     pub fn remove_from_city(&mut self, b: usize) {
         if let Some(c) = self.buildings[b].city.take() {
             self.cities[c].members.retain(|&m| m != b);
             if self.buildings[b].active && self.building_is(b, Ident::Temple) {
                 self.sync_territory();
             }
+            self.city_regen_roads(c);
         }
     }
 
@@ -1465,7 +1479,10 @@ impl Sim {
         }
         // `Build::activate@00623e20+0x744`: the city's roads want
         // replanning, which is what flags every one of its buildings
-        // (`crate::roads` §1). It is the only writer a traced game reaches.
+        // (`crate::roads` §1). ~~It is the only writer a traced game
+        // reaches.~~ **Not so**: `Build::remove_from_city` is the other,
+        // and Great Lakes 10230 reaches it when a farm finally falls
+        // (`docs/ROADS.md` §1.2, item 478).
         if let Some(c) = self.buildings[b].city
             && self.cities[c].alive
         {
