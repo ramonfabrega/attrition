@@ -52,7 +52,7 @@ use crate::{Player, Sim};
 /// | seam | stands in for | what it costs |
 /// | --- | --- | --- |
 /// | `Form::compute`'s slot table | §6.4, where in the formation each member stands | every member takes the group's own destination; the group arrives as a heap. Diffable: `GROUPDATA` logs `off_x`/`off_y`/`curr_x`/`curr_y`/`angles`/`form_num` per member |
-/// | the group pool | §3, 64 slots a leader and `get_open_slot`'s recycling | one group per army, never recycled |
+/// | the group pool | §3, 64 slots a leader and `get_open_slot`'s recycling | numbered since item 518 (§19) and reset by [`Sim::groups_process`]; `get_open_slot`'s fallbacks and `equals_group`'s normalize are not modelled |
 /// | `GroupMoveOrder` | §6.6's per-frame formation | every member gets a plain `Move` — `docs/ORDERS.md` §8.4's verdict |
 /// | `action_guard` | §9's escort half | with siege *and* a matching area the escort keeps its orders; no traced army has siege |
 /// | the order-time path plan | §6.7 | the sim plans on the first step, in `do_move`; with a zero slot offset the plan is the same one |
@@ -157,6 +157,13 @@ pub struct GroupState {
     /// `has_general(0x8000, -1)` under `LeaderData & 0x8000` and no capture
     /// has a general.
     pub march: bool,
+    /// **Which of its player's 64 pool slots this record is** —
+    /// `GroupData::id − who·64`, the number every member's `UnitData +0x80`
+    /// holds and the dump prints as `group` (`docs/GROUPS.md` §19).
+    /// `None` for a seat that never took one. It is what
+    /// [`Sim::groups_process`]'s cursor selects on, so an army and a
+    /// pushed group are reset on the frames the original resets them.
+    pub pool: Option<u8>,
 }
 
 impl GroupState {
@@ -206,6 +213,7 @@ impl Default for GroupState {
             speed: 0,
             new_speed: 0,
             march: false,
+            pool: None,
         }
     }
 }
@@ -421,6 +429,7 @@ impl Sim {
         if !(force || g.num() >= 2) {
             return false;
         }
+        let pool = self.pool_slot_for(g.who, &g.list);
         self.unseat_group(g);
         // The pool slot every member's `+0x80` then points at.
         // `Groups::get_open_slot` recycles, so a slot whose members are
@@ -442,7 +451,10 @@ impl Sim {
         self.pushed[slot] = crate::group::Pushed {
             who: g.who,
             list: g.list.clone(),
-            state: GroupState::default(),
+            state: GroupState {
+                pool: Some(pool),
+                ..GroupState::default()
+            },
         };
         g.army = None;
         g.pushed = Some(slot);
@@ -500,6 +512,150 @@ impl Sim {
         }
         for slot in touched {
             self.army_normalize(g.who, slot);
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // The pool's numbering and its per-frame pass (§19)
+    // ------------------------------------------------------------------
+
+    /// The live members of whichever seat of `who` holds pool slot `s` —
+    /// an army's group or a pushed one — in join order.
+    ///
+    /// "Live" is what `Group::get_num` answers after the `normalize` it
+    /// opens with: alive, and still pointing at this slot. A unit that has
+    /// joined an army since it was pushed points at the army's slot
+    /// (`Unit::set_group@00605220` writes `+0x80` and leaves the old list
+    /// alone), so it no longer counts for the slot it left.
+    fn pool_members(&self, who: Player, s: u8) -> Vec<usize> {
+        let w = who as usize;
+        if let Some(a) = self.armies[w]
+            .list
+            .iter()
+            .find(|a| a.group.pool == Some(s) && a.units.iter().any(|&u| self.units[u].alive()))
+        {
+            return a
+                .units
+                .iter()
+                .copied()
+                .filter(|&u| self.units[u].alive())
+                .collect();
+        }
+        self.pushed
+            .iter()
+            .filter(|p| p.who == who && p.state.pool == Some(s))
+            .map(|p| {
+                p.list
+                    .iter()
+                    .copied()
+                    .filter(|&u| self.units[u].alive() && self.army_of(u).is_none())
+                    .collect::<Vec<_>>()
+            })
+            .find(|l| !l.is_empty())
+            .unwrap_or_default()
+    }
+
+    /// The slot `Groups::push_group@0070f9e0` hands a group of `who`, and
+    /// the `last_group` it leaves behind (§3.1, §3.2):
+    ///
+    /// - the group **equals** the seat `last_group[who]` names — same
+    ///   members in the same order — and that slot is reused;
+    /// - otherwise `Groups::get_open_slot@006fa460`'s first rule: the
+    ///   lowest of `0..46` whose seat is empty and which is not
+    ///   `last_group[who]`.
+    ///
+    /// `last_group` starts at each player's slot 0 (`Groups::clear@00713f20`
+    /// writes `who·64`), which is why a player's first push lands in slot 1.
+    ///
+    /// SEAM: `get_open_slot`'s two fallbacks — the oldest one-captain
+    /// group, and past it the "UH OH, NEED MORE GROUPS!" pass — are not
+    /// modelled; they need 46 live groups at once, and no capture has more
+    /// than four. A full pool answers slot 45.
+    pub(crate) fn pool_slot_for(&mut self, who: Player, list: &[usize]) -> u8 {
+        let w = who as usize;
+        let last = self.last_group[w];
+        let s = if !list.is_empty() && self.pool_members(who, last) == list {
+            last
+        } else {
+            (0..46u8)
+                .find(|&s| s != last && self.pool_members(who, s).is_empty())
+                .unwrap_or(45)
+        };
+        self.last_group[w] = s;
+        s
+    }
+
+    /// The pool slot `u` points at, as the dump prints it — `who·64 + s`,
+    /// or −1 for a unit in no group. For a probe and the diff harness.
+    pub fn pool_group_of(&self, u: usize) -> i64 {
+        let who = i64::from(self.units[u].owner);
+        let s = match self.army_of(u) {
+            Some(a) => self.armies[self.units[u].owner as usize].list[a].group.pool,
+            None => self
+                .pushed
+                .iter()
+                .find(|p| p.list.contains(&u))
+                .and_then(|p| p.state.pool),
+        };
+        s.map_or(-1, |s| who * 64 + i64::from(s))
+    }
+
+    /// `Groups::process@006fa210` — once a frame, from
+    /// `GameDaemon::process_all` after the markets and before
+    /// `Armies::process_all` and the objects: for **one** slot of each
+    /// player, the cursor `proc_group`, the same prune `Group::normalize`
+    /// runs and then `speed = new_speed = UnitData::speed(find_leader)`, or
+    /// 0 for a group with no leader (§3.3, §19).
+    ///
+    /// The cursor starts at 0 (`Groups::Groups`, `Groups::clear`) and steps
+    /// once a call, wrapping at 64, so on frame `f` it is `f mod 64` — and
+    /// every group's cap goes back to its leader's own speed once every 64
+    /// frames whatever its members have reported. It is the writer
+    /// `docs/GROUPS.md` §18 did not count: Great Lakes' raid walks at its
+    /// slow squad's 25 from frame 10241 because 10241 is `65 mod 64`'s
+    /// frame, with nobody in the group able to report.
+    ///
+    /// SEAM: the prune is applied to a pushed seat's list only. An army's
+    /// member list is also its membership here (`docs/ARMY.md` §3.2), and
+    /// [`Sim::army_normalize`] is what drops its dead; the leader is chosen
+    /// among live members either way. `find_role` is not modelled — no
+    /// consumer of `GroupData::role` is.
+    pub(crate) fn groups_process(&mut self, frame: i64) {
+        let s = u8::try_from(frame.rem_euclid(64)).expect("under 64");
+        for w in 0..self.armies.len() {
+            let who = w as Player;
+            for a in 0..self.armies[w].list.len() {
+                if self.armies[w].list[a].group.pool != Some(s) {
+                    continue;
+                }
+                let g = self.army_group(who, a);
+                let v = self.group_compute_speed(&g);
+                let st = &mut self.armies[w].list[a].group;
+                st.speed = v;
+                st.new_speed = v;
+            }
+            for i in 0..self.pushed.len() {
+                if self.pushed[i].who != who || self.pushed[i].state.pool != Some(s) {
+                    continue;
+                }
+                let keep: Vec<usize> = self.pushed[i]
+                    .list
+                    .iter()
+                    .copied()
+                    .filter(|&u| self.units[u].alive() && self.army_of(u).is_none())
+                    .collect();
+                self.pushed[i].list = keep;
+                let g = crate::group::Group {
+                    who,
+                    army: None,
+                    pushed: Some(i),
+                    list: self.pushed[i].list.clone(),
+                };
+                let v = self.group_compute_speed(&g);
+                let st = &mut self.pushed[i].state;
+                st.speed = v;
+                st.new_speed = v;
+            }
         }
     }
 
@@ -618,6 +774,18 @@ impl Sim {
             .iter()
             .find(|x| x.list.contains(&u))
             .map_or(0, |x| x.state.speed)
+    }
+
+    /// The cap and its accumulator — `GroupData::speed` and `new_speed` —
+    /// of the seat `u` sits in, army or pool slot, for a probe's line.
+    /// `None` for a unit with no seat. Read-only; nothing in the
+    /// simulation calls it.
+    pub fn group_speed_pair_of(&self, u: usize) -> Option<(i32, i32)> {
+        let st = match self.army_of(u) {
+            Some(slot) => &self.armies[self.units[u].owner as usize].list[slot].group,
+            None => &self.pushed.iter().find(|x| x.list.contains(&u))?.state,
+        };
+        Some((st.speed, st.new_speed))
     }
 
     /// `Group::report_speed@00713bb0`, which `Unit::do_group_move` inlines
@@ -2446,6 +2614,86 @@ mod tests {
             Some(25),
             "and it writes both halves of the pair"
         );
+    }
+
+    /// **`Groups::process` resets one pool slot a frame, and the slot is
+    /// the frame mod 64** (§19). This is the writer §18 did not count:
+    /// Great Lakes' raid is player 1's slot 1, `group 65`, and the frame
+    /// its cap goes back to the slow squad's 25 is 10241 — `65 mod 64`'s —
+    /// with nobody in the group able to report.
+    ///
+    /// Made to fail on purpose three ways: with the cursor one frame late
+    /// (`frame − 1`) the cap is still 26 after 10241; with the pass
+    /// removed from nowhere but here, the same; with the reset writing
+    /// only `speed`, the last row's `new_speed` is 26.
+    #[test]
+    fn groups_process_resets_one_pool_slot_a_frame_on_the_frame_mod_64() {
+        use crate::combat::mask;
+        let mut s = sim();
+        let foot = typed(&mut s, mask::FOOT, 0);
+        let horse = typed(&mut s, mask::MOUNTED, 0);
+        let fast = spawn(&mut s, 1, foot, Pos::new(0x1000, 0x1000));
+        let slow = spawn(&mut s, 1, horse, Pos::new(0x1100, 0x1000));
+        s.units[fast].movement.speed = 26;
+        s.units[slow].movement.speed = 25;
+        let mut g = group_of(1, &[fast, slow]);
+        assert!(s.push_group(&mut g, true));
+        assert_eq!(
+            s.pool_group_of(fast),
+            65,
+            "a player's first push skips `last_group`'s initial slot 0"
+        );
+        // A march's reports walk the cap up to the leader's own 26 …
+        s.group_leader_report_speed(&g, 26);
+        s.group_leader_report_speed(&g, 26);
+        assert_eq!(s.group_speed_of(fast), 26);
+        // … and a pass on any other slot leaves it there.
+        s.groups_process(10_240);
+        assert_eq!(s.group_speed_of(fast), 26, "10240 is slot 0's frame");
+        // 10241 is slot 1's: the cap goes back to `find_leader`'s speed,
+        // the slow squad's, both halves.
+        s.groups_process(10_241);
+        assert_eq!(s.group_speed_of(fast), 25, "10241 is `65 mod 64`'s frame");
+        assert_eq!(s.gstate(&g).map(|st| st.new_speed), Some(25));
+        // And the next frame for the slot is 64 later.
+        s.group_leader_report_speed(&g, 26);
+        s.group_leader_report_speed(&g, 26);
+        for f in 10_242..10_305 {
+            s.groups_process(f);
+        }
+        assert_eq!(s.group_speed_of(fast), 26, "no reset between");
+        s.groups_process(10_305);
+        assert_eq!(s.group_speed_of(fast), 25, "and one at 10305");
+    }
+
+    /// **`push_group`'s numbering** (§3.1, §3.2, §19): a group equal to
+    /// `last_group`'s reuses it, anything else takes the lowest empty slot
+    /// that is not `last_group` — which is how Great Lakes' scout walks
+    /// 65 → 64 → 66 across its pushes while one slot is held elsewhere.
+    ///
+    /// Made to fail on purpose twice: without the `last_group` exclusion
+    /// the first push is 64; without the equality reuse the second is 64.
+    #[test]
+    fn a_push_takes_the_lowest_empty_slot_that_is_not_the_last() {
+        let mut s = sim();
+        let t = fighter(&mut s);
+        let a = spawn(&mut s, 1, t, Pos::new(0x1000, 0x1000));
+        let b = spawn(&mut s, 1, t, Pos::new(0x1100, 0x1000));
+        let c = spawn(&mut s, 1, t, Pos::new(0x1200, 0x1000));
+        let push = |s: &mut Sim, list: &[usize]| {
+            let mut g = group_of(1, list);
+            assert!(s.push_group(&mut g, true));
+            s.pool_group_of(list[0])
+        };
+        assert_eq!(push(&mut s, &[a]), 65, "slot 0 is `last_group` at start");
+        assert_eq!(push(&mut s, &[a]), 65, "the same group again reuses it");
+        assert_eq!(push(&mut s, &[b, c]), 64, "slot 0 is free and not the last");
+        assert_eq!(
+            push(&mut s, &[a]),
+            66,
+            "65 is not the last now, but `a` still holds it — and it leaves"
+        );
+        assert_eq!(push(&mut s, &[b]), 65, "65 emptied when `a` left it");
     }
 
     #[test]

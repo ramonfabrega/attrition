@@ -911,6 +911,11 @@ pub struct Sim {
     /// are recycled the way `Groups::get_open_slot` recycles them, so the
     /// pool stays as small as the live groups.
     pub(crate) pushed: Vec<group::Pushed>,
+    /// `Groups::last_group[who]` — the pool slot each player pushed into
+    /// last, which `push_group` compares against and `get_open_slot` will
+    /// not hand out (`docs/GROUPS.md` §19). `Groups::clear` starts every
+    /// player on its own slot 0.
+    pub(crate) last_group: [u8; 16],
     /// Draw marks spent by **staged input** at `Game::do_frame`'s entry,
     /// before the frame's first phase — the cheat channel's, which
     /// `rontrace.dll` hands to `ConsoleWin::parse_cmd` there
@@ -1309,6 +1314,7 @@ impl Sim {
         mesh.seed(&world);
         Sim {
             pushed: Vec::new(),
+            last_group: [0; 16],
             transport: vec![transport::LeaderTransport::default(); players],
             docks: vec![transport::Docks::default(); players],
             caravans: vec![caravan::Caravans::default(); players],
@@ -3444,6 +3450,11 @@ impl Sim {
         // cycle, between the AI and the objects (`docs/SYNC.md` §3.1). On
         // frame 0 it is eighteen draws, the frame's 2nd to 19th.
         self.calc_markets(frame);
+
+        // `GameDaemon::process_all` → `Groups::process`, its last act: one
+        // pool slot per player has its prune and its speed reset
+        // (`docs/GROUPS.md` §19). It draws nothing, so it takes no mark.
+        self.groups_process(frame);
 
         self.mark("armies");
         // `Armies::process_all` — after the daemon, before the objects

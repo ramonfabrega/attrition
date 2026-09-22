@@ -794,6 +794,10 @@ mod tests {
                 // there is nothing to install: it is cleared by the
                 // leader's own report on the first frame of any march.
                 march: false,
+                // The record's own `id` is the slot, `who·64 + s`
+                // (`docs/GROUPS.md` §19), so `Groups::process` resets the
+                // installed group on the frames the original resets it.
+                pool: u8::try_from(g.id - 64 * g.who).ok().filter(|&s| s < 64),
             };
         }
 

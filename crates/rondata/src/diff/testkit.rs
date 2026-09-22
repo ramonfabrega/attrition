@@ -1534,15 +1534,23 @@ pub(crate) const EAST_INDIES_FIRST_SCHOLAR: i64 = 8_466;
 /// does not. `1/28`'s `myspeed` is 26 and it walks at 25, its group's
 /// (`docs/GROUPS.md` §18).
 ///
-/// **10834 is the same raider, and the residue is one frame of the
-/// cap.** Ours spends **three** draws and the original **two**, parting
-/// at index **1**: the extra is ours — `Guy::set_anim+0x97a <
-/// Unit::move_step+0x823`, the blocked stand — against the original's
-/// `Farms::inc_time+0x1ae`. The position under it first parts on 10242,
-/// **one** world unit, on the frame the original's cap goes back to its
-/// leader's 25 and this crate's stays at the 26 its own leader reported:
-/// §18's residue, and it chains to `1/40`'s order stack rather than to
-/// the cap.
+/// ~~**10834 is the same raider, and the residue is one frame of the
+/// cap.**~~ **Item 518 closed it, and the writer was neither a member
+/// nor the order stack.** Ours spent three draws against two there, the
+/// extra `Guy::set_anim+0x97a < Unit::move_step+0x823`, over a position
+/// one world unit out from 10242. 515 booked it on `1/40` holding an
+/// `ATTACK` where the original holds its `GROUP_MOVE`; the dump holds the
+/// `ATTACK` at the head too — the log writes newest first — and no member
+/// of group 65 reports on either side. What drops the cap to 25 on frame
+/// **10241** is `Groups::process@006fa210`, one pool slot per player a
+/// frame, and 10241 is slot 1's frame: player 1's slot 1 is `group 65`
+/// (run120's per-frame coverage; `docs/GROUPS.md` §19).
+///
+/// **11185 is a market frame, 351 frames on.** Ours spends **nine**
+/// draws and the original **eight**, parting at index **2**: ours
+/// `Leader::use_market+0x1ed` against the original's
+/// `Leader::make_stuff+0x221`. No dump on disk reaches it — run100 ends
+/// on block 10899 — so its widening is owed ([`WIDENINGS`]).
 ///
 /// **The block's own rows are not restated here**, and that is
 /// deliberate: block 10818's eight rows of `1/28` are *asserted* in
@@ -1555,7 +1563,7 @@ pub(crate) const EAST_INDIES_FIRST_SCHOLAR: i64 = 8_466;
 /// never pinned as text. **The rule this comment now follows: the word's
 /// *delta* here, the word's *block* in the widening, and each says
 /// which.**
-pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 10_834;
+pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 11_185;
 
 /// The floor `run97_s_window_orders_are_the_original_s` holds — item 368's
 /// widening of Great Lakes' order stacks, the 36,483 `GATHERORDER` records
@@ -1989,11 +1997,13 @@ pub(crate) const GOLDEN_WORD_CHAPTER_TWO: i64 = 725;
 /// or parked in `docs/PARKED.md`. The last column is the item — the one
 /// that landed the widening, or the one that owes it.
 /// The block window `run100_s_word_block_is_every_record_the_dump_carries`
-/// walks — run100's first complete block to thirteen past the word. The
-/// test reads its bounds from here and the guard reads the word against
-/// them, so the two cannot disagree: a window the word has walked out of
-/// fails `the_widening_behind_each_pinned_word_exists` rather than passing
-/// by saying nothing (parked 449).
+/// walks — run100's first complete block to thirteen past the word it
+/// last widened, 10834. The test reads its bounds from here. **Item 518
+/// moved the word to 11185, past run100's last block (10899)**, so the
+/// Great Lakes row of [`WIDENINGS`] no longer names this test: a window
+/// the word has walked out of would pass by saying nothing (parked 449).
+/// The test stays, as the widening of the blocks it does reach, and the
+/// row names the item that owes the new word's.
 pub(crate) const WIDENING_GREAT_LAKES: (i64, i64) = (9_340, 10_847);
 /// `chapter_two_s_word_frame_is_widened_whole`'s window, on the same
 /// terms: run112's window opens at 605 and one past the last frame
@@ -2112,12 +2122,19 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // `GATHERORDER` under its flight and could never arrive holding the
     // single order [`sim::Sim::arrive`] faces the order's angle for
     // (`docs/ORDERS.md` §21). One number closed all thirteen.
+    //
+    // **Item 518 moved it 10834 → 11185, past every dump on disk**:
+    // run100 ends on block 10899, so no test can widen 11185 whole, and
+    // the row names the item that owes it until the capture is booked.
+    // `run100_s_word_block_is_every_record_the_dump_carries` still walks
+    // [`WIDENING_GREAT_LAKES`], and 10242, 10243 and 10835 are pinned
+    // empty there — the value diff beside this move.
     (
         "LONG_WORD_GREAT_LAKES",
         LONG_WORD_GREAT_LAKES,
-        Some("run100_s_word_block_is_every_record_the_dump_carries"),
-        494,
-        Some(WIDENING_GREAT_LAKES),
+        None,
+        518,
+        None,
     ),
     (
         "GOLDEN_WORD_CHAPTER_ONE",

@@ -434,7 +434,9 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // map's word. DECISIONS 36 asks for the number rather than a
         // trade; the number is on the headline, and the headline is
         // Great Lakes'.
-        off: 63,
+        // **63 → 62 on item 518**, `Groups::process` (`docs/GROUPS.md`
+        // §19): one position closer; this map's own word does not move.
+        off: 62,
         // And **5 → 10 unlinked** on 2026-09-21, item 442 — the scholar
         // arm's `val` chain (`docs/AI.md` §53). This map's word does not
         // move on it; Great Lakes' moves 9510 → 10161. The AI's Scholar
@@ -1018,8 +1020,17 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // fast members now walk at the group's pace keeps its block
         // together for the rest of the game. DECISIONS 36 asks for the
         // number rather than a trade.
-        off: 42,
-        unlinked: 5,
+        // And **42 → 57 off, 5 → 4 unlinked** on item 518 —
+        // `Groups::process@006fa210`'s one-slot-a-frame reset of every
+        // group's cap (`docs/GROUPS.md` §19), which moves this map's word
+        // **10834 → 11185**. Fifteen positions further out, 12,816 frames
+        // past the new word: the reset changes the pace of every army
+        // march on the map, and this row is evidence about the run-up,
+        // not about the reset. DECISIONS 36 asks for the number rather
+        // than a trade; the value diff the move is booked on is run100's
+        // blocks 10242, 10243 and 10835, empty.
+        off: 57,
+        unlinked: 4,
         extra: 0,
         build_unlinked: 0,
         build_diverged: 10,
@@ -1215,7 +1226,11 @@ pub const LADDER: [Endpoint; 2] = [
         // **14 → 13 on item 515**, the group speed cap
         // (`docs/GROUPS.md` §18): one fewer Cataphract, the same unit
         // 506 added, 5,690 frames past this map's word.
-        extra: 13,
+        // **13 → 15 on item 518**, `Groups::process`'s per-frame pool
+        // reset (`docs/GROUPS.md` §19), 5,690 frames past this map's word:
+        // two more units this crate holds and the original does not. The
+        // number, not a trade.
+        extra: 15,
         build_unlinked: 10,
         build_diverged: 8,
         city_unlinked: 3,
@@ -1312,7 +1327,8 @@ pub const LADDER: [Endpoint; 2] = [
         // units gone from this rung against one position out, 6,778
         // frames past this rung's word; the C rung above sheds one.
         // DECISIONS 36 asks for the number rather than a trade.
-        off: 49,
+        // **49 → 47 on item 518**, `Groups::process` (see `extra` below).
+        off: 47,
         unlinked: 16,
         // 19 → 33 on 2026-09-07, item 261, the same reshuffle, then 33 →
         // **27** the same day on item 265's byte — this rung took the
@@ -1387,7 +1403,13 @@ pub const LADDER: [Endpoint; 2] = [
         // **6 → 14 on item 506**, and the eight are the Longbowmen,
         // Hoplites and Citizens an AI with a live market can pay for
         // and this rung's original does not train.
-        extra: 9,
+        // And **9 → 15 extra, 49 → 47 off** on item 518 — `Groups::process`'s
+        // per-frame reset of one pool slot (`docs/GROUPS.md` §19), which
+        // moves Great Lakes' word 10834 → 11185. Every army's cap now goes
+        // back to its leader's own speed once every 64 frames, so every
+        // map's marches change pace; 6,778 frames past this rung's word,
+        // DECISIONS 36 asks for the number rather than a trade.
+        extra: 15,
         build_unlinked: 19,
         build_diverged: 0,
         city_unlinked: 4,
@@ -1902,13 +1924,25 @@ mod tests {
         // counts live, and it is the one thing about `extra` that does not
         // churn with every AI landing.
         let (c, b) = (&rungs[0].1, &rungs[1].1);
+        // **A Transport Barge is not a unit that lasts, so its number is
+        // not an identity** (item 518). A barge is cast for one crossing
+        // and dies on the far shore (`docs/TRANSPORT.md` §13), and its
+        // object number goes back into the pool. Measured, not argued:
+        // walking rung B with `1/62` watched, both rungs hold the same
+        // barge `1/62` (slot 196 from 14142, slot 197 from 15344), and
+        // rung B alone walks on past 15401 — the barge dies on 15466 and
+        // a **new** Citizen takes number 62 on 15763, in slot 198. So a
+        // shared number that is a barge on either rung is two units, and
+        // the check below would read the recycling as two simulations.
+        let barge = |t: &str| t == "Transport Barge";
         let shared: Vec<((i64, i64), &str, &str)> = c
             .extra_types
             .iter()
+            .filter(|(_, _, name)| !barge(name))
             .filter_map(|(w, o, name)| {
                 b.extra_types
                     .iter()
-                    .find(|(w2, o2, _)| w2 == w && o2 == o)
+                    .find(|(w2, o2, other)| w2 == w && o2 == o && !barge(other))
                     .map(|(_, _, other)| ((*w, *o), name.as_str(), other.as_str()))
             })
             .collect();

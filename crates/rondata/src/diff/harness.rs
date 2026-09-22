@@ -1223,7 +1223,7 @@ pub(crate) fn debug_unit(built: &Built, u: &sim::Unit, frame: i64) {
         })
         .collect();
     eprintln!(
-        "  f{frame} {who}/{o} TY {:?} PACKS {:?} army {:?} at ({}, {}) in {:?} on {} ang {} hdg {} path {:?} orders {:?} {}",
+        "  f{frame} {who}/{o} TY {:?} PACKS {:?} army {:?} gspeed {:?} at ({}, {}) in {:?} on {} ang {} hdg {} path {:?} orders {:?} {}",
         u.ty,
         u.ty.map(|t| built.sim.unit_types[t].combat.packs),
         built
@@ -1232,6 +1232,14 @@ pub(crate) fn debug_unit(built: &Built, u: &sim::Unit, frame: i64) {
             .iter()
             .position(|x| std::ptr::eq(x, u))
             .and_then(|i| built.sim.army_of(i)),
+        // The group's cap and its accumulator, `(speed, new_speed)` —
+        // what `get_speed`'s last arm reads (`docs/GROUPS.md` §18).
+        built
+            .sim
+            .units
+            .iter()
+            .position(|x| std::ptr::eq(x, u))
+            .and_then(|i| built.sim.group_speed_pair_of(i)),
         u.pos.x,
         u.pos.y,
         u.inside_unit
@@ -6865,7 +6873,12 @@ mod tests {
         /// rather than to the cap. Named here rather than widening
         /// `opens`, for `RAID`'s reason — the exemption names the row,
         /// so the day the row closes this fails.
-        const RAIDER_X: i64 = 10_241;
+        ///
+        /// **Item 518 closed it**: the original's cap goes back to 25 on
+        /// 10241 because `Groups::process` resets `group 65` on that
+        /// frame, and this crate's now does the same (`docs/GROUPS.md`
+        /// §19). The row is gone, so the exemption is too — and the
+        /// residue set below lost `(1, 28)`.
         /// ~~**`1/29` stops where the original walks on**, and **`1/27`
         /// then walks into it** — the two rows item 483's word move
         /// pulled below the line, at 10241 and 10242.~~
@@ -6888,7 +6901,9 @@ mod tests {
         /// collision. Named here rather than widening `opens`, for
         /// `RAID`'s reason — the exemption has to name the row, so the
         /// day the row closes this fails.
-        const RAIDER_COLLIDES: i64 = 10_242;
+        ///
+        /// **Item 518 closed it with `1/28`'s**: `1/27` walks the same
+        /// capped pace a block behind, and the exemption went with it.
         /// **`1/35` twelve world units short**, item 497's first
         /// exposure: the word moved 10303 → 10582 and this window runs
         /// to the word, so 279 blocks nothing had ever compared came
@@ -7094,12 +7109,7 @@ mod tests {
         // citizen is one row **on** the word, asserted by name below.
         let inside: Vec<String> = units
             .iter()
-            .filter(|(k, f)| {
-                opens(f)
-                    && (**k, **f) != ((1, 28), RAIDER_X)
-                    && (**k, **f) != ((1, 27), RAIDER_COLLIDES)
-                    && (**k, **f) != ((1, 35), RAIDER_SHORT)
-            })
+            .filter(|(k, f)| opens(f) && (**k, **f) != ((1, 35), RAIDER_SHORT))
             .map(|(k, f)| format!("unit {k:?} f{f}"))
             .chain(
                 orders
@@ -7197,8 +7207,11 @@ mod tests {
                 .filter(|(_, f)| **f < LONG_WORD_GREAT_LAKES)
                 .map(|(k, _)| *k)
                 .collect::<Vec<_>>(),
-            vec![(1, 24), (1, 25), (1, 26), (1, 27), (1, 28), (1, 35)],
-            "the window's standing position residue is not the six it is"
+            // **Six → four on item 518**: `1/27` and `1/28` leave it,
+            // the raiders `Groups::process`'s reset put back on the
+            // original's pace (`docs/GROUPS.md` §19).
+            vec![(1, 24), (1, 25), (1, 26), (1, 35)],
+            "the window's standing position residue is not the four it is"
         );
         // **Counted below the word**, not over the whole map: the word's
         // own row joined this set when the headline moved past 10232, and
@@ -7488,10 +7501,17 @@ mod tests {
         /// of the six.
         const REGEN_LO: i64 = 10_228;
         const REGEN_HI: i64 = 10_242;
+        /// **The block the word last stood on** — 10834's, item 515's
+        /// six rows of `1/28`. Item 518 moved the word to 11185, past
+        /// run100's last block, so this test no longer straddles the
+        /// headline (the [`WIDENINGS`] row says who owes that); what it
+        /// holds on this block is the value diff of the move, and it is
+        /// pinned **empty**.
+        const LAST_WORD_BLOCK: i64 = 10_835;
         const {
             assert!(
-                FIRST < LONG_WORD_GREAT_LAKES && LONG_WORD_GREAT_LAKES < TAIL,
-                "the window must straddle the word it is the widening of"
+                FIRST < LAST_WORD_BLOCK && LAST_WORD_BLOCK < TAIL,
+                "the window must straddle the block it pins"
             )
         };
         let Some(inst) = install() else { return };
@@ -7854,6 +7874,13 @@ mod tests {
                         }),
                     ),
                     ("myspeed".into(), i64::from(un.movement.speed), them.myspeed),
+                    // **The pool slot** (item 518): `UnitData +0x80`, the
+                    // group every member points at, `who·64 + s`. It is
+                    // what `Groups::process` selects on once a frame, so a
+                    // group numbered wrong has its cap reset on the wrong
+                    // frames (`docs/GROUPS.md` §19). Printed on every
+                    // `UNITDATA` and compared nowhere until this row.
+                    ("group".into(), built.sim.pool_group_of(u), them.group),
                     ("form".into(), i64::from(un.form), them.form),
                     ("form_mod".into(), i64::from(un.form_width), them.form_mod),
                     (
@@ -7968,7 +7995,7 @@ mod tests {
                     }
                 }
             }
-            if n == LONG_WORD_GREAT_LAKES + 1 {
+            if n == LAST_WORD_BLOCK {
                 word_census = Some((
                     frame.units.len(),
                     frame.builds.len(),
@@ -7984,7 +8011,7 @@ mod tests {
                 ));
             }
         }
-        let word = LONG_WORD_GREAT_LAKES + 1;
+        let word = LAST_WORD_BLOCK;
         eprintln!(
             "run100 word widening: {blocks} blocks [{FIRST}, {TAIL}], {compared} record rows, \
              {} keys parted",
@@ -8175,26 +8202,21 @@ mod tests {
         // parked 477's three rows and this word were one cause, 583
         // blocks apart. `docs/GROUPS.md` §18.
         //
-        // **The new word is 10834 and its block is the same raider,
-        // six rows.** The collision is still there and the position
-        // behind it is now **one unit**, not 370: it first parts on
-        // 10242, the frame the original's cap goes back to 25 and this
-        // crate's stays at 26 because no member with a 25 ever reports
-        // (§18's residue). `collide_o` and `collide_who` have left the
-        // block entirely — they part earlier now — and the clock
-        // triple under the stand is two frames tighter.
+        // ~~**The new word is 10834 and its block is the same raider,
+        // six rows.**~~ **Item 518 closed all six, and the position one
+        // unit out under them.** 10242 was the frame the original's cap
+        // went back to the slow squad's 25 and this crate's stayed at
+        // 26; the writer is `Groups::process@006fa210`, which resets one
+        // pool slot per player a frame, and 10241 is `group 65`'s frame
+        // (`docs/GROUPS.md` §19). The block is pinned **empty**, and so
+        // are 10242 and 10243 below — `1/28`'s and `1/27`'s first
+        // partings — because the position is what the block never
+        // showed.
         assert_eq!(
             on_word,
-            vec![
-                "1/28 collide: ours 1 theirs 0",
-                "1/28 g.cur_anim[0]: ours 0 theirs 8",
-                "1/28 g.cur_time[0]: ours 1 theirs 3",
-                "1/28 g.end_time[0]: ours 31 theirs 13",
-                "1/28 g.last_time[0]: ours 0 theirs 2",
-                "1/28 g.stopped[0]: ours 1 theirs 0",
-            ],
-            "the word's own block ({word}) is not item 515's six rows \
-             of `1/28`"
+            Vec::<String>::new(),
+            "block {word}, the word item 518 left, parts again — item \
+             515's six rows of `1/28`"
         );
         // **And 10295, the block the word just left** — item 489's six
         // rows of `0/5`, closed by item 494 and pinned empty here for
@@ -8222,7 +8244,12 @@ mod tests {
         // out now. A regression that put the raider back where it was
         // would bring the collision back with it and fail here rather
         // than only at the word.
-        for b in [10_274_i64, 10_294, 10_295, 10_304, 10_583, 10_818] {
+        // **And 10242 and 10243** (item 518): `1/28`'s position one
+        // unit out and `1/27`'s a block later, the rows the cap's reset
+        // closed.
+        for b in [
+            10_242_i64, 10_243, 10_274, 10_294, 10_295, 10_304, 10_583, 10_818,
+        ] {
             let on: Vec<String> = firsts
                 .iter()
                 .filter(|(_, (f, _))| *f == b)
@@ -8232,7 +8259,8 @@ mod tests {
                 on,
                 Vec::<String>::new(),
                 "block {b} parts — item 489's `0/5`, item 497's `1/51`, item \
-                 506's `1/2018` or item 515's `1/28` is back"
+                 506's `1/2018`, item 515's `1/28` or item 518's raiders is \
+                 back"
             );
         }
         // **And 10278, the block the word left before that** — item
