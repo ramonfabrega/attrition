@@ -22,6 +22,34 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Parked by item 494, 2026-09-22 — the wait table's unlit halves
+
+Item 494 read `LeaderOptions +0x8` as an **index into five waits**
+(1→7, 2→0xc, 3→0x11, 4→0x20, 5→0x3e, default→2) where this crate used the
+index itself; `init` writes 2 and the wait is therefore 12.
+`docs/ORDERS.md` §21. Three parts of that reading no run on disk reaches:
+
+(498) **`think_caravan`'s half of the same table is reading-only.** Moved
+to the shared `LeaderOptions::idle_wait` because the two listings are
+identical — which is an argument, not a measurement. **No capture on disk
+has a human caravan**, so nothing scores it. It is the honest kind of
+reading-only claim: stated, not hidden, and `docs/ORDERS.md` §21's
+coverage section says so.
+
+(499) **`peasants_wait` is read from run12's `LEADEROPTION` record and
+assumed to hold for run100**, which does not enable that category. The
+whole of 494's nine-frame word rests on the assumption, and **one
+`gamelog.ini` line on a Great Lakes capture settles it outright** — this
+is the cheapest open question on file and the second genuine capture
+question in twenty-odd landings (the first is (490)). Promote it the
+moment a Great Lakes capture is booked for any reason: it costs one
+category, not a run.
+
+(500) **The gate's `(idle − 2) % 5` retry above the threshold is
+unexercised.** 494's citizen re-tasks on its first pass of 12, so nothing
+in the window measures a retry at all. A second reading or a longer window
+would reach it; the residue chase will not.
+
 ## Parked by item 489's landing, 2026-09-22 — its takes-chain target closed
 
 (477) **f10235's `1/28 pos`**, ours (4801,30175) theirs (4800,30175), with

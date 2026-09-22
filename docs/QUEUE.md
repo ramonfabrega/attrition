@@ -36,12 +36,12 @@ Great Lakes **10277**, chapter two **683**, both inside their first fight.*
   score and are parked. **Fable backlog: 1 Loop item** (313).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w9711 of 24,000 · GreatLakes w10294 of 24,000
+Long captures: EastIndies w9711 of 24,000 · GreatLakes w10303 of 24,000
 Golden: w626 of 901 (ch1) · ch2 w695 · 496 next
-Endpoint 24001: EastIndies 63 off, 11 unlinked · GreatLakes 50 off, 8 unlinked
+Endpoint 24001: EastIndies 63 off, 11 unlinked · GreatLakes 49 off, 8 unlinked
 
-**Opener: 494 and 496 in flight. 489 and 491 landed — w10294 and ch2 w695,
-both words in one chain. Two of twenty; merge, book, gate, push, reap, spawn.**
+**Opener: 496 and 497 in flight. Three landings, both words moved, Great
+Lakes 10277 → 10303 in two. Merge, book, gate, push, reap, spawn.**
 
 ## The queue
 
@@ -51,14 +51,14 @@ the AI, lower map first — Great Lakes. Take the first unstarted on either
 track unless a better order is obvious, and say so. Numbers are stable;
 the backlog is `docs/PARKED.md`, and an item returns only when a score names it.
 
-494. **10295's six rows, every one the human's citizen `0/5`** (the
-    AI headline's own frame; 489 moved the word to 10294). Ours
-    spends **one** draw against the original's **two**, parting at
-    index 0; the extra is `Guy::set_anim+0x97a < Unit::do_idle+0x7d`.
-    `orders_x`/`orders_y` ours (4056,28776) theirs (792,31800), `idle`
-    ours 0 theirs 1, and the facing and the stand behind them. Not a
-    collision and not the AI's — it wants a document of its own. 489
-    named the frame and the delta and no mechanism. COLLISION §11.
+497. **10304's two rows, both `1/51`'s animation clock** (the AI
+    headline's own frame; 494 moved the word to 10303). Ours spends
+    **three** draws against the original's **four**, parting at index
+    3; the extra is `Guy::set_anim+0x97a < Guy::inc_time+0x271`.
+    `g.cur_time` ours 30 theirs 0, `g.last_time` ours 29 theirs −1.
+    The widening's pinned window straddles it. 494 named the frame and
+    the delta and **no mechanism** — the clock is where the rows are,
+    not a cause. `docs/ORDERS.md` §21.
 
 496. **695's one extra draw, with every value on the frame agreeing**
     (the rules headline's own frame; 491 moved the word 683 → 695).
