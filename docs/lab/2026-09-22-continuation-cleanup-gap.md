@@ -110,3 +110,6 @@ unit's saved graph does not by itself reconstruct those shared inputs. The
 retained L81 trace records one other A* call in frame 224 between the selected
 call and its frame-225 continuation. This is an existing candidate to investigate,
 not proof of which activity wrote either tree or recycler word.
+L86 [measures native entry/return boundaries](2026-09-22-shared-search-boundary.md):
+shared-state changes also occur before and after that intervening call, so it
+cannot by itself account for the full gap.

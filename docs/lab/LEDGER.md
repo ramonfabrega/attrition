@@ -155,6 +155,8 @@ profile/Wine scripts remain outside that lock's protection.
 
 | L85 | Why do native-matched continuation models execute different instruction streams? | [Cleanup/recycler gap](2026-09-22-continuation-cleanup-gap.md). | First split is active-tree cleanup; four diagnostic entry-word substitutions match the full 33,494-instruction stream, retaining native boundary agreement. | Diagnostic omissions only, not a coherent world state or allocator fix. Shared-state ownership remains open; no capture or score movement. |
 
+| L86 | Does the intervening native A* call account for the four shared-state words? | [Native shared-search boundaries](2026-09-22-shared-search-boundary.md). | Eight bounded snapshots locate changes before, inside and after that call; its exit differs from the next entry. Full header records and executable falsifiers retained. | One native boundary witness, not writer-instruction or whole-world attribution. Lane released; no score movement. |
+
 ## Current direction
 
 The September 19–22 tranche now has an unchanged native unit/path witness
@@ -185,7 +187,9 @@ L84 distinguishes a carried-through collide correction from a consumed
 pathfinding input: nine interventions show no accesses or computational change.
 L85 localizes the remaining internal trace gap to active-tree cleanup and
 recycler availability; diagnostic entry substitutions match the stream but do
-not reconstruct shared-state ownership. Whole-world advancement remains unproved;
+not reconstruct shared-state ownership. L86 measures changes outside the
+intervening A* call as well as inside it; the missing boundary extends beyond
+A*. Surrounding setup/teardown is the next candidate. Whole-world advancement remains unproved;
 the next adoption test should answer one
 real divergence question selected by steering, with a named call/field and
 falsifier. Saved-tree required fields now have one native witness; native limit 96,
