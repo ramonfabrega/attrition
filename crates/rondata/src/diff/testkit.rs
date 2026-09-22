@@ -1375,7 +1375,8 @@ pub(crate) const EAST_INDIES_FIRST_SCHOLAR: i64 = 8_466;
 /// **What 10234 is**: a frame whose whole dumped record agrees and whose
 /// draw stream does not — the original spends **204** draws there,
 /// `PathFinder::calc_road_cost+0x46` over and over, and this crate spends
-/// six for the same 43-node route. ~~`1/28`'s own rows reopen one block
+/// six. ~~for the same 43-node route~~ — **item 475 struck that clause**:
+/// the count is right, the owner is not. ~~`1/28`'s own rows reopen one block
 /// later, on 10235, where the route is 240 out in `x` because the
 /// formation slot is (`order:move.off_x ours 120 theirs 648`).~~
 ///
@@ -1401,11 +1402,29 @@ pub(crate) const EAST_INDIES_FIRST_SCHOLAR: i64 = 8_466;
 ///
 /// **What still holds the word** is the same thing as before this item and
 /// it is not the route: 204 draws against six, all of them
-/// `calc_road_cost`. The same cost function is what
+/// `calc_road_cost`. ~~The same cost function is what
 /// `PROBE_PLAN_PARTED`'s twenty-two entries are — a `y` one or two cells
 /// south over three stretches that re-converge, on a route whose start,
 /// end and every `x` agree — so one residue now stands in two places and
-/// closing it is the next item on this frame.
+/// closing it is the next item on this frame.~~
+///
+/// **Item 475 falsified that, and named the word instead** (`docs/ORDERS.md`
+/// §18). `calc_road_cost` has one caller in the executable —
+/// `astar_caravan_road`, under `find_road` — so it is the **road**
+/// search's, and block 8186, where `PROBE_PLAN_PARTED`'s twenty-two
+/// waypoints are planned, prices no road node at all. Two residues. What
+/// holds this word is a road search the original runs on 10234 (198
+/// nodes) and 10235 (73) and **this crate does not run at all**: the two
+/// streams share the frame's first four draws and part on the fifth,
+/// which is that search's first. A missing behaviour, not a divergent
+/// one, and it is item 478.
+///
+/// The number is unchanged and the stream was never unaligned —
+/// `FLOORS[1].word = 1850` is the *scored* capture's word, where
+/// `unwrap_or(last)` means "never parted inside it", and reading that row
+/// for this one is the trap `docs/ORDERS.md` §18.2 writes down.
+/// [`great_lakes_s_word_draws_are_a_road_search_and_8186_spends_none`]
+/// keeps all of it.
 pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 10_234;
 
 /// The floor `run97_s_window_orders_are_the_original_s` holds — item 368's
