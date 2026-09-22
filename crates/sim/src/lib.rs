@@ -116,6 +116,11 @@ pub const UNIT_UPKEEP_FRAMES: i64 = 16;
 /// until the next refresh, and one that walks in takes nothing until then.
 pub const ATTRITION_REFRESH_FRAMES: i64 = 32;
 
+/// How often `ObjectData::targeted` is quartered —
+/// `Unit::process@00610bc0`'s `(frame + o) % 16` slot, the one
+/// [`ATTRITION_REFRESH_FRAMES`]' is nested inside. `docs/COMBAT.md` §33.
+pub const TARGETED_DECAY_FRAMES: i64 = 16;
+
 /// A unit, as attrition sees one — which is **one figure**, not one squad.
 ///
 /// Rise of Nations units are squads of one to four figures, and each figure is
@@ -3577,6 +3582,31 @@ impl Sim {
         // anything else the unit does this frame.
         if self.units[i].combat.recharging > 0 {
             self.units[i].combat.recharging -= 1;
+        }
+        // **`ObjectData::targeted` decays**, and its slot is the one the
+        // attrition refresh is nested inside. `Unit::process@00610bc0`
+        // reads, under `inside_up < 0`:
+        //
+        //     if ((frame + o) % 16 == 0) {
+        //         targeted = targeted / 4;          // signed, toward zero
+        //         process_cloak();
+        //         if ((frame + o) % 32 == 0) { … process_attrition(); … }
+        //     }
+        //
+        // Nothing else in the executable writes `+0x3d` but
+        // `Object::init` (zero), `Object::find_nearby_target` (the bump on
+        // its winner) and `Wall::process` (the same decay) — so a count
+        // that is never decremented when an attacker drops its target is
+        // *deliberate*: the field is a decaying crowding penalty, not a
+        // reference count. `docs/COMBAT.md` §33.
+        //
+        // The counter is clamped non-negative here, so the original's
+        // round-toward-zero idiom is a plain `/ 4`.
+        if self.units[i].phase(frame) % TARGETED_DECAY_FRAMES == 0
+            && self.units[i].inside.is_none()
+            && self.units[i].inside_unit.is_none()
+        {
+            self.units[i].combat.targeted /= 4;
         }
         // Attrition first, movement second. That is the order inside
         // `Unit::process`, and it is observable: a unit that steps over a

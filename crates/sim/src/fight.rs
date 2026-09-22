@@ -512,10 +512,6 @@ impl Sim {
         self.add_attack_order(unit, target, crate::orders::QueuePos::New, true, true);
     }
 
-    pub(crate) fn bump_targeted_pub(&mut self, o: Obj, by: i32) {
-        self.bump_targeted(o, by);
-    }
-
     pub(crate) fn fight_pub(&mut self, i: usize, target: Obj, frame: i64) {
         self.fight(i, target, frame);
     }
@@ -525,7 +521,6 @@ impl Sim {
         let b = &mut self.buildings[building];
         b.target = Some(target);
         b.ordered = true;
-        self.bump_targeted(target, 1);
     }
 
     pub fn set_stance(&mut self, unit: usize, stance: Stance) {
@@ -559,9 +554,6 @@ impl Sim {
             // front of whatever it was doing.
             self.add_attack_order(i, t, crate::orders::QueuePos::First, mandatory, false);
             return;
-        }
-        if let Some(t) = target {
-            self.bump_targeted(t, 1);
         }
         let u = &mut self.units[i];
         u.combat.target = target;
@@ -1445,11 +1437,31 @@ impl Sim {
                 }
             }
         }
+        // **The bump is here and nowhere else.** `00649ba6`, on the way
+        // out with a winner: `if (target->targeted < 100) target->targeted++`.
+        // Every other write to `ObjectData +0x3d` in the executable is
+        // `Object::init`'s zero or the `/4` decay in `Unit::process` /
+        // `Wall::process` — `add_attack_order` does not touch it, so a
+        // squad handed its captain's target through the mirror adds
+        // nothing, and a unit that drops a target subtracts nothing.
+        // This crate bumped on the *order* instead, which counted a
+        // three-figure squad three times and never let the count fall.
+        // `docs/COMBAT.md` §33.
+        if let Some((_, o)) = best {
+            self.bump_targeted(o, 1);
+        }
         best.map(|(_, o)| o)
     }
 
     /// `Object::compare_target(o, who, in_range, ai)` (§12.3), the skeleton the
     /// simulation can evaluate, for a human owner.
+    ///
+    /// **`ai` is not a parameter here, and that is a known gap rather than
+    /// an oversight** — `docs/COMBAT.md` §33.2. `0064ef4b` **divides** by
+    /// the damage a human's arm multiplies by, so the two rankings differ
+    /// in sign; item 466 established it against the dump and could not
+    /// land it, because the correct ranking exposes `find_open_slots`'
+    /// own defect. It lands with item 470.
     pub fn compare_target(&self, attacker: Obj, target: Obj, in_range: bool) -> i32 {
         let ap = self.profile(attacker);
         let tp = self.profile(target);
@@ -1635,11 +1647,7 @@ impl Sim {
         };
         if needs && !bd.ordered {
             let radius = (p.x_size.max(p.y_size) + 2 * self.max_range_of(me)) * 0x60;
-            let found = self.find_nearby_target(me, radius);
-            if let Some(t) = found {
-                self.bump_targeted(t, 1);
-            }
-            self.buildings[b].target = found;
+            self.buildings[b].target = self.find_nearby_target(me, radius);
         } else if needs {
             self.buildings[b].target = None;
             self.buildings[b].ordered = false;

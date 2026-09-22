@@ -1180,7 +1180,10 @@ impl Sim {
         } else {
             None
         };
-        self.bump_targeted_pub(target, 1);
+        // **No `targeted` bump.** `Unit::add_attack_order` never writes
+        // `ObjectData +0x3d`; only `Object::find_nearby_target` does, on
+        // the winner it returns (`docs/COMBAT.md` §33). Bumping here
+        // counted a squad's mirror copies as separate attackers.
         let unit = &mut self.units[u];
         unit.combat.target = Some(target);
         unit.combat.mandatory = mandatory;
@@ -5535,7 +5538,6 @@ impl Sim {
 
     /// A found better target rewrites the order's target in place.
     fn retarget_attack(&mut self, u: usize, t: Obj) {
-        self.bump_targeted_pub(t, 1);
         let unit = &mut self.units[u];
         unit.combat.target = Some(t);
         unit.combat.mandatory = false;
