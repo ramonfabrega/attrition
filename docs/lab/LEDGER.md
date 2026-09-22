@@ -118,19 +118,22 @@ No new capture or main-loop adoption is requested by this handoff.
 
 | L67 | Does the completed modeled call reproduce native output? | [Paired native path agreement](2026-09-21-native-path-agreement.md). | One authorized capture: outer return 8, all 640 path bytes and all 344 unit bytes except the explicit path pointer agree; eight replay resets; agreement assertion passes. | Single-call unit/path fidelity; other mutated state and general runtime behavior unproven. Lane released; main score unchanged. |
 
-| L68 | Can the validated packet support useful input experiments? | [Request versus continuation-budget interventions](2026-09-21-path-interventions.md). | 35 repeated trials / 30 distinct settings; all controls restored. Request edits leave the saved route unchanged; limit 95 suspends and 96 completes in the model. | Altered inputs not native-confirmed. Candidate: explicit native limit-95 witness; no capture booked or main score moved. |
+| L68 | Can the validated packet support useful input experiments? | [Request versus continuation-budget interventions](2026-09-21-path-interventions.md). | 35 repeated trials / 30 distinct settings; all controls restored. Request edits leave the saved route unchanged; limit 95 suspends and 96 completes in the model. | Limit 95 subsequently native-confirmed by L70; limit 96 remains a model prediction. No main score moved. |
 
 | L69 | Prepare a native falsifier for the modeled limit-95 suspension. | [Explicit native limit intervention](2026-09-22-native-limit-preparation.md). | 77 focused tests, restoration failure controls, four DLL variants and the release gate pass; offline workflow reproduces the prior prediction. | Preparation only; no live altered-input witness or main score change. Capture requires a fresh slot. |
 
+| L70 | Does the predicted limit-95 suspension survive a native intervention? | [Native counterfactual agreement](2026-09-22-native-limit-agreement.md). | One authorized run: return −1, all 344 unit bytes and 160 path bytes agree exactly; repeat/control restoration and inactive-slot negative assertion pass. | One altered call; post-call saved-tree contents and native limit 96 remain unverified. Lane released; no main score change. |
+
 ## Current direction
 
-The September 19–21 tranche has a native-confirmed unit/path baseline and
-controlled offline interventions. Retargeting the request record does not
-retarget its saved search; changing the continuation budget does change the
-outcome. The next candidate is an explicitly recorded native limit-95 test
-against the modeled 95/96 suspension/completion witness. L69 prepares its explicit
-intervention and replay comparison. No slot is booked.
-Other mutated state and general runtime behavior remain open.
+The September 19–22 tranche now has an unchanged native unit/path witness
+(L67) and an explicitly altered limit-95 witness (L70). Both agree with the
+bounded model on their measured outputs. Request retargeting does not retarget
+the saved search; continuation-budget changes provide the useful counterfactual.
+This slice is ready for Fable's review. The next adoption test should answer one
+real divergence question selected by steering, with a named call/field and
+falsifier. Saved-tree contents, native limit 96 and general runtime fidelity
+remain open. The capture lane is released; no further slot is booked.
 Fable decides whether any method merits a pilot, adoption, further evidence or
 parking; review does not imply approval to merge the whole lab branch.
 

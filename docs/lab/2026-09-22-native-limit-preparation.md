@@ -85,3 +85,7 @@ only `--tracer-def RON_RESTORE_LIMIT95` to its existing post-state capture flags
 Release the lane as soon as process exit and settings restoration are verified;
 validate provenance and replay offline afterward. No slot is assumed from an
 older authorization.
+
+Subsequent result: [L70](2026-09-22-native-limit-agreement.md) records the
+authorized native run and exact unit/path agreement. The preparation-only
+status above describes this landing before that run.
