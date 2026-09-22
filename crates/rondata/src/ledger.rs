@@ -36,13 +36,23 @@
 const GAMELOG: &str = include_str!("gamelog.rs");
 /// The differ is a spine and one module per dumped record family
 /// (item 228), so this is every one of them; the test concatenates them.
+///
+/// **`diff/golden.rs` was missing until item 510**, and it is the rules
+/// track's whole walk — `chapter_two_s_word_frame_is_widened_whole` and
+/// the five per-field checks beside it. Every field those compare read as
+/// *uncompared* here, and every field they were the second reader of read
+/// as single-capture, which is exactly the blindness this module exists
+/// to count. It was found by widening chapter two's `GUY` record: the two
+/// fields that landing added were compared on both headline windows and
+/// the ledger still called them unread.
 #[cfg(test)]
-const DIFF: [&str; 12] = [
+const DIFF: [&str; 13] = [
     include_str!("diff.rs"),
     include_str!("diff/army.rs"),
     include_str!("diff/build.rs"),
     include_str!("diff/city.rs"),
     include_str!("diff/floors.rs"),
+    include_str!("diff/golden.rs"),
     include_str!("diff/harness.rs"),
     include_str!("diff/order.rs"),
     include_str!("diff/report.rs"),
