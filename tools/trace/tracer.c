@@ -803,10 +803,19 @@ static u32 build_stub(u8 *s, const HookSite *h) {
 #ifdef RON_RESTORE_PROBE
 #include "../explore/live_restore_probe.h"
 #endif
+#ifdef RON_SHARED_SEARCH
+#ifndef RON_SEARCH_CENSUS
+#error RON_SHARED_SEARCH requires RON_SEARCH_CENSUS
+#endif
+#include "../explore/live_shared_search.h"
+#endif
 
 static void __cdecl on_call(u32 site, u32 self, u32 a0, u32 a1, u32 a2, u32 a3) {
     if (g_frame < g_cw_lo || g_frame > g_cw_hi) return;
     emit(K_CALL, site, self, a0, a1, a2, a3);
+#ifdef RON_SHARED_SEARCH
+    if (site == 0) shared_enter(self,a0);
+#endif
 #ifdef RON_TURN_PROBE
     if (site == 8) probe_turn(self);
 #endif
@@ -817,6 +826,9 @@ static void __cdecl on_ret(u32 site, u32 ret, u32 a4, u32 a5, u32 a6, u32 a7) {
     u32 out = 0xffffffffu;
     if (site < NCALLS && CALLS[site].out7 && a7 > 0x10000u) out = *(u8 *)a7;
     emit(K_RET, site, ret, a4, a5, a6, out);
+#ifdef RON_SHARED_SEARCH
+    if (site == 0) shared_return(ret);
+#endif
 #ifdef RON_SEARCH_CENSUS
     if (site == 0 && ret == 0xffffffffu) census_suspension();
 #endif
