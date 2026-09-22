@@ -2765,7 +2765,13 @@ fn build_of(b: Block<'_>) -> Option<BuildDump> {
         damage_frac: obj.and_then(|o| o.int("damage_frac")),
         orig_type: b.int("orig_type"),
         max_age: b.int("max_age"),
-        build_masks: b.int("build_masks"),
+        // **`WALLDATA`'s, not `BUILDDATA`'s** (item 478). The name says
+        // `WallData::build_masks` and the record writes it at the wall's
+        // own indent, between `ever_seen_completed` and `helpers`; read
+        // off the outer block it was `None` on every capture ever taken,
+        // so the flag Great Lakes' word turned on was not merely
+        // uncompared — it was never parsed. `build_masks_is_the_wall_s_field`.
+        build_masks: wall.and_then(|w| w.int("build_masks")),
         gather_from,
         // `length` and `size` sit at `BUILDDATA`'s own indent, between
         // `cliff` and the first `tx`, and nothing else at that level writes
@@ -3945,6 +3951,56 @@ BEGIN GAME
         assert_eq!(k[3].values, vec![0, 3]);
         assert_eq!(k[4].name, "one_age_down");
         assert_eq!(k.len(), 5);
+    }
+
+    /// **`build_masks` is `WallData`'s field, at the wall's own indent**
+    /// (item 478).
+    ///
+    /// The record writes it between `ever_seen_completed` and `helpers`,
+    /// one level *in* from `BUILDDATA` — and this reader took it off the
+    /// outer block, so it was `None` on every capture ever taken and the
+    /// diff had nothing to compare. `0x100` is the replan flag
+    /// (`docs/ROADS.md` §1), and it is what held Great Lakes' word at
+    /// 10234 for four items while sitting in plain sight in every block.
+    ///
+    /// **Made to fail on purpose**: the fixture puts a decoy `build_masks`
+    /// at `BUILDDATA`'s own indent as well, so the old `b.int` reading
+    /// returns `7` here and this test reddens on the value rather than on
+    /// `None` — a reader that goes back to the outer block cannot pass by
+    /// accident on a capture that happens not to have one.
+    #[test]
+    fn build_masks_is_the_wall_s_field() {
+        const TEXT: &str = "\
+BEGIN GAME
+ BEGIN WORLD
+  seed 1
+ BEGIN BUILDDATA
+  BEGIN WALLDATA
+   BEGIN OBJECT
+    BEGIN SUBOBJECT
+     flags 7
+     o 2006
+     who 0
+     x_internal 2688
+     y_internal 29568
+     z_internal 0
+   ever_seen_completed 3
+   build_masks 4352
+   helpers 0
+  city 0
+  build_masks 7
+  orig_type 436
+ BEGIN FRAME 1
+";
+        let log = Log::parse(TEXT);
+        let init = log.initial().expect("the sample has a start block");
+        assert_eq!(init.builds.len(), 1);
+        assert_eq!(
+            init.builds[0].build_masks,
+            Some(4352),
+            "build_masks came off `BUILDDATA` rather than `WALLDATA`"
+        );
+        assert_eq!(init.builds[0].build_masks.unwrap() & 0x100, 0x100);
     }
 
     #[test]

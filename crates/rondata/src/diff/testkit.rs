@@ -1425,7 +1425,29 @@ pub(crate) const EAST_INDIES_FIRST_SCHOLAR: i64 = 8_466;
 /// for this one is the trap `docs/ORDERS.md` §18.2 writes down.
 /// [`great_lakes_s_word_draws_are_a_road_search_and_8186_spends_none`]
 /// keeps all of it.
-pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 10_234;
+///
+/// **10234 → 10237 on item 478**, and the search is this crate's now:
+/// `BuildType::place_roads` is `find_road`'s third caller and the one
+/// that runs, from `Build::process`'s deferred `build_masks & 0x100`
+/// arm. The flag is set by `City::regen_roads`, whose **second** writer
+/// is `Build::remove_from_city` — the human's farm `0/2004` falls on
+/// 10230 and the city's six survivors each replan on the frame
+/// `12_240 - o` names. This crate had only `Build::activate`'s call, so
+/// nothing was ever flagged; with both writers in, 10234 spends 204
+/// draws against 204 and 10235 spends 78 against 78, node for node
+/// (`docs/ROADS.md` §1.2, `docs/ORDERS.md` §19).
+///
+/// **The two numbers this pin is the floor of have separated.** The
+/// *count* word is **10244**; the *sequence* word is **10237**, and what
+/// parts there is not a simulation disagreement at all — both sides
+/// spend seven draws and the fifth is one the original's trace names
+/// `678cb9` and [`trace::SITES`](crate::trace::SITES) does not,
+/// `Ammo::do_damage@00678060+0xc59`, against this crate's unattributed
+/// `projectiles` phase label. 10242 is the same shape. Naming that site
+/// belongs with `docs/COMBAT.md`, not here; until it is named the
+/// sequence cannot go past 10237 however the simulation behaves, so the
+/// floor is the lower of the two and this is what it is.
+pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 10_237;
 
 /// The floor `run97_s_window_orders_are_the_original_s` holds — item 368's
 /// widening of Great Lakes' order stacks, the 36,483 `GATHERORDER` records

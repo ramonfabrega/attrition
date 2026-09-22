@@ -4881,8 +4881,11 @@ run53 and run100 agree to the draw on frame 10234:
 ```
 
 `1/28`'s whole route costs the original **one** draw, the last line. The
-198 are a road search — one search, spanning 10234 (198 nodes) and 10235
-(73), and then nothing at that site for 2,300 frames.
+198 are a road search — ~~one search, spanning 10234 (198 nodes) and 10235
+(73)~~ — **two** searches, one per frame, and then nothing at that site
+for 2,300 frames. They are `0/2006`'s and `0/2005`'s, each on its own
+sixteen-frame rotation slot; item 478 measured it and §19 has the
+schedule.
 
 **Three. The frame the probe's route is planned on spends none of them.**
 Block 8186 is where `Group::action_move_near@00704990` plans the group's
@@ -4939,16 +4942,24 @@ the cost function. It is named here as a shape, not as a mechanism: which
 of `find_road`'s three callers runs here, and why this crate runs none, is
 item 478's to establish and nothing in this section says.
 
+> **Item 478 established both, and the shape was the right one.** The
+> caller is `BuildType::place_roads`, from `Build::process`'s deferred
+> `build_masks & 0x100` arm — the same mechanism as East Indies 8193, and
+> not a caravan at all. What this crate was missing is one call:
+> `City::regen_roads` has two writers and this crate had only
+> `Build::activate`'s, so no building was ever flagged. §19 has the frame,
+> the cause and the numbers; `docs/ROADS.md` §1.2 is the mechanic's own.
+
 ### 18.3 The successors
 
 Three items come out of the word's two blocks. They are named by **frame
 and row only**. Eight hypotheses have now died on this map with their
 frames intact, and this item is the one that proved why.
 
-- **478 — the headline.** f10234: `calc_road_cost` draws **ours 0, theirs
+- ~~**478 — the headline.** f10234: `calc_road_cost` draws **ours 0, theirs
   198**; first parting draw index **4**; call chain `astar_caravan_road <
   find_road`. This is the word's own parting, so the AI headline sits on
-  it.
+  it.~~ **Closed 2026-09-21**; §19.
 - **476.** f10234, from the value diff: `0/5 order:length` ours 2 theirs
   1; `0/5 orders.len` ours 2 theirs 1; `0/2001 gather:gather_down[-1]`
   ours 5 theirs 2.
@@ -5015,3 +5026,141 @@ trace's `cover` was off for run53, so the caller is not on this disk.
 §17.6's second and third falsifiers were not reached — the first one
 settled it, and they remain the right tests for whoever takes the
 twenty-two.
+
+~~It says nothing about which of `find_road`'s three callers runs on
+10234, nor why this crate runs none: no capture on disk carries a proxied
+call there, and the trace's `cover` was off for run53, so the caller is
+not on this disk.~~ **Both were wrong, and neither needed a capture.**
+run53 *was* taken with `cover=1` and carries a first-entry frame for 6,936
+functions — which is how §19 ruled `Caravan::process` out of the whole
+24,000-frame game in ten seconds — and the caller itself is named by the
+**dump**, not by the trace: `build_masks & 0x100` is printed on every
+building of every block, and the bit that clears between 10234 and 10235
+is `0/2006`'s. §19.
+
+## 19. The word is a building's death, four frames upstream (item 478, 2026-09-21)
+
+§18 named the word's draws correctly — a road search the original runs on
+10234 and this crate runs not at all — and left two questions: which of
+`find_road`'s three callers runs, and why this crate runs none. Both are
+answered, **and no capture was needed for either**. run117 was reserved
+and approved for the first; it was not taken, and the reason is worth the
+paragraph in §19.4.
+
+### 19.1 The caller is a building, and the dump names it
+
+`BuildType::place_roads`, from `Build::process@0061edf0`'s **last**
+statement — the deferred replan `docs/ROADS.md` §1 has described since it
+was written:
+
+```
+if (build_masks & 0x100 && (game->frame + o) % 16 == 0) {
+    build_masks &= ~0x100;
+    place_roads(..., REGEN_FORCE);
+}
+```
+
+The identity is not read out of the draw chain, which stops three frames
+deep at `find_road`. It is read out of **`WallData::build_masks`**, which
+the original prints for every building of every block from `BUILDS=1`.
+run100's own blocks:
+
+```
+10230  who0 0x100: []
+10231  who0 0x100: [2000,2001,2002,2003,2005,2006]
+10234  who0 0x100: [2000,2001,2002,2003,2005,2006]
+10235  who0 0x100: [2000,2001,2002,2003,2005]
+10236  who0 0x100: [2000,2001,2002,2003]
+10238  who0 0x100: [2000,2001,2002]
+10239  who0 0x100: [2000,2001]
+10240  who0 0x100: [2000]
+10241  who0 0x100: []
+```
+
+`0/2006` loses the bit across 10234 and `0/2005` across 10235. Those are
+the word's two frames, and every one of the six clears on the frame
+`12_240 - o` names. **So the two frames are two buildings, not one search
+carried over**, and §18.1 is corrected in place.
+
+`Caravan::build_road` and `Caravan::process` were ruled out before that,
+in ten seconds, off run53's own coverage records: the run was taken with
+`cover=1` and carries the frame each of 6,936 functions was **first**
+entered on. `Caravan::process@0073e000` is **not in the list at all** — it
+never runs in the whole 24,001-frame game.
+
+### 19.2 The cause is a death on 10230
+
+`build_masks & 0x100` is set by `City::regen_roads@00738aa0`, whose two
+in-game callers are `Build::activate` and **`Build::remove_from_city`**.
+On sim-frame 10230 the human's Farm `0/2004` — `(2112, 31296)`, raided
+from block 9452, `damage 395/400` at 10230 — dies, and
+`remove_from_city` splices it out of the `city_down` chain (`0/2003`'s
+goes `2004 → 2005` on the same block) and flags what is left of the city.
+
+**This crate had only `Build::activate`'s call.** `Sim::remove_from_city`
+unlinked the building and stopped, so nothing was ever flagged, no
+building ever replanned, and the search simply never happened. The whole
+change is one line, and `crates/sim/src/city.rs` carried a comment saying
+`Build::activate` "is the only writer a traced game reaches" — struck
+there now, with this frame beside it.
+
+### 19.3 What it moved
+
+| | before | after |
+|---|---|---|
+| Great Lakes long word, sequence | 10234 | **10237** |
+| Great Lakes long word, count | 10234 | **10244** |
+| f10234 draws, ours / theirs | 6 / 204 | **204 / 204** |
+| f10235 draws, ours / theirs | 5 / 78 | **78 / 78** |
+| run100 widening, keys parted `[9340, 10247]` | 328 | **297** |
+| Great Lakes endpoint `off` / `unlinked` | 44 / 11 | 51 / 7 |
+| East Indies endpoint `off` / `unlinked` / `build_*` | 64 / 10 / 0 / 32 | 63 / 11 / 1 / 28 |
+
+The value diff beside the move is the replan flag's own schedule, which
+is now this crate's on every one of the six buildings and both
+directions — `docs/ROADS.md` §1.2 has the table and the two guards.
+
+**The two words have separated, and the sequence's is not a simulation
+disagreement.** 10237 and 10242 both spend seven and eight draws on both
+sides and part on a *label*: the original's trace names the draw
+`678cb9` — `Ammo::do_damage@00678060+0xc59` — and
+`rondata::trace::SITES` does not carry that address, so this crate's
+unattributed `projectiles` phase label stands against a raw hex string.
+Until that site is named the sequence cannot pass 10237 however the
+simulation behaves. Naming it belongs with `docs/COMBAT.md` and is not
+taken here.
+
+### 19.4 The capture that was not taken, and the field that was never parsed
+
+run117 was reserved for "which caller fires on 10234". Four reads on the
+disk answered it first, in this order and at this cost:
+
+1. **run53's coverage** — `report.py … functions`, ten seconds — killed
+   both caravan arms.
+2. **run100's `BUILDDATA`, block by block** — three seconds of streaming
+   — named `0/2006` and `0/2005` and gave the rotation exactly.
+3. **run100's roster diff across 10230** — the same pass — named the
+   death and the `city_down` splice.
+4. **`Build::remove_from_city` in the decompile** — one file — gave the
+   gate and the call order.
+
+So the capture was not needed and was not taken, and the lane's screen is
+free. The rule that produced that is CLAUDE.md's "grep the disk before
+booking a capture", one level up: **grep the disk before booking the
+capture somebody else already approved.**
+
+The sharper lesson is the fourth read's. `BuildDump::build_masks` has
+been in the reader since the `BUILDDATA` block existed, and it was
+parsed with `b.int("build_masks")` — off the **`BUILDDATA`** block, where
+the record writes it at **`WALLDATA`**'s indent. So it was `None` on
+every capture ever taken, `crate::ledger` listed it as uncompared for
+weeks, and the bit that held the headline word was printed on every
+building of every block on the disk and could not be read. It is a
+`WALLDATA` field now, it is compared on every linked building-frame on
+every capture, and `build_masks_is_the_wall_s_field` pins the indent with
+a decoy at the outer one so the old reading cannot pass by accident.
+
+"When the original dumps a record, diff the whole record" has now failed
+twice in the same direction on the same record. The first time the field
+was parsed and uncompared; this time it was neither, and nothing said so
+except a ledger row nobody had read.

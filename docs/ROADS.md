@@ -127,6 +127,91 @@ three road frames on run14 are 10, 11 and 171 and nothing else, which is
 what the trace says, and every frame in between where the flag fires belongs
 to a type §3 turns away.
 
+### 1.2 The second writer: a **death** replans the city (item 478, 2026-09-21)
+
+*Established 2026-09-21 from run100's own `BUILDDATA` blocks and run53's
+trace, and diff-backed both ways.*
+
+§1 has named `Build::remove_from_city` as one of `City::regen_roads`' two
+callers since it was written. **This crate had only the other one**, and
+the cost of that was Great Lakes' headline word, which sat at **10234**
+for four items.
+
+**What the frame is.** On sim-frame 10230 the human's Farm `0/2004` — at
+`(2112, 31296)`, ground down by an AI raid from block 9452 — reaches
+`damage 400` against `myhits 400` and dies. `Build::close` calls
+`Build::remove_from_city`, whose body sits under one gate
+(`(flags & 0x20) == 0 && city >= 0`: a city centre and an unattached
+building do nothing) and whose fourth statement, **after** the
+`city_down` splice and **before** `city` is cleared, is
+`City::regen_roads(city)`. So what gets flagged is the city's *remaining*
+buildings — the dump shows `0/2003`'s `city_down` going `2004 → 2005` on
+the same block the six survivors' `build_masks` gains `0x100`.
+
+**Then §1's rotation spreads them over sixteen frames**, and the
+arithmetic is exact: every one fires on the frame `12_240 - o`.
+
+| object | type | replans on | road-cost draws |
+|---|---|---|---|
+| `0/2006` | Market | **10234** | **198** |
+| `0/2005` | Library | **10235** | **73** |
+| `0/2003` | Farm | 10237 | none — a gatherer |
+| `0/2002` | Farm | 10238 | none |
+| `0/2001` | Woodcutter | 10239 | none |
+| `0/2000` | Small City | 10240 | none — §3's city arm |
+
+The two that search are the two §1's run14 table already names as the
+types that reach §3's search arm, sixteen frames apart there and one
+frame apart here for the same reason: `10_234 + 2_006` and
+`10_235 + 2_005` are both `12_240`.
+
+**So the word was never one road search carried across two frames.** It
+is **two buildings**, each taking its own slot, and the reading that
+called it one search spanning 10234–10235 (`docs/ORDERS.md` §18.1) is
+corrected here.
+
+**What it moved.** With `Build::remove_from_city` calling
+`City::regen_roads`, frame 10234 spends 204 draws against 204 and 10235
+spends 78 against 78 — the whole frame, site for site, the road search
+included. Great Lakes' long word goes **10234 → 10237** on the sequence
+and **10244** on the count, and the widening's parted-key count over
+`[9340, 10247]` falls **328 → 297**.
+
+**Diff-backed, and by a field nobody had ever compared.** Two guards:
+
+- `run100_s_word_block_is_every_record_the_dump_carries` asserts the
+  whole schedule from both sides — for each of the six, the block its
+  flag goes up (10231) and the last block that still carries it
+  (`12_240 - o`), from run100's `BUILDDATA` and from this crate, as two
+  equal lists. A rule that flagged the city on the wrong frame moves the
+  first number; one that fired the replans together collapses the six
+  spans onto one block; one that never flagged anything — which is what
+  this crate had — empties our list while the dump's still holds all six.
+  Made to fail on purpose: with the call commented out the same test
+  prints six `build:regen_roads: ours 0 theirs 1` rows on block 10231.
+- `great_lakes_s_word_draws_are_a_road_search_and_8186_spends_none`
+  keeps the trace half — the seven road searches in `[8186, 10247]` as a
+  list of frames, the `ebp` chain on every one of 10234's 198 draws, and
+  the parting draw's index.
+
+**`build_masks` had never been compared, and was never even parsed.**
+`BuildDump::build_masks` was read with `b.int("build_masks")` off the
+`BUILDDATA` block; the record writes it at **`WALLDATA`**'s indent,
+between `ever_seen_completed` and `helpers`. So the field was `None` on
+every capture ever taken, and the flag that held the headline word was in
+every block of every dump on the disk, unreadable. `build_masks_is_the_
+wall_s_field` pins the indent, and the replan bit is now one more row on
+every linked building-frame — 63,000 more comparisons on East Indies'
+run57 alone, none of them wrong.
+
+**What this does not establish.** Nothing about `place_roads`'
+`REGEN_TOTAL` arm or `Caravan::build_road`, which remain §1's and §8's
+unexercised paths — no traced game has yet reached `Caravan::process` at
+all, and run53's 24,000 frames never enter it. And the cause *upstream*
+of the death is untouched: `0/2004`'s damage trajectory agrees with the
+dump's frame for frame, which is why this item is a road item and not a
+combat one.
+
 ## 2. The weights
 
 `PathFinder::init@00689ec0` copies two sixteen-byte `.rdata` literals into
@@ -324,6 +409,11 @@ begins on a road does not get the bonus on its first step.
   on: run32's Granary at (6, 171) and Smelter at (33, 161), 62 tiles
   including both rings (§7).
 - **The placement-time plan** (§1), against those same 2,913 draws.
+- **The replan flag's whole schedule after a death** (§1.2) — the six
+  survivors of Great Lakes' city flagged on block 10231 and each clearing
+  on `12_240 - o`, from run100's `BUILDDATA` and from this crate as two
+  equal lists, with 10234's 198 road draws and 10235's 73 in the trace
+  beside them.
 - **The height grid the search reads, whole** — run72's `FRAME 4803`, all
   921,600 tiles of Great Lakes at sim-frame 4802, which is what put the
   terraform in the right frame (§7.6). Every cell owner and every tile mask
