@@ -4167,13 +4167,22 @@ mod tests {
         // open question** — it was the parting that probe's 9582 left, one
         // `Leader::use_market+0x1ed` short, and it is a market sell on
         // both sides now.
+        //
+        // **Ten → eleven on item 497**, the same shape a third time and
+        // the largest single step of it: the word went 10303 → 10582 and
+        // **10382** came under. The comparison above passed unchanged
+        // again. The rotation's next frame after it is **10582** itself,
+        // which is the word — the original takes `Leader::use_market
+        // +0x1ed` there and this crate `Leader::make_stuff+0x221`, so
+        // the sequence parts on a market frame and the count parts one
+        // frame later on `Leader::create_units+0x642`.
         assert_eq!(
             markets,
             vec![
-                8582, 8585, 8782, 8982, 9_182, 9_382, 9_582, 9_782, 9_982, 10_182
+                8582, 8585, 8782, 8982, 9_182, 9_382, 9_582, 9_782, 9_982, 10_182, 10_382
             ],
-            "below the word Great Lakes takes exactly ten market draws — \
-             and 9182 is item 385's own: the frame the sequence used to \
+            "below the word Great Lakes takes exactly eleven market draws \
+             — and 9182 is item 385's own: the frame the sequence used to \
              part on is a `use_market` sell on both sides now"
         );
         // **The first arrow in the game, on both sides** (item 389,

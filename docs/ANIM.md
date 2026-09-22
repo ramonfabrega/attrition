@@ -1129,6 +1129,7 @@ calling the roll. Neither the clock nor `inc_time` was ever wrong.
 | East Indies endpoint `off` / `unlinked` / `build_diverged` | 63 / 11 / 28 | **59** / **12** / **30** |
 | East Indies ladder B `off` / `extra` | 48 / 11 | **45** / **6** |
 | scholar seatings below Great Lakes' word | 10 | **11** |
+| market draws below Great Lakes' word | 10 | **11** |
 
 East Indies' own word does not move (9711 either side) and neither does
 the golden record's; the endpoints move on both maps because a chain that
