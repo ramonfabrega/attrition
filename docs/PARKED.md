@@ -22,6 +22,32 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Parked 2026-09-21, item 471's successor
+
+(474) **A recycled group slot keeps its `order_num`, and this crate's
+fresh one does not.** Great Lakes' probe group carries order `id 8192502`
+— group 65, frame 8186, **order_num 2** — where this crate writes
+`8192801`, group 68, the same frame, **order_num 1**. Two reasons, both
+read off the listing and neither modelled:
+`Groups::copy_group@006fa690` copies `who`, `num`, `ox`, `oy`, `o_dist`
+and `o_angle` into the pool slot and the four member arrays with them, but
+**not `order_num`**; and `Groups::push_group@0070f9e0` skips `copy_group`
+altogether when `Group::equals_group` matches the pool's *last* slot
+(`groups +0x1c`), so a group pushed twice running reuses its seat with
+everything on it intact. Either would leave a recycled slot counting on
+from where it was.
+
+**Why this parks rather than queues, and the clause matters:** it changes
+the group order's `id` and nothing else any comparison reads. `id` is not
+compared — the seat numbers are this crate's own and deliberately
+uncompared (`docs/ORDERS.md` §16.6, and `Sim::group_id`'s comment says
+so) — so closing this moves no word, no floor and no endpoint count. It
+is on the record because it is *known* and because the `id` arithmetic is
+how frame 8186 was established twice over; it should not be promoted to
+the queue on the strength of being true. Promote it only if something
+later starts comparing the seat, or if `order_num` turns out to be read by
+a mechanism that is scored.
+
 ## Loop — the steering pass's, never a worker's
 
 Tooling, guards and the queue's own rules. The Fable pass takes these

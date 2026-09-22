@@ -5411,21 +5411,22 @@ mod tests {
         // whether a ninth unit joined them — and item 385 is why that
         // matters: the truncated final block briefly put 39 of them in
         // here, and only the set said so.
+        //
+        // **Item 471 took five of the eight off it** — `1/27`, `1/28`,
+        // `1/29`, `1/41` and `1/42`, the five of §12's probe that are not
+        // its leader. Their whole residue was the one wrong number their
+        // group move was laid out from: the formation angle, which this
+        // crate read as nought because it asked where the leader *stands*
+        // for a move queued behind an attack rather than where it ends up
+        // (`docs/ORDERS.md` §17). `1/40` stays because its own leg is the
+        // one the plan is made from, and what is left of it is the
+        // pathfinder's tie-break ([`PROBE_PLAN_PARTED`]).
         let mut units: Vec<(i64, i64)> = scoring.iter().map(|d| (d.who, d.o)).collect();
         units.sort_unstable();
         units.dedup();
         assert_eq!(
             units,
-            vec![
-                (1, 23),
-                (1, 27),
-                (1, 28),
-                (1, 29),
-                (1, 33),
-                (1, 40),
-                (1, 41),
-                (1, 42)
-            ],
+            vec![(1, 23), (1, 33), (1, 40)],
             "run97's order residue reached a unit item 368 did not leave it on"
         );
         // The count is floored beneath the set, so a known unit growing
@@ -5441,6 +5442,33 @@ mod tests {
     /// The frame Great Lakes' AI sends [`PROBE_SENT`]'s six from its base
     /// to the far south-west, and the one world path that carries all six.
     const PROBE_PLAN_FRAME: i64 = 8186;
+
+    /// The entries of the probe's plan that part, per member — **the rows,
+    /// not their number**, so a route that changes fails here whichever way
+    /// it moves.
+    ///
+    /// Five of the six are empty and have been since item 354. `1/40`'s
+    /// twenty-two arrived with item 471 and are **newly compared ground,
+    /// not a regression**: until then this crate held 47 entries where the
+    /// original holds 94, so the comparison stopped at the out leg and the
+    /// return leg was not in it at all. Now both sides hold 94 and the out
+    /// leg — every entry from 42 up — still agrees exactly.
+    ///
+    /// **What the twenty-two are.** Every one shares the original's `x` and
+    /// sits 768 or 1536 south of its `y` — one or two cells — over three
+    /// stretches that each re-converge within a dozen waypoints. Same start,
+    /// same end, same `x` progression: a tie-break in the cost function and
+    /// not a different route. It is the same residue the long word stands
+    /// on, where the original spends 204 draws at
+    /// `PathFinder::calc_road_cost+0x46` and this crate spends six
+    /// (`docs/ORDERS.md` §17.5), and closing that is what would empty this.
+    const PROBE_PLAN_PARTED: &[(i64, i64, &[usize])] = &[(
+        1,
+        40,
+        &[
+            3, 4, 5, 6, 7, 8, 9, 10, 11, 24, 25, 26, 27, 28, 29, 30, 33, 37, 38, 39, 40, 41,
+        ],
+    )];
 
     /// **Great Lakes 8186 plans the probe's route the original's way** —
     /// item 354, `docs/PATHFINDER.md` §22.
@@ -5541,13 +5569,18 @@ mod tests {
             //   `1/27`, `1/28` and `1/29` on one `y` and the original
             //   spreads them, which is `Group::update_positions`'
             //   rotation by the unit's angle (`docs/GROUPS.md` §6.6);
-            // - **a whole second leg** under `1/40`'s: run97 block 8187
+            // - ~~**a whole second leg** under `1/40`'s: run97 block 8187
             //   gives it 92 entries where this crate gives 47, and the
             //   46 extra sit *beneath* — a queued move this crate does
-            //   not hold. Its own 46 are the current leg and they agree
-            //   entry for entry, which is what the comparison below says.
+            //   not hold.~~ **It holds it since item 471** — 94 entries
+            //   against 94 — because the `QUEUE_LAST` walk home is now
+            //   planned from where the leader *ends up* rather than from
+            //   its feet (`docs/ORDERS.md` §17), which is also what makes
+            //   the plan a real leg instead of a step of seventeen units.
+            //   So the comparison below covers twice what it did, and the
+            //   half it gained is [`PROBE_PLAN_PARTED`].
             //
-            // §22.4 names both as successors.
+            // §22.4 names the first as a successor.
             let k = ours.path.len().min(them.path.len()) - 1;
             let ours_route: Vec<(i64, i64)> = ours.path[ours.path.len() - k..]
                 .iter()
@@ -5564,10 +5597,20 @@ mod tests {
                 ours.path.first().map(|p| (p.to.x, p.to.y)),
                 them.path.first().map(|p| p.to)
             );
+            let parted: Vec<usize> = (0..k)
+                .filter(|&i| ours_route[i] != their_route[i])
+                .collect();
+            let want: &[usize] = PROBE_PLAN_PARTED
+                .iter()
+                .find(|&&(w, x, _)| (w, x) == (who, o))
+                .map_or(&[], |&(_, _, v)| v);
             assert_eq!(
-                ours_route, their_route,
+                parted,
+                want,
                 "{who}/{o}'s world plan is not run97 block 8187's, waypoint for \
-                 waypoint"
+                 waypoint: ours {:?} theirs {:?}",
+                parted.iter().map(|&i| ours_route[i]).collect::<Vec<_>>(),
+                parted.iter().map(|&i| their_route[i]).collect::<Vec<_>>(),
             );
             // The same span's tolerances and flags, whole — except the
             // **top** entry, which the dump prints as `t0 f1` on every
@@ -5582,10 +5625,30 @@ mod tests {
                 .iter()
                 .map(|p| (p.tolerance, p.flags))
                 .collect();
-            assert_eq!(
-                ours_rest, their_rest,
+            // **And these agree everywhere, including where the route does
+            // not.** `1/40`'s twenty-two parted waypoints carry the
+            // original's own `tolerance` and `flags` on every one of them,
+            // which is worth an assertion of its own: a leg planned to the
+            // wrong cell but stamped right is a **cost** answer, where a leg
+            // stamped wrong would be a different call. So this list is empty
+            // for all six and is deliberately **not** [`PROBE_PLAN_PARTED`]
+            // — reusing that expectation here is what made this test red on
+            // item 471's first gate.
+            let rest_parted: Vec<usize> = (0..ours_rest.len())
+                .filter(|&i| ours_rest[i] != their_rest[i])
+                .collect();
+            assert!(
+                rest_parted.is_empty(),
                 "{who}/{o}'s waypoint tolerances and flags are not run97 block \
-                 8187's"
+                 8187's at {rest_parted:?}: ours {:?} theirs {:?}",
+                rest_parted
+                    .iter()
+                    .map(|&i| ours_rest[i])
+                    .collect::<Vec<_>>(),
+                rest_parted
+                    .iter()
+                    .map(|&i| their_rest[i])
+                    .collect::<Vec<_>>(),
             );
             checked += 1;
         }
@@ -7060,67 +7123,25 @@ mod tests {
         // plans on the original's own frame (`docs/ORDERS.md` §16). What
         // is left is item 464's three, and they are the citizen's.
         //
-        // The word moved with them, so this set is the block **past** the
-        // new word as well as the value diff of the old one: on 10235
-        // `1/28` reopens on the route itself — `path:length ours 44
-        // theirs 43`, `pos ours (4799,30180) theirs (4800,30175)` — 240
-        // out in `x` because the formation slot is.
+        // The word moved with them, so this set is the block **past**
+        // the new word as well as the value diff of the old one.
+        //
+        // **Item 471 took it from sixty rows to three.** `1/28`'s whole
+        // 43-node route is the original's now, node for node, because the
+        // formation angle the route hangs off is: §12's probe queues its
+        // walk home at `QUEUE_LAST`, so `action_move_near` asks
+        // `GroupData::get_loc_to` — where the leader *ends up* — and the
+        // bearing is `find_angle` from the **farm** at the other end of
+        // the map, not from the leader's own feet, which is where this
+        // crate read it and got no bearing at all
+        // (`docs/ORDERS.md` §17). What is left is `1/28` one unit east
+        // in `x`, said three times: the unit and its guy's two copies.
         assert_eq!(
             on_word,
             vec![
-                "1/28 g.angle[0]: ours 1372520448 theirs 1252851712",
-                "1/28 g.des_angle[0]: ours 1372520448 theirs 1252851712",
-                "1/28 g.des_x[0]: ours 4799 theirs 4800",
-                "1/28 g.des_y[0]: ours 30180 theirs 30175",
-                "1/28 g.last_speed[0]: ours 26 theirs 25",
-                "1/28 g.x[0]: ours 4799 theirs 4800",
-                "1/28 g.y[0]: ours 30180 theirs 30175",
-                "1/28 heading: ours 1372520448 theirs 1252851712",
-                "1/28 order:move.dest_x: Move { field: \"dest_x\", ours: 5496, theirs: 6024 }",
-                "1/28 path:length: PathLength { ours: 44, theirs: 43 }",
-                "1/28 path[10].to: PathTo { slot: 10, ours: (30840, 25128), theirs: (30600, 25128) }",
-                "1/28 path[11].to: PathTo { slot: 11, ours: (30072, 25128), theirs: (29832, 25128) }",
-                "1/28 path[12].to: PathTo { slot: 12, ours: (29304, 25128), theirs: (29064, 25128) }",
-                "1/28 path[13].to: PathTo { slot: 13, ours: (28536, 25128), theirs: (28296, 25128) }",
-                "1/28 path[14].to: PathTo { slot: 14, ours: (27768, 25128), theirs: (27528, 25128) }",
-                "1/28 path[15].to: PathTo { slot: 15, ours: (27000, 25128), theirs: (26760, 25128) }",
-                "1/28 path[16].to: PathTo { slot: 16, ours: (26232, 25128), theirs: (25992, 24360) }",
-                "1/28 path[17].to: PathTo { slot: 17, ours: (25464, 24360), theirs: (25224, 24360) }",
-                "1/28 path[18].to: PathTo { slot: 18, ours: (24696, 24360), theirs: (24456, 24360) }",
-                "1/28 path[19].to: PathTo { slot: 19, ours: (23928, 24360), theirs: (23688, 24360) }",
-                "1/28 path[1].to: PathTo { slot: 1, ours: (37752, 21288), theirs: (37512, 21288) }",
-                "1/28 path[20].to: PathTo { slot: 20, ours: (23160, 24360), theirs: (22920, 25128) }",
-                "1/28 path[21].to: PathTo { slot: 21, ours: (22392, 25128), theirs: (22152, 25896) }",
-                "1/28 path[22].to: PathTo { slot: 22, ours: (21624, 25896), theirs: (21384, 26664) }",
-                "1/28 path[23].to: PathTo { slot: 23, ours: (20856, 26664), theirs: (20616, 26664) }",
-                "1/28 path[24].to: PathTo { slot: 24, ours: (20088, 26664), theirs: (19848, 25896) }",
-                "1/28 path[25].to: PathTo { slot: 25, ours: (19320, 25896), theirs: (19080, 25896) }",
-                "1/28 path[26].to: PathTo { slot: 26, ours: (18552, 25896), theirs: (18312, 25896) }",
-                "1/28 path[27].to: PathTo { slot: 27, ours: (17784, 25896), theirs: (17544, 26664) }",
-                "1/28 path[28].to: PathTo { slot: 28, ours: (17016, 26664), theirs: (16776, 27432) }",
-                "1/28 path[29].to: PathTo { slot: 29, ours: (16248, 27432), theirs: (16008, 27432) }",
-                "1/28 path[2].to: PathTo { slot: 2, ours: (36984, 21288), theirs: (36744, 21288) }",
-                "1/28 path[30].to: PathTo { slot: 30, ours: (15480, 27432), theirs: (15240, 27432) }",
-                "1/28 path[31].to: PathTo { slot: 31, ours: (14712, 27432), theirs: (14472, 26664) }",
-                "1/28 path[32].to: PathTo { slot: 32, ours: (13944, 26664), theirs: (13704, 25896) }",
-                "1/28 path[33].to: PathTo { slot: 33, ours: (13176, 25896), theirs: (12936, 26664) }",
-                "1/28 path[34].to: PathTo { slot: 34, ours: (12408, 26664), theirs: (12168, 27432) }",
-                "1/28 path[35].to: PathTo { slot: 35, ours: (11640, 27432), theirs: (11400, 27432) }",
-                "1/28 path[36].to: PathTo { slot: 36, ours: (10872, 27432), theirs: (10632, 27432) }",
-                "1/28 path[37].to: PathTo { slot: 37, ours: (10104, 27432), theirs: (9864, 27432) }",
-                "1/28 path[38].to: PathTo { slot: 38, ours: (9336, 27432), theirs: (9096, 28200) }",
-                "1/28 path[39].to: PathTo { slot: 39, ours: (8568, 28200), theirs: (8328, 28968) }",
-                "1/28 path[3].to: PathTo { slot: 3, ours: (36216, 22056), theirs: (35976, 22056) }",
-                "1/28 path[40].to: PathTo { slot: 40, ours: (7800, 28968), theirs: (7560, 29736) }",
-                "1/28 path[41].to: PathTo { slot: 41, ours: (7032, 29736), theirs: (6792, 30504) }",
-                "1/28 path[42].to: PathTo { slot: 42, ours: (6264, 30504), theirs: (6024, 30504) }",
-                "1/28 path[4].to: PathTo { slot: 4, ours: (35448, 22056), theirs: (35208, 22824) }",
-                "1/28 path[5].to: PathTo { slot: 5, ours: (34680, 22824), theirs: (34440, 23592) }",
-                "1/28 path[6].to: PathTo { slot: 6, ours: (33912, 23592), theirs: (33672, 24360) }",
-                "1/28 path[7].to: PathTo { slot: 7, ours: (33144, 24360), theirs: (32904, 25128) }",
-                "1/28 path[8].to: PathTo { slot: 8, ours: (32376, 25128), theirs: (32136, 25128) }",
-                "1/28 path[9].to: PathTo { slot: 9, ours: (31608, 25128), theirs: (31368, 25128) }",
-                "1/28 pos: ours (4799,30180) theirs (4800,30175)",
+                "1/28 g.des_x[0]: ours 4801 theirs 4800",
+                "1/28 g.x[0]: ours 4801 theirs 4800",
+                "1/28 pos: ours (4801,30175) theirs (4800,30175)",
             ],
             "the word's own block is not the route it is"
         );

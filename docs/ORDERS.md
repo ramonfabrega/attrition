@@ -4506,10 +4506,18 @@ build_diverged 10 → 8**, 13,767 frames past the word.
 **What 10234 is.** The record agrees on it and the draw stream does not:
 the original spends **204** draws there, `PathFinder::calc_road_cost+0x46`
 over and over, and this crate spends six for a 43-node route of its own.
-`1/28` reopens one block later, on 10235, where the two routes are 240
+~~`1/28` reopens one block later, on 10235, where the two routes are 240
 apart in `x` — `order:move.off_x ours 120 theirs 648` — which is the
 formation **slot table**, `Form::compute`'s own seam and the successor
-this item leaves.
+this item leaves.~~
+
+**Struck by item 471, and the frame was right again while the mechanism
+was not.** `off_x` is `x mod 0x300` — the destination said twice — so that
+row was never a slot of its own, and the whole cast says so: all six
+members part on `order:move.x/y`, on block **9340**, 895 blocks before the
+frame this paragraph names. The slot table is the original's; the **angle**
+it is turned by is not, and that is decided upstream of `Form::compute`
+entirely, in which of two location functions `action_move_near` asks. §17.
 
 ### 16.6 Coverage
 
@@ -4535,6 +4543,280 @@ capture on disk separates the two. The pool's slot **numbers** are not
 the dump's (this crate's armies do not sit in the same pool, so `group`
 is still uncompared). `Group::refresh_group_order`'s trigger is modelled
 from the four follower tests and its effect from §6.8; the
-`CHANGE_FORM` arm of those tests is unmodelled. And the probe group's
+`CHANGE_FORM` arm of those tests is unmodelled. ~~And the probe group's
 `group_angle` is `0` where the dump's is `890830848`, which is the same
-slot-table seam §16.5 names.
+slot-table seam §16.5 names.~~ **Closed by item 471**: it is `find_angle`
+from where the leader *ends up*, and §17 reproduces it to the bit.
+
+## 17. The group's location for a queued move is where the leader *ends up* (item 471, 2026-09-21)
+
+Item 465 moved Great Lakes' long word to 10234 and left one successor:
+`1/28` reopens on 10235, where the two routes are 240 apart in `x` and the
+order carries `off_x ours 120 theirs 648`. 465 read that as
+`Form::compute`'s slot table. The slot table is not the defect; the
+**formation angle handed to it** is, and it is upstream of the layout
+entirely.
+
+### 17.1 The widening: it was never `1/28`'s row
+
+The item's own row is the one 465 named, and the first thing to do with it
+was to stop looking at `1/28`. Every member of group 65 parts on the same
+two fields, and all six part on the window's **first** block — 9340, 895
+blocks before the frame the item is about:
+
+| unit | `form_id` | `order:move.x/y` ours | theirs | `off_x` ours | theirs |
+|---|---|---|---|---|---|
+| `1/27` | 0 | 39144, 21288 | 39000, 21192 | 744 | 600 |
+| `1/28` | 1 | 39288, 21288 | 39048, 21288 | 120 | 648 |
+| `1/29` | 2 | 39000, 21288 | 38952, 21048 | 600 | 552 |
+| `1/40` | 3 | *agrees* | 39144, 21144 | — | — |
+| `1/41` | 4 | 39288, 21144 | 39192, 21288 | 120 | 24 |
+| `1/42` | 5 | 39000, 21144 | 39096, 21000 | 600 | 696 |
+
+**`off_x` is `x mod 0x300` — the destination said twice** (§4.1). So the
+row item 471 was booked on is not a field of its own at all: the whole of
+it is in the `x` above it, and `1/28`'s 120 is a consequence of the group's
+destination rather than a slot of its own. The item's title named a unit
+and a field where the record named a group and neither.
+
+**A derived field that looks independent is the shape that has cost this
+frame run five wrong mechanisms.** The comparator prints `off_x` beside
+`x` with nothing to say they are one number; a reader who takes them for
+two sees a slot table where there is only a destination. Before a row is
+made a mechanism, ask what writes it — and `crates/rondata/src/diff/
+order.rs` already said so in the comment directly above the row.
+
+**And the cause was 895 blocks upstream of the block the item names.**
+The comparator keys on the block a field **first** parts on, so a number
+wrong since the order was born never shows up where its consequence does:
+this item was booked on 10235 and every one of its rows is at 9340. That
+is the furthest "the frame is right, the mechanism is not" has yet gone on
+this frame run, and it is worth being precise about the sense in which the
+frame was right — 10235 was a true symptom and a true place to look, and
+it was nine hundred frames downstream of anything that could be fixed. A
+residue item's frame locates the *consequence*. Widen first, read the
+whole window, and let the first-parting block say where the cause is.
+
+And the two tables are the same six points. This crate's are a clean
+3×2 grid on 144 — `x ∈ {39000, 39144, 39288}`, `y ∈ {21144, 21288}`, three
+abreast and two deep. The original's are that grid **rotated**: its second
+moment about its own centre is 112,512 against this crate's 114,048, a
+Procrustes fit of the two puts the rotation at 72.1°, and the group order's
+own `group_angle` is **890830848** — 74.67° — the difference being the
+quarter-tile snap the destinations are laid on. This crate's `group_angle`
+is **0**, which is why its block is axis-aligned. One number, not a table.
+
+### 17.2 The angle is `find_angle` from the *farm*, and it is exact
+
+`Group::compute_form@00707c80` picks it (`docs/GROUPS.md` §6.3): with no
+caller-supplied angle, a non-zero `dest − loc` takes `find_angle` of the
+delta, and a zero delta takes the leader's own heading less its packed slot
+byte. This crate reached the zero-delta arm — its `group_loc` answers the
+leader's own position, and `docs/ARMY.md` §12's probe orders the group **to
+that very position** — and then fell through both halves of that arm to the
+record's `o_angle`, which for a group freshly pushed is nought.
+
+The leader's heading is not the answer either. run19's window covers the
+issuing frame, and its block 8186 carries all six of this crate's positions
+to the unit and `1/40`'s heading to the bit — `-1512964096`, where the order
+wants `890830848`, and no packed byte spans the difference, which is not a
+multiple of `1 << 24`.
+
+**The location is the defect.** `Group::action_move_near` does not ask
+`get_loc` at all for this move (`00704990:361`–`364`):
+
+```
+if (param_4 == QUEUE_LAST) GroupData::get_loc_to(this, &x, &y, tol);
+else                       GroupData::get_loc   (this, &x, &y, 0);
+```
+
+and `GroupData::get_loc_to@0070c5d0` answers with
+`UnitData::get_final_loc@00608040` — where the leader will be when the
+orders already on its list are done — rather than where it stands.
+`docs/ARMY.md` §12's
+probe queues `action_attack(farm, QUEUE_NEW)` and then the walk home at
+**`QUEUE_LAST`**, so at the moment the move is laid out the leader `1/40` is
+standing at the destination but is *going* to a farm at the other end of the
+map, and the delta is the length of Great Lakes.
+
+**And the probe concealed the defect it exercises, which is a finding
+about the harness rather than about the mechanic.** `docs/ARMY.md` §12's
+probe is the one call in any scored window that takes this branch, and the
+shape of it — an attack queued at `QUEUE_NEW`, the walk home behind it at
+`QUEUE_LAST`, aimed at the leader's own feet — is precisely the shape that
+makes `get_loc`'s wrong answer *look* like a legitimate zero delta rather
+than like a missing call. A capture whose only witness to a branch is a
+case that disguises it is not a witness. This is the fifth instrument
+defect on this frame run, and the general form is: when the sole exerciser
+of a path is degenerate, the path is untested however many frames agree.
+
+The farm is `0/2004`, at `(2112, 31296)` in run19's own block 8187, and
+
+```
+find_angle(39133 − 2112, 21131 − 31296) = 890830848
+```
+
+**to the bit**, through this crate's own integer `find_angle`. Every other
+point in reach of the call misses it by a quarter-degree or more: the
+leader's own trailing move order gives 897122304, `1/27`'s 910229504,
+`1/42`'s 887881728. One candidate is exact and the rest are not close.
+
+### 17.3 `get_final_loc`, and what it walks
+
+`get_final_loc` walks the order list **from the head** and stops at the
+first order that names a point — not the last, and not the deepest:
+
+- a **move** order (vslot `+0x14`) hands back `+0xb8`'s `(+4, +8)`, the
+  order's own `x`/`y` and not its live waypoint;
+- an order carrying a **`TargetOrder`** (vslot `+0x20`) hands back
+  `+0xb4`'s `(o, who)` — the target **object's** position — provided that
+  object is still `flags & 1`. Note the test: `flags & 1` alone, with
+  nothing asked about the map or about combat, which is weaker than every
+  other liveness test in the family;
+- an order naming neither is walked past, and the loop is bounded by the
+  list's own length.
+
+Then the answer is checked with `invalid_loc(unit, tile, 1, …)` — the `1` is
+*buildings ignored*, which is the whole reason a farm's own cell can be the
+answer — and a point that fails it, or a list that named nothing, is
+replaced by the unit's own position.
+
+`crates/sim`'s [`Sim::unit_final_loc`] is that walk and
+[`Sim::group_loc_to`] the wrapper, whose `(ox, oy)` override is the same
+`0x180` window `get_loc` uses but measured from the **final** point rather
+than from the unit (`0070c634`).
+
+### 17.4 The zero-delta arm, which was also missing
+
+The arm this crate fell through is real and it is now written, because the
+same call reaches it whenever nothing is queued ahead. From the listing at
+`707e3d`–`707e6d`:
+
+```
+if (dx == 0 && dy == 0) {
+    if (loc != (group.ox, group.oy))
+        angle = leader.angle − ((signed char)group.angles[slot] << 24);
+    else
+        angle = group.o_angle;
+}
+```
+
+The first half is the quantity `compute_form` computes once at `707ea8` and
+uses twice — the mirror test at `707e7e` compares the same `%esi` — so
+[`Sim::group_leader_bearing`] is one function here and
+`group_leader_faces_away` now reads it rather than recomputing it.
+
+**It is not what closed this frame**, and saying so is the point: with only
+this arm the probe's angle becomes `-1512964096` instead of `0`, which is
+wrong in a new direction. It is landed because the listing has it and this
+crate did not, and it is asserted separately.
+
+### 17.5 What it moved
+
+**The word did not move: Great Lakes holds at 10234.** What parts there is
+the draw stream and not the record — the original spends **204** draws at
+`PathFinder::calc_road_cost+0x46` where this crate spends **6** — and that
+was already true before this item (§16.5 names it). The value diff beside
+the word is 10235, and it is most of the block:
+
+| field | this crate, before | dump | this crate, after |
+|---|---|---|---|
+| `order:move.dest_x` | 5496 | 6024 | 6024 |
+| `path:length` | 44 | 43 | 43 |
+| `path[1..42].to` | 240 out in `x`, every node | — | all 42 agree |
+| `heading` | 1372520448 | 1252851712 | 1252851712 |
+| `g.des_x/g.des_y` | 4799, 30180 | 4800, 30175 | 4800, 30175 |
+| `pos` | (4799, 30180) | (4800, 30175) | (4801, 30175) |
+
+**Sixty rows to three**, and the whole 43-node route is the original's, node
+for node. What is left is `1/28` one unit east in `x` — `pos ours (4801,
+30175) theirs (4800, 30175)` — and its two guy rows saying the same thing.
+Across the widening's window the parted keys go **440 → 322**.
+
+### 17.6 A second oracle for the word, 2,000 frames earlier
+
+**Whoever is hunting Great Lakes' long word should read this section
+before anything else in it.** The word has stood at 10234 since item 465
+and what holds it is not a record at all: the whole dumped record agrees
+and the **draw stream** does not, 204 draws at
+`PathFinder::calc_road_cost+0x46` against six. A draw count is an
+expensive oracle — it says a cost function was called a different number
+of times and nothing about what it computed.
+
+This item turned up a second witness to the same thing, and it is cheaper
+in every way. `great_lakes_8186_plans_the_probe_s_route_the_original_s_way`
+doubled its own width here: it had been comparing 47 entries against the
+original's 94 and stopping at the common tail, because this crate held no
+queued leg at all; with the leg held, both sides are 94 and the return leg
+came under comparison for the first time. Twenty-two of its entries part,
+pinned as rows in `rondata::diff::harness`'s `PROBE_PLAN_PARTED`, and the
+**shape** of those twenty-two is the claim:
+
+- every one shares the original's `x`, to the unit;
+- every one sits **768 or 1536 south** of the original's `y` — one or two
+  cells, never a fraction and never more;
+- they fall in three stretches, each of which **re-converges** within a
+  dozen waypoints onto the original's own line;
+- the route's start, its end, and its every `x` agree, and so do the
+  `tolerance` and `flags` stamped on the parted waypoints themselves.
+
+A leg planned to the wrong cell but stamped right, that re-joins the
+original's line three times without being steered back, is a **cost**
+answer: the two routes are tying and the tie is being broken differently.
+That is `calc_road_cost` and it is what the word's 204 draws are.
+
+**So the hypothesis is that these are one residue, not two** — and the
+same item closes both. It is worth running against the 22 rather than
+against the word, because the rows are twenty-two integers on a single
+frame at 8186, they name *which* cells the two sides disagree about, and
+they cost a third of a second to measure against a 169-second widening.
+
+**What would falsify it**, stated so nobody has to guess:
+
+- a change that moves the word's 204-against-6 draw count and leaves
+  `PROBE_PLAN_PARTED` at twenty-two, or empties `PROBE_PLAN_PARTED` and
+  leaves the draw count where it is, says they are two residues and this
+  section is wrong;
+- a parted entry that differs in `x`, or by a `y` that is not a whole
+  number of cells, says the 22 are not a tie-break at all and belong to
+  whatever chooses the *direction* of a leg;
+- a parted entry carrying a `tolerance` or `flags` that is not the
+  original's says a different call made the leg, not a different cost
+  inside the same one — which is why that assertion is kept separate and
+  kept at zero.
+
+### 17.7 Coverage
+
+**Diff-backed**: §17.1's table (run100, block 9340, all six members, both
+directions); §17.2's exactness, through the route in §17.5 — a
+one-in-2³² coincidence is not what makes 42 path nodes land together;
+§17.3's walk, through the same rows. All of it in
+`run100_s_word_block_is_every_record_the_dump_carries`.
+
+**Dump-backed, outside run100**: run19's block 8186 for the six positions
+and `1/40`'s heading, its block 8187 for the order as written
+(`group_angle 890830848`, `oxx 40`, `orig (39133, 21131)`, `id 8192502` =
+group 65, frame 8186, order_num 2), and `0/2004`'s position.
+
+**Listing-backed**: the `QUEUE_LAST` branch at `00704990:361`–`364`;
+`get_loc_to@0070c5d0`'s `get_final_loc` call and its `0x181` window;
+`get_final_loc@00608040`'s two arms, its `flags & 1` test and its
+`invalid_loc` fallback; `compute_form`'s zero-delta arm at
+`707e3d`–`707e6d`.
+
+**Not established.** `get_final_loc`'s target arm reads the **order's** own
+`TargetOrder` in the original and this crate's target lives on the unit
+(`docs/GROUPS.md` §12), so a list holding two attack orders answers with the
+live target for both; a gather order out at a resource **tile** answers with
+its camp. `get_loc_to`'s `buildings` seat and its `get_inside` hop for a
+garrisoned leader are unmodelled — no group this simulation builds reaches
+either. §17.4's arm is landed from the listing and **no capture on disk
+exercises it**: every `QUEUE_NEW` group move in the window has a non-zero
+delta, so the arm is asserted against a built scenario and not against a
+dump. And `order_num` is still `1` here where the dump's is `2`: `copy_group
+@006fa690` copies `ox`, `oy`, `o_dist` and `o_angle` into the pool slot but
+**not** `order_num`, and `push_group` skips the copy altogether when
+`equals_group` matches the pool's last slot — so the original's 65 is
+carrying a count from an earlier push that this crate's fresh slot does not.
+It changes the order's `id` and nothing else that any comparison reads; it
+is the successor this item leaves.

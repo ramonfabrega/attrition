@@ -707,6 +707,83 @@ impl Sim {
         Some(Pos::new(pos.x - dest.x + o.x, pos.y - dest.y + o.y))
     }
 
+    /// `GroupData::get_loc_to@0070c5d0` — the group's location for a
+    /// **`QUEUE_LAST`** move, which is not where the leader stands but
+    /// where it will *end up*: `UnitData::get_final_loc` walks the orders
+    /// already on its list and hands back the first point one of them
+    /// names.
+    ///
+    /// The `(ox, oy)` override is the same `0x180` window
+    /// [`Self::group_loc`] uses, and it is measured here from the **final**
+    /// point rather than from the unit (`0070c634`).
+    ///
+    /// SEAM: the `buildings` seat (`list[0]` rather than `find_leader`) and
+    /// the `get_inside` hop for a garrisoned leader, neither of which any
+    /// group this simulation builds reaches.
+    fn group_loc_to(&self, g: &Group) -> Option<Pos> {
+        let u = self.group_find_leader(g)?;
+        let p = self.unit_final_loc(u);
+        let o = self.group_o(g);
+        if o.x >= 0 && o.y >= 0 && vector_dist(p.x - o.x, p.y - o.y) <= GROUP_LOC_NEAR {
+            return Some(o);
+        }
+        Some(p)
+    }
+
+    /// `UnitData::get_final_loc@00608040` — where this unit's order list
+    /// leaves it.
+    ///
+    /// The walk is over the list from the head and it stops at the **first**
+    /// order that names a point, not the last: a move order hands back its
+    /// destination (vslot `+0x14`, then `+0xb8`'s `(+4, +8)` — the order's
+    /// `x`/`y`, not its live waypoint), and an order carrying a
+    /// `TargetOrder` hands back its target **object's** position, provided
+    /// that object is still `flags & 1`. An order naming neither is walked
+    /// past.
+    ///
+    /// Then the answer is checked with `invalid_loc(unit, tile, 1, …)` —
+    /// buildings ignored, which is why a farm's own cell is an answer at all
+    /// — and a point that fails it is replaced by the unit's own position,
+    /// as is a list that named nothing.
+    ///
+    /// **The target lives on the unit here, not on the order**
+    /// (`docs/GROUPS.md` §12), so the target arm reads
+    /// [`combat::State::target`] for an attack and the order's own building
+    /// for the three that carry one. SEAM: a gather order out at a resource
+    /// tile, and a queued attack behind another unit's — this crate keeps
+    /// one target per unit, so a list holding two attacks answers with the
+    /// live one for both.
+    pub(crate) fn unit_final_loc(&self, u: usize) -> Pos {
+        let here = self.units[u].pos;
+        let found = self.units[u].orders.iter().find_map(|o| match o.body {
+            Body::Move(m) => Some(m.dest),
+            Body::Attack(_) => self.units[u]
+                .combat
+                .target
+                .and_then(|t| self.obj_alive_pos(t)),
+            Body::Build(b) | Body::Repair(b) | Body::Garrison { building: b, .. } => {
+                self.obj_alive_pos(crate::combat::Obj::Building(b))
+            }
+            Body::Gather(gt) => self.obj_alive_pos(crate::combat::Obj::Building(gt.building)),
+            _ => None,
+        });
+        let Some(p) = found else { return here };
+        if self.invalid_loc(u, p.tile(), true, false, false, false, false) != 0 {
+            return here;
+        }
+        p
+    }
+
+    /// `flags & 1` alone — `get_final_loc`'s own test on a target object,
+    /// which unlike [`Sim::active`] asks nothing about the map or combat.
+    fn obj_alive_pos(&self, o: crate::combat::Obj) -> Option<Pos> {
+        let alive = match o {
+            crate::combat::Obj::Unit(i) => self.units.get(i).is_some_and(|u| u.alive()),
+            crate::combat::Obj::Building(b) => self.buildings.get(b).is_some_and(|b| b.alive),
+        };
+        alive.then(|| self.pos_of(o))
+    }
+
     /// `GroupData +0x18`/`+0x1c` — the point the last move was ordered
     /// **to**, before any slot offset. A group with no army has no record
     /// to read, and the original's `(-1, -1)` initialiser is what a
@@ -927,13 +1004,41 @@ impl Sim {
         let to = self.restrict_pos(to);
 
         // §6.3: the formation angle. With `set_angle` the caller's stands;
-        // without it, the direction from the group to the destination.
-        let from = self.group_loc(g);
+        // without it, the direction from the group's own location to the
+        // destination.
+        //
+        // **And which location depends on the queue position**
+        // (`00704990:361`–`364`): a `QUEUE_LAST` move asks
+        // [`Self::group_loc_to`] — where the leader will *end up* once the
+        // orders already on its list are done — and every other position
+        // asks [`Self::group_loc`], where it stands now. The two come apart
+        // exactly when something is queued ahead, which is the case §12's
+        // probe makes on every game: it queues an attack on a farm at
+        // `QUEUE_NEW` and the walk home behind it at `QUEUE_LAST`, to the
+        // leader's **own** position — so read from where the leader stands
+        // the delta is zero and the formation has no bearing at all, and
+        // read from the farm it is the length of the map (§17).
+        let from = if queue == QueuePos::Last {
+            self.group_loc_to(g)
+        } else {
+            self.group_loc(g)
+        };
         let angle = if set_angle {
             angle
         } else {
             match from {
                 Some(p) if p != to => find_angle(to.x - p.x, to.y - p.y),
+                // The zero-delta arm, and it has two halves
+                // (`707e3d`–`707e6d`): with the location different from the
+                // group's own `(ox, oy)` — which is every group that has not
+                // already been ordered to this very point — the angle is the
+                // **leader's own heading** less its packed slot byte, the
+                // same quantity [`Self::group_leader_faces_away`] measures.
+                // Only a group standing where it was last sent falls through
+                // to the record's `o_angle`.
+                Some(p) if p != self.group_o(g) => self
+                    .group_leader_bearing(g)
+                    .unwrap_or_else(|| self.group_o_angle(g)),
                 _ => self.group_o_angle(g),
             }
         };
@@ -1545,16 +1650,29 @@ impl Sim {
     /// every group any run has dumped lays out in Line and carries `angles`
     /// of all zero; a formation that leans is still what would show it.
     fn group_leader_faces_away(&self, g: &Group, angle: Angle) -> bool {
-        let Some((u, slot)) = self.group_find_leader_slot(g) else {
+        let Some(heading) = self.group_leader_bearing(g) else {
             return false;
         };
+        reversing(Angle(heading.0.wrapping_sub(angle.0)))
+    }
+
+    /// The quantity both halves of §6.3 are built on: the leader's own
+    /// heading less its packed slot byte, `%esi` at `707ea8`.
+    ///
+    /// `compute_form` computes it once and uses it twice — the zero-delta
+    /// arm **assigns** it as the formation angle (`707e3d`–`707e6d`) and the
+    /// mirror test compares it against whatever angle was chosen — so it is
+    /// one function here rather than two readings of the same listing.
+    fn group_leader_bearing(&self, g: &Group) -> Option<Angle> {
+        let (u, slot) = self.group_find_leader_slot(g)?;
         let byte = self.group_angles(g).get(slot).copied().unwrap_or(0);
-        let heading = self.units[u]
-            .movement
-            .heading
-            .0
-            .wrapping_sub(i32::from(byte) << 24);
-        reversing(Angle(heading.wrapping_sub(angle.0)))
+        Some(Angle(
+            self.units[u]
+                .movement
+                .heading
+                .0
+                .wrapping_sub(i32::from(byte) << 24),
+        ))
     }
 
     /// `GroupData::facing` — the mirror flag the layout reads.
@@ -2329,6 +2447,194 @@ mod tests {
         assert!(
             s.current_move(c).expect("a move order").group.is_none(),
             "fewer than two is a plain move"
+        );
+    }
+
+    /// **A `QUEUE_LAST` move is laid out from where the leader ends up**
+    /// (`docs/ORDERS.md` §17.2): `Group::action_move_near` asks
+    /// `GroupData::get_loc_to` for that one queue position and `get_loc`
+    /// for every other (`00704990:361`–`364`), and the two answers are the
+    /// whole formation angle when something is queued ahead.
+    ///
+    /// The scenario is Great Lakes' probe in miniature: a pair standing at
+    /// the point they are about to be sent to, holding an attack order on a
+    /// building far to the west. Read from their feet the delta is zero and
+    /// the block has no bearing; read from the building it points east, and
+    /// the order carries that bearing.
+    ///
+    /// **Made to fail on purpose** by asking `group_loc` for both positions
+    /// — which is what this crate did until item 471 — whereupon the angle
+    /// is the zero-delta arm's and the two members lay out on an axis.
+    #[test]
+    fn a_queued_group_move_takes_its_bearing_from_where_the_leader_ends_up() {
+        let mut s = sim();
+        let t = fighter(&mut s);
+        s.unit_types[t].combat.x_spacing = 0xc0;
+        s.unit_types[t].combat.y_spacing = 0xc0;
+        let here = Pos::new(0x8000, 0x4000);
+        let a = spawn(&mut s, 1, t, here);
+        let b = spawn(&mut s, 1, t, Pos::new(0x8000, 0x4200));
+        let slot = s.init_army(1, None);
+        s.army_add_unit(1, slot, a);
+        s.army_add_unit(1, slot, b);
+        let g = s.army_group(1, slot);
+        let leader = s.group_find_leader(&g).expect("a leader");
+        // The thing queued ahead, and it is the probe's: a target far to
+        // the west, which is where `get_final_loc` says the pair will be.
+        let away = Pos::new(0x1000, 0x6000);
+        let prey = spawn(&mut s, 0, t, away);
+        s.units[leader].combat.target = Some(crate::combat::Obj::Unit(prey));
+        s.group_action_attack(&g, crate::combat::Obj::Unit(prey), true, QueuePos::New, 0);
+        // …and the walk home behind it, to the leader's **own** point.
+        s.group_action_move_to(
+            &g,
+            here,
+            QueuePos::Last,
+            false,
+            Angle(0),
+            MoveKind::MoveTo,
+            false,
+        );
+        let want = find_angle(here.x - away.x, here.y - away.y);
+        let m = s
+            .units
+            .iter()
+            .find_map(|u| u.orders.iter().find(|o| o.move_dest().is_some()))
+            .and_then(|o| match o.body {
+                Body::Move(m) => Some(m),
+                _ => None,
+            })
+            .expect("a group move on the pair");
+        assert_eq!(
+            m.angle, want,
+            "the formation angle is `find_angle` from the queued target, not \
+             from the leader's feet"
+        );
+        assert_ne!(want, Angle(0), "the scenario has to have a bearing at all");
+    }
+
+    /// **A move to where the group already stands takes the leader's own
+    /// heading**, not the record's `o_angle` (`docs/ORDERS.md` §17.4).
+    ///
+    /// `Group::compute_form`'s zero-delta arm has two halves
+    /// (`707e3d`–`707e6d`) and this crate had neither: with the location
+    /// different from the group's own `(ox, oy)` — which is every group that
+    /// has not already been sent to this exact point — the angle is
+    /// `leader.angle − ((signed char)angles[slot] << 24)`, and only a group
+    /// standing where it was last sent falls through to `o_angle`.
+    ///
+    /// **No capture on disk reaches it**: every `QUEUE_NEW` group move in
+    /// the scored windows has a non-zero delta, so this is a built
+    /// scenario and the claim is the listing's.
+    ///
+    /// **Made to fail on purpose** by dropping the first half — which is
+    /// what this crate did until item 471 — whereupon the angle is nought
+    /// on a group whose leader is plainly pointing somewhere.
+    #[test]
+    fn a_group_sent_to_its_own_feet_lays_out_on_the_leader_s_heading() {
+        let mut s = sim();
+        let t = fighter(&mut s);
+        s.unit_types[t].combat.x_spacing = 0xc0;
+        s.unit_types[t].combat.y_spacing = 0xc0;
+        let here = Pos::new(0x8000, 0x4000);
+        let a = spawn(&mut s, 1, t, here);
+        let b = spawn(&mut s, 1, t, Pos::new(0x8000, 0x4200));
+        let slot = s.init_army(1, None);
+        s.army_add_unit(1, slot, a);
+        s.army_add_unit(1, slot, b);
+        let g = s.army_group(1, slot);
+        let leader = s.group_find_leader(&g).expect("a leader");
+        let facing = Angle(0x2000_0000);
+        s.units[leader].movement.heading = facing;
+        s.group_action_move_to(
+            &g,
+            s.units[leader].pos,
+            QueuePos::New,
+            false,
+            Angle(0),
+            MoveKind::MoveTo,
+            false,
+        );
+        let m = s.current_move(leader).expect("a move order");
+        // The slot byte is nought on a group that has not been laid out,
+        // so the arm's whole answer is the heading.
+        assert_eq!(
+            m.angle, facing,
+            "a zero delta takes the leader's own heading less its slot byte"
+        );
+        assert_ne!(
+            m.angle,
+            Angle(0),
+            "and not the `o_angle` of a group that has never moved"
+        );
+    }
+
+    /// **`UnitData::get_final_loc@00608040` stops at the first order that
+    /// names a point**, not the last (`docs/ORDERS.md` §17.3) — and an
+    /// order naming none is walked past.
+    ///
+    /// Three orders on one unit: a think with nothing to say, then an
+    /// attack, then a move. The answer is the attack's target, because it
+    /// comes first; put the move in front and the answer is the move's
+    /// destination.
+    ///
+    /// **Made to fail on purpose** with a `rev()` on the walk, which reads
+    /// the move under the attack and is the natural way to write "where the
+    /// list ends".
+    #[test]
+    fn get_final_loc_stops_at_the_first_order_that_names_a_point() {
+        let mut s = sim();
+        let t = fighter(&mut s);
+        let u = spawn(&mut s, 1, t, Pos::new(0x8000, 0x4000));
+        let prey = spawn(&mut s, 0, t, Pos::new(0x1000, 0x6000));
+        assert_eq!(
+            s.unit_final_loc(u),
+            s.units[u].pos,
+            "an empty list answers with the unit's own position"
+        );
+        let far = Pos::new(0x7000, 0x2000);
+        s.add_attack_order(
+            u,
+            crate::combat::Obj::Unit(prey),
+            QueuePos::New,
+            true,
+            false,
+        );
+        s.add_move_order(u, far, MoveKind::MoveTo, QueuePos::Last, false);
+        // A `Think` in front, which names no point and must be walked past
+        // rather than answered with.
+        s.units[u].orders.push_front(Order {
+            flags: 0,
+            body: Body::Think,
+        });
+        let prey_at = s.units[prey].pos;
+        // The adder snaps its destination to the 48-unit cell centre
+        // (§4.3), so the order's own `dest` is what `get_final_loc` hands
+        // back and `far` is not.
+        let snapped = s.units[u]
+            .orders
+            .iter()
+            .find_map(Order::move_dest)
+            .expect("the move went on");
+        assert_eq!(
+            s.unit_final_loc(u),
+            prey_at,
+            "the attack is ahead of the move, so its target is the answer"
+        );
+        s.units[u].orders.swap(1, 2);
+        assert_eq!(
+            s.unit_final_loc(u),
+            snapped,
+            "with the move ahead of it, the move's destination is"
+        );
+        // `flags & 1` alone, and nothing about the map: a dead target is
+        // walked past like an order that names nothing.
+        s.units[u].orders.swap(1, 2);
+        s.units[prey].health = 0;
+        assert_eq!(
+            s.unit_final_loc(u),
+            snapped,
+            "a dead target is not a point, so the walk goes on to the move"
         );
     }
 
