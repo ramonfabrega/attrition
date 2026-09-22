@@ -826,6 +826,7 @@ pub fn load_tables(
         r.airbase = bt("Airbase");
         r.market = bt("Market");
         r.knowledge = gt("Knowledge");
+        r.mathematics = tt("Mathematics");
         r.university = bt("University");
         r.tower = bt("Tower");
         r.fortx = bt("Fort");

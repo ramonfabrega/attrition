@@ -355,6 +355,9 @@ pub struct Roles {
     pub airbase: Option<TypeId>,
     pub market: Option<TypeId>,
     pub knowledge: Option<TypeId>,
+    /// `MATHEMATICS` (`0x228`), which with `type_avail(KNOWLEDGE, 1)` opens
+    /// `create_units`' merchant arm (`docs/AI.md` §55).
+    pub mathematics: Option<TypeId>,
     pub university: Option<TypeId>,
     pub tower: Option<TypeId>,
     pub fortx: Option<TypeId>,

@@ -1404,10 +1404,23 @@ impl Sim {
             if !market {
                 return None;
             }
-            // **Seam** — `LeaderData::known_rares` (`+0x6d4`). The census
-            // keeps the per-region counts; the leader-level total is their
-            // sum until the sweep writes one.
-            if self.ai[w].census.reg_known_rares.iter().sum::<i32>() - queued_now - units_now <= 0 {
+            // `has_tech(MATHEMATICS) || type_avail(KNOWLEDGE, 1)` — the
+            // listing at `006c54c4..006c54e0` pushes `0x228` and then
+            // `(3, 1)`, which the decompile prints as enum names.
+            let roles = &self.tech_tree.roles;
+            let maths = roles
+                .mathematics
+                .is_some_and(|m| self.tech_tree.has_tech(&self.setup, &self.tech[w], m));
+            let knowledge = roles
+                .knowledge
+                .is_some_and(|k| self.type_avail(who, k) != tech::NOT_AVAILABLE);
+            if !maths && !knowledge {
+                return None;
+            }
+            // `known_rares` (`+0x6d4`), the sum `calc_gather` writes from
+            // the census's step 9 — `docs/AI.md` §55. Signed: `jle` at
+            // `006c5505`.
+            if self.ai[w].known_rares - queued_now - units_now <= 0 {
                 return None;
             }
             if self.ai[w].effective_pop >= self.muster[w].cap - 1 {

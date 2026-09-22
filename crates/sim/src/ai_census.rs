@@ -74,7 +74,7 @@ const OBJ_MASK_MISSILE: u32 = 0x800_0000;
 /// | Seam | Answers | Why |
 /// | --- | --- | --- |
 /// | `village_num` | 0 | `LeaderData::village_num` has no counterpart here. |
-/// | `new_rares` | empty | no rare-resource objects are modelled (step 9). |
+/// | `GoodData::ever_seen` | unwritten | step 9 sets the leader's bit on every rare it counts; only `GoodData::is_seen` reads it, and nothing here asks a good whether it is seen. |
 /// | `is_seen` / step 6 | skipped whole | step 6 is the `ALLY_LOS`/`reveal_map` path, and no capture sets either; **the live path to the met bit is the fog** — `check_ever_seen` → `Leader::meet` (`docs/VISION.md` §6.2), and [`Sim::has_met`] reads the bit it sets. |
 /// | `ScenarioData::ally_mask` | 0 | scenarios are cut from v1. |
 /// | `unit_masks & 1` | clear | the flag that excludes an object from the census is unmodelled. |
@@ -316,7 +316,7 @@ impl Sim {
         self.census_ally_mask(who);
         self.census_clear_invaders(who);
         self.census_zero_regions(who);
-        // Step 9, the rares, is a seam: `new_rares` is always empty here.
+        self.census_rares(who);
         self.census_units(who);
         self.census_buildings(who);
         self.census_maxima(who);
@@ -451,6 +451,53 @@ impl Sim {
         // a `sync_pop_cities` that ran before the first one (`build_sim`
         // standing a dump up) wrote `reg_pop` into an empty vector.
         self.sync_leader_pop();
+    }
+
+    /// Step 9, the rares — `plan_strategy@006b9620:318–358`, the only
+    /// writer `reg_known_rares` (`LeaderData +0x4d4`) has. Every good in
+    /// the leader's `new_rares` list is counted into its cell's region
+    /// when two things hold:
+    ///
+    /// * the leader or an ally has **explored** the half-cell the good
+    ///   stands in — `seen2[div_3_table[y >> 7]][div_3_table[x >> 7]] &
+    ///   ally_mask`, which is [`Sim::was_really_seen_fog`] exactly, exits
+    ///   and all (`who >= 8`, `reveal_map == 3`, and the two leader flags
+    ///   it keeps as seams);
+    /// * the cell under it is **unowned, mine, or a mutual ally's** — the
+    ///   `WData` owner byte is negative, or `who`'s, or `diplos` reads 2
+    ///   both ways.
+    ///
+    /// The list only grows (`Leader::new_rare@006d9e70`), so a rare once
+    /// seen is counted on every sweep until someone else's border covers
+    /// it. `Leader::calc_gather@006ceee0` sums the array into
+    /// `known_rares` under its own cadence ([`Sim::assemble_holdings`]),
+    /// and `create_units`' merchant arm reads that sum — `docs/AI.md` §55.
+    fn census_rares(&mut self, who: Player) {
+        let w = who as usize;
+        let list = self.ai[w].new_rares.clone();
+        for gi in list {
+            let Some(pos) = self.world.goods().get(gi).map(|g| g.pos) else {
+                continue;
+            };
+            // `div_3_table[c >> 7]`: the half-cell, `c / 0x180`.
+            let half = |c: i32| c.div_euclid(crate::world::UNITS_PER_CELL / 2);
+            if !self.was_really_seen_fog(half(pos.x), half(pos.y), who) {
+                continue;
+            }
+            let cell = pos.cell();
+            if let Owner::Player(o) = self.world.owner(cell)
+                && o != who
+                && !(self.diplo_ally(w, o as usize) && self.diplo_ally(o as usize, w))
+            {
+                continue;
+            }
+            let Some(r) = self.world.region_of(cell) else {
+                continue;
+            };
+            if let Some(slot) = self.ai[w].census.reg_known_rares.get_mut(usize::from(r)) {
+                *slot += 1;
+            }
+        }
     }
 
     /// Step 10, the unit census.
