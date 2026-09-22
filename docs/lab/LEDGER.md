@@ -153,6 +153,8 @@ profile/Wine scripts remain outside that lock's protection.
 
 | L84 | Does the caller collide correction affect the second callee computation? | [Collide passthrough](2026-09-22-collide-passthrough.md). | Nine repeated values yield zero field accesses, identical instruction sequences and unchanged path/other unit bytes; executable falsifiers enforce the result. | Qualifies L82: carried-through record correction, not pathfinding causality. No capture or score movement. |
 
+| L85 | Why do native-matched continuation models execute different instruction streams? | [Cleanup/recycler gap](2026-09-22-continuation-cleanup-gap.md). | First split is active-tree cleanup; four diagnostic entry-word substitutions match the full 33,494-instruction stream, retaining native boundary agreement. | Diagnostic omissions only, not a coherent world state or allocator fix. Shared-state ownership remains open; no capture or score movement. |
+
 ## Current direction
 
 The September 19–22 tranche now has an unchanged native unit/path witness
@@ -181,7 +183,9 @@ first-input model. L83 packages that validated experiment as a compact local
 fixture, preserving permissions, undefined bytes and complete fingerprints.
 L84 distinguishes a carried-through collide correction from a consumed
 pathfinding input: nine interventions show no accesses or computational change.
-Whole-world advancement remains unproved;
+L85 localizes the remaining internal trace gap to active-tree cleanup and
+recycler availability; diagnostic entry substitutions match the stream but do
+not reconstruct shared-state ownership. Whole-world advancement remains unproved;
 the next adoption test should answer one
 real divergence question selected by steering, with a named call/field and
 falsifier. Saved-tree required fields now have one native witness; native limit 96,

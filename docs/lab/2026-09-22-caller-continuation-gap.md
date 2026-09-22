@@ -68,7 +68,10 @@ computation difference; that distinction limits the causal interpretation here.
 
 Each chained second call executes 33,494 emulated instructions; L81's
 independent second-snapshot replay executes 34,845. Thus the checked output
-agreement does not establish identical internal execution. The first input's
+agreement does not establish identical internal execution.
+L85 [localizes that trace gap](2026-09-22-continuation-cleanup-gap.md) to active
+tree cleanup and recycler availability: four diagnostic entry-word substitutions
+match the instruction stream, without proving equal heap or world state. The first input's
 42 dependency additions supply 166,492 captured bytes; its three borrowed
 logical extents total 672 bytes. The preparation counter was 98.07 seconds. L83 checked its timing scope:
 that counter stops before the chained experiment callback, so it is not the
