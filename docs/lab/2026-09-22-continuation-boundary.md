@@ -13,6 +13,10 @@ frozen-world counterfactual, not a native second-call fidelity result. Two unit
 words differ, and the current suspended-graph observer refuses the completed
 state. Those limits are part of the result.
 
+Follow-up: [L77](2026-09-22-absent-search-state.md) closes the absent-container
+observation gap, identifies and traces the two counters, and graduates the
+recurring probe into reusable lab tools. Native second-call fidelity remains open.
+
 ## Disk before capture
 
 The three retained paired-call captures each contain only one full pre-call

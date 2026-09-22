@@ -14,11 +14,12 @@ import json
 from pathlib import Path
 from defined_bytes import DefinedBytes
 from defined_search_graph import GraphObserver
+from absent_search_state import AbsentSearchObserver
 from replay_capsule import require
 
 
 def checked_graph(graph):
-    require(graph.get('schema') in ('model-defined-search-graph-v1','native-defined-search-graph-v1') and graph.get('complete') is True,
+    require(graph.get('schema') in ('model-defined-search-graph-v1','native-defined-search-graph-v1','model-absent-search-state-v1') and graph.get('complete') is True,
             'complete defined graph required')
     rows=graph['records'];require(type(rows) is list and 0<len(rows)<=4096,'invalid record count')
     index={};total=32
@@ -34,7 +35,8 @@ def checked_graph(graph):
     def read(a,n):
         require(a in index and len(index[a][2])==n,'missing or wrong-sized graph record')
         return index[a][2]
-    rebuilt=GraphObserver(read,roots[0]-0x104,graph['structural_report']['frame']).run()
+    observer=AbsentSearchObserver if graph['schema']=='model-absent-search-state-v1' else GraphObserver
+    rebuilt=observer(read,roots[0]-0x104,graph['structural_report']['frame']).run()
     require(rebuilt['complete'],str(rebuilt['reason']))
     identities={(int(r['address'],16),r['kind'],r['owner']) for r in rebuilt['records']}
     require(identities=={(a,k,o) for a,(k,o,_) in index.items()},'extra or wrongly typed graph records')

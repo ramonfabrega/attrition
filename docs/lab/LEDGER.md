@@ -136,6 +136,8 @@ No new capture or main-loop adoption is requested by this handoff.
 
 | L76 | Can validated suspended state support another modeled invocation? | [Continuation boundary](2026-09-22-continuation-boundary.md). | Immediate 95→300 and 95→95 chains complete with all 640 path bytes matching the single-call control; repeats and guard controls pass. | Frozen-world model only; two unit words differ, completed-state graph observation refuses, and native frame 225 has an intervening call. PR #6 frozen; no capture. |
 
+| L77 | What survives after saved containers disappear? | [Absent search state](2026-09-22-absent-search-state.md). | All known recycler bytes agree across single/continued models; only retained suspension counters differ. Explicit unknowns and reusable guarded re-entry. | Frozen-world model; recycler target contents and native second-call state unobserved. No capture or score movement. |
+
 ## Current direction
 
 The September 19–22 tranche now has an unchanged native unit/path witness
@@ -150,8 +152,10 @@ mutations. L74 prepared the native collector; L75 now confirms required saved-gr
 fields against one native limit-95 call, retaining unknowns and stale-capacity
 differences. That checkpoint is frozen in draft PR #6. L76 continues independently
 with immediate modeled re-entry; it reproduces the path but exposes two unit-word
-differences and the completed-state observation gap. The next lab step is a
-completed-state contract before selecting a native second-call falsifier;
+differences and the completed-state observation gap. L77 supplies an explicit
+absent-container view and traces the two words to retained suspension writes.
+The next lab step is the recycler-target reuse contract before selecting a
+native second-call falsifier;
 the next adoption test should answer one
 real divergence question selected by steering, with a named call/field and
 falsifier. Saved-tree required fields now have one native witness; native limit 96,
