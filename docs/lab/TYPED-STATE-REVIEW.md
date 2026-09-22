@@ -1,195 +1,174 @@
 # Typed state oracle: working review
 
-The charter is in progress. **Pilot the typed-root approach; do not yet replace
-the gamelog.** The first offline experiment joins RTTI to PDB types, reads
-selected global roots, follows one plain-struct pointer and retains exact
-terrain singles. Logger parity, complete excess coverage and the live-item
-head-to-head have not run. This is not an adoption verdict on a completed
-four-step experiment, nor a proposal to move a main score.
+**Pilot typed snapshots as an additional diagnostic oracle. Do not replace the
+gamelog yet.** The first end-frame capture validates a useful scalar bridge,
+recovers exact terrain bits and exposes state the selected logger records omit.
+It also falsifies the idea that PDB field names alone settle container lifetime,
+runtime type or logger ownership. The four-step charter is still in progress.
+No main score, parser, comparator, queue or simulation code changes here.
 
-Work starts from main `5c8e6d4` on `codex/typed-state-oracle`. The continuation
-line is parked at L87, commit `3ff12db` on `codex/continuation-lab`; its later
-L88 owner-gap observation remains available at `c205210`. Neither branch is
-merged into this work. The A* replay stays available for counterfactuals.
+Work starts at main `5c8e6d4` on `codex/typed-state-oracle`. The continuation
+line stays parked at L87 (`3ff12db`, `codex/continuation-lab`); L88's later
+owner-gap observation remains available at `c205210`. The A* replay remains
+available for counterfactuals.
 
-## Findings and current limits
+## Measured checkpoint
 
-| Question | Measured result | Limit / falsifier still owed |
+| Charter question | Evidence | What remains open |
 | --- | --- | --- |
-| Can RTTI names join the type stream? | 1,855 discovered PE32 vtables join unambiguously to complete PDB layouts. | Discovery is bounded to supported non-construction COLs; not a census of every compiler RTTI variant. |
-| Can we type heap bytes? | 120,068 vptr hits normalize to 109,780 private-memory object candidates; their extent union covers 7,234,024 bytes. | A candidate is not a live allocation. Allocation count and live-allocation coverage are explicitly unknown. Freed/pool storage and accidental hits remain possible. |
-| Are simulation classes reachable? | RTTI candidates include 400 Unit, 512 Group, 200 Ammo and one Terrain. PDB globals reach World, Leaders and game_random without RTTI. | Candidate counts are not active simulation counts. Root membership and live container extents need validation. |
-| Can the type stream drive fields? | Six selected roots emit declared fields, fixed arrays and direct bases, with explicit missing/unsupported rows. | Virtual bases remain unresolved; static members need global addresses. Pointer type alone does not supply a dynamic array length or union discriminator. |
-| Can it recover exact terrain singles? | The PDB-derived master_land_heights pointer and container fields expose 58,081 float32 values, matching the world's 241×241 corner dimensions. Exact bits retained externally. | This is map 14 at a mid-frame delegation boundary, not the Great Lakes ambiguity fixture or a logger-equivalence result. |
-| Can it reach plain structures? | A declared World.wdata pointer decodes the first WData record: 16 scalar fields and one pointer. | Only one element was requested; full dynamic extent and child pointers are not claimed. |
+| Type the heap | The earlier retained packet joins 1,855 discovered PE32 vtables to complete PDB layouts. In the new packet, active-leader unit registries yield 800 non-null slots, 127 with the logger's active bit, and no unresolved identities or identity disagreements after RTTI dispatch. | These are registry slots, not allocator objects. Live-allocation count/coverage remain unknown. Complete graph traversal and group/ammo membership are unfinished. |
+| Agree with the logger | All 107 dumped UnitData records link to typed objects. The scoped UnitData/WORLD bridge matches 8,225 integer occurrences: 7,904 raw and 321 after the documented coordinate XOR. Zero mismatches within this subset. | The frame contains 602,211 observable occurrences: 578,604 unmapped, 15,181 unclassified text lines and 201 ambiguous container-key occurrences remain. Full logger parity is **not** established. |
+| Measure the excess | All 58,081 terrain float32 bit patterns are retained. 2,058 corners have ambiguous six-decimal projections; nearest-decimal reconstruction differs at 1,422. Twenty active-flag Animal registry entries under owner 9 have no UnitData record in this frame. | Current bits do not prove initial bits. Registry flags do not prove allocation liveness. The complete excess-field matrix remains unfinished. |
+| Head-to-head | One Great Lakes run supplies a packet after market tick 11,185, a six-frame logger window and overlap with the now-retained run123. Run/build/restore takes 221.19 s; copying takes 249 ms, success receipt at 250 ms. | No independent market-cause answer or controlled wall-time comparison has been completed. This is acquisition timing, not a claimed investigation speedup. |
 
-The census completed in 5.88 seconds on the retained 796.301 MiB packet before
-root decoding was added. That timing includes packet validation and cached type
-loading; fresh PDB export is separate (21.12 seconds in the measured run).
-This is not the head-to-head investigation timing the charter requests.
+### The capture is the reference game over the measured interval
 
-## Why the denominator and schema need care
+The snapshot is taken at **logger frame 11,186**, after **trace tick 11,185**.
+The selected logging window is `[11183, 11189)`; quit is at 11190. The runner
+acquired the shared nonblocking profile lock and used the existing Wine lane
+reservation. It exited successfully and restored all five backed-up settings
+files; the lane is released.
 
-VirtualQuery ranges and allocation-base regions are not allocator objects.
-RTTI hits cannot establish which pool slots are alive. Therefore the tool emits
-`live_allocation_count: null` and `live_allocation_coverage: null`; it reports
-candidate byte union separately, never a percentage of live allocations.
-The useful first denominator is rooted, semantically live records, once their
-registries or container rules are established.
+- 11,191 overlapping frame seeds against run53: **zero differing**.
+- Six overlapping dump frames against run123 (11183–11188): **zero differing**
+  with WORLD and AMMO excluded because their requested detail differs. This
+  comparison does not validate the excluded records.
+- Packet: **843,001,856 payload bytes**, 177 ranges; inventory 0 ms at the
+  timer's resolution, copy footer 249 ms and completion receipt 250 ms.
+- Eight anchors (game pointer/frame plus six inline roots), 312,064 bytes:
+  unchanged before/after copying, in overlapping copied chunks and after the
+  logger returns. These checks do not cover every child object.
 
-The PDB supplies declared storage and types, but not all runtime meaning:
-pointers omit extents, unions omit active tags, globals may have unresolved
-addresses and logger fields may be transformed or derived. A generated field
-list can prevent silent omissions only if unsupported fields remain failures
-or explicit unresolved entries. The prototype preserves these entries, raw
-float bits and non-storage record counts. It does not mark all memory decoded.
-The selected roots are an explicit pilot scope, not an automatically complete
-simulation-root census.
+The packet SHA-256 is
+`ad64789cd60bc5b9b4616ba16e657b9ba679081a9e9d21a097fcbd5b7d25aad6`.
+It lives outside Git at
+`/Users/rf-studio/ron-data/lab-captures/2026-09-22-typed-state-market/map-14`.
+The native collector was built from `092f387`; analysis tools follow separately.
 
-## Reproducible implementation
+## What the falsifiers caught
 
-`typed_state_export.py` invokes llvm-pdbutil on the owned PDB. Exports live
-outside the repository, include source hashes and a manifest, and bind GUID/age
-to the executable's RSDS identity. The exact decorated RTTI name joins the PDB's
-UniqueName, avoiding a demangler's name-normalization ambiguity.
+**The calling convention is not the source-language spelling.** The owned
+listing of `GameLog::end_frame` consumes the global logger; the normal caller
+does not reliably load ECX with a logger pointer. The collector uses the
+PDB-resolved global, validates the logging window and preserves integer,
+x87 and SSE state. It does not fabricate a restore-probe context for this phase.
 
-`typed_state.py` checks PE32 COL/type-descriptor/hierarchy links and the first
-virtual target, joins layouts, scans retained words and normalizes secondary
-vptrs by their complete-object offset. It revalidates the complete source
-payload before using its ranges. Unsupported construction displacements are
-not interpreted. `typed_fields.py` handles scalar storage, exact float bits,
-pointers, arrays, modifiers, enums, bitfields and direct bases. Unsupported
-field kinds or missing bytes remain visible. `typed_state_pilots.py` checks an
-explicit Array length/size/list contract plus independent world dimensions
-before reading the height buffer. This contract is not inferred from `float*`.
+**Logging is not assumed pure.** `GameLog::full_dump` and `dump_units` call
+`NetDaemon::process_all`. A second hook at the normal `Game::do_frame`
+continuation checks the same roots after the logger returns. The live run
+reports no changed anchors; authored controls detect a changed root and a
+failed return-check read. Other threads remain runnable. Neither this check
+nor a frame-boundary pause proves an atomic heap snapshot or rules out an ABA
+change between observations.
 
-The PE32 RTTI shape is cross-checked against LLVM's
-[Microsoft C++ ABI emitter](https://github.com/llvm/llvm-project/blob/main/clang/lib/CodeGen/MicrosoftCXXABI.cpp).
-Simple type codes and pointer modes follow the installed LLVM CodeView
-TypeIndex header. Actual class layouts and offsets come from the owned PDB;
-no symbol dump, layout export, original bytes or decoded values enter Git.
+**A typed pointer does not prove an active container.** Walking all ten unit
+registries indiscriminately produced nonsense in inactive players' storage.
+The current traversal uses the logger's leader activity flag before following
+those containers. Owners 2–7 are explicitly excluded on that basis. The four
+remaining registries contain 800 slots: 127 active-flag entries, 673 others.
+That distinction is preserved; nobody calls the 800 slots live allocations.
+
+**Declared type is not dynamic type.** The registries declare `Unit*`, but
+owners 8 and 9 contain `Animal`. RTTI selects the complete layout, and the PDB
+inheritance graph must contain the declared pointer type. The active entries
+are six Units for owner 0, 61 for owner 1, 40 Animals for owner 8 and 20 for
+owner 9. The first three sets are exactly the 107 dumped UnitData identities.
+The last set is additional registered state, not a claim about its gameplay role.
+
+**Stored coordinates are not logged coordinates.** The first scalar pass had
+321 disagreements, exactly x/y/z for all 107 records. The established
+`SubObjectData::Coord` XOR representation (`docs/FORMATS.md`, coordinates)
+accounts for every one. Reports retain the stored word, transformed value and
+printed value separately. A wrong-word mutation fails the comparison.
+
+**A field name does not prove logger ownership.** WORLD flattens multiple
+containers into the same block. Naively joining every `size` to `World.size`
+produced both false agreements and disagreements. The current bridge refuses
+all 201 repeated-name occurrences as `ambiguous_logger_ownership`; the test
+includes one coincidentally equal value so it cannot pass by equality alone.
+This is why the inventory retains every printed occurrence and why a partial
+bridge never advertises whole-record agreement.
+
+## Coverage pin and terrain precision
+
+The charter cites 232 unread keys. The actual `UNREAD` literal at base
+`5c8e6d4` contains **226 path/key pairs across 18 paths**; its surrounding prose
+has older counts. This report derives its denominator from that literal.
+On the captured frame, 223 pairs appear: all observed occurrences match for
+70 pairs, 153 are not fully matched, and three are absent. The matched pairs
+are 25 UnitData plus six ObjectData keys on each of the unit and animal paths,
+and WORLD's eight resource-total keys. This does **not** change main's read
+coverage or establish comparison with the port.
+
+The current height grid's exact-byte hash is
+`7788322c83527366091bc97f37bbe338b36cbbe233c2e2904db8c476e938fbe5`.
+The precision experiment projects each exact single to six decimals, then
+chooses the nearest single using exact rational distances and ties to even.
+The 1,422 differing reconstructions measure information lost by this projection;
+they are not 1,422 observed simulation errors.
+
+All 2,058 ambiguous corners still print the same values as run3's initial,
+frame-1 and frame-2 grids, and have the same bits as the earlier retained
+frame-224 packet. Across the whole grid, however, 661 printed corners differ
+from run3 and 401 exact words differ from the earlier packet. We therefore
+retain the initial-grid question: equal prints cannot prove equal initial bits,
+and the older packet is another scenario at a later-than-initial boundary.
+No initial height fixture is replaced on this evidence alone.
+
+## Implementation, controls and cost
+
+`typed_state_export.py` keeps PDB exports outside Git and binds their source
+hash/GUID/age to the executable. `frame_snapshot_plan.py` derives root addresses,
+sizes and boundary offsets from that export. The native collector has a
+separate stream identity, caps inventory at 8,192 records/two seconds and copy
+at one GiB/five seconds, excludes its own image and the active stack, rechecks
+range metadata, and refuses incomplete reads/writes. Deadlines are checked
+between OS calls; they do not preempt a blocked call.
+
+`frame_snapshot.py` requires the completion receipt, both installed hooks, the
+logger-return check and a subsequent trace frame. A footer alone is insufficient.
+`frame_state.py` decodes the retained roots, registry candidates and exact height
+bits. `typed_logger_inventory.py` accounts for every line, while
+`typed_logger_compare.py` implements the deliberately narrow scalar bridge.
+`typed_height_precision.py` measures decimal projection loss. Unsupported PDB
+fields, unknown extents, static-member addresses and virtual bases remain
+explicit; reachable-state completeness is never inferred from inline decoding.
+
+The initial native checkpoint's full gate passed: 1,278 tests plus clippy,
+formatting, install survey and fixture/paperwork checks. The collector and
+reader controls include short transfers, mapping/anchor changes, timeout,
+create/close failure, missing/duplicate receipts, wrong frame, malformed
+extents, dynamic-type mismatch, inactive containers, false name matches and
+256 emitted-hook register/extended-state cases. The default tracer's COFF
+object is unchanged after normalizing its build timestamp. The final analysis
+checkpoint receives its own focused run and release gate below.
+
+The broad packet is a diagnostic acquisition format, not yet an economical
+per-frame recording format: 24,000 packets of this size would exceed 20 TB
+uncompressed. Selective typed closure or deltas would need their own completeness
+checks. The measured 250 ms copy does not establish steady-state throughput.
+
+## Reproduction and next decision
+
+The generated plan and retained evidence are archived under
+`/Users/rf-studio/ron-data/lab-experiments/2026-09-22-typed-state-market`.
+The bound PDB export remains in the earlier
+`/Users/rf-studio/ron-data/lab-experiments/2026-09-22-typed-state-oracle/bound-export`.
+Nothing from the install, the exports or the decoded state enters Git.
 
 ```sh
-uv run --offline --with pyyaml==6.0.3 python tools/explore/typed_state_export.py \
-  INSTALL/sbl/rise.pdb EXTERNAL_EXPORT --llvm-pdbutil /path/to/llvm-pdbutil
-PYTHONPATH=tools/explore uv run --offline --with unicorn==2.1.4 --with numpy==2.5.1 \
-  python tools/explore/typed_state.py INSTALL CAPTURE EXTERNAL_EXPORT/types.json \
-  --globals EXTERNAL_EXPORT/globals.txt --root world --root leaders \
-  --root game_random --root units --root groups --root terrain
-PYTHONPATH=tools/explore uv run --offline --with unicorn==2.1.4 python \
-  tools/explore/typed_state_pilots.py INSTALL CAPTURE \
-  EXTERNAL_EXPORT/types.json EXTERNAL_EXPORT/globals.txt
+PYTHONPATH=tools/explore python3 tools/explore/frame_snapshot.py CAPTURE PLAN/plan.json
+PYTHONPATH=tools/explore python3 tools/explore/frame_state.py INSTALL CAPTURE EXPORT PLAN/plan.json > EXTERNAL_STATE
+PYTHONPATH=tools/explore python3 tools/explore/typed_logger_compare.py CAPTURE/gamelog.txt EXTERNAL_STATE EXPORT/types.json > EXTERNAL_COMPARISON
+PYTHONPATH=tools/explore python3 tools/explore/typed_height_precision.py EXTERNAL_STATE > EXTERNAL_PRECISION
 ```
 
-The current capture is
-`/Users/rf-studio/ron-data/lab-captures/2026-09-21-memory-payload`.
-Its payload SHA-256 remains
-`d0b4ce6ca20fcf2c1e17f6d385d48150cf84660c706ae944c3b372897824756f`.
-The decoded height bytes hash to
-`d21edfd45d0a42cf81e9d52aae319087c0a514087ca0980ef55c40c10382ae62`.
-
-Eleven authored tests exercise malformed RTTI chains, secondary vptrs, ambiguous
-forward types, missing bytes, extent/budget failures, unresolved global symbols,
-fixed arrays, signed bitfields, exact NaN bits and overlap accounting. These
-are decoder controls, not agreement with the original logger.
-
-## Remaining charter work
-
-1. Resolve or bound virtual inheritance and rooted container membership;
-   report each sim family reached, absent or unresolved. Preserve the unknown
-   live-allocation denominator unless independent allocator evidence supplies it.
-2. Acquire at the logger's end-frame boundary, through the shared nonblocking
-   capture lock. Current trace entry and logger boundary are different phases:
-   the owned Game::do_frame calls GameLog::end_frame after advancing the frame.
-   Record both frame identities and before/after root checks. A paused simulation
-   thread does not freeze other threads or make the 1.6-second copy atomic.
-3. Enumerate every logger key on that same frame. Match or classify every
-   discrepancy; unsupported keys may not count as agreement. Compare the excess
-   against main's 232-key pin, unopened families and exact height information.
-4. Answer 520 or 523 (or steering's current successor) from the same scenario,
-   with wall time/cost measured against the normal capture-and-widening route.
-
-No new capture has been taken. The next native experiment must first earn its
-boundary and framing tests; existing mid-frame bytes cannot answer step 2.
-
-The final focused run passes 32 tests with the owned executable supplied, with
-no skips. The final census plus six-root decode takes 4.86 seconds, preserving
-all census counts and the exact height hash. It reports 36 unresolved virtual
-base entries across the six roots (3 World, 20 Leaders, 3 Units, 3 Groups,
-7 Terrain); RNG has none. `reachable_state_complete` remains false even for a
-root whose inline fields decode, since pointer reachability is a separate claim.
-
-
-A source-count audit caught two globals with embedded backticks that the first
-regex skipped. The corrected reader accounts for all 1,835 S_GDATA32 records;
-ten retain explicit unresolved addresses. An unparsed declaration now fails,
-and an authored malformed declaration proves that failure. Selected-root
-results and height bytes remain unchanged. The PDB-only follow-up also finds
-that all 36 virtual-base entries above name classes containing only static
-members/methods (33 MiscAccess, three GameAccess). They remain conservatively
-unresolved in this checkpoint; a subsequent decoder can distinguish that case
-without guessing a runtime base address.
-
-The full release gate passes on this fresh-main tree: 1,278 tests, 885 fixture
-requests with none missing, clippy, formatting, install survey and paperwork.
-The parser correction also passes the final 32-test focused run. No main source,
-queue, scoreboard or capture configuration changed. Exact source, bound PDB
-exports, decoded results, tests and the gate are retained outside Git at
-`/Users/rf-studio/ron-data/lab-experiments/2026-09-22-typed-state-oracle`.
-
-## End-frame acquisition under test
-
-The opt-in `RON_STATE_FRAME` collector now has a separate stream identity and
-an external plan generated from the matched PDB. It selects one logger frame,
-records the tracer frame separately, and copies the same readable private/main
-image ranges as the earlier payload policy. It excludes its own image and the
-calling thread's active stack. Limits remain 8,192 inventory records / two
-seconds, then one GiB / five seconds for copying. Deadlines are checked between
-API calls; they cannot preempt a blocked OS call.
-
-`GameLog::end_frame` is the boundary, before its `full_dump`. The owned listing
-shows that the optimized function consumes the global logger, not an incoming
-ECX object: the normal call in `Game::do_frame` follows camera-counter work
-without loading ECX with a logger. The collector therefore uses the PDB global
-and validates the logger window. Its hook checks the displaced instruction;
-the register-image adapter preserves x87/SSE state as well as integer state.
-No body of the original is transcribed into the collector.
-
-Before inventory, the collector retains the game pointer/frame and six inline
-roots as anchors. It checks their overlaps in copied chunks, rereads them after
-copying, and rechecks selected range metadata. It does not follow every child
-pointer for anchor checks, suspend other threads, prove allocator liveness, or
-rule out changes that occur and revert between observations. Decoder acceptance
-also requires a success receipt, hook installation and a subsequent trace frame;
-a footer alone cannot establish successful close and continuation.
-
-Eight new offline tests execute the actual C writer against authored API
-fixtures and the emitted hook against 256 register/extended-state combinations.
-Short reads/writes, mapping changes, anchor drift, timeout, create/close failure,
-wrong logger window, corrupt identities, truncation and missing receipts refuse.
-The collector compiles against the owned PDB plan. Live validation is still owed.
-
-The intended first live target is Great Lakes near frame 11,185, with a logger
-window and existing-game overlap, so one run can serve parity, terrain and the
-market investigation. Reaching that frame costs minutes rather than the earlier
-30-second startup probe. A late height grid supplies exact *current* singles;
-it does not by itself establish the initial value of a terraformed corner.
-The capture must acquire the shared nonblocking profile lock and verify that
-no original is already running before staging. No live attempt has run yet.
-
-The boundary audit found `NetDaemon::process_all` calls inside the dump path,
-including `GameLog::dump_units`; logger purity is therefore an unproved
-assumption. A second opt-in hook at the normal `Game::do_frame` continuation
-checks the same roots after `end_frame` returns. Changed anchors are counted
-and named in trace receipts, not silently treated as decoder defects. These
-checks still do not prove that every child object was stable throughout logging.
-Authored controls prove both an unchanged return and a changed-root receipt.
-The intended snapshot is logger frame 11,186, after trace tick 11,185. The
-retained run123 market dump now contains that frame (75,976 lines in the slice),
-so the live logging window can be narrow rather than spanning back to run100.
-
-The release gate completed successfully (1,278 tests plus clippy, formatting,
-install survey and fixture/paperwork checks). It started at `1c120b4`; the later
-logger-return changes affect only the opt-in native collector and its reader,
-and receive the focused tests separately. Default COFF objects before/after
-that addition are byte-identical after normalizing their build timestamps.
+**Pilot:** review the capture format and scalar bridge now; use a selected
+snapshot when a concrete question needs hidden storage or exact float bits.
+**Park replacement:** complete logger coverage, full rooted liveness and a
+controlled live-item head-to-head remain prerequisites for that claim.
+The next offline work is the leader/container bridge, explicit coverage of the
+remaining printed occurrences, and group/ammo traversal through their owning
+registries. A retained `objects` root already exposes a typed `ammo_objs` array;
+it was not an acquisition anchor and is not counted as validated ammo membership.
+No further capture is needed for that work on this packet.
