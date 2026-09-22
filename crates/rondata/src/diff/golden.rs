@@ -1144,12 +1144,16 @@ fn chapter_two_s_first_attack_orders_are_the_dump_s() {
 
 /// One frame's `UNITDATA` records, read out of the raw dump text by hand.
 ///
-/// **Deliberately not through [`crate::gamelog::Log`].** `near_o` and
+/// **Deliberately not through [`crate::gamelog::Log`].** ~~`near_o` and
 /// `near_who` are the `ObjectData` half the parser leaves unparsed on
-/// purpose — `ledger.rs`'s rule is that a parsed field is a *compared*
-/// field, and this crate's `Unit` models neither, so parsing them would
-/// buy a comparison against nothing (`docs/COMBAT.md` §30.1). This reader
-/// takes the four figures §30 argues on and nothing else.
+/// purpose — a parsed field is a *compared* field, and this crate's
+/// `Unit` models neither, so parsing them would buy a comparison against
+/// nothing.~~ **Closed by item 479**: [`sim::Unit::near`] is the field
+/// now, and
+/// [`chapter_two_s_near_o_is_the_dump_s_on_every_unit_frame`] is the
+/// comparison the note said could not exist. This reader still takes the
+/// four figures §30 argues on and nothing else; the pair has a reader of
+/// its own in [`ch2_dump_near`].
 ///
 /// First-wins on each key, because `BEGIN GUY` repeats `who`/`o` inside
 /// the record and the `SUBOBJECT`'s pair is the unit's own.
@@ -1564,6 +1568,200 @@ fn chapter_two_s_word_frame_is_widened_whole() {
         "chapter two's word frame no longer widens the way item 472 \
          measured it; re-pin this map and say so in docs/COMBAT.md §36"
     );
+}
+
+/// **`ObjectData::near_o`/`near_who` against run112's own**, on every
+/// unit of every block of the widening window (`docs/COMBAT.md` §37.1).
+///
+/// The pair is the search's **footprint** rather than its answer — the
+/// nearest candidate `Object::find_nearby_target@00648da0` saw that
+/// cleared `check_target`, written above the `max_dist` gate and above
+/// the scoring, cleared to `-1` when the nearest one is past `0xf00`. It
+/// is printed in the `OBJECT` block at every detail level, so the dump
+/// has carried it since 2026-09-19, and **nothing ever compared it**:
+/// [`ch2_dump_units`] says in so many words that parsing it "would buy a
+/// comparison against nothing" because this crate modelled neither field.
+/// Item 479 gave it one ([`sim::Unit::near`]), which turns that note into
+/// a row.
+///
+/// It is the only check §37.1's rule has. The arm that reads the field
+/// (§37.2) is diff-backed through `order 0/9` on 645, but *which*
+/// candidate the field holds, and when it is cleared, are otherwise a
+/// reading — and a wrong incumbent is invisible to every other row until
+/// the frame it is acted on.
+///
+/// What is pinned is the **tally and its shape**: how many unit-frames
+/// the dump carries a pair for, how many of those carry a *live* pair,
+/// how many this crate agrees with, and the exact list of those it does
+/// not. Pinning the disagreements by name rather than counting them is
+/// what keeps a later landing from trading one unit's footprint for
+/// another's; pinning `live` beside `read` is what keeps the empty list
+/// from being an instrument that stopped looking, because 4507 of the
+/// 4668 unit-frames are animals and idle citizens whose pair is `-1` on
+/// both sides.
+///
+/// **What it catches, measured by making it fail** (`CLAUDE.md`, "the
+/// checks with teeth"): deleting the write turns the 161 live frames
+/// into three parted units — `0/9` from 621, `0/6` and `1/6` from 635,
+/// which are exactly chapter two's three searching captains.
+///
+/// **What it does not catch, measured the same way and stated because
+/// the green would otherwise read as more than it is**: taking the
+/// *last* qualifying candidate rather than the nearest, and removing the
+/// `0xf00` clear, both leave it green. run112 runs so few searches
+/// inside the window — three, all of them before 636 — that neither
+/// rule is exercised. So this row backs the field's **value** on every
+/// frame it is read on; §37.1's write rule stays a reading until a
+/// capture with a crowded, far search reaches it.
+#[test]
+fn chapter_two_s_near_o_is_the_dump_s_on_every_unit_frame() {
+    const FIRST: i64 = WIDENING_CHAPTER_TWO.0;
+    const LAST: i64 = WIDENING_CHAPTER_TWO.1;
+    let Some(inst) = crate::testenv::install() else {
+        return;
+    };
+    let Some((dump, tracepath)) = golden("ch2") else {
+        eprintln!("skipping: no golden capture ch2 (see docs/RUNS.md run112)");
+        return;
+    };
+    let trace = crate::trace::Trace::read(std::path::Path::new(&tracepath))
+        .expect("a finalized golden trace")
+        .expect("missing RONT header");
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(&dump);
+    let log = Log::parse(&text);
+    let texts = sibling_texts();
+    let logs = siblings(&texts);
+    let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+    let refs: Vec<&Initial> = inits.iter().collect();
+    if refs.is_empty() {
+        eprintln!("skipping: no sibling dumps");
+        return;
+    }
+    let mut built = stand_up(&loaded, &log, &refs, &trace);
+    let mut script = chapter(2);
+    let mut read = 0usize;
+    let mut agree = 0usize;
+    let mut live = 0usize;
+    let mut parted: std::collections::BTreeMap<(i64, i64), i64> = std::collections::BTreeMap::new();
+    for f in 0..LAST - 1 {
+        script.stage(built.sim.frame, &mut built, &loaded);
+        built.tick();
+        let n = f + 1;
+        if n < FIRST {
+            continue;
+        }
+        for ((who, o), pair) in ch2_dump_near(&text, n) {
+            let Some(mine) = i16::try_from(o)
+                .ok()
+                .and_then(|x| built.sim.unit_by_o(who as sim::Player, x))
+            else {
+                continue;
+            };
+            read += 1;
+            let ours = match built.sim.units[mine].near {
+                Some(sim::combat::Obj::Unit(u)) => (
+                    i64::from(built.sim.units[u].owner),
+                    i64::from(built.sim.units[u].index),
+                ),
+                // A building incumbent and "none" are both `(-1, -1)` to
+                // this comparison: the original prints one pair for both
+                // classes and this crate carries a unit's only, so a
+                // building would read as a parting here and be one.
+                _ => (-1, -1),
+            };
+            let theirs = (pair.1, pair.0);
+            if theirs != (-1, -1) {
+                live += 1;
+            }
+            if ours == theirs {
+                agree += 1;
+            } else {
+                parted.entry((who, o)).or_insert(n);
+            }
+        }
+    }
+    // **Anti-vacuity**: the dump has to have been read, and the window has
+    // to hold the nine.
+    assert!(
+        read > 2_000,
+        "only {read} unit-frames carried a near pair; run112's dump no \
+         longer prints the OBJECT block over [{FIRST}, {LAST})"
+    );
+    eprintln!("near: {agree} of {read} agree, {live} live; parted {parted:?}");
+    let got: Vec<((i64, i64), i64)> = parted.iter().map(|(k, &n)| (*k, n)).collect();
+    assert_eq!(
+        got,
+        NEAR_PARTED.to_vec(),
+        "chapter two's `near_o` footprint no longer parts where item 479 \
+         measured it; re-pin this and say so in docs/COMBAT.md §37.1"
+    );
+    assert_eq!(
+        (read, live, agree),
+        NEAR_TALLY,
+        "the near comparison's own width moved; a tally that shrinks is \
+         an instrument that stopped looking"
+    );
+}
+
+/// The units whose `near` pair parts from run112's, and the first block
+/// each parts on — item 479's measurement, pinned by name. It is
+/// **empty**: `4668` of `4668` unit-frames over `[606, 684)` carry the
+/// dump's own `near_o`/`near_who`, animals included, on the landing that
+/// gave this crate the field.
+const NEAR_PARTED: &[((i64, i64), i64)] = &[];
+/// `(unit-frames read, live pairs among them, unit-frames agreeing)` for
+/// the row above. All three are pinned because an empty disagreement
+/// list is worthless without them: a reader that stopped parsing would
+/// print no partings, and so would one that only ever saw `-1`.
+const NEAR_TALLY: (usize, usize, usize) = (4668, 161, 4668);
+
+/// One frame's `near_o`/`near_who` per unit, read out of the raw dump
+/// text — [`ch2_dump_units`]'s sibling, for the pair that reader takes
+/// only `near_o` of.
+fn ch2_dump_near(text: &str, frame: i64) -> std::collections::BTreeMap<(i64, i64), (i64, i64)> {
+    let head = format!("BEGIN FRAME {frame}");
+    let mut out = std::collections::BTreeMap::new();
+    let mut inside = false;
+    let mut cur: Option<std::collections::BTreeMap<&str, i64>> = None;
+    let flush = |cur: &mut Option<std::collections::BTreeMap<&str, i64>>,
+                 out: &mut std::collections::BTreeMap<(i64, i64), (i64, i64)>| {
+        if let Some(r) = cur.take() {
+            let g = |k: &str| r.get(k).copied().unwrap_or(i64::MIN);
+            if g("near_o") != i64::MIN {
+                out.insert((g("who"), g("o")), (g("near_o"), g("near_who")));
+            }
+        }
+    };
+    for line in text.lines() {
+        let s = line.trim();
+        if s.starts_with("BEGIN FRAME") {
+            if inside {
+                break;
+            }
+            inside = s == head;
+            continue;
+        }
+        if !inside {
+            continue;
+        }
+        if s == "BEGIN UNITDATA" {
+            flush(&mut cur, &mut out);
+            cur = Some(std::collections::BTreeMap::new());
+            continue;
+        }
+        if s.starts_with("BEGIN ") {
+            continue;
+        }
+        let Some(r) = cur.as_mut() else { continue };
+        if let Some((k, v)) = s.rsplit_once(' ')
+            && let Ok(n) = v.parse::<i64>()
+        {
+            r.entry(k).or_insert(n);
+        }
+    }
+    flush(&mut cur, &mut out);
+    out
 }
 
 /// **`ObjectData::visible`'s arrivals against run112's own** — item 457's

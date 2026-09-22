@@ -5763,15 +5763,26 @@ unit_frame`:
 - that the switch propagates down `o_down` in place on the same block —
   `order 0/10` and `order 0/11`'s `Target`, with their flags unchanged;
 - that the strike follows a frame later — `visible 0/9` at 646;
-- that `near_o`'s value on 621 is `1/6`, by the older cell test.
+- that `near_o`'s value on 621 is `1/6`, by the older cell test;
+- **`near_o`/`near_who`'s value on every unit of every block** of
+  `[606, 684)` —
+  `chapter_two_s_near_o_is_the_dump_s_on_every_unit_frame`, written
+  here: 4668 unit-frames, 161 of them carrying a live pair, **4668
+  agreeing**. The dump has printed the pair at every detail level since
+  2026-09-19 and nothing had ever compared it, because until this
+  landing there was nothing to compare it *to* — `crate::diff::golden`'s
+  own reader said so in a note this closes. Made to fail on purpose:
+  deleting the write parts exactly the three searching captains, `0/9`
+  from 621 and `0/6`/`1/6` from 635.
 
 **Reading-only**, and each names the capture that would falsify it:
 
-- `near_o`'s own rule — the `0xf00` clear, the write above the
-  `max_dist` gate, the either-side `is_unit` conjunct. Nothing here
-  measures them; the falsifier is cheap and is a **diff row of its own**,
-  because the dump prints `near_o`/`near_who` on every unit-frame of
-  every capture and no comparison has ever read them. Parked.
+- `near_o`'s own **rule** — the `0xf00` clear, the write above the
+  `max_dist` gate, the either-side `is_unit` conjunct. run112 runs three
+  searches inside the window, all before 636, and neither removing the
+  clear nor taking the last qualifying candidate instead of the nearest
+  turns the row below red, so the rule stays a reading. A capture with a
+  crowded, far search would reach it.
 - `poor_target`'s conjuncts 1 and 3 and its floor. Conjunct 2 decides
   every frame on disk, so 1 and 3 are never the answer here; a capture
   with a faster target walking away would reach them.
