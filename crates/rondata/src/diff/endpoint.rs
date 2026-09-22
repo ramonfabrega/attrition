@@ -941,11 +941,26 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // original's own step and both raise the soft one-shot
         // (`run100_s_word_block_is_every_record_the_dump_carries`).
         // DECISIONS 36 asks for the number rather than a trade.
-        off: 50,
+        // And **50 → 49 off, 8 unlinked unchanged, 8 → 9
+        // build_diverged** on 2026-09-22, item 494 — the human's idle
+        // wait is `peasants_wait`'s *switch* and not its value, so it is
+        // **12** where this crate used 2 (`docs/ORDERS.md` §21), which
+        // moves this map's own word **10294 → 10303** on both the count
+        // and the sequence. One position in and one building field-row
+        // out, 13,698 frames past the word and so on the far side of an
+        // unaligned draw stream. The value diff the change is booked on
+        // is block **10295**, where item 489's six rows of `0/5` go to
+        // **none**, with 10294's four under them and 10234's three
+        // sixty blocks earlier — the `GATHERORDER` queued under the
+        // citizen's flight, which is the cause the other two are
+        // consequences of
+        // (`run100_s_word_block_is_every_record_the_dump_carries`).
+        // DECISIONS 36 asks for the number rather than a trade.
+        off: 49,
         unlinked: 8,
         extra: 0,
         build_unlinked: 0,
-        build_diverged: 8,
+        build_diverged: 9,
         city_unlinked: 3,
         city_diverged: 0,
     },

@@ -1480,14 +1480,22 @@ pub(crate) const EAST_INDIES_FIRST_SCHOLAR: i64 = 8_466;
 /// at all — every raider of this probe since item 465 put them in the
 /// pool (`docs/COLLISION.md` §11).
 ///
-/// **10294 is a different mechanism.** Ours spends **one** draw and the
-/// original **two**, parting at index 0: the extra is
-/// `Guy::set_anim+0x97a < Unit::do_idle+0x7d`, and block 10295 names the
-/// unit unprompted — six rows, all the human's citizen `0/5`, whose
-/// `orders_x`/`orders_y` are `(4056, 28776)` here against `(792, 31800)`
-/// there and whose `idle` the original raises and this crate does not.
-/// It is not a collision and not the AI's.
-pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 10_294;
+/// ~~**10294 is a different mechanism.**~~ **Item 494 closed it, and the
+/// draw the brief named was the last link of a chain sixty blocks long.**
+/// `Unit::do_idle` ran there in the original because its citizen `0/5`
+/// had arrived with an **empty** order list; this crate's had a second
+/// order under the flight, because `think_peasant`'s human gate read
+/// `LeaderOptions +0x8` as the number of idle frames to wait when it is
+/// the **index of** that number — `2` selects `0xc`, so the wait is 12
+/// and this crate used 2 (`docs/ORDERS.md` §21). Nothing in `do_idle`
+/// was wrong; the citizen simply should not have been idle-tasked at all.
+///
+/// **10303 is `1/51`'s animation clock.** Ours spends **three** draws and
+/// the original **four**, parting at index 3: the extra is
+/// `Guy::set_anim+0x97a < Guy::inc_time+0x271`, and block 10304 is two
+/// rows of the same unit — `g.cur_time` 30 against 0 and `g.last_time` 29
+/// against −1, the original one wrap ahead of this crate.
+pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 10_303;
 
 /// The floor `run97_s_window_orders_are_the_original_s` holds — item 368's
 /// widening of Great Lakes' order stacks, the 36,483 `GATHERORDER` records
@@ -1826,7 +1834,7 @@ pub(crate) const GOLDEN_WORD_CHAPTER_TWO: i64 = 683;
 /// them, so the two cannot disagree: a window the word has walked out of
 /// fails `the_widening_behind_each_pinned_word_exists` rather than passing
 /// by saying nothing (parked 449).
-pub(crate) const WIDENING_GREAT_LAKES: (i64, i64) = (9_340, 10_307);
+pub(crate) const WIDENING_GREAT_LAKES: (i64, i64) = (9_340, 10_316);
 /// `chapter_two_s_word_frame_is_widened_whole`'s window, on the same
 /// terms: run112's window opens at 605 and one past the last frame
 /// compared. It straddled the word at 624 until item 462 moved the word
@@ -1926,11 +1934,24 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // 10278 is read on a unit still standing where the original's does,
     // which is the only reason it could be trusted at all
     // (`docs/COLLISION.md` §8.4, §11.1).
+    //
+    // Item 494 moved it 10294 → **10303** and the ceiling 10307 →
+    // 10316, and this time the widening's value was that it ran
+    // **wider than the booking**: 489 booked block 10295's six rows of
+    // `0/5`, and the re-run over the same window printed four more on
+    // **10294** — the arrival turn's `heading`, `dest_angle` and
+    // `g.des_angle` — and, sixty blocks under them, item 464's three on
+    // **10234**. Those three are the cause and the other ten the
+    // consequence: the human's idle wait is `peasants_wait`'s *switch*
+    // and not its value, so a citizen re-tasked at `idle == 2` carried a
+    // `GATHERORDER` under its flight and could never arrive holding the
+    // single order [`sim::Sim::arrive`] faces the order's angle for
+    // (`docs/ORDERS.md` §21). One number closed all thirteen.
     (
         "LONG_WORD_GREAT_LAKES",
         LONG_WORD_GREAT_LAKES,
         Some("run100_s_word_block_is_every_record_the_dump_carries"),
-        489,
+        494,
         Some(WIDENING_GREAT_LAKES),
     ),
     (

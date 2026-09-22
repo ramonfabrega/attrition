@@ -7009,13 +7009,21 @@ mod tests {
         // headline's motion counted as the set's, which is exactly what
         // `ORDER_RESIDUE_RUN97`'s lesson warns of and why the keys are
         // printed in the message.
+        //
+        // **18 → 17 on item 494, and this time `0/5` is gone for a
+        // reason.** The human's idle wait is `peasants_wait`'s switch and
+        // not its value — 12, where this crate read 2 — so the citizen is
+        // never handed the `GATHERORDER` at all and the residue that has
+        // crossed this line twice on the headline's motion has no row
+        // left to cross it with (`docs/ORDERS.md` §21). The remaining
+        // seventeen are all who=1's.
         assert_eq!(
             orders
                 .values()
                 .filter(|f| **f < LONG_WORD_GREAT_LAKES)
                 .count(),
-            18,
-            "the window's standing order residue is not eighteen units: {orders:?}"
+            17,
+            "the window's standing order residue is not seventeen units: {orders:?}"
         );
         assert_eq!(
             cities.len(),
@@ -7119,6 +7127,133 @@ mod tests {
     /// comparing this crate's current health against `myhits` reported
     /// every wound as a divergence — `hits_left` and `myhits` are both
     /// rows now and both agree on all 909 blocks.
+    /// **The human's idle wait is twelve frames, and the citizen goes back
+    /// to the *same* job** — item 494, `docs/ORDERS.md` §21.
+    ///
+    /// `think_peasant@005f5760:16` reads `LeaderOptions +0x8`
+    /// (`peasants_wait`) as the **index** of a wait and not as the wait:
+    /// `1 → 7, 2 → 0xc, 3 → 0x11, 4 → 0x20, 5 → 0x3e`, `default → 2`.
+    /// Every capture on disk that prints leader options prints
+    /// `peasants_wait 2`, so the wait is **12** — and this crate used the
+    /// index, 2, until this item.
+    ///
+    /// **What the dump says, which is the whole assertion.** run100's
+    /// `0/5` empties its order list on block 10294, raises `idle` to 1 on
+    /// 10295 and 2 on 10296, and then steps it once every sixteen frames
+    /// phased by `o` (`check_idle@006032c0`: `(o + game->frame) & 15`;
+    /// the block number is `frame + 1`, so `o == 5` steps on 10300,
+    /// 10316, … ). On **10444** `idle` reaches **12**, `gather_down`
+    /// becomes 2 and `orders_x/y` turn to `(4056, 28776)` — the same
+    /// building and the same point this crate used to send it to on
+    /// 10295. The original is not making a different decision; it is
+    /// making the same one 150 frames later.
+    ///
+    /// So the counter is compared frame for frame across the whole
+    /// wait, not only at its end: a wait of any other length, or a
+    /// cadence of any other period, parts somewhere in the hundred and
+    /// fifty blocks between. **Made to fail on purpose**: with
+    /// `idle_wait` back at 2 the first parting is block **10295** —
+    /// `(10295, 0, 4056, 28776)` against `(10295, 1, 792, 31800)`, the
+    /// citizen already walking to its next job on the frame the original
+    /// first counts it idle. Note where that is *not*: the wrong wait
+    /// fires on 10234 and these three fields say nothing for sixty
+    /// blocks, because `orders_x/y` follow the leading transit move and
+    /// the flight is still it. Only `orders.len` sees it, which is why
+    /// the widening's 10234 pin is the row that names the cause.
+    #[test]
+    fn run100_s_citizen_waits_twelve_idle_frames_for_the_same_job() {
+        /// Three blocks before the flight's arrival, so the counter is
+        /// compared from 0.
+        const LO: i64 = 10_291;
+        /// Six past the re-task, far enough to carry the reset and the
+        /// first steps of the walk it opens.
+        const HI: i64 = 10_450;
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(r100)) = (
+            dump("gamelog-run53-greatlakes-24k-trace.txt"),
+            dump("gamelog-run100-greatlakes-valuewindow2.txt"),
+        ) else {
+            eprintln!("skipping: no run53/run100 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let mut ix = crate::capture::indexed::IndexedCapture::open(&r100).unwrap();
+        let loaded = crate::load::load(&inst).unwrap();
+        let texts = sibling_texts();
+        let text = crate::capture::read(&path);
+        let log = Log::parse(&text);
+        let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
+        let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+        let refs: Vec<&Initial> = inits.iter().collect();
+        let mut init = log.initial().unwrap();
+        borrow_from_siblings(&mut init, &refs);
+        if let Some(t) = trace("rontrace-run53.log") {
+            borrow_pasture(&mut init, &t);
+        }
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        // `(block, idle, orders_x, orders_y)` either side, every block of
+        // the wait. A row is a field here as everywhere else, but the
+        // three travel together and the tuple is what names the event.
+        let mut ours: Vec<(i64, i64, i64, i64)> = Vec::new();
+        let mut theirs: Vec<(i64, i64, i64, i64)> = Vec::new();
+        for f in 0..HI {
+            built.tick();
+            let n = f + 1;
+            if n < LO {
+                continue;
+            }
+            let Some(at) = ix.frames().iter().position(|x| x.number == n) else {
+                continue;
+            };
+            let frame = ix.frame_state(at).unwrap();
+            let Some(them) = frame.units.iter().find(|u| u.who == 0 && u.o == 5) else {
+                continue;
+            };
+            let (Some(i), Some(x), Some(y)) = (them.idle, them.orders_x, them.orders_y) else {
+                continue;
+            };
+            theirs.push((n, i, x, y));
+            let u = built.sim.unit_by_o(0, 5).expect("the human's citizen 0/5");
+            let un = &built.sim.units[u];
+            ours.push((
+                n,
+                i64::from(un.idle),
+                i64::from(un.orders_pos.x),
+                i64::from(un.orders_pos.y),
+            ));
+        }
+        assert!(
+            theirs.len() > 150,
+            "run100 does not carry the whole wait: {} blocks",
+            theirs.len()
+        );
+        let first = (0..ours.len()).find(|&i| ours[i] != theirs[i]);
+        assert_eq!(
+            first.map(|i| (ours[i], theirs[i])),
+            None,
+            "the citizen's idle counter or its destination parts inside \
+             the wait"
+        );
+        // And the event itself, named rather than left implicit in the
+        // stream above: the block the original re-tasks on, the counter
+        // it re-tasks at, and the point it re-tasks to.
+        let retask = theirs
+            .iter()
+            .find(|(_, _, x, _)| *x == 4056)
+            .copied()
+            .expect("the original re-tasks the citizen inside the window");
+        assert_eq!(
+            retask,
+            (10_445, 0, 4056, 28_776),
+            "the original's citizen goes back to work on 10445, the block \
+             after `idle` reaches 12"
+        );
+        assert_eq!(
+            theirs.iter().find(|(_, i, _, _)| *i == 12).map(|r| r.0),
+            Some(10_444),
+            "`idle` reaches 12 on 10444"
+        );
+    }
+
     #[test]
     fn run100_s_word_block_is_every_record_the_dump_carries() {
         /// run100's first complete block — [`WIDENING_GREAT_LAKES`], the
@@ -7695,28 +7830,58 @@ mod tests {
         // out of `1/41`'s own sweep, so `1/41` found nothing to be soft
         // about either (`docs/COLLISION.md` §11).
         //
-        // **The new word is 10294 and its block is the human's
-        // citizen** — `0/5`, six rows, an `orders_x`/`orders_y` pair
-        // three thousand units apart and the `idle` and the stand that
-        // follow from it. It is not a collision and not the AI's.
+        // ~~**The new word is 10294 and its block is the human's
+        // citizen**~~ — **item 494 closed all six, and the four on
+        // 10294 under them, with one number**: the human's idle wait is
+        // `peasants_wait`'s *switch* and not its value, so it is **12**
+        // and this crate used 2. `0/5` was put back to work at
+        // `idle == 2` on 10234, took its flight to `(792, 31800)` with
+        // that `GATHERORDER` queued under it, and so arrived on 10294
+        // holding **two** orders — which is the one thing
+        // [`sim::Sim::arrive`] will not face the order's angle for, and
+        // the reason the frame the original spends in `do_idle` this
+        // crate spent walking away (`docs/ORDERS.md` §21).
+        //
+        // **The new word is 10303 and its block is `1/51`'s animation
+        // clock** — two rows, `g.cur_time` 30 against 0 and
+        // `g.last_time` 29 against −1, the original a wrap ahead. The
+        // draw stream says the same from its side: ours spends three
+        // draws and the original four, and the extra at index 3 is
+        // `Guy::set_anim+0x97a < Guy::inc_time+0x271`.
         assert_eq!(
             on_word,
             vec![
-                "0/5 angle:Facing: ours -1320157184 theirs -1334771712",
-                "0/5 g.angle[0]: ours -1320157184 theirs -1334771712",
-                "0/5 g.stopped[0]: ours 1 theirs 0",
-                "0/5 idle: ours 0 theirs 1",
-                "0/5 orders_x: ours 4056 theirs 792",
-                "0/5 orders_y: ours 28776 theirs 31800",
+                "1/51 g.cur_time[0]: ours 30 theirs 0",
+                "1/51 g.last_time[0]: ours 29 theirs -1",
             ],
-            "the word's own block ({word}) is not item 489's six \
-             rows of `0/5`"
+            "the word's own block ({word}) is not item 494's two \
+             rows of `1/51`"
         );
-        // **And 10278, the block the word just left** — item 487's
-        // seventeen rows of `1/40` and `1/41`, every one of them closed
-        // by item 489 and pinned empty here for 10162's, 10234's,
-        // 10235's, 10238's and 10245's reason: the headline walks away
-        // from a block and nothing then watches it.
+        // **And 10295, the block the word just left** — item 489's six
+        // rows of `0/5`, closed by item 494 and pinned empty here for
+        // 10162's, 10234's, 10235's, 10238's, 10245's and 10278's
+        // reason: the headline walks away from a block and nothing then
+        // watches it. 10294's four under them — the `heading`,
+        // `dest_angle` and `g.des_angle` the arrival turn writes — are
+        // pinned with it, because they are the same citizen one block
+        // earlier and closed by the same number.
+        for b in [10_294_i64, 10_295] {
+            let on: Vec<String> = firsts
+                .iter()
+                .filter(|(_, (f, _))| *f == b)
+                .map(|((w, o, what), (_, row))| format!("{w}/{o} {what}: {row}"))
+                .collect();
+            assert_eq!(
+                on,
+                Vec::<String>::new(),
+                "block {b} parts — item 489's `0/5` is back"
+            );
+        }
+        // **And 10278, the block the word left before that** — item
+        // 487's seventeen rows of `1/40` and `1/41`, every one of them
+        // closed by item 489 and pinned empty here for 10162's,
+        // 10234's, 10235's, 10238's and 10245's reason: the headline
+        // walks away from a block and nothing then watches it.
         let on_10278: Vec<String> = firsts
             .iter()
             .filter(|(_, (f, _))| *f == 10_278)
@@ -7778,11 +7943,19 @@ mod tests {
             ],
             "block 10235 is not item 477's three rows"
         );
-        // **And the block the word just left, pinned as its own set.**
-        // 10234 is where `1/28`'s fifteen rows stood until item 465 and
-        // where item 464's three still do; asserting it here is the same
-        // discipline as 10162 above, so the closure the headline's move
-        // is booked on cannot come undone quietly behind it.
+        // **And 10234, where the word's own cause was written sixty
+        // blocks early.** `1/28`'s fifteen rows stood here until item
+        // 465 and item 464's three until item 494: `0/5 orders.len ours
+        // 2 theirs 1` and its `order:length` twin are the `GATHERORDER`
+        // this crate queued under the citizen's flight at `idle == 2`,
+        // and `0/2001 gather:gather_down` is the camp it linked itself
+        // into on the way. All three are the human's idle wait read as 2
+        // where the original's switch answers 12 (`docs/ORDERS.md`
+        // §21.2), and they are pinned empty here for 10162's reason —
+        // the headline walks away from a block and nothing then watches
+        // it. **This is the row that says the citizen is not merely
+        // walking elsewhere but was never re-tasked at all**: a fix that
+        // only delayed the departure would leave the pair standing.
         let on_10234: Vec<String> = firsts
             .iter()
             .filter(|(_, (f, _))| *f == 10_234)
@@ -7790,13 +7963,9 @@ mod tests {
             .collect();
         assert_eq!(
             on_10234,
-            vec![
-                "0/5 order:length: Length { ours: 2, theirs: 1 }",
-                "0/5 orders.len: ours 2 theirs 1",
-                "0/2001 gather:gather_down[-1]: ours 5 theirs 2",
-            ],
-            "block 10234 is not item 464's three rows — `1/28`'s fifteen \
-             are back, or the citizen's have moved"
+            Vec::<String>::new(),
+            "block 10234 parts — item 464's three rows of the citizen's \
+             queued `GATHERORDER` are back, or `1/28`'s fifteen are"
         );
         // **The replan schedule, both sides and both directions** (item
         // 478, `docs/ROADS.md` §1.2). The human's farm `0/2004` falls on
