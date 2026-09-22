@@ -138,6 +138,25 @@ pub struct GroupState {
     /// `+0x84c`: per member, the eighth-turn its slot faces off the
     /// formation's own bearing.
     pub angles: Vec<i8>,
+    /// `+0x40`: **the speed cap `UnitData::get_speed` applies to a member
+    /// with no action order** (`docs/GROUPS.md` §14). A one-pass-lagged
+    /// minimum, not the leader's speed and not this pass's minimum: see
+    /// [`Sim::group_leader_report_speed`] and [`Sim::group_report_speed`].
+    /// Zero is "not set" and caps nothing.
+    pub speed: i32,
+    /// `+0x3c`: the accumulator the **next** pass's [`Self::speed`] comes
+    /// from. The leader's step moves this into `speed` and restarts it at
+    /// its own uncapped speed, and every follower that reports lower drives
+    /// both down.
+    pub new_speed: i32,
+    /// `+0x4b`: cleared by the leader's own report every frame it steps, and
+    /// set only by the forced-march arm below it. It gates whether a
+    /// follower reports its speed at all.
+    ///
+    /// SEAM: nothing sets it here, because the arm that does is
+    /// `has_general(0x8000, -1)` under `LeaderData & 0x8000` and no capture
+    /// has a general.
+    pub march: bool,
 }
 
 impl GroupState {
@@ -182,6 +201,11 @@ impl Default for GroupState {
             off: Vec::new(),
             curr: Vec::new(),
             angles: Vec::new(),
+            // `Group::clear@00713e80` zeroes both, and zero is what
+            // `UnitData::get_speed`'s cap reads as "no cap".
+            speed: 0,
+            new_speed: 0,
+            march: false,
         }
     }
 }
@@ -541,10 +565,121 @@ impl Sim {
         g.list.iter().filter(|&&u| self.units[u].alive()).count() as i32
     }
 
-    /// `Group::normalize`'s prune (§4.3): drop the dead, last to first.
-    pub fn group_normalize(&self, g: &mut Group) {
+    /// `Group::normalize@00711540` (§4.3): drop the dead, last to first,
+    /// and then **recompute the group's speed from its leader**.
+    ///
+    /// The tail is the second half of §18: `find_role`, then
+    /// [`Sim::group_compute_speed`] written into both halves of the pair.
+    /// It is what primes a freshly pushed group — `Army::find_target`'s
+    /// probe normalizes at the end of its own build
+    /// ([`Sim::find_target_probe`](Self::find_target_probe)) — so the
+    /// first frame of the first march is already capped, rather than
+    /// running at the leader's own speed until its first report.
+    pub fn group_normalize(&mut self, g: &mut Group) {
         g.list
             .retain(|&u| u < self.units.len() && self.units[u].alive());
+        self.group_set_speed(g);
+    }
+
+    /// `Group::normalize`'s speed tail on its own, for the sites that
+    /// normalize a **seated** group without a local [`Group`] to prune:
+    /// `Group::kill_group_move@007123f0` and
+    /// `Group::refresh_group_order@00713a50` both open with `normalize`.
+    ///
+    /// SEAM: the prune itself. The seat's list is not walked here, because
+    /// membership is maintained elsewhere in this crate and dropping a
+    /// dead member from a pool slot mid-frame is a different change.
+    pub(crate) fn group_set_speed(&mut self, g: &Group) {
+        let s = self.group_compute_speed(g);
+        if let Some(st) = self.gstate_mut(g) {
+            st.speed = s;
+            st.new_speed = s;
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // The speed cap (§14)
+    // ------------------------------------------------------------------
+
+    /// The cap `UnitData::get_speed@00608720`'s last arm reads —
+    /// `groups[unit->group].speed` — **0 for a unit with no seat**, which
+    /// is what the original's `group >= 0` test answers in the same
+    /// breath: a zero caps nothing either way.
+    ///
+    /// Written without building a [`Group`], because this runs once per
+    /// moving unit per frame and [`Sim::group_of`] clones the list.
+    pub(crate) fn group_speed_of(&self, u: usize) -> i32 {
+        if let Some(slot) = self.army_of(u) {
+            return self.armies[self.units[u].owner as usize].list[slot]
+                .group
+                .speed;
+        }
+        self.pushed
+            .iter()
+            .find(|x| x.list.contains(&u))
+            .map_or(0, |x| x.state.speed)
+    }
+
+    /// `Group::report_speed@00713bb0`, which `Unit::do_group_move` inlines
+    /// at `5e8336` — a **follower** in formation drives the group's speed
+    /// down to its own, never up.
+    ///
+    /// The value reported is `UnitData::speed`, layer two, not
+    /// `get_speed` — so the ground the follower is standing on and the
+    /// order it carries do not enter the cap the rest of the group walks
+    /// at.
+    pub(crate) fn group_report_speed(&mut self, g: &Group, speed: i32) {
+        let Some(st) = self.gstate_mut(g) else { return };
+        if speed < st.speed {
+            st.speed = speed;
+            st.new_speed = speed;
+        }
+    }
+
+    /// `Group::leader_report_speed@007137f0`, which `Unit::do_group_move`
+    /// inlines at `5e7a9a` — the **leader**, on every frame its own step
+    /// succeeds, publishes the pass.
+    ///
+    /// `speed` takes what the accumulator held, and the accumulator
+    /// restarts at the leader's own **uncapped** speed
+    /// (`get_speed(x, y, 1)`). So the cap a member walks at is the
+    /// *previous* pass's minimum, one frame stale, and a group whose slow
+    /// members stop reporting drifts back up to the leader's own speed
+    /// over two frames rather than at once.
+    ///
+    /// Neither function has a caller in the 48k-function export: both are
+    /// inlined at their one call site, which is why a grep for callers
+    /// finds nothing and reads like dead code.
+    pub(crate) fn group_leader_report_speed(&mut self, g: &Group, speed: i32) {
+        let Some(st) = self.gstate_mut(g) else { return };
+        st.speed = st.new_speed;
+        st.new_speed = speed;
+        // SEAM: the arm below it sets this instead, under
+        // `LeaderData & 0x8000` and `has_general(0x8000, -1)`.
+        st.march = false;
+    }
+
+    /// `Group::compute_speed@00707f80` — the group's speed as the four
+    /// membership sites set it: the **leader's** `UnitData::speed`, or 0
+    /// when the group holds buildings, holds nothing, or has no leader.
+    ///
+    /// The original recomputes at `Group::add`, `Group::kill`,
+    /// `Group::normalize` and `Group::clear`, and the group machinery
+    /// reaches all four constantly: a dozen `Group::is_*` queries
+    /// normalize, `Group::kill_group_move` and
+    /// `Group::refresh_group_order` open with one, and `Form::categorize`
+    /// calls `Group::sort`, which kills a member and re-adds it.
+    /// SEAM: `Group::add` and `Group::kill` recompute too, and neither is
+    /// a site this crate has — `Form::categorize`'s call to `Group::sort`,
+    /// which kills a member out of category order and re-adds it, is not
+    /// modelled. What is modelled is [`Sim::group_normalize`] and the two
+    /// sites that open with it.
+    pub(crate) fn group_compute_speed(&self, g: &Group) -> i32 {
+        if g.list.is_empty() {
+            return 0;
+        }
+        self.group_find_leader(g)
+            .map_or(0, |u| self.units[u].movement.speed)
     }
 
     /// `GroupData::get_stance_type` (§4.4): the leader's, or the first
@@ -1616,6 +1751,9 @@ impl Sim {
     ///
     /// Returns whether the group had a slot for `member`.
     pub fn group_refresh_order(&mut self, g: &Group, member: usize) -> bool {
+        // `00713a5a`: `normalize(this)` opens it, and its tail is the
+        // group's speed (§18).
+        self.group_set_speed(g);
         let Some(i) = g.list.iter().position(|&u| u == member) else {
             return false;
         };
@@ -2193,6 +2331,120 @@ mod tests {
                 .map(|&(x, y)| (-x, -y))
                 .collect::<Vec<(i32, i32)>>(),
             "the offsets are negated: {aligned:?} against {opposed:?}"
+        );
+    }
+
+    /// **The group's cap is a one-pass-lagged minimum, not a minimum**
+    /// (§18), and the lag is the whole of item 515's residue — a
+    /// `compute_speed`-shaped model walks the original's own raid at 25
+    /// on frames it walks at 26.
+    ///
+    /// Made to fail on purpose three ways: with
+    /// [`Sim::group_leader_report_speed`] writing `speed` from its own
+    /// argument rather than from the accumulator, the second row is 26
+    /// and the sixth is 26; with [`Sim::group_report_speed`] dropping
+    /// its `<` test, the third row is 25 and the fifth is 30; with it
+    /// writing only `new_speed`, the fourth row is 26.
+    #[test]
+    fn the_group_s_cap_lags_one_pass_behind_what_its_members_report() {
+        let mut s = sim();
+        let t = fighter(&mut s);
+        let fast = spawn(&mut s, 1, t, Pos::new(0x1000, 0x1000));
+        let slow = spawn(&mut s, 1, t, Pos::new(0x1100, 0x1000));
+        s.units[fast].movement.speed = 26;
+        s.units[slow].movement.speed = 25;
+        let mut g = group_of(1, &[fast, slow]);
+        assert!(s.push_group(&mut g, true), "the pair takes a slot");
+        let cap = |s: &Sim| s.group_speed_of(fast);
+
+        // A freshly seated group caps nothing until something reports.
+        assert_eq!(cap(&s), 0, "zero is `Group::clear`'s, and caps nothing");
+
+        // **A zero cap is a trap, and it is the original's.**
+        // `report_speed` only ever *lowers*, so a follower cannot get a
+        // group off zero: the first two frames of a march out of a
+        // freshly seated group run uncapped whatever the followers say,
+        // and it takes the leader's second publication to seed the pair.
+        // That is why [`Sim::group_normalize`] priming the group matters
+        // at all — without it, Great Lakes' raid walks its first frames
+        // at the raider's own 26.
+        s.group_leader_report_speed(&g, 26);
+        assert_eq!(cap(&s), 0, "the accumulator was empty, so the cap still is");
+        s.group_report_speed(&g, 25);
+        assert_eq!(
+            cap(&s),
+            0,
+            "25 is not less than 0, so the report is dropped"
+        );
+
+        // Frame 2: the leader publishes the accumulator it restarted at
+        // its own speed, and only now does the group cap anything.
+        s.group_leader_report_speed(&g, 26);
+        assert_eq!(cap(&s), 26, "the leader's own pass, one frame late");
+
+        // And now a follower can drive it down, both halves at once.
+        s.group_report_speed(&g, 25);
+        assert_eq!(cap(&s), 25, "a report lowers");
+        s.group_report_speed(&g, 30);
+        assert_eq!(cap(&s), 25, "and never raises: 30 is not less than 25");
+
+        // Frame 3: the leader publishes the pass the follower reported
+        // into, so the cap **stays** at 25 while the accumulator
+        // restarts at 26.
+        s.group_leader_report_speed(&g, 26);
+        assert_eq!(cap(&s), 25, "the pass the follower reported into");
+
+        // Frame 4, with the follower no longer reporting — it has
+        // arrived, or it is fighting rather than marching. **Now** the
+        // cap drifts back up, one frame late. This is the row a
+        // `compute_speed`-shaped model gets wrong, and it is five frames
+        // of Great Lakes' raid.
+        s.group_leader_report_speed(&g, 26);
+        assert_eq!(cap(&s), 26, "no report, so the leader's own speed again");
+    }
+
+    /// **`Group::normalize`'s tail puts the cap back on its leader**
+    /// (§18) — the site that primes a group before its first march, and
+    /// the reason the first frame of Great Lakes' raid is capped rather
+    /// than running at the raider's own speed.
+    ///
+    /// The leader is `find_leader`'s, so the **slow** type leads here
+    /// only because its `type_cat` is lower; made to fail by giving both
+    /// types the same category, which hands the lead to the first member
+    /// of the list and the cap to 26.
+    #[test]
+    fn normalizing_a_group_puts_its_cap_back_on_its_leader() {
+        use crate::combat::mask;
+        let mut s = sim();
+        // Mounted outranks foot in `type_cat`, so the mounted type
+        // leads whichever order the list is in.
+        let foot = typed(&mut s, mask::FOOT, 0);
+        let horse = typed(&mut s, mask::MOUNTED, 0);
+        let fast = spawn(&mut s, 1, foot, Pos::new(0x1000, 0x1000));
+        let slow = spawn(&mut s, 1, horse, Pos::new(0x1100, 0x1000));
+        s.units[fast].movement.speed = 26;
+        s.units[slow].movement.speed = 25;
+        let mut g = group_of(1, &[fast, slow]);
+        assert!(s.push_group(&mut g, true));
+        assert_eq!(
+            s.group_find_leader(&g),
+            Some(slow),
+            "the mounted type leads on `type_cat`, not on list order"
+        );
+        // Walk the cap up the way a march does, then normalize.
+        s.group_leader_report_speed(&g, 26);
+        s.group_leader_report_speed(&g, 26);
+        assert_eq!(s.group_speed_of(fast), 26);
+        s.group_normalize(&mut g);
+        assert_eq!(
+            s.group_speed_of(fast),
+            25,
+            "`compute_speed` is the leader's own speed, and it is the slow one"
+        );
+        assert_eq!(
+            s.gstate(&g).map(|st| st.new_speed),
+            Some(25),
+            "and it writes both halves of the pair"
         );
     }
 

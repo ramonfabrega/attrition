@@ -2382,3 +2382,214 @@ did until this item, having passed the queue position straight down to
 `crates/sim/src/group.rs` carries the move and the attack arms and stands
 in for the rest; no capture on disk reaches a group `QUEUE_FIRST` whose
 leader holds one of the others, and `army_charge` is the only other caller.
+
+## 18. The speed cap — what `GroupData::speed` is, and who writes it (item 515, 2026-09-22)
+
+`UnitData::get_speed@00608720`'s last arm is four lines, and until this
+item they were a declared seam in three places
+(`crates/sim/src/orders.rs`, `docs/MOVEMENT.md`'s layer 3, and
+`do_group_move`'s own comment). They are the reason a mixed formation
+marches at its slowest member's pace, and they cost Great Lakes' word 583
+blocks of drift:
+
+```c
+if (param_3 == 0 && -1 < this->group && local_8 == 0 &&
+    (g = groups[this->group].speed, g != 0 && g < speed))
+   speed = g;
+if (speed < 3) speed = 3;
+```
+
+Four gates, and each is load-bearing.
+
+- **`param_3 == 0`** is the flag, and the cap is the *only* thing it
+  selects. `do_move` (`005f7b30:556`), `Unit::find_path`,
+  `Object::poor_target@0064a270:26` and `:31`, and `do_group_move`'s
+  **cross**-formation arm (`5e83f6`) pass 0. `GuyData::get_speed`, the
+  animal's air step, and `do_group_move`'s **in**-formation arm (`5e8355`)
+  pass 1. So the body is never capped, and neither is the third a
+  follower is given to close up with — which is what keeps the cap from
+  freezing a straggling block.
+- **`local_8 == 0`** is `get_action()` answering null, re-used from the
+  order scale twenty lines above. No `OrderIndex` is 0, so the test is
+  exactly "this unit has no action order". A unit *attacking* inside a
+  group is therefore uncapped **and** takes the `× 9/8` of the same
+  `local_8`; a unit merely walking is capped and scaled by nothing.
+- **`g != 0`** — a group whose speed has never been computed caps nothing.
+- **`g < speed`** — the cap only ever lowers.
+
+### 18.1 A one-pass-lagged minimum, whose two writers are inlined
+
+`Group::compute_speed@00707f80` sets `speed` and `new_speed` to the
+**leader's** `UnitData::speed` — `find_leader`'s leader, so the lowest
+`FormData::type_cat` among the group's captains, not the lowest speed —
+and it runs from `Group::add@00714350` (only when the group's `id` is not
+−1, which excludes every stack-local group), `Group::kill@00714110`,
+`Group::normalize@00711540` and `Group::clear@00713e80` (to zero).
+
+That is not where a marching group's number comes from. Two more
+functions write the pair, and **both have zero callers in the
+48k-function export because both are inlined at their one call site** —
+grep says dead code and the listing says otherwise, which is
+`docs/audit/README.md`'s recurring lesson in its purest form:
+
+| written as | inlined at | what it does |
+| --- | --- | --- |
+| `Group::leader_report_speed@007137f0` | `Unit::do_group_move@005e79a0:95`–`97` | `speed = new_speed; new_speed = get_speed(x, y, 1); march = 0` |
+| `Group::report_speed@00713bb0` | `Unit::do_group_move@005e79a0:336`–`338` | `if (UnitData::speed(this) < speed) speed = new_speed = it` |
+
+The leader's runs **after** its own `do_move` returns non-zero, so a
+frame the leader spends turning in place publishes nothing. The
+follower's runs in the in-formation arm only, after the `dest == here`
+early return and under `march == 0 || has_general(0x8000, -1) >= 0`, and
+it reports `UnitData::speed` — **layer two**, not `get_speed` — so
+neither the ground the follower stands on nor the order it carries enters
+the number the rest of the group walks at.
+
+The consequence is a two-phase accumulator, and the lag is observable:
+`new_speed` collects this pass's minimum, and the leader's next step
+promotes it to `speed` and restarts the accumulator at the leader's own
+uncapped speed. A group whose slow members stop reporting therefore
+**drifts back up to the leader's speed over two frames**, and drops back
+the frame one of them reports again. A model that recomputed
+`compute_speed` every frame would be a frame and a half wrong in both
+directions.
+
+Two more properties fall out and are worth stating because they read as
+bugs:
+
+- **A group whose `speed` is 0 cannot be lowered.** `report_speed`'s test
+  is `<`, so until a leader has published twice the cap is nothing
+  whatever the followers say. This is why `Group::normalize`'s tail
+  matters: it is what a freshly pushed group is primed by.
+- **`copy_group@006fa690` copies `speed` and not `new_speed`**, so the
+  two can disagree across a `Groups::push_group`. Nothing reads
+  `new_speed` but the accumulator itself and `GroupData::log_data`.
+
+### 18.2 The measurement — Great Lakes' raid, six units and one control
+
+Great Lakes' long word stood at **10817** with a block of eight rows
+reading as a collision: `1/28` colliding with the gaia animal `8/0` where
+the original collides with nothing. It was a consequence. On 10818 this
+crate's `1/28` stood at `(17208, 26952)` and the original's at
+`(16838, 27194)` — 370 units east, 242 north, about fifteen frames of its
+own walk — while the animal sits at `(17278, 26821)` on **both** sides
+and never moves in the window. The word's own block could not say so
+because `1/28 pos` first parted 583 blocks earlier, on 10235, and a
+`firsts` map records only a key's first parting. That row was parked
+**477**; it and the word were one cause.
+
+**The step, and why the trig is exonerated in one line.** Both sides
+leave `(4776, 30168)` on sim-frame 10234 with the same facing
+(`1252851712`), the same `last_speed` 25 and the same `avg_speed` ramp
+`6, 10, 13, 16, 18, 19, 20, 21, 22, 22, 22`. This crate steps `(25, 7)`
+and the original `(24, 7)`. Run that angle through the original's own
+sine table (`docs/MOVEMENT.md`, "The sine table"): a distance of **26**
+gives `(25, 7)` and a distance of **25** gives `(24, 7)`, both exactly.
+So `sin_component`/`cos_component` agree to the bit and the whole
+question is a scalar — and `1/28`'s `myspeed` is 26.
+
+**Solving that scalar frame by frame** over `[10230, 10830]`, from the
+dump's own `guy.angle` and position deltas, for all six members of group
+65 (`tools/gamelog/track.py`, then the sine table in reverse):
+
+| unit | `myspeed` | solved step | blocks |
+| --- | --- | --- | --- |
+| `1/27` | 26 | **25** | 491 |
+| `1/28` | 26 | **25**, and 26 on exactly five | 487 / 5 |
+| `1/29` | 26 | **29** | 456 |
+| `1/40` | 25 | 25 | 473 |
+| `1/41` | 25 | 25 | 481 |
+| `1/42` | 25 | 25 | 470 |
+
+Group 65 is two raider squads, `myspeed` 26 and 25. Two of the fast three
+walk at 25, which no other arm of `get_speed` can produce from 26 — the
+rest are halvings, a doubling and two eighths. **`1/29` is the control**:
+its order stack carries an `ATTACK` throughout (dumped `type 10` from
+10241), so `get_action` answers non-null, the cap is skipped, and the same
+`local_8` sends it down the `× 9/8` — `26 × 9 / 8 = 29`, to the unit.
+One predicate explains why one member of a group ignores the cap **and**
+why it walks faster than its own quoted speed.
+
+**The five frames are the lag, and they are the strongest evidence
+here.** `1/28` is the group order's own `oxx`, so it is the leader. Its
+own report is `get_speed(x, y, 1)` — uncapped, 26 — and the slow squad
+stands still through this stretch and reports nothing. The cap therefore
+runs 25, 25 (the pass the previous march left), then 26 for five frames
+as the leader's own speed works through the accumulator, then back to 25
+on sim-frame 10241. With the two reporters in, `crates/sim` reproduces
+sim-frames 10234–10240 **exactly** — position, heading and guy clock —
+where a `compute_speed`-shaped model walks all seven at 25.
+
+### 18.3 What it moved, and the residue
+
+| | before | after |
+| --- | --- | --- |
+| Great Lakes long word, sequence / count | 10817 | **10834** |
+| block 10818, keys parted | 8 | **0** |
+| block 10235, keys parted (parked 477) | 3 | **0** |
+| `1/28`'s position error at the word | (370, −242) | **(1, 0)** at its first parting |
+| run100 widening over the word's window | 324 | **285** (over 1,509 blocks against 1,492) |
+| Great Lakes endpoint `off` / `unlinked` / `build_diverged` | 53 / 3 / 9 | **42** / **5** / **10** |
+| East Indies endpoint `off` / `build_unlinked` / `build_diverged` | 64 / 2 / 27 | **63** / **1** / **30** |
+| East Indies ladder B `off` / `extra` | 48 / 14 | **49** / **9** |
+| East Indies ladder C `extra` | 14 | **13** |
+
+Eleven of Great Lakes' roster are back on the original's point at frame
+24,001, 13,167 frames past the word — the largest single fall that
+counter has taken. East Indies moves too and its own word does not (9711
+either side): every map marches formations, so a member that now walks at
+its group's pace arrives elsewhere everywhere. `docs/DECISIONS.md` 36
+asks for the number rather than a trade.
+
+**The residue is one frame of the cap and it is not the cap's.** `1/28`'s
+position now first parts on block **10242**, one world unit, on the frame
+the original's cap returns to 25 and this crate's stays at the 26 its own
+leader reported. In the original a member with a 25 reports on that
+frame; here none can, because `1/40` holds an `ATTACK` at the head of its
+order stack where the original holds the `GROUP_MOVE` (dumped `type 19`
+through 10245), so it never enters `do_group_move` and never reports at
+all. That is an order-stack divergence of the raid, not of §18, and it is
+what the next item on this frame should name.
+
+### 18.4 Coverage
+
+**Diff-backed**: every row of §18.3, from
+`run100_s_word_block_is_every_record_the_dump_carries` over
+`[9340, 10847]` (1,509 blocks, 4,160,848 record rows),
+`run53_s_24000_frames_put_the_ceiling_where_run33_did`,
+`great_lakes_endpoint_is_pinned`, `east_indies_endpoint_is_pinned` and
+`the_east_indies_ladder_is_pinned`. All were red before the change and
+are the numbers above after it.
+
+**Dump-backed**: §18.2's table whole — the six solved step distances, the
+`myspeed` column, `1/29`'s 29 and `1/28`'s five frames — read out of
+run100 with `tools/gamelog/track.py` and the simulation's own sine table
+run backwards. This is the first evidence for the group cap that is not a
+reading, and it is also the first for the *lag*: the five frames are what
+separates the accumulator from a per-frame recompute, and nothing but a
+per-frame solve could have shown them.
+
+**Listing-backed**: §18.1's two inlined writers. Neither
+`Group::report_speed` nor `Group::leader_report_speed` has a caller
+anywhere in the export; both were found by reading `do_group_move`'s own
+body against the standalone functions' addresses. `copy_group`'s
+asymmetry and `Group::add`'s `id != -1` gate are read the same way.
+
+**Reading-only, and owed a check**: `march` (`+0x4b`). The leader's
+report clears it and the arm below it —
+`LeaderData & 0x8000 && has_general(0x8000, -1) >= 0` — sets it; no
+capture has a general, so this crate writes only the clear and the
+follower's gate on it is always open. `GroupData::log_data` does not
+print it, so no dump can settle it either: it needs a capture with a
+forced march.
+
+**Not established**: which of `Group::add`, `Group::kill` or
+`Group::normalize` primes a given group in the original, and when.
+`crates/sim` models the `normalize` tail alone — at
+`Sim::group_normalize` and at the two sites that open with it,
+`Group::kill_group_move` and `Group::refresh_group_order` — and the
+`Form::categorize → Group::sort → kill/normalize/add` chain is not
+modelled at all. On Great Lakes the probe's own closing normalize
+(`Army::find_target`) is what primes group 65, and the first seven frames
+of its march are exact; on a group primed by some other chain the first
+two frames could run uncapped.

@@ -779,6 +779,21 @@ mod tests {
                     .map(|m| Pos::new(m.curr_x as i32, m.curr_y as i32))
                     .collect(),
                 angles: g.members.iter().map(|m| m.angle as i8).collect(),
+                // **The speed pair, installed rather than defaulted**
+                // (item 515). `GROUPDATA` has printed both since the
+                // record existed and nothing read them into the
+                // simulation; they are the cap
+                // `UnitData::get_speed` applies to a member with no
+                // action order (`docs/GROUPS.md` §18), so a capture that
+                // opens mid-march used to hand this crate a cap of zero
+                // and let a fast member walk at its own speed until the
+                // leader's next report.
+                speed: g.speed as i32,
+                new_speed: g.new_speed as i32,
+                // `+0x4b` is not one of `log_data`'s twenty fields, so
+                // there is nothing to install: it is cleared by the
+                // leader's own report on the first frame of any march.
+                march: false,
             };
         }
 

@@ -6847,14 +6847,25 @@ mod tests {
         /// block. They are the one thing besides the queue that opens
         /// inside the window, and they are who=0's.
         const RAID: i64 = 9_451;
-        /// **`1/28` one world unit east**, item 477's row and the block
-        /// the word stood on until item 478 moved it past. The raider's
-        /// `x` is 4801 against the dump's 4800 and its `y` agrees, so
-        /// this is the same residue `run100_s_word_block_is_every_record_
-        /// the_dump_carries` pins by value on block 10235; named here
-        /// rather than widening `opens`, for `RAID`'s reason — the
-        /// exemption names the row, so the day the row closes this fails.
-        const RAIDER_X: i64 = 10_234;
+        /// ~~**`1/28` one world unit east**, item 477's row and the
+        /// block the word stood on until item 478 moved it past.~~
+        /// **Item 515 moved it seven blocks, 10234 → 10241**, and the
+        /// row is still one world unit east — but of a different frame
+        /// and for a different reason, so the number moves and the
+        /// exemption keeps naming exactly one row.
+        ///
+        /// 477's row was the **first** frame of the raid's walk: both
+        /// sides left `(4776, 30168)` on sim-frame 10234 with the same
+        /// facing, and this crate stepped 26 where the original stepped
+        /// 25, because it had no group speed cap at all
+        /// (`docs/GROUPS.md` §18). With the cap the first seven frames
+        /// are exact, and what is left opens on **10241**, the frame
+        /// the original's cap drops back to 25 and this crate's stays
+        /// at 26: §18's residue, and it chains to `1/40`'s order stack
+        /// rather than to the cap. Named here rather than widening
+        /// `opens`, for `RAID`'s reason — the exemption names the row,
+        /// so the day the row closes this fails.
+        const RAIDER_X: i64 = 10_241;
         /// ~~**`1/29` stops where the original walks on**, and **`1/27`
         /// then walks into it** — the two rows item 483's word move
         /// pulled below the line, at 10241 and 10242.~~
@@ -8149,27 +8160,40 @@ mod tests {
         // spends the sell draw the sequence parted on, and its step
         // machine disarms where this crate ran a second pass.
         //
-        // **The new word is 10817 and its block is `1/28`**, eight rows
-        // of one raider and nothing else in the block: a collision this
-        // crate takes and the original does not (`collide` 1 against 0,
-        // `collide_who` 8 against −1) with the stand that follows it
-        // (`g.cur_anim` 0 against 8, `g.stopped` 1 against 0). The draw
-        // stream parts on the same frame and says the same thing —
-        // ours three draws against two, the extra
-        // `Guy::set_anim+0x97a < Unit::move_step+0x823`.
+        // ~~**The new word is 10817 and its block is `1/28`**, eight
+        // rows of one raider: a collision this crate takes and the
+        // original does not, with the stand that follows it.~~ **Item
+        // 515 closed them, and the collision was a consequence rather
+        // than a cause.** On 10818 this crate's `1/28` stood at
+        // `(17208, 26952)` where the original's stands at
+        // `(16838, 27194)` — 370 units east, about fifteen frames of
+        // its own walk — so it collided with the gaia animal `8/0`,
+        // which sits at `(17278, 26821)` on **both** sides and never
+        // moves in the window. The position said so and the block did
+        // not, because `1/28 pos` first parted at **10235** and a
+        // `firsts` map records only the first block a key parts on:
+        // parked 477's three rows and this word were one cause, 583
+        // blocks apart. `docs/GROUPS.md` §18.
+        //
+        // **The new word is 10834 and its block is the same raider,
+        // six rows.** The collision is still there and the position
+        // behind it is now **one unit**, not 370: it first parts on
+        // 10242, the frame the original's cap goes back to 25 and this
+        // crate's stays at 26 because no member with a 25 ever reports
+        // (§18's residue). `collide_o` and `collide_who` have left the
+        // block entirely — they part earlier now — and the clock
+        // triple under the stand is two frames tighter.
         assert_eq!(
             on_word,
             vec![
                 "1/28 collide: ours 1 theirs 0",
-                "1/28 collide_o: ours 0 theirs -1",
-                "1/28 collide_who: ours 8 theirs -1",
                 "1/28 g.cur_anim[0]: ours 0 theirs 8",
-                "1/28 g.cur_time[0]: ours 1 theirs 12",
+                "1/28 g.cur_time[0]: ours 1 theirs 3",
                 "1/28 g.end_time[0]: ours 31 theirs 13",
-                "1/28 g.last_time[0]: ours 0 theirs 11",
+                "1/28 g.last_time[0]: ours 0 theirs 2",
                 "1/28 g.stopped[0]: ours 1 theirs 0",
             ],
-            "the word's own block ({word}) is not item 506's eight rows \
+            "the word's own block ({word}) is not item 515's six rows \
              of `1/28`"
         );
         // **And 10295, the block the word just left** — item 489's six
@@ -8191,7 +8215,14 @@ mod tests {
         // left, and the value diff for its move: the AI's Stable holds
         // the same queue as the original's now, because the leader
         // reaches the frame with the original's own purse.
-        for b in [10_274_i64, 10_294, 10_295, 10_304, 10_583] {
+        // **And 10818** (item 515), the block the word just left and the
+        // value diff for *this* move: all eight rows are gone, and the
+        // one that mattered is the one the block never showed —
+        // `1/28`'s position, 370 units out on 10818 and **one** unit
+        // out now. A regression that put the raider back where it was
+        // would bring the collision back with it and fail here rather
+        // than only at the word.
+        for b in [10_274_i64, 10_294, 10_295, 10_304, 10_583, 10_818] {
             let on: Vec<String> = firsts
                 .iter()
                 .filter(|(_, (f, _))| *f == b)
@@ -8200,8 +8231,8 @@ mod tests {
             assert_eq!(
                 on,
                 Vec::<String>::new(),
-                "block {b} parts — item 489's `0/5`, item 497's `1/51` or item \
-                 506's `1/2018` is back"
+                "block {b} parts — item 489's `0/5`, item 497's `1/51`, item \
+                 506's `1/2018` or item 515's `1/28` is back"
             );
         }
         // **And 10278, the block the word left before that** — item
@@ -8251,11 +8282,16 @@ mod tests {
             Vec::<String>::new(),
             "block 10238 parts — it was empty when the word left it"
         );
-        // **And 10235, the block the word just left**, where item 477's
-        // three rows stand: `1/28` one world unit east in `x`, said by the
-        // unit and by its guy's two copies. Pinned here for the same
-        // reason 10162 and 10234 are — the headline walks away from a
-        // block and nothing then watches it.
+        // ~~**And 10235, the block the word just left**, where item
+        // 477's three rows stand: `1/28` one world unit east in `x`,
+        // said by the unit and by its guy's two copies.~~ **Item 515
+        // closed all three**, and they were the word's own cause 583
+        // blocks below it: the raid's very first step, ours 26 and the
+        // original's 25, because a group's speed cap was not modelled
+        // at all (`docs/GROUPS.md` §18). Pinned **empty** here for
+        // 10162's reason — the headline walks away from a block and
+        // nothing then watches it — and this one is worth watching
+        // twice, because everything the word was grew out of it.
         let on_10235: Vec<String> = firsts
             .iter()
             .filter(|(_, (f, _))| *f == 10_235)
@@ -8263,12 +8299,9 @@ mod tests {
             .collect();
         assert_eq!(
             on_10235,
-            vec![
-                "1/28 g.des_x[0]: ours 4801 theirs 4800",
-                "1/28 g.x[0]: ours 4801 theirs 4800",
-                "1/28 pos: ours (4801,30175) theirs (4800,30175)",
-            ],
-            "block 10235 is not item 477's three rows"
+            Vec::<String>::new(),
+            "block 10235 parts — item 477's three rows of `1/28`, which \
+             item 515 closed, are back"
         );
         // **And 10234, where the word's own cause was written sixty
         // blocks early.** `1/28`'s fifteen rows stood here until item

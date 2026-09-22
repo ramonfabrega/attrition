@@ -156,7 +156,7 @@ impl Sim {
         // animal is `UnitData::speed` and nothing else (`orders.rs`). The
         // `ai_speed` multiply after it is `do_air_physics`'s own, not the
         // step's.
-        let mut speed = self.get_speed(u);
+        let mut speed = self.get_speed(u, 1);
         if self.ai_speed > 1 {
             speed *= self.ai_speed;
         }
