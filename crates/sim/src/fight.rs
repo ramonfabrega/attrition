@@ -441,7 +441,7 @@ impl Sim {
         if !crate::orders::index::is_move_family(self.order_type(c)) {
             return false;
         }
-        if self.get_speed(u) >= self.get_speed(c) {
+        if self.get_speed(u, 0) >= self.get_speed(c, 0) {
             return false;
         }
         let (mp, cp) = (self.units[u].pos, self.units[c].pos);

@@ -138,6 +138,25 @@ pub struct GroupState {
     /// `+0x84c`: per member, the eighth-turn its slot faces off the
     /// formation's own bearing.
     pub angles: Vec<i8>,
+    /// `+0x40`: **the speed cap `UnitData::get_speed` applies to a member
+    /// with no action order** (`docs/GROUPS.md` §14). A one-pass-lagged
+    /// minimum, not the leader's speed and not this pass's minimum: see
+    /// [`Sim::group_leader_report_speed`] and [`Sim::group_report_speed`].
+    /// Zero is "not set" and caps nothing.
+    pub speed: i32,
+    /// `+0x3c`: the accumulator the **next** pass's [`Self::speed`] comes
+    /// from. The leader's step moves this into `speed` and restarts it at
+    /// its own uncapped speed, and every follower that reports lower drives
+    /// both down.
+    pub new_speed: i32,
+    /// `+0x4b`: cleared by the leader's own report every frame it steps, and
+    /// set only by the forced-march arm below it. It gates whether a
+    /// follower reports its speed at all.
+    ///
+    /// SEAM: nothing sets it here, because the arm that does is
+    /// `has_general(0x8000, -1)` under `LeaderData & 0x8000` and no capture
+    /// has a general.
+    pub march: bool,
 }
 
 impl GroupState {
@@ -182,6 +201,11 @@ impl Default for GroupState {
             off: Vec::new(),
             curr: Vec::new(),
             angles: Vec::new(),
+            // `Group::clear@00713e80` zeroes both, and zero is what
+            // `UnitData::get_speed`'s cap reads as "no cap".
+            speed: 0,
+            new_speed: 0,
+            march: false,
         }
     }
 }
@@ -545,6 +569,92 @@ impl Sim {
     pub fn group_normalize(&self, g: &mut Group) {
         g.list
             .retain(|&u| u < self.units.len() && self.units[u].alive());
+    }
+
+    // ------------------------------------------------------------------
+    // The speed cap (§14)
+    // ------------------------------------------------------------------
+
+    /// The cap `UnitData::get_speed@00608720`'s last arm reads —
+    /// `groups[unit->group].speed` — **0 for a unit with no seat**, which
+    /// is what the original's `group >= 0` test answers in the same
+    /// breath: a zero caps nothing either way.
+    ///
+    /// Written without building a [`Group`], because this runs once per
+    /// moving unit per frame and [`Sim::group_of`] clones the list.
+    pub(crate) fn group_speed_of(&self, u: usize) -> i32 {
+        if let Some(slot) = self.army_of(u) {
+            return self.armies[self.units[u].owner as usize].list[slot]
+                .group
+                .speed;
+        }
+        self.pushed
+            .iter()
+            .find(|x| x.list.contains(&u))
+            .map_or(0, |x| x.state.speed)
+    }
+
+    /// `Group::report_speed@00713bb0`, which `Unit::do_group_move` inlines
+    /// at `5e8336` — a **follower** in formation drives the group's speed
+    /// down to its own, never up.
+    ///
+    /// The value reported is `UnitData::speed`, layer two, not
+    /// `get_speed` — so the ground the follower is standing on and the
+    /// order it carries do not enter the cap the rest of the group walks
+    /// at.
+    pub(crate) fn group_report_speed(&mut self, g: &Group, speed: i32) {
+        let Some(st) = self.gstate_mut(g) else { return };
+        if speed < st.speed {
+            st.speed = speed;
+            st.new_speed = speed;
+        }
+    }
+
+    /// `Group::leader_report_speed@007137f0`, which `Unit::do_group_move`
+    /// inlines at `5e7a9a` — the **leader**, on every frame its own step
+    /// succeeds, publishes the pass.
+    ///
+    /// `speed` takes what the accumulator held, and the accumulator
+    /// restarts at the leader's own **uncapped** speed
+    /// (`get_speed(x, y, 1)`). So the cap a member walks at is the
+    /// *previous* pass's minimum, one frame stale, and a group whose slow
+    /// members stop reporting drifts back up to the leader's own speed
+    /// over two frames rather than at once.
+    ///
+    /// Neither function has a caller in the 48k-function export: both are
+    /// inlined at their one call site, which is why a grep for callers
+    /// finds nothing and reads like dead code.
+    pub(crate) fn group_leader_report_speed(&mut self, g: &Group, speed: i32) {
+        let Some(st) = self.gstate_mut(g) else { return };
+        st.speed = st.new_speed;
+        st.new_speed = speed;
+        // SEAM: the arm below it sets this instead, under
+        // `LeaderData & 0x8000` and `has_general(0x8000, -1)`.
+        st.march = false;
+    }
+
+    /// `Group::compute_speed@00707f80` — the group's speed as the four
+    /// membership sites set it: the **leader's** `UnitData::speed`, or 0
+    /// when the group holds buildings, holds nothing, or has no leader.
+    ///
+    /// SEAM: nothing calls this here. The original recomputes at
+    /// `Group::add`, `Group::kill`, `Group::normalize` and `Group::clear`,
+    /// and the group machinery reaches all four constantly —
+    /// `Form::categorize` calls `Group::sort`, which kills, normalizes and
+    /// re-adds; a dozen `Group::is_*` queries normalize; and
+    /// `Group::refresh_group_order` opens with one. None of those chains is
+    /// modelled, so a group here starts at 0 and takes its value from
+    /// [`Sim::group_leader_report_speed`] on the first frame of its walk.
+    /// The expression is written out because it is what a `GROUPDATA`
+    /// capture would be diffed against, and because the two disagree only
+    /// on the frames before a group move starts.
+    #[cfg(test)]
+    pub(crate) fn group_compute_speed(&self, g: &Group) -> i32 {
+        if g.list.is_empty() {
+            return 0;
+        }
+        self.group_find_leader(g)
+            .map_or(0, |u| self.units[u].movement.speed)
     }
 
     /// `GroupData::get_stance_type` (§4.4): the leader's, or the first

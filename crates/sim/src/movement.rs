@@ -1377,27 +1377,27 @@ mod tests {
         s.units[a].movement.speed = 34;
 
         s.world.set_tile_z(t, 0);
-        assert_eq!(s.get_speed(a), 34, "plain ground at the waterline");
+        assert_eq!(s.get_speed(a, 0), 34, "plain ground at the waterline");
 
         s.world.set_tile_bits(t, tile::RIVER);
-        assert_eq!(s.get_speed(a), 17, "river, and z is not above zero");
+        assert_eq!(s.get_speed(a, 0), 17, "river, and z is not above zero");
 
         // The `z` gate: one unit of height above the water and the tile
         // stops slowing it.
         s.world.set_tile_z(t, 1);
-        assert_eq!(s.get_speed(a), 34, "z > 0 skips the halving");
+        assert_eq!(s.get_speed(a, 0), 34, "z > 0 skips the halving");
         s.world.set_tile_z(t, -1);
-        assert_eq!(s.get_speed(a), 17, "and below it does not");
+        assert_eq!(s.get_speed(a, 0), 17, "and below it does not");
 
         // The arm is the **land** one whole: a boat over the same tile is
         // not slowed by it.
         s.units[a].kind.domain = crate::attrition::Domain::Sea;
-        assert_eq!(s.get_speed(a), 34, "sea takes none of layer three");
+        assert_eq!(s.get_speed(a, 0), 34, "sea takes none of layer three");
         s.units[a].kind.domain = crate::attrition::Domain::Land;
 
         // The floor is below the halving, not above it.
         s.units[a].movement.speed = 4;
-        assert_eq!(s.get_speed(a), SPEED_FLOOR, "4 / 2 is under the floor");
+        assert_eq!(s.get_speed(a, 0), SPEED_FLOOR, "4 / 2 is under the floor");
     }
 
     #[test]
