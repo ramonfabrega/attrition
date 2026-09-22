@@ -161,18 +161,23 @@ def scan_candidates(payload,joined,rows,cap=200000):
                 live_allocation_count=None,live_allocation_coverage=None,liveness_proven=False)
 
 
-def load_inputs(install,capture,types_json):
-    # Revalidate source packet; do not trust a stale index/cache of payload offsets.
-    from memory_payload import validate
-    from memory_inventory import decode
-    report=validate(install,capture)
-    inv=decode((capture/'memory-inventory.bin').read_bytes(),(capture/'restore-prefix.bin').read_bytes())
+def load_bound_types(install,types_json):
     raw=(install/'riseofnations.exe').read_bytes();pe=PE(raw)
     metadata=types_json.read_bytes();manifest=json.loads((types_json.parent/'manifest.json').read_text())
     require(manifest['files'].get(types_json.name)==hashlib.sha256(metadata).hexdigest(),'type export manifest differs')
     data=json.loads(metadata);types=Types(data)
     require(data.get('_source',{}).get('pdb_sha256')==hashlib.sha256((install/'sbl/rise.pdb').read_bytes()).hexdigest(),'unbound or different PDB export')
     pdb=data['PdbStream'];require(pe.identity[0]==pdb['Guid'].strip('{}').upper() and pe.identity[1]==pdb['Age'],'PDB/PE identity differs')
+    return pe,types,data,raw
+
+
+def load_inputs(install,capture,types_json):
+    # Revalidate source packet; do not trust a stale index/cache of payload offsets.
+    from memory_payload import validate
+    from memory_inventory import decode
+    report=validate(install,capture)
+    inv=decode((capture/'memory-inventory.bin').read_bytes(),(capture/'restore-prefix.bin').read_bytes())
+    pe,types,data,raw=load_bound_types(install,types_json)
     return pe,types,report,inv,data,raw
 
 
