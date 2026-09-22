@@ -3,6 +3,7 @@ import argparse,json,struct
 from pathlib import Path
 from replay_capsule import require
 from continued_call import continue_once
+from recycler_reuse import audit_pathnode_reuse
 from payload_replay import explore,parse_borrow,fingerprint,observe_unit_path
 from path_intervention import execute,input_patch
 from resume_frontier import ENTRY,registers
@@ -20,7 +21,7 @@ def counter_writes(runner,unit):
             if any(a<unit+off+4 and a+n>unit+off for off in (0x134,0x148))]
 
 
-def experiment(runner,c,baseline,native):
+def experiment(runner,c,baseline,native,*,audit_reuse=False):
     witness=native_experiment(runner,c,baseline,native)
     require_agreement(witness['comparison'])
     regs=registers(c);original=fingerprint(runner,None)
@@ -40,7 +41,8 @@ def experiment(runner,c,baseline,native):
         require(first_graph['complete'],'first graph incomplete')
         before=dict(cursor=runner.cursor,allocations=len(runner.allocations),retired=list(runner.retired),initialized=len(runner.initialized))
         mode_bytes=bytearray(modes.data);struct.pack_into('<I',mode_bytes,0,limit)
-        second=continue_once(runner,regs,dict(callee_arguments=arguments.data,modes=bytes(mode_bytes)))
+        invoke=lambda:continue_once(runner,regs,dict(callee_arguments=arguments.data,modes=bytes(mode_bytes)))
+        second=audit_pathnode_reuse(runner,invoke) if audit_reuse else invoke()
         second['counter_writes']=counter_writes(runner,c['unit'])
         second['model_before']=before
         second['model_after']=dict(cursor=runner.cursor,allocations=len(runner.allocations),retired=list(runner.retired),initialized=len(runner.initialized))
@@ -64,12 +66,13 @@ def main():
     ap=argparse.ArgumentParser(description=__doc__)
     ap.add_argument('install',type=Path);ap.add_argument('directory',type=Path)
     ap.add_argument('--borrow',action='append',default=[],type=parse_borrow)
+    ap.add_argument('--audit-pathnode-reuse',action='store_true',help='track fresh writes separately for each recycler acquisition')
     args=ap.parse_args();p=args.directory
     native=decode_post((p/'restore-poststate.bin').read_bytes(),(p/'restore-prefix.bin').read_bytes())
     check_receipt(list(records(p/'rontrace.log')),native)
     result=explore(args.install,p,services='malloc+memset+memcpy+free',borrowed=args.borrow,
                    mutable_arguments=True,observe_path=True,
-                   on_prepared=lambda r,c,b:experiment(r,c,b,native))
+                   on_prepared=lambda r,c,b:experiment(r,c,b,native,audit_reuse=args.audit_pathnode_reuse))
     print(json.dumps(result,indent=2))
 
 

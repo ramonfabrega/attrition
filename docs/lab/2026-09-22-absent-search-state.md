@@ -4,6 +4,9 @@ L77 follows [the immediate continuation experiment](2026-09-22-continuation-boun
 No live capture was requested or run. PR #6 remains frozen at `af4ed73`; this
 work stays on `codex/continuation-lab`. No main score changed.
 
+Follow-up: [L78](2026-09-22-recycler-acquisition-epochs.md) strengthens the scratch
+reuse audit to restart initialization history on every acquisition.
+
 ## What the widened comparison establishes
 
 An explicit absent-container observer now accepts all five saved-search roots

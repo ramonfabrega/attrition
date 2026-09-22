@@ -138,6 +138,8 @@ No new capture or main-loop adoption is requested by this handoff.
 
 | L77 | What survives after saved containers disappear? | [Absent search state](2026-09-22-absent-search-state.md). | All known recycler bytes agree across single/continued models; only retained suspension counters differ. Explicit unknowns and reusable guarded re-entry. | Frozen-world model; recycler target contents and native second-call state unobserved. No capture or score movement. |
 
+| L78 | Can a prior use hide stale reads on reacquisition? | [Recycler acquisition epochs](2026-09-22-recycler-acquisition-epochs.md). | Negative control catches the hidden old read; both continuations perform eight acquisitions of four PathNodes, with all 36 bytes freshly written per acquisition. | Model-only dynamic coverage; untouched pool objects and native next-call boundary remain unverified. No masking or capture. |
+
 ## Current direction
 
 The September 19–22 tranche now has an unchanged native unit/path witness
@@ -154,8 +156,9 @@ differences. That checkpoint is frozen in draft PR #6. L76 continues independent
 with immediate modeled re-entry; it reproduces the path but exposes two unit-word
 differences and the completed-state observation gap. L77 supplies an explicit
 absent-container view and traces the two words to retained suspension writes.
-The next lab step is the recycler-target reuse contract before selecting a
-native second-call falsifier;
+L78 tests recycler reuse per acquisition, catching the history-reset failure in
+an authored control and observing fresh writes on all eight measured acquisitions.
+The next lab step is a bounded natural second-call capture contract;
 the next adoption test should answer one
 real divergence question selected by steering, with a named call/field and
 falsifier. Saved-tree required fields now have one native witness; native limit 96,
