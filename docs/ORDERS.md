@@ -4572,11 +4572,29 @@ blocks before the frame the item is about:
 | `1/41` | 4 | 39288, 21144 | 39192, 21288 | 120 | 24 |
 | `1/42` | 5 | 39000, 21144 | 39096, 21000 | 600 | 696 |
 
-`off_x` is `x mod 0x300` — the destination said twice (`docs/ORDERS.md`
-§4.1) — so the row 465 named is not a field of its own at all, and the
-whole of it is in the `x` above it. **`1/28`'s 120 is a consequence of the
-group's**, not a slot of its own, and the item's title named a unit where
-the record named a group.
+**`off_x` is `x mod 0x300` — the destination said twice** (§4.1). So the
+row item 471 was booked on is not a field of its own at all: the whole of
+it is in the `x` above it, and `1/28`'s 120 is a consequence of the group's
+destination rather than a slot of its own. The item's title named a unit
+and a field where the record named a group and neither.
+
+**A derived field that looks independent is the shape that has cost this
+frame run five wrong mechanisms.** The comparator prints `off_x` beside
+`x` with nothing to say they are one number; a reader who takes them for
+two sees a slot table where there is only a destination. Before a row is
+made a mechanism, ask what writes it — and `crates/rondata/src/diff/
+order.rs` already said so in the comment directly above the row.
+
+**And the cause was 895 blocks upstream of the block the item names.**
+The comparator keys on the block a field **first** parts on, so a number
+wrong since the order was born never shows up where its consequence does:
+this item was booked on 10235 and every one of its rows is at 9340. That
+is the furthest "the frame is right, the mechanism is not" has yet gone on
+this frame run, and it is worth being precise about the sense in which the
+frame was right — 10235 was a true symptom and a true place to look, and
+it was nine hundred frames downstream of anything that could be fixed. A
+residue item's frame locates the *consequence*. Widen first, read the
+whole window, and let the first-parting block say where the cause is.
 
 And the two tables are the same six points. This crate's are a clean
 3×2 grid on 144 — `x ∈ {39000, 39144, 39288}`, `y ∈ {21144, 21288}`, three
@@ -4619,6 +4637,17 @@ probe queues `action_attack(farm, QUEUE_NEW)` and then the walk home at
 **`QUEUE_LAST`**, so at the moment the move is laid out the leader `1/40` is
 standing at the destination but is *going* to a farm at the other end of the
 map, and the delta is the length of Great Lakes.
+
+**And the probe concealed the defect it exercises, which is a finding
+about the harness rather than about the mechanic.** `docs/ARMY.md` §12's
+probe is the one call in any scored window that takes this branch, and the
+shape of it — an attack queued at `QUEUE_NEW`, the walk home behind it at
+`QUEUE_LAST`, aimed at the leader's own feet — is precisely the shape that
+makes `get_loc`'s wrong answer *look* like a legitimate zero delta rather
+than like a missing call. A capture whose only witness to a branch is a
+case that disguises it is not a witness. This is the fifth instrument
+defect on this frame run, and the general form is: when the sole exerciser
+of a path is degenerate, the path is untested however many frames agree.
 
 The farm is `0/2004`, at `(2112, 31296)` in run19's own block 8187, and
 
@@ -4703,7 +4732,59 @@ for node. What is left is `1/28` one unit east in `x` — `pos ours (4801,
 30175) theirs (4800, 30175)` — and its two guy rows saying the same thing.
 Across the widening's window the parted keys go **440 → 322**.
 
-### 17.6 Coverage
+### 17.6 A second oracle for the word, 2,000 frames earlier
+
+**Whoever is hunting Great Lakes' long word should read this section
+before anything else in it.** The word has stood at 10234 since item 465
+and what holds it is not a record at all: the whole dumped record agrees
+and the **draw stream** does not, 204 draws at
+`PathFinder::calc_road_cost+0x46` against six. A draw count is an
+expensive oracle — it says a cost function was called a different number
+of times and nothing about what it computed.
+
+This item turned up a second witness to the same thing, and it is cheaper
+in every way. `great_lakes_8186_plans_the_probe_s_route_the_original_s_way`
+doubled its own width here: it had been comparing 47 entries against the
+original's 94 and stopping at the common tail, because this crate held no
+queued leg at all; with the leg held, both sides are 94 and the return leg
+came under comparison for the first time. Twenty-two of its entries part,
+pinned as rows in `rondata::diff::harness`'s `PROBE_PLAN_PARTED`, and the
+**shape** of those twenty-two is the claim:
+
+- every one shares the original's `x`, to the unit;
+- every one sits **768 or 1536 south** of the original's `y` — one or two
+  cells, never a fraction and never more;
+- they fall in three stretches, each of which **re-converges** within a
+  dozen waypoints onto the original's own line;
+- the route's start, its end, and its every `x` agree, and so do the
+  `tolerance` and `flags` stamped on the parted waypoints themselves.
+
+A leg planned to the wrong cell but stamped right, that re-joins the
+original's line three times without being steered back, is a **cost**
+answer: the two routes are tying and the tie is being broken differently.
+That is `calc_road_cost` and it is what the word's 204 draws are.
+
+**So the hypothesis is that these are one residue, not two** — and the
+same item closes both. It is worth running against the 22 rather than
+against the word, because the rows are twenty-two integers on a single
+frame at 8186, they name *which* cells the two sides disagree about, and
+they cost a third of a second to measure against a 169-second widening.
+
+**What would falsify it**, stated so nobody has to guess:
+
+- a change that moves the word's 204-against-6 draw count and leaves
+  `PROBE_PLAN_PARTED` at twenty-two, or empties `PROBE_PLAN_PARTED` and
+  leaves the draw count where it is, says they are two residues and this
+  section is wrong;
+- a parted entry that differs in `x`, or by a `y` that is not a whole
+  number of cells, says the 22 are not a tie-break at all and belong to
+  whatever chooses the *direction* of a leg;
+- a parted entry carrying a `tolerance` or `flags` that is not the
+  original's says a different call made the leg, not a different cost
+  inside the same one — which is why that assertion is kept separate and
+  kept at zero.
+
+### 17.7 Coverage
 
 **Diff-backed**: §17.1's table (run100, block 9340, all six members, both
 directions); §17.2's exactness, through the route in §17.5 — a

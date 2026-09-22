@@ -5625,14 +5625,22 @@ mod tests {
                 .iter()
                 .map(|p| (p.tolerance, p.flags))
                 .collect();
+            // **And these agree everywhere, including where the route does
+            // not.** `1/40`'s twenty-two parted waypoints carry the
+            // original's own `tolerance` and `flags` on every one of them,
+            // which is worth an assertion of its own: a leg planned to the
+            // wrong cell but stamped right is a **cost** answer, where a leg
+            // stamped wrong would be a different call. So this list is empty
+            // for all six and is deliberately **not** [`PROBE_PLAN_PARTED`]
+            // — reusing that expectation here is what made this test red on
+            // item 471's first gate.
             let rest_parted: Vec<usize> = (0..ours_rest.len())
                 .filter(|&i| ours_rest[i] != their_rest[i])
                 .collect();
-            assert_eq!(
-                rest_parted,
-                want,
+            assert!(
+                rest_parted.is_empty(),
                 "{who}/{o}'s waypoint tolerances and flags are not run97 block \
-                 8187's: ours {:?} theirs {:?}",
+                 8187's at {rest_parted:?}: ours {:?} theirs {:?}",
                 rest_parted
                     .iter()
                     .map(|&i| ours_rest[i])
