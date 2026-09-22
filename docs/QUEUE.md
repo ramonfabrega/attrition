@@ -12,35 +12,36 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-22, the tenth Fable pass: no score moved and none was meant to.
-Great Lakes **10277**, chapter two **683**, both inside their first fight.*
+*2026-09-22, nine landings under an Opus 5 commander, stopped at Ramon's
+word for a Claude Code update. Great Lakes **10277 → 10834**, golden
+chapter two **683 → 725** — both headline words moved.*
 
-- **Fourteen landings since the ninth pass, every worker on Opus 5, the
-  chain run unattended to its stop** — the ninth pass's clauses held.
-  Both words moved. Workers 26 USD a landing against 20, 53 a word
-  against 46, and **4 USD a frame against 0.19**: a fight draws on every
-  frame, and a residue there buys a frame where one between fights
-  bought 651.
-- **Ten of fourteen landings turned on an instrument defect**, six of
-  them a field the original prints that nothing read. That is a guard
-  now: `rondata::diff::coverage` records what the parser asks each
-  block for and pins the dump's own keys against it — **20 paths, 239
-  keys unread** on the two headline windows, three record families
-  never opened (`DEATH_OBJS`, the frame-level `GUY` list, per-frame
-  `WORLD`). A key a landing reads is deleted from the pin in that
-  landing. The count is the next pass's measure.
-- **Struck text no longer counts** against a section's ceiling (480): a
-  correction is not an addition. Four pins fell; `AI.md` §15 left the table.
-- **491 landed both of 683's sides**; 476 and 342 stay parked.
-  **Fable backlog: 7 Loop items** (313, 503, 507, 508, 509, 513, 517).
+- **Two of the nine moved no word on purpose and were the more
+  valuable**: 496 landed the comparator, 510 the `GUY` block chapter
+  two's widening had **never opened** — eleven items blind to the
+  record its word is spent in.
+- **Five instrument defects of one family, the tranche's real
+  finding**: a comparator reading an empty side as agreement
+  (`compare_orders`, third time — 462, 496, 502); coverage keys nothing
+  parses; run118's truncation readable as emptiness; `ledger::DIFF`
+  missing `diff/golden.rs`, so the **whole rules track** read as
+  uncompared. All five **report health they have not measured**, and in
+  each the instrument's *scope* is hand-maintained and unchecked.
+- **The briefed mechanism was wrong eight times of eight**; the frame
+  was right every time. COMBAT §44.2.1 is the rule it produced.
+- **495 promoted, 477 closed**, both by measured takes-chains rather
+  than argument. 495 is the first hard-constraint item.
+- **Disk at 99%, 15 GiB free**; `ccc spawn` refuses under 10. **Stops
+  the loop, not slows it.** Coverage pin 239 → 232 keys.
+- **Fable backlog: 7 Loop items** (313, 503, 507, 508, 509, 513, 517).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w9711 of 24,000 · GreatLakes w10817 of 24,000
+Long captures: EastIndies w9711 of 24,000 · GreatLakes w10834 of 24,000
 Golden: w626 of 901 (ch1) · ch2 w725 · 495 next
-Endpoint 24001: EastIndies 64 off, 10 unlinked · GreatLakes 53 off, 3 unlinked
+Endpoint 24001: EastIndies 63 off, 10 unlinked · GreatLakes 42 off, 5 unlinked
 
-**Opener: 502 and 506 in flight. Five landings; Great Lakes 10277 → 10582
-in four, ch2 695 and its comparator. Merge, book, gate, push, reap, spawn.**
+**Opener: nothing in flight, both lanes reaped, tree pushed. A fresh Opus
+commander takes 518 on the AI track and 495 on the rules track.**
 
 ## The queue
 
@@ -50,14 +51,14 @@ the AI, lower map first — Great Lakes. Take the first unstarted on either
 track unless a better order is obvious, and say so. Numbers are stable;
 the backlog is `docs/PARKED.md`, and an item returns only when a score names it.
 
-515. **10817's eight rows, all one raider `1/28`** (the AI headline's
-    own frame; 506 moved the word 10582 → 10817). A collision **this
-    crate takes and the original does not** — `collide` 1 v 0,
-    `collide_who` 8 v −1 — with the stand behind it (`g.cur_anim` 0 v
-    8, `g.stopped` 1 v 0) and the clock triple under that. The draw
-    stream parts on the same frame and says the same thing: ours
-    **three** draws against **two**, the extra `Guy::set_anim+0x97a <
-    Unit::move_step+0x823`. COLLISION §11's family. No mechanism.
+518. **`1/28`'s position first parts on block 10242, one world unit**
+    (the AI headline's frame; 515 moved the word to 10834). The frame
+    the original's group cap returns to 25 and this crate's stays at
+    its leader's 26 — **no member with a 25 can report**, because
+    `1/40` holds an ATTACK at its order stack's head where the dump
+    has the `GROUP_MOVE` it is dumped with (`type 19` through 10245),
+    so it never enters `do_group_move`. An **order-stack** item, not a
+    cap one; `1/27` follows a block later. GROUPS §18. No mechanism.
 
 495. **The rolled arrow's landing — promoted from parked, and the
     rules headline** (725's own cause, measured by 510). Frame 686:

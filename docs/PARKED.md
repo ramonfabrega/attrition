@@ -22,6 +22,17 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Parked by item 515, 2026-09-22 — a field the dump does not print
+
+(519) **`march` (+0x4b) is owed, and no capture on disk can settle it.**
+`GroupData::log_data` does not print it, so item 515 modelled the group
+speed cap's `march = 0` write from the listing alone and **recorded it as
+owed rather than guessed** — the right call, and the reason §18 states it.
+Settling it needs a game with a **general**, which no capture on this disk
+has. Promote it when a general appears in a booked capture, or when a
+mechanic that reads `march` is worked deliberately; it is not a residue
+chase and it moves no word today.
+
 ## Parked by item 510, 2026-09-22 — ten units an age too young
 
 (516) **`g.gpiece` on ten pre-existing units at block 606** — `0/1..0/5`
@@ -177,9 +188,25 @@ The rows themselves are unchanged and still pinned, by value, in
 `run100_s_word_block_is_every_record_the_dump_carries` ("block 10235 is not
 item 477's three rows") — parking loses no measurement. It returns when
 something names it: a takes-chain to a live word, or a floor that moves
-with it. **Do not re-attach it to 10294 on the strength of proximity** —
-that is the hypothesis-as-finding trap of `docs/DECISIONS.md` 42, and the
-two units are on opposite sides of the match.
+with it. ~~**Do not re-attach it to 10294 on the strength of
+proximity**~~ — that warning was right and remains right; proximity was
+never the reason it came back.
+
+**Closed 2026-09-22 by item 515: it was the word, through a chain nobody
+had measured.** Block 10818's eight rows read as a collision and were a
+*consequence* — this crate's `1/28` stood 370 units east, about fifteen
+frames of its walk, so it met a gaia animal that sits in the same place
+on both sides and never moves. `pos` was absent from the word's own block
+only because it had **first parted at 10235**, which is this entry. One
+step size: `UnitData::get_speed@00608720`'s last arm, the group speed
+cap. 10235's three rows are gone and `1/28`'s position error is 370 units
+→ **one**.
+
+**The lesson is not "the park was wrong".** The park was correct on the
+evidence then — its stated takes-chain had been closed by item 489 and
+nothing named it. What returned it was a **measurement** of the chain,
+not an argument from adjacency, which is exactly the standard this entry
+demanded. A parked item is a claim about what is *known*, not a verdict.
 
 ## Parked 2026-09-21, item 471's successor
 
