@@ -1,3 +1,4 @@
+#include "restore_packet_path.h"
 /* Optional broad candidate copy. Not an atomic snapshot; original bytes stay
  * outside git. The inventory receipt must succeed before entering this code. */
 #define PAYLOAD_CAP (1024u*1024u*1024u)
@@ -118,7 +119,7 @@ static void capture_memory_payload(void) {
        !payload_covered(c->origin,c->table_bytes) || !payload_covered(0xcab3ac,4) ||
        !payload_covered(0xcae5fc,4) || !payload_covered(0xc06188,4)){payload_status=2;goto finish;}
     if(!payload_read(0xc06188,&h->world,4) || !payload_anchors())goto finish;
-    char path[320];path_join(path,"memory-payload.bin");
+    char path[320];restore_packet_path(path,"memory-payload.bin");
     file=CreateFileA(path,GENERIC_WRITE,FILE_SHARE_READ,0,1,FILE_ATTRIBUTE_NORMAL,0);
     if(file==INVALID_HANDLE){payload_status=9;goto finish;}
     if(!payload_write(file,h,sizeof *h) || !payload_write(file,m,h->inventory_bytes))goto finish;

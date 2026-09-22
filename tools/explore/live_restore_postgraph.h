@@ -1,3 +1,4 @@
+#include "restore_packet_path.h"
 /* Post-return graph envelope, opt-in only. Embedded post-state binds the event.
  * INFO 186 success, 187 failure. Restored limit and unit/path receipt precede us.
  * Acquisition deadline is checked between reads, not an OS I/O cancellation. */
@@ -21,7 +22,7 @@ static void capture_restore_postgraph(u32 post_bytes) {
     if (elapsed>=2000u) {fail=11;goto failed;}
     u32 header[]={0x31504752,1,restore_probe.frame,restore_probe.unit,
                   post_bytes,graph_used,elapsed,0x688faa};
-    char path[320];path_join(path,"restore-postgraph.bin");
+    char path[320];restore_packet_path(path,"restore-postgraph.bin");
     fail=13;
     file=CreateFileA(path,GENERIC_WRITE,FILE_SHARE_READ,0,1,FILE_ATTRIBUTE_NORMAL,0);
     if(file==INVALID_HANDLE)goto failed;

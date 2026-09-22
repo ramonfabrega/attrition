@@ -1,3 +1,4 @@
+#include "restore_packet_path.h"
 /* Opt-in metadata only. No process-memory payload, thread suspension or dump API.
  * Win32 MEMORY_BASIC_INFORMATION32 is seven DWORDs; SYSTEM_INFO is nine DWORDs
  * on this 32-bit target. See docs/lab/2026-09-21-memory-inventory.md. */
@@ -36,7 +37,7 @@ static int capture_memory_inventory(u32 observer_address) {
     }
     m->elapsed=GetTickCount()-started;
     if (!m->status && m->elapsed>=INVENTORY_MS) m->status=5;
-    char path[320];path_join(path,"memory-inventory.bin");
+    char path[320];restore_packet_path(path,"memory-inventory.bin");
     HANDLE file=CreateFileA(path,GENERIC_WRITE,FILE_SHARE_READ,0,1,FILE_ATTRIBUTE_NORMAL,0);
     u32 size=(u32)((u8 *)m->ranges-(u8 *)m)+m->count*sizeof(InventoryRange),written=0;
     i32 ok=file!=INVALID_HANDLE && WriteFile(file,m,size,&written,0);

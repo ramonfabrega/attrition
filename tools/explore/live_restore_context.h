@@ -1,3 +1,6 @@
+#ifndef LIVE_RESTORE_CONTEXT_H
+#define LIVE_RESTORE_CONTEXT_H
+#include "restore_packet_path.h"
 /* Sidecar for the same delegation event as restore-prefix.bin. Original bytes
  * remain in the capture directory. Bounds are experimental caps, not game maxima.
  * The observer is ordinary C without an SEH frame; rd_fs reads this thread.
@@ -48,7 +51,7 @@ static int capture_restore_context(const u32 *regs) {
          *(const u32 *)(c->unit_data+0x14)!=c->prefix.dependencies[6])) {
         emit(K_INFO,163,24,c->unit,owner,id,0);return 0;
     }
-    char path[320];path_join(path,"restore-context.bin");
+    char path[320];restore_packet_path(path,"restore-context.bin");
     HANDLE file=CreateFileA(path,GENERIC_WRITE,FILE_SHARE_READ,0,1,FILE_ATTRIBUTE_NORMAL,0);
     u32 written=0,size=(u32)((u8 *)c->table-(u8 *)c)+c->table_bytes;
     i32 ok=file!=INVALID_HANDLE && WriteFile(file,c,size,&written,0);
@@ -65,3 +68,5 @@ static int capture_restore_context(const u32 *regs) {
 #endif
     return 1;
 }
+
+#endif

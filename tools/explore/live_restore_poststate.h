@@ -1,6 +1,12 @@
+#include "restore_packet_path.h"
 /* Opt-in post-return observation. Own bounded storage. Limit intervention requires its own opt-in.
  * Included after RestoreProbe, restore_read and the register-image adapter.
  * INFO 181 success; INFO 182 failure. Neither implies pre-payload success. */
+#ifndef RON_RESTORE_SECOND
+#ifndef restore_sequence_fail
+#define restore_sequence_fail(reason) ((void)0)
+#endif
+#endif
 #define RESTORE_PATH_CAP 4096u
 #define RESTORE_POST_FIXED 628u
 static struct {
@@ -23,14 +29,24 @@ static void __cdecl restore_returned(u32 *regs) {
     restore_post_pending=0;
 #ifdef RON_RESTORE_LIMIT95
     /* Runs before every observer failure path; never depend on file success. */
-    int limit_ok=restore_limit_finish();
+    int with_limit=1;
+#ifdef RON_RESTORE_SECOND
+    with_limit=restore_packet_index==0;
+#endif
+    int limit_ok=with_limit?restore_limit_finish():!restore_limit_active;
 #endif
     u32 fail=1,written=0,size=0,capacity,length,pointer;
     u8 check[0x158];
     restore_poststate.magic=0x31505352;restore_poststate.version=1;
 #ifdef RON_RESTORE_LIMIT95
-    restore_poststate.version=2;
+    if(with_limit)restore_poststate.version=2;
     if(!limit_ok)goto failed;
+#ifdef RON_RESTORE_SECOND
+    if(!with_limit) {
+        u32 modes[2];
+        if(!restore_read(0xe85ec0,modes,8) || modes[0]!=300 || modes[1]!=1)goto failed;
+    }
+#endif
 #endif
     restore_poststate.frame=restore_probe.frame;restore_poststate.unit=restore_probe.unit;
     restore_poststate.prefix_bytes=sizeof restore_probe;restore_poststate.flags_mask=0x8d5;
@@ -55,27 +71,38 @@ static void __cdecl restore_returned(u32 *regs) {
     if (!restore_read(restore_probe.unit,check,sizeof check)) goto failed;
     for(u32 i=0;i<sizeof check;i++)if(check[i]!=restore_poststate.unit_data[i])goto failed;
     fail=5;
-    char path[320];path_join(path,"restore-poststate.bin");
+    char path[320];restore_packet_path(path,"restore-poststate.bin");
     HANDLE file=CreateFileA(path,GENERIC_WRITE,FILE_SHARE_READ,0,1,FILE_ATTRIBUTE_NORMAL,0);
     size=RESTORE_POST_FIXED+restore_poststate.path_bytes;
     if(file==INVALID_HANDLE)goto failed;
     i32 ok=WriteFile(file,&restore_poststate,size,&written,0);
 #ifdef RON_RESTORE_LIMIT95
     u32 trailer_written=0;
+    if(with_limit) {
     if(ok && written==size) {
         ok=WriteFile(file,&restore_limit,sizeof restore_limit,&trailer_written,0);
         written+=trailer_written;
     } else ok=0;
     size+=sizeof restore_limit;
+    }
 #endif
     CloseHandle(file);
     if(!ok || written!=size)goto failed;
     emit(K_INFO,181,0,restore_probe.unit,size,capacity,restore_poststate.registers[7]);
     flush();
+#ifdef RON_RESTORE_SECOND
+    int suspended=1;
+    for(u32 i=0;i<5;i++)if(!*(u32 *)(restore_poststate.unit_data+0x104+4*i))suspended=0;
+    if(!restore_sequence_return(&restore_sequence,restore_probe.unit,(u32)g_frame,
+                               restore_poststate.registers[7],suspended)) {
+        restore_sequence_fail(8);return;
+    }
+    emit(K_INFO,191,restore_packet_index,restore_probe.unit,restore_poststate.registers[7],0,0);flush();
+#endif
 #ifdef RON_RESTORE_POSTGRAPH
     capture_restore_postgraph(size);
 #endif
     return;
 failed:
-    emit(K_INFO,182,fail,restore_probe.unit,written,size,0);flush();
+    emit(K_INFO,182,fail,restore_probe.unit,written,size,0);restore_sequence_fail(9);flush();
 }

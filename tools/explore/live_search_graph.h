@@ -1,3 +1,4 @@
+#include "restore_packet_path.h"
 /* One bounded structural snapshot, after the first natural suspension.
  * Authored TLV protocol; original-derived bytes stay beside the trace. */
 #define GRAPH_BYTES (256u*1024u)
@@ -96,7 +97,7 @@ static int collect_search_graph(u32 unit) {
 }
 static void capture_search_graph(u32 unit) {
     if (!collect_search_graph(unit)) return;
-    char path[320]; path_join(path,"search-graph.bin");
+    char path[320]; restore_packet_path(path,"search-graph.bin");
     HANDLE file=CreateFileA(path,GENERIC_WRITE,FILE_SHARE_READ,0,1,FILE_ATTRIBUTE_NORMAL,0);
     u32 written=0;
     i32 ok=file!=INVALID_HANDLE && WriteFile(file,graph_storage,graph_used,&written,0);

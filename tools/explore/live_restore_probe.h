@@ -1,3 +1,4 @@
+#include "restore_packet_path.h"
 /* First native restore entry and the wrapper's delegation boundary.
  * Optional RON_RESTORE_LIMIT95 changes one budget word; no return or allocator substitution. */
 #include "register_image_stub.h"
@@ -9,11 +10,21 @@ typedef struct {
 } RestoreProbe;
 static RestoreProbe restore_probe;
 static int restore_claimed, restore_pending;
+#ifdef RON_RESTORE_SECOND
+#include "restore_sequence.h"
+static RestoreSequence restore_sequence;
+static void restore_sequence_fail(u32 reason) {
+    restore_sequence.stage=5;restore_pending=0;
+    emit(K_INFO,192,restore_packet_index,reason,restore_probe.unit,0,0);
+}
+#else
+#define restore_sequence_fail(reason) ((void)0)
+#endif
 static int restore_read(u32 address, void *out, u32 size) {
     u32 copied=0;
     if (address<0x10000u || address>0xffffffffu-size ||
         !ReadProcessMemory(g_proc,(void *)address,out,size,&copied) || copied!=size) {
-        emit(K_INFO,163,1,address,size,copied,0);restore_pending=0;return 0;
+        emit(K_INFO,163,1,address,size,copied,0);restore_pending=0;restore_sequence_fail(1);return 0;
     }
     return 1;
 }
@@ -25,15 +36,31 @@ static int restore_read(u32 address, void *out, u32 size) {
 #include "live_restore_poststate.h"
 #endif
 static void __cdecl restore_enter(u32 *regs) {
-    if (restore_claimed || g_frame<0 || g_frame>1400) return;
+    if (g_frame<0 || g_frame>1400) return;
+#ifdef RON_RESTORE_SECOND
+    if(restore_sequence.stage>=4)return;
+    if(restore_sequence.stage==1 || restore_sequence.stage==3){restore_sequence_fail(2);return;}
+    u32 incoming_regs[9],incoming_args[4];
+    copy_register_image(incoming_regs,regs);
+    if(!restore_read(incoming_regs[3],incoming_args,16))return;
+    if(restore_sequence.stage==2 &&
+       (incoming_args[2]!=restore_sequence.owner || incoming_args[3]!=restore_sequence.id))return;
+    restore_packet_index=restore_sequence.stage==2?1:0;
+#else
+    if(restore_claimed)return;
+#endif
     restore_claimed=1;
     restore_probe.magic=0x31545352;restore_probe.version=2;restore_probe.frame=(u32)g_frame;
     restore_probe.flags_mask=0x8d5;
     copy_register_image(restore_probe.before_regs,regs);
     u32 *args=restore_probe.before_stack, *d=restore_probe.dependencies;
+#ifdef RON_RESTORE_SECOND
+    memcpy(args,incoming_args,16);
+#else
     if (!restore_read(restore_probe.before_regs[3],args,16)) return;
+#endif
     u32 owner=args[2],id=args[3];
-    if (owner>=8 || id>=512) {emit(K_INFO,163,2,owner,id,0,0);return;}
+    if (owner>=8 || id>=512) {emit(K_INFO,163,2,owner,id,0,0);restore_sequence_fail(3);return;}
     if (!restore_read(0xc061bc,d,4) || !restore_read(0xc0618c,d+1,4) ||
         !restore_read(d[0]+owner*4,d+4,4) ||
         !restore_read(d[1]+0x14+owner*0x1c,d+2,4) ||
@@ -42,12 +69,16 @@ static void __cdecl restore_enter(u32 *regs) {
     u32 *registry=restore_probe.registry,unit;
     if (!restore_read(0xc0aeb4+owner*0x1c,registry,16)) return;
     if (id>=registry[0] || registry[0]>registry[1] || registry[1]>32768 || !registry[3]) {
-        emit(K_INFO,163,3,id,registry[0],registry[1],0);return;
+        emit(K_INFO,163,3,id,registry[0],registry[1],0);restore_sequence_fail(4);return;
     }
     if (!restore_read(registry[3]+id*4,&unit,4)) return;
     restore_probe.unit=unit;
+#ifdef RON_RESTORE_SECOND
+    if(restore_sequence_select(&restore_sequence,owner,id,unit,(u32)g_frame)!=1){restore_sequence_fail(5);return;}
+    emit(K_INFO,190,restore_packet_index,unit,owner,id,0);
+#endif
     capture_search_graph(unit);
-    if (graph_failed) return;
+    if (graph_failed) {restore_sequence_fail(6);return;}
     restore_pending=1;
     emit(K_INFO,161,unit,owner,id,args[1],d[4]);
 }
@@ -57,7 +88,7 @@ static void __cdecl restore_delegate(u32 *regs) {
     copy_register_image(restore_probe.after_regs,regs);
     if (!restore_read(restore_probe.after_regs[3],restore_probe.after_stack,48) ||
         !restore_read(0xe85ec0,restore_probe.after_modes,8)) return;
-    char path[320];path_join(path,"restore-prefix.bin");
+    char path[320];restore_packet_path(path,"restore-prefix.bin");
     HANDLE file=CreateFileA(path,GENERIC_WRITE,FILE_SHARE_READ,0,1,FILE_ATTRIBUTE_NORMAL,0);
     u32 written=0;
     i32 ok=file!=INVALID_HANDLE && WriteFile(file,&restore_probe,sizeof restore_probe,&written,0);
@@ -69,12 +100,25 @@ static void __cdecl restore_delegate(u32 *regs) {
 #ifdef RON_RESTORE_POSTSTATE
         restore_post_pending=context_ok;
 #ifdef RON_RESTORE_LIMIT95
+#ifdef RON_RESTORE_SECOND
+        if(restore_packet_index==1) {
+            u32 actual_modes[2];
+            int modes_ok=restore_read(0xe85ec0,actual_modes,8) && actual_modes[0]==300 && actual_modes[1]==1;
+            restore_post_pending=modes_ok &&context_ok && !payload_status && payload_header.count &&
+                payload_copied==payload_header.bytes && payload_header.frame==restore_probe.frame &&
+                payload_header.unit==restore_probe.unit && restore_probe.after_modes[0]==300 &&
+                restore_probe.after_modes[1]==1 && !restore_limit_active;
+        } else
+#endif
         restore_post_pending=context_ok && restore_limit_apply();
 #endif
 #else
         (void)context_ok;
 #endif
     }
+#ifdef RON_RESTORE_SECOND
+    if(!restore_post_pending)restore_sequence_fail(7);
+#endif
     flush();
 }
 static u32 restore_callback(u8 *s,void *fn) {
