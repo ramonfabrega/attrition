@@ -259,7 +259,9 @@ impl Sim {
                     entrenched: u.combat.entrenched,
                     facing: u.movement.facing,
                     trench_facing: u.movement.facing,
-                    z: 0,
+                    // The object's own `z` (`+0xc`), which `Unit::update_z`
+                    // writes as `find_tcoord_z` at its tile (§46.2).
+                    z: self.world.tile_z(u.pos.tile()),
                     damage_frame: u.combat.damage_frame,
                     damage_o: u.combat.damage_o,
                     captain: u.combat.captain,
@@ -281,6 +283,7 @@ impl Sim {
                     build_proper: true,
                     under_construction: !bd.active,
                     attacks: self.attack_of(o) != 0,
+                    z: self.world.tile_z(bd.pos.tile()),
                     tile_owned_by_attacker: self
                         .world
                         .owner_at(bd.pos)
@@ -298,12 +301,13 @@ impl Sim {
             Obj::Unit(i) => Side {
                 unit: true,
                 captain: self.units[i].combat.captain,
-                z: 0,
+                z: self.world.tile_z(self.units[i].pos.tile()),
                 ..Side::default()
             },
-            Obj::Building(_) => Side {
+            Obj::Building(b) => Side {
                 building: true,
                 build_proper: true,
+                z: self.world.tile_z(self.buildings[b].pos.tile()),
                 ..Side::default()
             },
         }
@@ -712,8 +716,10 @@ impl Sim {
         } else {
             // Not animation-driven, so no release node: the shot leaves
             // the unit's own square, which is what §22's table returns for
-            // every piece it has not measured.
-            self.fire_ammo(me, target, angle, frame, from);
+            // every piece it has not measured — and `Object::fire_ammo`'s
+            // unit arm starts it 100 above the figure (§46.1).
+            let sz = self.ground_z(from) + 100;
+            self.fire_ammo(me, target, angle, frame, from, sz);
         }
         // Reload.
         let unit = &self.units[i];
@@ -826,6 +832,10 @@ impl Sim {
     /// `launch` is where the shot actually leaves from — the release
     /// node's world position for a unit whose animation fires it (§22),
     /// and the shooter's own position for everything else.
+    ///
+    /// `sz` is the height it leaves from: the figure's ground plus the
+    /// release node's `dz`, or plus 100 for a unit that fires from its
+    /// square (§46.1).
     pub(crate) fn fire_ammo_pub(
         &mut self,
         shooter: Obj,
@@ -833,11 +843,68 @@ impl Sim {
         angle: Angle,
         frame: i64,
         launch: Pos,
+        sz: i32,
     ) {
-        self.fire_ammo(shooter, target, angle, frame, launch);
+        self.fire_ammo(shooter, target, angle, frame, launch, sz);
     }
 
-    fn fire_ammo(&mut self, shooter: Obj, target: Obj, angle: Angle, frame: i64, launch: Pos) {
+    /// `Objects::add_ammo@00658b10`: the shot takes the **lowest free
+    /// slot** of the pool — it scans from 0 and breaks at the first whose
+    /// `flags & 3` is clear — and the pool is stepped in slot order
+    /// (`Objects::inc_time@0065db70`), so the list is kept sorted by slot
+    /// and a landing removes without disturbing the rest (§46.4).
+    ///
+    /// Which of two shots due on the same frame lands first is decided
+    /// here: chapter two's `0/7` and `0/8` fire together on 677, hold
+    /// slots 1 and 2, and the first to come down on 683 takes `1/8` while
+    /// the second finds it dead and rolls on.
+    pub(crate) fn add_ammo(&mut self, mut p: combat::Projectile) {
+        let mut slot = 0;
+        for q in &self.projectiles {
+            if q.slot == slot {
+                slot += 1;
+            } else {
+                break;
+            }
+        }
+        p.slot = slot;
+        let at = self.projectiles.partition_point(|q| q.slot < slot);
+        self.projectiles.insert(at, p);
+    }
+
+    /// `TerrainOut::find_data_z(x, y, 0)` — [`crate::World::data_z`] — with
+    /// the read counted in [`Sim::ground_inexact`] when it touched a
+    /// corner this crate cannot pin to the original's single.
+    pub fn ground_z(&mut self, at: Pos) -> i32 {
+        let (z, exact) = self.world.data_z(at.x, at.y);
+        if !exact {
+            self.ground_inexact += 1;
+        }
+        z
+    }
+
+    /// `Ammo::init`'s `ez` (`+0x20`), `0x67c93a`–`0x67c9a4`: the target
+    /// object's own `z` — for a unit `find_tcoord_z` at its tile, which is
+    /// [`crate::World::tile_z`] — plus **75** when the shot rolls, the
+    /// first figure's ground for an air unit, and never below zero (§46.1).
+    fn aim_z(&mut self, target: Obj, rolling: bool) -> i32 {
+        let at = self.pos_of(target);
+        let mut z = self.world.tile_z(at.tile()) + if rolling { 0x4b } else { 0 };
+        if matches!(self.profile(target).domain, Domain::Air) {
+            z = self.ground_z(at);
+        }
+        z.max(0)
+    }
+
+    fn fire_ammo(
+        &mut self,
+        shooter: Obj,
+        target: Obj,
+        angle: Angle,
+        frame: i64,
+        launch: Pos,
+        sz: i32,
+    ) {
         let p = self.profile(shooter);
         let tp = self.profile(target);
         let target_pos = self.pos_of(target);
@@ -911,7 +978,9 @@ impl Sim {
             );
         }
         let _ = frame;
-        self.projectiles.push(combat::Projectile {
+        let rolling = !ground_fire && land_unit;
+        let ez = self.aim_z(target, rolling);
+        self.add_ammo(combat::Projectile {
             shooter,
             owner: self.owner_of(shooter),
             target: if ground_fire { None } else { Some(target) },
@@ -929,9 +998,13 @@ impl Sim {
             // "the piece is not lofted", is the ammo flag `8` this crate
             // loads no art for; a siege shot is a ground shot and so
             // never reaches the question.
-            rolling: !ground_fire && land_unit,
+            rolling,
             missed: false,
             air: matches!(tp.domain, Domain::Air),
+            sz,
+            ez,
+            v1z: combat::arc_v1z(sz, ez, total_time),
+            slot: 0,
         });
     }
 
@@ -1849,6 +1922,14 @@ impl Sim {
             let at = self.attacker_side(attacker);
             let tt = self.target_side(target, attacker);
             let pct = self.table_pct(attacker, target);
+            // **The real bearing, not `find_angle(0, 0)`** (§46.5). The
+            // decompiler prints the call with two zero arguments because
+            // `find_angle@0092d130` takes its pair in `ecx`/`edx`, and the
+            // listing loads them at `0064ebe7`–`0064ec00` as the target's
+            // position less this object's. So the flank sector
+            // `get_damage` step 19 reads is the attacker's own, and two
+            // otherwise equal candidates at different bearings rank apart.
+            let (from, to) = (self.pos_of(attacker), self.pos_of(target));
             combat::get_damage(
                 &self.tuning,
                 &ap,
@@ -1858,7 +1939,7 @@ impl Sim {
                 self.attack_of(attacker),
                 self.armor_of(target),
                 pct,
-                Angle::NORTH,
+                find_angle(to.x - from.x, to.y - from.y),
                 false,
                 self.frame,
                 &self.mods[self.owner_of(attacker) as usize],
@@ -2020,7 +2101,11 @@ impl Sim {
             let dx = i64::from(landing.x - launch.x);
             let dy = i64::from(landing.y - launch.y);
             let total_time = combat::flight_time(dx * dx + dy * dy, d).max(1);
-            self.projectiles.push(combat::Projectile {
+            // `Object::fire_ammo`'s building arm: 250 above the building's
+            // own `z` (§46.1).
+            let sz = self.world.tile_z(centre.tile()) + 0xfa;
+            let ez = self.aim_z(target, land_unit);
+            self.add_ammo(combat::Projectile {
                 shooter: me,
                 owner: self.buildings[b].owner,
                 target: Some(target),
@@ -2037,6 +2122,10 @@ impl Sim {
                 rolling: land_unit,
                 missed: false,
                 air: matches!(tp.domain, Domain::Air),
+                sz,
+                ez,
+                v1z: combat::arc_v1z(sz, ez, total_time),
+                slot: 0,
             });
         }
         self.buildings[b].recharging = p.recharge / arrows;
@@ -2058,14 +2147,13 @@ impl Sim {
     /// whose target died in flight spends **no draws on the frame it was
     /// due**, where a non-rolling one punctures the ground with two.
     ///
-    /// **The terrain test is not modelled** and cannot be in integers as
-    /// this crate stands: the arc is `v1z × t + sz + GRAV_Z × t² / 2` in
-    /// singles and `TerrainOut::find_data_z@00866560` is a bilinear
-    /// interpolation over a float height surface this crate does not
-    /// carry. So a rolled shot here flies to its `3 × total_time` cap and
-    /// is dropped, where the original's comes down a frame or two later
-    /// and damages whatever `check_hit` finds at the new point. Neither
-    /// spends a draw; §42.5 carries the value and the successor 491 parked owes it.
+    /// **The terrain test** is §46's: the arc `(v1z × t + sz) + GRAV_Z ×
+    /// 0.5 × t × t` ([`combat::arc_z`]) against the ground under the point
+    /// ([`Sim::ground_z`], `TerrainOut::find_data_z@00866560`), both in
+    /// [`crate::single::Single`] arithmetic, operation for operation as the
+    /// listing does them. The shot comes down on the first step its height
+    /// is not above the ground, and `do_damage` runs at the new point — on
+    /// whatever `check_hit` finds there, or into the ground if nothing.
     pub(crate) fn process_projectiles(&mut self, frame: i64) {
         let mut i = 0;
         while i < self.projectiles.len() {
@@ -2094,16 +2182,37 @@ impl Sim {
                     // and `close` is not `do_damage`, so a shot that
                     // never meets the ground damages nothing.
                     if p.cur_time > p.total_time * 3 {
-                        self.projectiles.swap_remove(i);
+                        self.projectiles.remove(i);
                         continue;
                     }
-                    // The terrain test would go here; without it the
-                    // shot stays up.
-                    i += 1;
-                    continue;
+                    // On along the line, and down the arc (§46.1): the
+                    // point at `t / T` past the launch, off the world is
+                    // a `close`, and the shot comes down on the first step
+                    // its height is at or under the ground's.
+                    let at = combat::arc_point(p.launch, p.landing, p.cur_time, p.total_time);
+                    if at.x < 0
+                        || at.y < 0
+                        || at.x >= self.world.width() * UNITS_PER_CELL
+                        || at.y >= self.world.height() * UNITS_PER_CELL
+                    {
+                        self.projectiles.remove(i);
+                        continue;
+                    }
+                    let z = combat::arc_z(p.v1z, p.sz, p.cur_time);
+                    let ground = crate::single::Single::from_i32(self.ground_z(at));
+                    if z.gt(ground) {
+                        i += 1;
+                        continue;
+                    }
+                    // Landed: `pos = (x, y, (int)z)` and `total_time =
+                    // cur_time`, then `do_damage` at the new point.
+                    let q = &mut self.projectiles[i];
+                    q.landing = at;
+                    q.ez = z.to_i32();
+                    q.total_time = q.cur_time;
                 }
             }
-            self.projectiles.swap_remove(i);
+            let p = self.projectiles.remove(i);
             self.land(p, frame);
         }
     }
@@ -2892,6 +3001,10 @@ mod tests {
             rolling: false,
             missed: false,
             air: false,
+            sz: 0,
+            ez: 0,
+            v1z: crate::single::Single::ZERO,
+            slot: 0,
         };
         assert_eq!(sim.check_hit(&ammo), None);
         // The same arrow does find a player's unit standing there.
@@ -2982,6 +3095,116 @@ mod tests {
             Some(Obj::Unit(b8)),
             "the tie went to the lowest object number instead of the \
              cell chain's head"
+        );
+    }
+
+    /// A shot with nothing to home on, from `launch` to `landing` over
+    /// `total` frames, leaving at height `sz` and aimed at `ez`.
+    fn shot(
+        me: usize,
+        launch: Pos,
+        landing: Pos,
+        total: i32,
+        sz: i32,
+        ez: i32,
+    ) -> combat::Projectile {
+        combat::Projectile {
+            shooter: Obj::Unit(me),
+            owner: 0,
+            target: None,
+            launch,
+            landing,
+            cur_time: 0,
+            total_time: total,
+            accuracy: 100,
+            angle: Angle(0),
+            splash_area: 0,
+            num_guys: 1,
+            rolling: true,
+            missed: false,
+            air: false,
+            sz,
+            ez,
+            v1z: combat::arc_v1z(sz, ez, total),
+            slot: 0,
+        }
+    }
+
+    /// `Objects::add_ammo`'s lowest free slot, and `Objects::inc_time`'s
+    /// walk in slot order (`docs/COMBAT.md` §46.4): a landing frees its
+    /// slot without reordering the rest, and the next shot fired takes the
+    /// freed one and is stepped first.
+    #[test]
+    fn the_pool_takes_the_lowest_free_slot_and_steps_in_slot_order() {
+        let (mut sim, ty) = at_war();
+        let me = put(&mut sim, 0, ty, Pos::new(0x1000, 0x1000));
+        let (a, b) = (Pos::new(0x1000, 0x1000), Pos::new(0x1400, 0x1000));
+        let mut p = shot(me, a, b, 1, 0, 0);
+        p.rolling = false;
+        sim.add_ammo(p);
+        sim.add_ammo(shot(me, a, b, 5, 0, 0));
+        sim.add_ammo(shot(me, a, b, 6, 0, 0));
+        let slots = |s: &Sim| {
+            s.projectiles
+                .iter()
+                .map(|p| (p.slot, p.total_time))
+                .collect::<Vec<_>>()
+        };
+        assert_eq!(slots(&sim), vec![(0, 1), (1, 5), (2, 6)]);
+        sim.process_projectiles(0);
+        assert_eq!(
+            slots(&sim),
+            vec![(1, 5), (2, 6)],
+            "slot 0 landed, the rest kept their order"
+        );
+        sim.add_ammo(shot(me, a, b, 7, 0, 0));
+        assert_eq!(
+            slots(&sim),
+            vec![(0, 7), (1, 5), (2, 6)],
+            "the freed slot, stepped first"
+        );
+    }
+
+    /// **A rolled shot comes down on the first step its arc is not above
+    /// the ground** (`docs/COMBAT.md` §46.1), at the point on its line
+    /// that step names, and damages what stands there — not before.
+    #[test]
+    fn a_rolled_shot_comes_down_on_the_first_step_the_ground_meets_it() {
+        let (mut sim, ty) = at_war();
+        let side = (sim.world.corner_stride() * sim.world.corner_stride()) as usize;
+        assert!(
+            sim.world.set_corner_grid(vec![150_000_000; side]),
+            "a square world's grid"
+        );
+        let me = put(&mut sim, 0, ty, Pos::new(0x1000, 0x1000));
+        let (launch, landing) = (Pos::new(0x1000, 0x1000), Pos::new(0x1000 + 700, 0x1000));
+        let (sz, ez, total) = (400, 200, 7);
+        let v1z = combat::arc_v1z(sz, ez, total);
+        let ground = crate::single::Single::from_i32(150);
+        let down = (total..=3 * total)
+            .find(|&t| !combat::arc_z(v1z, sz, t).gt(ground))
+            .expect("the arc meets flat ground at 150 inside three flight times");
+        assert!(
+            down > total,
+            "the shot flies past its landing point first: {down}"
+        );
+        let at = combat::arc_point(launch, landing, down, total);
+        let foe = put(&mut sim, 1, ty, at);
+        let full = sim.units[foe].health;
+        sim.add_ammo(shot(me, launch, landing, total, sz, ez));
+        for step in 1..=down {
+            sim.process_projectiles(i64::from(step));
+            let hit = sim.units[foe].health < full;
+            assert_eq!(
+                hit,
+                step == down,
+                "step {step}: the shot lands on {down} and only then"
+            );
+        }
+        assert!(sim.projectiles.is_empty());
+        assert_eq!(
+            sim.ground_inexact, 0,
+            "a grid of whole numbers is every corner's own single"
         );
     }
 }

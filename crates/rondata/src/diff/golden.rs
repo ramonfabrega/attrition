@@ -1711,9 +1711,16 @@ fn chapter_two_s_word_frame_is_widened_whole() {
     // word to 725 and the ceiling to 729, so it is forty-five — and
     // that the count is still exactly `3 × (LAST − 684)` is itself the
     // check that the window gained no **second** death.
+    //
+    // **Item 495 moved the ceiling to 766 and the window holds three
+    // deaths now**, each on the original's own frame: `1/8` from 684,
+    // `0/11` (dies 729) from 730 and `1/6` (dies 743) from 744 — the
+    // hoplite the original's bowmen had been shooting since 696, which
+    // this crate now targets too. Every one of the 420 comparisons
+    // agrees.
     assert_eq!(
         deaths,
-        3 * (LAST - 684) as usize,
+        3 * ((LAST - 684) + (LAST - 730) + (LAST - 744)) as usize,
         "the death-object comparison's own width moved; 1/8 dies on 683          and the dump carries its record on every block from 684 to the          end of run112"
     );
     // **Anti-vacuity**: the window has to hold the cast the chapter is
@@ -1838,13 +1845,10 @@ fn chapter_two_s_word_frame_is_widened_whole() {
     // `1/8`; `0/7`'s arrow kills `1/8` on 683; `0/8`'s finds its target
     // dead, and because it carries `Ammo` flag 4 it does not puncture —
     // it rolls on (§42.2) and comes down two frames later where
-    // `check_hit` finds **`1/7`**, for `19+5` on 685. This crate rolls it
-    // on too, and cannot land it: the arc is a float parabola and
-    // `TerrainOut::find_data_z` a float surface (§42.5). So `damage
-    // 1/7`, `damage_frac 1/7` and `damage_frame 1/7` stand at 686 — and
-    // the nine rows at 696-698 are theirs, because a wounded `1/7`
-    // outranks `1/6` on §33's damage weight and the original's three
-    // bowmen retarget where ours do not. That landing is the successor 491 parked, and it is **not** a residue: §42.5 says what it needs.
+    // `check_hit` finds **`1/7`**, for `19+5` on 685. This crate rolled
+    // it on too and could not land it until item 495, which also found
+    // that the retarget at 696 was `compare_target`'s bearing and not the
+    // wound (`docs/COMBAT.md` §46).
     //
     // **Item 496 moved the three `order` rows 696 → 684**, and it moved
     // no code in the simulation: the comparison could not see them.
@@ -1918,27 +1922,25 @@ fn chapter_two_s_word_frame_is_widened_whole() {
     //   ten for the whole window, so the two pieces share their lengths
     //   here and it spends no draw; it is named so it cannot hide, and it
     //   is `docs/ANIM.md`'s.
+    // **Item 495 landed the rolled arrow and the map fell from
+    // thirty-nine rows to twenty** (`docs/COMBAT.md` §46). Every row from
+    // 686 to 727 is gone: `damage`, `damage_frac` and `damage_frame 1/7`
+    // close because `0/8`'s shot now comes down on 685 where the
+    // original's does; the bowmen's `order`, `angle` and `des_angle` rows
+    // close because `compare_target` now ranks at the real bearing and
+    // picks `1/6`; and the animation clock 510 opened at 726-727 closes
+    // with them. Nothing parts on the word's own frames, 762 and 763.
+    // What stands is `damage 1/6` at 680 (§41.3's release node), the ten
+    // `g.gpiece` rows at 606 (parked, `docs/ANIM.md`), and the two rows
+    // past the word: `0/10`'s clock at 764 and `1/7` — the original's
+    // last hoplite — taking a long walk at 765 that this crate's does not.
     let measured = [
-        ("angle 0/6", 697),
-        ("angle 0/7", 696),
-        ("angle 0/8", 696),
         ("damage 1/6", 680),
-        ("damage 1/7", 686),
-        ("damage_frac 1/6", 712),
-        ("damage_frac 1/7", 686),
-        ("damage_frame 1/7", 686),
-        ("g.angle[0] 0/6", 697),
-        ("g.angle[0] 0/7", 696),
-        ("g.angle[0] 0/8", 696),
-        ("g.cur_anim[0] 0/6", 727),
-        ("g.cur_anim[0] 0/7", 726),
-        ("g.cur_anim[0] 0/8", 726),
-        ("g.des_angle[0] 0/6", 697),
-        ("g.des_angle[0] 0/7", 696),
-        ("g.des_angle[0] 0/8", 696),
-        ("g.end_time[0] 0/6", 727),
-        ("g.end_time[0] 0/7", 726),
-        ("g.end_time[0] 0/8", 726),
+        ("g.angle[0] 1/7", 765),
+        ("g.avg_speed[0] 1/7", 765),
+        ("g.cur_anim[0] 0/10", 764),
+        ("g.des_angle[0] 1/7", 765),
+        ("g.des_x[0] 1/7", 765),
         ("g.gpiece[0] 0/1", 606),
         ("g.gpiece[0] 0/2", 606),
         ("g.gpiece[0] 0/3", 606),
@@ -1949,22 +1951,17 @@ fn chapter_two_s_word_frame_is_widened_whole() {
         ("g.gpiece[0] 1/3", 606),
         ("g.gpiece[0] 1/4", 606),
         ("g.gpiece[0] 1/5", 606),
-        ("g.hold_attack[0] 0/6", 727),
-        ("g.hold_attack[0] 0/7", 726),
-        ("g.hold_attack[0] 0/8", 726),
-        ("g.stopped[0] 0/6", 727),
-        ("g.stopped[0] 0/7", 726),
-        ("g.stopped[0] 0/8", 726),
-        ("order 0/6", 696),
-        ("order 0/7", 696),
-        ("order 0/8", 696),
+        ("g.last_speed[0] 1/7", 765),
+        ("g.x[0] 1/7", 765),
+        ("order 1/7", 765),
+        ("pos 1/7", 765),
     ];
     let got: Vec<(&str, i64)> = first.iter().map(|(k, &n)| (k.as_str(), n)).collect();
     assert_eq!(
         got,
         measured.to_vec(),
-        "chapter two's word frame no longer widens the way item 510 \
-         measured it; re-pin this map and say so in docs/COMBAT.md §45"
+        "chapter two's word frame no longer widens the way item 495 \
+         measured it; re-pin this map and say so in docs/COMBAT.md §46"
     );
 }
 
@@ -2134,7 +2131,12 @@ const NEAR_PARTED: &[((i64, i64), i64)] = &[];
 /// never reach the search at all — they take their captain's target in
 /// place at `Unit::fight`'s head — so the footprint stays `-1` on both
 /// of them, which is exactly what the dump says.
-const NEAR_TALLY: (usize, usize, usize) = (7368, 296, 7368);
+///
+/// **And by item 495**, 7368/296 → 9530/409, on the ceiling's move 729 →
+/// 766 with the word 725 → 762 — still total, across two more deaths and
+/// the bowmen's retarget onto `1/6`, which this crate now makes as the
+/// original does.
+const NEAR_TALLY: (usize, usize, usize) = (9530, 409, 9530);
 
 /// One frame's `near_o`/`near_who` per unit, read out of the raw dump
 /// text — [`ch2_dump_units`]'s sibling, for the pair that reader takes
@@ -2345,9 +2347,23 @@ fn chapter_two_s_hit_points_are_the_dump_s_on_every_unit_frame() {
     // what reaches it: the original's hoplites fight on where this
     // crate's went idle for a frame each time a target died, and the
     // frames they gain back are the ones that reach `0/10`.
+    //
+    // **Item 495 took `(0, 9)` back out, and past the word.** The dump
+    // first wounds `0/9` on block 792, thirty frames past chapter two's
+    // word at 762, where the two games have already parted; this crate's
+    // surviving hoplite takes a different walk from 765 (`docs/COMBAT.md`
+    // §46.7) and does not reach it. Everything under the word agrees.
     assert_eq!(
-        ours, theirs,
-        "the set this crate wounds is no longer the set run112 wounds"
+        ours,
+        vec![(0, 10), (0, 11), (1, 6), (1, 7), (1, 8)],
+        "the set this crate wounds has moved"
+    );
+    assert!(
+        theirs
+            .iter()
+            .filter(|w| !ours.contains(w))
+            .all(|w| *w == (0, 9)),
+        "a unit the dump wounds and this crate does not, other than 0/9"
     );
     // **What parts, printed and pinned by its field.** `damage` and
     // `damage_frac` part on the engagement and the reason is §7.3's
@@ -2502,17 +2518,14 @@ fn chapter_two_s_frozen_frames_are_the_dump_s_on_every_unit_frame() {
         ],
         "run112's own frozen frames have moved"
     );
+    // **Item 495 closed the two this crate missed**, `0/9` at 745 and
+    // `1/7` at 762: with the rolled arrow landed and the bowmen on `1/6`,
+    // the engagement is the original's through the word, and so is every
+    // frame a unit finds its target gone.
     assert_eq!(
-        ours,
-        vec![
-            (696, 0, 6),
-            (736, 1, 6),
-            (756, 0, 7),
-            (756, 0, 8),
-            (757, 0, 6),
-        ],
-        "this crate's frozen frames have moved; the one that matters is \
-         696, chapter two's own word"
+        ours, theirs,
+        "this crate's frozen frames have moved; they were the original's \
+         own seven on item 495"
     );
     // The two the dump has and this crate does not, by name and with the
     // reason: both are past the word, where the draw stream has already
@@ -2524,7 +2537,7 @@ fn chapter_two_s_frozen_frames_are_the_dump_s_on_every_unit_frame() {
         .collect();
     assert_eq!(
         missing,
-        vec![(745, 0, 9), (762, 1, 7)],
+        Vec::<(i64, i64, i64)>::new(),
         "the frozen frames this crate misses have moved"
     );
     assert!(
@@ -2738,5 +2751,279 @@ fn chapter_two_s_visible_byte_is_the_dump_s_on_every_unit_frame() {
         exact, 9,
         "the nine arrivals this crate puts on the dump's own frame are \
          no longer nine"
+    );
+}
+
+/// Chapter two stood up and not ticked — the dump's path, its text, and
+/// the world the siblings' grid makes — for the tests that read the
+/// ground rather than the game.
+fn chapter_two_stood_up() -> Option<(String, String, Built)> {
+    let inst = crate::testenv::install()?;
+    let Some((dump, tracepath)) = golden("ch2") else {
+        eprintln!("skipping: no golden capture ch2 (see docs/RUNS.md run112)");
+        return None;
+    };
+    let trace = crate::trace::Trace::read(std::path::Path::new(&tracepath))
+        .expect("a finalized golden trace")
+        .expect("missing RONT header");
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(&dump);
+    let log = Log::parse(&text);
+    let texts = sibling_texts();
+    let logs = siblings(&texts);
+    let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+    let refs: Vec<&Initial> = inits.iter().collect();
+    if refs.is_empty() {
+        eprintln!("skipping: no sibling dumps");
+        return None;
+    }
+    let built = stand_up(&loaded, &log, &refs, &trace);
+    drop(log);
+    Some((dump, text, built))
+}
+
+/// **The ground under every object, against the dump's own `z`**
+/// (`docs/COMBAT.md` §46.2).
+///
+/// Three heights the original prints and this crate now reads, each swept
+/// over the whole of run112 rather than the frame that asked for it:
+///
+/// - **a figure's `z`**, which `Guy::update_z@005d9950` writes as
+///   `TerrainOut::find_data_z(x, y, 0)` for any unit not of sea domain —
+///   the surface a rolled shot comes down on, read by
+///   [`sim::World::data_z`] in [`sim::single::Single`] arithmetic;
+/// - **a unit's own `z`**, which `Unit::update_z@00606590` writes as
+///   `find_tcoord_z` at its tile — [`sim::World::tile_z`], and one of the
+///   two heights `get_damage`'s step 23 compares;
+/// - **a building's**, the other side of that comparison, from the start
+///   dump's records.
+///
+/// And it pins how many figure reads touched a corner the six-decimal
+/// print cannot name one single for: ten, all `1/0` walking the shore at
+/// z 8–15 between 713 and 726, and every one of the ten still agrees.
+#[test]
+fn every_object_s_z_is_the_ground_it_stands_on() {
+    let Some((dump, text, built)) = chapter_two_stood_up() else {
+        return;
+    };
+    let log = Log::parse(&text);
+    let world = &built.sim.world;
+    let tile = |p: crate::gamelog::Pos| sim::Pos::new(p.x as i32, p.y as i32).tile();
+    // ---- buildings, from the start dump.
+    let init = log.initial().expect("the golden dump has a BEGIN GAME");
+    let mut wrong_builds = Vec::new();
+    for b in &init.builds {
+        if i64::from(world.tile_z(tile(b.pos))) != b.pos.z {
+            wrong_builds.push((b.who, b.o, b.pos, world.tile_z(tile(b.pos))));
+        }
+    }
+    // ---- units and their figures, every block.
+    let mut ix = crate::capture::indexed::IndexedCapture::open(&dump).unwrap();
+    let (mut figures, mut units, mut inexact, mut sea) = (0usize, 0usize, 0usize, 0usize);
+    let mut wrong_units = Vec::new();
+    let mut wrong_figures = Vec::new();
+    let mut points = std::collections::BTreeSet::new();
+    for at in 0..ix.frames().len() {
+        let n = ix.frames()[at].number;
+        let frame = ix.frame_state(at).unwrap();
+        for u in &frame.units {
+            units += 1;
+            if i64::from(world.tile_z(tile(u.pos))) != u.pos.z {
+                wrong_units.push((n, u.who, u.o, u.pos, world.tile_z(tile(u.pos))));
+            }
+            // `Guy::update_z` writes 0 for a unit of sea domain and never
+            // reads the ground: Gaia's fish and whales.
+            let is_sea = u8::try_from(u.who)
+                .ok()
+                .zip(i16::try_from(u.o).ok())
+                .and_then(|(w, o)| built.sim.unit_by_o(w, o))
+                .is_none_or(|i| {
+                    matches!(
+                        built.sim.profile(sim::combat::Obj::Unit(i)).domain,
+                        sim::attrition::Domain::Sea
+                    )
+                });
+            if is_sea {
+                sea += u.guys.len();
+                continue;
+            }
+            for (k, g) in u.guys.iter().enumerate() {
+                let Some(p) = g.pos else { continue };
+                let (z, exact) = world.data_z(p.x as i32, p.y as i32);
+                figures += 1;
+                points.insert((p.x, p.y));
+                if !exact {
+                    inexact += 1;
+                }
+                if i64::from(z) != p.z {
+                    wrong_figures.push((n, u.who, u.o, k, p.x, p.y, p.z, z));
+                }
+            }
+        }
+    }
+    eprintln!(
+        "  {} buildings, {units} unit-blocks, {figures} figure-blocks at {} points \
+         ({sea} sea figures skipped), {inexact} inexact reads",
+        init.builds.len(),
+        points.len()
+    );
+    assert!(
+        wrong_builds.is_empty(),
+        "building z is not tile_z: {wrong_builds:?}"
+    );
+    assert!(
+        wrong_units.is_empty(),
+        "unit z is not tile_z: {:?}",
+        &wrong_units[..wrong_units.len().min(10)]
+    );
+    assert!(
+        wrong_figures.is_empty(),
+        "figure z is not find_data_z: {:?}",
+        &wrong_figures[..wrong_figures.len().min(10)]
+    );
+    assert_eq!(inexact, 10, "reads on a corner the print cannot pin");
+    // The instrument, pinned: a sweep that stopped reading would pass.
+    assert!(init.builds.len() > 10, "{} buildings", init.builds.len());
+    assert_eq!(
+        (figures, points.len()),
+        (5310, 947),
+        "the figure sweep's reach"
+    );
+}
+
+/// **Chapter two's shots, `v1z` to the last printed digit**
+/// (`docs/COMBAT.md` §46.1) — run109's test on the golden record's own
+/// 373 `AMMO` blocks, bowmen and slingers both. The rolled `0/8` shot is
+/// among them, printed `18.134823` from 677 to 685; its `sz`, `ez` and
+/// flight time are integers this crate reproduces, and
+/// [`sim::combat::arc_v1z`] over them is that single exactly.
+#[test]
+fn chapter_two_s_v1z_is_arc_v1z_to_the_last_digit() {
+    let Some((dump, _)) = golden("ch2") else {
+        eprintln!("skipping: no golden capture ch2 (see docs/RUNS.md run112)");
+        return;
+    };
+    let mut ix = crate::capture::indexed::IndexedCapture::open(&dump).unwrap();
+    let (mut read, mut spent, mut wrong) = (0usize, 0usize, Vec::new());
+    for at in 0..ix.frames().len() {
+        let n = ix.frames()[at].number;
+        let body = ix.read_frame(at).unwrap();
+        for (a, _) in super::ammo::blocks(&body) {
+            // A spent shot (`flags 1`) keeps its launch `v1z` but carries
+            // its landing's `total_time` and `ez`, which
+            // [`every_rolled_shot_comes_down_where_the_original_s_does`]
+            // reads instead.
+            if a.flags & 2 == 0 {
+                spent += 1;
+                continue;
+            }
+            read += 1;
+            let v = sim::combat::arc_v1z(a.sz as i32, a.ez as i32, a.total_time as i32);
+            if super::ammo::tests::printed(v) != a.v1z {
+                wrong.push((n, a.o, a.sz, a.ez, a.total_time, a.v1z));
+            }
+        }
+    }
+    assert!(wrong.is_empty(), "v1z is not arc_v1z's single: {wrong:?}");
+    assert_eq!(
+        (read, spent),
+        (134, 239),
+        "run112 carries 373 AMMO blocks, 134 of them live"
+    );
+}
+
+/// **Every rolled shot of run112 comes down where the original's does**
+/// (`docs/COMBAT.md` §46.1) — `Ammo::inc_time`'s rolling arm replayed from
+/// the dump's own launch record, against the dump's own landing.
+///
+/// A shot that finds nothing where it was due (`flags 14`) flies on along
+/// its line and down its arc until the ground under it is not below it.
+/// Three do in run112: `0/8`'s on 683, the one chapter two's word turned
+/// on, and `0/6`'s and `0/7`'s on 778 and 779. For each, from its launch
+/// record alone — `sx sy sz ex ey ez total_time`, all integers — this
+/// steps [`sim::combat::arc_point`] and [`sim::combat::arc_z`] against
+/// [`sim::World::data_z`] from the due frame on, and asserts that the
+/// first step the arc is not above the ground is the original's landing:
+///
+/// - for a shot that stuck in the ground, its spent record (`flags 1`)
+///   prints the landing — `total_time` is the step, `ex ey` the point and
+///   `ez` is `(int)z` there — so all four are asserted;
+/// - for `0/8`'s, which hit `1/7` and was closed, the landing is the step
+///   after its last printed block, and `damage 1/7` on 686 is the rest.
+#[test]
+fn every_rolled_shot_comes_down_where_the_original_s_does() {
+    let Some((dump, _, built)) = chapter_two_stood_up() else {
+        return;
+    };
+    let world = &built.sim.world;
+    let mut ix = crate::capture::indexed::IndexedCapture::open(&dump).unwrap();
+    // Per shot, keyed on its launch: the live record, whether it rolled,
+    // its last live cur_time, and its spent record if it stuck.
+    type Shot = (super::ammo::Ammo, bool, i64, Option<super::ammo::Ammo>);
+    let mut shots: std::collections::BTreeMap<(i64, i64, i64), Shot> =
+        std::collections::BTreeMap::new();
+    for at in 0..ix.frames().len() {
+        let body = ix.read_frame(at).unwrap();
+        for (a, _) in super::ammo::blocks(&body) {
+            let e = shots
+                .entry((a.o, a.sx, a.sy))
+                .or_insert((a, false, a.cur_time, None));
+            if a.flags & 2 != 0 {
+                e.1 |= a.flags & 8 != 0;
+                e.2 = e.2.max(a.cur_time);
+            } else if e.3.is_none() {
+                e.3 = Some(a);
+            }
+        }
+    }
+    let mut rolled = Vec::new();
+    for ((o, ..), (a, rolls, last, spent)) in &shots {
+        if !rolls {
+            continue;
+        }
+        let (launch, landing) = (
+            sim::Pos::new(a.sx as i32, a.sy as i32),
+            sim::Pos::new(a.ex as i32, a.ey as i32),
+        );
+        let (sz, total) = (a.sz as i32, a.total_time as i32);
+        let v1z = sim::combat::arc_v1z(sz, a.ez as i32, total);
+        let mut down = None;
+        for t in total..=3 * total {
+            let at = sim::combat::arc_point(launch, landing, t, total);
+            let z = sim::combat::arc_z(v1z, sz, t);
+            let (ground, exact) = world.data_z(at.x, at.y);
+            assert!(exact, "shot {o}: the ground at {at:?} is not pinned");
+            if !z.gt(sim::single::Single::from_i32(ground)) {
+                down = Some((t, z.to_i32(), at, ground));
+                break;
+            }
+        }
+        let (t, z, at, ground) = down.unwrap_or_else(|| panic!("shot {o} never comes down"));
+        match spent {
+            Some(s) => {
+                assert_eq!(
+                    (i64::from(t), i64::from(at.x), i64::from(at.y), i64::from(z)),
+                    (s.total_time, s.ex, s.ey, s.ez),
+                    "shot {o}: lands on step {t} at {at:?}, z {z}; the original's spent \
+                     record says step {} at ({}, {}), z {}",
+                    s.total_time,
+                    s.ex,
+                    s.ey,
+                    s.ez
+                );
+            }
+            None => assert_eq!(
+                i64::from(t),
+                last + 1,
+                "shot {o}: lands on step {t}; the original closed it after step {last}"
+            ),
+        }
+        rolled.push((*o, t, z, at, ground));
+    }
+    eprintln!("  rolled shots (o, step, z, point, ground): {rolled:?}");
+    assert_eq!(
+        rolled.iter().map(|r| (r.0, r.1)).collect::<Vec<_>>(),
+        vec![(6, 11), (7, 10), (8, 9)],
+        "run112's three rolled shots and their landing steps"
     );
 }

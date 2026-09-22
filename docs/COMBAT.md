@@ -2337,8 +2337,9 @@ wrong, and §18.1 has the answer). The original's
 `1/6` takes `0/7`; the harness took `0/6`. Under §12.2's formula the three
 candidates appear to tie exactly — `dist + (0 + 8) × 0x30` is 723, 582 and 672, each
 `/ 0xc0` is 3, so each scores `value / 4`, and `compare_target` returns the
-same `value` for three identical undamaged hoplites (its `get_damage` is
-called at `find_angle(0, 0)`, so bearing cannot separate them). A tie is
+same `value` for three identical undamaged hoplites ~~(its `get_damage` is
+called at `find_angle(0, 0)`, so bearing cannot separate them)~~ (the call
+takes the real bearing, in `ecx`/`edx`, §46.5). A tie is
 broken by scan order, and **neither order gives `0/7`**: the world cell's own
 `down` chain, which `find_nearby_target` walks, is `1/8, 1/7, 1/6, 0/8, 0/7,
 0/6` (confirmed against the dump's `up`/`down`/`up_who`/`down_who` on all
@@ -3350,8 +3351,9 @@ which says these are the first nine arrows of the game and agrees with the
 trace's own `Ammo::init` draw count. No frame's blocks descend, and 9463
 carries five at once.
 
-**This crate does none of it, and that is a named residue with a
-consequence.** `Sim::projectiles` is a `Vec` that `process_projectiles`
+~~**This crate does none of it, and that is a named residue with a
+consequence.**~~ Landed as [`sim::Sim::add_ammo`], §46.4, on the frame
+this predicted. `Sim::projectiles` is a `Vec` that `process_projectiles`
 `swap_remove`s from, so after the first landing its order is neither launch
 order nor slot order: at 9453 it holds a4, a3, a2 where the original's pool
 reads a2, a3, a4. Nothing in run109's window turns on it — no two arrows
@@ -3375,8 +3377,9 @@ a discarded temporary — the FPU-stack artefact `tools/ghidra/README.md`
 warns about — so `field_0x58 = fVar22 / local_28` with `fVar22` still the
 *sum of squares* is that artefact, not the engine dividing an area.)
 
-Neither is a number this crate can hold: no float in the simulation, and a
-ballistic `z` is one of the few places the original genuinely needs one. So
+~~Neither is a number this crate can hold: no float in the simulation, and a
+ballistic `z` is one of the few places the original genuinely needs one.~~
+`v1z` now is, bit for bit, in [`sim::single::Single`] (§46.1). So
 the assertion is the honest weaker one — that the original's printed floats
 *are* those formulae over the integers this crate does reproduce — computed
 in integers at a millionth, to within a float32 ulp at their own magnitude.
@@ -4717,10 +4720,13 @@ subsection's *predicted* fix was the wrong one.
 `Object::compare_target(o, who, in_range, ai)` at `0064ef4b`:
 
 ```
-dmg = get_damage(this, o, who, find_angle(0, 0), 0, 0, NULL);
+dmg = get_damage(this, o, who, find_angle(o - this), 0, 0, NULL);
 if (ai == 0) v = v * dmg;
 else { if (dmg == 0) return 0; v = v / dmg; }
 ```
+
+~~`find_angle(0, 0)`~~ was the decompiler's: the pair is `ecx`/`edx`
+(§46.5).
 
 So the two rankings differ in **sign**, not in scale. A human's search is
 drawn to what it kills fastest; a computer leader's is drawn to what it
@@ -6982,13 +6988,14 @@ more than double an ordinary arrow: the ladder on `1/8` is `8+10/16` a
 shot, and both reduce to `get_damage`'s own arithmetic with `base` 320
 and `armor` 6 (`(320+5)/10 − 6 = 26`) against `base` 640 doubled by §6
 step 19's side sector (`(640+5)/10 − 6 = 58`), scaled by §7.1 step 5's
-`dmg × 0x100 / uber_size 3`. A wounded `1/7` then outranks `1/6` on §33's
+`dmg × 0x100 / uber_size 3`. ~~A wounded `1/7` then outranks `1/6` on §33's
 damage weight, and the original's three bowmen retarget on 696 where ours
-do not — which is the nine rows above. That landing is the successor 491 parked, and it is **not** a residue: §42.5 says what it needs.
+do not — which is the nine rows above.~~ The retarget is `compare_target`'s
+bearing, not the wound, and the flank is 57 plus a height point (§46.5). That landing is the successor 491 parked, and it is **not** a residue: §42.5 says what it needs.
 
 ### 42.5 What is not established
 
-- **Where a rolled shot comes down.** The arc is
+- ~~**Where a rolled shot comes down.** The arc is
   `v1z × t + sz + GRAV_Z × t² / 2` in IEEE singles, `v1z` itself a float
   the `AMMO` record prints (`18.134823` for `0/8`'s), and
   `TerrainOut::find_data_z@00866560` is a bilinear interpolation over a
@@ -6996,7 +7003,9 @@ do not — which is the nine rows above. That landing is the successor 491 parke
   `crate::terrain` models is the integer `master_land_heights`, a
   different quantity. So a rolled shot here flies to its `3 × total_time`
   cap and is dropped where the original's lands and damages. Neither
-  spends a draw, so the word does not see it; `damage 1/7` at 686 does.
+  spends a draw, so the word does not see it; `damage 1/7` at 686 does.~~
+  Landed in §46. The surface *is* `master_land_heights`: `TerrainOut+0x4a4`
+  is `TerrainData+0x464` behind the 0x40 prefix (§46.2).
 - **The lofted piece.** `Ammo`'s flag 4 also requires `ammo_flags & 8`
   clear, and this crate loads no ammo flags; every shot is treated as
   non-lofted. A siege shot is a ground shot and so never reaches the
@@ -7739,13 +7748,15 @@ and this crate does not. That is the arrow again from the other end: the
 hoplite the original has killed by 743 is the one it has been shooting
 since 686.
 
-So 725 is **not** an independent residue. §42.5's rolled arrow is its
+So 725 is **not** an independent residue. ~~§42.5's rolled arrow is its
 cause through three links, each of them now a measurement rather than a
 reading: the arrow wounds `1/7` on 685 and this crate cannot land it
 (§42.5); §33's damage weight therefore sends all three bowmen to `1/7`
 where the dump sends them to `1/6` (`order 0/6`, `0/7`, `0/8` at 696);
-and `1/7` walks where `1/6` stands, so the swing is held where the
-original's is queued.
+and~~ The middle link was a reading: with the arrow landed, the bowmen
+still took `1/7` until `compare_target` ranked at the real bearing (§46.5).
+The third link stands: `1/7` walks where `1/6` stands, so the swing is
+held where the original's is queued.
 
 ### 45.3 The record the word is spent in was compared nowhere
 
@@ -7849,3 +7860,236 @@ the decompiler's control flow alone.
 
 **Reading-only**: nothing new. §44.3's queued-attack paragraph was a
 hypothesis and is struck there.
+
+## 46. The rolled arrow comes down, and the target is ranked at its bearing (item 495, 2026-09-22)
+
+Chapter two's word stood at **725**, and item 510 had measured its cause
+from the far end: `damage 1/7` on 686 (ours 0, theirs 19) was §42.5's
+rolled arrow, which this crate flew to its `3 × total_time` cap and
+dropped. Forcing the bowmen's facing alone moved the word to 743. This
+item lands the arrow, and the word goes **725 → 762**. It took four
+things, and only the first was the one the item was booked for.
+
+What would have killed the arrow reading, written before the build: *the
+arrow lands and `damage 1/7` still parts on 686.* It did not survive
+whole. The arrow landed, `damage 1/7` closed, and `damage_frac 1/7` stood
+at 0 against 5. The frame was right and the mechanism was a chain.
+
+### 46.1 The arc, operation for operation
+
+`Ammo::inc_time@0067d380`'s rolling arm, from the listing
+(`0x67d922`–`0x67da21`), is scalar SSE throughout:
+
+```text
+t     = (float)cur_time                  T = (float)total_time
+frac  = t / T
+z     = (v1z * t + (float)sz) + ((GRAV_Z * 0.5) * t) * t
+x     = (int)((float)(ex - sx) * frac + (float)sx)      ; y likewise
+if !WorldData::is_valid(x, y)            close()
+if z > (float)find_data_z(x, y, 0)       return          ; still flying
+ex, ey, ez = x, y, (int)z ; total_time = cur_time ; do_damage()
+```
+
+and `Ammo::init@0067bbf0` (`0x67cf2a`–`0x67cf7d`) fixes `v1z = ((float)(ez − sz) −
+((GRAV_Z × 0.5) × T) × T) / T` once. `GRAV_Z` is `0xc127cccd` (−10.4875)
+at `0xcab378`, written only by `GraphicPieces::init@008ffcc0` before the
+first frame, so it is a pinned constant. Every SSE operation is correctly
+rounded, so the arc is a pure function of integers and pinned bits, and
+[`sim::single::Single`] reproduces it in integers: [`combat::arc_v1z`],
+[`combat::arc_z`], [`combat::arc_point`]. That module already existed,
+for the aircraft bank (§46.8 says how this item nearly wrote a second
+one).
+
+The operands, each read from its writer:
+
+- **`sz`** is the launch height. For an animation release it is the
+  figure's ground plus the node's `dz` (§22, run109's
+  `run100_and_run109_agree_on_where_the_bow_hand_is_off_the_ground`). For
+  `Object::fire_ammo@0064c8b0`'s unit arm it is the figure's `z + 100`,
+  and for its building arm the object's `z + 250`.
+- **`ez`** is `Ammo::init`'s `+0x20`: the target object's own `z`, **plus
+  75** (`0x4b`) when flag 4 is set, the first figure's `z` for an air
+  target, and floored at 0. `1/8`'s tile gives 220, and 220 + 75 is the
+  295 run112 prints.
+
+**Diff-backed, to the last printed digit.** [`combat::arc_v1z`] prints
+as exactly the original's six decimals on all 183 of run109's records and
+on all 134 live records of run112 (`run109_s_v1z_is_arc_v1z_to_the_last_digit`,
+`chapter_two_s_v1z_is_arc_v1z_to_the_last_digit`). The three rolled shots
+of run112 come down on the original's step, from the launch record alone
+(`every_rolled_shot_comes_down_where_the_original_s_does`):
+
+| shot | due | lands | point | arc `z` | ground |
+|---|---|---|---|---|---|
+| `0/8` from 677 | 7 | **9** | (1896, 8431) | 163 | 205 |
+| `0/7` from 771 | 8 | 10 | (2043, 8504) | 140 | 197 |
+| `0/6` from 769 | 9 | 11 | (2068, 8443) | 135 | 198 |
+
+The last two stick in the ground, and their spent records print the
+landing: `total_time` is the step, `ex ey` the point and `ez` is
+`(int)z`. All four fields match.
+
+### 46.2 The surface is `master_land_heights`, and a print names its single
+
+~~§42.5: the surface is "a float height surface this crate does not
+carry … a different quantity" from `master_land_heights`.~~ It is the
+same array. `TerrainOut` is `TerrainData` behind a
+0x40-byte prefix, so `find_data_z`'s `this+0x4a4` is `TerrainData+0x464`,
+which is `master_land_heights.list`. `tools/ghidra/README.md` has recorded
+that trap since the road search fell into it. `+0x4b7c` is
+`tesselation_level` at `+0x4b3c`, and `rowsize` is `tesselation × xs +
+1`, written by `Terrain::init@00850f70`.
+
+`TerrainOut::find_data_z@00866560`, from the listing: the corner cell is
+`div_3_table[x >> 6]` (a floor of `x / 192`), clamped to the grid. The
+cell splits on its anti-diagonal: `fx > 192 − fy` takes the far triangle
+based at `h10`, and otherwise the near one at `h00`. Each term is `(Δh ×
+0x3baaaaab) × (float)offset`, with the constant being the single nearest
+1/192. The sum is `((base + term) + 0.0) + term`, and `cvttss2si`
+truncates it. The fourth argument is 0 at every caller this crate has
+(`Ammo::inc_time`, `Guy::update_z@005d9950`, `Unit::update_z@00606590`),
+so the water arm and the zero clamp never run. That is
+[`sim::World::data_z`].
+
+**The representation.** This crate keeps the grid in the millionths the
+dump prints. [`sim::single::Single::from_millionths`] takes the single
+nearest a printed value and says whether it is the only one that prints
+that way. From |h| ≥ 16 up it always is, because a single's spacing there
+exceeds a millionth. Of Great Lakes' 58,081 corners, **2,058 are not**,
+every one under 16 in magnitude (the largest is 15.970737). There two to
+four singles share a print, and the nearest is a choice at most a few ulp
+off, under 2e-6 of a world unit.
+
+**Diff-backed, on every point run112 carries.** A figure's `z` *is*
+`find_data_z(x, y, 0)` for a unit not of sea domain. A unit's own `z` is
+`find_tcoord_z` at its tile, and so is a building's. So
+`every_object_s_z_is_the_ground_it_stands_on` holds [`sim::World::data_z`]
+against **5,310** figure-blocks at 947 distinct points, and
+[`sim::World::tile_z`] against 17,271 unit-blocks and the start dump's 13
+buildings. Every one agrees. Ten of the figure reads touched an
+ambiguous corner: `1/0` walking the shore at z 8–15 over 713–726. All
+ten still agree, and the ten are pinned.
+
+### 46.3 The guard
+
+[`sim::Sim::ground_z`] counts a read that touched an ambiguous corner, or
+one a terraform has *changed* in millionths since the grid was installed
+(DECISIONS 31: the terraform is exact millionths, not the original's
+singles), in [`sim::Sim::ground_inexact`]. The test-only `Drop` of
+`rondata::diff::Built` holds every replay the harness runs to
+`testkit::GROUND_INEXACT` for its test's name, which defaults to **zero**,
+and fails the test by that name on an excess. The whole suite passes with
+the table empty. Installing a grid clears the marks, because setup
+terraforms and then reinstalls the dump's own grid, and marks kept across
+that turned 1,911 of §46.2's sweep reads into false alarms on its first
+run.
+
+### 46.4 The pool is stepped in slot order
+
+The arrow landed and `damage 1/7` came out **19 + 10/16** against the
+dump's **19 + 5**, from the wrong bowman. `0/7` and `0/8` both fire on
+677, both are due on 683, and whichever is stepped first kills `1/8`
+while the other finds it dead and rolls. In the original, `0/7` holds
+slot 1 and `0/8` slot 2. `Objects::inc_time@0065db70` walks the pool
+`0..count`, and `Objects::add_ammo@00658b10` takes the lowest free slot
+(§24.4). This crate `swap_remove`d, so `0/6`'s landing on 681 put `0/8`
+first. [`sim::Sim::add_ammo`] now assigns the slot and keeps the list
+sorted, and a landing removes without reordering. That is the "slot pool
+in `crates/sim`" §24.4 named as the successor.
+
+### 46.5 `compare_target` ranks at the real bearing, and the height is live
+
+With the right bowman, `damage_frac 1/7` still stood at 0 against 5, and
+it was 57 against the original's 58. `get_damage`'s step 23, the height
+bonus, compares the attacker's `z` (`+0xc`) with the target's, and this
+crate passed `z: 0` on both sides. §46.2's sweep shows both are
+`find_tcoord_z`, so both are now [`sim::World::tile_z`]. `0/8` stands at
+253 and `1/7` at 211, and `42 × 10 × 57 / 20000` is the one point.
+
+Then the bowmen still retargeted to `1/7` on 696 where the original
+takes `1/6`. The wound was not what decided it. ~~§42.4 and §45.2: a
+wounded `1/7` "outranks `1/6` on §33's damage weight".~~ With `damage
+1/7` agreeing, the ranking still parted. `Object::compare_target`'s
+`get_damage` call is printed by the decompiler as `find_angle(0, 0)`
+(§18.1's and §33.2's reading), but `find_angle@0092d130` takes its pair
+in `ecx`/`edx`, and the listing loads them at `0064ebe7`–`0064ec00` as
+the target's position less the attacker's. The angle is the real
+bearing, so the flank sector step 19 reads separates two hoplites at
+different bearings. With it the captain `0/6` scores `1/6` at 27,307
+against `1/7` at 24,967 (it had been 17,627 against 35,840) and takes
+`1/6`, as the dump does.
+
+### 46.6 What moved
+
+| | before | after |
+|---|---|---|
+| golden chapter two, **word** / sequence | 725 | **762** |
+| values | 726 | 763 |
+| the widening's window | `[606, 729)` | `[606, 766)` |
+| widening rows | 39 | **20** |
+| frozen frames missed | `0/9` 745, `1/7` 762 | none |
+| `near_o` unit-frames / live / agreeing | 7368 / 296 / 7368 | 9530 / 409 / 9530 |
+| chapter one, Great Lakes, East Indies | 626, 10834, 9711 | unchanged |
+
+**The value diff on the frame it moved.** On 686 every record agrees:
+`damage 1/7 19`, `damage_frac 5`, `damage_frame 685`. On 696 the three
+bowmen hold `ox 6 whom 1` on both sides. The window gains two deaths,
+`0/11` on 729 and `1/6` on 743, and both are the original's own, on its
+frames (420 death comparisons, all agreeing).
+
+The widening at 762 is on file (`chapter_two_s_word_frame_is_widened_whole`,
+ceiling 766). **Nothing parts on 762 or 763.** The draw delta is 8
+against 9: the original spends a `Unit::fight+0x9b0` first. The first
+values part on **764**, `g.cur_anim 0/10` (ours 13, theirs 12), and on
+**765**, `1/7`, the original's last hoplite, whose order becomes kind 2
+with a 53-node path to (38646, 13305) where this crate's stays kind 1.
+`pos`, `g.x`, the angles and the speeds follow it. No mechanism is named
+here. Standing below: `damage 1/6` at 680 (§41.3) and the ten `g.gpiece`
+rows at 606 (§45.4, parked). `0/9`'s wound, first on block 792 in the
+dump, is past the word, and this crate no longer reaches it.
+
+### 46.7 What is not established
+
+- **The 2,058 ambiguous corners.** Each is the nearest single to its
+  print, at most a few ulp and under 2e-6 of a world unit from the
+  original's. A read lands on one only near water. The guard is zero on
+  every replayed window, and ten sweep reads that agree. A capture that
+  reads `master_land_heights.list` as raw bits (an in-process memory read
+  of `TerrainData+0x464` at frame 0) would settle all 2,058. Not booked:
+  it answers no score today.
+- **A terraformed corner.** `crate::terrain` works in exact millionths
+  where the original works in singles (DECISIONS 31), so a corner a
+  building has changed is not known to be the original's single. The
+  guard counts any read of one, and none happens on a replayed window.
+- **The spent arrow.** `Ammo::do_damage@00678060`'s puncture arm leaves a
+  shot whose piece can stick, on valid non-water ground, as `flags 1`,
+  with `cur_time` reset. `inc_time` holds it for 200 frames, **in its
+  slot**. This crate removes it, so a later shot can take a slot the
+  original's cannot. run112 carries 239 such records, the first on 780,
+  past the word. It is parked rather than landed.
+- **`sz` for a piece with a release table and no measured node** takes a
+  `dz` of 0, and `ez` for a building target is its tile's `z`. Neither is
+  reached by a rolled shot on any capture.
+- **Negative coordinates** into `find_data_z` index `div_3_table` below
+  0 in the original. Every caller here is gated by `is_valid` first, and
+  this crate clamps.
+
+### 46.8 Coverage
+
+**Diff-backed**: the arc (`v1z` on 317 records, three landings with
+step, point and `ez`), the surface and both heights (§46.2's sweep), the
+height bonus and the slot order (`damage 1/7`/`damage_frac` on 686), the
+bearing (`order`/`angle` 696 closed), and the word 725 → 762 with its
+widening.
+
+**Listing-backed**: §46.1's arm and `v1z`, §46.2's `find_data_z`, the
+fourth argument 0 at three callers, `find_angle`'s register pair and
+`compare_target`'s load of it, and `GRAV_Z`'s single writer.
+
+**Reading-only**: the unit and building arms of `sz` (`+100`, `+250`),
+the air arm of `ez`, and the spent arrow's 200-frame hold.
+
+One lesson for the next reader. Grep the crate for the *type*, not only
+for the name the brief used. This item first wrote a software single
+from scratch over `crates/sim/src/single.rs`, which already had every
+operation, and caught it only on the module list.

@@ -1973,7 +1973,33 @@ pub(crate) const GOLDEN_WORD_CHAPTER_ONE: i64 = 626;
 /// held. Forcing the facing settled on 725–727 alone moves the word to
 /// **743**, where the next parting is a death draw (`Unit::close+0xcb6`)
 /// — also the arrow's. `docs/COMBAT.md` §42.5 is what both wait on.
-pub(crate) const GOLDEN_WORD_CHAPTER_TWO: i64 = 725;
+///
+/// **Item 495 landed the arrow and the word moved 725 → 762** — the
+/// constant's delta, +37 (`docs/COMBAT.md` §46). Four things, each read
+/// off the frame the last one left: the rolled shot comes down on the
+/// original's step through the arc and `find_data_z` in
+/// [`sim::single::Single`]; the ammo pool is stepped in slot order, so the
+/// right bowman's shot rolls; `get_damage`'s height bonus reads each
+/// side's `tile_z`; and `compare_target` ranks at the real bearing, where
+/// the decompiler printed `find_angle(0, 0)`. On 686 every record now
+/// agrees, and on 696 the bowmen take `1/6`. At 762 the original spends a
+/// `Unit::fight+0x9b0` first, 8 draws against 9, and nothing parts on
+/// 762 or 763; the widening's block is its window's (see
+/// [`WIDENING_CHAPTER_TWO`]).
+pub(crate) const GOLDEN_WORD_CHAPTER_TWO: i64 = 762;
+
+/// **How many height reads each replay may make on a corner this crate
+/// cannot pin to the original's single**, by test name — `docs/COMBAT.md`
+/// §46.3, and the `Drop` of [`crate::diff::Built`] that holds every replay
+/// to it. A test not named here is pinned at **zero**, which is every
+/// window the harness replays on the day of the pin: the rolled shots and
+/// launch heights of every scored run land on corners above 16, whose
+/// six-decimal print names one single, and on no corner a terraform has
+/// rewritten. The residue the zero stands over is 2,058 of Great Lakes'
+/// 58,081 corners, every one under 16 in magnitude, where two to four
+/// singles print alike and [`sim::single::Single::from_millionths`] takes
+/// the nearest — at most a few ulp, under 2e-6 of a world unit.
+pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[];
 
 /// **Every pinned word names the test that widened its frame whole, or
 /// the open item that will** (`docs/DECISIONS.md` 43). A word is the frame
@@ -2023,7 +2049,12 @@ pub(crate) const WIDENING_GREAT_LAKES: (i64, i64) = (9_340, 10_847);
 /// 695 → 725 and the window came with it on the same frame, which is the
 /// rule rather than a courtesy. Four frames past the word, as every
 /// ceiling here has been.
-pub(crate) const WIDENING_CHAPTER_TWO: (i64, i64) = (606, 729);
+///
+/// **And to 766 on item 495**, with the word 725 → 762 — the widening's
+/// block for the move. Its map fell from thirty-nine rows to twenty; the
+/// first past the word are `0/10`'s clock on 764 and `1/7`'s walk on 765,
+/// and run118's clock still covers the whole window.
+pub(crate) const WIDENING_CHAPTER_TWO: (i64, i64) = (606, 766);
 
 /// One pinned word's row: `(constant, word, widening test, item, window)`.
 pub(crate) type Widening = (
@@ -2198,7 +2229,7 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         "GOLDEN_WORD_CHAPTER_TWO",
         GOLDEN_WORD_CHAPTER_TWO,
         Some("chapter_two_s_word_frame_is_widened_whole"),
-        491,
+        495,
         Some(WIDENING_CHAPTER_TWO),
     ),
 ];
