@@ -92,6 +92,25 @@ the reap is a separate command a commander typed after the chain twice and
 forgot twice. Filed with ccc as `land <ref>` or `merge --reap`; until it
 exists, the chain is one shell line in the commander's brief.
 
+(480) **A section at its pin makes a one-clause strike cost a reflow.**
+Item 475 owed `docs/ORDERS.md` §4.4 a 158-byte strike-through — the
+smallest honest amendment there is, `~~§35.3~~ §36` — and
+`a_section_over_the_ceiling_may_not_grow` refused it because `## 4. The
+move order` was over the ceiling and sitting exactly at its pin. It was
+paid for by reflowing an unrelated numbered list to 78 columns: a
+content no-op, a noisy diff, and §4 now has **zero headroom**, so the
+next clause anyone adds has to split the section or move its story to
+the journal.
+
+The guard is right that sections must not grow and wrong that a
+*correction* should be rationed like an addition. An amend-in-place
+strike is how this repo keeps a wrong claim from being read as a live
+one, and making it the most expensive edit in the file is backwards.
+Worth a rule: a strike-through that points an obsolete claim at its
+successor is exempt, or is paid from a separate allowance. Whoever
+takes it should check how many other sections sit at their pin — §4 was
+not chosen for being unusual.
+
 ## Parked by the eighth Fable pass, 2026-09-21 — a guard a worker can take
 
 (375) **A staged run is indistinguishable from an unstaged one, and the
