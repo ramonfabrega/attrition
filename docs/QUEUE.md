@@ -12,35 +12,36 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-22, the tenth chain. Great Lakes **10233 → 10244** — the
-sequence and count words have met — and chapter two **637 → 683**.*
+*2026-09-22, the tenth chain. Great Lakes **10233 → 10244**, chapter
+two **637 → 683** — and chapter two's earliest parting is **656**.*
 
-- **The AI word was blocked on a name, and naming it moved 10237 →
-  10244** (483, COMBAT §39): `Ammo::do_damage+0xc59` was absent from
-  `trace::SITES`. No simulation line changed, and attribution
-  elsewhere is **measured** — a 24,000-frame label dump either side
-  diffs to 52 lines, all on the three frames `do_damage` draws on.
-- **Its guard failed for real on its first run.**
-  `every_site_s_address_is_the_function_its_label_names` resolves
-  each row in the decompile index; `SITE_FIRST_WOUND_FLOCK` held
-  `0x0065218b` where its label says `0x006521ab` — two digits
-  transposed onto a non-instruction boundary, unmatchable, standing
-  since item **394**. Eighth instrument defect.
-- **The dump and the draw stream named the same unit unprompted**:
-  10245's eleven rows are all `1/27`, and the word's extra draw is
-  ours `set_anim < move_step`, the blocked stand. That is 487.
-- **The defect was a brace** (481): `do_move:207`'s `max_range` gate
-  closes past the captain retarget, so a melee captain reached it.
-  `[606, 684)` at nought, 78 frames.
-  Eight open, 69 parked. **Fable backlog: 2 Loop items** (313, 480).
+- **A correction I owe (484).** I booked `[606, 684)` as "at nought,
+  78 frames". It was clean only because the field was not compared.
+  `crate::diff::compare` carried **no hit-point row at all**, and
+  `damage_frac` was never parsed on a unit — read for a building
+  since item 394, for a figure never. The map goes three → **eight**
+  first-partings and the earliest is **656**, 27 blocks under the
+  word. 478's shape one record over, twice in one chain.
+- **Every value we hold is the dump's own previous one** — the same
+  ladder, one arrival late, from the first wound: `1/8`'s `damage`
+  0/8 at 656, 8/17 at 657, 17/25 at 660, 25/34 at 682. **`extra 1/8`
+  at 684 is the end of that lag, not a fact of its own**, so 485's
+  frame is 656. Word 683 and `visible` 9 of 9 both hold.
+- **The AI word is 10244**, sequence and count together after 483
+  named `Ammo::do_damage+0xc59`; its guard caught a site address
+  transposed since item 394. 487 is live on 10245's `1/27` rows.
+- **Nine instrument defects this chain**, all found by widening. 488
+  parks the sharpest: one window wrong three ways, the third — a
+  field absent from the comparator — unreachable by any widening.
+  Seven open, 70 parked. **Fable backlog: 3 Loop items** (313, 480, 488).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w9711 of 24,000 · GreatLakes w10244 of 24,000
 Golden: w626 of 901 (ch1) · ch2 w683 · 484 next
 Endpoint 24001: EastIndies 63 off, 11 unlinked · GreatLakes 51 off, 7 unlinked
 
-**Opener: 484 is live and gates 485; 487 takes the freed lane. The
-loop stands at 18 of 20 — the steering pass is two landings away.**
+**Opener: 487 is live; 485 takes the freed lane. The loop stands at
+19 of 20 — the next landing is the steering pass's.**
 
 ## The queue
 
@@ -67,21 +68,14 @@ the backlog is `docs/PARKED.md`, and an item returns only when a score names it.
     with `g.x[0]` and `g.des_x[0]` the same — one world unit in x,
     said three times. ORDERS §18.3.
 
-484. **`crate::diff::compare` has no hit-point row** — add
-    `myhits`, `damage` and `hits_left`, the pair the dump prints at
-    every detail level and that `run100_s_word_block_…` has carried
-    since §34.4. It touches `FrameResult`/`compare` and therefore
-    **every capture's diff**, so measure before and after on both
-    maps and expect counts to move. **Gates 485**, which cannot name
-    a mechanism without it. Reported by 481, not taken.
-
-485. **`extra 1/8` at 684 — a death** (the rules headline's next
-    frame; 481 moved the word to 683). `DEATH_OBJS` on 684,
-    `first_frame 683`; `1/8`'s `damage` runs 0 → 8 (656) → 17 (657)
-    → 25 (660) → 34 (682) against a figure's 40-hit share of
-    `myhits 120`, and the hit on 683 takes it over. **Do not start
-    before 484 lands** — without the hit-point row the diff can see
-    the death and not the wounds.
+485. **`1/8`'s wound ladder from block 656** (the rules headline's
+    own frame, under the word at 683). `damage` ours 0 theirs 8 at
+    656, 8/17 at 657, 17/25 at 660, 25/34 at 682, then `extra 1/8` —
+    the death — at 684. **We are one arrival late, not arithmetically
+    wrong.** 484's reading, its hypothesis not this item's:
+    `Object::take_damage` divides the squad's `myhits` by `uber_size`
+    on the way in (§7.3) where `Sim::take_damage` uses `u.health`
+    outright. COMBAT §40.6. 484 has landed; this is unblocked.
 
 342. **Host choice seats the scholar on the wrong university** — 338's
     residue, re-pinned three times, and now `1/55`. **Re-measure before
