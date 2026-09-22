@@ -5315,7 +5315,13 @@ purpose.
 | run53 frames on the original's count, of 24,000 | 11,922 | **12,059** |
 | run53 frames draw for draw | 10,509 | **10,651** |
 | Great Lakes endpoint `off` / `unlinked` | 51 / 7 | **42** / 7 |
-| run100 widening, keys parted | 297 over `[9340, 10247]` | 310 over `[9340, 10290]` |
+| run100 widening, keys parted | 297 over `[9340, 10247]` | **313** over `[9340, 10290]` |
+
+That last row is not a like-for-like: the window's ceiling moved with
+the word, so 43 blocks nobody had compared came into scope, and item
+484's hit-point row landed on the base underneath this one and added
+56,956 comparisons to every block. It is here because the widening's
+own bounds are part of what this item changed, not as a score.
 
 The two words moved **together**, which is what §19.3's separation was
 about: since item 483 named `Ammo::do_damage`'s puncture pair there has
@@ -5351,7 +5357,7 @@ successor did not survive its own widening.
 
 **Diff-backed**: §20.4's rows, from
 `run100_s_word_block_is_every_record_the_dump_carries` over
-`[9340, 10290]` (952 blocks, 2,372,070 record rows) and
+`[9340, 10290]` (952 blocks, 2,429,026 record rows) and
 `run100_s_word_frame_is_the_original_s` over the same window. The word
 itself is `run53_s_24000_frames_put_the_ceiling_where_run33_did` and the
 endpoint `great_lakes_endpoint_is_pinned`; all four were red before the
