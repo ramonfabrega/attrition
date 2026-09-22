@@ -220,7 +220,7 @@ def fingerprint(runner, error):
 
 
 def explore(install, directory, *, services='none', budget=1000000, rounds=128,
-            arena=None, perturb=False, borrowed=(), mutable_arguments=False, repeat_final=0, observe_path=False):
+            arena=None, perturb=False, borrowed=(), mutable_arguments=False, repeat_final=0, observe_path=False, on_prepared=None):
     require(services in ('none', 'malloc', 'malloc+memset', 'malloc+memset+memcpy', 'malloc+memset+memcpy+free'), 'unknown service policy')
     require(1 <= budget <= 1000000 and 1 <= rounds <= 128, 'replay limit outside policy')
     require(0 <= repeat_final <= 16, 'repeat count outside policy')
@@ -305,7 +305,7 @@ def explore(install, directory, *, services='none', budget=1000000, rounds=128,
                     last['reason'] = 'dependency round cap reached'
                     break
                 regions.extend(added)
-        last.update(astar_returns=astar, native_astar_return=expected,
+        last.update(astar_returns=list(astar), native_astar_return=expected,
                     astar_return_matches_native=(astar == [expected]) if astar else None,
                     allocations=getattr(runner, 'allocations', []), fills=getattr(runner, 'fills', []),
                     copies=getattr(runner, 'copies', []), frees=getattr(runner, 'frees', []),
@@ -332,7 +332,7 @@ def explore(install, directory, *, services='none', budget=1000000, rounds=128,
                         all(a in runner.initialized for a in range(address, address+4)))
             last['stack_words'].append(struct.unpack('<I', runner.uc.mem_read(address, 4))[0]
                                        if available else None)
-        return dict(payload_sha256=report['sha256'], image_sha256=IMAGE_SHA256,
+        result = dict(payload_sha256=report['sha256'], image_sha256=IMAGE_SHA256,
                     services=services, repeated_final_runs=repeat_final, mutable_callee_arguments=mutable_arguments, limits=dict(instructions=budget, rounds=rounds,
                     allocations=1024, arena_bytes=ARENA_SIZE, fill_bytes=1024*1024, fills=1024, copy_bytes=1024*1024, copies=1024, frees=1024, borrowed_objects=64, borrowed_bytes=1024*1024),
                     arena_address=kwargs.get('arena_address'),
@@ -343,6 +343,10 @@ def explore(install, directory, *, services='none', budget=1000000, rounds=128,
                     if r.name.startswith('payload_')), dependency_rounds=history, last=last,
                     seconds=time.monotonic()-started, extended_state_perturbed=perturb,
                     fxsave_imported=False, fidelity_claim=False)
+        if on_prepared is not None:
+            require(last['returned'], 'experiments require a completed baseline')
+            result['prepared_experiments'] = on_prepared(runner, context, result)
+        return result
 
 
 def main():
