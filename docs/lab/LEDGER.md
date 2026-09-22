@@ -142,3 +142,5 @@ restores `docs/JOURNAL.md` to the unchanged pre-lab prefix. Subsequent lab work
 writes here, not QUEUE, JOURNAL, DECISIONS, or CLAUDE. Core document/code reference
 updates are a separate adoption concern. No completion counter or queue item
 was changed by the cutover.
+
+| L90 | Logger parity needs a distinct, tested acquisition phase. | [End-frame acquisition under test](TYPED-STATE-REVIEW.md#end-frame-acquisition-under-test). | PDB-generated root plan; separate stream and receipt checks; eight offline tests including 256 extended-state cases. | No live capture or logger parity yet; root stability does not imply atomic heap state. Optimized logger uses its global, not incoming ECX. |
