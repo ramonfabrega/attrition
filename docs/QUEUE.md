@@ -36,7 +36,7 @@ Great Lakes **10277**, chapter two **683**, both inside their first fight.*
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w9711 of 24,000 · GreatLakes w10582 of 24,000
-Golden: w626 of 901 (ch1) · ch2 w695 · 502 next
+Golden: w626 of 901 (ch1) · ch2 w725 · 510 next
 Endpoint 24001: EastIndies 59 off, 12 unlinked · GreatLakes 55 off, 5 unlinked
 
 **Opener: 502 and 506 in flight. Five landings; Great Lakes 10277 → 10582
@@ -59,14 +59,14 @@ the backlog is `docs/PARKED.md`, and an item returns only when a score names it.
     10582): theirs `Leader::use_market+0x1ed`, ours
     `Leader::make_stuff+0x221`. A production frame. No mechanism.
 
-502. **§43.2's arm, landed whole** (the rules headline's own frame;
-    496 measured 695's cause and did not implement it, so the word
-    stands at 695). Four pieces that only score together: the target
-    the original **keeps** after it dies, the captain that spends its
-    frame searching, the two followers that strike on the same frame,
-    and `Guy::inc_time`'s `unit_masks2 & 0x10` zero step. COMBAT
-    §43.2, open questions §43.5. **Wants a `GUYS=4` capture with the
-    launch timeout raised** — run118 stops at 846 (see run119).
+510. **725's attack-end wrap costs the original two draws and this
+    crate one** (the rules headline's own frame; 502 moved the word
+    695 → 725). Ours 7 draws against 9, parting at draw 1; the delta
+    is two `Guy::set_anim+0xf2f < Guy::inc_time+0x271`. Three wraps in
+    two frames (`0/7`, `0/8` on 725, `0/6` on 726); the **same** wrap
+    on 695 cost one, with `hold_attack 1` in the dump. Start:
+    `Sim::guy_inc_time` marks `SITE_ATTACK_WRAP` on the `slot < 2` arm
+    only and hard-codes ATTACK2. COMBAT §44.3. No mechanism.
 
 ## How to maintain this file
 
