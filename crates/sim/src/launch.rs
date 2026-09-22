@@ -115,6 +115,82 @@ const MEASURED: &[(i32, i8, u32, Node)] = &[
             dz: 184,
         },
     ),
+    // **run112's own nine arrows** (`docs/COMBAT.md` §41.3, item 485).
+    // Chapter two's `--detail end:` carries `AMMO=5`, so the golden
+    // capture has printed `AmmoData::log_data`'s `sx, sy, sz` on every
+    // block since it was taken and nothing had read them: the two pieces
+    // the chapter stages had no row here, so every shot in the
+    // engagement left the shooter's own square while the original's left
+    // the bow hand eighty-odd units ahead of it. That shortens the flight
+    // by one frame on four of the nine and put the whole wound ladder one
+    // arrival behind the dump from block 656 (§40.4).
+    //
+    // Piece **472** is the bowmen's and **384** the slingers'. Each row
+    // is solved from every arrow the capture carries for its key — three
+    // for `(472, ATTACK1, 12)`, two each for `(472, ATTACK2, 9)` and
+    // `(384, ATTACK2, 22)`, one each for the other two — at two or three
+    // different facings, which is what makes it a rotation rather than a
+    // stored world vector.
+    //
+    // **Two of the nine are reproduced to a unit rather than exactly**,
+    // unlike run109's (§22.1): the planar `(bearing, radius)` model
+    // cannot hit all three of `(472, ATTACK1, 12)`'s rows at once, and
+    // `(472, ATTACK2, 9)` is two units out on one of its two. §41.3 says
+    // what that leaves open. Nothing integral depends on it — the flight
+    // time is `dist / proj_speed` truncated, and a unit of distance moves
+    // it only across a boundary — and the consequence the fix is measured
+    // on is the impact *frame*, which is now the dump's on eight of the
+    // nine.
+    (
+        472,
+        crate::anim::ATTACK2,
+        9,
+        Node {
+            bearing: -17_683_648,
+            radius: 86,
+            dz: 164,
+        },
+    ),
+    (
+        472,
+        crate::anim::ATTACK1,
+        12,
+        Node {
+            bearing: -37_883_648,
+            radius: 89,
+            dz: 163,
+        },
+    ),
+    (
+        472,
+        crate::anim::ATTACK3,
+        15,
+        Node {
+            bearing: 81_516_352,
+            radius: 67,
+            dz: 164,
+        },
+    ),
+    (
+        384,
+        crate::anim::ATTACK2,
+        22,
+        Node {
+            bearing: 216_316_352,
+            radius: 125,
+            dz: 151,
+        },
+    ),
+    (
+        384,
+        crate::anim::ATTACK1,
+        21,
+        Node {
+            bearing: 532_316_352,
+            radius: 97,
+            dz: 178,
+        },
+    ),
 ];
 
 /// The node a piece releases from, or `None` when nothing has measured it.
@@ -242,24 +318,179 @@ mod tests {
         assert_eq!(launch_point(p, Angle(0), 127, crate::anim::ATTACK1, 7), p);
     }
 
-    /// The table is the install's own six release events and no others —
-    /// the key is `rondata::artdata::release_frame`'s frame, so a row this
+    /// The table is the install's own release events and no others — the
+    /// key is `rondata::artdata::release_frame`'s frame, so a row this
     /// crate cannot reach is a row that will never fire.
+    ///
+    /// Piece **127** is the Longbowman's six (run109, §22.1); **472** and
+    /// **384** are chapter two's bowmen and slingers, three keys and two,
+    /// from run112's own `AMMO` records (item 485, §41.3).
     #[test]
-    fn the_table_is_the_longbowman_s_six_release_events() {
-        let mut keys: Vec<(i8, u32)> = MEASURED.iter().map(|(_, a, t, _)| (*a, *t)).collect();
+    fn the_table_is_every_release_event_a_capture_has_measured() {
+        let mut keys: Vec<(i32, i8, u32)> =
+            MEASURED.iter().map(|(p, a, t, _)| (*p, *a, *t)).collect();
         keys.sort_unstable();
         assert_eq!(
             keys,
             vec![
-                (crate::anim::ATTACK1, 6),
-                (crate::anim::ATTACK1, 22),
-                (crate::anim::ATTACK2, 4),
-                (crate::anim::ATTACK2, 22),
-                (crate::anim::ATTACK3, 10),
-                (crate::anim::ATTACK3, 24),
+                (127, crate::anim::ATTACK1, 6),
+                (127, crate::anim::ATTACK1, 22),
+                (127, crate::anim::ATTACK2, 4),
+                (127, crate::anim::ATTACK2, 22),
+                (127, crate::anim::ATTACK3, 10),
+                (127, crate::anim::ATTACK3, 24),
+                (384, crate::anim::ATTACK1, 21),
+                (384, crate::anim::ATTACK2, 22),
+                (472, crate::anim::ATTACK1, 12),
+                (472, crate::anim::ATTACK2, 9),
+                (472, crate::anim::ATTACK3, 15),
             ]
         );
-        assert!(MEASURED.iter().all(|(p, _, _, _)| *p == 127));
+    }
+
+    /// **Every launch point run112 recorded**, and the error in each
+    /// (`docs/COMBAT.md` §41.3).
+    ///
+    /// Chapter two's capture asks for `AMMO=5`, so `AmmoData::log_data`
+    /// prints each arrow's `sx, sy, sz` on the block it is created; the
+    /// nine below are every arrow of the golden window. The columns are
+    /// the dump's own — the shooter's guy position and angle from the
+    /// `UNITDATA`/`GUY` blocks of the same block, `sx, sy` from the
+    /// `AMMO` record beside them.
+    ///
+    /// **Unlike run109's nine, three of these are a unit or two out.**
+    /// A single `(bearing, radius)` turned by the yaw cannot hit all
+    /// three of `(472, ATTACK1, 12)`'s rows at once — the original
+    /// rotates a float vector with a height in it — so the error is
+    /// pinned per row rather than asserted away. It may only shrink: a
+    /// table that drifts, or a model that improves, fails here. Nothing
+    /// integral depends on the residue, because the flight time is a
+    /// truncated `dist / proj_speed` and a unit of distance moves it
+    /// only across a boundary; the consequence the fix is measured on is
+    /// the impact *frame*, which `rondata::diff`'s chapter-two widening
+    /// puts on the dump's own for every arrow whose node is here.
+    #[test]
+    fn run112_launch_points_are_reproduced_to_within_a_unit() {
+        /// `(gpiece, anim, starttime, guy x, guy y, guy angle, sx, sy,
+        /// Manhattan error)` — the dump's own columns.
+        type Row = (i32, i8, u32, i32, i32, i32, i32, i32, i32);
+        const M: &[Row] = &[
+            (
+                472,
+                crate::anim::ATTACK2,
+                9,
+                888,
+                7800,
+                1_131_216_896,
+                975,
+                7806,
+                2,
+            ),
+            (
+                472,
+                crate::anim::ATTACK2,
+                9,
+                888,
+                7800,
+                1_466_499_072,
+                961,
+                7846,
+                0,
+            ),
+            (
+                472,
+                crate::anim::ATTACK1,
+                12,
+                1032,
+                7800,
+                1_137_115_136,
+                1120,
+                7804,
+                0,
+            ),
+            (
+                472,
+                crate::anim::ATTACK1,
+                12,
+                1032,
+                7800,
+                1_530_593_280,
+                1103,
+                7853,
+                2,
+            ),
+            (
+                472,
+                crate::anim::ATTACK1,
+                12,
+                936,
+                7944,
+                1_390_804_992,
+                1017,
+                7979,
+                1,
+            ),
+            (
+                472,
+                crate::anim::ATTACK3,
+                15,
+                936,
+                7944,
+                1_073_741_824,
+                1002,
+                7953,
+                0,
+            ),
+            (
+                384,
+                crate::anim::ATTACK2,
+                22,
+                1224,
+                8184,
+                948_568_064,
+                1347,
+                8201,
+                0,
+            ),
+            (
+                384,
+                crate::anim::ATTACK2,
+                22,
+                936,
+                8088,
+                983_498_752,
+                1058,
+                8112,
+                0,
+            ),
+            (
+                384,
+                crate::anim::ATTACK1,
+                21,
+                1320,
+                8328,
+                862_191_616,
+                1406,
+                8373,
+                0,
+            ),
+        ];
+        let mut exact = 0;
+        for &(gp, anim, t, gx, gy, ga, sx, sy, err) in M {
+            let got = launch_point(Pos::new(gx, gy), Angle(ga), gp, anim, t);
+            assert_eq!(
+                (got.x - sx).abs() + (got.y - sy).abs(),
+                err,
+                "piece {gp} anim {anim} t {t} from ({gx},{gy}) facing {ga}:                  want ({sx},{sy}), got ({},{})",
+                got.x,
+                got.y
+            );
+            exact += i32::from(err == 0);
+        }
+        // Six of the nine are exact, and none of the rest is more than
+        // two units of Manhattan distance out. A model that fits all
+        // nine exactly may re-pin every `err` to zero; nothing may
+        // raise one.
+        assert_eq!(exact, 6, "the number of exactly reproduced rows fell");
     }
 }

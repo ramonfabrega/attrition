@@ -1942,11 +1942,23 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // reason: the floor (470), the ceiling (481), and now a field
     // missing from the comparison, which no widening of the window
     // could have found. `docs/COMBAT.md` §40.
+    //
+    // **Item 485 answered it and the answer was two facts.** `recharging`
+    // agrees on every unit-frame of the window, so the swing frames were
+    // never the fault; `damage_frame` — the dump's own stamp, also new to
+    // `compare` — parted by exactly one on both wounded units; and
+    // run112's `AMMO` records, printed since the capture was taken and
+    // read by nothing, name the launch point. The original's arrows leave
+    // the bow hand eighty-odd units ahead of the shooter and this crate's
+    // left the shooter's own square, which lengthened four of the window's
+    // nine flights by a frame. §7.3's divide is real and it is 684's fact,
+    // not 656's. The map goes from eight rows to **five**.
+    // `docs/COMBAT.md` §41.
     (
         "GOLDEN_WORD_CHAPTER_TWO",
         GOLDEN_WORD_CHAPTER_TWO,
         Some("chapter_two_s_word_frame_is_widened_whole"),
-        484,
+        485,
         Some(WIDENING_CHAPTER_TWO),
     ),
 ];

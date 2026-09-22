@@ -6131,22 +6131,21 @@ a walk. That *is* the extra draw: `Unit::move_step+0x823` is the blocked
 stand. Nothing had to be hypothesised to join them; the two instruments
 met on their own.
 
-**And the cause is upstream, two frames and one unit over.** The thing
+~~**And the cause is upstream, two frames and one unit over.** The thing
 `1/27` collides with is `1/29`, which on block 10241 drops its move
-order where the original keeps walking:
-
-```
-f10241  1/29 order:kind:    ours 10  theirs 1
-f10241  1/29 path:length:   ours 0   theirs 43
-f10242  1/29 g.stopped[0]:  ours 1   theirs 0
-f10242  1/29 pos:           ours (4680,29928)  theirs (4708,29936)
-```
-
-Twenty-eight world units short in `x` and standing still, two frames
-before `1/27` walks into the space it should have left. That is the
-successor item, named by its frame and its rows and **not** by a
-mechanism — `order:kind` 10 against 1 is where to start reading and not
-a claim about why.
+order where the original keeps walking … Twenty-eight world units short
+in `x` and standing still, two frames before `1/27` walks into the space
+it should have left.~~ **Struck by item 487 — the reading was
+backwards**, and `docs/ORDERS.md` §20.1 carries the correction. The rows
+themselves stand; `orders_front_first` is the log's list **reversed**, so
+`f10241 1/29 order:kind ours 10 theirs 1` is this crate still holding an
+ATTACK where the original is already on the move underneath it — not the
+original walking while this crate drops. And `1/29` is not twenty-eight
+units short of anything: it sits at `(4680, 29928)` with an empty path on
+every block of 10237-10248 and never moves at all. 487's widening killed
+the reading before it changed a line, and the mechanism it landed instead
+was `ungroup_move_order`'s prepend and `do_move`'s `0x480` dead-target
+re-path.
 
 Both rows are pinned rather than waved at: `RAIDER_STOPS` and
 `RAIDER_COLLIDES` name them in the window test the way `RAIDER_X` and
@@ -6214,7 +6213,9 @@ eleven rows above and the block it left as empty; the window test names
 the two newly-exposed position rows by frame. All three re-pins **failed
 for real** before they were written — they are what the gate reported
 when the word moved, not assertions written to a tree that already
-passed.
+passed. The rows are diff-backed; the **reading** §39.2.1 put on
+`1/29`'s pair is struck, and `docs/ORDERS.md` §20.1 has the direction
+right (item 487).
 
 **Listing-backed**: §39.1's disassembly, read from `riseofnations.exe`
 with `llvm-objdump` at `0x678c60`–`0x678d10`, and the same for
@@ -6437,12 +6438,324 @@ comparison still blind.
 **What this does not establish** — deliberately, because it is item
 485's:
 
-- **why** this crate's `1/8` runs one hit behind and does not die on
+- ~~**why** this crate's `1/8` runs one hit behind and does not die on
   683. `Object::take_damage` divides the squad's `myhits` by
   `uber_size` on the way in (§7.3) and `Sim::take_damage` uses
   `u.health` as the threshold outright, so a hoplite figure here
   absorbs a squad's worth; that is a *hypothesis* the frame does not
-  yet carry, and the frame is 656.
+  yet carry, and the frame is 656.~~ **Answered by item 485, §41, and
+  it is two facts rather than one.** The hypothesis is right about the
+  *death* and wrong about the *frame*: the divide is 684's fact, and
+  656's is that this crate's arrows left the shooter's own square where
+  the original's leave the bow hand eighty-odd units ahead of it, which
+  lengthened the flight by a frame (§41.2). Every value in the ladder
+  above is gone; `damage 1/6` stands at 680 and `extra 1/8` is closed.
 - whether `damage` is ever *reset* on a figure's death — the question
   §7.3's `total_damage` sum implies and no capture on disk answers,
   because no squad on disk loses a figure and survives.
+
+## 41. The arrow left the wrong square (item 485, 2026-09-22)
+
+§40.6 handed this item a frame and a hypothesis: `1/8`'s wound ladder
+runs one arrival behind the dump's from block **656**, and
+`Object::take_damage` divides the squad's `myhits` by `uber_size` on the
+way in where `Sim::take_damage` did not. **The widening says the
+hypothesis is right about the death and wrong about the frame.** They
+are two defects, twenty-eight blocks apart, and the one at 656 is not in
+`take_damage` at all: this crate's arrows left the shooter's own square
+where the original's leave the bow hand eighty-odd units ahead of it,
+and that lengthened four of the window's nine flights by a frame.
+
+`chapter_two_s_word_frame_is_widened_whole` goes from **eight
+first-partings to five**. `1/8`'s whole ladder — `damage`,
+`damage_frac`, the new `damage_frame` — is gone, `extra 1/8`'s death is
+on the original's own block, `pos 1/4` is gone, and `damage 1/6` moves
+657 → 680. The word **holds at 683** and its cause has changed; §41.5
+names what stands there now, with an address each.
+
+### 41.1 The firing record, and what `recharging` settled in one run
+
+`UnitData` prints four fields at its **own** indent that no comparison
+read: `recharging`, the reload clock, and the overkill window
+`damage_frame` / `damage_o` / `damage_who` beside it (§7.1 step 2). They
+are written on every unit of every block of every capture.
+`run100_s_word_block_is_every_record_the_dump_carries` has read
+`recharging` since item 463 and `crate::diff::compare` read none of the
+four, which is item 484's shape one record over: the mechanic's own
+timestamps, uncompared.
+
+They are rows now — `FiringDivergence`, keyed on the **field** — in
+`compare` and in run100's walk, and between them they answered the item
+before any code was read:
+
+- **`recharging` parts nowhere.** Not once, on any of chapter two's 21
+  units, over the 81 blocks of `[606, 687)`. The swing frames are the
+  original's, so the cadence was never the fault and neither was the
+  1-frame deferral §6.2 puts between `Unit::fight` and the attack
+  animation.
+- **`damage_frame` parts by exactly one, on both wounded units**: `1/8`
+  ours 656 against theirs **655**, `1/6` ours 657 against theirs
+  **656**. That is the dump dating its own hits, where §40.4 had to read
+  the frame off the accumulator that moved.
+
+`damage_o` and `damage_who` are compared only where **both** sides hold
+a live window (`damage_frame != 0`). A never-hit unit is `damage_o −1`,
+`damage_who 0` in the original and `0, 0` here, which is a difference of
+encoding and not of state; inside a live window they are the same
+quantity, and they agree — `1/8`'s `damage_o 6` is the bowmen's captain
+on every block of its life, `1/6`'s `damage_o 9` the slingers'.
+`damage_who` had no counterpart in `combat::State` at all until this
+item; `do_damage` step 2 writes the pair together and this crate kept
+only the captain.
+
+**The direction here is a scalar's, not a list's.** `damage_frame` is a
+frame number and `damage` an accumulator; "one arrival late" and "one
+arrival early, read backwards" are the same claim only where the reading
+comes from an ordered list, and neither of these is one. The dump's own
+`total_time` in §41.2 is the third independent statement of the same
+sign.
+
+### 41.2 `AMMO=5` was in the capture's own detail line
+
+`tools/gamelog/golden/chapter2.cmd`'s capture command asks for
+`--detail end:UNITS=3,GUYS=2,AMMO=5,…`, so run112 has carried **373
+`BEGIN AMMO` records** since the day it was taken and nothing had ever
+read one. `AmmoData::log_data` prints the whole arrow:
+
+```
+ BEGIN AMMO
+  cur_time 1          total_time 12
+  who 0   o 6         whom 1   ox 8
+  sx 975  sy 7806  sz 445
+  ex 1925 ey 8221  ez 276
+  angle 1215758336    accuracy 300
+  flags 6  rolling 0  splash_area 0  num_guys 1
+```
+
+Every arrow of the golden window, its block, and this crate's own beside
+it. `cur_time 1` is the block after the frame the arrow was created in,
+so the left column is the launch **frame**:
+
+| launch | shooter | theirs `sx, sy` | ours | theirs `total_time` | ours | impact theirs | ours |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 644 | `0/6` | 975, 7806 | 888, 7800 | **12** | 13 | 655 | 656 |
+| 647 | `0/7` | 1120, 7804 | 1032, 7800 | **10** | 11 | 656 | 657 |
+| 650 | `0/8` | 1002, 7953 | 936, 7944 | **10** | 11 | 659 | 660 |
+| 652 | `0/10` | 1347, 8201 | 1224, 8184 | **5** | 6 | 656 | 657 |
+| 660 | `0/11` | 1406, 8373 | 1320, 8328 | 4 | 4 | 663 | 663 |
+| 667 | `0/9` | 1058, 8112 | 936, 8088 | 4 | 4 | 670 | 670 |
+| 674 | `0/6` | 961, 7846 | 888, 7800 | **8** | 9 | 681 | 682 |
+| 677 | `0/7` | 1103, 7853 | 1032, 7800 | **7** | 8 | 683 | 684 |
+| 677 | `0/8` | 1017, 7979 | 936, 7944 | **7** | 8 | 683 | 684 |
+
+Three things fall out of it at once.
+
+**The launch frames are the original's, arrow for arrow.** §9.0's whole
+model — the shot added by the animation's release event, the event times
+truncated from the install's `<RELEASEEVENT starttime>`, the one-frame
+deferral §6.2 puts between the swing and the animation — is confirmed on
+nine shots of a second piece pair, and `recharging` says the swing
+frames under them are right too.
+
+**The launch point is the unit's own square.** `sx, sy` is the guy's
+position plus a release-node offset of eighty to a hundred and
+twenty-five units; ours was the guy's position exactly, because
+`launch::MEASURED` had a row only for the Longbowman's piece and §22's
+own seam sends an unmeasured piece to the unit's square.
+
+**So the whole of the lag is `total_time`**, which is
+`(int)(sqrtf(dist²) / (float)(proj_speed × unit_move_speed))` (§9.1) —
+a truncated quotient, and a launch eighty units short of where the
+original's starts lengthens `dist` by eighty. The bowmen's `proj_speed`
+is 100 and the slingers' 150, so the extra eighty crosses a whole frame
+most of the time and not always: `0/11`'s and `0/9`'s arrows keep their
+`total_time` of 4 and land on the dump's own frame, which is why two of
+the nine impacts agreed while the ladder was wrong. **That is what made
+the residue look like arithmetic.** An impact frame that agrees is not
+an arrow that flew right.
+
+An impact lands at `launch + total_time − 1` on both sides: `cur_time`
+is stepped before the test and the ammo list is walked in the same frame
+the animation pass adds to it (§9.2), which the table's right-hand
+columns confirm nine times over.
+
+### 41.3 Five release nodes, solved from run112's arrows
+
+The offsets, `sx, sy` less the shooter's guy position (which is the
+unit's position exactly on all nine blocks, and whose `angle` is the
+unit's):
+
+| key | samples | facings | bearing | radius | `dz` |
+| --- | --- | --- | --- | --- | --- |
+| 472, `ATTACK2`, 9 | 2 | 2 | −17,683,648 | 86 | 164 |
+| 472, `ATTACK1`, 12 | 3 | 3 | −37,883,648 | 89 | 163 |
+| 472, `ATTACK3`, 15 | 1 | 1 | 81,516,352 | 67 | 164 |
+| 384, `ATTACK2`, 22 | 2 | 2 | 216,316,352 | 125 | 151 |
+| 384, `ATTACK1`, 21 | 1 | 1 | 532,316,352 | 97 | 178 |
+
+Piece **472** is chapter two's bowmen and **384** its slingers; the key
+is §22's own — `(gpiece, animation slot, the starttime frame
+`rondata::artdata::release_frame` produces)`. Each bearing is stored
+relative to the guy's facing and turned by `movement`'s integer sine, so
+the two keys with two and three samples at *different* facings are a
+test of the rotation and not a stored world vector: they are the same
+two numbers answering differently.
+
+**Three of the nine are a unit or two out**, where run109's nine were
+exact. A single planar `(bearing, radius)` cannot hit all three rows of
+`(472, ATTACK1, 12)` at once — the original rotates a float vector that
+has a height in it, and `dz` is 163 there — so
+`run112_launch_points_are_reproduced_to_within_a_unit` pins the error
+**per row** rather than asserting it away. Six are exact, and the worst
+is two units of Manhattan distance. Nothing integral depends on the
+residue: the flight time is a truncated `dist / proj_speed` and a unit
+of distance moves it only across a boundary, and the consequence the fix
+is measured on is the impact *frame*, which the widening now puts on the
+dump's own for every arrow whose node is here.
+
+**What is not established, and it is `damage 1/6`'s 680 row.** The
+slingers' `(384, ATTACK3, 16)` has no measurement, because the one arrow
+the window fires from it lands in its own launch frame and so is never
+printed: `total_time` reaches its end before the block is written. That
+arrow is the fourth hit on `1/6`, ours at 680 against the dump's 679,
+and it is the only launch-point row the widening still carries. A
+capture that raises `AMMO` on a slinger volley at longer range, or a
+window whose slinger fires from further off, closes it; nothing on disk
+does.
+
+### 41.4 A figure falls at its share, not its squad's
+
+§40.6's hypothesis, measured rather than read: `Sim::take_damage` passed
+`u.health` — the squad-sized `myhits` less this figure's damage — as the
+threshold, where §7.2 step 8 divides. So a hoplite figure of a squad of
+three absorbed 120 points instead of 40, and run112's `1/8` reached
+`damage` **51** on block 685, `killed: false`, where the original's died
+on 683 at its fortieth point.
+
+**`combat::share` was already there.** It was written for §7.2 step 8,
+it carries the captain's remainder, it is documented, and no call site
+had ever used it. The fix is that call: the accumulated whole points go
+in as `max_health − health` and the share beside them, and `health`
+stays the complement of the dump's `damage` against the squad-sized
+`myhits`, which is what item 484's row pins on 245,679 field-frames.
+
+`extra 1/8` closes with it. And the squad that loses a figure on the
+original's own block then behaves like the original's: the set this
+crate wounds over the whole chapter gains `(0, 9)` — a second slinger,
+which the dump wounds too — and is now one unit short of the dump's own
+six rather than two.
+
+**The attrition path still uses the squad-sized threshold.**
+`Sim::attrition_tick` deducts from `health` and kills on `health <= 0`,
+so a figure bleeding inside hostile borders still absorbs its whole
+squad's hit points. That is the same defect on the other caller of
+`Object::take_damage` (the `attrition != 0` arm), it is
+`docs/ATTRITION.md`'s to fix, and no capture on disk has an attrition
+death to score it against — which is exactly why it survived. Named
+here, not fixed here.
+
+### 41.5 What moved, and what 683 is now
+
+The map over `[606, 687)`, eight rows to five:
+
+```
+  gone   damage 1/8        656   ours 0  theirs 8      the whole ladder
+  gone   damage_frac 1/8   656   ours 0  theirs 10
+  gone   damage_frame 1/8  656   ours 0  theirs 655    (new row, 485)
+  gone   extra 1/8         684   the original's 1/8 dies on 683; ours does now
+  gone   pos 1/4           686
+  moved  damage 1/6        657 → 680     the unmeasured ATTACK3 node
+  stands damage 1/7        686   ours 0  theirs 19
+  stands damage_frac 1/7   686   ours 0  theirs 5
+  stands damage_frame 1/7  686   ours 0  theirs 685    (new row, 485)
+  stands order 1/4         685
+```
+
+`chapter_two_s_visible_byte_is_the_dump_s_on_every_unit_frame` holds at
+**9 of 9**; `chapter_two_s_near_o_is_the_dump_s_on_every_unit_frame` at
+4848 of 4848 with 170 live; item 484's floors — run57's 205,302 and
+run79's 40,377 field-frames — are unmoved, as they must be, since
+neither capture contains a fight. Chapter one's word is 626 and Great
+Lakes' 10277, both unmoved by this landing.
+
+**The word holds at 683, and it is a different 683.** Ours is now seven
+draws against the original's six, parting at draw 0, and both sides of
+the parting have a name:
+
+```
+  ≠  0  ours Ammo::do_damage+0xc59   theirs 60fb06
+  ≠  1  ours Ammo::do_damage+0xc7e   theirs Farms::inc_time+0x1ae
+     2  ours Farms::inc_time+0x1ae   theirs Farms::inc_time+0x1ae
+```
+
+- **`0060fb06` is inside `Unit::close@0060ee50`** (the decompile export's
+  index; §11's death path), and it is the death animation's own draw:
+  `anim = dtype × 2 + 0xd + (Random::get(0, 0xffff) % 2)`, taken when
+  `dtype != 0`, the piece answers both vtable slots and
+  `ObjectData +0x68 & 1` is clear — three draws instead of one when
+  `dtype == 4`. The dump confirms the outcome as well as the site:
+  `DEATH_OBJS` on block 684 carries `cur_anim 17` for `1/8`, which
+  forces `dtype = 2` and `roll % 2 == 0`. This crate's `close` takes no
+  draw at all, and it never could be scored before this item, because
+  before it the figure did not die. **`dtype` is what the successor
+  owes**: §7.1 step 6 gives only 4 (an ammo graphic flagged `0x10`) and
+  1 (a Build proper), and `cur_anim 17` says a normal arrow on a foot
+  unit is 2.
+- **Our own two are §39's puncture pair**, and they are a second
+  successor. Both of the window's last arrows land on 683 in both
+  simulations; the first kills `1/8`; the second finds its target dead,
+  and where the original holds it, this crate lands it on nothing and
+  punctures the ground. §9.2's own sentence is the mechanism — "a target
+  that is no longer active has its `hold_frames` bumped" — and the dump
+  says where the two arrows went: `1/7` takes `19+5` in one step on
+  frame **685**, two arrows' worth, two frames after they would have
+  landed. `hold_frames` is printed on every unit record and is one of
+  the two fields `crate::ledger` still counts as uncompared on
+  `UnitDump`.
+
+### 41.6 Coverage
+
+**Diff-backed**:
+
+- that `recharging` is the dump's on every unit-frame of chapter two's
+  widened window and on every AI unit of run100's word block — the
+  reload clock agrees, so the swing frames do;
+- that the overkill window agrees: `damage_frame` on every unit-frame of
+  both, and `damage_o`/`damage_who` wherever both sides hold a live one;
+- that `1/8`'s wound ladder is the dump's, value for value and frame for
+  frame, over the whole window — `damage`, `damage_frac` and
+  `damage_frame` all gone from the map;
+- that `1/8` dies on block **683**, the original's own block, which is
+  `extra 1/8` closing;
+- that a melee captain's retarget, `near_o`, `visible` and both maps'
+  words are untouched by all of it.
+
+**Dump-backed** (measured from run112's records, not from a diff that
+re-runs): §41.2's nine arrows and §41.3's five nodes.
+`run112_launch_points_are_reproduced_to_within_a_unit` pins each launch
+point against the dump's `sx, sy` with its own error, six of the nine at
+zero; it was made to fail on purpose by moving one radius by a unit.
+
+**Listing-backed**: none. `0060fb06`'s pairing with `Unit::close` is the
+decompile export's index and the draw arm is read from its decompiled
+body; `cur_anim 17` is the dump agreeing with the reading, which is why
+§41.5 states the outcome and not just the site.
+
+**Reading-only**:
+
+- that `dz` is carried and unread. The flight time is a plan distance in
+  §9.1's own formula, and the three `dz` values here (163, 164, 178,
+  151) are recorded because the record prints them.
+- §41.4's captain remainder — `combat::share`'s `captain_alone` arm —
+  which needs a squad down to one figure and which no capture on disk
+  reaches. Its arithmetic is tested; its predicate is §7.2 step 8's
+  reading.
+
+**What this does not establish**:
+
+- `(384, ATTACK3, 16)`'s node, which is `damage 1/6` at 680 (§41.3).
+- `dtype`, which is the `Unit::close` draw's gate (§41.5).
+- what the original does with an arrow whose target dies in flight
+  (§9.2's `hold_frames` bump), which is our puncture pair at 683 and
+  `1/7`'s `19+5` at 685.
+- the attrition caller's threshold (§41.4).

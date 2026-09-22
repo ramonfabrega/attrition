@@ -954,6 +954,7 @@ impl Sim {
             {
                 u.combat.damage_frame = frame;
                 u.combat.damage_o = at.captain;
+                u.combat.damage_who = i32::try_from(owner).unwrap_or(-1);
             }
             let _ = &mut dmg;
         }
@@ -1034,12 +1035,28 @@ impl Sim {
     fn take_damage(&mut self, target: Obj, hit: Sixteenths, _by: Obj, _frame: i64) -> Taken {
         match target {
             Obj::Unit(i) => {
+                // **The threshold is the figure's share of the squad, not
+                // the squad's own number** (§7.2 step 8, §7.3, §41.4).
+                // `myhits` is written onto every figure of a squad and
+                // `take_damage` divides it on the way in, so a hoplite of
+                // `UBER_SIZE` 3 and `HITS` 120 falls at 40; this crate
+                // passed the whole 120 and its figures absorbed a squad's
+                // worth apiece. run112's `1/8` reached `damage` 51 on
+                // block 685 still standing where the original's died on
+                // 683 at its fortieth point, and `extra 1/8` was that.
+                //
+                // `health` stays the **complement** of the dump's
+                // `damage` against the squad-sized `myhits`, which is what
+                // item 484's row pinned on 245,679 field-frames; the
+                // accumulated whole points therefore go into `take` as
+                // `max_health - health` and the share beside them.
                 let u = &self.units[i];
-                // `health` is what is left of the figure's share; the share
-                // itself is `health + damage taken`, which is what the
-                // threshold compares against.
-                let share = u.health;
-                let (taken, _, frac) = combat::take(0, u.damage_frac, share, hit);
+                let uber = self.profile(target).uber_size;
+                let alone = u.combat.captain == i32::from(u.index) && u.squad_size == 1;
+                let share = combat::share(u.max_health, uber, alone);
+                let u = &self.units[i];
+                let (taken, _, frac) =
+                    combat::take(u.max_health - u.health, u.damage_frac, share, hit);
                 let lost = match taken {
                     Taken::Alive { lost } | Taken::Died { lost, .. } => lost,
                 };
@@ -2113,6 +2130,61 @@ mod tests {
             (Some(Obj::Unit(foe)), None),
             "the captain retaliates and the figure that was hit does not"
         );
+    }
+
+    /// **A figure of a squad falls at its share of the squad's hit
+    /// points, not at the whole of them** — `Object::take_damage`'s step
+    /// 8 (`docs/COMBAT.md` §7.2, §7.3, §41.4).
+    ///
+    /// `update_hits` writes one number, the squad's, onto every figure;
+    /// the divide is on the way in. So a squad of three with `HITS` 120
+    /// is three figures of 40, and the dump's `myhits` is 120 on each of
+    /// them with `damage` counting that figure's own share of what has
+    /// been taken. This crate kept the squad-sized maximum (item 484's
+    /// row pins it on 245,679 field-frames) and used it as the
+    /// **threshold** too, so a figure absorbed three figures' worth:
+    /// run112's hoplite `1/8` reached `damage` 51 still standing where
+    /// the original's died on block 683 at its fortieth point, and
+    /// `extra 1/8` was that.
+    ///
+    /// **Made to fail on purpose** by passing `u.health` again, which is
+    /// what stood here: the figure survives the third hit and the
+    /// assertion below reddens on `alive`.
+    ///
+    /// `combat::share`'s captain remainder is the second half and is not
+    /// reachable from here — it needs the squad down to one figure — so
+    /// the arithmetic is tested directly in `combat`'s own tests and the
+    /// call site is what this pins.
+    #[test]
+    fn a_figure_falls_at_its_share_of_the_squad_s_hits() {
+        let (mut sim, _) = at_war();
+        let ty = sim.add_unit_type(crate::UnitType {
+            hits: 120,
+            combat: Profile {
+                attack: 15,
+                max_range: 4,
+                uber_size: 3,
+                ..Profile::default()
+            },
+            ..crate::UnitType::default()
+        });
+        let foe = put(&mut sim, 1, ty, Pos::new(0x1100, 0x1000));
+        let me = put(&mut sim, 0, ty, Pos::new(0x1000, 0x1000));
+        sim.units[me].squad_size = 3;
+        sim.units[me].combat.captain = i32::from(sim.units[me].index);
+        // Three fifteen-point hits: 15, 30, 45 against a share of 40.
+        let hit = combat::Sixteenths { whole: 15, frac: 0 };
+        for expected in [false, false, true] {
+            let died = matches!(
+                sim.take_damage(Obj::Unit(me), hit, Obj::Unit(foe), 10),
+                Taken::Died { .. }
+            );
+            assert_eq!(died, expected, "share is 120 / 3 = 40");
+        }
+        assert!(!sim.units[me].alive(), "a dead figure is not alive");
+        // And the squad-sized maximum is untouched, because item 484's
+        // row compares it against the dump's `myhits`.
+        assert_eq!(sim.units[me].max_health, 120);
     }
 
     /// **A hit civilian runs away from whoever hit it** —

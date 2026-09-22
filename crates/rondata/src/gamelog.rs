@@ -1690,6 +1690,20 @@ pub struct UnitDump {
     /// 463, which is how a squad that keeps a dead target's order for the
     /// length of its reload read as a pathing divergence.
     pub recharging: Option<i64>,
+    /// **The overkill window** (`docs/COMBAT.md` §7.1 step 2, §41) —
+    /// `UnitData::damage_frame`, the sim frame of the first hit inside the
+    /// current window, and `damage_o`/`damage_who`, the captain and owner
+    /// of whoever struck it. All three are written at `UNITDATA`'s own
+    /// indent on every unit of every block of every capture; nothing
+    /// parsed them until item 485, which is why item 484's wound ladder
+    /// had to read the frame of each hit off the accumulator that moved
+    /// rather than off the dump's own stamp of it.
+    ///
+    /// A never-hit unit carries `damage_frame 0`, `damage_o -1`,
+    /// `damage_who 0`.
+    pub damage_frame: Option<i64>,
+    pub damage_o: Option<i64>,
+    pub damage_who: Option<i64>,
     /// `UnitData::safe` — the cooldown a failed 48-grid search buys.
     pub safe: Option<i64>,
     /// **`UnitData::start_dist` (`+0x130`) — the one dumped witness that a
@@ -2738,6 +2752,13 @@ fn unit_of(b: Block<'_>) -> Option<UnitDump> {
         collide_who: b.int("collide_who"),
         collide_guy: b.int("collide_guy"),
         recharging: b.int("recharging"),
+        // `UNITDATA`'s own indent, like `recharging` and unlike `damage` —
+        // the `OBJECT` block one in carries no `damage_frame` at all, and
+        // the animals' nested `UNITDATA` is what puts one an indent
+        // further out (§41.1).
+        damage_frame: b.int("damage_frame"),
+        damage_o: b.int("damage_o"),
+        damage_who: b.int("damage_who"),
         safe: b.int("safe"),
         start_dist: b.int("start_dist"),
         uid: obj.and_then(|o| o.int("uid")),

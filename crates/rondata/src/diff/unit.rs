@@ -110,6 +110,31 @@ pub struct HitsDivergence {
     pub theirs: i64,
 }
 
+/// One field of a unit's **firing record** the two sides disagree on —
+/// the reload clock and the overkill window, `docs/COMBAT.md` §41.
+///
+/// `UnitData::recharging`, `damage_frame`, `damage_o` and `damage_who` are
+/// written at `UNITDATA`'s own indent on every unit of every block of
+/// every capture, and [`crate::diff::compare`] carried none of them until
+/// item 485. They are the dump's own answer to *when a shot was fired*
+/// and *when a hit landed, from whom* — which is what item 484's ladder
+/// (§40.4) could only infer from the accumulator it moved.
+///
+/// It is its own row rather than one more `field` of
+/// [`HitsDivergence`] because that one says what has been taken off and
+/// this says who dealt it and on which frame. A row is a field either
+/// way (`CLAUDE.md`, "a row is a field, never a unit").
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct FiringDivergence {
+    pub frame: i64,
+    pub who: i64,
+    pub o: i64,
+    /// The field, named as `UnitData::log_data` writes it.
+    pub field: &'static str,
+    pub ours: i64,
+    pub theirs: i64,
+}
+
 /// One unit-frame where `ObjectData::visible` (`+0x40`) disagreed —
 /// `docs/VISION.md` §7.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

@@ -1474,6 +1474,18 @@ fn chapter_two_s_word_frame_is_widened_whole() {
             );
             note(format!("{} {}/{}", d.field, d.who, d.o));
         }
+        // **The firing record** (item 485), on the same terms: the reload
+        // clock and the overkill window are written at `UNITDATA`'s own
+        // indent on every unit of every block and were compared nowhere,
+        // so 484's ladder could say that a wound arrived a frame late and
+        // not whether the *shot* was fired on the original's frame.
+        for d in &r.firing_diverged {
+            eprintln!(
+                "  {n} {} {}/{} ours {} theirs {}",
+                d.field, d.who, d.o, d.ours, d.theirs
+            );
+            note(format!("{} {}/{}", d.field, d.who, d.o));
+        }
         // **The four `FrameResult` carries that this walk ignored until
         // item 466.** They are empty over this window — chapter two
         // stages nine soldiers and no building — but "widened whole"
@@ -1610,14 +1622,11 @@ fn chapter_two_s_word_frame_is_widened_whole() {
     // `docs/COMBAT.md` §40 is the record; naming the mechanism is item
     // 485's.
     let measured = [
-        ("damage 1/6", 657),
+        ("damage 1/6", 680),
         ("damage 1/7", 686),
-        ("damage 1/8", 656),
         ("damage_frac 1/7", 686),
-        ("damage_frac 1/8", 656),
-        ("extra 1/8", 684),
+        ("damage_frame 1/7", 686),
         ("order 1/4", 685),
-        ("pos 1/4", 686),
     ];
     let got: Vec<(&str, i64)> = first.iter().map(|(k, &n)| (k.as_str(), n)).collect();
     assert_eq!(
@@ -1981,9 +1990,14 @@ fn chapter_two_s_hit_points_are_the_dump_s_on_every_unit_frame() {
         vec![(0, 9), (0, 10), (0, 11), (1, 6), (1, 7), (1, 8)],
         "run112's own wounded set has changed"
     );
+    // Item 485 added `(0, 9)`: with the figure's share as the death
+    // threshold (§7.2 step 8) the hoplite squad loses `1/8` on the
+    // original's own block and its survivors then reach a second
+    // slinger, which the dump also wounds. The one the dump wounds and
+    // this crate still does not is `(0, 10)`.
     assert_eq!(
         ours,
-        vec![(0, 11), (1, 6), (1, 7), (1, 8)],
+        vec![(0, 9), (0, 11), (1, 6), (1, 7), (1, 8)],
         "the set this crate wounds has moved"
     );
     // **What parts, printed and pinned by its field.** `damage` and
