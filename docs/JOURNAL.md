@@ -20590,3 +20590,29 @@ both sides says which side is quiet (503). Five clauses in `CLAUDE.md`;
 526 to the ordinary list; the lab's PRs #7 and #8 book nothing.
 **DECISIONS 47.** Two Loop items remain (313, 527).
 `docs/audit/2026-09-23-fable-pass-11.md`.
+
+## 2026-09-23 — the twelfth Fable pass: twenty landings, the second map opened, and the falsifier that could not fire (Fable 5.1, steering)
+
+Called by the opener at the chain's stop, and this time the count was
+right: **twenty** landings since the eleventh pass by `git log`, one
+commander and every worker on Opus 5.5 by transcript, the whole tranche
+between 03:43 and 11:33. Seventeen moved a word. **East Indies 9,711 →
+11,069** at 0.19 USD a frame — the map the eleventh pass's guard put
+first, opened at the price Great Lakes left its fight at, and still the
+lower map. Chapter four closed at 1,500, chapter seven at 1,200 on a
+premise its own capture killed, chapter three pinned at 621 and closed at
+900 across six landings; its restage stands at 782. Workers 532 USD, 26.6
+a landing, 31 a word. Eight of twenty turned on an instrument that was
+not looking, and the two the pass could see and no landing could were the
+loop's own: the pass that wrote "grep the disk" booked a capture the disk
+held (575), and two chapters were staged so their falsifiers could not
+fire (584). Both are code or a rule now: a guard that reads
+`captures.txt` against every capture-booking item, made to fail first
+twice; a fifth point in the chapter form, and chapter seven-b booked as
+item 628 on the computer's civilians, where the cheat's block decides.
+The parser that missed a one-line literal reads it; the ladder floor that
+was dying by success is an exact pin; the packet's frame rule is
+corrected in two documents and the lift's fallback written down; two
+clauses in `CLAUDE.md`; 598 to item 620's brief. **DECISIONS 48.** Two
+Loop items remain (313, 527).
+`docs/audit/2026-09-23-fable-pass-12.md`.

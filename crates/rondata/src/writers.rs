@@ -491,7 +491,11 @@ fn definitions(src: &[u8]) -> Vec<(String, usize, usize)> {
 ///
 /// Both `field: expr,` and the shorthand `field,` count. Only lines at the
 /// body's own nesting level are read, so a nested literal's fields are not
-/// attributed to the outer struct.
+/// attributed to the outer struct. **A line may carry several fields**
+/// (parked 596): `World { width, height }` is one line, so a line is cut at
+/// the commas outside any bracket and each piece is read as a field. A
+/// bare identifier counts as shorthand only when a comma follows it or
+/// shares its line — a lone `x` on its own line is a tail expression.
 fn literal_fields(body: &str) -> Vec<(String, String)> {
     let mut out = Vec::new();
     let mut depth = 0i32;
@@ -499,19 +503,39 @@ fn literal_fields(body: &str) -> Vec<(String, String)> {
         if depth == 0 {
             let t = line.trim();
             if !t.starts_with("//") && !t.is_empty() {
-                let head = t.trim_end_matches(',');
-                if let Some((name, value)) = head.split_once(':') {
-                    let name = name.trim();
-                    if !name.is_empty() && name.bytes().all(is_ident) {
-                        out.push((name.to_string(), value.trim().to_string()));
+                let mut pieces: Vec<(&str, bool)> = Vec::new();
+                let (mut d, mut start) = (0i32, 0usize);
+                for (i, b) in t.bytes().enumerate() {
+                    match b {
+                        b'(' | b'[' | b'{' => d += 1,
+                        b')' | b']' | b'}' => d -= 1,
+                        b',' if d <= 0 => {
+                            pieces.push((&t[start..i], true));
+                            start = i + 1;
+                        }
+                        _ => {}
                     }
-                } else if head.bytes().all(is_ident)
-                    && !head.is_empty()
-                    && t.ends_with(',')
-                    && head.starts_with(|c: char| c.is_ascii_lowercase() || c == '_')
-                {
-                    // Field-init shorthand: `World { width, height }`.
-                    out.push((head.to_string(), head.to_string()));
+                }
+                let several = !pieces.is_empty();
+                let last = t[start..].trim();
+                if !last.is_empty() {
+                    pieces.push((last, several));
+                }
+                for (piece, comma) in pieces {
+                    let head = piece.trim();
+                    if let Some((name, value)) = head.split_once(':') {
+                        let name = name.trim();
+                        if !name.is_empty() && name.bytes().all(is_ident) {
+                            out.push((name.to_string(), value.trim().to_string()));
+                        }
+                    } else if !head.is_empty()
+                        && head.bytes().all(is_ident)
+                        && comma
+                        && head.starts_with(|c: char| c.is_ascii_lowercase() || c == '_')
+                    {
+                        // Field-init shorthand: `World { width, height }`.
+                        out.push((head.to_string(), head.to_string()));
+                    }
                 }
             }
         }
@@ -827,6 +851,30 @@ fn comparison_rows(src: &str) -> Vec<(String, usize, String)> {
         out.push((label.to_string(), line, src[i + 1..close].to_string()));
     }
     out
+}
+
+/// **One line may carry several fields** (parked 596, the twelfth pass).
+/// Item 590 wrote `Foo { a, b }` on one line and this guard reported `a`
+/// unwritten: the reader took a line as one field and a bare `a, b` as
+/// neither shorthand nor `name: value`. Made to fail first on the one-line
+/// shape; the multi-line shape and the tail-expression exclusion stand.
+#[test]
+fn a_one_line_literal_s_fields_are_read() {
+    let got = literal_fields(" width, height: h, depth ");
+    let names: Vec<&str> = got.iter().map(|(n, _)| n.as_str()).collect();
+    assert_eq!(names, ["width", "height", "depth"]);
+    let nested = literal_fields(" a: Foo { b: 1, c }, d ");
+    let names: Vec<&str> = nested.iter().map(|(n, _)| n.as_str()).collect();
+    assert_eq!(
+        names,
+        ["a", "d"],
+        "a nested literal's fields are the inner struct's"
+    );
+    assert_eq!(literal_fields("\n    width,\n    height: h,\n").len(), 2);
+    assert!(
+        literal_fields("\n    width\n").is_empty(),
+        "a bare tail expression is not a field"
+    );
 }
 
 #[test]

@@ -2213,11 +2213,23 @@ mod tests {
         // later. One shared number is left, and it agrees on type. At one
         // the check is all but vacuous; what still says the rungs are one
         // game is `the_ladder_s_borrowed_setup_is_the_endpoint_s`, at 6,000.
-        assert!(
-            !shared.is_empty(),
-            "no object number is `extra` on both rungs; the check is \
-             vacuous and the two rungs may have stopped being one \
-             simulation"
+        //
+        // **One → an exact pin, the twelfth pass** (parked 583). A floor
+        // that falls with every landing is vacuous at one and dead at
+        // zero, and "not empty" was the last threshold there is. So the
+        // count is pinned like every other number in this file and
+        // re-pinned by the item that moves it, in either direction — a
+        // rise is a new shared extra and worth a look too. The claim
+        // that the rungs are one game rests on
+        // `the_ladder_s_borrowed_setup_is_the_endpoint_s` at 6,000, not
+        // here; this row only says the extras that remain agree on type.
+        const SHARED_EXTRA_NUMBERS: usize = 1;
+        assert_eq!(
+            shared.len(),
+            SHARED_EXTRA_NUMBERS,
+            "the rungs share {} `extra` object numbers against the pin of \
+             {SHARED_EXTRA_NUMBERS}: {shared:?}. Re-pin with the item that moved it",
+            shared.len()
         );
         // **An upgrade re-types a standing unit** (item 545). Researching a
         // unit's upgrade converts every one standing (`Unit::set_type`,

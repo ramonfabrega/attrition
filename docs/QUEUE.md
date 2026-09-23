@@ -12,33 +12,30 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-23, an Opus 5.5 commander after the eleventh pass: **20
-landings, 17 moved a word — the steering pass is due.** East Indies
-**9711 → 11069**, still the lower map; the rules track closed chapters
-four (1500), seven (1200) and three (900), and the restage stands at 782.
-Great Lakes held at 12038 throughout.*
+*2026-09-23, the twelfth Fable pass (Fable 5.1, the main thread): **20
+landings, 17 moved a word, and the count reached the pass at twenty.**
+East Indies **9711 → 11069** at 0.19 USD a frame, still the lower map;
+the rules track closed chapters four (1500), seven (1200) and three
+(900), and the restage stands at 782. Great Lakes held at 12038.*
 
-- **Two bookings were wrong about the disk or the design**: 573's capture
-  was already run99 (Loop 575); chapters seven and three were staged so
-  their falsifiers could not fire (Loop 584, two instances).
-- **Chapter seven's premise fell** (INPUT §11.9) and the commander pinned
-  it closed on its agreement; restaging it is the pass's.
-- **592, 597 and 621 moved no word**, each closing values under it. The
-  packet rung ran three times (run144, run147, run150) and named a cause
-  each time; its frame rule is off by one (Loop 605).
-- **East Indies outruns its captures**: four of its seven moves passed the
-  last dumped block, so each successor owes a capture (620 now).
-- **Fable backlog: 10 Loop items** (313, 527, 574, 575, 583, 584, 596, 598, 605, 612).
+- **Eight Loop items ruled** (DECISIONS 48): a capture booked on a map
+  cites the ledger's window — a guard, made to fail first both ways on
+  571; a falsifier names where it fires (GOLDEN §3, point 5) and
+  **chapter seven-b is 628**; the one-line literal reads; the ladder
+  floor is a pin; a packet is taken at the word's own logger frame.
+- **598 rides in 620**: `inside_up`'s container row goes into `compare`
+  inside the widening. 571 never ran — both lanes held a headline.
+- **Fable backlog: 2 Loop items** (313, 527); the `FABLE:` batch was empty.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w11069 of 24,000 · GreatLakes w12038 of 24,000
 Golden: ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch7 closed · restage w782 of 1000 · 625 next
 Endpoint 24001: EastIndies 59 off, 3 unlinked · GreatLakes 45 off, 0 unlinked
 
-**Opener: the Fable steering pass is due — 20 landings since the
-eleventh (573 to 621 by the log); nothing in flight, every lane reaped,
-tree pushed. Bank, `/clear`, switch the main thread to Fable. After it:
-620 on the AI track, 625 on the rules track, then 571.**
+**Opener: the twelfth pass is banked; nothing in flight, every lane
+reaped. Spawn 620 on the AI track and 625 on the rules track; 628
+follows 625 and 571 follows 620. Count landings from this pass's
+commit, and stop at twenty.**
 
 ## The queue
 
@@ -54,16 +51,8 @@ backlog is `docs/PARKED.md`, and an item returns only when a score names it.
     mines, AI §62). On 11069 ours 5 draws against 6, parting at index 0:
     ours `Guy::set_anim+0x97a`, theirs `Unit::do_move+0xe84`. run152 ends
     at 11039, so the `WIDENINGS` row names this item: capture **run155**
-    over the word, overlapping run152, then widen it whole. No mechanism.
-
-571. **Army 1's squad stops on block 11922 in the original and walks on
-    here** (566 moved the word 11903 → 12038 by carrying the pathfinder's
-    validity memo across searches, PATHFINDER §24). Nine figures, `1/37`–
-    `1/42` and `1/62`–`1/64`: `stopped 1`, speed 0 against walking;
-    positions agree, no draw; 29 rows pinned in run136's widening. Then
-    12038's capture and widening past 11959: ours 4 draws against 5,
-    `move_step+0x823`. No mechanism. If PRs #7/#8 land first, a packet at
-    11921 with the nine guys' move path run on it is an optional second run.
+    over the word, overlapping run152, then widen it whole, and put
+    `inside_up`'s outermost container in `compare` (598). No mechanism.
 
 625. **Chapter three's restage word is 782: the crew walk a turn in
     place** (621 built `ATTACK_GROUND`, COMBAT §57 and ORDERS §26, which
@@ -72,6 +61,24 @@ backlog is `docs/PARKED.md`, and an item returns only when a score names it.
     Guy::inc_time+0x271` on `0/6`'s crew, who take `WALK` where the
     original's stand and mirror figure 0's `TURN_LEFT` (run44 `0/15`,
     324–330). 621's hypothesis: `Guy::move`'s tracked arm. No mechanism.
+
+571. **Great Lakes: Army 1's squad stops on block 11922 in the original
+    and walks on here** (566 moved the word 11903 → 12038 by carrying the
+    pathfinder's validity memo across searches, PATHFINDER §24). Nine
+    figures, `1/37`–`1/42` and `1/62`–`1/64`: `stopped 1`, speed 0 against
+    walking; positions agree, no draw; 29 rows pinned in run136's
+    widening. Then 12038's capture and widening past 11959: ours 4 draws
+    against 5, `move_step+0x823`. No mechanism. Optional second run if a
+    lane is free: a packet at 11922 with the nine guys' move path on it.
+
+628. **Chapter seven-b: the computer's civilians under the cheat** (the
+    twelfth pass; GOLDEN §11's restage, and §3 point 5 names where each
+    falsifier fires). The same five for who=1, `!ai off` and the control
+    — run156 and run157, `[605, 1200)`, chapter seven's dump set — where
+    `Unit::think`'s block decides, and where this crate's one-term seam
+    (INPUT §11.9, `orders.rs`) has its frame. A falsifier that fires
+    stops the item; otherwise the pair pins two words or closes. Takes
+    the rules lane after 625.
 
 ## How to maintain this file
 
@@ -104,7 +111,7 @@ backlog is `docs/PARKED.md`, and an item returns only when a score names it.
   neighbours: six blocks each end (run83); `samegame.py` exits 0 when
   nothing is in common, so assert the count, not the verdict; **a wait
   keys on the runner's exit, never on a file** (565). **A value question
-  takes a packet at the frame before, not a detail capture** (EMULATOR §8).
+  takes a packet at the word's own frame, not a detail capture** (EMULATOR §8).
 - **Grep for the derived quantity, the SHAPE and the GATE**: a term zero in
   every dump is zero-valued or switched off (117, 178); **a never-cleared
   field asserts a CHANGE, not a value** (`collide_frame`, run85).

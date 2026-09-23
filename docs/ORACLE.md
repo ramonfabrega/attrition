@@ -2836,6 +2836,8 @@ rules for the lane: it is a **build variant**, mutually exclusive with the
 restore probe by `#error`, so a packet run is its own launch; it is a
 **second game on this lane**, holding the lane lock like any capture and
 serialized with the loop's own runs; and the frame it is taken on is
-**the one before the divergence**, because the packet at frame N is the
-state after tick N−1's decision. Costs and what a packet establishes are
+~~**the one before the divergence**~~ **the word's own logger frame**,
+because the packet at frame N is the state after tick N−1's decision, so
+tick N — the word's — is still ahead of it (item 597, the twelfth pass;
+the worked case is `docs/EMULATOR.md` §8). Costs and what a packet establishes are
 `docs/EMULATOR.md` §8; the evidence is `docs/lab/TYPED-STATE-REVIEW.md`.

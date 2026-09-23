@@ -59,6 +59,7 @@ is append-only and amended in place, as it always was.
 - 45 standing — The chain's last link is the spawn, and lanes are throughput, not a pair
 - 46 standing — A printed field is read or pinned, and struck text is not live text
 - 47 standing — The lower map is a guard, a closed chapter is named closed, and the ledger checks its own list
+- 48 standing — A booking cites the ledger, a falsifier names where it fires, and the second map is open
 
 ## 1. Fidelity before divergence
 
@@ -2744,3 +2745,85 @@ Indies parts; whether 571 ran and Great Lakes' frame price; whether the
 lower-map guard fired on a move; the coverage pin against 360 and the
 ledger against 10/36; whether any lane sat empty; the price per landing
 against 26; whether the count reached the pass at twenty.
+
+## 48. A booking cites the ledger, a falsifier names where it fires, and the second map is open
+
+**Decided 2026-09-23**, the twelfth Fable pass, in the main thread
+(`docs/audit/2026-09-23-fable-pass-12.md`). Applies entries 41, 46 and
+47; overturns nothing.
+
+**What was measured.** Twenty landings since the eleventh pass by `git
+log`, 03:43 to 11:33 the same day, one commander and every worker on
+Opus 5.5 by its transcript — the count reached the pass at twenty, as
+entry 47's clause asked. Seventeen moved a word. **East Indies 9,711 →
+11,069** over nine AI-lane landings at 0.19 USD a frame — the second map
+opened at the price Great Lakes left its fight at, and it is still the
+lower map, so the guard never had to flip. Chapter four closed at 1,500,
+chapter seven at 1,200, chapter three pinned at 621 and closed at 900 in
+six landings, and its restage stands at 782. Workers' list price 532 USD,
+26.6 a landing, 31 a word-moving landing. The coverage pin 360 → 340 on
+nineteen paths; the ledger 10/36 unchanged. Eight of the twenty turned on
+an instrument that was not looking, and the three that moved no word
+each closed values under it. The packet rung ran three times and named a
+value the dump could not print each time; its frame rule was off by one.
+
+**What the pass found that no landing could.** Two bookings were wrong
+about the disk or the design and both were the loop's own: the pass
+that wrote "grep the disk before booking a capture" booked 573 against
+a dump it had not grepped for (575), and two chapters were staged so
+their own falsifiers could not fire (584). Neither is a mechanic; both
+are the shape entry 42 names — prose one level above the item.
+
+**The decisions.**
+
+1. **A capture booked on a map cites the window the ledger holds**
+   (parked 575). `docs_guard::a_capture_booked_on_a_map_cites_the_window_the_disk_holds`
+   reads `tools/gamelog/captures.txt`'s windowed stanzas and requires an
+   open item that books a capture on a map to name its map and every
+   window on it that spans the item's frame. Made to fail first twice:
+   on 571 as written, which named a squad, a block and a capture and no
+   map at all; and on 571 with `run136` spelled apart. Golden chapters
+   are exempt — their ledger is `docs/GOLDEN.md` §14.
+2. **A falsifier names where it could first fire** (parked 584).
+   `docs/GOLDEN.md` §3 has a fifth point: the frame and the record,
+   checked against the staging before the run; a staging that cannot
+   reach a falsifier is restaged before it is pinned, and a premise a
+   falsifier kills closes the chapter on what it measured and restages
+   as a new one. **Chapter seven-b is item 628**, run156 and run157: the
+   same five civilians for who=1, where the cheat's block decides, and
+   the frame of `docs/INPUT.md` §11.9's seam. The closed chapters did
+   not lean on the fallen premise: their who=1 units are soldiers whose
+   auto-attack arm runs above the block.
+3. **`writers::literal_fields` reads a one-line literal** (parked 596):
+   a line is cut at the commas outside any bracket, and a bare
+   identifier is shorthand when a comma follows it or shares its line.
+   Made to fail first on `width, height: h, depth`.
+4. **The ladder's shared-extras floor is an exact pin** (parked 583):
+   `SHARED_EXTRA_NUMBERS = 1`, re-pinned by the item that moves it in
+   either direction; the rungs' identity rests on the 6,000-frame test.
+5. **The packet is taken at the word's own logger frame** (parked 605),
+   not the frame before: a packet at N is after tick N−1, so tick N is
+   still ahead of it. `docs/EMULATOR.md` §8 and `docs/ORACLE.md` amended
+   in place. **Where `lift.py` refuses, the oracle runs under unicorn on
+   the packet** (parked 612), written into §8.
+6. **Two clauses in `CLAUDE.md`**: a gate's exit is read before anything
+   says pushed (574); a word's widening puts its window in the coverage
+   driver (621's finding).
+7. **598 leaves the Loop for item 620's brief**: `inside_up`'s outermost
+   container becomes a `compare` row inside the next East Indies
+   widening, where a worker can pin it against a dump. **313 and 527
+   stay.**
+
+**Not taken**: 527's recorder, again — the eight instrument findings
+this tranche were each one field or one window, and a recorder is the
+general fix a pass builds when the shape recurs past what the pins
+catch; the estimate, still — but the band is now measurable: both maps
+stand near 11–12k of 24k, and a frame has cost 0.19 USD between fights
+and 4 USD inside one.
+
+**The measure for the next pass**: whether 620's run155 landed and where
+East Indies parts next; whether 628's pair ran and which falsifier
+fired; East Indies' frame price against 0.19; the coverage pin against
+340 and the ledger against 10/36; whether the new capture guard fired on
+a booking; whether any lane sat empty; whether the count reached the
+pass at twenty.

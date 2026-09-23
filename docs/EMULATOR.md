@@ -181,10 +181,19 @@ on a narrow logging window, 843 MB, 177 ranges, 250 ms to copy, 5.5 s to
 decode warm; 516,369 of 602,211 printed occurrences agree with the logger,
 every observed `GUY` record whole, and the terrain's exact single bits.
 Not established by it: atomicity across threads, logger parity, live
-allocation coverage. **A packet at frame N is after tick N−1's
-decision**; the frame to take is the one before the divergence. It is a
-second game on the single capture lane, serialized with the loop's
-captures, and disk holds about a hundred of them.
+allocation coverage. ~~**A packet at frame N is after tick N−1's
+decision**; the frame to take is the one before the divergence.~~ **The
+frame to take is the word itself, read as a logger frame** (item 597,
+parked 605, the twelfth pass): a packet at logger frame N is the state
+after trace tick N−1, so the decision the word's tick makes is still
+ahead of it. 597's Mine is first printed on block 10583, its placement is
+tick 10582, and the packet that holds the state before it is
+`RON_STATE_FRAME=10582` — not the 10581 "the frame before" named, which
+would have left tick 10581 to emulate. The block where the placed thing
+first appears settles it. Three packets since (run144, run147, run150):
+76–221 s and 819–843 MB each. It is a second game on the single capture
+lane, serialized with the loop's captures, and disk holds about a hundred
+of them.
 
 **A function on the packet.** `tools/recomp/step4.py` runs one function
 on the packet under unicorn — the capturing thread's TEB as `fs:`, the
@@ -204,7 +213,12 @@ packet. Verified: 3,516 sweep rows; `turn_speed` on 268 guys, asserted by
 table); `norm` bit-exact on 1,088 chosen vectors and `air_turn_speed`'s
 truncation on 5,715 banks; `create_units` and 264 callees reproducing the
 original's `LeaderData` byte for byte. 741 of 771 cited functions lift;
-packed SSE, `lock` and x87 stop it. Native is 5–9 ms against unicorn's
+packed SSE, `lock` and x87 stop it. **Where the lift refuses, the float
+oracle runs under unicorn on the packet instead** (`step4.py`; item 603,
+parked 612): `get_position` and `set_attack` are packed-SSE, so the
+pivot's 361 degrees were swept under unicorn on run147's packet and
+agreed with `sim::pivot` at a 400× margin — slower per input, the same
+answer, no lift to keep. Native is 5–9 ms against unicorn's
 22–43 ms on the sweep, both behind `uv`'s six-second start — the twin
 pays for a float residue on chosen inputs, not for speed.
 

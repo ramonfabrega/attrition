@@ -304,7 +304,10 @@ rules follow:
   quiet is what a blind instrument looks like; `rondata::diff::coverage`
   pins every such key on the headline windows, a reader added to the
   harness is added to its driver, and a key a landing reads leaves the
-  pin in the same landing.
+  pin in the same landing. **And a word's widening puts its window in
+  the coverage driver**: the pin walks only the windows it is handed, so
+  a record a new capture prints stays unpinned until its window is
+  driven (621).
 - **And grep the disk before booking a capture.** Widen every dumped
   record the mechanic touches first; book the capture only for what no
   record already on disk can answer, and **the booking cites what the
@@ -390,7 +393,11 @@ report that only sits in the worker's own transcript has told nobody, and
 a session's state is not a signal. **A worker commits before it gates**
 — the gate's verdict is a second commit or an amend — so a lane that dies
 mid-gate has its work on its branch and not on its floor; a gate's
-notification was lost once and the work sat two days. **A message that
+notification was lost once and the work sat two days. **A gate's exit
+is read before anything says pushed**: the gate is a background task
+whose exit ends the wait, so a closing message written while it runs
+has not landed, and a wrapper that echoes the exit has hidden it
+(parked 574). **A message that
 arrives during a gate says it is to be applied after it**, and the worker
 holds its write-ups until the gate exits. **An instruction about what to
 start is never one about what to stop**: "pause new lanes" is answered

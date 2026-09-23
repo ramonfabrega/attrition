@@ -134,6 +134,15 @@ chapter rather than a scene:
 4. **What would falsify it.** A chapter that cannot fail is not a chapter. A
    staged scene always produces *a* dump; the question is whether the dump
    can disagree with the reading that staged it.
+5. **Where each falsifier could first fire** — the frame and the record,
+   checked against the staging *before* the run (parked 584, the twelfth
+   pass). run145 staged §7 as written and two of its three falsifiers
+   could not fire: the catapult was born packed and unpacked with nothing
+   in view, and the chariots shot without moving. A chapter whose staging
+   cannot reach a falsifier is restaged before it is pinned — run146 is
+   the form, and `chapter3b.cmd` says per falsifier when it cannot fire —
+   and a chapter whose *premise* a falsifier kills is closed on what it
+   measured and restaged as a new chapter, never reopened (§11).
 
 **A chapter is a script; a run is a window on it.** `docs/DECISIONS.md` 41 §2
 — digest first, detail on demand — is what makes that affordable: the first
@@ -766,6 +775,26 @@ agrees with both captures to their end, 1200, and the commander ruled it
 pinned closed as it stands; restaging it on the computer's civilians, where
 `ai off` does bite, is parked for the steering pass.
 
+**Restaged by the twelfth pass as chapter seven-b (item 628; run156 and
+run157, §14).** The cheat's block decides something only for a leader
+without `leader_flags & 4`, so the same five civilians are staged for
+**who=1**, the computer, once with `!ai off` and once without, the lines
+otherwise chapter seven's. What it tests is what every other chapter's
+who=1 targets stand on and none has measured on a civilian: that the cheat
+closes `Unit::think`'s tail for a computer's units, and that this crate's
+one-term stand-in — `ai_off && !ai_driven(owner)`, `docs/INPUT.md` §11.9's
+seam — closes and opens the same tail. **Its falsifiers, and where each
+could first fire** (§3, point 5): a `GATHERORDER`, `TRADEORDER` or carry
+on any of the five in the AI-off run at or after the citizen's
+`think_peasant` wait (block ~763 on run141's cadence) — the block does not
+close the tail; **no** order on the citizen in the control by the same
+block — the AI's economy never reached it and the pair is vacuous; a
+draw-stream parting under the word in this crate's walk of either capture
+— the seam is real and this is its frame. **The closed chapters did not
+lean on the fallen premise**: their who=1 units are soldiers, whose
+auto-attack arm runs above the block (item 590), and each closed in
+lockstep to its trace's end.
+
 ## 12. Chapter eight — the commanders, and a war that is declared
 
 **Premise.** Chapter one's `war` is the bare form and changes nothing. This
@@ -862,6 +891,8 @@ below without a run take their number at booking (the eleventh pass).
 | ~~117~~ 142 | seven, the control | `[605, 1200)` | `!ai off` deleted; without it 116 measures nothing — **run142, 112 MB, 331 s; the five act exactly as in run141** |
 | ~~118~~ 145 | three, the mounted and siege lines | `[605, 900)` | **run 2026-09-23 as run145 (item 587), 43 MB, 145 s; word 621; no falsifier fired, two could not** |
 | 146 | three, restaged in two arenas | `[605, 1000)` | **run146 (item 587), 55 MB, 186 s; first parting 633; all three falsifiers reachable, none fired** |
+| 156 | seven-b, the computer's civilians | `[605, 1200)` | the same five for who=1 with `!ai off`, where the cheat's block decides (item 628, the twelfth pass) |
+| 157 | seven-b, the control | `[605, 1200)` | `!ai off` deleted; the AI's economy should reach the citizen, or the pair is vacuous |
 | 119 | six, the air and the bird | `[605, 900)` | the one new order class |
 
 Chapter eight and any further detail window need numbers beyond the
@@ -897,10 +928,15 @@ of chapter one itself.
 
 ## 16. What is not established
 
-- **No chapter but the first has been run.** Everything in §6 through §12 is
+- ~~**No chapter but the first has been run.** Everything in §6 through §12 is
   a design. The falsifiers exist so that the first run of each can say the
   design was wrong, and on the evidence of the last two months the honest
-  expectation is that two or three of them will.
+  expectation is that two or three of them will.~~ Chapters one to five
+  and seven have run and closed (§14); one premise fell (§11) and one
+  staging was restaged (§7). Six, eight and seven-b have not run.
+- **Whether the cheat's block closes a computer civilian's tail**, and
+  whether this crate's one-term stand-in does the same — §11's restage,
+  chapter seven-b (item 628). The human pair could not measure it.
 - **Whether `library <n>` moves the age as well as the epochs.** `age who=0 8`
   was measured to set the age and leave all four epochs Ancient; the inverse
   — that `library` carries both — is `docs/RUNS.md`'s note and not a

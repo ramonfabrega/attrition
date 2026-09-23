@@ -269,6 +269,114 @@ fn open_items(text: &str) -> Vec<(u32, usize)> {
     out
 }
 
+/// `(number, text)` for every open item, by the same reading as [`open_items`].
+fn open_item_texts(text: &str) -> Vec<(u32, String)> {
+    let lines: Vec<&str> = text.lines().collect();
+    let mut out = Vec::new();
+    let mut i = 0;
+    for (n, len) in open_items(text) {
+        while i < lines.len()
+            && !((i == 0 || lines[i - 1].trim().is_empty())
+                && lines[i].starts_with(&format!("{n}. ")))
+        {
+            i += 1;
+        }
+        out.push((n, lines[i..i + len].join("\n")));
+        i += len;
+    }
+    out
+}
+
+/// **A capture booked on a map cites the window the disk already holds**
+/// (parked 575, the twelfth pass). "Grep the disk before booking a
+/// capture" was prose, and the eleventh pass — the one that wrote the
+/// clause — booked 573 with "no capture on disk reaches it" while run99's
+/// stanza spanned the frame and its dump sat in the Logs directory. So
+/// the ledger is read: every stanza in `tools/gamelog/captures.txt` with
+/// a `frame_window:` (or the older `window:`) is a window on its
+/// `mapstyle:`, and an open queue item that books a capture on a map —
+/// the word "capture" and the map's name — names every such window that
+/// spans the item's frame, which is its first number of four digits. An
+/// item that names the window and books the capture anyway is saying what
+/// the disk could not answer, which is the rule; one that does not name
+/// it has not looked. Made to fail first on 571 with its `run136` spelled
+/// apart.
+#[test]
+fn a_capture_booked_on_a_map_cites_the_window_the_disk_holds() {
+    let q = read("QUEUE.md");
+    let path = docs().join("../tools/gamelog/captures.txt");
+    let ledger =
+        std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("{}: {e}", path.display()));
+    let mut windows: Vec<(u32, u32, i64, i64)> = Vec::new();
+    let (mut run, mut map, mut win) = (None, None, None);
+    for line in ledger.lines().chain(std::iter::once("")) {
+        if line.trim().is_empty() {
+            if let (Some(r), Some(m), Some((lo, hi))) = (run, map, win) {
+                windows.push((r, m, lo, hi));
+            }
+            (run, map, win) = (None, None, None);
+            continue;
+        }
+        if let Some(v) = line.strip_prefix("run:") {
+            run = v.trim().parse().ok();
+        } else if let Some(v) = line.strip_prefix("mapstyle:") {
+            map = v.trim().parse().ok();
+        } else if let Some(v) = line
+            .strip_prefix("frame_window:")
+            .or_else(|| line.strip_prefix("window:"))
+        {
+            let mut it = v.split_whitespace().filter_map(|x| x.parse::<i64>().ok());
+            if let (Some(lo), Some(hi)) = (it.next(), it.next()) {
+                win = Some((lo, hi));
+            }
+        }
+    }
+    assert!(
+        windows.len() >= 40,
+        "captures.txt parsed {} windowed stanzas; the ledger's form changed and this \
+         guard is checking nothing",
+        windows.len()
+    );
+    let numbers = |t: &str| -> Vec<i64> {
+        t.split(|c: char| !c.is_ascii_digit())
+            .filter_map(|d| d.parse().ok())
+            .collect()
+    };
+    let mut bad = Vec::new();
+    for (n, text) in open_item_texts(&q) {
+        // A golden chapter's captures are `golden_capture.sh`'s and its
+        // ledger is `docs/GOLDEN.md` §14, not this file.
+        if !text.contains("capture") || text.to_lowercase().contains("chapter") {
+            continue;
+        }
+        let map = if text.contains("East Indies") {
+            18
+        } else if text.contains("Great Lakes") {
+            14
+        } else {
+            // 571 as first written: a squad, a block, a capture — and no map,
+            // so nothing could check the ledger against it.
+            bad.push(format!("item {n} books a capture and names no map"));
+            continue;
+        };
+        let Some(frame) = numbers(&text).into_iter().find(|&f| f >= 1000) else {
+            continue;
+        };
+        for (r, m, lo, hi) in &windows {
+            if *m == map && (*lo..*hi).contains(&frame) && !text.contains(&format!("run{r}")) {
+                bad.push(format!(
+                    "item {n} books a capture at {frame} and does not cite run{r} \
+                     ({lo}..{hi}), which tools/gamelog/captures.txt says spans it"
+                ));
+            }
+        }
+    }
+    assert!(
+        bad.is_empty(),
+        "a booking cites what the disk could not answer (CLAUDE.md): {bad:#?}"
+    );
+}
+
 /// The queue books a bounded number of open items, each of a bounded size.
 ///
 /// **This is the whole budget** — there is no line count on the file any

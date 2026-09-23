@@ -602,7 +602,16 @@ eleventh, 2026-09-23, ruled nine — 503, 507, 508, 509, 513, 517, 526,
 528, 565 — three guards each made to fail first (the lower map, the
 closed chapter, the ledger's own list), a lint, a receipt field, five
 clauses, and 526 to the ordinary list
-(`docs/audit/2026-09-23-fable-pass-11.md`, DECISIONS 47).
+(`docs/audit/2026-09-23-fable-pass-11.md`, DECISIONS 47); the
+twelfth, 2026-09-23, ruled eight — 574, 575, 583, 584, 596, 598, 605,
+612 — a guard made to fail first both ways (a capture booked on a map
+cites the window the ledger holds), a parser taught the one-line
+literal and made to fail first, a dying floor made an exact pin, the
+chapter form's fifth point and chapter seven-b booked as item 628, two
+clauses in `CLAUDE.md`, two amendments to `docs/EMULATOR.md` §8 and
+`docs/ORACLE.md`, and 598 to item 620's brief: `inside_up`'s container
+row goes into `compare` inside the next East Indies widening
+(`docs/audit/2026-09-23-fable-pass-12.md`, DECISIONS 48).
 341 closed 2026-09-18 by item 363.
 
 (452) and of the same family as (449): an instrument that quietly stops
@@ -639,92 +648,6 @@ Filed by item 523: `o_up` was read only at stand-up and parted silently on
 744, while the coverage pin called it compared. A per-frame "compared"
 check would have caught it. The same family as the five instrument
 defects of the last tranche: scope reported, not measured.
-
-(574) **A booking gate's verdict arrived after the handoff, and the
-handoff said "tree pushed".** Filed by the eleventh pass, 2026-09-23: the
-commander's gate on 566's booking commit (`2e74757`) was red — Great
-Lakes' endpoint read 41 off against 566's pin of 42, measured on the
-worker's own branch before the merge — and the task's notification landed
-after the commander had counted twenty, written the opener and stopped.
-The wrapper's exit was 0 (`…; echo exit $?`), so nothing outside the log
-said red. The pass re-pinned 41. **What it wants**: the chain's gate is
-waited on before the handoff is written — the harness re-invokes the
-session when the task exits, so the wait costs nothing — and the gate's
-wrapper propagates its exit rather than echoing it. Same family as (565):
-a receipt that is written but not read.
-
-(612) **`tools/recomp/lift.py` refuses packed SSE.** Filed by item 603,
-2026-09-23: it could not lift `get_position` or `set_attack`, so the
-float oracle ran under unicorn on the packet instead (all 361 degrees
-agreed with `sim::pivot`, a 400× margin). The native twin is the rung
-CLAUDE.md names for a float residue; where it cannot run, the fallback
-wants writing into `docs/EMULATOR.md` §8.
-
-(605) **The packet rung's two lessons from its first use on East
-Indies.** Filed by item 597, 2026-09-23. First, "a packet at the frame
-before the divergence" is off by one when the word is read as a trace
-tick: a packet at logger frame N is taken after tick N−1, so 597's
-10581 had to be 10582 (`docs/journal/2026-09-23-item-597.md`). That
-belongs in `docs/EMULATOR.md` §8 and `docs/ORACLE.md`. Second, the
-probe that logs every call one function's body makes (`pb_probe.py`,
-kept off the repo) is a `tools/recomp` candidate on its second use.
-
-(598) **`compare` never reads `inside_up`**, the garrison and rider link.
-Filed by item 592, 2026-09-23: only run143's widening compares it, so a
-widening on any other capture would not see a unit in the wrong
-container. Same family as (577), gaia's units: a record the dump prints
-that the general comparison skips. **What it wants**: `inside_up` in
-`compare`, and the coverage pin checked for other link fields.
-
-(596) **`writers::literal_fields` cannot see a shorthand field in a
-one-line struct literal.** Filed by item 590, 2026-09-23, which worked
-around it in `265cdec`. A guard that reads the source for a field's
-writers and misses the shorthand form reports a field unwritten that is
-written. **What it wants**: the parser taught the shorthand, and made to
-fail once on a one-line literal before it lands.
-
-(584) **Golden chapter seven's premise was falsified, and the chapter was
-pinned anyway.** Filed by the commander at 578's landing, 2026-09-23: a
-human's Citizen gathers on 763 with `!ai off` because `think_peasant`
-runs above `Unit::think`'s AI-off block (`docs/INPUT.md` §11.9). The
-gate reading was right; the design's inference from it was not. The
-commander ruled that the chapter closes at 1200, since both runs agree
-with the original to the trace's end, and that restaging it is not a
-commander's call. **What it wants**: rule whether the golden record
-needs a chapter where AI-off actually bites (who=1's civilians), and
-whether any closed chapter's staging leaned on the same inference.
-**The second instance, the same day**: chapter three's run145 (item 587)
-could not fire two of §7's three falsifiers. The catapult is born packed
-and no hoplite comes within 3 tiles; the chariots shoot from where they
-stand and never move. The commander ruled a restage within §7's own
-design as run146. So the family is **a design's falsifier written
-without checking that the staging can reach it**. The pass may want each
-chapter's header to name, per falsifier, the frame and record where it
-could first fire.
-
-(583) **The ladder's shared-extras guard dies by success.** Filed by item
-576, 2026-09-23: each move of East Indies' word lowers the extras the
-endpoint's rungs share, and the guard's threshold is lowered with the
-number, as its comment asks. It is at one now, from six, and all but
-vacuous. What still says the rungs are one game is
-`the_ladder_s_borrowed_setup_is_the_endpoint_s`, at 6,000 frames. **What
-it wants**: a check that the rungs share a game which does not shrink as
-the port improves. Same family as (449): a row gone stale by success.
-
-(575) **The pass that made the lower map a guard booked its capture
-without grepping the disk.** Filed by the commander at 573's spawn,
-2026-09-23: 573 reads "no capture on disk reaches it: run90's whole
-comparison sits two thousand frames under" and reserves run139–140. But
-run99, East Indies `[8780, 10400)`, was taken on 2026-09-18 for exactly
-this frontier; its stanza counts 34 `to_x` records on 9711 and it is
-still in the Logs directory. One `grep` of `tools/gamelog/captures.txt`
-found it. The brief sends 573 to widen on run99 first, and books a
-capture only for what run99 cannot answer. **What it wants**: "grep the
-disk before booking a capture" is prose, and the pass that wrote it
-broke it. A guard could read every queue item that names a map, a frame
-and a capture, and fail when a `captures.txt` window on that map already
-spans the frame and the item does not cite it. Same family as (452): an
-instrument that stops looking where the thing it measures sits.
 
 ## Parked by the tenth Fable pass, 2026-09-22 — names no score
 
