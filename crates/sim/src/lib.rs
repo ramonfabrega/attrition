@@ -1681,10 +1681,12 @@ impl Sim {
                 }
             }
         } else {
+            // `(flags & 1) == 0 && hold_frames == 0`: a dead number is free
+            // only once nothing holds it (`docs/COMBAT.md` §59).
             for u in &self.units {
                 let i = u.index - base;
                 if u.owner == who && (base..mark).contains(&u.index) {
-                    taken[i as usize] |= u.alive();
+                    taken[i as usize] |= u.alive() || u.hold_frames != 0;
                 }
             }
         }
@@ -3773,6 +3775,11 @@ impl Sim {
         for (w, b) in bound.iter_mut().enumerate() {
             *b = self.marks[w].unit;
         }
+        // A dead slot's occupant: `process_all`'s other arm, `hold_frames`
+        // down by one (`docs/COMBAT.md` §59). The latest unit numbered `o`
+        // is the one the slot holds.
+        let mut dead: Vec<std::collections::BTreeMap<i16, usize>> =
+            vec![std::collections::BTreeMap::new(); 10];
         for i in 0..self.units.len() {
             let u = &self.units[i];
             if u.owner < 10 {
@@ -3780,6 +3787,9 @@ impl Sim {
                 bound[w] = bound[w].max(u.index.saturating_add(1));
                 if u.alive() {
                     slots[w].insert(u.index, i);
+                    dead[w].remove(&u.index);
+                } else if !slots[w].contains_key(&u.index) {
+                    dead[w].insert(u.index, i);
                 }
             }
         }
@@ -3790,7 +3800,16 @@ impl Sim {
             let mut o: i16 = 0;
             while o < bound[w] {
                 if let Some(&i) = slots[w].get(&o) {
+                    // Killed this frame before its visit: the original reads
+                    // the flag at the visit, so it is a dead slot now.
+                    if !self.units[i].alive() && self.units[i].hold_frames != 0 {
+                        self.units[i].hold_frames -= 1;
+                    }
                     self.process_unit(i, frame, &mut events);
+                } else if let Some(&i) = dead[w].get(&o) {
+                    if self.units[i].hold_frames != 0 {
+                        self.units[i].hold_frames -= 1;
+                    }
                 }
                 // The re-read: anything the step just created joins the
                 // walk, in its own owner's band and at its own slot.

@@ -7035,7 +7035,9 @@ bearing, not the wound, and the flank is 57 plus a height point (§46.5). That l
   packet ends, and this crate never does. No capture on disk reaches a
   cull: run112's four deaths are all still in the list on its last block,
   216 frames after the first, so the grow-only list is exact on every
-  window that exists.
+  window that exists. ~~run146 culls on 771 (parked 617).~~ It does not:
+  its three records live from their deaths to 999 on both sides. What
+  parted on 771 is the slot the record holds, §59.
 - **`nuke_effect[0x108]`** in §11's hold, taken as zero.
 
 ### 42.6 Coverage
@@ -9954,3 +9956,149 @@ compared.
   324–330), and no walk slot on any stepping crew figure of an unpacked
   packer in run44.
 - **Listing-backed**: the gate's three terms (`5d9565`–`5d9581`).
+
+## 59. A dead number is held while its death object lives (item 617, 2026-09-23)
+
+Golden chapter three's restage (run146, `docs/GOLDEN.md` §7) stood at
+**792** after §58: ours 28 draws against 29 at draw 24. The dump's
+arena-A hoplites took their attack on the catapult on 792, and ours
+took it on 795. The idle is phased `(frame + o) & 15`, and ours
+numbered the three 6–8 where the dump numbered them 9–11. The item was
+booked with §42.5's cull as its hypothesis.
+`docs/journal/2026-09-23-item-617.md` has the kill conditions, written
+before the reading.
+
+### 59.1 The floor: no cull, and the allocator parts
+
+`chapter_three_s_restage_numbers_its_objects` walks run146 whole, both
+directions. It pairs every birth on its frame, owner and point, every
+death on its number, every `DEATH_OBJS` record on `(who, o,
+first_frame)`, and every live round on its pool slot:
+
+- The deaths agree: `1/6` on 680, `1/7` on 728, `1/8` on 736.
+- The death-object list agrees on every block. The three records arrive
+  on those blocks and **none leaves** before the capture ends, on either
+  side. So nothing is culled on 771.
+- On 771, arena A's three hoplites are born on the same three points.
+  The dump numbers them 9–11 and ours numbered them 6–8. Player 1's uids
+  run 12–14 for the dead and 15–17 for the new, so the original made no
+  allocation between them.
+
+So the original does not hand out a number whose death object still
+lives, and this crate did.
+
+### 59.2 `Objects::find_free@0065ad60`'s reuse test
+
+`find_free` scans the band `[base, mark)` for a reusable number before
+it takes the mark. A number is reusable when all of these hold:
+
+- the object is dead (`flags & 1` clear);
+- **`hold_frames` (`+0x32`) is zero**;
+- it is not a unit (vslot `+0x18`), or its `o_up` (`UnitData +0x8e`)
+  is negative.
+
+This crate's `Sim::find_free` tested the first condition only.
+
+### 59.3 Who holds it: `DeathObj::inc_time@008d5240` and `process_all`
+
+Two writers keep a dead number's `hold_frames` above zero for as long as
+its death object lives:
+
+- **`DeathObj::inc_time`'s first statement** adds one to the dead
+  object's `hold_frames` every frame. It runs from `Objects::inc_time`
+  for every live record, after `Objects::process_all`. For a type whose
+  `UnitTypeData::blocks_while_dead` is set (`unit_flags & 0x800000`,
+  vslot `+0x120` on `ptype`, named from the PDB's field list), it also
+  raises the hold to at least 30 while the record lives.
+- **`Objects::process_all@0065dce0`** walks each player's objects in
+  order. A dead one (`flags & 1` clear) whose hold is not zero loses one.
+
+`Object::die` sets the hold to at least 1 (§11). So at every command
+point in the frame (`NetDaemon::process_all`, `docs/ORDERS.md` §2.1),
+the hold of a number whose death object lives is at least 1. Once the
+record ends (`*this = 0`), nothing adds to the hold, and `process_all`
+takes the rest off.
+
+This crate carried the bump in `hold_frames_tick`, but looked its unit
+up with `unit_by_o`, which finds only the living, so the bump never
+landed. It had no decrement. Now:
+
+- the bump lands on the slot's latest occupant, dead or not;
+- the unit loop takes one off a dead occupant at its visit;
+- `find_free` refuses a dead number whose hold is not zero.
+
+### 59.4 What moved
+
+| | before | after |
+|---|---|---|
+| the restage, run146: word / sequence / values | 792 / 792 / 793 | **865** / 865 / 866 |
+| arena A's hoplites, 771 | 6–8 | 9–11, the dump's |
+| run146's numbering rows (births, deaths, `DEATH_OBJS`) | 3 | 0 |
+| chapter three (run145) | 900, closed | 900, closed |
+
+**The value diff** (`chapter_three_s_arena_a_hoplites_take_the_dump_s_numbers`):
+on 790–793, `1/9`–`1/11` stand on the dump's points, with the dump's
+`idle` and order list on both sides. They reach `idle 4` on 790, 791 and
+792, and hold the `ATTACKORDER` on 792. The test was made to fail with
+the hold test off in `find_free`. The unit test
+`a_dead_unit_s_number_is_held_while_its_death_object_lives` was made to
+fail the same way.
+
+### 59.5 The ground shot's scatter has its own two sites
+
+With the numbering fixed, the sequence word first parted on 797, with
+the same values on both sides. Ours labelled the catapult's ground
+round's scatter `Ammo::init+0xcd9`/`+0xd0b`, and the original's read
+as a bare `67c6d8`/`67c715`. The listing puts the attack-ground arm's
+own pair of `Random::get` calls at `67c6d3` and `67c710`, ahead of
+`find_data_z` at `67c738`, so their return addresses are
+`Ammo::init+0xae8` and `+0xb25`. The arithmetic is the target arm's,
+`point − s/2 + roll % s`. Now both are named, in the trace table and in
+`scatter_landing`. The values already agreed (§58.3).
+
+### 59.6 The new word is 621's park
+
+On 865 this crate's catapult, its ground order's reload run out, takes a
+fresh attack and spends `Unit::fight+0x9b0`. The dump's holds nothing
+until 868. That is §57.6's third residue. Below it, the widening
+now links arena A's hoplites and shows what the numbering had hidden:
+
+- on 798, the round's pool slot is 0 here and 1 in the dump, run145's
+  family (§55.5);
+- on 847, the scout `1/0`'s fresh `EXPLORETOORDER` move reads `facing 1`
+  here and 0 in the dump. No draw is spent.
+
+### 59.7 What is not established
+
+- **The cull itself.** Nothing ends a death object in this crate, so a
+  dead number here is now held for good. The original frees it once the
+  record ends. For a land unit with no corpse piece (`DeathObj +0x44 ==
+  −1`), that is after `get_game_frames(cur_anim) + body_fade_end` frames
+  (135). With a corpse piece it is after `+ corpse_fade_end` (627). A sea
+  unit ends at its animation's end. The two constants are `.rdata`
+  words (`0002:378732`, `0002:378740`). Building the cull needs the
+  death piece's animation packet (`gpiece`, which this crate does not
+  load) and `+0x44` from `DeathObj::init`. run146's three records stay
+  live 263 blocks or more, which rules out 135 plus a short animation.
+  So the hoplite has a corpse piece. No golden window has a birth that a
+  cull would have freed a number for. The long captures' words hold under
+  the grow-only hold (the item's journal has the gate).
+- **`o_up`**, the third term of `find_free`'s test: a dead squad member
+  still linked in its chain is not reused. This crate does not test it.
+- **`blocks_while_dead`**'s floor of 30. It is not carried, because a
+  live record already holds the number, and the floor only matters after
+  the record ends, in the cull this crate does not have.
+- The within-frame order: a unit killed before its visit loses one on
+  the same frame, so a building that trains later in the same
+  `process_all` could reuse it. No capture reaches that.
+
+### 59.8 Coverage
+
+- **Diff-backed**: the deaths, the death-object list and every birth's
+  number over run146 whole, and the three hoplites' `idle` and orders on
+  the word's frame.
+- **Listing-backed**: the ground scatter's two sites (`67c6d3`,
+  `67c710`).
+- **Reading only**: `find_free`'s three terms, the bump and the
+  decrement (§59.3), the cull's duration (§59.7), and `+0x120`'s name,
+  which comes from the PDB's `LF_ONEMETHOD`.
