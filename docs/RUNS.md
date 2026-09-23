@@ -4735,3 +4735,67 @@ third sell draw. The purse, the commerce level and the stock, the other
 three readings the stanza named, all died on the word's own block.
 `docs/ECONOMY.md` §14; `run123_s_word_frame_is_widened_whole`.
 
+
+## run127 — chapter five, the water: the first ship on this disk (2026-09-22, item 535)
+
+The golden record's fifth chapter (`docs/GOLDEN.md` §9), staged from
+`tools/gamelog/golden/chapter5.cmd`: `!ai off` at 0, then `add trireme
+who=0 60,180` at 610, `add trireme who=1 64,186` at 615 and `add fisher
+who=0 61,184` at 620, all three inside sea region 70. Run112's command with
+the chapter file swapped:
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch5 \
+    --map 14 --end-frame 900 --log-window 605 900 \
+    --detail end:UNITS=3,GUYS=2,AMMO=5,DEATHS=1,LEADERS=2 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 \
+    --cmd-file tools/gamelog/golden/chapter5.cmd
+```
+
+`success: true`, exit 0, 901 frames, `MAP_STYLE 14` and seed 12345 read
+back, five settings files restored, **146 s launch to exit, 43.0 MB of dump
+and 9.9 MB of trace** (76 MB on disk with the staged install's links). One
+take. No lane lock was held when it launched.
+
+**The grep before it.** No capture on this disk carries a warship or a
+fishing boat. The nearest thing is a sea-domain unit: East Indies' transport
+barge `1/22` on run54/run86, which is born by an embarking land army
+(`docs/TRANSPORT.md` §6) and never fights.
+
+### The predictions, written into the `.cmd` file before the run
+
+Committed as `189925c` before the launch. All held:
+
+| check | predicted | observed |
+| --- | --- | --- |
+| every staged line runs | six `INFO cmd`, each returning 1 | six, each 1: the four staged plus `37 !ffwd 1` and `900 !quit` |
+| the window is the window asked for | 297 frame blocks: 1, 605..899, 901 | 297 blocks, gaps only at 605 and 901 |
+| the spawns | one `UNITDATA` per `add` (both types `UBER_SIZE 1`) | 52 → 53 → 54 → 55 on 611, 616, 621 exactly |
+
+### §9's three falsifiers, and none fired
+
+- **The `add` did not refuse.** `0/6` is born on 611, `1/6` on 616 and
+  `0/7` (the Fishermen) on 621, so `find_nearby_spot` with no Dock placed
+  a hull.
+- **No hull stands on land.** `0/6` is at (11640, 34680), cell (15, 45);
+  `1/6` at (12408, 35832), cell (16, 46); `0/7` at (11832, 35448), cell
+  (15, 46). The start block's `WORLD` holds all three as `OCEAN`, region
+  70, owner −1. Each is its asked tile's centre plus the same 24 on both
+  axes, the "clean +24" chapter two's first squad showed.
+- **The ships shoot.** 506 `AMMO` blocks over 278 frames: 249 from `0/6`
+  on `1/6` and 257 from `1/6` on `0/6`. The two triremes stand 7.2 tiles
+  apart, inside `RANGE 0-9`. who=1's trireme turns on `0/6` on block 617,
+  with `whom 0 ox 6`, `in_range 1` and `recharging 40`, and its first round
+  is in the air on 622. `0/6`'s first round is on 640. By 899 each
+  trireme has taken ~115 of its 180 hits. The Fishermen are untouched and
+  nothing dies: no `DEATH` block in the window. Neither trireme moves after
+  it is seated. The fishing boat drifts about 130 units north-west and then
+  stands.
+
+So chapter five is not the Dock chapter. `docs/GOLDEN.md` §9 carries what
+this means for the later naval chapters.
+
+### The word is 617
+
+See `GOLDEN_WORD_CHAPTER_FIVE` and `docs/journal/2026-09-22-item-535.md`.
