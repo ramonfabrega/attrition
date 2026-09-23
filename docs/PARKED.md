@@ -22,6 +22,16 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Parked by item 592, 2026-09-23 — the rider's other seams
+
+(599) **`docs/AI.md` §58.5's four seams**: the sea rider, the region-less
+move point, the on-map `8`/`0xe` arm's use of the same local, and the
+`is_move` classes. None is on 10582's frame.
+
+(600) **A blind second reading of `docs/AI.md` §58.1**, the container
+count. The census on 10576 is diff-backed; the arms no capture reaches
+rest on one reading.
+
 ## Parked by item 588, 2026-09-23 — the probe's other half
 
 (593) **The land half of the waypoint probe's second arm** (siege, hero,
@@ -565,6 +575,13 @@ waited on before the handoff is written — the harness re-invokes the
 session when the task exits, so the wait costs nothing — and the gate's
 wrapper propagates its exit rather than echoing it. Same family as (565):
 a receipt that is written but not read.
+
+(598) **`compare` never reads `inside_up`**, the garrison and rider link.
+Filed by item 592, 2026-09-23: only run143's widening compares it, so a
+widening on any other capture would not see a unit in the wrong
+container. Same family as (577), gaia's units: a record the dump prints
+that the general comparison skips. **What it wants**: `inside_up` in
+`compare`, and the coverage pin checked for other link fields.
 
 (596) **`writers::literal_fields` cannot see a shorthand field in a
 one-line struct literal.** Filed by item 590, 2026-09-23, which worked
