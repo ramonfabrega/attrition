@@ -119,9 +119,13 @@ with its handoff retained on `codex/continuation-lab`; L88's additional owner
 gap is archived at `c205210`. A* replay remains available for counterfactuals.
 The new [working review](TYPED-STATE-REVIEW.md) carries the four-step charter,
 measured results and explicit unresolved coverage. L91 validates the first
-aligned Great Lakes packet at logger frame 11186; settings are restored and
-the lane is released. Next work is offline: leader/encrypted-state and container
-bridges over the retained packet, then the outstanding head-to-head.
+aligned Great Lakes packet at logger frame 11186; settings were restored and
+the lane released. L95 banks the expanded offline comparison in draft PR #9,
+stacked on PR #7: 516,369 occurrences, 179,583 distinct storage references,
+and all observed GUY records agree. The [steering index](STEERING-INDEX.md)
+links the checkpoints. Next work remains offline: promote the retained
+124-output encrypted-leader probe with failure controls, then remaining
+container projections and the outstanding mid-decision head-to-head.
 Fable chooses adoption, pilot or parking. This is score-neutral lab work.
 
 The runtime factor-isolation experiment is paused at the user's request after
@@ -155,4 +159,4 @@ was changed by the cutover.
 
 | L94 | Can the same packet widen beyond leader scalars and expose repeated-output inflation? | [World grids and explicit projections](2026-09-22-world-grid-bridge.md). | 505,425/602,211 occurrences agree, representing 174,111 distinct storage references. All three WORLD copies independently match 111,600 grid values and 3,600 × 15 cell scalars. All 78 acquisition/oracle tests pass; fresh packet-to-report reproduction takes 20.71 seconds. | No capture. Referent atomicity, whole-frame parity and market decision causality remain unproven. Full release gate passes at `cc0bc7e`; the interrupted earlier gate has no verdict. |
 
-| L95 | Can typed pointer containers close a whole observed record family? | [GUY bridge and unread-key evidence](2026-09-22-guy-state-bridge.md). | All 228 observed GUY records agree field-for-field: 114 identities, 48 occurrences each. Total 516,369 matches / 179,583 distinct storage references; 164/226 pinned keys fully observed and matched. Fresh reproduction takes 21.41 seconds. | Twenty owner-9 figures remain unlogged; nonzero original float-word behavior unobserved. Final expanded validation pending; no capture, score change or main-parser adoption. |
+| L95 | Can typed pointer containers close a whole observed record family? | [GUY bridge and unread-key evidence](2026-09-22-guy-state-bridge.md). | All 228 observed GUY records agree field-for-field: 114 identities, 48 occurrences each. Total 516,369 matches / 179,583 distinct storage references; 164/226 pinned keys fully observed and matched. Fresh reproduction takes 21.41 seconds. | Twenty owner-9 figures remain unlogged; nonzero original float-word behavior unobserved. Full release gate passes at `b8e4d79`, plus 86 focused tests and retained-byte corruption controls. Draft PR #9; no capture, score change or main-parser adoption. |
