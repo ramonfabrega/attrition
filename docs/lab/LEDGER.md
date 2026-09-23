@@ -109,13 +109,23 @@ No new capture or main-loop adoption is requested by this handoff.
 
 | L63 | Determine whether a broad packet removes the repeated per-field capture dependency. | [Payload-to-allocator frontier](2026-09-21-payload-frontier.md). | Nine data boundaries closed with 36,256 added bytes; fresh processes reach the same 382-instruction CRT malloc refusal. | Exploratory source retained outside git; extended state not imported, no native output comparison or allocator substitution. |
 
+| L89 | Can retained memory become a PDB-driven state oracle? | [Typed-state working review](TYPED-STATE-REVIEW.md). | 1,855 RTTI/PDB joins; selected global roots and one plain-struct pointer decode; 58,081 exact terrain singles retained. | Candidate liveness, virtual bases, logger parity, excess coverage and live-item comparison remain open. No capture or score movement. |
+
 ## Current direction
 
-The September 19–21 tranche has a validated broad payload and an exploratory
-replay stopping at CRT allocation. Allocator behavior, extended-state handling
-beyond the tested prefix and native output equivalence remain research work.
-Fable decides whether any method merits a pilot, adoption, further evidence or
-parking; review does not imply approval to merge the whole lab branch.
+The typed-state charter starts fresh from main `5c8e6d4`, on
+`codex/typed-state-oracle`. The continuation line parks at L87 (`3ff12db`),
+with its handoff retained on `codex/continuation-lab`; L88's additional owner
+gap is archived at `c205210`. A* replay remains available for counterfactuals.
+The new [working review](TYPED-STATE-REVIEW.md) carries the four-step charter,
+measured results and explicit unresolved coverage. L91 validates the first
+aligned Great Lakes packet at logger frame 11186; settings were restored and
+the lane released. L95 banks the expanded offline comparison; L96 folds it into PR #7 on current
+main. L97 answers item 327's endpoint state with 206 agreeing fields, while
+exposing the earlier-boundary requirement for causal replay. Coverage expansion
+is stopped for the checkpoint. The [steering index](STEERING-INDEX.md) links the
+live review and the preserved, unreviewed A* work; PR closure is not rejection.
+Fable chooses adoption, pilot or parking. This is score-neutral lab work.
 
 The runtime factor-isolation experiment is paused at the user's request after
 a product cybersecurity restriction; no four-way results exist. Its draft
@@ -129,7 +139,7 @@ Steering may adopt individual concerns against its current tip and release gate.
 The branch is not a whole-merge proposal. Some historical commits mix lab tools
 and shared-file changes; their hashes above are navigation aids, not promises
 that every commit is already an isolated cherry-pick. Future shared-file changes
-are separate commits with rationale. Ask through Ramon for the live lane.
+are separate commits with rationale. Captures use the shared nonblocking lane lock; ask Ramon when coordination needs intervention.
 
 The one-time cutover moves only this branch's newly added reports/artifacts to
 `docs/lab/`, preserves its appended narrative in [HISTORY.md](HISTORY.md), and
@@ -137,3 +147,22 @@ restores `docs/JOURNAL.md` to the unchanged pre-lab prefix. Subsequent lab work
 writes here, not QUEUE, JOURNAL, DECISIONS, or CLAUDE. Core document/code reference
 updates are a separate adoption concern. No completion counter or queue item
 was changed by the cutover.
+
+| L90 | Logger parity needs a distinct, tested acquisition phase. | [Collector controls](TYPED-STATE-REVIEW.md#implementation-controls-and-cost). | PDB-generated root plan; separate stream and receipt checks; eight offline tests including 256 extended-state cases. | Acquisition-only checkpoint; L91 supplies its live validation. Root stability does not imply atomic heap state. Optimized logger uses its global, not incoming ECX. |
+
+| L91 | Can an end-frame typed packet agree with the logger and expose information its text loses? | [Typed-state review](TYPED-STATE-REVIEW.md). | Great Lakes logger 11186 / trace 11185: 177 ranges, 804 MiB, 250 ms; unchanged selected anchors across logging; 107 linked UnitData records and 8,225 scoped scalar matches, including 321 XOR projections. Exact terrain retains 1,422 words different from nearest-decimal reconstruction. | Whole-frame parity is not established: every remaining printed occurrence is retained as unresolved/unmapped. Initial height bits and the market head-to-head remain open; live-allocation coverage unknown. Capture lane released; no score moved. |
+
+| L92 | Can typed leader pointers widen the same packet without another capture? | [Leader encrypted-state bridge](2026-09-22-leader-bridge.md). | Four identities, twelve PDB-sized arrays, 76 getter-transformed values agree; scoped total 8,301/602,211 occurrences. Nine focused tests pass with corruption and shape refusals; commit `851653a` subsequently passes the full release gate. | Referents are not acquisition anchors; no whole-state coherence or liveness claim. Follow-up branch preserves PR #7 checkpoint; expanded bridge follows in L93. No capture or score movement. |
+
+| L93 | Does a type stream alone describe the logger projection? | [Leader projection inventory](2026-09-22-leader-bridge.md#candidate-inventory-separate-from-validation). | Bucket/support add 48 validated values: 8,349 scoped matches. Separately, 13,996 same-name candidate equalities are not promoted; repeated scalars, doubled array prints and split-key final elements expose projection contracts. Twenty-two focused tests pass. | Full gate pending for expanded code; no capture, parity claim, or score change. |
+
+| L94 | Can the same packet widen beyond leader scalars and expose repeated-output inflation? | [World grids and explicit projections](2026-09-22-world-grid-bridge.md). | 505,425/602,211 occurrences agree, representing 174,111 distinct storage references. All three WORLD copies independently match 111,600 grid values and 3,600 × 15 cell scalars. All 78 acquisition/oracle tests pass; fresh packet-to-report reproduction takes 20.71 seconds. | No capture. Referent atomicity, whole-frame parity and market decision causality remain unproven. Full release gate passes at `cc0bc7e`; the interrupted earlier gate has no verdict. |
+
+| L95 | Can typed pointer containers close a whole observed record family? | [GUY bridge and unread-key evidence](2026-09-22-guy-state-bridge.md). | All 228 observed GUY records agree field-for-field: 114 identities, 48 occurrences each. Total 516,369 matches / 179,583 distinct storage references; 164/226 pinned keys fully observed and matched. Fresh reproduction takes 21.41 seconds. | Twenty owner-9 figures remain unlogged; nonzero original float-word behavior unobserved. Full release gate passes at `b8e4d79`, plus 86 focused tests and retained-byte corruption controls. Draft PR #9; no capture, score change or main-parser adoption. |
+
+
+| L96 | Consolidate the steering surface on current main. | [Typed-state review](TYPED-STATE-REVIEW.md) and [index](STEERING-INDEX.md). | PR #9 folded into #7 and live line rebased on `d892281`; default tracer COFF matches main, snapshot variant builds. Current source pin: 152/367 keys fully observed and matched. | PRs #5/#6 closed without rebasing; replay evidence and L87/L88 refs retained. Empty capture-reuse branch deleted. No coverage expansion; next is bounded item-327 state-side head-to-head. |
+
+| L97 | Can the retained market packet answer item 327 without another capture? | [State-side head-to-head](2026-09-22-market-state-head-to-head.md). | Empty MAKE[1], regional rare count 4, wealth bucket 6; 206/206 fields match. First numbers in 3m41s focused work; byte/extent controls pass. | Endpoint is after the decision: writer, value formula and emptying mechanism remain open. Existing logger contains the re-offer history; no exclusive-value or controlled-speedup claim. No capture or score movement. |
+
+| L98 | Is the consolidated checkpoint current and reviewable without hiding main failures? | [Steering index](STEERING-INDEX.md). | Rebased release at `6151581`: 1,285 passed, two failed, two ignored; 896 fixture requests, none missing. 86 focused tests and separate clippy/format checks pass. | Gate remains red: unchanged main has stale golden w626 against 774 and landed item 445 still live. A* branches and witnesses are preserved and unreviewed, not rejected. No capture. |
