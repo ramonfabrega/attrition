@@ -26,7 +26,7 @@ and nothing more**~~ **chapter three is captured (run145, closed at 900;
 its restage run146, open) and seven-b too (run156/run157, item 628, its
 premise killed by construction and pinned open as measured, §11); ~~six and
 eight are a design and nothing more~~ **six is captured too (run168, item
-648, its second falsifier fired, pinned open at 616, §10); eight is a design
+648, its second falsifier fired, pinned open at ~~616~~ 700 since item 650, §10); eight is a design
 and nothing more** — no capture has been run for it, and each one's own falsifier section is written
 precisely so that the first run can say it was wrong. The
 stageability of each is held by a test rather than by this prose
@@ -797,7 +797,18 @@ inert on this lobby, human's or computer's. What the chapter measures is
 which only the draw stream sees. It is pinned open as measured, as seven-b
 was, and an air line that moves needs a restage with a base.
 
-**Where this crate parts: `GOLDEN_WORD_CHAPTER_SIX` = 616**, the Bomber's
+**Where this crate parts: `GOLDEN_WORD_CHAPTER_SIX` = ~~616~~ 700.**
+**Item 650 moved it 616 → 700**, `bird`'s frame. Neither aircraft's
+idle search takes the other in the original. `Object::poor_target`'s plane
+arm refuses a plane to a searcher without `ANTI_AIR`, and to one with it
+beyond its own `max_range`, which is the Fighter at eight tiles of its
+seven. `valid_target_const`'s air ladder refuses the Fighter to the
+Bomber as well: a `FLY_HIGH` 0 searcher cannot take a plane with no air
+order, because such a plane flies high (`docs/COMBAT.md` §61). Block 700
+agrees on every record. On 700 the original's draw 0 is the bird's birth,
+which this crate does not carry, and on 701 the AI scout `1/0`'s
+`think_scout` roll lands one draw early. What follows is 648's reading of
+616, kept as it stood: 616 was the Bomber's
 birth frame. It spends 25 draws against the original's 24, parting at draw
 18, on a `Unit::fight+0x9b0` of `1/6`'s. The original spends none. On
 block 616 both sides hold `1/6` at (2424, 7800) with `idle` 1 and group
@@ -1111,7 +1122,7 @@ below without a run take their number at booking (the eleventh pass).
 | 146 | three, restaged in two arenas | `[605, 1000)` | **run146 (item 587), 55 MB, 186 s; first parting 633; all three falsifiers reachable, none fired** |
 | 156 | seven-b, the computer's civilians | `[605, 1200)` | the same five for who=1 with `!ai off`, where the cheat's block decides (item 628, the twelfth pass) — **run 2026-09-23 (item 628), 106 MB, 295 s; the first falsifier fired by construction; word 1148** |
 | 157 | seven-b, the control | `[605, 1200)` | `!ai off` deleted; the AI's economy should reach the citizen, or the pair is vacuous — **run157, 114 MB, 335 s on the second take (the first stalled before the menu); the citizen gathers on 611 as in run156; word 1036** |
-| ~~119~~ 168 | six, the air and the bird | `[605, 900)` | the one new order class — **run 2026-09-23 as run168 (item 648), 42 MB, 137 s; the second falsifier fired: an unbased aircraft is inert; word 616** |
+| ~~119~~ 168 | six, the air and the bird | `[605, 900)` | the one new order class — **run 2026-09-23 as run168 (item 648), 42 MB, 137 s; the second falsifier fired: an unbased aircraft is inert; word ~~616~~ 700 (item 650)** |
 
 Chapter eight and any further detail window need numbers beyond the
 reservation. The order above is by **what a failure would teach**, not by

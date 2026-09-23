@@ -5557,11 +5557,12 @@ fn chapter_seven_s_word_frame_is_widened_whole() {
     }
 }
 
-/// **Chapter six's word, widened whole, both directions** (item 648). Every
+/// **Chapter six's word, widened whole, both directions** (items 648 and
+/// 650). Every
 /// record run168 carries on every block of [`WIDENING_CHAPTER_SIX`], by
 /// [`widen_civilians`] with the `AMMO` record on: every unit and figure,
 /// both leaders at `LEADERS=2`, and every live round either side holds.
-/// The Bomber `1/6` is printed both sides on the word's two blocks. run168
+/// Every record is printed both sides on the word's two blocks. run168
 /// dumps no `BUILDS` and no `GOODS`: the buildings stand as `build:extra`
 /// rows on the first block, and the good list is counted, not compared.
 ///
@@ -5599,27 +5600,37 @@ fn chapter_six_s_word_frame_is_widened_whole() {
         "ch6: the standing rows on the first block moved ({}): {floor:?}",
         floor.len()
     );
-    // **What parts under the word**, pinned by block and key, none of it a
-    // mechanism (`docs/GOLDEN.md` §10). Each aircraft's `form` on its
-    // birth block, the standing family. The Bomber `1/6` holds an order on
-    // 616 that the original's does not, and on 617 is walking at the
-    // Fighter (the value diff is `GOLDEN_WORD_CHAPTER_SIX`'s comment). No
-    // round is in either air.
+    // **What parts under the word**, pinned by block and key (`docs/GOLDEN.md`
+    // §10). Each aircraft's `form` on its birth block, the standing family.
+    // **The word's block**, 700, agrees on every record, and so does every
+    // block from 606 to 700 past those two. From item 650 neither aircraft
+    // takes an order here, as in the dump (`docs/COMBAT.md` §61). On 701
+    // the AI scout `1/0` walks for another point, its whole move order and
+    // path. The original spends the bird's birth draw on 700 and this
+    // crate, carrying `bird` as `CHAPTER_DEBT`, does not, so `think_scout`'s
+    // roll comes one draw early. No round is in either air.
     let mut got: Vec<String> = firsts
         .iter()
         .filter(|(_, (f, _))| *f > WIDENING_CHAPTER_SIX.0)
         .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
         .collect();
     got.sort();
-    let want = [
-        "611 0/6 form",
-        "616 1/6 form",
-        "616 1/6 order:length",
-        "616 1/6 orders.len",
-        "617 1/6 dest_angle",
-        "617 1/6 idle",
-        "617 1/6 orders_x",
-    ];
+    let mut want = vec!["611 0/6 form".to_string(), "616 1/6 form".to_string()];
+    want.extend(
+        [
+            "dest_angle",
+            "order:move.angle",
+            "order:move.x",
+            "order:move.y",
+            "orders_x",
+            "orders_y",
+            "path:length",
+        ]
+        .iter()
+        .map(|k| format!("701 1/0 {k}")),
+    );
+    want.extend((0..9).map(|i| format!("701 1/0 path[{i}].to")));
+    want.sort();
     assert_eq!(got, want, "ch6: what parts under the word moved");
 }
 

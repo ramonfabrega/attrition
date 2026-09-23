@@ -1106,6 +1106,8 @@ pub fn load_tables(
             circle_radius: c.circle_radius,
             guy_radius: 0,
             domain: c.domain,
+            fly_high: c.fly_high,
+            fly_low: c.fly_low,
             siege: c.siege,
             // `needs_packing` is `unit_flags2 & 4`, which is now derived
             // exactly — the three trader ids by identity, everything else by
@@ -1324,6 +1326,8 @@ pub fn load_tables(
             guy_radius: 0,
             // `BuildType::set_domain`: `BUILD_FLAGS b` is a sea building.
             domain: build_domain(c.flags),
+            fly_high: c.fly_high,
+            fly_low: c.fly_low,
             siege: false,
             packs: false,
             age,
@@ -1957,6 +1961,9 @@ struct UnitCols {
     y_spacing: i32,
     guy_spacing: i32,
     domain: Domain,
+    /// `FLY_HIGH` and `FLY_LOW`, `get_text_num(…, -1)`.
+    fly_high: i32,
+    fly_low: i32,
     siege: bool,
     from: Option<usize>,
     jump: Option<usize>,
@@ -2072,6 +2079,8 @@ impl UnitCols {
             y_spacing: int(l, "Y_SPACING").unwrap_or(0) * UNIT_FORMATION_SPACING,
             guy_spacing: int(l, "GUY_SPACING").unwrap_or(0) * UNIT_GUY_SPACING,
             domain: domain_of(l.text("DOMAIN")),
+            fly_high: int(l, "FLY_HIGH").unwrap_or(-1),
+            fly_low: int(l, "FLY_LOW").unwrap_or(-1),
             siege: flags & 0x20000 != 0,
             // Pass 1, and therefore the record's own.
             from: key(r.text("FROM"), unit_names, "unit_key FROM", warnings),
@@ -2118,6 +2127,9 @@ struct BuildCols {
     proj_speed: i32,
     base_arrows: i32,
     most_shots: i32,
+    /// `FLY_HIGH` and `FLY_LOW`, `BuildType::init@00632340:319`-`326`.
+    fly_high: i32,
+    fly_low: i32,
     from: Option<usize>,
     jump: Option<usize>,
 }
@@ -2165,6 +2177,8 @@ impl BuildCols {
             proj_speed: int(r, "PROJ_SPEED").unwrap_or(200),
             base_arrows: int(r, "BASE_ARROWS").unwrap_or(0),
             most_shots: int(r, "MOST_SHOTS").unwrap_or(0),
+            fly_high: int(r, "FLY_HIGH").unwrap_or(-1),
+            fly_low: int(r, "FLY_LOW").unwrap_or(-1),
             from: key(r.text("FROM"), build_names, "build_key FROM", warnings),
             jump: key(r.text("JUMP"), build_names, "build_key JUMP", warnings),
         }

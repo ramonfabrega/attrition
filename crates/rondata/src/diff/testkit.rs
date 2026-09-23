@@ -2476,28 +2476,35 @@ pub(crate) const GOLDEN_WORD_CHAPTER_TWO: i64 = 900;
 pub(crate) const GOLDEN_WORD_CHAPTER_FIVE: i64 = 900;
 
 /// **Chapter six's golden word** — the air and the bird (`docs/GOLDEN.md`
-/// §10, item 648, run168): **616 of 901**, on its first walk.
+/// §10, run168): **700 of 901**, `bird`'s frame, which the harness carries
+/// as `CHAPTER_DEBT` (parked 652).
 ///
-/// **The delta**: on 616, the Bomber `1/6`'s birth frame, this crate
-/// spends 25 draws against the original's 24, parting at draw 18. Ours is
-/// `Unit::fight+0x9b0`, attributed to `1/6`, and the original spends
-/// none. Frames 605–615 agree draw for draw, the Fighter `0/6`'s birth on
-/// 611 among them. No mechanism is named (`docs/DECISIONS.md` 42).
+/// **The delta** (item 650): 616 → 700. On 616 this crate spent 25 draws
+/// against the original's 24, a `Unit::fight+0x9b0` of the Bomber `1/6`'s,
+/// because its idle search took the Fighter `0/6`. Now neither aircraft's
+/// search takes the other (`docs/COMBAT.md` §61). `Object::poor_target`'s
+/// plane arm refuses a plane to a searcher without `ANTI_AIR`, and to one
+/// with it beyond its own `max_range`, and `find_nearby_target` now asks it.
+/// `valid_target_const`'s air ladder refuses the Fighter to the Bomber a
+/// second time. The ladder alone moved the word to 635, where the Fighter
+/// took the Bomber on its periodic think. On 700 the original's draw 0 is
+/// the bird's `Guy::init_real+0x52`, and this crate has no bird.
 ///
-/// **The block**, from [`WIDENING_CHAPTER_SIX`]'s test: on block 616 the
-/// original's `1/6` stands at (2424, 7800) with no order, `idle 1` and
-/// group 64, and this crate's stands on the same point, same `idle` and
-/// group, holding one `ATTACK` order. On 617 ours is walking at the
-/// Fighter — a `MOVE_TO` (888, 7800) ahead of the attack, `orders_x`
-/// 888 against 2424 — and the original's has not moved, and never does:
-/// run168's aircraft hold their seats, `air_alt` 0 and no order to 899.
-pub(crate) const GOLDEN_WORD_CHAPTER_SIX: i64 = 616;
+/// **The block**, from [`WIDENING_CHAPTER_SIX`]'s test: block 700 agrees on
+/// every record. On 616 and 617 both sides hold `1/6` at (2424, 7800) with
+/// no order, `idle` 1 then 2, and `orders_x` 2424. Both aircraft hold their
+/// seats and no order to 700 on both sides. On 701 the AI scout `1/0`'s
+/// move order parts: `orders_x/y` (37368, 18936) against (45816, 12024),
+/// and a path of 33 against 9. `think_scout`'s roll is the draw after the
+/// bird's, which this crate does not spend.
+pub(crate) const GOLDEN_WORD_CHAPTER_SIX: i64 = 700;
 
 /// `chapter_six_s_word_frame_is_widened_whole`'s window: run168 from its
-/// first block, 605, to two past the word — the word's frame writes block
-/// 617 — as [`WIDENING_CHAPTER_SEVEN_B`]'s is. Nothing before the word
-/// parts but the standing rows of the first block.
-pub(crate) const WIDENING_CHAPTER_SIX: (i64, i64) = (605, 618);
+/// first block, 605, to two past the word, since the word's frame writes
+/// block 701, as [`WIDENING_CHAPTER_SEVEN_B`]'s does. Nothing before the
+/// word parts but the standing rows of the first block and the two
+/// aircraft's `form` on their birth blocks.
+pub(crate) const WIDENING_CHAPTER_SIX: (i64, i64) = (605, 702);
 
 /// **Chapter four's golden word** — the border and the bleed
 /// (`docs/GOLDEN.md` §8, item 552, run132 and run133): **1277 of 1501**,
