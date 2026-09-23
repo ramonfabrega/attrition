@@ -1600,6 +1600,8 @@ pub(crate) const EAST_INDIES_FIRST_SCHOLAR: i64 = 8_466;
 /// disk**: run125 ends on block 11599, so the word's block is owed a
 /// capture ([`WIDENINGS`]); 11583 stays in
 /// `run125_s_word_frame_is_widened_whole` as the move's value diff.
+/// **Item 554 took the capture, run130, and held the word**: its block is
+/// in `run130_s_word_frame_is_widened_whole`.
 ///
 /// **The block's own rows are not restated here**, and that is
 /// deliberate: block 10818's eight rows of `1/28` are *asserted* in
@@ -2344,9 +2346,9 @@ pub(crate) const GREAT_LAKES_MARKET_BLOCK: i64 = 11_185;
 pub(crate) const WIDENING_GREAT_LAKES_ARMY: (i64, i64) = (11_250, 11_599);
 /// The block [`WIDENING_GREAT_LAKES_ARMY`] was taken to widen: the word
 /// 11531, where it stood until item 539 moved it to 11582. The coverage
-/// driver reads run125 around it, keyed here rather than on the headline
-/// so the pin stays on a block the capture carries whatever the headline
-/// does next; the widening pins it empty as the move's value diff.
+/// driver read run125 around it until item 554 moved the driver to
+/// run130's word block ([`GREAT_LAKES_ARMY_TWO_BLOCK`]); the widening pins
+/// it empty as the move's value diff.
 pub(crate) const GREAT_LAKES_ARMY_BLOCK: i64 = 11_531;
 /// `run130_s_word_frame_is_widened_whole`'s window (item 554): run123 from
 /// **11400**, under army 2's first parting on 11424, then run125 from its
@@ -2486,12 +2488,21 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // item that owes it and no test. The same test keeps 11583 as the
     // move's value diff (`docs/AI.md` §56), on its own literal rather than
     // on the headline.
+    //
+    // **Item 554 paid it**: run130 is the same game at run125's detail
+    // over [11560, 11799], and `run130_s_word_frame_is_widened_whole`
+    // walks it from run123's 11400, under army 2's first pool parting, so
+    // the window is [`WIDENING_GREAT_LAKES_ARMY_TWO`]. The word's block
+    // parts on `1/62`, which stops against `1/23` a frame late because it
+    // walks a detour planned around `1/64`, and `1/64` stands 21/20 behind
+    // the original's from army 2's group order of frame 11512
+    // (`docs/PATHFINDER.md` §23).
     (
         "LONG_WORD_GREAT_LAKES",
         LONG_WORD_GREAT_LAKES,
-        None,
+        Some("run130_s_word_frame_is_widened_whole"),
         554,
-        None,
+        Some(WIDENING_GREAT_LAKES_ARMY_TWO),
     ),
     // Item 445 paid the widening chapter one had never had: the word
     // stood at 626 from item 405 on, and every test behind it pinned one

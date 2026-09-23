@@ -547,6 +547,15 @@ impl Sim {
     ///
     /// The fog reveal that hangs off the same call stays with its caller
     /// ([`Sim::moved_to`], `docs/VISION.md` §6).
+    /// **A payoff probe's hand**, not a mechanic: seat unit `u` on `to`
+    /// through [`Sim::set_new_location`], so the collision grid and the
+    /// figures follow. The diff harness uses it to put a unit where the
+    /// original's dump has it and ask whether a later frame agrees.
+    #[doc(hidden)]
+    pub fn probe_relocate(&mut self, u: usize, to: Pos) -> bool {
+        self.set_new_location(u, to, true)
+    }
+
     pub(crate) fn set_new_location(&mut self, u: usize, to: Pos, move_guys: bool) -> bool {
         let from = self.units[u].pos;
         // **A move onto the point the unit already stands on is not a
