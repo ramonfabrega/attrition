@@ -688,6 +688,12 @@ fc85132. A lane's "red only on your lines" is true of what ran, not of the
 gate. Either the gate runs clippy before the paperwork guard, or it reports
 what it did not reach.
 
+(645) **The memcap self-test's 8 s timeout flakes under load.** Filed by
+item 632: `tools/explore/test_memcap.py` timed out in `offline_tests.py`
+at load average 6.6 with a sibling lane gating, before any cargo step,
+and passed alone in 2.9 s. A gate that can go red on the box's load is a
+gate whose red means less; with two lanes and a commander gating, it will.
+
 (630) **A restage booked on a premise a reading already kills.** Filed by
 the commander on 2026-09-23 from item 628's staging reading. The twelfth
 pass restaged chapter seven as seven-b for who=1, "where the cheat's block

@@ -25,16 +25,16 @@ the rules track closed chapters four (1500), seven (1200) and three
   floor is a pin; a packet is taken at the word's own logger frame.
 - **598 rides in 620**: `inside_up`'s container row goes into `compare`
   inside the widening. 571 never ran — both lanes held a headline.
-- **Fable backlog: 5 Loop items** (313, 527, 630, 638, 639); the `FABLE:` batch was empty.
+- **Fable backlog: 6 Loop items** (313, 527, 630, 638, 639, 645); the `FABLE:` batch was empty.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w11747 of 24,000 · GreatLakes w12038 of 24,000
-Golden: ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch7 closed · restage closed · ch7b closed · ch7b-control w1036 of 1200 · 632 next
+Golden: ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch7 closed · restage closed · ch7b closed · ch7b-control w1176 of 1200 · 644 next
 Endpoint 24001: EastIndies 49 off, 8 unlinked · GreatLakes 41 off, 0 unlinked
 
-**Opener: six landings since the twelfth pass's commit; the restage and
-seven-b closed, East Indies 11069 → 11747. 632 has the rules lane.
-Spawn 642 on the AI lane; 571 follows 642. Stop at twenty.**
+**Opener: seven landings since the twelfth pass's commit. 642 has the
+AI lane; spawn 644 on the rules lane (seven-b's control, 1176). 571
+follows 642, then 643 when it is booked. Stop at twenty.**
 
 ## The queue
 
@@ -61,12 +61,14 @@ backlog is `docs/PARKED.md`, and an item returns only when a score names it.
     against 5, `move_step+0x823`. No mechanism. Optional second run if a
     lane is free: a packet at 11922 with the nine guys' move path on it.
 
-632. **Chapter seven-b's control word is 1036** (628 captured run157;
-    seven-b itself closed at 1200 on 629's Merchant seat). On 1036 ours 8
-    draws against 7 at draw 2: who=1's `1/1` takes an idle roll where the
-    original's walks. From 990 the original holds it in group 65 with
-    three orders and `form_mod` 50; ours holds group 64, one order and no
-    formation. Widened whole. No mechanism. On the rules lane now.
+644. **Chapter seven-b's control word is 1176** (632 moved it 1036 →
+    1176: `finish_insert` re-issues a build behind a group `QUEUE_FIRST`,
+    and citizens take the `form_mod` twin, GROUPS §24). On 1176 who=1's
+    `Leader::produce_building` spends 69 draws against 249, parting at
+    draw 34 (theirs `Build::find_gather_tiles+0x10a`); on 1177 the
+    original sends `1/7` toward a site and ours keeps it gathering.
+    Widened on (605, 1178). Hypothesis: parked 633, who=1's
+    `resource_cap`, food parting from 1018. No mechanism.
 
 ## How to maintain this file
 
