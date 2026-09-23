@@ -797,6 +797,9 @@ leader's. Great Lakes **6463 → 6582**, East Indies **6739 → 7448**;
 `crates/sim`'s `a_crew_figure_of_a_packing_type_pays_the_turning_stand` is
 the mechanic with a non-packing control that spends nothing.
 
+*And a fourth chain*, the crew's through `do_turn`'s recursion, is §4.14
+(item 628).
+
 *What is not established.* `Unit::detect_boat_collision`'s call is not
 modelled and no capture reaches it. The set `do_turn` recurses into is read
 here as "guy 0 and the trackless crew", which is the set `Guy::move`'s follow
@@ -1264,6 +1267,20 @@ data entered the sim.
 - **Which attackers this reaches.** Every packet that names fewer than
   three attack slots. The Trireme is the first on this disk. No census
   of the others has been taken.
+
+## 4.14 The crew's turn is a fourth chain: `do_turn`'s recursion (item 628, 2026-09-23)
+
+A trackless crew figure's turn draw is `do_turn`'s from inside `do_turn`: `:38` recurses
+from `+0xe5`, so the chain is `set_anim+0x97a < do_turn+0x4a < do_turn+0xe5`,
+whichever of the three rows above turned guy 0. `rondata::trace`'s table had
+no entry for it and printed the original's draw as a bare `5dac7a`, while this
+crate labelled every guy of the turn with guy 0's site. The count agreed and
+the label could not. Golden chapter seven-b's fur trapper `1/10` turning on
+672 is the first record of it (run156: guy 0 under `move_step+0x389`, the
+crew under `do_turn+0xe5`). `crate::anim::SITE_TURN_CREW` names it on both
+sides, and `Sim::do_turn_anim` marks it for each crew figure and restores the
+caller's label after. Only labels change, never a draw. run156's sequence
+parting moves 672 → 1148; every other capture is unchanged.
 
 ## 5. `Guy::inc_time@005d9e10` — the step and the wrap
 

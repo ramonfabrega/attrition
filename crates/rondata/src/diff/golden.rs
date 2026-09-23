@@ -4972,6 +4972,172 @@ fn chapter_seven_s_control_holds_to_the_golden_word() {
     );
 }
 
+/// **Chapter seven-b's pair is one game until `ai off` is first read**
+/// (item 628): run156 is `chapter7b.cmd` and run157
+/// `chapter7b_control.cmd`, the same file less `0 !ai off`. As chapter
+/// seven's pair, the draw streams agree through frame 0 and part on
+/// frame 1, where `Leader::production_ai` first reads the flag.
+#[test]
+fn chapter_seven_b_s_pair_is_one_game_until_the_gate() {
+    let (Some((_, a)), Some((_, b))) = (golden("ch7b"), golden("ch7bc")) else {
+        eprintln!("skipping: chapter seven-b needs both run156 and run157 (docs/RUNS.md)");
+        return;
+    };
+    let read = |p: &str| {
+        crate::trace::Trace::read(std::path::Path::new(p))
+            .expect("a finalized golden trace")
+            .expect("missing RONT header")
+    };
+    let (ta, tb) = (read(&a), read(&b));
+    let parted = (0..=1200).find(|&f| ta.labels(f) != tb.labels(f));
+    let agreed: usize = (0..parted.unwrap_or(1201))
+        .map(|f| ta.labels(f).len())
+        .sum();
+    assert_eq!(
+        parted,
+        Some(1),
+        "the pair parts where `ai off` is first read"
+    );
+    assert_eq!(agreed, 120, "frame 0's draws, identical in the pair");
+    eprintln!(
+        "chapter seven-b: frame 1 is {} draws in run156 and {} in run157",
+        ta.labels(1).len(),
+        tb.labels(1).len()
+    );
+}
+
+/// **What `ai off` takes from a computer's civilians in `Unit::think`:
+/// nothing, and it could not** (item 628, run156 and run157;
+/// `docs/INPUT.md` §11.10). Every one of the five carries `unit_masks &
+/// 0x40000` from its birth — `Unit::init@00612100:585` sets it for a leader
+/// whose `flags & 0xc` is not 4, and who=1's is `0x13` — so the cheat's
+/// block in `Unit::think` (`:206`) is entered and its one exit (`:264`)
+/// never taken. The citizen takes its `GATHERORDER` on its birth block
+/// under `!ai off`, which is `docs/GOLDEN.md` §11's first falsifier; the
+/// control's citizen takes the same order on the same block, which is the
+/// second's not firing.
+///
+/// The five are found by their birth blocks, never by slot: the AI trains
+/// three citizens in the control before 605, so they are `1/9..1/13` there
+/// and `1/6..1/10` in run156.
+#[test]
+fn chapter_seven_b_s_civilians_act_alike_with_the_ai_off_and_on() {
+    use std::collections::BTreeMap;
+    let (Some((a, _)), Some((b, _))) = (golden("ch7b"), golden("ch7bc")) else {
+        eprintln!("skipping: chapter seven-b needs both run156 and run157 (docs/RUNS.md)");
+        return;
+    };
+    // birth block → (guy type, masks at birth, first block of each order kind)
+    type Five = BTreeMap<i64, (Option<i64>, i64, BTreeMap<String, i64>)>;
+    let five = |p: &str| -> Five {
+        let mut ix = crate::capture::indexed::IndexedCapture::open(p).unwrap();
+        let mut born: BTreeMap<i64, i64> = BTreeMap::new();
+        let mut out = Five::new();
+        for at in 0..ix.frames().len() {
+            let frame = ix.frame_state(at).unwrap();
+            if frame.n < 605 {
+                continue;
+            }
+            for u in frame.units.iter().filter(|u| u.who == 1) {
+                let birth = *born.entry(u.o).or_insert(frame.n);
+                if ![611, 616, 621, 626, 631].contains(&birth) {
+                    continue;
+                }
+                let e = out.entry(birth).or_insert_with(|| {
+                    (
+                        u.guys.first().and_then(|g| g.kind),
+                        u.unit_masks.unwrap_or(0),
+                        BTreeMap::new(),
+                    )
+                });
+                for o in &u.orders {
+                    e.2.entry(o.kind.clone()).or_insert(frame.n);
+                }
+            }
+        }
+        out
+    };
+    let (fa, fb) = (five(&a), five(&b));
+    for (run, f) in [("run156", &fa), ("run157", &fb)] {
+        let types: Vec<(i64, Option<i64>)> = f.iter().map(|(n, e)| (*n, e.0)).collect();
+        assert_eq!(
+            types,
+            [
+                (611, Some(50)),
+                (616, Some(59)),
+                (621, Some(61)),
+                (626, Some(52)),
+                (631, Some(400))
+            ],
+            "{run}: the five's births and types"
+        );
+        assert!(
+            f.values().all(|e| e.1 & 0x40000 != 0),
+            "{run}: a civilian of who=1 without `unit_masks & 0x40000`"
+        );
+        let firsts = |n: i64| -> Vec<(String, i64)> {
+            f[&n].2.iter().map(|(k, v)| (k.clone(), *v)).collect()
+        };
+        assert_eq!(
+            firsts(611).first(),
+            Some(&("GATHERORDER".to_string(), 611)),
+            "{run}: the citizen gathers on its birth block"
+        );
+        assert!(firsts(616).is_empty(), "{run}: the caravan takes an order");
+        assert!(firsts(626).is_empty(), "{run}: the scholar takes an order");
+        assert_eq!(
+            firsts(631),
+            [
+                ("CASTORDER".to_string(), 1151),
+                ("MOVEORDER".to_string(), 631)
+            ],
+            "{run}: the fur trapper's orders"
+        );
+    }
+    // The merchant is the one of the five whose orders differ in time:
+    // it casts on 900 under `!ai off` and on 887 without it.
+    let cast = |f: &Five| f[&621].2.get("CASTORDER").copied();
+    assert_eq!((cast(&fa), cast(&fb)), (Some(900), Some(887)));
+}
+
+/// **Chapter seven-b, walked** — the computer's civilians under the cheat
+/// (`docs/GOLDEN.md` §11, item 628, run156). Seven staged lines: `!ai off`,
+/// `library who=1 2`, and the five `add`s for who=1 beside London.
+#[test]
+fn chapter_seven_b_holds_to_the_golden_word() {
+    let Some(w) = walk_script("ch7b", "chapter7b", 7, 7, 1200) else {
+        return;
+    };
+    assert_eq!(
+        (w.word, w.sequence, w.value),
+        (
+            GOLDEN_WORD_CHAPTER_SEVEN_B,
+            GOLDEN_WORD_CHAPTER_SEVEN_B,
+            Some(GOLDEN_WORD_CHAPTER_SEVEN_B + 1)
+        ),
+        "chapter seven-b's golden word moved; re-pin it here and say so in \
+         docs/GOLDEN.md §11"
+    );
+}
+
+/// **Chapter seven-b's control, walked to the same end** (item 628,
+/// run157: `chapter7b_control.cmd`, six staged lines, the Leader AI on).
+#[test]
+fn chapter_seven_b_s_control_holds_to_the_golden_word() {
+    let Some(w) = walk_script("ch7bc", "chapter7b_control", 7, 6, 1200) else {
+        return;
+    };
+    assert_eq!(
+        (w.word, w.sequence, w.value),
+        (
+            GOLDEN_WORD_CHAPTER_SEVEN_B_CONTROL,
+            GOLDEN_WORD_CHAPTER_SEVEN_B_CONTROL,
+            Some(GOLDEN_WORD_CHAPTER_SEVEN_B_CONTROL + 1)
+        ),
+        "chapter seven-b's control's word moved"
+    );
+}
+
 /// One `GOOD` record of a frame block, in the block's order — the order
 /// the start block's list, and so this crate's `World::goods`, has
 /// (`diff::setup`). `Good::log_data@0066e610` writes the type's name as a
@@ -5018,6 +5184,178 @@ fn frame_goods(raw: &str) -> Vec<FrameGood> {
     out
 }
 
+/// **One golden capture of the civilians' chapters, widened whole**
+/// (items 578 and 628): every record on every block of `[first, last)` —
+/// [`crate::diff::harness::widen_block`] on every unit, figure, building
+/// and city, the leader record for both players at `LEADERS=2`, and the
+/// per-frame `GOOD` list keyed on `o`. The civilians of `who` (`o >= 6`)
+/// are printed both sides on the blocks of `print`. Returns each parted
+/// key's first block and row; `None` when the capture is not on disk.
+#[allow(clippy::type_complexity)]
+fn widen_civilians(
+    run: &str,
+    stem: &str,
+    (first, last): (i64, i64),
+    no_block: i64,
+    who: i64,
+    print: (i64, i64),
+) -> Option<std::collections::BTreeMap<(i64, i64, String), (i64, String)>> {
+    use std::collections::{BTreeMap, BTreeSet};
+    let mut s = stage_script(run, stem)?;
+    let players = s.built.sim.players.len();
+    let mut firsts: BTreeMap<(i64, i64, String), (i64, String)> = BTreeMap::new();
+    let mut missing: BTreeSet<String> = BTreeSet::new();
+    let (mut blocks, mut rows, mut leader_rows, mut good_rows) = (0usize, 0, 0, 0);
+    let mut unread_goods = 0usize;
+    for f in 0..last - 1 {
+        s.script.stage(s.built.sim.frame, &mut s.built, &s.loaded);
+        s.built.tick();
+        let n = f + 1;
+        if n < first {
+            continue;
+        }
+        let Some(at) = s.ix.frames().iter().position(|x| x.number == n) else {
+            continue;
+        };
+        let frame = s.ix.frame_state(at).unwrap();
+        blocks += 1;
+        let (_, k) = crate::diff::harness::widen_block(&s.built, &frame, players, n, &mut firsts);
+        rows += k;
+        let raw = s.ix.read_frame(at).unwrap();
+        let flog = Log::parse(&raw);
+        for who in 0..2usize {
+            let Some(block) = flog.leader_block(n, who as i64) else {
+                continue;
+            };
+            let t = crate::diff::leader::theirs(&block);
+            for (k, v) in crate::diff::leader::rows(&s.loaded, &s.built, who) {
+                let Some(&y) = t.get(&k) else {
+                    missing.insert(k);
+                    continue;
+                };
+                leader_rows += 1;
+                if v != y {
+                    firsts
+                        .entry((who as i64, -1, format!("leader:{k}")))
+                        .or_insert((n, format!("ours {v} theirs {y}")));
+                }
+            }
+        }
+        // **The `GOOD` list, both directions**, keyed on the good's own
+        // `o`, which is its index in this crate's `World::goods`
+        // (`diff::setup` installs the start block's list in order).
+        // **The dump cannot print `o 0`'s header**: every block writes
+        // the first good's `SubObject` fields straight after the last
+        // `GUY` of the list before it, with no `BEGIN GOOD`, no name and
+        // no `ever_seen` — run141's line 583513, and the same on every
+        // frame. So `o 0` is counted as unreadable, not compared.
+        let theirs: BTreeMap<i64, FrameGood> =
+            frame_goods(&raw).into_iter().map(|g| (g.o, g)).collect();
+        let ours = s.built.sim.world.goods();
+        for i in 0..ours
+            .len()
+            .max(theirs.keys().max().map_or(0, |&o| o as usize + 1))
+        {
+            let (a, g) = match (theirs.get(&(i as i64)), ours.get(i)) {
+                (Some(a), Some(g)) => (a, g),
+                (None, Some(_)) if i == 0 => {
+                    unread_goods += 1;
+                    continue;
+                }
+                (a, _) => {
+                    let side = if a.is_some() {
+                        "the dump"
+                    } else {
+                        "this crate"
+                    };
+                    firsts
+                        .entry((255, i as i64, "good".to_string()))
+                        .or_insert((n, format!("{side} holds it alone")));
+                    continue;
+                }
+            };
+            let name = s
+                .loaded
+                .good_tree
+                .iter()
+                .position(|&t| t == g.ty)
+                .map_or("?", |r| s.loaded.good_names[r].as_str());
+            let seen = (0..2u8)
+                .filter(|&w| s.built.sim.good_ever_seen(g.pos, w))
+                .fold(0i64, |m, w| m | (1 << w));
+            for (what, mine, dumped) in [
+                ("x", i64::from(g.pos.x), a.x),
+                ("y", i64::from(g.pos.y), a.y),
+                ("alive", i64::from(g.alive), a.flags & 1),
+                ("ever_seen", seen, a.ever_seen),
+                ("type", i64::from(name == a.name), 1),
+            ] {
+                good_rows += 1;
+                if mine != dumped {
+                    firsts
+                        .entry((255, i as i64, format!("good:{what}")))
+                        .or_insert((n, format!("ours {mine} theirs {dumped} ({})", a.name)));
+                }
+            }
+        }
+        // **Both sides printed once** on the citizen's two blocks, for
+        // the five: the record a draw would be spent in, before any
+        // quiet row is trusted.
+        if (print.0..=print.1).contains(&n) {
+            for them in frame.units.iter().filter(|u| u.who == who && u.o >= 6) {
+                let mine = i16::try_from(them.o)
+                    .ok()
+                    .and_then(|o| s.built.sim.unit_by_o(who as u8, o))
+                    .map(|u| &s.built.sim.units[u]);
+                eprintln!("  {run} block {n} {who}/{} theirs {them:?}", them.o);
+                match mine {
+                    Some(u) => eprintln!(
+                        "  {run} block {n} {who}/{} ours pos {:?} idle {} orders {:?} guys {:?}",
+                        them.o, u.pos, u.idle, u.orders, u.guys
+                    ),
+                    None => eprintln!("  {run} block {n} {who}/{} ours: absent", them.o),
+                }
+            }
+        }
+    }
+    let mut by_block: BTreeMap<i64, Vec<String>> = BTreeMap::new();
+    for ((w, o, what), (f, row)) in &firsts {
+        by_block
+            .entry(*f)
+            .or_default()
+            .push(format!("{w}/{o} {what}: {row}"));
+    }
+    for (f, rows) in &by_block {
+        if rows.len() <= 12 {
+            for r in rows {
+                eprintln!("  {run} f{f} {r}");
+            }
+        } else {
+            eprintln!("  {run} f{f}: {} keys, first {}", rows.len(), rows[0]);
+        }
+    }
+    eprintln!(
+        "widening {run}: {blocks} blocks [{first}, {last}), {rows} record rows, \
+         {leader_rows} leader rows, {good_rows} good rows ({unread_goods} unreadable), \
+         {} keys parted; {} leader keys not printed at LEADERS=2",
+        firsts.len(),
+        missing.len()
+    );
+    let absent = usize::from((first..last).contains(&no_block));
+    assert_eq!(
+        blocks,
+        (last - first) as usize - absent,
+        "{run}'s dump no longer carries every frame of [{first}, {last})"
+    );
+    assert_eq!(
+        leader_rows,
+        2 * 88 * blocks,
+        "{run}: the leader rows LEADERS=2 prints are not compared on every block"
+    );
+    assert!(good_rows > 0, "{run}: the GOOD list is not read");
+    Some(firsts)
+}
+
 /// **Chapter seven's word, widened whole, both directions, on both
 /// captures** (item 578, `docs/DECISIONS.md` 43). Every record run141 and
 /// run142 carry on every block of [`WIDENING_CHAPTER_SEVEN`]:
@@ -5040,168 +5378,16 @@ fn frame_goods(raw: &str) -> Vec<FrameGood> {
 /// out on every block; it is keyed on `o` now.
 #[test]
 fn chapter_seven_s_word_frame_is_widened_whole() {
-    use std::collections::{BTreeMap, BTreeSet};
     const FIRST: i64 = WIDENING_CHAPTER_SEVEN.0;
     const LAST: i64 = WIDENING_CHAPTER_SEVEN.1;
     /// The window is 605..1199 and the `!quit` block is 1201.
     const NO_BLOCK: i64 = 1200;
     let mut summaries = Vec::new();
     for (run, stem) in [("ch7", "chapter7"), ("ch7c", "chapter7_control")] {
-        let Some(mut s) = stage_script(run, stem) else {
+        let Some(firsts) = widen_civilians(run, stem, (FIRST, LAST), NO_BLOCK, 0, (763, 764))
+        else {
             return;
         };
-        let players = s.built.sim.players.len();
-        let mut firsts: BTreeMap<(i64, i64, String), (i64, String)> = BTreeMap::new();
-        let mut missing: BTreeSet<String> = BTreeSet::new();
-        let (mut blocks, mut rows, mut leader_rows, mut good_rows) = (0usize, 0, 0, 0);
-        let mut unread_goods = 0usize;
-        for f in 0..LAST - 1 {
-            s.script.stage(s.built.sim.frame, &mut s.built, &s.loaded);
-            s.built.tick();
-            let n = f + 1;
-            if n < FIRST {
-                continue;
-            }
-            let Some(at) = s.ix.frames().iter().position(|x| x.number == n) else {
-                continue;
-            };
-            let frame = s.ix.frame_state(at).unwrap();
-            blocks += 1;
-            let (_, k) =
-                crate::diff::harness::widen_block(&s.built, &frame, players, n, &mut firsts);
-            rows += k;
-            let raw = s.ix.read_frame(at).unwrap();
-            let flog = Log::parse(&raw);
-            for who in 0..2usize {
-                let Some(block) = flog.leader_block(n, who as i64) else {
-                    continue;
-                };
-                let t = crate::diff::leader::theirs(&block);
-                for (k, v) in crate::diff::leader::rows(&s.loaded, &s.built, who) {
-                    let Some(&y) = t.get(&k) else {
-                        missing.insert(k);
-                        continue;
-                    };
-                    leader_rows += 1;
-                    if v != y {
-                        firsts
-                            .entry((who as i64, -1, format!("leader:{k}")))
-                            .or_insert((n, format!("ours {v} theirs {y}")));
-                    }
-                }
-            }
-            // **The `GOOD` list, both directions**, keyed on the good's own
-            // `o`, which is its index in this crate's `World::goods`
-            // (`diff::setup` installs the start block's list in order).
-            // **The dump cannot print `o 0`'s header**: every block writes
-            // the first good's `SubObject` fields straight after the last
-            // `GUY` of the list before it, with no `BEGIN GOOD`, no name and
-            // no `ever_seen` — run141's line 583513, and the same on every
-            // frame. So `o 0` is counted as unreadable, not compared.
-            let theirs: BTreeMap<i64, FrameGood> =
-                frame_goods(&raw).into_iter().map(|g| (g.o, g)).collect();
-            let ours = s.built.sim.world.goods();
-            for i in 0..ours
-                .len()
-                .max(theirs.keys().max().map_or(0, |&o| o as usize + 1))
-            {
-                let (a, g) = match (theirs.get(&(i as i64)), ours.get(i)) {
-                    (Some(a), Some(g)) => (a, g),
-                    (None, Some(_)) if i == 0 => {
-                        unread_goods += 1;
-                        continue;
-                    }
-                    (a, _) => {
-                        let side = if a.is_some() {
-                            "the dump"
-                        } else {
-                            "this crate"
-                        };
-                        firsts
-                            .entry((255, i as i64, "good".to_string()))
-                            .or_insert((n, format!("{side} holds it alone")));
-                        continue;
-                    }
-                };
-                let name = s
-                    .loaded
-                    .good_tree
-                    .iter()
-                    .position(|&t| t == g.ty)
-                    .map_or("?", |r| s.loaded.good_names[r].as_str());
-                let seen = (0..2u8)
-                    .filter(|&w| s.built.sim.good_ever_seen(g.pos, w))
-                    .fold(0i64, |m, w| m | (1 << w));
-                for (what, mine, dumped) in [
-                    ("x", i64::from(g.pos.x), a.x),
-                    ("y", i64::from(g.pos.y), a.y),
-                    ("alive", i64::from(g.alive), a.flags & 1),
-                    ("ever_seen", seen, a.ever_seen),
-                    ("type", i64::from(name == a.name), 1),
-                ] {
-                    good_rows += 1;
-                    if mine != dumped {
-                        firsts
-                            .entry((255, i as i64, format!("good:{what}")))
-                            .or_insert((n, format!("ours {mine} theirs {dumped} ({})", a.name)));
-                    }
-                }
-            }
-            // **Both sides printed once** on the citizen's two blocks, for
-            // the five: the record a draw would be spent in, before any
-            // quiet row is trusted.
-            if (763..=764).contains(&n) {
-                for them in frame.units.iter().filter(|u| u.who == 0 && u.o >= 6) {
-                    let mine = i16::try_from(them.o)
-                        .ok()
-                        .and_then(|o| s.built.sim.unit_by_o(0, o))
-                        .map(|u| &s.built.sim.units[u]);
-                    eprintln!("  {run} block {n} 0/{} theirs {them:?}", them.o);
-                    match mine {
-                        Some(u) => eprintln!(
-                            "  {run} block {n} 0/{} ours pos {:?} idle {} orders {:?} guys {:?}",
-                            them.o, u.pos, u.idle, u.orders, u.guys
-                        ),
-                        None => eprintln!("  {run} block {n} 0/{} ours: absent", them.o),
-                    }
-                }
-            }
-        }
-        let mut by_block: BTreeMap<i64, Vec<String>> = BTreeMap::new();
-        for ((w, o, what), (f, row)) in &firsts {
-            by_block
-                .entry(*f)
-                .or_default()
-                .push(format!("{w}/{o} {what}: {row}"));
-        }
-        for (f, rows) in &by_block {
-            if rows.len() <= 12 {
-                for r in rows {
-                    eprintln!("  {run} f{f} {r}");
-                }
-            } else {
-                eprintln!("  {run} f{f}: {} keys, first {}", rows.len(), rows[0]);
-            }
-        }
-        eprintln!(
-            "ch7 widening {run}: {blocks} blocks [{FIRST}, {LAST}), {rows} record rows, \
-             {leader_rows} leader rows, {good_rows} good rows ({unread_goods} unreadable), \
-             {} keys parted; {} leader keys not printed at LEADERS=2",
-            firsts.len(),
-            missing.len()
-        );
-        let absent = usize::from((FIRST..LAST).contains(&NO_BLOCK));
-        assert_eq!(
-            blocks,
-            (LAST - FIRST) as usize - absent,
-            "{run}'s dump no longer carries every frame of [{FIRST}, {LAST})"
-        );
-        assert_eq!(
-            leader_rows,
-            2 * 88 * blocks,
-            "{run}: the leader rows LEADERS=2 prints are not compared on every block"
-        );
-        assert!(good_rows > 0, "{run}: the GOOD list is not read");
         summaries.push((run, firsts));
     }
     // **The standing rows of each capture's first block**, none of them
@@ -5268,6 +5454,130 @@ fn chapter_seven_s_word_frame_is_widened_whole() {
         assert_eq!(got, want, "{run}: what parts under the word moved");
         // **The `GOOD` list agrees whole** on every block, `ever_seen`
         // included, bar the one good the dump cannot print.
+        assert!(
+            !firsts
+                .keys()
+                .any(|(w, _, what)| *w == 255 || what.starts_with("good")),
+            "{run}: a good parts"
+        );
+    }
+}
+
+/// **Chapter seven-b's words, widened whole, both directions, on both
+/// captures** (item 628). Every record run156 and run157 carry on every
+/// block of [`WIDENING_CHAPTER_SEVEN_B`], by [`widen_civilians`].
+#[test]
+fn chapter_seven_b_s_word_frame_is_widened_whole() {
+    for (run, stem, window, print) in [
+        ("ch7b", "chapter7b", WIDENING_CHAPTER_SEVEN_B, (1148, 1149)),
+        (
+            "ch7bc",
+            "chapter7b_control",
+            WIDENING_CHAPTER_SEVEN_B_CONTROL,
+            (1036, 1037),
+        ),
+    ] {
+        let Some(firsts) = widen_civilians(run, stem, window, 1200, 1, print) else {
+            return;
+        };
+        for ((w, o, what), (f, row)) in &firsts {
+            eprintln!("  {run} f{f} {w}/{o} {what}: {row}");
+        }
+        // **The standing rows of the first block**, chapter seven's
+        // families: the unmodelled `form`, two leader `bucket`s and two
+        // `filled_gather_slots`, the two capitals' `CITIES` rows — and
+        // who=1's five `resource_cap`s, 1392 here against the original's
+        // 2992: `library who=1 2` at 600 raises the original's cap
+        // (run141, without it, prints 1392) and not this crate's. The
+        // control adds its scout `1/0`'s `group` and explore-order
+        // `facing`, as chapter seven's control does.
+        let standing = |what: &str| {
+            what == "form"
+                || what.starts_with("leader:bucket")
+                || what.starts_with("leader:filled_gather_slots")
+                || what.starts_with("leader:resource_cap")
+                || what.starts_with("city:")
+        };
+        let control = |what: &str| what == "group" || what == "order:move.facing";
+        let at_floor: Vec<&String> = firsts
+            .iter()
+            .filter(|(_, (f, _))| *f == window.0)
+            .map(|((_, _, what), _)| what)
+            .collect();
+        let floor = if run == "ch7b" { 34 } else { 39 };
+        assert!(
+            at_floor
+                .iter()
+                .all(|w| standing(w) || (run == "ch7bc" && control(w)))
+                && at_floor.len() == floor,
+            "{run}: the standing rows on the first block moved ({}): {at_floor:?}",
+            at_floor.len()
+        );
+        // **What parts under each word**, pinned by block and key, none of
+        // it a mechanism (`docs/GOLDEN.md` §11). run156: the scout `1/0`'s
+        // `facing` from 847, as in chapter seven; the merchant `1/8` stands
+        // 24 units off the original's when its cast ends on 1070; and the
+        // fur trapper `1/10`'s move is handed another `dest_y` on 1091,
+        // 14408 against 14804, whose turn is the word. run157: the
+        // computer's own `1/1` is grouped differently from 990 — group 64
+        // against 65, one order against three, no `form_mod` against 50 —
+        // and idles on the word where the original's walks; and who=1's
+        // food bucket from 1018.
+        let mut got: Vec<String> = firsts
+            .iter()
+            .filter(|((_, _, what), (f, _))| *f > window.0 && what != "form")
+            .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
+            .collect();
+        got.sort();
+        let want: &[&str] = if run == "ch7b" {
+            &[
+                "1070 1/8 g.x[0]",
+                "1070 1/8 g.x[1]",
+                "1070 1/8 g.y[0]",
+                "1070 1/8 g.y[1]",
+                "1070 1/8 orders_x",
+                "1070 1/8 orders_y",
+                "1070 1/8 pos",
+                "1091 1/10 angle:Heading",
+                "1091 1/10 heading",
+                "1091 1/10 order:move.dest_y",
+                "1091 1/10 path[0].to",
+                "1092 1/10 angle:Facing",
+                "1092 1/10 g.angle[0]",
+                "1092 1/10 g.angle[1]",
+                "1092 1/10 g.angle[2]",
+                "1092 1/10 g.x[1]",
+                "1093 1/10 g.y[1]",
+                "1095 1/10 g.x[0]",
+                "1095 1/10 g.x[2]",
+                "1095 1/10 pos",
+                "1149 1/10 g.y[0]",
+                "1149 1/10 g.y[2]",
+                "847 1/0 order:move.facing",
+            ]
+        } else {
+            &[
+                "1005 1/1 order:move.angle",
+                "1005 1/1 order:move.dest",
+                "1018 1/-1 leader:bucket[0:food]",
+                "1036 1/1 angle:Heading",
+                "1036 1/1 heading",
+                "1037 1/1 angle:Facing",
+                "1037 1/1 g.angle[0]",
+                "1037 1/1 idle",
+                "1037 1/1 order:action",
+                "1037 1/1 order:flags",
+                "1037 1/1 path:length",
+                "990 1/1 dest_angle",
+                "990 1/1 form_mod",
+                "990 1/1 group",
+                "990 1/1 order:length",
+                "990 1/1 orders.len",
+                "990 1/1 orders_x",
+                "990 1/1 orders_y",
+            ]
+        };
+        assert_eq!(got, want, "{run}: what parts under the word moved");
         assert!(
             !firsts
                 .keys()
@@ -6569,19 +6879,45 @@ fn chapter_three_s_restage_is_widened_whole() {
     // pushes an `ATTACKGROUNDORDER` (index 23) over the attack at the
     // target's point, its figure keeps `ox −1`, and its reload reads 83
     // where ours reads 82 (`docs/COMBAT.md` §56.3).
+    //
+    // **Item 617: 792 → 865** (the delta is in
+    // `GOLDEN_WORD_CHAPTER_THREE_RESTAGE`'s comment; this is the word's
+    // block). `find_free` skips a held dead number (`docs/COMBAT.md` §59),
+    // so arena A's hoplites are `1/9`–`1/11` on both sides and every
+    // `extra`/`unlinked` row and the catapult's `order:target` are gone.
+    // What the numbering had hidden, in frame order past 736: the
+    // catapult's round takes pool slot 0 here and 1 in the dump on 798
+    // (run145's pool-slot family, §55.5); the scout `1/0`'s fresh
+    // `EXPLORETOORDER` move reads `facing 1` here and 0 in the dump on
+    // 847, no draw; and on 865–866 the catapult's fresh attack after the
+    // reload (621's park), which is the word.
     assert_eq!(first, Some(736), "run146's first value parting moved");
     assert_eq!(
         rows_on(WIDENING_CHAPTER_THREE_RESTAGE.0 + 1, WORD + 1),
         vec![
-            "780 0/6 order:target: Target { ours: Some((1, 8)), theirs: Some((1, 11)) }",
+            "798 0/6 ammo[0]: this crate holds it alone",
+            "798 0/6 ammo[1]: the dump holds it alone",
+            "866 0/6 angle:Facing: ours 1071564800 theirs 1131216896",
+            "866 0/6 angle:Heading: ours -966066176 theirs 1131216896",
+            "866 0/6 dest_angle: ours -966066176 theirs 1131216896",
+            "866 0/6 g.angle[0]: ours 1071564800 theirs 1131216896",
+            "866 0/6 g.angle[1]: ours -2090008576 theirs 1131216896",
+            "866 0/6 g.angle[2]: ours 1946222592 theirs 1131216896",
+            "866 0/6 g.x[1]: ours 887 theirs 898",
+            "866 0/6 g.x[2]: ours 671 theirs 665",
+            "866 0/6 g.y[1]: ours 7871 theirs 7872",
+            "866 0/6 g.y[2]: ours 8064 theirs 8044",
+            "866 0/6 heading: ours -966066176 theirs 1131216896",
+            "866 0/6 idle: ours 0 theirs 2",
+            "865 0/6 order:length: Length { ours: 1, theirs: 0 }",
+            "865 0/6 orders.len: ours 1 theirs 0",
+            "866 0/6 orders_x: ours 600 theirs 888",
+            "866 0/6 orders_y: ours 7944 theirs 7992",
+            "866 0/6 path:length: PathLength { ours: 1, theirs: 0 }",
+            "866 0/6 path_recursion: ours 1 theirs 0",
             "736 0/7 ammo[0].ox: ours -1 theirs 8",
             "736 0/7 ammo[0].whom: ours -1 theirs 1",
-            "771 1/6 extra: this crate holds it alone",
-            "771 1/7 extra: this crate holds it alone",
-            "771 1/8 extra: this crate holds it alone",
-            "771 1/9 unlinked: the dump holds it alone",
-            "771 1/10 unlinked: the dump holds it alone",
-            "771 1/11 unlinked: the dump holds it alone",
+            "847 1/0 order:move.facing: Move { field: \"facing\", ours: 1, theirs: 0 }",
         ],
         "a row past run146's first rounds moved"
     );
@@ -6601,49 +6937,282 @@ fn chapter_three_s_restage_is_widened_whole() {
     // gone. What stands is 617's numbering on the attack beneath the
     // ground order, the same hoplite by position.
     //
-    // **Item 625: 782 → 792** (the delta is in
+    // **Item 625: 782 → 792**: the crew mirror the turn
+    // (`docs/COMBAT.md` §58), and the word's blocks were 792–793, where
+    // nothing parted but 617's numbering.
+    //
+    // **Item 617: 792 → 865** (the delta is in
     // `GOLDEN_WORD_CHAPTER_THREE_RESTAGE`'s comment; this is the word's
-    // block). The crew mirror the turn (`docs/COMBAT.md` §58), and the
-    // word's blocks are now 792–793. Nothing parts on them but 617's
-    // numbering, and that is the word itself: the draw is a re-search by
-    // one of arena A's hoplites, which ours number 6–8 and the dump 9–11,
-    // so they are `extra` and `unlinked` here and no field of theirs is
-    // compared. An empty list past the numbering is the blind, not
-    // agreement.
+    // block). The numbering is the dump's (`docs/COMBAT.md` §59), so
+    // 780–781 are quiet whole: the catapult's attack names `1/11` on both
+    // sides. The word's blocks, 865–866, are the catapult's fresh attack
+    // after its reload, with its chase on 866 (621's park, §57.6): one
+    // order here and none in the dump, then its turn and its crew. The
+    // scout `1/0`'s `facing` row has stood since 847 and spends no draw.
     assert_eq!(
         whole,
         vec![
-            "780 0/6 order:target: Target { ours: Some((1, 8)), theirs: Some((1, 11)) }",
-            "780 1/6 extra: this crate holds it alone",
-            "780 1/7 extra: this crate holds it alone",
-            "780 1/8 extra: this crate holds it alone",
-            "780 1/9 unlinked: the dump holds it alone",
-            "780 1/10 unlinked: the dump holds it alone",
-            "780 1/11 unlinked: the dump holds it alone",
-            "781 0/6 order:target: Target { ours: Some((1, 8)), theirs: Some((1, 11)) }",
-            "781 1/6 extra: this crate holds it alone",
-            "781 1/7 extra: this crate holds it alone",
-            "781 1/8 extra: this crate holds it alone",
-            "781 1/9 unlinked: the dump holds it alone",
-            "781 1/10 unlinked: the dump holds it alone",
-            "781 1/11 unlinked: the dump holds it alone",
-            "792 0/6 order:target: Target { ours: Some((1, 8)), theirs: Some((1, 11)) }",
-            "792 1/6 extra: this crate holds it alone",
-            "792 1/7 extra: this crate holds it alone",
-            "792 1/8 extra: this crate holds it alone",
-            "792 1/9 unlinked: the dump holds it alone",
-            "792 1/10 unlinked: the dump holds it alone",
-            "792 1/11 unlinked: the dump holds it alone",
-            "793 0/6 order:target: Target { ours: Some((1, 8)), theirs: Some((1, 11)) }",
-            "793 1/6 extra: this crate holds it alone",
-            "793 1/7 extra: this crate holds it alone",
-            "793 1/8 extra: this crate holds it alone",
-            "793 1/9 unlinked: the dump holds it alone",
-            "793 1/10 unlinked: the dump holds it alone",
-            "793 1/11 unlinked: the dump holds it alone",
+            "865 0/6 order:length: Length { ours: 1, theirs: 0 }",
+            "865 0/6 orders.len: ours 1 theirs 0",
+            "865 1/0 order:move.facing: Move { field: \"facing\", ours: 1, theirs: 0 }",
+            "866 0/6 angle:Facing: ours 1071564800 theirs 1131216896",
+            "866 0/6 angle:Heading: ours -966066176 theirs 1131216896",
+            "866 0/6 dest_angle: ours -966066176 theirs 1131216896",
+            "866 0/6 g.angle[0]: ours 1071564800 theirs 1131216896",
+            "866 0/6 g.angle[1]: ours -2090008576 theirs 1131216896",
+            "866 0/6 g.angle[2]: ours 1946222592 theirs 1131216896",
+            "866 0/6 g.x[1]: ours 887 theirs 898",
+            "866 0/6 g.x[2]: ours 671 theirs 665",
+            "866 0/6 g.y[1]: ours 7871 theirs 7872",
+            "866 0/6 g.y[2]: ours 8064 theirs 8044",
+            "866 0/6 heading: ours -966066176 theirs 1131216896",
+            "866 0/6 idle: ours 0 theirs 2",
+            "866 0/6 order:length: Length { ours: 2, theirs: 0 }",
+            "866 0/6 orders.len: ours 2 theirs 0",
+            "866 0/6 orders_x: ours 600 theirs 888",
+            "866 0/6 orders_y: ours 7944 theirs 7992",
+            "866 0/6 path:length: PathLength { ours: 1, theirs: 0 }",
+            "866 0/6 path_recursion: ours 1 theirs 0",
+            "866 1/0 order:move.facing: Move { field: \"facing\", ours: 1, theirs: 0 }",
         ],
         "a row on run146's whole blocks moved"
     );
+}
+
+/// **run146's object numbers, both directions** (item 617): every birth
+/// and death of a unit, every `DEATH_OBJS` record's arrival and leaving,
+/// and every round's pool slot, over the whole capture. The widening links
+/// a unit on `(who, o)`, so a unit numbered differently is `extra` on one
+/// side and `unlinked` on the other and none of its fields is compared;
+/// this links a birth on its frame, owner and point instead, and says
+/// which numbers the two sides handed out.
+///
+/// A row is one event. `birth` pairs on `(frame, who, x, y)`; `death` on
+/// the unit's number; `death_obj` on `(who, o, first_frame)`; `ammo` on
+/// `(frame, shooter, slot)`. Anything on one side only is its own row.
+#[test]
+fn chapter_three_s_restage_numbers_its_objects() {
+    use std::collections::{BTreeMap, BTreeSet};
+    let (first, last) = WIDENING_CHAPTER_THREE_RESTAGE;
+    let Some(mut s) = stage_script("ch3b", "chapter3b") else {
+        return;
+    };
+    type Units = BTreeMap<(i64, i64), (i64, i64)>;
+    let (mut ours_prev, mut theirs_prev): (Units, Units) = Default::default();
+    let (mut ours_do, mut theirs_do) = (BTreeSet::new(), BTreeSet::new());
+    let (mut ours_ammo, mut theirs_ammo) = (BTreeSet::new(), BTreeSet::new());
+    let mut rows: Vec<String> = Vec::new();
+    let mut events = 0usize;
+    for f in 0..last - 1 {
+        s.script.stage(s.built.sim.frame, &mut s.built, &s.loaded);
+        s.built.tick();
+        let n = f + 1;
+        let Some(at) = s.ix.frames().iter().position(|x| x.number == n) else {
+            continue;
+        };
+        let frame = s.ix.frame_state(at).unwrap();
+        let sim = &s.built.sim;
+        let ours: Units = sim
+            .units
+            .iter()
+            .filter(|u| u.alive() && u.owner < 8)
+            .map(|u| {
+                (
+                    (i64::from(u.owner), i64::from(u.index)),
+                    (i64::from(u.pos.x), i64::from(u.pos.y)),
+                )
+            })
+            .collect();
+        let theirs: Units = frame
+            .units
+            .iter()
+            .filter(|u| (0..8).contains(&u.who))
+            .map(|u| ((u.who, u.o), (u.pos.x, u.pos.y)))
+            .collect();
+        let raw = s.ix.read_frame(at).unwrap();
+        let o_do: BTreeSet<(i64, i64, i64)> = sim
+            .deaths
+            .iter()
+            .map(|d| (i64::from(d.who), i64::from(d.o), d.first_frame))
+            .collect();
+        let t_do: BTreeSet<(i64, i64, i64)> = frame
+            .deaths
+            .iter()
+            .filter(|d| d.valid == Some(1))
+            .filter_map(|d| Some((d.who?, d.o?, d.first_frame?)))
+            .collect();
+        let o_ammo: BTreeSet<(i64, i64, i64)> = sim
+            .projectiles
+            .iter()
+            .filter_map(|p| match p.shooter {
+                sim::combat::Obj::Unit(u) => {
+                    let un = &sim.units[u];
+                    Some((i64::from(un.owner), i64::from(un.index), i64::from(p.slot)))
+                }
+                sim::combat::Obj::Building(_) => None,
+            })
+            .collect();
+        let t_ammo: BTreeSet<(i64, i64, i64)> = super::ammo::blocks(&raw)
+            .into_iter()
+            .filter(|(a, _)| a.flags & 2 != 0 && a.who < 8)
+            .map(|(a, _)| (a.who, a.o, a.index))
+            .collect();
+        // The window's first block seeds both sides: block 1 before it
+        // prints no unit, so everything on 605 would read as born.
+        if n > first {
+            // Births, paired on the frame, the owner and the point.
+            let born = |now: &Units, prev: &Units| -> BTreeMap<(i64, i64, i64), i64> {
+                now.iter()
+                    .filter(|(k, _)| !prev.contains_key(k))
+                    .map(|(&(who, o), &(x, y))| ((who, x, y), o))
+                    .collect()
+            };
+            let (ob, tb) = (born(&ours, &ours_prev), born(&theirs, &theirs_prev));
+            for k in ob.keys().chain(tb.keys()).collect::<BTreeSet<_>>() {
+                events += 1;
+                let (who, x, y) = *k;
+                match (ob.get(k), tb.get(k)) {
+                    (Some(a), Some(b)) if a == b => {}
+                    (a, b) => rows.push(format!(
+                        "{n} birth {who} at ({x}, {y}): ours {a:?} theirs {b:?}"
+                    )),
+                }
+            }
+            // Deaths, on the number.
+            let died = |now: &Units, prev: &Units| -> BTreeSet<(i64, i64)> {
+                prev.keys()
+                    .filter(|k| !now.contains_key(k))
+                    .copied()
+                    .collect()
+            };
+            let (od, td) = (died(&ours, &ours_prev), died(&theirs, &theirs_prev));
+            for k in od.symmetric_difference(&td) {
+                rows.push(format!(
+                    "{n} death {}/{}: {} alone",
+                    k.0,
+                    k.1,
+                    if od.contains(k) { "ours" } else { "the dump's" }
+                ));
+            }
+            events += od.union(&td).count();
+            // The death-object list and the rounds, arrivals and leavings.
+            for (what, o_prev, t_prev, o_now, t_now) in [
+                ("death_obj", &ours_do, &theirs_do, &o_do, &t_do),
+                ("ammo", &ours_ammo, &theirs_ammo, &o_ammo, &t_ammo),
+            ] {
+                for (dir, o_set, t_set) in [
+                    ("arrives", o_now - o_prev, t_now - t_prev),
+                    ("leaves", o_prev - o_now, t_prev - t_now),
+                ] {
+                    events += o_set.union(&t_set).count();
+                    for k in o_set.symmetric_difference(&t_set) {
+                        rows.push(format!(
+                            "{n} {what} {dir} {k:?}: {} alone",
+                            if o_set.contains(k) {
+                                "ours"
+                            } else {
+                                "the dump's"
+                            }
+                        ));
+                    }
+                }
+            }
+        }
+        (ours_prev, theirs_prev) = (ours, theirs);
+        (ours_do, theirs_do) = (o_do, t_do);
+        (ours_ammo, theirs_ammo) = (o_ammo, t_ammo);
+    }
+    for r in &rows {
+        eprintln!("  numbering: {r}");
+    }
+    assert!(events > 0, "run146's numbering walk read no event");
+    // **The floor, before any reading (item 617)**, and what it was when
+    // it was written: every death agrees
+    // (`1/6` on 680, `1/7` on 728, `1/8` on 736), and so does the whole
+    // death-object list: the three records arrive on those blocks on both
+    // sides and **none leaves** before the capture ends. So nothing is
+    // culled on 771 or anywhere else in the window. The first parting is
+    // the births on 771: arena A's three hoplites, born on the same
+    // points, take the dump's 9–11 and ours' 6–8, the numbers of the dead
+    // whose death objects both sides still hold. **Since item 617's
+    // build** (`docs/COMBAT.md` §59) those three rows are gone: a dead
+    // number is not handed out while its death object holds it.
+    //
+    // The rounds' pool slot is a second family, run145's (`docs/COMBAT.md`
+    // §55.5): the catapult's one round takes slot 1 in the dump and 0
+    // here on 798, and ours fires again on 960 (621's park, 865's fresh
+    // attack), both past the word.
+    assert_eq!(
+        rows,
+        vec![
+            "798 ammo arrives (0, 6, 0): ours alone",
+            "798 ammo arrives (0, 6, 1): the dump's alone",
+            "830 ammo leaves (0, 6, 0): ours alone",
+            "830 ammo leaves (0, 6, 1): the dump's alone",
+            "960 ammo arrives (0, 6, 0): ours alone",
+            "992 ammo leaves (0, 6, 0): ours alone",
+        ],
+        "run146's numbering moved"
+    );
+}
+
+/// **The value diff on the frame 617 moved** (`docs/COMBAT.md` §59): arena
+/// A's three hoplites, `1/9`–`1/11` on both sides, on 790–793. Each row is
+/// `(block, o, x, y, idle, the order list's indices)`, the list sorted,
+/// because the dump prints it from the rotated head. The dump's reach `idle 4`
+/// on 790, 791 and 792 (`(frame + o) & 15`), and take their attack on the
+/// catapult with it. Ours had numbered them 6–8, so they reached it on
+/// 793–795.
+///
+/// Made to fail first: with `Objects::find_free`'s hold test off, ours
+/// hold no `1/9`–`1/11`.
+#[test]
+fn chapter_three_s_arena_a_hoplites_take_the_dump_s_numbers() {
+    let Some(mut s) = stage_script("ch3b", "chapter3b") else {
+        return;
+    };
+    let (mut ours, mut theirs) = (Vec::new(), Vec::new());
+    for f in 0..793 {
+        s.script.stage(s.built.sim.frame, &mut s.built, &s.loaded);
+        s.built.tick();
+        let n = f + 1;
+        if n < 790 {
+            continue;
+        }
+        let at = s.ix.frames().iter().position(|x| x.number == n).unwrap();
+        let frame = s.ix.frame_state(at).unwrap();
+        for o in 9..=11 {
+            if let Some(u) = frame.units.iter().find(|u| u.who == 1 && u.o == o) {
+                theirs.push((n, o, u.pos.x, u.pos.y, u.idle.unwrap_or(-1), {
+                    let mut k: Vec<i64> = u.orders.iter().map(|d| d.index).collect();
+                    k.sort_unstable();
+                    k
+                }));
+            }
+            let sim = &s.built.sim;
+            if let Some(i) = sim.unit_by_o(1, o as i16) {
+                let u = &sim.units[i];
+                ours.push((
+                    n,
+                    o,
+                    i64::from(u.pos.x),
+                    i64::from(u.pos.y),
+                    i64::from(u.idle),
+                    {
+                        let mut k: Vec<i64> =
+                            u.orders.iter().map(|d| i64::from(d.index())).collect();
+                        k.sort_unstable();
+                        k
+                    },
+                ));
+            }
+        }
+    }
+    for r in &theirs {
+        eprintln!("  theirs {r:?}");
+    }
+    assert_eq!(theirs.len(), 12, "the dump's arena-A hoplites");
+    assert_eq!(ours, theirs, "arena A's hoplites on 790-793");
 }
 
 /// **§7's three falsifiers, as the dumps print them** (item 587). Each was

@@ -559,3 +559,75 @@ SEAM, unexercised: this crate folds the block's predicate into `ai_off &&
 it lets a human's units into the tail, where the original's exit still
 closes it for any unit without `0x40000`. Nothing gave these five an order
 in this crate's walk of run142 either, so no dump parts on it yet.
+
+## 11.10 What `ai off` leaves a computer's civilians: all of it, by construction (2026-09-23, item 628)
+
+**Read before the run, and measured on a pair.** `docs/GOLDEN.md` §11's
+restage, chapter seven-b, staged §11.9's five civilians for **who=1**, once
+with `0 !ai off` (run156) and once without (run157). It predicted in
+`chapter7b.cmd`, committed before either capture, that the cheat's block
+takes nothing from them either. Both captures held that.
+
+**Why the block cannot close the tail for a computer's unit.** Three reads,
+two of them on the dump:
+
+- **`Unit::init@00612100:585` sets `unit_masks |= 0x40000` whenever
+  `(leader_flags & 0xc) != 4`.** who=1's flags are `0x03000013`, so every
+  unit the computer owns carries the bit from birth. The dump prints it
+  every time it could. run141's who=1 units on 700 carry 262152 and
+  262154. run146's cheat-`add`ed who=1 hoplites carry 331790. Here all five
+  of the civilians carry it on their birth blocks, in both captures
+  (`chapter_seven_b_s_civilians_act_alike_with_the_ai_off_and_on`).
+- **So `Unit::think@005f6e40:206` is entered and its exit never taken.**
+  For who=1 bit 4 is clear, so the block is entered only with `ai_off`.
+  Its arms are guarded by `uVar4 != 0` (bit 4) and do not run. Its one
+  unconditional statement is `:264`, `if ((unit_masks & 0x40000) == 0)
+  return`, which is false for every unit of who=1. The tail runs exactly as
+  without the cheat.
+- **The citizen's arm is above the block anyway.** `think_peasant` runs at
+  `:158` under `leader_flags & 2`, which both leaders carry. For an
+  AI-driven unit its wait is `idle >= 1`, not the human's 12
+  (`think_peasant@005f5760:16`–`:40`), and its search range is unlimited
+  (`:91`–`:96`).
+
+**What the pair measured.** In both captures:
+
+- the **citizen** holds a `GATHERORDER` on its birth block, 611;
+- the **caravan** and **scholar** never take an order;
+- the **merchant** and **fur trapper** move on their birth blocks and later
+  cast. The fur trapper casts on 1151 in both runs. The merchant casts on
+  900 under the cheat and on 887 without it, the one difference in time
+  among the five.
+
+That is `docs/GOLDEN.md` §11's first falsifier firing, as predicted, and
+its second not firing. The two captures are one game through frame 0 and
+part on frame 1, 12 draws against 54: the production AI, as in chapter
+seven's pair.
+
+**What follows.** On this lobby the `|| ai_off` term of `:206` decides
+nothing for **any** unit born to its current owner. A human's units have
+bit 4, so they enter the block either way (§11.9). A computer's units carry
+`0x40000`, so they leave it either way. The term can decide only for a unit
+with `0x40000` clear under a leader with bit 4 clear. That is a unit born
+to a plain human and later owned by the computer (conversion or capture),
+or one whose leader's flags change after its birth. No `add` can stage it.
+In the simulation's own territory, `ai off` reaches the units only through
+`Leader::production_ai` (§11.4) and `Leader::diplomacy`.
+
+**This crate's stand-in, read again.** `orders.rs` folds the block into
+`ai_off && !ai_driven(owner)`, derived as `(x || ai_off) && !x` with `x =
+ai_driven`. That reads bit 4 as "a computer leader", the reading item 437
+retired. Under the corrected reading, `leader_flags & 4` is `!ai_driven` and
+`unit_masks & 0x40000` is `ai_driven` (for a unit born to its owner, with bit
+8's seam), so the original's predicate is `(!x || ai_off) && !x`, which is
+`!x`. **The cheat drops out.** For who=1 the stand-in and the original agree
+(the tail is open under both). That is why neither capture parts on it, and
+building the block "for who=1" would take nothing. For who=0 without the
+cheat the stand-in opens the tail where the original closes it. That is
+§11.9's SEAM, still unexercised; the fix is the one-term `!ai_driven(owner)`
+and wants its own gate against the long captures, whose human is who=0.
+
+**Where each capture parts in this crate, booked by frame and draw delta**
+(`docs/DECISIONS.md` 42). run156 parts at 1148: the fur trapper `1/10`'s
+turn, 13 draws against 14. run157 parts at 1036: who=1's own `1/1`, 8
+against 7. Neither is the seam (`docs/GOLDEN.md` §11).

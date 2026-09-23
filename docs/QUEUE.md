@@ -25,17 +25,17 @@ the rules track closed chapters four (1500), seven (1200) and three
   floor is a pin; a packet is taken at the word's own logger frame.
 - **598 rides in 620**: `inside_up`'s container row goes into `compare`
   inside the widening. 571 never ran — both lanes held a headline.
-- **Fable backlog: 3 Loop items** (313, 527, 630); the `FABLE:` batch was empty.
+- **Fable backlog: 4 Loop items** (313, 527, 630, 638); the `FABLE:` batch was empty.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w11590 of 24,000 · GreatLakes w12038 of 24,000
-Golden: ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch7 closed · restage w792 of 1000 · 628 next
+Golden: ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch7 closed · restage w865 of 1000 · ch7b-control w1036 of 1200 · ch7b w1148 of 1200 · 627 next
 Endpoint 24001: EastIndies 52 off, 6 unlinked · GreatLakes 45 off, 0 unlinked
 
-**Opener: 620 landed (East Indies 11069 → 11590) and 625 (the restage
-782 → 792). 628 has the rules lane and 629 the AI lane; 617 follows 628,
-and 571 follows 629. Two landings since the twelfth pass's commit; stop
-at twenty.**
+**Opener: 620, 625, 628 and 617 landed; 629 has the AI lane. Spawn 627
+on the rules lane (the restage's 865, the lowest golden word); 632
+follows 627, and 571 follows 629. Four landings since the twelfth pass's
+commit; stop at twenty.**
 
 ## The queue
 
@@ -63,23 +63,21 @@ backlog is `docs/PARKED.md`, and an item returns only when a score names it.
     against 5, `move_step+0x823`. No mechanism. Optional second run if a
     lane is free: a packet at 11922 with the nine guys' move path on it.
 
-628. **Chapter seven-b: the computer's civilians under the cheat** (the
-    twelfth pass; GOLDEN §11's restage, and §3 point 5 names where each
-    falsifier fires). The same five for who=1, `!ai off` and the control
-    — run156 and run157, `[605, 1200)`, chapter seven's dump set — where
-    `Unit::think`'s block decides, and where this crate's one-term seam
-    (INPUT §11.9, `orders.rs`) has its frame. A falsifier that fires
-    stops the item; otherwise the pair pins two words or closes. Takes
-    the rules lane after 625.
+627. **Chapter three's restage word is 865: the catapult attacks afresh
+    after its reload** (617 moved it 792 → 865: `find_free` holds a dead
+    number while its death object lives, COMBAT §59; no cull on either
+    side). On 865 ours 5 draws against 4 at draw 0: ours
+    `Unit::fight+0x9b0` on the catapult's fresh attack and a chase, where
+    the dump's holds nothing until 868 (parked 627, from 621). Values part
+    on 866. No mechanism. Takes the rules lane next.
 
-617. **Chapter three's restage word is 792: the arena-A hoplites attack
-    three frames late** (625 moved it 782 → 792 with `Guy::move`'s walk
-    gate for an unpacked packer, COMBAT §58). On 792 ours 28 draws against
-    29 at draw 24: the original's hoplites take their attack on the
-    catapult and one spends `Unit::fight+0x9b0`; ours take it on 795. The
-    idle's phase is `(frame + o) & 15`, and ours number them 6–8 against
-    the dump's 9–11. Hypothesis: COMBAT §42.5's `DEATH_OBJS` cull on 771
-    (parked 617). No mechanism past the phase. Takes the rules lane after 628.
+632. **Chapter seven-b's two words, 1036 and 1148** (628 captured run156
+    and run157; falsifier 1 fired by construction, `Unit::init`:585, and
+    the chapter is pinned open as measured, GOLDEN §11). run157's control
+    parts on **1036**: who=1's `1/1`, ours 8 draws against 7. run156
+    parts on **1148**: the fur trapper `1/10`'s turn, 13 against 14. Both
+    widened whole; neither is the `ai_off` seam. No mechanism. Takes the
+    rules lane after 627, the lower word first.
 
 ## How to maintain this file
 

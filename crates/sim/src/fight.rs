@@ -57,6 +57,15 @@ pub const SITE_AMMO_SCATTER_X: &str = "Ammo::init+0xcd9";
 /// `Ammo::init@0067bbf0+0xd0b` — the landing scatter's **y** draw.
 pub const SITE_AMMO_SCATTER_Y: &str = "Ammo::init+0xd0b";
 
+/// `Ammo::init@0067bbf0+0xae8` — a **ground** shot's scatter, x: the
+/// attack-ground arm (`init:461`–`484`) has its own pair of calls, the
+/// listing's `67c6d3` and `67c710` (return addresses `67c6d8`, `67c715`),
+/// ahead of `find_data_z` at `67c738` (`docs/COMBAT.md` §57.4, §59.5).
+pub const SITE_AMMO_GROUND_SCATTER_X: &str = "Ammo::init+0xae8";
+
+/// `Ammo::init@0067bbf0+0xb25` — a ground shot's scatter, y.
+pub const SITE_AMMO_GROUND_SCATTER_Y: &str = "Ammo::init+0xb25";
+
 /// `Ammo::do_damage@00678060+0xc59` — **where a shot that hit nothing
 /// punctures the ground**, the x draw of the pair (`docs/COMBAT.md` §39).
 ///
@@ -1076,13 +1085,13 @@ impl Sim {
     /// with a mark before each draw, because the two addresses are two
     /// entries in the compared sequence and a single label would fold
     /// them into one.
-    fn scatter_landing(&mut self, at: Pos, s: i32) -> Pos {
+    fn scatter_landing(&mut self, at: Pos, s: i32, sites: (&str, &str)) -> Pos {
         if s - 1 < 1 {
             return at;
         }
-        self.mark(SITE_AMMO_SCATTER_X);
+        self.mark(sites.0);
         let dx = self.rng.roll() % s - s / 2;
-        self.mark(SITE_AMMO_SCATTER_Y);
+        self.mark(sites.1);
         let dy = self.rng.roll() % s - s / 2;
         Pos::new(at.x + dx, at.y + dy)
     }
@@ -1249,7 +1258,12 @@ impl Sim {
                 aim.y - crate::movement::cos_component(back, tp.x_size * 0x30),
             );
         }
-        let landing = self.scatter_landing(aim, s);
+        let sites = if ground.is_some() {
+            (SITE_AMMO_GROUND_SCATTER_X, SITE_AMMO_GROUND_SCATTER_Y)
+        } else {
+            (SITE_AMMO_SCATTER_X, SITE_AMMO_SCATTER_Y)
+        };
+        let landing = self.scatter_landing(aim, s, sites);
         let clamp = |q: Pos, w: &crate::World| {
             Pos::new(
                 q.x.clamp(0, w.width() * UNITS_PER_CELL - 1),
@@ -1854,9 +1868,12 @@ impl Sim {
     pub(crate) fn hold_frames_tick(&mut self) {
         for k in 0..self.deaths.len() {
             let (who, o) = (self.deaths[k].who, self.deaths[k].o);
-            if let Some(u) = i16::try_from(o)
-                .ok()
-                .and_then(|o| self.unit_by_o(who as crate::Player, o))
+            // The object in the slot, dead or not: `unit_by_o` finds only
+            // the living, and this bump is on the dead (§59).
+            if let Some(u) = self
+                .units
+                .iter()
+                .rposition(|u| i32::from(u.owner) == who && i32::from(u.index) == o)
             {
                 self.units[u].hold_frames += 1;
             }
@@ -3958,6 +3975,46 @@ mod tests {
             slots(&sim),
             vec![(0, 7), (1, 5), (2, 6)],
             "the freed slot, stepped first"
+        );
+    }
+
+    /// **A dead unit's number is held while its death object lives**
+    /// (`docs/COMBAT.md` §59). `DeathObj::inc_time` bumps the dead slot's
+    /// `hold_frames` every frame, `Objects::process_all` takes one off, and
+    /// `Objects::find_free` skips a dead number whose hold is not zero.
+    /// run146's arena-A hoplites are born into 9–11 for this reason, and
+    /// not into the dead 6–8.
+    #[test]
+    fn a_dead_unit_s_number_is_held_while_its_death_object_lives() {
+        let (mut sim, ty) = at_war();
+        let a = put(&mut sim, 1, ty, Pos::new(0x1000, 0x1000));
+        put(&mut sim, 1, ty, Pos::new(0x1400, 0x1000));
+        sim.units[a].health = 0;
+        sim.hold_dead_slot(a);
+        sim.deaths.push(combat::Death {
+            who: 1,
+            o: 0,
+            first_frame: 0,
+            cur_anim: 17,
+        });
+        for _ in 0..40 {
+            sim.tick();
+            assert!(sim.units[a].hold_frames > 0, "the death object holds 1/0");
+        }
+        assert_eq!(
+            sim.find_free(1, crate::UNIT_BASE, crate::BUILD_BASE),
+            Some(2),
+            "a held number is not handed out"
+        );
+        // The death object's end: nothing bumps it, and the next pass of
+        // `process_all` takes the last frame off.
+        sim.deaths.clear();
+        sim.tick();
+        assert_eq!(sim.units[a].hold_frames, 0);
+        assert_eq!(
+            sim.find_free(1, crate::UNIT_BASE, crate::BUILD_BASE),
+            Some(0),
+            "a number nothing holds is reused"
         );
     }
 

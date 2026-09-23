@@ -224,6 +224,14 @@ pub const SITES: &[(u32, Option<u32>, &str)] = &[
         Some(0x005d_9789), // `Guy::turn_towards+0x69`
         sim::anim::SITE_TURN_STAND,
     ),
+    // …and the crew's, `do_turn` recursing into its trackless crew from
+    // `+0xe5`. The trace printed it bare as `5dac7a` on golden chapter
+    // seven-b's 672 until item 628.
+    (
+        0x005d_ac7a,
+        Some(0x005d_9885), // `Guy::do_turn+0xe5`
+        sim::anim::SITE_TURN_CREW,
+    ),
     // `Unit::resolve_unit_collision@005f9d30+0xb52` — the head-on pair's
     // stagger, the collision mechanic's only draw.
     // `Unit::think_fish@005f4c60` — the jitter each accepted cell spends
@@ -427,6 +435,12 @@ pub const SITES: &[(u32, Option<u32>, &str)] = &[
     // separates them at this depth and none is given.
     (0x0067_c8c9, None, sim::fight::SITE_AMMO_SCATTER_X),
     (0x0067_c8fb, None, sim::fight::SITE_AMMO_SCATTER_Y),
+    // The attack-ground arm's own pair (`init:461`–`484`), ahead of
+    // `find_data_z`: run146's catapult spends them on 797, where they
+    // read as a bare `67c6d8`/`67c715` until item 617 named them
+    // (`docs/COMBAT.md` §59.5).
+    (0x0067_c6d8, None, sim::fight::SITE_AMMO_GROUND_SCATTER_X),
+    (0x0067_c715, None, sim::fight::SITE_AMMO_GROUND_SCATTER_Y),
     // `Object::take_damage@00652020` — a building's **first wound**: one
     // roll at `+0xe1` whenever combat damage reaches an object whose
     // `damage` is still zero and whose vtable `+0x1c` answers 1, and a

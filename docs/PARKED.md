@@ -22,13 +22,37 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Parked by item 617, 2026-09-23 — under the restage's 865
+
+(635) **The scout `1/0`'s fresh `EXPLORETOORDER` move on 847**: `facing 1`
+here, 0 in the dump. No draw.
+
+(636) **The catapult's round takes pool slot 0 here and 1 in the dump on
+798**, run145's family (COMBAT §55.5). No draw.
+
+(637) **The death object's cull** (COMBAT §59.7): `DeathObj::inc_time`
+clears it when its packet ends, and this crate never does; no window
+reaches one, and 617's hold is exact on every window that exists.
+
+## Parked by item 628, 2026-09-23 — the cheat's two terms
+
+(633) **`library who=1 N` leaves who=1's `resource_cap` unraised here**:
+1392 against the original's 2992 from 605 on run156/run157. who=0's is
+raised and agrees (chapter seven). Standing, off the draw stream, pinned
+in seven-b's widening.
+
+(634) **The `ai_off` stand-in's corrected predicate is `!ai_driven(owner)`**
+(`docs/INPUT.md` §11.10): `orders.rs`'s `ai_off && !ai_driven(owner)` was
+derived on the retired reading of bit 4. For who=1 the two agree, which is
+why neither capture parts there. For who=0 without the cheat, ours opens
+`Unit::think`'s tail where the original closes it (§11.9's seam). The fix is
+one term, and it wants its own gate against the long captures, whose who=0
+is the human. Returns when a word names who=0's tail.
+
 ## Parked by item 621, 2026-09-23 — past the restage's word
 
 (626) **The catapult's round leaves the unit's square**: `sim::launch` has
 no node for piece 265's release (COMBAT §22's seam, beside (611)).
-
-(627) **run146's 865**: after its reload the catapult takes a fresh
-attack and a chase, where the dump's holds nothing until 868.
 
 ## Parked by item 613, 2026-09-23 — under East Indies' 11069
 
@@ -649,6 +673,12 @@ Filed by item 523: `o_up` was read only at stand-up and parted silently on
 744, while the coverage pin called it compared. A per-frame "compared"
 check would have caught it. The same family as the five instrument
 defects of the last tranche: scope reported, not measured.
+
+(638) **The `Golden:` line guard reads only the `chN` parts.** Filed by
+item 617: `the_handoff_s_golden_line_is_the_pinned_word` parses `ch1`…`ch7`
+and skips the restage and `ch7b` parts, so it passed with the queue at
+`restage w792` and the constant at 865. The two words the rules lane is
+actually on are the two the guard cannot see.
 
 (630) **A restage booked on a premise a reading already kills.** Filed by
 the commander on 2026-09-23 from item 628's staging reading. The twelfth

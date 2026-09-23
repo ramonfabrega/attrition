@@ -21,8 +21,11 @@ dump's own fields. ~~**Chapters two to eight are a design and nothing more**~~
 **Chapters two, four and five are captured and pinned** (run112, run132/133
 and run127; items 415, 552 and 535), and none of their falsifiers fired;
 **chapter seven is captured (run141/run142, item 578), closed at 1200, and
-its premise did not survive** (§11); **three, six and eight are a design and nothing more** — no capture
-has been run for any of them, and each one's own falsifier section is written
+its premise did not survive** (§11); ~~**three, six and eight are a design
+and nothing more**~~ **chapter three is captured (run145, closed at 900;
+its restage run146, open) and seven-b too (run156/run157, item 628, its
+premise killed by construction and pinned open as measured, §11); six and
+eight are a design and nothing more** — no capture has been run for either, and each one's own falsifier section is written
 precisely so that the first run can say it was wrong. The
 stageability of each is held by a test rather than by this prose
 (`every_chapter_stages_what_it_says_it_stages`).
@@ -499,15 +502,22 @@ original's crew stand on their slots and mirror figure 0's `TURN_LEFT`
 unpacked packer, so the crew, pulled round to their rotated slots,
 keep theirs and take figure 0's turn through the mirror. The crew stand
 on the dump's points and play figure 0's slot on 781–785, and the
-round's landing on 798 reads the dump's. **The word is 792**, 28 draws
+round's landing on 798 reads the dump's. ~~**The word is 792**, 28 draws
 against 29 at draw 24: the original's arena-A hoplites take an attack
 on the catapult on 792 and one spends `Unit::fight+0x9b0`; this crate's
 take it on 795. The idle's +1 every sixteen frames is phased by the
 object number, and this crate numbers those hoplites 6–8 where the dump
-numbers them 9–11. That is the cull below, and it now costs a draw.
-Before it, run146 parts on a round's target (736, run145's family) and,
-on 771, on the dump culling the dead hoplites' `DEATH_OBJS` as arena A's
-are born (`docs/COMBAT.md` §42.5's cull).
+numbers them 9–11.~~ Item 617 widened the numbers
+(`chapter_three_s_restage_numbers_its_objects`). The dump culls nothing:
+the dead hoplites' `DEATH_OBJS` live to 999 on both sides. What parted
+on 771 was the allocator. `Objects::find_free` skips a dead number that
+its death object still holds (`docs/COMBAT.md` §59), so arena A's
+hoplites are 9–11 on both sides now, and reach `idle 4` on the dump's
+frames. **The word is 865**, 5 draws against 4, and values part on 866:
+the catapult's fresh attack after its reload, which is §57.6's third
+residue (621's park). Before it, run146 parts on a round's target (736,
+run145's family), a round's pool slot (798) and the scout `1/0`'s move
+facing (847). None of them spends a draw.
 
 ## 8. Chapter four — the Temple, the border, and the bleed
 
@@ -805,6 +815,52 @@ lean on the fallen premise**: their who=1 units are soldiers, whose
 auto-attack arm runs above the block (item 590), and each closed in
 lockstep to its trace's end.
 
+**Run 2026-09-23 as run156 and run157 (item 628): seven-b's premise fell by
+construction, as `chapter7b.cmd` predicted before either run.**
+`Unit::init@00612100:585` sets `unit_masks & 0x40000` for every unit of a
+leader whose `flags & 0xc` is not 4, which is who=1. So the block's one exit,
+`think:264`, is never taken for a computer's unit, and its arms need bit 4
+(`docs/INPUT.md` §11.10). The records that show it are the five's
+`UNITDATA`. Every one carries `unit_masks & 0x40000` on its birth block in
+both captures, as do run141's who=1 units and run146's cheat-`add`ed
+hoplites. The citizen's order stack holds a `GATHERORDER` on its birth
+block, 611, under `!ai off`, and that is **the first falsifier firing**. The
+control's citizen holds the same order on the same block, so **the second
+does not fire**. The caravan and scholar never take an order. The merchant
+and fur trapper move on birth and cast later: the fur trapper on 1151 in
+both, the merchant on 900 under the cheat and 887 without it. The pair is
+one game through frame 0 and parts on frame 1, 12 draws against 54. **So
+this chapter measures a computer's idle civilians, not the gate**, and the
+`|| ai_off` term decides nothing for a unit born to its current owner on
+this lobby, human or computer (`docs/INPUT.md` §11.10).
+
+**The third falsifier, where this crate parts.** Both captures part in the
+walk, and neither parting is the seam. The one-term stand-in and the
+original both leave who=1's tail open.
+
+- **run156, `GOLDEN_WORD_CHAPTER_SEVEN_B` = 1148**: 13 draws against 14 at
+  draw 6. The original's fur trapper `1/10` spends two turn draws, guy 0
+  under `move_step+0x3b6` and its crew under `do_turn+0xe5`; this crate
+  spends one `Guy::inc_time` stand. Its move was handed another `dest_y` on
+  1091, 14408 against 14804. The merchant `1/8` stands 24 units off the
+  original's when its cast ends on 1070. The sequence parted first at 672,
+  on the same unit's crew turn, where the trace could not name the
+  original's chain. Item 628 named it (`docs/ANIM.md` §4.14), and the
+  sequence moved to the word.
+- **run157, `GOLDEN_WORD_CHAPTER_SEVEN_B_CONTROL` = 1036**: 8 draws against
+  7 at draw 2. who=1's own `1/1` takes an idle roll here where the
+  original's walks. From 990 the original holds it in group 65 with three
+  orders and `form_mod` 50, and this crate holds group 64, one order and
+  no formation. It is the AI's, not one of the five.
+
+Both are widened whole over their windows in
+`chapter_seven_b_s_word_frame_is_widened_whole`, with every parted row
+pinned by block and key. Two more rows stand from the first block. who=1's
+`resource_cap` is 1392 here against the original's 2992, because
+`library who=1 2` raises the original's cap and not this crate's (run141,
+without the line, prints 1392). The scout `1/0`'s `facing` stands from 847,
+as in chapter seven. No mechanism is named for either word.
+
 ## 12. Chapter eight — the commanders, and a war that is declared
 
 **Premise.** Chapter one's `war` is the bare form and changes nothing. This
@@ -901,8 +957,8 @@ below without a run take their number at booking (the eleventh pass).
 | ~~117~~ 142 | seven, the control | `[605, 1200)` | `!ai off` deleted; without it 116 measures nothing — **run142, 112 MB, 331 s; the five act exactly as in run141** |
 | ~~118~~ 145 | three, the mounted and siege lines | `[605, 900)` | **run 2026-09-23 as run145 (item 587), 43 MB, 145 s; word 621; no falsifier fired, two could not** |
 | 146 | three, restaged in two arenas | `[605, 1000)` | **run146 (item 587), 55 MB, 186 s; first parting 633; all three falsifiers reachable, none fired** |
-| 156 | seven-b, the computer's civilians | `[605, 1200)` | the same five for who=1 with `!ai off`, where the cheat's block decides (item 628, the twelfth pass) |
-| 157 | seven-b, the control | `[605, 1200)` | `!ai off` deleted; the AI's economy should reach the citizen, or the pair is vacuous |
+| 156 | seven-b, the computer's civilians | `[605, 1200)` | the same five for who=1 with `!ai off`, where the cheat's block decides (item 628, the twelfth pass) — **run 2026-09-23 (item 628), 106 MB, 295 s; the first falsifier fired by construction; word 1148** |
+| 157 | seven-b, the control | `[605, 1200)` | `!ai off` deleted; the AI's economy should reach the citizen, or the pair is vacuous — **run157, 114 MB, 335 s on the second take (the first stalled before the menu); the citizen gathers on 611 as in run156; word 1036** |
 | 119 | six, the air and the bird | `[605, 900)` | the one new order class |
 
 Chapter eight and any further detail window need numbers beyond the
@@ -943,7 +999,8 @@ of chapter one itself.
   design was wrong, and on the evidence of the last two months the honest
   expectation is that two or three of them will.~~ Chapters one to five
   and seven have run and closed (§14); one premise fell (§11) and one
-  staging was restaged (§7). Six, eight and seven-b have not run.
+  staging was restaged (§7). Six and eight have not run; seven-b ran as
+  run156/run157 (item 628, §11).
 - **Whether the cheat's block closes a computer civilian's tail**, and
   whether this crate's one-term stand-in does the same — §11's restage,
   chapter seven-b (item 628). The human pair could not measure it.

@@ -2554,6 +2554,22 @@ pub(crate) const GOLDEN_WORD_CHAPTER_SEVEN: i64 = 1200;
 /// [`WIDENING_CHAPTER_TWO`]'s is.
 pub(crate) const WIDENING_CHAPTER_SEVEN: (i64, i64) = (605, 1201);
 
+/// **Chapter seven-b's golden word** — the computer's civilians under the
+/// cheat (`docs/GOLDEN.md` §11, item 628, run156 and its control run157).
+pub(crate) const GOLDEN_WORD_CHAPTER_SEVEN_B: i64 = 1148;
+
+/// `chapter_seven_b_s_word_frame_is_widened_whole`'s window on run156:
+/// its first block to the word's own block and the one after.
+pub(crate) const WIDENING_CHAPTER_SEVEN_B: (i64, i64) = (605, 1150);
+
+/// **Chapter seven-b's control's word** — run157, the same five with the
+/// Leader AI on (item 628).
+pub(crate) const GOLDEN_WORD_CHAPTER_SEVEN_B_CONTROL: i64 = 1036;
+
+/// The control's widening window, its first block to the word's block and
+/// the one after.
+pub(crate) const WIDENING_CHAPTER_SEVEN_B_CONTROL: (i64, i64) = (605, 1038);
+
 /// **Chapter three's golden word** — the mounted and siege lines, run145
 /// (`docs/GOLDEN.md` §7): **900, the capture's end, draw for draw and
 /// value for value. Chapter three is closed on run145.**
@@ -2627,17 +2643,26 @@ pub(crate) const WIDENING_CHAPTER_THREE: (i64, i64) = (605, 901);
 /// **Chapter three's restage** — `chapter3b.cmd`, run146, item 587: the
 /// same three unit types in two arenas, staged so that §7's minimum-range
 /// and speed falsifiers can fire (neither does). The draw stream parts on
-/// **792**, ours 28 draws against the original's 29, at draw 24: past
-/// the birds, the original spends one `Unit::fight+0x9b0 <
-/// Unit::do_attack` and this crate goes straight to the farms. On 792
-/// the dump's arena-A hoplites `1/9`–`1/11` hold a fresh attack on the
-/// catapult (`idle 4`, `near_o 6`); this crate's take it on 795. The
-/// idle's +1 every sixteen frames is phased by the object number
-/// (`(frame + o) & 15`, `Unit::check_idle`), and this crate numbers
-/// those three hoplites 6–8 where the dump numbers them 9–11: parked
-/// 617's `DEATH_OBJS` cull, three frames on the same phase. The
-/// widening cannot see it, because the numbering leaves the three
-/// unlinked both sides. No mechanism is established beyond the phase.
+/// **865**, ours 5 draws against the original's 4, at draw 0: this
+/// crate's catapult `0/6`, its ground order's reload run out, spends a
+/// `Unit::fight+0x9b0` re-search on a fresh attack, where the dump's
+/// holds nothing until 868 (621's park, `docs/COMBAT.md` §57.6). Values
+/// part on 866. No mechanism is established.
+///
+/// **The delta: 792 → 865, item 617** — `Objects::find_free` skips a
+/// dead number whose `hold_frames` is not zero, and `DeathObj::inc_time`
+/// holds it for as long as the death object lives (`docs/COMBAT.md`
+/// §59). This crate handed arena A's three hoplites the dead 6–8 on 771,
+/// so their idle (`(frame + o) & 15`) reached 4 three frames late. And
+/// the ground shot's scatter is named at its own two sites,
+/// `Ammo::init+0xae8`/`+0xb25` (§59.5), which the sequence word met on
+/// 797. The value diff on the frame it moved: on 792 the dump's and
+/// ours' `1/9`–`1/11` stand on (2424, 7992), (2568, 7992) and (2472,
+/// 8136) at `idle 4` with an `ATTACKORDER` (index 10), and on 790 and
+/// 791 they read `idle` 3, 3, 4 and 3, 4, 4 on both sides
+/// (`chapter_three_s_arena_a_hoplites_take_the_dump_s_numbers`; the
+/// numbers are `chapter_three_s_restage_numbers_its_objects`). The
+/// word's block is in `chapter_three_s_restage_is_widened_whole`.
 ///
 /// **The delta: 782 → 792, item 625** — an unpacked packer's moving
 /// figure asks for no walk (`Guy::move:176–181`, the listing
@@ -2691,7 +2716,7 @@ pub(crate) const WIDENING_CHAPTER_THREE: (i64, i64) = (605, 901);
 /// **The chapter's word is [`GOLDEN_WORD_CHAPTER_THREE`]**, 900 on
 /// run145, the capture's end. This one is pinned beside it so the
 /// restage cannot fall unseen, and it is the lower of the two.
-pub(crate) const GOLDEN_WORD_CHAPTER_THREE_RESTAGE: i64 = 792;
+pub(crate) const GOLDEN_WORD_CHAPTER_THREE_RESTAGE: i64 = 865;
 
 /// `chapter_three_s_restage_is_widened_whole`'s window: run146 whole,
 /// 605..999 and the `!quit` block at 1001.
@@ -3311,5 +3336,21 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some("chapter_seven_s_word_frame_is_widened_whole"),
         578,
         Some(WIDENING_CHAPTER_SEVEN),
+    ),
+    // Item 628: chapter seven-b, run156, and its control run157 — two
+    // words, one widening over both captures.
+    (
+        "GOLDEN_WORD_CHAPTER_SEVEN_B",
+        GOLDEN_WORD_CHAPTER_SEVEN_B,
+        Some("chapter_seven_b_s_word_frame_is_widened_whole"),
+        628,
+        Some(WIDENING_CHAPTER_SEVEN_B),
+    ),
+    (
+        "GOLDEN_WORD_CHAPTER_SEVEN_B_CONTROL",
+        GOLDEN_WORD_CHAPTER_SEVEN_B_CONTROL,
+        Some("chapter_seven_b_s_word_frame_is_widened_whole"),
+        628,
+        Some(WIDENING_CHAPTER_SEVEN_B_CONTROL),
     ),
 ];
