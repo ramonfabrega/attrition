@@ -1339,7 +1339,7 @@ impl Sim {
         // `FISHERMEN` lineage. The machine gun's unpack is reached by
         // `think_attack`'s packed arm ([`Self::think_attack_packed`]);
         // no caller here issues a pack (`0x28b`) at all.
-        let spell = if spell != crate::fish::UNPACK {
+        let id = if spell != crate::fish::UNPACK {
             spell
         } else if self.unit_line_is(u, MACHINEGUN) {
             spell::UNPACK_MACHINEGUN
@@ -1350,9 +1350,15 @@ impl Sim {
         } else {
             spell
         };
+        // One field to a line: `rondata::writers`' line parser does not
+        // see the shorthand `spell` inside a one-line literal, and this is
+        // the field's one writer (item 590).
         let order = Order {
             flags: 0,
-            body: Body::Cast(CastOrder { spell, paid: false }),
+            body: Body::Cast(CastOrder {
+                spell: id,
+                paid: false,
+            }),
         };
         self.enqueue(u, order, pos);
     }
