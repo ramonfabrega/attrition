@@ -40,7 +40,7 @@ Long captures: EastIndies w9711 of 24,000 · GreatLakes w11903 of 24,000
 Golden: w900 of 901 (ch5) · ch1 w900 · ch2 w900 · 552 next
 Endpoint 24001: EastIndies 63 off, 8 unlinked · GreatLakes 58 off, 0 unlinked
 
-**Opener: an Opus 5.5 commander is live; 563 in flight on att-563 (AI), 552 on
+**Opener: an Opus 5.5 commander is live; 566 in flight on att-566 (AI), 552 on
 att-552 (rules). Workers spawn with `claude-opus-5-5[1m]`.**
 
 ## The queue
@@ -51,13 +51,13 @@ the AI, lower map first — Great Lakes. Take the first unstarted on either
 track unless a better order is obvious, and say so. Numbers are stable;
 the backlog is `docs/PARKED.md`, and an item returns only when a score names it.
 
-563. **Great Lakes' word 11903 has no widening: run135 ends short**
-    (560 moved the word 11806 → 11903: the soft one-shot is set only
-    when the sweep ends without a hard hit, COLLISION §12). Ours 5 draws
-    against 4 at index 1: `1/64`'s `Unit::move_step+0x823` stop against
-    `Guy::inc_time+0x271`. The capture first, run135's line over about
-    `[11860, 11960)` overlapping run135, then the widening; re-point
-    `WIDENINGS`' row. No mechanism.
+566. **Why the original's `valid_ucoord` refuses unit cell (810, 441)
+    to `1/62` on 11901** (563 widened 11903 on run136; refusing that one
+    cell reproduces the original's plan entry for entry and would move
+    the word 11903 → 12038, a test-only probe). PATHFINDER §23.5. The
+    instrument, a `RON_COLLIDE_PROBE` capture over 11900..11902, first
+    needs the probe tracer to load under free Wine: run137 page-faulted
+    at load. `callfn.py` on `valid_ucoord` is the capture-free route.
 
 552. **Golden chapter four, the border and the bleed — the next unpinned
     chapter** (549 closed chapter five at 900; ch1 and ch2 are closed;
