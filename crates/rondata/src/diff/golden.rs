@@ -4475,6 +4475,64 @@ fn chapter_four_s_word_frame_is_widened_whole() {
                 }
             }
         }
+        // **The wagon's first route, on the block it is planned** (item
+        // 569): the first parting of `1/10` in run133, and the frame this
+        // chapter's word 1416 traces back to. The Supply Wagon is born on
+        // 1101 and sent after its army's first member (`docs/ARMY.md`
+        // §4.3), and its `find_wpath` from cell (6, 44) to (13, 37) is the
+        // first of a supply unit anywhere in the corpus. The original's
+        // route, in world cells, top first: one step **south-east** to
+        // (7, 45), then the diagonal, then north along x = 12 — every cell
+        // of it clear of the `0x200` flag, which an army pays `base << 5`
+        // for (`docs/PATHFINDER.md` §5). Printed both sides by cell.
+        if n == 1101 {
+            let cells = |v: Vec<(i64, i64)>| -> Vec<(i64, i64)> {
+                v.into_iter()
+                    .rev()
+                    .map(|(x, y)| (x / 768, y / 768))
+                    .collect()
+            };
+            let theirs = cells(
+                frame
+                    .units
+                    .iter()
+                    .find(|u| u.who == 1 && u.o == 10)
+                    .expect("the original's wagon is born on 1101")
+                    .path
+                    .iter()
+                    .map(|p| p.to)
+                    .collect(),
+            );
+            let u = s
+                .built
+                .sim
+                .unit_by_o(1, 10)
+                .expect("this crate's wagon on 1101");
+            let ours = cells(
+                s.built.sim.units[u]
+                    .path
+                    .iter()
+                    .map(|p| (i64::from(p.to.x), i64::from(p.to.y)))
+                    .collect(),
+            );
+            eprintln!("  route 1101 1/10 theirs {theirs:?}");
+            eprintln!("  route 1101 1/10 ours   {ours:?}");
+            assert_eq!(
+                theirs,
+                vec![
+                    (7, 45),
+                    (8, 44),
+                    (9, 43),
+                    (10, 42),
+                    (11, 41),
+                    (12, 40),
+                    (12, 39),
+                    (12, 38),
+                    (13, 37)
+                ],
+                "run133's wagon route on 1101"
+            );
+        }
         // **The escort's own row on the block it is issued** (item 567,
         // `docs/ORDERS.md` §24), read off both sides by name rather than
         // through `compare`'s labels: each hoplite's `GUARDORDER` is on the
