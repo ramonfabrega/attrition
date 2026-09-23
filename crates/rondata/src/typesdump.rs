@@ -54,6 +54,10 @@ pub struct TypeRow {
     /// two are where the shipped table disagrees with itself.
     pub armor: i32,
     pub splash_percent: i32,
+    /// `push_size` (`+0x2f8`) and `push_circles` (`+0x2fc`): the pushing
+    /// unit's collision profile, as `UnitType::init` stores them.
+    pub push_size: i32,
+    pub push_circles: i32,
 }
 
 /// One `BEGIN TECHTYPE` block: the eleven `ai[scan]` weights
@@ -272,6 +276,8 @@ pub fn read(path: &str) -> Result<TypesDump, Error> {
         field!(max_range, i32);
         field!(armor, i32);
         field!(splash_percent, i32);
+        field!(push_size, i32);
+        field!(push_circles, i32);
     }
     if let Some(r) = cur.take()
         && seen.insert(r.type_index)
@@ -493,6 +499,23 @@ pub fn compare(loaded: &crate::load::Loaded, dump: &TypesDump, verbose: bool) ->
                 ));
             }
         }
+        // `push_size`/`push_circles` (`docs/COLLISION.md` §13): the size
+        // is `BLOCK_RADIUS`'s when there is one circle.
+        let mut push = Vec::new();
+        for (i, d) in units.iter().enumerate().take(n) {
+            let p = &loaded.unit_types[i].combat;
+            if (d.push_size, d.push_circles) != (p.push_size, p.push_circles) {
+                push.push(format!(
+                    "{} {}/{}≠{}/{}",
+                    name(i),
+                    d.push_size,
+                    d.push_circles,
+                    p.push_size,
+                    p.push_circles
+                ));
+            }
+        }
+        by_field.push(("push_size/push_circles", push));
         by_field.push(("armor (the name group)", armor));
         by_field.push(("splash_percent (the name group)", splash));
         by_field.push(("role (determine_roles)", role));
@@ -737,12 +760,13 @@ mod tests {
 
         let loaded = crate::load::load(&inst).unwrap();
         let report = compare(&loaded, &dump, true);
-        // The twenty checks the CLI prints: the two orderings, the twelve
-        // unit fields, the four building fields, the techs, the table.
+        // The twenty-one checks the CLI prints: the two orderings, the
+        // thirteen unit fields, the four building fields, the techs, the
+        // table.
         assert_eq!(
             report.checks().count(),
-            20,
-            "the CLI's twenty checks, no fewer"
+            21,
+            "the CLI's twenty-one checks, no fewer"
         );
         let failed: Vec<String> = report
             .failures()
