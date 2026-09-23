@@ -536,8 +536,12 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     // **Chapter seven-b's two words, on run156 and run157** (item 628):
     // the computer's civilians — a citizen, a caravan, a merchant, a
     // scholar and a fur trapper — which no other window here carries.
+    // Item 629 closed run156 at 1200, the capture's end, so its window
+    // stays on the block run156 was taken to widen — the old word 1148,
+    // the fur trapper's turn — as the East Indies windows stay on theirs.
+    let _ = GOLDEN_WORD_CHAPTER_SEVEN_B;
     for (p, word) in [
-        (&ch7b, GOLDEN_WORD_CHAPTER_SEVEN_B),
+        (&ch7b, 1_148),
         (&ch7bc, GOLDEN_WORD_CHAPTER_SEVEN_B_CONTROL),
     ] {
         if let Some(p) = p {
