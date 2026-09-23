@@ -464,6 +464,11 @@ pub(crate) fn compare_orders(
                 ),
                 ("in_group", Some(i64::from(gm.in_group)), theirs.in_group),
             ] {
+                // both sides: `logged` None is a detail level that does not
+                // print the field; `mine` None is `form_id` past i64 or a
+                // leader `unit_ids` cannot name — the second is a quiet
+                // disagreement this row does not report, and the target row
+                // above compares dead or alive (item 502) for that reason.
                 if let (Some(mine), Some(theirs)) = (mine, logged)
                     && mine != theirs
                 {

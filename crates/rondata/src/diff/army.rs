@@ -2755,6 +2755,9 @@ mod tests {
                     if o.kind != "GroupMoveOrder" {
                         continue;
                     }
+                    // both sides: every Some is the dump's own; an order the
+                    // dump prints without its origin leaves the set as a
+                    // missing witness, never as an agreement.
                     if let (Some(x), Some(y), Some(a), Some(f)) =
                         (o.orig_x, o.orig_y, o.angle, o.facing)
                     {

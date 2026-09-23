@@ -307,9 +307,12 @@ rules follow:
   pin in the same landing.
 - **And grep the disk before booking a capture.** Widen every dumped
   record the mechanic touches first; book the capture only for what no
-  record already on disk can answer. The same rule one level up, and it
+  record already on disk can answer, and **the booking cites what the
+  disk could not answer**. The same rule one level up, and it
   orders the *booking*, not the screen — an idle screen may still run
-  the capture lane.
+  the capture lane. **A field is cited for a question only when its
+  write condition can answer it**: a footprint written on one branch
+  is silent on the other (parked 508).
 - **Where a reading's product is a formula, the implementation is a pass
   of the audit — so build before ratifying, or alongside.** Prose can cite
   every address correctly and still have the arithmetic wrong, and an
@@ -389,7 +392,12 @@ a session's state is not a signal. **A worker commits before it gates**
 mid-gate has its work on its branch and not on its floor; a gate's
 notification was lost once and the work sat two days. **A message that
 arrives during a gate says it is to be applied after it**, and the worker
-holds its write-ups until the gate exits. **An action announced in a
+holds its write-ups until the gate exits. **An instruction about what to
+start is never one about what to stop**: "pause new lanes" is answered
+by not spawning and "when is the capture lane free" with a time read
+off the lane lock, and neither by a message to a running worker — a
+question about a resource is not a request for it (parked 507, the
+eleventh pass). **An action announced in a
 closing message is performed in that turn or it has not happened.** A
 worker that has not landed **ninety
 minutes** after its spawn sends a one-line status instead — the item, the
@@ -418,7 +426,9 @@ reserves what two lanes could both take** — the run number, and the
 section number when another lane is in the same document. **A pinned
 constant and its comment are the worker's to re-pin; the queue's lines
 are the commander's to write**, and a worker whose gate is red only on
-those lines has done its half. `ccc spawn --json`'s answer is never filtered — the
+those lines has done its half. The re-pin is split on purpose: **the
+word's delta in the constant's comment, the word's block in the
+widening test, and each says which** (parked 513). `ccc spawn --json`'s answer is never filtered — the
 id lore's lineage reads is not the one the commander reads. **A booking
 commit is never amended once another lane is live**: a lane merges the
 base it sees, and a rewritten base leaves that merge parented on a commit
@@ -430,8 +440,13 @@ never asks whether to continue — the queue's opener is the answer.
 **Lanes are independent.** Two lanes are throughput, not a pair: each
 lands, is chained and is refilled without reference to the other's
 state, and the only coupling between them is the merge and what the
-brief reserves. **The commander counts its landings and stops at
-twenty**, writing the handoff and saying the steering pass is due; a
+brief reserves. **The commander counts landings since the last steering pass — by
+`git log` from that pass's commit, never from its own last clear — and
+stops at twenty**, writing the handoff and saying the steering pass is
+due; **and a finding it would raise at that pass is filed in
+`docs/PARKED.md`'s Loop section in the turn it is noticed**, the
+handoff's `Fable backlog:` count moving with it — a finding narrated in
+chat has told nobody (parked 509); a
 free clear between is taken at a seam in the chain (`ccc clear <own ref>
 --then continue`), never in the middle of one. A second lane may run a
 parked value-diff row *beside* the word's frame, never instead of it — a

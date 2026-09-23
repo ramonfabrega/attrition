@@ -769,6 +769,9 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
         // `DUMP_ALL` start dump carries both; any other carries neither,
         // and a sibling's clocks land here through `borrow_from_siblings`.
         for (n, g) in u.guys.iter().enumerate() {
+            // both sides: `gpiece` is the dump's and `kind` the type's; a
+            // start dump without pieces seeds no clock, and nothing of this
+            // crate's is on either side.
             if let (Some(piece), Some(k)) = (g.gpiece, kind) {
                 let o = u.o as i16;
                 let sub = if sim.art.gaia_types.contains(&k) {
@@ -1079,6 +1082,10 @@ pub(crate) fn start_of_game(
             let logged = b
                 .orig_type
                 .and_then(|t| loaded.build_of_type_index(t as i32));
+            // both sides: `derived` None is a building §9.2 cannot type from
+            // its order and `logged` None a dump under `BUILDS=6`; the
+            // disagreement is a note and never a score, so a quiet side costs
+            // a note and not a green.
             if let (Some(d), Some(l)) = (derived, logged)
                 && d != l
             {
@@ -1385,6 +1392,9 @@ impl Built {
                             self.sim
                                 .reseat_animal(u, pos_of(state.pos), state.goal.map(pos_of))
                         };
+                        // both sides: the audit is optional and `before` is
+                        // None exactly when it is off; nothing is compared
+                        // with the audit off.
                         if let (Some(audit), Some(before)) = (&mut self.correction_audit, before)
                             && !self
                                 .gaia_reseat_skip

@@ -6021,6 +6021,10 @@ mod tests {
                         ));
                     }
                 }
+                // both sides: both are the dump's (`job_counter`,
+                // `constr_time`); a detail level that prints neither compares
+                // no clock here, and the queue row above has already compared
+                // the block whole.
                 if let (Some(jc), Some(ct)) = (b.job_counter, b.constr_time) {
                     assert_eq!(
                         (jc, ct),

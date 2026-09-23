@@ -2496,11 +2496,14 @@ pub(crate) type Widening = (
 /// pinned (parked 449). The window is a shared constant the test itself
 /// reads, which is what keeps the declaration from going stale the same way.
 pub(crate) const WIDENINGS: &[Widening] = &[
+    // Parked 444 since the seventh pass; booked as item 573 by the eleventh,
+    // the day the lower-map rule became a guard — East Indies had been the
+    // lower word since 2026-09-21 with its widening still owed.
     (
         "LONG_WORD_EAST_INDIES",
         LONG_WORD_EAST_INDIES,
         None,
-        444,
+        573,
         None,
     ),
     // Item 448 paid the widening 442 owed: `run100_s_word_block_is_every_

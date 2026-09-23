@@ -22,6 +22,20 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Parked by the eleventh Fable pass, 2026-09-23 — a reading, off the Loop
+
+(526) **Sweep every `find_angle`/`sinx`/`cosx` call site `docs/` cites
+against the listing.** Filed by item 523. Three of three checked on
+2026-09-22 had been misread: `compare_target`'s `find_angle(0, 0)` (495),
+a landed shot's `find_angle(num_guys, index)` and the lead's speed (523).
+All three were register-passed pairs the decompiler dropped; the trap is
+now in `tools/ghidra/README.md`. The sweep is mechanical and bounded, and
+every uncorrected site is a claim two sections may be carrying as fact.
+Off the steering pass's list (DECISIONS 47): a listing sweep is a
+reading and names no score. The trap is in `tools/ghidra/README.md`,
+and a lane whose item touches a trig site checks the pair; the sweep
+returns when a word lands on one.
+
 ## Parked by item 566, 2026-09-23 — the memo's twin
 
 (572) **The pathfinder's copy tree (`+0x4c`) has the memo's lifetime and
@@ -430,7 +444,12 @@ commander's chain, after the loop stopped at its own reap
 first: struck text no longer counts against a section's ceiling, and
 `rondata::diff::coverage` pins every key the dump prints that nothing
 reads, 239 on twenty paths on its first run
-(`docs/audit/2026-09-22-fable-pass-10.md`, DECISIONS 46).
+(`docs/audit/2026-09-22-fable-pass-10.md`, DECISIONS 46); the
+eleventh, 2026-09-23, ruled nine — 503, 507, 508, 509, 513, 517, 526,
+528, 565 — three guards each made to fail first (the lower map, the
+closed chapter, the ledger's own list), a lint, a receipt field, five
+clauses, and 526 to the ordinary list
+(`docs/audit/2026-09-23-fable-pass-11.md`, DECISIONS 47).
 341 closed 2026-09-18 by item 363.
 
 (452) and of the same family as (449): an instrument that quietly stops
@@ -450,243 +469,11 @@ tree gets no window at all (`nodrv_CreateWindow`, dead in 3.8 s, 0 frames),
 so every launch goes through `viadriver.sh` (`docs/ORACLE.md`, "The
 click-free lane needs a window").
 
-(517) **The ledger's own module list is not self-maintaining, and it
-blinded the rules track entirely.** `ledger::DIFF` had never included
-`diff/golden.rs` — the **whole** of the golden captures' walk — so every
-field the chapter-one and chapter-two checks compare counted as
-**uncompared**, and every field they were second reader of counted as
-**single-capture**. Found by item 510 only because the gate went red on
-it; fixed in that landing (counts land back on their pins, 14/38, `Guy`
-falling 3 uncompared → 1).
-
-**Why the pass wants it.** This is the *fourth* instrument defect of the
-same family in two days — (503)'s comparator that reads an empty side as
-agreement, `coverage`'s keys nobody parses, run118's truncation readable
-as emptiness, and now a coverage ledger with a module missing from its
-own list. Every one of them **reports health it has not measured**. The
-shared shape is that the instrument's *scope* is hand-maintained and
-nothing checks the scope itself. A guard that enumerates `diff/*.rs` and
-fails on a file absent from `DIFF` is trivial; the question for the pass
-is whether that specific fix, or a general "every instrument declares
-what it does not cover", is the right level.
-
-(513) **A moved word's pin records its value and not its story, and
-nothing fails when it does not.** 2026-09-22: `LONG_WORD_GREAT_LAKES`
-reads **10817** while its own doc-comment's narrative stops at **10303**.
-Items 497 and 506 each moved the word and each changed the constant and
-a window — four lines, two of them the value — and neither added the
-entry. **Both briefs asked for it in those words**, after item 491 had to
-land a second commit for exactly this.
-
-**Why it keeps happening:** the guards check the constant's *value*
-against the queue's `Long captures:` line, so a stale comment is invisible
-to every check this repo has. The rule lives only in a brief, and
-`CLAUDE.md` says a rule that could be a guard and is only prose will be
-broken within the week. It was broken twice in one afternoon.
-
-**What the pass should weigh:** a guard that fails when a word constant's
-value changes in a commit that does not also add a line to its comment is
-cheap and mechanical (the same shape as `a_constant_a_document_names_is_
-built_or_pinned`). Against that: the comment is prose and a guard on
-prose can be satisfied trivially. The alternative is that the commander
-reads the pin at every merge, which is what caught it this time — but
-that is a habit, not a check, and it caught it two words late.
-
-**Narrower than it first looked, and the correction is the finding.**
-The commander's first reading of this was that the story had not been
-written at all. It had: item 506 pinned the new word's eight rows *and*
-its draw delta in `run100_s_word_block_is_every_record_the_dump_carries`,
-in `harness.rs`, with a paragraph of prose around them. What is missing
-is only the entry in the **word constant's own comment** — so the defect
-is not a lost measurement but a **split one**: the value lives in
-`testkit.rs`, the story in `harness.rs`, and a session reading the pin to
-learn what the word is gets the number without the reason.
-
-So the pass's question is sharper than "add a guard": **which of the two
-places is meant to carry the story, and should the other point at it?**
-A guard that merely demands a comment line would be satisfied by
-duplicating prose, which is worse than the split. 491's round trip
-happened because its delta was in neither place; today's is in one of two.
-
-**Note also how it was caught** — the commander read the pin at the merge
-and found the narrative two words stale. That is a habit rather than a
-check, and it produced a wrong first diagnosis before a `git show`
-corrected it.
-
-**The answer arrived before the pass, and it is a rule rather than a
-guard.** Item 506 proposed a guard — *the constant's doc comment must
-contain its own value's decimal form* — and then **withdrew it an hour
-later, having tried it**. Writing the entry showed why: block 10818's
-eight rows are already **asserted** in
-`run100_s_word_block_is_every_record_the_dump_carries`, so copying them
-into the comment is prose nothing checks, and the two drift the first
-time the word moves. It deleted the copy. A guard demanding a comment
-line is satisfied by exactly that duplication; a guard demanding the
-value's digits is weaker than it looks.
-
-**The rule it landed instead, and the division is the point:**
-
-> **The word's delta in the constant, the word's block in the widening,
-> and each says which.**
-
-The delta is the half that lives nowhere else —
-`run53_s_24000_frames_put_the_ceiling_where_run33_did` computes and
-prints it but no test pins it as text — while the block has a test behind
-it. `LONG_WORD_GREAT_LAKES` now carries 10582 and 10817 in that form,
-with 10303 and 10582 struck and pointed at `docs/ANIM.md` §4.12 and
-`docs/ECONOMY.md` §13 (`792b6b1`).
-
-So what the pass inherits is **not** "write this guard" but a worked
-example of a guard that was proposed, built and rejected on the evidence
-of building it — and the open question of whether the rule above should
-be in `CLAUDE.md` at all, given it was derived twice in one day by two
-different lanes without being written anywhere.
-
 ## Loop, filed 2026-09-22 — the chain's own defects
 
 The same section, split on 2026-09-22 when it passed the 16 KB ceiling
 the guard sets. Everything in the heading above applies: these are the
 steering pass's, never a worker's, and a commander never spawns one.
-
-(509) **Filing to this section is the commander's default, and it was
-not.** Ramon, 2026-09-22, after having to ask twice: *"it should be your
-DEFAULT to tag to fable. idk why i have to ask you every time"*. Both
-(507) and (508) were filed **only because he asked** — the commander had
-seen its own misread and the three disk-already-had-it cases, narrated
-both in chat, and filed neither. A finding that lives in a transcript
-has told nobody; that is the same rule `CLAUDE.md` already applies to a
-worker's report, and the commander is not exempt from it.
-
-**What the pass should decide**: whether `CLAUDE.md`'s fan-out rules get
-a clause making this explicit — *anything the commander would raise at
-the steering pass is written to `docs/PARKED.md`'s Loop section in the
-turn it is noticed, not mentioned in chat and not carried in context* —
-and whether the handoff's `Fable backlog: N Loop items` line is enough
-of a forcing function on its own. It was not today: the count sat at 2
-through five landings while three fileable findings went unwritten.
-
-The failure is **not** that the items were wrong. It is that a
-process-level finding was treated as commentary while a mechanic-level
-finding is treated as paperwork, and only the second has a guard behind
-it.
-
-(507) **A question about a resource is not a request for it, and the
-commander acted on the wrong one.** 2026-09-22, mid-chain: Ramon asked
-*"lmk when capture is avail as astra would like to use it (1-3min max)"*.
-The commander read that as a request to clear the lane and, without
-being asked, messaged **both** live lanes — telling att-506 to kill its
-running capture if it had more than three minutes left, and att-502 not
-to launch. Ramon's correction, in three messages: *"you dont have to
-cancel the agents.. im asking when tis free"*, *"not to stop"*, *"ffs"*.
-
-**What it cost.** att-506's run117 was ~30 seconds from finishing and a
-re-take is ~12 minutes; it survived only because both messages arrived
-together and it acted on neither. att-502 killed a queued wrapper, then
-relaunched on the reversal, then killed run119 35 seconds in when the
-*genuine* hold arrived — three reversals in about four minutes, from
-three contradictory messages the commander sent in the wrong order.
-Nothing was permanently lost (settings restored, aborted output dir
-deleted), which is luck rather than design.
-
-**The rule this wants.** A user's question is answered before it is
-acted on; the answer to "when is X free" is a time, not an intervention.
-An outward action taken on an inferred request is the same failure class
-as a mechanism inferred from a draw site — and this file records eight
-instances of the latter on the same day. **Whatever the pass writes,
-it should not be a clause about capture lanes**: the lane is the
-instance, the inference is the defect.
-
-Also worth the pass's attention: **the commander's three messages
-reached the lanes out of order relative to its own intent**, and each
-lane acted on what it had. If a reversal is ever legitimate, it needs to
-be one message that supersedes, not a sequence.
-
-**IT HAPPENED AGAIN THE SAME DAY, and that makes it a pattern rather
-than a slip.** Hours later Ramon said he was updating Claude Code and
-*"lets stop sending new lanes until we can check out 5.5"*. The
-commander told the live lane att-515 to **bank, commit whatever it had
-unfinished, and launch nothing** — mid-item, half an hour in. Ramon:
-*"this NEVER means you 'stop' the out worker man. same bs you did last
-time where i said astra wanted the capture lane. i just meant we do not
-send out NEW agents. not stop halfway through"*.
-
-**The invariant the commander keeps failing to hold: a instruction about
-what to START is not an instruction about what to STOP.** Both times the
-words were about *new* work — a lane wanted, new lanes paused — and both
-times the commander reached into work already running. Both times the
-reversal cost a round trip and churn in a worker's context.
-
-That it recurred *after* being written up here, in the same session, is
-the finding. Prose in a parked file did not stop it; the commander had
-read and written this very entry hours earlier. **The pass should treat
-this as evidence about what a written rule can and cannot fix**, which
-bears directly on (503), (513) and (517) — all three of which propose
-prose or guards for defects of judgement rather than of code.
-
-**And the intervention was unnecessary at the mechanism level, not just
-at the etiquette level.** Ramon, afterwards: *"astra actually uses the
-same tool to bring it up so it knows if lane is taken, so we might not
-need to manually ask maybe"*. The lane lock (parked 446, eighth pass)
-already arbitrates every launcher that goes through `winelaunch.sh`,
-Astra's included — a second launch into a running game refuses and names
-the holder, and the lock frees itself on a dead one. So the correct
-answer to the whole episode was **to read the lock and report a time**,
-which is what was asked for, and to let the lock do the arbitration it
-was built for. The pass should check whether anything else in this
-repo's operating rules re-implements by hand a thing a guard or a lock
-already does.
-
-(503) **A guard aimed at agreement, not at silence.** `coverage` pins
-keys the parser never asks for; **nothing pins a key the parser reads and
-the comparison then drops.** Item 496 found `compare_orders` reporting an
-order's target only when *both* sides named one, so this crate's empty
-order read as agreeing with the dump's `ox 8 whom 1` — thirty-six
-unit-frames, under the word, green. Item 462 fixed the same hole one level
-down in `unit_ids`. **Two instances in one function is a rule, and the
-grep is mechanical**: `if let (Some(a), Some(b))`, `zip`, a `?` in a helper
-feeding a comparison. Every guard this repo has is aimed at an instrument
-that says nothing; this would be the first aimed at one that says *yes*.
-Raised by item 496, 2026-09-22; `docs/COMBAT.md` §43.3.1 states the rule.
-
-(508) **Three times in one day the disk already held the answer a
-booked capture or a named mechanism was going to buy.** The
-"grep the disk first" ordering is earning more than its one line in
-`CLAUDE.md` suggests, and the pass should decide whether it is promoted,
-sharpened, or made a guard. The three, 2026-09-22:
-
-- **item 497** — `docs/ANIM.md` §4.11 had written its ambiguity down
-  *and named its falsifier*: a `GUYS` window over a university holding
-  two or more scholars. run100 holds **ten**, in two chains, and had
-  printed all ten on every block since the day it was taken. No capture
-  needed booking; the reading-only claim was closable from disk.
-- **item 502** — §43.5 wanted a capture for its falsifier. It turned out
-  to be **two fields of run112** (`new_ord`, `ever_in_range`), already
-  on disk, distinguishing an `add_attack_order` from an in-place
-  retarget. run119 was booked, killed at 35 seconds, and on the lane's
-  own worker's assessment *"may not be worth much any more"* — all it
-  would still buy is run118's missing blocks 847–900, which nothing
-  open reads.
-- **item 506** — the converse, and the control case: the disk **was**
-  grepped first, the widening **was** run first (1,257 blocks, 3.4M
-  rows), every existing `LEADERS>=2` window on map 14 missed 10582 by
-  1,400 frames on one side and 13,000 on the other, and run117 was
-  therefore **owed**. It paid: the cause is at 10576, a Setup step that
-  spends no draw.
-
-**So the rule is not "do not capture"** — 506 shows a booked capture
-earning itself on evidence. It is that the grep comes first and the
-booking cites what the disk could not answer. Two of three captures
-booked today failed that test; the one that passed it found the item.
-
-**A second pattern the pass may want beside it**: the mechanism named in
-a brief has now been wrong **eight** times in one chain (487, 494, 497,
-502 and others), twice named by the commander from the draw's callee,
-and once — 502 — cited from a field (`near_o`) that *cannot* answer the
-question it was cited for, since it is a search footprint written only
-when a nearer candidate is seen. `docs/DECISIONS.md` 42 covers the
-frame-versus-mechanism half; it does not cover **citing a field whose
-write condition makes it silent on the question**. That may be the
-sharper rule.
 
 (313) **The landing chain wants one verb.** Merge, gate, push and reap are
 one chain by rule since 09-17; ccc has `merge`, `update` and `clear`, and
@@ -694,43 +481,11 @@ the reap is a separate command a commander typed after the chain twice and
 forgot twice. Filed with ccc as `land <ref>` or `merge --reap`; until it
 exists, the chain is one shell line in the commander's brief.
 
-(526) **Sweep every `find_angle`/`sinx`/`cosx` call site `docs/` cites
-against the listing.** Filed by item 523. Three of three checked on
-2026-09-22 had been misread: `compare_target`'s `find_angle(0, 0)` (495),
-a landed shot's `find_angle(num_guys, index)` and the lead's speed (523).
-All three were register-passed pairs the decompiler dropped; the trap is
-now in `tools/ghidra/README.md`. The sweep is mechanical and bounded, and
-every uncorrected site is a claim two sections may be carrying as fact.
-
 (527) **Coverage and the ledger count a stand-up read as coverage.**
 Filed by item 523: `o_up` was read only at stand-up and parted silently on
 744, while the coverage pin called it compared. A per-frame "compared"
 check would have caught it. The same family as the five instrument
 defects of the last tranche: scope reported, not measured.
-
-(528) **How a chapter that closes is represented.** Chapter two's word is
-now its trace's end, 900; 523 made the widening's window `[606, 901)` with
-block 900 declared absent, which is what keeps the floors guard's
-"strictly inside the window" true. Whether the handoff says "ch2 closed"
-rather than a word, and whether a closed chapter's pin should be a
-different kind of assertion, is the steering pass's call (DECISIONS 41's
-finish line names "the golden record in lockstep for every chapter").
-**And the guard now forces it (commander, 2026-09-23):** with chapters
-one, two and five closed at 900 and chapter four live at 1277,
-`the_handoff_s_golden_line_is_the_pinned_word` takes the *numerically*
-lowest word, so the `Golden:` line must lead with a closed chapter's 900
-and the live headline sits last.
-
-(565) **A capture that times out writes no receipt, and a worker waiting
-on the receipt waits forever.** Filed by the commander, 2026-09-22: lane
-att-552's run132 (`WORLD=6` over `[295, 545)`, ~8.4 s a block) hit
-`unattended_capture.py`'s 1500 s default and died at block 467. The
-worker's background wait watched for the receipt, so it sat idle for 1.5
-h and sent no 90-minute status. The lock was left stale too. The runner
-could write a failure receipt on timeout, and a brief's wait could key on
-the process's exit. The shape is the tranche's recurring one: an
-instrument reporting health (nothing arrived yet) that it has not
-measured.
 
 ## Parked by the tenth Fable pass, 2026-09-22 — names no score
 
@@ -836,14 +591,9 @@ comparison is what it looks like. Not urgent — see (376) for why.
 
 ## Parked by the seventh Fable pass, 2026-09-21 — two words without a widening
 
-(444) **East Indies' word has no widening on file.** `LONG_WORD_EAST_INDIES`
-is 9,711, and the last capture on that map compared whole (run90) sits at a
-word two thousand frames lower; `rondata::diff::testkit::WIDENINGS` says so
-and the guard behind it reads this row. Parks rather than queues because the
-map is not the headline — lower map first, DECISIONS 41 — and it is the
-first item the AI track takes the day East Indies becomes the lower word:
-every record the long capture's game dumps around 9,711, both directions,
-before any mechanism.
+(444) East Indies' word without a widening was **promoted to the
+queue by the eleventh pass** as item 573, the day the lower-map rule
+became a guard: the word had been the lower of the two since 2026-09-21.
 
 ## Parked by the sixth Fable pass, 2026-09-19 — a guard's first run
 

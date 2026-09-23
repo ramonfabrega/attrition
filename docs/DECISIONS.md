@@ -58,6 +58,7 @@ is append-only and amended in place, as it always was.
 - 44 standing — The instrument that agrees because it is not looking: four guards, and the lab merged beside the sim
 - 45 standing — The chain's last link is the spawn, and lanes are throughput, not a pair
 - 46 standing — A printed field is read or pinned, and struck text is not live text
+- 47 standing — The lower map is a guard, a closed chapter is named closed, and the ledger checks its own list
 
 ## 1. Fidelity before divergence
 
@@ -2639,3 +2640,95 @@ expensive one is the instruments, not the mechanisms.
 many rows landings deleted; whether 491 moved 683; whether Great Lakes
 left its fight and the frame price with it; whether any lane sat empty;
 the price per landing against 26.
+
+## 47. The lower map is a guard, a closed chapter is named closed, and the ledger checks its own list
+
+**Decided 2026-09-23**, the eleventh Fable pass, in the main thread
+(`docs/audit/2026-09-23-fable-pass-11.md`). Applies entry 41 §1 and
+extends entries 44 and 46; overturns nothing.
+
+**What was measured.** Twenty-nine landings since the tenth pass by
+`git log` — nine on Opus 5 under one commander, twenty on Opus 5.5 under
+the next, which counted only its own and called it twenty. Twenty-three
+moved a word, against seven of fourteen at the tenth. Great Lakes
+10,277 → 12,038; chapter two 683 → 900, chapter one 626 → 900, chapter
+five pinned at 621 and closed at 900 the same day, chapter four pinned
+at 1,277 — three chapters closed, and the namesake met its oracle,
+where five reading-only claims were unwired rather than wrong.
+Workers' list price 765 USD, 26.4 a landing, 33 a word-moving landing
+against 53; **Great Lakes 0.23 USD a frame against 4.07** — it left its
+fight, as entry 46 said the price would show. Opus 5.5's twenty cost
+25.4 a landing against Opus 5's 28.6. The coverage pin: 239 → 224 by
+reads, 369 when item 520 opened the leader record (165 keys pinned at
+once), 360 now — the count doing what it is for. Nine of twenty-nine
+landings turned on an instrument that agreed by not looking.
+
+**What the pass found that no landing could.** East Indies' word,
+9,711, has been the lower of the two since Great Lakes passed it on
+2026-09-21. Entry 41 §1 makes the lower map's nearest divergence the
+default item, and parked 444 said in so many words what to book the day
+it happened. Three passes and some forty landings ran on Great Lakes
+instead, because the queue's own line said "lower map first — Great
+Lakes" and a commander reads the queue, never the constants. The rule
+was prose, and the Great Lakes chase did exactly what the rule was
+written to prevent.
+
+**The decisions.**
+
+1. **The lower map is a guard.** `the_queue_s_default_map_is_the_lower_word`
+   reads the queue's `lower map first — <map>` line against
+   `LONG_WORD_*`. Made to fail on the tip, which named Great Lakes, and
+   the default flipped: item 573 is East Indies' widening at 9,711; 571,
+   Great Lakes' at 12,038, runs when a lane frees. Both words stand
+   without their widening, so both are widenings before any mechanism.
+2. **A closed chapter is named closed** (parked 528). A chapter whose
+   word is its trace's last block reads `chN closed` on the `Golden:`
+   line and never as a `w`; the line leads with the lowest *open* word,
+   which is the rules headline. The guard parses the line part by part
+   and fails on a chapter that reopens without being rewritten as a
+   word. Made to fail on the tip's line.
+3. **The ledger checks its own list** (parked 517).
+   `every_differ_module_is_on_the_ledger` reads `src/diff/` and fails on
+   a file on neither `DIFF_FILES` nor `NOT_A_DIFFER`. Six differs were on
+   neither — `leader.rs`, the leader record's whole reader since 520,
+   among them — and counted, the ledger fell 14 → 10 uncompared and
+   39 → 36 single-capture: four fields called uncompared had been
+   compared all along. Made to fail on a stray file.
+4. **A comparison gated on both sides says which side is quiet** (parked
+   503). Every `if let (Some(` in a differ carries a `both sides:` line
+   above it naming what an absent side means on each; eight sites, one
+   of which — `order.rs`'s `GROUPORDER` row — names a quiet disagreement
+   it had never said. The first guard aimed at an instrument that says
+   *yes*.
+5. **The capture runner writes `success: false` with its error** on a
+   timeout (parked 565), and a brief's wait keys on the runner's exit,
+   never on a file.
+6. **Five clauses in `CLAUDE.md`**: start is not stop (507); a commander
+   files for the steering pass in the turn it notices (509); the count is
+   since the last pass, by `git log`; the booking cites what the disk
+   could not answer, and a field only where its write condition can
+   answer (508); the delta in the constant, the block in the widening
+   (513).
+7. **526 leaves the Loop** for the ordinary parked list — a listing
+   sweep is a reading, and the trap is in `tools/ghidra/README.md`;
+   **527 stays**, its design named: a `compared` recorder in the
+   comparators joined to `reads`; **313 stays**.
+8. **The lab's two open PRs, #7 and #8, book nothing.** Both are
+   score-neutral by their own account. #8's recompiled functions are a
+   faster twin of `tools/emu/callfn.py` for a pure function, and this
+   tranche's items turned on wiring and instruments, which no oracle of
+   a function reaches. What would earn a booking is #8's step 4: a native
+   frame on a captured packet answering what the original does from
+   *this crate's* state on frame F — the counterfactual the loop builds
+   by hand each time (`probe_refuse`, `SweepWatch`, 510's forced
+   facing). Merging is Ramon's call, on entry 38's terms.
+
+**Not taken**: a guard on the commander's count (git inside a test);
+the estimate, with no rate to revise it by and a second map and two
+chapters still to open.
+
+**The measure for the next pass**: whether 573 landed and where East
+Indies parts; whether 571 ran and Great Lakes' frame price; whether the
+lower-map guard fired on a move; the coverage pin against 360 and the
+ledger against 10/36; whether any lane sat empty; the price per landing
+against 26; whether the count reached the pass at twenty.

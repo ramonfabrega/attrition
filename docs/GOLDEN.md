@@ -57,13 +57,17 @@ genuinely shared and `borrow_from_siblings` legitimate (`docs/INPUT.md` §11.7),
 and diverges only in what its own script stages.
 
 **The word.** ~~Chapter one's is pinned at 626 of 901~~ ~~Chapter one's is
-pinned at 774 of 901 (item 445)~~ Both chapters that are captured agree to
-their traces' end, 900: chapter one on item 530, chapter two on item 523.
-The handoff's `Golden:` line carries both. What the line should say once a second chapter
-pins is **the commander's to rule and not this document's to book**; the
-design's recommendation is the AI track's own rule one level across —
-the **lowest** chapter's word first, because that is where the next cause
-lives, with the others listed behind it. What a chapter's word means is
+pinned at 774 of 901 (item 445)~~ ~~Both chapters that are captured agree to
+their traces' end, 900: chapter one on item 530, chapter two on item 523.~~
+Chapters one, two and five agree to their traces' end, 900 (items 530, 523,
+549); chapter four is pinned at 1277 of 1501 (item 552). **A chapter whose
+word is its trace's last block is closed**, and the handoff's `Golden:`
+line says so — `chN closed` — and leads with the lowest *open* chapter's
+word, which is the rules headline; `rondata::diff::floors` reads the line
+that way (the eleventh pass, `docs/DECISIONS.md` 47). ~~What the line
+should say once a second chapter pins is the commander's to rule~~; the
+design's recommendation stands — the **lowest** chapter's word first,
+because that is where the next cause lives. What a chapter's word means is
 fixed here either way: the first frame at which the harness's draw stream
 parts from that chapter's own trace, with the value diff — `game_random`'s
 word at the frame's entry — reported beside it, exactly as
@@ -683,7 +687,9 @@ order about.
 
 ## 14. The running order, and the run numbers
 
-Reserved for this design: **run112–run119**.
+~~Reserved for this design: **run112–run119**.~~ The reservation was spent:
+run116–run119 went to Great Lakes items on 2026-09-22, and the chapters
+below without a run take their number at booking (the eleventh pass).
 
 | run | chapter | window | why this order |
 |---|---|---|---|

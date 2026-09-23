@@ -152,7 +152,12 @@ def capture(args, output, style):
         report['seed_requested'] = args.seed
         report['success'] = True
     except BaseException as exc:
+        # A timeout lands here too (parked 565): the receipt is still written
+        # below, with the error and an explicit failure, so a wait keyed on
+        # the receipt sees a verdict. A wait keys on this process's exit
+        # regardless; the receipt is the record, not the signal.
         report['error'] = f'{type(exc).__name__}: {exc}'
+        report['success'] = False
         raise
     finally:
         try:

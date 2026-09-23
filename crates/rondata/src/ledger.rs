@@ -45,22 +45,68 @@ const GAMELOG: &str = include_str!("gamelog.rs");
 /// to count. It was found by widening chapter two's `GUY` record: the two
 /// fields that landing added were compared on both headline windows and
 /// the ledger still called them unread.
+///
+/// **And the list is checked against the directory** (parked 517, the
+/// eleventh pass): `diff/leader.rs`, the leader record's whole reader since
+/// item 520, was absent from it the day this was written, which is the
+/// `golden.rs` defect a second time. [`DIFF_FILES`] names each entry's
+/// path in the same order, `every_differ_module_is_on_the_ledger` reads
+/// `src/diff/` and fails on a file in neither it nor [`NOT_A_DIFFER`].
 #[cfg(test)]
-const DIFF: [&str; 13] = [
+const DIFF: [&str; 19] = [
     include_str!("diff.rs"),
+    include_str!("diff/ammo.rs"),
     include_str!("diff/army.rs"),
     include_str!("diff/build.rs"),
     include_str!("diff/city.rs"),
+    include_str!("diff/corrections.rs"),
+    include_str!("diff/endpoint.rs"),
     include_str!("diff/floors.rs"),
     include_str!("diff/golden.rs"),
     include_str!("diff/harness.rs"),
+    include_str!("diff/harness/checkpoint.rs"),
+    include_str!("diff/leader.rs"),
     include_str!("diff/order.rs"),
     include_str!("diff/report.rs"),
     include_str!("diff/setup.rs"),
+    include_str!("diff/shutdown.rs"),
     include_str!("diff/testkit.rs"),
     include_str!("diff/unit.rs"),
     include_str!("diff/world.rs"),
 ];
+
+/// [`DIFF`]'s entries by path, relative to `src/`, in the same order.
+#[cfg(test)]
+const DIFF_FILES: [&str; 19] = [
+    "diff.rs",
+    "diff/ammo.rs",
+    "diff/army.rs",
+    "diff/build.rs",
+    "diff/city.rs",
+    "diff/corrections.rs",
+    "diff/endpoint.rs",
+    "diff/floors.rs",
+    "diff/golden.rs",
+    "diff/harness.rs",
+    "diff/harness/checkpoint.rs",
+    "diff/leader.rs",
+    "diff/order.rs",
+    "diff/report.rs",
+    "diff/setup.rs",
+    "diff/shutdown.rs",
+    "diff/testkit.rs",
+    "diff/unit.rs",
+    "diff/world.rs",
+];
+
+/// A file under `src/diff/` that is deliberately not on the ledger, with
+/// the reason. `coverage.rs` *lists* the keys nothing reads in its
+/// `UNREAD` pin; scanning it would call every one of them compared.
+#[cfg(test)]
+const NOT_A_DIFFER: &[(&str, &str)] = &[(
+    "diff/coverage.rs",
+    "its UNREAD pin names the keys nothing reads",
+)];
 
 /// The parser's own containers, which carry no field the original writes:
 /// `Block` and `Log` are the reader's cursor and its index, `Initial` and
@@ -200,7 +246,7 @@ mod tests {
     /// replan flag, and it held Great Lakes' word at 10234 for four items
     /// while sitting in every block of every capture on the disk
     /// (`docs/ROADS.md` §1.2).
-    const UNCOMPARED: usize = 14;
+    const UNCOMPARED: usize = 10;
 
     /// Fields exactly one test function names — the per-capture half.
     /// **41 on 2026-09-04**, down from 51 when run68's window widened
@@ -245,7 +291,95 @@ mod tests {
     /// walk in the same landing, so a record family that arrived with
     /// three new fields cost the ledger nothing and gave back one.
     /// Lowered again for item 478's reason.
-    const SINGLE_CAPTURE: usize = 39;
+    /// Lowered 14 → 10 and 39 → 36 by the eleventh pass, when the ledger's
+    /// list was checked against the directory and six differs joined it
+    /// (`leader.rs` among them): four fields called uncompared and three
+    /// called single-capture had been compared all along.
+    const SINGLE_CAPTURE: usize = 36;
+
+    /// **Every file under `src/diff/` is on the ledger or named as not a
+    /// differ** (parked 517). The ledger's scope was a hand-kept list and
+    /// nothing checked the list: `golden.rs` was missing until item 510
+    /// and `leader.rs` until the eleventh pass, and each absence read as
+    /// health — every field those two compared counted as uncompared or
+    /// as single-capture. Made to fail first on the tip of 2026-09-23,
+    /// where six files were in neither list.
+    #[test]
+    fn every_differ_module_is_on_the_ledger() {
+        assert_eq!(DIFF.len(), DIFF_FILES.len());
+        let root = std::path::Path::new(concat!(env!("CARGO_MANIFEST_DIR"), "/src"));
+        let mut on_disk = vec!["diff.rs".to_string()];
+        let mut dirs = vec![root.join("diff")];
+        while let Some(d) = dirs.pop() {
+            for e in std::fs::read_dir(&d).expect("src/diff") {
+                let p = e.unwrap().path();
+                if p.is_dir() {
+                    dirs.push(p);
+                } else if p.extension().is_some_and(|x| x == "rs") {
+                    let rel = p.strip_prefix(root).unwrap().to_str().unwrap().to_string();
+                    on_disk.push(rel);
+                }
+            }
+        }
+        on_disk.sort();
+        let listed: std::collections::BTreeSet<&str> = DIFF_FILES
+            .iter()
+            .copied()
+            .chain(NOT_A_DIFFER.iter().map(|(p, _)| *p))
+            .collect();
+        let missing: Vec<&str> = on_disk
+            .iter()
+            .map(String::as_str)
+            .filter(|p| !listed.contains(p))
+            .collect();
+        assert!(
+            missing.is_empty(),
+            "under src/diff/ and on neither DIFF_FILES nor NOT_A_DIFFER: {missing:?}. A \
+             differ's fields count as uncompared until its file is on the ledger; a file \
+             that is not a differ is named with the reason"
+        );
+        let gone: Vec<&str> = listed
+            .iter()
+            .copied()
+            .filter(|p| !on_disk.iter().any(|d| d == p))
+            .collect();
+        assert!(gone.is_empty(), "on the ledger and not on disk: {gone:?}");
+    }
+
+    /// **A comparison gated on both sides says which empty side is quiet**
+    /// (parked 503). `compare_orders` reported an order's target only when
+    /// *both* sides named one, so this crate's empty target read as agreeing
+    /// with the dump's — under the word, green, three times in one function
+    /// (items 462, 496, 502; `docs/COMBAT.md` §43.3.1). Every guard before
+    /// this one was aimed at an instrument that says nothing; this is aimed
+    /// at one that says *yes*. The grep is mechanical: each `if let (Some(`
+    /// in a differ carries, within the six lines above it, a `both
+    /// sides:` comment naming what an absent side means on each side — a
+    /// field this crate does not model, a detail level that does not print
+    /// it, or a real disagreement, which must not be quiet. Made to fail
+    /// first on eight unannotated sites.
+    #[test]
+    fn a_comparison_gated_on_both_sides_says_which_side_is_quiet() {
+        let mut bare = Vec::new();
+        for (file, src) in DIFF_FILES.iter().zip(DIFF.iter()) {
+            let lines: Vec<&str> = src.lines().collect();
+            for (i, l) in lines.iter().enumerate() {
+                if !l.contains("if let (Some(") {
+                    continue;
+                }
+                let above = &lines[i.saturating_sub(6)..i];
+                if !above.iter().any(|a| a.contains("both sides:")) {
+                    bare.push(format!("{file}:{}", i + 1));
+                }
+            }
+        }
+        assert!(
+            bare.is_empty(),
+            "a comparison gated on both sides being present, with no `// both sides:` \
+             line above it saying what an absent side means: {bare:?}. A comparison \
+             written as *compare when both carry it* reads an empty side as agreement"
+        );
+    }
 
     #[test]
     fn the_widening_ledger_counts_what_nothing_compares() {

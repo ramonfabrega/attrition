@@ -20566,3 +20566,27 @@ are item 491; 476 and 342 park for naming no score. Two clauses in
 `CLAUDE.md`. The census: cited 915 → 922, entered and the order family
 unchanged. **DECISIONS 46.** One Loop item remains (313).
 `docs/audit/2026-09-22-fable-pass-10.md`.
+
+## 2026-09-23 — the eleventh Fable pass: twenty-nine landings, three chapters closed, and the map the rule named (Fable 5.1, steering)
+
+Called by the opener at the chain's stop, which said twenty; `git log`
+says **twenty-nine** since the tenth pass — nine on Opus 5, twenty on
+Opus 5.5 after a mid-tranche clear reset the count. Twenty-three moved
+a word: Great Lakes 10,277 → 12,038, chapters one and two closed at
+900, chapter five pinned and closed in one afternoon, chapter four —
+the namesake — pinned at 1,277 after five reading-only claims turned
+out unwired rather than wrong. Workers 765 USD, 26.4 a landing, 33 a
+word against 53; Great Lakes **0.23 a frame against 4.07** — out of its
+fight. Nine of twenty-nine turned on an instrument that agreed by not
+looking. **What no landing could find**: East Indies at 9,711 has been
+the lower map since 09-21, the loop's own rule names it the default,
+parked 444 said what to book, and forty landings ran on Great Lakes
+because the queue's line said so. The rule is a guard now, and 573 —
+East Indies widened whole — is the AI track's item. Three more guards,
+each made to fail first: a closed chapter is named closed on the
+`Golden:` line (528); the ledger checks its own module list and found
+six differs missing, `leader.rs` among them (517); a comparison gated on
+both sides says which side is quiet (503). Five clauses in `CLAUDE.md`;
+526 to the ordinary list; the lab's PRs #7 and #8 book nothing.
+**DECISIONS 47.** Two Loop items remain (313, 527).
+`docs/audit/2026-09-23-fable-pass-11.md`.

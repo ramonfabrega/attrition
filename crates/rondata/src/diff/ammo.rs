@@ -223,6 +223,8 @@ pub(crate) fn blocks(body: &str) -> Vec<(Ammo, usize)> {
             continue;
         }
         let mut it = t.split_whitespace();
+        // both sides: a line's tokens, not a comparison — a field line is
+        // two words and no third.
         if let (Some(k), Some(v), None) = (it.next(), it.next(), it.next()) {
             // A line counts towards the record's width when it is a field
             // this crate knows **and** it arrived in the type `log_data`

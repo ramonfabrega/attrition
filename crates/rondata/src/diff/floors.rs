@@ -190,42 +190,127 @@ mod tests {
     /// recommendation and the AI track's lower-map rule one level across):
     /// the first `w<frame>` is the lowest pinned word, and every pinned
     /// chapter's word appears on the line.
+    ///
+    /// **A closed chapter is named closed, and the line leads with the
+    /// lowest *open* word** (parked 528, the eleventh pass). A chapter
+    /// closes when its word is its trace's last block — 900 in a window
+    /// `[606, 901)` — and by 2026-09-23 three of four were closed, so
+    /// "lowest word" read a closed chapter's 900 ahead of the live
+    /// headline's 1277 and the rules track's item stood last on its own
+    /// line. So the line is parsed part by part: a closed chapter is
+    /// `chN closed` and never a `w`; an open one is `chN w<word> of
+    /// <length>`; the first `w` is the lowest open word, which is the
+    /// rules headline. A chapter that reopens — a pin under its end —
+    /// fails here until the line says so as a word.
     #[test]
     fn the_handoff_s_golden_line_is_the_pinned_word() {
         let path = concat!(env!("CARGO_MANIFEST_DIR"), "/../../docs/QUEUE.md");
         let q = std::fs::read_to_string(path).expect("docs/QUEUE.md");
         let line = q.lines().find(|l| l.starts_with("Golden:")).expect(
             "docs/QUEUE.md has no `Golden:` line in the handoff; write \
-             `Golden: w<frame> of <length> (chN) · …`",
+             `Golden: chN closed · chM w<frame> of <length> · …`",
         );
-        let words: Vec<i64> = line
-            .trim_start_matches("Golden:")
-            .split_whitespace()
-            .filter_map(|w| w.strip_prefix('w').and_then(|d| d.parse::<i64>().ok()))
-            .collect();
-        let chapters = [
-            GOLDEN_WORD_CHAPTER_ONE,
-            GOLDEN_WORD_CHAPTER_TWO,
-            GOLDEN_WORD_CHAPTER_FOUR,
-            GOLDEN_WORD_CHAPTER_FIVE,
+        // (chapter, word, widening window) — closed when the word is the
+        // window's last block.
+        let chapters: [(u32, i64, (i64, i64)); 4] = [
+            (1, GOLDEN_WORD_CHAPTER_ONE, WIDENING_CHAPTER_ONE),
+            (2, GOLDEN_WORD_CHAPTER_TWO, WIDENING_CHAPTER_TWO),
+            (4, GOLDEN_WORD_CHAPTER_FOUR, WIDENING_CHAPTER_FOUR),
+            (5, GOLDEN_WORD_CHAPTER_FIVE, WIDENING_CHAPTER_FIVE),
         ];
-        let lowest = *chapters.iter().min().unwrap();
-        let said = *words
-            .first()
-            .unwrap_or_else(|| panic!("the `Golden:` line names no `w<frame>`: {line:?}"));
-        assert_eq!(
-            said, lowest,
-            "the handoff's `Golden:` line leads with w{said}; the lowest pinned chapter \
-             is {lowest} (chapters {chapters:?}). The constant and its comment are the \
-             worker's to re-pin; the queue's line is the commander's to write"
-        );
-        for c in chapters {
-            assert!(
-                words.contains(&c),
-                "the `Golden:` line names no w{c}; every pinned chapter's word is on it: \
-                 {line:?}"
+        let mut said_closed = Vec::new();
+        let mut said_open = Vec::new();
+        for part in line.trim_start_matches("Golden:").split('\u{b7}') {
+            let t: Vec<&str> = part.split_whitespace().collect();
+            let Some(ch) = t.first().and_then(|c| c.strip_prefix("ch")) else {
+                continue;
+            };
+            let Ok(n) = ch.parse::<u32>() else {
+                continue;
+            };
+            match t.get(1) {
+                Some(&"closed") => said_closed.push(n),
+                Some(w) => {
+                    let word = w
+                        .strip_prefix('w')
+                        .and_then(|d| d.parse::<i64>().ok())
+                        .unwrap_or_else(|| panic!("unreadable golden part {part:?}"));
+                    said_open.push((n, word));
+                }
+                None => panic!("unreadable golden part {part:?}"),
+            }
+        }
+        let mut open_words: Vec<i64> = Vec::new();
+        for (n, w, (_, hi)) in chapters {
+            if w == hi - 1 {
+                assert!(
+                    said_closed.contains(&n),
+                    "chapter {n} is closed (its word {w} is its trace's end) and the \
+                     `Golden:` line does not say `ch{n} closed`: {line:?}"
+                );
+                assert!(
+                    !said_open.iter().any(|(c, _)| *c == n),
+                    "chapter {n} is closed and the `Golden:` line still carries it as a \
+                     word: {line:?}"
+                );
+            } else {
+                assert!(
+                    said_open.contains(&(n, w)),
+                    "the `Golden:` line does not carry `ch{n} w{w}`; every open chapter's \
+                     word is on it: {line:?}. The constant and its comment are the \
+                     worker's to re-pin; the queue's line is the commander's to write"
+                );
+                assert!(
+                    !said_closed.contains(&n),
+                    "chapter {n} is open at {w} and the `Golden:` line calls it closed: \
+                     {line:?}"
+                );
+                open_words.push(w);
+            }
+        }
+        if let Some(lowest) = open_words.iter().min() {
+            let first = said_open
+                .first()
+                .map(|(_, w)| *w)
+                .unwrap_or_else(|| panic!("the `Golden:` line names no open word: {line:?}"));
+            assert_eq!(
+                first, *lowest,
+                "the `Golden:` line's first word is w{first}; the lowest open chapter is \
+                 {lowest}, and that is the rules headline"
             );
         }
+    }
+
+    /// **The AI track's default map is the lower word's** (`docs/DECISIONS.md`
+    /// 41 §1, made a guard by the eleventh pass). The queue's own preamble
+    /// names the map — "lower map first — Great Lakes" — and a commander
+    /// reads that line, never the constants: Great Lakes passed East
+    /// Indies' 9,711 on 2026-09-21 and the line still named it through
+    /// three steering passes and some forty landings, while parked 444
+    /// said what the day should have brought. The phrase and the map stay
+    /// on one line, so this can read them.
+    #[test]
+    fn the_queue_s_default_map_is_the_lower_word() {
+        let path = concat!(env!("CARGO_MANIFEST_DIR"), "/../../docs/QUEUE.md");
+        let q = std::fs::read_to_string(path).expect("docs/QUEUE.md");
+        let phrase = "lower map first \u{2014}";
+        let line = q
+            .lines()
+            .find(|l| l.contains(phrase))
+            .expect("docs/QUEUE.md names no `lower map first — <map>` line");
+        let named = line.split(phrase).nth(1).unwrap().trim_start();
+        let lower = if LONG_WORD_EAST_INDIES <= LONG_WORD_GREAT_LAKES {
+            "East Indies"
+        } else {
+            "Great Lakes"
+        };
+        assert!(
+            named.starts_with(lower),
+            "docs/QUEUE.md says `lower map first — {named}` and the lower word is {lower}'s \
+             (East Indies {LONG_WORD_EAST_INDIES}, Great Lakes {LONG_WORD_GREAT_LAKES}). \
+             Rewrite the line, and book that map's widening first — WIDENINGS names the \
+             item that owes it"
+        );
     }
 
     /// **A word is pinned with its widening** (`docs/DECISIONS.md` 43):
