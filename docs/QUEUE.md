@@ -23,20 +23,19 @@ track closed chapters four (1500) and seven (1200) and pinned three
 - **Chapter seven's premise fell** (INPUT §11.9): a human's Citizen
   gathers under `!ai off`. The commander pinned it closed on its
   agreement; restaging is the pass's.
-- **592 moved no word**: it fixed the census under 10582. 597 needs the
-  lab's packet rung, its first use on this map.
-- **Fable backlog: 8 Loop items** (313, 527, 574, 575, 583, 584, 596, 598).
+- **592 and 597 moved no word**: each fixed a value under East Indies'
+  10582 (the census; the Mine's site, by the packet rung's first use here).
+- **Fable backlog: 9 Loop items** (313, 527, 574, 575, 583, 584, 596, 598, 605).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w10582 of 24,000 · GreatLakes w12038 of 24,000
 Golden: ch3 w682 of 900 · ch1 closed · ch2 closed · ch4 closed · ch5 closed · ch7 closed · 601 next
-Endpoint 24001: EastIndies 64 off, 0 unlinked · GreatLakes 41 off, 4 unlinked
+Endpoint 24001: EastIndies 59 off, 3 unlinked · GreatLakes 48 off, 0 unlinked
 
-**Opener: 11 landings since the eleventh pass (573 to 595 by the log).
-att-597 is live on the AI track with run144's packet. A commander takes
-601 on the rules track, then 602 and 571; workers spawn with
-`claude-opus-5-5[1m]`. The count is by the log from the pass and stops
-at twenty.**
+**Opener: 12 landings since the eleventh pass (573 to 597 by the log).
+att-601 is live on the rules track. A commander takes 604 on the AI
+track, then 602 and 571; workers spawn with `claude-opus-5-5[1m]`. The
+count is by the log from the pass and stops at twenty.**
 
 ## The queue
 
@@ -46,13 +45,14 @@ lower map first — East Indies (a guard reads this line). Take the first
 unstarted on either track unless a better order is obvious, and say so; the
 backlog is `docs/PARKED.md`, and an item returns only when a score names it.
 
-597. **East Indies' word is 10582: `produce_building`'s placement** (592
-    fixed the census under it and **did not move the word**: a barge's
-    rider counts by its container, AI §58). Ours 209 draws against 207,
-    parting at index 11: ours `produce_building+0xc99`, theirs `+0x1805`.
-    The spiral near city `1/2007` has 12 candidates here against 7; that
-    city's site picture has stood one apart since 1819 (run58's pin). A
-    tile's fit is on no dump: a packet at 10581 (AI §58.4), run144.
+604. **East Indies' word is 10582: four spiral cells the original
+    refuses** (597's packet, run144, placed the Mine on the original's site
+    with `find_nearest` measuring to solid mountain cells, AI §59; **the
+    word did not move**, the second item running). 207 draws against 207,
+    the sequence parting at index 11. (43, 44), (42, 44), (40, 46) and
+    (40, 47) sit 1536 from a solid cell there; here they reach one no range
+    lists. `solid_mount` is authored by the mountain templates
+    (`MountainRange::init`); the packet's 107 cells are the oracle.
 
 571. **Army 1's squad stops on block 11922 in the original and walks on
     here** (566 moved the word 11903 → 12038 by carrying the pathfinder's

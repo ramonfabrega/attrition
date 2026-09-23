@@ -22,6 +22,12 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Parked by item 597, 2026-09-23 — the placement's reading-only offsets
+
+(607) **A blind second reading of `docs/AI.md` §59.6's offsets.** The
+Mine's site is diff-backed by run143 and the packet; the offsets no run
+reaches rest on one reading.
+
 ## Parked by item 595, 2026-09-23 — the pivot's last degree
 
 (603) **The pivot node's offset** (`get_position`, which the original
@@ -582,6 +588,15 @@ waited on before the handoff is written — the harness re-invokes the
 session when the task exits, so the wait costs nothing — and the gate's
 wrapper propagates its exit rather than echoing it. Same family as (565):
 a receipt that is written but not read.
+
+(605) **The packet rung's two lessons from its first use on East
+Indies.** Filed by item 597, 2026-09-23. First, "a packet at the frame
+before the divergence" is off by one when the word is read as a trace
+tick: a packet at logger frame N is taken after tick N−1, so 597's
+10581 had to be 10582 (`docs/journal/2026-09-23-item-597.md`). That
+belongs in `docs/EMULATOR.md` §8 and `docs/ORACLE.md`. Second, the
+probe that logs every call one function's body makes (`pb_probe.py`,
+kept off the repo) is a `tools/recomp` candidate on its second use.
 
 (598) **`compare` never reads `inside_up`**, the garrison and rider link.
 Filed by item 592, 2026-09-23: only run143's widening compares it, so a
