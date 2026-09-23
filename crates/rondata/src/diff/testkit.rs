@@ -2304,6 +2304,14 @@ pub(crate) const WIDENING_CHAPTER_TWO: (i64, i64) = (606, 901);
 /// 605..899 and its `!quit` block at 901.
 pub(crate) const WIDENING_CHAPTER_FIVE: (i64, i64) = (605, 901);
 
+/// `chapter_four_s_border_is_widened_cell_for_cell`'s window: **run132
+/// whole**, the border capture of chapter four (item 552). It spans the
+/// three border levers — the Temple at 300, Religion at 400 and Civic 3 at
+/// 500 — and the budgeted recompute after each, which the original spreads
+/// over about five blocks. `docs/GOLDEN.md` §8 designed it as `[295, 345)`,
+/// which sees the Temple alone.
+pub(crate) const WIDENING_CHAPTER_FOUR_BORDER: (i64, i64) = (295, 545);
+
 /// `run123_s_word_frame_is_widened_whole`'s window: run123's own first
 /// and last blocks (item 520). The capture was sized to the word, 11185,
 /// with 425 blocks under it — back past the 10782 and 10982 rotations —

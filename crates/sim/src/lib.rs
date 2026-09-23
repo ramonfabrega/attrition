@@ -3216,25 +3216,28 @@ impl Sim {
     /// inlined `LeaderData::has_rare(`[`economy::GEMS`]`)` over
     /// `rare | rare_conquest`, which is what [`Sim::has_rare`] answers.
     ///
-    /// **Still seams**, because nothing here models them: the temple and
-    /// fort border levels (`has_preq(TEMPLEBORDERS2..4)`,
-    /// `has_preq(FORTBORDERS2..4)` — bonus types `0x2c8..0x2ca` and
-    /// `0x2d1..0x2d3`, which this crate loads as `bonus_preqs` and does not
-    /// expose), the Colosseum and Eiffel Tower, and the AI handicap
-    /// allowance. All three are inert on every capture so far — no player
-    /// in one holds a Temple, a Fort or either wonder, and the lobbies run
-    /// at handicap 0 — and the first two are blocked at their
-    /// prerequisite rather than merely unreached (`docs/ATTRITION.md`,
+    /// **The temple and fort border levels** are `1` plus the highest of
+    /// `TEMPLEBORDERS2..4` / `FORTBORDERS2..4` held
+    /// ([`tech::Roles::temple_borders_preq`]), since item 552: chapter
+    /// four's Religion at 400 moved run132's border 296 → 327 and this
+    /// crate's not at all while the level was a constant 1.
+    ///
+    /// **Still seams**, because nothing here models them: the Colosseum
+    /// and Eiffel Tower, and the AI handicap allowance, which is
+    /// unreachable in any game run here (`docs/ATTRITION.md`,
     /// "Territory").
     fn player_borders(&self, who: Player) -> territory::PlayerBorders {
         let w = who as usize;
         let civic = self.tech[w].epoch[tech::Line::Civic.index()].max(0);
+        let roles = &self.tech_tree.roles;
+        let temple_level = 1 + self.bonus_level(who, &roles.temple_borders_preq) as i32;
+        let fort_level = 1 + self.bonus_level(who, &roles.fort_borders_preq) as i32;
         let n = &self.nation[w];
         territory::PlayerBorders::new(
             &self.tuning,
             civic as usize,
-            1,
-            1,
+            temple_level,
+            fort_level,
             &territory::Wonders {
                 colosseum: false,
                 tikal: n.tikal,

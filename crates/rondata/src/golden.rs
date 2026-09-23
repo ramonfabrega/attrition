@@ -508,8 +508,9 @@ fn run(line: &Staged, built: &mut Built, loaded: &Loaded, done: &mut Applied) {
 /// `Objects::init_unit(who, type, spot, −1, −1, −1)` — which is itself a
 /// squad loop, `uber_size` units threaded `o_up`/`o_down`
 /// ([`sim::Sim::init_unit`]). A **building** type takes
-/// `Objects::init_build` once and **breaks out of the count loop**, so a
-/// leading count places one building and not `num` of them.
+/// `Objects::init_build` once, then `Build::activate`, and **breaks out of
+/// the count loop**, so a leading count places one finished building and
+/// not `num` of them.
 #[expect(
     clippy::too_many_arguments,
     reason = "the original's own argument list"
@@ -561,13 +562,21 @@ fn add(
     }
     if let Some(ty) = named_build(loaded, name) {
         // One, whatever the count says: `init_build`'s arm breaks.
-        match built.sim.place_building(who as sim::Player, ty, at) {
-            Ok(_) => {
-                done.buildings += 1;
-                done.ran += 1;
-            }
-            Err(_) => done.skip(word, "the site is not placeable"),
-        }
+        //
+        // **Placed and finished, not ordered** (item 552). The arm is
+        // `Objects::init_build(who, type, x, y, 0, −1)` — no price, no site
+        // test, no city limit — and then, for a line without `NEW`, the
+        // building's vslot `0x1a8`, `Build::activate`, with `(captured 0,
+        // announce 1, counted 0)` pushed at `0x7e055b`–`0x7e0563`. This arm
+        // took [`sim::Sim::place_building`] until chapter four staged the
+        // first building: that is `Group::action_build`, which charges the
+        // price and leaves an unstarted site, so run132's Temple never set
+        // its city's temple bit and the border never moved. `NEW`, the
+        // unfinished form, is not parsed; no chapter uses it.
+        let b = built.sim.init_build(who as sim::Player, ty, at, false);
+        built.sim.activate(b, false, false);
+        done.buildings += 1;
+        done.ran += 1;
         return;
     }
     done.skip(word, "no unit or building of that name");

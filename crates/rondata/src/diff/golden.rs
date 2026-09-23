@@ -4069,3 +4069,235 @@ fn chapter_five_s_word_frame_is_widened_whole() {
         "run127's dump no longer carries every frame of [{FIRST}, {LAST})"
     );
 }
+
+/// Chapter four's two captures, stood up and staged to a block: the dump
+/// and trace of `run`, the harness built from its own start block, and the
+/// script. The two widenings below share it; it is the body
+/// `chapter_five_s_word_frame_is_widened_whole` has inline.
+struct Staged4 {
+    loaded: crate::load::Loaded,
+    built: Built,
+    ix: crate::capture::indexed::IndexedCapture,
+    script: Script,
+}
+
+fn stage_chapter_four(run: &str) -> Option<Staged4> {
+    let inst = crate::testenv::install()?;
+    let Some((dump, tracepath)) = golden(run) else {
+        eprintln!("skipping: no golden capture {run} (see docs/RUNS.md run132, run133)");
+        return None;
+    };
+    let trace = crate::trace::Trace::read(std::path::Path::new(&tracepath))
+        .expect("a finalized golden trace")
+        .expect("missing RONT header");
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(&dump);
+    let log = Log::parse(&text);
+    let texts = sibling_texts();
+    let logs = siblings(&texts);
+    let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+    let refs: Vec<&Initial> = inits.iter().collect();
+    if refs.is_empty() {
+        eprintln!("skipping: no sibling dumps");
+        return None;
+    }
+    let built = stand_up(&loaded, &log, &refs, &trace);
+    let ix = crate::capture::indexed::IndexedCapture::open(&dump).unwrap();
+    Some(Staged4 {
+        loaded,
+        built,
+        ix,
+        script: chapter(4),
+    })
+}
+
+/// **Chapter four's two captures are one game** (item 552). run132 and
+/// run133 are the same seed and the same script, windowed on different
+/// frames at different detail, and each carries the trace of the whole
+/// run whatever its window. So the draw stream must be the same on every
+/// frame of the two, and that is what makes the border's window and the
+/// bleed's two views of one game rather than two games.
+#[test]
+fn chapter_four_s_two_captures_are_one_game() {
+    let (Some((_, a)), Some((_, b))) = (golden("ch4b"), golden("ch4u")) else {
+        eprintln!("skipping: chapter four needs both run132 and run133 (docs/RUNS.md)");
+        return;
+    };
+    let read = |p: &str| {
+        crate::trace::Trace::read(std::path::Path::new(p))
+            .expect("a finalized golden trace")
+            .expect("missing RONT header")
+    };
+    let (ta, tb) = (read(&a), read(&b));
+    let last = |t: &crate::trace::Trace| t.frames.last().map_or(0, |(f, _)| *f);
+    assert!(
+        last(&ta) >= 1500 && last(&tb) >= 1500,
+        "chapter four's traces end at {} and {}; both runs go to 1500",
+        last(&ta),
+        last(&tb)
+    );
+    let mut draws = 0usize;
+    let mut parted = Vec::new();
+    for f in 0..=1500 {
+        let (la, lb) = (ta.labels(f), tb.labels(f));
+        draws += la.len();
+        if la != lb {
+            parted.push((f, la.len(), lb.len()));
+        }
+    }
+    eprintln!("chapter four: {draws} draws over 1501 frames in each trace");
+    assert!(draws > 0, "chapter four's traces carry no draw");
+    assert_eq!(
+        parted,
+        vec![],
+        "run132's and run133's draw streams part: (frame, run132, run133)"
+    );
+}
+
+/// **Chapter four's border, widened cell for cell** (item 552, run132).
+/// Every block of [`WIDENING_CHAPTER_FOUR_BORDER`]: the whole `WORLD`
+/// record, all 3,600 cells, compared on `who`, `who2`, `flags`, `blocked`,
+/// `solid` and `bad` as `run93_s_block_7932_is_this_crate_s_world_cell_for_cell`
+/// compares a cell; and the `BUILDDATA` and `CITIES` records through
+/// [`crate::diff::harness::widen_block`], which carries the Temple's own
+/// record and Napata's `city_flags` bit by bit. run132 prints no
+/// `UNITDATA` in its window, so a unit's rows are absent there rather than
+/// divergent and are dropped.
+///
+/// A cell's key is its index, `y · 60 + x`, and its first parting block
+/// is kept with the value diff beside it. The owner counts go beside the
+/// keys, block by block, both sides, because the original spreads each
+/// lever's change over several blocks (`GameDaemon::check_borders`, 256
+/// cells a frame) and this crate recomputes wholesale.
+#[test]
+fn chapter_four_s_border_is_widened_cell_for_cell() {
+    use std::collections::BTreeMap;
+    const FIRST: i64 = WIDENING_CHAPTER_FOUR_BORDER.0;
+    const LAST: i64 = WIDENING_CHAPTER_FOUR_BORDER.1;
+    let Some(mut s) = stage_chapter_four("ch4b") else {
+        return;
+    };
+    let players = s.built.sim.players.len();
+    let mut firsts: BTreeMap<(i64, i64, String), (i64, String)> = BTreeMap::new();
+    let (mut blocks, mut cells_compared) = (0usize, 0usize);
+    let mut counts: Vec<(i64, [i64; 2], [i64; 2], usize)> = Vec::new();
+    let mut applied = crate::golden::Applied::default();
+    for f in 0..LAST - 1 {
+        let did = s.script.stage(s.built.sim.frame, &mut s.built, &s.loaded);
+        applied.merge(&did);
+        s.built.tick();
+        let n = f + 1;
+        if n < FIRST {
+            continue;
+        }
+        let Some(at) = s.ix.frames().iter().position(|x| x.number == n) else {
+            continue;
+        };
+        let frame = s.ix.frame_state(at).unwrap();
+        blocks += 1;
+        let mut unit_rows: BTreeMap<(i64, i64, String), (i64, String)> = BTreeMap::new();
+        crate::diff::harness::widen_block(&s.built, &frame, players, n, &mut unit_rows);
+        for (k, v) in unit_rows {
+            // No `UNITDATA` in this window: a unit is "extra" on every
+            // block and says nothing. Buildings are `o` 2000 and up.
+            if k.2 == "extra" && k.1 < 2000 {
+                continue;
+            }
+            firsts.entry(k).or_insert(v);
+        }
+        let raw = s.ix.read_frame(at).unwrap();
+        let parsed = Log::parse(&raw);
+        let Some((_, block)) = parsed.frames().into_iter().find(|(k, _)| *k == n) else {
+            continue;
+        };
+        let Some(world) = block.kid("WORLD") else {
+            continue;
+        };
+        let fields = world.fields().to_vec();
+        let theirs = crate::gamelog::world_cells(&fields);
+        assert_eq!(
+            theirs.len(),
+            3_600,
+            "run132's block {n} is not a whole WORLD scan"
+        );
+        let w = &s.built.sim.world;
+        let code = |o: sim::world::Owner| match o {
+            sim::world::Owner::Player(p) => i64::from(p),
+            sim::world::Owner::Ambiguous => -2,
+            sim::world::Owner::None => -1,
+        };
+        let (mut ours_n, mut theirs_n) = ([0i64; 2], [0i64; 2]);
+        let mut owners_part = 0usize;
+        for y in 0..w.height() {
+            for x in 0..w.width() {
+                let c = sim::world::Cell::new(x, y);
+                let i = (y * w.width() + x) as usize;
+                let t = &theirs[i];
+                let d = w.cell_data(c);
+                let (who, who2) = (code(w.owner(c)), code(w.second(c)));
+                for p in 0..2 {
+                    ours_n[p] += i64::from(who == p as i64);
+                    theirs_n[p] += i64::from(t.who == p as i64);
+                }
+                cells_compared += 1;
+                owners_part += usize::from(who != t.who);
+                for (name, mine, dumped) in [
+                    ("who", who, t.who),
+                    ("who2", who2, t.who2),
+                    ("flags", i64::from(d.flags), t.flags),
+                    ("blocked", i64::from(d.blocked), t.blocked),
+                    ("solid", i64::from(d.solid), t.solid),
+                    ("bad", i64::from(d.bad), t.bad),
+                ] {
+                    if mine != dumped {
+                        firsts
+                            .entry((-3, i as i64, format!("cell({x},{y}).{name}")))
+                            .or_insert((n, format!("ours {mine} theirs {dumped}")));
+                    }
+                }
+            }
+        }
+        if counts
+            .last()
+            .is_none_or(|l| (l.1, l.2, l.3) != (ours_n, theirs_n, owners_part))
+        {
+            counts.push((n, ours_n, theirs_n, owners_part));
+        }
+    }
+    eprintln!(
+        "chapter four staged: {} line(s) ran, {} unit(s), {} building(s)",
+        applied.ran, applied.units, applied.buildings
+    );
+    for ((word, why), k) in &applied.skipped {
+        eprintln!("  {k:5} {word}: {why}");
+    }
+    for (n, o, t, k) in &counts {
+        eprintln!("  block {n}: owner 0/1 cells ours {o:?} theirs {t:?}, {k} owners part");
+    }
+    let mut by_block: BTreeMap<i64, Vec<String>> = BTreeMap::new();
+    for ((w, o, what), (f, row)) in &firsts {
+        by_block
+            .entry(*f)
+            .or_default()
+            .push(format!("{w}/{o} {what}: {row}"));
+    }
+    for (f, rows) in &by_block {
+        if rows.len() <= 12 || *f <= FIRST + 10 {
+            for r in rows {
+                eprintln!("  f{f} {r}");
+            }
+        } else {
+            eprintln!("  f{f}: {} keys, first {}", rows.len(), rows[0]);
+        }
+    }
+    eprintln!(
+        "ch4 border widening: {blocks} blocks [{FIRST}, {LAST}), {cells_compared} cells, \
+         {} keys parted",
+        firsts.len()
+    );
+    assert_eq!(
+        blocks,
+        (LAST - FIRST) as usize,
+        "run132's dump no longer carries every frame of [{FIRST}, {LAST})"
+    );
+}
