@@ -11990,6 +11990,241 @@ mod tests {
         );
     }
 
+    /// **run143 — East Indies' word 10398, widened whole, both directions**
+    /// (item 588). run99's line with `LEADERS` raised to 9 over
+    /// [`WIDENING_EAST_INDIES_BARK`]: twenty blocks shared with run99, the
+    /// word's block — run99's last — and 340 past it, which no capture had
+    /// printed. A sibling of run99's and run139's walks, not an extension:
+    /// every record [`widen_block`] reads on every unit and building of
+    /// every player, every key of [`crate::diff::leader::rows`] for both
+    /// leaders, and every figure whose animation changes on either side
+    /// (`docs/COMBAT.md` §44.2.1). Each key's first parting block is kept
+    /// with the value diff beside it.
+    ///
+    /// The word's frame, 10398, writes block **10399**.
+    ///
+    /// `RON_ROW_WALK=<who>/<o>,…` prints every row a unit parts on, at each
+    /// block the set changes; `RON_STANDING=<lo>-<hi>` every row parting on
+    /// each block of the window.
+    #[test]
+    fn run143_s_word_frame_is_widened_whole() {
+        const FIRST: i64 = WIDENING_EAST_INDIES_BARK.0;
+        const TAIL: i64 = WIDENING_EAST_INDIES_BARK.1;
+        const WORD_BLOCK: i64 = EAST_INDIES_BARK_BLOCK;
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(sib), Some(tr), Some(r143)) = (
+            dump("gamelog-run54-islands-24k-trace.txt"),
+            dump("gamelog-run38-islands-start.txt"),
+            trace("rontrace-run54.log"),
+            dump("gamelog-run143-eastindies-bark.txt"),
+        ) else {
+            eprintln!("skipping: no run54/run143 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let mut ix = crate::capture::indexed::IndexedCapture::open(&r143).unwrap();
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = crate::capture::read(&path);
+        let sib_text = crate::capture::read(&sib);
+        let log = Log::parse(&text);
+        let sib_log = Log::parse(&sib_text);
+        let sib_init = sib_log.initial().expect("run38 is a start dump");
+        let mut init = log.initial().unwrap();
+        borrow_from_siblings(&mut init, &[&sib_init]);
+        borrow_pasture(&mut init, &tr);
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        let players = built.sim.players.len();
+        use std::collections::{BTreeMap, BTreeSet};
+        let mut firsts: BTreeMap<(i64, i64, String), (i64, String)> = BTreeMap::new();
+        let mut missing: BTreeSet<String> = BTreeSet::new();
+        let (mut blocks, mut compared, mut leader_rows) = (0usize, 0usize, 0usize);
+        let row_walk: Vec<(i64, i64)> = std::env::var("RON_ROW_WALK")
+            .map(|w| {
+                w.split(',')
+                    .filter_map(|u| {
+                        let (a, b) = u.split_once('/')?;
+                        Some((a.trim().parse().ok()?, b.trim().parse().ok()?))
+                    })
+                    .collect()
+            })
+            .unwrap_or_default();
+        let mut walked: BTreeMap<(i64, i64), Vec<String>> = BTreeMap::new();
+        let mut anims: BTreeMap<(i64, i64), (Option<i64>, Option<i64>)> = BTreeMap::new();
+        // Every figure whose animation changes on either side on the
+        // word's blocks: `(block, who, o, theirs changed, ours changed)`.
+        let mut changed: Vec<(i64, i64, i64, bool, bool)> = Vec::new();
+        for f in 0..=TAIL {
+            built.tick();
+            let n = f + 1;
+            if n < FIRST {
+                continue;
+            }
+            let Some(at) = ix.frames().iter().position(|x| x.number == n) else {
+                continue;
+            };
+            let frame = ix.frame_state(at).unwrap();
+            blocks += 1;
+            debug_watch(&built, n);
+            let mut here: BTreeMap<(i64, i64, String), (i64, String)> = BTreeMap::new();
+            let (_, rows) = widen_block(&built, &frame, players, n, &mut here);
+            compared += rows;
+            for &(w, o) in &row_walk {
+                let now: Vec<String> = here
+                    .iter()
+                    .filter(|((hw, ho, _), _)| (*hw, *ho) == (w, o))
+                    .map(|((_, _, what), (_, row))| format!("{what}: {row}"))
+                    .collect();
+                let e = walked.entry((w, o)).or_default();
+                if *e != now {
+                    eprintln!("  row walk {n} {w}/{o}: [{}]", now.join(" · "));
+                    *e = now;
+                }
+            }
+            if site_window_named("RON_STANDING").is_some_and(|(a, b)| (a..=b).contains(&n)) {
+                for ((w, o, what), (_, row)) in &here {
+                    eprintln!("  standing {n} {w}/{o} {what}: {row}");
+                }
+            }
+            for (k, v) in here {
+                firsts.entry(k).or_insert(v);
+            }
+            for t in &frame.units {
+                let Ok(o16) = i16::try_from(t.o) else {
+                    continue;
+                };
+                let ours = u8::try_from(t.who)
+                    .ok()
+                    .and_then(|w| built.sim.unit_by_o(w, o16));
+                let ta = t.guys.first().and_then(|g| g.cur_anim);
+                let oa =
+                    ours.and_then(|u| built.sim.units[u].guys.first().map(|g| i64::from(g.anim)));
+                let before = anims.insert((t.who, t.o), (ta, oa));
+                if !(WORD_BLOCK - 2..=WORD_BLOCK + 2).contains(&n) {
+                    continue;
+                }
+                let Some((pt, po)) = before else { continue };
+                if pt == ta && po == oa {
+                    continue;
+                }
+                eprintln!(
+                    "  anim {n} {}/{}: theirs ({},{}) a{:?}->{:?} | ours {:?} a{:?}->{:?}",
+                    t.who,
+                    t.o,
+                    t.pos.x,
+                    t.pos.y,
+                    pt,
+                    ta,
+                    ours.map(|u| (built.sim.units[u].pos.x, built.sim.units[u].pos.y)),
+                    po,
+                    oa
+                );
+                changed.push((n, t.who, t.o, pt != ta, po != oa));
+            }
+            let raw = ix.read_frame(at).unwrap();
+            let flog = Log::parse(&raw);
+            for who in 0..2usize {
+                let Some(block) = flog.leader_block(n, who as i64) else {
+                    continue;
+                };
+                let t = crate::diff::leader::theirs(&block);
+                let mine = crate::diff::leader::rows(&loaded, &built, who);
+                for (k, v) in &mine {
+                    let Some(&y) = t.get(k) else {
+                        missing.insert(k.clone());
+                        continue;
+                    };
+                    leader_rows += 1;
+                    if *v != y {
+                        firsts
+                            .entry((who as i64, -1, format!("leader:{k}")))
+                            .or_insert((n, format!("ours {v} theirs {y}")));
+                    }
+                }
+            }
+        }
+        eprintln!(
+            "run143 widening: {blocks} blocks [{FIRST}, {TAIL}], {compared} record rows, \
+             {leader_rows} leader rows, {} keys parted, {} keys unprinted",
+            firsts.len(),
+            missing.len()
+        );
+        let mut by_block: BTreeMap<i64, Vec<String>> = BTreeMap::new();
+        for ((w, o, what), (f, row)) in &firsts {
+            by_block
+                .entry(*f)
+                .or_default()
+                .push(format!("{w}/{o} {what}: {row}"));
+        }
+        for (f, rows) in &by_block {
+            let near = *f > FIRST;
+            let window =
+                site_window_named("RON_DEBUG_ROWS").is_some_and(|(lo, hi)| (lo..=hi).contains(f));
+            if near || window {
+                for r in rows {
+                    eprintln!("  f{f} {r}");
+                }
+            } else {
+                eprintln!("  f{f}: {} keys", rows.len());
+            }
+        }
+        assert_eq!(blocks, (TAIL - FIRST + 1) as usize, "the walk is whole");
+        // **The leader half is whole**: every key `leader::rows` carries is
+        // on run143's record, both leaders, all 360 blocks.
+        assert_eq!(leader_rows, 758_160, "360 blocks x 2 leaders x 1,053 keys");
+        assert_eq!(missing, BTreeSet::new(), "no key unprinted");
+        // **The word's blocks, 10397..10399, both directions** — the same
+        // eight rows run99's walk pins on its last blocks, now with 340
+        // blocks past them. Sim-frame 10398 spends 4 draws here against 5,
+        // parting at index 0: the original's `Guy::set_anim+0x97a <
+        // Unit::do_idle+0x7d`. The Bark `1/34` has no order left in the
+        // original on 10398 and idles on 10399; this crate's is still
+        // moving, 21 units behind since its first step (the journal of
+        // item 588). The seated Scholar `1/24` changes animation on the
+        // original's side alone.
+        let on_word: Vec<String> = firsts
+            .iter()
+            .filter(|(_, (f, _))| (WORD_BLOCK - 2..=WORD_BLOCK).contains(f))
+            .map(|((w, o, what), (f, row))| format!("{f} {w}/{o} {what}: {row}"))
+            .collect();
+        assert_eq!(
+            on_word,
+            [
+                "10399 1/24 g.cur_anim[0]: ours 29 theirs 30",
+                "10399 1/24 g.end_time[0]: ours 30 theirs 70",
+                "10399 1/34 g.cur_time[0]: ours 15 theirs 1",
+                "10399 1/34 g.end_time[0]: ours 20 theirs 40",
+                "10399 1/34 g.last_time[0]: ours 14 theirs 0",
+                "10399 1/34 idle: ours 0 theirs 1",
+                "10398 1/34 order:length: Length { ours: 1, theirs: 0 }",
+                "10398 1/34 orders.len: ours 1 theirs 0",
+            ],
+            "the word's blocks"
+        );
+        // **Who changes animation, both sides** (`docs/COMBAT.md`
+        // §44.2.1), on 10397..10401: the three one-sided changes run99
+        // shows, and none on the two blocks past it.
+        let one_sided: Vec<(i64, i64, i64, bool, bool)> =
+            changed.iter().filter(|c| c.3 != c.4).copied().collect();
+        assert_eq!(
+            one_sided,
+            [
+                (10398, 1, 34, false, true),
+                (10399, 1, 24, true, false),
+                (10399, 1, 34, true, false),
+            ],
+            "a figure moves on one side only"
+        );
+        // **The floor under the word**: 269 keys standing on the window's
+        // first block (the human leader's census, the site list, the make
+        // list's `city` shift, and `1/34`'s walk a step behind, among the
+        // record rows run99 carries whole), then fifteen more before it:
+        // the make list's `city` and a unit of metal and food on
+        // 10381/10382, the Bark's speed, stop and tolerance, and the scout
+        // `1/0` a unit off on 10383/10390. **830 in all over the window.**
+        let under = firsts.values().filter(|(f, _)| *f < WORD_BLOCK - 2).count();
+        let first = firsts.values().filter(|(f, _)| *f == FIRST).count();
+        assert_eq!((first, under, firsts.len()), (269, 284, 830), "the floor");
+    }
+
     #[test]
     fn run73_s_window_clocks_are_the_original_s() {
         let Some(inst) = install() else { return };

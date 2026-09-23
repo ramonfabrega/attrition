@@ -37,7 +37,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use crate::gamelog::{Block, Log, reads};
 
 use super::testkit::{
-    EAST_INDIES_MAKE_BLOCK, EAST_INDIES_WORD_BLOCK, GOLDEN_WORD_CHAPTER_TWO,
+    EAST_INDIES_BARK_BLOCK, EAST_INDIES_MAKE_BLOCK, GOLDEN_WORD_CHAPTER_TWO,
     GREAT_LAKES_DETOUR_BLOCK, WIDENING_CHAPTER_TWO,
 };
 
@@ -371,7 +371,7 @@ fn the_recorder_tells_one_object_block_from_another() {
 fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch2 = golden_dump("ch2");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
-    let r99 = crate::testenv::dump("gamelog-run99-eastindies-valuewindow2.txt");
+    let r143 = crate::testenv::dump("gamelog-run143-eastindies-bark.txt");
     let r139 = crate::testenv::dump("gamelog-run139-eastindies-makelist.txt");
     if ch2.is_none() && r136.is_none() {
         eprintln!("skipping: neither the ch2 golden capture nor run136 is on disk");
@@ -415,11 +415,13 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     // Great Lakes line has `GROUPS=1` and `LEADERS=9`.
     // Item 576 moved the word to 10232, and run99 carries its blocks too.
     // Item 579 moved it to 10398, whose block is run99's last, so the five
-    // blocks end on it rather than straddle it.
-    let ei = EAST_INDIES_WORD_BLOCK;
-    if let Some(p) = &r99 {
-        let n = drive_capture(p, ei - 4, ei, &mut paths);
-        assert_eq!(n, 5, "run99 carries the word's five blocks");
+    // blocks ended on it rather than straddled it. Item 588's run143 is
+    // run99's line at `LEADERS=9` from 10380 to 10739, so the window
+    // straddles the word's block again, on the capture taken to widen it.
+    let ei = EAST_INDIES_BARK_BLOCK;
+    if let Some(p) = &r143 {
+        let n = drive_capture(p, ei - 2, ei + 2, &mut paths);
+        assert_eq!(n, 5, "run143 carries the word's five blocks");
         frames += n;
     }
     // **And on run139** (item 576): run99's line with `LEADERS=9`, over the

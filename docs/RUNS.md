@@ -5257,3 +5257,38 @@ because no toggle means no block 1. The tracer DLL is rebuilt per run
 - **The harness walks both to 1200 without a parting.** Draws, sequence
   and values all agree, and this crate's five match the original's on 763,
   900 and 1199 in both runs.
+
+## run143 — East Indies' word 10398, the Bark and 340 blocks past it (2026-09-23, item 588)
+
+**What it is.** run99's game and line with `LEADERS` raised to **9**, as
+run139 was: `MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,DEATHS=1,LEADERS=9`
+over `[10380, 10740)`, plus `rontrace.cfg` `cover=1` and
+`window=10394-10402` over the word. `!quit` at 10760. **752,295,186 bytes
+of dump and 18,546,592 of trace, 27 minutes** from launch at 05:40 to
+archive at 06:07. It ran through `viadriver.sh` with no human at the menu.
+The lane lock was stale: its holder, pid 89520, was dead. That is 2.06 MB
+a block net of the 11 MB start dump, against run139's 2.0.
+
+**Why it was owed.** The word's block, 10399, is run99's last. No capture
+on this disk printed 10399 onward, and run99 prints `LEADERS=1`'s stub.
+The walk back on run99 alone had already named the Bark's first step
+(`docs/journal/2026-09-23-item-588.md`). `LEADERS=9` was taken for the
+frames past the word, not for the walk back.
+
+**Every check passed:**
+
+| check | result |
+|---|---|
+| `rngcmp.py` vs `rontrace-run54.log` | **0 differing**, 10,761 identical |
+| `MAP_STYLE` from the dump's `GAME INFO` | 18 |
+| the window, block for block | **360 blocks, 10380..10739, no gap** |
+| a `MAKEOBJECT` on every window block | **360** |
+| overlap with run99, the leader's kinds excluded | **20 in common (10380..10399), 0 differ** |
+| the coverage window | a set on all 9 frames 10394..10402 |
+
+**What it settled.** R1 and R2 of the stanza hold. On the word's blocks,
+run143's widening (`run143_s_word_frame_is_widened_whole`) prints the
+same eight rows run99's does, all the Bark's and the seated Scholar
+`1/24`'s, and the same three one-sided animation changes. Nothing else
+parts on 10397..10401. The leader record is whole on every block: 758,160
+rows, none unprinted.

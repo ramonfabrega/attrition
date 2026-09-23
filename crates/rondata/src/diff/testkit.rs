@@ -2626,6 +2626,15 @@ pub(crate) const EAST_INDIES_WORD_BLOCK: i64 = 10_399;
 /// reason [`WIDENING_CHAPTER_TWO`]'s is, and it is under the production
 /// cycle that fills the list the word's `make_stuff` spends (9975..9983).
 pub(crate) const WIDENING_EAST_INDIES_MAKE: (i64, i64) = (9_960, 9_999);
+/// `run143_s_word_frame_is_widened_whole`'s window (item 588): run143
+/// whole, 10380..10739 — run99's line at `LEADERS=9`, overlapping run99's
+/// last twenty blocks, then the word and 340 blocks past it. The floor is
+/// the capture's first block for the reason [`WIDENING_CHAPTER_TWO`]'s is.
+pub(crate) const WIDENING_EAST_INDIES_BARK: (i64, i64) = (10_380, 10_739);
+/// The block run143 was taken to widen: the word 10398's frame writes
+/// block 10399, where the Bark `1/34` idles in the original and is still
+/// moving here. The coverage driver reads run143 around it.
+pub(crate) const EAST_INDIES_BARK_BLOCK: i64 = 10_399;
 /// One pinned word's row: `(constant, word, widening test, item, window)`.
 pub(crate) type Widening = (
     &'static str,
@@ -2667,12 +2676,19 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // (empty), and the new word's on 10399 — run99's last block, so the
     // window still holds the word, and the next move past it owes a
     // capture.
+    //
+    // Item 588 took it: **run143** is run99's line at `LEADERS=9` over
+    // [10380, 10739], and `run143_s_word_frame_is_widened_whole` is a
+    // sibling that straddles the word's block — every record, every unit,
+    // both leaders, and the one-sided animation changes, on 360 blocks
+    // twenty of which run99 shares. run99's test keeps the moves' value
+    // diffs under it.
     (
         "LONG_WORD_EAST_INDIES",
         LONG_WORD_EAST_INDIES,
-        Some("run99_s_word_frame_is_widened_whole"),
-        579,
-        Some(WIDENING_EAST_INDIES),
+        Some("run143_s_word_frame_is_widened_whole"),
+        588,
+        Some(WIDENING_EAST_INDIES_BARK),
     ),
     // Item 448 paid the widening 442 owed: `run100_s_word_block_is_every_
     // record_the_dump_carries` compares every field of every record run100
