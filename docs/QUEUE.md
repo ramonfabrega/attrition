@@ -33,15 +33,15 @@ been the lower map since 09-21 — so the AI track's default flips to it.*
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w10232 of 24,000 · GreatLakes w12038 of 24,000
-Golden: none pinned · ch1 closed · ch2 closed · ch4 closed · ch5 closed · 578 next, chapter seven
+Golden: none pinned · ch1 closed · ch2 closed · ch4 closed · ch5 closed · ch7 closed · 587 next, chapter three
 Endpoint 24001: EastIndies 45 off, 22 unlinked · GreatLakes 41 off, 4 unlinked
 
-**Opener: 4 landings since the eleventh pass: 573 (East Indies 9711 →
-9983), 567 (chapter four → 1416), 569 (chapter four closed at 1500) and
-576 (East Indies → 10232). att-578 is live on the rules track with
-run141–142. A commander takes 579 on the AI track, then 571; workers spawn
-with `claude-opus-5-5[1m]`. The count is by the log from the pass and
-stops at twenty.**
+**Opener: 5 landings since the eleventh pass: 573 and 576 (East Indies
+9711 → 10232), 567 and 569 (chapter four closed at 1500) and 578
+(chapter seven closed at 1200, its premise falsified: Loop 584). att-579
+is live on the AI track. A commander takes 587 on the rules track, then
+571; workers spawn with `claude-opus-5-5[1m]`. The count is by the log
+from the pass and stops at twenty.**
 
 ## The queue
 
@@ -68,13 +68,13 @@ backlog is `docs/PARKED.md`, and an item returns only when a score names it.
     `move_step+0x823`. No mechanism. If PRs #7/#8 land first, a packet at
     11921 with the nine guys' move path run on it is an optional second run.
 
-578. **Golden chapter seven, the civilians and its control, captured and
+587. **Golden chapter three, the mounted and siege lines, captured and
     pinned** — the next chapter without a capture by GOLDEN §14's order,
-    now that 569 closed four at 1500. `chapter7.cmd` over `[605, 1200)`,
-    once as scripted and once with `!ai off` deleted; without the control
-    the first measures nothing. Runs **run141** (civilians) and **run142**
-    (control), minted here. Falsifiers written into the `.cmd` before the
-    run; the word pinned with its widening. No mechanism.
+    now that 578 closed seven at 1200. `chapter3.cmd` over `[605, 900)`:
+    three chariots, a catapult eight tiles from the hoplites, and §7's
+    three falsifiers (the catapult's minimum range, the chariots' speed,
+    the leading count). Run **run145**, minted here. Falsifiers written
+    into the `.cmd` before the run; the word pinned with its widening.
 
 ## How to maintain this file
 

@@ -24,6 +24,13 @@ here too, except the item cap — a parked item is not an open one.
 
 ## Parked by item 578, 2026-09-23 — a seam no run exercises
 
+(586) **Nubia's "50% more" hit points on merchants, caravans and markets
+is unapplied** (`NUBIAN_HIT_POINTS`, read by `Unit::update_hits@0060e930`).
+In chapter seven the Caravan, Merchant and Fur Trapper carry `myhits`
+135/135/180 in the original against 90/90/120 here; pinned under the
+word, and no draw depends on it there. Great Lakes' player 0 is Nubia
+too, so it returns as its own item when a Great Lakes row names it.
+
 (585) **`ai_off && !ai_driven` is folded in `sim/orders.rs`**, and it lets
 a human's units into `Unit::think`'s tail with the cheat off, where the
 original's gate reads `leader_flags & 4` (`docs/INPUT.md` §11.9, SEAM).
