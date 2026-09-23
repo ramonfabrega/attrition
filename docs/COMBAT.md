@@ -1447,9 +1447,12 @@ passes `valid_target` and the `flags` filters (units only / buildings only /
 buildings with attack or wonders or military trainers), `check_target` must
 pass (below; it also yields `dist = attack_dist`); the nearest so far is
 cached in `near_o/near_who` (cleared afterwards if beyond `0xf00`); `dist >
-max_dist` skips; the **range gate**: a unit in STAND_GROUND, or entrenched
+max_dist` skips; the **range gate**: ~~a unit in STAND_GROUND, or entrenched
 without the Antipater bit, or an unpacked packer, considers anything
-(`anything`); otherwise a unit that is not guarding (or whose guard target
+(`anything`)~~ a unit in STAND_GROUND, or entrenched without the Antipater
+bit, or an unpacked packer (`local_24`) **must be `is_in_range` of the
+candidate or skip it**, and is scored with `in_range = 0` (item 627, the
+listing, §60.1); otherwise a unit that is not guarding (or whose guard target
 has attack) is deemed `in_range` without testing, and everything else must be
 `is_in_range` or be a unit, have attack, or be a wonder (then `in_range =
 0` and it is still scored); **distance shaping** for units: a ranged type
@@ -9815,8 +9818,9 @@ Three residues past the word. The first two are pinned in the value test:
   `sim::launch` has no node for the catapult's piece (§22's seam).
 - **The landing**: the point plus a scatter drawn on 798, after the
   stream has parted, so ours is (2655, 8142) against (2413, 8276).
-- **865**: this crate's catapult takes a fresh attack after the reload,
-  and a chase on 866. The dump's holds nothing until 868.
+- ~~**865**: this crate's catapult takes a fresh attack after the reload,
+  and a chase on 866. The dump's holds nothing until 868.~~ An unpacked
+  packer's search must reach what it takes (§60, item 627).
 
 ### 57.7 What is not established
 
@@ -10060,7 +10064,7 @@ own pair of `Random::get` calls at `67c6d3` and `67c710`, ahead of
 
 On 865 this crate's catapult, its ground order's reload run out, takes a
 fresh attack and spends `Unit::fight+0x9b0`. The dump's holds nothing
-until 868. That is §57.6's third residue. Below it, the widening
+until 868. That is §57.6's third residue, closed by §60. Below it, the widening
 now links arena A's hoplites and shows what the numbering had hidden:
 
 - on 798, the round's pool slot is 0 here and 1 in the dump, run145's
@@ -10102,3 +10106,151 @@ now links arena A's hoplites and shows what the numbering had hidden:
 - **Reading only**: `find_free`'s three terms, the bump and the
   decrement (§59.3), the cull's duration (§59.7), and `+0x120`'s name,
   which comes from the PDB's `LF_ONEMETHOD`.
+
+## 60. An unpacked packer takes only what it can reach (item 627, 2026-09-23)
+
+Golden chapter three's restage (run146, `docs/GOLDEN.md` §7) stood at
+**865** after §59. Ours spent 5 draws against 4, parting at draw 0:
+`Unit::fight+0x9b0` on the catapult `0/6`, whose ground order's reload
+had just run out. The dump's catapult held nothing until 868. The item
+was booked with no mechanism. `docs/journal/2026-09-23-item-627.md` has
+the kill conditions, written before the reading.
+
+### 60.1 The floor, and what it named
+
+`chapter_three_s_catapult_after_its_reload` walks 858–880 on both sides:
+`0/6`'s order list, its `idle`, reload, point and `orders_x/y`, and arena
+A's three hoplites.
+
+- Both sides drop the ground order and the attack beneath on 864, the
+  ready block (§57.3).
+- The hoplites `1/9`–`1/11` stand still on both sides, 339, 396 and 413
+  units off. All three are inside the catapult's 570 minimum.
+- `idle` reads 1 on 865 on both sides. The think's first idle frame
+  (tick 864) ran on both. Ours took an attack on `1/10` there, with no
+  draw, and spent the re-search on 865. The dump's took nothing.
+- The dump's catapult takes an attack **only on the block after a hit**:
+  868, 870 and 871, after the hits that take `damage` 12 → 16 → 20 → 24.
+  Each attack reads `in_range 0` and is gone the next block, and the
+  catapult never moves. On tick 868 the original spends one
+  `Unit::fight+0x9b0` and nothing after it. Ours, given the same
+  attack, chased away for its range.
+
+So two questions: why the idle search finds nothing, and why the
+retaliation ends without a chase.
+
+### 60.2 `Object::find_nearby_target@00648da0`'s `local_24`
+
+`local_24` is set, from the listing, at `64911b`–`64918d`:
+
+- the unit's combat stance (vslot `+0xf4`) is 2, STAND_GROUND; or
+- `unit_masks & 0x2000000` with `unit_masks2 & 0x20000` clear (entrenched
+  without the Antipater bit); or
+- the type packs (`+0x2b8 & 4`) and the unit is **unpacked**
+  (`unit_masks & 0x80000` clear).
+
+A computer's packed siege engine sets it too, and sets `local_5c` beside
+it (`6491c6`–`6491cd`). A building sets it, and so does the cavalry
+archer's second-weapon search.
+
+The range gate (`6495c2`–`64963b`) reads it:
+
+```text
+if !local_24 && (!guarding || target has attack ...):
+    in_range = 1                         # deemed, untested
+else:
+    if !is_in_range(this, candidate, own x, own y):
+        if !local_5c or candidate is a unit or ...: skip
+    in_range = 0
+```
+
+So **a searcher with `local_24` must reach what it takes**.
+`ObjectData::is_in_range@006486b0` tests the minimum range, so an
+unpacked catapult's idle search skips every hoplite inside three tiles.
+This crate had the flag the other way round (§12.2, struck there). It
+read these units as the ones that "consider anything", and let every
+unit take anything. `compare_target`'s `/5` is never reached for a
+candidate already tested in range, so the only effect is the skip.
+
+### 60.3 `Unit::fight@005fd4d0:1051`: a packer re-searches before it chases
+
+The chase tail opens:
+
+```text
+if (!packs || param_3 || (t = find_new_target(this, &who, 0)) >= 0 && who >= 0)
+   && !param_4:
+    stand-ground / entrenched hold, or find_attack_pos and the chase, on t
+return 0
+```
+
+`Unit::find_new_target@005ff6a0` kills the current order (or the
+group's), then runs `find_melee_target(-1, &who, 0, 1, 0)`, which adds
+the attack it finds. For a packer, then, the tail goes on only with a
+fresh target from the idle search. For an unpacked one, §60.2 means that
+target is in range. A catapult hit from inside its minimum takes the
+retaliation, drops it on its next frame, finds nothing and stays put:
+run146's 868, 870 and 871. The draw that frame spends is the attack's
+own re-search (`fight+0x9b0`, §8.2 step 0), ahead of both.
+
+The unpacked packer's ever-in-range kill (§57.3, `LAB_005fe0e5`) comes
+before the tail, and it still stands.
+
+### 60.4 The build, and what moved
+
+- `Sim::find_nearby_target`: `must_reach` is `local_24` for a unit.
+  Those units test `is_in_range` and skip a miss, and they score with
+  `in_range = false`.
+- `Sim::do_attack`'s tail: a packer kills the attack and runs
+  `find_melee_target(u, -1)`, then returns if it finds nothing. If it
+  finds something, it adds the order (`QUEUE_FIRST` in DEFENSIVE, else
+  `QUEUE_NEW`, `find_nearby_target`'s own rule) and chases that target.
+
+| | before | after |
+|---|---|---|
+| the restage, run146: word / sequence / values | 865 / 865 / 866 | **1000 / 1000 / none**: closed |
+| run146's widening rows on 865–866 | 20 on `0/6` | 0 |
+| ours' second round, 960 | fired | gone |
+| chapter three (run145) | 900, closed | 900, closed |
+
+With the search gate alone the word stood at 870, where the dump's
+catapult takes its third retaliation and ours was still chasing from 868.
+The re-search took it to the end.
+
+**The value diff** is `chapter_three_s_catapult_after_its_reload`. On
+every block 858–880, `0/6`'s order list, `idle`, reload, point and
+`orders_x/y` read the dump's on both sides, and so do the hoplites'
+points. It also pins the dump's own shape: one attack each on 868, 870
+and 871, on `1/9`, `1/11` and `1/10`. It was made to fail with the gate
+read back: 865 parts on the order list. The unit test
+`an_unpacked_packer_takes_only_what_it_can_reach` was made to fail both
+ways. With the gate read back, the search names a foe inside the
+minimum. With the re-search off, the retaliation keeps its order.
+
+### 60.5 What is not established
+
+- **`local_5c`**, a computer's packed siege engine, which keeps an
+  out-of-range candidate when the candidate is not a unit. This crate
+  does not set it. No capture on disk has a computer's packed engine
+  searching.
+- **The building's gate.** A building sets `local_24` with `local_5c`
+  clear, so from the listing it skips every out-of-range candidate. This
+  crate keeps an out-of-range unit or armed target for a building with
+  `in_range = false` (§12.2's "or be a unit, have attack"). That reading
+  is not changed here, and it wants its own measurement.
+- **The guarding arm** (`local_2c`, activity 12) of the same gate.
+- **The found-target branch of §60.3** for a packer, meaning the
+  stand-ground hold, `find_attack_pos` and the chase on the new target.
+  No capture reaches it with a packer, so it runs the arm this crate
+  already had.
+- `find_new_target`'s DEFENSIVE `find_def_pos` arm, its `repath`, the
+  group-order kill, and the leader's `searches` count.
+
+### 60.6 Coverage
+
+- **Diff-backed**: the idle search's refusal on tick 864, the three
+  retaliations and their one-block life, and the catapult that never
+  moves (run146, 858–880 and whole to 1000).
+- **Listing-backed**: `local_24`'s three terms and the gate's skip
+  (`64911b`–`64918d`, `6495c2`–`64963b`).
+- **Reading only**: `find_new_target`'s kill-then-search and the tail's
+  packer test (`fight:1051`), and every arm §60.5 lists.
