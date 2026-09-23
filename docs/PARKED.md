@@ -693,6 +693,17 @@ rather than a word, and whether a closed chapter's pin should be a
 different kind of assertion, is the steering pass's call (DECISIONS 41's
 finish line names "the golden record in lockstep for every chapter").
 
+(565) **A capture that times out writes no receipt, and a worker waiting
+on the receipt waits forever.** Filed by the commander, 2026-09-22: lane
+att-552's run132 (`WORLD=6` over `[295, 545)`, ~8.4 s a block) hit
+`unattended_capture.py`'s 1500 s default and died at block 467. The
+worker's background wait watched for the receipt, so it sat idle for 1.5
+h and sent no 90-minute status. The lock was left stale too. The runner
+could write a failure receipt on timeout, and a brief's wait could key on
+the process's exit. The shape is the tranche's recurring one: an
+instrument reporting health (nothing arrived yet) that it has not
+measured.
+
 ## Parked by the tenth Fable pass, 2026-09-22 — names no score
 
 (476) **f10234's three value rows**: `0/5 order:length` 2/1, `0/5

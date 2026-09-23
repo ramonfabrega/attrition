@@ -33,7 +33,7 @@ chapter two **683 → 725** — both headline words moved.*
   than argument. 495 is the first hard-constraint item.
 - **Disk at 99%, 15 GiB free**; `ccc spawn` refuses under 10. **Stops
   the loop, not slows it.** Coverage pin 239 → 232 keys.
-- **Fable backlog: 10 Loop items** (313, 503, 507, 508, 509, 513, 517, 526, 527, 528).
+- **Fable backlog: 11 Loop items** (313, 503, 507, 508, 509, 513, 517, 526, 527, 528, 565).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w9711 of 24,000 · GreatLakes w11903 of 24,000
