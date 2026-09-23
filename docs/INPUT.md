@@ -691,7 +691,7 @@ are taken.
     the word;
   - `leftover[1:timber]` in the leader windows of run107, run111 and
     run117.
-- Both long words hold (East Indies 11747, Great Lakes 12038), and so does
+- Both long words hold (East Indies 13640 after item 642, Great Lakes 12038), and so does
   every East Indies widening.
 
 **What is not established.**
