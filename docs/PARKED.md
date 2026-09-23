@@ -57,11 +57,6 @@ reaches one, and 617's hold is exact on every window that exists.
 
 ## Parked by item 628, 2026-09-23 — the cheat's two terms
 
-(633) **`library who=1 N` leaves who=1's `resource_cap` unraised here**:
-1392 against the original's 2992 from 605 on run156/run157. who=0's is
-raised and agrees (chapter seven). Standing, off the draw stream, pinned
-in seven-b's widening.
-
 (634) **The `ai_off` stand-in's corrected predicate is `!ai_driven(owner)`**
 (`docs/INPUT.md` §11.10): `orders.rs`'s `ai_off && !ai_driven(owner)` was
 derived on the retired reading of bit 4. For who=1 the two agree, which is
