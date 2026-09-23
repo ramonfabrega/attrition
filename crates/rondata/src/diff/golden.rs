@@ -4475,6 +4475,48 @@ fn chapter_four_s_word_frame_is_widened_whole() {
                 }
             }
         }
+        // **The escort's own row on the block it is issued** (item 567,
+        // `docs/ORDERS.md` §24), read off both sides by name rather than
+        // through `compare`'s labels: each hoplite's `GUARDORDER` is on the
+        // wagon `1/10`, and its offset and both counters are the
+        // original's — (0, 264), (144, 264), (−144, 264), `idle` and
+        // `retry` 0. Only the post, which is the wagon's position plus
+        // the offset, differs, and that is the 1102 rows' residue.
+        if n == 1277 {
+            for (o, dx) in [(6, 0), (7, 144), (8, -144)] {
+                let them = frame
+                    .units
+                    .iter()
+                    .find(|u| u.who == 1 && u.o == o)
+                    .and_then(|u| u.orders.iter().find(|x| x.index == 12))
+                    .expect("the original's escort holds a GUARDORDER on 1277");
+                let theirs = (
+                    them.ox,
+                    them.guard_dx,
+                    them.guard_dy,
+                    them.guard_idle,
+                    them.guard_retry,
+                );
+                assert_eq!(theirs, (Some(10), Some(dx), Some(264), Some(0), Some(0)));
+                let u = s.built.sim.unit_by_o(1, i16::try_from(o).unwrap()).unwrap();
+                let g = s.built.sim.units[u]
+                    .orders
+                    .iter()
+                    .find_map(|x| match x.body {
+                        sim::orders::Body::Guard(g) => Some(g),
+                        _ => None,
+                    })
+                    .expect("this crate's escort holds a GUARD on 1277");
+                let ours = (
+                    s.built.unit_ids(g.target).map(|(_, o)| o),
+                    Some(i64::from(g.dx)),
+                    Some(i64::from(g.dy)),
+                    Some(i64::from(g.idle)),
+                    Some(i64::from(g.retry)),
+                );
+                assert_eq!(ours, theirs, "1/{o}'s guard row");
+            }
+        }
         // The bleed's own timeline: player 1's staged units, `o` 6 and up.
         let w = &s.built.sim.world;
         for them in frame.units.iter().filter(|u| u.who == 1 && u.o >= 6) {
@@ -4565,12 +4607,14 @@ fn chapter_four_s_word_frame_is_widened_whole() {
         at_floor.iter().all(|w| standing(w)) && at_floor.len() == 27,
         "the standing rows on run133's first block moved: {at_floor:?}"
     );
-    // **The bleed agrees, tick for tick, to past the word** (item 552).
-    // Every hoplite figure's period, every 6/16 and every whole point of
-    // `damage` from block 601 to 1337, the scout's and the wagon's zero,
-    // and the supply mark: the first row of the namesake's record is on
-    // 1338, after the word has walked `1/7` onto unowned ground in this
-    // crate. It took two fixes: `Leader::calc_attrition` wired to the tech
+    // **The bleed agrees, tick for tick, on every block of run133** (item
+    // 552, item 567). Every hoplite figure's period, every 6/16 and every
+    // whole point of `damage` from block 601 to 1500, the scout's and the
+    // wagon's zero, and the supply mark. Item 552 left the first row of
+    // the namesake's record on 1338, `1/7 attrition: ours 0 theirs 48`,
+    // after this crate had walked `1/7` onto unowned ground; with the
+    // escort built (item 567) the squad stays beside its wagon as the
+    // original's does, and the row is gone. It took two fixes: `Leader::calc_attrition` wired to the tech
     // tree (the period was 0 on every figure, `docs/ATTRITION.md`
     // "Strength") and `curr_uber_size` counted rather than stored (each
     // tick took 16/16, not 6/16). Made to fail once with the second
@@ -4587,8 +4631,7 @@ fn chapter_four_s_word_frame_is_widened_whole() {
         .map(|((w, o, what), (f, row))| (*f, format!("{w}/{o} {what}: {row}")))
         .min();
     assert_eq!(
-        first_bleed,
-        Some((1338, "1/7 attrition: ours 0 theirs 48".to_string())),
+        first_bleed, None,
         "the namesake's record parts somewhere new"
     );
     // **What parts under the word**, none of it a draw: the scout's
@@ -4634,10 +4677,91 @@ fn chapter_four_s_word_frame_is_widened_whole() {
         "1172 1/9 g.x[1]",
         "1172 1/9 g.y[1]",
         "1173 1/9 g.angle[1]",
+        // **The escort, from 1277** (item 567, `docs/ORDERS.md` §24). The
+        // squad takes its `GUARDORDER` on the wagon on the army's tick on
+        // both sides now, and the guard's own row agrees on every block:
+        // no `order:kind`, `order:length`, `order:action`, `guard.dx`,
+        // `guard.dy`, `guard.idle` or `guard.retry` row parts anywhere
+        // under the word. What parts is the **post** — the wagon's
+        // position plus the slot offset — and everything downstream of
+        // it: the reposition leg's point, angle and path, the walk, and
+        // two of the three timers (`1/6`'s 419 agrees). The wagon stands
+        // 700 units from the original's on 1277 (the 1102 rows above),
+        // so the post cannot agree until its walk does.
+        "1277 1/10 path[47].to",
+        "1277 1/6 path[7].to",
+        "1278 1/6 g.angle[0]",
+        "1278 1/6 g.x[0]",
+        "1278 1/6 g.y[0]",
+        "1278 1/6 pos",
+        "1281 1/6 half_step",
+        "1296 1/6 order:move.dest",
+        "1296 1/6 path:length",
+        "1339 1/6 order:move.timer",
+        "1410 1/6 tolerance",
+        "1277 1/7 order:move.timer",
+        "1277 1/7 path:length",
+        "1278 1/7 angle:Facing",
+        "1278 1/7 g.angle[0]",
+        "1281 1/7 g.x[0]",
+        "1282 1/7 g.y[0]",
+        "1281 1/7 half_step",
+        "1281 1/7 pos",
+        "1306 1/7 order:move.dest",
+        "1402 1/7 tolerance",
+        "1277 1/8 order:move.timer",
+        "1277 1/8 path:length",
+        "1278 1/8 g.angle[0]",
+        "1278 1/8 g.x[0]",
+        "1278 1/8 g.y[0]",
+        "1278 1/8 pos",
+        "1301 1/8 order:move.dest",
+        "1401 1/8 tolerance",
     ];
+    // The family every escort carries on 1277, and the three figures'
+    // first seven path legs: the post and the leg to it.
+    let post = [
+        "angle:Heading",
+        "dest_angle",
+        "heading",
+        "order:guard.guard_x",
+        "order:guard.guard_y",
+        "order:move.angle",
+        "order:move.dest_x",
+        "order:move.dest_y",
+        "order:move.off_x",
+        "order:move.off_y",
+        "order:move.x",
+        "order:move.y",
+        "orders_x",
+        "orders_y",
+    ];
+    let mut want: Vec<String> = want.iter().map(|s| s.to_string()).collect();
+    for o in 6..=8 {
+        want.extend(post.iter().map(|k| format!("1277 1/{o} {k}")));
+        want.extend((0..7).map(|i| format!("1277 1/{o} path[{i}].to")));
+    }
     let mut under_sorted = under.clone();
     under_sorted.sort();
-    let mut want_sorted: Vec<String> = want.iter().map(|s| s.to_string()).collect();
-    want_sorted.sort();
-    assert_eq!(under_sorted, want_sorted, "what parts under the word moved");
+    want.sort();
+    assert_eq!(under_sorted, want, "what parts under the word moved");
+    // **The word's own block, 1416** (item 567): the wagon's `pause` —
+    // the original's wagon holds `pause 15` and this crate's 0 — and
+    // `1/8`'s half step. On the next frame the original's wagon spends
+    // three `Unit::do_move+0x11cf` stands where this crate's does not;
+    // that is the word's draw delta, in `GOLDEN_WORD_CHAPTER_FOUR`'s
+    // comment. No mechanism: the wagon is the one the 1102 rows name.
+    let at_word: Vec<String> = firsts
+        .iter()
+        .filter(|(_, (f, _))| *f == GOLDEN_WORD_CHAPTER_FOUR)
+        .map(|((w, o, what), (_, row))| format!("{w}/{o} {what}: {row}"))
+        .collect();
+    assert_eq!(
+        at_word,
+        vec![
+            "1/8 half_step: ours 1 theirs 0".to_string(),
+            "1/10 order:move.pause: Move { field: \"pause\", ours: 0, theirs: 15 }".to_string(),
+        ],
+        "the word's block moved"
+    );
 }

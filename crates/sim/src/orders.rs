@@ -35,8 +35,10 @@ pub mod index {
     pub const BUILD_AT: u8 = 6;
     pub const GATHER: u8 = 7;
     pub const ATTACK: u8 = 10;
-    /// Never constructed here; read by `UnitData::get_speed`'s order scale
-    /// (`docs/MOVEMENT.md`, "The effective speed here, now").
+    /// `GuardOrder` — [`super::Body::Guard`], issued by
+    /// `Group::action_guard` (`docs/ORDERS.md` §7.5, §24) and read by
+    /// `UnitData::get_speed`'s order scale (`docs/MOVEMENT.md`, "The
+    /// effective speed here, now").
     pub const GUARD: u8 = 12;
     pub const REPAIR: u8 = 13;
     pub const CAST_SPELL: u8 = 14;
@@ -89,6 +91,7 @@ pub mod index {
                 | BUILD_AT
                 | GATHER
                 | ATTACK
+                | GUARD
                 | REPAIR
                 | CAST_SPELL
                 | TRADE_ROUTE
@@ -391,6 +394,35 @@ pub struct TradeOrder {
     pub loaded: bool,
 }
 
+/// The fields of `GuardOrder` (`docs/ORDERS.md` §7.5, §24): the
+/// `TARGETORDER` base's object, then `dx dy guard_x guard_y idle retry` as
+/// the dump prints them.
+///
+/// The target is a **unit** only. `Group::action_guard`'s building arm is
+/// a seam (`crate::group`), so no building is ever guarded here, and the
+/// `uid` is the unit's index because this crate never reuses one.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct GuardOrder {
+    /// `+0x8`/`+0xc` — the escorted unit, always its squad's captain
+    /// (`action_guard` takes `get_captain` of what it was given).
+    pub target: usize,
+    /// `+0x14`/`+0x18` — the post's offset from the target, in position
+    /// units, in the target's own frame: `Form::compute`'s `off_x/off_y`
+    /// for this member, or `(-1, -1)` for a player's click.
+    pub dx: i32,
+    pub dy: i32,
+    /// `+0x1c`/`+0x20` — the post, a 48-unit cell centre; the target's
+    /// position at creation, then rewritten by every `do_guard` that
+    /// reaches the positioning arm.
+    pub guard: Pos,
+    /// `+0x24` — frames on the post (or sixteenths of frames beside an
+    /// idle target); zeroed by every reposition.
+    pub idle: i32,
+    /// `+0x28` — a countdown during which `do_guard` does nothing:
+    /// `Random::get % 3 + 6` after a reposition that ended at once.
+    pub retry: i32,
+}
+
 /// The order kinds this crate implements.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Body {
@@ -402,6 +434,7 @@ pub enum Body {
     Gather(GatherOrder),
     Attack(AttackOrder),
     Cast(CastOrder),
+    Guard(GuardOrder),
     Think,
 }
 
@@ -444,6 +477,7 @@ impl Order {
             Body::Gather(_) => index::GATHER,
             Body::Attack(_) => index::ATTACK,
             Body::Cast(_) => index::CAST_SPELL,
+            Body::Guard(_) => index::GUARD,
             Body::Think => index::THINK,
         }
     }
@@ -586,6 +620,10 @@ pub const SITE_FARM_CELL: &str = "GameAccess::rnd+0x20 < Unit::do_job+0x67";
 /// them are a squad the original has just given an order to and this crate
 /// leaves standing — `docs/ARMY.md` §16.7, not a pathfinder question.
 pub const SITE_MOVE_GRID: &str = "Unit::do_move+0xe84";
+
+/// `Unit::do_guard@005e5c70+0x8fb` — the `retry` roll after a reposition
+/// whose leg ended on the frame it was issued (`docs/ORDERS.md` §24).
+pub const SITE_GUARD_RETRY: &str = "Unit::do_guard+0x8fb";
 
 /// The 31 bearings of one ring of `find_nearby_spot`, as multiples of a
 /// sixteenth of a turn from the base angle; `|k| >= 8` adds a thirty-second.
@@ -1288,6 +1326,44 @@ impl Sim {
         self.enqueue(u, order, pos);
     }
 
+    /// `Unit::add_guard_order(o, who, dx, dy, queue, ·)@005e3e40`
+    /// (`docs/ORDERS.md` §7.5, §24): the target, the offset asked, the
+    /// post at the target's own position, `idle = retry = 0`, and the
+    /// action bit set unconditionally.
+    ///
+    /// The `QUEUE_NEW` head is the generic one: the original clears
+    /// `unit_masks & 0x4000000` (the deferred `EXPLORE_TO` conversion,
+    /// which this crate does not carry), zeroes `UnitData +0xc0` — the
+    /// path stack's `length`, so the stack is emptied — and then
+    /// `close_orders`, `clear_partial_path`, `update_action`, which is
+    /// [`Self::enqueue`]'s `New` arm exactly. `QUEUE_FIRST` rotates the
+    /// list head onto the new order after a `clear_partial_path`, which is
+    /// its `First` arm.
+    pub fn add_guard_order(&mut self, u: usize, target: usize, dx: i32, dy: i32, pos: QueuePos) {
+        let order = Order {
+            flags: flag::ACTION,
+            body: Body::Guard(GuardOrder {
+                target,
+                dx,
+                dy,
+                guard: self.units[target].pos,
+                idle: 0,
+                retry: 0,
+            }),
+        };
+        self.enqueue(u, order, pos);
+    }
+
+    /// `Unit::update_guard_order(o, who)@005e3220` — the first `GUARD` in
+    /// the list, front to back, whose target is `target`: its position in
+    /// the list, for the caller to rewrite in place.
+    pub fn update_guard_order(&self, u: usize, target: usize) -> Option<usize> {
+        self.units[u]
+            .orders
+            .iter()
+            .position(|o| matches!(o.body, Body::Guard(g) if g.target == target))
+    }
+
     /// `Unit::add_think_order`: the argument is ignored — it is always
     /// rotated to the front, with the action bit.
     pub fn add_think_order(&mut self, u: usize) {
@@ -1431,6 +1507,7 @@ impl Sim {
             Some(Body::Gather(_)) => self.do_gather(u, frame),
             Some(Body::Attack(_)) => self.do_attack(u, frame),
             Some(Body::Cast(c)) => self.do_cast(u, c),
+            Some(Body::Guard(_)) => self.do_guard(u, frame),
             Some(Body::Think) => self.do_think_order(u, frame),
         }
     }
@@ -1547,11 +1624,16 @@ impl Sim {
     /// that is exactly what separates it from `do_move`'s own kill
     /// (§36.2).
     ///
-    /// SEAM — the two guards above it that no capture has reached:
+    /// **The `GUARD` arm** (`action type == 0xc`, `0060d4a0`–`0060d4d3`)
+    /// is the review's other branch, and it asks no question of the
+    /// target at all: on the sixty-four-frame phase `(frame + o) % 64 ==
+    /// 0` it `repath`s — the reposition leg goes — and jumps to the head
+    /// re-read, so `do_guard` answers on the same frame with a fresh post
+    /// (`docs/ORDERS.md` §24). Off that phase it does nothing.
+    ///
+    /// SEAM — the guard above it that no capture has reached:
     /// `ptype +0x2b8 & 4` with `unit_masks & 0x80000` (the packable
-    /// lineage, which takes an `add_cast_order` branch instead), and the
-    /// `GUARD` arm (`action type == 0xc`), which re-paths on its own
-    /// sixty-four-frame phase.
+    /// lineage, which takes an `add_cast_order` branch instead).
     ///
     /// SEAM — the head-order conjunct `head->vt+0x2c() == 0 ||
     /// head->vt+0x94()` names *me*: a group move's head is reviewed only
@@ -1569,10 +1651,15 @@ impl Sim {
         // [`Self::action_of`] has already answered; `!= 9` excludes
         // `AWAIT_BOARD`, which this crate never puts under a move.
         let Some(a) = self.action_of(u) else { return };
-        if !matches!(self.units[u].orders[a].body, Body::Attack(_)) {
-            return;
+        match self.units[u].orders[a].body {
+            Body::Attack(_) => {
+                self.check_target_path(u);
+            }
+            Body::Guard(_) if self.units[u].phase(frame).rem_euclid(64) == 0 => {
+                self.repath(u);
+            }
+            _ => {}
         }
-        self.check_target_path(u);
     }
 
     /// `Unit::change_target@005e36c0` — one decision, written down the
@@ -2172,6 +2259,166 @@ impl Sim {
         }
         // SEAM: `find_repair_spot` again, the AI's own.
         false
+    }
+
+    /// `Unit::do_guard@005e5c70` (`docs/ORDERS.md` §7.5, §24) — one frame
+    /// of an escort.
+    ///
+    /// A dead target ends the order with an idle stand. A pending `retry`
+    /// counts down and does nothing else. Beside a target that is not
+    /// moving, one frame in sixteen looks for a fight and another counts
+    /// `idle`. Otherwise the post is recomputed — the target's position
+    /// plus `(dx, dy)` turned into the target's own frame, snapped to its
+    /// 48-unit cell — and a unit off that cell is given an `ATTACK_TO`
+    /// leg to it at the head of its list, stepped **this same frame**,
+    /// with a `timer` of thirty frames a world cell of Manhattan distance.
+    /// A unit on its post turns to the facing and stands.
+    ///
+    /// The four fastcall pairs are the listing's, not the decompiler's
+    /// (`tools/ghidra/README.md`): the post is `x + sinx(a, dy) + cosx(a,
+    /// dx)`, `y − cosx(a, dy) + sinx(a, dx)` with `a` the target's heading
+    /// (`5e6022`–`5e6061`), and the idle facing is `find_angle(post −
+    /// target)` — outward, away from what is guarded (`5e626f`).
+    ///
+    /// SEAM, none of them reached by a capture on file: the target's own
+    /// `unit_masks & 2` mirror of `dx` (not carried — run133's wagon has
+    /// it clear); the building-target arm (`action_guard`'s building arm
+    /// is itself a seam, so no building is ever a target here); the
+    /// packer's unpack after `0x1e`/`0x46` frames on the post; and the
+    /// sixteen-frame engagement, which asks [`Self::find_melee_target`]'s
+    /// idle radius rather than `find_melee_target(−1, 0, 0, 1, 0)`'s own
+    /// guard arm.
+    fn do_guard(&mut self, u: usize, frame: i64) {
+        let Some(Order {
+            body: Body::Guard(mut g),
+            ..
+        }) = self.current_order(u).copied()
+        else {
+            return;
+        };
+        let store = |sim: &mut Sim, at: usize, g: GuardOrder| {
+            if let Some(Body::Guard(x)) = sim.units[u].orders.get_mut(at).map(|o| &mut o.body) {
+                *x = g;
+            }
+        };
+        let t = g.target;
+        // `ObjectData::flags & 1` — the target's slot is still an object.
+        if !self.units[t].alive() {
+            self.set_anim(u, anim::DEFAULT, false, true);
+            self.kill_current_order(u);
+            return;
+        }
+        if g.retry != 0 {
+            g.retry -= 1;
+            store(self, 0, g);
+            return;
+        }
+        // `is_active() && is_on_map() && is_moving()` (vslots `+0x8`,
+        // `+0xbc`, `+0xd8`): `iStack_9e4`.
+        let moving = self.units[t].on_map && self.is_moving(t);
+        if !moving {
+            let ph = self.units[u].phase(frame);
+            if (ph + 8).rem_euclid(16) == 0 {
+                if let Some(v) = self.find_melee_target(u, -1) {
+                    self.add_attack_order(u, v, QueuePos::First, false, false);
+                }
+                return;
+            }
+            if ph.rem_euclid(16) == 0 {
+                g.idle += 1;
+                store(self, 0, g);
+                return;
+            }
+        }
+        let a = self.units[t].movement.heading;
+        let tp = self.units[t].pos;
+        let gx = tp.x + movement::sin_component(a, g.dy) + movement::cos_component(a, g.dx);
+        let gy = tp.y - movement::cos_component(a, g.dy) + movement::sin_component(a, g.dx);
+        // `div_3_table[v >> 4]`: the 48-unit cell, a floor divide.
+        let q = |v: i32| (v >> 4).div_euclid(3);
+        let (mut qx, mut qy) = (q(gx), q(gy));
+        if self.invalid_loc(
+            u,
+            Pos::new(qx >> 2, qy >> 2),
+            false,
+            false,
+            false,
+            false,
+            false,
+        ) != 0
+        {
+            let centre = Pos::new(qx * SNAP + SNAP_CENTRE, qy * SNAP + SNAP_CENTRE);
+            let transport = self.units[u].ty.is_some_and(|ty| {
+                self.unit_types[ty]
+                    .cols
+                    .flag(crate::ai_load::uflags::TRANSPORT)
+            });
+            let water = self.world.tile_mask(Pos::new(qx >> 2, qy >> 2)) & tile::SURFACE
+                == tile::SURFACE_OCEAN;
+            let spot = if !transport || water {
+                let bearing = Angle(0x5555_5555);
+                self.find_nearby_spot(u, centre, 0xc0, 0x180, 0x60, bearing, None)
+                    .or_else(|| {
+                        let d = vector_dist(g.dx, g.dy);
+                        self.find_nearby_spot(u, tp, d, d + 0x180, 0xc0, bearing, None)
+                    })
+                    .unwrap_or(self.units[u].pos)
+            } else {
+                centre
+            };
+            (qx, qy) = (q(spot.x), q(spot.y));
+        }
+        g.guard = Pos::new(qx * SNAP + SNAP_CENTRE, qy * SNAP + SNAP_CENTRE);
+        let mut facing = if moving {
+            a
+        } else {
+            find_angle(g.guard.x - tp.x, g.guard.y - tp.y)
+        };
+        // `5e6297`: an AI-driven siege engine, wagon or hero faces where
+        // its charge faces, moving or not.
+        if self.ai_driven(self.units[u].owner)
+            && (self.is_siege_unit(u) || self.is_supply_unit(u) || self.is_hero_unit(u))
+        {
+            facing = a;
+        }
+        let here = self.units[u].pos;
+        if q(here.x) != qx || q(here.y) != qy {
+            g.idle = 0;
+            store(self, 0, g);
+            self.add_move_facing_order(
+                u,
+                g.guard,
+                MoveKind::AttackTo,
+                QueuePos::First,
+                false,
+                facing,
+                None,
+                false,
+            );
+            // `div_3_table[v >> 8]`: the world cell, 768 units.
+            let cell = |v: i32| (v >> 8).div_euclid(3);
+            let d = (cell(here.x) - cell(g.guard.x)).abs() + (cell(here.y) - cell(g.guard.y)).abs();
+            if let Some(m) = self.units[u].orders.front_mut().and_then(Order::move_mut) {
+                m.timer = 0x1e * d.max(1);
+            }
+            self.do_move(u, frame);
+            if self.order_type(u) != index::GUARD {
+                return;
+            }
+            self.set_anim(u, anim::DEFAULT, false, true);
+            self.mark(SITE_GUARD_RETRY);
+            let r = self.rng.roll();
+            if let Some(Body::Guard(x)) = self.units[u].orders.front_mut().map(|o| &mut o.body) {
+                x.retry = r % 3 + 6;
+            }
+            return;
+        }
+        if self.units[u].movement.heading != facing && !moving {
+            self.unit_set_angle(u, facing);
+        }
+        g.idle += 1;
+        store(self, 0, g);
+        self.set_anim(u, anim::DEFAULT, false, true);
     }
 
     /// `Unit::do_think_order`: consume the THINK; if nothing follows, a

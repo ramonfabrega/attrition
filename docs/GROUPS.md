@@ -1334,7 +1334,9 @@ Then:
 - **no siege, no wagon, no hero** (or no anchor) → `action_move_to(this, x,
   y, QUEUE_NEW, 1, angle, ATTACK_TO, 1, −1, −1, 0)` — the whole group
   attack-moves, and that is all. **This is the branch every traced army has
-  taken**: runs 21–27 have no siege in any army;
+  taken** — runs 21–27 have no siege in any army — ~~every~~ until run133's
+  wagon army took the wagon branch on 1277 (item 567, `docs/ORDERS.md`
+  §24);
 - for an AI, the anchor's **area id** (§6.7's `world +0x134` record, with
   the halfland rule) is compared with the destination cell's **land** area,
   and a mismatch falls back to the same whole-group attack-move. The two
@@ -1346,7 +1348,10 @@ Then:
   angle bytes are copied back onto the matching members of the parent
   (`Unit::replace_form_id` re-indexes each), and the parent gets
   **`action_guard(anchor, who, QUEUE_NEW, 1)`** — everyone escorts the
-  anchor while the siege walks in.
+  anchor while the siege walks in. **Built by item 567**
+  (`docs/ORDERS.md` §24): golden chapter four's army, with a Supply
+  Wagon and no siege, takes this branch on 1277, and the escort's
+  `GUARDORDER` is compared block for block.
 
 ## 10. `Group::action_attack(o, whom, mandatory, queue, ignore)@00712490`
 

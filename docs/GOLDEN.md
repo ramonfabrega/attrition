@@ -60,7 +60,7 @@ and diverges only in what its own script stages.
 pinned at 774 of 901 (item 445)~~ ~~Both chapters that are captured agree to
 their traces' end, 900: chapter one on item 530, chapter two on item 523.~~
 Chapters one, two and five agree to their traces' end, 900 (items 530, 523,
-549); chapter four is pinned at 1277 of 1501 (item 552). **A chapter whose
+549); chapter four is pinned at ~~1277~~ **1416** of 1501 (items 552, 567). **A chapter whose
 word is its trace's last block is closed**, and the handoff's `Golden:`
 line says so — `chN closed` — and leads with the lowest *open* chapter's
 word, which is the rules headline; `rondata::diff::floors` reads the line
@@ -458,9 +458,18 @@ cell count is the only cheap reading.
 
 **What the harness met**, five defects, each a widening row:
 `docs/RUNS.md` run132 and run133, and `GOLDEN_WORD_CHAPTER_FOUR`. The
-chapter's word is **1277 of 1501**. On it the original gives the squad a
-`GUARDORDER` and a move back beside the wagon, and this crate's squad
-keeps marching.
+chapter's word ~~is **1277 of 1501**~~ was 1277: on it the original gives
+the squad a `GUARDORDER` and a move back beside the wagon, and this crate's
+squad kept marching.
+
+**Item 567 moved it 1277 → 1416.** The guard is the army's own: on its
+256-frame tick, `action_siege_attack_to` anchors a siegeless army on its
+Supply Wagon and `action_guard` gives the rest an escort's post. This
+crate had the anchor and not the guard (`docs/ORDERS.md` §24). The bleed
+and the shelter now agree on every block to 1500. **1416** is the wagon's
+frame: the original's wagon holds `pause 15`, a collision wait with the
+escort at its heels, and this crate's wagon, which has walked its own line
+since 1102, holds 0. The delta is +1, 32 draws against 31.
 
 ## 9. Chapter five — the water
 

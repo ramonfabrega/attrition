@@ -54,7 +54,7 @@ use crate::{Player, Sim};
 /// | `Form::compute`'s slot table | §6.4, where in the formation each member stands | every member takes the group's own destination; the group arrives as a heap. Diffable: `GROUPDATA` logs `off_x`/`off_y`/`curr_x`/`curr_y`/`angles`/`form_num` per member |
 /// | the group pool | §3, 64 slots a leader and `get_open_slot`'s recycling | numbered since item 518 (§19) and reset by [`Sim::groups_process`]; `get_open_slot`'s fallbacks and `equals_group`'s normalize are not modelled |
 /// | `GroupMoveOrder` | §6.6's per-frame formation | every member gets a plain `Move` — `docs/ORDERS.md` §8.4's verdict |
-/// | `action_guard` | §9's escort half | with siege *and* a matching area the escort keeps its orders; no traced army has siege |
+/// | `action_guard`'s building arm, human sweep and `QUEUE_FIRST` | §9's escort half, `docs/ORDERS.md` §24.7 | no building is ever guarded; the unit arm is built (item 567) |
 /// | the order-time path plan | §6.7 | the sim plans on the first step, in `do_move`; with a zero slot offset the plan is the same one |
 /// | `find_nearby_spot`'s collision, `invalid_loc` on a slot | §6.6 step 4 | `find_nearby_spot` still does not ask the occupancy index, so no slot is ever invalid and no member is re-slotted |
 /// | `QUEUE_FIRST`'s insert dance (`set_up_insert` / `action_halt` / recurse / `finish_insert`) | §6.2, §10 | `charge`'s `QUEUE_FIRST` is a plain `push_front` on each member |
@@ -1466,13 +1466,13 @@ impl Sim {
     // The type tests the actions ask (§6.5, §7, §9, §10)
     // ------------------------------------------------------------------
 
-    fn is_siege_unit(&self, u: usize) -> bool {
+    pub(crate) fn is_siege_unit(&self, u: usize) -> bool {
         self.units[u].ty.is_some_and(|t| {
             self.unit_types[t].combat.siege || self.unit_types[t].cols.flag(uflags::SIEGE)
         })
     }
 
-    fn is_hero_unit(&self, u: usize) -> bool {
+    pub(crate) fn is_hero_unit(&self, u: usize) -> bool {
         self.units[u]
             .ty
             .is_some_and(|t| self.unit_types[t].cols.flag2(uflags2::GENERAL))
@@ -2053,8 +2053,130 @@ impl Sim {
             MoveKind::AttackTo,
             true,
         );
-        // `action_guard(anchor, who, QUEUE_NEW, 1)` on the rest is the
-        // seam: GUARD is not an order the simulation has.
+        // `action_guard(anchor, who, QUEUE_NEW, 1)` on the parent: the
+        // rest escort the anchor while it walks in (`docs/ORDERS.md` §24).
+        // Golden chapter four's word, 1277: an AI army with a Supply Wagon
+        // and no siege, whose three hoplites take a `GUARDORDER` on the
+        // wagon on the army's own tick.
+        self.group_action_guard(g, anchor, QueuePos::New, true);
+    }
+
+    /// `Group::action_guard(o, who, queue, no_siege)@006fcd30`
+    /// (`docs/ORDERS.md` §24), for a **unit** target.
+    ///
+    /// `action_begin`, and the group's `form` goes to −1. The target is
+    /// replaced by its squad's **captain** (`get_captain`, vslot `+0xe4`;
+    /// the building test at vslot `+0x18` answers 1 for every unit). A
+    /// stack group then gathers the members that can escort it: active, on
+    /// the map, not a plane, of the target's domain — or a helicopter, or
+    /// a sea transport beside a land target — not siege when `no_siege`,
+    /// and not the target itself. On patch versions above 3 a target that
+    /// is itself guarding one of the members has its orders cleared, so
+    /// two units never guard each other. The escort is laid out by
+    /// `compute_form` **at the target**, on bearing 0, width `0x32`, with
+    /// the guard flag set — which reserves an artillery rank for the target
+    /// and keeps the reverse negation off — and each member is given its
+    /// slot's `off_x/off_y` as the guard offset: rewritten on a `GUARD`
+    /// it already holds on this target, else a fresh `add_guard_order`.
+    ///
+    /// SEAM, none reached by a capture on file: `QUEUE_FIRST`'s insert
+    /// dance (taken as `QUEUE_NEW`); the building-target arm (every member
+    /// `add_guard_order(o, who, −1, −1)`; this returns instead); the human
+    /// leader's sweep over the player's other units already guarding the
+    /// target; and `Group::sort` inside `Form::compute`, a no-op on a list
+    /// [`Self::group_add`] has just built captain-first.
+    pub fn group_action_guard(
+        &mut self,
+        g: &Group,
+        target: usize,
+        queue: QueuePos,
+        no_siege: bool,
+    ) {
+        if g.list.is_empty() {
+            return;
+        }
+        if !(self.units[target].alive() && self.units[target].on_map) {
+            return;
+        }
+        if let Some(st) = self.gstate_mut(g) {
+            st.form = -1;
+        }
+        let whom = self.units[target].owner;
+        if !self.is_ally(g.who, whom) || self.is_plane(target) {
+            return;
+        }
+        let cap = self.top_captain(target);
+        let dom = self.group_domain(cap);
+        let mut local = Group {
+            who: g.who,
+            army: None,
+            pushed: None,
+            list: Vec::new(),
+        };
+        for &m in &g.list {
+            if !(self.units[m].alive() && self.units[m].on_map) || self.is_plane(m) {
+                continue;
+            }
+            let flag = |f: u32| {
+                self.units[m]
+                    .ty
+                    .is_some_and(|t| self.unit_types[t].cols.flag(f))
+            };
+            let admitted = flag(uflags::HELICOPTER)
+                || self.group_domain(m) == dom
+                || (flag(uflags::TRANSPORT) && dom == Domain::Land);
+            if !admitted || (no_siege && self.is_siege_unit(m)) {
+                continue;
+            }
+            if m == cap && g.who == whom {
+                continue;
+            }
+            self.group_add(&mut local, m);
+        }
+        // `Game::get_patch_version() > 3`: break a guard cycle.
+        if self.order_type(cap) != index::NONE
+            && g.list
+                .iter()
+                .any(|&m| self.update_guard_order(cap, m).is_some())
+        {
+            self.clear_orders(cap);
+        }
+        // `get_num_cap`: the captains still standing.
+        if !local
+            .list
+            .iter()
+            .any(|&m| self.units[m].alive() && self.units[m].captain)
+        {
+            return;
+        }
+        if self.group_find_leader(&local).is_none() {
+            return;
+        }
+        // `compute_form(local, target, leader_flags >> 2 & 1, 0x32, ·, 1,
+        // &0, loc, 1)`: formation 0 for an AI, the caller's angle of zero
+        // standing, and the guard flag. The stack group's `facing` is the
+        // `clear`ed zero, so the mirror is the leader toggle alone; the
+        // reverse negation is skipped because the guard flag is set.
+        let human = self.nation.get(g.who as usize).is_some_and(|n| n.human);
+        let form = i32::from(human);
+        let tp = self.units[cap].pos;
+        let reverse = self.group_leader_faces_away(&local, Angle(0));
+        let slots = self.form_compute(&local, tp, Angle(0), form, 0x32, reverse, true, &[]);
+        for (k, &m) in local.list.iter().enumerate() {
+            if m == cap || self.top_captain(m) == cap {
+                continue;
+            }
+            let (dx, dy) = slots.off.get(k).copied().unwrap_or((0, 0));
+            match self.update_guard_order(m, cap) {
+                Some(i) => {
+                    if let Body::Guard(x) = &mut self.units[m].orders[i].body {
+                        x.dx = dx;
+                        x.dy = dy;
+                    }
+                }
+                None => self.add_guard_order(m, cap, dx, dy, queue),
+            }
+        }
     }
 
     /// §9's anchor score.
@@ -4020,10 +4142,177 @@ mod tests {
         let g = group_of(1, &[a, m]);
         s.group_action_siege_attack_to(&g, Pos::new(0x4000, 0x4000), Angle(0));
         assert_eq!(s.order_type(m), index::ATTACK_TO, "the siege advances");
+        assert_eq!(s.order_type(a), index::GUARD, "and the escort guards it");
+        assert!(
+            matches!(s.units[a].orders[0].body, Body::Guard(g) if g.target == m),
+            "on the anchor: {:?}",
+            s.units[a].orders
+        );
+    }
+
+    fn wagon_type(sim: &mut Sim) -> usize {
+        sim.add_unit_type(UnitType {
+            hits: 100,
+            cols: crate::ai_load::UnitCols {
+                unit_flags2: uflags2::SUPPLY_OR_HERO,
+                ..crate::ai_load::UnitCols::default()
+            },
+            ..UnitType::default()
+        })
+    }
+
+    /// Golden chapter four's 1277 in miniature (`docs/ORDERS.md` §24): an
+    /// AI army with a Supply Wagon and no siege sends the wagon on, and
+    /// every other member takes a `GUARD` on it, at the head of its list,
+    /// with its slot's offset from `compute_form` laid out at the wagon.
+    #[test]
+    fn a_siegeless_army_s_wagon_is_the_anchor_and_the_rest_guard_it() {
+        let mut s = sim();
+        let foot = fighter(&mut s);
+        let wagon = wagon_type(&mut s);
+        let a = spawn(&mut s, 1, foot, Pos::new(0x1000, 0x1000));
+        let b = spawn(&mut s, 1, foot, Pos::new(0x1030, 0x1000));
+        let c = spawn(&mut s, 1, foot, Pos::new(0x1060, 0x1000));
+        let w = spawn(&mut s, 1, wagon, Pos::new(0x1400, 0x1400));
+        let g = group_of(1, &[a, b, c, w]);
+        s.group_action_siege_attack_to(&g, Pos::new(0x4000, 0x4000), Angle(0));
+        assert_eq!(s.order_type(w), index::ATTACK_TO, "the wagon walks in");
+        let mut dy = None;
+        for u in [a, b, c] {
+            let Some(Body::Guard(o)) = s.units[u].orders.front().map(|o| o.body) else {
+                panic!("{u} does not guard: {:?}", s.units[u].orders);
+            };
+            assert_eq!(o.target, w);
+            assert_eq!(o.guard, s.units[w].pos, "the post starts at the target");
+            assert_eq!((o.idle, o.retry), (0, 0));
+            assert!(s.units[u].orders[0].has(flag::ACTION));
+            // One rank, behind the phantom artillery rank reserved for
+            // the wagon: every figure shares the rank's depth.
+            assert_eq!(*dy.get_or_insert(o.dy), o.dy);
+        }
+        // A second call rewrites the offsets in place rather than
+        // stacking a second guard (`update_guard_order`).
+        s.group_action_guard(&g, w, QueuePos::New, true);
+        assert_eq!(s.units[a].orders.len(), 1);
+    }
+
+    /// `do_guard`'s reposition: a guard off its post beside a moving
+    /// target is given an `ATTACK_TO` leg to the post, at the head,
+    /// without the action bit, stepped the same frame — so its `timer`,
+    /// thirty frames a world cell of Manhattan distance, reads one less.
+    ///
+    /// **Every number is run133's** (`docs/ORDERS.md` §24): the three
+    /// hoplites' and the wagon's block-1276 positions and the wagon's
+    /// heading, the offsets `action_guard` gave them, and the posts,
+    /// angle and timers the original printed on block 1277. It is the
+    /// arithmetic of the post — `sinx`/`cosx` of the target's heading on
+    /// `dy` and `dx`, the 48-unit snap, the world-cell timer — checked
+    /// against the original's own answer on the original's own input.
+    #[test]
+    fn a_guard_off_its_post_walks_to_it_on_a_timed_leg_the_same_frame() {
+        let mut s = sim();
+        let foot = fighter(&mut s);
+        let wagon = wagon_type(&mut s);
+        let w = spawn(&mut s, 1, wagon, Pos::new(8211, 32341));
+        s.units[w].movement.heading = Angle(535_429_120);
+        s.add_move_order(
+            w,
+            Pos::new(20000, 20000),
+            MoveKind::AttackTo,
+            QueuePos::New,
+            true,
+        );
+        let cases = [
+            // (block-1276 position, dx, the post, the timer on 1277)
+            ((13438, 26412), 0, (8376, 32136), 419),
+            ((13430, 26268), 144, (8520, 32232), 389),
+            ((13445, 26555), -144, (8280, 32040), 419),
+        ];
+        for ((x, y), dx, (px, py), timer) in cases {
+            let a = spawn(&mut s, 1, foot, Pos::new(x, y));
+            s.add_guard_order(a, w, dx, 264, QueuePos::New);
+            // A frame off both sixteen-frame phases and the review's.
+            let o = i64::from(s.units[a].index);
+            s.work(a, 1 - o);
+            let post = Pos::new(px, py);
+            let head = s.units[a].orders[0];
+            let Body::Move(m) = head.body else {
+                panic!("no leg: {:?}", s.units[a].orders);
+            };
+            assert_eq!((m.kind, m.dest), (MoveKind::AttackTo, post), "dx {dx}");
+            assert_eq!(m.angle, Angle(535_429_120), "the moving target's heading");
+            assert!(!head.has(flag::ACTION));
+            assert_eq!(m.timer, timer, "dx {dx}");
+            let Body::Guard(g) = s.units[a].orders[1].body else {
+                panic!("the guard is not under the leg");
+            };
+            assert_eq!((g.guard, g.idle, g.retry), (post, 0, 0));
+        }
+    }
+
+    /// On its post beside a target that stands, a guard faces **outward**
+    /// — `find_angle(post − target)` — and counts `idle`; a dead target
+    /// ends the order.
+    #[test]
+    fn a_guard_on_its_post_faces_out_and_a_dead_target_ends_it() {
+        let mut s = sim();
+        let foot = fighter(&mut s);
+        let wagon = wagon_type(&mut s);
+        let w = spawn(&mut s, 1, wagon, Pos::new(0x1000, 0x1000));
+        s.units[w].movement.heading = Angle(0);
+        // `dy` 264 at heading 0 is 264 south of the target; its cell centre.
+        let post = Pos::new(0x1000 / 48 * 48 + 24, (0x1000 - 264) / 48 * 48 + 24);
+        let a = spawn(&mut s, 1, foot, post);
+        s.add_guard_order(a, w, 0, 264, QueuePos::New);
+        let frame = 1; // `o + frame` off both sixteen-frame phases
+        s.work(a, frame);
+        assert_eq!(s.order_type(a), index::GUARD, "no leg: already on the post");
+        let Body::Guard(g) = s.units[a].orders[0].body else {
+            unreachable!()
+        };
+        assert_eq!((g.guard, g.idle), (post, 1));
         assert_eq!(
-            s.order_type(a),
-            index::NONE,
-            "the escort would guard the anchor; GUARD is the seam"
+            s.units[a].movement.heading,
+            find_angle(post.x - 0x1000, post.y - 0x1000)
+        );
+        s.units[w].health = 0;
+        s.work(a, frame + 1);
+        assert_eq!(s.order_type(a), index::NONE);
+    }
+
+    /// The review's `GUARD` arm (`Unit::work@0060d4a0`): on the
+    /// sixty-four-frame phase the reposition leg is dropped and `do_guard`
+    /// issues a fresh one the same frame; off it the leg runs on.
+    #[test]
+    fn the_review_drops_a_guard_s_leg_on_the_sixty_four_frame_phase() {
+        let mut s = sim();
+        let foot = fighter(&mut s);
+        let wagon = wagon_type(&mut s);
+        let a = spawn(&mut s, 1, foot, Pos::new(0x3000, 0x3000));
+        let w = spawn(&mut s, 1, wagon, Pos::new(0x1000, 0x1000));
+        s.add_move_order(
+            w,
+            Pos::new(20000, 20000),
+            MoveKind::AttackTo,
+            QueuePos::New,
+            true,
+        );
+        s.add_guard_order(a, w, 0, 264, QueuePos::New);
+        let o = i64::from(s.units[a].index);
+        s.work(a, 1 - o);
+        let timer = |s: &Sim| match s.units[a].orders[0].body {
+            Body::Move(m) => m.timer,
+            _ => panic!("no leg"),
+        };
+        let first = timer(&s);
+        s.work(a, 2 - o);
+        assert_eq!(timer(&s), first - 1, "off the phase the leg runs on");
+        s.work(a, 64 - o);
+        assert_eq!(s.units[a].orders.len(), 2, "one leg over the guard");
+        assert!(
+            timer(&s) > first - 2,
+            "on it the leg is re-issued: {}",
+            timer(&s)
         );
     }
 

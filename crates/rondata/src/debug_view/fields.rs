@@ -225,6 +225,11 @@ fn order_values(d: OrderMismatch) -> (String, String, String) {
             field,
             ours,
             theirs,
+        }
+        | Guard {
+            field,
+            ours,
+            theirs,
         } => (
             format!("{}.{field}", d.name()),
             theirs.to_string(),

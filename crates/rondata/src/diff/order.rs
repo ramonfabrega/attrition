@@ -98,6 +98,14 @@ pub enum OrderMismatch {
         ours: i64,
         theirs: i64,
     },
+    /// One field of a `GUARDORDER`'s own row, named as the log writes it
+    /// (`docs/ORDERS.md` §7.5, §24): the offset, the post, and the two
+    /// counters.
+    Guard {
+        field: &'static str,
+        ours: i64,
+        theirs: i64,
+    },
     /// The path stack's depth.
     PathLength { ours: usize, theirs: usize },
     /// A path segment's goal, bottom-first.
@@ -194,6 +202,7 @@ impl OrderMismatch {
             Self::Gather { field, .. } => format!("order:gather.{field}"),
             Self::Coll { .. } => "order:coll".into(),
             Self::Move { field, .. } => format!("order:move.{field}"),
+            Self::Guard { field, .. } => format!("order:guard.{field}"),
             Self::PathLength { .. } => "path:length".into(),
             Self::PathTo { slot, .. } => format!("path[{slot}].to"),
             Self::PathField { slot, field, .. } => format!("path[{slot}].{field}"),
@@ -214,6 +223,7 @@ impl OrderMismatch {
             Self::Gather { .. } => "gather",
             Self::Coll { .. } => "coll",
             Self::Move { .. } => "move",
+            Self::Guard { .. } => "guard",
             Self::PathLength { .. } => "path-length",
             Self::PathTo { .. } => "path-to",
             Self::PathField { .. } => "path-field",
@@ -511,6 +521,44 @@ pub(crate) fn compare_orders(
                         },
                     );
                 }
+            }
+        }
+    }
+
+    // **The guard order's own row** (§24), on the same terms: the offset
+    // `action_guard` laid out, the post `do_guard` last computed, and the
+    // two counters.
+    for (slot, (ours, theirs)) in unit
+        .orders
+        .iter()
+        .zip(them.orders_front_first())
+        .enumerate()
+    {
+        let sim::orders::Body::Guard(g) = ours.body else {
+            continue;
+        };
+        if i64::from(ours.index()) != theirs.index {
+            continue;
+        }
+        for (field, mine, logged) in [
+            ("dx", i64::from(g.dx), theirs.guard_dx),
+            ("dy", i64::from(g.dy), theirs.guard_dy),
+            ("guard_x", i64::from(g.guard.x), theirs.guard_x),
+            ("guard_y", i64::from(g.guard.y), theirs.guard_y),
+            ("idle", i64::from(g.idle), theirs.guard_idle),
+            ("retry", i64::from(g.retry), theirs.guard_retry),
+        ] {
+            if let Some(theirs) = logged
+                && theirs != mine
+            {
+                at(
+                    slot,
+                    OrderMismatch::Guard {
+                        field,
+                        ours: mine,
+                        theirs,
+                    },
+                );
             }
         }
     }

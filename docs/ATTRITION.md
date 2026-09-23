@@ -760,7 +760,8 @@ supply; it is its own rule, and it lives with the buildings.
 ## Open questions
 
 - ~~**The namesake has never fired in a scored capture.**~~ **It has now:
-  golden chapter four (item 552, run133) scores it, tick for tick, to 1337**
+  golden chapter four (item 552, run133) scores it, tick for tick, to 1337**,
+  and since item 567 on every block to 1500
   — "Golden chapter four" below. And the measurement this bullet stood on
   was vacuous: this crate never wrote a player's attrition strength from
   the tech tree, so every war-zone refresh was the sentinel 0 whatever the
@@ -976,13 +977,17 @@ arithmetic here was right. Both were wiring.
   damage now counts the chain, as the original does. `fight.rs` still reads
   the stored field, which is a separate question.
 
-**Observed and not yet diff-backed: the supply veto.** The squad marched
-about 30 tiles east of where it was placed, still on player 0's ground,
-and the wagon trailed after it. Every tick with the wagon 23 tiles or more
-away landed; every tick due with it 11–13 tiles away was vetoed, with
-`0x40000` on the figure's own tick frame. That brackets the 14-tile radius
-rather than hitting it. This crate's squad parts from the original's at
-1277 (the word, a `GUARDORDER` beside the wagon), so its positions differ
-before the wagon arrives, and the veto cannot be compared yet.
+**~~Observed and not yet diff-backed~~ Diff-backed since item 567: the
+supply veto.** The squad marched about 30 tiles east of where it was
+placed, still on player 0's ground, and the wagon trailed after it. Every
+tick with the wagon 23 tiles or more away landed; every tick due with it
+11–13 tiles away was vetoed, with `0x40000` on the figure's own tick frame.
+That brackets the 14-tile radius rather than hitting it. ~~This crate's
+squad parts from the original's at 1277, so the veto cannot be compared
+yet.~~ Item 567 built the escort the squad takes on 1277 (`docs/ORDERS.md`
+§24), and with it every bleed row — `attrition`, `damage_frac`, the hit
+points and `sheltered` (`unit_masks2 & 0x40000`) — agrees on every block
+from 601 to 1500. The veto is compared, and it agrees; the bracket is not
+narrowed, because the wagon's positions still differ.
 `docs/SUPPLY.md` has the shelter's half.
 

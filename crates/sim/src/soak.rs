@@ -103,6 +103,11 @@ fn sample(sim: &Sim) -> Sample {
                 orders::Body::Move(m) => i64::from(m.dest.x) * 65_536 + i64::from(m.dest.y),
                 orders::Body::Cast(c) => i64::from(c.spell) * 2 + i64::from(c.paid),
                 orders::Body::Trade(tr) => tr.home as i64 * 256 + tr.dest.map_or(-1, |d| d as i64),
+                orders::Body::Guard(g) => {
+                    (g.target as i64 * 65_536 + i64::from(g.guard.x)) * 65_536
+                        + i64::from(g.guard.y)
+                        + i64::from(g.retry)
+                }
                 orders::Body::Attack(_) | orders::Body::Think => -1,
             });
         }
