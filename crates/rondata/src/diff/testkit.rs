@@ -2348,6 +2348,18 @@ pub(crate) const WIDENING_GREAT_LAKES_ARMY: (i64, i64) = (11_250, 11_599);
 /// so the pin stays on a block the capture carries whatever the headline
 /// does next; the widening pins it empty as the move's value diff.
 pub(crate) const GREAT_LAKES_ARMY_BLOCK: i64 = 11_531;
+/// `run130_s_word_frame_is_widened_whole`'s window (item 554): run123 from
+/// **11400**, under army 2's first parting on 11424, then run125 from its
+/// own first block 11440, then run130 from 11560 to its last block, 11799.
+/// The floor is under the army because its partings (`group`, `form`, the
+/// slotted orders point) spend no draw, and a walk that opened above them
+/// would print them as standing residue with no first block.
+pub(crate) const WIDENING_GREAT_LAKES_ARMY_TWO: (i64, i64) = (11_400, 11_799);
+/// The block [`WIDENING_GREAT_LAKES_ARMY_TWO`] was taken to widen: the word
+/// 11757's frame writes block 11758. The coverage driver reads run130
+/// around it, keyed here rather than on the headline so the pin stays on a
+/// block the capture carries whatever the headline does next.
+pub(crate) const GREAT_LAKES_ARMY_TWO_BLOCK: i64 = 11_758;
 /// One pinned word's row: `(constant, word, widening test, item, window)`.
 pub(crate) type Widening = (
     &'static str,
