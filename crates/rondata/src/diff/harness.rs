@@ -2388,9 +2388,11 @@ mod tests {
         // 2. **The AI's second city, `1/2007`** — `land`, `filled` and the
         //    three `space` counts, one apart, from the frame its circle is
         //    first swept.
-        // 3. **A gatherer filed under the wrong city** from 2576, and a
-        //    free citizen from 4176 — the totals agree, the attribution
-        //    does not.
+        // 3. **A gatherer filed under the wrong city** from 2576 — the
+        //    totals agree, the attribution does not. Until item 592 a free
+        //    citizen parted beside it from 4176 for 200 frames: a citizen
+        //    riding a transport barge, which the original's census counts
+        //    through its container and never free (`docs/AI.md` §58).
         let city_want = vec![
             "0/2000 peasant_dist f1 x5201",
             "0/2000 busy f1 x5201",
@@ -2413,7 +2415,6 @@ mod tests {
             "1/2000 gatherers f2576 x800",
             "1/2007 peasant_dist f2576 x800",
             "1/2007 gatherers f2576 x800",
-            "1/2007 free f4176 x200",
         ];
         assert_eq!(
             city_said, city_want,
@@ -12292,7 +12293,7 @@ mod tests {
         // agree but for §52.2's `city` shift and the Mine's own value, slot
         // 4's `val` on 10582, `create_buildings`' frame: 1,616,000 against
         // 1,584,000. That is city `1/2007`'s `open` one high here —
-        // `filled` 33 against 34 since run99's 7976 — and a payoff probe
+        // `filled` 33 against 34, residue run58 pins from 1819 — and a payoff probe
         // that set the city's picture to the original's from 7975 closed
         // the row and moved no draw (`docs/AI.md` §58.4).
         let on_word: Vec<String> = firsts

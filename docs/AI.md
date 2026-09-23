@@ -7265,12 +7265,15 @@ point's region, which `census_units` carries into the `reg_active` family.
 
 - **`MAKE[4].val` on 10582** is the Mine's value from `create_buildings`
   (§3.2's gather arm): 1,616,000 here against 1,584,000.
-- **City `1/2007`'s step-13 picture** has parted since run99:
-  - `space[0]` and `space[1]` are 59 against 60 from run99's first block,
-    7880;
-  - `filled` is 33 against 34 and `space[2]` 49 against 48 from **7976**,
-    the sweep of 7975;
-  - so `open`, and `reg_land[11]`, are one high here.
+- **City `1/2007`'s step-13 picture** is old residue, and on file.
+  `run58_s_five_thousand_frames_stand_where_the_original_s_do` pins its
+  `land`, `filled` and three `space` counts one apart from **1819**, the
+  frame its circle is first swept. On run99 the counts read:
+  - `space[0]` and `space[1]` 59 against 60 from 7880;
+  - `filled` 33 against 34 and `space[2]` 49 against 48 from 7976, the
+    sweep of 7975.
+
+  So `open`, and `reg_land[11]`, are one high here.
 - **A payoff probe**, not kept, set the city's `filled` and `space[2]` to
   the original's from 7975:
   - `MAKE[4].val` and `reg_land[11]` closed;
@@ -7284,8 +7287,8 @@ and the same tile admits this crate's extra spiral candidates. **What the
 disk cannot answer:** no dump prints a tile's occupancy or a
 `check_building_wcoord` result. A packet at 10581, with `produce_building`'s
 spiral or `check_building_wcoord` run over the city's circle, would name the
-tile, as would one at 7975 for the `filled` step. Nothing in the unit or
-building records parts on 7976.
+tile. The count has parted since 1819, where run57's detail is on disk, and
+the one-apart cell may have stood there since the city was founded.
 
 ### 58.5 What this has *not* established
 
