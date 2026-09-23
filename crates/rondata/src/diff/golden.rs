@@ -3933,8 +3933,13 @@ fn chapter_five_s_word_frame_is_widened_whole() {
                 ("ez", i64::from(p.ez), a.ez),
                 ("angle", i64::from(p.angle.0), a.angle),
                 ("v1z", super::ammo::tests::printed(p.v1z), a.v1z),
-                ("rolling", i64::from(p.rolling), a.rolling),
-            ] {
+                // Item 602: flag 4 is `flags & 4`, and `rolling` is
+                // `AmmoData +0x5`, a byte `Ammo::init` zeroes on every
+                // round (see `ammo_flag_rows`).
+            ]
+            .into_iter()
+            .chain(ammo_flag_rows(p, a))
+            {
                 if mine != dumped {
                     firsts
                         .entry((who, o, format!("ammo[{slot}].{name}")))
@@ -5332,6 +5337,7 @@ fn widen_chapter_three(
     (first, last): (i64, i64),
     word: i64,
     catapult: i64,
+    whole: &[i64],
 ) -> Option<ChapterThreeWidening> {
     use std::collections::{BTreeMap, BTreeSet};
     let (FIRST, LAST, WORD) = (first, last, word);
@@ -5409,6 +5415,17 @@ fn widen_chapter_three(
             .collect();
         ammo_theirs += theirs.len();
         ammo_ours += ours.len();
+        // **Both sides' rounds, printed on the blocks kept whole** (item
+        // 602): the launch point, the flags, the target and the flight,
+        // before any quiet row is trusted.
+        if whole.contains(&n) {
+            for (k, a) in &theirs {
+                eprintln!("  {run} block {n} theirs {k:?} {a:?}");
+            }
+            for (k, p) in &ours {
+                eprintln!("  {run} block {n} ours   {k:?} {p:?}");
+            }
+        }
         let keys: BTreeSet<_> = theirs.keys().chain(ours.keys()).copied().collect();
         for key @ (who, o, slot) in keys {
             let (Some(a), Some(p)) = (theirs.get(&key), ours.get(&key)) else {
@@ -5444,8 +5461,10 @@ fn widen_chapter_three(
                 ("ez", i64::from(p.ez), a.ez),
                 ("angle", i64::from(p.angle.0), a.angle),
                 ("v1z", super::ammo::tests::printed(p.v1z), a.v1z),
-                ("rolling", i64::from(p.rolling), a.rolling),
-            ] {
+            ]
+            .into_iter()
+            .chain(ammo_flag_rows(p, a))
+            {
                 if mine != dumped {
                     blk.entry((who, o, format!("ammo[{slot}].{name}")))
                         .or_insert((n, format!("ours {mine} theirs {dumped}")));
@@ -5570,7 +5589,7 @@ fn widen_chapter_three(
                 }
             }
         }
-        if (WORD..=WORD + 1).contains(&n) {
+        if whole.contains(&n) {
             for ((w, o, what), (_, row)) in &blk {
                 at_word.push(format!("{n} {w}/{o} {what}: {row}"));
             }
@@ -5627,11 +5646,34 @@ fn widen_chapter_three(
 /// with the value diff beside it, and the `AMMO` tallies both sides.
 struct ChapterThreeWidening {
     firsts: std::collections::BTreeMap<(i64, i64, String), (i64, String)>,
-    /// Every row the word's two blocks part on, first or not, as
-    /// `"block who/o key: ours … theirs …"` (item 603).
+    /// Every row the blocks kept whole part on, first or not, as
+    /// `"block who/o key: ours … theirs …"`: the word's two (item 603), and
+    /// the first rounds' launch blocks 651 and 652 (item 602).
     at_word: Vec<String>,
     ammo_theirs: usize,
     ammo_ours: usize,
+}
+
+/// **`AmmoData`'s flag byte and its roll byte, as the dump prints them**
+/// (item 602). `+0x4 flags` carries `Ammo::init`'s bit 4 (the round rolls
+/// on past a target that is gone, `docs/COMBAT.md` §42.2) and
+/// `Ammo::inc_time`'s bit 8 (it has lost that target and flies on);
+/// `+0x5 rolling` is a separate byte whose only writers are `Ammo::init`,
+/// which zeroes it on every round (`0067bbf0:830`), and
+/// `Ammo::init_crash`, which gives a falling aircraft a random roll. Until
+/// this item the widenings compared this crate's bit 4 against the byte,
+/// and every rolling round read "ours 1 theirs 0" there: a row that named
+/// the wrong field, not a parting. This crate carries no roll byte and no
+/// crash round, so its side of `rolling` is the zero `init` writes.
+fn ammo_flag_rows(
+    p: &sim::combat::Projectile,
+    a: &super::ammo::Ammo,
+) -> [(&'static str, i64, i64); 3] {
+    [
+        ("flags&4", if p.rolling { 4 } else { 0 }, a.flags & 4),
+        ("flags&8", if p.missed { 8 } else { 0 }, a.flags & 8),
+        ("rolling", 0, a.rolling),
+    ]
 }
 
 /// **Chapter three's word, widened whole, both directions** (item 587,
@@ -5641,7 +5683,14 @@ struct ChapterThreeWidening {
 fn chapter_three_s_word_frame_is_widened_whole() {
     const FIRST: i64 = WIDENING_CHAPTER_THREE.0;
     const WORD: i64 = GOLDEN_WORD_CHAPTER_THREE;
-    let Some(w) = widen_chapter_three("ch3", "chapter3", WIDENING_CHAPTER_THREE, WORD, 8) else {
+    let Some(w) = widen_chapter_three(
+        "ch3",
+        "chapter3",
+        WIDENING_CHAPTER_THREE,
+        WORD,
+        8,
+        &[651, 652, WORD, WORD + 1],
+    ) else {
         return;
     };
     let (firsts, ammo_theirs, ammo_ours) = (w.firsts, w.ammo_theirs, w.ammo_ours);
@@ -5707,7 +5756,6 @@ fn chapter_three_s_word_frame_is_widened_whole() {
         rows_on(651, 651),
         vec![
             "651 0/8 ammo[0].angle: ours 997130240 theirs 1038614528",
-            "651 0/8 ammo[0].rolling: ours 1 theirs 0",
             "651 0/8 ammo[0].sx: ours 984 theirs 956",
             "651 0/8 ammo[0].sy: ours 8136 theirs 8071",
             "651 0/8 ammo[0].sz: ours 240 theirs 448",
@@ -5732,21 +5780,55 @@ fn chapter_three_s_word_frame_is_widened_whole() {
     // round with no live target scattering its landing ±20; this crate
     // spends none. On 684 and 685, before item 603, `0/8`'s turn parted
     // here too: its pivot bears from its node now (§54).
-    let at_word: Vec<&String> = w
-        .at_word
-        .iter()
-        .filter(|r| {
-            !r.split(": ")
-                .next()
-                .is_some_and(|k| standing(k.rsplit(' ').next().unwrap_or("")))
-        })
-        .collect();
+    let whole_on = |lo: i64, hi: i64| -> Vec<&String> {
+        w.at_word
+            .iter()
+            .filter(|r| {
+                r.split(' ')
+                    .next()
+                    .and_then(|b| b.parse::<i64>().ok())
+                    .is_some_and(|b| (lo..=hi).contains(&b))
+                    && !r
+                        .split(": ")
+                        .next()
+                        .is_some_and(|k| standing(k.rsplit(' ').next().unwrap_or("")))
+            })
+            .collect()
+    };
+    // **The first rounds' launch blocks, whole, both directions** (item
+    // 602, before any fix): every record of 651 and 652 and every figure
+    // on them, first parting or not. Only the launch point parts — `sx`,
+    // `sy`, `sz`, and the two fields taken from it, the bearing `angle`
+    // and the arc's `v1z`. The landing `ex, ey`, `ez`, `total_time`, the
+    // target, the accuracy and both flag bits agree on both rounds, and
+    // so does every other record and figure on the two blocks.
+    assert_eq!(
+        whole_on(651, 652),
+        vec![
+            "651 0/8 ammo[0].angle: ours 997130240 theirs 1038614528",
+            "651 0/8 ammo[0].sx: ours 984 theirs 956",
+            "651 0/8 ammo[0].sy: ours 8136 theirs 8071",
+            "651 0/8 ammo[0].sz: ours 240 theirs 448",
+            "651 0/8 ammo[0].v1z: ours 58337502 theirs 37537498",
+            "652 0/7 ammo[1].angle: ours 1091108864 theirs 1135017984",
+            "652 0/7 ammo[1].sx: ours 1176 theirs 1149",
+            "652 0/7 ammo[1].sy: ours 7992 theirs 7933",
+            "652 0/7 ammo[1].sz: ours 266 theirs 474",
+            "652 0/7 ammo[1].v1z: ours 46075001 theirs 20075001",
+            "652 0/8 ammo[0].angle: ours 997130240 theirs 1038614528",
+            "652 0/8 ammo[0].sx: ours 984 theirs 956",
+            "652 0/8 ammo[0].sy: ours 8136 theirs 8071",
+            "652 0/8 ammo[0].sz: ours 240 theirs 448",
+            "652 0/8 ammo[0].v1z: ours 58337502 theirs 37537498",
+        ],
+        "a row on the first rounds' launch blocks moved"
+    );
+    let at_word = whole_on(WORD, WORD + 1);
     assert_eq!(
         at_word,
         vec![
             "706 0/6 ammo[1].angle: ours 1225588736 theirs 1267531776",
             "706 0/6 ammo[1].ox: ours -1 theirs 7",
-            "706 0/6 ammo[1].rolling: ours 1 theirs 0",
             "706 0/6 ammo[1].sx: ours 888 theirs 856",
             "706 0/6 ammo[1].sy: ours 7800 theirs 7754",
             "706 0/6 ammo[1].sz: ours 281 theirs 477",
@@ -5756,7 +5838,6 @@ fn chapter_three_s_word_frame_is_widened_whole() {
             "706 0/7 ammo[3]: the dump holds it alone",
             "707 0/6 ammo[1].angle: ours 1225588736 theirs 1267531776",
             "707 0/6 ammo[1].ox: ours -1 theirs 7",
-            "707 0/6 ammo[1].rolling: ours 1 theirs 0",
             "707 0/6 ammo[1].sx: ours 888 theirs 856",
             "707 0/6 ammo[1].sy: ours 7800 theirs 7754",
             "707 0/6 ammo[1].sz: ours 281 theirs 477",
@@ -5930,8 +6011,14 @@ fn chapter_three_s_restage_holds_to_its_word() {
 #[test]
 fn chapter_three_s_restage_is_widened_whole() {
     const WORD: i64 = GOLDEN_WORD_CHAPTER_THREE_RESTAGE;
-    let Some(w) = widen_chapter_three("ch3b", "chapter3b", WIDENING_CHAPTER_THREE_RESTAGE, WORD, 6)
-    else {
+    let Some(w) = widen_chapter_three(
+        "ch3b",
+        "chapter3b",
+        WIDENING_CHAPTER_THREE_RESTAGE,
+        WORD,
+        6,
+        &[651, 652, WORD, WORD + 1],
+    ) else {
         return;
     };
     let firsts = w.firsts;
@@ -5980,7 +6067,6 @@ fn chapter_three_s_restage_is_widened_whole() {
         rows_on(651, 651),
         vec![
             "651 0/8 ammo[0].angle: ours 949551104 theirs 988741632",
-            "651 0/8 ammo[0].rolling: ours 1 theirs 0",
             "651 0/8 ammo[0].sx: ours 792 theirs 764",
             "651 0/8 ammo[0].sy: ours 13368 theirs 13303",
             "651 0/8 ammo[0].sz: ours 198 theirs 406",
@@ -5992,6 +6078,58 @@ fn chapter_three_s_restage_is_widened_whole() {
         rows_on(WORD, WORD + 1).is_empty(),
         "what parts at or one block past run146's word moved: {:?}",
         rows_on(WORD, WORD + 1)
+    );
+    // **The first round's launch blocks and the word's, whole** (item
+    // 602): every row they part on, first or not.
+    let whole: Vec<&String> = w
+        .at_word
+        .iter()
+        .filter(|r| {
+            !r.split(": ")
+                .next()
+                .is_some_and(|k| standing(k.rsplit(' ').next().unwrap_or("")))
+        })
+        .collect();
+    // Only rounds part on them, and only in the launch point and the two
+    // fields taken from it: `0/8`'s first on 651–652, and on the word's
+    // blocks `0/7`'s and `0/9`'s, each from its unit's square here and its
+    // release node in the dump. The word's own draw is the crew figure's
+    // swing, which `GUYS=2` does not print.
+    assert_eq!(
+        whole,
+        vec![
+            "651 0/8 ammo[0].angle: ours 949551104 theirs 988741632",
+            "651 0/8 ammo[0].sx: ours 792 theirs 764",
+            "651 0/8 ammo[0].sy: ours 13368 theirs 13303",
+            "651 0/8 ammo[0].sz: ours 198 theirs 406",
+            "651 0/8 ammo[0].v1z: ours 78925003 theirs 61591671",
+            "652 0/8 ammo[0].angle: ours 949551104 theirs 988741632",
+            "652 0/8 ammo[0].sx: ours 792 theirs 764",
+            "652 0/8 ammo[0].sy: ours 13368 theirs 13303",
+            "652 0/8 ammo[0].sz: ours 198 theirs 406",
+            "652 0/8 ammo[0].v1z: ours 78925003 theirs 61591671",
+            "664 0/7 ammo[1].angle: ours 1049100288 theirs 1057816576",
+            "664 0/7 ammo[1].sx: ours 600 theirs 553",
+            "664 0/7 ammo[1].sy: ours 13176 theirs 13160",
+            "664 0/7 ammo[1].sz: ours 182 theirs 378",
+            "664 0/7 ammo[1].v1z: ours 80675003 theirs 64341667",
+            "664 0/9 ammo[2].angle: ours 795410432 theirs 799342592",
+            "664 0/9 ammo[2].sx: ours 648 theirs 606",
+            "664 0/9 ammo[2].sy: ours 13608 theirs 13618",
+            "664 0/9 ammo[2].sz: ours 162 theirs 370",
+            "664 0/9 ammo[2].v1z: ours 82341667 theirs 65008339",
+            "665 0/7 ammo[1].angle: ours 1049100288 theirs 1057816576",
+            "665 0/7 ammo[1].sx: ours 600 theirs 553",
+            "665 0/7 ammo[1].sy: ours 13176 theirs 13160",
+            "665 0/7 ammo[1].sz: ours 182 theirs 378",
+            "665 0/7 ammo[1].v1z: ours 80675003 theirs 64341667",
+            "665 0/9 ammo[2].angle: ours 795410432 theirs 799342592",
+            "665 0/9 ammo[2].sx: ours 648 theirs 606",
+            "665 0/9 ammo[2].sy: ours 13608 theirs 13618",
+            "665 0/9 ammo[2].sz: ours 162 theirs 370",
+            "665 0/9 ammo[2].v1z: ours 82341667 theirs 65008339",
+        ],
+        "a row on run146's whole blocks moved"
     );
 }
 

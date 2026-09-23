@@ -2479,8 +2479,10 @@ pub(crate) const WIDENING_CHAPTER_SEVEN: (i64, i64) = (605, 1201);
 /// landing with no live target (`00678bea`–`00678cde`), and this crate
 /// spends nothing. The rounds on that block already differ from their
 /// launch: each chariot's leaves from the unit's square here and from the
-/// release node in the dump, with `rolling` 1 against 0 (651's shape, item
-/// 602's). The values part on 707 on no key that had not parted before:
+/// release node in the dump (651's shape, item 602's). ~~With `rolling` 1
+/// against 0~~: that row compared flag 4 with `AmmoData +0x5`, a byte
+/// `Ammo::init` zeroes; `flags & 4` agrees (item 602). The values part on
+/// 707 on no key that had not parted before:
 /// the whole block is pinned in `chapter_three_s_word_frame_is_widened_whole`.
 ///
 /// **The delta: 684 → 706, item 603** — the pivot bears from its node
