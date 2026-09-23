@@ -22,6 +22,14 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Parked by item 579, 2026-09-23 — the navy's unbuilt corners
+
+(589) **Four corners of 579's fix, none on a word's frame**
+(`docs/ORDERS.md` §25.5): the aircraft-carrier half of the warship
+predicate, which no capture reaches; `SEARCH_FRIENDLY`'s allies in the
+navy's `find_city`; `remask_docks`' candidate set; and the dock
+margin's pathfinder cost. Each returns when a row names it.
+
 ## Parked by item 578, 2026-09-23 — a seam no run exercises
 
 (586) **Nubia's "50% more" hit points on merchants, caravans and markets
@@ -46,8 +54,8 @@ on. Returns when a chapter or a long capture runs a human without it.
 A stamp that is written on a gather and never cleared, so it asserts a
 change and not a value (QUEUE's upkeep rules). Under the word.
 
-(582) **`dock_sea_region` walks cells where the original walks tiles**
-(`docs/AI.md` §57.4). 576's fix does not depend on it.
+(582) closed 2026-09-23 by item 579: the tile walk gives the navy's
+point and was on the cause chain (`docs/ORDERS.md` §25).
 
 ## Parked by item 573, 2026-09-23 — the player nobody compares
 

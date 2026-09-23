@@ -32,16 +32,16 @@ been the lower map since 09-21 — so the AI track's default flips to it.*
 - **Fable backlog: 6 Loop items** (313, 527, 574, 575, 583, 584).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w10232 of 24,000 · GreatLakes w12038 of 24,000
+Long captures: EastIndies w10398 of 24,000 · GreatLakes w12038 of 24,000
 Golden: none pinned · ch1 closed · ch2 closed · ch4 closed · ch5 closed · ch7 closed · 587 next, chapter three
-Endpoint 24001: EastIndies 45 off, 22 unlinked · GreatLakes 41 off, 4 unlinked
+Endpoint 24001: EastIndies 57 off, 5 unlinked · GreatLakes 41 off, 4 unlinked
 
-**Opener: 5 landings since the eleventh pass: 573 and 576 (East Indies
-9711 → 10232), 567 and 569 (chapter four closed at 1500) and 578
-(chapter seven closed at 1200, its premise falsified: Loop 584). att-579
-is live on the AI track. A commander takes 587 on the rules track, then
-571; workers spawn with `claude-opus-5-5[1m]`. The count is by the log
-from the pass and stops at twenty.**
+**Opener: 6 landings since the eleventh pass: 573, 576 and 579 (East
+Indies 9711 → 10398), 567 and 569 (chapter four closed at 1500) and 578
+(chapter seven closed at 1200, its premise falsified: Loop 584). att-587
+is live on the rules track with run145–146. A commander takes 588 on the
+AI track, then 571; workers spawn with `claude-opus-5-5[1m]`. The count
+is by the log from the pass and stops at twenty.**
 
 ## The queue
 
@@ -51,13 +51,13 @@ lower map first — East Indies (a guard reads this line). Take the first
 unstarted on either track unless a better order is obvious, and say so; the
 backlog is `docs/PARKED.md`, and an item returns only when a score names it.
 
-579. **East Indies' word is 10232: `1/32` is born elsewhere on 10187**
-    (576 moved it 9983 → 10232: `create_units`' dock is a `find_building`
-    search around the city, not the city's chain, AI §57). Ours 33 draws
-    against 34, missing `Unit::do_move+0xe84`. Block 10233 pins three rows,
-    all `1/32`, in run99's widening, whose window still straddles the
-    word. No `LEADERS=9` capture reaches it: run139 ends at 9999. Walk
-    back from 10187 on run99 first. No mechanism.
+588. **East Indies' word is 10398: the Bark `1/34` a step behind** (579
+    moved it 10232 → 10398 with the warship's birth tile and the navy's
+    muster, ORDERS §25). The Bark is a step behind from its first step on
+    10325 and arrives on 10398 still moving; block 10399 pins eight rows
+    in run99's widening. **The word's block is run99's last**, so the item
+    owes a capture: run99's line from about 10380, `LEADERS=9` if the
+    navy's army record is wanted. Runs run143–144. No mechanism.
 
 571. **Army 1's squad stops on block 11922 in the original and walks on
     here** (566 moved the word 11903 → 12038 by carrying the pathfinder's
