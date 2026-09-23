@@ -28,29 +28,22 @@ the rules track closed chapters four (1500), seven (1200) and three
 - **Fable backlog: 6 Loop items** (313, 527, 630, 638, 639, 645); the `FABLE:` batch was empty.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w11747 of 24,000 · GreatLakes w12038 of 24,000
+Long captures: EastIndies w13640 of 24,000 · GreatLakes w12038 of 24,000
 Golden: ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch7 closed · restage closed · ch7b closed · ch7b-control w1176 of 1200 · 644 next
-Endpoint 24001: EastIndies 49 off, 8 unlinked · GreatLakes 41 off, 0 unlinked
+Endpoint 24001: EastIndies 45 off, 12 unlinked · GreatLakes 41 off, 0 unlinked
 
-**Opener: seven landings since the twelfth pass's commit. 642 has the
-AI lane; spawn 644 on the rules lane (seven-b's control, 1176). 571
-follows 642, then 643 when it is booked. Stop at twenty.**
+**Opener: eight landings since the twelfth pass's commit. East Indies
+passed Great Lakes (11747 → 13640), so Great Lakes is the lower map:
+spawn 571 on the AI lane; 643 follows it. 644 has the rules lane. Stop
+at twenty.**
 
 ## The queue
 
 In dependency order, headline-nearest first. **Two headlines** (DECISIONS
 41): the golden word for the rules, the long word for the AI, and
-lower map first — East Indies (a guard reads this line). Take the first
+lower map first — Great Lakes (a guard reads this line). Take the first
 unstarted on either track unless a better order is obvious, and say so; the
 backlog is `docs/PARKED.md`, and an item returns only when a score names it.
-
-642. **East Indies' word is 11747, inside run159** (629 seated a deployed
-    Merchant on its tile corner, MERCHANT §3.2; parked 550). On 11747 ours
-    10 draws against 7 at index 3: ours `Guy::set_anim+0x97a < do_cast`,
-    theirs `Guy::set_anim+0x97a < Guy::inc_time+0x271`. run159's window,
-    [11270, 11900), spans it and `run159_s_word_frame_is_widened_whole`
-    holds the frame; no capture is owed. 629's lead: the scout `1/0`'s
-    explore target parts on 11550 with no draw. No mechanism.
 
 571. **Great Lakes: Army 1's squad stops on block 11922 in the original
     and walks on here** (566 moved the word 11903 → 12038 by carrying the
@@ -69,6 +62,14 @@ backlog is `docs/PARKED.md`, and an item returns only when a score names it.
     original sends `1/7` toward a site and ours keeps it gathering.
     Widened on (605, 1178). Hypothesis: parked 633, who=1's
     `resource_cap`, food parting from 1018. No mechanism.
+
+643. **East Indies' word is 13640, past every capture** (642 moved it
+    11747 → 13640: `Region::go_here` reads the human's `reg_cities`
+    through `leader_reg_cities`' recount, TRANSPORT §9.4). On 13640 ours
+    34 draws against 33 at index 33: an extra `Guy::set_anim+0x97a <
+    Guy::inc_time+0x271`. East Indies' windows end on run159's 11899; run78
+    starts at 15700. The `WIDENINGS` row names this item: capture
+    **run166** over the word, then widen it whole. No mechanism.
 
 ## How to maintain this file
 

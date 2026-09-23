@@ -22,6 +22,16 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Parked by item 642, 2026-09-23 — under East Indies' 13640
+
+(646) **run159's five rows from block 11793**, none spending a draw before
+the word: the boat `1/44`'s `form` −1 against 0 (the Merchant's `form`
+residue); its order's `facing` 0 against 1, inherited from the scout's
+first-block row; the scout's `avg_speed` 25/24 against 18/18 and its
+`stopped[1]` 0 against 1. The human's census still does not run
+(`docs/AI.md` §23.1): the first-block `0/-1` leader and `0/2000` city rows
+stand.
+
 ## Parked by item 627, 2026-09-23 — the search gate's other arms
 
 (640) **A building's arm of `find_nearby_target`'s reach gate** (COMBAT
