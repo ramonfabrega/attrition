@@ -4831,3 +4831,98 @@ this means for the later naval chapters.
 The first walk parted at 617, on who=1's trireme turning broadside
 (`docs/COMBAT.md` §49). Item 535 landed that rule and the word went to
 621, the first round's launch. See `GOLDEN_WORD_CHAPTER_FIVE`.
+
+## run132 — chapter four, the border: three levers, cell for cell (2026-09-23, item 552)
+
+The golden record's fourth chapter (`docs/GOLDEN.md` §8), staged from
+`tools/gamelog/golden/chapter4.cmd`: `!ai off` at 0, `add temple who=0
+28,160` at 300, `tech who=0 religion on` at 400, `civic who=0 3` at 500,
+`tech who=0 allegiance on` at 550, then the squad, the scout and the wagon
+at 600, 605 and 1100. run127's command with the chapter file swapped and
+the border's detail:
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch4b \
+    --map 14 --end-frame 1500 --log-window 295 545 --timeout 3600 \
+    --detail end:WORLD=6,BUILDS=7,CITIES=5,MISC=1 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 \
+    --cmd-file tools/gamelog/golden/chapter4.cmd
+```
+
+`success: true`, exit 0, 1501 frames, `MAP_STYLE 14` and seed 12345 read
+back, five settings files restored. **2178 s from launch to exit, 830 MB
+of dump and 11.9 MB of trace** (836 MB on disk). `WORLD` costs about
+3.3 MB and **8.7 s a block**; the other 1250 frames run fast.
+
+**The window is `[295, 545)`, not §8's `[295, 345)`**, because the narrow
+one sees the Temple and neither other lever. `LeaderData::territory` is
+printed only from `LEADERS=8`, so the cell count in `WORLD` is the only
+cheap reading of a border.
+
+**It took three launches.** The first, at `--timeout 1500`, was slow, not
+blocked: it dumped 295..467 without a gap (577 MB) and the runner gave up
+at 1500 s. A timeout writes no receipt, and a wait on the receipt alone
+sat idle for 1.5 h; wait on the game's exit. That take is kept at
+`~/ron-golden/ch4b-truncated`. The second stalled before its first frame:
+0.2% CPU, a 544-byte trace, `wine.log` ending at MoltenVK's instance line.
+Nothing was on the screen, and it was killed and the prefix cleared. The
+third lost the lane lock by two seconds to att-563's run136 and was
+relaunched when that capture exited.
+
+**The grep before it.** No capture on this disk carries a Temple (run80:
+none by 23,999 on Great Lakes) or a staged civic level. run16 is the only
+one with attrition ticks, and it has no border lever.
+
+### The predictions, written into the `.cmd` file before the run
+
+Committed as `c4ba076`. All held:
+
+| check | predicted | observed |
+| --- | --- | --- |
+| every staged line runs | ten `INFO cmd`, each returning 1 | ten, each 1 (`cmdsran.py`) |
+| the window | 252 blocks: 1, 295..544, 1501 | 252, gaps only at 295 and 1501 |
+| the Temple | `orig_type 437`, `who 0`, on cell (7,40), finished | block 301, (5376, 30720), `(int)construct_hits 1200` = `myhits 1200`, `frame_started 300` |
+| Napata's temple bit | `city_flags` 18449 → 18577 on 301 | exactly; London's 16401 does not move |
+| owner-0 cells | 266, then more after each lever | 266 → 296 (306–310) → 327 (406–411) → 445 (505–511) |
+| owner-1 cells | 261 throughout | 261 on every block |
+
+### §8's border falsifiers, and none fired
+
+- **The Temple is a finished building, not a construction site.**
+  `run_cmd` calls `Build::activate` straight after `init_build` for a line
+  without `NEW`, so `finish` is not owed.
+- **The count moves across 300**, +30.
+- **It moves across 400 (+31) and 500 (+118).** Religion is a temple
+  border level, and Civic 3 is a border term.
+
+**Each lever lands five blocks late and over five blocks.** Changes start
+on 306, 406 and 505 and end on 310, 411 and 511. That is the budgeted
+recompute (`GameDaemon::check_borders`, 256 cells a frame) seen in the
+dump. Every cell that changes goes from −1 to 0.
+
+### What the harness made of it
+
+`chapter_four_s_border_is_widened_cell_for_cell` compares all 3,600 cells
+on every block (`who`, `who2`, `flags`, `blocked`, `solid`, `bad`), plus
+the buildings and the cities. It found three defects, one per lever,
+before it had any assertions:
+
+- **The interpreter ordered the Temple rather than placing it.** Its
+  building arm took `Sim::place_building`, which is `Group::action_build`:
+  it charges the price and leaves an unstarted site, so the city's temple
+  bit and the border never moved. The arm is `Objects::init_build` and
+  then `Build::activate(0, 1, 0)`, whose arguments are read from the
+  listing at `0x7e055b`.
+- **The temple border level was a constant 1.** It is now `1` plus the
+  highest `TEMPLEBORDERS2..4` held (bonuses 28–30: Religion, Monotheism,
+  Existentialism). The fort level is wired the same way.
+- **`civic` changed the level and nothing re-read it.** `Leader::set_epoch`
+  raises a level through a whole `gain_tech` per step. The crate's
+  `set_leader_epoch` skipped `gain_tech`'s tail, including the border
+  resync.
+
+With the three fixes the border agrees **cell for cell** on 295–300, from
+310 to 400, from 411 to 500 and from 511 to 544. The only parting is the
+sweep's own windows, where this crate recomputes wholesale on the line's
+frame.
