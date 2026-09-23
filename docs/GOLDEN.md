@@ -479,8 +479,13 @@ does. **The word is 782**, 7 draws against 5
 (`GOLDEN_WORD_CHAPTER_THREE_RESTAGE`). Values part on 781 on `0/6` alone:
 the original pushes an `ATTACKGROUNDORDER` over the attack at the
 target's point (`Unit::fight`'s siege arm and `Unit::do_attack_ground`,
-§56.3), which this crate does not carry. No mechanism is established for
-782.
+§56.3), which this crate ~~does not carry~~ carries since item 621
+(`docs/COMBAT.md` §57). Every `0/6` value row the order made on 781–783
+is gone, and the order's life agrees to 864, its round included. **The
+word stays 782**, and it is not the order: this crate's two extra draws
+are the catapult's crew starting a walk on the turn in place, where the
+original's crew stand on their slots and mirror figure 0's `TURN_LEFT`
+(§57.6; run44's `0/15` has the clocks).
 Before it, run146 parts on a round's target (736, run145's family) and,
 on 771, on the dump culling the dead hoplites' `DEATH_OBJS` as arena A's
 are born (`docs/COMBAT.md` §42.5's cull).
@@ -816,7 +821,7 @@ in `docs/COMMANDS.md` §3 maps to it cleanly and the reading is owed.
 | PatrolOrder, GroupPatrolOrder | `CommandManager::issue_patrol@00941800` | — |
 | AirPatrolOrder | **channel** (`bird`), and `CommandManager::issue_launch_patrol@00941860` | 6 |
 | AirOrder | `CommandManager::issue_flight@00941d40` | — |
-| AirAttackGroundOrder, AttackGroundOrder | `CommandManager::issue_attack_ground@009417a0` | — |
+| AirAttackGroundOrder, AttackGroundOrder | `CommandManager::issue_attack_ground@009417a0`; AttackGroundOrder also auto, `Unit::fight`'s siege arm (`docs/COMBAT.md` §57) | 3 (the restage) |
 | GuardOrder | `CommandManager::issue_guard@00941ed0` | — |
 | FollowOrder | `CommandManager::issue_follow@00941e70` | — |
 | FormOrder | `CommandManager::issue_form@00941580` | — |

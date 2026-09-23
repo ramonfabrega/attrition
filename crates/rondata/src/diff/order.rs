@@ -114,6 +114,14 @@ pub enum OrderMismatch {
         ours: i64,
         theirs: i64,
     },
+    /// One field of an `ATTACKGROUNDORDER`'s own row — `att_x att_y
+    /// accuracy attack_unit` (item 621, `docs/COMBAT.md` §57): the point,
+    /// the "at sea" flag, and the shot count.
+    Ground {
+        field: &'static str,
+        ours: i64,
+        theirs: i64,
+    },
     /// The path stack's depth.
     PathLength { ours: usize, theirs: usize },
     /// A path segment's goal, bottom-first.
@@ -212,6 +220,7 @@ impl OrderMismatch {
             Self::Move { field, .. } => format!("order:move.{field}"),
             Self::Guard { field, .. } => format!("order:guard.{field}"),
             Self::Cast { field, .. } => format!("order:cast.{field}"),
+            Self::Ground { field, .. } => format!("order:ground.{field}"),
             Self::PathLength { .. } => "path:length".into(),
             Self::PathTo { slot, .. } => format!("path[{slot}].to"),
             Self::PathField { slot, field, .. } => format!("path[{slot}].{field}"),
@@ -234,6 +243,7 @@ impl OrderMismatch {
             Self::Move { .. } => "move",
             Self::Guard { .. } => "guard",
             Self::Cast { .. } => "cast",
+            Self::Ground { .. } => "ground",
             Self::PathLength { .. } => "path-length",
             Self::PathTo { .. } => "path-to",
             Self::PathField { .. } => "path-field",
@@ -347,7 +357,10 @@ pub(crate) fn compare_orders(
                 },
             );
         }
-        if i64::from(ours.flags) != theirs.flags {
+        // `UnitOrder::log_data` prints the byte **signed**: an order with
+        // the fired bit (`0x80`, the ground order's) reads `flags -128`
+        // (item 621).
+        if i64::from(ours.flags as i8) != theirs.flags {
             at(
                 slot,
                 OrderMismatch::Flags {
@@ -598,6 +611,45 @@ pub(crate) fn compare_orders(
                 at(
                     slot,
                     OrderMismatch::Cast {
+                        field,
+                        ours: mine,
+                        theirs,
+                    },
+                );
+            }
+        }
+    }
+
+    // **The ground order's own row** (item 621): the point `fight`'s
+    // siege arm took, and the shot count `do_attack_ground` spends.
+    for (slot, (ours, theirs)) in unit
+        .orders
+        .iter()
+        .zip(them.orders_front_first())
+        .enumerate()
+    {
+        let sim::orders::Body::AttackGround(g) = ours.body else {
+            continue;
+        };
+        if i64::from(ours.index()) != theirs.index {
+            continue;
+        }
+        for (field, mine, logged) in [
+            ("att_x", i64::from(g.at.x), theirs.ag_att_x),
+            ("att_y", i64::from(g.at.y), theirs.ag_att_y),
+            ("accuracy", i64::from(g.sea), theirs.ag_accuracy),
+            (
+                "attack_unit",
+                i64::from(g.attack_unit),
+                theirs.ag_attack_unit,
+            ),
+        ] {
+            if let Some(theirs) = logged
+                && theirs != mine
+            {
+                at(
+                    slot,
+                    OrderMismatch::Ground {
                         field,
                         ours: mine,
                         theirs,

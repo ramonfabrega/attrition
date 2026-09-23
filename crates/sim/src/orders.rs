@@ -57,6 +57,10 @@ pub mod index {
     pub const CHANGE_FORM: u8 = 18;
     pub const GROUP_MOVE: u8 = 19;
     pub const GROUP_ATTACK_TO: u8 = 21;
+    /// `AttackGroundOrder` — [`super::Body::AttackGround`], which this
+    /// crate issues from one place: `Unit::fight`'s siege arm, an
+    /// unpacked packer's shot at a unit (`docs/COMBAT.md` §57).
+    pub const ATTACK_GROUND: u8 = 23;
 
     /// **The move family** — the seven kinds whose class derives from
     /// `MoveOrder`, which `kill_current_order`, `work`, `repath`,
@@ -98,6 +102,7 @@ pub mod index {
                 | TRADE_ROUTE
                 | GROUP_MOVE
                 | GROUP_ATTACK_TO
+                | ATTACK_GROUND
                 | GARRISON
                 | THINK
         )
@@ -207,6 +212,13 @@ pub mod flag {
     /// where `fight` reads this one on the *current* order it **narrows**
     /// the search — `005fde93`'s one-in-five suppression.
     pub const FIGHT_REENTRY: u8 = 0x10;
+    /// **An attack-ground order has fired** (`docs/ORDERS.md` §1.3).
+    /// `Unit::do_attack_ground@005f1410` sets it on the shot, and while
+    /// the reload runs a set bit holds the unit still rather than
+    /// letting it roll the idle; `add_attack_ground_order` and `fight`'s
+    /// siege arm clear it on a new order. The dump prints it as the
+    /// signed byte `flags -128`.
+    pub const FIRED: u8 = 0x80;
 }
 
 /// `QueuePos` — where an order goes (§1.5).
@@ -424,6 +436,26 @@ pub struct GuardOrder {
     pub retry: i32,
 }
 
+/// The fields of `AttackGroundOrder` (`docs/ORDERS.md` §1.2, §26):
+/// `+0x4 att_x, +0x8 att_y, +0xc accuracy, +0x10 attack_unit`, as the
+/// dump prints them.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct AttackGroundOrder {
+    /// `+0x4`/`+0x8` — the point fired at. `fight`'s siege arm writes the
+    /// target's **own position** on the frame it pushes the order, not
+    /// its cell (run44 `1/6`, `docs/COMBAT.md` §57.1), and nothing
+    /// rewrites it: the round released frames later lands here.
+    pub at: Pos,
+    /// `+0xc` — "the target was at sea" (`domain == 1`), which makes the
+    /// round exact: `Ammo::init` takes no scatter for it.
+    pub sea: bool,
+    /// `+0x10` — the shots left to count: 2 on `fight`'s push, 1 once
+    /// `do_attack_ground` has fired, and the ready frame at 1 ends the
+    /// order. A player's ground click would carry 0, which this crate has
+    /// no command for.
+    pub attack_unit: u8,
+}
+
 /// The order kinds this crate implements.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Body {
@@ -436,6 +468,7 @@ pub enum Body {
     Attack(AttackOrder),
     Cast(CastOrder),
     Guard(GuardOrder),
+    AttackGround(AttackGroundOrder),
     Think,
 }
 
@@ -479,6 +512,7 @@ impl Order {
             Body::Attack(_) => index::ATTACK,
             Body::Cast(_) => index::CAST_SPELL,
             Body::Guard(_) => index::GUARD,
+            Body::AttackGround(_) => index::ATTACK_GROUND,
             Body::Think => index::THINK,
         }
     }
@@ -1545,6 +1579,7 @@ impl Sim {
             Some(Body::Attack(_)) => self.do_attack(u, frame),
             Some(Body::Cast(c)) => self.do_cast(u, c),
             Some(Body::Guard(_)) => self.do_guard(u, frame),
+            Some(Body::AttackGround(_)) => self.do_attack_ground(u, frame),
             Some(Body::Think) => self.do_think_order(u, frame),
         }
     }
@@ -6545,12 +6580,34 @@ impl Sim {
         a.in_range = in_range;
         if in_range {
             a.ever_in_range = true;
+            // **Siege fire at a unit is ground fire** (`docs/COMBAT.md`
+            // §57.2): the arm returns before the strike's tail, so the
+            // attack keeps `new_ord 1` under the order it pushes, as
+            // run146's `0/6` does from 781 to 863.
+            if self.siege_ground_arm(u, target, a, frame) {
+                return;
+            }
             a.new_ord = false;
             self.store_attack(u, a);
             self.fight_pub(u, target, frame);
             return;
         }
         self.store_attack(u, a);
+        // **An unpacked packer that has been in range dies out of it**
+        // (`Unit::fight@005fd4d0:496`, `LAB_005fe0e5`): `unit_flags2 & 4`,
+        // not packed, and the order's `ever_in_range` → kill, before the
+        // stance and the chase. It is how run146's catapult loses its
+        // attack on 864, the frame its ground order ends: the hoplites
+        // have walked inside the three-tile minimum (§57.3).
+        if self.units[u]
+            .ty
+            .is_some_and(|t| self.unit_types[t].combat.packs)
+            && !self.units[u].combat.packed
+            && a.ever_in_range
+        {
+            self.kill_current_order(u);
+            return;
+        }
         if state.stance == combat::Stance::StandGround {
             return;
         }
@@ -6610,6 +6667,165 @@ impl Sim {
         } else {
             self.units[u].orders[a].flags &= !flag::FIGHT_REENTRY;
         }
+    }
+
+    /// **`Unit::fight@005fd4d0`'s siege arm** (`fight:496`–`572`,
+    /// `docs/COMBAT.md` §57.2), in the attack's in-range branch and
+    /// ahead of the strike. For an attacker whose type packs
+    /// (`unit_flags2 & 4`) and is not the Dutch merchant:
+    ///
+    /// - packed, the original unpacks here or moves to a better spot.
+    ///   SEAM: not carried. No human's packed engine holds an attack
+    ///   (its think returns before the search, §51.1), and no capture on
+    ///   disk has a computer's packed engine in range of one; this crate
+    ///   falls through to the strike as it always has.
+    /// - unpacked, a **unit** target (the target's vslot `+0x18`,
+    ///   `is_unit`) and a **siege** type (vslot `+0x10c`, `is_siege`):
+    ///   `set_attacking`, then an `ATTACK_GROUND` order at the head
+    ///   holding the target's own position, `accuracy = (domain == sea)`
+    ///   and `attack_unit = 2`, with the fired and action bits clear;
+    ///   `clear_partial_path`, the head rotated onto it, `update_action`,
+    ///   and **`Unit::work`** (vslot `+0x188`), so the new order fires on
+    ///   this same frame.
+    ///
+    /// The attack's `in_range` and `ever_in_range` are written before it
+    /// (`fight:491`–`493`) and its `new_ord` is left standing: the strike
+    /// tail that clears it (`fight:847`) is never reached.
+    fn siege_ground_arm(&mut self, u: usize, target: Obj, a: AttackOrder, frame: i64) -> bool {
+        let Some(t) = self.units[u].ty else {
+            return false;
+        };
+        if !self.unit_types[t].combat.packs
+            || self.units[u].combat.packed
+            || self
+                .unit_tree(u)
+                .is_some_and(|ti| self.tech_tree.is(ti, MERCHANTDUTCH, true))
+        {
+            return false;
+        }
+        let Obj::Unit(v) = target else {
+            return false;
+        };
+        if !self.profile(Obj::Unit(u)).siege {
+            return false;
+        }
+        self.set_attacking(u, self.owner_of(target));
+        self.store_attack(u, a);
+        let at = self.units[v].pos;
+        let sea = matches!(self.profile(target).domain, crate::attrition::Domain::Sea);
+        let order = Order {
+            flags: 0,
+            body: Body::AttackGround(AttackGroundOrder {
+                at,
+                sea,
+                attack_unit: 2,
+            }),
+        };
+        self.enqueue(u, order, QueuePos::First);
+        self.work(u, frame);
+        true
+    }
+
+    /// **`Unit::do_attack_ground@005f1410`** — one frame of an
+    /// `ATTACK_GROUND` order (`docs/COMBAT.md` §57.3, `docs/ORDERS.md`
+    /// §26), in the original's order:
+    ///
+    /// 1. `can_attack_ground`, else kill. A player's order (`attack_unit
+    ///    0`) is also killed on a point at peace with the owner, and walks
+    ///    into range; SEAM: no command here issues one, so both arms are
+    ///    the kill.
+    /// 2. The facing, `find_angle` to the point, a quarter turn off for a
+    ///    broadside type (`unit_flags & 0x40`).
+    /// 3. **Reloading**: a fired order holds the unit still (`flags &
+    ///    0x80`, the byte read signed); otherwise a figure off slots 0–3
+    ///    rolls the idle, as `fight`'s own reload gate does.
+    /// 4. **`attack_unit`**: 1 is the ready frame after the shot, and it
+    ///    kills the order and re-enters `Unit::work` (vslot `+0x188`), so
+    ///    the attack beneath runs on this frame; 2 becomes 1 and fires.
+    /// 5. `set_attack(−1, −1)`: the aimed figures forget their target. A
+    ///    packed packer unpacks instead of firing.
+    /// 6. `unit_masks |= 0x11000` (SEAM: this crate keeps neither bit),
+    ///    the turn, `flags |= 0x80`, the swing (`fight`'s own four-arm
+    ///    choice, two arms of which exist here), the shot, and **`recharging
+    ///    = recharge() + 1`**: run146's catapult reads 83 on the push where
+    ///    its direct strike at a building reads 82 (run44 `0/15`, 408).
+    pub(crate) fn do_attack_ground(&mut self, u: usize, frame: i64) {
+        let Some(Order {
+            body: Body::AttackGround(mut g),
+            flags,
+        }) = self.current_order(u).copied()
+        else {
+            return;
+        };
+        if !self.can_attack_ground(u) || g.attack_unit == 0 {
+            self.kill_current_order(u);
+            return;
+        }
+        let from = self.units[u].pos;
+        let direct = crate::movement::find_angle(g.at.x - from.x, g.at.y - from.y);
+        let angle = self.broadside_angle(u, direct);
+        if self.units[u].combat.recharging != 0 {
+            if flags & flag::FIRED != 0 {
+                return;
+            }
+            if self.units[u]
+                .guys
+                .first()
+                .is_some_and(|g0| (0..4).contains(&g0.anim))
+            {
+                return;
+            }
+            self.mark(anim::SITE_RELOAD_IDLE);
+            self.set_anim(u, anim::DEFAULT, true, true);
+            return;
+        }
+        if g.attack_unit == 1 {
+            self.kill_current_order(u);
+            self.work(u, frame);
+            return;
+        }
+        g.attack_unit = 1;
+        if let Some(front) = self.units[u].orders.front_mut() {
+            front.body = Body::AttackGround(g);
+        }
+        self.clear_attack(u);
+        if self.units[u]
+            .ty
+            .is_some_and(|t| self.unit_types[t].combat.packs)
+            && self.units[u].combat.packed
+        {
+            self.add_cast_order_at(u, spell::UNPACK, QueuePos::First);
+            return;
+        }
+        if angle != self.units[u].movement.heading {
+            self.unit_set_angle(u, angle);
+        }
+        if let Some(front) = self.units[u].orders.front_mut() {
+            front.flags |= flag::FIRED;
+        }
+        self.swing_anim_pub(u, direct);
+        self.fire_ground(u, g, direct, frame);
+        let r = self.reload_frames(u);
+        self.units[u].combat.recharging = r.wrapping_add(1);
+    }
+
+    /// **`UnitTypeData::can_attack_ground@0061db20`**, from the listing
+    /// (`61db20`–`61dc13`): the rush-rules age gate (SEAM: this crate
+    /// plays without rush rules), a `max_range` (`+0x1fc`), neither of
+    /// `unit_flags & 0x102000`, and then any of `obj_masks` EXPLOSIVE,
+    /// SIEGE, NAVAL or BOMBARD, or the machine-gun lineage.
+    pub(crate) fn can_attack_ground(&self, u: usize) -> bool {
+        let Some(t) = self.units[u].ty else {
+            return false;
+        };
+        let ty = &self.unit_types[t];
+        let p = ty.combat;
+        if p.max_range == 0 || ty.cols.flag(0x10_2000) {
+            return false;
+        }
+        use crate::combat::mask;
+        p.has(mask::EXPLOSIVE | mask::SIEGE | mask::NAVAL | mask::BOMBARD)
+            || self.unit_line_is(u, MACHINEGUN)
     }
 
     fn store_attack(&mut self, u: usize, a: AttackOrder) {

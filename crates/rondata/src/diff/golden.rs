@@ -6036,6 +6036,283 @@ fn chapter_three_s_unpacked_catapult_sees_its_hoplites() {
     assert_eq!(ours, theirs, "this crate's catapult parts from the dump's");
 }
 
+/// One unit's order list as the dump holds it, front first, for the
+/// ground order's floor: `(OrderIndex, att_x, att_y, accuracy,
+/// attack_unit, flags)` for an `ATTACKGROUNDORDER`, and `(OrderIndex,
+/// in_range, new_ord, -, -, flags)` for anything else.
+fn ground_rows(u: &crate::gamelog::UnitDump) -> Vec<[i64; 6]> {
+    u.orders_front_first()
+        .map(|o| match o.ag_att_x {
+            Some(x) => [
+                o.index,
+                x,
+                o.ag_att_y.unwrap_or(-1),
+                o.ag_accuracy.unwrap_or(-1),
+                o.ag_attack_unit.unwrap_or(-1),
+                o.flags,
+            ],
+            None => [
+                o.index,
+                o.in_range.unwrap_or(-1),
+                o.new_ord.unwrap_or(-1),
+                -1,
+                -1,
+                o.flags,
+            ],
+        })
+        .collect()
+}
+
+/// **The ground order's life, as the dump prints it** (item 621,
+/// `docs/COMBAT.md` §57) — the floor, read before any of it was built.
+///
+/// - **run146**, the restage's catapult `0/6`: the attack arrives on 780
+///   (`in_range 0`). On 781 an `ATTACKGROUNDORDER` sits over it at the
+///   hoplite's point, **already fired** (`attack_unit 1`, `flags 0x80`),
+///   with the attack beneath now `in_range 1` and still `new_ord 1`. The
+///   reload reads 83 and runs down one a block. On 864, the ready block,
+///   **both** orders are gone. No other unit of the capture ever holds one.
+/// - **run44**, where three siege engines of both players carry one: on
+///   each first block the order's point is **the position of the target
+///   the attack beneath names**, on that block, and not its cell. `1/6`'s
+///   (39421, 40762) is off every cell centre.
+#[test]
+fn the_ground_order_s_life_is_the_dump_s() {
+    const ATTACK: i64 = sim::orders::index::ATTACK as i64;
+    const GROUND: i64 = 23;
+    let Some((dump, _)) = golden("ch3b") else {
+        eprintln!("skipping: no golden capture ch3b (docs/RUNS.md run146)");
+        return;
+    };
+    let mut ix = crate::capture::indexed::IndexedCapture::open(&dump).unwrap();
+    let mut holders = std::collections::BTreeSet::new();
+    let mut life = Vec::new();
+    for at in 0..ix.frames().len() {
+        let n = ix.frames()[at].number;
+        let f = ix.frame_state(at).unwrap();
+        for u in &f.units {
+            if u.orders.iter().any(|o| o.index == GROUND) {
+                holders.insert((u.who, u.o));
+            }
+        }
+        if (779..=866).contains(&n) {
+            let u = f
+                .units
+                .iter()
+                .find(|u| u.who == 0 && u.o == 6)
+                .expect("the catapult");
+            life.push((n, ground_rows(u), u.recharging.expect("recharging")));
+        }
+    }
+    assert_eq!(
+        holders.into_iter().collect::<Vec<_>>(),
+        vec![(0, 6)],
+        "run146: only the catapult ever holds a ground order"
+    );
+    for (n, rows, rech) in &life {
+        let want: (Vec<[i64; 6]>, i64) = match n {
+            779 => (vec![], 0),
+            780 => (vec![[ATTACK, 0, 1, -1, -1, 0]], 0),
+            781..=863 => (
+                vec![[GROUND, 2472, 8136, 0, 1, -128], [ATTACK, 1, 1, -1, -1, 0]],
+                864 - n,
+            ),
+            _ => (vec![], 0),
+        };
+        assert_eq!((rows.clone(), *rech), want, "run146 block {n}");
+    }
+
+    let Some(r44) = crate::testenv::dump("gamelog-run44-islands-turners.txt") else {
+        return;
+    };
+    let mut ix = crate::capture::indexed::IndexedCapture::open(&r44).unwrap();
+    let mut firsts = std::collections::BTreeMap::new();
+    for at in 0..ix.frames().len() {
+        let n = ix.frames()[at].number;
+        if !(240..=410).contains(&n) {
+            continue;
+        }
+        let f = ix.frame_state(at).unwrap();
+        for u in &f.units {
+            let mut front = u.orders_front_first();
+            let (Some(head), Some(under)) = (front.next(), front.next()) else {
+                continue;
+            };
+            if head.index != GROUND || firsts.contains_key(&(u.who, u.o)) {
+                continue;
+            }
+            let (w, o) = (under.whom.unwrap(), under.ox.unwrap());
+            let t = f
+                .units
+                .iter()
+                .find(|t| t.who == w && t.o == o)
+                .expect("the attack's target");
+            firsts.insert(
+                (u.who, u.o),
+                (
+                    n,
+                    under.index,
+                    head.ag_att_x.unwrap(),
+                    head.ag_att_y.unwrap(),
+                    t.pos.x,
+                    t.pos.y,
+                ),
+            );
+        }
+    }
+    let firsts: Vec<_> = firsts.into_iter().collect();
+    assert_eq!(
+        firsts,
+        vec![
+            ((0, 15), (324, ATTACK, 39816, 39720, 39816, 39720)),
+            ((1, 6), (247, ATTACK, 39421, 40762, 39421, 40762)),
+            ((1, 7), (248, ATTACK, 40152, 41016, 40152, 41016)),
+        ],
+        "run44: a ground order's point is its attack's target where it stands"
+    );
+}
+
+/// **The restage's catapult fires on the ground** (item 621,
+/// `docs/COMBAT.md` §57) — the value diff beside the build, both sides
+/// on every block of the order's life. Each block is `0/6`'s order list
+/// front first in [`ground_rows`]' form and its reload, 779 to 864: the
+/// push and the shot on 781, the hold, and both orders gone on 864. And
+/// the round, on the block it first prints: from where, to where, how
+/// high, and at no object.
+///
+/// It stops at 864 on purpose. On 865 this crate's catapult takes a
+/// fresh attack and on 866 a chase, where the dump's holds nothing until
+/// 868: the search after the reload, past the word and not this order's.
+#[test]
+fn chapter_three_s_catapult_fires_on_the_ground() {
+    use sim::orders::Body;
+    let Some(mut s) = stage_script("ch3b", "chapter3b") else {
+        return;
+    };
+    let mut parted = Vec::new();
+    let mut round = None;
+    for f in 0..864 {
+        s.script.stage(s.built.sim.frame, &mut s.built, &s.loaded);
+        s.built.tick();
+        let n = f + 1;
+        if n < 779 {
+            continue;
+        }
+        let ix =
+            s.ix.frames()
+                .iter()
+                .position(|x| x.number == n)
+                .expect("the block");
+        let frame = s.ix.frame_state(ix).unwrap();
+        let them = frame
+            .units
+            .iter()
+            .find(|u| u.who == 0 && u.o == 6)
+            .expect("the catapult in the dump");
+        let theirs = (ground_rows(them), them.recharging.expect("recharging"));
+        let sim = &s.built.sim;
+        let i = sim.unit_by_o(0, 6).expect("our catapult");
+        let u = &sim.units[i];
+        let rows: Vec<[i64; 6]> = u
+            .orders
+            .iter()
+            .map(|o| {
+                let flags = i64::from(o.flags as i8);
+                match o.body {
+                    Body::AttackGround(g) => [
+                        i64::from(o.index()),
+                        i64::from(g.at.x),
+                        i64::from(g.at.y),
+                        i64::from(g.sea),
+                        i64::from(g.attack_unit),
+                        flags,
+                    ],
+                    Body::Attack(a) => [
+                        i64::from(o.index()),
+                        i64::from(a.in_range),
+                        i64::from(a.new_ord),
+                        -1,
+                        -1,
+                        flags,
+                    ],
+                    _ => [i64::from(o.index()), -1, -1, -1, -1, flags],
+                }
+            })
+            .collect();
+        let ours = (rows, i64::from(u.combat.recharging));
+        if ours != theirs {
+            parted.push((n, ours, theirs));
+        }
+        if round.is_none() {
+            let text = s.ix.read_frame(ix).unwrap();
+            if let Some((a, _)) = crate::diff::ammo::blocks(&text)
+                .into_iter()
+                .find(|(a, _)| a.who == 0 && a.o == 6)
+            {
+                let mine = sim
+                    .projectiles
+                    .iter()
+                    .find(|p| p.shooter == sim::combat::Obj::Unit(i))
+                    .map(|p| {
+                        (
+                            p.target.is_some(),
+                            p.launch.x,
+                            p.launch.y,
+                            p.sz,
+                            p.landing.x,
+                            p.landing.y,
+                            p.ez,
+                            p.accuracy,
+                            p.total_time,
+                        )
+                    });
+                round = Some((
+                    n,
+                    mine,
+                    (
+                        a.ox != -1,
+                        a.sx as i32,
+                        a.sy as i32,
+                        a.sz as i32,
+                        a.ex as i32,
+                        a.ey as i32,
+                        a.ez as i32,
+                        a.accuracy as i32,
+                        a.total_time as i32,
+                    ),
+                ));
+            }
+        }
+    }
+    assert!(parted.is_empty(), "0/6's ground order parts: {parted:?}");
+    let (n, mine, theirs) = round.expect("the dump's catapult fires");
+    eprintln!("  ch3b 0/6 round on {n}: ours {mine:?} theirs {theirs:?}");
+    assert_eq!(n, 798, "the dump's round prints on 798");
+    assert_eq!(
+        theirs,
+        (false, 855, 7990, 496, 2413, 8276, 188, 5, 33),
+        "the dump's round is not the one pinned"
+    );
+    // What the order decides agrees: the release block, no object, the
+    // ground's `ez` at the point, the accuracy and the flight. Two
+    // fields part, and neither is the order's. The **launch** is the
+    // unit's own square here and the release node in the dump:
+    // `sim::launch` has no node for the catapult's piece (§22's seam).
+    // The **landing** is the point plus the scatter, and the scatter's
+    // two draws are taken on 798, after the stream parted on 782.
+    let mine = mine.expect("this crate's catapult fires");
+    assert_eq!(
+        (mine.0, mine.6, mine.7, mine.8),
+        (theirs.0, theirs.6, theirs.7, theirs.8),
+        "this crate's round parts from the dump's on what the order decides"
+    );
+    assert_eq!(
+        (mine.1, mine.2, mine.3, mine.4, mine.5),
+        (888, 7992, 251, 2655, 8142),
+        "the launch or the scatter moved; re-pin them against the dump's"
+    );
+}
+
 /// **Chapter three's restage, walked** — `chapter3b.cmd`, run146 (item
 /// 587, `docs/GOLDEN.md` §7): the same three unit types in two arenas, so
 /// that §7's minimum-range and speed falsifiers can fire. Seven staged
@@ -6146,13 +6423,7 @@ fn chapter_three_s_restage_is_widened_whole() {
     assert_eq!(
         rows_on(WIDENING_CHAPTER_THREE_RESTAGE.0 + 1, WORD + 1),
         vec![
-            "781 0/6 g.ox[0]: ours 8 theirs -1",
-            "781 0/6 g.whom[0]: ours 1 theirs -1",
-            "781 0/6 order:length: Length { ours: 1, theirs: 2 }",
             "780 0/6 order:target: Target { ours: Some((1, 8)), theirs: Some((1, 11)) }",
-            "781 0/6 order:unspellable: Unspellable { theirs: 23 }",
-            "781 0/6 orders.len: ours 1 theirs 2",
-            "781 0/6 recharging: ours 82 theirs 83",
             "736 0/7 ammo[0].ox: ours -1 theirs 8",
             "736 0/7 ammo[0].whom: ours -1 theirs 1",
             "771 1/6 extra: this crate holds it alone",
@@ -6174,7 +6445,13 @@ fn chapter_three_s_restage_is_widened_whole() {
         })
         .collect();
     // The blocks kept whole are the move's, 780–781, and the word's,
-    // 782–783: the siege arm's rows on each, and 617's numbering.
+    // 782–783. **Item 621**: the siege arm is carried, so every `0/6` row
+    // the ground order made on 781–783 — the order list's length, the
+    // unspellable kind, the figure's `ox`/`whom`, the reload's 83 — is
+    // gone. What stands is 617's numbering on the attack beneath the
+    // ground order, the same hoplite by position, and on the word's own
+    // block nothing else: the draw is the crew's walk, which `GUYS=2`
+    // prints no clock for (`docs/COMBAT.md` §57.6).
     assert_eq!(
         whole,
         vec![
@@ -6185,36 +6462,21 @@ fn chapter_three_s_restage_is_widened_whole() {
             "780 1/9 unlinked: the dump holds it alone",
             "780 1/10 unlinked: the dump holds it alone",
             "780 1/11 unlinked: the dump holds it alone",
-            "781 0/6 g.ox[0]: ours 8 theirs -1",
-            "781 0/6 g.whom[0]: ours 1 theirs -1",
-            "781 0/6 order:length: Length { ours: 1, theirs: 2 }",
-            "781 0/6 order:unspellable: Unspellable { theirs: 23 }",
-            "781 0/6 orders.len: ours 1 theirs 2",
-            "781 0/6 recharging: ours 82 theirs 83",
+            "781 0/6 order:target: Target { ours: Some((1, 8)), theirs: Some((1, 11)) }",
             "781 1/6 extra: this crate holds it alone",
             "781 1/7 extra: this crate holds it alone",
             "781 1/8 extra: this crate holds it alone",
             "781 1/9 unlinked: the dump holds it alone",
             "781 1/10 unlinked: the dump holds it alone",
             "781 1/11 unlinked: the dump holds it alone",
-            "782 0/6 g.ox[0]: ours 8 theirs -1",
-            "782 0/6 g.whom[0]: ours 1 theirs -1",
-            "782 0/6 order:length: Length { ours: 1, theirs: 2 }",
-            "782 0/6 order:unspellable: Unspellable { theirs: 23 }",
-            "782 0/6 orders.len: ours 1 theirs 2",
-            "782 0/6 recharging: ours 81 theirs 82",
+            "782 0/6 order:target: Target { ours: Some((1, 8)), theirs: Some((1, 11)) }",
             "782 1/6 extra: this crate holds it alone",
             "782 1/7 extra: this crate holds it alone",
             "782 1/8 extra: this crate holds it alone",
             "782 1/9 unlinked: the dump holds it alone",
             "782 1/10 unlinked: the dump holds it alone",
             "782 1/11 unlinked: the dump holds it alone",
-            "783 0/6 g.ox[0]: ours 8 theirs -1",
-            "783 0/6 g.whom[0]: ours 1 theirs -1",
-            "783 0/6 order:length: Length { ours: 1, theirs: 2 }",
-            "783 0/6 order:unspellable: Unspellable { theirs: 23 }",
-            "783 0/6 orders.len: ours 1 theirs 2",
-            "783 0/6 recharging: ours 80 theirs 81",
+            "783 0/6 order:target: Target { ours: Some((1, 8)), theirs: Some((1, 11)) }",
             "783 1/6 extra: this crate holds it alone",
             "783 1/7 extra: this crate holds it alone",
             "783 1/8 extra: this crate holds it alone",

@@ -943,7 +943,8 @@ range (`ObjectData::is_in_range`, §13). Then, in this order:
    unit: it inserts an `ATTACK_GROUND` order at the target's current position**
    (`accuracy` flag set when the target is at sea) and returns — siege fire
    at units is ground fire, with no target to home on, and what it hits is
-   what stands where it lands (§9.3, §9.4).
+   what stands where it lands (§9.3, §9.4). Built, and the point is the
+   target's own position (§57).
 2. `unit_masks |= 0x11000` (in combat, attacking). `set_attack(o, who)`:
    ~~every figure's~~ the `guy_mark` figures' `attack_o`/`attack_who` are
    set and, for a ranged type with pivot restrictions, `Guy::set_all_pivots`
@@ -9604,8 +9605,13 @@ runs, and `recharging = UnitData::recharge() + 1` (vslot `+0x134`) is the
 83. The
 attack order underneath is what re-pushes the next one at the target's
 new point. Where the round lands and whom it hurts is §9.3 and §9.4's.
-None of this is built. It is the next item's reading, and the harness
-needs an `ATTACKGROUNDORDER` reader before any row on it can be trusted.
+~~None of this is built. It is the next item's reading, and the harness
+needs an `ATTACKGROUNDORDER` reader before any row on it can be trusted.~~
+Built by item 621, with the reader (§57). Two corrections to the
+paragraph above: the point is the target's own position, not its cell
+(§57.1), and the order is pushed and fired on one frame with the attack
+beneath untouched, which re-pushes nothing until the ground order ends
+(§57.3).
 
 ### 56.4 What is not established
 
@@ -9626,5 +9632,208 @@ needs an `ATTACKGROUNDORDER` reader before any row on it can be trusted.
   the turn on 781.
 - **Listing-backed**: the argument 0 (`670b82`), the order of the four
   calls, and the tail's `set_new_location` being to the unit's own point.
-- **Reading only**: the siege arm and `do_attack_ground` of §56.3, which
-  nothing here implements.
+- **Reading only**: ~~the siege arm and `do_attack_ground` of §56.3, which
+  nothing here implements~~ — diff-backed since item 621 (§57.8).
+
+## 57. Siege fire at a unit is ground fire: `ATTACK_GROUND`, built (item 621, 2026-09-23)
+
+Golden chapter three's restage (run146, `docs/GOLDEN.md` §7) stood at
+**782** after §56. Values parted on 781 on the catapult `0/6` alone: the
+original held an `ATTACKGROUNDORDER` over its attack, and this crate
+carried neither the order nor a reader for it. The item named no
+mechanism beyond which order appears.
+`docs/journal/2026-09-23-item-621.md` has the kill conditions, written
+before the build.
+
+### 57.1 The reader, and the disk
+
+`OrderDump` reads the record whole (`att_x att_y accuracy attack_unit`,
+`AttackGroundOrder +0x4..+0x10`, `docs/ORDERS.md` §1.2). The coverage pin
+now walks run146's 780–784, and with the reader off it names exactly
+those four keys. Across every kept dump and every golden capture, the
+order appears in **run146** (83 records) and **run44** (94), and nowhere
+else. Neither long capture has one.
+
+run146's `0/6`, the dump's side (`the_ground_order_s_life_is_the_dump_s`):
+
+| block | orders, front first | `recharging` |
+|---|---|---|
+| 780 | `ATTACK` on the hoplite, `in_range 0`, `new_ord 1` | 0 |
+| 781 | `ATTACK_GROUND (2472, 8136)`, `accuracy 0`, `attack_unit 1`, `flags −128`; under it the `ATTACK`, `in_range 1`, `new_ord 1` | 83 |
+| 782–863 | the same two | 82 … 1 |
+| 864 | none | 0 |
+
+No other unit of the capture ever holds one. The order is **pushed and
+fired on one block**. The fired bit (`0x80`) prints as a signed byte.
+The attack beneath keeps `new_ord 1` for all 83 blocks.
+
+run44 has three engines with it, the human's `0/15` and the AI's `1/6`
+and `1/7`. On every push block the order's point is **the position of the
+target the attack beneath names, on that block**. `1/6`'s (39421, 40762)
+is `0/14`'s own position on 247 and is off every cell centre, which kills
+`docs/ORDERS.md` §7.2's "at the target's cell". `0/15` pushes at `rech
+83`. On 407 it is killed on its ready block and its attack runs on in the
+same block. On 408 a direct strike at a building reads `rech 82`, so the
+extra frame belongs to the ground order.
+
+### 57.2 `Unit::fight@005fd4d0`'s siege arm
+
+It sits in the attack's in-range branch (`fight:496`–`572`), after
+`in_range` and `ever_in_range` are written (`:491`–`493`) and before the
+strike, on the ordinary path (`iVar13` is `param_5`, the cavalry archer's
+melee call, and zero). For a type that packs (`+0x2b8 & 4`) and is not
+the Dutch merchant:
+
+- **packed**: the original unpacks (`add_cast_order(0x28c, QUEUE_FIRST)`),
+  or an AI-driven entrenched engine out-ranged by its target moves to a
+  better spot. This crate does not carry that arm (§57.7).
+- **unpacked**, the target `is_unit` (its vslot `+0x18`) and the type
+  `is_siege` (vslot `+0x10c`, VISION §9.2): `set_attacking(who)`, then a
+  new `AttackGroundOrder` holding the target's `x_internal`/`y_internal`,
+  `accuracy = (target domain == 1)` and `attack_unit = 2`. Its flags have
+  `0x80` and `0x4` cleared, it is added at the head, the head pointer is
+  rotated onto it, then `clear_partial_path`, `update_action`, and
+  `Unit::work` (vslot `+0x188`, the vtable export), and `return 0`.
+
+Returning there skips the strike's tail, whose `+0x20 = 0` (`fight:847`)
+is what clears `new_ord`. `Sim::siege_ground_arm` is the arm, called from
+`do_attack`'s in-range branch ahead of the strike. It pushes through
+`enqueue(QueuePos::First)` and re-enters `Sim::work`, as the chase tail
+already does.
+
+### 57.3 `Unit::do_attack_ground@005f1410`
+
+`Sim::do_attack_ground`, dispatched from `work` on the new body
+`Body::AttackGround`:
+
+1. `UnitTypeData::can_attack_ground@0061db20`, from the listing
+   (`61db20`–`61dc13`), else kill. It is the rush-rules age gate, a
+   `max_range` (`+0x1fc`), not `unit_flags & 0x102000`, and then EXPLOSIVE,
+   SIEGE, NAVAL or BOMBARD in `obj_masks` (`+0x1e4`), or the machine-gun
+   lineage. With `attack_unit == 0` (a player's click) a point at peace is
+   killed and an out-of-range point walked to. No command here makes one.
+2. The facing: `find_angle` to the point, with a quarter turn off for
+   `unit_flags & 0x40`, whichever is nearer the heading.
+3. **Reloading** (`+0xae`): a fired order (the flag byte negative) returns
+   and holds the unit still. Otherwise a figure off slots 0–3 rolls the
+   idle.
+4. **`attack_unit`**: 1 is the ready frame. It kills the order and calls
+   `Unit::work` again (vslot `+0x188`, not `do_idle` as ORDERS §7.3 had
+   it), so the attack beneath runs on this frame. 2 becomes 1.
+5. `set_attack(−1, −1)` (`005fce70`): the aimed figures' `ox/whom` go to
+   −1, and with no target no pivot is asked. A packed packer casts the
+   unpack instead.
+6. `unit_masks |= 0x11000`, then `set_angle` when the facing is new,
+   `flags |= 0x80`, and the swing: `fight`'s own choice, `ATTACK1` with
+   the third argument, or the rocking pair for `unit_flags & 0x2000000`.
+   Then `Object::fire_ammo(−1, −1)` if the type has a projectile
+   (`+0x2cc`), and **`recharging = recharge() + 1`**.
+
+**On 864** the ready frame's re-entered `work` runs the attack, and
+`fight` kills it. The hoplites have walked inside the three-tile minimum
+(`1/11` stands about 410 units off), and an unpacked packer whose attack
+was ever in range dies out of range (`fight:496`, `LAB_005fe0e5`). This
+crate did not carry that kill either. It is in `do_attack` now, ahead of
+the stance and the chase, and it is why both orders are gone on 864 on
+both sides.
+
+### 57.4 The round: the order's point, not the target's
+
+The shot is the release event's (§9.0), 17 blocks after the swing: 798
+in the dump. `Guy::execute_events@005d99c0`'s `0x17`/`0x18` arm gives the
+event package `ox = whom = −1`, and `GraphicEvents::execute_game_events
+@008e48e0`'s gate passes it on `order_type() == ATTACK_GROUND`.
+`Ammo::init@0067bbf0` then reads the shooter's current order as an
+attack-ground order (`local_38`, vslot `+0xd0` on `get_order`, `init:262`)
+and, when it is one:
+
+- the accuracy is taken against the plain distance to the point (the
+  `vector_dist` pair is the register trap, read as the launch-to-point
+  delta §9.1 already used);
+- the scatter is the land-unit formula, or none when the order's
+  `accuracy` is set (`init:365`);
+- the landing is `att_x/att_y` plus the scatter's two draws (`init:461`–
+  `484`), and `ez` is `find_data_z` at the point, clamped at 0 (`:486`).
+
+This crate decided ground fire by the type (a siege packer at a unit) and
+aimed at the target's position on the release frame, 17 blocks after the
+original fixed its point. Now `Sim::fire_ammo_aim` takes an `Aim`, and
+`Aim::Ground` carries the order. `guy_release_events` fires it when the
+head is `ATTACK_GROUND`, and `do_attack_ground` fires it directly for a
+unit whose animation launches nothing. `ez` for a ground shot is
+`ground_z(point)`, not the target tile's `tile_z`.
+
+### 57.5 What moved
+
+| | before | after |
+|---|---|---|
+| the restage, run146: word / sequence / values | 782 / 782 / 783 | 782 / 782 / 783 |
+| run146 widening rows on `0/6`, 781–783 | 18 | 3: 617's numbering on the attack beneath |
+| first value parting, run146 | 736 | 736 |
+| chapter three (run145) | 900, closed | 900, closed |
+
+**The value diff** (`chapter_three_s_catapult_fires_on_the_ground`): on
+every block from 779 to 864, `0/6`'s order list (kind, point, `accuracy`,
+`attack_unit`, signed flags, or `in_range`/`new_ord` for the attack) and
+its reload read the dump's. The round is on 798 on both sides, with no
+object, `ez 188`, accuracy 5 and flight 33. It was made to fail with the
+arm off: one order, `new_ord 0`, reload 82. The harness compares the
+order's row (`order:ground.*`) and reads `flags` signed. The unit test
+`an_unpacked_siege_engine_fires_on_the_ground_under_its_target` was made
+to fail the same way.
+
+### 57.6 The word did not move: the crew walks where the original's mirrors
+
+782 is not the ground order. `RON_GOLDEN_SITES` attributes this crate's
+two extra `Guy::set_anim+0x97a < Guy::inc_time+0x271` to `0/6` itself,
+its two crew figures, and the `set_anim+0x104b` both sides spend to a
+bird (`9/4`). On the push block the catapult's figure 0 takes
+`TURN_LEFT` (21) on both sides and owes its swing (§6.2's deferral). This
+crate's crew take `WALK` (8), whose three frames wrap on 782 and roll
+the idle.
+
+run44's `0/15` is the same type (265) with the figure clock printed. On
+its push (324) all three figures read `cur_anim 21`, `cur_time 1`, and
+the crew keep `end_time 79`, which is the mirror's copy of anim and time
+and not a `set_anim`. Every block from 324 to 330 the crew stand **on
+their destinations** (`x == des_x`) while those move round the turning
+catapult. So the original's crew are never walking during a turn in
+place, and are mirrored. This crate's move toward the rotated slot by
+`follower_step` and start the walk. `Guy::move@005d9240`'s tracked arm
+and `Guy::inc_time@005d9e10`'s mirror are the reading this needs, and it
+is its own item.
+
+Three residues past the word. The first two are pinned in the value test:
+
+- **The launch**: this crate's round leaves the unit's square, at `sz
+  251`. The dump's leaves the release node, (855, 7990, 496).
+  `sim::launch` has no node for the catapult's piece (§22's seam).
+- **The landing**: the point plus a scatter drawn on 798, after the
+  stream has parted, so ours is (2655, 8142) against (2413, 8276).
+- **865**: this crate's catapult takes a fresh attack after the reload,
+  and a chase on 866. The dump's holds nothing until 868.
+
+### 57.7 What is not established
+
+- **The packed arm of `fight`'s in-range branch** (the unpack, and the
+  entrenched engine's better spot). No capture on this disk reaches it
+  with a human's engine. run44's AI engines do (`CASTORDER` over an
+  attack on 245), and that is not a golden window.
+- **A player's ground order** (`attack_unit 0`): the peace test and the
+  walk into range. No command here issues one.
+- **`unit_masks |= 0x11000`** is not kept by this crate, which is the
+  same as its strike.
+- **The rush-rules gate** in `can_attack_ground`.
+
+### 57.8 Coverage
+
+- **Diff-backed**: the arm's push (kind, point, `accuracy`,
+  `attack_unit`, fired bit, the attack's `new_ord`) and the same-frame
+  shot, the 83-block hold, the double kill on 864, and the ground
+  round's frame, object, `ez`, accuracy and flight (run146, above). The
+  point's source, the target's position rather than its cell, is backed
+  by run44's three engines, read from the dump.
+- **Listing-backed**: `can_attack_ground`'s terms (`61db20`–`61dc13`).
+- **Reading only**: the vtable name of `+0x188` (`Unit::work`, from the
+  export's `Unit::vftable`), the release gate's `0x17`/`0x18` arm, the
+  packed arm, and the player's-order arms.

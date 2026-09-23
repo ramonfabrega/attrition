@@ -1631,6 +1631,18 @@ pub struct OrderDump {
     /// −1 and do not model.
     pub cast_spell: Option<i64>,
     pub cast_paid: Option<i64>,
+    /// `ATTACKGROUNDORDER`'s own row past the `UNITORDER` base,
+    /// `AttackGroundOrder` `+0x4 att_x, +0x8 att_y, +0xc accuracy, +0x10
+    /// attack_unit` (`docs/ORDERS.md` §1.2, §7.3): the point fired at, the
+    /// "target is at sea" flag, and the shot count a siege insert carries
+    /// (2 on the push, 1 once fired). Printed on every frame of run44's
+    /// and run146's siege fire and read by nothing until item 621, when
+    /// the restage's catapult put one on the word's frame. Named with an
+    /// `ag_` prefix: `accuracy` is also a type field.
+    pub ag_att_x: Option<i64>,
+    pub ag_att_y: Option<i64>,
+    pub ag_accuracy: Option<i64>,
+    pub ag_attack_unit: Option<i64>,
 }
 
 impl OrderDump {
@@ -2762,6 +2774,8 @@ fn orders_of(b: Block<'_>) -> Vec<OrderDump> {
             let grd_int = |k: &str| grd.and_then(|g| g.int(k));
             let cst = base("CASTORDER");
             let cst_int = |k: &str| cst.and_then(|c| c.int(k));
+            let agr = base("ATTACKGROUNDORDER");
+            let agr_int = |k: &str| agr.and_then(|a| a.int(k));
             let mv_int = |k: &str| mv.and_then(|m| m.int(k));
             let atk_int = |k: &str| atk.and_then(|a| a.int(k));
             let grp_int = |k: &str| grp.and_then(|g| g.int(k));
@@ -2831,6 +2845,10 @@ fn orders_of(b: Block<'_>) -> Vec<OrderDump> {
                 guard_retry: grd_int("retry"),
                 cast_spell: cst_int("spell"),
                 cast_paid: cst_int("paid"),
+                ag_att_x: agr_int("att_x"),
+                ag_att_y: agr_int("att_y"),
+                ag_accuracy: agr_int("accuracy"),
+                ag_attack_unit: agr_int("attack_unit"),
             }
         })
         .collect()
@@ -4806,6 +4824,78 @@ BEGIN GAME
         assert_eq!(u.path[0].to, (35592, 33480));
         assert_eq!(u.path[0].flags, 1, "the goal");
         assert_eq!(u.path[1].flags, 8);
+    }
+
+    /// `ATTACKGROUNDORDER`, whole (item 621) — run146's block 781, the
+    /// restage's catapult `0/6`, trimmed to its orders. The siege arm's
+    /// insert sits over the attack it came from, so it is the **last**
+    /// block and the current order, and its `flags` is the `0x80` fired
+    /// bit printed as a signed byte.
+    #[test]
+    fn an_attack_ground_order_is_read_whole() {
+        let text = "\
+BEGIN GAME
+ BEGIN FRAME 781
+  BEGIN UNITDATA
+   BEGIN OBJECT
+    BEGIN SUBOBJECT
+     flags 1
+     o 6
+     who 0
+     x_internal 888
+     y_internal 7992
+     z_internal 253
+    damage 0
+    uid 13
+    myhits 80
+   recharging 83
+   idle 0
+   BEGIN STACK<TYPE>
+   length 2
+   type 10
+   metric 0
+   BEGIN ATTACKORDER
+    BEGIN TARGETORDER
+     BEGIN UNITORDER
+      flags 0
+     ox 11
+     whom 1
+     uid 17
+    mandatory 0
+    defensive 0
+    in_range 1
+    ever_in_range 1
+    new_ord 1
+    def_x -1
+    def_y -1
+   type 23
+   metric 0
+   BEGIN ATTACKGROUNDORDER
+    BEGIN UNITORDER
+     flags -128
+    att_x 2472
+    att_y 8136
+    accuracy 0
+    attack_unit 1
+";
+        let log = Log::parse_eager(text);
+        let frames = log.frame_states();
+        let u = &frames[0].units[0];
+        assert_eq!(u.orders.len(), 2);
+        let ag = u.current_order().unwrap();
+        assert_eq!(ag.kind, "ATTACKGROUNDORDER");
+        assert_eq!((ag.index, ag.named_index()), (23, Some(23)));
+        assert_eq!(ag.flags, -128, "the fired bit, 0x80, as a signed byte");
+        assert!(!ag.is_action());
+        assert_eq!((ag.ag_att_x, ag.ag_att_y), (Some(2472), Some(8136)));
+        assert_eq!(ag.ag_accuracy, Some(0));
+        assert_eq!(ag.ag_attack_unit, Some(1));
+        // No target base: the order holds a point, not an object.
+        assert_eq!((ag.ox, ag.whom, ag.uid), (None, None, None));
+        // And nothing of it leaks onto the attack beneath.
+        let atk = &u.orders[0];
+        assert_eq!((atk.ag_att_x, atk.ag_attack_unit), (None, None));
+        assert_eq!(atk.in_range, Some(1));
     }
 
     /// `GroupMoveOrder`, the order a **human's** group move gives each

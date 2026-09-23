@@ -1533,18 +1533,28 @@ impl Sim {
         if self.art.releases.is_empty() {
             return;
         }
-        let Some(target) = self.units[u].combat.target else {
-            return;
+        // **The target is the current order's** (§9.0's gate): an attack's
+        // object, or — the gate's second arm — no object at all under an
+        // `ATTACK_GROUND` order, whose point `Ammo::init` reads off the
+        // order itself (`Guy::execute_events@005d99c0`'s `0x17` arm sets
+        // `ox = whom = −1`; `docs/COMBAT.md` §57.4).
+        let ground = match self.current_order(u).map(|o| o.body) {
+            Some(crate::orders::Body::AttackGround(g)) => Some(g),
+            Some(crate::orders::Body::Attack(_)) => None,
+            _ => return,
         };
-        if !self.active(target) {
-            return;
-        }
-        if !matches!(
-            self.current_order(u).map(|o| &o.body),
-            Some(crate::orders::Body::Attack(_))
-        ) {
-            return;
-        }
+        let target = match ground {
+            Some(_) => None,
+            None => {
+                let Some(target) = self.units[u].combat.target else {
+                    return;
+                };
+                if !self.active(target) {
+                    return;
+                }
+                Some(target)
+            }
+        };
         let frame = self.frame;
         for g in 0..self.units[u].guys.len() {
             let guy = self.units[u].guys[g];
@@ -1626,9 +1636,18 @@ impl Sim {
                         self.ground_z(self.units[u].pos)
                     };
                     let sz = z + dz;
-                    let to = self.pos_of(target);
+                    let to = match (target, ground) {
+                        (Some(t), _) => self.pos_of(t),
+                        (None, Some(g)) => g.at,
+                        (None, None) => unreachable!(),
+                    };
                     let angle = crate::movement::find_angle(to.x - from.x, to.y - from.y);
-                    self.fire_ammo_pub(crate::combat::Obj::Unit(u), target, angle, frame, from, sz);
+                    let me = crate::combat::Obj::Unit(u);
+                    match (target, ground) {
+                        (Some(t), _) => self.fire_ammo_pub(me, t, angle, frame, from, sz),
+                        (None, Some(g)) => self.fire_ammo_ground(me, g, angle, frame, from, sz),
+                        (None, None) => unreachable!(),
+                    }
                 }
             }
         }

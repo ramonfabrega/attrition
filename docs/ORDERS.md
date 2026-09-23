@@ -263,7 +263,9 @@ bit's meaning in the whole image: a group insert copies **only** the orders
 that carry it. `Unit::land_plane@005e9950:69` is a clearer. The blind reader
 arrived at "explicitly ordered" from `do_repair`'s under-attack abandon,
 which is the same claim from the other end. Bit `0x80`'s setter is
-`do_attack_ground@005f1410:204`; a **reader** for it is still missing.
+`do_attack_ground@005f1410:204`; ~~a **reader** for it is still missing~~
+its reader is the same function's recharging arm: a set bit holds the
+unit still through the reload (§26, item 621).
 
 ### 1.4 The list — `OrderList` at `UnitData+0xc8`
 
@@ -369,12 +371,13 @@ collision), and `UnitData::get_action@00608450`, whose walk is `is_move() &&
 !(flags & 4)`, **or** `get_type() == CHANGE_FORM` whatever the flags.
 
 **What the crate cannot spell.** `index::is_modelled` is the domain of
-`Order::index()`: `{0, 1, 2, 3, 4, 6, 7, 10, 12, 13, 14, 15, 19, 21, 26,
+`Order::index()`: `{0, 1, 2, 3, 4, 6, 7, 10, 12, 13, 14, 15, 19, 21, 23, 26,
 27}`. Everything else in §1.2's table is an order the simulation has no
 representation for, and the fifty captures the suite reads hold exactly two
 of them — ~~`GUARDORDER` (12; run17's 2,987 and run80's 280)~~, spelt
 since item 567 as `Body::Guard` (§24), and
-`ATTACKGROUNDORDER` (23; run44's 94). `FORMORDER` (18) is in none. It is
+~~`ATTACKGROUNDORDER` (23; run44's 94)~~, spelt since item 621 as
+`Body::AttackGround` (§26; run44's 94 and run146's 83). `FORMORDER` (18) is in none. It is
 the one that also matters *inside* a predicate, because it is in the move
 family: every `is_move_family` test here is six-sevenths of the original's.
 `crate::diff`'s comparison answers an unmodelled kind with its own row
@@ -2738,8 +2741,9 @@ the call, `docs/COMBAT.md` §8.5).
   (UNPACK 0x28c, QUEUE_FIRST)`, return — unless an entrenched siege unit's
   target out-ranges it and `find_attack_pos` finds better, then
   `add_move_order(pos, QUEUE_NEW)`. In range, unpacked siege, a unit target:
-  `ATTACK_GROUND` inserted `QUEUE_FIRST` at the target's cell (`accuracy =
-  (domain == sea)`, `attack_unit = 2`), `do_idle`, return 0.
+  `ATTACK_GROUND` inserted `QUEUE_FIRST` at the target's ~~cell~~ own
+  position (`accuracy = (domain == sea)`, `attack_unit = 2`), ~~`do_idle`~~
+  `Unit::work` (vslot `+0x188`), return 0 (§26).
 - **Out of range, DEFENSIVE** (stance 1, not mandatory): a `defensive` order
   with a post, the unit at least `max(unit_defensive_respond_range,
   max_range()) × 0xc0` from it → `find_new_target(0, 0)`; if the head is still
@@ -2954,7 +2958,8 @@ range and `attack_unit == 0`: the spot at `dist − big_radius` clamped into
 `[min_range × 0xc0 + 0x90, max_range × 0xc0 − 0x30]` toward the cell, `find_
 nearby_spot`, in range from there → `add_move_facing_order(spot, angle,
 MOVE_TO, QUEUE_FIRST, 0)`; else kill. Recharging → idle animation. `attack_unit`
-2 → 1 and fire; 1 → kill and `do_idle` (the siege-at-unit insert fires once).
+2 → 1 and fire; 1 → kill and ~~`do_idle`~~ `Unit::work`, so the order
+beneath runs the same frame (the siege-at-unit insert fires once; §26).
 `set_attack(−1, −1)`; `unit_masks |= 0x11000`; flag `0x80`; `fire_ammo(−1, −1)`
 if `fire_proj` (`docs/COMBAT.md` §9).
 
@@ -3941,7 +3946,7 @@ what is listed as an input is stated as such in the code):
 - **Not implemented** (documented above, stated here):
   ~~`ATTACK_TO` as an order kind of its own~~, ~~`GUARD`~~ (§24, item
   567), `FOLLOW`,
-  `PATROL`, `ATTACK_GROUND`, ~~`GroupMoveOrder` (§8.3, §8.4)~~,
+  `PATROL`, ~~`ATTACK_GROUND`~~ (§26, item 621), ~~`GroupMoveOrder` (§8.3, §8.4)~~,
   board/await-board, ~~cast~~, ~~trade~~, strafe, air, special-anim,
   `CHANGE_FORM`/`FormOrder`
   — the strikes are the docs-versus-code pass's **R7** (2026-09-05),
@@ -6274,3 +6279,31 @@ Unit:
 Read from the listing: the `find_city` argument, `6c5a83`. Read from the
 decompile only, and owed a blind second reading: `mask_me`'s dock arm,
 `remask_docks`, and the footprint walk's order.
+
+## 26. `ATTACK_GROUND`, built (item 621, 2026-09-23)
+
+`Body::AttackGround` is the original's `AttackGroundOrder` (`OrderIndex`
+23, a `UnitOrder` with no target base): `+0x4 att_x`, `+0x8 att_y`, `+0xc
+accuracy` (the point is at sea, so the round takes no scatter), and `+0x10
+attack_unit`. The dump prints all four, and the harness compares them as
+`order:ground.*` (`rondata::diff::order`). `flags` is read **signed**,
+because `UnitOrder::log_data` prints the byte that way and the fired bit
+reads `-128`.
+
+**Who issues it here.** Only `Unit::fight`'s siege arm, for an unpacked
+siege packer in range of a unit. It is pushed `QUEUE_FIRST` with the fired
+and action bits clear, at the target's own position, with `attack_unit 2`,
+and `Unit::work` runs it on the same frame. A player's ground click
+(`CommandPackage::process_attack_ground@009494a0`, `attack_unit 0`) and
+the air variant (24) are not carried.
+
+**Its life** is `do_attack_ground`'s (§7.3, corrected there). It fires on
+its first frame, so `attack_unit` becomes 1, and sets `flags |= 0x80` and
+`recharging = recharge() + 1`. It holds while the reload runs. On the
+ready frame it dies and re-enters `Unit::work`, so the attack beneath runs
+in that frame. That attack either pushes the next ground order or, for a
+target that has walked inside the minimum range, dies to `fight`'s
+packer rule. That rule is new here as well (`docs/COMBAT.md` §57.3).
+
+The reading, the diff and the coverage are `docs/COMBAT.md` §57.
+

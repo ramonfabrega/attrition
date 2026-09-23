@@ -158,6 +158,14 @@ pub const ATTACK_POS_CAP_RANGED: usize = 15;
 pub const ATTACK_POS_CAP_NEAR: usize = 4;
 
 /// A unit that is not a combatant for the search: no type, no attack.
+/// What a round is fired at: an object, or the point of the shooter's
+/// `ATTACK_GROUND` order (`docs/COMBAT.md` §57.4).
+#[derive(Clone, Copy, Debug)]
+pub(crate) enum Aim {
+    At(Obj),
+    Ground(crate::orders::AttackGroundOrder),
+}
+
 fn no_profile() -> Profile {
     Profile::default()
 }
@@ -743,6 +751,14 @@ impl Sim {
             self.fire_ammo(me, target, direct, frame, from, sz);
         }
         // Reload.
+        self.units[i].combat.recharging = self.reload_frames(i);
+    }
+
+    /// **`UnitData::recharge()`** (vslot `+0x134`, §8.3), as the byte
+    /// `recharging` holds it: a siege type out of supply and off its own
+    /// ground reloads slower.
+    pub(crate) fn reload_frames(&self, i: usize) -> u8 {
+        let p = self.profile(Obj::Unit(i));
         let unit = &self.units[i];
         let out = if p.siege {
             let owner = unit.owner;
@@ -752,8 +768,64 @@ impl Sim {
         } else {
             false
         };
-        let r = combat::recharge(p.recharge, out, p.is(role::BOMBARD));
-        self.units[i].combat.recharging = r as u8;
+        combat::recharge(p.recharge, out, p.is(role::BOMBARD)) as u8
+    }
+
+    /// **`Unit::set_attack(−1, −1)`** (`005fce70`): the aimed figures,
+    /// `0 .. guy_mark`, forget their target, and with no target the pivot
+    /// test is not reached. `do_attack_ground`'s shot has no object to aim
+    /// at, which is why run146's catapult prints `ox −1` from 781.
+    pub(crate) fn clear_attack(&mut self, i: usize) {
+        let n = self.units[i].guys.len().min(anim::SQUAD_SIZE);
+        for g in &mut self.units[i].guys[..n] {
+            g.aim = None;
+        }
+    }
+
+    /// `do_attack_ground`'s facing: the bearing, or for a broadside type
+    /// (`unit_flags & 0x40`, [`uflags::SIDEWAYS`]) whichever quarter turn
+    /// off it is nearer the heading. Unlike `fight`'s
+    /// ([`Sim::attack_angle`]) there is no patrol-boat exception: the
+    /// point has no domain to ask.
+    pub(crate) fn broadside_angle(&self, i: usize, direct: Angle) -> Angle {
+        let sideways = self.units[i]
+            .ty
+            .is_some_and(|t| self.unit_types[t].cols.flag(uflags::SIDEWAYS));
+        if !sideways {
+            return direct;
+        }
+        const QUARTER: i32 = 0x4000_0000;
+        let heading = self.units[i].movement.heading.0;
+        let off = |a: i32| {
+            let d = heading.wrapping_sub(a) as u32;
+            if d > 0x8000_0000 { !d } else { d }
+        };
+        let minus = direct.0.wrapping_sub(QUARTER);
+        let plus = direct.0.wrapping_add(QUARTER);
+        Angle(if off(minus) < off(plus) { minus } else { plus })
+    }
+
+    pub(crate) fn swing_anim_pub(&mut self, i: usize, angle: Angle) {
+        self.swing_anim(i, angle);
+    }
+
+    /// `do_attack_ground`'s `Object::fire_ammo(−1, −1)`: deferred to the
+    /// release event for a unit its animation launches (§9.0), whose arm
+    /// reads the order's point ([`Sim::guy_release_events`]); from the
+    /// unit's own square otherwise, as `fight`'s strike does.
+    pub(crate) fn fire_ground(
+        &mut self,
+        i: usize,
+        g: crate::orders::AttackGroundOrder,
+        direct: Angle,
+        frame: i64,
+    ) {
+        if self.max_range_of(Obj::Unit(i)) == 0 || self.launches_from_anim(i) {
+            return;
+        }
+        let from = self.units[i].pos;
+        let sz = self.ground_z(from) + 100;
+        self.fire_ammo_ground(Obj::Unit(i), g, direct, frame, from, sz);
     }
 
     /// **`Unit::set_attack@005fce70`** — aim the unit's own figures at
@@ -1098,35 +1170,79 @@ impl Sim {
         launch: Pos,
         sz: i32,
     ) {
+        self.fire_ammo_aim(shooter, Aim::At(target), angle, frame, launch, sz);
+    }
+
+    /// A round at the shooter's **attack-ground order's point**
+    /// (`docs/COMBAT.md` §57.4) — the release event's arm for a unit
+    /// whose current order is `ATTACK_GROUND`, and `do_attack_ground`'s
+    /// own shot for a unit no animation launches.
+    pub(crate) fn fire_ammo_ground(
+        &mut self,
+        shooter: Obj,
+        g: crate::orders::AttackGroundOrder,
+        angle: Angle,
+        frame: i64,
+        launch: Pos,
+        sz: i32,
+    ) {
+        self.fire_ammo_aim(shooter, Aim::Ground(g), angle, frame, launch, sz);
+    }
+
+    /// `Ammo::init@0067bbf0`, for either aim.
+    ///
+    /// **Ground fire is the shooter's order, not its type.**
+    /// `Ammo::init`'s `local_38` is the shooter's current order read as an
+    /// `AttackGroundOrder` (`get_order`, vslot `+0xd0`), null for any
+    /// other: the target half is then `−1`, the accuracy is against the
+    /// plain distance to the order's `att_x/att_y`, the scatter is the
+    /// land-unit formula unless the order's `accuracy` says the point is
+    /// at sea (then none), the landing is the **order's point** plus the
+    /// scatter, and `ez` is `find_data_z` at the point, clamped at zero
+    /// (`init:458`–`492`). This crate read ground fire off the type — a
+    /// siege packer at a unit — and aimed it at the unit's position on the
+    /// release frame, seventeen frames after the original fixed its point
+    /// (run146's catapult, §57.4).
+    fn fire_ammo_aim(
+        &mut self,
+        shooter: Obj,
+        aim: Aim,
+        angle: Angle,
+        frame: i64,
+        launch: Pos,
+        sz: i32,
+    ) {
         let p = self.profile(shooter);
-        let tp = self.profile(target);
-        let target_pos = self.pos_of(target);
-        let ground_fire = p.siege && p.packs && matches!(target, Obj::Unit(_));
+        let (target, ground) = match aim {
+            Aim::At(t) => (Some(t), None),
+            Aim::Ground(g) => (None, Some(g)),
+        };
+        let tp = target.map_or_else(no_profile, |t| self.profile(t));
+        let target_pos = match (target, ground) {
+            (Some(t), _) => self.pos_of(t),
+            (None, Some(g)) => g.at,
+            (None, None) => unreachable!(),
+        };
         // Accuracy and scatter. A ground shot's accuracy is against the plain
         // distance to the point, and its scatter the land-unit formula unless
         // the point is at sea (`accuracy` flag set by `fight`), which is exact.
-        let acc = if ground_fire {
-            combat::accuracy(
+        let acc = match target {
+            None => combat::accuracy(
                 p.to_hit,
                 p.attenuate,
                 vector_dist(target_pos.x - launch.x, target_pos.y - launch.y),
-            )
-        } else {
-            combat::accuracy(p.to_hit, p.attenuate, self.attack_dist(shooter, target))
+            ),
+            Some(t) => combat::accuracy(p.to_hit, p.attenuate, self.attack_dist(shooter, t)),
         };
-        let land_unit = matches!(target, Obj::Unit(_)) && matches!(tp.domain, Domain::Land);
-        let s = if ground_fire {
-            if matches!(tp.domain, Domain::Sea) {
-                0
-            } else {
-                combat::scatter(&self.tuning, acc, true, false, false)
-            }
-        } else {
-            combat::scatter(&self.tuning, acc, land_unit, p.has(mask::MISSILE), false)
+        let land_unit = matches!(target, Some(Obj::Unit(_))) && matches!(tp.domain, Domain::Land);
+        let s = match ground {
+            Some(g) if g.sea => 0,
+            Some(_) => combat::scatter(&self.tuning, acc, true, false, false),
+            None => combat::scatter(&self.tuning, acc, land_unit, p.has(mask::MISSILE), false),
         };
         // A building target shot by a non-siege unit: aim at the near face.
         let mut aim = target_pos;
-        if matches!(target, Obj::Building(_)) && !p.siege && s != 0 {
+        if matches!(target, Some(Obj::Building(_))) && !p.siege && s != 0 {
             let back = Angle(angle.0.wrapping_add(Angle::SOUTH.0));
             aim = Pos::new(
                 aim.x + crate::movement::sin_component(back, tp.x_size * 0x30),
@@ -1167,8 +1283,7 @@ impl Sim {
         // ramping its average: run112's `1/7` on 766 walks 24 a frame at
         // `avg_speed` 9, and a lead of 24 put `0/9`'s shot 55 units past
         // where the original's lands.
-        if !ground_fire
-            && let Obj::Unit(t) = target
+        if let Some(Obj::Unit(t)) = target
             && self.units[t].movement.dest.is_some()
         {
             let u = &self.units[t];
@@ -1187,12 +1302,15 @@ impl Sim {
             );
         }
         let _ = frame;
-        let rolling = !ground_fire && land_unit;
-        let ez = self.aim_z(target, rolling);
+        let rolling = land_unit;
+        let ez = match target {
+            Some(t) => self.aim_z(t, rolling),
+            None => self.ground_z(target_pos).max(0),
+        };
         self.add_ammo(combat::Projectile {
             shooter,
             owner: self.owner_of(shooter),
-            target: if ground_fire { None } else { Some(target) },
+            target,
             launch,
             landing,
             cur_time: 0,
@@ -1202,14 +1320,14 @@ impl Sim {
             splash_area: p.splash_area,
             num_guys: 1,
             // `Ammo::init`'s flag `4` (§42.2): not a ground shot — the
-            // `ATTACK_GROUND`/`AIR_ATTACK_GROUND` test is `ground_fire`
-            // here — and the target a land-domain unit. The third term,
+            // `ATTACK_GROUND`/`AIR_ATTACK_GROUND` test is `target` being
+            // `None` here — and the target a land-domain unit. The third term,
             // "the piece is not lofted", is the ammo flag `8` this crate
             // loads no art for; a siege shot is a ground shot and so
             // never reaches the question.
             rolling,
             missed: false,
-            air: matches!(tp.domain, Domain::Air),
+            air: target.is_some() && matches!(tp.domain, Domain::Air),
             sz,
             ez,
             v1z: combat::arc_v1z(sz, ez, total_time),
@@ -3277,6 +3395,85 @@ mod tests {
             None,
             "a `PACKER_NEVER` engine cast or searched"
         );
+    }
+
+    /// **An unpacked siege engine shoots a unit by shooting the ground
+    /// under it** (`Unit::fight@005fd4d0`'s siege arm and
+    /// `Unit::do_attack_ground@005f1410`, `docs/COMBAT.md` §57). On the
+    /// frame the attack comes into range an `ATTACK_GROUND` goes on top of
+    /// it at the foe's own position and fires in the same frame
+    /// (`attack_unit` 1, the fired bit), the figure forgets its aim, the
+    /// attack beneath keeps `new_ord`, and the reload is one frame longer
+    /// than a strike's. On the ready frame the order dies and the attack
+    /// beneath, still in range, pushes the next.
+    ///
+    /// **Made to fail on purpose**: with the arm returning `false`, the
+    /// engine strikes the unit directly — one order, `new_ord` cleared,
+    /// the plain reload.
+    #[test]
+    fn an_unpacked_siege_engine_fires_on_the_ground_under_its_target() {
+        use crate::orders::{Body, flag, index};
+        let (mut sim, _) = at_war();
+        let ty = sim.add_unit_type(crate::UnitType {
+            hits: 100,
+            combat: Profile {
+                attack: 40,
+                max_range: 15,
+                recharge: 30,
+                uber_size: 1,
+                obj_masks: mask::SIEGE,
+                siege: true,
+                packs: true,
+                combat_role: true,
+                ..Profile::default()
+            },
+            ..crate::UnitType::default()
+        });
+        let foe_ty = sim.add_unit_type(crate::UnitType {
+            hits: 100,
+            combat: Profile {
+                attack: 15,
+                uber_size: 1,
+                ..Profile::default()
+            },
+            ..crate::UnitType::default()
+        });
+        let me = put(&mut sim, 0, ty, Pos::new(0x4000 + 24, 0x4000 + 24));
+        sim.units[me].combat.packed = false;
+        let at = Pos::new(0x4000 + 6 * 192 + 24, 0x4000 + 24);
+        let foe = put(&mut sim, 1, foe_ty, at);
+        sim.order_attack(me, Obj::Unit(foe));
+        sim.tick();
+        let u = &sim.units[me];
+        let kinds: Vec<u8> = u.orders.iter().map(|o| o.index()).collect();
+        assert_eq!(kinds, vec![index::ATTACK_GROUND, index::ATTACK]);
+        let head = u.orders[0];
+        let Body::AttackGround(g) = head.body else {
+            unreachable!()
+        };
+        assert_eq!((g.at, g.sea, g.attack_unit), (at, false, 1));
+        assert!(head.has(flag::FIRED) && !head.has(flag::ACTION));
+        let Body::Attack(a) = u.orders[1].body else {
+            unreachable!()
+        };
+        assert!(a.in_range && a.ever_in_range && a.new_ord);
+        let reload = sim.reload_frames(me);
+        assert_eq!(u.combat.recharging, reload + 1, "the ground shot's reload");
+        // Held through the reload, then gone on the ready frame, and the
+        // attack beneath pushes the next at once.
+        let mut pushes = 0;
+        for _ in 0..=reload {
+            sim.tick();
+            let head = sim.units[me].orders.front().copied();
+            if let Some(o) = head
+                && let Body::AttackGround(g) = o.body
+                && sim.units[me].combat.recharging == reload + 1
+            {
+                assert_eq!(g.attack_unit, 1);
+                pushes += 1;
+            }
+        }
+        assert_eq!(pushes, 1, "the ready frame re-entered work and fired again");
     }
 
     /// The flee arm's `else`: a **combat** unit still retaliates, which
