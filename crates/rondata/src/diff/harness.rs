@@ -2388,9 +2388,11 @@ mod tests {
         // 2. **The AI's second city, `1/2007`** — `land`, `filled` and the
         //    three `space` counts, one apart, from the frame its circle is
         //    first swept.
-        // 3. **A gatherer filed under the wrong city** from 2576, and a
-        //    free citizen from 4176 — the totals agree, the attribution
-        //    does not.
+        // 3. **A gatherer filed under the wrong city** from 2576 — the
+        //    totals agree, the attribution does not. Until item 592 a free
+        //    citizen parted beside it from 4176 for 200 frames: a citizen
+        //    riding a transport barge, which the original's census counts
+        //    through its container and never free (`docs/AI.md` §58).
         let city_want = vec![
             "0/2000 peasant_dist f1 x5201",
             "0/2000 busy f1 x5201",
@@ -2413,7 +2415,6 @@ mod tests {
             "1/2000 gatherers f2576 x800",
             "1/2007 peasant_dist f2576 x800",
             "1/2007 gatherers f2576 x800",
-            "1/2007 free f4176 x200",
         ];
         assert_eq!(
             city_said, city_want,
@@ -12062,9 +12063,91 @@ mod tests {
             let frame = ix.frame_state(at).unwrap();
             blocks += 1;
             debug_watch(&built, n);
+            // `RON_CITIZENS=<lo>-<hi>`: player 1's peasant census and every
+            // citizen's container and order list, both sides (item 592).
+            if site_window_named("RON_CITIZENS").is_some_and(|(a, b)| (a..=b).contains(&n)) {
+                let raw = ix.read_frame(at).unwrap();
+                let flog = Log::parse(&raw);
+                if let Some(block) = flog.leader_block(n, 1) {
+                    let t = crate::diff::leader::theirs(&block);
+                    let mine: BTreeMap<String, i64> = crate::diff::leader::rows(&loaded, &built, 1)
+                        .into_iter()
+                        .collect();
+                    let line: Vec<String> =
+                        ["peasants", "free_peasants", "xport_peasants", "gatherers"]
+                            .iter()
+                            .map(|k| format!("{k} {:?}/{:?}", mine.get(*k), t.get(*k)))
+                            .collect();
+                    eprintln!("  census {n}: {}", line.join(" "));
+                }
+                for (u, x) in built.sim.units.iter().enumerate() {
+                    if !x.alive()
+                        || x.owner != 1
+                        || built.sim.worker_of(u) != sim::orders::Worker::Citizen
+                    {
+                        continue;
+                    }
+                    let th = frame
+                        .units
+                        .iter()
+                        .find(|t| t.who == 1 && t.o == i64::from(x.index));
+                    let ords: Vec<i64> = x.orders.iter().map(|o| o.index() as i64).collect();
+                    let tords: Vec<i64> = th
+                        .map(|t| t.orders.iter().map(|o| o.index).collect())
+                        .unwrap_or_default();
+                    eprintln!(
+                        "    {n} 1/{} ({},{}) on_map {} in {:?}/{:?} theirs in {:?} \
+                         orders ours {ords:?} theirs {tords:?}",
+                        x.index,
+                        x.pos.x,
+                        x.pos.y,
+                        x.on_map,
+                        x.inside.map(|b| built.sim.buildings[b].index),
+                        x.inside_unit.map(|b| built.sim.units[b].index),
+                        th.and_then(|t| t.inside_up),
+                    );
+                }
+            }
             let mut here: BTreeMap<(i64, i64, String), (i64, String)> = BTreeMap::new();
             let (_, rows) = widen_block(&built, &frame, players, n, &mut here);
             compared += rows;
+            // **Every unit's container** (item 592): `inside_up` is parsed
+            // and `compare` reads it nowhere. The dump chains a garrison
+            // through units — a seated Scholar's `inside_up` is the Scholar
+            // before it — so both sides are compared on the outermost
+            // container, `ObjectData::get_inside`'s walk; the chain is
+            // followed within the unit's own player (`inside_up_who` is not
+            // parsed). This crate keeps a building in `inside` and a boat in
+            // `inside_unit`.
+            for t in &frame.units {
+                let mut up = t.inside_up.unwrap_or(-1);
+                while let Some(next) = frame
+                    .units
+                    .iter()
+                    .find(|x| x.who == t.who && x.o == up)
+                    .and_then(|x| x.inside_up)
+                    .filter(|&v| v >= 0)
+                {
+                    up = next;
+                }
+                let ours = u8::try_from(t.who)
+                    .ok()
+                    .zip(i16::try_from(t.o).ok())
+                    .and_then(|(w, o)| built.sim.unit_by_o(w, o))
+                    .map(|u| {
+                        let x = &built.sim.units[u];
+                        x.inside
+                            .map(|b| i64::from(built.sim.buildings[b].index))
+                            .or(x.inside_unit.map(|b| i64::from(built.sim.units[b].index)))
+                            .unwrap_or(-1)
+                    });
+                let Some(ours) = ours else { continue };
+                compared += 1;
+                if ours != up {
+                    here.entry((t.who, t.o, "inside".into()))
+                        .or_insert((n, format!("ours {ours} theirs {up}")));
+                }
+            }
             for &(w, o) in &row_walk {
                 let now: Vec<String> = here
                     .iter()
@@ -12125,8 +12208,10 @@ mod tests {
                 let Some(block) = flog.leader_block(n, who as i64) else {
                     continue;
                 };
-                let t = crate::diff::leader::theirs(&block);
-                let mine = crate::diff::leader::rows(&loaded, &built, who);
+                let mut t = crate::diff::leader::theirs(&block);
+                t.extend(crate::diff::leader::region_theirs(&block));
+                let mut mine = crate::diff::leader::rows(&loaded, &built, who);
+                mine.extend(crate::diff::leader::region_rows(&built, who));
                 for (k, v) in &mine {
                     let Some(&y) = t.get(k) else {
                         missing.insert(k.clone());
@@ -12168,8 +12253,13 @@ mod tests {
         }
         assert_eq!(blocks, (TAIL - FIRST + 1) as usize, "the walk is whole");
         // **The leader half is whole**: every key `leader::rows` carries is
-        // on run143's record, both leaders, all 360 blocks.
-        assert_eq!(leader_rows, 758_160, "360 blocks x 2 leaders x 1,053 keys");
+        // on run143's record, both leaders, all 360 blocks — and, since item
+        // 592, the census's 21 per-region arrays (`leader::REGION_ARRAYS`,
+        // 1,531 keys a leader), which no widening had read.
+        assert_eq!(
+            leader_rows, 1_860_480,
+            "360 blocks x 2 leaders x (1,053 + 1,531) keys"
+        );
         assert_eq!(missing, BTreeSet::new(), "no key unprinted");
         // **The old word's blocks, 10397..10399, and the move's value
         // diff** (item 588). Until the fix they held run99's eight rows:
@@ -12192,15 +12282,20 @@ mod tests {
             "the Bark arrives with the original's"
         );
         // **The word's blocks, 10581..10583, both directions.** Sim-frame
-        // 10582 is player 1's `make_stuff`, and it buys differently. The
-        // make list parts on 10581: the original holds a Citizen (type 50,
-        // cat 5, `val 1714`) in slots 3 and 5, where this crate holds two
-        // Scholars (type 52) at `val 0` in slot 3 and nothing in 5. On
-        // 10582 the vals of slots 1, 2, 4 and 7 part with it. On 10583 the
-        // building `1/2018` is placed a tile off, (·, 34944) against
-        // (·, 35136), with its gather ring, and the Citizen `1/6` walks to
-        // it on a different path. The census under it parts on 10576
-        // (`free_peasants` 2 against 1).
+        // 10582 is player 1's `make_stuff`, and it places its Mine `1/2018`
+        // a tile off: on 10583 at (·, 34944) against (·, 35136), with its
+        // gather ring, and the Citizen `1/6` walks to it on a different
+        // path. Until item 592 the make list parted under it on 10581 —
+        // the original's Citizen (type 50, cat 5, `val 1714`) in slots 3
+        // and 5 against this crate's two Scholars at `val 0` in slot 3,
+        // and on 10582 the vals of slots 1, 2, 4 and 7 — because the
+        // census counted the barge rider `1/31` free (below). Now the lists
+        // agree but for §52.2's `city` shift and the Mine's own value, slot
+        // 4's `val` on 10582, `create_buildings`' frame: 1,616,000 against
+        // 1,584,000. That is city `1/2007`'s `open` one high here —
+        // `filled` 33 against 34, residue run58 pins from 1819 — and a payoff probe
+        // that set the city's picture to the original's from 7975 closed
+        // the row and moved no draw (`docs/AI.md` §58.4).
         let on_word: Vec<String> = firsts
             .iter()
             .filter(|(k, (f, _))| (WORD_BLOCK - 2..WORD_BLOCK).contains(f) && k.1 == -1)
@@ -12209,21 +12304,10 @@ mod tests {
         assert_eq!(
             on_word,
             [
-                "10582 1/-1 leader:MAKE[1].val: ours 5722784 theirs 7222784",
-                "10582 1/-1 leader:MAKE[2].city: ours -1 theirs 0",
-                "10582 1/-1 leader:MAKE[2].t: ours 324 theirs -1",
-                "10582 1/-1 leader:MAKE[2].val: ours 5369856 theirs 7222784",
-                "10581 1/-1 leader:MAKE[3].cat: ours 4 theirs 5",
-                "10581 1/-1 leader:MAKE[3].city: ours 2 theirs 0",
-                "10581 1/-1 leader:MAKE[3].num: ours 2 theirs 1",
-                "10581 1/-1 leader:MAKE[3].t: ours 52 theirs 50",
-                "10581 1/-1 leader:MAKE[3].val: ours 0 theirs 1714",
-                "10582 1/-1 leader:MAKE[4].val: ours 1515000 theirs 1584000",
-                "10581 1/-1 leader:MAKE[5].cat: ours 0 theirs 5",
-                "10581 1/-1 leader:MAKE[5].city: ours -1 theirs 0",
-                "10581 1/-1 leader:MAKE[5].t: ours -1 theirs 50",
-                "10581 1/-1 leader:MAKE[5].val: ours -1 theirs 1714",
-                "10582 1/-1 leader:MAKE[7].val: ours 5722784 theirs 7222784",
+                "10582 1/-1 leader:MAKE[2].city: ours 1 theirs 0",
+                "10581 1/-1 leader:MAKE[3].city: ours 1 theirs 0",
+                "10582 1/-1 leader:MAKE[4].val: ours 1616000 theirs 1584000",
+                "10581 1/-1 leader:MAKE[5].city: ours 1 theirs 0",
             ],
             "the make list"
         );
@@ -12248,7 +12332,7 @@ mod tests {
             .collect();
         assert_eq!(
             per_block,
-            [(10581, 9), (10582, 6), (10583, 98)],
+            [(10581, 2), (10582, 2), (10583, 98)],
             "the word's blocks, counted"
         );
         let one_sided: Vec<(i64, i64, i64, bool, bool)> =
@@ -12264,21 +12348,57 @@ mod tests {
             [(10585, 0, 4, false, true)],
             "a figure moves on one side only"
         );
+        // **The census under the word, 10576, both directions** (item 592),
+        // and the move's value diff. Player 1's sweep runs on sim-frame
+        // 10575 and counted one citizen differently: `1/31`, which boarded
+        // the transport barge `1/36` on 10486 on both sides and rides it to
+        // (40344, 22680). The original counts a citizen off the map through
+        // its container: a sea-domain container whose order is a move makes
+        // it an `xport` peasant in the region of the move's point, 5 in the
+        // dump's numbering, and the `reg_active` family counts it there too.
+        // Until the fix this crate counted it on the map where it boarded,
+        // free, in the home region 11 — eight rows here: `free_peasants`
+        // 2/1, `xport_peasants` 1/2, `reg_peasants[11]` 14/13,
+        // `reg_free_peasants[11]` 1/0, `reg_active[11]` 27/26,
+        // `reg_active[5]` 0/1, `reg_xport_peasants[5]` 0/1 and city
+        // `1/2000`'s `free` 1/0 (`docs/AI.md` §58). No unit's container
+        // parts anywhere in the window (`inside`, the outermost container
+        // both sides).
+        let census: Vec<String> = firsts
+            .iter()
+            .filter(|(_, (f, _))| *f == WORD_BLOCK - 7)
+            .map(|((w, o, what), (f, row))| format!("{f} {w}/{o} {what}: {row}"))
+            .collect();
+        assert_eq!(census, Vec::<String>::new(), "the peasant census");
+        assert!(
+            !firsts.keys().any(|k| k.2 == "inside"),
+            "every unit's container agrees"
+        );
         // **The floor under the word**: 254 keys standing on the window's
         // first block (the human leader's census, the site list, the make
         // list's `city` shift, the seated Scholars' birth records and the
         // navy's group numbers, among the record rows run99 carries whole),
-        // and 31 more before the word: the make list's `city` and a unit of
+        // and 28 more before the word: the make list's `city` and a unit of
         // metal and food on 10381/10382; the scout `1/0` a unit off on
         // 10383..10407; the human's `production_step` on 10401; the seated
         // Scholars `1/29` (10437) and `1/37` (10548) with their four-row
-        // birth records; the Bark `1/35`'s group number on 10466; `1/31`'s
-        // speed and `1/36`'s form and a path flag on 10486; and the
-        // peasant census on 10576. Until item 588 the Bark `1/34`'s walk
-        // stood here too, and the floor was 269/284/830.
+        // birth records; the Bark `1/35`'s group number on 10466; and
+        // `1/31`'s speed and `1/36`'s form and a path flag on 10486. Until
+        // item 592 the peasant census on 10576 stood here too, and until
+        // item 588 the Bark `1/34`'s walk, when the floor was 269/284/830.
+        //
+        // Item 592's widening added 19 on the first block: the human
+        // leader's per-region census (18 rows: `reg_active`, `reg_cities`,
+        // `reg_gather_slots`, `reg_gatherers`, `reg_land` and `reg_peasants`
+        // of its home region, and `strategy` over twelve regions — this
+        // crate keeps no census for the human) and player 1's `reg_land`
+        // of its home region, 91 against 90, which is city `1/2007`'s
+        // `filled` (§58.4). Its fix took the census's eight rows off 10576
+        // and the make list's thirteen off the word; the floor was
+        // 273/309/772 with the widening and before the fix.
         let under = firsts.values().filter(|(f, _)| *f < WORD_BLOCK - 2).count();
         let first = firsts.values().filter(|(f, _)| *f == FIRST).count();
-        assert_eq!((first, under, firsts.len()), (254, 285, 748), "the floor");
+        assert_eq!((first, under, firsts.len()), (273, 301, 753), "the floor");
     }
 
     #[test]

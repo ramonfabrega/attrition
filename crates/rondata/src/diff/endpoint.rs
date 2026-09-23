@@ -472,7 +472,11 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // the sea half of `detect_unit_collision`'s second arm
         // (`docs/COLLISION.md` §13), 13,419 frames past this map's new word
         // 10582. DECISIONS 36: the number, not a trade.
-        off: 62,
+        // **62 → 64 off, 2 → 0 unlinked, 25 → 24 build_diverged** on item
+        // 592, the census counting a barge's rider through its container
+        // (`docs/AI.md` §58); this map's word holds at 10582, 13,419
+        // frames before this one. DECISIONS 36: the number, not a trade.
+        off: 64,
         // And **5 → 10 unlinked** on 2026-09-21, item 442 — the scholar
         // arm's `val` chain (`docs/AI.md` §53). This map's word does not
         // move on it; Great Lakes' moves 9510 → 10161. The AI's Scholar
@@ -486,11 +490,13 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // **2 → 22 unlinked** on item 576, beside 69 → 45 off above.
         // **22 → 5 unlinked** on item 579, beside 45 → 57 off above.
         // **5 → 2** on item 588, beside `off` above: player 1's `81` and `82`.
-        unlinked: 2,
+        // **2 → 0** on item 592, beside `off` above.
+        unlinked: 0,
         extra: 0,
         // **1 → 2** on item 588, beside `off` above.
         build_unlinked: 2,
-        build_diverged: 25,
+        // **25 → 24** on item 592, beside `off` above.
+        build_diverged: 24,
         city_unlinked: 3,
         city_diverged: 0,
     },
@@ -1218,7 +1224,8 @@ pub const LADDER: [Endpoint; 2] = [
         // past it. DECISIONS 36.
         // **40 → 38** on item 579 (`docs/ORDERS.md` §25).
         // **38 → 41** on item 588; see `extra` below.
-        off: 41,
+        // **41 → 40** on item 592; see `extra` below.
+        off: 40,
         unlinked: 17,
         // 20 → 21 on 2026-09-07, item 267's repaint: one spurious unit
         // back, 7,872 frames past the word, and nothing else on this rung
@@ -1347,7 +1354,9 @@ pub const LADDER: [Endpoint; 2] = [
         // **19 → 22 extra, 38 → 41 off, 4 → 5 build_diverged** on item 588,
         // the sea half of `detect_unit_collision`'s second arm
         // (`docs/COLLISION.md` §13), 4,819 frames past this map's new word.
-        extra: 22,
+        // **22 → 23 extra, 41 → 40 off** on item 592, the census counting
+        // a barge's rider through its container (`docs/AI.md` §58).
+        extra: 23,
         build_unlinked: 10,
         // **4 → 5** on item 588, beside `extra` above.
         build_diverged: 5,
@@ -1454,7 +1463,8 @@ pub const LADDER: [Endpoint; 2] = [
         // crate's first unit upgrade makes of rung C's Slingers. DECISIONS 36.
         // **48 → 46** on item 579 (`docs/ORDERS.md` §25).
         // **46 → 51** on item 588; see `extra` below.
-        off: 51,
+        // **51 → 49** on item 592; see `extra` below.
+        off: 49,
         unlinked: 16,
         // 19 → 33 on 2026-09-07, item 261, the same reshuffle, then 33 →
         // **27** the same day on item 265's byte — this rung took the
@@ -1552,7 +1562,9 @@ pub const LADDER: [Endpoint; 2] = [
         // **1 → 12 extra** on item 579, beside 48 → 46 off above.
         // **12 → 18 extra, 46 → 51 off** on item 588, the sea half of `detect_unit_collision`'s second arm
         //  (`docs/COLLISION.md` §13), 13,419 frames past this map's new word. DECISIONS 36: the number, not a trade.
-        extra: 18,
+        // **18 → 16 extra, 51 → 49 off** on item 592, the census counting
+        // a barge's rider through its container (`docs/AI.md` §58).
+        extra: 16,
         build_unlinked: 19,
         build_diverged: 0,
         city_unlinked: 4,

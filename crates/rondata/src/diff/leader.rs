@@ -361,6 +361,98 @@ pub(crate) fn rows(loaded: &crate::load::Loaded, built: &Built, who: usize) -> V
     out
 }
 
+/// The census's per-region arrays (`docs/AI.md` §2.3 step 8), by width:
+/// the land arrays are `[64]`, indexed by the land region; `reg_active`,
+/// `reg_combat` and `reg_attack` are `[127]`, indexed by any region; the
+/// two sea arrays are `[63]`, indexed by the sea region less `0x3f` (run143
+/// prints the navy's `reg_naval` at index 2 for the ocean, 65).
+///
+/// Item 592 read them: the peasant census parted on East Indies' 10576 by
+/// its totals alone, `free_peasants` 2 against 1 and `xport_peasants` 1
+/// against 2, and the totals cannot say which region or which citizen.
+/// `reg_terr` is printed and not kept here (no writer); `reg_docks` is kept
+/// and not printed.
+pub(crate) const REGION_ARRAYS: &[(&str, usize, i64)] = &[
+    ("reg_active", 127, 0),
+    ("reg_combat", 127, 0),
+    ("reg_attack", 127, 0),
+    ("reg_naval", 63, 0x3f),
+    ("reg_transports", 63, 0x3f),
+    ("reg_defense", 64, 0),
+    ("reg_attacked", 64, 0),
+    ("reg_land", 64, 0),
+    ("reg_peasants", 64, 0),
+    ("reg_free_peasants", 64, 0),
+    ("reg_xport_peasants", 64, 0),
+    ("reg_gatherers", 64, 0),
+    ("reg_gather_slots", 64, 0),
+    ("reg_known_rares", 64, 0),
+    ("reg_unpack_merch", 64, 0),
+    ("reg_cities", 64, 0),
+    ("reg_pop", 64, 0),
+    ("strategy", 64, 0),
+    ("reg_wars", 64, 0),
+    ("reg_allies", 64, 0),
+    ("reg_neutrals", 64, 0),
+];
+
+/// This crate's side of [`REGION_ARRAYS`], keyed `key[d]` by the **dump's**
+/// region `d` (`Built::region_map` is the translation); a dump region this
+/// crate has no region for reads 0, which is what a sweep leaves there.
+pub(crate) fn region_rows(built: &Built, who: usize) -> Vec<Row> {
+    let c = &built.sim.ai[who].census;
+    let mut out = Vec::new();
+    for &(key, width, base) in REGION_ARRAYS {
+        let ours: &[i32] = match key {
+            "reg_active" => &c.reg_active,
+            "reg_combat" => &c.reg_combat,
+            "reg_attack" => &c.reg_attack,
+            "reg_naval" => &c.reg_naval,
+            "reg_transports" => &c.reg_transports,
+            "reg_defense" => &c.reg_defense,
+            "reg_attacked" => &c.reg_attacked,
+            "reg_land" => &c.reg_land,
+            "reg_peasants" => &c.reg_peasants,
+            "reg_free_peasants" => &c.reg_free_peasants,
+            "reg_xport_peasants" => &c.reg_xport_peasants,
+            "reg_gatherers" => &c.reg_gatherers,
+            "reg_gather_slots" => &c.reg_gather_slots,
+            "reg_known_rares" => &c.reg_known_rares,
+            "reg_unpack_merch" => &c.reg_unpack_merch,
+            "reg_cities" => &c.reg_cities,
+            "reg_pop" => &c.reg_pop,
+            "strategy" => &c.strategy,
+            "reg_wars" => &c.reg_wars,
+            "reg_allies" => &c.reg_allies,
+            "reg_neutrals" => &c.reg_neutrals,
+            _ => unreachable!("{key} is in REGION_ARRAYS"),
+        };
+        for i in 0..width {
+            let d = i as i64 + base;
+            let v = built
+                .region_map
+                .iter()
+                .find(|(dr, _)| *dr == d)
+                .map_or(0, |(_, sr)| sim::ai::Census::reg(ours, *sr));
+            out.push((format!("{key}[{d}]"), i64::from(v)));
+        }
+    }
+    out
+}
+
+/// The dump's side of [`region_rows`] for one `LEADERDATA` block.
+pub(crate) fn region_theirs(block: &Block<'_>) -> std::collections::BTreeMap<String, i64> {
+    let mut out = std::collections::BTreeMap::new();
+    for &(key, width, base) in REGION_ARRAYS {
+        let v = block.all(&format!("{key}[scan]"));
+        for (i, x) in v.iter().enumerate().take(width) {
+            let d = i as i64 + base;
+            out.insert(format!("{key}[{d}]"), x.trim().parse().unwrap_or(i64::MIN));
+        }
+    }
+    out
+}
+
 /// The dump's side of [`rows`] for one `LEADERDATA` block: the same keys,
 /// read off the record. A key the block does not carry is absent, which is
 /// what keeps a thinner capture from reading as a page of divergences.
