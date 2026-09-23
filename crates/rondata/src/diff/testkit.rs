@@ -1567,6 +1567,8 @@ pub(crate) const EAST_INDIES_FIRST_SCHOLAR: i64 = 8_466;
 /// every dump on disk**: run123 ends on block 11459, so the word's block
 /// is owed a capture ([`WIDENINGS`]); 11185's own block stays in
 /// `run123_s_word_frame_is_widened_whole` as the value diff of the move.
+/// **Item 533 took the capture, run125, and held the word**: its block is
+/// in `run125_s_word_frame_is_widened_whole`.
 ///
 /// **The block's own rows are not restated here**, and that is
 /// deliberate: block 10818's eight rows of `1/28` are *asserted* in
@@ -2205,6 +2207,19 @@ pub(crate) const WIDENING_GREAT_LAKES_MARKET: (i64, i64) = (10_760, 11_459);
 /// and the coverage driver reads run123 around it, so the two stay keyed
 /// on a block the capture carries whatever the headline does next.
 pub(crate) const GREAT_LAKES_MARKET_BLOCK: i64 = 11_185;
+/// `run125_s_word_frame_is_widened_whole`'s window (item 533): run123 from
+/// **11250**, the blocks before army 1's squad `1/31..1/39` takes the group
+/// order it marches to the word under, and run125 from its own first block
+/// 11440 to its last, 11599. The floor is under the march rather than at
+/// run125's first block because the squad's partings are positions and
+/// soft-collision flags that spend no draw, and a widening that opened on
+/// the march would print them as standing residue with no first block.
+pub(crate) const WIDENING_GREAT_LAKES_ARMY: (i64, i64) = (11_250, 11_599);
+/// The block [`WIDENING_GREAT_LAKES_ARMY`] was taken to widen: the word
+/// 11531. The coverage driver reads run125 around it, keyed here rather
+/// than on the headline so the pin stays on a block the capture carries
+/// whatever the headline does next.
+pub(crate) const GREAT_LAKES_ARMY_BLOCK: i64 = 11_531;
 /// One pinned word's row: `(constant, word, widening test, item, window)`.
 pub(crate) type Widening = (
     &'static str,
@@ -2312,14 +2327,20 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // run123 ends on block 11459. The Merchant offer closed 11185's slot 1
     // (`docs/AI.md` §55), and run123's test keeps that block as the value
     // diff of the move, keyed on its own `WORD_BLOCK` rather than on the
-    // headline. The row names the item that owes the capture until the
-    // commander books its successor.
+    // headline.
+    //
+    // **Item 533 paid it**: run125 is the same game at run123's detail over
+    // [11440, 11599], and `run125_s_word_frame_is_widened_whole` walks it
+    // from run123's 11250 — under army 1's squad march — so the window is
+    // [`WIDENING_GREAT_LAKES_ARMY`]. The word's two blocks part on one unit,
+    // `1/34`, which reaches its `ATTACK_TO` point on block 11531 here and
+    // 11533 in the original (`docs/GROUPS.md` §20).
     (
         "LONG_WORD_GREAT_LAKES",
         LONG_WORD_GREAT_LAKES,
-        None,
+        Some("run125_s_word_frame_is_widened_whole"),
         533,
-        None,
+        Some(WIDENING_GREAT_LAKES_ARMY),
     ),
     // Item 445 paid the widening chapter one had never had: the word
     // stood at 626 from item 405 on, and every test behind it pinned one

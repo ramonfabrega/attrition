@@ -2753,3 +2753,111 @@ only a hotkey group sets.
 
 **SEAM**: `find_role` is not recomputed, because nothing here reads
 `GroupData::role`.
+
+## 20. Great Lakes 11531 — a bowman arrives two frames early, on a lag its group march set (item 533, 2026-09-22)
+
+Item 327 moved Great Lakes' long word to **11531**, 72 blocks past
+run123's last. It was booked by its frame and its draw delta only. Ours
+spends four draws and the original three, parting at index 1: ours
+`Guy::set_anim+0x97a < Unit::do_idle+0x7d` against the original's
+`< Guy::inc_time+0x271`. The draw is an idle roll, but the cause is
+here, in a group's march. **No mechanism is fixed by this section.** It
+is the capture and the widening, and what they say.
+
+### 20.1 This crate's side, before the capture
+
+`RON_DEBUG_SITES=11526-11534` and `RON_DEBUG_UNIT` on the run53 test.
+The two idle rolls on 11531 belong to army 1's bowmen **`1/34`** and
+**`1/36`** (type 127). Each is at the end of the squad `1/31..1/39`'s
+march to a `GROUP_ATTACK_TO` point. `1/36` stops at (39912, 20232) on
+11529 and rolls on 11530 and 11531. `1/34` stops at (39768, 20328) on
+11530 and rolls on 11531 and 11532. The original rolls once on 11530
+(agreeing), once on 11531, and once each on 11533 and 11534. The stanza
+wrote four readings before the run (`tools/gamelog/captures.txt`,
+run125): the arrival, the order, the clock, and another unit.
+
+### 20.2 run125, and the widening
+
+run125 is run123's game at run123's detail over `[11440, 11600)`
+(`docs/RUNS.md`). `run125_s_word_frame_is_widened_whole` walks run123
+from **11250** and run125 from 11440 to 11599. That is 350 blocks, every
+record `widen_block` reads on every unit, and the leader record whole for
+both players.
+
+**The word's two blocks part on one unit, `1/34`**, and nothing else:
+
+| block | row | ours | theirs |
+| --- | --- | --- | --- |
+| 11531 | `orders.len` | 0 | 1 |
+| 11532 | `idle` | 1 | 0 |
+| 11532 | `g.cur_time[0]` / `last_time` | 1 / 0 | 7 / 6 |
+
+**R1, the arrival, is the frame.** The original's `1/34` reaches
+(39768, 20328) on block **11533**, and this crate's on **11531**. `1/36`
+arrives on 11530 on both sides. So this crate's `1/34` starts its idle
+two frames early, and its first roll is the word. R2 is dead: both hold
+the one `ATTACKTOORDER` until arrival. R3 is dead: the clocks agree until
+the arrival. R4 is dead: the only row is `1/34`'s.
+
+### 20.3 Backwards: the lag is the march's
+
+`RON_SQUAD_WALK=34` prints `1/34`'s gap, theirs minus ours, wherever it
+changes.
+
+- **11250–11363: zero.** The squad agrees on every record until its group
+  order (11259). The two sides number the order's `group.id` differently
+  (11258117 against 11264430). The first row that is not an id is `1/31`'s
+  `half_step` on **11305**. This crate's probe of sim-frame 11304 hits
+  (911, 465) in `1/32`'s block and goes soft. The original takes the same
+  step with no flag (`sweep_verdict` on this side; no probe capture exists
+  for the other side).
+- **11364–11417: parts and closes.** `1/34`'s gap opens to 10–20 units and
+  **closes to zero on 11385–11411 and on 11417**.
+- **11446–11462: the lag that holds.** Both sides push a formation hop
+  onto the path stack and turn in place on it, **a frame apart**. Ours
+  pushes (41318, 20333) on 11457 and stands 11456→11457. The original
+  pushes (41315, 20335) on 11458 and stands 11457→11458, with no
+  collision recorded (`collide_frame` 7481, stale). From 11462 the gap is
+  **22/35 on x, alternating** with the half steps, all the way to
+  (37, 0) on 11528 and the arrival.
+
+**A payoff probe on 11304 alone does not move the word.** Suppressing
+this crate's one soft flag clears `1/31`'s rows. The squad then re-parts
+on 11357 (`1/35`'s flag) and 11361–11364, and the word stays on 11531.
+The 11304 flag is one of several soft-collision partings under the march,
+and it is not what sets the lag the word arrives on.
+
+**A second residue, which moves no position**: the squad's
+`GROUP_ATTACK_TO` (21) becomes a plain `ATTACK_TO` (2) **a frame early**
+here. The first trio switches on 11512 against the original's 11513, and
+the second on 11524–11525 the same way. Every such unit's `flags` read 5
+against the original's 4 from the next block.
+
+### 20.4 What this has *not* established
+
+- **Why the formation hop comes a frame early here on 11457.** Candidates
+  are the group's speed cap (§18, §19: slot `f mod 64`), the hop's
+  distance test, and the leader's own position, which the gap walk has
+  not read for `1/31`. The widening names the frame and not the writer.
+- **Which of the march's soft-collision partings matter.** 11304 does
+  not, measured. 11357 and 11361–11364 are unprobed.
+- **The original's sweep on 11304.** It needs a `RON_COLLIDE_PROBE`
+  capture (`docs/COLLISION.md` §9), which run125 is not.
+- **The group order's early dissolution** (20.3's last paragraph). Its
+  writer is unread.
+
+### 20.5 Coverage
+
+Diff-backed, in `run125_s_word_frame_is_widened_whole`:
+
+- the arrival blocks of `1/34` and `1/36`, both sides;
+- `1/34`'s gap on 11456, 11457, 11458 and 11528;
+- the five rows that first part on the word's two blocks;
+- the squad's first non-id parting, `1/31 half_step` on 11305. This was
+  made to fail on purpose by suppressing the 11304 flag, and it fails
+  while the word's pins hold;
+- the first trio's `order:kind` on 11512.
+
+`the_widening_behind_each_pinned_word_exists` names this test for
+`LONG_WORD_GREAT_LAKES`. The coverage pin reads run125's 11529–11533, and
+no key moved: run125 prints what run123 printed.

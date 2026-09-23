@@ -36,7 +36,7 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use crate::gamelog::{Block, Log, reads};
 
-use super::testkit::{GOLDEN_WORD_CHAPTER_TWO, GREAT_LAKES_MARKET_BLOCK, WIDENING_CHAPTER_TWO};
+use super::testkit::{GOLDEN_WORD_CHAPTER_TWO, GREAT_LAKES_ARMY_BLOCK, WIDENING_CHAPTER_TWO};
 
 /// Record paths read by a parser of their own, outside `Block` — the
 /// module that reads each is named, and this guard leaves them alone.
@@ -357,9 +357,9 @@ fn the_recorder_tells_one_object_block_from_another() {
 #[test]
 fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch2 = golden_dump("ch2");
-    let r123 = crate::testenv::dump("gamelog-run123-greatlakes-marketword.txt");
-    if ch2.is_none() && r123.is_none() {
-        eprintln!("skipping: neither the ch2 golden capture nor run123 is on disk");
+    let r125 = crate::testenv::dump("gamelog-run125-greatlakes-armyidle.txt");
+    if ch2.is_none() && r125.is_none() {
+        eprintln!("skipping: neither the ch2 golden capture nor run125 is on disk");
         return;
     }
     let mut paths = Paths::new();
@@ -378,10 +378,12 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     // one. run123 does: run100's detail with `LEADERS=9`, over
     // `WIDENING_GREAT_LAKES_MARKET`, so every path run100 printed is
     // here too, and the leader record whole beside it.
-    // Item 327 moved the headline to 11531, past run123's last block, so
-    // the window is keyed on the block run123 was taken to widen.
-    let gl = GREAT_LAKES_MARKET_BLOCK;
-    if let Some(p) = &r123 {
+    // Item 327 moved the headline to 11531, past run123's last block, and
+    // item 533's run125 reaches it at run123's detail, so the window is
+    // the word's own blocks again — keyed on the block run125 was taken to
+    // widen, which stays on the capture whatever the headline does next.
+    let gl = GREAT_LAKES_ARMY_BLOCK;
+    if let Some(p) = &r125 {
         frames += drive_capture(p, gl - 2, gl + 2, &mut paths);
     }
     assert!(frames > 0, "no frame of either window was found");

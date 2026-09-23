@@ -4307,3 +4307,87 @@ check: python3 tools/gamelog/samegame.py gamelog-run100-greatlakes-valuewindow2.
 check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|BEGIN MAKEOBJECT" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run123-greatlakes-marketword.txt" | awk '/BEGIN FRAME/{f=$3+0} /MAKEOBJECT/{if(f)n[f]++} END{printf "MAKEOBJECT on 10760=%d 11185=%d 11459=%d\n", n[10760], n[11185], n[11459]; exit !(n[10760]>0 && n[11185]>0 && n[11459]>0)}'
 # **The coverage window landed**: every frame 11176..11190 has a set.
 check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run123.log" coverage | awk '/^== frame/{f=$3+0; sub(":","",f); if(f>=11176&&f<=11190&&$4+0>100) n[f]=1} END{c=0; for(k in n)c++; print "coverage frames: "c; exit !(c==15)}'
+
+run: 125
+tag: greatlakes-armyidle
+item: 533
+why: Great Lakes' long word is 11531, an idle frame — ours spends two `Unit::do_idle+0x7d` rolls where the original spends one, then the `Guy::inc_time+0x271` wrap — and no dump on disk reaches it: run123 ends on block 11459
+# **THE DISK WAS GREPPED FIRST.** run123 [10760, 11459] is the highest
+# Great Lakes block at any detail below run80's endpoint window
+# [23960, 24000); nothing between 11460 and 23959 carries a block.
+#
+# **The frame, from this crate's side** (`RON_DEBUG_SITES=11526-11534`,
+# `RON_DEBUG_UNIT=1/34` and `1/36` on the run53 test). The two idle rolls
+# on 11531 are army 1's bowmen **`1/34`** and **`1/36`** (type 127), each
+# at the end of an `AttackTo` march: `1/36` stops at (39912, 20232) on
+# 11529 and rolls on 11530 and 11531; `1/34` stops at (39768, 20328) on
+# 11530 and rolls on 11531 and 11532. 11530's one roll agrees, so the
+# original's first idle is `1/36`'s (or the same unit's) and the parting
+# is `1/34`'s: the original spends rolls on 11531, 11533 and 11534
+# where this crate spends 11531 and 11532. **And on run123's last block
+# the original's `1/34` is at (41346, 20326) on a `GROUPATTACKTOORDER`**
+# (`form_id 3`, `group_angle 1870069760`, orders point (39768, 20328))
+# — the same point and facing as this crate's, under a group order this
+# crate does not hold.
+#
+# **The readings, each with what kills it**, on blocks 11528..11535,
+# player 1, the dump's own keys:
+#
+# - **R1 — the arrival.** The original's `1/34` reaches (39768, 20328)
+#   a frame or more later than 11530, so its idle begins later. **Killed
+#   if** its `x_internal`/`y_internal` equal this crate's on 11529..11533.
+# - **R2 — the order.** The group order's arrival (the formation, the
+#   `GroupMoveOrder`'s `dest_x`) ends the march on another frame, or
+#   leaves an order where this crate's stack is empty on 11531. **Killed
+#   if** the original's `1/34` holds no order on 11531 and 11532, as ours.
+# - **R3 — the clock.** Both arrive together and the idle roll's count
+#   differs through the guy's `cur_anim`/`end_time` (a turn, the arrival
+#   stand). **Killed if** `1/34`'s and `1/36`'s `GUY` clocks agree on
+#   11530..11534.
+# - **R4 — another unit.** The original's 11531 roll is neither bowman.
+#   **Killed if** one of the two changes `cur_anim` on 11531 in the dump.
+#
+# **Backwards too**: the march has been running since before run123's
+# window, so run123 carries the order stack back to 10760. The overlap is
+# 20 blocks, 11440..11459, at run123's detail, so the check needs no
+# `--exclude`.
+frames: 11610
+mapstyle: 14
+# **run123's detail exactly.** The subject is the units and their guys
+# (`UNITS=3`, `GUYS=4`); `LEADERS=9` is kept because the army's order is
+# the AI's and because the overlap with run123 is then byte for byte.
+end: MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,DEATHS=1,LEADERS=9
+frame_window: 11440 11600
+# **Per-frame coverage over the arrival**, 11524..11536 — the march's
+# last steps, the two arrivals and the rolls either side.
+cover: cover=1
+cover: window=11524-11536
+settle_min: 14000000
+# **Sized from run123**: 1.95 MB a block, so 160 blocks is ~310 MB; its
+# run-up to 11440 at `cover=1` and ~11 minutes of dumping. 150 polls is 50
+# minutes, sized high because the give-up truncates.
+poll_max: 150
+# ==== TAKEN 2026-09-22, **WHOLE** ====
+#
+# 325,330,650 bytes, **160 blocks 11440..11599**, no gap; 17.5 MB of
+# trace. About 14 minutes launch to archive, all five checks green: 11,611
+# frames identical to run53, `MAP_STYLE 14`, 20 blocks shared with run123
+# and 0 differing, and a coverage set on all 13 window frames.
+#
+# **The readings, decided on blocks 11528..11534**: **R1 is the frame**.
+# The original's `1/34` reaches (39768, 20328) on 11533 and this crate's
+# on 11531, 37 behind on x on 11528. R2 dead (one `ATTACKTOORDER` on both
+# until arrival), R3 dead (the clocks agree until the arrival), R4 dead
+# (the word's blocks part on `1/34` alone). `docs/GROUPS.md` §20.
+# Same game: the trace word for word against run53, this map's own 24k run.
+check: python3 tools/gamelog/rngcmp.py rontrace-run53.log rontrace-run125.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=11600)}'
+# And the map, from the dump's own `GAME INFO`.
+check: LC_ALL=C head -c 400000 "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run125-greatlakes-armyidle.txt" | LC_ALL=C grep -a "MAP_STYLE" | tee /dev/stderr | awk '{print; exit !($2==14)}'
+# **The window landed whole** — 160 blocks, 11440..11599, no gap.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run125-greatlakes-armyidle.txt" | awk '{v=$3+0; if(v>=11440&&v<11600) n[v]=1} END{c=0; lo=0; hi=0; for(k in n){c++; if(lo==0||k+0<lo)lo=k+0; if(k+0>hi)hi=k+0} print "window blocks: "c" ("lo".."hi")"; exit !(c==160 && lo==11440 && hi==11599)}'
+# **The overlap with run123, and the count is the claim** — `samegame.py`
+# exits 0 when nothing is in common. Twenty blocks, no `--exclude`: the
+# detail is run123's.
+check: python3 tools/gamelog/samegame.py gamelog-run123-greatlakes-marketword.txt gamelog-run125-greatlakes-armyidle.txt | tee /dev/stderr | awk '/in common/{r=$0; sub(/.*in common /,"",r); split($0,a,", "); n=a[2]+0} /^differ:/{d=$2+0} END{print "run123 overlap: common="n" "r" differ="d; exit !(n==20 && d==0 && r=="(11440..11459)")}'
+# **The coverage window landed**: every frame 11524..11536 has a set.
+check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run125.log" coverage | awk '/^== frame/{f=$3+0; sub(":","",f); if(f>=11524&&f<=11536&&$4+0>100) n[f]=1} END{c=0; for(k in n)c++; print "coverage frames: "c; exit !(c==13)}'
