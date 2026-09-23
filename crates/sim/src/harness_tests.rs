@@ -2281,6 +2281,10 @@ fn siege_fires_at_the_ground_under_a_unit_and_hits_whoever_stands_there() {
         Pos::new(1000, 1000 + 4 * 192),
         movement::Angle::NORTH,
     );
+    // Unpacked: the ground order is `fight`'s arm for an unpacked siege
+    // packer (`docs/COMBAT.md` §57.2). A packed one unpacks first, in the
+    // original, and that arm is not carried.
+    sim.units[c].combat.packed = false;
     sim.order_attack(c, Obj::Unit(t0));
     sim.tick();
     // The shot has no target: it is aimed at the ground where the unit stood.
