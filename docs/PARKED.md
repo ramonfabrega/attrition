@@ -558,6 +558,14 @@ with the original to the trace's end, and that restaging it is not a
 commander's call. **What it wants**: rule whether the golden record
 needs a chapter where AI-off actually bites (who=1's civilians), and
 whether any closed chapter's staging leaned on the same inference.
+**The second instance, the same day**: chapter three's run145 (item 587)
+could not fire two of §7's three falsifiers. The catapult is born packed
+and no hoplite comes within 3 tiles; the chariots shoot from where they
+stand and never move. The commander ruled a restage within §7's own
+design as run146. So the family is **a design's falsifier written
+without checking that the staging can reach it**. The pass may want each
+chapter's header to name, per falsifier, the frame and record where it
+could first fire.
 
 (583) **The ladder's shared-extras guard dies by success.** Filed by item
 576, 2026-09-23: each move of East Indies' word lowers the extras the
