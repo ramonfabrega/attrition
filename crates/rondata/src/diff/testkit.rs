@@ -716,7 +716,28 @@ fn indexed_siblings_preserve_every_initial_field_except_audit_bodies() {
 /// 11590 is past run155's last block: ours 6 draws against 5, parting at
 /// index 0, ours `Guy::set_anim+0x97a < Animal::do_idle+0x19`, theirs
 /// `Guy::set_anim+0x97a < Guy::inc_time+0x271`.
-pub(crate) const LONG_WORD_EAST_INDIES: i64 = 11_590;
+///
+/// **11590 → 11747 on item 629, and the frame was a Merchant's seat 3,900
+/// frames under it.** run159 (`LEADERS=9` over [11270, 11899]) showed the
+/// extra idle to be gaia's sheep `8/1` arriving from its 11576 wander:
+/// straight here in 13 frames, round a waypoint at (28884, 23724) there
+/// in 21. The tile search refused its diagonal through (149, 124), one of
+/// the four tiles the AI Merchant `1/20` blocked when its unpack ended on
+/// 7662. `SpellType::cast_unpack`'s merchant arm snaps the trader onto
+/// its tile corner and blocks the two-by-two under it, and this crate
+/// had it as a seam, so `1/20` stood (24, 24) off at the unit-cell
+/// centre with nothing blocked (`docs/MERCHANT.md` §3.4). The move's
+/// value diff (the word's delta, here; its block is the widening's):
+/// run159's sheep rows on 11578..11591 go, and so do both Merchants'
+/// seats (`1/19` and `1/20`, 22 rows), city `1/2007`'s `filled` and
+/// `space[2]`, the leader's `reg_land[11]` and `leftover` food and
+/// metal on 11270, and 613's food and metal a unit off from 11272 and
+/// 11275; the floor goes 297/391/920 → 270/361/806, and every row that
+/// comes in is past 11748 (`run159_s_word_frame_is_widened_whole`).
+/// 11747 is inside run159's window: ours 10 draws against 7, parting at
+/// index 3, ours `Guy::set_anim+0x97a < do_cast`, theirs
+/// `Guy::set_anim+0x97a < Guy::inc_time+0x271`.
+pub(crate) const LONG_WORD_EAST_INDIES: i64 = 11_747;
 
 /// The frame East Indies' **first scholar** — `1/22` — is seated inside
 /// its university, one of the fourteen `Unit::go_inside+0x280` draws in

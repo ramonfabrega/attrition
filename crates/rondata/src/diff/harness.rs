@@ -12147,7 +12147,10 @@ mod tests {
     /// 310 up to the word, its block, and 308 past it, which no capture had
     /// printed. [`widen_east_indies`] with gaia's animals.
     ///
-    /// The word's frame, 11590, writes block **11591**.
+    /// The word's frame, 11590, writes block **11591**. The same item moved
+    /// the word to 11747, inside the window (block 11748): a deployed
+    /// Merchant's four tiles, `SpellType::cast_unpack`'s merchant arm
+    /// (`docs/MERCHANT.md` §3.4).
     #[test]
     fn run159_s_word_frame_is_widened_whole() {
         const FIRST: i64 = WIDENING_EAST_INDIES_IDLE.0;
@@ -12186,8 +12189,9 @@ mod tests {
             format!("{f} {w}/{o} {what}: {row}")
         };
         // **Under the word and on it, both directions** (item 629). The
-        // leader rows are 613's residue and the census beside it (parked
-        // 622). `1/41`, `1/42` and `1/43` are citizens born under the
+        // leader rows are the census and the site list (parked 622); until
+        // the fix 613's food and metal a unit off stood here too, from
+        // 11272 and 11275, and the sheep's three rows on 11578..11591. `1/41`, `1/42` and `1/43` are citizens born under the
         // window with 40 hit points against 50 (parked 622's `1/36`), and
         // `form` −1 against 9 beside them. The scout `1/0` re-plans its
         // explore on 11550 to another target and spends no draw on it
@@ -12206,8 +12210,6 @@ mod tests {
                 "11384 1/-1 leader:MAKE[0].city: ours 1 theirs 0",
                 "11376 1/-1 leader:SITE[2].rank: ours 4 theirs 3",
                 "11376 1/-1 leader:SITE[3].rank: ours 3 theirs 4",
-                "11272 1/-1 leader:bucket[0:food]: ours 111 theirs 112",
-                "11275 1/-1 leader:bucket[4:metal]: ours 67 theirs 68",
                 "11318 1/-1 leader:peasants: ours 17 theirs 18",
                 "11363 1/-1 leader:scholars: ours 12 theirs 13",
                 "11318 1/41 form: ours -1 theirs 9",
@@ -12228,9 +12230,6 @@ mod tests {
                 "11499 1/43 mylos: ours 2 theirs 4",
                 "11499 1/43 orders_x: ours 34656 theirs 34680",
                 "11499 1/43 orders_y: ours 36192 theirs 37176",
-                "11591 8/1 gaia:cur_anim: ours Some(8) theirs Some(7)",
-                "11591 8/1 gaia:cur_time: ours Some(1) theirs Some(14)",
-                "11578 8/1 gaia:pos: ours (28856,23869) theirs (28873,23862)",
             ],
             "the rows under the word and on it"
         );
@@ -12248,32 +12247,38 @@ mod tests {
             [(11550, 47), (11578, 17), (11579, 3)],
             "the scout's rows"
         );
-        // **The word is the sheep `8/1`'s arrival** (W1). Both sides roll
+        // **The word was the sheep `8/1`'s arrival** (W1). Both sides roll
         // the same wander on 11576, from (28872, 23880) to (28680, 23736).
         // This crate walks it straight in 13 frames; the original plans
         // two waypoints, south to (28884, 23724) and then west, and walks
         // 21. It arrives on 11597, so its `Animal::do_idle` asks for
         // `DEFAULT` on 11598 and 11599, the pair this crate spends on 11590
-        // and 11591. Nobody else changes animation on one side only.
+        // and 11591. Until the fix that was the one-sided list, 11591 and
+        // 11592; now nobody changes animation on one side only.
         let one_sided: Vec<(i64, i64, i64, bool, bool)> =
             changed.iter().filter(|c| c.3 != c.4).copied().collect();
         assert_eq!(
             one_sided,
-            [(11591, 8, 1, false, true), (11592, 8, 1, false, true)],
+            Vec::<(i64, i64, i64, bool, bool)>::new(),
             "a figure moves on one side only"
         );
         // **What the waypoint goes round** (W2): the Merchant `1/20`,
-        // deployed since 7663, stands at the tile corner (28608, 24000)
-        // there and at the unit-cell centre (28632, 24024) here — from the
-        // window's first block, both figures and the order point with it.
+        // deployed since 7663, stood at the tile corner (28608, 24000)
+        // there and at the unit-cell centre (28632, 24024) here — eleven
+        // rows from the window's first block, both figures and the order
+        // point with it — and its four tiles were blocked there only. The
+        // corner tile (149, 124) is what the original's tile search refused
+        // the sheep's diagonal through. The fix seats it and `1/19` on
+        // their corners and blocks both footprints; `form` is not this
+        // arm's and stands.
         let merchant: Vec<String> = firsts
             .iter()
-            .filter(|((w, o, what), (f, _))| (*w, *o) == (1, 20) && *f == FIRST && what == "pos")
+            .filter(|((w, o, _), _)| (*w, *o) == (1, 20))
             .map(row)
             .collect();
         assert_eq!(
             merchant,
-            ["11270 1/20 pos: ours (28632,24024) theirs (28608,24000)"],
+            ["11270 1/20 form: ours -1 theirs 0"],
             "the Merchant's seat"
         );
         // **The outermost container** (parked 598): one row, past the
@@ -12290,11 +12295,17 @@ mod tests {
             "a unit in another container"
         );
         assert_eq!(housed, 8_204, "housed unit-blocks the row compared");
-        // **The floor**: 297 keys standing on the window's first block
-        // (run155's residue on its last), 391 before the word, 920 in all.
+        // **The floor**: 270 keys standing on the window's first block
+        // (run155's residue on its last), 361 before the word, 806 in all.
+        // Before the fix it was 297/391/920: the two Merchants' 22 seat
+        // rows, city `1/2007`'s `filled` and `space[2]`, the leader's
+        // `reg_land[11]` and `leftover` food and metal on 11270, the
+        // buckets, the sheep, and past the word everything the unfixed
+        // stream parted from 11594. Every row the fix moves in comes on
+        // 11749 or later, past the new word's block.
         let under_n = firsts.values().filter(|(f, _)| *f < WORD_BLOCK - 2).count();
         let first = firsts.values().filter(|(f, _)| *f == FIRST).count();
-        assert_eq!((first, under_n, firsts.len()), (297, 391, 920), "the floor");
+        assert_eq!((first, under_n, firsts.len()), (270, 361, 806), "the floor");
     }
 
     /// **run152 — East Indies' word 10982, widened whole, both directions**

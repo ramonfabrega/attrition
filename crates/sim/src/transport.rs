@@ -18,7 +18,7 @@ use crate::attrition::Domain;
 use crate::build;
 use crate::orders::Worker;
 use crate::tech::TypeId;
-use crate::world::{Cell, Pos, TILES_PER_CELL, tile};
+use crate::world::{Cell, Pos, TILES_PER_CELL, UNITS_PER_TILE, tile};
 use crate::{BUILD_BASE, Player, Sim, UNIT_BASE, Unit};
 
 /// `TypeIndex` values this mechanic compares against (§3.1, §3.3, §5.2).
@@ -862,17 +862,56 @@ impl Sim {
     /// `CHAR_PACK` — so clearing the bit is what puts the boat's guy on the
     /// piece it will play everything else from (`docs/ANIM.md` §3.4).
     ///
-    /// SEAMS: the merchant arm (`TypeIndex` `0x3d`/`0x3e`/`0x190`), which
-    /// snaps the trader onto its tile corner, blocks the four tiles under
-    /// it and raises the leader's `0x2000000`; and the `set_new_location`
-    /// at the tail, which re-seats the unit on its own position.
+    /// **The merchant arm** (`TypeIndex` `0x3d`/`0x3e`/`0x190`, the exact
+    /// ids [`Sim::is_merchant`] tests), `006709c0`'s middle: the tile
+    /// under the trader, `div_3_table[pos >> 6]`, has to answer
+    /// `good_merchant_spot` or the cast returns **before the bit** — the
+    /// unit stays packed and `do_cast` kills the order; otherwise
+    /// `set_new_location(tile × 0xc0, 1, 1)` snaps it and its crew onto
+    /// the tile's corner, the four tiles under it are blocked
+    /// ([`Sim::merchant_footprint`]) and the leader's `0x2000000` goes up.
+    /// East Indies' AI Merchant `1/20` finishes its unpack on 7662 at the
+    /// unit-cell centre (28632, 24024) and stands at (28608, 24000) from
+    /// block 7663; the footprint is what sends gaia's sheep `8/1` round
+    /// its tile corner on 11577, eight frames longer than a straight line
+    /// (`docs/MERCHANT.md` §3.4).
+    ///
+    /// SEAMS: the arm's `MiscAccess::scene->recalc_builds = 1` and the
+    /// head's `UnitData::announce_frame = −1` (`+0x14c`), which feed the
+    /// interface and no record here; and the `set_new_location` at the
+    /// tail, which re-seats the unit on its own position.
     pub(crate) fn cast_unpack(&mut self, u: usize) {
         if !self.units[u].alive() || !self.units[u].on_map {
             return;
         }
+        if self.is_merchant(u) {
+            let t = self.units[u].pos.tile();
+            if !self.good_merchant_spot(u, t) {
+                return;
+            }
+            let corner = Pos::new(t.x * UNITS_PER_TILE, t.y * UNITS_PER_TILE);
+            self.set_new_location(u, corner, true);
+            self.merchant_footprint(u, true);
+            let who = self.units[u].owner;
+            self.economy_changed(who);
+        }
         self.units[u].combat.packed = false;
         self.update_seen(u, false);
         self.update_gpiece(u);
+    }
+
+    /// **A deployed merchant's four tiles** — the two-by-two whose
+    /// bottom-right corner is the tile under it, the same square
+    /// `good_merchant_spot` vetted — blocked by `cast_unpack`'s merchant
+    /// arm and released by `Unit::close@0060ee50` (and by
+    /// `SpellType::cast_pack@00670be0`, which nothing here casts), each
+    /// through [`crate::world::World::set_blocked_at`] in the original's
+    /// order: `(x, y)`, `(x−1, y)`, `(x, y−1)`, `(x−1, y−1)`.
+    pub(crate) fn merchant_footprint(&mut self, u: usize, on: bool) {
+        let t = self.units[u].pos.tile();
+        for (dx, dy) in [(0, 0), (-1, 0), (0, -1), (-1, -1)] {
+            self.world.set_blocked_at(Pos::new(t.x + dx, t.y + dy), on);
+        }
     }
 
     /// The boat a unit becomes: `current_upgrade(MERCHANTFLEET)` for a
