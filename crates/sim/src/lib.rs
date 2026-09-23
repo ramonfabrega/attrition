@@ -2711,6 +2711,22 @@ impl Sim {
     }
 
     /// The squad a captain heads, captain first — `o_down` walked.
+    /// `UnitData::curr_uber_size`: the figures in `i`'s squad now — up
+    /// the `o_up` links to the captain, then the captain's chain. A dead
+    /// figure is relinked out of the chain, so the count is the living.
+    pub fn curr_uber_size(&self, i: usize) -> i32 {
+        let mut head = i;
+        let mut guard = 0;
+        while let Some(up) = self.units[head].o_up {
+            head = up;
+            guard += 1;
+            if guard > 16 {
+                break;
+            }
+        }
+        self.squad_members(head).len() as i32
+    }
+
     pub fn squad_members(&self, captain: usize) -> Vec<usize> {
         let mut out = vec![captain];
         let mut cur = self.units[captain].o_down;
@@ -3057,6 +3073,7 @@ impl Sim {
     /// hits.
     fn apply_gained(&mut self, who: Player) {
         self.wall_stats_dirty[who as usize] = true;
+        self.calc_attrition(who);
         self.sync_researched();
         self.sync_goods_available(who);
         let level = self.tech[who as usize].military_level();
@@ -3071,6 +3088,41 @@ impl Sim {
         if self.borders[who as usize] != self.player_borders(who) {
             self.sync_territory();
         }
+    }
+
+    /// `Leader::calc_attrition@006cdea0`: the attrition this player's
+    /// territory inflicts, from the leading run of `ATTRITION1..4` held
+    /// ([`tech::Roles::attrition_preq`]) and the Russian scaling. The
+    /// original calls it from `gain_tech`, `calc_unit_stats` and
+    /// `Leader::init`; here it runs from [`Sim::apply_gained`], which both
+    /// tech paths reach.
+    ///
+    /// **Unwired until item 552.** Phase 1 built [`attrition::strength`]
+    /// and tested it against hand-set [`attrition::PlayerState`]s, and
+    /// nothing ever wrote `strength` from the tech tree, so every war-zone
+    /// refresh came out at the sentinel 0. Golden chapter four's Allegiance
+    /// at 550 gave the original's squad a period of 48 on block 601 and
+    /// this crate's 0. The Colosseum and Kremlin arms stay false: this
+    /// crate holds no wonder a player owns.
+    pub(crate) fn calc_attrition(&mut self, who: Player) {
+        let w = who as usize;
+        if w >= self.players.len() {
+            return;
+        }
+        let steps = self
+            .tech_tree
+            .roles
+            .attrition_preq
+            .iter()
+            .take_while(|row| {
+                row.is_some_and(|t| self.tech_tree.has_tech(&self.setup, &self.tech[w], t))
+            })
+            .count();
+        let mods = attrition::StrengthMods {
+            russian: self.nation.get(w).is_some_and(|n| n.russians),
+            ..attrition::StrengthMods::default()
+        };
+        self.players[w].strength = attrition::strength(&self.tuning, steps, &mods);
     }
 
     /// Which of the six basic resources this player may spend, and which they
@@ -3300,8 +3352,22 @@ impl Sim {
         if w >= self.tech.len() {
             return Vec::new();
         }
-        self.tech_tree
-            .set_epoch(&self.setup, &mut self.tech[w], line, level, frame)
+        let events = self
+            .tech_tree
+            .set_epoch(&self.setup, &mut self.tech[w], line, level, frame);
+        // `Leader::set_epoch@006d26f0` raises the level through a whole
+        // `Leader::gain_tech` per step, so each step carries `gain_tech`'s
+        // tail. The one a capture has measured is the border's (item 552):
+        // chapter four's `civic who=0 3` widened run132's border 327 → 445
+        // over blocks 505–511, and this crate's not at all while the level
+        // changed and nothing re-read it.
+        for e in &events {
+            if let tech::Gained::UnitUpgrade { to } = *e {
+                self.upgrade_units_to(who, to);
+            }
+        }
+        self.apply_gained(who);
+        events
     }
 
     /// Sets two players at war with each other.
@@ -3365,25 +3431,28 @@ impl Sim {
     /// inlined `LeaderData::has_rare(`[`economy::GEMS`]`)` over
     /// `rare | rare_conquest`, which is what [`Sim::has_rare`] answers.
     ///
-    /// **Still seams**, because nothing here models them: the temple and
-    /// fort border levels (`has_preq(TEMPLEBORDERS2..4)`,
-    /// `has_preq(FORTBORDERS2..4)` — bonus types `0x2c8..0x2ca` and
-    /// `0x2d1..0x2d3`, which this crate loads as `bonus_preqs` and does not
-    /// expose), the Colosseum and Eiffel Tower, and the AI handicap
-    /// allowance. All three are inert on every capture so far — no player
-    /// in one holds a Temple, a Fort or either wonder, and the lobbies run
-    /// at handicap 0 — and the first two are blocked at their
-    /// prerequisite rather than merely unreached (`docs/ATTRITION.md`,
+    /// **The temple and fort border levels** are `1` plus the highest of
+    /// `TEMPLEBORDERS2..4` / `FORTBORDERS2..4` held
+    /// ([`tech::Roles::temple_borders_preq`]), since item 552: chapter
+    /// four's Religion at 400 moved run132's border 296 → 327 and this
+    /// crate's not at all while the level was a constant 1.
+    ///
+    /// **Still seams**, because nothing here models them: the Colosseum
+    /// and Eiffel Tower, and the AI handicap allowance, which is
+    /// unreachable in any game run here (`docs/ATTRITION.md`,
     /// "Territory").
     fn player_borders(&self, who: Player) -> territory::PlayerBorders {
         let w = who as usize;
         let civic = self.tech[w].epoch[tech::Line::Civic.index()].max(0);
+        let roles = &self.tech_tree.roles;
+        let temple_level = 1 + self.bonus_level(who, &roles.temple_borders_preq) as i32;
+        let fort_level = 1 + self.bonus_level(who, &roles.fort_borders_preq) as i32;
         let n = &self.nation[w];
         territory::PlayerBorders::new(
             &self.tuning,
             civic as usize,
-            1,
-            1,
+            temple_level,
+            fort_level,
             &territory::Wonders {
                 colosseum: false,
                 tikal: n.tikal,
@@ -3904,16 +3973,23 @@ impl Sim {
             && unit.kind.shelterable()
             && self.supplied_at(unit.owner, unit.pos);
 
-        let unit = &mut self.units[i];
         if sheltered {
-            unit.sheltered = true;
+            self.units[i].sheltered = true;
             return None;
         }
         // The damage is sixteenths of a hit point per figure, carried through
         // a fractional accumulator the way `Object::take_damage` carries it,
         // so a lone figure loses one whole point a tick and a figure in a
         // squad of four loses one every fourth tick.
-        let sixteenths = attrition::damage(unit.squad_size);
+        //
+        // **The squad is counted, not stored** (item 552):
+        // `Unit::suffer_attrition` asks `curr_uber_size`, which walks up to
+        // the captain and counts down the chain. [`Unit::squad_size`] is a
+        // field nothing maintains — 1 on every unit `init_unit` makes — so
+        // chapter four's hoplites took a whole point a tick against the
+        // original's 6/16 until this read the chain.
+        let sixteenths = attrition::damage(self.curr_uber_size(i));
+        let unit = &mut self.units[i];
         let (lost, frac) = attrition::take_damage(unit.damage_frac, sixteenths);
         unit.damage_frac = frac;
         unit.health -= lost;

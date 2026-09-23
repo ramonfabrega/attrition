@@ -4069,3 +4069,575 @@ fn chapter_five_s_word_frame_is_widened_whole() {
         "run127's dump no longer carries every frame of [{FIRST}, {LAST})"
     );
 }
+
+/// Chapter four's two captures, stood up and staged to a block: the dump
+/// and trace of `run`, the harness built from its own start block, and the
+/// script. The two widenings below share it; it is the body
+/// `chapter_five_s_word_frame_is_widened_whole` has inline.
+struct Staged4 {
+    loaded: crate::load::Loaded,
+    built: Built,
+    ix: crate::capture::indexed::IndexedCapture,
+    script: Script,
+}
+
+fn stage_chapter_four(run: &str) -> Option<Staged4> {
+    let inst = crate::testenv::install()?;
+    let Some((dump, tracepath)) = golden(run) else {
+        eprintln!("skipping: no golden capture {run} (see docs/RUNS.md run132, run133)");
+        return None;
+    };
+    let trace = crate::trace::Trace::read(std::path::Path::new(&tracepath))
+        .expect("a finalized golden trace")
+        .expect("missing RONT header");
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(&dump);
+    let log = Log::parse(&text);
+    let texts = sibling_texts();
+    let logs = siblings(&texts);
+    let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+    let refs: Vec<&Initial> = inits.iter().collect();
+    if refs.is_empty() {
+        eprintln!("skipping: no sibling dumps");
+        return None;
+    }
+    let built = stand_up(&loaded, &log, &refs, &trace);
+    let ix = crate::capture::indexed::IndexedCapture::open(&dump).unwrap();
+    Some(Staged4 {
+        loaded,
+        built,
+        ix,
+        script: chapter(4),
+    })
+}
+
+/// **Chapter four's two captures are one game** (item 552). run132 and
+/// run133 are the same seed and the same script, windowed on different
+/// frames at different detail, and each carries the trace of the whole
+/// run whatever its window. So the draw stream must be the same on every
+/// frame of the two, and that is what makes the border's window and the
+/// bleed's two views of one game rather than two games.
+#[test]
+fn chapter_four_s_two_captures_are_one_game() {
+    let (Some((_, a)), Some((_, b))) = (golden("ch4b"), golden("ch4u")) else {
+        eprintln!("skipping: chapter four needs both run132 and run133 (docs/RUNS.md)");
+        return;
+    };
+    let read = |p: &str| {
+        crate::trace::Trace::read(std::path::Path::new(p))
+            .expect("a finalized golden trace")
+            .expect("missing RONT header")
+    };
+    let (ta, tb) = (read(&a), read(&b));
+    let last = |t: &crate::trace::Trace| t.frames.last().map_or(0, |(f, _)| *f);
+    assert!(
+        last(&ta) >= 1500 && last(&tb) >= 1500,
+        "chapter four's traces end at {} and {}; both runs go to 1500",
+        last(&ta),
+        last(&tb)
+    );
+    let mut draws = 0usize;
+    let mut parted = Vec::new();
+    for f in 0..=1500 {
+        let (la, lb) = (ta.labels(f), tb.labels(f));
+        draws += la.len();
+        if la != lb {
+            parted.push((f, la.len(), lb.len()));
+        }
+    }
+    eprintln!("chapter four: {draws} draws over 1501 frames in each trace");
+    assert!(draws > 0, "chapter four's traces carry no draw");
+    assert_eq!(
+        parted,
+        vec![],
+        "run132's and run133's draw streams part: (frame, run132, run133)"
+    );
+}
+
+/// **Chapter four's border, widened cell for cell** (item 552, run132).
+/// Every block of [`WIDENING_CHAPTER_FOUR_BORDER`]: the whole `WORLD`
+/// record, all 3,600 cells, compared on `who`, `who2`, `flags`, `blocked`,
+/// `solid` and `bad` as `run93_s_block_7932_is_this_crate_s_world_cell_for_cell`
+/// compares a cell; and the `BUILDDATA` and `CITIES` records through
+/// [`crate::diff::harness::widen_block`], which carries the Temple's own
+/// record and Napata's `city_flags` bit by bit. run132 prints no
+/// `UNITDATA` in its window, so a unit's rows are absent there rather than
+/// divergent and are dropped.
+///
+/// A cell's key is its index, `y · 60 + x`, and its first parting block
+/// is kept with the value diff beside it. The owner counts go beside the
+/// keys, block by block, both sides, because the original spreads each
+/// lever's change over several blocks (`GameDaemon::check_borders`, 256
+/// cells a frame) and this crate recomputes wholesale.
+#[test]
+fn chapter_four_s_border_is_widened_cell_for_cell() {
+    use std::collections::BTreeMap;
+    const FIRST: i64 = WIDENING_CHAPTER_FOUR_BORDER.0;
+    const LAST: i64 = WIDENING_CHAPTER_FOUR_BORDER.1;
+    let Some(mut s) = stage_chapter_four("ch4b") else {
+        return;
+    };
+    let players = s.built.sim.players.len();
+    let mut firsts: BTreeMap<(i64, i64, String), (i64, String)> = BTreeMap::new();
+    let (mut blocks, mut cells_compared) = (0usize, 0usize);
+    let mut counts: Vec<(i64, [i64; 2], [i64; 2], usize)> = Vec::new();
+    let mut applied = crate::golden::Applied::default();
+    for f in 0..LAST - 1 {
+        let did = s.script.stage(s.built.sim.frame, &mut s.built, &s.loaded);
+        applied.merge(&did);
+        s.built.tick();
+        let n = f + 1;
+        if n < FIRST {
+            continue;
+        }
+        let Some(at) = s.ix.frames().iter().position(|x| x.number == n) else {
+            continue;
+        };
+        let frame = s.ix.frame_state(at).unwrap();
+        blocks += 1;
+        let mut unit_rows: BTreeMap<(i64, i64, String), (i64, String)> = BTreeMap::new();
+        crate::diff::harness::widen_block(&s.built, &frame, players, n, &mut unit_rows);
+        for (k, v) in unit_rows {
+            // No `UNITDATA` in this window: a unit is "extra" on every
+            // block and says nothing. Buildings are `o` 2000 and up.
+            if k.2 == "extra" && k.1 < 2000 {
+                continue;
+            }
+            firsts.entry(k).or_insert(v);
+        }
+        let raw = s.ix.read_frame(at).unwrap();
+        let parsed = Log::parse(&raw);
+        let Some((_, block)) = parsed.frames().into_iter().find(|(k, _)| *k == n) else {
+            continue;
+        };
+        let Some(world) = block.kid("WORLD") else {
+            continue;
+        };
+        let fields = world.fields().to_vec();
+        let theirs = crate::gamelog::world_cells(&fields);
+        assert_eq!(
+            theirs.len(),
+            3_600,
+            "run132's block {n} is not a whole WORLD scan"
+        );
+        let w = &s.built.sim.world;
+        let code = |o: sim::world::Owner| match o {
+            sim::world::Owner::Player(p) => i64::from(p),
+            sim::world::Owner::Ambiguous => -2,
+            sim::world::Owner::None => -1,
+        };
+        let (mut ours_n, mut theirs_n) = ([0i64; 2], [0i64; 2]);
+        let mut owners_part = 0usize;
+        for y in 0..w.height() {
+            for x in 0..w.width() {
+                let c = sim::world::Cell::new(x, y);
+                let i = (y * w.width() + x) as usize;
+                let t = &theirs[i];
+                let d = w.cell_data(c);
+                let (who, who2) = (code(w.owner(c)), code(w.second(c)));
+                for p in 0..2 {
+                    ours_n[p] += i64::from(who == p as i64);
+                    theirs_n[p] += i64::from(t.who == p as i64);
+                }
+                cells_compared += 1;
+                owners_part += usize::from(who != t.who);
+                for (name, mine, dumped) in [
+                    ("who", who, t.who),
+                    ("who2", who2, t.who2),
+                    ("flags", i64::from(d.flags), t.flags),
+                    ("blocked", i64::from(d.blocked), t.blocked),
+                    ("solid", i64::from(d.solid), t.solid),
+                    ("bad", i64::from(d.bad), t.bad),
+                ] {
+                    if mine != dumped {
+                        firsts
+                            .entry((-3, i as i64, format!("cell({x},{y}).{name}")))
+                            .or_insert((n, format!("ours {mine} theirs {dumped}")));
+                    }
+                }
+            }
+        }
+        if counts
+            .last()
+            .is_none_or(|l| (l.1, l.2, l.3) != (ours_n, theirs_n, owners_part))
+        {
+            counts.push((n, ours_n, theirs_n, owners_part));
+        }
+    }
+    eprintln!(
+        "chapter four staged: {} line(s) ran, {} unit(s), {} building(s)",
+        applied.ran, applied.units, applied.buildings
+    );
+    for ((word, why), k) in &applied.skipped {
+        eprintln!("  {k:5} {word}: {why}");
+    }
+    for (n, o, t, k) in &counts {
+        eprintln!("  block {n}: owner 0/1 cells ours {o:?} theirs {t:?}, {k} owners part");
+    }
+    let mut by_block: BTreeMap<i64, Vec<String>> = BTreeMap::new();
+    for ((w, o, what), (f, row)) in &firsts {
+        by_block
+            .entry(*f)
+            .or_default()
+            .push(format!("{w}/{o} {what}: {row}"));
+    }
+    for (f, rows) in &by_block {
+        if rows.len() <= 12 {
+            for r in rows {
+                eprintln!("  f{f} {r}");
+            }
+        } else {
+            eprintln!("  f{f}: {} keys, first {}", rows.len(), rows[0]);
+        }
+    }
+    eprintln!(
+        "ch4 border widening: {blocks} blocks [{FIRST}, {LAST}), {cells_compared} cells, \
+         {} keys parted",
+        firsts.len()
+    );
+    assert_eq!(
+        blocks,
+        (LAST - FIRST) as usize,
+        "run132's dump no longer carries every frame of [{FIRST}, {LAST})"
+    );
+    // **The three levers, each settled cell for cell** (item 552). The
+    // original's owner-0 count is 266, then 296 from block 310 (the
+    // Temple), 327 from 411 (Religion, temple level 2) and 445 from 511
+    // (Civic 3). The count is §8's falsifier and it did not fire on any
+    // lever; this crate reaches each figure on every cell once the sweep
+    // is done. Each of the item's three fixes was found by this test's
+    // counts before it had assertions: the interpreter's old
+    // `place_building` arm left an unstarted site (266 throughout), the
+    // temple level was a constant 1 (327 never reached), and
+    // `set_leader_epoch` skipped `gain_tech`'s tail (445 never reached).
+    // Made to fail once with the last reverted: the settled list stops at
+    // 411.
+    let settled: Vec<(i64, i64)> = counts
+        .iter()
+        .filter(|c| c.3 == 0)
+        .map(|c| (c.0, c.2[0]))
+        .collect();
+    assert_eq!(
+        settled,
+        vec![(295, 266), (310, 296), (411, 327), (511, 445)],
+        "the blocks on which every owner agrees, with the original's count"
+    );
+    assert!(
+        counts.iter().all(|c| c.2[1] == 261 && c.1[1] == 261),
+        "player 1's 261 cells moved on one side"
+    );
+    // **What parts is the sweep, and only the sweep.** The original spreads
+    // each lever over the blocks `GameDaemon::check_borders` takes at 256
+    // cells a frame; this crate recomputes wholesale on the line's own
+    // frame (`docs/ATTRITION.md`, "Territory"). So a `who` row may part
+    // inside the three windows and nowhere else, and every one has closed
+    // by the next settled block above.
+    let sweeping =
+        |f: i64| (301..310).contains(&f) || (401..411).contains(&f) || (501..511).contains(&f);
+    let cell_rows: Vec<String> = firsts
+        .iter()
+        .filter(|((w, _, what), (f, _))| *w == -3 && !(what.ends_with(".who") && sweeping(*f)))
+        .map(|((_, _, what), (f, row))| format!("{f} {what}: {row}"))
+        .collect();
+    assert_eq!(
+        cell_rows,
+        Vec::<String>::new(),
+        "a cell parts outside the sweep: the Temple's footprint, `who2`, or \
+         a steady-state owner"
+    );
+    // The records beside the cells: the 14 standing rows of run132's first
+    // block — `0/2000`'s AI half of Napata's record, which `ai off` leaves
+    // this crate holding at zero, and London's `filled`/`land` one apart —
+    // and nothing else. The Temple's `BUILDDATA` and Napata's temple bit
+    // (`city_flags[0x80]`, 0 → 1 on block 301) agree on every block.
+    let other: Vec<String> = firsts
+        .iter()
+        .filter(|((w, _, _), (f, _))| *w != -3 && *f != FIRST)
+        .map(|((w, o, what), (f, row))| format!("{f} {w}/{o} {what}: {row}"))
+        .collect();
+    assert_eq!(other, Vec::<String>::new(), "a building or city row parts");
+    // **run132's first parting is 301**, the Temple's frame, and it is the
+    // sweep's: 30 cells this crate owns a sweep early. The chapter's word,
+    // 1277, is in run133's window; this is the border window's own.
+    let first_parting = firsts
+        .iter()
+        .filter(|(_, (f, _))| *f != FIRST)
+        .map(|(_, (f, _))| *f)
+        .min();
+    assert_eq!(first_parting, Some(301), "run132's first parting moved");
+    assert_eq!(
+        firsts.iter().filter(|(_, (f, _))| *f == FIRST).count(),
+        14,
+        "the standing rows on run132's first block moved"
+    );
+}
+
+/// **Chapter four, walked** — the border and the bleed (`docs/GOLDEN.md`
+/// §8, item 552, run133). Eight staged lines: `!ai off`, the Temple, the
+/// two techs and the civic level, the squad, the scout and the wagon.
+#[test]
+fn chapter_four_holds_to_the_golden_word() {
+    let Some(w) = walk_chapter("ch4u", 4, 8, 1500) else {
+        return;
+    };
+    assert!(
+        w.word >= GOLDEN_WORD_CHAPTER_FOUR,
+        "chapter four's golden word fell to {} from {GOLDEN_WORD_CHAPTER_FOUR}",
+        w.word
+    );
+    assert_eq!(
+        w.word, GOLDEN_WORD_CHAPTER_FOUR,
+        "chapter four's golden word moved; re-pin it here and say so in \
+         docs/GOLDEN.md §8"
+    );
+    eprintln!(
+        "chapter four: sequence {}, values {:?}",
+        w.sequence, w.value
+    );
+}
+
+/// **Chapter four's word, widened whole, both directions** (item 552,
+/// `docs/DECISIONS.md` 43). Every record run133 carries on every block of
+/// [`WIDENING_CHAPTER_FOUR`]: [`crate::diff::harness::widen_block`] on
+/// every unit and figure — which compares the namesake's two fields,
+/// `attrition` and `unit_masks2`'s supply mark, since this item — and the
+/// leader record whole for both players at `LEADERS=2`. Each key's first
+/// parting block is kept with the value diff beside it.
+///
+/// **The bleed, printed both sides.** For each of player 1's staged units
+/// (the three hoplite figures, the scout and the wagon) a line on every
+/// block its `attrition`, `damage`, `damage_frac`, supply mark or cell
+/// owner changes on either side.
+#[test]
+fn chapter_four_s_word_frame_is_widened_whole() {
+    use std::collections::BTreeMap;
+    const FIRST: i64 = WIDENING_CHAPTER_FOUR.0;
+    const LAST: i64 = WIDENING_CHAPTER_FOUR.1;
+    let Some(mut s) = stage_chapter_four("ch4u") else {
+        return;
+    };
+    let players = s.built.sim.players.len();
+    let mut firsts: BTreeMap<(i64, i64, String), (i64, String)> = BTreeMap::new();
+    let mut missing = std::collections::BTreeSet::new();
+    let (mut blocks, mut rows, mut leader_rows) = (0usize, 0usize, 0usize);
+    let mut last_seen: BTreeMap<(i64, i64), String> = BTreeMap::new();
+    for f in 0..LAST - 1 {
+        s.script.stage(s.built.sim.frame, &mut s.built, &s.loaded);
+        s.built.tick();
+        let n = f + 1;
+        if n < FIRST {
+            continue;
+        }
+        let Some(at) = s.ix.frames().iter().position(|x| x.number == n) else {
+            continue;
+        };
+        let frame = s.ix.frame_state(at).unwrap();
+        blocks += 1;
+        let (_, k) = crate::diff::harness::widen_block(&s.built, &frame, players, n, &mut firsts);
+        rows += k;
+        let raw = s.ix.read_frame(at).unwrap();
+        let flog = Log::parse(&raw);
+        for who in 0..2usize {
+            let Some(block) = flog.leader_block(n, who as i64) else {
+                continue;
+            };
+            let t = crate::diff::leader::theirs(&block);
+            for (k, v) in crate::diff::leader::rows(&s.loaded, &s.built, who) {
+                let Some(&y) = t.get(&k) else {
+                    missing.insert(k);
+                    continue;
+                };
+                leader_rows += 1;
+                if v != y {
+                    firsts
+                        .entry((who as i64, -1, format!("leader:{k}")))
+                        .or_insert((n, format!("ours {v} theirs {y}")));
+                }
+            }
+        }
+        // **Both sides printed once on the word's two blocks** (DECISIONS
+        // 43), for player 1's staged units: the record the draw is spent
+        // in, before any quiet row is trusted.
+        if (GOLDEN_WORD_CHAPTER_FOUR..=GOLDEN_WORD_CHAPTER_FOUR + 1).contains(&n) {
+            for them in frame.units.iter().filter(|u| u.who == 1 && u.o >= 6) {
+                let mine = u8::try_from(them.who)
+                    .ok()
+                    .zip(i16::try_from(them.o).ok())
+                    .and_then(|(w, o)| s.built.sim.unit_by_o(w, o))
+                    .map(|u| &s.built.sim.units[u]);
+                eprintln!("  block {n} 1/{} theirs {them:?}", them.o);
+                match mine {
+                    Some(u) => eprintln!(
+                        "  block {n} 1/{} ours pos {:?} heading {:?} orders {:?} guys {:?}",
+                        them.o, u.pos, u.movement.heading, u.orders, u.guys
+                    ),
+                    None => eprintln!("  block {n} 1/{} ours: absent", them.o),
+                }
+            }
+        }
+        // The bleed's own timeline: player 1's staged units, `o` 6 and up.
+        let w = &s.built.sim.world;
+        for them in frame.units.iter().filter(|u| u.who == 1 && u.o >= 6) {
+            let mine = u8::try_from(them.who)
+                .ok()
+                .zip(i16::try_from(them.o).ok())
+                .and_then(|(w, o)| s.built.sim.unit_by_o(w, o))
+                .map(|u| &s.built.sim.units[u]);
+            let cell = |x: i64, y: i64| {
+                let c = sim::Pos::new(x as i32, y as i32).cell();
+                w.owner(c).player().map_or(-1, i64::from)
+            };
+            let theirs_row = format!(
+                "attr {:?} dmg {:?}+{:?}/16 shelter {:?} on {}",
+                them.attrition,
+                them.damage,
+                them.damage_frac,
+                them.unit_masks2.map(|m| i64::from(m & 0x4_0000 != 0)),
+                cell(them.pos.x, them.pos.y)
+            );
+            let ours_row = mine.map_or("absent".to_string(), |u| {
+                format!(
+                    "attr {} hp {}/{} +{}/16 shelter {} on {}",
+                    u.attrition,
+                    u.health,
+                    u.max_health,
+                    u.damage_frac,
+                    i64::from(u.sheltered),
+                    w.owner_at(u.pos).player().map_or(-1, i64::from)
+                )
+            });
+            let row = format!("theirs {theirs_row} | ours {ours_row}");
+            if last_seen.get(&(them.who, them.o)) != Some(&row) {
+                eprintln!("  bleed {n} 1/{} {row}", them.o);
+                last_seen.insert((them.who, them.o), row);
+            }
+        }
+    }
+    let mut by_block: BTreeMap<i64, Vec<String>> = BTreeMap::new();
+    for ((w, o, what), (f, row)) in &firsts {
+        by_block
+            .entry(*f)
+            .or_default()
+            .push(format!("{w}/{o} {what}: {row}"));
+    }
+    for (f, rows) in &by_block {
+        if rows.len() <= 12 || (GOLDEN_WORD_CHAPTER_FOUR..=GOLDEN_WORD_CHAPTER_FOUR + 1).contains(f)
+        {
+            for r in rows {
+                eprintln!("  f{f} {r}");
+            }
+        } else {
+            eprintln!("  f{f}: {} keys, first {}", rows.len(), rows[0]);
+        }
+    }
+    eprintln!(
+        "ch4 widening: {blocks} blocks [{FIRST}, {LAST}), {rows} record rows, \
+         {leader_rows} leader rows, {} keys parted; {} leader keys not printed \
+         at LEADERS=2",
+        firsts.len(),
+        missing.len()
+    );
+    assert_eq!(
+        blocks,
+        (LAST - FIRST) as usize - 1,
+        "run133's dump no longer carries every frame of [{FIRST}, {LAST}) \
+         but 1500, the block its `!quit` replaces"
+    );
+    assert_eq!(
+        leader_rows,
+        2 * 88 * blocks,
+        "the leader rows LEADERS=2 prints (88 a player) are not compared on \
+         every block"
+    );
+    // **The standing rows of run133's first block**, chapter five's three
+    // families and nothing of this chapter's: `build:extra` (the end
+    // detail prints no `BUILDDATA`), the unmodelled `form`, and two
+    // `filled_gather_slots`.
+    let standing = |what: &str| {
+        what == "form" || what == "build:extra" || what.starts_with("leader:filled_gather_slots")
+    };
+    let at_floor: Vec<&String> = firsts
+        .iter()
+        .filter(|(_, (f, _))| *f == FIRST)
+        .map(|((_, _, what), _)| what)
+        .collect();
+    assert!(
+        at_floor.iter().all(|w| standing(w)) && at_floor.len() == 27,
+        "the standing rows on run133's first block moved: {at_floor:?}"
+    );
+    // **The bleed agrees, tick for tick, to past the word** (item 552).
+    // Every hoplite figure's period, every 6/16 and every whole point of
+    // `damage` from block 601 to 1337, the scout's and the wagon's zero,
+    // and the supply mark: the first row of the namesake's record is on
+    // 1338, after the word has walked `1/7` onto unowned ground in this
+    // crate. It took two fixes: `Leader::calc_attrition` wired to the tech
+    // tree (the period was 0 on every figure, `docs/ATTRITION.md`
+    // "Strength") and `curr_uber_size` counted rather than stored (each
+    // tick took 16/16, not 6/16). Made to fail once with the second
+    // reverted: `1/8 damage_frac` parts on 617.
+    let bleed = |what: &str| {
+        matches!(
+            what,
+            "attrition" | "sheltered" | "damage_frac" | "hits_left" | "myhits"
+        ) || what.starts_with("hits:")
+    };
+    let first_bleed = firsts
+        .iter()
+        .filter(|((_, _, what), _)| bleed(what))
+        .map(|((w, o, what), (f, row))| (*f, format!("{w}/{o} {what}: {row}")))
+        .min();
+    assert_eq!(
+        first_bleed,
+        Some((1338, "1/7 attrition: ours 0 theirs 48".to_string())),
+        "the namesake's record parts somewhere new"
+    );
+    // **What parts under the word**, none of it a draw: the scout's
+    // explore-order `facing` (the declared non-scoring formation mirror,
+    // parked 275, as chapter five's `1/0` on 847); the squad's group id
+    // (`1020001` against `1026401`, a numbering, on 1021); the wagon's
+    // birth path one leg short and its walk from 1102, which is where the
+    // wagon's following the squad starts; and the scout's second figure
+    // three units off on 1172. Pinned by key and block so none of them can
+    // stand in for anything else.
+    let under: Vec<String> = firsts
+        .iter()
+        .filter(|((_, _, what), (f, _))| {
+            *f > FIRST && *f < GOLDEN_WORD_CHAPTER_FOUR && !standing(what)
+        })
+        .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
+        .collect();
+    let want: Vec<&str> = vec![
+        "767 1/9 order:move.facing",
+        "1021 1/6 order:group.id",
+        "1021 1/7 order:group.id",
+        "1021 1/8 order:group.id",
+        "1102 1/10 g.angle[0]",
+        "1102 1/10 g.angle[1]",
+        "1102 1/10 g.angle[2]",
+        "1102 1/10 g.x[0]",
+        "1102 1/10 g.x[1]",
+        "1102 1/10 g.x[2]",
+        "1102 1/10 g.y[0]",
+        "1102 1/10 g.y[1]",
+        "1102 1/10 g.y[2]",
+        "1102 1/10 heading",
+        "1132 1/10 order:move.dest",
+        "1102 1/10 order:move.dest_y",
+        "1133 1/10 order:move.dest_x",
+        "1101 1/10 path:length",
+        "1101 1/10 path[3].to",
+        "1101 1/10 path[4].to",
+        "1101 1/10 path[5].to",
+        "1101 1/10 path[6].to",
+        "1101 1/10 path[7].to",
+        "1102 1/10 pos",
+        "1172 1/9 g.x[1]",
+        "1172 1/9 g.y[1]",
+        "1173 1/9 g.angle[1]",
+    ];
+    let mut under_sorted = under.clone();
+    under_sorted.sort();
+    let mut want_sorted: Vec<String> = want.iter().map(|s| s.to_string()).collect();
+    want_sorted.sort();
+    assert_eq!(under_sorted, want_sorted, "what parts under the word moved");
+}

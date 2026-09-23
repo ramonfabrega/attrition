@@ -40,14 +40,31 @@ matched a C++ method at all. A lookup that finds nothing reads exactly like a
 symbol with no callers. Both functions have one caller and it is ordinary
 code.
 
-**Which territory claims a diff backs.** Two, and they are named where
-they are made. `run40_and_run41_s_sites_and_territory_are_the_original_s`
+**Which territory claims a diff backs.** ~~Two~~ Three, and they are
+named where they are made. `run40_and_run41_s_sites_and_territory_are_the_original_s`
 pins `LeaderData::territory` for both players over two early windows of a
 ticked game; `run80_s_gem_widens_the_ai_s_border_by_forty_three_cells` pins
 it at the far end of a 24,000-frame capture from a seeded state, and is
-what carries the gem term. Everything else under "Territory" — the
-contraction, the tie-break, the temple, fort, Colosseum, Eiffel and
-handicap arms — rests on the reading and the 2026-08-20 audit alone.
+what carries the gem term. **And `chapter_four_s_border_is_widened_cell_for_cell`
+(item 552, run132, golden chapter four) pins every cell's `who` and `who2`
+across three staged levers**: a Temple beside the capital (266 → 296
+cells), Religion (temple border level 2, → 327) and Civic 3 (→ 445). So
+the **temple arm** (a city whose `city_flags` carry `0x80` adds
+`TEMPLE_UPGRADE_TERR[level]` and `level × TERRITORY_LIMIT_CITY`), the
+**temple level** (`1` plus the highest `TEMPLEBORDERS2..4` held) and the
+**civic term** at level 3 are diff-backed now, cell for cell, and with them
+the contraction and the tie-break on every cell those three moved. Still
+reading-only: the fort, Colosseum, Eiffel and handicap arms, Tikal's
+scaling, and the temple levels above 2.
+
+**The budgeted recompute is observed, and this crate does not model it.**
+run132 shows each lever's change land **five blocks after its line and
+over five blocks** (306–310, 406–411, 505–511), which is
+`GameDaemon::check_borders`' 256 cells a frame working through the
+invalidated regions. This crate recomputes wholesale on the line's own
+frame, so the two part on those blocks and agree on every block after
+them. What sets the five-block delay before the first cell changes is not
+read.
 
 **Where the implementation is.** `crates/sim`, in three modules that follow
 this document's three sections: `world` for the grid and its units of length,
@@ -742,7 +759,12 @@ supply; it is its own rule, and it lives with the buildings.
 
 ## Open questions
 
-- **The namesake has never fired in a scored capture.** Measured 2026-09-18
+- ~~**The namesake has never fired in a scored capture.**~~ **It has now:
+  golden chapter four (item 552, run133) scores it, tick for tick, to 1337**
+  — "Golden chapter four" below. And the measurement this bullet stood on
+  was vacuous: this crate never wrote a player's attrition strength from
+  the tech tree, so every war-zone refresh was the sentinel 0 whatever the
+  original would have done. Measured 2026-09-18
   by item 382, instrumented at `attrition_for`'s refresh: **zero non-exempt
   attrition outcomes for either leader across run53's 24,000 frames.** Both
   long captures are idle-human-versus-AI games whose armies never stand in
@@ -910,3 +932,57 @@ and Foraging resistances (the rational's other values), the age scaling,
 militia's ×4 and their refusal of shelter, siege's ×½, the merchants'
 halving, the assassin path, and `ATTRITION_IMPROVED`'s upper steps. Each is
 one `cheat tech`/`cheat add` line on the same recipe.
+
+---
+
+## Golden chapter four (run132, run133, 2026-09-23) — the first diff
+
+Item 552 staged the namesake end to end on Great Lakes with the Leader AI
+off: a Temple, Religion and Civic 3 on three frames, then Allegiance for
+player 0, a hoplite squad and a scout of player 1's on player 0's ground,
+and player 1's Supply Wagon 500 frames later (`docs/GOLDEN.md` §8,
+`docs/RUNS.md` run132 and run133). Run16 observed the same rules by eye;
+this is the first time the harness is compared with the original on
+them, field for field.
+
+**Diff-backed now** (`chapter_four_s_word_frame_is_widened_whole`, which
+compares `UNITDATA`'s `attrition` and `unit_masks2`'s supply mark since
+this item):
+
+- **The period is 48 at one step**, `48 × 256 / 256`, on each figure's
+  first refresh after the grant. It is set on the 32-grid, one frame apart
+  by `o`, highest `o` first.
+- **The tick is 6/16 per figure for a squad of three**, on `(f + o) % 48`,
+  carried through `damage_frac` exactly. That is 13 ticks and every
+  sixteenth, 617 to 1337.
+- **The scout is exempt** (`is_special`, check 8) and **the wagon at war
+  is exempt** (check 13): `attrition 0` on every block.
+
+**Two defects in this crate, both fixed.** Neither was a formula: the
+arithmetic here was right. Both were wiring.
+
+- **`Leader::calc_attrition` was never called.** `attrition::strength` was
+  built and tested against hand-set `PlayerState`s, and nothing wrote
+  `strength` from the tech tree, so the period was 0 on every figure. It
+  now runs from `Sim::apply_gained`, over the leading run of
+  `ATTRITION1..4` (bonuses 49–52: Allegiance, Oath of Fealty, Patriotism,
+  Nationalism), with the Russian scaling. The Colosseum and Kremlin arms
+  stay false, because this crate holds no owned wonder.
+  `calc_anti_attrition` (Foraging, Mongols, Titanium, Liberty) is **still
+  unwired**. Every resistance is the base 256 until a capture needs one.
+- **The squad size was a stored 1.** `Unit::suffer_attrition` asks
+  `curr_uber_size`, which walks the `o_up`/`o_down` chain. `Unit::squad_size`
+  is set nowhere past its default, so every figure took 16/16 a tick. The
+  damage now counts the chain, as the original does. `fight.rs` still reads
+  the stored field, which is a separate question.
+
+**Observed and not yet diff-backed: the supply veto.** The squad marched
+about 30 tiles east of where it was placed, still on player 0's ground,
+and the wagon trailed after it. Every tick with the wagon 23 tiles or more
+away landed; every tick due with it 11–13 tiles away was vetoed, with
+`0x40000` on the figure's own tick frame. That brackets the 14-tile radius
+rather than hitting it. This crate's squad parts from the original's at
+1277 (the word, a `GUARDORDER` beside the wagon), so its positions differ
+before the wagon arrives, and the veto cannot be compared yet.
+`docs/SUPPLY.md` has the shelter's half.
+

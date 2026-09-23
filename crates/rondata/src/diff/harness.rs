@@ -787,6 +787,15 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
             ("city_flags[0x2]", 0x2, ours.no_heal),
             ("city_flags[0x10]", 0x10, ours.capital),
             ("city_flags[0x40]", 0x40, ours.alarm),
+            // **The temple mark** (item 552): `Build::activate` sets it on
+            // a Temple's city and `compute_reg_territory` reads it as "this
+            // city takes the temple border bonus". Chapter four's Temple
+            // sets it on block 301.
+            (
+                "city_flags[0x80]",
+                0x80,
+                built.sim.city_has(ci, sim::build::Ident::Temple),
+            ),
             ("city_flags[0x100]", 0x100, ours.unassimilated),
             ("city_flags[0x2000]", 0x2000, ours.no_muster),
             ("city_flags[0x4000]", 0x4000, ours.founding_capital),
@@ -1423,6 +1432,19 @@ pub(crate) fn widen_block(
                 }),
             ),
             ("myspeed".into(), i64::from(un.movement.speed), them.myspeed),
+            // **The namesake's two fields** (item 552): the pending period
+            // `Unit::process_attrition` writes on each 32-frame refresh,
+            // and `unit_masks2`'s `0x40000`, the mark a tick supply vetoed
+            // leaves (`docs/SUPPLY.md`, "Behavioural check"). Printed on
+            // every `UNITDATA` and compared nowhere until chapter four put
+            // a squad on hostile ground; zero on both sides everywhere
+            // else, which is itself a claim this row now checks.
+            ("attrition".into(), i64::from(un.attrition), them.attrition),
+            (
+                "sheltered".into(),
+                i64::from(un.sheltered),
+                them.unit_masks2.map(|m| i64::from(m & 0x4_0000 != 0)),
+            ),
             // **The pool slot** (item 518): `UnitData +0x80`, the
             // group every member points at, `who·64 + s`. It is
             // what `Groups::process` selects on once a frame, so a

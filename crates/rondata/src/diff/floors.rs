@@ -206,6 +206,7 @@ mod tests {
         let chapters = [
             GOLDEN_WORD_CHAPTER_ONE,
             GOLDEN_WORD_CHAPTER_TWO,
+            GOLDEN_WORD_CHAPTER_FOUR,
             GOLDEN_WORD_CHAPTER_FIVE,
         ];
         let lowest = *chapters.iter().min().unwrap();

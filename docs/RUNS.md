@@ -4974,3 +4974,143 @@ the original's goes north and ours goes south. The original's `1/64` then
 waits hard on `1/62`, while ours steps and stops. The original's frame
 11901 runs `PathFinder::find_upath` → `astar_path`.
 `docs/PATHFINDER.md` §23; `run136_s_word_frame_is_widened_whole`.
+## run132 — chapter four, the border: three levers, cell for cell (2026-09-23, item 552)
+
+The golden record's fourth chapter (`docs/GOLDEN.md` §8), staged from
+`tools/gamelog/golden/chapter4.cmd`: `!ai off` at 0, `add temple who=0
+28,160` at 300, `tech who=0 religion on` at 400, `civic who=0 3` at 500,
+`tech who=0 allegiance on` at 550, then the squad, the scout and the wagon
+at 600, 605 and 1100. run127's command with the chapter file swapped and
+the border's detail:
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch4b \
+    --map 14 --end-frame 1500 --log-window 295 545 --timeout 3600 \
+    --detail end:WORLD=6,BUILDS=7,CITIES=5,MISC=1 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 \
+    --cmd-file tools/gamelog/golden/chapter4.cmd
+```
+
+`success: true`, exit 0, 1501 frames, `MAP_STYLE 14` and seed 12345 read
+back, five settings files restored. **2178 s from launch to exit, 830 MB
+of dump and 11.9 MB of trace** (836 MB on disk). `WORLD` costs about
+3.3 MB and **8.7 s a block**; the other 1250 frames run fast.
+
+**The window is `[295, 545)`, not §8's `[295, 345)`**, because the narrow
+one sees the Temple and neither other lever. `LeaderData::territory` is
+printed only from `LEADERS=8`, so the cell count in `WORLD` is the only
+cheap reading of a border.
+
+**It took three launches.** The first, at `--timeout 1500`, was slow, not
+blocked: it dumped 295..467 without a gap (577 MB) and the runner gave up
+at 1500 s. A timeout writes no receipt, and a wait on the receipt alone
+sat idle for 1.5 h; wait on the game's exit. That take is kept at
+`~/ron-golden/ch4b-truncated`. The second stalled before its first frame:
+0.2% CPU, a 544-byte trace, `wine.log` ending at MoltenVK's instance line.
+Nothing was on the screen, and it was killed and the prefix cleared. The
+third lost the lane lock by two seconds to att-563's run136 and was
+relaunched when that capture exited.
+
+**The grep before it.** No capture on this disk carries a Temple (run80:
+none by 23,999 on Great Lakes) or a staged civic level. run16 is the only
+one with attrition ticks, and it has no border lever.
+
+### The predictions, written into the `.cmd` file before the run
+
+Committed as `c4ba076`. All held:
+
+| check | predicted | observed |
+| --- | --- | --- |
+| every staged line runs | ten `INFO cmd`, each returning 1 | ten, each 1 (`cmdsran.py`) |
+| the window | 252 blocks: 1, 295..544, 1501 | 252, gaps only at 295 and 1501 |
+| the Temple | `orig_type 437`, `who 0`, on cell (7,40), finished | block 301, (5376, 30720), `(int)construct_hits 1200` = `myhits 1200`, `frame_started 300` |
+| Napata's temple bit | `city_flags` 18449 → 18577 on 301 | exactly; London's 16401 does not move |
+| owner-0 cells | 266, then more after each lever | 266 → 296 (306–310) → 327 (406–411) → 445 (505–511) |
+| owner-1 cells | 261 throughout | 261 on every block |
+
+### §8's border falsifiers, and none fired
+
+- **The Temple is a finished building, not a construction site.**
+  `run_cmd` calls `Build::activate` straight after `init_build` for a line
+  without `NEW`, so `finish` is not owed.
+- **The count moves across 300**, +30.
+- **It moves across 400 (+31) and 500 (+118).** Religion is a temple
+  border level, and Civic 3 is a border term.
+
+**Each lever lands five blocks late and over five blocks.** Changes start
+on 306, 406 and 505 and end on 310, 411 and 511. That is the budgeted
+recompute (`GameDaemon::check_borders`, 256 cells a frame) seen in the
+dump. Every cell that changes goes from −1 to 0.
+
+### What the harness made of it
+
+`chapter_four_s_border_is_widened_cell_for_cell` compares all 3,600 cells
+on every block (`who`, `who2`, `flags`, `blocked`, `solid`, `bad`), plus
+the buildings and the cities. It found three defects, one per lever,
+before it had any assertions:
+
+- **The interpreter ordered the Temple rather than placing it.** Its
+  building arm took `Sim::place_building`, which is `Group::action_build`:
+  it charges the price and leaves an unstarted site, so the city's temple
+  bit and the border never moved. The arm is `Objects::init_build` and
+  then `Build::activate(0, 1, 0)`, whose arguments are read from the
+  listing at `0x7e055b`.
+- **The temple border level was a constant 1.** It is now `1` plus the
+  highest `TEMPLEBORDERS2..4` held (bonuses 28–30: Religion, Monotheism,
+  Existentialism). The fort level is wired the same way.
+- **`civic` changed the level and nothing re-read it.** `Leader::set_epoch`
+  raises a level through a whole `gain_tech` per step. The crate's
+  `set_leader_epoch` skipped `gain_tech`'s tail, including the border
+  resync.
+
+With the three fixes the border agrees **cell for cell** on 295–300, from
+310 to 400, from 411 to 500 and from 511 to 544. The only parting is the
+sweep's own windows, where this crate recomputes wholesale on the line's
+frame.
+
+## run133 — chapter four, the bleed: the namesake scored (2026-09-23, item 552)
+
+The same script as run132, windowed on the bleed:
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch4u \
+    --map 14 --end-frame 1500 --log-window 595 1500 --timeout 3600 \
+    --detail end:UNITS=3,GUYS=2,DEATHS=1,LEADERS=2 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 \
+    --cmd-file tools/gamelog/golden/chapter4.cmd
+```
+
+`success: true`, exit 0, 1501 frames, map and seed read back, one take:
+**372 s from launch to exit, 120 MB of dump and 12.0 MB of trace**. Ten
+`INFO cmd` records each returned 1. There are 907 blocks: 1, 595..1499
+and 1501. **It is run132's game**: `chapter_four_s_two_captures_are_one_game`
+finds all 15,099 draws identical on every frame. The capture adds `37
+!ffwd 2` for a 1500-frame run, where chapters two and five had `!ffwd 1`;
+both chapter-four captures carry the same line.
+
+### The predictions and §8's bleed falsifiers
+
+| check | predicted | observed |
+| --- | --- | --- |
+| births | squad 601, scout 606, wagon 1101 | `1/6..1/8` on 601, `1/9` on 606, `1/10` on 1101 |
+| the period | 48 from each figure's first refresh | `1/8` 601, `1/7` 602, `1/6` 603: 48 |
+| the tick | 6/16 on `(f + o) % 48` | 617/618/619, then every 48, to 1337: 6 + 0/16 |
+| the scout | 0 throughout | 0 on every block |
+| the wagon | 0 throughout, at war | 0 on every block |
+| the shelter | no tick with the wagon within 14 tiles | every tick at ≥ 23 tiles landed; every tick at 11–13 tiles vetoed, `0x40000` on the tick frame |
+
+**None fired.** The caveat did happen: the squad left its placement. It
+marched about 30 tiles east on player 0's ground, and the wagon trailed
+after it and came within reach only at 1385. No figure fought; `damage` is
+attrition's alone.
+
+### What the harness made of it
+
+Two wiring defects, both in the namesake (`docs/ATTRITION.md`, "Golden
+chapter four"): the strength was never written from the tech tree (period
+0 on every figure), and the squad size was a stored 1 (16/16 a tick). With
+both fixed, the bleed agrees tick for tick to 1337. The word is **1277**:
+the original's squad takes a `GUARDORDER` and a move back beside its
+wagon, and this crate's keeps its `AttackTo`.

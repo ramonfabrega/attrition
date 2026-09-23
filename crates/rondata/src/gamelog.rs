@@ -1732,6 +1732,12 @@ pub struct UnitDump {
     /// predicates read.
     pub unit_masks: Option<i64>,
     pub unit_masks2: Option<i64>,
+    /// `UnitData::attrition` (`+158`), the pending tick period in frames
+    /// that `Unit::process_attrition` writes on each 32-frame refresh
+    /// (`docs/ATTRITION.md`, "The cadence"). Printed on every `UNITDATA`
+    /// since the first capture and parsed from item 552, when chapter four
+    /// put a squad on hostile ground.
+    pub attrition: Option<i64>,
     /// `UnitData::myspeed`, the output of `get_speed`'s pipeline
     /// (`docs/MOVEMENT.md`).
     pub myspeed: Option<i64>,
@@ -2894,6 +2900,7 @@ fn unit_of(b: Block<'_>) -> Option<UnitDump> {
         idle: b.int("idle"),
         unit_masks: b.int("unit_masks"),
         unit_masks2: b.int("unit_masks2"),
+        attrition: b.int("attrition"),
         myspeed: b.int("myspeed"),
         o_up: b.int("o_up"),
         o_down: b.int("o_down"),

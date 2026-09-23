@@ -352,6 +352,22 @@ pub struct Roles {
     pub smelter_preq: [Option<TypeId>; 3],
     pub university_preq: [Option<TypeId>; 5],
     pub taxation_preq: [Option<TypeId>; 4],
+    /// `TEMPLEBORDERS2..4` and `FORTBORDERS2..4`, bonuses 28–30 and 37–39
+    /// (`0x2c8..0x2ca`, `0x2d1..0x2d3` off `BASE_BONUSTYPES`): Religion,
+    /// Monotheism and Existentialism, and Fortification, Bombardment and
+    /// Strategic Reserves in the shipped file. `compute_reg_territory@006b0bb0`
+    /// asks `has_preq` from the top down, so the level is **`1` plus the
+    /// highest held** — `1` meaning none, not "no temple" — and it indexes
+    /// `TEMPLE_UPGRADE_TERR` and `FORT_UPGRADE_TERR` and multiplies the
+    /// city and fort limit steps (`docs/ATTRITION.md`, "The cost").
+    pub temple_borders_preq: [Option<TypeId>; 3],
+    pub fort_borders_preq: [Option<TypeId>; 3],
+    /// `ATTRITION1..4`, bonuses 49–52 (`0x2dd..0x2e0`): Allegiance, Oath of
+    /// Fealty, Patriotism and Nationalism in the shipped file.
+    /// `Leader::calc_attrition@006cdea0` counts the **leading run** held —
+    /// it breaks at the first `has_preq` that fails — and that count
+    /// indexes `ATTRITION_IMPROVED` (`docs/ATTRITION.md`, "Strength").
+    pub attrition_preq: [Option<TypeId>; 4],
     pub airbase: Option<TypeId>,
     pub market: Option<TypeId>,
     pub knowledge: Option<TypeId>,

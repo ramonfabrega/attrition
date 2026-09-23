@@ -566,3 +566,30 @@ document:
 What it does not establish: the radius's edge (the wagon was two tiles
 away, not fourteen), the upgrade steps, the patriots as sources, the
 hero-generals, militia's refusal, and the healing and reload consumers.
+
+## Golden chapter four (run133, 2026-09-23) — the shelter at a distance
+
+Run16 saw the wagon placed two tiles from the squad. Item 552's chapter
+four placed player 1's Supply Wagon at 1100 beside where its squad had
+been put at 600, but the squad had already marched about 30 tiles east on
+player 0's ground. The wagon then **walked after it**: its order and path
+from its birth block point at the squad, and it closes from 46 tiles
+(1145) to 1–3 (1433 on). So the veto is observed as a function of
+distance, with the distance measured per tick by `vector_dist` in tiles:
+
+- **Every tick due with the wagon at 23 tiles or more landed**: 1145,
+  1193, 1241, 1289 and 1337, at 46, 40, 39, 25 and 23 tiles.
+- **Every tick due with it at 11–13 tiles was vetoed** (1385–1387), and
+  every one after. `unit_masks2` carries `0x40000` on each figure's own
+  tick frame, one frame apart by `o`, and the period stays 48.
+
+That **brackets** `SUPPLY_RADIUS` 14 between 13 and 23. The edge itself
+is still not observed. The wagon's following the squad is itself a
+behaviour this document does not describe. This crate's wagon takes a
+path one leg shorter on its birth block (1101) and walks a slightly
+different line from 1102.
+
+**Not diff-backed.** The squads part at 1277 (`docs/GOLDEN.md` §8), before
+the wagon comes within reach, so this crate's veto is never compared in
+this capture.
+
