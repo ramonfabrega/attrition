@@ -2496,7 +2496,7 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // parts on `1/62`, which stops against `1/23` a frame late because it
     // walks a detour planned around `1/64`, and `1/64` stands 21/20 behind
     // the original's from army 2's group order of frame 11512
-    // (`docs/PATHFINDER.md` §23).
+    // (`docs/GROUPS.md` §22).
     (
         "LONG_WORD_GREAT_LAKES",
         LONG_WORD_GREAT_LAKES,

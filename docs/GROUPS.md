@@ -2969,3 +2969,110 @@ to 11531. **Guard**:
 §4.2), which no Great Lakes frame can test because the map is one
 region. The wider endpoint and East Indies effects are in the landing's
 journal, measured by the gate.
+
+## 22. Great Lakes 11757 — a detour around a unit the army left behind (item 554, 2026-09-22)
+
+Item 545 moved Great Lakes' long word to **11757**, past run125's last
+block. Ours spends **7** draws against the original's **8**, parting at
+index **0**: the original's first draw is
+`Guy::set_anim+0x97a < Unit::move_step+0x823`. Ours spends that draw
+on **11758**. run130 is the capture (`docs/RUNS.md`), and
+`run130_s_word_frame_is_widened_whole` is the widening. **The word did
+not move.**
+
+### 22.1 This crate's side, before the capture
+
+`RON_DEBUG_SITES=11750-11760` on the run53 test names the unit: ours
+spends the `move_step` draw on 11758 from **`1/62`**, a type-82 unit of
+army 2 on an `AttackTo` to (36552, 23448). It stands on 11758 and
+re-paths on 11759. run125's own widening, read backwards, already shows
+army 2 parting inside that capture, and run130's stanza wrote four
+readings, each with what would kill it, before the run. R1 is the same
+unit a frame early. R2 is another unit. R3 is the march's lag. R4 is
+the group.
+
+### 22.2 The chain, from the word backwards
+
+Every step below is a row of the widening, both sides printed:
+
+1. **11758, the word's block.** The original's `1/62` stops against
+   `1/23` (`collide_o 23`, `coll` (41378, 22078)) and goes to its stand
+   (`cur_anim` 8 → 0, `t1/33`) at (41398, 22093). This crate's is still
+   walking at (41458, 22138) and stops a frame later. **R1 holds and R2
+   is dead**: `1/62` is the only player-1 figure that changes animation
+   while moving on the block.
+2. **11702.** `1/62`'s position first parts, 17/8 off, on the first
+   frame it walks the stretch where its path differs.
+3. **11689, frame 11688.** Both sides collide at (42272, 23027) and plan
+   a local detour (path flag 2) to the same waypoint (41928, 22680).
+   The routes differ in the middle. The original's goes (42264, 22872) →
+   (42264, 22632) → (42216, 22584). This crate's goes (42264, 22872) →
+   (42312, 22824) → (42312, 22632) → (42264, 22584), one cell east and
+   one slot longer. **The only unit within 480 of `1/62` that stands
+   elsewhere is `1/64`**, army 2's own: (42117, 22691) in the original and
+   (42138, 22711) here, one unit cell over on y. `1/11` and `1/63` agree
+   exactly. **R3 holds.**
+4. **11514.** `1/64`'s lag opens, with a step of 12 here against 25 in
+   the original (`last_speed`), 5/12 behind. It widens to 21–27 units
+   and holds there until the detour.
+5. **11513, frame 11512.** Army 2, mustering (status 17), re-issues its
+   group attack-to: `1/60` takes the `GROUPATTACKTOORDER`, and every
+   member's destination agrees on both sides. **Its membership does
+   not.** The original's stance 1 reaches `1/60`, `1/61`, `1/64` and
+   `1/65` and leaves `1/62` and `1/63` at 0, and its `1/64` is left in
+   **no pool group** (`group -1`). This crate's reaches all six and keeps
+   them in 66. **R4, as the stanza framed it, is dead**: `1/62`'s own
+   pool group reads 66 on both sides on the word's blocks. The membership
+   parting is upstream, and it is on `1/64`.
+6. **11424.** The pool pointers had parted once before: the original's
+   `1/62`–`1/64` arrive in pool group 69 (their `come_out` group,
+   `docs/ARMY.md` §3.2), and this crate's in none. They agree again from
+   11425.
+
+### 22.3 The payoff probe, as an assertion
+
+`run130_s_word_is_1_64_s_lag` changes one thing. Before frame 11688 it
+seats this crate's `1/64` on the original's point from block 11688
+(`Sim::probe_relocate`, through `set_new_location`), and nothing else.
+`1/62`'s detour then matches the original's cell for cell. Its march
+agrees to the word, and on 11758 it stands at (41398, 22093) with the
+original's clock. `1/34`'s idle pick on the same block, 3 → 0 here
+against 3 → 2, comes right with it, because it is the draw stream a
+frame on. So **the word is `1/64`'s lag, and the detour search is
+right**: given the original's grid, it returns the original's path.
+
+### 22.4 What this has *not* established
+
+- **Why the original leaves `1/64` out of the pool on 11512, and why its
+  stance misses `1/62` and `1/63`.** The dump at this detail prints only
+  the unit's back-pointer (`UnitData +0x80`), not the pool's lists, and
+  no draw on 11512 names the call. This crate has no such pointer:
+  `Sim::pool_group_of` derives a unit's pool group from army membership,
+  so a unit whose `+0x80` and whose group list disagree cannot be
+  represented. The readers are §3.1's eviction, §3.2's second walk, §4.2's
+  `kill`, and `docs/ARMY.md` §3.2's `add_unit` → `Unit::set_group`, which
+  are the membership predicates this family's audits have found wrong
+  before.
+- **Hypothesis, not a measurement**: a unit outside the pool walks at its
+  own speed, 25, where a member walks under the group cap (§18). That
+  would make the step of 12 on 11514 the cap. It is consistent with
+  every row above and was not probed.
+- **The cheapest next check**: a capture of this game with `cover=1`
+  over 11420–11426 and 11508–11514. The functions each side runs there
+  name the membership path without a reading.
+
+### 22.5 Coverage
+
+**Diff-backed**, in `run130_s_word_frame_is_widened_whole`, over 400
+blocks [11400, 11799]:
+
+- the word's eight rows on 11758;
+- `1/62`'s path first parting on 11689, and its position on 11702;
+- `1/64`'s positions on 11689;
+- `1/64`'s first step and position parting on 11514;
+- army 2's pool pointer and stance on 11513, all six both sides;
+- the first pool parting on 11424.
+
+The counterfactual is `run130_s_word_is_1_64_s_lag`. The coverage pin
+reads run130 around 11758, and no key moved. **Reading-only**: nothing
+in this section. **Open**: the whole of §22.4.

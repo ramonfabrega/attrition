@@ -4457,6 +4457,23 @@ settle_min: 14000000
 # run-up to 11560 at `cover=1` and ~14 minutes of dumping. 180 polls is 60
 # minutes, sized high because the give-up truncates.
 poll_max: 180
+# ==== TAKEN 2026-09-22, **WHOLE** ====
+#
+# 480,987,532 bytes, **240 blocks 11560..11799**, no gap; 17.6 MB of
+# trace. About 18 minutes launch to archive, all five checks green: 11,811
+# frames identical to run53, `MAP_STYLE 14`, 40 blocks shared with run125
+# and 0 differing, and a coverage set on all 13 window frames. The first
+# launch at 21:16 was swallowed: att-552's capture held RonDriver, which is
+# single-instance, so `open -a` only activated it. The second waited for it.
+#
+# **The readings, decided on blocks 11513..11758**: **R1 holds.** The
+# original's `1/62` stops against `1/23` on 11758 at (41398, 22093), and
+# this crate's a frame later, 60/45 behind. R2 is dead: `1/62` is the only
+# player-1 figure that changes animation while moving on the block.
+# **R3 holds**: the detour `1/62` plans on 11689 goes around `1/64`, which
+# stands 21/20 behind. R4, as framed, is dead: `1/62`'s group agrees on the
+# word's blocks. The membership parting is `1/64`'s own, on 11513.
+# `docs/GROUPS.md` §22.
 # Same game: the trace word for word against run53, this map's own 24k run.
 check: python3 tools/gamelog/rngcmp.py rontrace-run53.log rontrace-run130.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=11800)}'
 # And the map, from the dump's own `GAME INFO`.

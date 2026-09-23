@@ -8963,7 +8963,7 @@ mod tests {
             return;
         }
         let first = |who: i64, o: i64, what: &str| firsts.get(&(who, o, what.to_string())).cloned();
-        // **The word's blocks** (`docs/PATHFINDER.md` §23). On 11758 the
+        // **The word's blocks** (`docs/GROUPS.md` §22). On 11758 the
         // original's `1/62` stops against `1/23` (`collide_o 23`) and goes
         // to its stand (`cur_anim` 8 → 0); this crate's is still walking,
         // 60/45 behind, and stops on 11759. `1/34`'s idle pick is the
@@ -9048,7 +9048,7 @@ mod tests {
     }
 
     /// **The payoff probe of `run130_s_word_frame_is_widened_whole`, as an
-    /// assertion** (item 554, `docs/PATHFINDER.md` §23.3). Seat this
+    /// assertion** (item 554, `docs/GROUPS.md` §22.3). Seat this
     /// crate's `1/64` on the original's point before frame 11688, the frame
     /// `1/62` plans its collision detour on, and nothing else: the detour
     /// is then the original's cell for cell, and `1/62` stops on the word's
