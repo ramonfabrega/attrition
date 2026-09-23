@@ -25,7 +25,7 @@ the rules track closed chapters four (1500), seven (1200) and three
   floor is a pin; a packet is taken at the word's own logger frame.
 - **598 rides in 620**: `inside_up`'s container row goes into `compare`
   inside the widening. 571 never ran — both lanes held a headline.
-- **Fable backlog: 2 Loop items** (313, 527); the `FABLE:` batch was empty.
+- **Fable backlog: 3 Loop items** (313, 527, 630); the `FABLE:` batch was empty.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w11069 of 24,000 · GreatLakes w12038 of 24,000

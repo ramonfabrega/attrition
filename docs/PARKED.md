@@ -645,6 +645,18 @@ Filed by item 523: `o_up` was read only at stand-up and parted silently on
 check would have caught it. The same family as the five instrument
 defects of the last tranche: scope reported, not measured.
 
+(630) **A restage booked on a premise a reading already kills.** Filed by
+the commander on 2026-09-23 from item 628's staging reading. The twelfth
+pass restaged chapter seven as seven-b for who=1, "where the cheat's block
+decides". But `Unit::init`:585 sets `unit_masks & 0x40000` on every unit
+whose owner's `(leader_flags & 0xc) != 4`, so `think`:264's exit never
+fires for a computer's unit, and `think_peasant` gives the citizen its
+order above the block. Falsifier 1 fires by construction, and the
+`|| ai_off` seam decides nothing on this lobby. run156 and run157 measure
+it. This is the third booking in two passes whose premise the disk or the
+decompile already answered (575, 584). A chapter's premise names the
+function that would kill it, and the booking greps its writers.
+
 ## Parked by the tenth Fable pass, 2026-09-22 — names no score
 
 (476) **f10234's three value rows**: `0/5 order:length` 2/1, `0/5
