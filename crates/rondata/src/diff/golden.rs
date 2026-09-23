@@ -998,6 +998,7 @@ fn chapter_one_s_word_frame_is_widened_whole() {
     let mut clock_blocks = 0usize;
     let mut clock_rows = 0usize;
     let mut near_read = 0usize;
+    let mut group_blocks = 0usize;
     for f in 0..LAST - 1 {
         script.stage(built.sim.frame, &mut built, &loaded);
         built.tick();
@@ -1167,6 +1168,49 @@ fn chapter_one_s_word_frame_is_widened_whole() {
         if clock.is_some() {
             clock_blocks += 1;
         }
+        // **The army's group record**, which run110 alone prints
+        // (`GROUPS=9`, item 399) and which no row read until item 530. The
+        // pool slot is not an identity (`CLAUDE.md`): the group is matched
+        // on what the slot holds, a live group of this player's army.
+        let pool_text = clocks.as_mut().and_then(|c| {
+            let at = c.frames().iter().position(|x| x.number == n)?;
+            c.read_frame(at).ok()
+        });
+        if let Some(text) = pool_text.as_deref() {
+            let plog = Log::parse(text);
+            for (_, b) in plog.frames() {
+                for g in crate::gamelog::groups(b) {
+                    let (Ok(who), Ok(slot)) = (usize::try_from(g.who), usize::try_from(g.army))
+                    else {
+                        continue;
+                    };
+                    if g.num == 0 || g.buildings != 0 || who >= players {
+                        continue;
+                    }
+                    let Some(a) = built.sim.armies.get(who).and_then(|a| a.list.get(slot)) else {
+                        continue;
+                    };
+                    group_blocks += 1;
+                    let st = &a.group;
+                    for (name, ours, theirs) in [
+                        ("facing", i64::from(st.facing), g.facing),
+                        ("order_num", i64::from(st.order_num), g.order_num),
+                        ("form", i64::from(st.form), g.form),
+                        ("speed", i64::from(st.speed), g.speed),
+                        ("new_speed", i64::from(st.new_speed), g.new_speed),
+                    ] {
+                        rows += 1;
+                        if ours != theirs {
+                            note(
+                                format!("group:{name} {who}/army{slot}"),
+                                n,
+                                format!("ours {ours} theirs {theirs}"),
+                            );
+                        }
+                    }
+                }
+            }
+        }
         // **The record's own rows, ungated by the position**: everything
         // the `UNITDATA` and `GUY` blocks print that `compare` either does
         // not read or reads only where the positions agree.
@@ -1215,6 +1259,13 @@ fn chapter_one_s_word_frame_is_widened_whole() {
                 ),
                 ("idle".into(), i64::from(un.idle), them.idle),
                 ("stance".into(), i64::from(un.stance), them.stance),
+                // `unit_masks & 4`, the in-danger latch §6.6 step 6 of
+                // `docs/GROUPS.md` exempts a group move by (item 530).
+                (
+                    "in_danger".into(),
+                    i64::from(un.in_danger) * 4,
+                    them.unit_masks.map(|m| m & 4),
+                ),
                 ("myspeed".into(), i64::from(un.movement.speed), them.myspeed),
                 ("group".into(), built.sim.pool_group_of(u), them.group),
                 ("form".into(), i64::from(un.form), them.form),
@@ -1286,6 +1337,18 @@ fn chapter_one_s_word_frame_is_widened_whole() {
                     ),
                 };
                 let track = og.follow.map_or((0, 0), |b| b.track);
+                // What the figure last swung at, `(o, who)` (item 530).
+                let aim = match og.aim {
+                    Some(sim::combat::Obj::Unit(x)) => (
+                        i64::from(built.sim.units[x].index),
+                        i64::from(built.sim.units[x].owner),
+                    ),
+                    Some(sim::combat::Obj::Building(b)) => (
+                        i64::from(built.sim.buildings[b].index),
+                        i64::from(built.sim.buildings[b].owner),
+                    ),
+                    None => (-1, -1),
+                };
                 for (name, ours, theirs) in [
                     ("g.x", i64::from(body.pos.x), g.pos.map(|p| p.x)),
                     ("g.y", i64::from(body.pos.y), g.pos.map(|p| p.y)),
@@ -1298,6 +1361,16 @@ fn chapter_one_s_word_frame_is_widened_whole() {
                     ("g.end_time", i64::from(og.end_time), g.end_time),
                     ("g.last_time", i64::from(og.last_time), g.last_time),
                     ("g.gpiece", i64::from(og.gpiece), g.gpiece),
+                    ("g.ox", aim.0, g.ox),
+                    ("g.whom", aim.1, g.whom),
+                    // `guy_flags & 0x20`, which `Unit::set_in_danger`
+                    // raises beside the unit's bit; run110 alone prints it
+                    // (item 530).
+                    (
+                        "g.flags&0x20",
+                        i64::from(un.guy_flag_0x20) * 0x20,
+                        g.guy_flags.map(|f| f & 0x20),
+                    ),
                     ("g.stopped", i64::from(og.stopped), g.stopped),
                     ("g.hold_attack", i64::from(og.pending_attack), g.hold_attack),
                     (
@@ -1343,9 +1416,16 @@ fn chapter_one_s_word_frame_is_widened_whole() {
     // covers its own window whole, and the near pairs and clock rows were
     // actually read: each is a row whose agreement would otherwise be a
     // silence.
+    //
+    // run105 has **no block 900**, as run112 has none: its window is
+    // 605..899 and the `!quit` block is 901. Since item 530 the window
+    // runs to the capture's end, so that one absence is the dump's own
+    // shape and not a truncation.
+    const RUN105_NO_BLOCK: i64 = 900;
+    let absent = usize::from((FIRST..LAST).contains(&RUN105_NO_BLOCK));
     assert_eq!(
         blocks,
-        (LAST - FIRST) as usize,
+        (LAST - FIRST) as usize - absent,
         "run105 no longer carries every block of [{FIRST}, {LAST})"
     );
     if clocks.is_some() {
@@ -1361,6 +1441,14 @@ fn chapter_one_s_word_frame_is_widened_whole() {
         assert!(
             clock_rows >= 350,
             "only {clock_rows} guy records came from run110; the clock rows compare nothing"
+        );
+    }
+    if clocks.is_some() {
+        // Item 530: who=1's army group on each of run110's blocks from its
+        // muster at 615: fourteen.
+        assert!(
+            group_blocks >= 14,
+            "only {group_blocks} army groups came from run110's pool; the group rows compare nothing"
         );
     }
     // 2993 when it was written: every unit of both players on every block.
@@ -1386,37 +1474,36 @@ fn chapter_one_s_word_frame_is_widened_whole() {
     // All of those close with §6 step 3's arm B (`docs/COMBAT.md` §48),
     // and the word went 626 → 774. The window moved with it.
     //
-    // What stands, by family:
+    // **Item 530 moved the word 774 → 900, the capture's end**, and the
+    // window with it (`docs/ORDERS.md` §22). Four keys went into the
+    // record first and two of them were the answer: `in_danger`
+    // (`unit_masks & 4`) and `g.flags&0x20` parted on **617** on all six
+    // hoplites, 148 frames under the order kind the item was booked on;
+    // the army group's `facing` parted on 617 from run110's pool; and the
+    // guy's `ox`/`whom`. `stance` closed as an instrument row: the
+    // original writes one byte for every stance panel and this crate
+    // wrote only the combat half. The map fell from 88 keys to 46, and
+    // every `dest_angle` and `orders_x/y` row closed with
+    // `Unit::work`'s unconditional `update_action`.
+    //
+    // What stands, by family, and none spends a draw in the capture:
     //
     // - **605, the floor**: the city record of `0/2000`, which this crate
     //   holds empty (`busy`, `filled`, `land`, `space`, `ter`, and
-    //   `1/2000`'s by one), `form` on the ten pre-existing units, and four
-    //   `dest_angle`s. All older than the chapter's first staged line.
+    //   `1/2000`'s by one), and `form` on the ten pre-existing units.
+    //   All older than the chapter's first staged line.
     // - **610, `g.gpiece`** on the ten pre-existing units: one age bracket
     //   under the dump's, chapter two's same ten (`docs/ANIM.md`).
     // - **611 and 616, the births**: `form` −1 against 0 on all six
-    //   hoplites, and `orders_x/orders_y` on `0/7` and `0/8` — this crate
-    //   seeds a follower's with its captain's point, the dump with its
-    //   own. Neither spends a draw.
+    //   hoplites.
     // - **617–623, `g.end_time`** on three citizens: 33 against 56, an
     //   idle length, beside the `gpiece` bracket.
-    // - **618–652, `dest_angle`** on five hoplites, `0/8`'s on 627 among
-    //   them. No position or clock parts beside any of them, and no draw
-    //   reads them inside this window. Not examined.
-    // - **765, the next frame**: `1/7` and `1/8` take a far walk to about
-    //   (38.6k, 13.4k). The original's is `ATTACK_TO` (2) with `stance 1`
-    //   and this crate's `GROUP_ATTACK_TO` (21) with `stance 0`. Their
-    //   captain `1/6` is dead by 764 and `1/7` leads pool group 64. `1/8`'s
-    //   position parts there. The word on 774 is a blocked step the
-    //   original takes and this crate does not (`Guy::set_anim+0x97a`,
-    //   unattributed on the original's side), and `1/7`'s rows on 774–775
-    //   sit beside it.
+    // - **616, the army group's `speed`/`new_speed`**, 0 against 25 on
+    //   every block run110 prints: `Group::add` ends in `compute_speed`
+    //   for a group with an id, and this crate's army group takes its
+    //   speed later.
     let got: Vec<(&str, i64)> = first.iter().map(|(k, (n, _))| (k.as_str(), *n)).collect();
     let measured = [
-        ("angle~:Facing 1/7", 775),
-        ("angle~:Facing 1/8", 765),
-        ("angle~:Heading 1/7", 775),
-        ("angle~:Heading 1/8", 765),
         ("city:busy 0/2000", 605),
         ("city:filled 0/2000", 605),
         ("city:filled 1/2000", 605),
@@ -1431,16 +1518,6 @@ fn chapter_one_s_word_frame_is_widened_whole() {
         ("city:ter[1] 0/2000", 605),
         ("city:ter[3] 0/2000", 605),
         ("city:ter[4] 0/2000", 605),
-        ("dest_angle 0/1", 605),
-        ("dest_angle 0/2", 605),
-        ("dest_angle 0/6", 652),
-        ("dest_angle 0/7", 620),
-        ("dest_angle 0/8", 627),
-        ("dest_angle 1/1", 605),
-        ("dest_angle 1/2", 605),
-        ("dest_angle 1/6", 618),
-        ("dest_angle 1/7", 628),
-        ("dest_angle 1/8", 628),
         ("form 0/0", 605),
         ("form 0/1", 605),
         ("form 0/2", 605),
@@ -1458,8 +1535,6 @@ fn chapter_one_s_word_frame_is_widened_whole() {
         ("form 1/6", 616),
         ("form 1/7", 616),
         ("form 1/8", 616),
-        ("g.angle[0] 1/7", 775),
-        ("g.angle[0] 1/8", 765),
         ("g.end_time[0] 0/1", 617),
         ("g.end_time[0] 0/2", 623),
         ("g.end_time[0] 1/2", 619),
@@ -1473,34 +1548,8 @@ fn chapter_one_s_word_frame_is_widened_whole() {
         ("g.gpiece[0] 1/3", 610),
         ("g.gpiece[0] 1/4", 610),
         ("g.gpiece[0] 1/5", 610),
-        ("g.x[0] 1/7", 775),
-        ("g.x[0] 1/8", 765),
-        ("g.y[0] 1/7", 775),
-        ("g.y[0] 1/8", 765),
-        ("heading 1/7", 775),
-        ("heading 1/8", 765),
-        ("near_o 1/7", 774),
-        ("near_who 1/7", 774),
-        ("order:order:kind 1/7", 765),
-        ("order:order:kind 1/8", 765),
-        ("order:order:length 1/7", 774),
-        ("order:path:length 1/8", 765),
-        ("order:path[0].to 1/8", 765),
-        ("order:path[1].to 1/8", 765),
-        ("order:path[1].tolerance 1/8", 765),
-        ("orders.len 1/7", 774),
-        ("orders_x 0/7", 611),
-        ("orders_x 0/8", 611),
-        ("orders_x 1/7", 774),
-        ("orders_x 1/8", 765),
-        ("orders_y 0/8", 611),
-        ("orders_y 1/7", 774),
-        ("orders_y 1/8", 765),
-        ("pos 1/7", 775),
-        ("pos 1/8", 765),
-        ("stance 1/7", 765),
-        ("stance 1/8", 765),
-        ("tolerance 1/8", 765),
+        ("group:new_speed 1/army0", 616),
+        ("group:speed 1/army0", 616),
     ];
     assert_eq!(
         got,

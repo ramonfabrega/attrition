@@ -329,8 +329,10 @@ pub struct Unit {
     pub auto_transport: bool,
     /// `unit_masks2 & 0x2000`: a scenario's per-unit veto (§3.2).
     pub never_transport: bool,
-    /// `guy_flags & 0x20`, which collapses the idle roll to two variants;
-    /// unread — off.
+    /// `guy_flags & 0x20`, which collapses the idle roll to two variants.
+    /// `Unit::set_in_danger` raises it with [`Unit::in_danger`], and
+    /// `Guy::process` drops it on a standing guy's sixty-fourth frame
+    /// (item 530, `docs/ORDERS.md` §22).
     pub guy_flag_0x20: bool,
     /// An animal's herd, an index into [`gaia::Gaia::herds`] — the
     /// `UnitData+0x86` union for an `Animal`. `None` for everything else
@@ -427,11 +429,12 @@ pub struct Unit {
     /// it over the whole squad it is about to walk, one line before the
     /// walk, which is why no `go_to` group has ever marched in formation.
     ///
-    /// SEAM: the other two writers. `Object::take_damage@00652020` marks
-    /// a unit that is hit, and `Unit::work` marks an attacker and its
-    /// target; neither is carried, so a group ordered within 32 frames of
-    /// a fight marches in formation here where the original's would not.
-    /// Nothing else in the engine reads the bit.
+    /// The other two writers go through `Unit::set_in_danger`, which
+    /// marks the whole squad and its guys ([`Sim::set_in_danger`]):
+    /// `Object::take_damage@00652020` marks a unit that is hit, and
+    /// `Unit::work` marks an attacker and its target every frame the
+    /// action is an `ATTACK` (item 530, `docs/ORDERS.md` §22). Nothing
+    /// else in the engine reads the bit.
     pub in_danger: bool,
     /// **`SubObjectData::flags & 0x80`** — "attacked this frame, or is
     /// still on an `ATTACK` order".
@@ -3881,6 +3884,16 @@ impl Sim {
         // `Guy::move` has just left it, which for guy 0 is the unit's own
         // position.
         self.coll_repaint(i);
+        // And the same block's last line, `Guy::process@005e0230:120`:
+        // a standing guy on its sixty-fourth frame forgets the in-danger
+        // mark `Unit::set_in_danger` gave it (`docs/ORDERS.md` §22).
+        // SEAM: the flag is the unit's here and guy 0's gate decides it,
+        // where the original keeps one per guy.
+        if self.units[i].movement.body.avg_speed == 0
+            && (self.frame + i64::from(self.units[i].index)).rem_euclid(64) == 0
+        {
+            self.units[i].guy_flag_0x20 = false;
+        }
     }
 
     /// **The crew loop**, which is the same eight lines in three places

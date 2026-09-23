@@ -8396,8 +8396,10 @@ same-player gate.
 - The widening's window moved with the word, `[605, 630)` → `[605, 779)`,
   and its map is 88 keys. The families are written beside the pin in the
   test. Everything under 765 is older than 616 or spends no draw.
-- **What stands at 774** is `Guy::set_anim+0x97a`, a blocked step's idle
-  roll the original spends and this crate does not. The first record
+- ~~**What stands at 774** is `Guy::set_anim+0x97a`, a blocked step's idle
+  roll the original spends and this crate does not.~~ **It was not a
+  blocked step**: it was `Unit::fight`'s reloading stand, the fourth of
+  four links, and the word is 900 (`docs/ORDERS.md` §22). The first record
   parting under it is **765**: `1/7` and `1/8` take the far walk to about
   (38.6k, 13.4k). That is the march destination item 399's table in
   `GOLDEN_WORD_CHAPTER_ONE`'s comment records who=1's army buying early. The
@@ -8423,5 +8425,6 @@ same-player gate.
   reaches it, as in the original.
 - Arm C's two unnamed predicates, `LeaderData +0x9f4` and type vslot
   `+0x10c`.
-- The five `dest_angle` rows under the word (618–652). They spend no draw
-  in the window and are not examined.
+- ~~The five `dest_angle` rows under the word (618–652). They spend no draw
+  in the window and are not examined.~~ **Closed by item 530**: they were
+  `Unit::work`'s unconditional `update_action` (`docs/ORDERS.md` §22.2).

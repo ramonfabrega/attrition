@@ -182,6 +182,14 @@ pub const SITES: &[(u32, Option<u32>, &str)] = &[
         Some(0x005f_b412), // `Unit::move_step+0x4e2`, the snap's stand
         sim::anim::SITE_SNAP_BLOCKED,
     ),
+    // …and `Unit::fight`'s reloading stand, the recharging arm's
+    // `set_anim(CHAR_DEFAULT, 1, 1)`. The trace printed it bare as
+    // `5dac7a` on golden chapter one's 774 until item 530.
+    (
+        0x005d_ac7a,
+        Some(0x005f_d639), // `Unit::fight+0x169`
+        sim::anim::SITE_RELOAD_IDLE,
+    ),
     // …and the **turning** stand, three chains of `Guy::do_turn+0x4a`
     // (`005d97ea`). The `via` is the frame above `do_turn`, which is what
     // tells the three callers of the override apart: `Unit::move_step`'s

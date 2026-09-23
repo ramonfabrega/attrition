@@ -1856,13 +1856,44 @@ pub(crate) const RUN58_QUEUE_TAIL: i64 = 5177;
 ///   `damage 1/6` follow. All close; the block is in
 ///   `chapter_one_s_word_frame_is_widened_whole`'s map.
 ///
-/// What stands at **774** is `Guy::set_anim+0x97a`, a blocked step's idle
-/// roll the original spends and this crate does not. The widening's first
-/// record parting under it is **765**: `1/7` and `1/8` take the far walk
-/// to about (38.6k, 13.4k), the destination item 399's table below shows.
-/// The original's order is `ATTACK_TO` with `stance 1`, this crate's
-/// `GROUP_ATTACK_TO` with `stance 0`. No mechanism named.
-pub(crate) const GOLDEN_WORD_CHAPTER_ONE: i64 = 774;
+/// ~~What stands at **774** is `Guy::set_anim+0x97a`, a blocked step's
+/// idle roll~~ — it was not a blocked step (item 530).
+///
+/// - **774 → 900: the squad in danger marches alone, looks around, and
+///   stands to reload** (item 530, `docs/ORDERS.md` §22). The constant's
+///   delta is **+126**, and 900 is run105's trace end: no draw parts on
+///   any frame of chapter one, and no word does. The block is the whole
+///   capture, `chapter_one_s_word_frame_is_widened_whole` over
+///   [`WIDENING_CHAPTER_ONE`]. Four links, each read off the frame the
+///   last one left:
+///
+///   1. **617**: `Unit::set_in_danger` marks a hit unit's squad and an
+///      attacker's with `unit_masks & 4`, and this crate had neither
+///      writer. So on 765 the army's march gave `1/7` and `1/8` a
+///      `GROUP_ATTACK_TO` where the in-danger exemption gives the
+///      original's a plain `ATTACK_TO` each.
+///   2. **617**: `Unit::fight` turns through `Unit::set_angle`, and a
+///      group leader turning past 90° toggles the group's `facing`. This
+///      crate wrote the heading bare, so the march laid `1/8`'s slot out
+///      mirrored.
+///   3. **773**: the attack-move looks around one frame in fifteen
+///      (`do_attack_to`), and this crate's never did. `1/7` finds `0/8`.
+///   4. **774**: recharging, `1/7` does not turn to it. `fight`'s
+///      reloading arm asks for the idle, and that roll is the word.
+///
+///   The **value diff**, block 765, the dump's own record:
+///
+///   | field | dump | before 530 | after |
+///   | --- | --- | --- | --- |
+///   | `1/7`, `1/8` order | `ATTACK_TO` | `GROUP_ATTACK_TO` | **`ATTACK_TO`** |
+///   | `1/7`, `1/8` `stance` | 1 | 0 | **1** |
+///   | `1/8` pos | `1189, 8067` | `1179, 8056` | **`1189, 8067`** |
+///   | `1/8` `orders_x, orders_y` | `38568, 13416` | `38760, 13224` | **`38568, 13416`** |
+///   | `1/8` path | 54 entries from `(38544, 13407)` | 2, formation | **the dump's 54** |
+///
+///   And on 774, `1/7`: `ATTACK` on `0/8` above the attack-move, `near_o
+///   8`, `orders_x/y` its own cell, heading unchanged. All close.
+pub(crate) const GOLDEN_WORD_CHAPTER_ONE: i64 = 900;
 
 /// **The block window chapter one's word is widened over** —
 /// `chapter_one_s_word_frame_is_widened_whole`, item 445, `[first, last)`.
@@ -1880,7 +1911,13 @@ pub(crate) const GOLDEN_WORD_CHAPTER_ONE: i64 = 774;
 /// ladder moved it 626 → 774. It is four frames past the word, as chapter
 /// two's has been. The clock rows still cover `[610, 630)` only; above
 /// that the `GUY` block is run105's `GUYS=2` fields.
-pub(crate) const WIDENING_CHAPTER_ONE: (i64, i64) = (605, 779);
+///
+/// **And to 901 on item 530, the end of run105**, with the word 774 →
+/// 900. A word at the capture's end has nothing above it to straddle, so
+/// the window is the whole capture from its first block. run105 carries
+/// 605..899 and its `!quit` block at 901, and the test knows block 900 is
+/// the one it lacks. The map fell from 88 keys to 46.
+pub(crate) const WIDENING_CHAPTER_ONE: (i64, i64) = (605, 901);
 
 /// **Chapter two's golden word** — the ranged line, run112, item 415.
 /// `docs/GOLDEN.md` §6.

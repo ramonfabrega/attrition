@@ -1473,6 +1473,12 @@ pub struct Guy {
     /// its own wrap loop at the shared `+0x271`. Same encoding: `1` when
     /// the request carried its third argument, the slot itself otherwise.
     pub queued_attack: Option<i64>,
+    /// `GuyData::ox` / `whom` (`+0x8e` / `+0x9f`) — **what the figure last
+    /// swung at**, `−1` until its first strike. `Unit::set_attack` writes
+    /// it on every strike, and `Unit::fight`'s recharging arm reads guy
+    /// 0's against the order's target (item 530, `docs/ORDERS.md` §22).
+    pub ox: Option<i64>,
+    pub whom: Option<i64>,
     /// `GuyData::des_x` / `des_y` (`+0x5c` / `+0x60`) — **where this
     /// figure is told to be**, which for a tracked crew figure is its
     /// leader's point rotated by its track offset and rewritten several
@@ -2834,6 +2840,8 @@ fn unit_of(b: Block<'_>) -> Option<UnitDump> {
             guy_num: g.int("guy_num"),
             hold_attack: g.int("hold_attack"),
             queued_attack: g.int("queued_attack"),
+            ox: g.int("ox"),
+            whom: g.int("whom"),
             // `des_x`/`des_y` carry no `z`, so the third slot is the
             // figure's own — a `Pos` here is a point, not a placement.
             des: match (g.int("des_x"), g.int("des_y")) {
