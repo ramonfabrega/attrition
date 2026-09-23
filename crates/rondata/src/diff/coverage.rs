@@ -38,7 +38,8 @@ use crate::gamelog::{Block, Log, reads};
 
 use super::testkit::{
     EAST_INDIES_BARK_BLOCK, EAST_INDIES_MAKE_BLOCK, EAST_INDIES_MERCS_BLOCK,
-    GOLDEN_WORD_CHAPTER_TWO, GREAT_LAKES_DETOUR_BLOCK, WIDENING_CHAPTER_TWO,
+    GOLDEN_WORD_CHAPTER_THREE_RESTAGE, GOLDEN_WORD_CHAPTER_TWO, GREAT_LAKES_DETOUR_BLOCK,
+    WIDENING_CHAPTER_TWO,
 };
 
 /// Record paths read by a parser of their own, outside `Block` — the
@@ -375,6 +376,7 @@ fn the_recorder_tells_one_object_block_from_another() {
 #[test]
 fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch2 = golden_dump("ch2");
+    let ch3b = golden_dump("ch3b");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r143 = crate::testenv::dump("gamelog-run143-eastindies-bark.txt");
     let r139 = crate::testenv::dump("gamelog-run139-eastindies-makelist.txt");
@@ -449,6 +451,16 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     if let Some(p) = &r139 {
         let n = drive_capture(p, em - 2, em + 2, &mut paths);
         assert_eq!(n, 5, "run139 carries the word's five blocks");
+        frames += n;
+    }
+    // **The rules headline's own blocks, on run146** (item 621): the
+    // restage's word, whose catapult holds the first
+    // `ATTACKGROUNDORDER` on a headline frame. No window here had one,
+    // so the record's four keys could arrive unread and read as quiet.
+    let rw = GOLDEN_WORD_CHAPTER_THREE_RESTAGE;
+    if let Some(p) = &ch3b {
+        let n = drive_capture(p, rw - 2, rw + 2, &mut paths);
+        assert_eq!(n, 5, "run146 carries the word's five blocks");
         frames += n;
     }
     assert!(frames > 0, "no frame of either window was found");
