@@ -2475,6 +2475,30 @@ pub(crate) const GOLDEN_WORD_CHAPTER_TWO: i64 = 900;
 /// both airs and all 506 of the capture's rounds agree on every field.
 pub(crate) const GOLDEN_WORD_CHAPTER_FIVE: i64 = 900;
 
+/// **Chapter six's golden word** — the air and the bird (`docs/GOLDEN.md`
+/// §10, item 648, run168): **616 of 901**, on its first walk.
+///
+/// **The delta**: on 616, the Bomber `1/6`'s birth frame, this crate
+/// spends 25 draws against the original's 24, parting at draw 18. Ours is
+/// `Unit::fight+0x9b0`, attributed to `1/6`, and the original spends
+/// none. Frames 605–615 agree draw for draw, the Fighter `0/6`'s birth on
+/// 611 among them. No mechanism is named (`docs/DECISIONS.md` 42).
+///
+/// **The block**, from [`WIDENING_CHAPTER_SIX`]'s test: on block 616 the
+/// original's `1/6` stands at (2424, 7800) with no order, `idle 1` and
+/// group 64, and this crate's stands on the same point, same `idle` and
+/// group, holding one `ATTACK` order. On 617 ours is walking at the
+/// Fighter — a `MOVE_TO` (888, 7800) ahead of the attack, `orders_x`
+/// 888 against 2424 — and the original's has not moved, and never does:
+/// run168's aircraft hold their seats, `air_alt` 0 and no order to 899.
+pub(crate) const GOLDEN_WORD_CHAPTER_SIX: i64 = 616;
+
+/// `chapter_six_s_word_frame_is_widened_whole`'s window: run168 from its
+/// first block, 605, to two past the word — the word's frame writes block
+/// 617 — as [`WIDENING_CHAPTER_SEVEN_B`]'s is. Nothing before the word
+/// parts but the standing rows of the first block.
+pub(crate) const WIDENING_CHAPTER_SIX: (i64, i64) = (605, 618);
+
 /// **Chapter four's golden word** — the border and the bleed
 /// (`docs/GOLDEN.md` §8, item 552, run132 and run133): **1277 of 1501**,
 /// in run133's window. The two captures are one game, draw for draw on
@@ -3426,6 +3450,14 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some("chapter_four_s_word_frame_is_widened_whole"),
         567,
         Some(WIDENING_CHAPTER_FOUR),
+    ),
+    // Item 648: run168, chapter six's first walk, on the Bomber's birth.
+    (
+        "GOLDEN_WORD_CHAPTER_SIX",
+        GOLDEN_WORD_CHAPTER_SIX,
+        Some("chapter_six_s_word_frame_is_widened_whole"),
+        648,
+        Some(WIDENING_CHAPTER_SIX),
     ),
     // Item 587: run145, the catapult's birth frame.
     (

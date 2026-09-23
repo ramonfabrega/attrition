@@ -40,8 +40,8 @@ use super::testkit::{
     EAST_INDIES_BARK_BLOCK, EAST_INDIES_CAST_BLOCK, EAST_INDIES_EXPLORE_BLOCK,
     EAST_INDIES_GATHER_BLOCK, EAST_INDIES_IDLE_BLOCK, EAST_INDIES_MAKE_BLOCK,
     EAST_INDIES_MERCS_BLOCK, GOLDEN_WORD_CHAPTER_SEVEN_B, GOLDEN_WORD_CHAPTER_SEVEN_B_CONTROL,
-    GOLDEN_WORD_CHAPTER_THREE_RESTAGE, GOLDEN_WORD_CHAPTER_TWO, GREAT_LAKES_DETOUR_BLOCK,
-    WIDENING_CHAPTER_TWO,
+    GOLDEN_WORD_CHAPTER_SIX, GOLDEN_WORD_CHAPTER_THREE_RESTAGE, GOLDEN_WORD_CHAPTER_TWO,
+    GREAT_LAKES_DETOUR_BLOCK, WIDENING_CHAPTER_TWO,
 };
 
 /// Record paths read by a parser of their own, outside `Block` — the
@@ -400,6 +400,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch3b = golden_dump("ch3b");
     let ch7b = golden_dump("ch7b");
     let ch7bc = golden_dump("ch7bc");
+    let ch6 = golden_dump("ch6");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r143 = crate::testenv::dump("gamelog-run143-eastindies-bark.txt");
     let r139 = crate::testenv::dump("gamelog-run139-eastindies-makelist.txt");
@@ -559,6 +560,16 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
             assert_eq!(n, 5, "chapter seven-b carries the word's five blocks");
             frames += n;
         }
+    }
+    // **Chapter six's word, on run168** (item 648): the first capture
+    // with an aircraft in it — a Fighter and a Bomber staged outside any
+    // base — whose records no other window here carries. The window is
+    // the word's block with two on either side, as seven-b's.
+    if let Some(p) = &ch6 {
+        let w = GOLDEN_WORD_CHAPTER_SIX;
+        let n = drive_capture(p, w - 2, w + 2, &mut paths);
+        assert_eq!(n, 5, "chapter six carries the word's five blocks");
+        frames += n;
     }
     assert!(frames > 0, "no frame of either window was found");
     let _ = GOLDEN_WORD_CHAPTER_TWO;
