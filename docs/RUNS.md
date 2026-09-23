@@ -5313,3 +5313,55 @@ The word is **621**, ours 7 draws against 6: `Unit::fight+0x9b0` on the
 catapult `0/9`, which this crate orders to attack on its birth block while
 packed. Values part on 622. `GOLDEN_WORD_CHAPTER_THREE` and
 `chapter_three_s_word_frame_is_widened_whole`.
+
+## run146 — chapter three restaged, the dead zone and the chase (2026-09-23, item 587)
+
+`tools/gamelog/golden/chapter3b.cmd`, the commander's ruling after run145 left
+two of §7's falsifiers untested. The unit types are the same, split into two
+arenas 24 tiles apart. Arena A: `add catapult who=0 4,41` at 605, alone,
+then `add hoplite who=1 12,41` at 770. Arena B: `add 3 chariot who=0 2,68`
+at 610 and `add hoplite who=1 12,68` at 615, ten tiles apart. The `age`
+lines and `!ai off` are run145's. The command is run145's with
+`~/ron-golden/ch3b`, `--end-frame 1000 --log-window 605 1000` and the new
+file.
+
+`success: true`, exit 0, 1001 frames, map 14 and seed 12345 read back. One
+take: **185.8 s, 55 MB of dump and 10 MB of trace**. Nine `INFO cmd` records
+each returned 1. 397 blocks: 1, 605..999 and 1001. It waited on att-588's
+`runqueue.sh`, whose RonDriver held the lane after run143's game had exited.
+The first launch, at 06:07, was never serviced; the second, at 06:08:39,
+ran.
+
+### The predictions, written into the `.cmd` file before the run
+
+Committed as `2a19c01`.
+
+| check | predicted | observed |
+| --- | --- | --- |
+| births | catapult `0/6` on 606; Chariots `0/7..0/9` on 611; hoplites `1/6..1/8` on 616 and `1/9..1/11` on 771 | exactly |
+| the unpack, with nothing in view | `CASTORDER spell 652` near 681 at `idle 7`, unpacked by ~761 | **699 at `idle 8`**, unpacked on 779: idle-driven as read, one grid step later than my arithmetic |
+| the catapult fires | a round at arena A's hoplites in its 3–15 band | an attack order on `1/11` on 780, reload from 781, one round in flight by 798 |
+| hoplites close inside 570 while it lives | yes | 173 blocks, 827–999, closest 339 units |
+| a chariot walks ≥ 3 blocks | yes, near 633 | `0/9` five blocks from 634, `0/7` four from 635 |
+
+### §7's falsifiers, all three reachable
+
+- **The minimum range: does not fire.** One launch, at eight tiles. From 864
+  the catapult takes an `ATTACKORDER` on a hoplite inside three tiles and
+  drops it the next block, over and over, and fires nothing. Its `damage`
+  climbs 12 → 72 by 999.
+- **The speed: does not fire.** The chariots' longest one-block step is 33.2
+  units (step² 1105), against the hoplites' 29.1 (848).
+- **The leading count: does not fire.** Three Chariots, as in run145.
+
+`chapter_three_s_falsifiers_are_the_dump_s` makes all three assertions. It
+was made to fail once, by widening the dead zone to nine tiles.
+
+### The harness
+
+The word is **633**, ours 8 draws against 9. The original's chasing chariot
+`0/8` spends one `Unit::fight+0x9b0`, then two `Guy::set_anim+0xf2f`, one
+per figure as its walk starts. This crate spends a second re-search and
+starts the walk on 634. Values part on 634. Pinned as
+`GOLDEN_WORD_CHAPTER_THREE_RESTAGE` with
+`chapter_three_s_restage_is_widened_whole`.

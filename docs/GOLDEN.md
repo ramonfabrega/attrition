@@ -397,6 +397,19 @@ packed catapult to attack and spends `Unit::fight+0x9b0`'s re-search draw,
 (`GOLDEN_WORD_CHAPTER_THREE`, `chapter_three_s_word_frame_is_widened_whole`,
 which widens run145 whole and adds the `GUY` record's position and facing).
 
+**Restaged, run146 (`chapter3b.cmd`, the same item): all three reachable,
+none fired.** The same three unit types go into two arenas. A catapult born
+alone unpacks on idle (`Unit::think_attack`'s human threshold, `idle 7`)
+and is ready before its hoplites exist. Chariots born ten tiles from their
+hoplites have to walk. The catapult fires once at eight tiles, then
+refuses the hoplites inside three for 173 blocks, dropping each attack
+order the block after it takes it. The chariots walk at up to 33.2 units a
+block against the hoplites' 29.1 (`chapter_three_s_falsifiers_are_the_dump_s`).
+run146's first parting is **633**, the chase's first frame: the
+original's chariot starts its walk animation where this crate re-searches
+(`GOLDEN_WORD_CHAPTER_THREE_RESTAGE`). **The chapter's word is 621**, the
+lower of the two, which is where the rules headline reads first.
+
 ## 8. Chapter four — the Temple, the border, and the bleed
 
 **Premise.** The namesake, end to end, on ground the dump can already name.
@@ -768,6 +781,7 @@ below without a run take their number at booking (the eleventh pass).
 | ~~116~~ 141 | seven, the civilians | `[605, 1200)` | tests the premise every other chapter stands on — **run 2026-09-23 as run141 (item 578), 112 MB, 281 s; the first falsifier fired; closed at 1200** |
 | ~~117~~ 142 | seven, the control | `[605, 1200)` | `!ai off` deleted; without it 116 measures nothing — **run142, 112 MB, 331 s; the five act exactly as in run141** |
 | ~~118~~ 145 | three, the mounted and siege lines | `[605, 900)` | **run 2026-09-23 as run145 (item 587), 43 MB, 145 s; word 621; no falsifier fired, two could not** |
+| 146 | three, restaged in two arenas | `[605, 1000)` | **run146 (item 587), 55 MB, 186 s; first parting 633; all three falsifiers reachable, none fired** |
 | 119 | six, the air and the bird | `[605, 900)` | the one new order class |
 
 Chapter eight and any further detail window need numbers beyond the

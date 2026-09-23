@@ -5625,3 +5625,203 @@ fn chapter_three_s_word_frame_is_widened_whole() {
         "what parts at or one block past chapter three's word moved"
     );
 }
+
+/// **Chapter three's restage, walked** — `chapter3b.cmd`, run146 (item
+/// 587, `docs/GOLDEN.md` §7): the same three unit types in two arenas, so
+/// that §7's minimum-range and speed falsifiers can fire. Seven staged
+/// lines. Neither fires: the unpacked catapult launches once at eight
+/// tiles and then refuses the hoplites inside three for 173 blocks, and
+/// the chasing chariots walk at up to 33 units a block against the
+/// hoplites' 28–29.
+///
+/// The word is the chase's first frame: on 633 the original's chariot
+/// `0/8` spends one `Unit::fight+0x9b0` and then starts its walk, two
+/// `Guy::set_anim+0xf2f` draws for its two figures; this crate spends a
+/// second re-search and starts the walk on 634.
+#[test]
+fn chapter_three_s_restage_holds_to_its_word() {
+    let Some(w) = walk_script("ch3b", "chapter3b", 3, 7, 1000) else {
+        return;
+    };
+    assert_eq!(
+        (w.word, w.sequence, w.value),
+        (
+            GOLDEN_WORD_CHAPTER_THREE_RESTAGE,
+            GOLDEN_WORD_CHAPTER_THREE_RESTAGE,
+            Some(GOLDEN_WORD_CHAPTER_THREE_RESTAGE + 1)
+        ),
+        "run146's word moved; re-pin it here and say so in docs/GOLDEN.md §7"
+    );
+}
+
+/// **run146's word, widened whole, both directions** (item 587,
+/// `docs/DECISIONS.md` 43): [`widen_chapter_three`] over
+/// [`WIDENING_CHAPTER_THREE_RESTAGE`], the whole capture, printing the
+/// catapult `0/6` both sides on the word's two blocks.
+#[test]
+fn chapter_three_s_restage_is_widened_whole() {
+    const WORD: i64 = GOLDEN_WORD_CHAPTER_THREE_RESTAGE;
+    let Some(w) = widen_chapter_three("ch3b", "chapter3b", WIDENING_CHAPTER_THREE_RESTAGE, WORD, 6)
+    else {
+        return;
+    };
+    let firsts = w.firsts;
+    assert_eq!(w.ammo_theirs, 89, "run146's live rounds are not all read");
+    assert!(w.ammo_ours > 0, "this crate fired no round in the window");
+    // The standing families on the first block are run145's, the same 30.
+    let standing = |what: &str| {
+        what == "form"
+            || what == "build:extra"
+            || what.starts_with("leader:filled_gather_slots")
+            || what == "leader:bucket[3:knowledge]"
+            || what == "leader:bucket[4:metal]"
+    };
+    let at_floor = firsts
+        .iter()
+        .filter(|(_, (f, _))| *f == WIDENING_CHAPTER_THREE_RESTAGE.0)
+        .map(|((_, _, what), _)| what)
+        .collect::<Vec<_>>();
+    assert!(
+        at_floor.iter().all(|w| standing(w)) && at_floor.len() == 30,
+        "the standing rows on run146's first block moved: {at_floor:?}"
+    );
+    // **At and one block past the word, only the chasing chariot**: this
+    // crate's `0/8` has turned on 634 where the dump's still faces the
+    // way it was born.
+    let under: Vec<String> = firsts
+        .iter()
+        .filter(|((_, _, what), (f, _))| *f <= WORD + 1 && !standing(what))
+        .map(|((w, o, what), (f, row))| format!("{f} {w}/{o} {what}: {row}"))
+        .collect();
+    assert_eq!(
+        under,
+        vec![
+            "634 0/8 angle:Facing: ours 998768640 theirs 1431655765",
+            "634 0/8 angle:Heading: ours 998768640 theirs 1431655765",
+            "634 0/8 g.angle[0]: ours 998768640 theirs 1431655765",
+            "634 0/8 g.angle[1]: ours 998768640 theirs 1431655765",
+            "634 0/8 heading: ours 998768640 theirs 1431655765",
+        ],
+        "what parts at or one block past run146's word moved"
+    );
+}
+
+/// **§7's three falsifiers, as the dumps print them** (item 587). Each was
+/// a `check:` in a `.cmd` header before its run; this is the same reading
+/// made an assertion, so a re-take that changed any of them would fail
+/// here rather than in a journal.
+///
+/// - **The leading count**, both captures: `add 3 chariot` is three
+///   separate one-unit Chariots (`o_up`/`o_down` −1, type 195) on 611.
+/// - **The minimum range**, run146: the catapult `0/6` launches exactly
+///   one round, and on its launch block no live hoplite of arena A stands
+///   within `3 × 192 − 6` of it — while on 173 blocks one does, with the
+///   catapult alive, which is what makes the refusal a measurement.
+/// - **The speed**, run146: a chariot walks on three or more blocks, and
+///   its largest one-block step is longer than any of arena B's hoplites'
+///   (compared squared: this reads the dump, and does no float arithmetic).
+#[test]
+fn chapter_three_s_falsifiers_are_the_dump_s() {
+    use std::collections::BTreeMap;
+    let alive = |u: &crate::gamelog::UnitDump| u.myhits.is_some_and(|h| h > 1);
+    for run in ["ch3", "ch3b"] {
+        let Some((dump, _)) = golden(run) else {
+            eprintln!("skipping: no golden capture {run} (docs/RUNS.md run145, run146)");
+            return;
+        };
+        let mut ix = crate::capture::indexed::IndexedCapture::open(&dump).unwrap();
+        let at = ix.frames().iter().position(|x| x.number == 611).unwrap();
+        let f = ix.frame_state(at).unwrap();
+        let chariots: Vec<_> = f
+            .units
+            .iter()
+            .filter(|u| u.who == 0 && u.guys.first().and_then(|g| g.kind) == Some(195))
+            .map(|u| (u.o, u.o_up, u.o_down))
+            .collect();
+        assert_eq!(
+            chariots.len(),
+            3,
+            "{run}: `add 3 chariot` is not three units"
+        );
+        assert!(
+            chariots.iter().all(|c| c.1 == Some(-1) && c.2 == Some(-1)),
+            "{run}: the chariots are threaded as a squad: {chariots:?}"
+        );
+    }
+    let Some((dump, _)) = golden("ch3b") else {
+        return;
+    };
+    let mut ix = crate::capture::indexed::IndexedCapture::open(&dump).unwrap();
+    let d2 =
+        |a: &crate::gamelog::Pos, b: &crate::gamelog::Pos| (a.x - b.x).pow(2) + (a.y - b.y).pow(2);
+    const DEAD_ZONE: i64 = 3 * 192 - 6;
+    let (mut launches, mut close_launches, mut inside) = (0usize, 0usize, 0usize);
+    let mut last: BTreeMap<(i64, i64), crate::gamelog::Pos> = BTreeMap::new();
+    let mut steps: BTreeMap<(i64, i64), (usize, i64)> = BTreeMap::new();
+    for at in 0..ix.frames().len() {
+        let n = ix.frames()[at].number;
+        let f = ix.frame_state(at).unwrap();
+        let raw = ix.read_frame(at).unwrap();
+        let live: BTreeMap<(i64, i64), &crate::gamelog::UnitDump> = f
+            .units
+            .iter()
+            .filter(|u| alive(u))
+            .map(|u| ((u.who, u.o), u))
+            .collect();
+        let nearest = live.get(&(0, 6)).and_then(|c| {
+            (9..=11)
+                .filter_map(|o| live.get(&(1, o)))
+                .map(|h| d2(&c.pos, &h.pos))
+                .min()
+        });
+        if nearest.is_some_and(|d| d < DEAD_ZONE * DEAD_ZONE) {
+            inside += 1;
+        }
+        for (a, _) in super::ammo::blocks(&raw) {
+            if (a.who, a.o, a.cur_time) == (0, 6, 1) {
+                launches += 1;
+                if nearest.is_none_or(|d| d < DEAD_ZONE * DEAD_ZONE) {
+                    close_launches += 1;
+                }
+            }
+        }
+        for (k, u) in &live {
+            if let Some(p) = last.get(k) {
+                let s = d2(p, &u.pos);
+                if s > 0 {
+                    let e = steps.entry(*k).or_insert((0, 0));
+                    e.0 += 1;
+                    e.1 = e.1.max(s);
+                }
+            }
+        }
+        last = live.iter().map(|(k, u)| (*k, u.pos)).collect();
+        let _ = n;
+    }
+    eprintln!(
+        "run146: {launches} catapult launch(es), {close_launches} inside the dead zone, \
+         {inside} blocks a hoplite stands inside it; steps {steps:?}"
+    );
+    assert_eq!(
+        (launches, close_launches, inside),
+        (1, 0, 173),
+        "§7's minimum-range falsifier: the catapult's launches, those inside \
+         three tiles, and the blocks that make the refusal a measurement"
+    );
+    let chariot = (7..=9)
+        .filter_map(|o| steps.get(&(0, o)))
+        .filter(|s| s.0 >= 3)
+        .map(|s| s.1)
+        .max()
+        .expect("no chariot walks three blocks in run146");
+    let hoplite = (6..=8)
+        .filter_map(|o| steps.get(&(1, o)))
+        .map(|s| s.1)
+        .max()
+        .expect("arena B's hoplites never walk");
+    assert!(
+        chariot > hoplite,
+        "§7's speed falsifier fires: a chariot's longest step² {chariot} is not \
+         longer than a hoplite's {hoplite}"
+    );
+}
