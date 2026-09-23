@@ -305,6 +305,53 @@ bottom-right corner is `t`** — `(x, y)`, `(x−1, y)`, `(x, y−1)`,
 becomes a two-tile-square thing, which is why the search asks about four
 tiles for a one-tile walker.
 
+### 3.2 The deploy seats the trader on its corner and blocks the square (item 629, 2026-09-23)
+
+The cast `unpack_merchant` queues ends in `SpellType::cast_unpack@006709c0`,
+and for the three merchant ids — the caster's `TypeData +4`, exactly `0x3d`,
+`0x3e` or `400`, which is [`Sim::is_merchant`] — there is an arm ahead of the
+bit every packer clears:
+
+```
+t = (div_3_table[x >> 6], div_3_table[y >> 6])     # the tile under it, floored
+if not good_merchant_spot(this, t): return          # still packed; do_cast kills the order
+set_new_location(t.x * 0xc0, t.y * 0xc0, 1, 1)      # the tile's corner, crew and all
+set_blocked_at(t), (t.x-1, t.y), (t.x, t.y-1), (t.x-1, t.y-1)
+scene->recalc_builds = 1
+leader_flags |= 0x2000000
+```
+
+and then the generic tail (`unit_masks &= ~0x80000`, `update_los`, `+0x174`,
+`update_gpiece`, a `set_new_location` on its own point). The walk that
+brought it ended on the unit-cell centre of that corner (§3.1: the move is
+snapped, `t · 0xc0 / 0x30 · 0x30 + 0x18`), so the seat is a step of
+`(−24, −24)`. The square it blocks is the one `good_merchant_spot` vetted.
+`Unit::close@0060ee50` gives the four tiles back for a merchant neither
+packed nor packing (and raises `0x2000000` for any merchant), and
+`SpellType::cast_pack@00670be0` gives them back on a re-pack.
+
+**What run159 says** (`run159_s_word_frame_is_widened_whole`). East Indies'
+AI Merchant `1/20` finishes its 149-frame unpack on frame 7662: on block
+7663 its `CASTORDER` (`spell 656`) is gone, `unit_masks` loses `0x80000`,
+`mylos` goes 3 → 5 and `x_internal`, `y_internal`, `orders_x/y` and both
+figures move (28632, 24024) → (28608, 24000) — tile (149, 125)'s corner.
+Nothing prints `WorldData`'s tile masks, so the block is witnessed by what
+it does: on 11577 gaia's sheep `8/1` is ordered from (28872, 23880) to
+(28680, 23736), a diagonal through tile (150, 124) to (149, 123) that cuts
+the corner (149, 124), one of `1/20`'s four. The original plans two
+waypoints, south to (28884, 23724) and then west, and walks 21 frames; this
+crate walked it straight in 13 until the arm was built, and its idle asked
+for `DEFAULT` eight frames early, the long word 11590. With the arm, the
+sheep, both Merchants' seats (`1/19`'s too, (32280, 36888) → (32256,
+36864)), city `1/2007`'s `filled` and `space[2]`, the leader's
+`reg_land[11]` and the rate rows that had stood since 613 all agree.
+
+**Seams**: `recalc_builds` and the head's `UnitData::announce_frame = −1`
+(`+0x14c`) feed the interface and nothing a dump prints; `cast_pack`'s
+release is written into the arm's reading only, because this crate never
+casts a pack; and `Unit::close`'s `is_packing` is read on whatever order
+list the death path has left.
+
 ---
 
 ## 4. Where `Unit::think@005f6e40` calls it
@@ -376,6 +423,15 @@ merchant's first turn.
 ---
 
 ## 6. Coverage
+
+**Diff-backed on run159, since 2026-09-23** (§3.2): the seat is a value
+diff — both AI Merchants' `pos`, figures and `orders_x/y`, eleven rows each,
+agree on all 630 blocks of `[11270, 11899]` where they stood (24, 24) off —
+and the footprint is witnessed by its consequences, a sheep's two-waypoint
+walk, a city's `filled`, and a region's `reg_land`, since no dump prints
+the tile masks (`run159_s_word_frame_is_widened_whole`). The release on
+death and on a re-pack is reading only: no capture has a deployed merchant
+die or pack.
 
 **Diff-backed on run74 too, since 2026-09-04** — a hundred blocks of Great
 Lakes over `[5700, 5800)` at the cheap per-frame detail, holding the AI

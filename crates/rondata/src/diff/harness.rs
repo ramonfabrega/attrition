@@ -12098,12 +12098,12 @@ mod tests {
             .filter(|(_, (f, _))| (FIRST + 1..=WORD_BLOCK).contains(f))
             .map(row)
             .collect();
+        // Item 629 closed the two leader rows too: the Merchants' seat
+        // (`docs/MERCHANT.md` §3.2) raises the leader's `0x2000000`, and
+        // the rates reassemble on the original's cadence.
         assert_eq!(
             under,
-            [
-                "11064 1/-1 leader:bucket[0:food]: ours 69 theirs 70",
-                "11037 1/-1 leader:bucket[4:metal]: ours 54 theirs 55",
-            ],
+            Vec::<String>::new(),
             "the rows under the word and on it"
         );
         // **The position that carried it**: until the fix `1/11` stood on
@@ -12138,7 +12138,9 @@ mod tests {
         // animals and the rest.
         let under_n = firsts.values().filter(|(f, _)| *f < WORD_BLOCK - 2).count();
         let first = firsts.values().filter(|(f, _)| *f == FIRST).count();
-        assert_eq!((first, under_n, firsts.len()), (289, 291, 307), "the floor");
+        // Item 629: 289/291/307 → 261/261/277, the two Merchants' seats,
+        // city `1/2007`'s space and the rate rows (`docs/MERCHANT.md` §3.2).
+        assert_eq!((first, under_n, firsts.len()), (261, 261, 277), "the floor");
     }
 
     /// **run159 — East Indies' word 11590, widened whole, both directions**
@@ -12150,7 +12152,7 @@ mod tests {
     /// The word's frame, 11590, writes block **11591**. The same item moved
     /// the word to 11747, inside the window (block 11748): a deployed
     /// Merchant's four tiles, `SpellType::cast_unpack`'s merchant arm
-    /// (`docs/MERCHANT.md` §3.4).
+    /// (`docs/MERCHANT.md` §3.2).
     #[test]
     fn run159_s_word_frame_is_widened_whole() {
         const FIRST: i64 = WIDENING_EAST_INDIES_IDLE.0;
@@ -12364,8 +12366,11 @@ mod tests {
         // price was 60/40 against 53 food, where `get_cost` takes Horses'
         // 15% off a Stable unit — 51/34, two affordable. On 10982 the
         // original then sorted the Barracks above the Light Horse, so
-        // `use_market`'s `need` differed and it spent a third draw. Two
-        // rows stand: §52.2's `city` shift and the Mine's value.
+        // `use_market`'s `need` differed and it spent a third draw. One
+        // row stands, §52.2's `city` shift. The Mine's value on 10982,
+        // 316800 against 310400, went with item 629 (parked 623): the
+        // Merchants' seat puts the leader's rates on the original's
+        // cadence (`docs/MERCHANT.md` §3.2).
         let leader: Vec<String> = firsts
             .iter()
             .filter(|((_, o, _), (f, _))| *o == -1 && (FIRST + 1..=WORD_BLOCK).contains(f))
@@ -12374,7 +12379,6 @@ mod tests {
         assert_eq!(
             leader,
             [
-                "10982 1/-1 leader:MAKE[4].val: ours 316800 theirs 310400",
                 "10981 1/-1 leader:MAKE[6].city: ours 1 theirs 0",
                 "10976 1/-1 leader:SITE[2].wx: ours 51 theirs 0",
                 "10976 1/-1 leader:SITE[2].wy: ours 58 theirs 0",
@@ -12390,8 +12394,6 @@ mod tests {
                 "10976 1/-1 leader:SITE[6].reg: ours 5 theirs 7",
                 "10976 1/-1 leader:SITE[6].wx: ours 49 theirs 34",
                 "10976 1/-1 leader:SITE[6].wy: ours 31 theirs 33",
-                "10881 1/-1 leader:bucket[0:food]: ours 32 theirs 33",
-                "10900 1/-1 leader:bucket[4:metal]: ours 33 theirs 34",
                 "10956 1/-1 leader:peasants: ours 15 theirs 16",
             ],
             "the leader record"
@@ -12417,10 +12419,13 @@ mod tests {
             .filter(|((_, o, _), (f, _))| *o != -1 && (WORD_BLOCK - 2..=WORD_BLOCK).contains(f))
             .count();
         assert_eq!(on_word, 0, "the unit rows on the word's blocks");
-        // **The floor**: 278 keys standing on the window's first block
-        // (run149's residue on its last), 309 before the word — the food and
-        // metal a unit off from 10881 and 10900, `peasants` and `1/36` from
-        // 10956, the SITE list on 10976 — and 312 in all. Before item 613's
+        // **The floor**: 251 keys standing on the window's first block
+        // (run149's residue on its last), 280 before the word — `peasants`
+        // and `1/36` from 10956, the SITE list on 10976 — and 282 in all.
+        // Item 629 took it from 278/309/312: the two Merchants' seats on
+        // the first block, and with them the food and metal a unit off from
+        // 10881 and 10900 and the Mine's value (`docs/MERCHANT.md` §3.2).
+        // Before item 613's
         // fix the floor was 278/409/616, and before item 620's 278/409/412:
         // on 10959 the citizen `1/11` took the Mine `1/2018`'s tile (173,
         // 183), which `1/6` already held, where the original took (170, 182)
@@ -12429,7 +12434,7 @@ mod tests {
         // list under `MTN_TINY_SIZE` (`docs/ORDERS.md` §6.4).
         let under = firsts.values().filter(|(f, _)| *f < WORD_BLOCK - 2).count();
         let first = firsts.values().filter(|(f, _)| *f == FIRST).count();
-        assert_eq!((first, under, firsts.len()), (278, 309, 312), "the floor");
+        assert_eq!((first, under, firsts.len()), (251, 280, 282), "the floor");
     }
 
     /// **run149 — East Indies' word 10782, widened whole, both directions**
@@ -12541,10 +12546,12 @@ mod tests {
         // word: a unit of food on 10733, and `SITE[7]` on 10776. Past it
         // the gather clock (10784), the human's `production_step` (10801)
         // and the transport rider `1/31`'s order (10875). Before the fix
-        // the floor was 280/283/506.
+        // the floor was 280/283/506. Item 629 took it 280/282/291 →
+        // 251/252/261: `1/19` and `1/20` are on their tile corners now
+        // (`docs/MERCHANT.md` §3.2), and the city and rate rows with them.
         let under = firsts.values().filter(|(f, _)| *f < WORD_BLOCK - 2).count();
         let first = firsts.values().filter(|(f, _)| *f == FIRST).count();
-        assert_eq!((first, under, firsts.len()), (280, 282, 291), "the floor");
+        assert_eq!((first, under, firsts.len()), (251, 252, 261), "the floor");
     }
 
     /// One of East Indies' `LEADERS=9` windows walked whole, both
@@ -12963,7 +12970,9 @@ mod tests {
         // 1,584,000. That is city `1/2007`'s `open` one high here —
         // `filled` 33 against 34, residue run58 pins from 1819 — and a payoff probe
         // that set the city's picture to the original's from 7975 closed
-        // the row and moved no draw (`docs/AI.md` §58.4).
+        // the row and moved no draw (`docs/AI.md` §58.4). Item 629 closed
+        // it: the Merchants' four-tile footprints are the city's missing
+        // `filled` (`docs/MERCHANT.md` §3.2).
         let on_word: Vec<String> = firsts
             .iter()
             .filter(|(k, (f, _))| (WORD_BLOCK - 2..WORD_BLOCK).contains(f) && k.1 == -1)
@@ -12974,7 +12983,6 @@ mod tests {
             [
                 "10582 1/-1 leader:MAKE[2].city: ours 1 theirs 0",
                 "10581 1/-1 leader:MAKE[3].city: ours 1 theirs 0",
-                "10582 1/-1 leader:MAKE[4].val: ours 1616000 theirs 1584000",
                 "10581 1/-1 leader:MAKE[5].city: ours 1 theirs 0",
             ],
             "the make list"
@@ -13008,7 +13016,8 @@ mod tests {
             // draws, so the shuffle reads the original's stream and the
             // list comes out in the original's order. The four left are
             // §52.2's `city` shift, under the word and not its cause.
-            [(10581, 2), (10582, 2), (10583, 0)],
+            // Item 629: 4 → 3, the Mine's value (`docs/MERCHANT.md` §3.2).
+            [(10581, 2), (10582, 1), (10583, 0)],
             "the word's blocks, counted"
         );
         let one_sided: Vec<(i64, i64, i64, bool, bool)> =
@@ -13081,9 +13090,12 @@ mod tests {
         // Item 604 moved the word out of this window (10582 → 10782) and
         // took the Mine's 80 gather-list rows, 393 → **313**: nothing
         // under the old word moved, and nothing past it parted anew.
+        // Item 629 took it 273/301/313 → 246/272/283: the Merchants `1/19`
+        // and `1/20` on their tile corners, `reg_land` and `filled` with
+        // their footprints, and the Mine's value (`docs/MERCHANT.md` §3.2).
         let under = firsts.values().filter(|(f, _)| *f < WORD_BLOCK - 2).count();
         let first = firsts.values().filter(|(f, _)| *f == FIRST).count();
-        assert_eq!((first, under, firsts.len()), (273, 301, 313), "the floor");
+        assert_eq!((first, under, firsts.len()), (246, 272, 283), "the floor");
     }
 
     #[test]

@@ -726,7 +726,7 @@ fn indexed_siblings_preserve_every_initial_field_except_audit_bodies() {
 /// 7662. `SpellType::cast_unpack`'s merchant arm snaps the trader onto
 /// its tile corner and blocks the two-by-two under it, and this crate
 /// had it as a seam, so `1/20` stood (24, 24) off at the unit-cell
-/// centre with nothing blocked (`docs/MERCHANT.md` §3.4). The move's
+/// centre with nothing blocked (`docs/MERCHANT.md` §3.2). The move's
 /// value diff (the word's delta, here; its block is the widening's):
 /// run159's sheep rows on 11578..11591 go, and so do both Merchants'
 /// seats (`1/19` and `1/20`, 22 rows), city `1/2007`'s `filled` and
@@ -2556,11 +2556,20 @@ pub(crate) const WIDENING_CHAPTER_SEVEN: (i64, i64) = (605, 1201);
 
 /// **Chapter seven-b's golden word** — the computer's civilians under the
 /// cheat (`docs/GOLDEN.md` §11, item 628, run156 and its control run157).
-pub(crate) const GOLDEN_WORD_CHAPTER_SEVEN_B: i64 = 1148;
+///
+/// **1148 → 1200 on item 629, closed** (the word's delta, here; its block
+/// is the widening's). The Merchant `1/8`'s unpack ends on 1070, and
+/// `SpellType::cast_unpack`'s merchant arm seats it on its tile corner and
+/// blocks the square under it (`docs/MERCHANT.md` §3.2); this crate left
+/// it 24 units off at the unit-cell centre, and the fur trapper `1/10`
+/// was then handed another `dest_y` on 1091 and turned on 1148. With the
+/// arm both agree to the end of the trace.
+pub(crate) const GOLDEN_WORD_CHAPTER_SEVEN_B: i64 = 1200;
 
 /// `chapter_seven_b_s_word_frame_is_widened_whole`'s window on run156:
-/// its first block to the word's own block and the one after.
-pub(crate) const WIDENING_CHAPTER_SEVEN_B: (i64, i64) = (605, 1150);
+/// **the capture whole**, 605..1199 and the `!quit` block at 1201, since
+/// the word is the capture's end (item 629) — chapter seven's shape.
+pub(crate) const WIDENING_CHAPTER_SEVEN_B: (i64, i64) = (605, 1201);
 
 /// **Chapter seven-b's control's word** — run157, the same five with the
 /// Leader AI on (item 628).

@@ -3335,7 +3335,7 @@ impl Sim {
         // `Unit::close@0060ee50`'s merchant arm: the leader's `0x2000000`
         // for any merchant, and the footprint `cast_unpack` blocked given
         // back when the trader is deployed — neither packed nor packing
-        // (`docs/MERCHANT.md` §3.4).
+        // (`docs/MERCHANT.md` §3.2).
         if self.is_merchant(unit) {
             let who = self.units[unit].owner;
             self.economy_changed(who);

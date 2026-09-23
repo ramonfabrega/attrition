@@ -5108,12 +5108,14 @@ fn chapter_seven_b_holds_to_the_golden_word() {
     let Some(w) = walk_script("ch7b", "chapter7b", 7, 7, 1200) else {
         return;
     };
+    // Closed at the trace's end since item 629: no value parts either
+    // (`GOLDEN_WORD_CHAPTER_SEVEN_B`).
     assert_eq!(
         (w.word, w.sequence, w.value),
         (
             GOLDEN_WORD_CHAPTER_SEVEN_B,
             GOLDEN_WORD_CHAPTER_SEVEN_B,
-            Some(GOLDEN_WORD_CHAPTER_SEVEN_B + 1)
+            None
         ),
         "chapter seven-b's golden word moved; re-pin it here and say so in \
          docs/GOLDEN.md §11"
@@ -5469,7 +5471,7 @@ fn chapter_seven_s_word_frame_is_widened_whole() {
 #[test]
 fn chapter_seven_b_s_word_frame_is_widened_whole() {
     for (run, stem, window, print) in [
-        ("ch7b", "chapter7b", WIDENING_CHAPTER_SEVEN_B, (1148, 1149)),
+        ("ch7b", "chapter7b", WIDENING_CHAPTER_SEVEN_B, (1199, 1200)),
         (
             "ch7bc",
             "chapter7b_control",
@@ -5515,10 +5517,12 @@ fn chapter_seven_b_s_word_frame_is_widened_whole() {
         );
         // **What parts under each word**, pinned by block and key, none of
         // it a mechanism (`docs/GOLDEN.md` §11). run156: the scout `1/0`'s
-        // `facing` from 847, as in chapter seven; the merchant `1/8` stands
-        // 24 units off the original's when its cast ends on 1070; and the
-        // fur trapper `1/10`'s move is handed another `dest_y` on 1091,
-        // 14408 against 14804, whose turn is the word. run157: the
+        // `facing` from 847, as in chapter seven (parked 635). Until item
+        // 629 the merchant `1/8` stood 24 units off the original's when its
+        // cast ended on 1070, and the fur trapper `1/10`'s move was handed
+        // another `dest_y` on 1091, 14408 against 14804, whose turn was the
+        // word 1148: 22 rows, gone with `cast_unpack`'s merchant arm (the
+        // move's value diff; its delta is the constant's). run157: the
         // computer's own `1/1` is grouped differently from 990 — group 64
         // against 65, one order against three, no `form_mod` against 50 —
         // and idles on the word where the original's walks; and who=1's
@@ -5530,31 +5534,7 @@ fn chapter_seven_b_s_word_frame_is_widened_whole() {
             .collect();
         got.sort();
         let want: &[&str] = if run == "ch7b" {
-            &[
-                "1070 1/8 g.x[0]",
-                "1070 1/8 g.x[1]",
-                "1070 1/8 g.y[0]",
-                "1070 1/8 g.y[1]",
-                "1070 1/8 orders_x",
-                "1070 1/8 orders_y",
-                "1070 1/8 pos",
-                "1091 1/10 angle:Heading",
-                "1091 1/10 heading",
-                "1091 1/10 order:move.dest_y",
-                "1091 1/10 path[0].to",
-                "1092 1/10 angle:Facing",
-                "1092 1/10 g.angle[0]",
-                "1092 1/10 g.angle[1]",
-                "1092 1/10 g.angle[2]",
-                "1092 1/10 g.x[1]",
-                "1093 1/10 g.y[1]",
-                "1095 1/10 g.x[0]",
-                "1095 1/10 g.x[2]",
-                "1095 1/10 pos",
-                "1149 1/10 g.y[0]",
-                "1149 1/10 g.y[2]",
-                "847 1/0 order:move.facing",
-            ]
+            &["847 1/0 order:move.facing"]
         } else {
             &[
                 "1005 1/1 order:move.angle",

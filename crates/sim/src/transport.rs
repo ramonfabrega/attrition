@@ -874,7 +874,7 @@ impl Sim {
     /// unit-cell centre (28632, 24024) and stands at (28608, 24000) from
     /// block 7663; the footprint is what sends gaia's sheep `8/1` round
     /// its tile corner on 11577, eight frames longer than a straight line
-    /// (`docs/MERCHANT.md` §3.4).
+    /// (`docs/MERCHANT.md` §3.2).
     ///
     /// SEAMS: the arm's `MiscAccess::scene->recalc_builds = 1` and the
     /// head's `UnitData::announce_frame = −1` (`+0x14c`), which feed the
