@@ -6383,22 +6383,83 @@ fn chapter_three_s_catapult_fires_on_the_ground() {
         "the dump's round is not the one pinned"
     );
     // What the order decides agrees: the release block, no object, the
-    // ground's `ez` at the point, the accuracy and the flight. Two
-    // fields part, and neither is the order's. The **launch** is the
-    // unit's own square here and the release node in the dump:
-    // `sim::launch` has no node for the catapult's piece (§22's seam).
-    // The **landing** is the point plus the scatter, and the scatter's
-    // two draws are taken on 798, after the stream parted on 782.
+    // ground's `ez` at the point, the accuracy and the flight. **And the
+    // landing** (item 625): the point plus the scatter's two draws, taken
+    // on 798, now that the stream holds to 792 — (2413, 8276) on both
+    // sides, where ours read (2655, 8142) while the crew's walk parted
+    // the stream on 782. One field parts, and it is not the order's: the
+    // **launch** is the unit's own square here and the release node in
+    // the dump, because `sim::launch` has no node for the catapult's
+    // piece (§22's seam).
     let mine = mine.expect("this crate's catapult fires");
     assert_eq!(
-        (mine.0, mine.6, mine.7, mine.8),
-        (theirs.0, theirs.6, theirs.7, theirs.8),
+        (mine.0, mine.4, mine.5, mine.6, mine.7, mine.8),
+        (theirs.0, theirs.4, theirs.5, theirs.6, theirs.7, theirs.8),
         "this crate's round parts from the dump's on what the order decides"
     );
     assert_eq!(
-        (mine.1, mine.2, mine.3, mine.4, mine.5),
-        (888, 7992, 251, 2655, 8142),
-        "the launch or the scatter moved; re-pin them against the dump's"
+        (mine.1, mine.2, mine.3),
+        (888, 7992, 251),
+        "the launch moved; re-pin it against the dump's"
+    );
+}
+
+/// **The restage's crew mirror the catapult's turn** (item 625,
+/// `docs/COMBAT.md` §58) — the value diff beside the word's move, 782 →
+/// 792. On the push, 781, figure 0 turns in place and the crew are pulled
+/// round to their rotated slots. Each block 781–785, ours against the
+/// dump's: the crew stand where the dump's do (`g.x`, `g.y`, which
+/// `GUYS=2` prints), and — the half `GUYS=2` does not print, read off
+/// run44's clock (`a_turning_catapult_s_crew_mirror_and_never_walk`) —
+/// they play figure 0's `TURN_LEFT` on figure 0's clock rather than a
+/// walk of their own.
+///
+/// Made to fail first: with `Guy::move`'s packer gate off, ours' crew
+/// play `CHAR_WALK` on 781.
+#[test]
+fn chapter_three_s_crew_mirror_the_turn() {
+    let Some(mut s) = stage_script("ch3b", "chapter3b") else {
+        return;
+    };
+    let mut rows = Vec::new();
+    for f in 0..785 {
+        s.script.stage(s.built.sim.frame, &mut s.built, &s.loaded);
+        s.built.tick();
+        let n = f + 1;
+        if n < 781 {
+            continue;
+        }
+        let ix =
+            s.ix.frames()
+                .iter()
+                .position(|x| x.number == n)
+                .expect("the block");
+        let frame = s.ix.frame_state(ix).unwrap();
+        let them = frame
+            .units
+            .iter()
+            .find(|u| u.who == 0 && u.o == 6)
+            .expect("the catapult in the dump");
+        let sim = &s.built.sim;
+        let u = &sim.units[sim.unit_by_o(0, 6).expect("our catapult")];
+        let lead = u.guys[0];
+        for (g, theirs) in u.guys.iter().zip(&them.guys).skip(1) {
+            let at = g.follow.expect("a tracked crew figure").body.pos;
+            let tp = theirs.pos.expect("the dump's figure");
+            rows.push((
+                n,
+                i64::from(g.anim),
+                i64::from(g.anim) == i64::from(lead.anim) && g.cur_time == lead.cur_time,
+                (i64::from(at.x), i64::from(at.y)) == (tp.x, tp.y),
+            ));
+        }
+    }
+    let want: Vec<_> = (781..=785)
+        .flat_map(|n| [(n, 21, true, true), (n, 21, true, true)])
+        .collect();
+    assert_eq!(
+        rows, want,
+        "0/6's crew on the turn: (block, slot, mirrored, on the dump's point)"
     );
 }
 
@@ -6533,14 +6594,22 @@ fn chapter_three_s_restage_is_widened_whole() {
                 .is_some_and(|k| standing(k.rsplit(' ').next().unwrap_or("")))
         })
         .collect();
-    // The blocks kept whole are the move's, 780–781, and the word's,
-    // 782–783. **Item 621**: the siege arm is carried, so every `0/6` row
-    // the ground order made on 781–783 — the order list's length, the
+    // The blocks kept whole are the move's, 780–781, and the word's.
+    // **Item 621**: the siege arm is carried, so every `0/6` row the
+    // ground order made on 781–783 — the order list's length, the
     // unspellable kind, the figure's `ox`/`whom`, the reload's 83 — is
     // gone. What stands is 617's numbering on the attack beneath the
-    // ground order, the same hoplite by position, and on the word's own
-    // block nothing else: the draw is the crew's walk, which `GUYS=2`
-    // prints no clock for (`docs/COMBAT.md` §57.6).
+    // ground order, the same hoplite by position.
+    //
+    // **Item 625: 782 → 792** (the delta is in
+    // `GOLDEN_WORD_CHAPTER_THREE_RESTAGE`'s comment; this is the word's
+    // block). The crew mirror the turn (`docs/COMBAT.md` §58), and the
+    // word's blocks are now 792–793. Nothing parts on them but 617's
+    // numbering, and that is the word itself: the draw is a re-search by
+    // one of arena A's hoplites, which ours number 6–8 and the dump 9–11,
+    // so they are `extra` and `unlinked` here and no field of theirs is
+    // compared. An empty list past the numbering is the blind, not
+    // agreement.
     assert_eq!(
         whole,
         vec![
@@ -6558,20 +6627,20 @@ fn chapter_three_s_restage_is_widened_whole() {
             "781 1/9 unlinked: the dump holds it alone",
             "781 1/10 unlinked: the dump holds it alone",
             "781 1/11 unlinked: the dump holds it alone",
-            "782 0/6 order:target: Target { ours: Some((1, 8)), theirs: Some((1, 11)) }",
-            "782 1/6 extra: this crate holds it alone",
-            "782 1/7 extra: this crate holds it alone",
-            "782 1/8 extra: this crate holds it alone",
-            "782 1/9 unlinked: the dump holds it alone",
-            "782 1/10 unlinked: the dump holds it alone",
-            "782 1/11 unlinked: the dump holds it alone",
-            "783 0/6 order:target: Target { ours: Some((1, 8)), theirs: Some((1, 11)) }",
-            "783 1/6 extra: this crate holds it alone",
-            "783 1/7 extra: this crate holds it alone",
-            "783 1/8 extra: this crate holds it alone",
-            "783 1/9 unlinked: the dump holds it alone",
-            "783 1/10 unlinked: the dump holds it alone",
-            "783 1/11 unlinked: the dump holds it alone",
+            "792 0/6 order:target: Target { ours: Some((1, 8)), theirs: Some((1, 11)) }",
+            "792 1/6 extra: this crate holds it alone",
+            "792 1/7 extra: this crate holds it alone",
+            "792 1/8 extra: this crate holds it alone",
+            "792 1/9 unlinked: the dump holds it alone",
+            "792 1/10 unlinked: the dump holds it alone",
+            "792 1/11 unlinked: the dump holds it alone",
+            "793 0/6 order:target: Target { ours: Some((1, 8)), theirs: Some((1, 11)) }",
+            "793 1/6 extra: this crate holds it alone",
+            "793 1/7 extra: this crate holds it alone",
+            "793 1/8 extra: this crate holds it alone",
+            "793 1/9 unlinked: the dump holds it alone",
+            "793 1/10 unlinked: the dump holds it alone",
+            "793 1/11 unlinked: the dump holds it alone",
         ],
         "a row on run146's whole blocks moved"
     );

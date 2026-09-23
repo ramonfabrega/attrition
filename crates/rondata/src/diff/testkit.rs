@@ -2586,15 +2586,37 @@ pub(crate) const WIDENING_CHAPTER_THREE: (i64, i64) = (605, 901);
 /// **Chapter three's restage** — `chapter3b.cmd`, run146, item 587: the
 /// same three unit types in two arenas, staged so that §7's minimum-range
 /// and speed falsifiers can fire (neither does). The draw stream parts on
-/// **782**, ours 7 draws against the original's 5, at draw 0: the
-/// original's catapult `0/6` spends one `Guy::set_anim+0x104b`, and this
-/// crate's spends two `Guy::set_anim+0x97a < Guy::inc_time+0x271` before
-/// it. Values part on 781, and only on `0/6`: the original has pushed an
-/// `ATTACKGROUNDORDER` over its attack at the target's point, its figure
-/// keeps `ox −1`, and its reload reads 83 against this crate's 82. That
-/// is `Unit::fight`'s siege arm and `Unit::do_attack_ground`, which this
-/// crate does not carry (`docs/COMBAT.md` §8.2 step 1, §56.3). No
-/// mechanism is established.
+/// **792**, ours 28 draws against the original's 29, at draw 24: past
+/// the birds, the original spends one `Unit::fight+0x9b0 <
+/// Unit::do_attack` and this crate goes straight to the farms. On 792
+/// the dump's arena-A hoplites `1/9`–`1/11` hold a fresh attack on the
+/// catapult (`idle 4`, `near_o 6`); this crate's take it on 795. The
+/// idle's +1 every sixteen frames is phased by the object number
+/// (`(frame + o) & 15`, `Unit::check_idle`), and this crate numbers
+/// those three hoplites 6–8 where the dump numbers them 9–11: parked
+/// 617's `DEATH_OBJS` cull, three frames on the same phase. The
+/// widening cannot see it, because the numbering leaves the three
+/// unlinked both sides. No mechanism is established beyond the phase.
+///
+/// **The delta: 782 → 792, item 625** — an unpacked packer's moving
+/// figure asks for no walk (`Guy::move:176–181`, the listing
+/// `5d9565`–`5d9581`; `docs/COMBAT.md` §58). The catapult's crew,
+/// pulled round by its turn in place on 781, kept their slot, and
+/// `Guy::inc_time`'s mirror copied figure 0's `TURN_LEFT` into them,
+/// where this crate put them on `CHAR_WALK` and rolled the idle twice on
+/// 782. The value diff on the frame it moved: on 781–785 the crew stand
+/// on the dump's points (`(938, 7883)`, `(660, 7965)` on 781) and play
+/// figure 0's slot on its clock (`chapter_three_s_crew_mirror_the_turn`;
+/// `GUYS=2` prints no clock, so the slot is read off run44's `0/15`,
+/// `a_turning_catapult_s_crew_mirror_and_never_walk`). And the round's
+/// landing on 798, the point plus two scatter draws, now reads the
+/// dump's (2413, 8276) (ours had (2655, 8142)). The word's block is in
+/// `chapter_three_s_restage_is_widened_whole`.
+///
+/// **The delta: 782 → 782, item 621** — the siege arm and
+/// `Unit::do_attack_ground` (`docs/COMBAT.md` §57), which the dump
+/// showed on 781 as an `ATTACKGROUNDORDER` over the attack, a figure at
+/// `ox −1` and a reload of 83. Built; the word did not move.
 ///
 /// **The delta: 780 → 782, item 616** — `SpellType::cast_unpack` lights
 /// the whole disc at the new line of sight (`update_seen(0)`,
@@ -2628,7 +2650,7 @@ pub(crate) const WIDENING_CHAPTER_THREE: (i64, i64) = (605, 901);
 /// **The chapter's word is [`GOLDEN_WORD_CHAPTER_THREE`]**, 900 on
 /// run145, the capture's end. This one is pinned beside it so the
 /// restage cannot fall unseen, and it is the lower of the two.
-pub(crate) const GOLDEN_WORD_CHAPTER_THREE_RESTAGE: i64 = 782;
+pub(crate) const GOLDEN_WORD_CHAPTER_THREE_RESTAGE: i64 = 792;
 
 /// `chapter_three_s_restage_is_widened_whole`'s window: run146 whole,
 /// 605..999 and the `!quit` block at 1001.
