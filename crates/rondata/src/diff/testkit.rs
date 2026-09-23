@@ -2906,6 +2906,16 @@ pub(crate) const WIDENING_EAST_INDIES_EXPLORE: (i64, i64) = (11_030, 11_279);
 /// The word 11069's block on run155: its frame, the explore's grid roll,
 /// writes block 11070. The coverage driver reads run155 around it.
 pub(crate) const EAST_INDIES_EXPLORE_BLOCK: i64 = 11_070;
+/// `run159_s_word_frame_is_widened_whole`'s window (item 629): run159
+/// whole, 11270..11899 — run155's line past its last block, overlapping it
+/// on 11270..11279, then the word 11590 and 308 blocks past it. The floor
+/// is the capture's first block for the reason [`WIDENING_CHAPTER_TWO`]'s
+/// is.
+pub(crate) const WIDENING_EAST_INDIES_IDLE: (i64, i64) = (11_270, 11_899);
+/// The word 11590's block on run159: its frame, the sheep `8/1`'s
+/// arrival idle, writes block 11591. The coverage driver reads run159
+/// around it.
+pub(crate) const EAST_INDIES_IDLE_BLOCK: i64 = 11_591;
 /// One pinned word's row: `(constant, word, widening test, item, window)`.
 pub(crate) type Widening = (
     &'static str,
@@ -2983,14 +2993,21 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // word's blocks, 11069..11070: the citizen `1/11`'s waypoint popped a
     // frame late, its walk (15, −29) off since 10959. The same item moved
     // the word to **11590**, past run155's last block (11279); run155's
-    // and run152's tests keep the move's value diff. Item 629 owes the new
-    // word's widening.
+    // and run152's tests keep the move's value diff.
+    //
+    // Item 629 paid it: **run159** is run155's line over [11270, 11899],
+    // and `run159_s_word_frame_is_widened_whole` is a sibling through the
+    // same walk, gaia included, on 630 blocks ten of which run155 shares.
+    // It pins the word's blocks, 11578..11592: gaia's sheep `8/1` walks a
+    // wander straight here and round a waypoint there, eight frames
+    // longer, past the Merchant `1/20` standing (24, 24) off its tile
+    // corner since 7663.
     (
         "LONG_WORD_EAST_INDIES",
         LONG_WORD_EAST_INDIES,
-        None,
+        Some("run159_s_word_frame_is_widened_whole"),
         629,
-        None,
+        Some(WIDENING_EAST_INDIES_IDLE),
     ),
     // Item 448 paid the widening 442 owed: `run100_s_word_block_is_every_
     // record_the_dump_carries` compares every field of every record run100
