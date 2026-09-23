@@ -2407,6 +2407,17 @@ pub(crate) const WIDENING_GREAT_LAKES_CROSSING: (i64, i64) = (11_400, 11_859);
 /// word 11806's frame writes block 11807. The coverage driver reads run135
 /// around it, keyed here rather than on the headline.
 pub(crate) const GREAT_LAKES_CROSSING_BLOCK: i64 = 11_807;
+/// `run136_s_word_frame_is_widened_whole`'s window (item 563): run123
+/// from **11400**, then run125, run130, run135 and run136 to its last
+/// block, 11959. The floor is [`WIDENING_GREAT_LAKES_CROSSING`]'s, for the
+/// same reason: the partings under the word spend no draw, and a walk
+/// that opened above them would print them as standing residue with no
+/// first block.
+pub(crate) const WIDENING_GREAT_LAKES_DETOUR: (i64, i64) = (11_400, 11_959);
+/// The block [`WIDENING_GREAT_LAKES_DETOUR`] was taken to widen: the word
+/// 11903's frame writes block 11904. The coverage driver reads run136
+/// around it, keyed here rather than on the headline.
+pub(crate) const GREAT_LAKES_DETOUR_BLOCK: i64 = 11_904;
 /// One pinned word's row: `(constant, word, widening test, item, window)`.
 pub(crate) type Widening = (
     &'static str,
@@ -2561,15 +2572,21 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // (11859)**, so the widening is owed a capture again and this row
     // names the item that owes it and no test. The same test keeps 11807
     // pinned empty, with every block after it, as the move's value diff,
-    // on its own `GREAT_LAKES_CROSSING_BLOCK`. **560 is the placeholder**:
-    // the commander re-points this row at the item that books the
-    // capture before 560 leaves the queue, or the guard goes red.
+    // on its own `GREAT_LAKES_CROSSING_BLOCK`.
+    //
+    // **Item 563 paid it**: run136 is run135's line over [11840, 11959],
+    // and `run136_s_word_frame_is_widened_whole` walks it from run123's
+    // 11400 across five captures, so the window is
+    // [`WIDENING_GREAT_LAKES_DETOUR`]. The word's blocks part first on
+    // `1/62`'s path on 11902: its flag-2 detour round `1/27` goes north in
+    // the original and south here, and `1/64` waits on it there and steps
+    // and stops here (`docs/PATHFINDER.md` §23).
     (
         "LONG_WORD_GREAT_LAKES",
         LONG_WORD_GREAT_LAKES,
-        None,
+        Some("run136_s_word_frame_is_widened_whole"),
         563,
-        None,
+        Some(WIDENING_GREAT_LAKES_DETOUR),
     ),
     // Item 445 paid the widening chapter one had never had: the word
     // stood at 626 from item 405 on, and every test behind it pinned one

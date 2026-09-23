@@ -4741,6 +4741,26 @@ settle_min: 14000000
 # Sized from run135: 2.2 MB a block, 120 blocks ~265 MB; ~13 minutes of
 # dumping. 180 polls is 60 minutes.
 poll_max: 180
+# ==== TAKEN 2026-09-22, **WHOLE** ====
+#
+# 264,051,273 bytes, **120 blocks 11840..11959**, a `GROUPDATA` on every
+# one; 17.8 MB of trace. About twelve and a half minutes launch to archive
+# (23:42 to 23:55), after a background wait for att-552's capture to free
+# the lane. All six checks green: 11,971 frames identical to run53,
+# `MAP_STYLE 14`, 20 blocks shared with run135 and 0 differing, and a
+# coverage set on all 15 window frames.
+#
+# **The readings, decided on blocks 11860..11905**: **R2 is dead**: the
+# 284 keys under the word are run135's floor exactly, and nothing new
+# parts on 11860..11901. **R4 is dead**: `1/64`'s 11898..11902 wait
+# agrees, with the original's still waiting on block 11903. **R1 holds,
+# and R3 names why**: on block 11903 the original's `1/64` hard-collides
+# with `1/62` (`collide_o 62`) and stays stopped. Ours has `collide_o -1`
+# and steps, because `1/62` is elsewhere, and `1/62` is elsewhere
+# because its flag-2 detour round `1/27`, planned on frame 11901 from
+# the same point, goes north there and south here. The first row is
+# block 11902's `1/62` `path:length`, ours 6 against theirs 8.
+# `docs/PATHFINDER.md` §23.
 # Same game: the trace word for word against run53, this map's own 24k run.
 check: python3 tools/gamelog/rngcmp.py rontrace-run53.log rontrace-run136.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=11960)}'
 # And the map, from the dump's own `GAME INFO`.

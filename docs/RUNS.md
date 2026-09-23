@@ -4939,3 +4939,38 @@ crate's carries the soft one-shot (`unit_masks & 0x100000`) out of frame
 11804's sweep, which also found `1/64` hard, spends it on 11805 to step,
 and stops on 11806: the extra `move_step+0x823` draw.
 `docs/COLLISION.md` §12; `run135_s_word_frame_is_widened_whole`.
+
+## run136 — Great Lakes' word 11903, `1/62`'s detour (2026-09-22, item 563)
+
+**What it is.** run135's line, unchanged,
+`MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1`, over
+`[11840, 11960)`, plus `rontrace.cfg` `cover=1` and `window=11896-11910`
+over the word. `!quit` at 11970. **264,051,273 bytes of dump and 17.8 MB
+of trace, about twelve and a half minutes** from launch at 23:42 to
+archive at 23:55. It was launched through `viadriver.sh` with no human at
+the menu, after a background wait for att-552's chapter-four capture to
+free the lane. It ran at ~15 blocks a minute and 2.2 MB a block, as sized
+from run135. The leader detail stayed at 9, so the overlap check is a
+plain `samegame` with nothing excluded.
+
+**Why it was owed.** Item 560 moved Great Lakes' word to 11903, and
+run135, the highest dump at any detail below run80's endpoint window,
+ends on block 11859.
+
+**Every check passed:**
+
+| check | result |
+|---|---|
+| `rngcmp.py` vs `rontrace-run53.log` | **0 differing**, 11,971 identical |
+| `MAP_STYLE` from the dump's `GAME INFO` | 14 |
+| the window, block for block | **120 blocks, 11840..11959, no gap** |
+| a `GROUPDATA` on every window block | **120** |
+| overlap with run135, nothing excluded | **20 in common (11840..11859), 0 differ** |
+| the coverage window | a set on all 15 frames 11896..11910 |
+
+**What it settled.** The word is `1/62`'s flag-2 detour around `1/27`,
+planned on frame 11901 (block 11902) from the same point on both sides:
+the original's goes north and ours goes south. The original's `1/64` then
+waits hard on `1/62`, while ours steps and stops. The original's frame
+11901 runs `PathFinder::find_upath` → `astar_path`.
+`docs/PATHFINDER.md` §23; `run136_s_word_frame_is_widened_whole`.
