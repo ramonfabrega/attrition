@@ -22,6 +22,18 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Parked by item 608, 2026-09-23 — the slot count's edges
+
+(614) **`SITE[7].val` on 10776**: 26 here against 13 in the original. It
+stands through run149's last block, 10879, and spends no draw.
+
+(615) **`count_gather_slots`' `open` floor.** This crate floors each
+building's share at 0, and the original has no floor. No row shows it
+yet.
+
+(577), partly paid by 608: `widen_east_indies` now compares gaia's
+position and clock; the general `compare` still skips gaia.
+
 ## Parked by item 603, 2026-09-23 — the other pivots
 
 (611) **Node offsets for every other pivot piece** (`docs/COMBAT.md`
