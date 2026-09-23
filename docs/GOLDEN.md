@@ -64,7 +64,7 @@ Chapters one, two and five agree to their traces' end, 900 (items 530, 523,
 549); ~~chapter four is pinned at 1277, then 1416, of 1501 (items 552, 567)~~
 chapter four agrees to its trace's end, 1500 (items 552, 567, 569); chapter
 seven agrees to its end, 1200, on its first walk and on its control's (item
-578). **A chapter whose
+578); chapter three is pinned at 621 of 901 (item 587). **A chapter whose
 word is its trace's last block is closed**, and the handoff's `Golden:`
 line says so — `chN closed` — and leads with the lowest *open* chapter's
 word, which is the rules headline; `rondata::diff::floors` reads the line
@@ -366,11 +366,12 @@ speed, and a shot a unit *refuses* to take. A Catapult's range is **3 to 15
 tiles** — it has a minimum — so a chapter in which the enemy closes past
 three tiles is the only kind that can show the refusal.
 
-**Lines** (`chapter3.cmd`): `!ai off` at 0; `age who=0 4` and `age who=1 4`
-at 600 and 602 — `age` rather than `library`, so that chapter two owns the
+**Lines** (`chapter3.cmd`): `!ai off` at 0; `age who=0 2` and `age who=1 2`
+at 600 and 602 (~~`4`~~, which is Gunpowder: `age`'s level counts from one,
+item 587) — `age` rather than `library`, so that chapter two owns the
 `library` arm and a parting is attributable to one of them;
 `add 3 chariot who=0 4,40` at 610, the leading count placing three separate
-one-figure units rather than a squad; `add hoplite who=1 12,40` at 615;
+one-unit Chariots rather than a squad; `add hoplite who=1 12,40` at 615;
 `add catapult who=0 4,41` at 620, eight tiles from the hoplites.
 
 **The capture must dump** the same set as chapter two, over `[605, 900)`.
@@ -381,6 +382,20 @@ chariots whose per-frame displacement equals the hoplites', which would say
 the line's speed is not read. A leading count of 3 producing nine units or
 one, either of which would overturn `docs/INPUT.md` §11.5's reading that the
 count is a count for a unit type and not for a building.
+
+**Run, 2026-09-23, run145 (item 587). None of the three fired, and two
+could not have.** `docs/RUNS.md` run145 has the receipt. The leading count
+holds: three separate Chariots on 611. But the catapult is **born packed**
+(`unit_masks 0x80000`), takes no attack order, starts its unpack (`spell
+652`) on 696 and never fires a round. The chariots shoot the hoplites dead
+without moving, and no hoplite comes within 3 tiles of the catapult. The
+minimum-range and speed falsifiers are **untested** by run145, not held.
+
+**The word is 621**, the catapult's birth frame. This crate orders the
+packed catapult to attack and spends `Unit::fight+0x9b0`'s re-search draw,
+7 against the original's 6; values part on 622
+(`GOLDEN_WORD_CHAPTER_THREE`, `chapter_three_s_word_frame_is_widened_whole`,
+which widens run145 whole and adds the `GUY` record's position and facing).
 
 ## 8. Chapter four — the Temple, the border, and the bleed
 
@@ -752,7 +767,7 @@ below without a run take their number at booking (the eleventh pass).
 | ~~115~~ 133 | four, the bleed | `[595, 1500)` | the same script, a second window — **run133, 120 MB, 372 s; word 1277**, closed at 1500 by item 569 |
 | ~~116~~ 141 | seven, the civilians | `[605, 1200)` | tests the premise every other chapter stands on — **run 2026-09-23 as run141 (item 578), 112 MB, 281 s; the first falsifier fired; closed at 1200** |
 | ~~117~~ 142 | seven, the control | `[605, 1200)` | `!ai off` deleted; without it 116 measures nothing — **run142, 112 MB, 331 s; the five act exactly as in run141** |
-| 118 | three, the mounted and siege lines | `[605, 900)` | |
+| ~~118~~ 145 | three, the mounted and siege lines | `[605, 900)` | **run 2026-09-23 as run145 (item 587), 43 MB, 145 s; word 621; no falsifier fired, two could not** |
 | 119 | six, the air and the bird | `[605, 900)` | the one new order class |
 
 Chapter eight and any further detail window need numbers beyond the

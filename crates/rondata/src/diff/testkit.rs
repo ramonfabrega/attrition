@@ -2419,6 +2419,24 @@ pub(crate) const GOLDEN_WORD_CHAPTER_SEVEN: i64 = 1200;
 /// [`WIDENING_CHAPTER_TWO`]'s is.
 pub(crate) const WIDENING_CHAPTER_SEVEN: (i64, i64) = (605, 1201);
 
+/// **Chapter three's golden word** — the mounted and siege lines, run145,
+/// item 587 (`docs/GOLDEN.md` §7). The draw stream parts on **621**, ours
+/// 7 draws against the original's 6: the extra is `Unit::fight+0x9b0`, the
+/// one-in-five re-search, on the catapult `0/9` the frame after its birth.
+/// The original's catapult is born packed (`unit_masks 0x80000`), takes no
+/// attack order, and starts its unpack (`CASTORDER spell 652`) on block
+/// 696; this crate sends it to fight packed. The first value word parts on
+/// 622. No mechanism is named here.
+pub(crate) const GOLDEN_WORD_CHAPTER_THREE: i64 = 621;
+
+/// `chapter_three_s_word_frame_is_widened_whole`'s window: **run145
+/// whole**, 605..899 and the `!quit` block at 901. The floor is the
+/// capture's own first block, for the reason [`WIDENING_CHAPTER_TWO`]'s
+/// is; the ceiling is the end, because the chariots' first rounds (651)
+/// are after the word and an `AMMO` reader over a window without a round
+/// in it would agree by not looking.
+pub(crate) const WIDENING_CHAPTER_THREE: (i64, i64) = (605, 901);
+
 /// **How many height reads each replay may make on a corner this crate
 /// cannot pin to the original's single**, by test name — `docs/COMBAT.md`
 /// §46.3, and the `Drop` of [`crate::diff::Built`] that holds every replay
@@ -2904,6 +2922,14 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some("chapter_four_s_word_frame_is_widened_whole"),
         567,
         Some(WIDENING_CHAPTER_FOUR),
+    ),
+    // Item 587: run145, the catapult's birth frame.
+    (
+        "GOLDEN_WORD_CHAPTER_THREE",
+        GOLDEN_WORD_CHAPTER_THREE,
+        Some("chapter_three_s_word_frame_is_widened_whole"),
+        587,
+        Some(WIDENING_CHAPTER_THREE),
     ),
     // Item 578: closed at its first walk, on both run141 and its control.
     (

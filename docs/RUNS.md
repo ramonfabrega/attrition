@@ -5257,3 +5257,59 @@ because no toggle means no block 1. The tracer DLL is rebuilt per run
 - **The harness walks both to 1200 without a parting.** Draws, sequence
   and values all agree, and this crate's five match the original's on 763,
   900 and 1199 in both runs.
+
+## run145 — chapter three, the mounted and siege lines (2026-09-23, item 587)
+
+The golden record's third chapter (`docs/GOLDEN.md` §7), staged from
+`tools/gamelog/golden/chapter3.cmd`: `!ai off` at 0, `age who=0 2` and
+`age who=1 2` at 600 and 602 (the Classical age; the file said `4`, which
+is Gunpowder, until item 587), `add 3 chariot who=0 4,40` at 610, `add
+hoplite who=1 12,40` at 615, `add catapult who=0 4,41` at 620. run141's
+command with chapter two's dump set:
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch3 \
+    --map 14 --end-frame 900 --log-window 605 900 --timeout 3600 \
+    --detail end:UNITS=3,GUYS=2,AMMO=5,DEATHS=1,LEADERS=2 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 \
+    --cmd-file tools/gamelog/golden/chapter3.cmd
+```
+
+`success: true`, exit 0, 901 frames, `MAP_STYLE 14` and seed 12345 read
+back, five settings files restored. One take: **144.5 s from launch to exit,
+43 MB of dump and 10 MB of trace**. Eight `INFO cmd` records each returned 1.
+297 blocks: 1, 605..899 and 901. The lane lock was stale (pid 3800 gone) and
+was taken over.
+
+**What the disk had before it** (`rg` over the `Logs` archive and
+`~/ron-golden` for a `GUY` of type 195 or 265): no Chariot anywhere; Catapults
+only in run44 (Islands, 700 frames, `GUYS=4`, no `AMMO`). This is the first
+catapult and the first chariot in a capture with `AMMO` on.
+
+### The predictions, written into the `.cmd` file before the run
+
+Committed as `aeb4c70`.
+
+| check | predicted | observed |
+| --- | --- | --- |
+| births | three separate Chariots `0/6..0/8` on 611, hoplites `1/6..1/8` on 616, catapult `0/9` on 621 | exactly; `o_up`/`o_down` −1 on each chariot, two type-195 figures each; three type-265 figures on the catapult |
+| `myspeed` | 30, 25, 19 | exactly |
+| the chariots fire | yes, orders near 635 | orders on 633, 634, 635; rounds from 651; the hoplites die from 678 |
+| the catapult fires | yes, ordered near its birth | **no round, ever.** Born packed (`unit_masks 0x80000`), no order until a `CASTORDER spell 652` (`0x28c`, the unpack) on 696 at `idle 7`; unpacked (mask 0) by 899 |
+
+### §7's falsifiers
+
+- **The leading count: does not fire.** Three units, not nine or one.
+- **The catapult's minimum range: cannot fire.** It never launches, and no
+  hoplite comes within 3 tiles of it (closest 759 units, 3.95 tiles, on 670).
+- **The chariots' speed: cannot fire.** The chariots never move. The
+  hoplites stall about 3.3 tiles short of them from about 670 and are shot
+  where they stand.
+
+### The harness
+
+The word is **621**, ours 7 draws against 6: `Unit::fight+0x9b0` on the
+catapult `0/9`, which this crate orders to attack on its birth block while
+packed. Values part on 622. `GOLDEN_WORD_CHAPTER_THREE` and
+`chapter_three_s_word_frame_is_widened_whole`.
