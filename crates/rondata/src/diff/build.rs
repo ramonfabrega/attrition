@@ -1727,6 +1727,17 @@ mod tests {
                 got.len(),
                 want.intersection(&got).count()
             );
+            // `MiningList::mtn` is `find_nearest`'s placed index, and with
+            // the generator's placements in (item 604) this crate names the
+            // same range the dump does, wherever it built the mine.
+            if let Some(b) = found {
+                let bd = &built.sim.buildings[b];
+                let ty = bd.ty.expect("a typed mine");
+                let corner = built.sim.tile_corner(ty, bd.pos);
+                let site = built.sim.footprint_centre(ty, corner);
+                let ours = built.sim.nearest_placed(site).map(|(_, i, _)| i as i64);
+                assert_eq!(ours, m.mtn, "mine {}/{}: the range index", m.who, m.o);
+            }
             // `1/2021` is placed on 8382, below this map's word, so it is
             // the one the two sides must agree about.
             if (m.who, m.o) != (1, 2021) {
@@ -1749,7 +1760,7 @@ mod tests {
     }
 
     /// **A mine's reach is measured to the nearest solid mountain cell**,
-    /// and run144's packet is the oracle (`docs/AI.md` §59).
+    /// and run144's packet is the oracle (`docs/AI.md` §59, §60).
     ///
     /// East Indies' word 10582 is `produce_building`'s spiral placing Mine
     /// `1/2018` for city `1/2007`: twelve friendless candidates drew here
@@ -1762,14 +1773,14 @@ mod tests {
     /// the nearest mountain *tile*, inside it.
     ///
     /// The eight rows are the packet's `find_nearest` distance at eight
-    /// mine sites, as world-unit centres. Measuring to cells closed
-    /// `(38784, 37248)`. **The last four rows are the residue, pinned as
-    /// they stand**: the packet's solid list for range 2 (loc `(43, 46)`)
-    /// is `(42,46) (43,46) (42,47)`, and this crate's membership rule, "the
-    /// centre tile is a mountain", also admits `(42, 45)` and `(41, 46)`.
-    /// The solid lists are the mountain templates' own, and no dump prints
-    /// them. A row that starts agreeing is the templates arriving; move it
-    /// up.
+    /// mine sites, as world-unit centres, and this crate's
+    /// [`sim::Sim::find_nearest_mountain`] must give each exactly. Item 597
+    /// closed the first (by measuring to cells) and pinned the last four as
+    /// a residue: the stand-in's membership rule, "the centre tile is a
+    /// mountain", admitted `(42, 45)` and `(41, 46)`, which reached them at
+    /// 1152 and 768. Item 604 laid the generator's placed templates down
+    /// and all eight agree; with the stand-in's rule back, the four part
+    /// again.
     #[test]
     fn east_indies_10582_mine_sites_measure_to_the_nearest_solid_cell() {
         let Some(inst) = install() else { return };
@@ -1791,40 +1802,165 @@ mod tests {
         borrow_from_siblings(&mut init, &[&sib_init]);
         borrow_pasture(&mut init, &tr);
         let built = build_sim(&loaded, &init, Tuning::RON);
+        assert_eq!(built.sim.mountains.len(), 18, "run38's placed mountains");
         let reach = sim::gather::MINE_RADIUS * sim::world::UNITS_PER_TILE;
-        let ours = |x: i32, y: i32| {
-            built
-                .sim
-                .nearest_mountain_cell(sim::Pos::new(x, y))
-                .map(|(d, c)| (d, (c.x, c.y)))
-        };
         // (site, the packet's `find_nearest` distance)
-        let agree: [((i32, i32), i32); 4] = [
+        let rows: [((i32, i32), i32); 8] = [
             ((38784, 37248), 1536),
             ((34176, 34944), 1152),
             ((34176, 35136), 984),
             ((32256, 36864), 576),
+            ((33408, 34176), 1536),
+            ((32640, 34176), 1536),
+            ((31104, 35712), 1536),
+            ((31104, 36480), 1536),
         ];
-        for ((x, y), theirs) in agree {
-            let got = ours(x, y).map(|(d, _)| d);
-            let want = (theirs <= reach).then_some(theirs);
-            assert_eq!(got, want, "({x}, {y}): the packet measures {theirs}");
-        }
-        // The residue: the packet refuses all four at 1536; this crate
-        // reaches a cell no range lists as solid.
-        type Reached = (i32, (i32, i32));
-        let residue: [((i32, i32), i32, Reached); 4] = [
-            ((33408, 34176), 1536, (1152, (42, 45))),
-            ((32640, 34176), 1536, (768, (42, 45))),
-            ((31104, 35712), 1536, (768, (41, 46))),
-            ((31104, 36480), 1536, (1152, (41, 46))),
-        ];
-        for ((x, y), theirs, pinned) in residue {
-            assert!(theirs > reach);
+        for ((x, y), theirs) in rows {
+            let site = sim::Pos::new(x, y);
+            let got = built.sim.find_nearest_mountain(site).map(|(d, _, _)| d);
             assert_eq!(
-                ours(x, y),
-                Some(pinned),
-                "({x}, {y}): the packet measures {theirs}; pinned residue"
+                got,
+                Some(theirs),
+                "({x}, {y}): the packet measures {theirs}"
+            );
+            let kept = built.sim.nearest_mountain_cell(site).map(|(d, _)| d);
+            assert_eq!(kept, (theirs <= reach).then_some(theirs), "({x}, {y})");
+        }
+    }
+
+    /// run144's packet's solid lists (`docs/AI.md` §59.3), where item 597
+    /// left them: `~/ron-data/lab-experiments/2026-09-23-item-597/
+    /// solid-mount-cells.json`, or `$RON_PACKET_SOLID`. Outside git, like
+    /// the packet. Each entry is `(placed index, template, loc, cells)`.
+    /// One packet range: `(placed index, template, loc, solid cells)`.
+    type PacketRange = (i64, i64, (i64, i64), Vec<(i64, i64)>);
+
+    fn packet_solid_cells() -> Option<Vec<PacketRange>> {
+        let path = std::env::var("RON_PACKET_SOLID").unwrap_or_else(|_| {
+            let home = std::env::var("HOME").unwrap_or_default();
+            format!("{home}/ron-data/lab-experiments/2026-09-23-item-597/solid-mount-cells.json")
+        });
+        let text = std::fs::read_to_string(path).ok()?;
+        // `[{"i": 0, "type": 14, "loc": [51, 46], "cells": [[50, 43], …]}, …]`:
+        // every object's integers in order are i, type, loc and the pairs.
+        let ints = |t: &str| -> Vec<i64> {
+            t.split(|c: char| !(c.is_ascii_digit() || c == '-'))
+                .filter_map(|w| w.parse().ok())
+                .collect()
+        };
+        text.split('{')
+            .skip(1)
+            .map(|o| {
+                let v = ints(o);
+                (v.len() >= 4 && v.len() % 2 == 0).then(|| {
+                    let cells = v[4..].chunks(2).map(|p| (p[0], p[1])).collect();
+                    (v[0], v[1], (v[2], v[3]), cells)
+                })
+            })
+            .collect()
+    }
+
+    /// **The solid cells are the templates' own, and the templates give
+    /// all of the packet's** (`docs/AI.md` §60).
+    ///
+    /// run38's `DUMP_ALL` head prints the generator's eighteen placed
+    /// mountains on East Indies (`GameLog::dump_mountains`); each one's
+    /// template, read from the install's `TEMPLATE_TEX` alpha as
+    /// `MountainRange::init` reads it, is laid at its location. run144's
+    /// packet copied the original's own `solid_mount_wx`/`_wy` for every
+    /// range, 107 cells, and this compares them **in the original's list
+    /// order**, range by range. It was made to fail on purpose by reading
+    /// the image bottom row first, the file's own origin: 3 of 3 template
+    /// lists part.
+    #[test]
+    fn the_templates_give_the_packet_s_solid_cells() {
+        let Some(inst) = install() else { return };
+        let Some(sib) = dump("gamelog-run38-islands-start.txt") else {
+            eprintln!("skipping: no run38 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let Some(packet) = packet_solid_cells() else {
+            eprintln!(
+                "skipping: no run144 packet solid list \
+                 (~/ron-data/lab-experiments/2026-09-23-item-597/solid-mount-cells.json \
+                 or RON_PACKET_SOLID)"
+            );
+            return;
+        };
+        let templates = crate::mountains::templates(&inst);
+        assert_eq!(
+            templates.len(),
+            16,
+            "effects_graphics.xml's sixteen MOUNTAINs"
+        );
+        let text = crate::capture::read(&sib);
+        let log = Log::parse(&text);
+        let init = log.initial().expect("run38 is a start dump");
+        assert_eq!(init.mountains.len(), 18, "East Indies' placed mountains");
+        assert_eq!(packet.len(), 18, "the packet's placed mountains");
+        let mut cells = 0;
+        for (k, (m, (i, ty, loc, want))) in init.mountains.iter().zip(&packet).enumerate() {
+            assert_eq!((k as i64, m.t, (m.x, m.y)), (*i, *ty, *loc), "range {k}");
+            let got: Vec<(i64, i64)> = templates[m.t as usize]
+                .solid
+                .iter()
+                .map(|&(dx, dy)| (m.x + i64::from(dx), m.y + i64::from(dy)))
+                .collect();
+            assert_eq!(&got, want, "range {k} (template {}, loc {loc:?})", m.t);
+            cells += got.len();
+        }
+        assert_eq!(cells, 107, "the packet's 107 solid cells");
+    }
+
+    /// **The placed templates' tiles are the map's mountain tiles**, on
+    /// both maps: the union over every placed range of its template's
+    /// tiles at `4 · loc` is exactly the set of tiles the start dump marks
+    /// `OBJECT_MOUNTAIN`. This needs no packet — the generator's own
+    /// `add_mountain` stamps those tiles from the same lists — so it is the
+    /// check that the tile rule and the placement frame are right wherever
+    /// a range lies, Great Lakes' included, which no packet has read.
+    #[test]
+    fn the_placed_templates_tile_the_map_s_mountains() {
+        let Some(inst) = install() else { return };
+        let loaded = crate::load::load(&inst).unwrap();
+        for (name, ranges) in [
+            ("gamelog-run38-islands-start.txt", 18),
+            ("gamelog-run12-dumpall-seeds.txt", 13),
+        ] {
+            let Some(path) = dump(name) else {
+                eprintln!("skipping: no {name} (set RON_GAMELOG_DIR)");
+                continue;
+            };
+            let text = crate::capture::read(&path);
+            let log = Log::parse(&text);
+            let init = log.initial().expect("a start dump");
+            let built = build_sim(&loaded, &init, Tuning::RON);
+            let sim = &built.sim;
+            assert_eq!(sim.mountains.len(), ranges, "{name}: placed ranges");
+            let placed: BTreeSet<(i32, i32)> = sim
+                .mountains
+                .iter()
+                .flat_map(|m| m.tiles.iter().map(|t| (t.x, t.y)))
+                .collect();
+            let mut marked = BTreeSet::new();
+            for y in 0..sim.world.height() * sim::world::TILES_PER_CELL {
+                for x in 0..sim.world.width() * sim::world::TILES_PER_CELL {
+                    let t = sim::Pos::new(x, y);
+                    if sim.world.tile_mask(t) & sim::world::tile::OBJECT
+                        == sim::world::tile::OBJECT_MOUNTAIN
+                    {
+                        marked.insert((x, y));
+                    }
+                }
+            }
+            let only_placed: Vec<_> = placed.difference(&marked).take(8).collect();
+            let only_marked: Vec<_> = marked.difference(&placed).take(8).collect();
+            assert!(
+                only_placed.is_empty() && only_marked.is_empty(),
+                "{name}: {} placed tiles, {} marked; placed only {only_placed:?}, \
+                 marked only {only_marked:?}",
+                placed.len(),
+                marked.len()
             );
         }
     }

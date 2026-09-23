@@ -7423,8 +7423,10 @@ region. Measured on East Indies:
   (1, 1) and (2, 2), misses 4.
 
 The lists are the templates' own (`MountainRange::init` loads them with
-the art; the `h*`, `m*`, `s*` mountain files). No dump prints them.
-Reproducing them is its own mechanic.
+the art; the `h*`, `m*`, `s*` mountain files). ~~No dump prints them.
+Reproducing them is its own mechanic.~~ `init` derives them from the alpha
+of each template's image, and a `DUMP_ALL` head prints the placements. All
+107 cells are reproduced: §60.
 
 ### 59.4 What it moved
 
@@ -7445,15 +7447,17 @@ Reproducing them is its own mechanic.
 
 ### 59.5 What this has *not* established
 
-- **Solid membership** (§59.3). This is the successor on the headline: the
+- ~~**Solid membership** (§59.3). This is the successor on the headline: the
   four sites (43, 44), (42, 44), (40, 46) and (40, 47) are refused at 1536
-  in the original and reach (42, 45) or (41, 46) here.
-- **The region test** is made per cell. The original makes it on a range's
+  in the original and reach (42, 45) or (41, 46) here.~~ Established in
+  §60; the four are refused at 1536 here too.
+- ~~**The region test** is made per cell.~~ (§60: on the first solid cell,
+  with the placements.) The original makes it on a range's
   first solid cell. That is the same thing wherever a range lies in one
   region, which holds for all eighteen on East Indies. It is not read on
   Great Lakes.
-- **The tie-break** between two ranges at one distance: the generator's
-  order there, rows here.
+- ~~**The tie-break** between two ranges at one distance: the generator's
+  order there, rows here.~~ The generator's order, with the placements (§60).
 - **Great Lakes 8382** (ECONOMY, the nine candidates) is not re-measured
   cell by cell. The map's word holds at 12038, so its draws agree.
 
@@ -7471,8 +7475,125 @@ Diff-backed:
 
 Packet-backed and not in a test, because the packet stays outside git
 (`~/ron-data/lab-experiments/2026-09-23-item-597/`): the per-cell
-`blocked_site` codes, the 107 solid cells and their regions.
+`blocked_site` codes, ~~the 107 solid cells~~ and their regions. The
+107 cells are in a test since §60, which reads the packet's list at run
+time.
 
 Reading-only: the `+0x7c/+0x88/+0xa4` offsets as `solid_mount_wx`/`_wy`,
 checked against the packet's lists (every range's cells sit around its
 location). This is owed a blind second reading.
+
+## 60. The solid cells are the templates' alpha, and the word moves to 10782 (2026-09-23, item 604)
+
+East Indies' word **10582** held through two items. Each fixed a value under
+it: 592 the census, 597 the Mine's site. On the word the spiral scored
+**11** friendless candidates against the original's **7**. Four cells, (43,
+44), (42, 44), (40, 46) and (40, 47), reached a solid mountain cell that no
+range lists. §59.3 named the cause as `solid_mount` membership: the lists are
+the templates', and no rule over this crate's tiles separates them.
+
+### 60.1 What the loader reads
+
+`MountainRange::init@008998b0` does not load a list. It derives both lists
+from the **alpha channel** of the template's `TEMPLATE_TEX`, a 256 × 256
+TGA. Four pixels make a tile and sixteen make a cell.
+
+- A **tile** is the range's when all four of its corner pixels are set.
+- A **solid cell** is the range's when more than fifteen of a 5 × 5 grid of
+  samples over its block are set.
+
+The template index is the `<MOUNTAIN>`'s position in
+`effects_graphics.xml`. The format, the frame and the evidence are in
+`docs/FORMATS.md`, "The mountain templates".
+
+### 60.2 Where the placements come from
+
+No reading of the map generator was needed. `GameLog::dump_mountains
+@0092fca0` prints `MountainsData`'s location cells and template indices in
+every `DUMP_ALL` head, and both maps' harnesses already borrow such a head:
+
+- **East Indies** from run38: eighteen ranges, the packet's list exactly.
+- **Great Lakes** from run3 and run12: thirteen ranges.
+
+`gamelog::mountains_of` finds the four arrays by their shape and keeps them
+only when the float locations are `768 ×` the cells.
+`borrow_from_siblings` lends them on the world block's scalars, the same
+test that lends the cells. `build_sim` then lays each template at its
+location (`Sim::place_mountains`).
+
+### 60.3 The walk
+
+`MountainsData::find_nearest@0089cd30`, read whole
+(`Sim::find_nearest_mountain`):
+
+- **The order.** Placed ranges in the generator's order, then each range's
+  solid cells in the template's order.
+- **The tie-break.** The best is replaced only on a **strictly** smaller
+  `vector_dist`, so a tie goes to the first range and its first cell.
+- **The region test.** A range is skipped when its **first** solid cell's
+  region is not the site's. With no region at the site there is no test.
+- **The answer.** The function returns the placed index, which is
+  `MiningList::mtn`. With the placements in, this crate names the dump's
+  range for both of run80's Great Lakes mines (`mtn 6` and `mtn 0`).
+
+`mountain_range` returns that range's template tiles, in the template's
+row order, which is the order the gather list is shuffled from. It also
+returns its solid cells, filtered as `gather_size` filters them. Great Lakes'
+range 6 is template 9 (`m4`), with 244 tiles: the count 597's stand-in
+component had.
+
+A capture with no `DUMP_ALL` head and no such sibling keeps the stand-in:
+the connected component, and "the centre tile is a mountain".
+
+### 60.4 What it moved
+
+- **The packet's eight sites agree.** `find_nearest_mountain` gives the
+  packet's distance exactly at all eight: 1536, 1152, 984 and 576, and 1536
+  at the four residue cells, which are now refused. The spiral spends
+  **7** draws against 7.
+- **The word: 10582 → 10782.** On 10782 this crate spends 10 draws against
+  11, parting at index 5: ours `Animal::do_idle+0x83`, theirs
+  `Leader::make_stuff+0x63d`. No capture reaches that frame. Item 608 owes
+  its widening, on run149.
+- **The value diff on the frame that moved** (run143, block 10583). Mine
+  `1/2018`'s gather list had 80 rows (40 `tx`, 40 `ty`); it now has
+  **0**. The spiral spends the original's draws, so the shuffle reads the
+  original's stream. The widening's floor goes 273/301/393 →
+  **273/301/313**: nothing under the word moved, and nothing parts anew
+  past it.
+- **The value diff on run143's last blocks, 10735..10739.** Each block had
+  274 standing record rows and now has **194**. The 80 removed are exactly
+  the Mine's gather list. On 10739 the other 194 are the same rows,
+  value for value, on both trees. Among them are the human's city record,
+  which this crate does not keep, `form`, and the hit and loss counts of
+  `1/1` and `1/2`.
+
+### 60.5 What this has *not* established
+
+- **Great Lakes' solid cells** are not packet-checked. Its tiles are, by the
+  union with the start dump, and so are its two `mtn` indices, and its word
+  holds.
+- **`init`'s other products**, the mesh, the heights and the texture arrays,
+  are the renderer's.
+- **A capture without a `DUMP_ALL` sibling** measures on the stand-in. Every
+  headline capture has one.
+- **The cliff arm** is unchanged (ECONOMY, "The mine's range").
+
+### 60.6 Coverage
+
+Diff-backed:
+
+- `the_templates_give_the_packet_s_solid_cells`: all 107 of the packet's
+  cells, in order, range by range. The packet is read at run time and never
+  enters git. The test fails when the image is read bottom row first.
+- `the_placed_templates_tile_the_map_s_mountains`: the union of the tiles is
+  the start dump's mountain tiles, on both maps.
+- `east_indies_10582_mine_sites_measure_to_the_nearest_solid_cell`: the
+  packet's `find_nearest` at eight sites. All eight agree.
+- `great_lakes_first_mine_lists_its_mountain_range`: run80's two lists, 207
+  and 232 tiles, and their `mtn` indices.
+- `run143_s_word_frame_is_widened_whole`: 10583 empty, and the floor.
+
+Reading-only: the XML-to-slot order in `Mountains::init` (the first
+`<MOUNTAIN>` child is the image `init` reads). The packet's type indices
+13, 14 and 15 confirm the positional index on three templates.

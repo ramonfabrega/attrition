@@ -899,3 +899,84 @@ boundaries; 161 records unit/owner/ID/path-stack/repaths; 162 records
 status/unit/bytes-written/expected-bytes/limit; 163 records a refusal. Every
 record retains the tracer's current frame. The graph receipt and unit/frame
 must also match. Evidence and scope: `docs/lab/2026-09-09-restore-entry.md`.
+
+## The mountain templates — a range's cells are its image's alpha (2026-09-23)
+
+*Item 604. How a placed mountain's tiles and solid cells are defined. A mine's
+reach is measured on them (`docs/AI.md` §60, `docs/ECONOMY.md`, "The mine's
+range"), so they are simulation state, not art.*
+
+**Where they come from.** `Mountains::init@0089ad70` walks
+`Data/effects_graphics.xml`'s `<MOUNTAINS>`. Each `<MOUNTAIN>` gets one
+`Mountains::add_range@008992b0` call, and the call hands out the first free
+of sixteen slots. So **the template index is the element's position**:
+the shipped file has sixteen (`h1`–`h6`, `h6_3`, `m1`, `m2`, `m4`–`m8`,
+`m10`, `s1`). The call passes three `file` paths. The first is
+`TEMPLATE_TEX` (`*_disp_*.tga`), which `MountainRange::init@008998b0` loads
+32-bit into a scratch image and reads. The other two (`MAIN_ALPHA_TEX`,
+`RING_ALPHA_TEX`) are loaded as textures for the renderer.
+
+**The file.** Every `TEMPLATE_TEX` is a TGA: type 10 (run-length), 256 ×
+256, 32 bits, descriptor `0x08`. Eight alpha bits, and the **first stored
+row is the bottom one**. A pixel is `b, g, r, a`; `init` tests `& 0xff000000`
+on the loaded `A8R8G8B8`, which is the alpha.
+
+**The frame.** Four pixels make a tile and sixteen make a cell. The origin is
+`x0 = (w/2) % 16` (0 here). An offset is measured from the image centre:
+`x/16 − (w/2 − x0)/16` for a cell, and the same over 4 for a tile, with
+truncating division. The image's top row is the range's smallest `y`.
+
+**The tiles** (`mount_tx`/`_ty`, `MountainRangeData +0x8`/`+0x24`). One pass
+marks every pixel at `(x0 + 4i, y0 + 4j)` whose alpha is not zero, as a
+vertex of a lookup grid. A second pass, row by row, adds a tile wherever all
+four of its corner vertices are marked. That order is the list's order.
+
+**The solid cells** (`solid_mount_wx`/`_wy`, `+0x74`/`+0x90`). Take every
+16-pixel block whose far edge is still inside the image (`x + 16 < w`).
+Sample a 5 × 5 grid at 0, 4, 8, 12 and 16, so a block shares its far edge
+with the next block's near edge. The cell is solid when **more than
+fifteen** of the 25 samples are set. `init` also accepts all 25 set, which
+the count already covers.
+
+**The placement.** `Mountains::add_mountain@0089c2e0` lays a template at a
+location in cells. A solid cell is `loc + off` (and `WData.flags |= 0x10`
+there). A tile is `4 · loc + off` (blocked, and `TData |= 2`). There is no
+rotation and no mirror. `GameLog::dump_mountains@0092fca0` prints the
+generator's placements in a `DUMP_ALL` head, after the tribes and before
+`CONSTANTS`, as four arrays on the `FULL DUMP` block:
+
+- `mountain_loc_wcoords_x` and `_y`: `length`/`size`/`increment`/`flags`,
+  then `list[scan]` per entry. Despite the name, these are **cells**.
+- `mountain_locs`: the same locations as `x`/`y`/`z` floats, `768 ×` the
+  cell. They are the location cell's corner, not its centre.
+- `mountain_types`: the template index per entry.
+
+**How it is established:**
+
+- **The packet.** run144's packet holds East Indies' eighteen placed ranges
+  and their 107 solid cells, in three templates (`s1`, `m10`, `m8`, i.e.
+  15, 14, 13). These rules give every cell, in the original's list order.
+  Reading the image bottom row first loses all three.
+  `the_templates_give_the_packet_s_solid_cells` (`rondata::diff::build`)
+  asserts it, and skips loudly without the packet.
+- **The tiles, on both maps.** The union of the placed templates' tiles at
+  `4 · loc` is exactly the start dump's `OBJECT_MOUNTAIN` tiles: 1,956 on
+  East Indies (run38) and all of Great Lakes' (run12).
+  `the_placed_templates_tile_the_map_s_mountains` asserts both.
+- **The placement and the index.** run38's and run20's placements equal the
+  packet's list (location and type) on all eighteen. Great Lakes' run3,
+  run12 and run34 agree with each other on thirteen. `find_nearest`'s answer
+  is the dump's `MiningList::mtn` for both of run80's mines (6 and 0).
+- **The survey.** `cargo run -p rondata -- <install>` re-derives the file
+  shape and four counts: `s1`, `m10` and `m8` have 3, 13 and 14 solid cells,
+  and `m4` has 244 tiles, which is run97's range.
+
+**Not established:**
+
+- the image sizes other than 256. Every shipped template is 256, so `x0` is
+  always 0.
+- `init`'s mesh, heights and texture arrays, which are the renderer's;
+- `MountainRange::validate_tcoord`;
+- the generator's own placement search (`verify_template` and its
+  siblings). This crate reads the placements from the dump and does not
+  place mountains itself.

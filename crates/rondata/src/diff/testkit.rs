@@ -638,7 +638,24 @@ fn indexed_siblings_preserve_every_initial_field_except_audit_bodies() {
 /// `val 1714` in the original's slot 3 and 5, where this crate offers a
 /// Scholar), under a peasant census that parts on 10576
 /// (`free_peasants` 2 against 1). `docs/COLLISION.md` §13.
-pub(crate) const LONG_WORD_EAST_INDIES: i64 = 10_582;
+///
+/// **10582 → 10782 on item 604, and the frame was the Mine's spiral on
+/// 10582 itself.** Items 592 and 597 each fixed a value under it without
+/// moving it; the spiral still scored eleven friendless candidates
+/// against the original's seven, four of them (43, 44), (42, 44), (40, 46)
+/// and (40, 47) reaching a solid mountain cell no range lists. The solid
+/// lists are the templates': `MountainRange::init` builds them from the
+/// alpha of each `<MOUNTAIN>`'s `TEMPLATE_TEX`, and the generator's
+/// placements are printed by run38's `DUMP_ALL` head. With them laid down
+/// the four are refused at 1536, as run144's packet measures, the spiral
+/// spends seven draws against seven, and the Mine's shuffle reads the
+/// original's stream. The move's value diff is run143's block 10583:
+/// 80 rows (the Mine's gather list, 40 `tx` and 40 `ty`) → **0**, and the
+/// widening's floor 393 → 313 (`run143_s_word_frame_is_widened_whole`,
+/// which pins it). 10782 is past run143's last block: ours 10 draws
+/// against 11, parting at index 5, ours `Animal::do_idle+0x83`, theirs
+/// `Leader::make_stuff+0x63d`. `docs/AI.md` §60.
+pub(crate) const LONG_WORD_EAST_INDIES: i64 = 10_782;
 
 /// The frame East Indies' **first scholar** — `1/22` — is seated inside
 /// its university, one of the fourteen `Unit::go_inside+0x280` draws in
@@ -2771,12 +2788,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // diffs under it. The same item moved the word to **10582**, inside
     // run143's window: the test pins the move's value diff on 10399
     // (empty) and the new word's blocks, 10581..10583.
+    //
+    // Item 604 moved it to **10782**, past run143's last block (10739):
+    // run143's test keeps the move's value diff on 10583 (80 rows → 0),
+    // and the new word's frame has no capture. Item 608 owes its widening.
     (
         "LONG_WORD_EAST_INDIES",
         LONG_WORD_EAST_INDIES,
-        Some("run143_s_word_frame_is_widened_whole"),
-        588,
-        Some(WIDENING_EAST_INDIES_BARK),
+        None,
+        608,
+        None,
     ),
     // Item 448 paid the widening 442 owed: `run100_s_word_block_is_every_
     // record_the_dump_carries` compares every field of every record run100

@@ -677,6 +677,11 @@ pub fn file_frames(root: &Path, rel: &str, looping: bool) -> Option<u32> {
     Some(game_frames(&key_times(&bytes)?, looping))
 }
 
+/// [`resolve`], for the other art readers (`crate::mountains`).
+pub(crate) fn resolve_art(root: &Path, rel: &str) -> Option<PathBuf> {
+    resolve(root, rel)
+}
+
 /// `.\art\bird_flap.bha` as a path in this install, tolerating the case
 /// the XML writes and the case the file carries — `bird_flap.bha` beside
 /// `sheep_idle1.BHa`, and the two disagree in the shipped data.

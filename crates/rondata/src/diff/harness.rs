@@ -12322,20 +12322,25 @@ mod tests {
         // Item 597: empty. The Mine stood at y 34944 against 35136, and its
         // builder `1/6` two units off, until a mine's reach was measured to
         // the nearest solid mountain **cell** (run144's packet,
-        // `docs/AI.md` §59). The spiral still scores eleven candidates
-        // against seven; the four left are the solid-cell residue
-        // `east_indies_10582_mine_sites_measure_to_the_nearest_solid_cell`
-        // pins, and the jitter now lands where the original's does.
+        // `docs/AI.md` §59). The spiral still scored eleven candidates
+        // against seven, and the jitter landed where the original's does.
+        // Item 604 laid the generator's placed templates down (§60): the
+        // four residue cells are refused, the spiral scores seven against
+        // seven, and the word left this window.
         assert_eq!(placed, Vec::<String>::new(), "the site and its builder");
         let per_block: Vec<(i64, usize)> = (WORD_BLOCK - 2..=WORD_BLOCK)
             .map(|b| (b, firsts.values().filter(|(f, _)| *f == b).count()))
             .collect();
         assert_eq!(
             per_block,
-            // Item 597: 98 → 80, and the 80 are the Mine's gather list,
-            // 40 `tx` and 40 `ty`: its order, which the shuffle draws from
-            // a stream four spiral draws apart.
-            [(10581, 2), (10582, 2), (10583, 80)],
+            // Item 597: 98 → 80, and the 80 were the Mine's gather list,
+            // 40 `tx` and 40 `ty`: its order, which the shuffle drew from
+            // a stream four spiral draws apart. Item 604: **80 → 0**, the
+            // move's value diff — the spiral spends the original's seven
+            // draws, so the shuffle reads the original's stream and the
+            // list comes out in the original's order. The four left are
+            // §52.2's `city` shift, under the word and not its cause.
+            [(10581, 2), (10582, 2), (10583, 0)],
             "the word's blocks, counted"
         );
         let one_sided: Vec<(i64, i64, i64, bool, bool)> =
@@ -12405,9 +12410,12 @@ mod tests {
         // Item 597 moved nothing under the word and took **360** keys off
         // the blocks past it, 753 → 393: the Mine on the original's site,
         // its builder on the original's point, and what followed them.
+        // Item 604 moved the word out of this window (10582 → 10782) and
+        // took the Mine's 80 gather-list rows, 393 → **313**: nothing
+        // under the old word moved, and nothing past it parted anew.
         let under = firsts.values().filter(|(f, _)| *f < WORD_BLOCK - 2).count();
         let first = firsts.values().filter(|(f, _)| *f == FIRST).count();
-        assert_eq!((first, under, firsts.len()), (273, 301, 393), "the floor");
+        assert_eq!((first, under, firsts.len()), (273, 301, 313), "the floor");
     }
 
     #[test]

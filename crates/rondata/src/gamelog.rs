@@ -2496,6 +2496,10 @@ pub struct Initial<'a> {
     /// the order the sprout draw is spent in (`docs/SYNC.md` §4.1). Only a
     /// `DUMP_ALL` dump prints it; empty otherwise.
     pub farms: Vec<FarmDump>,
+    /// `GameLog::dump_mountains@0092fca0`: the map generator's placed
+    /// mountains, in its own order ([`mountains_of`]). Only a `DUMP_ALL`
+    /// dump prints them; empty otherwise.
+    pub mountains: Vec<MountainDump>,
     /// The sync stream's word at the end of each engine frame, from the
     /// per-frame `say_checksum` records of a `DUMP_ALL` dump
     /// ([`Log::frame_seeds`]); empty otherwise.
@@ -3330,6 +3334,88 @@ pub(crate) fn observation_rows(b: Block<'_>, collect_bodies: bool) -> Vec<FrameU
         .collect()
 }
 
+/// One placed mountain: `MountainsData::mountain_loc_wcoords_x`/`_y[i]`,
+/// which despite the name are **cells**, and `mountain_types[i]`, the
+/// template index (`docs/FORMATS.md`, "The mountain templates").
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct MountainDump {
+    pub x: i64,
+    pub y: i64,
+    pub t: i64,
+}
+
+/// `GameLog::dump_mountains@0092fca0`'s four arrays off the enclosing
+/// block's flat fields: `SimpleArray<WCoord>::log_data` twice (the cells'
+/// x and y), `Array<Vector<float>>::log_data` (the same locations in
+/// world units, `x`/`y`/`z` per entry) and `SimpleArray<int>::log_data`
+/// (the template indices). Each opens `length`, `size`, `increment`,
+/// `flags`, and the plain arrays print their entries as `list[scan]`.
+///
+/// Nothing names the block, so the four are found by their shape and
+/// taken only when they cross-check: the same length throughout, and the
+/// float locations exactly `768 ×` the cells. `dump_all` writes them
+/// after the tribes and before the constants.
+pub(crate) fn mountains_of(b: Block<'_>) -> Vec<MountainDump> {
+    let f = b.fields();
+    let int = |i: usize, key: &str| -> Option<i64> {
+        let (k, v) = f.get(i)?;
+        (k == key).then(|| v.trim().parse().ok())?
+    };
+    let float = |i: usize, key: &str| -> Option<i64> {
+        let (k, v) = f.get(i)?;
+        let (whole, frac) = v.trim().split_once('.').unwrap_or((v.trim(), "0"));
+        (k == key && frac.bytes().all(|c| c == b'0')).then(|| whole.parse().ok())?
+    };
+    // One array's header at `i`: its length, and where its entries start.
+    let header = |i: usize| -> Option<(usize, usize)> {
+        let n = usize::try_from(int(i, "length")?).ok()?;
+        int(i + 1, "size")?;
+        int(i + 2, "increment")?;
+        int(i + 3, "flags")?;
+        Some((n, i + 4))
+    };
+    let list = |i: usize| -> Option<(Vec<i64>, usize)> {
+        let (n, at) = header(i)?;
+        let v = (0..n)
+            .map(|k| int(at + k, "list[scan]"))
+            .collect::<Option<Vec<_>>>()?;
+        Some((v, at + n))
+    };
+    for i in 0..f.len() {
+        if f.get(i).map(|(k, _)| k) != Some("length") {
+            continue;
+        }
+        let found = (|| {
+            let (xs, j) = list(i)?;
+            let (ys, j) = list(j)?;
+            let (n, at) = header(j)?;
+            let (ts, _) = list(at + 3 * n)?;
+            if xs.is_empty() || [ys.len(), n, ts.len()].iter().any(|&m| m != xs.len()) {
+                return None;
+            }
+            for k in 0..n {
+                let (wx, wy) = (float(at + 3 * k, "x")?, float(at + 3 * k + 1, "y")?);
+                if wx != xs[k] * 768 || wy != ys[k] * 768 {
+                    return None;
+                }
+            }
+            Some(
+                (0..n)
+                    .map(|k| MountainDump {
+                        x: xs[k],
+                        y: ys[k],
+                        t: ts[k],
+                    })
+                    .collect(),
+            )
+        })();
+        if let Some(m) = found {
+            return m;
+        }
+    }
+    Vec::new()
+}
+
 /// `Farms::log_data`'s list off the enclosing block's flat fields: one
 /// record per `farm_type`, taking the `valid` immediately before it and the
 /// nearest `who`/`o` pair before that. Every other `who`/`o` on the block
@@ -3483,6 +3569,9 @@ impl<'a> Log<'a> {
                 .collect();
         }
         init.farms = farms_of(body);
+        if body.name() == "FULL DUMP" {
+            init.mountains = mountains_of(body);
+        }
         // **One walk of the frames, four products** — the seeds, the
         // animation lengths, the clocks the harness installs, and the
         // figures' own positions, which it compares. The two figure filters

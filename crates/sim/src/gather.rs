@@ -97,8 +97,10 @@
 //! - **`LandData::num_make`.** The per-cell amount is a table the sim does
 //!   not carry ([`Sim::land_amount`], a seam answering 1). Run9's cells all
 //!   answer 1; nothing here proves another land does.
-//! - **The mountain ranges.** `MountainRangeData::gather_size` walks a range
-//!   the map generator built. The sim has no such object, so
+//! - **The mountain ranges, without the generator's placements.**
+//!   `MountainRangeData::gather_size` walks a range the map generator built.
+//!   With the placements a `DUMP_ALL` head prints ([`Sim::mountains`],
+//!   `docs/AI.md` §60) it is that range. Without them
 //!   [`Sim::mountain_range`] rebuilds one as the connected component of
 //!   mountain cells. The *arithmetic* on top of it is the original's.
 //! - **The nation and wonder layer.** `french_woodies`, `taj_farms`,
@@ -483,7 +485,7 @@ impl Sim {
 
     /// `corner_tile@006364c0`'s own answer: the footprint's centre in world
     /// units, `(size + 2·corner) · 96`.
-    pub(crate) fn footprint_centre(&self, ty: usize, corner: Pos) -> Pos {
+    pub fn footprint_centre(&self, ty: usize, corner: Pos) -> Pos {
         let t = &self.build_types[ty];
         let half = UNITS_PER_TILE / 2;
         Pos::new(
@@ -658,17 +660,17 @@ impl Sim {
     /// cells, and are refused, where the nearest mountain **tile** is inside
     /// 1152 (`docs/AI.md` §59).
     ///
-    /// A cell is solid here when its centre tile is a mountain, and the
-    /// packet's eighteen ranges on East Indies agree cell for cell
-    /// (`docs/AI.md` §59.2). The region argument skips a range whose first
-    /// solid cell lies in another region than the site's; every range on
-    /// that map lies in one region, so the test is made per cell.
-    ///
-    /// **Not established:** the tie-break. The original's order is the map
-    /// generator's range order and then each range's own cell order; this
-    /// walks rows, and a tie between two ranges at the same distance would
-    /// pick a different range. No capture holds one.
+    /// With the generator's placements in hand ([`Sim::mountains`]) this is
+    /// [`Sim::nearest_placed`], the original's walk. Without them, a cell is
+    /// solid when its centre tile is a mountain — a superset, 139 cells
+    /// against the templates' 107 on East Indies (`docs/AI.md` §59.3) —
+    /// and the region test is made per cell.
     pub fn nearest_mountain_cell(&self, centre: Pos) -> Option<(i32, Cell)> {
+        if !self.mountains.is_empty() {
+            return self
+                .nearest_placed(centre)
+                .map(|(d, i, k)| (d, self.mountains[i].solid[k]));
+        }
         let reach = MINE_RADIUS * UNITS_PER_TILE;
         let at = centre.cell();
         let span = reach / UNITS_PER_CELL + 2;
@@ -685,10 +687,7 @@ impl Sim {
                 {
                     continue;
                 }
-                let d = vector_dist(
-                    centre.x - (cx * UNITS_PER_CELL + UNITS_PER_CELL / 2),
-                    centre.y - (cy * UNITS_PER_CELL + UNITS_PER_CELL / 2),
-                );
+                let d = cell_centre_dist(centre, c);
                 if best.is_none_or(|(b, _)| d < b) {
                     best = Some((d, c));
                 }
@@ -697,37 +696,139 @@ impl Sim {
         best.filter(|&(d, _)| d <= reach)
     }
 
-    /// `solid_mount_wx`/`_wy` membership: the cell's centre tile is a
-    /// mountain.
+    /// [`Sim::find_nearest_mountain`] inside a mine's reach,
+    /// `gather_radius · 0xc0` — what `calc_gather` keeps of it.
+    pub fn nearest_placed(&self, centre: Pos) -> Option<(i32, usize, usize)> {
+        let reach = MINE_RADIUS * UNITS_PER_TILE;
+        self.find_nearest_mountain(centre)
+            .filter(|&(d, _, _)| d <= reach)
+    }
+
+    /// `MountainsData::find_nearest@0089cd30` over the generator's own
+    /// placements: `(distance, placed index, solid-cell index)` — the
+    /// distance is the function's out-parameter — or `None` when no range
+    /// qualifies.
+    ///
+    /// The walk is the original's order — placed mountains as the
+    /// generator laid them, each range's solid cells in the template's
+    /// order — and a cell replaces the best only when it is **strictly**
+    /// nearer (`(int)d < best || best < 0`), so a tie goes to the first
+    /// placed range and its first cell. A range is skipped when its
+    /// **first** solid cell is in another region than the site's; with no
+    /// region at the site there is no test (`param_3 < 0`). The placed
+    /// index is `MiningList::mtn`, the number a dump prints.
+    pub fn find_nearest_mountain(&self, centre: Pos) -> Option<(i32, usize, usize)> {
+        let site_region = self.world.region_of(centre.cell());
+        let mut best: Option<(i32, usize, usize)> = None;
+        for (i, m) in self.mountains.iter().enumerate() {
+            let Some(&first) = m.solid.first() else {
+                continue;
+            };
+            if let Some(a) = site_region
+                && self.world.region_of(first) != Some(a)
+            {
+                continue;
+            }
+            for (k, &c) in m.solid.iter().enumerate() {
+                let d = cell_centre_dist(centre, c);
+                if best.is_none_or(|(b, _, _)| d < b) {
+                    best = Some((d, i, k));
+                }
+            }
+        }
+        best
+    }
+
+    /// Lays the generator's placements down (`Mountains::add_mountain
+    /// @0089c2e0`): each `(location, template)` in the generator's order,
+    /// its template's solid cells at `loc + off` and its tiles at
+    /// `4 · loc + off`. There is no rotation and no mirror: `add_mountain`
+    /// adds the offsets as they stand. A template index the list does not
+    /// have places an empty range, which `find_nearest` skips as the
+    /// original skips a range with no solid cells, and keeps the indices
+    /// aligned with the dump's `mtn`.
+    pub fn place_mountains(&mut self, placed: &[(Cell, usize)], templates: &[MountainTemplate]) {
+        self.mountains = placed
+            .iter()
+            .map(|&(loc, template)| {
+                let t = templates.get(template);
+                PlacedMountain {
+                    loc,
+                    template,
+                    tiles: t.map_or_else(Vec::new, |t| {
+                        t.tiles
+                            .iter()
+                            .map(|&(dx, dy)| {
+                                Pos::new(loc.x * TILES_PER_CELL + dx, loc.y * TILES_PER_CELL + dy)
+                            })
+                            .collect()
+                    }),
+                    solid: t.map_or_else(Vec::new, |t| {
+                        t.solid
+                            .iter()
+                            .map(|&(dx, dy)| Cell::new(loc.x + dx, loc.y + dy))
+                            .collect()
+                    }),
+                }
+            })
+            .collect();
+    }
+
+    /// Stand-in `solid_mount_wx`/`_wy` membership: the cell's centre tile
+    /// is a mountain.
     fn is_solid_mountain(&self, c: Cell) -> bool {
         let t = c.centre_tile();
         self.world.tile_in_bounds(t)
             && self.world.tile_mask(t) & tile::OBJECT == tile::OBJECT_MOUNTAIN
     }
 
-    /// The mountain range a mine draws on — the connected component of
-    /// mountain **tiles** reachable from [`Sim::nearest_mountain_cell`]'s centre tile,
-    /// eight-connected.
+    /// The mountain range a mine draws on.
     ///
-    /// **A reconstruction.** The original's ranges come out of the map
-    /// generator (`Mountains`, `MountainsData::find_nearest`); nothing in the
-    /// sim carries them, and this stands in until something does. It is
-    /// pinned by value rather than by argument: run97's frame 8383 dumps
-    /// Great Lakes' first mine with `mtn 6` and a `length` of **207**, and
-    /// the component here holds **244** tiles of which exactly 37 carry
-    /// `SURFACE_FOREST` (`docs/ECONOMY.md`, "The mine's range").
+    /// With the generator's placements ([`Sim::mountains`]) it is the
+    /// placed range [`Sim::nearest_placed`] names: its template's tiles in
+    /// the template's order (`mount_tx`, row by row, which is the order
+    /// the gather list is shuffled from), and its solid cells.
     ///
-    /// [`MountainRange::cells`] is `solid_mount_wx`/`_wy`, which
-    /// `MountainRangeData::gather_size@0089d170` counts rather than the
-    /// tiles: a cell of the range whose **centre tile** is a mountain and
-    /// whose cell is not a forest one.
+    /// Without them it is **a reconstruction**: the connected component of
+    /// mountain **tiles** reachable from [`Sim::nearest_mountain_cell`]'s
+    /// centre tile, eight-connected. It was pinned by value rather than by
+    /// argument: run97's frame 8383 dumps Great Lakes' first mine with
+    /// `mtn 6` and a `length` of **207**, and the component holds **244**
+    /// tiles of which exactly 37 carry `SURFACE_FOREST` (`docs/ECONOMY.md`,
+    /// "The mine's range"). Template 9, which the generator placed as
+    /// range 6, has 244 tiles too.
+    ///
+    /// [`MountainRange::cells`] is what `MountainRangeData::gather_size
+    /// @0089d170` counts: a solid cell whose **centre tile** is a mountain
+    /// and whose cell is not a forest one.
     pub fn mountain_range(&self, centre: Pos) -> Option<MountainRange> {
-        let (_, cell) = self.nearest_mountain_cell(centre)?;
-        let seed = cell.centre_tile();
         let is_mtn = |t: Pos| {
             self.world.tile_in_bounds(t)
                 && self.world.tile_mask(t) & tile::OBJECT == tile::OBJECT_MOUNTAIN
         };
+        if !self.mountains.is_empty() {
+            let (_, i, _) = self.nearest_placed(centre)?;
+            let m = &self.mountains[i];
+            let cells = m
+                .solid
+                .iter()
+                .copied()
+                .filter(|&c| {
+                    self.world.contains(c)
+                        && is_mtn(c.centre_tile())
+                        && self.world.cell_data(c).flags & 0x20 == 0
+                })
+                .collect();
+            let tiles = m
+                .tiles
+                .iter()
+                .copied()
+                .filter(|&t| self.world.tile_in_bounds(t))
+                .collect();
+            return Some(MountainRange { tiles, cells });
+        }
+        let (_, cell) = self.nearest_mountain_cell(centre)?;
+        let seed = cell.centre_tile();
         let mut seen: BTreeSet<(i32, i32)> = BTreeSet::new();
         seen.insert((seed.y, seed.x));
         let mut queue = vec![seed];
@@ -744,9 +845,8 @@ impl Sim {
                 }
             }
         }
-        // Row-major, which is this crate's order and not the generator's;
-        // the shuffle in `find_gather_tiles` reads it, so the *sequence* a
-        // mine ends up with is not the original's even where the set is.
+        // Row-major, which is the template's own order too: a range whose
+        // component is its template's tiles lists them in the same sequence.
         let tiles: Vec<Pos> = seen.iter().map(|&(y, x)| Pos::new(x, y)).collect();
         let mut cells: Vec<Cell> = Vec::new();
         for &t in &tiles {
@@ -763,7 +863,39 @@ impl Sim {
     }
 }
 
-/// One mountain range, as [`Sim::mountain_range`] rebuilds it.
+/// `vector_dist` in world units from a site to a cell's centre,
+/// `c · 0x300 + 0x180` — `find_nearest`'s own measure.
+fn cell_centre_dist(centre: Pos, c: Cell) -> i32 {
+    vector_dist(
+        centre.x - (c.x * UNITS_PER_CELL + UNITS_PER_CELL / 2),
+        centre.y - (c.y * UNITS_PER_CELL + UNITS_PER_CELL / 2),
+    )
+}
+
+/// One `<MOUNTAIN>` template, as `MountainRange::init@008998b0` derives it
+/// from the alpha of its `TEMPLATE_TEX` (`docs/FORMATS.md`, "The mountain
+/// templates"): offsets from the placed location, in the template's order.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub struct MountainTemplate {
+    /// `mount_tx`/`_ty`: tile offsets from `4 · loc`.
+    pub tiles: Vec<(i32, i32)>,
+    /// `solid_mount_wx`/`_wy`: cell offsets from `loc`.
+    pub solid: Vec<(i32, i32)>,
+}
+
+/// One mountain the generator placed: `MountainsData::mountain_locs[i]` and
+/// `mountain_types[i]`, with its template laid at the location.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct PlacedMountain {
+    pub loc: Cell,
+    pub template: usize,
+    /// The template's tiles, in world tiles.
+    pub tiles: Vec<Pos>,
+    /// The template's solid cells, in world cells.
+    pub solid: Vec<Cell>,
+}
+
+/// One mountain range, as [`Sim::mountain_range`] finds or rebuilds it.
 pub struct MountainRange {
     /// Every mountain tile of the range — `MountainRangeData::mount_tx`,
     /// which is both the mine's own tile list and the count the gather
@@ -1054,6 +1186,103 @@ mod tests {
             }
         }
         assert_eq!(s.max_gatherers_at(ty, 0, Pos::new(21, 21)), 5);
+    }
+
+    /// Marks every tile of `c` a mountain.
+    fn mountain_cell(s: &mut Sim, c: Cell) {
+        for v in 0..TILES_PER_CELL {
+            for u in 0..TILES_PER_CELL {
+                let t = Pos::new(c.x * TILES_PER_CELL + u, c.y * TILES_PER_CELL + v);
+                s.world.set_tile_bits(t, tile::OBJECT_MOUNTAIN | GATHERABLE);
+            }
+        }
+    }
+
+    /// A cell's centre in world units.
+    fn centre(c: Cell) -> Pos {
+        Pos::new(
+            c.x * UNITS_PER_CELL + UNITS_PER_CELL / 2,
+            c.y * UNITS_PER_CELL + UNITS_PER_CELL / 2,
+        )
+    }
+
+    /// **With the generator's placements, only a template's solid cells
+    /// count** — a mountain cell no template lists is not reached,
+    /// however near (`docs/AI.md` §60).
+    #[test]
+    fn a_placed_range_measures_to_its_solid_cells_only() {
+        let mut s = sim();
+        mountain_cell(&mut s, Cell::new(5, 5));
+        mountain_cell(&mut s, Cell::new(6, 5));
+        let site = centre(Cell::new(4, 5));
+        // The stand-in reaches (5, 5), one cell away.
+        assert_eq!(s.nearest_mountain_cell(site), Some((768, Cell::new(5, 5))));
+        // The template lists (6, 5) alone: two cells, 1536, past the reach.
+        let t = MountainTemplate {
+            tiles: vec![(0, 0)],
+            solid: vec![(1, 0)],
+        };
+        s.place_mountains(&[(Cell::new(5, 5), 0)], &[t]);
+        assert_eq!(s.find_nearest_mountain(site), Some((1536, 0, 0)));
+        assert_eq!(s.nearest_mountain_cell(site), None);
+        assert_eq!(s.nearest_placed(centre(Cell::new(5, 5))), Some((768, 0, 0)));
+        // Its tiles are the template's, at `4 · loc`.
+        let r = s.mountain_range(centre(Cell::new(6, 6))).unwrap();
+        assert_eq!(r.tiles, vec![Pos::new(20, 20)]);
+        assert_eq!(r.cells, vec![Cell::new(6, 5)]);
+    }
+
+    /// A tie goes to the **first placed** range: `find_nearest` replaces
+    /// its best only on a strictly smaller distance.
+    #[test]
+    fn a_tie_goes_to_the_first_placed_range() {
+        let mut s = sim();
+        mountain_cell(&mut s, Cell::new(3, 5));
+        mountain_cell(&mut s, Cell::new(7, 5));
+        let t = MountainTemplate {
+            tiles: vec![],
+            solid: vec![(0, 0)],
+        };
+        let placed = [(Cell::new(7, 5), 0), (Cell::new(3, 5), 0)];
+        s.place_mountains(&placed, &[t]);
+        let site = centre(Cell::new(5, 5));
+        assert_eq!(s.find_nearest_mountain(site), Some((1536, 0, 0)));
+        s.place_mountains(
+            &[placed[1], placed[0]],
+            &[MountainTemplate {
+                tiles: vec![],
+                solid: vec![(0, 0)],
+            }],
+        );
+        assert_eq!(s.nearest_mountain_cell(site).map(|(_, c)| c), None);
+        assert_eq!(
+            s.find_nearest_mountain(site)
+                .map(|(_, i, _)| s.mountains[i].loc),
+            Some(Cell::new(3, 5))
+        );
+    }
+
+    /// The region test is made on a range's **first** solid cell: a range
+    /// that starts in another region is skipped whole, even where a later
+    /// cell of it stands in the site's.
+    #[test]
+    fn a_range_is_regioned_by_its_first_solid_cell() {
+        let mut s = sim();
+        let home = s.world.region_of(Cell::new(5, 5)).unwrap();
+        let other = s.world.add_region(Terrain::Land);
+        s.world.set_region(Cell::new(9, 5), other);
+        let t = MountainTemplate {
+            tiles: vec![],
+            solid: vec![(3, 0), (0, 0)],
+        };
+        // First solid cell (9, 5) is another region; (6, 5) is home.
+        s.place_mountains(&[(Cell::new(6, 5), 0)], &[t]);
+        assert_eq!(s.find_nearest_mountain(centre(Cell::new(5, 5))), None);
+        s.world.set_region(Cell::new(9, 5), home);
+        assert_eq!(
+            s.find_nearest_mountain(centre(Cell::new(5, 5))),
+            Some((768, 0, 1))
+        );
     }
 
     /// A mine with no mountain near it has no slots at all.
