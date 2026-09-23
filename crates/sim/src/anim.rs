@@ -186,7 +186,7 @@ pub const SITE_TURN_STAND: &str =
 /// clear), so a crew figure's turn draw is reached from `do_turn+0xe5`
 /// whichever of the three callers turned guy 0. Golden chapter seven-b's
 /// fur trapper `1/10` on 672 is the case (item 628): guy 0 under
-/// `move_step+0x389`, its crew under this.
+/// `move_step+0x389`, its crew under this (`docs/ANIM.md` §4.14).
 pub const SITE_TURN_CREW: &str = "Guy::set_anim+0x97a < Guy::do_turn+0x4a < Guy::do_turn+0xe5";
 
 /// `Guy::set_anim+0x97a` under `Unit::do_cast+0xc89` — the casting unit's
