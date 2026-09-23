@@ -2312,6 +2312,12 @@ pub(crate) const WIDENING_CHAPTER_FIVE: (i64, i64) = (605, 901);
 /// which sees the Temple alone.
 pub(crate) const WIDENING_CHAPTER_FOUR_BORDER: (i64, i64) = (295, 545);
 
+/// `chapter_four_s_word_frame_is_widened_whole`'s window: **run133
+/// whole**, the bleed capture of chapter four (item 552): 595..1499 and its
+/// `!quit` block at 1501. The floor is the capture's own first block for
+/// the reason [`WIDENING_CHAPTER_TWO`]'s is.
+pub(crate) const WIDENING_CHAPTER_FOUR: (i64, i64) = (595, 1501);
+
 /// `run123_s_word_frame_is_widened_whole`'s window: run123's own first
 /// and last blocks (item 520). The capture was sized to the word, 11185,
 /// with 425 blocks under it — back past the 10782 and 10982 rotations —

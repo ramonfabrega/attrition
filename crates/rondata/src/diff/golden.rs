@@ -4282,7 +4282,7 @@ fn chapter_four_s_border_is_widened_cell_for_cell() {
             .push(format!("{w}/{o} {what}: {row}"));
     }
     for (f, rows) in &by_block {
-        if rows.len() <= 12 || *f <= FIRST + 10 {
+        if rows.len() <= 12 {
             for r in rows {
                 eprintln!("  f{f} {r}");
             }
@@ -4299,5 +4299,202 @@ fn chapter_four_s_border_is_widened_cell_for_cell() {
         blocks,
         (LAST - FIRST) as usize,
         "run132's dump no longer carries every frame of [{FIRST}, {LAST})"
+    );
+    // **The three levers, each settled cell for cell** (item 552). The
+    // original's owner-0 count is 266, then 296 from block 310 (the
+    // Temple), 327 from 411 (Religion, temple level 2) and 445 from 511
+    // (Civic 3). The count is §8's falsifier and it did not fire on any
+    // lever; this crate reaches each figure on every cell once the sweep
+    // is done. Each of the item's three fixes was found by this test's
+    // counts before it had assertions: the interpreter's old
+    // `place_building` arm left an unstarted site (266 throughout), the
+    // temple level was a constant 1 (327 never reached), and
+    // `set_leader_epoch` skipped `gain_tech`'s tail (445 never reached).
+    // Made to fail once with the last reverted: the settled list stops at
+    // 411.
+    let settled: Vec<(i64, i64)> = counts
+        .iter()
+        .filter(|c| c.3 == 0)
+        .map(|c| (c.0, c.2[0]))
+        .collect();
+    assert_eq!(
+        settled,
+        vec![(295, 266), (310, 296), (411, 327), (511, 445)],
+        "the blocks on which every owner agrees, with the original's count"
+    );
+    assert!(
+        counts.iter().all(|c| c.2[1] == 261 && c.1[1] == 261),
+        "player 1's 261 cells moved on one side"
+    );
+    // **What parts is the sweep, and only the sweep.** The original spreads
+    // each lever over the blocks `GameDaemon::check_borders` takes at 256
+    // cells a frame; this crate recomputes wholesale on the line's own
+    // frame (`docs/ATTRITION.md`, "Territory"). So a `who` row may part
+    // inside the three windows and nowhere else, and every one has closed
+    // by the next settled block above.
+    let sweeping =
+        |f: i64| (301..310).contains(&f) || (401..411).contains(&f) || (501..511).contains(&f);
+    let cell_rows: Vec<String> = firsts
+        .iter()
+        .filter(|((w, _, what), (f, _))| *w == -3 && !(what.ends_with(".who") && sweeping(*f)))
+        .map(|((_, _, what), (f, row))| format!("{f} {what}: {row}"))
+        .collect();
+    assert_eq!(
+        cell_rows,
+        Vec::<String>::new(),
+        "a cell parts outside the sweep: the Temple's footprint, `who2`, or \
+         a steady-state owner"
+    );
+    // The records beside the cells: the 14 standing rows of run132's first
+    // block — `0/2000`'s AI half of Napata's record, which `ai off` leaves
+    // this crate holding at zero, and London's `filled`/`land` one apart —
+    // and nothing else. The Temple's `BUILDDATA` and Napata's temple bit
+    // (`city_flags[0x80]`, 0 → 1 on block 301) agree on every block.
+    let other: Vec<String> = firsts
+        .iter()
+        .filter(|((w, _, _), (f, _))| *w != -3 && *f != FIRST)
+        .map(|((w, o, what), (f, row))| format!("{f} {w}/{o} {what}: {row}"))
+        .collect();
+    assert_eq!(other, Vec::<String>::new(), "a building or city row parts");
+    assert_eq!(
+        firsts.iter().filter(|(_, (f, _))| *f == FIRST).count(),
+        14,
+        "the standing rows on run132's first block moved"
+    );
+}
+
+/// **Chapter four, walked** — the border and the bleed (`docs/GOLDEN.md`
+/// §8, item 552, run133). Eight staged lines: `!ai off`, the Temple, the
+/// two techs and the civic level, the squad, the scout and the wagon.
+#[test]
+fn chapter_four_holds_to_the_golden_word() {
+    let Some(w) = walk_chapter("ch4u", 4, 8, 1500) else {
+        return;
+    };
+    eprintln!(
+        "chapter four: word {}, sequence {}, values {:?}",
+        w.word, w.sequence, w.value
+    );
+}
+
+/// **Chapter four's word, widened whole, both directions** (item 552,
+/// `docs/DECISIONS.md` 43). Every record run133 carries on every block of
+/// [`WIDENING_CHAPTER_FOUR`]: [`crate::diff::harness::widen_block`] on
+/// every unit and figure — which compares the namesake's two fields,
+/// `attrition` and `unit_masks2`'s supply mark, since this item — and the
+/// leader record whole for both players at `LEADERS=2`. Each key's first
+/// parting block is kept with the value diff beside it.
+///
+/// **The bleed, printed both sides.** For each of player 1's staged units
+/// (the three hoplite figures, the scout and the wagon) a line on every
+/// block its `attrition`, `damage`, `damage_frac`, supply mark or cell
+/// owner changes on either side.
+#[test]
+fn chapter_four_s_word_frame_is_widened_whole() {
+    use std::collections::BTreeMap;
+    const FIRST: i64 = WIDENING_CHAPTER_FOUR.0;
+    const LAST: i64 = WIDENING_CHAPTER_FOUR.1;
+    let Some(mut s) = stage_chapter_four("ch4u") else {
+        return;
+    };
+    let players = s.built.sim.players.len();
+    let mut firsts: BTreeMap<(i64, i64, String), (i64, String)> = BTreeMap::new();
+    let mut missing = std::collections::BTreeSet::new();
+    let (mut blocks, mut rows, mut leader_rows) = (0usize, 0usize, 0usize);
+    let mut last_seen: BTreeMap<(i64, i64), String> = BTreeMap::new();
+    for f in 0..LAST - 1 {
+        s.script.stage(s.built.sim.frame, &mut s.built, &s.loaded);
+        s.built.tick();
+        let n = f + 1;
+        if n < FIRST {
+            continue;
+        }
+        let Some(at) = s.ix.frames().iter().position(|x| x.number == n) else {
+            continue;
+        };
+        let frame = s.ix.frame_state(at).unwrap();
+        blocks += 1;
+        let (_, k) = crate::diff::harness::widen_block(&s.built, &frame, players, n, &mut firsts);
+        rows += k;
+        let raw = s.ix.read_frame(at).unwrap();
+        let flog = Log::parse(&raw);
+        for who in 0..2usize {
+            let Some(block) = flog.leader_block(n, who as i64) else {
+                continue;
+            };
+            let t = crate::diff::leader::theirs(&block);
+            for (k, v) in crate::diff::leader::rows(&s.loaded, &s.built, who) {
+                let Some(&y) = t.get(&k) else {
+                    missing.insert(k);
+                    continue;
+                };
+                leader_rows += 1;
+                if v != y {
+                    firsts
+                        .entry((who as i64, -1, format!("leader:{k}")))
+                        .or_insert((n, format!("ours {v} theirs {y}")));
+                }
+            }
+        }
+        // The bleed's own timeline: player 1's staged units, `o` 6 and up.
+        let w = &s.built.sim.world;
+        for them in frame.units.iter().filter(|u| u.who == 1 && u.o >= 6) {
+            let mine = u8::try_from(them.who)
+                .ok()
+                .zip(i16::try_from(them.o).ok())
+                .and_then(|(w, o)| s.built.sim.unit_by_o(w, o))
+                .map(|u| &s.built.sim.units[u]);
+            let cell = |x: i64, y: i64| {
+                let c = sim::Pos::new(x as i32, y as i32).cell();
+                w.owner(c).player().map_or(-1, i64::from)
+            };
+            let theirs_row = format!(
+                "attr {:?} dmg {:?}+{:?}/16 shelter {:?} on {}",
+                them.attrition,
+                them.damage,
+                them.damage_frac,
+                them.unit_masks2.map(|m| i64::from(m & 0x4_0000 != 0)),
+                cell(them.pos.x, them.pos.y)
+            );
+            let ours_row = mine.map_or("absent".to_string(), |u| {
+                format!(
+                    "attr {} hp {}/{} +{}/16 shelter {} on {}",
+                    u.attrition,
+                    u.health,
+                    u.max_health,
+                    u.damage_frac,
+                    i64::from(u.sheltered),
+                    w.owner_at(u.pos).player().map_or(-1, i64::from)
+                )
+            });
+            let row = format!("theirs {theirs_row} | ours {ours_row}");
+            if last_seen.get(&(them.who, them.o)) != Some(&row) {
+                eprintln!("  bleed {n} 1/{} {row}", them.o);
+                last_seen.insert((them.who, them.o), row);
+            }
+        }
+    }
+    let mut by_block: BTreeMap<i64, Vec<String>> = BTreeMap::new();
+    for ((w, o, what), (f, row)) in &firsts {
+        by_block
+            .entry(*f)
+            .or_default()
+            .push(format!("{w}/{o} {what}: {row}"));
+    }
+    for (f, rows) in &by_block {
+        if rows.len() <= 12 {
+            for r in rows {
+                eprintln!("  f{f} {r}");
+            }
+        } else {
+            eprintln!("  f{f}: {} keys, first {}", rows.len(), rows[0]);
+        }
+    }
+    eprintln!(
+        "ch4 widening: {blocks} blocks [{FIRST}, {LAST}), {rows} record rows, \
+         {leader_rows} leader rows, {} keys parted; {} leader keys not printed \
+         at LEADERS=2",
+        firsts.len(),
+        missing.len()
     );
 }

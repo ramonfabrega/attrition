@@ -3151,8 +3151,22 @@ impl Sim {
         if w >= self.tech.len() {
             return Vec::new();
         }
-        self.tech_tree
-            .set_epoch(&self.setup, &mut self.tech[w], line, level, frame)
+        let events = self
+            .tech_tree
+            .set_epoch(&self.setup, &mut self.tech[w], line, level, frame);
+        // `Leader::set_epoch@006d26f0` raises the level through a whole
+        // `Leader::gain_tech` per step, so each step carries `gain_tech`'s
+        // tail. The one a capture has measured is the border's (item 552):
+        // chapter four's `civic who=0 3` widened run132's border 327 → 445
+        // over blocks 505–511, and this crate's not at all while the level
+        // changed and nothing re-read it.
+        for e in &events {
+            if let tech::Gained::UnitUpgrade { to } = *e {
+                self.upgrade_units_to(who, to);
+            }
+        }
+        self.apply_gained(who);
+        events
     }
 
     /// Sets two players at war with each other.
