@@ -12393,9 +12393,9 @@ mod tests {
             "the rows past the old word"
         );
         assert_eq!(housed, 8_204, "housed unit-blocks the row compared");
-        // **The floor**: 270 keys standing on the window's first block
-        // (run155's residue on its last), 294 before the word, 299 in all.
-        // Item 642 took it 270/361/806 → 270/294/299: the scout's 67 rows
+        // **The floor**: 267 keys standing on the window's first block
+        // (run155's residue on its last), 291 before the word, 296 in all.
+        // Item 642 took it 267/358/803 → 267/291/296: the scout's 67 rows
         // under the old word, and 440 of the 445 past it, which the unfixed
         // boarding parted.
         // Before item 629 it was 297/391/920: the two Merchants' 22 seat
@@ -12410,7 +12410,7 @@ mod tests {
         // citizens' `form_mod`, ours −1 against the original's 50 from the
         // first block, now agreeing. `action_move_near` writes the width
         // twin on every member, citizens too (`docs/GROUPS.md` §24).
-        assert_eq!((first, under_n, firsts.len()), (267, 358, 803), "the floor");
+        assert_eq!((first, under_n, firsts.len()), (267, 291, 296), "the floor");
     }
 
     /// **run152 — East Indies' word 10982, widened whole, both directions**

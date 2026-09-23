@@ -753,7 +753,7 @@ fn indexed_siblings_preserve_every_initial_field_except_audit_bodies() {
 /// widening's):** run159's scout rows go, 47 on 11550 and 20 on
 /// 11578..11579. So do the 16 rows new on 11747..11748 and the three
 /// one-sided animations there. Both sides board `1/44` for block 11793.
-/// The floor goes 270/361/806 → 270/294/299
+/// The floor goes 267/358/803 → 267/291/296
 /// (`run159_s_word_frame_is_widened_whole`). 13640 is past run159's last
 /// block and past every East Indies dump on disk. There, ours spends 34
 /// draws against 33, parting at index 33: ours has one more
