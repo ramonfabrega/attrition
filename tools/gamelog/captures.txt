@@ -5075,3 +5075,63 @@ check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|BEGIN MAKEOBJECT" "$HOME/ron-data/
 check: python3 tools/gamelog/samegame.py --exclude LEADERDATA --exclude DIPLOMACY --exclude GOOD --exclude MAKEOBJECT --exclude PERSONALITY --exclude SITE gamelog-run99-eastindies-valuewindow2.txt gamelog-run139-eastindies-makelist.txt | tee /dev/stderr | awk '/in common/{r=$0; sub(/.*in common /,"",r); split($0,a,", "); n=a[2]+0} /^differ:/{d=$2+0} END{print "run99 overlap: common="n" "r" differ="d; exit !(n==40 && d==0 && r=="(9960..9999)")}'
 # **The coverage window landed**: every frame 9974..9986 has a set.
 check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run139.log" coverage | awk '/^== frame/{f=$3+0; sub(":","",f); if(f>=9974&&f<=9986&&$4+0>100) n[f]=1} END{c=0; for(k in n)c++; print "coverage frames: "c; exit !(c==13)}'
+
+run: 143
+tag: eastindies-bark
+item: 588
+why: East Indies' long word is 10398, the Bark `1/34` arriving at the navy a step behind the original's, and its block 10399 is run99's last — no capture on this disk shows 10399 onward, and run99 prints the leader's `LEADERS=1` stub, so the navy's army record and the next word are on no disk
+# **THE DISK WAS GREPPED FIRST.** run99 [8780, 10399] is the only East
+# Indies dump past 10000; run139 [9960, 10000) is `LEADERS=9` and ends
+# 399 blocks under the word. The walk back on run99 alone named the
+# Bark's first step (sim-frame 10324: 20 here against 41 there, the
+# one-shot half step raised by `do_move`'s waypoint probe, journal
+# 2026-09-23-item-588). **What the disk cannot answer**: every record on
+# 10399 and past it, both sides, which the widening of a moved word owes;
+# and the leader record there, which run99 prints as its stub.
+#
+# **Why `LEADERS=9`.** The walk back did *not* need the navy's army
+# record: the Bark's order, group and destination agree on every block.
+# It is taken anyway because the fix moves the word past 10399 into
+# frames nothing has printed, and the last two words on this map were
+# decided by the make list (576) and the navy (579) — both leader-side.
+# At ~2.3 MB a block (run139) it is 4x run99's rate, so the window is
+# sized to it rather than to run99's.
+#
+# **The readings, each with what kills it** (block = frame + 1):
+#
+# - **R1 — the Bark arrives on 10398 and idles on 10399 in the original,
+#   as run99 says.** Killed if the overlap with run99 differs on 10380..10399.
+# - **R2 — nothing but the Bark parts on 10399.** Killed if the widening
+#   on run143 shows any other unit parting first on 10399..10401.
+frames: 10760
+mapstyle: 18
+# **run99's line with `LEADERS` raised to 9**, as run139 was: the same
+# lobby (no `cfg:`), so the overlap is byte for byte but for the leader's
+# own kinds.
+end: MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,DEATHS=1,LEADERS=9
+# **10380..10739, 360 blocks**: twenty under the word, overlapping run99
+# on 10380..10399, the word, and 340 blocks of runway above it.
+frame_window: 10380 10740
+# **Per-frame coverage over the word**, 10394..10402.
+cover: cover=1
+cover: window=10394-10402
+settle_min: 20000000
+# **Sized from run139**: 92 MB over 40 blocks net of the 11 MB start dump
+# is 2.0 MB a block at 9980; call it 2.3 by 10700. 360 blocks is ~830 MB,
+# 1% of the 83 GB free. run139 reached 9960 in about four minutes; the
+# dumping here is nine times run139's, so ~35 minutes. 180 polls is an
+# hour.
+poll_max: 180
+# Same game: the trace word for word against run54, this map's own 24k run.
+check: python3 tools/gamelog/rngcmp.py rontrace-run54.log rontrace-run143.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=10700)}'
+# And the map, from the dump's own `GAME INFO`.
+check: LC_ALL=C head -c 400000 "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run143-eastindies-bark.txt" | LC_ALL=C grep -a "MAP_STYLE" | tee /dev/stderr | awk '{print; exit !($2==18)}'
+# **The window landed whole** — 360 blocks, 10380..10739, no gap.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run143-eastindies-bark.txt" | awk '{v=$3+0; if(v>=10380&&v<10740) n[v]=1} END{c=0; lo=0; hi=0; for(k in n){c++; if(lo==0||k+0<lo)lo=k+0; if(k+0>hi)hi=k+0} print "window blocks: "c" ("lo".."hi")"; exit !(c==360 && lo==10380 && hi==10739)}'
+# **The raised category is there**: a `MAKEOBJECT` on every window block.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|BEGIN MAKEOBJECT" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run143-eastindies-bark.txt" | awk '/BEGIN FRAME/{f=$3} /MAKEOBJECT/{if(f!="")seen[f]=1} END{n=0; for(k in seen){v=k+0; if(v>=10380&&v<10740)n++} print "blocks with a MAKEOBJECT: "n; exit !(n==360)}'
+# **The overlap with run99, and the count is the claim** — twenty blocks,
+# 10380..10399, the leader's own kinds excluded as for run139.
+check: python3 tools/gamelog/samegame.py --exclude LEADERDATA --exclude DIPLOMACY --exclude GOOD --exclude MAKEOBJECT --exclude PERSONALITY --exclude SITE gamelog-run99-eastindies-valuewindow2.txt gamelog-run143-eastindies-bark.txt | tee /dev/stderr | awk '/in common/{r=$0; sub(/.*in common /,"",r); split($0,a,", "); n=a[2]+0} /^differ:/{d=$2+0} END{print "run99 overlap: common="n" "r" differ="d; exit !(n==20 && d==0 && r=="(10380..10399)")}'
+# **The coverage window landed**: every frame 10394..10402 has a set.
+check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run143.log" coverage | awk '/^== frame/{f=$3+0; sub(":","",f); if(f>=10394&&f<=10402&&$4+0>100) n[f]=1} END{c=0; for(k in n)c++; print "coverage frames: "c; exit !(c==9)}'
