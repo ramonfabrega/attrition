@@ -947,9 +947,16 @@ impl Sim {
     /// §4.3: walk the 3×3 world cells around the proposal and their `down`
     /// chains for a unit whose block covers `cell`, and decide whether it
     /// is a hard collision. `None` means soft, or nothing that counts.
+    ///
+    /// The soft one-shot is set **only when the walk ends without a hard
+    /// hit**: `orl $0x100000, 0x68(%ebx)` at `006177f3` is reached by
+    /// falling out of the nine-cell loop and nowhere else, and a hard hit
+    /// returns 1 before it. A soft group-mate seen on the way to a hard
+    /// collider leaves no half step — Great Lakes' word 11806, where
+    /// `1/37` stepped through `1/64` on one (`docs/COLLISION.md` §12).
     fn name_collider(&mut self, u: usize, at: Pos, at_cell: Pos, cell: Pos) -> Option<usize> {
         let (hard, soft, _) = self.scan_colliders(u, at, at_cell, cell, &mut |_| {});
-        if soft {
+        if soft && hard.is_none() {
             self.units[u].half_step = true;
         }
         hard
@@ -2816,6 +2823,59 @@ mod tests {
             "and a soft collision raises the one-shot the next step is \
              halved by"
         );
+    }
+
+    /// §4.3's one-shot is the **walk's**, not the soft candidate's: it is
+    /// set only when the nine-cell sweep ends without a hard hit
+    /// (`orl $0x100000, 0x68(%ebx)` at `006177f3`, reached by falling
+    /// out of the loop; a hard hit returns 1 before it). A group-mate
+    /// seen on the way to a stranger leaves no half step, in either
+    /// chain order.
+    ///
+    /// Great Lakes' word 11806 was exactly this: `1/37`'s sweep met a
+    /// soft group-mate and `1/64` hard on frame 11804, and this crate
+    /// kept the bit, spent it on 11805 and stepped where the original's
+    /// `1/37` waited (`docs/COLLISION.md` §12). **Made to fail on
+    /// purpose**: with `name_collider` setting the bit on any soft
+    /// candidate, the order that lists the group-mate first raises it.
+    #[test]
+    fn a_hard_hit_leaves_no_half_step_whatever_soft_it_passed() {
+        let a = Pos::new(30 * 0x30 + 0x18, 30 * 0x30 + 0x18);
+        let b = Pos::new(28 * 0x30 + 0x18, 30 * 0x30 + 0x18);
+        for mate_first in [false, true] {
+            let (mut sim, x, y) = pair(a, b);
+            // A third unit on the same point, of the same type and owner
+            // and in no group: a stranger, and so hard.
+            let mut v = sim.units[y].clone();
+            v.index = 2;
+            let z = sim.add_unit(v);
+            let slot = sim.init_army(0, None);
+            sim.army_add_unit(0, slot, x);
+            sim.army_add_unit(0, slot, y);
+            // The chain's order is the insertion's; re-link the mate to
+            // put it on the other side of the stranger.
+            if mate_first {
+                sim.chain_remove(y);
+                sim.chain_add(y);
+            }
+            let hard = sim.detect_unit_collision(x, b);
+            assert_eq!(
+                hard,
+                Some(z),
+                "the stranger is hard (mate_first {mate_first})"
+            );
+            assert!(
+                !sim.units[x].half_step,
+                "a hard hit leaves no one-shot (mate_first {mate_first})"
+            );
+        }
+        // And the soft mate alone still raises it.
+        let (mut sim, x, y) = pair(a, b);
+        let slot = sim.init_army(0, None);
+        sim.army_add_unit(0, slot, x);
+        sim.army_add_unit(0, slot, y);
+        assert_eq!(sim.detect_unit_collision(x, b), None);
+        assert!(sim.units[x].half_step, "the soft walk raises it");
     }
 
     /// §4.3: **the corner rule is decided on the blocker's *figures*, not

@@ -445,9 +445,11 @@ seven, beside the `1`/`2` this crate writes them as — so the crate's old
 `m.group.is_none() ||` escape was an invention with no counterpart here.
 
 A soft collision at the end of the scan sets `unit_masks & 0x100000`
-(`00617817`), the one-shot half step `docs/MOVEMENT.md` names, and returns
-0. **It is set once for the whole nine-cell sweep**, whatever the scan
-found, and it is set only on the full call — the `nocoll` and quick forms
+(~~`00617817`~~ `006177f3`, §12), the one-shot half step `docs/MOVEMENT.md` names, and returns
+0. **It is set once for the whole nine-cell sweep**, ~~whatever the scan
+found~~ **and only when the sweep ends without a hard hit** — a hard hit
+returns 1 before the set, whatever soft candidates it passed on the way
+(§12, item 560) — and it is set only on the full call — the `nocoll` and quick forms
 return before the loop. The step it pays for is the *next* frame's:
 `move_step` decides the halving before it probes, so the flag a frame sets
 is spent by the frame after. **All of which §11.1 now reads off the
@@ -2599,3 +2601,123 @@ were run.
   read off this crate's own recorder. No trace covers frame 10278, so the
   original's own ordering on this frame is inferred from the outcome
   agreeing, not observed.
+
+## 12. The one-shot is the walk's, not the candidate's — Great Lakes 11806 → 11903 (item 560, 2026-09-22)
+
+Great Lakes' long word stood at 11806 after item 557: ours 7 draws against
+the original's 6, parting at index 1, ours
+`Guy::set_anim+0x97a < Unit::move_step+0x823` against the original's
+`Unit::resolve_unit_collision+0xb52`. No dump reached it; run130 ends on
+11799. No mechanism was named.
+
+### 12.1 run135, and the readings
+
+`docs/RUNS.md`, run135: run134's line over `[11760, 11859]`, 221,771,936
+bytes, all six checks green, with `cover=1` over 11796–11816. This crate's
+side, before the run: on 11806 ours spends `move_step+0x823` from `1/31`
+and then from `1/37` (both army 1, marching east through army 2), and
+then `1/64`'s pause roll. The original spends one stop, then the roll.
+The stanza wrote four readings first (`tools/gamelog/captures.txt`,
+run135): `1/31`'s stop is the extra (R1), `1/37`'s is (R2), a positional
+lag (R3), or `1/31`'s group move (R4).
+
+**R2 holds, and the rest are dead.** `run135_s_word_frame_is_widened_whole`
+walks run123 → run125 → run130 → run135 from 11400: every unit record, both
+leader records, and on run135's blocks every player-1 pool list
+(`GROUPDATA` members against `Sim::pool_list`). `1/31` stops on block
+11807 on both sides (R1 and R4 dead). Nothing of `1/37` parts under 11805
+but (558)'s group-order ids (R3 dead for the word). The word's blocks
+part on `1/37` alone, and its first row is block 11805's `half_step`,
+ours 1 against theirs 0.
+
+### 12.2 What the dump says
+
+`tools/gamelog/track.py UNITDATA … --where who=1,o=37` over run135:
+
+| block | original's `1/37` | this crate's |
+| --- | --- | --- |
+| 11803–11805 | (40186, 20962), `collide` 4/5/6, `collide_o 64`, stopped | the same, **and `0x100000` on 11805** |
+| 11806 | (40186, 20962), `collide 7`, `collide_o 64`, stopped | (40194, 20971), `collide_o −1`, walking |
+| 11807 | (40186, 20962), `collide 8`, stopped | stops: the extra `move_step+0x823` |
+| 11810 | steps to (40204, 20980) | — |
+
+`unit_masks` on the original's side is `262216` (`0x40048`) throughout
+the wait: the bit is never set. The original's `1/37` hard-collides with
+`1/64` on every frame from 11803 to 11809 and waits. This crate's
+collided with `1/64` hard on frame 11804 too, `collide_o` agreeing, but
+its sweep also passed a soft group-mate on the way. It kept the half step,
+spent it on 11805 on a step `move_step` takes before it probes, and walked
+off.
+
+### 12.3 The mechanism
+
+`detect_unit_collision@00617060`'s nine-cell walk, in the listing:
+
+```text
+6177df  incl %eax ; movl %eax,-0x2c(%ebp)   ; the cell counter
+6177e3  cmpl $0x9,%eax ; jl 0x6172a0         ; next cell
+6177ec  movl -0x4(%ebp),%eax ; testl ; je 0x6177fa
+6177f3  orl $0x100000,0x68(%ebx)             ; the one-shot
+6177fa  …collide_o = −1, collide_who = −1, age collide, clear 0x40; return 0
+```
+
+The set is reached only by falling out of the loop. A hard candidate
+writes `collide_o`/`collide_who` and returns 1 from inside the loop
+(the decompile's `return 1` arms), so the soft flag the walk had raised
+in `local_8` is dropped. The one-shot belongs to a sweep that **ended
+soft**, not to a sweep that **saw** a soft candidate. This crate's
+`name_collider` set it on the second reading. It now sets it on the
+first: `soft && hard.is_none()`.
+
+§4.3's paragraph had the loop-exit right ("set once for the whole
+nine-cell sweep") and its gloss ("whatever the scan found") wrong. It is
+amended in place.
+
+### 12.4 What it moved
+
+| | before | after |
+| --- | --- | --- |
+| Great Lakes long word | 11806 | **11903** |
+| run135 widening `[11400, 11859]`, keys parted | 635 | **284** |
+| run135 widening, blocks 11805..11859 | 351 keys | **empty**, pinned |
+| `1/37`'s stop, blocks 11806/11807 | ours alone | **neither side** |
+
+**The value diff beside the move**: block 11807 and every block after it
+to run135's last are pinned empty. The 284 that stand are run130's
+standing floor under the word: 11400's residue, 11424's `come_out` push,
+(558)'s ids, `1/66`'s form on 11778, 11782's make-list row, and
+`1/34`/`1/36`'s one-unit slot points on 11799. None of them is on the
+word's chain.
+
+**The new word, 11903**: ours 5 draws against the original's 4, parting
+at index 1. Ours spends `Guy::set_anim+0x97a < Unit::move_step+0x823`,
+from `1/64`, and the original spends `Guy::set_anim+0x97a <
+Guy::inc_time+0x271`, `0/0`'s wrap, which ours spends a draw later. That
+is the measurement and not a mechanism (`docs/DECISIONS.md` 42). It is
+past run135's last block (11859), so its widening is owed a capture.
+
+### 12.5 What this has *not* established
+
+- **Which soft candidate `1/37`'s sweep passed.** The widening says the
+  bit was set and the listing says why it should not have been. Neither
+  names the group-mate, because no `RON_COLLIDE_PROBE` build ran over
+  11804. The fix does not depend on who it was.
+- **The quick form.** `move_step`'s second call and `resolve`'s four
+  return before the loop and never set the bit (§4.3). This crate's
+  `detect_quick` never did either, and nothing here tested it.
+- **The rest of run135 past the word** agrees by the widening's own
+  count, but the window is 53 blocks past 11806. The draw stream past
+  11903 is not compared by any dump.
+
+### 12.6 Coverage
+
+**Diff-backed**: §12.2's table and §12.4's rows, from
+`run135_s_word_frame_is_widened_whole` (460 blocks, 1,560,361 record
+rows, 968,760 leader rows, 240 pool lists), which pinned the word's 25
+rows before the fix and pins the blocks from 11805 empty after it. The
+word itself is `run53_s_24000_frames_put_the_ceiling_where_run33_did`.
+**Listing-backed**: §12.3, `llvm-objdump` of `riseofnations.exe`
+`0x6177b0..0x617830`. **Unit-tested, made to fail on purpose**:
+`collide::tests::a_hard_hit_leaves_no_half_step_whatever_soft_it_passed`.
+With `name_collider` setting the bit on any soft candidate, it fails on
+the chain order that lists the group-mate first. That was run.
