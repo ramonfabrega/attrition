@@ -9879,6 +9879,113 @@ mod tests {
         );
     }
 
+    /// **The payoff probe of `run136_s_word_frame_is_widened_whole`, as an
+    /// assertion** (item 563, `docs/PATHFINDER.md` §23.4). Refuse one unit
+    /// cell, (810, 441), to `1/62`'s searches on sim-frame 11901 and
+    /// change nothing else: its flag-2 detour round `1/27` is then the
+    /// original's entry for entry (north by (38904, 21096), eight entries),
+    /// `1/64` waits on it as the original's does, and no record of any unit
+    /// first parts on blocks 11897..11905. So the word is that one cell's
+    /// verdict in `valid_ucoord`, and the search around it is right. What
+    /// makes the original refuse the cell is not established; this
+    /// crate's index holds no bit on either of the disc's two cells that
+    /// could (§23.3).
+    #[test]
+    fn run136_s_word_is_one_cell_of_1_62_s_search() {
+        const FIRST: i64 = 11_896;
+        const TAIL: i64 = 11_905;
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(r136)) = (
+            dump("gamelog-run53-greatlakes-24k-trace.txt"),
+            dump("gamelog-run136-greatlakes-detour.txt"),
+        ) else {
+            eprintln!("skipping: no run53/run136 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let mut ix = crate::capture::indexed::IndexedCapture::open(&r136).unwrap();
+        let loaded = crate::load::load(&inst).unwrap();
+        let texts = sibling_texts();
+        let text = crate::capture::read(&path);
+        let log = Log::parse(&text);
+        let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
+        let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+        let refs: Vec<&Initial> = inits.iter().collect();
+        let mut init = log.initial().unwrap();
+        borrow_from_siblings(&mut init, &refs);
+        if let Some(t) = trace("rontrace-run53.log") {
+            borrow_pasture(&mut init, &t);
+        }
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        built.sim.probe_refuse = Some(sim::path::RefuseProbe {
+            frame: 11_901,
+            unit: (1, 62),
+            cell: sim::world::Pos::new(810, 441),
+        });
+        let players = built.sim.players.len();
+        let mut firsts = std::collections::BTreeMap::new();
+        let mut plan: Option<(Vec<(i32, i32, u8)>, Vec<(i64, i64)>)> = None;
+        for f in 0..=TAIL {
+            built.tick();
+            let n = f + 1;
+            if n < FIRST {
+                continue;
+            }
+            let at = ix
+                .frames()
+                .iter()
+                .position(|x| x.number == n)
+                .expect("run136 carries the block");
+            let frame = ix.frame_state(at).unwrap();
+            widen_block(&built, &frame, players, n, &mut firsts);
+            if n == 11_902 {
+                let ours = built
+                    .sim
+                    .unit_by_o(1, 62)
+                    .map(|u| {
+                        built.sim.units[u]
+                            .path
+                            .iter()
+                            .map(|p| (p.to.x, p.to.y, p.flags))
+                            .collect()
+                    })
+                    .unwrap_or_default();
+                let theirs = frame
+                    .units
+                    .iter()
+                    .find(|t| (t.who, t.o) == (1, 62))
+                    .map(|t| t.path.iter().map(|p| (p.to.0, p.to.1)).collect())
+                    .unwrap_or_default();
+                plan = Some((ours, theirs));
+            }
+        }
+        let (ours, theirs) = plan.expect("block 11902 was read");
+        assert_eq!(
+            ours,
+            [
+                (36534, 23448, 1),
+                (37320, 22680, 0),
+                (38088, 21912, 0),
+                (38088, 21672, 2),
+                (38088, 21624, 2),
+                (38664, 21048, 2),
+                (38856, 21048, 2),
+                (38904, 21096, 2),
+            ],
+            "1/62's plan with (810, 441) refused"
+        );
+        let ours_points: Vec<(i64, i64)> = ours
+            .iter()
+            .map(|&(x, y, _)| (i64::from(x), i64::from(y)))
+            .collect();
+        assert_eq!(ours_points, theirs, "the original's plan, entry for entry");
+        let parted: Vec<String> = firsts
+            .iter()
+            .filter(|(_, (f, _))| *f > FIRST)
+            .map(|((w, o, what), (f, row))| format!("{f} {w}/{o} {what}: {row}"))
+            .collect();
+        assert_eq!(parted, Vec::<String>::new(), "11897..11905 part");
+    }
+
     /// **The payoff probe of `run130_s_word_frame_is_widened_whole`, as an
     /// assertion** (item 554, `docs/GROUPS.md` §22.3). Seat this
     /// crate's `1/64` on the original's point before frame 11688, the frame

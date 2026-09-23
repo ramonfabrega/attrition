@@ -4775,7 +4775,22 @@ check: python3 tools/gamelog/samegame.py gamelog-run135-greatlakes-crossing.txt 
 # **The coverage window landed**: every frame 11896..11910 has a set.
 check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run136.log" coverage | awk '/^== frame/{f=$3+0; sub(":","",f); if(f>=11896&&f<=11910&&$4+0>100) n[f]=1} END{c=0; for(k in n)c++; print "coverage frames: "c; exit !(c==15)}'
 
-run: 137
+# ==== NOT TAKEN 2026-09-23, and RETIRED: the `run:` line is commented out
+# so a bare `runqueue.sh` skips this stanza. On the plain tracer it would
+# archive a run137 with no proxies in it. ====
+#
+# Launched 00:32 through `viadriver.sh`, with the install's `rontrace.dll`
+# swapped for a `RON_COLLIDE_PROBE` build (sha256 `640662b0…`). The game
+# died before its menu window existed: `wine: Unhandled page fault on read
+# access to 00004ECD at address 7BF21139`. That is `wow64cpu+0x1139`, the
+# free-Wine mode-switch fault `docs/ORACLE.md` ("What `7BF21139` actually
+# is") records as layout-sensitive. run116's probe build did not hit it on
+# 2026-09-21; this build, from today's `tracer.c`, did, on its first launch.
+# The game was killed, `wineserver -k` was run, and the plain DLL, `.funcs`
+# and patched exe were restored from byte copies, passing `shasum -c`
+# against the pre-swap hashes. Not retried, at the commander's word:
+# getting the probe build to run is a successor item.
+# run: 137
 tag: greatlakes-detourprobe
 item: 563
 why: Great Lakes' word 11903 is `1/62`'s flag-2 detour round `1/27`, planned on sim-frame 11901 from the same point on both sides, north in the original and south here — and no gamelog category carries a search's per-cell verdicts, so only the proxies can say which cell the original refused
