@@ -2473,17 +2473,26 @@ pub(crate) const GOLDEN_WORD_CHAPTER_SEVEN: i64 = 1200;
 pub(crate) const WIDENING_CHAPTER_SEVEN: (i64, i64) = (605, 1201);
 
 /// **Chapter three's golden word** — the mounted and siege lines, run145
-/// (`docs/GOLDEN.md` §7). The draw stream parts on **684**, ours 14 draws
-/// against the original's 15, at draw 4: the chariot `0/8` re-searches
-/// after `1/8` dies and takes `1/7`, 50° off its heading. The original
-/// swings without turning, rolling figure 0 (`Guy::set_anim+0xf2f <
-/// Unit::set_anim+0x56`) and the crew. This crate turns, defers figure
-/// 0's swing and rolls only the crew. The values part on 685, where `0/8`'s
-/// facing reads `834011136` here and `1431655765` in the dump. Bearing from
-/// the dump's release point (`957, 8075`) and not from the unit's square,
-/// `1/7` is 43° off, inside the pivot's ±45°. That is the pivot node's
-/// offset (`docs/COMBAT.md` §52.5, item 603), which is the reading here
-/// and not a measurement.
+/// (`docs/GOLDEN.md` §7). The draw stream parts on **706**, ours 18 draws
+/// against the original's 20, at draw 12: the original spends
+/// `Ammo::do_damage+0xc59` and `+0xc7e`, the ±20 scatter of a round
+/// landing with no live target (`00678bea`–`00678cde`), and this crate
+/// spends nothing. The rounds on that block already differ from their
+/// launch: each chariot's leaves from the unit's square here and from the
+/// release node in the dump, with `rolling` 1 against 0 (651's shape, item
+/// 602's). The values part on 707 on no key that had not parted before:
+/// the whole block is pinned in `chapter_three_s_word_frame_is_widened_whole`.
+///
+/// **The delta: 684 → 706, item 603** — the pivot bears from its node
+/// (`docs/COMBAT.md` §54). `Guy::set_all_pivots` measures each node's
+/// bearing from the unit's point plus the node's truncated vector, the
+/// Chariot's `(−102, −59)` at its 120° facing (run147's own `MISC=10`
+/// line, and its packet's `Unit::set_attack(0/8, 7, 1)` answering 1). The
+/// value diff on the frame it moved, 685: `0/8`'s `angle`, `heading` and
+/// both figures' `g.angle` read `1431655765` on both sides (ours had
+/// `834011136`), and `1/4`'s move order, which followed 684's draws,
+/// agrees until 804. **Each place says which**: this comment the delta,
+/// the widening its block (the word's two blocks, whole, since item 603).
 ///
 /// **The delta: 682 → 684, item 601** — two readings of `get_damage`
 /// that the listing overturned (`docs/COMBAT.md` §53). **The flank
@@ -2517,7 +2526,7 @@ pub(crate) const WIDENING_CHAPTER_SEVEN: (i64, i64) = (605, 1201);
 /// row to the capture's end, its cast on 696 and its unpack on 776
 /// included. The word's block is pinned in
 /// `chapter_three_s_word_frame_is_widened_whole`.
-pub(crate) const GOLDEN_WORD_CHAPTER_THREE: i64 = 684;
+pub(crate) const GOLDEN_WORD_CHAPTER_THREE: i64 = 706;
 
 /// `chapter_three_s_word_frame_is_widened_whole`'s window: **run145
 /// whole**, 605..899 and the `!quit` block at 901. The floor is the
@@ -2547,7 +2556,7 @@ pub(crate) const WIDENING_CHAPTER_THREE: (i64, i64) = (605, 901);
 /// keeps `1431655765` on both sides (ours had `998768640`), and its crew
 /// figure's aim reads −1 on both (ours had `6`/`1`).
 ///
-/// **The chapter's word is [`GOLDEN_WORD_CHAPTER_THREE`]**, 682 on
+/// **The chapter's word is [`GOLDEN_WORD_CHAPTER_THREE`]**, 706 on
 /// run145. This one is pinned beside it so the restage cannot fall
 /// unseen, and it is the lower of the two.
 pub(crate) const GOLDEN_WORD_CHAPTER_THREE_RESTAGE: i64 = 664;

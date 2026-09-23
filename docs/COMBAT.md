@@ -8993,15 +8993,19 @@ captures, and none of these rows names a mechanism:
 
 ### 52.5 What is not established
 
-- **The pivot node's offset.** `GraphicPieces::get_position@0090b750`
+- ~~**The pivot node's offset.** `GraphicPieces::get_position@0090b750`
   rotates the node's model-space point by the figure's facing, in
   floats, and the bearing starts there, truncated to integers. This
   crate starts it at the unit's point. For the Chariot at shooting range
   that is under a degree, so it can decide only a bearing within about a
-  degree of ±45°. A pinned per-type table of node offsets would settle it.
+  degree of ±45°. A pinned per-type table of node offsets would settle it.~~
+  Settled by item 603, §54: the Chariot's node is 118 units from the
+  unit's point, not "a few", and on run145's 684 it moves the bearing 8°.
 - **The turret angle and node bits** (`+0x30`, `+0x96`, `+0x98`) are not
   carried. Nothing in the simulation reads them, and `GUYS=2` does not
-  print them.
+  print them. `GUYS=4` does (`turret_angles`, `des_turret_angles`,
+  `node_flags`, `des_node_flags`), and item 603 reads two of them against
+  the node's bearing (§54.2).
 - **The air-target clause** (`fight`: a target with domain 2 and the
   attacker's `has_objmask(0x80000000)` keeps the heading too) is not
   modelled. No capture has a unit shooting at a plane.
@@ -9109,9 +9113,11 @@ heading of 120°, so this crate turns it (685: `834011136` against
 `1431655765`). The dump's does not turn, and it rolls figure 0's swing
 (`Unit::set_anim+0x56`) where this crate defers it. From the dump's own
 release point for `0/8` (`957, 8075`, 67 units behind and left of the
-unit's square), `1/7` is 43.3° off, inside ±45°. That is §52.5's pivot
+unit's square), `1/7` is 43.3° off, inside ±45°. ~~That is §52.5's pivot
 node offset (item 603), and it is more than a degree here. It is a
-reading, not a measurement: the pivot node is not the release node. The
+reading, not a measurement: the pivot node is not the release node.~~
+Measured by item 603, §54: the pivot node is not the release node, and
+from it `1/7` is 42° off. The
 first value parting, 651, is item 602's shape on run145: the first
 rounds leave from each unit's square and height. `rolling` parts with
 them (ours 1, theirs 0), the lofted-piece flag this crate loads no art
@@ -9136,3 +9142,156 @@ for (§42.2).
   before `compare_target`'s `get_damage`.
 - **Reading only**: the vehicle-before-cavalry order of the two
   reductions (`00644b3a`, then `00644b47`), which no capture separates.
+
+## 54. The pivot bears from its node (item 603, 2026-09-23)
+
+Golden chapter three's word stood at **684** on run145. The chariot `0/8`
+re-searched after `1/8` died and took `1/7` on both sides. `1/7` bears
+69.9° from the unit's square, 50° off the 120° heading, so this crate
+turned. The original swung on its heading. Item 601 read it as the pivot
+node's offset (§52.5), a reading from the release point. This section is
+the measurement. `docs/journal/2026-09-23-item-603.md` has the kill
+conditions, written before run147.
+
+### 54.1 The rule
+
+`Guy::set_all_pivots@005d8bc0`, from `llvm-objdump 0x5d8d80..0x5d8f93`
+(the decompile garbles every argument of the call):
+
+- `005d8d9d`–`005d8de1`: `get_position(graphic_pieces, gpiece = guy
+  +0x88, node, anim 0, time 0, (float)angle_to_degrees(guy +0x18 −
+  0x8000_0000), NULL, count, &v, NULL)`. The angle is **whole degrees**,
+  `0..=360`: an `int`, made a `float` by `cvtdq2ps`, and taken back as an
+  `int` by `Transform<float>::rotate`.
+- `005d8e0a`–`005d8e35`: `find_angle(tx − ux − cvttss2si(v[0]), ty − uy −
+  cvttss2si(v[1]))`. So the bearing is from **the unit's point plus the
+  node's truncated vector**, per node.
+
+`GraphicPieces::get_position@0090b750`, with `param_6` NULL, takes the
+flat branch. It finds the piece's `AttachPos` entry `(node, anim 0,
+time 0)`, rotates its point about z by that many degrees, negates y and
+scales by `guy_scale × RData +0x88`. `GraphicEvents::init_unit_events
+@008e2520:817–820` fills nodes 4–7 at anim 0, time 0 from the model
+(`GraphicPieces::init_position@00901820`'s hierarchy walk) when the
+piece's events are built. With no entry it writes a zero vector.
+
+The rotation goes through `Quat<float>::set@00420c70`, which indexes a
+360-entry half-degree table built at first use from `cosf`/`sinf`
+(`fast_half_degree_to_cosine@00a29010`) with `deg % 360`, the C
+remainder. **A negative degree reads before the table**: −60° gives
+`(−103, −57)` for the Chariot's node where 300° gives `(−102, −59)`. The
+pivot never passes one, because `angle_to_degrees@00a28e00` answers
+`0..=360`.
+
+Fitted to 361 degrees of two nodes on run147's packet, one of them a
+release node with `px ≠ 0`, to within 2.6·10⁻⁵ (`s` the scale, `d` the
+degree):
+
+```text
+v0 = s · (px · cos d + py · sin d)
+v1 = s · (px · sin d − py · cos d)
+```
+
+### 54.2 The measurement, run147
+
+The disk could not answer: both earlier packets (run144 and the lab's
+Great Lakes one) hold the Chariot's pieces loaded but with no `AttachPos`
+at all, and no dump prints the pivot node. `AMMO`'s `sx, sy` is the
+release node, `(−31, −37)` from `0/6`, not the pivot's. So run147 is a
+packet at logger frame 684 on chapter three's staging (`docs/RUNS.md`),
+with `misc:MISC=10`. Mid-frame says run in `GAMELOGMODE_NONE`, the
+`[Misc Logging]` row (`GameLog::check_accept@009309a0`), and
+`set_all_pivots` says the node at detail 10 (`005d8eb4`):
+
+```text
+GUY get_positiong -180 180 -102 -59 1512 7944
+```
+
+That is `lo hi (int)v[0] (int)v[1] tx ty`, said during tick 684 against
+`1/7`. Every Chariot of the chapter prints `-102 -59` on every frame it
+bears. The packet gives the rest:
+
+- piece 145's `(4, 0, 0)` entry is `(0.0, 24.64, 11.55)` (`0x41c51eb9`),
+  its `RData +0x88` is 1.0, and `guy_scale` (`0xc06244`) is 4.8.
+- `Unit::set_attack@005fce70(0/8, o 7, who 1)`, run under unicorn on the
+  packet, answers **1**, and for `1/6` (`1608, 7800`) it answers 0. From
+  the node (`882, 8077`), `1/7` is 42° off the heading and `1/6` 51°.
+- run147 prints `GUYS=4`, which carries `des_turret_angles`: the node's
+  bearing less the figure's angle, as `set_all_pivots` writes it. `0/8`'s
+  reads `−496063829` on 685, the bearing on `1/7` from the node, and
+  `−382227797` on 684, the bearing it last took, on `1/8` at `1828, 8040`
+  on 658. The integer form gives both
+  (`pivot::tests::the_bearing_from_the_node_is_the_dump_s_turret_angle`).
+
+### 54.3 The integer form, and where it can differ
+
+`sim::pivot` is the same function in integers: the node's point in
+hundredths, `guy_scale` as 48/10, and a whole-degree sine pinned at 2³⁰
+(`docs/DECISIONS.md` entry 16's third shape). Both sides truncate, so
+they can differ only where the exact product lies within the float's
+error of an integer. For the Chariot's node the float strays at most
+4.0·10⁻⁵ from exact over all 361 degrees. No exact value comes closer
+than 0.0161 to an integer (25°, 65° and so on give 49.9839), which is a
+margin of 400×. The original's own `get_position` rows, called under
+unicorn on the packet for `d = 0..=360`, agree on every degree
+(`pivot::tests::the_original_s_node_agrees_on_every_degree`, with the
+table outside git). Shifting the node by 0.01 of a model unit fails that
+test at 40°.
+
+Everything after the vector is integer already: `find_angle`,
+`angle_to_degrees`, and compares against 45 and 180 that are whole
+numbers in `float`.
+
+### 54.4 What moved
+
+| | before | after |
+|---|---|---|
+| chapter three, run145: word / sequence / values | 684 / 684 / 685 | **706 / 706 / 707** |
+| the restage, run146 | 664 | 664 |
+| chapters one, two, four, five and seven | closed | closed |
+
+**The value diff on the frame it moved**, 685: `0/8`'s `angle`,
+`heading` and both figures' `g.angle` read `1431655765` on both sides
+(ours had `834011136`). `1/4`'s move order, which followed 684's draws,
+agrees until 804.
+
+**What the frame says next.** On 706 the original spends
+`Ammo::do_damage@00678060+0xc59` and `+0xc7e` at draw 12, and this crate
+spends nothing (18 draws against 20). The two sites are the ±20 scatter
+of a round landing with no live target (`00678bea`–`00678c08`: `ox` or
+`whom` negative, or the target is the shooter). The rounds on 706 already
+differ from their launch. Each chariot's leaves from the unit's square
+here and from the release node in the dump, with `rolling` 1 against 0.
+That is 651's shape and item 602's. The widening pins 706 and 707 whole:
+only rounds part there.
+
+### 54.5 What is not established
+
+- **Every other restricted piece.** Only the Chariot's figure (piece 145,
+  node 4) is pinned. Any other piece bears from the unit's point, as this
+  crate did before. The rows are the original's once the piece's events
+  are built, and a packet from a game that fields the type reads them in
+  a minute (`get_position` on the packet).
+- **Another nation's Chariot.** `get_unit_gpiece` built 145 for chapter
+  three's Nubians. A different art set could name a different piece with
+  a different node.
+- **`RData +0x88` other than 1.0**, and `get_gpiece_type` other than 0
+  (`build_scale`, 3.0, then applies). Neither is modelled.
+- **A node with `px ≠ 0` in the integer form.** The convention is fitted
+  on one, but no pivot node on the disk has one, so the sweep covers only
+  `px = 0`.
+
+### 54.6 Coverage
+
+- **Diff-backed**: `0/8` keeps its heading on 684–685 in run145; the
+  node's vector at 120° is the dump's own `MISC=10` line; and the bearing
+  from the node is the dump's `des_turret_angles[0]` on 684 and 685.
+- **Oracle-backed** (the original's functions under unicorn on run147's
+  packet; the native twin refuses both on packed SSE, `005d8dcb` and
+  `0090b818`): the
+  node's model point and scale; `get_position` on all 361 degrees against
+  the integer form; `set_attack`'s answer for `1/7` and `1/6`; the
+  rotation's convention on two nodes.
+- **Listing-backed**: the call's arguments and the bearing's arithmetic
+  (`005d8d9d`–`005d8e35`); `Quat<float>::set`'s `% 360`.
+- **Reading only**: that `init_unit_events` is where the entry comes from.

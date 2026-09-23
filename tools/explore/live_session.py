@@ -42,7 +42,10 @@ def parse_detail(specs):
             key, _, value = cat.partition('=')
             if not re.fullmatch(r'[A-Za-z0-9_]+', key):
                 raise ValueError(f'bad category name {key!r} in {spec!r}')
-            if not re.fullmatch(r'[0-9]', value or '1'):
+            # `GameLog::details` is a byte per cell and `check_accept`
+            # compares it to the say's own detail, so a level above 9 is
+            # legal: `Guy::set_all_pivots`' node line says at 10 (item 603).
+            if not re.fullmatch(r'[0-9]{1,3}', value or '1') or int(value or 1) > 255:
                 raise ValueError(f'bad detail level {value!r} in {spec!r}')
             section[key] = int(value or 1)
     return wanted
