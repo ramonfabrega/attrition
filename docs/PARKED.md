@@ -22,6 +22,17 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Parked by item 627, 2026-09-23 — the search gate's other arms
+
+(640) **A building's arm of `find_nearby_target`'s reach gate** (COMBAT
+§60.5): from the listing, a building sets `local_24` with `local_5c` clear
+and skips every out-of-range candidate; this crate keeps one with
+`in_range = false`. Any capture where a tower or a town centre searches
+measures it.
+
+(641) **`local_5c`, a computer's packed siege engine's exception** to the
+same gate (§60.5), not carried. No capture stages one.
+
 ## Parked by item 617, 2026-09-23 — under the restage's 865
 
 (635) **The scout `1/0`'s fresh `EXPLORETOORDER` move on 847**: `facing 1`
@@ -679,6 +690,15 @@ item 617: `the_handoff_s_golden_line_is_the_pinned_word` parses `ch1`…`ch7`
 and skips the restage and `ch7b` parts, so it passed with the queue at
 `restage w792` and the constant at 865. The two words the rules lane is
 actually on are the two the guard cannot see.
+
+(639) **A worker's gate that is red on the queue's line never reaches
+clippy.** Filed by the commander on 2026-09-23: 617 reported "red only on
+your queue line", and its gate had stopped at the paperwork guard before
+the survey and before `cargo clippy --all-targets`. The commander's
+booking gate then failed on a `collapsible_if` in 617's own code, fixed as
+fc85132. A lane's "red only on your lines" is true of what ran, not of the
+gate. Either the gate runs clippy before the paperwork guard, or it reports
+what it did not reach.
 
 (630) **A restage booked on a premise a reading already kills.** Filed by
 the commander on 2026-09-23 from item 628's staging reading. The twelfth

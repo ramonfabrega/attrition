@@ -6770,12 +6770,14 @@ fn chapter_three_s_restage_holds_to_its_word() {
     let Some(w) = walk_script("ch3b", "chapter3b", 3, 7, 1000) else {
         return;
     };
+    // **Item 627: closed.** Word, sequence and values hold to the
+    // capture's end, 1000, as run145's do to 900.
     assert_eq!(
         (w.word, w.sequence, w.value),
         (
             GOLDEN_WORD_CHAPTER_THREE_RESTAGE,
             GOLDEN_WORD_CHAPTER_THREE_RESTAGE,
-            Some(GOLDEN_WORD_CHAPTER_THREE_RESTAGE + 1)
+            None
         ),
         "run146's word moved; re-pin it here and say so in docs/GOLDEN.md §7"
     );
@@ -6794,7 +6796,7 @@ fn chapter_three_s_restage_is_widened_whole() {
         WIDENING_CHAPTER_THREE_RESTAGE,
         WORD,
         6,
-        &[651, 652, 780, 781, WORD, WORD + 1],
+        &[651, 652, 780, 781, 865, 866, 868, 869, WORD, WORD + 1],
     ) else {
         return;
     };
@@ -6870,31 +6872,22 @@ fn chapter_three_s_restage_is_widened_whole() {
     // (run145's pool-slot family, §55.5); the scout `1/0`'s fresh
     // `EXPLORETOORDER` move reads `facing 1` here and 0 in the dump on
     // 847, no draw; and on 865–866 the catapult's fresh attack after the
-    // reload (621's park), which is the word.
+    // reload (621's park), which was the word.
+    //
+    // **Item 627: 865 → 1000, closed** (the delta is in
+    // `GOLDEN_WORD_CHAPTER_THREE_RESTAGE`'s comment; this is the word's
+    // block). An unpacked packer's search must reach what it takes, and
+    // a packer re-searches before it chases (`docs/COMBAT.md` §60), so
+    // every `0/6` row on 865–866 is gone and nothing new parts to the
+    // capture's end. What stands, past the first rounds, is three
+    // families and no draw: a round's target (736), a round's pool slot
+    // (798) and the scout's move facing (847).
     assert_eq!(first, Some(736), "run146's first value parting moved");
     assert_eq!(
         rows_on(WIDENING_CHAPTER_THREE_RESTAGE.0 + 1, WORD + 1),
         vec![
             "798 0/6 ammo[0]: this crate holds it alone",
             "798 0/6 ammo[1]: the dump holds it alone",
-            "866 0/6 angle:Facing: ours 1071564800 theirs 1131216896",
-            "866 0/6 angle:Heading: ours -966066176 theirs 1131216896",
-            "866 0/6 dest_angle: ours -966066176 theirs 1131216896",
-            "866 0/6 g.angle[0]: ours 1071564800 theirs 1131216896",
-            "866 0/6 g.angle[1]: ours -2090008576 theirs 1131216896",
-            "866 0/6 g.angle[2]: ours 1946222592 theirs 1131216896",
-            "866 0/6 g.x[1]: ours 887 theirs 898",
-            "866 0/6 g.x[2]: ours 671 theirs 665",
-            "866 0/6 g.y[1]: ours 7871 theirs 7872",
-            "866 0/6 g.y[2]: ours 8064 theirs 8044",
-            "866 0/6 heading: ours -966066176 theirs 1131216896",
-            "866 0/6 idle: ours 0 theirs 2",
-            "865 0/6 order:length: Length { ours: 1, theirs: 0 }",
-            "865 0/6 orders.len: ours 1 theirs 0",
-            "866 0/6 orders_x: ours 600 theirs 888",
-            "866 0/6 orders_y: ours 7944 theirs 7992",
-            "866 0/6 path:length: PathLength { ours: 1, theirs: 0 }",
-            "866 0/6 path_recursion: ours 1 theirs 0",
             "736 0/7 ammo[0].ox: ours -1 theirs 8",
             "736 0/7 ammo[0].whom: ours -1 theirs 1",
             "847 1/0 order:move.facing: Move { field: \"facing\", ours: 1, theirs: 0 }",
@@ -6929,31 +6922,21 @@ fn chapter_three_s_restage_is_widened_whole() {
     // after its reload, with its chase on 866 (621's park, §57.6): one
     // order here and none in the dump, then its turn and its crew. The
     // scout `1/0`'s `facing` row has stood since 847 and spends no draw.
+    //
+    // **Item 627: 865 → 1000** (the delta is in
+    // `GOLDEN_WORD_CHAPTER_THREE_RESTAGE`'s comment; this is the word's
+    // block). The blocks kept whole are 865–866, the old word's, and
+    // 868–869, the catapult's first retaliation and the block it drops
+    // it, as well as the capture's `!quit` block, 1001. Every `0/6` row
+    // is gone from them; the scout's `facing` row stands on each until it
+    // ends, and 1001 is quiet.
     assert_eq!(
         whole,
         vec![
-            "865 0/6 order:length: Length { ours: 1, theirs: 0 }",
-            "865 0/6 orders.len: ours 1 theirs 0",
             "865 1/0 order:move.facing: Move { field: \"facing\", ours: 1, theirs: 0 }",
-            "866 0/6 angle:Facing: ours 1071564800 theirs 1131216896",
-            "866 0/6 angle:Heading: ours -966066176 theirs 1131216896",
-            "866 0/6 dest_angle: ours -966066176 theirs 1131216896",
-            "866 0/6 g.angle[0]: ours 1071564800 theirs 1131216896",
-            "866 0/6 g.angle[1]: ours -2090008576 theirs 1131216896",
-            "866 0/6 g.angle[2]: ours 1946222592 theirs 1131216896",
-            "866 0/6 g.x[1]: ours 887 theirs 898",
-            "866 0/6 g.x[2]: ours 671 theirs 665",
-            "866 0/6 g.y[1]: ours 7871 theirs 7872",
-            "866 0/6 g.y[2]: ours 8064 theirs 8044",
-            "866 0/6 heading: ours -966066176 theirs 1131216896",
-            "866 0/6 idle: ours 0 theirs 2",
-            "866 0/6 order:length: Length { ours: 2, theirs: 0 }",
-            "866 0/6 orders.len: ours 2 theirs 0",
-            "866 0/6 orders_x: ours 600 theirs 888",
-            "866 0/6 orders_y: ours 7944 theirs 7992",
-            "866 0/6 path:length: PathLength { ours: 1, theirs: 0 }",
-            "866 0/6 path_recursion: ours 1 theirs 0",
             "866 1/0 order:move.facing: Move { field: \"facing\", ours: 1, theirs: 0 }",
+            "868 1/0 order:move.facing: Move { field: \"facing\", ours: 1, theirs: 0 }",
+            "869 1/0 order:move.facing: Move { field: \"facing\", ours: 1, theirs: 0 }",
         ],
         "a row on run146's whole blocks moved"
     );
@@ -7120,8 +7103,9 @@ fn chapter_three_s_restage_numbers_its_objects() {
     //
     // The rounds' pool slot is a second family, run145's (`docs/COMBAT.md`
     // §55.5): the catapult's one round takes slot 1 in the dump and 0
-    // here on 798, and ours fires again on 960 (621's park, 865's fresh
-    // attack), both past the word.
+    // here on 798. **Since item 627** (`docs/COMBAT.md` §60) ours no
+    // longer fires again on 960: the catapult's fresh attack after its
+    // reload, and the chase that carried it out of its minimum, are gone.
     assert_eq!(
         rows,
         vec![
@@ -7129,8 +7113,6 @@ fn chapter_three_s_restage_numbers_its_objects() {
             "798 ammo arrives (0, 6, 1): the dump's alone",
             "830 ammo leaves (0, 6, 0): ours alone",
             "830 ammo leaves (0, 6, 1): the dump's alone",
-            "960 ammo arrives (0, 6, 0): ours alone",
-            "992 ammo leaves (0, 6, 0): ours alone",
         ],
         "run146's numbering moved"
     );
@@ -7312,5 +7294,161 @@ fn chapter_three_s_falsifiers_are_the_dump_s() {
         chariot > hoplite,
         "§7's speed falsifier fires: a chariot's longest step² {chariot} is not \
          longer than a hoplite's {hoplite}"
+    );
+}
+
+/// **The restage's catapult after its reload** (item 627,
+/// `docs/COMBAT.md` §60) — the floor, then the value diff beside the
+/// word's move, 865 → 1000. Each block 858–880, both sides: `0/6`'s order
+/// list front first (kind, target, `in_range`, `new_ord`, signed flags,
+/// or the ground order's point), its `idle`, its reload, its point and
+/// its `orders_x/y`; and arena A's three hoplites' points.
+///
+/// What the dump says, and what the floor read before anything was
+/// built: the ground order and the attack beneath die on 864 on both
+/// sides; the hoplites stand still inside the catapult's 570 minimum
+/// throughout; the dump's catapult then holds nothing until the block
+/// after each hit (868, 870, 871), holds that one attack for one block,
+/// and never moves. Ours took an attack from its idle search on 864 and
+/// chased away for its range from 865.
+///
+/// Made to fail first: with `find_nearby_target`'s range gate read back
+/// as "takes anything", 865 parts on the order list.
+#[test]
+fn chapter_three_s_catapult_after_its_reload() {
+    use sim::orders::Body;
+    type Row = (Vec<[i64; 6]>, i64, i64, (i64, i64), (i64, i64));
+    let Some(mut s) = stage_script("ch3b", "chapter3b") else {
+        return;
+    };
+    let mut parted = Vec::new();
+    let mut theirs_shape = Vec::new();
+    for f in 0..880 {
+        s.script.stage(s.built.sim.frame, &mut s.built, &s.loaded);
+        s.built.tick();
+        let n = f + 1;
+        if n < 858 {
+            continue;
+        }
+        let ix =
+            s.ix.frames()
+                .iter()
+                .position(|x| x.number == n)
+                .expect("the block");
+        let frame = s.ix.frame_state(ix).unwrap();
+        let them = frame
+            .units
+            .iter()
+            .find(|u| u.who == 0 && u.o == 6)
+            .expect("the catapult in the dump");
+        let theirs: Row = (
+            them.orders_front_first()
+                .map(|o| match o.ag_att_x {
+                    Some(x) => [o.index, x, o.ag_att_y.unwrap_or(-1), -1, -1, o.flags],
+                    None => [
+                        o.index,
+                        o.whom.unwrap_or(-1),
+                        o.ox.unwrap_or(-1),
+                        o.in_range.unwrap_or(-1),
+                        o.new_ord.unwrap_or(-1),
+                        o.flags,
+                    ],
+                })
+                .collect(),
+            them.idle.expect("idle"),
+            them.recharging.expect("recharging"),
+            (them.pos.x, them.pos.y),
+            (
+                them.orders_x.expect("orders_x"),
+                them.orders_y.expect("orders_y"),
+            ),
+        );
+        let sim = &s.built.sim;
+        let u = &sim.units[sim.unit_by_o(0, 6).expect("our catapult")];
+        let (tw, to) = match u.combat.target {
+            Some(sim::combat::Obj::Unit(t)) => {
+                (i64::from(sim.units[t].owner), i64::from(sim.units[t].index))
+            }
+            _ => (-1, -1),
+        };
+        let ours: Row = (
+            u.orders
+                .iter()
+                .map(|o| {
+                    let flags = i64::from(o.flags as i8);
+                    match o.body {
+                        Body::AttackGround(g) => [
+                            i64::from(o.index()),
+                            i64::from(g.at.x),
+                            i64::from(g.at.y),
+                            -1,
+                            -1,
+                            flags,
+                        ],
+                        Body::Attack(a) => [
+                            i64::from(o.index()),
+                            tw,
+                            to,
+                            i64::from(a.in_range),
+                            i64::from(a.new_ord),
+                            flags,
+                        ],
+                        _ => [i64::from(o.index()), -1, -1, -1, -1, flags],
+                    }
+                })
+                .collect(),
+            i64::from(u.idle),
+            i64::from(u.combat.recharging),
+            (i64::from(u.pos.x), i64::from(u.pos.y)),
+            (i64::from(u.orders_pos.x), i64::from(u.orders_pos.y)),
+        );
+        for o in 9..=11i16 {
+            let t = frame
+                .units
+                .iter()
+                .find(|x| x.who == 1 && i64::from(o) == x.o)
+                .expect("a hoplite in the dump");
+            let k = sim.unit_by_o(1, o).expect("our hoplite");
+            let p = sim.units[k].pos;
+            if (i64::from(p.x), i64::from(p.y)) != (t.pos.x, t.pos.y) {
+                parted.push(format!(
+                    "{n} 1/{o} at ({}, {}) against ({}, {})",
+                    p.x, p.y, t.pos.x, t.pos.y
+                ));
+            }
+        }
+        if ours != theirs {
+            parted.push(format!("{n} 0/6 ours {ours:?} theirs {theirs:?}"));
+        }
+        theirs_shape.push((
+            n,
+            theirs
+                .0
+                .iter()
+                .map(|r| (r[0], r[1], r[2]))
+                .collect::<Vec<_>>(),
+        ));
+    }
+    // The dump's own shape, pinned so the value diff above cannot agree
+    // with a different one: the ground order over the attack to 863,
+    // nothing 864–867, one attack on the hitter the block after each hit.
+    const ATTACK: i64 = sim::orders::index::ATTACK as i64;
+    let attacks: Vec<_> = theirs_shape
+        .iter()
+        .filter(|(n, v)| *n >= 864 && !v.is_empty())
+        .cloned()
+        .collect();
+    assert_eq!(
+        attacks,
+        vec![
+            (868, vec![(ATTACK, 1, 9)]),
+            (870, vec![(ATTACK, 1, 11)]),
+            (871, vec![(ATTACK, 1, 10)]),
+        ],
+        "the dump's catapult after its reload"
+    );
+    assert!(
+        parted.is_empty(),
+        "run146's catapult after its reload: {parted:#?}"
     );
 }
