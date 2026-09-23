@@ -12040,7 +12040,9 @@ mod tests {
     /// printed. [`widen_east_indies`] with gaia's animals; `compare` reads
     /// every unit's outermost container since this item (parked 598).
     ///
-    /// The word's frame, 11069, writes block **11070**.
+    /// The word's frame, 11069, writes block **11070**. The same item moved
+    /// the word to 11590, past the window; the test keeps the move's value
+    /// diff (`docs/ORDERS.md` §6.4).
     #[test]
     fn run155_s_word_frame_is_widened_whole() {
         const FIRST: i64 = WIDENING_EAST_INDIES_EXPLORE.0;
@@ -12078,16 +12080,19 @@ mod tests {
         let row = |((w, o, what), (f, row)): (&(i64, i64, String), &(i64, String))| {
             format!("{f} {w}/{o} {what}: {row}")
         };
-        // **Under the word and on it, both directions** (item 620). Two
-        // leader rows are 613's residue: food a unit off from 11064,
-        // metal from 11037. The other three are the word. The citizen
-        // `1/11` walks its `EXPLORE_TO` on the original's line displaced
-        // by (15, −29), about a step and a half behind, on every block of
-        // the window. So the original pops its waypoint on frame 11068
-        // (block 11069: path 2 against 3, and `dest` cleared) and meets
-        // the refused straight line on 11069. There it spends `do_move`'s
-        // grid roll and plans ten waypoints (block 11070). This crate
-        // pops a frame later and rolls on 11070.
+        // **Under the word and on it, both directions, and the move's
+        // value diff** (item 620). Two leader rows stand, 613's residue:
+        // food a unit off from 11064, metal from 11037. Until the fix three
+        // more parted on the word: the citizen `1/11` walked its
+        // `EXPLORE_TO` on the original's line displaced by (15, −29), about
+        // a step and a half behind, on every block of the window. So the
+        // original popped its waypoint on frame 11068 (block 11069: path 2
+        // against 3, and `dest` cleared) and met the refused straight line
+        // on 11069, where it spent `do_move`'s grid roll and planned ten
+        // waypoints (block 11070); this crate popped a frame later and
+        // rolled on 11070. The displacement began on 10959, a Mine tile
+        // scored with `dist_mod` 10 where the original caps it at 3
+        // (`run152_s_word_frame_is_widened_whole`).
         let under: Vec<String> = firsts
             .iter()
             .filter(|(_, (f, _))| (FIRST + 1..=WORD_BLOCK).contains(f))
@@ -12098,21 +12103,13 @@ mod tests {
             [
                 "11064 1/-1 leader:bucket[0:food]: ours 69 theirs 70",
                 "11037 1/-1 leader:bucket[4:metal]: ours 54 theirs 55",
-                "11069 1/11 order:move.dest: Move { field: \"dest\", ours: 1, theirs: 0 }",
-                "11069 1/11 path:length: PathLength { ours: 3, theirs: 2 }",
-                "11070 1/11 tolerance: ours 384 theirs 0",
             ],
             "the rows under the word and on it"
         );
-        // **The position that carries it**: `1/11` stands on the window's
-        // first block already off — 613's residue from the gather tile
-        // on 10959, (173, 183) here against (170, 182) — and its orders
-        // agree there.
-        assert_eq!(
-            firsts.get(&(1, 11, "pos".into())),
-            Some(&(FIRST, "ours (33963,33784) theirs (33978,33755)".into())),
-            "`1/11`'s walk on the window's first block"
-        );
+        // **The position that carried it**: until the fix `1/11` stood on
+        // the window's first block at (33963, 33784) against (33978,
+        // 33755). Now its walk agrees on every block.
+        assert_eq!(firsts.get(&(1, 11, "pos".into())), None, "`1/11`'s walk");
         // **Who changes animation, both sides** (`docs/COMBAT.md`
         // §44.2.1): nobody on one side only. Our `set_anim+0x97a` at
         // index 0 of the word is the original's index 1.
@@ -12133,12 +12130,15 @@ mod tests {
             "a unit in another container"
         );
         assert_eq!(housed, 3_000, "housed unit-blocks the row compared");
-        // **The floor**: 369 keys standing on the window's first block
-        // (run152's residue on its last), 371 before the word, and 897 in
-        // all.
+        // **The floor**: 289 keys standing on the window's first block
+        // (run152's residue on its last), 291 before the word, and 307 in
+        // all. Before the fix it was 369/371/897: `1/11`'s walk, and past
+        // the word every unit the unfixed stream parted from 11070 — `1/36`
+        // on the same Mine from 11084, the human's `0/4` from 11081, gaia's
+        // animals and the rest.
         let under_n = firsts.values().filter(|(f, _)| *f < WORD_BLOCK - 2).count();
         let first = firsts.values().filter(|(f, _)| *f == FIRST).count();
-        assert_eq!((first, under_n, firsts.len()), (369, 371, 897), "the floor");
+        assert_eq!((first, under_n, firsts.len()), (289, 291, 307), "the floor");
     }
 
     /// **run152 — East Indies' word 10982, widened whole, both directions**
@@ -12251,13 +12251,18 @@ mod tests {
             .count();
         assert_eq!(on_word, 0, "the unit rows on the word's blocks");
         // **The floor**: 278 keys standing on the window's first block
-        // (run149's residue on its last), 409 before the word — the food and
+        // (run149's residue on its last), 309 before the word — the food and
         // metal a unit off from 10881 and 10900, `peasants` and `1/36` from
-        // 10956, `1/2018`'s list order from 10959, the SITE list on 10976 —
-        // and 412 in all. Before the fix the floor was 278/409/616.
+        // 10956, the SITE list on 10976 — and 312 in all. Before item 613's
+        // fix the floor was 278/409/616, and before item 620's 278/409/412:
+        // on 10959 the citizen `1/11` took the Mine `1/2018`'s tile (173,
+        // 183), which `1/6` already held, where the original took (170, 182)
+        // — 72 rows of the Mine's list, one slot out from index 7, and 28 of
+        // `1/11`'s walk after it. A Mine's `dist_mod` weighs 3, not 10, on a
+        // list under `MTN_TINY_SIZE` (`docs/ORDERS.md` §6.4).
         let under = firsts.values().filter(|(f, _)| *f < WORD_BLOCK - 2).count();
         let first = firsts.values().filter(|(f, _)| *f == FIRST).count();
-        assert_eq!((first, under, firsts.len()), (278, 409, 412), "the floor");
+        assert_eq!((first, under, firsts.len()), (278, 309, 312), "the floor");
     }
 
     /// **run149 — East Indies' word 10782, widened whole, both directions**

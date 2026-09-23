@@ -696,7 +696,27 @@ fn indexed_siblings_preserve_every_initial_field_except_audit_bodies() {
 /// (`run152_s_word_frame_is_widened_whole`). 11069 is past run152's last
 /// block: ours 5 draws against 6, parting at index 0, ours
 /// `Guy::set_anim+0x97a`, theirs `Unit::do_move+0xe84`. `docs/AI.md` §62.
-pub(crate) const LONG_WORD_EAST_INDIES: i64 = 11_069;
+///
+/// **11069 → 11590 on item 620, and the frame was a tile pick 110 frames
+/// under it.** run155 (`LEADERS=9` over [11030, 11279]) showed the
+/// original's head draw on 11069, `Unit::do_move+0xe84 <
+/// Unit::do_explore_to`, to be the citizen `1/11`'s grid roll. Its walk
+/// was (15, −29) off the original's on every block of the window, so it
+/// popped its waypoint a frame late and this crate spent the same roll on
+/// 11070. The walk went back to 10959. There `1/11` joined the Mine
+/// `1/2018` and took (173, 183), a tile `1/6` already held, where the
+/// original took (170, 182). `Unit::do_non_flat_gather` caps a Mine's
+/// `dist_mod` of 10 at 3 when its list is under `MTN_TINY_SIZE`, and this
+/// list is 46 tiles (`docs/ORDERS.md` §6.4). The move's value diff:
+/// run152's 72 list rows and 28 walk rows go from 10959, floor
+/// 278/409/412 → 278/309/312 (`run152_s_word_frame_is_widened_whole`).
+/// On run155 the word's three rows on 11069..11070 go, and `1/11` agrees
+/// on every block, 369/371/897 → 289/291/307
+/// (`run155_s_word_frame_is_widened_whole`). No row comes in on either.
+/// 11590 is past run155's last block: ours 6 draws against 5, parting at
+/// index 0, ours `Guy::set_anim+0x97a < Animal::do_idle+0x19`, theirs
+/// `Guy::set_anim+0x97a < Guy::inc_time+0x271`.
+pub(crate) const LONG_WORD_EAST_INDIES: i64 = 11_590;
 
 /// The frame East Indies' **first scholar** — `1/22` — is seated inside
 /// its university, one of the fourteen `Unit::go_inside+0x280` draws in
@@ -2959,15 +2979,18 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // Item 620 paid it: **run155** is run152's line over [11030, 11279],
     // and `run155_s_word_frame_is_widened_whole` is a sibling through the
     // same walk, gaia included, on 250 blocks ten of which run152 shares,
-    // with `compare`'s container row in it (parked 598). It pins the
+    // with `compare`'s container row in it (parked 598). It pinned the
     // word's blocks, 11069..11070: the citizen `1/11`'s waypoint popped a
-    // frame late, its walk (15, −29) off since before the window.
+    // frame late, its walk (15, −29) off since 10959. The same item moved
+    // the word to **11590**, past run155's last block (11279); run155's
+    // and run152's tests keep the move's value diff. Item 629 owes the new
+    // word's widening.
     (
         "LONG_WORD_EAST_INDIES",
         LONG_WORD_EAST_INDIES,
-        Some("run155_s_word_frame_is_widened_whole"),
-        620,
-        Some(WIDENING_EAST_INDIES_EXPLORE),
+        None,
+        629,
+        None,
     ),
     // Item 448 paid the widening 442 owed: `run100_s_word_block_is_every_
     // record_the_dump_carries` compares every field of every record run100
