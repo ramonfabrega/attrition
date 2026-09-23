@@ -9504,3 +9504,127 @@ stays idle. Nothing is named for it.
   run147's 684–686.
 - **Reading only**: `Guy::move`'s re-aim calls, which no dump can tell
   apart from `set_attack`'s here.
+
+## 56. The unpack lights its disc (item 616, 2026-09-23)
+
+Golden chapter three's restage (run146, `docs/GOLDEN.md` §7) stood at
+**780**: the catapult `0/6`, unpacked on 779, takes an `ATTACKORDER` on 780
+in the original (`Unit::fight+0x9b0`) and turns to it on 781, and this
+crate's stayed idle, 5 draws against 6. The item booked no mechanism; 602
+read it as the catapult's re-search.
+
+**What would kill each reading**, written before the fix
+(`docs/journal/2026-09-23-item-616.md`): the unpack's completion frame
+(killed by the disk: `unit_masks 0` on 779 on both sides, no `0/6` row
+parts there); the search's phase after an unpack (killed: `idle 1` on 780
+on both sides, and this crate's auto-attack arm is entered and searches);
+the 3-tile minimum (killed: the refusal is `valid_target`'s, above the
+range gate, and the hoplites are 7 tiles off); the target choice (judged
+only once the search sees a candidate). What was left was the fog.
+
+### 56.1 The call
+
+`SpellType::cast_unpack@006709c0`, after the merchants' arm:
+
+```text
+unit_masks &= ~0x80000                # 670b62
+this->update_los()                    # vslot +0x160, 670b75
+this->update_seen(0)                  # vslot +0x174, push $0x0 at 670b82
+Unit::update_gpiece(this)             # 670b99
+Unit::set_new_location(this, x, y, 1, 1)   # the unit's own position
+```
+
+`update_seen(0)` is the whole disc, not the ring (§31, `docs/VISION.md`
+§6). The argument is the listing's push. The tail's `set_new_location` is
+to the point the unit already stands on, so it crosses no half-cell and
+lights nothing. This crate's `cast_unpack` cleared the bit and re-read the
+line of sight lazily (`Sim::unit_los`), and nothing re-lit the fog. A
+siege engine that unpacks where it stands kept its packed four-tile disc
+until the next `update_all_seen` (`frame % 100 == 33`). Now
+`Sim::cast_unpack` calls `update_seen(u, false)` between the bit and
+`update_gpiece`, in the original's order.
+
+**The measurement, before the fix.** A probe staged run146 and asked the
+catapult's search, before each tick from 778 to 781, what it saw.
+`find_melee_target(−1)` answered nothing on 780, and `valid_target`
+refused all three of arena A's hoplites, at `attack_dist` 1344, 1488 and
+1392, in `target_is_seen`. The dump's hoplites print `visible 0`, so the
+fog was the only way the catapult's player could see them, and the dump's
+catapult prints `mylos 10` from 779.
+
+### 56.2 What moved
+
+| | before | after |
+|---|---|---|
+| the restage, run146: word / sequence / values | 780 / 780 / 781 | **782 / 782 / 783** |
+| first value parting, run146 | 736 | 736 |
+| chapter three (run145) | 900, closed | 900, closed |
+
+**The value diff on the frame it moved**
+(`chapter_three_s_unpacked_catapult_sees_its_hoplites`): on 779 neither
+catapult holds an order at `idle 0`. On 780 both hold an `ATTACKORDER`
+(index 10) at `idle 1` on the hoplite standing at (2472, 8136). The row
+compares the target by position, because its `o` is not an identity here:
+the dump's `1/11` is this crate's `1/8` (parked 617, the `DEATH_OBJS`
+cull). On 781, `0/6`'s `angle` (`1131216896`), figure 0's `g.angle`
+(`1372003669`) and the crew's positions (`(938, 7883)`, `(660, 7965)`)
+now read the dump's. This crate had `1431655765` and `(948, 7887)`,
+`(663, 7945)`.
+
+`the_unpack_lights_the_whole_disc_at_the_new_line_of_sight` holds the call
+in a unit test. It was made to fail with the call removed: the disc after
+the unpack was the packed one, 21 fog cells against 105.
+
+### 56.3 What the frame says next: the siege arm
+
+The new word, **782**: ours 7 draws against 5. This crate spends two
+`Guy::set_anim+0x97a < Guy::inc_time+0x271` before the
+`Guy::set_anim+0x104b` the original spends first. Values part on 781, and
+only on `0/6`:
+
+- the dump's catapult holds **two** orders on 781, the attack and, over
+  it, an `ATTACKGROUNDORDER` (index 23, `flags −128`, `att_x 2472`,
+  `att_y 8136`, `accuracy 0`, `attack_unit 1`). This crate has no such
+  order, and the widening reads the row as `order:unspellable 23`;
+- its figure 0 keeps `ox −1`/`whom −1`, where this crate's aims at the
+  hoplite;
+- its `recharging` reads 83 against this crate's 82.
+
+That is §8.2 step 1's second half, which this crate does not carry.
+`Unit::fight@005fd4d0`'s in-range branch, for a packing type
+(`type +0x2b8 & 4`) that is unpacked and not the Dutch merchant: if the
+target passes vslot `+0x18` and the type's vslot `+0x10c`, it calls
+`set_attacking`, pushes an `ATTACK_GROUND` order at the head holding the
+target's `x`, `y`, `accuracy = (target domain == 1)` and `attack_unit = 2`,
+clears the partial path, calls `update_action` and `Unit::work` (vslot
+`+0x188`, so the new order runs on the same frame), and returns. `Unit::do_attack_ground@005f1410` then fires one round at the
+point: `attack_unit` 2 → 1 on the shot and the order is killed on the
+next ready frame, the order's `flags |= 0x80` holds it while the reload
+runs, and `recharging = UnitData::recharge() + 1` (vslot `+0x134`) is the
+83. The
+attack order underneath is what re-pushes the next one at the target's
+new point. Where the round lands and whom it hurts is §9.3 and §9.4's.
+None of this is built. It is the next item's reading, and the harness
+needs an `ATTACKGROUNDORDER` reader before any row on it can be trusted.
+
+### 56.4 What is not established
+
+- **The update_los call itself.** This crate's line of sight is derived
+  on every read, so `update_los` has nothing to store. A term that
+  `update_los` computes and this crate does not derive would part here
+  first.
+- **The pack direction.** `cast_pack` shrinking the disc lights nothing
+  new, and `seen2` is monotone, so nothing reads it. Not read.
+- **The merchants' arm** (`TypeIndex` `0x3d`/`0x3e`/`0x190`): its own
+  `set_new_location` onto the tile corner comes *before* the bit and may
+  cross a half-cell. §56.1's call follows it either way.
+
+### 56.5 Coverage
+
+- **Diff-backed**: the whole-disc call for a human's catapult, by its
+  first search after the unpack (run146's 780, the value test above), and
+  the turn on 781.
+- **Listing-backed**: the argument 0 (`670b82`), the order of the four
+  calls, and the tail's `set_new_location` being to the unit's own point.
+- **Reading only**: the siege arm and `do_attack_ground` of §56.3, which
+  nothing here implements.

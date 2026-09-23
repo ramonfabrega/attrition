@@ -468,9 +468,19 @@ things: the release through the turret, and the crew swinging with its
 leader (`docs/ANIM.md` §5.2): figure 0, stepping into the attack
 category, puts its crew on its own slot and clock, so a crew that fell to
 a walk slot while figure 0's swing waited for a turn does not stay there.
-**The word is 780**, 5 draws against 6: the catapult `0/6`, unpacked on
+~~**The word is 780**, 5 draws against 6: the catapult `0/6`, unpacked on
 779, takes an `ATTACKORDER` on 780 (`Unit::fight+0x9b0`) and turns to it
-on 781 in the original; this crate's stays idle. No mechanism is named.
+on 781 in the original; this crate's stays idle. No mechanism is named.~~
+Item 616 found why (`docs/COMBAT.md` §56): `cast_unpack` lights the whole
+disc at the new line of sight, and this crate's kept the packed four-tile
+disc, so its 780 search could not see hoplites seven tiles off. The
+catapult now takes the same hoplite on 780 and turns on 781 as the dump's
+does. **The word is 782**, 7 draws against 5
+(`GOLDEN_WORD_CHAPTER_THREE_RESTAGE`). Values part on 781 on `0/6` alone:
+the original pushes an `ATTACKGROUNDORDER` over the attack at the
+target's point (`Unit::fight`'s siege arm and `Unit::do_attack_ground`,
+§56.3), which this crate does not carry. No mechanism is established for
+782.
 Before it, run146 parts on a round's target (736, run145's family) and,
 on 771, on the dump culling the dead hoplites' `DEATH_OBJS` as arena A's
 are born (`docs/COMBAT.md` §42.5's cull).

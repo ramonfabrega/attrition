@@ -1131,6 +1131,50 @@ mod tests {
         }
     }
 
+    /// **The unpack lights the whole disc** (`SpellType::cast_unpack
+    /// @006709c0`, `docs/COMBAT.md` §56): the packed bit clears, and the
+    /// next call is `update_seen(0)` at the new line of sight. A siege
+    /// engine born packed lights a four-tile disc; unpacked where it
+    /// stands, it crosses no half-cell and would keep that disc to the
+    /// next resync. run146's catapult is the diff: its search on the
+    /// frame after the unpack takes a hoplite seven tiles off.
+    ///
+    /// **Made to fail on purpose**: without the call in `cast_unpack`, the
+    /// count after the unpack is the packed disc's.
+    #[test]
+    fn the_unpack_lights_the_whole_disc_at_the_new_line_of_sight() {
+        let mut world = World::new(40, 40);
+        world.fill_region(Terrain::Land, Cell::new(0, 0), Cell::new(39, 39));
+        assert!(world.set_fog(vec![0; 80 * 80]));
+        let mut s = crate::Sim::new(Tuning::RON, world, 2);
+        let mut ty = crate::UnitType {
+            hits: 80,
+            los: 10,
+            ..crate::UnitType::default()
+        };
+        ty.combat.packs = true;
+        ty.cols.unit_flags2 |= crate::ai_load::uflags2::PACKS;
+        let t = s.add_unit_type(ty);
+        let at = Pos::new(20 * 0x300 + 0x180, 20 * 0x300 + 0x180);
+        let mut u = crate::Unit::new(0, 0, at, 80);
+        u.ty = Some(t);
+        let u = s.add_unit(u);
+        assert!(s.units[u].combat.packed, "a type that packs is born packed");
+        assert_eq!(s.unit_los(u), PACKED_LOS);
+        assert_eq!(
+            seen(&s, 0),
+            circle().radius[2],
+            "the packed disc: four tiles, radius two"
+        );
+        s.cast_unpack(u);
+        assert_eq!(s.unit_los(u), 10);
+        assert_eq!(
+            seen(&s, 0),
+            circle().radius[5],
+            "the unpack lights the ten-tile disc, radius five, where it stands"
+        );
+    }
+
     /// A type with no `LOS` reveals nothing at all — the `mylos == 0` head,
     /// which is what keeps a wall or a projectile out of the fog.
     #[test]

@@ -5959,6 +5959,83 @@ fn chapter_three_s_catapult_unpacks_on_the_dump_s_frame() {
     }
 }
 
+/// **The unpacked catapult sees its hoplites on the dump's frame** (item
+/// 616, `docs/COMBAT.md` §56) — the value diff beside the restage's move
+/// from 780 to 782. `SpellType::cast_unpack` lights the whole disc at the
+/// new line of sight, so run146's `0/6`, unpacked on 779, searches on 780
+/// at `idle 1` and takes arena A's hoplite seven tiles off. Before the
+/// call, its search refused all three in `valid_target`'s fog test.
+///
+/// Each row is `(block, idle, head order's OrderIndex, target's x, y)`,
+/// `-1` for none. The target is compared by **where it stands**, because
+/// its `o` is not an identity here (parked 617: the dump's `1/11` is this
+/// crate's `1/8`, the same hoplite at (2472, 8136)). The dump's rows are
+/// pinned from the dump, so a quiet reader cannot pass.
+#[test]
+fn chapter_three_s_unpacked_catapult_sees_its_hoplites() {
+    const ATTACK: i64 = sim::orders::index::ATTACK as i64;
+    let Some(mut s) = stage_script("ch3b", "chapter3b") else {
+        return;
+    };
+    let want = [(779, 0, -1, -1, -1), (780, 1, ATTACK, 2472, 8136)];
+    let mut rows = Vec::new();
+    for f in 0..780 {
+        s.script.stage(s.built.sim.frame, &mut s.built, &s.loaded);
+        s.built.tick();
+        let n = f + 1;
+        if n < 779 {
+            continue;
+        }
+        let ix =
+            s.ix.frames()
+                .iter()
+                .position(|x| x.number == n)
+                .expect("the block");
+        let frame = s.ix.frame_state(ix).unwrap();
+        let them = frame
+            .units
+            .iter()
+            .find(|u| u.who == 0 && u.o == 6)
+            .expect("the catapult in the dump");
+        let head = them.orders_front_first().next();
+        let at = head
+            .and_then(|h| Some((h.whom?, h.ox?)))
+            .and_then(|(w, o)| {
+                frame
+                    .units
+                    .iter()
+                    .find(|u| u.who == w && u.o == o)
+                    .map(|t| (t.pos.x, t.pos.y))
+            });
+        let theirs = (
+            n,
+            them.idle.expect("idle"),
+            head.map_or(-1, |h| h.index),
+            at.map_or(-1, |p| p.0),
+            at.map_or(-1, |p| p.1),
+        );
+        let sim = &s.built.sim;
+        let u = &sim.units[sim.unit_by_o(0, 6).expect("our catapult")];
+        let at = match u.combat.target {
+            Some(sim::combat::Obj::Unit(t)) => Some(sim.units[t].pos),
+            _ => None,
+        };
+        let ours = (
+            n,
+            i64::from(u.idle),
+            u.orders.front().map_or(-1, |h| i64::from(h.index())),
+            at.map_or(-1, |p| i64::from(p.x)),
+            at.map_or(-1, |p| i64::from(p.y)),
+        );
+        eprintln!("  ch3b 0/6 block {n}: theirs {theirs:?} ours {ours:?}");
+        rows.push((theirs, ours));
+    }
+    let theirs: Vec<_> = rows.iter().map(|r| r.0).collect();
+    let ours: Vec<_> = rows.iter().map(|r| r.1).collect();
+    assert_eq!(theirs, want, "the dump's catapult is not the one pinned");
+    assert_eq!(ours, theirs, "this crate's catapult parts from the dump's");
+}
+
 /// **Chapter three's restage, walked** — `chapter3b.cmd`, run146 (item
 /// 587, `docs/GOLDEN.md` §7): the same three unit types in two arenas, so
 /// that §7's minimum-range and speed falsifiers can fire. Seven staged
@@ -6000,7 +6077,7 @@ fn chapter_three_s_restage_is_widened_whole() {
         WIDENING_CHAPTER_THREE_RESTAGE,
         WORD,
         6,
-        &[651, 652, WORD, WORD + 1],
+        &[651, 652, 780, 781, WORD, WORD + 1],
     ) else {
         return;
     };
@@ -6051,27 +6128,31 @@ fn chapter_three_s_restage_is_widened_whole() {
     // first parting is a round's target cleared on its target's death
     // (736), as on run145; on 771 the dump culls the dead hoplites'
     // `DEATH_OBJS` as arena A's are born (`docs/COMBAT.md` §42.5's cull,
-    // which this crate does not do), so their `o`s link differently. The
-    // word, 780, is the catapult `0/6`'s: the original takes an
-    // `ATTACKORDER` the block after its unpack and turns to it on 781.
+    // which this crate does not do), so their `o`s link differently.
+    //
+    // **Item 616: 780 → 782** (the delta is in
+    // `GOLDEN_WORD_CHAPTER_THREE_RESTAGE`'s comment; this is the word's
+    // block). `cast_unpack` lights the whole disc (`docs/COMBAT.md` §56),
+    // so the catapult `0/6` takes an attack on 780 and turns on 781 as the
+    // dump's does: no angle or figure-position row parts on 781 now. Its
+    // 780 `order:target` row is 617's numbering, not a choice: ours `1/8`
+    // and the dump's `1/11` are the same hoplite at (2472, 8136)
+    // (`chapter_three_s_unpacked_catapult_sees_its_hoplites`). What parts
+    // on 781 is the siege arm this crate does not carry: the original
+    // pushes an `ATTACKGROUNDORDER` (index 23) over the attack at the
+    // target's point, its figure keeps `ox −1`, and its reload reads 83
+    // where ours reads 82 (`docs/COMBAT.md` §56.3).
     assert_eq!(first, Some(736), "run146's first value parting moved");
     assert_eq!(
         rows_on(WIDENING_CHAPTER_THREE_RESTAGE.0 + 1, WORD + 1),
         vec![
-            "781 0/6 angle:Facing: ours 1431655765 theirs 1372003669",
-            "781 0/6 angle:Heading: ours 1431655765 theirs 1131216896",
-            "781 0/6 g.angle[0]: ours 1431655765 theirs 1372003669",
-            "781 0/6 g.angle[1]: ours 1431655765 theirs -1789569707",
-            "781 0/6 g.angle[2]: ours 1431655765 theirs -2051014656",
-            "781 0/6 g.x[1]: ours 948 theirs 938",
-            "781 0/6 g.x[2]: ours 663 theirs 660",
-            "781 0/6 g.y[1]: ours 7887 theirs 7883",
-            "781 0/6 g.y[2]: ours 7945 theirs 7965",
-            "781 0/6 heading: ours 1431655765 theirs 1131216896",
-            "781 0/6 idle: ours 2 theirs 0",
-            "780 0/6 order:length: Length { ours: 0, theirs: 1 }",
-            "780 0/6 orders.len: ours 0 theirs 1",
-            "781 0/6 recharging: ours 0 theirs 83",
+            "781 0/6 g.ox[0]: ours 8 theirs -1",
+            "781 0/6 g.whom[0]: ours 1 theirs -1",
+            "781 0/6 order:length: Length { ours: 1, theirs: 2 }",
+            "780 0/6 order:target: Target { ours: Some((1, 8)), theirs: Some((1, 11)) }",
+            "781 0/6 order:unspellable: Unspellable { theirs: 23 }",
+            "781 0/6 orders.len: ours 1 theirs 2",
+            "781 0/6 recharging: ours 82 theirs 83",
             "736 0/7 ammo[0].ox: ours -1 theirs 8",
             "736 0/7 ammo[0].whom: ours -1 theirs 1",
             "771 1/6 extra: this crate holds it alone",
@@ -6092,37 +6173,54 @@ fn chapter_three_s_restage_is_widened_whole() {
                 .is_some_and(|k| standing(k.rsplit(' ').next().unwrap_or("")))
         })
         .collect();
+    // The blocks kept whole are the move's, 780–781, and the word's,
+    // 782–783: the siege arm's rows on each, and 617's numbering.
     assert_eq!(
         whole,
         vec![
-            "780 0/6 order:length: Length { ours: 0, theirs: 1 }",
-            "780 0/6 orders.len: ours 0 theirs 1",
+            "780 0/6 order:target: Target { ours: Some((1, 8)), theirs: Some((1, 11)) }",
             "780 1/6 extra: this crate holds it alone",
             "780 1/7 extra: this crate holds it alone",
             "780 1/8 extra: this crate holds it alone",
             "780 1/9 unlinked: the dump holds it alone",
             "780 1/10 unlinked: the dump holds it alone",
             "780 1/11 unlinked: the dump holds it alone",
-            "781 0/6 angle:Facing: ours 1431655765 theirs 1372003669",
-            "781 0/6 angle:Heading: ours 1431655765 theirs 1131216896",
-            "781 0/6 g.angle[0]: ours 1431655765 theirs 1372003669",
-            "781 0/6 g.angle[1]: ours 1431655765 theirs -1789569707",
-            "781 0/6 g.angle[2]: ours 1431655765 theirs -2051014656",
-            "781 0/6 g.x[1]: ours 948 theirs 938",
-            "781 0/6 g.x[2]: ours 663 theirs 660",
-            "781 0/6 g.y[1]: ours 7887 theirs 7883",
-            "781 0/6 g.y[2]: ours 7945 theirs 7965",
-            "781 0/6 heading: ours 1431655765 theirs 1131216896",
-            "781 0/6 idle: ours 2 theirs 0",
-            "781 0/6 order:length: Length { ours: 0, theirs: 2 }",
-            "781 0/6 orders.len: ours 0 theirs 2",
-            "781 0/6 recharging: ours 0 theirs 83",
+            "781 0/6 g.ox[0]: ours 8 theirs -1",
+            "781 0/6 g.whom[0]: ours 1 theirs -1",
+            "781 0/6 order:length: Length { ours: 1, theirs: 2 }",
+            "781 0/6 order:unspellable: Unspellable { theirs: 23 }",
+            "781 0/6 orders.len: ours 1 theirs 2",
+            "781 0/6 recharging: ours 82 theirs 83",
             "781 1/6 extra: this crate holds it alone",
             "781 1/7 extra: this crate holds it alone",
             "781 1/8 extra: this crate holds it alone",
             "781 1/9 unlinked: the dump holds it alone",
             "781 1/10 unlinked: the dump holds it alone",
             "781 1/11 unlinked: the dump holds it alone",
+            "782 0/6 g.ox[0]: ours 8 theirs -1",
+            "782 0/6 g.whom[0]: ours 1 theirs -1",
+            "782 0/6 order:length: Length { ours: 1, theirs: 2 }",
+            "782 0/6 order:unspellable: Unspellable { theirs: 23 }",
+            "782 0/6 orders.len: ours 1 theirs 2",
+            "782 0/6 recharging: ours 81 theirs 82",
+            "782 1/6 extra: this crate holds it alone",
+            "782 1/7 extra: this crate holds it alone",
+            "782 1/8 extra: this crate holds it alone",
+            "782 1/9 unlinked: the dump holds it alone",
+            "782 1/10 unlinked: the dump holds it alone",
+            "782 1/11 unlinked: the dump holds it alone",
+            "783 0/6 g.ox[0]: ours 8 theirs -1",
+            "783 0/6 g.whom[0]: ours 1 theirs -1",
+            "783 0/6 order:length: Length { ours: 1, theirs: 2 }",
+            "783 0/6 order:unspellable: Unspellable { theirs: 23 }",
+            "783 0/6 orders.len: ours 1 theirs 2",
+            "783 0/6 recharging: ours 80 theirs 81",
+            "783 1/6 extra: this crate holds it alone",
+            "783 1/7 extra: this crate holds it alone",
+            "783 1/8 extra: this crate holds it alone",
+            "783 1/9 unlinked: the dump holds it alone",
+            "783 1/10 unlinked: the dump holds it alone",
+            "783 1/11 unlinked: the dump holds it alone",
         ],
         "a row on run146's whole blocks moved"
     );

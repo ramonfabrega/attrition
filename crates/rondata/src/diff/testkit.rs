@@ -2569,10 +2569,29 @@ pub(crate) const WIDENING_CHAPTER_THREE: (i64, i64) = (605, 901);
 /// **Chapter three's restage** — `chapter3b.cmd`, run146, item 587: the
 /// same three unit types in two arenas, staged so that §7's minimum-range
 /// and speed falsifiers can fire (neither does). The draw stream parts on
-/// **780**, ours 5 draws against the original's 6, at draw 0: the
-/// original's catapult `0/6`, unpacked on 779, re-searches
-/// (`Unit::fight+0x9b0`), takes an `ATTACKORDER` and turns to it on 781;
-/// this crate's stays idle. No mechanism is named.
+/// **782**, ours 7 draws against the original's 5, at draw 0: the
+/// original's catapult `0/6` spends one `Guy::set_anim+0x104b`, and this
+/// crate's spends two `Guy::set_anim+0x97a < Guy::inc_time+0x271` before
+/// it. Values part on 781, and only on `0/6`: the original has pushed an
+/// `ATTACKGROUNDORDER` over its attack at the target's point, its figure
+/// keeps `ox −1`, and its reload reads 83 against this crate's 82. That
+/// is `Unit::fight`'s siege arm and `Unit::do_attack_ground`, which this
+/// crate does not carry (`docs/COMBAT.md` §8.2 step 1, §56.3). No
+/// mechanism is established.
+///
+/// **The delta: 780 → 782, item 616** — `SpellType::cast_unpack` lights
+/// the whole disc at the new line of sight (`update_seen(0)`,
+/// `docs/COMBAT.md` §56). Before it, the catapult kept its packed
+/// four-tile disc and its 780 search refused all three of arena A's
+/// hoplites, seven tiles off, in `valid_target`'s fog test. The value
+/// diff on the frame it moved: on 780 `0/6` holds an `ATTACKORDER`
+/// (index 10) on the hoplite at (2472, 8136) on both sides (ours had no
+/// order), and on 781 its `angle`, `heading`, the three figures'
+/// `g.angle` and the crew's positions read the dump's (`1131216896`,
+/// `1372003669`, `(938, 7883)`, `(660, 7965)`; ours had `1431655765`
+/// and `(948, 7887)`, `(663, 7945)`). The value test is
+/// `chapter_three_s_unpacked_catapult_sees_its_hoplites`; the word's
+/// block is in `chapter_three_s_restage_is_widened_whole`.
 ///
 /// **The delta: 664 → 780, item 602** — the crew swings with its leader
 /// (`Guy::inc_time`'s foot, `docs/ANIM.md` §5.2), with the release
@@ -2592,7 +2611,7 @@ pub(crate) const WIDENING_CHAPTER_THREE: (i64, i64) = (605, 901);
 /// **The chapter's word is [`GOLDEN_WORD_CHAPTER_THREE`]**, 900 on
 /// run145, the capture's end. This one is pinned beside it so the
 /// restage cannot fall unseen, and it is the lower of the two.
-pub(crate) const GOLDEN_WORD_CHAPTER_THREE_RESTAGE: i64 = 780;
+pub(crate) const GOLDEN_WORD_CHAPTER_THREE_RESTAGE: i64 = 782;
 
 /// `chapter_three_s_restage_is_widened_whole`'s window: run146 whole,
 /// 605..999 and the `!quit` block at 1001.
