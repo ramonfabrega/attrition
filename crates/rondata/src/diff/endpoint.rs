@@ -2223,7 +2223,15 @@ mod tests {
         // that the rungs are one game rests on
         // `the_ladder_s_borrowed_setup_is_the_endpoint_s` at 6,000, not
         // here; this row only says the extras that remain agree on type.
-        const SHARED_EXTRA_NUMBERS: usize = 1;
+        //
+        // **And the first run of the pin read eighteen, not one.** The
+        // count had risen 1 → 18 under `!is_empty()` without a word: the
+        // East Indies landings after 576 (579's navy, 592's census, 597
+        // and 604's Mine, 608's gather count, 613's Horses) put both rungs
+        // back on one late roster — twelve Slingers-to-Javelineers and
+        // Hoplites-to-Phalanx pairs among them, the upgrade shape item 545
+        // named. A floor that only falls cannot see a rise; a pin can.
+        const SHARED_EXTRA_NUMBERS: usize = 18;
         assert_eq!(
             shared.len(),
             SHARED_EXTRA_NUMBERS,
