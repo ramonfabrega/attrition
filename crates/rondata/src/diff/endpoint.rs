@@ -1070,10 +1070,16 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // 24,000th frame is 12,195 frames past the new word, so the roster
         // reshuffles; ten positions further out against one extra unit fewer.
         // DECISIONS 36: the number, not a trade.
-        off: 57,
+        // **57 → 58 off** on item 560, the soft one-shot set only on a
+        // sweep that ends soft (`docs/COLLISION.md` §12), which moves this
+        // map's word 11806 → 11903. The 24,000th frame is 12,098 frames
+        // past the new word. DECISIONS 36: the number, not a trade.
+        off: 58,
         unlinked: 0,
         // **2 → 1 extra** on item 557, beside 47 → 57 off above.
-        extra: 1,
+        // **1 → 2 extra** on item 560, beside 57 → 58 off above: two
+        // Merchants, `1/81` and `1/82`.
+        extra: 2,
         build_unlinked: 0,
         build_diverged: 9,
         city_unlinked: 3,
