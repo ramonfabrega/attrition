@@ -1472,10 +1472,19 @@ impl Sim {
                         start,
                     );
                     // And it leaves from the node's height over the
-                    // figure's own ground, `Guy::update_z`'s
-                    // `find_data_z` (`docs/COMBAT.md` §46.1).
+                    // figure's own `z` (`docs/COMBAT.md` §46.1). That is
+                    // `Guy::update_z@005d9950`'s: `find_data_z` for a
+                    // figure of any domain but sea, and **0** for a sea
+                    // one, the water's surface rather than the lake bed
+                    // under it (§50.3, run127's trireme rounds at `sz` 88
+                    // over a bed at −273).
                     let dz = crate::launch::node(guy.gpiece, guy.anim, start).map_or(0, |n| n.dz);
-                    let sz = self.ground_z(self.units[u].pos) + dz;
+                    let z = if self.unit_domain_of(u) == crate::attrition::Domain::Sea {
+                        0
+                    } else {
+                        self.ground_z(self.units[u].pos)
+                    };
+                    let sz = z + dz;
                     let to = self.pos_of(target);
                     let angle = crate::movement::find_angle(to.x - from.x, to.y - from.y);
                     self.fire_ammo_pub(crate::combat::Obj::Unit(u), target, angle, frame, from, sz);
