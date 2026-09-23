@@ -2163,7 +2163,7 @@ mod tests {
         for (names_attack3, slot, end) in [(false, ATTACK2, 40u32), (true, ATTACK3, 27)] {
             let mut s = sim_at(seed);
             let u = animal(&mut s, 1, 6, 290, DEFAULT, 0, 61);
-            let mut slots: std::collections::HashMap<i8, u32> =
+            let mut slots: std::collections::BTreeMap<i8, u32> =
                 [(DEFAULT, 61u32), (ATTACK1, 40), (ATTACK2, 40)]
                     .into_iter()
                     .collect();
