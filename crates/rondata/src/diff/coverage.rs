@@ -86,10 +86,15 @@ const UNREAD: &[(&str, &str)] = &[
     // what a figure last swung at, which `Unit::fight`'s recharging arm
     // reads against the order's target, and which chapter one's word
     // turned on (`docs/ORDERS.md` §22). Four keys leave; no path does.
+    //
+    // **Item 552 took `attrition` off both `UNITDATA` paths**: the pending
+    // tick period, which `widen_block` compares beside `unit_masks2`'s
+    // supply mark since chapter four put a squad on hostile ground. Two
+    // keys leave; no path does.
     ("GAME/FRAME/ANIMALDATA", "aid ox whom"),
     (
         "GAME/FRAME/ANIMALDATA/UNITDATA",
-        "air_alt attrition cavarch_o cavarch_uid cavarch_who full gather_down good_obj guy_mark healing hero increment inside_up_who length los_x los_y mana_burn myarmor num_queued play queue_time rare size special spell_time supply trench_angle waiting",
+        "air_alt cavarch_o cavarch_uid cavarch_who full gather_down good_obj guy_mark healing hero increment inside_up_who length los_x los_y mana_burn myarmor num_queued play queue_time rare size special spell_time supply trench_angle waiting",
     ),
     (
         "GAME/FRAME/ANIMALDATA/UNITDATA/GUY",
@@ -141,7 +146,7 @@ const UNREAD: &[(&str, &str)] = &[
     ),
     (
         "GAME/FRAME/UNITDATA",
-        "air_alt attrition cavarch_o cavarch_uid cavarch_who full gather_down good_obj guy_mark healing hero increment inside_up_who length los_x los_y mana_burn myarmor num_queued play queue_time rare size special spell_time supply trench_angle waiting",
+        "air_alt cavarch_o cavarch_uid cavarch_who full gather_down good_obj guy_mark healing hero increment inside_up_who length los_x los_y mana_burn myarmor num_queued play queue_time rare size special spell_time supply trench_angle waiting",
     ),
     (
         "GAME/FRAME/UNITDATA/GUY",
