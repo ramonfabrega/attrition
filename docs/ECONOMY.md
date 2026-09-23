@@ -2209,20 +2209,20 @@ Merchant slot has been in the original's list at every rotation since
 
 ### 14.4 What is not established
 
-- **The writer of `known_rares`** (`LeaderData +0x6d4`) and of its
-  per-region array `reg_known_rares` (`+0x4d4`). The export has
-  `Leader::plan_strategy@006b9620` writing `+0x4d4` (around lines
-  285–355) and `Leader::calc_gather@006ceee0` reading it. Neither is read
-  here.
-- **The Merchant's value.** The original's offers are 869,565 (8181),
-  909,090 and 227,272 — 1,000,000 divided by 1.15, 1.1 and 4.4 — and this
-  crate's arm, if it fired, would answer a flat 1,000,000.
-  `create_units@006c40a0` near line 1044 gates the arm on `+0x6d4` minus
-  two per-type `ushort` counts and on `+0x9e0 < +0x7e4 − 1`. The division
-  is somewhere downstream of that and is not read.
-- **Why the old slot reads `t −1` on 11184.** That is `create_units`' or
-  `make_me`'s handling of an offer whose type is already in the list. It
-  was not read.
+- ~~**The writer of `known_rares`** (`LeaderData +0x6d4`) and of its
+  per-region array `reg_known_rares` (`+0x4d4`).~~ **Answered by item 327,
+  `docs/AI.md` §55.1–§55.3**: the census's step 9 writes the array,
+  `calc_gather` sums it, and `World::compute_reg_territory@006b0bb0` is a
+  second writer that zeroes a region's count when its border pass starts.
+- ~~**The Merchant's value.**~~ **Answered, §55.2**: the arm hands the
+  shared tail a flat 1,000,000, and the tail's `offer_value` produces the
+  original's numbers. The arm was missing its
+  `has_tech(MATHEMATICS) || type_avail(KNOWLEDGE, 1)` gate. Every Merchant
+  slot of nine captures now agrees by value.
+- ~~**Why the old slot reads `t −1` on 11184.**~~ **Answered, §55.2**:
+  `MakeList::make_me@006c9be0` empties every lower slot of the offered
+  type, and this crate already did. The re-offered Merchant empties slot 1
+  here too.
 - **`1/2016 queue[0].cost` 65/45 against 61/42 on 11183**: the Hoplites
   the rotation buys cost this crate six percent more. That is §13.4's
   `get_cost` row (10782, 60/40 against 57/38) again. It moves the food
@@ -2237,7 +2237,8 @@ record (plus `epoch_get(scan)`) on all 700 blocks, 2,222,681 unit rows
 and 1,472,800 leader rows. The word's inputs, slot 1 on 11182, and the
 set of keys that first part on 11185 and 11186 are pinned. **Trace-backed**:
 §14.3's functions, from run123's per-frame coverage. **Reading-only**:
-nothing. §14.4 is unread and says so.
+nothing. §14.4's first three questions are answered in `docs/AI.md` §55
+(item 327).
 
 **The epochs are a row of the record now.** `epoch_get(scan)` is read
 by `diff::leader::theirs` as `epoch[0..3]`, and this crate's

@@ -371,6 +371,14 @@ impl Sim {
     pub fn assemble_holdings_with(&mut self, who: Player, levels: Levels) {
         let w = who as usize;
 
+        // `known_rares = Σ reg_known_rares`, the first thing
+        // `calc_gather@006ceee0:66–75` does past its gate — the census
+        // writes the array and this is the sum's only writer
+        // (`docs/AI.md` §55).
+        if let Some(a) = self.ai.get_mut(w) {
+            a.known_rares = a.census.reg_known_rares.iter().sum();
+        }
+
         let cities: Vec<economy::City> = self
             .cities_of(who)
             .into_iter()

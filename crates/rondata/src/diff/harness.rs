@@ -4664,13 +4664,19 @@ mod tests {
         // **Thirteen → fourteen on item 518**, the literal following the
         // headline once more: the word went 10834 → 11185 and **10982**'s
         // rotation came under it. The streams above agree through it.
+        //
+        // **Fourteen → sixteen on item 327**, and **11185 is the old
+        // word itself**: the Merchant offer empties slot 1 on both sides,
+        // so `use_market`'s need is the original's and the frame is a
+        // sell on both. The word went 11185 → 11531 and 11382's rotation
+        // came under it too (`docs/AI.md` §55).
         assert_eq!(
             markets,
             vec![
                 8582, 8585, 8782, 8982, 9_182, 9_382, 9_582, 9_782, 9_982, 10_182, 10_382, 10_582,
-                10_782, 10_982
+                10_782, 10_982, 11_185, 11_382
             ],
-            "below the word Great Lakes takes exactly fourteen market \
+            "below the word Great Lakes takes exactly sixteen market \
              draws — and 10582 is item 506's own: the frame the sequence \
              used to part on is a `use_market` sell on both sides now"
         );
@@ -7945,6 +7951,12 @@ mod tests {
     fn run123_s_word_frame_is_widened_whole() {
         const FIRST: i64 = WIDENING_GREAT_LAKES_MARKET.0;
         const TAIL: i64 = WIDENING_GREAT_LAKES_MARKET.1;
+        /// **The block the word stood on when this widening was taken** —
+        /// 11185's (item 520). Item 327 moved the word to 11531, past
+        /// run123's last block, so this test no longer straddles the
+        /// headline (the [`WIDENINGS`] row says who owes that); what it
+        /// holds on this block is the value diff of the move.
+        const WORD_BLOCK: i64 = GREAT_LAKES_MARKET_BLOCK;
         let Some(inst) = install() else { return };
         let (Some(path), Some(r123)) = (
             dump("gamelog-run53-greatlakes-24k-trace.txt"),
@@ -8021,7 +8033,7 @@ mod tests {
         // **Both sides printed once on the word's blocks** before any
         // quiet row is trusted (`docs/COMBAT.md` §44.2.1): the purse, the
         // make list's head, the commerce level.
-        for n in [LONG_WORD_GREAT_LAKES, LONG_WORD_GREAT_LAKES + 1] {
+        for n in [WORD_BLOCK, WORD_BLOCK + 1] {
             let Some(r) = kept.get(&(n, 1)) else { continue };
             let pick = |pre: &str| -> String {
                 r.iter()
@@ -8044,7 +8056,7 @@ mod tests {
                 .push(format!("{w}/{o} {what}: {row}"));
         }
         for (f, rows) in &by_block {
-            let near = (LONG_WORD_GREAT_LAKES - 3..=LONG_WORD_GREAT_LAKES + 3).contains(f);
+            let near = (WORD_BLOCK - 3..=WORD_BLOCK + 3).contains(f);
             let window =
                 site_window_named("RON_DEBUG_ROWS").is_some_and(|(lo, hi)| (lo..=hi).contains(f));
             if near || window || *f == FIRST {
@@ -8094,53 +8106,48 @@ mod tests {
         // the head's 60 timber and 60 metal on both sides (R4 dead). What
         // parts is **slot 1**: a Cataphract here, costing 65 wealth, and
         // an emptied slot (`t −1`) in the original — so this crate's
-        // wealth is short and spends the third sell draw (R2).
+        // wealth is short and spends the third sell draw (R2). **Item 327
+        // closed it**: the re-offered Merchant empties slot 1 here too,
+        // and the Cataphract's `(227, -1)` is `(-1, -1)`.
         assert_eq!(
             (
-                pair(LONG_WORD_GREAT_LAKES, "epoch[2]"),
-                pair(LONG_WORD_GREAT_LAKES, "bucket[2:wealth]"),
-                pair(LONG_WORD_GREAT_LAKES, "bucket[1:timber]"),
-                pair(LONG_WORD_GREAT_LAKES, "bucket[4:metal]"),
-                pair(LONG_WORD_GREAT_LAKES, "MAKE[0].t"),
-                pair(LONG_WORD_GREAT_LAKES, "MAKE[1].t"),
+                pair(WORD_BLOCK, "epoch[2]"),
+                pair(WORD_BLOCK, "bucket[2:wealth]"),
+                pair(WORD_BLOCK, "bucket[1:timber]"),
+                pair(WORD_BLOCK, "bucket[4:metal]"),
+                pair(WORD_BLOCK, "MAKE[0].t"),
+                pair(WORD_BLOCK, "MAKE[1].t"),
             ),
-            ((2, 2), (11, 6), (1, 6), (44, 47), (430, 430), (227, -1)),
+            ((2, 2), (11, 6), (1, 6), (44, 47), (430, 430), (-1, -1)),
             "the word's inputs moved — 11185's `use_market` need is the \
-             head and slot 1, and slot 1 is what parts"
+             head and slot 1, and slot 1 agrees since item 327"
         );
         // **And what the emptied slot was**: the original's rotation
         // enters `Make` on 11182 holding a **Merchant** (`t 61`, cat 4,
-        // val 909,090) in slot 1 where this crate holds the Cataphract.
-        // The Merchant is `docs/AI.md` §38.5's standing offer, the one
-        // `civilian_value`'s merchant arm never makes here, because
-        // `known_rares` has no writer in this crate.
+        // val 909,090) in slot 1. Until item 327 this crate held a
+        // Cataphract there, because `known_rares` had no writer and
+        // `civilian_value`'s merchant arm was dead; now both sides hold
+        // the Merchant (`docs/AI.md` §55).
         assert_eq!(
             (pair(11_182, "MAKE[1].t"), pair(11_182, "MAKE[1].cat")),
-            ((227, 61), (6, 4)),
-            "slot 1 entering the rotation's `Make` is the Merchant in the \
-             original and the Cataphract here"
+            ((61, 61), (4, 4)),
+            "slot 1 entering the rotation's `Make` is the Merchant on both sides"
         );
         // Every key that first parts on the word's two blocks, the dump's
         // numbers beside this crate's. The rows are the claim.
         let on_word: Vec<String> = firsts
             .iter()
-            .filter(|(_, (f, _))| *f == LONG_WORD_GREAT_LAKES || *f == LONG_WORD_GREAT_LAKES + 1)
+            .filter(|(_, (f, _))| *f == WORD_BLOCK || *f == WORD_BLOCK + 1)
             .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
             .collect();
         assert_eq!(
             on_word,
-            [
-                "11185 1/-1 leader:MAKE[2].escrow",
-                "11186 1/1 dest_angle",
-                "11186 1/1 order:move.angle",
-                "11186 1/1 order:move.off_x",
-                "11186 1/1 order:move.off_y",
-                "11186 1/1 order:move.x",
-                "11186 1/1 order:move.y",
-                "11186 1/1 orders_x",
-                "11186 1/1 orders_y",
-                "11186 1/22 order:gather.wait",
-            ],
+            // Item 327 took ten to one: the Merchant is offered, slot 1 is
+            // the original's emptied slot, and the word left this block.
+            // What is left is a make-list value 77/75 of the original's —
+            // the same ratio as run117's `MAKE[3].val` and `MAKE[4].val`,
+            // `docs/ECONOMY.md` §14.4's `get_cost` row.
+            ["11185 1/-1 leader:MAKE[3].val"],
             "the word's blocks part on a different set"
         );
     }

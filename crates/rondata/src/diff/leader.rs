@@ -47,7 +47,6 @@ pub(crate) const UNMODELLED: &[(&str, &str)] = &[
     ("anti_att", "the attrition score counters are unread"),
     ("blacken", "fog bookkeeping"),
     ("explored", "check_explore's visibility recount is a seam"),
-    ("known_rares", "rares are a leader-level seam"),
     ("pop_issues", "the population-pressure counter is unread"),
     (
         "misc_stamps",
@@ -244,6 +243,9 @@ pub(crate) fn rows(loaded: &crate::load::Loaded, built: &Built, who: usize) -> V
         i64::from(c.active_wars_with),
     ));
     out.push(("ally_mask".to_string(), i64::from(c.ally_mask)));
+    // `known_rares` (item 327): `calc_gather`'s sum of the census's
+    // `reg_known_rares`, and the gate of `create_units`' merchant arm.
+    out.push(("known_rares".to_string(), i64::from(a.known_rares)));
     // `city_num`: the live cities this leader owns.
     out.push((
         "city_num".to_string(),
@@ -484,6 +486,7 @@ pub(crate) fn theirs(block: &Block<'_>) -> std::collections::BTreeMap<String, i6
         "village_num",
         "territory",
         "city_num",
+        "known_rares",
     ] {
         if let Some(x) = block.int(key) {
             out.insert(key.to_string(), x);
@@ -609,6 +612,121 @@ mod tests {
         Some((kept, built))
     }
 
+    /// **Every Merchant slot the original's make list holds, beside this
+    /// crate's** (item 327, `docs/AI.md` §55). `create_units`' merchant arm
+    /// was dead here until `plan_strategy`'s step 9 gave `reg_known_rares`
+    /// a writer; the original has offered a Merchant since before 7514.
+    /// For every `LEADERDATA who 1` block in every Great Lakes capture that
+    /// prints the make list, the multiset of the original's Merchant slots
+    /// (`t 61`: `val`, `escrow`, `cat`, `num`) is compared with this
+    /// crate's on the same block — **by content, never by slot index**,
+    /// since a slot's index moves with everything ranked above it. The
+    /// emptied re-offer slot (`t −1`) is `make_me`'s and is compared by
+    /// the windows' own residues.
+    #[test]
+    fn the_merchant_slots_are_the_original_s_own() {
+        const MERCHANT: i64 = 61;
+        const FILES: [&str; 9] = [
+            "gamelog-run84-greatlakes-makelist.txt",
+            "gamelog-run91-greatlakes-wordledger.txt",
+            "gamelog-run107-greatlakes-wordledger2.txt",
+            "gamelog-run115-greatlakes-firstcontact.txt",
+            "gamelog-run19-window-8174-8192.txt",
+            "gamelog-run111-greatlakes-makeword.txt",
+            "gamelog-run100-greatlakes-valuewindow2.txt",
+            "gamelog-run117-greatlakes-makeword2.txt",
+            "gamelog-run123-greatlakes-marketword.txt",
+        ];
+        type Slot = (i64, i64, i64, i64);
+        fn merchants(m: &std::collections::BTreeMap<String, i64>) -> Vec<Slot> {
+            let mut v: Vec<Slot> = (0..11)
+                .filter(|i| m.get(&format!("MAKE[{i}].t")) == Some(&MERCHANT))
+                .map(|i| {
+                    let g = |k: &str| {
+                        m.get(&format!("MAKE[{i}].{k}"))
+                            .copied()
+                            .unwrap_or(i64::MIN)
+                    };
+                    (g("val"), g("escrow"), g("cat"), g("num"))
+                })
+                .collect();
+            v.sort_unstable();
+            v
+        }
+        // The original's side, file by file, keeping only the blocks
+        // that print a make list: frame -> Merchant slots.
+        let mut want: std::collections::BTreeMap<i64, Vec<Slot>> = Default::default();
+        let mut files = 0;
+        for f in FILES {
+            let Some(path) = dump(f) else { continue };
+            files += 1;
+            let text = crate::capture::read(&path);
+            let log = Log::parse(&text);
+            for (n, b) in log.frames() {
+                let b = b.kid("FULL DUMP").unwrap_or(b);
+                let Some(l) = b.kids("LEADERDATA").find(|l| l.int("who") == Some(1)) else {
+                    continue;
+                };
+                let t = theirs(&l);
+                if !t.contains_key("MAKE[0].t") {
+                    continue;
+                }
+                want.entry(n).or_insert_with(|| merchants(&t));
+            }
+        }
+        if files == 0 {
+            eprintln!("skipping: no Great Lakes leader capture (set RON_GAMELOG_DIR)");
+            return;
+        }
+        let Some(inst) = install() else { return };
+        let loaded = crate::load::load(&inst).unwrap();
+        let state = dump("gamelog-run53-greatlakes-24k-trace.txt").expect("run53");
+        let mut built = with_sibling_initials(|refs| {
+            let text = crate::capture::read(&state);
+            let log = Log::parse(&text);
+            let mut init = log.initial().unwrap();
+            borrow_from_siblings(&mut init, refs);
+            build_sim(&loaded, &init, Tuning::RON)
+        });
+        let last = *want.keys().last().unwrap();
+        let (mut blocks, mut rows_theirs, mut agree) = (0usize, 0usize, 0usize);
+        let mut first_theirs: Option<(i64, Slot)> = None;
+        let mut parts: Vec<(i64, Vec<Slot>, Vec<Slot>)> = Vec::new();
+        for n in 1..=last {
+            built.tick();
+            let Some(w) = want.get(&n) else { continue };
+            let mine = merchants(&rows(&loaded, &built, 1).into_iter().collect());
+            blocks += 1;
+            rows_theirs += w.len();
+            if first_theirs.is_none() && !w.is_empty() {
+                first_theirs = Some((n, w[0]));
+            }
+            if mine == *w {
+                agree += 1;
+            } else {
+                parts.push((n, mine, w.clone()));
+            }
+        }
+        eprintln!(
+            "merchant slots: {files} files, {blocks} blocks, {rows_theirs} of the original's \
+             Merchant rows, {agree} blocks agree; first Merchant {first_theirs:?}"
+        );
+        for (n, m, w) in parts.iter().take(40) {
+            eprintln!("  {n}: ours {m:?} theirs {w:?}");
+        }
+        assert_eq!(
+            parts.len(),
+            MERCHANT_PARTS,
+            "blocks whose Merchant slots part"
+        );
+    }
+
+    /// The blocks [`the_merchant_slots_are_the_original_s_own`] still
+    /// finds parting — none, on 1,305 blocks and 1,173 of the original's
+    /// Merchant rows. Made to fail on purpose by zeroing the sum
+    /// `calc_gather` writes, which kills the arm: **835** blocks part.
+    const MERCHANT_PARTS: usize = 0;
+
     /// **The AI's own dump, read forwards** (DECISIONS 41 §6, parked 367,
     /// built by the seventh pass; `docs/AI.md` §52). run114 is run111's
     /// window with `RON_LEADER_PROBE`: `Leader::create_units` brackets a
@@ -713,19 +831,31 @@ mod tests {
         // **Both Scholars are the original's own, to the unit** (§53):
         // `k` is 6 and 3 through the corrected `count_gather_slots`, and
         // the arm's third `if` is independent, so `filled < total * 2 / 3`
-        // takes ×60 ×10 ×5. The residue left on this frame is the
-        // **Merchant**, which this crate still does not offer — observed
-        // since §50.1, explained nowhere, and pinned in no direction.
-        const OURS_ON_9380: [(i32, i32, i32, i32); 3] = [
+        // takes ×60 ×10 ×5. **And the Merchant is offered** (item 327,
+        // `docs/AI.md` §55): `plan_strategy`'s step 9 gives
+        // `reg_known_rares` its writer and `calc_gather` sums it, so the
+        // arm that was dead since §50.1 offers the original's 869,565 in
+        // the original's position — which closes parked (450).
+        const OURS_ON_9380: [(i32, i32, i32, i32); 4] = [
             (52, 4_891_136, 1, 4),
+            (61, 869_565, 1, 4),
             (50, 234_782, 2, 5),
             (52, 5_755_741, 2, 4),
         ];
         assert_eq!(
             ours,
             OURS_ON_9380.to_vec(),
-            "this crate's unit offers on 9380 — both Scholars are MEASURED's own values; \
-             the Merchant is the residue"
+            "this crate's unit offers on 9380 — the Scholars and the Merchant are MEASURED's own"
+        );
+        // The Merchant against the original's own row, not a literal: the
+        // same type, value and category, and the city one apart as §53.2
+        // confirmed by value.
+        let merchant = |v: &[(i32, i32, i32, i32)]| v.iter().find(|(t, ..)| *t == 61).copied();
+        let theirs_m = merchant(&MEASURED).map(|(t, v, c, k)| (t, v, c + 1, k));
+        assert_eq!(
+            merchant(&ours),
+            theirs_m,
+            "the Merchant offer on 9380 is the original's, across the city shift"
         );
         // The values, not merely the count: every Scholar this crate
         // offers on the frame is one the original offered, and the pairing
@@ -853,7 +983,7 @@ mod tests {
             .collect();
         assert!(clash.is_empty(), "UNMODELLED and rows both carry {clash:?}");
         assert_eq!(
-            compared, 168_320,
+            compared, 168_480,
             "160 blocks of the record, every field the mapping carries"
         );
         assert!(
@@ -956,7 +1086,7 @@ mod tests {
         }
         assert_eq!(blocks, 172, "86 frames, two leaders");
         assert_eq!(
-            compared, 180_944,
+            compared, 181_116,
             "172 blocks of the record, every field the mapping carries"
         );
 
@@ -1150,7 +1280,7 @@ mod tests {
         assert_eq!(blocks, 36, "eighteen blocks, two leaders");
         assert!(missing.is_empty(), "the record does not carry {missing:?}");
         assert_eq!(
-            compared, 37_872,
+            compared, 37_908,
             "36 blocks of the record, every field the mapping carries"
         );
         // **The scholar, on the frame `create_units` offers it.** 52 is
@@ -1288,7 +1418,7 @@ mod tests {
         assert_eq!(blocks, 260, "130 blocks, two leaders");
         assert!(missing.is_empty(), "the record does not carry {missing:?}");
         assert_eq!(
-            compared, 273_520,
+            compared, 273_780,
             "130 blocks of the record, every field the mapping carries"
         );
         // **The item, in one line.** The original's met bit arrives on
@@ -1334,6 +1464,9 @@ mod tests {
     /// `production_step` tick, 56 blocks after first contact. This crate
     /// leaves the human's census at zero forever (`docs/AI.md` §43's
     /// `human` skip). A successor's, not this item's.
+    /// **Item 327 deleted five**: `1/MAKE[2]`'s `t`, `cat` and `val` and
+    /// `1/MAKE[3]`'s `t` and `cat` — the Merchant, offered on both sides now
+    /// that `reg_known_rares` has a writer (`docs/AI.md` §55). 89 → 84.
     const PARTS_ON_RUN115: &[(usize, &str)] = &[
         (0, "SITE[0].reg"),
         (0, "SITE[1].reg"),
@@ -1361,13 +1494,8 @@ mod tests {
         (0, "wars"),
         (1, "MAKE[1].city"),
         (1, "MAKE[1].val"),
-        (1, "MAKE[2].cat"),
         (1, "MAKE[2].city"),
-        (1, "MAKE[2].t"),
-        (1, "MAKE[2].val"),
-        (1, "MAKE[3].cat"),
         (1, "MAKE[3].city"),
-        (1, "MAKE[3].t"),
         (1, "MAKE[3].val"),
         (1, "MAKE[4].city"),
         (1, "MAKE[4].val"),
@@ -1485,7 +1613,7 @@ mod tests {
         assert_eq!(blocks, 60, "thirty blocks, two leaders");
         assert!(missing.is_empty(), "the record does not carry {missing:?}");
         assert_eq!(
-            compared, 63_120,
+            compared, 63_180,
             "60 blocks of the record, every field the mapping carries"
         );
         // **The head on the frame the sequence parts.** 573 is the
@@ -2297,6 +2425,11 @@ mod tests {
     /// crate returned before reaching them until `docs/COMBAT.md` §17 was
     /// implemented — so the residue shrank from 95 fields to 93 on the
     /// same window, which is the shape a landed mechanic leaves here.
+    /// **Item 327 deleted two**: `1/MAKE[3].t` and `1/MAKE[3].cat`, the
+    /// 8181 Merchant §38.5 named, which this crate now offers
+    /// (`docs/AI.md` §55). Its `val` still parts on 8174, three blocks
+    /// before the offer, at 77/75 of the original's — §14.4's `get_cost`
+    /// row. 80 → 78.
     const PARTS_ON_RUN19: &[(usize, &str)] = &[
         (0, "SITE[0].reg"),
         (0, "SITE[1].reg"),
@@ -2324,9 +2457,7 @@ mod tests {
         (1, "MAKE[0].city"),
         (1, "MAKE[1].city"),
         (1, "MAKE[2].city"),
-        (1, "MAKE[3].cat"),
         (1, "MAKE[3].city"),
-        (1, "MAKE[3].t"),
         (1, "MAKE[3].val"),
         (1, "MAKE[8].city"),
         (1, "SITE[0].reg"),
@@ -2400,6 +2531,10 @@ mod tests {
     /// territory census counted only computer leaders where
     /// `plan_strategy@006b9620:159` gates on `leader_flags & 2`, which
     /// every capture sets for the human. `docs/AI.md` §43.
+    /// **Item 327 traded two for one**: `1/MAKE[0].t` and `1/MAKE[0].val`
+    /// close with the Merchant offer (`docs/AI.md` §55), and `1/known_rares`
+    /// arrives, compared for the first time — the original's sum lags its
+    /// array over 7514–7583 (§55.3). 91 → 90.
     const PARTS_ON_RUN91: &[(usize, &str)] = &[
         (0, "SITE[0].reg"),
         (0, "SITE[1].reg"),
@@ -2424,8 +2559,6 @@ mod tests {
         (0, "scouts"),
         (1, "MAKE[0].city"),
         (1, "MAKE[0].escrow"),
-        (1, "MAKE[0].t"),
-        (1, "MAKE[0].val"),
         (1, "MAKE[1].city"),
         (1, "MAKE[1].escrow"),
         (1, "MAKE[1].t"),
@@ -2486,6 +2619,11 @@ mod tests {
         (1, "SITE[9].wx"),
         (1, "SITE[9].wy"),
         (1, "gather_stamp"),
+        // Item 327: the original's sum reads 0 from its 7335
+        // recompute to its 7583 one while the array holds 3 — the second
+        // writer, `compute_reg_territory`'s zeroing, which the immediate
+        // territory pass here cannot place (`docs/AI.md` §55.3).
+        (1, "known_rares"),
         (1, "scouts"),
         (1, "tech_cat_frame[0]"),
         (1, "tech_cat_frame[1]"),
@@ -2726,6 +2864,9 @@ mod tests {
     /// nought, `MAKE[*].city`'s ours-plus-one, and the Merchant at
     /// `MAKE[3]`/`MAKE[4]` that `civilian_value` does not offer
     /// (`docs/AI.md` §38.5).
+    /// **Item 327 deleted four**: `1/MAKE[3]`'s `t` and `cat` and
+    /// `1/MAKE[4]`'s `t` and `escrow` — the Merchant slots above, offered
+    /// here now (`docs/AI.md` §55). 105 → 101.
     const PARTS_ON_RUN117: &[(usize, &str)] = &[
         (0, "SITE[0].reg"),
         (0, "SITE[1].reg"),
@@ -2758,13 +2899,9 @@ mod tests {
         (1, "MAKE[0].city"),
         (1, "MAKE[1].city"),
         (1, "MAKE[2].val"),
-        (1, "MAKE[3].cat"),
         (1, "MAKE[3].city"),
-        (1, "MAKE[3].t"),
         (1, "MAKE[3].val"),
         (1, "MAKE[4].city"),
-        (1, "MAKE[4].escrow"),
-        (1, "MAKE[4].t"),
         (1, "MAKE[4].val"),
         (1, "MAKE[6].city"),
         (1, "MAKE[8].city"),
@@ -2905,7 +3042,7 @@ mod tests {
         assert!(missing.is_empty(), "the record does not carry {missing:?}");
         assert_eq!(blocks, 490, "245 blocks, two leaders");
         assert_eq!(
-            compared, 515_480,
+            compared, 515_970,
             "490 blocks of the record, every field the mapping carries"
         );
         // **The frame the item is**, read off the comparison so the dump

@@ -688,6 +688,11 @@ pub struct Leader {
     /// `ScenarioFuncSet::num_rare_resources_seen@009ea010` returns its
     /// length: `docs/ECONOMY.md`, "The rares a leader has seen".
     pub new_rares: Vec<usize>,
+    /// `known_rares` (`LeaderData +0x6d4`): `reg_known_rares` summed.
+    /// `Leader::calc_gather@006ceee0` is its one writer and writes it
+    /// under its own cadence, so it lags the census by up to a recompute;
+    /// `create_units`' merchant arm is its one reader (`docs/AI.md` §55).
+    pub known_rares: i32,
 }
 
 impl Default for Leader {
@@ -840,6 +845,7 @@ impl Leader {
             attacked_by: -1,
             tech_cat_frame: [0; 4],
             new_rares: Vec::new(),
+            known_rares: 0,
         }
     }
 

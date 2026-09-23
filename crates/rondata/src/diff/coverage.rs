@@ -36,7 +36,7 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use crate::gamelog::{Block, Log, reads};
 
-use super::testkit::{GOLDEN_WORD_CHAPTER_TWO, LONG_WORD_GREAT_LAKES, WIDENING_CHAPTER_TWO};
+use super::testkit::{GOLDEN_WORD_CHAPTER_TWO, GREAT_LAKES_MARKET_BLOCK, WIDENING_CHAPTER_TWO};
 
 /// Record paths read by a parser of their own, outside `Block` — the
 /// module that reads each is named, and this guard leaves them alone.
@@ -123,12 +123,12 @@ const UNREAD: &[(&str, &str)] = &[
     // compare through, was never driven here. So fifteen keys leave this
     // row as read (`bucket`, `income`, `epoch_get(scan)` and the rest of
     // the goods block), and the level-9 tail's unread keys join it. They
-    // are owed by no item: nothing measured turns on them yet. The one
-    // that will is `known_rares`, the Merchant offer's gate
-    // (`docs/ECONOMY.md` §14.4), and it leaves this row with that item.
+    // are owed by no item: nothing measured turns on them yet.
+    // `known_rares`, the Merchant offer's gate, left with item 327
+    // (`docs/AI.md` §55).
     (
         "GAME/FRAME/LEADERDATA",
-        "(int) agendas[scan] ages_get() ages_queued aggression[scan] air_queued air_units ally_stamp[scan] anti_att att attack_stamp[scan] attrition_stamp attrition_stamp2 attrition_stamp3 average_damage_rate average_death_rate average_hit_rate average_kill_rate barracks_garr barracks_queued barracks_units base_rate[scan] best_armor best_attack best_move best_pop bit_values bits blacken bonus bonus_cap[NUM_COMMON] broke_alliance[scan] buildings_lost buildings_razed capital_stamp[scan] chat_status[scan] cities_captured cities_lost city_mark city_mine city_name combat_queued combat_units counteroffer[scan] ctw_hero_retreat_stamp ctw_hero_stamp damage_current_frame damage_fifteen_seconds deaths_current_frame deaths_fifteen_seconds defeat_stamp defeat_type defensive discovered_get() dock_mark dock_queued dock_units dow[scan] epochs_get() epochs_queued explored factory_queued factory_units flags flock_stamp fort_mark frame_battle gift_stamp[scan] good_deeds[scan] got_diplo_message gov_hero_frame handicap hero_mark high_buildings[scan] hire_stamp[scan] hire_who[scan] hits_current_frame hits_fifteen_seconds increment invaders[scan] kills_current_frame kills_fifteen_seconds known_rares last_spoke[scan] last_taunt[scan] length list[scan] lost_capital_modifier lost_capital_stamp lost_capital_timer lost_city_stamp made_peace[scan] misery missiles_used multi_diff nuke_stamp nukes_in_flight nukes_launched nukes_used num_bonus_cards[scan] num_buildings[scan] num_ctw_rate_bonuses[scan] oil_well_mark peasants_garr pop_cap pop_issues popwin_stamp popwin_timer raid_stamp[scan] rares_collected[scan] reg_active[scan] reg_allies[scan] reg_attack[scan] reg_attacked[scan] reg_buildings[scan][scan2] reg_cities[scan] reg_combat[scan] reg_defense[scan] reg_free_peasants[scan] reg_gather_slots[scan] reg_gatherers[scan] reg_known_rares[scan] reg_land[scan] reg_naval[scan] reg_neutrals[scan] reg_peasants[scan] reg_pop[scan] reg_terr[scan] reg_transports[scan] reg_unpack_merch[scan] reg_wars[scan] reg_xport_peasants[scan] repair_stamp retargets scholar_militia scout_garr senates_built size special_mark stable_garr stable_queued stable_units strategy[scan] strong[scan] supply_mark support support_stamp taunt_frame[scan] team_color territory_high tribute_demanded[scan] tribute_stamp[scan] tributes[scan] units_killed units_lost victory_type village_mine weak[scan] wonder_mark wonderwin_stamp wonderwin_timer",
+        "(int) agendas[scan] ages_get() ages_queued aggression[scan] air_queued air_units ally_stamp[scan] anti_att att attack_stamp[scan] attrition_stamp attrition_stamp2 attrition_stamp3 average_damage_rate average_death_rate average_hit_rate average_kill_rate barracks_garr barracks_queued barracks_units base_rate[scan] best_armor best_attack best_move best_pop bit_values bits blacken bonus bonus_cap[NUM_COMMON] broke_alliance[scan] buildings_lost buildings_razed capital_stamp[scan] chat_status[scan] cities_captured cities_lost city_mark city_mine city_name combat_queued combat_units counteroffer[scan] ctw_hero_retreat_stamp ctw_hero_stamp damage_current_frame damage_fifteen_seconds deaths_current_frame deaths_fifteen_seconds defeat_stamp defeat_type defensive discovered_get() dock_mark dock_queued dock_units dow[scan] epochs_get() epochs_queued explored factory_queued factory_units flags flock_stamp fort_mark frame_battle gift_stamp[scan] good_deeds[scan] got_diplo_message gov_hero_frame handicap hero_mark high_buildings[scan] hire_stamp[scan] hire_who[scan] hits_current_frame hits_fifteen_seconds increment invaders[scan] kills_current_frame kills_fifteen_seconds last_spoke[scan] last_taunt[scan] length list[scan] lost_capital_modifier lost_capital_stamp lost_capital_timer lost_city_stamp made_peace[scan] misery missiles_used multi_diff nuke_stamp nukes_in_flight nukes_launched nukes_used num_bonus_cards[scan] num_buildings[scan] num_ctw_rate_bonuses[scan] oil_well_mark peasants_garr pop_cap pop_issues popwin_stamp popwin_timer raid_stamp[scan] rares_collected[scan] reg_active[scan] reg_allies[scan] reg_attack[scan] reg_attacked[scan] reg_buildings[scan][scan2] reg_cities[scan] reg_combat[scan] reg_defense[scan] reg_free_peasants[scan] reg_gather_slots[scan] reg_gatherers[scan] reg_known_rares[scan] reg_land[scan] reg_naval[scan] reg_neutrals[scan] reg_peasants[scan] reg_pop[scan] reg_terr[scan] reg_transports[scan] reg_unpack_merch[scan] reg_wars[scan] reg_xport_peasants[scan] repair_stamp retargets scholar_militia scout_garr senates_built size special_mark stable_garr stable_queued stable_units strategy[scan] strong[scan] supply_mark support support_stamp taunt_frame[scan] team_color territory_high tribute_demanded[scan] tribute_stamp[scan] tributes[scan] units_killed units_lost victory_type village_mine weak[scan] wonder_mark wonderwin_stamp wonderwin_timer",
     ),
     (
         "GAME/FRAME/LEADERDATA/DIPLOMACY",
@@ -373,7 +373,9 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     // one. run123 does: run100's detail with `LEADERS=9`, over
     // `WIDENING_GREAT_LAKES_MARKET`, so every path run100 printed is
     // here too, and the leader record whole beside it.
-    let gl = LONG_WORD_GREAT_LAKES;
+    // Item 327 moved the headline to 11531, past run123's last block, so
+    // the window is keyed on the block run123 was taken to widen.
+    let gl = GREAT_LAKES_MARKET_BLOCK;
     if let Some(p) = &r123 {
         frames += drive_capture(p, gl - 2, gl + 2, &mut paths);
     }

@@ -4557,11 +4557,10 @@ simulation. They are gone; `MAKE[3].t` on run84 is a real one and stays.
   Mercenaries 165,000 against 216,000, Mathematics 82,500 against 63,000
   — from before the window opens. `research_techs` (§2.14) values them
   and nothing here re-derives its arithmetic.
-- **The Merchant is still not offered.** The original's `create_units`
-  puts one at slot 3 on dump-block 8181 (`t 61`, `val 869,565`,
-  `city 0`) and this crate does not; `civilian_value`'s merchant arm
-  reads `known_rares`, which §2.14's seam still sums from the per-region
-  counts. `MAKE[3].t` and `MAKE[3].cat` on run19 are that.
+- ~~**The Merchant is still not offered.**~~ **Offered since item 327
+  (§55)**: `reg_known_rares` has its writer, and run19's `MAKE[3].t` and
+  `MAKE[3].cat` agree. Only `MAKE[3].val` still parts, on 8174, at 77/75
+  of the original's.
 - **The other three `mod_resource_cap` call sites are unexamined here
   only in part.** `create_buildings@006c1be0` calls
   `get_mod_resource_cap` three times and reads the raw field nowhere, and
@@ -6030,9 +6029,10 @@ arm computes per-city.
   in the original and none of them is in this crate, and the arm has two
   known numbers to hit on one frame. That is the successor reading of
   `create_units@006c40a0`.
-- **The missing Merchant is observed, not explained.** `create_units`'
+- ~~**The missing Merchant is observed, not explained.** `create_units`'
   caravan-and-merchant arm has a civilian-ceiling `continue` that would
-  drop the offer; nothing here measures whether that is what drops it.
+  drop the offer; nothing here measures whether that is what drops it.~~
+  **Explained by item 327 (§55)**: `known_rares` had no writer.
 - ~~**The new parting is 9582 and it is one draw.** This crate spends one
   `Leader::use_market+0x1ed` where the original spends two — the market's
   sell rotation, the same site the two sides agree on at 9382. 9581 and
@@ -6348,10 +6348,12 @@ now agree across the shift — our city 1 carries the number the original
 attributes to its city 0, our city 2 its city 1 — which an index comparison
 could never have said.
 
-**The Merchant is the residue.** It is observed and unexplained, exactly as
+~~**The Merchant is the residue.** It is observed and unexplained, exactly as
 §50.4 left it: `create_units`' caravan-and-merchant arm has a
 civilian-ceiling `continue` that would drop the offer, and nothing here
-measures whether that is what drops it.
+measures whether that is what drops it.~~ **Not the ceiling: item 327
+(§55)**. The arm never reached the tail, because `known_rares` had no
+writer.
 
 ### 53.3 What the pair paid
 
@@ -6388,9 +6390,9 @@ own word, which does not move.
 
 ### 53.4 What this has *not* established
 
-- **Why this crate offers no Merchant on 9380.** Unchanged from §50.4 and
-  now the only residue left on the frame. It is the next thing this frame
-  can be asked.
+- ~~**Why this crate offers no Merchant on 9380.**~~ **Answered by item
+  327 (§55)**: `known_rares` had no writer. The Merchant is offered on 9380
+  at the original's 869,565.
 - **Whether `filled` and `total` are right.** Both branch tests passed at
   `filled = 0, total = 14` on this frame, and all three arms fire. A frame
   where a city sits between two thirds and full would separate the ×60
@@ -6627,3 +6629,180 @@ original's behaviour to `docs/COLLISION.md` §5.4 is the record's own —
 seven fields of the snap arm's nine-instruction block, each dumped — and
 the mechanism behind the probe's verdict is left open above rather than
 guessed at.
+
+---
+
+## 55. The Merchant arm reads a sum, and the sum has two writers (2026-09-22, item 327)
+
+Item 520's widening named the input: on Great Lakes' block 11185 the
+original's make list holds an **emptied Merchant slot** (`t −1`) where this
+crate held a Cataphract (`docs/ECONOMY.md` §14). The original has offered a
+Merchant on every rotation since at least **7584**, and this crate never
+did: `civilian_value`'s merchant arm read a `known_rares` summed from
+`census.reg_known_rares`, which the census zeroed every sweep and nothing
+wrote. This section is the three halves §14.4 left unread, and the
+implementation beside them.
+
+**Great Lakes' word goes 11185 → 11531.** East Indies' holds at 9711.
+
+### 55.1 The writer of `reg_known_rares`: the census's step 9
+
+`reg_known_rares` is `LeaderData +0x4d4`, `int[64]`; `known_rares` is
+`+0x6d4`, and the export's only functions naming either are
+`Leader::plan_strategy@006b9620`, `Leader::calc_gather@006ceee0`,
+`Leader::create_units@006c40a0`, `Leader::init@006e3930` and
+`World::compute_reg_territory@006b0bb0` (§55.3).
+
+`plan_strategy`'s step 8 zeroes the array (the loop at `:285–313`,
+`puVar36`), and step 9 (`:314–361`) walks `new_rares` (`+0x6e6c`, a
+`SimpleArray<int>`: count at `+0x6e70`, data at `+0x6e7c`) and, for each
+good:
+
+1. **Is it explored?** When `who < 8` and `reveal_map != 3`, it counts
+   only if `leader_flags & 0x800`, or `+0x59e4`, or the byte of
+   `World::seen2` (`+0x160`) at `div_3_table[y >> 7] × fog_xs +
+   div_3_table[x >> 7]` has a bit of `ally_mask` (`+0x6929`) — which is
+   `WorldData::was_really_seen`'s test at the good's half-cell, exits and
+   all, and this crate calls `Sim::was_really_seen_fog` for it. Otherwise
+   it counts unconditionally.
+2. **Is its ground reachable?** The `WData` byte at `+0xf` of the good's
+   cell (`div_3_table[c >> 8]`) is the owner. A negative owner, or `who`
+   itself, counts; another leader's counts only if `diplos` reads 2 both
+   ways.
+3. `GoodData::ever_seen |= 1 << who`, and `reg_known_rares[r]++` for the
+   cell's region (the `WData` short at `+4`).
+
+`ever_seen` has one reader, `GoodData::is_seen`, and nothing here asks a
+good whether it is seen, so it is left unwritten and named in the census's
+seam table.
+
+### 55.2 The sum, and the arm
+
+`calc_gather@006ceee0:66–75`, the first thing past its cadence gate, sums
+the array into `known_rares`. The census and the recompute run on
+different cadences, so the sum lags the array by up to a recompute, and
+this crate writes it where the recompute is,
+`Sim::assemble_holdings_with`. `create_units`' merchant arm is its only
+reader. The listing over `006c5427..006c5526` is the arm, in order:
+
+```
+006c547d  push 0x1b4 ; CityData::get_building(MARKET)  → js skip
+006c54b4  call [vtbl+0xac] ; test [eax+8], 1           → je skip
+006c54c4  push 0x228 ; LeaderData::has_tech(MATHEMATICS) → jne ok
+006c54d4  push 1 ; push 3 ; LeaderData::type_avail(KNOWLEDGE, 1) → je skip
+006c54e9  known_rares − num_queued[t] − num_units[t]   → jle skip
+006c550b  effective_pop < pop_cap − 1                  → jge skip
+006c551e  esi = 0xf4240 ; escrow = 1 ; jmp 006c4cfc
+```
+
+The Mathematics-or-knowledge line was **missing** from this crate's arm;
+the decompile prints it with enum names, and the pushes settle which
+arguments are which. It is `Roles::mathematics` and `Roles::knowledge`
+here.
+
+**The value is not the arm's.** It hands the shared tail 1,000,000, and
+the tail's `offer_value` divides by `want + queued + units` and scales by
+`check_income`'s factor — the same arithmetic every civilian takes. So
+§14.4's 869,565, 909,090 and 227,272 needed no division of their own: once
+the arm fires, the tail produces them. The emptied slot is `make_me`'s:
+`MakeList::make_me@006c9be0` sets every lower slot holding the offered type
+to `t −1`, keeping its value, and this crate's `make_me` already did. So
+the re-offer on 11184 empties slot 1 with no further change.
+
+### 55.3 The second writer: the territory pass
+
+`World::compute_reg_territory@006b0bb0:76–105`: when a region's border
+pass starts (`Region.borders == 0`), it zeroes `reg_terr[r]` **and
+`reg_known_rares[r]`** on every live leader, and clears every city's
+`bordering`. The census recounts on its next sweep. A `calc_gather` in
+between sums a zero.
+
+That is run91's one new row. The original's player 1 holds `known_rares
+0` from its recompute on **7335** (`gather_stamp 7335`) to the one on
+7583, while its array reads 3 on 7514. This crate reads 3 throughout.
+Zeroing the array in `Sim::sync_territory` **reproduces the zero** on
+7328, then costs `gather_stamp` on run84, run19 and run91, and does not
+move the word. This crate recomputes every region at once, on the event,
+and the original schedules a budgeted pass (`GameDaemon::check_borders`,
+256 cells a frame), so the frame the zero lands on belongs to a transient
+this crate does not model (`docs/ATTRITION.md`, "Territory"). The writer is
+named here and not implemented. `1/known_rares` on run91 is the only row it
+leaves, and it does not reach the Merchant slots on any block.
+
+### 55.4 What it moved
+
+The value diff is `the_merchant_slots_are_the_original_s_own`. On every
+`LEADERDATA who 1` block that prints a make list, in nine Great Lakes
+captures (run84, run91, run107, run115, run19, run111, run100, run117,
+run123), the multiset of the original's Merchant slots, by `(val, escrow,
+cat, num)` and never by slot index, is compared with this crate's.
+**1,305 blocks, 1,173 Merchant rows, every block agrees.** The first is
+7584, at 217,391. With the sum zeroed, 835 blocks part.
+
+| instrument | before | after |
+| --- | --- | --- |
+| Great Lakes' word | 11185 | **11531** |
+| East Indies' word | 9711 | 9711 |
+| run114's offers on 9380 | three, no Merchant | **four, the original's four** — the Merchant at 869,565 |
+| run123 block 11185 `MAKE[1].t` | 227 / −1 | **−1 / −1** |
+| run123 keys first parting on 11185–11186 | 10 | **1** (`MAKE[3].val`, 77/75) |
+| run19 leader residue | 80 fields | **78** |
+| run115 leader residue | 89 | **84** |
+| run117 leader residue | 105 | **101** |
+| run91 leader residue | 91 | **90** (−2, +`known_rares`) |
+| Great Lakes endpoint | 57 off, 4 unlinked, 10 build-diverged | **50, 1, 9** |
+| East Indies endpoint | 62 off, 10 unlinked | **64, 9** |
+| East Indies ladder B | 47 off, 15 extra | **49, 14** |
+
+`known_rares` is a row of the leader record now. It agrees on every block
+of run84, run107, run115, run19, run117 and run123, and parts only on
+run91's §55.3 lag. It left `diff::coverage::UNREAD`.
+
+**Parked (450) closes.** It was this offer on Great Lakes 9380, and 442's
+own test now finds the original's four offers there with the Merchant's
+value to the unit.
+
+**The new word**: 11531, ours four draws against the original's three,
+parting at index 1 — `Guy::set_anim+0x97a < Unit::do_idle+0x7d` against
+`Guy::set_anim+0x97a < Guy::inc_time+0x271`. That is an animation clocked
+from the idle path where the original's comes from `inc_time`, 72 blocks
+past run123's last. No dump reaches it, so its widening is owed a capture.
+
+### 55.5 What this has *not* established
+
+- **The frame of the territory zero** (§55.3). Its writer is read. Placing
+  it needs `check_borders`' budgeted schedule, which this crate does not
+  model.
+- **The Mathematics-or-knowledge gate is reading-only.** No capture was
+  checked for which operand holds at the first offer, and no block on
+  disk separates the gate from its absence.
+- **The explored and ownership predicates are diffed only in sum.**
+  `reg_known_rares[scan]` is not parsed per region (the census's other
+  `reg_*` arrays are not either). `known_rares` agrees wherever §55.3
+  does not intervene, and on Great Lakes every rare sits in one region.
+- **`MAKE[3].val` at 77/75 of the original's** on run19 (8174), run117
+  and run123's 11185. It is §14.4's `get_cost` row and not this item's.
+
+### 55.6 Coverage
+
+Diff-backed:
+
+- `diff::leader::tests::the_merchant_slots_are_the_original_s_own`: every
+  Merchant slot of nine captures, by content. It was made to fail on
+  purpose by zeroing the sum, which parts 835 blocks.
+- `diff::leader::tests::run114_s_offers_are_the_original_s_own`: the
+  Merchant on 9380 against the original's own row, across the city
+  shift.
+- `diff::harness::tests::run123_s_word_frame_is_widened_whole`: slot 1 on
+  11182 and 11185, and the one key left parting on the word's old blocks,
+  keyed on `GREAT_LAKES_MARKET_BLOCK` now that the headline has left
+  them.
+- The `known_rares` row, on the seven leader windows.
+
+Unit: `ai_census::tests::step_9_counts_the_seen_rares_a_merchant_may_reach`
+(ground ownership, a mutual and a one-sided ally, the zero before the
+count, the sum waiting for the recompute).
+
+Reading-only, and owed a blind second reading: §55.1's explored test and
+its two leader-flag exits, §55.2's Mathematics-or-knowledge gate (the
+listing is quoted above), and §55.3's writer.

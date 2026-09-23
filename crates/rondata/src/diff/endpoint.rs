@@ -436,7 +436,10 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // Great Lakes'.
         // **63 → 62 on item 518**, `Groups::process` (`docs/GROUPS.md`
         // §19): one position closer; this map's own word does not move.
-        off: 62,
+        // **62 → 64 and 10 → 9** on item 327, the Merchant offer
+        // (`docs/AI.md` §55). This map's word holds at 9711; the endpoint
+        // reshuffles 14,000 frames past it. DECISIONS 36: the number, not a trade.
+        off: 64,
         // And **5 → 10 unlinked** on 2026-09-21, item 442 — the scholar
         // arm's `val` chain (`docs/AI.md` §53). This map's word does not
         // move on it; Great Lakes' moves 9510 → 10161. The AI's Scholar
@@ -445,7 +448,7 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // rungs shed **eight** and **seven** spurious units — the Citizens
         // this crate used to buy instead of Scholars. DECISIONS 36 asks for
         // the number rather than a trade; the number is on the headline.
-        unlinked: 10,
+        unlinked: 9,
         extra: 0,
         build_unlinked: 1,
         build_diverged: 30,
@@ -1029,11 +1032,15 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // not about the reset. DECISIONS 36 asks for the number rather
         // than a trade; the value diff the move is booked on is run100's
         // blocks 10242, 10243 and 10835, empty.
-        off: 57,
-        unlinked: 4,
+        // **57 → 50, 4 → 1 and 10 → 9** on item 327, the Merchant offer
+        // (`docs/AI.md` §55), which moves this map's word 11185 → 11531: the
+        // AI buys the original's Merchants, and seven positions, three units
+        // and a building come back, 12,500 frames past the word.
+        off: 50,
+        unlinked: 1,
         extra: 0,
         build_unlinked: 0,
-        build_diverged: 10,
+        build_diverged: 9,
         city_unlinked: 3,
         city_diverged: 0,
     },
@@ -1328,7 +1335,10 @@ pub const LADDER: [Endpoint; 2] = [
         // frames past this rung's word; the C rung above sheds one.
         // DECISIONS 36 asks for the number rather than a trade.
         // **49 → 47 on item 518**, `Groups::process` (see `extra` below).
-        off: 47,
+        // **47 → 49** on item 327, the Merchant offer (`docs/AI.md` §55):
+        // the AI's make list changes from its first Merchant, and this rung
+        // moves two positions out and one spurious unit off. DECISIONS 36.
+        off: 49,
         unlinked: 16,
         // 19 → 33 on 2026-09-07, item 261, the same reshuffle, then 33 →
         // **27** the same day on item 265's byte — this rung took the
@@ -1409,7 +1419,8 @@ pub const LADDER: [Endpoint; 2] = [
         // back to its leader's own speed once every 64 frames, so every
         // map's marches change pace; 6,778 frames past this rung's word,
         // DECISIONS 36 asks for the number rather than a trade.
-        extra: 15,
+        // **15 → 14** on item 327, the Merchant offer (`docs/AI.md` §55).
+        extra: 14,
         build_unlinked: 19,
         build_diverged: 0,
         city_unlinked: 4,

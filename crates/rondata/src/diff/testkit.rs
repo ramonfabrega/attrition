@@ -1555,6 +1555,19 @@ pub(crate) const EAST_INDIES_FIRST_SCHOLAR: i64 = 8_466;
 /// still the word's, and the block — 11185, where slot 1 of the make list
 /// parts — is `run123_s_word_frame_is_widened_whole`'s.
 ///
+/// **11185 → 11531 on item 327, and the widening named the mechanism.**
+/// run123's slot 1 was an emptied Merchant slot in the original and a
+/// Cataphract here, because `create_units`' merchant arm read a
+/// `known_rares` nothing wrote. `plan_strategy`'s step 9 is the writer,
+/// `calc_gather` sums it, and the arm now offers the original's Merchant
+/// on every block of nine captures (`docs/AI.md` §55). The new word's
+/// delta: ours **four** draws and the original **three**, parting at
+/// index **1** — ours `Guy::set_anim+0x97a < Unit::do_idle+0x7d` against
+/// the original's `Guy::set_anim+0x97a < Guy::inc_time+0x271`. **Past
+/// every dump on disk**: run123 ends on block 11459, so the word's block
+/// is owed a capture ([`WIDENINGS`]); 11185's own block stays in
+/// `run123_s_word_frame_is_widened_whole` as the value diff of the move.
+///
 /// **The block's own rows are not restated here**, and that is
 /// deliberate: block 10818's eight rows of `1/28` are *asserted* in
 /// [`crate::diff::harness`]'s
@@ -1566,7 +1579,7 @@ pub(crate) const EAST_INDIES_FIRST_SCHOLAR: i64 = 8_466;
 /// never pinned as text. **The rule this comment now follows: the word's
 /// *delta* here, the word's *block* in the widening, and each says
 /// which.**
-pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 11_185;
+pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 11_531;
 
 /// The floor `run97_s_window_orders_are_the_original_s` holds — item 368's
 /// widening of Great Lakes' order stacks, the 36,483 `GATHERORDER` records
@@ -2149,6 +2162,12 @@ pub(crate) const WIDENING_CHAPTER_TWO: (i64, i64) = (606, 901);
 /// reason [`WIDENING_CHAPTER_TWO`]'s is: it is the only floor that cannot
 /// hide a row.
 pub(crate) const WIDENING_GREAT_LAKES_MARKET: (i64, i64) = (10_760, 11_459);
+/// The block [`WIDENING_GREAT_LAKES_MARKET`] was taken to widen: the word
+/// 11185, where it stood until item 327 moved it past run123's last block.
+/// `run123_s_word_frame_is_widened_whole` holds the move's value diff on it
+/// and the coverage driver reads run123 around it, so the two stay keyed
+/// on a block the capture carries whatever the headline does next.
+pub(crate) const GREAT_LAKES_MARKET_BLOCK: i64 = 11_185;
 /// One pinned word's row: `(constant, word, widening test, item, window)`.
 pub(crate) type Widening = (
     &'static str,
@@ -2251,12 +2270,19 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // block — the purse, the commerce level, the stock — and the one left
     // is slot 1 of the make list: an emptied Merchant slot in the
     // original, a Cataphract here (`docs/ECONOMY.md` §14).
+    //
+    // **Item 327 moved it 11185 → 11531, past every dump on disk again**:
+    // run123 ends on block 11459. The Merchant offer closed 11185's slot 1
+    // (`docs/AI.md` §55), and run123's test keeps that block as the value
+    // diff of the move, keyed on its own `WORD_BLOCK` rather than on the
+    // headline. The row names the item that owes the capture until the
+    // commander books its successor.
     (
         "LONG_WORD_GREAT_LAKES",
         LONG_WORD_GREAT_LAKES,
-        Some("run123_s_word_frame_is_widened_whole"),
-        520,
-        Some(WIDENING_GREAT_LAKES_MARKET),
+        None,
+        327,
+        None,
     ),
     // Item 445 paid the widening chapter one had never had: the word
     // stood at 626 from item 405 on, and every test behind it pinned one
