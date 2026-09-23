@@ -1476,7 +1476,7 @@ pub struct Guy {
     /// `GuyData::ox` / `whom` (`+0x8e` / `+0x9f`) — **what the figure last
     /// swung at**, `−1` until its first strike. `Unit::set_attack` writes
     /// it on every strike, and `Unit::fight`'s recharging arm reads guy
-    /// 0's against the order's target (item 530, `docs/COMBAT.md` §49).
+    /// 0's against the order's target (item 530, `docs/ORDERS.md` §22).
     pub ox: Option<i64>,
     pub whom: Option<i64>,
     /// `GuyData::des_x` / `des_y` (`+0x5c` / `+0x60`) — **where this

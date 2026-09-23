@@ -85,7 +85,7 @@ const UNREAD: &[(&str, &str)] = &[
     // **Item 530 took `ox` and `whom` off both `UNITDATA/GUY` paths**:
     // what a figure last swung at, which `Unit::fight`'s recharging arm
     // reads against the order's target, and which chapter one's word
-    // turned on (`docs/COMBAT.md` §49). Four keys leave; no path does.
+    // turned on (`docs/ORDERS.md` §22). Four keys leave; no path does.
     ("GAME/FRAME/ANIMALDATA", "aid ox whom"),
     (
         "GAME/FRAME/ANIMALDATA/UNITDATA",

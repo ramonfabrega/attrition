@@ -1847,7 +1847,7 @@ pub(crate) const RUN58_QUEUE_TAIL: i64 = 5177;
 /// idle roll~~ — it was not a blocked step (item 530).
 ///
 /// - **774 → 900: the squad in danger marches alone, looks around, and
-///   stands to reload** (item 530, `docs/COMBAT.md` §49). The constant's
+///   stands to reload** (item 530, `docs/ORDERS.md` §22). The constant's
 ///   delta is **+126**, and 900 is run105's trace end: no draw parts on
 ///   any frame of chapter one, and no word does. The block is the whole
 ///   capture, `chapter_one_s_word_frame_is_widened_whole` over

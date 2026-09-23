@@ -107,7 +107,7 @@ pub const SITE_BLOCKED: &str = "Guy::set_anim+0x97a < Unit::move_step+0x823";
 /// `Unit::fight@005fd4d0+0x169` — **the reloading stand**. A melee unit
 /// still recharging, handed a fresh attack its guy 0 is not aimed at,
 /// asks for `set_anim(CHAR_DEFAULT, 1, 1)` and returns
-/// (`docs/COMBAT.md` §49). The call is `Unit::set_anim`'s, so the chain
+/// (`docs/ORDERS.md` §22). The call is `Unit::set_anim`'s, so the chain
 /// runs through `+0x56` as [`SITE_BLOCKED`]'s does. Golden chapter one's
 /// word from item 445 to item 530 was this one draw.
 pub const SITE_RELOAD_IDLE: &str = "Guy::set_anim+0x97a < Unit::fight+0x169";
@@ -302,7 +302,7 @@ pub struct Guy {
     /// target into every guy on each strike `Unit::fight` makes. Its one
     /// reader here is `fight`'s recharging arm, which does not ask for the
     /// idle again while guy 0 is already aimed at the order's target
-    /// (`docs/COMBAT.md` §49).
+    /// (`docs/ORDERS.md` §22).
     ///
     /// SEAM: `Unit::move_step`'s cavalry-archer write (`+0x2b4 &
     /// 0x200000`), which aims the guys at the second weapon's target.

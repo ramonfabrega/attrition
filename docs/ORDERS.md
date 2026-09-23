@@ -5591,3 +5591,160 @@ names the unit unprompted — two rows, both `1/51`'s animation clock,
   theirs 2` closed with the order rows, but this item did not read the
   camp's chain: it is the consequence of a `GATHERORDER` that is no
   longer issued, not a separate claim.
+
+## 22. A squad in danger marches alone, looks around, and stands to reload (item 530, 2026-09-22)
+
+Golden chapter one's word stood at **774** after item 445
+(`docs/COMBAT.md` §48). The draw was `Guy::set_anim+0x97a`, which the
+original spends first on 774 and this crate did not spend at all. The
+first record parting under it was **765**. There the army's march gave
+`1/7` and `1/8` an `ATTACK_TO` with `stance 1` each, and this crate gave
+them a `GROUP_ATTACK_TO` pair with `stance 0`. The item named no
+mechanism. Its own kill condition for "the order kind is the cause" fired:
+with the kind right on both units, the word stayed on 774. The frame was
+right and the named mechanism was one link of four. **The word moved 774 →
+900, run105's trace end.** No draw parts on any frame of chapter one, and
+no word does.
+
+### 22.1 The widening was blind to the answer
+
+`chapter_one_s_word_frame_is_widened_whole` compared 88 keys and not one
+of them could see the cause. This item added four, reading each off a
+record the dump already printed:
+
+- `in_danger`, which is `unit_masks & 4` on every `UNITDATA`. The key was
+  parsed but no row read it.
+- `g.flags&0x20`, which is `guy_flags & 0x20`. It is on run110's clock
+  blocks only.
+- `group:*`, the army group's `facing`, `order_num`, `form`, `speed` and
+  `new_speed`. They come off run110's `GROUPDATA` pool, matched on
+  `(who, army)` and never on the slot.
+- `g.ox`/`g.whom`, what a figure last swung at. It was newly parsed, so
+  two keys leave the coverage pin on both `GUY` paths.
+
+The first three parted on **617**, 148 frames under the booked frame,
+and on all six hoplites. The `stance` row closed as an instrument row.
+`Group::action_stance@0070d440:117` writes `UnitData +0xb1` for every
+stance panel. This crate wrote the combat stance only into its own
+`Stance` field, so a hoplite set to `action_stance(1)` read `stance 0` on
+the byte the dump prints. It now writes both, and the army's
+`Defensive` was right all along.
+
+### 22.2 The four links
+
+1. **The in-danger mark**, `Unit::set_in_danger(this, 0)@005fcfb0`. It
+   climbs `o_up` to the captain, then walks `o_down` for as long as the
+   slot is active. Each figure it reaches gets `unit_masks |= 4`, and
+   each of its guys gets `guy_flags |= 0x20`. It has two callers this
+   crate lacked:
+   - `Object::take_damage@00652020:306-311` marks a unit that is hit,
+     unless the hit is attrition (`param_5`).
+   - `Unit::work@0060d180:283-313` marks, every frame, a unit whose action
+     is an `ATTACK` with a target, and the target's squad when the target
+     is a unit (vslot `+0x18`, `Buffer::is_pending_load` on the `Unit`
+     vtable against `Window::get_button` on `Build`'s, folded). The mark
+     precedes the `uid` test, so a stale target is marked too.
+
+   The unit's bit is cleared on its 32-frame `Unit::work` tick, and the
+   guy's bit on a standing guy's 64-frame `Guy::process` tick
+   (`005e0230:120`). `Group::action_move_near`'s §8.2 gate gives a member
+   carrying the bit a **plain** move. So on 765, `1/7` and `1/8` each
+   take their own `ATTACK_TO` and their own 54-waypoint path.
+2. **The group's mirror.** `Unit::fight@005fd4d0:724` turns through
+   `Unit::set_angle@00605400`. A turn of 90° or more there toggles
+   `unit_masks ^ 2`, and when the unit is its group's leader it toggles
+   `GroupData::facing` (§8.2, `docs/GROUPS.md` §6.3). This crate wrote
+   the heading bare, so group 64 kept `facing 0` where run110 flips it to
+   1 on 617. The march on 765 then laid `1/8`'s slot out mirrored:
+   `off (360, 168)` against the dump's `(168, 360)`.
+3. **The attack-move's look**, `Unit::do_attack_to@005f2320` (§7.4),
+   which this crate had never implemented. It runs one frame in fifteen,
+   phased by `o`, while the head is still this order. An armed unit that
+   is not supply calls `find_melee_target(−1, NULL, 0, 1, 0)`.
+   `Object::find_nearby_target@00648da0`'s add arm then stacks the find
+   `QUEUE_FIRST` under an `ATTACK_TO`, `mandatory` 0. A follower takes its
+   captain's `ATTACK` target instead (`005ff9c0:32-91`). One gate is read
+   off the listing (`005f23ca`–`005f243f`): an AI-driven unit whose army
+   is hurrying (`ArmyData +0x2c hurry`) skips the look when it is more
+   than 6 by `vector_dist` from the army's muster cell. On 773, `(7 +
+   773) % 15 == 0`, and `1/7` finds `0/8`.
+4. **The reloading stand**, `Unit::fight@005fd4d0:100-127`. A recharging
+   unit returns, and **it does not turn**. On a fresh order (`new_ord`)
+   whose target guy 0 is not aimed at (`GuyData +0x8e ox`, `+0x9f whom`,
+   which `Unit::set_attack@005fce70` writes on every strike), and whose
+   guy 0 is not on a slot below 4, it first asks for
+   `Unit::set_anim(CHAR_DEFAULT, 1, 1)`. The trace names that draw
+   `5dac7a` under `Unit::fight+0x169`, and it is the word. The first
+   reading had the unit turn toward its target and return. That dated
+   from the order list's first landing and was never diffed.
+
+And a fifth link, the one that closed the rest of the map:
+`Unit::work:283` runs `update_action` **unconditionally**, every frame
+and before the dispatch, so `orders_x/y` and `dest_angle` are rewritten
+whatever the order. With it, all nine `dest_angle` rows standing since
+item 445 (618–652) close, the three birth `orders_x/y` rows on 611 close,
+and so does `1/8`'s one-frame lag on 794.
+
+### 22.3 The value diff
+
+| block 765 | dump | before 530 | after |
+|---|---|---|---|
+| `1/7`, `1/8` order | `ATTACK_TO` | `GROUP_ATTACK_TO` | **`ATTACK_TO`** |
+| `1/7`, `1/8` `stance` | 1 | 0 | **1** |
+| `1/7`, `1/8` `unit_masks & 4` | 4 | 0 | **4** (since 617) |
+| `1/8` pos | `1189, 8067` | `1179, 8056` | **`1189, 8067`** |
+| `1/8` `orders_x, orders_y` | `38568, 13416` | `38760, 13224` | **`38568, 13416`** |
+| `1/8` path | 54 entries from `(38544, 13407)` | 2, formation | **the dump's 54** |
+
+On block 774, `1/7` holds `ATTACK` on `0/8` (`defensive 1`, `new_ord 1`)
+above its `ATTACK_TO`, with `near_o 8` and `orders_x/y` on its own cell.
+On 775 its heading is still `446169088`. All of these agree now. The map
+fell from 88 keys to 46. The ones that stand are
+`chapter_one_s_word_frame_is_widened_whole`'s families, and none of them
+spends a draw in the capture.
+
+### 22.4 Coverage
+
+- **Diff-backed**, by run105 and run110 over the whole of chapter one:
+  - the mark's two writers, and the squad walk, which marks all six
+    hoplites on 617 on both sides;
+  - `stance` as one byte, and the group's `facing` toggle on 617;
+  - `do_attack_to`'s look on 773, its `QUEUE_FIRST`, and the attack under
+    the march;
+  - the reloading stand's idle roll on 774;
+  - `update_action`'s every-frame rewrite, by the nine `dest_angle` rows.
+  
+  Each of the first four was made to fail once, and the unit tests are
+  `a_hit_on_the_tail_marks_the_whole_squad_in_danger`,
+  `an_attack_order_marks_both_squads_on_its_own_work`,
+  `the_attack_move_looks_around_one_frame_in_fifteen` and
+  `a_reloading_unit_asks_for_the_idle_and_does_not_turn`. Great Lakes
+  holds at 11185 and East Indies at 9711, both unmoved.
+- **Reading only**:
+  - the hurry gate on the attack-move;
+  - the follower arm of `find_melee_target`, and its entrenchment half,
+    where the listing's `unit_masks & 0x2000000` stands in for
+    [`combat::State::entrenched`];
+  - the guy flag's 64-frame clear. It is diff-backed only as far as
+    run110's `[610, 630)` shows it set.
+
+### 22.5 What is not established
+
+- **`do_group_attack_to@005e74e0`'s own look.** It is the same fifteen-
+  frame search without the hurry gate, and `find_nearby_target`'s add arm
+  hands a `GROUP_ATTACK_TO` find to `Group::action_attack` when the group
+  `is_attacking_to`. Neither is implemented, and a marching army group
+  still never looks. Nothing on the golden record reaches it now. The
+  long captures have not been read for it.
+- `do_attack_to_pause`, the unarmed arm. `find_melee_target`'s `flags`
+  argument, from the type's vslots `+0x10c`/`+0x110`. The naval refusal
+  in the add arm. And `Unit::move_step`'s cavalry-archer write of the
+  guy's aim.
+- **The guy's aim at stand-up.** The dump prints it, but the stand-up
+  has no slot map yet, so a capture opened mid-fight starts every guy
+  un-aimed.
+- `unit_masks & 2`, `Unit::set_angle`'s own mirror bit, is not carried.
+  Only the group half of that write is.
+- The army group's `speed`/`new_speed`, 0 against 25 from 616. That is
+  `Group::add`'s `compute_speed` for a group with an id. It spends no
+  draw here.

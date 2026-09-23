@@ -332,7 +332,7 @@ pub struct Unit {
     /// `guy_flags & 0x20`, which collapses the idle roll to two variants.
     /// `Unit::set_in_danger` raises it with [`Unit::in_danger`], and
     /// `Guy::process` drops it on a standing guy's sixty-fourth frame
-    /// (item 530, `docs/COMBAT.md` §49).
+    /// (item 530, `docs/ORDERS.md` §22).
     pub guy_flag_0x20: bool,
     /// An animal's herd, an index into [`gaia::Gaia::herds`] — the
     /// `UnitData+0x86` union for an `Animal`. `None` for everything else
@@ -433,7 +433,7 @@ pub struct Unit {
     /// marks the whole squad and its guys ([`Sim::set_in_danger`]):
     /// `Object::take_damage@00652020` marks a unit that is hit, and
     /// `Unit::work` marks an attacker and its target every frame the
-    /// action is an `ATTACK` (item 530, `docs/COMBAT.md` §49). Nothing
+    /// action is an `ATTACK` (item 530, `docs/ORDERS.md` §22). Nothing
     /// else in the engine reads the bit.
     pub in_danger: bool,
     /// **`SubObjectData::flags & 0x80`** — "attacked this frame, or is
@@ -3886,7 +3886,7 @@ impl Sim {
         self.coll_repaint(i);
         // And the same block's last line, `Guy::process@005e0230:120`:
         // a standing guy on its sixty-fourth frame forgets the in-danger
-        // mark `Unit::set_in_danger` gave it (`docs/COMBAT.md` §49).
+        // mark `Unit::set_in_danger` gave it (`docs/ORDERS.md` §22).
         // SEAM: the flag is the unit's here and guy 0's gate decides it,
         // where the original keeps one per guy.
         if self.units[i].movement.body.avg_speed == 0

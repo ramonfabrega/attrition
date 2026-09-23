@@ -703,7 +703,7 @@ impl Sim {
         // the group's `facing` (`docs/GROUPS.md` §6.3). This crate wrote
         // the heading bare until item 530, so who=1's army group kept
         // `facing 0` where run110 flips it on 616, and every layout the
-        // army asked for afterwards was mirrored (`docs/COMBAT.md` §49).
+        // army asked for afterwards was mirrored (`docs/ORDERS.md` §22).
         if angle != self.units[i].movement.heading {
             self.unit_set_angle(i, angle);
         }
@@ -1442,7 +1442,7 @@ impl Sim {
     }
 
     /// **`Unit::set_in_danger(this, 0)@005fcfb0`** — the squad's
-    /// in-danger mark (`docs/COMBAT.md` §49).
+    /// in-danger mark (`docs/ORDERS.md` §22).
     ///
     /// It climbs `o_up` to the captain without asking whether a figure is
     /// alive, then walks `o_down`. Each figure it reaches gets
@@ -3525,5 +3525,138 @@ mod tests {
             Some(2),
             "run112's own numbers: 1/7's facing on 770 and 0/9's shot"
         );
+    }
+
+    /// **A hit marks the whole squad in danger, and every figure's guys**
+    /// (item 530, `docs/ORDERS.md` §22). `Object::take_damage@00652020`
+    /// calls `Unit::set_in_danger(this, 0)` for any unit hit by anything
+    /// but attrition. That climbs to the captain and walks `o_down`, so
+    /// hitting the tail marks the head. The attacker is not the victim's
+    /// squad and is not marked here.
+    ///
+    /// Made to fail on purpose: with the call out of `take_damage`, golden
+    /// chapter one's `in_danger` row parts on 617 on all six hoplites and
+    /// its word falls back to 774.
+    #[test]
+    fn a_hit_on_the_tail_marks_the_whole_squad_in_danger() {
+        let (mut sim, ty) = at_war();
+        let [a, b, c] = chain3(&mut sim, ty);
+        let foe = put(&mut sim, 1, ty, Pos::new(0x1100, 0x1000));
+        let hit = combat::Sixteenths { whole: 5, frac: 0 };
+        let taken = sim.take_damage(Obj::Unit(c), hit, Obj::Unit(foe), 10);
+        assert!(matches!(taken, Taken::Alive { .. }));
+        for f in [a, b, c] {
+            assert!(sim.units[f].in_danger, "figure {f} was not marked");
+            assert!(
+                sim.units[f].guy_flag_0x20,
+                "figure {f}'s guys were not marked"
+            );
+        }
+        assert!(
+            !sim.units[foe].in_danger,
+            "the attacker is not the victim's squad"
+        );
+    }
+
+    /// **An attacker marks its own squad and its target's on every
+    /// `Unit::work`** (`0060d180:283-313`), whether or not it strikes:
+    /// the mark is above the dispatch, keyed on the action being an
+    /// `ATTACK` with a target. A target out of reach is still marked.
+    #[test]
+    fn an_attack_order_marks_both_squads_on_its_own_work() {
+        let (mut sim, ty) = at_war();
+        let me = put(&mut sim, 0, ty, Pos::new(0x1000, 0x1000));
+        let foe = put(&mut sim, 1, ty, Pos::new(0x6000, 0x1000));
+        sim.add_attack_order(
+            me,
+            Obj::Unit(foe),
+            crate::orders::QueuePos::First,
+            false,
+            false,
+        );
+        assert!(!sim.units[me].in_danger && !sim.units[foe].in_danger);
+        sim.work(me, 1);
+        assert!(sim.units[me].in_danger, "the attacker marks itself");
+        assert!(sim.units[foe].in_danger, "and the unit it names");
+    }
+
+    /// **A reloading unit handed a fresh attack does not turn: it asks for
+    /// the idle** (item 530, `Unit::fight@005fd4d0:100-127`). The first
+    /// reading had it turn toward the target and return, and golden
+    /// chapter one's `1/7` on 774 says otherwise: heading unchanged, and
+    /// one `Guy::set_anim+0x97a` under `Unit::fight+0x169`, which is the
+    /// chapter's word. Guy 0 already aimed at the target asks for nothing.
+    #[test]
+    fn a_reloading_unit_asks_for_the_idle_and_does_not_turn() {
+        for aimed in [false, true] {
+            let (mut sim, ty) = at_war();
+            let me = put(&mut sim, 0, ty, Pos::new(0x1000, 0x1000));
+            let foe = put(&mut sim, 1, ty, Pos::new(0x6000, 0x3000));
+            let mut g = crate::anim::Guy::fresh(0);
+            g.anim = crate::anim::WALK;
+            g.aim = aimed.then_some(Obj::Unit(foe));
+            sim.units[me].guys = vec![g];
+            sim.add_attack_order(
+                me,
+                Obj::Unit(foe),
+                crate::orders::QueuePos::First,
+                false,
+                false,
+            );
+            sim.units[me].combat.recharging = 13;
+            let heading = sim.units[me].movement.heading;
+            sim.work(me, 1);
+            assert_eq!(
+                sim.units[me].movement.heading, heading,
+                "aimed {aimed}: a reloading unit does not turn"
+            );
+            let asked = sim.units[me].guys[0].anim != crate::anim::WALK;
+            assert_eq!(asked, !aimed, "aimed {aimed}: the idle request");
+        }
+    }
+
+    /// **The attack-move looks around one frame in fifteen, phased by
+    /// `o`, and stacks what it finds `QUEUE_FIRST`** (item 530,
+    /// `Unit::do_attack_to@005f2320`). This crate's attack-move never
+    /// looked, so golden chapter one's `1/7` walked past `0/8` on 773
+    /// where the original's took an `ATTACK` above its march.
+    #[test]
+    fn the_attack_move_looks_around_one_frame_in_fifteen() {
+        for (frame, looks) in [(15, true), (16, false)] {
+            let (mut sim, ty) = at_war();
+            let me = put(&mut sim, 0, ty, Pos::new(0x1200, 0x1200));
+            let foe = put(&mut sim, 1, ty, Pos::new(0x1300, 0x1200));
+            let dest = Pos::new(0x4000, 0x1200);
+            sim.units[me].index = 0;
+            sim.add_move_order(
+                me,
+                dest,
+                crate::orders::MoveKind::AttackTo,
+                crate::orders::QueuePos::New,
+                true,
+            );
+            let dest = sim.units[me].orders[0]
+                .move_dest()
+                .expect("the attack-move");
+            sim.do_attack_to_tail(me, frame, dest);
+            let front = sim.units[me]
+                .orders
+                .front()
+                .map(crate::orders::Order::index);
+            assert_eq!(
+                front == Some(crate::orders::index::ATTACK),
+                looks,
+                "frame {frame}: {:?}",
+                sim.units[me].orders
+            );
+            if looks {
+                assert_eq!(sim.units[me].combat.target, Some(Obj::Unit(foe)));
+                assert_eq!(
+                    sim.units[me].orders.back().map(crate::orders::Order::index),
+                    Some(crate::orders::index::ATTACK_TO),
+                    "the attack-move stays under the attack"
+                );
+            }
+        }
     }
 }

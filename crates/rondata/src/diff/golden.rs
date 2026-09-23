@@ -1475,7 +1475,7 @@ fn chapter_one_s_word_frame_is_widened_whole() {
     // and the word went 626 → 774. The window moved with it.
     //
     // **Item 530 moved the word 774 → 900, the capture's end**, and the
-    // window with it (`docs/COMBAT.md` §49). Four keys went into the
+    // window with it (`docs/ORDERS.md` §22). Four keys went into the
     // record first and two of them were the answer: `in_danger`
     // (`unit_masks & 4`) and `g.flags&0x20` parted on **617** on all six
     // hoplites, 148 frames under the order kind the item was booked on;

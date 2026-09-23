@@ -1391,7 +1391,7 @@ impl Sim {
         // dispatch: an action that is an `ATTACK` with a target marks the
         // attacker's squad in danger, and the target's when it is a unit.
         // It runs ahead of the target's `uid` test, so a stale target is
-        // marked too (`docs/COMBAT.md` §49).
+        // marked too (`docs/ORDERS.md` §22).
         //
         // And `update_action` is **unconditional** there (`:283`): every
         // frame's `Unit::work` rewrites `orders_x/y` and `dest_angle`
@@ -1464,7 +1464,7 @@ impl Sim {
 
     /// `Unit::do_attack_to@005f2320`'s tail — the attack-move's look
     /// around, after `do_move` (`docs/ORDERS.md` §7.4,
-    /// `docs/COMBAT.md` §49).
+    /// `docs/ORDERS.md` §22).
     ///
     /// **One frame in fifteen, phased by `o`**, while the head is still
     /// this order: an armed unit that is not a supply wagon runs
@@ -1486,7 +1486,7 @@ impl Sim {
     /// `+0x10c`/`+0x110` for an attack-move. `find_nearby_target`'s naval
     /// refusal (`+0x218 == 2`). And the siege-on-a-city `mandatory` arm.
     /// None of them is carried by [`Sim::find_nearby_target`].
-    fn do_attack_to_tail(&mut self, u: usize, frame: i64, dest: Pos) {
+    pub(crate) fn do_attack_to_tail(&mut self, u: usize, frame: i64, dest: Pos) {
         if (frame + i64::from(self.units[u].index)).rem_euclid(15) != 0 {
             return;
         }
@@ -5840,7 +5840,7 @@ impl Sim {
         // chapter one's `1/7` is the witness. It takes an attack on `0/8`
         // from its attack-move's look on 773 while recharging 13. On 774
         // it stands with its heading unchanged and rolls the idle, and
-        // that roll is the chapter's word (`docs/COMBAT.md` §49).
+        // that roll is the chapter's word (`docs/ORDERS.md` §22).
         if state.recharging != 0 {
             if a.new_ord
                 && let Some(target) = self.units[u].combat.target
