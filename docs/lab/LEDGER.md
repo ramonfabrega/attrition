@@ -118,8 +118,10 @@ The typed-state charter starts fresh from main `5c8e6d4`, on
 with its handoff retained on `codex/continuation-lab`; L88's additional owner
 gap is archived at `c205210`. A* replay remains available for counterfactuals.
 The new [working review](TYPED-STATE-REVIEW.md) carries the four-step charter,
-measured results and explicit unresolved coverage. The next native target is
-an aligned logger-boundary snapshot, after acquisition controls; no lane is held.
+measured results and explicit unresolved coverage. L91 validates the first
+aligned Great Lakes packet at logger frame 11186; settings are restored and
+the lane is released. Next work is offline: leader/encrypted-state and container
+bridges over the retained packet, then the outstanding head-to-head.
 Fable chooses adoption, pilot or parking. This is score-neutral lab work.
 
 The runtime factor-isolation experiment is paused at the user's request after
@@ -143,6 +145,6 @@ writes here, not QUEUE, JOURNAL, DECISIONS, or CLAUDE. Core document/code refere
 updates are a separate adoption concern. No completion counter or queue item
 was changed by the cutover.
 
-| L90 | Logger parity needs a distinct, tested acquisition phase. | [End-frame acquisition under test](TYPED-STATE-REVIEW.md#end-frame-acquisition-under-test). | PDB-generated root plan; separate stream and receipt checks; eight offline tests including 256 extended-state cases. | No live capture or logger parity yet; root stability does not imply atomic heap state. Optimized logger uses its global, not incoming ECX. |
+| L90 | Logger parity needs a distinct, tested acquisition phase. | [Collector controls](TYPED-STATE-REVIEW.md#implementation-controls-and-cost). | PDB-generated root plan; separate stream and receipt checks; eight offline tests including 256 extended-state cases. | Acquisition-only checkpoint; L91 supplies its live validation. Root stability does not imply atomic heap state. Optimized logger uses its global, not incoming ECX. |
 
 | L91 | Can an end-frame typed packet agree with the logger and expose information its text loses? | [Typed-state review](TYPED-STATE-REVIEW.md). | Great Lakes logger 11186 / trace 11185: 177 ranges, 804 MiB, 250 ms; unchanged selected anchors across logging; 107 linked UnitData records and 8,225 scoped scalar matches, including 321 XOR projections. Exact terrain retains 1,422 words different from nearest-decimal reconstruction. | Whole-frame parity is not established: every remaining printed occurrence is retained as unresolved/unmapped. Initial height bits and the market head-to-head remain open; live-allocation coverage unknown. Capture lane released; no score moved. |

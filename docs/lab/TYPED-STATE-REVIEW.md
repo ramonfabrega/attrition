@@ -172,3 +172,21 @@ remaining printed occurrences, and group/ammo traversal through their owning
 registries. A retained `objects` root already exposes a typed `ammo_objs` array;
 it was not an acquisition anchor and is not counted as validated ammo membership.
 No further capture is needed for that work on this packet.
+
+
+### Final checkpoint validation and continuation
+
+At code tip `ea54c51`, all **54 focused tests** pass, followed by the full
+release gate: **1,278 tests**, 885 fixture requests across 141 unique fixtures,
+zero missing, plus clippy, formatting, install survey and paperwork. The
+committed decoder reproduces the archived typed-state artifact byte for byte.
+This validation/handoff note receives the final paperwork guard separately.
+
+An unpromoted follow-up probe is retained as `followup/leader-encrypted-pilot.py`
+and `.json` in the external evidence archive. Following the PDB-declared
+`data_encrypted` pointer and applying the owned getters' transformations matches
+12 resource/income/cap arrays (76 scalar occurrences) across the four logged
+leaders. Its first six-element assumption failed: the PDB's cap array has seven
+entries. This probe is **not included** in the 8,225-occurrence bridge or the
+70-pin result; promoting it requires authored failure controls and explicit
+array/field ownership. It is the next offline opener, not a request for a capture.
