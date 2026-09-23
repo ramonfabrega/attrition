@@ -11396,6 +11396,9 @@ mod tests {
         /// The block the purchase behind the sixth Scholar lands on:
         /// sim-frame 9576 writes block 9577.
         const PURCHASE_BLOCK: i64 = 9_577;
+        /// The block warship `1/32` is born on (item 579): sim-frame 10186
+        /// writes it, the first parting any of its inputs reaches.
+        const BIRTH_BLOCK: i64 = 10_187;
         let Some(inst) = install() else { return };
         let (Some(path), Some(sib), Some(tr), Some(r98), Some(r99)) = (
             dump("gamelog-run54-islands-24k-trace.txt"),
@@ -11683,6 +11686,35 @@ mod tests {
         // (45192, 41880), in group 68 against 66 from 10188.
         let under = firsts.values().filter(|(f, _)| *f < WORD_BLOCK - 2).count();
         assert_eq!(under, 219, "the floor under the word");
+        // **The birth under the word, 10187..10188** (item 579): the first
+        // block any of `1/32`'s inputs parts on is its own birth. Warship
+        // `1/32` (type 340) is trained at Dock `1/2010`, (44160, 41856),
+        // on the same frame on both sides, from a queue that agrees on
+        // every block, with no unit within fourteen tiles of the ring:
+        // the original puts it on `come_out`'s ring 1008 due **east**,
+        // (45192, 41880), and this crate due **south**, (44184, 42888).
+        // The ring agrees and the bearing does not. `RON_STANDING=
+        // 10185-10188` prints nothing else new on these blocks.
+        let birth: Vec<String> = firsts
+            .iter()
+            .filter(|(_, (f, _))| (BIRTH_BLOCK..=BIRTH_BLOCK + 1).contains(f))
+            .map(|((w, o, what), (f, row))| format!("{f} {w}/{o} {what}: {row}"))
+            .collect();
+        assert_eq!(
+            birth,
+            [
+                "10187 1/32 form: ours -1 theirs 0",
+                "10187 1/32 g.des_x[0]: ours 44184 theirs 45192",
+                "10187 1/32 g.des_y[0]: ours 42888 theirs 41880",
+                "10187 1/32 g.x[0]: ours 44184 theirs 45192",
+                "10187 1/32 g.y[0]: ours 42888 theirs 41880",
+                "10188 1/32 group: ours 68 theirs 66",
+                "10187 1/32 orders_x: ours 44160 theirs 45192",
+                "10187 1/32 orders_y: ours 41856 theirs 41880",
+                "10187 1/32 pos: ours (44184,42888) theirs (45192,41880)",
+            ],
+            "the warship's birth"
+        );
         // **Who changes animation, both sides** (`docs/COMBAT.md`
         // §44.2.1): on the word's blocks, 10231..10234, five figures change
         // animation and every one on both sides — `1/1`, `0/1`, `0/3`,
