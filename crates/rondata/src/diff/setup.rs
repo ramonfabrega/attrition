@@ -89,6 +89,11 @@ pub(crate) fn guy_of(g: &crate::gamelog::Guy) -> Option<sim::anim::Guy> {
         // installs it from the piece's track offset once the whole unit
         // is in.
         follow: None,
+        // A pivot figure's turret (`GuyData +0x20`/`+0x30`/`+0x96`) is
+        // printed at `GUYS=4` only. Every capture that stands one up
+        // stands it up before its first attack, when all three are
+        // `Guy::clear`'s zero.
+        turret: sim::anim::Turret::ZERO,
     })
 }
 

@@ -3933,8 +3933,13 @@ fn chapter_five_s_word_frame_is_widened_whole() {
                 ("ez", i64::from(p.ez), a.ez),
                 ("angle", i64::from(p.angle.0), a.angle),
                 ("v1z", super::ammo::tests::printed(p.v1z), a.v1z),
-                ("rolling", i64::from(p.rolling), a.rolling),
-            ] {
+                // Item 602: flag 4 is `flags & 4`, and `rolling` is
+                // `AmmoData +0x5`, a byte `Ammo::init` zeroes on every
+                // round (see `ammo_flag_rows`).
+            ]
+            .into_iter()
+            .chain(ammo_flag_rows(p, a))
+            {
                 if mine != dumped {
                     firsts
                         .entry((who, o, format!("ammo[{slot}].{name}")))
@@ -5300,11 +5305,7 @@ fn chapter_three_holds_to_the_golden_word() {
     };
     assert_eq!(
         (w.word, w.sequence, w.value),
-        (
-            GOLDEN_WORD_CHAPTER_THREE,
-            GOLDEN_WORD_CHAPTER_THREE,
-            Some(GOLDEN_WORD_CHAPTER_THREE + 1)
-        ),
+        (GOLDEN_WORD_CHAPTER_THREE, GOLDEN_WORD_CHAPTER_THREE, None),
         "chapter three's golden word moved; re-pin it here and say so in \
          docs/GOLDEN.md §7"
     );
@@ -5332,6 +5333,7 @@ fn widen_chapter_three(
     (first, last): (i64, i64),
     word: i64,
     catapult: i64,
+    whole: &[i64],
 ) -> Option<ChapterThreeWidening> {
     use std::collections::{BTreeMap, BTreeSet};
     let (FIRST, LAST, WORD) = (first, last, word);
@@ -5409,6 +5411,24 @@ fn widen_chapter_three(
             .collect();
         ammo_theirs += theirs.len();
         ammo_ours += ours.len();
+        // **Both sides' rounds, printed on the blocks kept whole** (item
+        // 602): the launch point, the flags, the target and the flight,
+        // before any quiet row is trusted.
+        if whole.contains(&n) {
+            for (k, a) in &theirs {
+                eprintln!("  {run} block {n} theirs {k:?} {a:?}");
+            }
+            for (k, p) in &ours {
+                eprintln!("  {run} block {n} ours   {k:?} {p:?}");
+                if let sim::combat::Obj::Unit(u) = p.shooter {
+                    let un = &s.built.sim.units[u];
+                    eprintln!(
+                        "  {run} block {n} ours   {k:?} facing {:?} turret {:?}",
+                        un.movement.facing, un.guys[0].turret
+                    );
+                }
+            }
+        }
         let keys: BTreeSet<_> = theirs.keys().chain(ours.keys()).copied().collect();
         for key @ (who, o, slot) in keys {
             let (Some(a), Some(p)) = (theirs.get(&key), ours.get(&key)) else {
@@ -5444,8 +5464,10 @@ fn widen_chapter_three(
                 ("ez", i64::from(p.ez), a.ez),
                 ("angle", i64::from(p.angle.0), a.angle),
                 ("v1z", super::ammo::tests::printed(p.v1z), a.v1z),
-                ("rolling", i64::from(p.rolling), a.rolling),
-            ] {
+            ]
+            .into_iter()
+            .chain(ammo_flag_rows(p, a))
+            {
                 if mine != dumped {
                     blk.entry((who, o, format!("ammo[{slot}].{name}")))
                         .or_insert((n, format!("ours {mine} theirs {dumped}")));
@@ -5570,7 +5592,7 @@ fn widen_chapter_three(
                 }
             }
         }
-        if (WORD..=WORD + 1).contains(&n) {
+        if whole.contains(&n) {
             for ((w, o, what), (_, row)) in &blk {
                 at_word.push(format!("{n} {w}/{o} {what}: {row}"));
             }
@@ -5627,11 +5649,34 @@ fn widen_chapter_three(
 /// with the value diff beside it, and the `AMMO` tallies both sides.
 struct ChapterThreeWidening {
     firsts: std::collections::BTreeMap<(i64, i64, String), (i64, String)>,
-    /// Every row the word's two blocks part on, first or not, as
-    /// `"block who/o key: ours … theirs …"` (item 603).
+    /// Every row the blocks kept whole part on, first or not, as
+    /// `"block who/o key: ours … theirs …"`: the word's two (item 603), and
+    /// the first rounds' launch blocks 651 and 652 (item 602).
     at_word: Vec<String>,
     ammo_theirs: usize,
     ammo_ours: usize,
+}
+
+/// **`AmmoData`'s flag byte and its roll byte, as the dump prints them**
+/// (item 602). `+0x4 flags` carries `Ammo::init`'s bit 4 (the round rolls
+/// on past a target that is gone, `docs/COMBAT.md` §42.2) and
+/// `Ammo::inc_time`'s bit 8 (it has lost that target and flies on);
+/// `+0x5 rolling` is a separate byte whose only writers are `Ammo::init`,
+/// which zeroes it on every round (`0067bbf0:830`), and
+/// `Ammo::init_crash`, which gives a falling aircraft a random roll. Until
+/// this item the widenings compared this crate's bit 4 against the byte,
+/// and every rolling round read "ours 1 theirs 0" there: a row that named
+/// the wrong field, not a parting. This crate carries no roll byte and no
+/// crash round, so its side of `rolling` is the zero `init` writes.
+fn ammo_flag_rows(
+    p: &sim::combat::Projectile,
+    a: &super::ammo::Ammo,
+) -> [(&'static str, i64, i64); 3] {
+    [
+        ("flags&4", if p.rolling { 4 } else { 0 }, a.flags & 4),
+        ("flags&8", if p.missed { 8 } else { 0 }, a.flags & 8),
+        ("rolling", 0, a.rolling),
+    ]
 }
 
 /// **Chapter three's word, widened whole, both directions** (item 587,
@@ -5641,7 +5686,14 @@ struct ChapterThreeWidening {
 fn chapter_three_s_word_frame_is_widened_whole() {
     const FIRST: i64 = WIDENING_CHAPTER_THREE.0;
     const WORD: i64 = GOLDEN_WORD_CHAPTER_THREE;
-    let Some(w) = widen_chapter_three("ch3", "chapter3", WIDENING_CHAPTER_THREE, WORD, 8) else {
+    let Some(w) = widen_chapter_three(
+        "ch3",
+        "chapter3",
+        WIDENING_CHAPTER_THREE,
+        WORD,
+        8,
+        &[651, 652, 753, 754, WORD, WORD + 1],
+    ) else {
         return;
     };
     let (firsts, ammo_theirs, ammo_ours) = (w.firsts, w.ammo_theirs, w.ammo_ours);
@@ -5697,74 +5749,86 @@ fn chapter_three_s_word_frame_is_widened_whole() {
         .filter(|((_, _, what), _)| !standing(what))
         .map(|(_, (f, _))| *f)
         .min();
-    assert_eq!(first, Some(651), "run145's first value parting moved");
+    let whole_on = |lo: i64, hi: i64| -> Vec<&String> {
+        w.at_word
+            .iter()
+            .filter(|r| {
+                r.split(' ')
+                    .next()
+                    .and_then(|b| b.parse::<i64>().ok())
+                    .is_some_and(|b| (lo..=hi).contains(&b))
+                    && !r
+                        .split(": ")
+                        .next()
+                        .is_some_and(|k| standing(k.rsplit(' ').next().unwrap_or("")))
+            })
+            .collect()
+    };
+    // **Item 602: the word is the capture's end.** With the release
+    // through the pivot turret (`docs/COMBAT.md` §55) the chariots' rounds
+    // leave from the dump's point, and 651–652 agree on every record and
+    // figure. What parts past the standing families, every row first or
+    // not on the blocks kept whole, is three families of the `AMMO`
+    // record, and no draw follows from any of them to 900:
+    //
+    // - a round's target, cleared here on its target's death (678, 705,
+    //   757) where the original's `Ammo::check_hit` rewrites it on the
+    //   round's due frame;
+    // - the pool slot a round takes (703, 729, 730, 754), one apart;
+    // - `0/8`'s launch point on 753, one unit in `sx` and `sy`, after its
+    //   turn to 61.7° on 711: the round needs a turret step of 1°, where
+    //   this crate's is 0° (`des` 0.06° from the node). Its 729 round,
+    //   under the pool-slot row, is the same: `946, 8156` against
+    //   `947, 8158`. `GUYS=2` prints no turret (§55.5).
+    assert_eq!(first, Some(678), "run145's first value parting moved");
     assert_eq!(
-        rows_on(FIRST + 1, 650),
-        Vec::<String>::new(),
-        "635 parts again"
-    );
-    assert_eq!(
-        rows_on(651, 651),
+        rows_on(FIRST + 1, WORD + 1),
         vec![
-            "651 0/8 ammo[0].angle: ours 997130240 theirs 1038614528",
-            "651 0/8 ammo[0].rolling: ours 1 theirs 0",
-            "651 0/8 ammo[0].sx: ours 984 theirs 956",
-            "651 0/8 ammo[0].sy: ours 8136 theirs 8071",
-            "651 0/8 ammo[0].sz: ours 240 theirs 448",
-            "651 0/8 ammo[0].v1z: ours 58337502 theirs 37537498",
+            "705 0/6 ammo[1].ox: ours -1 theirs 7",
+            "705 0/6 ammo[1].whom: ours -1 theirs 1",
+            "730 0/6 ammo[2]: this crate holds it alone",
+            "678 0/6 ammo[2].ox: ours -1 theirs 8",
+            "678 0/6 ammo[2].whom: ours -1 theirs 1",
+            "730 0/6 ammo[5]: the dump holds it alone",
+            "754 0/7 ammo[1]: this crate holds it alone",
+            "703 0/7 ammo[2]: this crate holds it alone",
+            "703 0/7 ammo[3]: the dump holds it alone",
+            "754 0/7 ammo[4]: the dump holds it alone",
+            "753 0/8 ammo[0].angle: ours 740622336 theirs 739377152",
+            "757 0/8 ammo[0].ox: ours -1 theirs 6",
+            "753 0/8 ammo[0].sx: ours 940 theirs 941",
+            "753 0/8 ammo[0].sy: ours 8154 theirs 8155",
+            "757 0/8 ammo[0].whom: ours -1 theirs 1",
+            "729 0/8 ammo[1]: this crate holds it alone",
+            "678 0/8 ammo[1].ox: ours -1 theirs 8",
+            "678 0/8 ammo[1].whom: ours -1 theirs 1",
+            "729 0/8 ammo[4]: the dump holds it alone",
         ],
-        "run145's first value parting moved"
+        "a row past run145's first rounds moved"
     );
     assert_eq!(
-        rows_on(WORD, WORD + 1),
-        Vec::<String>::new(),
-        "what parts first at or one block past chapter three's word moved"
+        whole_on(651, 652),
+        Vec::<&String>::new(),
+        "the first rounds' launch blocks part again"
     );
-    // **The word's two blocks, whole** (item 603): every row they part
-    // on, first or not, so a key that parted earlier is still read here.
-    // Past the standing families, only rounds part on 706 and 707:
-    // `0/6`'s second, launched on 703 from the unit's square where the
-    // dump's leaves from the release node (`856, 7754`), and `rolling` 1
-    // against 0 (651's shape, item 602's), its target cleared here on
-    // `1/7`'s death where the dump's keeps `ox 7` to its landing; and
-    // `0/7`'s round of 703 in pool slot 2 here and 3 in the dump. The
-    // word's own draws, `Ammo::do_damage+0xc59`/`+0xc7e`, are the dump's
-    // round with no live target scattering its landing ±20; this crate
-    // spends none. On 684 and 685, before item 603, `0/8`'s turn parted
-    // here too: its pivot bears from its node now (§54).
-    let at_word: Vec<&String> = w
-        .at_word
-        .iter()
-        .filter(|r| {
-            !r.split(": ")
-                .next()
-                .is_some_and(|k| standing(k.rsplit(' ').next().unwrap_or("")))
-        })
-        .collect();
     assert_eq!(
-        at_word,
+        whole_on(753, 754),
         vec![
-            "706 0/6 ammo[1].angle: ours 1225588736 theirs 1267531776",
-            "706 0/6 ammo[1].ox: ours -1 theirs 7",
-            "706 0/6 ammo[1].rolling: ours 1 theirs 0",
-            "706 0/6 ammo[1].sx: ours 888 theirs 856",
-            "706 0/6 ammo[1].sy: ours 7800 theirs 7754",
-            "706 0/6 ammo[1].sz: ours 281 theirs 477",
-            "706 0/6 ammo[1].v1z: ours 40295834 theirs 7629168",
-            "706 0/6 ammo[1].whom: ours -1 theirs 1",
-            "706 0/7 ammo[2]: this crate holds it alone",
-            "706 0/7 ammo[3]: the dump holds it alone",
-            "707 0/6 ammo[1].angle: ours 1225588736 theirs 1267531776",
-            "707 0/6 ammo[1].ox: ours -1 theirs 7",
-            "707 0/6 ammo[1].rolling: ours 1 theirs 0",
-            "707 0/6 ammo[1].sx: ours 888 theirs 856",
-            "707 0/6 ammo[1].sy: ours 7800 theirs 7754",
-            "707 0/6 ammo[1].sz: ours 281 theirs 477",
-            "707 0/6 ammo[1].v1z: ours 40295834 theirs 7629168",
-            "707 0/6 ammo[1].whom: ours -1 theirs 1",
-            "707 0/7 ammo[2]: this crate holds it alone",
+            "753 0/8 ammo[0].angle: ours 740622336 theirs 739377152",
+            "753 0/8 ammo[0].sx: ours 940 theirs 941",
+            "753 0/8 ammo[0].sy: ours 8154 theirs 8155",
+            "754 0/7 ammo[1]: this crate holds it alone",
+            "754 0/7 ammo[4]: the dump holds it alone",
+            "754 0/8 ammo[0].angle: ours 740622336 theirs 739377152",
+            "754 0/8 ammo[0].sx: ours 940 theirs 941",
+            "754 0/8 ammo[0].sy: ours 8154 theirs 8155",
         ],
-        "a row on chapter three's word blocks moved"
+        "the turned chariot's round moved"
+    );
+    assert_eq!(
+        whole_on(WORD, WORD + 1),
+        Vec::<&String>::new(),
+        "the capture's last block parts"
     );
     let catapult: Vec<String> = firsts
         .iter()
@@ -5930,8 +5994,14 @@ fn chapter_three_s_restage_holds_to_its_word() {
 #[test]
 fn chapter_three_s_restage_is_widened_whole() {
     const WORD: i64 = GOLDEN_WORD_CHAPTER_THREE_RESTAGE;
-    let Some(w) = widen_chapter_three("ch3b", "chapter3b", WIDENING_CHAPTER_THREE_RESTAGE, WORD, 6)
-    else {
+    let Some(w) = widen_chapter_three(
+        "ch3b",
+        "chapter3b",
+        WIDENING_CHAPTER_THREE_RESTAGE,
+        WORD,
+        6,
+        &[651, 652, WORD, WORD + 1],
+    ) else {
         return;
     };
     let firsts = w.firsts;
@@ -5975,23 +6045,86 @@ fn chapter_three_s_restage_is_widened_whole() {
         .filter(|((_, _, what), _)| !standing(what))
         .map(|(_, (f, _))| *f)
         .min();
-    assert_eq!(first, Some(651), "run146's first value parting moved");
+    // **Item 602: 664 → 780.** The crew swings with its leader
+    // (`Guy::inc_time`'s foot, `docs/ANIM.md` §5.2) and the rounds leave
+    // through the turret (`docs/COMBAT.md` §55). 651–652 agree whole. The
+    // first parting is a round's target cleared on its target's death
+    // (736), as on run145; on 771 the dump culls the dead hoplites'
+    // `DEATH_OBJS` as arena A's are born (`docs/COMBAT.md` §42.5's cull,
+    // which this crate does not do), so their `o`s link differently. The
+    // word, 780, is the catapult `0/6`'s: the original takes an
+    // `ATTACKORDER` the block after its unpack and turns to it on 781.
+    assert_eq!(first, Some(736), "run146's first value parting moved");
     assert_eq!(
-        rows_on(651, 651),
+        rows_on(WIDENING_CHAPTER_THREE_RESTAGE.0 + 1, WORD + 1),
         vec![
-            "651 0/8 ammo[0].angle: ours 949551104 theirs 988741632",
-            "651 0/8 ammo[0].rolling: ours 1 theirs 0",
-            "651 0/8 ammo[0].sx: ours 792 theirs 764",
-            "651 0/8 ammo[0].sy: ours 13368 theirs 13303",
-            "651 0/8 ammo[0].sz: ours 198 theirs 406",
-            "651 0/8 ammo[0].v1z: ours 78925003 theirs 61591671",
+            "781 0/6 angle:Facing: ours 1431655765 theirs 1372003669",
+            "781 0/6 angle:Heading: ours 1431655765 theirs 1131216896",
+            "781 0/6 g.angle[0]: ours 1431655765 theirs 1372003669",
+            "781 0/6 g.angle[1]: ours 1431655765 theirs -1789569707",
+            "781 0/6 g.angle[2]: ours 1431655765 theirs -2051014656",
+            "781 0/6 g.x[1]: ours 948 theirs 938",
+            "781 0/6 g.x[2]: ours 663 theirs 660",
+            "781 0/6 g.y[1]: ours 7887 theirs 7883",
+            "781 0/6 g.y[2]: ours 7945 theirs 7965",
+            "781 0/6 heading: ours 1431655765 theirs 1131216896",
+            "781 0/6 idle: ours 2 theirs 0",
+            "780 0/6 order:length: Length { ours: 0, theirs: 1 }",
+            "780 0/6 orders.len: ours 0 theirs 1",
+            "781 0/6 recharging: ours 0 theirs 83",
+            "736 0/7 ammo[0].ox: ours -1 theirs 8",
+            "736 0/7 ammo[0].whom: ours -1 theirs 1",
+            "771 1/6 extra: this crate holds it alone",
+            "771 1/7 extra: this crate holds it alone",
+            "771 1/8 extra: this crate holds it alone",
+            "771 1/9 unlinked: the dump holds it alone",
+            "771 1/10 unlinked: the dump holds it alone",
+            "771 1/11 unlinked: the dump holds it alone",
         ],
-        "run146's first value parting moved"
+        "a row past run146's first rounds moved"
     );
-    assert!(
-        rows_on(WORD, WORD + 1).is_empty(),
-        "what parts at or one block past run146's word moved: {:?}",
-        rows_on(WORD, WORD + 1)
+    let whole: Vec<&String> = w
+        .at_word
+        .iter()
+        .filter(|r| {
+            !r.split(": ")
+                .next()
+                .is_some_and(|k| standing(k.rsplit(' ').next().unwrap_or("")))
+        })
+        .collect();
+    assert_eq!(
+        whole,
+        vec![
+            "780 0/6 order:length: Length { ours: 0, theirs: 1 }",
+            "780 0/6 orders.len: ours 0 theirs 1",
+            "780 1/6 extra: this crate holds it alone",
+            "780 1/7 extra: this crate holds it alone",
+            "780 1/8 extra: this crate holds it alone",
+            "780 1/9 unlinked: the dump holds it alone",
+            "780 1/10 unlinked: the dump holds it alone",
+            "780 1/11 unlinked: the dump holds it alone",
+            "781 0/6 angle:Facing: ours 1431655765 theirs 1372003669",
+            "781 0/6 angle:Heading: ours 1431655765 theirs 1131216896",
+            "781 0/6 g.angle[0]: ours 1431655765 theirs 1372003669",
+            "781 0/6 g.angle[1]: ours 1431655765 theirs -1789569707",
+            "781 0/6 g.angle[2]: ours 1431655765 theirs -2051014656",
+            "781 0/6 g.x[1]: ours 948 theirs 938",
+            "781 0/6 g.x[2]: ours 663 theirs 660",
+            "781 0/6 g.y[1]: ours 7887 theirs 7883",
+            "781 0/6 g.y[2]: ours 7945 theirs 7965",
+            "781 0/6 heading: ours 1431655765 theirs 1131216896",
+            "781 0/6 idle: ours 2 theirs 0",
+            "781 0/6 order:length: Length { ours: 0, theirs: 2 }",
+            "781 0/6 orders.len: ours 0 theirs 2",
+            "781 0/6 recharging: ours 0 theirs 83",
+            "781 1/6 extra: this crate holds it alone",
+            "781 1/7 extra: this crate holds it alone",
+            "781 1/8 extra: this crate holds it alone",
+            "781 1/9 unlinked: the dump holds it alone",
+            "781 1/10 unlinked: the dump holds it alone",
+            "781 1/11 unlinked: the dump holds it alone",
+        ],
+        "a row on run146's whole blocks moved"
     );
 }
 

@@ -6923,8 +6923,9 @@ if (!(flags & 0x10)) do_damage();
 the shooter's order is not `ATTACK_GROUND`/`AIR_ATTACK_GROUND` (the
 function's `local_38`, which is the ground-order pointer and is null for
 a building shooter), the target is a unit whose type's domain
-(`+0x218`) is **land**, and the piece is not lofted (`ammo_flags & 8`,
-the same flag that makes `traj` 2 and sends the shot down a spline).
+(`+0x218`) is **land**, and the piece is not ~~lofted~~ a missile
+(`ammo_flags & 8`, the same flag that makes `traj` 2 and sends the shot
+down a spline; it is `<ammo missile="1">`, §55.1).
 Every arrow of run112's window is `flags 6` — live and rolling — and the
 three that ever miss are `flags 14`.
 
@@ -7017,10 +7018,13 @@ bearing, not the wound, and the flank is 57 plus a height point (§46.5). That l
   spends a draw, so the word does not see it; `damage 1/7` at 686 does.~~
   Landed in §46. The surface *is* `master_land_heights`: `TerrainOut+0x4a4`
   is `TerrainData+0x464` behind the 0x40 prefix (§46.2).
-- **The lofted piece.** `Ammo`'s flag 4 also requires `ammo_flags & 8`
+- ~~**The lofted piece.** `Ammo`'s flag 4 also requires `ammo_flags & 8`
   clear, and this crate loads no ammo flags; every shot is treated as
   non-lofted. A siege shot is a ground shot and so never reaches the
-  question, which is why no capture on disk can tell.
+  question, which is why no capture on disk can tell.~~ Named by item 602, §55.1: the bit is `<ammo missile="1">` in
+  `effects_graphics.xml`, which no arrow carries. This crate still loads no
+  ammo flags, so a missile (`SmallRocket`, `SAM Rocket`, `SubTorpedo`, the
+  `AARocket`s) at a land unit would roll here; no capture fires one.
 - **`get_shot`**, so a `REDOUBT`'s shot gives `dtype` 2 here and 3 in the
   original. It changes a death animation index; no capture has one.
 - **`DEATH_OBJS`' `gpiece`**, the dead unit's own death piece
@@ -9001,11 +9005,12 @@ captures, and none of these rows names a mechanism:
   degree of ±45°. A pinned per-type table of node offsets would settle it.~~
   Settled by item 603, §54: the Chariot's node is 118 units from the
   unit's point, not "a few", and on run145's 684 it moves the bearing 8°.
-- **The turret angle and node bits** (`+0x30`, `+0x96`, `+0x98`) are not
+- ~~**The turret angle and node bits** (`+0x30`, `+0x96`, `+0x98`) are not
   carried. Nothing in the simulation reads them, and `GUYS=2` does not
   print them. `GUYS=4` does (`turret_angles`, `des_turret_angles`,
   `node_flags`, `des_node_flags`), and item 603 reads two of them against
-  the node's bearing (§54.2).
+  the node's bearing (§54.2).~~ Carried since item 602 (§55.3), `+0x98` aside: the release reads
+  the turret.
 - **The air-target clause** (`fight`: a target with domain 2 and the
   attacker's `has_objmask(0x80000000)` keeps the heading too) is not
   modelled. No capture has a unit shooting at a plane.
@@ -9119,9 +9124,10 @@ reading, not a measurement: the pivot node is not the release node.~~
 Measured by item 603, §54: the pivot node is not the release node, and
 from it `1/7` is 42° off. The
 first value parting, 651, is item 602's shape on run145: the first
-rounds leave from each unit's square and height. `rolling` parts with
+rounds leave from each unit's square and height. ~~`rolling` parts with
 them (ours 1, theirs 0), the lofted-piece flag this crate loads no art
-for (§42.2).
+for (§42.2).~~ That row read the wrong field (§55.1). The rounds leave
+through the turret (§55.2).
 
 ### 53.4 What is not established
 
@@ -9295,3 +9301,206 @@ only rounds part there.
 - **Listing-backed**: the call's arguments and the bearing's arithmetic
   (`005d8d9d`–`005d8e35`); `Quat<float>::set`'s `% 360`.
 - **Reading only**: that `init_unit_events` is where the entry comes from.
+
+## 55. A pivot piece releases through its turret (item 602, 2026-09-23)
+
+Golden chapter three's two words, run145's 706 and the restage run146's
+664, both ran through the chariots' rounds from 651. Items 595 and 603
+read two rows there: the arrow leaves from the unit's square here and the
+release node in the dump, and `rolling` reads 1 against 0.
+`docs/journal/2026-09-23-item-602.md` has the kill conditions, written
+before any fix. The floor killed three of the four candidates (the lofted
+term, the round's target, the flight's step), and the fourth, the launch
+node, turned out to be the turret.
+
+### 55.1 The floor: `rolling` was the wrong field
+
+`AmmoData` is `+0x4 flags` and `+0x5 rolling`, two bytes. §42.2's flag 4
+lives in `flags`. `rolling` has two writers: `Ammo::init@0067bbf0:830`
+zeroes it on every round, and `Ammo::init_crash@0067b800` gives a falling
+aircraft a random roll. The widenings had compared this crate's flag 4
+with the byte, so every rolling round read "ours 1 theirs 0". The dump's
+own `flags 6` carries bit 4 on both sides for every chariot round.
+`rondata::diff::golden::ammo_flag_rows` reads `flags & 4`, `flags & 8`
+and the byte as three rows at both `AMMO` comparison sites.
+
+§42.2's third term is not "lofted" either. `ammo_flags & 8` is
+`GraphicPieces::init_ammo_piece_ranges@008f6140`'s reading of `<ammo
+missile="1">` (`internal_strings` 1567; the other bits are `puncture` 1,
+`puff` 2, `explosive` 4, `flame` 0x10, `pulsewave` 0x20, `flak` 0x40, and
+`do_damage="0"` 0x80). `ArcherArrowWOtip`, the Chariot's arrow, has
+`missile="0"`.
+
+With the floor right, 651 and 652 part only on the launch point, `sx`,
+`sy`, `sz`, and on the two fields taken from it, `angle` and `v1z`. That
+is true in both captures, on every record and figure of both blocks.
+
+### 55.2 The release goes through `get_position`'s pivot branch
+
+The dump's offsets from the figure are not one vector per `(slot, frame)`
+(§22's table). At one facing, 120°, run145's 13 live rounds leave from
+radii of 43 to 88 units. But every one lies 71–75 units from the pivot
+node's point `(−102, −59)` (§54).
+
+`GraphicEvents::execute_game_events@008e48e0`'s release, from the listing
+(`008e4a8a`–`008e4ae7`):
+
+- `get_position(piece, node = event +0x23, anim = event +0x8, time =
+  event +0xc, param_5 = (float)angle_to_degrees(package.angle −
+  0x8000_0000), param_6 = package.pivot_angles, param_7 =
+  has_restrictions(gpiece), &v, &dir)`, then `x, y, z += cvttss2si(v)`.
+- `package.pivot_angles[k]` is `fast_angle_to_degrees(turret_angles[k])`
+  (`Guy::execute_events@005d99c0`, `005d9a2e`–`005d9a6d`), zero when all
+  four are zero.
+- `fast_angle_to_degrees@00a28f70` is a 256-entry table,
+  `(float)angle_to_degrees(i << 24)`, indexed by the angle's top byte
+  (`a28ffe`). run147's packet holds it: `0, 1, 3, 4, 6, 7, 8, …, 359`.
+- The event fires only if `has_restrictions` is 0, or `node & 3` is past
+  the count, or `node_flags` has bit `node & 3`.
+
+`GraphicPieces::get_position@0090b750`'s pivot branch, taken when `node &
+3 < param_7` and `param_6` is set (`90b866`–`90b926`):
+
+- the **pivot node's** vector: a nested call for node `(node & 3) + 4`
+  at the same anim and time (`param_4` is `0x14(%ebp)`, `90b7f3`; the
+  decompile shows it right), at `param_5` degrees, scaled, then unscaled
+  and its y un-negated;
+- plus the release node's entry rotated by `cvttss2si(pivot_angles[node &
+  3] + param_5)` (`90b916`–`90b926`), both floats whole numbers;
+- y negated, all scaled by `guy_scale × RData +0x88`.
+
+So, with `d₁` the facing's degree and `t` the turret's step, both
+integers:
+
+```text
+v = s · (R(d₁)·P + R(d₁ + t)·E), y negated, each component truncated once
+z = s · (P_z + E_z)
+```
+
+`GraphicEvents::init_unit_events@008e2520:833–841` builds the entries:
+for each release (and type-5) event, nodes 4–7 and the event's node at
+the event's anim and every frame of it. Piece 145's, read from run147's
+packet (`(x, y, z)`, bit patterns):
+
+| slot | frame | pivot node 4 | release node 0 |
+|---|---|---|---|
+| `ATTACKWALK` 10 | 18 | `3ebd0bc6 41c51eb9 4144caeb` | `400ff9ae c17700f8 41f6fd6e` |
+| `ATTACK1` 11 | 18 | `0 41c51eb9 4138cccd` | `bdcf99c0 c1788744 41ffc9b0` |
+| `ATTACK2` 12 | 17 | `0 41cdc290 4138cccd` | `3f8401aa c17c62fc 41ea87a0` |
+| `ATTACK3` 13 | 18 | `0 41c51eb9 4138cccd` | `3d4a3e80 c176f97e 41ff66bc` |
+
+The height is `4.8 × (11.55 + 31.97) = 208.9` for `ATTACK1`, 208 printed,
+and `196.2` for `ATTACK2`: the dump's two `dz`, 208 and 196.
+
+**The integer form, and the six cells it misses.** `sim::pivot::
+release_offset` holds the entries in millionths and uses §54.3's
+whole-degree sine. The original's own `get_position` was called under
+unicorn on run147's packet for **every reachable cell**: four rows, `d₁ =
+0..=360`, each of the 256 turret steps, 369,664 cells in 23 s. The exact
+form misses **six**, each one where the float sum rounds onto an integer
+from just below (`97.0` against 96.99999…). They are pinned per row
+(`Release::float_lands`), and the table outside git is
+`~/ron-data/lab-experiments/2026-09-23-item-602-release-oracle.txt`
+(`the_original_s_release_agrees_on_every_cell`, made to fail by emptying
+one row's list).
+
+### 55.3 The turret is carried
+
+`GuyData +0x20 turret_angles[4]`, `+0x30 des_turret_angles[4]`, `+0x96
+node_flags` (`anim::Turret`):
+
+- **`Guy::set_all_pivots@005d8bc0`** first zeroes `node_flags` and
+  `des_node_flags` (one 32-bit store). If the aim is gone (and the order
+  is not `ATTACK_GROUND`) it answers 1 there. Otherwise, for each node
+  whose range holds the bearing, it writes `des[k] = bearing − the
+  figure's angle` and `des_node_flags` bit `k`, and `node_flags` bit `k`
+  when `des[k]` is within 15° of `turret[k]` (`005d8ed7`–`005d8f02`: the
+  unsigned difference, `~` past a half turn, below `0xaaa_aaaa`). The
+  ±45° test does not gate the write.
+- It is called from `Unit::set_attack@005fce70`, for each aimed figure;
+  from `Guy::move@005d9240:71, 95, 102`, when a deferred swing is paid,
+  on both arms; and from `Unit::move_step`'s cavalry-archer arm
+  (`unit_flags & 0x200000`).
+- **`Guy::process@005e0230:30–56`**, right after `Guy::move`, for a figure
+  with `guy_flags & 0x100`: each turret on its `des` sets its bit; one
+  within 15° snaps there and sets it; any other turns 15° toward it.
+
+run147's `GUYS=4` shows the result on 684–686. `turret_angles[0]` equals
+`des_turret_angles[0]` on every chariot. `0/8`'s moves from
+`−382227797` to `−496063829` on 685 in one step, a 9.5° snap. And
+`node_flags` reads 15 on every figure of the three chariots.
+
+### 55.4 What moved
+
+| | before | after |
+|---|---|---|
+| chapter three, run145: word / sequence / values | 706 / 706 / 707 | **900 / 900 / none**, the capture's end |
+| the restage, run146: word / sequence / values | 664 / 664 / 665 | **780 / 780 / 781** |
+| first value parting, run145 / run146 | 651 / 651 | 678 / 736 |
+| chapters one, two, four, five and seven; both long captures | | unchanged |
+
+run146's move also takes `docs/ANIM.md` §5.2, the crew swinging with its
+leader. Without it, run146 stays at 664 with the rounds right.
+
+**The value diff on the frames that moved.** On 706, `0/6`'s round in
+pool slot 1 reads `sx 856, sy 7754, sz 477`, `angle 1267531776`, and
+`v1z` 7.629168 on both sides (ours had `888, 7800, 281`, `1225588736` and
+40.295834). `0/7`'s 703 round, landed and missed, reads `flags 14` on
+both sides. The two scatter draws the original spends on 706 are this
+crate's too. On 664, `0/7`'s and `0/9`'s rounds read `553, 13160, 378`
+and `606, 13618, 370` on both sides (ours had `600, 13176, 182` and
+`648, 13608, 162`). On 651, `0/8`'s reads `956, 8071, 448` in run145 and
+`764, 13303, 406` in run146, both sides.
+
+**What the frames say next.** On run145 nothing draws differently to 900.
+The widening still parts on three `AMMO` families:
+
+- a round's target, cleared here when its target dies (678, 705, 757 on
+  run145; 736 on run146), where the original keeps `whom`/`ox` until
+  `Ammo::check_hit` rewrites them on the round's due frame
+  (`00678d90:42–82`);
+- the pool slot a round takes (703, 729, 730, 754), one apart;
+- `0/8`'s launch point on 753 (and its 729 round, under a pool-slot row),
+  a unit off (§55.5).
+
+run146's word, 780, is the catapult `0/6`: the original takes an
+`ATTACKORDER` the block after its unpack and turns on 781. This crate
+stays idle. Nothing is named for it.
+
+### 55.5 What is not established
+
+- **The turned chariot's turret.** After `0/8` turns to 61.7° on 711,
+  both of its rounds (729, 753) need a turret step of 1°. The bearing
+  from the node gives `des` 0.06°, step 0, and this crate's is that. Only
+  a turret between 1.4° and 2.8° reproduces the dump, and no reading so
+  far gives one: the target stands still from 700, and the node, the
+  facing and `fast_angle_to_degrees`' table are all measured. `GUYS=2`
+  prints no turret. A `GUYS=4` capture over 705–760 on chapter three's
+  staging answers it in one run.
+- **Every other pivot piece that releases.** Only the Chariot's piece
+  145 has rows. Any other releases through §22's table, or from the
+  unit's point, and skips the `node_flags` gate.
+- **`Unit::move_step`'s cavalry-archer arm** (`unit_flags & 0x200000`,
+  which the Chariot's `v` sets). It re-aims every figure on
+  `UnitData +0xa2`/`+0xa8` while walking. It is not modelled, and the
+  chariots of run145 never walk. run146's do, and they agree to 780.
+- **`ATTACK_GROUND`**: `set_all_pivots` bears on the order's point. This
+  crate writes nothing for it.
+- **`des_node_flags`** is not carried: nothing in the simulation reads it.
+
+### 55.6 Coverage
+
+- **Diff-backed**: 19 of the 21 live chariot rounds of run145 and
+  run146, launch point, height, angle and arc, on every block they print
+  (the chapter's widening; the other two are §55.5's turned chariot); chapter three's run145 draw stream and values to 900, and
+  run146's to 780; the flag bits on every round.
+- **Oracle-backed** (the original's `get_position` under unicorn on
+  run147's packet): the pivot branch on all 369,664 cells; the four rows'
+  entries; `fast_angle_to_degrees`' table.
+- **Listing-backed**: the release call's arguments, the pivot branch's
+  nested call and rotation, `set_all_pivots`' writes, `Guy::process`'
+  step, the gate.
+- **Dump-backed without a diff**: `turret == des` and `node_flags` 15 on
+  run147's 684–686.
+- **Reading only**: `Guy::move`'s re-aim calls, which no dump can tell
+  apart from `set_attack`'s here.
