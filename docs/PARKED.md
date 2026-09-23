@@ -22,6 +22,14 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Parked by item 578, 2026-09-23 — a seam no run exercises
+
+(585) **`ai_off && !ai_driven` is folded in `sim/orders.rs`**, and it lets
+a human's units into `Unit::think`'s tail with the cheat off, where the
+original's gate reads `leader_flags & 4` (`docs/INPUT.md` §11.9, SEAM).
+No capture exercises it: every golden chapter runs a human with the cheat
+on. Returns when a chapter or a long capture runs a human without it.
+
 ## Parked by item 576, 2026-09-23 — under East Indies' word
 
 (580) **The Citizens' hit points and line of sight on 10165**: 40 against
@@ -524,6 +532,17 @@ waited on before the handoff is written — the harness re-invokes the
 session when the task exits, so the wait costs nothing — and the gate's
 wrapper propagates its exit rather than echoing it. Same family as (565):
 a receipt that is written but not read.
+
+(584) **Golden chapter seven's premise was falsified, and the chapter was
+pinned anyway.** Filed by the commander at 578's landing, 2026-09-23: a
+human's Citizen gathers on 763 with `!ai off` because `think_peasant`
+runs above `Unit::think`'s AI-off block (`docs/INPUT.md` §11.9). The
+gate reading was right; the design's inference from it was not. The
+commander ruled that the chapter closes at 1200, since both runs agree
+with the original to the trace's end, and that restaging it is not a
+commander's call. **What it wants**: rule whether the golden record
+needs a chapter where AI-off actually bites (who=1's civilians), and
+whether any closed chapter's staging leaned on the same inference.
 
 (583) **The ladder's shared-extras guard dies by success.** Filed by item
 576, 2026-09-23: each move of East Indies' word lowers the extras the
