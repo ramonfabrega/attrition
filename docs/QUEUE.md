@@ -36,11 +36,11 @@ chapter two **683 → 725** — both headline words moved.*
 - **Fable backlog: 10 Loop items** (313, 503, 507, 508, 509, 513, 517, 526, 527, 528).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w9711 of 24,000 · GreatLakes w11582 of 24,000
+Long captures: EastIndies w9711 of 24,000 · GreatLakes w11757 of 24,000
 Golden: w900 of 901 (ch5) · ch1 w900 · ch2 w900 · 552 next
-Endpoint 24001: EastIndies 64 off, 9 unlinked · GreatLakes 46 off, 0 unlinked
+Endpoint 24001: EastIndies 67 off, 3 unlinked · GreatLakes 47 off, 0 unlinked
 
-**Opener: an Opus 5.5 commander is live; 545 in flight on att-545 (AI), 552 on
+**Opener: an Opus 5.5 commander is live; 554 in flight on att-554 (AI), 552 on
 att-552 (rules). Workers spawn with `claude-opus-5-5[1m]`.**
 
 ## The queue
@@ -51,14 +51,13 @@ the AI, lower map first — Great Lakes. Take the first unstarted on either
 track unless a better order is obvious, and say so. Numbers are stable;
 the backlog is `docs/PARKED.md`, and an item returns only when a score names it.
 
-545. **Great Lakes' word 11582: ours places a building the original
-    does not** (539 moved the word 11531 → 11582; the block, 11583, is
-    pinned in run125's widening — 38 rows over 11580–11583, no capture
-    owed). Ours 948 draws against 9, parting at index 5:
-    `Leader::produce_building+0xc99` against `Guy::set_anim+0x104b`. Ours
-    places `1/2022` and walks citizen `1/9` to it; the original's `1/9`
-    idles with a citizen queued at `1/2016`. `MAKE` slots 2 and 3 are
-    swapped on 11580. No mechanism.
+554. **Great Lakes' word 11757 has no widening: run125 ends on 11599**
+    (545 moved the word 11582 → 11757 with `get_cost`'s military
+    discount and research arm). Ours 7 draws against 8 at index 0:
+    `Guy::set_anim+0x97a < Guy::inc_time+0x271` against `<
+    Unit::move_step+0x823`. The capture first — run125's game at
+    run123's detail over a window holding 11757, overlapping run125 —
+    then the widening; re-point `WIDENINGS`' row. No mechanism.
 
 552. **Golden chapter four, the border and the bleed — the next unpinned
     chapter** (549 closed chapter five at 900; ch1 and ch2 are closed;

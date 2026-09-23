@@ -22,6 +22,18 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Parked by item 545, 2026-09-22 — `get_cost`'s unbuilt corners
+
+(555) **`get_cost`'s available-arm bump loop** (`get_cost:159`–`205`),
+reachable now that this crate queues upgrades, and the research arm's
+Wine, `SPECIAL_UPGRADE`, American and Dutch terms. 545 built the military
+discount and the research arm's base (`docs/AI.md` §56); these are the
+rest, read and not built. No score names them.
+
+(556) **`MAKE[3].val` 38,500 against 37,500 on run123's 11185**, the
+Mine's value. A value row with no draw on the word's window; promote it
+when a word lands on a Mine offer.
+
 ## Parked by item 549, 2026-09-22 — the attack slots a packet lacks
 
 (553) **A census of graphic packets with fewer than three attack slots.**
