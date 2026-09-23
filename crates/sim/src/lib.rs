@@ -1113,6 +1113,14 @@ pub struct Sim {
     /// ([`path::RefuseProbe`]), and `None` in every run but a test's.
     #[doc(hidden)]
     pub probe_refuse: Option<path::RefuseProbe>,
+    /// **`PathFinder +0x50`, the validity memo — the pathfinder's, not a
+    /// search's** (`docs/PATHFINDER.md` §24.6). `valid_ucoord` caches each
+    /// 48-cell's verdict here under its metric, and only
+    /// `PathFinder::kill_lists@00687ae0` empties it. Every finder calls that
+    /// **after** its `astar_*` returns and on none of its early returns, so
+    /// a `find_upath` that ends in its goal pre-walk leaves its verdicts for
+    /// the next unit's search, on the same frame or a later one.
+    pub path_memo: std::collections::BTreeMap<i64, bool>,
     /// `WData::down` per world cell: the head of the object chain (§3).
     pub chain_heads: Vec<Option<usize>>,
     /// `GameDaemon::repaths[who]`: how many 48-grid recoveries this player
@@ -1413,6 +1421,7 @@ impl Sim {
             coll: collide::CollGrid::new(world.width(), world.height()),
             sweep_watch: None,
             probe_refuse: None,
+            path_memo: std::collections::BTreeMap::new(),
             chain_heads: vec![None; (world.width() * world.height()) as usize],
             repaths: vec![0; players.max(10)],
             tuning,

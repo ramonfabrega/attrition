@@ -406,6 +406,15 @@ impl Sim {
         v
     }
 
+    /// `PathFinder::kill_lists@00687ae0`'s one effect this crate carries:
+    /// the validity memo emptied. Every finder calls it right after its
+    /// `astar_*` returns — `find_upath@00682f30:330`, `find_wpath@00688fc0:261`,
+    /// `find_tpath@006897d0:182`, `find_road@00688a40:46` — and on none of
+    /// their early returns (§24.6).
+    pub(crate) fn kill_lists(&mut self) {
+        self.path_memo.clear();
+    }
+
     /// Whether [`Sim::probe_refuse`] names this unit, this frame and the
     /// unit cell `p` lies in. False in every run but a test's.
     fn probe_refuses(&self, u: usize, p: Pos) -> bool {
@@ -800,7 +809,10 @@ impl Sim {
             open = sus.open;
             open_by_metric = sus.open_by_metric;
             closed = sus.closed;
+            // The resume closes the pathfinder's memo and takes the
+            // unit's (`00683770:235`-`288`).
             valid_memo = sus.valid_memo;
+            self.path_memo.clear();
             seq = sus.seq;
             tol = sus.tol;
             pref = sus.pref;
@@ -831,7 +843,12 @@ impl Sim {
             open = BTreeMap::new();
             open_by_metric = BTreeMap::new();
             closed = BTreeMap::new();
-            valid_memo = BTreeMap::new();
+            // **Not a fresh memo.** A fresh search starts on whatever the
+            // pathfinder's holds: `astar_path@00683770`'s fresh arm resets
+            // `valid_hit` (`+0x90`) and nothing else, so a goal pre-walk
+            // that returned early without `kill_lists` hands its verdicts
+            // on (§24.6).
+            valid_memo = std::mem::take(&mut self.path_memo);
             seq = 0;
             let root = Node {
                 x: start.x,
@@ -1403,6 +1420,7 @@ impl Sim {
             flags: 0,
         });
         let r = self.astar_path(u, &modes, STEP_WORLD, 0, false);
+        self.kill_lists();
         if r == 0 {
             let popped = self.units[u].path.pop();
             return -i32::from(popped.is_some_and(|p| p.flags & path_flag::FINAL != 0));
@@ -1484,6 +1502,7 @@ impl Sim {
             ..Modes::default()
         };
         let r = self.astar_path(u, &modes, STEP_TILE, 0, false);
+        self.kill_lists();
         if r < 1 {
             if self.units[u]
                 .path
@@ -1550,7 +1569,11 @@ impl Sim {
             return self.units[u].path.len() as i32;
         }
         let mut goal = goal_e.to;
-        let mut memo = BTreeMap::new();
+        // The pathfinder's memo, not a local one (§24.6): the pre-walk's
+        // verdicts stay in it on every return below, none of which reaches
+        // `kill_lists`, and a search — this one's or the next unit's —
+        // reads them back.
+        let mut memo = std::mem::take(&mut self.path_memo);
         // **The pre-walk is gated, and the gate is not `find_wpath`'s**
         // (item 301). `00683095` tests the type's domain `+0x218 < 2` and
         // `UnitData::can_transport@0046f960` — a **conjunction with no
@@ -1584,6 +1607,7 @@ impl Sim {
                 let (dx, dy) = (here.x - goal.x, here.y - goal.y);
                 if dx.abs() < 0x18 && dy.abs() < 0x18 {
                     if goal_e.flags & path_flag::FINAL == 0 {
+                        self.path_memo = memo;
                         return 0;
                     }
                     break;
@@ -1597,6 +1621,7 @@ impl Sim {
                 goal_e.to = goal;
                 if g48(goal) == hg {
                     self.units[u].path.push(goal_e);
+                    self.path_memo = memo;
                     return self.units[u].path.len() as i32;
                 }
                 if sx == 0 && cy == 0 {
@@ -1608,6 +1633,7 @@ impl Sim {
         let md = (hg.x - gg.x).abs() + (hg.y - gg.y).abs();
         if md < 2 {
             self.units[u].path.push(goal_e);
+            self.path_memo = memo;
             return self.units[u].path.len() as i32;
         }
         self.units[u].path.push(goal_e);
@@ -1622,6 +1648,7 @@ impl Sim {
             tolerance: 0,
             flags: 0,
         });
+        self.path_memo = memo;
         self.upath_search(u, anti, limit, false)
     }
 
@@ -1638,6 +1665,7 @@ impl Sim {
             ..Modes::default()
         };
         let r = self.astar_path(u, &modes, STEP_UNIT, i32::from(anti), resume);
+        self.kill_lists();
         if r < 1 {
             if r == 0 && !resume {
                 if self.units[u]
