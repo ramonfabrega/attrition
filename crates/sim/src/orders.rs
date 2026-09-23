@@ -1416,6 +1416,9 @@ impl Sim {
                 if m.kind == MoveKind::ExploreTo {
                     self.do_explore_to_tail(u, frame, m.dest);
                 }
+                if m.kind == MoveKind::AttackTo && m.group.is_none() {
+                    self.do_attack_to_tail(u, frame, m.dest);
+                }
             }
             Some(Body::Trade(_)) => self.do_trade(u),
             Some(Body::Build(_)) => self.do_build(u, frame),
@@ -1453,6 +1456,79 @@ impl Sim {
             return;
         }
         self.find_goody_box(u);
+    }
+
+    /// `Unit::do_attack_to@005f2320`'s tail — the attack-move's look
+    /// around, after `do_move` (`docs/ORDERS.md` §7.4,
+    /// `docs/COMBAT.md` §49).
+    ///
+    /// **One frame in fifteen, phased by `o`**, while the head is still
+    /// this order: an armed unit that is not a supply wagon runs
+    /// `find_melee_target(−1, NULL, 0, 1, 0)`, which adds what it finds
+    /// `QUEUE_FIRST` above the attack-move. The attack-move resumes when
+    /// that attack dies. One gate comes first, read off the listing at
+    /// `005f23ca`–`005f243f`. An AI-driven unit (`unit_masks & 0x40000`)
+    /// whose army is hurrying (`ArmyData +0x2c`) skips the look when it is
+    /// more than six cells from the army's muster, by `vector_dist`.
+    ///
+    /// `find_melee_target`'s head is the squad's. A **follower** takes
+    /// its captain's target when the captain's action is an `ATTACK`
+    /// (`005ff9c0:32-91`), and looks for nothing when it is not. The
+    /// search is only reached when the captain's target is no longer a
+    /// valid one.
+    ///
+    /// SEAM: `do_attack_to_pause`, the unarmed arm. The search's `flags`
+    /// argument, which `find_melee_target` derives from the type's vslots
+    /// `+0x10c`/`+0x110` for an attack-move. `find_nearby_target`'s naval
+    /// refusal (`+0x218 == 2`). And the siege-on-a-city `mandatory` arm.
+    /// None of them is carried by [`Sim::find_nearby_target`].
+    fn do_attack_to_tail(&mut self, u: usize, frame: i64, dest: Pos) {
+        if (frame + i64::from(self.units[u].index)).rem_euclid(15) != 0 {
+            return;
+        }
+        let same = matches!(
+            self.current_order(u).map(|o| o.body),
+            Some(Body::Move(m)) if m.kind == MoveKind::AttackTo && m.group.is_none() && m.dest == dest
+        );
+        if !same {
+            return;
+        }
+        let me = Obj::Unit(u);
+        if self.profile(me).attack == 0 || self.is_supply_unit(u) {
+            return;
+        }
+        let who = self.units[u].owner;
+        if self.ai_driven(who)
+            && let Some(slot) = self.army_of(u)
+            && let Some(a) = self.armies[who as usize].list.get(slot)
+            && a.hurry != 0
+        {
+            let (c, m) = (self.units[u].pos.cell(), a.muster);
+            if crate::world::vector_dist((c.x - m.x).abs(), (c.y - m.y).abs()) > 6 {
+                return;
+            }
+        }
+        if !self.units[u].captain {
+            let cap = self.squad_captain(u);
+            let Some(k) = self.action_of(cap) else { return };
+            if !matches!(self.units[cap].orders[k].body, Body::Attack(_)) {
+                return;
+            }
+            if let Some(t) = self.units[cap].combat.target
+                && self.valid_target(me, t)
+                && ((self.units[u].combat.stance != combat::Stance::StandGround
+                    && !self.units[u].combat.entrenched
+                    && !self.units[cap].combat.entrenched)
+                    || self.is_in_range(me, t))
+            {
+                let mandatory = self.units[cap].combat.mandatory;
+                self.add_attack_order(u, t, QueuePos::First, mandatory, false);
+                return;
+            }
+        }
+        if let Some(t) = self.find_melee_target(u, -1) {
+            self.add_attack_order(u, t, QueuePos::First, false, false);
+        }
     }
 
     /// `Unit::work@0060d180:440`'s gate on [`Self::check_target_path`] —
@@ -5747,16 +5823,29 @@ impl Sim {
             let snap = crate::collide::ucell_centre(crate::collide::ucell(self.units[u].pos));
             self.set_new_location(u, snap, true);
         }
-        // The reload gate: a recharging unit returns at once unless this is
-        // the first frame of a fresh order, which turns and then returns.
+        // **The reload gate**, `Unit::fight@005fd4d0:100-127`. A recharging
+        // unit returns, and it does not turn. On a **fresh** order
+        // (`new_ord`, the order's `+0x20`) whose target guy 0 is not
+        // already aimed at (`GuyData +0x8e`/`+0x9f`), and whose guy 0 is
+        // not on a slot below 4, it first asks for the idle:
+        // `Unit::set_anim(CHAR_DEFAULT, 1, 1)`, which is the idle roll
+        // (`Guy::set_anim+0x97a`).
+        //
+        // ~~Turns toward the target and returns~~ — the first reading's
+        // (the orders landing), and never diffed until item 530. Golden
+        // chapter one's `1/7` is the witness. It takes an attack on `0/8`
+        // from its attack-move's look on 773 while recharging 13. On 774
+        // it stands with its heading unchanged and rolls the idle, and
+        // that roll is the chapter's word (`docs/COMBAT.md` §49).
         if state.recharging != 0 {
             if a.new_ord
                 && let Some(target) = self.units[u].combat.target
+                && let Some(g0) = self.units[u].guys.first()
+                && g0.aim != Some(target)
+                && !(0..4).contains(&g0.anim)
             {
-                let (from, to) = (self.units[u].pos, self.pos_of(target));
-                self.units[u]
-                    .movement
-                    .set_heading(find_angle(to.x - from.x, to.y - from.y));
+                self.mark(anim::SITE_RELOAD_IDLE);
+                self.set_anim(u, anim::DEFAULT, true, true);
             }
             return;
         }

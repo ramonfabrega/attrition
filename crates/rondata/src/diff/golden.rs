@@ -1200,9 +1200,6 @@ fn chapter_one_s_word_frame_is_widened_whole() {
                         ("new_speed", i64::from(st.new_speed), g.new_speed),
                     ] {
                         rows += 1;
-                        if std::env::var("RON_TMP_GROUP").is_ok() {
-                            eprintln!("  grp {n} {name} ours {ours} theirs {theirs}");
-                        }
                         if ours != theirs {
                             note(
                                 format!("group:{name} {who}/army{slot}"),
@@ -1340,6 +1337,18 @@ fn chapter_one_s_word_frame_is_widened_whole() {
                     ),
                 };
                 let track = og.follow.map_or((0, 0), |b| b.track);
+                // What the figure last swung at, `(o, who)` (item 530).
+                let aim = match og.aim {
+                    Some(sim::combat::Obj::Unit(x)) => (
+                        i64::from(built.sim.units[x].index),
+                        i64::from(built.sim.units[x].owner),
+                    ),
+                    Some(sim::combat::Obj::Building(b)) => (
+                        i64::from(built.sim.buildings[b].index),
+                        i64::from(built.sim.buildings[b].owner),
+                    ),
+                    None => (-1, -1),
+                };
                 for (name, ours, theirs) in [
                     ("g.x", i64::from(body.pos.x), g.pos.map(|p| p.x)),
                     ("g.y", i64::from(body.pos.y), g.pos.map(|p| p.y)),
@@ -1352,6 +1361,8 @@ fn chapter_one_s_word_frame_is_widened_whole() {
                     ("g.end_time", i64::from(og.end_time), g.end_time),
                     ("g.last_time", i64::from(og.last_time), g.last_time),
                     ("g.gpiece", i64::from(og.gpiece), g.gpiece),
+                    ("g.ox", aim.0, g.ox),
+                    ("g.whom", aim.1, g.whom),
                     // `guy_flags & 0x20`, which `Unit::set_in_danger`
                     // raises beside the unit's bit; run110 alone prints it
                     // (item 530).

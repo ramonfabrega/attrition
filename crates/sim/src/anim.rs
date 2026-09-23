@@ -104,6 +104,14 @@ pub const SITE_STAND_RETURN: &str = "Guy::set_anim+0x97a < Unit::do_non_flat_gat
 /// disambiguator is the frame above it (`docs/COLLISION.md` §5).
 pub const SITE_BLOCKED: &str = "Guy::set_anim+0x97a < Unit::move_step+0x823";
 
+/// `Unit::fight@005fd4d0+0x169` — **the reloading stand**. A melee unit
+/// still recharging, handed a fresh attack its guy 0 is not aimed at,
+/// asks for `set_anim(CHAR_DEFAULT, 1, 1)` and returns
+/// (`docs/COMBAT.md` §49). The call is `Unit::set_anim`'s, so the chain
+/// runs through `+0x56` as [`SITE_BLOCKED`]'s does. Golden chapter one's
+/// word from item 445 to item 530 was this one draw.
+pub const SITE_RELOAD_IDLE: &str = "Guy::set_anim+0x97a < Unit::fight+0x169";
+
 /// The **other** blocked stand: `Unit::move_step`'s *arrival* arm, whose
 /// `set_anim(CHAR_DEFAULT, 0, 1)` is the call at `005fb40d` and so the
 /// site `+0x4e2`.
@@ -289,6 +297,16 @@ pub struct Guy {
     /// playing**, which `Guy::inc_time` pays when that one runs out
     /// (§6.2). Encoded the same way as [`Guy::pending_attack`].
     pub queued_attack: i8,
+    /// `ox`/`whom` (`+0x8e`/`+0x9f`) — **what this figure last swung at**.
+    /// `Guy::clear` sets `−1`, and `Unit::set_attack@005fce70` writes the
+    /// target into every guy on each strike `Unit::fight` makes. Its one
+    /// reader here is `fight`'s recharging arm, which does not ask for the
+    /// idle again while guy 0 is already aimed at the order's target
+    /// (`docs/COMBAT.md` §49).
+    ///
+    /// SEAM: `Unit::move_step`'s cavalry-archer write (`+0x2b4 &
+    /// 0x200000`), which aims the guys at the second weapon's target.
+    pub aim: Option<crate::combat::Obj>,
     /// A **crew** guy's own body, or `None` for one that has none.
     ///
     /// Guy 0's body is the unit's — `Movement::body` and
@@ -353,6 +371,7 @@ impl Guy {
             stopped: true,
             pending_attack: 0,
             queued_attack: 0,
+            aim: None,
             follow: None,
         }
     }
@@ -1975,6 +1994,7 @@ mod tests {
             stopped: true,
             pending_attack: 0,
             queued_attack: 0,
+            aim: None,
             follow: None,
         }];
         s.add_unit(u)
@@ -2364,6 +2384,7 @@ mod tests {
             stopped: true,
             pending_attack: 0,
             queued_attack: 0,
+            aim: None,
             follow: None,
         });
         s.frame = 101;
@@ -2444,6 +2465,7 @@ mod tests {
                 stopped: true,
                 pending_attack: 0,
                 queued_attack: 0,
+                aim: None,
                 follow: None,
             }];
             let a = s.add_unit(u);
@@ -2522,6 +2544,7 @@ mod tests {
                 stopped: true,
                 pending_attack: 0,
                 queued_attack: 0,
+                aim: None,
                 follow: None,
             }];
             let u = s.add_unit(u);

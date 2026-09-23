@@ -79,6 +79,12 @@ pub(crate) fn guy_of(g: &crate::gamelog::Guy) -> Option<sim::anim::Guy> {
         // mid-fight starts them at zero and may miss one deferred swing.
         pending_attack: 0,
         queued_attack: 0,
+        // `GuyData +0x8e`/`+0x9f`, what the figure last swung at. The
+        // record prints it, but a stand-up has no slot map yet to turn
+        // `(ox, whom)` into an object. Every capture on disk stands up
+        // before its first strike, so the dump reads −1 here too
+        // (item 530).
+        aim: None,
         // A crew guy's own body is derived, not read: `Sim::seat_guys`
         // installs it from the piece's track offset once the whole unit
         // is in.

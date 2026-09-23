@@ -1111,7 +1111,7 @@ impl Sim {
             .is_some_and(|t| self.unit_types[t].cols.flag2(uflags2::GENERAL))
     }
 
-    fn is_supply_unit(&self, u: usize) -> bool {
+    pub(crate) fn is_supply_unit(&self, u: usize) -> bool {
         self.units[u].ty.is_some_and(|t| {
             let c = self.unit_types[t].cols;
             c.flag2(uflags2::SUPPLY_OR_HERO) && !c.flag2(uflags2::GENERAL)

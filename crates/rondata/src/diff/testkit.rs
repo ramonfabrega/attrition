@@ -1867,7 +1867,7 @@ pub(crate) const GOLDEN_WORD_CHAPTER_ONE: i64 = 774;
 /// ladder moved it 626 → 774. It is four frames past the word, as chapter
 /// two's has been. The clock rows still cover `[610, 630)` only; above
 /// that the `GUY` block is run105's `GUYS=2` fields.
-pub(crate) const WIDENING_CHAPTER_ONE: (i64, i64) = (605, 779);
+pub(crate) const WIDENING_CHAPTER_ONE: (i64, i64) = (605, 901);
 
 /// **Chapter two's golden word** — the ranged line, run112, item 415.
 /// `docs/GOLDEN.md` §6.

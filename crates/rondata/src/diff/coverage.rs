@@ -81,6 +81,11 @@ const UNREAD: &[(&str, &str)] = &[
     // not a comparison. The module header already says this guard stops
     // at "parsed", and here that gap cost nineteen frames. Two keys
     // leave the pin; no path does.
+    //
+    // **Item 530 took `ox` and `whom` off both `UNITDATA/GUY` paths**:
+    // what a figure last swung at, which `Unit::fight`'s recharging arm
+    // reads against the order's target, and which chapter one's word
+    // turned on (`docs/COMBAT.md` §49). Four keys leave; no path does.
     ("GAME/FRAME/ANIMALDATA", "aid ox whom"),
     (
         "GAME/FRAME/ANIMALDATA/UNITDATA",
@@ -88,7 +93,7 @@ const UNREAD: &[(&str, &str)] = &[
     ),
     (
         "GAME/FRAME/ANIMALDATA/UNITDATA/GUY",
-        "(int)off_x (int)off_y (int)variation *((dword*) des_node_flags des_turret_angles[0] des_turret_angles[1] des_turret_angles[2] des_turret_angles[3] last_angle node_flags o ox turret_angles[0] turret_angles[1] turret_angles[2] turret_angles[3] who whom",
+        "(int)off_x (int)off_y (int)variation *((dword*) des_node_flags des_turret_angles[0] des_turret_angles[1] des_turret_angles[2] des_turret_angles[3] last_angle node_flags o turret_angles[0] turret_angles[1] turret_angles[2] turret_angles[3] who",
     ),
     (
         "GAME/FRAME/ANIMALDATA/UNITDATA/OBJECT",
@@ -140,7 +145,7 @@ const UNREAD: &[(&str, &str)] = &[
     ),
     (
         "GAME/FRAME/UNITDATA/GUY",
-        "(int)off_x (int)off_y (int)variation *((dword*) des_node_flags des_turret_angles[0] des_turret_angles[1] des_turret_angles[2] des_turret_angles[3] last_angle node_flags o ox turret_angles[0] turret_angles[1] turret_angles[2] turret_angles[3] who whom",
+        "(int)off_x (int)off_y (int)variation *((dword*) des_node_flags des_turret_angles[0] des_turret_angles[1] des_turret_angles[2] des_turret_angles[3] last_angle node_flags o turret_angles[0] turret_angles[1] turret_angles[2] turret_angles[3] who",
     ),
     (
         "GAME/FRAME/UNITDATA/OBJECT",

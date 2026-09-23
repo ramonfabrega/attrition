@@ -707,6 +707,11 @@ impl Sim {
         if angle != self.units[i].movement.heading {
             self.unit_set_angle(i, angle);
         }
+        // `Unit::set_attack@005fce70`, from `fight:591` on the strike:
+        // every guy is aimed at the target (`GuyData +0x8e`/`+0x9f`).
+        for g in &mut self.units[i].guys {
+            g.aim = Some(target);
+        }
         self.swing_anim(i, angle);
         // `Unit::fight@005fd4d0`'s `LAB_005feec6`, immediately after
         // `set_anim` and before the damage: the strike makes this unit
