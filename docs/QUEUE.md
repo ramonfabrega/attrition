@@ -33,13 +33,14 @@ been the lower map since 09-21 — so the AI track's default flips to it.*
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w9983 of 24,000 · GreatLakes w12038 of 24,000
-Golden: ch1 closed · ch2 closed · ch5 closed · ch4 w1277 of 1501 · 567 next
+Golden: ch1 closed · ch2 closed · ch5 closed · ch4 w1416 of 1501 · 569 next
 Endpoint 24001: EastIndies 69 off, 2 unlinked · GreatLakes 41 off, 4 unlinked
 
-**Opener: nothing in flight, every lane reaped, tree pushed. A fresh
-Opus 5.5 commander takes 573 on the AI track and 567 on the rules track,
-and 571 when a lane frees; workers spawn with `claude-opus-5-5[1m]`. The
-count is landings since this pass, by `git log`, and it stops at twenty.**
+**Opener: 2 landings since the eleventh pass: 573 (East Indies 9711 →
+9983, run99 answered the booking's capture) and 567 (chapter four 1277 →
+1416). A commander takes 576 on the AI track and 569 on the rules track,
+then 571; workers spawn with `claude-opus-5-5[1m]`. The count is by
+the log from the pass and stops at twenty.**
 
 ## The queue
 
@@ -67,13 +68,13 @@ backlog is `docs/PARKED.md`, and an item returns only when a score names it.
     `move_step+0x823`. No mechanism. If PRs #7/#8 land first, a packet at
     11921 with the nine guys' move path run on it is an optional second run.
 
-567. **Golden chapter four's word is 1277: the squad's `GUARDORDER`
-    beside its wagon** (552 captured run132/run133 and pinned the chapter;
-    none of §8's falsifiers fired, five wiring defects fixed). Ours
-    spends `Guy::set_anim+0x97a < Guy::move+0x19f` where the original
-    spends the farm's, 5 draws against 4. On 1277 the original's squad
-    holds a `GUARDORDER` and a move back to (8376, 32136), `timer` 419;
-    ours keeps its `AttackTo`. The rules headline. No mechanism.
+569. **Golden chapter four's word is 1416: +1 draw, 32 against 31** (567
+    moved it 1277 → 1416 by building GUARD, ORDERS §24). The original
+    spends three `Guy::set_anim+0x97a < Unit::do_move+0x11cf` stands on the
+    wagon `1/10` and one bird coin; ours five bird coins on gaia `9/6` and
+    no stand. On 1416 the original's wagon holds `pause` 15, ours 0. 567's
+    hypothesis, from its widening: the wagon's birth path, one leg short on
+    1101 and its own walk since 1102 (parked by 552). The rules headline.
 
 ## How to maintain this file
 

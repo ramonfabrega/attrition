@@ -64,8 +64,8 @@ cells a frame after a five-block delay; observed on all three of chapter
 four's levers, not modelled. It is run132's only border parting (301, 30
 cells a sweep early) and spends no draw.
 
-(569) **The Supply Wagon's birth path**, one leg short on 1101, and its
-walk from 1102. Under chapter four's word; spends no draw.
+(569) booked 2026-09-23: 567 moved chapter four's word to 1416, and its
+widening names the wagon.
 
 (570) **`calc_anti_attrition` is unwired** (Foraging, Mongols, Titanium,
 Liberty): every resistance is the base. And **`Unit::squad_size` is a
