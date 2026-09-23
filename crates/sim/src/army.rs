@@ -2430,6 +2430,13 @@ impl Sim {
     /// bits since 2026-09-01, when `Region.flags` started arriving from the
     /// dump's `REGIONS` block: bit 1 is "free to settle", and it is what
     /// `think_civilian_transport` (§7) needs to find an island at all.
+    ///
+    /// **Every other leader's count is `LeaderData +0x125e`**, which the
+    /// original's census keeps for a human too (`docs/AI.md` §23.1) and
+    /// this crate's does not yet run, so it is read through
+    /// [`Sim::leader_reg_cities`]'s recount. With the census's zero the
+    /// human's home island answered neither bit, and East Indies' scout,
+    /// out of land on 11549, sailed for the wrong one (§9.4, item 642).
     pub fn go_here(&self, r: u16, who: Player) -> i32 {
         let w = who as usize;
         let mine = self.ai[w]
@@ -2455,12 +2462,7 @@ impl Sim {
             let size = self.world.region_size(r);
             let dense = (0..self.players.len()).any(|i| {
                 i != w && !self.defeated[i] && {
-                    let theirs = self.ai[i]
-                        .census
-                        .reg_cities
-                        .get(r as usize)
-                        .copied()
-                        .unwrap_or(0);
+                    let theirs = self.leader_reg_cities(i as Player, r);
                     theirs != 0 && size < theirs * 200
                 }
             });
@@ -2472,13 +2474,7 @@ impl Sim {
             if i == w || self.defeated[i] || !self.is_enemy(who, i as Player) {
                 continue;
             }
-            let theirs = self.ai[i]
-                .census
-                .reg_cities
-                .get(r as usize)
-                .copied()
-                .unwrap_or(0);
-            if theirs != 0 {
+            if self.leader_reg_cities(i as Player, r) != 0 {
                 g |= if mine == 0 || weak { 2 } else { 4 };
             }
         }

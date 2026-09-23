@@ -508,7 +508,13 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // this map's word moves 11590 → 11747, 12,254 frames before this
         // one. The unlinked are player 1's `75`..`82`. DECISIONS 36: the
         // number, not a trade.
-        off: 49,
+        // **49 → 45 off, 8 → 12 unlinked, 22 → 18 build_diverged** on
+        // item 642: `Region::go_here` reads the human's city count, so the
+        // scout sails for the human's island (`docs/TRANSPORT.md` §9.4).
+        // This map's word moves 11747 → 13640, 10,361 frames before this
+        // one. The unlinked are player 1's `71`..`82`. DECISIONS 36: the
+        // number, not a trade.
+        off: 45,
         // And **5 → 10 unlinked** on 2026-09-21, item 442 — the scholar
         // arm's `val` chain (`docs/AI.md` §53). This map's word does not
         // move on it; Great Lakes' moves 9510 → 10161. The AI's Scholar
@@ -529,7 +535,8 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // **6 → 0** on item 608, beside `off` above.
         // **0 → 3** on item 613, beside `off` above.
         // **3 → 6** on item 620, beside `off` above.
-        unlinked: 8,
+        // **8 → 12** on item 642, beside `off` above.
+        unlinked: 12,
         // **0 → 1** on item 608, beside `off` above.
         // **1 → 0** on item 613, beside `off` above.
         extra: 0,
@@ -543,7 +550,8 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // **25 → 24** on item 608, beside `off` above.
         // **24 → 22** on item 613, beside `off` above.
         // **22 → 24** on item 620, beside `off` above.
-        build_diverged: 22,
+        // **22 → 18** on item 642, beside `off` above.
+        build_diverged: 18,
         city_unlinked: 3,
         city_diverged: 0,
     },
@@ -1297,7 +1305,8 @@ pub const LADDER: [Endpoint; 2] = [
         // **39 → 35** on item 613; see `extra` below.
         // **35 → 31** on item 620; see `extra` below.
         // **31 → 29** on item 629; see `extra` below.
-        off: 29,
+        // **29 → 28** on item 642; see `extra` below.
+        off: 28,
         unlinked: 17,
         // 20 → 21 on 2026-09-07, item 267's repaint: one spurious unit
         // back, 7,872 frames past the word, and nothing else on this rung
@@ -1452,7 +1461,10 @@ pub const LADDER: [Endpoint; 2] = [
         // **26 → 13** on item 629, a deployed Merchant seated on its tile
         // corner with its square blocked (`docs/MERCHANT.md` §3.2); this
         // map's word moves 11590 → 11747, 3,654 frames before this rung.
-        extra: 13,
+        // **13 → 11** on item 642: `Region::go_here` reads the human's
+        // city count (`docs/TRANSPORT.md` §9.4); this map's word moves
+        // 11747 → 13640, 1,761 frames before this rung.
+        extra: 11,
         build_unlinked: 10,
         // **4 → 5** on item 588, beside `extra` above.
         // **5 → 4** on item 597, beside `extra` above.
@@ -1568,7 +1580,8 @@ pub const LADDER: [Endpoint; 2] = [
         // **44 → 39** on item 620, 4,899 frames past this map's new word
         // 11590 (`docs/ORDERS.md` §6.4). DECISIONS 36: the number, not a
         // trade.
-        off: 39,
+        // **39 → 36** on item 642; see `extra` below.
+        off: 36,
         unlinked: 16,
         // 19 → 33 on 2026-09-07, item 261, the same reshuffle, then 33 →
         // **27** the same day on item 265's byte — this rung took the
@@ -1686,7 +1699,10 @@ pub const LADDER: [Endpoint; 2] = [
         // **20 → 17** on item 629, a deployed Merchant seated on its tile
         // corner with its square blocked (`docs/MERCHANT.md` §3.2); this
         // map's word moves 11590 → 11747, 4,742 frames before this rung.
-        extra: 17,
+        // **17 → 13** on item 642: `Region::go_here` reads the human's
+        // city count (`docs/TRANSPORT.md` §9.4); this map's word moves
+        // 11747 → 13640, 2,849 frames before this rung.
+        extra: 13,
         build_unlinked: 19,
         build_diverged: 0,
         city_unlinked: 4,
@@ -2277,7 +2293,13 @@ mod tests {
         // late roster reshuffles again past East Indies' word, 11590 →
         // 11747, and six shared numbers remain, each of one type on both
         // rungs.
-        const SHARED_EXTRA_NUMBERS: usize = 6;
+        //
+        // **6 → 3 on item 642**, `Region::go_here` reading the human's
+        // city count (`docs/TRANSPORT.md` §9.4): the scout sails for the
+        // human's island and the word moves 11747 → 13640. Three shared
+        // numbers remain, `1/12` Citizen, `1/56` Cataphract and `1/57`
+        // Light Horse, each of one type on both rungs.
+        const SHARED_EXTRA_NUMBERS: usize = 3;
         assert_eq!(
             shared.len(),
             SHARED_EXTRA_NUMBERS,

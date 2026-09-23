@@ -2994,6 +2994,11 @@ between step 13 and step 16. `Sim::check_orphaned_buildings` already has
 its own human bail; `check_explore` here only writes `census.explored` and
 issues nothing.
 
+One reader does not wait for that fix. `Region::go_here` reads the human's
+`reg_cities`, and it now takes them from `Sim::leader_reg_cities`'s recount
+(`docs/TRANSPORT.md` §9.4, item 642). The census's zero had sent East
+Indies' scout to the wrong island on 11549.
+
 ### 23.2 ~~`ter[6]` has no writer~~ — written, 2026-09-02: §24
 
 `CityData::ter[6]` is the best per-good gather amount over the city's
