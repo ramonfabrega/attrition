@@ -4735,3 +4735,34 @@ third sell draw. The purse, the commerce level and the stock, the other
 three readings the stanza named, all died on the word's own block.
 `docs/ECONOMY.md` §14; `run123_s_word_frame_is_widened_whole`.
 
+
+## run125 — Great Lakes' word 11531, the bowman's arrival (2026-09-22, item 533)
+
+**What it is.** run123's Great Lakes game at run123's detail,
+`MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,DEATHS=1,LEADERS=9`, over
+`[11440, 11600)`, plus `rontrace.cfg` `cover=1` and
+`window=11524-11536` over the arrival. `!quit` at 11610. **325,330,650
+bytes of dump and 17.5 MB of trace, about 14 minutes** from launch at
+19:14 to archive at 19:28. It was launched through `viadriver.sh` with no
+human at the menu. The dump ran at ~18 blocks a minute, 2.0 MB a block,
+against the 1.95 sized from run123.
+
+**Why it was owed.** Item 327 moved Great Lakes' word to 11531, and
+run123, the highest dump at any detail below run80's endpoint window,
+ends on block 11459.
+
+**Every check passed:**
+
+| check | result |
+|---|---|
+| `rngcmp.py` vs `rontrace-run53.log` | **0 differing**, 11,611 identical |
+| `MAP_STYLE` from the dump's `GAME INFO` | 14 |
+| the window, block for block | **160 blocks, 11440..11599, no gap** |
+| overlap with run123, no `--exclude` | **20 in common (11440..11459), 0 differ** |
+| the coverage window | a set on all 13 frames 11524..11536 |
+
+**What it settled.** The word is army 1's bowman `1/34` reaching its
+attack point on block 11531 here and 11533 in the original, on a lag of
+one and a half steps. The lag was set between 11446 and 11462 by a
+formation hop pushed a frame apart. `docs/GROUPS.md` §20;
+`run125_s_word_frame_is_widened_whole`.

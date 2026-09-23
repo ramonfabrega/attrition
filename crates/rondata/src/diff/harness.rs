@@ -8152,6 +8152,310 @@ mod tests {
         );
     }
 
+    /// **run125 — Great Lakes' word 11531, widened whole, both directions**
+    /// (item 533). run125 is run123's game at run123's detail over
+    /// `[11440, 11599]`, twenty blocks shared with run123 and the only dump
+    /// that reaches the word. The walk runs **backwards across both
+    /// captures** — run123 from [`WIDENING_GREAT_LAKES_ARMY`]'s floor, 11250,
+    /// before army 1's squad takes its group order, and run125 from its own
+    /// first block — so a cause that spends no draw on the march is still
+    /// a row here. Every record [`widen_block`] reads on every unit, and
+    /// the leader record whole for both players, on every block; each
+    /// key's first parting block is kept, with the value diff beside it.
+    ///
+    /// The word's frame enters on block **11531** and leaves on **11532**
+    /// (the trace's frame `f` writes block `f + 1`).
+    #[test]
+    fn run125_s_word_frame_is_widened_whole() {
+        const FIRST: i64 = WIDENING_GREAT_LAKES_ARMY.0;
+        const TAIL: i64 = WIDENING_GREAT_LAKES_ARMY.1;
+        /// run125's own first block; below it the walk reads run123.
+        const R125: i64 = 11_440;
+        /// The block the word stood on when this widening was taken.
+        const WORD_BLOCK: i64 = GREAT_LAKES_ARMY_BLOCK;
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(r123), Some(r125)) = (
+            dump("gamelog-run53-greatlakes-24k-trace.txt"),
+            dump("gamelog-run123-greatlakes-marketword.txt"),
+            dump("gamelog-run125-greatlakes-armyidle.txt"),
+        ) else {
+            eprintln!("skipping: no run53/run123/run125 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let mut ix123 = crate::capture::indexed::IndexedCapture::open(&r123).unwrap();
+        let mut ix125 = crate::capture::indexed::IndexedCapture::open(&r125).unwrap();
+        let loaded = crate::load::load(&inst).unwrap();
+        let texts = sibling_texts();
+        let text = crate::capture::read(&path);
+        let log = Log::parse(&text);
+        let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
+        let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+        let refs: Vec<&Initial> = inits.iter().collect();
+        let mut init = log.initial().unwrap();
+        borrow_from_siblings(&mut init, &refs);
+        if let Some(t) = trace("rontrace-run53.log") {
+            borrow_pasture(&mut init, &t);
+        }
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        let players = built.sim.players.len();
+        use std::collections::{BTreeMap, BTreeSet};
+        let mut firsts: BTreeMap<(i64, i64, String), (i64, String)> = BTreeMap::new();
+        let mut missing: BTreeSet<String> = BTreeSet::new();
+        let (mut blocks, mut compared, mut leader_rows) = (0usize, 0usize, 0usize);
+        // `(who, o) -> [(block, theirs at, ours at, theirs current order,
+        // ours order count, theirs guy 0 clock, ours guy 0 clock)]` for the
+        // squad, kept for the arrival and the word's printout.
+        type Row = (i64, (i64, i64), (i64, i64), String, usize, String, String);
+        let mut squad: BTreeMap<i64, Vec<Row>> = BTreeMap::new();
+        for f in 0..=TAIL {
+            built.tick();
+            let n = f + 1;
+            if n < FIRST {
+                continue;
+            }
+            let ix = if n < R125 { &mut ix123 } else { &mut ix125 };
+            let Some(at) = ix.frames().iter().position(|x| x.number == n) else {
+                continue;
+            };
+            let frame = ix.frame_state(at).unwrap();
+            blocks += 1;
+            debug_watch(&built, n);
+            let (_, rows) = widen_block(&built, &frame, players, n, &mut firsts);
+            compared += rows;
+            for t in frame
+                .units
+                .iter()
+                .filter(|t| t.who == 1 && (31..=39).contains(&t.o))
+            {
+                let Some(u) = built
+                    .sim
+                    .units
+                    .iter()
+                    .find(|u| u.alive() && u.owner == 1 && i64::from(u.index) == t.o)
+                else {
+                    continue;
+                };
+                let tg = t.guys.first().map_or_else(String::new, |g| {
+                    format!(
+                        "a{} t{}/{}",
+                        g.cur_anim.unwrap_or(-9),
+                        g.cur_time.unwrap_or(-9),
+                        g.end_time.unwrap_or(-9)
+                    )
+                });
+                let og = u.guys.first().map_or_else(String::new, |g| {
+                    format!("a{} t{}/{}", g.anim, g.cur_time, g.end_time)
+                });
+                if std::env::var("RON_SQUAD_PATH")
+                    .ok()
+                    .and_then(|v| v.parse::<i64>().ok())
+                    == Some(t.o)
+                    && site_window_named("RON_DEBUG_ROWS")
+                        .is_some_and(|(lo, hi)| (lo..=hi).contains(&n))
+                {
+                    eprintln!(
+                        "  path 1/{} {n}: theirs ({},{}) {:?} {:?} | ours ({},{}) {:?} [{}]",
+                        t.o,
+                        t.pos.x,
+                        t.pos.y,
+                        t.path,
+                        t.current_order().map(|o| (&o.kind, o.flags)),
+                        u.pos.x,
+                        u.pos.y,
+                        u.path,
+                        u.guys.first().map_or(String::new(), |g| format!(
+                            "a{} {}",
+                            g.anim, u.movement.facing.0
+                        )),
+                    );
+                }
+                squad.entry(t.o).or_default().push((
+                    n,
+                    (t.pos.x, t.pos.y),
+                    (i64::from(u.pos.x), i64::from(u.pos.y)),
+                    t.current_order()
+                        .map_or_else(|| "-".into(), |o| o.kind.clone()),
+                    u.orders.len(),
+                    tg,
+                    og,
+                ));
+            }
+            let raw = ix.read_frame(at).unwrap();
+            let flog = Log::parse(&raw);
+            for who in 0..2usize {
+                let Some(block) = flog.leader_block(n, who as i64) else {
+                    continue;
+                };
+                let t = crate::diff::leader::theirs(&block);
+                let mine = crate::diff::leader::rows(&loaded, &built, who);
+                for (k, v) in &mine {
+                    let Some(&y) = t.get(k) else {
+                        missing.insert(k.clone());
+                        continue;
+                    };
+                    leader_rows += 1;
+                    if *v != y {
+                        firsts
+                            .entry((who as i64, -1, format!("leader:{k}")))
+                            .or_insert((n, format!("ours {v} theirs {y}")));
+                    }
+                }
+            }
+        }
+        eprintln!(
+            "run125 widening: {blocks} blocks [{FIRST}, {TAIL}], {compared} record rows, \
+             {leader_rows} leader rows, {} keys parted",
+            firsts.len()
+        );
+        // **Both sides printed on the word's blocks** before any quiet row
+        // is trusted (`docs/COMBAT.md` §44.2.1): the two bowmen whose idle
+        // rolls part, their position, order and figure clock.
+        for (o, rows) in &squad {
+            for r in rows
+                .iter()
+                .filter(|r| (WORD_BLOCK - 3..=WORD_BLOCK + 3).contains(&r.0))
+            {
+                eprintln!(
+                    "  block {} 1/{o}: theirs {:?} {} [{}] | ours {:?} orders {} [{}]",
+                    r.0, r.1, r.3, r.5, r.2, r.4, r.6
+                );
+            }
+        }
+        let mut by_block: BTreeMap<i64, Vec<String>> = BTreeMap::new();
+        for ((w, o, what), (f, row)) in &firsts {
+            by_block
+                .entry(*f)
+                .or_default()
+                .push(format!("{w}/{o} {what}: {row}"));
+        }
+        for (f, rows) in &by_block {
+            let near = (WORD_BLOCK - 3..=WORD_BLOCK + 3).contains(f);
+            let window =
+                site_window_named("RON_DEBUG_ROWS").is_some_and(|(lo, hi)| (lo..=hi).contains(f));
+            if near || window {
+                for r in rows {
+                    eprintln!("  f{f} {r}");
+                }
+            } else {
+                eprintln!("  f{f}: {} keys", rows.len());
+            }
+        }
+        // `RON_SQUAD_WALK=<o>` — the unit's position gap, theirs minus
+        // ours, at every block it changes.
+        if let Some(o) = std::env::var("RON_SQUAD_WALK")
+            .ok()
+            .and_then(|v| v.parse::<i64>().ok())
+        {
+            let mut prev = None;
+            for r in squad.get(&o).into_iter().flatten() {
+                let gap = (r.1.0 - r.2.0, r.1.1 - r.2.1);
+                if prev != Some(gap) {
+                    eprintln!("  walk 1/{o} {}: gap {gap:?} theirs {:?} {}", r.0, r.1, r.3);
+                    prev = Some(gap);
+                }
+            }
+        }
+        assert!(missing.is_empty(), "the record does not carry {missing:?}");
+        assert_eq!(blocks, (TAIL - FIRST + 1) as usize, "the walk is whole");
+        // **The word, as a value diff** (R1 of the stanza, taken): the
+        // first block each bowman stands at its orders point with no order
+        // left, both sides. `1/36` arrives together; `1/34` arrives **two
+        // blocks early** here, and its first idle roll is the word.
+        let arrival = |o: i64| -> (Option<i64>, Option<i64>) {
+            let rows = squad.get(&o).map_or(&[][..], |v| v.as_slice());
+            let at = |pick: &dyn Fn(&Row) -> bool| {
+                rows.iter()
+                    .filter(|r| r.0 >= 11_500)
+                    .find(|r| pick(r))
+                    .map(|r| r.0)
+            };
+            (at(&|r| r.3 == "-"), at(&|r| r.4 == 0))
+        };
+        assert_eq!(
+            (arrival(34), arrival(36)),
+            ((Some(11_533), Some(11_531)), (Some(11_530), Some(11_530))),
+            "the two bowmen's arrivals, (theirs, ours)"
+        );
+        // **And the lag it arrives on**: `1/34` is 37 behind on x on block
+        // 11528 and has walked 22/35 behind, alternating with the half
+        // steps, since block 11462 — set between 11446 and 11462, where
+        // both sides push a formation hop and turn in place on it a frame
+        // apart (ours stands 11456→11457, the original 11457→11458).
+        let gap = |o: i64, n: i64| -> (i64, i64) {
+            let r = squad[&o].iter().find(|r| r.0 == n).expect("block");
+            (r.1.0 - r.2.0, r.1.1 - r.2.1)
+        };
+        assert_eq!(
+            (
+                gap(34, 11_456),
+                gap(34, 11_457),
+                gap(34, 11_458),
+                gap(34, 11_528)
+            ),
+            ((37, 7), (12, 3), (46, -4), (37, 0)),
+            "1/34's lag behind this crate's, theirs minus ours"
+        );
+        // Every key that first parts on the word's two blocks, the rows the
+        // stanza's readings were decided on. Nothing but `1/34`.
+        let on_word: Vec<String> = firsts
+            .iter()
+            .filter(|(_, (f, _))| *f == WORD_BLOCK || *f == WORD_BLOCK + 1)
+            .map(|((w, o, what), (f, row))| format!("{f} {w}/{o} {what}: {row}"))
+            .collect();
+        assert_eq!(
+            on_word,
+            // In the map's order, which is by key and not by block.
+            [
+                "11532 1/34 g.cur_time[0]: ours 1 theirs 7",
+                "11532 1/34 g.last_time[0]: ours 0 theirs 6",
+                "11532 1/34 idle: ours 1 theirs 0",
+                "11531 1/34 order:length: Length { ours: 0, theirs: 1 }",
+                "11531 1/34 orders.len: ours 0 theirs 1",
+            ],
+            "the word's blocks part on a different set"
+        );
+        // **Backwards**: the squad `1/31..1/39` agrees on every record from
+        // 11250 until its group order is issued (11259, a `group.id` the
+        // two sides number differently), and the first row that is not an
+        // id is `1/31`'s soft-collision flag on 11305 — this crate's probe
+        // of sim-frame 11304 goes soft on `1/32` and the original's does
+        // not. Suppressing that one flag does **not** move the word: the
+        // squad re-parts on 11357 (`1/35`'s flag) and 1/34's own gap closes
+        // to zero on 11385–11411 before re-opening, so the lag the word
+        // arrives on is the 11446–11462 hop, not this one.
+        let squad_first: Vec<String> = firsts
+            .iter()
+            .filter(|((w, o, what), _)| {
+                *w == 1 && (31..=39).contains(o) && what != "order:group.id"
+            })
+            .filter(|(_, (f, _))| *f < 11_310)
+            .map(|((w, o, what), (f, row))| (*f, format!("{f} {w}/{o} {what}: {row}")))
+            .min()
+            .into_iter()
+            .map(|(_, r)| r)
+            .collect();
+        assert_eq!(
+            squad_first.first().map(String::as_str),
+            Some("11305 1/31 half_step: ours 1 theirs 0"),
+            "the squad's first parting under the march"
+        );
+        // **The group order leaves a frame early here**: the first trio's
+        // `GROUP_ATTACK_TO` (21) is a plain `ATTACK_TO` (2) in this crate
+        // on 11512 and in the original on 11513, and the second trio's on
+        // 11524–11525 the same way. It does not move `1/34`'s position.
+        let kinds: Vec<String> = firsts
+            .iter()
+            .filter(|((_, _, what), _)| what == "order:kind")
+            .filter(|((w, o, _), _)| *w == 1 && (31..=39).contains(o))
+            .map(|((_, o, _), (f, row))| format!("{f} 1/{o} {row}"))
+            .collect();
+        assert_eq!(
+            kinds.iter().filter(|k| k.starts_with("11512")).count(),
+            3,
+            "1/34, 1/35 and 1/36 leave the group order on 11512 here: {kinds:?}"
+        );
+    }
+
     #[test]
     fn run100_s_word_block_is_every_record_the_dump_carries() {
         /// run100's first complete block — [`WIDENING_GREAT_LAKES`], the
