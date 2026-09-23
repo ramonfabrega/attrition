@@ -4865,3 +4865,44 @@ original's. That lag opens on 11514, the block after army 2's group order
 of frame 11512 leaves the original's `1/64` in no pool group.
 `docs/GROUPS.md` §22; `run130_s_word_frame_is_widened_whole` and
 `run130_s_word_is_1_64_s_lag`.
+
+## run134 — Great Lakes' army pool, the first `GROUPDATA` above 7689 (2026-09-22, item 557)
+
+**What it is.** run125's Great Lakes game at run125's detail with
+`GROUPS=1` added and `DEATHS` taken off:
+`MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1` over
+`[11416, 11520)`, plus `rontrace.cfg` `cover=1` and `window=11420-11514`.
+The tracer reads one window, and this one is 95 frames, inside run74's
+102. `!quit` at 11530. **230,346,455 bytes of dump and 18.9 MB of trace,
+eleven minutes** from launch at 22:12 to archive at 22:23. It was
+launched through `viadriver.sh` with no human at the menu, and the lane
+was free.
+
+`DEATHS` is off because of run92's trap. `dump_deaths` ends on two
+`WorldData::log_data` calls that leave the log's type at `WORLD`, which
+is 0 here. `GroupData::log_data` sets no type, so with `DEATHS` on, the
+pool is dropped silently. No `DEATHOBJ` block appears in run130, so what
+`DEATHS=1` printed at this detail was the two `WORLD` blocks.
+
+**Why it was owed.** Great Lakes' word 11757 was `1/64`'s lag after
+army 2's group order of frame 11512 (`docs/GROUPS.md` §22). The dump at
+`UNITS=3` prints each unit's back-pointer and nothing of the pool.
+No trace on this map had a coverage window between 11190 and 11524.
+
+**Every check passed:**
+
+| check | result |
+|---|---|
+| `rngcmp.py` vs `rontrace-run53.log` | **0 differing**, 11,531 identical |
+| `MAP_STYLE` from the dump's `GAME INFO` | 14 |
+| the window, block for block | **104 blocks, 11416..11519, no gap** |
+| a `GROUPDATA` on every window block | **104** |
+| overlap with run125, `--exclude WORLD --exclude GROUPDATA --drop last_group` | **80 in common (11440..11519), 0 differ** |
+| the coverage window | a set on all 95 frames 11420..11514 |
+
+**What it settled.** On 11424 the squad `1/62`–`1/64` joins army 2's
+`{1/60, 1/61}` as `1/64` alone, because `Group::add`'s own `get_num`
+normalizes the small group at every step. On 11512 `Group::sort`
+kills that stray follower, which clears its pointer, and re-adds the
+squad whole without writing one. `docs/GROUPS.md` §23;
+`run134_s_pool_list_is_the_original_s`. The word moved 11757 → 11806.

@@ -231,6 +231,10 @@ Both recursions **forward `param_4` unchanged**; the only site that
 originates `param_4 = 1` is `Group::sort@00708090`'s fix-up
 `add(o, who, 0, 1)`.
 
+- **It opens with `get_num`** (vslot `+0x4`), or `get_num_const` when
+  `const` is set — and `Group::get_num@00714700` is `normalize` whole
+  for a group of fewer than four with an `id`. So on a seated group every
+  step of the walk below can prune the step before it (§23, item 557).
 - An empty group takes `who` as its own.
 - Refused unless the group is empty or `who` matches.
 - If the object is a unit: with `keep_captain == 0`, a **non-captain** is
@@ -2749,7 +2753,8 @@ only a hotkey group sets.
   the window's own numbering is exact.
 - `get_open_slot`'s two fallbacks (46 live groups at once; no capture
   comes close).
-- An army's group is pruned here by `Army::normalize`, not by the pass.
+- ~~An army's group is pruned here by `Army::normalize`, not by the
+  pass.~~ Both prune it, by the back-pointer, since item 557 (§23.4).
 
 **SEAM**: `find_role` is not recomputed, because nothing here reads
 `GroupData::role`.
@@ -3043,23 +3048,22 @@ right**: given the original's grid, it returns the original's path.
 
 ### 22.4 What this has *not* established
 
-- **Why the original leaves `1/64` out of the pool on 11512, and why its
-  stance misses `1/62` and `1/63`.** The dump at this detail prints only
-  the unit's back-pointer (`UnitData +0x80`), not the pool's lists, and
-  no draw on 11512 names the call. This crate has no such pointer:
-  `Sim::pool_group_of` derives a unit's pool group from army membership,
-  so a unit whose `+0x80` and whose group list disagree cannot be
-  represented. The readers are §3.1's eviction, §3.2's second walk, §4.2's
-  `kill`, and `docs/ARMY.md` §3.2's `add_unit` → `Unit::set_group`, which
-  are the membership predicates this family's audits have found wrong
-  before.
-- **Hypothesis, not a measurement**: a unit outside the pool walks at its
-  own speed, 25, where a member walks under the group cap (§18). That
-  would make the step of 12 on 11514 the cap. It is consistent with
-  every row above and was not probed.
-- **The cheapest next check**: a capture of this game with `cover=1`
-  over 11420–11426 and 11508–11514. The functions each side runs there
-  name the membership path without a reading.
+- ~~**Why the original leaves `1/64` out of the pool on 11512, and why its
+  stance misses `1/62` and `1/63`.**~~ **§23**: the stance walks group
+  66's list, which on 11512 is `{1/60, 1/61, 1/64, 1/65}` — `Group::add`
+  normalized the squad's head and middle out of it on 11424 — and the
+  categorize of the group order then runs `Group::sort`, whose `kill`
+  clears `1/64`'s pointer. The reader list above was right to name §3.1,
+  §3.2 and §4.2; the frame that decided it was 11424's `Group::add`,
+  which none of them is.
+- ~~**Hypothesis, not a measurement**: a unit outside the pool walks at
+  its own speed, 25, where a member walks under the group cap (§18).~~
+  **§23: not the cap.** `1/64`'s pointer is −1, so `do_group_move`'s
+  first line ungroups its order on 11513 and it walks a plain move. The
+  step of 12 was this crate's in-formation follower.
+- ~~**The cheapest next check**: a capture of this game with `cover=1`
+  over 11420–11426 and 11508–11514.~~ **Taken as run134**, with
+  `GROUPS=1` beside it; §23.
 
 ### 22.5 Coverage
 
@@ -3075,4 +3079,185 @@ blocks [11400, 11799]:
 
 The counterfactual is `run130_s_word_is_1_64_s_lag`. The coverage pin
 reads run130 around 11758, and no key moved. **Reading-only**: nothing
-in this section. **Open**: the whole of §22.4.
+in this section. ~~**Open**: the whole of §22.4.~~ **Closed by §23**,
+and every row above is now pinned agreeing, as that move's value diff.
+
+## 23. The back-pointer is its own state — Great Lakes 11757 → 11806 (item 557, 2026-09-22)
+
+§22 left the word on `1/64`'s lag behind army 2's group order of frame
+11512. The original's `1/64` goes `group -1`, and its stance misses
+`1/62` and `1/63`, and no mechanism was named. **The frame was right,
+and the cause was two frames**: 11424, where the squad joins the army,
+and 11512, where the army orders it. Neither alone does anything
+visible.
+
+### 23.1 The readings, and run134
+
+The stanza (`tools/gamelog/captures.txt`, run134) wrote four readings
+before the run, each with what would kill it. R1 was a one-unit push:
+`push_group(force 0)` writes `+0x80 = -1` (§3.2). R2 was the pool's
+per-frame reset (§19). R3 was an eviction or a `kill` (§3.1, §4.2). R4
+was the army's own filter (`add_unit`, `set_group`).
+
+**run134** is run125's game, with `GROUPS=1` and per-frame coverage over
+11420–11514 (`docs/RUNS.md`). It is the first dump on this map above
+run92's 7689 to print the pool's lists. `DEATHS` is off because of
+run92's trap: `dump_deaths` leaves the log's type at `WORLD`, and the
+pool would be dropped. It took eleven minutes, 230 MB of dump and 18.9
+MB of trace, and all six checks passed. Its 80 blocks shared with
+run125 differ on nothing outside the two changed records.
+
+On sim-frame 11512, **no** `push_group`, `get_open_slot`, `set_group`
+or `Army::add_unit` runs. R1, R3's eviction and R4 are dead. R2 is
+dead by arithmetic: 11512 mod 64 is 56, and group 66 is slot 2. What
+does run is `Army::set_stance` → `Group::action_stance`, then
+`action_move_to` → `compute_form` → `Form::categorize` →
+**`Group::sort`**, `Group::kill`, `normalize` and `add`. That is R3's
+`kill`, reached from a function no reading had named.
+
+### 23.2 What the pool says
+
+Group 66's list, from `GROUPDATA id 66`, block by block:
+
+| blocks | list |
+| --- | --- |
+| 11416–11424 | `60, 61` |
+| 11425–11507 | `60, 61, 64` |
+| 11508–11512 | `60, 61, 64, 65` |
+| 11513– | `60, 61, 65, 62, 63, 64` |
+
+`1/62`–`1/64` are one squad (`o_up`: 64 → 63 → 62). From 11425 all
+three point at 66, but only the tail is listed. `1/62` and `1/63` are
+**named and not listed**, so `Object::get_army` answers −1 for them.
+`1/64` is listed and named until 11512, then listed and naming nothing.
+
+### 23.3 The mechanism
+
+**11424, `Army::add_unit` → `Group::add(64, who, 0, 0)`.** Every step
+of `add` opens with `get_num` (vslot `+0x4`) unless `const` is set. For
+a group of **fewer than four** with an `id`, `get_num` is `normalize`
+whole, and `normalize` drops a member whose `+0x80` does not name the
+group (§4.3). The squad arrives from its `come_out` group 69 (run134's
+coverage on 11423: `Unit::come_out`, `push_group`, `get_open_slot`,
+`copy_group`), so all three pointers name 69:
+
+1. `add(64)`, then `add(63)`, then `add(62)`: the redirect to the
+   captain. `62` is appended, and the list is `60, 61, 62`.
+2. `add(63, keep 1)`: `get_num` sees three members and normalizes. `62`
+   names 69, so it is dropped. `63` is appended.
+3. `add(64, keep 1)`: the same, `63` is dropped and `64` is appended.
+
+Then `Unit::set_group@00605220` climbs to the captain and writes 66
+down the chain, on all three. §4.1's reading of `add` was right about
+the walk and silent on the `get_num`; the `num < 4` gate is
+`Group::get_num@00714700`'s first arm.
+
+**11512, the group order.** `action_stance` walks the list, so
+`60, 61, 64, 65` take stance 1. `62` and `63` are not listed and keep
+0. Then `action_move_to`'s layout calls `Form::categorize`, whose first
+statement is `Group::sort@00708090`. It walks the list keeping the last
+captain seen. `64` is a follower whose top captain, `62`, is not `61`,
+so it:
+
+- `kill`s `64` with `keep 0`. That redirects to `62`, whose chain is
+  killed with `keep 1`. `64` is found in the list and removed, and **its
+  `+0x80` names 66, so it is cleared**. `63` and `62` are not listed, so
+  nothing happens to them;
+- `normalize`s the group;
+- `add`s `64` with `const 1`. There is no `get_num` this time, so the
+  whole squad is appended, and `add` writes no pointer.
+
+On the same frame `1/64`'s own turn reaches `do_group_move`, whose
+first line is `if (+0x80 == -1) ungroup_move_order`. So it walks a
+plain move at its own speed. `1/65` keeps its group order and its cap.
+§22.4's step of 12 was this crate's in-formation follower, not the
+cap. `do_group_move`'s follower arm also clears `+0x80` for a member
+its group's list does not hold (`5e7ed8`) before ungrouping.
+
+### 23.4 This crate's side
+
+`sim::Unit::group_ptr` carries `+0x80` as a pool slot, or `None`.
+**Writers**: `Sim::set_group` (`Army::add_unit`'s tail);
+`push_group`, both arms (installed: the slot; `force 0` with one
+member: `None`, which no production caller takes); `get_open_slot`'s
+eviction; `Sim::seat_kill`; and the follower arm's not-listed clear.
+**Readers**: `Sim::seat_of`, and through it `group_of`,
+`group_speed_of` (the cap) and `pool_group_of` (the dump's row);
+`army_of`, which is `Object::get_army` (the named group must list the
+unit); `pool_members`; `same_group_soft`; and the follower's "in my
+group" test (`5e7c8c`, the two pointers equal).
+
+A seated group's list follows the original's own operations:
+`seat_add` (`get_num`'s normalize per step), `seat_kill`,
+`seat_normalize` and `seat_sort`. `army_add_unit` goes through
+`seat_add` for an army with a live group. An army with none still
+builds a stack group, which is never normalized, and pushes it.
+`Group::sort` runs where `Form::categorize` does, in
+`group_action_move_to`'s layout, after the `QUEUE_NEW` clear and before
+the order loop. So a member the sort brought in is decided by the
+order loop. `army_normalize` and `groups_process` prune by the
+pointer.
+
+**SEAM**: five writers of `+0x80 = -1` are not modelled: `do_build`,
+`build_done`, `do_attack` (which saves and restores it),
+`do_non_flat_gather` and `think_peasant`. They reach builders and
+gatherers, whose pointer names a pushed slot or nothing. A slot freed
+by one of them sooner in the original could number the next push
+differently (§19.4's early-game residue). Nor is `come_out`'s own push
+(the 11424 residue below): a pointer naming **any** other group at
+11424's add leaves the same list.
+
+### 23.5 What it moved
+
+| | before | after |
+| --- | --- | --- |
+| Great Lakes long word | 11757 | **11806** |
+| run130 widening `[11400, 11799]`, keys parted | 655 | **284** |
+| run130 widening, block 11758 | 8 rows | **empty**, pinned |
+| `1/62`'s detour (11689) and position (11702) | parted | **agree** |
+| `1/64`'s position and step from 11514 | parted | **agree** |
+| army 2's pointer and stance on 11513 | 3 of 6 parted | **agree** |
+| run134, group 66's list on 104 blocks | not compared | **agrees on all** |
+
+The widening's fall is like for like: the same 400 blocks and
+1,353,421 record rows either side. What stands is 11400's 236 keys
+(standing residue at the floor), 11424's `come_out` push, 11507's
+`1/65` (the same shape), (558)'s ids on 11513 and 11769, and blocks past
+11576 that the chain never reached. The endpoint rows move too, 12,195
+frames past the new word (the gate's numbers are in the journal):
+every army's list now follows `add` and `sort` on every map.
+
+**The new word, 11806**: ours 7 draws against the original's 6,
+parting at index 1. Ours spends
+`Guy::set_anim+0x97a < Unit::move_step+0x823`, and the original
+spends `Unit::resolve_unit_collision+0xb52`. It is past run130's last
+block (11799), so its widening is owed a capture.
+
+### 23.6 What this has *not* established
+
+- **`Groups::process`'s prune of `1/64`** on slot 2's frame, 11522,
+  and `Army::normalize`'s on the army's next tick. Both are readings
+  here; run134 ends on 11519.
+- **The original's `come_out` push** on 11423 (group 69). It is
+  modelled nowhere, and it is the one residue of run134's pool: three
+  pointer rows on block 11424.
+- **(558)**: the group order's `id` still carries the army slot (2)
+  where the original's carries the pool index (66). It parts on 11513
+  and 11769 (`order:group.id`). The pool slot is carried now, so the fix
+  is a one-line change to `group_id`, but the change is not this item's.
+
+### 23.7 Coverage
+
+**Diff-backed**: §23.2's table whole and every pointer of army 2 on 104
+blocks (`run134_s_pool_list_is_the_original_s`, which was made to fail
+twice on purpose: without the per-step `get_num`, 11425's list is the
+whole squad, and without the sort, 11513's is the old order). Also
+§22's chain closed, pinned in `run130_s_word_frame_is_widened_whole`.
+`run130_s_word_is_1_64_s_lag` now asserts that `1/64` is on the
+original's point before the detour, unprobed. **Trace-backed**: §23.1's
+function sets (run134). **Guards**:
+`group::a_squad_joining_a_small_seated_group_is_listed_by_its_tail_alone`
+and `group::the_sort_re_seats_a_stray_follower_s_squad_and_clears_its_pointer`,
+each made to fail by its mutation. **Reading-only**: the five SEAM
+writers, and `do_group_move`'s not-listed clear (`5e7ed8`), which no
+frame of this chain reaches.

@@ -445,7 +445,12 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // the AI researches unit upgrades it never could; this map's word
         // holds at 9711, and the 24,000th frame reshuffles 14,290 past it:
         // six units linked, three positions out. DECISIONS 36.
-        off: 67,
+        // **67 → 63 off** on item 557, the group back-pointer
+        // (`docs/GROUPS.md` §23). This map's word holds at 9711; every army's
+        // list now follows `Group::add`'s per-step `get_num` and `Group::sort`,
+        // so the 24,000th frame reshuffles 14,290 past it: four positions
+        // closer against five of the roster unlinked. DECISIONS 36.
+        off: 63,
         // And **5 → 10 unlinked** on 2026-09-21, item 442 — the scholar
         // arm's `val` chain (`docs/AI.md` §53). This map's word does not
         // move on it; Great Lakes' moves 9510 → 10161. The AI's Scholar
@@ -454,7 +459,8 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // rungs shed **eight** and **seven** spurious units — the Citizens
         // this crate used to buy instead of Scholars. DECISIONS 36 asks for
         // the number rather than a trade; the number is on the headline.
-        unlinked: 3,
+        // **3 → 8 unlinked** on item 557, beside 67 → 63 off above.
+        unlinked: 8,
         extra: 0,
         build_unlinked: 1,
         build_diverged: 30,
@@ -1058,9 +1064,16 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // the move is booked on is run125's 11583, where nothing parts on
         // the leader or the queue any more; the endpoint is 12,244 frames
         // past the new word. The two extras are Merchants. DECISIONS 36.
-        off: 47,
+        // **47 → 57 off** on item 557, the group back-pointer
+        // (`docs/GROUPS.md` §23), which moves this map's word 11757 → 11806:
+        // `1/64` leaves army 2's pool on 11512 as the original's does. The
+        // 24,000th frame is 12,195 frames past the new word, so the roster
+        // reshuffles; ten positions further out against one extra unit fewer.
+        // DECISIONS 36: the number, not a trade.
+        off: 57,
         unlinked: 0,
-        extra: 2,
+        // **2 → 1 extra** on item 557, beside 47 → 57 off above.
+        extra: 1,
         build_unlinked: 0,
         build_diverged: 9,
         city_unlinked: 3,
@@ -1146,7 +1159,11 @@ pub const LADDER: [Endpoint; 2] = [
         // One position out and four spurious units gone, 5,690 frames
         // past this rung's word, which does not move; `unlinked` and
         // both building counts are unmoved.
-        off: 42,
+        // **42 → 40 off** on item 557, the group back-pointer
+        // (`docs/GROUPS.md` §23): army lists follow `Group::add`'s per-step
+        // `get_num` and `Group::sort` everywhere. 5,690 frames past this map's
+        // word, which holds at 9711. DECISIONS 36.
+        off: 40,
         unlinked: 17,
         // 20 → 21 on 2026-09-07, item 267's repaint: one spurious unit
         // back, 7,872 frames past the word, and nothing else on this rung
@@ -1264,7 +1281,9 @@ pub const LADDER: [Endpoint; 2] = [
         // discount, and six more units stand here that the original's
         // does not hold, three of them the Slingers rung B sees upgraded.
         // 5,690 frames past this map's word. The number, not a trade.
-        extra: 21,
+        // **21 → 20 extra** on item 557 (`docs/GROUPS.md` §23), beside
+        // 42 → 40 off above. DECISIONS 36.
+        extra: 20,
         build_unlinked: 10,
         build_diverged: 8,
         city_unlinked: 3,
@@ -1451,7 +1470,11 @@ pub const LADDER: [Endpoint; 2] = [
         // DECISIONS 36 asks for the number rather than a trade.
         // **15 → 14** on item 327, the Merchant offer (`docs/AI.md` §55).
         // **14 → 17** on item 545; see `off` above.
-        extra: 17,
+        // **17 → 16 extra** on item 557, the group back-pointer
+        // (`docs/GROUPS.md` §23): every army's list now follows `Group::add`'s
+        // per-step `get_num` and `Group::sort`, on every map. 3,440 frames
+        // past this map's word. DECISIONS 36.
+        extra: 16,
         build_unlinked: 19,
         build_diverged: 0,
         city_unlinked: 4,

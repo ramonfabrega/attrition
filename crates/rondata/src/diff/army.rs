@@ -687,6 +687,13 @@ mod tests {
                     flags: u8::try_from(p.flags & 0xff).unwrap_or(0),
                 })
                 .collect();
+            // `UnitData +0x80`, the record's own `group` (`docs/GROUPS.md`
+            // §23): the back-pointer is state of its own, so a scene seats
+            // it from the dump rather than deriving it from the lists.
+            unit.group_ptr = u
+                .group
+                .filter(|&g| g >= 0 && g / 64 == u.who)
+                .and_then(|g| u8::try_from(g - 64 * u.who).ok());
             let h = sim.add_unit(unit);
             units.push((u.who, u.o, h));
         }

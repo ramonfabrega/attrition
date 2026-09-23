@@ -1145,17 +1145,14 @@ impl Sim {
         if self.units[u].owner != self.units[o].owner {
             return false;
         }
-        // **The seat, not the army slot.** `+0x80` names a
-        // `Groups::list` slot and a group has exactly one seat here —
-        // an army's, or a [`crate::group::Pushed`] slot — so equality
-        // of the pair *is* equality of the back-pointer. Reading
-        // `army_of` instead answered `None` for every member of a
-        // pushed group, which since item 465 is the whole of Great
-        // Lakes' raid.
-        let (Some(a), Some(b)) = (self.group_of(u), self.group_of(o)) else {
-            return false;
-        };
-        if (a.army, a.pushed) != (b.army, b.pushed) {
+        // **The back-pointer, not the army slot.** `+0x80` names a
+        // `Groups::list` slot, and since item 557 this crate carries it
+        // ([`crate::Unit::group_ptr`], `docs/GROUPS.md` §23), so the test
+        // is the original's: both name a group, and the same one. Reading
+        // `army_of` answered `None` for every member of a pushed group,
+        // which since item 465 is the whole of Great Lakes' raid.
+        let a = self.units[u].group_ptr;
+        if a.is_none() || a != self.units[o].group_ptr {
             return false;
         }
         if self.units[o].search.is_some() {

@@ -239,6 +239,15 @@ pub struct Pushed {
     pub state: GroupState,
 }
 
+/// Where a group's record lives: an army's slot, or an entry of
+/// [`Sim::pushed`] — [`Sim::seat_of`]'s answer for a unit's `+0x80`.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Seat {
+    /// The army of `who` in slot `.1`.
+    Army(Player, usize),
+    Pushed(usize),
+}
+
 /// One `Group` as an action sees it: the members, the owner, and which
 /// seat holds its record — an army's (`GroupData::army`, the switch §6.5
 /// turns on) or a pool slot's.
@@ -427,6 +436,14 @@ impl Sim {
     /// in** (§3.3). Returns whether the group took a slot.
     pub fn push_group(&mut self, g: &mut Group, force: bool) -> bool {
         if !(force || g.num() >= 2) {
+            // `+0x80 = −1` on every active member, and no list is
+            // touched: the unit stays wherever it was listed, naming
+            // nothing (§23).
+            for &u in &g.list {
+                if self.units[u].alive() {
+                    self.units[u].group_ptr = None;
+                }
+            }
             return false;
         }
         let pool = self.pool_slot_for(g.who, &g.list);
@@ -456,6 +473,12 @@ impl Sim {
                 ..GroupState::default()
             },
         };
+        // The second walk's tail: `+0x80 = slot` on every active member.
+        for &u in &g.list {
+            if self.units[u].alive() {
+                self.units[u].group_ptr = Some(pool);
+            }
+        }
         g.army = None;
         g.pushed = Some(slot);
         true
@@ -526,33 +549,341 @@ impl Sim {
     /// opens with: alive, and still pointing at this slot. A unit that has
     /// joined an army since it was pushed points at the army's slot
     /// (`Unit::set_group@00605220` writes `+0x80` and leaves the old list
-    /// alone), so it no longer counts for the slot it left.
+    /// alone), so it no longer counts for the slot it left — and since
+    /// item 557 the test is the pointer itself ([`Unit::group_ptr`]), for
+    /// an army's list as for a pushed one.
     fn pool_members(&self, who: Player, s: u8) -> Vec<usize> {
+        let live = |l: &[usize]| -> Vec<usize> {
+            l.iter()
+                .copied()
+                .filter(|&u| self.units[u].alive() && self.units[u].group_ptr == Some(s))
+                .collect()
+        };
         let w = who as usize;
-        if let Some(a) = self.armies[w]
+        self.armies[w]
             .list
             .iter()
-            .find(|a| a.group.pool == Some(s) && a.units.iter().any(|&u| self.units[u].alive()))
-        {
-            return a
-                .units
-                .iter()
-                .copied()
-                .filter(|&u| self.units[u].alive())
-                .collect();
-        }
-        self.pushed
-            .iter()
-            .filter(|p| p.who == who && p.state.pool == Some(s))
-            .map(|p| {
-                p.list
+            .filter(|a| a.valid && a.group.pool == Some(s))
+            .map(|a| live(&a.units))
+            .chain(
+                self.pushed
                     .iter()
-                    .copied()
-                    .filter(|&u| self.units[u].alive() && self.army_of(u).is_none())
-                    .collect::<Vec<_>>()
-            })
+                    .filter(|p| p.who == who && p.state.pool == Some(s))
+                    .map(|p| live(&p.list)),
+            )
             .find(|l| !l.is_empty())
             .unwrap_or_default()
+    }
+
+    /// The seat `u`'s back-pointer names — what the original reaches as
+    /// `groups[unit->+0x80]`, and so what every reader of a unit's group
+    /// asks (§23).
+    ///
+    /// The original has one record per pool index; this crate keeps an
+    /// army's record on the army and a pushed one in [`Sim::pushed`], and
+    /// may hold a stale seat beside a live one on the same index. So the
+    /// seat that **lists** `u` is preferred, army first; a unit its own
+    /// seat does not list — `1/62` and `1/63` on Great Lakes between
+    /// 11424 and 11512 — is answered by the seat on that index that still
+    /// has a live member, which is the one the original's record is.
+    pub(crate) fn seat_of(&self, u: usize) -> Option<Seat> {
+        let s = self.units[u].group_ptr?;
+        let who = self.units[u].owner;
+        let w = who as usize;
+        let armies = || {
+            self.armies
+                .get(w)
+                .into_iter()
+                .flat_map(|x| x.list.iter().enumerate())
+                .filter(|(_, a)| a.valid && a.group.pool == Some(s))
+        };
+        let pushed = || {
+            self.pushed
+                .iter()
+                .enumerate()
+                .filter(|(_, p)| p.who == who && p.state.pool == Some(s))
+        };
+        if let Some((a, _)) = armies().find(|(_, a)| a.units.contains(&u)) {
+            return Some(Seat::Army(who, a));
+        }
+        if let Some((i, _)) = pushed().find(|(_, p)| p.list.contains(&u)) {
+            return Some(Seat::Pushed(i));
+        }
+        let live = |l: &[usize]| l.iter().any(|&m| self.units[m].alive());
+        if let Some((a, _)) = armies().find(|(_, a)| live(&a.units)) {
+            return Some(Seat::Army(who, a));
+        }
+        pushed()
+            .find(|(_, p)| live(&p.list))
+            .map(|(i, _)| Seat::Pushed(i))
+    }
+
+    // ------------------------------------------------------------------
+    // A seated group's own list, as `Group::add`/`kill`/`normalize`/`sort`
+    // leave it (§4, §23)
+    // ------------------------------------------------------------------
+
+    /// The seat a [`Group`] value was built from, if it has one.
+    pub(crate) fn seat_of_group(g: &Group) -> Option<Seat> {
+        match (g.army, g.pushed) {
+            (Some(a), _) => Some(Seat::Army(g.who, a)),
+            (None, Some(i)) => Some(Seat::Pushed(i)),
+            (None, None) => None,
+        }
+    }
+
+    fn seat_list(&self, seat: Seat) -> &Vec<usize> {
+        match seat {
+            Seat::Army(w, a) => &self.armies[w as usize].list[a].units,
+            Seat::Pushed(i) => &self.pushed[i].list,
+        }
+    }
+
+    fn seat_who(&self, seat: Seat) -> Player {
+        match seat {
+            Seat::Army(w, _) => w,
+            Seat::Pushed(i) => self.pushed[i].who,
+        }
+    }
+
+    fn seat_parts(&mut self, seat: Seat) -> (&mut Vec<usize>, &mut GroupState) {
+        match seat {
+            Seat::Army(w, a) => {
+                let x = &mut self.armies[w as usize].list[a];
+                (&mut x.units, &mut x.group)
+            }
+            Seat::Pushed(i) => {
+                let x = &mut self.pushed[i];
+                (&mut x.list, &mut x.state)
+            }
+        }
+    }
+
+    /// The seat as a [`Group`] value, for the queries that take one.
+    fn seat_group(&self, seat: Seat) -> Group {
+        let who = self.seat_who(seat);
+        match seat {
+            Seat::Army(_, a) => self.army_group(who, a),
+            Seat::Pushed(i) => Group {
+                who,
+                army: None,
+                pushed: Some(i),
+                list: self.pushed[i].list.clone(),
+            },
+        }
+    }
+
+    /// Drop list index `i` and the per-member arrays' entry with it — the
+    /// shift `Group::kill` and `normalize` both do over all five arrays.
+    fn seat_remove_at(list: &mut Vec<usize>, st: &mut GroupState, i: usize) {
+        list.remove(i);
+        if i < st.off.len() {
+            st.off.remove(i);
+        }
+        if i < st.curr.len() {
+            st.curr.remove(i);
+        }
+        if i < st.angles.len() {
+            st.angles.remove(i);
+        }
+    }
+
+    /// `speed = new_speed = UnitData::speed(find_leader)`, or 0 — the tail
+    /// `compute_speed`, `kill` and `normalize` share (§18.1).
+    fn seat_set_speed(&mut self, seat: Seat) {
+        let g = self.seat_group(seat);
+        let v = self.group_compute_speed(&g);
+        let (_, st) = self.seat_parts(seat);
+        st.speed = v;
+        st.new_speed = v;
+    }
+
+    /// `Group::normalize@00711540` on a seated group (§4.3): last to first,
+    /// drop a member that is dead or whose `+0x80` does not name this slot
+    /// (`priority` is 0 and `id >= 0` for every seat here), then the speed
+    /// tail.
+    pub(crate) fn seat_normalize(&mut self, seat: Seat) {
+        let (list, st) = self.seat_parts(seat);
+        let pool = st.pool;
+        let list = list.clone();
+        for i in (0..list.len()).rev() {
+            let u = list[i];
+            if !self.units[u].alive() || self.units[u].group_ptr != pool {
+                let (l, st) = self.seat_parts(seat);
+                Self::seat_remove_at(l, st, i);
+            }
+        }
+        self.seat_set_speed(seat);
+    }
+
+    /// `Group::get_num` (vslot `+0x4`): with **fewer than four** members
+    /// and an `id`, it is `normalize` whole; otherwise only the inactive
+    /// are dropped. It is the first thing `Group::add` does, which is why
+    /// a squad joining a small group can lose its own head (§23).
+    fn seat_get_num(&mut self, seat: Seat) -> usize {
+        if self.seat_list(seat).len() < 4 {
+            self.seat_normalize(seat);
+        } else {
+            let list = self.seat_list(seat).clone();
+            for i in (0..list.len()).rev() {
+                if !self.units[list[i]].alive() {
+                    let (l, st) = self.seat_parts(seat);
+                    Self::seat_remove_at(l, st, i);
+                }
+            }
+        }
+        self.seat_list(seat).len()
+    }
+
+    /// `Group::add(o, who, keep_captain, const)@00714350` on a seated group,
+    /// whole (§4.1, §23). Unlike [`Sim::group_add_keeping`], which builds a
+    /// stack group (`id −1`, never normalized), every step here opens with
+    /// `get_num` unless `konst` — so a figure whose `+0x80` does not name
+    /// this group is dropped by the very recursion that adds the next one.
+    /// It writes no back-pointer.
+    pub(crate) fn seat_add(&mut self, seat: Seat, o: usize, keep_captain: bool, konst: bool) {
+        if !konst {
+            self.seat_get_num(seat);
+        }
+        if !self.units[o].alive() {
+            return;
+        }
+        if !keep_captain && !self.units[o].captain {
+            // The tail call: `add(unit +0x8e, who, 0, const)`.
+            if let Some(up) = self.units[o].o_up {
+                self.seat_add(seat, up, false, konst);
+            }
+            return;
+        }
+        if keep_captain && self.units[o].captain {
+            self.seat_kill(seat, o, false, false);
+        }
+        let frame = self.frame;
+        let (list, st) = self.seat_parts(seat);
+        if list.contains(&o) || list.len() >= 128 {
+            return;
+        }
+        // The four offset arrays and the angle byte are zeroed at the new
+        // index — where the arrays reach it.
+        let n = list.len();
+        if st.off.len() == n {
+            st.off.push((0, 0));
+        }
+        if st.curr.len() == n {
+            st.curr.push(Pos::new(0, 0));
+        }
+        if st.angles.len() == n {
+            st.angles.push(0);
+        }
+        list.push(o);
+        st.stamp = frame;
+        if let Some(d) = self.units[o].o_down
+            && self.units[d].alive()
+        {
+            self.seat_add(seat, d, true, konst);
+        }
+        self.seat_set_speed(seat);
+    }
+
+    /// `Group::kill(o, who, keep_captain, const)@00714110` on a seated group
+    /// (§4.2): a non-captain kills its captain instead and returns; a
+    /// captain's subordinate goes first; then `o` leaves the list, and its
+    /// `+0x80` is cleared **only if it names this group**.
+    pub(crate) fn seat_kill(&mut self, seat: Seat, o: usize, keep_captain: bool, konst: bool) {
+        if !keep_captain && !self.units[o].captain {
+            if let Some(up) = self.units[o].o_up {
+                self.seat_kill(seat, up, false, konst);
+            }
+            return;
+        }
+        if let Some(d) = self.units[o].o_down
+            && (konst || self.units[d].alive())
+        {
+            self.seat_kill(seat, d, true, konst);
+        }
+        let frame = self.frame;
+        let (list, st) = self.seat_parts(seat);
+        let Some(i) = list.iter().position(|&m| m == o) else {
+            return;
+        };
+        let pool = st.pool;
+        Self::seat_remove_at(list, st, i);
+        st.stamp = frame;
+        if self.units[o].group_ptr == pool {
+            self.units[o].group_ptr = None;
+        }
+        self.seat_set_speed(seat);
+    }
+
+    /// `Group::sort@00708090` — `Form::categorize`'s first statement, so it
+    /// runs on every formation a seated group lays out (§4.1, §23).
+    ///
+    /// Walk the list keeping the last captain seen; a follower whose own
+    /// top captain (`UnitData::get_captain`, up `o_up` to the root) is not
+    /// that one — or that comes before any captain — is `kill`ed (which
+    /// takes its whole squad out, clearing each `+0x80` that names this
+    /// group), the group is `normalize`d, and the follower is re-`add`ed
+    /// with `const = 1`, which brings the squad back whole at the end of
+    /// the list **and writes no pointer**. Repeat until a pass is clean.
+    ///
+    /// On Great Lakes 11512 this is the whole of `1/64`'s exit: the army's
+    /// list holds `1/64` without its captain (§23), the sort kills and
+    /// re-adds the squad, and `1/64` comes back listed and naming nothing.
+    ///
+    /// The original loops until clean; a re-add the list refuses would
+    /// loop it forever, so this stops after 256 passes, twice the most a
+    /// list can hold.
+    pub(crate) fn seat_sort(&mut self, seat: Seat) {
+        for _ in 0..256 {
+            let list = self.seat_list(seat).clone();
+            let mut last: Option<usize> = None;
+            let mut bad = None;
+            for &m in &list {
+                if self.units[m].captain {
+                    last = Some(m);
+                    continue;
+                }
+                match last {
+                    Some(l) if self.top_captain(m) == l => {}
+                    _ => {
+                        bad = Some(m);
+                        break;
+                    }
+                }
+            }
+            let Some(m) = bad else { return };
+            self.seat_kill(seat, m, false, false);
+            self.seat_normalize(seat);
+            self.seat_add(seat, m, false, true);
+        }
+    }
+
+    /// `UnitData::get_captain` (vslot `+0xe4`): up `o_up` (`+0x8e`) to the
+    /// figure that has none.
+    pub(crate) fn top_captain(&self, u: usize) -> usize {
+        let mut f = u;
+        for _ in 0..self.units.len() {
+            match self.units[f].o_up {
+                Some(up) => f = up,
+                None => break,
+            }
+        }
+        f
+    }
+
+    /// `Unit::set_group(unit, g, 0)@00605220`: up the squad chain to its
+    /// captain, then `+0x80 = g` on the captain and every **active**
+    /// figure down its `o_down` chain. `Army::add_unit`'s last act, and
+    /// the only writer that points a unit **at** an army's group.
+    pub(crate) fn set_group(&mut self, u: usize, s: Option<u8>) {
+        let mut f = self.top_captain(u);
+        loop {
+            self.units[f].group_ptr = s;
+            match self.units[f].o_down {
+                Some(d) if self.units[d].alive() => f = d,
+                _ => return,
+            }
+        }
     }
 
     /// The slot `Groups::push_group@0070f9e0` hands a group of `who`, and
@@ -577,9 +908,20 @@ impl Sim {
         let s = if !list.is_empty() && self.pool_members(who, last) == list {
             last
         } else {
-            (0..46u8)
+            let s = (0..46u8)
                 .find(|&s| s != last && self.pool_members(who, s).is_empty())
-                .unwrap_or(45)
+                .unwrap_or(45);
+            // `get_open_slot`'s tail (§3.1): every unit of `who` whose
+            // `+0x80` names the slot is cleared before the new group moves
+            // in. A slot is chosen because nothing live both lists and
+            // names it, so what this reaches is a pointer its list
+            // dropped — the stale half §23 is about.
+            for x in &mut self.units {
+                if x.owner == who && x.group_ptr == Some(s) {
+                    x.group_ptr = None;
+                }
+            }
+            s
         };
         self.last_group[w] = s;
         s
@@ -589,15 +931,34 @@ impl Sim {
     /// or −1 for a unit in no group. For a probe and the diff harness.
     pub fn pool_group_of(&self, u: usize) -> i64 {
         let who = i64::from(self.units[u].owner);
-        let s = match self.army_of(u) {
-            Some(a) => self.armies[self.units[u].owner as usize].list[a].group.pool,
-            None => self
-                .pushed
+        self.units[u]
+            .group_ptr
+            .map_or(-1, |s| who * 64 + i64::from(s))
+    }
+
+    /// The member list of the seat on `who`'s pool slot `s`, as object
+    /// numbers in list order — what the dump's `GROUPDATA` prints under
+    /// `id who·64 + s`. Empty for a slot nothing holds. For the diff
+    /// harness; nothing in the simulation calls it.
+    pub fn pool_list(&self, who: Player, s: u8) -> Vec<i16> {
+        let w = who as usize;
+        let army = self
+            .armies
+            .get(w)
+            .into_iter()
+            .flat_map(|x| x.list.iter())
+            .find(|a| a.valid && a.group.pool == Some(s))
+            .map(|a| a.units.clone());
+        let list = army.or_else(|| {
+            self.pushed
                 .iter()
-                .find(|p| p.list.contains(&u))
-                .and_then(|p| p.state.pool),
-        };
-        s.map_or(-1, |s| who * 64 + i64::from(s))
+                .find(|p| p.who == who && p.state.pool == Some(s) && !p.list.is_empty())
+                .map(|p| p.list.clone())
+        });
+        list.unwrap_or_default()
+            .into_iter()
+            .map(|u| self.units[u].index)
+            .collect()
     }
 
     /// `Groups::process@006fa210` — once a frame, from
@@ -615,11 +976,10 @@ impl Sim {
     /// slow squad's 25 from frame 10241 because 10241 is `65 mod 64`'s
     /// frame, with nobody in the group able to report.
     ///
-    /// SEAM: the prune is applied to a pushed seat's list only. An army's
-    /// member list is also its membership here (`docs/ARMY.md` §3.2), and
-    /// [`Sim::army_normalize`] is what drops its dead; the leader is chosen
-    /// among live members either way. `find_role` is not modelled — no
-    /// consumer of `GroupData::role` is.
+    /// The prune is the back-pointer's (§23): a member is kept while it is
+    /// alive and its `+0x80` names this slot, on an army's list and a
+    /// pushed one alike. `find_role` is not modelled — no consumer of
+    /// `GroupData::role` is.
     pub(crate) fn groups_process(&mut self, frame: i64) {
         let s = u8::try_from(frame.rem_euclid(64)).expect("under 64");
         for w in 0..self.armies.len() {
@@ -628,6 +988,17 @@ impl Sim {
                 if self.armies[w].list[a].group.pool != Some(s) {
                     continue;
                 }
+                // `normalize`'s prune, on the army's list too (§23): a
+                // member whose `+0x80` no longer names this slot is
+                // dropped. The army's own counts are `Army::normalize`'s
+                // and wait for it.
+                let keep: Vec<usize> = self.armies[w].list[a]
+                    .units
+                    .iter()
+                    .copied()
+                    .filter(|&u| self.units[u].alive() && self.units[u].group_ptr == Some(s))
+                    .collect();
+                self.armies[w].list[a].units = keep;
                 let g = self.army_group(who, a);
                 let v = self.group_compute_speed(&g);
                 let st = &mut self.armies[w].list[a].group;
@@ -642,7 +1013,7 @@ impl Sim {
                     .list
                     .iter()
                     .copied()
-                    .filter(|&u| self.units[u].alive() && self.army_of(u).is_none())
+                    .filter(|&u| self.units[u].alive() && self.units[u].group_ptr == Some(s))
                     .collect();
                 self.pushed[i].list = keep;
                 let g = crate::group::Group {
@@ -765,15 +1136,11 @@ impl Sim {
     /// Written without building a [`Group`], because this runs once per
     /// moving unit per frame and [`Sim::group_of`] clones the list.
     pub(crate) fn group_speed_of(&self, u: usize) -> i32 {
-        if let Some(slot) = self.army_of(u) {
-            return self.armies[self.units[u].owner as usize].list[slot]
-                .group
-                .speed;
+        match self.seat_of(u) {
+            Some(Seat::Army(w, a)) => self.armies[w as usize].list[a].group.speed,
+            Some(Seat::Pushed(i)) => self.pushed[i].state.speed,
+            None => 0,
         }
-        self.pushed
-            .iter()
-            .find(|x| x.list.contains(&u))
-            .map_or(0, |x| x.state.speed)
     }
 
     /// The cap and its accumulator — `GroupData::speed` and `new_speed` —
@@ -781,9 +1148,9 @@ impl Sim {
     /// `None` for a unit with no seat. Read-only; nothing in the
     /// simulation calls it.
     pub fn group_speed_pair_of(&self, u: usize) -> Option<(i32, i32)> {
-        let st = match self.army_of(u) {
-            Some(slot) => &self.armies[self.units[u].owner as usize].list[slot].group,
-            None => &self.pushed.iter().find(|x| x.list.contains(&u))?.state,
+        let st = match self.seat_of(u)? {
+            Seat::Army(w, a) => &self.armies[w as usize].list[a].group,
+            Seat::Pushed(i) => &self.pushed[i].state,
         };
         Some((st.speed, st.new_speed))
     }
@@ -1378,40 +1745,35 @@ impl Sim {
         // second reading sees state the first has already wiped, which is
         // why a shooting siege unit that was cleared falls through and
         // takes the move like everyone else.
-        let plan: Vec<Member> = g
-            .list
-            .iter()
-            .map(|&u| {
-                if !self.group_member_orderable(u) {
-                    return Member::Skip;
+        let decide = |this: &Sim, u: usize| -> Member {
+            if !this.group_member_orderable(u) {
+                return Member::Skip;
+            }
+            if !ai {
+                return Member::Move;
+            }
+            let shooting_siege = this.is_siege_unit(u) && this.order_type(u) == index::ATTACK;
+            match hurry_city {
+                Some(c)
+                    if this.is_siege_unit(u) || this.is_supply_unit(u) || this.is_hero_unit(u) =>
+                {
+                    Member::Stable(c)
                 }
-                if !ai {
-                    return Member::Move;
-                }
-                let shooting_siege = self.is_siege_unit(u) && self.order_type(u) == index::ATTACK;
-                match hurry_city {
-                    Some(c)
-                        if self.is_siege_unit(u)
-                            || self.is_supply_unit(u)
-                            || self.is_hero_unit(u) =>
-                    {
-                        Member::Stable(c)
-                    }
-                    // The `QUEUE_NEW` clear at `70524f` gates on `hurry`
-                    // **alone**; the order loop at `7054c7` on `hurry && a
-                    // city was found`. So a siege unit that is already
-                    // shooting is left entirely alone by a move that is not
-                    // hurrying. A hurrying army that found no friendly city
-                    // clears its orders — and the order loop then re-reads
-                    // `order_type()`, which `Unit::close_orders` has left at
-                    // `NONE`, so the unit falls through and takes the move
-                    // like every other member. Only `QUEUE_NEW` clears; any
-                    // other queue position leaves it shooting and skipped.
-                    _ if shooting_siege && !(hurry && queue == QueuePos::New) => Member::Skip,
-                    _ => Member::Move,
-                }
-            })
-            .collect();
+                // The `QUEUE_NEW` clear at `70524f` gates on `hurry`
+                // **alone**; the order loop at `7054c7` on `hurry && a
+                // city was found`. So a siege unit that is already
+                // shooting is left entirely alone by a move that is not
+                // hurrying. A hurrying army that found no friendly city
+                // clears its orders — and the order loop then re-reads
+                // `order_type()`, which `Unit::close_orders` has left at
+                // `NONE`, so the unit falls through and takes the move
+                // like every other member. Only `QUEUE_NEW` clears; any
+                // other queue position leaves it shooting and skipped.
+                _ if shooting_siege && !(hurry && queue == QueuePos::New) => Member::Skip,
+                _ => Member::Move,
+            }
+        };
+        let plan: Vec<Member> = g.list.iter().map(|&u| decide(self, u)).collect();
 
         // §6.6's `QUEUE_NEW` clear, and **it runs before the layout**: the
         // loop at `70524f` clears every member's orders, and its
@@ -1438,6 +1800,31 @@ impl Sim {
         // `facing 1` and mirrors (§6.3, §12.3).
         let facing = self.group_facing(g);
         let reverse = facing != self.group_leader_faces_away(g, angle);
+        // `Form::compute` → `Form::categorize`, whose first statement is
+        // `Group::sort@00708090` (§4.1, §23) — after the clear and the
+        // mirror above, before the layout and the order loop, which
+        // therefore walk the **sorted** list. A member the sort brought in
+        // was not in the list the clear walked, so it is decided now, as
+        // the order loop's own second reading would.
+        let resorted = Self::seat_of_group(g).and_then(|seat| {
+            let before = self.seat_list(seat).clone();
+            self.seat_sort(seat);
+            (*self.seat_list(seat) != before).then(|| self.seat_group(seat))
+        });
+        let (g, plan) = match &resorted {
+            Some(ng) => {
+                let p: Vec<Member> = ng
+                    .list
+                    .iter()
+                    .map(|&u| match g.list.iter().position(|&m| m == u) {
+                        Some(i) => plan[i],
+                        None => decide(self, u),
+                    })
+                    .collect();
+                (ng, p)
+            }
+            None => (g, plan),
+        };
         let mut slots = self.form_compute(
             g,
             to,
@@ -1995,16 +2382,15 @@ impl Sim {
     /// `unit +0x80` read straight into the pool.
     ///
     /// Two seats hold a group here: an army's (`docs/ARMY.md` §3.2) and a
-    /// [`Pushed`] slot. They are exclusive by construction — `push_group`
-    /// takes its members out of the army and out of every other slot — so
-    /// the order they are asked in only decides which answer a bug would
-    /// give, not which one is right.
+    /// [`Pushed`] slot, and the pointer ([`Unit::group_ptr`]) names one of
+    /// them through [`Sim::seat_of`]. Until item 557 this asked the lists,
+    /// which cannot tell a unit its group has dropped from one it never
+    /// left (§23).
     pub(crate) fn group_of(&self, u: usize) -> Option<Group> {
-        if let Some(s) = self.army_of(u) {
-            return Some(self.army_group(self.units[u].owner, s));
+        match self.seat_of(u)? {
+            Seat::Army(w, a) => Some(self.army_group(w, a)),
+            Seat::Pushed(i) => self.pushed_group_at(i),
         }
-        let at = self.pushed.iter().position(|x| x.list.contains(&u))?;
-        self.pushed_group_at(at)
     }
 
     /// Is this unit the leader of its own group?
@@ -3195,6 +3581,90 @@ mod tests {
             m.waypoint, m.dest,
             "and it is not the destination the order carries"
         );
+    }
+
+    /// A squad `cap → mid → tail` whose back-pointers name a pushed slot,
+    /// joining an army already holding `a` and `b`: Great Lakes 11424's
+    /// shape (`docs/GROUPS.md` §23).
+    fn a_squad_joins_a_small_army() -> (Sim, usize, [usize; 5]) {
+        let mut s = sim();
+        let t = fighter(&mut s);
+        let a = spawn(&mut s, 1, t, Pos::new(0x1000, 0x1000));
+        let b = spawn(&mut s, 1, t, Pos::new(0x1100, 0x1000));
+        let cap = spawn(&mut s, 1, t, Pos::new(0x2000, 0x2000));
+        let mid = spawn(&mut s, 1, t, Pos::new(0x2030, 0x2000));
+        let tail = spawn(&mut s, 1, t, Pos::new(0x2060, 0x2000));
+        for (f, up) in [(mid, cap), (tail, mid)] {
+            s.units[f].captain = false;
+            s.units[f].o_up = Some(up);
+            s.units[up].o_down = Some(f);
+        }
+        let slot = s.init_army(1, None);
+        s.army_add_unit(1, slot, a);
+        s.army_add_unit(1, slot, b);
+        // The squad's `come_out` group: its own slot, which is what its
+        // three pointers name when the army's `Group::add` walks them.
+        let mut g = Group::stack(1);
+        s.group_add(&mut g, cap);
+        assert!(s.push_group(&mut g, true));
+        s.army_add_unit(1, slot, tail);
+        (s, slot, [a, b, cap, mid, tail])
+    }
+
+    /// **`Group::add` normalizes a small group at every step**, so the
+    /// squad's head and middle are dropped by the recursion that adds the
+    /// figure after them, and only the tail is left listed — while
+    /// `Unit::set_group` points all three at the army (`docs/GROUPS.md`
+    /// §23, `Group::get_num`'s `num < 4` arm). Made to fail on purpose by
+    /// skipping the per-step `get_num`: the list is then the whole squad.
+    #[test]
+    fn a_squad_joining_a_small_seated_group_is_listed_by_its_tail_alone() {
+        let (s, slot, [a, b, cap, mid, tail]) = a_squad_joins_a_small_army();
+        assert_eq!(s.armies[1].list[slot].units, vec![a, b, tail]);
+        let pool = s.armies[1].list[slot].group.pool;
+        for u in [cap, mid, tail] {
+            assert_eq!(
+                s.units[u].group_ptr, pool,
+                "set_group points the squad at the army"
+            );
+        }
+        assert_eq!(s.army_of(tail), Some(slot));
+        assert_eq!(
+            s.army_of(cap),
+            None,
+            "named but not listed: `Object::get_army` answers no army"
+        );
+    }
+
+    /// **`Group::sort` kills a stray follower and re-adds its squad whole**,
+    /// at the end of the list and naming nothing: the kill clears the
+    /// pointer that names this group, and the `const` re-add writes none.
+    /// The tail is then listed with no group, and its first
+    /// `do_group_move` ungroups it (`docs/GROUPS.md` §23). Made to fail on
+    /// purpose by skipping the sort.
+    #[test]
+    fn the_sort_re_seats_a_stray_follower_s_squad_and_clears_its_pointer() {
+        let (mut s, slot, [a, b, cap, mid, tail]) = a_squad_joins_a_small_army();
+        let pool = s.armies[1].list[slot].group.pool;
+        let g = s.army_group(1, slot);
+        s.group_action_move_to(
+            &g,
+            Pos::new(0x4000, 0x4000),
+            QueuePos::New,
+            true,
+            Angle(0),
+            MoveKind::MoveTo,
+            true,
+        );
+        assert_eq!(s.armies[1].list[slot].units, vec![a, b, cap, mid, tail]);
+        assert_eq!(s.units[tail].group_ptr, None, "the kill cleared it");
+        assert_eq!(s.units[cap].group_ptr, pool, "the re-add wrote nothing");
+        assert_eq!(s.units[mid].group_ptr, pool);
+        assert_eq!(s.army_of(tail), None);
+        // And the army's own normalize then drops it, as the pool's
+        // per-frame pass does on the slot's frame.
+        s.army_normalize(1, slot);
+        assert_eq!(s.armies[1].list[slot].units, vec![a, b, cap, mid]);
     }
 
     /// `ungroup_move_order` walks **up to the captain and back down every

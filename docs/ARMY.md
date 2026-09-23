@@ -195,6 +195,14 @@ by one. Then `Unit::set_group(unit, group, 0)`. So an army is normally
 **one group** with everything in it; a second group only ever arrives
 through `add_group` from outside, and §3.3 keeps the biggest first.
 
+**"Everything" is not every figure** (item 557, `docs/GROUPS.md` §23).
+`Group::add` opens each step with `get_num`, which normalizes a group of
+fewer than four, so a squad whose pointers still name its `come_out`
+group joins a small army as its **tail alone**. `set_group` then points
+the whole squad at the army anyway. `Army::member`, which is this
+function's own guard, reads the **list**; `Object::get_army` needs both
+the pointer and the list.
+
 ### 3.3 The counts — `Army::normalize@006f9b50`
 
 Zero `role`, `num_units`, `num_captains`, `num_standard`, `num_decoys`.

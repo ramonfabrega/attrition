@@ -323,11 +323,19 @@ impl Sim {
     /// decoys and no anti-air yet.
     pub fn army_normalize(&mut self, who: Player, slot: usize) {
         let w = who as usize;
+        // `Group::normalize` on the group first (§3.3): the dead, and a
+        // member whose `+0x80` no longer names the group (`docs/GROUPS.md`
+        // §23) — `1/64` once the sort of 11512 has cleared it.
+        let pool = self.armies[w].list[slot].group.pool;
         let units: Vec<usize> = self.armies[w].list[slot]
             .units
             .iter()
             .copied()
-            .filter(|&u| u < self.units.len() && self.units[u].alive())
+            .filter(|&u| {
+                u < self.units.len()
+                    && self.units[u].alive()
+                    && (pool.is_none() || self.units[u].group_ptr == pool)
+            })
             .collect();
         let mut captains = 0;
         let mut casters = 0;
@@ -356,50 +364,67 @@ impl Sim {
         a.num_standard = captains - casters - supply;
     }
 
-    /// `Army::add_unit` (§3.2): into the one group, if not already there.
+    /// `Army::add_unit(o)@006f9f40` (§3.2): into the one group, if not
+    /// already there, and then `Unit::set_group(unit, group, 0)`.
     ///
-    /// **A squad joins whole.** `add_unit` is `Group::add(o, who, 0, 0)`
-    /// followed by `Unit::set_group(unit, group, 0)`, and both walk the
-    /// figure chain: `Group::add` replaces a non-captain by its captain and
-    /// then recurses down `o_down` (`docs/GROUPS.md` §4.1), and
-    /// `set_group@00605220` writes `+0x80` down the same chain. So the
-    /// group's member list holds `captain, o_down, …` and every figure's
-    /// `Object::get_army` answers at once — which is what keeps a squad's
-    /// second and third figures out of [`Sim::add_to_army`] on the frame
-    /// their captain joins (§4.3).
+    /// **An army with no live group pushes one**: the unit is `Group::add`ed
+    /// to a fresh group on the stack — `id −1`, so nothing normalizes and
+    /// the whole squad comes in, `captain, o_down, …` — and
+    /// `push_group(who, it, 1)` gives it a pool slot like any other
+    /// (`docs/GROUPS.md` §19).
+    ///
+    /// **Otherwise the squad joins through the seated group's own
+    /// `Group::add`**, and that is not the same thing (`docs/GROUPS.md`
+    /// §23). `add(o, who, 0, 0)` climbs to the captain and walks down
+    /// `o_down`, but each step opens with `get_num`, which **normalizes a
+    /// group of fewer than four** — and a figure whose `+0x80` still names
+    /// the group it came out in is dropped by the step that adds the next.
+    /// Great Lakes' `1/62`–`1/64` join army 2's `{1/60, 1/61}` on 11424
+    /// from their `come_out` group 69, and the list that results is
+    /// `{1/60, 1/61, 1/64}`: `set_group` then points all three at 66. The
+    /// counts move as the original's do, `num_units` by the list's change
+    /// and `num_captains` by one.
     pub fn army_add_unit(&mut self, who: Player, slot: usize, u: usize) {
         if !self.units[u].alive() {
             return;
         }
-        let cap = self.captain_of(u);
-        // `captain, o_down, …` is the order `Group::add`'s recursion
-        // leaves; [`Sim::squad_of`] answers in object order, which is the
-        // same for a squad born together and not guaranteed to be.
-        let mut chain = self.squad_of(cap);
-        chain.sort_by_key(|&f| (f != cap, f));
-        // **An army with no live group pushes one** (`006f9f40`: no group,
-        // or `list[0]`'s id −1 — which `Group::kill` leaves on a group it
-        // empties): `push_group(who, the squad, 1)`, so the army's group
-        // takes a pool slot like any other (`docs/GROUPS.md` §19).
         let w = who as usize;
+        // `Army::member(o, who)@006f8de0` — the **list**, not the pointer.
+        if self.armies[w].list[slot].units.contains(&u) {
+            return;
+        }
         let live = self.armies[w].list[slot]
             .units
             .iter()
             .any(|&m| self.units[m].alive());
-        if self.armies[w].list[slot].group.pool.is_none() || !live {
+        let pool = if self.armies[w].list[slot].group.pool.is_none() || !live {
+            // The stack group's `Group::add`: `captain, o_down, …`.
+            let mut g = crate::group::Group::stack(who);
+            self.group_add(&mut g, u);
+            let chain = g.list;
             let s = self.pool_slot_for(who, &chain);
             self.armies[w].list[slot].group.pool = Some(s);
-        }
-        for f in chain {
-            let captain = self.is_captain(f);
-            let a = &mut self.armies[who as usize].list[slot];
-            if a.units.contains(&f) {
-                continue;
+            for f in chain {
+                let captain = self.is_captain(f);
+                let a = &mut self.armies[w].list[slot];
+                if a.units.contains(&f) {
+                    continue;
+                }
+                a.units.push(f);
+                a.num_units += 1;
+                a.num_captains += i32::from(captain);
             }
-            a.units.push(f);
-            a.num_units += 1;
-            a.num_captains += i32::from(captain);
-        }
+            s
+        } else {
+            let seat = crate::group::Seat::Army(who, slot);
+            let before = self.armies[w].list[slot].units.len() as i32;
+            self.seat_add(seat, u, false, false);
+            let a = &mut self.armies[w].list[slot];
+            a.num_units += a.units.len() as i32 - before;
+            a.num_captains += 1;
+            a.group.pool.expect("a live group has a slot")
+        };
+        self.set_group(u, Some(pool));
     }
 
     /// `ArmyData::get_unit(k)@006f9df0`: the `k`-th member of the army's
@@ -414,12 +439,18 @@ impl Sim {
     }
 
     /// `Object::get_army`: the army holding this unit, if any.
+    ///
+    /// `Object::get_army@00649d70`: the group the unit's `+0x80` names must
+    /// **list** it, and that group must be an army's. A unit its army's
+    /// list holds but whose pointer names nothing — Great Lakes' `1/64`
+    /// after 11512 — is in no army (`docs/GROUPS.md` §23).
     pub fn army_of(&self, u: usize) -> Option<usize> {
+        let s = self.units[u].group_ptr?;
         let who = self.units[u].owner as usize;
         self.armies
             .get(who)?
             .valid()
-            .find(|(_, a)| a.units.contains(&u))
+            .find(|(_, a)| a.group.pool == Some(s) && a.units.contains(&u))
             .map(|(s, _)| s)
     }
 
