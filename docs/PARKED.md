@@ -22,6 +22,14 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Parked by item 327, 2026-09-22 — the second writer
+
+(534) **`compute_reg_territory` is a second writer of `reg_known_rares`**,
+and this crate's zero there is `docs/AI.md` §55.3's lag: it accounts for
+run91's one `known_rares` row (two `MAKE[0]` rows traded for it) and
+names no score. Promote it when a word's widening lands on a
+`known_rares` row.
+
 ## Parked by item 445, 2026-09-22 — chapter one's widening floor
 
 (531) **Arm C of `resolve_unit_collision`'s enemy ladder**
@@ -1353,17 +1361,6 @@ own `active_wars`, not the human's, so what this would move is the human
 leader's own production, and whether that lands on any word's frame is
 unmeasured. The three fields are already pinned in `PARTS_ON_RUN115`, so
 a successor has standing rows to move rather than a hypothesis.
-
-(450) **The Merchant offer on Great Lakes 9380 is the original's and not
-ours.** Item 442 matched both Scholar offers to the unit and the Citizen
-exactly (`docs/AI.md` §53, `§52.2`'s table), leaving one row unaccounted:
-the original offers `t61` Merchant at 869,565 in city 0 and this crate
-offers nothing there. Parks rather than books because 442 moved the word
-to **10161**, 781 frames past this frame — so the row names no score. It
-becomes an item again only if the widening of the new word (448) reaches
-back to a Merchant, or if a later word lands near 9380 again. The value
-diff is on file and the city index is now confirmed by value rather than
-assumed, so re-measuring it costs one run of 442's own test.
 
 (371) **`market_speculation`'s two passes fire nowhere below the word.**
 Read whole by item 362, both arms' predicates recorded in

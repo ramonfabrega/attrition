@@ -2281,7 +2281,7 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         "LONG_WORD_GREAT_LAKES",
         LONG_WORD_GREAT_LAKES,
         None,
-        327,
+        533,
         None,
     ),
     // Item 445 paid the widening chapter one had never had: the word

@@ -36,12 +36,12 @@ chapter two **683 → 725** — both headline words moved.*
 - **Fable backlog: 10 Loop items** (313, 503, 507, 508, 509, 513, 517, 526, 527, 528).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w9711 of 24,000 · GreatLakes w11185 of 24,000
+Long captures: EastIndies w9711 of 24,000 · GreatLakes w11531 of 24,000
 Golden: w774 of 901 (ch1) · ch2 w900 · 530 next
-Endpoint 24001: EastIndies 62 off, 10 unlinked · GreatLakes 57 off, 4 unlinked
+Endpoint 24001: EastIndies 64 off, 9 unlinked · GreatLakes 50 off, 1 unlinked
 
-**Opener: an Opus 5.5 commander is live; 327 in flight on att-327, 530
-next on the rules track. Workers spawn with `claude-opus-5-5[1m]`.**
+**Opener: an Opus 5.5 commander is live; 530 in flight on att-530, 533
+next on the AI track. Workers spawn with `claude-opus-5-5[1m]`.**
 
 ## The queue
 
@@ -51,13 +51,13 @@ the AI, lower map first — Great Lakes. Take the first unstarted on either
 track unless a better order is obvious, and say so. Numbers are stable;
 the backlog is `docs/PARKED.md`, and an item returns only when a score names it.
 
-327. **The Merchant offer — promoted from parked, the AI headline** (520
-    widened 11185 on run123). Ours nine draws against eight at index 2,
-    `use_market+0x1ed` against `make_stuff+0x221`: the original's
-    `MAKE[1]` is an emptied Merchant slot (`t −1`) where ours holds a
-    Cataphract, so wealth enters our need. `reg_known_rares` has no
-    writer, so the merchant arm is dead. Owed: that writer, the offer's
-    value, the re-offer's emptied slot. ECONOMY §14.4; (450) is 9380's.
+533. **Great Lakes' word 11531 has no widening: run123 ends 72 blocks
+    short** (327 moved the word 11185 → 11531 with the Merchant offer).
+    Ours four draws against three at index 1: `Guy::set_anim+0x97a <
+    Unit::do_idle+0x7d` against `< Guy::inc_time+0x271`. The capture
+    first — run123's detail over a window overlapping it and covering
+    11531 — then the widening, both directions; re-point `WIDENINGS`'
+    row to the test. No mechanism.
 
 530. **Golden chapter one's word is 774: a blocked step the original
     takes** (445 moved the word 626 → 774 and put its widening on file,
