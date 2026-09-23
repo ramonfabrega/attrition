@@ -22,6 +22,13 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Parked by item 560, 2026-09-22 — a sweep nobody probed
+
+(564) **Which group-mate `1/37`'s collision sweep passed on 11804.** No
+`RON_COLLIDE_PROBE` build covers the frame, and 560's fix (the soft
+one-shot is set only when the sweep ends without a hard hit,
+`docs/COLLISION.md` §12) does not depend on it. No score names it.
+
 ## Parked by item 557, 2026-09-22 — the pool's other writers
 
 (561) **`Unit::come_out`'s own push of its squad** (group 69 on 11423),

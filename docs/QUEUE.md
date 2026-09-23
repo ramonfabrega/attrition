@@ -36,11 +36,11 @@ chapter two **683 → 725** — both headline words moved.*
 - **Fable backlog: 10 Loop items** (313, 503, 507, 508, 509, 513, 517, 526, 527, 528).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w9711 of 24,000 · GreatLakes w11806 of 24,000
+Long captures: EastIndies w9711 of 24,000 · GreatLakes w11903 of 24,000
 Golden: w900 of 901 (ch5) · ch1 w900 · ch2 w900 · 552 next
-Endpoint 24001: EastIndies 63 off, 8 unlinked · GreatLakes 57 off, 0 unlinked
+Endpoint 24001: EastIndies 63 off, 8 unlinked · GreatLakes 58 off, 0 unlinked
 
-**Opener: an Opus 5.5 commander is live; 560 in flight on att-560 (AI), 552 on
+**Opener: an Opus 5.5 commander is live; 563 in flight on att-563 (AI), 552 on
 att-552 (rules). Workers spawn with `claude-opus-5-5[1m]`.**
 
 ## The queue
@@ -51,13 +51,13 @@ the AI, lower map first — Great Lakes. Take the first unstarted on either
 track unless a better order is obvious, and say so. Numbers are stable;
 the backlog is `docs/PARKED.md`, and an item returns only when a score names it.
 
-560. **Great Lakes' word 11806 has no widening: run130 ends on 11799**
-    (557 moved the word 11757 → 11806 with the pool back-pointer's own
-    state, GROUPS §23). Ours 7 draws against 6 at index 1: `Guy::set_anim
-    +0x97a < Unit::move_step+0x823` against
-    `Unit::resolve_unit_collision+0xb52` — a collision frame. The capture
-    first, run125's detail over about `[11760, 11860)`, then the
-    widening; re-point `WIDENINGS`' row. No mechanism.
+563. **Great Lakes' word 11903 has no widening: run135 ends short**
+    (560 moved the word 11806 → 11903: the soft one-shot is set only
+    when the sweep ends without a hard hit, COLLISION §12). Ours 5 draws
+    against 4 at index 1: `1/64`'s `Unit::move_step+0x823` stop against
+    `Guy::inc_time+0x271`. The capture first, run135's line over about
+    `[11860, 11960)` overlapping run135, then the widening; re-point
+    `WIDENINGS`' row. No mechanism.
 
 552. **Golden chapter four, the border and the bleed — the next unpinned
     chapter** (549 closed chapter five at 900; ch1 and ch2 are closed;
