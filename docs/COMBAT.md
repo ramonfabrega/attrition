@@ -9801,7 +9801,10 @@ catapult. So the original's crew are never walking during a turn in
 place, and are mirrored. This crate's move toward the rotated slot by
 `follower_step` and start the walk. `Guy::move@005d9240`'s tracked arm
 and `Guy::inc_time@005d9e10`'s mirror are the reading this needs, and it
-is its own item.
+is its own item. **Item 625**: "on their destinations" is the block's
+end, after the step. The crew step every block onto their new
+destinations (run44's `last_speed` 10 and 20), and what differs is the
+slot, not the step. §58 has it.
 
 Three residues past the word. The first two are pinned in the value test:
 
@@ -9837,3 +9840,117 @@ Three residues past the word. The first two are pinned in the value test:
 - **Reading only**: the vtable name of `+0x188` (`Unit::work`, from the
   export's `Unit::vftable`), the release gate's `0x17`/`0x18` arm, the
   packed arm, and the player's-order arms.
+
+## 58. An unpacked packer's moving figure asks for no walk (item 625, 2026-09-23)
+
+Golden chapter three's restage (run146, `docs/GOLDEN.md` §7) stood at
+**782** after §57: ours 7 draws against 5 at draw 0, two `Guy::set_anim
++0x97a < Guy::inc_time+0x271` on the catapult `0/6`'s crew. The item
+was booked with a hypothesis, `Guy::move`'s tracked arm and
+`Guy::inc_time`'s mirror, and no mechanism.
+`docs/journal/2026-09-23-item-625.md` has the kill conditions, written
+before the reading.
+
+### 58.1 The disk: the crew step, and their clock is copied
+
+run146 prints no figure clock (`GUYS=2`), and its crew's positions agree
+with ours on every block of the turn: they move, 781–785, by the same
+steps. run44's human catapult `0/15` is the same type (265) turning in
+place on its ground order's push (324), at `GUYS=4`
+(`a_turning_catapult_s_crew_mirror_and_never_walk`):
+
+- On 324 both crew figures **step** (`last_speed` 10 and 20) onto their
+  new destinations. So they enter `Guy::move`, and its tracked arm does
+  not refuse them. `x == des_x` at the block's end is the Manhattan snap.
+- From 324 to 330 all three figures play `TURN_LEFT` (21), and the crew's
+  `cur_time` is figure 0's. The crew's `end_time` stays 79, the idle's,
+  where figure 0's is 30, and their `last_time` stays **−1** on every
+  block. A `set_anim` would write both, and a step of their own clock
+  would overwrite `last_time`. So their clock never steps: it is copied
+  by `Guy::inc_time`'s crew arm (`docs/ANIM.md` §5).
+- **Across the whole of run44**, every stepping crew figure of an
+  unpacked packer (265 or 266, `unit_masks & 0x80000` clear) is on a
+  turn slot: 92 records on 21, 22 on 22, none on the walk category.
+
+The mirror was already carried here. It refuses a crew figure on the
+walk category, so the question was who put ours on the walk.
+
+### 58.2 `Guy::move@005d9240:176–181`: the walk's gate
+
+The moving arm (the body is off its destination) chooses the walk slot
+and asks for it, but not always. The listing (`5d9565`–`5d958a`):
+
+```
+if guy_flags & 0x40:                      skip          # a plane
+if unit_flags2 & 4 and !(unit_masks & 0x80000):  skip   # packs, unpacked
+set_anim(walk, 0, 1)
+```
+
+`0x68` on the unit is `unit_masks` and `0x2b8` on the type is
+`unit_flags2`; `& 4` is the packing bit this crate already reads as
+`Profile::packs`, and `unit_masks & 0x80000` is packed. An unpacked
+engine cannot move. What moves is its crew, pulled round to their
+rotated slots by figure 0's turn (`docs/MOVEMENT.md`, "Who writes it,
+and when"). They keep the slot they had, the crew arm of
+`Guy::inc_time` copies figure 0's `TURN_LEFT` and time into them on the
+same frame, and no draw is spent.
+
+`Sim::guy_follow_anim`'s moving arm asked for the walk for every figure,
+gated only by the turn slots. On 781 the crew took `CHAR_WALK`, three
+frames long, stepped their own clock, and wrapped on 782 into two idle
+rolls. The gate is in that arm now, with the plane read as `is_plane`
+(as `set_anim`'s deferral already reads `guy_flags & 0x40`).
+
+### 58.3 What moved
+
+| | before | after |
+|---|---|---|
+| the restage, run146: word / sequence / values | 782 / 782 / 783 | **792** / 792 / 793 |
+| the round's landing on 798 | (2655, 8142) | (2413, 8276), the dump's |
+| run146 widening rows past the numbering on the word's blocks | none | none |
+| chapter three (run145) | 900, closed | 900, closed |
+
+**The value diff** (`chapter_three_s_crew_mirror_the_turn`): on 781–785
+both crew figures stand on the dump's points (`(938, 7883)` and `(660,
+7965)` on 781), and play figure 0's slot, 21, on its clock. It was made
+to fail with the gate off: slot 8, not mirrored, on 781. The unit test
+`an_unpacked_packer_s_moving_figure_asks_for_no_walk` was made to fail
+the same way. The round's scatter draws are taken on 798 inside the
+stream now, so its landing agrees
+(`chapter_three_s_catapult_fires_on_the_ground`); its launch is still the
+unit's square (§57.6).
+
+### 58.4 The new word is the numbering
+
+On 792 the original spends, past the birds, one `Unit::fight+0x9b0 <
+Unit::do_attack`, and this crate goes straight to the farms. On that
+block the dump's arena-A hoplites `1/9`–`1/11` hold a fresh attack on
+the catapult, their `idle` at 4. Ours take it on 795. `Unit::check_idle`
+adds one every sixteen frames on `(frame + o) & 15 == 0`: the dump's
+`1/11`, `1/10` and `1/9` reach 4 on 790, 791 and 792, and ours `1/8`,
+`1/7` and `1/6` on 793, 794 and 795. Both are `frame + o = 800`. This
+crate numbers the three 6–8 where the dump numbers them 9–11, which is
+the `DEATH_OBJS` cull on 771 (§42.5) that parked 617 named as spending
+no draw. It spends one now. The widening cannot see the rows: the
+numbering leaves the three unlinked both sides, so no field of theirs is
+compared.
+
+### 58.5 What is not established
+
+- **A packed packer's moving figure** takes the walk, as the gate says.
+  No capture on this disk moves a packed catapult with its clock
+  printed (run44's packers never step packed), so that half is the
+  listing's alone. Merchants and fishing boats reach it on the long
+  captures, and those hold.
+- **The plane half** of the gate is read and carried, and no capture
+  here reaches it.
+
+### 58.6 Coverage
+
+- **Diff-backed**: the crew's positions on the turn (run146, `g.x`/`g.y`),
+  the draw stream to 792, and the round's landing.
+- **Dump-backed, read off the original's own records**: the crew's
+  slot, clock and `end_time`/`last_time` on a turn in place (run44
+  324–330), and no walk slot on any stepping crew figure of an unpacked
+  packer in run44.
+- **Listing-backed**: the gate's three terms (`5d9565`–`5d9581`).
