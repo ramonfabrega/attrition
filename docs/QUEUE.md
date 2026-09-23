@@ -33,15 +33,15 @@ been the lower map since 09-21 — so the AI track's default flips to it.*
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w10398 of 24,000 · GreatLakes w12038 of 24,000
-Golden: none pinned · ch1 closed · ch2 closed · ch4 closed · ch5 closed · ch7 closed · 587 next, chapter three
+Golden: ch3 w621 of 900 · ch1 closed · ch2 closed · ch4 closed · ch5 closed · ch7 closed · 590 next
 Endpoint 24001: EastIndies 57 off, 5 unlinked · GreatLakes 41 off, 4 unlinked
 
-**Opener: 6 landings since the eleventh pass: 573, 576 and 579 (East
-Indies 9711 → 10398), 567 and 569 (chapter four closed at 1500) and 578
-(chapter seven closed at 1200, its premise falsified: Loop 584). att-587
-is live on the rules track with run145–146. A commander takes 588 on the
-AI track, then 571; workers spawn with `claude-opus-5-5[1m]`. The count
-is by the log from the pass and stops at twenty.**
+**Opener: 7 landings since the eleventh pass: 573, 576 and 579 (East
+Indies 9711 → 10398), 567 and 569 (chapter four closed at 1500), 578
+(chapter seven closed at 1200) and 587 (chapter three pinned at 621).
+att-588 is live on the AI track with run143–144. A commander takes 590 on
+the rules track, then 571; workers spawn with `claude-opus-5-5[1m]`. The
+count is by the log from the pass and stops at twenty.**
 
 ## The queue
 
@@ -68,13 +68,14 @@ backlog is `docs/PARKED.md`, and an item returns only when a score names it.
     `move_step+0x823`. No mechanism. If PRs #7/#8 land first, a packet at
     11921 with the nine guys' move path run on it is an optional second run.
 
-587. **Golden chapter three, the mounted and siege lines, captured and
-    pinned** — the next chapter without a capture by GOLDEN §14's order,
-    now that 578 closed seven at 1200. `chapter3.cmd` over `[605, 900)`:
-    three chariots, a catapult eight tiles from the hoplites, and §7's
-    three falsifiers (the catapult's minimum range, the chariots' speed,
-    the leading count). Run **run145**, minted here. Falsifiers written
-    into the `.cmd` before the run; the word pinned with its widening.
+590. **Golden chapter three's word is 621: +1 draw, 7 against 6** (587
+    captured run145 and pinned it; run146, the restage, fired none of §7's
+    falsifiers). The extra draw is `Unit::fight+0x9b0` on the catapult
+    `0/9`: ours gives the packed catapult an attack order on its birth
+    block at `idle 1`, the original none; values part on 622. 587's
+    hypothesis: `Unit::think_attack`'s packed-unit arm. run146's own first
+    parting, 633 (the chariots' chase, 8 against 9), is pinned beside it.
+    The rules headline. No mechanism.
 
 ## How to maintain this file
 

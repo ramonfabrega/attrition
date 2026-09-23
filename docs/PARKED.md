@@ -22,6 +22,13 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Parked by item 587, 2026-09-23 — what `age` hands over
+
+(591) **`age`'s knowledge and metal buckets**: 100 in the original after
+`age who=N 2`, 0 here, on both of chapter three's captures from 605. No
+draw depends on it in either. Returns when a chapter or a long capture
+spends knowledge or metal after an `age` line.
+
 ## Parked by item 579, 2026-09-23 — the navy's unbuilt corners
 
 (589) **Four corners of 579's fix, none on a word's frame**
