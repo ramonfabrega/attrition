@@ -416,6 +416,78 @@ fn the_city_limit_follows_the_civic_level() {
 // Construction
 // ----------------------------------------------------------------------
 
+/// **A group's `QUEUE_FIRST` keeps a builder's site behind the new walk**
+/// (`docs/GROUPS.md` §24, item 632). `Unit::get_goody_box` sends a
+/// one-member group to the box at `QUEUE_FIRST`. The group copies the
+/// leader's action-flagged `BUILDORDER` aside, halts, walks, and
+/// `finish_insert`'s case 6 re-issues the build as
+/// `action_swarm_around(…, QUEUE_LAST, BUILD_AT, 1)`: a fresh approach and
+/// the order, both behind the walk. run157's `1/1` on 990 is that list
+/// (three orders, `orders_x` on the approach). And the citizen carries
+/// the group's `form_mod`, 50, but keeps its own `form`: the citizen
+/// exemption at `00705749` guards `+0xaa` alone.
+///
+/// Made to fail once with the `Body::Build` arm removed from the insert:
+/// the list comes out holding the walk alone.
+#[test]
+fn a_group_s_queue_first_keeps_the_build_behind_the_walk() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let _ = city_at(&mut sim, &t, 0, 32, 32);
+    sim.nation[0].human = false;
+    let mut ct = citizen_type(t.village);
+    ct.worker = Worker::Citizen;
+    ct.cols.role = crate::ai_load::role::CITIZEN;
+    let citizen = sim.add_unit_type(ct);
+    let b = sim.place_building(0, t.barracks, tile_pos(40, 40)).unwrap();
+    let u = spawn(&mut sim, 0, citizen, tile_pos(30, 44));
+    sim.swarm_around(u, b, Body::Build(b), true);
+    let approach = |sim: &Sim, i: usize| match sim.units[u].orders[i].body {
+        Body::Move(m) => m,
+        other => panic!("an approach move, not {other:?}"),
+    };
+    let first = approach(&sim, 0);
+    assert!(matches!(sim.units[u].orders[1].body, Body::Build(x) if x == b));
+
+    let box_at = tile_pos(26, 44);
+    let mut g = crate::group::Group::stack(0);
+    sim.group_add(&mut g, u);
+    assert!(sim.push_group(&mut g, true));
+    sim.group_action_move_to(
+        &g,
+        box_at,
+        QueuePos::First,
+        false,
+        movement::Angle(0),
+        MoveKind::ExploreTo,
+        false,
+    );
+    let orders = &sim.units[u].orders;
+    assert_eq!(
+        orders.len(),
+        3,
+        "the walk, the approach, the build: {orders:?}"
+    );
+    let walk = approach(&sim, 0);
+    let again = approach(&sim, 1);
+    assert_eq!(walk.kind, MoveKind::ExploreTo);
+    assert_ne!(walk.dest.cell(), first.dest.cell(), "the box's walk leads");
+    assert_eq!(again.kind, MoveKind::ExploreTo, "a computer's approach");
+    assert_eq!(again.dest, first.dest, "the same unit, the same ring spot");
+    let build = sim.units[u].orders[2];
+    assert!(matches!(build.body, Body::Build(x) if x == b));
+    assert!(
+        build.has(crate::orders::flag::ACTION),
+        "the action bit rides"
+    );
+    assert_eq!(
+        sim.units[u].orders_pos, again.dest,
+        "`orders_x` is the approach's, as run157 prints 37080 on 990"
+    );
+    assert_eq!(sim.units[u].form_width, 50, "the width twin is written");
+    assert_eq!(sim.units[u].form, -1, "and the citizen's form is not");
+}
+
 #[test]
 fn one_builder_finishes_a_barracks_in_job_time_frames_and_the_site_grows() {
     let mut sim = world_sim();

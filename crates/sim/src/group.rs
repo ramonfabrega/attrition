@@ -1527,6 +1527,50 @@ impl Sim {
     // The actions
     // ------------------------------------------------------------------
 
+    /// `Group::action_swarm_around@0070fbe0` at **`QUEUE_LAST`** — the
+    /// position `finish_insert` re-issues a build or a repair at (§24).
+    ///
+    /// The members are walked twice, land (`domain` 0) first and sea
+    /// second; an air member is never taken. A citizen (`0x32`/`0x33`)
+    /// gets the approach and the order ([`Sim::swarm_around_last`]).
+    /// The approach is an `EXPLORE_TO` for a building under a computer
+    /// (`local_40 = ~(leader_flags >> 1) & 2 | 1`) and a `MOVE_TO`
+    /// otherwise.
+    ///
+    /// SEAM, none reached by a capture on file: the non-builders, which
+    /// the original gathers into a scratch group and sends `MOVE_TO` the
+    /// site at `QUEUE_NEW`; a builder already inside a building
+    /// (`count_inside`) or able to cast `0x293`, which goes with them;
+    /// the gather filter (`local_30`, the group's idle citizens, against a
+    /// member whose action is a gather); and `is_busy`, a member mid-cast
+    /// or boarding. `finish_insert`'s one reach on file is a goody box's
+    /// one-member group whose member was just halted.
+    fn group_action_swarm_around_last(&mut self, g: &Group, b: usize, body: Body, action: bool) {
+        use crate::attrition::Domain;
+        if !self.group_is_on_map(g) || !self.buildings.get(b).is_some_and(|bd| bd.alive) {
+            return;
+        }
+        let kind = if matches!(body, Body::Build(_)) && !self.nation[g.who as usize].human {
+            MoveKind::ExploreTo
+        } else {
+            MoveKind::MoveTo
+        };
+        for layer in [Domain::Land, Domain::Sea] {
+            for &u in &g.list {
+                if !self.group_member_orderable(u) {
+                    continue;
+                }
+                let domain = self.units[u]
+                    .ty
+                    .map_or(Domain::Land, |t| self.unit_types[t].kind.domain);
+                if domain != layer || self.worker_of(u) != crate::orders::Worker::Citizen {
+                    continue;
+                }
+                self.swarm_around_last(u, b, body, action, kind);
+            }
+        }
+    }
+
     /// `Group::action_halt(mask)` (§7).
     pub fn group_action_halt(&mut self, g: &Group, mask: i32) {
         // `0070d0c0:29`: the **group's** `form` is cleared once, before any
@@ -1666,10 +1710,19 @@ impl Sim {
                             self.group_action_attack(g, t, mandatory, QueuePos::Last, 0);
                         }
                     }
-                    // SEAM: `finish_insert`'s other twenty cases —
+                    // Cases 6 and `0xd`: `action_swarm_around(o, who,
+                    // QUEUE_LAST, kind, flags & 4)`, the order's own
+                    // action bit. run157's `1/1` is a citizen on its way
+                    // to a site when the goody look halts it on 990, and
+                    // the original keeps the build behind the box's walk
+                    // (§24).
+                    Body::Build(b) | Body::Repair(b) => {
+                        self.group_action_swarm_around_last(g, b, o.body, o.has(flag::ACTION));
+                    }
+                    // SEAM: `finish_insert`'s other eighteen cases —
                     // gather, garrison, board, follow, guard, patrol,
-                    // trade, spell, the two swarms. No capture reaches a
-                    // group `QUEUE_FIRST` carrying one.
+                    // trade, spell. No capture reaches a group
+                    // `QUEUE_FIRST` carrying one.
                     _ => {}
                 }
             }
@@ -1869,13 +1922,17 @@ impl Sim {
             }
             // §6.6 step 1: the formation index and its width twin, on
             // every member but the four citizen/scholar ids.
+            // The exemption guards `form` (`+0xaa`) alone: the width's
+            // store at `00705749` (`+0xab`) is outside the test, so a
+            // citizen carries the group's `form_mod` like every other
+            // member (run157's `1/1` on 990, §24).
             if !self.units[u]
                 .ty
                 .is_some_and(|t| self.unit_types[t].cols.is(crate::ai_load::role::CITIZEN))
             {
                 self.units[u].form = form as i8;
-                self.units[u].form_width = width as i8;
             }
+            self.units[u].form_width = width as i8;
             // §6.6 step 2, and it only means anything now that §6.7
             // plans: a `QUEUE_LAST` move turns the member's existing stack
             // over before the group's new legs are pushed on top, so that

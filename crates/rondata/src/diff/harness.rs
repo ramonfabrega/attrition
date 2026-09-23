@@ -11785,7 +11785,11 @@ mod tests {
         // tile corners, and what their footprints and the leader's rate
         // flag had held off (`docs/MERCHANT.md` §3.2).
         let under = firsts.values().filter(|(f, _)| *f < WORD_BLOCK - 2).count();
-        assert_eq!(under, 197, "the floor under the word");
+        // **Item 632 took three** (197 → 194): three computer
+        // citizens' `form_mod`, ours −1 against the original's 50 from the
+        // first block, now agreeing. `action_move_near` writes the width
+        // twin on every member, citizens too (`docs/GROUPS.md` §24).
+        assert_eq!(under, 194, "the floor under the word");
         // **The birth under the old word, 10187..10188** (item 579): the
         // first block any of `1/32`'s inputs parts on is its own birth.
         // Trireme `1/32` (type 340) is trained at Dock `1/2010`, (44160,
@@ -11994,8 +11998,11 @@ mod tests {
                 // Item 629: 169 → 143 on the first block, and the single
                 // rows on 9966 and 9981 go — the Merchants' seats, their
                 // footprints and the rate rows beside them
-                // (`docs/MERCHANT.md` §3.2).
-                (9960, 143),
+                // (`docs/MERCHANT.md` §3.2). **Item 632: 143 → 141**, two
+                // computer citizens' `form_mod`, ours −1 against the
+                // original's 50, now agreeing: the width twin is written on
+                // every member, citizens too (`docs/GROUPS.md` §24).
+                (9960, 141),
                 (9976, 8),
                 (9982, 7),
                 (9992, 1),
@@ -12157,7 +12164,11 @@ mod tests {
         let first = firsts.values().filter(|(f, _)| *f == FIRST).count();
         // Item 629: 289/291/307 → 261/261/277, the two Merchants' seats,
         // city `1/2007`'s space and the rate rows (`docs/MERCHANT.md` §3.2).
-        assert_eq!((first, under_n, firsts.len()), (261, 261, 277), "the floor");
+        // **Item 632 took three** (261/261/277 → 258/258/274): three computer
+        // citizens' `form_mod`, ours −1 against the original's 50 from the
+        // first block, now agreeing. `action_move_near` writes the width
+        // twin on every member, citizens too (`docs/GROUPS.md` §24).
+        assert_eq!((first, under_n, firsts.len()), (258, 258, 274), "the floor");
     }
 
     /// **run159 — East Indies' word 11590, widened whole, both directions**
@@ -12324,7 +12335,11 @@ mod tests {
         // 11749 or later, past the new word's block.
         let under_n = firsts.values().filter(|(f, _)| *f < WORD_BLOCK - 2).count();
         let first = firsts.values().filter(|(f, _)| *f == FIRST).count();
-        assert_eq!((first, under_n, firsts.len()), (270, 361, 806), "the floor");
+        // **Item 632 took three** (270/361/806 → 267/358/803): three computer
+        // citizens' `form_mod`, ours −1 against the original's 50 from the
+        // first block, now agreeing. `action_move_near` writes the width
+        // twin on every member, citizens too (`docs/GROUPS.md` §24).
+        assert_eq!((first, under_n, firsts.len()), (267, 358, 803), "the floor");
     }
 
     /// **run152 — East Indies' word 10982, widened whole, both directions**
@@ -12451,7 +12466,11 @@ mod tests {
         // list under `MTN_TINY_SIZE` (`docs/ORDERS.md` §6.4).
         let under = firsts.values().filter(|(f, _)| *f < WORD_BLOCK - 2).count();
         let first = firsts.values().filter(|(f, _)| *f == FIRST).count();
-        assert_eq!((first, under, firsts.len()), (251, 280, 282), "the floor");
+        // **Item 632 took three** (251/280/282 → 248/277/279): three computer
+        // citizens' `form_mod`, ours −1 against the original's 50 from the
+        // first block, now agreeing. `action_move_near` writes the width
+        // twin on every member, citizens too (`docs/GROUPS.md` §24).
+        assert_eq!((first, under, firsts.len()), (248, 277, 279), "the floor");
     }
 
     /// **run149 — East Indies' word 10782, widened whole, both directions**
@@ -12568,7 +12587,11 @@ mod tests {
         // (`docs/MERCHANT.md` §3.2), and the city and rate rows with them.
         let under = firsts.values().filter(|(f, _)| *f < WORD_BLOCK - 2).count();
         let first = firsts.values().filter(|(f, _)| *f == FIRST).count();
-        assert_eq!((first, under, firsts.len()), (251, 252, 261), "the floor");
+        // **Item 632 took three** (251/252/261 → 248/249/258): three computer
+        // citizens' `form_mod`, ours −1 against the original's 50 from the
+        // first block, now agreeing. `action_move_near` writes the width
+        // twin on every member, citizens too (`docs/GROUPS.md` §24).
+        assert_eq!((first, under, firsts.len()), (248, 249, 258), "the floor");
     }
 
     /// One of East Indies' `LEADERS=9` windows walked whole, both
@@ -13112,7 +13135,11 @@ mod tests {
         // their footprints, and the Mine's value (`docs/MERCHANT.md` §3.2).
         let under = firsts.values().filter(|(f, _)| *f < WORD_BLOCK - 2).count();
         let first = firsts.values().filter(|(f, _)| *f == FIRST).count();
-        assert_eq!((first, under, firsts.len()), (246, 272, 283), "the floor");
+        // **Item 632 took three** (246/272/283 → 243/269/280): three computer
+        // citizens' `form_mod`, ours −1 against the original's 50 from the
+        // first block, now agreeing. `action_move_near` writes the width
+        // twin on every member, citizens too (`docs/GROUPS.md` §24).
+        assert_eq!((first, under, firsts.len()), (243, 269, 280), "the floor");
     }
 
     #[test]
