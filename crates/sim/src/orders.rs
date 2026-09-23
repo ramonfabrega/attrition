@@ -531,6 +531,16 @@ pub(crate) fn within_third(a: Angle, b: Angle) -> bool {
 }
 
 /// `ACCEL_CONSTRUCT`-independent literals of the mechanic, position units.
+/// `TypeIndex` `MERCHANTDUTCH` — `think_attack`'s packed arm skips its
+/// lineage (`is(0x3e, 1)`).
+const MERCHANTDUTCH: crate::tech::TypeId = 0x3e;
+/// `TypeIndex` `MACHINEGUN` — the lineage whose packed arm unpacks at
+/// `idle 3` and whose unpack `add_cast_order` re-aims at `0x28e`.
+const MACHINEGUN: crate::tech::TypeId = 0x7b;
+/// `PackerStanceIndex::PACKER_AUTO` (the PDB): a packer that unpacks by
+/// itself once idle.
+const PACKER_AUTO: u8 = 0;
+
 const SNAP: i32 = 0x30;
 const SNAP_CENTRE: i32 = 0x18;
 const HALF_TILE: i32 = 0x60;
@@ -1311,9 +1321,9 @@ impl Sim {
     /// `0x292` — which is the `spell 658` run58's block 4949 prints
     /// (`docs/ORDERS.md` §6.8).
     ///
-    /// SEAM: only the `FISHERMEN` and merchant arms are modelled. The
-    /// third — a `MACHINEGUN` lineage's `0x28d`/`0x28e` — has no caller
-    /// here, and `0x28b` (pack) none at all.
+    /// The machine gun's arm (`is(0x7b, 0)` → `0x28e`) is modelled for
+    /// the unpack, which `think_attack`'s packed arm reaches. SEAM: the
+    /// pack rewrite (`0x28b` → `0x28d`/`0x28f`/`0x291`) has no caller.
     pub fn add_cast_order(&mut self, u: usize, spell: i32) {
         self.add_cast_order_at(u, spell, QueuePos::First);
     }
@@ -1326,10 +1336,13 @@ impl Sim {
         // The rewrite at `add_cast_order@005e4a60`'s head, in the
         // original's own order: the machine-gun lineage (`is(0x7b, 0)`)
         // first, then the three **exact** merchant ids, then the
-        // `FISHERMEN` lineage. The first of the three is the one still
-        // unmodelled — no caller here reaches a machine gun's pack.
+        // `FISHERMEN` lineage. The machine gun's unpack is reached by
+        // `think_attack`'s packed arm ([`Self::think_attack_packed`]);
+        // no caller here issues a pack (`0x28b`) at all.
         let spell = if spell != crate::fish::UNPACK {
             spell
+        } else if self.unit_line_is(u, MACHINEGUN) {
+            spell::UNPACK_MACHINEGUN
         } else if self.is_merchant(u) {
             spell::UNPACK_MERCHANT
         } else if self.unit_line_is(u, crate::fish::FISHERMEN) {
@@ -2056,7 +2069,11 @@ impl Sim {
         // SEAM: the merchant arm (`is(0x3e, 1)`), which no capture on
         // disk reaches; `docs/MERCHANT.md` owns it.
         let p = self.profile(me);
-        if p.attack != 0 && p.combat_role && (unit.idle == 1 || phase & 0x1f == 0) {
+        if p.attack != 0
+            && p.combat_role
+            && (unit.idle == 1 || phase & 0x1f == 0)
+            && !self.think_attack_packed(u)
+        {
             self.think_attack_join_army(u);
             let unit = &self.units[u];
             if unit.combat.stance != combat::Stance::HoldFire
@@ -2186,6 +2203,78 @@ impl Sim {
             return;
         }
         self.think_join_army(u);
+    }
+
+    /// `Unit::think_attack@005f5a80`'s **packed-unit arm**
+    /// (`docs/COMBAT.md` §51), between the function's stance head and its
+    /// army join — so above both the join and the target search. `true`
+    /// is the function's `return 0` before either: the think goes on
+    /// past the auto-attack arm exactly as if nothing had been found.
+    ///
+    /// The listing (`llvm-objdump 0x5f5b0a..0x5f5c00`):
+    ///
+    /// ```text
+    /// if type.unit_flags2 & 4 and unit_masks & 0x80000:      # packs, packed
+    ///     if !is(MERCHANTDUTCH 0x3e, 1):
+    ///         if get_packer_stance() == PACKER_AUTO:          # vslot +0x100
+    ///             thr = is(MACHINEGUN 0x7b, 0) ? 3
+    ///                 : leader_flags & 4 ? 7 : 0x15           # human : computer
+    ///             if idle >= thr:
+    ///                 add_cast_order(-1, -1, -1, -1, 0x28c, QUEUE_FIRST, 0)
+    ///                 return 0
+    ///         if manual: return 0                             # 5f5bf6
+    /// ```
+    ///
+    /// `manual` is the head's: not AI-driven (`unit_masks & 0x40000`
+    /// clear), or AI-driven under a leader without `leader_flags & 2`, or
+    /// `leader_flags2 & 8` — this crate's [`Sim::think_attack_join_army`]
+    /// reads the same word as `!ai_driven || defeated`, and so does this.
+    /// `get_packer_stance@00610970` is the unit's `stance` byte when the
+    /// type's stance type is `STANCE_PACKER` (3), else `PACKER_NEVER` (1);
+    /// `PACKER_AUTO` is 0 (the PDB's `LF_ENUMERATE`s).
+    ///
+    /// So **a human's packed siege engine never searches**: it waits,
+    /// packed and orderless, for the first auto-attack frame with `idle ≥
+    /// 7`, and its first order is the unpack. run145's catapult `0/9` is
+    /// the diff — born on 621 at `idle 1`, cast on 696 at `idle 7`,
+    /// unpacked on 776 — and run146's `0/6` is the cadence's: `idle 7` on
+    /// 683, which is a 16-phase frame and not a 32-phase one, and the cast
+    /// on 699 at `idle 8`. A computer's packed unit (`manual` clear) falls
+    /// through to the join and the search while it waits out its 21.
+    ///
+    /// SEAM: `is(0x3e, 1)` is read as the strict lineage of the Dutch
+    /// merchant, and a merchant never reaches this arm through the
+    /// military one.
+    fn think_attack_packed(&mut self, u: usize) -> bool {
+        let Some(t) = self.units[u].ty else {
+            return false;
+        };
+        if !self.unit_types[t].combat.packs || !self.units[u].combat.packed {
+            return false;
+        }
+        if self
+            .unit_tree(u)
+            .is_some_and(|ti| self.tech_tree.is(ti, MERCHANTDUTCH, true))
+        {
+            return false;
+        }
+        let who = self.units[u].owner;
+        if self.unit_stance_type(u) == crate::group::StanceType::Packer
+            && self.units[u].stance == PACKER_AUTO
+        {
+            let threshold = if self.unit_line_is(u, MACHINEGUN) {
+                3
+            } else if self.nation[who as usize].human {
+                7
+            } else {
+                0x15
+            };
+            if self.units[u].idle >= threshold {
+                self.add_cast_order(u, spell::UNPACK);
+                return true;
+            }
+        }
+        !self.ai_driven(who) || self.defeated[who as usize]
     }
 
     /// `Unit::think@005f6e40`'s opening arm — the **captain mirror**

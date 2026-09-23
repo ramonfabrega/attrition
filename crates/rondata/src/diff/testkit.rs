@@ -2438,15 +2438,24 @@ pub(crate) const GOLDEN_WORD_CHAPTER_SEVEN: i64 = 1200;
 /// [`WIDENING_CHAPTER_TWO`]'s is.
 pub(crate) const WIDENING_CHAPTER_SEVEN: (i64, i64) = (605, 1201);
 
-/// **Chapter three's golden word** — the mounted and siege lines, run145,
-/// item 587 (`docs/GOLDEN.md` §7). The draw stream parts on **621**, ours
-/// 7 draws against the original's 6: the extra is `Unit::fight+0x9b0`, the
-/// one-in-five re-search, on the catapult `0/9` the frame after its birth.
-/// The original's catapult is born packed (`unit_masks 0x80000`), takes no
-/// attack order, and starts its unpack (`CASTORDER spell 652`) on block
-/// 696; this crate sends it to fight packed. The first value word parts on
-/// 622. No mechanism is named here.
-pub(crate) const GOLDEN_WORD_CHAPTER_THREE: i64 = 621;
+/// **Chapter three's golden word** — the mounted and siege lines, run145
+/// (`docs/GOLDEN.md` §7). The draw stream parts on **633**, ours 8 draws
+/// against the original's 9, at draw 1: the original's chariot spends one
+/// `Unit::fight+0x9b0` and then two `Guy::set_anim+0xf2f` (printed bare,
+/// `5db22f`), one for each of its two figures; this crate spends a second
+/// re-search. Values part on 634, where this crate's `0/8` has turned.
+/// It is run146's word too, on the same frame and in the same shape. No
+/// mechanism is named here.
+///
+/// **The delta: 621 → 633, item 590.** 587 pinned 621: this crate put the
+/// packed catapult `0/9` into `Unit::fight` on its birth block. Item 590
+/// took `Unit::think_attack`'s packed-unit arm (`docs/COMBAT.md` §51): a
+/// human's packed siege engine returns before the target search and
+/// unpacks at `idle 7`. The catapult now agrees with the dump on every
+/// row to the capture's end, its cast on 696 and its unpack on 776
+/// included. The word's block is pinned in
+/// `chapter_three_s_word_frame_is_widened_whole`.
+pub(crate) const GOLDEN_WORD_CHAPTER_THREE: i64 = 633;
 
 /// `chapter_three_s_word_frame_is_widened_whole`'s window: **run145
 /// whole**, 605..899 and the `!quit` block at 901. The floor is the
@@ -2465,9 +2474,9 @@ pub(crate) const WIDENING_CHAPTER_THREE: (i64, i64) = (605, 901);
 /// spends a second re-search and starts the walk on 634. Values part on
 /// 634. No mechanism is named here.
 ///
-/// **The chapter's word is [`GOLDEN_WORD_CHAPTER_THREE`], 621**, the lower
-/// of the two, as the rules headline reads lowest first; this one is
-/// pinned beside it so the restage cannot fall unseen.
+/// **The chapter's word is [`GOLDEN_WORD_CHAPTER_THREE`]**, which item 590
+/// moved to 633 — this same frame, in this same shape, on run145. This
+/// one is pinned beside it so the restage cannot fall unseen.
 pub(crate) const GOLDEN_WORD_CHAPTER_THREE_RESTAGE: i64 = 633;
 
 /// `chapter_three_s_restage_is_widened_whole`'s window: run146 whole,

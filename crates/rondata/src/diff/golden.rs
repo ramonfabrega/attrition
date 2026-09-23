@@ -5286,10 +5286,13 @@ fn chapter_seven_s_word_frame_is_widened_whole() {
 /// catapult is born packed and never launches (its unpack, `spell 652`,
 /// starts on 696), and the chariots shoot the hoplites dead without moving.
 ///
-/// The word is the catapult's: this crate puts `0/9` into `Unit::fight` on
-/// sim frame 621, the frame after its birth, and spends the one-in-five
-/// re-search draw (`Unit::fight+0x9b0`) that the original, whose packed
-/// catapult takes no attack order, does not.
+/// The word was the catapult's, 621, until item 590: this crate put the
+/// packed `0/9` into `Unit::fight` the frame after its birth. With
+/// `Unit::think_attack`'s packed arm (`docs/COMBAT.md` §51) the catapult
+/// holds no order until its unpack on 696, as the dump's does, and the
+/// word is **633**: the chariot `0/8`'s first attack frame, where the
+/// original spends one `Unit::fight+0x9b0` and two `Guy::set_anim+0xf2f`
+/// and this crate a second re-search — run146's word, frame and shape.
 #[test]
 fn chapter_three_holds_to_the_golden_word() {
     let Some(w) = walk_chapter("ch3", 3, 6, 900) else {
@@ -5316,8 +5319,9 @@ fn chapter_three_holds_to_the_golden_word() {
 /// widening reads it; and the **`GUY` record** at `GUYS=2` — each figure's
 /// position and facing — which `compare` does not carry.
 ///
-/// The word's two blocks, 621 and 622, print the catapult `0/9` once, both
-/// sides, before any quiet row is trusted.
+/// The word's two blocks print the word's unit once, both sides, before
+/// any quiet row is trusted: the chariot `0/8` on 633 and 634 since item
+/// 590, the catapult `0/9` on 621 and 622 before it.
 #[allow(
     non_snake_case,
     reason = "the window's names as the other widenings spell them"
@@ -5563,7 +5567,7 @@ struct ChapterThreeWidening {
 fn chapter_three_s_word_frame_is_widened_whole() {
     const FIRST: i64 = WIDENING_CHAPTER_THREE.0;
     const WORD: i64 = GOLDEN_WORD_CHAPTER_THREE;
-    let Some(w) = widen_chapter_three("ch3", "chapter3", WIDENING_CHAPTER_THREE, WORD, 9) else {
+    let Some(w) = widen_chapter_three("ch3", "chapter3", WIDENING_CHAPTER_THREE, WORD, 8) else {
         return;
     };
     let (firsts, ammo_theirs, ammo_ours) = (w.firsts, w.ammo_theirs, w.ammo_ours);
@@ -5596,9 +5600,14 @@ fn chapter_three_s_word_frame_is_widened_whole() {
         at_floor.iter().all(|w| standing(w)) && at_floor.len() == 30,
         "the standing rows on run145's first block moved: {at_floor:?}"
     );
-    // **What parts at and one block past the word, whole**: only the
-    // catapult. On 621 this crate's `0/9` holds an attack order the dump's
-    // does not; on 622 it has turned to its target and started its reload.
+    // **What parts at and one block past the word, whole** (item 590's
+    // block; the delta is in `GOLDEN_WORD_CHAPTER_THREE`'s comment): only
+    // the chariot `0/8`, and only its facing. Both sides hold the same
+    // `ATTACKORDER` on `1/8` on 633 and the same reload (`recharging 25`)
+    // on 634; this crate's `0/8` has turned on 634 where the dump's still
+    // faces the way it was born. It is run146's block row for row, to the
+    // angle's last few bits. The catapult `0/9`, 587's word, parts on no
+    // row of the capture but its standing `form`.
     let under: Vec<String> = firsts
         .iter()
         .filter(|((_, _, what), (f, _))| *f <= WORD + 1 && !standing(what))
@@ -5607,23 +5616,141 @@ fn chapter_three_s_word_frame_is_widened_whole() {
     assert_eq!(
         under,
         vec![
-            "622 0/9 angle:Facing: ours 1312351573 theirs 1431655765",
-            "622 0/9 angle:Heading: ours 923402240 theirs 1431655765",
-            "622 0/9 g.angle[0]: ours 1312351573 theirs 1431655765",
-            "622 0/9 g.angle[1]: ours -1789569707 theirs 1431655765",
-            "622 0/9 g.angle[2]: ours -2082471936 theirs 1431655765",
-            "622 0/9 g.x[1]: ours 838 theirs 852",
-            "622 0/9 g.x[2]: ours 564 theirs 567",
-            "622 0/9 g.y[1]: ours 8215 theirs 8223",
-            "622 0/9 g.y[2]: ours 8307 theirs 8281",
-            "622 0/9 heading: ours 923402240 theirs 1431655765",
-            "622 0/9 idle: ours 0 theirs 2",
-            "621 0/9 order:length: Length { ours: 1, theirs: 0 }",
-            "621 0/9 orders.len: ours 1 theirs 0",
-            "622 0/9 recharging: ours 82 theirs 0",
+            "634 0/8 angle:Facing: ours 991232000 theirs 1431655765",
+            "634 0/8 angle:Heading: ours 991232000 theirs 1431655765",
+            "634 0/8 g.angle[0]: ours 991232000 theirs 1431655765",
+            "634 0/8 g.angle[1]: ours 991232000 theirs 1431655765",
+            "634 0/8 heading: ours 991232000 theirs 1431655765",
         ],
         "what parts at or one block past chapter three's word moved"
     );
+    let catapult: Vec<String> = firsts
+        .iter()
+        .filter(|((w, o, what), _)| (*w, *o) == (0, 9) && !standing(what))
+        .map(|((_, _, what), (f, row))| format!("{f} {what}: {row}"))
+        .collect();
+    assert!(
+        catapult.is_empty(),
+        "the catapult parts from the dump again: {catapult:?}"
+    );
+}
+
+/// `(block, idle, packed, head order's OrderIndex, its spell)`.
+type CatapultRow = (i64, i64, i64, i64, i64);
+
+/// The packed catapult's life on the blocks that decide it, both sides:
+/// `(block, idle, packed, head order's OrderIndex, its spell)`, `-1` for
+/// no order and no spell.
+fn catapult_rows(run: &str, stem: &str, o: i16, at: &[i64]) -> Option<Vec<[CatapultRow; 2]>> {
+    let mut s = stage_script(run, stem)?;
+    let last = *at.iter().max().expect("a block");
+    let mut out = Vec::new();
+    for f in 0..last {
+        s.script.stage(s.built.sim.frame, &mut s.built, &s.loaded);
+        s.built.tick();
+        let n = f + 1;
+        if !at.contains(&n) {
+            continue;
+        }
+        let ix =
+            s.ix.frames()
+                .iter()
+                .position(|x| x.number == n)
+                .expect("the block");
+        let frame = s.ix.frame_state(ix).unwrap();
+        let them = frame
+            .units
+            .iter()
+            .find(|u| u.who == 0 && u.o == i64::from(o))
+            .expect("the catapult in the dump");
+        let head = them.orders_front_first().next();
+        let theirs = (
+            n,
+            them.idle.expect("idle"),
+            i64::from(them.unit_masks.expect("unit_masks") & 0x8_0000 != 0),
+            head.map_or(-1, |h| h.index),
+            head.and_then(|h| h.cast_spell).unwrap_or(-1),
+        );
+        let u = &s.built.sim.units[s.built.sim.unit_by_o(0, o).expect("our catapult")];
+        let front = u.orders.front();
+        let ours = (
+            n,
+            i64::from(u.idle),
+            i64::from(u.combat.packed),
+            front.map_or(-1, |h| i64::from(h.index())),
+            front.map_or(-1, |h| match h.body {
+                sim::orders::Body::Cast(c) => i64::from(c.spell),
+                _ => -1,
+            }),
+        );
+        eprintln!("  {run} 0/{o} block {n}: theirs {theirs:?} ours {ours:?}");
+        out.push([theirs, ours]);
+    }
+    Some(out)
+}
+
+/// **The packed catapult unpacks on the original's frame, in both
+/// captures** (item 590, `docs/COMBAT.md` §51) — the value diff beside
+/// the word's move from 621 to 633. `Unit::think_attack`'s packed arm
+/// returns before the target search, so the catapult holds no order at
+/// all until the first auto-attack frame with `idle ≥ 7`, and that
+/// order is the unpack, `spell 652` (`0x28c`), put at the head.
+///
+/// run145's `0/9` casts at `idle 7` on 696. run146's `0/6` reaches
+/// `idle 7` on 683 and does **not** cast there: 683 is a 16-phase frame
+/// (the `idle` bump) and not a 32-phase one (the auto-attack arm), so
+/// its cast is 699 at `idle 8`. Both unpack 80 frames later. Every row
+/// is the dump's value and ours, so the pin is the original's and a
+/// quiet reader cannot pass it.
+#[test]
+fn chapter_three_s_catapult_unpacks_on_the_dump_s_frame() {
+    const CAST: i64 = sim::orders::index::CAST_SPELL as i64;
+    for (run, stem, o, want) in [
+        (
+            "ch3",
+            "chapter3",
+            9_i16,
+            vec![
+                (621, 1, 1, -1, -1),
+                (622, 2, 1, -1, -1),
+                (695, 6, 1, -1, -1),
+                (696, 7, 1, CAST, 652),
+                (697, 0, 1, CAST, 652),
+                (775, 0, 1, CAST, 652),
+                (776, 0, 0, -1, -1),
+                (777, 1, 0, -1, -1),
+            ],
+        ),
+        (
+            "ch3b",
+            "chapter3b",
+            6,
+            vec![
+                (606, 1, 1, -1, -1),
+                (683, 7, 1, -1, -1),
+                (698, 7, 1, -1, -1),
+                (699, 8, 1, CAST, 652),
+                (700, 0, 1, CAST, 652),
+                (778, 0, 1, CAST, 652),
+                (779, 0, 0, -1, -1),
+            ],
+        ),
+    ] {
+        let at: Vec<i64> = want.iter().map(|r| r.0).collect();
+        let Some(rows) = catapult_rows(run, stem, o, &at) else {
+            return;
+        };
+        let theirs: Vec<_> = rows.iter().map(|r| r[0]).collect();
+        let ours: Vec<_> = rows.iter().map(|r| r[1]).collect();
+        assert_eq!(
+            theirs, want,
+            "{run}: the dump's catapult is not the one pinned"
+        );
+        assert_eq!(
+            ours, theirs,
+            "{run}: this crate's catapult parts from the dump's"
+        );
+    }
 }
 
 /// **Chapter three's restage, walked** — `chapter3b.cmd`, run146 (item

@@ -1622,6 +1622,15 @@ pub struct OrderDump {
     pub guard_y: Option<i64>,
     pub guard_idle: Option<i64>,
     pub guard_retry: Option<i64>,
+    /// `CASTORDER`'s own row past the `TARGETORDER` base: `x y paid
+    /// spell` — the spell's `TypeIndex` (`+0x20`) and the "cost taken"
+    /// flag (`+0x1c`). Printed on every cast since the first capture that
+    /// dumped one and read by nothing until item 590, when chapter three's
+    /// catapult put an unpack (`spell 652`) on the word's frame. `x`/`y`
+    /// are the cast's aim, which this crate's untargeted casts carry as
+    /// −1 and do not model.
+    pub cast_spell: Option<i64>,
+    pub cast_paid: Option<i64>,
 }
 
 impl OrderDump {
@@ -2747,6 +2756,8 @@ fn orders_of(b: Block<'_>) -> Vec<OrderDump> {
             let grp = base("GROUPORDER");
             let grd = base("GUARDORDER");
             let grd_int = |k: &str| grd.and_then(|g| g.int(k));
+            let cst = base("CASTORDER");
+            let cst_int = |k: &str| cst.and_then(|c| c.int(k));
             let mv_int = |k: &str| mv.and_then(|m| m.int(k));
             let atk_int = |k: &str| atk.and_then(|a| a.int(k));
             let grp_int = |k: &str| grp.and_then(|g| g.int(k));
@@ -2814,6 +2825,8 @@ fn orders_of(b: Block<'_>) -> Vec<OrderDump> {
                 guard_y: grd_int("guard_y"),
                 guard_idle: grd_int("idle"),
                 guard_retry: grd_int("retry"),
+                cast_spell: cst_int("spell"),
+                cast_paid: cst_int("paid"),
             }
         })
         .collect()
