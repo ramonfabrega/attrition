@@ -2799,8 +2799,11 @@ are the shape entry 42 names — prose one level above the item.
    identifier is shorthand when a comma follows it or shares its line.
    Made to fail first on `width, height: h, depth`.
 4. **The ladder's shared-extras floor is an exact pin** (parked 583):
-   `SHARED_EXTRA_NUMBERS = 1`, re-pinned by the item that moves it in
-   either direction; the rungs' identity rests on the 6,000-frame test.
+   ~~`SHARED_EXTRA_NUMBERS = 1`~~ **18 on the pin's first run** — the
+   count had risen from 576's one under `!is_empty()` without a word,
+   through the East Indies landings that put both rungs back on one late
+   roster; re-pinned by the item that moves it in either direction; the
+   rungs' identity rests on the 6,000-frame test.
 5. **The packet is taken at the word's own logger frame** (parked 605),
    not the frame before: a packet at N is after tick N−1, so tick N is
    still ahead of it. `docs/EMULATOR.md` §8 and `docs/ORACLE.md` amended
