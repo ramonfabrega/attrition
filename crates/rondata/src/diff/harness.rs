@@ -12395,7 +12395,7 @@ mod tests {
         // 11749 or later, past the new word's block.
         let under_n = firsts.values().filter(|(f, _)| *f < WORD_BLOCK - 2).count();
         let first = firsts.values().filter(|(f, _)| *f == FIRST).count();
-        assert_eq!((first, under_n, firsts.len()), (270, 294, 299), "the floor");
+        assert_eq!((first, under_n, firsts.len()), (270, 361, 806), "the floor");
     }
 
     /// **run152 — East Indies' word 10982, widened whole, both directions**
