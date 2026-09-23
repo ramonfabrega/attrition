@@ -5293,3 +5293,63 @@ check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|BEGIN MAKEOBJECT" "$HOME/ron-data/
 check: python3 tools/gamelog/samegame.py gamelog-run149-eastindies-animal.txt gamelog-run152-eastindies-gatherbuilding.txt | tee /dev/stderr | awk '/in common/{r=$0; sub(/.*in common /,"",r); split($0,a,", "); n=a[2]+0} /^differ:/{d=$2+0} END{print "run149 overlap: common="n" "r" differ="d; exit !(n==10 && d==0 && r=="(10870..10879)")}'
 # **The coverage window landed**: every frame 10978..10986 has a set.
 check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run152.log" coverage | awk '/^== frame/{f=$3+0; sub(":","",f); if(f>=10978&&f<=10986&&$4+0>100) n[f]=1} END{c=0; for(k in n)c++; print "coverage frames: "c; exit !(c==9)}'
+
+run: 155
+tag: eastindies-longword
+item: 620
+why: East Indies' long word is 11069 (item 613), where ours spends 5 draws against 6, parting at index 0 — ours `Guy::set_anim+0x97a`, theirs `Unit::do_move+0xe84` — and run152, the only capture past 10879, ends on block 11039, so the word's frame is on no disk
+# **THE DISK WAS GREPPED FIRST** (2026-09-23, every `MAP_STYLE 18` dump in
+# `Logs\`, the line read with its CR stripped): none carries a block in
+# [11040, 11100] but run152's `!quit` stub on 11061. run152's window ends
+# on 11039, run149's on 10879, run139's on 10011, run143's on 10761,
+# run99's on 10411; run78 starts at 15700, run96 at 23960, and run54 and
+# the 24k runs print only their end frames. **What the disk cannot
+# answer**: every record on block 11070 (the word 11069's) and the 30
+# blocks under it — which unit spends the `% 5` of `Unit::do_move`, and
+# which figure the `set_anim` ours spends first.
+#
+# **The readings, each with what kills it** (block = frame + 1):
+#
+# - **R1 — this is run152's game past 11039.** Killed if the overlap with
+#   run152 on 11030..11039 differs, or counts other than ten blocks.
+# - **R2 — a unit starts or re-plans a walk on 11069 in the original and
+#   not here** (the `% 5` is `do_move`'s grid roll, spent on a walk's
+#   leg), and our `set_anim` is a figure of a unit already standing or
+#   walking on both sides. Killed if no unit's record on block 11070
+#   shows a new destination or a changed order against 11069 on the
+#   original's side.
+# - **R3 — the parting is a value under the word, not the word's frame
+#   alone**: some key on the unit that walks parts on or before block
+#   11069. Killed if the widening shows every record on 11040..11069
+#   agreeing but the standing rows 613 left on 11039.
+frames: 11300
+mapstyle: 18
+# **run152's line**, the same lobby (no `cfg:`) and the same `end:`, so the
+# overlap is byte for byte.
+end: MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,DEATHS=1,LEADERS=9
+# **11030..11279, 250 blocks**: ten shared with run152 (11030..11039), the
+# 30 blocks up to the word, its block 11070, and 209 of runway above it
+# for the word a fix moves it to.
+frame_window: 11030 11280
+# **Per-frame coverage over the word**, 11065..11073.
+cover: cover=1
+cover: window=11065-11073
+settle_min: 20000000
+# **Sized from run152**: 2.07 MB a block net of the 11 MB start dump, so
+# 250 blocks is ~530 MB, 0.7% of the 75 GB free. run152 took 14 minutes
+# for an 10870-frame run-up and 170 blocks, run143 27 for 360; this is
+# ~20. 150 polls is fifty minutes.
+poll_max: 150
+# Same game: the trace word for word against run54, this map's own 24k run.
+check: python3 tools/gamelog/rngcmp.py rontrace-run54.log rontrace-run155.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=11280)}'
+# And the map, from the dump's own `GAME INFO`.
+check: LC_ALL=C head -c 400000 "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run155-eastindies-longword.txt" | LC_ALL=C grep -a "MAP_STYLE" | tee /dev/stderr | awk '{print; exit !($2==18)}'
+# **The window landed whole** — 250 blocks, 11030..11279, no gap.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run155-eastindies-longword.txt" | awk '{v=$3+0; if(v>=11030&&v<11280) n[v]=1} END{c=0; lo=0; hi=0; for(k in n){c++; if(lo==0||k+0<lo)lo=k+0; if(k+0>hi)hi=k+0} print "window blocks: "c" ("lo".."hi")"; exit !(c==250 && lo==11030 && hi==11279)}'
+# **The raised category is there**: a `MAKEOBJECT` on every window block.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|BEGIN MAKEOBJECT" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run155-eastindies-longword.txt" | awk '/BEGIN FRAME/{f=$3} /MAKEOBJECT/{if(f!="")seen[f]=1} END{n=0; for(k in seen){v=k+0; if(v>=11030&&v<11280)n++} print "blocks with a MAKEOBJECT: "n; exit !(n==250)}'
+# **The overlap with run152, and the count is the claim** — ten blocks,
+# 11030..11039, every kind compared: both are `LEADERS=9`.
+check: python3 tools/gamelog/samegame.py gamelog-run152-eastindies-gatherbuilding.txt gamelog-run155-eastindies-longword.txt | tee /dev/stderr | awk '/in common/{r=$0; sub(/.*in common /,"",r); split($0,a,", "); n=a[2]+0} /^differ:/{d=$2+0} END{print "run152 overlap: common="n" "r" differ="d; exit !(n==10 && d==0 && r=="(11030..11039)")}'
+# **The coverage window landed**: every frame 11065..11073 has a set.
+check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run155.log" coverage | awk '/^== frame/{f=$3+0; sub(":","",f); if(f>=11065&&f<=11073&&$4+0>100) n[f]=1} END{c=0; for(k in n)c++; print "coverage frames: "c; exit !(c==9)}'
