@@ -5464,6 +5464,17 @@ fn widen_chapter_three(
                 continue;
             };
             let un = &s.built.sim.units[u];
+            // **The unit's own `z`** (`ObjectData +0xc`, printed
+            // `z_internal`), item 601: `get_damage`'s height step reads it
+            // on both sides of every target search, and `compare` carries
+            // x and y only. `docs/COMBAT.md` §46.2 swept it on chapter two;
+            // this is the same reading on chapter three's every block.
+            let z = i64::from(s.built.sim.world.tile_z(un.pos.tile()));
+            if z != them.pos.z {
+                firsts
+                    .entry((them.who, them.o, "z".to_string()))
+                    .or_insert((n, format!("ours {z} theirs {}", them.pos.z)));
+            }
             if them.guys.len() != un.guys.len() {
                 firsts
                     .entry((them.who, them.o, "guys:count".to_string()))
