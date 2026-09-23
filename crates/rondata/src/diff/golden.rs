@@ -5215,6 +5215,7 @@ fn widen_civilians(
         let n = f + 1;
         crate::diff::harness::debug_leader(&s.built, n);
         crate::diff::harness::debug_builds(&s.built, n);
+        crate::diff::harness::debug_watch(&s.built, n);
         if n < first {
             continue;
         }
@@ -5395,22 +5396,24 @@ fn chapter_seven_s_word_frame_is_widened_whole() {
         summaries.push((run, firsts));
     }
     // **The standing rows of each capture's first block**, none of them
-    // this chapter's: the unmodelled `form` on every unit, two leader
-    // `bucket`s and two `filled_gather_slots` (chapter four's and five's
-    // families), and the two capitals' `CITIES` rows, which chapter four's
-    // bleed window did not print. The control adds its computer's scout
-    // `1/0`, whose group and explore-order `facing` part from the first
-    // block there (parked 275's mirror), and three more `form`s.
+    // this chapter's: the unmodelled `form` on every unit, two
+    // `filled_gather_slots` (chapter four's and five's families), and the
+    // two capitals' `CITIES` rows, which chapter four's bleed window did
+    // not print. The control adds its computer's scout `1/0`, whose group
+    // and explore-order `facing` part from the first block there (parked
+    // 275's mirror), and three more `form`s. Until item 644 two leader
+    // `bucket`s stood here too, who=0's knowledge and metal at 0 against
+    // 100: `library who=0 2` skipped `gain_tech`'s tail, and the Classical
+    // age's starting grant is in it (29 → 27, 34 → 32).
     let standing = |what: &str| {
         what == "form"
-            || what.starts_with("leader:bucket")
             || what.starts_with("leader:filled_gather_slots")
             || what.starts_with("city:")
     };
     let control_standing = |what: &str| what == "group" || what == "order:move.facing";
     for ((run, firsts), (floor, under_want)) in summaries
         .iter()
-        .zip([(29usize, &[847i64][..]), (34usize, &[][..])])
+        .zip([(27usize, &[847i64][..]), (32usize, &[][..])])
     {
         let at_floor: Vec<&String> = firsts
             .iter()
@@ -5488,18 +5491,18 @@ fn chapter_seven_b_s_word_frame_is_widened_whole() {
             eprintln!("  {run} f{f} {w}/{o} {what}: {row}");
         }
         // **The standing rows of the first block**, chapter seven's
-        // families: the unmodelled `form`, two leader `bucket`s and two
-        // `filled_gather_slots`, the two capitals' `CITIES` rows — and
-        // who=1's five `resource_cap`s, 1392 here against the original's
-        // 2992: `library who=1 2` at 600 raises the original's cap
-        // (run141, without it, prints 1392) and not this crate's. The
-        // control adds its scout `1/0`'s `group` and explore-order
-        // `facing`, as chapter seven's control does.
+        // families: the unmodelled `form`, two `filled_gather_slots` and
+        // the two capitals' `CITIES` rows. The control adds its scout
+        // `1/0`'s `group` and explore-order `facing`, as chapter seven's
+        // control does. **Item 644 took seven** (34 → 27, 39 → 32): who=1's
+        // knowledge and metal `bucket`s, 0 against 100, and its five
+        // `resource_cap`s, 1392 against 2992. `library who=1 2` now raises
+        // the levels through `gain_tech`'s tail, which pays the Classical
+        // age's starting grant, and the caps read the Commerce level live,
+        // as `calc_resource_caps` does every frame (parked 633).
         let standing = |what: &str| {
             what == "form"
-                || what.starts_with("leader:bucket")
                 || what.starts_with("leader:filled_gather_slots")
-                || what.starts_with("leader:resource_cap")
                 || what.starts_with("city:")
         };
         let control = |what: &str| what == "group" || what == "order:move.facing";
@@ -5531,10 +5534,14 @@ fn chapter_seven_b_s_word_frame_is_widened_whole() {
         // group id stands there, 64 against 65, the two-slot permutation
         // the scout's standing `group` row began (`docs/GROUPS.md` §24).
         // Past it the scout `1/0`'s explore path parts from 1077, value
-        // only, and who=1's food bucket from 1018. On the word, 1176, the
-        // original's `produce_building` sends the gatherer `1/7` toward a
-        // site (explore-to (40248, 23160), `1177 1/7`) and ours keeps it
-        // gathering.
+        // only. **Item 644's block** (the delta is in the constant's
+        // comment): who=1's food bucket from 1018 and `1/7`'s thirteen
+        // rows on 1177 are gone. The food was a goody pile paid to metal
+        // here, and `1/7` is now sent toward the Woodcutter's Camp the
+        // script places and destroys on 1176 and keeps its walk and
+        // `BUILDORDER` to the word, as the original's does: on 1177 both
+        // sides hold explore-to (40248, 23160) and the `BUILDORDER` on
+        // `1/2009`, at (40271, 18360). Nothing new parts on 1177..1188.
         let mut got: Vec<String> = firsts
             .iter()
             .filter(|((_, _, what), (f, _))| *f > window.0 && what != "form")
@@ -5545,7 +5552,6 @@ fn chapter_seven_b_s_word_frame_is_widened_whole() {
             &["847 1/0 order:move.facing"]
         } else {
             &[
-                "1018 1/-1 leader:bucket[0:food]",
                 "1077 1/0 path:length",
                 "1077 1/0 path[41].to",
                 "1077 1/0 path[42].to",
@@ -5564,18 +5570,6 @@ fn chapter_seven_b_s_word_frame_is_widened_whole() {
                 "1120 1/0 g.x[0]",
                 "1137 1/0 order:move.dest",
                 "1138 1/0 order:move.dest_x",
-                "1177 1/7 dest_angle",
-                "1177 1/7 g.angle[0]",
-                "1177 1/7 g.x[0]",
-                "1177 1/7 heading",
-                "1177 1/7 order:kind",
-                "1177 1/7 order:length",
-                "1177 1/7 orders.len",
-                "1177 1/7 orders_x",
-                "1177 1/7 orders_y",
-                "1177 1/7 path:length",
-                "1177 1/7 path_recursion",
-                "1177 1/7 pos",
                 "990 1/1 group",
             ]
         };
@@ -6015,19 +6009,14 @@ fn chapter_three_s_word_frame_is_widened_whole() {
     assert!(ammo_ours > 0, "this crate fired no round in the window");
     // **The standing families on the capture's first block**, none of
     // them the chapter's: the unmodelled `form` (also every staged unit's
-    // birth row), `build:extra` (the end detail prints no `BUILDDATA`),
-    // player 0's two `filled_gather_slots`, and — new with this chapter —
-    // `leader:bucket` 3 and 4, knowledge and metal, 0 against the dump's
-    // 100 for both players from 605: the residue of `age who=N 2`, which
-    // is staged before the window opens and which chapter two's `library`
-    // arm does not leave. Pinned by name so it cannot stand in for
-    // anything else; not chased here.
+    // birth row), `build:extra` (the end detail prints no `BUILDDATA`)
+    // and player 0's two `filled_gather_slots`. Until item 644 four more
+    // stood here, `leader:bucket` 3 and 4 for both players, 0 against the
+    // dump's 100: `age who=N 2` raised the ages without `gain_tech`'s
+    // tail, and the Classical age's starting grant is in the tail
+    // (`Sim::set_leader_levels`). 30 → 26.
     let standing = |what: &str| {
-        what == "form"
-            || what == "build:extra"
-            || what.starts_with("leader:filled_gather_slots")
-            || what == "leader:bucket[3:knowledge]"
-            || what == "leader:bucket[4:metal]"
+        what == "form" || what == "build:extra" || what.starts_with("leader:filled_gather_slots")
     };
     let at_floor: Vec<&String> = firsts
         .iter()
@@ -6035,7 +6024,7 @@ fn chapter_three_s_word_frame_is_widened_whole() {
         .map(|((_, _, what), _)| what)
         .collect();
     assert!(
-        at_floor.iter().all(|w| standing(w)) && at_floor.len() == 30,
+        at_floor.iter().all(|w| standing(w)) && at_floor.len() == 26,
         "the standing rows on run145's first block moved: {at_floor:?}"
     );
     // **What parts first, and what parts on the word's own two blocks**
@@ -6825,13 +6814,9 @@ fn chapter_three_s_restage_is_widened_whole() {
     let firsts = w.firsts;
     assert_eq!(w.ammo_theirs, 89, "run146's live rounds are not all read");
     assert!(w.ammo_ours > 0, "this crate fired no round in the window");
-    // The standing families on the first block are run145's, the same 30.
+    // The standing families on the first block are run145's, the same 26.
     let standing = |what: &str| {
-        what == "form"
-            || what == "build:extra"
-            || what.starts_with("leader:filled_gather_slots")
-            || what == "leader:bucket[3:knowledge]"
-            || what == "leader:bucket[4:metal]"
+        what == "form" || what == "build:extra" || what.starts_with("leader:filled_gather_slots")
     };
     let at_floor = firsts
         .iter()
@@ -6839,7 +6824,7 @@ fn chapter_three_s_restage_is_widened_whole() {
         .map(|((_, _, what), _)| what)
         .collect::<Vec<_>>();
     assert!(
-        at_floor.iter().all(|w| standing(w)) && at_floor.len() == 30,
+        at_floor.iter().all(|w| standing(w)) && at_floor.len() == 26,
         "the standing rows on run146's first block moved: {at_floor:?}"
     );
     // **What parts first, and on the word's own two blocks** (item 595;

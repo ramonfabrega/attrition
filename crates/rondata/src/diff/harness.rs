@@ -9964,9 +9964,12 @@ mod tests {
         // re-agrees on 11425, and (558)'s group-order ids. Item 629 took
         // 34 of them (284 → 250): Great Lakes' Merchants on their tile
         // corners and what their footprints held off
-        // (`docs/MERCHANT.md` §3.2).
+        // (`docs/MERCHANT.md` §3.2). Item 644 took two more (250 → 248):
+        // who=1's `leader:bucket[1:timber]` and `leader:leftover[1:timber]`,
+        // standing from 11400, which agree once the caps read the Commerce
+        // level live (`Leader::gather@006ce280:58`).
         let under = firsts.values().filter(|(f, _)| *f < WORD_BLOCK - 2).count();
-        assert_eq!(under, 250, "the floor under the word");
+        assert_eq!(under, 248, "the floor under the word");
         let pair: Vec<String> = firsts
             .iter()
             .filter(|((w, o, what), (f, _))| {
