@@ -22,6 +22,19 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Parked by item 573, 2026-09-23 — the player nobody compares
+
+(577) **`compare` never reads gaia's units.** It walks players
+`0..players`, so `who 8` is outside every row. On East Indies 9984 the
+animal `8/0` changes `cur_anim` 0 → 2 on one side only and parts on no
+row (`docs/journal/2026-09-23-item-573.md`, "9983"). A gaia figure that
+parts is invisible until it touches a player's unit. Returns when a
+word's widening needs a gaia row, or with the coverage pin.
+
+(342) re-measured by 573: all six scholar seatings in East Indies'
+[7880, 10399] are on the original's University on the original's frame.
+Host choice seats no Scholar wrongly in that window.
+
 ## Parked by the eleventh Fable pass, 2026-09-23 — a reading, off the Loop
 
 (526) **Sweep every `find_angle`/`sinx`/`cosx` call site `docs/` cites

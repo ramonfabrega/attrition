@@ -32,9 +32,9 @@ been the lower map since 09-21 — so the AI track's default flips to it.*
 - **Fable backlog: 4 Loop items** (313, 527, 574, 575).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w9711 of 24,000 · GreatLakes w12038 of 24,000
+Long captures: EastIndies w9983 of 24,000 · GreatLakes w12038 of 24,000
 Golden: ch1 closed · ch2 closed · ch5 closed · ch4 w1277 of 1501 · 567 next
-Endpoint 24001: EastIndies 63 off, 8 unlinked · GreatLakes 41 off, 4 unlinked
+Endpoint 24001: EastIndies 69 off, 2 unlinked · GreatLakes 41 off, 4 unlinked
 
 **Opener: nothing in flight, every lane reaped, tree pushed. A fresh
 Opus 5.5 commander takes 573 on the AI track and 567 on the rules track,
@@ -49,13 +49,14 @@ lower map first — East Indies (a guard reads this line). Take the first
 unstarted on either track unless a better order is obvious, and say so; the
 backlog is `docs/PARKED.md`, and an item returns only when a score names it.
 
-573. **East Indies' word, 9711, widened whole** — the lower map since
-    09-21 and the AI headline by DECISIONS 41 §1, unbooked through forty
-    landings (the eleventh pass). No capture on disk reaches it: run90's
-    whole comparison sits two thousand frames under. One capture at
-    run125's line over the word, `cover=1` on its frame; every record,
-    both directions; the `WIDENINGS` row names this item. Run numbers
-    139–140 reserved. No mechanism.
+576. **East Indies' word is 9983: a `make_stuff` that buys different
+    things** (573 moved it 9711 → 9983 with the caravan's Commerce epoch,
+    CARAVAN §9). On block 9984 the original queues units (`1/2010` ×2,
+    `1/2014`, `1/2005`); ours places building `1/2017` and sends `1/6`.
+    Ours 212 draws against 15, parting at index 5, `produce_building+0xc99`
+    against `make_stuff+0x63d`. 27 rows pinned. The make list on 9982/9983
+    is on no disk: run99 has no `LEADERS=9`. Capture run139 over the word;
+    run140 spare. No mechanism.
 
 571. **Army 1's squad stops on block 11922 in the original and walks on
     here** (566 moved the word 11903 → 12038 by carrying the pathfinder's
