@@ -5152,3 +5152,43 @@ refuses it:
 
 The live block and the copy both agree with this crate's index.
 `docs/PATHFINDER.md` §24; `run136_s_word_is_one_cell_of_1_62_s_search`.
+
+## run139 — East Indies' word 9983, the make list over it (2026-09-23, item 576)
+
+**What it is.** run99's game and line with `LEADERS` raised to **9**,
+`MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,DEATHS=1,LEADERS=9`, over
+`[9960, 10000)`, plus `rontrace.cfg` `cover=1` and `window=9974-9986` over
+the production cycle. `!quit` at 10010. **92,056,165 bytes of dump and
+17,987,840 of trace, about seven minutes** from launch at 03:59 to archive
+at 04:06. It was launched through `viadriver.sh` with no human at the
+menu; the lane lock was att-566's from 01:41, and its holder was dead.
+2.0 MB a block net of the 11 MB start dump, as sized from run82.
+
+**Why it was owed.** Item 573 moved East Indies' word to 9983, a
+`make_stuff` that buys different things on the two sides. run99 carries
+the word at `LEADERS=1`, whose seven-key stub prints no make list, no
+stockpile and no production step. The `LEADERS=9` East Indies captures
+are run59, run82 and run96; nothing prints the list anywhere in
+[6930, 23960).
+
+**Every check passed:**
+
+| check | result |
+|---|---|
+| `rngcmp.py` vs `rontrace-run54.log` | **0 differing**, 10,011 identical |
+| `MAP_STYLE` from the dump's `GAME INFO` | 18 |
+| the window, block for block | **40 blocks, 9960..9999, no gap** |
+| a `MAKEOBJECT` on every window block | **40** |
+| overlap with run99, the leader's kinds excluded | **40 in common (9960..9999), 0 differ** |
+| the coverage window | a set on all 13 frames 9974..9986 |
+
+**What it settled.** Both lists are empty on block 9979 and the steps
+agree block for block. The lists part on block **9982**, which is
+`create_units`' frame (sim-frame 9981, by the coverage; the dump's
+`production_step` is the step after the one that ran). There the
+original offers three ships at the Dock, types 340, 334 and 323, each
+`val 9999999` and cat 6, and this crate offers none. The Mine enters this
+crate's list on 9983 in the slot the original's ship holds. The sea
+branch finds its dock with a search around the city, and Dock `1/2010`
+belongs to no city. `run139_s_word_frame_is_widened_whole`; `docs/AI.md`
+§57.

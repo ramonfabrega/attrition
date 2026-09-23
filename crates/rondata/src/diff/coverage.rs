@@ -37,7 +37,8 @@ use std::collections::{BTreeMap, BTreeSet};
 use crate::gamelog::{Block, Log, reads};
 
 use super::testkit::{
-    EAST_INDIES_WORD_BLOCK, GOLDEN_WORD_CHAPTER_TWO, GREAT_LAKES_DETOUR_BLOCK, WIDENING_CHAPTER_TWO,
+    EAST_INDIES_MAKE_BLOCK, EAST_INDIES_WORD_BLOCK, GOLDEN_WORD_CHAPTER_TWO,
+    GREAT_LAKES_DETOUR_BLOCK, WIDENING_CHAPTER_TWO,
 };
 
 /// Record paths read by a parser of their own, outside `Block` — the
@@ -137,10 +138,15 @@ const UNREAD: &[(&str, &str)] = &[
     // the goods block), and the level-9 tail's unread keys join it. They
     // are owed by no item: nothing measured turns on them yet.
     // `known_rares`, the Merchant offer's gate, left with item 327
-    // (`docs/AI.md` §55).
+    // (`docs/AI.md` §55). Item 576 put run139, East Indies at `LEADERS=9`,
+    // in the driver, and one key joined: `economic`, a bare line with no
+    // value closing the AI leader's record — a string the record prints
+    // without its name, read as a key with nothing after it. The word is
+    // the leader's script's name, `economic.bhs`; which field prints it is
+    // not read, and nothing is owed on it.
     (
         "GAME/FRAME/LEADERDATA",
-        "(int) agendas[scan] ages_get() ages_queued aggression[scan] air_queued air_units ally_stamp[scan] anti_att att attack_stamp[scan] attrition_stamp attrition_stamp2 attrition_stamp3 average_damage_rate average_death_rate average_hit_rate average_kill_rate barracks_garr barracks_queued barracks_units base_rate[scan] best_armor best_attack best_move best_pop bit_values bits blacken bonus bonus_cap[NUM_COMMON] broke_alliance[scan] buildings_lost buildings_razed capital_stamp[scan] chat_status[scan] cities_captured cities_lost city_mark city_mine city_name combat_queued combat_units counteroffer[scan] ctw_hero_retreat_stamp ctw_hero_stamp damage_current_frame damage_fifteen_seconds deaths_current_frame deaths_fifteen_seconds defeat_stamp defeat_type defensive discovered_get() dock_mark dock_queued dock_units dow[scan] epochs_get() epochs_queued explored factory_queued factory_units flags flock_stamp fort_mark frame_battle gift_stamp[scan] good_deeds[scan] got_diplo_message gov_hero_frame handicap hero_mark high_buildings[scan] hire_stamp[scan] hire_who[scan] hits_current_frame hits_fifteen_seconds increment invaders[scan] kills_current_frame kills_fifteen_seconds last_spoke[scan] last_taunt[scan] length list[scan] lost_capital_modifier lost_capital_stamp lost_capital_timer lost_city_stamp made_peace[scan] misery missiles_used multi_diff nuke_stamp nukes_in_flight nukes_launched nukes_used num_bonus_cards[scan] num_buildings[scan] num_ctw_rate_bonuses[scan] oil_well_mark peasants_garr pop_cap pop_issues popwin_stamp popwin_timer raid_stamp[scan] rares_collected[scan] reg_active[scan] reg_allies[scan] reg_attack[scan] reg_attacked[scan] reg_buildings[scan][scan2] reg_cities[scan] reg_combat[scan] reg_defense[scan] reg_free_peasants[scan] reg_gather_slots[scan] reg_gatherers[scan] reg_known_rares[scan] reg_land[scan] reg_naval[scan] reg_neutrals[scan] reg_peasants[scan] reg_pop[scan] reg_terr[scan] reg_transports[scan] reg_unpack_merch[scan] reg_wars[scan] reg_xport_peasants[scan] repair_stamp retargets scholar_militia scout_garr senates_built size special_mark stable_garr stable_queued stable_units strategy[scan] strong[scan] supply_mark support support_stamp taunt_frame[scan] team_color territory_high tribute_demanded[scan] tribute_stamp[scan] tributes[scan] units_killed units_lost victory_type village_mine weak[scan] wonder_mark wonderwin_stamp wonderwin_timer",
+        "(int) agendas[scan] ages_get() ages_queued aggression[scan] air_queued air_units ally_stamp[scan] anti_att att attack_stamp[scan] attrition_stamp attrition_stamp2 attrition_stamp3 average_damage_rate average_death_rate average_hit_rate average_kill_rate barracks_garr barracks_queued barracks_units base_rate[scan] best_armor best_attack best_move best_pop bit_values bits blacken bonus bonus_cap[NUM_COMMON] broke_alliance[scan] buildings_lost buildings_razed capital_stamp[scan] chat_status[scan] cities_captured cities_lost city_mark city_mine city_name combat_queued combat_units counteroffer[scan] ctw_hero_retreat_stamp ctw_hero_stamp damage_current_frame damage_fifteen_seconds deaths_current_frame deaths_fifteen_seconds defeat_stamp defeat_type defensive discovered_get() dock_mark dock_queued dock_units dow[scan] economic epochs_get() epochs_queued explored factory_queued factory_units flags flock_stamp fort_mark frame_battle gift_stamp[scan] good_deeds[scan] got_diplo_message gov_hero_frame handicap hero_mark high_buildings[scan] hire_stamp[scan] hire_who[scan] hits_current_frame hits_fifteen_seconds increment invaders[scan] kills_current_frame kills_fifteen_seconds last_spoke[scan] last_taunt[scan] length list[scan] lost_capital_modifier lost_capital_stamp lost_capital_timer lost_city_stamp made_peace[scan] misery missiles_used multi_diff nuke_stamp nukes_in_flight nukes_launched nukes_used num_bonus_cards[scan] num_buildings[scan] num_ctw_rate_bonuses[scan] oil_well_mark peasants_garr pop_cap pop_issues popwin_stamp popwin_timer raid_stamp[scan] rares_collected[scan] reg_active[scan] reg_allies[scan] reg_attack[scan] reg_attacked[scan] reg_buildings[scan][scan2] reg_cities[scan] reg_combat[scan] reg_defense[scan] reg_free_peasants[scan] reg_gather_slots[scan] reg_gatherers[scan] reg_known_rares[scan] reg_land[scan] reg_naval[scan] reg_neutrals[scan] reg_peasants[scan] reg_pop[scan] reg_terr[scan] reg_transports[scan] reg_unpack_merch[scan] reg_wars[scan] reg_xport_peasants[scan] repair_stamp retargets scholar_militia scout_garr senates_built size special_mark stable_garr stable_queued stable_units strategy[scan] strong[scan] supply_mark support support_stamp taunt_frame[scan] team_color territory_high tribute_demanded[scan] tribute_stamp[scan] tributes[scan] units_killed units_lost victory_type village_mine weak[scan] wonder_mark wonderwin_stamp wonderwin_timer",
     ),
     (
         "GAME/FRAME/LEADERDATA/DIPLOMACY",
@@ -366,6 +372,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch2 = golden_dump("ch2");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r99 = crate::testenv::dump("gamelog-run99-eastindies-valuewindow2.txt");
+    let r139 = crate::testenv::dump("gamelog-run139-eastindies-makelist.txt");
     if ch2.is_none() && r136.is_none() {
         eprintln!("skipping: neither the ch2 golden capture nor run136 is on disk");
         return;
@@ -406,10 +413,21 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     // map's headline since 2026-09-21 and a window this guard had never
     // read. run99 is run98's detail — `DEATHS=1` and `LEADERS=1`, where the
     // Great Lakes line has `GROUPS=1` and `LEADERS=9`.
+    // Item 576 moved the word to 10232, and run99 carries its blocks too.
     let ei = EAST_INDIES_WORD_BLOCK;
     if let Some(p) = &r99 {
         let n = drive_capture(p, ei - 2, ei + 2, &mut paths);
         assert_eq!(n, 5, "run99 carries the word's five blocks");
+        frames += n;
+    }
+    // **And on run139** (item 576): run99's line with `LEADERS=9`, over the
+    // five blocks around the make list it was taken for, so the leader
+    // record's paths are on this map's window too —
+    // `run139_s_word_frame_is_widened_whole` reads them.
+    let em = EAST_INDIES_MAKE_BLOCK;
+    if let Some(p) = &r139 {
+        let n = drive_capture(p, em - 2, em + 2, &mut paths);
+        assert_eq!(n, 5, "run139 carries the word's five blocks");
         frames += n;
     }
     assert!(frames > 0, "no frame of either window was found");

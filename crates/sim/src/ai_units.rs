@@ -1196,17 +1196,9 @@ impl Sim {
         if self.frame < i64::from(1000 / self.ai_speed.max(1)) {
             return None;
         }
-        // The dock: a member of this city, active. The original searches a
-        // radius and then walks the footprint for a sea tile; the city chain
-        // is where a dock of this city always is.
-        let dock = self.city_chain(c).into_iter().find(|&b| {
-            let bd = &self.buildings[b];
-            bd.alive
-                && bd.active
-                && bd
-                    .ty
-                    .is_some_and(|rec| self.build_is_ident(rec, Ident::Dock))
-        })?;
+        // The dock: the nearest of mine around the city's centre, whichever
+        // city it belongs to (§57).
+        let dock = self.find_dock_near(who, self.cities[c].pos)?;
         let sea_reg = self.dock_sea_region(dock)?;
         if self.world.cells_in(sea_reg).count() <= 19 {
             return None;
@@ -1303,6 +1295,52 @@ impl Sim {
             return None;
         }
         Some((wm(wm(sea_map, avg_e + 1), wm(base, 10) / (n + 1)), 6))
+    }
+
+    /// `ObjectsData::find_building(city.x, city.y, SEARCH_FRIENDLY, who,
+    /// 0x1800, 0, FILTER_BASE_TYPE, DOCK, 0)@0065d260` — the sea branch's
+    /// dock (`create_units@006c40a0:612`, `docs/AI.md` §57).
+    ///
+    /// **It is a search around the city, not the city's own chain.** A Dock
+    /// need not belong to any city — East Indies' `1/2010` is `city -1` on
+    /// every block run99 and run139 print — and it is still the dock the
+    /// city's ships are offered at. The radius `0x1800` takes the bounded
+    /// arm (`(0x1800 + 0x2ff) / 0x300 = 8 ≤ 9`): the object chains of the
+    /// cells `circle_x/y[..circle_radius[8]]` around the city's cell. A
+    /// candidate is a live, finished building (vslots `+0xc` and `+0x4c`,
+    /// `SubObjectData::is_active` and `WallData::is_active`) whose base type
+    /// is the Dock. The distance is `vector_dist` in **tiles** (listing
+    /// `0065d471`–`0065d4b5`: `sar $6` through `div_3_table` on both
+    /// operands) and the winner test is `<=`, so a tie goes to the last
+    /// candidate in walk order. The `<= 0x1800` bound is in those tiles
+    /// and never binds inside eight cells.
+    fn find_dock_near(&self, who: Player, at: crate::world::Pos) -> Option<usize> {
+        const RADIUS: i32 = 0x1800;
+        let circ = crate::ai_place::circle();
+        let home = at.cell();
+        let a = at.tile();
+        let mut best: Option<(i32, usize)> = None;
+        for k in 0..circ.radius[((RADIUS + 0x2ff) / 0x300) as usize] {
+            let cell = crate::world::Cell::new(home.x + circ.x[k], home.y + circ.y[k]);
+            for (b, bd) in self.buildings.iter().enumerate() {
+                if bd.owner != who
+                    || !bd.alive
+                    || !bd.active
+                    || bd.pos.cell() != cell
+                    || !bd
+                        .ty
+                        .is_some_and(|rec| self.build_is_ident(rec, Ident::Dock))
+                {
+                    continue;
+                }
+                let p = bd.pos.tile();
+                let d = crate::world::vector_dist((p.x - a.x).abs(), (p.y - a.y).abs());
+                if d <= RADIUS && best.is_none_or(|(e, _)| d <= e) {
+                    best = Some((d, b));
+                }
+            }
+        }
+        best.map(|(_, b)| b)
     }
 
     /// The dock's sea region — the original walks the footprint for the first
@@ -2604,6 +2642,56 @@ mod tests {
         rec: usize,
         brec: usize,
         b: usize,
+    }
+
+    /// `find_building(city, SEARCH_FRIENDLY, who, 0x1800, …, DOCK)` — the
+    /// sea branch's dock is the nearest of mine around the city, whichever
+    /// city it belongs to, inside eight cells (`docs/AI.md` §57).
+    #[test]
+    fn the_sea_branch_s_dock_is_the_nearest_of_mine_around_the_city() {
+        use crate::world::{Pos, UNITS_PER_CELL, UNITS_PER_TILE};
+        let mut sim = bare();
+        let dock = sim.build_types.len();
+        sim.build_types.push(crate::build::BuildType {
+            ident: Ident::Dock,
+            ..crate::build::BuildType::default()
+        });
+        let add = |sim: &mut Sim, who: Player, tiles: (i32, i32)| {
+            let b = sim.add_building(
+                who,
+                Pos::new(tiles.0 * UNITS_PER_TILE, tiles.1 * UNITS_PER_TILE),
+                8,
+            );
+            sim.buildings[b].ty = Some(dock);
+            b
+        };
+        let city = Pos::new(40 * UNITS_PER_TILE, 40 * UNITS_PER_TILE);
+        assert_eq!(sim.find_dock_near(0, city), None, "no dock at all");
+        // A dock of no city, twelve tiles out: found, although no city's
+        // chain holds it — East Indies' `1/2010`.
+        let far = add(&mut sim, 0, (52, 40));
+        assert_eq!(sim.find_dock_near(0, city), Some(far));
+        // A nearer one of mine wins; a nearer one of another leader's does
+        // not; an unfinished one is not a candidate.
+        let rival = add(&mut sim, 1, (42, 40));
+        let near = add(&mut sim, 0, (46, 40));
+        let site = add(&mut sim, 0, (44, 40));
+        sim.buildings[site].active = false;
+        assert_eq!(sim.find_dock_near(0, city), Some(near));
+        let _ = rival;
+        // Nine cells out is past `circle_radius[8]`: not found, however
+        // near it would be in tiles to nothing else.
+        for b in [far, near] {
+            sim.buildings[b].alive = false;
+        }
+        let beyond = add(&mut sim, 0, (40 + 9 * UNITS_PER_CELL / UNITS_PER_TILE, 40));
+        assert_eq!(sim.find_dock_near(0, city), None);
+        sim.buildings[beyond].pos.x -= UNITS_PER_CELL;
+        assert_eq!(
+            sim.find_dock_near(0, city),
+            Some(beyond),
+            "eight cells is in"
+        );
     }
 
     /// One leader with one city whose building is a Barracks — a military

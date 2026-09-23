@@ -7004,3 +7004,160 @@ Unit:
 Reading-only, and owed a blind second reading: §56.2's
 `get_military_level_slow` fallback to `preq[1]`, and §56.3's refit
 direction, read at `get_cost:441`.
+
+## 57. The sea branch's dock is a search around the city (2026-09-23, item 576)
+
+Item 573 left East Indies' word on **9983**, a `make_stuff` on both sides
+that buys different things. On block 9984 the original queues units
+(`1/2010` two, `1/2014` one, `1/2005` one). This crate queues two at
+`1/2005`, places a Mine, `1/2017`, and walks citizen `1/6` to it: ours 212
+draws against 15, parting at index 5 on `Leader::produce_building+0xc99`
+against `make_stuff+0x63d`. No mechanism was named. run99 carries the word
+at `LEADERS=1`, whose stub prints no make list, so the item took **run139**:
+the same game at `LEADERS=9` over [9960, 9999] (`docs/RUNS.md`).
+
+**East Indies' word goes 9983 → 10232.**
+
+### 57.1 The lists, read forwards
+
+`run139_s_word_frame_is_widened_whole` compares every key of the leader
+record, both leaders, on every block. `RON_MAKE_SLOTS=<lo>-<hi>` prints
+player 1's two lists slot for slot. The dump's `production_step` is the
+step **after** the one that ran, and run139's coverage names each frame's
+producer: `upgrade_units` on 9980, `create_units` on 9981,
+`create_buildings` on 9982 and `make_stuff` on 9983.
+
+- Both lists are empty on block 9979.
+- `research_techs` and `upgrade_units` fill them alike, slot for slot,
+  through block 9981.
+- On **block 9982**, `create_units`' frame, the original's list holds three
+  ships at the Dock, each `val 9999999`, city 0, cat 6: types 340 (slot 2),
+  334 (slot 3) and 323 (slot 6). This crate's holds none, so Mercenaries and
+  Militia keep slots 2 and 3.
+- On block 9983 `create_buildings` puts the Mine in this crate's slot 3,
+  where the original's ship stands, and `make_stuff` buys it.
+
+The stockpile agreed throughout (one metal on 9966 and one food on 9981,
+neither near a price edge), and the step machine agreed block for block.
+The stanza wrote four readings before the run. The one that held is that
+the lists part at the unit step (its R1). The Mine was a consequence, and
+the purse and the clock were not involved.
+
+### 57.2 The dock
+
+`create_units@006c40a0:612`'s sea branch finds its dock with
+
+```
+find_building(city.x, city.y, SEARCH_FRIENDLY, who, 0x1800, 0,
+              FILTER_BASE_TYPE, DOCK, 0)
+```
+
+and then walks that dock's footprint for a sea region. This crate searched
+the **city's own chain**, on the note that "the city chain is where a dock
+of this city always is". East Indies' Dock `1/2010` has `city -1` on every
+block run99 and run139 print, so it belongs to no city, and this crate's
+sea branch never offered a ship.
+
+`ObjectsData::find_building@0065d260`, as far as this call reaches it:
+
+- The radius `0x1800` takes the **bounded arm**. `(0x1800 + 0x2ff) /
+  0x300` is 8, and 8 ≤ 9. The arm walks the object chains of the cells at
+  `circle_x/y[..circle_radius[8]]` around the point's cell (`div_3_table[x
+  >> 8]`, 768 units).
+- A candidate passes `SubObjectData::is_active` and `WallData::is_active`
+  (Build vslots `+0xc` and `+0x4c`, from `vtables.txt`), the friendly search
+  and the base-type filter.
+- The distance is `vector_dist` in **tiles**. The decompiler prints the call
+  with lost arguments. The listing, `0065d471`–`0065d4b5`, shifts both
+  operands `sar $6` through `div_3_table`.
+- The winner test is `<=` against the running best **and** `<= 0x1800`.
+  The second never binds inside eight cells. A tie goes to the last
+  candidate in walk order.
+
+`Sim::find_dock_near` is that search. `sea_value` calls it instead of the
+chain walk. The rest of the branch is unchanged.
+
+### 57.3 What it moved
+
+With the search in, both lists agree **slot for slot on every block of
+run139**. Only `MAKE[*].city` still parts, and that is §52.2's index shift,
+not a value. The 17 rows on 9982 become 7 city rows, and the 38 on 9984
+become 0.
+
+| instrument | before | after |
+| --- | --- | --- |
+| East Indies' word | 9983, 212 draws / 15 | **10232**, 33 / 34 |
+| run139 keys parted, [9960, 9999] | 312 | **187** |
+| run99's rows on 9982..9984 | 27 | **0** |
+| run99's floor under the word | 141 | 219 (the word moved 249 frames) |
+| East Indies endpoint off / unlinked | 69 / 2 | **45 / 22** |
+| East Indies endpoint build unlinked / diverged | 1 / 30 | **5 / 18** |
+| East Indies ladder C off / extra / build diverged | 43 / 23 / 8 | **40 / 7 / 4** |
+| East Indies ladder B extra | 21 | **1** |
+| Great Lakes' word, golden chapters | 12038; 900, 900, 900, 1416 | held |
+
+The endpoints are 13,769 frames past the new word and are the number, not
+a trade (DECISIONS 36). The ladder's shared-extras guard fell from six to
+one: the sixteen and twenty spurious units the rungs shed took most of the
+overlap it cross-checks. It is lowered with the number, as its comment
+asks, and is now all but vacuous.
+
+**The new word**: 10232, ours 33 draws against the original's 34, parting
+at index 30. Ours spends `Guy::set_anim+0x97a < Guy::inc_time+0x271` and
+the original `Unit::do_move+0xe84`. It lies in run99 (block 10233) and past
+run139. run99's widening now pins its three rows, all on `1/32`: `form_mod`
+ours -1 against 50, `idle` 5 against 0, and `stance` 0 against 3. No
+figure changes animation on one side only on 10231..10234.
+
+Between the old word and the new, 78 keys part, and none of them spends
+a draw:
+
+- the seated Scholars `1/30` (10127) and `1/31` (10149, with its group on
+  10150), each with the four-row birth record as before;
+- every Citizen's `myhits` and `hits_left`, 40 against the original's 50,
+  and `mylos` 2 against 4, on **10165**;
+- `1/32`, born on 10187 at (44184, 42888) against (45192, 41880), and in
+  group 68 against 66 from 10188.
+
+### 57.4 What this has *not* established
+
+- **The other dock readers.** `create_buildings`' dock value (§2.19 item 2)
+  and the transport code may look for a dock the same way. Only this call
+  was checked against its listing.
+- **`dock_sea_region` walks cells, and the original walks tiles.** The
+  original walks `WallData::tile_corner` over the footprint's `x_size ×
+  y_size` **tiles**, testing the surface bits `& 0x30 == 0x20`, then
+  `get_tregion`. This crate's walk starts at `pos.cell()`. It found the same
+  sea here. It is not read further.
+- **The tie order.** No capture puts two docks at one distance. The walk
+  order is the circle's, with building index order inside a cell standing in
+  for the object chain's order.
+- **`Armies::init_navy`** runs on the original's 9981 (run139's coverage).
+  This crate's sea branch still seeds no navy (`ai_census.rs`). Nothing in
+  run139's window reads it.
+- **10165's hit points**: a Citizen upgrade or an age effect the original
+  applies and this crate does not. It is below the word and spends no draw.
+- **`gather_stamp` on 9992**: ours 9991 against the original's 9719. This
+  crate's gather clock stamps where the original's has not moved for 272
+  frames. It spends no draw in the window.
+
+### 57.5 Coverage
+
+Diff-backed:
+
+- `diff::harness::tests::run139_s_word_frame_is_widened_whole`: both make
+  lists slot for slot, the stockpile and step, and every record, over
+  [9960, 9999].
+- `diff::harness::tests::run99_s_word_frame_is_widened_whole`: the move's
+  value diff on 9982..9984 (empty) and the new word's rows on 10233.
+
+Unit:
+
+- `ai_units::tests::the_sea_branch_s_dock_is_the_nearest_of_mine_around_the_city`:
+  a dock of no city found, the nearest of mine winning, a rival's and an
+  unfinished one skipped, and the eight-cell edge. It was made to fail on
+  purpose by widening the circle to ring 9.
+
+Reading-only, and owed a blind second reading: §57.2's candidate filter
+(the two `is_active` vslots) and the bounded arm's cell walk. The listing
+settles the distance unit.
