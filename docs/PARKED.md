@@ -22,6 +22,18 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Parked by item 604, 2026-09-23 — the templates' unchecked half
+
+(609) **The XML-order-to-slot mapping of the mountain templates** rests on
+a reading: the packet confirms it on 3 of 16 templates
+(`docs/FORMATS.md`, "The mountain templates"). Returns when a range on
+another template parts.
+
+(610) **Great Lakes' solid cells** come from the same loader and no packet
+has checked them. The placed tiles equal the start dump's on both maps;
+the solid lists are unverified there. Returns when a Great Lakes row
+names a Mine or a mountain.
+
 ## Parked by item 597, 2026-09-23 — the placement's reading-only offsets
 
 (607) **A blind second reading of `docs/AI.md` §59.6's offsets.** The
