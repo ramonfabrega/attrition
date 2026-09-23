@@ -500,6 +500,21 @@ session when the task exits, so the wait costs nothing — and the gate's
 wrapper propagates its exit rather than echoing it. Same family as (565):
 a receipt that is written but not read.
 
+(575) **The pass that made the lower map a guard booked its capture
+without grepping the disk.** Filed by the commander at 573's spawn,
+2026-09-23: 573 reads "no capture on disk reaches it: run90's whole
+comparison sits two thousand frames under" and reserves run139–140. But
+run99, East Indies `[8780, 10400)`, was taken on 2026-09-18 for exactly
+this frontier; its stanza counts 34 `to_x` records on 9711 and it is
+still in the Logs directory. One `grep` of `tools/gamelog/captures.txt`
+found it. The brief sends 573 to widen on run99 first, and books a
+capture only for what run99 cannot answer. **What it wants**: "grep the
+disk before booking a capture" is prose, and the pass that wrote it
+broke it. A guard could read every queue item that names a map, a frame
+and a capture, and fail when a `captures.txt` window on that map already
+spans the frame and the item does not cite it. Same family as (452): an
+instrument that stops looking where the thing it measures sits.
+
 ## Parked by the tenth Fable pass, 2026-09-22 — names no score
 
 (476) **f10234's three value rows**: `0/5 order:length` 2/1, `0/5
