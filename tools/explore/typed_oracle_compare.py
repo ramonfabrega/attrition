@@ -14,6 +14,7 @@ from typed_leader_bridge import apply as leader_bridge
 from typed_leader_projection import apply as leader_projection
 from typed_world_bridge import grid_plan,cell_plan,apply as world_bridge,apply_cells
 from typed_coverage_report import summarize
+from typed_guy_bridge import decode_figures,apply as guy_bridge
 
 
 def write_json(path,value):
@@ -48,6 +49,7 @@ def run(install,capture,export,plan_path,output):
             stage('leader_projections',lambda:leader_projection(report,state))
             stage('world_grids',lambda:world_bridge(report,state,grid_plan(state,types,memory)))
             stage('world_cells',lambda:apply_cells(report,cell_plan(state,types,memory)))
+            stage('guy_records',lambda:guy_bridge(report,state,decode_figures(state,types,memory)))
         finally:memory.close()
         coverage=stage('coverage_accounting',lambda:summarize(state,report))
         write_json(output/'coverage.json',coverage)
@@ -58,7 +60,7 @@ def run(install,capture,export,plan_path,output):
                         types_sha256=state['types_sha256'],frame=frame,frame_text_sha256=report['frame_text_sha256'],
                         matched_occurrences=report['matched_occurrences'],observable_occurrences=report['observable_occurrences'],
                         mismatch_occurrences=report['status_counts'].get('integer_mismatch',0),
-                        bridge_errors={key:report[key]['errors'] for key in ('leader_bridge','leader_projection','world_grid_bridge','world_cell_bridge')})
+                        bridge_errors={key:report[key]['errors'] for key in ('leader_bridge','leader_projection','world_grid_bridge','world_cell_bridge','guy_bridge')})
     except Exception as error:
         manifest.update(status='failed',error=str(error));raise
     finally:

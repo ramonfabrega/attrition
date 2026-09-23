@@ -93,8 +93,9 @@ All 78 acquisition and typed-oracle tests pass, including native producer,
 emitted-hook, decoder, projection, accounting and runner failure controls.
 Fresh end-to-end reproduction from the packet completes in 20.71 seconds,
 returns the same 505,425 matches with zero mismatches or bridge errors, and
-retains the complete comparison compressed. The full release gate is pending
-on this checkpoint. The preceding background gate for
+retains the complete comparison compressed. Commit `cc0bc7e` also passes the full release gate: 1,278 release tests,
+885 fixture requests with none missing, clippy, formatting and paperwork
+guards. The [GUY follow-up](2026-09-22-guy-state-bridge.md) extends this result. The preceding background gate for
 `f87c774` ended without a completion verdict and is **not** counted as passing.
 The earlier `851653a` full gate remains a valid result for that earlier commit.
 
