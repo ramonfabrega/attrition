@@ -563,6 +563,9 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
     // gameplay data the original's own simulation reads, resolved to
     // integer frames at load.
     sim.art.releases = loaded.piece_releases.clone();
+    // And which types aim a pivot rather than turn to shoot
+    // (`docs/COMBAT.md` §52).
+    sim.art.pivots = loaded.pivot_restrictions.clone();
     if !loaded.piece_releases.is_empty() {
         notes.push(format!(
             "anim: {} unit pieces' arrow-release frames from the install",

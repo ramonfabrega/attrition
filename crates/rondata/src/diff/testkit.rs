@@ -2456,15 +2456,27 @@ pub(crate) const GOLDEN_WORD_CHAPTER_SEVEN: i64 = 1200;
 pub(crate) const WIDENING_CHAPTER_SEVEN: (i64, i64) = (605, 1201);
 
 /// **Chapter three's golden word** — the mounted and siege lines, run145
-/// (`docs/GOLDEN.md` §7). The draw stream parts on **633**, ours 8 draws
-/// against the original's 9, at draw 1: the original's chariot spends one
-/// `Unit::fight+0x9b0` and then two `Guy::set_anim+0xf2f` (printed bare,
-/// `5db22f`), one for each of its two figures; this crate spends a second
-/// re-search. Values part on 634, where this crate's `0/8` has turned.
-/// It is run146's word too, on the same frame and in the same shape. No
-/// mechanism is named here.
+/// (`docs/GOLDEN.md` §7). The draw stream parts on **682**, ours 8 draws
+/// against the original's 7, at draw 1: this crate spends
+/// `Unit::close+0xcb6` on the hoplite `1/7`, which it kills on 682 where
+/// the dump's dies on 704. It is downstream of the first value parting,
+/// **635**: the chariot `0/6` takes its first target, `1/7` here and `1/8`
+/// in the dump, and the damage follows the arrows. No mechanism is named
+/// for 635.
 ///
-/// **The delta: 621 → 633, item 590.** 587 pinned 621: this crate put the
+/// **The delta: 633 → 682, item 595.** On 633 the original's chariot
+/// `0/8` swung without turning, and this crate turned and deferred the
+/// swing. Item 595 took `Unit::set_attack`'s pivot verdict
+/// (`docs/COMBAT.md` §52): a type with a `<RESTRICTION>` pivot that bears
+/// within ±45° shoots on its own heading. The swing's two rolls are
+/// `Guy::set_anim+0xf2f < Unit::set_anim+0x56` and `+0xb6`, named now.
+/// The value diff on the frame it moved: `0/8`'s `angle`, `heading` and
+/// both figures' `g.angle` on 634 read `1431655765` on both sides (ours
+/// had `991232000`), and its crew figure's `g.ox`/`g.whom` read −1 on both
+/// (ours had `8`/`1`). The word's blocks, and 635's row, are pinned in
+/// `chapter_three_s_word_frame_is_widened_whole`.
+///
+/// **The delta before it: 621 → 633, item 590.** 587 pinned 621: this crate put the
 /// packed catapult `0/9` into `Unit::fight` on its birth block. Item 590
 /// took `Unit::think_attack`'s packed-unit arm (`docs/COMBAT.md` §51): a
 /// human's packed siege engine returns before the target search and
@@ -2472,7 +2484,7 @@ pub(crate) const WIDENING_CHAPTER_SEVEN: (i64, i64) = (605, 1201);
 /// row to the capture's end, its cast on 696 and its unpack on 776
 /// included. The word's block is pinned in
 /// `chapter_three_s_word_frame_is_widened_whole`.
-pub(crate) const GOLDEN_WORD_CHAPTER_THREE: i64 = 633;
+pub(crate) const GOLDEN_WORD_CHAPTER_THREE: i64 = 682;
 
 /// `chapter_three_s_word_frame_is_widened_whole`'s window: **run145
 /// whole**, 605..899 and the `!quit` block at 901. The floor is the
@@ -2485,16 +2497,27 @@ pub(crate) const WIDENING_CHAPTER_THREE: (i64, i64) = (605, 901);
 /// **Chapter three's restage** — `chapter3b.cmd`, run146, item 587: the
 /// same three unit types in two arenas, staged so that §7's minimum-range
 /// and speed falsifiers can fire (neither does). The draw stream parts on
-/// **633**, ours 8 draws against the original's 9. The original's chasing
-/// chariot `0/8` spends one `Unit::fight+0x9b0` and then two
-/// `Guy::set_anim+0xf2f`, the walk starting on its two figures; this crate
-/// spends a second re-search and starts the walk on 634. Values part on
-/// 634. No mechanism is named here.
+/// **664**, ours 31 draws against the original's 30, at draw 22: the
+/// chariot `0/9` swings again, and this crate's crew figure (the horse)
+/// rolls a fresh attack, `Guy::set_anim+0xf2f < Unit::set_anim+0xb6`,
+/// where the original's rolls nothing. This crate's horse has stood on
+/// figure 0's slog slot since its first swing on 639, which figure 0
+/// deferred for its turn and `inc_time`'s mirror copied into the crew, so
+/// at 664 it is not swinging and plays the request. `GUYS=2` prints no
+/// figure's clock, so no widening row parts on the word's two blocks. The
+/// first value parting is **651**: `0/8`'s first arrow now leaves on the
+/// dump's frame, from the unit's own square rather than the archer's
+/// release node. No mechanism is named for either.
 ///
-/// **The chapter's word is [`GOLDEN_WORD_CHAPTER_THREE`]**, which item 590
-/// moved to 633 — this same frame, in this same shape, on run145. This
-/// one is pinned beside it so the restage cannot fall unseen.
-pub(crate) const GOLDEN_WORD_CHAPTER_THREE_RESTAGE: i64 = 633;
+/// **The delta: 633 → 664, item 595** — the pivot (`docs/COMBAT.md`
+/// §52), as on run145. The value diff on 634 is run145's shape: `0/8`
+/// keeps `1431655765` on both sides (ours had `998768640`), and its crew
+/// figure's aim reads −1 on both (ours had `6`/`1`).
+///
+/// **The chapter's word is [`GOLDEN_WORD_CHAPTER_THREE`]**, 682 on
+/// run145. This one is pinned beside it so the restage cannot fall
+/// unseen, and it is the lower of the two.
+pub(crate) const GOLDEN_WORD_CHAPTER_THREE_RESTAGE: i64 = 664;
 
 /// `chapter_three_s_restage_is_widened_whole`'s window: run146 whole,
 /// 605..999 and the `!quit` block at 1001.

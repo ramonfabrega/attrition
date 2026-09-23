@@ -167,6 +167,20 @@ pub const SITES: &[(u32, Option<u32>, &str)] = &[
         Some(0x005d_a167), // `Guy::inc_time+0x357`, past the wrap loop
         sim::anim::SITE_ATTACK_INC,
     ),
+    // And the swing paid where it is asked, under `Unit::set_anim@00616f40`
+    // from `Unit::fight+0x19f6`, when the unit's pivot bears and nothing
+    // turns (`docs/COMBAT.md` §52): one loop for the squad's figures, one
+    // for the crew.
+    (
+        0x005d_b22f,
+        Some(0x0061_6f96), // `Unit::set_anim+0x56`, figures `0 .. guy_mark`
+        sim::anim::SITE_ATTACK_FIGHT,
+    ),
+    (
+        0x005d_b22f,
+        Some(0x0061_6ff6), // `Unit::set_anim+0xb6`, the crew
+        sim::anim::SITE_ATTACK_FIGHT_CREW,
+    ),
     (
         0x005d_ac7a,
         Some(0x005f_b753), // `Unit::move_step+0x823`, the blocked stand
