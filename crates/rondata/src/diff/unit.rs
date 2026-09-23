@@ -2314,12 +2314,17 @@ mod tests {
         // Made to fail on purpose by reverting the negation, which puts
         // `1/32`–`1/36` back on the list from block 7419 with `1/32` and
         // `1/33` holding exactly each other's waypoints.
+        //
+        // **And since item 629 not `1/26` either**: it is a Merchant, and
+        // the twenty-four units were its seat — `cast_unpack`'s merchant
+        // arm puts it on its tile corner (`docs/MERCHANT.md` §3.2). Nothing
+        // parts in the window.
         let parted: std::collections::BTreeSet<(i64, i64)> =
             wrong.iter().map(|r| (r.1, r.2)).collect();
         assert_eq!(
             parted,
-            [(1, 26)].into_iter().collect(),
-            "run87's window parts on more than 1/26: {:?}",
+            std::collections::BTreeSet::new(),
+            "run87's window parts: {:?}",
             wrong
                 .iter()
                 .filter(|r| (r.1, r.2) != (1, 26))

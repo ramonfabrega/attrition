@@ -1559,6 +1559,8 @@ mod tests {
     /// **Item 327 deleted five**: `1/MAKE[2]`'s `t`, `cat` and `val` and
     /// `1/MAKE[3]`'s `t` and `cat` — the Merchant, offered on both sides now
     /// that `reg_known_rares` has a writer (`docs/AI.md` §55). 89 → 84.
+    // Item 629 took `MAKE[1].val`, `MAKE[3].val` and `MAKE[4].val`: the Merchants' seat (`docs/MERCHANT.md`
+    // §3.2) brings the make list's values to the original's.
     const PARTS_ON_RUN115: &[(usize, &str)] = &[
         (0, "SITE[0].reg"),
         (0, "SITE[1].reg"),
@@ -1585,12 +1587,9 @@ mod tests {
         (0, "scouts"),
         (0, "wars"),
         (1, "MAKE[1].city"),
-        (1, "MAKE[1].val"),
         (1, "MAKE[2].city"),
         (1, "MAKE[3].city"),
-        (1, "MAKE[3].val"),
         (1, "MAKE[4].city"),
-        (1, "MAKE[4].val"),
         (1, "MAKE[8].city"),
         (1, "SITE[0].rank"),
         (1, "SITE[0].reg"),
@@ -2523,6 +2522,8 @@ mod tests {
     /// (`docs/AI.md` §55). Its `val` still parts on 8174, three blocks
     /// before the offer, at 77/75 of the original's — §14.4's `get_cost`
     /// row. 80 → 78.
+    // Item 629 took `MAKE[3].val`: the Merchants' seat (`docs/MERCHANT.md`
+    // §3.2) brings the make list's values to the original's.
     const PARTS_ON_RUN19: &[(usize, &str)] = &[
         (0, "SITE[0].reg"),
         (0, "SITE[1].reg"),
@@ -2551,7 +2552,6 @@ mod tests {
         (1, "MAKE[1].city"),
         (1, "MAKE[2].city"),
         (1, "MAKE[3].city"),
-        (1, "MAKE[3].val"),
         (1, "MAKE[8].city"),
         (1, "SITE[0].reg"),
         (1, "SITE[1].reg"),
@@ -2960,6 +2960,8 @@ mod tests {
     /// **Item 327 deleted four**: `1/MAKE[3]`'s `t` and `cat` and
     /// `1/MAKE[4]`'s `t` and `escrow` — the Merchant slots above, offered
     /// here now (`docs/AI.md` §55). 105 → 101.
+    // Item 629 took `MAKE[3].val` and `MAKE[4].val`: the Merchants' seat (`docs/MERCHANT.md`
+    // §3.2) brings the make list's values to the original's.
     const PARTS_ON_RUN117: &[(usize, &str)] = &[
         (0, "SITE[0].reg"),
         (0, "SITE[1].reg"),
@@ -2993,9 +2995,7 @@ mod tests {
         (1, "MAKE[1].city"),
         (1, "MAKE[2].val"),
         (1, "MAKE[3].city"),
-        (1, "MAKE[3].val"),
         (1, "MAKE[4].city"),
-        (1, "MAKE[4].val"),
         (1, "MAKE[6].city"),
         (1, "MAKE[8].city"),
         (1, "MAKE[9].val"),

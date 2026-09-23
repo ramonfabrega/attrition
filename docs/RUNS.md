@@ -5703,3 +5703,41 @@ whose walk it is.
 **What it settled.** `run155_s_word_frame_is_widened_whole`; the item's
 journal (`docs/journal/2026-09-23-item-620.md`) has the verdicts on the
 three readings.
+
+## run159 — East Indies' word 11590, past run155's last block (2026-09-23, item 629)
+
+**What it is.** run155's game and line past its last block:
+`MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,DEATHS=1,LEADERS=9` over
+`[11270, 11900)`, plus `rontrace.cfg` `cover=1` and `window=11586-11594`
+over the word. `!quit` at 11920. **1,324,073,337 bytes of dump and
+19,374,848 of trace, 46 minutes** from launch at 13:54 to archive at
+14:40. It ran through `viadriver.sh` with no human at the menu, after a
+backgrounded wait on the lane lock, which att-628's run156 and run157
+held. That is 2.08 MB a block net of the 11 MB start dump, the same as
+run155.
+
+```
+zsh tools/gamelog/viadriver.sh tools/gamelog/runqueue.sh - 629
+```
+
+**Why it was owed.** The word 11590 writes block 11591. No `MAP_STYLE
+18` dump on this disk has a block in [11500, 11700]. run155's blocks end
+on 11301 (its `!quit` stub), run78 starts at 15700 and run96 at 23960,
+and run54 and the 24k runs print only their end frames. The draw stream
+names the herd sheep `8/1`'s arrival idle, eight frames early here, and
+no record on disk says where the original's sheep walks.
+
+**Every check passed:**
+
+| check | result |
+|---|---|
+| `rngcmp.py` vs `rontrace-run54.log` | **0 differing**, 11,921 identical |
+| `MAP_STYLE` from the dump's `GAME INFO` | 18 |
+| the window, block for block | **630 blocks, 11270..11899, no gap** |
+| a `MAKEOBJECT` on every window block | **630** |
+| overlap with run155, every kind compared | **10 in common (11270..11279), 0 differ** |
+| the coverage window | a set on all 9 frames 11586..11594 |
+
+**What it settled.** `run159_s_word_frame_is_widened_whole`; the item's
+journal (`docs/journal/2026-09-23-item-629.md`) has the verdicts on the
+readings.

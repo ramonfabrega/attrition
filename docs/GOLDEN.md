@@ -848,7 +848,8 @@ this lobby, human or computer (`docs/INPUT.md` §11.10).
 walk, and neither parting is the seam. The one-term stand-in and the
 original both leave who=1's tail open.
 
-- **run156, `GOLDEN_WORD_CHAPTER_SEVEN_B` = 1148**: 13 draws against 14 at
+- **run156, `GOLDEN_WORD_CHAPTER_SEVEN_B` = ~~1148~~ 1200 (closed, item
+  629, below)**: 13 draws against 14 at
   draw 6. The original's fur trapper `1/10` spends two turn draws, guy 0
   under `move_step+0x3b6` and its crew under `do_turn+0xe5`; this crate
   spends one `Guy::inc_time` stand. Its move was handed another `dest_y` on
@@ -870,6 +871,15 @@ pinned by block and key. Two more rows stand from the first block. who=1's
 `library who=1 2` raises the original's cap and not this crate's (run141,
 without the line, prints 1392). The scout `1/0`'s `facing` stands from 847,
 as in chapter seven. No mechanism is named for either word.
+
+**Seven-b closed at 1200 on item 629.** The 24 units were the mechanism.
+`SpellType::cast_unpack`'s merchant arm seats a Merchant on its tile corner
+and blocks the two-by-two under it, and this crate had it as a seam
+(`docs/MERCHANT.md` §3.2). With the arm built, the merchant `1/8` agrees
+from 1070 and the fur trapper's `dest_y` agrees from 1091. run156 agrees
+draw for draw and value for value to the end of its trace, and 22 rows
+under the old word go. The one left is the scout's `facing` from 847,
+parked 635. The control's 1036 does not move.
 
 ## 12. Chapter eight — the commanders, and a war that is declared
 

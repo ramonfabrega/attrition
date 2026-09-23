@@ -481,6 +481,65 @@ mod tests {
         assert_eq!(s.units[u].spell_time, 1, "and the clock has started");
     }
 
+    /// **`cast_unpack`'s merchant arm** (`docs/MERCHANT.md` §3.2): the
+    /// deploy seats the trader on its tile's corner — `(−24, −24)` from the
+    /// unit-cell centre it walked to — blocks the two-by-two under it and
+    /// marks the economy; `Unit::close` gives the four tiles back. East
+    /// Indies' `1/20` on 7663 is the dump this is the shape of (run88).
+    #[test]
+    fn a_deployed_merchant_sits_on_its_corner_and_blocks_its_square() {
+        let (mut s, u) = merchant_sim();
+        let at = crate::collide::ucell_centre(crate::collide::ucell(s.units[u].pos));
+        assert!(s.set_new_location(u, at, true));
+        s.world.add_good(Good {
+            pos: at,
+            ty: 26,
+            alive: true,
+        });
+        let t = at.tile();
+        let m = s.world.tile_mask(t);
+        s.world.set_tile_mask(t, m | tile::AS_BUILDING);
+        let square =
+            [(0, 0), (-1, 0), (0, -1), (-1, -1)].map(|(dx, dy)| Pos::new(t.x + dx, t.y + dy));
+        assert!(
+            square
+                .iter()
+                .all(|&p| s.world.tile_mask(p) & tile::BLOCKED == 0),
+            "the square is clear before the deploy"
+        );
+        s.ledgers[1].dirty = false;
+        // No craft table: a `JOB_TIME` of 0, so the first frame casts.
+        s.add_cast_order_at(u, crate::orders::spell::UNPACK, QueuePos::New);
+        let Some(Body::Cast(c)) = s.current_order(u).map(|o| o.body) else {
+            panic!("a cast order")
+        };
+        s.do_cast(u, c);
+        assert!(!s.units[u].combat.packed, "deployed");
+        let corner = Pos::new(t.x * UNITS_PER_TILE, t.y * UNITS_PER_TILE);
+        assert_eq!(s.units[u].pos, corner, "seated on the tile's corner");
+        assert_eq!(
+            (at.x - corner.x, at.y - corner.y),
+            (24, 24),
+            "a step of (−24, −24) from where it stood"
+        );
+        assert!(
+            square
+                .iter()
+                .all(|&p| s.world.tile_mask(p) & tile::BLOCKED != 0),
+            "the four tiles under it are blocked"
+        );
+        assert!(s.ledgers[1].dirty, "and the leader's 0x2000000 is up");
+        // Its death gives the square back.
+        s.units[u].health = 0;
+        s.close_supply(u);
+        assert!(
+            square
+                .iter()
+                .all(|&p| s.world.tile_mask(p) & tile::BLOCKED == 0),
+            "a dead merchant's square is clear again"
+        );
+    }
+
     /// The re-seat's own gate: a tile `good_merchant_spot` refuses kills
     /// the order where it stands, before the clock ever starts.
     #[test]
