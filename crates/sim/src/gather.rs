@@ -113,7 +113,9 @@ use std::collections::BTreeSet;
 use crate::ai_place::{circle, gather_good};
 use crate::build::flags;
 use crate::economy::Resource;
-use crate::world::{Cell, TILES_PER_CELL, UNITS_PER_TILE, World, tile, vector_dist};
+use crate::world::{
+    Cell, TILES_PER_CELL, UNITS_PER_CELL, UNITS_PER_TILE, World, tile, vector_dist,
+};
 use crate::{Player, Pos, Sim};
 
 /// `WOODCUTTER_RADIUS`, in tiles (`rules.xml`, `woodcutter_radius 8` in the
@@ -640,57 +642,71 @@ impl Sim {
     }
 
     /// `MountainsData::find_nearest@0089cd30`, for the one question every
-    /// caller here asks of it: the **mountain tile** nearest a site, or
-    /// `None` when the nearest is further than a mine may reach.
+    /// caller here asks of it: the **solid mountain cell** nearest a site,
+    /// and its distance, or `None` when the nearest is further than a mine
+    /// may reach.
     ///
-    /// The original walks every placed mountain and every tile of its range
-    /// and keeps the smallest `vector_dist` **in world units** from the
-    /// footprint's centre; `calc_gather` then drops the answer outright when
-    /// it exceeds `gather_radius * 0xc0`. Only tiles inside that reach can
-    /// ever win, so the scan is the box that bounds it.
+    /// The original walks every placed mountain and, for each, its range's
+    /// `solid_mount_wx`/`_wy` — **cells**, not the `mount_tx` tile list —
+    /// keeping the smallest `vector_dist` in world units from the
+    /// footprint's centre to the cell's centre, `(loc + off) · 0x300 +
+    /// 0x180`. `calc_gather` then drops the answer outright when it exceeds
+    /// `gather_radius · 0xc0`. The listing settles the arrays (the offsets
+    /// are in `docs/AI.md` §59.2) and the run144 packet settles the
+    /// arithmetic: five of East Indies' 10582
+    /// spiral sites stand **1536** from the nearest solid cell, two whole
+    /// cells, and are refused, where the nearest mountain **tile** is inside
+    /// 1152 (`docs/AI.md` §59).
     ///
-    /// **This is the predicate a mine's site is refused by**, and it is not
-    /// the cell walk the camp uses: measuring to a mountain **cell's centre
-    /// tile** inside `MINE_RADIUS` passes twice as many sites as measuring
-    /// to the nearest mountain tile, and Great Lakes 8382 is the difference
-    /// — eighteen friendless candidates against the original's nine
-    /// (`docs/ECONOMY.md`, "The mine's range").
+    /// A cell is solid here when its centre tile is a mountain, and the
+    /// packet's eighteen ranges on East Indies agree cell for cell
+    /// (`docs/AI.md` §59.2). The region argument skips a range whose first
+    /// solid cell lies in another region than the site's; every range on
+    /// that map lies in one region, so the test is made per cell.
     ///
     /// **Not established:** the tie-break. The original's order is the map
-    /// generator's range order and then each range's own tile order; this
+    /// generator's range order and then each range's own cell order; this
     /// walks rows, and a tie between two ranges at the same distance would
-    /// pick a different range's tile. No capture holds one.
-    fn nearest_mountain_tile(&self, centre: Pos) -> Option<Pos> {
-        let half = UNITS_PER_TILE / 2;
-        let span = MINE_RADIUS + 1;
-        let at = Pos::new(
-            centre.x.div_euclid(UNITS_PER_TILE),
-            centre.y.div_euclid(UNITS_PER_TILE),
-        );
-        let mut best: Option<(i32, Pos)> = None;
-        for ty in (at.y - span)..=(at.y + span) {
-            for tx in (at.x - span)..=(at.x + span) {
-                let t = Pos::new(tx, ty);
-                if !self.world.tile_in_bounds(t)
-                    || self.world.tile_mask(t) & tile::OBJECT != tile::OBJECT_MOUNTAIN
+    /// pick a different range. No capture holds one.
+    pub fn nearest_mountain_cell(&self, centre: Pos) -> Option<(i32, Cell)> {
+        let reach = MINE_RADIUS * UNITS_PER_TILE;
+        let at = centre.cell();
+        let span = reach / UNITS_PER_CELL + 2;
+        let site_region = self.world.region_of(at);
+        let mut best: Option<(i32, Cell)> = None;
+        for cy in (at.y - span)..=(at.y + span) {
+            for cx in (at.x - span)..=(at.x + span) {
+                let c = Cell::new(cx, cy);
+                if !self.world.contains(c) || !self.is_solid_mountain(c) {
+                    continue;
+                }
+                if let (Some(a), Some(b)) = (site_region, self.world.region_of(c))
+                    && a != b
                 {
                     continue;
                 }
                 let d = vector_dist(
-                    centre.x - (tx * UNITS_PER_TILE + half),
-                    centre.y - (ty * UNITS_PER_TILE + half),
+                    centre.x - (cx * UNITS_PER_CELL + UNITS_PER_CELL / 2),
+                    centre.y - (cy * UNITS_PER_CELL + UNITS_PER_CELL / 2),
                 );
                 if best.is_none_or(|(b, _)| d < b) {
-                    best = Some((d, t));
+                    best = Some((d, c));
                 }
             }
         }
-        best.filter(|&(d, _)| d <= MINE_RADIUS * UNITS_PER_TILE)
-            .map(|(_, t)| t)
+        best.filter(|&(d, _)| d <= reach)
+    }
+
+    /// `solid_mount_wx`/`_wy` membership: the cell's centre tile is a
+    /// mountain.
+    fn is_solid_mountain(&self, c: Cell) -> bool {
+        let t = c.centre_tile();
+        self.world.tile_in_bounds(t)
+            && self.world.tile_mask(t) & tile::OBJECT == tile::OBJECT_MOUNTAIN
     }
 
     /// The mountain range a mine draws on — the connected component of
-    /// mountain **tiles** reachable from [`Sim::nearest_mountain_tile`],
+    /// mountain **tiles** reachable from [`Sim::nearest_mountain_cell`]'s centre tile,
     /// eight-connected.
     ///
     /// **A reconstruction.** The original's ranges come out of the map
@@ -706,7 +722,8 @@ impl Sim {
     /// tiles: a cell of the range whose **centre tile** is a mountain and
     /// whose cell is not a forest one.
     pub fn mountain_range(&self, centre: Pos) -> Option<MountainRange> {
-        let seed = self.nearest_mountain_tile(centre)?;
+        let (_, cell) = self.nearest_mountain_cell(centre)?;
+        let seed = cell.centre_tile();
         let is_mtn = |t: Pos| {
             self.world.tile_in_bounds(t)
                 && self.world.tile_mask(t) & tile::OBJECT == tile::OBJECT_MOUNTAIN

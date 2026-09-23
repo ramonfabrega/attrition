@@ -7329,3 +7329,150 @@ Reading-only, and owed a blind second reading:
 - the `is_move` class list (only a plain `MoveTo` is diffed);
 - the cell (not tile) indexing of the move point. It agrees on run143's one
   case, and one case does not separate the two.
+
+## 59. A mine's reach is measured to the nearest solid mountain cell (2026-09-23, item 597)
+
+East Indies' word **10582** is `Leader::produce_building`'s placement of
+Mine `1/2018` (type 419) for city `1/2007`. It spent **209** draws against
+**207**, parting at index 11: ours `+0xc99` against theirs `+0x1805`. The
+spiral scored **12** friendless candidates against **7**. No dump prints
+why a tile is fit, so this item took the lab's packet rung, its first use on
+this map.
+
+### 59.1 The packet, and what it answered
+
+run144 (`docs/RUNS.md`) is a `RON_STATE_FRAME` packet at **logger frame
+10582**, after trace tick 10581. That frame is the one before the
+placement: Mine `1/2018` is first printed on block 10583, and block N is the
+state after tick N−1 (the lab's Great Lakes packet reads logger 11,186
+after trace 11,185). The packet is the same game: 10,591 seeds identical
+to run54, and 8 blocks identical to run143.
+
+`Leader::plan_strategy@006b9620` was entered on `leaders.list[1]`
+(`0xE4127C`; `leaders` is `0xE3A390`, the listing of
+`Leaders::strategy_all@006ed430`). Every call `produce_building@006e1400`
+made was logged under unicorn:
+
+- `produce_building(419, 2007, 1)` from `make_this+0x328`;
+- **7** `Random::get` at `+0xc99` and **3** clear sub-positions of 4 at
+  `+0x1805`, which are the original's own counts, so the packet reproduces
+  the frame.
+
+Each spiral cell's record, compared with this crate's (a temporary trace,
+not kept), splits the five extras exactly. At all five,
+`BuildTypeData::blocked_site@00636a50` returns **12**, `NoMountain`, where
+this crate returned `Clear`:
+
+| cell | site | packet `find_nearest` |
+|---|---|---|
+| (43, 44) | (33408, 34176) | 1536 |
+| (42, 44) | (32640, 34176) | 1536 |
+| (40, 46) | (31104, 35712) | 1536 |
+| (40, 47) | (31104, 36480) | 1536 |
+| (50, 48) | (38784, 37248) | 1536 |
+
+Nothing else parts: 68 cells refused `NoMountain` on both sides, and the
+`Building`, `Mountain`, `Water` and `Rare` refusals agree.
+
+### 59.2 The arithmetic: cells, not tiles
+
+`blocked_site` on each site, with `calc_gather@00639e40`'s calls logged,
+shows `MountainsData::find_nearest@0089cd30` returning a range at all five.
+Its distance out-parameter is **1536** against a reach of `gather_radius ·
+0xc0` = 6 · 192 = **1152**, so `gather_size` is never reached. The accepted
+sites read 1152, 984 and 576.
+
+The listing settles what `find_nearest` walks:
+
+- the count at `+0x7c` and the lists at `+0x88` and `+0xa4`, off the range's
+  virtual base. Those are `MountainRangeData::solid_mount_wx`/`_wy`
+  (`+0x74`, `+0x90`): **cells**, not `mount_tx`;
+- each is measured at `(loc + off) · 0x300 + 0x180`, the cell's centre, by
+  the inline `vector_dist`;
+- a range whose first solid cell is in another region than the site's is
+  skipped.
+
+`docs/ECONOMY.md` "The mine's range" read "every tile of its range". That
+was wrong: (43, 44)'s centre is two cells from range 2's nearest solid cell,
+(43, 46), which is 1536, while a mountain tile of that range lies inside
+1152.
+
+`Sim::nearest_mountain_cell` now measures to cell centres, per region.
+A cell is solid when its centre tile is a mountain. That closes (50, 48)
+and puts the Mine on the original's site.
+
+### 59.3 What the packet says the solid cells are, and this crate cannot yet
+
+The packet's eighteen placed mountains carry **107** solid cells in three
+template types: type 15 has 3 cells at offsets (−1, 0), (0, 0) and (−1, 1)
+of its location, type 14 has 13 and type 13 has 14. Every range lies in one
+region. Measured on East Indies:
+
+- **centre tile a mountain**: 139 cells, the 107 and **32 more**. Range 2
+  (loc (43, 46)) lists (42, 46), (43, 46) and (42, 47). This rule also
+  admits (42, 45) and (41, 46), which reach the four remaining sites at
+  1152 and 768;
+- **all sixteen tiles a mountain**: 52 cells, 55 missing;
+- **`WData.flags & 0x10`**, which `Mountains::add_mountain@0089c2e0`
+  stamps on each solid cell: 91 cells at the start dump and in the packet,
+  17 missing and 1 extra. Something later clears the bit. A payoff probe on
+  that rule, not kept, spent 6 draws against 7 and lost (48, 43);
+- **`WData.solid`**, which the dump prints: not membership. (43, 46) is
+  solid and prints 0;
+- **no 1-, 2- or 3-tile subset of the 4×4** separates the sets. The best,
+  (1, 1) and (2, 2), misses 4.
+
+The lists are the templates' own (`MountainRange::init` loads them with
+the art; the `h*`, `m*`, `s*` mountain files). No dump prints them.
+Reproducing them is its own mechanic.
+
+### 59.4 What it moved
+
+- **The word does not move: 10582.** Its count now agrees, 207 against
+  207, and the sequence still parts at index 11. The spiral scores
+  **11** against 7 (the four residue cells of §59.3), and the jitter spends
+  3 against 3.
+- **The value diff on the word's frame** (run143, block 10583): Mine
+  `1/2018` at y **35136**, the original's, where it stood at 34944, and its
+  builder `1/6` on the original's (38207, 36557). The one-sided animation
+  change of the human's `0/4` on 10585 is gone. The block's 98 rows are 80,
+  all of them the Mine's gather list order (40 `tx`, 40 `ty`), which the
+  shuffle draws from a stream four spiral draws apart.
+- run143's floor goes 273/301/753 → **273/301/393**: nothing under the
+  word, and 360 keys fewer past it.
+- The Mine's `make_stuff` value (`MAKE[4].val`, §58.4) is unchanged. That
+  is city `1/2007`'s `filled`, which is not this.
+
+### 59.5 What this has *not* established
+
+- **Solid membership** (§59.3). This is the successor on the headline: the
+  four sites (43, 44), (42, 44), (40, 46) and (40, 47) are refused at 1536
+  in the original and reach (42, 45) or (41, 46) here.
+- **The region test** is made per cell. The original makes it on a range's
+  first solid cell. That is the same thing wherever a range lies in one
+  region, which holds for all eighteen on East Indies. It is not read on
+  Great Lakes.
+- **The tie-break** between two ranges at one distance: the generator's
+  order there, rows here.
+- **Great Lakes 8382** (ECONOMY, the nine candidates) is not re-measured
+  cell by cell. The map's word holds at 12038, so its draws agree.
+
+### 59.6 Coverage
+
+Diff-backed:
+
+- `diff::build::tests::east_indies_10582_mine_sites_measure_to_the_nearest_solid_cell`:
+  the packet's `find_nearest` distance at eight mine sites. Four agree, and
+  the four that part are pinned as the residue with the cell this crate
+  reaches. It was made to fail on purpose by measuring to the centre tile's
+  centre: 1062 against 1152.
+- `diff::harness::tests::run143_s_word_frame_is_widened_whole`: the site and
+  its builder empty on 10583, the block counted, the floor.
+
+Packet-backed and not in a test, because the packet stays outside git
+(`~/ron-data/lab-experiments/2026-09-23-item-597/`): the per-cell
+`blocked_site` codes, the 107 solid cells and their regions.
+
+Reading-only: the `+0x7c/+0x88/+0xa4` offsets as `solid_mount_wx`/`_wy`,
+checked against the packet's lists (every range's cells sit around its
+location). This is owed a blind second reading.

@@ -12319,20 +12319,23 @@ mod tests {
             })
             .map(|((w, o, what), (f, row))| format!("{f} {w}/{o} {what}: {row}"))
             .collect();
-        assert_eq!(
-            placed,
-            [
-                "10583 1/6 pos: ours (38207,36559) theirs (38207,36557)",
-                "10583 1/2018 build:y_internal: ours 34944 theirs 35136",
-            ],
-            "the site and its builder"
-        );
+        // Item 597: empty. The Mine stood at y 34944 against 35136, and its
+        // builder `1/6` two units off, until a mine's reach was measured to
+        // the nearest solid mountain **cell** (run144's packet,
+        // `docs/AI.md` §59). The spiral still scores eleven candidates
+        // against seven; the four left are the solid-cell residue
+        // `east_indies_10582_mine_sites_measure_to_the_nearest_solid_cell`
+        // pins, and the jitter now lands where the original's does.
+        assert_eq!(placed, Vec::<String>::new(), "the site and its builder");
         let per_block: Vec<(i64, usize)> = (WORD_BLOCK - 2..=WORD_BLOCK)
             .map(|b| (b, firsts.values().filter(|(f, _)| *f == b).count()))
             .collect();
         assert_eq!(
             per_block,
-            [(10581, 2), (10582, 2), (10583, 98)],
+            // Item 597: 98 → 80, and the 80 are the Mine's gather list,
+            // 40 `tx` and 40 `ty`: its order, which the shuffle draws from
+            // a stream four spiral draws apart.
+            [(10581, 2), (10582, 2), (10583, 80)],
             "the word's blocks, counted"
         );
         let one_sided: Vec<(i64, i64, i64, bool, bool)> =
@@ -12343,9 +12346,11 @@ mod tests {
         // now. On the new one the only one-sided change is the human's
         // `0/4` on 10585, whose move order parts on 10584, a block past
         // the word — downstream of it, not under it.
+        // Item 597: empty. `0/4`'s one-sided change on 10585 went with the
+        // Mine's site (§59): its move order parted on 10584 behind it.
         assert_eq!(
             one_sided,
-            [(10585, 0, 4, false, true)],
+            Vec::<(i64, i64, i64, bool, bool)>::new(),
             "a figure moves on one side only"
         );
         // **The census under the word, 10576, both directions** (item 592),
@@ -12396,9 +12401,13 @@ mod tests {
         // `filled` (§58.4). Its fix took the census's eight rows off 10576
         // and the make list's thirteen off the word; the floor was
         // 273/309/772 with the widening and before the fix.
+        //
+        // Item 597 moved nothing under the word and took **360** keys off
+        // the blocks past it, 753 → 393: the Mine on the original's site,
+        // its builder on the original's point, and what followed them.
         let under = firsts.values().filter(|(f, _)| *f < WORD_BLOCK - 2).count();
         let first = firsts.values().filter(|(f, _)| *f == FIRST).count();
-        assert_eq!((first, under, firsts.len()), (273, 301, 753), "the floor");
+        assert_eq!((first, under, firsts.len()), (273, 301, 393), "the floor");
     }
 
     #[test]

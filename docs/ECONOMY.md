@@ -1060,20 +1060,22 @@ if mtn >= 0 and reach < mtn_d:                mtn = -1      # and both may be to
 count = MountainRangeData::gather_size(mtn, …)   # or CliffsData::gather_size
 ```
 
-`find_nearest@0089cd30` walks every placed mountain and **every tile of its
-range**, keeping the smallest `vector_dist` in world units; the region
-argument skips a range whose own cell is on another landmass. So the
-predicate a mine site is refused by is *"is there a mountain tile within six
-tiles of where the building would stand"* — not *"is there a mountain-centred
-**cell** within six tiles of the anchor"*, which is what the camp's walk asks
-and what this crate asked for a mine until now.
+`find_nearest@0089cd30` walks every placed mountain and ~~**every tile of
+its range**~~ its range's **solid cells** (`solid_mount_wx`/`_wy`), keeping
+the smallest `vector_dist` in world units to a cell's **centre**; the region
+argument skips a range whose first solid cell is on another landmass. The
+tile reading was wrong, and run144's packet measured it (`docs/AI.md` §59).
+So a mine site is refused unless a solid mountain cell's centre is within
+six tiles of where the building would stand. That is not the camp's walk
+from the anchor either.
 
 **The difference is a factor of two, measured.** Great Lakes' frame 8382
 places the game's first mine. `Leader::produce_building`'s spiral draws once
 per friendless FARM/MINE candidate that clears `blocked_site`
 (`docs/AI.md` §2.20), and the cell walk let **eighteen** candidates through
-where the original passed **nine** — the nine whose nearest mountain tile is
-inside 1152 world units, exactly. Nine extra draws moved the placement
+where the original passed **nine**: the nine whose nearest mountain tile is
+inside 1152 world units, exactly. The same nine pass the solid-cell measure,
+because Great Lakes' word holds (`docs/AI.md` §59.5). Nine extra draws moved the placement
 jitter's four rolls nine places down the stream and put the mine a tile east
 of the original's.
 
