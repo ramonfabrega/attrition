@@ -1865,7 +1865,8 @@ mod tests {
     /// is compared under its own name; the per-region arrays through
     /// `Built.region_map`. What is left out is named: `explored`
     /// (`check_explore`'s visibility recount is a seam), `reg_known_rares`
-    /// (rares are not in the simulation), `territory`/`reg_terr` (the
+    /// (not compared here; its sum is, as `known_rares`, on the leader
+    /// windows since item 327), `territory`/`reg_terr` (the
     /// territory pass is `docs/ATTRITION.md`'s and compared elsewhere).
     #[test]
     fn run9_s_frame_1_leader_record_is_the_census_after_the_sweep() {

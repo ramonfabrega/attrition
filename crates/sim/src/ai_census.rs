@@ -453,7 +453,7 @@ impl Sim {
         self.sync_leader_pop();
     }
 
-    /// Step 9, the rares — `plan_strategy@006b9620:318–358`, the only
+    /// Step 9, the rares — `plan_strategy@006b9620:314–361`, the only
     /// writer `reg_known_rares` (`LeaderData +0x4d4`) has. Every good in
     /// the leader's `new_rares` list is counted into its cell's region
     /// when two things hold:
@@ -1266,6 +1266,61 @@ mod tests {
             scholar,
             scout,
         }
+    }
+
+    /// Step 9 (`docs/AI.md` §55): every good in `new_rares` counts into its
+    /// cell's region unless the cell is another leader's and that leader is
+    /// not a mutual ally — and only the census writes the array, while the
+    /// leader-level sum waits for `calc_gather`'s recompute.
+    #[test]
+    fn step_9_counts_the_seen_rares_a_merchant_may_reach() {
+        let mut f = fix();
+        let s = &mut f.sim;
+        let good = |s: &mut Sim, x: i32, y: i32| {
+            s.world.add_good(crate::world::Good {
+                pos: tile_pos(x * TILES_PER_CELL, y * TILES_PER_CELL),
+                ty: 20,
+                alive: true,
+            })
+        };
+        let unowned = good(s, 2, 2);
+        let mine = good(s, 4, 4);
+        let theirs = good(s, 6, 6);
+        s.world
+            .set_owner(Cell::new(4, 4), Owner::Player(1), Owner::None);
+        s.world
+            .set_owner(Cell::new(6, 6), Owner::Player(0), Owner::None);
+        s.ai[1].new_rares = vec![unowned, mine, theirs];
+        let land = s.world.region_of(Cell::new(2, 2)).expect("land") as usize;
+
+        s.census(1);
+        assert_eq!(
+            s.ai[1].census.reg_known_rares[land], 2,
+            "unowned and own ground count; the human's does not"
+        );
+        assert_eq!(
+            s.ai[1].known_rares, 0,
+            "the census writes the array, not the sum"
+        );
+        s.assemble_holdings(1);
+        assert_eq!(s.ai[1].known_rares, 2, "calc_gather's recompute sums it");
+
+        // A mutual ally's ground counts; a one-sided alliance does not.
+        s.allied[1][0] = true;
+        s.census(1);
+        assert_eq!(
+            s.ai[1].census.reg_known_rares[land], 2,
+            "one side is not an ally"
+        );
+        s.allied[0][1] = true;
+        s.census(1);
+        assert_eq!(s.ai[1].census.reg_known_rares[land], 3, "both sides are");
+
+        // And the sweep zeroes before it counts, so a list that shrank
+        // would not leave a stale count behind.
+        s.ai[1].new_rares.clear();
+        s.census(1);
+        assert_eq!(s.ai[1].census.reg_known_rares[land], 0);
     }
 
     fn finish(sim: &mut Sim, b: usize) {
