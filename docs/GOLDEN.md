@@ -858,7 +858,8 @@ original both leave who=1's tail open.
   on the same unit's crew turn, where the trace could not name the
   original's chain. Item 628 named it (`docs/ANIM.md` §4.14), and the
   sequence moved to the word.
-- **run157, `GOLDEN_WORD_CHAPTER_SEVEN_B_CONTROL` = 1036**: 8 draws against
+- **run157, `GOLDEN_WORD_CHAPTER_SEVEN_B_CONTROL` = ~~1036~~ 1176 (item
+  632, below)**: 8 draws against
   7 at draw 2. who=1's own `1/1` takes an idle roll here where the
   original's walks. From 990 the original holds it in group 65 with three
   orders and `form_mod` 50, and this crate holds group 64, one order and
@@ -880,6 +881,23 @@ from 1070 and the fur trapper's `dest_y` agrees from 1091. run156 agrees
 draw for draw and value for value to the end of its trace, and 22 rows
 under the old word go. The one left is the scout's `facing` from 847,
 parked 635. The control's 1036 does not move.
+
+**The control moved 1036 → 1176 on item 632.** The group was the goody
+box's, not an army's. On 990 the fifteen-frame look halts `1/1` on its way
+to a site with a one-member group's `QUEUE_FIRST`. The original's
+`Group::finish_insert` re-issues the copied `BUILDORDER` behind the box's
+walk, as `action_swarm_around(…, QUEUE_LAST, BUILD_AT, 1)`, and this crate
+dropped it. The group's width twin, `form_mod` 50, is written on a citizen
+too (`docs/GROUPS.md` §24). With both built, `1/1` walks on to its site on
+1037 as the original's does. On 990 only the group id stands, 64 against
+65, a slot permutation that starts with the scout's standing row. On its
+own tree the fix stopped at 1148, run156's word, and item 629's merchant
+arm clears that frame here too. The word is now **1176**, the computer's
+`Leader::produce_building`: 69 draws against 249, parting at draw 34,
+where the original spends a run of `Build::find_gather_tiles+0x10a`. On
+1177 the original's gatherer `1/7` is sent toward a site and this crate's
+keeps gathering. The scout's explore path parts from 1077, value only. No
+mechanism is named for 1176.
 
 ## 12. Chapter eight — the commanders, and a war that is declared
 

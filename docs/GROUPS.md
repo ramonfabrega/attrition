@@ -2390,8 +2390,9 @@ did until this item, having passed the queue position straight down to
 `finish_insert@0070e620` re-issues each copy as a **group** action at
 `QUEUE_LAST`, switching on the order's own index over twenty-one cases.
 `crates/sim/src/group.rs` carries the move and the attack arms and stands
-in for the rest; no capture on disk reaches a group `QUEUE_FIRST` whose
-leader holds one of the others, and `army_charge` is the only other caller.
+in for the rest; ~~no capture on disk reaches a group `QUEUE_FIRST` whose
+leader holds one of the others~~ run157 reaches the `BUILD_AT` case, which
+§24 builds; `army_charge` is the only other caller.
 
 ## 18. The speed cap — what `GroupData::speed` is, and who writes it (item 515, 2026-09-22)
 
@@ -3266,3 +3267,141 @@ and `group::the_sort_re_seats_a_stray_follower_s_squad_and_clears_its_pointer`,
 each made to fail by its mutation. **Reading-only**: the five SEAM
 writers, and `do_group_move`'s not-listed clear (`5e7ed8`), which no
 frame of this chain reaches.
+
+## 24. The build behind the goody walk — chapter seven-b's control, 1036 → 1148 (item 632, 2026-09-23)
+
+run157 is chapter seven-b's control (`docs/GOLDEN.md` §11). Its word was
+**1036**: who=1's citizen `1/1`, ours 8 draws against 7, parting at draw 2.
+Ours took an idle roll where the original's walked. The widening on file,
+`chapter_seven_b_s_word_frame_is_widened_whole`, walked the capture whole
+and put the first parting on **990**, and that is where this section
+starts.
+
+### 24.1 What the dump holds on 990
+
+`1/1` is walking an explore-to (37128, 23160) toward a site, with a
+`BUILDORDER` on `1/2007` under it (`flags 4`, the action bit). On 990, a
+multiple of fifteen, the goody look runs from `do_explore_to`
+(`docs/GOODY.md` §7). `Unit::get_goody_box@005f7690` puts the unit in a
+one-member group and asks for the box's walk at `QUEUE_FIRST`. The
+original's record on 990 holds, current first:
+
+1. the box's explore-to (36504, 22680);
+2. an explore-to **(37080, 23160)**. This is a new approach, not the old
+   one: `off_x` is 216 against 264, because the ring spot is measured from
+   where the unit stands now;
+3. the `BUILDORDER`.
+
+It also has `orders_x` 37080, group 65 and `form_mod` 50. The approach is
+re-issued once more on 1005, the next look, at (37032, 23160). The walk
+ends on 1036, and on 1037 the unit walks on to its site. This crate held
+the box's walk alone, so on 1036 its list was empty.
+
+### 24.2 The case
+
+§17 is the frame. `set_up_insert` copies the leader's orders that carry
+the action bit, so the `BUILDORDER` is copied and its transit walk is
+not. `finish_insert@0070e620`'s case 6 re-issues the copy as
+`action_swarm_around(o, who, QUEUE_LAST, get_type(), flags & 4)`. Case
+`0xd` does the same with `REPAIR`. `Group::action_swarm_around@0070fbe0`
+at `QUEUE_LAST` does the following:
+
+- It walks the members twice: `domain` 0 (land) first, then 1 (sea). `domain`
+  is `+0x218`, and an air member (2) is never taken.
+- It keeps each member that is not `is_busy`, subject to a gather filter.
+- A **citizen** (`0x32`/`0x33`) that is not inside anything and cannot
+  cast `0x293` gets the ring spot. That is the same `find_nearby_spot`
+  and `+0x30` nudge as `QUEUE_FIRST`, with the angle
+  `find_angle(site − spot)` (`orders.rs`'s `swarm_spot`). Then:
+  - **`add_move_facing_order(…, kind, …, QUEUE_LAST)`**. The kind is
+    `local_40 = ~(leader_flags >> 1) & 2 | 1` for `BUILD_AT`: `EXPLORE_TO`
+    under a computer and `MOVE_TO` under a human. For `REPAIR` it is
+    `MOVE_TO`.
+  - The queue position becomes **`QUEUE_NEW`** when the member's action is
+    a gather and the order carries the action bit (`00710487`).
+  - Then `add_build_order` (or `add_repair_order`) at `QUEUE_LAST`.
+  - If the ring finds no spot, **neither** is queued.
+- Every other member goes into a scratch group, which is sent `MOVE_TO` the
+  site at `QUEUE_NEW`.
+
+`update_action` then puts `orders_x` on the approach, since the box's walk
+and the approach are the leading transit run. That is run157's 37080, and
+it is why the next look on 1005 re-issues: the "already aimed" test
+compares the box's cell with `orders_x`'s.
+
+### 24.3 The width twin
+
+`action_move_near`'s per-member store at `00705749` guards `+0xaa`
+(`form`) with the four citizen and scholar ids. The `+0xab` store (`form_mod`) comes after
+the test, not inside it, as §6.6 step 1 already says. This crate had put
+both inside. So a citizen in a group carries the group's width, 50, and
+keeps its own `form`. That is run157's `1/1` on 990: `form 9` stands,
+and `form_mod` goes from −1 to 50.
+
+### 24.4 This crate
+
+- `Sim::group_action_move_to`'s `QUEUE_FIRST` arm now sends `Body::Build`
+  and `Body::Repair` copies to `group_action_swarm_around_last`
+  (`group.rs`).
+- Each member's half is `Sim::swarm_around_last` (`orders.rs`).
+- The width store moved out of the citizen test.
+- `a_group_s_queue_first_keeps_the_build_behind_the_walk`
+  (`cities_tests.rs`) pins the list, the action bit, `orders_pos`, and the
+  width against the form. It was made to fail once with the arm removed.
+
+The remaining SEAMs are named where they stand. None is reached by a
+capture on file:
+
+- the scratch group's move for non-builders;
+- the `count_inside` and `0x293` exemptions and the cast order;
+- the gather filter's `local_30`;
+- `is_busy`;
+- `BUILD_AT`'s clear of the site's `+0x60 & 0x2000`;
+- `finish_insert`'s eighteen other cases.
+
+### 24.5 What it moved
+
+**run157: 1036 → 1176.** On 990 the only row left standing is `1/1`'s
+group id, 64 against 65. The id comes from the scout's standing `group`
+row, where ours gave the scout 65 and the original gave it 64. Each side
+then hands `1/1` the slot the other gave the scout. The id is a slot and
+not an identity, and it spends no draw.
+
+The value diff on the moved frame, from run157's own coordinates: on 1037
+`1/1` stands at (36480, 22656) on both sides, `idle 0`, and holds explore-to
+(37032, 23160) and the `BUILDORDER`. On this item's own tree the word
+stopped at 1148, run156's word and shape. With item 629's merchant arm
+(`docs/MERCHANT.md` §3.2) that frame agrees too, and the word is **1176**,
+who=1's `Leader::produce_building`: 69 draws against 249 at draw 34, where
+the original spends `Build::find_gather_tiles`. The scout `1/0`'s explore
+path parts from 1077, value only.
+
+**The width twin reaches the long captures.** East Indies' computer
+citizens carried a standing `form_mod`, ours −1 against the original's 50,
+from the first block of every window. Seven widenings lose those rows and
+no other rows: run99, run139, run143, run149, run152, run155 and run159.
+Each loses three, except run139, which loses two. Both long words hold,
+East Indies 11747 and Great Lakes 12038.
+
+### 24.6 What this has *not* established
+
+- The member loop's arms that no capture reaches. They are listed in
+  §24.4 and have been read once.
+- Whether the long captures reach a group `QUEUE_FIRST` over a builder.
+  The gate's long words are the check, and the journal names what they
+  did.
+
+### 24.7 Coverage
+
+The following claims are **diff-backed** by run157's widening, which is
+now run over (605, 1178), and by the word's own walk. The width claim is
+also backed by the seven East Indies widenings:
+
+- the three-order list on 990;
+- `orders_x`;
+- the 1005 re-issue;
+- the width on a citizen;
+- the walk resumed on 1037.
+
+**Reading-only**: the `QUEUE_NEW` gather arm, the `REPAIR` twin, and the
+two-pass domain order.

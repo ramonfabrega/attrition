@@ -2595,11 +2595,30 @@ pub(crate) const WIDENING_CHAPTER_SEVEN_B: (i64, i64) = (605, 1201);
 
 /// **Chapter seven-b's control's word** — run157, the same five with the
 /// Leader AI on (item 628).
-pub(crate) const GOLDEN_WORD_CHAPTER_SEVEN_B_CONTROL: i64 = 1036;
+///
+/// **Item 632 moved it 1036 → 1176**, and this comment carries the delta
+/// (the widening's block for it is in
+/// `chapter_seven_b_s_word_frame_is_widened_whole`). On 990 the goody
+/// look halts who=1's citizen `1/1` on its way to a site. The original's
+/// `Group::finish_insert` re-issues the `BUILDORDER` behind the box's walk
+/// (case 6, `action_swarm_around(…, QUEUE_LAST, BUILD_AT, 1)`), and this
+/// crate dropped it. So on 1036 ours stood orderless and rolled an idle
+/// where the original walked on to its site. The value diff on the moved
+/// frame, run157's own coordinates: on 1037 `1/1` stands at (36480, 22656)
+/// both sides, holding explore-to (37032, 23160) and the `BUILDORDER` on
+/// `1/2007`, `idle 0`. On 990 ours held one order, explore-to
+/// (36504, 22680), with `orders_x` 36504 against 37080 and `form_mod` −1
+/// against 50 (`docs/GROUPS.md` §24). On its own tree the fix stopped at
+/// 1148, run156's word and shape. With item 629's merchant arm that
+/// frame agrees as well, so the word is **1176**: who=1's
+/// `Leader::produce_building`, 69 draws against 249, parting at draw 34.
+/// There the original spends a run of `Build::find_gather_tiles+0x10a`
+/// and this crate goes on to `Animal::think_bird`.
+pub(crate) const GOLDEN_WORD_CHAPTER_SEVEN_B_CONTROL: i64 = 1176;
 
 /// The control's widening window, its first block to the word's block and
 /// the one after.
-pub(crate) const WIDENING_CHAPTER_SEVEN_B_CONTROL: (i64, i64) = (605, 1038);
+pub(crate) const WIDENING_CHAPTER_SEVEN_B_CONTROL: (i64, i64) = (605, 1178);
 
 /// **Chapter three's golden word** — the mounted and siege lines, run145
 /// (`docs/GOLDEN.md` §7): **900, the capture's end, draw for draw and
@@ -3403,7 +3422,7 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         "GOLDEN_WORD_CHAPTER_SEVEN_B_CONTROL",
         GOLDEN_WORD_CHAPTER_SEVEN_B_CONTROL,
         Some("chapter_seven_b_s_word_frame_is_widened_whole"),
-        628,
+        632,
         Some(WIDENING_CHAPTER_SEVEN_B_CONTROL),
     ),
 ];
