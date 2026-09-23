@@ -40,8 +40,8 @@ Long captures: EastIndies w9711 of 24,000 · GreatLakes w11582 of 24,000
 Golden: w664 of 901 (ch5) · ch1 w900 · ch2 w900 · 543 next
 Endpoint 24001: EastIndies 64 off, 9 unlinked · GreatLakes 46 off, 0 unlinked
 
-**Opener: an Opus 5.5 commander is live; nothing in flight; 545 next on the AI
-track, 543 on the rules track. Workers spawn with `claude-opus-5-5[1m]`.**
+**Opener: an Opus 5.5 commander is live; 545 in flight on att-545 (AI), 543 on
+att-543 (rules). Workers spawn with `claude-opus-5-5[1m]`.**
 
 ## The queue
 
