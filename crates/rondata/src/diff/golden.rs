@@ -1416,9 +1416,16 @@ fn chapter_one_s_word_frame_is_widened_whole() {
     // covers its own window whole, and the near pairs and clock rows were
     // actually read: each is a row whose agreement would otherwise be a
     // silence.
+    //
+    // run105 has **no block 900**, as run112 has none: its window is
+    // 605..899 and the `!quit` block is 901. Since item 530 the window
+    // runs to the capture's end, so that one absence is the dump's own
+    // shape and not a truncation.
+    const RUN105_NO_BLOCK: i64 = 900;
+    let absent = usize::from((FIRST..LAST).contains(&RUN105_NO_BLOCK));
     assert_eq!(
         blocks,
-        (LAST - FIRST) as usize,
+        (LAST - FIRST) as usize - absent,
         "run105 no longer carries every block of [{FIRST}, {LAST})"
     );
     if clocks.is_some() {
@@ -1467,37 +1474,36 @@ fn chapter_one_s_word_frame_is_widened_whole() {
     // All of those close with §6 step 3's arm B (`docs/COMBAT.md` §48),
     // and the word went 626 → 774. The window moved with it.
     //
-    // What stands, by family:
+    // **Item 530 moved the word 774 → 900, the capture's end**, and the
+    // window with it (`docs/COMBAT.md` §49). Four keys went into the
+    // record first and two of them were the answer: `in_danger`
+    // (`unit_masks & 4`) and `g.flags&0x20` parted on **617** on all six
+    // hoplites, 148 frames under the order kind the item was booked on;
+    // the army group's `facing` parted on 617 from run110's pool; and the
+    // guy's `ox`/`whom`. `stance` closed as an instrument row: the
+    // original writes one byte for every stance panel and this crate
+    // wrote only the combat half. The map fell from 88 keys to 46, and
+    // every `dest_angle` and `orders_x/y` row closed with
+    // `Unit::work`'s unconditional `update_action`.
+    //
+    // What stands, by family, and none spends a draw in the capture:
     //
     // - **605, the floor**: the city record of `0/2000`, which this crate
     //   holds empty (`busy`, `filled`, `land`, `space`, `ter`, and
-    //   `1/2000`'s by one), `form` on the ten pre-existing units, and four
-    //   `dest_angle`s. All older than the chapter's first staged line.
+    //   `1/2000`'s by one), and `form` on the ten pre-existing units.
+    //   All older than the chapter's first staged line.
     // - **610, `g.gpiece`** on the ten pre-existing units: one age bracket
     //   under the dump's, chapter two's same ten (`docs/ANIM.md`).
     // - **611 and 616, the births**: `form` −1 against 0 on all six
-    //   hoplites, and `orders_x/orders_y` on `0/7` and `0/8` — this crate
-    //   seeds a follower's with its captain's point, the dump with its
-    //   own. Neither spends a draw.
+    //   hoplites.
     // - **617–623, `g.end_time`** on three citizens: 33 against 56, an
     //   idle length, beside the `gpiece` bracket.
-    // - **618–652, `dest_angle`** on five hoplites, `0/8`'s on 627 among
-    //   them. No position or clock parts beside any of them, and no draw
-    //   reads them inside this window. Not examined.
-    // - **765, the next frame**: `1/7` and `1/8` take a far walk to about
-    //   (38.6k, 13.4k). The original's is `ATTACK_TO` (2) with `stance 1`
-    //   and this crate's `GROUP_ATTACK_TO` (21) with `stance 0`. Their
-    //   captain `1/6` is dead by 764 and `1/7` leads pool group 64. `1/8`'s
-    //   position parts there. The word on 774 is a blocked step the
-    //   original takes and this crate does not (`Guy::set_anim+0x97a`,
-    //   unattributed on the original's side), and `1/7`'s rows on 774–775
-    //   sit beside it.
+    // - **616, the army group's `speed`/`new_speed`**, 0 against 25 on
+    //   every block run110 prints: `Group::add` ends in `compute_speed`
+    //   for a group with an id, and this crate's army group takes its
+    //   speed later.
     let got: Vec<(&str, i64)> = first.iter().map(|(k, (n, _))| (k.as_str(), *n)).collect();
     let measured = [
-        ("angle~:Facing 1/7", 775),
-        ("angle~:Facing 1/8", 765),
-        ("angle~:Heading 1/7", 775),
-        ("angle~:Heading 1/8", 765),
         ("city:busy 0/2000", 605),
         ("city:filled 0/2000", 605),
         ("city:filled 1/2000", 605),
@@ -1512,16 +1518,6 @@ fn chapter_one_s_word_frame_is_widened_whole() {
         ("city:ter[1] 0/2000", 605),
         ("city:ter[3] 0/2000", 605),
         ("city:ter[4] 0/2000", 605),
-        ("dest_angle 0/1", 605),
-        ("dest_angle 0/2", 605),
-        ("dest_angle 0/6", 652),
-        ("dest_angle 0/7", 620),
-        ("dest_angle 0/8", 627),
-        ("dest_angle 1/1", 605),
-        ("dest_angle 1/2", 605),
-        ("dest_angle 1/6", 618),
-        ("dest_angle 1/7", 628),
-        ("dest_angle 1/8", 628),
         ("form 0/0", 605),
         ("form 0/1", 605),
         ("form 0/2", 605),
@@ -1539,8 +1535,6 @@ fn chapter_one_s_word_frame_is_widened_whole() {
         ("form 1/6", 616),
         ("form 1/7", 616),
         ("form 1/8", 616),
-        ("g.angle[0] 1/7", 775),
-        ("g.angle[0] 1/8", 765),
         ("g.end_time[0] 0/1", 617),
         ("g.end_time[0] 0/2", 623),
         ("g.end_time[0] 1/2", 619),
@@ -1554,34 +1548,8 @@ fn chapter_one_s_word_frame_is_widened_whole() {
         ("g.gpiece[0] 1/3", 610),
         ("g.gpiece[0] 1/4", 610),
         ("g.gpiece[0] 1/5", 610),
-        ("g.x[0] 1/7", 775),
-        ("g.x[0] 1/8", 765),
-        ("g.y[0] 1/7", 775),
-        ("g.y[0] 1/8", 765),
-        ("heading 1/7", 775),
-        ("heading 1/8", 765),
-        ("near_o 1/7", 774),
-        ("near_who 1/7", 774),
-        ("order:order:kind 1/7", 765),
-        ("order:order:kind 1/8", 765),
-        ("order:order:length 1/7", 774),
-        ("order:path:length 1/8", 765),
-        ("order:path[0].to 1/8", 765),
-        ("order:path[1].to 1/8", 765),
-        ("order:path[1].tolerance 1/8", 765),
-        ("orders.len 1/7", 774),
-        ("orders_x 0/7", 611),
-        ("orders_x 0/8", 611),
-        ("orders_x 1/7", 774),
-        ("orders_x 1/8", 765),
-        ("orders_y 0/8", 611),
-        ("orders_y 1/7", 774),
-        ("orders_y 1/8", 765),
-        ("pos 1/7", 775),
-        ("pos 1/8", 765),
-        ("stance 1/7", 765),
-        ("stance 1/8", 765),
-        ("tolerance 1/8", 765),
+        ("group:new_speed 1/army0", 616),
+        ("group:speed 1/army0", 616),
     ];
     assert_eq!(
         got,

@@ -1392,8 +1392,12 @@ impl Sim {
         // attacker's squad in danger, and the target's when it is a unit.
         // It runs ahead of the target's `uid` test, so a stale target is
         // marked too (`docs/COMBAT.md` §49).
+        //
+        // And `update_action` is **unconditional** there (`:283`): every
+        // frame's `Unit::work` rewrites `orders_x/y` and `dest_angle`
+        // before the dispatch, whatever the order.
         if self
-            .action_of(u)
+            .update_action(u)
             .is_some_and(|a| self.units[u].orders[a].index() == index::ATTACK)
             && let Some(t) = self.units[u].combat.target
         {
