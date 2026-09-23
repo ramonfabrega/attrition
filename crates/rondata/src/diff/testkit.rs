@@ -2478,6 +2478,15 @@ pub(crate) const WIDENING_GREAT_LAKES_DETOUR: (i64, i64) = (11_400, 11_959);
 /// 11903's frame writes block 11904. The coverage driver reads run136
 /// around it, keyed here rather than on the headline.
 pub(crate) const GREAT_LAKES_DETOUR_BLOCK: i64 = 11_904;
+/// `run99_s_word_frame_is_widened_whole`'s window (item 573): run98 from
+/// its own first block, then run99 from 8789 to its last block, 10399.
+/// The floor is the first capture's first block for the reason
+/// [`WIDENING_CHAPTER_TWO`]'s is: it is the only floor that cannot hide a
+/// row.
+pub(crate) const WIDENING_EAST_INDIES: (i64, i64) = (7_880, 10_399);
+/// The block [`WIDENING_EAST_INDIES`] was taken to widen: the word 9711's
+/// frame writes block 9712.
+pub(crate) const EAST_INDIES_WORD_BLOCK: i64 = 9_712;
 /// One pinned word's row: `(constant, word, widening test, item, window)`.
 pub(crate) type Widening = (
     &'static str,
@@ -2498,13 +2507,16 @@ pub(crate) type Widening = (
 pub(crate) const WIDENINGS: &[Widening] = &[
     // Parked 444 since the seventh pass; booked as item 573 by the eleventh,
     // the day the lower-map rule became a guard — East Indies had been the
-    // lower word since 2026-09-21 with its widening still owed.
+    // lower word since 2026-09-21 with its widening still owed. Item 573
+    // paid it on run99, which had carried the word since 2026-09-18 and
+    // which no item had walked: the queue's booking asked for a capture
+    // the disk already held.
     (
         "LONG_WORD_EAST_INDIES",
         LONG_WORD_EAST_INDIES,
-        None,
+        Some("run99_s_word_frame_is_widened_whole"),
         573,
-        None,
+        Some(WIDENING_EAST_INDIES),
     ),
     // Item 448 paid the widening 442 owed: `run100_s_word_block_is_every_
     // record_the_dump_carries` compares every field of every record run100

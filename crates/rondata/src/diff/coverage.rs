@@ -36,7 +36,9 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use crate::gamelog::{Block, Log, reads};
 
-use super::testkit::{GOLDEN_WORD_CHAPTER_TWO, GREAT_LAKES_DETOUR_BLOCK, WIDENING_CHAPTER_TWO};
+use super::testkit::{
+    EAST_INDIES_WORD_BLOCK, GOLDEN_WORD_CHAPTER_TWO, GREAT_LAKES_DETOUR_BLOCK, WIDENING_CHAPTER_TWO,
+};
 
 /// Record paths read by a parser of their own, outside `Block` — the
 /// module that reads each is named, and this guard leaves them alone.
@@ -363,6 +365,7 @@ fn the_recorder_tells_one_object_block_from_another() {
 fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch2 = golden_dump("ch2");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
+    let r99 = crate::testenv::dump("gamelog-run99-eastindies-valuewindow2.txt");
     if ch2.is_none() && r136.is_none() {
         eprintln!("skipping: neither the ch2 golden capture nor run136 is on disk");
         return;
@@ -398,6 +401,16 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let gl = GREAT_LAKES_DETOUR_BLOCK;
     if let Some(p) = &r136 {
         frames += drive_capture(p, gl - 2, gl + 2, &mut paths);
+    }
+    // **East Indies' word's own blocks, on run99** (item 573): the lower
+    // map's headline since 2026-09-21 and a window this guard had never
+    // read. run99 is run98's detail — `DEATHS=1` and `LEADERS=1`, where the
+    // Great Lakes line has `GROUPS=1` and `LEADERS=9`.
+    let ei = EAST_INDIES_WORD_BLOCK;
+    if let Some(p) = &r99 {
+        let n = drive_capture(p, ei - 2, ei + 2, &mut paths);
+        assert_eq!(n, 5, "run99 carries the word's five blocks");
+        frames += n;
     }
     assert!(frames > 0, "no frame of either window was found");
     let _ = GOLDEN_WORD_CHAPTER_TWO;
