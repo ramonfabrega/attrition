@@ -12,30 +12,33 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-23, an Opus 5.5 commander after the eleventh pass: 17 landings,
-15 of them moved a word. East Indies **9711 → 11069**; the rules track
-closed chapters four (1500), seven (1200) and three (900), and its
-restage stands at 782. Great Lakes held at 12038 throughout.*
+*2026-09-23, an Opus 5.5 commander after the eleventh pass: **20
+landings, 17 moved a word — the steering pass is due.** East Indies
+**9711 → 11069**, still the lower map; the rules track closed chapters
+four (1500), seven (1200) and three (900), and the restage stands at 782.
+Great Lakes held at 12038 throughout.*
 
 - **Two bookings were wrong about the disk or the design**: 573's capture
-  was already run99 (Loop 575), and chapters seven and three were staged
-  so their falsifiers could not fire (Loop 584, both instances).
-- **Chapter seven's premise fell** (INPUT §11.9): a human's Citizen
-  gathers under `!ai off`. The commander pinned it closed on its
-  agreement; restaging is the pass's.
-- **592 and 597 moved no word**; 604 then did, 10582 → 10782, from the
-  templates 597's packet named, and 608 → 10982 by a second packet.
+  was already run99 (Loop 575); chapters seven and three were staged so
+  their falsifiers could not fire (Loop 584, two instances).
+- **Chapter seven's premise fell** (INPUT §11.9) and the commander pinned
+  it closed on its agreement; restaging it is the pass's.
+- **592, 597 and 621 moved no word**, each closing values under it. The
+  packet rung ran three times (run144, run147, run150) and named a cause
+  each time; its frame rule is off by one (Loop 605).
+- **East Indies outruns its captures**: four of its seven moves passed the
+  last dumped block, so each successor owes a capture (620 now).
 - **Fable backlog: 10 Loop items** (313, 527, 574, 575, 583, 584, 596, 598, 605, 612).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w11069 of 24,000 · GreatLakes w12038 of 24,000
-Golden: ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch7 closed · restage w782 of 1000 · 621 next
+Golden: ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch7 closed · restage w782 of 1000 · 625 next
 Endpoint 24001: EastIndies 59 off, 3 unlinked · GreatLakes 45 off, 0 unlinked
 
-**Opener: 19 landings since the eleventh pass (573 to 613 by the log);
-att-621 in flight is the twentieth. When it lands and is chained, the
-count stops: no spawn, and the Fable steering pass is due. After it, 620
-on the AI track, 621's successor on the rules track, then 571.**
+**Opener: the Fable steering pass is due — 20 landings since the
+eleventh (573 to 621 by the log); nothing in flight, every lane reaped,
+tree pushed. Bank, `/clear`, switch the main thread to Fable. After it:
+620 on the AI track, 625 on the rules track, then 571.**
 
 ## The queue
 
@@ -62,13 +65,13 @@ backlog is `docs/PARKED.md`, and an item returns only when a score names it.
     `move_step+0x823`. No mechanism. If PRs #7/#8 land first, a packet at
     11921 with the nine guys' move path run on it is an optional second run.
 
-621. **Chapter three's restage word is 782: an `ATTACKGROUNDORDER`**
-    (616 moved run146 780 → 782: `SpellType::cast_unpack` lights the whole
-    fog disc, COMBAT §56). On 782 ours 7 draws against 5, parting at draw
-    0; values part on 781 on `0/6` alone. The original pushes an
-    `ATTACKGROUNDORDER` (`fight`'s siege arm and `do_attack_ground`,
-    §56.3), which this crate does not carry, and **the harness needs a
-    reader for that order first**. The rules headline. No mechanism.
+625. **Chapter three's restage word is 782: the crew walk a turn in
+    place** (621 built `ATTACK_GROUND`, COMBAT §57 and ORDERS §26, which
+    matches the dump on 779–864, and **did not move the word**). On 782
+    ours 7 draws against 5 at draw 0: two `Guy::set_anim+0x97a <
+    Guy::inc_time+0x271` on `0/6`'s crew, who take `WALK` where the
+    original's stand and mirror figure 0's `TURN_LEFT` (run44 `0/15`,
+    324–330). 621's hypothesis: `Guy::move`'s tracked arm. No mechanism.
 
 ## How to maintain this file
 

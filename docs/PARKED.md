@@ -22,6 +22,14 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Parked by item 621, 2026-09-23 — past the restage's word
+
+(626) **The catapult's round leaves the unit's square**: `sim::launch` has
+no node for piece 265's release (COMBAT §22's seam, beside (611)).
+
+(627) **run146's 865**: after its reload the catapult takes a fresh
+attack and a chase, where the dump's holds nothing until 868.
+
 ## Parked by item 613, 2026-09-23 — under East Indies' 11069
 
 (622) **409 keys under the word on run152**, none on 11069's draw: food
