@@ -96,6 +96,10 @@ pub mod uflags {
     pub const CITY_CAPPED2: u32 = 0x8;
     /// `p` — never produced, and never marks its building a trainer.
     pub const NO_PRODUCE: u32 = 0x8000;
+    /// `h` — priced by `TypeData::get_cost@00664090`'s train arm even when
+    /// the player does not own it, never by its research (`:425`). 92 of
+    /// the 364 records: the citizens, the starting lines, the carts.
+    pub const NO_RESEARCH_PRICE: u32 = 0x80;
     /// `r` — `is_siege`.
     pub const SIEGE: u32 = 0x20000;
     /// `z` — `unitrules.xml`'s own legend: "Unit rocks left/right when it
@@ -154,6 +158,11 @@ pub struct UnitCols {
     pub carry: i32,
     /// `+0x2c8`, [`determine_roles`]' word.
     pub role: u32,
+    /// `+0x2e0`, the `RESEARCH_PREMIUM_COST` column through
+    /// `String::fraction(…, 0x100)` (`UnitType::init@0061ab50:606`–`613`):
+    /// 8.8, so the shipped `2` is 512. What researching the type costs over
+    /// one of it — `get_cost`'s research arm, [`crate::cost::Research`].
+    pub research_premium_cost: i32,
 }
 
 impl UnitCols {

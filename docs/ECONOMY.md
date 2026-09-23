@@ -2092,7 +2092,8 @@ stream parts on the same frame, three draws against two, the extra
 `1/2018 queue[0].cost[0]` on **10782**: both sides queue Horse Archers at
 the Stable now and this crate charges 60 timber / 40 wealth where the
 original charges **57** / **38**, which is `get_cost`'s and not the
-ledger's. And `1/28 order:coll` on 10618.
+ledger's. **Answered by item 545**: `MILITARY_UNIT_DISCOUNT`
+(`docs/AI.md` §56.2). And `1/28 order:coll` on 10618.
 
 ### 13.5 Coverage
 
@@ -2223,10 +2224,13 @@ Merchant slot has been in the original's list at every rotation since
   `MakeList::make_me@006c9be0` empties every lower slot of the offered
   type, and this crate already did. The re-offered Merchant empties slot 1
   here too.
-- **`1/2016 queue[0].cost` 65/45 against 61/42 on 11183**: the Hoplites
+- ~~**`1/2016 queue[0].cost` 65/45 against 61/42 on 11183**: the Hoplites
   the rotation buys cost this crate six percent more. That is §13.4's
   `get_cost` row (10782, 60/40 against 57/38) again. It moves the food
-  and metal buckets and not this frame's draws.
+  and metal buckets and not this frame's draws.~~ **Answered by item 545,
+  `docs/AI.md` §56.2**: `MILITARY_UNIT_DISCOUNT`, 5% at `epoch[0]` 2
+  against the unit's level 1, loaded and never applied. Both rows agree
+  now, and so do food and metal on every block of run123.
 
 ### 14.5 Coverage
 

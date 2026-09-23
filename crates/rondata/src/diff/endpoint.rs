@@ -439,7 +439,13 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // **62 → 64 and 10 → 9** on item 327, the Merchant offer
         // (`docs/AI.md` §55). This map's word holds at 9711; the endpoint
         // reshuffles 14,000 frames past it. DECISIONS 36: the number, not a trade.
-        off: 64,
+        // **64 → 67 off and 9 → 3 unlinked** on item 545, `get_cost`'s
+        // military discount and research arm (`docs/AI.md` §56), which move
+        // Great Lakes' word 11582 → 11757. Every military price changes and
+        // the AI researches unit upgrades it never could; this map's word
+        // holds at 9711, and the 24,000th frame reshuffles 14,290 past it:
+        // six units linked, three positions out. DECISIONS 36.
+        off: 67,
         // And **5 → 10 unlinked** on 2026-09-21, item 442 — the scholar
         // arm's `val` chain (`docs/AI.md` §53). This map's word does not
         // move on it; Great Lakes' moves 9510 → 10161. The AI's Scholar
@@ -448,7 +454,7 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // rungs shed **eight** and **seven** spurious units — the Citizens
         // this crate used to buy instead of Scholars. DECISIONS 36 asks for
         // the number rather than a trade; the number is on the headline.
-        unlinked: 9,
+        unlinked: 3,
         extra: 0,
         build_unlinked: 1,
         build_diverged: 30,
@@ -1046,11 +1052,17 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // value diff the move is booked on is run125's `[11250, 11599]`,
         // where no squad position parts. DECISIONS 36 asks for the number
         // rather than a trade.
-        off: 46,
+        // **46 → 47 off, 3 → 2 extra, 10 → 9 build_diverged** on item 545,
+        // `get_cost`'s military discount and research arm (`docs/AI.md`
+        // §56), which move this map's word 11582 → 11757. The value diff
+        // the move is booked on is run125's 11583, where nothing parts on
+        // the leader or the queue any more; the endpoint is 12,244 frames
+        // past the new word. The two extras are Merchants. DECISIONS 36.
+        off: 47,
         unlinked: 0,
-        extra: 3,
+        extra: 2,
         build_unlinked: 0,
-        build_diverged: 10,
+        build_diverged: 9,
         city_unlinked: 3,
         city_diverged: 0,
     },
@@ -1247,7 +1259,12 @@ pub const LADDER: [Endpoint; 2] = [
         // reset (`docs/GROUPS.md` §19), 5,690 frames past this map's word:
         // two more units this crate holds and the original does not. The
         // number, not a trade.
-        extra: 15,
+        // **15 → 21 on item 545** (`docs/AI.md` §56): this crate researches
+        // unit upgrades now and prices military units at the original's
+        // discount, and six more units stand here that the original's
+        // does not hold, three of them the Slingers rung B sees upgraded.
+        // 5,690 frames past this map's word. The number, not a trade.
+        extra: 21,
         build_unlinked: 10,
         build_diverged: 8,
         city_unlinked: 3,
@@ -1348,7 +1365,10 @@ pub const LADDER: [Endpoint; 2] = [
         // **47 → 49** on item 327, the Merchant offer (`docs/AI.md` §55):
         // the AI's make list changes from its first Merchant, and this rung
         // moves two positions out and one spurious unit off. DECISIONS 36.
-        off: 49,
+        // **49 → 48 off, 14 → 17 extra** on item 545 (`docs/AI.md` §56):
+        // one position closer and three more units, the Javelineers this
+        // crate's first unit upgrade makes of rung C's Slingers. DECISIONS 36.
+        off: 48,
         unlinked: 16,
         // 19 → 33 on 2026-09-07, item 261, the same reshuffle, then 33 →
         // **27** the same day on item 265's byte — this rung took the
@@ -1430,7 +1450,8 @@ pub const LADDER: [Endpoint; 2] = [
         // map's marches change pace; 6,778 frames past this rung's word,
         // DECISIONS 36 asks for the number rather than a trade.
         // **15 → 14** on item 327, the Merchant offer (`docs/AI.md` §55).
-        extra: 14,
+        // **14 → 17** on item 545; see `off` above.
+        extra: 17,
         build_unlinked: 19,
         build_diverged: 0,
         city_unlinked: 4,
@@ -1992,9 +2013,29 @@ mod tests {
              one simulation",
             shared.len()
         );
+        // **An upgrade re-types a standing unit** (item 545). Researching a
+        // unit's upgrade converts every one standing (`Unit::set_type`,
+        // `docs/ANIM.md`'s conversion pass), so one number can be the same
+        // unit under two types when rung C's (15,401, the earlier) is on the
+        // `FROM` line of rung B's (16,489). This crate never researched a
+        // unit upgrade until item 545 routed `produce_tech`'s unit arm
+        // (`docs/AI.md` §56), and the first three it showed were `1/66`–`68`,
+        // Slingers on C and Javelineers on B. A number recycled into an
+        // unrelated type still parts.
+        let loaded = install().and_then(|i| crate::load::load(&i).ok());
+        let upgraded = |earlier: &str, later: &str| -> bool {
+            let Some(l) = &loaded else { return false };
+            let id = |n: &str| {
+                l.tree
+                    .types
+                    .iter()
+                    .position(|d| d.kind.is_unit() && d.name == n)
+            };
+            matches!((id(earlier), id(later)), (Some(e), Some(x)) if l.tree.is(x, e, false))
+        };
         let parted: Vec<String> = shared
             .iter()
-            .filter(|(_, ours, theirs)| ours != theirs)
+            .filter(|(_, ours, theirs)| ours != theirs && !upgraded(ours, theirs))
             .map(|((w, o), ours, theirs)| format!("{w}/{o} C {ours} vs B {theirs}"))
             .collect();
         assert!(

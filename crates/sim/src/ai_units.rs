@@ -2358,6 +2358,9 @@ mod tests {
             u
         };
         sim.unit_types[a].tree = Some(t);
+        // Owned, so the price is the train arm's: an unowned type is priced
+        // by its research (`docs/AI.md` §56).
+        sim.tech[0].tech[t] = true;
         sim.holdings[0].available = [true; RESOURCES];
         sim.ledgers[0].bucket[0] = 1000;
         // No income at all: the factor is quartered once for the one good.

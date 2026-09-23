@@ -6781,7 +6781,9 @@ past run123's last. No dump reaches it, so its widening is owed a capture.
   `reg_*` arrays are not either). `known_rares` agrees wherever §55.3
   does not intervene, and on Great Lakes every rare sits in one region.
 - **`MAKE[3].val` at 77/75 of the original's** on run19 (8174), run117
-  and run123's 11185. It is §14.4's `get_cost` row and not this item's.
+  and run123's 11185. ~~It is §14.4's `get_cost` row and not this item's.~~
+  **Not that row**: item 545 closed §14.4's with the military discount and
+  this survives it. On 11185 it is the Mine's value, a building (§56.5).
 
 ### 55.6 Coverage
 
@@ -6806,3 +6808,199 @@ count, the sum waiting for the recompute).
 Reading-only, and owed a blind second reading: §55.1's explored test and
 its two leader-flag exits, §55.2's Mathematics-or-knowledge gate (the
 listing is quoted above), and §55.3's writer.
+
+## 56. The Mine that was a price: `get_cost`'s military discount and research arm (2026-09-22, item 545)
+
+Item 539 left Great Lakes' word on **11582**: ours 948 draws against the
+original's 9, parting at index 5, ours `Leader::produce_building+0xc99`
+against `Guy::set_anim+0x104b`. Its block, 11583, is in run125 (38 rows over
+11580–11583). Ours placed a Mine (`1/2022`) and walked citizen `1/9` to it.
+The original queued the **Phalanx** at `1/2016` for 90 food and 54 metal.
+The brief named no mechanism and pointed at `MAKE` slots 2 and 3, swapped on
+11580. The swap was a consequence two steps down. The cause was two arms of
+`TypeData::get_cost@00664090` this crate had never built.
+
+**Great Lakes' word goes 11582 → 11757.** East Indies' holds at 9711, and
+the golden chapters hold at 900 and 664.
+
+### 56.1 The swap, read backwards
+
+Walking the make list over run125 (`RON_LEADER_WALK=MAKE[`): the two lists
+agree through 11579. On 11580 both sides offer Phalanx (`t133`) and Militia
+(`t66`) from `upgrade_units`' military arm (`cat 7`). The Phalanx is 838,656
+on both sides. The Militia is **209,664** in the original and **52,416**
+here, exactly a quarter, so it sinks below slot 3's Mercantilism. Three
+frames later the Mine (77,000) takes rank 3 here, above our Militia and
+below the original's. `make_stuff` buys it and `produce_building`'s site
+search spends the 948.
+
+The quarter is the arm's last factor: `wm(aff, v / 256)` with `aff = 0x100`
+when `type_affordable ≥ 1` and `0x40` otherwise. Militia costs 80 food and 80
+metal. On 11579 this crate held **79** metal and the original **82**.
+
+### 56.2 Three metal, from 11183
+
+The metal gap is flat from 11250 (`bucket[4]` 50/53) back to run123's
+**11183**, where it opens: ours 89 → 44 and the original's 89 → 47. That is
+the Hoplites purchase `docs/ECONOMY.md` §14.4 left as "`get_cost`'s row",
+65/45 against 61/42. The food gap has the same shape: 7 from 10783, the
+Horse Archers of §13.4 (60/40 against 57/38).
+
+Every one of those four pairs is the listed price less 5%, truncated.
+`docs/COSTS.md` names `MILITARY_UNIT_DISCOUNT`, 5% per Military level the
+player holds above the unit's own. `Tuning` loaded it and nothing applied it:
+`Sim::price_of` passed empty modifiers, and `Modifiers::late_discount` had
+no writer.
+
+The decompile, `get_cost:633`–`656`, for a unit whose `role & 0x10000` is set:
+
+- `level = max(military_level, 1)`;
+- `ahead = epoch[0] − level` (`data_encrypted +0xe8`, the Military line);
+- when `ahead > 0`, `pct = MILITARY_UNIT_DISCOUNT × ahead`, scaled by
+  `(span × pct + 7) >> 3` and floored at 1 when the scenario spans fewer
+  than eight ages;
+- `cost = (100 − pct) × cost / 100`, clamped at 0.
+
+This comes after the ramp and before Monarchy, Socialism and Salmon.
+
+`military_level` (`UnitTypeData +0x2dc`) is written once, by
+`Types::finalize_grafting@00669840`. It caches
+`UnitTypeData::get_military_level_slow@0061d4d0` for every unit type. That
+function takes `preq[0]` if it is a Military library tech (`is_epoch_type`,
+tech `cat` 0), else `get_preq(1, −1)`, which is `preq[1]` in a game that
+starts Ancient and ends Information. The level is the tech's
+`TypeIndex − 0x23b` (the listing's `leal -0x23b(%esi)` at `0061d55b`), so the
+line's first tech is level 1. This crate's loader already gives the Phalanx
+`preq = [Classical Age, the first Military tech]`. So
+`TechTree::military_level_of` is this crate's zero-based `level` plus one.
+
+With the discount in, `bucket` food and metal agree on **every block of
+run123 and run125** (10760–11599). The make lists agree through 11582.
+`MAKE` slots 2 and 3 no longer part.
+
+### 56.3 The research the frame asked for
+
+That moved the delta from 948 draws to 11 against 9. Both sides now buy
+slot 2, the Phalanx. The original queues it at `1/2016` and pays 90/54.
+This crate refused, then bought the Militia, and paid for a third
+`make_stuff+0x63d` expiry. A probe in `produce_tech` showed why:
+
+1. **The route.** The Phalanx is not owned (`type_avail` 2), so
+   `make_this` calls `produce_tech`, on both sides. The original's
+   `produce_tech@006ca980` ends in `Build::queue_up(t, escrow)` (`:262`),
+   the one queue for every kind. This crate's ended in `queue_tech`, which
+   takes only a technology and answered `CantTrain`. Over the whole run to
+   11599, 11582 is the first unit research the AI ever attempts.
+2. **The price.** An unowned type is priced by `get_cost`'s **research**
+   arm (the `leader + 0x6c18` bit clear, this crate's `PlayerTech::tech`,
+   and the type without flag `h`, `unit_flags & 0x80`), and `price_of` had
+   none. The arm, `get_cost:425`–`534`:
+   - the scaled base;
+   - `× RESEARCH_PREMIUM >> 8` (256, the identity);
+   - `× RESEARCH_PREMIUM_COST >> 8` (`UnitTypeData +0x2e0`, 512 for 355
+     records);
+   - the refit surcharge;
+   - `MILITARY_UPGRADE_DISCOUNT`, 10% per level, **without** either of the
+     unit discount's floors.
+
+   It replaces the ramp. For the Phalanx: 5f/3m × 10 × 2 is 100/60, less
+   10% at `epoch[0]` 2 against level 1: **90/54**, the original's queue
+   record.
+
+The refit walk is **the predecessors**. `get_cost:441` compares `p`
+with `unittypes[this].from`, then walks `p`'s `JUMP` chain looking for this
+type. `docs/COSTS.md` had it as "every `p` whose `FROM` resolves to this
+type", which is the available arm's walk, and is corrected in place. For the
+Phalanx the refit is zero: Hoplites cost what it does.
+
+`produce_tech` now sends a unit type to `queue_up`, and `price_of` takes the
+research arm for a tree type the player does not own.
+
+### 56.4 What it moved
+
+The word's block, 11583, is pinned in `run125_s_word_frame_is_widened_whole`
+as the move's value diff. It goes from 38 rows to **2**, both `1/0`'s figure
+on 11580, which spends no draw.
+
+| instrument | before | after |
+| --- | --- | --- |
+| Great Lakes' word | 11582, 948 draws / 9 | **11757**, 7 / 8 |
+| East Indies' word | 9711 | 9711 |
+| run125 keys parted, `[11250, 11599]` | 403 | **288** |
+| run125's 11580–11583 rows | 38 | **2** |
+| run123 `bucket` food / metal disagreeing | from 10783 / 11183 | **none** |
+| run123 11185 inputs, timber / metal | 1/6, 44/47 | **6/6, 47/47** |
+| run100's Stable row (10782, 60 / 57) | 1 | **0** |
+| run107 leader residue | 90 | **85** |
+| run111 leader residue | 93 | **89** |
+| Great Lakes market draws below the word | 16 | **17** (11582) |
+| Great Lakes endpoint off / extra / build-diverged | 46 / 3 / 10 | **47 / 2 / 9** |
+| East Indies endpoint off / unlinked | 64 / 9 | **67 / 3** |
+| East Indies ladder C extra | 15 | **21** |
+| East Indies ladder B off / extra | 49 / 14 | **48 / 17** |
+
+The residue falls are all `MAKE` rows on the military offers. They sit below
+the word and only fall. The endpoints are 12,000 frames past both words.
+
+**The ladder's rung check was widened, not weakened.** It required an object
+number `extra` on both rungs to be one type. Rung C (15,401) holds Slingers
+`1/66`–`68`, and rung B (16,489) holds them as Javelineers. That is the first
+unit upgrade this crate ever researched, and `Unit::set_type` re-typed the
+standing three. The check now accepts a later type that descends from the
+earlier through `FROM`. A number recycled into an unrelated type still
+parts.
+
+**The new word**: 11757, ours 7 draws against the original's 8, parting at
+index 0. Ours is `Guy::set_anim+0x97a < Guy::inc_time+0x271` and the
+original's `Guy::set_anim+0x97a < Unit::move_step+0x823`: a figure clocked
+from `inc_time` here and from a move step there. It is 158 blocks past
+run125's last, so its widening is owed a capture.
+
+### 56.5 What this has *not* established
+
+- **The research arm's other terms are not carried.** Wine's
+  `WINE_UNIT_UPGRADES` before the premium, `SPECIAL_UPGRADE` (every one of
+  the 364 records has an empty `<UPGRADE/>`), and the American and Dutch
+  discounts after the military one. None is loaded.
+- **The available arm's bump loop** (`get_cost:159`–`205`): the old unit
+  charged the new one's base while the upgrade is queued. It is unbuilt, and
+  now reachable, since this crate queues upgrades.
+- **The age-span scaling** of both discounts, and `get_preq(1, −1)`'s scaled
+  arm, are read and not exercised. Every capture is Ancient to Information.
+  The span arithmetic is built. The scaled `get_preq` is not.
+- **Only one research purchase is diff-backed**: the Phalanx on 11582. The
+  refit surcharge is zero there and is backed by a unit test alone.
+- **`MAKE[3].val` 38,500 against 37,500 on run123's 11185** survives. It is
+  the Mine's value, a building. §55.5 filed it under §14.4's `get_cost` row,
+  and it is not the unit discount.
+- **The rest of the common tail**: Coal, Sugar, Gold, Iron and Gypsum by
+  resource, and the Supercollider and Indian terms. `late_discount` carries
+  only the military discount, so the fold is exact until one of them is
+  built.
+
+### 56.6 Coverage
+
+Diff-backed:
+
+- `diff::harness::tests::run125_s_word_frame_is_widened_whole`: 11583's
+  rows, the Phalanx research at `1/2016` for 90/54 on both sides, and
+  every leader and unit record over `[11250, 11599]`.
+- `diff::harness::tests::run123_s_word_frame_is_widened_whole`: the 11185
+  inputs. Food and metal agree over all 700 blocks.
+- `diff::harness::tests::run100_s_word_frame_is_the_original_s`: the
+  Stable's Horse Archers, 57/38.
+- `diff::leader::tests::run107_s_window_is_the_leader_record_at_the_word`
+  and `…run111_s_window_is_the_make_list_at_the_purchase`: the military
+  offers.
+
+Unit:
+
+- `tests::a_military_unit_is_priced_by_its_research_until_owned_then_at_the_military_discount`:
+  Great Lakes' numbers, both floors, and no surcharge below the level.
+- `tests::a_research_is_charged_for_the_army_it_refits`: the predecessor
+  walk, the halving, and the count.
+- `ai_research::tests::produce_tech_queues_a_unit_s_research_on_the_unit_queue`.
+
+Reading-only, and owed a blind second reading: §56.2's
+`get_military_level_slow` fallback to `preq[1]`, and §56.3's refit
+direction, read at `get_cost:441`.

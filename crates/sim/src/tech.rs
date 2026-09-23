@@ -731,6 +731,36 @@ impl TechTree {
         self.epochs[line.index()][0]
     }
 
+    /// `UnitTypeData::get_military_level_slow@0061d4d0` — the Military
+    /// library level a unit type stands at. `Types::finalize_grafting@00669840`
+    /// caches it into `military_level` (`+0x2dc`) for every unit type at
+    /// load, so the `< 0` arms of `get_military_level` and `get_cost` never
+    /// run and this is the whole of it.
+    ///
+    /// `preq[0]` when it is a Military epoch (`is_epoch_type`, tech `cat`
+    /// 0), else `get_preq(1, −1)` — which is `preq[1]` in a game that starts
+    /// in the Ancient age and ends in the Information age (the scaled arms
+    /// for any other span are not read here: `docs/AI.md` §56.5). The level
+    /// is that tech's `TypeIndex − 0x23b` (`leal -0x23b(%esi)` at
+    /// `0061d55b`); the line's first tech is `0x23c`, so level **1** is this
+    /// crate's zero-based `level` plus one. Anything else is level 0.
+    pub fn military_level_of(&self, t: TypeId) -> i32 {
+        let military = |p: Preq| match p {
+            Preq::Of(x) => match self.kind(x) {
+                Kind::Epoch {
+                    line: Line::Military,
+                    level,
+                } => Some(i32::from(level) + 1),
+                _ => None,
+            },
+            _ => None,
+        };
+        let d = &self.types[t];
+        military(d.preq[0])
+            .or_else(|| military(d.preq[1]))
+            .unwrap_or(0)
+    }
+
     /// A tech's `age` field.
     fn tech_age(&self, t: TypeId) -> i32 {
         self.types[t].age

@@ -528,7 +528,11 @@ shape carries no information and the predicates do:
   the scaling rounds **up**: `(ages × pct + 7) >> 3`, not `pct × ages / 8`. The
   unit discount additionally floors the result at 1 and reads the unit's
   military level as `max(level, 1)`, so a level-zero unit is treated as
-  level 1.
+  level 1. The upgrade discount has neither floor. **Both are built as of
+  item 545** (`docs/AI.md` §56), and until then the unit discount was loaded
+  and applied nowhere. The unit's level is `get_military_level_slow`:
+  `preq[0]` if it is a Military library tech, else `preq[1]`, as that
+  tech's `TypeIndex − 0x23b`, so the line's first tech is level 1.
 
 Three that are not the standard shape, and are the interesting ones:
 
@@ -623,7 +627,8 @@ time through `RESEARCH_PREMIUM_TIME`.
 On top of that, a surcharge for the army you already have:
 
 ```
-for each unit type p whose FROM resolves to this type:
+for each unit type p that is this type's own FROM,
+        or whose JUMP chain reaches this type (each link through get_graft):
     d = this.base[res] - p.base[res]
     if p.base[res] == 0:  d = d / 2
     if d > 0:
@@ -631,6 +636,19 @@ for each unit type p whose FROM resolves to this type:
         n = num_queued[p] + num_units[p]
         cost += UNIT_COST_FACTOR * n * d
 ```
+
+~~An earlier draft had this as "every `p` whose `FROM` resolves to this
+type".~~ That is the *available* arm's walk, the successors. The research
+arm reads `unittypes[this].from` and compares it with `p`
+(`get_cost:441`), then walks `p`'s `JUMP` chain looking for this type:
+the **predecessors**, the army the research upgrades. Item 545 read it at
+`get_cost:441` and built it (`docs/AI.md` §56).
+
+**Built, 2026-09-22 (item 545)**: `cost::Research` and
+`Sim::research_modifiers`, with `MILITARY_UPGRADE_DISCOUNT` after the refit
+(§The discounts). Wine, `SPECIAL_UPGRADE` and the American and Dutch
+discounts are not carried. Diff-backed on one purchase: Great Lakes' Phalanx
+research at `1/2016` on 11582, 90 food and 54 metal on both sides.
 
 `UNIT_REFIT_MAX_COST` is 40 per resource per unit. So upgrading is not free of
 your existing army's size: refitting thirty knights into cuirassiers is charged

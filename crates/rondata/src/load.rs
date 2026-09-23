@@ -626,6 +626,7 @@ pub fn load_tables(
             unit_flags2: f2,
             cat: c.cat,
             carry: c.carry,
+            research_premium_cost: c.research_premium_cost,
             role: ai_load::determine_roles(&ai_load::RoleFacts {
                 citizen_id: i < 4,
                 domain: c.domain,
@@ -1930,6 +1931,8 @@ struct UnitCols {
     cat: i32,
     /// `CARRY`.
     carry: i32,
+    /// `RESEARCH_PREMIUM_COST`, 8.8 — `UnitTypeData +0x2e0`.
+    research_premium_cost: i32,
 }
 
 impl UnitCols {
@@ -1973,6 +1976,11 @@ impl UnitCols {
             .map_or(0, |s| s.fraction(100));
         let research_premium_time = l
             .text("RESEARCH_PREMIUM_TIME")
+            .and_then(Scalar::parse)
+            .map_or(0, |s| s.fraction(256));
+        // The next key `UnitType::init` reads, the same way (`:606`–`613`).
+        let research_premium_cost = l
+            .text("RESEARCH_PREMIUM_COST")
             .and_then(Scalar::parse)
             .map_or(0, |s| s.fraction(256));
         UnitCols {
@@ -2032,6 +2040,7 @@ impl UnitCols {
             // `rules.xml`'s `<CATEGORIES id="unit_cats">`, −1 when unmatched.
             cat: find_name(unit_cats, l.text("CAT").unwrap_or("")).map_or(-1, |i| i as i32),
             carry: int(l, "CARRY").unwrap_or(0),
+            research_premium_cost,
         }
     }
 }

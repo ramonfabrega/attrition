@@ -242,6 +242,36 @@ pub struct Modifiers {
     pub maize: bool,
     /// Producing at a captured, unassimilated building doubles the price.
     pub unassimilated: bool,
+    /// `get_cost`'s **research** arm: the type is not yet available to the
+    /// player (the `leader + 0x6c18` bit is clear), so what is priced is its
+    /// research, and it takes the place of the ramp. `None` is the train arm.
+    pub research: Option<Research>,
+}
+
+/// What `TypeData::get_cost@00664090` charges to **research** a unit type
+/// rather than train one (`docs/COSTS.md`, "Researching an upgrade is not
+/// building a unit"; `docs/AI.md` §56). In the original's order, after the
+/// scaled base and its pre-ramp tail and in place of the ramp:
+///
+/// 1. `× RESEARCH_PREMIUM >> 8`, then `× RESEARCH_PREMIUM_COST >> 8`, each
+///    truncating toward zero (`get_cost:430`–`432`);
+/// 2. the refit surcharge, already multiplied out per resource;
+/// 3. `MILITARY_UPGRADE_DISCOUNT`, clamped at zero (`get_cost:507`–`525`).
+///
+/// Not carried, and each is a seam: Wine's `WINE_UNIT_UPGRADES` before the
+/// premium, `SPECIAL_UPGRADE` (every one of the shipped 364 records has an
+/// empty `<UPGRADE/>`), and the American and Dutch nation discounts after
+/// the military one.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct Research {
+    /// `RESEARCH_PREMIUM_COST`, 8.8 (`UnitTypeData +0x2e0`).
+    pub premium_cost: i32,
+    /// The refit surcharge by resource, `UNIT_COST_FACTOR × n × d` summed
+    /// over the army it upgrades — see `Sim::research_modifiers`.
+    pub refit: [i32; RESOURCES],
+    /// `MILITARY_UPGRADE_DISCOUNT`'s percentage, already scaled for a short
+    /// scenario.
+    pub discount: i32,
 }
 
 /// The count after the progression has shaped it.
@@ -295,34 +325,44 @@ pub fn cost_of(t: &Tuning, price: &Price, r: Resource, counts: Counts, m: &Modif
     // than discounting a redirected one.
     cost = science_discount(t, m.science_ahead, cost);
 
-    let raw = counts.for_progression(price.progression);
-    if raw > 0 {
-        let steps = ramp_steps(raw, price.progression);
-        let ceiling = price.class.ceiling_percent(t) * scaled / 100;
-        let extra = match price.class {
-            RampClass::Scholar => scholar_surcharge(steps),
-            _ => 0,
-        };
-        // The building arm multiplies the written amount by
-        // `BUILD_SUPPORT_FACTOR` (`imull 0x37c(%eax), %esi` at `00665ad1`)
-        // before the count; the unit arm has no such factor. It ships as one.
-        let support_factor = match price.kind {
-            Kind::Building => t.build_support_factor,
-            _ => 1,
-        };
-        for slot in price.support.iter().flatten() {
-            let (good, amount) = *slot;
-            if good != r {
-                continue;
+    if let Some(rs) = m.research {
+        // The research arm, in place of the ramp and the military discount.
+        cost = cost * t.research_premium / 256;
+        cost = cost * rs.premium_cost / 256;
+        cost += rs.refit[r.index()];
+        if rs.discount != 0 {
+            cost = ((100 - rs.discount) * cost / 100).max(0);
+        }
+    } else {
+        let raw = counts.for_progression(price.progression);
+        if raw > 0 {
+            let steps = ramp_steps(raw, price.progression);
+            let ceiling = price.class.ceiling_percent(t) * scaled / 100;
+            let extra = match price.class {
+                RampClass::Scholar => scholar_surcharge(steps),
+                _ => 0,
+            };
+            // The building arm multiplies the written amount by
+            // `BUILD_SUPPORT_FACTOR` (`imull 0x37c(%eax), %esi` at `00665ad1`)
+            // before the count; the unit arm has no such factor. It ships as one.
+            let support_factor = match price.kind {
+                Kind::Building => t.build_support_factor,
+                _ => 1,
+            };
+            for slot in price.support.iter().flatten() {
+                let (good, amount) = *slot;
+                if good != r {
+                    continue;
+                }
+                let mut term = amount * support_factor * steps + extra;
+                if ceiling != 0 && term > ceiling {
+                    term = ceiling;
+                }
+                if m.maize {
+                    term = term * (100 - t.maize_ramping_bonus) / 100;
+                }
+                cost += term;
             }
-            let mut term = amount * support_factor * steps + extra;
-            if ceiling != 0 && term > ceiling {
-                term = ceiling;
-            }
-            if m.maize {
-                term = term * (100 - t.maize_ramping_bonus) / 100;
-            }
-            cost += term;
         }
     }
 
