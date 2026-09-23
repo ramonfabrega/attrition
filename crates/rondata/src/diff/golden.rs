@@ -404,6 +404,38 @@ fn chapter_five_holds_to_the_golden_word() {
     );
 }
 
+/// **Chapter six, pinned** — the air and the bird (`docs/GOLDEN.md` §10,
+/// item 648, run168). Six staged lines: `!ai off`, `library 6` for both
+/// players, a Fighter for who=0, a Bomber for who=1, and `bird`.
+///
+/// **What the capture established before this walk ran**, each written
+/// into `chapter6.cmd`'s header first (`docs/RUNS.md`, run168): eight
+/// `INFO cmd` records each returning 1; 297 blocks; the Fighter `0/6` on
+/// 611 at (888, 7800) and the Bomber `1/6` on 616 at (2424, 7800), the
+/// predicted seats; the bird's birth draw on 700 and a seventh
+/// `think_bird` from 704. **§10's second falsifier fired**: neither
+/// aircraft moves, takes an order or leaves `air_alt` 0 to 899, and no
+/// `AMMO` block is written.
+///
+/// `GOLDEN_WORD_CHAPTER_SIX` carries what stands at the word.
+#[test]
+fn chapter_six_holds_to_the_golden_word() {
+    let Some(w) = walk_chapter("ch6", 6, 6, 900) else {
+        return;
+    };
+    assert!(
+        w.word >= GOLDEN_WORD_CHAPTER_SIX,
+        "chapter six's golden word fell to {} from {GOLDEN_WORD_CHAPTER_SIX}",
+        w.word
+    );
+    assert_eq!(
+        w.word, GOLDEN_WORD_CHAPTER_SIX,
+        "chapter six's golden word moved; re-pin it here and say so in \
+         docs/GOLDEN.md §10"
+    );
+    eprintln!("chapter six: sequence {}, values {:?}", w.sequence, w.value);
+}
+
 /// **Chapter two's squads are seated exactly where the dump seats them,
 /// and the 140 units item 415 called a seating error are five frames of
 /// marching** (item 441's widening).
@@ -5195,7 +5227,14 @@ fn frame_goods(raw: &str) -> Vec<FrameGood> {
 /// per-frame `GOOD` list keyed on `o`. The civilians of `who` (`o >= 6`)
 /// are printed both sides on the blocks of `print`. Returns each parted
 /// key's first block and row; `None` when the capture is not on disk.
-#[allow(clippy::type_complexity)]
+///
+/// `ammo` adds the **`AMMO` record, both directions**, for a capture that
+/// dumps it (chapter six, item 648): a live round (`flags & 2`) keyed on
+/// its shooter and pool slot, as chapter five's widening keys it, and a
+/// round either side holds alone is a row. The civilians' captures do not
+/// dump `AMMO`, so for them it is off and a round of this crate's would
+/// be compared against nothing.
+#[allow(clippy::type_complexity, clippy::too_many_arguments)]
 fn widen_civilians(
     run: &str,
     stem: &str,
@@ -5203,6 +5242,7 @@ fn widen_civilians(
     no_block: i64,
     who: i64,
     print: (i64, i64),
+    ammo: bool,
 ) -> Option<std::collections::BTreeMap<(i64, i64, String), (i64, String)>> {
     use std::collections::{BTreeMap, BTreeSet};
     let mut s = stage_script(run, stem)?;
@@ -5211,6 +5251,8 @@ fn widen_civilians(
     let mut missing: BTreeSet<String> = BTreeSet::new();
     let (mut blocks, mut rows, mut leader_rows, mut good_rows) = (0usize, 0, 0, 0);
     let mut unread_goods = 0usize;
+    let mut ammo_rows = 0usize;
+    let mut no_goods = 0usize;
     for f in 0..last - 1 {
         s.script.stage(s.built.sim.frame, &mut s.built, &s.loaded);
         s.built.tick();
@@ -5256,12 +5298,20 @@ fn widen_civilians(
         // `GUY` of the list before it, with no `BEGIN GOOD`, no name and
         // no `ever_seen` — run141's line 583513, and the same on every
         // frame. So `o 0` is counted as unreadable, not compared.
+        //
+        // A capture taken without `GOODS` in its `end:` set (chapter six)
+        // prints no list at all, and a block of that kind is counted, not
+        // compared: this crate's goods would be rows against nothing.
         let theirs: BTreeMap<i64, FrameGood> =
             frame_goods(&raw).into_iter().map(|g| (g.o, g)).collect();
         let ours = s.built.sim.world.goods();
+        if theirs.is_empty() {
+            no_goods += 1;
+        }
         for i in 0..ours
             .len()
             .max(theirs.keys().max().map_or(0, |&o| o as usize + 1))
+            * usize::from(!theirs.is_empty())
         {
             let (a, g) = match (theirs.get(&(i as i64)), ours.get(i)) {
                 (Some(a), Some(g)) => (a, g),
@@ -5305,6 +5355,37 @@ fn widen_civilians(
                 }
             }
         }
+        if ammo {
+            let theirs: BTreeSet<(i64, i64, i64)> = super::ammo::blocks(&raw)
+                .into_iter()
+                .filter(|(a, _)| a.flags & 2 != 0)
+                .map(|(a, _)| (a.who, a.o, a.index))
+                .collect();
+            let ours: BTreeSet<(i64, i64, i64)> = s
+                .built
+                .sim
+                .projectiles
+                .iter()
+                .filter_map(|p| match p.shooter {
+                    sim::combat::Obj::Unit(u) => {
+                        let un = &s.built.sim.units[u];
+                        Some((i64::from(un.owner), i64::from(un.index), i64::from(p.slot)))
+                    }
+                    sim::combat::Obj::Building(_) => None,
+                })
+                .collect();
+            ammo_rows += theirs.len().max(ours.len());
+            for &(w, o, slot) in theirs.symmetric_difference(&ours) {
+                let side = if theirs.contains(&(w, o, slot)) {
+                    "the dump"
+                } else {
+                    "this crate"
+                };
+                firsts
+                    .entry((w, o, format!("ammo[{slot}]")))
+                    .or_insert((n, format!("{side} holds it alone")));
+            }
+        }
         // **Both sides printed once** on the citizen's two blocks, for
         // the five: the record a draw would be spent in, before any
         // quiet row is trusted.
@@ -5344,7 +5425,7 @@ fn widen_civilians(
     eprintln!(
         "widening {run}: {blocks} blocks [{first}, {last}), {rows} record rows, \
          {leader_rows} leader rows, {good_rows} good rows ({unread_goods} unreadable), \
-         {} keys parted; {} leader keys not printed at LEADERS=2",
+         {ammo_rows} rounds, {} keys parted; {} leader keys not printed at LEADERS=2",
         firsts.len(),
         missing.len()
     );
@@ -5359,7 +5440,10 @@ fn widen_civilians(
         2 * 88 * blocks,
         "{run}: the leader rows LEADERS=2 prints are not compared on every block"
     );
-    assert!(good_rows > 0, "{run}: the GOOD list is not read");
+    assert!(
+        good_rows > 0 || no_goods == blocks,
+        "{run}: the GOOD list is printed and not read"
+    );
     Some(firsts)
 }
 
@@ -5391,7 +5475,8 @@ fn chapter_seven_s_word_frame_is_widened_whole() {
     const NO_BLOCK: i64 = 1200;
     let mut summaries = Vec::new();
     for (run, stem) in [("ch7", "chapter7"), ("ch7c", "chapter7_control")] {
-        let Some(firsts) = widen_civilians(run, stem, (FIRST, LAST), NO_BLOCK, 0, (763, 764))
+        let Some(firsts) =
+            widen_civilians(run, stem, (FIRST, LAST), NO_BLOCK, 0, (763, 764), false)
         else {
             return;
         };
@@ -5472,6 +5557,72 @@ fn chapter_seven_s_word_frame_is_widened_whole() {
     }
 }
 
+/// **Chapter six's word, widened whole, both directions** (item 648). Every
+/// record run168 carries on every block of [`WIDENING_CHAPTER_SIX`], by
+/// [`widen_civilians`] with the `AMMO` record on: every unit and figure,
+/// both leaders at `LEADERS=2`, and every live round either side holds.
+/// The Bomber `1/6` is printed both sides on the word's two blocks. run168
+/// dumps no `BUILDS` and no `GOODS`: the buildings stand as `build:extra`
+/// rows on the first block, and the good list is counted, not compared.
+///
+/// The `AMMO` arm was made to fail once, on run127's 139 rounds with this
+/// crate's pool slot shifted by one: eight `ammo[·]` rows parted.
+#[test]
+fn chapter_six_s_word_frame_is_widened_whole() {
+    let Some(firsts) = widen_civilians(
+        "ch6",
+        "chapter6",
+        WIDENING_CHAPTER_SIX,
+        900,
+        1,
+        (GOLDEN_WORD_CHAPTER_SIX, GOLDEN_WORD_CHAPTER_SIX + 1),
+        true,
+    ) else {
+        return;
+    };
+    for ((w, o, what), (f, row)) in &firsts {
+        eprintln!("  ch6 f{f} {w}/{o} {what}: {row}");
+    }
+    // **The standing rows of the first block**: the unmodelled `form`
+    // on all ten start units, two `filled_gather_slots`, and the fourteen
+    // start buildings as `build:extra`, which run168 cannot print.
+    let standing = |what: &str| {
+        what == "form" || what.starts_with("leader:filled_gather_slots") || what == "build:extra"
+    };
+    let floor: Vec<&String> = firsts
+        .iter()
+        .filter(|(_, (f, _))| *f == WIDENING_CHAPTER_SIX.0)
+        .map(|((_, _, what), _)| what)
+        .collect();
+    assert!(
+        floor.iter().all(|w| standing(w)) && floor.len() == 26,
+        "ch6: the standing rows on the first block moved ({}): {floor:?}",
+        floor.len()
+    );
+    // **What parts under the word**, pinned by block and key, none of it a
+    // mechanism (`docs/GOLDEN.md` §10). Each aircraft's `form` on its
+    // birth block, the standing family. The Bomber `1/6` holds an order on
+    // 616 that the original's does not, and on 617 is walking at the
+    // Fighter (the value diff is `GOLDEN_WORD_CHAPTER_SIX`'s comment). No
+    // round is in either air.
+    let mut got: Vec<String> = firsts
+        .iter()
+        .filter(|(_, (f, _))| *f > WIDENING_CHAPTER_SIX.0)
+        .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
+        .collect();
+    got.sort();
+    let want = [
+        "611 0/6 form",
+        "616 1/6 form",
+        "616 1/6 order:length",
+        "616 1/6 orders.len",
+        "617 1/6 dest_angle",
+        "617 1/6 idle",
+        "617 1/6 orders_x",
+    ];
+    assert_eq!(got, want, "ch6: what parts under the word moved");
+}
+
 /// **Chapter seven-b's words, widened whole, both directions, on both
 /// captures** (item 628). Every record run156 and run157 carry on every
 /// block of [`WIDENING_CHAPTER_SEVEN_B`], by [`widen_civilians`].
@@ -5486,7 +5637,7 @@ fn chapter_seven_b_s_word_frame_is_widened_whole() {
             (1199, 1200),
         ),
     ] {
-        let Some(firsts) = widen_civilians(run, stem, window, 1200, 1, print) else {
+        let Some(firsts) = widen_civilians(run, stem, window, 1200, 1, print, false) else {
             return;
         };
         for ((w, o, what), (f, row)) in &firsts {

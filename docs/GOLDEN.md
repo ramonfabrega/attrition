@@ -24,8 +24,10 @@ and run127; items 415, 552 and 535), and none of their falsifiers fired;
 its premise did not survive** (§11); ~~**three, six and eight are a design
 and nothing more**~~ **chapter three is captured (run145, closed at 900;
 its restage run146, open) and seven-b too (run156/run157, item 628, its
-premise killed by construction and pinned open as measured, §11); six and
-eight are a design and nothing more** — no capture has been run for either, and each one's own falsifier section is written
+premise killed by construction and pinned open as measured, §11); ~~six and
+eight are a design and nothing more~~ **six is captured too (run168, item
+648, its second falsifier fired, pinned open at 616, §10); eight is a design
+and nothing more** — no capture has been run for it, and each one's own falsifier section is written
 precisely so that the first run can say it was wrong. The
 stageability of each is held by a test rather than by this prose
 (`every_chapter_stages_what_it_says_it_stages`).
@@ -712,8 +714,10 @@ ones. And there is one door into the order family the channel already has.
 **`bird` is the only console command in the executable that issues an
 order.** `ConsoleWin::run_cmd@007d6a70`'s case 82 — the table index of
 `bird`, whose help text is "Drop a Wild Bird at Mouse" — calls
-`Objects::init_unit@0065e0c0` for gaia type 9 and then
-`Unit::add_air_patrol_order@005e4350` on it. It is the *only* `add_*_order`
+`Objects::init_unit@0065e0c0` ~~for gaia type 9~~ **for owner 9 and type
+`0x192`, `BIRD`** (the listing pushes both, 0x7df1b1 and 0x7df1b6; item
+648) and then `Unit::add_air_patrol_order@005e4350` on it, on the same
+point. It is the *only* `add_*_order`
 call in the whole of `run_cmd`; the other two order-adjacent cases, `pack`
 and `deploy`, call `Unit::clear_orders` and then `SpellType::cast_pack@00670be0`,
 which is a state poke and not an order, and `anim` reaches
@@ -742,12 +746,70 @@ already on disk before the line runs.
 **The capture must dump** `end:UNITS=3,GUYS=2,AMMO=5,DEATHS=1,LEADERS=2` and
 `misc:COMMANDMANAGER=1` over `[605, 900)`.
 
-**What would falsify it.** No `AIRPATROLORDER` block after frame 700 — the
-reading of case 82 is wrong, or the bird did not survive its placement. An
+**What would falsify it.** ~~No `AIRPATROLORDER` block after frame 700~~ **No
+bird born on 700 in the draw stream** — the reading of case 82 is wrong, or
+the bird did not survive its placement. (No dump prints owner 9, so the
+block could never have been written: item 648.) An
 aircraft record whose position never changes, which would say an air unit
 staged outside an airbase is inert. Or the `add` refusing the Fighter
 outright, which would say the air line needs a base the way chapter five may
 show a hull needs a Dock.
+
+**Where each could first fire, read before the run (item 648,
+`chapter6.cmd`'s header, committed as `bf981e6`).**
+
+- **The cursor is heap.** `console_win` is an uninitialised `malloc` of the object's size
+  (`System::init@00599700`). Its `mouse_coord_x/y` are written only by
+  `parse_cmd` with `no_mouse` 0 and by `CommandPackage::process_console_cmd`,
+  and the channel reaches neither. The prediction was zero, which puts the
+  bird at (24, 24) with its patrol point on the corner.
+- **The first falsifier fires on the trace's frame 700**, not in the dump.
+- **The second is an absence** on the aircraft's `UNITDATA`, 611 and 616
+  to 899.
+- **The third fires on 611 or 616.** `add` has no base or age test, and
+  `UnitType::find_nearby_spot@0061de70` skips the terrain test for the air
+  domain.
+- **`!ai off` does not reach the Bomber.** It is AI-driven (`0x40000`,
+  `docs/INPUT.md` §11.10), so its idle `Unit::think_attack@005f5a80` has the
+  army and city arms the human's Fighter lacks. A move of the Bomber was to
+  be read off its order stack.
+
+**Run 2026-09-23 as run168 (item 648): the second falsifier fired.**
+
+- **Neither aircraft moves.** The Fighter `0/6` stands on its seat, (888,
+  7800), and the Bomber `1/6` on (2424, 7800), from birth to 899. Both
+  are at `air_alt` 0 with an empty order stack, and no `AMMO` block is
+  written in the whole capture. They are eight tiles apart and inside
+  each other's line of sight.
+- **What each does do.** Each burns fuel, `mana_burn` one a frame, as
+  `Unit::process@00610bc0` does for an air unit with `inside_up < 0`, and
+  its `idle` climbs. The Bomber sits in the AI's group 64 from its birth
+  block.
+- **The first and third did not fire.** The bird is born on 700 (draw 0,
+  `Guy::init_real < Unit::init < Animal::init`). A seventh `think_bird`
+  runs from 704, and the sampling is a pair short from 704 (4 → 3). The
+  `add` placed both aircraft with no base.
+
+**So the premise that "what closes the gap is the air line's own
+movement" is killed.** An aircraft the channel stages outside a base is
+inert on this lobby, human's or computer's. What the chapter measures is
+**an unbased aircraft's idle upkeep**, and **the bird the channel orders**,
+which only the draw stream sees. It is pinned open as measured, as seven-b
+was, and an air line that moves needs a restage with a base.
+
+**Where this crate parts: `GOLDEN_WORD_CHAPTER_SIX` = 616**, the Bomber's
+birth frame. It spends 25 draws against the original's 24, parting at draw
+18, on a `Unit::fight+0x9b0` of `1/6`'s. The original spends none. On
+block 616 both sides hold `1/6` at (2424, 7800) with `idle` 1 and group
+64, and ours holds one `ATTACK` order where the original's holds none. On
+617 ours walks at the Fighter, `orders_x` 888 against 2424. No mechanism
+is named. `chapter_six_s_word_frame_is_widened_whole` widens run168 whole
+to 617, `AMMO` included; past the first block's standing rows only the
+Bomber's five rows part. Both leaders agree on every `LEADERS=2` row of
+every block, so `library 6`'s `gain_tech` tail agrees through the Modern
+age (`docs/INPUT.md` §11.11). `bird` is still carried and not acted on by
+the harness (`CHAPTER_DEBT`), so a walk past 616 parts on 700 next at the
+latest.
 
 ## 11. Chapter seven — the civilians, and what AI-off takes away
 
@@ -1049,7 +1111,7 @@ below without a run take their number at booking (the eleventh pass).
 | 146 | three, restaged in two arenas | `[605, 1000)` | **run146 (item 587), 55 MB, 186 s; first parting 633; all three falsifiers reachable, none fired** |
 | 156 | seven-b, the computer's civilians | `[605, 1200)` | the same five for who=1 with `!ai off`, where the cheat's block decides (item 628, the twelfth pass) — **run 2026-09-23 (item 628), 106 MB, 295 s; the first falsifier fired by construction; word 1148** |
 | 157 | seven-b, the control | `[605, 1200)` | `!ai off` deleted; the AI's economy should reach the citizen, or the pair is vacuous — **run157, 114 MB, 335 s on the second take (the first stalled before the menu); the citizen gathers on 611 as in run156; word 1036** |
-| 119 | six, the air and the bird | `[605, 900)` | the one new order class |
+| ~~119~~ 168 | six, the air and the bird | `[605, 900)` | the one new order class — **run 2026-09-23 as run168 (item 648), 42 MB, 137 s; the second falsifier fired: an unbased aircraft is inert; word 616** |
 
 Chapter eight and any further detail window need numbers beyond the
 reservation. The order above is by **what a failure would teach**, not by
@@ -1089,7 +1151,8 @@ of chapter one itself.
   design was wrong, and on the evidence of the last two months the honest
   expectation is that two or three of them will.~~ Chapters one to five
   and seven have run and closed (§14); one premise fell (§11) and one
-  staging was restaged (§7). Six and eight have not run; seven-b ran as
+  staging was restaged (§7). ~~Six and eight have not run~~ Six ran as
+  run168 (item 648) and its premise fell (§10); eight has not run; seven-b ran as
   run156/run157 (item 628, §11).
 - **Whether the cheat's block closes a computer civilian's tail**, and
   whether this crate's one-term stand-in does the same — §11's restage,
@@ -1104,8 +1167,15 @@ of chapter one itself.
   Finished: run132's Temple (§8, item 552).
 - **Whether `find_nearby_spot` filters by domain.** §9 — the whole of
   chapter five turns on it, and nothing on disk answers it.
-- **Where `bird` lands.** §10. `ConsoleWin`'s initial `mouse_coord_x/y` was
-  not read; the case applies no `WorldData::restrict`.
+- **Where `bird` lands.** §10. ~~`ConsoleWin`'s initial `mouse_coord_x/y` was
+  not read~~ They are an uninitialised heap block's (item 648): the channel
+  never writes them, and the case applies no `WorldData::restrict`. run168
+  confirms the bird is born, on 700, but no dump prints owner 9. The
+  prediction of zero, the world's corner, is unconfirmed: the bird's edge
+  coins come on 750, 791 and 894, not in its first frames. Which heap value
+  it is, and whether it is the same on every launch, is not established.
+  The harness settles it when it builds `bird`, by the cursor whose draws
+  agree.
 - **How the golden word composes across chapters.** §1 states the design's
   recommendation and says it is the commander's ruling. Until a second
   chapter pins, the handoff's `Golden:` line is chapter one's word and the
