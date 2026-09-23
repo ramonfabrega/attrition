@@ -6172,6 +6172,95 @@ fn the_ground_order_s_life_is_the_dump_s() {
     );
 }
 
+/// **A turning siege engine's crew, as the dump prints it** (item 625,
+/// `docs/COMBAT.md` §58) — the floor, read before anything was built.
+/// run146 prints no figure clock (`GUYS=2`); run44 does (`GUYS=4`), and
+/// its human catapult `0/15` is run146's type (265) turning in place on
+/// the push of its ground order, 324.
+///
+/// - **The crew step.** On 324 both crew figures have moved (`last_speed`
+///   10 and 20) and stand on their new destinations at the block's end:
+///   the tracked arm of `Guy::move` ran and snapped them, which kills the
+///   readings "the crew never enter `Guy::move`" and "its tracked arm
+///   refuses a step because `x == des_x`" on their first frame.
+/// - **The crew mirror.** From 324 to 330 every figure plays `TURN_LEFT`
+///   (21), the crew's clock is figure 0's, and the crew's `end_time`
+///   stays 79 — the idle's length from before the push, where figure 0's
+///   reads 30. Their `last_time` stays −1 throughout, which a step of
+///   their own clock would have overwritten. So no `set_anim` reached the
+///   crew and their clock never stepped: `Guy::inc_time`'s mirror copied
+///   figure 0's slot and time, and nothing else.
+/// - **And across the whole of run44, no figure of an unpacked packer
+///   that stepped is ever on the walk category.** 114 records, all on a
+///   turn slot. That is `Guy::move:176–179`'s gate, from the listing
+///   (`5d9565`–`5d9581`): the moving arm asks for the walk only for a
+///   non-plane whose type does not pack or is packed.
+#[test]
+fn a_turning_catapult_s_crew_mirror_and_never_walk() {
+    let Some(r44) = crate::testenv::dump("gamelog-run44-islands-turners.txt") else {
+        eprintln!("skipping: no run44 (docs/RUNS.md run44)");
+        return;
+    };
+    let mut ix = crate::capture::indexed::IndexedCapture::open(&r44).unwrap();
+    let mut turn = Vec::new();
+    let mut stepped: std::collections::BTreeMap<i64, usize> = std::collections::BTreeMap::new();
+    for at in 0..ix.frames().len() {
+        let n = ix.frames()[at].number;
+        let f = ix.frame_state(at).unwrap();
+        for u in &f.units {
+            let packer = matches!(u.guys.first().and_then(|g| g.kind), Some(265 | 266));
+            if !packer || u.unit_masks.is_some_and(|m| m & 0x80000 != 0) {
+                continue;
+            }
+            for g in u.guys.iter().skip(1) {
+                if g.last_speed.is_some_and(|s| s != 0) {
+                    *stepped.entry(g.cur_anim.unwrap()).or_default() += 1;
+                }
+            }
+            if u.who == 0 && u.o == 15 && (323..=330).contains(&n) {
+                let lead = u.guys[0];
+                let crew: Vec<_> = u.guys[1..]
+                    .iter()
+                    .map(|g| {
+                        (
+                            g.cur_anim.unwrap(),
+                            g.cur_time.unwrap(),
+                            g.end_time.unwrap(),
+                            g.last_time.unwrap(),
+                            g.pos.unwrap().x == g.des.unwrap().x
+                                && g.pos.unwrap().y == g.des.unwrap().y,
+                            g.last_speed.unwrap() != 0,
+                        )
+                    })
+                    .collect();
+                turn.push((n, lead.cur_anim.unwrap(), lead.cur_time.unwrap(), crew));
+            }
+        }
+    }
+    for (n, anim, time, crew) in &turn {
+        let want = if *n == 323 {
+            // The idle before the push: the crew on their slots, still.
+            (0, 1, vec![(0, 1, 79, -1, true, false); 2])
+        } else {
+            let t = n - 323;
+            (21, t, vec![(21, t, 79, -1, true, true); 2])
+        };
+        assert_eq!((*anim, *time, crew.clone()), want, "run44 0/15 block {n}");
+    }
+    assert_eq!(turn.len(), 8, "run44 carries 323–330");
+    assert!(
+        stepped
+            .keys()
+            .all(|a| sim::anim::category(*a as i8) != sim::anim::category(sim::anim::WALK)),
+        "run44: an unpacked packer's stepping crew played the walk: {stepped:?}"
+    );
+    assert_eq!(
+        stepped.into_iter().collect::<Vec<_>>(),
+        vec![(21, 92), (22, 22)],
+        "run44: the stepping crew of an unpacked packer"
+    );
+}
+
 /// **The restage's catapult fires on the ground** (item 621,
 /// `docs/COMBAT.md` §57) — the value diff beside the build, both sides
 /// on every block of the order's life. Each block is `0/6`'s order list
