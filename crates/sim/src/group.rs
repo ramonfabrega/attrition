@@ -632,7 +632,7 @@ impl Sim {
         }
     }
 
-    fn seat_list(&self, seat: Seat) -> &Vec<usize> {
+    pub(crate) fn seat_list(&self, seat: Seat) -> &Vec<usize> {
         match seat {
             Seat::Army(w, a) => &self.armies[w as usize].list[a].units,
             Seat::Pushed(i) => &self.pushed[i].list,
@@ -4194,6 +4194,56 @@ mod tests {
         // stacking a second guard (`update_guard_order`).
         s.group_action_guard(&g, w, QueuePos::New, true);
         assert_eq!(s.units[a].orders.len(), 1);
+    }
+
+    /// `Unit::do_attack_to_pause@005f22a0` (`docs/ORDERS.md` §24.9),
+    /// golden chapter four's 1415 in miniature: a Supply Wagon on an
+    /// attack-move, seated in a group, looks on its own fifteen-frame phase
+    /// at the group's armed captains within `0x600` of it, and waits
+    /// fifteen frames when no fewer than half of them are fighting — which
+    /// **one** near captain that is only walking satisfies, `1 / 2` being
+    /// 0. Two near and neither fighting do not. Nor does a captain out of
+    /// reach.
+    #[test]
+    fn an_unarmed_attack_mover_waits_on_its_phase_for_a_captain_at_its_heels() {
+        let case = |near: &[i32]| -> i32 {
+            let mut s = sim();
+            let foot = fighter(&mut s);
+            let wagon = wagon_type(&mut s);
+            let at = Pos::new(0x2000, 0x2000);
+            let w = spawn(&mut s, 1, wagon, at);
+            let mut list = vec![w];
+            for &dx in near {
+                let a = spawn(&mut s, 1, foot, Pos::new(at.x + dx, at.y));
+                s.add_move_order(
+                    a,
+                    Pos::new(0x6000, 0x2000),
+                    MoveKind::AttackTo,
+                    QueuePos::New,
+                    true,
+                );
+                list.push(a);
+            }
+            let mut g = group_of(1, &list);
+            assert!(s.push_group(&mut g, true));
+            s.add_move_order(
+                w,
+                Pos::new(0x6000, 0x2000),
+                MoveKind::AttackTo,
+                QueuePos::New,
+                true,
+            );
+            let dest = s.current_move(w).expect("the wagon's attack-move").dest;
+            let o = i64::from(s.units[w].index);
+            // Off the phase first: nothing looks.
+            s.do_attack_to_tail(w, 16 - o, dest);
+            assert_eq!(s.current_move(w).unwrap().pause, 0, "off the phase");
+            s.do_attack_to_tail(w, 15 - o, dest);
+            s.current_move(w).unwrap().pause
+        };
+        assert_eq!(case(&[0x300]), 15, "one walking captain near: 0 >= 1 / 2");
+        assert_eq!(case(&[0x300, -0x300]), 0, "two near, none fighting");
+        assert_eq!(case(&[0x700]), 0, "out of reach: 0x700 > 0x600");
     }
 
     /// `do_guard`'s reposition: a guard off its post beside a moving
