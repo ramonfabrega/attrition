@@ -46,10 +46,6 @@ discount only.
 
 ## Parked by item 602, 2026-09-23 — under a closed chapter and its restage
 
-(617) **run146's 771: the dump culls the dead hoplites' `DEATH_OBJS`**
-(`docs/COMBAT.md` §42.5's cull). Under the restage's word; spends no
-draw.
-
 (618) **run145's 729/753: the turned chariot's turret.** The dump needs a
 1° step where the node bearing gives 0°. A `GUYS=4` capture over
 705–760 answers it. run145 is closed at 900, so it names no score.

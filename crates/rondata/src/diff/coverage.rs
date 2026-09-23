@@ -383,6 +383,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let r149 = crate::testenv::dump("gamelog-run149-eastindies-animal.txt");
     let r152 = crate::testenv::dump("gamelog-run152-eastindies-gatherbuilding.txt");
     let r155 = crate::testenv::dump("gamelog-run155-eastindies-longword.txt");
+    let r44 = crate::testenv::dump("gamelog-run44-islands-turners.txt");
     if ch2.is_none() && r136.is_none() {
         eprintln!("skipping: neither the ch2 golden capture nor run136 is on disk");
         return;
@@ -481,6 +482,17 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     if let Some(p) = &ch3b {
         let n = drive_capture(p, rw - 2, rw + 2, &mut paths);
         assert_eq!(n, 5, "run146 carries the word's five blocks");
+        frames += n;
+    }
+    // **And the clock the restage's word is read on, on run44** (item
+    // 625): run146 prints no figure clock (`GUYS=2`), so the word's
+    // widening reads the crew's `cur_anim`, `cur_time`, `end_time`,
+    // `last_time`, `des_x` and `last_speed` off run44's `0/15`, the same
+    // type turning in place on its ground order's push, 323–330
+    // (`a_turning_catapult_s_crew_mirror_and_never_walk`).
+    if let Some(p) = &r44 {
+        let n = drive_capture(p, 323, 330, &mut paths);
+        assert_eq!(n, 8, "run44 carries the turn's eight blocks");
         frames += n;
     }
     assert!(frames > 0, "no frame of either window was found");

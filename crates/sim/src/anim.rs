@@ -2009,10 +2009,29 @@ impl Sim {
             self.units[u].guys[g].stopped = false;
             return;
         }
+        // **An unpacked packer's figure that moves asks for no walk**
+        // (`Guy::move:176–181`, the listing `5d9565`–`5d9581`): the
+        // request is made only for a figure that is no plane (`guy_flags
+        // & 0x40`) and whose type does not pack (`unit_flags2 & 4`) or is
+        // packed (`unit_masks & 0x80000`). An unpacked engine cannot
+        // move; what moves is its crew, pulled round by figure 0's turn
+        // in place, and they keep their slot for `Sim::guy_inc_time`'s
+        // mirror to copy figure 0's turn into. Golden chapter three's
+        // restage, 781–782 (`docs/COMBAT.md` §58).
+        if self.is_plane(u) || (self.packs(u) && !self.units[u].combat.packed) {
+            return;
+        }
         if anim != TURN_LEFT && anim != TURN_RIGHT && anim != ATTACKWALK {
             let walk = self.walk_for(u);
             self.guy_set_anim(u, g, walk, false, true);
         }
+    }
+
+    /// `unit_flags2 & 4` on the unit's type: it packs to move.
+    fn packs(&self, u: usize) -> bool {
+        self.units[u]
+            .ty
+            .is_some_and(|t| self.unit_types[t].combat.packs)
     }
 
     /// The walk a unit plays — `CHAR_WALK`, or a carrying walk when the
@@ -2198,6 +2217,43 @@ mod tests {
             turret: Turret::ZERO,
         }];
         s.add_unit(u)
+    }
+
+    /// **An unpacked packer's moving figure asks for no walk**
+    /// (`Guy::move:176–181`, item 625). A figure whose type packs
+    /// (`unit_flags2 & 4`) takes `Guy::move`'s moving arm without a
+    /// `set_anim` while the unit is unpacked, and asks for the walk as
+    /// any other once it is packed. Golden chapter three's restage is the
+    /// first case: the catapult's crew, pulled round by its turn in place.
+    ///
+    /// Written to fail first: with the gate off the unpacked figure takes
+    /// `CHAR_WALK` on the first call.
+    #[test]
+    fn an_unpacked_packer_s_moving_figure_asks_for_no_walk() {
+        let mut s = sim_at(12345);
+        let t = s.add_unit_type(crate::UnitType::default());
+        s.unit_types[t].combat.packs = true;
+        let u = animal(&mut s, 0, 6, -1, DEFAULT, 5, 79);
+        s.units[u].ty = Some(t);
+        s.units[u].combat.packed = false;
+        let before = s.rng.seed;
+        s.guy_follow_anim(u, 0, false, true);
+        assert_eq!(
+            (
+                s.units[u].guys[0].anim,
+                s.units[u].guys[0].cur_time,
+                s.rng.seed
+            ),
+            (DEFAULT, 5, before),
+            "an unpacked packer's moving figure asked for the walk"
+        );
+        s.units[u].combat.packed = true;
+        s.guy_follow_anim(u, 0, false, true);
+        assert_eq!(
+            category(s.units[u].guys[0].anim),
+            category(WALK),
+            "a packed packer's moving figure did not walk"
+        );
     }
 
     /// **An attack asked of a guy that is still turning costs no draw and
