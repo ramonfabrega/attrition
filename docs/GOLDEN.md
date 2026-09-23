@@ -502,15 +502,22 @@ original's crew stand on their slots and mirror figure 0's `TURN_LEFT`
 unpacked packer, so the crew, pulled round to their rotated slots,
 keep theirs and take figure 0's turn through the mirror. The crew stand
 on the dump's points and play figure 0's slot on 781–785, and the
-round's landing on 798 reads the dump's. **The word is 792**, 28 draws
+round's landing on 798 reads the dump's. ~~**The word is 792**, 28 draws
 against 29 at draw 24: the original's arena-A hoplites take an attack
 on the catapult on 792 and one spends `Unit::fight+0x9b0`; this crate's
 take it on 795. The idle's +1 every sixteen frames is phased by the
 object number, and this crate numbers those hoplites 6–8 where the dump
-numbers them 9–11. That is the cull below, and it now costs a draw.
-Before it, run146 parts on a round's target (736, run145's family) and,
-on 771, on the dump culling the dead hoplites' `DEATH_OBJS` as arena A's
-are born (`docs/COMBAT.md` §42.5's cull).
+numbers them 9–11.~~ Item 617 widened the numbers
+(`chapter_three_s_restage_numbers_its_objects`). The dump culls nothing:
+the dead hoplites' `DEATH_OBJS` live to 999 on both sides. What parted
+on 771 was the allocator. `Objects::find_free` skips a dead number that
+its death object still holds (`docs/COMBAT.md` §59), so arena A's
+hoplites are 9–11 on both sides now, and reach `idle 4` on the dump's
+frames. **The word is 865**, 5 draws against 4, and values part on 866:
+the catapult's fresh attack after its reload, which is §57.6's third
+residue (621's park). Before it, run146 parts on a round's target (736,
+run145's family), a round's pool slot (798) and the scout `1/0`'s move
+facing (847). None of them spends a draw.
 
 ## 8. Chapter four — the Temple, the border, and the bleed
 
