@@ -2912,6 +2912,101 @@ mod tests {
         );
     }
 
+    /// **A human's packed siege engine never searches**
+    /// (`Unit::think_attack@005f5a80`'s packed arm, `docs/COMBAT.md` §51):
+    /// it holds no order until the first auto-attack frame with `idle ≥
+    /// 7`, and that order is the unpack, `0x28c`, at the head. A
+    /// computer's packed engine is not `manual`, so it falls through the
+    /// arm and searches while it waits out its 21; and a human's engine
+    /// whose packer stance is `PACKER_NEVER` (1) neither casts nor
+    /// searches. Golden chapter three's word 621 was the first case: this
+    /// crate put run145's packed catapult into `Unit::fight` on its birth
+    /// block.
+    ///
+    /// **Made to fail on purpose**: with the arm's call taken out of
+    /// `think`, the human's catapult takes the attack order on its first
+    /// idle frame, which is 587's word.
+    #[test]
+    fn a_human_s_packed_siege_engine_unpacks_before_it_searches() {
+        use crate::orders::{Body, spell};
+        let catapult = |human: bool, stance: u8| {
+            let (mut sim, _) = at_war();
+            sim.nation[0].human = human;
+            let ty = sim.add_unit_type(crate::UnitType {
+                hits: 100,
+                combat: Profile {
+                    attack: 40,
+                    max_range: 15,
+                    uber_size: 1,
+                    obj_masks: mask::SIEGE,
+                    siege: true,
+                    packs: true,
+                    combat_role: true,
+                    ..Profile::default()
+                },
+                ..crate::UnitType::default()
+            });
+            // The loader writes `role & 0x10000` twice: the profile's
+            // `combat_role` and the column `get_stance_type` reads.
+            sim.unit_types[ty].cols.role |= crate::ai_load::role::MILITARY;
+            let foe_ty = sim.add_unit_type(crate::UnitType {
+                hits: 100,
+                combat: Profile {
+                    attack: 15,
+                    uber_size: 1,
+                    ..Profile::default()
+                },
+                ..crate::UnitType::default()
+            });
+            let me = put(&mut sim, 0, ty, Pos::new(0x4000, 0x4000));
+            assert!(
+                sim.units[me].combat.packed,
+                "a type that packs is born packed"
+            );
+            sim.units[me].stance = stance;
+            put(&mut sim, 1, foe_ty, Pos::new(0x4000 + 6 * 192, 0x4000));
+            // Tick until the engine holds an order or 200 frames pass;
+            // answer the `idle` it thought on and what it was given.
+            for _ in 0..200 {
+                let idle = sim.units[me].idle;
+                let frame = sim.frame;
+                sim.tick();
+                if let Some(o) = sim.units[me].orders.front() {
+                    return Some((idle, frame, o.body, sim.units[me].combat.target));
+                }
+            }
+            None
+        };
+        // The human's: nothing on its first idle frame, and its first
+        // order is the unpack, on a thirty-two phase at `idle` 7 or more.
+        let Some((idle, frame, body, target)) = catapult(true, 0) else {
+            panic!("the human's packed catapult never unpacked");
+        };
+        assert!(
+            matches!(body, Body::Cast(c) if c.spell == spell::UNPACK),
+            "the human's first order is not the unpack: {body:?}"
+        );
+        assert_eq!(target, None, "a packed engine took a target");
+        assert!(idle >= 6, "the unpack came before `idle` 7: {idle}");
+        // `(frame + o) & 31 == 0` on the frame the think runs, and the
+        // engine is `o` 0.
+        assert_eq!(frame & 31, 0, "the unpack is on the auto-attack's phase");
+        // The computer's searches while packed, on its first idle frame.
+        let Some((_, _, body, target)) = catapult(false, 0) else {
+            panic!("the computer's packed catapult took no order");
+        };
+        assert!(
+            matches!(body, Body::Attack(_)) && target.is_some(),
+            "a computer's packed engine is not `manual` and must search: {body:?}"
+        );
+        // `PACKER_NEVER`: the human's engine waits, orderless.
+        assert_eq!(
+            catapult(true, 1).map(|r| r.2),
+            None,
+            "a `PACKER_NEVER` engine cast or searched"
+        );
+    }
+
     /// The flee arm's `else`: a **combat** unit still retaliates, which
     /// is the row item 464's restructure could have swallowed. Its gate
     /// is `is_worker || is_idle`, and a soldier standing idle passes the

@@ -8696,3 +8696,152 @@ restored, `sz` and `v1z` part on 622 under the word.
   `Guy::update_z`'s sea arm.
 - **Reading only**: the node rotation for piece 290, and the `ATTACK2`
   rows.
+
+## 51. A human's packed siege engine never searches (item 590, 2026-09-23)
+
+Golden chapter three's word stood at **621** (run145, `docs/GOLDEN.md`
+§7): this crate spent `Unit::fight+0x9b0` on the Catapult `0/9` the frame
+after its birth, 7 draws against 6, where the original's catapult, born
+packed (`unit_masks 0x80000`), holds no order at all until its unpack
+(`CASTORDER spell 652`) on block 696. The item booked no mechanism;
+587's hypothesis was `Unit::think_attack`'s packed-unit arm.
+
+**What would kill each reading**, written before the fix
+(`docs/journal/2026-09-23-item-590.md`): the AI-off block hiding the
+catapult from its think (killed by the dump: the unpack cast *is* an
+order, taken under `!ai off`); `idle` at birth (killed: `idle 1` on 621
+both sides); the packed bit (killed: the harness compares it,
+`harness.rs`' `packed_diverged`, and it agrees). What was left is the arm
+itself, and its test was that a fix return before the search, lose 621's
+draw, and put this crate's own unpack on 696 at `idle 7`.
+
+### 51.1 The arm
+
+`Unit::think`'s auto-attack step (`think@005f6e40:150`, the arm
+`type.attack != 0 && role & 0x10000 && think_attack()`) runs **above**
+the AI-off exit, so it runs for a human's unit under `!ai off`
+(`docs/INPUT.md` §11.9's lesson again). This crate's step went straight
+to `find_melee_target`. The original's enters `Unit::think_attack
+@005f5a80`, and between that function's stance head and its army join
+sits this (`llvm-objdump 0x5f5b0a..0x5f5c00`; the devirtualised `is`
+calls take their arguments from the pushes at `5f5b40` and `5f5b76`):
+
+```text
+if type.unit_flags2 & 4 and unit_masks & 0x80000:        # 0x2b8 & 4; packed
+    if !is(MERCHANTDUTCH 0x3e, 1):
+        if get_packer_stance() == PACKER_AUTO:            # vslot +0x100
+            thr = is(MACHINEGUN 0x7b, 0) ? 3
+                : leader_flags & 4 ? 7 : 0x15             # human : computer
+            if (unsigned) idle >= thr:
+                add_cast_order(-1, -1, -1, -1, 0x28c, QUEUE_FIRST, 0)
+                return 0
+        if manual: return 0                               # 5f5bf6 → 5f5fdd
+```
+
+- `manual` is the head's `uVar12`: set when the unit is not AI-driven
+  (`unit_masks & 0x40000` clear), when it is but its leader lacks
+  `leader_flags & 2`, or under `leader_flags2 & 8`. A human's catapult
+  is `manual`, so **below the threshold it returns before the search,
+  and at it, the unpack is its first order**. A computer's packed engine
+  falls through to the join and the search while it waits out its 21.
+- `get_packer_stance@00610970` answers the unit's `stance` byte when the
+  type's stance type is `STANCE_PACKER` (3), else `PACKER_NEVER` (1).
+  `PACKER_AUTO` is 0. The enumerators are the PDB's `LF_ENUMERATE`s; the
+  dump prints `stance 0` on both captures' catapults.
+- `QUEUE_FIRST` is 0 (the PDB), the second push at `5f5bc9`.
+- `add_cast_order@005e4a60` re-aims `0x28c` at `0x28e` for the machine-gun
+  lineage before the merchants and the fishing boat. This crate carried
+  the other two arms. The machine gun's is now reachable, and modelled.
+
+`Sim::think_attack_packed` is the arm, called in `think`'s auto-attack
+step ahead of the join and the search. A `true` is the function's
+`return 0`: the think goes on past the step, as it does when nothing is
+found.
+
+### 51.2 The cadence
+
+The two captures place the cast differently, and the arm explains both.
+The auto-attack step runs on a unit's first idle frame and then one frame
+in thirty-two, phased by `o`; `idle` climbs one frame in sixteen on the
+same phase. So the cast lands on the first **32-phase** frame at which
+`idle ≥ 7`:
+
+| capture | unit | `idle 7` reached | 32-phase? | cast | unpacked |
+|---|---|---|---|---|---|
+| run145 | `0/9` | 696 (`695 + 9 = 704`) | yes | 696, `idle 7` | 776 |
+| run146 | `0/6` | 683 (`682 + 6 = 688`) | no, 16-phase only | 699, `idle 8` | 779 |
+
+(Block `N` is sim frame `N − 1`.) 587 read run146's 699 as the unpack
+arriving "one grid step late". It was the cadence, not the threshold.
+
+### 51.3 What moved
+
+| | before | after |
+|---|---|---|
+| chapter three (run145), word / sequence | 621 | **633** |
+| values | 622 | 634 |
+| the restage (run146) | 633 | 633, unchanged |
+| catapult rows parting, run145 whole | 14 under the word, then the fight | **none** but the standing `form` |
+
+**The value diff on the frames it moved**
+(`chapter_three_s_catapult_unpacks_on_the_dump_s_frame`), `(idle,
+packed, head order, spell)` on both sides, identical on every row:
+run145 `0/9` on 621 `(1, 1, −, −)`, 695 `(6, 1, −, −)`, 696 `(7, 1,
+CAST_SPELL, 652)`, 776 `(0, 0, −, −)`; run146 `0/6` on 683 `(7, 1, −, −)`,
+698 `(7, 1, −, −)`, 699 `(8, 1, CAST_SPELL, 652)`, 779 `(0, 0, −, −)`.
+
+**A reader the move needed.** The dump prints `spell` and `paid` on every
+`CASTORDER`, and nothing parsed them: `order:kind` reads `CAST_SPELL` for
+every cast, so an unpack agreed with any other spell. `OrderDump` carries
+both now, and `OrderMismatch::Cast` compares them (`order:cast.spell`,
+`order:cast.paid`). The row was made to fail first: with the arm casting
+`0x28e`, the widening reports `f696 0/9 order:cast.spell: ours 654 theirs
+652`.
+
+**The new word, widened.** Both captures now part on **633**, in one
+shape: the original's chariot `0/8` spends one `Unit::fight+0x9b0` and
+two `Guy::set_anim+0xf2f` (printed bare, `5db22f`), and this crate spends
+a second re-search. What parts at and one block past it, standing
+families aside, is `0/8`'s facing on 634, and nothing else: this crate
+has turned, and the dump's still faces the way it was born. Both sides
+hold the same `ATTACKORDER` on `1/8` on 633 and the same `recharging 25`
+on 634. The dump's `0/8` moves and turns on no block from 630 to 720 in
+either capture, and its figure carries `ox 8 whom 1` from 634. So the two
+`set_anim` draws are **an attack swing starting without a turn**, not the
+walk run146's pin read them as. That is a measurement; why the chariot
+need not face its target is not established.
+
+### 51.4 What is not established
+
+- **A computer's packed engine.** It falls through to the search while
+  packed until `idle` reaches 21. The unit test holds this crate to the
+  reading. No capture has an AI siege engine idle and packed with a
+  target in view: run44's two catapults are ordered at birth. It would
+  take a capture with `!ai off` absent, `UNITS=3`, and an AI catapult
+  trained within its LOS of an enemy.
+- **`PACKER_NEVER`.** A human's engine with stance 1 neither casts nor
+  searches. No capture sets the stance; `Unit::set_stance` from the
+  interface would.
+- **The machine gun's threshold of 3** and its `0x28e`, both
+  listing-only.
+- **`is(0x3e, 1)` read as the Dutch merchant's strict lineage.** A
+  merchant reaches `think_attack` only through `think`'s merchant arm,
+  and only when it is not packing, so this test cannot fire on the path
+  modelled here.
+- **`leader_flags2 & 8`** in `manual`, the seam `think_attack_join_army`
+  already names.
+
+### 51.5 Coverage
+
+- **Diff-backed**: the arm for a human's packed catapult, in both
+  captures, whole (no catapult row parts in run145 but the standing
+  `form`); the 7 threshold and the 32-phase cadence (run145's cast at
+  `idle 7`, run146's at 8 after a 16-phase 7); the unpack's `spell 652`
+  and its 80 frames; the word 621 → 633 with its widening.
+- **Listing-backed**: the `is` arguments, `QUEUE_FIRST`, the unsigned
+  compare, the `manual` return; `StanceTypes` and `PackerStanceIndex`
+  from the PDB.
+- **Reading only**: the computer's fall-through and its 21, the machine
+  gun's 3 and its `0x28e`, and `PACKER_NEVER`, each pinned by
+  `a_human_s_packed_siege_engine_unpacks_before_it_searches` from the
+  same reading.

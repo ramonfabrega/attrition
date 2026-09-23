@@ -106,6 +106,14 @@ pub enum OrderMismatch {
         ours: i64,
         theirs: i64,
     },
+    /// One field of a `CASTORDER`'s own row — `spell` and `paid`
+    /// (item 590). Two casts of different spells are one `OrderIndex`,
+    /// so [`Self::Kind`] cannot tell an unpack from a heal.
+    Cast {
+        field: &'static str,
+        ours: i64,
+        theirs: i64,
+    },
     /// The path stack's depth.
     PathLength { ours: usize, theirs: usize },
     /// A path segment's goal, bottom-first.
@@ -203,6 +211,7 @@ impl OrderMismatch {
             Self::Coll { .. } => "order:coll".into(),
             Self::Move { field, .. } => format!("order:move.{field}"),
             Self::Guard { field, .. } => format!("order:guard.{field}"),
+            Self::Cast { field, .. } => format!("order:cast.{field}"),
             Self::PathLength { .. } => "path:length".into(),
             Self::PathTo { slot, .. } => format!("path[{slot}].to"),
             Self::PathField { slot, field, .. } => format!("path[{slot}].{field}"),
@@ -224,6 +233,7 @@ impl OrderMismatch {
             Self::Coll { .. } => "coll",
             Self::Move { .. } => "move",
             Self::Guard { .. } => "guard",
+            Self::Cast { .. } => "cast",
             Self::PathLength { .. } => "path-length",
             Self::PathTo { .. } => "path-to",
             Self::PathField { .. } => "path-field",
@@ -554,6 +564,40 @@ pub(crate) fn compare_orders(
                 at(
                     slot,
                     OrderMismatch::Guard {
+                        field,
+                        ours: mine,
+                        theirs,
+                    },
+                );
+            }
+        }
+    }
+
+    // **The cast order's own row** (item 590): which spell, and whether
+    // its cost is taken. `Kind` reads `CAST_SPELL` for every cast, so an
+    // unpack and any other spell agreed there whatever they were.
+    for (slot, (ours, theirs)) in unit
+        .orders
+        .iter()
+        .zip(them.orders_front_first())
+        .enumerate()
+    {
+        let sim::orders::Body::Cast(c) = ours.body else {
+            continue;
+        };
+        if i64::from(ours.index()) != theirs.index {
+            continue;
+        }
+        for (field, mine, logged) in [
+            ("spell", i64::from(c.spell), theirs.cast_spell),
+            ("paid", i64::from(c.paid), theirs.cast_paid),
+        ] {
+            if let Some(theirs) = logged
+                && theirs != mine
+            {
+                at(
+                    slot,
+                    OrderMismatch::Cast {
                         field,
                         ours: mine,
                         theirs,

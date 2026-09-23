@@ -566,6 +566,13 @@ session when the task exits, so the wait costs nothing — and the gate's
 wrapper propagates its exit rather than echoing it. Same family as (565):
 a receipt that is written but not read.
 
+(596) **`writers::literal_fields` cannot see a shorthand field in a
+one-line struct literal.** Filed by item 590, 2026-09-23, which worked
+around it in `265cdec`. A guard that reads the source for a field's
+writers and misses the shorthand form reports a field unwritten that is
+written. **What it wants**: the parser taught the shorthand, and made to
+fail once on a one-line literal before it lands.
+
 (584) **Golden chapter seven's premise was falsified, and the chapter was
 pinned anyway.** Filed by the commander at 578's landing, 2026-09-23: a
 human's Citizen gathers on 763 with `!ai off` because `think_peasant`

@@ -29,17 +29,17 @@ been the lower map since 09-21 — so the AI track's default flips to it.*
   carries the first use. Nothing booked on the merge.
 - **566's booking gate was red and its verdict arrived after the
   handoff** — the endpoint read 41 against a pin of 42 (574). Re-pinned.
-- **Fable backlog: 6 Loop items** (313, 527, 574, 575, 583, 584).
+- **Fable backlog: 7 Loop items** (313, 527, 574, 575, 583, 584, 596).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w10582 of 24,000 · GreatLakes w12038 of 24,000
-Golden: ch3 w621 of 900 · ch1 closed · ch2 closed · ch4 closed · ch5 closed · ch7 closed · 590 next
+Golden: ch3 w633 of 900 · ch1 closed · ch2 closed · ch4 closed · ch5 closed · ch7 closed · 590 next
 Endpoint 24001: EastIndies 62 off, 2 unlinked · GreatLakes 41 off, 4 unlinked
 
-**Opener: 8 landings since the eleventh pass: 573, 576, 579 and 588
+**Opener: 9 landings since the eleventh pass: 573, 576, 579 and 588
 (East Indies 9711 → 10582), 567 and 569 (chapter four closed at 1500),
-578 (chapter seven closed at 1200) and 587 (chapter three pinned at 621).
-att-590 is live on the rules track. A commander takes 592 on the AI
+578 (chapter seven closed at 1200), and 587 and 590 (chapter three at
+633). att-592 is live on the AI track. A commander takes 595 on the rules
 track, then 571; workers spawn with `claude-opus-5-5[1m]`. The count is
 by the log from the pass and stops at twenty.**
 
@@ -69,14 +69,13 @@ backlog is `docs/PARKED.md`, and an item returns only when a score names it.
     `move_step+0x823`. No mechanism. If PRs #7/#8 land first, a packet at
     11921 with the nine guys' move path run on it is an optional second run.
 
-590. **Golden chapter three's word is 621: +1 draw, 7 against 6** (587
-    captured run145 and pinned it; run146, the restage, fired none of §7's
-    falsifiers). The extra draw is `Unit::fight+0x9b0` on the catapult
-    `0/9`: ours gives the packed catapult an attack order on its birth
-    block at `idle 1`, the original none; values part on 622. 587's
-    hypothesis: `Unit::think_attack`'s packed-unit arm. run146's own first
-    parting, 633 (the chariots' chase, 8 against 9), is pinned beside it.
-    The rules headline. No mechanism.
+595. **Golden chapter three's word is 633, and both captures part there**
+    (590 moved it 621 → 633: a human's packed siege engine returns before
+    the target search and unpacks at `idle` ≥ 7, COMBAT §51). On 633 the
+    original's chariot `0/8` starts an attack swing without turning (two
+    `Guy::set_anim+0xf2f`); ours turns and re-searches. run145 and run146
+    part in the same shape. 587's "walk" reading is contradicted: `0/8`
+    neither moves nor turns in 630–720 on either side. No mechanism.
 
 ## How to maintain this file
 
