@@ -4865,3 +4865,106 @@ check: python3 tools/gamelog/samegame.py gamelog-run136-greatlakes-detour.txt ga
 check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run137.log" summary | tee /dev/stderr | awk '/INFO proxied/{n++} END{print "proxied sites: "n; exit !(n==13)}'
 # **The search was recorded**: `1/62`'s probes on sim-frame 11901.
 check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run137.log" calls 11901 | awk '/detect_unit_collision/ && /this=1\/62 / && /quick=1/{n++} END{print "1/62 search probes on 11901: "n; exit !(n>=8)}'
+
+# ==== run138: run137's stanza, retaken with INFO 16 (item 566) ====
+#
+# run137 died at startup (`7BF21139`), after DXVK's VkInstance. `tracer.c`
+# is unchanged since run116's working probe build, and the lab measured the
+# same fault on 2 of 19 plain launches, so this retakes it. One retry after
+# `wineserver -k` is allowed; a second fault restores the plain bytes and
+# stops. The swap is the same as 563's: rontrace.dll only, saved and
+# hashed first, restored by byte copy and `shasum -c`. The build adds
+# **INFO 16** (`docs/PATHFINDER.md` §24.3): at each `collide_here` call,
+# the live CollBlock of the probe centre's world cell and the pathfinder's
+# copy of it when one is held.
+#
+# **Added readings for 566, written before the run** (P1 and P2 below
+# stand as they were):
+# **P3 — the bit.** S's probe (`detect_unit_collision this=1/62
+# x=38904 y=21192 quick=1 … = 1`) is preceded by a block (50,27) record,
+# and the hit cell `will_be_corner` names is set in the block the probe
+# reads — the copy if one is printed, else the live one.
+#   - **Killed if** S has **no** `detect_unit_collision` bracket at all:
+#     the refusal is before the probe, in `invalid_loc` or the memo, and
+#     §24.1's reading of those is what is wrong.
+#   - **Split by** live against copy: a bit in the copy and not in the
+#     live block is the copy tree's persistence (§24.2); a bit in both is
+#     a live index bit the dump's units do not explain, and the `is_here`
+#     census under it says whether any unit claims it.
+run: 138
+tag: greatlakes-blockprobe
+item: 566
+why: Great Lakes' word 11903 is `1/62`'s flag-2 detour round `1/27`, planned on sim-frame 11901 from the same point on both sides, north in the original and south here — and no gamelog category carries a search's per-cell verdicts, so only the proxies can say which cell the original refused
+# **THE DISK WAS GREPPED FIRST.** run136 [11840, 11959] carries the word's
+# whole state at run135's line, and `run136_s_word_frame_is_widened_whole`
+# reads it whole: the first row is block 11902's `1/62` path (ours 6
+# entries, theirs 8), and nothing new parts on 11860..11901. No trace on
+# this map has a `callwin` above 10163. What no `gamelog.ini` line can put
+# on disk is **the inside of the search**. That is the only thing this
+# run adds.
+#
+# **The tracer in the install is swapped for a `RON_COLLIDE_PROBE` build**
+# (`TRACER_DEFS=-DRON_COLLIDE_PROBE zsh tools/trace/build.sh`, built in
+# scratch and copied over `rontrace.dll` only; `.funcs` and the patched exe
+# are byte-identical between the two builds) before this runs, and the
+# plain DLL is restored from a byte copy afterwards, hash-checked. Thirteen
+# proxies: the eight base, `astar_path` and `calc_cost` among them, and
+# run116's five over the collision sweep.
+#
+# **This crate's search, measured before the run** (a scratch print in
+# `valid_ucoord`, `RON_VU=11901`): `1/62` searches from (38904, 21144),
+# unit cell (810, 440), to (38088, 21912). Its wheel from `pref + 1 = 8`
+# (W): W (809, 440) refused on (808, 441); NW (809, 439) on (808, 440);
+# N (810, 439) valid; NE (811, 439) on (812, 438); E (811, 440) valid;
+# SE (811, 441) on (812, 440); **S (810, 441) valid**; SW (809, 441) on
+# (808, 440). It takes S and walks south. The bitmask here has holes at
+# (812, 439) and (814, 442), and **nothing at (809, 442) or (811, 442)**.
+#
+# ---- THE PREDICTIONS, written before the capture ran. Sim-frame 11901
+# writes block 11902.
+#
+# **P1 — THE FALSIFIER.** On sim-frame 11901 one `astar_path` bracket is
+# `1/62`'s, and inside it the probe of **(38904, 21192)** — S, unit cell
+# (810, 441) — **returns 1** (`detect_unit_collision … = 1`), with no
+# `calc_cost` row to it at depth 1. Its `will_be_corner` names the hit
+# cell, and the cell is (809, 442) or (811, 442).
+#   - **Killed if** S returns 0 and is priced at depth 1: the verdicts
+#     agree where this crate's search turned, and the difference is in the
+#     search's other inputs (the start, the goal, the heuristic's order),
+#     not the bitmask. That is the answer to report.
+#   - **Killed differently if** there is no `1/62` bracket on 11901: the
+#     plan is not a `find_upath` of that frame.
+# **P2 — every other verdict of the first expansion agrees** with the list
+# above (W, NW, NE, SE, SW refused on the same hit cells; N and E valid).
+# A second disagreement says the index differs in more than one bit.
+#
+# **What is expected to AGREE, and it is refusable**: every record in the
+# ten blocks against run136 at run136's own line, and run53's draw stream
+# frame for frame. A proxy that perturbs shows there first.
+frames: 11915
+mapstyle: 14
+end: MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1
+# **11896..11905, ten blocks**, inside run136's window: the word's run-up,
+# the detour's block 11902, and 11904.
+frame_window: 11896 11906
+cover: cover=0
+cover: callwin=11900-11902
+settle_min: 14000000
+# ~2.2 MB a block for ten blocks; run80 reached 23,960 of this game in
+# forty seconds at `cover=0`. 90 polls is thirty minutes.
+poll_max: 90
+# Same game: the trace word for word against run53, this map's own 24k run.
+check: python3 tools/gamelog/rngcmp.py rontrace-run53.log rontrace-run138.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=11905)}'
+# And the map, from the dump's own `GAME INFO`.
+check: LC_ALL=C head -c 400000 "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run138-greatlakes-blockprobe.txt" | LC_ALL=C grep -a "MAP_STYLE" | tee /dev/stderr | awk '{print; exit !($2==14)}'
+# **The window landed whole** — ten blocks, 11896..11905, no gap.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run138-greatlakes-blockprobe.txt" | awk '{v=$3+0; if(v>=11896&&v<11906) n[v]=1} END{c=0; lo=0; hi=0; for(k in n){c++; if(lo==0||k+0<lo)lo=k+0; if(k+0>hi)hi=k+0} print "window blocks: "c" ("lo".."hi")"; exit !(c==10 && lo==11896 && hi==11905)}'
+# **The overlap with run136, and the count is the claim** — ten blocks,
+# the same line, nothing excluded: the perturbation check.
+check: python3 tools/gamelog/samegame.py gamelog-run136-greatlakes-detour.txt gamelog-run138-greatlakes-blockprobe.txt | tee /dev/stderr | awk '/in common/{r=$0; sub(/.*in common /,"",r); split($0,a,", "); n=a[2]+0} /^differ:/{d=$2+0} END{print "run136 overlap: common="n" "r" differ="d; exit !(n==10 && d==0 && r=="(11896..11905)")}'
+# **The build that wrote the log**, from its own PROXIED records: 13.
+check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run138.log" summary | tee /dev/stderr | awk '/INFO proxied/{n++} END{print "proxied sites: "n; exit !(n==13)}'
+# **The search was recorded**: `1/62`'s probes on sim-frame 11901.
+check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run138.log" calls 11901 | awk '/detect_unit_collision/ && /this=1\/62 / && /quick=1/{n++} END{print "1/62 search probes on 11901: "n; exit !(n>=8)}'
+# **INFO 16 landed**: block records on 11901, live and copy both counted.
+check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run138.log" calls 11901 | awk '/ block \(/{n++} / copy: /{c++} END{print "block records on 11901: "n", copies: "c; exit !(n>=8)}'
