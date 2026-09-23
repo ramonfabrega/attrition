@@ -5292,3 +5292,110 @@ same eight rows run99's does, all the Bark's and the seated Scholar
 `1/24`'s, and the same three one-sided animation changes. Nothing else
 parts on 10397..10401. The leader record is whole on every block: 758,160
 rows, none unprinted.
+## run145 — chapter three, the mounted and siege lines (2026-09-23, item 587)
+
+The golden record's third chapter (`docs/GOLDEN.md` §7), staged from
+`tools/gamelog/golden/chapter3.cmd`: `!ai off` at 0, `age who=0 2` and
+`age who=1 2` at 600 and 602 (the Classical age; the file said `4`, which
+is Gunpowder, until item 587), `add 3 chariot who=0 4,40` at 610, `add
+hoplite who=1 12,40` at 615, `add catapult who=0 4,41` at 620. run141's
+command with chapter two's dump set:
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch3 \
+    --map 14 --end-frame 900 --log-window 605 900 --timeout 3600 \
+    --detail end:UNITS=3,GUYS=2,AMMO=5,DEATHS=1,LEADERS=2 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 \
+    --cmd-file tools/gamelog/golden/chapter3.cmd
+```
+
+`success: true`, exit 0, 901 frames, `MAP_STYLE 14` and seed 12345 read
+back, five settings files restored. One take: **144.5 s from launch to exit,
+43 MB of dump and 10 MB of trace**. Eight `INFO cmd` records each returned 1.
+297 blocks: 1, 605..899 and 901. The lane lock was stale (pid 3800 gone) and
+was taken over.
+
+**What the disk had before it** (`rg` over the `Logs` archive and
+`~/ron-golden` for a `GUY` of type 195 or 265): no Chariot anywhere; Catapults
+only in run44 (Islands, 700 frames, `GUYS=4`, no `AMMO`). This is the first
+catapult and the first chariot in a capture with `AMMO` on.
+
+### The predictions, written into the `.cmd` file before the run
+
+Committed as `aeb4c70`.
+
+| check | predicted | observed |
+| --- | --- | --- |
+| births | three separate Chariots `0/6..0/8` on 611, hoplites `1/6..1/8` on 616, catapult `0/9` on 621 | exactly; `o_up`/`o_down` −1 on each chariot, two type-195 figures each; three type-265 figures on the catapult |
+| `myspeed` | 30, 25, 19 | exactly |
+| the chariots fire | yes, orders near 635 | orders on 633, 634, 635; rounds from 651; the hoplites die from 678 |
+| the catapult fires | yes, ordered near its birth | **no round, ever.** Born packed (`unit_masks 0x80000`), no order until a `CASTORDER spell 652` (`0x28c`, the unpack) on 696 at `idle 7`; unpacked (mask 0) by 899 |
+
+### §7's falsifiers
+
+- **The leading count: does not fire.** Three units, not nine or one.
+- **The catapult's minimum range: cannot fire.** It never launches, and no
+  hoplite comes within 3 tiles of it (closest 759 units, 3.95 tiles, on 670).
+- **The chariots' speed: cannot fire.** The chariots never move. The
+  hoplites stall about 3.3 tiles short of them from about 670 and are shot
+  where they stand.
+
+### The harness
+
+The word is **621**, ours 7 draws against 6: `Unit::fight+0x9b0` on the
+catapult `0/9`, which this crate orders to attack on its birth block while
+packed. Values part on 622. `GOLDEN_WORD_CHAPTER_THREE` and
+`chapter_three_s_word_frame_is_widened_whole`.
+
+## run146 — chapter three restaged, the dead zone and the chase (2026-09-23, item 587)
+
+`tools/gamelog/golden/chapter3b.cmd`, the commander's ruling after run145 left
+two of §7's falsifiers untested. The unit types are the same, split into two
+arenas 24 tiles apart. Arena A: `add catapult who=0 4,41` at 605, alone,
+then `add hoplite who=1 12,41` at 770. Arena B: `add 3 chariot who=0 2,68`
+at 610 and `add hoplite who=1 12,68` at 615, ten tiles apart. The `age`
+lines and `!ai off` are run145's. The command is run145's with
+`~/ron-golden/ch3b`, `--end-frame 1000 --log-window 605 1000` and the new
+file.
+
+`success: true`, exit 0, 1001 frames, map 14 and seed 12345 read back. One
+take: **185.8 s, 55 MB of dump and 10 MB of trace**. Nine `INFO cmd` records
+each returned 1. 397 blocks: 1, 605..999 and 1001. It waited on att-588's
+`runqueue.sh`, whose RonDriver held the lane after run143's game had exited.
+The first launch, at 06:07, was never serviced; the second, at 06:08:39,
+ran.
+
+### The predictions, written into the `.cmd` file before the run
+
+Committed as `2a19c01`.
+
+| check | predicted | observed |
+| --- | --- | --- |
+| births | catapult `0/6` on 606; Chariots `0/7..0/9` on 611; hoplites `1/6..1/8` on 616 and `1/9..1/11` on 771 | exactly |
+| the unpack, with nothing in view | `CASTORDER spell 652` near 681 at `idle 7`, unpacked by ~761 | **699 at `idle 8`**, unpacked on 779: idle-driven as read, one grid step later than my arithmetic |
+| the catapult fires | a round at arena A's hoplites in its 3–15 band | an attack order on `1/11` on 780, reload from 781, one round in flight by 798 |
+| hoplites close inside 570 while it lives | yes | 173 blocks, 827–999, closest 339 units |
+| a chariot walks ≥ 3 blocks | yes, near 633 | `0/9` five blocks from 634, `0/7` four from 635 |
+
+### §7's falsifiers, all three reachable
+
+- **The minimum range: does not fire.** One launch, at eight tiles. From 864
+  the catapult takes an `ATTACKORDER` on a hoplite inside three tiles and
+  drops it the next block, over and over, and fires nothing. Its `damage`
+  climbs 12 → 72 by 999.
+- **The speed: does not fire.** The chariots' longest one-block step is 33.2
+  units (step² 1105), against the hoplites' 29.1 (848).
+- **The leading count: does not fire.** Three Chariots, as in run145.
+
+`chapter_three_s_falsifiers_are_the_dump_s` makes all three assertions. It
+was made to fail once, by widening the dead zone to nine tiles.
+
+### The harness
+
+The word is **633**, ours 8 draws against 9. The original's chasing chariot
+`0/8` spends one `Unit::fight+0x9b0`, then two `Guy::set_anim+0xf2f`, one
+per figure as its walk starts. This crate spends a second re-search and
+starts the walk on 634. Values part on 634. Pinned as
+`GOLDEN_WORD_CHAPTER_THREE_RESTAGE` with
+`chapter_three_s_restage_is_widened_whole`.

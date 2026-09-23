@@ -22,6 +22,13 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Parked by item 587, 2026-09-23 — what `age` hands over
+
+(591) **`age`'s knowledge and metal buckets**: 100 in the original after
+`age who=N 2`, 0 here, on both of chapter three's captures from 605. No
+draw depends on it in either. Returns when a chapter or a long capture
+spends knowledge or metal after an `age` line.
+
 ## Parked by item 579, 2026-09-23 — the navy's unbuilt corners
 
 (589) **Four corners of 579's fix, none on a word's frame**
@@ -558,6 +565,14 @@ with the original to the trace's end, and that restaging it is not a
 commander's call. **What it wants**: rule whether the golden record
 needs a chapter where AI-off actually bites (who=1's civilians), and
 whether any closed chapter's staging leaned on the same inference.
+**The second instance, the same day**: chapter three's run145 (item 587)
+could not fire two of §7's three falsifiers. The catapult is born packed
+and no hoplite comes within 3 tiles; the chariots shoot from where they
+stand and never move. The commander ruled a restage within §7's own
+design as run146. So the family is **a design's falsifier written
+without checking that the staging can reach it**. The pass may want each
+chapter's header to name, per falsifier, the frame and record where it
+could first fire.
 
 (583) **The ladder's shared-extras guard dies by success.** Filed by item
 576, 2026-09-23: each move of East Indies' word lowers the extras the
