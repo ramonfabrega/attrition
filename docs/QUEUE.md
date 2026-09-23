@@ -37,11 +37,11 @@ chapter two **683 → 725** — both headline words moved.*
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w9711 of 24,000 · GreatLakes w11903 of 24,000
-Golden: w900 of 901 (ch5) · ch1 w900 · ch2 w900 · 552 next
+Golden: w900 of 901 (ch1) · ch2 w900 · ch5 w900 · ch4 w1277 of 1501 · 567 next
 Endpoint 24001: EastIndies 63 off, 8 unlinked · GreatLakes 58 off, 0 unlinked
 
-**Opener: an Opus 5.5 commander is live; 566 in flight on att-566 (AI), 552 on
-att-552 (rules). Workers spawn with `claude-opus-5-5[1m]`.**
+**Opener: an Opus 5.5 commander is live; 566 in flight on att-566 (AI), 567
+next on the rules track. Workers spawn with `claude-opus-5-5[1m]`.**
 
 ## The queue
 
@@ -59,13 +59,13 @@ the backlog is `docs/PARKED.md`, and an item returns only when a score names it.
     needs the probe tracer to load under free Wine: run137 page-faulted
     at load. `callfn.py` on `valid_ucoord` is the capture-free route.
 
-552. **Golden chapter four, the border and the bleed — the next unpinned
-    chapter** (549 closed chapter five at 900; ch1 and ch2 are closed;
-    GOLDEN §14 runs four next). The namesake: `chapter4.cmd`'s Temple,
-    tech and civic border levers, then a hostile squad bleeding inside
-    player 0's border and a Supply Wagon cancelling it. Two windows,
-    run132 and run133; §8's five falsifiers are the first result. Then
-    pin the word and its widening. No mechanism.
+567. **Golden chapter four's word is 1277: the squad's `GUARDORDER`
+    beside its wagon** (552 captured run132/run133 and pinned the chapter;
+    none of §8's falsifiers fired, five wiring defects fixed). Ours
+    spends `Guy::set_anim+0x97a < Guy::move+0x19f` where the original
+    spends the farm's, 5 draws against 4. On 1277 the original's squad
+    holds a `GUARDORDER` and a move back to (8376, 32136), `timer` 419;
+    ours keeps its `AttackTo`. The rules headline. No mechanism.
 
 ## How to maintain this file
 

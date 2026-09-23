@@ -22,6 +22,21 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Parked by item 552, 2026-09-23 — the namesake's unwired edges
+
+(568) **The budgeted border sweep.** `GameDaemon::check_borders` spends 256
+cells a frame after a five-block delay; observed on all three of chapter
+four's levers, not modelled. It is run132's only border parting (301, 30
+cells a sweep early) and spends no draw.
+
+(569) **The Supply Wagon's birth path**, one leg short on 1101, and its
+walk from 1102. Under chapter four's word; spends no draw.
+
+(570) **`calc_anti_attrition` is unwired** (Foraging, Mongols, Titanium,
+Liberty): every resistance is the base. And **`Unit::squad_size` is a
+stored 1** that `fight.rs` reads for "alone" — a question for combat.
+Promote either when a capture needs it.
+
 ## Parked by item 560, 2026-09-22 — a sweep nobody probed
 
 (564) **Which group-mate `1/37`'s collision sweep passed on 11804.** No
@@ -692,6 +707,11 @@ block 900 declared absent, which is what keeps the floors guard's
 rather than a word, and whether a closed chapter's pin should be a
 different kind of assertion, is the steering pass's call (DECISIONS 41's
 finish line names "the golden record in lockstep for every chapter").
+**And the guard now forces it (commander, 2026-09-23):** with chapters
+one, two and five closed at 900 and chapter four live at 1277,
+`the_handoff_s_golden_line_is_the_pinned_word` takes the *numerically*
+lowest word, so the `Golden:` line must lead with a closed chapter's 900
+and the live headline sits last.
 
 (565) **A capture that times out writes no receipt, and a worker waiting
 on the receipt waits forever.** Filed by the commander, 2026-09-22: lane

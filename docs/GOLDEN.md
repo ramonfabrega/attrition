@@ -17,9 +17,12 @@ bare `war` form is a no-op, and `age` leaves all four epochs Ancient.
 
 **Confidence.** High for chapter one, which is staged, captured five times,
 walked in the harness and pinned. High for the map facts in §4, which are a
-dump's own fields. **Chapters two to eight are a design and nothing more** —
-no capture has been run for any of them, and each one's own falsifier section
-is written precisely so that the first run can say it was wrong. The
+dump's own fields. ~~**Chapters two to eight are a design and nothing more**~~
+**Chapters two, four and five are captured and pinned** (run112, run132/133
+and run127; items 415, 552 and 535), and none of their falsifiers fired;
+**three, six, seven and eight are a design and nothing more** — no capture
+has been run for any of them, and each one's own falsifier section is written
+precisely so that the first run can say it was wrong. The
 stageability of each is held by a test rather than by this prose
 (`every_chapter_stages_what_it_says_it_stages`).
 
