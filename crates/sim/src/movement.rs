@@ -868,6 +868,64 @@ mod tests {
         wide_limit: false,
     };
 
+    /// **The original on a real frame, three ways.** `tools/recomp/difftest.py
+    /// frame` calls `GuyData::turn_speed@005de340` on every guy of every
+    /// active unit of the lab's end-frame snapshot — natively, as lifted C,
+    /// and under unicorn, on the same memory — and writes each call's inputs
+    /// and the original's answer to a table; this asserts the port on every
+    /// row it models. The table is `$RON_TURN_TABLE` (a machine without it
+    /// says so): `mode type_turn packed squad guy_num track_dx track_dy
+    /// last_speed avg_speed instant -> answer`. A guy past its squad with no
+    /// track offset is the one shape the port has no function for; those
+    /// rows are counted and skipped, not asserted.
+    #[test]
+    fn the_original_on_a_real_frame_agrees_on_every_guy() {
+        let Ok(path) = std::env::var("RON_TURN_TABLE") else {
+            eprintln!("skipping: set RON_TURN_TABLE (tools/recomp/difftest.py frame --table)");
+            return;
+        };
+        let table = std::fs::read_to_string(&path).expect("RON_TURN_TABLE");
+        let (mut rows, mut crew_untracked) = (0, 0);
+        for line in table.lines() {
+            let f: Vec<&str> = line.split_whitespace().collect();
+            assert!(
+                f.len() == 13 && f[0] == "turn_speed" && f[11] == "->",
+                "{line}"
+            );
+            let v = |i: usize| f[i].parse::<i64>().unwrap_or_else(|_| panic!("{line}"));
+            let (mode, type_turn, packed, squad, guy_num) = (v(1), v(2), v(3), v(4), v(5));
+            let (track_dx, track_dy, last_speed, avg_speed, instant) =
+                (v(6), v(7), v(8), v(9), v(10));
+            let want = v(12) as i32 as u32;
+            let got = if guy_num >= squad {
+                if track_dx == 0 && track_dy == 0 {
+                    crew_untracked += 1;
+                    continue;
+                }
+                CREW_TURN_SPEED
+            } else {
+                let turning = Turning {
+                    type_turn_speed: type_turn as i32,
+                    packed: packed != 0,
+                    instant_from_stop: instant != 0,
+                    wide_limit: false,
+                };
+                let mode = if mode == 0 {
+                    TurnMode::Unit
+                } else {
+                    TurnMode::Body
+                };
+                turn_speed(&T, &turning, last_speed as i32, avg_speed as i32, mode)
+            };
+            assert_eq!(got, want, "{line}");
+            rows += 1;
+        }
+        assert!(rows > 0, "{path}: an empty table");
+        eprintln!(
+            "{rows} rows agree; {crew_untracked} untracked crew rows the port has no function for"
+        );
+    }
+
     #[test]
     fn the_axes_are_exact_and_name_the_convention() {
         // North is zero and y increases southward. Everything else in this

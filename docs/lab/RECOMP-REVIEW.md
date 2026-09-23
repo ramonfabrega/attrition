@@ -1,0 +1,385 @@
+# Static recompilation of the original: steps 1 and 2 measured, the first float function exact, step 3 counted
+
+**Status: steps 1 and 2 done and diff-verified; two float functions
+bit-exact against unicorn — 1,088 chosen vectors through `norm`, 5,715
+chosen banks through `air_turn_speed`'s truncation; a live queue item
+(327) answered from the frame, and `Leader::create_units` — 264 lifted
+functions — reproducing the original's memory writes on it byte for
+byte; step 3's mechanical share counted; step 4 attempted (the frame stops
+at its 19th instruction on a region the packet excludes). 2026-09-22.** The spike ran on
+the charter lore sent on 2026-09-22 (worktree `recomp-spike`, independent of
+the commander's loop, score-neutral). The charter asked: can
+`riseofnations.exe` be statically recompiled, one function at a time, into
+native arm64 code, using the PDB for function boundaries, so that an
+original function runs in the same process as this crate's port — with
+floats bit-exact? Step 0 (prior art) and the image findings were an Opus 5.5
+session's; it stopped while writing the lifter. Fable 5.1 wrote the lifter,
+the runtime and the harness, ran steps 1 and 2 and the float function, and
+counted step 3, in one session, with lore's read on the order.
+
+## Step 1: two functions, natively, against the emulator rung
+
+`tools/recomp/lift.py` turns each function into one C function
+(`void f_<va>(cpu_t *c)`: registers in C locals, the guest's memory a flat
+4 GiB reservation, `goto` per branch, a direct C call per direct `call`,
+flags computed eagerly and left to the C compiler to drop);
+`tools/recomp/rt/runtime.c` reserves the guest space and turns a trap into a
+message; `tools/recomp/difftest.py diff` drives `tools/emu/callfn.py`'s
+**own** sweep — the same `sweep_calls` generator, so the same 3,516 calls in
+the same order — through unicorn and through the native build, and compares
+every row.
+
+| measurement | value | how |
+|---|---|---|
+| Rows agreeing, `vector_dist@0046cff0` and `get_estimate@00688310` | **3,516 of 3,516** | `uv run tools/recomp/difftest.py <exe> diff` after `uv run tools/recomp/lift.py <exe> 0046cff0 00688310` |
+| The diff can fail | yes: one constant of the lifted C changed (`0xea60` → `0xea61`, the 60,000 guard) gave **18 disagreeing rows** and exit 1 | the same command on the altered build |
+| Time for the 3,516 calls, excluding process start | native **5–9 ms**, unicorn **22–43 ms** | printed by `difftest.py`; both are dwarfed by `uv`'s six seconds |
+| `callfn.py`'s table after the refactor that exposed `sweep_calls` | byte-identical (`md5 9c0f7dd7…`), and `crates/sim`'s `the_emulated_original_agrees_on_every_row` passes in release against the install | `uv run tools/emu/callfn.py <exe> sweep`, before and after |
+
+Both functions are integer-only (`vector_dist` is the hypotenuse, `get_estimate`
+the A\* heuristic with a `ret 0x24`), so step 1 verifies the integer subset,
+the call/return protocol through the guest stack, `div`/`idiv` and the
+flags a `jle`/`jb`/`jne` reads. It verifies nothing about floats.
+
+## Step 2: a function that reads the object graph, on a real frame, three ways
+
+The charter's step 2 is `GuyData::turn_speed@005de340` on laid-out or typed
+state. Lore's read (2026-09-22) was to take the lab's **typed end-frame
+snapshot** rather than lay the ~12 fields out by hand: the end-frame
+collector on `codex/typed-state-oracle` took one packet of the Great Lakes
+market run at logger frame 11,186 (trace tick 11,185) — 177 ranges,
+843,001,856 bytes of the process's private data and main-image data at the
+addresses the game had them, 127 units marked active by the lab's decode.
+`tools/recomp/snapshot.py` reads that stream's range table;
+`difftest.py frame` maps every range into both machines beside the image
+and calls `turn_speed` on **every guy of every active unit, in both modes**.
+
+| measurement | value | how |
+|---|---|---|
+| Units, guys, calls | 127 units, 134 guys, **268 calls** (two modes) | `uv run tools/recomp/difftest.py <exe> frame <frame-snapshot.bin> <typed-state.json> --table …` |
+| Native against unicorn, on the same memory | **268 of 268 agree, 0 traps** | the same command |
+| The crate's port against the original's answers | **264 of 264 modelled rows agree**; the other 4 are guys past their squad with no track offset, a shape the port has no function for — counted, not asserted | `RON_TURN_TABLE=… cargo test -p sim the_original_on_a_real_frame_agrees_on_every_guy` (`crates/sim/src/movement.rs`; skips with a message when the table is absent) |
+| That test can fail | yes: one answer altered in a copy of the table fails it on that line | the same test on the altered copy |
+| Loading 843 MB | natively **0.08 s** (`mprotect` and `memmove`), into unicorn 0.09 s | printed by `difftest.py` |
+| The rows' spread | 17 distinct answers; 204 of 268 are the instant-turn `0x80000000` (250 guys carry the flag, 224 are stopped), 12 are the crew quarter turn, the rest the divided rate; no packed unit on this frame | `awk` over the table |
+
+Three readers, two independent of the port: the lifted C and unicorn agree
+on the original's answer, and the port agrees with both. The self-checks the
+driver runs on the way — each unit's `units` band slot points back at it,
+and each guy's `who`/`o` are its unit's — passed on all 127 and 134.
+
+**Provenance.** The snapshot, its decode (`typed-state.json`, which names
+the active units) and the collector are the Codex lab's artifacts, on
+`codex/typed-state-oracle` and its successor branch, not on `main`; the
+packet is non-atomic across threads (the lab says so) and the lab has not
+established full logger parity for it. Neither matters for a per-guy getter,
+and the numbers above are on that packet only. The table the third reader
+asserts is written to `~/ron-data/lab-experiments/2026-09-22-typed-state-market/recomp/`,
+outside git like everything derived from the original.
+
+## The float question: `Vector<float>::norm`, bit for bit
+
+The charter's hard constraint was that floats be bit-exact. The first float
+function through the diff is `Vector<float>::norm@00420870` — in-place
+normalisation: `mulss`/`addss` for the sum of squares, `ucomiss` against 0
+and 1.0 through the `lahf; test ah, 0x44; jnp` idiom, then `sqrtf@0041e6f0`
+(which is **not** in-image arithmetic: `cvtss2sd`, a `call` to the thunk
+`0x00a571b0`, which is `jmp dword ptr [0xac5530]`, the IAT slot of
+`_libm_sse2_sqrt_precise`, then `cvtsd2ss`), a `divss` and three `mulss`
+stores. The lifter gained the scalar-SSE subset and the 128-bit moves (the
+XMM registers live in the context, not in locals), `lahf`/`sahf`, and
+**import stubs**: a `call` or `jmp` through an IAT slot becomes
+`rc_import(c, name)`, and the unicorn machine points every IAT slot at a
+page of `ret`s with a code hook — both give `_libm_sse2_sqrt_precise` the
+same semantics (host IEEE double sqrt, x86's indefinite NaN for a negative),
+so the diff tests the lifted code around the import and never the import.
+
+| measurement | value | how |
+|---|---|---|
+| On the frame's own 134 `last_norm` vectors | 134 of 134 agree — but every one is an axis unit vector, so all take the early exit; this row verifies the loads, the sum and the compare idiom, not the tail | `difftest.py frame`, the `norm` rows |
+| **On 1,088 chosen vectors** — every triple from {±0, ±1, 0.5, 3, 1e-20, 1e-38, 1.5e-45, 1e20, 3e38, ±inf, NaN} × {0, 1, 1e20} × the same, plus 500 seeded random vectors with magnitudes from 1e-30 to 1e30 | **1,088 of 1,088 agree, bit for bit, 0 traps** | the `normv` rows: the vector is written to a scratch slot on both machines before each call, the row is the twelve bytes after it |
+| The float diff can fail | yes: the lifted `divss` turned into a multiply gives **882 disagreeing rows** of 1,088 (the 206 that still agree are the early exits) and exit 1 | the same command on the altered build |
+| **The truncating conversion**: `Unit::air_turn_speed@005ea390` — one `cvttss2si` on the first guy's `bank`, then integer arithmetic — on every unit with the `bank` chosen from 22 values (±0, fractions either side of a half, `0.99999994`, `2^24`, the largest float below 2³¹, ±2³¹ and just past, ±3e9, a denormal, ±inf, NaN), both signs of the direction argument, plus the integer path once | **5,715 of 5,715 agree, 0 traps**; the `bank` is written before each call because the frame has no aircraft and every real bank is zero | the `airturn` rows |
+| That diff can fail | yes: truncation swapped for rounding (`cvtt_ss` → `cvt_ss`) gives **379 disagreeing rows** and exit 1 | the same command on the altered build |
+| Time | 7,205 calls (the four families) in 17 ms natively, 165 ms under unicorn | printed by `difftest.py` |
+
+So on the scalar single-precision path — `mulss`, `addss`, `divss`,
+`ucomiss` (ordered, unordered), `cvtss2sd`, `cvtsd2ss`, `cvttss2si`, the
+NaN a result carries, overflow to infinity and the reciprocal of infinity,
+denormal inputs (`1.5e-45`, `1e-38`, `1e-40`), and the integer indefinite
+`0x80000000` for a NaN, an infinity or a magnitude past 2³¹ — the C the
+lifter emits, compiled with `-ffp-contract=off` and `rt/recomp.h`'s
+fix-ups, is bit-identical to unicorn's x86 model (QEMU 5.0.1 softfloat) on
+this machine. Of the four places the header names where x86 and AArch64
+disagree, three are now exercised by a verified function (the NaN carried,
+no FMA contraction, the truncation); `minss`/`maxss` operand order is the
+one with no caller yet. That is the answer to "where does x87 extended
+precision make bit-exactness hard": nowhere on these paths, because they
+have no x87.
+
+One candidate was read and not taken: `Unit::bank_aircraft@005e9520`
+(lore's suggestion — SSE only, but it makes two virtual calls, which the
+lifter turns into run-time dispatch to functions it has not lifted). Lore's reading
+of the callers, not checked here: the CRT's transcendental imports are
+reached only through the `sinf`/`cosf`/`tanf`/`acosf`/`atanf`/`powf`
+wrappers, whose callers are the `fast_*_to_sine/cosine` table fills (once,
+at init; the tables are main-image data the snapshot holds), the script
+VM's `^`, and rendering — so a gameplay function that reaches a DLL
+mid-frame was not found, and `Ammo::init@0067bbf0`'s half-angle quaternion
+is the one gameplay-adjacent user of the DLL-built sine table.
+
+## A live item answered from the frame: 327, the Merchant offer
+
+Lore's charter for the last hours of the spike (2026-09-22, with Ramon):
+take one open item of the queue and answer it from the packet, as the
+demonstration of what the tool is for. Item 327 (`docs/QUEUE.md`), the AI
+headline, widened at 11185 on run123 — the frame Astra's packet was taken
+on. **As the item states it**: ours draws nine against eight at index 2,
+`use_market+0x1ed` against `make_stuff+0x221`; the original's `MAKE[1]` is
+an emptied Merchant slot (`t −1`) where ours holds a Cataphract;
+"`reg_known_rares` has no writer, so the merchant arm is dead"; owed are
+that writer, the offer's value, and the re-offer's emptied slot
+(ECONOMY §14.4).
+
+**What the frame answered**, in the order it was asked, each with its
+address so the next reader can check the bytes:
+
+1. **`reg_known_rares` is written, and the arm is live — in the original.**
+   Leader 1 (`LeaderData` at `0x00e4127c`, the leaders' bases from Astra's
+   decode, `leader_flags` at `+0x0`): `known_rares` (`+0x6d4`) = **4**,
+   `reg_known_rares[1]` (`+0x4d4 + 4`) = **4**, the other 63 regions 0;
+   Merchants queued (`num_queued[61]`, `+0x5a22 + 122`) = 0, alive
+   (`+0x56fe + 122`) = **3**; `effective_pop` (`+0x9e0`) = 57 against
+   `pop_cap` (`+0x7e4`) = 75. So `create_units@006c40a0`'s gate at line
+   1044 — `known − queued ≠ alive`, `known − queued − alive ≥ 0`,
+   `effective_pop < pop_cap − 1` — is **open** for leader 1 on this frame,
+   and closed for the other nine (their fields are all zero). "No writer,
+   dead arm" is true of this crate's census, which zeroes the array and
+   nothing writes; the original's writer (`Leader::plan_strategy`, per
+   §14.4) has run. Falsifier: a nonzero at `0x00e4127c+0x6d4` in the
+   packet; it is `04 00 00 00`.
+2. **The emptied slot and the live offer are both in the list.** Leader 1's
+   `make_list` (`+0x6ec8`; `length` at `+4` = 11, `list` at `+0x10` =
+   `0x0b983210`; `MakeObject` is 0x28 bytes: `t, val, escrow, city, up, o,
+   num, cat, wx, wy`): `MAKE[1]` = **`t −1`, val 909,090, escrow 1, cat 4**
+   — §14.3's emptied Merchant slot, still there a frame later — and
+   `MAKE[4]` = **`t 61` (Merchant), val 909,090, escrow 1, cat 4**, the live
+   offer; the Cataphract (`t 227`) is at `MAKE[2]` at 775,195.
+3. **The offer's value, executed.** `Leader::create_units` on leader 1 runs
+   to completion under unicorn on the packet — 438,303 instructions, 66
+   functions entered, no import needed, 0.16 s — and re-offers a Merchant
+   at **227,272** into slot 3 (`MakeList::make_me+0x13f` writes it). Its
+   arithmetic, read off the run and then off the bytes: the base is
+   1,000,000 (`+0x12fb`); `+0x2274` is `idiv edi` after `imul eax, esi`,
+   **k × 1,000,000 / (k + queued + alive)** with k = `pop_cap × 2 / 5` = 30
+   (min 4): 30,000,000 / 33 = **909,090**; `+0x22cd` is `sar eax, 8` after
+   `imul eax, esi` with `Leader::check_income@006cc800`'s return, **64**
+   here (a quarter, in 8.8): 909,090 × 64 / 256 = **227,272**. §14.4's
+   "1,000,000 divided by 1.15, 1.1 and 4.4" is therefore 20/23 (k = 20,
+   pop cap 50, three Merchants), 30/33 (k = 30, pop cap 75), and 30/33 × ¼
+   — the same formula at three states, not three constants.
+4. **The port has the formula.** `crates/sim/src/ai_units.rs`:
+   `offer_value(fac, want, val, divisor)` is `fac × (want × val / divisor)
+   / 256` with `divisor = want + queued + units` and `want_civ = pop_cap ×
+   2 / 5` (min 4); the merchant arm returns `(1_000_000, 4, want_civ)`
+   with escrow 1 and gates on `Σ reg_known_rares − queued − units > 0` and
+   `effective_pop < cap − 1`. Given `known_rares = 4`, three alive, k = 30
+   and `check_income = 64`, it would answer 227,272 to the digit. So of the
+   three things the item says are owed, **one is owed: the writer of
+   `reg_known_rares`** (the value formula is already the original's, and
+   the emptied slot is `make_me`'s handling of a re-offered type — visible
+   in the list, not yet read). What the census must produce on this frame:
+   4 known rares in region 1 for leader 1.
+5. **Native against unicorn on the same run.** The 61 functions the run
+   called (recorded as the block entered after each `call`, the only exact
+   way — attributing blocks to the nearest map symbol misses callees with
+   no symbol of their own) and their direct callees, 264 functions, lifted
+   into one build; `difftest.py run` enters `create_units` on leader 1 in
+   both machines with the same TEB as `fs:` and the imports stubbed alike:
+   **`eax` identical (0x192), and the make list (0x1b8 bytes), its header
+   and the whole `LeaderData` (0x6ee4 bytes) byte-identical after the
+   run** — native in under a millisecond, unicorn in 23 ms. The AI's whole
+   production planner, as recompiled C, reproducing the original's memory
+   writes on real state.
+
+   Getting there found the one real gap the scan had hidden: **jump
+   tables.** Discovery had stopped at `jmp [4*reg + table]` and counted
+   the function as lifted; a `switch` case reached at run time was then
+   dispatched as if it were a function — `City::count_gather_slots`'s
+   recursed without end, `ObjectData::count_inside`'s trapped. The lifter
+   now reads the table from the image, bounded by the `cmp reg, N` before
+   the jump (or, for MSVC's two-level form `movzx idx, byte [orig + first];
+   jmp [4*idx + table]`, by the byte table's maximum), and emits an
+   in-function `switch` of `goto`s.
+
+**Wall time**, from lore's brief to the formula: about forty minutes, the
+first ten of them the packet reads (steps 1 and 2), against the steering
+page's price of a capture plus a widening — 221 s for the capture alone and
+about 4 USD a frame inside a fight. **And the loop landed item 327 in the
+same hours**, on its own route (merged at `1c27e71`, booked at `4d9d873`):
+it built the writer, the value and the emptied slot, and Great Lakes moved
+11185 → 11531. So this section is not the item's answer; it is an
+**independent confirmation of the same formula from the original's own
+state**, with the bytes, sent to the commander as a reading and booked
+nowhere. That is the honest measure of the method: the same fact, by a
+route that read no source and ran no capture, in under an hour.
+
+**Adopt / pilot / park, in my words: adopt the method, pilot the tool.**
+The method is "an open question whose answer is a value the original holds
+or computes, read or executed on a captured frame" — and this section is
+its first instance on a live item: the item's facts in under an hour, from
+a packet that already existed, with the addresses to check them, agreeing
+with what the loop then landed by its own route. The tool is what made
+steps 3 and 4 minutes rather than a reading: run the function, watch the
+writes, find the value, read the two instructions. Pilot rather than adopt
+because it consumes the lab's packet and decode, which are not on `main`.
+
+## Step 3: what share of the cited functions lifts mechanically
+
+`tools/recomp/scan.py --docs docs` takes every `name@<8 hex>` citation in
+the top-level `docs/*.md` (as the paperwork guard reads them), lifts each
+function on its own — callees named, not followed — and compiles each
+lift to an object. Eight seconds.
+
+| | first subset | + `bt`/`bts`/`btr`/`btc`, `rol`/`ror`, string ops, `fs:` as a TIB | + scalar SSE, imports, jump tables |
+|---|---|---|---|
+| addresses cited, in `.text` | 771 (of 779 cited) | 771 | 771 |
+| **lifted and compiled** | 555 (72 %) | 698 (91 %) | **741 (96 %)** |
+| stopped at `fs:` — the SEH prologue's `mov eax, fs:[0]` | 149 | 0 | 0 |
+| stopped at an SSE instruction | 39 | 70 | 26 (packed ops, `cmpss`, `shufps` and kin) |
+| stopped at `bt`/`bts`/`btr`, `rol`, a string op | 28 | 0 | 0 |
+| stopped at a `lock` prefix (interlocked ops) | — | 3 | 3 |
+| stopped at x87 | 0 | 0 | 1 |
+| undecodable, ran into the next function, discovery looping | 0 | 0 | 0 |
+
+Two cautions on the column. The middle one was **optimistic**: discovery
+stopped at a jump table's `jmp [4*reg + table]` and counted the function
+as lifted with its `switch` cases unexplored; the last column follows the
+tables, which is why one x87 hit and more code appear rather than fewer.
+And "lifted and compiled" is not "runs correctly": the functions that are
+diff-verified are the five of the sweeps and the frame families, and the
+264 of `create_units`' run on one input. The per-function rows are in
+`target/recomp/scan.tsv` after a run.
+
+## What changed our understanding (the image findings, kept and corrected)
+
+| Finding | Evidence | What it does not establish |
+|---|---|---|
+| The game's floating point is SSE2, not x87. | A mnemonic histogram over the whole `.text` (`llvm-objdump`): about 12.5k `movss`, 3.9k `mulss`, 2.4k `addss`, against about 700 x87 hits in total, many of them data decoded as code by the linear sweep. No `ldmxcsr` in `.text`. **And the scan: zero x87 among the 771 cited functions.** | Which functions hold the real x87 hits. The executable also imports `_set_SSE2_enable` and `_except1` from `api-ms-win-crt-math`, so the C runtime's own maths can take an x87 path at run time; MXCSR as set by DLLs was not read. |
+| So bit-exactness is mostly SSE edge cases, not 80-bit precision. | SSE add, sub, mul, div and sqrt are exactly specified IEEE operations on both x86 and AArch64. The differences to handle are the NaN a result carries, the `minss`/`maxss` operand order, out-of-range truncation (`0x80000000`), and FMA contraction (`-ffp-contract=off`). `rt/recomp.h`'s helpers say each in x86's terms; 17 edge cases of them were checked against the SDM's answers, and **the section above puts `norm`'s path through them on 1,088 vectors against unicorn**. | `minss`/`maxss`, the truncations and the double-precision arithmetic are lifted but no verified function uses them yet. |
+| Internal functions use link-time custom conventions. | `Vector<float>::norm@00420870` passes a float in `xmm0` to `sqrtf@0041e6f0` and gets its result back in `xmm0`, with no x87 return. `sqrtf` itself widens to double and calls the CRT's `_libm_sse2_sqrt_precise` through the thunk at `0x00a571b0`; it is not in-image `sqrtss`. | A machine-level recompiler keeps the XMM registers in its context, so this is transparent to it. A Rust caller still needs each function's convention, as `tools/emu/callfn.py` already records. |
+| The transcendentals are not in the executable. | The import directory (read by `tools/recomp/image.py`): `_libm_sse2_{acos,asin,atan,cos,pow,sin,sqrt,tan}_precise` from `api-ms-win-crt-math-l1-1-0.dll`. | Under the captures, Wine's ucrtbase answers these calls, not Microsoft's. Neither implementation was read. |
+| No existing 32-bit x86 PE recompiler is worth building on. | [Prior-art survey](2026-09-22-recomp-prior-art.md), 17 projects with URLs — read with its header note: its x87 premise is the one the first row overturns, and the build is Visual Studio 2015 or later (`.gfids`, `ucrtbase`), not MSVC 7.1. | The survey read sources and READMEs; it built none of them. |
+| The linker map is the function table the lifter needs. | 63,427 `f` symbols in `sbl/rise_z.map`, every one inside `.text`; the lifter bounds discovery by the next symbol and stops on a tail `jmp` into another symbol. The PDB's 22,199 `S_*PROC32` records with code sizes are read only on request (`Functions(…, cache_dir)`), since `llvm-pdbutil`'s dump is slow and large. | Jump tables (`jmp [reg*4+table]`) stop discovery at the indirect jump; none of the 771 needed one to reach its `ret`s, but a `switch` lowered that way would lift its dispatch as a run-time trap. |
+
+## The challenge question
+
+The charter asked whether an existing emulator gives the same in-process
+oracle more cheaply. Unicorn is the emulator rung (`docs/EMULATOR.md`),
+reached through `tools/emu/callfn.py` out of process; linking it in-process
+would add a GPL-2 crate to an MIT/Apache repository, and Ramon declined that
+pivot. Steps 1 and 2 put numbers on the difference: the native build answers
+the sweep in 5–9 ms against unicorn's 22–43 ms, and the frame's 268 calls in
+1 ms against 2 ms; both are hidden behind `uv`'s six-second start. **For a
+fixture of a few thousand calls the two are equivalent**; the native build's
+case is the in-process one — a Rust test calling the original directly,
+with no subprocess — and that is not built. What step 2 adds to the
+question: the snapshot loads in 0.08 s either way, so a per-function
+differential test on real frames is cheap on both machines.
+
+## What exists on the branch
+
+- `tools/recomp/lift.py` — the lifter: capstone (declared inline, like
+  `callfn.py`'s unicorn), the integer subset, the scalar-SSE subset and
+  the 128-bit moves, `fs:` as the guest TIB, imports through the IAT as
+  `rc_import`, an error naming the address and instruction of anything
+  outside it. Emits `lifted.c` and builds `librecomp.dylib` with clang
+  under `target/recomp/`.
+- `tools/recomp/rt/recomp.h`, `rt/runtime.c` — the guest context, memory
+  and SSE helpers; a `PROT_NONE` reservation with `rc_map` to open the
+  ranges a harness lays out, `rc_call`, the import stubs, and a trap or a
+  fault that comes back as a message naming the guest address.
+- `tools/recomp/snapshot.py` — the lab's `frame-snapshot-v1` stream as
+  guest memory: the range table and where each range's bytes sit.
+- `tools/recomp/difftest.py` — `callfn.py`'s sweep through both machines
+  (`diff`, `sweep`), and the frame driver (`frame`, `--table`): `turn_speed`
+  on every guy, `norm` on every guy's vector and on the chosen vectors,
+  `air_turn_speed` on every unit with the chosen banks; the unicorn machine
+  with the imports stubbed and the registers zeroed per call.
+- `tools/recomp/scan.py` — the step-3 count.
+- `tools/recomp/image.py` — the PE, its imports, the function table.
+- `crates/sim/src/movement.rs` — the one touch outside `tools/` and
+  `docs/lab/`: the `RON_TURN_TABLE` test, which skips when the table is
+  absent and changes nothing else.
+- Nothing from the install, and nothing generated from it, is committed.
+
+## What is not established
+
+- Float behaviour beyond `norm`'s and `air_turn_speed`'s paths: the
+  double-precision arithmetic, `minss`/`maxss`, the rounding conversions
+  and the packed bitwise ops are lifted but unexercised by a verified
+  function; packed arithmetic (`addps` and kin), `shufps`, `cmpss` and x87
+  stop the lift.
+  MXCSR is assumed at its default (round to nearest, no FTZ/DAZ) on both
+  machines; the game's own MXCSR at the capture boundary was not read.
+- The reference for floats is unicorn's x86 model (QEMU 5.0.1 softfloat),
+  not silicon and not Rosetta, which runs the captures. The two machines
+  give the sqrt import identical semantics by construction, so the CRT's
+  own `sqrt` (Wine's under the captures) is outside the diff.
+- `af` after a logic instruction is left as it was, and the flags after a
+  shift by zero are left as they were, which is x86's rule; `of` after a
+  multi-bit shift is emitted as if the count were one (x86 leaves it
+  undefined); `rol`/`ror` by a count that is a multiple of the width leave
+  `cf` as it was, where x86 sets it. Nothing verified reads any of these.
+- Sub-32-bit `mul`, `div`, `push` and `pop`, `lock`, `repe`/`repne` and
+  indirect jumps stop the lift by design; an indirect `call` (a vtable) is
+  dispatched at run time and traps unless its target was lifted.
+- The fault's granularity is the host page, 16 KiB on Apple Silicon
+  against the guest's 4 KiB: a read within the same 16 KiB as a mapped range
+  does not fault. A function that lifts because its SEH prologue now writes
+  the guest TIB runs wrong if it then throws.
+- The harness's stack (`0x7ff00000`, `callfn.py`'s constant) sits inside a
+  range the snapshot also holds (`0x7fde0000+0x200000`, a thread's stack);
+  the native machine maps the snapshot over it and the harness's frame
+  overwrites a few hundred bytes of it per call, unicorn refuses the two
+  overlapping ranges. Harmless for `turn_speed`; a function that reads that
+  stack needs the harness's stack moved.
+- The active-unit list comes from the lab's decode, not from the packet's
+  `units` bands; the driver checks each unit against its band but does not
+  enumerate the bands itself.
+- Step 4 (how far a frame runs with imports stubbed): attempted with
+  unicorn as the explorer (`step4.py`: the capturing thread's TEB found in
+  the packet by its self-pointer and made `fs:` through a GDT, a fresh
+  stack, the clock/heap/thread imports stubbed). `Game::do_frame` on the
+  game stops at its **19th instruction** on a read of `0x7a84642c`, a
+  region the packet does not hold (it selects private data and the main
+  image; that address is in neither). What it would take is the packet
+  widened to that region, or its reader's answer laid out; not pursued,
+  because item 327 was worth more. The same explorer runs `create_units`,
+  438k instructions, to its return — so the machinery is there and the
+  frame's first missing input is named.
+- The COMBAT §20.3 table (`GraphicPieces::positions`, built at load from
+  the `.bh3` models, which the loop cannot build) is in the packet — the
+  singleton is at `0x00c06214` (`llvm-pdbutil` prints `S_GDATA32` offsets
+  in decimal; the first read at `0x…6532` was junk for that reason). Not
+  read out; a candidate for the same method.
+- The scan counts functions the specification cites, not the executable's
+  22,199; the share over all of `.text` is not known.
+
+## Adoption
+
+**Pilot-ready as a lab tool; one candidate for the main loop; the
+charter's float question answered on its first function.** It moves no
+score and touches no queue file. What it is good for now: a fixture rung on
+real frames — an original function called on every object of a captured
+frame in a millisecond, natively or under unicorn, with the port asserted
+beside it — which is the per-function differential testing the lab has
+queued, built and run once; and, for floats, a place where the C a lifter
+emits and QEMU's x86 model can be put side by side on chosen inputs, which
+is what settles a float residue without a capture. The candidate:
+`RON_TURN_TABLE`'s test is the shape every such function would get. What
+would make the tool worth more, in order of cost: a float function whose
+path has `minss`/`maxss` or double arithmetic; enumerating the `units` bands from the
+packet so the driver needs no decode; the harness's stack moved off the
+snapshot; lifting a vtable's targets so a virtual call dispatches; then
+step 4.
