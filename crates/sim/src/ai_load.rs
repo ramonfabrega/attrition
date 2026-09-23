@@ -103,6 +103,10 @@ pub mod uflags {
     /// types carry it, and it is the one arm of `Unit::fight`'s swing
     /// animation that picks its slot from an angle (`docs/ANIM.md` §6.2).
     pub const ROCKS: u32 = 0x200_0000;
+    /// `g` — `unitrules.xml`'s own legend: "Unit attacks sideways (most
+    /// ships)". `Unit::fight@005fd4d0:698–714` turns such a unit a quarter
+    /// turn off the bearing to its target (`docs/COMBAT.md` §49).
+    pub const SIDEWAYS: u32 = 0x40;
 }
 
 /// The bits of `unit_flags2` (`+0x2b8`).

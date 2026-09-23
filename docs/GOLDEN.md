@@ -450,8 +450,24 @@ land cell — the search does not filter by domain, and every naval chapter
 after this one can place freely. Or two hulls in the water and no `AMMO`
 block, which would say a ship's fight is not the land fight's shooting arm.
 
-**This is the chapter most likely to fail, and it is the cheapest to run**: a
-digest is 24 s. It should be run before any effort is spent on a Dock.
+~~**This is the chapter most likely to fail, and it is the cheapest to run**: a
+digest is 24 s. It should be run before any effort is spent on a Dock.~~
+**Run as run127 (item 535), and none of the three fired** (`docs/RUNS.md`
+run127). The `add` placed all three hulls with no Dock. Each stands on an
+`OCEAN` cell of region 70, on its asked tile's centre plus 24 on both axes.
+The two triremes fight: 506 `AMMO` blocks, 249 and 257 a side. So a naval
+chapter after this one can place hulls through the channel. What the
+channel cannot tell a later chapter is how the spot search treats *dry*
+ground asked for a hull, because every asked point here was already water.
+The lines' "about five tiles apart" is 7.2 (dx 4, dy 6), still inside the
+nine-tile reach.
+
+**The word is 621** (`GOLDEN_WORD_CHAPTER_FIVE`). The first walk parted
+at 617, on who=1's trireme turning **broadside** to its target, and item
+535 landed the rule (`docs/COMBAT.md` §49). On 621 the original launches
+that trireme's first round, whose landing scatter is two draws (8 against
+6), a frame before this crate does. The widening is
+`chapter_five_s_word_frame_is_widened_whole`.
 
 ## 10. Chapter six — the air, and the one command that issues an order
 

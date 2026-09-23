@@ -2116,6 +2116,33 @@ pub(crate) const WIDENING_CHAPTER_ONE: (i64, i64) = (605, 901);
 /// move is the whole capture (see [`WIDENING_CHAPTER_TWO`]).
 pub(crate) const GOLDEN_WORD_CHAPTER_TWO: i64 = 900;
 
+/// **Chapter five's golden word** — the water (`docs/GOLDEN.md` §9, item
+/// 535, run127). Two triremes and a fishing boat on sea region 70, the
+/// first ships in any capture on this disk.
+///
+/// **The first walk parted at 617**, the frame after who=1's trireme is
+/// born: the original spent 8 draws and this crate 6. The original's first
+/// was `Guy::set_anim+0xf2f < Guy::move+0x166`, and its trailing
+/// `Farms::inc_time+0x1de` was the value shift one draw makes. The widening
+/// named the record on block 617. Both sides hold `1/6` attacking `0/6`
+/// from the same seat, but the original's hull faces `671481856` and this
+/// crate's was still turning to `−402259968`, the true bearing. The
+/// original's is that bearing plus a quarter turn: a ship with `g` ("attacks
+/// sideways") turns **broadside**, to the nearer side
+/// (`Unit::fight@005fd4d0:698–714`, `docs/COMBAT.md` §49), so its figure
+/// arrived on 617 and `Guy::move`'s arrival arm spent the draw.
+///
+/// **Item 535 landed the broadside and the word moved 617 → 621**, +4. On
+/// 621 the original spends the landing scatter's two draws, `Ammo::init+
+/// 0xcd9` and `+0xd0b`, 8 against 6: who=1's first round is in the air on
+/// block 622, from a release point off the hull at (12445, 35807), and in
+/// this crate's a frame later from the hull's own square. That is the
+/// next item. The fisher `0/7` parts a frame under it, on its birth block
+/// 621, with two orders in the original (a `CASTORDER` first) and none
+/// here, but it spends no draw. [`WIDENING_CHAPTER_FIVE`]'s test pins
+/// both.
+pub(crate) const GOLDEN_WORD_CHAPTER_FIVE: i64 = 621;
+
 /// **How many height reads each replay may make on a corner this crate
 /// cannot pin to the original's single**, by test name — `docs/COMBAT.md`
 /// §46.3, and the `Drop` of [`crate::diff::Built`] that holds every replay
@@ -2193,6 +2220,14 @@ pub(crate) const WIDENING_GREAT_LAKES: (i64, i64) = (9_340, 10_847);
 /// to there. The map fell from twenty rows to eleven, the two residues
 /// standing since 606 and 680.
 pub(crate) const WIDENING_CHAPTER_TWO: (i64, i64) = (606, 901);
+
+/// `chapter_five_s_word_frame_is_widened_whole`'s window: **run127 whole**,
+/// its first block to one past its last. A word this close to the
+/// capture's first block leaves nothing worth trimming, and the floor is
+/// the capture's own first block for the reason [`WIDENING_CHAPTER_TWO`]'s
+/// is: it is the only floor that cannot hide a row. run127 carries
+/// 605..899 and its `!quit` block at 901.
+pub(crate) const WIDENING_CHAPTER_FIVE: (i64, i64) = (605, 901);
 
 /// `run123_s_word_frame_is_widened_whole`'s window: run123's own first
 /// and last blocks (item 520). The capture was sized to the word, 11185,
@@ -2432,5 +2467,12 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some("chapter_two_s_word_frame_is_widened_whole"),
         523,
         Some(WIDENING_CHAPTER_TWO),
+    ),
+    (
+        "GOLDEN_WORD_CHAPTER_FIVE",
+        GOLDEN_WORD_CHAPTER_FIVE,
+        Some("chapter_five_s_word_frame_is_widened_whole"),
+        535,
+        Some(WIDENING_CHAPTER_FIVE),
     ),
 ];

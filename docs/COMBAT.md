@@ -8428,3 +8428,97 @@ same-player gate.
 - ~~The five `dest_angle` rows under the word (618–652). They spend no draw
   in the window and are not examined.~~ **Closed by item 530**: they were
   `Unit::work`'s unconditional `update_action` (`docs/ORDERS.md` §22.2).
+
+## 49. A ship attacks broadside (item 535, 2026-09-22)
+
+Golden chapter five, run127, is the first capture with ships in it: two
+triremes and a fishing boat on sea region 70 (`docs/GOLDEN.md` §9). Its
+first walk parted at **617**, the frame after who=1's trireme `1/6` is
+born. The original spent 8 draws and this crate 6.
+
+### 49.1 The frame, and the record it was spent in
+
+The original's extra draw leads the frame: `Guy::set_anim+0xf2f <
+Guy::move+0x166`. Its other extra, a trailing `Farms::inc_time+0x1de`, is
+the value shift one draw causes, and this crate spends it on 618. The
+widening (`chapter_five_s_word_frame_is_widened_whole`) printed both sides
+of block 617 for the three hulls. Both hold `1/6` on an attack order
+against `0/6` from the same seat, (12408, 35832). What differs is the
+angle:
+
+| | unit angle | heading | figure angle |
+|---|---|---|---|
+| original, block 617 | `671481856` | `671481856` | `671481856` |
+| this crate, block 617 | `596523349` | `−402259968` | `596523349` |
+
+`−402259968` is the true bearing to `0/6` at (11640, 34680): dx −768,
+dy −1152, −33.7°. The original's `671481856` is that bearing plus exactly
+`0x40000000`. The hull turned side-on to its target, and it got there in
+one frame. So its figure had arrived on 617, and `Guy::move`'s arrival arm
+spent the draw. This crate's figure was turning its bow toward the
+target at 70° a frame and had not arrived.
+
+### 49.2 The rule
+
+`Unit::fight@005fd4d0:698–714`, after the bearing `param_4` is computed:
+
+- **When** the attacker's `unit_flags & 0x40` is set. That is the
+  `FLAGS` letter `g`, whose legend in `unitrules.xml` is "Unit attacks
+  sideways (most ships)". The exemption is an attacker whose own
+  `TypeIndex` is `0x185` (`PATROLBOAT`, written into `local_20` from
+  `this->ptype + 4` at `:609`) and whose target's type has `domain == 1`
+  (`ObjectTypeData +0x218`, sea).
+- **The two sides** are `param_4 − 0x40000000` and `param_4 + 0x40000000`.
+  Each side's distance from the unit's current angle (`+0x50`) is the
+  unsigned difference, folded by `~` when it is past `0x80000000`. The
+  minus side is taken only when it is **strictly** nearer.
+- **What takes the offset angle**: `set_angle` when it differs from
+  `+0x50` (`:724`), every figure's `des_angle` (`+0x64`), and the melee
+  `do_damage` calls (`uVar27`). `Object::fire_ammo` takes no angle. The
+  rocking arm (`z`, `:831`) compares the *direct* bearing against it.
+
+From run127's 120° heading, the plus side (56.3°) is 63.7° away and the
+minus side is 116.3° away, so the plus side it is. `0/6` turns the same
+way on block 635, from the other end: bearing 146.3°, plus side 56.3°,
+also `671481856`.
+
+`Sim::attack_angle` in `crates/sim/src/fight.rs` is the rule. `uflags::SIDEWAYS` is the
+bit.
+
+### 49.3 What moved
+
+The word went **617 → 621**. On block 617 every `1/6` angle row closed,
+four of them. Nothing under the word parts now except the standing
+families and the fisher's birth-block orders (§49.5). The widening pins
+that shape, and it was made to fail once with the rule reverted: the four
+rows came back on 617 and 618.
+
+On 621 the original spends `Ammo::init+0xcd9` and `+0xd0b`, the landing
+scatter (§9.1). who=1's first round is in the original's air on block
+622, launched from (12445, 35807), a point off the hull. This crate
+launches it one frame later from the hull's own square, (12408, 35832),
+and it lands at (11560, 34771) against the original's (11642, 34749).
+That is the next item's frame. Its draw delta is those two draws, 8
+against 6.
+
+### 49.4 Coverage
+
+- **Diff-backed**: the plus side, on `1/6` block 617 by run127, through
+  the widening and the golden word.
+- **Reading only**: the minus side's strict comparison, and the
+  PATROLBOAT exemption. The unit test
+  `a_sideways_ship_attacks_broadside_on_the_nearer_side` covers both
+  from this reading. `0/6`'s turn on 635 fits the rule, but this crate's
+  `0/6` never gets there in the window, so it is not diff-backed yet.
+
+### 49.5 What is not established
+
+- The fisher `0/7`. On its birth block, 621, the original gives it two
+  orders, a `CASTORDER` first (order index 14, `uid 65535`), and walks it
+  about 130 units from 622. This crate gives it none. It spends no draw
+  under the word. Which spell the Fishermen cast at birth is not read.
+- The trireme's launch. The release point off the hull, the frame, and
+  `AMMO_PER_ATT 3`, a three-round volley whose second round is on block
+  626.
+- `Object::fire_ammo`'s near-face aim at a building still reads the
+  direct bearing here. No capture has a ship shooting a building.

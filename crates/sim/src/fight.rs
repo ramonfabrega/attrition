@@ -694,9 +694,11 @@ impl Sim {
     fn fight(&mut self, i: usize, target: Obj, frame: i64) {
         let me = Obj::Unit(i);
         let p = self.profile(me);
-        // Facing: toward the target.
+        // Facing: toward the target — or, for a ship that attacks
+        // sideways, a quarter turn off it (`docs/COMBAT.md` §49).
         let (from, to) = (self.units[i].pos, self.pos_of(target));
-        let angle = find_angle(to.x - from.x, to.y - from.y);
+        let direct = find_angle(to.x - from.x, to.y - from.y);
+        let angle = self.attack_angle(i, target, direct);
         // `Unit::fight@005fd4d0:724`: `Unit::set_angle(angle, …, 0)` when
         // the angle is new, and that is the setter with the turn-around
         // test in it — a group's leader swinging round past 90° toggles
@@ -712,7 +714,7 @@ impl Sim {
         for g in &mut self.units[i].guys {
             g.aim = Some(target);
         }
-        self.swing_anim(i, angle);
+        self.swing_anim(i, direct);
         // `Unit::fight@005fd4d0`'s `LAB_005feec6`, immediately after
         // `set_anim` and before the damage: the strike makes this unit
         // visible to whoever it just hit (`docs/VISION.md` §7).
@@ -733,7 +735,7 @@ impl Sim {
             // every piece it has not measured — and `Object::fire_ammo`'s
             // unit arm starts it 100 above the figure (§46.1).
             let sz = self.ground_z(from) + 100;
-            self.fire_ammo(me, target, angle, frame, from, sz);
+            self.fire_ammo(me, target, direct, frame, from, sz);
         }
         // Reload.
         let unit = &self.units[i];
@@ -747,6 +749,45 @@ impl Sim {
         };
         let r = combat::recharge(p.recharge, out, p.is(role::BOMBARD));
         self.units[i].combat.recharging = r as u8;
+    }
+
+    /// **The angle a unit attacks on** — `Unit::fight@005fd4d0:698–714`
+    /// (`docs/COMBAT.md` §49).
+    ///
+    /// The bearing to the target, except for a type carrying `g`
+    /// (`unit_flags & 0x40`, "Unit attacks sideways (most ships)"): that
+    /// one attacks **broadside**, on the bearing plus or minus a quarter
+    /// turn, whichever is nearer the heading it already has. The nearness
+    /// is the listing's own: the unsigned difference folded by `~` past
+    /// half a turn, and the minus side taken only when it is strictly
+    /// nearer. The one exemption is a `PATROLBOAT` (`0x185`, the attacker's
+    /// own `TypeIndex`) whose target is at sea (`domain == 1`).
+    ///
+    /// SEAM: `Object::fire_ammo` takes no angle, so the shot is still
+    /// handed the direct bearing here, which only the near-face aim at a
+    /// building reads. No capture has a ship shooting a building.
+    pub(crate) fn attack_angle(&self, i: usize, target: Obj, direct: Angle) -> Angle {
+        let Some(ty) = self.units[i].ty else {
+            return direct;
+        };
+        let t = &self.unit_types[ty];
+        if !t.cols.flag(uflags::SIDEWAYS) {
+            return direct;
+        }
+        /// `TypeIndex::PATROLBOAT`.
+        const PATROLBOAT: i32 = 0x185;
+        if t.type_index == PATROLBOAT && matches!(self.profile(target).domain, Domain::Sea) {
+            return direct;
+        }
+        const QUARTER: i32 = 0x4000_0000;
+        let heading = self.units[i].movement.heading.0;
+        let off = |a: i32| {
+            let d = heading.wrapping_sub(a) as u32;
+            if d > 0x8000_0000 { !d } else { d }
+        };
+        let minus = direct.0.wrapping_sub(QUARTER);
+        let plus = direct.0.wrapping_add(QUARTER);
+        Angle(if off(minus) < off(plus) { minus } else { plus })
     }
 
     /// **The swing's animation** — `Unit::fight@005fd4d0`'s tail, the block
@@ -774,12 +815,14 @@ impl Sim {
     ///
     /// SEAM: the middle two are not modelled — three elephant types and
     /// one target type — and neither draws, so the cost is which slot
-    /// plays rather than a word. SEAM: the `z` arm's comparison is
-    /// against `Unit::fight`'s own attack angle, which the **sideways**
-    /// flag (`g`, `unit_flags & 0x40`, "most ships") offsets by a quarter
-    /// turn either way; this crate does not model that offset, so the
-    /// difference is always zero here and a ship always rocks the one
-    /// way.
+    /// plays rather than a word. The `z` arm compares the direct bearing,
+    /// `angle` here, against `Unit::fight`'s own attack angle, which is the
+    /// heading [`Sim::attack_angle`] has just set. That is the bearing, or
+    /// for a sideways (`g`) ship a quarter turn off it, so since item 535
+    /// a ship rocks to the side it turned to (`docs/COMBAT.md` §49). The
+    /// second arm's `0x185` is the **attacker's** own `TypeIndex`, not the
+    /// target's: `local_20` is written from `this->ptype + 4` at
+    /// `fight:609` and not again before `:805`.
     fn swing_anim(&mut self, i: usize, angle: Angle) {
         let rocks = self.units[i]
             .ty
@@ -2555,6 +2598,57 @@ mod tests {
         u.on_map = true;
         u.kind = sim.unit_types[ty].kind;
         sim.add_unit(u)
+    }
+
+    /// **A ship that attacks sideways turns broadside, to the nearer side**
+    /// (`Unit::fight@005fd4d0:698–714`, `docs/COMBAT.md` §49). run127's
+    /// own numbers: who=1's trireme at (12408, 35832), heading `0x55555555`
+    /// (120°), attacking who=0's at (11640, 34680). The bearing is
+    /// `−402259968` (−33.7°); the plus side, `671481856`, is 63.7° from the
+    /// heading and the minus side 116.3°, so the plus side it is, which is
+    /// what the dump's `angle` holds on block 617. The same geometry from a
+    /// heading on the other side takes the minus side, a type without `g`
+    /// takes the bearing, and a Patrol Boat shooting at a ship does too.
+    ///
+    /// Made to fail first by returning the bearing: the golden widening's
+    /// `1/6` angle rows on 617 are that failure.
+    #[test]
+    fn a_sideways_ship_attacks_broadside_on_the_nearer_side() {
+        let (mut sim, ty) = at_war();
+        let ship = |sim: &mut Sim, flags: u32, type_index: i32| {
+            let mut t = sim.unit_types[ty].clone();
+            t.cols.unit_flags = flags;
+            t.type_index = type_index;
+            t.combat.domain = Domain::Sea;
+            sim.add_unit_type(t)
+        };
+        let trireme = ship(&mut sim, uflags::SIDEWAYS, 0x154);
+        let plain = ship(&mut sim, 0, 0x154);
+        let patrol = ship(&mut sim, uflags::SIDEWAYS, 0x185);
+        let me = put(&mut sim, 1, trireme, Pos::new(12408, 35832));
+        let foe = put(&mut sim, 0, trireme, Pos::new(11640, 34680));
+        let direct = find_angle(11640 - 12408, 34680 - 35832);
+        assert_eq!(direct, Angle(-402_259_968), "run127's bearing");
+        sim.units[me].movement.heading = Angle(0x5555_5555);
+        assert_eq!(
+            sim.attack_angle(me, Obj::Unit(foe), direct),
+            Angle(671_481_856),
+            "the plus side, as the dump's block 617 holds"
+        );
+        sim.units[me].movement.heading = Angle(direct.0.wrapping_sub(0x3000_0000));
+        assert_eq!(
+            sim.attack_angle(me, Obj::Unit(foe), direct),
+            Angle(direct.0.wrapping_sub(0x4000_0000)),
+            "the minus side when it is the nearer"
+        );
+        sim.units[me].ty = Some(plain);
+        assert_eq!(sim.attack_angle(me, Obj::Unit(foe), direct), direct);
+        sim.units[me].ty = Some(patrol);
+        assert_eq!(
+            sim.attack_angle(me, Obj::Unit(foe), direct),
+            direct,
+            "a Patrol Boat does not broadside a ship"
+        );
     }
 
     /// `ObjectData::valid_target_const@006472c0`'s first line, `7 < who`,
