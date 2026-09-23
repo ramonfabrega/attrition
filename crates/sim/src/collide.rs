@@ -17,8 +17,26 @@
 
 use crate::attrition::Domain;
 use crate::combat::Obj;
+use crate::movement::{Angle, cos_component, find_angle, sin_component};
 use crate::orders::{Body, MoveOrder, Order, PathData, index, path_flag};
-use crate::world::{Cell, Pos, UNITS_PER_CELL, tile};
+use crate::world::{Cell, Pos, UNITS_PER_CELL, tile, vector_dist};
+
+/// The distance `Unit::detect_boat_collision` measures between two circle
+/// centres (`5fabf3`–`5fac63`): the longer leg plus the shorter one's
+/// square over twice the longer, in unsigned arithmetic — and, once the
+/// shorter leg reaches 60,000, their mean with the longer counted twice.
+/// Zero when the longer leg is.
+fn boat_dist(dx: i32, dy: i32) -> i32 {
+    let (a, b) = (dx.unsigned_abs(), dy.unsigned_abs());
+    let (long, short) = if a > b { (a, b) } else { (b, a) };
+    if long == 0 {
+        0
+    } else if short >= 60_000 {
+        ((short + 2 * long) >> 1) as i32
+    } else {
+        (short * short / (2 * long) + long) as i32
+    }
+}
 use crate::{Player, Sim};
 
 /// What `CollCheck::fill_slots@006820e0` leaves a probe able to read
@@ -330,6 +348,221 @@ impl Sim {
     /// must not paint the occupancy grid a citizen walks on.
     fn is_air(&self, u: usize) -> bool {
         self.units[u].kind.domain == crate::attrition::Domain::Air
+    }
+
+    /// Whether `detect_unit_collision@00617060` takes its **second arm**
+    /// for this unit (§4.1 gate 3, §13). The original's test is sea-domain
+    /// (`ptype +0x218 == 1`), or a type that answers
+    /// `ObjectTypeData::is_siege` (`+0x10c` on the type's table,
+    /// `unit_flags & 0x20000`), or a unit that answers `is_hero` (`+0xc4`)
+    /// or `is_supply` (`+0xcc`) — `617094`–`6170e9` on the listing.
+    ///
+    /// The arm is taken only with `top_only` and `nocoll` both zero. Then
+    /// a `quick` call, or one that does not ask for `boats`, returns 0 at
+    /// `61782b` — a bare `xor eax, eax; ret`, **past** the exit
+    /// bookkeeping, so it clears nothing and ages nothing — and one that
+    /// asks for `boats` returns 0 there when
+    /// [`Self::detect_boat_collision`] answers non-zero, and runs the land
+    /// scan when it answers 0.
+    ///
+    /// SEAM: **only the sea half is taken.** A siege engine, a hero or a
+    /// supply wagon keeps the land scan it always had here. For them the
+    /// same arm searches *land* units of every player, gaia included, and
+    /// shoves them aside; no diff has reached that yet, and Great Lakes'
+    /// armies carry all three (§13.5).
+    pub(crate) fn takes_boat_arm(&self, u: usize) -> bool {
+        self.units[u].kind.domain == crate::attrition::Domain::Sea
+    }
+
+    /// `Unit::detect_boat_collision@005fa8b0` for a sea unit (§13.3): does
+    /// the unit about to stand on `at` push its way through? `true` is the
+    /// original's 1, "handled", and [`Self::detect_unit_collision`]'s
+    /// second arm then returns no collision; `false` hands the step to the
+    /// land scan.
+    ///
+    /// The profile is `push_circles` circles of radius
+    /// `push_size / push_circles`, strung along guy 0's facing and centred
+    /// on the point (`project` with the facing and the radius, `5fa992`).
+    /// The candidates are `Objects::find_units(at, all players, range
+    /// push_size, 0x200, FILTER_NOT_ME)`; for each one of the same domain
+    /// and a real player, not a group-mate when `mates` is asked for (the
+    /// arm passes 1) unless the action is index 10, and not the unit this
+    /// one already collided with this frame:
+    ///
+    /// - the overlap is `(r_other − d + r_mine) / 2`, `d` the nearest pair
+    ///   of circle centres by the listing's own distance (`5fabf3`); none
+    ///   is no push;
+    /// - an attacker in the way of a transport, or a unit of a player who
+    ///   is not a mutual ally, answers 0 outright;
+    /// - a moving candidate within 45° of the pusher's facing answers 0;
+    ///   one standing still is pushed at least 45° off it;
+    /// - the push is `min(overlap, 48)` along that bearing, taken only if
+    ///   `invalid_loc` allows the new tile, and the pushed unit's
+    ///   `collide_frame` is stamped; with `mates` and one circle it also
+    ///   records its pusher, and an idle one is turned to the bearing.
+    pub(crate) fn detect_boat_collision(&mut self, u: usize, at: Pos, mates: bool) -> bool {
+        let who = self.units[u].owner;
+        if who >= 8 {
+            return true;
+        }
+        let domain = self.units[u].kind.domain;
+        let prof = self.profile(Obj::Unit(u));
+        let (size, circles) = (prof.push_size, prof.push_circles.max(1));
+        if size == 0 {
+            return true;
+        }
+        let action = self.action_of(u).map(|a| self.units[u].orders[a].index());
+        let transport = self.units[u].ty.is_some_and(|t| {
+            self.unit_types[t].cols.unit_flags & crate::ai_load::uflags::TRANSPORT != 0
+        });
+        let found = self.find_push_candidates(u, at, size);
+        if found.is_empty() {
+            return true;
+        }
+        let r_mine = size / circles;
+        let facing = self.units[u].movement.facing;
+        let line = |p: Pos, a: Angle, r: i32, n: i32| -> (Pos, (i32, i32)) {
+            if n > 1 {
+                let (dx, dy) = (sin_component(a, r), -cos_component(a, r));
+                (
+                    Pos::new(p.x - (n - 1) * dx, p.y - (n - 1) * dy),
+                    (2 * dx, 2 * dy),
+                )
+            } else {
+                (p, (0, 0))
+            }
+        };
+        let (mine0, mine_step) = line(at, facing, r_mine, circles);
+        let my_group = self.pool_group_of(u);
+        for o in found {
+            let other = &self.units[o];
+            if other.owner >= 8 || other.kind.domain != domain {
+                continue;
+            }
+            let mate = other.owner == who && self.pool_group_of(o) == my_group && my_group != -1;
+            if mate && mates && action != Some(10) {
+                continue;
+            }
+            if self.units[u].collide_o == other.index
+                && self.units[u].collide_who == other.owner as i8
+                && self.units[u].collide_frame == self.frame
+            {
+                continue;
+            }
+            let op = self.profile(Obj::Unit(o));
+            let (osize, ocircles) = (op.push_size, op.push_circles.max(1));
+            if osize == 0 {
+                continue;
+            }
+            let r_other = osize / ocircles;
+            let (other0, other_step) = line(
+                self.units[o].pos,
+                self.units[o].movement.facing,
+                r_other,
+                ocircles,
+            );
+            let mut nearest = 0x0fff_ffff;
+            for i in 0..circles {
+                let m = Pos::new(mine0.x + i * mine_step.0, mine0.y + i * mine_step.1);
+                for j in 0..ocircles {
+                    let t = Pos::new(other0.x + j * other_step.0, other0.y + j * other_step.1);
+                    let d = boat_dist(m.x - t.x, m.y - t.y);
+                    if (i == 0 && j == 0) || d < nearest {
+                        nearest = d;
+                    }
+                }
+            }
+            let overlap = (r_other - nearest + r_mine) / 2;
+            if overlap <= 0 {
+                continue;
+            }
+            if transport && self.profile(Obj::Unit(o)).attack != 0 {
+                return false;
+            }
+            if !self.is_ally(who, self.units[o].owner) {
+                return false;
+            }
+            let push = overlap.min(0x30);
+            let there = self.units[o].pos;
+            let mut bearing = find_angle(there.x - at.x, there.y - at.y);
+            let rel = (bearing.0 as u32).wrapping_sub(facing.0 as u32);
+            if !self.is_moving(o) {
+                if rel < 0x2000_0000 {
+                    bearing = Angle(facing.0.wrapping_add(0x2000_0000));
+                } else if rel > 0xe000_0000 {
+                    bearing = Angle(facing.0.wrapping_sub(0x2000_0000));
+                }
+            } else if rel.wrapping_add(0xe000_0000) > 0xc000_0000 {
+                return false;
+            }
+            let to = Pos::new(
+                there.x + sin_component(bearing, push),
+                there.y - cos_component(bearing, push),
+            );
+            if self.invalid_loc(o, to.tile(), false, false, false, false, false) != 0 {
+                continue;
+            }
+            self.set_new_location(o, to, false);
+            if mates && ocircles == 1 {
+                self.units[o].collide_o = self.units[u].index;
+                self.units[o].collide_who = who as i8;
+                if self.units[o].orders.is_empty() {
+                    // SEAM: `Guy::turn_angles` and `Guy::do_turn` on the
+                    // pushed unit's guy 0 (`5faec8`, `5faedb`) are not
+                    // modelled; the unit's own angle is.
+                    self.unit_set_angle(o, bearing);
+                }
+            }
+            self.units[o].collide_frame = self.frame;
+        }
+        true
+    }
+
+    /// `Objects::find_units(at, SEARCH_ALL, −1, range, 0x200,
+    /// FILTER_NOT_ME)` as `detect_boat_collision` asks it (`5fa935`–
+    /// `5fa953`): the circle walk over the object chains while
+    /// `circle_radius[ring]` is within the live unit count, the object
+    /// arrays with `vector_dist <= range` past it, and the `0x200` region
+    /// gate either way (`docs/ORDERS.md` §5.10). The list path's
+    /// tile-indexed region lookup is not reproduced, as in
+    /// `build_crowd`.
+    fn find_push_candidates(&self, u: usize, at: Pos, range: i32) -> Vec<usize> {
+        let circle = crate::ai_place::circle();
+        let ring = ((range.max(0) + 0x2ff) / 0x300).min(0x40) as usize;
+        let live = self.units.iter().filter(|x| x.alive()).count();
+        let region = self.world.region_of(at.cell());
+        let mut out = Vec::new();
+        if circle.radius[ring] <= live {
+            let c0 = at.cell();
+            for i in 0..circle.radius[ring] {
+                let c = crate::world::Cell::new(c0.x + circle.x[i], c0.y + circle.y[i]);
+                if !self.world.contains(c) || self.world.region_of(c) != region {
+                    continue;
+                }
+                let slot = (c.y as usize) * (self.world.width() as usize) + (c.x as usize);
+                let mut next = self.chain_heads[slot];
+                while let Some(o) = next {
+                    next = self.units[o].down;
+                    if o != u && self.units[o].alive() {
+                        out.push(o);
+                    }
+                }
+            }
+        } else {
+            for o in 0..self.units.len() {
+                let p = self.units[o].pos;
+                if o == u
+                    || !self.units[o].alive()
+                    || !self.units[o].on_map
+                    || self.world.region_of(p.cell()) != region
+                    || vector_dist(p.x - at.x, p.y - at.y) > range
+                {
+                    continue;
+                }
+                out.push(o);
+            }
+        }
+        out
     }
 
     /// The region gate (`docs/COLLISION.md` §2): a cell is written only
@@ -888,6 +1121,12 @@ impl Sim {
     /// `resolve_unit_collision`'s.
     pub(crate) fn detect_quick(&self, u: usize, at: Pos, nocoll: bool) -> bool {
         if !self.detect_gates(u) {
+            return false;
+        }
+        // The second arm's `quick != 0` return (§13.2): a ship never
+        // collides on a quick probe unless the caller passes `nocoll` —
+        // `valid_ucoord`'s, which skips the arm.
+        if !nocoll && self.takes_boat_arm(u) {
             return false;
         }
         let c = ucell(at);
@@ -2838,6 +3077,115 @@ mod tests {
     /// `1/37` waited (`docs/COLLISION.md` §12). **Made to fail on
     /// purpose**: with `name_collider` setting the bit on any soft
     /// candidate, the order that lists the group-mate first raises it.
+    /// §13's distance, from the listing (`5fabf3`–`5fac63`): the longer
+    /// leg plus the shorter's square over twice the longer, and past
+    /// 60,000 on the shorter leg their mean with the longer counted twice.
+    #[test]
+    fn a_boat_measures_with_the_listing_s_distance() {
+        assert_eq!(boat_dist(0, 0), 0);
+        assert_eq!(boat_dist(3, -4), 4 + 9 / 8);
+        assert_eq!(boat_dist(-100, 0), 100);
+        assert_eq!(boat_dist(0, 50), 50);
+        assert_eq!(boat_dist(100_000, 70_000), (70_000 + 200_000) / 2);
+    }
+
+    /// Two ships on open water, `push_size` 192 in two circles, the second
+    /// standing idle across the first one's bow.
+    fn fleet(a: Pos, b: Pos) -> (Sim, usize, usize) {
+        let mut world = World::new(40, 40);
+        world.fill_region(Terrain::Sea, Cell::new(0, 0), Cell::new(39, 39));
+        for tx in 0..40 {
+            for ty in 0..40 {
+                world.set_tile_field(
+                    Pos::new(tx, ty),
+                    crate::world::tile::SURFACE,
+                    crate::world::tile::SURFACE_OCEAN,
+                );
+            }
+        }
+        let mut sim = Sim::new(Tuning::RON, world, 2);
+        let ty = sim.add_unit_type(UnitType {
+            hits: 40,
+            moves: 42,
+            combat: crate::combat::Profile {
+                block_radius: 192,
+                big_radius: 192,
+                uber_size: 1,
+                domain: Domain::Sea,
+                push_size: 192,
+                push_circles: 2,
+                ..crate::combat::Profile::default()
+            },
+            ..UnitType::default()
+        });
+        let make = |sim: &mut Sim, o: i16, at: Pos| {
+            let mut u = Unit::new(0, o, at, 40);
+            u.ty = Some(ty);
+            u.kind.domain = Domain::Sea;
+            let i = sim.add_unit(u);
+            sim.units[i].movement.facing = crate::movement::Angle::EAST;
+            i
+        };
+        let x = make(&mut sim, 0, a);
+        let y = make(&mut sim, 1, b);
+        (sim, x, y)
+    }
+
+    /// §13.2: **a ship takes `detect_unit_collision`'s second arm.** A
+    /// quick probe without `nocoll` answers no collision before any scan,
+    /// where a land unit on the same two points collides; `nocoll` —
+    /// `valid_ucoord`'s — skips the arm and scans. Made to fail on
+    /// purpose by answering `false` from `takes_boat_arm`.
+    #[test]
+    fn a_ship_s_quick_probe_never_scans() {
+        let a = Pos::new(10 * 0x30 + 0x18, 10 * 0x30 + 0x18);
+        let b = Pos::new(12 * 0x30 + 0x18, 10 * 0x30 + 0x18);
+        let (sim, x, _) = pair(a, b);
+        assert!(sim.detect_quick(x, b, false), "a land unit collides");
+        let (sim, x, _) = fleet(a, b);
+        assert!(sim.takes_boat_arm(x));
+        assert!(!sim.detect_quick(x, b, false), "a ship does not scan");
+        assert!(sim.detect_quick(x, b, true), "nocoll skips the arm");
+    }
+
+    /// §13.3: `detect_boat_collision` **passes a group-mate and pushes an
+    /// idle stranger** of its own side, at least 45° off its facing and by
+    /// at most 48; a foreign ship in the way answers 0 and leaves the step
+    /// to the land scan. Made to fail on purpose by dropping the group-mate
+    /// test, which pushes the mate too.
+    #[test]
+    fn a_ship_pushes_an_idle_stranger_and_passes_its_group_mate() {
+        let a = Pos::new(20 * 0x30 + 0x18, 20 * 0x30 + 0x18);
+        let b = Pos::new(a.x + 150, a.y);
+        // The group-mate: nothing moves, and the push is handled.
+        let (mut sim, x, y) = fleet(a, b);
+        let slot = sim.init_army(0, None);
+        sim.army_add_unit(0, slot, x);
+        sim.army_add_unit(0, slot, y);
+        assert!(
+            sim.units[x].group_ptr.is_some() && sim.units[x].group_ptr == sim.units[y].group_ptr
+        );
+        assert!(sim.detect_boat_collision(x, a, true));
+        assert_eq!(sim.units[y].pos, b, "a group-mate is not pushed");
+        // The stranger: pushed, and stamped.
+        let (mut sim, x, y) = fleet(a, b);
+        sim.frame = 7;
+        assert!(sim.detect_boat_collision(x, a, true));
+        let moved = sim.units[y].pos;
+        assert_ne!(moved, b, "the stranger is pushed");
+        let (dx, dy) = (moved.x - b.x, moved.y - b.y);
+        assert!(dx * dx + dy * dy <= 49 * 49, "by at most 48: ({dx}, {dy})");
+        assert_eq!(sim.units[y].collide_frame, 7);
+        // Due ahead and standing, it goes at least 45° off the bow: south
+        // of east here, since the bearing is exactly the facing.
+        assert!(moved.y > b.y, "turned off the bow: {moved:?}");
+        // A foreign ship is not pushed and hands the step to the scan.
+        let (mut sim, x, y) = fleet(a, b);
+        sim.units[y].owner = 1;
+        assert!(!sim.detect_boat_collision(x, a, true));
+        assert_eq!(sim.units[y].pos, b);
+    }
+
     #[test]
     fn a_hard_hit_leaves_no_half_step_whatever_soft_it_passed() {
         let a = Pos::new(30 * 0x30 + 0x18, 30 * 0x30 + 0x18);

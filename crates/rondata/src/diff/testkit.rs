@@ -621,7 +621,24 @@ fn indexed_siblings_preserve_every_initial_field_except_audit_bodies() {
 /// first step on 10325 and arrives on 10398, still moving here and idle
 /// there; ours 4 draws against 5, parting at index 0, theirs
 /// `Guy::set_anim+0x97a < Unit::do_idle+0x7d`. `docs/ORDERS.md` §25.
-pub(crate) const LONG_WORD_EAST_INDIES: i64 = 10_398;
+///
+/// **10398 → 10582 on item 588, and the frame was the Bark's first step,
+/// 74 frames under it.** `1/34` stepped 20 on sim-frame 10324 where the
+/// original stepped 41, and stayed 21 units behind to the navy's muster.
+/// The one-shot half step came from `do_move`'s waypoint probe, which
+/// found Trireme `1/32` soft beside the muster; the original's
+/// `detect_unit_collision` has a second arm for a ship that never scans
+/// on a probe that does not ask for `boats`, and on `move_step`'s probe,
+/// which does, pushes its way through with `detect_boat_collision` — a
+/// group-mate is skipped, so the navy never blocks itself. With the sea
+/// half of the arm, run99's and run143's widenings pin the move's value
+/// diff on the old word's blocks, 10397..10399 (empty), and run143's the
+/// new word's on 10581..10583: player 1's `make_stuff` on 10582 buys
+/// differently, the make list parting on 10581 (a Citizen, type 50, at
+/// `val 1714` in the original's slot 3 and 5, where this crate offers a
+/// Scholar), under a peasant census that parts on 10576
+/// (`free_peasants` 2 against 1). `docs/COLLISION.md` §13.
+pub(crate) const LONG_WORD_EAST_INDIES: i64 = 10_582;
 
 /// The frame East Indies' **first scholar** — `1/22` — is seated inside
 /// its university, one of the fourteen `Unit::go_inside+0x280` draws in
@@ -2616,9 +2633,9 @@ pub(crate) const EAST_INDIES_SCHOLAR_BLOCK: i64 = 9_712;
 /// holds the make lists on it and the coverage driver reads run139 around
 /// it.
 pub(crate) const EAST_INDIES_MAKE_BLOCK: i64 = 9_984;
-/// The current word's block on run99: 10398's frame writes block 10399,
-/// run99's last. The widening and the coverage driver read run99 up to
-/// it.
+/// The word 10398's block on run99: its frame writes block 10399, run99's
+/// last. Item 588 moved the word past run99; its widening keeps the move's
+/// value diff on this block.
 pub(crate) const EAST_INDIES_WORD_BLOCK: i64 = 10_399;
 /// `run139_s_word_frame_is_widened_whole`'s window (item 576): run139
 /// whole, 9960..9999, the one East Indies capture that prints the leader's
@@ -2632,8 +2649,9 @@ pub(crate) const WIDENING_EAST_INDIES_MAKE: (i64, i64) = (9_960, 9_999);
 /// the capture's first block for the reason [`WIDENING_CHAPTER_TWO`]'s is.
 pub(crate) const WIDENING_EAST_INDIES_BARK: (i64, i64) = (10_380, 10_739);
 /// The block run143 was taken to widen: the word 10398's frame writes
-/// block 10399, where the Bark `1/34` idles in the original and is still
-/// moving here. The coverage driver reads run143 around it.
+/// block 10399, where the Bark `1/34` idles in the original and was still
+/// moving here. Item 588 moved the word past it; the coverage driver reads
+/// run143 around it.
 pub(crate) const EAST_INDIES_BARK_BLOCK: i64 = 10_399;
 /// One pinned word's row: `(constant, word, widening test, item, window)`.
 pub(crate) type Widening = (
@@ -2682,7 +2700,9 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // sibling that straddles the word's block — every record, every unit,
     // both leaders, and the one-sided animation changes, on 360 blocks
     // twenty of which run99 shares. run99's test keeps the moves' value
-    // diffs under it.
+    // diffs under it. The same item moved the word to **10582**, inside
+    // run143's window: the test pins the move's value diff on 10399
+    // (empty) and the new word's blocks, 10581..10583.
     (
         "LONG_WORD_EAST_INDIES",
         LONG_WORD_EAST_INDIES,

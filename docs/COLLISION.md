@@ -276,9 +276,13 @@ the path top), `resolve_unit_collision` (`quick 1`, four times) and
 1. `domain == 2` (air) → no collision, ever.
 2. `top_only != 0` → the test runs only when the path top's `flags & 8`
    (`DETOUR`) is **clear**; a detour waypoint suppresses collision outright.
-3. Otherwise, when `boats` is asked for and the unit is sea-domain, a hero,
-   a supply unit, or its type answers vfunc `+0x10c`: the test is
-   `detect_boat_collision` instead, and a clear answer returns 0.
+3. Otherwise, with `top_only` and `nocoll` both zero, a unit that is
+   sea-domain, a hero, a supply unit, or whose type answers `+0x10c`
+   (`ObjectTypeData::is_siege`) takes a second arm: `quick`, or no
+   `boats`, returns 0; with `boats`, a non-zero
+   `detect_boat_collision` returns 0 and a zero one falls through to the
+   scan. **Every one of those returns skips the bookkeeping below**:
+   they jump to `61782b`, a bare `xor eax, eax; ret` (§13).
 4. `path.length != 0` and the path top has `flags & 8` → return without
    testing (the same `DETOUR` suppression from the other direction).
 5. `UnitData::safe != 0` → no test. `safe` is the counter
@@ -1008,7 +1012,8 @@ takes it as an argument, halves the step on the arm that owes less than
 Archers of run76 crowd each other on the frames after the group order and
 pay for it exactly there — Great Lakes 6848 → 6862.
 
-Not modelled, each listed in §9: `detect_boat_collision` (no ships); step 1
+Not modelled, each listed in §9: ~~`detect_boat_collision` (no ships)~~
+its sea half is modelled (§13); step 1
 (`+0x2b4 & 0x2000`) and step 3 (the enemy ladder); the
 `TRADE_ROUTE`, `0xc` and group arms of §4.3; §5.2's own group arm and its
 general `find_unit_with_radius` path;
@@ -2721,3 +2726,162 @@ word itself is `run53_s_24000_frames_put_the_ceiling_where_run33_did`.
 `collide::tests::a_hard_hit_leaves_no_half_step_whatever_soft_it_passed`.
 With `name_collider` setting the bit on any soft candidate, it fails on
 the chain order that lists the group-mate first. That was run.
+
+## 13. A ship never scans on the waypoint probe, and pushes its way through on the step — East Indies 10398 → 10582 (item 588, 2026-09-23)
+
+East Indies' long word was **10398**. Ours spent 4 draws against the
+original's 5, parting at index 0, where the original spends
+`Guy::set_anim+0x97a < Unit::do_idle+0x7d`. The Bark `1/34` was trained
+on 10323 and walked to the navy a step behind the original's from its
+first step on 10325. It arrived on 10398 still moving here and idle
+there. No mechanism was named. The walk back is in the item's journal.
+The capture is run143 (`docs/RUNS.md`).
+
+### 13.1 The frame
+
+run99 alone places it on the Bark's **first step**, sim-frame 10324. The
+original steps `last_speed` **41** there and this crate steps **20**, on
+the same facing (908263424) toward the same first leg's end, (44568,
+40824). After that both step 40 a frame, and the 21-unit gap stays to
+the muster. A scratch probe put `half_step` true on entry to `move_step`,
+raised the same frame by `do_move`'s **waypoint probe**. That probe ran
+before the path existed, so its point was the order's own point, (45528,
+42360), and its scan found Trireme `1/32` soft. `1/32` stands at its birth
+point (45192, 41880), in the navy with the Bark, and its 336-unit block
+reaches the muster's cells. The original's record on 10325 shows no half
+step spent.
+
+### 13.2 `detect_unit_collision`'s second arm
+
+From the listing, `617070`–`617113`, and every caller's pushes:
+
+- Air (`domain == 2`) is its own arm, `61707e`.
+- With `top_only` (the seventh argument) zero, a unit takes the second
+  arm when it is sea-domain, or its type answers `+0x10c`, or it answers
+  `is_hero` (`+0xc4`, by default `ptype +0x2b8 & 0x20`), or it answers
+  `is_supply` (`+0xcc`, by default `& 0x40`). The type record names
+  `ObjectTypeData`'s slot `+0x10c` **`is_siege`**, and
+  `UnitTypeData::is_siege@00470460` is `unit_flags & 0x20000`.
+- In the arm, with `nocoll` (the sixth argument) zero, it returns at
+  `61782b`, a bare `xor eax, eax; ret 0x1c`, in three cases: when
+  `quick` is set; when `boats` is not; and when `boats` is set and
+  `detect_boat_collision(x, y, 1)` answers non-zero. Otherwise it falls
+  through to the scan. None of these returns clears `collide_o`, ages
+  `collide` or clears the wait bit.
+
+So the callers, for a unit that takes the arm:
+
+| caller | `(quick, boats, _, nocoll, top_only)` | the arm |
+| --- | --- | --- |
+| `do_move`'s waypoint probe, `5f86f9`–`5f8707` | `(0, 0, 0, 0, 0)` | **returns 0, never scans** |
+| `move_step`'s probe (both arms, one call here) | `(0, 1, 0, 0, 0)` | `detect_boat_collision` |
+| `move_step`'s second call, `resolve`'s four, `find_merchant_spot`, `Animal::do_idle` | `(1, 1, 0, 0, 0)` | **returns 0** |
+| `do_move`'s pending-search probe | `(1, 1, 0, 0, 1)` | skipped (`top_only`) |
+| `PathFinder::valid_ucoord` | `(1, 1, ·, 1, 0)` | skipped (`nocoll`) |
+
+### 13.3 `Unit::detect_boat_collision@005fa8b0`
+
+Listing `5fa8b0`–`5faf24`. It returns 1, "handled", except where noted.
+
+- A pusher of player 8 or above, or one with `push_size` 0, returns 1 at
+  once.
+- **The profile.** `push_size` (`UnitTypeData +0x2f8`) and `push_circles`
+  (`+0x2fc`), by the type record. `UnitType::init@0061ab50:664`–`691`
+  stores the circles clamped to `[1, 100]`, and the size clamped the same
+  way but **replaced by `BLOCK_RADIUS` when there is one circle**, times
+  48. All 364 types agree with run3's start dump
+  (`typesdump::compare`). The unit is `push_circles` circles of radius
+  `push_size / push_circles` along guy 0's facing, centred on the point.
+  The spacing is `project(facing, r)`, with the angle in `ecx` and the
+  length in `edx` (`5fa992`); the circles sit `2r` apart, starting
+  `(n − 1)` spacings back.
+- **The candidates.** `Objects::find_units(x, y, 0, −1, push_size, 0x200,
+  FILTER_NOT_ME, o, who, …)` (`5fa935`–`5fa953`). A candidate must be of
+  the pusher's domain and, for a non-land pusher, of a player below 8. It
+  must not be a group-mate (same player, same `group`, not −1) when the
+  third argument is set, unless the pusher's action is index 10. It must
+  not be the unit the pusher already collided with this frame
+  (`collide_o`/`collide_who`/`collide_frame`), and its own `push_size`
+  must be non-zero.
+- **The overlap.** Take `d` as the least distance over every pair of
+  circle centres. The distance is `5fabf3`'s: the longer leg plus the
+  shorter's square over twice the longer, unsigned, and past 60,000 on
+  the shorter leg `(shorter + 2 × longer) / 2`. The overlap is
+  `(r_other − d + r_mine) / 2`. Zero or less is no contact.
+- **In contact**, it returns 0 when the pusher is a transport
+  (`unit_flags & 0x10`) and the other has an attack, or when the other's
+  player is not the pusher's and not a mutual ally (`LeaderData::who`,
+  `diplos == 2` both ways) and is below 8. A land pusher also returns 0
+  for a packer that is not packed or is unpacking, for `unit_masks &
+  0x2000000`, and for a cargo (`+0x110`, `is_cargo`).
+- **The push.** It uses the bearing from the point to the other, clamped
+  to at least 45° off the pusher's facing when the other is not moving
+  (`UnitData::is_moving@00610af0`). A **moving** other within 45° of the
+  facing returns 0. The distance is `min(overlap, 48)`. If
+  `UnitData::invalid_loc` allows the new tile, the other is
+  `set_new_location`'d there. With the third argument set and one circle
+  on the other (or a land pusher), it also records its pusher in
+  `collide_o`/`collide_who`, and when it has no orders it is `set_angle`d
+  and its guy 0 turned. Its `collide_frame` is stamped whenever it is
+  pushed.
+
+**So a navy never blocks itself.** The Bark and `1/32` share the navy's
+group, and a group-mate is skipped.
+
+### 13.4 What it moved
+
+This crate now takes the arm for a **sea** unit: `Sim::takes_boat_arm`,
+`Sim::detect_boat_collision`, the waypoint probe and the quick form.
+
+- **East Indies' word 10398 → 10582.** The old word's blocks,
+  10397..10399, are empty on run99 and run143. The Bark agrees on every
+  row but its group number (68 against 66, the navy's numbering) from its
+  birth on.
+- On run99 the floor under the old word goes from 242 to 219 keys: the
+  Bark's walk is gone. On run143, 284 keys stood under the old word before
+  the fix and 285 stand under the new one after it. The window's first
+  block goes from 269 to 254, and the whole window from 830 keys parted
+  to 748.
+- **The new word, 10582**: player 1's `make_stuff` buys differently. The
+  make list parts on 10581, where the original holds a Citizen (type 50,
+  `val 1714`) in slots 3 and 5 and this crate two Scholars at `val 0` in
+  slot 3. Under it, the peasant census parts on 10576 (`free_peasants` 2
+  against 1, `xport_peasants` 1 against 2, city `1/2000`'s `free`). On
+  10583 `1/2018` is placed a tile off and `1/6` walks to it. That is a
+  measurement, not a mechanism (`docs/DECISIONS.md` 42).
+
+### 13.5 What this has *not* established
+
+- **The land half of the arm.** A siege engine, a hero or a supply wagon
+  takes the same arm in the original. Its quick probes and waypoint probe
+  never scan, and `detect_boat_collision` searches land units of every
+  player, gaia included, and shoves them aside. This crate gives them the
+  land scan as before. It is a stated seam: no diff has reached it, and
+  Great Lakes' armies carry all three.
+- **The pushed unit's guy turn** (`Guy::turn_angles`, `Guy::do_turn` at
+  `5faec8`/`5faedb`) is not modelled. Its `set_angle` is.
+- **`find_units`' list path** indexes its cell grid with tile coordinates
+  (`docs/ORDERS.md` §5.10), which is not reproduced, as in `build_crowd`.
+- **No capture has shown a push.** Run143's ships agree, but the only
+  contact in it is between group-mates, which are skipped. The push
+  arithmetic, the clamp and the refusals rest on the listing and a unit
+  test.
+
+### 13.6 Coverage
+
+- **Diff-backed:** §13.1 and §13.4, by `run99_s_word_frame_is_widened_whole`
+  (the old word's blocks empty, the floor 219) and
+  `run143_s_word_frame_is_widened_whole` (10399 empty, the new word's make
+  list, placement and counts). The word is
+  `run54_s_24000_frames_are_where_the_second_map_s_word_now_parts`. The
+  push profile is `run3_s_type_dump_is_the_program_s_on_every_check`, made
+  to fail on purpose with `CIRCLE_RADIUS` (129 types off).
+- **Listing-backed:** §13.2 (`617060`–`617113`, `5f86f9`–`5f8707`) and
+  §13.3 (`5fa8b0`–`5faf24`).
+- **Unit-tested, made to fail on purpose:**
+  `collide::tests::a_ship_s_quick_probe_never_scans` fails with the arm
+  off, and `a_ship_pushes_an_idle_stranger_and_passes_its_group_mate`
+  fails without the group-mate skip. `a_boat_measures_with_the_listing_s_distance`
+  pins the distance.
+- **Read from the decompile and listing only**, and owed a blind second
+  reading: all of §13.3 but the group-mate skip, which run143 exercises.
