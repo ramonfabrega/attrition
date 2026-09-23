@@ -3361,7 +3361,7 @@ capture on file:
 
 ### 24.5 What it moved
 
-**run157: 1036 → 1148.** On 990 the only row left standing is `1/1`'s
+**run157: 1036 → 1176.** On 990 the only row left standing is `1/1`'s
 group id, 64 against 65. The id comes from the scout's standing `group`
 row, where ours gave the scout 65 and the original gave it 64. Each side
 then hands `1/1` the slot the other gave the scout. The id is a slot and
@@ -3369,11 +3369,19 @@ not an identity, and it spends no draw.
 
 The value diff on the moved frame, from run157's own coordinates: on 1037
 `1/1` stands at (36480, 22656) on both sides, `idle 0`, and holds explore-to
-(37032, 23160) and the `BUILDORDER`. The new word is **run156's word and
-shape**: the fur trapper `1/13`'s turn, 7 draws against 8 at draw 2. Its
-move is handed another `dest_y` on 1091. Below it, the merchant `1/11`'s
-position parts from 1054, and the scout `1/0`'s explore path parts from
-1077. Both are value-only rows, pinned in the widening's control block.
+(37032, 23160) and the `BUILDORDER`. On this item's own tree the word
+stopped at 1148, run156's word and shape. With item 629's merchant arm
+(`docs/MERCHANT.md` §3.2) that frame agrees too, and the word is **1176**,
+who=1's `Leader::produce_building`: 69 draws against 249 at draw 34, where
+the original spends `Build::find_gather_tiles`. The scout `1/0`'s explore
+path parts from 1077, value only.
+
+**The width twin reaches the long captures.** East Indies' computer
+citizens carried a standing `form_mod`, ours −1 against the original's 50,
+from the first block of every window. Seven widenings lose those rows and
+no other rows: run99, run139, run143, run149, run152, run155 and run159.
+Each loses three, except run139, which loses two. Both long words hold,
+East Indies 11747 and Great Lakes 12038.
 
 ### 24.6 What this has *not* established
 
@@ -3386,7 +3394,8 @@ position parts from 1054, and the scout `1/0`'s explore path parts from
 ### 24.7 Coverage
 
 The following claims are **diff-backed** by run157's widening, which is
-now run over (605, 1150), and by the word's own walk:
+now run over (605, 1178), and by the word's own walk. The width claim is
+also backed by the seven East Indies widenings:
 
 - the three-order list on 990;
 - `orders_x`;
