@@ -835,7 +835,12 @@ impl Sim {
         let Some(ty) = self.units[i].ty else {
             return false;
         };
-        let Some(nodes) = self.art.pivots.get(&self.unit_types[ty].type_index).cloned() else {
+        let Some(nodes) = self
+            .art
+            .pivots
+            .get(&self.unit_types[ty].type_index)
+            .cloned()
+        else {
             return false;
         };
         if nodes.is_empty() || g >= self.units[i].guys.len() {

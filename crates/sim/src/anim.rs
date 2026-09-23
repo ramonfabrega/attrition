@@ -1746,8 +1746,8 @@ impl Sim {
                 self.guy_set_anim(u, g, ATTACK1, false, true);
             }
         }
-        // **The crew swings with its leader** — `Guy::inc_time`'s foot,
-        // the `GUYS=4` say `0x7c9` (`docs/ANIM.md` §5.1, item 602). Figure
+        // **The crew swings with its leader** — `Guy::inc_time`'s foot
+        // (`docs/ANIM.md` §5.2, item 602). Figure
         // 0 (`guy_num == 0`) that its own step leaves in the attack
         // category puts every crew figure, `squad_size` up to the unit's
         // guy count, on its own destination

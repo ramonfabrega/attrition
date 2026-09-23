@@ -1477,6 +1477,40 @@ of run97 by anything — and `run98_s_window_clocks_are_the_original_s`
   category. It is counted and floored by the test rather than listed, and it
   is the successor item: the falsifier is run97 itself, block 8443, `1/27`.
 
+## 5.2 The crew swings with its leader (item 602, 2026-09-23)
+
+§5's sketch has two arms, and the listing has a third. At the foot of
+`Guy::inc_time@005d9e10`, past the wrap loop and the queued attack, a
+figure with `guy_num == 0` whose slot is now in the attack category
+(`UnitAnimCat[cur_anim] == CHAR_ATTACK2`) walks its unit's crew, from
+`squad_size` (`UnitType +0x304`) to the guy count (`UnitData +0xe8`). For
+each crew figure it:
+
+- calls `Guy::set_new_location(crew, crew.des, 1)`: the body onto its own
+  destination, `z` from the ground, `last_x/y/z` with it, and **not** the
+  facing (only guy 0's own crew loop turns a crew);
+- copies figure 0's `cur_anim` and `cur_time` into it (and clears the
+  renderer's `+0xd0` when the slot changes).
+
+The crew's own mirror (§5's `else` arm) copies only a
+crew figure that is not walking. So the two differ exactly when figure 0
+swings while its crew is on a walk slot, and golden chapter three's
+restage is that case. On 639 the chariot `0/9`'s figure 0 deferred its
+swing for its turn (§6.2) while its crew rolled at once; the crew's mirror
+then put the crew on figure 0's slog. When figure 0 paid the swing, this
+crate left the crew walking, stepping its own clock. On 664, `fight`'s
+next swing found it not attacking and it rolled a fresh one
+(`Unit::set_anim+0xb6`) where the original's crew, copied into the
+attack, queued it. `Sim::guy_inc_time` now has the arm, and run146's word
+moves **664 → 780** with it.
+
+**Diff-backed**: run146's draw stream, draw for draw, from 639 to 780,
+through every chariot swing of the restage, crew rolls included. The
+crew's position after the snap is `GUYS=2`'s `g.x`/`g.y`, compared on
+every block by the chapter's widening and quiet to 780. **Not
+established**: the `+0xd0` clear (a `GuyOut` field, not sim state), and a
+crew of more than one figure, which no capture reaches.
+
 ## 6. What the sim does with it
 
 `crates/sim/src/anim.rs`, in the order the frame reaches it:
