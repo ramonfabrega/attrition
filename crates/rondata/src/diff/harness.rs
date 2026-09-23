@@ -9923,7 +9923,9 @@ mod tests {
         });
         let players = built.sim.players.len();
         let mut firsts = std::collections::BTreeMap::new();
-        let mut plan: Option<(Vec<(i32, i32, u8)>, Vec<(i64, i64)>)> = None;
+        /// `(ours, theirs)`: `1/62`'s path stack on block 11902.
+        type Plan = (Vec<(i32, i32, u8)>, Vec<(i64, i64)>);
+        let mut plan: Option<Plan> = None;
         for f in 0..=TAIL {
             built.tick();
             let n = f + 1;
