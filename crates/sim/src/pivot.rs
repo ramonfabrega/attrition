@@ -141,9 +141,10 @@ pub fn offset(piece: i32, node_index: i32, facing: Angle) -> (i32, i32) {
 /// [`offset`] at a rotation of `d` whole degrees. `Quat<float>::set`
 /// takes `d % 360`, so 360 is 0.
 pub fn offset_at(piece: i32, node_index: i32, d: i32) -> (i32, i32) {
-    let Some(Node { px, py }) = node(piece, node_index) else {
+    let Some(n) = node(piece, node_index) else {
         return (0, 0);
     };
+    let (px, py) = (n.px, n.py);
     let (c, s) = (cos_deg(d), sin_deg(d));
     let den = SCALE.1 * 100 * ONE;
     (
