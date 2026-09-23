@@ -5344,6 +5344,7 @@ fn widen_chapter_three(
     let mut missing: BTreeSet<String> = BTreeSet::new();
     let (mut blocks, mut rows, mut leader_rows, mut guy_rows) = (0usize, 0usize, 0usize, 0usize);
     let (mut ammo_theirs, mut ammo_ours) = (0usize, 0usize);
+    let mut attack_rows = 0usize;
     for f in 0..LAST - 1 {
         s.script.stage(s.built.sim.frame, &mut s.built, &s.loaded);
         s.built.tick();
@@ -5479,16 +5480,62 @@ fn widen_chapter_three(
                     Some(b) => (b.body, b.facing),
                     None => (un.movement.body, un.movement.facing),
                 };
+                // **What the figure is aimed at** (`GuyData +0x8e`/`+0x9f`,
+                // printed `ox`/`whom`), item 595: `Unit::set_attack` writes
+                // it for the unit's own `guy_mark` figures and not for its
+                // crew, so a chariot's horse stays at `−1` while its archer
+                // names the target. Position and facing alone read the two
+                // figures as one.
+                let aim = match og.aim {
+                    None => (-1, -1),
+                    Some(sim::combat::Obj::Unit(t)) => {
+                        let tu = &s.built.sim.units[t];
+                        (i64::from(tu.owner), i64::from(tu.index))
+                    }
+                    Some(sim::combat::Obj::Building(b)) => s.built.build_ids(b).unwrap_or((-2, -2)),
+                };
                 for (name, mine, dumped) in [
                     ("g.x", i64::from(body.pos.x), g.pos.map(|p| p.x)),
                     ("g.y", i64::from(body.pos.y), g.pos.map(|p| p.y)),
                     ("g.angle", i64::from(facing.0), g.angle),
+                    ("g.whom", aim.0, g.whom),
+                    ("g.ox", aim.1, g.ox),
                 ] {
                     let Some(dumped) = dumped else { continue };
                     guy_rows += 1;
                     if mine != dumped {
                         firsts
                             .entry((them.who, them.o, format!("{name}[{k}]")))
+                            .or_insert((n, format!("ours {mine} theirs {dumped}")));
+                    }
+                }
+            }
+            // **The `ATTACKORDER`'s own row** (item 595): `mandatory`,
+            // `defensive`, `in_range`, `ever_in_range` and `new_ord`, on
+            // the head order when both sides hold an attack there. The
+            // order comparison reads the kind and the target and none of
+            // these, so "in range on the same frame" was a quiet field
+            // until this row (`docs/COMBAT.md` §44.2.1).
+            if let (Some(od), Some(front)) = (them.orders_front_first().next(), un.orders.front())
+                && let sim::orders::Body::Attack(a) = front.body
+                && od.index == i64::from(sim::orders::index::ATTACK)
+            {
+                for (name, mine, dumped) in [
+                    ("mandatory", i64::from(un.combat.mandatory), od.mandatory),
+                    ("defensive", i64::from(a.defensive), od.defensive),
+                    ("in_range", i64::from(a.in_range), od.in_range),
+                    (
+                        "ever_in_range",
+                        i64::from(a.ever_in_range),
+                        od.ever_in_range,
+                    ),
+                    ("new_ord", i64::from(a.new_ord), od.new_ord),
+                ] {
+                    let Some(dumped) = dumped else { continue };
+                    attack_rows += 1;
+                    if mine != dumped {
+                        firsts
+                            .entry((them.who, them.o, format!("attack.{name}")))
                             .or_insert((n, format!("ours {mine} theirs {dumped}")));
                     }
                 }
@@ -5528,7 +5575,7 @@ fn widen_chapter_three(
     }
     eprintln!(
         "ch3 widening {run}: {blocks} blocks [{FIRST}, {LAST}), {rows} record rows, \
-         {leader_rows} leader rows, {guy_rows} guy rows, ammo {ammo_theirs} theirs / \
+         {leader_rows} leader rows, {guy_rows} guy rows, {attack_rows} attack rows, ammo {ammo_theirs} theirs / \
          {ammo_ours} ours, {} keys parted; {} leader keys not printed at LEADERS=2",
         firsts.len(),
         missing.len()
@@ -5545,6 +5592,7 @@ fn widen_chapter_three(
         "the leader rows LEADERS=2 prints are not compared on every block"
     );
     assert!(guy_rows > 0, "the GUY record is not read");
+    assert!(attack_rows > 0, "the ATTACKORDER row is not read");
     Some(ChapterThreeWidening {
         firsts,
         ammo_theirs,
@@ -5606,7 +5654,10 @@ fn chapter_three_s_word_frame_is_widened_whole() {
     // `ATTACKORDER` on `1/8` on 633 and the same reload (`recharging 25`)
     // on 634; this crate's `0/8` has turned on 634 where the dump's still
     // faces the way it was born. It is run146's block row for row, to the
-    // angle's last few bits. The catapult `0/9`, 587's word, parts on no
+    // angle's last few bits. Item 595 widened the figure's aim and the
+    // `ATTACKORDER`'s own row: `in_range`, `new_ord` and the rest agree on
+    // both blocks, and the one new row is `0/8`'s crew figure, aimed here
+    // and left at −1 by the dump's `Unit::set_attack`. The catapult `0/9`, 587's word, parts on no
     // row of the capture but its standing `form`.
     let under: Vec<String> = firsts
         .iter()
@@ -5620,6 +5671,8 @@ fn chapter_three_s_word_frame_is_widened_whole() {
             "634 0/8 angle:Heading: ours 991232000 theirs 1431655765",
             "634 0/8 g.angle[0]: ours 991232000 theirs 1431655765",
             "634 0/8 g.angle[1]: ours 991232000 theirs 1431655765",
+            "634 0/8 g.ox[1]: ours 8 theirs -1",
+            "634 0/8 g.whom[1]: ours 1 theirs -1",
             "634 0/8 heading: ours 991232000 theirs 1431655765",
         ],
         "what parts at or one block past chapter three's word moved"
@@ -5814,7 +5867,10 @@ fn chapter_three_s_restage_is_widened_whole() {
     );
     // **At and one block past the word, only the chasing chariot**: this
     // crate's `0/8` has turned on 634 where the dump's still faces the
-    // way it was born.
+    // way it was born, and it has aimed its crew figure (`g.ox[1]`), which
+    // the dump's `Unit::set_attack` leaves at −1 (item 595's widening: the
+    // figure's aim and the `ATTACKORDER`'s own row, which part nowhere else
+    // on either block).
     let under: Vec<String> = firsts
         .iter()
         .filter(|((_, _, what), (f, _))| *f <= WORD + 1 && !standing(what))
@@ -5827,6 +5883,8 @@ fn chapter_three_s_restage_is_widened_whole() {
             "634 0/8 angle:Heading: ours 998768640 theirs 1431655765",
             "634 0/8 g.angle[0]: ours 998768640 theirs 1431655765",
             "634 0/8 g.angle[1]: ours 998768640 theirs 1431655765",
+            "634 0/8 g.ox[1]: ours 6 theirs -1",
+            "634 0/8 g.whom[1]: ours 1 theirs -1",
             "634 0/8 heading: ours 998768640 theirs 1431655765",
         ],
         "what parts at or one block past run146's word moved"
