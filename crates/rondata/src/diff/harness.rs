@@ -11391,6 +11391,7 @@ mod tests {
         /// stanza's overlap check, so the walk takes them from run98.
         const FROM: [i64; 2] = [FIRST, 8_789];
         const WORD_BLOCK: i64 = EAST_INDIES_WORD_BLOCK;
+        const MAKE_BLOCK: i64 = EAST_INDIES_MAKE_BLOCK;
         const SCHOLAR_BLOCK: i64 = EAST_INDIES_SCHOLAR_BLOCK;
         /// The block the purchase behind the sixth Scholar lands on:
         /// sim-frame 9576 writes block 9577.
@@ -11626,14 +11627,27 @@ mod tests {
             .map(|((w, o, what), (f, row))| format!("{f} {w}/{o} {what}: {row}"))
             .collect();
         assert_eq!(purchase, Vec::<String>::new(), "the purchase agrees");
-        // **The word's blocks, 9982..9984, both directions.** Sim-frame
-        // 9983 is a `make_stuff` on both sides, and they buy different
-        // things: the original queues units — `1/2010` two, `1/2014` one,
-        // `1/2005` one — and this crate queues two at `1/2005`, places a
-        // building, `1/2017`, and sends the citizen `1/6` to build it
-        // (`Leader::produce_building+0xc99` and the gather-tile search,
-        // ours 212 draws against 15). The make list that decided it is
-        // what run99's `LEADERS=1` stub cannot print.
+        // **The old word's blocks, 9982..9984, and the move's value diff**
+        // (item 576). Sim-frame 9983 is a `make_stuff` on both sides, and
+        // until the fix they bought different things: the original queued
+        // `1/2010` two, `1/2014` one and `1/2005` one, and this crate queued
+        // two at `1/2005`, placed a Mine, `1/2017`, and sent `1/6` to build
+        // it — 27 rows on 9984, ours 212 draws against 15. The make lists
+        // run139 prints parted two frames under it, on `create_units`' ship
+        // offers at a Dock that belongs to no city (`docs/AI.md` §57). With
+        // the sea branch's `find_building`, nothing parts here.
+        let on_make: Vec<String> = firsts
+            .iter()
+            .filter(|(_, (f, _))| (MAKE_BLOCK - 2..=MAKE_BLOCK).contains(f))
+            .map(|((w, o, what), (f, row))| format!("{f} {w}/{o} {what}: {row}"))
+            .collect();
+        assert_eq!(on_make, Vec::<String>::new(), "the make_stuff agrees");
+        // **The word's blocks, 10231..10233, both directions.** Sim-frame
+        // 10232 spends 33 draws here against 34, parting at index 30: ours
+        // `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs
+        // `Unit::do_move+0xe84`. The word's block has three rows, all
+        // `1/32`'s, a unit born on 10187 at another point than the
+        // original's and in another group on 10188.
         let on_word: Vec<String> = firsts
             .iter()
             .filter(|(_, (f, _))| (WORD_BLOCK - 2..=WORD_BLOCK).contains(f))
@@ -11642,35 +11656,11 @@ mod tests {
         assert_eq!(
             on_word,
             [
-                "9984 1/6 dest_angle: ours -852099072 theirs 1131216896",
-                "9984 1/6 g.angle[0]: ours -1295384576 theirs 1131216896",
-                "9984 1/6 g.avg_speed[0]: ours 6 theirs 0",
-                "9984 1/6 g.cur_anim[0]: ours 8 theirs 25",
-                "9984 1/6 g.cur_time[0]: ours 1 theirs 22",
-                "9984 1/6 g.des_angle[0]: ours -1295384576 theirs 1131216896",
-                "9984 1/6 g.des_x[0]: ours 38208 theirs 38232",
-                "9984 1/6 g.des_y[0]: ours 36560 theirs 36552",
-                "9984 1/6 g.end_time[0]: ours 15 theirs 33",
-                "9984 1/6 g.last_speed[0]: ours 25 theirs 0",
-                "9984 1/6 g.last_time[0]: ours 0 theirs 21",
-                "9984 1/6 g.stopped[0]: ours 0 theirs 1",
-                "9984 1/6 g.x[0]: ours 38208 theirs 38232",
-                "9984 1/6 g.y[0]: ours 36560 theirs 36552",
-                "9984 1/6 heading: ours -1295384576 theirs 1131216896",
-                "9984 1/6 order:kind: Kind { ours: 3, theirs: 7 }",
-                "9984 1/6 order:length: Length { ours: 2, theirs: 1 }",
-                "9984 1/6 orders.len: ours 2 theirs 1",
-                "9984 1/6 orders_x: ours 34440 theirs 38232",
-                "9984 1/6 orders_y: ours 35256 theirs 36552",
-                "9984 1/6 path:length: PathLength { ours: 5, theirs: 0 }",
-                "9984 1/6 pos: ours (38208,36560) theirs (38232,36552)",
-                "9984 1/6 tolerance: ours 384 theirs 0",
-                "9984 1/2005 queue:queued: ours 2 theirs 1",
-                "9984 1/2010 queue:queued: ours 0 theirs 2",
-                "9984 1/2014 queue:queued: ours 0 theirs 1",
-                "9984 1/2017 build:extra: this crate holds it alone",
+                "10233 1/32 form_mod: ours -1 theirs 50",
+                "10233 1/32 idle: ours 5 theirs 0",
+                "10233 1/32 stance: ours 0 theirs 3",
             ],
-            "the word's blocks: a make_stuff that buys a building here and units there"
+            "the word's blocks"
         );
         // **And under it, the standing floor**: 132 keys under the
         // purchase — 75 on the walk's first block (7880: `form -1`
@@ -11683,23 +11673,26 @@ mod tests {
         // at the original's University every time — then `1/28`'s four on
         // 9712, and between the old word and the new only `1/0`'s clock on
         // 9815/9878/9879 and the newborn `1/29`'s `form` and facing (9815,
-        // 9945). None of it spends a draw.
+        // 9945). None of it spends a draw. **Item 576 added 78** between the
+        // old word and the new, and none of them spends a draw either:
+        // the seated Scholars `1/30` (10127) and `1/31` (10149, with its
+        // `group` and `form_mod` on 10150), born with the same four-row
+        // record as the five before them; every Citizen's `myhits` and
+        // `hits_left` 40 against the original's 50, and `mylos` 2 against
+        // 4, on 10165; and `1/32`, born on 10187 at (44184, 42888) against
+        // (45192, 41880), in group 68 against 66 from 10188.
         let under = firsts.values().filter(|(f, _)| *f < WORD_BLOCK - 2).count();
-        assert_eq!(under, 141, "the floor under the word");
+        assert_eq!(under, 219, "the floor under the word");
         // **Who changes animation, both sides** (`docs/COMBAT.md`
-        // §44.2.1): on the word's blocks two figures change on this
-        // crate's side alone, both on 9984. `1/6` starts its walk to the
-        // building the original never placed (its rows are above). `8/0`
-        // is gaia's animal, standing at (29280, 24384) on both sides and
-        // `cur_anim` 0 → 2 here only — and it parts on **no row**, because
-        // `compare` walks players `0..players` and never gaia's units.
+        // §44.2.1): on the word's blocks, 10231..10234, five figures change
+        // animation and every one on both sides — `1/1`, `0/1`, `0/3`,
+        // `1/2` and `1/18`. The draw `Unit::do_move+0xe84` the original
+        // spends and this crate does not changes no figure's animation.
+        // (On the old word, 9984, it was `1/6` and gaia's `8/0`, here
+        // only; parked 577 is `compare`'s blind spot for gaia.)
         let one_sided: Vec<(i64, i64, i64, bool, bool)> =
             changed.iter().filter(|c| c.3 != c.4).copied().collect();
-        assert_eq!(
-            one_sided,
-            [(9_984, 1, 6, false, true), (9_984, 8, 0, false, true)],
-            "a figure moves on one side only"
-        );
+        assert_eq!(one_sided, [], "a figure moves on one side only");
     }
 
     /// **run139 — East Indies 9983's make list, widened whole** (item
@@ -11722,7 +11715,7 @@ mod tests {
     fn run139_s_word_frame_is_widened_whole() {
         const FIRST: i64 = WIDENING_EAST_INDIES_MAKE.0;
         const TAIL: i64 = WIDENING_EAST_INDIES_MAKE.1;
-        const WORD_BLOCK: i64 = EAST_INDIES_WORD_BLOCK;
+        const MAKE_BLOCK: i64 = EAST_INDIES_MAKE_BLOCK;
         let Some(inst) = install() else { return };
         let (Some(path), Some(sib), Some(tr), Some(r139)) = (
             dump("gamelog-run54-islands-24k-trace.txt"),
@@ -11838,7 +11831,7 @@ mod tests {
         // human leader's census, which this crate does not keep; the site
         // list's order and regions; `leftover`'s fractions; and
         // `tech_frame`/`tech_cat_frame`, which this crate never writes.
-        // Nothing there feeds the Buildings step's ship offer (§57).
+        // Nothing there feeds `create_units`' ship offers (§57).
         let counts: Vec<(i64, usize)> = by_block.iter().map(|(f, r)| (*f, r.len())).collect();
         assert_eq!(
             counts,
@@ -11847,34 +11840,26 @@ mod tests {
                 (9966, 1),
                 (9976, 8),
                 (9981, 1),
-                (9982, 17),
-                (9983, 1),
-                (9984, 38),
-                (9985, 2),
-                (9986, 2),
-                (9987, 25),
-                (9988, 8),
-                (9989, 12),
-                (9990, 1),
-                (9992, 6),
-                (9993, 6),
-                (9994, 3),
-                (9995, 7),
-                (9999, 5),
+                (9982, 7),
+                (9992, 1),
             ],
             "first partings per block"
         );
-        // **The lists part on block 9982, the Buildings step** (sim-frame
-        // 9981). Both are empty on 9979; Research (9980) and Units (9981)
-        // agree slot for slot. On 9982 the original's step offers three
-        // ships at `val 9999999`, city 0, cat 6: types 340 (slot 2), 334
-        // (slot 3) and 323 (slot 6). This crate offers none, so its
-        // Mercenaries and Militia hold slots 2 and 3, and on 9983 its Mine
-        // enters slot 3 where the original's ship stands. The `city` rows
-        // of slots 0, 1, 4 and 5 are §52.2's index shift, not a value.
+        // **The lists agree on block 9982, `create_units`' frame** (sim-frame
+        // 9981). Both are empty on 9979, and `research_techs`,
+        // `upgrade_units` and `create_units` fill them slot for slot. Until
+        // item 576 the original's `create_units` offered three ships here,
+        // at `val 9999999`, city 0, cat 6 — types 340 (slot 2), 334 (slot 3)
+        // and 323 (slot 6) — and this crate none: seventeen rows on 9982,
+        // with Mercenaries and Militia in slots 2 and 3, and on 9983 the
+        // Mine in slot 3 where the original's ship stands; on 9984, the
+        // `make_stuff` that bought it, 38 rows. The sea branch's dock is a
+        // `find_building` around the city, and East Indies' Dock `1/2010`
+        // belongs to no city (§57). What is left are the `city` rows, §52.2's
+        // index shift, and not a value.
         let list: Vec<String> = firsts
             .iter()
-            .filter(|(_, (f, _))| (WORD_BLOCK - 2..WORD_BLOCK).contains(f))
+            .filter(|(_, (f, _))| (MAKE_BLOCK - 2..=MAKE_BLOCK).contains(f))
             .map(|((w, o, what), (f, row))| format!("{f} {w}/{o} {what}: {row}"))
             .collect();
         assert_eq!(
@@ -11882,37 +11867,30 @@ mod tests {
             [
                 "9982 1/-1 leader:MAKE[0].city: ours 1 theirs 0",
                 "9982 1/-1 leader:MAKE[1].city: ours 2 theirs 1",
-                "9982 1/-1 leader:MAKE[2].cat: ours 10 theirs 6",
-                "9982 1/-1 leader:MAKE[2].city: ours -1 theirs 0",
-                "9982 1/-1 leader:MAKE[2].t: ours 573 theirs 340",
-                "9982 1/-1 leader:MAKE[2].val: ours 4344000 theirs 9999999",
-                "9982 1/-1 leader:MAKE[3].cat: ours 7 theirs 6",
-                "9982 1/-1 leader:MAKE[3].city: ours -1 theirs 0",
-                "9983 1/-1 leader:MAKE[3].escrow: ours 0 theirs 1",
-                "9982 1/-1 leader:MAKE[3].t: ours 66 theirs 334",
-                "9982 1/-1 leader:MAKE[3].val: ours 167424 theirs 9999999",
+                "9982 1/-1 leader:MAKE[2].city: ours 1 theirs 0",
+                "9982 1/-1 leader:MAKE[3].city: ours 1 theirs 0",
                 "9982 1/-1 leader:MAKE[4].city: ours 1 theirs 0",
                 "9982 1/-1 leader:MAKE[5].city: ours 1 theirs 0",
-                "9982 1/-1 leader:MAKE[6].cat: ours 0 theirs 6",
-                "9982 1/-1 leader:MAKE[6].city: ours -1 theirs 0",
-                "9982 1/-1 leader:MAKE[6].escrow: ours 0 theirs 1",
-                "9982 1/-1 leader:MAKE[6].t: ours -1 theirs 323",
-                "9982 1/-1 leader:MAKE[6].val: ours -1 theirs 9999999",
+                "9982 1/-1 leader:MAKE[6].city: ours 1 theirs 0",
             ],
-            "the Buildings step's ships"
+            "the make list, slot for slot"
         );
-        // **The word's block, 9984**: 30 record rows — run99's 27, and
-        // City `1/2007`'s `gatherers` and `space` pair, which run99's
-        // longer walk keys on their first parting at 8576 — and eight the
-        // leader record adds: the list after the purchase (`MAKE[7]`,
-        // `MAKE[10]`), the muster (`num_queued` 16, 273, 290), the timber
-        // the Mine cost, and one gatherer.
-        let word = by_block.get(&WORD_BLOCK).map_or(0, Vec::len);
-        let word_records = firsts
+        // **One row past the word, and it spends no draw**: player 1's
+        // `gather_stamp` on 9992, ours 9991 against the original's 9719 —
+        // this crate's gather clock stamped 9991 and the original's has not
+        // moved since 9719. Before the fix `income[1]` and `resources[1]`
+        // parted beside it (1280 against 1600); now nothing moves with it
+        // inside the window. Not this item's (§57.4).
+        let past: Vec<String> = firsts
             .iter()
-            .filter(|((_, o, _), (f, _))| *f == WORD_BLOCK && *o >= 0)
-            .count();
-        assert_eq!((word, word_records), (38, 30), "the word's block");
+            .filter(|(k, (f, _))| *f > MAKE_BLOCK && k.2 == "leader:gather_stamp")
+            .map(|((w, o, what), (f, row))| format!("{f} {w}/{o} {what}: {row}"))
+            .collect();
+        assert_eq!(
+            past,
+            ["9992 1/-1 leader:gather_stamp: ours 9991 theirs 9719"],
+            "the gather clock"
+        );
     }
 
     #[test]

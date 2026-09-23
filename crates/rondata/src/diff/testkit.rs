@@ -586,7 +586,23 @@ fn indexed_siblings_preserve_every_initial_field_except_audit_bodies() {
 /// `docs/CARAVAN.md` §9). The widening's block for the move is 9712
 /// ([`EAST_INDIES_SCHOLAR_BLOCK`]); 9983 is a `make_stuff` that buys a
 /// building here and units in the original, 212 draws against 15.
-pub(crate) const LONG_WORD_EAST_INDIES: i64 = 9_983;
+///
+/// **9983 → 10232 on item 576, and the frame was the make list two frames
+/// under it.** run139 (`LEADERS=9` over [9960, 9999]) printed both lists:
+/// empty on 9979, agreeing through `upgrade_units`, and parting on block
+/// 9982, `create_units`' frame, where the original offers three ships —
+/// types 340, 334 and 323 at `val 9999999` — and this crate none. The
+/// sea branch's dock is `find_building(city, SEARCH_FRIENDLY, who,
+/// 0x1800, …, FILTER_BASE_TYPE, DOCK)`, a search around the city; this
+/// crate looked only in the city's own chain, and East Indies' Dock
+/// `1/2010` belongs to no city (`city -1`). With the search, both lists
+/// agree slot for slot on every block of run139 (`MAKE[*].city` is §52.2's
+/// index shift), and block 9984's 27 rows are gone
+/// (`run99_s_word_frame_is_widened_whole`, the move's value diff on
+/// [`EAST_INDIES_MAKE_BLOCK`]). 10232 spends 33 draws here against 34,
+/// parting at index 30: ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`,
+/// theirs `Unit::do_move+0xe84`. `docs/AI.md` §57.
+pub(crate) const LONG_WORD_EAST_INDIES: i64 = 10_232;
 
 /// The frame East Indies' **first scholar** — `1/22` — is seated inside
 /// its university, one of the fourteen `Unit::go_inside+0x280` draws in
@@ -2519,9 +2535,15 @@ pub(crate) const WIDENING_EAST_INDIES: (i64, i64) = (7_880, 10_399);
 /// moved the word past it; `run99_s_word_frame_is_widened_whole` holds the
 /// move's value diff on it.
 pub(crate) const EAST_INDIES_SCHOLAR_BLOCK: i64 = 9_712;
-/// The current word's block on run99: 9983's frame writes block 9984. The
-/// widening and the coverage driver read run99 around it.
-pub(crate) const EAST_INDIES_WORD_BLOCK: i64 = 9_984;
+/// The block run139 was taken to widen: the word 9983's frame writes block
+/// 9984, the `make_stuff` that bought a Mine here and ships there. Item
+/// 576 moved the word past it; `run139_s_word_frame_is_widened_whole`
+/// holds the make lists on it and the coverage driver reads run139 around
+/// it.
+pub(crate) const EAST_INDIES_MAKE_BLOCK: i64 = 9_984;
+/// The current word's block on run99: 10232's frame writes block 10233.
+/// The widening and the coverage driver read run99 around it.
+pub(crate) const EAST_INDIES_WORD_BLOCK: i64 = 10_233;
 /// `run139_s_word_frame_is_widened_whole`'s window (item 576): run139
 /// whole, 9960..9999, the one East Indies capture that prints the leader's
 /// make list over the word. The floor is the capture's first block for the
@@ -2555,16 +2577,19 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     //
     // Item 576 widened 9983 on **run139**, the one East Indies capture that
     // prints the leader's record over the word, with a sibling test rather
-    // than an extension: run99's test still holds every unit and building
-    // record from 7880, and run139's adds the leader half — the stockpile,
-    // the step, the muster and the make list, slot for slot. The lists part
-    // on block 9982, the Buildings step's ship offers (`docs/AI.md` §57).
+    // than an extension: `run139_s_word_frame_is_widened_whole` adds the
+    // leader half — the stockpile, the step, the muster and the make list,
+    // slot for slot. The lists parted on block 9982, `create_units`' ship
+    // offers (`docs/AI.md` §57). The fix moved the word to **10232**, past
+    // run139's last block and inside run99's, so the row names run99's
+    // test again: it now pins the move's value diff on 9984 (empty) and
+    // the new word's blocks, 10231..10233.
     (
         "LONG_WORD_EAST_INDIES",
         LONG_WORD_EAST_INDIES,
-        Some("run139_s_word_frame_is_widened_whole"),
+        Some("run99_s_word_frame_is_widened_whole"),
         576,
-        Some(WIDENING_EAST_INDIES_MAKE),
+        Some(WIDENING_EAST_INDIES),
     ),
     // Item 448 paid the widening 442 owed: `run100_s_word_block_is_every_
     // record_the_dump_carries` compares every field of every record run100

@@ -37,7 +37,8 @@ use std::collections::{BTreeMap, BTreeSet};
 use crate::gamelog::{Block, Log, reads};
 
 use super::testkit::{
-    EAST_INDIES_WORD_BLOCK, GOLDEN_WORD_CHAPTER_TWO, GREAT_LAKES_DETOUR_BLOCK, WIDENING_CHAPTER_TWO,
+    EAST_INDIES_MAKE_BLOCK, EAST_INDIES_WORD_BLOCK, GOLDEN_WORD_CHAPTER_TWO,
+    GREAT_LAKES_DETOUR_BLOCK, WIDENING_CHAPTER_TWO,
 };
 
 /// Record paths read by a parser of their own, outside `Block` — the
@@ -412,6 +413,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     // map's headline since 2026-09-21 and a window this guard had never
     // read. run99 is run98's detail — `DEATHS=1` and `LEADERS=1`, where the
     // Great Lakes line has `GROUPS=1` and `LEADERS=9`.
+    // Item 576 moved the word to 10232, and run99 carries its blocks too.
     let ei = EAST_INDIES_WORD_BLOCK;
     if let Some(p) = &r99 {
         let n = drive_capture(p, ei - 2, ei + 2, &mut paths);
@@ -419,10 +421,12 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         frames += n;
     }
     // **And on run139** (item 576): run99's line with `LEADERS=9`, over the
-    // same five blocks, so the leader record's paths are on this map's
-    // window too — `run139_s_word_frame_is_widened_whole` reads them.
+    // five blocks around the make list it was taken for, so the leader
+    // record's paths are on this map's window too —
+    // `run139_s_word_frame_is_widened_whole` reads them.
+    let em = EAST_INDIES_MAKE_BLOCK;
     if let Some(p) = &r139 {
-        let n = drive_capture(p, ei - 2, ei + 2, &mut paths);
+        let n = drive_capture(p, em - 2, em + 2, &mut paths);
         assert_eq!(n, 5, "run139 carries the word's five blocks");
         frames += n;
     }

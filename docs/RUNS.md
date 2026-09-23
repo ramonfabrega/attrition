@@ -5183,9 +5183,12 @@ are run59, run82 and run96; nothing prints the list anywhere in
 | the coverage window | a set on all 13 frames 9974..9986 |
 
 **What it settled.** Both lists are empty on block 9979 and the steps
-agree block for block. The Units step (block 9981) agrees slot for slot.
-The lists part on block **9982**, the Buildings step. The original's
-Buildings step offers three ships at the Dock, types 340, 334 and 323,
-each `val 9999999` and cat 6. This crate's offers none. The Mine enters
-this crate's list on 9983 in the slot the original's ships hold.
-`run139_s_word_frame_is_widened_whole`; `docs/AI.md` §57.
+agree block for block. The lists part on block **9982**, which is
+`create_units`' frame (sim-frame 9981, by the coverage; the dump's
+`production_step` is the step after the one that ran). There the
+original offers three ships at the Dock, types 340, 334 and 323, each
+`val 9999999` and cat 6, and this crate offers none. The Mine enters this
+crate's list on 9983 in the slot the original's ship holds. The sea
+branch finds its dock with a search around the city, and Dock `1/2010`
+belongs to no city. `run139_s_word_frame_is_widened_whole`; `docs/AI.md`
+§57.
