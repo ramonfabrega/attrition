@@ -314,7 +314,30 @@ def main():
         stack = []
         sites = site_table(recs)
         units = unit_names(recs)
+        half = {}
         for r in recs:
+            if r[0] == 5 and r[1] == 16:
+                # RON_COLLIDE_PROBE's INFO 16: the occupancy block the next
+                # `collide_here` reads, live and (when held) the
+                # pathfinder's copy. Printed as the unit cells set in it.
+                f = frame_of(r)
+                if want is not None and f not in want:
+                    continue
+                cx, cy, src, part = r[2] & 0xFF, (r[2] >> 8) & 0xFF, (r[2] >> 16) & 0xFF, r[2] >> 24
+                pad = '  ' * len(stack)
+                if src == 2:
+                    print(f"f{f:<5} {pad}  block ({cx},{cy}) live: none ({r[3]:#x})")
+                    continue
+                if part == 0:
+                    half[(cx, cy, src)] = r[3:7]
+                    continue
+                words = list(half.pop((cx, cy, src), [0, 0, 0, 0])) + list(r[3:7])
+                cells = [(cx * 16 + (i >> 4), cy * 16 + (i & 15))
+                         for i in range(256) if words[i // 32] >> (i % 32) & 1]
+                which = "copy" if src == 1 else "live"
+                print(f"f{f:<5} {pad}  block ({cx},{cy}) {which}: "
+                      + " ".join(f"{x},{y}" for x, y in cells))
+                continue
             if r[0] not in (7, 8):
                 continue
             f = frame_of(r)
@@ -334,10 +357,15 @@ def main():
                 stack.append((cf, csite, this, a03))
                 continue
             depth = len(stack)
-            args = (a03 + list(r[3:6]) + [0])[:max(len(names), 1)]
+            # The RET record carries args 4..6 and, in its last slot, the
+            # byte behind arg 7 where the site names one: **arg 7 itself is
+            # never logged**. Its name prints with `?`, never a value — the
+            # `0` this once printed read as `collide_here`'s `nocoll = 0`
+            # inside `nocoll = 1` probes for two items (item 566).
+            args = (a03 + list(r[3:6]) + [None])[:max(len(names), 1)]
             parts = [f"this={units[this]}" if this in units else f"this={this:#x}"]
             for n, v in zip(names, args):
-                parts.append(f"{n}={s32(v)}")
+                parts.append(f"{n}=?" if v is None else f"{n}={s32(v)}")
             if name == "valid_roadcoord":
                 parts = [f"tile {args[0] // 0xc0},{args[1] // 0xc0}",
                          f"from {args[2] // 0xc0},{args[3] // 0xc0}"]
