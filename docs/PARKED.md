@@ -22,6 +22,20 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Parked by item 613, 2026-09-23 — under East Indies' 11069
+
+(622) **409 keys under the word on run152**, none on 11069's draw: food
+and metal a unit off from 10881/10900, the peasants and `1/36` from
+10956, `1/2018`'s list order from 10959, and `SITE` on 10976
+(`docs/journal/2026-09-23-item-613.md`). Returns when 620's widening
+names one.
+
+(623) **`MAKE[4].val` on 10982**, one make slot's value apart; no draw.
+
+(624) **The rest of `get_cost`'s pre-ramp tail and its context
+argument**, still unbuilt beside (555)'s bump loop. 613 built the Horses
+discount only.
+
 ## Parked by item 602, 2026-09-23 — under a closed chapter and its restage
 
 (617) **run146's 771: the dump culls the dead hoplites' `DEATH_OBJS`**

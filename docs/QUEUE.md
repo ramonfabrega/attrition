@@ -13,7 +13,7 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 ## Where things stand
 
 *2026-09-23, an Opus 5.5 commander after the eleventh pass: 17 landings,
-15 of them moved a word. East Indies **9711 → 10982**; the rules track
+15 of them moved a word. East Indies **9711 → 11069**; the rules track
 closed chapters four (1500), seven (1200) and three (900), and its
 restage stands at 782. Great Lakes held at 12038 throughout.*
 
@@ -28,14 +28,14 @@ restage stands at 782. Great Lakes held at 12038 throughout.*
 - **Fable backlog: 10 Loop items** (313, 527, 574, 575, 583, 584, 596, 598, 605, 612).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w10982 of 24,000 · GreatLakes w12038 of 24,000
+Long captures: EastIndies w11069 of 24,000 · GreatLakes w12038 of 24,000
 Golden: ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch7 closed · restage w782 of 1000 · 621 next
-Endpoint 24001: EastIndies 64 off, 0 unlinked · GreatLakes 45 off, 0 unlinked
+Endpoint 24001: EastIndies 59 off, 3 unlinked · GreatLakes 45 off, 0 unlinked
 
-**Opener: 18 landings since the eleventh pass (573 to 616 by the log).
-att-613 is live on the AI track. A commander takes 621 on the rules
-track, then 571; workers spawn with `claude-opus-5-5[1m]`. The count is
-by the log from the pass and stops at twenty.**
+**Opener: 19 landings since the eleventh pass (573 to 613 by the log);
+att-621 in flight is the twentieth. When it lands and is chained, the
+count stops: no spawn, and the Fable steering pass is due. After it, 620
+on the AI track, 621's successor on the rules track, then 571.**
 
 ## The queue
 
@@ -45,13 +45,13 @@ lower map first — East Indies (a guard reads this line). Take the first
 unstarted on either track unless a better order is obvious, and say so; the
 backlog is `docs/PARKED.md`, and an item returns only when a score names it.
 
-613. **East Indies' word is 10982, past every capture** (608 moved it
-    10782 → 10982: `City::count_gather_slots` counts unfinished gather
-    buildings, AI §61, by run149 and run150's packet). On 10982 the
-    original places a gather building: 680 `find_gather_tiles+0x10a`, and
-    `produce_building` 4×`+0xc99`, 4×`+0x1805`, against ours 7× and 1×.
-    run149 ends at 10879, so the `WIDENINGS` row names this item: capture
-    **run152** over the word, overlapping run149, then widen it whole.
+620. **East Indies' word is 11069, past every capture** (613 moved it
+    10982 → 11069: `get_cost`'s Horses 15% on Stable and Auto Plant units,
+    and `calc_gather`'s survey refusing a range another Mine already
+    mines, AI §62). On 11069 ours 5 draws against 6, parting at index 0:
+    ours `Guy::set_anim+0x97a`, theirs `Unit::do_move+0xe84`. run152 ends
+    at 11039, so the `WIDENINGS` row names this item: capture **run155**
+    over the word, overlapping run152, then widen it whole. No mechanism.
 
 571. **Army 1's squad stops on block 11922 in the original and walks on
     here** (566 moved the word 11903 → 12038 by carrying the pathfinder's
