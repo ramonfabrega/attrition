@@ -117,6 +117,32 @@ pub const fn degrees_to_angle(degrees: i32) -> Angle {
     Angle(a)
 }
 
+/// **`angle_to_degrees@00a28e00`** — an angle as whole degrees,
+/// `0..=360`, and **not** `round(a × 360 / 2³²)`.
+///
+/// It peels the angle apart in steps of fixed size, each a truncated
+/// constant: quarter turns (`0x4000_0000`), then 45° (`0x2000_0000`), 30°
+/// (`0x1555_5555`), 15° (`0x0aaa_aaaa`) and 5° (`0x038e_38e3`), and rounds
+/// what is left to the nearest degree against `0x00b6_0b60` a degree and
+/// `0x005b_05b0` a half. Each truncated step leaves the remainder a few
+/// units long, so near a half degree it rounds up a few units early:
+/// `5_965_232`, just under half a degree exactly, reads 1 here and 0 by
+/// rounding. The comparisons that read it (`Guy::set_all_pivots`,
+/// `docs/COMBAT.md` §52) are against whole degrees, so the difference is
+/// only ever the edge of a ±45° test.
+pub const fn angle_to_degrees(a: Angle) -> i32 {
+    let a = a.0 as u32;
+    let quarter = a >> 30;
+    let r = a - quarter * 0x4000_0000;
+    let eighth = r >> 29;
+    let r = r - eighth * 0x2000_0000;
+    let (d30, r) = (r / 0x1555_5555, r % 0x1555_5555);
+    let (d15, r) = (r / 0x0aaa_aaaa, r % 0x0aaa_aaaa);
+    let (d5, r) = (r / 0x038e_38e3, r % 0x038e_38e3);
+    (quarter * 90 + eighth * 45 + d30 * 30 + d15 * 15 + d5 * 5 + (r + 0x005b_05b0) / 0x00b6_0b60)
+        as i32
+}
+
 /// The angle from the origin to `(dx, dy)`, with y increasing southward.
 ///
 /// An integer arctangent with no table: a ratio of the shorter leg to the
@@ -849,6 +875,39 @@ pub fn follower_step(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// **`angle_to_degrees@00a28e00` is not rounding** (`docs/COMBAT.md`
+    /// §52). Its steps are truncated constants, so the remainder it
+    /// rounds is a few units long and a half degree comes early:
+    /// `5_965_232` is `0.4999999…°` and reads 1, where
+    /// `round(a × 360 / 2³²)` reads 0. Away from the half degrees the two
+    /// agree, and a full turn less one unit is 360, not 0. The values are
+    /// the listing's arithmetic, worked outside the crate.
+    #[test]
+    fn angle_to_degrees_rounds_a_half_degree_early() {
+        let exact = |a: u32| ((u64::from(a) * 360 + (1 << 31)) >> 32) as i32;
+        assert_eq!(angle_to_degrees(Angle(5_965_232)), 1);
+        assert_eq!(exact(5_965_232), 0);
+        assert_eq!(angle_to_degrees(Angle(0x5555_5555)), 120);
+        assert_eq!(angle_to_degrees(Angle(0x4000_0000)), 90);
+        assert_eq!(angle_to_degrees(Angle(-1)), 360);
+        // run145's chariot: its bearing to `1/8` against its facing.
+        assert_eq!(
+            angle_to_degrees(Angle(991_232_000_i32.wrapping_sub(0x5555_5555))),
+            323
+        );
+        let mut a = 0u32;
+        for _ in 0..4096 {
+            a = a.wrapping_mul(0x0019_660d).wrapping_add(0x3c6e_f35f);
+            let d = angle_to_degrees(Angle(a as i32));
+            assert!((d - exact(a)).abs() <= 1, "{a:#x}");
+            // Off the half degrees they are the same number.
+            let frac = (u64::from(a) * 360) & 0xffff_ffff;
+            if !(0x7fff_0000..=0x8000_ffff).contains(&frac) {
+                assert_eq!(d, exact(a), "{a:#x}");
+            }
+        }
+    }
 
     const T: Tuning = Tuning::RON;
 

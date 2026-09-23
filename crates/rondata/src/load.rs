@@ -145,6 +145,13 @@ pub struct Loaded {
     /// simulation brings an arrow into existence, and a unit that does not
     /// reach one of these frames does not shoot (`docs/COMBAT.md` §9.0).
     pub piece_releases: crate::artdata::PieceReleases,
+    /// The unit types that aim a pivot rather than turn to shoot,
+    /// `TypeIndex → (node → (minangle, maxangle))`, from
+    /// `unit_graphics.xml`'s `<RESTRICTION>` rows
+    /// (`crate::artdata::pivot_restrictions`, `docs/COMBAT.md` §52).
+    /// Gameplay data for the same reason the releases are: it decides
+    /// whether `Unit::fight` turns the unit.
+    pub pivot_restrictions: crate::artdata::PivotRestrictions,
     /// `craftrules.xml`'s 55 `CRAFT` records in file order — `TypeIndex`
     /// `0x275..=0x2ab`, the `SpellTypeData` table `Unit::do_cast` and
     /// `SpellTypeData::get_job_time` read (`docs/ORDERS.md` §6.9). Empty
@@ -446,6 +453,7 @@ pub fn load(install: &Install) -> Result<Loaded, crate::Error> {
     loaded.piece_lengths = crate::artdata::piece_lengths(install, &graphs);
     loaded.piece_tracks = crate::artdata::piece_tracks(install, &graphs);
     loaded.piece_releases = crate::artdata::piece_releases(install, &graphs);
+    loaded.pivot_restrictions = crate::artdata::pivot_restrictions(install, &graphs);
     // The opening scripts — `Leaders::prod_script_path` is `.\ai\scripts\`.
     // A missing file is not an error: a game without scripts is a game whose
     // AI skips to step 2, which is what the original does when
@@ -1623,6 +1631,7 @@ pub fn load_tables(
         piece_lengths: Default::default(),
         piece_tracks: Default::default(),
         piece_releases: Default::default(),
+        pivot_restrictions: Default::default(),
         spells,
     }
 }
@@ -2263,6 +2272,7 @@ mod tests {
             piece_lengths: Default::default(),
             piece_tracks: Default::default(),
             piece_releases: Default::default(),
+            pivot_restrictions: Default::default(),
             spells: vec![],
         };
         assert_eq!(l.type_index(0), 0);

@@ -942,15 +942,18 @@ range (`ObjectData::is_in_range`, §13). Then, in this order:
    at units is ground fire, with no target to home on, and what it hits is
    what stands where it lands (§9.3, §9.4).
 2. `unit_masks |= 0x11000` (in combat, attacking). `set_attack(o, who)`:
-   every figure's `attack_o`/`attack_who` are set and, for a ranged type with
-   pivot restrictions, `Guy::set_all_pivots` — a return that means "wait for
-   the pivot", which makes the unit skip the attack this frame (the
-   `param_4 != 0` early-out below).
+   ~~every figure's~~ the `guy_mark` figures' `attack_o`/`attack_who` are
+   set and, for a ranged type with pivot restrictions, `Guy::set_all_pivots`
+   — ~~a return that means "wait for the pivot", which makes the unit skip
+   the attack this frame (the `param_4 != 0` early-out below)~~ a return
+   that means **"the pivot bears"**: the unit keeps its heading and the
+   attack goes ahead this frame (§52, item 595; run145's chariot shoots on
+   633 without turning).
 3. **Facing**: `angle = find_angle(T − A)`; for a wall target, the angle is
    snapped to the side of the wall the attacker is on; a `GUN`-flagged type
    (`unit_flags & 0x40`) that is not a `PATROLBOAT` vs a sea target snaps to
    whichever of `angle ± 90°` is nearer its current facing (broadside). If
-   the pivot said wait, `angle = A.angle`. `set_angle(angle)` if it changed;
+   the pivot ~~said wait~~ bears (§52), `angle = A.angle`. `set_angle(angle)` if it changed;
    each figure's desired angle is set (for a squad of `squad_size` guys each
    gets the angle to the target from its own position — except single-figure
    and sea types, which all take the unit's).
@@ -8845,3 +8848,178 @@ need not face its target is not established.
   gun's 3 and its `0x28e`, and `PACKER_NEVER`, each pinned by
   `a_human_s_packed_siege_engine_unpacks_before_it_searches` from the
   same reading.
+
+## 52. A pivot that bears shoots without turning (item 595, 2026-09-23)
+
+Golden chapter three's word stood at **633** in both captures (run145,
+run146, `docs/GOLDEN.md` §7). The original's chariot `0/8` took its first
+attack on its first frame in range. It spent one `Unit::fight+0x9b0` and
+two `Guy::set_anim+0xf2f`, and its `angle` stayed `1431655765`
+(`0x5555_5555`, 120°, the facing it was born with) through the shot and to
+720. This crate turned it to the bearing (`991232000` in run145,
+`998768640` in run146), deferred the swing into `GuyData +0x9e`, and spent
+a second re-search in place of the two rolls. The item booked no mechanism.
+
+**The disk first, and what it killed** (`docs/journal/2026-09-23-item-595.md`
+has the kill conditions, written before any code). The target and its
+frame agree: `ATTACKORDER ox 8 whom 1` with `new_ord 1` on 633 on both
+sides. The range agrees: `attack.in_range` is 1 on 634 on both sides, a
+row item 595 added to chapter three's widening, because the order
+comparison read the kind and the target and never this field (§44.2.1).
+The reload agrees: `recharging 25` on 634. What was left was the facing.
+
+### 52.1 The rule
+
+`Unit::fight@005fd4d0:591` calls `set_attack(o, who)` once the unit is
+attacking, and **before** it chooses an angle. At `:722`, a non-zero
+answer makes the angle `this->angle` in place of `find_angle` to the
+target (and a wall, broadside or air-target adjustment), so `set_angle`
+does not run and the figures' `des_angle` get the heading they already
+have. The attack goes on in the same frame.
+
+`Unit::set_attack@005fce70`:
+
+- aims figures `0 .. guy_mark` (`UnitData +0xb5`, which is
+  `anim::SQUAD_SIZE`, 1): `GuyData +0x8e ox` and `+0x9f whom`. **A crew
+  figure is not aimed.** run145 prints it: `0/8`'s second figure, the
+  chariot's horse, reads `ox −1 whom −1` from 634 while figure 0 reads
+  `ox 8 whom 1`. This crate had aimed every figure.
+- when the unit's graphic type has `<RESTRICTION>` rows, its type has a
+  `max_range` (`UnitType +0x1fc`), and the target is a live unit or a
+  building, it answers with the **last** of those figures'
+  `Guy::set_all_pivots`. Otherwise it answers 0 and the unit turns.
+
+`Guy::set_all_pivots@005d8bc0` (listing `0x5d8d80..0x5d8f93`):
+
+```text
+if !(guy_flags & 0x100): return 0              # Guy::init_real: the piece has restrictions
+if aim invalid and order != ATTACK_GROUND: return 1
+can = 1
+for node in 4 .. 4 + count:                    # count = the type's rows
+    (lo, hi) = get_restrictions(type, node)    # (0, 0) for a node with no row
+    p = get_position(gpiece, node, facing)     # the node's point, rotated (float)
+    b = find_angle(target − (unit + (int)p))   # from the UNIT's point, not the figure's
+    d = angle_to_degrees(b − guy.angle)        # GuyData +0x18
+    if d > 180: d −= 360
+    if d > 45 or d < −45: can = 0              # 00b69674, 00b697bc
+    inside = lo < hi ? lo ≤ d ≤ hi : d ≥ lo or d ≤ hi
+    if !inside: can = 0; continue
+    des_turret_angles[node − 4] = b − guy.angle; the node bits
+return can
+```
+
+The constants are the PE's own floats (180.0, 360.0, 45.0, −45.0, read at
+`00b696c0`, `00b696e4`, `00b69674` and `00b697bc`). Every compare is on
+whole degrees, so the floats change nothing. A wrapped range (`lo ≥ hi`)
+is an arc through 180°: the Dreadnought's node 5, `45..−45`, is its rear
+turret.
+
+`angle_to_degrees@00a28e00` is **not** `round(a × 360 / 2³²)`. It takes
+the angle apart in steps of truncated constants (90°, 45°, 30°, 15°, 5°:
+`0x4000_0000`, `0x2000_0000`, `0x1555_5555`, `0x0aaa_aaaa`,
+`0x038e_38e3`), and rounds the remainder at `0x005b_05b0` against
+`0x00b6_0b60` a degree. Each step leaves the remainder a few units long,
+so a half degree rounds up a few units early: `5_965_232` reads 1 where
+rounding reads 0. It was checked against the decompiled arithmetic over
+two million random angles and every half-degree edge ±40 units, outside
+the crate. `movement::angle_to_degrees` is written as those steps.
+
+### 52.2 The data
+
+`GraphicPieces::init_pivot_restrictions@008ebfe0` reads
+`unit_graphics.xml`'s 81 `<RESTRICTION name node minangle maxangle>` rows.
+It walks every unit type, names each by its `GRAPH` column
+(`set_unit_graph_name`), and files each row whose `name` matches under
+that type. **The match is case-insensitive**: `String::operator==
+@00a1f140` ends in `_wcsicmp`. So `Cruiser`, `Mameluke`, `Katyusha` and
+`CamelArcher` bind to their upper-case `GRAPH`s, and `SuperBattleship`,
+which no `GRAPH` carries, binds to nothing. The Chariot's row is `CHARIOT
+node 4, −180..180`. `rondata::artdata::pivot_restrictions` reads the rows
+into `sim::anim::Art::pivots` (`TypeIndex → node → (min, max)`). The table
+is gameplay data, as the release frames are (§9.0): it decides whether
+`fight` turns the unit.
+
+### 52.3 The swing that is not deferred
+
+`set_anim`'s attack deferral (`docs/ANIM.md` §6.2) fires while a figure's
+`des_angle` differs from its angle. A unit that keeps its heading owes
+no turn, so the swing plays and **rolls in `fight`'s own frame**. The
+original's trace names both rolls: `Guy::set_anim+0xf2f <
+Unit::set_anim+0x56 < Unit::fight+0x19f6` for figure 0, and `+0xb6` for
+the crew. Those two were the bare `5db22f` at 633. They are
+`anim::SITE_ATTACK_FIGHT` and `SITE_ATTACK_FIGHT_CREW` now, and
+`Unit::set_anim`'s loop marks them, since `fight`'s swing is the one
+caller that asks for an attack with the roll argument set.
+
+### 52.4 What moved
+
+| | before | after |
+|---|---|---|
+| chapter three, run145: word / sequence / values | 633 / 633 / 634 | **682 / 682 / 683** |
+| the restage, run146 | 633 / 633 / 634 | **664 / 664 / 665** |
+| `0/8` on 633–634, both captures | turned, swing deferred, crew aimed | agrees on every row |
+
+**The value diff on the frame it moved**, 634: `0/8`'s `angle`,
+`heading` and both figures' `g.angle` read `1431655765` on both sides
+(ours had `991232000` in run145 and `998768640` in run146). Its crew
+figure's `g.ox`/`g.whom` read −1 on both (ours had `8`/`1` and `6`/`1`).
+Nothing parts on 633 or 634 in either capture.
+
+**What the frame says next.** Values now part before the draws in both
+captures, and none of these rows names a mechanism:
+
+- **run145, 635**: the chariot `0/6` takes its first target, `1/7` here
+  and `1/8` in the dump. The arrows follow the targets, and the word,
+  682, is this crate killing `1/7` (`Unit::close+0xcb6`), which the dump
+  kills on 704.
+- **run146, 651**: `0/8`'s first arrow leaves on the dump's frame, but
+  from the unit's own square and height (`792, 13368, z 198`). The dump's
+  leaves from `764, 13303, z 406`, the archer's release node, which §22's
+  table has not measured for the Chariot.
+- **run146, 664** (the word, 31 draws against 30): `0/9` swings again, and
+  this crate's horse rolls a fresh attack (`+0xb6`) where the original's
+  rolls nothing. This crate's horse has stood on figure 0's slog slot
+  (7) since its first swing on 639. Figure 0 deferred that swing for its
+  turn, the crew rolled at once, and phase 7's mirror (`docs/ANIM.md` §5)
+  then copied figure 0's walk slot into the crew. From then on the horse
+  is walk-category and steps its own clock, so on 664 it is not swinging.
+  The dump prints no figure clock at `GUYS=2`, so no widening row parts
+  on 664 or 665.
+
+### 52.5 What is not established
+
+- **The pivot node's offset.** `GraphicPieces::get_position@0090b750`
+  rotates the node's model-space point by the figure's facing, in
+  floats, and the bearing starts there, truncated to integers. This
+  crate starts it at the unit's point. For the Chariot at shooting range
+  that is under a degree, so it can decide only a bearing within about a
+  degree of ±45°. A pinned per-type table of node offsets would settle it.
+- **The turret angle and node bits** (`+0x30`, `+0x96`, `+0x98`) are not
+  carried. Nothing in the simulation reads them, and `GUYS=2` does not
+  print them.
+- **The air-target clause** (`fight`: a target with domain 2 and the
+  attacker's `has_objmask(0x80000000)` keeps the heading too) is not
+  modelled. No capture has a unit shooting at a plane.
+- **A target with no ids.** `fight` enters `set_attack` only when both
+  ids are ≥ 0. Otherwise its `param_4` stays at 1 and the unit keeps its
+  heading. Whether any attack reaches `fight` that way is not read.
+- **Which attribute is `v[0]`.** `init_pivot_restrictions` reads two
+  floats, and the decompile loses which lands in which slot. This crate
+  takes `minangle` as the low bound. Every Chariot row is symmetric; the
+  asymmetric rows (a PT Boat's `−40..140`) are untested.
+- **The crew figure's slot after a deferred swing** (run146's 664, above).
+
+### 52.6 Coverage
+
+- **Diff-backed**: the Chariot shooting on its heading at 36.9° off, in
+  both captures, on every row of 633–634; the crew figure left unaimed;
+  both roll sites and their callers, named by the trace.
+- **Listing-backed**: the ±45° test and its constants (the PE's floats);
+  the restriction range's two branches; the bearing from the unit's point;
+  `set_attack`'s last-figure answer; the return addresses
+  `0x616f96`/`0x616ff6`.
+- **Reading only**: the case-insensitive binding (the decompile of
+  `String::operator==`, and `a_pivot_restriction_binds_by_graph_whatever_its_case`
+  holds this crate to it); every pivot type other than the Chariot; the
+  wrapped ranges. `a_pivot_that_bears_shoots_without_turning` pins the
+  45° edge and both kinds of range from the same reading.
