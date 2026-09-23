@@ -2023,11 +2023,12 @@ and the residue to 601, both measured.
   window on a map where the AI's route starts on a shoreline cell, with
   the path stack either side of the plan; East Indies is the candidate and
   none of its blocks on disk sits on such a frame.
-- **The `is_supply` arm of the first term.** `type.attack == 0` still
+- ~~**The `is_supply` arm of the first term.** `type.attack == 0` still
   takes the mode when the unit's `is_supply` virtual answers yes
   (`unit_flags2 & 0x40` for the base class). Unimplemented, and named in
   `army_mode`'s own comment; no supply unit in the corpus plans a
-  `find_wpath`.
+  `find_wpath`.~~ Built and diff-backed by item 569: golden chapter
+  four's Supply Wagon plans one on 1101 (§25).
 - **Whether `is_attacking` was ever live.** The claim here is about the
   shipped binary's bytes and nothing else. An earlier build, or an order
   class cut before release, may well have returned 1 from `+0x18`; the
@@ -2362,3 +2363,68 @@ with nothing placed by hand.
 **Reading only**: §24.5's list of `kill_lists` sites and the resume and
 suspend swaps. `find_upath`'s early returns are the ones this word
 measured.
+
+## 25. A Supply Wagon plans as an army: `find_wpath`'s `is_supply` arm (item 569, 2026-09-23)
+
+Golden chapter four's Supply Wagon `1/10` is born on 1101 and sent after
+its army's first member (`docs/ARMY.md` §4.3). Its `find_wpath` from
+world cell (6, 44) to (13, 37) is the first one a supply unit plans in
+any capture. This crate's route was one leg short, and the wagon walked
+its own line from 1102. That was 552's parked "birth path", and 567's
+700 units on 1277.
+
+### 25.1 What the dump said
+
+run133's path stack on 1101, in world cells, top first:
+
+| | route |
+|---|---|
+| the original | (7, 45) (8, 44) (9, 43) (10, 42) (11, 41) (12, 40) (12, 39) (12, 38) (13, 37) |
+| this crate, before | (7, 43) (8, 42) (9, 41) (10, 41) (11, 40) (12, 39) (12, 38) (13, 37) |
+
+The original's first step is **south-east**, away from a goal to the
+north-east. It goes round (7, 43), (7, 44) and (6, 43), which carry
+`0x200` in `WData.flags`. This crate's cost trace priced those cells 36
+and 44, the plain step plus the enemy-territory 4. That is the price
+without the army mode. With it, `base <<= 5` makes each 1024 (§5). The
+cause was named before any reading: the two routes differ exactly on the
+`0x200` cells.
+
+### 25.2 The rule
+
+`find_wpath@00688fc0:218`–`241`: for an AI leader, the mode's first term
+is `type +0x1e8 ≠ 0`, the attack. When the attack is 0, it asks the
+unit's vslot `+0xcc`, `is_supply`, and takes the mode if that answers
+yes. When the slot is the base `UnitData::is_supply@0046ce80` the call is
+inlined as `type +0x2b8 & 0x40`, `unit_flags2`'s supply bit. The six unit
+vtables that carry the slot all hold the base function
+(`vtables.txt`), so the arm is the raw bit. It has no hero exclusion,
+unlike `Sim::is_supply_unit`. No hero reaches it, because heroes are
+armed. `not a worker` and `not on a river cell` follow as before (§3,
+§22).
+
+`Sim::army_mode` carries it now. With it, the wagon's route on 1101 is
+the original's cell for cell. The walk from 1102 agrees, and so does
+every escort post from 1277 (`docs/ORDERS.md` §24.6). The post is the
+wagon's position plus the slot's offset.
+
+### 25.3 What it moved
+
+With `docs/ORDERS.md` §24.9, golden chapter four **1416 → 1500**, its
+trace end. This section removed 89 of the widening's under-the-word rows:
+20 on the wagon from 1101 and 69 on the escort from 1277.
+
+### 25.4 What is not established
+
+- **A hero's arm**: `unit_flags2 & 0x40` on a hero type. The listing
+  takes it, and no armed hero reaches the second term. Not run.
+- **A human's supply unit** jumps the whole mode block (§3). No capture
+  has a human wagon planning.
+
+### 25.5 Coverage
+
+**Diff-backed**: §25.1 and §25.2, by
+`chapter_four_s_word_frame_is_widened_whole`. Its 1101 block asserts both
+routes cell for cell, and it fails on the old route with the arm
+reverted. **Listing-backed**: the vtable census of `+0xcc`. **Unit
+test**: `a_supply_wagon_plans_as_an_army_and_an_unarmed_plain_unit_does_not`.

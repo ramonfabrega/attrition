@@ -33,14 +33,15 @@ been the lower map since 09-21 — so the AI track's default flips to it.*
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w9983 of 24,000 · GreatLakes w12038 of 24,000
-Golden: ch1 closed · ch2 closed · ch5 closed · ch4 w1416 of 1501 · 569 next
+Golden: none pinned · ch1 closed · ch2 closed · ch4 closed · ch5 closed · 578 next, chapter seven
 Endpoint 24001: EastIndies 69 off, 2 unlinked · GreatLakes 41 off, 4 unlinked
 
-**Opener: 2 landings since the eleventh pass: 573 (East Indies 9711 →
-9983, run99 answered the booking's capture) and 567 (chapter four 1277 →
-1416). A commander takes 576 on the AI track and 569 on the rules track,
-then 571; workers spawn with `claude-opus-5-5[1m]`. The count is by
-the log from the pass and stops at twenty.**
+**Opener: 3 landings since the eleventh pass: 573 (East Indies 9711 →
+9983), 567 (chapter four 1277 → 1416) and 569 (chapter four closed at
+1500). att-576 is live on the AI track with run139–140. A commander takes
+578 on the rules track, then 571; workers spawn with
+`claude-opus-5-5[1m]`. The count is by the log from the pass and stops at
+twenty.**
 
 ## The queue
 
@@ -68,13 +69,13 @@ backlog is `docs/PARKED.md`, and an item returns only when a score names it.
     `move_step+0x823`. No mechanism. If PRs #7/#8 land first, a packet at
     11921 with the nine guys' move path run on it is an optional second run.
 
-569. **Golden chapter four's word is 1416: +1 draw, 32 against 31** (567
-    moved it 1277 → 1416 by building GUARD, ORDERS §24). The original
-    spends three `Guy::set_anim+0x97a < Unit::do_move+0x11cf` stands on the
-    wagon `1/10` and one bird coin; ours five bird coins on gaia `9/6` and
-    no stand. On 1416 the original's wagon holds `pause` 15, ours 0. 567's
-    hypothesis, from its widening: the wagon's birth path, one leg short on
-    1101 and its own walk since 1102 (parked by 552). The rules headline.
+578. **Golden chapter seven, the civilians and its control, captured and
+    pinned** — the next chapter without a capture by GOLDEN §14's order,
+    now that 569 closed four at 1500. `chapter7.cmd` over `[605, 1200)`,
+    once as scripted and once with `!ai off` deleted; without the control
+    the first measures nothing. Runs **run141** (civilians) and **run142**
+    (control), minted here. Falsifiers written into the `.cmd` before the
+    run; the word pinned with its widening. No mechanism.
 
 ## How to maintain this file
 

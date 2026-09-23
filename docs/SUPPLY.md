@@ -585,16 +585,21 @@ distance, with the distance measured per tick by `vector_dist` in tiles:
 
 That **brackets** `SUPPLY_RADIUS` 14 between 13 and 23. The edge itself
 is still not observed. The wagon's following the squad is itself a
-behaviour this document does not describe. This crate's wagon takes a
+behaviour this document does not describe. ~~This crate's wagon takes a
 path one leg shorter on its birth block (1101) and walks a slightly
-different line from 1102.
+different line from 1102.~~ Since item 569 this crate's wagon walks the
+original's line. Its world path plans as an army through `is_supply`
+(`docs/PATHFINDER.md` §25), and it waits for its escort's captain through
+`do_attack_to_pause` (`docs/ORDERS.md` §24.9).
 
 ~~**Not diff-backed.** The squads part at 1277 (`docs/GOLDEN.md` §8), before
 the wagon comes within reach, so this crate's veto is never compared in
 this capture.~~ **Diff-backed since item 567**: with the escort built
 (`docs/ORDERS.md` §24) the squads stay together, and `sheltered` agrees on
 every block to 1500 — every veto from 1385 on, and every landed tick
-before it. What stays unobserved is the edge: this crate's wagon still
+before it. What stays unobserved is the edge. ~~This crate's wagon still
 walks its own line, so the distance the veto was decided at is not the
-original's, and the 13–23 tile bracket stands.
+original's, and~~ The wagon's position now agrees on every block (item
+569), so each veto is decided at the original's own distance. The 13–23
+tile bracket is the capture's, and it stands.
 
