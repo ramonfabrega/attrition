@@ -5129,12 +5129,14 @@ fn chapter_seven_b_s_control_holds_to_the_golden_word() {
     let Some(w) = walk_script("ch7bc", "chapter7b_control", 7, 6, 1200) else {
         return;
     };
+    // Closed at the trace's end since item 647: no value parts either
+    // (`GOLDEN_WORD_CHAPTER_SEVEN_B_CONTROL`).
     assert_eq!(
         (w.word, w.sequence, w.value),
         (
             GOLDEN_WORD_CHAPTER_SEVEN_B_CONTROL,
             GOLDEN_WORD_CHAPTER_SEVEN_B_CONTROL,
-            Some(GOLDEN_WORD_CHAPTER_SEVEN_B_CONTROL + 1)
+            None
         ),
         "chapter seven-b's control's word moved"
     );
@@ -5481,7 +5483,7 @@ fn chapter_seven_b_s_word_frame_is_widened_whole() {
             "ch7bc",
             "chapter7b_control",
             WIDENING_CHAPTER_SEVEN_B_CONTROL,
-            (1187, 1188),
+            (1199, 1200),
         ),
     ] {
         let Some(firsts) = widen_civilians(run, stem, window, 1200, 1, print) else {
@@ -5542,6 +5544,14 @@ fn chapter_seven_b_s_word_frame_is_widened_whole() {
         // `BUILDORDER` to the word, as the original's does: on 1177 both
         // sides hold explore-to (40248, 23160) and the `BUILDORDER` on
         // `1/2009`, at (40271, 18360). Nothing new parts on 1177..1188.
+        // **Item 647's block** (the delta is in the constant's comment):
+        // the scout `1/0`'s eighteen rows are gone — its path from 1077
+        // (47 nodes against 48, `path[41..46].to`), its position, figures
+        // and `dest_y` from 1116, and its `dest`/`dest_x` from 1137. The
+        // path was built across the Small City `1/2007`'s footprint, which
+        // this crate's who=1 had not seen: `Wall::start` now writes the
+        // owner's bit over it (`docs/SCOUT.md` §14). The window is the
+        // capture whole, and only the group id on 990 stands.
         let mut got: Vec<String> = firsts
             .iter()
             .filter(|((_, _, what), (f, _))| *f > window.0 && what != "form")
@@ -5551,27 +5561,7 @@ fn chapter_seven_b_s_word_frame_is_widened_whole() {
         let want: &[&str] = if run == "ch7b" {
             &["847 1/0 order:move.facing"]
         } else {
-            &[
-                "1077 1/0 path:length",
-                "1077 1/0 path[41].to",
-                "1077 1/0 path[42].to",
-                "1077 1/0 path[43].to",
-                "1077 1/0 path[44].to",
-                "1077 1/0 path[45].to",
-                "1077 1/0 path[46].to",
-                "1116 1/0 g.angle[0]",
-                "1116 1/0 g.angle[1]",
-                "1116 1/0 g.x[1]",
-                "1116 1/0 g.y[0]",
-                "1116 1/0 g.y[1]",
-                "1116 1/0 heading",
-                "1116 1/0 order:move.dest_y",
-                "1116 1/0 pos",
-                "1120 1/0 g.x[0]",
-                "1137 1/0 order:move.dest",
-                "1138 1/0 order:move.dest_x",
-                "990 1/1 group",
-            ]
+            &["990 1/1 group"]
         };
         assert_eq!(got, want, "{run}: what parts under the word moved");
         assert!(
@@ -7457,5 +7447,101 @@ fn chapter_three_s_catapult_after_its_reload() {
     assert!(
         parted.is_empty(),
         "run146's catapult after its reload: {parted:#?}"
+    );
+}
+
+/// **Chapter seven-b's control: the scout's search on 1076, priced step
+/// for step against the original's** (item 647, run157). The capture's
+/// `rontrace.cfg` proxies `PathFinder::astar_path` and `calc_cost` over
+/// the whole run, so the search that built `1/0`'s explore path (block
+/// 1077, 48 nodes against this crate's 47) is on disk call for call.
+/// Every step both sides price is compared on its whole argument list
+/// (`docs/PATHFINDER.md` §17's key); a key only one side priced is the
+/// search parting, and is counted, not compared.
+#[test]
+fn chapter_seven_b_s_control_scout_search_is_priced_as_the_original() {
+    let Some(inst) = crate::testenv::install() else {
+        return;
+    };
+    let Some((dump, tracepath)) = golden("ch7bc") else {
+        eprintln!("skipping: no golden capture ch7bc (see docs/RUNS.md)");
+        return;
+    };
+    let trace = crate::trace::Trace::read(std::path::Path::new(&tracepath))
+        .expect("a finalized golden trace")
+        .expect("missing RONT header");
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(&dump);
+    let log = Log::parse(&text);
+    let texts = sibling_texts();
+    let logs = siblings(&texts);
+    let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+    let refs: Vec<&Initial> = inits.iter().collect();
+    if refs.is_empty() {
+        eprintln!("skipping: no sibling dumps");
+        return;
+    }
+    let mut built = stand_up(&loaded, &log, &refs, &trace);
+    let mut script = script_named("chapter7b_control");
+    const SEARCH: i64 = 1076;
+    while built.sim.frame < SEARCH {
+        script.stage(built.sim.frame, &mut built, &loaded);
+        built.tick();
+    }
+    script.stage(built.sim.frame, &mut built, &loaded);
+    built.sim.trace_costs = true;
+    built.tick();
+    let ours = std::mem::take(&mut built.sim.cost_marks);
+    let theirs = trace.calls_in(SEARCH, crate::trace::call_site::CALC_COST);
+    let theirs_by_key: std::collections::BTreeMap<sim::path::CostKey, i32> = theirs
+        .iter()
+        .map(|c| (c.cost_key().expect("a calc_cost call"), c.ret))
+        .collect();
+    let mut shared = 0usize;
+    let mut wrong: Vec<String> = Vec::new();
+    for m in &ours {
+        let Some(&t) = theirs_by_key.get(&m.key()) else {
+            continue;
+        };
+        shared += 1;
+        if t != m.cost {
+            wrong.push(format!(
+                "({},{})->({},{}) depth {}: ours {} theirs {t}",
+                m.from.0 / m.step,
+                m.from.1 / m.step,
+                m.to.0 / m.step,
+                m.to.1 / m.step,
+                m.depth,
+                m.cost,
+            ));
+        }
+    }
+    eprintln!(
+        "run157 f{SEARCH}: ours {} steps, theirs {}, {shared} shared, {} priced apart",
+        ours.len(),
+        theirs.len(),
+        wrong.len()
+    );
+    for w in &wrong {
+        eprintln!("  {w}");
+    }
+    // **The floor, before the fix** (item 647, `33952d3`): 969 steps here
+    // against 945, 587 shared, and nine priced apart, every one into cell
+    // (48,31) or (47,31), the south half of the Small City `1/2007`'s
+    // footprint (started on 1069, `mylos 0`). The original priced them
+    // seen — 128 base, 20 × 9 of blocked tiles, − 4 own ground, + 8 on a
+    // diagonal, so 304 and 312 — and this crate as unseen scouting ground,
+    // 1 and 9 (`docs/PATHFINDER.md` §5). `Wall::start`'s write of the
+    // owner's bit over the footprint is what lights them (`docs/SCOUT.md`
+    // §14): with it the two searches are one, step for step.
+    assert_eq!(
+        (ours.len(), theirs.len(), shared),
+        (945, 945, 945),
+        "run157 f{SEARCH}: the search's steps moved"
+    );
+    assert_eq!(
+        wrong,
+        Vec::<String>::new(),
+        "run157 f{SEARCH}: steps priced apart"
     );
 }

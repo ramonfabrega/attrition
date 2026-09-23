@@ -1221,6 +1221,25 @@ impl Sim {
         // on the map four frames before their scheduled replans
         // (`docs/ROADS.md` §1).
         self.place_roads(b);
+        // **The owner's own bit over the footprint** (`Wall::start@0063e810`,
+        // the loop between `mask_me` and `check_ever_seen`): every tile of
+        // the `x_size × y_size` rectangle — not grown, as
+        // `update_local_seen`'s is — on the map ors `1 << who` into
+        // `seen2` at its half-cell, `tile >> 1`, and into the cell's `WData
+        // +0x14`, which this world does not keep. A raw byte write, so no
+        // `set_seen` side effect follows. It matters where the owner's line
+        // of sight does not reach: the AI places a city out of its own
+        // sight, and its scout's search then prices that footprint as seen
+        // ground (run157's 1076, `docs/VISION.md` §6.1, `docs/SCOUT.md`
+        // §14).
+        let who = self.buildings[b].owner;
+        if who < 8 && self.world.has_fog() {
+            for t in self.footprint(ty, corner) {
+                if self.world.tile_in_bounds(t) {
+                    self.world.set_seen2_only(t.x >> 1, t.y >> 1, 1 << who);
+                }
+            }
+        }
         // `Wall::start@0063e810`'s own last-but-one statement.
         self.check_ever_seen(b, false);
     }
