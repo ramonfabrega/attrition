@@ -1,23 +1,35 @@
 # Typed state oracle: working review
 
 **Pilot typed snapshots as an additional diagnostic oracle. Do not replace the
-gamelog yet.** The first end-frame capture validates a useful scalar bridge,
+gamelog yet.** Checkpoint 2 validates broad scalar and whole observed GUY-record agreement,
 recovers exact terrain bits and exposes state the selected logger records omit.
 It also falsifies the idea that PDB field names alone settle container lifetime,
 runtime type or logger ownership. The four-step charter is still in progress.
 No main score, parser, comparator, queue or simulation code changes here.
 
-Work starts at main `5c8e6d4` on `codex/typed-state-oracle`. The continuation
-line stays parked at L87 (`3ff12db`, `codex/continuation-lab`); L88's later
-owner-gap observation remains available at `c205210`. The A* replay remains
-available for counterfactuals.
+The live review is consolidated in **PR #7**, rebased on `origin/main`
+`d892281` for this steering pass. PR #9's entire checkpoint-2 tranche is folded
+in. PRs #5 and #6 are closed as superseded review surfaces without rebasing;
+their replay branches, native witnesses and ledger rows remain available.
+The continuation line remains parked at L87 (`3ff12db`), with L88 at `c205210`.
+No worktree or branch belonging to the recomp spike is modified.
+
+### Main-loop-adjacent changes to read first
+
+| Change | Disposition and evidence |
+| --- | --- |
+| Two optional end-frame hooks | In this PR, isolated hook wiring now at `193cc10`, with return-root checks at `b060278`. RVA `0x5329d0` is logger entry; `0x192586` is the normal post-logger continuation. Both are under `RON_STATE_FRAME`, preserve extended state, and exclude restore probes. Main's twelve intervening commits do not touch `tracer.c`. Rebuilt default main/lab COFF objects are byte-identical after timestamp normalization; snapshot variant builds. |
+| PR #6's post-graph prerequisite guard | Parked at `1eea6d0`, **not in this PR**. It requires `RON_RESTORE_POSTSTATE` when `RON_RESTORE_POSTGRAPH` is set. The current main/typed-state tracer has no post-graph collector path, so adopting the guard alone is not a prerequisite for this pilot. Read it with the parked replay capability if revisiting that line. |
+
+No collector was launched for the rebase check; the packet remains read-only.
+The [steering index](STEERING-INDEX.md) is the single navigation page.
 
 ## Measured checkpoint
 
 | Charter question | Evidence | What remains open |
 | --- | --- | --- |
 | Type the heap | The earlier retained packet joins 1,855 discovered PE32 vtables to complete PDB layouts. In the new packet, active-leader unit registries yield 800 non-null slots, 127 with the logger's active bit, and no unresolved identities or identity disagreements after RTTI dispatch. | These are registry slots, not allocator objects. Live-allocation count/coverage remain unknown. Complete graph traversal and group/ammo membership are unfinished. |
-| Agree with the logger | All 107 dumped UnitData records link to typed objects. The scoped UnitData/WORLD bridge matches 8,225 integer occurrences: 7,904 raw and 321 after the documented coordinate XOR. Zero mismatches within this subset. | The frame contains 602,211 observable occurrences: 578,604 unmapped, 15,181 unclassified text lines and 201 ambiguous container-key occurrences remain. Full logger parity is **not** established. |
+| Agree with the logger | 516,369 of 602,211 printed occurrences agree, representing 179,583 distinct storage references. All 107 UnitData identities link; every field of all 228 observed GUY records agrees. Three WORLD copies independently match 111,600 grid values and 3,600 × 15 cell scalars. Zero scoped mismatches. | 70,460 unmapped, 15,181 unclassified text and 201 ambiguous occurrences remain. Full logger parity is **not** established. |
 | Measure the excess | All 58,081 terrain float32 bit patterns are retained. 2,058 corners have ambiguous six-decimal projections; nearest-decimal reconstruction differs at 1,422. Twenty active-flag Animal registry entries under owner 9 have no UnitData record in this frame. | Current bits do not prove initial bits. Registry flags do not prove allocation liveness. The complete excess-field matrix remains unfinished. |
 | Head-to-head | One Great Lakes run supplies a packet after market tick 11,185, a six-frame logger window and overlap with the now-retained run123. Run/build/restore takes 221.19 s; copying takes 249 ms, success receipt at 250 ms. | No independent market-cause answer or controlled wall-time comparison has been completed. This is acquisition timing, not a claimed investigation speedup. |
 
@@ -91,14 +103,13 @@ bridge never advertises whole-record agreement.
 
 ## Coverage pin and terrain precision
 
-The charter cites 232 unread keys. The actual `UNREAD` literal at base
-`5c8e6d4` contains **226 path/key pairs across 18 paths**; its surrounding prose
-has older counts. This report derives its denominator from that literal.
-On the captured frame, 223 pairs appear: all observed occurrences match for
-70 pairs, 153 are not fully matched, and three are absent. The matched pairs
-are 25 UnitData plus six ObjectData keys on each of the unit and animal paths,
-and WORLD's eight resource-total keys. This does **not** change main's read
-coverage or establish comparison with the port.
+The unread-key denominator is parsed from the source literal, never its
+historical comments. At the original base `5c8e6d4`, checkpoint 2 fully matches
+164 of 226 path/key pairs on this frame (59 partial, three absent). **On the
+rebased `d892281` source, the pin is 367 keys across 19 paths: 152 fully matched,
+212 partial, three absent.** Main widened its leader reader and changed the
+pin; neither measurement is silently carried over as the other's denominator.
+No main parser or coverage pin is edited by this lab.
 
 The current height grid's exact-byte hash is
 `7788322c83527366091bc97f37bbe338b36cbbe233c2e2904db8c476e938fbe5`.
@@ -167,26 +178,30 @@ PYTHONPATH=tools/explore python3 tools/explore/typed_height_precision.py EXTERNA
 snapshot when a concrete question needs hidden storage or exact float bits.
 **Park replacement:** complete logger coverage, full rooted liveness and a
 controlled live-item head-to-head remain prerequisites for that claim.
-The next offline work is the leader/container bridge, explicit coverage of the
-remaining printed occurrences, and group/ammo traversal through their owning
-registries. A retained `objects` root already exposes a typed `ammo_objs` array;
+Coverage expansion stops at this checkpoint. The next investigation is the
+charter step-4 state-side head-to-head on item 327: the Merchant offer at
+trace tick 11185, with an explicit one-hour bound and falsifiers. A retained `objects` root already exposes a typed `ammo_objs` array;
 it was not an acquisition anchor and is not counted as validated ammo membership.
 No further capture is needed for that work on this packet.
 
 
-### Final checkpoint validation and continuation
+### Checkpoint-2 validation and reproduction
 
-At code tip `ea54c51`, all **54 focused tests** pass, followed by the full
-release gate: **1,278 tests**, 885 fixture requests across 141 unique fixtures,
-zero missing, plus clippy, formatting, install survey and paperwork. The
-committed decoder reproduces the archived typed-state artifact byte for byte.
-This validation/handoff note receives the final paperwork guard separately.
+Before rebasing, code `b8e4d79` passes 86 acquisition/oracle tests and the full
+release gate: 1,278 release tests, 885 fixture requests with none missing,
+clippy, formatting and paperwork. Fresh packet-to-report reproduction takes
+21.41 seconds and writes an approximately 11 MB gzipped complete comparison.
+Synthetic memory-view mutations over the retained packet produce exactly
+three tile-mask mismatches and two negative-zero GUY-word mismatches. The
+original packet is unchanged. Rebased validation is recorded with this pass.
 
-An unpromoted follow-up probe is retained as `followup/leader-encrypted-pilot.py`
-and `.json` in the external evidence archive. Following the PDB-declared
-`data_encrypted` pointer and applying the owned getters' transformations matches
-12 resource/income/cap arrays (76 scalar occurrences) across the four logged
-leaders. Its first six-element assumption failed: the PDB's cap array has seven
-entries. This probe is **not included** in the 8,225-occurrence bridge or the
-70-pin result; promoting it requires authored failure controls and explicit
-array/field ownership. It is the next offline opener, not a request for a capture.
+```sh
+PYTHONPATH=tools/explore python3 tools/explore/typed_oracle_compare.py INSTALL CAPTURE EXPORT PLAN/plan.json EXTERNAL_OUTPUT
+PYTHONPATH=tools/explore python3 tools/explore/typed_pin_coverage.py crates/rondata/src/diff/coverage.rs EXTERNAL_OUTPUT/comparison.json.gz
+```
+
+Detailed evidence: [leader projections](2026-09-22-leader-bridge.md),
+[world grids and cell boundaries](2026-09-22-world-grid-bridge.md), and
+[complete observed GUY records](2026-09-22-guy-state-bridge.md). The additional
+124-output encrypted-leader probe remains unpromoted; it is not part of the
+reported coverage and is not the priority for this steering pass.
