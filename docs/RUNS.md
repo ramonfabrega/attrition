@@ -5595,6 +5595,77 @@ gathers from is taken on the survey. `docs/AI.md` §62. The word moves to
 `run152_s_word_frame_is_widened_whole`, keeps the move's value diff on
 10981..10983.
 
+## run156 — chapter seven-b, the computer's civilians with the AI off (2026-09-23, item 628)
+
+`docs/GOLDEN.md` §11's restage, from `tools/gamelog/golden/chapter7b.cmd`:
+`!ai off` at 0, `library who=1 2` at 600, then `add citizen`, `caravan`,
+`merchant`, `scholar` and `fur` for player 1 at 610–630, on the clear
+south-east side of London (tiles 228–232, 92–108). This is the first capture
+on this disk to stage a who=1 unit on London's ground. It is run141's
+command with the chapter swapped:
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch7b \
+    --map 14 --end-frame 1200 --log-window 605 1200 --timeout 3600 \
+    --detail end:UNITS=3,GUYS=2,BUILDS=7,CITIES=5,GOODS=3,LEADERS=2 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 \
+    --cmd-file tools/gamelog/golden/chapter7b.cmd
+```
+
+`success: true`, exit 0, 1201 frames, `MAP_STYLE 14` and seed 12345 read
+back, five settings files restored. One take: **295 s from launch to exit,
+106 MB of dump and 10 MB of trace**. All nine `INFO cmd` records returned 1.
+There are 596 blocks: 1 and 605..1199. The `.cmd` predicted 597, but no
+`!quit` block at 1201 was written this time. No test reads it.
+
+### The predictions, committed before the run as `4fa528f`
+
+| check | predicted | observed |
+| --- | --- | --- |
+| births | five who=1 `UNITDATA` on 611, 616, 621, 626, 631 | exactly, `1/6..1/10`; guy types 50, 59, 61, 52, 400 |
+| `unit_masks & 0x40000` on all five | set, by `Unit::init:585` | set on every birth block |
+| the citizen | `GATHERORDER` on its first think, 611 or 612 | **611**, its birth block |
+| the caravan, the scholar | no order | none, to 1199 |
+| the merchant, the fur trapper | lower confidence: may take an order in both runs | `MOVEORDER` on birth; `CASTORDER` on 900 and on 1151 |
+
+### §11's falsifiers
+
+- **The first fires, by construction**: the citizen's `GATHERORDER` on
+  611, held and carried through 1199 (`unit_masks` `0x10000000` on 793).
+- The second is run157's.
+- **The third**: this crate parts at **1148**, the fur trapper's turn, 13
+  draws against 14. It is not the seam. See `docs/GOLDEN.md` §11.
+
+## run157 — chapter seven-b's control, the same with the AI on (2026-09-23, item 628)
+
+run156's line with `~/ron-golden/ch7bc` and `--cmd-file
+tools/gamelog/golden/chapter7b_control.cmd`, which is `chapter7b.cmd` less
+`0 !ai off`.
+
+**The first take stalled before the menu.** The game sat at 100% CPU for
+nineteen minutes. `rontrace.log` stayed at 544 bytes: eight lines parsed at
+attach, none run. The dump never left the profile. That is the click-free
+lane's pre-menu failure, which `docs/lab/2026-09-09-autostart.md` records
+twice. I stopped the game (`kill` of its own pid, never a Wine-wide kill).
+The runner wrote a failed receipt (`ValueError: process failed: 1`,
+`settings_restored: true`, five files) and restored the profile. The take
+is kept aside as `~/ron-golden/ch7bc-stalled`.
+
+**The second take**: `success: true`, exit 0, 1201 frames, map and seed read
+back, five files restored, **335 s, 114 MB of dump and 11 MB of trace**. All
+eight `INFO cmd` records returned 1. There are 595 blocks: 605..1199, with
+no toggle block and no `!quit` block.
+
+- **§11's second falsifier does not fire**: the citizen, `1/9` here (the AI
+  trained three citizens before 605), holds its `GATHERORDER` on 611, as in
+  run156.
+- **The five act as in run156** except for the merchant's cast, on 887
+  against 900
+  (`chapter_seven_b_s_civilians_act_alike_with_the_ai_off_and_on`).
+- **The pair is one game through frame 0 and parts on frame 1**, 12 draws
+  against 54 (`chapter_seven_b_s_pair_is_one_game_until_the_gate`).
+- This crate parts at **1036**, on who=1's own `1/1`, 8 draws against 7.
 ## run155 — East Indies' word 11069, past run152's last block (2026-09-23, item 620)
 
 **What it is.** run152's game and line past its last block:

@@ -4972,6 +4972,172 @@ fn chapter_seven_s_control_holds_to_the_golden_word() {
     );
 }
 
+/// **Chapter seven-b's pair is one game until `ai off` is first read**
+/// (item 628): run156 is `chapter7b.cmd` and run157
+/// `chapter7b_control.cmd`, the same file less `0 !ai off`. As chapter
+/// seven's pair, the draw streams agree through frame 0 and part on
+/// frame 1, where `Leader::production_ai` first reads the flag.
+#[test]
+fn chapter_seven_b_s_pair_is_one_game_until_the_gate() {
+    let (Some((_, a)), Some((_, b))) = (golden("ch7b"), golden("ch7bc")) else {
+        eprintln!("skipping: chapter seven-b needs both run156 and run157 (docs/RUNS.md)");
+        return;
+    };
+    let read = |p: &str| {
+        crate::trace::Trace::read(std::path::Path::new(p))
+            .expect("a finalized golden trace")
+            .expect("missing RONT header")
+    };
+    let (ta, tb) = (read(&a), read(&b));
+    let parted = (0..=1200).find(|&f| ta.labels(f) != tb.labels(f));
+    let agreed: usize = (0..parted.unwrap_or(1201))
+        .map(|f| ta.labels(f).len())
+        .sum();
+    assert_eq!(
+        parted,
+        Some(1),
+        "the pair parts where `ai off` is first read"
+    );
+    assert_eq!(agreed, 120, "frame 0's draws, identical in the pair");
+    eprintln!(
+        "chapter seven-b: frame 1 is {} draws in run156 and {} in run157",
+        ta.labels(1).len(),
+        tb.labels(1).len()
+    );
+}
+
+/// **What `ai off` takes from a computer's civilians in `Unit::think`:
+/// nothing, and it could not** (item 628, run156 and run157;
+/// `docs/INPUT.md` §11.10). Every one of the five carries `unit_masks &
+/// 0x40000` from its birth — `Unit::init@00612100:585` sets it for a leader
+/// whose `flags & 0xc` is not 4, and who=1's is `0x13` — so the cheat's
+/// block in `Unit::think` (`:206`) is entered and its one exit (`:264`)
+/// never taken. The citizen takes its `GATHERORDER` on its birth block
+/// under `!ai off`, which is `docs/GOLDEN.md` §11's first falsifier; the
+/// control's citizen takes the same order on the same block, which is the
+/// second's not firing.
+///
+/// The five are found by their birth blocks, never by slot: the AI trains
+/// three citizens in the control before 605, so they are `1/9..1/13` there
+/// and `1/6..1/10` in run156.
+#[test]
+fn chapter_seven_b_s_civilians_act_alike_with_the_ai_off_and_on() {
+    use std::collections::BTreeMap;
+    let (Some((a, _)), Some((b, _))) = (golden("ch7b"), golden("ch7bc")) else {
+        eprintln!("skipping: chapter seven-b needs both run156 and run157 (docs/RUNS.md)");
+        return;
+    };
+    // birth block → (guy type, masks at birth, first block of each order kind)
+    type Five = BTreeMap<i64, (Option<i64>, i64, BTreeMap<String, i64>)>;
+    let five = |p: &str| -> Five {
+        let mut ix = crate::capture::indexed::IndexedCapture::open(p).unwrap();
+        let mut born: BTreeMap<i64, i64> = BTreeMap::new();
+        let mut out = Five::new();
+        for at in 0..ix.frames().len() {
+            let frame = ix.frame_state(at).unwrap();
+            if frame.n < 605 {
+                continue;
+            }
+            for u in frame.units.iter().filter(|u| u.who == 1) {
+                let birth = *born.entry(u.o).or_insert(frame.n);
+                if ![611, 616, 621, 626, 631].contains(&birth) {
+                    continue;
+                }
+                let e = out.entry(birth).or_insert_with(|| {
+                    (
+                        u.guys.first().and_then(|g| g.kind),
+                        u.unit_masks.unwrap_or(0),
+                        BTreeMap::new(),
+                    )
+                });
+                for o in &u.orders {
+                    e.2.entry(o.kind.clone()).or_insert(frame.n);
+                }
+            }
+        }
+        out
+    };
+    let (fa, fb) = (five(&a), five(&b));
+    for (run, f) in [("run156", &fa), ("run157", &fb)] {
+        let types: Vec<(i64, Option<i64>)> = f.iter().map(|(n, e)| (*n, e.0)).collect();
+        assert_eq!(
+            types,
+            [
+                (611, Some(50)),
+                (616, Some(59)),
+                (621, Some(61)),
+                (626, Some(52)),
+                (631, Some(400))
+            ],
+            "{run}: the five's births and types"
+        );
+        assert!(
+            f.values().all(|e| e.1 & 0x40000 != 0),
+            "{run}: a civilian of who=1 without `unit_masks & 0x40000`"
+        );
+        let firsts = |n: i64| -> Vec<(String, i64)> {
+            f[&n].2.iter().map(|(k, v)| (k.clone(), *v)).collect()
+        };
+        assert_eq!(
+            firsts(611).first(),
+            Some(&("GATHERORDER".to_string(), 611)),
+            "{run}: the citizen gathers on its birth block"
+        );
+        assert!(firsts(616).is_empty(), "{run}: the caravan takes an order");
+        assert!(firsts(626).is_empty(), "{run}: the scholar takes an order");
+        assert_eq!(
+            firsts(631),
+            [
+                ("CASTORDER".to_string(), 1151),
+                ("MOVEORDER".to_string(), 631)
+            ],
+            "{run}: the fur trapper's orders"
+        );
+    }
+    // The merchant is the one of the five whose orders differ in time:
+    // it casts on 900 under `!ai off` and on 887 without it.
+    let cast = |f: &Five| f[&621].2.get("CASTORDER").copied();
+    assert_eq!((cast(&fa), cast(&fb)), (Some(900), Some(887)));
+}
+
+/// **Chapter seven-b, walked** — the computer's civilians under the cheat
+/// (`docs/GOLDEN.md` §11, item 628, run156). Seven staged lines: `!ai off`,
+/// `library who=1 2`, and the five `add`s for who=1 beside London.
+#[test]
+fn chapter_seven_b_holds_to_the_golden_word() {
+    let Some(w) = walk_script("ch7b", "chapter7b", 7, 7, 1200) else {
+        return;
+    };
+    assert_eq!(
+        (w.word, w.sequence, w.value),
+        (
+            GOLDEN_WORD_CHAPTER_SEVEN_B,
+            GOLDEN_WORD_CHAPTER_SEVEN_B,
+            Some(GOLDEN_WORD_CHAPTER_SEVEN_B + 1)
+        ),
+        "chapter seven-b's golden word moved; re-pin it here and say so in \
+         docs/GOLDEN.md §11"
+    );
+}
+
+/// **Chapter seven-b's control, walked to the same end** (item 628,
+/// run157: `chapter7b_control.cmd`, six staged lines, the Leader AI on).
+#[test]
+fn chapter_seven_b_s_control_holds_to_the_golden_word() {
+    let Some(w) = walk_script("ch7bc", "chapter7b_control", 7, 6, 1200) else {
+        return;
+    };
+    assert_eq!(
+        (w.word, w.sequence, w.value),
+        (
+            GOLDEN_WORD_CHAPTER_SEVEN_B_CONTROL,
+            GOLDEN_WORD_CHAPTER_SEVEN_B_CONTROL,
+            Some(GOLDEN_WORD_CHAPTER_SEVEN_B_CONTROL + 1)
+        ),
+        "chapter seven-b's control's word moved"
+    );
+}
+
 /// One `GOOD` record of a frame block, in the block's order — the order
 /// the start block's list, and so this crate's `World::goods`, has
 /// (`diff::setup`). `Good::log_data@0066e610` writes the type's name as a
@@ -5018,6 +5184,178 @@ fn frame_goods(raw: &str) -> Vec<FrameGood> {
     out
 }
 
+/// **One golden capture of the civilians' chapters, widened whole**
+/// (items 578 and 628): every record on every block of `[first, last)` —
+/// [`crate::diff::harness::widen_block`] on every unit, figure, building
+/// and city, the leader record for both players at `LEADERS=2`, and the
+/// per-frame `GOOD` list keyed on `o`. The civilians of `who` (`o >= 6`)
+/// are printed both sides on the blocks of `print`. Returns each parted
+/// key's first block and row; `None` when the capture is not on disk.
+#[allow(clippy::type_complexity)]
+fn widen_civilians(
+    run: &str,
+    stem: &str,
+    (first, last): (i64, i64),
+    no_block: i64,
+    who: i64,
+    print: (i64, i64),
+) -> Option<std::collections::BTreeMap<(i64, i64, String), (i64, String)>> {
+    use std::collections::{BTreeMap, BTreeSet};
+    let mut s = stage_script(run, stem)?;
+    let players = s.built.sim.players.len();
+    let mut firsts: BTreeMap<(i64, i64, String), (i64, String)> = BTreeMap::new();
+    let mut missing: BTreeSet<String> = BTreeSet::new();
+    let (mut blocks, mut rows, mut leader_rows, mut good_rows) = (0usize, 0, 0, 0);
+    let mut unread_goods = 0usize;
+    for f in 0..last - 1 {
+        s.script.stage(s.built.sim.frame, &mut s.built, &s.loaded);
+        s.built.tick();
+        let n = f + 1;
+        if n < first {
+            continue;
+        }
+        let Some(at) = s.ix.frames().iter().position(|x| x.number == n) else {
+            continue;
+        };
+        let frame = s.ix.frame_state(at).unwrap();
+        blocks += 1;
+        let (_, k) = crate::diff::harness::widen_block(&s.built, &frame, players, n, &mut firsts);
+        rows += k;
+        let raw = s.ix.read_frame(at).unwrap();
+        let flog = Log::parse(&raw);
+        for who in 0..2usize {
+            let Some(block) = flog.leader_block(n, who as i64) else {
+                continue;
+            };
+            let t = crate::diff::leader::theirs(&block);
+            for (k, v) in crate::diff::leader::rows(&s.loaded, &s.built, who) {
+                let Some(&y) = t.get(&k) else {
+                    missing.insert(k);
+                    continue;
+                };
+                leader_rows += 1;
+                if v != y {
+                    firsts
+                        .entry((who as i64, -1, format!("leader:{k}")))
+                        .or_insert((n, format!("ours {v} theirs {y}")));
+                }
+            }
+        }
+        // **The `GOOD` list, both directions**, keyed on the good's own
+        // `o`, which is its index in this crate's `World::goods`
+        // (`diff::setup` installs the start block's list in order).
+        // **The dump cannot print `o 0`'s header**: every block writes
+        // the first good's `SubObject` fields straight after the last
+        // `GUY` of the list before it, with no `BEGIN GOOD`, no name and
+        // no `ever_seen` — run141's line 583513, and the same on every
+        // frame. So `o 0` is counted as unreadable, not compared.
+        let theirs: BTreeMap<i64, FrameGood> =
+            frame_goods(&raw).into_iter().map(|g| (g.o, g)).collect();
+        let ours = s.built.sim.world.goods();
+        for i in 0..ours
+            .len()
+            .max(theirs.keys().max().map_or(0, |&o| o as usize + 1))
+        {
+            let (a, g) = match (theirs.get(&(i as i64)), ours.get(i)) {
+                (Some(a), Some(g)) => (a, g),
+                (None, Some(_)) if i == 0 => {
+                    unread_goods += 1;
+                    continue;
+                }
+                (a, _) => {
+                    let side = if a.is_some() {
+                        "the dump"
+                    } else {
+                        "this crate"
+                    };
+                    firsts
+                        .entry((255, i as i64, "good".to_string()))
+                        .or_insert((n, format!("{side} holds it alone")));
+                    continue;
+                }
+            };
+            let name = s
+                .loaded
+                .good_tree
+                .iter()
+                .position(|&t| t == g.ty)
+                .map_or("?", |r| s.loaded.good_names[r].as_str());
+            let seen = (0..2u8)
+                .filter(|&w| s.built.sim.good_ever_seen(g.pos, w))
+                .fold(0i64, |m, w| m | (1 << w));
+            for (what, mine, dumped) in [
+                ("x", i64::from(g.pos.x), a.x),
+                ("y", i64::from(g.pos.y), a.y),
+                ("alive", i64::from(g.alive), a.flags & 1),
+                ("ever_seen", seen, a.ever_seen),
+                ("type", i64::from(name == a.name), 1),
+            ] {
+                good_rows += 1;
+                if mine != dumped {
+                    firsts
+                        .entry((255, i as i64, format!("good:{what}")))
+                        .or_insert((n, format!("ours {mine} theirs {dumped} ({})", a.name)));
+                }
+            }
+        }
+        // **Both sides printed once** on the citizen's two blocks, for
+        // the five: the record a draw would be spent in, before any
+        // quiet row is trusted.
+        if (print.0..=print.1).contains(&n) {
+            for them in frame.units.iter().filter(|u| u.who == who && u.o >= 6) {
+                let mine = i16::try_from(them.o)
+                    .ok()
+                    .and_then(|o| s.built.sim.unit_by_o(who as u8, o))
+                    .map(|u| &s.built.sim.units[u]);
+                eprintln!("  {run} block {n} {who}/{} theirs {them:?}", them.o);
+                match mine {
+                    Some(u) => eprintln!(
+                        "  {run} block {n} {who}/{} ours pos {:?} idle {} orders {:?} guys {:?}",
+                        them.o, u.pos, u.idle, u.orders, u.guys
+                    ),
+                    None => eprintln!("  {run} block {n} {who}/{} ours: absent", them.o),
+                }
+            }
+        }
+    }
+    let mut by_block: BTreeMap<i64, Vec<String>> = BTreeMap::new();
+    for ((w, o, what), (f, row)) in &firsts {
+        by_block
+            .entry(*f)
+            .or_default()
+            .push(format!("{w}/{o} {what}: {row}"));
+    }
+    for (f, rows) in &by_block {
+        if rows.len() <= 12 {
+            for r in rows {
+                eprintln!("  {run} f{f} {r}");
+            }
+        } else {
+            eprintln!("  {run} f{f}: {} keys, first {}", rows.len(), rows[0]);
+        }
+    }
+    eprintln!(
+        "widening {run}: {blocks} blocks [{first}, {last}), {rows} record rows, \
+         {leader_rows} leader rows, {good_rows} good rows ({unread_goods} unreadable), \
+         {} keys parted; {} leader keys not printed at LEADERS=2",
+        firsts.len(),
+        missing.len()
+    );
+    let absent = usize::from((first..last).contains(&no_block));
+    assert_eq!(
+        blocks,
+        (last - first) as usize - absent,
+        "{run}'s dump no longer carries every frame of [{first}, {last})"
+    );
+    assert_eq!(
+        leader_rows,
+        2 * 88 * blocks,
+        "{run}: the leader rows LEADERS=2 prints are not compared on every block"
+    );
+    assert!(good_rows > 0, "{run}: the GOOD list is not read");
+    Some(firsts)
+}
+
 /// **Chapter seven's word, widened whole, both directions, on both
 /// captures** (item 578, `docs/DECISIONS.md` 43). Every record run141 and
 /// run142 carry on every block of [`WIDENING_CHAPTER_SEVEN`]:
@@ -5040,168 +5378,16 @@ fn frame_goods(raw: &str) -> Vec<FrameGood> {
 /// out on every block; it is keyed on `o` now.
 #[test]
 fn chapter_seven_s_word_frame_is_widened_whole() {
-    use std::collections::{BTreeMap, BTreeSet};
     const FIRST: i64 = WIDENING_CHAPTER_SEVEN.0;
     const LAST: i64 = WIDENING_CHAPTER_SEVEN.1;
     /// The window is 605..1199 and the `!quit` block is 1201.
     const NO_BLOCK: i64 = 1200;
     let mut summaries = Vec::new();
     for (run, stem) in [("ch7", "chapter7"), ("ch7c", "chapter7_control")] {
-        let Some(mut s) = stage_script(run, stem) else {
+        let Some(firsts) = widen_civilians(run, stem, (FIRST, LAST), NO_BLOCK, 0, (763, 764))
+        else {
             return;
         };
-        let players = s.built.sim.players.len();
-        let mut firsts: BTreeMap<(i64, i64, String), (i64, String)> = BTreeMap::new();
-        let mut missing: BTreeSet<String> = BTreeSet::new();
-        let (mut blocks, mut rows, mut leader_rows, mut good_rows) = (0usize, 0, 0, 0);
-        let mut unread_goods = 0usize;
-        for f in 0..LAST - 1 {
-            s.script.stage(s.built.sim.frame, &mut s.built, &s.loaded);
-            s.built.tick();
-            let n = f + 1;
-            if n < FIRST {
-                continue;
-            }
-            let Some(at) = s.ix.frames().iter().position(|x| x.number == n) else {
-                continue;
-            };
-            let frame = s.ix.frame_state(at).unwrap();
-            blocks += 1;
-            let (_, k) =
-                crate::diff::harness::widen_block(&s.built, &frame, players, n, &mut firsts);
-            rows += k;
-            let raw = s.ix.read_frame(at).unwrap();
-            let flog = Log::parse(&raw);
-            for who in 0..2usize {
-                let Some(block) = flog.leader_block(n, who as i64) else {
-                    continue;
-                };
-                let t = crate::diff::leader::theirs(&block);
-                for (k, v) in crate::diff::leader::rows(&s.loaded, &s.built, who) {
-                    let Some(&y) = t.get(&k) else {
-                        missing.insert(k);
-                        continue;
-                    };
-                    leader_rows += 1;
-                    if v != y {
-                        firsts
-                            .entry((who as i64, -1, format!("leader:{k}")))
-                            .or_insert((n, format!("ours {v} theirs {y}")));
-                    }
-                }
-            }
-            // **The `GOOD` list, both directions**, keyed on the good's own
-            // `o`, which is its index in this crate's `World::goods`
-            // (`diff::setup` installs the start block's list in order).
-            // **The dump cannot print `o 0`'s header**: every block writes
-            // the first good's `SubObject` fields straight after the last
-            // `GUY` of the list before it, with no `BEGIN GOOD`, no name and
-            // no `ever_seen` — run141's line 583513, and the same on every
-            // frame. So `o 0` is counted as unreadable, not compared.
-            let theirs: BTreeMap<i64, FrameGood> =
-                frame_goods(&raw).into_iter().map(|g| (g.o, g)).collect();
-            let ours = s.built.sim.world.goods();
-            for i in 0..ours
-                .len()
-                .max(theirs.keys().max().map_or(0, |&o| o as usize + 1))
-            {
-                let (a, g) = match (theirs.get(&(i as i64)), ours.get(i)) {
-                    (Some(a), Some(g)) => (a, g),
-                    (None, Some(_)) if i == 0 => {
-                        unread_goods += 1;
-                        continue;
-                    }
-                    (a, _) => {
-                        let side = if a.is_some() {
-                            "the dump"
-                        } else {
-                            "this crate"
-                        };
-                        firsts
-                            .entry((255, i as i64, "good".to_string()))
-                            .or_insert((n, format!("{side} holds it alone")));
-                        continue;
-                    }
-                };
-                let name = s
-                    .loaded
-                    .good_tree
-                    .iter()
-                    .position(|&t| t == g.ty)
-                    .map_or("?", |r| s.loaded.good_names[r].as_str());
-                let seen = (0..2u8)
-                    .filter(|&w| s.built.sim.good_ever_seen(g.pos, w))
-                    .fold(0i64, |m, w| m | (1 << w));
-                for (what, mine, dumped) in [
-                    ("x", i64::from(g.pos.x), a.x),
-                    ("y", i64::from(g.pos.y), a.y),
-                    ("alive", i64::from(g.alive), a.flags & 1),
-                    ("ever_seen", seen, a.ever_seen),
-                    ("type", i64::from(name == a.name), 1),
-                ] {
-                    good_rows += 1;
-                    if mine != dumped {
-                        firsts
-                            .entry((255, i as i64, format!("good:{what}")))
-                            .or_insert((n, format!("ours {mine} theirs {dumped} ({})", a.name)));
-                    }
-                }
-            }
-            // **Both sides printed once** on the citizen's two blocks, for
-            // the five: the record a draw would be spent in, before any
-            // quiet row is trusted.
-            if (763..=764).contains(&n) {
-                for them in frame.units.iter().filter(|u| u.who == 0 && u.o >= 6) {
-                    let mine = i16::try_from(them.o)
-                        .ok()
-                        .and_then(|o| s.built.sim.unit_by_o(0, o))
-                        .map(|u| &s.built.sim.units[u]);
-                    eprintln!("  {run} block {n} 0/{} theirs {them:?}", them.o);
-                    match mine {
-                        Some(u) => eprintln!(
-                            "  {run} block {n} 0/{} ours pos {:?} idle {} orders {:?} guys {:?}",
-                            them.o, u.pos, u.idle, u.orders, u.guys
-                        ),
-                        None => eprintln!("  {run} block {n} 0/{} ours: absent", them.o),
-                    }
-                }
-            }
-        }
-        let mut by_block: BTreeMap<i64, Vec<String>> = BTreeMap::new();
-        for ((w, o, what), (f, row)) in &firsts {
-            by_block
-                .entry(*f)
-                .or_default()
-                .push(format!("{w}/{o} {what}: {row}"));
-        }
-        for (f, rows) in &by_block {
-            if rows.len() <= 12 {
-                for r in rows {
-                    eprintln!("  {run} f{f} {r}");
-                }
-            } else {
-                eprintln!("  {run} f{f}: {} keys, first {}", rows.len(), rows[0]);
-            }
-        }
-        eprintln!(
-            "ch7 widening {run}: {blocks} blocks [{FIRST}, {LAST}), {rows} record rows, \
-             {leader_rows} leader rows, {good_rows} good rows ({unread_goods} unreadable), \
-             {} keys parted; {} leader keys not printed at LEADERS=2",
-            firsts.len(),
-            missing.len()
-        );
-        let absent = usize::from((FIRST..LAST).contains(&NO_BLOCK));
-        assert_eq!(
-            blocks,
-            (LAST - FIRST) as usize - absent,
-            "{run}'s dump no longer carries every frame of [{FIRST}, {LAST})"
-        );
-        assert_eq!(
-            leader_rows,
-            2 * 88 * blocks,
-            "{run}: the leader rows LEADERS=2 prints are not compared on every block"
-        );
-        assert!(good_rows > 0, "{run}: the GOOD list is not read");
         summaries.push((run, firsts));
     }
     // **The standing rows of each capture's first block**, none of them
@@ -5268,6 +5454,130 @@ fn chapter_seven_s_word_frame_is_widened_whole() {
         assert_eq!(got, want, "{run}: what parts under the word moved");
         // **The `GOOD` list agrees whole** on every block, `ever_seen`
         // included, bar the one good the dump cannot print.
+        assert!(
+            !firsts
+                .keys()
+                .any(|(w, _, what)| *w == 255 || what.starts_with("good")),
+            "{run}: a good parts"
+        );
+    }
+}
+
+/// **Chapter seven-b's words, widened whole, both directions, on both
+/// captures** (item 628). Every record run156 and run157 carry on every
+/// block of [`WIDENING_CHAPTER_SEVEN_B`], by [`widen_civilians`].
+#[test]
+fn chapter_seven_b_s_word_frame_is_widened_whole() {
+    for (run, stem, window, print) in [
+        ("ch7b", "chapter7b", WIDENING_CHAPTER_SEVEN_B, (1148, 1149)),
+        (
+            "ch7bc",
+            "chapter7b_control",
+            WIDENING_CHAPTER_SEVEN_B_CONTROL,
+            (1036, 1037),
+        ),
+    ] {
+        let Some(firsts) = widen_civilians(run, stem, window, 1200, 1, print) else {
+            return;
+        };
+        for ((w, o, what), (f, row)) in &firsts {
+            eprintln!("  {run} f{f} {w}/{o} {what}: {row}");
+        }
+        // **The standing rows of the first block**, chapter seven's
+        // families: the unmodelled `form`, two leader `bucket`s and two
+        // `filled_gather_slots`, the two capitals' `CITIES` rows — and
+        // who=1's five `resource_cap`s, 1392 here against the original's
+        // 2992: `library who=1 2` at 600 raises the original's cap
+        // (run141, without it, prints 1392) and not this crate's. The
+        // control adds its scout `1/0`'s `group` and explore-order
+        // `facing`, as chapter seven's control does.
+        let standing = |what: &str| {
+            what == "form"
+                || what.starts_with("leader:bucket")
+                || what.starts_with("leader:filled_gather_slots")
+                || what.starts_with("leader:resource_cap")
+                || what.starts_with("city:")
+        };
+        let control = |what: &str| what == "group" || what == "order:move.facing";
+        let at_floor: Vec<&String> = firsts
+            .iter()
+            .filter(|(_, (f, _))| *f == window.0)
+            .map(|((_, _, what), _)| what)
+            .collect();
+        let floor = if run == "ch7b" { 34 } else { 39 };
+        assert!(
+            at_floor
+                .iter()
+                .all(|w| standing(w) || (run == "ch7bc" && control(w)))
+                && at_floor.len() == floor,
+            "{run}: the standing rows on the first block moved ({}): {at_floor:?}",
+            at_floor.len()
+        );
+        // **What parts under each word**, pinned by block and key, none of
+        // it a mechanism (`docs/GOLDEN.md` §11). run156: the scout `1/0`'s
+        // `facing` from 847, as in chapter seven; the merchant `1/8` stands
+        // 24 units off the original's when its cast ends on 1070; and the
+        // fur trapper `1/10`'s move is handed another `dest_y` on 1091,
+        // 14408 against 14804, whose turn is the word. run157: the
+        // computer's own `1/1` is grouped differently from 990 — group 64
+        // against 65, one order against three, no `form_mod` against 50 —
+        // and idles on the word where the original's walks; and who=1's
+        // food bucket from 1018.
+        let mut got: Vec<String> = firsts
+            .iter()
+            .filter(|((_, _, what), (f, _))| *f > window.0 && what != "form")
+            .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
+            .collect();
+        got.sort();
+        let want: &[&str] = if run == "ch7b" {
+            &[
+                "1070 1/8 g.x[0]",
+                "1070 1/8 g.x[1]",
+                "1070 1/8 g.y[0]",
+                "1070 1/8 g.y[1]",
+                "1070 1/8 orders_x",
+                "1070 1/8 orders_y",
+                "1070 1/8 pos",
+                "1091 1/10 angle:Heading",
+                "1091 1/10 heading",
+                "1091 1/10 order:move.dest_y",
+                "1091 1/10 path[0].to",
+                "1092 1/10 angle:Facing",
+                "1092 1/10 g.angle[0]",
+                "1092 1/10 g.angle[1]",
+                "1092 1/10 g.angle[2]",
+                "1092 1/10 g.x[1]",
+                "1093 1/10 g.y[1]",
+                "1095 1/10 g.x[0]",
+                "1095 1/10 g.x[2]",
+                "1095 1/10 pos",
+                "1149 1/10 g.y[0]",
+                "1149 1/10 g.y[2]",
+                "847 1/0 order:move.facing",
+            ]
+        } else {
+            &[
+                "1005 1/1 order:move.angle",
+                "1005 1/1 order:move.dest",
+                "1018 1/-1 leader:bucket[0:food]",
+                "1036 1/1 angle:Heading",
+                "1036 1/1 heading",
+                "1037 1/1 angle:Facing",
+                "1037 1/1 g.angle[0]",
+                "1037 1/1 idle",
+                "1037 1/1 order:action",
+                "1037 1/1 order:flags",
+                "1037 1/1 path:length",
+                "990 1/1 dest_angle",
+                "990 1/1 form_mod",
+                "990 1/1 group",
+                "990 1/1 order:length",
+                "990 1/1 orders.len",
+                "990 1/1 orders_x",
+                "990 1/1 orders_y",
+            ]
+        };
+        assert_eq!(got, want, "{run}: what parts under the word moved");
         assert!(
             !firsts
                 .keys()
