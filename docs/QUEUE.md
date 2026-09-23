@@ -29,12 +29,13 @@ the rules track closed chapters four (1500), seven (1200) and three
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w13640 of 24,000 · GreatLakes w12038 of 24,000
-Golden: ch6 w616 of 901 · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch7 closed · restage closed · ch7b closed · ch7b-control closed · 650 next
+Golden: ch6 w700 of 901 · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch7 closed · restage closed · ch7b closed · ch7b-control closed · 652 next
 Endpoint 24001: EastIndies 45 off, 12 unlinked · GreatLakes 41 off, 0 unlinked
 
-**Opener: eleven landings since the twelfth pass's commit. Chapter six
-is captured and open at 616. 571 has the AI lane (Great Lakes, the lower
-map); spawn 650 on the rules lane. 643 follows 571. Stop at twenty.**
+**Opener: twelve landings since the twelfth pass's commit. Chapter six
+is open at 700, `bird`'s frame. 571 has the AI lane (Great Lakes, the
+lower map); spawn 652 on the rules lane. 643 follows 571. Stop at
+twenty.**
 
 ## The queue
 
@@ -53,13 +54,14 @@ backlog is `docs/PARKED.md`, and an item returns only when a score names it.
     against 5, `move_step+0x823`. No mechanism. Optional second run if a
     lane is free: a packet at 11922 with the nine guys' move path on it.
 
-650. **Chapter six's word is 616: the Bomber's birth frame** (648
-    captured run168; §10's second falsifier fired, an aircraft staged
-    outside a base never moves, and the chapter is pinned open as
-    measured). On 616 ours 25 draws against 24: an extra
-    `Unit::fight+0x9b0` the original does not spend, on the Bomber `1/6`'s
-    birth. Widened whole. No mechanism. On the rules lane next; the
-    six-b restage with an Airbase is parked 651.
+652. **Chapter six's word is 700: `bird`, which the harness does not
+    stage** (650 moved it 616 → 700: `poor_target`'s plane arm and
+    `valid_target_const`'s air ladder, COMBAT §61). Block 700 agrees on
+    every record; 701 parts on the AI scout `1/0`'s `think_scout` roll,
+    one draw early, because this crate spawns no bird (`CHAPTER_DEBT`).
+    The crate has the bird (`gaia.rs`, `air.rs`); the cheat is
+    `spawn_bird` at the cursor. The cursor's value is the question
+    (parked 653). No mechanism. On the rules lane next.
 
 643. **East Indies' word is 13640, past every capture** (642 moved it
     11747 → 13640: `Region::go_here` reads the human's `reg_cities`
