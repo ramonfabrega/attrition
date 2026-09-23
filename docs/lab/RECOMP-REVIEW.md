@@ -2,8 +2,11 @@
 
 **Status: steps 1 and 2 done and diff-verified; two float functions
 bit-exact against unicorn — 1,088 chosen vectors through `norm`, 5,715
-chosen banks through `air_turn_speed`'s truncation; step 3's mechanical
-share counted at 91 %; step 4 not started. 2026-09-22.** The spike ran on
+chosen banks through `air_turn_speed`'s truncation; a live queue item
+(327) answered from the frame, and `Leader::create_units` — 264 lifted
+functions — reproducing the original's memory writes on it byte for
+byte; step 3's mechanical share counted; step 4 attempted (the frame stops
+at its 19th instruction on a region the packet excludes). 2026-09-22.** The spike ran on
 the charter lore sent on 2026-09-22 (worktree `recomp-spike`, independent of
 the commander's loop, score-neutral). The charter asked: can
 `riseofnations.exe` be statically recompiled, one function at a time, into
@@ -125,6 +128,112 @@ VM's `^`, and rendering — so a gameplay function that reaches a DLL
 mid-frame was not found, and `Ammo::init@0067bbf0`'s half-angle quaternion
 is the one gameplay-adjacent user of the DLL-built sine table.
 
+## A live item answered from the frame: 327, the Merchant offer
+
+Lore's charter for the last hours of the spike (2026-09-22, with Ramon):
+take one open item of the queue and answer it from the packet, as the
+demonstration of what the tool is for. Item 327 (`docs/QUEUE.md`), the AI
+headline, widened at 11185 on run123 — the frame Astra's packet was taken
+on. **As the item states it**: ours draws nine against eight at index 2,
+`use_market+0x1ed` against `make_stuff+0x221`; the original's `MAKE[1]` is
+an emptied Merchant slot (`t −1`) where ours holds a Cataphract;
+"`reg_known_rares` has no writer, so the merchant arm is dead"; owed are
+that writer, the offer's value, and the re-offer's emptied slot
+(ECONOMY §14.4).
+
+**What the frame answered**, in the order it was asked, each with its
+address so the next reader can check the bytes:
+
+1. **`reg_known_rares` is written, and the arm is live — in the original.**
+   Leader 1 (`LeaderData` at `0x00e4127c`, the leaders' bases from Astra's
+   decode, `leader_flags` at `+0x0`): `known_rares` (`+0x6d4`) = **4**,
+   `reg_known_rares[1]` (`+0x4d4 + 4`) = **4**, the other 63 regions 0;
+   Merchants queued (`num_queued[61]`, `+0x5a22 + 122`) = 0, alive
+   (`+0x56fe + 122`) = **3**; `effective_pop` (`+0x9e0`) = 57 against
+   `pop_cap` (`+0x7e4`) = 75. So `create_units@006c40a0`'s gate at line
+   1044 — `known − queued ≠ alive`, `known − queued − alive ≥ 0`,
+   `effective_pop < pop_cap − 1` — is **open** for leader 1 on this frame,
+   and closed for the other nine (their fields are all zero). "No writer,
+   dead arm" is true of this crate's census, which zeroes the array and
+   nothing writes; the original's writer (`Leader::plan_strategy`, per
+   §14.4) has run. Falsifier: a nonzero at `0x00e4127c+0x6d4` in the
+   packet; it is `04 00 00 00`.
+2. **The emptied slot and the live offer are both in the list.** Leader 1's
+   `make_list` (`+0x6ec8`; `length` at `+4` = 11, `list` at `+0x10` =
+   `0x0b983210`; `MakeObject` is 0x28 bytes: `t, val, escrow, city, up, o,
+   num, cat, wx, wy`): `MAKE[1]` = **`t −1`, val 909,090, escrow 1, cat 4**
+   — §14.3's emptied Merchant slot, still there a frame later — and
+   `MAKE[4]` = **`t 61` (Merchant), val 909,090, escrow 1, cat 4**, the live
+   offer; the Cataphract (`t 227`) is at `MAKE[2]` at 775,195.
+3. **The offer's value, executed.** `Leader::create_units` on leader 1 runs
+   to completion under unicorn on the packet — 438,303 instructions, 66
+   functions entered, no import needed, 0.16 s — and re-offers a Merchant
+   at **227,272** into slot 3 (`MakeList::make_me+0x13f` writes it). Its
+   arithmetic, read off the run and then off the bytes: the base is
+   1,000,000 (`+0x12fb`); `+0x2274` is `idiv edi` after `imul eax, esi`,
+   **k × 1,000,000 / (k + queued + alive)** with k = `pop_cap × 2 / 5` = 30
+   (min 4): 30,000,000 / 33 = **909,090**; `+0x22cd` is `sar eax, 8` after
+   `imul eax, esi` with `Leader::check_income@006cc800`'s return, **64**
+   here (a quarter, in 8.8): 909,090 × 64 / 256 = **227,272**. §14.4's
+   "1,000,000 divided by 1.15, 1.1 and 4.4" is therefore 20/23 (k = 20,
+   pop cap 50, three Merchants), 30/33 (k = 30, pop cap 75), and 30/33 × ¼
+   — the same formula at three states, not three constants.
+4. **The port has the formula.** `crates/sim/src/ai_units.rs`:
+   `offer_value(fac, want, val, divisor)` is `fac × (want × val / divisor)
+   / 256` with `divisor = want + queued + units` and `want_civ = pop_cap ×
+   2 / 5` (min 4); the merchant arm returns `(1_000_000, 4, want_civ)`
+   with escrow 1 and gates on `Σ reg_known_rares − queued − units > 0` and
+   `effective_pop < cap − 1`. Given `known_rares = 4`, three alive, k = 30
+   and `check_income = 64`, it would answer 227,272 to the digit. So of the
+   three things the item says are owed, **one is owed: the writer of
+   `reg_known_rares`** (the value formula is already the original's, and
+   the emptied slot is `make_me`'s handling of a re-offered type — visible
+   in the list, not yet read). What the census must produce on this frame:
+   4 known rares in region 1 for leader 1.
+5. **Native against unicorn on the same run.** The 61 functions the run
+   called (recorded as the block entered after each `call`, the only exact
+   way — attributing blocks to the nearest map symbol misses callees with
+   no symbol of their own) and their direct callees, 264 functions, lifted
+   into one build; `difftest.py run` enters `create_units` on leader 1 in
+   both machines with the same TEB as `fs:` and the imports stubbed alike:
+   **`eax` identical (0x192), and the make list (0x1b8 bytes), its header
+   and the whole `LeaderData` (0x6ee4 bytes) byte-identical after the
+   run** — native in under a millisecond, unicorn in 23 ms. The AI's whole
+   production planner, as recompiled C, reproducing the original's memory
+   writes on real state.
+
+   Getting there found the one real gap the scan had hidden: **jump
+   tables.** Discovery had stopped at `jmp [4*reg + table]` and counted
+   the function as lifted; a `switch` case reached at run time was then
+   dispatched as if it were a function — `City::count_gather_slots`'s
+   recursed without end, `ObjectData::count_inside`'s trapped. The lifter
+   now reads the table from the image, bounded by the `cmp reg, N` before
+   the jump (or, for MSVC's two-level form `movzx idx, byte [orig + first];
+   jmp [4*idx + table]`, by the byte table's maximum), and emits an
+   in-function `switch` of `goto`s.
+
+**Wall time**, from lore's brief to the formula: about forty minutes, the
+first ten of them the packet reads (steps 1 and 2), against the steering
+page's price of a capture plus a widening — 221 s for the capture alone and
+about 4 USD a frame inside a fight. **And the loop landed item 327 in the
+same hours**, on its own route (merged at `1c27e71`, booked at `4d9d873`):
+it built the writer, the value and the emptied slot, and Great Lakes moved
+11185 → 11531. So this section is not the item's answer; it is an
+**independent confirmation of the same formula from the original's own
+state**, with the bytes, sent to the commander as a reading and booked
+nowhere. That is the honest measure of the method: the same fact, by a
+route that read no source and ran no capture, in under an hour.
+
+**Adopt / pilot / park, in my words: adopt the method, pilot the tool.**
+The method is "an open question whose answer is a value the original holds
+or computes, read or executed on a captured frame" — and this section is
+its first instance on a live item: the item's facts in under an hour, from
+a packet that already existed, with the addresses to check them, agreeing
+with what the loop then landed by its own route. The tool is what made
+steps 3 and 4 minutes rather than a reading: run the function, watch the
+writes, find the value, read the two instructions. Pilot rather than adopt
+because it consumes the lab's packet and decode, which are not on `main`.
+
 ## Step 3: what share of the cited functions lifts mechanically
 
 `tools/recomp/scan.py --docs docs` takes every `name@<8 hex>` citation in
@@ -132,23 +241,25 @@ the top-level `docs/*.md` (as the paperwork guard reads them), lifts each
 function on its own — callees named, not followed — and compiles each
 lift to an object. Eight seconds.
 
-| | first subset | after `bt`/`bts`/`btr`/`btc`, `rol`/`ror`, `rep stos`/`movs`, `fs:` as a guest TIB |
-|---|---|---|
-| addresses cited, in `.text` | 771 (of 779 cited) | 771 |
-| **lifted and compiled** | 555 (72 %) | **698 (91 %)** |
-| stopped at `fs:` — the SEH prologue's `mov eax, fs:[0]` | 149 | 0 |
-| stopped at an SSE instruction | 39 | 70 |
-| stopped at `bt`/`bts`/`btr`, `rol`, a string op | 28 | 0 |
-| stopped at a `lock` prefix (interlocked ops) | — | 3 |
-| x87, undecodable, ran into the next function, discovery looping | 0 each | 0 each |
+| | first subset | + `bt`/`bts`/`btr`/`btc`, `rol`/`ror`, string ops, `fs:` as a TIB | + scalar SSE, imports, jump tables |
+|---|---|---|---|
+| addresses cited, in `.text` | 771 (of 779 cited) | 771 | 771 |
+| **lifted and compiled** | 555 (72 %) | 698 (91 %) | **741 (96 %)** |
+| stopped at `fs:` — the SEH prologue's `mov eax, fs:[0]` | 149 | 0 | 0 |
+| stopped at an SSE instruction | 39 | 70 | 26 (packed ops, `cmpss`, `shufps` and kin) |
+| stopped at `bt`/`bts`/`btr`, `rol`, a string op | 28 | 0 | 0 |
+| stopped at a `lock` prefix (interlocked ops) | — | 3 | 3 |
+| stopped at x87 | 0 | 0 | 1 |
+| undecodable, ran into the next function, discovery looping | 0 | 0 | 0 |
 
-The residue is now one thing: **SSE, 70 functions**, and a share of those
-are data moves, not arithmetic — `xorps xmm0, xmm0` and `movaps`/`movups`
-of sixteen bytes are how this compiler zeroes and copies structs
-(`PathFinder::find_wpath`, `PathFinder::init`, `Army::init`); the count of
-the ones that do float arithmetic was not taken. "Lifted and compiled" is
-not "runs correctly": three functions are diff-verified. The per-function
-rows are in `target/recomp/scan.tsv` after a run.
+Two cautions on the column. The middle one was **optimistic**: discovery
+stopped at a jump table's `jmp [4*reg + table]` and counted the function
+as lifted with its `switch` cases unexplored; the last column follows the
+tables, which is why one x87 hit and more code appear rather than fewer.
+And "lifted and compiled" is not "runs correctly": the functions that are
+diff-verified are the five of the sweeps and the frame families, and the
+264 of `create_units`' run on one input. The per-function rows are in
+`target/recomp/scan.tsv` after a run.
 
 ## What changed our understanding (the image findings, kept and corrected)
 
@@ -236,7 +347,22 @@ differential test on real frames is cheap on both machines.
 - The active-unit list comes from the lab's decode, not from the packet's
   `units` bands; the driver checks each unit against its band but does not
   enumerate the bands itself.
-- Step 4 (how far a frame runs with imports stubbed) was not attempted.
+- Step 4 (how far a frame runs with imports stubbed): attempted with
+  unicorn as the explorer (`step4.py`: the capturing thread's TEB found in
+  the packet by its self-pointer and made `fs:` through a GDT, a fresh
+  stack, the clock/heap/thread imports stubbed). `Game::do_frame` on the
+  game stops at its **19th instruction** on a read of `0x7a84642c`, a
+  region the packet does not hold (it selects private data and the main
+  image; that address is in neither). What it would take is the packet
+  widened to that region, or its reader's answer laid out; not pursued,
+  because item 327 was worth more. The same explorer runs `create_units`,
+  438k instructions, to its return — so the machinery is there and the
+  frame's first missing input is named.
+- The COMBAT §20.3 table (`GraphicPieces::positions`, built at load from
+  the `.bh3` models, which the loop cannot build) is in the packet — the
+  singleton is at `0x00c06214` (`llvm-pdbutil` prints `S_GDATA32` offsets
+  in decimal; the first read at `0x…6532` was junk for that reason). Not
+  read out; a candidate for the same method.
 - The scan counts functions the specification cites, not the executable's
   22,199; the share over all of `.text` is not known.
 

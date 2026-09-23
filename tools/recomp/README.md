@@ -27,6 +27,16 @@ nothing from the install is committed.
   vector and on 1,088 chosen vectors, and `Unit::air_turn_speed` on every
   unit with 22 chosen banks — the float diff. The unicorn machine has the
   imports stubbed with the same semantics `rt/runtime.c` gives them.
+- `difftest.py … run <snapshot> --entry <va> --this <va> --dump <va>+<n>` —
+  one function on the packet in both machines (the same TEB as `fs:`, a
+  fresh stack, the imports stubbed alike), the named memory compared byte
+  for byte afterwards.
+- `step4.py` — the explorer: a function on the packet under unicorn with
+  `fs:` on the capturing thread's TEB and a stub table that answers the
+  clock, heap and thread imports; reports what stopped it, what ran, the
+  exact functions it called (and whether they lift), `--watch` for who
+  writes a range, `--find` for the instruction that first produces a
+  value. Step 4 of the charter, and how item 327 was read.
 - `snapshot.py` — the lab's `frame-snapshot-v1` stream as guest memory.
 - `scan.py` — lifts and compiles every function a set of documents cites,
   and groups the failures by the instruction that stopped them.

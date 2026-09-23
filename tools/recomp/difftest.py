@@ -154,7 +154,7 @@ class EmuMachine(callfn.Machine):
                 return
             uc.reg_write(UC_X86_REG_XMM0, fn(uc.reg_read(UC_X86_REG_XMM0)))
 
-        self.uc.hook_add(UC_HOOK_CODE, on_stub, begin=STUBS, end=STUBS + 0xFFF)
+        self.stub_hook = self.uc.hook_add(UC_HOOK_CODE, on_stub, begin=STUBS, end=STUBS + 0xFFF)
 
     def patch_iat(self):
         """Point every IAT slot at its stub — again after a snapshot is
@@ -332,21 +332,104 @@ def run_frame(exe, snap_path, typed_state, lib, table):
     return 1 if bad else 0
 
 
+def run_function(exe, snap_path, lib, entry, this, dumps):
+    """One function on the packet, both machines: the same TEB as `fs:`, a
+    fresh stack, the imports stubbed the same way, and the memory ranges
+    named by `--dump` compared byte for byte afterwards, with `eax`."""
+    from step4 import FRAME_STACK, FRAME_STACK_SIZE, Stubs, find_teb, set_fs
+    image = callfn.Image(exe)
+    snap = Snapshot(snap_path)
+    imports = PEImage(exe).imports()
+    (teb, _, tid), _ = find_teb(snap, snap.thread)
+    native = NativeMachine(image, lib)
+    native.load(snap)
+    native.map(FRAME_STACK, FRAME_STACK_SIZE)
+    emu = EmuMachine(image, imports)
+    load_into_unicorn(emu, image, snap)
+    emu.patch_iat()
+    emu.uc.mem_map(FRAME_STACK, FRAME_STACK_SIZE)
+    set_fs(emu.uc, teb)
+    stubs = Stubs(emu.uc)
+    emu.uc.hook_del(emu.stub_hook)
+    from unicorn import UC_HOOK_CODE
+
+    def on_stub(uc, address, size, _):
+        if not stubs.handle(emu.stubs.get(address, "?")):
+            emu.unstubbed = emu.stubs.get(address, "?")
+            uc.emu_stop()
+
+    emu.uc.hook_add(UC_HOOK_CODE, on_stub, begin=STUBS, end=STUBS + 0xFFF)
+    print(f"snapshot frame {snap.frame}; fs: -> TEB {teb:08x} (thread {tid}); entering {entry:08x} with this={this:08x}")
+    results = {}
+    for name, m in (("unicorn", emu), ("native", native)):
+        esp = FRAME_STACK + FRAME_STACK_SIZE - 0x100
+        m.write(esp - 4, struct.pack("<I", SENTINEL))
+        t0 = time.perf_counter()
+        try:
+            if name == "native":
+                c = Cpu()
+                c.esp, c.ecx, c.mem, c.fs_base = esp - 4, this, native.mem, teb or 0
+                if native.lib.rc_call(ctypes.byref(c), entry):
+                    raise RuntimeError(f"trap: {native.lib.rc_trap_message().decode()}")
+                if c.eip != SENTINEL:
+                    raise RuntimeError(f"returned to {c.eip:08x}, not the sentinel")
+                eax = c.eax
+            else:
+                from unicorn.x86_const import UC_X86_REG_EAX, UC_X86_REG_ECX, UC_X86_REG_EIP, UC_X86_REG_ESP
+                emu.uc.reg_write(UC_X86_REG_ESP, esp - 4)
+                emu.uc.reg_write(UC_X86_REG_ECX, this)
+                emu.uc.emu_start(entry, SENTINEL, count=100_000_000)
+                if emu.uc.reg_read(UC_X86_REG_EIP) != SENTINEL:
+                    raise RuntimeError("did not return" + (f": import not stubbed: {emu.unstubbed}" if emu.unstubbed else ""))
+                eax = emu.uc.reg_read(UC_X86_REG_EAX)
+            outcome = f"eax={eax:#x}"
+        except Exception as e:  # noqa: BLE001 — the row is the failure
+            outcome = f"trap({e})"
+        t1 = time.perf_counter()
+        results[name] = (outcome, [m.read(va, n) for va, n in dumps])
+        print(f"  {name}: {outcome} in {t1 - t0:.3f}s")
+    agree = results["unicorn"][0] == results["native"][0]
+    for (va, n), u, nat in zip(dumps, results["unicorn"][1], results["native"][1]):
+        same = u == nat
+        agree &= same
+        diff = sum(1 for a, b in zip(u, nat) if a != b)
+        print(f"  dump {va:08x}+{n:x}: {'identical' if same else f'{diff} bytes differ'}")
+        if not same:
+            for off in range(0, n, 16):
+                if u[off:off + 16] != nat[off:off + 16]:
+                    print(f"    {va + off:08x}  unicorn {u[off:off + 16].hex()}  native {nat[off:off + 16].hex()}")
+    print("machines agree" if agree else "machines DISAGREE")
+    return 0 if agree else 1
+
+
 def main(argv):
     args = argv[1:]
     lib = os.path.join(HERE, "..", "..", "target", "recomp", "librecomp.dylib")
-    table = None
-    for flag in ("--lib", "--table"):
-        if flag in args:
+    table, entry, this, dumps = None, None, None, []
+    for flag in ("--lib", "--table", "--entry", "--this", "--dump"):
+        while flag in args:
             k = args.index(flag)
+            v = args[k + 1]
             if flag == "--lib":
-                lib = args[k + 1]
+                lib = v
+            elif flag == "--table":
+                table = v
+            elif flag == "--entry":
+                entry = int(v, 16)
+            elif flag == "--this":
+                this = int(v, 16)
             else:
-                table = args[k + 1]
+                va, n = v.split("+")
+                dumps.append((int(va, 16), int(n, 16)))
             del args[k:k + 2]
-    if len(args) < 2 or args[1] not in ("diff", "sweep", "frame"):
+    if len(args) < 2 or args[1] not in ("diff", "sweep", "frame", "run"):
         print(__doc__)
         return 2
+    if args[1] == "run":
+        if len(args) < 3 or entry is None or this is None:
+            print(__doc__)
+            return 2
+        return run_function(args[0], args[2], lib, entry, this, dumps)
     if args[1] == "frame":
         if len(args) < 4:
             print(__doc__)

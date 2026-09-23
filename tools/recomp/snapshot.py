@@ -30,7 +30,7 @@ class Snapshot:
         h = struct.unpack("<32I", f.read(128))
         if h[0] != MAGIC or h[1:3] != (1, 1):
             raise ValueError(f"{path}: not a frame-snapshot-v1 stream")
-        self.frame, self.trace_frame, self.game = h[3], h[4], h[6]
+        self.frame, self.trace_frame, self.thread, self.game = h[3], h[4], h[5], h[6]
         rows, count, total, anchors, anchor_bytes = h[15], h[16], h[17], h[18], h[19]
         f.seek(128 + rows * 28 + anchors * 12 + anchor_bytes)
         self.ranges = []  # (base, size, file offset)

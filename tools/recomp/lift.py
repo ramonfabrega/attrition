@@ -84,6 +84,7 @@ class Lifter:
         self.md = Cs(CS_ARCH_X86, CS_MODE_32)
         self.md.detail = True
         self.lifted = {}  # entry -> C text
+        self.tables = {}  # a `jmp [4*reg + table]`'s address -> (reg, its targets)
 
     def import_slot(self, i, o):
         """The import an absolute `[slot]` operand names, or None."""
@@ -115,12 +116,43 @@ class Lifter:
             raise LiftError(f"{va:08x}: undecodable")
         return i
 
+    def jump_table(self, i, trail):
+        """`jmp [4*reg + table]` after `cmp reg, N` in the same run: the N+1
+        targets read from the image. None if the shape is not that."""
+        o = i.operands[0]
+        m = o.mem
+        if o.type != X86_OP_MEM or m.base or not m.index or m.scale != 4:
+            return None
+        reg = i.reg_name(m.index)
+        table = m.disp & 0xFFFFFFFF
+        bound_reg, first = reg, None  # the register the `cmp` bounds, and a byte table it indexes
+        for p in reversed(trail):
+            if p.mnemonic == "movzx" and p.operands[0].type == X86_OP_REG and i.reg_name(p.operands[0].reg) == bound_reg \
+                    and p.operands[1].type == X86_OP_MEM and p.operands[1].size == 1 and p.operands[1].mem.base \
+                    and not p.operands[1].mem.index and first is None:
+                # MSVC's two-level table: `movzx idx, byte [orig + first]` before `jmp [4*idx + table]`
+                first = p.operands[1].mem.disp & 0xFFFFFFFF
+                bound_reg = i.reg_name(p.operands[1].mem.base)
+            elif p.mnemonic == "cmp" and p.operands[0].type == X86_OP_REG and i.reg_name(p.operands[0].reg) == bound_reg \
+                    and p.operands[1].type == X86_OP_IMM:
+                n = (p.operands[1].imm & 0xFFFFFFFF) + 1
+                if n > 4096:
+                    return None
+                if first is not None:
+                    n = max(self.image.read(first, n)) + 1
+                targets = [self.image.u32(table + 4 * k) for k in range(n)]
+                if all(self.image.is_code(t) for t in targets):
+                    return reg, targets
+                return None
+        return None
+
     def discover(self, entry):
         insns, targets, callees = {}, set(), set()
         bound = self.funcs.next_after(entry)
         work = [entry]
         while work:
             va = work.pop()
+            trail = []  # this run's instructions, for the `cmp` that bounds a jump table
             while va not in insns:
                 if bound is not None and va >= bound:
                     raise LiftError(f"{entry:08x}: runs past {bound:08x} ({self.funcs.name(bound)})")
@@ -128,13 +160,19 @@ class Lifter:
                     raise LiftError(f"{entry:08x}: over 50k instructions; discovery is looping")
                 i = self.decode(va)
                 insns[va] = i
+                trail.append(i)
                 nxt = i.address + i.size
                 if i.mnemonic in TERMINATORS:
                     break
                 if i.group(CS_GRP_JUMP):
                     o = i.operands[0]
                     if o.type != X86_OP_IMM:
-                        break  # indirect: rc_dispatch decides at run time
+                        jt = self.jump_table(i, trail) if i.mnemonic == "jmp" else None
+                        if jt:
+                            self.tables[i.address] = jt
+                            targets.update(jt[1])
+                            work.extend(jt[1])
+                        break  # otherwise indirect: rc_dispatch decides at run time
                     t = o.imm & 0xFFFFFFFF
                     if i.mnemonic == "jmp" and t != entry and t in self.funcs.by_va:
                         callees.add(t)  # a tail call into another function
@@ -381,6 +419,12 @@ class Lifter:
                     out.append(f"{SAVE} f_{t:08x}(c); return;")  # a tail call
             elif self.import_slot(i, o):
                 out.append(f'{SAVE} rc_import(c, "{self.import_slot(i, o)}"); return;')  # an import thunk
+            elif i.address in self.tables:
+                reg, tgts = self.tables[i.address]
+                out.append(f"switch ({self.reg_read(reg)}) {{")
+                out += [f"  case {k}: goto L_{t:08x};" for k, t in enumerate(tgts)]
+                out.append(f'  default: rc_trap(c, {i.address:#010x}u, "jump table index out of range");')
+                out.append("}")
             else:
                 out.append(f"t = {self.rd(i, o)}; {SAVE} rc_dispatch(c, t); return;")
         elif mn[0] == "j" and mn[1:] in COND:
@@ -485,12 +529,23 @@ class Lifter:
         return callees
 
     def lift_all(self, entries):
+        """Lift the entries and their direct callees; a function that cannot
+        be lifted becomes a stub that traps with the reason, so a set builds
+        and a run names what it is missing."""
+        self.stubbed = {}
         work = list(entries)
         while work:
             e = work.pop()
             if e in self.lifted:
                 continue
-            for callee in self.lift(e):
+            try:
+                callees = self.lift(e)
+            except LiftError as err:
+                self.stubbed[e] = str(err)
+                why = str(err).replace("\\", "\\\\").replace('"', '\\"')
+                self.lifted[e] = f'/* {self.funcs.name(e)}: not lifted */\nvoid f_{e:08x}(cpu_t *c) {{ rc_trap(c, {e:#010x}u, "not lifted: {why}"); }}'
+                continue
+            for callee in callees:
                 if callee not in self.lifted:
                     work.append(callee)
 
@@ -543,7 +598,7 @@ def main(argv):
     lib = build(out_dir, c_path)
     print(f"{len(lifter.lifted)} functions -> {c_path} -> {lib}")
     for e in sorted(lifter.lifted):
-        print(f"  {funcs.name(e)}@{e:08x}")
+        print(f"  {funcs.name(e)}@{e:08x}" + (f"  NOT LIFTED: {lifter.stubbed[e]}" if e in lifter.stubbed else ""))
     return 0
 
 
