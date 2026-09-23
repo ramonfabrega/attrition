@@ -3898,6 +3898,15 @@ fn chapter_five_s_word_frame_is_widened_whole() {
                 ("accuracy", i64::from(p.accuracy), a.accuracy),
                 ("splash_area", i64::from(p.splash_area), a.splash_area),
                 ("num_guys", i64::from(p.num_guys), a.num_guys),
+                // Item 542: the launch height, the aim height, the
+                // bearing, the arc and the roll flag, the rest of the
+                // record this crate carries. `traj`, `dx`, the roll and
+                // bank angles, `gpiece` and `graph_index` it does not.
+                ("sz", i64::from(p.sz), a.sz),
+                ("ez", i64::from(p.ez), a.ez),
+                ("angle", i64::from(p.angle.0), a.angle),
+                ("v1z", super::ammo::tests::printed(p.v1z), a.v1z),
+                ("rolling", i64::from(p.rolling), a.rolling),
             ] {
                 if mine != dumped {
                     firsts
@@ -3993,12 +4002,12 @@ fn chapter_five_s_word_frame_is_widened_whole() {
     );
     // **Nothing else parts under the word's own block.** The trace's
     // frame `f` writes block `f + 1`. Item 535's broadside (`docs/COMBAT.md`
-    // §49) closed the four `1/6` angle rows on block 617. What parts first
-    // now is the fisher `0/7` on its birth block 621 (trace frame 620):
-    // the original gives it two orders, a `CASTORDER` first, and this
-    // crate gives it none. That spends no draw. The word's own block, 622,
-    // is where the first round is in the original's air and not in this
-    // crate's.
+    // §49) closed the four `1/6` angle rows on block 617, and item 542's
+    // release frame and keel nodes (§50) closed the first round on 622.
+    // What stands under the word is the fisher `0/7` alone, from its
+    // birth block 621: the original gives it two orders, a `CASTORDER`
+    // first, and walks it from 622, and this crate gives it none. Neither
+    // spends a draw until the word.
     let under: Vec<String> = firsts
         .iter()
         .filter(|((_, _, what), (f, _))| *f <= GOLDEN_WORD_CHAPTER_FIVE && !standing(what))
@@ -4008,20 +4017,49 @@ fn chapter_five_s_word_frame_is_widened_whole() {
         under,
         [
             "621 0/7 dest_angle",
+            "622 0/7 g.angle[0]",
+            "622 0/7 g.x[0]",
+            "622 0/7 g.y[0]",
+            "622 0/7 heading",
+            "622 0/7 idle",
             "621 0/7 order:length",
             "621 0/7 orders.len",
             "621 0/7 orders_x",
             "621 0/7 orders_y",
+            "622 0/7 path:length",
+            "622 0/7 path_recursion",
+            "622 0/7 pos",
         ],
         "what parts at or under the word moved"
     );
+    // **The word's block is the fisher's** (item 542). On block 665 the
+    // original's `0/7` has dropped its orders, cleared `unit_masks`'
+    // packed bit and raised `mylos` 4 → 6. That is the cast ending, and
+    // `Guy::set_anim+0x97a < Guy::inc_time+0x271` is the draw spent in
+    // it. Both hulls agree on every compared field there.
+    let at_word: Vec<String> = firsts
+        .iter()
+        .filter(|(_, (f, _))| *f == GOLDEN_WORD_CHAPTER_FIVE + 1)
+        .map(|((w, o, what), _)| format!("{w}/{o} {what}"))
+        .collect();
     assert_eq!(
-        firsts
-            .get(&(1, 6, "ammo[0]".to_string()))
-            .map(|(f, row)| (*f, row.as_str())),
-        Some((GOLDEN_WORD_CHAPTER_FIVE + 1, "the dump holds it alone")),
-        "the word's draw is who=1's first round, launched on the word in the \
-         original and not in this crate"
+        at_word,
+        ["0/7 mylos", "0/7 packed"],
+        "the word's block is no longer the fisher's alone"
+    );
+    // **Every round launched under the word agrees whole** (item 542):
+    // the first two volleys of both ships and `1/6`'s first of the third,
+    // seven rounds from 622 to 662, on every `AMMO` field this crate
+    // carries, `v1z` to the last printed digit. The first shot row is past
+    // the word, where the draw stream has already parted.
+    let first_ammo = firsts
+        .iter()
+        .filter(|((_, _, what), _)| what.starts_with("ammo["))
+        .map(|(_, (f, _))| *f)
+        .min();
+    assert!(
+        first_ammo.is_some_and(|f| f > GOLDEN_WORD_CHAPTER_FIVE + 1),
+        "a round launched under the word parts: first ammo row on {first_ammo:?}"
     );
     let absent = usize::from((FIRST..LAST).contains(&RUN127_NO_BLOCK));
     assert_eq!(

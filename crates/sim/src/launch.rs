@@ -190,6 +190,85 @@ const MEASURED: &[(i32, i8, u32, Node)] = &[
             radius: 97,
             dz: 178,
         },
+    ), // **The Trireme, piece 290: run127's three rounds** (`docs/COMBAT.md`
+    // §50.2, item 542). Its `<RELEASEEVENT>`s are `400`, `666` and `1200`
+    // ms on node 0, frames 5, 9 and 17, and node 0 walks down the keel as
+    // the swing plays. The first round leaves 45 units ahead of the hull's
+    // centre, dead on its facing. The second and third leave 13 and 65
+    // behind it. Every round both ships fire in run127 leaves from one of
+    // these three points, 16 volley rounds over 622..720 alone, each to
+    // the unit, `sz` 88, 88 and 87 over the water's 0.
+    //
+    // **One facing only.** Both hulls hold `671481856` broadside for the
+    // whole capture (§49), so the dump fixes each offset in the world but
+    // cannot show it turn. The rotation is §22.2's, read, not measured
+    // for this piece. At that facing the first node is the keel exactly;
+    // for the other two no stern bearing reproduces both integers, and
+    // the row is the solution nearest the keel, 1.3° off it.
+    //
+    // `CHAR_ATTACK2` plays the same file, `Trireme Attack1`, with the same
+    // three events, so it takes the same rows. run127 prints no
+    // `cur_anim` at `GUYS=2`, and which slot the original swings is not
+    // on this disk.
+    (
+        290,
+        crate::anim::ATTACK1,
+        5,
+        Node {
+            bearing: 0,
+            radius: 45,
+            dz: 88,
+        },
+    ),
+    (
+        290,
+        crate::anim::ATTACK1,
+        9,
+        Node {
+            bearing: -2_131_755_008,
+            radius: 13,
+            dz: 88,
+        },
+    ),
+    (
+        290,
+        crate::anim::ATTACK1,
+        17,
+        Node {
+            bearing: -2_131_755_008,
+            radius: 65,
+            dz: 87,
+        },
+    ),
+    (
+        290,
+        crate::anim::ATTACK2,
+        5,
+        Node {
+            bearing: 0,
+            radius: 45,
+            dz: 88,
+        },
+    ),
+    (
+        290,
+        crate::anim::ATTACK2,
+        9,
+        Node {
+            bearing: -2_131_755_008,
+            radius: 13,
+            dz: 88,
+        },
+    ),
+    (
+        290,
+        crate::anim::ATTACK2,
+        17,
+        Node {
+            bearing: -2_131_755_008,
+            radius: 65,
+            dz: 87,
+        },
     ),
 ];
 
@@ -324,7 +403,11 @@ mod tests {
     ///
     /// Piece **127** is the Longbowman's six (run109, §22.1); **472** and
     /// **384** are chapter two's bowmen and slingers, three keys and two,
-    /// from run112's own `AMMO` records (item 485, §41.3).
+    /// from run112's own `AMMO` records (item 485, §41.3); **290** is the
+    /// Trireme's three, in both attack slots, from run127's (item 542,
+    /// §50.2). Its keys are 5, 9 and 17 because the frame is `starttime /
+    /// 67` (§50.1): under the old `× 3 / 200` the first and third would be
+    /// 6 and 18, keys the event walk never reaches.
     #[test]
     fn the_table_is_every_release_event_a_capture_has_measured() {
         let mut keys: Vec<(i32, i8, u32)> =
@@ -339,6 +422,12 @@ mod tests {
                 (127, crate::anim::ATTACK2, 22),
                 (127, crate::anim::ATTACK3, 10),
                 (127, crate::anim::ATTACK3, 24),
+                (290, crate::anim::ATTACK1, 5),
+                (290, crate::anim::ATTACK1, 9),
+                (290, crate::anim::ATTACK1, 17),
+                (290, crate::anim::ATTACK2, 5),
+                (290, crate::anim::ATTACK2, 9),
+                (290, crate::anim::ATTACK2, 17),
                 (384, crate::anim::ATTACK1, 21),
                 (384, crate::anim::ATTACK2, 22),
                 (472, crate::anim::ATTACK1, 12),
@@ -492,5 +581,31 @@ mod tests {
         // nine exactly may re-pin every `err` to zero; nothing may
         // raise one.
         assert_eq!(exact, 6, "the number of exactly reproduced rows fell");
+    }
+
+    /// **Every trireme launch point run127 recorded on its first two
+    /// volleys**, both ships (`docs/COMBAT.md` §50.2). The columns are the
+    /// dump's own: the hull's position and angle from its `UNITDATA`, and
+    /// `sx, sy, sz` from the `AMMO` record on the block each round first
+    /// prints. Both ships hold the same broadside facing, so this pins the
+    /// three nodes at one facing, exactly.
+    #[test]
+    fn run127_trireme_rounds_leave_from_the_keel() {
+        /// `(block, hull x, hull y, starttime, sx, sy, sz)`.
+        const M: &[(i32, i32, i32, u32, i32, i32, i32)] = &[
+            (622, 12408, 35832, 5, 12445, 35807, 88),
+            (626, 12408, 35832, 9, 12396, 35839, 88),
+            (634, 12408, 35832, 17, 12352, 35867, 87),
+            (640, 11640, 34680, 5, 11677, 34655, 88),
+            (644, 11640, 34680, 9, 11628, 34687, 88),
+            (652, 11640, 34680, 17, 11584, 34715, 87),
+        ];
+        for &(block, x, y, t, sx, sy, sz) in M {
+            for anim in [crate::anim::ATTACK1, crate::anim::ATTACK2] {
+                let got = launch_point(Pos::new(x, y), Angle(671_481_856), 290, anim, t);
+                assert_eq!((got.x, got.y), (sx, sy), "block {block} t {t}");
+                assert_eq!(node(290, anim, t).map(|n| n.dz), Some(sz), "block {block}");
+            }
+        }
     }
 }

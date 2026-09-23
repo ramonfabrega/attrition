@@ -2136,12 +2136,29 @@ pub(crate) const GOLDEN_WORD_CHAPTER_TWO: i64 = 900;
 /// 621 the original spends the landing scatter's two draws, `Ammo::init+
 /// 0xcd9` and `+0xd0b`, 8 against 6: who=1's first round is in the air on
 /// block 622, from a release point off the hull at (12445, 35807), and in
-/// this crate's a frame later from the hull's own square. That is the
-/// next item. The fisher `0/7` parts a frame under it, on its birth block
-/// 621, with two orders in the original (a `CASTORDER` first) and none
-/// here, but it spends no draw. [`WIDENING_CHAPTER_FIVE`]'s test pins
-/// both.
-pub(crate) const GOLDEN_WORD_CHAPTER_FIVE: i64 = 621;
+/// this crate's a frame later from the hull's own square.
+///
+/// **Item 542 moved it 621 → 664, +43** (`docs/COMBAT.md` §50). The
+/// **delta**: the frame and the point were two causes, and the draw
+/// named only the first. The event list holds a release at `starttime /
+/// 67`, floored at 1 (`GraphicEvents::init_unit_events@008e2520`), not
+/// `× 3 / 200`. The two agree on every release measured before run127 and
+/// part on the Trireme's `400`: frame 5, one before this crate's 6. The
+/// point is node 0 walking the keel, measured from run127 into
+/// `sim::launch`'s table (piece 290, three rows). The widening then found
+/// a third defect the draw never named: a sea figure's `z` is 0, not the
+/// lake bed's `find_data_z`, so every trireme round had left at `sz −185`
+/// against 88. With all three, the seven rounds launched through 662 agree
+/// on every `AMMO` field this crate carries, `v1z` to the last digit.
+///
+/// **The block**, from [`WIDENING_CHAPTER_FIVE`]'s test on the new word:
+/// on 664 the original spends `Guy::set_anim+0x97a < Guy::inc_time+0x271`
+/// (28 draws against 27), and the only rows on block 665 are the fisher
+/// `0/7`'s. Its orders are gone, `unit_masks`' packed bit is cleared, and
+/// `mylos` is 4 → 6: the cast it was given at birth has ended. This crate
+/// gave it no orders on 621 (parked 543), and nothing else parts under
+/// the word. The window is run127 whole, so the ceiling does not move.
+pub(crate) const GOLDEN_WORD_CHAPTER_FIVE: i64 = 664;
 
 /// **How many height reads each replay may make on a corner this crate
 /// cannot pin to the original's single**, by test name — `docs/COMBAT.md`

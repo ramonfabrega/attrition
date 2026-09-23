@@ -360,29 +360,35 @@ pub fn piece_lengths(install: &Install, graphs: &[String]) -> PieceLengths {
 pub type PieceReleases = BTreeMap<i32, BTreeMap<i8, Vec<u32>>>;
 
 /// A `<RELEASEEVENT starttime=>`'s millisecond stamp as the **game frame**
-/// the event list holds it at: `ms × 3 / 200`, truncated.
+/// the event list holds it at: `starttime / 67`, truncated, and never
+/// below 1.
 ///
-/// Fifteen frames a second, the same rate [`game_frames`] converts a
-/// length at — but **truncated where the length rounds**, and the
-/// difference is a whole frame on three of the four shots that pin it.
-/// Measured against run53, whose first four `Objects::add_ammo` calls in
-/// 24,000 frames are Great Lakes' first two archers:
+/// **From the listing** (item 542, `docs/COMBAT.md` §50.1). The event list
+/// `execute_game_events` walks is built by
+/// `GraphicEvents::init_unit_events@008e2520`, not by
+/// `GraphicPieces::init_unit_events`, whose copy keeps the milliseconds for
+/// the renderer. For each `releaseevent` it writes `event_type` 1, reads
+/// `starttime` into `GraphicEvent +0xc`, and at `008e296d`–`008e299f`
+/// divides it by 67 (`imul 0x7a44c6b`, `sar edx, 1`, the sign fix) and
+/// raises a zero to 1, writing the result to both `start_time` and
+/// `end_time`.
 ///
-/// | shooter | slot | `starttime` | truncated | rounded | sim-frame it fired on |
-/// |---|---|---|---|---|---|
-/// | `1/29` | `CHAR_ATTACK3` | 733 | **10** | 11 | 9425 (`cur_time` 9 → 10) |
-/// | `1/28` | `CHAR_ATTACK2` | 333 | **4** | 5 | 9426 (`cur_time` 3 → 4) |
-/// | `1/29` | `CHAR_ATTACK3` | 1666 | **24** | 25 | 9439 |
-/// | `1/28` | `CHAR_ATTACK2` | 1533 | **22** | 23 | 9444 |
+/// ~~`ms × 3 / 200`, truncated~~, which is what this read until item 542,
+/// and it agreed with the original's frame on every release run53, run109
+/// and run112 had measured: all six of the Longbowman's, the Bowmen's 666,
+/// 833 and 1066, and the Slingers' 1465 and 1532 give the same frame
+/// both ways. Only 356 of the install's 2,593 events separate the two
+/// readings, and the first a capture reached is the Trireme's `400`: 5
+/// by the listing and 6 by the old reading. run127 settles it. The three
+/// rounds of every trireme volley launch on frames 5, 9 and 17 of the
+/// swing (`400`, `666`, `1200`), four and twelve frames after the first,
+/// on both ships and every volley from 622 to 720. The old reading's
+/// 6, 9 and 18 would put them three and twelve apart.
 ///
-/// Four for four on the truncation and none on the rounding. Every one of
-/// the four `ms × 3` products lands at remainder 198 or 199 of 200, so the
-/// two readings differ on all of them and the capture separates them
-/// cleanly — which is the only reason this is a measurement rather than a
-/// guess. No float: the product is an `i64`-free `u32` multiply and an
-/// integer divide, at the original's own scale.
+/// No float: an integer divide at the original's own scale.
 pub const fn release_frame(ms: u32) -> u32 {
-    ms * 3 / 200
+    let f = ms / 67;
+    if f == 0 { 1 } else { f }
 }
 
 /// Every player unit piece's [`PieceReleases`] entry, read from the
@@ -714,6 +720,25 @@ pub fn game_frames(times: &[u16], looping: bool) -> u32 {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// **The release frame is `starttime / 67`, floored at 1** (item 542,
+    /// `docs/COMBAT.md` §50.1): `GraphicEvents::init_unit_events@008e2520`
+    /// at `008e296d`–`008e299f`. Every release a capture had measured
+    /// before run127 gives the same frame under the old `× 3 / 200`, and
+    /// the Trireme's three are the first that do not: run127 launches its
+    /// rounds on frames 5, 9 and 17 of the swing, four and twelve apart.
+    #[test]
+    fn a_release_frame_is_starttime_over_sixty_seven() {
+        for ms in [466, 1533, 333, 733, 1666, 666, 833, 1066, 1465, 1532] {
+            assert_eq!(release_frame(ms), ms * 3 / 200, "{ms} ms, measured before");
+        }
+        assert_eq!(
+            [400, 666, 1200].map(release_frame),
+            [5, 9, 17],
+            "run127's three rounds"
+        );
+        assert_eq!([0, 10, 66, 67].map(release_frame), [1, 1, 1, 1]);
+    }
 
     /// The `<UNIT>` name grammar, and the piece each coordinate lands on.
     /// `GraphicPieces::init_piece_ranges@008f70e0`'s four strides nest —

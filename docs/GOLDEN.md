@@ -462,12 +462,20 @@ ground asked for a hull, because every asked point here was already water.
 The lines' "about five tiles apart" is 7.2 (dx 4, dy 6), still inside the
 nine-tile reach.
 
-**The word is 621** (`GOLDEN_WORD_CHAPTER_FIVE`). The first walk parted
+~~**The word is 621**~~ (`GOLDEN_WORD_CHAPTER_FIVE`). The first walk parted
 at 617, on who=1's trireme turning **broadside** to its target, and item
 535 landed the rule (`docs/COMBAT.md` §49). On 621 the original launches
 that trireme's first round, whose landing scatter is two draws (8 against
 6), a frame before this crate does. The widening is
 `chapter_five_s_word_frame_is_widened_whole`.
+
+**The word is 664** since item 542 (`docs/COMBAT.md` §50). The round's
+frame was the release event's divisor, `starttime / 67` and not `× 3 /
+200`. Its point was node 0 on the keel, and the widening, now comparing
+the whole `AMMO` record, found its height: a sea figure stands at `z` 0.
+The first two volleys of both ships now agree on every field. On 664 the
+original spends a `Guy::set_anim` for the fisher `0/7`, whose birth cast
+ends there. This crate never gave it the cast.
 
 ## 10. Chapter six — the air, and the one command that issues an order
 

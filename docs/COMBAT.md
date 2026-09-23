@@ -1108,7 +1108,8 @@ target must still be active **and carry the same `uid`** the order stored.
 road than §9.1's building loop. `starttime` is milliseconds; the event
 list holds a **frame**, at the fifteen-a-second rate §3.1's lengths use:
 
-> `event.time = starttime × 3 / 200`, **truncated**.
+> ~~`event.time = starttime × 3 / 200`, **truncated**.~~
+> `max(1, starttime / 67)`, §50.1.
 
 **This is a data coupling, not a renderer one.** `CLAUDE.md`'s
 load-bearing rule is that the *sim crate* depends on no graphics,
@@ -1135,7 +1136,8 @@ archers, and the dump gives each guy's animation clock frame by frame:
 | `1/29` | `CHAR_ATTACK3` | 1666 | **24** | 25 | **9439** |
 | `1/28` | `CHAR_ATTACK2` | 1533 | **22** | 23 | **9444** |
 
-Four for four on the truncation, nought for four on the rounding.
+Four for four on the truncation, nought for four on the rounding; `/ 67`
+gives the same four (§50.1).
 
 #### What it cost, and the negative that pins it
 
@@ -8499,7 +8501,8 @@ scatter (§9.1). who=1's first round is in the original's air on block
 launches it one frame later from the hull's own square, (12408, 35832),
 and it lands at (11560, 34771) against the original's (11642, 34749).
 That is the next item's frame. Its draw delta is those two draws, 8
-against 6.
+against 6. **Item 542 closed it** (§50): the release frame, the keel
+node, and a sea figure's `z`. The word went to 664.
 
 ### 49.4 Coverage
 
@@ -8508,8 +8511,10 @@ against 6.
 - **Reading only**: the minus side's strict comparison, and the
   PATROLBOAT exemption. The unit test
   `a_sideways_ship_attacks_broadside_on_the_nearer_side` covers both
-  from this reading. `0/6`'s turn on 635 fits the rule, but this crate's
-  `0/6` never gets there in the window, so it is not diff-backed yet.
+  from this reading. ~~`0/6`'s turn on 635 fits the rule, but this crate's
+  `0/6` never gets there in the window, so it is not diff-backed yet.~~
+  Since item 542 it is: the word is 664, and `0/6`'s broadside turn on
+  635 agrees on every angle row (§50.4).
 
 ### 49.5 What is not established
 
@@ -8517,8 +8522,171 @@ against 6.
   orders, a `CASTORDER` first (order index 14, `uid 65535`), and walks it
   about 130 units from 622. This crate gives it none. It spends no draw
   under the word. Which spell the Fishermen cast at birth is not read.
-- The trireme's launch. The release point off the hull, the frame, and
+- ~~The trireme's launch. The release point off the hull, the frame, and
   `AMMO_PER_ATT 3`, a three-round volley whose second round is on block
-  626.
+  626.~~ Settled by item 542 (§50): three `<RELEASEEVENT>`s on frames 5, 9
+  and 17, from node 0 on the keel.
 - `Object::fire_ammo`'s near-face aim at a building still reads the
   direct bearing here. No capture has a ship shooting a building.
+
+## 50. The trireme's first round: a divisor, a keel and the water (item 542, 2026-09-22)
+
+Golden chapter five's word stood at **621** (§49.3). There the original
+spends `Ammo::init+0xcd9` and `+0xd0b`, the landing scatter's two draws
+at `0x67c8c9` and `0x67c8fb`: `Random::rand(0, 0xffff) % accuracy`, once
+per axis, with `accuracy` at `ebp−0x14`. Those two sites are on every
+shot's path, so the draw names only *that* a round launched on 621 in
+the original. It names no branch a ship takes and a bowman does not. The
+item booked two symptoms, "a frame early" and "a release point off the
+hull", and no mechanism. It turned out to be three causes, and the draw
+named only the first.
+
+**What would kill each reading**, taken as they were tested:
+
+- *The frame is a timing predicate on the fight* (reload, facing, the
+  turn of §49). Killed if the original's `recharging` is set on the same
+  block the round launches. It is not: `1/6` prints `recharging 36` on
+  block 621 and the round is first in the air on 622. Reload and launch
+  are separate steps, and the launch is the animation's (§9.0).
+- *The frame is the release event's time.* Killed if the three rounds of
+  a volley are spaced as `× 3 / 200` puts them (6, 9 and 18: three and
+  twelve apart). They are four and twelve apart on every volley in the
+  capture.
+- *The point is a stored offset or arithmetic on the bearing.* Killed if
+  the three rounds of one volley leave from one point. They leave from
+  three different points, the same three on every volley.
+
+### 50.1 The release frame is `starttime / 67`
+
+The event list `GraphicEvents::execute_game_events@008e48e0` walks is
+built by `GraphicEvents::init_unit_events@008e2520`, not by
+`GraphicPieces::init_unit_events@008eabb0`. The latter keeps the
+milliseconds for the renderer. For each `releaseevent` element
+(`internal_strings` 3578; its `starttime` is 3579, `type` 395 and `node`
+3580), the loader writes `event_type` 1 and reads `starttime` into
+`GraphicEvent +0xc`. Then, at `008e296d`–`008e299f`:
+
+```text
+movzx ecx, word [ebx+0xc] ; imul 0x7a44c6b ; sar edx, 1 ; +sign  → ms / 67
+if (ushort)result < 1: result = 1
+[ebx+0xc] = [ebx+0xe] = result          ; start_time and end_time
+```
+
+`execute_game_events`' type-1 gate compares `start_time` with the
+package's `last_time`/`cur_time` in frames (§9.0), so this is the frame.
+~~§9.0: `starttime × 3 / 200`, truncated.~~ That reading was measured on
+four run53 shots and agreed with every release run109 and run112 later
+measured. It had to: all eleven of those `starttime`s give the same frame
+under either divisor. Of the install's 2,593 `<RELEASEEVENT>` rows, 356
+separate the two readings. The Trireme's `400` and `1200` are the first a
+capture has reached, at 5 and 17 against 6 and 18.
+
+**Diff-backed** by run127: every volley of both ships over the capture
+launches on swing frames 5, 9 and 17. The first seven rounds, 622 to 662,
+now launch on the original's blocks. `rondata::artdata::release_frame` is
+the rule, and `a_release_frame_is_starttime_over_sixty_seven` pins it.
+
+### 50.2 The point is node 0, walking the keel
+
+The Trireme's three events all name `node="0"`, and node 0 moves as the
+`Trireme Attack1` animation plays. `GraphicPieces::get_position` is the
+same per-(piece, node, anim, starttime) vector §22 measured for the
+Longbowman. It is art the original builds before the first frame, so
+this crate measures it and does not load it (§22.3, DECISIONS 16's
+second shape). From run127's `AMMO` records, less the hull's own
+position:
+
+| frame | offset | `sz` | as `(bearing, radius)` |
+|---|---|---|---|
+| 5 | (+37, −25) | 88 | (0, 45): dead ahead |
+| 9 | (−12, +7) | 88 | (−2,131,755,008, 13) |
+| 17 | (−56, +35) | 87 | (−2,131,755,008, 65) |
+
+The first round leaves from the bow and the other two from aft of centre,
+all on the keel line. Both ships print these same three offsets for every
+round they fire. They also hold one facing, `671481856`, broadside, for
+the whole capture (§49), so the table is exact at that facing and the
+rotation is §22.2's, read rather than measured for this piece. At that
+facing no stern bearing reproduces the last two rows' integers, so each
+row is the solution nearest the keel, 1.3° off it. `sim::launch`'s table
+carries piece 290's rows, and `run127_trireme_rounds_leave_from_the_keel`
+holds all six launches. `CHAR_ATTACK2` plays the same file with the same
+events and takes the same rows. Which slot the original swings is not
+printed at `GUYS=2`.
+
+### 50.3 A sea figure stands on the water, not the lake bed
+
+The item's first run with the widening comparing the whole `AMMO`
+record, not the eleven fields it had, found a defect the draw had not
+named. Every trireme round launched at `sz −185` against the dump's 88,
+and its `v1z` was off with it. §46.1 took `sz` as the node's `dz` over
+the figure's ground, `find_data_z`. That is right for a land figure and
+wrong at sea. `Guy::update_z@005d9950`, and the figure loop in
+`Unit::update_z@00606590`, give a figure whose unit type has
+`domain == 1` a `z` of **0** and call `find_data_z` only otherwise.
+Under sea region 70 the lake bed is at −273. `Sim::guy_release_events`
+now takes 0 for a sea figure. **Diff-backed**: `sz` and `v1z` agree on
+all seven rounds under the word, `v1z` to the last printed digit.
+
+### 50.4 What moved
+
+| | before | after |
+|---|---|---|
+| golden chapter five, **word** / sequence | 621 | **664** |
+| values | 622 | 665 |
+| widening window | `[605, 901)` | unchanged, run127 whole |
+| `AMMO` fields compared | 11 | 16 (`sz`, `ez`, `angle`, `v1z`, `rolling`) |
+| rows under the word, standing families aside | 5, plus the round | 13, all the fisher's |
+
+**The value diff on the frame it moved.** On block 622 `1/6 ammo[0]` is
+in both airs: `sx, sy` (12445, 35807), `ex, ey` (11642, 34749),
+`total_time` 13, `sz` 88, `v1z` 61.399521, on both sides. `0/6`'s
+broadside turn on 635 (§49.2) and its whole first volley, 640 to 652,
+agree on every compared field. §49.4's "not diff-backed yet" is closed.
+
+**The new word, widened.** On 664 the original spends
+`Guy::set_anim+0x97a < Guy::inc_time+0x271`, 28 draws against 27. Block
+665's only rows are the fisher `0/7`'s: the original's has dropped its
+orders, cleared `unit_masks`' packed bit (`0x80000`) and raised `mylos`
+4 → 6. Its birth `CASTORDER` has run out, and an animation ended with it.
+This crate gave the fisher no orders on 621 (§49.5, parked 543), so its
+fisher never casts. Both hulls agree on every compared field on 664 and
+665. The word is now 543's, and no mechanism is named here.
+
+The widening was made to fail twice. With `× 3 / 200` restored, the word
+falls to 621 and `1/6 ammo[0]` returns on 622. With the lake bed's `z`
+restored, `sz` and `v1z` part on 622 under the word.
+
+### 50.5 What is not established
+
+- **The keel nodes at any other facing.** They are measured at one
+  facing and rotated by §22.2's reading. A capture with a ship shooting
+  on a different bearing would test it: `AMMO=5`, any second trireme
+  engagement.
+- **The 355 other separating events.** Crossbowmen (`400`, `267`,
+  `467`), the gunpowder line and most ships and aircraft now fire a frame
+  earlier than they did here, by the listing. None is reached by a
+  capture on this disk except the Trireme, and the long captures' words
+  hold.
+- **`starttime` under 67.** The floor makes it frame 1, so an event
+  stamped 0 fires on the clock's first step, not at `cur_time` 0. Shipped
+  attack slots do carry such events (the machine guns' packed
+  `CHAR_ATTACK1` at 0, and aircraft `CHAR_ATTACK2`s). No capture reaches
+  one, and whether `Guy::execute_events`' `last_time` of −1 at `cur_time`
+  0 would ever have fired a frame-0 event is moot under the floor.
+- **`ez` for a ship target** agrees at 0 on every round, through
+  `aim_z`'s floor at 0. `Unit::update_z` gives the unit itself
+  `find_tcoord_z` whatever its domain. That is reading-only here, and
+  the floor hides it.
+
+### 50.6 Coverage
+
+- **Diff-backed**: the divisor (§50.1) on seven rounds' launch blocks
+  and the volley spacing through the capture; the three keel nodes at
+  one facing; a sea figure's `z` of 0 through `sz` and `v1z`; `0/6`'s
+  broadside turn; the word 621 → 664 with its widening.
+- **Listing-backed**: `init_unit_events`' divide and floor, the element
+  and attribute names through `internal_strings.xml`, and
+  `Guy::update_z`'s sea arm.
+- **Reading only**: the node rotation for piece 290, and the `ATTACK2`
+  rows.
