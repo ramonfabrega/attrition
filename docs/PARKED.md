@@ -22,6 +22,13 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Parked by item 595, 2026-09-23 — the pivot's last degree
+
+(603) **The pivot node's offset** (`get_position`, which the original
+computes in `float`) only decides `set_attack`'s verdict within about 1°
+of ±45°. 595's integer pivot ignores it. Returns when a verdict parts at
+the boundary; the fix must stay integer (CLAUDE.md, no float in the sim).
+
 ## Parked by item 592, 2026-09-23 — the rider's other seams
 
 (599) **`docs/AI.md` §58.5's four seams**: the sea rider, the region-less
