@@ -5741,3 +5741,54 @@ no record on disk says where the original's sheep walks.
 **What it settled.** `run159_s_word_frame_is_widened_whole`; the item's
 journal (`docs/journal/2026-09-23-item-629.md`) has the verdicts on the
 readings.
+
+## run168 — chapter six, the air and the bird (2026-09-23, item 648)
+
+`docs/GOLDEN.md` §10's first capture, from `tools/gamelog/golden/chapter6.cmd`:
+`!ai off` at 0, `library who=0 6` and `library who=1 6` at 600 and 602,
+`add fighter who=0 4,40` at 610, `add bomber who=1 12,40` at 615, and `bird`
+at 700. The staging was read and committed before the run (`bf981e6`). It
+is the first capture on this disk with an aircraft in it.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch6 \
+    --map 14 --end-frame 900 --log-window 605 900 --timeout 3600 \
+    --detail end:UNITS=3,GUYS=2,AMMO=5,DEATHS=1,LEADERS=2 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 \
+    --cmd-file tools/gamelog/golden/chapter6.cmd
+```
+
+`success: true`, exit 0, 901 frames, `MAP_STYLE 14` and seed 12345 read
+back, five settings files restored. One take, **137 s from launch to exit,
+42 MB of dump and 9.8 MB of trace**. The lane lock named att-571's
+`longtrace.sh`, whose pid had exited, so the launch took it over. All eight
+`INFO cmd` records returned 1. There are 297 blocks: 1, 605..899 and the
+`!quit` block 901.
+
+### The predictions, committed before the run
+
+| check | predicted | observed |
+| --- | --- | --- |
+| the Fighter | a who=0 `UNITDATA` on 611 at (888, 7800) | `0/6` on 611 at (888, 7800) |
+| the Bomber | a who=1 `UNITDATA` on 616 at (2424, 7800) | `1/6` on 616 at (2424, 7800), `unit_masks` `0x40000` |
+| fuel | `mana_burn` one a frame from birth | 1 on the birth block, 289 and 284 on 899 |
+| the bird's birth | one `Guy::init_real` draw, first on 700 | draw 0 of 700, `< Unit::init < Animal::init` |
+| the bird's think | a seventh `think_bird` from 704 | six birds on 672 and 696, seven from 704 |
+| the sampling | one pair short from 704 | 4 pairs on 672, 3 on 704, 736, 768 and 800 |
+| the cursor at the corner | edge coins within the bird's first frames | `do_air_physics+0x639` on 750, 791 and 894 only: **not confirmed** |
+| owner 9 in the dump | none | none |
+
+### §10's falsifiers
+
+- **The first does not fire**, on its restated form: the bird is born on
+  700 and thinks from 704. The dump never prints it.
+- **The second fires.** Neither aircraft moves. Both stand on their seats
+  at `air_alt` 0 with an empty order stack from birth to 899, and no
+  `AMMO` block is written in the whole capture. The Bomber sits in the AI's
+  group 64 from its birth block, the Fighter in none.
+- **The third does not fire**: `add` placed both aircraft with no base.
+
+This crate parts at **616**, the Bomber's birth frame, 25 draws against 24:
+a `Unit::fight+0x9b0` of `1/6`'s that the original does not spend. See
+`docs/GOLDEN.md` §10.

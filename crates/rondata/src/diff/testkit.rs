@@ -2475,6 +2475,37 @@ pub(crate) const GOLDEN_WORD_CHAPTER_TWO: i64 = 900;
 /// both airs and all 506 of the capture's rounds agree on every field.
 pub(crate) const GOLDEN_WORD_CHAPTER_FIVE: i64 = 900;
 
+/// **Chapter six's golden word** — the air and the bird (`docs/GOLDEN.md`
+/// §10, run168): **700 of 901**, `bird`'s frame, which the harness carries
+/// as `CHAPTER_DEBT` (parked 652).
+///
+/// **The delta** (item 650): 616 → 700. On 616 this crate spent 25 draws
+/// against the original's 24, a `Unit::fight+0x9b0` of the Bomber `1/6`'s,
+/// because its idle search took the Fighter `0/6`. Now neither aircraft's
+/// search takes the other (`docs/COMBAT.md` §61). `Object::poor_target`'s
+/// plane arm refuses a plane to a searcher without `ANTI_AIR`, and to one
+/// with it beyond its own `max_range`, and `find_nearby_target` now asks it.
+/// `valid_target_const`'s air ladder refuses the Fighter to the Bomber a
+/// second time. The ladder alone moved the word to 635, where the Fighter
+/// took the Bomber on its periodic think. On 700 the original's draw 0 is
+/// the bird's `Guy::init_real+0x52`, and this crate has no bird.
+///
+/// **The block**, from [`WIDENING_CHAPTER_SIX`]'s test: block 700 agrees on
+/// every record. On 616 and 617 both sides hold `1/6` at (2424, 7800) with
+/// no order, `idle` 1 then 2, and `orders_x` 2424. Both aircraft hold their
+/// seats and no order to 700 on both sides. On 701 the AI scout `1/0`'s
+/// move order parts: `orders_x/y` (37368, 18936) against (45816, 12024),
+/// and a path of 33 against 9. `think_scout`'s roll is the draw after the
+/// bird's, which this crate does not spend.
+pub(crate) const GOLDEN_WORD_CHAPTER_SIX: i64 = 700;
+
+/// `chapter_six_s_word_frame_is_widened_whole`'s window: run168 from its
+/// first block, 605, to two past the word, since the word's frame writes
+/// block 701, as [`WIDENING_CHAPTER_SEVEN_B`]'s does. Nothing before the
+/// word parts but the standing rows of the first block and the two
+/// aircraft's `form` on their birth blocks.
+pub(crate) const WIDENING_CHAPTER_SIX: (i64, i64) = (605, 702);
+
 /// **Chapter four's golden word** — the border and the bleed
 /// (`docs/GOLDEN.md` §8, item 552, run132 and run133): **1277 of 1501**,
 /// in run133's window. The two captures are one game, draw for draw on
@@ -2637,11 +2668,30 @@ pub(crate) const WIDENING_CHAPTER_SEVEN_B: (i64, i64) = (605, 1201);
 /// 605 (2992). The word is now **1187**, the scout `1/0`: ours 10 draws
 /// against 9, parting at draw 0 on `Unit::do_move+0xe84`. Its explore
 /// path has parted since 1077, value only.
-pub(crate) const GOLDEN_WORD_CHAPTER_SEVEN_B_CONTROL: i64 = 1187;
+///
+/// **Item 647 moved it 1187 → 1200, closed**, and this comment carries the
+/// delta (the widening's block for it is in
+/// `chapter_seven_b_s_word_frame_is_widened_whole`). The scout's path was
+/// built on 1076, and run157's proxied `calc_cost` priced nine of its
+/// steps apart, every one into cell (48,31) or (47,31): 304/312 there,
+/// 1/9 here. Those are the south half of the Small City `1/2007`'s
+/// footprint, which the AI placed on 1069 out of its own line of sight.
+/// `Wall::start@0063e810` ors the owner's bit into `seen2` over the
+/// footprint, and this crate skipped it, so its scout priced the city as
+/// unseen ground and cut across it
+/// (`docs/SCOUT.md` §14, `docs/VISION.md` §6.1). With the write the
+/// search is 945 of 945 steps, each priced as the original's. **The value
+/// diff on the moved frames, in run157's own coordinates**: on 1077 `1/0`
+/// holds 48 path nodes on both sides, `path[41]` (35832, 24312) to
+/// `path[47]` (40440, 25080); on 1116 it stands at (39984, 25092) with
+/// `dest_y` 25080 on both, and on 1138 its `dest_x` is 38136 on both.
+/// run157 agrees draw for draw and value for value to the end of its
+/// trace: **the last open golden chapter is closed.**
+pub(crate) const GOLDEN_WORD_CHAPTER_SEVEN_B_CONTROL: i64 = 1200;
 
-/// The control's widening window, its first block to the word's block and
-/// the one after.
-pub(crate) const WIDENING_CHAPTER_SEVEN_B_CONTROL: (i64, i64) = (605, 1189);
+/// The control's widening window: **the capture whole**, 605..1199, since
+/// the word is the capture's end (item 647), chapter seven-b's shape.
+pub(crate) const WIDENING_CHAPTER_SEVEN_B_CONTROL: (i64, i64) = (605, 1201);
 
 /// **Chapter three's golden word** — the mounted and siege lines, run145
 /// (`docs/GOLDEN.md` §7): **900, the capture's end, draw for draw and
@@ -3418,6 +3468,14 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some("chapter_four_s_word_frame_is_widened_whole"),
         567,
         Some(WIDENING_CHAPTER_FOUR),
+    ),
+    // Item 648: run168, chapter six's first walk, on the Bomber's birth.
+    (
+        "GOLDEN_WORD_CHAPTER_SIX",
+        GOLDEN_WORD_CHAPTER_SIX,
+        Some("chapter_six_s_word_frame_is_widened_whole"),
+        648,
+        Some(WIDENING_CHAPTER_SIX),
     ),
     // Item 587: run145, the catapult's birth frame.
     (

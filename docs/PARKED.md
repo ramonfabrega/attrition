@@ -22,6 +22,28 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Parked by item 650, 2026-09-23 — the target checks' other arms
+
+(654) **`valid_target`'s helicopter and `is(0x132)` arms**, not carried
+(COMBAT §61.5). No capture stages a helicopter.
+
+(655) **`check_target`'s region and `DEFENSIVE` gates in the ring search**
+(§61.5): 650 made the ring search call `poor_target` as `check_target`'s
+tail does, and left these two out. No word names them.
+
+## Parked by item 648, 2026-09-23 — chapter six's other halves
+
+(651) **Chapter six-b: the air line from a base.** run168's second
+falsifier fired: an aircraft `add`ed outside a base never moves. The
+restage stages an `add airbase` for each side, then the aircraft; whether
+a cheat-placed Airbase launches anything on its own is its question. A run
+number is minted at booking. Returns when chapter six closes, or when the
+rules slot is empty (GOLDEN §14).
+
+(653) **Is `bird`'s cursor the same on every launch?** It is heap memory,
+so only a second take of run168 checks it. No other line of the chapter
+depends on it.
+
 ## Parked by item 642, 2026-09-23 — under East Indies' 13640
 
 (646) **run159's five rows from block 11793**, none spending a draw before
@@ -682,7 +704,10 @@ defects of the last tranche: scope reported, not measured.
 item 617: `the_handoff_s_golden_line_is_the_pinned_word` parses `ch1`…`ch7`
 and skips the restage and `ch7b` parts, so it passed with the queue at
 `restage w792` and the constant at 865. The two words the rules lane is
-actually on are the two the guard cannot see.
+actually on are the two the guard cannot see. And its sibling,
+`the_handoff_carries_the_golden_line`, knows only `none pinned` (before
+the first chapter) or an open `w<frame>`: when 647 closed the last chapter
+the line had to borrow `none pinned` to say "every chapter closed".
 
 (639) **A worker's gate that is red on the queue's line never reaches
 clippy.** Filed by the commander on 2026-09-23: 617 reported "red only on
@@ -698,6 +723,12 @@ item 632: `tools/explore/test_memcap.py` timed out in `offline_tests.py`
 at load average 6.6 with a sibling lane gating, before any cargo step,
 and passed alone in 2.9 s. A gate that can go red on the box's load is a
 gate whose red means less; with two lanes and a commander gating, it will.
+
+(649) **A capture's receipt misreports its proxy window.** Filed by item
+647: run157's `receipt.json` says `callwin: null`, while its
+`rontrace.cfg` carries `callwin=0-1200` and the trace holds 25,992 proxied
+calls. A worker who trusts the receipt will not look for the search on
+disk; 647 found it only by reading the cfg.
 
 (630) **A restage booked on a premise a reading already kills.** Filed by
 the commander on 2026-09-23 from item 628's staging reading. The twelfth

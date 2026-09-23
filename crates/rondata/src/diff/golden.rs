@@ -404,6 +404,38 @@ fn chapter_five_holds_to_the_golden_word() {
     );
 }
 
+/// **Chapter six, pinned** — the air and the bird (`docs/GOLDEN.md` §10,
+/// item 648, run168). Six staged lines: `!ai off`, `library 6` for both
+/// players, a Fighter for who=0, a Bomber for who=1, and `bird`.
+///
+/// **What the capture established before this walk ran**, each written
+/// into `chapter6.cmd`'s header first (`docs/RUNS.md`, run168): eight
+/// `INFO cmd` records each returning 1; 297 blocks; the Fighter `0/6` on
+/// 611 at (888, 7800) and the Bomber `1/6` on 616 at (2424, 7800), the
+/// predicted seats; the bird's birth draw on 700 and a seventh
+/// `think_bird` from 704. **§10's second falsifier fired**: neither
+/// aircraft moves, takes an order or leaves `air_alt` 0 to 899, and no
+/// `AMMO` block is written.
+///
+/// `GOLDEN_WORD_CHAPTER_SIX` carries what stands at the word.
+#[test]
+fn chapter_six_holds_to_the_golden_word() {
+    let Some(w) = walk_chapter("ch6", 6, 6, 900) else {
+        return;
+    };
+    assert!(
+        w.word >= GOLDEN_WORD_CHAPTER_SIX,
+        "chapter six's golden word fell to {} from {GOLDEN_WORD_CHAPTER_SIX}",
+        w.word
+    );
+    assert_eq!(
+        w.word, GOLDEN_WORD_CHAPTER_SIX,
+        "chapter six's golden word moved; re-pin it here and say so in \
+         docs/GOLDEN.md §10"
+    );
+    eprintln!("chapter six: sequence {}, values {:?}", w.sequence, w.value);
+}
+
 /// **Chapter two's squads are seated exactly where the dump seats them,
 /// and the 140 units item 415 called a seating error are five frames of
 /// marching** (item 441's widening).
@@ -5129,12 +5161,14 @@ fn chapter_seven_b_s_control_holds_to_the_golden_word() {
     let Some(w) = walk_script("ch7bc", "chapter7b_control", 7, 6, 1200) else {
         return;
     };
+    // Closed at the trace's end since item 647: no value parts either
+    // (`GOLDEN_WORD_CHAPTER_SEVEN_B_CONTROL`).
     assert_eq!(
         (w.word, w.sequence, w.value),
         (
             GOLDEN_WORD_CHAPTER_SEVEN_B_CONTROL,
             GOLDEN_WORD_CHAPTER_SEVEN_B_CONTROL,
-            Some(GOLDEN_WORD_CHAPTER_SEVEN_B_CONTROL + 1)
+            None
         ),
         "chapter seven-b's control's word moved"
     );
@@ -5193,7 +5227,14 @@ fn frame_goods(raw: &str) -> Vec<FrameGood> {
 /// per-frame `GOOD` list keyed on `o`. The civilians of `who` (`o >= 6`)
 /// are printed both sides on the blocks of `print`. Returns each parted
 /// key's first block and row; `None` when the capture is not on disk.
-#[allow(clippy::type_complexity)]
+///
+/// `ammo` adds the **`AMMO` record, both directions**, for a capture that
+/// dumps it (chapter six, item 648): a live round (`flags & 2`) keyed on
+/// its shooter and pool slot, as chapter five's widening keys it, and a
+/// round either side holds alone is a row. The civilians' captures do not
+/// dump `AMMO`, so for them it is off and a round of this crate's would
+/// be compared against nothing.
+#[allow(clippy::type_complexity, clippy::too_many_arguments)]
 fn widen_civilians(
     run: &str,
     stem: &str,
@@ -5201,6 +5242,7 @@ fn widen_civilians(
     no_block: i64,
     who: i64,
     print: (i64, i64),
+    ammo: bool,
 ) -> Option<std::collections::BTreeMap<(i64, i64, String), (i64, String)>> {
     use std::collections::{BTreeMap, BTreeSet};
     let mut s = stage_script(run, stem)?;
@@ -5209,6 +5251,8 @@ fn widen_civilians(
     let mut missing: BTreeSet<String> = BTreeSet::new();
     let (mut blocks, mut rows, mut leader_rows, mut good_rows) = (0usize, 0, 0, 0);
     let mut unread_goods = 0usize;
+    let mut ammo_rows = 0usize;
+    let mut no_goods = 0usize;
     for f in 0..last - 1 {
         s.script.stage(s.built.sim.frame, &mut s.built, &s.loaded);
         s.built.tick();
@@ -5254,12 +5298,20 @@ fn widen_civilians(
         // `GUY` of the list before it, with no `BEGIN GOOD`, no name and
         // no `ever_seen` — run141's line 583513, and the same on every
         // frame. So `o 0` is counted as unreadable, not compared.
+        //
+        // A capture taken without `GOODS` in its `end:` set (chapter six)
+        // prints no list at all, and a block of that kind is counted, not
+        // compared: this crate's goods would be rows against nothing.
         let theirs: BTreeMap<i64, FrameGood> =
             frame_goods(&raw).into_iter().map(|g| (g.o, g)).collect();
         let ours = s.built.sim.world.goods();
+        if theirs.is_empty() {
+            no_goods += 1;
+        }
         for i in 0..ours
             .len()
             .max(theirs.keys().max().map_or(0, |&o| o as usize + 1))
+            * usize::from(!theirs.is_empty())
         {
             let (a, g) = match (theirs.get(&(i as i64)), ours.get(i)) {
                 (Some(a), Some(g)) => (a, g),
@@ -5303,6 +5355,37 @@ fn widen_civilians(
                 }
             }
         }
+        if ammo {
+            let theirs: BTreeSet<(i64, i64, i64)> = super::ammo::blocks(&raw)
+                .into_iter()
+                .filter(|(a, _)| a.flags & 2 != 0)
+                .map(|(a, _)| (a.who, a.o, a.index))
+                .collect();
+            let ours: BTreeSet<(i64, i64, i64)> = s
+                .built
+                .sim
+                .projectiles
+                .iter()
+                .filter_map(|p| match p.shooter {
+                    sim::combat::Obj::Unit(u) => {
+                        let un = &s.built.sim.units[u];
+                        Some((i64::from(un.owner), i64::from(un.index), i64::from(p.slot)))
+                    }
+                    sim::combat::Obj::Building(_) => None,
+                })
+                .collect();
+            ammo_rows += theirs.len().max(ours.len());
+            for &(w, o, slot) in theirs.symmetric_difference(&ours) {
+                let side = if theirs.contains(&(w, o, slot)) {
+                    "the dump"
+                } else {
+                    "this crate"
+                };
+                firsts
+                    .entry((w, o, format!("ammo[{slot}]")))
+                    .or_insert((n, format!("{side} holds it alone")));
+            }
+        }
         // **Both sides printed once** on the citizen's two blocks, for
         // the five: the record a draw would be spent in, before any
         // quiet row is trusted.
@@ -5342,7 +5425,7 @@ fn widen_civilians(
     eprintln!(
         "widening {run}: {blocks} blocks [{first}, {last}), {rows} record rows, \
          {leader_rows} leader rows, {good_rows} good rows ({unread_goods} unreadable), \
-         {} keys parted; {} leader keys not printed at LEADERS=2",
+         {ammo_rows} rounds, {} keys parted; {} leader keys not printed at LEADERS=2",
         firsts.len(),
         missing.len()
     );
@@ -5357,7 +5440,10 @@ fn widen_civilians(
         2 * 88 * blocks,
         "{run}: the leader rows LEADERS=2 prints are not compared on every block"
     );
-    assert!(good_rows > 0, "{run}: the GOOD list is not read");
+    assert!(
+        good_rows > 0 || no_goods == blocks,
+        "{run}: the GOOD list is printed and not read"
+    );
     Some(firsts)
 }
 
@@ -5389,7 +5475,8 @@ fn chapter_seven_s_word_frame_is_widened_whole() {
     const NO_BLOCK: i64 = 1200;
     let mut summaries = Vec::new();
     for (run, stem) in [("ch7", "chapter7"), ("ch7c", "chapter7_control")] {
-        let Some(firsts) = widen_civilians(run, stem, (FIRST, LAST), NO_BLOCK, 0, (763, 764))
+        let Some(firsts) =
+            widen_civilians(run, stem, (FIRST, LAST), NO_BLOCK, 0, (763, 764), false)
         else {
             return;
         };
@@ -5470,6 +5557,83 @@ fn chapter_seven_s_word_frame_is_widened_whole() {
     }
 }
 
+/// **Chapter six's word, widened whole, both directions** (items 648 and
+/// 650). Every
+/// record run168 carries on every block of [`WIDENING_CHAPTER_SIX`], by
+/// [`widen_civilians`] with the `AMMO` record on: every unit and figure,
+/// both leaders at `LEADERS=2`, and every live round either side holds.
+/// Every record is printed both sides on the word's two blocks. run168
+/// dumps no `BUILDS` and no `GOODS`: the buildings stand as `build:extra`
+/// rows on the first block, and the good list is counted, not compared.
+///
+/// The `AMMO` arm was made to fail once, on run127's 139 rounds with this
+/// crate's pool slot shifted by one: eight `ammo[·]` rows parted.
+#[test]
+fn chapter_six_s_word_frame_is_widened_whole() {
+    let Some(firsts) = widen_civilians(
+        "ch6",
+        "chapter6",
+        WIDENING_CHAPTER_SIX,
+        900,
+        1,
+        (GOLDEN_WORD_CHAPTER_SIX, GOLDEN_WORD_CHAPTER_SIX + 1),
+        true,
+    ) else {
+        return;
+    };
+    for ((w, o, what), (f, row)) in &firsts {
+        eprintln!("  ch6 f{f} {w}/{o} {what}: {row}");
+    }
+    // **The standing rows of the first block**: the unmodelled `form`
+    // on all ten start units, two `filled_gather_slots`, and the fourteen
+    // start buildings as `build:extra`, which run168 cannot print.
+    let standing = |what: &str| {
+        what == "form" || what.starts_with("leader:filled_gather_slots") || what == "build:extra"
+    };
+    let floor: Vec<&String> = firsts
+        .iter()
+        .filter(|(_, (f, _))| *f == WIDENING_CHAPTER_SIX.0)
+        .map(|((_, _, what), _)| what)
+        .collect();
+    assert!(
+        floor.iter().all(|w| standing(w)) && floor.len() == 26,
+        "ch6: the standing rows on the first block moved ({}): {floor:?}",
+        floor.len()
+    );
+    // **What parts under the word**, pinned by block and key (`docs/GOLDEN.md`
+    // §10). Each aircraft's `form` on its birth block, the standing family.
+    // **The word's block**, 700, agrees on every record, and so does every
+    // block from 606 to 700 past those two. From item 650 neither aircraft
+    // takes an order here, as in the dump (`docs/COMBAT.md` §61). On 701
+    // the AI scout `1/0` walks for another point, its whole move order and
+    // path. The original spends the bird's birth draw on 700 and this
+    // crate, carrying `bird` as `CHAPTER_DEBT`, does not, so `think_scout`'s
+    // roll comes one draw early. No round is in either air.
+    let mut got: Vec<String> = firsts
+        .iter()
+        .filter(|(_, (f, _))| *f > WIDENING_CHAPTER_SIX.0)
+        .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
+        .collect();
+    got.sort();
+    let mut want = vec!["611 0/6 form".to_string(), "616 1/6 form".to_string()];
+    want.extend(
+        [
+            "dest_angle",
+            "order:move.angle",
+            "order:move.x",
+            "order:move.y",
+            "orders_x",
+            "orders_y",
+            "path:length",
+        ]
+        .iter()
+        .map(|k| format!("701 1/0 {k}")),
+    );
+    want.extend((0..9).map(|i| format!("701 1/0 path[{i}].to")));
+    want.sort();
+    assert_eq!(got, want, "ch6: what parts under the word moved");
+}
+
 /// **Chapter seven-b's words, widened whole, both directions, on both
 /// captures** (item 628). Every record run156 and run157 carry on every
 /// block of [`WIDENING_CHAPTER_SEVEN_B`], by [`widen_civilians`].
@@ -5481,10 +5645,10 @@ fn chapter_seven_b_s_word_frame_is_widened_whole() {
             "ch7bc",
             "chapter7b_control",
             WIDENING_CHAPTER_SEVEN_B_CONTROL,
-            (1187, 1188),
+            (1199, 1200),
         ),
     ] {
-        let Some(firsts) = widen_civilians(run, stem, window, 1200, 1, print) else {
+        let Some(firsts) = widen_civilians(run, stem, window, 1200, 1, print, false) else {
             return;
         };
         for ((w, o, what), (f, row)) in &firsts {
@@ -5542,6 +5706,14 @@ fn chapter_seven_b_s_word_frame_is_widened_whole() {
         // `BUILDORDER` to the word, as the original's does: on 1177 both
         // sides hold explore-to (40248, 23160) and the `BUILDORDER` on
         // `1/2009`, at (40271, 18360). Nothing new parts on 1177..1188.
+        // **Item 647's block** (the delta is in the constant's comment):
+        // the scout `1/0`'s eighteen rows are gone — its path from 1077
+        // (47 nodes against 48, `path[41..46].to`), its position, figures
+        // and `dest_y` from 1116, and its `dest`/`dest_x` from 1137. The
+        // path was built across the Small City `1/2007`'s footprint, which
+        // this crate's who=1 had not seen: `Wall::start` now writes the
+        // owner's bit over it (`docs/SCOUT.md` §14). The window is the
+        // capture whole, and only the group id on 990 stands.
         let mut got: Vec<String> = firsts
             .iter()
             .filter(|((_, _, what), (f, _))| *f > window.0 && what != "form")
@@ -5551,27 +5723,7 @@ fn chapter_seven_b_s_word_frame_is_widened_whole() {
         let want: &[&str] = if run == "ch7b" {
             &["847 1/0 order:move.facing"]
         } else {
-            &[
-                "1077 1/0 path:length",
-                "1077 1/0 path[41].to",
-                "1077 1/0 path[42].to",
-                "1077 1/0 path[43].to",
-                "1077 1/0 path[44].to",
-                "1077 1/0 path[45].to",
-                "1077 1/0 path[46].to",
-                "1116 1/0 g.angle[0]",
-                "1116 1/0 g.angle[1]",
-                "1116 1/0 g.x[1]",
-                "1116 1/0 g.y[0]",
-                "1116 1/0 g.y[1]",
-                "1116 1/0 heading",
-                "1116 1/0 order:move.dest_y",
-                "1116 1/0 pos",
-                "1120 1/0 g.x[0]",
-                "1137 1/0 order:move.dest",
-                "1138 1/0 order:move.dest_x",
-                "990 1/1 group",
-            ]
+            &["990 1/1 group"]
         };
         assert_eq!(got, want, "{run}: what parts under the word moved");
         assert!(
@@ -7457,5 +7609,101 @@ fn chapter_three_s_catapult_after_its_reload() {
     assert!(
         parted.is_empty(),
         "run146's catapult after its reload: {parted:#?}"
+    );
+}
+
+/// **Chapter seven-b's control: the scout's search on 1076, priced step
+/// for step against the original's** (item 647, run157). The capture's
+/// `rontrace.cfg` proxies `PathFinder::astar_path` and `calc_cost` over
+/// the whole run, so the search that built `1/0`'s explore path (block
+/// 1077, 48 nodes against this crate's 47) is on disk call for call.
+/// Every step both sides price is compared on its whole argument list
+/// (`docs/PATHFINDER.md` §17's key); a key only one side priced is the
+/// search parting, and is counted, not compared.
+#[test]
+fn chapter_seven_b_s_control_scout_search_is_priced_as_the_original() {
+    let Some(inst) = crate::testenv::install() else {
+        return;
+    };
+    let Some((dump, tracepath)) = golden("ch7bc") else {
+        eprintln!("skipping: no golden capture ch7bc (see docs/RUNS.md)");
+        return;
+    };
+    let trace = crate::trace::Trace::read(std::path::Path::new(&tracepath))
+        .expect("a finalized golden trace")
+        .expect("missing RONT header");
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(&dump);
+    let log = Log::parse(&text);
+    let texts = sibling_texts();
+    let logs = siblings(&texts);
+    let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+    let refs: Vec<&Initial> = inits.iter().collect();
+    if refs.is_empty() {
+        eprintln!("skipping: no sibling dumps");
+        return;
+    }
+    let mut built = stand_up(&loaded, &log, &refs, &trace);
+    let mut script = script_named("chapter7b_control");
+    const SEARCH: i64 = 1076;
+    while built.sim.frame < SEARCH {
+        script.stage(built.sim.frame, &mut built, &loaded);
+        built.tick();
+    }
+    script.stage(built.sim.frame, &mut built, &loaded);
+    built.sim.trace_costs = true;
+    built.tick();
+    let ours = std::mem::take(&mut built.sim.cost_marks);
+    let theirs = trace.calls_in(SEARCH, crate::trace::call_site::CALC_COST);
+    let theirs_by_key: std::collections::BTreeMap<sim::path::CostKey, i32> = theirs
+        .iter()
+        .map(|c| (c.cost_key().expect("a calc_cost call"), c.ret))
+        .collect();
+    let mut shared = 0usize;
+    let mut wrong: Vec<String> = Vec::new();
+    for m in &ours {
+        let Some(&t) = theirs_by_key.get(&m.key()) else {
+            continue;
+        };
+        shared += 1;
+        if t != m.cost {
+            wrong.push(format!(
+                "({},{})->({},{}) depth {}: ours {} theirs {t}",
+                m.from.0 / m.step,
+                m.from.1 / m.step,
+                m.to.0 / m.step,
+                m.to.1 / m.step,
+                m.depth,
+                m.cost,
+            ));
+        }
+    }
+    eprintln!(
+        "run157 f{SEARCH}: ours {} steps, theirs {}, {shared} shared, {} priced apart",
+        ours.len(),
+        theirs.len(),
+        wrong.len()
+    );
+    for w in &wrong {
+        eprintln!("  {w}");
+    }
+    // **The floor, before the fix** (item 647, `33952d3`): 969 steps here
+    // against 945, 587 shared, and nine priced apart, every one into cell
+    // (48,31) or (47,31), the south half of the Small City `1/2007`'s
+    // footprint (started on 1069, `mylos 0`). The original priced them
+    // seen — 128 base, 20 × 9 of blocked tiles, − 4 own ground, + 8 on a
+    // diagonal, so 304 and 312 — and this crate as unseen scouting ground,
+    // 1 and 9 (`docs/PATHFINDER.md` §5). `Wall::start`'s write of the
+    // owner's bit over the footprint is what lights them (`docs/SCOUT.md`
+    // §14): with it the two searches are one, step for step.
+    assert_eq!(
+        (ours.len(), theirs.len(), shared),
+        (945, 945, 945),
+        "run157 f{SEARCH}: the search's steps moved"
+    );
+    assert_eq!(
+        wrong,
+        Vec::<String>::new(),
+        "run157 f{SEARCH}: steps priced apart"
     );
 }

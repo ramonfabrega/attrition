@@ -448,17 +448,27 @@ impl Sim {
     /// rather than stubbed: stubbed `true` it kills §37.2 outright, and
     /// stubbed `false` it would accept every chase the original refuses.
     ///
-    /// SEAM, and both are above conjunct 1: the candidate's first `Guy`
-    /// carrying `guy_flags & 0x40` takes a **different** arm entirely
-    /// (`has_objmask(0x80000000)`, then the reach floor), and this crate
-    /// has no such guy flag, so the `== 0` arm is always taken.
-    /// `role & 0x400` is likewise unloaded — this crate's
-    /// [`combat::role`] word is its own synthesis and not the original's
-    /// — so the floor is always the tile.
+    /// **A plane takes the other arm** (`docs/COMBAT.md` §61). Above
+    /// conjunct 1, the candidate's first `Guy` carrying `guy_flags & 0x40`
+    /// is refused outright by a searcher without `ANTI_AIR`
+    /// (`has_objmask(0x80000000)`), and by one with it when it is further
+    /// than its own `max_range` tiles. `Guy::init_real@005db6b0` sets the
+    /// bit on every figure of a unit `UnitData::is_plane` calls a plane,
+    /// an air-domain type without `unit_flags & 0x20`, and only
+    /// `Guy::clear` and `init_real`'s own reset write the word otherwise.
+    /// So the bit is the type's, and `Sim::is_plane` reads it there.
+    ///
+    /// SEAM: `role & 0x400` is unloaded. This crate's [`combat::role`]
+    /// word is its own synthesis and not the original's, so the floor is
+    /// always the tile.
     pub(crate) fn poor_target(&self, me: Obj, cand: Obj) -> bool {
         let (Obj::Unit(u), Obj::Unit(c)) = (me, cand) else {
             return false;
         };
+        if self.is_plane(c) {
+            return !self.profile(me).has(mask::ANTI_AIR)
+                || self.attack_dist(me, cand) > self.max_range_of(me) * 0xc0;
+        }
         if !crate::orders::index::is_move_family(self.order_type(c)) {
             return false;
         }
@@ -478,8 +488,8 @@ impl Sim {
 
     /// `ObjectData::valid_target_const` + `Object::valid_target` (§12.1), as
     /// far as the simulation's state reaches: not mine, at war, active, on the
-    /// map, **and seen**; the air ladder reduced to "air targets need a
-    /// ranged attacker and the two AIR/ANTI_AIR rules"; no capture.
+    /// map, **and seen**; and the air ladder for a plane target, less its
+    /// helicopter and `is(0x132)` arms (`docs/COMBAT.md` §61.2).
     pub fn valid_target(&self, attacker: Obj, target: Obj) -> bool {
         if attacker == target {
             return false;
@@ -518,6 +528,49 @@ impl Sim {
         if matches!(tp.domain, Domain::Air) {
             if self.max_range_of(attacker) == 0 {
                 return false;
+            }
+            // **The air ladder** (`docs/COMBAT.md` §61, the listing
+            // `006474c3`–`0064771c`). For a fixed-wing target, unless the
+            // searcher is an `ANTI_AIR` aircraft:
+            //
+            //     if S.fly_high == 0 && S.fly_low == 0:        refuse
+            //     if !S.anti_air:                               # the target's own
+            //         if T.fly_high == 0:
+            //             if T.fly_low == 0 || high(T):         refuse
+            //         elif T.fly_low == 0 && low(T):            refuse
+            //     if S.fly_high == 0: if high(T):               refuse
+            //     elif S.fly_low == 0 && low(T):                refuse
+            //
+            // `high` and `low` are `UnitData::is_flying_high@0060a310` and
+            // `is_flying_low@0060a140`, and `low` is true only under an air
+            // order near its point: slot `0xfc`, which it reads, is
+            // `AirOrder::get_air_order` on the three air-order classes and
+            // returns 0 on every other. This crate gives no player's unit
+            // an air order, so `low` is false and every fixed-wing aircraft
+            // on the map is high. run168's Bomber (`FLY_HIGH` 0) therefore
+            // refuses the Fighter, while the Fighter, an `ANTI_AIR` aircraft,
+            // may take the Bomber.
+            //
+            // SEAM: a **helicopter** target (`unit_flags & 0x20`) takes
+            // `006474ee`'s arm instead, which refuses four classes of searcher
+            // (two by vtable, the missile, and `is(0x130)`); this crate keeps
+            // it as "ranged and not a missile". And `0064756b`'s
+            // `is(0x132)` arm, which refuses a non-air searcher that cannot
+            // carry aircraft, is not built. No capture reaches either.
+            if matches!(target, Obj::Unit(t) if self.is_plane(t)) {
+                let high = !tp.has(mask::MISSILE);
+                let anti_air = ap.has(mask::ANTI_AIR);
+                if !(anti_air && matches!(ap.domain, Domain::Air)) {
+                    if ap.fly_high == 0 && ap.fly_low == 0 {
+                        return false;
+                    }
+                    if !anti_air && tp.fly_high == 0 && (tp.fly_low == 0 || high) {
+                        return false;
+                    }
+                    if ap.fly_high == 0 && high {
+                        return false;
+                    }
+                }
             }
             if tp.has(mask::MISSILE) || ap.has(mask::MISSILE) {
                 return false;
@@ -2235,6 +2288,13 @@ impl Sim {
                         if !self.valid_target(attacker, o) {
                             continue;
                         }
+                        // **`check_target`'s tail**, `use_poor` 1
+                        // (`00649e00`, `docs/COMBAT.md` §61): a futile
+                        // chase is refused before `near_o` is written, and
+                        // an unarmed plane's search of a plane is futile.
+                        if self.poor_target(attacker, o) {
+                            continue;
+                        }
                         let mut dist = self.attack_dist(attacker, o);
                         let is_unit = matches!(o, Obj::Unit(_));
                         // `00649527`'s conjunct: one of the two ends has
@@ -3592,6 +3652,77 @@ mod tests {
             sim.units[me].path.is_empty() && sim.units[me].movement.dest.is_none(),
             "the engine walked for its range"
         );
+    }
+
+    /// **An aircraft takes no aircraft it cannot reach** (item 650,
+    /// `docs/COMBAT.md` §61), on run168's two types. A Bomber (`FLY_HIGH`
+    /// 0, no `ANTI_AIR`) is refused a plane by `valid_target`'s air ladder,
+    /// because a plane with no air order flies high. A Fighter (`ANTI_AIR`,
+    /// seven tiles) may take the Bomber, but its search refuses one eight
+    /// tiles off through `poor_target`'s plane arm, and takes it at three.
+    /// A land rifleman (`FLY_HIGH` 0) is refused a plane too, and an
+    /// anti-aircraft gun is not.
+    ///
+    /// Made to fail on purpose, both ways. With the ladder read back the
+    /// Bomber's `valid_target` is true. With the plane arm off the Fighter's
+    /// search names the Bomber at eight tiles.
+    #[test]
+    fn an_aircraft_takes_no_aircraft_it_cannot_reach() {
+        let (mut sim, _) = at_war();
+        let plane = |attack, max_range, fly_low, masks| crate::UnitType {
+            hits: 100,
+            combat: Profile {
+                attack,
+                max_range,
+                fly_high: 0,
+                fly_low,
+                uber_size: 1,
+                obj_masks: mask::AIR | masks,
+                domain: Domain::Air,
+                combat_role: true,
+                ..Profile::default()
+            },
+            ..crate::UnitType::default()
+        };
+        let fighter_ty = sim.add_unit_type(plane(450, 7, 25, mask::ANTI_AIR));
+        let bomber_ty = sim.add_unit_type(plane(430, 3, 10, mask::EXPLOSIVE));
+        let ground = |max_range, fly_high, fly_low, masks| crate::UnitType {
+            hits: 100,
+            combat: Profile {
+                attack: 200,
+                max_range,
+                fly_high,
+                fly_low,
+                uber_size: 1,
+                obj_masks: masks,
+                combat_role: true,
+                ..Profile::default()
+            },
+            ..crate::UnitType::default()
+        };
+        let rifle_ty = sim.add_unit_type(ground(8, 0, 20, mask::GUN));
+        let flak_ty = sim.add_unit_type(ground(14, 50, 90, mask::ANTI_AIR));
+        let y = 0x4000 + 96;
+        let fighter = put(&mut sim, 0, fighter_ty, Pos::new(0x4000 + 96, y));
+        let bomber = put(&mut sim, 1, bomber_ty, Pos::new(0x4000 + 96 + 8 * 192, y));
+        let (f, b) = (Obj::Unit(fighter), Obj::Unit(bomber));
+        assert!(!sim.valid_target(b, f), "the Bomber may take a plane");
+        assert!(
+            sim.valid_target(f, b),
+            "the Fighter may not take the Bomber"
+        );
+        assert_eq!(sim.find_melee_target(bomber, -1), None);
+        assert_eq!(
+            sim.find_melee_target(fighter, -1),
+            None,
+            "the Fighter's search took a plane beyond its reach"
+        );
+        let near = put(&mut sim, 1, bomber_ty, Pos::new(0x4000 + 96, y - 3 * 192));
+        assert_eq!(sim.find_melee_target(fighter, -1), Some(Obj::Unit(near)));
+        let rifle = put(&mut sim, 0, rifle_ty, Pos::new(0x4000 + 96, y + 192));
+        let flak = put(&mut sim, 0, flak_ty, Pos::new(0x4000 + 96, y + 384));
+        assert!(!sim.valid_target(Obj::Unit(rifle), b));
+        assert!(sim.valid_target(Obj::Unit(flak), b));
     }
 
     /// The flee arm's `else`: a **combat** unit still retaliates, which

@@ -25,16 +25,17 @@ the rules track closed chapters four (1500), seven (1200) and three
   floor is a pin; a packet is taken at the word's own logger frame.
 - **598 rides in 620**: `inside_up`'s container row goes into `compare`
   inside the widening. 571 never ran — both lanes held a headline.
-- **Fable backlog: 6 Loop items** (313, 527, 630, 638, 639, 645); the `FABLE:` batch was empty.
+- **Fable backlog: 7 Loop items** (313, 527, 630, 638, 639, 645, 649); the `FABLE:` batch was empty.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w13640 of 24,000 · GreatLakes w12038 of 24,000
-Golden: ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch7 closed · restage closed · ch7b closed · ch7b-control w1187 of 1200 · 647 next
+Golden: ch6 w700 of 901 · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch7 closed · restage closed · ch7b closed · ch7b-control closed · 652 next
 Endpoint 24001: EastIndies 45 off, 12 unlinked · GreatLakes 41 off, 0 unlinked
 
-**Opener: nine landings since the twelfth pass's commit. 571 has the AI
-lane (Great Lakes, the lower map); spawn 647 on the rules lane
-(seven-b's control, 1187). 643 follows 571. Stop at twenty.**
+**Opener: twelve landings since the twelfth pass's commit. Chapter six
+is open at 700, `bird`'s frame. 571 has the AI lane (Great Lakes, the
+lower map); spawn 652 on the rules lane. 643 follows 571. Stop at
+twenty.**
 
 ## The queue
 
@@ -53,13 +54,14 @@ backlog is `docs/PARKED.md`, and an item returns only when a score names it.
     against 5, `move_step+0x823`. No mechanism. Optional second run if a
     lane is free: a packet at 11922 with the nine guys' move path on it.
 
-647. **Chapter seven-b's control word is 1187: the scout `1/0`** (644
-    moved it 1176 → 1187: `library` raises levels through `gain_tech`'s
-    tail and the caps read Commerce live, INPUT §11.11; parked 633). On
-    1187 ours 10 draws against 9 at draw 0, `Unit::do_move+0xe84`. The
-    scout's explore path parts from 1077 (`path[41..46].to`, 47 nodes
-    against 48) and its `dest` from 1137. Widened on (605, 1189). No
-    mechanism. Takes the rules lane next.
+652. **Chapter six's word is 700: `bird`, which the harness does not
+    stage** (650 moved it 616 → 700: `poor_target`'s plane arm and
+    `valid_target_const`'s air ladder, COMBAT §61). Block 700 agrees on
+    every record; 701 parts on the AI scout `1/0`'s `think_scout` roll,
+    one draw early, because this crate spawns no bird (`CHAPTER_DEBT`).
+    The crate has the bird (`gaia.rs`, `air.rs`); the cheat is
+    `spawn_bird` at the cursor. The cursor's value is the question
+    (parked 653). No mechanism. On the rules lane next.
 
 643. **East Indies' word is 13640, past every capture** (642 moved it
     11747 → 13640: `Region::go_here` reads the human's `reg_cities`
