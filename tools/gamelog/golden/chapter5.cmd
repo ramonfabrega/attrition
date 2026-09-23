@@ -30,6 +30,46 @@
 # `find_nearby_spot` is what decides where a spawn actually lands, and
 # whether it refuses dry ground for a ship is the chapter's first question,
 # not an assumption: see docs/GOLDEN.md §9's falsifier.
+#
+# The recipe is run112's tested command with the chapter file swapped, and
+# the `--detail start:` line is not optional: without it the start block
+# carries no leaders and no units, and `walk_chapter` refuses the capture
+# (run112's first take). A relative `--cmd-file` is resolved against the
+# repo root by `golden_capture.sh` since item 415.
+#
+# ---------------------------------------------------------------------------
+# THE PREDICTION, written before run127 so the capture can fail (item 535).
+# As chapter two's: a golden chapter takes no `captures.txt` stanza, so the
+# stanza's `check:` lines live here. Every one is a grep or a count.
+#
+# check: six `INFO cmd` records, every one returning 1 — the four staged
+#        here plus `37 !ffwd 1` and `900 !quit`, which the capture adds.
+#        `python3 tools/gamelog/cmdsran.py <trace>`. A refused `add` may
+#        still return 1 — `run_cmd` does not report the spot search — so
+#        this check cannot stand in for the next one.
+# check: `MAP_STYLE 14` and seed 12345 read back from the dump's GAME INFO.
+# check: the window is the window asked for — `BEGIN FRAME` 1, then 605..899
+#        with no gap, then 901, the `!quit` block: 297 frame blocks, as
+#        run112 has.
+# check: the spawns land on their frames. Trireme and Fishermen are both
+#        UBER_SIZE 1, so one `UNITDATA` per `add`: 52 at 605, 53 from 611,
+#        54 from 616, 55 from 621.
+#
+# What would falsify the chapter (docs/GOLDEN.md §9), read FIRST:
+#
+# - **No new `UNITDATA` at 611 or 616** — the `add` refused, and the spot
+#   search's filter is what decides a hull's ground: the channel cannot
+#   place a ship without a Dock. The unit count stays 52 across 611.
+# - **A hull whose `x_internal/768, y_internal/768` is a land cell** of the
+#   start block's `WORLD` — region 70 is x 13-20, y 40-49, and the asked
+#   cells are (15,45), (16,46) and (15,46). The search does not filter by
+#   domain.
+# - **Two hulls in water and no `BEGIN AMMO` after 616** — a ship's fight is
+#   not the land fight's shooting arm. The triremes stand 7.2 tiles apart
+#   (dx 4, dy 6; §9's "about five" is the straight-line misreading), inside
+#   RANGE 0-9, and AMMO_PER_ATT is 3, so the prediction is AMMO blocks from
+#   the first reload after 616, three rounds a volley.
+# ---------------------------------------------------------------------------
 
 # `ai` is console-only (table index 12). Every chapter's premise.
 0 !ai off
