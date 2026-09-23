@@ -11396,6 +11396,12 @@ mod tests {
         /// The block the purchase behind the sixth Scholar lands on:
         /// sim-frame 9576 writes block 9577.
         const PURCHASE_BLOCK: i64 = 9_577;
+        /// The block warship `1/32` is born on (item 579): sim-frame 10186
+        /// writes it, the first parting any of its inputs reaches.
+        const BIRTH_BLOCK: i64 = 10_187;
+        /// The word 10232's block (item 576's successor): sim-frame 10232
+        /// writes it. Item 579 moved the word past it.
+        const OLD_WORD_BLOCK: i64 = 10_233;
         let Some(inst) = install() else { return };
         let (Some(path), Some(sib), Some(tr), Some(r98), Some(r99)) = (
             dump("gamelog-run54-islands-24k-trace.txt"),
@@ -11642,12 +11648,36 @@ mod tests {
             .map(|((w, o, what), (f, row))| format!("{f} {w}/{o} {what}: {row}"))
             .collect();
         assert_eq!(on_make, Vec::<String>::new(), "the make_stuff agrees");
-        // **The word's blocks, 10231..10233, both directions.** Sim-frame
-        // 10232 spends 33 draws here against 34, parting at index 30: ours
-        // `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs
-        // `Unit::do_move+0xe84`. The word's block has three rows, all
-        // `1/32`'s, a unit born on 10187 at another point than the
-        // original's and in another group on 10188.
+        // **The old word's blocks, 10231..10233, and the move's value
+        // diff** (item 579). Sim-frame 10232 spent 33 draws here against
+        // 34, parting at index 30: the original's `Unit::do_move+0xe84`.
+        // The navy's first tick ordered Trireme `1/32` to the muster, and
+        // the original's straight line refused it — the ship stood inside
+        // its dock's `BAD_PATH` margin, which a warship may not cross
+        // (`invalid_loc` answers 3) — so it paid the grid draw and gave
+        // up; this crate had no navy (the ship stood idle with `stance 0`,
+        // `idle 5`, `form_mod -1`) and, once it had one, no margin. With
+        // `init_navy`, the margin and the hazard arm, nothing parts here.
+        let on_old: Vec<String> = firsts
+            .iter()
+            .filter(|(_, (f, _))| (OLD_WORD_BLOCK - 2..=OLD_WORD_BLOCK).contains(f))
+            .map(|((w, o, what), (f, row))| format!("{f} {w}/{o} {what}: {row}"))
+            .collect();
+        assert_eq!(
+            on_old,
+            Vec::<String>::new(),
+            "the navy's first order agrees"
+        );
+        // **The word's blocks, 10397..10399, both directions** — run99's
+        // last three. Sim-frame 10398 spends 4 draws here against 5,
+        // parting at index 0: the original's `Guy::set_anim+0x97a <
+        // Unit::do_idle+0x7d` first, which this crate does not spend.
+        // `1/34`, the Bark the Dock trains on 10323, has walked to the
+        // navy since 10325 a few units behind the original's (its first
+        // step, `avg_speed` 5 against 10) and arrives here: the original's
+        // has no order left on 10398 and idles on 10399, this crate's is
+        // still moving. The seated Scholar `1/24` changes animation on the
+        // original's side alone.
         let on_word: Vec<String> = firsts
             .iter()
             .filter(|(_, (f, _))| (WORD_BLOCK - 2..=WORD_BLOCK).contains(f))
@@ -11656,9 +11686,14 @@ mod tests {
         assert_eq!(
             on_word,
             [
-                "10233 1/32 form_mod: ours -1 theirs 50",
-                "10233 1/32 idle: ours 5 theirs 0",
-                "10233 1/32 stance: ours 0 theirs 3",
+                "10399 1/24 g.cur_anim[0]: ours 29 theirs 30",
+                "10399 1/24 g.end_time[0]: ours 30 theirs 70",
+                "10399 1/34 g.cur_time[0]: ours 15 theirs 1",
+                "10399 1/34 g.end_time[0]: ours 20 theirs 40",
+                "10399 1/34 g.last_time[0]: ours 14 theirs 0",
+                "10399 1/34 idle: ours 0 theirs 1",
+                "10398 1/34 order:length: Length { ours: 1, theirs: 0 }",
+                "10398 1/34 orders.len: ours 1 theirs 0",
             ],
             "the word's blocks"
         );
@@ -11680,19 +11715,81 @@ mod tests {
         // record as the five before them; every Citizen's `myhits` and
         // `hits_left` 40 against the original's 50, and `mylos` 2 against
         // 4, on 10165; and `1/32`, born on 10187 at (44184, 42888) against
-        // (45192, 41880), in group 68 against 66 from 10188.
+        // (45192, 41880), in group 68 against 66 from 10188. **Item 579
+        // took five of them and added 28** (219 → 242): `1/32` is born on the
+        // original's point and is in the navy (group 68 against 66, a
+        // numbering, from 10188); the seated Scholar `1/33`'s four-row
+        // birth record on 10278; and the Bark `1/34`, in group 68 against
+        // 66 from 10324 and a step behind the original's from its first
+        // step on 10325 — its speed, its figure, its angle, its path's
+        // length and its move's `last` — none of which spends a draw until
+        // it arrives on the word.
         let under = firsts.values().filter(|(f, _)| *f < WORD_BLOCK - 2).count();
-        assert_eq!(under, 219, "the floor under the word");
+        assert_eq!(under, 242, "the floor under the word");
+        // **The birth under the old word, 10187..10188** (item 579): the
+        // first block any of `1/32`'s inputs parts on is its own birth.
+        // Trireme `1/32` (type 340) is trained at Dock `1/2010`, (44160,
+        // 41856), on the same frame on both sides, from a queue that agrees
+        // on every block. `come_out`'s ring is 1008 on both, and the
+        // original put it due **east**, (45192, 41880), where this crate
+        // put it due **south**, (44184, 42888). Two things were missing
+        // (`docs/ORDERS.md` §25): `find_nearby_spot`'s warship clause,
+        // which refuses a `0x2400` tile to a sea type with an attack, and
+        // `BuildType::mask_me`'s `is(DOCK)` arm, which marks every ocean
+        // tile within three of a dock's footprint `BAD_PATH`. The first
+        // alone put it on the ring's third bearing, (44568, 42792); with
+        // the margin it is the original's point, and the position, the
+        // figure's and its `des` agree from the birth on. What is left is
+        // the order point (the Dock's own, here), `form`, and the navy's
+        // group number, 68 against 66.
+        let birth: Vec<String> = firsts
+            .iter()
+            .filter(|(_, (f, _))| (BIRTH_BLOCK..=BIRTH_BLOCK + 1).contains(f))
+            .map(|((w, o, what), (f, row))| format!("{f} {w}/{o} {what}: {row}"))
+            .collect();
+        assert_eq!(
+            birth,
+            [
+                "10187 1/32 form: ours -1 theirs 0",
+                "10188 1/32 group: ours 68 theirs 66",
+                "10187 1/32 orders_x: ours 44160 theirs 45192",
+                "10187 1/32 orders_y: ours 41856 theirs 41880",
+            ],
+            "the warship's birth"
+        );
+        let placed: Vec<&String> = firsts
+            .keys()
+            .filter(|(w, o, what)| {
+                (*w, *o) == (1, 32)
+                    && ["pos", "g.x[0]", "g.y[0]", "g.des_x[0]", "g.des_y[0]"]
+                        .contains(&what.as_str())
+            })
+            .map(|(_, _, what)| what)
+            .collect();
+        assert_eq!(
+            placed,
+            Vec::<&String>::new(),
+            "1/32 is born on (45192, 41880)"
+        );
         // **Who changes animation, both sides** (`docs/COMBAT.md`
-        // §44.2.1): on the word's blocks, 10231..10234, five figures change
-        // animation and every one on both sides — `1/1`, `0/1`, `0/3`,
-        // `1/2` and `1/18`. The draw `Unit::do_move+0xe84` the original
-        // spends and this crate does not changes no figure's animation.
-        // (On the old word, 9984, it was `1/6` and gaia's `8/0`, here
-        // only; parked 577 is `compare`'s blind spot for gaia.)
+        // §44.2.1): on the word's blocks, 10397..10399 (run99 ends there),
+        // three figure-changes are on one side only — `1/34` on ours on
+        // 10398, the Bark's walk still starting its stride, and on theirs
+        // on 10399 `1/34` (8 → 0, the stand) and the seated Scholar `1/24`
+        // (29 → 30). (On the old word, 10231..10234, five figures changed
+        // and every one on both sides; on 9984 it was `1/6` and gaia's
+        // `8/0`, and parked 577 is `compare`'s blind spot for gaia.)
         let one_sided: Vec<(i64, i64, i64, bool, bool)> =
             changed.iter().filter(|c| c.3 != c.4).copied().collect();
-        assert_eq!(one_sided, [], "a figure moves on one side only");
+        assert_eq!(
+            one_sided,
+            [
+                (10398, 1, 34, false, true),
+                (10399, 1, 24, true, false),
+                (10399, 1, 34, true, false),
+            ],
+            "a figure moves on one side only"
+        );
     }
 
     /// **run139 — East Indies 9983's make list, widened whole** (item

@@ -1563,6 +1563,13 @@ impl World {
             .any(|(dx, dy)| self.tile_mask(Pos::new(t.x + dx, t.y + dy)) & tile::BLOCKED != 0)
     }
 
+    /// `World::set_bad_path@006b4610`: sets or clears one tile's
+    /// [`tile::BAD_PATH`], keeping the containing cell's [`CellData::bad`]
+    /// count.
+    pub fn set_bad_path(&mut self, t: Pos, on: bool) {
+        self.set_bad_path_bit(t, on);
+    }
+
     /// Sets or clears one tile's [`tile::BAD_PATH`], keeping the containing
     /// cell's [`CellData::bad`] count.
     fn set_bad_path_bit(&mut self, t: Pos, on: bool) {

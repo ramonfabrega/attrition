@@ -602,7 +602,26 @@ fn indexed_siblings_preserve_every_initial_field_except_audit_bodies() {
 /// [`EAST_INDIES_MAKE_BLOCK`]). 10232 spends 33 draws here against 34,
 /// parting at index 30: ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`,
 /// theirs `Unit::do_move+0xe84`. `docs/AI.md` §57.
-pub(crate) const LONG_WORD_EAST_INDIES: i64 = 10_232;
+///
+/// **10232 → 10398 on item 579, and the frame was a birth 45 frames
+/// under it.** Trireme `1/32` is trained at Dock `1/2010` on 10186 on both
+/// sides and came out on `come_out`'s ring due south here, due east there.
+/// A dock marks every ocean tile within three of its footprint `BAD_PATH`
+/// (`BuildType::mask_me`'s `is(DOCK)` arm), and a sea type with an attack
+/// may neither be placed on (`find_nearby_spot`) nor path through
+/// (`invalid_loc`, 3) a `0x2400` tile; with both, `1/32` is born on the
+/// original's (45192, 41880). The word's own draw was the navy's:
+/// `create_units`' sea branch seeds one (`Armies::init_navy`, run139's
+/// 9981), `1/32` joins it on 10187, and the navy's first tick on 10232
+/// orders it to the muster through the margin — the straight line is
+/// refused, and the original pays `Unit::do_move+0xe84` and gives up.
+/// run99's widening pins the move's value diff on the old word's block,
+/// 10233 (empty), and the new word's on 10399, run99's last: the Bark
+/// `1/34` has walked to the navy a step behind the original's since its
+/// first step on 10325 and arrives on 10398, still moving here and idle
+/// there; ours 4 draws against 5, parting at index 0, theirs
+/// `Guy::set_anim+0x97a < Unit::do_idle+0x7d`. `docs/ORDERS.md` §25.
+pub(crate) const LONG_WORD_EAST_INDIES: i64 = 10_398;
 
 /// The frame East Indies' **first scholar** — `1/22` — is seated inside
 /// its university, one of the fourteen `Unit::go_inside+0x280` draws in
@@ -2597,9 +2616,10 @@ pub(crate) const EAST_INDIES_SCHOLAR_BLOCK: i64 = 9_712;
 /// holds the make lists on it and the coverage driver reads run139 around
 /// it.
 pub(crate) const EAST_INDIES_MAKE_BLOCK: i64 = 9_984;
-/// The current word's block on run99: 10232's frame writes block 10233.
-/// The widening and the coverage driver read run99 around it.
-pub(crate) const EAST_INDIES_WORD_BLOCK: i64 = 10_233;
+/// The current word's block on run99: 10398's frame writes block 10399,
+/// run99's last. The widening and the coverage driver read run99 up to
+/// it.
+pub(crate) const EAST_INDIES_WORD_BLOCK: i64 = 10_399;
 /// `run139_s_word_frame_is_widened_whole`'s window (item 576): run139
 /// whole, 9960..9999, the one East Indies capture that prints the leader's
 /// make list over the word. The floor is the capture's first block for the
@@ -2640,11 +2660,18 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // run139's last block and inside run99's, so the row names run99's
     // test again: it now pins the move's value diff on 9984 (empty) and
     // the new word's blocks, 10231..10233.
+    //
+    // Item 579 moved it to **10398** within run99's test: the birth of
+    // Trireme `1/32` on 10187 and the navy's first order on 10232. The
+    // test pins the move's value diff on the old word's block, 10233
+    // (empty), and the new word's on 10399 — run99's last block, so the
+    // window still holds the word, and the next move past it owes a
+    // capture.
     (
         "LONG_WORD_EAST_INDIES",
         LONG_WORD_EAST_INDIES,
         Some("run99_s_word_frame_is_widened_whole"),
-        576,
+        579,
         Some(WIDENING_EAST_INDIES),
     ),
     // Item 448 paid the widening 442 owed: `run100_s_word_block_is_every_

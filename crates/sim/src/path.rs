@@ -208,7 +208,6 @@ pub(crate) mod loc {
     pub const TERRAIN: i32 = 2;
     /// Shallows/river hazard for an armed ship — the code `valid_wcoord`
     /// forgives inside the goal cell.
-    #[allow(dead_code)]
     pub const HAZARD: i32 = 3;
     pub const BUILDING: i32 = 4;
 }
@@ -306,10 +305,15 @@ impl Sim {
             // `0x40`. That is the **disembark**, and it is what walks a
             // barge onto the tile `set_new_location` then converts (§6).
             //
-            // SEAM: the ocean side's hazard arm — `type +0x1e8` or
-            // `is(AIRCRAFTCARRIER)` and then `mask & 0x2400` → 3 — reads a
-            // type column this crate does not load.
+            // The ocean side's hazard arm: a warship — `type +0x1e8`, the
+            // `attack`, or `is(AIRCRAFTCARRIER, 1)` — on a `0x2400` tile is
+            // 3, before any flag is read. A dock's margin is `BAD_PATH`
+            // (`docs/ORDERS.md` §25), so this is what keeps a dock's own
+            // warships off the water beside it.
             crate::attrition::Domain::Sea => {
+                if ocean && mask & crate::orders::WARSHIP_REFUSES != 0 && self.is_warship(u) {
+                    return loc::HAZARD;
+                }
                 if !ocean {
                     if !(transport_a || transport_b) || !self.unit_can_transport(u) {
                         return loc::TERRAIN;

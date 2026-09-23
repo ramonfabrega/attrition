@@ -6137,3 +6137,138 @@ which fails with the pause write reverted (`1416 1/10 order:move.pause`
 returns), and by `chapter_four_holds_to_the_golden_word`, whose
 sequence parts at 1416 and then 1464 without the site names.
 Listing-backed: `is_attacking_near`'s arithmetic and the four sites.
+
+## 25. A dock's warship keeps off the dock's water, and joins the navy (item 579, 2026-09-23)
+
+East Indies' long word was **10232**. Ours spent 33 draws against the
+original's 34, and the original's extra draw was `Unit::do_move+0xe84`.
+576 read the rows as "`1/32` is born elsewhere on 10187". No mechanism
+was named.
+
+### 25.1 The birth, walked back
+
+run99 (`docs/RUNS.md`) prints the whole birth. `1/32` is **Trireme type
+340** (`attack 200`, `domain` sea, `block_radius 336`). Dock `1/2010`,
+at (44160, 41856), trains it on sim-frame 10186 on both sides. Its queue
+agrees on every block (576's fix), and `births.py` finds no other object
+near. The ring from `Unit::come_out` (`docs/CITIES.md` §11) is **1008**
+on both sides, measured from the snapped centre (44184, 41880):
+
+- the original: due **east**, (45192, 41880);
+- this crate: due **south**, (44184, 42888).
+
+The original's `angle` on the birth block is still `Unit::init`'s
+`0x55555555`. So the gather-point block did not turn the bearing. No unit
+stands within fourteen tiles of the ring. The first block any input of
+the ship parts on is the birth itself, and the leader record, which
+run99 does not print, decides only *what* is trained. The item's
+journal writes out the five readings and what would kill each.
+
+### 25.2 Two refusals the original makes and this crate did not
+
+**`find_nearby_spot@0061de70`'s warship clause.** When the type's
+`domain` (`+0x218`) is 1 **and** its `attack` (`+0x1e8`, named in the
+type record) is non-zero, or it strictly `is(AIRCRAFTCARRIER, 1)`
+(`0x15f`), an ocean candidate is also refused on `mask & 0x2400` (the
+test at `61e3a1`). `0x2400` is `BAD_PATH` plus `0x400`, the bit
+`World::set_coastal` writes. **`UnitData::invalid_loc@00607c30`** makes
+the same test on the same predicate and answers **3**, before any flag
+is read. Both were stated seams. `Sim::is_warship` is now the one
+predicate, and `orders::WARSHIP_REFUSES` is the pair of bits.
+
+**`BuildType::mask_me@006312a0`'s `is(DOCK)` arm** runs after the
+footprint walk. For every tile of the footprint grown by **three** on
+every side (`[corner − 3, corner + size + 3)`) whose surface is ocean,
+it calls `World::set_bad_path`, which sets the bit on mask and clears it
+on unmask. An unmask then calls `Docks::remask_docks@00740c90`, which
+lays every other live dock's margin again. This crate had only the
+blocked footprint's own eight-neighbour halo (`Sim::mask_dock_water`).
+
+With the clause alone, `1/32` came out on the ring's third bearing,
+(44568, 42792), a plain ocean tile inside the margin. With the margin as
+well, the first candidate of the sweep that clears it is due east, the
+original's point.
+
+### 25.3 The navy, and the draw
+
+`create_units@006c40a0:823` seeds a navy in its warship arm. The listing
+is `6c5a52`–`6c5aa3`. The arm reads the dock's sea from the **tiles** of
+its footprint (`WallData::tile_corner`, `x` outer and `y` inner). The
+first ocean tile of a column answers `get_tregion` with the coastal
+`region2`, and a sea region ends the walk. Around that tile's centre it
+asks two things:
+
+- `Armies::find_army(who, x, y, −1, ·, −1)`, any army of mine in the
+  point's region;
+- `ObjectsData::find_city(x, y, SEARCH_FRIENDLY, who, ·, 0, FILTER_ALL)`,
+  the nearest city of mine anywhere. The flag word is 0. The fifth
+  argument is whatever `ecx` held after `find_army` returned, and
+  `find_city` never reads it.
+
+With no army and a city, `Armies::init_navy` is `init_army` plus
+`navy = 1` and `reg = the sea`. This crate walked the region grid from
+the centre cell (576's parked 582) and never seeded the navy.
+`Armies::find_army` now also reads `get_tregion` with the refinement, as
+the original's first call does. A ship on a coastal cell's ocean tile is
+in the sea.
+
+So `1/32` joins the navy on 10187 (group 68 here, 66 there: a
+numbering). On 10232 the navy's first tick orders it to the muster, cell
+(56, 42) as in run26. Its straight line runs through its own dock's
+margin, `invalid_loc` refuses it, and the original pays the grid draw
+`Unit::do_move+0xe84` and gives up. On 10233 the ship has no order and
+`idle 0`. **That was the word.**
+
+### 25.4 What it moved
+
+**East Indies' word, 10232 → 10398.** The old word's block, 10233, has
+no row. The new word's block is 10399, run99's last:
+
+- ours 4 draws against 5, parting at index 0, where the original spends
+  `Guy::set_anim+0x97a < Unit::do_idle+0x7d` first;
+- the Bark `1/34` is trained on 10323 and walks to the navy. From its
+  first step on 10325 it is a few units behind the original's
+  (`avg_speed` 5 against 10). It arrives on 10398, still moving here
+  and idle there. The seated Scholar `1/24` changes animation on the
+  original's side alone.
+
+The floor under the word is 242 keys. Item 579 took five (`1/32`'s
+position) and added 28: `1/33`'s seated birth record and `1/34`'s walk.
+
+### 25.5 What this has *not* established
+
+- **`1/34`'s first step.** `avg_speed` is 5 against 10 on 10325, and
+  its path is 11 legs against 10 on 10327. It may be the Bark's own
+  birth or the navy's group move. This is the next item's frame.
+- **The aircraft-carrier half** of the warship predicate is implemented
+  strictly (`is(0x15f, 1)`, the graft) and no capture has a carrier.
+- **`SEARCH_FRIENDLY` in the navy's `find_city`** is taken as own
+  cities only, as the census's `census_find_city` does. Allies' cities
+  are a seam.
+- **`remask_docks`' candidate set** is read as live, started docks of
+  every player. The original tests `flags & 1` on the build list, and
+  an unstarted site is not distinguished here.
+- **The margin's effect on the pathfinder**: `BAD_PATH` also moves a
+  cell's `bad` count and the path cost (`docs/PATHFINDER.md` §5).
+  Nothing in run99 parts on it.
+
+### 25.6 Coverage
+
+Diff-backed:
+
+- `run99_s_word_frame_is_widened_whole`. It pins `1/32`'s birth point on
+  10187 (no position row), the old word's block 10233 empty, and the
+  new word's eight rows on 10399.
+- `run54_s_24000_frames_are_where_the_second_map_s_word_now_parts` at
+  10398.
+
+Unit:
+
+- `cities_tests::a_warship_keeps_off_its_dock_s_margin_and_a_fishing_boat_does_not`
+  covers the margin's extent, the spot and the hazard for a warship,
+  and neither for a boat without an attack. It was made to fail on
+  purpose with `WARSHIP_REFUSES` set to 0.
+
+Read from the listing: the `find_city` argument, `6c5a83`. Read from the
+decompile only, and owed a blind second reading: `mask_me`'s dock arm,
+`remask_docks`, and the footprint walk's order.

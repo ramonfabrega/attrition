@@ -2696,3 +2696,83 @@ fn the_british_ship_bonus_is_a_third_off_the_clock() {
         "the Inca build ships at cost"
     );
 }
+
+/// **A dock's own warships are born off its bad water** (`docs/ORDERS.md`
+/// §25). `BuildType::mask_me`'s `is(DOCK)` arm marks every ocean tile of the
+/// footprint grown by three `BAD_PATH`, and a sea type with an attack may
+/// neither be placed on (`find_nearby_spot`'s `0x2400` test) nor stand on
+/// (`invalid_loc` answers 3) such a tile. A boat with no attack — a
+/// fishing boat — is refused neither. East Indies' Trireme `1/32` is the
+/// capture: due east of Dock `1/2010`, where the ring's south is the margin.
+#[test]
+fn a_warship_keeps_off_its_dock_s_margin_and_a_fishing_boat_does_not() {
+    let mut sim = world_sim();
+    // Ocean from tile column 30 eastward.
+    for tx in 30..64 {
+        for ty in 0..64 {
+            sim.world
+                .set_tile_field(Pos::new(tx, ty), tile::SURFACE, tile::SURFACE_OCEAN);
+        }
+    }
+    let dock_ty = sim.add_build_type(bt(Ident::Dock, None, "ean", 4, 4, 420, 2400, 0));
+    let dock = sim.add_building(1, Pos::new(30 * TILE, 32 * TILE), 8);
+    sim.buildings[dock].ty = Some(dock_ty);
+    assert_eq!(
+        sim.tile_corner(dock_ty, sim.buildings[dock].pos),
+        Pos::new(28, 30)
+    );
+    sim.mask_dock_water(dock, true);
+    let bad =
+        |sim: &Sim, tx: i32, ty: i32| sim.world.tile_mask(Pos::new(tx, ty)) & tile::BAD_PATH != 0;
+    // The margin is [corner − 3, corner + size + 3) on both axes, ocean only.
+    assert!(bad(&sim, 34, 30) && bad(&sim, 30, 36) && bad(&sim, 30, 27));
+    assert!(!bad(&sim, 35, 30) && !bad(&sim, 30, 37) && !bad(&sim, 30, 26));
+    assert!(!bad(&sim, 27, 32), "land takes no mark");
+    let sea_type = |attack: i32| UnitType {
+        hits: 100,
+        combat: combat::Profile {
+            attack,
+            domain: crate::attrition::Domain::Sea,
+            block_radius: 48,
+            big_radius: 48,
+            ..combat::Profile::default()
+        },
+        ..UnitType::default()
+    };
+    let trireme = sim.add_unit_type(sea_type(200));
+    let fishing = sim.add_unit_type(sea_type(0));
+    let centre = sim.buildings[dock].pos;
+    let south = crate::movement::Angle(i32::MIN);
+    // The fishing boat takes the ring's first bearing, due south and inside
+    // the margin; the warship's first free candidate is past it.
+    let f = sim
+        .find_nearby_spot_type(fishing, centre, 600, 1200, 0, south)
+        .expect("a fishing boat finds water");
+    assert_eq!(f, Pos::new(centre.x + 24, centre.y + 600 + 24 - 600 % 48));
+    assert!(bad(&sim, f.tile().x, f.tile().y));
+    let w = sim
+        .find_nearby_spot_type(trireme, centre, 600, 1200, 0, south)
+        .expect("a warship finds water");
+    assert!(
+        !bad(&sim, w.tile().x, w.tile().y),
+        "the warship's spot {w:?} is in the margin"
+    );
+    // And standing: the hazard, on the margin and not past it.
+    let u = sim.init_unit(1, trireme, w);
+    assert_eq!(
+        sim.invalid_loc(u, Pos::new(32, 35), false, false, false, false, false),
+        3
+    );
+    assert_eq!(
+        sim.invalid_loc(u, Pos::new(36, 32), false, false, false, false, false),
+        0
+    );
+    let b = sim.init_unit(1, fishing, f);
+    assert_eq!(
+        sim.invalid_loc(b, Pos::new(32, 35), false, false, false, false, false),
+        0
+    );
+    // The unmask clears it.
+    sim.mask_dock_water(dock, false);
+    assert!(!bad(&sim, 34, 30));
+}
