@@ -40,8 +40,8 @@ Long captures: EastIndies w9711 of 24,000 · GreatLakes w11531 of 24,000
 Golden: w900 of 901 (ch1) · ch2 w900 · 535 next
 Endpoint 24001: EastIndies 64 off, 9 unlinked · GreatLakes 50 off, 1 unlinked
 
-**Opener: an Opus 5.5 commander is live; 533 in flight on att-533, 535
-next on the rules track. Workers spawn with `claude-opus-5-5[1m]`.**
+**Opener: an Opus 5.5 commander is live; 535 in flight on att-535, 539
+next on the AI track. Workers spawn with `claude-opus-5-5[1m]`.**
 
 ## The queue
 
@@ -51,13 +51,13 @@ the AI, lower map first — Great Lakes. Take the first unstarted on either
 track unless a better order is obvious, and say so. Numbers are stable;
 the backlog is `docs/PARKED.md`, and an item returns only when a score names it.
 
-533. **Great Lakes' word 11531 has no widening: run123 ends 72 blocks
-    short** (327 moved the word 11185 → 11531 with the Merchant offer).
-    Ours four draws against three at index 1: `Guy::set_anim+0x97a <
-    Unit::do_idle+0x7d` against `< Guy::inc_time+0x271`. The capture
-    first — run123's detail over a window overlapping it and covering
-    11531 — then the widening, both directions; re-point `WIDENINGS`'
-    row to the test. No mechanism.
+539. **`1/34`'s formation hop, one frame early on 11457** (533 widened
+    11531 on run125: `1/34` arrives on 11531 here, 11533 in the
+    original; the lag is the march's). Both sides push a hop and turn in
+    place on it a frame apart — ours 11456→11457, theirs 11457→11458 —
+    with no collision recorded; the gap opens between 11446 and 11462.
+    Candidates, unread: the cap's 64-frame reset (§18, §19), the hop's
+    distance test, the leader's position. GROUPS §20.4. No mechanism.
 
 535. **Golden chapter five, the water — the next unpinned chapter**
     (530 closed chapter one at 900, 523 chapter two; `docs/GOLDEN.md`

@@ -22,6 +22,20 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Parked by item 533, 2026-09-22 — the army's march, beside the word
+
+(540) **The squad's group order dissolves a frame early.** On run123/125
+`1/34`'s squad's order becomes a plain `ATTACK_TO` on 11512 here against
+11513 in the original (and 11524–11525 again), kind 2 against 21, and
+`flags` read 5 against 4 after. It moves no position on the word's
+window. It sits beside 530's `ATTACK_TO`/`GROUP_ATTACK_TO` split
+(`docs/ORDERS.md` §22) and (536); `docs/GROUPS.md` §20.
+
+(541) **`1/31`'s soft collision flag on sim-frame 11304**: this crate's
+probe goes soft on `1/32` and the original's does not. A payoff probe
+suppressing it did not move the word. Settling it needs a
+`RON_COLLIDE_PROBE` capture; no score names it.
+
 ## Parked by item 530, 2026-09-22 — chapter one closed, and what it left
 
 (536) **A marching army group never looks around.** `do_group_attack_to`'s
