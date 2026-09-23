@@ -40,7 +40,7 @@ Long captures: EastIndies w9711 of 24,000 · GreatLakes w11757 of 24,000
 Golden: w900 of 901 (ch5) · ch1 w900 · ch2 w900 · 552 next
 Endpoint 24001: EastIndies 67 off, 3 unlinked · GreatLakes 47 off, 0 unlinked
 
-**Opener: an Opus 5.5 commander is live; 554 in flight on att-554 (AI), 552 on
+**Opener: an Opus 5.5 commander is live; 557 in flight on att-557 (AI), 552 on
 att-552 (rules). Workers spawn with `claude-opus-5-5[1m]`.**
 
 ## The queue
@@ -51,13 +51,13 @@ the AI, lower map first — Great Lakes. Take the first unstarted on either
 track unless a better order is obvious, and say so. Numbers are stable;
 the backlog is `docs/PARKED.md`, and an item returns only when a score names it.
 
-554. **Great Lakes' word 11757 has no widening: run125 ends on 11599**
-    (545 moved the word 11582 → 11757 with `get_cost`'s military
-    discount and research arm). Ours 7 draws against 8 at index 0:
-    `Guy::set_anim+0x97a < Guy::inc_time+0x271` against `<
-    Unit::move_step+0x823`. The capture first — run125's game at
-    run123's detail over a window holding 11757, overlapping run125 —
-    then the widening; re-point `WIDENINGS`' row. No mechanism.
+557. **Army 2's group order of 11512: the original's `1/64` leaves the
+    pool** (554 widened 11757 on run130; the word held). `1/62` stops a
+    frame late on a detour around a lagging `1/64`, pinned by
+    `run130_s_word_is_1_64_s_lag`. The original's `1/64` goes `group −1`
+    and its stance misses `1/62` and `1/63`; ours keeps all six. First
+    step: a `cover=1` capture at run125's detail over 11420–11426 and
+    11508–11514. GROUPS §22.4. No mechanism.
 
 552. **Golden chapter four, the border and the bleed — the next unpinned
     chapter** (549 closed chapter five at 900; ch1 and ch2 are closed;
