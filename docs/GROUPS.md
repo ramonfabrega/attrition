@@ -2835,16 +2835,22 @@ against the original's 4 from the next block.
 
 ### 20.4 What this has *not* established
 
-- **Why the formation hop comes a frame early here on 11457.** Candidates
+- ~~**Why the formation hop comes a frame early here on 11457.** Candidates
   are the group's speed cap (§18, §19: slot `f mod 64`), the hop's
   distance test, and the leader's own position, which the gap walk has
-  not read for `1/31`. The widening names the frame and not the writer.
-- **Which of the march's soft-collision partings matter.** 11304 does
-  not, measured. 11357 and 11361–11364 are unprobed.
+  not read for `1/31`. The widening names the frame and not the writer.~~
+  **§21: none of the three.** The hop is the leader's waypoint turn a
+  frame early, and the lag under it is a soft-collision probe's stride
+  (`docs/COLLISION.md` §4.2).
+- ~~**Which of the march's soft-collision partings matter.** 11304 does
+  not, measured. 11357 and 11361–11364 are unprobed.~~ **§21: all of
+  them, as one cause.** 11304 and 11357 are the two clean ones, and the
+  rest is their cascade.
 - **The original's sweep on 11304.** It needs a `RON_COLLIDE_PROBE`
   capture (`docs/COLLISION.md` §9), which run125 is not.
-- **The group order's early dissolution** (20.3's last paragraph). Its
-  writer is unread.
+- ~~**The group order's early dissolution** (20.3's last paragraph). Its
+  writer is unread.~~ **§21: a consequence.** It parts on no block once
+  the squad walks the original's points.
 
 ### 20.5 Coverage
 
@@ -2861,3 +2867,105 @@ Diff-backed, in `run125_s_word_frame_is_widened_whole`:
 `the_widening_behind_each_pinned_word_exists` names this test for
 `LONG_WORD_GREAT_LAKES`. The coverage pin reads run125's 11529–11533, and
 no key moved: run125 prints what run123 printed.
+
+## 21. The hop was a probe's stride — Great Lakes 11531 → 11582 (item 539, 2026-09-22)
+
+§20 left the word on `1/34`'s arrival two frames early, and it named
+three candidates for the formation hop a frame early on 11457: the cap's
+reset, the hop's distance test and the leader's position. **The frame
+was right again, and none of the three was the mechanism.** The cause is
+in `docs/COLLISION.md` §4.2, and this section is the chain that leads
+there.
+
+### 21.1 The hop, and what fires it
+
+The hop is `do_group_move`'s follower arm when the slot lies more than
+120° off the bearing to the goal: it pushes the leader's next waypoint
+plus the member's offset (`005e82a7`–`005e8320`, §6.6). `RON_SQUAD_PATH`
+and a per-member dump of `dest_x/dest_y` and `in_group`, both sides,
+over 11440–11462, give the inputs:
+
+- `1/34`'s slot is `1/37`'s position plus its rotated offset, and
+  `1/37` is the group order's `oxx`, the leader.
+- The original's `1/37` reaches its waypoint `(41160, 20520)` and turns
+  toward `(39628, 20529)` on block **11457**. This crate's did the same
+  on **11456**. The leader's heading swings about 9°, the slot swings
+  behind the follower, and the follower's hop follows one frame later on
+  each side.
+- The leader was **22 units ahead** from block 11450. The original's
+  `1/37` alternates 25- and 12-unit steps, and this crate's took 25 on
+  blocks 11448 and 11450 where the original took 12. Its `unit_masks`
+  carries `0x100000`, the soft-collision half step (`docs/MOVEMENT.md`),
+  on blocks 11447 and 11449, and this crate's did not.
+
+### 21.2 The soft flags, classified
+
+A sweep watch on the leader on sim-frame 11446 comes back **clear**. The
+original's leader goes soft there, and the only block within reach is
+`1/33`'s: the original's `1/33` stands at x 41520, unit cell 865, whose
+block covers 866, the leader's leading edge. This crate's stands at x
+41517, unit cell 864. That is three units, and it comes from `1/33`'s
+own soft flag the frame before. So it is a cascade, and a cascade is
+answered by its **clean** partings: a soft flag that parts while every
+squad member's unit cell agrees.
+
+`RON_SOFT_AUDIT=1` on the run125 widening prints every block where a
+squad member's flag or unit cell parts. Before the change it printed
+**193** blocks over `[11250, 11599]`. The clean ones are two, 11305
+(`1/31`) and 11357 (`1/35`), both with this crate soft and the original
+not, and both with every position in the squad equal to the unit. From
+11361 on, every flag parting sits beside a unit-cell parting.
+
+### 21.3 The clause
+
+`RON_SWEEP=<frame>:<who>/<o>` records this crate's sweep. Both clean
+partings are the fast path's leading edge, stepping west, finding a
+group-mate's block **two cells** along an edge whose first cell lies in
+a world cell that holds no bit. The listing does not advance past an
+empty slot, so the original's second cell is **one** cell along, and it
+is empty (`docs/COLLISION.md` §4.2 has the loop). A payoff probe had
+already shown 11304 alone could not move the word (§20.3): its fix
+re-parted on 11357, which is the same clause.
+
+### 21.4 What it moved
+
+| | before | after |
+| --- | --- | --- |
+| Great Lakes long word | 11531 | **11582** |
+| run125 widening `[11250, 11599]`, keys parted | 772 | **403** |
+| squad blocks with a soft-flag or unit-cell parting | 193 | **0** |
+| squad positions parting, any block of the window | `1/34` from 11364, and the rest | **none** |
+| `1/34` arrives, theirs / ours | 11533 / 11531 | **11533 / 11533** |
+| run100 standing position residue | four units | **three**: `1/35` leaves |
+| run97 walk-slot band below the word | two rows, `1/35` | **none** |
+| run97 order residue, set / rows | three units / 28,222 | **two** / **28,220**: `1/33` leaves |
+| Great Lakes endpoint `off` / `unlinked` / `extra` / `build_diverged` | 50 / 1 / 0 / 9 | **46** / **0** / **3** / **10** |
+
+The new word, **11582**, is a building placement. Ours spends 948 draws
+against 9 on that frame, parting at index 5: ours
+`Leader::produce_building+0xc99` against the original's
+`Guy::set_anim+0x104b`. On block 11583 this crate holds a building the
+original does not (`1/2022`) and sends citizen `1/9` on a two-order walk
+to it. The original's `1/9` stands idle, its leader books a free
+peasant (`free_peasants` 1 against 0), and `1/2016` has a citizen queued
+(`queue:queued`, `num_queued[83]`). Two blocks earlier, on 11580, the
+leader's `MAKE` slots 2 and 3 stand in the opposite order: `cat` 4 and 7
+here against 7 and 4, `t` 560/66 against 66/560. The block is inside
+run125, so its widening is on file.
+
+### 21.5 Coverage
+
+**Diff-backed**, in `run125_s_word_frame_is_widened_whole`:
+
+- both bowmen's arrivals;
+- no squad position parting on any of the 350 blocks;
+- the old word's blocks 11531–11532 pinned empty;
+- the 38 rows that first part on 11580–11583.
+
+It was made to fail by restoring the fixed stride: the arrivals go back
+to 11531. **Guard**:
+`collide::tests::the_leading_edge_does_not_step_past_an_empty_world_cell`.
+**Not established**: the probe-side region gate (`docs/COLLISION.md`
+§4.2), which no Great Lakes frame can test because the map is one
+region. The wider endpoint and East Indies effects are in the landing's
+journal, measured by the gate.

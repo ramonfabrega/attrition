@@ -348,6 +348,65 @@ cell.
 (`005f9d30:453`) — so a path search and the stack unwind take the disc and
 a step takes the edge.
 
+#### An empty slot does not advance the sweep (item 539, 2026-09-22)
+
+The paragraph above has the fast path's stride right only while every
+cell it tests sits in a live world cell. `collide_here` reads the
+bitmask through **four slots**, `CollCheck::fill_slots@006820e0`'s 2×2
+world cells from `((ucx − r) >> 4, (ucy − r) >> 4)`, and a slot is
+**empty** when it was not needed (the disc does not reach it), lies off
+the map, has no `CollBlock`, is refused by the region gate below, or
+`BitMask<768>::empty@00479150` says it holds no bit. That last test
+reads a cached flag, and the cache is exact: `CollBlock::set@00682070`
+writes 0 (known non-empty) on a set and 2 (unknown) on a clear, and
+`empty` recomputes on 2.
+
+The loop (`00682540:71`–`116` for the x arm, `:126`–`174` for the y
+arm) advances the swept axis on **every odd pass**, and on an **even
+pass only after testing a cell and missing**. An even pass whose cell
+lies in an empty slot tests nothing and **does not advance**. So the
+cells tested are `c₀, c₀ + 2, c₀ + 4, …` only while every slot is live.
+After a skipped cell the stride is one:
+
+    coll_size 1, edge from y₀:  both slots live → y₀, y₀ + 2
+                                y₀'s slot empty → y₀ + 1 (and nothing else)
+
+A unit walking across a world-cell boundary beside a group-mate is
+exactly the case. Great Lakes' sim-frame 11304: `1/31` steps west from
+unit cell `(913, 464)` onto `(912, 464)`, so its edge is the column
+`x = 911` from `y = 463`. That cell is in world cell `(56, 28)`, which
+holds no bit. The original therefore tests `(911, 464)`, which is empty,
+and takes the step whole. This crate stepped two cells to `(911, 465)`,
+found `1/32`'s block there, and went soft. Sim-frame 11356 is the same
+shape with `1/35` and `1/33`, and there both edge cells lie in the empty
+world cell `(55, 27)`, so the original tests nothing at all.
+
+**The probe side has a region gate too.** `fill_slots` keeps a slot's
+block only when that world cell's `WData::region` (`+4`) equals the
+`get_tregion` of the **probe centre's** own tile. The centre's tile is
+`(ucx >> 2, ucy >> 2)`, and its region is `region2` on the water half of
+a coastal cell. When the centre has no region, every slot is kept. A
+refused slot is empty in both senses above. This is the probe's half of
+§2's marking gate. Great Lakes is one region, so no measurement here
+tests it.
+
+`Sim::collide_here`, `ProbeSlots`, `CollGrid::any_in_cell`. **SEAM**: a
+`nocoll` probe reads the pathfinder's `+0x4c` tree of block copies
+(`fill_slots:81`–`168`) rather than the live blocks. A copy is taken from
+the gated slot and outlives the probe that took it, so a later `nocoll`
+probe from another region reads it ungated. This crate gates every
+probe on its own centre.
+
+**Coverage.** *Diff-backed*: `run125_s_word_frame_is_widened_whole`.
+Before the change, 193 blocks of army 1's squad march over `[11250,
+11599]` carried a soft-flag or unit-cell parting, and the two that
+parted with every unit cell agreeing were 11305 and 11357. After it
+there are none, no squad position parts on any of the 350 blocks, and
+the widening's parted keys fall 772 → 403 (`docs/GROUPS.md` §21).
+*Guard*: `collide::tests::the_leading_edge_does_not_step_past_an_empty_world_cell`,
+made to fail by restoring the fixed stride. *Listing-backed, and no run
+reaches it*: the probe-side region gate, and the y arm's identical skip.
+
 ### 4.3 Naming the other unit, and the exemptions
 
 With a hit cell in hand, `detect_unit_collision` returns 1 at once if
