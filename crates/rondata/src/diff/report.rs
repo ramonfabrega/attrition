@@ -58,6 +58,21 @@ pub struct FrameResult {
     /// defect worth naming wherever the unit happens to be.
     pub visible_compared: usize,
     pub visible_diverged: Vec<VisibleDivergence>,
+    /// **The outermost container** — `UnitData::inside_up`, walked
+    /// through the garrison chain to the building or unit at its top, the
+    /// way `ObjectData::get_inside` does, against this crate's `inside`
+    /// (a building) or `inside_unit` (a boat). Parsed since the reader
+    /// existed and compared only by run143's widening until item 620
+    /// moved it here (parked 598), so a unit in the wrong container read
+    /// as agreement on every other capture.
+    ///
+    /// Ungated on the position and on `on_map`: where a unit is housed is
+    /// the fact itself, not a consequence of where it stands.
+    pub inside_compared: usize,
+    /// The comparisons whose original side is housed (`theirs ≥ 0`): a
+    /// window that holds no garrison compares the row and sees nothing.
+    pub inside_housed: usize,
+    pub inside_diverged: Vec<InsideDivergence>,
     /// **The hit-point record, whole** — `ObjectData::myhits`, `damage`
     /// and `damage_frac`, on every unit-frame the dump carries them for,
     /// which is every one at every detail level (`docs/COMBAT.md` §40).

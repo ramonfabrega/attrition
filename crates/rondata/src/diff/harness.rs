@@ -116,6 +116,46 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
                 });
             }
         }
+        // **The outermost container** (parked 598, item 620): the dump
+        // chains a garrison through units — a seated Scholar's
+        // `inside_up` is the Scholar before it — so both sides are
+        // compared on the top of the chain, `ObjectData::get_inside`'s
+        // walk. The chain is followed within the unit's own player
+        // (`inside_up_who` is not parsed). This crate keeps a building in
+        // `inside` and a boat in `inside_unit`. Item 592 wrote this walk
+        // in run143's widening; it is the comparator's now, so every
+        // capture reads it.
+        if let Some(first) = u.inside_up {
+            let mut up = first;
+            while let Some(next) = frame
+                .units
+                .iter()
+                .find(|x| x.who == u.who && x.o == up)
+                .and_then(|x| x.inside_up)
+                .filter(|&v| v >= 0)
+            {
+                up = next;
+            }
+            let x = &built.sim.units[link.unit];
+            let ours = x
+                .inside
+                .map(|b| i64::from(built.sim.buildings[b].index))
+                .or(x.inside_unit.map(|b| i64::from(built.sim.units[b].index)))
+                .unwrap_or(-1);
+            r.inside_compared += 1;
+            if up >= 0 {
+                r.inside_housed += 1;
+            }
+            if ours != up {
+                r.inside_diverged.push(InsideDivergence {
+                    frame: frame.n,
+                    who: u.who,
+                    o: u.o,
+                    ours,
+                    theirs: up,
+                });
+            }
+        }
         // **The hit-point record, whole** (`docs/COMBAT.md` §40) —
         // `ObjectData::myhits`, `damage` and `damage_frac`, printed
         // inside the `OBJECT` block at every detail level and compared
@@ -1237,6 +1277,14 @@ pub(crate) fn widen_block(
                 d.who,
                 d.o,
                 format!("city:{}", d.field),
+                format!("ours {} theirs {}", d.ours, d.theirs),
+            );
+        }
+        for d in &r.inside_diverged {
+            note(
+                d.who,
+                d.o,
+                "inside".into(),
                 format!("ours {} theirs {}", d.ours, d.theirs),
             );
         }
@@ -11985,6 +12033,114 @@ mod tests {
         );
     }
 
+    /// **run155 — East Indies' word 11069, widened whole, both directions**
+    /// (item 620). run152's line past its last block, over
+    /// [`WIDENING_EAST_INDIES_EXPLORE`]: ten blocks shared with run152, the
+    /// 30 up to the word, its block, and 209 past it, which no capture had
+    /// printed. [`widen_east_indies`] with gaia's animals; `compare` reads
+    /// every unit's outermost container since this item (parked 598).
+    ///
+    /// The word's frame, 11069, writes block **11070**.
+    #[test]
+    fn run155_s_word_frame_is_widened_whole() {
+        const FIRST: i64 = WIDENING_EAST_INDIES_EXPLORE.0;
+        const TAIL: i64 = WIDENING_EAST_INDIES_EXPLORE.1;
+        /// The block run155 was taken to widen, the word 11069's.
+        const WORD_BLOCK: i64 = EAST_INDIES_EXPLORE_BLOCK;
+        let Some(Widened {
+            firsts,
+            missing,
+            blocks,
+            leader_rows,
+            changed,
+            housed,
+        }) = widen_east_indies(
+            "run155",
+            "gamelog-run155-eastindies-longword.txt",
+            WIDENING_EAST_INDIES_EXPLORE,
+            &[WORD_BLOCK],
+            true,
+        )
+        else {
+            return;
+        };
+        assert_eq!(blocks, (TAIL - FIRST + 1) as usize, "the walk is whole");
+        assert_eq!(
+            leader_rows,
+            (TAIL - FIRST + 1) as usize * 2 * (1_053 + 1_531),
+            "250 blocks x 2 leaders x (1,053 + 1,531) keys"
+        );
+        assert_eq!(
+            missing,
+            std::collections::BTreeSet::new(),
+            "no key unprinted"
+        );
+        let row = |((w, o, what), (f, row)): (&(i64, i64, String), &(i64, String))| {
+            format!("{f} {w}/{o} {what}: {row}")
+        };
+        // **Under the word and on it, both directions** (item 620). Two
+        // leader rows are 613's residue: food a unit off from 11064,
+        // metal from 11037. The other three are the word. The citizen
+        // `1/11` walks its `EXPLORE_TO` on the original's line displaced
+        // by (15, −29), about a step and a half behind, on every block of
+        // the window. So the original pops its waypoint on frame 11068
+        // (block 11069: path 2 against 3, and `dest` cleared) and meets
+        // the refused straight line on 11069. There it spends `do_move`'s
+        // grid roll and plans ten waypoints (block 11070). This crate
+        // pops a frame later and rolls on 11070.
+        let under: Vec<String> = firsts
+            .iter()
+            .filter(|(_, (f, _))| (FIRST + 1..=WORD_BLOCK).contains(f))
+            .map(row)
+            .collect();
+        assert_eq!(
+            under,
+            [
+                "11064 1/-1 leader:bucket[0:food]: ours 69 theirs 70",
+                "11037 1/-1 leader:bucket[4:metal]: ours 54 theirs 55",
+                "11069 1/11 order:move.dest: Move { field: \"dest\", ours: 1, theirs: 0 }",
+                "11069 1/11 path:length: PathLength { ours: 3, theirs: 2 }",
+                "11070 1/11 tolerance: ours 384 theirs 0",
+            ],
+            "the rows under the word and on it"
+        );
+        // **The position that carries it**: `1/11` stands on the window's
+        // first block already off — 613's residue from the gather tile
+        // on 10959, (173, 183) here against (170, 182) — and its orders
+        // agree there.
+        assert_eq!(
+            firsts.get(&(1, 11, "pos".into())),
+            Some(&(FIRST, "ours (33963,33784) theirs (33978,33755)".into())),
+            "`1/11`'s walk on the window's first block"
+        );
+        // **Who changes animation, both sides** (`docs/COMBAT.md`
+        // §44.2.1): nobody on one side only. Our `set_anim+0x97a` at
+        // index 0 of the word is the original's index 1.
+        let one_sided: Vec<(i64, i64, i64, bool, bool)> =
+            changed.iter().filter(|c| c.3 != c.4).copied().collect();
+        assert_eq!(
+            one_sided,
+            Vec::<(i64, i64, i64, bool, bool)>::new(),
+            "a figure moves on one side only"
+        );
+        // **The outermost container, `compare`'s own row now** (parked
+        // 598): every unit, every block, and no parting. The row reads a
+        // housed unit 3,000 times over the window: twelve on block 11070,
+        // the Scholars seated in the University 2015 and the unit in 2016,
+        // so the agreement is not a window with no garrison in it.
+        assert!(
+            !firsts.keys().any(|(_, _, what)| what == "inside"),
+            "a unit in another container"
+        );
+        assert_eq!(housed, 3_000, "housed unit-blocks the row compared");
+        // **The floor**: 369 keys standing on the window's first block
+        // (run152's residue on its last), 371 before the word, and 897 in
+        // all.
+        let under_n = firsts.values().filter(|(f, _)| *f < WORD_BLOCK - 2).count();
+        let first = firsts.values().filter(|(f, _)| *f == FIRST).count();
+        assert_eq!((first, under_n, firsts.len()), (369, 371, 897), "the floor");
+    }
+
     /// **run152 — East Indies' word 10982, widened whole, both directions**
     /// (item 613). run149's line past its last block, over
     /// [`WIDENING_EAST_INDIES_GATHER`]: ten blocks shared with run149, the
@@ -12006,6 +12162,7 @@ mod tests {
             blocks,
             leader_rows,
             changed,
+            ..
         }) = widen_east_indies(
             "run152",
             "gamelog-run152-eastindies-gatherbuilding.txt",
@@ -12125,6 +12282,7 @@ mod tests {
             blocks,
             leader_rows,
             changed,
+            ..
         }) = widen_east_indies(
             "run149",
             "gamelog-run149-eastindies-animal.txt",
@@ -12267,6 +12425,7 @@ mod tests {
         let mut firsts: BTreeMap<(i64, i64, String), (i64, String)> = BTreeMap::new();
         let mut missing: BTreeSet<String> = BTreeSet::new();
         let (mut blocks, mut compared, mut leader_rows) = (0usize, 0usize, 0usize);
+        let mut housed = 0usize;
         let row_walk: Vec<(i64, i64)> = std::env::var("RON_ROW_WALK")
             .map(|w| {
                 w.split(',')
@@ -12340,45 +12499,12 @@ mod tests {
                 }
             }
             let mut here: BTreeMap<(i64, i64, String), (i64, String)> = BTreeMap::new();
-            let (_, rows) = widen_block(&built, &frame, players, n, &mut here);
+            let (fr, rows) = widen_block(&built, &frame, players, n, &mut here);
             compared += rows;
-            // **Every unit's container** (item 592): `inside_up` is parsed
-            // and `compare` reads it nowhere. The dump chains a garrison
-            // through units — a seated Scholar's `inside_up` is the Scholar
-            // before it — so both sides are compared on the outermost
-            // container, `ObjectData::get_inside`'s walk; the chain is
-            // followed within the unit's own player (`inside_up_who` is not
-            // parsed). This crate keeps a building in `inside` and a boat in
-            // `inside_unit`.
-            for t in &frame.units {
-                let mut up = t.inside_up.unwrap_or(-1);
-                while let Some(next) = frame
-                    .units
-                    .iter()
-                    .find(|x| x.who == t.who && x.o == up)
-                    .and_then(|x| x.inside_up)
-                    .filter(|&v| v >= 0)
-                {
-                    up = next;
-                }
-                let ours = u8::try_from(t.who)
-                    .ok()
-                    .zip(i16::try_from(t.o).ok())
-                    .and_then(|(w, o)| built.sim.unit_by_o(w, o))
-                    .map(|u| {
-                        let x = &built.sim.units[u];
-                        x.inside
-                            .map(|b| i64::from(built.sim.buildings[b].index))
-                            .or(x.inside_unit.map(|b| i64::from(built.sim.units[b].index)))
-                            .unwrap_or(-1)
-                    });
-                let Some(ours) = ours else { continue };
-                compared += 1;
-                if ours != up {
-                    here.entry((t.who, t.o, "inside".into()))
-                        .or_insert((n, format!("ours {ours} theirs {up}")));
-                }
-            }
+            housed += fr.inside_housed;
+            // **Every unit's container** (item 592) is `compare`'s own
+            // row since item 620 (parked 598): `widen_block` notes it as
+            // `inside`, the key this walk wrote.
             let raw = ix.read_frame(at).unwrap();
             let flog = Log::parse(&raw);
             for who in 0..2usize {
@@ -12561,6 +12687,7 @@ mod tests {
             blocks,
             leader_rows,
             changed,
+            housed,
         })
     }
 
@@ -12572,6 +12699,9 @@ mod tests {
         leader_rows: usize,
         /// `(block, who, o, theirs changed, ours changed)`.
         changed: Vec<(i64, i64, i64, bool, bool)>,
+        /// Unit-blocks `compare`'s container row read on a housed unit
+        /// (parked 598): what says the row saw a garrison at all.
+        housed: usize,
     }
 
     /// **run143 — East Indies' word 10398, widened whole, both directions**
@@ -12605,6 +12735,7 @@ mod tests {
             blocks,
             leader_rows,
             changed,
+            ..
         }) = widen_east_indies(
             "run143",
             "gamelog-run143-eastindies-bark.txt",
