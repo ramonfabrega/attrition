@@ -1,7 +1,10 @@
 # Lab steering index
 
 Consolidated for the steering pass on 2026-09-22. Adoption remains Fable's
-choice; the lab is score-neutral.
+choice; the lab is score-neutral. The A* line is **unreviewed, not rejected**: no
+steering pass has yet ratified the new lab work. Closing its PRs only reduces
+the active review surface; all branches, commits and evidence remain available
+for adoption or a fresh proposal.
 
 | Review surface | Disposition |
 | --- | --- |
@@ -17,5 +20,5 @@ correctness claim over the other.
 
 Coverage expansion is stopped. The remaining investigation for this pass is
 charter step 4: item 327's Merchant slot, regional rare counters and wealth at
-trace tick 11185 / logger frame 11186, bounded to roughly one hour. The review
-will distinguish endpoint state from a cause requiring an earlier boundary.
+trace tick 11185 / logger frame 11186, bounded to roughly one hour. The [result](2026-09-22-market-state-head-to-head.md) answers the endpoint
+state with 206 agreeing fields; the offer mechanism needs an earlier boundary.

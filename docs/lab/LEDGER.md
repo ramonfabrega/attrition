@@ -120,12 +120,11 @@ gap is archived at `c205210`. A* replay remains available for counterfactuals.
 The new [working review](TYPED-STATE-REVIEW.md) carries the four-step charter,
 measured results and explicit unresolved coverage. L91 validates the first
 aligned Great Lakes packet at logger frame 11186; settings were restored and
-the lane released. L95 banks the expanded offline comparison in draft PR #9,
-stacked on PR #7: 516,369 occurrences, 179,583 distinct storage references,
-and all observed GUY records agree. The [steering index](STEERING-INDEX.md)
-links the checkpoints. Next work remains offline: promote the retained
-124-output encrypted-leader probe with failure controls, then remaining
-container projections and the outstanding mid-decision head-to-head.
+the lane released. L95 banks the expanded offline comparison; L96 folds it into PR #7 on current
+main. L97 answers item 327's endpoint state with 206 agreeing fields, while
+exposing the earlier-boundary requirement for causal replay. Coverage expansion
+is stopped for the checkpoint. The [steering index](STEERING-INDEX.md) links the
+live review and the preserved, unreviewed A* work; PR closure is not rejection.
 Fable chooses adoption, pilot or parking. This is score-neutral lab work.
 
 The runtime factor-isolation experiment is paused at the user's request after
@@ -163,3 +162,5 @@ was changed by the cutover.
 
 
 | L96 | Consolidate the steering surface on current main. | [Typed-state review](TYPED-STATE-REVIEW.md) and [index](STEERING-INDEX.md). | PR #9 folded into #7 and live line rebased on `d892281`; default tracer COFF matches main, snapshot variant builds. Current source pin: 152/367 keys fully observed and matched. | PRs #5/#6 closed without rebasing; replay evidence and L87/L88 refs retained. Empty capture-reuse branch deleted. No coverage expansion; next is bounded item-327 state-side head-to-head. |
+
+| L97 | Can the retained market packet answer item 327 without another capture? | [State-side head-to-head](2026-09-22-market-state-head-to-head.md). | Empty MAKE[1], regional rare count 4, wealth bucket 6; 206/206 fields match. First numbers in 3m41s focused work; byte/extent controls pass. | Endpoint is after the decision: writer, value formula and emptying mechanism remain open. Existing logger contains the re-offer history; no exclusive-value or controlled-speedup claim. No capture or score movement. |
