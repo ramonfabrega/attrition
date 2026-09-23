@@ -6065,7 +6065,22 @@ impl Sim {
         if stale {
             g.tile = None;
             let btile = bpos.tile();
-            let dm = g.dist_mod;
+            // **A tiny mountain caps the distance weight at 3**
+            // (`005f0170`, the `local_30` clamp before the loop): when the
+            // list is a range's (`MiningList::mtn ≥ 0`, a Mine) and holds
+            // fewer tiles than `MTN_TINY_SIZE`, a Mine's 10 scores as 3,
+            // so the list's order (`i >> 2`) weighs against the distance.
+            // East Indies' `1/11` on 10958 is the case: 46 tiles, and the
+            // cap sends it to (170, 182) where 10 sent it onto `1/6`'s
+            // (173, 183) — item 620, `docs/ORDERS.md` §6.4.
+            let tiny = crate::gather::MOUNTAIN_GATHER[0].0;
+            let dm = if self.building_ident(b) == Ident::Mine
+                && (self.buildings[b].gather_from.len() as i32) < tiny
+            {
+                g.dist_mod.min(3)
+            } else {
+                g.dist_mod
+            };
             let mut best: Option<(i32, usize)> = None;
             for i in 0..self.buildings[b].gather_from.len() {
                 let t = self.buildings[b].gather_from[i];

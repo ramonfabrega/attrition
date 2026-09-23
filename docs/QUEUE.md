@@ -25,16 +25,17 @@ the rules track closed chapters four (1500), seven (1200) and three
   floor is a pin; a packet is taken at the word's own logger frame.
 - **598 rides in 620**: `inside_up`'s container row goes into `compare`
   inside the widening. 571 never ran — both lanes held a headline.
-- **Fable backlog: 2 Loop items** (313, 527); the `FABLE:` batch was empty.
+- **Fable backlog: 3 Loop items** (313, 527, 630); the `FABLE:` batch was empty.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w11069 of 24,000 · GreatLakes w12038 of 24,000
+Long captures: EastIndies w11590 of 24,000 · GreatLakes w12038 of 24,000
 Golden: ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch7 closed · restage w792 of 1000 · 628 next
-Endpoint 24001: EastIndies 59 off, 3 unlinked · GreatLakes 45 off, 0 unlinked
+Endpoint 24001: EastIndies 52 off, 6 unlinked · GreatLakes 45 off, 0 unlinked
 
-**Opener: 625 landed (the restage 782 → 792) and 628 has the rules
-lane; 620 is on the AI lane. 617 follows 628, and 571 follows 620. One
-landing since the twelfth pass's commit; stop at twenty.**
+**Opener: 620 landed (East Indies 11069 → 11590) and 625 (the restage
+782 → 792). 628 has the rules lane and 629 the AI lane; 617 follows 628,
+and 571 follows 629. Two landings since the twelfth pass's commit; stop
+at twenty.**
 
 ## The queue
 
@@ -44,14 +45,14 @@ lower map first — East Indies (a guard reads this line). Take the first
 unstarted on either track unless a better order is obvious, and say so; the
 backlog is `docs/PARKED.md`, and an item returns only when a score names it.
 
-620. **East Indies' word is 11069, past every capture** (613 moved it
-    10982 → 11069: `get_cost`'s Horses 15% on Stable and Auto Plant units,
-    and `calc_gather`'s survey refusing a range another Mine already
-    mines, AI §62). On 11069 ours 5 draws against 6, parting at index 0:
-    ours `Guy::set_anim+0x97a`, theirs `Unit::do_move+0xe84`. run152 ends
-    at 11039, so the `WIDENINGS` row names this item: capture **run155**
-    over the word, overlapping run152, then widen it whole, and put
-    `inside_up`'s outermost container in `compare` (598). No mechanism.
+629. **East Indies' word is 11590, past every capture** (620 moved it
+    11069 → 11590 by capping a Mine's `dist_mod` at 3 on a gather list
+    under `MTN_TINY_SIZE`, ORDERS §6.4; parked 622's tile from 10959). On
+    11590 ours 6 draws against 5, parting at index 0: ours
+    `Guy::set_anim+0x97a < Animal::do_idle+0x19`, theirs `Guy::set_anim+0x97a
+    < Guy::inc_time+0x271`. run155 ends at 11279, so the `WIDENINGS` row
+    names this item: capture **run159** over the word, overlapping
+    run155, then widen it whole. No mechanism.
 
 571. **Great Lakes: Army 1's squad stops on block 11922 in the original
     and walks on here** (566 moved the word 11903 → 12038 by carrying the

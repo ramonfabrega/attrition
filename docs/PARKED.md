@@ -32,11 +32,16 @@ attack and a chase, where the dump's holds nothing until 868.
 
 ## Parked by item 613, 2026-09-23 — under East Indies' 11069
 
-(622) **409 keys under the word on run152**, none on 11069's draw: food
-and metal a unit off from 10881/10900, the peasants and `1/36` from
-10956, `1/2018`'s list order from 10959, and `SITE` on 10976
-(`docs/journal/2026-09-23-item-613.md`). Returns when 620's widening
-names one.
+(622) **The keys under the word on run152**, none on 11590's draw: food
+and metal a unit off from 10881/10900 (on run155, 11064 and 11037), the
+peasants and `1/36` from 10956, and `SITE` on 10976
+(`docs/journal/2026-09-23-item-613.md`). `1/2018`'s list order from
+10959 was the tile pick, closed by 620's clamp (ORDERS §6.4).
+
+(631) **`inside_up_who` is unread** (598's second half, from item 620): the
+container chain walk stays within the unit's own player, so a unit housed
+by another player's container is never compared. 620 put the outermost
+container in `compare` and pinned it on run155. No draw names it.
 
 (623) **`MAKE[4].val` on 10982**, one make slot's value apart; no draw.
 
@@ -644,6 +649,18 @@ Filed by item 523: `o_up` was read only at stand-up and parted silently on
 744, while the coverage pin called it compared. A per-frame "compared"
 check would have caught it. The same family as the five instrument
 defects of the last tranche: scope reported, not measured.
+
+(630) **A restage booked on a premise a reading already kills.** Filed by
+the commander on 2026-09-23 from item 628's staging reading. The twelfth
+pass restaged chapter seven as seven-b for who=1, "where the cheat's block
+decides". But `Unit::init`:585 sets `unit_masks & 0x40000` on every unit
+whose owner's `(leader_flags & 0xc) != 4`, so `think`:264's exit never
+fires for a computer's unit, and `think_peasant` gives the citizen its
+order above the block. Falsifier 1 fires by construction, and the
+`|| ai_off` seam decides nothing on this lobby. run156 and run157 measure
+it. This is the third booking in two passes whose premise the disk or the
+decompile already answered (575, 584). A chapter's premise names the
+function that would kill it, and the booking greps its writers.
 
 ## Parked by the tenth Fable pass, 2026-09-22 — names no score
 

@@ -5666,3 +5666,40 @@ no toggle block and no `!quit` block.
 - **The pair is one game through frame 0 and parts on frame 1**, 12 draws
   against 54 (`chapter_seven_b_s_pair_is_one_game_until_the_gate`).
 - This crate parts at **1036**, on who=1's own `1/1`, 8 draws against 7.
+## run155 — East Indies' word 11069, past run152's last block (2026-09-23, item 620)
+
+**What it is.** run152's game and line past its last block:
+`MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,DEATHS=1,LEADERS=9` over
+`[11030, 11280)`, plus `rontrace.cfg` `cover=1` and `window=11065-11073`
+over the word. `!quit` at 11300. **529,523,354 bytes of dump and
+19,032,928 of trace, 20 minutes** from launch at 12:43 to archive at
+13:03. It ran through `viadriver.sh` with no human at the menu, and the
+lane lock was free. That is 2.07 MB a block net of the 11 MB start dump,
+the same as run152.
+
+```
+zsh tools/gamelog/viadriver.sh tools/gamelog/runqueue.sh - 620
+```
+
+**Why it was owed.** The word 11069 writes block 11070. The only block any
+`MAP_STYLE 18` dump on this disk has in [11040, 11100] is run152's
+`!quit` stub on 11061. run152's window ends on 11039. run78 starts at
+15700, run96 at 23960, and run54 and the 24k runs print only their end
+frames. The original's first draw on the word is `Unit::do_move+0xe84 <
+Unit::do_explore_to`, a walk's grid roll, and no record on disk says
+whose walk it is.
+
+**Every check passed:**
+
+| check | result |
+|---|---|
+| `rngcmp.py` vs `rontrace-run54.log` | **0 differing**, 11,301 identical |
+| `MAP_STYLE` from the dump's `GAME INFO` | 18 |
+| the window, block for block | **250 blocks, 11030..11279, no gap** |
+| a `MAKEOBJECT` on every window block | **250** |
+| overlap with run152, every kind compared | **10 in common (11030..11039), 0 differ** |
+| the coverage window | a set on all 9 frames 11065..11073 |
+
+**What it settled.** `run155_s_word_frame_is_widened_whole`; the item's
+journal (`docs/journal/2026-09-23-item-620.md`) has the verdicts on the
+three readings.

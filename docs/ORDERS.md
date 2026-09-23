@@ -1977,7 +1977,8 @@ goto_build == 1:
         if !been_there: been_there = 1; dirty
         set_anim(CHAR_DEFAULT)
         if tx < 0 or ty < 0 or !has_gather_access(tx, ty, who, 1, 0):
-            dm = dist_mod; (a tiny mountain: dm = min(dm, 3)); best = 9999999
+            dm = dist_mod; if mtn ≥ 0 and count < MTN_TINY_SIZE: dm = min(dm, 3)  # 620
+            best = 9999999
             for i in 0..count: (x, y) = gather_from[i]
                 if tdata[y][x].mask & 0x4000 and has_gather_access(x, y, who, 1, 0):
                     score = max(3, vector_dist(|x − b.tx|, |y − b.ty|)) * dm + (i >> 2)
@@ -4192,8 +4193,8 @@ refusal not clearing the verified-line bit — the same bit
 `docs/MOVEMENT.md`'s pass measured at 335 wrong in 450 unit-frames; a
 swarm's approach move always `EXPLORE_TO` where the original makes it
 `MOVE_TO` for a human builder and every repairer; the arrived gatherer's AI
-repair arm; the tile approach ignoring `avoid_x/y`; the tile score's
-`MTN_TINY_SIZE` `dist_mod` clamp; `add_gather_order` not clearing the "has
+repair arm; the tile approach ignoring `avoid_x/y`; ~~the tile score's
+`MTN_TINY_SIZE` `dist_mod` clamp~~ (built by item 620, §6.4); `add_gather_order` not clearing the "has
 been a builder" bit; `adjacent_to`'s missing sea arm, with
 `BOAT_GARRISON_MAX_DISTANCE` unused; and a re-plan returning 0 with an
 empty stack killing the order instead of taking the top (left marked
