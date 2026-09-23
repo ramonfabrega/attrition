@@ -11829,8 +11829,90 @@ mod tests {
             }
         }
         assert_eq!(blocks, (TAIL - FIRST + 1) as usize, "the walk is whole");
-        assert!(leader_rows > 0, "run139 prints the leader record");
-        let _ = WORD_BLOCK;
+        // **The leader half is whole**: every key `leader::rows` carries is
+        // on run139's record, both leaders, all forty blocks.
+        assert_eq!(leader_rows, 84_240, "40 blocks x 2 leaders x 1,053 keys");
+        assert_eq!(missing, BTreeSet::new(), "no key unprinted");
+        // **Where each key first parts, block by block.** The 169 on the
+        // window's first block are standing residue under the cycle: the
+        // human leader's census, which this crate does not keep; the site
+        // list's order and regions; `leftover`'s fractions; and
+        // `tech_frame`/`tech_cat_frame`, which this crate never writes.
+        // Nothing there feeds the Buildings step's ship offer (§57).
+        let counts: Vec<(i64, usize)> = by_block.iter().map(|(f, r)| (*f, r.len())).collect();
+        assert_eq!(
+            counts,
+            [
+                (9960, 169),
+                (9966, 1),
+                (9976, 8),
+                (9981, 1),
+                (9982, 17),
+                (9983, 1),
+                (9984, 38),
+                (9985, 2),
+                (9986, 2),
+                (9987, 25),
+                (9988, 8),
+                (9989, 12),
+                (9990, 1),
+                (9992, 6),
+                (9993, 6),
+                (9994, 3),
+                (9995, 7),
+                (9999, 5),
+            ],
+            "first partings per block"
+        );
+        // **The lists part on block 9982, the Buildings step** (sim-frame
+        // 9981). Both are empty on 9979; Research (9980) and Units (9981)
+        // agree slot for slot. On 9982 the original's step offers three
+        // ships at `val 9999999`, city 0, cat 6: types 340 (slot 2), 334
+        // (slot 3) and 323 (slot 6). This crate offers none, so its
+        // Mercenaries and Militia hold slots 2 and 3, and on 9983 its Mine
+        // enters slot 3 where the original's ship stands. The `city` rows
+        // of slots 0, 1, 4 and 5 are §52.2's index shift, not a value.
+        let list: Vec<String> = firsts
+            .iter()
+            .filter(|(_, (f, _))| (WORD_BLOCK - 2..WORD_BLOCK).contains(f))
+            .map(|((w, o, what), (f, row))| format!("{f} {w}/{o} {what}: {row}"))
+            .collect();
+        assert_eq!(
+            list,
+            [
+                "9982 1/-1 leader:MAKE[0].city: ours 1 theirs 0",
+                "9982 1/-1 leader:MAKE[1].city: ours 2 theirs 1",
+                "9982 1/-1 leader:MAKE[2].cat: ours 10 theirs 6",
+                "9982 1/-1 leader:MAKE[2].city: ours -1 theirs 0",
+                "9982 1/-1 leader:MAKE[2].t: ours 573 theirs 340",
+                "9982 1/-1 leader:MAKE[2].val: ours 4344000 theirs 9999999",
+                "9982 1/-1 leader:MAKE[3].cat: ours 7 theirs 6",
+                "9982 1/-1 leader:MAKE[3].city: ours -1 theirs 0",
+                "9983 1/-1 leader:MAKE[3].escrow: ours 0 theirs 1",
+                "9982 1/-1 leader:MAKE[3].t: ours 66 theirs 334",
+                "9982 1/-1 leader:MAKE[3].val: ours 167424 theirs 9999999",
+                "9982 1/-1 leader:MAKE[4].city: ours 1 theirs 0",
+                "9982 1/-1 leader:MAKE[5].city: ours 1 theirs 0",
+                "9982 1/-1 leader:MAKE[6].cat: ours 0 theirs 6",
+                "9982 1/-1 leader:MAKE[6].city: ours -1 theirs 0",
+                "9982 1/-1 leader:MAKE[6].escrow: ours 0 theirs 1",
+                "9982 1/-1 leader:MAKE[6].t: ours -1 theirs 323",
+                "9982 1/-1 leader:MAKE[6].val: ours -1 theirs 9999999",
+            ],
+            "the Buildings step's ships"
+        );
+        // **The word's block, 9984**: 30 record rows — run99's 27, and
+        // City `1/2007`'s `gatherers` and `space` pair, which run99's
+        // longer walk keys on their first parting at 8576 — and eight the
+        // leader record adds: the list after the purchase (`MAKE[7]`,
+        // `MAKE[10]`), the muster (`num_queued` 16, 273, 290), the timber
+        // the Mine cost, and one gatherer.
+        let word = by_block.get(&WORD_BLOCK).map_or(0, Vec::len);
+        let word_records = firsts
+            .iter()
+            .filter(|((_, o, _), (f, _))| *f == WORD_BLOCK && *o >= 0)
+            .count();
+        assert_eq!((word, word_records), (38, 30), "the word's block");
     }
 
     #[test]

@@ -2552,12 +2552,19 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // paid it on run99, which had carried the word since 2026-09-18 and
     // which no item had walked: the queue's booking asked for a capture
     // the disk already held.
+    //
+    // Item 576 widened 9983 on **run139**, the one East Indies capture that
+    // prints the leader's record over the word, with a sibling test rather
+    // than an extension: run99's test still holds every unit and building
+    // record from 7880, and run139's adds the leader half — the stockpile,
+    // the step, the muster and the make list, slot for slot. The lists part
+    // on block 9982, the Buildings step's ship offers (`docs/AI.md` §57).
     (
         "LONG_WORD_EAST_INDIES",
         LONG_WORD_EAST_INDIES,
-        Some("run99_s_word_frame_is_widened_whole"),
-        573,
-        Some(WIDENING_EAST_INDIES),
+        Some("run139_s_word_frame_is_widened_whole"),
+        576,
+        Some(WIDENING_EAST_INDIES_MAKE),
     ),
     // Item 448 paid the widening 442 owed: `run100_s_word_block_is_every_
     // record_the_dump_carries` compares every field of every record run100
