@@ -513,11 +513,21 @@ the dead hoplites' `DEATH_OBJS` live to 999 on both sides. What parted
 on 771 was the allocator. `Objects::find_free` skips a dead number that
 its death object still holds (`docs/COMBAT.md` §59), so arena A's
 hoplites are 9–11 on both sides now, and reach `idle 4` on the dump's
-frames. **The word is 865**, 5 draws against 4, and values part on 866:
+frames. ~~**The word is 865**, 5 draws against 4, and values part on 866:
 the catapult's fresh attack after its reload, which is §57.6's third
-residue (621's park). Before it, run146 parts on a round's target (736,
-run145's family), a round's pool slot (798) and the scout `1/0`'s move
-facing (847). None of them spends a draw.
+residue (621's park).~~ Item 627 found two things (`docs/COMBAT.md` §60).
+An unpacked packer's idle search must reach what it takes
+(`find_nearby_target`'s `local_24`), so on 864 the catapult takes none of
+the hoplites standing inside its minimum. A packer also re-searches before
+it chases (`fight:1051`), so each hoplite that hits it after that is
+attacked for one block and let go, and the catapult never moves.
+**run146 holds to 1000, the capture's end: word, sequence and values.
+The restage is closed** (`GOLDEN_WORD_CHAPTER_THREE_RESTAGE`,
+`chapter_three_s_catapult_after_its_reload`). §7's minimum-range
+falsifier is diff-backed now on both of the catapult's paths: the idle
+search and the retaliation. What the widening still parts on, with no draw
+after it, is three families: a round's target (736, run145's family), a
+round's pool slot (798) and the scout `1/0`'s move facing (847).
 
 ## 8. Chapter four — the Temple, the border, and the bleed
 

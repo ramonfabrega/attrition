@@ -2621,12 +2621,25 @@ pub(crate) const WIDENING_CHAPTER_THREE: (i64, i64) = (605, 901);
 
 /// **Chapter three's restage** — `chapter3b.cmd`, run146, item 587: the
 /// same three unit types in two arenas, staged so that §7's minimum-range
-/// and speed falsifiers can fire (neither does). The draw stream parts on
-/// **865**, ours 5 draws against the original's 4, at draw 0: this
-/// crate's catapult `0/6`, its ground order's reload run out, spends a
-/// `Unit::fight+0x9b0` re-search on a fresh attack, where the dump's
-/// holds nothing until 868 (621's park, `docs/COMBAT.md` §57.6). Values
-/// part on 866. No mechanism is established.
+/// and speed falsifiers can fire (neither does). **Closed at 1000, the
+/// capture's end**: word, sequence and values (item 627).
+///
+/// **The delta: 865 → 1000, item 627** — `Object::find_nearby_target`'s
+/// `local_24` (the listing `64911b`–`64918d`, `6495c2`–`64963b`): a
+/// searcher in STAND_GROUND, entrenched, or an **unpacked packer** must
+/// reach what it takes, and this crate read the flag the other way round,
+/// as "takes anything". And `Unit::fight:1051`: a packer's chase tail
+/// starts with `find_new_target`, which kills the attack and runs that
+/// search again (`docs/COMBAT.md` §60). On 865 ours had spent a
+/// `Unit::fight+0x9b0` on an attack its idle search took on 864, on a
+/// hoplite inside the catapult's minimum, and chased away for its range;
+/// the dump's holds nothing. The value diff on the frame it moved: on
+/// 865–867 `0/6` holds no order on both sides at `idle` 1, 2, 2; on 868,
+/// 870 and 871 it holds one `ATTACKORDER` (`in_range 0`, `new_ord 1`) on
+/// `1/9`, `1/11` and `1/10`, the block after each hit, and nothing on 869
+/// and 872; it stands on (888, 7992) with `orders_x` 888 throughout
+/// (`chapter_three_s_catapult_after_its_reload`, 858–880). The word's
+/// blocks are in `chapter_three_s_restage_is_widened_whole`.
 ///
 /// **The delta: 792 → 865, item 617** — `Objects::find_free` skips a
 /// dead number whose `hold_frames` is not zero, and `DeathObj::inc_time`
@@ -2695,7 +2708,7 @@ pub(crate) const WIDENING_CHAPTER_THREE: (i64, i64) = (605, 901);
 /// **The chapter's word is [`GOLDEN_WORD_CHAPTER_THREE`]**, 900 on
 /// run145, the capture's end. This one is pinned beside it so the
 /// restage cannot fall unseen, and it is the lower of the two.
-pub(crate) const GOLDEN_WORD_CHAPTER_THREE_RESTAGE: i64 = 865;
+pub(crate) const GOLDEN_WORD_CHAPTER_THREE_RESTAGE: i64 = 1000;
 
 /// `chapter_three_s_restage_is_widened_whole`'s window: run146 whole,
 /// 605..999 and the `!quit` block at 1001.
