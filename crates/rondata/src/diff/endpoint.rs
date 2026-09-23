@@ -496,7 +496,13 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // (`docs/AI.md` §62); this map's word moves 10982 → 11069, 12,932
         // frames before this one. The unlinked are player 1's `80`..`82`.
         // DECISIONS 36: the number, not a trade.
-        off: 59,
+        // **59 → 52 off, 3 → 6 unlinked, 2 → 1 build_unlinked, 22 → 24
+        // build_diverged** on item 620, a Mine's `dist_mod` capped at 3 on
+        // a list under `MTN_TINY_SIZE` (`docs/ORDERS.md` §6.4); this map's
+        // word moves 11069 → 11590, 12,411 frames before this one. The
+        // unlinked are player 1's `77`..`82`. DECISIONS 36: the number, not
+        // a trade.
+        off: 52,
         // And **5 → 10 unlinked** on 2026-09-21, item 442 — the scholar
         // arm's `val` chain (`docs/AI.md` §53). This map's word does not
         // move on it; Great Lakes' moves 9510 → 10161. The AI's Scholar
@@ -516,19 +522,22 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // **3 → 6** on item 604, beside `off` above: player 1's `77`..`82`.
         // **6 → 0** on item 608, beside `off` above.
         // **0 → 3** on item 613, beside `off` above.
-        unlinked: 3,
+        // **3 → 6** on item 620, beside `off` above.
+        unlinked: 6,
         // **0 → 1** on item 608, beside `off` above.
         // **1 → 0** on item 613, beside `off` above.
         extra: 0,
         // **1 → 2** on item 588, beside `off` above.
         // **2 → 1** on item 604, beside `off` above.
         // **1 → 2** on item 613, beside `off` above.
-        build_unlinked: 2,
+        // **2 → 1** on item 620, beside `off` above.
+        build_unlinked: 1,
         // **25 → 24** on item 592, beside `off` above.
         // **24 → 25** on item 604, beside `off` above.
         // **25 → 24** on item 608, beside `off` above.
         // **24 → 22** on item 613, beside `off` above.
-        build_diverged: 22,
+        // **22 → 24** on item 620, beside `off` above.
+        build_diverged: 24,
         city_unlinked: 3,
         city_diverged: 0,
     },
@@ -1275,7 +1284,8 @@ pub const LADDER: [Endpoint; 2] = [
         // **41 → 40** on item 592; see `extra` below.
         // **40 → 39** on item 597; see `extra` below.
         // **39 → 35** on item 613; see `extra` below.
-        off: 35,
+        // **35 → 31** on item 620; see `extra` below.
+        off: 31,
         unlinked: 17,
         // 20 → 21 on 2026-09-07, item 267's repaint: one spurious unit
         // back, 7,872 frames past the word, and nothing else on this rung
@@ -1423,7 +1433,11 @@ pub const LADDER: [Endpoint; 2] = [
         // 11069: three Citizens, two Scholars, two Cataphracts, two Horse
         // Archers, a Light Horse and fifteen foot (Bowmen, Slingers,
         // Hoplites, Longbowmen). DECISIONS 36: the number, not a trade.
-        extra: 25,
+        // **25 → 26 extra, 35 → 31 off** on item 620, a Mine's `dist_mod`
+        // capped at 3 on a list under `MTN_TINY_SIZE` (`docs/ORDERS.md`
+        // §6.4), 3,811 frames past this map's new word 11590. DECISIONS 36:
+        // the number, not a trade.
+        extra: 26,
         build_unlinked: 10,
         // **4 → 5** on item 588, beside `extra` above.
         // **5 → 4** on item 597, beside `extra` above.
@@ -1536,7 +1550,10 @@ pub const LADDER: [Endpoint; 2] = [
         // **49 → 46** on item 597; see `extra` below.
         // **46 → 47** on item 608; see `extra` below.
         // **47 → 44** on item 613; see `extra` below.
-        off: 44,
+        // **44 → 39** on item 620, 4,899 frames past this map's new word
+        // 11590 (`docs/ORDERS.md` §6.4). DECISIONS 36: the number, not a
+        // trade.
+        off: 39,
         unlinked: 16,
         // 19 → 33 on 2026-09-07, item 261, the same reshuffle, then 33 →
         // **27** the same day on item 265's byte — this rung took the
@@ -2231,7 +2248,12 @@ mod tests {
         // back on one late roster — twelve Slingers-to-Javelineers and
         // Hoplites-to-Phalanx pairs among them, the upgrade shape item 545
         // named. A floor that only falls cannot see a rise; a pin can.
-        const SHARED_EXTRA_NUMBERS: usize = 18;
+        //
+        // **18 → 19 on item 620**, a Mine's `dist_mod` capped at 3 on a
+        // list under `MTN_TINY_SIZE` (`docs/ORDERS.md` §6.4): the late
+        // roster reshuffles past East Indies' word, 11069 → 11590, and
+        // one more extra number is shared, of one type on both rungs.
+        const SHARED_EXTRA_NUMBERS: usize = 19;
         assert_eq!(
             shared.len(),
             SHARED_EXTRA_NUMBERS,

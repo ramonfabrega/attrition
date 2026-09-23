@@ -1977,7 +1977,8 @@ goto_build == 1:
         if !been_there: been_there = 1; dirty
         set_anim(CHAR_DEFAULT)
         if tx < 0 or ty < 0 or !has_gather_access(tx, ty, who, 1, 0):
-            dm = dist_mod; if list.mtn ≥ 0 and count < MTN_TINY_SIZE: dm = min(dm, 3); best = 9999999
+            dm = dist_mod; if mtn ≥ 0 and count < MTN_TINY_SIZE: dm = min(dm, 3)  # 620
+            best = 9999999
             for i in 0..count: (x, y) = gather_from[i]
                 if tdata[y][x].mask & 0x4000 and has_gather_access(x, y, who, 1, 0):
                     score = max(3, vector_dist(|x − b.tx|, |y − b.ty|)) * dm + (i >> 2)
@@ -2034,20 +2035,6 @@ differential check and never by a reading** (`docs/JOURNAL.md`, 2026-08-26,
   is sent to the tile in the middle of its own forest, which has no
   orthogonal neighbour to stand on; the `else` arm re-chooses on the same
   test, so a held tile that loses its access is given up too (`005f0655`).
-- **A tiny mountain weighs distance at 3** (item 620). Before the loop,
-  `local_30 = dist_mod` is capped at 3 when the list belongs to a range
-  (`MiningList::mtn`, `+0xb4` off the building's list object, is ≥ 0, so
-  a Mine) and the list's own length (`+0x9c`) is under
-  `constants->mtn_tiny_size`, 100 tiles in `rules.xml`. A Mine's
-  `dist_mod` is 10, so on a small range the list order (`i >> 2`) decides
-  against the distance. East Indies' `1/11` on 10958 is the diff that
-  shows it. It joined the Mine `1/2018`, whose list is 46 tiles. At 10 it
-  scored the nearest tile, (173, 183), already `1/6`'s. At 3 it took
-  index 7, (170, 182), and moved it to the back. That is the dump's list
-  on block 10959, one slot out from index 7. The walk it sent `1/11` on
-  was East Indies' word at 11069, where the grid roll came a frame late
-  (`run152_s_word_frame_is_widened_whole`,
-  `run155_s_word_frame_is_widened_whole`).
 
 The three `CHAR_DEFAULT` sites are marked (`anim::SITE_STAND_GATHER`
 `+0x10f`, `SITE_STAND_TILE` `+0xfd4`, `SITE_STAND_RETURN` `+0xb99`) and so
