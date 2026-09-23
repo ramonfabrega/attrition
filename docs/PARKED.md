@@ -30,10 +30,8 @@ reaches rest on one reading.
 
 ## Parked by item 595, 2026-09-23 — the pivot's last degree
 
-(603) **The pivot node's offset** (`get_position`, which the original
-computes in `float`) only decides `set_attack`'s verdict within about 1°
-of ±45°. 595's integer pivot ignores it. Returns when a verdict parts at
-the boundary; the fix must stay integer (CLAUDE.md, no float in the sim).
+(603) booked 2026-09-23: 601 moved chapter three's word to 684, where
+the verdict parts at the boundary.
 
 ## Parked by item 592, 2026-09-23 — the rider's other seams
 

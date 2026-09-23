@@ -2473,15 +2473,31 @@ pub(crate) const GOLDEN_WORD_CHAPTER_SEVEN: i64 = 1200;
 pub(crate) const WIDENING_CHAPTER_SEVEN: (i64, i64) = (605, 1201);
 
 /// **Chapter three's golden word** — the mounted and siege lines, run145
-/// (`docs/GOLDEN.md` §7). The draw stream parts on **682**, ours 8 draws
-/// against the original's 7, at draw 1: this crate spends
-/// `Unit::close+0xcb6` on the hoplite `1/7`, which it kills on 682 where
-/// the dump's dies on 704. It is downstream of the first value parting,
-/// **635**: the chariot `0/6` takes its first target, `1/7` here and `1/8`
-/// in the dump, and the damage follows the arrows. No mechanism is named
-/// for 635.
+/// (`docs/GOLDEN.md` §7). The draw stream parts on **684**, ours 14 draws
+/// against the original's 15, at draw 4: the chariot `0/8` re-searches
+/// after `1/8` dies and takes `1/7`, 50° off its heading. The original
+/// swings without turning, rolling figure 0 (`Guy::set_anim+0xf2f <
+/// Unit::set_anim+0x56`) and the crew. This crate turns, defers figure
+/// 0's swing and rolls only the crew. The values part on 685, where `0/8`'s
+/// facing reads `834011136` here and `1431655765` in the dump. Bearing from
+/// the dump's release point (`957, 8075`) and not from the unit's square,
+/// `1/7` is 43° off, inside the pivot's ±45°. That is the pivot node's
+/// offset (`docs/COMBAT.md` §52.5, item 603), which is the reading here
+/// and not a measurement.
 ///
-/// **The delta: 633 → 682, item 595.** On 633 the original's chariot
+/// **The delta: 682 → 684, item 601** — two readings of `get_damage`
+/// that the listing overturned (`docs/COMBAT.md` §53). **The flank
+/// reduction is keyed on the target's mask**: a chariot flanking hoplites
+/// deals the whole 50 % per level, so every candidate on 635 gets the
+/// height bonus, and `0/6` takes `1/8` on the chain's order, as the dump's
+/// does. **The ranking skips the overkill step**: on 685 `0/7` takes the
+/// wounded `1/7`, as the dump's does (with the third, it took `1/6`). The
+/// value diff on the frame it moved, 635: `0/6`'s `ATTACKORDER` reads `ox
+/// 8 whom 1` on both sides (ours had `ox 7`). On 685, `0/7`'s reads `ox 7
+/// whom 1` on both. The rows are pinned in
+/// `chapter_three_s_word_frame_is_widened_whole`.
+///
+/// **The delta before it: 633 → 682, item 595.** On 633 the original's chariot
 /// `0/8` swung without turning, and this crate turned and deferred the
 /// swing. Item 595 took `Unit::set_attack`'s pivot verdict
 /// (`docs/COMBAT.md` §52): a type with a `<RESTRICTION>` pivot that bears
@@ -2501,7 +2517,7 @@ pub(crate) const WIDENING_CHAPTER_SEVEN: (i64, i64) = (605, 1201);
 /// row to the capture's end, its cast on 696 and its unpack on 776
 /// included. The word's block is pinned in
 /// `chapter_three_s_word_frame_is_widened_whole`.
-pub(crate) const GOLDEN_WORD_CHAPTER_THREE: i64 = 682;
+pub(crate) const GOLDEN_WORD_CHAPTER_THREE: i64 = 684;
 
 /// `chapter_three_s_word_frame_is_widened_whole`'s window: **run145
 /// whole**, 605..899 and the `!quit` block at 901. The floor is the

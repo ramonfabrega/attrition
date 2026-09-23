@@ -403,11 +403,19 @@ values part on 634~~ (`GOLDEN_WORD_CHAPTER_THREE`,
 and adds the `GUY` record's position and facing). Item 595 took the
 chariot's pivot (`docs/COMBAT.md` §52): a type whose `<RESTRICTION>`
 pivot bears within ±45° shoots on its own heading, and its swing rolls in
-`fight`'s frame. `0/8` now agrees on every row of 633 and 634. **The word
+`fight`'s frame. `0/8` now agrees on every row of 633 and 634. ~~**The word
 is 682**, 8 draws against 7: this crate kills the hoplite `1/7` there,
 where the dump's dies on 704. It is downstream of the first value
 parting, **635**, where the chariot `0/6` targets `1/7` here and `1/8` in
-the dump. No mechanism is named for 635. The widening now also compares
+the dump. No mechanism is named for 635.~~ Item 601 read two things in
+`get_damage` off the listing (`docs/COMBAT.md` §53). The flank reduction
+is keyed on the target's mask, so a chariot flanks hoplites at the whole
+bonus and `0/6` takes `1/8` on 635. The ranking skips overkill, so `0/7`
+takes the wounded `1/7` on 685. **The word is 684**, 14 draws against
+15. `0/8` turns to `1/7`, 50° off its heading, where the original swings
+on its heading. That reads as the pivot node's offset (item 603). The
+first value parting is **651**, the chariots' first rounds leaving from
+the unit's square (item 602's shape). The widening now also compares
 each figure's aim and the `ATTACKORDER`'s own row (`in_range`,
 `new_ord` and the rest).
 

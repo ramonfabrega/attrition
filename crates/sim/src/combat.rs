@@ -802,6 +802,9 @@ pub struct Side {
 /// `pct` is the combat table entry; `angle` is the attacker's facing toward
 /// the target; `splash` says this is a splash fringe; `frame` is the game
 /// frame for the overkill window.
+///
+/// This is the call `Object::do_damage` makes, with `check_overkill` set
+/// (`get_damage(…, splash, 1, …)`); [`get_damage_checked`] takes the flag.
 #[allow(clippy::too_many_arguments)]
 pub fn get_damage(
     t: &Tuning,
@@ -814,6 +817,34 @@ pub fn get_damage(
     pct: i32,
     angle: Angle,
     splash: bool,
+    frame: i64,
+    m: &Modifiers,
+) -> i32 {
+    get_damage_checked(
+        t, a, at, tp, tt, attack, armor, pct, angle, splash, true, frame, m,
+    )
+}
+
+/// [`get_damage`] with its fifth argument, `check_overkill`, which gates
+/// step 21 and nothing else (`get_damage@00644130:371`, `param_5 != 0`).
+/// `Object::do_damage` passes 1. **`Object::compare_target` passes 0**
+/// (item 601, `docs/COMBAT.md` §53): the listing pushes `$0x0` three times
+/// at `0064ebce`–`0064ebdf` — `param_6`, `param_5` and `param_4` — before
+/// the bearing, so a target search ranks a freshly wounded target at its
+/// whole damage rather than at the overkill third.
+#[allow(clippy::too_many_arguments)]
+pub fn get_damage_checked(
+    t: &Tuning,
+    a: &Profile,
+    at: Side,
+    tp: &Profile,
+    tt: Side,
+    attack: i32,
+    armor: i32,
+    pct: i32,
+    angle: Angle,
+    splash: bool,
+    check_overkill: bool,
     frame: i64,
     m: &Modifiers,
 ) -> i32 {
@@ -940,10 +971,18 @@ pub fn get_damage(
         && tmask & mask::NAVAL == 0
         && let Some(level) = flank_level(tt.facing, angle)
     {
+        // **The reduction is keyed on the target's mask, not the
+        // attacker's** (item 601, `docs/COMBAT.md` §53). The decompiler
+        // prints the test on `extraout_EDX`; the listing has `edx` loaded
+        // from `-0x8(%ebp)` at `00644ace`, the target type's `+0x1e4`
+        // stored at `006441e7`, and nothing between there and the test at
+        // `00644b3a` writes it — `flanking@0092cfe0` touches only `eax` and
+        // `ecx`. So a flanked horseman or vehicle takes the reduced bonus,
+        // and a chariot flanking hoplites deals the whole of it.
         let mut fb = t.flank_bonus;
-        if amask & mask::VEHICLE != 0 {
+        if tmask & mask::VEHICLE != 0 {
             fb = shr8(fb * t.vehicle_flank_bonus);
-        } else if amask & mask::MOUNTED != 0 {
+        } else if tmask & mask::MOUNTED != 0 {
             fb = shr8(fb * t.cavalry_flank_bonus);
         }
         base = (fb * level + 100) * base / 100;
@@ -951,7 +990,8 @@ pub fn get_damage(
     // 20. Net damage.
     let mut dmg = (base + 5) / 10 - armor;
     // 21. Overkill.
-    if a.is_ranged()
+    if check_overkill
+        && a.is_ranged()
         && at.unit
         && tt.unit
         && tt.damage_frame != 0
@@ -1676,25 +1716,46 @@ mod tests {
             ),
             20
         );
-        // A mounted attacker's bonus is 40/256 of that: 50 × 40 >> 8 = 7, rear 107 → 11.
+        // A mounted **target**'s bonus is 40/256 of that: 50 × 40 >> 8 = 7,
+        // rear 107 → 11. The test reads the target's mask (`00644b3a` tests
+        // `edx`, loaded from the target type at `00644ace`; item 601), so a
+        // mounted attacker on a foot target flanks at the whole 50.
         let cav = unit_profile(100, 0, mask::MOUNTED);
-        assert_eq!(
+        let flank = |a: &Profile, b: &Profile, attack: i32| {
             get_damage(
                 &T,
-                &cav,
+                a,
                 unit_side(),
-                &b,
+                b,
                 t,
-                100,
+                attack,
                 0,
                 100,
                 Angle::NORTH,
                 false,
                 1,
-                &Modifiers::default()
-            ),
-            11
+                &Modifiers::default(),
+            )
+        };
+        assert_eq!(
+            flank(&a, &cav, 100),
+            11,
+            "a flanked rider takes the reduced bonus"
         );
+        assert_eq!(
+            flank(&cav, &b, 100),
+            15,
+            "a rider flanking foot deals the whole bonus"
+        );
+        // VEHICLE is tested first: 50 × 33 >> 8 = 6, so at attack 1000 the
+        // rear is 1060 → 106 where the cavalry reduction would give 107.
+        let tank = unit_profile(100, 0, mask::VEHICLE | mask::MOUNTED);
+        assert_eq!(
+            flank(&a, &tank, 1000),
+            106,
+            "a flanked vehicle takes its own reduction"
+        );
+        assert_eq!(flank(&a, &cav, 1000), 107);
         // Civilians neither flank nor are flanked.
         let civ = unit_profile(100, 0, mask::CIVILIAN);
         assert_eq!(
@@ -1714,6 +1775,47 @@ mod tests {
             ),
             10
         );
+    }
+
+    /// **The ranking's damage skips the overkill step** (item 601,
+    /// `docs/COMBAT.md` §53). `Object::compare_target` calls `get_damage`
+    /// with `check_overkill` 0 (`0064ebce`–`0064ebdf`), so a target another
+    /// squad has just hit ranks at its whole damage. Golden chapter three's
+    /// `0/7` takes the wounded `1/7` on 685 on it; with the overkill third
+    /// in the ranking it took `1/6`.
+    #[test]
+    fn the_ranking_s_damage_skips_the_overkill_step() {
+        let mut a = unit_profile(300, 0, mask::FOOT_ARCHER);
+        a.max_range = 5;
+        let b = unit_profile(100, 0, mask::FOOT);
+        let second = Side {
+            captain: 2,
+            ..unit_side()
+        };
+        let target = Side {
+            damage_frame: 100,
+            damage_o: 1,
+            ..unit_side()
+        };
+        let hit = |check: bool| {
+            get_damage_checked(
+                &T,
+                &a,
+                second,
+                &b,
+                target,
+                300,
+                0,
+                100,
+                Angle::NORTH,
+                false,
+                check,
+                110,
+                &Modifiers::default(),
+            )
+        };
+        assert_eq!(hit(true), 9, "do_damage's call takes the third");
+        assert_eq!(hit(false), 30, "compare_target's call does not");
     }
 
     #[test]

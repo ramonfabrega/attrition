@@ -706,13 +706,16 @@ tmask  = T.type.obj_masks
     `base = (fb * level + 100) * base / 100`. With the shipped 50: rear
     ×1.5, side ×2.0 — unless the facing convention is the other way round,
     which is open question 1. *Note:* the mask the VEHICLE/MOUNTED test reads
-    is a register the decompiler lost (`extraout_EDX`); the natural candidate,
-    and the one taken, is `amask` — a vehicle or cavalry **attacker** takes a
-    reduced flank bonus. Open question 2.
+    is a register the decompiler lost (`extraout_EDX`). ~~The natural
+    candidate, and the one taken, is `amask`: a vehicle or cavalry
+    **attacker** takes a reduced flank bonus. Open question 2.~~ The
+    listing says it is **`tmask`**: a flanked vehicle or rider takes the
+    reduced bonus (§53.1, item 601).
 20. **Net damage:** `dmg = (base + 5) / 10 − armor`. Attack was in tenths;
     this is the rounding back to whole hits, and armour is subtracted
     *after* every multiplier above.
-21. **Overkill** (only when `check_overkill`, which `do_damage` always passes):
+21. **Overkill** (only when `check_overkill`, which `do_damage` always passes
+    and `compare_target` never does, §53.2):
     if `A.max_range() != 0` and A and T are both units, and T's
     `damage_frame != 0` and `frame − T.damage_frame < overkill_frames` and
     `A.get_captain() != T.damage_o`: `dmg = (dmg * overkill_damage) >> 8`; and
@@ -1498,7 +1501,8 @@ T.hits_left` (`×10` more for a building) — **wounded, hard-hitting targets
 first** — or `/20` when a raider looks at a building. A building attacker:
 its current target `×2` (with fewer than two arrows) or `/2`; a damaged
 target `×3/2`; a moving one `/4`; a supply wagon `×5000`. Then `dmg =
-get_damage(o, who, angle 0, …)`: `v ×= dmg` (AI: `v /= dmg`, or 0). Building
+get_damage(o, who, ~~angle 0~~ the bearing (§46.5), splash 0,
+check_overkill 0 (§53.2))`: `v ×= dmg` (AI: `v /= dmg`, or 0). Building
 targets (not raiding): armed and not human → `+1,000,000` with the SIEGE mask
 else `×5`; siege vs armed `+100,000`. Unit targets: combat-role `×20`;
 spellcasters casting at me `+10,000,000`, spies `+6,000,000`; a detected
@@ -1698,8 +1702,9 @@ members, which `Unit::do_attack` uses to stand an unarmed group member off at
    them — and `rules.xml`'s own gloss, "per level of flank (max bonus is twice
    this number)", is silent on which level is which.
 
-2. **Whose mask the cavalry/vehicle flank reduction reads** — the attacker's
-   is taken; the register was lost.
+2. ~~**Whose mask the cavalry/vehicle flank reduction reads** — the attacker's
+   is taken; the register was lost.~~ The target's, read off the listing
+   (§53.1, item 601).
 3. **`unit_masks & 0x10` and `0x400000`** (the ×2 in `do_damage` step 2 and
    `get_damage` step 14) are read but not named here; neither is set by
    anything this reading covered.
@@ -9023,3 +9028,111 @@ captures, and none of these rows names a mechanism:
   holds this crate to it); every pivot type other than the Chariot; the
   wrapped ranges. `a_pivot_that_bears_shoots_without_turning` pins the
   45° edge and both kinds of range from the same reading.
+
+## 53. The flank reduction is the target's, and the ranking skips overkill (item 601, 2026-09-23)
+
+Golden chapter three's word stood at **682** on run145. It came down from
+a value parting on **635**: the chariot `0/6` took `1/7` there, where the
+dump's took `1/8`. All three original chariots take `1/8`: `0/8` on 633,
+`0/7` on 634 and `0/6` on 635, each on its own 32-frame phase. None of
+them takes the nearest, `1/6`. `docs/journal/2026-09-23-item-601.md` has
+the disk and the kill conditions, written before any code.
+
+**The disk first, and what it killed.** The widening already compared
+every record on 635. The search's inputs are the positions, hits,
+facings and the unit's own `z`, which step 23 reads. `z` had not been
+compared, so `widen_chapter_three` now reads it on every unit of every
+block. It is quiet. With all three hoplites in one fog half-cell and all
+three in range, order, metric, visibility and staleness were killed on
+the disk. What was left was the value. This crate scored `1/7` at
+113892 against 112506 for the other two. With the height bonus zeroed,
+all three read 112506. So `1/7` won on step 23 alone, `⌊94 × 10 × 22 /
+20000⌋ = 1`: a `dmg` of 22, and the tallest drop of the three.
+
+### 53.1 The reduction reads the target's mask
+
+§6 step 19's VEHICLE/MOUNTED test is printed on `extraout_EDX`. From
+`llvm-objdump 0x6441a0..0x644b90`:
+
+- `006441d3`–`006441d9`: `-0xc(%ebp)` is `this`'s type `+0x1e4`, the
+  attacker's mask (`local_10`).
+- `006441df`–`006441e7`: `-0x8(%ebp)` is the target's type `+0x1e4`
+  (`uVar12`). Nothing else in the function stores to it.
+- `00644ace`: `edx` is loaded from `-0x8(%ebp)` for the CIVILIAN test,
+  and `00644af1` copies it to `ecx` rather than masking it.
+- `flanking@0092cfe0` uses `ecx` and `eax` only.
+- `00644b3a`: `testl $0x200000, %edx`, then `$0x1000`.
+
+So a flanked **vehicle** or **rider** takes `flank_bonus ×
+vehicle_flank_bonus >> 8` (or the cavalry one), and anything flanking
+foot deals the whole `flank_bonus`. This crate had read `amask`, so the
+chariot (MOUNTED) got 50 × 40 >> 8 = 7 % where the original gives 50 %.
+With the whole bonus, `dmg` on 635 is 32. Every hoplite then takes the
+height bump (`⌊77·10·32/20000⌋ = ⌊94·10·32/20000⌋ = ⌊86·10·32/20000⌋ =
+1`), all three score alike, and the tie goes to `1/8`, first on the
+cell's chain, as it did for `0/8` on 633 on both sides.
+
+A real arrow's damage agrees on every compared row. The first hits on
+`1/8` (659) and on `1/7` (679) read 20 on both sides. Whether any of
+them flanked is not read here.
+
+### 53.2 `compare_target` passes `check_overkill` 0
+
+With 635 agreeing, the next parting was 685: `0/7` re-searched after
+`1/8` died and took `1/6`, where the dump's took the wounded `1/7`. This
+crate had ranked `1/7` at a third: `0/8`'s stray arrow wounded `1/7` on
+679, and overkill (step 21) applied inside the ranking. The listing at
+`0064ebce`–`0064ec10` pushes `$0x0`, `$0x0`, `$0x0` (`param_6`,
+`param_5`, `param_4`), then the bearing, `who` and `o`, and calls
+`get_damage@00644130`. `param_5` gates step 21 and nothing else
+(`get_damage:371`), and `Object::do_damage` passes 1 there (`:145`). So
+a search ranks a freshly wounded target at its whole damage.
+[`sim::combat::get_damage_checked`] takes the flag. `get_damage` is the
+`do_damage` call, and `Sim::compare_target` passes `false`.
+
+### 53.3 What moved
+
+| | before | after |
+|---|---|---|
+| chapter three, run145: word / sequence / values | 682 / 682 / 683 | **684 / 684 / 685** |
+| first value parting | 635 (`0/6`'s target) | 651 (the first rounds' launch) |
+| the restage, run146 | 664 | 664 |
+| chapters one, two, four, five and seven | closed | closed |
+
+**The value diff on the frames it moved.** On 635, `0/6`'s
+`ATTACKORDER` reads `ox 8 whom 1` on both sides (ours had `ox 7`). On
+685, `0/7`'s reads `ox 7 whom 1` on both (ours had `ox 6`).
+
+**What the frame says next.** On 684, `0/8` re-searches and takes `1/7`,
+on both sides. `1/7` bears 69.9° from `0/8`'s square, 50° off its
+heading of 120°, so this crate turns it (685: `834011136` against
+`1431655765`). The dump's does not turn, and it rolls figure 0's swing
+(`Unit::set_anim+0x56`) where this crate defers it. From the dump's own
+release point for `0/8` (`957, 8075`, 67 units behind and left of the
+unit's square), `1/7` is 43.3° off, inside ±45°. That is §52.5's pivot
+node offset (item 603), and it is more than a degree here. It is a
+reading, not a measurement: the pivot node is not the release node. The
+first value parting, 651, is item 602's shape on run145: the first
+rounds leave from each unit's square and height. `rolling` parts with
+them (ours 1, theirs 0), the lofted-piece flag this crate loads no art
+for (§42.2).
+
+### 53.4 What is not established
+
+- **A mounted or vehicle target's reduced flank** is read from the
+  listing, and no capture on disk flanks one in a window this crate
+  replays. `flanking_is_rear_one_side_two_and_front_nothing` pins both
+  directions from the same reading.
+- **`param_4` in `compare_target`** is splash, 0, which this crate
+  already passed.
+- **Whether any other caller of `get_damage` passes `check_overkill` 0.**
+  Only `compare_target` and `do_damage` are modelled.
+
+### 53.5 Coverage
+
+- **Diff-backed**: `0/6`'s target on 635 and `0/7`'s on 685, on run145.
+  The unit's `z` on every block of both chapter-three captures.
+- **Listing-backed**: the target mask in step 19; the three zero pushes
+  before `compare_target`'s `get_damage`.
+- **Reading only**: the vehicle-before-cavalry order of the two
+  reductions (`00644b3a`, then `00644b47`), which no capture separates.

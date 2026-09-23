@@ -29,11 +29,11 @@ track closed chapters four (1500) and seven (1200) and pinned three
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w10582 of 24,000 · GreatLakes w12038 of 24,000
-Golden: ch3 w682 of 900 · ch1 closed · ch2 closed · ch4 closed · ch5 closed · ch7 closed · 601 next
+Golden: ch3 w684 of 900 · ch1 closed · ch2 closed · ch4 closed · ch5 closed · ch7 closed · 603 next
 Endpoint 24001: EastIndies 59 off, 3 unlinked · GreatLakes 48 off, 0 unlinked
 
-**Opener: 12 landings since the eleventh pass (573 to 597 by the log).
-att-601 is live on the rules track. A commander takes 604 on the AI
+**Opener: 13 landings since the eleventh pass (573 to 601 by the log).
+att-604 is live on the AI track. A commander takes 603 on the rules
 track, then 602 and 571; workers spawn with `claude-opus-5-5[1m]`. The
 count is by the log from the pass and stops at twenty.**
 
@@ -63,19 +63,21 @@ backlog is `docs/PARKED.md`, and an item returns only when a score names it.
     `move_step+0x823`. No mechanism. If PRs #7/#8 land first, a packet at
     11921 with the nine guys' move path run on it is an optional second run.
 
-601. **Golden chapter three's word is 682, on a target chosen at 635**
-    (595 moved run145 633 → 682 and run146 633 → 664 with `set_attack`'s
-    pivot verdict, COMBAT §52). On run145's 635 the chariot `0/6` targets
-    `1/7` where the dump has `1/8`, a value parting that predates 595 and
-    that 682 follows from (the takes-chain). Walk forward from 635. No
-    mechanism.
+603. **Golden chapter three's word is 684: the pivot bears from its
+    node** (601 moved run145 682 → 684 with two `get_damage` misreadings
+    corrected from the listing, COMBAT §53). On 684 `0/8` turns to `1/7`,
+    which is 50° off its heading from the unit's square but 43.3° from the
+    dump's release point, so `set_attack`'s ±45° verdict (COMBAT §52)
+    wants the bearing from the pivot node. The original computes the node
+    in `float` (`get_position`); the port stays integer. Parked by 595.
 
 602. **The restage's word is 664: a crew figure rolls a fresh attack**
     (`GOLDEN_WORD_CHAPTER_THREE_RESTAGE`, run146, the lower of the two).
     After a deferred swing the crew figure sits on figure 0's slog slot,
     `inc_time`'s mirror, where the original's does not. Under it, 651: the
-    chariot's arrow leaves from the unit's square, not the release node.
-    595's reading of both. No mechanism.
+    chariot's arrow leaves from the unit's square, not the release node;
+    on run145 too, with the ammo's `rolling` 1 against 0 (`Ammo::init`'s
+    lofted term, COMBAT §42.2). 595's reading. No mechanism.
 
 ## How to maintain this file
 
