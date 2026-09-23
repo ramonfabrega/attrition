@@ -7774,7 +7774,12 @@ mod tests {
             // empty world cell had parted (`docs/COLLISION.md` §4.2). The
             // word moved *up* on the same item, which can only add keys
             // below it, so the fall is the fix's.
-            vec![(1, 24), (1, 25), (1, 26)],
+            //
+            // **Three → none on item 629**: `1/24`, `1/25` and `1/26` are
+            // Great Lakes' Merchants, and each stood (24, 24) off its tile
+            // corner since its unpack; `cast_unpack`'s merchant arm seats
+            // them (`docs/MERCHANT.md` §3.2).
+            Vec::<(i64, i64)>::new(),
             "the window's standing position residue is not the three it is"
         );
         // **Counted below the word**, not over the whole map: the word's
@@ -8264,8 +8269,10 @@ mod tests {
             // the original's emptied slot, and the word left this block.
             // What is left is a make-list value 77/75 of the original's —
             // the same ratio as run117's `MAKE[3].val` and `MAKE[4].val`,
-            // `docs/ECONOMY.md` §14.4's `get_cost` row.
-            ["11185 1/-1 leader:MAKE[3].val"],
+            // `docs/ECONOMY.md` §14.4's `get_cost` row. Item 629's
+            // Merchant seat took it (`docs/MERCHANT.md` §3.2); which input
+            // of the value it moved is not read.
+            Vec::<String>::new(),
             "the word's blocks part on a different set"
         );
     }
@@ -9934,9 +9941,12 @@ mod tests {
         // **Backwards**: the 284 keys under the word are run135's standing
         // floor exactly — nothing new parts on 11860..11901 — and of
         // `1/62` and `1/64` only 11424's `come_out` residue, which
-        // re-agrees on 11425, and (558)'s group-order ids.
+        // re-agrees on 11425, and (558)'s group-order ids. Item 629 took
+        // 34 of them (284 → 250): Great Lakes' Merchants on their tile
+        // corners and what their footprints held off
+        // (`docs/MERCHANT.md` §3.2).
         let under = firsts.values().filter(|(f, _)| *f < WORD_BLOCK - 2).count();
-        assert_eq!(under, 284, "the floor under the word");
+        assert_eq!(under, 250, "the floor under the word");
         let pair: Vec<String> = firsts
             .iter()
             .filter(|((w, o, what), (f, _))| {
@@ -11135,11 +11145,13 @@ mod tests {
             body_all >= 121_224,
             "run97's own bodies are missing — the wrong file: {body_all} fields"
         );
+        // **Closed on item 629**: the trio are Great Lakes' Merchants,
+        // and the (24, 24) was their seat — `cast_unpack`'s merchant arm
+        // puts each on its tile corner (`docs/MERCHANT.md` §3.2). Their
+        // two fields agree on every frame below the word.
         assert_eq!(
-            body_trio,
-            6 * frames_below,
-            "the standing trio is not off on exactly its own two fields a \
-             frame over {frames_below} frames: {body_trio}"
+            body_trio, 0,
+            "the standing trio is off again over {frames_below} frames: {body_trio}"
         );
         assert!(
             body_bad <= 8,
@@ -11768,9 +11780,12 @@ mod tests {
         // length and its move's `last` — none of which spends a draw until
         // it arrives on the word. **Item 588 took 23 of them** (242 → 219):
         // every row of the Bark's walk but its group number, 68 against 66
-        // from 10324 — the navy's numbering, as `1/32`'s.
+        // from 10324 — the navy's numbering, as `1/32`'s. **Item 629 took
+        // 22 more** (219 → 197): the Merchants `1/19` and `1/20` on their
+        // tile corners, and what their footprints and the leader's rate
+        // flag had held off (`docs/MERCHANT.md` §3.2).
         let under = firsts.values().filter(|(f, _)| *f < WORD_BLOCK - 2).count();
-        assert_eq!(under, 219, "the floor under the word");
+        assert_eq!(under, 197, "the floor under the word");
         // **The birth under the old word, 10187..10188** (item 579): the
         // first block any of `1/32`'s inputs parts on is its own birth.
         // Trireme `1/32` (type 340) is trained at Dock `1/2010`, (44160,
@@ -11976,10 +11991,12 @@ mod tests {
         assert_eq!(
             counts,
             [
-                (9960, 169),
-                (9966, 1),
+                // Item 629: 169 → 143 on the first block, and the single
+                // rows on 9966 and 9981 go — the Merchants' seats, their
+                // footprints and the rate rows beside them
+                // (`docs/MERCHANT.md` §3.2).
+                (9960, 143),
                 (9976, 8),
-                (9981, 1),
                 (9982, 7),
                 (9992, 1),
             ],
@@ -12098,12 +12115,12 @@ mod tests {
             .filter(|(_, (f, _))| (FIRST + 1..=WORD_BLOCK).contains(f))
             .map(row)
             .collect();
+        // Item 629 closed the two leader rows too: the Merchants' seat
+        // (`docs/MERCHANT.md` §3.2) raises the leader's `0x2000000`, and
+        // the rates reassemble on the original's cadence.
         assert_eq!(
             under,
-            [
-                "11064 1/-1 leader:bucket[0:food]: ours 69 theirs 70",
-                "11037 1/-1 leader:bucket[4:metal]: ours 54 theirs 55",
-            ],
+            Vec::<String>::new(),
             "the rows under the word and on it"
         );
         // **The position that carried it**: until the fix `1/11` stood on
@@ -12138,7 +12155,176 @@ mod tests {
         // animals and the rest.
         let under_n = firsts.values().filter(|(f, _)| *f < WORD_BLOCK - 2).count();
         let first = firsts.values().filter(|(f, _)| *f == FIRST).count();
-        assert_eq!((first, under_n, firsts.len()), (289, 291, 307), "the floor");
+        // Item 629: 289/291/307 → 261/261/277, the two Merchants' seats,
+        // city `1/2007`'s space and the rate rows (`docs/MERCHANT.md` §3.2).
+        assert_eq!((first, under_n, firsts.len()), (261, 261, 277), "the floor");
+    }
+
+    /// **run159 — East Indies' word 11590, widened whole, both directions**
+    /// (item 629). run155's line past its last block, over
+    /// [`WIDENING_EAST_INDIES_IDLE`]: ten blocks shared with run155, the
+    /// 310 up to the word, its block, and 308 past it, which no capture had
+    /// printed. [`widen_east_indies`] with gaia's animals.
+    ///
+    /// The word's frame, 11590, writes block **11591**. The same item moved
+    /// the word to 11747, inside the window (block 11748): a deployed
+    /// Merchant's four tiles, `SpellType::cast_unpack`'s merchant arm
+    /// (`docs/MERCHANT.md` §3.2).
+    #[test]
+    fn run159_s_word_frame_is_widened_whole() {
+        const FIRST: i64 = WIDENING_EAST_INDIES_IDLE.0;
+        const TAIL: i64 = WIDENING_EAST_INDIES_IDLE.1;
+        /// The block run159 was taken to widen, the word 11590's.
+        const WORD_BLOCK: i64 = EAST_INDIES_IDLE_BLOCK;
+        let Some(Widened {
+            firsts,
+            missing,
+            blocks,
+            leader_rows,
+            changed,
+            housed,
+        }) = widen_east_indies(
+            "run159",
+            "gamelog-run159-eastindies-idleword.txt",
+            WIDENING_EAST_INDIES_IDLE,
+            &[WORD_BLOCK],
+            true,
+        )
+        else {
+            return;
+        };
+        assert_eq!(blocks, (TAIL - FIRST + 1) as usize, "the walk is whole");
+        assert_eq!(
+            leader_rows,
+            (TAIL - FIRST + 1) as usize * 2 * (1_053 + 1_531),
+            "630 blocks x 2 leaders x (1,053 + 1,531) keys"
+        );
+        assert_eq!(
+            missing,
+            std::collections::BTreeSet::new(),
+            "no key unprinted"
+        );
+        let row = |((w, o, what), (f, row)): (&(i64, i64, String), &(i64, String))| {
+            format!("{f} {w}/{o} {what}: {row}")
+        };
+        // **Under the word and on it, both directions** (item 629). The
+        // leader rows are the census and the site list (parked 622); until
+        // the fix 613's food and metal a unit off stood here too, from
+        // 11272 and 11275, and the sheep's three rows on 11578..11591. `1/41`, `1/42` and `1/43` are citizens born under the
+        // window with 40 hit points against 50 (parked 622's `1/36`), and
+        // `form` −1 against 9 beside them. The scout `1/0` re-plans its
+        // explore on 11550 to another target and spends no draw on it
+        // before the word; its rows are counted, not listed.
+        let under: Vec<String> = firsts
+            .iter()
+            .filter(|((w, o, _), (f, _))| {
+                (FIRST + 1..=WORD_BLOCK).contains(f) && (*w, *o) != (1, 0)
+            })
+            .map(row)
+            .collect();
+        assert_eq!(
+            under,
+            [
+                "11401 0/-1 leader:production_step: ours 0 theirs 1",
+                "11384 1/-1 leader:MAKE[0].city: ours 1 theirs 0",
+                "11376 1/-1 leader:SITE[2].rank: ours 4 theirs 3",
+                "11376 1/-1 leader:SITE[3].rank: ours 3 theirs 4",
+                "11318 1/-1 leader:peasants: ours 17 theirs 18",
+                "11363 1/-1 leader:scholars: ours 12 theirs 13",
+                "11318 1/41 form: ours -1 theirs 9",
+                "11318 1/41 hits:myhits: ours 40 theirs 50",
+                "11318 1/41 hits_left: ours 40 theirs 50",
+                "11318 1/41 myhits: ours 40 theirs 50",
+                "11318 1/41 mylos: ours 2 theirs 4",
+                "11318 1/41 orders_x: ours 34656 theirs 34680",
+                "11318 1/41 orders_y: ours 36192 theirs 37176",
+                "11363 1/42 form: ours -1 theirs 9",
+                "11363 1/42 g.angle[0]: ours 1431655765 theirs 0",
+                "11363 1/42 orders_x: ours 36000 theirs 36024",
+                "11363 1/42 orders_y: ours 35808 theirs 35832",
+                "11499 1/43 form: ours -1 theirs 9",
+                "11499 1/43 hits:myhits: ours 40 theirs 50",
+                "11499 1/43 hits_left: ours 40 theirs 50",
+                "11499 1/43 myhits: ours 40 theirs 50",
+                "11499 1/43 mylos: ours 2 theirs 4",
+                "11499 1/43 orders_x: ours 34656 theirs 34680",
+                "11499 1/43 orders_y: ours 36192 theirs 37176",
+            ],
+            "the rows under the word and on it"
+        );
+        let scout: Vec<(i64, usize)> = {
+            let mut by: std::collections::BTreeMap<i64, usize> = Default::default();
+            for ((w, o, _), (f, _)) in &firsts {
+                if (*w, *o) == (1, 0) && (FIRST + 1..=WORD_BLOCK).contains(f) {
+                    *by.entry(*f).or_default() += 1;
+                }
+            }
+            by.into_iter().collect()
+        };
+        assert_eq!(
+            scout,
+            [(11550, 47), (11578, 17), (11579, 3)],
+            "the scout's rows"
+        );
+        // **The word was the sheep `8/1`'s arrival** (W1). Both sides roll
+        // the same wander on 11576, from (28872, 23880) to (28680, 23736).
+        // This crate walks it straight in 13 frames; the original plans
+        // two waypoints, south to (28884, 23724) and then west, and walks
+        // 21. It arrives on 11597, so its `Animal::do_idle` asks for
+        // `DEFAULT` on 11598 and 11599, the pair this crate spends on 11590
+        // and 11591. Until the fix that was the one-sided list, 11591 and
+        // 11592; now nobody changes animation on one side only.
+        let one_sided: Vec<(i64, i64, i64, bool, bool)> =
+            changed.iter().filter(|c| c.3 != c.4).copied().collect();
+        assert_eq!(
+            one_sided,
+            Vec::<(i64, i64, i64, bool, bool)>::new(),
+            "a figure moves on one side only"
+        );
+        // **What the waypoint goes round** (W2): the Merchant `1/20`,
+        // deployed since 7663, stood at the tile corner (28608, 24000)
+        // there and at the unit-cell centre (28632, 24024) here — eleven
+        // rows from the window's first block, both figures and the order
+        // point with it — and its four tiles were blocked there only. The
+        // corner tile (149, 124) is what the original's tile search refused
+        // the sheep's diagonal through. The fix seats it and `1/19` on
+        // their corners and blocks both footprints; `form` is not this
+        // arm's and stands.
+        let merchant: Vec<String> = firsts
+            .iter()
+            .filter(|((w, o, _), _)| (*w, *o) == (1, 20))
+            .map(row)
+            .collect();
+        assert_eq!(
+            merchant,
+            ["11270 1/20 form: ours -1 theirs 0"],
+            "the Merchant's seat"
+        );
+        // **The outermost container** (parked 598): one row, past the
+        // word and downstream of the scout's 11550 re-plan — `1/0` inside
+        // `1/44` here from 11748, on the map there.
+        let inside: Vec<String> = firsts
+            .iter()
+            .filter(|((_, _, what), _)| what == "inside")
+            .map(row)
+            .collect();
+        assert_eq!(
+            inside,
+            ["11748 1/0 inside: ours 44 theirs -1"],
+            "a unit in another container"
+        );
+        assert_eq!(housed, 8_204, "housed unit-blocks the row compared");
+        // **The floor**: 270 keys standing on the window's first block
+        // (run155's residue on its last), 361 before the word, 806 in all.
+        // Before the fix it was 297/391/920: the two Merchants' 22 seat
+        // rows, city `1/2007`'s `filled` and `space[2]`, the leader's
+        // `reg_land[11]` and `leftover` food and metal on 11270, the
+        // buckets, the sheep, and past the word everything the unfixed
+        // stream parted from 11594. Every row the fix moves in comes on
+        // 11749 or later, past the new word's block.
+        let under_n = firsts.values().filter(|(f, _)| *f < WORD_BLOCK - 2).count();
+        let first = firsts.values().filter(|(f, _)| *f == FIRST).count();
+        assert_eq!((first, under_n, firsts.len()), (270, 361, 806), "the floor");
     }
 
     /// **run152 — East Indies' word 10982, widened whole, both directions**
@@ -12197,8 +12383,11 @@ mod tests {
         // price was 60/40 against 53 food, where `get_cost` takes Horses'
         // 15% off a Stable unit — 51/34, two affordable. On 10982 the
         // original then sorted the Barracks above the Light Horse, so
-        // `use_market`'s `need` differed and it spent a third draw. Two
-        // rows stand: §52.2's `city` shift and the Mine's value.
+        // `use_market`'s `need` differed and it spent a third draw. One
+        // row stands, §52.2's `city` shift. The Mine's value on 10982,
+        // 316800 against 310400, went with item 629 (parked 623): the
+        // Merchants' seat puts the leader's rates on the original's
+        // cadence (`docs/MERCHANT.md` §3.2).
         let leader: Vec<String> = firsts
             .iter()
             .filter(|((_, o, _), (f, _))| *o == -1 && (FIRST + 1..=WORD_BLOCK).contains(f))
@@ -12207,7 +12396,6 @@ mod tests {
         assert_eq!(
             leader,
             [
-                "10982 1/-1 leader:MAKE[4].val: ours 316800 theirs 310400",
                 "10981 1/-1 leader:MAKE[6].city: ours 1 theirs 0",
                 "10976 1/-1 leader:SITE[2].wx: ours 51 theirs 0",
                 "10976 1/-1 leader:SITE[2].wy: ours 58 theirs 0",
@@ -12223,8 +12411,6 @@ mod tests {
                 "10976 1/-1 leader:SITE[6].reg: ours 5 theirs 7",
                 "10976 1/-1 leader:SITE[6].wx: ours 49 theirs 34",
                 "10976 1/-1 leader:SITE[6].wy: ours 31 theirs 33",
-                "10881 1/-1 leader:bucket[0:food]: ours 32 theirs 33",
-                "10900 1/-1 leader:bucket[4:metal]: ours 33 theirs 34",
                 "10956 1/-1 leader:peasants: ours 15 theirs 16",
             ],
             "the leader record"
@@ -12250,10 +12436,13 @@ mod tests {
             .filter(|((_, o, _), (f, _))| *o != -1 && (WORD_BLOCK - 2..=WORD_BLOCK).contains(f))
             .count();
         assert_eq!(on_word, 0, "the unit rows on the word's blocks");
-        // **The floor**: 278 keys standing on the window's first block
-        // (run149's residue on its last), 309 before the word — the food and
-        // metal a unit off from 10881 and 10900, `peasants` and `1/36` from
-        // 10956, the SITE list on 10976 — and 312 in all. Before item 613's
+        // **The floor**: 251 keys standing on the window's first block
+        // (run149's residue on its last), 280 before the word — `peasants`
+        // and `1/36` from 10956, the SITE list on 10976 — and 282 in all.
+        // Item 629 took it from 278/309/312: the two Merchants' seats on
+        // the first block, and with them the food and metal a unit off from
+        // 10881 and 10900 and the Mine's value (`docs/MERCHANT.md` §3.2).
+        // Before item 613's
         // fix the floor was 278/409/616, and before item 620's 278/409/412:
         // on 10959 the citizen `1/11` took the Mine `1/2018`'s tile (173,
         // 183), which `1/6` already held, where the original took (170, 182)
@@ -12262,7 +12451,7 @@ mod tests {
         // list under `MTN_TINY_SIZE` (`docs/ORDERS.md` §6.4).
         let under = firsts.values().filter(|(f, _)| *f < WORD_BLOCK - 2).count();
         let first = firsts.values().filter(|(f, _)| *f == FIRST).count();
-        assert_eq!((first, under, firsts.len()), (278, 309, 312), "the floor");
+        assert_eq!((first, under, firsts.len()), (251, 280, 282), "the floor");
     }
 
     /// **run149 — East Indies' word 10782, widened whole, both directions**
@@ -12374,10 +12563,12 @@ mod tests {
         // word: a unit of food on 10733, and `SITE[7]` on 10776. Past it
         // the gather clock (10784), the human's `production_step` (10801)
         // and the transport rider `1/31`'s order (10875). Before the fix
-        // the floor was 280/283/506.
+        // the floor was 280/283/506. Item 629 took it 280/282/291 →
+        // 251/252/261: `1/19` and `1/20` are on their tile corners now
+        // (`docs/MERCHANT.md` §3.2), and the city and rate rows with them.
         let under = firsts.values().filter(|(f, _)| *f < WORD_BLOCK - 2).count();
         let first = firsts.values().filter(|(f, _)| *f == FIRST).count();
-        assert_eq!((first, under, firsts.len()), (280, 282, 291), "the floor");
+        assert_eq!((first, under, firsts.len()), (251, 252, 261), "the floor");
     }
 
     /// One of East Indies' `LEADERS=9` windows walked whole, both
@@ -12796,7 +12987,9 @@ mod tests {
         // 1,584,000. That is city `1/2007`'s `open` one high here —
         // `filled` 33 against 34, residue run58 pins from 1819 — and a payoff probe
         // that set the city's picture to the original's from 7975 closed
-        // the row and moved no draw (`docs/AI.md` §58.4).
+        // the row and moved no draw (`docs/AI.md` §58.4). Item 629 closed
+        // it: the Merchants' four-tile footprints are the city's missing
+        // `filled` (`docs/MERCHANT.md` §3.2).
         let on_word: Vec<String> = firsts
             .iter()
             .filter(|(k, (f, _))| (WORD_BLOCK - 2..WORD_BLOCK).contains(f) && k.1 == -1)
@@ -12807,7 +13000,6 @@ mod tests {
             [
                 "10582 1/-1 leader:MAKE[2].city: ours 1 theirs 0",
                 "10581 1/-1 leader:MAKE[3].city: ours 1 theirs 0",
-                "10582 1/-1 leader:MAKE[4].val: ours 1616000 theirs 1584000",
                 "10581 1/-1 leader:MAKE[5].city: ours 1 theirs 0",
             ],
             "the make list"
@@ -12841,7 +13033,8 @@ mod tests {
             // draws, so the shuffle reads the original's stream and the
             // list comes out in the original's order. The four left are
             // §52.2's `city` shift, under the word and not its cause.
-            [(10581, 2), (10582, 2), (10583, 0)],
+            // Item 629: 4 → 3, the Mine's value (`docs/MERCHANT.md` §3.2).
+            [(10581, 2), (10582, 1), (10583, 0)],
             "the word's blocks, counted"
         );
         let one_sided: Vec<(i64, i64, i64, bool, bool)> =
@@ -12914,9 +13107,12 @@ mod tests {
         // Item 604 moved the word out of this window (10582 → 10782) and
         // took the Mine's 80 gather-list rows, 393 → **313**: nothing
         // under the old word moved, and nothing past it parted anew.
+        // Item 629 took it 273/301/313 → 246/272/283: the Merchants `1/19`
+        // and `1/20` on their tile corners, `reg_land` and `filled` with
+        // their footprints, and the Mine's value (`docs/MERCHANT.md` §3.2).
         let under = firsts.values().filter(|(f, _)| *f < WORD_BLOCK - 2).count();
         let first = firsts.values().filter(|(f, _)| *f == FIRST).count();
-        assert_eq!((first, under, firsts.len()), (273, 301, 313), "the floor");
+        assert_eq!((first, under, firsts.len()), (246, 272, 283), "the floor");
     }
 
     #[test]
@@ -13516,8 +13712,11 @@ mod tests {
             .iter()
             .flat_map(|f| f.search_diverged.iter())
             .collect();
+        // 8,032 → 8,387 on item 629: the column is counted where the
+        // positions agree, and Great Lakes' seated Merchants now do
+        // (`docs/MERCHANT.md` §3.2).
         assert!(
-            sd_compared == 8_032 && sd_diverged.is_empty(),
+            sd_compared == 8_387 && sd_diverged.is_empty(),
             "run76's `start_dist` column: {sd_compared} compared, {} apart — \
              first {:?}",
             sd_diverged.len(),
@@ -15768,9 +15967,12 @@ mod tests {
             .filter(|&(_, &f)| f <= 6_864)
             .map(|(&k, _)| k)
             .collect();
+        // **Item 629**: `1/24` and `1/25` are Merchants, and their
+        // (24, 24) was the seat `cast_unpack`'s merchant arm gives them on
+        // their tile corners (`docs/MERCHANT.md` §3.2); neither parts now.
         assert_eq!(
             inherited,
-            vec![(1, 24), (1, 25)],
+            Vec::<(i64, i64)>::new(),
             "the units already off position when the window opens: {parted:?}"
         );
         let inside: Vec<((i64, i64), i64)> = parted
@@ -15785,9 +15987,9 @@ mod tests {
         );
         assert_eq!(
             parted.len(),
-            3,
-            "run83's parted set should be `1/24`, `1/25` and the quit \
-             frame's `0/3`: {parted:?}"
+            1,
+            "run83's parted set should be the quit frame's `0/3` alone \
+             since item 629: {parted:?}"
         );
 
         // Orders: three families and no fourth. `1/23` is the caravan, off
@@ -16056,10 +16258,11 @@ mod tests {
         // ashore on the original's own frame, walks into the animal on
         // time, and the stand at 7448 is this crate's too. What is left
         // is `1/19`'s unpack constant, which is the same row run82's
-        // window carries from 6883 on.
+        // window carries from 6883 on — gone since item 629, which seats
+        // a deployed Merchant on its tile corner (`docs/MERCHANT.md` §3.2).
         assert_eq!(
             parted,
-            [((1, 19), 7_400)].into_iter().collect(),
+            std::collections::BTreeMap::new(),
             "run85's parted set"
         );
 
@@ -16068,11 +16271,11 @@ mod tests {
         // `run54_s_24000_frames…` asserts the floor on the same game.
 
         // `1/19` is the unpacked Merchant standing on its trade-post
-        // spot: **a constant (24, 24), on every block, both sides
-        // still**. The original moved it onto the tile corner (32256,
-        // 36864) = 192 x (168, 192) somewhere in the 470 frames no dump
-        // covers, and this crate left it where run82's closing block had
-        // it (`docs/MERCHANT.md`, and the successor in the queue).
+        // spot. Until item 629 it was **a constant (24, 24), on every
+        // block**: the original moves it onto the tile corner (32256,
+        // 36864) = 192 x (168, 192) when its unpack ends, and this crate
+        // left it where it walked to. Now it is on the corner here too
+        // (`docs/MERCHANT.md` §3.2).
         let merchant: Vec<(i32, i32)> = report
             .frames
             .iter()
@@ -16081,8 +16284,8 @@ mod tests {
             .map(|d| (d.ours.x - d.theirs.x, d.ours.y - d.theirs.y))
             .collect();
         assert!(
-            merchant.len() == 81 && merchant.iter().all(|&d| d == (24, 24)),
-            "`1/19` is a standing constant: {} rows, {:?}",
+            merchant.is_empty(),
+            "`1/19` is off its tile corner again: {} rows, {:?}",
             merchant.len(),
             merchant.first()
         );
@@ -16273,13 +16476,17 @@ mod tests {
                 .iter()
                 .map(|(&k, &f)| (k, f))
                 .collect::<Vec<((i64, i64), i64)>>(),
-            vec![((1, 19), 7_474), ((1, 20), 7_663)],
+            // Item 629: the two Merchant constants go too — nothing parts
+            // below the word.
+            Vec::<((i64, i64), i64)>::new(),
             "run88's parted set, whole"
         );
 
         // `1/19` is run85's row one window along: the unpacked Merchant
-        // standing on its trade-post spot, **a constant (24, 24) on every
-        // block, both sides still** (`docs/MERCHANT.md`).
+        // standing on its trade-post spot. Until item 629 it was **a
+        // constant (24, 24) on every block**, and `1/20` the same from its
+        // own unpack on 7663; `cast_unpack`'s merchant arm seats both on
+        // their tile corners now (`docs/MERCHANT.md` §3.2).
         let merchant = |o: i64| -> Vec<(i32, i32)> {
             report
                 .frames
@@ -16291,17 +16498,14 @@ mod tests {
         };
         let (nineteen, twenty) = (merchant(19), merchant(20));
         assert!(
-            nineteen.len() == 327 && nineteen.iter().all(|&d| d == (24, 24)),
-            "`1/19` is a standing constant: {} rows, {:?}",
+            nineteen.is_empty(),
+            "`1/19` is off its tile corner again: {} rows, {:?}",
             nineteen.len(),
             nineteen.first()
         );
-        // `1/20` is the same shape one Merchant along: it stands on its own
-        // trade-post spot from 7663 and is a flat (24, 24) for every block
-        // after, both sides still.
         assert!(
-            twenty.len() == 138 && twenty.iter().all(|&d| d == (24, 24)),
-            "`1/20` is the second standing constant: {} rows, {:?}",
+            twenty.is_empty(),
+            "`1/20` is off its tile corner again: {} rows, {:?}",
             twenty.len(),
             twenty.first()
         );
@@ -16342,8 +16546,9 @@ mod tests {
         // `do_move`'s §4.4 step 2 block is what models it, and
         // `kill_current_path`'s `clear_partial_path` is what let it be
         // wired (`docs/PATHFINDER.md` §18.5). The closing block's residue
-        // is now the two standing Merchant constants and nothing else, on
-        // a 327-block window.
+        // was the two standing Merchant constants and nothing else, on a
+        // 327-block window, and item 629 took those: **the closing block
+        // is empty** (`docs/MERCHANT.md` §3.2).
         let residue: Vec<(i64, i64, i32, i32, i32, i32)> = report
             .frames
             .iter()
@@ -16353,10 +16558,7 @@ mod tests {
             .collect();
         assert_eq!(
             residue,
-            vec![
-                (1, 19, 32_280, 36_888, 32_256, 36_864),
-                (1, 20, 28_632, 24_024, 28_608, 24_000),
-            ],
+            Vec::<(i64, i64, i32, i32, i32, i32)>::new(),
             "the closing block's whole residue, both sides' coordinates"
         );
 
@@ -16857,8 +17059,11 @@ mod tests {
             .iter()
             .flat_map(|f| f.search_diverged.iter())
             .collect();
+        // 2,860 → 3,080 on item 629: the column is counted where the
+        // positions agree, and the seated Merchants `1/19` and `1/20` now
+        // do (`docs/MERCHANT.md` §3.2).
         assert!(
-            sd_compared == 2_860 && sd_diverged.is_empty(),
+            sd_compared == 3_080 && sd_diverged.is_empty(),
             "run90's `start_dist` column: {sd_compared} compared, {} apart — \
              first {:?}",
             sd_diverged.len(),
@@ -17076,13 +17281,15 @@ mod tests {
         // — `(0, 4)` 7887, `(1, 2)` 7872 and `(1, 5)` 7895 — which is what
         // "the shuffle's wake" always predicted and nothing had shown.
         // 111 blocks of the East Indies shuffle, every unit of every
-        // block, and two rows apart.
+        // block, and two rows apart — **and none since item 629**, which
+        // seats both Merchants on their tile corners (`docs/MERCHANT.md`
+        // §3.2).
         assert_eq!(
             parted
                 .iter()
                 .map(|(&k, &f)| (k, f))
                 .collect::<Vec<((i64, i64), i64)>>(),
-            vec![((1, 19), 7_790), ((1, 20), 7_790)],
+            Vec::<((i64, i64), i64)>::new(),
             "run90's parted set, whole"
         );
 
@@ -17321,9 +17528,12 @@ mod tests {
         // Before the fix `1/22` parted on its **birth frame** and was 933
         // units adrift by 7283, and `1/20` was 4,122 out the moment it
         // came ashore.
+        // And since item 629 not the Merchant `1/19` either, which stood
+        // (24, 24) off its tile corner from its unpack until
+        // `cast_unpack`'s merchant arm seated it (`docs/MERCHANT.md` §3.2).
         assert_eq!(
             parted,
-            [((1, 19), 6_924)].into_iter().collect(),
+            std::collections::BTreeMap::new(),
             "run86's parted set: the ride is not in it, and neither is the age"
         );
 
@@ -17519,10 +17729,13 @@ mod tests {
         // `1/19` is the Merchant `cast_unpack` teleports onto the tile
         // corner on 6883 (`docs/RUNS.md`, "run82"); this crate leaves it
         // on the half-tile it walked to, so the gap is a constant (24, 24)
-        // from that frame to the last block.
+        // from that frame to the last block. **Item 629 built that
+        // teleport** — `cast_unpack`'s merchant arm, which seats the trader
+        // on `tile × 0xc0` and blocks its square (`docs/MERCHANT.md`
+        // §3.2) — and nothing parts in the window.
         assert_eq!(
             parted,
-            [((1, 19), 6_883)].into_iter().collect(),
+            std::collections::BTreeMap::new(),
             "run82's parted set"
         );
         let merchant: Vec<(i64, i32, i32)> = report
@@ -17532,10 +17745,8 @@ mod tests {
             .map(|d| (d.frame, d.ours.x - d.theirs.x, d.ours.y - d.theirs.y))
             .collect();
         assert!(
-            merchant.len() == 47
-                && merchant.first().map(|d| d.0) == Some(6_883)
-                && merchant.iter().all(|d| (d.1, d.2) == (24, 24)),
-            "`1/19` is a constant (24, 24) from 6883: {} rows, {:?}",
+            merchant.is_empty(),
+            "`1/19` is off its tile corner again: {} rows, {:?}",
             merchant.len(),
             merchant.first()
         );
@@ -17589,9 +17800,10 @@ mod tests {
         // unit that parts inside the sixteen frames after the window** —
         // `1/13`, which run86 also has parting at 6938 (item 253). It is
         // off at 6945 too, by (33, 19), so it is not the dump's tear.
+        // Item 629: the unpack's constant is gone with the seat.
         assert_eq!(
             off,
-            [((1, 19), (24, 24))].into_iter().collect(),
+            std::collections::BTreeMap::new(),
             "run82's shutdown dump, every unit of it — `1/13`'s (11, 7) went              with the age snap (item 271, `docs/TECH.md`)"
         );
     }

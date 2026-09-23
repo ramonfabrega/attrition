@@ -5108,12 +5108,14 @@ fn chapter_seven_b_holds_to_the_golden_word() {
     let Some(w) = walk_script("ch7b", "chapter7b", 7, 7, 1200) else {
         return;
     };
+    // Closed at the trace's end since item 629: no value parts either
+    // (`GOLDEN_WORD_CHAPTER_SEVEN_B`).
     assert_eq!(
         (w.word, w.sequence, w.value),
         (
             GOLDEN_WORD_CHAPTER_SEVEN_B,
             GOLDEN_WORD_CHAPTER_SEVEN_B,
-            Some(GOLDEN_WORD_CHAPTER_SEVEN_B + 1)
+            None
         ),
         "chapter seven-b's golden word moved; re-pin it here and say so in \
          docs/GOLDEN.md §11"
@@ -5469,12 +5471,12 @@ fn chapter_seven_s_word_frame_is_widened_whole() {
 #[test]
 fn chapter_seven_b_s_word_frame_is_widened_whole() {
     for (run, stem, window, print) in [
-        ("ch7b", "chapter7b", WIDENING_CHAPTER_SEVEN_B, (1148, 1149)),
+        ("ch7b", "chapter7b", WIDENING_CHAPTER_SEVEN_B, (1199, 1200)),
         (
             "ch7bc",
             "chapter7b_control",
             WIDENING_CHAPTER_SEVEN_B_CONTROL,
-            (1148, 1149),
+            (1176, 1177),
         ),
     ] {
         let Some(firsts) = widen_civilians(run, stem, window, 1200, 1, print) else {
@@ -5515,19 +5517,22 @@ fn chapter_seven_b_s_word_frame_is_widened_whole() {
         );
         // **What parts under each word**, pinned by block and key, none of
         // it a mechanism (`docs/GOLDEN.md` §11). run156: the scout `1/0`'s
-        // `facing` from 847, as in chapter seven; the merchant `1/8` stands
-        // 24 units off the original's when its cast ends on 1070; and the
-        // fur trapper `1/10`'s move is handed another `dest_y` on 1091,
-        // 14408 against 14804, whose turn is the word. run157, **the
+        // `facing` from 847, as in chapter seven (parked 635). Until item
+        // 629 the merchant `1/8` stood 24 units off the original's when its
+        // cast ended on 1070, and the fur trapper `1/10`'s move was handed
+        // another `dest_y` on 1091, 14408 against 14804, whose turn was the
+        // word 1148: 22 rows, gone with `cast_unpack`'s merchant arm (the
+        // move's value diff; its delta is the constant's). run157, **the
         // control's block, item 632** (the delta is in
         // `GOLDEN_WORD_CHAPTER_SEVEN_B_CONTROL`'s comment): `1/1` keeps its
         // `BUILDORDER` behind the goody box's walk from 990, and only the
         // group id stands there, 64 against 65, the two-slot permutation
         // the scout's standing `group` row began (`docs/GROUPS.md` §24).
-        // After 1036 the control parts where run156 does: the merchant
-        // `1/11` from 1054, and the fur trapper `1/13`'s `dest_y` on 1091,
-        // whose turn is the word, 1148. The scout `1/0`'s explore path
-        // parts from 1077, value only, and who=1's food bucket from 1018.
+        // Past it the scout `1/0`'s explore path parts from 1077, value
+        // only, and who=1's food bucket from 1018. On the word, 1176, the
+        // original's `produce_building` sends the gatherer `1/7` toward a
+        // site (explore-to (40248, 23160), `1177 1/7`) and ours keeps it
+        // gathering.
         let mut got: Vec<String> = firsts
             .iter()
             .filter(|((_, _, what), (f, _))| *f > window.0 && what != "form")
@@ -5535,41 +5540,10 @@ fn chapter_seven_b_s_word_frame_is_widened_whole() {
             .collect();
         got.sort();
         let want: &[&str] = if run == "ch7b" {
-            &[
-                "1070 1/8 g.x[0]",
-                "1070 1/8 g.x[1]",
-                "1070 1/8 g.y[0]",
-                "1070 1/8 g.y[1]",
-                "1070 1/8 orders_x",
-                "1070 1/8 orders_y",
-                "1070 1/8 pos",
-                "1091 1/10 angle:Heading",
-                "1091 1/10 heading",
-                "1091 1/10 order:move.dest_y",
-                "1091 1/10 path[0].to",
-                "1092 1/10 angle:Facing",
-                "1092 1/10 g.angle[0]",
-                "1092 1/10 g.angle[1]",
-                "1092 1/10 g.angle[2]",
-                "1092 1/10 g.x[1]",
-                "1093 1/10 g.y[1]",
-                "1095 1/10 g.x[0]",
-                "1095 1/10 g.x[2]",
-                "1095 1/10 pos",
-                "1149 1/10 g.y[0]",
-                "1149 1/10 g.y[2]",
-                "847 1/0 order:move.facing",
-            ]
+            &["847 1/0 order:move.facing"]
         } else {
             &[
                 "1018 1/-1 leader:bucket[0:food]",
-                "1054 1/11 g.x[0]",
-                "1054 1/11 g.x[1]",
-                "1054 1/11 g.y[0]",
-                "1054 1/11 g.y[1]",
-                "1054 1/11 orders_x",
-                "1054 1/11 orders_y",
-                "1054 1/11 pos",
                 "1077 1/0 path:length",
                 "1077 1/0 path[41].to",
                 "1077 1/0 path[42].to",
@@ -5577,19 +5551,6 @@ fn chapter_seven_b_s_word_frame_is_widened_whole() {
                 "1077 1/0 path[44].to",
                 "1077 1/0 path[45].to",
                 "1077 1/0 path[46].to",
-                "1091 1/13 angle:Heading",
-                "1091 1/13 heading",
-                "1091 1/13 order:move.dest_y",
-                "1091 1/13 path[0].to",
-                "1092 1/13 angle:Facing",
-                "1092 1/13 g.angle[0]",
-                "1092 1/13 g.angle[1]",
-                "1092 1/13 g.angle[2]",
-                "1092 1/13 g.x[1]",
-                "1093 1/13 g.y[1]",
-                "1095 1/13 g.x[0]",
-                "1095 1/13 g.x[2]",
-                "1095 1/13 pos",
                 "1116 1/0 g.angle[0]",
                 "1116 1/0 g.angle[1]",
                 "1116 1/0 g.x[1]",
@@ -5601,8 +5562,18 @@ fn chapter_seven_b_s_word_frame_is_widened_whole() {
                 "1120 1/0 g.x[0]",
                 "1137 1/0 order:move.dest",
                 "1138 1/0 order:move.dest_x",
-                "1149 1/13 g.y[0]",
-                "1149 1/13 g.y[2]",
+                "1177 1/7 dest_angle",
+                "1177 1/7 g.angle[0]",
+                "1177 1/7 g.x[0]",
+                "1177 1/7 heading",
+                "1177 1/7 order:kind",
+                "1177 1/7 order:length",
+                "1177 1/7 orders.len",
+                "1177 1/7 orders_x",
+                "1177 1/7 orders_y",
+                "1177 1/7 path:length",
+                "1177 1/7 path_recursion",
+                "1177 1/7 pos",
                 "990 1/1 group",
             ]
         };

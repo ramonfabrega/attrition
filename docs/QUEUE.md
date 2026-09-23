@@ -28,14 +28,13 @@ the rules track closed chapters four (1500), seven (1200) and three
 - **Fable backlog: 5 Loop items** (313, 527, 630, 638, 639); the `FABLE:` batch was empty.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w11590 of 24,000 · GreatLakes w12038 of 24,000
-Golden: ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch7 closed · restage closed · ch7b-control w1036 of 1200 · ch7b w1148 of 1200 · 632 next
-Endpoint 24001: EastIndies 52 off, 6 unlinked · GreatLakes 45 off, 0 unlinked
+Long captures: EastIndies w11747 of 24,000 · GreatLakes w12038 of 24,000
+Golden: ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch7 closed · restage closed · ch7b closed · ch7b-control w1036 of 1200 · 632 next
+Endpoint 24001: EastIndies 49 off, 8 unlinked · GreatLakes 41 off, 0 unlinked
 
-**Opener: 620, 625, 628, 617 and 627 landed; the restage closed at
-1000. 629 has the AI lane. Spawn 632 on the rules lane (seven-b's
-control, 1036, the lowest golden word); 571 follows 629. Five landings
-since the twelfth pass's commit; stop at twenty.**
+**Opener: six landings since the twelfth pass's commit; the restage and
+seven-b closed, East Indies 11069 → 11747. 632 has the rules lane.
+Spawn 642 on the AI lane; 571 follows 642. Stop at twenty.**
 
 ## The queue
 
@@ -45,14 +44,13 @@ lower map first — East Indies (a guard reads this line). Take the first
 unstarted on either track unless a better order is obvious, and say so; the
 backlog is `docs/PARKED.md`, and an item returns only when a score names it.
 
-629. **East Indies' word is 11590, past every capture** (620 moved it
-    11069 → 11590 by capping a Mine's `dist_mod` at 3 on a gather list
-    under `MTN_TINY_SIZE`, ORDERS §6.4; parked 622's tile from 10959). On
-    11590 ours 6 draws against 5, parting at index 0: ours
-    `Guy::set_anim+0x97a < Animal::do_idle+0x19`, theirs `Guy::set_anim+0x97a
-    < Guy::inc_time+0x271`. run155 ends at 11279, so the `WIDENINGS` row
-    names this item: capture **run159** over the word, overlapping
-    run155, then widen it whole. No mechanism.
+642. **East Indies' word is 11747, inside run159** (629 seated a deployed
+    Merchant on its tile corner, MERCHANT §3.2; parked 550). On 11747 ours
+    10 draws against 7 at index 3: ours `Guy::set_anim+0x97a < do_cast`,
+    theirs `Guy::set_anim+0x97a < Guy::inc_time+0x271`. run159's window,
+    [11270, 11900), spans it and `run159_s_word_frame_is_widened_whole`
+    holds the frame; no capture is owed. 629's lead: the scout `1/0`'s
+    explore target parts on 11550 with no draw. No mechanism.
 
 571. **Great Lakes: Army 1's squad stops on block 11922 in the original
     and walks on here** (566 moved the word 11903 → 12038 by carrying the
@@ -63,13 +61,12 @@ backlog is `docs/PARKED.md`, and an item returns only when a score names it.
     against 5, `move_step+0x823`. No mechanism. Optional second run if a
     lane is free: a packet at 11922 with the nine guys' move path on it.
 
-632. **Chapter seven-b's two words, 1036 and 1148** (628 captured run156
-    and run157; falsifier 1 fired by construction, `Unit::init`:585, and
-    the chapter is pinned open as measured, GOLDEN §11). run157's control
-    parts on **1036**: who=1's `1/1`, ours 8 draws against 7. run156
-    parts on **1148**: the fur trapper `1/10`'s turn, 13 against 14. Both
-    widened whole; neither is the `ai_off` seam. No mechanism. Takes the
-    rules lane next, the lower word first.
+632. **Chapter seven-b's control word is 1036** (628 captured run157;
+    seven-b itself closed at 1200 on 629's Merchant seat). On 1036 ours 8
+    draws against 7 at draw 2: who=1's `1/1` takes an idle roll where the
+    original's walks. From 990 the original holds it in group 65 with
+    three orders and `form_mod` 50; ours holds group 64, one order and no
+    formation. Widened whole. No mechanism. On the rules lane now.
 
 ## How to maintain this file
 

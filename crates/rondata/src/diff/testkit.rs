@@ -716,7 +716,28 @@ fn indexed_siblings_preserve_every_initial_field_except_audit_bodies() {
 /// 11590 is past run155's last block: ours 6 draws against 5, parting at
 /// index 0, ours `Guy::set_anim+0x97a < Animal::do_idle+0x19`, theirs
 /// `Guy::set_anim+0x97a < Guy::inc_time+0x271`.
-pub(crate) const LONG_WORD_EAST_INDIES: i64 = 11_590;
+///
+/// **11590 → 11747 on item 629, and the frame was a Merchant's seat 3,900
+/// frames under it.** run159 (`LEADERS=9` over [11270, 11899]) showed the
+/// extra idle to be gaia's sheep `8/1` arriving from its 11576 wander:
+/// straight here in 13 frames, round a waypoint at (28884, 23724) there
+/// in 21. The tile search refused its diagonal through (149, 124), one of
+/// the four tiles the AI Merchant `1/20` blocked when its unpack ended on
+/// 7662. `SpellType::cast_unpack`'s merchant arm snaps the trader onto
+/// its tile corner and blocks the two-by-two under it, and this crate
+/// had it as a seam, so `1/20` stood (24, 24) off at the unit-cell
+/// centre with nothing blocked (`docs/MERCHANT.md` §3.2). The move's
+/// value diff (the word's delta, here; its block is the widening's):
+/// run159's sheep rows on 11578..11591 go, and so do both Merchants'
+/// seats (`1/19` and `1/20`, 22 rows), city `1/2007`'s `filled` and
+/// `space[2]`, the leader's `reg_land[11]` and `leftover` food and
+/// metal on 11270, and 613's food and metal a unit off from 11272 and
+/// 11275; the floor goes 297/391/920 → 270/361/806, and every row that
+/// comes in is past 11748 (`run159_s_word_frame_is_widened_whole`).
+/// 11747 is inside run159's window: ours 10 draws against 7, parting at
+/// index 3, ours `Guy::set_anim+0x97a < do_cast`, theirs
+/// `Guy::set_anim+0x97a < Guy::inc_time+0x271`.
+pub(crate) const LONG_WORD_EAST_INDIES: i64 = 11_747;
 
 /// The frame East Indies' **first scholar** — `1/22` — is seated inside
 /// its university, one of the fourteen `Unit::go_inside+0x280` draws in
@@ -2535,16 +2556,25 @@ pub(crate) const WIDENING_CHAPTER_SEVEN: (i64, i64) = (605, 1201);
 
 /// **Chapter seven-b's golden word** — the computer's civilians under the
 /// cheat (`docs/GOLDEN.md` §11, item 628, run156 and its control run157).
-pub(crate) const GOLDEN_WORD_CHAPTER_SEVEN_B: i64 = 1148;
+///
+/// **1148 → 1200 on item 629, closed** (the word's delta, here; its block
+/// is the widening's). The Merchant `1/8`'s unpack ends on 1070, and
+/// `SpellType::cast_unpack`'s merchant arm seats it on its tile corner and
+/// blocks the square under it (`docs/MERCHANT.md` §3.2); this crate left
+/// it 24 units off at the unit-cell centre, and the fur trapper `1/10`
+/// was then handed another `dest_y` on 1091 and turned on 1148. With the
+/// arm both agree to the end of the trace.
+pub(crate) const GOLDEN_WORD_CHAPTER_SEVEN_B: i64 = 1200;
 
 /// `chapter_seven_b_s_word_frame_is_widened_whole`'s window on run156:
-/// its first block to the word's own block and the one after.
-pub(crate) const WIDENING_CHAPTER_SEVEN_B: (i64, i64) = (605, 1150);
+/// **the capture whole**, 605..1199 and the `!quit` block at 1201, since
+/// the word is the capture's end (item 629) — chapter seven's shape.
+pub(crate) const WIDENING_CHAPTER_SEVEN_B: (i64, i64) = (605, 1201);
 
 /// **Chapter seven-b's control's word** — run157, the same five with the
 /// Leader AI on (item 628).
 ///
-/// **Item 632 moved it 1036 → 1148**, and this comment carries the delta
+/// **Item 632 moved it 1036 → 1176**, and this comment carries the delta
 /// (the widening's block for it is in
 /// `chapter_seven_b_s_word_frame_is_widened_whole`). On 990 the goody
 /// look halts who=1's citizen `1/1` on its way to a site. The original's
@@ -2556,14 +2586,17 @@ pub(crate) const WIDENING_CHAPTER_SEVEN_B: (i64, i64) = (605, 1150);
 /// both sides, holding explore-to (37032, 23160) and the `BUILDORDER` on
 /// `1/2007`, `idle 0`. On 990 ours held one order, explore-to
 /// (36504, 22680), with `orders_x` 36504 against 37080 and `form_mod` −1
-/// against 50 (`docs/GROUPS.md` §24). The word is now 1148, run156's
-/// word and shape: the fur trapper `1/10`'s turn, 7 draws against 8,
-/// parting at draw 2.
-pub(crate) const GOLDEN_WORD_CHAPTER_SEVEN_B_CONTROL: i64 = 1148;
+/// against 50 (`docs/GROUPS.md` §24). On its own tree the fix stopped at
+/// 1148, run156's word and shape. With item 629's merchant arm that
+/// frame agrees as well, so the word is **1176**: who=1's
+/// `Leader::produce_building`, 69 draws against 249, parting at draw 34.
+/// There the original spends a run of `Build::find_gather_tiles+0x10a`
+/// and this crate goes on to `Animal::think_bird`.
+pub(crate) const GOLDEN_WORD_CHAPTER_SEVEN_B_CONTROL: i64 = 1176;
 
 /// The control's widening window, its first block to the word's block and
 /// the one after.
-pub(crate) const WIDENING_CHAPTER_SEVEN_B_CONTROL: (i64, i64) = (605, 1150);
+pub(crate) const WIDENING_CHAPTER_SEVEN_B_CONTROL: (i64, i64) = (605, 1178);
 
 /// **Chapter three's golden word** — the mounted and siege lines, run145
 /// (`docs/GOLDEN.md` §7): **900, the capture's end, draw for draw and
@@ -2960,6 +2993,16 @@ pub(crate) const WIDENING_EAST_INDIES_EXPLORE: (i64, i64) = (11_030, 11_279);
 /// The word 11069's block on run155: its frame, the explore's grid roll,
 /// writes block 11070. The coverage driver reads run155 around it.
 pub(crate) const EAST_INDIES_EXPLORE_BLOCK: i64 = 11_070;
+/// `run159_s_word_frame_is_widened_whole`'s window (item 629): run159
+/// whole, 11270..11899 — run155's line past its last block, overlapping it
+/// on 11270..11279, then the word 11590 and 308 blocks past it. The floor
+/// is the capture's first block for the reason [`WIDENING_CHAPTER_TWO`]'s
+/// is.
+pub(crate) const WIDENING_EAST_INDIES_IDLE: (i64, i64) = (11_270, 11_899);
+/// The word 11590's block on run159: its frame, the sheep `8/1`'s
+/// arrival idle, writes block 11591. The coverage driver reads run159
+/// around it.
+pub(crate) const EAST_INDIES_IDLE_BLOCK: i64 = 11_591;
 /// One pinned word's row: `(constant, word, widening test, item, window)`.
 pub(crate) type Widening = (
     &'static str,
@@ -3037,14 +3080,21 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // word's blocks, 11069..11070: the citizen `1/11`'s waypoint popped a
     // frame late, its walk (15, −29) off since 10959. The same item moved
     // the word to **11590**, past run155's last block (11279); run155's
-    // and run152's tests keep the move's value diff. Item 629 owes the new
-    // word's widening.
+    // and run152's tests keep the move's value diff.
+    //
+    // Item 629 paid it: **run159** is run155's line over [11270, 11899],
+    // and `run159_s_word_frame_is_widened_whole` is a sibling through the
+    // same walk, gaia included, on 630 blocks ten of which run155 shares.
+    // It pins the word's blocks, 11578..11592: gaia's sheep `8/1` walks a
+    // wander straight here and round a waypoint there, eight frames
+    // longer, past the Merchant `1/20` standing (24, 24) off its tile
+    // corner since 7663.
     (
         "LONG_WORD_EAST_INDIES",
         LONG_WORD_EAST_INDIES,
-        None,
+        Some("run159_s_word_frame_is_widened_whole"),
         629,
-        None,
+        Some(WIDENING_EAST_INDIES_IDLE),
     ),
     // Item 448 paid the widening 442 owed: `run100_s_word_block_is_every_
     // record_the_dump_carries` compares every field of every record run100

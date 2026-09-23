@@ -463,7 +463,11 @@ fn a_group_s_queue_first_keeps_the_build_behind_the_walk() {
         false,
     );
     let orders = &sim.units[u].orders;
-    assert_eq!(orders.len(), 3, "the walk, the approach, the build: {orders:?}");
+    assert_eq!(
+        orders.len(),
+        3,
+        "the walk, the approach, the build: {orders:?}"
+    );
     let walk = approach(&sim, 0);
     let again = approach(&sim, 1);
     assert_eq!(walk.kind, MoveKind::ExploreTo);
@@ -472,7 +476,10 @@ fn a_group_s_queue_first_keeps_the_build_behind_the_walk() {
     assert_eq!(again.dest, first.dest, "the same unit, the same ring spot");
     let build = sim.units[u].orders[2];
     assert!(matches!(build.body, Body::Build(x) if x == b));
-    assert!(build.has(crate::orders::flag::ACTION), "the action bit rides");
+    assert!(
+        build.has(crate::orders::flag::ACTION),
+        "the action bit rides"
+    );
     assert_eq!(
         sim.units[u].orders_pos, again.dest,
         "`orders_x` is the approach's, as run157 prints 37080 on 990"

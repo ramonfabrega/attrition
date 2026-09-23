@@ -67,22 +67,15 @@ no node for piece 265's release (COMBAT §22's seam, beside (611)).
 
 ## Parked by item 613, 2026-09-23 — under East Indies' 11069
 
-(622) **The keys under the word on run152**, none on 11590's draw: food
-and metal a unit off from 10881/10900 (on run155, 11064 and 11037), the
-peasants and `1/36` from 10956, and `SITE` on 10976
-(`docs/journal/2026-09-23-item-613.md`). `1/2018`'s list order from
-10959 was the tile pick, closed by 620's clamp (ORDERS §6.4).
-
-(631) **`inside_up_who` is unread** (598's second half, from item 620): the
-container chain walk stays within the unit's own player, so a unit housed
-by another player's container is never compared. 620 put the outermost
-container in `compare` and pinned it on run155. No draw names it.
-
-(623) **`MAKE[4].val` on 10982**, one make slot's value apart; no draw.
+(622) **The keys under the word on run152**, none on 11747's draw: the
+peasants, `1/36`'s and `1/41`–`1/43`'s hit points, and `SITE` on 10976
+(`docs/journal/2026-09-23-item-613.md`). `1/2018`'s list order closed on
+620's clamp, and food and metal a unit off on 629's Merchant seat.
 
 (624) **The rest of `get_cost`'s pre-ramp tail and its context
 argument**, still unbuilt beside (555)'s bump loop. 613 built the Horses
-discount only.
+discount only. 629's Merchant seat took run123's and run117's `MAKE`
+value rows off it; whether any of `get_cost` itself is left is unread.
 
 ## Parked by item 602, 2026-09-23 — under a closed chapter and its restage
 
@@ -296,11 +289,6 @@ too gets 3 frames, which no capture has shown. A census over the
 install's packets would say which units are exposed; no score names it.
 
 ## Parked by item 543, 2026-09-22 — the rare-collector arm's other halves
-
-(550) **The human Merchant through `Unit::think`'s rare-collector arm.**
-543 wired the arm for the Fishermen's deploy (`docs/ORDERS.md` §23);
-`cast_unpack`'s merchant arm is still a seam. No capture has a human
-merchant; no score names it.
 
 (551) **`unit_masks & 0x100`, "ordered recently", is not kept**, and the
 arm's `idle += 1` path, which no capture exercises. Both are the same

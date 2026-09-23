@@ -2495,9 +2495,11 @@ epoch's `SCIENCE_LOS 2` with the clamp lifted.
   carrying `CHAR_PACK` — the moment `cast_unpack` clears the bit. Giving
   the deploy's animation a length is what let the wrap on 4988 be spent,
   and the word went **4988 → 5106**.
-- **The merchant arm of `cast_unpack`**, and with it `good_merchant_spot`
+- ~~**The merchant arm of `cast_unpack`**, and with it `good_merchant_spot`
   and the four `set_blocked_at` calls. *Capture:* a Merchant on a rare,
-  which needs a rare in reach of the AI.
+  which needs a rare in reach of the AI.~~ **Built and diffed, item 629**
+  (`docs/MERCHANT.md` §3.2): run159's AI Merchants sit on their tile
+  corners, and the blocked square turns a sheep's walk.
 - **The non-spell-type arm** of `do_cast` — `LeaderData::current_upgrade`
   then `set_type`, and a `go_inside`/`come_out` pair when the unit stands
   on a `tile_mask & 3 == 3` cell with a friendly building. No craft index
