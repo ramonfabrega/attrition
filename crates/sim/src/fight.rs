@@ -3397,6 +3397,85 @@ mod tests {
         );
     }
 
+    /// **An unpacked siege engine shoots a unit by shooting the ground
+    /// under it** (`Unit::fight@005fd4d0`'s siege arm and
+    /// `Unit::do_attack_ground@005f1410`, `docs/COMBAT.md` §57). On the
+    /// frame the attack comes into range an `ATTACK_GROUND` goes on top of
+    /// it at the foe's own position and fires in the same frame
+    /// (`attack_unit` 1, the fired bit), the figure forgets its aim, the
+    /// attack beneath keeps `new_ord`, and the reload is one frame longer
+    /// than a strike's. On the ready frame the order dies and the attack
+    /// beneath, still in range, pushes the next.
+    ///
+    /// **Made to fail on purpose**: with the arm returning `false`, the
+    /// engine strikes the unit directly — one order, `new_ord` cleared,
+    /// the plain reload.
+    #[test]
+    fn an_unpacked_siege_engine_fires_on_the_ground_under_its_target() {
+        use crate::orders::{Body, flag, index};
+        let (mut sim, _) = at_war();
+        let ty = sim.add_unit_type(crate::UnitType {
+            hits: 100,
+            combat: Profile {
+                attack: 40,
+                max_range: 15,
+                recharge: 30,
+                uber_size: 1,
+                obj_masks: mask::SIEGE,
+                siege: true,
+                packs: true,
+                combat_role: true,
+                ..Profile::default()
+            },
+            ..crate::UnitType::default()
+        });
+        let foe_ty = sim.add_unit_type(crate::UnitType {
+            hits: 100,
+            combat: Profile {
+                attack: 15,
+                uber_size: 1,
+                ..Profile::default()
+            },
+            ..crate::UnitType::default()
+        });
+        let me = put(&mut sim, 0, ty, Pos::new(0x4000 + 24, 0x4000 + 24));
+        sim.units[me].combat.packed = false;
+        let at = Pos::new(0x4000 + 6 * 192 + 24, 0x4000 + 24);
+        let foe = put(&mut sim, 1, foe_ty, at);
+        sim.order_attack(me, Obj::Unit(foe));
+        sim.tick();
+        let u = &sim.units[me];
+        let kinds: Vec<u8> = u.orders.iter().map(|o| o.index()).collect();
+        assert_eq!(kinds, vec![index::ATTACK_GROUND, index::ATTACK]);
+        let head = u.orders[0];
+        let Body::AttackGround(g) = head.body else {
+            unreachable!()
+        };
+        assert_eq!((g.at, g.sea, g.attack_unit), (at, false, 1));
+        assert!(head.has(flag::FIRED) && !head.has(flag::ACTION));
+        let Body::Attack(a) = u.orders[1].body else {
+            unreachable!()
+        };
+        assert!(a.in_range && a.ever_in_range && a.new_ord);
+        let reload = sim.reload_frames(me);
+        assert_eq!(u.combat.recharging, reload + 1, "the ground shot's reload");
+        // Held through the reload, then gone on the ready frame, and the
+        // attack beneath pushes the next at once.
+        let mut pushes = 0;
+        for _ in 0..=reload {
+            sim.tick();
+            let head = sim.units[me].orders.front().copied();
+            if let Some(o) = head
+                && let Body::AttackGround(g) = o.body
+                && sim.units[me].combat.recharging == reload + 1
+            {
+                assert_eq!(g.attack_unit, 1);
+                pushes += 1;
+            }
+        }
+        assert_eq!(pushes, 1, "the ready frame re-entered work and fired again");
+    }
+
     /// The flee arm's `else`: a **combat** unit still retaliates, which
     /// is the row item 464's restructure could have swallowed. Its gate
     /// is `is_worker || is_idle`, and a soldier standing idle passes the
