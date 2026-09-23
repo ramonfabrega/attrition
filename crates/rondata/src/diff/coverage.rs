@@ -432,7 +432,9 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     }
     // Item 604 moved the word to 10782, past run143's last block, and item
     // 608's run149 is run143's line from 10730 to 10879, so the window is
-    // the word's own blocks again, on the capture taken to widen it.
+    // the word's own blocks again, on the capture taken to widen it. The
+    // same item moved the word past run149, and the window stays on the
+    // block run149 was taken to widen.
     let ew = EAST_INDIES_MERCS_BLOCK;
     if let Some(p) = &r149 {
         let n = drive_capture(p, ew - 2, ew + 2, &mut paths);

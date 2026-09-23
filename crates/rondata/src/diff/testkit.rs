@@ -655,7 +655,31 @@ fn indexed_siblings_preserve_every_initial_field_except_audit_bodies() {
 /// which pins it). 10782 is past run143's last block: ours 10 draws
 /// against 11, parting at index 5, ours `Animal::do_idle+0x83`, theirs
 /// `Leader::make_stuff+0x63d`. `docs/AI.md` §60.
-pub(crate) const LONG_WORD_EAST_INDIES: i64 = 10_782;
+///
+/// **10782 → 10982 on item 608, and the frame was a census six frames
+/// under it.** run149 (`LEADERS=9` over [10730, 10879]) showed one stream
+/// shifted: the original's `make_stuff` bought four Citizens where this
+/// crate bought one, and expired two slots for them. `create_units` on
+/// 10780 had offered the Citizen at `num 4` there and 1 here. The count is
+/// the city's gatherer deficit bounded by its open slots, and on 10776 the
+/// census had counted the Mine `1/2018`'s three in the original and not
+/// here: `reg_gather_slots` of the home region 17 against 20. The Mine was
+/// placed on 10583, and the 10775 sweep is the first after it.
+/// `City::count_gather_slots` walks the city's chain and sums every gather
+/// building's `gather_max`, finished or not. run150's packet at 10765
+/// reads the unstarted Mine holding `gather_max 3` in the chain, and this
+/// crate skipped a building that was not `active`. The move's value diff
+/// is run149's widening, the word's blocks 10781..10783: 20 rows → 1, the
+/// `city` shift. `reg_gather_slots` is gone from 10776, and the floor went
+/// 280/283/506 → 280/282/291 (`run149_s_word_frame_is_widened_whole`). On
+/// run149's last block, 10879, the standing rows went 427 → 280, and the
+/// other 279 are the same rows value for value. 10982 is past run149's
+/// last block: ours 14 draws against 695, parting at index 2. The original
+/// places a gather building and shuffles its 170-tile list
+/// (`Build::find_gather_tiles+0x10a` × 680), and it scores the spiral
+/// `produce_building` 4 `+0xc99` and 4 `+0x1805` against this crate's 7
+/// and 1. `docs/AI.md` §61.
+pub(crate) const LONG_WORD_EAST_INDIES: i64 = 10_982;
 
 /// The frame East Indies' **first scholar** — `1/22` — is seated inside
 /// its university, one of the fourteen `Unit::go_inside+0x280` draws in
@@ -2764,7 +2788,9 @@ pub(crate) const EAST_INDIES_MINE_BLOCK: i64 = 10_583;
 /// the capture's first block for the reason [`WIDENING_CHAPTER_TWO`]'s is.
 pub(crate) const WIDENING_EAST_INDIES_MERCS: (i64, i64) = (10_730, 10_879);
 /// The word 10782's block on run149: its frame, player 1's `make_stuff`,
-/// writes block 10783.
+/// writes block 10783. Item 608 moved the word past run149; its widening
+/// keeps the move's value diff on this block, and the coverage driver reads
+/// run149 around it.
 pub(crate) const EAST_INDIES_MERCS_BLOCK: i64 = 10_783;
 /// One pinned word's row: `(constant, word, widening test, item, window)`.
 pub(crate) type Widening = (
@@ -2826,13 +2852,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // record, every unit, both leaders, and the one-sided animation
     // changes, on 150 blocks ten of which run143 shares. It pins the word's
     // blocks, 10781..10783 (the Citizen's `num`), and the census under
-    // them on 10776.
+    // them on 10776. The same item moved the word to **10982**, past
+    // run149's last block (10879). run149's test keeps the move's value
+    // diff on 10776 and 10781..10783. Item 613 owes the new word's
+    // widening, on run152.
     (
         "LONG_WORD_EAST_INDIES",
         LONG_WORD_EAST_INDIES,
-        Some("run149_s_word_frame_is_widened_whole"),
-        608,
-        Some(WIDENING_EAST_INDIES_MERCS),
+        None,
+        613,
+        None,
     ),
     // Item 448 paid the widening 442 owed: `run100_s_word_block_is_every_
     // record_the_dump_carries` compares every field of every record run100

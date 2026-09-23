@@ -11992,12 +11992,14 @@ mod tests {
     /// printed. [`widen_east_indies`] with gaia's animals, because the
     /// word's frame parts on an animal's draw here.
     ///
-    /// The word's frame, 10782, writes block **10783**.
+    /// The word's frame, 10782, writes block **10783**. The same item moved
+    /// the word to 10982, past the window; the test keeps the move's value
+    /// diff.
     #[test]
     fn run149_s_word_frame_is_widened_whole() {
         const FIRST: i64 = WIDENING_EAST_INDIES_MERCS.0;
         const TAIL: i64 = WIDENING_EAST_INDIES_MERCS.1;
-        /// The word's block: its frame writes the next one.
+        /// The block run149 was taken to widen, the word 10782's.
         const WORD_BLOCK: i64 = EAST_INDIES_MERCS_BLOCK;
         let Some(Widened {
             firsts,
@@ -12029,15 +12031,18 @@ mod tests {
         let row = |((w, o, what), (f, row)): (&(i64, i64, String), &(i64, String))| {
             format!("{f} {w}/{o} {what}: {row}")
         };
-        // **Under the word, 10776: the census counts the Mine's slots in
-        // the original.** Player 1's `reg_gather_slots` of its home region
-        // (11 in the dump's numbering) goes 17 → 20 there on the first
-        // census after the Mine `1/2018` starts building (`frame_started
-        // 10766`) and stays 17 here; the per-good `gather_slots` do not
-        // move on either side. `City::count_gather_slots@00737dc0` walks the
-        // city's chain with no completion test and sums `gather_max`; this
-        // crate's walk skips a building that is not `active`. `SITE[7]`'s
-        // value parts on the same census.
+        // **Under the word, 10776: the census, and the move's value diff**
+        // (item 608). Until the fix player 1's `reg_gather_slots` of its
+        // home region (11 in the dump's numbering) parted here, 17 against
+        // 20, on the first census sweep after the Mine `1/2018` was placed
+        // on 10583 — no sweep runs between, on either side. The original's
+        // `City::count_gather_slots@00737dc0` walks the city's chain and
+        // sums every gather building's `gather_max`, finished or not: run150's
+        // packet at 10765 reads the unstarted Mine (`flags 1`) holding
+        // `gather_max 3` in city 1's chain. This crate skipped a building
+        // that was not `active`. Now the row is gone; `SITE[7]`'s value,
+        // which parted on the same sweep before the fix and spends no
+        // draw, stays (`docs/AI.md` §61).
         let census: Vec<String> = firsts
             .iter()
             .filter(|(_, (f, _))| (10_734..WORD_BLOCK - 2).contains(f))
@@ -12045,24 +12050,21 @@ mod tests {
             .collect();
         assert_eq!(
             census,
-            [
-                "10776 1/-1 leader:SITE[7].val: ours 26 theirs 13",
-                "10776 1/-1 leader:reg_gather_slots[11]: ours 17 theirs 20",
-            ],
+            ["10776 1/-1 leader:SITE[7].val: ours 26 theirs 13"],
             "the census under the word"
         );
-        // **The word's blocks, 10781..10783, both directions.** On 10781,
-        // `create_units`' frame, the original offers the Citizen (type 50)
-        // with `num 4` at `val 3291428` — sixteen times this crate's
-        // `num 1` at 205714, the value squaring the count — so it ranks in
-        // slot 1 over the Dromon and the Galley, and duplicates into slot
-        // 5; this crate offers it third. The count is the city's gatherer
-        // deficit bounded by its open slots, and the open slots are the
-        // census's (above). On 10782 `make_stuff` buys the four and, with
-        // two Citizen slots to expire, spends two `make_stuff+0x63d` where
-        // this crate spends one: 10 draws against 11, parting at index 5,
-        // ours `Animal::do_idle+0x83` a place early. City `1/2007` queues
-        // 4 against 1.
+        // **The word's blocks, 10781..10783, both directions.** Until the
+        // fix 20 rows parted here: on 10781, `create_units`' frame, the
+        // original offered the Citizen (type 50) with `num 4` at `val
+        // 3291428` — the value squares the count — so it ranked in slot 1
+        // over the Dromon and the Galley and duplicated into slot 5, where
+        // this crate offered `num 1` at 205714 third. The count is the
+        // city's gatherer deficit bounded by its open slots, the Mine's
+        // three among them. On 10782 `make_stuff` bought the four and, with
+        // two Citizen slots to expire, spent two `make_stuff+0x63d` against
+        // this crate's one: 10 draws against 11, parting at index 5, ours
+        // `Animal::do_idle+0x83` a place early, and city `1/2007` queued 4
+        // against 1. Now one row stands, §52.2's `city` shift.
         let on_word: Vec<String> = firsts
             .iter()
             .filter(|(_, (f, _))| (WORD_BLOCK - 2..=WORD_BLOCK).contains(f))
@@ -12070,49 +12072,31 @@ mod tests {
             .collect();
         assert_eq!(
             on_word,
-            [
-                "10781 1/-1 leader:MAKE[1].cat: ours 7 theirs 5",
-                "10781 1/-1 leader:MAKE[1].num: ours 1 theirs 4",
-                "10781 1/-1 leader:MAKE[1].t: ours 324 theirs 50",
-                "10781 1/-1 leader:MAKE[1].val: ours 1342464 theirs 3291428",
-                "10781 1/-1 leader:MAKE[2].t: ours 341 theirs 324",
-                "10781 1/-1 leader:MAKE[2].val: ours 1007616 theirs 1342464",
-                "10781 1/-1 leader:MAKE[3].cat: ours 5 theirs 7",
-                "10781 1/-1 leader:MAKE[3].city: ours 2 theirs -1",
-                "10782 1/-1 leader:MAKE[3].num: ours 1 theirs 4",
-                "10781 1/-1 leader:MAKE[3].t: ours 50 theirs 341",
-                "10781 1/-1 leader:MAKE[3].val: ours 205714 theirs 1007616",
-                "10782 1/-1 leader:MAKE[4].escrow: ours 1 theirs 0",
-                "10782 1/-1 leader:MAKE[4].num: ours 1 theirs 2",
-                "10782 1/-1 leader:MAKE[4].t: ours 419 theirs 52",
-                "10781 1/-1 leader:MAKE[5].num: ours 1 theirs 4",
-                "10783 1/-1 leader:MAKE[5].t: ours -1 theirs 50",
-                "10781 1/-1 leader:MAKE[5].val: ours 205714 theirs 3291428",
-                "10783 1/-1 leader:num_queued[0]: ours 1 theirs 4",
-                "10783 1/2007 queue:queued: ours 1 theirs 4",
-                "10783 8/3 gaia:cur_anim: ours Some(0) theirs Some(2)",
-            ],
-            "the make list, and the animal a place early"
+            ["10782 1/-1 leader:MAKE[3].city: ours 2 theirs 1"],
+            "the make list"
         );
         // **Who changes animation, both sides** (`docs/COMBAT.md`
-        // §44.2.1): only gaia's `8/3`, on 10783 and 10784 — the animal
-        // whose `do_idle` roll this crate spends from the original's
-        // `make_stuff` draw. Downstream, not under.
+        // §44.2.1). Until the fix gaia's `8/3` turned on 10783 and 10784 in
+        // the original only: the animal whose `do_idle` roll this crate spent
+        // from the original's `make_stuff` draw. Now it turns on both.
         let one_sided: Vec<(i64, i64, i64, bool, bool)> =
             changed.iter().filter(|c| c.3 != c.4).copied().collect();
         assert_eq!(
             one_sided,
-            [(10783, 8, 3, true, false), (10784, 8, 3, true, false)],
+            Vec::<(i64, i64, i64, bool, bool)>::new(),
             "a figure moves on one side only"
         );
         // **The floor**: 280 keys standing on the window's first block —
         // run143's residue on its last blocks (the human's city record,
         // `form`, the hit counts of the first citizens, the scout `1/0`'s
-        // group, `1/19` and `1/20` a unit off) — and three more before the
-        // word: a unit of food on 10733, and the census's two on 10776.
+        // group, `1/19` and `1/20` a unit off) — and two more before the
+        // word: a unit of food on 10733, and `SITE[7]` on 10776. Past it
+        // the gather clock (10784), the human's `production_step` (10801)
+        // and the transport rider `1/31`'s order (10875). Before the fix
+        // the floor was 280/283/506.
         let under = firsts.values().filter(|(f, _)| *f < WORD_BLOCK - 2).count();
         let first = firsts.values().filter(|(f, _)| *f == FIRST).count();
-        assert_eq!((first, under, firsts.len()), (280, 283, 506), "the floor");
+        assert_eq!((first, under, firsts.len()), (280, 282, 291), "the floor");
     }
 
     /// One of East Indies' `LEADERS=9` windows walked whole, both

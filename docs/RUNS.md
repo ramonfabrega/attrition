@@ -5479,3 +5479,35 @@ The original offers the Citizen with `num 4`, and this crate with 1. That
 count is sized by a census that parts on 10776: `reg_gather_slots` of
 player 1's home region, 17 against 20, on the first census after the Mine
 `1/2018` starts building. `docs/AI.md` §61.
+
+With `count_gather_slots` counting unfinished buildings, the word moves to
+10982, past this window. The widening keeps the move's value diff on
+10776 and 10781..10783.
+
+## run150 — the Mine's `gather_max` before it starts, a packet (2026-09-23, item 608)
+
+**What it is.** A `RON_STATE_FRAME=10765` packet on the click-free lane,
+with run149's dump detail over [10761, 10769). `!quit` is at 10775.
+`success: true`, exit 0, `MAP_STYLE 18` and seed 12345 read back, five
+settings files restored. **67 s launch to exit, 79 s in all.** The lane
+lock was stale: its holder, pid 69563 (run149's), was dead. The plan is
+597's, reused.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-09-23-run150 \
+    --map 18 --end-frame 10775 --timeout 2400 --log-window 10761 10769 \
+    --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,DEATHS=1,LEADERS=9 \
+    --tracer-def RON_STATE_FRAME=10765 \
+    --tracer-def 'RON_STATE_PLAN="<plan>/plan.h"'
+```
+
+**Why 10765.** The Mine `1/2018` is placed on 10583 and `Wall::start`
+runs on 10766 (`frame_started`). 10765 is after its placement and before
+its start. The census counted it on the sweep that writes block 10776.
+
+**What it settled.** The unstarted Mine (`flags 1`, `frame_started -1`)
+holds **`gather_max 3`** and a 46-tile list, and it is city 1's chain's
+tail. Leader 1's `reg_gather_slots[11]` reads 17, the previous sweep's. So
+`count_gather_slots` counts it with no completion test (`docs/AI.md` §61).
+The packet stays outside git at
+`~/ron-data/lab-captures/2026-09-23-run150/map-18`.
