@@ -1901,6 +1901,37 @@ impl Sim {
         if self.units[u].caravan.is_some() && self.think_caravan(u) {
             return;
         }
+        // **The human rare collector's deploy** (`think@005f6e40:163`–`199`,
+        // `docs/ORDERS.md` §23), between the caravan and the computer
+        // block, and so **above** `ai off`'s exit. A packed merchant or
+        // fishing boat whose leader is human (`leader_flags & 4`) asks
+        // `do_gather(…, 1, 1, −1, −1)` — `calc_gather` with `param_7` set,
+        // [`Sim::calc_gather`] — where it stands, and if that answers
+        // `unpack_merchant(this, 4)`: the ring-4 spot search and the
+        // `[MOVE_TO, CAST]` pair. A computer's boat never enters it; its
+        // deploy is `think_fish`'s, in the tail below. run127's fisher
+        // `0/7` is the diff: born on 620 under a human leader, it walks
+        // to (11736, 35352) and casts `0x292` for forty frames, and the
+        // deploy lands on block 665 — golden chapter five's word 664.
+        //
+        // The cadence is the tail's (`idle == 1`, else one in thirty-two
+        // phased by `o`). A search that does not deploy bumps `idle` a
+        // second time this frame (`:196`); the console's message and
+        // `S_INVALID_ORDER` beside it are interface.
+        //
+        // SEAM: `(unit_masks & 0x100) == 0 || is_merchant` — the "ordered
+        // recently" bit (`docs/MERCHANT.md` §7), which this crate does not
+        // keep, so a boat is always taken as not recently ordered.
+        if self.is_rare_collector(u)
+            && self.nation[self.units[u].owner as usize].human
+            && self.units[u].combat.packed
+            && (self.units[u].idle == 1 || phase & 31 == 0)
+        {
+            if self.calc_gather(u) && self.unpack_merchant(u, 4) {
+                return;
+            }
+            self.units[u].idle = self.units[u].idle.wrapping_add(1);
+        }
         // **The computer block, and the second place `ai off` is read**
         // (`docs/INPUT.md` §11). `think@005f6e40:205` opens
         // `if ((leader_flags & 4) != 0 || ai_off != 0)`, and its only

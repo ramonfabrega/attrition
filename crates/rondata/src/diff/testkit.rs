@@ -2194,7 +2194,46 @@ pub(crate) const GOLDEN_WORD_CHAPTER_TWO: i64 = 900;
 /// `mylos` is 4 → 6: the cast it was given at birth has ended. This crate
 /// gave it no orders on 621 (parked 543), and nothing else parts under
 /// the word. The window is run127 whole, so the ceiling does not move.
-pub(crate) const GOLDEN_WORD_CHAPTER_FIVE: i64 = 664;
+///
+/// **Item 543 moved it 664 → 739, +75** (`docs/ORDERS.md` §23). The
+/// **delta**: the fisher's cast was its **deploy**, the Fishermen's own
+/// unpack `0x292` with `JOB_TIME` 40, and what issues it for a *human's*
+/// boat is `Unit::think@005f6e40:163`–`199`, the rare-collector arm
+/// between the caravan and the computer block. It is gated on
+/// `leader_flags & 4` (human) and the packed bit, and it sits above `ai
+/// off`'s exit, where this crate's only deploy, `think_fish`, sits below
+/// it. The arm asks `calc_gather` and then `unpack_merchant(this, 4)`:
+/// `[MOVE_TO, CAST]` on 621, arrival on 625, `spell_time` 1…39 over
+/// 626–664, and on block 665 the orders gone, `packed` cleared and `mylos`
+/// 4 → 6. All of it is the dump's own, and the leader's food and wealth
+/// rows from 673 with it.
+///
+/// **The block**, from [`WIDENING_CHAPTER_FIVE`]'s test on the new word:
+/// on 739 this crate spends `Guy::set_anim+0x97a < Guy::inc_time+0x1ed`,
+/// an attack running out, and the original spends none (7 draws against
+/// 6). No dumped record parts on 739 or 740. This crate's `1/6` is in
+/// `CHAR_ATTACK3` (`anim 13`) with `end_time 3` on 739, where every swing
+/// before it was `CHAR_ATTACK2`'s forty. The first row is `1/6 ammo[0]`,
+/// which the dump holds alone on 742 (737 + 5, a full-length swing's first
+/// release). That is the next item's hypothesis and no more. The window is run127 whole; the ceiling does not move.
+///
+/// **Item 549 moved it 739 → 900, +161** (`docs/ANIM.md` §4.13), and 900
+/// is run127's trace end: no draw parts on any frame of chapter five. The
+/// **delta**: `Guy::set_anim`'s attack arm replaces a rolled slot the
+/// packet does not name with `CHAR_ATTACK2` (`get_animobj` null →
+/// `cmove` of `0xc` at `0x5db279`). The Trireme's packet names `ATTACK1`
+/// and `ATTACK2` only, so the original's `ATTACK3` roll on 737 played the
+/// forty-frame swing, where this crate's played the three a missing slot
+/// gets and ran out on 739. 543's hypothesis was the right one; the
+/// length is art this crate already reads (`Art::piece_lengths`).
+///
+/// **The block**, from [`WIDENING_CHAPTER_FIVE`]'s test: the word is the
+/// capture's end, so there is no block above it, and the window was
+/// already run127 whole. The map fell from 224 keys to 30: the 29
+/// standing rows, and `1/0`'s explore-order `facing` on 847, the declared
+/// non-scoring formation mirror (parked 275). On 742 `1/6 ammo[0]` is in
+/// both airs and all 506 of the capture's rounds agree on every field.
+pub(crate) const GOLDEN_WORD_CHAPTER_FIVE: i64 = 900;
 
 /// **How many height reads each replay may make on a corner this crate
 /// cannot pin to the original's single**, by test name — `docs/COMBAT.md`

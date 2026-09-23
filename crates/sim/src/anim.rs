@@ -1103,7 +1103,7 @@ impl Sim {
         } else if target_cat == 12 {
             // An attack: `ATTACK1` / `ATTACK2` / `ATTACK3` by one draw when
             // asked with `p3` (30 / 40 / 30 percent); §6.
-            if p3 {
+            let v = if p3 {
                 let p = self.rng.roll() % 100;
                 if p < 30 {
                     ATTACK1
@@ -1114,6 +1114,17 @@ impl Sim {
                 }
             } else {
                 anim
+            };
+            // `0x5db25f`–`0x5db279`: whatever the roll gave, a slot the
+            // packet does not name becomes `CHAR_ATTACK2` (`cmove` of
+            // `0xc` on `get_animobj` returning null). A Trireme names
+            // `ATTACK1` and `ATTACK2` only, so its `ATTACK3` roll plays
+            // the forty-frame swing rather than the three a missing slot
+            // would get (`docs/ANIM.md` §4.13).
+            if guy.gpiece >= 0 && !self.packet_has(u, guy.gpiece, v) {
+                ATTACK2
+            } else {
+                v
             }
         } else if target_cat == 8 {
             self.walk_variant(u, g)
@@ -2132,6 +2143,43 @@ mod tests {
         // And it wins over a dump row for the same pair.
         s.art.lengths.insert((7, IDLE1), 61);
         assert_eq!(s.slot_length(u, 7, IDLE1), Some(76));
+    }
+
+    /// **A rolled attack slot the packet lacks plays `CHAR_ATTACK2`** —
+    /// `Guy::set_anim@005da300`'s `cmove` at `0x5db279` (`docs/ANIM.md`
+    /// §4.13). The Trireme's packet names `ATTACK1` and `ATTACK2` only;
+    /// a roll in the `ATTACK3` band played three frames here and ran
+    /// out on golden chapter five's 739, a draw the original never
+    /// spent. Written to fail first: without the fallback the slot is
+    /// `ATTACK3` and the length [`MISSING`].
+    #[test]
+    fn a_rolled_attack_the_packet_lacks_plays_attack2() {
+        let seed = (1u32..)
+            .take(10_000)
+            .find(|&sd| Rng::new(sd).roll() % 100 > 70)
+            .expect("a seed in ATTACK3's band");
+        // The control is a packet that names `ATTACK3`: the roll's slot
+        // stands, so the fallback is the packet's and not the band's.
+        for (names_attack3, slot, end) in [(false, ATTACK2, 40u32), (true, ATTACK3, 27)] {
+            let mut s = sim_at(seed);
+            let u = animal(&mut s, 1, 6, 290, DEFAULT, 0, 61);
+            let mut slots: std::collections::BTreeMap<i8, u32> =
+                [(DEFAULT, 61u32), (ATTACK1, 40), (ATTACK2, 40)]
+                    .into_iter()
+                    .collect();
+            if names_attack3 {
+                slots.insert(ATTACK3, 27);
+            }
+            s.art.piece_lengths.insert(290, slots.into_iter().collect());
+            s.guy_set_anim(u, 0, ATTACK1, false, true);
+            assert_eq!(s.rng.seed, stepped(seed, 1), "the attack roll is one draw");
+            let g = s.units[u].guys[0];
+            assert_eq!(
+                (g.anim, g.end_time),
+                (slot, end),
+                "packet names ATTACK3: {names_attack3}; the slot the roll plays and its length"
+            );
+        }
     }
 
     /// **The scout's fifteen frames.** Run33's human scout wraps its idle

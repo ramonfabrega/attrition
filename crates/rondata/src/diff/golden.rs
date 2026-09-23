@@ -3777,6 +3777,12 @@ fn chapter_five_s_word_frame_is_widened_whole() {
     const LAST: i64 = WIDENING_CHAPTER_FIVE.1;
     /// run127's window is 605..899 and its `!quit` block is 901.
     const RUN127_NO_BLOCK: i64 = 900;
+    /// **The frame item 549 moved the word from.** With the word at the
+    /// capture's end there is no word block to print, so the record the
+    /// last word was spent in is printed instead: `1/6` on 739 and 740,
+    /// where this crate's swing was `CHAR_ATTACK3` three frames long, and
+    /// the round on 742 it then failed to release.
+    const MOVED_FROM: i64 = 739;
     let Some(inst) = crate::testenv::install() else {
         return;
     };
@@ -3866,6 +3872,14 @@ fn chapter_five_s_word_frame_is_widened_whole() {
             .collect();
         ammo_theirs += theirs.len();
         ammo_ours += ours.len();
+        // **The value diff on the frame the word moved** (item 549): the
+        // round the dump held alone on 742, now in both airs.
+        if n == MOVED_FROM + 3 {
+            for (key, a) in theirs.iter().filter(|(k, _)| (k.0, k.1) == (1, 6)) {
+                eprintln!("  block {n} 1/6 ammo{key:?} theirs {a:?}");
+                eprintln!("  block {n} 1/6 ammo{key:?} ours {:?}", ours.get(key));
+            }
+        }
         let keys: BTreeSet<_> = theirs.keys().chain(ours.keys()).copied().collect();
         for key @ (who, o, slot) in keys {
             let (Some(a), Some(p)) = (theirs.get(&key), ours.get(&key)) else {
@@ -3918,7 +3932,7 @@ fn chapter_five_s_word_frame_is_widened_whole() {
         // **Both sides printed once on the word's two blocks**, for the
         // three hulls: the record the draw is spent in, before any quiet
         // row is trusted.
-        if (GOLDEN_WORD_CHAPTER_FIVE..=GOLDEN_WORD_CHAPTER_FIVE + 1).contains(&n) {
+        if (MOVED_FROM..=MOVED_FROM + 1).contains(&n) {
             for them in frame.units.iter().filter(|u| ship(u.who, u.o)) {
                 let mine = u8::try_from(them.who)
                     .ok()
@@ -3951,7 +3965,7 @@ fn chapter_five_s_word_frame_is_widened_whole() {
             .push(format!("{w}/{o} {what}: {row}"));
     }
     for (f, rows) in &by_block {
-        let near = (GOLDEN_WORD_CHAPTER_FIVE - 4..=GOLDEN_WORD_CHAPTER_FIVE + 2).contains(f);
+        let near = (MOVED_FROM - 4..=GOLDEN_WORD_CHAPTER_FIVE + 2).contains(f);
         if near || rows.len() <= 4 {
             for r in rows {
                 eprintln!("  f{f} {r}");
@@ -4000,67 +4014,54 @@ fn chapter_five_s_word_frame_is_widened_whole() {
         at_floor.iter().all(|w| standing(w)) && at_floor.len() == 26,
         "the standing rows on run127's first block moved: {at_floor:?}"
     );
-    // **Nothing else parts under the word's own block.** The trace's
-    // frame `f` writes block `f + 1`. Item 535's broadside (`docs/COMBAT.md`
-    // §49) closed the four `1/6` angle rows on block 617, and item 542's
-    // release frame and keel nodes (§50) closed the first round on 622.
-    // What stands under the word is the fisher `0/7` alone, from its
-    // birth block 621: the original gives it two orders, a `CASTORDER`
-    // first, and walks it from 622, and this crate gives it none. Neither
-    // spends a draw until the word.
+    // **Nothing parts under the word's own block.** The trace's frame
+    // `f` writes block `f + 1`. Item 535's broadside (`docs/COMBAT.md`
+    // §49) closed the four `1/6` angle rows on block 617, item 542's
+    // release frame and keel nodes (§50) the first round on 622, and item
+    // 543's human rare-collector arm (`docs/ORDERS.md` §23) the fisher
+    // `0/7`'s: its birth `[MOVE_TO, CAST 0x292]` on 621, the walk from
+    // 622, and the deploy on 665 with `packed` and `mylos` 4 → 6. Made to
+    // fail once with the arm removed: the word fell back to 664, all
+    // fifteen of the fisher's rows came back, and so did its leader's
+    // food and wealth rows from 673, the deployed boat's pay.
+    //
+    // **Item 549 took the word to the capture's end** (`docs/ANIM.md`
+    // §4.13): a rolled `CHAR_ATTACK3` the Trireme's packet does not name
+    // plays `CHAR_ATTACK2`, forty frames, not three. With the fallback
+    // removed the word falls back to 739 and the map holds 224 keys, the
+    // first `1/6 ammo[0]` on 742; with it, 30.
+    // One row stands under the word and it is not the water's: the
+    // explore order of who=1's scout `1/0` carries the formation mirror
+    // `facing` 1 against the dump's 0 from 847. That field is declared
+    // non-scoring (`OrderMismatch::scores`, parked 275), and Great Lakes'
+    // `1/0` carries the same row on 8002. It is pinned by name and value
+    // so it cannot stand in for anything else.
     let under: Vec<String> = firsts
         .iter()
         .filter(|((_, _, what), (f, _))| *f <= GOLDEN_WORD_CHAPTER_FIVE && !standing(what))
-        .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
+        .map(|((w, o, what), (f, row))| format!("{f} {w}/{o} {what}: {row}"))
         .collect();
     assert_eq!(
         under,
-        [
-            "621 0/7 dest_angle",
-            "622 0/7 g.angle[0]",
-            "622 0/7 g.x[0]",
-            "622 0/7 g.y[0]",
-            "622 0/7 heading",
-            "622 0/7 idle",
-            "621 0/7 order:length",
-            "621 0/7 orders.len",
-            "621 0/7 orders_x",
-            "621 0/7 orders_y",
-            "622 0/7 path:length",
-            "622 0/7 path_recursion",
-            "622 0/7 pos",
+        vec![
+            "847 1/0 order:move.facing: Move { field: \"facing\", ours: 1, theirs: 0 }".to_string()
         ],
         "what parts at or under the word moved"
     );
-    // **The word's block is the fisher's** (item 542). On block 665 the
-    // original's `0/7` has dropped its orders, cleared `unit_masks`'
-    // packed bit and raised `mylos` 4 → 6. That is the cast ending, and
-    // `Guy::set_anim+0x97a < Guy::inc_time+0x271` is the draw spent in
-    // it. Both hulls agree on every compared field there.
-    let at_word: Vec<String> = firsts
-        .iter()
-        .filter(|(_, (f, _))| *f == GOLDEN_WORD_CHAPTER_FIVE + 1)
-        .map(|((w, o, what), _)| format!("{w}/{o} {what}"))
-        .collect();
-    assert_eq!(
-        at_word,
-        ["0/7 mylos", "0/7 packed"],
-        "the word's block is no longer the fisher's alone"
-    );
-    // **Every round launched under the word agrees whole** (item 542):
-    // the first two volleys of both ships and `1/6`'s first of the third,
-    // seven rounds from 622 to 662, on every `AMMO` field this crate
-    // carries, `v1z` to the last printed digit. The first shot row is past
-    // the word, where the draw stream has already parted.
+    // **Every round of the capture agrees whole** (items 542 and 549):
+    // all 506 live rounds of both ships, on every `AMMO` field this crate
+    // carries, `v1z` to the last printed digit. Before 549 the first shot
+    // row was `1/6 ammo[0]` on 742, the round the dump held alone.
     let first_ammo = firsts
         .iter()
         .filter(|((_, _, what), _)| what.starts_with("ammo["))
         .map(|(_, (f, _))| *f)
         .min();
-    assert!(
-        first_ammo.is_some_and(|f| f > GOLDEN_WORD_CHAPTER_FIVE + 1),
-        "a round launched under the word parts: first ammo row on {first_ammo:?}"
+    assert_eq!(
+        first_ammo, None,
+        "a round of the capture parts: first ammo row on {first_ammo:?}"
     );
+    assert_eq!(ammo_ours, 506, "this crate's rounds are not run127's 506");
     let absent = usize::from((FIRST..LAST).contains(&RUN127_NO_BLOCK));
     assert_eq!(
         blocks,

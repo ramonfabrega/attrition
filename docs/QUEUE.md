@@ -37,11 +37,11 @@ chapter two **683 → 725** — both headline words moved.*
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w9711 of 24,000 · GreatLakes w11582 of 24,000
-Golden: w664 of 901 (ch5) · ch1 w900 · ch2 w900 · 543 next
+Golden: w900 of 901 (ch5) · ch1 w900 · ch2 w900 · 552 next
 Endpoint 24001: EastIndies 64 off, 9 unlinked · GreatLakes 46 off, 0 unlinked
 
-**Opener: an Opus 5.5 commander is live; nothing in flight; 545 next on the AI
-track, 543 on the rules track. Workers spawn with `claude-opus-5-5[1m]`.**
+**Opener: an Opus 5.5 commander is live; 545 in flight on att-545 (AI), 552 on
+att-552 (rules). Workers spawn with `claude-opus-5-5[1m]`.**
 
 ## The queue
 
@@ -60,13 +60,13 @@ the backlog is `docs/PARKED.md`, and an item returns only when a score names it.
     idles with a citizen queued at `1/2016`. `MAKE` slots 2 and 3 are
     swapped on 11580. No mechanism.
 
-543. **Golden chapter five's word is 664: the fisher's cast ends** —
-    promoted from parked (542 moved the word 621 → 664 with the release
-    frame, the keel node and a sea figure's zero z). The original spends
-    `Guy::set_anim+0x97a < Guy::inc_time+0x271`, 28 draws against 27;
-    block 665's only rows are `0/7`'s — orders gone, the packed
-    `unit_masks` bit cleared, `mylos` 4 → 6. Its birth `CASTORDER` is
-    the one ours never gives. Widening on file. No mechanism.
+552. **Golden chapter four, the border and the bleed — the next unpinned
+    chapter** (549 closed chapter five at 900; ch1 and ch2 are closed;
+    GOLDEN §14 runs four next). The namesake: `chapter4.cmd`'s Temple,
+    tech and civic border levers, then a hostile squad bleeding inside
+    player 0's border and a Supply Wagon cancelling it. Two windows,
+    run132 and run133; §8's five falsifiers are the first result. Then
+    pin the word and its widening. No mechanism.
 
 ## How to maintain this file
 
