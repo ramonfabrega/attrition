@@ -12073,6 +12073,7 @@ mod tests {
             leader_rows,
             changed,
             housed,
+            ..
         }) = widen_east_indies(
             "run155",
             "gamelog-run155-eastindies-longword.txt",
@@ -12176,6 +12177,8 @@ mod tests {
         const TAIL: i64 = WIDENING_EAST_INDIES_IDLE.1;
         /// The block run159 was taken to widen, the word 11590's.
         const WORD_BLOCK: i64 = EAST_INDIES_IDLE_BLOCK;
+        /// The block of the word 629 moved to, 11747's (item 642).
+        const CAST_BLOCK: i64 = EAST_INDIES_CAST_BLOCK;
         let Some(Widened {
             firsts,
             missing,
@@ -12183,11 +12186,12 @@ mod tests {
             leader_rows,
             changed,
             housed,
+            standing,
         }) = widen_east_indies(
             "run159",
             "gamelog-run159-eastindies-idleword.txt",
             WIDENING_EAST_INDIES_IDLE,
-            &[WORD_BLOCK],
+            &[WORD_BLOCK, CAST_BLOCK],
             true,
         )
         else {
@@ -12274,8 +12278,11 @@ mod tests {
         // `DEFAULT` on 11598 and 11599, the pair this crate spends on 11590
         // and 11591. Until the fix that was the one-sided list, 11591 and
         // 11592; now nobody changes animation on one side only.
-        let one_sided: Vec<(i64, i64, i64, bool, bool)> =
-            changed.iter().filter(|c| c.3 != c.4).copied().collect();
+        let one_sided: Vec<(i64, i64, i64, bool, bool)> = changed
+            .iter()
+            .filter(|c| c.3 != c.4 && (WORD_BLOCK - 2..=WORD_BLOCK + 2).contains(&c.0))
+            .copied()
+            .collect();
         assert_eq!(
             one_sided,
             Vec::<(i64, i64, i64, bool, bool)>::new(),
@@ -12299,6 +12306,65 @@ mod tests {
             merchant,
             ["11270 1/20 form: ours -1 theirs 0"],
             "the Merchant's seat"
+        );
+        // **The word 11747's own blocks, every row, both directions**
+        // (item 642). `firsts` keeps a key's first parting, so a key that
+        // parted before the word is silent about the word's frame; these
+        // are the rows standing on 11747 and 11748 that did not stand on
+        // 11746, the block before the frame.
+        let before = standing.get(&(CAST_BLOCK - 2)).cloned().unwrap_or_default();
+        let on_word: Vec<String> = (CAST_BLOCK - 1..=CAST_BLOCK)
+            .flat_map(|b| {
+                let before = &before;
+                standing
+                    .get(&b)
+                    .into_iter()
+                    .flatten()
+                    .filter(move |(k, _)| !before.contains_key(*k))
+                    .map(move |((w, o, what), row)| format!("{b} {w}/{o} {what}: {row}"))
+            })
+            .collect();
+        // The floor, before any fix: the scout `1/0` stops and takes a
+        // cast order (kind 14) on 11747 here, and on 11748 it is inside
+        // `1/44`, a boat this crate holds alone; the original's scout is
+        // walking its path. Nothing else is new on the frame.
+        assert_eq!(
+            on_word,
+            [
+                "11747 1/0 g.stopped[0]: ours 1 theirs 0",
+                "11747 1/0 order:kind: Kind { ours: 14, theirs: 1 }",
+                "11747 1/0 order:length: Length { ours: 2, theirs: 1 }",
+                "11747 1/0 orders.len: ours 2 theirs 1",
+                "11748 1/0 g.cur_anim[0]: ours 0 theirs 8",
+                "11748 1/0 g.cur_time[0]: ours 0 theirs 3",
+                "11748 1/0 g.cur_time[1]: ours 0 theirs 3",
+                "11748 1/0 g.end_time[0]: ours 61 theirs 15",
+                "11748 1/0 g.end_time[1]: ours 61 theirs 15",
+                "11748 1/0 g.last_time[0]: ours -1 theirs 2",
+                "11748 1/0 g.last_time[1]: ours -1 theirs 2",
+                "11748 1/0 g.stopped[0]: ours 1 theirs 0",
+                "11748 1/0 inside: ours 44 theirs -1",
+                "11748 1/0 order:length: Length { ours: 0, theirs: 1 }",
+                "11748 1/0 orders.len: ours 0 theirs 1",
+                "11748 1/44 extra: this crate holds it alone",
+            ],
+            "the rows new on the word's blocks"
+        );
+        let one_sided_cast: Vec<(i64, i64, i64, bool, bool)> = changed
+            .iter()
+            .filter(|c| c.3 != c.4 && (CAST_BLOCK - 2..=CAST_BLOCK + 2).contains(&c.0))
+            .copied()
+            .collect();
+        // The scout's boarding on 11748, and past it the wraps of `1/28`
+        // and `1/27` that the frame's three extra draws moved a frame.
+        assert_eq!(
+            one_sided_cast,
+            [
+                (11748, 1, 0, false, true),
+                (11749, 1, 28, false, true),
+                (11750, 1, 27, false, true),
+            ],
+            "a figure moves on one side only on the word's blocks"
         );
         // **The outermost container** (parked 598): one row, past the
         // word and downstream of the scout's 11550 re-plan — `1/0` inside
@@ -12637,6 +12703,7 @@ mod tests {
         // Every figure whose animation changes on either side on the
         // word's blocks: `(block, who, o, theirs changed, ours changed)`.
         let mut changed: Vec<(i64, i64, i64, bool, bool)> = Vec::new();
+        let mut standing: BTreeMap<i64, BTreeMap<(i64, i64, String), String>> = BTreeMap::new();
         for f in 0..=tail {
             built.tick();
             let n = f + 1;
@@ -12816,6 +12883,14 @@ mod tests {
                     eprintln!("  standing {n} {w}/{o} {what}: {row}");
                 }
             }
+            if near.iter().any(|b| (b - 2..=b + 2).contains(&n)) {
+                standing.insert(
+                    n,
+                    here.iter()
+                        .map(|(k, (_, row))| (k.clone(), row.clone()))
+                        .collect(),
+                );
+            }
             for (k, v) in here {
                 firsts.entry(k).or_insert(v);
             }
@@ -12884,6 +12959,7 @@ mod tests {
             leader_rows,
             changed,
             housed,
+            standing,
         })
     }
 
@@ -12898,6 +12974,11 @@ mod tests {
         /// Unit-blocks `compare`'s container row read on a housed unit
         /// (parked 598): what says the row saw a garrison at all.
         housed: usize,
+        /// Every row parting on each block within two of a `near` block,
+        /// keyed as `firsts` is: what a key that parted earlier says on
+        /// the word's own frame, which `firsts` cannot (item 642).
+        standing:
+            std::collections::BTreeMap<i64, std::collections::BTreeMap<(i64, i64, String), String>>,
     }
 
     /// **run143 — East Indies' word 10398, widened whole, both directions**

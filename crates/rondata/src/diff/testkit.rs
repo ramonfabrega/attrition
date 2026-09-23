@@ -2984,6 +2984,10 @@ pub(crate) const WIDENING_EAST_INDIES_IDLE: (i64, i64) = (11_270, 11_899);
 /// arrival idle, writes block 11591. The coverage driver reads run159
 /// around it.
 pub(crate) const EAST_INDIES_IDLE_BLOCK: i64 = 11_591;
+/// The word 11747's block on run159 (item 642): its frame, the AI scout
+/// `1/0`'s boarding cast, writes block 11748. The coverage driver reads
+/// run159 around it.
+pub(crate) const EAST_INDIES_CAST_BLOCK: i64 = 11_748;
 /// One pinned word's row: `(constant, word, widening test, item, window)`.
 pub(crate) type Widening = (
     &'static str,
