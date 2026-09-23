@@ -38,13 +38,25 @@ use crate::gamelog::{Block, Log, reads};
 
 use super::testkit::{
     EAST_INDIES_BARK_BLOCK, EAST_INDIES_GATHER_BLOCK, EAST_INDIES_MAKE_BLOCK,
-    EAST_INDIES_MERCS_BLOCK, GOLDEN_WORD_CHAPTER_THREE_RESTAGE, GOLDEN_WORD_CHAPTER_TWO,
-    GREAT_LAKES_DETOUR_BLOCK, WIDENING_CHAPTER_TWO,
+    EAST_INDIES_MERCS_BLOCK, GOLDEN_WORD_CHAPTER_SEVEN_B, GOLDEN_WORD_CHAPTER_SEVEN_B_CONTROL,
+    GOLDEN_WORD_CHAPTER_THREE_RESTAGE, GOLDEN_WORD_CHAPTER_TWO, GREAT_LAKES_DETOUR_BLOCK,
+    WIDENING_CHAPTER_TWO,
 };
 
 /// Record paths read by a parser of their own, outside `Block` — the
 /// module that reads each is named, and this guard leaves them alone.
-const OWN_PARSER: &[(&str, &str)] = &[("GAME/FRAME/AMMO", "diff::ammo::blocks")];
+///
+/// The per-frame `GOOD` list is read by `diff::golden`'s `frame_goods`
+/// (item 578): the bare name line, `ever_seen`, and the `SubObject`'s
+/// `flags`, `o`, `x_internal` and `y_internal`, which chapter seven's and
+/// seven-b's widenings compare on every block. Its `who` and `z_internal`
+/// are printed and not read. Item 628 put the first window carrying the
+/// list in this driver.
+const OWN_PARSER: &[(&str, &str)] = &[
+    ("GAME/FRAME/AMMO", "diff::ammo::blocks"),
+    ("GAME/FRAME/GOOD", "diff::golden::frame_goods"),
+    ("GAME/FRAME/GOOD/SUBOBJECT", "diff::golden::frame_goods"),
+];
 
 /// `(path, keys)` — every key the dump prints on that path that nothing
 /// reads, on the day of the pin, space-separated and sorted. **Exact**:
@@ -126,9 +138,17 @@ const UNREAD: &[(&str, &str)] = &[
         "GAME/FRAME/CITIES/CITY",
         "London Napata Norwich flags increment length size",
     ),
+    // **Item 628 added four keys to the frame-level `GUY` row**:
+    // `flags`, `x_internal`, `y_internal` and `z_internal` are not a
+    // figure's. They are good `o 0`'s `SubObject`, which the dump prints
+    // with no `BEGIN GOOD` after the last `GUY` of the list before it
+    // (item 578), so they land on this path on every block of a capture
+    // with `GOODS=3`. Chapter seven-b's windows are the first such here.
+    // Nothing is owed on them: the widening counts that good as
+    // unreadable.
     (
         "GAME/FRAME/GUY",
-        "(int)off_x (int)off_y (int)variation *((dword*) angle avg_speed cur_time des_angle des_node_flags des_turret_angles[0] des_turret_angles[1] des_turret_angles[2] des_turret_angles[3] des_x des_y guy_flags guy_num hold_attack last_angle last_speed last_time last_x last_y last_z node_flags o ox queued_attack stopped track_dx track_dy turret_angles[0] turret_angles[1] turret_angles[2] turret_angles[3] type who whom x y z",
+        "(int)off_x (int)off_y (int)variation *((dword*) angle avg_speed cur_time des_angle des_node_flags des_turret_angles[0] des_turret_angles[1] des_turret_angles[2] des_turret_angles[3] des_x des_y flags guy_flags guy_num hold_attack last_angle last_speed last_time last_x last_y last_z node_flags o ox queued_attack stopped track_dx track_dy turret_angles[0] turret_angles[1] turret_angles[2] turret_angles[3] type who whom x x_internal y y_internal z z_internal",
     ),
     // **Item 520 re-keyed the Great Lakes window onto run123 and put the
     // leader reader in the driver.** run123 is `LEADERS=9`, the whole
@@ -377,6 +397,8 @@ fn the_recorder_tells_one_object_block_from_another() {
 fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch2 = golden_dump("ch2");
     let ch3b = golden_dump("ch3b");
+    let ch7b = golden_dump("ch7b");
+    let ch7bc = golden_dump("ch7bc");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r143 = crate::testenv::dump("gamelog-run143-eastindies-bark.txt");
     let r139 = crate::testenv::dump("gamelog-run139-eastindies-makelist.txt");
@@ -484,6 +506,19 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         let n = drive_capture(p, 323, 330, &mut paths);
         assert_eq!(n, 8, "run44 carries the turn's eight blocks");
         frames += n;
+    }
+    // **Chapter seven-b's two words, on run156 and run157** (item 628):
+    // the computer's civilians — a citizen, a caravan, a merchant, a
+    // scholar and a fur trapper — which no other window here carries.
+    for (p, word) in [
+        (&ch7b, GOLDEN_WORD_CHAPTER_SEVEN_B),
+        (&ch7bc, GOLDEN_WORD_CHAPTER_SEVEN_B_CONTROL),
+    ] {
+        if let Some(p) = p {
+            let n = drive_capture(p, word - 2, word + 2, &mut paths);
+            assert_eq!(n, 5, "chapter seven-b carries the word's five blocks");
+            frames += n;
+        }
     }
     assert!(frames > 0, "no frame of either window was found");
     let _ = GOLDEN_WORD_CHAPTER_TWO;

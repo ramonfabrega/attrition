@@ -224,6 +224,14 @@ pub const SITES: &[(u32, Option<u32>, &str)] = &[
         Some(0x005d_9789), // `Guy::turn_towards+0x69`
         sim::anim::SITE_TURN_STAND,
     ),
+    // …and the crew's, `do_turn` recursing into its trackless crew from
+    // `+0xe5`. The trace printed it bare as `5dac7a` on golden chapter
+    // seven-b's 672 until item 628.
+    (
+        0x005d_ac7a,
+        Some(0x005d_9885), // `Guy::do_turn+0xe5`
+        sim::anim::SITE_TURN_CREW,
+    ),
     // `Unit::resolve_unit_collision@005f9d30+0xb52` — the head-on pair's
     // stagger, the collision mechanic's only draw.
     // `Unit::think_fish@005f4c60` — the jitter each accepted cell spends

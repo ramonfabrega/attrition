@@ -181,6 +181,13 @@ pub const SITE_TURN_NEAR: &str = "Guy::set_anim+0x97a < Guy::do_turn+0x4a < Unit
 pub const SITE_TURN_FAR: &str = "Guy::set_anim+0x97a < Guy::do_turn+0x4a < Unit::move_step+0x389";
 pub const SITE_TURN_STAND: &str =
     "Guy::set_anim+0x97a < Guy::do_turn+0x4a < Guy::turn_towards+0x69";
+/// And the **crew's** turn, a fourth chain: `Guy::do_turn@005d97a0:33`–`42`
+/// recurses into the trackless crew (`+0x304` upward, `+0x54`/`+0x58`
+/// clear), so a crew figure's turn draw is reached from `do_turn+0xe5`
+/// whichever of the three callers turned guy 0. Golden chapter seven-b's
+/// fur trapper `1/10` on 672 is the case (item 628): guy 0 under
+/// `move_step+0x389`, its crew under this.
+pub const SITE_TURN_CREW: &str = "Guy::set_anim+0x97a < Guy::do_turn+0x4a < Guy::do_turn+0xe5";
 
 /// `Guy::set_anim+0x97a` under `Unit::do_cast+0xc89` — the casting unit's
 /// `set_anim(CHAR_DEFAULT, 0, 1)` on the first frame of a cast, **one draw
@@ -962,12 +969,25 @@ impl Sim {
     /// The set is guy 0 and the trackless crew — `do_turn` recurses into
     /// exactly the guys that share guy 0's body, the same set
     /// [`Sim::guys_follow`] walks.
+    ///
+    /// Guy 0's draw carries its caller's site; each crew figure's is
+    /// [`SITE_TURN_CREW`], the recursion's own chain, and the caller's
+    /// label is restored after it so nothing past the turn is relabelled.
     pub(crate) fn do_turn_anim(&mut self, u: usize, was: Angle, to: Angle, heading: Angle) {
         for g in 0..self.units[u].guys.len() {
             if self.units[u].guys[g].follow.is_some() {
                 continue;
             }
+            if g == 0 {
+                self.guy_do_turn_anim(u, g, was, to, heading);
+                continue;
+            }
+            let outer = self.phase_marks.last().map(|(label, _)| label.clone());
+            self.mark(SITE_TURN_CREW);
             self.guy_do_turn_anim(u, g, was, to, heading);
+            if let Some(outer) = outer {
+                self.mark(&outer);
+            }
         }
     }
 

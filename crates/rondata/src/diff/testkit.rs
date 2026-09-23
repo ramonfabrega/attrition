@@ -2513,6 +2513,22 @@ pub(crate) const GOLDEN_WORD_CHAPTER_SEVEN: i64 = 1200;
 /// [`WIDENING_CHAPTER_TWO`]'s is.
 pub(crate) const WIDENING_CHAPTER_SEVEN: (i64, i64) = (605, 1201);
 
+/// **Chapter seven-b's golden word** — the computer's civilians under the
+/// cheat (`docs/GOLDEN.md` §11, item 628, run156 and its control run157).
+pub(crate) const GOLDEN_WORD_CHAPTER_SEVEN_B: i64 = 1148;
+
+/// `chapter_seven_b_s_word_frame_is_widened_whole`'s window on run156:
+/// its first block to the word's own block and the one after.
+pub(crate) const WIDENING_CHAPTER_SEVEN_B: (i64, i64) = (605, 1150);
+
+/// **Chapter seven-b's control's word** — run157, the same five with the
+/// Leader AI on (item 628).
+pub(crate) const GOLDEN_WORD_CHAPTER_SEVEN_B_CONTROL: i64 = 1036;
+
+/// The control's widening window, its first block to the word's block and
+/// the one after.
+pub(crate) const WIDENING_CHAPTER_SEVEN_B_CONTROL: (i64, i64) = (605, 1038);
+
 /// **Chapter three's golden word** — the mounted and siege lines, run145
 /// (`docs/GOLDEN.md` §7): **900, the capture's end, draw for draw and
 /// value for value. Chapter three is closed on run145.**
@@ -3235,5 +3251,21 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some("chapter_seven_s_word_frame_is_widened_whole"),
         578,
         Some(WIDENING_CHAPTER_SEVEN),
+    ),
+    // Item 628: chapter seven-b, run156, and its control run157 — two
+    // words, one widening over both captures.
+    (
+        "GOLDEN_WORD_CHAPTER_SEVEN_B",
+        GOLDEN_WORD_CHAPTER_SEVEN_B,
+        Some("chapter_seven_b_s_word_frame_is_widened_whole"),
+        628,
+        Some(WIDENING_CHAPTER_SEVEN_B),
+    ),
+    (
+        "GOLDEN_WORD_CHAPTER_SEVEN_B_CONTROL",
+        GOLDEN_WORD_CHAPTER_SEVEN_B_CONTROL,
+        Some("chapter_seven_b_s_word_frame_is_widened_whole"),
+        628,
+        Some(WIDENING_CHAPTER_SEVEN_B_CONTROL),
     ),
 ];
