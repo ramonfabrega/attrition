@@ -20,7 +20,8 @@ walked in the harness and pinned. High for the map facts in §4, which are a
 dump's own fields. ~~**Chapters two to eight are a design and nothing more**~~
 **Chapters two, four and five are captured and pinned** (run112, run132/133
 and run127; items 415, 552 and 535), and none of their falsifiers fired;
-**three, six, seven and eight are a design and nothing more** — no capture
+**chapter seven is captured (run141/run142, item 578) and its premise did
+not survive** (§11); **three, six and eight are a design and nothing more** — no capture
 has been run for any of them, and each one's own falsifier section is written
 precisely so that the first run can say it was wrong. The
 stageability of each is held by a test rather than by this prose
@@ -629,6 +630,17 @@ order on any of the five in the *control*, which would say the units are
 inert for some reason that has nothing to do with the gate and the
 comparison is vacuous. The pair is what separates those.
 
+**Run 2026-09-23 as run141 and run142 (item 578): the first falsifier
+fired, and the premise is wrong.** The citizen takes a `GATHERORDER` on
+block 763 in *both* captures, from `think_peasant` above the `ai off`
+block, and the other four take no order in either; the five's orders are
+identical block for block. For who=0 the block is entered whether the
+cheat is on or not, because the human carries `leader_flags & 4` (item
+437), so `ai off` takes nothing from a human's civilians
+(`docs/INPUT.md` §11.9). The second falsifier did not fire. The harness
+agrees with both captures to their end, 1200. What the chapter should
+measure instead is the commander's to rule; it is not rewritten here.
+
 ## 12. Chapter eight — the commanders, and a war that is declared
 
 **Premise.** Chapter one's `war` is the bare form and changes nothing. This
@@ -721,8 +733,8 @@ below without a run take their number at booking (the eleventh pass).
 | ~~113~~ 127 | five, the water | `[605, 900)` | the likeliest to fail, 24 s to find out, and it gates any work on a Dock — **run 2026-09-22 as run127 (item 535), word 621; no falsifier fired** |
 | ~~114~~ 132 | four, the border | ~~`[295, 345)`~~ `[295, 545)` | the namesake; `WORLD=6` narrow — **run 2026-09-23 as run132 (item 552), 830 MB, 2178 s; no falsifier fired** |
 | ~~115~~ 133 | four, the bleed | `[595, 1500)` | the same script, a second window — **run133, 120 MB, 372 s; word 1277**, closed at 1500 by item 569 |
-| 116 | seven, the civilians | `[605, 1200)` | tests the premise every other chapter stands on |
-| 117 | seven, the control | `[605, 1200)` | `!ai off` deleted; without it 116 measures nothing |
+| ~~116~~ 141 | seven, the civilians | `[605, 1200)` | tests the premise every other chapter stands on — **run 2026-09-23 as run141 (item 578), 112 MB, 281 s; the first falsifier fired** |
+| ~~117~~ 142 | seven, the control | `[605, 1200)` | `!ai off` deleted; without it 116 measures nothing — **run142, 112 MB, 331 s; the five act exactly as in run141** |
 | 118 | three, the mounted and siege lines | `[605, 900)` | |
 | 119 | six, the air and the bird | `[605, 900)` | the one new order class |
 

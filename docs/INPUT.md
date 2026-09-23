@@ -505,3 +505,57 @@ Indies' setup word is `793793043` and it takes none.
 - **`parse_type`'s match is a prefix here** on the strength of one
   observation (`hoplite` → `Hoplites`) plus `parse_who`'s shape. The
   `String::ignore` third argument was not resolved in the decompile.
+
+### 11.9 What `ai off` leaves a human's civilians: all of it (2026-09-23, item 578)
+
+**Measured, both directions, on a pair.** `docs/GOLDEN.md` §11 staged five
+civilians for player 0 — Citizen, Caravan, Merchant, Scholar, Fur Trapper
+(`0/6..0/10`, born on blocks 611–631) — once with `0 !ai off` (run141) and
+once without it (run142, `chapter7_control.cmd`). **The five hold the same
+order on every block of both captures**
+(`chapter_seven_s_civilians_act_alike_with_the_ai_off_and_on`):
+
+- the **citizen** takes a `GATHERORDER` on block 763 with `idle 12`, on the
+  building `2001` (`build_type 418`). It walks and gets a timber slot on 801
+  (`filled_gather_slots` 2 → 3, income 480 → 640), so the gather delivered;
+- the **caravan, merchant, scholar and fur trapper** take no order at all,
+  and are still standing at 1199 with `idle` 39, 56, 38 and 54.
+
+**Why, read before the run and held by it.** Two facts, both in §11.4's
+own function:
+
+- **The citizen's arm is above the `ai off` block.** `Unit::think@005f6e40`
+  runs `think_peasant` for a worker (TypeIndex 0x32–0x35) and
+  `think_caravan` for a caravan at `:154`–`:165`, under only
+  `leader_flags & 2`, before `:205`'s `if ((leader_flags & 4) != 0 ||
+  ai_off != 0)`. `idle 12` is `think_peasant`'s human wait (item 494).
+- **For the human the block is entered either way.** Item 437 measured
+  `leader_flags & 4` set on who=0 (`0x00000007`) and clear on who=1, so for
+  player 0 the `|| ai_off` term never decides anything: a human unit without
+  `unit_masks & 0x40000` loses the tail whether the cheat is on or off.
+
+So **`ai off` changes nothing a human's units do in `Unit::think`**; its
+effect there is on the computer's units (bit 4 clear), and elsewhere on the
+production AI (`:15` above). The draw streams show it: the pair shares
+frame 0's 120 draws and parts on frame 1, 12 against 54 — the production
+AI, as chapter one against run104
+(`chapter_seven_s_pair_is_one_game_until_the_gate`).
+
+**The harness agrees with both captures to their end, 1200**, draw for draw
+and word for word, and it is not a blind agreement: this crate's `0/6`
+takes its gather on 763 at `idle 12` and stands at the original's
+(4920, 29016) on 900 and 1199, and its other four stand with the original's `idle`
+counts at 1199, in both runs.
+
+**What this overturns.** §11's premise — that the cheat leaves a human's
+civilians inert — was written on the reading of bit 4 that item 437
+retired. Its first falsifier ("a `GATHERORDER` or a `TRADEORDER` on any of
+the five in the AI-off run") **fires**, on the citizen; its second ("no
+order on any of the five in the control") does not. The gate is doing
+what the corrected reading says; the chapter's premise is what was wrong.
+
+SEAM, unexercised: this crate folds the block's predicate into `ai_off &&
+!ai_driven(owner)` (`crates/sim/src/orders.rs`), so with the cheat **off**
+it lets a human's units into the tail, where the original's exit still
+closes it for any unit without `0x40000`. Nothing gave these five an order
+in this crate's walk of run142 either, so no dump parts on it yet.

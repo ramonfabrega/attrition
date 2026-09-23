@@ -70,12 +70,19 @@ fn siblings(texts: &[String]) -> Vec<Log<'_>> {
 
 /// A chapter's script, read from the tree by number.
 fn chapter(n: u32) -> Script {
+    script_named(&format!("chapter{n}"))
+}
+
+/// A script under `tools/gamelog/golden/` by its stem — a chapter, or a
+/// chapter's control (`chapter7_control`, item 578), which is its own file
+/// so that it can never be an edit of the chapter.
+fn script_named(stem: &str) -> Script {
     let path = format!(
-        "{}/../../tools/gamelog/golden/chapter{n}.cmd",
+        "{}/../../tools/gamelog/golden/{stem}.cmd",
         env!("CARGO_MANIFEST_DIR")
     );
     Script::read(std::path::Path::new(&path))
-        .unwrap_or_else(|e| panic!("tools/gamelog/golden/chapter{n}.cmd: {e}"))
+        .unwrap_or_else(|e| panic!("tools/gamelog/golden/{stem}.cmd: {e}"))
 }
 
 /// What one chapter's walk measured: the three frames a chapter is scored
@@ -101,6 +108,7 @@ struct Walk {
 /// adds `!ffwd` and `!quit` of its own and a miscount there is a script
 /// nobody staged.
 fn walk_chapter(run: &str, n: u32, staged: usize, length: i64) -> Option<Walk> {
+    let stem = format!("chapter{n}");
     let inst = crate::testenv::install()?;
     let Some((dump, tracepath)) = golden(run) else {
         eprintln!("skipping: no golden capture {run} (see docs/RUNS.md)");
@@ -144,11 +152,11 @@ fn walk_chapter(run: &str, n: u32, staged: usize, length: i64) -> Option<Walk> {
     );
     let mut built = stand_up(&loaded, &log, &refs, &trace);
     built.sim.trace_phases = true;
-    let mut script = chapter(n);
+    let mut script = script_named(&stem);
     assert_eq!(
         script.lines().len(),
         staged,
-        "chapter {n} is {staged} staged lines (tools/gamelog/golden/chapter{n}.cmd)"
+        "chapter {n} is {staged} staged lines (tools/gamelog/golden/{stem}.cmd)"
     );
     let last = trace.frames.last().map_or(0, |(f, _)| *f);
     assert!(
@@ -4764,5 +4772,146 @@ fn chapter_four_s_word_frame_is_widened_whole() {
         above,
         Vec::<String>::new(),
         "a row parts above 1173, where run133 agrees to its end"
+    );
+}
+
+/// **Chapter seven's pair is one game until `ai off` is first read**
+/// (item 578, `docs/GOLDEN.md` §11). run141 is `chapter7.cmd` and run142
+/// `chapter7_control.cmd`, the same file less `0 !ai off`: the same seed,
+/// the same lobby and every other line on the same frame. The flag's first
+/// reader is `Leader::production_ai` (`docs/INPUT.md` §11.4), so the two
+/// draw streams must agree through frame 0 and part on frame 1. Both
+/// traces cover all 1201 frames whatever the dump's window.
+#[test]
+fn chapter_seven_s_pair_is_one_game_until_the_gate() {
+    let (Some((_, a)), Some((_, b))) = (golden("ch7"), golden("ch7c")) else {
+        eprintln!("skipping: chapter seven needs both run141 and run142 (docs/RUNS.md)");
+        return;
+    };
+    let read = |p: &str| {
+        crate::trace::Trace::read(std::path::Path::new(p))
+            .expect("a finalized golden trace")
+            .expect("missing RONT header")
+    };
+    let (ta, tb) = (read(&a), read(&b));
+    let last = |t: &crate::trace::Trace| t.frames.last().map_or(0, |(f, _)| *f);
+    assert!(
+        last(&ta) >= 1200 && last(&tb) >= 1200,
+        "chapter seven's traces end at {} and {}; both runs go to 1200",
+        last(&ta),
+        last(&tb)
+    );
+    let parted = (0..=1200).find(|&f| ta.labels(f) != tb.labels(f));
+    let agreed: usize = (0..parted.unwrap_or(1201))
+        .map(|f| ta.labels(f).len())
+        .sum();
+    let (da, db): (usize, usize) = (0..=1200)
+        .map(|f| (ta.labels(f).len(), tb.labels(f).len()))
+        .fold((0, 0), |(x, y), (p, q)| (x + p, y + q));
+    eprintln!(
+        "chapter seven: run141 {da} draws, run142 {db}; {agreed} identical \
+         before the parting at {parted:?}"
+    );
+    if let Some(f) = parted {
+        eprintln!(
+            "  frame {f}: run141 {} draws, run142 {}",
+            ta.labels(f).len(),
+            tb.labels(f).len()
+        );
+    }
+    assert_eq!(
+        parted,
+        Some(1),
+        "the pair parts where `ai off` is first read"
+    );
+    assert_eq!(agreed, 120, "frame 0's draws, identical in the pair");
+}
+
+/// **What `ai off` takes away from a human's civilians: nothing** (item
+/// 578, run141 and run142; `docs/INPUT.md` §11.9). The five civilians
+/// `0/6..0/10` — Citizen, Caravan, Merchant, Scholar, Fur Trapper, born on
+/// blocks 611, 616, 621, 626 and 631 — hold the same order kind on every
+/// block of both captures. The citizen takes a `GATHERORDER` on 763 with
+/// `idle` 12, which is `Unit::think_peasant`'s human wait (item 494): the
+/// arm sits above `Unit::think`'s `ai off` block (`think@005f6e40:154`–
+/// `158`), and for who=0 that block is entered either way, because the
+/// human carries `leader_flags & 4`. The other four take no order at all
+/// in either capture — including the caravan, whose `think_caravan` is
+/// also above the block and finds no trade city.
+///
+/// So `docs/GOLDEN.md` §11's first falsifier fires as written (an order on
+/// the five in the AI-off run) and its second does not (the control's
+/// citizen acts): the gate does what §11.4's corrected reading says and
+/// §11's premise — that the cheat silences a human's civilians — is wrong.
+#[test]
+fn chapter_seven_s_civilians_act_alike_with_the_ai_off_and_on() {
+    use std::collections::BTreeMap;
+    let (Some((a, _)), Some((b, _))) = (golden("ch7"), golden("ch7c")) else {
+        eprintln!("skipping: chapter seven needs both run141 and run142 (docs/RUNS.md)");
+        return;
+    };
+    // (block, o) → the order list's kinds, newest first as the log writes
+    // them, and `idle`, for player 0's `o` 6..=10.
+    type Kinds = BTreeMap<(i64, i64), (Vec<String>, Option<i64>)>;
+    let kinds = |p: &str| -> Kinds {
+        let mut ix = crate::capture::indexed::IndexedCapture::open(p).unwrap();
+        let mut out = Kinds::new();
+        for at in 0..ix.frames().len() {
+            let frame = ix.frame_state(at).unwrap();
+            for u in frame
+                .units
+                .iter()
+                .filter(|u| u.who == 0 && (6..=10).contains(&u.o))
+            {
+                out.insert(
+                    (frame.n, u.o),
+                    (u.orders.iter().map(|o| o.kind.clone()).collect(), u.idle),
+                );
+            }
+        }
+        out
+    };
+    let (ka, kb) = (kinds(&a), kinds(&b));
+    let born = |k: &Kinds, o: i64| k.keys().find(|(_, x)| *x == o).map(|(n, _)| *n);
+    for (o, n) in [(6, 611), (7, 616), (8, 621), (9, 626), (10, 631)] {
+        assert_eq!(born(&ka, o), Some(n), "run141's 0/{o} is born on {n}");
+        assert_eq!(born(&kb, o), Some(n), "run142's 0/{o} is born on {n}");
+    }
+    let only = |k: &Kinds| -> Vec<(i64, i64, String)> {
+        k.iter()
+            .flat_map(|(&(n, o), (kinds, _))| kinds.iter().map(move |k| (n, o, k.clone())))
+            .collect()
+    };
+    let (oa, ob) = (only(&ka), only(&kb));
+    let first = |v: &[(i64, i64, String)]| v.first().cloned();
+    eprintln!(
+        "chapter seven: {} ordered unit-blocks in run141, {} in run142; first {:?}",
+        oa.len(),
+        ob.len(),
+        first(&oa)
+    );
+    // Only the citizen ever holds an order: its gather, and the gather's
+    // own transit legs (a `MOVEORDER` pushed over it, 764 onward).
+    let gathering = |k: &str| k == "GATHERORDER" || k == "MOVEORDER";
+    for (run, v) in [("run141", &oa), ("run142", &ob)] {
+        assert!(
+            v.iter().all(|(_, o, k)| *o == 6 && gathering(k)),
+            "{run}: an order on a civilian other than the citizen's gather: {:?}",
+            v.iter().find(|(_, o, k)| *o != 6 || !gathering(k))
+        );
+        assert_eq!(
+            first(v).map(|(n, o, _)| (n, o)),
+            Some((763, 6)),
+            "{run}: the citizen's first order"
+        );
+    }
+    assert_eq!(
+        ka.get(&(763, 6)).and_then(|x| x.1),
+        Some(12),
+        "the human's idle wait"
+    );
+    assert_eq!(
+        ka, kb,
+        "the five's orders differ between the AI-off chapter and its control"
     );
 }

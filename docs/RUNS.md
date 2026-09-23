@@ -5152,3 +5152,69 @@ refuses it:
 
 The live block and the copy both agree with this crate's index.
 `docs/PATHFINDER.md` §24; `run136_s_word_is_one_cell_of_1_62_s_search`.
+
+## run141 — chapter seven, the civilians with the AI off (2026-09-23, item 578)
+
+The golden record's seventh chapter (`docs/GOLDEN.md` §11), staged from
+`tools/gamelog/golden/chapter7.cmd`: `!ai off` at 0, `library who=0 2` at
+600, then `add citizen`, `caravan`, `merchant`, `scholar` and `fur` for
+player 0 at 610–630 beside Napata. The first `add` of any of the five in
+any capture on this disk. run133's command with the chapter swapped:
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch7 \
+    --map 14 --end-frame 1200 --log-window 605 1200 --timeout 3600 \
+    --detail end:UNITS=3,GUYS=2,BUILDS=7,CITIES=5,GOODS=3,LEADERS=2 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 \
+    --cmd-file tools/gamelog/golden/chapter7.cmd
+```
+
+`success: true`, exit 0, 1201 frames, `MAP_STYLE 14` and seed 12345 read
+back, five settings files restored. One take: **281 s from launch to exit,
+112 MB of dump and 11 MB of trace**. Nine `INFO cmd` records each returned 1
+(the capture adds `37 !ffwd 2` and `1200 !quit`). 597 blocks: 1, 605..1199
+and 1201; block 1 is only the `process_cheat_ai_toggle` command record.
+The lane lock was stale (att-576's pid gone) and was taken over.
+
+### The predictions, written into the `.cmd` file before the run
+
+Committed as `719065a`. The prediction held for the citizen and failed for
+the caravan:
+
+| check | predicted | observed |
+| --- | --- | --- |
+| births | `0/6..0/10` on 611, 616, 621, 626, 631 | exactly |
+| guy types | 50, 59, 61, 52, 400 | exactly; one, three, two, one and three figures |
+| the citizen | `GATHERORDER` from `think_peasant` at `idle` 12, both runs | block 763, `idle 12`, `ox 2001 build_type 418`, a timber slot on 801 (income 480 → 640) |
+| the caravan | `TRADEORDER` from `think_caravan`, both runs | **no order**: `think_caravan` finds no city |
+| merchant, scholar, fur | no order | none, to 1199 |
+
+### §11's falsifiers
+
+- **The first fires**: a `GATHERORDER` on the citizen in the AI-off run.
+  It is not the gate misread. The order comes from `think_peasant`, above
+  the `ai off` block, and run142 shows the same order on the same block.
+- The second is run142's.
+
+## run142 — chapter seven's control, the same with the AI on (2026-09-23, item 578)
+
+run141's line with `~/ron-golden/ch7c` and `--cmd-file
+tools/gamelog/golden/chapter7_control.cmd`. That file is `chapter7.cmd`
+less `0 !ai off` and nothing else. `success: true`, exit 0, 1201 frames,
+map and seed read back. One take: **331 s, 112 MB of dump and 11 MB of
+trace**. Eight `INFO cmd` records each returned 1. There are 596 blocks,
+because no toggle means no block 1. The tracer DLL is rebuilt per run
+(`build_seconds` 24), and its hash differs from run141's.
+
+- **§11's second falsifier does not fire**: the citizen `0/6` takes its
+  `GATHERORDER` on 763 at `idle 12`, as in run141.
+- **The five hold the same orders on every block of both captures**
+  (`chapter_seven_s_civilians_act_alike_with_the_ai_off_and_on`). `ai off`
+  takes nothing from a human's civilians (`docs/INPUT.md` §11.9).
+- **The pair is one game through frame 0, 120 draws, and parts on frame 1**,
+  12 draws against 54 (`chapter_seven_s_pair_is_one_game_until_the_gate`).
+  In total, 13,434 draws against 13,504.
+- **The harness walks both to 1200 without a parting.** Draws, sequence
+  and values all agree, and this crate's five match the original's on 763,
+  900 and 1199 in both runs.
