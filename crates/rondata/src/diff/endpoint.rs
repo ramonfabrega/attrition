@@ -490,7 +490,13 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // gather building's slots (`docs/AI.md` §61); this map's word moves
         // 10782 → 10982, 13,019 frames before this one. The extra is a
         // Bowmen, `1/83`. DECISIONS 36: the number, not a trade.
-        off: 64,
+        // **64 → 59 off, 0 → 3 unlinked, 1 → 0 extra, 1 → 2
+        // build_unlinked, 24 → 22 build_diverged** on item 613, Horses'
+        // discount on a Stable unit and a mined range taken on the survey
+        // (`docs/AI.md` §62); this map's word moves 10982 → 11069, 12,932
+        // frames before this one. The unlinked are player 1's `80`..`82`.
+        // DECISIONS 36: the number, not a trade.
+        off: 59,
         // And **5 → 10 unlinked** on 2026-09-21, item 442 — the scholar
         // arm's `val` chain (`docs/AI.md` §53). This map's word does not
         // move on it; Great Lakes' moves 9510 → 10161. The AI's Scholar
@@ -509,16 +515,20 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // and `82`.
         // **3 → 6** on item 604, beside `off` above: player 1's `77`..`82`.
         // **6 → 0** on item 608, beside `off` above.
-        unlinked: 0,
+        // **0 → 3** on item 613, beside `off` above.
+        unlinked: 3,
         // **0 → 1** on item 608, beside `off` above.
-        extra: 1,
+        // **1 → 0** on item 613, beside `off` above.
+        extra: 0,
         // **1 → 2** on item 588, beside `off` above.
         // **2 → 1** on item 604, beside `off` above.
-        build_unlinked: 1,
+        // **1 → 2** on item 613, beside `off` above.
+        build_unlinked: 2,
         // **25 → 24** on item 592, beside `off` above.
         // **24 → 25** on item 604, beside `off` above.
         // **25 → 24** on item 608, beside `off` above.
-        build_diverged: 24,
+        // **24 → 22** on item 613, beside `off` above.
+        build_diverged: 22,
         city_unlinked: 3,
         city_diverged: 0,
     },
@@ -1264,7 +1274,8 @@ pub const LADDER: [Endpoint; 2] = [
         // **38 → 41** on item 588; see `extra` below.
         // **41 → 40** on item 592; see `extra` below.
         // **40 → 39** on item 597; see `extra` below.
-        off: 39,
+        // **39 → 35** on item 613; see `extra` below.
+        off: 35,
         unlinked: 17,
         // 20 → 21 on 2026-09-07, item 267's repaint: one spurious unit
         // back, 7,872 frames past the word, and nothing else on this rung
@@ -1406,11 +1417,18 @@ pub const LADDER: [Endpoint; 2] = [
         // gather building's slots (`docs/AI.md` §61), 4,419 frames past
         // this map's new word 10982: five Citizens, two Scholars, two
         // Horse Archers, two Cataphracts and two Light Horse.
-        extra: 13,
+        // **13 → 25 extra, 39 → 35 off, 4 → 2 build_diverged** on item 613,
+        // Horses' discount on a Stable unit and a mined range taken on the
+        // survey (`docs/AI.md` §62), 4,332 frames past this map's new word
+        // 11069: three Citizens, two Scholars, two Cataphracts, two Horse
+        // Archers, a Light Horse and fifteen foot (Bowmen, Slingers,
+        // Hoplites, Longbowmen). DECISIONS 36: the number, not a trade.
+        extra: 25,
         build_unlinked: 10,
         // **4 → 5** on item 588, beside `extra` above.
         // **5 → 4** on item 597, beside `extra` above.
-        build_diverged: 4,
+        // **4 → 2** on item 613, beside `extra` above.
+        build_diverged: 2,
         city_unlinked: 3,
         city_diverged: 0,
     },
@@ -1517,7 +1535,8 @@ pub const LADDER: [Endpoint; 2] = [
         // **51 → 49** on item 592; see `extra` below.
         // **49 → 46** on item 597; see `extra` below.
         // **46 → 47** on item 608; see `extra` below.
-        off: 47,
+        // **47 → 44** on item 613; see `extra` below.
+        off: 44,
         unlinked: 16,
         // 19 → 33 on 2026-09-07, item 261, the same reshuffle, then 33 →
         // **27** the same day on item 265's byte — this rung took the
@@ -1627,7 +1646,12 @@ pub const LADDER: [Endpoint; 2] = [
         // frames past this map's new word 10982. It too was hidden behind
         // rung C's panic until C's re-pin. DECISIONS 36: the number, not a
         // trade.
-        extra: 9,
+        // **9 → 20 extra, 47 → 44 off** on item 613, Horses' discount on a
+        // Stable unit and a mined range taken on the survey (`docs/AI.md`
+        // §62), 5,420 frames past this map's new word 11069. Hidden behind
+        // rung C's panic again until C's re-pin. DECISIONS 36: the number,
+        // not a trade.
+        extra: 20,
         build_unlinked: 19,
         build_diverged: 0,
         city_unlinked: 4,

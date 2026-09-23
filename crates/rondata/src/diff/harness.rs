@@ -11985,6 +11985,124 @@ mod tests {
         );
     }
 
+    /// **run152 — East Indies' word 10982, widened whole, both directions**
+    /// (item 613). run149's line past its last block, over
+    /// [`WIDENING_EAST_INDIES_GATHER`]: ten blocks shared with run149, the
+    /// 103 up to the word, its block, and 56 past it, which no capture had
+    /// printed. [`widen_east_indies`] with gaia's animals.
+    ///
+    /// The word's frame, 10982, writes block **10983**. The same item moved
+    /// the word to 11069, past the window; the test keeps the move's value
+    /// diff (`docs/AI.md` §62).
+    #[test]
+    fn run152_s_word_frame_is_widened_whole() {
+        const FIRST: i64 = WIDENING_EAST_INDIES_GATHER.0;
+        const TAIL: i64 = WIDENING_EAST_INDIES_GATHER.1;
+        /// The block run152 was taken to widen, the word 10982's.
+        const WORD_BLOCK: i64 = EAST_INDIES_GATHER_BLOCK;
+        let Some(Widened {
+            firsts,
+            missing,
+            blocks,
+            leader_rows,
+            changed,
+        }) = widen_east_indies(
+            "run152",
+            "gamelog-run152-eastindies-gatherbuilding.txt",
+            WIDENING_EAST_INDIES_GATHER,
+            &[WORD_BLOCK],
+            true,
+        )
+        else {
+            return;
+        };
+        assert_eq!(blocks, (TAIL - FIRST + 1) as usize, "the walk is whole");
+        assert_eq!(
+            leader_rows,
+            (TAIL - FIRST + 1) as usize * 2 * (1_053 + 1_531),
+            "170 blocks x 2 leaders x (1,053 + 1,531) keys"
+        );
+        assert_eq!(
+            missing,
+            std::collections::BTreeSet::new(),
+            "no key unprinted"
+        );
+        let row = |((w, o, what), (f, row)): (&(i64, i64, String), &(i64, String))| {
+            format!("{f} {w}/{o} {what}: {row}")
+        };
+        // **The leader record under the word and on it**, both leaders,
+        // both directions — and the move's value diff (item 613). Until the
+        // fix 13 make-list rows parted from 10981, `create_units`' frame:
+        // the Light Horse (t209, `num 2`) offered at `val 9999999` here
+        // against 6945568. `offer_value`'s product wrapped negative here,
+        // 64 × 40,500,000, where the original's is 256 × 40,500,000, which
+        // wraps to 1,778,065,408: `check_income` answered 0x40 because the
+        // price was 60/40 against 53 food, where `get_cost` takes Horses'
+        // 15% off a Stable unit — 51/34, two affordable. On 10982 the
+        // original then sorted the Barracks above the Light Horse, so
+        // `use_market`'s `need` differed and it spent a third draw. Two
+        // rows stand: §52.2's `city` shift and the Mine's value.
+        let leader: Vec<String> = firsts
+            .iter()
+            .filter(|((_, o, _), (f, _))| *o == -1 && (FIRST + 1..=WORD_BLOCK).contains(f))
+            .map(row)
+            .collect();
+        assert_eq!(
+            leader,
+            [
+                "10982 1/-1 leader:MAKE[4].val: ours 316800 theirs 310400",
+                "10981 1/-1 leader:MAKE[6].city: ours 1 theirs 0",
+                "10976 1/-1 leader:SITE[2].wx: ours 51 theirs 0",
+                "10976 1/-1 leader:SITE[2].wy: ours 58 theirs 0",
+                "10976 1/-1 leader:SITE[3].dist: ours 288 theirs 0",
+                "10976 1/-1 leader:SITE[3].val: ours 48 theirs 0",
+                "10976 1/-1 leader:SITE[3].wx: ours 45 theirs 51",
+                "10976 1/-1 leader:SITE[3].wy: ours 52 theirs 58",
+                "10976 1/-1 leader:SITE[4].dist: ours 722 theirs 288",
+                "10976 1/-1 leader:SITE[4].val: ours 76 theirs 48",
+                "10976 1/-1 leader:SITE[5].rank: ours 8 theirs 6",
+                "10976 1/-1 leader:SITE[5].reg: ours 7 theirs 11",
+                "10976 1/-1 leader:SITE[6].rank: ours 6 theirs 8",
+                "10976 1/-1 leader:SITE[6].reg: ours 5 theirs 7",
+                "10976 1/-1 leader:SITE[6].wx: ours 49 theirs 34",
+                "10976 1/-1 leader:SITE[6].wy: ours 31 theirs 33",
+                "10881 1/-1 leader:bucket[0:food]: ours 32 theirs 33",
+                "10900 1/-1 leader:bucket[4:metal]: ours 33 theirs 34",
+                "10956 1/-1 leader:peasants: ours 15 theirs 16",
+            ],
+            "the leader record"
+        );
+        // **Who changes animation, both sides** (`docs/COMBAT.md`
+        // §44.2.1). Until the fix the citizen `1/11` turned on 10983 in the
+        // original only, sent to the original's Mine.
+        let one_sided: Vec<(i64, i64, i64, bool, bool)> =
+            changed.iter().filter(|c| c.3 != c.4).copied().collect();
+        assert_eq!(
+            one_sided,
+            Vec::<(i64, i64, i64, bool, bool)>::new(),
+            "a figure moves on one side only"
+        );
+        // **The word's own block, every unit.** Until the fix 21 rows parted
+        // here: the Mine `1/2019` stood on (33408, 37248), on range 2 that
+        // `1/2018` already mines, with no gather list, against the
+        // original's (36480, 35136) on range 0 with 170 tiles; and the
+        // citizens `1/11` and `1/36` took other orders. `calc_gather`'s
+        // survey refuses a range whose tiles are gathered from.
+        let on_word = firsts
+            .iter()
+            .filter(|((_, o, _), (f, _))| *o != -1 && (WORD_BLOCK - 2..=WORD_BLOCK).contains(f))
+            .count();
+        assert_eq!(on_word, 0, "the unit rows on the word's blocks");
+        // **The floor**: 278 keys standing on the window's first block
+        // (run149's residue on its last), 409 before the word — the food and
+        // metal a unit off from 10881 and 10900, `peasants` and `1/36` from
+        // 10956, `1/2018`'s list order from 10959, the SITE list on 10976 —
+        // and 412 in all. Before the fix the floor was 278/409/616.
+        let under = firsts.values().filter(|(f, _)| *f < WORD_BLOCK - 2).count();
+        let first = firsts.values().filter(|(f, _)| *f == FIRST).count();
+        assert_eq!((first, under, firsts.len()), (278, 409, 412), "the floor");
+    }
+
     /// **run149 — East Indies' word 10782, widened whole, both directions**
     /// (item 608). run143's line past its last block, over
     /// [`WIDENING_EAST_INDIES_MERCS`]: ten blocks shared with run143, the 43
@@ -12271,6 +12389,28 @@ mod tests {
                 t.extend(crate::diff::leader::region_theirs(&block));
                 let mut mine = crate::diff::leader::rows(&loaded, &built, who);
                 mine.extend(crate::diff::leader::region_rows(&built, who));
+                // `RON_MAKE=<lo>-<hi>`: the make list slot for slot, both
+                // sides, through the comparison's own keys (item 613).
+                if who == 1
+                    && site_window_named("RON_MAKE").is_some_and(|(a, b)| (a..=b).contains(&n))
+                {
+                    let m: BTreeMap<&str, i64> =
+                        mine.iter().map(|(k, v)| (k.as_str(), *v)).collect();
+                    for i in 0..11 {
+                        let side = |get: &dyn Fn(&str) -> Option<i64>| -> String {
+                            ["t", "val", "city", "num", "cat"]
+                                .iter()
+                                .map(|k| format!("{k} {:?}", get(&format!("MAKE[{i}].{k}"))))
+                                .collect::<Vec<_>>()
+                                .join(" ")
+                        };
+                        eprintln!(
+                            "  make {n} [{i}] ours {} | theirs {}",
+                            side(&|k| m.get(k).copied()),
+                            side(&|k| t.get(k).copied())
+                        );
+                    }
+                }
                 for (k, v) in &mine {
                     let Some(&y) = t.get(k) else {
                         missing.insert(k.clone());
