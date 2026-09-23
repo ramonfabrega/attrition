@@ -4486,3 +4486,91 @@ check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*" "$HOME/ron-data/AppData/Roaming/Mi
 check: python3 tools/gamelog/samegame.py gamelog-run125-greatlakes-armyidle.txt gamelog-run130-greatlakes-armytwo.txt | tee /dev/stderr | awk '/in common/{r=$0; sub(/.*in common /,"",r); split($0,a,", "); n=a[2]+0} /^differ:/{d=$2+0} END{print "run125 overlap: common="n" "r" differ="d; exit !(n==40 && d==0 && r=="(11560..11599)")}'
 # **The coverage window landed**: every frame 11750..11762 has a set.
 check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run130.log" coverage | awk '/^== frame/{f=$3+0; sub(":","",f); if(f>=11750&&f<=11762&&$4+0>100) n[f]=1} END{c=0; for(k in n)c++; print "coverage frames: "c; exit !(c==13)}'
+
+run: 134
+tag: greatlakes-armypool
+item: 557
+why: Great Lakes' long word 11757 is `1/64`'s lag, and the lag is army 2's group order of frame 11512 leaving the original's `1/64` in no pool group — and no dump prints the pool's own lists, nor any trace which membership function runs on that frame
+# **THE DISK WAS GREPPED FIRST.** run123 [10760, 11459] and run125
+# [11440, 11599] cover both frames at `UNITS=3`, which prints each unit's
+# back-pointer (`group`, `UnitData +0x80`) and nothing of the pool. No
+# Great Lakes file carries a `GROUPDATA` above run92's 7689, and no trace
+# on this map has a coverage window between 11190 and 11524.
+#
+# **What the dump already says** (run125, `track.py UNITDATA`, player 1):
+# on block 11512 all six of army 2 — `1/60`..`1/65` — read `group 66`;
+# `1/60` and `1/61` stand at the muster (36231, 23513) with `stance 1`,
+# `1/62`..`1/65` walk in at x ≈ 45000 with `stance 0`. On block 11513 the
+# original's `1/64` reads `group -1`, `1/64` and `1/65` read `stance 1`,
+# and `1/62` and `1/63` keep `group 66` and `stance 0`. This crate: all six
+# `group 66`, `stance 1`. And on 11424 the original's `1/62`..`1/64` hold
+# pool group 69 (their `come_out` group) for one block, where ours hold
+# none (GROUPS §22.2, step 6).
+#
+# **The readings, each with what kills it**, on sim-frame 11512 (block
+# 11513) unless named:
+#
+# - **R1 — a one-unit push.** `Groups::push_group(who, g, force 0)` with
+#   `g.num < 2` writes `+0x80 = -1` on its member and takes no slot
+#   (GROUPS §3.2). A one-unit group built for `1/64` alone — a `go_to`,
+#   a probe — leaves exactly this. **Killed if** `push_group@0070f9e0` is
+#   not entered on 11512.
+# - **R2 — a slot's reset.** `Groups::process@006fa210` normalizes slot
+#   `f mod 64`; 11512's is 56, so player 1's group 120, not 66, and
+#   `normalize` clears no back-pointer anyway. **Killed if**
+#   `Group::normalize@00711540` is not entered on 11512 outside
+#   `Groups::process`'s own call — i.e. if no membership function but the
+#   pass runs.
+# - **R3 — an eviction or a kill.** `get_open_slot@006fa460` clears every
+#   `+0x80` naming the slot it reuses, and `Group::kill@00714110` clears
+#   the one it removes (GROUPS §3.1, §4.2). **Killed if** neither is
+#   entered on 11512.
+# - **R4 — the army's own filter.** The order and the stance reach a list
+#   the army builds by distance, stance or status (`Army::process`'s
+#   muster arm), and `1/64` falls out of it. **Killed if** none of the
+#   army-side membership functions (`Army::add_unit`, `Army::remove_unit`,
+#   `Unit::set_group`) runs on 11512 and the pool dump shows group 66's
+#   list unchanged across 11512→11513.
+#
+# **And on 11423..11424**: the original's `1/62`..`1/64` enter group 69
+# for one block. **Killed** (as a `come_out` push) if `push_group` is not
+# entered on 11423.
+#
+# **The pool itself, this time.** `GROUPS=1` prints all 512 `GROUPDATA`
+# records a frame, with each group's member list — what §22.4 said no dump
+# at this detail carries. **`DEATHS` is off**, and it is the only change
+# to run125's line besides `GROUPS`: `dump_deaths@0092fd80` ends on two
+# `WorldData::log_data` calls that leave the log's type at `WORLD`, which
+# is 0 here, and `GroupData::log_data` sets no type of its own, so with
+# `DEATHS` on the pool is dropped silently (run92's trap). With it off the
+# pool inherits the unit dump's type. No `DEATHOBJ` block appears on any
+# block of run130, so what `DEATHS=1` printed here was the two `WORLD`
+# blocks and nothing else.
+frames: 11530
+mapstyle: 14
+end: MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1
+# [11416, 11520): both frames and their run-ups, 44 blocks shared with
+# run123 and 80 with run125.
+frame_window: 11416 11520
+# **Per-frame coverage over both frames, as one window** — `tracer.c`
+# reads one `window=`, and 11420..11514 is 95 frames, inside run74's 102.
+cover: cover=1
+cover: window=11420-11514
+settle_min: 14000000
+# Sized from run125: 2.0 MB a block plus ~0.13 MB of pool, 104 blocks
+# ~220 MB, and a 95-frame coverage window. 180 polls is 60 minutes.
+poll_max: 180
+# Same game: the trace word for word against run53, this map's own 24k run.
+check: python3 tools/gamelog/rngcmp.py rontrace-run53.log rontrace-run134.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=11530)}'
+# And the map, from the dump's own `GAME INFO`.
+check: LC_ALL=C head -c 400000 "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run134-greatlakes-armypool.txt" | LC_ALL=C grep -a "MAP_STYLE" | tee /dev/stderr | awk '{print; exit !($2==14)}'
+# **The window landed whole** — 104 blocks, 11416..11519, no gap.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run134-greatlakes-armypool.txt" | awk '{v=$3+0; if(v>=11416&&v<11520) n[v]=1} END{c=0; lo=0; hi=0; for(k in n){c++; if(lo==0||k+0<lo)lo=k+0; if(k+0>hi)hi=k+0} print "window blocks: "c" ("lo".."hi")"; exit !(c==104 && lo==11416 && hi==11519)}'
+# **The tooth is the pool**: a `GROUPDATA` on every window block.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|BEGIN GROUPDATA" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run134-greatlakes-armypool.txt" | awk '/BEGIN FRAME/{f=$3} /GROUPDATA/{if(f!="")seen[f]=1} END{n=0; for(k in seen){v=k+0; if(v>=11416&&v<11520)n++} print "blocks with a GROUPDATA: "n; exit !(n==104)}'
+# **The overlap with run125, and the count is the claim** — eighty blocks,
+# with the two records this line changes excluded: `WORLD` (the two
+# `DEATHS` left) and `GROUPDATA` with its `last_group` lines (added).
+check: python3 tools/gamelog/samegame.py gamelog-run125-greatlakes-armyidle.txt gamelog-run134-greatlakes-armypool.txt --exclude WORLD --exclude GROUPDATA --drop last_group | tee /dev/stderr | awk '/in common/{r=$0; sub(/.*in common /,"",r); split($0,a,", "); n=a[2]+0} /^differ:/{d=$2+0} END{print "run125 overlap: common="n" "r" differ="d; exit !(n==80 && d==0 && r=="(11440..11519)")}'
+# **The coverage window landed**: every frame 11420..11514 has a set.
+check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run134.log" coverage | awk '/^== frame/{f=$3+0; sub(":","",f); if(f>=11420&&f<=11514&&$4+0>100) n[f]=1} END{c=0; for(k in n)c++; print "coverage frames: "c; exit !(c==95)}'
