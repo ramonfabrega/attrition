@@ -858,8 +858,8 @@ original both leave who=1's tail open.
   on the same unit's crew turn, where the trace could not name the
   original's chain. Item 628 named it (`docs/ANIM.md` §4.14), and the
   sequence moved to the word.
-- **run157, `GOLDEN_WORD_CHAPTER_SEVEN_B_CONTROL` = ~~1036~~ 1176 (item
-  632, below)**: 8 draws against
+- **run157, `GOLDEN_WORD_CHAPTER_SEVEN_B_CONTROL` = ~~1036~~ ~~1176~~ 1187
+  (items 632 and 644, below)**: 8 draws against
   7 at draw 2. who=1's own `1/1` takes an idle roll here where the
   original's walks. From 990 the original holds it in group 65 with three
   orders and `form_mod` 50, and this crate holds group 64, one order and
@@ -867,11 +867,11 @@ original both leave who=1's tail open.
 
 Both are widened whole over their windows in
 `chapter_seven_b_s_word_frame_is_widened_whole`, with every parted row
-pinned by block and key. Two more rows stand from the first block. who=1's
+pinned by block and key. ~~Two more rows stand from the first block. who=1's
 `resource_cap` is 1392 here against the original's 2992, because
 `library who=1 2` raises the original's cap and not this crate's (run141,
-without the line, prints 1392). The scout `1/0`'s `facing` stands from 847,
-as in chapter seven. No mechanism is named for either word.
+without the line, prints 1392).~~ Gone on item 644, below. The scout
+`1/0`'s `facing` stands from 847, as in chapter seven. No mechanism is named for either word.
 
 **Seven-b closed at 1200 on item 629.** The 24 units were the mechanism.
 `SpellType::cast_unpack`'s merchant arm seats a Merchant on its tile corner
@@ -898,6 +898,36 @@ where the original spends a run of `Build::find_gather_tiles+0x10a`. On
 1177 the original's gatherer `1/7` is sent toward a site and this crate's
 keeps gathering. The scout's explore path parts from 1077, value only. No
 mechanism is named for 1176.
+
+**The control moved 1176 → 1187 on item 644: the `library` line itself.**
+
+- **What the 180 draws are.** They are not the Farm's. The Farm `1/2008`
+  is draws 0–33, and it agrees. The 180 are a Woodcutter's Camp's shuffle,
+  45 tiles. `place_woodcutter` places the camp beside the unfinished Small
+  City `1/2007`, finds it under five workers, and destroys it within the
+  same frame. So no dump block prints its `1/2009`, and only `1/7`'s
+  `BUILDORDER` names it.
+- **Why this crate did not buy it.** It had 23 food against a price of 70;
+  the original had 98. `library who=1 2` raises the levels through a whole
+  `gain_tech` per step, and the Classical age's step pays knowledge and
+  metal 100 each. This crate's handler skipped that tail. So on 1018 a
+  goody pile of 75 went to metal here, the good at 0, and to food there
+  (`docs/INPUT.md` §11.11).
+- **What else the handler fixes.** The same section makes the caps read
+  the Commerce level live, as `calc_resource_caps` does on every frame,
+  which was parked 633. The first block's knowledge, metal and
+  `resource_cap` rows go in both captures of the pair, and in chapter
+  seven's and chapter three's.
+- **Why `1/7` walks on.** Once the camp is bought, the original's `1/7`
+  keeps its walk and `BUILDORDER` on the dead camp to the capture's end.
+  `Unit::work`'s target test is the `uid`, and a closed building keeps
+  its uid until its number is reused. This crate had it as the alive bit.
+- **The value diff.** On 1177 `1/7` stands at (40271, 18360) on both sides,
+  holding explore-to (40248, 23160) and the `BUILDORDER` on `1/2009`.
+  Nothing new parts on 1177..1188.
+- **The word.** It is now **1187**: the scout `1/0`, ours 10 draws against
+  9, parting at draw 0 on `Unit::do_move+0xe84`. The scout's explore path
+  has parted since 1077, value only. No mechanism is named for 1187.
 
 ## 12. Chapter eight — the commanders, and a war that is declared
 

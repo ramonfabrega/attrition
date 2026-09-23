@@ -1719,6 +1719,19 @@ impl Sim {
             .position(|b| b.owner == who && b.index == o && b.alive)
     }
 
+    /// Whether building `b`'s object number has gone to a later building —
+    /// the only way the original's `uid` test on it can fail, because a
+    /// closed building keeps its uid until `Objects::find_free` reuses the
+    /// number. A handle that was never valid counts as reused.
+    pub(crate) fn building_slot_reused(&self, b: usize) -> bool {
+        let Some(bd) = self.buildings.get(b) else {
+            return true;
+        };
+        self.buildings[b + 1..]
+            .iter()
+            .any(|x| x.owner == bd.owner && x.index == bd.index)
+    }
+
     /// Registers a unit type and returns its id.
     ///
     /// Every player's muster grows with it, because a type nobody has built is
@@ -2956,6 +2969,10 @@ impl Sim {
             .tech_tree
             .gain_tech(&self.setup, &mut self.tech[who as usize], t, frame);
         self.pay_arriving_goods(who, &had_preq, &events);
+        // `*this |= 0x2000000` at line 319, on every gain: the economy is
+        // reassembled at the next dirty-grid frame, which is what reads a
+        // Commerce level into the caps.
+        self.economy_changed(who);
         // Step 7's **object** half, in the order the cascade set the bits:
         // every standing unit of the line converts in place.
         for e in &events {
@@ -3403,40 +3420,62 @@ impl Sim {
     /// `Leader::set_age(n)` on one leader, which is all the `age` cheat
     /// does — the four epochs stay where they were (`docs/INPUT.md` §11).
     pub fn set_leader_age(&mut self, who: Player, n: i32) -> Vec<tech::Gained> {
-        let frame = self.frame;
-        let w = who as usize;
-        if w >= self.tech.len() {
-            return Vec::new();
-        }
-        self.tech_tree
-            .set_age(&self.setup, &mut self.tech[w], n, frame)
+        let row = self.tech_tree.ages;
+        self.set_leader_levels(who, &row, n)
     }
 
     /// `Leader::set_epoch(line, level)` — the `military`, `civic`,
     /// `commerce` and `science` cheats, and the four `library` spends.
     pub fn set_leader_epoch(&mut self, who: Player, cat: i32, level: i32) -> Vec<tech::Gained> {
-        let frame = self.frame;
-        let w = who as usize;
         let Some(line) = tech::Line::of(cat) else {
             return Vec::new();
         };
+        let row = self.tech_tree.epochs[line.index()];
+        self.set_leader_levels(who, &row, level)
+    }
+
+    /// The body `Leader::set_age@006d25a0` and `Leader::set_epoch@006d26f0`
+    /// share: lose every level of the row at or above `n`, highest first,
+    /// then raise the rest through **a whole `Leader::gain_tech` per step**
+    /// (`gain_tech(this, t, 0, 0, ·, 1)`), then drop what no longer
+    /// follows.
+    ///
+    /// The whole call is the point (item 644). Each step carries
+    /// `gain_tech`'s tail: the starting grant of a good whose prerequisite
+    /// is the step ([`Sim::pay_arriving_goods`] — the Classical age pays
+    /// knowledge and metal), the unit upgrades, the Science re-pricing, the
+    /// age's snap, and the economy flag `0x2000000`. This crate raised the
+    /// levels in the tree alone, so `library who=1 2` left who=1 holding
+    /// knowledge 0 and metal 0 where the original held 100 of each; on
+    /// run157's 1018 the goody lottery then paid metal, the good at 0, where
+    /// the original's paid food, and on 1176 a Woodcutter's Camp at 70 food
+    /// was one this crate's AI could not afford. Item 552 had wired the
+    /// border half of the tail on the epoch path, and the age path had
+    /// none of it.
+    fn set_leader_levels(
+        &mut self,
+        who: Player,
+        row: &[Option<tech::TypeId>; tech::LEVELS],
+        n: i32,
+    ) -> Vec<tech::Gained> {
+        let w = who as usize;
         if w >= self.tech.len() {
             return Vec::new();
         }
-        let events = self
-            .tech_tree
-            .set_epoch(&self.setup, &mut self.tech[w], line, level, frame);
-        // `Leader::set_epoch@006d26f0` raises the level through a whole
-        // `Leader::gain_tech` per step, so each step carries `gain_tech`'s
-        // tail. The one a capture has measured is the border's (item 552):
-        // chapter four's `civic who=0 3` widened run132's border 327 → 445
-        // over blocks 505–511, and this crate's not at all while the level
-        // changed and nothing re-read it.
-        for e in &events {
-            if let tech::Gained::UnitUpgrade { to } = *e {
-                self.upgrade_units_to(who, to);
+        let n = n.clamp(0, tech::LEVELS as i32) as usize;
+        for &t in row[n..].iter().rev().flatten() {
+            if self.tech_tree.has_tech(&self.setup, &self.tech[w], t) {
+                self.tech_tree.lose_tech(&self.setup, &mut self.tech[w], t);
             }
         }
+        let mut events = Vec::new();
+        for &t in row[..n].iter().flatten() {
+            if !self.tech_tree.has_tech(&self.setup, &self.tech[w], t) {
+                events.extend(self.gain_tech(who, t));
+            }
+        }
+        self.tech_tree
+            .drop_unfollowed(&self.setup, &mut self.tech[w]);
         self.apply_gained(who);
         events
     }
@@ -3649,6 +3688,15 @@ impl Sim {
             if self.holdings_due(player, frame) {
                 self.assemble_holdings(player);
             }
+            // `Leader::gather@006ce280:58` runs `calc_resource_caps` on
+            // every frame, outside the reassembly gate, and that reads the
+            // Commerce level straight off `LeaderDataEncrypt + 0xf0`. So a
+            // level raised between two reassemblies caps the very next
+            // frame's income: `library who=1 2` at 600 is 2992 on run157's
+            // first block, 605, where the level read at the last
+            // reassembly still said 1392 (item 644, parked 633).
+            self.holdings[who].commerce =
+                self.tech[who].epoch[tech::Line::Commerce.index()].max(0) as usize;
             economy::process(
                 &self.tuning,
                 &mut self.ledgers[who],

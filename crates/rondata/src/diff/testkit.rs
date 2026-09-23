@@ -2614,11 +2614,34 @@ pub(crate) const WIDENING_CHAPTER_SEVEN_B: (i64, i64) = (605, 1201);
 /// `Leader::produce_building`, 69 draws against 249, parting at draw 34.
 /// There the original spends a run of `Build::find_gather_tiles+0x10a`
 /// and this crate goes on to `Animal::think_bird`.
-pub(crate) const GOLDEN_WORD_CHAPTER_SEVEN_B_CONTROL: i64 = 1176;
+///
+/// **Item 644 moved it 1176 → 1187**, and this comment carries the delta
+/// (the widening's block for it is in
+/// `chapter_seven_b_s_word_frame_is_widened_whole`). The 180 draws are a
+/// Woodcutter's Camp's shuffle: `place_woodcutter` places one at the
+/// unfinished Small City `1/2007` on 1176, finds it under five workers and
+/// destroys it in the same frame, so no dump block prints its `1/2009`.
+/// This crate could not afford it, at 23 food against a price of 70. The
+/// original had 98, because `library who=1 2` at 600 pays the Classical
+/// age's starting grant (knowledge and metal, 100 each) through
+/// `gain_tech`'s tail, and this crate's handler skipped the tail. On 1018
+/// a goody pile of 75 then went to metal here, the good at 0, and to food
+/// there (`docs/INPUT.md` §11.11). With the tail, the camp is bought on
+/// 1176 and draws its 180. With the uid liveness test, `1/7` keeps its
+/// walk and `BUILDORDER` on the dead camp (1176 → 1177 was the grant,
+/// 1177 → 1187 the liveness). **The value diff on the moved frames, in
+/// run157's own coordinates**: on 1177 `1/7` stands at (40271, 18360)
+/// on both sides and holds explore-to (40248, 23160) and the
+/// `BUILDORDER` on `1/2009`. who=1's food agrees from 1018 (116 on
+/// 1018), knowledge and metal from 605 (100 and 100), and the caps from
+/// 605 (2992). The word is now **1187**, the scout `1/0`: ours 10 draws
+/// against 9, parting at draw 0 on `Unit::do_move+0xe84`. Its explore
+/// path has parted since 1077, value only.
+pub(crate) const GOLDEN_WORD_CHAPTER_SEVEN_B_CONTROL: i64 = 1187;
 
 /// The control's widening window, its first block to the word's block and
 /// the one after.
-pub(crate) const WIDENING_CHAPTER_SEVEN_B_CONTROL: (i64, i64) = (605, 1178);
+pub(crate) const WIDENING_CHAPTER_SEVEN_B_CONTROL: (i64, i64) = (605, 1189);
 
 /// **Chapter three's golden word** — the mounted and siege lines, run145
 /// (`docs/GOLDEN.md` §7): **900, the capture's end, draw for draw and

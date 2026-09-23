@@ -488,6 +488,53 @@ fn a_group_s_queue_first_keeps_the_build_behind_the_walk() {
     assert_eq!(sim.units[u].form, -1, "and the citizen's form is not");
 }
 
+/// **A closed site's builder walks on until its number is reused** (item
+/// 644). `Unit::work@0060d180:319` ends the action on a `uid` mismatch,
+/// and a closed building keeps its uid until `Objects::find_free` hands the
+/// number to the next one. run157's `1/7` keeps its walk and `BUILDORDER`
+/// on the camp the script placed and destroyed on 1176 to the end of the
+/// capture; this crate used to drop both on the alive bit.
+#[test]
+fn a_closed_site_s_builder_walks_on_until_its_number_is_reused() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let _ = city_at(&mut sim, &t, 0, 32, 32);
+    let citizen = sim.add_unit_type(citizen_type(t.village));
+    let b = sim.place_building(0, t.barracks, tile_pos(40, 40)).unwrap();
+    let u = spawn(&mut sim, 0, citizen, tile_pos(30, 44));
+    sim.swarm_around(u, b, Body::Build(b), true);
+    assert_eq!(sim.units[u].orders.len(), 2, "the approach, then the build");
+    sim.close_building(b, false);
+    let start = sim.units[u].pos;
+    for _ in 0..3 {
+        sim.tick();
+    }
+    assert!(
+        sim.units[u]
+            .orders
+            .iter()
+            .any(|o| matches!(o.body, Body::Build(x) if x == b)),
+        "the build on the closed site stands: {:?}",
+        sim.units[u].orders
+    );
+    assert_ne!(sim.units[u].pos, start, "and the walk under it goes on");
+    // The next building takes the dead one's number, and the uid test fails.
+    let b2 = sim.place_building(0, t.barracks, tile_pos(46, 40)).unwrap();
+    assert_eq!(
+        sim.buildings[b2].index, sim.buildings[b].index,
+        "the number is reused"
+    );
+    sim.tick();
+    assert!(
+        !sim.units[u]
+            .orders
+            .iter()
+            .any(|o| matches!(o.body, Body::Build(x) if x == b)),
+        "a reused number ends it: {:?}",
+        sim.units[u].orders
+    );
+}
+
 #[test]
 fn one_builder_finishes_a_barracks_in_job_time_frames_and_the_site_grows() {
     let mut sim = world_sim();

@@ -1775,7 +1775,7 @@ impl TechTree {
 
     /// The tail of `set_age`/`set_epoch`: every owned non-age tech, unit and
     /// building whose prerequisites no longer hold is lost.
-    fn drop_unfollowed(&self, setup: &Setup, p: &mut PlayerTech) {
+    pub(crate) fn drop_unfollowed(&self, setup: &Setup, p: &mut PlayerTech) {
         for t in 0..self.types.len() {
             let k = self.kind(t);
             if k.is_tech() && !matches!(k, Kind::Age(_)) {
