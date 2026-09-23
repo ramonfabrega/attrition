@@ -4906,3 +4906,36 @@ normalizes the small group at every step. On 11512 `Group::sort`
 kills that stray follower, which clears its pointer, and re-adds the
 squad whole without writing one. `docs/GROUPS.md` §23;
 `run134_s_pool_list_is_the_original_s`. The word moved 11757 → 11806.
+
+## run135 — Great Lakes' word 11806, the crossing of armies 1 and 2 (2026-09-22, item 560)
+
+**What it is.** run134's line (run125's detail with `GROUPS=1` added and
+`DEATHS` taken off), `MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1`,
+over `[11760, 11860)`, plus `rontrace.cfg` `cover=1` and
+`window=11796-11816` over the word. `!quit` at 11870. **221,771,936 bytes
+of dump and 17.8 MB of trace, about eleven minutes** from launch at 23:02
+to archive at 23:13. It was launched through `viadriver.sh` with no human
+at the menu, and the lane was free. The dump ran at ~15 blocks a minute,
+2.2 MB a block, as sized from run134.
+
+**Why it was owed.** Item 557 moved Great Lakes' word to 11806, and
+run130, the highest dump at any detail below run80's endpoint window,
+ends on block 11799.
+
+**Every check passed:**
+
+| check | result |
+|---|---|
+| `rngcmp.py` vs `rontrace-run53.log` | **0 differing**, 11,871 identical |
+| `MAP_STYLE` from the dump's `GAME INFO` | 14 |
+| the window, block for block | **100 blocks, 11760..11859, no gap** |
+| a `GROUPDATA` on every window block | **100** |
+| overlap with run130, `--exclude WORLD --exclude GROUPDATA --drop last_group` | **40 in common (11760..11799), 0 differ** |
+| the coverage window | a set on all 21 frames 11796..11816 |
+
+**What it settled.** The word is army 1's `1/37`. The original's waits
+on `1/64` from 11803 to 11809, a hard collision every frame. This
+crate's carries the soft one-shot (`unit_masks & 0x100000`) out of frame
+11804's sweep, which also found `1/64` hard, spends it on 11805 to step,
+and stops on 11806: the extra `move_step+0x823` draw.
+`docs/COLLISION.md` §12; `run135_s_word_frame_is_widened_whole`.

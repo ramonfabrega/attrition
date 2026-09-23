@@ -4651,6 +4651,24 @@ settle_min: 14000000
 # Sized from run134: 2.2 MB a block, 100 blocks ~220 MB; ~12 minutes of
 # dumping. 180 polls is 60 minutes.
 poll_max: 180
+# ==== TAKEN 2026-09-22, **WHOLE** ====
+#
+# 221,771,936 bytes, **100 blocks 11760..11859**, a `GROUPDATA` on every
+# one; 17.8 MB of trace. About eleven minutes launch to archive (23:02 to
+# 23:13), the lane free, all six checks green: 11,871 frames identical to
+# run53, `MAP_STYLE 14`, 40 blocks shared with run130 and 0 differing
+# outside the two changed records, and a coverage set on all 21 window
+# frames.
+#
+# **The readings, decided on blocks 11796..11810**: **R2 holds.** The
+# original's `1/37` waits on `1/64` from 11803 to 11809, hard every frame
+# (`collide` 4 → 10, `collide_o 64`), at (40186, 20962); this crate's
+# steps to (40194, 20971) on 11805 and stops on 11806. **R1 is dead**:
+# `1/31` stops on block 11807 at (40008, 21144) on both sides. **R3 is
+# dead for the word**: `1/37` parts on nothing under 11805 but (558)'s
+# group-order id. **R4 is dead**: `1/31` agrees on block 11807. The
+# first row is `unit_masks & 0x100000` on block 11805, ours 1 and theirs
+# 0 — the soft one-shot. `docs/COLLISION.md` §12.
 # Same game: the trace word for word against run53, this map's own 24k run.
 check: python3 tools/gamelog/rngcmp.py rontrace-run53.log rontrace-run135.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=11860)}'
 # And the map, from the dump's own `GAME INFO`.

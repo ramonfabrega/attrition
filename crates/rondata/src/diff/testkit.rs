@@ -2380,6 +2380,17 @@ pub(crate) const WIDENING_GREAT_LAKES_ARMY_TWO: (i64, i64) = (11_400, 11_799);
 /// around it, keyed here rather than on the headline so the pin stays on a
 /// block the capture carries whatever the headline does next.
 pub(crate) const GREAT_LAKES_ARMY_TWO_BLOCK: i64 = 11_758;
+/// `run135_s_word_frame_is_widened_whole`'s window (item 560): run123
+/// from **11400**, under army 2's first pool parting, then run125, run130
+/// and run135 from 11800 to its last block, 11859. The same floor as
+/// [`WIDENING_GREAT_LAKES_ARMY_TWO`] and for the same reason: the partings
+/// under the word's crossing spend no draw, and a walk that opened above
+/// them would print them as standing residue with no first block.
+pub(crate) const WIDENING_GREAT_LAKES_CROSSING: (i64, i64) = (11_400, 11_859);
+/// The block [`WIDENING_GREAT_LAKES_CROSSING`] was taken to widen: the
+/// word 11806's frame writes block 11807. The coverage driver reads run135
+/// around it, keyed here rather than on the headline.
+pub(crate) const GREAT_LAKES_CROSSING_BLOCK: i64 = 11_807;
 /// One pinned word's row: `(constant, word, widening test, item, window)`.
 pub(crate) type Widening = (
     &'static str,
@@ -2520,15 +2531,21 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // (11799)**, so the widening is owed a capture again and this row names
     // the item that owes it and no test. The same test keeps 11758 pinned
     // empty as the move's value diff (`docs/GROUPS.md` §23), on its own
-    // `GREAT_LAKES_ARMY_TWO_BLOCK` rather than on the headline. **557 is
-    // the placeholder**: the commander re-points this row at the item that
-    // books the capture before 557 leaves the queue, or the guard goes red.
+    // `GREAT_LAKES_ARMY_TWO_BLOCK` rather than on the headline.
+    //
+    // **Item 560 paid it**: run135 is run134's line over [11760, 11859],
+    // and `run135_s_word_frame_is_widened_whole` walks it from run123's
+    // 11400 across four captures, with every player-1 pool list on
+    // run135's blocks, so the window is [`WIDENING_GREAT_LAKES_CROSSING`].
+    // The word's block parts on `1/37` alone: it carries the soft
+    // one-shot out of a sweep that also found `1/64` hard, and steps
+    // where the original's waits (`docs/COLLISION.md` §12).
     (
         "LONG_WORD_GREAT_LAKES",
         LONG_WORD_GREAT_LAKES,
-        None,
+        Some("run135_s_word_frame_is_widened_whole"),
         560,
-        None,
+        Some(WIDENING_GREAT_LAKES_CROSSING),
     ),
     // Item 445 paid the widening chapter one had never had: the word
     // stood at 626 from item 405 on, and every test behind it pinned one
