@@ -4926,3 +4926,49 @@ With the three fixes the border agrees **cell for cell** on 295–300, from
 310 to 400, from 411 to 500 and from 511 to 544. The only parting is the
 sweep's own windows, where this crate recomputes wholesale on the line's
 frame.
+
+## run133 — chapter four, the bleed: the namesake scored (2026-09-23, item 552)
+
+The same script as run132, windowed on the bleed:
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch4u \
+    --map 14 --end-frame 1500 --log-window 595 1500 --timeout 3600 \
+    --detail end:UNITS=3,GUYS=2,DEATHS=1,LEADERS=2 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 \
+    --cmd-file tools/gamelog/golden/chapter4.cmd
+```
+
+`success: true`, exit 0, 1501 frames, map and seed read back, one take:
+**372 s from launch to exit, 120 MB of dump and 12.0 MB of trace**. Ten
+`INFO cmd` records each returned 1. There are 907 blocks: 1, 595..1499
+and 1501. **It is run132's game**: `chapter_four_s_two_captures_are_one_game`
+finds all 15,099 draws identical on every frame. The capture adds `37
+!ffwd 2` for a 1500-frame run, where chapters two and five had `!ffwd 1`;
+both chapter-four captures carry the same line.
+
+### The predictions and §8's bleed falsifiers
+
+| check | predicted | observed |
+| --- | --- | --- |
+| births | squad 601, scout 606, wagon 1101 | `1/6..1/8` on 601, `1/9` on 606, `1/10` on 1101 |
+| the period | 48 from each figure's first refresh | `1/8` 601, `1/7` 602, `1/6` 603: 48 |
+| the tick | 6/16 on `(f + o) % 48` | 617/618/619, then every 48, to 1337: 6 + 0/16 |
+| the scout | 0 throughout | 0 on every block |
+| the wagon | 0 throughout, at war | 0 on every block |
+| the shelter | no tick with the wagon within 14 tiles | every tick at ≥ 23 tiles landed; every tick at 11–13 tiles vetoed, `0x40000` on the tick frame |
+
+**None fired.** The caveat did happen: the squad left its placement. It
+marched about 30 tiles east on player 0's ground, and the wagon trailed
+after it and came within reach only at 1385. No figure fought; `damage` is
+attrition's alone.
+
+### What the harness made of it
+
+Two wiring defects, both in the namesake (`docs/ATTRITION.md`, "Golden
+chapter four"): the strength was never written from the tech tree (period
+0 on every figure), and the squad size was a stored 1 (16/16 a tick). With
+both fixed, the bleed agrees tick for tick to 1337. The word is **1277**:
+the original's squad takes a `GUARDORDER` and a move back beside its
+wagon, and this crate's keeps its `AttackTo`.
