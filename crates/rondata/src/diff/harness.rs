@@ -12062,9 +12062,91 @@ mod tests {
             let frame = ix.frame_state(at).unwrap();
             blocks += 1;
             debug_watch(&built, n);
+            // `RON_CITIZENS=<lo>-<hi>`: player 1's peasant census and every
+            // citizen's container and order list, both sides (item 592).
+            if site_window_named("RON_CITIZENS").is_some_and(|(a, b)| (a..=b).contains(&n)) {
+                let raw = ix.read_frame(at).unwrap();
+                let flog = Log::parse(&raw);
+                if let Some(block) = flog.leader_block(n, 1) {
+                    let t = crate::diff::leader::theirs(&block);
+                    let mine: BTreeMap<String, i64> = crate::diff::leader::rows(&loaded, &built, 1)
+                        .into_iter()
+                        .collect();
+                    let line: Vec<String> =
+                        ["peasants", "free_peasants", "xport_peasants", "gatherers"]
+                            .iter()
+                            .map(|k| format!("{k} {:?}/{:?}", mine.get(*k), t.get(*k)))
+                            .collect();
+                    eprintln!("  census {n}: {}", line.join(" "));
+                }
+                for (u, x) in built.sim.units.iter().enumerate() {
+                    if !x.alive()
+                        || x.owner != 1
+                        || built.sim.worker_of(u) != sim::orders::Worker::Citizen
+                    {
+                        continue;
+                    }
+                    let th = frame
+                        .units
+                        .iter()
+                        .find(|t| t.who == 1 && t.o == i64::from(x.index));
+                    let ords: Vec<i64> = x.orders.iter().map(|o| o.index() as i64).collect();
+                    let tords: Vec<i64> = th
+                        .map(|t| t.orders.iter().map(|o| o.index).collect())
+                        .unwrap_or_default();
+                    eprintln!(
+                        "    {n} 1/{} ({},{}) on_map {} in {:?}/{:?} theirs in {:?} \
+                         orders ours {ords:?} theirs {tords:?}",
+                        x.index,
+                        x.pos.x,
+                        x.pos.y,
+                        x.on_map,
+                        x.inside.map(|b| built.sim.buildings[b].index),
+                        x.inside_unit.map(|b| built.sim.units[b].index),
+                        th.and_then(|t| t.inside_up),
+                    );
+                }
+            }
             let mut here: BTreeMap<(i64, i64, String), (i64, String)> = BTreeMap::new();
             let (_, rows) = widen_block(&built, &frame, players, n, &mut here);
             compared += rows;
+            // **Every unit's container** (item 592): `inside_up` is parsed
+            // and `compare` reads it nowhere. The dump chains a garrison
+            // through units — a seated Scholar's `inside_up` is the Scholar
+            // before it — so both sides are compared on the outermost
+            // container, `ObjectData::get_inside`'s walk; the chain is
+            // followed within the unit's own player (`inside_up_who` is not
+            // parsed). This crate keeps a building in `inside` and a boat in
+            // `inside_unit`.
+            for t in &frame.units {
+                let mut up = t.inside_up.unwrap_or(-1);
+                while let Some(next) = frame
+                    .units
+                    .iter()
+                    .find(|x| x.who == t.who && x.o == up)
+                    .and_then(|x| x.inside_up)
+                    .filter(|&v| v >= 0)
+                {
+                    up = next;
+                }
+                let ours = u8::try_from(t.who)
+                    .ok()
+                    .zip(i16::try_from(t.o).ok())
+                    .and_then(|(w, o)| built.sim.unit_by_o(w, o))
+                    .map(|u| {
+                        let x = &built.sim.units[u];
+                        x.inside
+                            .map(|b| i64::from(built.sim.buildings[b].index))
+                            .or(x.inside_unit.map(|b| i64::from(built.sim.units[b].index)))
+                            .unwrap_or(-1)
+                    });
+                let Some(ours) = ours else { continue };
+                compared += 1;
+                if ours != up {
+                    here.entry((t.who, t.o, "inside".into()))
+                        .or_insert((n, format!("ours {ours} theirs {up}")));
+                }
+            }
             for &(w, o) in &row_walk {
                 let now: Vec<String> = here
                     .iter()
@@ -12125,8 +12207,10 @@ mod tests {
                 let Some(block) = flog.leader_block(n, who as i64) else {
                     continue;
                 };
-                let t = crate::diff::leader::theirs(&block);
-                let mine = crate::diff::leader::rows(&loaded, &built, who);
+                let mut t = crate::diff::leader::theirs(&block);
+                t.extend(crate::diff::leader::region_theirs(&block));
+                let mut mine = crate::diff::leader::rows(&loaded, &built, who);
+                mine.extend(crate::diff::leader::region_rows(&built, who));
                 for (k, v) in &mine {
                     let Some(&y) = t.get(k) else {
                         missing.insert(k.clone());
@@ -12168,8 +12252,13 @@ mod tests {
         }
         assert_eq!(blocks, (TAIL - FIRST + 1) as usize, "the walk is whole");
         // **The leader half is whole**: every key `leader::rows` carries is
-        // on run143's record, both leaders, all 360 blocks.
-        assert_eq!(leader_rows, 758_160, "360 blocks x 2 leaders x 1,053 keys");
+        // on run143's record, both leaders, all 360 blocks — and, since item
+        // 592, the census's 21 per-region arrays (`leader::REGION_ARRAYS`,
+        // 1,531 keys a leader), which no widening had read.
+        assert_eq!(
+            leader_rows, 1_860_480,
+            "360 blocks x 2 leaders x (1,053 + 1,531) keys"
+        );
         assert_eq!(missing, BTreeSet::new(), "no key unprinted");
         // **The old word's blocks, 10397..10399, and the move's value
         // diff** (item 588). Until the fix they held run99's eight rows:
@@ -12264,6 +12353,40 @@ mod tests {
             [(10585, 0, 4, false, true)],
             "a figure moves on one side only"
         );
+        // **The census under the word, 10576, both directions** (item 592).
+        // Player 1's sweep runs on sim-frame 10575, and it counts one
+        // citizen differently: `1/31`, which boarded the transport barge
+        // `1/36` on 10486 on both sides and rides it to (40344, 22680). The
+        // original counts a citizen off the map through its container: the
+        // barge's tile gives its region (5 in the dump's numbering), and a
+        // sea-domain container whose order is a move makes it an `xport`
+        // peasant in the region of the move's point — never a free one.
+        // This crate counted it on the map where it boarded: free, in
+        // region 11, the home region. No unit's container parts anywhere in
+        // the window (`inside`, the outermost container both sides).
+        let census: Vec<String> = firsts
+            .iter()
+            .filter(|(_, (f, _))| *f == WORD_BLOCK - 7)
+            .map(|((w, o, what), (f, row))| format!("{f} {w}/{o} {what}: {row}"))
+            .collect();
+        assert_eq!(
+            census,
+            [
+                "10576 1/-1 leader:free_peasants: ours 2 theirs 1",
+                "10576 1/-1 leader:reg_active[11]: ours 27 theirs 26",
+                "10576 1/-1 leader:reg_active[5]: ours 0 theirs 1",
+                "10576 1/-1 leader:reg_free_peasants[11]: ours 1 theirs 0",
+                "10576 1/-1 leader:reg_peasants[11]: ours 14 theirs 13",
+                "10576 1/-1 leader:reg_xport_peasants[5]: ours 0 theirs 1",
+                "10576 1/-1 leader:xport_peasants: ours 1 theirs 2",
+                "10576 1/2000 city:free: ours 1 theirs 0",
+            ],
+            "the peasant census"
+        );
+        assert!(
+            !firsts.keys().any(|k| k.2 == "inside"),
+            "every unit's container agrees"
+        );
         // **The floor under the word**: 254 keys standing on the window's
         // first block (the human leader's census, the site list, the make
         // list's `city` shift, the seated Scholars' birth records and the
@@ -12276,9 +12399,17 @@ mod tests {
         // speed and `1/36`'s form and a path flag on 10486; and the
         // peasant census on 10576. Until item 588 the Bark `1/34`'s walk
         // stood here too, and the floor was 269/284/830.
+        //
+        // Item 592's widening added 24: on the first block the human
+        // leader's per-region census (18 rows: `reg_active`, `reg_cities`,
+        // `reg_gather_slots`, `reg_gatherers`, `reg_land` and `reg_peasants`
+        // of its home region, and `strategy` over twelve regions — this
+        // crate keeps no census for the human) and player 1's `reg_land`
+        // of its home region, 91 against 90; and the five region rows of
+        // the census parting on 10576, below.
         let under = firsts.values().filter(|(f, _)| *f < WORD_BLOCK - 2).count();
         let first = firsts.values().filter(|(f, _)| *f == FIRST).count();
-        assert_eq!((first, under, firsts.len()), (254, 285, 748), "the floor");
+        assert_eq!((first, under, firsts.len()), (273, 309, 772), "the floor");
     }
 
     #[test]
